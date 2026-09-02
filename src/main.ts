@@ -56,7 +56,7 @@ class Game {
     this.ctrl.onStep = () => this.audio.sfx('step');
     this.sim.onHit = (b, pos) => { this.audio.sfx(b.ownerId === world.playerId ? 'hurt' : 'hit'); this.spawnHitParticles(pos); };
     this.sim.onSpeech = (p, t) => { const b = world.primaryBody(p.id); const pb = world.primaryBody(world.playerId)!; if (b && Math.hypot(b.pos.x - pb.pos.x, b.pos.z - pb.pos.z) < 12) this.audio.sfx('talk'); };
-    this.dialogue.onClose = () => { this.inter.enabled = true; this.ctrl.enabled = true; if (!document.pointerLockElement) this.renderer.domElement.requestPointerLock(); };
+    this.dialogue.onClose = () => { this.inter.enabled = true; this.ctrl.enabled = true; if (!document.pointerLockElement) void this.renderer.domElement.requestPointerLock().catch(() => { /* embedded clients may reject pointer lock */ }); };
     this.dialogue.onOption = () => this.audio.sfx('talk');
     this.inspector.onFollow = (id) => { this.followId = id; if (id) { this.ctrl.thirdPerson = true; } };
     this.inspector.onVisit = (id) => {
