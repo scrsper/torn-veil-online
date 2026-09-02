@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Infinite RPG — Ashford Vale</title>
+<style>
+  :root { --panel: rgba(14, 16, 22, 0.86); --line: rgba(255,255,255,0.08); --accent: #e8b860; --text: #e8e4d8; --dim: #9a968c; --red: #e05a4a; --green: #7ac07a; --blue: #7aa8e0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0c12; font-family: "Segoe UI", system-ui, -apple-system, sans-serif; color: var(--text); }
+  #app { position: fixed; inset: 0; }
+  canvas { display: block; }
+  #ui { position: fixed; inset: 0; pointer-events: none; }
+  #ui > * { pointer-events: none; }
+  .panel { position: absolute; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; backdrop-filter: blur(6px); box-shadow: 0 8px 30px rgba(0,0,0,0.4); font-size: 12.5px; line-height: 1.45; }
+  #crosshair { position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; }
+  #crosshair::before, #crosshair::after { content: ""; position: absolute; background: rgba(255,255,255,0.75); }
+  #crosshair::before { left: 6px; top: 0; width: 2px; height: 14px; } #crosshair::after { top: 6px; left: 0; height: 2px; width: 14px; }
+  #target { position: absolute; left: 50%; top: 54%; transform: translateX(-50%); text-align: center; text-shadow: 0 1px 3px #000; font-size: 14px; }
+  #target .name { color: var(--accent); font-weight: 600; font-size: 16px; } #target .hint { color: #ddd; font-size: 12px; opacity: 0.9; }
+  #topbar { position: absolute; left: 12px; top: 12px; padding: 8px 12px; min-width: 220px; }
+  #topbar .time { font-size: 18px; font-weight: 600; color: var(--accent); } #topbar .sub { color: var(--dim); }
+  #vitals { position: absolute; left: 12px; bottom: 12px; padding: 8px 12px; width: 260px; }
+  .bar { height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; margin: 4px 0 8px; } .bar > i { display: block; height: 100%; background: var(--red); }
+  #inv { margin-top: 6px; color: var(--dim); } #inv b { color: var(--text); font-weight: 500; }
+  #messages { position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%); text-align: center; font-size: 14px; text-shadow: 0 1px 3px #000; }
+  #messages div { opacity: 0; animation: msg 4s forwards; } @keyframes msg { 0% { opacity: 0; transform: translateY(6px);} 8% { opacity: 1; transform: none;} 80% { opacity: 1;} 100% { opacity: 0; } }
+  #hints { position: absolute; right: 12px; bottom: 12px; padding: 8px 12px; color: var(--dim); font-size: 11.5px; max-width: 300px; } #hints b { color: var(--text); font-weight: 500; }
+  #bubbles { position: absolute; inset: 0; overflow: hidden; }
+  .bubble { position: absolute; transform: translate(-50%, -100%); background: rgba(255,255,255,0.92); color: #1a1a1a; padding: 4px 8px; border-radius: 8px; font-size: 12px; max-width: 220px; white-space: normal; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+  .bubble::after { content: ""; position: absolute; left: 50%; bottom: -5px; margin-left: -5px; border: 5px solid transparent; border-top-color: rgba(255,255,255,0.92); border-bottom: 0; }
+  .label { position: absolute; transform: translate(-50%, -100%); color: #fff; font-size: 11px; text-shadow: 0 1px 3px #000, 0 0 6px rgba(0,0,0,0.6); white-space: nowrap; opacity: 0.85; }
+  .label.sel { color: var(--accent); font-weight: 600; }
+  /* dialogue */
+  #dialogue { left: 50%; bottom: 40px; transform: translateX(-50%); width: min(720px, 92vw); padding: 14px 18px; pointer-events: auto; display: none; }
+  #dialogue .who { color: var(--accent); font-weight: 600; font-size: 15px; margin-bottom: 6px; } #dialogue .who span { color: var(--dim); font-weight: 400; font-size: 12px; margin-left: 8px; }
+  #dialogue .lines { font-size: 14px; margin-bottom: 10px; } #dialogue .lines p { margin: 4px 0; }
+  #dialogue .opt { display: block; width: 100%; text-align: left; background: rgba(255,255,255,0.04); border: 1px solid var(--line); color: var(--text); padding: 6px 10px; margin: 3px 0; border-radius: 5px; cursor: pointer; font-size: 13px; }
+  #dialogue .opt:hover { background: rgba(232,184,96,0.15); border-color: var(--accent); } #dialogue .opt b { color: var(--accent); margin-right: 8px; }
+  /* inspector */
+  #inspector { right: 12px; top: 12px; width: min(460px, 46vw); max-height: calc(100vh - 24px); display: none; flex-direction: column; pointer-events: auto; }
+  #inspector.open { display: flex; }
+  #inspector .head { padding: 8px 12px; border-bottom: 1px solid var(--line); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #inspector select, #inspector button, #events button, #events select { background: #1c2030; color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 3px 6px; font-size: 12px; cursor: pointer; }
+  #inspector button.on, #events button.on { border-color: var(--accent); color: var(--accent); }
+  #inspector .tabs { display: flex; flex-wrap: wrap; gap: 2px; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  #inspector .tabs button { padding: 3px 7px; } #inspector .body { overflow: auto; padding: 10px 12px; flex: 1; min-height: 0; }
+  #inspector h4 { margin: 8px 0 4px; color: var(--accent); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  #inspector table { width: 100%; border-collapse: collapse; } #inspector td { padding: 2px 4px; vertical-align: top; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  #inspector td:first-child { color: var(--dim); white-space: nowrap; width: 34%; }
+  .kv { display: grid; grid-template-columns: 110px 1fr; gap: 2px 8px; } .kv div:nth-child(odd) { color: var(--dim); }
+  .meter { display: inline-block; width: 80px; height: 7px; background: rgba(255,255,255,0.08); border-radius: 3px; vertical-align: middle; margin-right: 6px; overflow: hidden; } .meter i { display: block; height: 100%; background: var(--blue); }
+  .meter.neg i { background: var(--red); } .meter.pos i { background: var(--green); }
+  .src { color: var(--dim); font-size: 11px; } .src.witnessed { color: var(--green); } .src.told { color: var(--blue); } .src.heard { color: #d0b070; } .src.inferred { color: #c090e0; } .src.prior { color: #888; }
+  .mem { padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05); } .mem .t { color: var(--dim); font-size: 11px; }
+  .cand { padding: 3px 6px; margin: 2px 0; border-left: 3px solid rgba(255,255,255,0.1); } .cand.chosen { border-color: var(--accent); background: rgba(232,184,96,0.08); }
+  .cand .r { color: var(--dim); font-size: 11px; }
+  .chain { font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; } .chain .ev { padding: 2px 0 2px 0; cursor: pointer; } .chain .ev:hover { color: var(--accent); } .chain .depth { color: var(--dim); }
+  /* events */
+  #events { left: 12px; top: 90px; width: min(440px, 44vw); max-height: 46vh; display: none; flex-direction: column; pointer-events: auto; }
+  #events.open { display: flex; }
+  #events .head { padding: 6px 10px; border-bottom: 1px solid var(--line); display: flex; gap: 4px; align-items: center; flex-wrap: wrap; } #events .head b { color: var(--accent); margin-right: 6px; }
+  #events .list { overflow: auto; flex: 1; min-height: 0; padding: 4px 8px; font-size: 11.5px; font-family: ui-monospace, Menlo, monospace; }
+  .ev-row { padding: 2px 4px; border-left: 3px solid #444; margin: 2px 0; cursor: pointer; white-space: pre-wrap; } .ev-row:hover { background: rgba(255,255,255,0.05); }
+  .ev-row.world { border-color: var(--red); } .ev-row.social { border-color: var(--blue); } .ev-row.cognition { border-color: #a080d0; } .ev-row.history { border-color: var(--accent); }
+  .ev-row .t { color: var(--dim); } .ev-row.hl { background: rgba(232,184,96,0.15); }
+  #chainpane { left: 12px; top: calc(90px + 46vh + 8px); width: min(440px, 44vw); max-height: calc(54vh - 130px); overflow: auto; padding: 8px 10px; display: none; pointer-events: auto; }
+  #chainpane.open { display: block; } #chainpane b { color: var(--accent); }
+  #start { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, rgba(20,24,40,0.75), rgba(5,6,10,0.92)); pointer-events: auto; }
+  #start .card { max-width: 640px; padding: 28px 32px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+  #start h1 { margin: 0 0 4px; color: var(--accent); font-weight: 600; letter-spacing: 0.02em; } #start .sub { color: var(--dim); margin-bottom: 14px; }
+  #start p { font-size: 13.5px; line-height: 1.5; } #start button { background: var(--accent); color: #1a1408; border: 0; padding: 10px 18px; font-size: 15px; font-weight: 600; border-radius: 6px; cursor: pointer; margin-right: 10px; }
+  #start button.alt { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  #start .keys { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px; font-size: 12.5px; color: var(--dim); margin: 12px 0 18px; } #start .keys b { color: var(--text); font-weight: 500; }
+  #loading { color: var(--dim); font-size: 12px; margin-top: 10px; }
+  #damage { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 50%, rgba(200,30,20,0.55)); opacity: 0; transition: opacity 0.2s; }
+</style>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="ui">
+    <div id="damage"></div>
+    <div id="bubbles"></div>
+    <div id="crosshair"></div>
+    <div id="target"></div>
+    <div id="topbar" class="panel"><div class="time">—</div><div class="sub">—</div></div>
+    <div id="vitals" class="panel"><div>Health</div><div class="bar"><i style="width:100%"></i></div><div id="inv"></div></div>
+    <div id="messages"></div>
+    <div id="hints" class="panel"><b>WASD</b> move · <b>Shift</b> sprint · <b>Space</b> jump · <b>V</b> view<br><b>E</b>/RMB talk · pick up · use · <b>LMB</b> attack · <b>Q</b> drop<br><b>F</b> inspect target · <b>F3</b> inspector · <b>F4</b> event feed<br><b>T</b> time ×1/×4/×16 · <b>P</b> pause · <b>F5</b> save · <b>Esc</b> mouse</div>
+    <div id="events" class="panel"></div>
+    <div id="chainpane" class="panel"></div>
+    <div id="inspector" class="panel"></div>
+    <div id="dialogue" class="panel"></div>
+    <div id="start"><div class="card">
+      <h1>Infinite RPG</h1><div class="sub">Ashford Vale · a living voxel village</div>
+      <p>You arrive on the west road. Thirty-two people live here. They wake, work, eat, gossip, pray, drink and sleep whether or not you are watching. They know only what they have seen, heard, or been told. What you do here will be remembered by those who witnessed it — and by whoever they tell.</p>
+      <div class="keys"><div><b>WASD / Shift / Space</b> move, sprint, jump</div><div><b>Mouse</b> look (click to capture)</div><div><b>E</b> or right-click: talk / take / use</div><div><b>Left-click</b> attack with what you hold</div><div><b>F</b> inspect the person you look at</div><div><b>F3 / F4</b> simulation inspector / event feed</div><div><b>T</b> time speed · <b>P</b> pause · <b>V</b> third person</div><div><b>F5</b> save (also autosaves every 30 s)</div></div>
+      <div><button id="btn-continue">Continue</button><button id="btn-new" class="alt">New world</button></div>
+      <div id="loading"></div>
+    </div></div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
