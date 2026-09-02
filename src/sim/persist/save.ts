@@ -4,7 +4,7 @@ import { generateVillage } from '../world/village';
 import type { Person, Body, Item, Place, WorldEvent } from '../core/types';
 
 const KEY = 'infinite-rpg-save-v1';
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
@@ -44,7 +44,12 @@ export function eventsForPersistence(world: World): WorldEvent[] {
 }
 
 export function save(world: World): boolean { try { localStorage.setItem(KEY, serialize(world)); return true; } catch (e) { console.warn('save failed', e); return false; } }
-export function hasSave(): boolean { try { return !!localStorage.getItem(KEY); } catch { return false; } }
+export function hasSave(): boolean {
+  try {
+    const raw = localStorage.getItem(KEY); if (!raw) return false;
+    return JSON.parse(raw).version === SAVE_VERSION;
+  } catch { return false; }
+}
 export function clearSave(): void { try { localStorage.removeItem(KEY); } catch { /* ignore */ } }
 
 export function load(): { world: World; gen: ReturnType<typeof generateVillage> } | null {
@@ -71,6 +76,9 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     if (data.diffs?.length) { world.grid.recording = false; world.grid.applyDiffs(data.diffs); world.grid.initCaches(); world.nav.rebuildAll(); world.grid.dirtyChunks.clear(); }
     if (data.doors?.length) world.grid.restoreDoorStates(data.doors);
     world.grid.recording = true;
+    // Generated entity ids are part of the save schema. Refuse a malformed/incompatible
+    // overlay rather than booting a world whose player has no physical manifestation.
+    if (!world.person(world.playerId) || !world.primaryBody(world.playerId)) return null;
     return { world, gen };
   } catch (e) { console.warn('load failed', e); return null; }
 }

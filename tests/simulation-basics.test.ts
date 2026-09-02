@@ -6,6 +6,7 @@ import { remember } from '../src/sim/mind/memory';
 import { adjustRel, getRel } from '../src/sim/mind/relationships';
 import { newWorld } from '../src/sim/persist/save';
 import { makeItem } from '../src/sim/world/factory';
+import { SECONDS_PER_DAY, SECONDS_PER_HOUR } from '../src/sim/core/time';
 import { addPerson, createTestWorld, step, v } from './helpers/world';
 
 describe('existing core simulation', () => {
@@ -24,6 +25,22 @@ describe('existing core simulation', () => {
     expect(garrick.mind.goal?.type).toBe('work');
     expect(world.distance2d(start, world.primaryBody(garrick.id)!.pos)).toBeGreaterThan(1);
     expect(world.events.some(event => event.type === 'goal_changed' && event.actor === garrick.id)).toBe(true);
+  });
+
+  it('does not repeatedly complete meals while already satiated', () => {
+    const { world, gen } = newWorld(1337);
+    const sim = new Simulation(world);
+    const brigid = gen.people.brigid;
+    const body = world.primaryBody(brigid.id)!;
+    const home = world.place(brigid.homeId)!;
+    world.clock.worldSeconds = 100 * SECONDS_PER_DAY + 9 * SECONDS_PER_HOUR + 20 * 60;
+    body.pos = { ...home.inside }; brigid.needs.hunger = 0.01;
+
+    for (let elapsed = 0; elapsed < 20; elapsed += 0.05) {
+      const worldDt = world.clock.advance(0.05); world.physicalTime += 0.05; sim.step(0.05, worldDt);
+    }
+
+    expect(world.events.filter(event => event.type === 'meal' && event.actor === brigid.id)).toHaveLength(1);
   });
 
   it('keeps memories structured and bounded', () => {

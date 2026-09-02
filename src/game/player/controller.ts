@@ -5,7 +5,7 @@ import { blockDef } from '../../sim/physical/blocks';
 
 /** First/third person controller with AABB voxel collision. Drives the player's Body in the canonical world. */
 export class PlayerController {
-  yaw = Math.PI; pitch = 0; thirdPerson = false; locked = false; keys = new Set<string>();
+  yaw = -Math.PI / 2; pitch = 0; thirdPerson = false; locked = false; keys = new Set<string>();
   vel = new THREE.Vector3(); onGround = false; sprint = false; eyeHeight = 1.62; width = 0.3; height = 1.8;
   bobPhase = 0; camDist = 4.5; enabled = true; lastStep = 0; onStep: (() => void) | null = null;
   constructor(private world: World, public camera: THREE.PerspectiveCamera, private dom: HTMLElement) {

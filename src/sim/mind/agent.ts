@@ -194,8 +194,14 @@ export class Simulation {
     // ---- needs
     const n = p.needs; const night = hour >= 22 || hour < 5;
     G('sleep', clamp(n.energy * 0.9 + (sched?.activity === 'sleep' ? 0.35 : 0) + (night ? 0.15 : -0.1)), [`energy need ${n.energy.toFixed(2)}`, sched?.activity === 'sleep' ? 'it is my time to sleep' : ''], { targetPlace: p.homeId ?? undefined });
-    const mealTime = sched?.activity === 'eat';
-    G('eat', clamp(n.hunger * 0.9 + (mealTime ? 0.3 : -0.1)), [`hunger ${n.hunger.toFixed(2)}`, mealTime ? 'meal time' : ''], { targetPlace: (sched?.activity === 'eat' && sched.placeId) ? sched.placeId : (p.homeId ?? undefined) });
+    let ateRecently = false;
+    for (let i = w.events.length - 1; i >= 0; i--) {
+      const event = w.events[i]; if (now - event.tick >= 45 * 60) break;
+      if (event.type === 'meal' && event.actor === p.id) { ateRecently = true; break; }
+    }
+    const mealTime = sched?.activity === 'eat' && !ateRecently;
+    const satiatedPenalty = ateRecently && n.hunger < 0.2 ? 0.35 : 0;
+    G('eat', clamp(n.hunger * 0.9 + (mealTime ? 0.3 : -0.1) - satiatedPenalty), [`hunger ${n.hunger.toFixed(2)}`, mealTime ? 'meal time' : ateRecently ? 'recently ate' : ''], { targetPlace: (sched?.activity === 'eat' && sched.placeId) ? sched.placeId : (p.homeId ?? undefined) });
     // ---- schedule
     if (sched && !['sleep', 'eat'].includes(sched.activity)) {
       const rainingNow = w.weather.kind === 'rain' || w.weather.kind === 'storm';
@@ -380,7 +386,7 @@ export class Simulation {
   }
   private pickGossip(p: Person, other: Person): KnowledgeItem | null {
     const w = this.world; const r = getRel(p, other.id); if (r.trust < -0.3) return null;
-    const cands = Object.values(p.knowledge).filter(k => k.kind === 'event' && !k.sharedWith.includes(other.id) && k.claim.actor !== other.id && k.source.from !== other.id && (w.now - k.learnedAt < 86400 * 4 || isCrime(k.claim.type)) && !other.knowledge[k.key]);
+    const cands = Object.values(p.knowledge).filter(k => k.kind === 'event' && ((k.claim.significance ?? 0.3) >= 0.2 || isCrime(k.claim.type)) && !k.sharedWith.includes(other.id) && k.claim.actor !== other.id && k.source.from !== other.id && (w.now - k.learnedAt < 86400 * 4 || isCrime(k.claim.type)) && !other.knowledge[k.key]);
     if (!cands.length) return null;
     cands.sort((a, b) => (b.claim.significance ?? 0.3) * (isCrime(b.claim.type) ? 1.5 : 1) - (a.claim.significance ?? 0.3) * (isCrime(a.claim.type) ? 1.5 : 1));
     const best = cands[0]; if ((best.claim.significance ?? 0.3) < 0.2 && p.traits.sociability < 0.6) return null; return best;

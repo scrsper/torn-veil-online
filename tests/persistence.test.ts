@@ -10,6 +10,14 @@ function advance(world: ReturnType<typeof newWorld>['world'], sim: Simulation, s
 }
 
 describe('save round trips', () => {
+  it('rejects checkpoint-era and malformed save overlays cleanly', () => {
+    const { world } = newWorld(1337);
+    const stale = JSON.parse(serialize(world)); stale.version -= 1;
+    expect(deserialize(JSON.stringify(stale))).toBeNull();
+    const malformed = JSON.parse(serialize(world)); malformed.playerId = 'missing-player';
+    expect(deserialize(JSON.stringify(malformed))).toBeNull();
+  });
+
   it('preserves witnessed consequences, dynamic trade items, events, and door state', () => {
     const { world, gen } = newWorld(1337);
     const sim = new Simulation(world);

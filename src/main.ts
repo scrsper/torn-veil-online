@@ -15,6 +15,8 @@ import { Inspector } from './game/ui/inspector';
 import { AudioSys } from './game/audio/audio';
 import type { Person } from './sim/core/types';
 
+declare global { interface Window { game?: Game } }
+
 const app = document.getElementById('app')!;
 const startEl = document.getElementById('start')!; const loading = document.getElementById('loading')!;
 (document.getElementById('btn-continue') as HTMLButtonElement).disabled = !hasSave();
@@ -27,7 +29,7 @@ async function boot(fresh: boolean): Promise<void> {
   const t0 = performance.now();
   const res = (!fresh && load()) || newWorld(1337);
   loading.textContent = `World ready in ${Math.round(performance.now() - t0)} ms. Building meshes…`; await new Promise(r => setTimeout(r, 30));
-  game = new Game(res.world); (window as any).game = game;
+  game = new Game(res.world); window.game = game;
   startEl.style.display = 'none'; game.start();
 }
 
@@ -57,6 +59,26 @@ class Game {
     this.dialogue.onClose = () => { this.inter.enabled = true; this.ctrl.enabled = true; if (!document.pointerLockElement) this.renderer.domElement.requestPointerLock(); };
     this.dialogue.onOption = () => this.audio.sfx('talk');
     this.inspector.onFollow = (id) => { this.followId = id; if (id) { this.ctrl.thirdPerson = true; } };
+    this.inspector.onVisit = (id) => {
+      const target = world.primaryBody(id); if (!target) { this.hud.message(`${world.nameOf(id)} has no present body.`); return; }
+      const offsets: Array<readonly [number, number]> = [];
+      for (let dx = -3; dx <= 3; dx++) for (let dz = -3; dz <= 3; dz++) {
+        const distance = Math.hypot(dx, dz); if (distance >= 1.4 && distance <= 3.1) offsets.push([dx, dz]);
+      }
+      offsets.sort((a, b) => Math.hypot(a[0], a[1]) - Math.hypot(b[0], b[1]));
+      const destination = offsets.map(([dx, dz]) => {
+        const x = Math.floor(target.pos.x + dx), z = Math.floor(target.pos.z + dz), y = world.nav.floorY(x, z);
+        return { x, y, z };
+      }).find(p => p.y >= 0 && world.nav.isWalkable(p.x, p.z) && world.grid.lineOfSight(
+        { x: p.x + 0.5, y: p.y + this.ctrl.eyeHeight, z: p.z + 0.5 },
+        { x: target.pos.x, y: target.pos.y + 0.9, z: target.pos.z }, 4.2,
+      ));
+      if (!destination) { this.hud.message(`No safe position near ${world.nameOf(id)}.`); return; }
+      const pos = { x: destination.x + 0.5, y: destination.y, z: destination.z + 0.5 };
+      this.followId = null; this.inspector.follow = false; this.ctrl.thirdPerson = false; this.ctrl.teleport(pos);
+      this.ctrl.yaw = Math.atan2(-(target.pos.x - pos.x), -(target.pos.z - pos.z));
+      this.inspector.toggle(false); this.hud.message(`Moved near ${world.nameOf(id)}. This is an inspector test aid.`);
+    };
     this.inspector.onShowChain = (id) => { if (!this.feed.open) this.feed.toggle(); this.feed.showChain(id); };
     this.inspector.onFocusEvents = (id) => { if (!this.feed.open) this.feed.toggle(); this.feed.setFocus(id); };
     window.addEventListener('keydown', (e) => {

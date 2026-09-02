@@ -14,7 +14,7 @@ export class Interaction {
   constructor(private world: World, private sim: Simulation, private ctrl: PlayerController, dom: HTMLElement) {
     dom.addEventListener('mousedown', (e) => { if (!this.ctrl.locked || !this.enabled) return; if (e.button === 0) this.attack(); else if (e.button === 2) this.interact(); });
     dom.addEventListener('contextmenu', e => e.preventDefault());
-    window.addEventListener('keydown', (e) => { if (!this.enabled || (e.target as HTMLElement)?.tagName === 'INPUT') return; if (e.code === 'KeyE') this.interact(); if (e.code === 'KeyQ') this.drop(); if (e.code === 'KeyF' && this.target?.kind === 'body' && this.target.person) this.onInspect?.(this.target.person); });
+    window.addEventListener('keydown', (e) => { if (!this.enabled || (e.target as HTMLElement)?.tagName === 'INPUT') return; if (e.code === 'KeyE') this.interact(); if (e.code === 'KeyQ') this.drop(); if (e.code === 'KeyX') this.attack(); if (e.code === 'KeyF' && this.target?.kind === 'body' && this.target.person) this.onInspect?.(this.target.person); });
   }
   get player(): Person { return this.world.person(this.world.playerId)!; }
   update(): void {
@@ -24,7 +24,18 @@ export class Interaction {
     const hit = w.grid.raycastBlock(o, { x: dir.x, y: dir.y, z: dir.z }, 4.2); const blockD = hit ? hit.dist : 4.2;
     for (const b of w.bodies()) { if (b.ownerId === w.playerId || !b.present) continue; const c = new THREE.Vector3(b.pos.x, b.pos.y + (b.shape === 'chicken' ? 0.3 : 0.9), b.pos.z); const toC = c.clone().sub(eye); const d = toC.length(); if (d > bestD || d > blockD + 0.6) continue; const proj = toC.dot(dir); if (proj < 0) continue; const perp = toC.clone().sub(dir.clone().multiplyScalar(proj)).length(); if (perp < (b.shape === 'chicken' ? 0.4 : 0.7) + d * 0.05) { bestD = d; best = { kind: 'body', body: b, person: w.person(b.ownerId) ?? null, dist: d }; } }
     for (const it of w.items()) { if (!it.pos || it.holderId) continue; const c = new THREE.Vector3(it.pos.x, it.pos.y + 0.15, it.pos.z); const toC = c.clone().sub(eye); const d = toC.length(); if (d > bestD || d > blockD + 0.4) continue; const proj = toC.dot(dir); if (proj < 0) continue; const perp = toC.clone().sub(dir.clone().multiplyScalar(proj)).length(); if (perp < 0.45 + d * 0.04) { bestD = d; best = { kind: 'item', item: it, dist: d }; } }
-    if (!best && hit) { const id = w.grid.get(hit.x, hit.y, hit.z); const def = blockDef(id); if (id !== B.Air && id !== B.Grass && id !== B.Dirt && id !== B.Stone && id !== B.Cobble && id !== B.Path && id !== B.Planks && id !== B.Sand) best = { kind: 'block', x: hit.x, y: hit.y, z: hit.z, name: def.name, dist: hit.dist }; }
+    // A dropped object at the player's feet should remain usable even when the camera is
+    // level. Exact ray targeting still wins; this fallback only covers nearby visible items.
+    if (!best) {
+      const body = this.ctrl.body;
+      for (const it of w.items()) {
+        if (!it.pos || it.holderId) continue;
+        const d = Math.hypot(it.pos.x - body.pos.x, it.pos.y - body.pos.y, it.pos.z - body.pos.z);
+        if (d >= bestD || d > 1.7 || !w.grid.lineOfSight(o, { x: it.pos.x, y: it.pos.y + 0.15, z: it.pos.z }, 2.4)) continue;
+        bestD = d; best = { kind: 'item', item: it, dist: d };
+      }
+    }
+    if (!best && hit) { const id = w.grid.get(hit.x, hit.y, hit.z); const def = blockDef(id); if (id !== B.Air && id !== B.Grass && id !== B.Dirt && id !== B.Stone && id !== B.Cobble && id !== B.Path && id !== B.Planks && id !== B.Sand) best = { kind: 'block', x: hit.x, y: hit.y, z: hit.z, name: id === B.Door ? `${w.isDoorOpen({ x: hit.x, y: hit.y, z: hit.z }) ? 'open' : 'closed'} door` : def.name, dist: hit.dist }; }
     this.target = best;
   }
   attack(): void {
