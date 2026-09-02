@@ -46,9 +46,9 @@ export class Navigator {
   /** A* path from a to b in block coordinates. Returns list of cell centers (y = floor). */
   findPath(a: Vec3, b: Vec3, maxIter = 12000): Vec3[] | null {
     const g = this.grid; const W = g.W, D = g.D;
-    const sx = Math.floor(a.x), sz = Math.floor(a.z); let tx = Math.floor(b.x), tz = Math.floor(b.z);
+    let sx = Math.floor(a.x), sz = Math.floor(a.z), tx = Math.floor(b.x), tz = Math.floor(b.z);
     if (!this.isWalkable(tx, tz)) { const alt = this.nearestWalkable(tx, tz, 4); if (!alt) return null; tx = alt.x; tz = alt.z; }
-    if (!this.isWalkable(sx, sz)) { /* try anyway from nearest */ const alt = this.nearestWalkable(sx, sz, 3); if (!alt) return null; }
+    if (!this.isWalkable(sx, sz)) { const alt = this.nearestWalkable(sx, sz, 3); if (!alt) return null; sx = alt.x; sz = alt.z; }
     const si = sx * D + sz, ti = tx * D + tz;
     if (si === ti) return [{ x: tx + 0.5, y: this.floorY(tx, tz), z: tz + 0.5 }];
     const gScore = new Map<number, number>(); const came = new Map<number, number>(); const closed = new Set<number>();

@@ -96,9 +96,27 @@ export class World {
   compactEvents(keep = 4000): void {
     if (this.events.length <= keep * 1.5) return;
     const cutoff = this.events.length - keep;
-    const kept: WorldEvent[] = [];
-    for (let i = 0; i < this.events.length; i++) { const e = this.events[i]; if (i >= cutoff || e.significance >= 0.5 || e.category === 'history' || e.category === 'world') kept.push(e); else this.eventIndex.delete(e.id); }
+    const previousIndex = new Map(this.eventIndex);
+    const kept = this.events.filter((e, i) => i >= cutoff || e.significance >= 0.5 || e.category === 'history' || e.category === 'world');
+    const keptIds = new Set(kept.map(e => e.id));
+    const survivingCauses = (id: EventId, visiting = new Set<EventId>()): EventId[] => {
+      if (keptIds.has(id)) return [id];
+      if (visiting.has(id)) return [];
+      const removed = previousIndex.get(id); if (!removed) return [];
+      const next = new Set(visiting); next.add(id);
+      return removed.causes.flatMap(cause => survivingCauses(cause, next));
+    };
+    for (const event of kept) {
+      event.causes = [...new Set(event.causes.flatMap(cause => survivingCauses(cause)))];
+      event.effects = [];
+    }
     this.events = kept;
+    this.eventIndex = new Map(kept.map(event => [event.id, event]));
+    for (const event of kept) for (const cause of event.causes) {
+      const parent = this.eventIndex.get(cause);
+      if (parent && !parent.effects.includes(event.id)) parent.effects.push(event.id);
+    }
+    this.pendingStimuli = this.pendingStimuli.filter(event => keptIds.has(event.id));
   }
   distance(a: Vec3, b: Vec3): number { return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z); }
   distance2d(a: Vec3, b: Vec3): number { return Math.hypot(a.x - b.x, a.z - b.z); }

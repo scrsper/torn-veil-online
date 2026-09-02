@@ -91,34 +91,35 @@ export class Simulation {
     if (e.perceivedBy.some(x => x.who === p.id)) return;
     e.perceivedBy.push({ who: p.id, how, tick: w.now });
     if (e.type === 'told') { if (e.target !== p.id) return; return; } // handled directly in tell()
-    const perc = w.emit('perceived', { actor: p.id, target: e.actor, causes: [e.id], significance: e.significance * 0.5, data: { how, eventType: e.type, eventId: e.id }, summary: `${p.name} ${how} ${e.summary}` });
     const saw = how === 'saw';
     const claim = eventClaim(w, e, saw);
-    const k = learn(w, p, { key: `ev:${e.id}`, kind: 'event', claim, confidence: saw ? 1 : 0.6, source: { type: saw ? 'witnessed' : 'heard', viaEvent: perc.id }, cause: perc.id, summary: e.summary });
-    const isVictim = e.target === p.id;
-    const victimClose = e.target ? isClose(p, e.target) : false;
+    const claimSummary = describeClaim(w, { kind: 'event', claim } as KnowledgeItem);
+    const perc = w.emit('perceived', { actor: p.id, target: saw ? claim.actor : undefined, causes: [e.id], significance: e.significance * 0.5, data: { how, eventType: e.type, eventId: e.id, actorKnown: !!claim.actor }, summary: `${p.name} ${how} ${claimSummary}` });
+    const k = learn(w, p, { key: `ev:${e.id}`, kind: 'event', claim, confidence: saw ? 1 : 0.6, source: { type: saw ? 'witnessed' : 'heard', viaEvent: perc.id }, cause: perc.id, summary: claimSummary });
+    const isVictim = claim.target === p.id;
+    const victimClose = claim.target ? isClose(p, claim.target) : false;
     const sig = e.significance * (isVictim ? 1.4 : victimClose ? 1.2 : 1) * (saw ? 1 : 0.7);
     const valence = isCrime(e.type) ? -0.8 : e.type === 'gift' || e.type === 'returned_item' || e.type === 'heal' ? 0.6 : 0;
-    remember(w, p, { type: e.type, summary: saw ? `I saw: ${e.summary}` : `I heard: ${e.summary}`, eventId: e.id, entities: [e.actor, e.target, e.item].filter(Boolean) as string[], significance: clamp(sig), valence, source: { type: saw ? 'witnessed' : 'heard', viaEvent: perc.id }, placeId: e.placeId });
+    remember(w, p, { type: e.type, summary: saw ? `I saw: ${claimSummary}` : `I heard: ${claimSummary}`, eventId: e.id, entities: [claim.actor, claim.target, claim.item].filter(Boolean) as string[], significance: clamp(sig), valence, source: { type: saw ? 'witnessed' : 'heard', viaEvent: perc.id }, placeId: claim.placeId });
     if (p.controlled) return;
     this.reactTo(p, body, e, perc.id, saw, isVictim, victimClose, k);
   }
 
   private reactTo(p: Person, body: Body, e: WorldEvent, cause: string, saw: boolean, isVictim: boolean, victimClose: boolean, k: KnowledgeItem | null): void {
-    const w = this.world; const actor = e.actor;
-    if (isCrime(e.type) && actor && actor !== p.id) {
-      const sev = crimeSeverity(e.type); const actorP = w.person(actor);
-      const victimDisp = e.target ? disposition(p, e.target) : 0;
+    const w = this.world; const claim = k?.claim ?? eventClaim(w, e, saw); const actor = claim.actor as EntityId | undefined;
+    if (isCrime(claim.type) && actor !== p.id) {
+      const sev = crimeSeverity(claim.type); const actorP = w.person(actor);
+      const victimDisp = claim.target ? disposition(p, claim.target) : 0;
       // fear rises with severity, proximity and low courage; grudge with closeness to the victim
       const fear = sev * (1.2 - p.traits.courage) * (isVictim ? 1.5 : 1) * (saw ? 1 : 0.6);
       const grudge = sev * (isVictim ? 1.2 : victimClose ? 1 : 0.35 + Math.max(0, victimDisp) * 0.6);
-      adjustRel(w, p, actor, { fear: fear * 0.7, trust: -sev * (isVictim ? 0.9 : 0.6), affection: -sev * (isVictim ? 0.7 : 0.4), grudge: grudge * 0.6, respect: -sev * 0.3 }, `${saw ? 'witnessed' : 'heard'} ${e.type}${isVictim ? ' on me' : e.target ? ` on ${w.nameOf(e.target)}` : ''}`, cause);
-      if (actorP && !actorP.hostile && e.type !== 'theft') { for (const q of w.persons()) if (q !== p && q.id !== actor && isFamily(p, q.id)) {/* family shares outrage later through telling */} }
+      if (actor) adjustRel(w, p, actor, { fear: fear * 0.7, trust: -sev * (isVictim ? 0.9 : 0.6), affection: -sev * (isVictim ? 0.7 : 0.4), grudge: grudge * 0.6, respect: -sev * 0.3 }, `${saw ? 'witnessed' : 'learned of'} ${claim.type}${isVictim ? ' on me' : claim.target ? ` on ${w.nameOf(claim.target)}` : ''}`, cause);
+      if (actor && actorP && !actorP.hostile && claim.type !== 'theft') { for (const q of w.persons()) if (q !== p && q.id !== actor && isFamily(p, q.id)) {/* family shares outrage later through telling */} }
       const emo = p.emotions; const before = { ...emo };
       emo.fear = clamp(emo.fear + fear * 0.6); emo.stress = clamp(emo.stress + sev * 0.5); emo.anger = clamp(emo.anger + grudge * 0.5 * (p.traits.aggression + 0.3));
       if (Math.abs(emo.fear - before.fear) + Math.abs(emo.anger - before.anger) > 0.1) w.emit('emotion_changed', { actor: p.id, causes: [cause], significance: 0.25, data: { fear: emo.fear, anger: emo.anger, stress: emo.stress }, summary: `${p.name} feels ${emo.fear > emo.anger ? `afraid (fear ${emo.fear.toFixed(2)})` : `angry (anger ${emo.anger.toFixed(2)})`}` });
-      p.mind.alarm = 1; p.mind.attention = actor;
-      const line = this.reactionLine(p, e, actorP, isVictim, victimClose);
+      p.mind.alarm = 1; p.mind.attention = actor ?? null;
+      const line = this.reactionLine(p, claim.type, actorP, claim.target, isVictim, victimClose);
       if (line) this.say(p, line);
     } else if (e.type === 'gift' || e.type === 'returned_item' || e.type === 'apology' || e.type === 'debt_paid') {
       if (actor) adjustRel(w, p, actor, { trust: 0.1 * (isVictim ? 3 : 1), affection: 0.1 * (isVictim ? 3 : 1), respect: 0.05 }, `saw ${e.type}`, cause);
@@ -126,9 +127,9 @@ export class Simulation {
     } else if (e.type === 'death') { p.emotions.sadness = clamp(p.emotions.sadness + (victimClose ? 0.7 : 0.2)); p.mind.alarm = 0.6; }
     void k;
   }
-  private reactionLine(p: Person, e: WorldEvent, actor: Person | undefined, isVictim: boolean, victimClose: boolean): string {
-    const w = this.world; const an = actor?.name ?? 'someone'; const vn = e.target ? w.nameOf(e.target) : 'someone';
-    if (e.type === 'theft') { if (isVictim) return `Thief! That's mine!`; return p.traits.honesty > 0.5 ? `${an}, that's not yours!` : `Hm. Not my business.`; }
+  private reactionLine(p: Person, type: string, actor: Person | undefined, target: EntityId | undefined, isVictim: boolean, victimClose: boolean): string {
+    const w = this.world; const an = actor?.name ?? 'someone'; const vn = target ? w.nameOf(target) : 'someone';
+    if (type === 'theft') { if (isVictim) return `Thief! That's mine!`; return p.traits.honesty > 0.5 ? `${an}, that's not yours!` : `Hm. Not my business.`; }
     if (isVictim) return p.traits.courage > 0.6 ? `You'll regret that!` : `Help! Help me!`;
     if (victimClose) return p.traits.courage > 0.6 ? `Get away from ${vn.split(' ')[0]}!` : `${vn.split(' ')[0]}! No!`;
     return p.traits.courage > 0.7 ? `Hey! Stop that!` : p.traits.sociability > 0.5 ? `Guards! Somebody get the guards!` : `...`;

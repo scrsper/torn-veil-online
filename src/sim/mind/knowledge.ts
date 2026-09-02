@@ -8,19 +8,75 @@ import { World } from '../core/world';
 export function learn(world: World, p: Person, k: { key: string; kind: KnowledgeItem['kind']; claim: Record<string, any>; confidence: number; source: Source; hops?: number; summary?: string; cause?: string }, quiet = false): KnowledgeItem | null {
   const existing = p.knowledge[k.key];
   if (existing) {
-    // Upgrade only if this source is more reliable (fewer hops / higher confidence)
-    if (k.confidence <= existing.confidence + 0.05 && (k.hops ?? 0) >= existing.hops) return null;
-    existing.confidence = Math.max(existing.confidence, k.confidence); existing.hops = Math.min(existing.hops, k.hops ?? 0);
-    if ((k.hops ?? 0) < existing.hops || k.source.type === 'witnessed') existing.source = k.source;
-    return null;
+    const incomingHops = k.hops ?? 0;
+    const refinement = refinesClaim(existing.claim, k.claim);
+    const betterConfidence = k.confidence > existing.confidence + 0.05;
+    const betterHops = incomingHops < existing.hops;
+    const betterSource = sourceRank(k.source) > sourceRank(existing.source);
+    if (!refinement && !betterConfidence && !betterHops && !betterSource) return null;
+
+    if (refinement || betterConfidence || betterHops || betterSource) existing.claim = mergeClaim(existing.claim, k.claim);
+    existing.confidence = Math.max(existing.confidence, k.confidence);
+    // A more specific claim may legitimately come through an extra hop. Its provenance must
+    // describe the evidence responsible for the refinement rather than pretending it was heard.
+    if (refinement || betterSource || (betterHops && k.confidence >= existing.confidence - 0.1) || betterConfidence) {
+      existing.source = { ...k.source };
+      existing.hops = incomingHops;
+    }
+    existing.learnedAt = world.now;
+    if (refinement) existing.sharedWith = [];
+    if (!quiet) emitKnowledge(world, p, existing, k.summary ?? k.key, k.cause, true);
+    return existing;
   }
   const item: KnowledgeItem = { key: k.key, kind: k.kind, claim: k.claim, confidence: k.confidence, learnedAt: world.now, source: k.source, hops: k.hops ?? 0, sharedWith: [] };
   p.knowledge[k.key] = item;
-  if (!quiet) {
-    const via = k.source.type === 'told' ? `told by ${world.nameOf(k.source.from)}` : k.source.type;
-    world.emit('knowledge_gained', { actor: p.id, causes: k.cause ? [k.cause] : (k.source.viaEvent ? [k.source.viaEvent] : []), significance: Math.min(0.5, (k.claim.significance ?? 0.3) * 0.7), data: { key: k.key, source: k.source.type, from: k.source.from, hops: item.hops, confidence: k.confidence }, summary: `${p.name} now knows (${via}, ${item.hops === 0 ? 'first-hand' : `${item.hops} hop${item.hops > 1 ? 's' : ''}`}): ${k.summary ?? k.key}` });
-  }
+  if (!quiet) emitKnowledge(world, p, item, k.summary ?? k.key, k.cause, false);
   return item;
+}
+
+function sourceRank(source: Source): number {
+  switch (source.type) {
+    case 'self': case 'witnessed': return 5;
+    case 'heard': return 4;
+    case 'told': return 3;
+    case 'prior': return 2;
+    case 'inferred': return 1;
+  }
+}
+
+function refinesClaim(current: Record<string, any>, incoming: Record<string, any>): boolean {
+  for (const [key, value] of Object.entries(incoming)) {
+    if (value === undefined || value === null) continue;
+    if (key.endsWith('Unknown')) continue;
+    if ((current[key] === undefined || current[key] === null) && value !== undefined) return true;
+    if (current[`${key}Unknown`] === true) return true;
+  }
+  return false;
+}
+
+function mergeClaim(current: Record<string, any>, incoming: Record<string, any>): Record<string, any> {
+  const merged = { ...current };
+  for (const [key, value] of Object.entries(incoming)) {
+    if (value === undefined || value === null) continue;
+    if (key.endsWith('Unknown') && value === true) {
+      const field = key.slice(0, -'Unknown'.length);
+      if (merged[field] !== undefined && merged[field] !== null) continue;
+    }
+    merged[key] = value;
+    if (!key.endsWith('Unknown')) delete merged[`${key}Unknown`];
+  }
+  return merged;
+}
+
+function emitKnowledge(world: World, p: Person, item: KnowledgeItem, summary: string, cause: string | undefined, upgraded: boolean): void {
+  const via = item.source.type === 'told' ? `told by ${world.nameOf(item.source.from)}` : item.source.type;
+  world.emit('knowledge_gained', {
+    actor: p.id,
+    causes: cause ? [cause] : (item.source.viaEvent ? [item.source.viaEvent] : []),
+    significance: Math.min(0.5, (item.claim.significance ?? 0.3) * 0.7),
+    data: { key: item.key, source: item.source.type, from: item.source.from, hops: item.hops, confidence: item.confidence, upgraded },
+    summary: `${p.name} ${upgraded ? 'refined what they know' : 'now knows'} (${via}, ${item.hops === 0 ? 'first-hand' : `${item.hops} hop${item.hops > 1 ? 's' : ''}`}): ${summary}`,
+  });
 }
 
 export function knowsEvent(p: Person, eventId: string): KnowledgeItem | undefined { return p.knowledge[`ev:${eventId}`]; }
@@ -29,7 +85,7 @@ export function knowsEvent(p: Person, eventId: string): KnowledgeItem | undefine
 export function eventClaim(world: World, e: WorldEvent, saw: boolean): Record<string, any> {
   const claim: Record<string, any> = { eventId: e.id, type: e.type, tick: e.tick, placeId: e.placeId, pos: e.pos, significance: e.significance };
   if (saw || e.type === 'told') { claim.actor = e.actor; claim.target = e.target; claim.item = e.item; }
-  else { claim.target = e.target; claim.item = e.item; claim.actorUnknown = true; if (e.type === 'attack' || e.type === 'kill') claim.actor = e.actor; }
+  else { claim.target = e.target; claim.item = e.item; claim.actorUnknown = true; }
   return claim;
 }
 
