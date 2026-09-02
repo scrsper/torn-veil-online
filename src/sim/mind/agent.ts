@@ -6,6 +6,7 @@ import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowl
 import { currentScheduleEntry } from './schedule';
 import { SECONDS_PER_HOUR } from '../core/time';
 import { B } from '../physical/blocks';
+import { makeItem } from '../world/factory';
 
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -334,6 +335,8 @@ export class Simulation {
     const t = path[body.pathIndex]; const dx = t.x - body.pos.x, dz = t.z - body.pos.z; const d = Math.hypot(dx, dz);
     if (d < 0.25) { body.pathIndex++; if (body.pathIndex >= path.length) { body.vel.x = 0; body.vel.z = 0; return true; } return false; }
     const step = Math.min(d, body.speed * dt); const nx = body.pos.x + dx / d * step, nz = body.pos.z + dz / d * step;
+    const doorX = Math.floor(nx), doorZ = Math.floor(nz), doorY = this.world.nav.floorY(doorX, doorZ);
+    if (doorY >= 0 && this.world.grid.get(doorX, doorY, doorZ) === B.Door && !this.world.grid.isDoorOpen(doorX, doorY, doorZ)) this.world.setDoorOpen({ x: doorX, y: doorY, z: doorZ }, true, body.ownerId);
     // separation from other bodies
     let sx = 0, sz = 0; for (const o of this.world.bodies()) { if (o === body || !o.present || o.dead) continue; const ox = body.pos.x - o.pos.x, oz = body.pos.z - o.pos.z; const od = Math.hypot(ox, oz); if (od < 0.7 && od > 1e-3) { sx += ox / od * (0.7 - od); sz += oz / od * (0.7 - od); } }
     body.pos.x = nx + sx * dt * 2; body.pos.z = nz + sz * dt * 2;
@@ -412,7 +415,6 @@ export class Simulation {
       listener.mind.alarm = 1;
       const lb = w.primaryBody(listener.id); if (lb) { lb.pose = 'talk'; lb.poseUntil = w.physicalTime + 1.5; }
       const isGuard = listener.occupation === 'guard' || listener.occupation === 'captain';
-      setTimeout(() => {}, 0);
       this.sayLater(listener, isGuard ? `${k.claim.type === 'kill' ? 'Murder?!' : 'An assault?'} Where? I'll see to it.` : listener.traits.courage > 0.6 ? `That so? Someone should do something.` : `Gods. I'll keep my door barred.`, 1.2);
     } else if (learned) { this.sayLater(listener, ['Is that so.', 'I hadn\'t heard.', 'Well, well.', 'Hm.', 'Really?'][Math.floor(w.rng.next() * 5)], 1.5); }
   }
@@ -484,18 +486,20 @@ export class Simulation {
   takeItem(p: Person, it: import('../core/types').Item, how: 'pickup' | 'theft' | 'recovered' | 'bought' | 'given', from?: EntityId): WorldEvent {
     const w = this.world; const pos = it.pos ? { ...it.pos } : w.primaryBody(p.id)?.pos; const place = it.placeId ? w.place(it.placeId) : pos ? w.placeAt(pos) : undefined;
     const prevHolder = it.holderId; if (prevHolder) { const h = w.person(prevHolder); if (h) h.inventory = h.inventory.filter(x => x !== it.id); }
-    it.holderId = p.id; it.pos = null; it.placeId = null; p.inventory.push(it.id);
+    it.holderId = p.id; it.pos = null; it.placeId = null; if (!p.inventory.includes(it.id)) p.inventory.push(it.id);
     const stolen = how === 'theft' || (how === 'pickup' && it.ownerId && it.ownerId !== p.id);
     const type = stolen ? 'theft' : how === 'recovered' ? 'recovered' : how === 'given' ? 'give' : how === 'bought' ? 'trade' : 'pickup';
     it.provenance.push({ tick: w.now, from: from ?? prevHolder ?? it.ownerId ?? null, to: p.id, how: stolen ? 'stolen' : how });
-    const ev = w.emit(type as any, { actor: p.id, target: stolen ? it.ownerId! : (from ?? it.ownerId ?? undefined), item: it.id, pos, placeId: place?.id, significance: stolen ? 0.5 : 0.15, visibility: stolen ? 16 : 8, data: { how }, summary: stolen ? `${p.name} stole ${it.name} from ${w.nameOf(it.ownerId)}${place ? ' at ' + place.name : ''}` : `${p.name} ${how === 'recovered' ? 'recovered' : 'picked up'} ${it.name}${place ? ' at ' + place.name : ''}` });
+    const ev = w.emit(type, { actor: p.id, target: stolen ? it.ownerId! : (from ?? it.ownerId ?? undefined), item: it.id, pos, placeId: place?.id, significance: stolen ? 0.5 : 0.15, visibility: stolen ? 16 : 8, data: { how }, summary: stolen ? `${p.name} stole ${it.name} from ${w.nameOf(it.ownerId)}${place ? ' at ' + place.name : ''}` : `${p.name} ${how === 'recovered' ? 'recovered' : how === 'bought' ? 'bought' : 'picked up'} ${it.name}${place ? ' at ' + place.name : ''}` });
     it.provenance[it.provenance.length - 1].eventId = ev.id;
-    if (!stolen && how !== 'given' && how !== 'bought') it.ownerId = it.ownerId ?? p.id;
+    if (how === 'bought') it.ownerId = p.id;
+    else if (!stolen && how !== 'given') it.ownerId = it.ownerId ?? p.id;
     return ev;
   }
   dropItem(p: Person, it: import('../core/types').Item, pos: Vec3): void {
     const w = this.world; p.inventory = p.inventory.filter(x => x !== it.id); it.holderId = null; it.pos = { ...pos }; it.placeId = w.placeAt(pos)?.id ?? null;
-    w.emit('drop', { actor: p.id, item: it.id, pos, significance: 0.1, visibility: 8, summary: `${p.name} dropped ${it.name}` });
+    const ev = w.emit('drop', { actor: p.id, item: it.id, pos, significance: 0.1, visibility: 8, summary: `${p.name} dropped ${it.name}` });
+    it.provenance.push({ tick: w.now, eventId: ev.id, from: p.id, to: null, how: 'dropped' });
   }
   giveItem(from: Person, to: Person, it: import('../core/types').Item): WorldEvent {
     const w = this.world; from.inventory = from.inventory.filter(x => x !== it.id); to.inventory.push(it.id); it.holderId = to.id;
@@ -505,6 +509,36 @@ export class Simulation {
     const ev = w.emit(returned ? 'returned_item' : 'gift', { actor: from.id, target: to.id, item: it.id, pos, significance: returned ? 0.6 : 0.4, visibility: 14, loudness: 6, summary: `${from.name} ${returned ? 'returned' : 'gave'} ${it.name} to ${to.name}` });
     it.provenance[it.provenance.length - 1].eventId = ev.id;
     for (const d of to.desires) if (!d.fulfilled && d.type === 'recover_item' && d.targetId === it.id) { d.fulfilled = true; adjustRel(w, to, from.id, { affection: 0.6, trust: 0.5, respect: 0.3 }, `returned ${it.name}`, ev.id); to.emotions.joy = 1; to.emotions.sadness *= 0.5; this.say(to, `You... you found it. I don't know what to say. Thank you, stranger.`); }
+    return ev;
+  }
+
+  /** Canonical purchase path used by dialogue and available to any future actor intent. */
+  buyItem(buyer: Person, seller: Person, it: import('../core/types').Item, price: number): WorldEvent | null {
+    const w = this.world; const coins = buyer.inventory.map(id => w.item(id)).find(item => item?.type === 'coins');
+    if (!coins || coins.quantity < price || it.holderId || it.ownerId !== seller.id) return null;
+    coins.quantity -= price; seller.wealth += price;
+    const ev = this.takeItem(buyer, it, 'bought', seller.id);
+    ev.data.price = price; ev.data.buyer = buyer.id; ev.data.seller = seller.id;
+    ev.summary = `${buyer.name} bought ${it.name} from ${seller.name} for ${price} silver`;
+    coins.provenance.push({ tick: w.now, eventId: ev.id, from: buyer.id, to: seller.id, how: 'trade payment' });
+    return ev;
+  }
+
+  /** Canonical sale path. Payment becomes a real carried coin entity when needed. */
+  sellItem(seller: Person, buyer: Person, it: import('../core/types').Item, price: number, displayPos?: Vec3, placeId?: EntityId): WorldEvent | null {
+    const w = this.world;
+    if (buyer.wealth < price || it.holderId !== seller.id || !seller.inventory.includes(it.id)) return null;
+    buyer.wealth -= price;
+    let coins = seller.inventory.map(id => w.item(id)).find(item => item?.type === 'coins');
+    if (coins) coins.quantity += price;
+    else coins = makeItem(w, 'coins', 'silver coins', { owner: seller.id, holder: seller.id, quantity: price });
+    seller.inventory = seller.inventory.filter(id => id !== it.id);
+    it.holderId = null; it.ownerId = buyer.id;
+    const pos = displayPos ?? w.primaryBody(buyer.id)?.pos ?? w.primaryBody(seller.id)?.pos ?? null;
+    it.pos = pos ? { ...pos } : null; it.placeId = placeId ?? (pos ? w.placeAt(pos)?.id ?? null : null);
+    const ev = w.emit('trade', { actor: seller.id, target: buyer.id, item: it.id, pos: pos ?? undefined, placeId: it.placeId ?? undefined, significance: 0.2, visibility: 10, data: { price, buyer: buyer.id, seller: seller.id }, summary: `${seller.name} sold ${it.name} to ${buyer.name} for ${price} silver` });
+    it.provenance.push({ tick: w.now, eventId: ev.id, from: seller.id, to: buyer.id, how: 'sold' });
+    coins.provenance.push({ tick: w.now, eventId: ev.id, from: buyer.id, to: seller.id, how: 'trade payment' });
     return ev;
   }
 

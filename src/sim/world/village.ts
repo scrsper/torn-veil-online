@@ -232,9 +232,9 @@ function seedHistory(world: World, pp: Record<string, Person>, pl: Record<string
   rel(pp.hilda, pp.dunstan, { affection: -0.3, respect: -0.3 }); rel(pp.dunstan, pp.hilda, { fear: 0.15 });
   both(pp.kestrel, pp.wyn, { affection: 0.5, trust: 0.6 }, 'friend');
   rel(pp.petra, pp.wyn, { fear: 0.4, affection: -0.5, trust: -0.6 }); rel(pp.pip, pp.wyn, { fear: 0.6 }); rel(pp.greta, pp.wyn, { fear: 0.2, trust: -0.2 });
-  both(pp.skarn, pp.vex, { affection: 0.4, trust: 0.6, loyalty: 0.5 } as any, 'partner');
+  both(pp.skarn, pp.vex, { affection: 0.4, trust: 0.6 }, 'partner');
   rel(pp.hobb, pp.skarn, { fear: 0.7, grudge: 0.9, affection: -0.8 }); rel(pp.hobb, pp.vex, { fear: 0.7, grudge: 0.8, affection: -0.8 });
-  for (const g of [pp.hale, pp.dunstan, pp.brigid]) { rel(g, pp.rowan, { respect: 0.7, trust: 0.7, loyalty: 0 } as any, 'captain'); rel(pp.rowan, g, { trust: 0.6, respect: 0.3 }, 'subordinate'); }
+  for (const g of [pp.hale, pp.dunstan, pp.brigid]) { rel(g, pp.rowan, { respect: 0.7, trust: 0.7 }, 'captain'); rel(pp.rowan, g, { trust: 0.6, respect: 0.3 }, 'subordinate'); }
   both(pp.hilda, pp.edda, { affection: 0.5, trust: 0.4 }, 'friend', 'employer'); both(pp.edda, pp.petra, { affection: 0.4, trust: 0.3 }, 'friend');
   both(pp.cedric, pp.aldous, { affection: 0.5, trust: 0.7 }, 'friend'); both(pp.jory, pp.bors, { affection: 0.4, trust: 0.3 }, 'friend');
   both(pp.greta, pp.nell, { affection: 0.5, trust: 0.5 }, 'friend'); both(pp.mara, pp.ysolde, { affection: 0.6, trust: 0.6 }, 'friend');

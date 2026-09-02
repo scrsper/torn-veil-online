@@ -7,6 +7,7 @@ export class VoxelGrid {
   readonly data: Uint8Array;
   readonly dirtyChunks = new Set<number>();
   readonly diffs = new Map<number, number>(); // modifications relative to generation (for persistence)
+  readonly doorStates = new Map<number, boolean>(); // false = closed, true = open
   recording = false;
   constructor(public readonly W: number, public readonly H: number, public readonly D: number) {
     this.data = new Uint8Array(W * H * D);
@@ -20,8 +21,10 @@ export class VoxelGrid {
   set(x: number, y: number, z: number, id: number): void {
     if (!this.inBounds(x, y, z)) return;
     const i = (x * this.D + z) * this.H + y;
-    if (this.data[i] === id) return;
+    if (this.data[i] === id) { if (id === B.Door && !this.doorStates.has(i)) this.doorStates.set(i, false); return; }
+    if (this.data[i] === B.Door && id !== B.Door) this.doorStates.delete(i);
     this.data[i] = id;
+    if (id === B.Door && !this.doorStates.has(i)) this.doorStates.set(i, false);
     if (this.recording) this.diffs.set(i, id);
     this.markDirty(x, z);
     if ((x & (CHUNK - 1)) === 0) this.markDirty(x - 1, z);
@@ -49,14 +52,24 @@ export class VoxelGrid {
     if (this.heightCache.length && this.heightCache[ci] >= 0) return this.heightCache[ci];
     for (let y = this.H - 1; y >= 0; y--) {
       const b = this.data[(x * this.D + z) * this.H + y];
-      if (b !== B.Air && BLOCKS[b].solid && BLOCKS[b].shape !== 'cross' && b !== B.Fence) { if (this.heightCache.length) this.heightCache[ci] = y; return y; }
+      if (b !== B.Air && BLOCKS[b].solid && BLOCKS[b].shape !== 'cross' && b !== B.Fence && b !== B.Door) { if (this.heightCache.length) this.heightCache[ci] = y; return y; }
     }
     return 0;
   }
   /** Walk surface height for an agent standing at x,z: top of the highest solid block + 1. */
   surfaceY(x: number, z: number): number { return this.groundHeight(Math.floor(x), Math.floor(z)) + 1; }
-  isSolidAt(x: number, y: number, z: number): boolean { return blockDef(this.get(Math.floor(x), Math.floor(y), Math.floor(z))).solid; }
-  isOpaqueAt(x: number, y: number, z: number): boolean { return blockDef(this.get(Math.floor(x), Math.floor(y), Math.floor(z))).opaque; }
+  isSolidAt(x: number, y: number, z: number): boolean { const ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z), id = this.get(ix, iy, iz); return id === B.Door ? !this.isDoorOpen(ix, iy, iz) : blockDef(id).solid; }
+  isOpaqueAt(x: number, y: number, z: number): boolean { const ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z), id = this.get(ix, iy, iz); return id === B.Door ? !this.isDoorOpen(ix, iy, iz) : blockDef(id).opaque; }
+  isDoorOpen(x: number, y: number, z: number): boolean { if (!this.inBounds(x, y, z) || this.get(x, y, z) !== B.Door) return false; return this.doorStates.get(this.idx(x, y, z)) ?? false; }
+  setDoorOpen(x: number, y: number, z: number, open: boolean): boolean {
+    if (!this.inBounds(x, y, z) || this.get(x, y, z) !== B.Door) return false;
+    const i = this.idx(x, y, z); const before = this.doorStates.get(i) ?? false;
+    if (before === open) return false;
+    this.doorStates.set(i, open); this.markDirty(x, z); return true;
+  }
+  restoreDoorStates(states: [number, boolean][]): void {
+    for (const [i, open] of states) if (this.data[i] === B.Door) { this.doorStates.set(i, open); const y = i % this.H; const xz = (i - y) / this.H; const z = xz % this.D; const x = (xz - z) / this.D; this.markDirty(x, z); }
+  }
 
   /** DDA raycast through opaque blocks. Returns true if the segment is unobstructed. */
   lineOfSight(a: Vec3, b: Vec3, maxDist = 64): boolean {
@@ -77,7 +90,7 @@ export class VoxelGrid {
       else if (tMaxY < tMaxZ) { y += stepY; t = tMaxY; tMaxY += tDeltaY; }
       else { z += stepZ; t = tMaxZ; tMaxZ += tDeltaZ; }
       if (t >= dist) break;
-      if (blockDef(this.get(x, y, z)).opaque) return false;
+      if (this.isOpaqueAt(x, y, z)) return false;
     }
     return true;
   }

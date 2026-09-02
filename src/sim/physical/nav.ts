@@ -26,12 +26,12 @@ export class Navigator {
     let best = -1, bestCost = 1;
     for (let y = g.H - 3; y >= 0; y--) {
       const b = g.get(x, y, z); const def = BLOCKS[b];
-      if (b === B.Air || !def.solid || b === B.Fence) continue;
+      if (b === B.Air || !def.solid || b === B.Fence || b === B.Door) continue;
       if (def.shape === 'cross') continue;
       const a1 = g.get(x, y + 1, z), a2 = g.get(x, y + 2, z);
       const d1 = BLOCKS[a1], d2 = BLOCKS[a2];
-      if (!d1.solid && !d2.solid) {
-        best = y + 1; bestCost = Math.max(def.walkCost, d1.walkCost, a2 === B.Air ? 1 : d2.walkCost * 0.5);
+      if ((!d1.solid || a1 === B.Door) && (!d2.solid || a2 === B.Door)) {
+        best = y + 1; bestCost = Math.max(def.walkCost, a1 === B.Door ? BLOCKS[B.Door].walkCost : d1.walkCost, a2 === B.Air ? 1 : a2 === B.Door ? BLOCKS[B.Door].walkCost : d2.walkCost * 0.5);
         if (b === B.Water) bestCost = 30;
         // keep the lowest floor (interiors under roofs) — continue scanning downward
       }

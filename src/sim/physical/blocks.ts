@@ -28,7 +28,7 @@ export const BLOCKS: Record<number, BlockDef> = {
   [B.Thatch]: { name: 'thatch', color: c(190, 160, 80), shape: 'cube', solid: true, opaque: true, walkCost: 1, noise: 0.1 },
   [B.Brick]: { name: 'brick', color: c(160, 82, 64), shape: 'cube', solid: true, opaque: true, walkCost: 1, noise: 0.08 },
   [B.Glass]: { name: 'glass', color: c(190, 220, 240), shape: 'cube', solid: true, opaque: false, walkCost: 1, transparent: true },
-  [B.Door]: { name: 'door', color: c(130, 90, 50), shape: 'inset', inset: 0.35, solid: false, opaque: false, walkCost: 1.2 },
+  [B.Door]: { name: 'door', color: c(130, 90, 50), shape: 'inset', inset: 0.08, solid: true, opaque: true, walkCost: 1.2 },
   [B.Torch]: { name: 'torch', color: c(255, 200, 100), shape: 'post', solid: false, opaque: false, walkCost: 1, emissive: [1.0, 0.7, 0.3], light: 6, height: 0.6 },
   [B.Farmland]: { name: 'farmland', color: c(86, 60, 38), shape: 'slab', height: 0.9, solid: true, opaque: true, walkCost: 2, noise: 0.07 },
   [B.Wheat]: { name: 'wheat', color: c(210, 180, 80), shape: 'cross', solid: false, opaque: false, walkCost: 2 },

@@ -64,7 +64,7 @@ export class PlayerController {
   }
   private aabbHits(p: THREE.Vector3): boolean {
     const g = this.world.grid; const w = this.width;
-    for (let x = Math.floor(p.x - w); x <= Math.floor(p.x + w); x++) for (let z = Math.floor(p.z - w); z <= Math.floor(p.z + w); z++) for (let y = Math.floor(p.y); y <= Math.floor(p.y + this.height); y++) { const b = g.get(x, y, z); if (blockDef(b).solid) return true; }
+    for (let x = Math.floor(p.x - w); x <= Math.floor(p.x + w); x++) for (let z = Math.floor(p.z - w); z <= Math.floor(p.z + w); z++) for (let y = Math.floor(p.y); y <= Math.floor(p.y + this.height); y++) if (g.isSolidAt(x, y, z)) return true;
     return false;
   }
   teleport(p: Vec3): void { const b = this.body; b.pos = { ...p }; this.vel.set(0, 0, 0); }

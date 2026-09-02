@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { World } from '../src/sim/core/world';
 import { generateVillage } from '../src/sim/world/village';
+import { serialize } from '../src/sim/persist/save';
+import { createTestWorld } from './helpers/world';
 
 describe('world history integrity', () => {
   it('keeps every causal reference traversable after event compaction', () => {
@@ -44,6 +46,22 @@ describe('world history integrity', () => {
     for (const item of world.items()) for (const entry of item.provenance) {
       if (entry.from) expect(world.get(entry.from), `unknown provenance source ${entry.from}`).toBeDefined();
       if (entry.to) expect(world.get(entry.to), `unknown provenance destination ${entry.to}`).toBeDefined();
+    }
+  });
+
+  it('serializes a causally closed event graph', () => {
+    const tw = createTestWorld(73, 12);
+    const root = tw.world.emit('attack', { summary: 'root', significance: 1 });
+    const perceived = tw.world.emit('perceived', { causes: [root.id], summary: 'perceived', significance: 0.01 });
+    const knowledge = tw.world.emit('knowledge_gained', { causes: [perceived.id], summary: 'knowledge', significance: 0.01 });
+    tw.world.emit('confrontation', { causes: [knowledge.id], summary: 'response', significance: 0.8 });
+    for (let i = 0; i < 1600; i++) tw.world.emit('memory_formed', { summary: `noise ${i}`, significance: 0.01 });
+
+    const saved = JSON.parse(serialize(tw.world)) as { events: { id: string; causes: string[]; effects: string[] }[] };
+    const ids = new Set(saved.events.map(e => e.id));
+    for (const event of saved.events) {
+      expect(event.causes.every(id => ids.has(id))).toBe(true);
+      expect(event.effects.every(id => ids.has(id))).toBe(true);
     }
   });
 });

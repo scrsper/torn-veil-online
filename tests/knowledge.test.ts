@@ -36,4 +36,20 @@ describe('knowledge upgrades', () => {
     expect(first.hops).toBe(0);
     expect(first.source.type).toBe('witnessed');
   });
+
+  it('corrects a false actor belief when first-hand evidence arrives and permits re-sharing', () => {
+    const tw = createTestWorld(52, 16);
+    const thinker = addPerson(tw, 'Thinker', 'farmer', v(3.5, 1, 3.5));
+    const wrong = addPerson(tw, 'Wrong Suspect', 'farmer', v(4.5, 1, 3.5));
+    const actual = addPerson(tw, 'Actual Actor', 'farmer', v(5.5, 1, 3.5));
+    const belief = learn(tw.world, thinker, { key: 'ev:false', kind: 'event', claim: { eventId: 'false', type: 'theft', actor: wrong.id }, confidence: 0.55, source: { type: 'told', from: 'source' }, hops: 2 }, true)!;
+    belief.sharedWith.push('friend');
+
+    learn(tw.world, thinker, { key: 'ev:false', kind: 'event', claim: { eventId: 'false', type: 'theft', actor: actual.id }, confidence: 1, source: { type: 'witnessed', viaEvent: 'seen' }, hops: 0 }, true);
+
+    expect(belief.claim.actor).toBe(actual.id);
+    expect(belief.source).toEqual({ type: 'witnessed', viaEvent: 'seen' });
+    expect(belief.hops).toBe(0);
+    expect(belief.sharedWith).toEqual([]);
+  });
 });

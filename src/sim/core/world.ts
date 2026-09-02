@@ -3,6 +3,7 @@ import { WorldClock } from './time';
 import { RNG } from './rng';
 import { VoxelGrid } from '../physical/grid';
 import { Navigator } from '../physical/nav';
+import { B } from '../physical/blocks';
 
 export interface EmitOptions {
   actor?: EntityId; target?: EntityId; item?: EntityId; placeId?: EntityId; pos?: Vec3;
@@ -61,6 +62,14 @@ export class World {
     return undefined;
   }
   positionOf(id: EntityId): Vec3 | undefined { return this.primaryBody(id)?.pos; }
+
+  isDoorOpen(pos: Vec3): boolean { return this.grid.isDoorOpen(Math.floor(pos.x), Math.floor(pos.y), Math.floor(pos.z)); }
+  setDoorOpen(pos: Vec3, open: boolean, actor?: EntityId): WorldEvent | null {
+    const x = Math.floor(pos.x), y = Math.floor(pos.y), z = Math.floor(pos.z);
+    if (this.grid.get(x, y, z) !== B.Door || !this.grid.setDoorOpen(x, y, z, open)) return null;
+    return this.emit('block_changed', { actor, pos: { x, y, z }, significance: 0.08, visibility: 8, loudness: 3, data: { block: 'door', open }, summary: `${actor ? this.nameOf(actor) : 'Someone'} ${open ? 'opened' : 'closed'} a door` });
+  }
+  toggleDoor(pos: Vec3, actor?: EntityId): WorldEvent | null { return this.setDoorOpen(pos, !this.isDoorOpen(pos), actor); }
 
   placeAt(pos: Vec3): Place | undefined {
     let best: Place | undefined; let bestArea = Infinity;

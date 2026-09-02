@@ -10,12 +10,13 @@ export function learn(world: World, p: Person, k: { key: string; kind: Knowledge
   if (existing) {
     const incomingHops = k.hops ?? 0;
     const refinement = refinesClaim(existing.claim, k.claim);
+    const correction = correctsClaim(existing.claim, k.claim);
     const betterConfidence = k.confidence > existing.confidence + 0.05;
     const betterHops = incomingHops < existing.hops;
     const betterSource = sourceRank(k.source) > sourceRank(existing.source);
     if (!refinement && !betterConfidence && !betterHops && !betterSource) return null;
 
-    if (refinement || betterConfidence || betterHops || betterSource) existing.claim = mergeClaim(existing.claim, k.claim);
+    if (refinement || correction || betterConfidence || betterHops || betterSource) existing.claim = mergeClaim(existing.claim, k.claim);
     existing.confidence = Math.max(existing.confidence, k.confidence);
     // A more specific claim may legitimately come through an extra hop. Its provenance must
     // describe the evidence responsible for the refinement rather than pretending it was heard.
@@ -24,7 +25,7 @@ export function learn(world: World, p: Person, k: { key: string; kind: Knowledge
       existing.hops = incomingHops;
     }
     existing.learnedAt = world.now;
-    if (refinement) existing.sharedWith = [];
+    if (refinement || correction) existing.sharedWith = [];
     if (!quiet) emitKnowledge(world, p, existing, k.summary ?? k.key, k.cause, true);
     return existing;
   }
@@ -52,6 +53,10 @@ function refinesClaim(current: Record<string, any>, incoming: Record<string, any
     if (current[`${key}Unknown`] === true) return true;
   }
   return false;
+}
+
+function correctsClaim(current: Record<string, any>, incoming: Record<string, any>): boolean {
+  return Object.entries(incoming).some(([key, value]) => !key.endsWith('Unknown') && value !== undefined && value !== null && current[key] !== undefined && JSON.stringify(current[key]) !== JSON.stringify(value));
 }
 
 function mergeClaim(current: Record<string, any>, incoming: Record<string, any>): Record<string, any> {
