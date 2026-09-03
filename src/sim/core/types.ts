@@ -132,7 +132,7 @@ export interface Percept {
 
 export type GoalType =
   | 'sleep' | 'eat' | 'work' | 'socialize' | 'wander' | 'go_home' | 'flee' | 'report' | 'investigate'
-  | 'confront' | 'attack' | 'help' | 'shelter' | 'worship' | 'patrol' | 'drink' | 'shop' | 'mourn' | 'play'
+  | 'confront' | 'attack' | 'rob' | 'help' | 'shelter' | 'worship' | 'patrol' | 'drink' | 'shop' | 'mourn' | 'play'
   | 'idle' | 'talk' | 'recover_item' | 'guard_post' | 'follow' | 'return_home_safe';
 
 export interface Goal {
@@ -148,7 +148,7 @@ export interface Goal {
   key: string;             // identity for hysteresis (type + target)
 }
 
-export type ActionType = 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 'talk' | 'tell' | 'attack' | 'look' | 'pickup' | 'face' | 'bark' | 'pray' | 'eat';
+export type ActionType = 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 'talk' | 'tell' | 'attack' | 'look' | 'pickup' | 'face' | 'bark' | 'pray' | 'eat' | 'demand' | 'rob';
 export interface Action {
   type: ActionType;
   pos?: Vec3;
@@ -186,6 +186,10 @@ export interface Mind {
   lastToldAt: Record<EntityId, number>; // last time I talked to X (for conversation cooldowns)
   investigated: string[];   // event ids handled
   awaitingReplyFrom?: EntityId;
+  /** Per-victim cooldown (world-time seconds until) after a completed robbery, so a robber does
+   * not immediately re-target a victim who is merely recovering from being downed — this is
+   * what actually ends a robbery instead of it silently repeating. See mind/robbery.ts. */
+  robCooldowns?: Record<EntityId, number>;
 }
 
 export interface Person extends Entity {

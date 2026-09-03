@@ -8,6 +8,7 @@ import { SECONDS_PER_HOUR } from '../core/time';
 import { B } from '../physical/blocks';
 import { makeItem } from '../world/factory';
 import { banditResourcePressure } from './economy';
+import { resolveRobberyCompliance, selectRobberyTake, ROBBERY_COOLDOWN_SECONDS, type RobberyTake } from './robbery';
 
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -180,7 +181,41 @@ export class Simulation {
         // pressure, not merely because the target exists — a real causal loop rather than a
         // hardcoded "bandits attack" activity.
         const pressure = intent === 'rob' ? banditResourcePressure(w, p) : 0;
-        G('attack', clamp(fightU + 0.2 + pressure * 0.3), [`${t.name} is an enemy`, `courage ${p.traits.courage.toFixed(2)}`, `intent: ${intent}`, pressure ? `resource pressure ${pressure.toFixed(2)}` : ''], { targetEntity: t.id, data: { intent } });
+        // Constitution §71: a bandit must be able to size up a fight it would lose, not just
+        // ones it's already losing. "Opposition strength" folds in whether the target is armed,
+        // a guard/captain, still near-full health, and — critically — whether allied guards are
+        // nearby to back them up, so a materially superior response makes flee outcompete
+        // robbery/attack instead of the bandit pressing on regardless.
+        const targetArmed = this.weaponOf(t) > 0;
+        const tBody = w.primaryBody(t.id);
+        const targetHealthy = tBody ? tBody.health / tBody.maxHealth : 1;
+        const guardBackup = m.percepts.filter(pc => { const o = w.person(pc.entityId); return !!o && o.alive && o.id !== t.id && (o.occupation === 'guard' || o.occupation === 'captain') && pc.distance < 16; }).length;
+        const oppositionStrength = (targetArmed ? 0.3 : 0) + (t.occupation === 'guard' || t.occupation === 'captain' ? 0.3 : 0) + targetHealthy * 0.2 + guardBackup * 0.4;
+        const engageU = clamp(fightU + 0.2 + pressure * 0.3 - oppositionStrength * 0.5);
+        const fleeFromOpposition = clamp(fleeU + oppositionStrength * 0.5);
+        // A robber does not immediately re-victimize someone it just robbed merely because
+        // they are still nearby and technically "hostile-flagged" — see robCooldowns. But the
+        // cooldown must only block *starting a fresh* robbery, never orphan one already under
+        // way (demand/attack/take/disengage is several actions deep): while the bandit's own
+        // current goal already IS this robbery and its plan hasn't finished yet, the same
+        // candidate keeps being offered so hysteresis has something to hold onto instead of the
+        // plan (including the post-robbery disengage step) getting discarded mid-flight.
+        // Physical time, not world/calendar time — the same clock the downed-recovery timer
+        // (poseUntil) itself uses, so the cooldown reliably outlasts recovery regardless of how
+        // fast world/calendar time happens to be running relative to physical seconds. Scoped to
+        // robbery specifically (Priority 1's stated focus); the analogous guard-arrest
+        // "encounter already resolved" gap is noted as a follow-up in
+        // docs/V0_2_1_WORLD_ENGINE_STABILIZATION.md rather than folded in here, since a real fix
+        // needs actual custody/arrest-resolution semantics, not just a cooldown.
+        const cooldownUntil = intent === 'rob' ? m.robCooldowns?.[t.id] : undefined;
+        const onCooldown = !!cooldownUntil && cooldownUntil > w.physicalTime;
+        const planInFlight = m.plan.length > 0 && !m.plan.every(a => a.status === 'done' || a.status === 'failed');
+        const alreadyRobbingThis = m.goal?.type === 'rob' && m.goal.targetEntity === t.id && planInFlight;
+        if (!isGuard && oppositionStrength > 0.45 && fleeFromOpposition > engageU && !alreadyRobbingThis) {
+          G('flee', fleeFromOpposition, [`${t.name} looks like more trouble than it's worth`, `opposition ${oppositionStrength.toFixed(2)}`], { targetEntity: t.id });
+        } else if (!onCooldown || alreadyRobbingThis) {
+          G(intent === 'rob' ? 'rob' : 'attack', engageU, [`${t.name} is an enemy`, `courage ${p.traits.courage.toFixed(2)}`, `intent: ${intent}`, pressure ? `resource pressure ${pressure.toFixed(2)}` : '', oppositionStrength > 0.2 ? `opposition ${oppositionStrength.toFixed(2)}` : ''], { targetEntity: t.id, data: { intent } });
+        }
       }
       else if (threat.body.pose === 'attack' || r.fear > 0.35 || t.hostile) {
         if (fightU > fleeU && (armed || brave > 0.9)) G('attack', fightU, [`${t.name} is a threat (fear ${threat.fear.toFixed(2)})`, `I am ${armed ? 'armed' : 'unarmed'}, courage ${p.traits.courage.toFixed(2)}`, 'intent: defend'], { targetEntity: t.id, data: { intent: 'defend' as ConflictIntent } });
@@ -243,9 +278,20 @@ export class Simulation {
     const best = cands[0]; const cur = m.goal;
     let chosen = best; let switched = false; let note = '';
     if (cur && cur.key !== best.key) {
-      const curCand = cands.find(c => c.key === cur.key); const curU = curCand?.utility ?? 0;
+      const curCand = cands.find(c => c.key === cur.key);
+      // A forced multi-step pipeline (rob's demand->[attack]->take->disengage, or an in-progress
+      // attack/confront) must be allowed to run to completion once started. Its trigger (the
+      // threat that originally justified it) can legitimately drop out of *this tick's*
+      // candidates without the goal itself having become wrong — most concretely, disengaging
+      // from a just-robbed victim means moving away and no longer facing them, so they briefly
+      // stop being perceived at all. Falling back to utility 0 in that case would let an
+      // ordinary need (hunger, socializing) outbid an unfinished robbery and strand its
+      // disengage step mid-plan, exactly the kind of "goal completes on paper but never really
+      // finishes" defect this stabilization pass exists to close.
+      const inFlightPipeline = cur.type === 'rob' || cur.type === 'attack' || cur.type === 'confront';
+      const curU = curCand?.utility ?? (inFlightPipeline ? 0.9 : 0);
       const done = m.plan.length === 0 || m.plan.every(a => a.status === 'done' || a.status === 'failed');
-      if (!done && best.utility < curU + 0.12 && !(best.type === 'flee' || best.type === 'attack' || best.type === 'confront')) { chosen = { ...cur, utility: curU }; note = `kept ${cur.type} (hysteresis)`; }
+      if (!done && best.utility < curU + 0.12 && !(best.type === 'flee' || best.type === 'attack' || best.type === 'confront' || best.type === 'rob')) { chosen = { ...cur, utility: curU }; note = `kept ${cur.type} (hysteresis)`; }
       else { switched = true; note = `switched from ${cur.type} to ${best.type}`; }
     } else if (!cur) { switched = true; note = `adopted ${best.type}`; }
     else { chosen = cur; note = `continuing ${cur.type}`; }
@@ -298,6 +344,13 @@ export class Simulation {
       case 'report': { const g2 = w.person(g.targetEntity!)!; return [A({ type: 'goto', targetEntity: g2.id, run: true }), A({ type: 'tell', targetEntity: g2.id, data: { key: g.data?.key } })]; }
       case 'investigate': { return [A({ type: 'goto', pos: g.targetPos!, run: p.occupation === 'captain' }), A({ type: 'look', duration: 3 * 60, pos: g.targetPos!, data: { key: g.data?.key, investigate: true } })]; }
       case 'confront': case 'attack': return [A({ type: 'goto', targetEntity: g.targetEntity, run: true }), A({ type: g.type === 'confront' ? 'talk' : 'attack', targetEntity: g.targetEntity, data: g.data })];
+      // Robbery is its own goal (not plain 'attack') so it can carry a demand step and an
+      // explicit completion/disengage step, rather than ending the moment the target is downed
+      // with nothing actually taken (Constitution requirement: robbery must have an explicit
+      // semantic goal and completion condition). See think()'s bandit branch and act()'s
+      // 'demand'/'rob' action handlers for the rest of the pipeline — 'demand' dynamically
+      // splices in either a direct 'rob' (voluntary compliance) or 'attack' + 'rob' (resistance).
+      case 'rob': return [A({ type: 'goto', targetEntity: g.targetEntity, run: true }), A({ type: 'demand', targetEntity: g.targetEntity, data: g.data })];
       case 'help': return [A({ type: 'goto', targetEntity: g.targetEntity, run: true }), A({ type: 'use', targetEntity: g.targetEntity, duration: 60, data: { heal: true } })];
       case 'recover_item': return [A({ type: 'goto', pos: g.targetPos! }), A({ type: 'pickup', targetEntity: g.targetEntity })];
       case 'mourn': { const gy = place!; const grave = gy.anchors.find(a => a.kind === 'grave' && a.label?.startsWith('Anna')) ?? gy.anchors[0]; return [A({ type: 'goto', pos: grave.pos }), A({ type: 'pray', pos: grave.pos, duration: 40 * 60 })]; }
@@ -342,6 +395,41 @@ export class Simulation {
       case 'tell': { const t = w.person(a.targetEntity!); const tb = w.primaryBody(a.targetEntity!); if (!t || !tb || dist2(body.pos, tb.pos) > 3.5) { a.status = 'failed'; break; } const k = p.knowledge[a.data?.key]; if (k) this.tell(p, t, k); body.pose = 'talk'; body.poseUntil = w.physicalTime + 2; a.status = 'done'; break; }
       case 'talk': { const t = w.person(a.targetEntity!); const tb = w.primaryBody(a.targetEntity!); if (!t || !tb) { a.status = 'failed'; break; } if (dist2(body.pos, tb.pos) > 3) { a.status = 'failed'; break; } this.confront(p, body, t, a); a.status = 'done'; break; }
       case 'attack': { const tb = w.primaryBody(a.targetEntity!); if (!tb || tb.dead) { a.status = 'done'; break; } const d = dist2(body.pos, tb.pos); body.yaw = Math.atan2(-(tb.pos.x - body.pos.x), -(tb.pos.z - body.pos.z)); if (d > 2.2) { a.status = 'pending'; m.plan.unshift({ type: 'goto', targetEntity: a.targetEntity, run: true, status: 'pending' }); break; } if (w.physicalTime - body.lastAttackAt > 1.1) { this.attack(p, body, tb, a.data?.intent as ConflictIntent | undefined); } if (tb.pose === 'downed' || tb.dead) a.status = 'done'; break; }
+      // ---- robbery (Constitution requirement: an explicit demand/response step, not an
+      // automatic taking). Resolved once, deterministically, then splices the rest of the
+      // robbery into the plan — mirrors how confront() pushes a forced 'attack'.
+      case 'demand': {
+        const t = w.person(a.targetEntity!); const tb = t ? w.primaryBody(t.id) : undefined;
+        if (!t || !tb || tb.dead) { a.status = 'done'; break; }
+        const d = dist2(body.pos, tb.pos);
+        if (d > 3) { a.status = 'pending'; m.plan.unshift({ type: 'goto', targetEntity: a.targetEntity, run: true, status: 'pending' }); break; }
+        body.pose = 'talk'; body.poseUntil = w.physicalTime + 1; body.yaw = Math.atan2(-(tb.pos.x - body.pos.x), -(tb.pos.z - body.pos.z));
+        const intent = (a.data?.intent as ConflictIntent) ?? 'rob';
+        w.emit('confrontation', { actor: p.id, target: t.id, pos: { ...body.pos }, placeId: w.placeAt(body.pos)?.id, significance: 0.4, visibility: 16, loudness: 10, data: { demand: true, intent }, summary: `${p.name} demanded ${t.name} hand over their valuables` });
+        const compliant = resolveRobberyCompliance(w, t, p);
+        if (compliant) { this.say(p, `Smart. Hand it over.`); m.plan.push({ type: 'rob', targetEntity: t.id, status: 'pending', data: { intent, compliant: true } }); }
+        else { this.say(p, `Wrong answer, then.`); m.plan.push({ type: 'attack', targetEntity: t.id, status: 'pending', data: { intent: intent === 'rob' ? 'subdue' : intent } }, { type: 'rob', targetEntity: t.id, status: 'pending', data: { intent, compliant: false } }); }
+        a.status = 'done'; break;
+      }
+      case 'rob': {
+        const t = w.person(a.targetEntity!); const tb = t ? w.primaryBody(t.id) : undefined;
+        if (!t) { a.status = 'done'; break; }
+        const compliant = !!a.data?.compliant;
+        // Resistance path: the preceding 'attack' step must have actually incapacitated the
+        // target before anything is taken. If it didn't (target fled, died, or the fight was
+        // otherwise abandoned) the robbery is abandoned rather than looping.
+        if (!compliant && (!tb || (!tb.dead && tb.pose !== 'downed'))) { a.status = 'failed'; break; }
+        if (tb?.dead) { a.status = 'done'; break; }
+        const take = selectRobberyTake(w, t);
+        if (take) this.executeRobbery(p, t, take, (a.data?.intent as ConflictIntent) ?? 'rob');
+        else w.emit('confrontation', { actor: p.id, target: t.id, pos: tb?.pos ?? body.pos, significance: 0.25, visibility: 10, data: { intent: a.data?.intent, outcome: 'nothing_to_take' }, summary: `${p.name} searched ${t.name} but found nothing worth taking` });
+        m.robCooldowns = m.robCooldowns ?? {}; m.robCooldowns[t.id] = w.physicalTime + ROBBERY_COOLDOWN_SECONDS;
+        // Disengage: a completed robbery ends by retreating, not by lingering next to a target
+        // who will shortly recover and re-register as a threat.
+        const away = this.awayFrom(body.pos, tb?.pos ?? body.pos, 22);
+        m.plan.push({ type: 'goto', pos: away, run: true, status: 'pending', data: { flee: true } });
+        a.status = 'done'; break;
+      }
       case 'use': { if (a.data?.heal) { const tb = w.primaryBody(a.targetEntity!); if (tb && dist2(body.pos, tb.pos) < 3) { body.pose = 'work'; tb.health = Math.min(tb.maxHealth, tb.health + worldDt * 0.02); if (this.elapsed(a)) { a.status = 'done'; if (tb.pose === 'downed') tb.pose = 'stand'; w.emit('heal', { actor: p.id, target: a.targetEntity, pos: body.pos, significance: 0.4, visibility: 12, summary: `${p.name} tended to ${w.nameOf(a.targetEntity)}'s wounds` }); this.say(p, `There. You'll live.`); } } else a.status = 'failed'; } else a.status = 'done'; break; }
       case 'pickup': { const it = w.item(a.targetEntity!); if (it && it.pos && !it.holderId && dist2(body.pos, it.pos) < 2.5) { this.takeItem(p, it, 'recovered'); } a.status = 'done'; break; }
       default: a.status = 'done';
@@ -531,6 +619,36 @@ export class Simulation {
     it.provenance[it.provenance.length - 1].eventId = ev.id;
     if (how === 'bought') it.ownerId = p.id;
     else if (!stolen && how !== 'given') it.ownerId = it.ownerId ?? p.id;
+    return ev;
+  }
+  /**
+   * Canonical robbery completion: transfers whatever `selectRobberyTake` chose, using the same
+   * item/wealth APIs as everything else (`takeItem` for a real item, `makeItem` to materialize
+   * abstract wealth exactly like `sellItem` does), then makes sure the victim — who was present
+   * and directly targeted — always knows they were robbed, with full provenance, the same way
+   * `applyHit` guarantees a victim always knows who struck them.
+   */
+  private executeRobbery(bandit: Person, victim: Person, take: RobberyTake, intent: ConflictIntent): WorldEvent {
+    const w = this.world; const vb = w.primaryBody(victim.id); const pos = vb?.pos ?? w.primaryBody(bandit.id)?.pos;
+    const place = pos ? w.placeAt(pos) : undefined;
+    let ev: WorldEvent;
+    if (take.kind === 'coins' || take.kind === 'item') {
+      ev = this.takeItem(bandit, take.item, 'theft', victim.id);
+    } else {
+      victim.wealth -= take.amount;
+      const coins = makeItem(w, 'coins', 'silver coins', { owner: bandit.id, holder: bandit.id, quantity: take.amount });
+      ev = w.emit('theft', { actor: bandit.id, target: victim.id, item: coins.id, pos, placeId: place?.id, significance: 0.5, visibility: 16, data: { intent, wealth: true }, summary: `${bandit.name} robbed ${take.amount} silver from ${victim.name}${place ? ' at ' + place.name : ''}` });
+      coins.provenance.push({ tick: w.now, eventId: ev.id, from: victim.id, to: bandit.id, how: 'stolen' });
+    }
+    if (victim.alive && !victim.controlled && !ev.perceivedBy.some(x => x.who === victim.id)) {
+      ev.perceivedBy.push({ who: victim.id, how: 'saw', tick: w.now });
+      const perc = w.emit('perceived', { actor: victim.id, target: bandit.id, causes: [ev.id], significance: 0.6, data: { how: 'saw', eventType: 'theft', eventId: ev.id }, summary: `${victim.name} was robbed by ${bandit.name}` });
+      learn(w, victim, { key: `ev:${ev.id}`, kind: 'event', claim: eventClaim(w, ev, true), confidence: 1, source: { type: 'witnessed', viaEvent: perc.id }, cause: perc.id, summary: ev.summary });
+      remember(w, victim, { type: 'theft', summary: `${bandit.name} robbed me`, eventId: ev.id, entities: [bandit.id], significance: 0.85, valence: -0.8, source: { type: 'witnessed', viaEvent: perc.id }, placeId: place?.id });
+      adjustRel(w, victim, bandit.id, { fear: 0.5, trust: -0.5, affection: -0.3, grudge: 0.5, respect: -0.2 }, 'was robbed', perc.id);
+      victim.emotions.fear = clamp(victim.emotions.fear + 0.5); victim.emotions.anger = clamp(victim.emotions.anger + 0.3);
+      victim.mind.alarm = 1; victim.mind.attention = bandit.id;
+    }
     return ev;
   }
   dropItem(p: Person, it: import('../core/types').Item, pos: Vec3): void {
