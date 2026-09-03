@@ -65,4 +65,31 @@ describe('save round trips', () => {
       expect(event.effects.every(id => restored.event(id))).toBe(true);
     }
   });
+
+  it('persists faction leadership succession and institutional knowledge (v0.2.1 Priority 8)', () => {
+    // Regression: v0.2 introduced Faction.leaderId (mutated by leadership succession on a
+    // leader's death, see history/factions.ts) and Faction.knowledge (institutional memory),
+    // but save.ts never persisted or restored either — `deserialize` regenerates factions
+    // fresh from the seed via `generateVillage`, so a save/reload would silently revert any
+    // leadership change or institutional knowledge gained during play back to the village's
+    // initial state. Unlike Person.factionId/cognitiveLOD or Body.attackTarget (all safely
+    // reconstructed from data that IS saved, or harmless to reset — see the SAVE_VERSION
+    // comment in persist/save.ts), leaderId/knowledge depend on simulation history that
+    // cannot be re-derived from present state, so they must round-trip explicitly.
+    const { world, gen } = newWorld(1337);
+    const bandits = world.faction(gen.people.skarn.factionId)!;
+    expect(bandits.leaderId).toBe(gen.people.skarn.id);
+    // Simulate a leadership succession (Skarn dies, Vex takes over) and a promoted piece of
+    // institutional knowledge, exactly as history/factions.ts would produce during play.
+    bandits.leaderId = gen.people.vex.id;
+    bandits.knowledge['ev:test-crime'] = {
+      key: 'ev:test-crime', kind: 'event', confidence: 0.9, learnedAt: world.now, source: { type: 'witnessed' }, hops: 0, sharedWith: [],
+      claim: { type: 'attack', actor: gen.people.vex.id, target: gen.people.skarn.id, tick: world.now },
+    };
+
+    const restored = deserialize(serialize(world))!.world;
+    const restoredFaction = restored.faction(bandits.id)!;
+    expect(restoredFaction.leaderId).toBe(gen.people.vex.id);
+    expect(restoredFaction.knowledge['ev:test-crime']?.claim.type).toBe('attack');
+  });
 });
