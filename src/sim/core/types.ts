@@ -240,7 +240,7 @@ export interface Item extends Entity {
 
 // ---------------------------------------------------------------- Places
 export type PlaceType = 'house' | 'tavern' | 'smithy' | 'bakery' | 'store' | 'chapel' | 'guardhouse' | 'farm' | 'mill' | 'square' | 'well' | 'stall' | 'camp' | 'shrine' | 'graveyard' | 'wilderness' | 'hut' | 'bridge' | 'gate';
-export interface Anchor { pos: Vec3; ownerId?: EntityId; kind: 'bed' | 'seat' | 'work' | 'counter' | 'fire' | 'altar' | 'grave' | 'stall' | 'inside' | 'post' | 'display'; label?: string; }
+export interface Anchor { pos: Vec3; ownerId?: EntityId; entityId?: EntityId; kind: 'bed' | 'seat' | 'work' | 'counter' | 'fire' | 'altar' | 'grave' | 'stall' | 'inside' | 'post' | 'display'; label?: string; }
 export interface Place extends Entity {
   kind: 'place';
   type: PlaceType;

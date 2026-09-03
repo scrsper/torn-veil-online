@@ -6,6 +6,7 @@ import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowl
 import { currentScheduleEntry } from './schedule';
 import { SECONDS_PER_HOUR } from '../core/time';
 import { B } from '../physical/blocks';
+import { makeItem } from '../world/factory';
 
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -91,34 +92,35 @@ export class Simulation {
     if (e.perceivedBy.some(x => x.who === p.id)) return;
     e.perceivedBy.push({ who: p.id, how, tick: w.now });
     if (e.type === 'told') { if (e.target !== p.id) return; return; } // handled directly in tell()
-    const perc = w.emit('perceived', { actor: p.id, target: e.actor, causes: [e.id], significance: e.significance * 0.5, data: { how, eventType: e.type, eventId: e.id }, summary: `${p.name} ${how} ${e.summary}` });
     const saw = how === 'saw';
     const claim = eventClaim(w, e, saw);
-    const k = learn(w, p, { key: `ev:${e.id}`, kind: 'event', claim, confidence: saw ? 1 : 0.6, source: { type: saw ? 'witnessed' : 'heard', viaEvent: perc.id }, cause: perc.id, summary: e.summary });
-    const isVictim = e.target === p.id;
-    const victimClose = e.target ? isClose(p, e.target) : false;
+    const claimSummary = describeClaim(w, { kind: 'event', claim } as KnowledgeItem);
+    const perc = w.emit('perceived', { actor: p.id, target: saw ? claim.actor : undefined, causes: [e.id], significance: e.significance * 0.5, data: { how, eventType: e.type, eventId: e.id, actorKnown: !!claim.actor }, summary: `${p.name} ${how} ${claimSummary}` });
+    const k = learn(w, p, { key: `ev:${e.id}`, kind: 'event', claim, confidence: saw ? 1 : 0.6, source: { type: saw ? 'witnessed' : 'heard', viaEvent: perc.id }, cause: perc.id, summary: claimSummary });
+    const isVictim = claim.target === p.id;
+    const victimClose = claim.target ? isClose(p, claim.target) : false;
     const sig = e.significance * (isVictim ? 1.4 : victimClose ? 1.2 : 1) * (saw ? 1 : 0.7);
     const valence = isCrime(e.type) ? -0.8 : e.type === 'gift' || e.type === 'returned_item' || e.type === 'heal' ? 0.6 : 0;
-    remember(w, p, { type: e.type, summary: saw ? `I saw: ${e.summary}` : `I heard: ${e.summary}`, eventId: e.id, entities: [e.actor, e.target, e.item].filter(Boolean) as string[], significance: clamp(sig), valence, source: { type: saw ? 'witnessed' : 'heard', viaEvent: perc.id }, placeId: e.placeId });
+    remember(w, p, { type: e.type, summary: saw ? `I saw: ${claimSummary}` : `I heard: ${claimSummary}`, eventId: e.id, entities: [claim.actor, claim.target, claim.item].filter(Boolean) as string[], significance: clamp(sig), valence, source: { type: saw ? 'witnessed' : 'heard', viaEvent: perc.id }, placeId: claim.placeId });
     if (p.controlled) return;
     this.reactTo(p, body, e, perc.id, saw, isVictim, victimClose, k);
   }
 
   private reactTo(p: Person, body: Body, e: WorldEvent, cause: string, saw: boolean, isVictim: boolean, victimClose: boolean, k: KnowledgeItem | null): void {
-    const w = this.world; const actor = e.actor;
-    if (isCrime(e.type) && actor && actor !== p.id) {
-      const sev = crimeSeverity(e.type); const actorP = w.person(actor);
-      const victimDisp = e.target ? disposition(p, e.target) : 0;
+    const w = this.world; const claim = k?.claim ?? eventClaim(w, e, saw); const actor = claim.actor as EntityId | undefined;
+    if (isCrime(claim.type) && actor !== p.id) {
+      const sev = crimeSeverity(claim.type); const actorP = w.person(actor);
+      const victimDisp = claim.target ? disposition(p, claim.target) : 0;
       // fear rises with severity, proximity and low courage; grudge with closeness to the victim
       const fear = sev * (1.2 - p.traits.courage) * (isVictim ? 1.5 : 1) * (saw ? 1 : 0.6);
       const grudge = sev * (isVictim ? 1.2 : victimClose ? 1 : 0.35 + Math.max(0, victimDisp) * 0.6);
-      adjustRel(w, p, actor, { fear: fear * 0.7, trust: -sev * (isVictim ? 0.9 : 0.6), affection: -sev * (isVictim ? 0.7 : 0.4), grudge: grudge * 0.6, respect: -sev * 0.3 }, `${saw ? 'witnessed' : 'heard'} ${e.type}${isVictim ? ' on me' : e.target ? ` on ${w.nameOf(e.target)}` : ''}`, cause);
-      if (actorP && !actorP.hostile && e.type !== 'theft') { for (const q of w.persons()) if (q !== p && q.id !== actor && isFamily(p, q.id)) {/* family shares outrage later through telling */} }
+      if (actor) adjustRel(w, p, actor, { fear: fear * 0.7, trust: -sev * (isVictim ? 0.9 : 0.6), affection: -sev * (isVictim ? 0.7 : 0.4), grudge: grudge * 0.6, respect: -sev * 0.3 }, `${saw ? 'witnessed' : 'learned of'} ${claim.type}${isVictim ? ' on me' : claim.target ? ` on ${w.nameOf(claim.target)}` : ''}`, cause);
+      if (actor && actorP && !actorP.hostile && claim.type !== 'theft') { for (const q of w.persons()) if (q !== p && q.id !== actor && isFamily(p, q.id)) {/* family shares outrage later through telling */} }
       const emo = p.emotions; const before = { ...emo };
       emo.fear = clamp(emo.fear + fear * 0.6); emo.stress = clamp(emo.stress + sev * 0.5); emo.anger = clamp(emo.anger + grudge * 0.5 * (p.traits.aggression + 0.3));
       if (Math.abs(emo.fear - before.fear) + Math.abs(emo.anger - before.anger) > 0.1) w.emit('emotion_changed', { actor: p.id, causes: [cause], significance: 0.25, data: { fear: emo.fear, anger: emo.anger, stress: emo.stress }, summary: `${p.name} feels ${emo.fear > emo.anger ? `afraid (fear ${emo.fear.toFixed(2)})` : `angry (anger ${emo.anger.toFixed(2)})`}` });
-      p.mind.alarm = 1; p.mind.attention = actor;
-      const line = this.reactionLine(p, e, actorP, isVictim, victimClose);
+      p.mind.alarm = 1; p.mind.attention = actor ?? null;
+      const line = this.reactionLine(p, claim.type, actorP, claim.target, isVictim, victimClose);
       if (line) this.say(p, line);
     } else if (e.type === 'gift' || e.type === 'returned_item' || e.type === 'apology' || e.type === 'debt_paid') {
       if (actor) adjustRel(w, p, actor, { trust: 0.1 * (isVictim ? 3 : 1), affection: 0.1 * (isVictim ? 3 : 1), respect: 0.05 }, `saw ${e.type}`, cause);
@@ -126,9 +128,9 @@ export class Simulation {
     } else if (e.type === 'death') { p.emotions.sadness = clamp(p.emotions.sadness + (victimClose ? 0.7 : 0.2)); p.mind.alarm = 0.6; }
     void k;
   }
-  private reactionLine(p: Person, e: WorldEvent, actor: Person | undefined, isVictim: boolean, victimClose: boolean): string {
-    const w = this.world; const an = actor?.name ?? 'someone'; const vn = e.target ? w.nameOf(e.target) : 'someone';
-    if (e.type === 'theft') { if (isVictim) return `Thief! That's mine!`; return p.traits.honesty > 0.5 ? `${an}, that's not yours!` : `Hm. Not my business.`; }
+  private reactionLine(p: Person, type: string, actor: Person | undefined, target: EntityId | undefined, isVictim: boolean, victimClose: boolean): string {
+    const w = this.world; const an = actor?.name ?? 'someone'; const vn = target ? w.nameOf(target) : 'someone';
+    if (type === 'theft') { if (isVictim) return `Thief! That's mine!`; return p.traits.honesty > 0.5 ? `${an}, that's not yours!` : `Hm. Not my business.`; }
     if (isVictim) return p.traits.courage > 0.6 ? `You'll regret that!` : `Help! Help me!`;
     if (victimClose) return p.traits.courage > 0.6 ? `Get away from ${vn.split(' ')[0]}!` : `${vn.split(' ')[0]}! No!`;
     return p.traits.courage > 0.7 ? `Hey! Stop that!` : p.traits.sociability > 0.5 ? `Guards! Somebody get the guards!` : `...`;
@@ -192,8 +194,14 @@ export class Simulation {
     // ---- needs
     const n = p.needs; const night = hour >= 22 || hour < 5;
     G('sleep', clamp(n.energy * 0.9 + (sched?.activity === 'sleep' ? 0.35 : 0) + (night ? 0.15 : -0.1)), [`energy need ${n.energy.toFixed(2)}`, sched?.activity === 'sleep' ? 'it is my time to sleep' : ''], { targetPlace: p.homeId ?? undefined });
-    const mealTime = sched?.activity === 'eat';
-    G('eat', clamp(n.hunger * 0.9 + (mealTime ? 0.3 : -0.1)), [`hunger ${n.hunger.toFixed(2)}`, mealTime ? 'meal time' : ''], { targetPlace: (sched?.activity === 'eat' && sched.placeId) ? sched.placeId : (p.homeId ?? undefined) });
+    let ateRecently = false;
+    for (let i = w.events.length - 1; i >= 0; i--) {
+      const event = w.events[i]; if (now - event.tick >= 45 * 60) break;
+      if (event.type === 'meal' && event.actor === p.id) { ateRecently = true; break; }
+    }
+    const mealTime = sched?.activity === 'eat' && !ateRecently;
+    const satiatedPenalty = ateRecently && n.hunger < 0.2 ? 0.35 : 0;
+    G('eat', clamp(n.hunger * 0.9 + (mealTime ? 0.3 : -0.1) - satiatedPenalty), [`hunger ${n.hunger.toFixed(2)}`, mealTime ? 'meal time' : ateRecently ? 'recently ate' : ''], { targetPlace: (sched?.activity === 'eat' && sched.placeId) ? sched.placeId : (p.homeId ?? undefined) });
     // ---- schedule
     if (sched && !['sleep', 'eat'].includes(sched.activity)) {
       const rainingNow = w.weather.kind === 'rain' || w.weather.kind === 'storm';
@@ -333,6 +341,8 @@ export class Simulation {
     const t = path[body.pathIndex]; const dx = t.x - body.pos.x, dz = t.z - body.pos.z; const d = Math.hypot(dx, dz);
     if (d < 0.25) { body.pathIndex++; if (body.pathIndex >= path.length) { body.vel.x = 0; body.vel.z = 0; return true; } return false; }
     const step = Math.min(d, body.speed * dt); const nx = body.pos.x + dx / d * step, nz = body.pos.z + dz / d * step;
+    const doorX = Math.floor(nx), doorZ = Math.floor(nz), doorY = this.world.nav.floorY(doorX, doorZ);
+    if (doorY >= 0 && this.world.grid.get(doorX, doorY, doorZ) === B.Door && !this.world.grid.isDoorOpen(doorX, doorY, doorZ)) this.world.setDoorOpen({ x: doorX, y: doorY, z: doorZ }, true, body.ownerId);
     // separation from other bodies
     let sx = 0, sz = 0; for (const o of this.world.bodies()) { if (o === body || !o.present || o.dead) continue; const ox = body.pos.x - o.pos.x, oz = body.pos.z - o.pos.z; const od = Math.hypot(ox, oz); if (od < 0.7 && od > 1e-3) { sx += ox / od * (0.7 - od); sz += oz / od * (0.7 - od); } }
     body.pos.x = nx + sx * dt * 2; body.pos.z = nz + sz * dt * 2;
@@ -376,7 +386,7 @@ export class Simulation {
   }
   private pickGossip(p: Person, other: Person): KnowledgeItem | null {
     const w = this.world; const r = getRel(p, other.id); if (r.trust < -0.3) return null;
-    const cands = Object.values(p.knowledge).filter(k => k.kind === 'event' && !k.sharedWith.includes(other.id) && k.claim.actor !== other.id && k.source.from !== other.id && (w.now - k.learnedAt < 86400 * 4 || isCrime(k.claim.type)) && !other.knowledge[k.key]);
+    const cands = Object.values(p.knowledge).filter(k => k.kind === 'event' && ((k.claim.significance ?? 0.3) >= 0.2 || isCrime(k.claim.type)) && !k.sharedWith.includes(other.id) && k.claim.actor !== other.id && k.source.from !== other.id && (w.now - k.learnedAt < 86400 * 4 || isCrime(k.claim.type)) && !other.knowledge[k.key]);
     if (!cands.length) return null;
     cands.sort((a, b) => (b.claim.significance ?? 0.3) * (isCrime(b.claim.type) ? 1.5 : 1) - (a.claim.significance ?? 0.3) * (isCrime(a.claim.type) ? 1.5 : 1));
     const best = cands[0]; if ((best.claim.significance ?? 0.3) < 0.2 && p.traits.sociability < 0.6) return null; return best;
@@ -411,7 +421,6 @@ export class Simulation {
       listener.mind.alarm = 1;
       const lb = w.primaryBody(listener.id); if (lb) { lb.pose = 'talk'; lb.poseUntil = w.physicalTime + 1.5; }
       const isGuard = listener.occupation === 'guard' || listener.occupation === 'captain';
-      setTimeout(() => {}, 0);
       this.sayLater(listener, isGuard ? `${k.claim.type === 'kill' ? 'Murder?!' : 'An assault?'} Where? I'll see to it.` : listener.traits.courage > 0.6 ? `That so? Someone should do something.` : `Gods. I'll keep my door barred.`, 1.2);
     } else if (learned) { this.sayLater(listener, ['Is that so.', 'I hadn\'t heard.', 'Well, well.', 'Hm.', 'Really?'][Math.floor(w.rng.next() * 5)], 1.5); }
   }
@@ -483,18 +492,20 @@ export class Simulation {
   takeItem(p: Person, it: import('../core/types').Item, how: 'pickup' | 'theft' | 'recovered' | 'bought' | 'given', from?: EntityId): WorldEvent {
     const w = this.world; const pos = it.pos ? { ...it.pos } : w.primaryBody(p.id)?.pos; const place = it.placeId ? w.place(it.placeId) : pos ? w.placeAt(pos) : undefined;
     const prevHolder = it.holderId; if (prevHolder) { const h = w.person(prevHolder); if (h) h.inventory = h.inventory.filter(x => x !== it.id); }
-    it.holderId = p.id; it.pos = null; it.placeId = null; p.inventory.push(it.id);
+    it.holderId = p.id; it.pos = null; it.placeId = null; if (!p.inventory.includes(it.id)) p.inventory.push(it.id);
     const stolen = how === 'theft' || (how === 'pickup' && it.ownerId && it.ownerId !== p.id);
     const type = stolen ? 'theft' : how === 'recovered' ? 'recovered' : how === 'given' ? 'give' : how === 'bought' ? 'trade' : 'pickup';
     it.provenance.push({ tick: w.now, from: from ?? prevHolder ?? it.ownerId ?? null, to: p.id, how: stolen ? 'stolen' : how });
-    const ev = w.emit(type as any, { actor: p.id, target: stolen ? it.ownerId! : (from ?? it.ownerId ?? undefined), item: it.id, pos, placeId: place?.id, significance: stolen ? 0.5 : 0.15, visibility: stolen ? 16 : 8, data: { how }, summary: stolen ? `${p.name} stole ${it.name} from ${w.nameOf(it.ownerId)}${place ? ' at ' + place.name : ''}` : `${p.name} ${how === 'recovered' ? 'recovered' : 'picked up'} ${it.name}${place ? ' at ' + place.name : ''}` });
+    const ev = w.emit(type, { actor: p.id, target: stolen ? it.ownerId! : (from ?? it.ownerId ?? undefined), item: it.id, pos, placeId: place?.id, significance: stolen ? 0.5 : 0.15, visibility: stolen ? 16 : 8, data: { how }, summary: stolen ? `${p.name} stole ${it.name} from ${w.nameOf(it.ownerId)}${place ? ' at ' + place.name : ''}` : `${p.name} ${how === 'recovered' ? 'recovered' : how === 'bought' ? 'bought' : 'picked up'} ${it.name}${place ? ' at ' + place.name : ''}` });
     it.provenance[it.provenance.length - 1].eventId = ev.id;
-    if (!stolen && how !== 'given' && how !== 'bought') it.ownerId = it.ownerId ?? p.id;
+    if (how === 'bought') it.ownerId = p.id;
+    else if (!stolen && how !== 'given') it.ownerId = it.ownerId ?? p.id;
     return ev;
   }
   dropItem(p: Person, it: import('../core/types').Item, pos: Vec3): void {
     const w = this.world; p.inventory = p.inventory.filter(x => x !== it.id); it.holderId = null; it.pos = { ...pos }; it.placeId = w.placeAt(pos)?.id ?? null;
-    w.emit('drop', { actor: p.id, item: it.id, pos, significance: 0.1, visibility: 8, summary: `${p.name} dropped ${it.name}` });
+    const ev = w.emit('drop', { actor: p.id, item: it.id, pos, significance: 0.1, visibility: 8, summary: `${p.name} dropped ${it.name}` });
+    it.provenance.push({ tick: w.now, eventId: ev.id, from: p.id, to: null, how: 'dropped' });
   }
   giveItem(from: Person, to: Person, it: import('../core/types').Item): WorldEvent {
     const w = this.world; from.inventory = from.inventory.filter(x => x !== it.id); to.inventory.push(it.id); it.holderId = to.id;
@@ -504,6 +515,36 @@ export class Simulation {
     const ev = w.emit(returned ? 'returned_item' : 'gift', { actor: from.id, target: to.id, item: it.id, pos, significance: returned ? 0.6 : 0.4, visibility: 14, loudness: 6, summary: `${from.name} ${returned ? 'returned' : 'gave'} ${it.name} to ${to.name}` });
     it.provenance[it.provenance.length - 1].eventId = ev.id;
     for (const d of to.desires) if (!d.fulfilled && d.type === 'recover_item' && d.targetId === it.id) { d.fulfilled = true; adjustRel(w, to, from.id, { affection: 0.6, trust: 0.5, respect: 0.3 }, `returned ${it.name}`, ev.id); to.emotions.joy = 1; to.emotions.sadness *= 0.5; this.say(to, `You... you found it. I don't know what to say. Thank you, stranger.`); }
+    return ev;
+  }
+
+  /** Canonical purchase path used by dialogue and available to any future actor intent. */
+  buyItem(buyer: Person, seller: Person, it: import('../core/types').Item, price: number): WorldEvent | null {
+    const w = this.world; const coins = buyer.inventory.map(id => w.item(id)).find(item => item?.type === 'coins');
+    if (!coins || coins.quantity < price || it.holderId || it.ownerId !== seller.id) return null;
+    coins.quantity -= price; seller.wealth += price;
+    const ev = this.takeItem(buyer, it, 'bought', seller.id);
+    ev.data.price = price; ev.data.buyer = buyer.id; ev.data.seller = seller.id;
+    ev.summary = `${buyer.name} bought ${it.name} from ${seller.name} for ${price} silver`;
+    coins.provenance.push({ tick: w.now, eventId: ev.id, from: buyer.id, to: seller.id, how: 'trade payment' });
+    return ev;
+  }
+
+  /** Canonical sale path. Payment becomes a real carried coin entity when needed. */
+  sellItem(seller: Person, buyer: Person, it: import('../core/types').Item, price: number, displayPos?: Vec3, placeId?: EntityId): WorldEvent | null {
+    const w = this.world;
+    if (buyer.wealth < price || it.holderId !== seller.id || !seller.inventory.includes(it.id)) return null;
+    buyer.wealth -= price;
+    let coins = seller.inventory.map(id => w.item(id)).find(item => item?.type === 'coins');
+    if (coins) coins.quantity += price;
+    else coins = makeItem(w, 'coins', 'silver coins', { owner: seller.id, holder: seller.id, quantity: price });
+    seller.inventory = seller.inventory.filter(id => id !== it.id);
+    it.holderId = null; it.ownerId = buyer.id;
+    const pos = displayPos ?? w.primaryBody(buyer.id)?.pos ?? w.primaryBody(seller.id)?.pos ?? null;
+    it.pos = pos ? { ...pos } : null; it.placeId = placeId ?? (pos ? w.placeAt(pos)?.id ?? null : null);
+    const ev = w.emit('trade', { actor: seller.id, target: buyer.id, item: it.id, pos: pos ?? undefined, placeId: it.placeId ?? undefined, significance: 0.2, visibility: 10, data: { price, buyer: buyer.id, seller: seller.id }, summary: `${seller.name} sold ${it.name} to ${buyer.name} for ${price} silver` });
+    it.provenance.push({ tick: w.now, eventId: ev.id, from: seller.id, to: buyer.id, how: 'sold' });
+    coins.provenance.push({ tick: w.now, eventId: ev.id, from: buyer.id, to: seller.id, how: 'trade payment' });
     return ev;
   }
 

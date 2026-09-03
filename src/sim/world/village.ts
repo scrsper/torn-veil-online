@@ -123,6 +123,20 @@ export function generateVillage(world: World): GenResult {
     if (c.key === 'hale') p.patrol = [v(168, F, 95), v(160, F, 96)];
     if (c.key === 'brigid') p.patrol = [v(96, F, 158), v(96, F, 130), v(100, F, 100), v(96, F, 78)];
   }
+  // Important people remain semantic entities after death even though they have no bodies.
+  const historical = [
+    { key: 'anna', name: 'Anna Wold', gender: 'f' as const, age: 57, occupation: 'farmer' as const, home: 'house_cedric', work: 'farm_cedric', died: world.now - 200 * SECONDS_PER_DAY, bio: "Cedric Wold's wife. She died of winter fever; her lost wedding ring remains part of the village's history." },
+    { key: 'lissa', name: 'Lissa Bramble', gender: 'f' as const, age: 40, occupation: 'baker' as const, home: 'bakery', work: 'bakery', died: world.now - 6 * 365 * SECONDS_PER_DAY, bio: "Osric Bramble's wife and Mara's mother. She died in childbirth." },
+    { key: 'tam', name: 'Tam Reed', gender: 'm' as const, age: 39, occupation: 'smith' as const, home: 'hut_tomas', work: 'smithy', died: world.now - 12 * 365 * SECONDS_PER_DAY, bio: "Tomas Reed's father, a smith who died in the great river flood." },
+    { key: 'mira', name: 'Mira Reed', gender: 'f' as const, age: 37, occupation: 'farmer' as const, home: 'hut_tomas', work: null, died: world.now - 12 * 365 * SECONDS_PER_DAY, bio: "Tomas Reed's mother, who died with Tam in the great river flood." },
+  ];
+  for (const h of historical) {
+    const person = makePerson(world, { name: h.name, gender: h.gender, age: h.age, occupation: h.occupation, home: places[h.home]?.id, work: h.work ? places[h.work]?.id : null, traits: {}, appearance: {}, bio: h.bio });
+    person.alive = false; person.deathTick = h.died; person.factionId = village.id; person.createdAt = h.died - h.age * 365 * SECONDS_PER_DAY;
+    village.members.push(person.id); people[h.key] = person;
+  }
+  const graveOwners: Record<string, EntityId> = { 'Anna Wold': people.anna.id, 'Lissa Bramble': people.lissa.id, 'Old Tam Reed': people.tam.id, 'Mira Reed': people.mira.id };
+  for (const grave of graves) if (grave.label && graveOwners[grave.label]) grave.entityId = graveOwners[grave.label];
   // assign beds
   const bedFor = (key: string, placeKey: string, idx = 0) => { const pl = places[placeKey]; const beds = pl.anchors.filter(a => a.kind === 'bed' && !a.ownerId); if (beds[idx]) beds[idx].ownerId = people[key].id; else { const any = pl.anchors.filter(a => a.kind === 'bed'); if (any[0]) any[0].ownerId ??= people[key].id; } };
   // tavern: build beds for the family now that people exist
@@ -142,6 +156,7 @@ export function generateVillage(world: World): GenResult {
   // ---- Bodies: spawn everyone where their schedule says they'd be at the current hour
   for (const key of Object.keys(people)) {
     const p = people[key];
+    if (!p.alive) continue;
     const b = makeBody(world, p.id, v(96, F, 96), 'humanoid', p.occupation === 'child' ? 40 : p.occupation === 'guard' || p.occupation === 'captain' || p.occupation === 'bandit' ? 110 : 80);
     b.speed = p.occupation === 'child' ? 3.2 : 3.4; p.bodies.push(b.id);
     const home = world.place(p.homeId); const anchor = home?.anchors.find(a => a.kind === 'bed' && a.ownerId === p.id) ?? home?.anchors.find(a => a.kind === 'bed');
@@ -159,9 +174,9 @@ export function generateVillage(world: World): GenResult {
   const oath = item('sword', 'Oathkeeper', { owner: people.rowan.id, holder: people.rowan.id, named: true, damage: 30, value: 200, description: 'A long sword with a worn leather grip. Forged by Garrick Ironhand for Captain Rowan after Rowan saved his life on the east road.' });
   oath.provenance.push({ tick: yearsAgo(5), from: null, to: people.garrick.id, how: 'forged by Garrick Ironhand' }, { tick: yearsAgo(5) + 86400 * 20, from: people.garrick.id, to: people.rowan.id, how: 'gift of thanks' });
   const hammer = item('hammer', "Tam Reed's hammer", { owner: people.garrick.id, pos: v(117.5, F, 105.5), placeId: places.smithy.id, named: true, description: "A smith's hammer with a blackened ash handle. Belonged to Tomas's father, Tam Reed; Garrick keeps it on the anvil." });
-  hammer.provenance.push({ tick: yearsAgo(30), from: null, to: 'Tam Reed', how: 'made' }, { tick: yearsAgo(12), from: 'Tam Reed', to: people.garrick.id, how: "inherited when Tam died; held for Tomas" });
+  hammer.provenance.push({ tick: yearsAgo(30), from: null, to: people.tam.id, how: 'made' }, { tick: yearsAgo(12), from: people.tam.id, to: people.garrick.id, how: "inherited when Tam died; held for Tomas" });
   const ring = item('ring', "Anna's ring", { owner: people.cedric.id, pos: v(places.shrine.inside.x + 1.5, places.shrine.bounds.y0, places.shrine.inside.z - 2.5), placeId: places.shrine.id, named: true, value: 120, description: 'A thin silver band engraved with a wheat sheaf. Anna Wold\'s wedding ring, lost the day she died.' });
-  ring.provenance.push({ tick: yearsAgo(30), from: null, to: people.cedric.id, how: 'bought from a travelling silversmith' }, { tick: yearsAgo(30), from: people.cedric.id, to: 'Anna Wold', how: 'wedding gift' }, { tick: daysAgo(200), from: 'Anna Wold', to: null, how: 'lost on the northern hill' });
+  ring.provenance.push({ tick: yearsAgo(30), from: null, to: people.cedric.id, how: 'bought from a travelling silversmith' }, { tick: yearsAgo(30), from: people.cedric.id, to: people.anna.id, how: 'wedding gift' }, { tick: daysAgo(200), from: people.anna.id, to: null, how: 'lost on the northern hill' });
   for (const [who, t, n] of [[people.garrick, 'hammer', 'a heavy hammer'], [people.bors, 'axe', "Bors's axe"], [people.kestrel, 'dagger', 'a hunting knife'], [people.hale, 'sword', 'a watch sword'], [people.brigid, 'sword', 'a watch sword'], [people.dunstan, 'sword', 'a watch sword'], [people.skarn, 'sword', 'a notched sword'], [people.vex, 'dagger', 'a curved knife'], [people.tomas, 'hammer', 'an apprentice hammer']] as [Person, Item['type'], string][]) {
     const it = item(t, n, { owner: who.id, holder: who.id }); it.provenance.push({ tick: yearsAgo(1), from: null, to: who.id, how: 'owned' });
   }
@@ -191,7 +206,7 @@ function seedHistory(world: World, pp: Record<string, Person>, pl: Record<string
   const daysAgo = (d: number) => world.now - d * SECONDS_PER_DAY; const yearsAgo = (y: number) => daysAgo(y * 365);
   const rel = (a: Person, b: Person, d: Parameters<typeof adjustRel>[3], ...tags: string[]) => { adjustRel(world, a, b.id, d, 'history', undefined, true); if (tags.length) setRelTags(a, b.id, ...tags); };
   const both = (a: Person, b: Person, d: Parameters<typeof adjustRel>[3], ...tags: string[]) => { rel(a, b, d, ...tags); rel(b, a, d, ...tags); };
-  const everyone = Object.values(pp).filter(p => !p.hostile);
+  const everyone = Object.values(pp).filter(p => p.alive && !p.hostile);
   // baseline familiarity: villagers know each other
   for (const a of everyone) for (const b of everyone) if (a !== b) { const r = getRel(a, b.id); r.familiarity = 0.6 + world.rng.next() * 0.3; r.trust = 0.1 + world.rng.next() * 0.2; r.affection = world.rng.next() * 0.2; r.respect = 0.05 + world.rng.next() * 0.15; }
   for (const a of everyone) { rel(a, pp.godwin, { respect: 0.5, trust: 0.3 }); rel(a, pp.rowan, { respect: 0.35, trust: 0.25 }); rel(a, pp.aldous, { respect: 0.3, trust: 0.3 }); rel(a, pp.skarn, { fear: 0.3, grudge: 0.2 }); rel(a, pp.vex, { fear: 0.25, grudge: 0.15 }); getRel(a, pp.skarn.id).familiarity = 0.2; getRel(a, pp.vex.id).familiarity = 0.15; }
@@ -200,6 +215,9 @@ function seedHistory(world: World, pp: Record<string, Person>, pl: Record<string
   both(pp.alwin, pp.greta, { affection: 0.7, trust: 0.8 }, 'spouse'); both(pp.jory, pp.nell, { affection: 0.6, trust: 0.7 }, 'spouse');
   const parent = (c: Person, ...ps: Person[]) => { for (const p of ps) { rel(c, p, { affection: 0.8, trust: 0.9, respect: 0.4 }, 'parent'); rel(p, c, { affection: 0.9, trust: 0.6 }, 'child'); } };
   parent(pp.ysolde, pp.hilda, pp.bram); parent(pp.pip, pp.alwin, pp.greta); parent(pp.tilly, pp.jory, pp.nell); parent(pp.mara, pp.osric); parent(pp.nell, pp.maud);
+  both(pp.cedric, pp.anna, { affection: 0.9, trust: 0.9 }, 'spouse');
+  both(pp.osric, pp.lissa, { affection: 0.8, trust: 0.8 }, 'spouse');
+  parent(pp.mara, pp.lissa); parent(pp.tomas, pp.tam, pp.mira);
   rel(pp.maud, pp.tilly, { affection: 0.8 }, 'grandchild'); rel(pp.tilly, pp.maud, { affection: 0.6, trust: 0.7 }, 'grandparent');
   both(pp.pip, pp.tilly, { affection: 0.8, trust: 0.8 }, 'friend');
   rel(pp.garrick, pp.tomas, { affection: 0.6, trust: 0.6, respect: 0.2 }, 'foster', 'employer'); rel(pp.tomas, pp.garrick, { affection: 0.7, trust: 0.8, respect: 0.8 }, 'foster', 'employee');
@@ -214,9 +232,9 @@ function seedHistory(world: World, pp: Record<string, Person>, pl: Record<string
   rel(pp.hilda, pp.dunstan, { affection: -0.3, respect: -0.3 }); rel(pp.dunstan, pp.hilda, { fear: 0.15 });
   both(pp.kestrel, pp.wyn, { affection: 0.5, trust: 0.6 }, 'friend');
   rel(pp.petra, pp.wyn, { fear: 0.4, affection: -0.5, trust: -0.6 }); rel(pp.pip, pp.wyn, { fear: 0.6 }); rel(pp.greta, pp.wyn, { fear: 0.2, trust: -0.2 });
-  both(pp.skarn, pp.vex, { affection: 0.4, trust: 0.6, loyalty: 0.5 } as any, 'partner');
+  both(pp.skarn, pp.vex, { affection: 0.4, trust: 0.6 }, 'partner');
   rel(pp.hobb, pp.skarn, { fear: 0.7, grudge: 0.9, affection: -0.8 }); rel(pp.hobb, pp.vex, { fear: 0.7, grudge: 0.8, affection: -0.8 });
-  for (const g of [pp.hale, pp.dunstan, pp.brigid]) { rel(g, pp.rowan, { respect: 0.7, trust: 0.7, loyalty: 0 } as any, 'captain'); rel(pp.rowan, g, { trust: 0.6, respect: 0.3 }, 'subordinate'); }
+  for (const g of [pp.hale, pp.dunstan, pp.brigid]) { rel(g, pp.rowan, { respect: 0.7, trust: 0.7 }, 'captain'); rel(pp.rowan, g, { trust: 0.6, respect: 0.3 }, 'subordinate'); }
   both(pp.hilda, pp.edda, { affection: 0.5, trust: 0.4 }, 'friend', 'employer'); both(pp.edda, pp.petra, { affection: 0.4, trust: 0.3 }, 'friend');
   both(pp.cedric, pp.aldous, { affection: 0.5, trust: 0.7 }, 'friend'); both(pp.jory, pp.bors, { affection: 0.4, trust: 0.3 }, 'friend');
   both(pp.greta, pp.nell, { affection: 0.5, trust: 0.5 }, 'friend'); both(pp.mara, pp.ysolde, { affection: 0.6, trust: 0.6 }, 'friend');
@@ -231,10 +249,12 @@ function seedHistory(world: World, pp: Record<string, Person>, pl: Record<string
   };
   const all = everyone;
   H('marriage', yearsAgo(22), { actor: pp.garrick.id, target: pp.edda.id, placeId: pl.chapel.id, summary: 'Garrick Ironhand married Edda at the chapel' }, [pp.garrick, pp.edda, pp.aldous, pp.godwin], 0.6, 0.8);
-  H('marriage', yearsAgo(31), { actor: pp.cedric.id, target: pp.cedric.id, placeId: pl.chapel.id, data: { text: 'Cedric Wold married Anna' }, summary: 'Cedric Wold married Anna at the chapel' }, [pp.cedric, pp.godwin, pp.aldous], 0.6, 0.9);
-  H('death', daysAgo(200), { target: pp.cedric.id, placeId: pl.house_cedric.id, data: { text: 'Anna Wold died of the winter fever' }, summary: 'Anna Wold died of the winter fever' }, [pp.cedric, pp.aldous, pp.ione, pp.wyn], 0.9, -0.9, all.filter(p => ![pp.cedric, pp.aldous, pp.ione, pp.wyn].includes(p)), pp.aldous);
-  H('death', yearsAgo(6), { target: pp.osric.id, placeId: pl.bakery.id, data: { text: 'Lissa Bramble, the baker\'s wife, died in childbirth' }, summary: "Lissa Bramble, the baker's wife, died" }, [pp.osric, pp.mara, pp.aldous, pp.edda], 0.8, -0.9, [pp.hilda, pp.godwin, pp.greta, pp.petra], pp.edda);
-  H('death', yearsAgo(12), { target: pp.tomas.id, placeId: pl.smithy.id, data: { text: "Tam and Mira Reed, Tomas's parents, drowned when the river flooded" }, summary: "Tam and Mira Reed drowned in the flood; Garrick took in their boy Tomas" }, [pp.garrick, pp.edda, pp.tomas, pp.godwin, pp.hobb], 0.8, -0.8, [pp.rowan, pp.hilda, pp.osric, pp.aldous], pp.godwin);
+  H('marriage', yearsAgo(31), { actor: pp.cedric.id, target: pp.anna.id, placeId: pl.chapel.id, data: { text: 'Cedric Wold married Anna Wold' }, summary: 'Cedric Wold married Anna Wold at the chapel' }, [pp.cedric, pp.anna, pp.godwin, pp.aldous], 0.6, 0.9);
+  H('death', daysAgo(200), { target: pp.anna.id, placeId: pl.house_cedric.id, data: { text: 'Anna Wold died of the winter fever' }, summary: 'Anna Wold died of the winter fever' }, [pp.anna, pp.cedric, pp.aldous, pp.ione, pp.wyn], 0.9, -0.9, all.filter(p => ![pp.cedric, pp.aldous, pp.ione, pp.wyn].includes(p)), pp.aldous);
+  H('death', yearsAgo(6), { target: pp.lissa.id, placeId: pl.bakery.id, data: { text: 'Lissa Bramble, the baker\'s wife, died in childbirth' }, summary: "Lissa Bramble, the baker's wife, died" }, [pp.lissa, pp.osric, pp.mara, pp.aldous, pp.edda], 0.8, -0.9, [pp.hilda, pp.godwin, pp.greta, pp.petra], pp.edda);
+  const flood = world.emit('weather', { tick: yearsAgo(12), placeId: pl.mill.id, significance: 0.8, category: 'history', data: { kind: 'flood' }, summary: 'The river flooded through Ashford Vale' });
+  H('death', yearsAgo(12), { target: pp.tam.id, placeId: pl.mill.id, causes: [flood.id], data: { text: "Tam Reed drowned when the river flooded" }, summary: "Tam Reed drowned in the flood" }, [pp.tam, pp.garrick, pp.edda, pp.tomas, pp.godwin, pp.hobb], 0.8, -0.8, [pp.rowan, pp.hilda, pp.osric, pp.aldous], pp.godwin);
+  H('death', yearsAgo(12), { target: pp.mira.id, placeId: pl.mill.id, causes: [flood.id], data: { text: "Mira Reed drowned when the river flooded" }, summary: "Mira Reed drowned in the flood; Garrick took in her boy Tomas" }, [pp.mira, pp.garrick, pp.edda, pp.tomas, pp.godwin, pp.hobb], 0.8, -0.8, [pp.rowan, pp.hilda, pp.osric, pp.aldous], pp.godwin);
   const ambush = H('attack', yearsAgo(5), { actor: pp.skarn.id, target: pp.garrick.id, placeId: pl.gate_east.id, data: { text: 'bandits ambushed Garrick on the east road; Rowan drove them off' }, summary: 'Bandits ambushed Garrick on the east road; Captain Rowan drove them off and was wounded' }, [pp.garrick, pp.rowan, pp.skarn], 0.8, -0.6, [pp.edda, pp.godwin, pp.hale, pp.brigid, pp.dunstan, pp.hilda, pp.fenn, pp.tomas], pp.garrick);
   H('gift', yearsAgo(5) + 20 * 86400, { actor: pp.garrick.id, target: pp.rowan.id, item: world.items().find(i => i.name === 'Oathkeeper')!.id, placeId: pl.smithy.id, causes: [ambush.id], summary: 'Garrick forged the sword Oathkeeper and gave it to Rowan in thanks' }, [pp.garrick, pp.rowan, pp.edda, pp.tomas], 0.6, 0.8, [pp.godwin, pp.hilda, pp.hale, pp.brigid], pp.edda);
   H('dispute', daysAgo(120), { actor: pp.garrick.id, target: pp.bors.id, placeId: pl.tavern.id, data: { about: 'the price of charcoal timber' }, summary: 'Garrick and Bors came to blows at the Boar over the price of charcoal timber; Bram threw Bors out' }, [pp.garrick, pp.bors, pp.hilda, pp.bram, pp.jory, pp.fenn, pp.hobb], 0.6, -0.5, [pp.edda, pp.tomas, pp.rowan, pp.godwin, pp.ysolde, pp.wendel], pp.hilda);

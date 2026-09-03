@@ -3,6 +3,7 @@ import { WorldClock } from './time';
 import { RNG } from './rng';
 import { VoxelGrid } from '../physical/grid';
 import { Navigator } from '../physical/nav';
+import { B } from '../physical/blocks';
 
 export interface EmitOptions {
   actor?: EntityId; target?: EntityId; item?: EntityId; placeId?: EntityId; pos?: Vec3;
@@ -62,6 +63,14 @@ export class World {
   }
   positionOf(id: EntityId): Vec3 | undefined { return this.primaryBody(id)?.pos; }
 
+  isDoorOpen(pos: Vec3): boolean { return this.grid.isDoorOpen(Math.floor(pos.x), Math.floor(pos.y), Math.floor(pos.z)); }
+  setDoorOpen(pos: Vec3, open: boolean, actor?: EntityId): WorldEvent | null {
+    const x = Math.floor(pos.x), y = Math.floor(pos.y), z = Math.floor(pos.z);
+    if (this.grid.get(x, y, z) !== B.Door || !this.grid.setDoorOpen(x, y, z, open)) return null;
+    return this.emit('block_changed', { actor, pos: { x, y, z }, significance: 0.08, visibility: 8, loudness: 3, data: { block: 'door', open }, summary: `${actor ? this.nameOf(actor) : 'Someone'} ${open ? 'opened' : 'closed'} a door` });
+  }
+  toggleDoor(pos: Vec3, actor?: EntityId): WorldEvent | null { return this.setDoorOpen(pos, !this.isDoorOpen(pos), actor); }
+
   placeAt(pos: Vec3): Place | undefined {
     let best: Place | undefined; let bestArea = Infinity;
     for (const p of this.ofKind<Place>('place')) {
@@ -96,9 +105,27 @@ export class World {
   compactEvents(keep = 4000): void {
     if (this.events.length <= keep * 1.5) return;
     const cutoff = this.events.length - keep;
-    const kept: WorldEvent[] = [];
-    for (let i = 0; i < this.events.length; i++) { const e = this.events[i]; if (i >= cutoff || e.significance >= 0.5 || e.category === 'history' || e.category === 'world') kept.push(e); else this.eventIndex.delete(e.id); }
+    const previousIndex = new Map(this.eventIndex);
+    const kept = this.events.filter((e, i) => i >= cutoff || e.significance >= 0.5 || e.category === 'history' || e.category === 'world');
+    const keptIds = new Set(kept.map(e => e.id));
+    const survivingCauses = (id: EventId, visiting = new Set<EventId>()): EventId[] => {
+      if (keptIds.has(id)) return [id];
+      if (visiting.has(id)) return [];
+      const removed = previousIndex.get(id); if (!removed) return [];
+      const next = new Set(visiting); next.add(id);
+      return removed.causes.flatMap(cause => survivingCauses(cause, next));
+    };
+    for (const event of kept) {
+      event.causes = [...new Set(event.causes.flatMap(cause => survivingCauses(cause)))];
+      event.effects = [];
+    }
     this.events = kept;
+    this.eventIndex = new Map(kept.map(event => [event.id, event]));
+    for (const event of kept) for (const cause of event.causes) {
+      const parent = this.eventIndex.get(cause);
+      if (parent && !parent.effects.includes(event.id)) parent.effects.push(event.id);
+    }
+    this.pendingStimuli = this.pendingStimuli.filter(event => keptIds.has(event.id));
   }
   distance(a: Vec3, b: Vec3): number { return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z); }
   distance2d(a: Vec3, b: Vec3): number { return Math.hypot(a.x - b.x, a.z - b.z); }

@@ -11,13 +11,14 @@ const TABS: Tab[] = ['mind', 'identity', 'state', 'relations', 'memory', 'knowle
 
 /** The simulation inspector: open any mind and see exactly why it is doing what it is doing. */
 export class Inspector {
-  el = document.getElementById('inspector')!; body!: HTMLElement; sel: string | null = null; tab: Tab = 'mind'; follow = false; onFollow: ((id: string | null) => void) | null = null; onShowChain: ((id: string) => void) | null = null; onFocusEvents: ((id: string) => void) | null = null; select_!: HTMLSelectElement; lastRender = 0;
+  el = document.getElementById('inspector')!; body!: HTMLElement; sel: string | null = null; tab: Tab = 'mind'; follow = false; onFollow: ((id: string | null) => void) | null = null; onVisit: ((id: string) => void) | null = null; onShowChain: ((id: string) => void) | null = null; onFocusEvents: ((id: string) => void) | null = null; select_!: HTMLSelectElement; lastRender = 0;
   constructor(private world: World) {
-    this.el.innerHTML = `<div class="head"><b style="color:var(--accent)">Inspector</b><select></select><button data-a="follow">follow</button><button data-a="events">events</button><button data-a="close">✕</button></div><div class="tabs"></div><div class="body"></div>`;
+    this.el.innerHTML = `<div class="head"><b style="color:var(--accent)">Inspector</b><select></select><button data-a="visit">go to</button><button data-a="follow">follow</button><button data-a="events">events</button><button data-a="close">✕</button></div><div class="tabs"></div><div class="body"></div>`;
     this.body = this.el.querySelector('.body') as HTMLElement; this.select_ = this.el.querySelector('select')!;
     this.select_.onchange = () => this.select(this.select_.value || null);
     const tabs = this.el.querySelector('.tabs')!; for (const t of TABS) { const b = document.createElement('button'); b.textContent = t; b.dataset.t = t; b.onclick = () => { this.tab = t; this.render(true); }; tabs.appendChild(b); }
     (this.el.querySelector('[data-a=close]') as HTMLElement).onclick = () => this.toggle();
+    (this.el.querySelector('[data-a=visit]') as HTMLElement).onclick = () => { if (this.sel) this.onVisit?.(this.sel); };
     (this.el.querySelector('[data-a=follow]') as HTMLElement).onclick = () => { this.follow = !this.follow; this.onFollow?.(this.follow ? this.sel : null); this.render(true); };
     (this.el.querySelector('[data-a=events]') as HTMLElement).onclick = () => { if (this.sel) this.onFocusEvents?.(this.sel); };
     this.body.addEventListener('click', (e) => { const t = (e.target as HTMLElement).closest('[data-ev]') as HTMLElement | null; if (t) this.onShowChain?.(t.dataset.ev!); const p = (e.target as HTMLElement).closest('[data-p]') as HTMLElement | null; if (p) this.select(p.dataset.p!); });
@@ -69,7 +70,7 @@ export class Inspector {
   tab_knowledge(p: Person): string {
     const w = this.world; const ks = Object.values(p.knowledge).sort((a, b) => b.learnedAt - a.learnedAt);
     const ev = ks.filter(k => k.kind === 'event'), loc = ks.filter(k => k.kind === 'location'), other = ks.filter(k => k.kind !== 'event' && k.kind !== 'location');
-    const row = (k: KnowledgeItem) => `<div class="mem"><div>${k.claim.eventId ? `<span data-ev="${k.claim.eventId}" style="cursor:pointer">${esc(describeClaim(w, k))}</span>` : esc(describeClaim(w, k))}${k.handled ? ' <span class="src">(handled)</span>' : ''}</div><div class="t"><span class="src ${k.source.type}">${k.source.type}${k.source.from ? ' by ' + w.nameOf(k.source.from) : ''}</span> · ${k.hops === 0 ? 'first-hand' : `${k.hops} hop${k.hops > 1 ? 's' : ''}`} · confidence ${k.confidence.toFixed(2)} · learned ${formatRelativeTime(k.learnedAt, w.now)}${k.sharedWith.length ? ` · told ${k.sharedWith.map(id => w.nameOf(id)).join(', ')}` : ''}</div></div>`;
+    const row = (k: KnowledgeItem) => `<div class="mem"><div>${k.claim.eventId ? `<span data-ev="${k.claim.eventId}" style="cursor:pointer">${esc(describeClaim(w, k))}</span>` : esc(describeClaim(w, k))}${k.handled ? ' <span class="src">(handled)</span>' : ''}</div><div class="t"><span class="src ${k.source.type}">${k.source.type}${k.source.from ? ' by ' + w.nameOf(k.source.from) : ''}</span>${k.source.viaEvent ? ` <span data-ev="${k.source.viaEvent}" style="cursor:pointer;color:var(--accent)">[evidence]</span>` : ''} · ${k.hops === 0 ? 'first-hand' : `${k.hops} hop${k.hops > 1 ? 's' : ''}`} · confidence ${k.confidence.toFixed(2)} · learned ${formatRelativeTime(k.learnedAt, w.now)}${k.sharedWith.length ? ` · told ${k.sharedWith.map(id => w.nameOf(id)).join(', ')}` : ''}</div></div>`;
     return `<h4>Events known (${ev.length})</h4>${ev.map(row).join('') || '—'}<h4>Locations (${loc.length})</h4>${loc.slice(0, 20).map(row).join('') || '—'}<h4>Other (${other.length})</h4>${other.slice(0, 30).map(row).join('') || '—'}`;
   }
   tab_perception(p: Person): string {

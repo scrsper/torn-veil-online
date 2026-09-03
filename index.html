@@ -29,8 +29,11 @@
   #bubbles { position: absolute; inset: 0; overflow: hidden; }
   .bubble { position: absolute; transform: translate(-50%, -100%); background: rgba(255,255,255,0.92); color: #1a1a1a; padding: 4px 8px; border-radius: 8px; font-size: 12px; max-width: 220px; white-space: normal; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
   .bubble::after { content: ""; position: absolute; left: 50%; bottom: -5px; margin-left: -5px; border: 5px solid transparent; border-top-color: rgba(255,255,255,0.92); border-bottom: 0; }
+  .bubble.alert { background: rgba(255,226,174,0.96); box-shadow: 0 2px 10px rgba(255,120,60,0.35); }
+  .bubble.alert::after { border-top-color: rgba(255,226,174,0.96); }
   .label { position: absolute; transform: translate(-50%, -100%); color: #fff; font-size: 11px; text-shadow: 0 1px 3px #000, 0 0 6px rgba(0,0,0,0.6); white-space: nowrap; opacity: 0.85; }
   .label.sel { color: var(--accent); font-weight: 600; }
+  .label.alert { color: #ffd08a; font-weight: 600; }
   /* dialogue */
   #dialogue { left: 50%; bottom: 40px; transform: translateX(-50%); width: min(720px, 92vw); padding: 14px 18px; pointer-events: auto; display: none; }
   #dialogue .who { color: var(--accent); font-weight: 600; font-size: 15px; margin-bottom: 6px; } #dialogue .who span { color: var(--dim); font-weight: 400; font-size: 12px; margin-left: 8px; }
@@ -86,7 +89,7 @@
     <div id="topbar" class="panel"><div class="time">—</div><div class="sub">—</div></div>
     <div id="vitals" class="panel"><div>Health</div><div class="bar"><i style="width:100%"></i></div><div id="inv"></div></div>
     <div id="messages"></div>
-    <div id="hints" class="panel"><b>WASD</b> move · <b>Shift</b> sprint · <b>Space</b> jump · <b>V</b> view<br><b>E</b>/RMB talk · pick up · use · <b>LMB</b> attack · <b>Q</b> drop<br><b>F</b> inspect target · <b>F3</b> inspector · <b>F4</b> event feed<br><b>T</b> time ×1/×4/×16 · <b>P</b> pause · <b>F5</b> save · <b>Esc</b> mouse</div>
+    <div id="hints" class="panel"><b>WASD</b> move · <b>Shift</b> sprint · <b>Space</b> jump · <b>V</b> view<br><b>E</b>/RMB talk · pick up · use · <b>LMB</b>/<b>X</b> attack · <b>Q</b> drop<br><b>F</b> inspect target · <b>F3</b> inspector · <b>F4</b> event feed<br><b>T</b> time ×1/×4/×16 · <b>P</b> pause · <b>F5</b> save · <b>Esc</b> mouse</div>
     <div id="events" class="panel"></div>
     <div id="chainpane" class="panel"></div>
     <div id="inspector" class="panel"></div>

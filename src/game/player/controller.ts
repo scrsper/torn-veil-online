@@ -5,11 +5,11 @@ import { blockDef } from '../../sim/physical/blocks';
 
 /** First/third person controller with AABB voxel collision. Drives the player's Body in the canonical world. */
 export class PlayerController {
-  yaw = Math.PI; pitch = 0; thirdPerson = false; locked = false; keys = new Set<string>();
+  yaw = -Math.PI / 2; pitch = 0; thirdPerson = false; locked = false; keys = new Set<string>();
   vel = new THREE.Vector3(); onGround = false; sprint = false; eyeHeight = 1.62; width = 0.3; height = 1.8;
   bobPhase = 0; camDist = 4.5; enabled = true; lastStep = 0; onStep: (() => void) | null = null;
   constructor(private world: World, public camera: THREE.PerspectiveCamera, private dom: HTMLElement) {
-    dom.addEventListener('click', () => { if (this.enabled && !this.locked) dom.requestPointerLock(); });
+    dom.addEventListener('click', () => { if (this.enabled && !this.locked) void dom.requestPointerLock().catch(() => { /* unavailable in some embedded browsers */ }); });
     document.addEventListener('pointerlockchange', () => { this.locked = document.pointerLockElement === dom; });
     document.addEventListener('mousemove', (e) => { if (!this.locked) return; this.yaw -= e.movementX * 0.0022; this.pitch -= e.movementY * 0.0022; this.pitch = Math.max(-1.5, Math.min(1.5, this.pitch)); });
     window.addEventListener('keydown', (e) => { if ((e.target as HTMLElement)?.tagName === 'INPUT') return; this.keys.add(e.code); if (e.code === 'KeyV' && this.enabled) this.thirdPerson = !this.thirdPerson; if (e.code === 'Space') e.preventDefault(); });
@@ -64,7 +64,7 @@ export class PlayerController {
   }
   private aabbHits(p: THREE.Vector3): boolean {
     const g = this.world.grid; const w = this.width;
-    for (let x = Math.floor(p.x - w); x <= Math.floor(p.x + w); x++) for (let z = Math.floor(p.z - w); z <= Math.floor(p.z + w); z++) for (let y = Math.floor(p.y); y <= Math.floor(p.y + this.height); y++) { const b = g.get(x, y, z); if (blockDef(b).solid) return true; }
+    for (let x = Math.floor(p.x - w); x <= Math.floor(p.x + w); x++) for (let z = Math.floor(p.z - w); z <= Math.floor(p.z + w); z++) for (let y = Math.floor(p.y); y <= Math.floor(p.y + this.height); y++) if (g.isSolidAt(x, y, z)) return true;
     return false;
   }
   teleport(p: Vec3): void { const b = this.body; b.pos = { ...p }; this.vel.set(0, 0, 0); }

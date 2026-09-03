@@ -17,7 +17,7 @@ export class ChunkMesher {
       switch (def.shape) {
         case 'cube': for (let i = 0; i < 6; i++) { const [dx, dy, dz, f] = DIRS[i]; const n = g.get(x + dx, y + dy, z + dz); const nd = BLOCKS[n]; if (n !== B.Air && nd.opaque && nd.shape === 'cube') continue; if (n === id && (id === B.Glass || id === B.Leaves || id === B.Leaves2)) continue; this.face(id === B.Glass ? wa : op, x, y, z, f, def, id, 0, 1, 0, 1, 0, 1, true); } break;
         case 'slab': this.box(op, x, y, z, def, id, 0, def.height ?? 0.5, 0, 1, 0, 1); break;
-        case 'inset': { const i = def.inset ?? 0.2; this.box(op, x, y, z, def, id, 0, def.height ?? 1, i, 1 - i, i, 1 - i); break; }
+        case 'inset': { if (id === B.Door) this.door(op, x, y, z, def, id); else { const i = def.inset ?? 0.2; this.box(op, x, y, z, def, id, 0, def.height ?? 1, i, 1 - i, i, 1 - i); } break; }
         case 'post': { const h = def.height ?? 1; if (id === B.Torch) { this.box(op, x, y, z, def, id, 0, h, 0.42, 0.58, 0.42, 0.58); } else { this.box(op, x, y, z, def, id, 0, h, 0.35, 0.65, 0.35, 0.65); const nx = g.get(x + 1, y, z) === id, nz = g.get(x, y, z + 1) === id; if (nx) this.box(op, x, y, z, def, id, 0.55, 0.85, 0.5, 1.5, 0.42, 0.58); if (nz) this.box(op, x, y, z, def, id, 0.55, 0.85, 0.42, 0.58, 0.5, 1.5); } break; }
         case 'cross': this.cross(op, x, y, z, def, id); break;
       }
@@ -53,6 +53,15 @@ export class ChunkMesher {
   }
   private box(gb: GeoBuilder, x: number, y: number, z: number, def: BlockDef, id: number, y0: number, y1: number, x0: number, x1: number, z0: number, z1: number): void {
     for (let f = 0; f < 6; f++) this.face(gb, x, y, z, f, def, id, y0, y1, x0, x1, z0, z1, false);
+  }
+  private door(gb: GeoBuilder, x: number, y: number, z: number, def: BlockDef, id: number): void {
+    const wallLike = (block: number) => block !== B.Air && block !== B.Door && BLOCKS[block].shape === 'cube';
+    const alongX = Number(wallLike(this.grid.get(x - 1, y, z))) + Number(wallLike(this.grid.get(x + 1, y, z))) >= Number(wallLike(this.grid.get(x, y, z - 1))) + Number(wallLike(this.grid.get(x, y, z + 1)));
+    if (!this.grid.isDoorOpen(x, y, z)) {
+      if (alongX) this.box(gb, x, y, z, def, id, 0, 1, 0.04, 0.96, 0.42, 0.58);
+      else this.box(gb, x, y, z, def, id, 0, 1, 0.42, 0.58, 0.04, 0.96);
+    } else if (alongX) this.box(gb, x, y, z, def, id, 0, 1, 0.04, 0.18, 0.04, 0.96);
+    else this.box(gb, x, y, z, def, id, 0, 1, 0.04, 0.96, 0.04, 0.18);
   }
   private cross(gb: GeoBuilder, x: number, y: number, z: number, def: BlockDef, id: number): void {
     const col = this.colorFor(def, id, x, y, z, 2); const em = def.emissive ?? [0, 0, 0];

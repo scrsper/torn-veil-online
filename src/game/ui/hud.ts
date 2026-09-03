@@ -20,7 +20,7 @@ export class HUD {
     if (pb.lastHitAt > this.lastHurt) { this.lastHurt = pb.lastHitAt; this.damage.style.opacity = '1'; setTimeout(() => this.damage.style.opacity = '0', 250); }
     this.inv.innerHTML = 'Carrying: ' + (player.inventory.map(id => w.item(id)).filter(Boolean).map(i => `<b>${i!.name}${i!.quantity > 1 ? ` ×${i!.quantity}` : ''}</b>`).join(', ') || 'nothing');
     if (!target) this.target.innerHTML = '';
-    else if (target.kind === 'body') { const p = target.person; if (p) { const goal = p.mind.goal; const st = target.body.dead ? 'dead' : target.body.pose === 'downed' ? 'incapacitated' : target.body.pose === 'sleep' ? 'asleep' : goal ? `${goal.type}${goal.data?.label ? ': ' + goal.data.label : ''}` : 'idle'; this.target.innerHTML = `<div class="name">${p.name}</div><div class="hint">${p.occupation} · ${st} · ${Math.round(target.body.health)}/${target.body.maxHealth} hp<br>[E] talk · [F] inspect · [LMB] attack</div>`; } else this.target.innerHTML = `<div class="name">${w.nameOf(target.body.ownerId)}</div>`; }
+    else if (target.kind === 'body') { const p = target.person; if (p) { const goal = p.mind.goal; const st = target.body.dead ? 'dead' : target.body.pose === 'downed' ? 'incapacitated' : target.body.pose === 'sleep' ? 'asleep' : goal ? `${goal.type}${goal.data?.label ? ': ' + goal.data.label : ''}` : 'idle'; this.target.innerHTML = `<div class="name">${p.name}</div><div class="hint">${p.occupation} · ${st} · ${Math.round(target.body.health)}/${target.body.maxHealth} hp<br>[E] talk · [F] inspect · [LMB/X] attack</div>`; } else this.target.innerHTML = `<div class="name">${w.nameOf(target.body.ownerId)}</div>`; }
     else if (target.kind === 'item') { const it = target.item; const owner = it.ownerId && it.ownerId !== w.playerId ? ` · belongs to ${w.nameOf(it.ownerId)}` : ''; this.target.innerHTML = `<div class="name">${it.name}${it.quantity > 1 ? ` ×${it.quantity}` : ''}</div><div class="hint">${it.type}${owner}<br>[E] take</div>`; }
     else this.target.innerHTML = `<div class="hint">${target.name} · [E] use</div>`;
     this.updateLabels();
@@ -38,8 +38,9 @@ export class HUD {
       if (!w.grid.lineOfSight({ x: camPos.x, y: camPos.y, z: camPos.z }, { x: b.pos.x, y: b.pos.y + 1.5, z: b.pos.z }, 40) && this.selected !== p.id) continue;
       seen.add(p.id);
       let el = this.labels.get(p.id); if (!el) { el = document.createElement('div'); this.bubbles.appendChild(el); this.labels.set(p.id, el); }
-      if (speech) { el.className = 'bubble'; el.textContent = speech.text; el.style.left = `${x}px`; el.style.top = `${y - 6}px`; }
-      else { el.className = 'label' + (this.selected === p.id ? ' sel' : ''); el.textContent = p.name + (b.dead ? ' †' : ''); el.style.left = `${x}px`; el.style.top = `${y}px`; el.style.opacity = String(Math.max(0.25, 1 - d / 16)); }
+      const goal = p.mind.goal?.type; const urgent = !!goal && ['flee', 'report', 'investigate', 'confront', 'attack', 'help'].includes(goal);
+      if (speech) { el.className = 'bubble' + (urgent ? ' alert' : ''); el.textContent = `${p.name}: ${speech.text}`; el.style.left = `${x}px`; el.style.top = `${y - 6}px`; }
+      else { el.className = 'label' + (this.selected === p.id ? ' sel' : '') + (urgent ? ' alert' : ''); el.textContent = p.name + (b.dead ? ' †' : urgent ? ` · ${goal}` : ''); el.style.left = `${x}px`; el.style.top = `${y}px`; el.style.opacity = String(Math.max(0.25, 1 - d / 16)); }
     }
     for (const [id, el] of this.labels) if (!seen.has(id)) { el.remove(); this.labels.delete(id); }
   }
