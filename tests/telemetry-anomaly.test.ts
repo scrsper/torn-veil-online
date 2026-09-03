@@ -48,7 +48,9 @@ describe('anomaly detection (v0.2 Part 4: reports only, never repairs)', () => {
     const anomalies = detectAnomalies(tw.world);
     const found = anomalies.find(a => a.type === 'repeated_lethal_conflict' && a.entity === killer.id);
     expect(found).toBeDefined();
-    expect((found!.data.kills as number)).toBeGreaterThanOrEqual(3);
+    expect(found!.occurrences).toBeGreaterThanOrEqual(3);
+    expect(found!.relatedEvents.length).toBeGreaterThanOrEqual(3);
+    expect(found!.firstSeen).toBeLessThanOrEqual(found!.lastSeen);
   });
 
   it('does not flag a single isolated kill', () => {
@@ -108,5 +110,27 @@ describe('anomaly detection (v0.2 Part 4: reports only, never repairs)', () => {
     p.knowledge['ev:leak'] = { key: 'ev:leak', kind: 'event', claim: { type: 'attack', actorUnknown: true, actor: 'someone_id' }, confidence: 0.5, learnedAt: tw.world.now, source: { type: 'heard' }, hops: 1, sharedWith: [] };
     const anomalies = detectAnomalies(tw.world);
     expect(anomalies.some(a => a.type === 'epistemic_leak' && a.entity === p.id)).toBe(true);
+  });
+
+  it('groups repeated stuck-path failures into one structured finding, not one per occurrence', () => {
+    const tw = createTestWorld(611);
+    const stuck = addPerson(tw, 'Stuck', 'farmer', v(5, 1, 5));
+    for (let i = 0; i < 37; i++) tw.world.emit('path_failure', { actor: stuck.id, significance: 0, tick: tw.world.now + i, summary: 'no path' });
+    const anomalies = detectAnomalies(tw.world);
+    const stuckFindings = anomalies.filter(a => a.type === 'stuck_agent' && a.entity === stuck.id);
+    expect(stuckFindings.length).toBe(1); // one finding, not 37
+    expect(stuckFindings[0].occurrences).toBe(37);
+    expect(stuckFindings[0].firstSeen).toBeLessThan(stuckFindings[0].lastSeen);
+    expect(stuckFindings[0].relatedEvents.length).toBeGreaterThan(0);
+  });
+
+  it('groups dangling causal references to the same missing event into one finding', () => {
+    const tw = createTestWorld(612);
+    const a = addPerson(tw, 'A', 'farmer', v(5, 1, 5));
+    for (let i = 0; i < 5; i++) tw.world.emit('rumor', { actor: a.id, causes: ['ev_missing_shared'], significance: 0.1, tick: tw.world.now + i, summary: `rumor ${i}` });
+    const anomalies = detectAnomalies(tw.world);
+    const findings = anomalies.filter(a => a.type === 'dangling_cause' && a.data.missingCause === 'ev_missing_shared');
+    expect(findings.length).toBe(1);
+    expect(findings[0].occurrences).toBe(5);
   });
 });
