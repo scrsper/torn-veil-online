@@ -35,6 +35,34 @@ describe('historical significance (Constitution §19-20, v0.2 Part 7)', () => {
     expect(scores.get(trigger.id) ?? 0).toBeGreaterThan(scores.get(quiet.id) ?? 0);
   });
 
+  it('a call site cannot cache significance at an event\'s creation time and add to it incrementally — causal centrality lets a LATER event retroactively raise an EARLIER event\'s actor\'s score', () => {
+    // v0.2.2 Phase 6 (long-run history-scaling audit): computeHistoricalSignificance is a full
+    // O(world.events.length) rescan on every call, and the real headless runner calls it every
+    // simulated hour (see runner.ts's maintenance pass) — an obvious candidate for "make it
+    // incremental: only look at events since the last call." This test is why that specific
+    // optimization would be WRONG, not just extra work to redo: the causal-centrality bonus
+    // (significance.ts's `if (e.effects.length > 2 && e.actor) add(...)`) depends on how many
+    // LATER events cite an event as their cause, which is unknowable at the moment that event
+    // is first emitted — `effects` is populated by *subsequent* emit() calls, strictly after
+    // the causing event already exists. A cache keyed by "process each event once, at its own
+    // creation time" would permanently under-count every event whose causal fan-out arrives
+    // after it was first seen, which for a witnessed event (each witness's 'perceived' event
+    // cites it as a cause) is the common case, not an edge case. Any future incremental rewrite
+    // of this function must account for effects-length growth after the fact, not just new
+    // events — e.g. by hooking World.emit()'s `effects.push()` itself, not by cursoring over
+    // `world.events`.
+    const tw = createTestWorld(504);
+    const trigger = addPerson(tw, 'Trigger', 'farmer', v(5, 1, 5));
+    const causeEv = tw.world.emit('rumor', { actor: trigger.id, significance: 0.1, summary: 'a small rumor' });
+    const before = computeHistoricalSignificance(tw.world).get(trigger.id) ?? 0;
+    // Only after this point do enough effects accumulate to cross the `effects.length > 2`
+    // causal-centrality threshold — an incremental cache that had already "processed and
+    // moved on" from causeEv before these were emitted would never see this.
+    for (let i = 0; i < 5; i++) tw.world.emit('told', { actor: trigger.id, causes: [causeEv.id], significance: 0.1, summary: 'told someone' });
+    const after = computeHistoricalSignificance(tw.world).get(trigger.id) ?? 0;
+    expect(after).toBeGreaterThan(before);
+  });
+
   it('topSignificantEntities returns a stable, ranked, deterministic list', () => {
     const tw = createTestWorld(503);
     const a = addPerson(tw, 'A', 'farmer', v(5, 1, 5));
