@@ -1,4 +1,4 @@
-import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, KnowledgeItem, Creature, Place, Anchor } from '../core/types';
+import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, KnowledgeItem, Creature, Place, Anchor, ConflictIntent } from '../core/types';
 import { World } from '../core/world';
 import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull } from './relationships';
 import { remember } from './memory';
@@ -163,9 +163,15 @@ export class Simulation {
       const fleeU = clamp(0.35 + threat.fear * 0.8 - brave * 0.4 - (armed ? 0.1 : 0) + (1 - healthy) * 0.3 - threat.d * 0.01);
       const crimeKnown = this.knownCrimesBy(p, threat.id);
       if (isGuard && crimeKnown.length && !t.hostile) G('confront', clamp(0.8 + crimeSeverity(crimeKnown[0].claim.type) * 0.2), [`${t.name} is known to have committed ${crimeKnown[0].claim.type}`, `source: ${crimeKnown[0].source.type}${crimeKnown[0].source.from ? ' by ' + w.nameOf(crimeKnown[0].source.from) : ''}`], { targetEntity: t.id, data: { crime: crimeKnown[0].key } });
-      else if (t.hostile !== p.hostile && (isGuard || p.hostile) ) G('attack', clamp(fightU + 0.2), [`${t.name} is an enemy`, `courage ${p.traits.courage.toFixed(2)}`], { targetEntity: t.id });
+      else if (t.hostile !== p.hostile && (isGuard || p.hostile) ) {
+        // Constitution §11: hostile faction membership is never itself lethal intent.
+        // A guard apprehends; a bandit wants resources from an ordinary victim and only
+        // treats an armed defender of the law as a real, non-automatically-fatal fight.
+        const intent: ConflictIntent = isGuard ? 'subdue' : (t.occupation === 'guard' || t.occupation === 'captain') ? 'injure' : 'rob';
+        G('attack', clamp(fightU + 0.2), [`${t.name} is an enemy`, `courage ${p.traits.courage.toFixed(2)}`, `intent: ${intent}`], { targetEntity: t.id, data: { intent } });
+      }
       else if (threat.body.pose === 'attack' || r.fear > 0.35 || t.hostile) {
-        if (fightU > fleeU && (armed || brave > 0.9)) G('attack', fightU, [`${t.name} is a threat (fear ${threat.fear.toFixed(2)})`, `I am ${armed ? 'armed' : 'unarmed'}, courage ${p.traits.courage.toFixed(2)}`], { targetEntity: t.id });
+        if (fightU > fleeU && (armed || brave > 0.9)) G('attack', fightU, [`${t.name} is a threat (fear ${threat.fear.toFixed(2)})`, `I am ${armed ? 'armed' : 'unarmed'}, courage ${p.traits.courage.toFixed(2)}`, 'intent: defend'], { targetEntity: t.id, data: { intent: 'defend' as ConflictIntent } });
         else G('flee', fleeU, [`${t.name} is a threat (fear ${threat.fear.toFixed(2)}, dist ${threat.d.toFixed(1)})`, `courage ${p.traits.courage.toFixed(2)}${armed ? '' : ', unarmed'}`], { targetEntity: t.id });
       }
     }
@@ -301,10 +307,13 @@ export class Simulation {
     if (a.status === 'pending') { a.status = 'active'; a.startedAt = w.now; this.beginAction(p, body, a); }
     switch (a.type) {
       case 'goto': {
+        // Observational only (Constitution §53): records that pathing failed, for headless
+        // telemetry/anomaly detection. Never changes canonical decisions itself.
+        const failGoto = (reason: string) => { a.status = 'failed'; w.emit('path_failure', { actor: p.id, pos: body.pos, significance: 0, data: { reason, goal: m.goal?.type }, summary: `${p.name} could not path (${reason})` }); };
         let dest = a.pos ?? null;
-        if (a.targetEntity) { const tb = w.primaryBody(a.targetEntity); if (!tb) { a.status = 'failed'; break; } dest = tb.pos; if (dist2(body.pos, dest) < 1.8) { body.path = null; a.status = 'done'; body.pose = 'stand'; body.yaw = Math.atan2(-(dest.x - body.pos.x), -(dest.z - body.pos.z)); break; } if (!body.path || !body.pathGoal || dist2(body.pathGoal, dest) > 2.5) this.pathTo(body, dest, a); }
-        if (!dest) { a.status = 'failed'; break; }
-        if (!body.path) { if (dist2(body.pos, dest) < 1.2) { a.status = 'done'; break; } this.pathTo(body, dest, a); if (!body.path) { a.status = 'failed'; break; } }
+        if (a.targetEntity) { const tb = w.primaryBody(a.targetEntity); if (!tb) { failGoto('target has no body'); break; } dest = tb.pos; if (dist2(body.pos, dest) < 1.8) { body.path = null; a.status = 'done'; body.pose = 'stand'; body.yaw = Math.atan2(-(dest.x - body.pos.x), -(dest.z - body.pos.z)); break; } if (!body.path || !body.pathGoal || dist2(body.pathGoal, dest) > 2.5) this.pathTo(body, dest, a); }
+        if (!dest) { failGoto('no destination'); break; }
+        if (!body.path) { if (dist2(body.pos, dest) < 1.2) { a.status = 'done'; break; } this.pathTo(body, dest, a); if (!body.path) { failGoto('no path found'); break; } }
         body.speed = a.run ? 5.6 : (p.occupation === 'child' ? 3.6 : 3.2 + (p.age > 60 ? -0.8 : 0));
         body.pose = a.run ? 'run' : 'walk';
         const arrived = this.followPath(body, physDt);
@@ -320,7 +329,7 @@ export class Simulation {
       case 'look': { body.pose = 'stand'; body.yaw += physDt * 0.5; if (a.data?.investigate) { const key = a.data.key as string; const k = p.knowledge[key]; const suspect = k?.claim.actor as string | undefined; const seen = suspect ? m.percepts.find(pc => pc.entityId === suspect) : null; if (seen) { a.status = 'done'; m.investigated.push(key); m.alarm = 1; break; } if (this.elapsed(a)) { a.status = 'done'; m.investigated.push(key); if (k) k.handled = true; w.emit('investigation', { actor: p.id, pos: body.pos, placeId: k?.claim.placeId, causes: k?.source.viaEvent ? [k.source.viaEvent] : [], significance: 0.4, data: { key, outcome: 'suspect not found' }, summary: `${p.name} investigated ${k ? describeClaim(w, k) : 'a report'} but found no one` }); this.say(p, suspect ? `${w.nameOf(suspect).split(' ')[0]}... where did they go?` : 'Nothing here now.'); } } else if (this.elapsed(a)) a.status = 'done'; break; }
       case 'tell': { const t = w.person(a.targetEntity!); const tb = w.primaryBody(a.targetEntity!); if (!t || !tb || dist2(body.pos, tb.pos) > 3.5) { a.status = 'failed'; break; } const k = p.knowledge[a.data?.key]; if (k) this.tell(p, t, k); body.pose = 'talk'; body.poseUntil = w.physicalTime + 2; a.status = 'done'; break; }
       case 'talk': { const t = w.person(a.targetEntity!); const tb = w.primaryBody(a.targetEntity!); if (!t || !tb) { a.status = 'failed'; break; } if (dist2(body.pos, tb.pos) > 3) { a.status = 'failed'; break; } this.confront(p, body, t, a); a.status = 'done'; break; }
-      case 'attack': { const tb = w.primaryBody(a.targetEntity!); if (!tb || tb.dead) { a.status = 'done'; break; } const d = dist2(body.pos, tb.pos); body.yaw = Math.atan2(-(tb.pos.x - body.pos.x), -(tb.pos.z - body.pos.z)); if (d > 2.2) { a.status = 'pending'; m.plan.unshift({ type: 'goto', targetEntity: a.targetEntity, run: true, status: 'pending' }); break; } if (w.physicalTime - body.lastAttackAt > 1.1) { this.attack(p, body, tb); } if (tb.pose === 'downed' || tb.dead) a.status = 'done'; break; }
+      case 'attack': { const tb = w.primaryBody(a.targetEntity!); if (!tb || tb.dead) { a.status = 'done'; break; } const d = dist2(body.pos, tb.pos); body.yaw = Math.atan2(-(tb.pos.x - body.pos.x), -(tb.pos.z - body.pos.z)); if (d > 2.2) { a.status = 'pending'; m.plan.unshift({ type: 'goto', targetEntity: a.targetEntity, run: true, status: 'pending' }); break; } if (w.physicalTime - body.lastAttackAt > 1.1) { this.attack(p, body, tb, a.data?.intent as ConflictIntent | undefined); } if (tb.pose === 'downed' || tb.dead) a.status = 'done'; break; }
       case 'use': { if (a.data?.heal) { const tb = w.primaryBody(a.targetEntity!); if (tb && dist2(body.pos, tb.pos) < 3) { body.pose = 'work'; tb.health = Math.min(tb.maxHealth, tb.health + worldDt * 0.02); if (this.elapsed(a)) { a.status = 'done'; if (tb.pose === 'downed') tb.pose = 'stand'; w.emit('heal', { actor: p.id, target: a.targetEntity, pos: body.pos, significance: 0.4, visibility: 12, summary: `${p.name} tended to ${w.nameOf(a.targetEntity)}'s wounds` }); this.say(p, `There. You'll live.`); } } else a.status = 'failed'; } else a.status = 'done'; break; }
       case 'pickup': { const it = w.item(a.targetEntity!); if (it && it.pos && !it.holderId && dist2(body.pos, it.pos) < 2.5) { this.takeItem(p, it, 'recovered'); } a.status = 'done'; break; }
       default: a.status = 'done';
@@ -453,29 +462,39 @@ export class Simulation {
     if (k) { k.handled = true; p.mind.investigated.push(k.key); }
     const src = k ? (k.source.type === 'told' ? `${w.nameOf(k.source.from).split(' ')[0]} told me` : 'I know') : '';
     if (sev >= 0.6) { this.say(p, `${t.name}! ${src} you attacked ${k?.claim.target ? w.nameOf(k.claim.target) : 'someone'}. You're coming with me.`); // escalate to force
-      p.mind.plan.push({ type: 'attack', targetEntity: t.id, status: 'pending', data: { arrest: true } }); }
+      p.mind.plan.push({ type: 'attack', targetEntity: t.id, status: 'pending', data: { arrest: true, intent: 'arrest' as ConflictIntent } }); }
     else if (k?.claim.type === 'theft') { this.say(p, `${t.name}. ${src} you took ${k.claim.item ? w.nameOf(k.claim.item) : 'what isn\'t yours'}. Give it back, or answer for it.`); p.desires.push({ type: 'recover_item', targetId: k.claim.item, note: `Recover ${w.nameOf(k.claim.item)} from ${t.name}`, reward: 0, fulfilled: false }); }
     else this.say(p, `${t.name}. I've heard things about you. Mind yourself.`);
     void ev;
   }
 
   // ------------------------------------------------------------------ combat
-  attack(attacker: Person, ab: Body, tb: Body): void {
+  attack(attacker: Person, ab: Body, tb: Body, intent?: ConflictIntent): void {
     const w = this.world; ab.lastAttackAt = w.physicalTime; ab.pose = 'attack'; ab.poseUntil = w.physicalTime + 0.45;
     const dmg = Math.max(6, this.weaponOf(attacker) || 7) * (0.8 + w.rng.next() * 0.4);
-    this.applyHit(attacker, ab, tb, dmg);
+    this.applyHit(attacker, ab, tb, dmg, intent);
   }
-  /** Canonical hit application, used by player and NPC attacks alike. Emits perceivable events. */
-  applyHit(attacker: Person, ab: Body, tb: Body, dmg: number): WorldEvent | null {
+  /**
+   * Canonical hit application, used by player and NPC attacks alike. Emits perceivable events.
+   *
+   * Lethality (Constitution §11, "hostile must not automatically mean lethal"): death is
+   * reached only through an explicit `intent: 'kill'`, or a player's own deliberate choice to
+   * press an attack (a finishing blow on an already-downed target, or a heavy hit) — never
+   * merely because the attacker belongs to a hostile faction. Every other intent ('rob',
+   * 'subdue', 'arrest', 'defend', 'injure', 'threaten', 'drive_off', 'avoid') downs the
+   * target instead. `intent` is optional so existing direct callers (and tests) keep their
+   * previous non-hostile-driven behavior unchanged.
+   */
+  applyHit(attacker: Person, ab: Body, tb: Body, dmg: number, intent?: ConflictIntent): WorldEvent | null {
     const w = this.world; if (tb.dead) return null; const victim = w.get(tb.ownerId) as Person | Creature;
     const wasDowned = tb.pose === 'downed';
     tb.health -= dmg; tb.lastHitAt = w.physicalTime;
     const dx = tb.pos.x - ab.pos.x, dz = tb.pos.z - ab.pos.z; const d = Math.hypot(dx, dz) || 1; tb.vel.x += dx / d * 4; tb.vel.z += dz / d * 4;
     this.onHit?.(tb, { x: tb.pos.x, y: tb.pos.y + 1.2, z: tb.pos.z });
     const place = w.placeAt(tb.pos);
-    const ev = w.emit('attack', { actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, significance: 0.7, visibility: 26, loudness: 14, data: { damage: Math.round(dmg), weapon: this.weaponName(attacker), health: Math.round(tb.health) }, summary: `${attacker.name} attacked ${victim.name}${place ? ' at ' + place.name : ''} (${Math.round(dmg)} dmg)` });
+    const ev = w.emit('attack', { actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, significance: 0.7, visibility: 26, loudness: 14, data: { damage: Math.round(dmg), weapon: this.weaponName(attacker), health: Math.round(tb.health), intent }, summary: `${attacker.name} attacked ${victim.name}${place ? ' at ' + place.name : ''} (${Math.round(dmg)} dmg)` });
     if (tb.health <= 0) {
-      const lethal = victim.kind === 'creature' || wasDowned || attacker.hostile || (attacker.controlled && dmg > 20 && w.rng.next() < 0.5);
+      const lethal = intent === 'kill' || victim.kind === 'creature' || (attacker.controlled && (wasDowned || (intent === undefined && dmg > 20 && w.rng.next() < 0.5)));
       if (lethal) { tb.dead = true; tb.pose = 'dead'; tb.health = 0; if (victim.kind === 'person') { victim.alive = false; victim.deathTick = w.now; victim.mind.goal = null; victim.mind.plan = []; }
         const de = w.emit('kill', { actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, causes: [ev.id], significance: 1, visibility: 26, loudness: 14, summary: `${attacker.name} killed ${victim.name}${place ? ' at ' + place.name : ''}` }); w.emit('death', { target: victim.id, pos: { ...tb.pos }, placeId: place?.id, causes: [de.id], significance: 1, summary: `${victim.name} died` }); }
       else { tb.pose = 'downed'; tb.poseUntil = w.physicalTime + 45; tb.health = 1; if (victim.kind === 'person') { victim.mind.plan = []; victim.mind.goal = null; } }
