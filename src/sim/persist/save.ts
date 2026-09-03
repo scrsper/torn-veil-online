@@ -1,10 +1,24 @@
 import { World } from '../core/world';
 import { WorldClock } from '../core/time';
 import { generateVillage } from '../world/village';
-import type { Person, Body, Item, Place, WorldEvent } from '../core/types';
+import type { Person, Body, Item, Place, Faction, WorldEvent } from '../core/types';
 
 const KEY = 'infinite-rpg-save-v1';
-export const SAVE_VERSION = 2;
+// v0.2.1 Priority 8: bumped 2 -> 3 to add faction leaderId/knowledge persistence (see
+// `factions` below) — a v0.2 canonical addition that was silently dropped on save/reload
+// before this fix. Every other v0.2/v0.2.1 addition audited alongside this one
+// (Person.factionId/hostile/cognitiveLOD, Faction.members/hostileTo, Mind.robCooldowns,
+// Body.attackTarget) is intentionally NOT persisted because each is either fully
+// reconstructed deterministically by `generateVillage`/periodic maintenance from data that
+// IS saved (factionId, hostile, members, hostileTo: fixed at village generation, never
+// mutated afterward; cognitiveLOD: recomputed every maintenance pass purely from current
+// significance/position/goal, see core/cognition.ts), or short-lived tactical state that is
+// correct to simply reset on load, exactly like `pose`/`plan` already are (robCooldowns,
+// attackTarget: cleared naturally within seconds of play regardless). `leaderId` and
+// `knowledge`, by contrast, depend on simulation HISTORY (who died when, what a leader
+// personally learned) that cannot be re-derived from present state alone, so they must be
+// persisted explicitly. See docs/V0_2_1_WORLD_ENGINE_STABILIZATION.md.
+export const SAVE_VERSION = 3;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
@@ -12,14 +26,22 @@ export const SAVE_VERSION = 2;
  * and voxel modifications. Consequences survive the renderer restarting.
  */
 export function serialize(world: World): string {
-  const persons = world.persons().map(p => ({ id: p.id, needs: p.needs, emotions: p.emotions, relationships: p.relationships, memories: p.memories, knowledge: p.knowledge, inventory: p.inventory, wealth: p.wealth, alive: p.alive, desires: p.desires, deathTick: p.deathTick, goal: p.mind.goal, investigated: p.mind.investigated, decision: p.mind.decision, timeRate: p.timeRate }));
+  // investigated is a Set in memory (v0.2.2 Phase 3: O(1) membership instead of an
+  // ever-growing array's O(length) .includes() on every guard's every think() tick) — JSON has
+  // no native Set, so it round-trips as a plain array here and is rebuilt into a Set on load.
+  const persons = world.persons().map(p => ({ id: p.id, needs: p.needs, emotions: p.emotions, relationships: p.relationships, memories: p.memories, knowledge: p.knowledge, inventory: p.inventory, wealth: p.wealth, alive: p.alive, desires: p.desires, deathTick: p.deathTick, goal: p.mind.goal, investigated: [...p.mind.investigated], decision: p.mind.decision, timeRate: p.timeRate }));
   const bodies = world.bodies().map(b => ({ id: b.id, pos: b.pos, yaw: b.yaw, health: b.health, maxHealth: b.maxHealth, dead: b.dead, pose: b.pose === 'dead' ? 'dead' : 'stand', present: b.present }));
   const items = world.items().map(i => ({ ...i, tags: [...i.tags], pos: i.pos ? { ...i.pos } : null, provenance: i.provenance.map(entry => ({ ...entry })) }));
   const places = world.places().map(p => ({ id: p.id, ownerId: p.ownerId, anchors: p.anchors.map(a => a.ownerId ?? null) }));
+  // v0.2.1 Priority 8: leaderId (leadership succession) and knowledge (institutional memory,
+  // see history/factions.ts) both change during play and cannot be re-derived from present
+  // state alone — see the SAVE_VERSION comment above for what else was audited and why it's
+  // deliberately excluded here.
+  const factions = [...world.ofKind<Faction>('faction')].map(f => ({ id: f.id, leaderId: f.leaderId, knowledge: f.knowledge }));
   const diffs = [...world.grid.diffs.entries()];
   const doors = [...world.grid.doorStates.entries()];
   const events = eventsForPersistence(world);
-  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, diffs, doors, events, savedAt: Date.now() });
+  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, diffs, doors, events, savedAt: Date.now() });
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -69,10 +91,11 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     for (const e of data.events) { world.events.push(e); world.eventIndex.set(e.id, e); }
     if (!world.events.length) { world.events = genEvents; for (const e of genEvents) world.eventIndex.set(e.id, e); }
     world.setCounters(data.counters); world.clock = new WorldClock(data.clock); world.physicalTime = data.physicalTime ?? 0; world.weather = data.weather; world.playerId = data.playerId;
-    for (const s of data.persons) { const p = world.person(s.id); if (!p) continue; Object.assign(p, { needs: s.needs, emotions: s.emotions, relationships: s.relationships, memories: s.memories, knowledge: s.knowledge, inventory: s.inventory, wealth: s.wealth, alive: s.alive, desires: s.desires, deathTick: s.deathTick, timeRate: s.timeRate ?? 1 }); p.mind.goal = s.goal ?? null; p.mind.plan = []; p.mind.investigated = s.investigated ?? []; p.mind.decision = s.decision ?? null; }
+    for (const s of data.persons) { const p = world.person(s.id); if (!p) continue; Object.assign(p, { needs: s.needs, emotions: s.emotions, relationships: s.relationships, memories: s.memories, knowledge: s.knowledge, inventory: s.inventory, wealth: s.wealth, alive: s.alive, desires: s.desires, deathTick: s.deathTick, timeRate: s.timeRate ?? 1 }); p.mind.goal = s.goal ?? null; p.mind.plan = []; p.mind.investigated = new Set(s.investigated ?? []); p.mind.decision = s.decision ?? null; }
     for (const s of data.bodies) { const b = world.body(s.id); if (!b) continue; b.pos = s.pos; b.yaw = s.yaw; b.health = s.health; b.maxHealth = s.maxHealth; b.dead = s.dead; b.pose = s.pose; b.present = s.present; b.path = null; }
     for (const s of data.items) { const i = world.item(s.id); if (i) Object.assign(i, s); else world.add({ ...s, tags: [...s.tags], pos: s.pos ? { ...s.pos } : null, provenance: s.provenance.map((entry: Item['provenance'][number]) => ({ ...entry })) } as Item); }
     for (const s of data.places) { const p = world.place(s.id); if (!p) continue; p.ownerId = s.ownerId; s.anchors.forEach((o: string | null, i: number) => { if (p.anchors[i]) p.anchors[i].ownerId = o ?? undefined; }); }
+    for (const s of data.factions ?? []) { const f = world.faction(s.id); if (!f) continue; f.leaderId = s.leaderId; f.knowledge = s.knowledge; }
     if (data.diffs?.length) { world.grid.recording = false; world.grid.applyDiffs(data.diffs); world.grid.initCaches(); world.nav.rebuildAll(); world.grid.dirtyChunks.clear(); }
     if (data.doors?.length) world.grid.restoreDoorStates(data.doors);
     world.grid.recording = true;

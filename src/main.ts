@@ -13,6 +13,8 @@ import { DialogueUI } from './game/ui/dialogue';
 import { EventFeed } from './game/ui/events';
 import { Inspector } from './game/ui/inspector';
 import { AudioSys } from './game/audio/audio';
+import { TelemetryRecorder, MemorySink } from './sim/telemetry/recorder';
+import { flushBrowserSession } from './sim/telemetry/browserSessionSink';
 import type { Person } from './sim/core/types';
 
 declare global { interface Window { game?: Game } }
@@ -36,12 +38,17 @@ async function boot(fresh: boolean): Promise<void> {
 class Game {
   renderer: THREE.WebGLRenderer; scene = new THREE.Scene(); camera: THREE.PerspectiveCamera; sim: Simulation; voxels: VoxelRenderer; atmo: Atmosphere; actors: ActorRenderer; ctrl: PlayerController; inter: Interaction; hud: HUD; dialogue: DialogueUI; feed: EventFeed; inspector: Inspector; audio = new AudioSys();
   speedMult = 1; paused = false; lastFrame = performance.now(); autosaveTimer = 0; followId: string | null = null; hitParticles: { m: THREE.Mesh; v: THREE.Vector3; life: number }[] = [];
+  // v0.2 Part 18: automatic play-session logging — no manual "press F8" step. `sessionId` names
+  // the localStorage entry this session's telemetry flushes to (see browserSessionSink.ts).
+  telemetry = new MemorySink(); telemetryRecorder: TelemetryRecorder; sessionId = String(Date.now());
   constructor(public world: World) {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' }); this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); this.renderer.setSize(innerWidth, innerHeight); this.renderer.shadowMap.enabled = true; this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.05; this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     app.appendChild(this.renderer.domElement);
     this.camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.1, 500);
     window.addEventListener('resize', () => { this.camera.aspect = innerWidth / innerHeight; this.camera.updateProjectionMatrix(); this.renderer.setSize(innerWidth, innerHeight); });
     this.sim = new Simulation(world);
+    this.telemetryRecorder = new TelemetryRecorder(world, [this.telemetry]);
+    this.telemetryRecorder.runStart({ seed: world.seed, mode: 'browser', sessionId: this.sessionId });
     this.voxels = new VoxelRenderer(world.grid); this.voxels.buildAll(); this.scene.add(this.voxels.group);
     this.atmo = new Atmosphere(this.scene, world);
     this.actors = new ActorRenderer(world); this.scene.add(this.actors.group);
@@ -90,7 +97,7 @@ class Game {
       if (e.code === 'KeyP') { this.paused = !this.paused; this.hud.message(this.paused ? 'Paused' : 'Resumed'); }
       if (e.code === 'Escape' && document.pointerLockElement) document.exitPointerLock();
     });
-    window.addEventListener('beforeunload', () => this.doSave(true));
+    window.addEventListener('beforeunload', () => { this.doSave(true); this.flushTelemetry(); });
     this.renderer.domElement.addEventListener('click', () => this.audio.init(), { once: true });
     world.emit('player_spawn', { actor: world.playerId!, pos: world.primaryBody(world.playerId)!.pos, significance: 0.3, summary: 'the Traveler arrived on the west road' });
   }
@@ -99,6 +106,10 @@ class Game {
   start(): void { this.lastFrame = performance.now(); requestAnimationFrame(() => this.frame()); }
   openDialogue(p: Person): void { if (!p.alive) return; this.inter.enabled = false; this.ctrl.enabled = false; document.exitPointerLock(); const b = this.world.primaryBody(p.id); const pb = this.ctrl.body; if (b) { b.yaw = Math.atan2(-(pb.pos.x - b.pos.x), -(pb.pos.z - b.pos.z)); b.pose = 'talk'; b.poseUntil = this.world.physicalTime + 3; } this.dialogue.start(p, this.world.person(this.world.playerId)!); }
   doSave(quiet = false): void { if (save(this.world) && !quiet) this.hud.message('World saved.'); }
+  /** v0.2 Part 18: called on unload and piggy-backed on the existing 30s autosave cadence, so a
+   * dev session's trace exists automatically — inspect it later via
+   * readBrowserTelemetrySession(listBrowserTelemetrySessions().at(-1)) in the devtools console. */
+  flushTelemetry(): void { flushBrowserSession(this.sessionId, this.telemetry); }
   spawnHitParticles(pos: { x: number; y: number; z: number }): void { for (let i = 0; i < 10; i++) { const m = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.08), new THREE.MeshBasicMaterial({ color: i % 3 === 0 ? 0xff4030 : 0xa02020 })); m.position.set(pos.x, pos.y, pos.z); this.scene.add(m); this.hitParticles.push({ m, v: new THREE.Vector3((Math.random() - 0.5) * 5, Math.random() * 4 + 1, (Math.random() - 0.5) * 5), life: 0.7 }); } }
   frame(): void {
     requestAnimationFrame(() => this.frame());
@@ -123,7 +134,7 @@ class Game {
     this.audio.update(dt, w.clock.dayFraction, w.weather.kind === 'rain' || w.weather.kind === 'storm' ? w.weather.intensity : 0, w.isIndoors(pb.pos), w.weather.wind);
     this.hud.selected = this.inspector.open ? this.inspector.sel : null;
     this.hud.update(this.inter.target, this.speedMult, this.paused); this.feed.update(); this.inspector.update();
-    this.autosaveTimer += dt; if (this.autosaveTimer > 30) { this.autosaveTimer = 0; this.doSave(true); }
+    this.autosaveTimer += dt; if (this.autosaveTimer > 30) { this.autosaveTimer = 0; this.doSave(true); this.flushTelemetry(); }
     this.renderer.render(this.scene, this.camera);
   }
   checkPlayerDeath(): void {

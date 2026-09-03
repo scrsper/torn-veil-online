@@ -18,7 +18,7 @@ export class DialogueSystem {
   start(npc: Person, player: Person): DialogueState {
     const w = this.world; const r = getRel(npc, player.id); const body = w.primaryBody(npc.id);
     adjustRel(w, npc, player.id, { familiarity: 0.05 }, 'talked to', undefined, true);
-    const crimes = Object.values(npc.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type) && k.claim.actor === player.id);
+    const crimes = Object.values(npc.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && k.claim.actor === player.id);
     const lines: string[] = [];
     if (body?.pose === 'downed') lines.push(`*${npc.name} groans on the ground.* ...leave me be...`);
     else if (npc.hostile) lines.push(r.fear > 0.5 ? `Stay back. I've seen what you can do.` : `You've walked a long way to get robbed, friend. Turn out your purse.`);
@@ -139,7 +139,7 @@ export class DialogueSystem {
   }
   private tellMenu(npc: Person, player: Person): DialogueState {
     const w = this.world; const known = Object.values(player.knowledge).filter(k => k.kind === 'event' && !k.sharedWith.includes(npc.id) && !npc.knowledge[k.key]).sort((a, b) => b.learnedAt - a.learnedAt).slice(0, 8);
-    const opts: DialogueOption[] = known.map(k => ({ label: describeClaim(w, k), next: () => { this.sim.tell(player, npc, k); return { speaker: npc, lines: [npc.speech?.text ?? (isCrime(k.claim.type) ? 'Is that so...' : 'Hm.')], options: this.options(npc, player) }; } }));
+    const opts: DialogueOption[] = known.map(k => ({ label: describeClaim(w, k), next: () => { this.sim.tell(player, npc, k); return { speaker: npc, lines: [npc.speech?.text ?? (isCrime(k.claim.type, k.claim.intent) ? 'Is that so...' : 'Hm.')], options: this.options(npc, player) }; } }));
     opts.push({ label: 'Never mind', next: () => ({ speaker: npc, lines: ['Go on then.'], options: this.options(npc, player) }) });
     return { speaker: npc, lines: ['What is it?'], options: opts };
   }

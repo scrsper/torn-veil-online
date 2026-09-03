@@ -23,7 +23,10 @@ export function generateVillage(world: World): GenResult {
   generateTerrain(grid, world.seed, reserved);
 
   const places: Record<string, Place> = {};
-  const P = (key: string, p: Place) => { places[key] = p; return p; };
+  // Every place registered through P() gets its village.ts dictionary key as a stable slug
+  // (Constitution §50) — e.g. places.tavern.slug === 'tavern' — regardless of which builder
+  // helper (fromBuild/house/farm/stall/gate/wild) constructed it.
+  const P = (key: string, p: Place) => { world.bindSlug(p, key); places[key] = p; return p; };
   const bounds = (x0: number, z0: number, x1: number, z1: number, y0: number, y1: number) => ({ x0, z0, x1, z1, y0, y1 });
   const fromBuild = (key: string, type: Place['type'], name: string, x0: number, z0: number, x1: number, z1: number, floor: number, r: BuildResult, desc: string, indoor = true) =>
     P(key, makePlace(world, type, name, bounds(x0, z0, x1, z1, floor, r.y1), { door: r.door, inside: r.inside, anchors: r.anchors, description: desc, indoor, fires: r.fires, chimneys: r.chimneys }));
@@ -103,16 +106,16 @@ export function generateVillage(world: World): GenResult {
   grid.initCaches(); world.initNav();
 
   // ---- Factions
-  const village = makeFaction(world, 'Ashford Vale', 'The village and its people.');
-  const watch = makeFaction(world, 'the Village Watch', 'Captain Rowan\'s guards.');
-  const bandits = makeFaction(world, 'the Blackthorn Bandits', 'Two outlaws camped in the north-east forest.');
+  const village = makeFaction(world, 'Ashford Vale', 'The village and its people.', { slug: 'village', factionType: 'civic' });
+  const watch = makeFaction(world, 'the Village Watch', 'Captain Rowan\'s guards.', { slug: 'watch', factionType: 'watch' });
+  const bandits = makeFaction(world, 'the Blackthorn Bandits', 'Two outlaws camped in the north-east forest.', { slug: 'bandits', factionType: 'outlaw' });
   bandits.hostileTo.push(village.id, watch.id); watch.hostileTo.push(bandits.id);
 
   // ---- People
   const people: Record<string, Person> = {};
   for (const c of CAST) {
     const home = places[c.home]; const work = c.work ? places[c.work] : null;
-    const p = makePerson(world, { name: c.name, gender: c.gender, age: c.age, occupation: c.occupation, title: c.title, home: home?.id, work: work?.id, traits: c.traits, appearance: c.look, bio: c.bio, wealth: c.wealth, hostile: c.hostile });
+    const p = makePerson(world, { name: c.name, gender: c.gender, age: c.age, occupation: c.occupation, title: c.title, home: home?.id, work: work?.id, traits: c.traits, appearance: c.look, bio: c.bio, wealth: c.wealth, hostile: c.hostile, slug: c.key });
     people[c.key] = p;
     const fac = c.occupation === 'bandit' ? bandits : (c.occupation === 'guard' || c.occupation === 'captain') ? watch : village;
     p.factionId = fac.id; fac.members.push(p.id);
@@ -123,6 +126,8 @@ export function generateVillage(world: World): GenResult {
     if (c.key === 'hale') p.patrol = [v(168, F, 95), v(160, F, 96)];
     if (c.key === 'brigid') p.patrol = [v(96, F, 158), v(96, F, 130), v(100, F, 100), v(96, F, 78)];
   }
+  // ---- Faction leadership (Constitution §36: factions have leaders, not just members)
+  watch.leaderId = people.rowan.id; bandits.leaderId = people.skarn.id; village.leaderId = people.godwin.id;
   // Important people remain semantic entities after death even though they have no bodies.
   const historical = [
     { key: 'anna', name: 'Anna Wold', gender: 'f' as const, age: 57, occupation: 'farmer' as const, home: 'house_cedric', work: 'farm_cedric', died: world.now - 200 * SECONDS_PER_DAY, bio: "Cedric Wold's wife. She died of winter fever; her lost wedding ring remains part of the village's history." },
@@ -131,7 +136,7 @@ export function generateVillage(world: World): GenResult {
     { key: 'mira', name: 'Mira Reed', gender: 'f' as const, age: 37, occupation: 'farmer' as const, home: 'hut_tomas', work: null, died: world.now - 12 * 365 * SECONDS_PER_DAY, bio: "Tomas Reed's mother, who died with Tam in the great river flood." },
   ];
   for (const h of historical) {
-    const person = makePerson(world, { name: h.name, gender: h.gender, age: h.age, occupation: h.occupation, home: places[h.home]?.id, work: h.work ? places[h.work]?.id : null, traits: {}, appearance: {}, bio: h.bio });
+    const person = makePerson(world, { name: h.name, gender: h.gender, age: h.age, occupation: h.occupation, home: places[h.home]?.id, work: h.work ? places[h.work]?.id : null, traits: {}, appearance: {}, bio: h.bio, slug: h.key });
     person.alive = false; person.deathTick = h.died; person.factionId = village.id; person.createdAt = h.died - h.age * 365 * SECONDS_PER_DAY;
     village.members.push(person.id); people[h.key] = person;
   }

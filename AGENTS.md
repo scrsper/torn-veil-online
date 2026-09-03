@@ -3,6 +3,57 @@
 This file gives coding agents (and future sessions of the same agent) the context needed to
 work on Torn Veil Online without breaking its core design.
 
+## Constitutional Authority
+
+**`docs/TORN_VEIL_CONSTITUTION.md` is the highest-level canonical design authority for Torn
+Veil Online.** It defines the project's ontology, simulation philosophy, and long-term
+architectural direction — the artificial-world universe Torn Veil is ultimately meant to
+become, not just the current single-village prototype.
+
+Every AI development agent — and every human contributor — must read the Constitution before
+undertaking significant architectural, simulation, ontology, progression, cognition,
+world-generation, faction, economy, metaphysics, LLM, or scaling work. This applies whether
+the work is a small change to an existing system or the introduction of a new one, if that
+system touches how Torn Veil represents entities, truth, knowledge, power, or history.
+
+Priority relationships in this repository, from highest conceptual authority to most
+concrete evidence:
+
+```
+docs/TORN_VEIL_CONSTITUTION.md
+      → project philosophy / ontology / long-term architectural authority
+                    ↓
+AGENTS.md (this file)
+      → practical coding and repository conventions
+                    ↓
+Current implementation (src/)
+      → experimental implementation of those principles
+                    ↓
+Tests (tests/)
+      → evidence that particular implemented behavior actually works
+```
+
+The current implementation is a vertical slice of the Constitution's vision, not a
+specification that supersedes it. Existing implementation details — including everything
+described later in this file — do not override constitutional principles merely because
+they already exist in code. Do not let the current prototype become an accidental
+specification simply because it was built first.
+
+Agents must not knowingly violate a constitutional invariant (see the Constitution's
+"Constitutional Invariants" section) merely because a different implementation is easier or
+faster to build. If a requested feature appears to conflict with the Constitution, identify
+and surface that conflict rather than silently working around the principle or silently
+reinterpreting the document.
+
+The Constitution is expected to evolve — it may be amended by the project's creator over
+time. Agents should always read the current version of `docs/TORN_VEIL_CONSTITUTION.md` in
+this repository rather than relying on a remembered or cached summary of it.
+
+AGENTS.md (this file) provides day-to-day implementation conventions for working in this
+codebase. The Constitution defines what Torn Veil fundamentally is and is intended to
+become. When the two appear to disagree, the Constitution wins, and the disagreement should
+be raised rather than silently resolved.
+
 ## What this project is
 
 A browser-based, client-only prototype (TypeScript + Vite + Three.js, no backend, no LLM

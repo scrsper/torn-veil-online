@@ -164,3 +164,14 @@ directional relationships, utility-driven autonomous behavior — actually produ
 emergent, observable social behavior it's designed for, at a scale small enough to inspect by
 hand. See `docs/CODEX_FIRST_PASS.md` for a detailed record of the most recent hardening pass,
 including known limitations.
+
+## Design philosophy
+
+Ashford Vale is an early vertical slice of a much larger long-term vision: a persistent
+artificial universe of independently-acting entities, local knowledge and belief, causal
+history, factions, economies, and eventually multiple worlds with their own metaphysics. That
+vision, and the architectural principles current and future implementation are meant to grow
+toward, is recorded in [`docs/TORN_VEIL_CONSTITUTION.md`](docs/TORN_VEIL_CONSTITUTION.md) —
+the project's canonical design constitution. Contributors and AI development agents should
+read it before significant architectural or simulation work; see `AGENTS.md` for how it
+relates to day-to-day repository conventions.

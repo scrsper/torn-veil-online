@@ -21,6 +21,18 @@ export interface Entity {
   name: string;
   createdAt: Tick;
   tags: string[];
+  /**
+   * Stable, human-authored identity for entities that matter across regenerations, code
+   * changes, and future world/universe namespacing (Constitution §50 "Stable Identity").
+   * `id` is a generation-order counter (`p_7`, `pl_12`, ...) and is NOT safe to hardcode
+   * elsewhere, because inserting a new entity earlier in world generation shifts every
+   * later counter. `slug` is assigned once, by hand, at authoring time (e.g. cast.ts's
+   * `key`, a place's key in village.ts, a faction's short name) and never changes as
+   * generation order changes. Use `world.getBySlug('rowan')` instead of remembering an id.
+   * Procedurally generated entities (bodies, dropped items, future population-scale NPCs)
+   * have no slug; they still get durable persistent `id`s, just not a hand-authored name.
+   */
+  slug?: string;
 }
 
 // ---------------------------------------------------------------- Bodies
@@ -45,6 +57,16 @@ export interface Body extends Entity {
   dead: boolean;
   lastHitAt: number;            // physical time
   lastAttackAt: number;
+  /** Who this body's current 'attack' pose is actually directed at, or null when not attacking.
+   * v0.2.1 Priority 7 fix: nearby bystanders used to read ANY body in 'attack' pose within 3
+   * units as "attacking me" (see mind/agent.ts's threat assessment), so an ally fighting a
+   * third party in a crowded space (e.g. two bandits sharing a camp, one fighting a guard)
+   * could be misread by the other as a personal attack, triggering a real mutual fight between
+   * allies that then perpetuated itself indefinitely (each down-and-recover cycle re-entered
+   * attack range and re-triggered the same misread). Transient combat state — reset alongside
+   * `pose`, never persisted (see persist/save.ts, which already only persists 'dead' vs 'stand'
+   * for pose and rebuilds everything else on load). */
+  attackTarget: EntityId | null;
   sitAnchor: Vec3 | null;
   present: boolean;             // false when the body is withdrawn from the physical world
 }
@@ -120,7 +142,7 @@ export interface Percept {
 
 export type GoalType =
   | 'sleep' | 'eat' | 'work' | 'socialize' | 'wander' | 'go_home' | 'flee' | 'report' | 'investigate'
-  | 'confront' | 'attack' | 'help' | 'shelter' | 'worship' | 'patrol' | 'drink' | 'shop' | 'mourn' | 'play'
+  | 'confront' | 'attack' | 'rob' | 'help' | 'shelter' | 'worship' | 'patrol' | 'drink' | 'shop' | 'mourn' | 'play'
   | 'idle' | 'talk' | 'recover_item' | 'guard_post' | 'follow' | 'return_home_safe';
 
 export interface Goal {
@@ -136,7 +158,7 @@ export interface Goal {
   key: string;             // identity for hysteresis (type + target)
 }
 
-export type ActionType = 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 'talk' | 'tell' | 'attack' | 'look' | 'pickup' | 'face' | 'bark' | 'pray' | 'eat';
+export type ActionType = 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 'talk' | 'tell' | 'attack' | 'look' | 'pickup' | 'face' | 'bark' | 'pray' | 'eat' | 'demand' | 'rob';
 export interface Action {
   type: ActionType;
   pos?: Vec3;
@@ -172,8 +194,21 @@ export interface Mind {
   attention: EntityId | null;
   lastSpokeAt: number;
   lastToldAt: Record<EntityId, number>; // last time I talked to X (for conversation cooldowns)
-  investigated: string[];   // event ids handled
+  // v0.2.2 Phase 3 (long-run perf): a plain array here meant `.includes()` — called once per
+  // unresolved-crime candidate on EVERY guard's EVERY think() tick — was an O(length) scan of a
+  // set that only ever grows for the life of the guard. On a long/violent run (seed 918271's
+  // combat-heavy 918271 village had thousands of violent incidents) this was a real, measured
+  // hidden "every tick: scan an ever-growing collection" cost, not a hypothetical one. A Set
+  // gives the exact same membership semantics (has/add) at O(1), with no behavior change —
+  // still just "have I already investigated this key" — so it changes nothing about which goals
+  // get proposed or when, only how cheaply the check is answered. Serialized as a plain array at
+  // the save/load boundary (persist/save.ts) since JSON has no native Set.
+  investigated: Set<string>;   // event ids handled
   awaitingReplyFrom?: EntityId;
+  /** Per-victim cooldown (world-time seconds until) after a completed robbery, so a robber does
+   * not immediately re-target a victim who is merely recovering from being downed — this is
+   * what actually ends a robbery instead of it silently repeating. See mind/robbery.ts. */
+  robCooldowns?: Record<EntityId, number>;
 }
 
 export interface Person extends Entity {
@@ -207,9 +242,30 @@ export interface Person extends Entity {
   hostile: boolean;                 // outlaw by default (bandits)
   speech: { text: string; until: number } | null; // current speech bubble (physical time)
   deathTick?: Tick;
+  /** Current cognitive fidelity (default 'full' for every named cast member, matching v0.2
+   * scope — see CognitiveLOD). Absent/undefined is treated as 'full' for backward compat
+   * with any state created before this field existed (e.g. old saves). */
+  cognitiveLOD?: CognitiveLOD;
 }
 
 export interface Desire { type: 'recover_item' | 'collect_debt' | 'wants_item'; targetId?: EntityId; itemType?: string; note: string; reward: number; fulfilled: boolean; }
+
+/**
+ * Explicit conflict intent (Constitution §11 "Conflict Must Have Intent"). Hostility is not
+ * lethal intent: a hostile faction member (a bandit) or an armed defender does not default
+ * to killing whoever they fight. Only `'kill'` may end a fight in death; every other intent
+ * downs, drives off, or otherwise incapacitates without automatically ending a life. See
+ * `conflictIntentFor` in mind/conflict.ts for how intent is chosen, and `Simulation.applyHit`
+ * in mind/agent.ts for how it governs lethality.
+ */
+export type ConflictIntent = 'avoid' | 'threaten' | 'rob' | 'defend' | 'subdue' | 'arrest' | 'drive_off' | 'injure' | 'kill';
+
+/** Cognitive Level of Detail (Constitution §21-27): how deeply an entity's mind is currently
+ * being simulated. This is independent of power and of historical significance (§20) — a
+ * Normal-tier farmer can be Full while a dormant threat is Aggregate. v0.2 implements the
+ * mechanism (fidelity can change, cheaply, reversibly, without altering what an entity
+ * already knows) rather than a civilization-scale population system. */
+export type CognitiveLOD = 'aggregate' | 'lightweight' | 'full' | 'deep';
 
 export interface Creature extends Entity {
   kind: 'creature';
@@ -259,11 +315,26 @@ export interface Place extends Entity {
   lit: boolean;                     // lights on at night
 }
 
+/**
+ * A faction is an institution, not a hostility flag (Constitution §36 "Factions Are
+ * Entities"). It carries its own leadership and institutional knowledge, separate from any
+ * one member's mind: `knowledge` is what the institution as a body has been told or has
+ * recorded — populated deliberately (a report reaching leadership, a meeting), never by
+ * silently mirroring every member's private knowledge (Constitution §37, "one member knows
+ * something must not mean all members instantly know it").
+ */
 export interface Faction extends Entity {
   kind: 'faction';
   members: EntityId[];
   description: string;
   hostileTo: EntityId[];
+  /** Current leader, if any. May change via factionLeadershipSuccession on death. */
+  leaderId: EntityId | null;
+  /** Broad category for future faction-type-specific behavior (kept optional/free-form for v0.2). */
+  factionType?: 'civic' | 'watch' | 'outlaw' | 'religious' | 'guild' | 'other';
+  /** Institutional memory: knowledge the faction as a body holds, keyed like KnowledgeItem.
+   * Distinct from any member's personal `knowledge` map. */
+  knowledge: Record<string, KnowledgeItem>;
 }
 
 // ---------------------------------------------------------------- Events
@@ -273,7 +344,15 @@ export type EventType =
   | 'goal_completed' | 'arrived' | 'investigation' | 'confrontation' | 'arrest_attempt' | 'fled' | 'hid'
   | 'meal' | 'sleep' | 'work_shift' | 'service' | 'rumor' | 'weather' | 'birth' | 'death' | 'marriage'
   | 'debt' | 'dispute' | 'gift' | 'heal' | 'recovered' | 'apology' | 'player_spawn' | 'player_death'
-  | 'block_changed' | 'item_missing' | 'threat_spotted' | 'returned_item' | 'debt_paid' | 'greeting' | 'prayer' | 'mourning';
+  | 'block_changed' | 'item_missing' | 'threat_spotted' | 'returned_item' | 'debt_paid' | 'greeting' | 'prayer' | 'mourning'
+  // v0.2 world-engine additions: purely observational/institutional, never gameplay-load-bearing
+  // in the sense that removing them changes no canonical outcome by itself.
+  | 'path_failure' | 'leadership_changed' | 'institutional_report' | 'cognitive_lod_changed'
+  // v0.2.2: emitted when bounded-knowledge eviction (mind/knowledge.ts) removes an entry that
+  // was still materially relevant to cognition (an unresolved crime report, or knowledge an
+  // active goal/plan step references by key) — purely observational, never a behavior change
+  // by itself (the eviction already happened; this just makes it visible instead of silent).
+  | 'knowledge_forgotten';
 
 export type EventCategory = 'world' | 'social' | 'cognition' | 'history';
 

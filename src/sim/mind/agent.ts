@@ -1,4 +1,4 @@
-import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, KnowledgeItem, Creature, Place, Anchor } from '../core/types';
+import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, KnowledgeItem, Creature, Place, Anchor, ConflictIntent } from '../core/types';
 import { World } from '../core/world';
 import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull } from './relationships';
 import { remember } from './memory';
@@ -7,6 +7,8 @@ import { currentScheduleEntry } from './schedule';
 import { SECONDS_PER_HOUR } from '../core/time';
 import { B } from '../physical/blocks';
 import { makeItem } from '../world/factory';
+import { banditResourcePressure } from './economy';
+import { resolveRobberyCompliance, selectRobberyTake, ROBBERY_COOLDOWN_SECONDS, type RobberyTake } from './robbery';
 
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -20,8 +22,18 @@ const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
  *  - strategic upkeep (needs, moods, weather) runs once per world minute
  */
 export class Simulation {
-  perceptionAccum = 0; strategicAccum = 0; onSpeech: ((p: Person, text: string) => void) | null = null; onHit: ((b: Body, pos: Vec3) => void) | null = null;
+  perceptionAccum = 0; strategicAccum = 0; compactAccum = 0; onSpeech: ((p: Person, text: string) => void) | null = null; onHit: ((b: Body, pos: Vec3) => void) | null = null;
+  /** Coarse per-subsystem wall-clock accumulator (v0.2.1 Priority 3: "create benchmark
+   * instrumentation so the headless report includes coarse timing information for major
+   * subsystems where practical"). Null (the default, used by the browser client and every
+   * test) costs nothing — every call site below is a single `if (this.profile)` check. A
+   * caller that wants a breakdown (the headless runner) sets this to `{}` before stepping and
+   * reads the accumulated milliseconds back out; this never reads simulation state and never
+   * feeds back into any decision, so it cannot affect canonical outcomes or determinism. */
+  profile: Record<string, number> | null = null;
   constructor(public world: World) {}
+  private mark(): number { return this.profile ? performance.now() : 0; }
+  private accum(bucket: string, t0: number): void { if (this.profile) this.profile[bucket] = (this.profile[bucket] ?? 0) + (performance.now() - t0); }
 
   // ------------------------------------------------------------------ main step
   step(physDt: number, worldDt: number): void {
@@ -34,21 +46,35 @@ export class Simulation {
     for (const p of w.persons()) {
       if (!p.alive || p.controlled) { if (p.controlled && doPerceive) this.perceive(p, stimuli); continue; }
       const body = w.primaryBody(p.id); if (!body) continue;
-      if (doPerceive) this.perceive(p, stimuli);
+      if (doPerceive) { const t0 = this.mark(); this.perceive(p, stimuli); this.accum('perceive', t0); }
       // 2. subjective cognition budget
       p.mind.thinkBudget += physDt * p.timeRate;
       const urgent = p.mind.alarm > 0.5;
-      if (urgent || p.mind.thinkBudget >= p.mind.thinkInterval) { p.mind.thinkBudget = 0; this.think(p, body); p.mind.alarm = 0; }
+      if (urgent || p.mind.thinkBudget >= p.mind.thinkInterval) { p.mind.thinkBudget = 0; const t0 = this.mark(); this.think(p, body); this.accum('think', t0); p.mind.alarm = 0; }
       // 3. act on the current plan (continuous)
-      this.act(p, body, physDt, worldDt);
+      { const t0 = this.mark(); this.act(p, body, physDt, worldDt); this.accum('act', t0); }
       if (p.speech && p.speech.until < w.physicalTime) p.speech = null;
     }
-    for (const c of w.creatures()) this.creatureStep(c, physDt);
+    { const t0 = this.mark(); for (const c of w.creatures()) this.creatureStep(c, physDt); this.accum('creatures', t0); }
     // 4. body physics for all non-player bodies
-    for (const b of w.bodies()) { const owner = w.get(b.ownerId) as Person | undefined; if (owner?.controlled) continue; this.bodyPhysics(b, physDt); }
+    { const t0 = this.mark(); for (const b of w.bodies()) { const owner = w.get(b.ownerId) as Person | undefined; if (owner?.controlled) continue; this.bodyPhysics(b, physDt); } this.accum('bodyPhysics', t0); }
     // 5. strategic upkeep once per world minute
     this.strategicAccum += worldDt;
-    if (this.strategicAccum >= 60) { const minutes = Math.floor(this.strategicAccum / 60); this.strategicAccum -= minutes * 60; this.strategic(minutes); }
+    if (this.strategicAccum >= 60) { const minutes = Math.floor(this.strategicAccum / 60); this.strategicAccum -= minutes * 60; const t0 = this.mark(); this.strategic(minutes); this.accum('strategic', t0); }
+    // 6. event-log compaction (Constitution §71 "computational pragmatism": this is purely a
+    // memory/perf bound, not a gameplay mechanic — nothing about WHICH events survive or their
+    // causal ancestry depends on how often this runs, only on `world.events.length` when it
+    // does). v0.2.1 Priority 3: this used to run every world-minute from inside strategic(),
+    // but compactEvents' own "kept" set keeps every individually-significant event forever
+    // (correctly — that's what makes it a real historical record), so as significant events
+    // accumulate over a long run, a minute-granular cadence meant re-filtering and re-walking
+    // the causal ancestry of that same, ever-growing "already kept" set on almost every call —
+    // measured as the single largest cost in a 2-day headless run (~35% of total wall time).
+    // Once an hour is still far more often than the compaction threshold (1.5x `keep`, default
+    // 6000 events) is likely to be freshly crossed, and produces byte-for-byte identical kept
+    // events/causal ancestry to calling it every minute — only the call frequency changes.
+    this.compactAccum += worldDt;
+    if (this.compactAccum >= 3600) { this.compactAccum = 0; const t0 = this.mark(); w.compactEvents(); this.accum('compact', t0); }
   }
 
   // ------------------------------------------------------------------ perception
@@ -100,7 +126,7 @@ export class Simulation {
     const isVictim = claim.target === p.id;
     const victimClose = claim.target ? isClose(p, claim.target) : false;
     const sig = e.significance * (isVictim ? 1.4 : victimClose ? 1.2 : 1) * (saw ? 1 : 0.7);
-    const valence = isCrime(e.type) ? -0.8 : e.type === 'gift' || e.type === 'returned_item' || e.type === 'heal' ? 0.6 : 0;
+    const valence = isCrime(e.type, e.data?.intent) ? -0.8 : e.type === 'gift' || e.type === 'returned_item' || e.type === 'heal' ? 0.6 : 0;
     remember(w, p, { type: e.type, summary: saw ? `I saw: ${claimSummary}` : `I heard: ${claimSummary}`, eventId: e.id, entities: [claim.actor, claim.target, claim.item].filter(Boolean) as string[], significance: clamp(sig), valence, source: { type: saw ? 'witnessed' : 'heard', viaEvent: perc.id }, placeId: claim.placeId });
     if (p.controlled) return;
     this.reactTo(p, body, e, perc.id, saw, isVictim, victimClose, k);
@@ -108,7 +134,7 @@ export class Simulation {
 
   private reactTo(p: Person, body: Body, e: WorldEvent, cause: string, saw: boolean, isVictim: boolean, victimClose: boolean, k: KnowledgeItem | null): void {
     const w = this.world; const claim = k?.claim ?? eventClaim(w, e, saw); const actor = claim.actor as EntityId | undefined;
-    if (isCrime(claim.type) && actor !== p.id) {
+    if (isCrime(claim.type, claim.intent) && actor !== p.id) {
       const sev = crimeSeverity(claim.type); const actorP = w.person(actor);
       const victimDisp = claim.target ? disposition(p, claim.target) : 0;
       // fear rises with severity, proximity and low courage; grudge with closeness to the victim
@@ -148,9 +174,19 @@ export class Simulation {
     let threat: { id: EntityId; d: number; fear: number; body: Body } | null = null;
     for (const pc of m.percepts) {
       const other = w.person(pc.entityId); if (!other || !other.alive) continue; const ob = w.body(pc.bodyId)!; if (ob.dead) continue;
+      // A downed body is already incapacitated (Constitution §11: 'subdue'/'arrest' must be a
+      // real terminal outcome, not merely non-lethal-and-repeatable). Without this, a subdued
+      // target kept registering as an active threat every think() tick, so the subduer (or
+      // anyone else nearby) would immediately re-attack them — resetting their downed timer
+      // forward on every hit and producing an endless attack/arrest loop between the same two
+      // actors instead of the fight actually ending. See docs/V0_2_WORLD_ENGINE.md.
+      if (ob.pose === 'downed') continue;
       const r = relOrNull(p, other.id); const hostileFaction = other.hostile !== p.hostile;
       const fear = (r?.fear ?? 0) + (hostileFaction ? 0.5 : 0) + (r && r.grudge > 0.5 ? 0.1 : 0);
-      const attackingMe = ob.pose === 'attack' && dist2(ob.pos, pos) < 3;
+      // v0.2.1 Priority 7 fix: `attackTarget` must actually be me, not just "someone is in
+      // attack pose nearby" — see the Body.attackTarget doc comment in core/types.ts for the
+      // bystander-misattribution bug this closes.
+      const attackingMe = ob.pose === 'attack' && ob.attackTarget === p.id && dist2(ob.pos, pos) < 3;
       const knownCriminal = (p.occupation === 'guard' || p.occupation === 'captain') && !other.hostile && this.knownCrimesBy(p, other.id).length > 0;
       if (fear > 0.25 || attackingMe || (hostileFaction && pc.distance < 14) || knownCriminal) { const f = fear + (attackingMe ? 0.8 : 0); if (!threat || f / (pc.distance + 1) > threat.fear / (threat.d + 1)) threat = { id: other.id, d: pc.distance, fear: f, body: ob }; }
     }
@@ -163,21 +199,72 @@ export class Simulation {
       const fleeU = clamp(0.35 + threat.fear * 0.8 - brave * 0.4 - (armed ? 0.1 : 0) + (1 - healthy) * 0.3 - threat.d * 0.01);
       const crimeKnown = this.knownCrimesBy(p, threat.id);
       if (isGuard && crimeKnown.length && !t.hostile) G('confront', clamp(0.8 + crimeSeverity(crimeKnown[0].claim.type) * 0.2), [`${t.name} is known to have committed ${crimeKnown[0].claim.type}`, `source: ${crimeKnown[0].source.type}${crimeKnown[0].source.from ? ' by ' + w.nameOf(crimeKnown[0].source.from) : ''}`], { targetEntity: t.id, data: { crime: crimeKnown[0].key } });
-      else if (t.hostile !== p.hostile && (isGuard || p.hostile) ) G('attack', clamp(fightU + 0.2), [`${t.name} is an enemy`, `courage ${p.traits.courage.toFixed(2)}`], { targetEntity: t.id });
-      else if (threat.body.pose === 'attack' || r.fear > 0.35 || t.hostile) {
-        if (fightU > fleeU && (armed || brave > 0.9)) G('attack', fightU, [`${t.name} is a threat (fear ${threat.fear.toFixed(2)})`, `I am ${armed ? 'armed' : 'unarmed'}, courage ${p.traits.courage.toFixed(2)}`], { targetEntity: t.id });
+      else if (t.hostile !== p.hostile && (isGuard || p.hostile) ) {
+        // Constitution §11: hostile faction membership is never itself lethal intent.
+        // A guard apprehends; a bandit wants resources from an ordinary victim and only
+        // treats an armed defender of the law as a real, non-automatically-fatal fight.
+        const intent: ConflictIntent = isGuard ? 'subdue' : (t.occupation === 'guard' || t.occupation === 'captain') ? 'injure' : 'rob';
+        // Constitution §12/§39: robbery utility rises with the bandit faction's own resource
+        // pressure, not merely because the target exists — a real causal loop rather than a
+        // hardcoded "bandits attack" activity.
+        const pressure = intent === 'rob' ? banditResourcePressure(w, p) : 0;
+        // Constitution §71: a bandit must be able to size up a fight it would lose, not just
+        // ones it's already losing. "Opposition strength" folds in whether the target is armed,
+        // a guard/captain, still near-full health, and — critically — whether allied guards are
+        // nearby to back them up, so a materially superior response makes flee outcompete
+        // robbery/attack instead of the bandit pressing on regardless.
+        const targetArmed = this.weaponOf(t) > 0;
+        const tBody = w.primaryBody(t.id);
+        const targetHealthy = tBody ? tBody.health / tBody.maxHealth : 1;
+        const guardBackup = m.percepts.filter(pc => { const o = w.person(pc.entityId); return !!o && o.alive && o.id !== t.id && (o.occupation === 'guard' || o.occupation === 'captain') && pc.distance < 16; }).length;
+        const oppositionStrength = (targetArmed ? 0.3 : 0) + (t.occupation === 'guard' || t.occupation === 'captain' ? 0.3 : 0) + targetHealthy * 0.2 + guardBackup * 0.4;
+        const engageU = clamp(fightU + 0.2 + pressure * 0.3 - oppositionStrength * 0.5);
+        const fleeFromOpposition = clamp(fleeU + oppositionStrength * 0.5);
+        // A robber does not immediately re-victimize someone it just robbed merely because
+        // they are still nearby and technically "hostile-flagged" — see robCooldowns. But the
+        // cooldown must only block *starting a fresh* robbery, never orphan one already under
+        // way (demand/attack/take/disengage is several actions deep): while the bandit's own
+        // current goal already IS this robbery and its plan hasn't finished yet, the same
+        // candidate keeps being offered so hysteresis has something to hold onto instead of the
+        // plan (including the post-robbery disengage step) getting discarded mid-flight.
+        // Physical time, not world/calendar time — the same clock the downed-recovery timer
+        // (poseUntil) itself uses, so the cooldown reliably outlasts recovery regardless of how
+        // fast world/calendar time happens to be running relative to physical seconds. Scoped to
+        // robbery specifically (Priority 1's stated focus); the analogous guard-arrest
+        // "encounter already resolved" gap is noted as a follow-up in
+        // docs/V0_2_1_WORLD_ENGINE_STABILIZATION.md rather than folded in here, since a real fix
+        // needs actual custody/arrest-resolution semantics, not just a cooldown.
+        const cooldownUntil = intent === 'rob' ? m.robCooldowns?.[t.id] : undefined;
+        const onCooldown = !!cooldownUntil && cooldownUntil > w.physicalTime;
+        const planInFlight = m.plan.length > 0 && !m.plan.every(a => a.status === 'done' || a.status === 'failed');
+        const alreadyRobbingThis = m.goal?.type === 'rob' && m.goal.targetEntity === t.id && planInFlight;
+        if (!isGuard && oppositionStrength > 0.45 && fleeFromOpposition > engageU && !alreadyRobbingThis) {
+          G('flee', fleeFromOpposition, [`${t.name} looks like more trouble than it's worth`, `opposition ${oppositionStrength.toFixed(2)}`], { targetEntity: t.id });
+        } else if (!onCooldown || alreadyRobbingThis) {
+          G(intent === 'rob' ? 'rob' : 'attack', engageU, [`${t.name} is an enemy`, `courage ${p.traits.courage.toFixed(2)}`, `intent: ${intent}`, pressure ? `resource pressure ${pressure.toFixed(2)}` : '', oppositionStrength > 0.2 ? `opposition ${oppositionStrength.toFixed(2)}` : ''], { targetEntity: t.id, data: { intent } });
+        }
+      }
+      // Constitution §11: a hostile-faction flag is only alarming when it differs from my own
+      // (t.hostile !== p.hostile) — two members of the SAME hostile faction (e.g. two bandits)
+      // are not a threat to each other merely because both happen to be flagged hostile. Without
+      // this, a bandit's own ally registered as a "threat" via this bare `t.hostile` check on
+      // every think() cycle, producing sustained mutual "self-defense" combat between allies —
+      // observed in a real headless run as 963 repeated attacks between two same-faction
+      // bandits, the same class of unresolved-loop defect Priority 1 fixed for robbery victims.
+      else if ((threat.body.pose === 'attack' && threat.body.attackTarget === p.id) || r.fear > 0.35 || (t.hostile !== p.hostile)) {
+        if (fightU > fleeU && (armed || brave > 0.9)) G('attack', fightU, [`${t.name} is a threat (fear ${threat.fear.toFixed(2)})`, `I am ${armed ? 'armed' : 'unarmed'}, courage ${p.traits.courage.toFixed(2)}`, 'intent: defend'], { targetEntity: t.id, data: { intent: 'defend' as ConflictIntent } });
         else G('flee', fleeU, [`${t.name} is a threat (fear ${threat.fear.toFixed(2)}, dist ${threat.d.toFixed(1)})`, `courage ${p.traits.courage.toFixed(2)}${armed ? '' : ', unarmed'}`], { targetEntity: t.id });
       }
     }
     // ---- knowledge-driven goals: report crimes, investigate, recover items
-    const crimes = Object.values(p.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type) && !k.handled && now - k.learnedAt < 86400 * 3);
+    const crimes = Object.values(p.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled && now - k.learnedAt < 86400 * 3);
     for (const k of crimes) {
       const sev = crimeSeverity(k.claim.type); const victimClose = k.claim.target ? isClose(p, k.claim.target) : false; const victimIsMe = k.claim.target === p.id;
       const actorIsMe = k.claim.actor === p.id; if (actorIsMe) continue;
       const actorP = w.person(k.claim.actor);
       if (actorP?.hostile && k.claim.type !== 'kill' && !isGuard) continue; // bandit crimes are old news
       if (isGuard) {
-        if (!m.investigated.includes(k.key) && k.claim.pos) G('investigate', clamp(0.55 + sev * 0.4 + (k.hops === 0 ? 0.1 : 0)), [`I know of a ${k.claim.type} (${k.source.type}${k.source.from ? ' by ' + w.nameOf(k.source.from) : ''}, confidence ${k.confidence.toFixed(2)})`, 'my duty is to investigate'], { targetPos: k.claim.pos, targetPlace: k.claim.placeId, data: { key: k.key, suspect: k.claim.actor }, causeEvent: k.source.viaEvent });
+        if (!m.investigated.has(k.key) && k.claim.pos) G('investigate', clamp(0.55 + sev * 0.4 + (k.hops === 0 ? 0.1 : 0)), [`I know of a ${k.claim.type} (${k.source.type}${k.source.from ? ' by ' + w.nameOf(k.source.from) : ''}, confidence ${k.confidence.toFixed(2)})`, 'my duty is to investigate'], { targetPos: k.claim.pos, targetPlace: k.claim.placeId, data: { key: k.key, suspect: k.claim.actor }, causeEvent: k.source.viaEvent });
       } else if (!p.hostile) {
         const guards = w.persons().filter(g => (g.occupation === 'guard' || g.occupation === 'captain') && g.alive && !k.sharedWith.includes(g.id));
         const already = w.persons().some(g => (g.occupation === 'guard' || g.occupation === 'captain') && k.sharedWith.includes(g.id));
@@ -225,9 +312,20 @@ export class Simulation {
     const best = cands[0]; const cur = m.goal;
     let chosen = best; let switched = false; let note = '';
     if (cur && cur.key !== best.key) {
-      const curCand = cands.find(c => c.key === cur.key); const curU = curCand?.utility ?? 0;
+      const curCand = cands.find(c => c.key === cur.key);
+      // A forced multi-step pipeline (rob's demand->[attack]->take->disengage, or an in-progress
+      // attack/confront) must be allowed to run to completion once started. Its trigger (the
+      // threat that originally justified it) can legitimately drop out of *this tick's*
+      // candidates without the goal itself having become wrong — most concretely, disengaging
+      // from a just-robbed victim means moving away and no longer facing them, so they briefly
+      // stop being perceived at all. Falling back to utility 0 in that case would let an
+      // ordinary need (hunger, socializing) outbid an unfinished robbery and strand its
+      // disengage step mid-plan, exactly the kind of "goal completes on paper but never really
+      // finishes" defect this stabilization pass exists to close.
+      const inFlightPipeline = cur.type === 'rob' || cur.type === 'attack' || cur.type === 'confront';
+      const curU = curCand?.utility ?? (inFlightPipeline ? 0.9 : 0);
       const done = m.plan.length === 0 || m.plan.every(a => a.status === 'done' || a.status === 'failed');
-      if (!done && best.utility < curU + 0.12 && !(best.type === 'flee' || best.type === 'attack' || best.type === 'confront')) { chosen = { ...cur, utility: curU }; note = `kept ${cur.type} (hysteresis)`; }
+      if (!done && best.utility < curU + 0.12 && !(best.type === 'flee' || best.type === 'attack' || best.type === 'confront' || best.type === 'rob')) { chosen = { ...cur, utility: curU }; note = `kept ${cur.type} (hysteresis)`; }
       else { switched = true; note = `switched from ${cur.type} to ${best.type}`; }
     } else if (!cur) { switched = true; note = `adopted ${best.type}`; }
     else { chosen = cur; note = `continuing ${cur.type}`; }
@@ -246,7 +344,7 @@ export class Simulation {
     const target = g.targetEntity ? ` → ${w.nameOf(g.targetEntity)}` : g.targetPlace ? ` @ ${w.nameOf(g.targetPlace)}` : '';
     w.emit('goal_changed', { actor: p.id, target: g.targetEntity, placeId: g.targetPlace, causes, significance: g.type === 'flee' || g.type === 'attack' || g.type === 'report' || g.type === 'investigate' || g.type === 'confront' ? 0.45 : 0.12, data: { from: prev?.type, to: g.type, utility: g.utility, reasons: g.reasons }, summary: `${p.name}: goal ${prev ? prev.type + ' → ' : ''}${g.type}${target} (u=${g.utility.toFixed(2)})` });
   }
-  private knownCrimesBy(p: Person, actor: EntityId): KnowledgeItem[] { return Object.values(p.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type) && k.claim.actor === actor && !k.handled).sort((a, b) => crimeSeverity(b.claim.type) - crimeSeverity(a.claim.type)); }
+  private knownCrimesBy(p: Person, actor: EntityId): KnowledgeItem[] { return Object.values(p.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && k.claim.actor === actor && !k.handled).sort((a, b) => crimeSeverity(b.claim.type) - crimeSeverity(a.claim.type)); }
   private nearestKnownGuard(p: Person, pos: Vec3, guards: Person[]): Person | null {
     const w = this.world; let best: Person | null = null; let bd = Infinity;
     for (const g of guards) { const loc = p.knowledge[`loc:${g.id}`]?.claim.pos ?? w.place(g.workId)?.inside ?? w.primaryBody(g.id)?.pos; if (!loc) continue; const d = dist2(pos, loc); if (d < bd) { bd = d; best = g; } }
@@ -280,6 +378,13 @@ export class Simulation {
       case 'report': { const g2 = w.person(g.targetEntity!)!; return [A({ type: 'goto', targetEntity: g2.id, run: true }), A({ type: 'tell', targetEntity: g2.id, data: { key: g.data?.key } })]; }
       case 'investigate': { return [A({ type: 'goto', pos: g.targetPos!, run: p.occupation === 'captain' }), A({ type: 'look', duration: 3 * 60, pos: g.targetPos!, data: { key: g.data?.key, investigate: true } })]; }
       case 'confront': case 'attack': return [A({ type: 'goto', targetEntity: g.targetEntity, run: true }), A({ type: g.type === 'confront' ? 'talk' : 'attack', targetEntity: g.targetEntity, data: g.data })];
+      // Robbery is its own goal (not plain 'attack') so it can carry a demand step and an
+      // explicit completion/disengage step, rather than ending the moment the target is downed
+      // with nothing actually taken (Constitution requirement: robbery must have an explicit
+      // semantic goal and completion condition). See think()'s bandit branch and act()'s
+      // 'demand'/'rob' action handlers for the rest of the pipeline — 'demand' dynamically
+      // splices in either a direct 'rob' (voluntary compliance) or 'attack' + 'rob' (resistance).
+      case 'rob': return [A({ type: 'goto', targetEntity: g.targetEntity, run: true }), A({ type: 'demand', targetEntity: g.targetEntity, data: g.data })];
       case 'help': return [A({ type: 'goto', targetEntity: g.targetEntity, run: true }), A({ type: 'use', targetEntity: g.targetEntity, duration: 60, data: { heal: true } })];
       case 'recover_item': return [A({ type: 'goto', pos: g.targetPos! }), A({ type: 'pickup', targetEntity: g.targetEntity })];
       case 'mourn': { const gy = place!; const grave = gy.anchors.find(a => a.kind === 'grave' && a.label?.startsWith('Anna')) ?? gy.anchors[0]; return [A({ type: 'goto', pos: grave.pos }), A({ type: 'pray', pos: grave.pos, duration: 40 * 60 })]; }
@@ -301,10 +406,13 @@ export class Simulation {
     if (a.status === 'pending') { a.status = 'active'; a.startedAt = w.now; this.beginAction(p, body, a); }
     switch (a.type) {
       case 'goto': {
+        // Observational only (Constitution §53): records that pathing failed, for headless
+        // telemetry/anomaly detection. Never changes canonical decisions itself.
+        const failGoto = (reason: string) => { a.status = 'failed'; w.emit('path_failure', { actor: p.id, pos: body.pos, significance: 0, data: { reason, goal: m.goal?.type }, summary: `${p.name} could not path (${reason})` }); };
         let dest = a.pos ?? null;
-        if (a.targetEntity) { const tb = w.primaryBody(a.targetEntity); if (!tb) { a.status = 'failed'; break; } dest = tb.pos; if (dist2(body.pos, dest) < 1.8) { body.path = null; a.status = 'done'; body.pose = 'stand'; body.yaw = Math.atan2(-(dest.x - body.pos.x), -(dest.z - body.pos.z)); break; } if (!body.path || !body.pathGoal || dist2(body.pathGoal, dest) > 2.5) this.pathTo(body, dest, a); }
-        if (!dest) { a.status = 'failed'; break; }
-        if (!body.path) { if (dist2(body.pos, dest) < 1.2) { a.status = 'done'; break; } this.pathTo(body, dest, a); if (!body.path) { a.status = 'failed'; break; } }
+        if (a.targetEntity) { const tb = w.primaryBody(a.targetEntity); if (!tb) { failGoto('target has no body'); break; } dest = tb.pos; if (dist2(body.pos, dest) < 1.8) { body.path = null; a.status = 'done'; body.pose = 'stand'; body.yaw = Math.atan2(-(dest.x - body.pos.x), -(dest.z - body.pos.z)); break; } if (!body.path || !body.pathGoal || dist2(body.pathGoal, dest) > 2.5) this.pathTo(body, dest, a); }
+        if (!dest) { failGoto('no destination'); break; }
+        if (!body.path) { if (dist2(body.pos, dest) < 1.2) { a.status = 'done'; break; } this.pathTo(body, dest, a); if (!body.path) { failGoto('no path found'); break; } }
         body.speed = a.run ? 5.6 : (p.occupation === 'child' ? 3.6 : 3.2 + (p.age > 60 ? -0.8 : 0));
         body.pose = a.run ? 'run' : 'walk';
         const arrived = this.followPath(body, physDt);
@@ -317,16 +425,69 @@ export class Simulation {
       case 'work': body.pose = 'work'; body.sitAnchor = a.pos ?? null; this.maybeChat(p, body); if (a.pos && w.rng.next() < physDt * 0.15) { body.yaw += (w.rng.next() - 0.5) * 0.6; } if (this.elapsed(a)) a.status = 'done'; break;
       case 'pray': body.pose = 'pray'; body.sitAnchor = a.pos ?? null; if (this.elapsed(a)) a.status = 'done'; break;
       case 'wait': body.pose = a.data?.hide ? 'stand' : 'stand'; if (a.data?.social) this.maybeChat(p, body); if (this.elapsed(a)) a.status = 'done'; break;
-      case 'look': { body.pose = 'stand'; body.yaw += physDt * 0.5; if (a.data?.investigate) { const key = a.data.key as string; const k = p.knowledge[key]; const suspect = k?.claim.actor as string | undefined; const seen = suspect ? m.percepts.find(pc => pc.entityId === suspect) : null; if (seen) { a.status = 'done'; m.investigated.push(key); m.alarm = 1; break; } if (this.elapsed(a)) { a.status = 'done'; m.investigated.push(key); if (k) k.handled = true; w.emit('investigation', { actor: p.id, pos: body.pos, placeId: k?.claim.placeId, causes: k?.source.viaEvent ? [k.source.viaEvent] : [], significance: 0.4, data: { key, outcome: 'suspect not found' }, summary: `${p.name} investigated ${k ? describeClaim(w, k) : 'a report'} but found no one` }); this.say(p, suspect ? `${w.nameOf(suspect).split(' ')[0]}... where did they go?` : 'Nothing here now.'); } } else if (this.elapsed(a)) a.status = 'done'; break; }
+      case 'look': { body.pose = 'stand'; body.yaw += physDt * 0.5; if (a.data?.investigate) { const key = a.data.key as string; const k = p.knowledge[key]; const suspect = k?.claim.actor as string | undefined; const seen = suspect ? m.percepts.find(pc => pc.entityId === suspect) : null; if (seen) { a.status = 'done'; m.investigated.add(key); m.alarm = 1; break; } if (this.elapsed(a)) { a.status = 'done'; m.investigated.add(key); if (k) k.handled = true; w.emit('investigation', { actor: p.id, pos: body.pos, placeId: k?.claim.placeId, causes: k?.source.viaEvent ? [k.source.viaEvent] : [], significance: 0.4, data: { key, outcome: 'suspect not found' }, summary: `${p.name} investigated ${k ? describeClaim(w, k) : 'a report'} but found no one` }); this.say(p, suspect ? `${w.nameOf(suspect).split(' ')[0]}... where did they go?` : 'Nothing here now.'); } } else if (this.elapsed(a)) a.status = 'done'; break; }
       case 'tell': { const t = w.person(a.targetEntity!); const tb = w.primaryBody(a.targetEntity!); if (!t || !tb || dist2(body.pos, tb.pos) > 3.5) { a.status = 'failed'; break; } const k = p.knowledge[a.data?.key]; if (k) this.tell(p, t, k); body.pose = 'talk'; body.poseUntil = w.physicalTime + 2; a.status = 'done'; break; }
       case 'talk': { const t = w.person(a.targetEntity!); const tb = w.primaryBody(a.targetEntity!); if (!t || !tb) { a.status = 'failed'; break; } if (dist2(body.pos, tb.pos) > 3) { a.status = 'failed'; break; } this.confront(p, body, t, a); a.status = 'done'; break; }
-      case 'attack': { const tb = w.primaryBody(a.targetEntity!); if (!tb || tb.dead) { a.status = 'done'; break; } const d = dist2(body.pos, tb.pos); body.yaw = Math.atan2(-(tb.pos.x - body.pos.x), -(tb.pos.z - body.pos.z)); if (d > 2.2) { a.status = 'pending'; m.plan.unshift({ type: 'goto', targetEntity: a.targetEntity, run: true, status: 'pending' }); break; } if (w.physicalTime - body.lastAttackAt > 1.1) { this.attack(p, body, tb); } if (tb.pose === 'downed' || tb.dead) a.status = 'done'; break; }
+      case 'attack': { const tb = w.primaryBody(a.targetEntity!); if (!tb || tb.dead) { a.status = 'done'; break; } const d = dist2(body.pos, tb.pos); body.yaw = Math.atan2(-(tb.pos.x - body.pos.x), -(tb.pos.z - body.pos.z)); if (d > 2.2) { a.status = 'pending'; m.plan.unshift({ type: 'goto', targetEntity: a.targetEntity, run: true, status: 'pending' }); break; } if (w.physicalTime - body.lastAttackAt > 1.1) { this.attack(p, body, tb, a.data?.intent as ConflictIntent | undefined); } if (tb.pose === 'downed' || tb.dead) a.status = 'done'; break; }
+      // ---- robbery (Constitution requirement: an explicit demand/response step, not an
+      // automatic taking). Resolved once, deterministically, then splices the rest of the
+      // robbery into the plan — mirrors how confront() pushes a forced 'attack'.
+      case 'demand': {
+        const t = w.person(a.targetEntity!); const tb = t ? w.primaryBody(t.id) : undefined;
+        if (!t || !tb || tb.dead) { a.status = 'done'; break; }
+        const d = dist2(body.pos, tb.pos);
+        if (d > 3) { a.status = 'pending'; m.plan.unshift({ type: 'goto', targetEntity: a.targetEntity, run: true, status: 'pending' }); break; }
+        body.pose = 'talk'; body.poseUntil = w.physicalTime + 1; body.yaw = Math.atan2(-(tb.pos.x - body.pos.x), -(tb.pos.z - body.pos.z));
+        const intent = (a.data?.intent as ConflictIntent) ?? 'rob';
+        w.emit('confrontation', { actor: p.id, target: t.id, pos: { ...body.pos }, placeId: w.placeAt(body.pos)?.id, significance: 0.4, visibility: 16, loudness: 10, data: { demand: true, intent }, summary: `${p.name} demanded ${t.name} hand over their valuables` });
+        const compliant = resolveRobberyCompliance(w, t, p);
+        if (compliant) { this.say(p, `Smart. Hand it over.`); m.plan.push({ type: 'rob', targetEntity: t.id, status: 'pending', data: { intent, compliant: true } }); }
+        else { this.say(p, `Wrong answer, then.`); m.plan.push({ type: 'attack', targetEntity: t.id, status: 'pending', data: { intent: intent === 'rob' ? 'subdue' : intent } }, { type: 'rob', targetEntity: t.id, status: 'pending', data: { intent, compliant: false } }); }
+        a.status = 'done'; break;
+      }
+      case 'rob': {
+        const t = w.person(a.targetEntity!); const tb = t ? w.primaryBody(t.id) : undefined;
+        if (!t) { a.status = 'done'; break; }
+        const compliant = !!a.data?.compliant;
+        // Resistance path: the preceding 'attack' step must have actually incapacitated the
+        // target before anything is taken. If it didn't (target fled, died, or the fight was
+        // otherwise abandoned) the robbery is abandoned rather than looping.
+        if (!compliant && (!tb || (!tb.dead && tb.pose !== 'downed'))) { a.status = 'failed'; break; }
+        if (tb?.dead) { a.status = 'done'; break; }
+        const take = selectRobberyTake(w, t);
+        if (take) this.executeRobbery(p, t, take, (a.data?.intent as ConflictIntent) ?? 'rob');
+        else w.emit('confrontation', { actor: p.id, target: t.id, pos: tb?.pos ?? body.pos, significance: 0.25, visibility: 10, data: { intent: a.data?.intent, outcome: 'nothing_to_take' }, summary: `${p.name} searched ${t.name} but found nothing worth taking` });
+        m.robCooldowns = m.robCooldowns ?? {}; m.robCooldowns[t.id] = w.physicalTime + ROBBERY_COOLDOWN_SECONDS;
+        // Disengage: a completed robbery ends by retreating, not by lingering next to a target
+        // who will shortly recover and re-register as a threat.
+        const away = this.awayFrom(body.pos, tb?.pos ?? body.pos, 22);
+        m.plan.push({ type: 'goto', pos: away, run: true, status: 'pending', data: { flee: true } });
+        a.status = 'done'; break;
+      }
       case 'use': { if (a.data?.heal) { const tb = w.primaryBody(a.targetEntity!); if (tb && dist2(body.pos, tb.pos) < 3) { body.pose = 'work'; tb.health = Math.min(tb.maxHealth, tb.health + worldDt * 0.02); if (this.elapsed(a)) { a.status = 'done'; if (tb.pose === 'downed') tb.pose = 'stand'; w.emit('heal', { actor: p.id, target: a.targetEntity, pos: body.pos, significance: 0.4, visibility: 12, summary: `${p.name} tended to ${w.nameOf(a.targetEntity)}'s wounds` }); this.say(p, `There. You'll live.`); } } else a.status = 'failed'; } else a.status = 'done'; break; }
       case 'pickup': { const it = w.item(a.targetEntity!); if (it && it.pos && !it.holderId && dist2(body.pos, it.pos) < 2.5) { this.takeItem(p, it, 'recovered'); } a.status = 'done'; break; }
       default: a.status = 'done';
     }
     if (a.status === 'done' && m.plan.every(x => x.status === 'done' || x.status === 'failed')) { const g = m.goal; if (g) { w.emit('goal_completed', { actor: p.id, significance: 0.05, summary: `${p.name} finished ${g.type}` }); } m.thinkBudget = m.thinkInterval; body.sitAnchor = null; }
-    if (a.status === 'failed') { m.thinkBudget = m.thinkInterval; body.sitAnchor = null; body.path = null; }
+    if (a.status === 'failed') {
+      body.sitAnchor = null; body.path = null;
+      // v0.2.1 Priority 7 fix: every OTHER action failure forces an immediate rethink next
+      // step (someone worth reacting to quickly moved out of range, etc.), but a 'goto'
+      // failure is a navigational dead end — the world hasn't changed, so an immediate retry
+      // fails identically. Forcing an immediate rethink here meant a genuinely unreachable
+      // destination (a real content/navmesh gap, or just a momentarily blocked path) produced
+      // a livelock: think() -> same goal -> new 'goto' -> pathTo() fails -> forced rethink
+      // next physics SUBSTEP, forever — not merely every thinkInterval (~1.5s) like every
+      // other decision, but every single step (headless substep 0.15s: ~10x more often).
+      // Measured on a real 7-day headless benchmark (seed 918271) as the dominant cost after
+      // fixing the bystander-misattribution bug (Priority 7, agent.ts's think()): sim.act
+      // jumped to 45.7% of total wall time (255s of 557.8s) and three agents' path_failure
+      // counts reached 400-565 in a single 3-hour anomaly window. Retries now happen at the
+      // normal thinkInterval cadence instead, which still recovers promptly once a path
+      // genuinely opens up, but no longer burns full pathfinding cost every substep against an
+      // unreachable destination. See tests/pathfinding-livelock.test.ts.
+      if (a.type !== 'goto') m.thinkBudget = m.thinkInterval;
+    }
   }
   private elapsed(a: Action): boolean { return this.world.now - (a.startedAt ?? 0) >= (a.duration ?? 0); }
   private beginAction(p: Person, body: Body, a: Action): void { if (a.type === 'goto') { body.path = null; body.sitAnchor = null; } }
@@ -360,7 +521,7 @@ export class Simulation {
     // knockback carries the body
     if (b.pose === 'hit' || b.pose === 'downed' || b.pose === 'dead') { const nx = b.pos.x + b.vel.x * dt, nz = b.pos.z + b.vel.z * dt; if (!g.isSolidAt(nx, b.pos.y + 0.5, nz)) { b.pos.x = nx; b.pos.z = nz; } b.vel.x *= Math.max(0, 1 - dt * 4); b.vel.z *= Math.max(0, 1 - dt * 4); }
     if (b.pose === 'hit' && b.poseUntil < this.world.physicalTime) b.pose = 'stand';
-    if (b.pose === 'attack' && b.poseUntil < this.world.physicalTime) b.pose = 'stand';
+    if (b.pose === 'attack' && b.poseUntil < this.world.physicalTime) { b.pose = 'stand'; b.attackTarget = null; }
     if (b.pose === 'downed' && b.poseUntil < this.world.physicalTime) { b.pose = 'stand'; b.health = Math.max(b.health, b.maxHealth * 0.3); }
   }
   private creatureStep(c: Creature, dt: number): void {
@@ -386,9 +547,9 @@ export class Simulation {
   }
   private pickGossip(p: Person, other: Person): KnowledgeItem | null {
     const w = this.world; const r = getRel(p, other.id); if (r.trust < -0.3) return null;
-    const cands = Object.values(p.knowledge).filter(k => k.kind === 'event' && ((k.claim.significance ?? 0.3) >= 0.2 || isCrime(k.claim.type)) && !k.sharedWith.includes(other.id) && k.claim.actor !== other.id && k.source.from !== other.id && (w.now - k.learnedAt < 86400 * 4 || isCrime(k.claim.type)) && !other.knowledge[k.key]);
+    const cands = Object.values(p.knowledge).filter(k => k.kind === 'event' && ((k.claim.significance ?? 0.3) >= 0.2 || isCrime(k.claim.type, k.claim.intent)) && !k.sharedWith.includes(other.id) && k.claim.actor !== other.id && k.source.from !== other.id && (w.now - k.learnedAt < 86400 * 4 || isCrime(k.claim.type, k.claim.intent)) && !other.knowledge[k.key]);
     if (!cands.length) return null;
-    cands.sort((a, b) => (b.claim.significance ?? 0.3) * (isCrime(b.claim.type) ? 1.5 : 1) - (a.claim.significance ?? 0.3) * (isCrime(a.claim.type) ? 1.5 : 1));
+    cands.sort((a, b) => (b.claim.significance ?? 0.3) * (isCrime(b.claim.type, b.claim.intent) ? 1.5 : 1) - (a.claim.significance ?? 0.3) * (isCrime(a.claim.type, a.claim.intent) ? 1.5 : 1));
     const best = cands[0]; if ((best.claim.significance ?? 0.3) < 0.2 && p.traits.sociability < 0.6) return null; return best;
   }
   private smallTalk(p: Person, other: Person): string {
@@ -412,10 +573,10 @@ export class Simulation {
     if (listener.controlled) return;
     const trust = getRel(listener, speaker.id).trust; const conf = clamp(k.confidence * (0.55 + 0.35 * clamp(trust + 0.5)) * (speaker.traits.honesty * 0.3 + 0.7));
     const learned = learn(w, listener, { key: k.key, kind: k.kind, claim: { ...k.claim }, confidence: conf, source: { type: 'told', from: speaker.id, viaEvent: ev.id }, hops: k.hops + 1, cause: ev.id, summary: describeClaim(w, k) });
-    remember(w, listener, { type: 'told', summary: `${speaker.name} told me ${describeClaim(w, k)}`, eventId: k.claim.eventId, entities: [speaker.id, k.claim.actor, k.claim.target].filter(Boolean) as string[], significance: clamp((k.claim.significance ?? 0.3) * 0.7), valence: isCrime(k.claim.type) ? -0.4 : 0, source: { type: 'told', from: speaker.id, viaEvent: ev.id } });
+    remember(w, listener, { type: 'told', summary: `${speaker.name} told me ${describeClaim(w, k)}`, eventId: k.claim.eventId, entities: [speaker.id, k.claim.actor, k.claim.target].filter(Boolean) as string[], significance: clamp((k.claim.significance ?? 0.3) * 0.7), valence: isCrime(k.claim.type, k.claim.intent) ? -0.4 : 0, source: { type: 'told', from: speaker.id, viaEvent: ev.id } });
     ev.perceivedBy.push({ who: listener.id, how: 'heard', tick: w.now });
     adjustRel(w, listener, speaker.id, { familiarity: 0.03, affection: 0.02 }, 'talked', undefined, true);
-    if (learned && isCrime(k.claim.type) && k.claim.actor) {
+    if (learned && isCrime(k.claim.type, k.claim.intent) && k.claim.actor) {
       const sev = crimeSeverity(k.claim.type); const victimClose = k.claim.target ? isClose(listener, k.claim.target) : false;
       adjustRel(w, listener, k.claim.actor, { fear: sev * 0.3 * conf * (1.2 - listener.traits.courage), trust: -sev * 0.4 * conf, grudge: sev * conf * (victimClose ? 0.6 : 0.2), affection: -sev * 0.3 * conf }, `was told by ${speaker.name}`, ev.id);
       listener.mind.alarm = 1;
@@ -450,32 +611,42 @@ export class Simulation {
     body.pose = 'talk'; body.poseUntil = w.physicalTime + 2; body.yaw = Math.atan2(-(tb.pos.x - body.pos.x), -(tb.pos.z - body.pos.z));
     const sev = k ? crimeSeverity(k.claim.type) : 0.3;
     const ev = w.emit(sev >= 0.6 ? 'arrest_attempt' : 'confrontation', { actor: p.id, target: t.id, pos: body.pos, causes: k?.source.viaEvent ? [k.source.viaEvent] : [], significance: 0.5, visibility: 16, loudness: 10, data: { crime: key, source: k?.source }, summary: `${p.name} confronted ${t.name} about ${k ? describeClaim(w, k) : 'their conduct'}` });
-    if (k) { k.handled = true; p.mind.investigated.push(k.key); }
+    if (k) { k.handled = true; p.mind.investigated.add(k.key); }
     const src = k ? (k.source.type === 'told' ? `${w.nameOf(k.source.from).split(' ')[0]} told me` : 'I know') : '';
     if (sev >= 0.6) { this.say(p, `${t.name}! ${src} you attacked ${k?.claim.target ? w.nameOf(k.claim.target) : 'someone'}. You're coming with me.`); // escalate to force
-      p.mind.plan.push({ type: 'attack', targetEntity: t.id, status: 'pending', data: { arrest: true } }); }
+      p.mind.plan.push({ type: 'attack', targetEntity: t.id, status: 'pending', data: { arrest: true, intent: 'arrest' as ConflictIntent } }); }
     else if (k?.claim.type === 'theft') { this.say(p, `${t.name}. ${src} you took ${k.claim.item ? w.nameOf(k.claim.item) : 'what isn\'t yours'}. Give it back, or answer for it.`); p.desires.push({ type: 'recover_item', targetId: k.claim.item, note: `Recover ${w.nameOf(k.claim.item)} from ${t.name}`, reward: 0, fulfilled: false }); }
     else this.say(p, `${t.name}. I've heard things about you. Mind yourself.`);
     void ev;
   }
 
   // ------------------------------------------------------------------ combat
-  attack(attacker: Person, ab: Body, tb: Body): void {
-    const w = this.world; ab.lastAttackAt = w.physicalTime; ab.pose = 'attack'; ab.poseUntil = w.physicalTime + 0.45;
+  attack(attacker: Person, ab: Body, tb: Body, intent?: ConflictIntent): void {
+    const w = this.world; ab.lastAttackAt = w.physicalTime; ab.pose = 'attack'; ab.poseUntil = w.physicalTime + 0.45; ab.attackTarget = tb.ownerId;
     const dmg = Math.max(6, this.weaponOf(attacker) || 7) * (0.8 + w.rng.next() * 0.4);
-    this.applyHit(attacker, ab, tb, dmg);
+    this.applyHit(attacker, ab, tb, dmg, intent);
   }
-  /** Canonical hit application, used by player and NPC attacks alike. Emits perceivable events. */
-  applyHit(attacker: Person, ab: Body, tb: Body, dmg: number): WorldEvent | null {
+  /**
+   * Canonical hit application, used by player and NPC attacks alike. Emits perceivable events.
+   *
+   * Lethality (Constitution §11, "hostile must not automatically mean lethal"): death is
+   * reached only through an explicit `intent: 'kill'`, or a player's own deliberate choice to
+   * press an attack (a finishing blow on an already-downed target, or a heavy hit) — never
+   * merely because the attacker belongs to a hostile faction. Every other intent ('rob',
+   * 'subdue', 'arrest', 'defend', 'injure', 'threaten', 'drive_off', 'avoid') downs the
+   * target instead. `intent` is optional so existing direct callers (and tests) keep their
+   * previous non-hostile-driven behavior unchanged.
+   */
+  applyHit(attacker: Person, ab: Body, tb: Body, dmg: number, intent?: ConflictIntent): WorldEvent | null {
     const w = this.world; if (tb.dead) return null; const victim = w.get(tb.ownerId) as Person | Creature;
     const wasDowned = tb.pose === 'downed';
     tb.health -= dmg; tb.lastHitAt = w.physicalTime;
     const dx = tb.pos.x - ab.pos.x, dz = tb.pos.z - ab.pos.z; const d = Math.hypot(dx, dz) || 1; tb.vel.x += dx / d * 4; tb.vel.z += dz / d * 4;
     this.onHit?.(tb, { x: tb.pos.x, y: tb.pos.y + 1.2, z: tb.pos.z });
     const place = w.placeAt(tb.pos);
-    const ev = w.emit('attack', { actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, significance: 0.7, visibility: 26, loudness: 14, data: { damage: Math.round(dmg), weapon: this.weaponName(attacker), health: Math.round(tb.health) }, summary: `${attacker.name} attacked ${victim.name}${place ? ' at ' + place.name : ''} (${Math.round(dmg)} dmg)` });
+    const ev = w.emit('attack', { actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, significance: 0.7, visibility: 26, loudness: 14, data: { damage: Math.round(dmg), weapon: this.weaponName(attacker), health: Math.round(tb.health), intent }, summary: `${attacker.name} attacked ${victim.name}${place ? ' at ' + place.name : ''} (${Math.round(dmg)} dmg)` });
     if (tb.health <= 0) {
-      const lethal = victim.kind === 'creature' || wasDowned || attacker.hostile || (attacker.controlled && dmg > 20 && w.rng.next() < 0.5);
+      const lethal = intent === 'kill' || victim.kind === 'creature' || (attacker.controlled && (wasDowned || (intent === undefined && dmg > 20 && w.rng.next() < 0.5)));
       if (lethal) { tb.dead = true; tb.pose = 'dead'; tb.health = 0; if (victim.kind === 'person') { victim.alive = false; victim.deathTick = w.now; victim.mind.goal = null; victim.mind.plan = []; }
         const de = w.emit('kill', { actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, causes: [ev.id], significance: 1, visibility: 26, loudness: 14, summary: `${attacker.name} killed ${victim.name}${place ? ' at ' + place.name : ''}` }); w.emit('death', { target: victim.id, pos: { ...tb.pos }, placeId: place?.id, causes: [de.id], significance: 1, summary: `${victim.name} died` }); }
       else { tb.pose = 'downed'; tb.poseUntil = w.physicalTime + 45; tb.health = 1; if (victim.kind === 'person') { victim.mind.plan = []; victim.mind.goal = null; } }
@@ -500,6 +671,36 @@ export class Simulation {
     it.provenance[it.provenance.length - 1].eventId = ev.id;
     if (how === 'bought') it.ownerId = p.id;
     else if (!stolen && how !== 'given') it.ownerId = it.ownerId ?? p.id;
+    return ev;
+  }
+  /**
+   * Canonical robbery completion: transfers whatever `selectRobberyTake` chose, using the same
+   * item/wealth APIs as everything else (`takeItem` for a real item, `makeItem` to materialize
+   * abstract wealth exactly like `sellItem` does), then makes sure the victim — who was present
+   * and directly targeted — always knows they were robbed, with full provenance, the same way
+   * `applyHit` guarantees a victim always knows who struck them.
+   */
+  private executeRobbery(bandit: Person, victim: Person, take: RobberyTake, intent: ConflictIntent): WorldEvent {
+    const w = this.world; const vb = w.primaryBody(victim.id); const pos = vb?.pos ?? w.primaryBody(bandit.id)?.pos;
+    const place = pos ? w.placeAt(pos) : undefined;
+    let ev: WorldEvent;
+    if (take.kind === 'coins' || take.kind === 'item') {
+      ev = this.takeItem(bandit, take.item, 'theft', victim.id);
+    } else {
+      victim.wealth -= take.amount;
+      const coins = makeItem(w, 'coins', 'silver coins', { owner: bandit.id, holder: bandit.id, quantity: take.amount });
+      ev = w.emit('theft', { actor: bandit.id, target: victim.id, item: coins.id, pos, placeId: place?.id, significance: 0.5, visibility: 16, data: { intent, wealth: true }, summary: `${bandit.name} robbed ${take.amount} silver from ${victim.name}${place ? ' at ' + place.name : ''}` });
+      coins.provenance.push({ tick: w.now, eventId: ev.id, from: victim.id, to: bandit.id, how: 'stolen' });
+    }
+    if (victim.alive && !victim.controlled && !ev.perceivedBy.some(x => x.who === victim.id)) {
+      ev.perceivedBy.push({ who: victim.id, how: 'saw', tick: w.now });
+      const perc = w.emit('perceived', { actor: victim.id, target: bandit.id, causes: [ev.id], significance: 0.6, data: { how: 'saw', eventType: 'theft', eventId: ev.id }, summary: `${victim.name} was robbed by ${bandit.name}` });
+      learn(w, victim, { key: `ev:${ev.id}`, kind: 'event', claim: eventClaim(w, ev, true), confidence: 1, source: { type: 'witnessed', viaEvent: perc.id }, cause: perc.id, summary: ev.summary });
+      remember(w, victim, { type: 'theft', summary: `${bandit.name} robbed me`, eventId: ev.id, entities: [bandit.id], significance: 0.85, valence: -0.8, source: { type: 'witnessed', viaEvent: perc.id }, placeId: place?.id });
+      adjustRel(w, victim, bandit.id, { fear: 0.5, trust: -0.5, affection: -0.3, grudge: 0.5, respect: -0.2 }, 'was robbed', perc.id);
+      victim.emotions.fear = clamp(victim.emotions.fear + 0.5); victim.emotions.anger = clamp(victim.emotions.anger + 0.3);
+      victim.mind.alarm = 1; victim.mind.attention = bandit.id;
+    }
     return ev;
   }
   dropItem(p: Person, it: import('../core/types').Item, pos: Vec3): void {
@@ -551,6 +752,7 @@ export class Simulation {
   // ------------------------------------------------------------------ strategic (per world minute)
   private strategic(minutes: number): void {
     const w = this.world; const h = minutes / 60;
+    const t0 = this.mark();
     for (const p of w.persons()) {
       if (!p.alive) continue; const b = w.primaryBody(p.id); const asleep = b?.pose === 'sleep';
       p.needs.hunger = clamp(p.needs.hunger + h / 14); if (!asleep) p.needs.energy = clamp(p.needs.energy + h / 18); p.needs.social = clamp(p.needs.social + h / 10 * p.traits.sociability);
@@ -570,13 +772,15 @@ export class Simulation {
         }
       }
     }
+    this.accum('strategic.persons', t0);
     // weather
+    const t1 = this.mark();
     const wt = w.weather;
     if (w.now >= wt.nextChangeAt) {
       const r = w.rng.next(); const kinds: import('../core/types').WeatherKind[] = wt.kind === 'clear' ? ['clear', 'cloudy', 'cloudy', 'fog'] : wt.kind === 'cloudy' ? ['clear', 'rain', 'cloudy', 'storm'] : wt.kind === 'rain' ? ['cloudy', 'rain', 'storm', 'clear'] : wt.kind === 'storm' ? ['rain', 'cloudy'] : ['clear', 'cloudy'];
       const kind = kinds[Math.floor(r * kinds.length)]; const prev = wt.kind; wt.kind = kind; wt.intensity = kind === 'storm' ? 1 : kind === 'rain' ? 0.5 + w.rng.next() * 0.4 : kind === 'fog' ? 0.7 : 0; wt.wind = 0.1 + w.rng.next() * (kind === 'storm' ? 1 : 0.5); wt.nextChangeAt = w.now + (1.5 + w.rng.next() * 4) * SECONDS_PER_HOUR;
       if (prev !== kind) w.emit('weather', { significance: 0.2, data: { kind }, summary: `The weather turned to ${kind}` });
     }
-    w.compactEvents();
+    this.accum('strategic.weather', t1);
   }
 }
