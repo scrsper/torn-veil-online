@@ -57,6 +57,16 @@ export interface Body extends Entity {
   dead: boolean;
   lastHitAt: number;            // physical time
   lastAttackAt: number;
+  /** Who this body's current 'attack' pose is actually directed at, or null when not attacking.
+   * v0.2.1 Priority 7 fix: nearby bystanders used to read ANY body in 'attack' pose within 3
+   * units as "attacking me" (see mind/agent.ts's threat assessment), so an ally fighting a
+   * third party in a crowded space (e.g. two bandits sharing a camp, one fighting a guard)
+   * could be misread by the other as a personal attack, triggering a real mutual fight between
+   * allies that then perpetuated itself indefinitely (each down-and-recover cycle re-entered
+   * attack range and re-triggered the same misread). Transient combat state — reset alongside
+   * `pose`, never persisted (see persist/save.ts, which already only persists 'dead' vs 'stand'
+   * for pose and rebuilds everything else on load). */
+  attackTarget: EntityId | null;
   sitAnchor: Vec3 | null;
   present: boolean;             // false when the body is withdrawn from the physical world
 }

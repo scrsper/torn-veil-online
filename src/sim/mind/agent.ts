@@ -183,7 +183,10 @@ export class Simulation {
       if (ob.pose === 'downed') continue;
       const r = relOrNull(p, other.id); const hostileFaction = other.hostile !== p.hostile;
       const fear = (r?.fear ?? 0) + (hostileFaction ? 0.5 : 0) + (r && r.grudge > 0.5 ? 0.1 : 0);
-      const attackingMe = ob.pose === 'attack' && dist2(ob.pos, pos) < 3;
+      // v0.2.1 Priority 7 fix: `attackTarget` must actually be me, not just "someone is in
+      // attack pose nearby" — see the Body.attackTarget doc comment in core/types.ts for the
+      // bystander-misattribution bug this closes.
+      const attackingMe = ob.pose === 'attack' && ob.attackTarget === p.id && dist2(ob.pos, pos) < 3;
       const knownCriminal = (p.occupation === 'guard' || p.occupation === 'captain') && !other.hostile && this.knownCrimesBy(p, other.id).length > 0;
       if (fear > 0.25 || attackingMe || (hostileFaction && pc.distance < 14) || knownCriminal) { const f = fear + (attackingMe ? 0.8 : 0); if (!threat || f / (pc.distance + 1) > threat.fear / (threat.d + 1)) threat = { id: other.id, d: pc.distance, fear: f, body: ob }; }
     }
@@ -248,7 +251,7 @@ export class Simulation {
       // every think() cycle, producing sustained mutual "self-defense" combat between allies —
       // observed in a real headless run as 963 repeated attacks between two same-faction
       // bandits, the same class of unresolved-loop defect Priority 1 fixed for robbery victims.
-      else if (threat.body.pose === 'attack' || r.fear > 0.35 || (t.hostile !== p.hostile)) {
+      else if ((threat.body.pose === 'attack' && threat.body.attackTarget === p.id) || r.fear > 0.35 || (t.hostile !== p.hostile)) {
         if (fightU > fleeU && (armed || brave > 0.9)) G('attack', fightU, [`${t.name} is a threat (fear ${threat.fear.toFixed(2)})`, `I am ${armed ? 'armed' : 'unarmed'}, courage ${p.traits.courage.toFixed(2)}`, 'intent: defend'], { targetEntity: t.id, data: { intent: 'defend' as ConflictIntent } });
         else G('flee', fleeU, [`${t.name} is a threat (fear ${threat.fear.toFixed(2)}, dist ${threat.d.toFixed(1)})`, `courage ${p.traits.courage.toFixed(2)}${armed ? '' : ', unarmed'}`], { targetEntity: t.id });
       }
@@ -500,7 +503,7 @@ export class Simulation {
     // knockback carries the body
     if (b.pose === 'hit' || b.pose === 'downed' || b.pose === 'dead') { const nx = b.pos.x + b.vel.x * dt, nz = b.pos.z + b.vel.z * dt; if (!g.isSolidAt(nx, b.pos.y + 0.5, nz)) { b.pos.x = nx; b.pos.z = nz; } b.vel.x *= Math.max(0, 1 - dt * 4); b.vel.z *= Math.max(0, 1 - dt * 4); }
     if (b.pose === 'hit' && b.poseUntil < this.world.physicalTime) b.pose = 'stand';
-    if (b.pose === 'attack' && b.poseUntil < this.world.physicalTime) b.pose = 'stand';
+    if (b.pose === 'attack' && b.poseUntil < this.world.physicalTime) { b.pose = 'stand'; b.attackTarget = null; }
     if (b.pose === 'downed' && b.poseUntil < this.world.physicalTime) { b.pose = 'stand'; b.health = Math.max(b.health, b.maxHealth * 0.3); }
   }
   private creatureStep(c: Creature, dt: number): void {
@@ -601,7 +604,7 @@ export class Simulation {
 
   // ------------------------------------------------------------------ combat
   attack(attacker: Person, ab: Body, tb: Body, intent?: ConflictIntent): void {
-    const w = this.world; ab.lastAttackAt = w.physicalTime; ab.pose = 'attack'; ab.poseUntil = w.physicalTime + 0.45;
+    const w = this.world; ab.lastAttackAt = w.physicalTime; ab.pose = 'attack'; ab.poseUntil = w.physicalTime + 0.45; ab.attackTarget = tb.ownerId;
     const dmg = Math.max(6, this.weaponOf(attacker) || 7) * (0.8 + w.rng.next() * 0.4);
     this.applyHit(attacker, ab, tb, dmg, intent);
   }
