@@ -24,7 +24,7 @@ export function makePerson(world: World, s: PersonSpec): Person {
     gender: s.gender, age: s.age, occupation: s.occupation, title: s.title, homeId: s.home ?? null, workId: s.work ?? null, factionId: null, householdId: null,
     traits, needs: { hunger: 0.3, energy: 0.2, social: 0.3, comfort: 0.2 }, emotions: { fear: 0, anger: 0, joy: 0.3, sadness: 0, stress: 0 },
     appearance, bodies: [], timeRate: s.timeRate ?? 1, relationships: {}, memories: [], knowledge: {}, inventory: [], wealth: s.wealth ?? 20,
-    mind: { goal: null, plan: [], decision: null, lastThink: -99, thinkBudget: 0, thinkInterval: 1.5, alarm: 0, percepts: [], attention: null, lastSpokeAt: -99, lastToldAt: {}, investigated: [] },
+    mind: { goal: null, plan: [], decision: null, lastThink: -99, thinkBudget: 0, thinkInterval: 1.5, alarm: 0, percepts: [], attention: null, lastSpokeAt: -99, lastToldAt: {}, investigated: new Set() },
     schedule: [], bio: s.bio, alive: true, controlled: false, desires: [], hostile: !!s.hostile, speech: null, cognitiveLOD: 'full',
   };
   world.add(p); return p;

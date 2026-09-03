@@ -157,7 +157,10 @@ export class World {
   compactEvents(keep = 4000): void {
     if (this.events.length <= keep * 1.5) return;
     const cutoff = this.events.length - keep;
-    const previousIndex = new Map(this.eventIndex);
+    // v0.2.2 Phase 3 (long-run perf): reuse the current index by reference rather than cloning
+    // it — `this.eventIndex` isn't mutated anywhere below until it's reassigned to a fresh Map
+    // at the end, so a clone bought nothing but an O(events.length) copy on every call.
+    const previousIndex = this.eventIndex;
     const kept = this.events.filter((e, i) => i >= cutoff || e.significance >= 0.5 || e.category === 'history');
     const keptIds = new Set(kept.map(e => e.id));
     const survivingCauses = (id: EventId, visiting = new Set<EventId>()): EventId[] => {
@@ -167,8 +170,18 @@ export class World {
       const next = new Set(visiting); next.add(id);
       return removed.causes.flatMap(cause => survivingCauses(cause, next));
     };
+    // v0.2.2 Phase 3: a permanently-kept event (significance >= 0.5 or category 'history')
+    // never becomes un-kept by a later compaction pass, so once its `causes` already resolve
+    // entirely within the current `keptIds`, re-walking its causal ancestry on every subsequent
+    // hourly call is pure repeated work — on a long, event-heavy run the "already permanent"
+    // portion of `kept` dwarfs the freshly-decided tail, and this was measured as a real,
+    // growing cost (compact's wall-time share rose faster than the run length). Skipping the
+    // walk when nothing changed produces byte-for-byte identical `causes`/`effects` to always
+    // walking — it only avoids recomputing an answer that can't have changed.
     for (const event of kept) {
-      event.causes = [...new Set(event.causes.flatMap(cause => survivingCauses(cause)))];
+      if (!event.causes.every(c => keptIds.has(c))) {
+        event.causes = [...new Set(event.causes.flatMap(cause => survivingCauses(cause)))];
+      }
       event.effects = [];
     }
     this.events = kept;

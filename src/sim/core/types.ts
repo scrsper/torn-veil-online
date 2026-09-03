@@ -194,7 +194,16 @@ export interface Mind {
   attention: EntityId | null;
   lastSpokeAt: number;
   lastToldAt: Record<EntityId, number>; // last time I talked to X (for conversation cooldowns)
-  investigated: string[];   // event ids handled
+  // v0.2.2 Phase 3 (long-run perf): a plain array here meant `.includes()` — called once per
+  // unresolved-crime candidate on EVERY guard's EVERY think() tick — was an O(length) scan of a
+  // set that only ever grows for the life of the guard. On a long/violent run (seed 918271's
+  // combat-heavy 918271 village had thousands of violent incidents) this was a real, measured
+  // hidden "every tick: scan an ever-growing collection" cost, not a hypothetical one. A Set
+  // gives the exact same membership semantics (has/add) at O(1), with no behavior change —
+  // still just "have I already investigated this key" — so it changes nothing about which goals
+  // get proposed or when, only how cheaply the check is answered. Serialized as a plain array at
+  // the save/load boundary (persist/save.ts) since JSON has no native Set.
+  investigated: Set<string>;   // event ids handled
   awaitingReplyFrom?: EntityId;
   /** Per-victim cooldown (world-time seconds until) after a completed robbery, so a robber does
    * not immediately re-target a victim who is merely recovering from being downed — this is

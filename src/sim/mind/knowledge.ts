@@ -92,7 +92,20 @@ export function learn(world: World, p: Person, k: { key: string; kind: Knowledge
  * step still references), the eviction is made observable via a `knowledge_forgotten` event
  * rather than happening silently underneath live behavior.
  */
-const MAX_KNOWLEDGE = 400;
+export const MAX_KNOWLEDGE = 400;
+// v0.2.2 Phase 3 (long-run perf, profiler-confirmed): pruneKnowledge's `keys.sort(...)` is
+// O(N log N) over the whole knowledge map. Trimming back to exactly MAX_KNOWLEDGE on every
+// single `learn()` call once a mind is at capacity means that sort runs on EVERY new piece of
+// knowledge for the rest of that mind's life — measured directly (CPU profile of a 2-day
+// seed-918271 headless run) at ~12% of total wall time across knowledge.ts, dominated by this
+// sort and its `knowledgeScore` comparator. Batching the trim — let the map grow up to
+// `PRUNE_MARGIN` past the cap, then sort once and cut back down to exactly MAX_KNOWLEDGE — cuts
+// the number of sorts by ~`PRUNE_MARGIN`x for the same total evictions, with no change to WHICH
+// items end up evicted when a prune pass does run (still the lowest-scored, same formula). The
+// only observable difference is that `Object.keys(p.knowledge).length` can transiently sit
+// anywhere in (MAX_KNOWLEDGE, MAX_KNOWLEDGE + PRUNE_MARGIN] between passes rather than never
+// exceeding MAX_KNOWLEDGE — still strictly bounded, just not re-enforced on every single insert.
+export const PRUNE_MARGIN = 40;
 const FOUNDATIONAL_SCORE = 1000; // backstory ('prior') knowledge: effectively pinned
 // Durable relational / institutional-core tier: a floor well above anything routine gossip can
 // produce (ordinary importance tops out well under 2 — see below), but far under FOUNDATIONAL.
@@ -149,7 +162,7 @@ function isActivelyRelevant(p: Person, key: string, k: KnowledgeItem): boolean {
 
 function pruneKnowledge(world: World, p: Person): void {
   const keys = Object.keys(p.knowledge);
-  if (keys.length <= MAX_KNOWLEDGE) return;
+  if (keys.length <= MAX_KNOWLEDGE + PRUNE_MARGIN) return;
   const now = world.now;
   keys.sort((a, b) => knowledgeScore(p, p.knowledge[b], now) - knowledgeScore(p, p.knowledge[a], now));
   for (const key of keys.slice(MAX_KNOWLEDGE)) {
