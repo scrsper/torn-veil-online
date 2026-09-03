@@ -2,3 +2,7 @@ node_modules
 dist
 .DS_Store
 *.log
+
+# Automatic telemetry/anomaly/summary output from headless runs (v0.2 Part 3) and browser
+# dev-session logging (v0.2 Part 18). Local developer instrumentation, not build output.
+.debug/
