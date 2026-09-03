@@ -18,7 +18,7 @@ Requirements: Node.js 18+ and npm.
 
 ```bash
 git clone https://github.com/scrsper/torn-veil-online.git
-cd infinite-rpg-clud
+cd torn-veil-online
 npm install
 npm run dev
 ```
