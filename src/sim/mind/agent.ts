@@ -469,7 +469,25 @@ export class Simulation {
       default: a.status = 'done';
     }
     if (a.status === 'done' && m.plan.every(x => x.status === 'done' || x.status === 'failed')) { const g = m.goal; if (g) { w.emit('goal_completed', { actor: p.id, significance: 0.05, summary: `${p.name} finished ${g.type}` }); } m.thinkBudget = m.thinkInterval; body.sitAnchor = null; }
-    if (a.status === 'failed') { m.thinkBudget = m.thinkInterval; body.sitAnchor = null; body.path = null; }
+    if (a.status === 'failed') {
+      body.sitAnchor = null; body.path = null;
+      // v0.2.1 Priority 7 fix: every OTHER action failure forces an immediate rethink next
+      // step (someone worth reacting to quickly moved out of range, etc.), but a 'goto'
+      // failure is a navigational dead end — the world hasn't changed, so an immediate retry
+      // fails identically. Forcing an immediate rethink here meant a genuinely unreachable
+      // destination (a real content/navmesh gap, or just a momentarily blocked path) produced
+      // a livelock: think() -> same goal -> new 'goto' -> pathTo() fails -> forced rethink
+      // next physics SUBSTEP, forever — not merely every thinkInterval (~1.5s) like every
+      // other decision, but every single step (headless substep 0.15s: ~10x more often).
+      // Measured on a real 7-day headless benchmark (seed 918271) as the dominant cost after
+      // fixing the bystander-misattribution bug (Priority 7, agent.ts's think()): sim.act
+      // jumped to 45.7% of total wall time (255s of 557.8s) and three agents' path_failure
+      // counts reached 400-565 in a single 3-hour anomaly window. Retries now happen at the
+      // normal thinkInterval cadence instead, which still recovers promptly once a path
+      // genuinely opens up, but no longer burns full pathfinding cost every substep against an
+      // unreachable destination. See tests/pathfinding-livelock.test.ts.
+      if (a.type !== 'goto') m.thinkBudget = m.thinkInterval;
+    }
   }
   private elapsed(a: Action): boolean { return this.world.now - (a.startedAt ?? 0) >= (a.duration ?? 0); }
   private beginAction(p: Person, body: Body, a: Action): void { if (a.type === 'goto') { body.path = null; body.sitAnchor = null; } }
