@@ -1,7 +1,7 @@
 # Agent instructions for this repository
 
 This file gives coding agents (and future sessions of the same agent) the context needed to
-work on Infinite RPG without breaking its core design.
+work on Torn Veil Online without breaking its core design.
 
 ## What this project is
 
@@ -30,7 +30,8 @@ witnesses learn about it" stays true instead of becoming a scripted one-off.
 - `src/sim/core/` — entity/event ontology (`types.ts`), the `World` registry + causal event
   log (`world.ts`), RNG/noise (`rng.ts`), layered time (`time.ts`).
 - `src/sim/physical/` — voxel grid + block palette (no mesh/material concerns — that's
-  `game/voxel/`), and A* navigation over the grid.
+  `game/voxel/`), doors (authoritative open/closed state, collision, and line-of-sight
+  behavior), and A* navigation over the grid.
 - `src/sim/mind/` — the agent runtime: perception, memory, knowledge (with provenance),
   relationships, utility-based goal selection + planning, and deterministic dialogue. This is
   the file to read (`agent.ts`) to understand the whole cognitive loop.
@@ -39,7 +40,9 @@ witnesses learn about it" stays true instead of becoming a scripted one-off.
   it all together and seeds pre-history (marriages, grudges, debts, rumors, a decade of
   events) so the world has a past before the player spawns.
 - `src/sim/persist/save.ts` — save/load: regenerate the world deterministically from its
-  seed, then overlay saved mind/relationship/item/voxel state.
+  seed, then overlay saved mind/relationship/item/voxel state. Saves carry a schema version;
+  bump it (and accept that older saves stop being offered as resumable) rather than silently
+  changing what a save's fields mean.
 - `src/game/` — everything Three.js: chunked voxel mesher (`voxel/`), atmosphere/weather/sky
   (`render/scene.ts`), procedural actor rigs (`actors/`), the first-person controller +
   interaction targeting (`player/`), procedural WebAudio (`audio/`), and all UI including the
@@ -50,18 +53,26 @@ witnesses learn about it" stays true instead of becoming a scripted one-off.
 ## Commands
 
 ```bash
-npm run dev         # Vite dev server
+npm run dev          # Vite dev server
 npm run typecheck    # tsc --noEmit — run this after any change, it's fast and catches most breakage
-npm run build         # typecheck + production build
+npm test              # vitest — the deterministic simulation test suite (tests/)
+npm run build          # typecheck + production build
 ```
 
-There is no automated test suite checked in. When verifying simulation behavior (perception,
-knowledge propagation, goal changes, combat), drive it headlessly: boot the dev server, open
-it with Playwright (or similar), and call into `window.game` — `main.ts` assigns the running
-`Game` instance there, which exposes `game.world`, `game.sim` (the `Simulation`), and
-`game.stepSim(seconds)` to advance simulation time deterministically without waiting on
-`requestAnimationFrame`. Assert on actual state (`world.events`, a person's
-`mind.goal`/`knowledge`/`memories`/`relationships`), not on log text.
+Run `npm test` after touching anything in `src/sim/`. The suite in `tests/` (see
+`tests/helpers/world.ts` for the shared setup) drives the simulation headlessly through
+`Simulation`/`World` directly — no browser, no rendering — and asserts on actual state
+(`world.events`, a person's `mind.goal`/`knowledge`/`memories`/`relationships`), not on log
+text. It already covers the witness→report→secondhand-knowledge→investigation chain, unseen-
+crime isolation, heard-but-unidentified crimes and their later refinement, trading, doors,
+navigation, and save/reload of consequences — extend those files rather than starting a
+parallel test setup.
+
+For anything that needs the actual renderer/UI (interaction targeting, HUD, inspector
+rendering), drive it headlessly instead: boot the dev server, open it with Playwright (or
+similar), and call into `window.game` — `main.ts` assigns the running `Game` instance there,
+which exposes `game.world`, `game.sim` (the `Simulation`), and `game.stepSim(seconds)` to
+advance simulation time deterministically without waiting on `requestAnimationFrame`.
 
 ## Working conventions
 

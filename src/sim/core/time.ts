@@ -1,5 +1,5 @@
 /**
- * Time in Infinite RPG is layered:
+ * Time in Torn Veil Online is layered:
  *  - Real time: the wall clock of the observer running the renderer.
  *  - Physical time: how fast bodies move through space. Runs at (real dt * speedMultiplier).
  *  - World (calendar) time: the world's own clock. Runs at physical time * TIME_SCALE.

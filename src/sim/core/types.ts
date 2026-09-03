@@ -1,5 +1,5 @@
 /**
- * The ontology of Infinite RPG.
+ * The ontology of Torn Veil Online.
  *
  * Everything meaningful is an Entity with identity and history. Persons, items, places,
  * factions and events are all entities. A Body is the physical manifestation of an entity
