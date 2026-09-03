@@ -44,12 +44,26 @@ export interface HeadlessRunResult {
   significance: SignificantEntity[];
   chronicle: ChronicleEntry[];
   summary: WorldRunSummary;
+  /** Coarse wall-clock breakdown in milliseconds (v0.2.1 Priority 3), for comparing where time
+   * actually goes between runs/versions at identical seed+duration. `sim.*` buckets come from
+   * Simulation.step()'s own per-subsystem accumulator (see mind/agent.ts); `villageGen`,
+   * `maintenance` (CLOD/faction/leadership upkeep), and the post-run `anomalies`/
+   * `significance`/`chronicle`/`summary` buckets are measured here around their existing calls.
+   * Purely observational — never read back into the simulation itself. */
+  timing: Record<string, number>;
 }
 
 export function runHeadless(opts: HeadlessRunOptions): HeadlessRunResult {
+  const timing: Record<string, number> = {};
+  const mark = () => performance.now();
+  const accum = (bucket: string, t0: number) => { timing[bucket] = (timing[bucket] ?? 0) + (performance.now() - t0); };
+
+  let t0 = mark();
   const world = new World(opts.seed);
   generateVillage(world);
+  accum('villageGen', t0);
   const sim = new Simulation(world);
+  sim.profile = {};
 
   const memSink = new MemorySink();
   const recorder = new TelemetryRecorder(world, [memSink, ...(opts.sinks ?? [])]);
@@ -84,20 +98,23 @@ export function runHeadless(opts: HeadlessRunOptions): HeadlessRunResult {
     sinceMaintenance += worldDt;
     if (sinceMaintenance >= maintenanceInterval) {
       sinceMaintenance = 0;
+      const tm = mark();
       const significance = computeHistoricalSignificance(world);
       rebalanceCognitiveLOD(world, significance);
       syncFactionInstitutionalKnowledge(world);
       checkLeadershipVacancies(world, significance);
+      accum('maintenance', tm);
     }
     const day = Math.floor((world.now - worldStart) / SECONDS_PER_DAY);
     if (opts.onProgress && day !== lastReportedDay) { lastReportedDay = day; opts.onProgress(day); }
   }
 
-  const anomalies = detectAnomalies(world);
-  const significance = topSignificantEntities(world, 15);
-  const chronicle = buildChronicle(world);
+  t0 = mark(); const anomalies = detectAnomalies(world); accum('anomalies', t0);
+  t0 = mark(); const significance = topSignificantEntities(world, 15); accum('significance', t0);
+  t0 = mark(); const chronicle = buildChronicle(world); accum('chronicle', t0);
   const summary = buildWorldRunSummary(world, { seed: opts.seed, requestedDays: opts.days, worldStart, startingPopulation, anomalies, significance });
   recorder.runEnd({ seed: opts.seed, simulatedWorldSeconds: summary.simulatedWorldSeconds, deaths: summary.deaths.total, anomalies: anomalies.length });
 
-  return { world, sim, telemetry: memSink, anomalies, significance, chronicle, summary };
+  for (const [bucket, ms] of Object.entries(sim.profile ?? {})) timing[`sim.${bucket}`] = ms;
+  return { world, sim, telemetry: memSink, anomalies, significance, chronicle, summary, timing };
 }

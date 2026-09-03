@@ -22,8 +22,18 @@ const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
  *  - strategic upkeep (needs, moods, weather) runs once per world minute
  */
 export class Simulation {
-  perceptionAccum = 0; strategicAccum = 0; onSpeech: ((p: Person, text: string) => void) | null = null; onHit: ((b: Body, pos: Vec3) => void) | null = null;
+  perceptionAccum = 0; strategicAccum = 0; compactAccum = 0; onSpeech: ((p: Person, text: string) => void) | null = null; onHit: ((b: Body, pos: Vec3) => void) | null = null;
+  /** Coarse per-subsystem wall-clock accumulator (v0.2.1 Priority 3: "create benchmark
+   * instrumentation so the headless report includes coarse timing information for major
+   * subsystems where practical"). Null (the default, used by the browser client and every
+   * test) costs nothing — every call site below is a single `if (this.profile)` check. A
+   * caller that wants a breakdown (the headless runner) sets this to `{}` before stepping and
+   * reads the accumulated milliseconds back out; this never reads simulation state and never
+   * feeds back into any decision, so it cannot affect canonical outcomes or determinism. */
+  profile: Record<string, number> | null = null;
   constructor(public world: World) {}
+  private mark(): number { return this.profile ? performance.now() : 0; }
+  private accum(bucket: string, t0: number): void { if (this.profile) this.profile[bucket] = (this.profile[bucket] ?? 0) + (performance.now() - t0); }
 
   // ------------------------------------------------------------------ main step
   step(physDt: number, worldDt: number): void {
@@ -36,21 +46,35 @@ export class Simulation {
     for (const p of w.persons()) {
       if (!p.alive || p.controlled) { if (p.controlled && doPerceive) this.perceive(p, stimuli); continue; }
       const body = w.primaryBody(p.id); if (!body) continue;
-      if (doPerceive) this.perceive(p, stimuli);
+      if (doPerceive) { const t0 = this.mark(); this.perceive(p, stimuli); this.accum('perceive', t0); }
       // 2. subjective cognition budget
       p.mind.thinkBudget += physDt * p.timeRate;
       const urgent = p.mind.alarm > 0.5;
-      if (urgent || p.mind.thinkBudget >= p.mind.thinkInterval) { p.mind.thinkBudget = 0; this.think(p, body); p.mind.alarm = 0; }
+      if (urgent || p.mind.thinkBudget >= p.mind.thinkInterval) { p.mind.thinkBudget = 0; const t0 = this.mark(); this.think(p, body); this.accum('think', t0); p.mind.alarm = 0; }
       // 3. act on the current plan (continuous)
-      this.act(p, body, physDt, worldDt);
+      { const t0 = this.mark(); this.act(p, body, physDt, worldDt); this.accum('act', t0); }
       if (p.speech && p.speech.until < w.physicalTime) p.speech = null;
     }
-    for (const c of w.creatures()) this.creatureStep(c, physDt);
+    { const t0 = this.mark(); for (const c of w.creatures()) this.creatureStep(c, physDt); this.accum('creatures', t0); }
     // 4. body physics for all non-player bodies
-    for (const b of w.bodies()) { const owner = w.get(b.ownerId) as Person | undefined; if (owner?.controlled) continue; this.bodyPhysics(b, physDt); }
+    { const t0 = this.mark(); for (const b of w.bodies()) { const owner = w.get(b.ownerId) as Person | undefined; if (owner?.controlled) continue; this.bodyPhysics(b, physDt); } this.accum('bodyPhysics', t0); }
     // 5. strategic upkeep once per world minute
     this.strategicAccum += worldDt;
-    if (this.strategicAccum >= 60) { const minutes = Math.floor(this.strategicAccum / 60); this.strategicAccum -= minutes * 60; this.strategic(minutes); }
+    if (this.strategicAccum >= 60) { const minutes = Math.floor(this.strategicAccum / 60); this.strategicAccum -= minutes * 60; const t0 = this.mark(); this.strategic(minutes); this.accum('strategic', t0); }
+    // 6. event-log compaction (Constitution §71 "computational pragmatism": this is purely a
+    // memory/perf bound, not a gameplay mechanic — nothing about WHICH events survive or their
+    // causal ancestry depends on how often this runs, only on `world.events.length` when it
+    // does). v0.2.1 Priority 3: this used to run every world-minute from inside strategic(),
+    // but compactEvents' own "kept" set keeps every individually-significant event forever
+    // (correctly — that's what makes it a real historical record), so as significant events
+    // accumulate over a long run, a minute-granular cadence meant re-filtering and re-walking
+    // the causal ancestry of that same, ever-growing "already kept" set on almost every call —
+    // measured as the single largest cost in a 2-day headless run (~35% of total wall time).
+    // Once an hour is still far more often than the compaction threshold (1.5x `keep`, default
+    // 6000 events) is likely to be freshly crossed, and produces byte-for-byte identical kept
+    // events/causal ancestry to calling it every minute — only the call frequency changes.
+    this.compactAccum += worldDt;
+    if (this.compactAccum >= 3600) { this.compactAccum = 0; const t0 = this.mark(); w.compactEvents(); this.accum('compact', t0); }
   }
 
   // ------------------------------------------------------------------ perception
@@ -707,6 +731,7 @@ export class Simulation {
   // ------------------------------------------------------------------ strategic (per world minute)
   private strategic(minutes: number): void {
     const w = this.world; const h = minutes / 60;
+    const t0 = this.mark();
     for (const p of w.persons()) {
       if (!p.alive) continue; const b = w.primaryBody(p.id); const asleep = b?.pose === 'sleep';
       p.needs.hunger = clamp(p.needs.hunger + h / 14); if (!asleep) p.needs.energy = clamp(p.needs.energy + h / 18); p.needs.social = clamp(p.needs.social + h / 10 * p.traits.sociability);
@@ -726,13 +751,15 @@ export class Simulation {
         }
       }
     }
+    this.accum('strategic.persons', t0);
     // weather
+    const t1 = this.mark();
     const wt = w.weather;
     if (w.now >= wt.nextChangeAt) {
       const r = w.rng.next(); const kinds: import('../core/types').WeatherKind[] = wt.kind === 'clear' ? ['clear', 'cloudy', 'cloudy', 'fog'] : wt.kind === 'cloudy' ? ['clear', 'rain', 'cloudy', 'storm'] : wt.kind === 'rain' ? ['cloudy', 'rain', 'storm', 'clear'] : wt.kind === 'storm' ? ['rain', 'cloudy'] : ['clear', 'cloudy'];
       const kind = kinds[Math.floor(r * kinds.length)]; const prev = wt.kind; wt.kind = kind; wt.intensity = kind === 'storm' ? 1 : kind === 'rain' ? 0.5 + w.rng.next() * 0.4 : kind === 'fog' ? 0.7 : 0; wt.wind = 0.1 + w.rng.next() * (kind === 'storm' ? 1 : 0.5); wt.nextChangeAt = w.now + (1.5 + w.rng.next() * 4) * SECONDS_PER_HOUR;
       if (prev !== kind) w.emit('weather', { significance: 0.2, data: { kind }, summary: `The weather turned to ${kind}` });
     }
-    w.compactEvents();
+    this.accum('strategic.weather', t1);
   }
 }

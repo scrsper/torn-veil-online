@@ -48,10 +48,17 @@ async function main(): Promise<void> {
   await writeFile(join(outDir, 'summary.json'), JSON.stringify(result.summary, null, 2));
   await writeFile(join(outDir, 'chronicle.txt'), formatChronicle(result.chronicle));
   await writeFile(join(outDir, 'anomalies.json'), JSON.stringify(result.anomalies, null, 2));
+  await writeFile(join(outDir, 'timing.json'), JSON.stringify(result.timing, null, 2));
 
   console.log(formatWorldRunSummary(result.summary));
   console.log('');
-  console.log(`Wrote summary.json, chronicle.txt (${result.chronicle.length} entries), anomalies.json (${result.anomalies.length}), and telemetry.jsonl (${result.telemetry.records.length} records) to:`);
+  console.log('Timing breakdown (ms, coarse — v0.2.1 Priority 3):');
+  const totalMs = Object.values(result.timing).reduce((a, b) => a + b, 0);
+  for (const [bucket, ms] of Object.entries(result.timing).sort((a, b) => b[1] - a[1])) {
+    console.log(`  ${ms.toFixed(0).padStart(8)}ms  ${(100 * ms / totalMs).toFixed(1).padStart(5)}%  ${bucket}`);
+  }
+  console.log('');
+  console.log(`Wrote summary.json, chronicle.txt (${result.chronicle.length} entries), anomalies.json (${result.anomalies.length}), timing.json, and telemetry.jsonl (${result.telemetry.records.length} records) to:`);
   console.log(`  ${outDir}`);
 
   if (result.anomalies.length) process.exitCode = 0; // anomalies are informational, not a failure signal

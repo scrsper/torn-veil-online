@@ -34,6 +34,22 @@ export class World {
   pendingStimuli: WorldEvent[] = [];
   /** Stable-slug → id registry (Constitution §50 "Stable Identity"). See Entity.slug. */
   private slugs = new Map<string, EntityId>();
+  /**
+   * Per-kind entity index (v0.2.1 Priority 3 perf pass — Constitution §71 "acceptable to use
+   * deterministic... indexed lookup, not acceptable to break canonical consistency"). `entities`
+   * is append-only — nothing in the codebase ever removes an entity once added (a dead person
+   * or a destroyed item stays in the map, just flagged `dead`/`alive: false`), which is exactly
+   * what makes an incrementally-maintained index safe: `add()` appends the new entity to its
+   * kind's bucket in the same call, so the index can never drift from `entities`, and every
+   * caller only ever reads/filters/sorts a *copy* of what these accessors return (confirmed:
+   * no in-place mutation of an accessor's own result anywhere in this codebase), so handing
+   * back the live bucket array instead of reallocating and rescanning all ~thousands of
+   * entities on every single call is safe. Before this, `persons()`/`bodies()`/`items()`/
+   * `places()` — each called every physical step, several times per person, including deep
+   * inside per-minute upkeep — did a full generator scan of every entity of every kind just to
+   * find the ones matching one kind; that scan cost was the dominant cost of a headless run.
+   */
+  private byKind = new Map<Entity['kind'], Entity[]>();
 
   constructor(seed: number, clock?: WorldClock) { this.seed = seed; this.rng = new RNG(seed); this.clock = clock ?? new WorldClock(); }
 
@@ -42,7 +58,12 @@ export class World {
   setCounters(c: Record<string, number>) { this.counters = { ...c }; }
   getCounters() { return { ...this.counters }; }
 
-  add<T extends Entity>(e: T): T { this.entities.set(e.id, e); if (e.slug) this.slugs.set(e.slug, e.id); return e; }
+  add<T extends Entity>(e: T): T {
+    this.entities.set(e.id, e);
+    if (e.slug) this.slugs.set(e.slug, e.id);
+    const bucket = this.byKind.get(e.kind); if (bucket) bucket.push(e); else this.byKind.set(e.kind, [e]);
+    return e;
+  }
   /** Look up an authored entity by its stable slug (e.g. 'rowan', 'ashford-vale', 'watch').
    * Prefer this over hardcoding a generation-order id anywhere outside world generation. */
   getBySlug<T extends Entity = Entity>(slug: string): T | undefined { const id = this.slugs.get(slug); return id ? this.get<T>(id) : undefined; }
@@ -56,12 +77,17 @@ export class World {
   item(id: EntityId | null | undefined): Item | undefined { const e = this.get(id); return e && e.kind === 'item' ? (e as Item) : undefined; }
   place(id: EntityId | null | undefined): Place | undefined { const e = this.get(id); return e && e.kind === 'place' ? (e as Place) : undefined; }
   faction(id: EntityId | null | undefined): Faction | undefined { const e = this.get(id); return e && e.kind === 'faction' ? (e as Faction) : undefined; }
-  *ofKind<T extends Entity>(kind: T['kind']): IterableIterator<T> { for (const e of this.entities.values()) if (e.kind === kind) yield e as T; }
-  persons(): Person[] { return [...this.ofKind<Person>('person')]; }
-  bodies(): Body[] { return [...this.ofKind<Body>('body')]; }
-  items(): Item[] { return [...this.ofKind<Item>('item')]; }
-  places(): Place[] { return [...this.ofKind<Place>('place')]; }
-  creatures(): Creature[] { return [...this.ofKind<Creature>('creature')]; }
+  /** Backed by the per-kind index (see `byKind` above) — O(matching entities), not O(all
+   * entities). Kept as a generator for existing callers/signature compatibility. */
+  *ofKind<T extends Entity>(kind: T['kind']): IterableIterator<T> { const bucket = this.byKind.get(kind) as T[] | undefined; if (bucket) yield* bucket; }
+  /** Returns the live indexed array, not a copy — safe because `entities`/`byKind` are
+   * append-only (see `byKind`'s own comment) and no caller mutates an accessor's result in
+   * place; callers that filter/sort/map already produce their own independent array. */
+  persons(): Person[] { return (this.byKind.get('person') as Person[] | undefined) ?? []; }
+  bodies(): Body[] { return (this.byKind.get('body') as Body[] | undefined) ?? []; }
+  items(): Item[] { return (this.byKind.get('item') as Item[] | undefined) ?? []; }
+  places(): Place[] { return (this.byKind.get('place') as Place[] | undefined) ?? []; }
+  creatures(): Creature[] { return (this.byKind.get('creature') as Creature[] | undefined) ?? []; }
   nameOf(id: EntityId | null | undefined): string { if (!id) return '?'; return this.get(id)?.name ?? id; }
 
   /** Primary body of an entity (ordinary beings have exactly one). */
