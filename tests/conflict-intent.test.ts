@@ -68,4 +68,22 @@ describe('conflict intent (Constitution §11: hostile must not automatically mea
       expect(cb.dead).toBe(false);
     }
   });
+
+  it('two members of the same hostile faction do not treat each other as a threat (no bandit-on-bandit "self-defense")', () => {
+    // Regression: the generic self-defense branch checked a bare `t.hostile` instead of
+    // `t.hostile !== p.hostile`, so any hostile-flagged actor registered as alarming even to a
+    // fellow hostile actor — observed in a real headless run as 963 repeated attacks between
+    // two same-faction bandits.
+    const tw = createTestWorld(204, 30);
+    const a = addPerson(tw, 'Bandit A', 'bandit', v(10, 1, 10), { traits: { courage: 0.7, aggression: 0.6 } });
+    const b = addPerson(tw, 'Bandit B', 'bandit', v(11, 1, 10), { traits: { courage: 0.7, aggression: 0.6 } });
+    a.hostile = true; b.hostile = true;
+    for (let i = 0; i < 200; i++) {
+      const worldDt = tw.world.clock.advance(0.05); tw.world.physicalTime += 0.05; tw.sim.step(0.05, worldDt);
+    }
+    const attacksBetweenThem = tw.world.events.filter(e => e.type === 'attack' && ((e.actor === a.id && e.target === b.id) || (e.actor === b.id && e.target === a.id)));
+    expect(attacksBetweenThem.length).toBe(0);
+    expect(a.mind.goal?.type).not.toBe('attack');
+    expect(b.mind.goal?.type).not.toBe('attack');
+  });
 });

@@ -217,7 +217,14 @@ export class Simulation {
           G(intent === 'rob' ? 'rob' : 'attack', engageU, [`${t.name} is an enemy`, `courage ${p.traits.courage.toFixed(2)}`, `intent: ${intent}`, pressure ? `resource pressure ${pressure.toFixed(2)}` : '', oppositionStrength > 0.2 ? `opposition ${oppositionStrength.toFixed(2)}` : ''], { targetEntity: t.id, data: { intent } });
         }
       }
-      else if (threat.body.pose === 'attack' || r.fear > 0.35 || t.hostile) {
+      // Constitution §11: a hostile-faction flag is only alarming when it differs from my own
+      // (t.hostile !== p.hostile) — two members of the SAME hostile faction (e.g. two bandits)
+      // are not a threat to each other merely because both happen to be flagged hostile. Without
+      // this, a bandit's own ally registered as a "threat" via this bare `t.hostile` check on
+      // every think() cycle, producing sustained mutual "self-defense" combat between allies —
+      // observed in a real headless run as 963 repeated attacks between two same-faction
+      // bandits, the same class of unresolved-loop defect Priority 1 fixed for robbery victims.
+      else if (threat.body.pose === 'attack' || r.fear > 0.35 || (t.hostile !== p.hostile)) {
         if (fightU > fleeU && (armed || brave > 0.9)) G('attack', fightU, [`${t.name} is a threat (fear ${threat.fear.toFixed(2)})`, `I am ${armed ? 'armed' : 'unarmed'}, courage ${p.traits.courage.toFixed(2)}`, 'intent: defend'], { targetEntity: t.id, data: { intent: 'defend' as ConflictIntent } });
         else G('flee', fleeU, [`${t.name} is a threat (fear ${threat.fear.toFixed(2)}, dist ${threat.d.toFixed(1)})`, `courage ${p.traits.courage.toFixed(2)}${armed ? '' : ', unarmed'}`], { targetEntity: t.id });
       }

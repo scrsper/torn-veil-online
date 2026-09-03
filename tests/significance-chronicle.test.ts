@@ -95,4 +95,77 @@ describe('World Chronicle (Constitution §52, v0.2 Part 14)', () => {
     expect(chain.map(e => e.id)).toContain(leaf.id);
     expect(chain.length).toBe(3); // the dangling 'ev_does_not_exist' reference is simply absent, not an error
   });
+
+  it('consolidates a burst of repeated fighting between the same two people into one entry, not one per blow', () => {
+    const tw = createTestWorld(508);
+    const a = addPerson(tw, 'Dunstan', 'guard', v(5, 1, 5));
+    const b = addPerson(tw, 'Vex', 'bandit', v(6, 1, 5));
+    const base = tw.world.now;
+    // Alternating direction, like a real back-and-forth fight, all close together in time.
+    for (let i = 0; i < 6; i++) {
+      const actor = i % 2 === 0 ? a : b; const target = i % 2 === 0 ? b : a;
+      tw.world.emit('attack', { actor: actor.id, target: target.id, significance: 0.7, tick: base + i * 30, summary: `${actor.name} attacked ${target.name} (5 dmg)` });
+    }
+    const entries = buildChronicle(tw.world);
+    const fightEntries = entries.filter(e => e.sourceEventIds.length > 1 || e.text.includes('attacked'));
+    expect(fightEntries.length).toBe(1);
+    expect(fightEntries[0].sourceEventIds.length).toBe(6);
+    expect(fightEntries[0].text).toContain('6 times');
+  });
+
+  it('does not consolidate distinct kills into one entry, even by the same actor close in time', () => {
+    const tw = createTestWorld(509);
+    const a = addPerson(tw, 'A', 'bandit', v(5, 1, 5));
+    tw.world.emit('kill', { actor: a.id, significance: 1, tick: tw.world.now, summary: 'A killed the first victim' });
+    tw.world.emit('kill', { actor: a.id, significance: 1, tick: tw.world.now + 60, summary: 'A killed the second victim' });
+    const entries = buildChronicle(tw.world);
+    expect(entries.some(e => e.text.includes('first victim'))).toBe(true);
+    expect(entries.some(e => e.text.includes('second victim'))).toBe(true);
+    expect(entries.length).toBe(2);
+  });
+
+  it('does not consolidate two fights separated by longer than the consolidation window', () => {
+    const tw = createTestWorld(510);
+    const a = addPerson(tw, 'A', 'guard', v(5, 1, 5));
+    const b = addPerson(tw, 'B', 'bandit', v(6, 1, 5));
+    tw.world.emit('attack', { actor: a.id, target: b.id, significance: 0.7, tick: tw.world.now, summary: 'first bout' });
+    tw.world.emit('attack', { actor: a.id, target: b.id, significance: 0.7, tick: tw.world.now + 4000, summary: 'second bout' });
+    const entries = buildChronicle(tw.world, { consolidationWindowSeconds: 1800 });
+    expect(entries.length).toBe(2);
+  });
+
+  it('every chronicle entry — consolidated or not — keeps valid source event references', () => {
+    const tw = createTestWorld(511);
+    const a = addPerson(tw, 'A', 'guard', v(5, 1, 5));
+    const b = addPerson(tw, 'B', 'bandit', v(6, 1, 5));
+    for (let i = 0; i < 4; i++) tw.world.emit('attack', { actor: a.id, target: b.id, significance: 0.7, tick: tw.world.now + i * 10, summary: `bout ${i}` });
+    tw.world.emit('kill', { actor: a.id, target: b.id, significance: 1, tick: tw.world.now + 1000, summary: 'A killed B' });
+    const entries = buildChronicle(tw.world);
+    for (const entry of entries) {
+      expect(entry.sourceEventIds.length).toBeGreaterThan(0);
+      for (const id of entry.sourceEventIds) expect(tw.world.event(id)).toBeDefined();
+      expect(entry.sourceEventIds).toContain(entry.eventId);
+    }
+  });
+
+  it('routine low-value events (a meal) never appear in the Chronicle even amid a lot of activity', () => {
+    const tw = createTestWorld(512);
+    const a = addPerson(tw, 'A', 'farmer', v(5, 1, 5));
+    for (let i = 0; i < 20; i++) tw.world.emit('meal', { actor: a.id, significance: 0.05, tick: tw.world.now + i * 60, summary: `A ate meal ${i}` });
+    tw.world.emit('kill', { actor: a.id, significance: 1, tick: tw.world.now + 2000, summary: 'A killed someone' });
+    const entries = buildChronicle(tw.world);
+    expect(entries.every(e => !e.text.includes('ate meal'))).toBe(true);
+    expect(entries.some(e => e.text.includes('killed someone'))).toBe(true);
+  });
+
+  it('chronicle ordering stays deterministic across repeated builds from the same event log', () => {
+    const tw = createTestWorld(513);
+    const a = addPerson(tw, 'A', 'guard', v(5, 1, 5));
+    const b = addPerson(tw, 'B', 'bandit', v(6, 1, 5));
+    for (let i = 0; i < 5; i++) tw.world.emit('attack', { actor: a.id, target: b.id, significance: 0.7, tick: tw.world.now + i * 20, summary: `bout ${i}` });
+    tw.world.emit('theft', { actor: b.id, target: a.id, significance: 0.6, tick: tw.world.now + 500, summary: 'B stole from A' });
+    const first = buildChronicle(tw.world).map(e => e.eventId);
+    const second = buildChronicle(tw.world).map(e => e.eventId);
+    expect(first).toEqual(second);
+  });
 });
