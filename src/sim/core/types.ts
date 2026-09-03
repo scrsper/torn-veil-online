@@ -338,7 +338,12 @@ export type EventType =
   | 'block_changed' | 'item_missing' | 'threat_spotted' | 'returned_item' | 'debt_paid' | 'greeting' | 'prayer' | 'mourning'
   // v0.2 world-engine additions: purely observational/institutional, never gameplay-load-bearing
   // in the sense that removing them changes no canonical outcome by itself.
-  | 'path_failure' | 'leadership_changed' | 'institutional_report' | 'cognitive_lod_changed';
+  | 'path_failure' | 'leadership_changed' | 'institutional_report' | 'cognitive_lod_changed'
+  // v0.2.2: emitted when bounded-knowledge eviction (mind/knowledge.ts) removes an entry that
+  // was still materially relevant to cognition (an unresolved crime report, or knowledge an
+  // active goal/plan step references by key) — purely observational, never a behavior change
+  // by itself (the eviction already happened; this just makes it visible instead of silent).
+  | 'knowledge_forgotten';
 
 export type EventCategory = 'world' | 'social' | 'cognition' | 'history';
 

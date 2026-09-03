@@ -188,7 +188,7 @@ export class World {
 
 function defaultCategory(t: EventType): EventCategory {
   switch (t) {
-    case 'perceived': case 'memory_formed': case 'knowledge_gained': case 'relationship_changed': case 'emotion_changed': case 'goal_changed': case 'goal_completed': case 'arrived': return 'cognition';
+    case 'perceived': case 'memory_formed': case 'knowledge_gained': case 'knowledge_forgotten': case 'relationship_changed': case 'emotion_changed': case 'goal_changed': case 'goal_completed': case 'arrived': return 'cognition';
     case 'told': case 'conversation': case 'rumor': case 'greeting': case 'gift': case 'apology': case 'trade': return 'social';
     case 'birth': case 'death': case 'marriage': case 'debt': case 'dispute': return 'history';
     default: return 'world';

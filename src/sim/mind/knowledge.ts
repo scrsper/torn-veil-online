@@ -37,38 +37,132 @@ export function learn(world: World, p: Person, k: { key: string; kind: Knowledge
 }
 
 /**
- * v0.2.1 Priority 9 (long-running throughput). `Person.knowledge` had no bound at all — every
- * witnessed event, every heard rumor, every learned location added a permanent entry, unlike
- * `Person.memories` (mind/memory.ts's own MAX_MEMORIES=60, same "computational pragmatism"
- * reasoning). Several hot-path scans read a mind's ENTIRE knowledge map every think() tick
- * (`Object.values(p.knowledge).filter(...)` in mind/agent.ts's think(), knownCrimesBy(), and
- * the gossip-sharing candidate scan in maybeChat()), so as knowledge accumulated across a long
- * run this cost grew with it — measured directly as the dominant driver behind a 30-day
- * headless benchmark (seed 918271) becoming clearly superlinear (marginal per-day wall-clock
- * cost climbing roughly 51s -> 112s -> 188s -> 280s across four ~5-day windows before the run
- * was stopped, rather than the flat per-day cost a bounded-state simulation should have).
+ * v0.2.1 Priority 9 / v0.2.2 (long-running throughput + epistemic coherence).
+ * `Person.knowledge` had no bound at all — every witnessed event, every heard rumor, every
+ * learned location added a permanent entry, unlike `Person.memories` (mind/memory.ts's own
+ * MAX_MEMORIES=60, same "computational pragmatism" reasoning). Several hot-path scans read a
+ * mind's ENTIRE knowledge map every think() tick (`Object.values(p.knowledge).filter(...)` in
+ * mind/agent.ts's think(), knownCrimesBy(), and the gossip-sharing candidate scan in
+ * maybeChat()), so as knowledge accumulated across a long run this cost grew with it — measured
+ * directly as the dominant driver behind a 30-day headless benchmark (seed 918271) becoming
+ * clearly superlinear.
  *
- * Mirrors memory.ts's own eviction: prune only after growing past a generous cap (so no
- * realistic short/medium run — including every test in this suite — is ever affected), keeping
- * whatever scores highest by confidence, claimed significance, and recency, with an explicit
- * bonus for an UNRESOLVED crime report (Constitution §11/§37: a guard's ability to eventually
- * act on a known crime must not be silently lost to a cache eviction before it's ever
- * `handled`). This is purely a memory/perf bound — like event compaction, it does not change
- * WHICH claims a mind currently holds until the cap is actually exceeded, and pruning always
- * removes the least-valuable entries first, never the ones currently relevant to a decision.
+ * A flat "confidence x significance, minus a fixed age decay" score (the original v0.2.1 fix)
+ * is not semantically sound on its own: the Constitution requires epistemic coherence, and a
+ * plain container-capacity eviction can silently erode knowledge that should be nearly
+ * permanent. The v0.2.2 audit found this concretely — village generation teaches every villager
+ * every neighbor's home (`home:<id>`, kind 'fact') and several heirloom ownership records
+ * (`owner:<id>`, kind 'ownership') as `source.type: 'prior'` (backstory, known since before the
+ * story started). Under the flat scoring, those foundational facts (confidence ~0.9, no
+ * explicit significance so defaulting to 0.2) scored *below* an ordinary witnessed event
+ * (confidence 1, significance 0.3), and their `learnedAt` never refreshes during play (nothing
+ * re-teaches a home location once seeded), so a flat per-day age penalty would eventually erase
+ * them on a long enough run even though nothing about them ever became less true. Real people do
+ * not gradually forget where their spouse lives at a fixed daily rate just because the world got
+ * eventful; forgetting must be selective, not uniform.
+ *
+ * This scoring instead recognizes categories WITHOUT naming any entity (Constitution: identity
+ * and family/relationship facts are never stored as knowledge at all — see the module-level note
+ * below — so they cannot be evicted by construction; this only has to handle what genuinely
+ * lives in `Person.knowledge`):
+ *  - **foundational** (`source.type === 'prior'`): backstory the mind has always held. Given a
+ *    score far above anything ordinary play can produce, so it is displaced only if the cap is
+ *    somehow filled entirely with other foundational/near-foundational facts — never by routine
+ *    gossip or a single eventful day.
+ *  - **durable relational**: knowledge ABOUT an entity `p` has a real relationship with (family,
+ *    friendship, rivalry, fear — any nonzero familiarity/affection/respect/fear/grudge) is given a
+ *    floor (`DURABLE_BASE`, scaled by relationship strength) added BEFORE age decay, not folded
+ *    into the same small importance value ordinary knowledge decays from — decaying a value that
+ *    can cross zero cannot guarantee an old-but-durable fact beats a flood of brand-new,
+ *    zero-age, low-value rumor; decaying slowly off a high floor can. "I know where my captain
+ *    lives" should outlast "I once glimpsed a traveler," at any age.
+ *  - **institutional/core**: an unresolved crime report gets the same floor-before-decay
+ *    treatment (Constitution §11/§37: a guard's ability to eventually act on a known crime must
+ *    not be silently lost to a cache eviction before it's ever `handled`).
+ *  - **ordinary factual / ephemeral observation / rumor**: everything else, scored by
+ *    confidence x significance as before, but now with age decay SCALED BY IMPORTANCE — a highly
+ *    significant, high-confidence witnessed killing decays far slower than "someone heard a
+ *    rumor about a stray cat" (decay rate is `baseRate / (1 + importance)`), so low-value rumor
+ *    is reliably the first thing evicted under pressure, exactly as the brief requires.
+ *
+ * Purely a memory/perf bound — like event compaction, it does not change WHICH claims a mind
+ * currently holds until the cap is actually exceeded, eviction always removes the lowest-scored
+ * entries first, and it never adds knowledge (no accidental omniscience). When an evicted entry
+ * was still materially relevant to cognition (an unresolved crime, or a key an active goal/plan
+ * step still references), the eviction is made observable via a `knowledge_forgotten` event
+ * rather than happening silently underneath live behavior.
  */
 const MAX_KNOWLEDGE = 400;
-function knowledgeScore(k: KnowledgeItem, now: number): number {
-  const ageDays = (now - k.learnedAt) / 86400;
-  const unresolvedCrime = k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled;
-  return k.confidence * (1 + (k.claim.significance ?? 0.2)) + (unresolvedCrime ? 2 : 0) - ageDays * 0.01;
+const FOUNDATIONAL_SCORE = 1000; // backstory ('prior') knowledge: effectively pinned
+// Durable relational / institutional-core tier: a floor well above anything routine gossip can
+// produce (ordinary importance tops out well under 2 — see below), but far under FOUNDATIONAL.
+// Critically this is a FLOOR added before age decay, not a multiplier on an already-decayed
+// value — decaying *toward* a high floor (rather than decaying an importance score that can
+// cross zero) is what actually keeps a real relationship from losing to a flood of brand-new,
+// zero-age trivial rumor once enough simulated time has passed. See knowledgeScore below.
+const DURABLE_BASE = 10;
+
+/** How much `p` cares about the entity a piece of knowledge concerns, 0..~1.7. Any real
+ * relationship (positive OR negative — a rival or a feared threat is just as worth remembering
+ * as a friend) raises this; a stranger contributes 0. Never keyed by name/id. */
+function relationalWeight(p: Person, k: KnowledgeItem): number {
+  const about = (k.claim.entityId ?? k.claim.actor ?? k.claim.target) as EntityId | undefined;
+  if (!about) return 0;
+  const r = p.relationships[about];
+  if (!r) return 0;
+  return Math.min(1.7, r.familiarity + Math.abs(r.affection) * 0.4 + Math.abs(r.respect) * 0.3 + r.fear * 0.5 + r.grudge * 0.4);
 }
+
+function knowledgeScore(p: Person, k: KnowledgeItem, now: number): number {
+  if (k.source.type === 'prior') return FOUNDATIONAL_SCORE + k.confidence;
+  const significance = k.claim.significance ?? 0.2;
+  const unresolvedCrime = k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled;
+  const relWeight = relationalWeight(p, k);
+  const ageDays = (now - k.learnedAt) / 86400;
+
+  // Durable relational / institutional-core: any real relationship (nonzero relWeight) or an
+  // unresolved crime gets a floor added BEFORE decay, scaled by how much it matters (relationship
+  // strength; a flat institutional bonus for an unresolved crime). Decay is a slow erosion off
+  // that floor, not of a small importance value that can cross zero — so an old-but-durable fact
+  // reliably outranks a mountain of fresh, zero-age, low-value rumor, which a plain
+  // "importance minus linear age penalty" formula cannot guarantee once enough time has passed.
+  if (relWeight > 0 || unresolvedCrime) {
+    const base = DURABLE_BASE + relWeight * 20 + (unresolvedCrime ? 15 : 0);
+    const decayRate = 0.002 / (1 + relWeight + (unresolvedCrime ? 2 : 0));
+    return base + k.confidence - ageDays * decayRate;
+  }
+
+  const importance = k.confidence * (0.4 + significance);
+  const decayRate = 0.01 / (1 + importance);
+  return importance - ageDays * decayRate;
+}
+
+/** True if evicting `key` would remove something an active decision could still reach: an
+ * unresolved crime report, or a key an in-flight goal/plan step names directly (Constitution:
+ * forgetting must not silently pull the rug out from under live cognition — see the
+ * `knowledge_forgotten` emission below). */
+function isActivelyRelevant(p: Person, key: string, k: KnowledgeItem): boolean {
+  if (k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled) return true;
+  if (p.mind.goal?.data?.crime === key) return true;
+  return p.mind.plan.some(a => a.data?.crime === key || a.data?.key === key);
+}
+
 function pruneKnowledge(world: World, p: Person): void {
   const keys = Object.keys(p.knowledge);
   if (keys.length <= MAX_KNOWLEDGE) return;
   const now = world.now;
-  keys.sort((a, b) => knowledgeScore(p.knowledge[b], now) - knowledgeScore(p.knowledge[a], now));
-  for (const key of keys.slice(MAX_KNOWLEDGE)) delete p.knowledge[key];
+  keys.sort((a, b) => knowledgeScore(p, p.knowledge[b], now) - knowledgeScore(p, p.knowledge[a], now));
+  for (const key of keys.slice(MAX_KNOWLEDGE)) {
+    const k = p.knowledge[key];
+    if (isActivelyRelevant(p, key, k)) {
+      world.emit('knowledge_forgotten', {
+        actor: p.id, significance: 0, category: 'cognition',
+        data: { key, kind: k.kind, wasUnresolvedCrime: k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled },
+        summary: `${p.name} forgot something still relevant: ${describeClaim(world, k)}`,
+      });
+    }
+    delete p.knowledge[key];
+  }
 }
 
 function sourceRank(source: Source): number {
