@@ -31,8 +31,44 @@ export function learn(world: World, p: Person, k: { key: string; kind: Knowledge
   }
   const item: KnowledgeItem = { key: k.key, kind: k.kind, claim: k.claim, confidence: k.confidence, learnedAt: world.now, source: k.source, hops: k.hops ?? 0, sharedWith: [] };
   p.knowledge[k.key] = item;
+  pruneKnowledge(world, p);
   if (!quiet) emitKnowledge(world, p, item, k.summary ?? k.key, k.cause, false);
   return item;
+}
+
+/**
+ * v0.2.1 Priority 9 (long-running throughput). `Person.knowledge` had no bound at all — every
+ * witnessed event, every heard rumor, every learned location added a permanent entry, unlike
+ * `Person.memories` (mind/memory.ts's own MAX_MEMORIES=60, same "computational pragmatism"
+ * reasoning). Several hot-path scans read a mind's ENTIRE knowledge map every think() tick
+ * (`Object.values(p.knowledge).filter(...)` in mind/agent.ts's think(), knownCrimesBy(), and
+ * the gossip-sharing candidate scan in maybeChat()), so as knowledge accumulated across a long
+ * run this cost grew with it — measured directly as the dominant driver behind a 30-day
+ * headless benchmark (seed 918271) becoming clearly superlinear (marginal per-day wall-clock
+ * cost climbing roughly 51s -> 112s -> 188s -> 280s across four ~5-day windows before the run
+ * was stopped, rather than the flat per-day cost a bounded-state simulation should have).
+ *
+ * Mirrors memory.ts's own eviction: prune only after growing past a generous cap (so no
+ * realistic short/medium run — including every test in this suite — is ever affected), keeping
+ * whatever scores highest by confidence, claimed significance, and recency, with an explicit
+ * bonus for an UNRESOLVED crime report (Constitution §11/§37: a guard's ability to eventually
+ * act on a known crime must not be silently lost to a cache eviction before it's ever
+ * `handled`). This is purely a memory/perf bound — like event compaction, it does not change
+ * WHICH claims a mind currently holds until the cap is actually exceeded, and pruning always
+ * removes the least-valuable entries first, never the ones currently relevant to a decision.
+ */
+const MAX_KNOWLEDGE = 400;
+function knowledgeScore(k: KnowledgeItem, now: number): number {
+  const ageDays = (now - k.learnedAt) / 86400;
+  const unresolvedCrime = k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled;
+  return k.confidence * (1 + (k.claim.significance ?? 0.2)) + (unresolvedCrime ? 2 : 0) - ageDays * 0.01;
+}
+function pruneKnowledge(world: World, p: Person): void {
+  const keys = Object.keys(p.knowledge);
+  if (keys.length <= MAX_KNOWLEDGE) return;
+  const now = world.now;
+  keys.sort((a, b) => knowledgeScore(p.knowledge[b], now) - knowledgeScore(p.knowledge[a], now));
+  for (const key of keys.slice(MAX_KNOWLEDGE)) delete p.knowledge[key];
 }
 
 function sourceRank(source: Source): number {
@@ -136,6 +172,7 @@ export function locationKnowledge(world: World, p: Person, entityId: EntityId, p
   const ex = p.knowledge[key];
   if (ex) { ex.claim = { entityId, pos: { ...pos }, placeId: place?.id }; ex.learnedAt = world.now; ex.confidence = 1; ex.source = source; ex.hops = 0; return; }
   p.knowledge[key] = { key, kind: 'location', claim: { entityId, pos: { ...pos }, placeId: place?.id }, confidence: 1, learnedAt: world.now, source, hops: 0, sharedWith: [] };
+  pruneKnowledge(world, p);
 }
 // Conflict intents that represent lawful or defensive force rather than criminal aggression
 // (Constitution §11: hostile force is not automatically a crime, and a guard's own arrest
