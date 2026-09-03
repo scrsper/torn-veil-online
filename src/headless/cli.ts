@@ -11,6 +11,7 @@ import { runHeadless } from './runner';
 import { FileSink } from '../sim/telemetry/fileSink';
 import { formatWorldRunSummary } from '../sim/history/summary';
 import { formatChronicle } from '../sim/history/chronicle';
+import { buildBenchmarkReport, benchmarkReportPath } from './benchmarkReport';
 
 function parseArgs(argv: string[]): { seed: number; days: number } {
   let seed = Math.floor(Math.random() * 1_000_000);
@@ -50,6 +51,13 @@ async function main(): Promise<void> {
   await writeFile(join(outDir, 'anomalies.json'), JSON.stringify(result.anomalies, null, 2));
   await writeFile(join(outDir, 'timing.json'), JSON.stringify(result.timing, null, 2));
 
+  // v0.2.1 Priority 10: a small, machine-comparable artifact for cross-run/cross-commit
+  // comparison — see benchmarkReport.ts for why this is distinct from summary.json above.
+  const report = buildBenchmarkReport(result, { seed, requestedDays: days, runtimeMs: Date.now() - t0 });
+  const reportPath = join(process.cwd(), benchmarkReportPath(seed, days));
+  await mkdir(join(process.cwd(), '.debug', 'benchmarks'), { recursive: true });
+  await writeFile(reportPath, JSON.stringify(report, null, 2));
+
   console.log(formatWorldRunSummary(result.summary));
   console.log('');
   console.log('Timing breakdown (ms, coarse — v0.2.1 Priority 3):');
@@ -60,6 +68,8 @@ async function main(): Promise<void> {
   console.log('');
   console.log(`Wrote summary.json, chronicle.txt (${result.chronicle.length} entries), anomalies.json (${result.anomalies.length}), timing.json, and telemetry.jsonl (${result.telemetry.records.length} records) to:`);
   console.log(`  ${outDir}`);
+  console.log(`Wrote machine-comparable benchmark report (state hash ${report.stateHash}) to:`);
+  console.log(`  ${reportPath}`);
 
   if (result.anomalies.length) process.exitCode = 0; // anomalies are informational, not a failure signal
 }
