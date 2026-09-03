@@ -21,6 +21,18 @@ export interface Entity {
   name: string;
   createdAt: Tick;
   tags: string[];
+  /**
+   * Stable, human-authored identity for entities that matter across regenerations, code
+   * changes, and future world/universe namespacing (Constitution §50 "Stable Identity").
+   * `id` is a generation-order counter (`p_7`, `pl_12`, ...) and is NOT safe to hardcode
+   * elsewhere, because inserting a new entity earlier in world generation shifts every
+   * later counter. `slug` is assigned once, by hand, at authoring time (e.g. cast.ts's
+   * `key`, a place's key in village.ts, a faction's short name) and never changes as
+   * generation order changes. Use `world.getBySlug('rowan')` instead of remembering an id.
+   * Procedurally generated entities (bodies, dropped items, future population-scale NPCs)
+   * have no slug; they still get durable persistent `id`s, just not a hand-authored name.
+   */
+  slug?: string;
 }
 
 // ---------------------------------------------------------------- Bodies
@@ -207,9 +219,30 @@ export interface Person extends Entity {
   hostile: boolean;                 // outlaw by default (bandits)
   speech: { text: string; until: number } | null; // current speech bubble (physical time)
   deathTick?: Tick;
+  /** Current cognitive fidelity (default 'full' for every named cast member, matching v0.2
+   * scope — see CognitiveLOD). Absent/undefined is treated as 'full' for backward compat
+   * with any state created before this field existed (e.g. old saves). */
+  cognitiveLOD?: CognitiveLOD;
 }
 
 export interface Desire { type: 'recover_item' | 'collect_debt' | 'wants_item'; targetId?: EntityId; itemType?: string; note: string; reward: number; fulfilled: boolean; }
+
+/**
+ * Explicit conflict intent (Constitution §11 "Conflict Must Have Intent"). Hostility is not
+ * lethal intent: a hostile faction member (a bandit) or an armed defender does not default
+ * to killing whoever they fight. Only `'kill'` may end a fight in death; every other intent
+ * downs, drives off, or otherwise incapacitates without automatically ending a life. See
+ * `conflictIntentFor` in mind/conflict.ts for how intent is chosen, and `Simulation.applyHit`
+ * in mind/agent.ts for how it governs lethality.
+ */
+export type ConflictIntent = 'avoid' | 'threaten' | 'rob' | 'defend' | 'subdue' | 'arrest' | 'drive_off' | 'injure' | 'kill';
+
+/** Cognitive Level of Detail (Constitution §21-27): how deeply an entity's mind is currently
+ * being simulated. This is independent of power and of historical significance (§20) — a
+ * Normal-tier farmer can be Full while a dormant threat is Aggregate. v0.2 implements the
+ * mechanism (fidelity can change, cheaply, reversibly, without altering what an entity
+ * already knows) rather than a civilization-scale population system. */
+export type CognitiveLOD = 'aggregate' | 'lightweight' | 'full' | 'deep';
 
 export interface Creature extends Entity {
   kind: 'creature';
@@ -259,11 +292,26 @@ export interface Place extends Entity {
   lit: boolean;                     // lights on at night
 }
 
+/**
+ * A faction is an institution, not a hostility flag (Constitution §36 "Factions Are
+ * Entities"). It carries its own leadership and institutional knowledge, separate from any
+ * one member's mind: `knowledge` is what the institution as a body has been told or has
+ * recorded — populated deliberately (a report reaching leadership, a meeting), never by
+ * silently mirroring every member's private knowledge (Constitution §37, "one member knows
+ * something must not mean all members instantly know it").
+ */
 export interface Faction extends Entity {
   kind: 'faction';
   members: EntityId[];
   description: string;
   hostileTo: EntityId[];
+  /** Current leader, if any. May change via factionLeadershipSuccession on death. */
+  leaderId: EntityId | null;
+  /** Broad category for future faction-type-specific behavior (kept optional/free-form for v0.2). */
+  factionType?: 'civic' | 'watch' | 'outlaw' | 'religious' | 'guild' | 'other';
+  /** Institutional memory: knowledge the faction as a body holds, keyed like KnowledgeItem.
+   * Distinct from any member's personal `knowledge` map. */
+  knowledge: Record<string, KnowledgeItem>;
 }
 
 // ---------------------------------------------------------------- Events
@@ -273,7 +321,10 @@ export type EventType =
   | 'goal_completed' | 'arrived' | 'investigation' | 'confrontation' | 'arrest_attempt' | 'fled' | 'hid'
   | 'meal' | 'sleep' | 'work_shift' | 'service' | 'rumor' | 'weather' | 'birth' | 'death' | 'marriage'
   | 'debt' | 'dispute' | 'gift' | 'heal' | 'recovered' | 'apology' | 'player_spawn' | 'player_death'
-  | 'block_changed' | 'item_missing' | 'threat_spotted' | 'returned_item' | 'debt_paid' | 'greeting' | 'prayer' | 'mourning';
+  | 'block_changed' | 'item_missing' | 'threat_spotted' | 'returned_item' | 'debt_paid' | 'greeting' | 'prayer' | 'mourning'
+  // v0.2 world-engine additions: purely observational/institutional, never gameplay-load-bearing
+  // in the sense that removing them changes no canonical outcome by itself.
+  | 'path_failure' | 'leadership_changed' | 'institutional_report' | 'cognitive_lod_changed';
 
 export type EventCategory = 'world' | 'social' | 'cognition' | 'history';
 

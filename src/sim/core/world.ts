@@ -32,6 +32,8 @@ export class World {
   private listeners: ((e: WorldEvent) => void)[] = [];
   /** Events emitted since last perception pass that carry stimulus (visibility/loudness). */
   pendingStimuli: WorldEvent[] = [];
+  /** Stable-slug → id registry (Constitution §50 "Stable Identity"). See Entity.slug. */
+  private slugs = new Map<string, EntityId>();
 
   constructor(seed: number, clock?: WorldClock) { this.seed = seed; this.rng = new RNG(seed); this.clock = clock ?? new WorldClock(); }
 
@@ -40,7 +42,14 @@ export class World {
   setCounters(c: Record<string, number>) { this.counters = { ...c }; }
   getCounters() { return { ...this.counters }; }
 
-  add<T extends Entity>(e: T): T { this.entities.set(e.id, e); return e; }
+  add<T extends Entity>(e: T): T { this.entities.set(e.id, e); if (e.slug) this.slugs.set(e.slug, e.id); return e; }
+  /** Look up an authored entity by its stable slug (e.g. 'rowan', 'ashford-vale', 'watch').
+   * Prefer this over hardcoding a generation-order id anywhere outside world generation. */
+  getBySlug<T extends Entity = Entity>(slug: string): T | undefined { const id = this.slugs.get(slug); return id ? this.get<T>(id) : undefined; }
+  /** Assign a stable slug to an already-added entity (for builders that decide the slug
+   * after construction, e.g. village.ts's place registry). Prefer passing `slug` at
+   * creation time (PersonSpec.slug, makeFaction's opts, ...) when possible. */
+  bindSlug<T extends Entity>(e: T, slug: string): T { e.slug = slug; this.slugs.set(slug, e.id); return e; }
   get<T extends Entity = Entity>(id: EntityId | null | undefined): T | undefined { if (!id) return undefined; return this.entities.get(id) as T | undefined; }
   person(id: EntityId | null | undefined): Person | undefined { const e = this.get(id); return e && e.kind === 'person' ? (e as Person) : undefined; }
   body(id: EntityId | null | undefined): Body | undefined { const e = this.get(id); return e && e.kind === 'body' ? (e as Body) : undefined; }
