@@ -110,12 +110,29 @@ export class World {
     return e;
   }
   event(id: EventId | undefined): WorldEvent | undefined { return id ? this.eventIndex.get(id) : undefined; }
-  /** Compact old low-significance cognition events to bound memory. */
+  /**
+   * Compact old low-significance events to bound memory (Constitution §51 "Causal History",
+   * v0.2 Part 15). A recent window is always kept verbatim; beyond that, only events judged
+   * significant survive as themselves — everything else is dropped, but the causal path
+   * leading to a surviving event is preserved by re-parenting it onto the nearest surviving
+   * ancestor (`survivingCauses` below), so "why did this happen" never dead-ends.
+   *
+   * `category === 'history'` is always kept (birth/death/marriage/... are definitionally
+   * significant). Every OTHER category — including 'world', which is the default bucket for
+   * ordinary physical events (meals, work shifts, door state, weather, and also genuinely
+   * important ones like attacks and kills) — is judged by `significance` like anything else.
+   * Blanket-keeping all 'world' events was a bug: it made compaction a near no-op once a
+   * headless run's routine-event volume (meals, work shifts, sleep, ...) crossed the
+   * threshold, since those routine events dominate the 'world' category numerically. A
+   * one-off low-significance event (a meal, significance 0.05) is correctly dropped once
+   * old; an attack or theft (significance >= 0.4-0.7) still clears the 0.5 bar or survives
+   * via the causal-ancestor walk if it fed into something that did.
+   */
   compactEvents(keep = 4000): void {
     if (this.events.length <= keep * 1.5) return;
     const cutoff = this.events.length - keep;
     const previousIndex = new Map(this.eventIndex);
-    const kept = this.events.filter((e, i) => i >= cutoff || e.significance >= 0.5 || e.category === 'history' || e.category === 'world');
+    const kept = this.events.filter((e, i) => i >= cutoff || e.significance >= 0.5 || e.category === 'history');
     const keptIds = new Set(kept.map(e => e.id));
     const survivingCauses = (id: EventId, visiting = new Set<EventId>()): EventId[] => {
       if (keptIds.has(id)) return [id];

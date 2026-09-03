@@ -89,6 +89,9 @@ export function knowsEvent(p: Person, eventId: string): KnowledgeItem | undefine
 /** Build the knowledge claim for an event as a witness would understand it. */
 export function eventClaim(world: World, e: WorldEvent, saw: boolean): Record<string, any> {
   const claim: Record<string, any> = { eventId: e.id, type: e.type, tick: e.tick, placeId: e.placeId, pos: e.pos, significance: e.significance };
+  // Carry explicit conflict intent (Constitution §11) into the claim so a witness can tell a
+  // guard's lawful subdual/arrest apart from an actual crime — see isCrime below.
+  if (e.data?.intent) claim.intent = e.data.intent;
   if (saw || e.type === 'told') { claim.actor = e.actor; claim.target = e.target; claim.item = e.item; }
   else { claim.target = e.target; claim.item = e.item; claim.actorUnknown = true; }
   return claim;
@@ -134,5 +137,17 @@ export function locationKnowledge(world: World, p: Person, entityId: EntityId, p
   if (ex) { ex.claim = { entityId, pos: { ...pos }, placeId: place?.id }; ex.learnedAt = world.now; ex.confidence = 1; ex.source = source; ex.hops = 0; return; }
   p.knowledge[key] = { key, kind: 'location', claim: { entityId, pos: { ...pos }, placeId: place?.id }, confidence: 1, learnedAt: world.now, source, hops: 0, sharedWith: [] };
 }
-export function isCrime(type: string): boolean { return type === 'attack' || type === 'kill' || type === 'theft'; }
+// Conflict intents that represent lawful or defensive force rather than criminal aggression
+// (Constitution §11: hostile force is not automatically a crime, and a guard's own arrest
+// cannot be indistinguishable from the crime it's answering — without this, every witnessed
+// subdual/arrest was itself learned as a fresh "attack" crime, which every other guard would
+// then independently confront/arrest, producing an endless mutual-arrest loop between the
+// same actors instead of an encounter that actually resolves). 'rob', 'threaten', 'injure',
+// 'kill' and undefined (older/edge-case attacks with no recorded intent) remain crimes.
+const LAWFUL_INTENTS = new Set(['subdue', 'arrest', 'defend', 'avoid', 'drive_off']);
+export function isCrime(type: string, intent?: string): boolean {
+  if (type !== 'attack' && type !== 'kill' && type !== 'theft') return false;
+  if (type === 'attack' && intent && LAWFUL_INTENTS.has(intent)) return false;
+  return true;
+}
 export function crimeSeverity(type: string): number { return type === 'kill' ? 1 : type === 'attack' ? 0.6 : type === 'theft' ? 0.35 : 0; }

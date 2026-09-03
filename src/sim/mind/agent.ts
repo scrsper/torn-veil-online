@@ -7,6 +7,7 @@ import { currentScheduleEntry } from './schedule';
 import { SECONDS_PER_HOUR } from '../core/time';
 import { B } from '../physical/blocks';
 import { makeItem } from '../world/factory';
+import { banditResourcePressure } from './economy';
 
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -100,7 +101,7 @@ export class Simulation {
     const isVictim = claim.target === p.id;
     const victimClose = claim.target ? isClose(p, claim.target) : false;
     const sig = e.significance * (isVictim ? 1.4 : victimClose ? 1.2 : 1) * (saw ? 1 : 0.7);
-    const valence = isCrime(e.type) ? -0.8 : e.type === 'gift' || e.type === 'returned_item' || e.type === 'heal' ? 0.6 : 0;
+    const valence = isCrime(e.type, e.data?.intent) ? -0.8 : e.type === 'gift' || e.type === 'returned_item' || e.type === 'heal' ? 0.6 : 0;
     remember(w, p, { type: e.type, summary: saw ? `I saw: ${claimSummary}` : `I heard: ${claimSummary}`, eventId: e.id, entities: [claim.actor, claim.target, claim.item].filter(Boolean) as string[], significance: clamp(sig), valence, source: { type: saw ? 'witnessed' : 'heard', viaEvent: perc.id }, placeId: claim.placeId });
     if (p.controlled) return;
     this.reactTo(p, body, e, perc.id, saw, isVictim, victimClose, k);
@@ -108,7 +109,7 @@ export class Simulation {
 
   private reactTo(p: Person, body: Body, e: WorldEvent, cause: string, saw: boolean, isVictim: boolean, victimClose: boolean, k: KnowledgeItem | null): void {
     const w = this.world; const claim = k?.claim ?? eventClaim(w, e, saw); const actor = claim.actor as EntityId | undefined;
-    if (isCrime(claim.type) && actor !== p.id) {
+    if (isCrime(claim.type, claim.intent) && actor !== p.id) {
       const sev = crimeSeverity(claim.type); const actorP = w.person(actor);
       const victimDisp = claim.target ? disposition(p, claim.target) : 0;
       // fear rises with severity, proximity and low courage; grudge with closeness to the victim
@@ -148,6 +149,13 @@ export class Simulation {
     let threat: { id: EntityId; d: number; fear: number; body: Body } | null = null;
     for (const pc of m.percepts) {
       const other = w.person(pc.entityId); if (!other || !other.alive) continue; const ob = w.body(pc.bodyId)!; if (ob.dead) continue;
+      // A downed body is already incapacitated (Constitution §11: 'subdue'/'arrest' must be a
+      // real terminal outcome, not merely non-lethal-and-repeatable). Without this, a subdued
+      // target kept registering as an active threat every think() tick, so the subduer (or
+      // anyone else nearby) would immediately re-attack them — resetting their downed timer
+      // forward on every hit and producing an endless attack/arrest loop between the same two
+      // actors instead of the fight actually ending. See docs/V0_2_WORLD_ENGINE.md.
+      if (ob.pose === 'downed') continue;
       const r = relOrNull(p, other.id); const hostileFaction = other.hostile !== p.hostile;
       const fear = (r?.fear ?? 0) + (hostileFaction ? 0.5 : 0) + (r && r.grudge > 0.5 ? 0.1 : 0);
       const attackingMe = ob.pose === 'attack' && dist2(ob.pos, pos) < 3;
@@ -168,7 +176,11 @@ export class Simulation {
         // A guard apprehends; a bandit wants resources from an ordinary victim and only
         // treats an armed defender of the law as a real, non-automatically-fatal fight.
         const intent: ConflictIntent = isGuard ? 'subdue' : (t.occupation === 'guard' || t.occupation === 'captain') ? 'injure' : 'rob';
-        G('attack', clamp(fightU + 0.2), [`${t.name} is an enemy`, `courage ${p.traits.courage.toFixed(2)}`, `intent: ${intent}`], { targetEntity: t.id, data: { intent } });
+        // Constitution §12/§39: robbery utility rises with the bandit faction's own resource
+        // pressure, not merely because the target exists — a real causal loop rather than a
+        // hardcoded "bandits attack" activity.
+        const pressure = intent === 'rob' ? banditResourcePressure(w, p) : 0;
+        G('attack', clamp(fightU + 0.2 + pressure * 0.3), [`${t.name} is an enemy`, `courage ${p.traits.courage.toFixed(2)}`, `intent: ${intent}`, pressure ? `resource pressure ${pressure.toFixed(2)}` : ''], { targetEntity: t.id, data: { intent } });
       }
       else if (threat.body.pose === 'attack' || r.fear > 0.35 || t.hostile) {
         if (fightU > fleeU && (armed || brave > 0.9)) G('attack', fightU, [`${t.name} is a threat (fear ${threat.fear.toFixed(2)})`, `I am ${armed ? 'armed' : 'unarmed'}, courage ${p.traits.courage.toFixed(2)}`, 'intent: defend'], { targetEntity: t.id, data: { intent: 'defend' as ConflictIntent } });
@@ -176,7 +188,7 @@ export class Simulation {
       }
     }
     // ---- knowledge-driven goals: report crimes, investigate, recover items
-    const crimes = Object.values(p.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type) && !k.handled && now - k.learnedAt < 86400 * 3);
+    const crimes = Object.values(p.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled && now - k.learnedAt < 86400 * 3);
     for (const k of crimes) {
       const sev = crimeSeverity(k.claim.type); const victimClose = k.claim.target ? isClose(p, k.claim.target) : false; const victimIsMe = k.claim.target === p.id;
       const actorIsMe = k.claim.actor === p.id; if (actorIsMe) continue;
@@ -252,7 +264,7 @@ export class Simulation {
     const target = g.targetEntity ? ` → ${w.nameOf(g.targetEntity)}` : g.targetPlace ? ` @ ${w.nameOf(g.targetPlace)}` : '';
     w.emit('goal_changed', { actor: p.id, target: g.targetEntity, placeId: g.targetPlace, causes, significance: g.type === 'flee' || g.type === 'attack' || g.type === 'report' || g.type === 'investigate' || g.type === 'confront' ? 0.45 : 0.12, data: { from: prev?.type, to: g.type, utility: g.utility, reasons: g.reasons }, summary: `${p.name}: goal ${prev ? prev.type + ' → ' : ''}${g.type}${target} (u=${g.utility.toFixed(2)})` });
   }
-  private knownCrimesBy(p: Person, actor: EntityId): KnowledgeItem[] { return Object.values(p.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type) && k.claim.actor === actor && !k.handled).sort((a, b) => crimeSeverity(b.claim.type) - crimeSeverity(a.claim.type)); }
+  private knownCrimesBy(p: Person, actor: EntityId): KnowledgeItem[] { return Object.values(p.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && k.claim.actor === actor && !k.handled).sort((a, b) => crimeSeverity(b.claim.type) - crimeSeverity(a.claim.type)); }
   private nearestKnownGuard(p: Person, pos: Vec3, guards: Person[]): Person | null {
     const w = this.world; let best: Person | null = null; let bd = Infinity;
     for (const g of guards) { const loc = p.knowledge[`loc:${g.id}`]?.claim.pos ?? w.place(g.workId)?.inside ?? w.primaryBody(g.id)?.pos; if (!loc) continue; const d = dist2(pos, loc); if (d < bd) { bd = d; best = g; } }
@@ -395,9 +407,9 @@ export class Simulation {
   }
   private pickGossip(p: Person, other: Person): KnowledgeItem | null {
     const w = this.world; const r = getRel(p, other.id); if (r.trust < -0.3) return null;
-    const cands = Object.values(p.knowledge).filter(k => k.kind === 'event' && ((k.claim.significance ?? 0.3) >= 0.2 || isCrime(k.claim.type)) && !k.sharedWith.includes(other.id) && k.claim.actor !== other.id && k.source.from !== other.id && (w.now - k.learnedAt < 86400 * 4 || isCrime(k.claim.type)) && !other.knowledge[k.key]);
+    const cands = Object.values(p.knowledge).filter(k => k.kind === 'event' && ((k.claim.significance ?? 0.3) >= 0.2 || isCrime(k.claim.type, k.claim.intent)) && !k.sharedWith.includes(other.id) && k.claim.actor !== other.id && k.source.from !== other.id && (w.now - k.learnedAt < 86400 * 4 || isCrime(k.claim.type, k.claim.intent)) && !other.knowledge[k.key]);
     if (!cands.length) return null;
-    cands.sort((a, b) => (b.claim.significance ?? 0.3) * (isCrime(b.claim.type) ? 1.5 : 1) - (a.claim.significance ?? 0.3) * (isCrime(a.claim.type) ? 1.5 : 1));
+    cands.sort((a, b) => (b.claim.significance ?? 0.3) * (isCrime(b.claim.type, b.claim.intent) ? 1.5 : 1) - (a.claim.significance ?? 0.3) * (isCrime(a.claim.type, a.claim.intent) ? 1.5 : 1));
     const best = cands[0]; if ((best.claim.significance ?? 0.3) < 0.2 && p.traits.sociability < 0.6) return null; return best;
   }
   private smallTalk(p: Person, other: Person): string {
@@ -421,10 +433,10 @@ export class Simulation {
     if (listener.controlled) return;
     const trust = getRel(listener, speaker.id).trust; const conf = clamp(k.confidence * (0.55 + 0.35 * clamp(trust + 0.5)) * (speaker.traits.honesty * 0.3 + 0.7));
     const learned = learn(w, listener, { key: k.key, kind: k.kind, claim: { ...k.claim }, confidence: conf, source: { type: 'told', from: speaker.id, viaEvent: ev.id }, hops: k.hops + 1, cause: ev.id, summary: describeClaim(w, k) });
-    remember(w, listener, { type: 'told', summary: `${speaker.name} told me ${describeClaim(w, k)}`, eventId: k.claim.eventId, entities: [speaker.id, k.claim.actor, k.claim.target].filter(Boolean) as string[], significance: clamp((k.claim.significance ?? 0.3) * 0.7), valence: isCrime(k.claim.type) ? -0.4 : 0, source: { type: 'told', from: speaker.id, viaEvent: ev.id } });
+    remember(w, listener, { type: 'told', summary: `${speaker.name} told me ${describeClaim(w, k)}`, eventId: k.claim.eventId, entities: [speaker.id, k.claim.actor, k.claim.target].filter(Boolean) as string[], significance: clamp((k.claim.significance ?? 0.3) * 0.7), valence: isCrime(k.claim.type, k.claim.intent) ? -0.4 : 0, source: { type: 'told', from: speaker.id, viaEvent: ev.id } });
     ev.perceivedBy.push({ who: listener.id, how: 'heard', tick: w.now });
     adjustRel(w, listener, speaker.id, { familiarity: 0.03, affection: 0.02 }, 'talked', undefined, true);
-    if (learned && isCrime(k.claim.type) && k.claim.actor) {
+    if (learned && isCrime(k.claim.type, k.claim.intent) && k.claim.actor) {
       const sev = crimeSeverity(k.claim.type); const victimClose = k.claim.target ? isClose(listener, k.claim.target) : false;
       adjustRel(w, listener, k.claim.actor, { fear: sev * 0.3 * conf * (1.2 - listener.traits.courage), trust: -sev * 0.4 * conf, grudge: sev * conf * (victimClose ? 0.6 : 0.2), affection: -sev * 0.3 * conf }, `was told by ${speaker.name}`, ev.id);
       listener.mind.alarm = 1;
