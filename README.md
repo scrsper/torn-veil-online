@@ -1,4 +1,4 @@
-# Torn Veil Online — Ashford Vale
+# Torn Veil Online — Infinite RPG
 
 A prototype of a *living* voxel RPG village: not Minecraft-with-chatbots, and not a normal
 RPG where NPCs stand around waiting for the player. Ashford Vale is a small village of ~32
@@ -17,7 +17,7 @@ between two minds, not because the game broadcast an event.
 Requirements: Node.js 18+ and npm.
 
 ```bash
-git clone https://github.com/scrsper/infinite-rpg-clud.git
+git clone https://github.com/scrsper/torn-veil-online.git
 cd infinite-rpg-clud
 npm install
 npm run dev
