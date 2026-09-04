@@ -1164,6 +1164,19 @@ export class Simulation {
   }
   weaponName(p: Person): string { let best: string = 'fists'; let bd = 0; for (const id of p.inventory) { const it = this.world.item(id); if (it && it.damage > bd) { bd = it.damage; best = it.name; } } return best; }
 
+  /**
+   * Player/NPC-shared (Constitution VI): chop or quarry the resource node at — or adjacent to —
+   * a world cell. Same `extractFromNode` path an NPC's `chop`/`gather` action uses. Returns the
+   * units extracted, or 0 if there is no workable node there.
+   */
+  extractResourceAt(actor: Person, pos: Vec3): number {
+    const w = this.world;
+    const cx = Math.floor(pos.x), cy = Math.floor(pos.y), cz = Math.floor(pos.z);
+    const node = w.resourceNodes.find(n => n.state === 'available' && n.remaining > 0
+      && (n.blocks.some(b => b.x === cx && b.z === cz && Math.abs(b.y - cy) <= 5) || dist2(n.pos, pos) < 2.5));
+    return node ? extractFromNode(w, node, actor) : 0;
+  }
+
   // ------------------------------------------------------------------ items
   takeItem(p: Person, it: import('../core/types').Item, how: 'pickup' | 'theft' | 'recovered' | 'bought' | 'given', from?: EntityId): WorldEvent {
     const w = this.world; const pos = it.pos ? { ...it.pos } : w.primaryBody(p.id)?.pos; const place = it.placeId ? w.place(it.placeId) : pos ? w.placeAt(pos) : undefined;

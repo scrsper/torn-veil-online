@@ -144,9 +144,9 @@ export function registerStoneNodes(world: World, placeId: EntityId, spots: Vec3[
     const h = g.groundHeight(bx, bz);
     const blocks: ResourceNodeBlock[] = [];
     for (let dx = 0; dx <= 1; dx++) for (let dz = 0; dz <= 1; dz++) {
-      g.set(bx + dx, h + 1, bz + dz, B.Stone);
+      g.set(bx + dx, h + 1, bz + dz, B.StoneBrick);
       // `id` = the block while the node is AVAILABLE (a worked-out node shows Gravel instead).
-      blocks.push({ x: bx + dx, y: h + 1, z: bz + dz, id: B.Stone });
+      blocks.push({ x: bx + dx, y: h + 1, z: bz + dz, id: B.StoneBrick });
     }
     world.nav.rebuildArea(bx - 3, bz - 3, bx + 3, bz + 3);
     const pos = groundStand(world, bx, bz, h) ?? groundStand(world, bx + 1, bz + 1, h);

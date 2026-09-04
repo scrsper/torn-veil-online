@@ -153,8 +153,12 @@ export function detectAnomalies(world: World, opts: AnomalyOptions = {}): Anomal
     if (e.type !== 'attack' || !within(e, window) || !e.target) continue;
     const victim = world.person(e.target);
     if (!victim) continue;
-    const wasHeld = victim.custody?.active || victim.surrender;
-    if (wasHeld && e.data?.intent !== 'kill') {
+    // The held state must have PREDATED this blow — otherwise a victim who surrenders (or is
+    // detained) a tick after being hit by someone else retroactively turns an ordinary,
+    // already-landed attack into a false "ignored surrender" finding.
+    const heldBefore = (victim.custody?.active && (victim.custody.since ?? 0) < e.tick)
+      || (victim.surrender && victim.surrender.at < e.tick);
+    if (heldBefore && e.data?.intent !== 'kill') {
       const key = `${e.actor}:${e.target}`;
       const list = ignoredResolution.get(key) ?? []; list.push(e); ignoredResolution.set(key, list);
     }

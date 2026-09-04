@@ -228,6 +228,23 @@ describe('resource nodes: trees → logs, stone (v0.3 Priority 5-6-8)', () => {
   });
 });
 
+describe('shared player/NPC ontology (v0.3 Priority 11)', () => {
+  it('the player chops a tree through the same extraction path an NPC uses', () => {
+    const tw = createTestWorld(725, 40);
+    for (let x = 2; x < 38; x++) for (let z = 2; z < 38; z++) tw.world.grid.set(x, 1, z, B.Grass);
+    tw.world.nav.rebuildAll();
+    const clearing = makePlace(tw.world, 'wilderness', 'clearing', { x0: 2, z0: 2, x1: 38, z1: 38, y0: 2, y1: 14 }, { inside: v(20, 2, 20) });
+    plantGrove(tw.world, { x0: 8, z0: 8, x1: 28, z1: 28 }, clearing.id, clearing.id, 3);
+    const node = tw.world.resourceNodes.find(n => n.kind === 'tree')!;
+    const player = addPerson(tw, 'Traveler', 'traveler', v(node.pos.x, node.pos.y, node.pos.z), { controlled: true });
+    const trunk = node.blocks.find(b => tw.world.grid.get(b.x, b.y, b.z) === B.Log)!;
+    const got = tw.sim.extractResourceAt(player, { x: trunk.x + 0.5, y: trunk.y, z: trunk.z + 0.5 });
+    expect(got).toBeGreaterThan(0);
+    expect(stockAt(tw.world, 'log', clearing.id)).toBe(got);
+    expect(tw.world.events.some(e => e.type === 'resource_extracted' && e.actor === player.id)).toBe(true);
+  });
+});
+
 describe('wood transformation: log → plank (v0.3 Priority 7)', () => {
   it('sawing turns logs at the sawpit into planks at the sawpit, conserving through the ratio', () => {
     const tw = createTestWorld(730, 20);

@@ -9,7 +9,7 @@ world state**.
 
 **Method:** every number below was produced by running the real headless engine
 (`npm run sim`, the same canonical `World` / `Simulation` / village generation the browser
-client uses) at fixed seed `918271`, plus the deterministic test suite (179 tests), plus a
+client uses) at fixed seed `918271`, plus the deterministic test suite (180 tests), plus a
 real browser smoke test of the voxel client.
 
 The central question this milestone answers:
@@ -311,7 +311,7 @@ pass; the wall-clock machine is the same class).
 | deterministic state hash | `e395cc91` | `b7b56a4a` | `c29bcb06` | `ac5caffd` |
 | population start → end | 33 → 33 | 33 → 33 | 33 → 33 | 33 → 33 |
 | deaths | 0 | 0 | 0 | 0 |
-| anomaly groups | `surrender_or_custody_ignored` (3) | 0 | 0 | **0** |
+| anomaly groups | 0 | 0 | 0 | **0** |
 | path failures | 0 | 5 | 1 | **1** |
 | crops planted / matured / harvested | 321 / 85 / 119 | 660 / 361 / 181 | 887 / 470 / 239 | 2874 / 2975 / 676 |
 | resource transforms (mill+bake+saw) | 67 | 131 | 272 | 1070 |
@@ -349,23 +349,25 @@ pull for timber or stone. Grain/flour scale with time as the food chain runs con
 - *Village can't reproduce crops after seed cost* — **no.** 2874 plantings over 30 days; the
   farm seed reserve is never exhausted.
 
-The **2-day `surrender_or_custody_ignored` (3)** finding is the pre-existing v0.2.3 surrender-race
-edge (a non-lethal blow landing in the same tick a bandit yields) in the opening guard/bandit
-conflict — an RNG-phase shift from v0.3's new goal candidates changing draw order, not a logic
-regression. It is gone by day 4 and absent from every longer run.
+A first pass surfaced a `surrender_or_custody_ignored` finding at 2 days — traced to a false
+positive in the detector itself (it compared an already-landed `attack` event against the
+victim's *current* surrender state, which a same-tick yield by a different attacker flips
+retroactively). The check now requires the held state to have **predated** the blow
+(`surrender.at < e.tick`); all four durations are clean.
 
 ## 16. Tests
 
-**179 deterministic tests pass** (v0.2.4 baseline: 158; +21). `npm run typecheck` clean.
+**180 deterministic tests pass** (v0.2.4 baseline: 158; +22). `npm run typecheck` clean.
 `npm run build` (tsc + vite production build) **succeeds**.
 
-`tests/living-world-logistics.test.ts` (21): place-stock accounting + ownership/location
+`tests/living-world-logistics.test.ts` (22): place-stock accounting + ownership/location
 separation; deterministic `takePlaceStock` drain + conservation; haul pickup/carry/deposit
 conservation through a physical journey; source-emptied-before-pickup failure;
 interrupted-hauler cargo drop + conservation; a full-sim NPC delivering grain to the mill;
 mill/bakery cannot use remote stock + delivery enables production; tree → log → deplete →
 voxel removal → 30-day regrow; depleted node stops offering itself (no retry); stone gathering
-+ conservation; log → plank; construction not built on creation; materials → ready → labour →
++ conservation; the player chopping a tree through the same `extractResourceAt` path an NPC
+uses; log → plank; construction not built on creation; materials → ready → labour →
 canonical structure + per-worker `contributions`; seed cost + harvest replenishment; batched
 spoilage (bread vs grain, ≤ 1 event/stack/pass, materials never spoil); SAVE_VERSION 6
 round-trip; a 12-day no-player integration test of the whole tree→shed causal chain.
