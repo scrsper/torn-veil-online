@@ -21,6 +21,10 @@ import { makeItem, RESOURCE_CATEGORY, isFood } from './factory';
 export const MATURE_HOURS = 5 * 24;
 /** A harvested plot rests this long before it becomes `fallow` (replantable). */
 export const REGROW_HOURS = 24;
+/** Ripe wheat left standing this long lodges / rots and is lost — the plot reverts to `fallow`.
+ * Keeps fields cycling (and the plant/harvest goals live) once the granary is full, rather than
+ * freezing every plot at `mature` forever. */
+export const SPOIL_HOURS = 6 * 24;
 /** Soil moisture gained per hour of rain at intensity 1 (storm = intensity 1, rain ~0.5-0.9). */
 const RAIN_MOISTURE_PER_HOUR = 0.11;
 /** Soil moisture lost per hour under dry sky (scaled: clear fastest, cloudy/fog slower). A
@@ -64,7 +68,7 @@ export function createFields(world: World, farmPlaceIds: { placeId: EntityId; ow
       const cropY = farmlandY + 1;
       const above = world.grid.get(x, cropY, z);
       const state: CropState = above === B.Wheat ? 'mature' : 'fallow';
-      plots.push({ x, y: cropY, z, crop: 'wheat', state, growth: state === 'mature' ? 1 : 0, plantedAt: state === 'mature' ? world.now - MATURE_HOURS * 3600 : 0 });
+      plots.push({ x, y: cropY, z, crop: 'wheat', state, growth: state === 'mature' ? 1 : 0, plantedAt: state === 'mature' ? world.now - MATURE_HOURS * 3600 : 0, maturedAt: state === 'mature' ? world.now : undefined });
       // normalize the block to our canonical projection (Pumpkin/other → cleared)
       world.grid.set(x, cropY, z, cropBlockFor(state));
     }
@@ -115,6 +119,10 @@ export function stepMetabolism(world: World, hours: number): void {
         }
       } else if (plot.state === 'harvested' && plot.harvestedAt !== undefined && world.now - plot.harvestedAt >= REGROW_HOURS * 3600) {
         plot.state = 'fallow'; plot.growth = 0;
+        world.grid.set(plot.x, plot.y, plot.z, cropBlockFor('fallow'));
+      } else if (plot.state === 'mature' && plot.maturedAt !== undefined && world.now - plot.maturedAt >= SPOIL_HOURS * 3600) {
+        // Over-ripe wheat lodged in the field and was lost — plot reverts to fallow.
+        plot.state = 'fallow'; plot.growth = 0; plot.maturedAt = undefined;
         world.grid.set(plot.x, plot.y, plot.z, cropBlockFor('fallow'));
       }
     }
