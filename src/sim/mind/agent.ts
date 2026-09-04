@@ -1,7 +1,7 @@
 import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, KnowledgeItem, Creature, Place, Anchor, ConflictIntent, Conflict, ConflictCause } from '../core/types';
 import { World } from '../core/world';
 import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRelationships } from './relationships';
-import { activeThreatIds, maintainConflicts, beginConflict, recordConflictBlow, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
+import { maintainConflicts, beginConflict, recordConflictBlow, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
 import { maintainCustody, subdue, takeIntoCustody, beginSurrender, isSubdued } from '../social/custody';
 import { remember } from './memory';
 import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge } from './knowledge';
