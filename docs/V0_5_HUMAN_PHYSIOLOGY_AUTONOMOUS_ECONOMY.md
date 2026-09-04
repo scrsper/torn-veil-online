@@ -375,43 +375,46 @@ This is disclosed honestly as a gap rather than a claimed verification that did 
 | 918271 | 8 | 37.6s | 33→33 | 0 | 0 | 242 | 42 | 313 | 620 | 0.73 | 0.41 | 45/18/13/1 |
 | 918271 | 30 | 211.6s | 33→33 | 0 | 0 | 515 | 222 | 951 | 1166 | 0.76 | 0.34 | 141/243/235/4 |
 | 42424242 | 8 | 34.8s | 33→33 | 0 | 0 | 249 | 38 | 293 | 614 | 0.79 | 0.47 | 46/49/47/1 |
-| 918271 | 90 | *(see run notes below)* | | | | | | | | | | |
+| 918271 | 90 | 1103.5s | 33→33 | 0 | 0 | 1327 | 735 | 2741 | 1477 | 0.71 | 0.33 | 452/875/855/13 |
 
-Zero anomalies and zero goal-churn incidents at every horizon tested — the goal-commitment fix
-(§III) holds at population scale, not just in the isolated repro. The alternate seed (42424242,
-8 days) produces a materially different but equally stable outcome (249 vs. 242 completed
-requests, 38 vs. 42 production batches), confirming the mechanism is not seed-specific.
-Suspended-vs-resumed commitment counts track closely at every horizon (243 suspended / 235
-resumed at 30 days) — the overwhelming majority of interruptions genuinely resolve and resume,
-exactly as §III.11 asks; abandonment stays rare (4 of 141+243 commitment episodes at 30 days).
-
-*(The 90-day row: launched as a background headless run during this session — see
-`.debug/headless/` for the completed `summary.json` if this document reaches you before the run
-notes below are updated, or re-run `npx tsx src/headless/cli.ts --seed 918271 --days 90`. At
-observed throughput (~7.4s/simulated day through day 30, consistent with v0.4's own disclosed
-growth-with-event-history-count pattern) a 90-day run is expected to complete in the range of
-15-25 minutes of wall-clock; this is the explicitly-allowed fallback per Constitution v0.5
-§XII's "targeted deterministic advancement tests remain acceptable where full simulation would
-be prohibitively slow" — the 30-day figure above, itself 3.75× the 8-day run's population-scale
-activity with zero anomalies, is the primary evidence for this milestone's stability claim.)*
+Zero anomalies and zero goal-churn incidents at every horizon tested, including the completed
+90-day run — the goal-commitment fix (§III) holds at population scale over a genuinely long
+horizon, not just in the isolated repro or a short window. The alternate seed (42424242, 8 days)
+produces a materially different but equally stable outcome (249 vs. 242 completed requests, 38
+vs. 42 production batches), confirming the mechanism is not seed-specific.
+Suspended-vs-resumed commitment counts track closely at every horizon (875 suspended / 855
+resumed at 90 days — 97.7%) — the overwhelming majority of interruptions genuinely resolve and
+resume, exactly as §III.11 asks; abandonment stays rare (13 of 452+875 commitment episodes, 1.0%,
+at 90 days) and the 6-hour backstop (§3.3) is what makes that number bounded rather than growing
+unboundedly with run length. Average hunger, which climbed from 0.57 (2d) to 0.73 (8d) to 0.76
+(30d), **plateaus and even eases slightly to 0.71 by day 90** — the same "fast initial
+adjustment off starting reserves, then plateau" shape v0.4 itself reported for its own (lower)
+baseline, not a runaway trend; production genuinely caught up with demand by day 90 (0 open
+production requests, 735 completed) and the bread price settled back to the base 2 silver at the
+bakery. The 90-day run completed in 1103.5s (~18.4 minutes) of wall-clock — within the range this
+document's draft originally estimated (15-25 minutes) before the run finished, confirming the
+throughput-growth estimate (§10) was realistic rather than optimistic. This completed 90-day run,
+not a targeted advancement test, is the primary evidence for this milestone's stability claim.
 
 ---
 
 ## 10. Scaling risks (reported honestly)
 
 - **Village-wide average hunger sits meaningfully higher than v0.4's own trend at the same
-  horizons** — 0.73 (8d) / 0.76 (30d) here, versus v0.4's disclosed 0.29 (8d) / 0.25 (30d). This
-  is the DIRECT, intended consequence of §III's core design goal (Constitution v0.5 §II: "do not
-  respond to every mild sensation of hunger... tolerate discomfort for a realistic period") —
-  people now genuinely tolerate uncomfortable/urgent-band hunger rather than eating at the first
-  opportunity a marginally-higher utility appears, and the average person spends more of their
-  day at a real, sustained "urgent" band than v0.4's more eagerly-interrupting model produced.
-  Population remained stable (33/33, 0 deaths) at every horizon tested and the value plateaus
-  (0.73 → 0.76, not runaway) between day 8 and day 30, matching v0.4's own "fast initial
-  adjustment, then plateau" shape — but this is worth a future tuning pass (raise the trigger
-  thresholds a band, or the food-supply targets) for a campaign that wants a visibly less
-  "hungry" ordinary day, since 0.76 average puts a typical villager solidly in the 'urgent' band
-  most of the time rather than the milestone's own illustrative "hungry but functional" middle
+  horizons** — 0.73 (8d) / 0.76 (30d) / 0.71 (90d) here, versus v0.4's disclosed 0.29 (8d) / 0.25
+  (30d) / 0.23 (90d). This is the DIRECT, intended consequence of §III's core design goal
+  (Constitution v0.5 §II: "do not respond to every mild sensation of hunger... tolerate
+  discomfort for a realistic period") — people now genuinely tolerate uncomfortable/urgent-band
+  hunger rather than eating at the first opportunity a marginally-higher utility appears, and the
+  average person spends more of their day at a real, sustained "urgent" band than v0.4's more
+  eagerly-interrupting model produced. Population remained stable (33/33, 0 deaths) at every
+  horizon tested and the value plateaus and even eases slightly (0.73 → 0.76 → 0.71) from day 8
+  through day 90 once production genuinely caught up with demand, matching v0.4's own "fast
+  initial adjustment, then plateau" shape (just at a higher, more genuinely food-pressured
+  baseline) — but this is worth a future tuning pass (raise the trigger thresholds a band, or the
+  food-supply targets) for a campaign that wants a visibly less "hungry" ordinary day, since a
+  ~0.7-0.8 average still puts a typical villager solidly in the 'urgent' band most of the time
+  rather than the milestone's own illustrative "hungry but functional" middle
   ground.
 - **The three real regressions in §3.4** are the most important disclosure in this document: the
   first, most obviously-correct implementation of "protect a committed goal" (an absolute
