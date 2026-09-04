@@ -61,7 +61,18 @@ const KEY = 'infinite-rpg-save-v1';
 // change, already round-trips. Dynamic price state is NOT persisted: prices are recomputed on
 // demand, purely as a function of current canonical stock (never accumulated history), so there
 // is nothing to save (see world/pricing.ts).
-export const SAVE_VERSION = 9;
+// v0.7: bumped 9 -> 10 for `Person.physiology.wetness` — a new REQUIRED field on the
+// already-whole-object-persisted `physiology` (unlike v0.6's purely optional additions, which
+// needed no bump: `KnowledgeItem.lastConfirmedAt?`, the new `'service'`/`'affordance'` kinds, and
+// `HaulTask.materialSellerId?` are all safely absent-by-default on an old save). `wetness` is
+// NOT optional and `stepWetness`/`syncNeeds` do real arithmetic on it every physiology step
+// (core/physiology.ts) — an old save's `physiology` object loaded as-is (`s.physiology ??
+// p.physiology` in `deserialize` below) would leave it `undefined`, and `undefined` propagating
+// through `clamp01(wetness + delta)` corrupts to `NaN` and then contaminates `fatigue`/
+// `needs.comfort` too (the same class of bug v0.4 bumped 6 -> 7 to prevent for `Person.
+// physiology` itself). Bumping forces `hasSave()`/`deserialize` to reject a pre-v0.7 save
+// outright instead of silently loading corrupted physiology.
+export const SAVE_VERSION = 10;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and

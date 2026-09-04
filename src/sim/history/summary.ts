@@ -62,7 +62,7 @@ export interface WorldRunSummary {
    * labour stopped competing for a person's attention (Constitution v0.4 §23/§29). */
   embodied: {
     physiology: {
-      avgEnergy: number; avgHydration: number; avgFatigue: number; avgSleepDebt: number; avgBodyHeat: number;
+      avgEnergy: number; avgHydration: number; avgFatigue: number; avgSleepDebt: number; avgBodyHeat: number; avgWetness: number;
     };
     requests: RequestSummary;
     /** Real, conserved currency moved as wages vs. purchases this run (see core/requests.ts's
@@ -80,6 +80,27 @@ export interface WorldRunSummary {
   commitments: { committed: number; suspended: number; resumed: number; abandoned: number };
   production: ProductionSummary;
   pricing: { breadPriceAtBakery: number | null; breadPriceAtStall: number | null };
+  /** v0.7 §A/B: real economic circulation — closing the wage/wealth gap v0.6 disclosed (docs/
+   * V0_6_KNOWLEDGE_MEMORY_SKILLS_INTENT.md §3.4). `wholesaleAmount` is the NEW wholesale-trade
+   * flow (world/trade.ts) alongside the pre-existing `embodied.wagesPaid`/`purchasesSpent`;
+   * `wealthByOccupation` is a bounded per-occupation-category average so a run can be judged for
+   * "did fixing circulation actually reach ordinary working villagers" without dumping all 33+
+   * individual wealth figures. Currency is only ever tracked, never invented — every silver
+   * counted here already moved through `payWage`/`buyFoodPortion`/`settleWholesale`, each of
+   * which caps a payer at their own actual wealth. */
+  circulation: {
+    wholesaleAmount: number;
+    /** v0.7 §B (found via this circulation instrumentation, at the 30/90-day horizon this
+     * milestone's own DoD requires running — see docs/V0_7_CIRCULATION_EXPOSURE_AFFORDANCES.md
+     * §7): `world/metabolism.ts`'s `restockTavern` now charges the innkeeper a real, bounded,
+     * EXPLICIT supply cost instead of restocking for free — closing a one-way wealth sink that
+     * had concentrated 59% of total village wealth into the innkeeper pair by day 90. Tracked
+     * separately from `wholesaleAmount` (a real trade between two parties) since this is
+     * currency deliberately LEAVING the simulation, not moving between two people. */
+    supplyCostAmount: number;
+    wealthByOccupation: Record<string, { avg: number; min: number; max: number; n: number }>;
+    villagersBelow3Silver: number;
+  };
   /** v0.6 Knowledge, Memory, Skills & Intentional Action. `*BandMinutes` are TIME-WEIGHTED (world-
    * minutes actually spent at each severity band — mind/agent.ts's `strategic()`), not a single
    * end-of-run snapshot, so they answer "how much of a person's day is spent at this severity"
@@ -89,6 +110,9 @@ export interface WorldRunSummary {
     hungerBandMinutes: Record<string, number>;
     thirstBandMinutes: Record<string, number>;
     sleepBandMinutes: Record<string, number>;
+    /** v0.7 §Environmental exposure: time-weighted wetness/discomfort band distribution — same
+     * "world-minutes actually spent at each band" shape as the other severity bands above. */
+    comfortBandMinutes: Record<string, number>;
     avgKnowledgePerPerson: number;
     avgMemoriesPerPerson: number;
     knowledgeGained: number;
@@ -196,6 +220,26 @@ export function buildWorldRunSummary(world: World, ctx: WorldRunSummaryContext):
     production: productionSummary(world),
     pricing: breadPricingSnapshot(world),
     cognition: cognitionSummary(world),
+    circulation: circulationSummary(world),
+  };
+}
+
+function circulationSummary(world: World): WorldRunSummary['circulation'] {
+  const alive = world.persons().filter(p => p.alive && !p.controlled);
+  const byOcc: Record<string, number[]> = {};
+  for (const p of alive) (byOcc[p.occupation] ??= []).push(p.wealth);
+  const wealthByOccupation: WorldRunSummary['circulation']['wealthByOccupation'] = {};
+  for (const [occ, wealths] of Object.entries(byOcc)) {
+    wealthByOccupation[occ] = {
+      avg: Math.round((wealths.reduce((a, b) => a + b, 0) / wealths.length) * 100) / 100,
+      min: Math.min(...wealths), max: Math.max(...wealths), n: wealths.length,
+    };
+  }
+  return {
+    wholesaleAmount: world.runTally.wholesale_amount ?? 0,
+    supplyCostAmount: world.runTally.supply_cost_amount ?? 0,
+    wealthByOccupation,
+    villagersBelow3Silver: alive.filter(p => p.wealth < 3).length,
   };
 }
 
@@ -211,6 +255,7 @@ function cognitionSummary(world: World): WorldRunSummary['cognition'] {
     hungerBandMinutes: bandMinutes('hunger_band'),
     thirstBandMinutes: bandMinutes('thirst_band'),
     sleepBandMinutes: bandMinutes('sleep_band'),
+    comfortBandMinutes: bandMinutes('comfort_band'),
     avgKnowledgePerPerson: avg(alive.reduce((n, p) => n + Object.keys(p.knowledge).length, 0)),
     avgMemoriesPerPerson: avg(alive.reduce((n, p) => n + p.memories.length, 0)),
     knowledgeGained: world.runTally.knowledge_gained ?? 0,
@@ -240,6 +285,7 @@ function embodiedSummary(world: World): WorldRunSummary['embodied'] {
       avgFatigue: avg(p => p.physiology.fatigue),
       avgSleepDebt: avg(p => p.physiology.sleepDebt),
       avgBodyHeat: avg(p => p.physiology.bodyHeat),
+      avgWetness: avg(p => p.physiology.wetness),
     },
     requests: requestSummary(world),
     wagesPaid: world.runTally.wage_paid_amount ?? 0,
@@ -285,7 +331,7 @@ export function formatWorldRunSummary(s: WorldRunSummary): string {
   lines.push(`  construction: ${L.construction.complete}/${L.construction.projects} complete${L.construction.details.map(d => ` · ${d.name}: ${d.status} (${Object.entries(d.delivered).map(([k, v]) => `${v}/${d.required[k]} ${k}`).join(', ')}, labour ${d.laborPct}%, ${d.workers} worker(s))`).join('')}`);
   for (const [place, row] of Object.entries(L.stockByPlace)) lines.push(`  stock @ ${place}: ${Object.entries(row).map(([k, v]) => `${v} ${k}`).join(', ')}`);
   const em = s.embodied;
-  lines.push(`Embodied economy: avg energy ${em.physiology.avgEnergy.toFixed(2)}, hydration ${em.physiology.avgHydration.toFixed(2)}, fatigue ${em.physiology.avgFatigue.toFixed(2)}, sleep debt ${em.physiology.avgSleepDebt.toFixed(2)}h, body heat ${em.physiology.avgBodyHeat.toFixed(2)}`);
+  lines.push(`Embodied economy: avg energy ${em.physiology.avgEnergy.toFixed(2)}, hydration ${em.physiology.avgHydration.toFixed(2)}, fatigue ${em.physiology.avgFatigue.toFixed(2)}, sleep debt ${em.physiology.avgSleepDebt.toFixed(2)}h, body heat ${em.physiology.avgBodyHeat.toFixed(2)}, wetness ${em.physiology.avgWetness.toFixed(2)}`);
   lines.push(`  requests: ${em.requests.completed} completed, ${em.requests.failed} failed, ${em.requests.open + em.requests.accepted} open/in-progress; wages paid ${em.wagesPaid}, purchases spent ${em.purchasesSpent}`);
   lines.push(`  work stopped — fatigue ${em.workStopped.fatigue}, thirst ${em.workStopped.thirst}, heat ${em.workStopped.heat}, sleep ${em.workStopped.sleep}; tools broken ${em.toolsBroken}`);
   const cm = s.commitments;
@@ -293,6 +339,9 @@ export function formatWorldRunSummary(s: WorldRunSummary): string {
   const pr = s.production;
   lines.push(`Autonomous production: ${pr.completed} completed, ${pr.open + pr.accepted} open/in-progress, ${pr.failed} failed, ${pr.wagesPaid} wages paid`);
   lines.push(`Bread price now: bakery ${s.pricing.breadPriceAtBakery ?? 'n/a'}, stall ${s.pricing.breadPriceAtStall ?? 'n/a'}`);
+  const cr = s.circulation;
+  lines.push(`Circulation: wholesale trade ${cr.wholesaleAmount} silver, supply costs ${cr.supplyCostAmount} silver (explicit exit); ${cr.villagersBelow3Silver}/${Object.values(cr.wealthByOccupation).reduce((n, v) => n + v.n, 0)} villagers below 3 silver`);
+  lines.push(`  wealth by occupation (avg/min/max): ${Object.entries(cr.wealthByOccupation).map(([occ, w]) => `${occ}=${w.avg}/${w.min}/${w.max}`).join(', ')}`);
   lines.push('');
   lines.push('Most historically significant entities:');
   for (const e of s.topSignificantEntities.slice(0, 10)) lines.push(`  ${e.score.toFixed(2).padStart(5)}  ${e.name}`);

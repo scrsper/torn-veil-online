@@ -1,11 +1,12 @@
 import type { HaulTask, HaulStatus, ItemType, Person, Vec3, EntityId, Place } from '../core/types';
 import type { World } from '../core/world';
 import { makeItem, ITEM_LABEL, RESOURCE_MASS_KG } from '../world/factory';
-import { addPlaceStock, takePlaceStock, retireStack, stockAt } from '../world/stock';
+import { addPlaceStock, takePlaceStock, retireStack, stockAt, stockItemsAt } from '../world/stock';
 import { FARM_SEED_RESERVE } from '../world/metabolism';
 import { getPhysicalCapability } from '../core/attributes';
 import { createRequest, acceptRequest, completeRequest, failRequest } from '../core/requests';
 import { skillOf, practiceSkill } from '../core/skills';
+import { settleWholesale, wholesaleBuyerFor } from '../world/trade';
 
 /**
  * Generalized canonical hauling (v0.3 Living World I, Priority 2 & 4).
@@ -179,6 +180,16 @@ export function loadHaulCargo(world: World, task: HaulTask, person: Person): boo
     failHaulTask(world, task, 'nothing left at the source to carry');
     return false;
   }
+  // v0.7 §A: capture who actually owned this stock BEFORE `takePlaceStock`/the cargo's own
+  // `owner` (below) overwrite it with the requester — the first pickup leg is the only moment
+  // this is still recoverable (see world/trade.ts's `settleWholesale` doc comment). Read
+  // directly off the oldest matching stack (the one `takePlaceStock` is about to drain first),
+  // not the place, so it correctly follows the actual producer even where the Place itself has
+  // no fixed owner (the quarry: stone there is owned by whoever quarried it, not a place role).
+  if (task.materialSellerId === undefined) {
+    const stack = stockItemsAt(world, task.resource, task.sourcePlaceId).sort((a, b) => a.id.localeCompare(b.id))[0];
+    task.materialSellerId = stack?.ownerId ?? world.place(task.sourcePlaceId)?.ownerId ?? world.place(task.sourcePlaceId)?.workers[0] ?? null;
+  }
   takePlaceStock(world, task.resource, n, [task.sourcePlaceId]);
   let cargo = task.cargoItemId ? world.item(task.cargoItemId) : undefined;
   const owner = task.requesterId ?? world.place(task.sourcePlaceId)?.ownerId ?? null;
@@ -220,6 +231,12 @@ export function depositHaulCargo(world: World, task: HaulTask, person: Person): 
     summary: `${person.name} delivered ${n} ${task.resource} to ${world.nameOf(task.destPlaceId)}`,
   });
   addPlaceStock(world, task.resource, n, task.destPlaceId, owner, ev.id, 'delivered');
+  // v0.7 §A: a real wholesale sale, not just a physical move — the receiving side's operator
+  // pays the producer for what just arrived (world/trade.ts). A no-op for destinations that
+  // aren't wholesale-eligible (food-chain retail deliveries like bread->stall_bread stay exactly
+  // as before) and for a self-delivery (the same person on both sides of the trade).
+  const buyer = wholesaleBuyerFor(world, task.destPlaceId, task.projectId);
+  if (buyer !== undefined) settleWholesale(world, task.materialSellerId, buyer, task.resource, n, task.destPlaceId);
   task.delivered += n; task.carried = 0; task.updatedAt = world.now;
   task.cargoItemId = undefined;
   // v0.6 §V.9: a real, physically-completed delivery leg is meaningful work — practice once per

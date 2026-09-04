@@ -83,7 +83,42 @@ export const HEAT_DANGEROUS = 0.92; // forced rest / cooling behaviour
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
 export function defaultPhysiology(now = 0): Person['physiology'] {
-  return { energy: 0.8, hydration: 0.8, fatigue: 0.1, sleepDebt: 0, lastSleepAt: now, bodyHeat: 0.2 };
+  return { energy: 0.8, hydration: 0.8, fatigue: 0.1, sleepDebt: 0, lastSleepAt: now, bodyHeat: 0.2, wetness: 0 };
+}
+
+// ---- wetness / environmental exposure (v0.7)
+/** How fast wetness rises per hour, fully exposed (outdoors, no shelter), at rain intensity 1 —
+ * a person caught in a storm is soaked through in well under an hour; ordinary rain (intensity
+ * ~0.5-0.9) takes proportionally longer. */
+const WETNESS_RAIN_GAIN_PER_HOUR = 0.9;
+/** Drying rate per hour once out of the rain — indoors dries fastest (fire, shelter, a change of
+ * clothes); outdoors-but-dry still air-dries, just slower. */
+const WETNESS_DRY_INDOOR_PER_HOUR = 0.35;
+const WETNESS_DRY_OUTDOOR_PER_HOUR = 0.12;
+/** A soaked person burns a little extra energy staying warm — a real, bounded "temperature
+ * burden" (Constitution v0.7: exposure is a physiological cost, not a behavioral command), on
+ * top of whatever activity-driven fatigue they're already accumulating. Modest: fully soaked
+ * (wetness=1) for a full hour adds less fatigue than one hour of `walk`. */
+const WETNESS_FATIGUE_PER_HOUR = 0.02;
+
+/**
+ * Advance `p.physiology.wetness` by `hours` — the real, accumulating consequence of rain
+ * (Constitution v0.7: "rain is not an instruction"). Rises only while genuinely exposed
+ * (outdoors, and it is actually raining/storming right now); dries otherwise, indoors always
+ * faster than out. Deterministic, bounded 0..1. `syncNeeds` (below) turns this into
+ * `needs.comfort`, which is what goal-utility code (mind/agent.ts) actually reads — nothing
+ * downstream reacts to `world.weather.kind` directly any more for shelter-seeking.
+ */
+function stepWetness(world: World, p: Person, hours: number, indoor: boolean): void {
+  const phys = p.physiology;
+  const wk = world.weather.kind;
+  const raining = (wk === 'rain' || wk === 'storm') ? world.weather.intensity : 0;
+  if (!indoor && raining > 0) {
+    phys.wetness = clamp01(phys.wetness + WETNESS_RAIN_GAIN_PER_HOUR * raining * hours);
+  } else {
+    const dryRate = indoor ? WETNESS_DRY_INDOOR_PER_HOUR : WETNESS_DRY_OUTDOOR_PER_HOUR;
+    phys.wetness = clamp01(phys.wetness - dryRate * hours);
+  }
 }
 
 /**
@@ -93,6 +128,7 @@ export function defaultPhysiology(now = 0): Person['physiology'] {
  */
 export function stepPhysiology(world: World, p: Person, hours: number, activity: ActivityLevel, o: { indoor: boolean; daylight: number } = { indoor: false, daylight: 0.7 }): void {
   if (hours <= 0) return;
+  stepWetness(world, p, hours, o.indoor);
   const phys = p.physiology;
   const asleep = activity === 'sleep';
   // v0.5 §I: species profile + individual variation scale the human-baseline rates below — see
@@ -113,8 +149,9 @@ export function stepPhysiology(world: World, p: Person, hours: number, activity:
   // better conditioning (v0.5 §I.2) means the same exertion accumulates fatigue more slowly.
   const heatFatigueFactor = 1 + Math.max(0, phys.bodyHeat - HEAT_HOT) * 1.5;
   const fatigueRateMult = (profile.fatigueMultiplier / traits.conditioning);
-  if (activity === 'idle') phys.fatigue = clamp01(phys.fatigue - REST_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * hours);
-  else phys.fatigue = clamp01(phys.fatigue + ACTIVITY_FATIGUE_PER_HOUR[activity] * heatFatigueFactor * fatigueRateMult * hours);
+  const wetnessFatigue = WETNESS_FATIGUE_PER_HOUR * phys.wetness * hours;
+  if (activity === 'idle') phys.fatigue = clamp01(phys.fatigue - REST_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * hours + wetnessFatigue);
+  else phys.fatigue = clamp01(phys.fatigue + ACTIVITY_FATIGUE_PER_HOUR[activity] * heatFatigueFactor * fatigueRateMult * hours + wetnessFatigue);
 
   // sleep debt
   const sleepNeedMult = profile.sleepNeedMultiplier * traits.sleepNeedFactor;
@@ -172,6 +209,10 @@ export function syncNeeds(p: Person): void {
   p.needs.hunger = clamp01(1 - phys.energy);
   p.needs.thirst = clamp01(1 - phys.hydration);
   p.needs.energy = clamp01(phys.fatigue * 0.55 + Math.min(1, phys.sleepDebt / 9) * 0.55);
+  // v0.7: `needs.comfort` (core/types.ts — previously declared but never read or written) is now
+  // a real, derived expression of environmental exposure, the same staged-migration pattern
+  // hunger/thirst/energy already went through in v0.4 (this doc comment's own preamble).
+  p.needs.comfort = phys.wetness;
 }
 
 /**
@@ -239,3 +280,8 @@ export function hungerBand(p: Person): Severity { return bandFor(p.needs.hunger,
 export function thirstBand(p: Person): Severity { return bandFor(p.needs.thirst, [0.2, 0.4, 0.6, 0.8]); }
 /** `needs.energy` (0..1, sleep pressure — a blend of fatigue and sleep debt). */
 export function sleepBand(p: Person): Severity { return bandFor(p.needs.energy, [0.3, 0.5, 0.7, 0.85]); }
+/** `needs.comfort` (0..1, derived from wetness — v0.7 §Environmental exposure). Damp clothes are
+ * merely noticeable; genuinely soaked-through is what should compete meaningfully with an
+ * uncommitted goal for attention (mind/agent.ts's shelter-seeking utility reads this instead of
+ * raw `world.weather.kind`). */
+export function comfortBand(p: Person): Severity { return bandFor(p.needs.comfort, [0.25, 0.45, 0.7, 0.9]); }
