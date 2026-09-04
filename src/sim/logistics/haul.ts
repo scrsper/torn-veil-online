@@ -64,7 +64,12 @@ const CONSUMER_DEMANDS: Demand[] = [
   // 0 across an 8-day run even though the fire itself lit and burned correctly). A real physical
   // delivery, same as every other consumer demand here — `world/trade.ts`'s wholesale-trade
   // mechanism pays Kestrel for it automatically (WHOLESALE_DEST_TYPES includes 'tavern').
-  { destType: 'tavern', resource: 'meat', sourceType: 'stall', target: 10, trigger: 4, reason: 'the tavern is low on meat for the cook' },
+  // v0.8: `meat` is real, generic food stock the same as anywhere else — any hungry villager at
+  // the tavern can (and does) buy/eat it raw via the existing generic food-purchase path before
+  // the cook ever gets to it (real, measured competition, not a bug: raw meat genuinely can be
+  // eaten OR cooked). A wider target/trigger than the other consumer demands gives the cook a
+  // real chance at some of what arrives rather than every delivery being eaten raw first.
+  { destType: 'tavern', resource: 'meat', sourceType: 'stall', target: 20, trigger: 10, reason: 'the tavern is low on meat for the cook' },
   // v0.8 §C/D: same gap, one resource earlier in the chain — the tavern never had ANY firewood
   // delivery either, so `tendTavernFire`'s own fuel search always found nothing (real headless
   // evidence: the hearth never once lit across an 8-day run despite the fire mechanism itself

@@ -238,9 +238,9 @@ function materialsSummary(world: World): WorldRunSummary['materials'] {
   const riverWoods = world.places().find(p => p.slug === 'river_woods');
   return {
     fire: fireSummary(world),
-    stewsCooked: countEventsByHow(world, 'resource_transformed', 'cooked over the hearth'),
+    stewsCooked: world.runTally.stew_cooked ?? 0,
     itemsCrafted: world.runTally.item_crafted ?? 0,
-    sticksGathered: countEventsByHow(world, 'resource_extracted', 'gathered as a byproduct while felling'),
+    sticksGathered: world.runTally.stick_gathered ?? 0,
     herbsAtRiverWoods: riverWoods ? stockAt(world, 'herbs', riverWoods.id) : 0,
   };
 }
@@ -251,10 +251,6 @@ function materialsSummary(world: World): WorldRunSummary['materials'] {
  * surviving events instead: a coarse, honestly-labelled approximation on a long run where
  * compaction has dropped most low-significance events of that type (same caveat
  * `topSignificantEvents` already carries elsewhere in this file), not a precise lifetime total. */
-function countEventsByHow(world: World, type: import('../core/types').EventType, how: string): number {
-  return world.events.filter(e => e.type === type && e.data?.how === how).length;
-}
-
 function circulationSummary(world: World): WorldRunSummary['circulation'] {
   const alive = world.persons().filter(p => p.alive && !p.controlled);
   const byOcc: Record<string, number[]> = {};
