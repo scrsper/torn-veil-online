@@ -548,7 +548,7 @@ describe('canonical integrity (v0.4 §22)', () => {
     expect(p.needs.thirst).toBeLessThanOrEqual(1);
   });
 
-  it('no impossible currency duplication across a short deterministic run', () => {
+  it('no impossible currency duplication across a short deterministic run — total wealth is conserved exactly minus only EXPLICIT, tracked exits', () => {
     const { world } = newWorld(918271);
     const sim = new Simulation(world);
     const totalBefore = world.persons().reduce((n, p) => n + p.wealth, 0)
@@ -557,7 +557,13 @@ describe('canonical integrity (v0.4 §22)', () => {
     const totalAfter = world.persons().filter(p => p.alive).reduce((n, p) => n + p.wealth, 0)
       + world.persons().filter(p => !p.alive).reduce((n, p) => n + p.wealth, 0) // dead keep their last wealth, still accounted
       + world.items().filter(i => i.type === 'coins').reduce((n, i) => n + i.quantity, 0);
-    expect(totalAfter).toBe(totalBefore);
+    // v0.7 §B: `restockTavern` (world/metabolism.ts) now charges the innkeeper a real, bounded,
+    // EXPLICIT supply cost — currency deliberately leaving the simulation (Constitution v0.7 §B:
+    // "if currency enters or exits the simulation, that must be explicit"), tracked in
+    // `world.runTally.supply_cost_amount` for exactly this kind of audit. Total wealth is still
+    // conserved once that tracked, intentional exit is accounted for — nothing untracked
+    // appeared or vanished.
+    expect(totalBefore - totalAfter).toBe(world.runTally.supply_cost_amount ?? 0);
   });
 
   it('interrupted hauling mid-multi-trip conserves cargo exactly', () => {

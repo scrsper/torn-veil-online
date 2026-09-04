@@ -90,6 +90,14 @@ export interface WorldRunSummary {
    * which caps a payer at their own actual wealth. */
   circulation: {
     wholesaleAmount: number;
+    /** v0.7 §B (found via this circulation instrumentation, at the 30/90-day horizon this
+     * milestone's own DoD requires running — see docs/V0_7_CIRCULATION_EXPOSURE_AFFORDANCES.md
+     * §7): `world/metabolism.ts`'s `restockTavern` now charges the innkeeper a real, bounded,
+     * EXPLICIT supply cost instead of restocking for free — closing a one-way wealth sink that
+     * had concentrated 59% of total village wealth into the innkeeper pair by day 90. Tracked
+     * separately from `wholesaleAmount` (a real trade between two parties) since this is
+     * currency deliberately LEAVING the simulation, not moving between two people. */
+    supplyCostAmount: number;
     wealthByOccupation: Record<string, { avg: number; min: number; max: number; n: number }>;
     villagersBelow3Silver: number;
   };
@@ -229,6 +237,7 @@ function circulationSummary(world: World): WorldRunSummary['circulation'] {
   }
   return {
     wholesaleAmount: world.runTally.wholesale_amount ?? 0,
+    supplyCostAmount: world.runTally.supply_cost_amount ?? 0,
     wealthByOccupation,
     villagersBelow3Silver: alive.filter(p => p.wealth < 3).length,
   };
@@ -331,7 +340,7 @@ export function formatWorldRunSummary(s: WorldRunSummary): string {
   lines.push(`Autonomous production: ${pr.completed} completed, ${pr.open + pr.accepted} open/in-progress, ${pr.failed} failed, ${pr.wagesPaid} wages paid`);
   lines.push(`Bread price now: bakery ${s.pricing.breadPriceAtBakery ?? 'n/a'}, stall ${s.pricing.breadPriceAtStall ?? 'n/a'}`);
   const cr = s.circulation;
-  lines.push(`Circulation: wholesale trade ${cr.wholesaleAmount} silver; ${cr.villagersBelow3Silver}/${Object.values(cr.wealthByOccupation).reduce((n, v) => n + v.n, 0)} villagers below 3 silver`);
+  lines.push(`Circulation: wholesale trade ${cr.wholesaleAmount} silver, supply costs ${cr.supplyCostAmount} silver (explicit exit); ${cr.villagersBelow3Silver}/${Object.values(cr.wealthByOccupation).reduce((n, v) => n + v.n, 0)} villagers below 3 silver`);
   lines.push(`  wealth by occupation (avg/min/max): ${Object.entries(cr.wealthByOccupation).map(([occ, w]) => `${occ}=${w.avg}/${w.min}/${w.max}`).join(', ')}`);
   lines.push('');
   lines.push('Most historically significant entities:');

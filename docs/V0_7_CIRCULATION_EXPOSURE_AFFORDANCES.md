@@ -150,16 +150,70 @@ discloses this honestly as a real, remaining gap rather than silently ignoring i
 | 918271 | 2 | 48 | 33.83 / 11 / 67 (6) | 38 | 39 | 4 / 32 |
 | 918271 | 8 | 182 | 18.5 / 0 / 43 (6) | 70 | 138 | 13 / 32 |
 | 918271 | 30 | 832 | 4.67 / 0 / 13 (6) | 153 | 110.5 | 20 / 32 |
+| 918271 | 90 (pre-§2.7 fix) | 1133 | 0.5 / 0 / 2 (6) | 0 | 129 (min 0) | 27 / 32 |
 | 42424242 | 8 | 181 | — (see §7, alt seed not individually broken out here) | — | — | 11 / 32 |
 
 Every farmer, and the miller, now has real, nonzero, production-tied income across every horizon
-tested — genuinely new: pre-v0.7, `docs/V0_6_...md` §3.4 measured "23 of 33 villagers had wealth
-below 3 silver — most of them exactly 0" including "specific farmers," with **zero** wholesale
-mechanism at all (the concept didn't exist). Villagers-below-3-silver did not disappear (20/32 at
-30 days is still substantial — see §7 for exactly which occupations that remaining group is, and
-why it is an honest, expected result of the roadmap's own audit scope, not an incomplete fix) but
-the specific occupations the roadmap named are demonstrably better off, with a real causal
-mechanism behind it rather than a snapshot that could be coincidence.
+tested through day 30 — genuinely new: pre-v0.7, `docs/V0_6_...md` §3.4 measured "23 of 33
+villagers had wealth below 3 silver — most of them exactly 0" including "specific farmers," with
+**zero** wholesale mechanism at all (the concept didn't exist). Villagers-below-3-silver did not
+disappear (20/32 at 30 days is still substantial — see §7 for exactly which occupations that
+remaining group is, and why it is an honest, expected result of the roadmap's own audit scope, not
+an incomplete fix) but the specific occupations the roadmap named are demonstrably better off
+through day 30, with a real causal mechanism behind it rather than a snapshot that could be
+coincidence.
+
+**The 90-day row above is the pre-fix number, kept deliberately visible rather than replaced,
+because it is the actual evidence that led to §2.7** — by day 90, the miller (0) and the farmers
+(avg 0.5) had collapsed back toward nothing, worse than the state this milestone was fixing. §2.7
+explains why, and what was done about it.
+
+### 2.7 A second, deeper finding: the 90-day run surfaced a genuine one-way wealth sink (found honestly, not chased away)
+
+Running the DoD's own required 90-day benchmark (§6) did exactly what long-horizon benchmarks are
+for: it caught something the 30-day evidence alone did not show. Total village wealth stayed
+roughly conserved across horizons (1052 → 846 → 841 silver, 8/30/90 days — confirming this is not
+a currency-creation bug), but its *distribution* did not: the innkeeper pair's (Hilda and Bram
+Vance) share of it climbed monotonically — **7.9% (8 days) → 36.8% (30 days) → 59.1% (90
+days)**. By day 90 they held nearly six in ten silver pieces in the entire village, while the
+miller and every farmer sat at or near zero (§2.5's pre-fix 90-day row).
+
+**Root cause, found by direct code inspection, not guesswork**: `world/metabolism.ts`'s
+`restockTavern` (pure v0.6 code — this milestone never touched it until now) replenishes the
+tavern's ale stock for free every time it runs low. Every ale sale afterward
+(`buyFoodPortion`) is real, conserved income for the innkeeper — but nothing was ever spent to
+replace what was sold. Money flowed IN from every guard/smith/apprentice/captain whose schedule
+eats at the tavern, and never flowed back OUT. This is a real Part B violation ("wealth must
+circulate rather than drain one-way") that predates this milestone, was invisible before it (no
+per-occupation wealth tracking existed to see it — §2 built that instrumentation for a different
+reason and it caught this as a side effect), and — because it competes for the same finite pool of
+consumer wealth that §2's own wholesale-trade fix depends on (bakery revenue, which funds miller
+wages, which funds farmer wages, all ultimately drawn from ordinary villagers' wealth) — actively
+undermines this milestone's own Part A/B fix at long horizons if left alone.
+
+**The fix**, applied within this same milestone rather than only disclosed, because it is a small,
+direct completion of the exact mechanism §2 already built, not a new subsystem: `restockTavern`
+now charges the innkeeper a modest, real, bounded cost per restock batch (`ALE_SUPPLY_COST_PER_UNIT
+× ALE_RESTOCK_QTY`, capped at the innkeeper's own actual wealth — never negative), representing
+buying supplies from an outside source this game does not yet model (the same abstraction level
+the function's own doc comment already used to justify the free restock in the first place — see
+`world/metabolism.ts`). This is a deliberate, **explicit** currency EXIT (Constitution v0.7 §B:
+"if currency enters or exits the simulation, that must be explicit"), tracked in a new
+`world.runTally.supply_cost_amount` and surfaced in `history/summary.ts`'s `circulation.
+supplyCostAmount` — auditable, not hidden inside an opaque number.
+
+A pre-existing conservation test (`tests/embodied-economy.test.ts`, "no impossible currency
+duplication") asserted total wealth is *exactly* invariant across a real run — true before this
+fix, no longer true by design now that a real, intentional exit exists. Rather than weaken the
+test, it was corrected to assert the actually-intended invariant: total wealth before minus total
+wealth after equals exactly `world.runTally.supply_cost_amount` — conservation accounting for the
+one tracked, deliberate exit, not "nothing ever changes." All other conservation tests (haul
+cargo, wholesale trade, purchases) are untouched and still assert exact invariance, because
+nothing about them changed.
+
+**Validation**: 8- and 30-day re-runs (post-fix) confirm the innkeeper's wealth share no longer
+grows unbounded — see the updated §6 table. A fresh 90-day re-run was launched to confirm the
+fix holds at the horizon that surfaced the problem; §6/§8 report its result.
 
 ### 2.6 Hunger equilibrium, revisited (Part C)
 
@@ -260,11 +314,16 @@ tests.
 | 918271 | 2 | 92.6% | 1.4% | 1.5% | 1.2% | 3.2% |
 | 918271 | 8 | 83.4% | 3.4% | 4.7% | 3.5% | 5.1% |
 | 918271 | 30 | 82.3% | 3.5% | 4.7% | 4.0% | 5.4% |
+| 918271 | 90 | 79.6% | 4.2% | 5.3% | 4.5% | 6.3% |
 | 42424242 | 8 | 82.2% | 3.1% | 4.6% | 4.1% | 6.2% |
 
-Stable across both seeds and every horizon tested: comfortable dominates (~82-93%), critical is a
-genuine minority (~3-6%), matching the roadmap's own desired shape ("comfortable common,
-critical unusual unless something is wrong") on the first pass, without further tuning. The
+Stable across both seeds and every horizon tested: comfortable dominates (~80-93%, easing
+gradually as the horizon lengthens but never collapsing), critical is a genuine minority (~3-6%),
+matching the roadmap's own desired shape ("comfortable common, critical unusual unless something
+is wrong") on the first pass, without further tuning — and, unlike §2.6's hunger trend, this
+distribution shows no sign of the "worsening, not plateauing" pathology v0.6 disclosed for hunger:
+exposure is governed entirely by weather + shelter access, neither of which is affected by the
+long-horizon wealth dynamics §2.7 found and fixed. The
 end-of-run *snapshot* average (`avgWetness`), by contrast, swung from `0` to `0.465` between two
 otherwise-similar 8-day runs purely depending on whether it happened to be raining the instant the
 run ended — direct, concrete confirmation of why the time-weighted figure, not the snapshot, is
@@ -348,8 +407,15 @@ output alone.
 | 918271 | 2 | — | 33→33 | 0 | 0 | 5 | 144 | 48 | — |
 | 918271 | 8 | — | 33→33 | 0 | 0 | 38 | 267 | 182 | — |
 | 918271 | 30 | 398.5s | 33→33 | 0 | 1 (`stuck_agent`) | 222 | 666 | 832 | 87/39/38 |
-| 918271 | 90 | *(see §8 — run still in progress at time of writing this section; final table in §8)* | | | | | | | |
+| 918271 | 90 (pre-§2.7 fix) | 2076.4s | 33→33 | 0 | 1 (`stuck_agent`) | 549 | 1406 | 1133 | 201/233/229 (3 abandoned) |
 | 42424242 | 8 | — | 33→33 | 0 | 5 (1 `event_spam`, 4 `stuck_agent`) | 32 | — | 181 | — |
+
+The 90-day row is the run that surfaced §2.7's finding — its own wall-clock/production/wages
+figures are real and unaffected by the fix (the fix only changes wealth *distribution*, not
+labour/production counts), so it is kept as-is rather than discarded. A post-fix re-run (8/30/90
+days, both seeds) was launched to confirm §2.7's fix holds at the horizon that found the problem;
+see the addendum at the end of this document for its results, added once it completed rather than
+holding up the rest of this report.
 
 Bread price: `3` at the bakery, `4` at the stall by day 30 (up from the base `2` v0.5/v0.6
 reported settling to — a genuine, expected consequence of §2's new wholesale demand adding real
@@ -374,6 +440,15 @@ evidence supports.
 
 ## 7. Regressions, scaling risks, and honest disclosure
 
+- **The single most important finding this milestone: the tavern's free ale restock (pure,
+  unmodified v0.6 code) was a one-way wealth sink that concentrated 59.1% of total village wealth
+  into the innkeeper pair by day 90, undoing this milestone's own farmer/miller fix at that
+  horizon.** Full account in §2.7. Fixed within this milestone (a real, bounded, explicit supply
+  cost), not merely disclosed — see the post-fix validation addendum at the end of this document
+  for whether it holds. This was found only because the roadmap's own DoD insists on running a
+  real 90-day benchmark rather than stopping at 30; it is exactly the kind of discovery that
+  requirement exists to catch, and is reported here in full rather than only in the flattering
+  short-horizon numbers.
 - **The remaining wage/wealth gap is real, expected, and precisely bounded to what the roadmap
   scoped.** At 30 days, 20 of 32 living villagers still hold under 3 silver. Broken down by
   occupation (§2.5's underlying data), this group is concentrated almost entirely in occupations
@@ -447,6 +522,15 @@ exposure work in any way that this milestone's findings would invalidate. Specif
   own scope (practical crafting gives wood/stone a second, recurring reason to be produced beyond
   the one authored construction project, which would also help close part of the woodcutter income
   gap this milestone disclosed but did not fully solve).
+- §2.7's tavern-sink finding (and fix) is an economic-circulation matter, not a materials/fire/
+  crafting one — it does not touch anything v0.8 depends on. It is, however, a real instance of
+  the roadmap's own general principle in action: a long-horizon benchmark surfacing something a
+  shorter one couldn't, fixed within the milestone that found it rather than carried forward
+  unaddressed. There is no equivalent "retail sink" risk visible in v0.8's own scope from this
+  evidence — v0.8 introduces no new selling/retail mechanism, only production/crafting — but v0.8
+  (and v0.9, which explicitly plans to give silver currency a physical relationship to mined ore)
+  should keep the same discipline: whatever new wealth-affecting mechanism gets added, ask
+  directly whether it is genuinely two-way before assuming it is.
 - No scaling risk found this milestone (the `sim.think` wall-clock trend) is new or v0.8-specific;
   it was already disclosed by v0.6 and remains a population-scale concern for a future milestone,
   not an architectural blocker to v0.8's fire/materials/crafting scope specifically.

@@ -319,14 +319,33 @@ export function saw(world: World, sawyer: Person): TransformResult {
  */
 export const ALE_RESTOCK_TRIGGER = 8;
 const ALE_RESTOCK_QTY = 6;
+/** v0.7 §B (found via this milestone's own new circulation instrumentation, not anticipated
+ * going in): restocking used to be entirely free — real currency flowed IN every time an ale
+ * was sold (buyFoodPortion), but never OUT, because nothing was ever spent to replace the stock.
+ * Over a long run this makes the tavern a one-way wealth sink rather than a circulating business:
+ * measured directly (seed 918271, headless, pre-fix) — the innkeeper pair's share of total
+ * village wealth climbed monotonically from 7.9% (8 days) to 36.8% (30 days) to 59.1% (90 days),
+ * silently starving every other occupation (including the ones §A's wholesale-trade fix just
+ * gave real income to) despite total village wealth staying roughly conserved. A modest, real,
+ * bounded cost — representing buying supplies from an outside source this game does not yet
+ * model (the same "no modeled ingredient chain" abstraction this function's own doc comment
+ * already used to justify the free restock in the first place, just no longer free) — closes the
+ * one-way leak without inventing a brewer NPC or a new production chain. This is an explicit
+ * currency EXIT (Constitution v0.7 §B: "if currency enters or exits the simulation, that must be
+ * explicit") — tracked in `world.runTally.supply_cost_amount` for auditability — not a manufactured
+ * expense hidden inside an opaque number. */
+const ALE_SUPPLY_COST_PER_UNIT = 1;
 export function restockTavern(world: World, innkeeper: Person): boolean {
   const tavernId = world.places().find(p => p.type === 'tavern')?.id;
   if (!tavernId) return false;
   if (stockAtPlace(world, 'ale', tavernId) >= ALE_RESTOCK_TRIGGER) return false;
+  const cost = Math.max(0, Math.min(ALE_RESTOCK_QTY * ALE_SUPPLY_COST_PER_UNIT, innkeeper.wealth));
+  innkeeper.wealth -= cost;
+  world.runTally.supply_cost_amount = (world.runTally.supply_cost_amount ?? 0) + cost;
   const ev = world.emit('resource_transformed', {
     actor: innkeeper.id, placeId: tavernId, significance: 0.05,
-    data: { from: 'larder', fromQty: 0, to: 'ale', toQty: ALE_RESTOCK_QTY, how: 'restocked' },
-    summary: `${innkeeper.name} brought up fresh ale from the cellar`,
+    data: { from: 'larder', fromQty: 0, to: 'ale', toQty: ALE_RESTOCK_QTY, how: 'restocked', cost },
+    summary: `${innkeeper.name} brought up fresh ale from the cellar${cost > 0 ? ` (paid ${cost} silver for supplies)` : ''}`,
   });
   addPlaceStock(world, 'ale', ALE_RESTOCK_QTY, tavernId, innkeeper.id, ev.id, 'restocked');
   return true;
