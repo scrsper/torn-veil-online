@@ -143,6 +143,9 @@ export function releaseFromCustody(world: World, detainee: Person, reason: strin
   const faction = c.byFactionId ? world.faction(c.byFactionId) : null;
   const body = world.primaryBody(detainee.id);
   if (body && body.pose === 'downed') { body.pose = 'stand'; body.subduedUntil = 0; }
+  // Keep a low profile for a while rather than walking out and immediately re-offending
+  // (Constitution §19 behavioural quality; avoids a revolving-door custody loop).
+  detainee.mind.layLowUntil = world.now + 12 * 3600;
   world.emit('custody_ended', {
     actor: c.byId ?? undefined, target: detainee.id, placeId: body ? world.placeAt(body.pos)?.id : undefined,
     significance: 0.4, category: 'history',

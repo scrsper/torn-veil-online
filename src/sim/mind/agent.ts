@@ -313,7 +313,12 @@ export class Simulation {
         const onCooldown = !!cooldownUntil && cooldownUntil > w.physicalTime;
         const planInFlight = m.plan.length > 0 && !m.plan.every(a => a.status === 'done' || a.status === 'failed');
         const alreadyRobbingThis = m.goal?.type === 'rob' && m.goal.targetEntity === t.id && planInFlight;
-        if (!isGuard && oppositionStrength > 0.45 && fleeFromOpposition > engageU && !alreadyRobbingThis) {
+        // v0.2.3: recently released from custody — keep a low profile, don't start a fresh
+        // robbery (defence against a revolving-door custody loop; §19 behavioural quality).
+        const layingLow = !isGuard && (m.layLowUntil ?? 0) > now && !alreadyRobbingThis;
+        if (layingLow) {
+          if (t.hostile !== p.hostile && (t.occupation === 'guard' || t.occupation === 'captain') && threat.d < 12) G('flee', clamp(0.5 + threat.fear * 0.4), [`the watch is about and I only just got out`, 'lying low'], { targetEntity: t.id });
+        } else if (!isGuard && oppositionStrength > 0.45 && fleeFromOpposition > engageU && !alreadyRobbingThis) {
           G('flee', fleeFromOpposition, [`${t.name} looks like more trouble than it's worth`, `opposition ${oppositionStrength.toFixed(2)}`], { targetEntity: t.id });
         } else if (!onCooldown || alreadyRobbingThis) {
           G(intent === 'rob' ? 'rob' : 'attack', engageU, [`${t.name} is an enemy`, `courage ${p.traits.courage.toFixed(2)}`, `intent: ${intent}`, pressure ? `resource pressure ${pressure.toFixed(2)}` : '', oppositionStrength > 0.2 ? `opposition ${oppositionStrength.toFixed(2)}` : ''], { targetEntity: t.id, data: { intent } });
@@ -628,7 +633,8 @@ export class Simulation {
         body.pose = 'talk'; body.poseUntil = w.physicalTime + 1; body.yaw = Math.atan2(-(tb.pos.x - body.pos.x), -(tb.pos.z - body.pos.z));
         const intent = (a.data?.intent as ConflictIntent) ?? 'rob';
         const demandEv = w.emit('confrontation', { actor: p.id, target: t.id, pos: { ...body.pos }, placeId: w.placeAt(body.pos)?.id, significance: 0.4, visibility: 16, loudness: 10, data: { demand: true, intent }, summary: `${p.name} demanded ${t.name} hand over their valuables` });
-        touchConflict(w, beginConflict(w, { initiator: p.id, target: t.id, cause: 'robbery', intent: 'rob', causeEvent: demandEv.id }));
+        const robCf = beginConflict(w, { initiator: p.id, target: t.id, cause: 'robbery', intent: 'rob', causeEvent: demandEv.id });
+        touchConflict(w, robCf); demandEv.data.conflictId = robCf.id;
         const compliant = resolveRobberyCompliance(w, t, p);
         if (compliant) { this.say(p, `Smart. Hand it over.`); m.plan.push({ type: 'rob', targetEntity: t.id, status: 'pending', data: { intent, compliant: true } }); }
         else { this.say(p, `Wrong answer, then.`); m.plan.push({ type: 'attack', targetEntity: t.id, status: 'pending', data: { intent: intent === 'rob' ? 'subdue' : intent } }, { type: 'rob', targetEntity: t.id, status: 'pending', data: { intent, compliant: false } }); }
@@ -816,7 +822,7 @@ export class Simulation {
     // maintainConflicts reads it as the aggressor fleeing, not the guard withdrawing.
     if (k) {
       const cf = beginConflict(w, { initiator: t.id, target: p.id, cause: 'crime_response', intent: sev >= 0.6 ? 'arrest' : 'threaten', causeEvent: ev.id });
-      touchConflict(w, cf);
+      touchConflict(w, cf); ev.data.conflictId = cf.id;
     }
     const src = k ? (k.source.type === 'told' ? `${w.nameOf(k.source.from).split(' ')[0]} told me` : 'I know') : '';
     if (sev >= 0.6) { this.say(p, `${t.name}! ${src} you attacked ${k?.claim.target ? w.nameOf(k.claim.target) : 'someone'}. You're coming with me.`); // escalate to force
@@ -873,6 +879,7 @@ export class Simulation {
           : attacker.hostile !== vp.hostile ? 'faction_hostility' : 'retaliation');
       conflict = beginConflict(w, { initiator: attacker.id, target: vp.id, cause, intent: intent ?? 'injure', causeEvent: ev.id });
       recordConflictBlow(w, conflict, attacker.id, intent);
+      ev.data.conflictId = conflict.id; // lets the Chronicle fold a whole fight into one entry
     }
     if (tb.health <= 0) {
       const lethal = intent === 'kill' || victim.kind === 'creature' || (attacker.controlled && (wasDowned || (intent === undefined && dmg > 20 && w.rng.next() < 0.5)));

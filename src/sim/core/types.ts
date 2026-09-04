@@ -232,6 +232,10 @@ export interface Mind {
    * not immediately re-target a victim who is merely recovering from being downed — this is
    * what actually ends a robbery instead of it silently repeating. See mind/robbery.ts. */
   robCooldowns?: Record<EntityId, number>;
+  /** v0.2.3: world-time until which this actor keeps a low profile after being released from
+   * custody — they do not initiate fresh robberies/aggression, so a released detainee does not
+   * immediately re-offend and cycle straight back into custody. Transient, not persisted. */
+  layLowUntil?: number;
   /** v0.2.3: per-target cooldown (world-time seconds until) after abandoning a pursuit that
    * could not physically reach its quarry. Without it, a guard who perceives an unreachable
    * known criminal re-adopts `attack`/`confront` every think tick, replans goto→fails→gives
