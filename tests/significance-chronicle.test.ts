@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { beginConflict, recordConflictBlow, resolveConflict } from '../src/sim/social/conflict';
 import { createTestWorld, addPerson, v } from './helpers/world';
 import { computeHistoricalSignificance, topSignificantEntities } from '../src/sim/history/significance';
 import { buildChronicle, causalAncestry } from '../src/sim/history/chronicle';
@@ -139,6 +140,34 @@ describe('World Chronicle (Constitution §52, v0.2 Part 14)', () => {
     expect(fightEntries.length).toBe(1);
     expect(fightEntries[0].sourceEventIds.length).toBe(6);
     expect(fightEntries[0].text).toContain('6 times');
+  });
+
+  it('folds an entire canonical conflict — dozens of blows — into ONE entry, with its turning points kept separate (v0.2.3 Priority 9)', () => {
+    const tw = createTestWorld(520);
+    const g = addPerson(tw, 'Dunstan Mole', 'guard', v(5, 1, 5));
+    const bandit = addPerson(tw, 'Vex', 'bandit', v(6, 1, 5)); bandit.hostile = true;
+    const base = tw.world.now;
+    const cf = beginConflict(tw.world, { initiator: bandit.id, target: g.id, cause: 'crime_response', intent: 'arrest' });
+    for (let i = 0; i < 40; i++) {
+      const actor = i % 2 === 0 ? g : bandit;
+      const e = tw.world.emit('attack', { actor: actor.id, target: (actor === g ? bandit : g).id, significance: 0.7, tick: base + i * 20, summary: `${actor.name} attacked (5 dmg)` });
+      e.data.conflictId = cf.id;
+      recordConflictBlow(tw.world, cf, actor.id, 'arrest');
+    }
+    // A real turning point inside the fight.
+    tw.world.emit('entity_surrendered', { actor: bandit.id, target: g.id, significance: 0.6, category: 'history', tick: base + 900, data: { conflictId: cf.id }, summary: 'Vex surrendered to Dunstan Mole' });
+    resolveConflict(tw.world, cf, 'arrest');
+
+    const entries = buildChronicle(tw.world);
+    const conflictEntries = entries.filter(e => e.text.includes('came into conflict'));
+    expect(conflictEntries.length).toBe(1);                       // 40 blows -> one entry
+    expect(conflictEntries[0].sourceEventIds.length).toBeGreaterThanOrEqual(41); // every blow + markers still traceable
+    expect(conflictEntries[0].text).toMatch(/40 exchanges/);
+    expect(conflictEntries[0].text).toMatch(/arrest/);
+    // the surrender is its own historical moment, not folded away
+    expect(entries.some(e => e.text.includes('Vex surrendered'))).toBe(true);
+    // and the raw blow-by-blow does not appear as separate entries
+    expect(entries.filter(e => /attacked \(5 dmg\)/.test(e.text)).length).toBe(0);
   });
 
   it('does not consolidate distinct kills into one entry, even by the same actor close in time', () => {

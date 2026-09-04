@@ -539,7 +539,15 @@ export class Simulation {
       case 'eat': body.pose = 'sit'; body.sitAnchor = a.pos ?? null; p.needs.hunger = clamp(p.needs.hunger - worldDt / (20 * 60)); if (this.elapsed(a) || p.needs.hunger <= 0.02) { a.status = 'done'; w.emit('meal', { actor: p.id, pos: body.pos, significance: 0.05, summary: `${p.name} ate at ${w.placeAt(body.pos)?.name ?? 'home'}` }); } break;
       case 'work': body.pose = 'work'; body.sitAnchor = a.pos ?? null; this.maybeChat(p, body); if (a.pos && w.rng.next() < physDt * 0.15) { body.yaw += (w.rng.next() - 0.5) * 0.6; } if (this.elapsed(a)) a.status = 'done'; break;
       case 'pray': body.pose = 'pray'; body.sitAnchor = a.pos ?? null; if (this.elapsed(a)) a.status = 'done'; break;
-      case 'wait': body.pose = a.data?.hide ? 'stand' : 'stand'; if (a.data?.social) this.maybeChat(p, body); if (this.elapsed(a)) a.status = 'done'; break;
+      case 'wait': {
+        // v0.2.3: a held-state wait (subdued / surrendered) keeps the body on the ground; every
+        // other wait stands.
+        const heldDown = a.data?.held && (body.subduedUntil > w.physicalTime || !!p.surrender);
+        if (!heldDown) body.pose = 'stand';
+        if (a.data?.social) this.maybeChat(p, body);
+        if (this.elapsed(a)) a.status = 'done';
+        break;
+      }
       case 'look': { body.pose = 'stand'; body.yaw += physDt * 0.5; if (a.data?.investigate) { const key = a.data.key as string; const k = p.knowledge[key]; const suspect = k?.claim.actor as string | undefined; const seen = suspect ? m.percepts.find(pc => pc.entityId === suspect) : null; if (seen) { a.status = 'done'; m.investigated.add(key); m.alarm = 1; break; } if (this.elapsed(a)) { a.status = 'done'; m.investigated.add(key); if (k) k.handled = true; w.emit('investigation', { actor: p.id, pos: body.pos, placeId: k?.claim.placeId, causes: k?.source.viaEvent ? [k.source.viaEvent] : [], significance: 0.4, data: { key, outcome: 'suspect not found' }, summary: `${p.name} investigated ${k ? describeClaim(w, k) : 'a report'} but found no one` }); this.say(p, suspect ? `${w.nameOf(suspect).split(' ')[0]}... where did they go?` : 'Nothing here now.'); } } else if (this.elapsed(a)) a.status = 'done'; break; }
       case 'tell': { const t = w.person(a.targetEntity!); const tb = w.primaryBody(a.targetEntity!); if (!t || !tb || dist2(body.pos, tb.pos) > 3.5) { a.status = 'failed'; break; } const k = p.knowledge[a.data?.key]; if (k) this.tell(p, t, k); body.pose = 'talk'; body.poseUntil = w.physicalTime + 2; a.status = 'done'; break; }
       case 'talk': {
@@ -721,7 +729,13 @@ export class Simulation {
     if (b.pose === 'hit' || b.pose === 'downed' || b.pose === 'dead') { const nx = b.pos.x + b.vel.x * dt, nz = b.pos.z + b.vel.z * dt; if (!g.isSolidAt(nx, b.pos.y + 0.5, nz)) { b.pos.x = nx; b.pos.z = nz; } b.vel.x *= Math.max(0, 1 - dt * 4); b.vel.z *= Math.max(0, 1 - dt * 4); }
     if (b.pose === 'hit' && b.poseUntil < this.world.physicalTime) b.pose = 'stand';
     if (b.pose === 'attack' && b.poseUntil < this.world.physicalTime) { b.pose = 'stand'; b.attackTarget = null; }
-    if (b.pose === 'downed' && b.poseUntil < this.world.physicalTime) { b.pose = 'stand'; b.health = Math.max(b.health, b.maxHealth * 0.3); }
+    if (b.pose === 'downed' && b.poseUntil < this.world.physicalTime && b.subduedUntil < this.world.physicalTime) {
+      // v0.2.3: a body whose owner has surrendered or is in custody stays down — it does not
+      // spring back up when the plain knock-down timer lapses.
+      const owner = this.world.get(b.ownerId) as Person | undefined;
+      const heldByState = owner?.kind === 'person' && (!!owner.surrender || !!owner.custody?.active);
+      if (!heldByState) { b.pose = 'stand'; b.health = Math.max(b.health, b.maxHealth * 0.3); }
+    }
   }
   private creatureStep(c: Creature, dt: number): void {
     const w = this.world; const b = w.primaryBody(c.id); if (!b || b.dead) return;
