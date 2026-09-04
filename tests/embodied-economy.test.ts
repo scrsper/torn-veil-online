@@ -152,6 +152,36 @@ describe('strength and mass-aware hauling (v0.4 §2/§4)', () => {
     expect(stockAt(tw.world, 'stone', src.id)).toBe(18); // conserved: 30 - 12
   });
 
+  it('a weakened real villager makes genuine multi-trip progress on an oversized haul through the real think()/act() loop', () => {
+    // The real village (not an isolated two-person test world) — so ordinary needs (thirst,
+    // socializing, sleep) compete exactly as they do in every other full-sim test, rather than
+    // an artificial world with no well/tavern/etc. dominating the decision every cycle.
+    const { world, gen } = newWorld(4104);
+    const sim = new Simulation(world);
+    const hauler = gen.people.bors; // the woodcutter — already role-affine for bulk materials
+    hauler.attributes.strength = 0.15; // weak enough that one trip cannot cover the whole task
+    const mill = world.places().find(p => p.type === 'mill')!;
+    const bakery = world.places().find(p => p.type === 'bakery')!;
+    // 'plank' (8kg/unit) at strength 0.15 caps at ~2-3 units/trip — a 10-unit task needs several.
+    makeItem(world, 'plank', 'plank', { placeId: mill.id, pos: { ...mill.inside }, quantity: 40 });
+    const perTrip = personalCarryUnits(world, hauler, 'plank');
+    const task = createHaulTask(world, { resource: 'plank', quantity: 10, sourcePlaceId: mill.id, destPlaceId: bakery.id, reason: 'x', requesterId: null, priority: 0.95 });
+    expect(perTrip).toBeLessThan(10);
+    let seconds = 0;
+    const maxSeconds = 10 * SECONDS_PER_HOUR;
+    while (task.status !== 'delivered' && seconds < maxSeconds) {
+      const dt = 0.15; const wdt = world.clock.advance(dt); world.physicalTime += dt;
+      sim.step(dt, wdt); sim.flushSpeech(); seconds += dt;
+    }
+    // Real progress happened through ordinary goal competition — not a stalled task, and never
+    // more than one trip's worth appearing at once (no teleportation of the full quantity).
+    expect(task.delivered).toBeGreaterThan(perTrip);
+    expect(stockAt(world, 'plank', bakery.id)).toBe(task.delivered);
+    expect(stockAt(world, 'plank', mill.id)).toBe(40 - task.delivered - task.carried);
+    const pickups = world.events.filter(e => e.type === 'resource_picked_up' && e.data?.haulId === task.id).length;
+    expect(pickups).toBeGreaterThan(1); // genuinely more than one load — no single-trip teleport
+  }, 30000);
+
   it('carry capacity is never zero even for a heavy material — an improvised trip is always possible', () => {
     const tw = createTestWorld(4103, 20);
     const veryWeak = addPerson(tw, 'Frail', 'farmer', v(5, 1, 5));
