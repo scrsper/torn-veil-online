@@ -57,7 +57,11 @@ export class Inspector {
   }
   tab_state(p: Person): string {
     const b = this.world.primaryBody(p.id);
-    return `<h4>Body</h4><div class="kv"><div>health</div><div>${b ? `${Math.round(b.health)} / ${b.maxHealth}` : '—'}</div><div>pose</div><div>${b?.pose}</div><div>position</div><div>${b ? `${b.pos.x.toFixed(1)}, ${b.pos.y.toFixed(1)}, ${b.pos.z.toFixed(1)} — ${this.world.placeAt(b.pos)?.name ?? 'outside'}` : '—'}</div></div><h4>Needs (0 = satisfied)</h4><div class="kv">${Object.entries(p.needs).map(([k, v]) => `<div>${k}</div><div>${this.meter(v)}</div>`).join('')}</div><h4>Emotions</h4><div class="kv">${Object.entries(p.emotions).map(([k, v]) => `<div>${k}</div><div>${this.meter(v)}</div>`).join('')}</div>`;
+    const phys = p.physiology;
+    return `<h4>Body</h4><div class="kv"><div>health</div><div>${b ? `${Math.round(b.health)} / ${b.maxHealth}` : '—'}</div><div>pose</div><div>${b?.pose}</div><div>position</div><div>${b ? `${b.pos.x.toFixed(1)}, ${b.pos.y.toFixed(1)}, ${b.pos.z.toFixed(1)} — ${this.world.placeAt(b.pos)?.name ?? 'outside'}` : '—'}</div></div>`
+      + `<h4>Attributes</h4><div class="kv"><div>strength</div><div>${this.meter(p.attributes.strength)}</div><div>dexterity</div><div>${this.meter(p.attributes.dexterity)}</div></div>`
+      + `<h4>Physiology (1 = full/comfortable, sleep debt in hours)</h4><div class="kv"><div>energy (calories)</div><div>${this.meter(phys.energy)}</div><div>hydration</div><div>${this.meter(phys.hydration)}</div><div>fatigue</div><div>${this.meter(phys.fatigue)}</div><div>sleep debt</div><div>${phys.sleepDebt.toFixed(1)}h</div><div>body heat</div><div>${this.meter(phys.bodyHeat)}</div></div>`
+      + `<h4>Needs (0 = satisfied)</h4><div class="kv">${Object.entries(p.needs).map(([k, v]) => `<div>${k}</div><div>${this.meter(v)}</div>`).join('')}</div><h4>Emotions</h4><div class="kv">${Object.entries(p.emotions).map(([k, v]) => `<div>${k}</div><div>${this.meter(v)}</div>`).join('')}</div>`;
   }
   tab_relations(p: Person): string {
     const w = this.world; const rows = Object.entries(p.relationships).filter(([id]) => w.get(id)).sort((a, b) => (Math.abs(b[1].affection) + b[1].fear + b[1].grudge + Math.abs(b[1].trust)) - (Math.abs(a[1].affection) + a[1].fear + a[1].grudge + Math.abs(a[1].trust)));

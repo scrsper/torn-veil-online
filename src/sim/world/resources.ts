@@ -298,12 +298,17 @@ export function maintainResourceNodes(world: World): void {
 // ---------------------------------------------------------------- observability
 export interface ResourceNodeSummary {
   trees: { total: number; available: number; depleted: number; regrowing: number };
+  /** v0.4 §14/§23: lifecycle-stage breakdown of currently-regrowing trees — "saplings/young/
+   * mature" (mature-and-regrowing is transient: it flips to `available` the same pass). */
+  treeGrowthStages: Record<'felled' | 'sapling' | 'young' | 'mature', number>;
   stone: { total: number; available: number; remaining: number };
   extracted: number; depletedEvents: number; regrewEvents: number;
 }
 export function resourceNodeSummary(world: World): ResourceNodeSummary {
   const trees = world.resourceNodes.filter(n => n.kind === 'tree');
   const stone = world.resourceNodes.filter(n => n.kind === 'stone');
+  const stages: ResourceNodeSummary['treeGrowthStages'] = { felled: 0, sapling: 0, young: 0, mature: 0 };
+  for (const n of trees) if (n.state !== 'available' && n.growthStage) stages[n.growthStage]++;
   return {
     trees: {
       total: trees.length,
@@ -311,6 +316,7 @@ export function resourceNodeSummary(world: World): ResourceNodeSummary {
       depleted: trees.filter(n => n.state === 'depleted').length,
       regrowing: trees.filter(n => n.state === 'regrowing').length,
     },
+    treeGrowthStages: stages,
     stone: {
       total: stone.length,
       available: stone.filter(n => n.state === 'available').length,

@@ -432,6 +432,17 @@ export class Simulation {
     // simply stop competing (sleep/drink/eat/idle already outbid them once needs are that high;
     // this closes the gap for someone whose needs aren't yet critical but is still spent).
     const laborCapacity = heat === 'dangerous' ? 0 : getPhysicalCapability(p, w).currentExertionCapacity;
+    // Purely observational tallies (Constitution §53/v0.4 §23 "work stopped due to X") — which
+    // physiological pressure is currently the dominant reason labour isn't competing for this
+    // person. Never read back into any decision; a headless run's summary reports these so the
+    // benchmark can show WHY, not just THAT, heavy work fell off.
+    if (!threat && !p.hostile && canHaul(p) && laborCapacity <= 0.15) {
+      const n = p.needs;
+      if (heat === 'dangerous' || heat === 'severe') w.runTally.work_stopped_heat = (w.runTally.work_stopped_heat ?? 0) + 1;
+      else if (p.physiology.hydration < 0.25) w.runTally.work_stopped_thirst = (w.runTally.work_stopped_thirst ?? 0) + 1;
+      else if (n.energy > 0.75) w.runTally.work_stopped_sleep = (w.runTally.work_stopped_sleep ?? 0) + 1;
+      else w.runTally.work_stopped_fatigue = (w.runTally.work_stopped_fatigue ?? 0) + 1;
+    }
     if (!threat && !p.hostile && canHaul(p) && laborCapacity > 0.15) {
       // Haul: physically move a needed resource between two Places.
       const haul = pickHaulTask(w, p, pos);
