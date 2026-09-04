@@ -40,7 +40,16 @@ const KEY = 'infinite-rpg-save-v1';
 // request/wage lifecycle) is new top-level canonical state. `Item.condition` (tool durability)
 // and `ResourceNode.growthStage` (tree lifecycle) round-trip automatically — items and nodes
 // are already whole-object-spread at both ends, so a new plain field needs no extra code here.
-export const SAVE_VERSION = 7;
+// v0.5: bumped 7 -> 8 for Human Physiology / Autonomous Economy canonical state —
+// `Person.species`/`physiologyTraits` (individual metabolic variation, fixed at generation time
+// but not deterministically re-derivable once a future species-change mechanic could alter it —
+// persisted explicitly rather than assumed), `Person.mind.commitment` (goal-commitment state:
+// an active/suspended commitment depends on this run's history and cannot be re-derived from
+// present state alone). `World.requests` gained a new `type: 'production'` variant — no schema
+// change, already round-trips. Dynamic price state is NOT persisted: prices are recomputed on
+// demand, purely as a function of current canonical stock (never accumulated history), so there
+// is nothing to save (see world/pricing.ts).
+export const SAVE_VERSION = 8;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
@@ -51,7 +60,7 @@ export function serialize(world: World): string {
   // investigated is a Set in memory (v0.2.2 Phase 3: O(1) membership instead of an
   // ever-growing array's O(length) .includes() on every guard's every think() tick) — JSON has
   // no native Set, so it round-trips as a plain array here and is rebuilt into a Set on load.
-  const persons = world.persons().map(p => ({ id: p.id, needs: p.needs, emotions: p.emotions, relationships: p.relationships, memories: p.memories, knowledge: p.knowledge, inventory: p.inventory, wealth: p.wealth, alive: p.alive, desires: p.desires, deathTick: p.deathTick, goal: p.mind.goal, investigated: [...p.mind.investigated], decision: p.mind.decision, timeRate: p.timeRate, surrender: p.surrender ?? null, custody: p.custody ?? null, attributes: p.attributes, physiology: p.physiology }));
+  const persons = world.persons().map(p => ({ id: p.id, needs: p.needs, emotions: p.emotions, relationships: p.relationships, memories: p.memories, knowledge: p.knowledge, inventory: p.inventory, wealth: p.wealth, alive: p.alive, desires: p.desires, deathTick: p.deathTick, goal: p.mind.goal, investigated: [...p.mind.investigated], decision: p.mind.decision, timeRate: p.timeRate, surrender: p.surrender ?? null, custody: p.custody ?? null, attributes: p.attributes, physiology: p.physiology, species: p.species, physiologyTraits: p.physiologyTraits, commitment: p.mind.commitment ?? null }));
   // v0.2.3: a subdued body must reload still subdued (unlike `pose`, which is reset). Persist the
   // physical-time timestamp; a downed pose is reconstructed from it on load.
   const bodies = world.bodies().map(b => ({ id: b.id, pos: b.pos, yaw: b.yaw, health: b.health, maxHealth: b.maxHealth, dead: b.dead, pose: b.pose === 'dead' ? 'dead' : (b.subduedUntil > world.physicalTime ? 'downed' : 'stand'), present: b.present, subduedUntil: b.subduedUntil }));
@@ -126,7 +135,7 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     for (const e of data.events) { world.events.push(e); world.eventIndex.set(e.id, e); }
     if (!world.events.length) { world.events = genEvents; for (const e of genEvents) world.eventIndex.set(e.id, e); }
     world.setCounters(data.counters); world.clock = new WorldClock(data.clock); world.physicalTime = data.physicalTime ?? 0; world.weather = data.weather; world.playerId = data.playerId;
-    for (const s of data.persons) { const p = world.person(s.id); if (!p) continue; Object.assign(p, { needs: s.needs, emotions: s.emotions, relationships: s.relationships, memories: s.memories, knowledge: s.knowledge, inventory: s.inventory, wealth: s.wealth, alive: s.alive, desires: s.desires, deathTick: s.deathTick, timeRate: s.timeRate ?? 1, surrender: s.surrender ?? null, custody: s.custody ?? null, attributes: s.attributes ?? p.attributes, physiology: s.physiology ?? p.physiology }); p.mind.goal = s.goal ?? null; p.mind.plan = []; p.mind.investigated = new Set(s.investigated ?? []); p.mind.decision = s.decision ?? null; }
+    for (const s of data.persons) { const p = world.person(s.id); if (!p) continue; Object.assign(p, { needs: s.needs, emotions: s.emotions, relationships: s.relationships, memories: s.memories, knowledge: s.knowledge, inventory: s.inventory, wealth: s.wealth, alive: s.alive, desires: s.desires, deathTick: s.deathTick, timeRate: s.timeRate ?? 1, surrender: s.surrender ?? null, custody: s.custody ?? null, attributes: s.attributes ?? p.attributes, physiology: s.physiology ?? p.physiology, species: s.species ?? p.species, physiologyTraits: s.physiologyTraits ?? p.physiologyTraits }); p.mind.goal = s.goal ?? null; p.mind.plan = []; p.mind.investigated = new Set(s.investigated ?? []); p.mind.decision = s.decision ?? null; p.mind.commitment = s.commitment ?? null; }
     for (const s of data.bodies) { const b = world.body(s.id); if (!b) continue; b.pos = s.pos; b.yaw = s.yaw; b.health = s.health; b.maxHealth = s.maxHealth; b.dead = s.dead; b.pose = s.pose; b.present = s.present; b.path = null; b.subduedUntil = s.subduedUntil ?? 0; }
     world.conflicts = (data.conflicts ?? []).map((c: Conflict) => ({ ...c }));
     if (data.fields?.length) { world.fields = data.fields.map((f: Field) => ({ ...f, plots: f.plots.map(p => ({ ...p })) })); }

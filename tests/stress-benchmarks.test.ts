@@ -7,6 +7,7 @@ import { createHaulTask, claimHaulTask, pickHaulTask, personalCarryUnits } from 
 import { createConstructionProject, projectDeficits, stepConstruction } from '../src/sim/world/construction';
 import { plantGrove, registerStoneNodes, extractFromNode } from '../src/sim/world/resources';
 import { addPlaceStock, stockAt, takePlaceStock, worldStock } from '../src/sim/world/stock';
+import { effectivePrice } from '../src/sim/world/pricing';
 import { SECONDS_PER_DAY, SECONDS_PER_HOUR } from '../src/sim/core/time';
 import { B } from '../src/sim/physical/blocks';
 
@@ -104,6 +105,38 @@ describe('stress: tool shortage', () => {
     expect(nodeNoAxe.state).toBe('depleted'); // still possible — just far slower (Constitution v0.4 §5)
   });
 });
+
+describe('stress: v0.5 food abundance vs. scarcity (§XI.1-2)', () => {
+  it('food abundance keeps bread price low and physiological urgency modest', () => {
+    const { world } = newWorld(918271);
+    const sim = new Simulation(world);
+    const bakery = world.places().find(p => p.type === 'bakery')!;
+    // top up bread well above the pricing reference — genuinely abundant, not just "not empty"
+    addPlaceStock(world, 'bread', 200, bakery.id, world.person(bakery.workers[0])?.id ?? null, undefined, 'test');
+    advance(world, sim, 1.5 * SECONDS_PER_DAY / 60);
+    const price = effectivePrice('bread', 2, stockAt(world, 'bread', bakery.id));
+    expect(price).toBeLessThanOrEqual(2);
+    expect(world.persons().filter(p => p.alive).length).toBe(33);
+  }, 60000);
+
+  it('food scarcity (stored food drawn down before crops mature) raises bread price and production/logistics pressure', () => {
+    const { world } = newWorld(918271);
+    const sim = new Simulation(world);
+    const places = world.places().map(p => p.id);
+    takePlaceStock(world, 'bread', 99999, places);
+    takePlaceStock(world, 'flour', 99999, places);
+    const bakery = world.places().find(p => p.type === 'bakery')!;
+    const before = requestCount(world);
+    advance(world, sim, 1.5 * SECONDS_PER_DAY / 60);
+    const price = effectivePrice('bread', 2, stockAt(world, 'bread', bakery.id));
+    expect(price).toBeGreaterThan(2); // scarcity genuinely moves the price, bounded
+    expect(price).toBeLessThanOrEqual(Math.round(2 * 2.2));
+    // logistics/production activity responded — real requests were raised, not a frozen queue
+    expect(requestCount(world)).toBeGreaterThan(before);
+    expect(world.persons().every(p => p.needs.hunger >= 0 && p.needs.hunger <= 1)).toBe(true);
+  }, 60000);
+});
+function requestCount(world: ReturnType<typeof newWorld>['world']): number { return world.requests.length; }
 
 describe('stress: resource competition', () => {
   it('two construction projects competing for the same scarce plank supply do not both get duplicated stock', () => {

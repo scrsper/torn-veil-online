@@ -7,6 +7,8 @@ import { resourceNodeSummary, type ResourceNodeSummary } from '../world/resource
 import { constructionSummary, type ConstructionSummary } from '../world/construction';
 import { stockAt } from '../world/stock';
 import { requestSummary, type RequestSummary } from '../core/requests';
+import { productionSummary, type ProductionSummary } from '../world/production';
+import { effectivePrice } from '../world/pricing';
 
 /**
  * The structured, machine- and human-readable result of a headless world run (v0.2 Part 5).
@@ -70,6 +72,13 @@ export interface WorldRunSummary {
     workStopped: { fatigue: number; thirst: number; heat: number; sleep: number };
     toolsBroken: number;
   };
+  /** v0.5 Human Physiology / Autonomous Economy: goal-commitment lifecycle counts (lifetime,
+   * survives event compaction via world.runTally — see the goal_committed/suspended/resumed/
+   * abandoned entries in core/world.ts's TALLIED_TYPES), autonomous bakery production, and a
+   * point-in-time snapshot of the bounded scarcity-responsive bread price. */
+  commitments: { committed: number; suspended: number; resumed: number; abandoned: number };
+  production: ProductionSummary;
+  pricing: { breadPriceAtBakery: number | null; breadPriceAtStall: number | null };
 }
 
 export interface WorldRunSummaryContext {
@@ -157,6 +166,23 @@ export function buildWorldRunSummary(world: World, ctx: WorldRunSummaryContext):
       stockByPlace: stockByProductionPlace(world),
     },
     embodied: embodiedSummary(world),
+    commitments: {
+      committed: world.runTally.goal_committed ?? 0,
+      suspended: world.runTally.goal_suspended ?? 0,
+      resumed: world.runTally.goal_resumed ?? 0,
+      abandoned: world.runTally.goal_abandoned ?? 0,
+    },
+    production: productionSummary(world),
+    pricing: breadPricingSnapshot(world),
+  };
+}
+
+function breadPricingSnapshot(world: World): WorldRunSummary['pricing'] {
+  const bakery = world.places().find(p => p.type === 'bakery');
+  const stall = world.places().find(p => p.type === 'stall' && p.name.toLowerCase().includes('bread'));
+  return {
+    breadPriceAtBakery: bakery ? effectivePrice('bread', 2, stockAt(world, 'bread', bakery.id)) : null,
+    breadPriceAtStall: stall ? effectivePrice('bread', 2, stockAt(world, 'bread', stall.id)) : null,
   };
 }
 
@@ -218,6 +244,11 @@ export function formatWorldRunSummary(s: WorldRunSummary): string {
   lines.push(`Embodied economy: avg energy ${em.physiology.avgEnergy.toFixed(2)}, hydration ${em.physiology.avgHydration.toFixed(2)}, fatigue ${em.physiology.avgFatigue.toFixed(2)}, sleep debt ${em.physiology.avgSleepDebt.toFixed(2)}h, body heat ${em.physiology.avgBodyHeat.toFixed(2)}`);
   lines.push(`  requests: ${em.requests.completed} completed, ${em.requests.failed} failed, ${em.requests.open + em.requests.accepted} open/in-progress; wages paid ${em.wagesPaid}, purchases spent ${em.purchasesSpent}`);
   lines.push(`  work stopped — fatigue ${em.workStopped.fatigue}, thirst ${em.workStopped.thirst}, heat ${em.workStopped.heat}, sleep ${em.workStopped.sleep}; tools broken ${em.toolsBroken}`);
+  const cm = s.commitments;
+  lines.push(`Goal commitment: ${cm.committed} committed, ${cm.suspended} suspended, ${cm.resumed} resumed, ${cm.abandoned} abandoned`);
+  const pr = s.production;
+  lines.push(`Autonomous production: ${pr.completed} completed, ${pr.open + pr.accepted} open/in-progress, ${pr.failed} failed, ${pr.wagesPaid} wages paid`);
+  lines.push(`Bread price now: bakery ${s.pricing.breadPriceAtBakery ?? 'n/a'}, stall ${s.pricing.breadPriceAtStall ?? 'n/a'}`);
   lines.push('');
   lines.push('Most historically significant entities:');
   for (const e of s.topSignificantEntities.slice(0, 10)) lines.push(`  ${e.score.toFixed(2).padStart(5)}  ${e.name}`);

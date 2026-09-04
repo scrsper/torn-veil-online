@@ -50,6 +50,14 @@ export interface BenchmarkReport {
     workStopped: { fatigue: number; thirst: number; heat: number; sleep: number };
     treesFelled: number; treesMature: number; stoneRemaining: number;
   };
+  /** v0.5 Human Physiology / Autonomous Economy: goal-commitment lifecycle, autonomous bakery
+   * production, and a point-in-time bread price snapshot — see history/summary.ts. */
+  humanPhysiology: {
+    commitments: { committed: number; suspended: number; resumed: number; abandoned: number };
+    production: { open: number; accepted: number; completed: number; failed: number; wagesPaid: number };
+    breadPriceAtBakery: number | null;
+    breadPriceAtStall: number | null;
+  };
   /** Coarse per-subsystem wall-clock breakdown (ms) — see Simulation.profile / runner.ts's
    * `timing`. Purely diagnostic, never fed back into simulation. */
   timing: Record<string, number>;
@@ -134,6 +142,12 @@ export function buildBenchmarkReport(result: HeadlessRunResult, opts: BuildBench
       treesFelled: summary.logistics.resourceNodes.depletedEvents,
       treesMature: summary.logistics.resourceNodes.trees.available,
       stoneRemaining: summary.logistics.resourceNodes.stone.remaining,
+    },
+    humanPhysiology: {
+      commitments: summary.commitments,
+      production: summary.production,
+      breadPriceAtBakery: summary.pricing.breadPriceAtBakery,
+      breadPriceAtStall: summary.pricing.breadPriceAtStall,
     },
     timing,
     stateHash: canonicalStateHash(world),

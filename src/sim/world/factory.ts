@@ -2,6 +2,7 @@ import type { Person, Body, Item, Place, Faction, Creature, Occupation, Traits, 
 import { World } from '../core/world';
 import { defaultAttributesFor } from '../core/attributes';
 import { defaultPhysiology } from '../core/physiology';
+import { defaultPhysiologyTraitsFor } from '../core/species';
 
 export function makeBody(world: World, ownerId: EntityId, pos: Vec3, shape: Body['shape'] = 'humanoid', maxHealth = 80): Body {
   const b: Body = {
@@ -29,9 +30,10 @@ export function makePerson(world: World, s: PersonSpec): Person {
     id: world.nextId('p'), kind: 'person', name: s.name, createdAt: world.now - s.age * 365 * 86400, tags: s.tags ?? [], slug: s.slug,
     gender: s.gender, age: s.age, occupation: s.occupation, title: s.title, homeId: s.home ?? null, workId: s.work ?? null, factionId: null, householdId: null,
     traits, attributes, physiology: defaultPhysiology(world.now),
+    species: 'human', physiologyTraits: defaultPhysiologyTraitsFor(s.age, appearance.build, appearance.height, attributes.strength),
     needs: { hunger: 0.3, energy: 0.2, social: 0.3, comfort: 0.2, thirst: 0.25 }, emotions: { fear: 0, anger: 0, joy: 0.3, sadness: 0, stress: 0 },
     appearance, bodies: [], timeRate: s.timeRate ?? 1, relationships: {}, memories: [], knowledge: {}, inventory: [], wealth: s.wealth ?? 20,
-    mind: { goal: null, plan: [], decision: null, lastThink: -99, thinkBudget: 0, thinkInterval: 1.5, alarm: 0, percepts: [], attention: null, lastSpokeAt: -99, lastToldAt: {}, investigated: new Set() },
+    mind: { goal: null, plan: [], decision: null, lastThink: -99, thinkBudget: 0, thinkInterval: 1.5, alarm: 0, percepts: [], attention: null, lastSpokeAt: -99, lastToldAt: {}, investigated: new Set(), commitment: null },
     schedule: [], bio: s.bio, alive: true, controlled: false, desires: [], hostile: !!s.hostile, speech: null, cognitiveLOD: 'full',
   };
   world.add(p); return p;

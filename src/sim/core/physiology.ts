@@ -1,5 +1,6 @@
 import type { Body, Person } from './types';
 import type { World } from './world';
+import { physiologyProfileFor, AVERAGE_HUMAN_ADULT } from './species';
 
 /**
  * Embodied physiology (v0.4 §1). Small and extensible, not a medical simulator: five reserves
@@ -85,22 +86,31 @@ export function stepPhysiology(world: World, p: Person, hours: number, activity:
   if (hours <= 0) return;
   const phys = p.physiology;
   const asleep = activity === 'sleep';
+  // v0.5 §I: species profile + individual variation scale the human-baseline rates below — see
+  // core/species.ts. Both default to the identity (1) for the reference AverageHumanAdult, so
+  // this is a pure extension point, not a behavior change, until a second species/individual
+  // spread is introduced.
+  const profile = physiologyProfileFor(p.species);
+  const traits = p.physiologyTraits ?? AVERAGE_HUMAN_ADULT;
 
-  // energy (calories)
-  phys.energy = clamp01(phys.energy - ENERGY_DRAIN_PER_HOUR * ACTIVITY_ENERGY_MULT[activity] * hours);
+  // energy (calories) — larger bodies burn somewhat more baseline fuel for the same activity.
+  phys.energy = clamp01(phys.energy - ENERGY_DRAIN_PER_HOUR * ACTIVITY_ENERGY_MULT[activity] * profile.energyDrainMultiplier * traits.bodySizeFactor * hours);
 
   // hydration — exertion and heat both raise loss
   const heatHydrationFactor = 1 + Math.max(0, phys.bodyHeat - HEAT_MILD) * 1.2;
-  phys.hydration = clamp01(phys.hydration - HYDRATION_DRAIN_PER_HOUR * ACTIVITY_HYDRATION_MULT[activity] * heatHydrationFactor * hours);
+  phys.hydration = clamp01(phys.hydration - HYDRATION_DRAIN_PER_HOUR * ACTIVITY_HYDRATION_MULT[activity] * heatHydrationFactor * profile.hydrationDrainMultiplier * traits.bodySizeFactor * hours);
 
-  // fatigue — heat makes exertion feel worse (Constitution v0.4 §1 "hot -> increased fatigue")
+  // fatigue — heat makes exertion feel worse (Constitution v0.4 §1 "hot -> increased fatigue");
+  // better conditioning (v0.5 §I.2) means the same exertion accumulates fatigue more slowly.
   const heatFatigueFactor = 1 + Math.max(0, phys.bodyHeat - HEAT_HOT) * 1.5;
-  if (activity === 'idle') phys.fatigue = clamp01(phys.fatigue - REST_FATIGUE_RECOVERY_PER_HOUR * hours);
-  else phys.fatigue = clamp01(phys.fatigue + ACTIVITY_FATIGUE_PER_HOUR[activity] * heatFatigueFactor * hours);
+  const fatigueRateMult = (profile.fatigueMultiplier / traits.conditioning);
+  if (activity === 'idle') phys.fatigue = clamp01(phys.fatigue - REST_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * hours);
+  else phys.fatigue = clamp01(phys.fatigue + ACTIVITY_FATIGUE_PER_HOUR[activity] * heatFatigueFactor * fatigueRateMult * hours);
 
   // sleep debt
-  if (asleep) phys.sleepDebt = Math.max(0, phys.sleepDebt - SLEEP_DEBT_RECOVERY_PER_HOUR * hours);
-  else phys.sleepDebt = Math.min(16, phys.sleepDebt + AWAKE_SLEEP_DEBT_PER_HOUR * hours);
+  const sleepNeedMult = profile.sleepNeedMultiplier * traits.sleepNeedFactor;
+  if (asleep) phys.sleepDebt = Math.max(0, phys.sleepDebt - SLEEP_DEBT_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * hours);
+  else phys.sleepDebt = Math.min(16, phys.sleepDebt + AWAKE_SLEEP_DEBT_PER_HOUR * sleepNeedMult * hours);
 
   // body heat: exertion + environment - passive/rest/hydration-supported cooling
   const envKind = world.weather.kind;
@@ -120,15 +130,17 @@ export function stepPhysiology(world: World, p: Person, hours: number, activity:
 export function sleepRecover(p: Person, hours: number): void {
   if (hours <= 0) return;
   const phys = p.physiology;
-  phys.fatigue = clamp01(phys.fatigue - SLEEP_FATIGUE_RECOVERY_PER_HOUR * hours);
-  phys.sleepDebt = Math.max(0, phys.sleepDebt - SLEEP_DEBT_RECOVERY_PER_HOUR * hours);
+  const profile = physiologyProfileFor(p.species);
+  phys.fatigue = clamp01(phys.fatigue - SLEEP_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * hours);
+  phys.sleepDebt = Math.max(0, phys.sleepDebt - SLEEP_DEBT_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * hours);
   syncNeeds(p);
 }
 
 /** Ordinary rest (sitting, waiting, idling) — real recovery, just much less than sleep. */
 export function restRecover(p: Person, hours: number): void {
   if (hours <= 0) return;
-  p.physiology.fatigue = clamp01(p.physiology.fatigue - REST_FATIGUE_RECOVERY_PER_HOUR * hours);
+  const profile = physiologyProfileFor(p.species);
+  p.physiology.fatigue = clamp01(p.physiology.fatigue - REST_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * hours);
   syncNeeds(p);
 }
 
@@ -183,3 +195,38 @@ export function heatBand(p: Person): 'comfortable' | 'mild' | 'hot' | 'severe' |
   if (h >= HEAT_MILD) return 'mild';
   return 'comfortable';
 }
+
+/**
+ * Need severity bands (v0.5 §II.4). A human does not respond to every mild sensation of hunger,
+ * thirst or tiredness — behavioral pressure should rise through recognizable stages rather than
+ * being a single high/low toggle. These are read by goal-utility code (mind/agent.ts) AND by
+ * goal-commitment interruption policy (mind/commitment.ts) so both use one shared definition of
+ * "how bad is this right now," instead of each re-deriving its own thresholds inline.
+ *
+ *   comfortable  — little/no behavioral pressure
+ *   noticeable   — the agent recognizes the need; ordinary goals continue unaffected
+ *   uncomfortable — increasingly influences goal selection
+ *   urgent       — strongly prefers solving the need, but can still finish short/high-priority work
+ *   critical     — physiology overrides ordinary voluntary goals
+ */
+export type Severity = 'comfortable' | 'noticeable' | 'uncomfortable' | 'urgent' | 'critical';
+const SEVERITY_ORDER: Severity[] = ['comfortable', 'noticeable', 'uncomfortable', 'urgent', 'critical'];
+export function severityAtLeast(a: Severity, b: Severity): boolean { return SEVERITY_ORDER.indexOf(a) >= SEVERITY_ORDER.indexOf(b); }
+function bandFor(value: number, thresholds: [number, number, number, number]): Severity {
+  const [noticeable, uncomfortable, urgent, critical] = thresholds;
+  if (value >= critical) return 'critical';
+  if (value >= urgent) return 'urgent';
+  if (value >= uncomfortable) return 'uncomfortable';
+  if (value >= noticeable) return 'noticeable';
+  return 'comfortable';
+}
+/** `needs.hunger` (0..1, derived from caloric energy — see `syncNeeds`). A missed meal should
+ * read as merely noticeable/uncomfortable, not a crisis — see `FOOD_ENERGY_RESTORE`/
+ * `ENERGY_DRAIN_PER_HOUR` for how this rises over real hours of activity. */
+export function hungerBand(p: Person): Severity { return bandFor(p.needs.hunger, [0.25, 0.45, 0.65, 0.85]); }
+/** `needs.thirst` (0..1, derived from hydration). Thresholds sit slightly lower than hunger's —
+ * v0.5 §II.5: "hydration should generally become physiologically urgent faster than calorie
+ * depletion," matching `HYDRATION_DRAIN_PER_HOUR` (11h) draining faster than energy's (16h). */
+export function thirstBand(p: Person): Severity { return bandFor(p.needs.thirst, [0.2, 0.4, 0.6, 0.8]); }
+/** `needs.energy` (0..1, sleep pressure — a blend of fatigue and sleep debt). */
+export function sleepBand(p: Person): Severity { return bandFor(p.needs.energy, [0.3, 0.5, 0.7, 0.85]); }

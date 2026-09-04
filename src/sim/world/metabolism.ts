@@ -4,6 +4,7 @@ import { B } from '../physical/blocks';
 import { makeItem, RESOURCE_CATEGORY, isFood, SPOIL_RATE_PER_DAY } from './factory';
 import { addPlaceStock, takePlaceStock, retireStack, stockAt as stockAtPlace, stockTotal } from './stock';
 import { eatRestoresEnergy, drinkRestoresHydration } from '../core/physiology';
+import { effectivePrice } from './pricing';
 
 // Re-exported for existing callers/tests that import stock helpers from metabolism (v0.3 moved
 // the generalized implementations to sim/world/stock.ts — Priority 1).
@@ -326,7 +327,10 @@ export function findAccessibleFood(world: World, p: Person, atPlaceId: EntityId 
 export function buyFoodPortion(world: World, buyer: Person, forSale: Item, n: number): Item | null {
   const seller = forSale.ownerId ? world.person(forSale.ownerId) : undefined;
   if (!seller || !seller.alive || forSale.holderId || forSale.quantity <= 0) return null;
-  const unit = Math.max(1, forSale.value ?? 2);
+  // v0.5 §V: the price responds to how scarce this resource currently is AT THIS PLACE — bounded,
+  // deterministic (world/pricing.ts), never a flat constant regardless of supply anymore.
+  const stockHere = forSale.placeId ? stockAtPlace(world, forSale.type, forSale.placeId) : forSale.quantity;
+  const unit = effectivePrice(forSale.type, forSale.value ?? 2, stockHere);
   // v0.4 §12/§22: a buyer can never spend money they don't have — affordability genuinely
   // floors at 0 units, not 1 (the pre-v0.4 `Math.max(1, ...)` here forced a sale, and therefore
   // negative buyer wealth, whenever they couldn't afford even a single unit).

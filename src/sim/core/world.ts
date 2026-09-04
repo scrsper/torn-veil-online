@@ -236,6 +236,10 @@ const TALLIED_TYPES = new Set<EventType>([
   // lifetime economy totals in the run summary (world/history/summary.ts).
   'request_created', 'request_accepted', 'request_completed', 'request_failed',
   'wage_paid', 'purchase_made', 'tool_broke', 'collapsed_from_exhaustion', 'heat_forced_rest', 'sleep_completed',
+  // v0.5: goal-commitment transitions are rare relative to other tallied types but still worth
+  // an accurate lifetime count for the benchmark report (§XII "goal suspensions/resumptions/
+  // abandonments") even after compaction drops the low-significance ones.
+  'goal_committed', 'goal_suspended', 'goal_resumed', 'goal_abandoned',
 ]);
 
 function defaultCategory(t: EventType): EventCategory {
@@ -262,6 +266,11 @@ function defaultCategory(t: EventType): EventCategory {
     case 'tool_broke': case 'collapsed_from_exhaustion': case 'heat_forced_rest': return 'world';
     case 'request_created': case 'request_accepted': case 'request_completed': case 'request_failed':
     case 'wage_paid': case 'purchase_made': case 'sleep_completed': case 'tree_growth_stage': return 'world';
+    // v0.5: a genuine abandonment is worth keeping as real (if minor) history — a request/task
+    // that a person gave up on is a small but real causal fact; commit/suspend/resume are
+    // ordinary, frequent 'cognition' events (like goal_changed), judged by significance.
+    case 'goal_committed': case 'goal_suspended': case 'goal_resumed': return 'cognition';
+    case 'goal_abandoned': return 'world';
     default: return 'world';
   }
 }

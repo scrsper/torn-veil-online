@@ -2,6 +2,7 @@ import type { Attributes, Item, Person } from './types';
 import type { World } from './world';
 import { heatBand } from './physiology';
 import { bestToolFor, toolWorkMultiplier, type ToolAction } from './tools';
+import { physiologyProfileFor } from './species';
 
 /**
  * The centralized physical-capability layer (v0.4 §3). Every action that cares "how strong/
@@ -65,7 +66,9 @@ export function getPhysicalCapability(p: Person, _world: World, ctx: { action?: 
 
   const energyCostMultiplier = 1 / clamp(effectiveStrength * 0.6 + 0.4, 0.4, 1.6);
   const fatigueMultiplier = (1 + Math.max(0, phys.bodyHeat - 0.6) * 1.2) / clamp(effectiveStrength * 0.5 + 0.5, 0.5, 1.5);
-  const heatTolerance = 1; // ordinary humans; a future ontological tier raises this.
+  // v0.5 §I: read from the species profile (core/species.ts) rather than hardcoded — 1 for
+  // ordinary humans; a future ontological tier or heat-adapted species raises this.
+  const heatTolerance = physiologyProfileFor(p.species).heatTolerance;
 
   const heat = heatBand(p);
   const heatExertionPenalty = heat === 'dangerous' ? 0.9 : heat === 'severe' ? 0.55 : heat === 'hot' ? 0.2 : 0;
