@@ -1,6 +1,7 @@
 import { World } from '../core/world';
 import type { Anomaly } from '../telemetry/anomaly';
 import type { SignificantEntity } from './significance';
+import { metabolismSummary, type MetabolismSummary } from '../world/metabolism';
 
 /**
  * The structured, machine- and human-readable result of a headless world run (v0.2 Part 5).
@@ -35,6 +36,11 @@ export interface WorldRunSummary {
   anomaliesByType: Record<string, number>;
   topSignificantEntities: SignificantEntity[];
   topSignificantEvents: { id: string; summary: string; significance: number }[];
+  /** v0.2.4 world metabolism: end-of-run field/crop/moisture state + per-run chain activity. */
+  metabolism: MetabolismSummary & {
+    cropsPlanted: number; cropsMatured: number; cropsHarvested: number;
+    resourceTransforms: number; mealsEaten: number; drinks: number; resourceShortages: number;
+  };
 }
 
 export interface WorldRunSummaryContext {
@@ -103,6 +109,17 @@ export function buildWorldRunSummary(world: World, ctx: WorldRunSummaryContext):
     anomaliesByType,
     topSignificantEntities: ctx.significance,
     topSignificantEvents: topEvents,
+    metabolism: {
+      ...metabolismSummary(world),
+      // accurate lifetime counts (world.runTally survives event compaction, unlike world.events)
+      cropsPlanted: world.runTally.crop_planted ?? 0,
+      cropsMatured: world.runTally.crop_matured ?? 0,
+      cropsHarvested: world.runTally.crop_harvested ?? 0,
+      resourceTransforms: world.runTally.resource_transformed ?? 0,
+      mealsEaten: world.runTally.food_consumed ?? 0,
+      drinks: world.runTally.water_consumed ?? 0,
+      resourceShortages: world.runTally.resource_shortage ?? 0,
+    },
   };
 }
 
@@ -115,6 +132,10 @@ export function formatWorldRunSummary(s: WorldRunSummary): string {
   lines.push(`Social/institutional: ${s.reportsToGuards} report(s) to guards, ${s.investigations} investigation(s), ${s.knowledgeTransfers} knowledge transfer(s), ${s.relationshipChanges} relationship change(s), ${s.itemOwnershipChanges} item-ownership change(s), ${s.leadershipChanges} leadership change(s)`);
   lines.push(`Integrity: ${s.pathFailures} path failure(s), ${s.stuckEntities} stuck entit(y/ies), ${s.goalChurnIncidents} goal-churn incident(s), ${s.anomalyCount} anomal(y/ies) total`);
   if (s.anomalyCount) lines.push(`  by type: ${Object.entries(s.anomaliesByType).map(([k, v]) => `${k}=${v}`).join(', ')}`);
+  const m = s.metabolism;
+  lines.push(`Metabolism: ${m.fields} field(s), soil moisture ${m.avgSoilMoisture.toFixed(2)}, crops fallow=${m.crops.fallow}/planted=${m.crops.planted}/growing=${m.crops.growing}/mature=${m.crops.mature}/harvested=${m.crops.harvested} (avg growth ${m.avgGrowth.toFixed(2)})`);
+  lines.push(`  chain: ${m.cropsPlanted} planted, ${m.cropsMatured} matured, ${m.cropsHarvested} harvested → ${m.resourceTransforms} transform(s) → grain ${m.stock.grain} / flour ${m.stock.flour} / bread ${m.stock.bread}`);
+  lines.push(`  needs: avg hunger ${m.avgHunger.toFixed(2)}, avg thirst ${m.avgThirst.toFixed(2)}; ${m.mealsEaten} meal(s), ${m.drinks} drink(s), ${m.resourceShortages} shortage(s)`);
   lines.push('');
   lines.push('Most historically significant entities:');
   for (const e of s.topSignificantEntities.slice(0, 10)) lines.push(`  ${e.score.toFixed(2).padStart(5)}  ${e.name}`);

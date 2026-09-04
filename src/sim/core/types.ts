@@ -89,7 +89,10 @@ export interface Traits {
   courage: number; sociability: number; honesty: number; aggression: number;
   greed: number; piety: number; curiosity: number; loyalty: number;
 }
-export interface Needs { hunger: number; energy: number; social: number; comfort: number; } // 0 = satisfied, 1 = desperate
+// 0 = satisfied, 1 = desperate. `thirst` (v0.2.4) rises faster than hunger and is satisfied
+// only by drinking at a canonical water source. Both drive utility/goal selection; neither is
+// instantly lethal — the point is behavioural pressure, not a survival death-spiral.
+export interface Needs { hunger: number; energy: number; social: number; comfort: number; thirst: number; }
 export interface Emotions { fear: number; anger: number; joy: number; sadness: number; stress: number; } // 0..1
 
 export interface Appearance {
@@ -163,7 +166,10 @@ export type GoalType =
   | 'idle' | 'talk' | 'recover_item' | 'guard_post' | 'follow' | 'return_home_safe'
   // v0.2.3: yield in a losing/hopeless fight rather than fight-to-death or flee-forever; a guard
   // escorting a surrendered/subdued suspect into custody.
-  | 'surrender' | 'escort_custody';
+  | 'surrender' | 'escort_custody'
+  // v0.2.4 world metabolism: seek water when thirsty; plant/harvest a field; the existing
+  // 'work' goal covers milling/baking/tending.
+  | 'drink_water' | 'plant' | 'harvest';
 
 export interface Goal {
   type: GoalType;
@@ -181,7 +187,9 @@ export interface Goal {
 export type ActionType = 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 'talk' | 'tell' | 'attack' | 'look' | 'pickup' | 'face' | 'bark' | 'pray' | 'eat' | 'demand' | 'rob'
   // v0.2.3: yield (drop out of a fight, hands up); take_custody (a guard escorts a
   // surrendered/subdued suspect into detention).
-  | 'yield' | 'take_custody';
+  | 'yield' | 'take_custody'
+  // v0.2.4: drink at a water source; plant/harvest a field plot.
+  | 'drink' | 'plant' | 'harvest';
 export interface Action {
   type: ActionType;
   pos?: Vec3;
@@ -236,6 +244,10 @@ export interface Mind {
    * custody — they do not initiate fresh robberies/aggression, so a released detainee does not
    * immediately re-offend and cycle straight back into custody. Transient, not persisted. */
   layLowUntil?: number;
+  /** v0.2.4: world-time until which this actor has given up looking for food (a search came up
+   * empty). Suppresses re-adopting `eat` every tick during a real food shortage — hunger still
+   * rises (pressure), but the event log doesn't fill with shortage spam. Transient. */
+  noFoodUntil?: number;
   /** v0.2.3: per-target cooldown (world-time seconds until) after abandoning a pursuit that
    * could not physically reach its quarry. Without it, a guard who perceives an unreachable
    * known criminal re-adopts `attack`/`confront` every think tick, replans goto→fails→gives
@@ -294,6 +306,38 @@ export interface Person extends Entity {
 }
 
 export interface Desire { type: 'recover_item' | 'collect_debt' | 'wants_item'; targetId?: EntityId; itemType?: string; note: string; reward: number; fulfilled: boolean; }
+
+// ---------------------------------------------------------------- World metabolism (v0.2.4)
+/**
+ * A crop plot: one canonical square of a `Field` (mapped to a real Farmland voxel cell, but the
+ * canonical state lives here, not in the block — the renderer projects this onto the block).
+ * Lifecycle: fallow → planted → growing → mature → (harvest) → harvested → (regrows to fallow).
+ * Growth advances through world time at a rate scaled by the parent field's soil moisture.
+ */
+export type CropState = 'fallow' | 'planted' | 'growing' | 'mature' | 'harvested';
+export interface CropPlot {
+  x: number; y: number; z: number;      // the voxel cell this plot occupies (crop block at y)
+  crop: 'wheat';                        // only wheat in v0.2.4; the field is generic
+  state: CropState;
+  growth: number;                       // 0..1 progress toward maturity
+  plantedAt: Tick;
+  maturedAt?: Tick;
+  harvestedAt?: Tick;
+  lastYield?: number;                   // grain produced by the last harvest of this plot
+}
+
+/**
+ * A cultivated field (one per farm `Place`). Carries the plot-level crop lifecycle and a single
+ * plot-level `soilMoisture` abstraction (0 dry .. 1 saturated) driven by weather. Rain raises
+ * moisture; dry weather lowers it; moisture governs crop growth rate. No per-voxel hydrology.
+ */
+export interface Field {
+  id: EntityId;
+  placeId: EntityId;                    // the farm Place
+  ownerId: EntityId | null;             // whose grain the harvest becomes
+  soilMoisture: number;                 // 0..1
+  plots: CropPlot[];
+}
 
 /**
  * Explicit conflict intent (Constitution §11 "Conflict Must Have Intent"). Hostility is not
@@ -384,7 +428,17 @@ export interface Creature extends Entity {
 }
 
 // ---------------------------------------------------------------- Items
-export type ItemType = 'sword' | 'dagger' | 'hammer' | 'axe' | 'bread' | 'ale' | 'coins' | 'ring' | 'book' | 'herbs' | 'flowers' | 'meat' | 'cheese' | 'lantern' | 'key' | 'pie' | 'wheat';
+export type ItemType = 'sword' | 'dagger' | 'hammer' | 'axe' | 'bread' | 'ale' | 'coins' | 'ring' | 'book' | 'herbs' | 'flowers' | 'meat' | 'cheese' | 'lantern' | 'key' | 'pie' | 'wheat'
+  // v0.2.4 world-metabolism resources. `grain` is threshed harvested wheat; `flour` is milled
+  // grain; `bread` (already present) is baked flour. See RESOURCE_CATEGORY / metabolism.ts.
+  | 'grain' | 'flour';
+
+/**
+ * v0.2.4: a coarse category for an item type, so production/consumption logic can reason about
+ * "is this food", "is this a raw material", etc. without a per-type `switch`. Deliberately
+ * minimal — extended (not redesigned) when trees/ore/hides arrive.
+ */
+export type ResourceCategory = 'food' | 'material' | 'crop_yield' | 'tool' | 'valuable' | 'misc';
 export interface ProvenanceEntry { tick: Tick; eventId?: EventId; from: EntityId | null; to: EntityId | null; how: string; }
 export interface Item extends Entity {
   kind: 'item';
@@ -463,7 +517,10 @@ export type EventType =
   // was still materially relevant to cognition (an unresolved crime report, or knowledge an
   // active goal/plan step references by key) — purely observational, never a behavior change
   // by itself (the eviction already happened; this just makes it visible instead of silent).
-  | 'knowledge_forgotten';
+  | 'knowledge_forgotten'
+  // v0.2.4 world metabolism — semantic transitions only, never a per-tick growth event.
+  | 'crop_planted' | 'crop_matured' | 'crop_harvested'
+  | 'resource_transformed' | 'food_consumed' | 'water_consumed' | 'resource_shortage';
 
 export type EventCategory = 'world' | 'social' | 'cognition' | 'history';
 

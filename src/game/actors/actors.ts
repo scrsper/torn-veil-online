@@ -122,13 +122,18 @@ export class ActorRenderer {
         const p = owner as Person; let h = this.humans.get(b.id);
         if (!h) { h = new Humanoid(p.appearance); this.humans.set(b.id, h); this.group.add(h.root); h.root.userData.bodyId = b.id; }
         h.root.visible = !(hidePlayerBody && p.controlled);
-        h.root.position.set(b.pos.x, b.pos.y, b.pos.z); h.root.rotation.y = b.yaw;
+        // Canonical facing is `(-sin yaw, -cos yaw)` (the convention perception + combat use —
+        // see Simulation.perceive / followPath). This voxel mesh's "front" (eyes, held item) is
+        // its local +Z, which `rotation.y = yaw` alone would point the OTHER way — the cause of
+        // the "NPCs walking backwards" the v0.2.3 playtest saw. Add PI so the mesh faces the
+        // canonical facing direction. Canonical nav is untouched.
+        h.root.position.set(b.pos.x, b.pos.y, b.pos.z); h.root.rotation.y = b.yaw + Math.PI;
         const held = p.inventory.map(id => this.world.item(id)).find(i => i && ['sword', 'dagger', 'hammer', 'axe', 'lantern'].includes(i.type));
         h.setHeld(b.pose === 'sleep' || b.pose === 'dead' ? '' : (held?.type ?? ''));
         h.animate(dt, b, physTime);
       } else if (b.shape === 'chicken') {
         let c = this.chickens.get(b.id); if (!c) { c = new Chicken(); this.chickens.set(b.id, c); this.group.add(c.root); c.root.userData.bodyId = b.id; }
-        c.root.position.set(b.pos.x, b.pos.y, b.pos.z); c.root.rotation.y = b.yaw; c.animate(dt, b);
+        c.root.position.set(b.pos.x, b.pos.y, b.pos.z); c.root.rotation.y = b.yaw + Math.PI; c.animate(dt, b);
       }
     }
     for (const [id, h] of this.humans) if (!seen.has(id)) { this.group.remove(h.root); this.humans.delete(id); }

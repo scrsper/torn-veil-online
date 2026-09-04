@@ -5,6 +5,7 @@ import { buildHouse, buildTavern, buildSmithy, buildShop, buildChapel, buildGrav
 import { makePerson, makeItem, makePlace, makeBody, makeFaction, makeCreature, ITEM_LABEL } from './factory';
 import { CAST } from './cast';
 import type { Place, Person, Vec3, Anchor, EntityId, Item } from '../core/types';
+import { createFields, cropBlockFor } from './metabolism';
 import { scheduleFor } from '../mind/schedule';
 import { getRel, setRelTags, adjustRel } from '../mind/relationships';
 import { remember } from '../mind/memory';
@@ -46,6 +47,9 @@ export function generateVillage(world: World): GenResult {
   for (let i = 0; i < 6; i++) squareAnchors.push({ pos: v(90 + i * 2, F, 99), kind: 'work', label: 'square' });
   for (const [x, z] of [[92, 92], [100, 92], [92, 100], [100, 100], [96, 90]]) squareAnchors.push({ pos: v(x, F, z), kind: 'inside', label: 'square' });
   P('square', makePlace(world, 'square', 'the village square', bounds(84, 84, 108, 108, F, F + 6), { inside: v(94, F, 94), anchors: squareAnchors, description: 'The cobbled heart of Ashford Vale, around the old well.', indoor: false }));
+  // v0.2.4: the well is a canonical water source (Place), not just square decoration — the
+  // approach cell just outside its wall, so thirsty NPCs can path to it and drink.
+  P('well', makePlace(world, 'well', 'the village well', bounds(CX - 2, CZ - 2, CX + 2, CZ + 2, F, F + 2), { inside: v(CX - 2, F, CZ), anchors: [{ pos: v(CX - 2, F, CZ), kind: 'work', label: 'well' }], description: 'The old stone well at the heart of the square.', indoor: false, parent: places.square.id }));
   // stalls
   const stall = (key: string, name: string, x: number, z: number, cloth: number, facing: Facing) => P(key, makePlace(world, 'stall', name, bounds(x - 2, z - 2, x + 2, z + 2, F, F + 3), { inside: v(x, F, z + (facing === 'N' ? 1 : -1)), anchors: buildStall(ctx, x, z, VILLAGE_TOP, cloth, facing), description: `A market stall in the square.`, indoor: false, parent: places.square.id }));
   stall('stall_bread', "the bread stall", 89, 90, B.ClothRed, 'E'); stall('stall_produce', 'the vegetable stall', 103, 90, B.ClothBlue, 'W');
@@ -82,6 +86,8 @@ export function generateVillage(world: World): GenResult {
   farm('farm_maud', "Maud's fields", 132, 56, 156, 74, 'Maud Penny\'s fields north-east of the village.');
   // mill & bridge
   { const fl = VILLAGE_TOP; flatten(grid, 30, 80, 38, 88, fl, 2); const r = buildMill(ctx, 30, 80, 38, 88, fl, 'E', 'W', []); fromBuild('mill', 'mill', 'the old mill', 28, 80, 38, 88, F, r, 'Hobb Grist\'s mill on the river.'); }
+  // v0.2.4: a second canonical water source — the river bank by the mill, for the western farms.
+  P('riverbank', makePlace(world, 'well', 'the river bank', bounds(38, 90, 42, 94, F, F + 2), { inside: v(40, F, 92), anchors: [{ pos: v(40, F, 92), kind: 'work', label: 'river' }], description: 'A worn place on the river bank where folk draw water.', indoor: false }));
   buildBridge(ctx, 14, 30, 96, VILLAGE_TOP);
   // wilderness places
   { const fl = terrainHeight(166, 30, world.seed); const r = buildCamp(ctx, 166, 30, fl, []); P('camp', makePlace(world, 'camp', 'the bandit camp', bounds(160, 24, 172, 36, fl + 1, fl + 4), { inside: v(166, fl + 1, 32), anchors: r.anchors, description: 'A hidden camp in the north-eastern forest.', indoor: false, fires: r.fires })); }
@@ -193,6 +199,49 @@ export function generateVillage(world: World): GenResult {
   display('stall_produce', 'wheat', ITEM_LABEL.wheat, 'greta', 2); display('stall_game', 'meat', ITEM_LABEL.meat, 'kestrel', 2); display('camp', 'coins', 'a stolen purse', 'hobb', 1);
   { const purse = world.items().find(i => i.name === 'a stolen purse')!; purse.quantity = 40; purse.provenance.push({ tick: daysAgo(12), from: people.hobb.id, to: people.skarn.id, how: 'stolen on the east road' }); }
   world.items().filter(i => i.name === 'a stolen purse').forEach(i => { i.ownerId = people.hobb.id; });
+
+  // ---- World metabolism (v0.2.4): cultivated fields, starting food-chain stock, household larders.
+  createFields(world, [
+    { placeId: places.farm_alwin.id, ownerId: people.alwin.id, startMoisture: 0.45 },
+    { placeId: places.farm_jory.id, ownerId: people.jory.id, startMoisture: 0.4 },
+    { placeId: places.farm_cedric.id, ownerId: people.cedric.id, startMoisture: 0.35 },
+    { placeId: places.farm_maud.id, ownerId: people.maud.id, startMoisture: 0.5 },
+  ]);
+  // Seed a mix so a short run exercises the whole chain without a day-1 harvest frenzy:
+  // ~1/3 of the mature plots stay ripe (harvestable now), ~1/3 go fallow (plantable now),
+  // ~1/3 advance mid-growth; the plots that started fallow (no wheat block) stay fallow.
+  for (const f of world.fields) {
+    f.plots.forEach((p, i) => {
+      if (p.state !== 'mature') return;
+      const bucket = i % 3;
+      if (bucket === 0) { p.state = 'fallow'; p.growth = 0; p.plantedAt = 0; }
+      else if (bucket === 1) { p.state = 'growing'; p.growth = 0.35 + (i % 4) * 0.1; p.plantedAt = world.now - 70 * 3600; }
+      world.grid.set(p.x, p.y, p.z, cropBlockFor(p.state));
+    });
+  }
+  // Starting food-chain stock so the mill/bakery are not cold on day 1.
+  const stock = (type: Item['type'], name: string, placeKey: string, ownerKey: string, qty: number) => {
+    const pl = places[placeKey]; const it = makeItem(world, type, name, { owner: people[ownerKey].id, pos: v(pl.inside.x + 0.5, pl.inside.y, pl.inside.z + 0.5), placeId: pl.id, quantity: qty });
+    it.provenance.push({ tick: daysAgo(2), from: null, to: people[ownerKey].id, how: 'in store' });
+  };
+  stock('grain', 'sack of grain', 'mill', 'hobb', 120);
+  stock('flour', 'sack of flour', 'mill', 'hobb', 40);
+  stock('flour', 'sack of flour', 'bakery', 'osric', 30);
+  stock('bread', 'fresh loaves', 'bakery', 'osric', 60);
+  stock('bread', 'loaves for sale', 'stall_bread', 'osric', 20);
+  // A week's larder in every household (all residents can eat it), so nobody starves before the
+  // production chain settles — and a larder for the miller/baker at their own workplace-homes.
+  const seenHome = new Set<string>();
+  for (const key of Object.keys(people)) {
+    const p = people[key]; if (!p.alive || !p.homeId || p.occupation === 'bandit') continue;
+    if (seenHome.has(p.homeId)) continue; seenHome.add(p.homeId);
+    const home = world.place(p.homeId); if (!home) continue;
+    const larderOwner = home.residents[0] ?? p.id;
+    const it = makeItem(world, 'bread', ITEM_LABEL.bread, { owner: larderOwner, pos: v(home.inside.x + 0.5, home.inside.y, home.inside.z - 0.5), placeId: home.id, quantity: 12 });
+    it.provenance.push({ tick: daysAgo(1), from: null, to: larderOwner, how: 'household larder' });
+    const ch = makeItem(world, 'cheese', ITEM_LABEL.cheese, { owner: larderOwner, pos: v(home.inside.x - 0.5, home.inside.y, home.inside.z - 0.5), placeId: home.id, quantity: 6 });
+    ch.provenance.push({ tick: daysAgo(1), from: null, to: larderOwner, how: 'household larder' });
+  }
 
   // ---- Player
   const player = makePerson(world, { name: 'the Traveler', gender: 'm', age: 28, occupation: 'traveler', traits: { courage: 0.7 }, appearance: { skin: 0xd9a988, hair: 0x2a1a10, shirt: 0x3a5a7a, pants: 0x3a3a3a, hatStyle: 'hood', hat: 0x3a4a5a }, bio: 'A stranger who walked in on the west road.' , wealth: 25 });
