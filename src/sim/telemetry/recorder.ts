@@ -58,7 +58,15 @@ export class TelemetryRecorder {
 export class MemorySink implements TelemetrySink {
   records: TelemetryRecord[] = [];
   constructor(private cap = 20000) {}
-  write(r: TelemetryRecord): void { this.records.push(r); if (this.records.length > this.cap) this.records.splice(0, this.records.length - this.cap); }
+  write(r: TelemetryRecord): void {
+    this.records.push(r);
+    // Trim in one batch only once we're ~10% over cap, not on every single write past it — a
+    // per-write `splice(0, 1)` is an O(cap) array shift, so on a long run (where the recorder
+    // sees far more raw events than the compacted `world.events` count — every perceived,
+    // knowledge_gained, told, ... included) that shift becomes the dominant cost, billed
+    // opaquely to whichever subsystem's `emit()` call it happened inside. Amortized O(1).
+    if (this.records.length > this.cap * 1.1) this.records.splice(0, this.records.length - this.cap);
+  }
   toJSONL(): string { return this.records.map(r => JSON.stringify(r)).join('\n'); }
   countByCategory(): Record<string, number> { const out: Record<string, number> = {}; for (const r of this.records) out[r.category] = (out[r.category] ?? 0) + 1; return out; }
 }

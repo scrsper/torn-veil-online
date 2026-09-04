@@ -107,6 +107,9 @@ describe('robbery causal loop (Priority 1 stabilization)', () => {
   it('resisted robbery: a defiant, armed target is subdued (not automatically killed) before anything is taken', () => {
     const { tw, bandit, villager } = setupBanditAndVictim(312, { courage: 1, aggression: 1 });
     tw.world.rng = new FixedRNG(0.0) as unknown as RNG; // resistWill > 0 for this target, so 0 >= resistWill is false: resistant
+    // v0.2.3: the bandit is armed so it can actually overpower a defiant target — a robber that
+    // is simply outmatched now (correctly) breaks off or yields rather than looping forever.
+    makeItem(tw.world, 'sword', 'a notched sword', { owner: bandit.id, holder: bandit.id, damage: 26 });
     makeItem(tw.world, 'dagger', 'a dagger', { owner: villager.id, holder: villager.id, damage: 14 });
     makeItem(tw.world, 'coins', 'silver coins', { owner: villager.id, holder: villager.id, quantity: 15 });
     const vb = tw.world.primaryBody(villager.id)!;
@@ -170,6 +173,7 @@ describe('robbery causal loop (Priority 1 stabilization)', () => {
   it('does not repeatedly re-attack a downed/recovering robbery victim', () => {
     const { tw, bandit, villager } = setupBanditAndVictim(316, { courage: 0.9, aggression: 0.7 });
     tw.world.rng = new FixedRNG(0.0) as unknown as RNG; // force the resistance path so the victim is actually downed
+    makeItem(tw.world, 'sword', 'a notched sword', { owner: bandit.id, holder: bandit.id, damage: 26 });
     makeItem(tw.world, 'coins', 'silver coins', { owner: villager.id, holder: villager.id, quantity: 10 });
     // Run well past the ~45s downed-recovery window so the victim stands back up while still
     // within the bandit's perception range, which is exactly the scenario the old code looped on.

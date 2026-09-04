@@ -6,7 +6,73 @@ export function getRel(p: Person, other: EntityId): Relationship { return p.rela
 export function relOrNull(p: Person, other: EntityId): Relationship | null { return p.relationships[other] ?? null; }
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
-export type RelDelta = Partial<Pick<Relationship, 'trust' | 'affection' | 'fear' | 'respect' | 'familiarity' | 'grudge'>>;
+export type RelDelta = Partial<Pick<Relationship, 'trust' | 'affection' | 'fear' | 'respect' | 'familiarity' | 'grudge' | 'grievance'>>;
+
+// ---------------------------------------------------------------- relationship evolution (v0.2.3)
+/**
+ * Deterministic, semantically-shaped temporal evolution of a relationship (Constitution §7
+ * "Memory Is Not a Transcript", §11). The v0.2.2 audit found fear/grudge only ever rose — the
+ * psychological drivers of a fight never faded short of a death, so conflicts never ended and
+ * event workload grew without bound.
+ *
+ * This is NOT "subtract a fixed amount from every field every tick". The shape:
+ *  - **fear** fades relatively quickly once the danger is actually gone (half-life ~16h), but
+ *    does NOT fade at all while an active/disengaging conflict with that entity still exists
+ *    (`activeThreat`) — you do not calm down mid-fight.
+ *  - **grudge** fades much more slowly (half-life ~5 days) and only *toward the grievance floor*,
+ *    never below it — and also not while an active threat remains, nor while fresh unresolved
+ *    harm sits in memory (`unresolvedHarm`, e.g. a still-'handled':false crime by that actor).
+ *  - **grievance** (the durable floor — murder of kin, a sustained assault campaign) erodes only
+ *    on a scale of years, so a defining wrong stays defining.
+ *  - **trust** recovers on its own timescale (slow, ~10 days) toward neutral from the negative
+ *    side — distinct from fear; being no longer afraid of someone is not the same as trusting them.
+ *  - **affection / respect / familiarity** are deliberately untouched here: they must not
+ *    evaporate on a combat timescale (a wronged friend is still a friend who was wronged).
+ */
+export const FEAR_HALFLIFE_HOURS = 16;
+export const GRUDGE_HALFLIFE_HOURS = 5 * 24;
+export const GRIEVANCE_HALFLIFE_HOURS = 400 * 24; // effectively a lifetime; still finite
+export const TRUST_RECOVERY_HALFLIFE_HOURS = 10 * 24;
+
+const halfLifeDecay = (value: number, target: number, hours: number, halfLifeHours: number): number =>
+  target + (value - target) * Math.pow(0.5, hours / halfLifeHours);
+
+export interface RelationshipEvolutionContext {
+  /** Entity ids this person currently has a live (active/disengaging) conflict with — fear and
+   * grudge toward these do not cool. */
+  activeThreatIds: Set<EntityId>;
+  /** Entity ids this person still holds an unresolved grievance-worthy fact about (an
+   * un-'handled' known crime by them). Grudge toward these cools far slower. */
+  unresolvedHarmIds: Set<EntityId>;
+}
+
+/** Advance every one of a person's relationships by `hours` of world time. Deterministic. */
+export function evolveRelationships(p: Person, hours: number, ctx: RelationshipEvolutionContext): void {
+  if (hours <= 0) return;
+  for (const id of Object.keys(p.relationships)) {
+    const r = p.relationships[id];
+    const activeThreat = ctx.activeThreatIds.has(id);
+    const unresolved = ctx.unresolvedHarmIds.has(id);
+
+    if (r.grievance && r.grievance > 0) {
+      r.grievance = Math.max(0, halfLifeDecay(r.grievance, 0, hours, GRIEVANCE_HALFLIFE_HOURS));
+      if (r.grievance < 0.01) r.grievance = 0;
+    }
+    const grudgeFloor = r.grievance ?? 0;
+
+    if (!activeThreat) {
+      if (r.fear > 0) r.fear = Math.max(0, halfLifeDecay(r.fear, 0, hours, FEAR_HALFLIFE_HOURS));
+      if (r.grudge > grudgeFloor) {
+        const halfLife = unresolved ? GRUDGE_HALFLIFE_HOURS * 3 : GRUDGE_HALFLIFE_HOURS;
+        r.grudge = Math.max(grudgeFloor, halfLifeDecay(r.grudge, grudgeFloor, hours, halfLife));
+      } else if (r.grudge < grudgeFloor) {
+        r.grudge = grudgeFloor; // a newly-recorded grievance pulls grudge up to its floor
+      }
+      if (r.trust < 0) r.trust = Math.min(0, halfLifeDecay(r.trust, 0, hours, TRUST_RECOVERY_HALFLIFE_HOURS));
+    }
+    // affection / respect / familiarity: intentionally not decayed here.
+  }
+}
 
 /** Apply a directional relationship change and record it as a cognition event (when significant). */
 export function adjustRel(world: World, p: Person, other: EntityId, d: RelDelta, reason: string, cause?: EventId, quiet = false): void {
@@ -18,12 +84,20 @@ export function adjustRel(world: World, p: Person, other: EntityId, d: RelDelta,
   if (d.respect) r.respect = clamp(r.respect + d.respect, -1, 1);
   if (d.familiarity) r.familiarity = clamp(r.familiarity + d.familiarity, 0, 1);
   if (d.grudge) r.grudge = clamp(r.grudge + d.grudge, 0, 1);
+  // grievance (v0.2.3): a durable floor under grudge, only ever ratcheted UP by a delta (a
+  // defining wrong does not become less defining because a later, smaller delta arrives). It
+  // decays only over years, in evolveRelationships. A positive grievance also pulls grudge up
+  // to its floor immediately so the relationship reads as hostile straight away.
+  if (d.grievance && d.grievance > 0) {
+    r.grievance = clamp(Math.max(r.grievance ?? 0, (r.grievance ?? 0) + d.grievance), 0, 1);
+    if (r.grudge < r.grievance) r.grudge = r.grievance;
+  }
   r.lastUpdated = world.now;
-  const mag = Math.abs(r.trust - before.trust) + Math.abs(r.affection - before.affection) + Math.abs(r.fear - before.fear) + Math.abs(r.grudge - before.grudge) + Math.abs(r.respect - before.respect);
+  const mag = Math.abs(r.trust - before.trust) + Math.abs(r.affection - before.affection) + Math.abs(r.fear - before.fear) + Math.abs(r.grudge - before.grudge) + Math.abs(r.respect - before.respect) + Math.abs((r.grievance ?? 0) - (before.grievance ?? 0));
   if (!quiet && mag > 0.04) {
     const parts: string[] = [];
-    const f = (k: keyof RelDelta) => { const dv = (r as any)[k] - (before as any)[k]; if (Math.abs(dv) > 0.005) parts.push(`${k} ${dv > 0 ? '+' : ''}${dv.toFixed(2)}`); };
-    f('fear'); f('trust'); f('affection'); f('grudge'); f('respect');
+    const f = (k: keyof RelDelta) => { const dv = ((r as any)[k] ?? 0) - ((before as any)[k] ?? 0); if (Math.abs(dv) > 0.005) parts.push(`${k} ${dv > 0 ? '+' : ''}${dv.toFixed(2)}`); };
+    f('fear'); f('trust'); f('affection'); f('grudge'); f('grievance'); f('respect');
     world.emit('relationship_changed', { actor: p.id, target: other, causes: cause ? [cause] : [], significance: Math.min(0.6, mag), data: { delta: d, reason, after: { trust: r.trust, affection: r.affection, fear: r.fear, grudge: r.grudge, respect: r.respect } }, summary: `${p.name} → ${world.nameOf(other)}: ${parts.join(', ')} (${reason})` });
   }
 }

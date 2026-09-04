@@ -123,7 +123,9 @@ export function buildBenchmarkReport(result: HeadlessRunResult, opts: BuildBench
 }
 
 /** Where cli.ts writes the report — `.debug/benchmarks/<seed>-<days>d-summary.json`. Exported
- * so tests can predict the path without duplicating the naming scheme. */
+ * so tests can predict the path without duplicating the naming scheme. Always forward-slashed
+ * (a stable, platform-independent repo-relative identifier — `join` would emit `\` on Windows
+ * and break cross-platform comparison of the artifact path). */
 export function benchmarkReportPath(seed: number, requestedDays: number): string {
-  return join('.debug', 'benchmarks', `${seed}-${requestedDays}d-summary.json`);
+  return `.debug/benchmarks/${seed}-${requestedDays}d-summary.json`;
 }

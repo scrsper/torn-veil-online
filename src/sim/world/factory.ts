@@ -5,7 +5,7 @@ export function makeBody(world: World, ownerId: EntityId, pos: Vec3, shape: Body
   const b: Body = {
     id: world.nextId('b'), kind: 'body', name: `${world.nameOf(ownerId)}'s body`, createdAt: world.now, tags: [],
     ownerId, shape, pos: { ...pos }, vel: { x: 0, y: 0, z: 0 }, yaw: 0, pose: 'stand', poseUntil: 0, onGround: true,
-    path: null, pathIndex: 0, pathGoal: null, speed: 3.4, health: maxHealth, maxHealth, dead: false, lastHitAt: -99, lastAttackAt: -99, attackTarget: null, sitAnchor: null, present: true,
+    path: null, pathIndex: 0, pathGoal: null, speed: 3.4, health: maxHealth, maxHealth, dead: false, lastHitAt: -99, lastAttackAt: -99, attackTarget: null, subduedUntil: 0, sitAnchor: null, present: true,
   };
   world.add(b); return b;
 }

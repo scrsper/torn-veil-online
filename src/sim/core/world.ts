@@ -1,4 +1,4 @@
-import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState } from './types';
+import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState, Conflict } from './types';
 import { WorldClock } from './time';
 import { RNG } from './rng';
 import { VoxelGrid } from '../physical/grid';
@@ -20,6 +20,10 @@ export class World {
   entities = new Map<EntityId, Entity>();
   events: WorldEvent[] = [];
   eventIndex = new Map<EventId, WorldEvent>();
+  /** Canonical conflict state (Constitution §11, v0.2.3) — see sim/social/conflict.ts. Owned
+   * here so it persists and so telemetry can observe without owning. Append-only within a run
+   * (a resolved conflict stays as history); bounded by real social activity, not calendar time. */
+  conflicts: Conflict[] = [];
   clock: WorldClock;
   rng: RNG;
   seed: number;
@@ -204,6 +208,9 @@ function defaultCategory(t: EventType): EventCategory {
     case 'perceived': case 'memory_formed': case 'knowledge_gained': case 'knowledge_forgotten': case 'relationship_changed': case 'emotion_changed': case 'goal_changed': case 'goal_completed': case 'arrived': return 'cognition';
     case 'told': case 'conversation': case 'rumor': case 'greeting': case 'gift': case 'apology': case 'trade': return 'social';
     case 'birth': case 'death': case 'marriage': case 'debt': case 'dispute': return 'history';
+    // v0.2.3: the terminal / status-change conflict events are real history and always kept;
+    // conflict_started / _escalated / _disengaged are ordinary 'world' events judged by significance.
+    case 'conflict_resolved': case 'entity_surrendered': case 'entity_arrested': case 'custody_started': case 'custody_ended': return 'history';
     default: return 'world';
   }
 }
