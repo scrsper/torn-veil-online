@@ -117,7 +117,53 @@ export function detectAnomalies(world: World, opts: AnomalyOptions = {}): Anomal
   for (const e of world.events) { if (e.type !== 'goal_changed' || !e.actor || !within(e, window)) continue; const list = goalChangesByActor.get(e.actor) ?? []; list.push(e); goalChangesByActor.set(e.actor, list); }
   for (const [actor, events] of goalChangesByActor) if (events.length >= 40) out.push({ type: 'goal_churn', entity: actor, ...trace(events, cap), data: { windowHours: window / 3600 } });
 
-  // 7. Knowledge referring to an actor the mind could not actually identify, yet somehow
+  // 7. Conflict-resolution failures (v0.2.3). Reads canonical World.conflicts + the event log;
+  // observational only, never touches the sim. Grouped so one stuck fight is one finding.
+  for (const c of world.conflicts) {
+    if (c.status !== 'active' && c.status !== 'disengaging') continue;
+    const openHours = (now - c.startedAt) / 3600;
+    // A fight open far longer than any real encounter should run, still trading blows, with no
+    // resolution — the exact shape the v0.2.2 audit flagged at seed 918271.
+    if (openHours >= 12 && c.attackCount >= 25) {
+      const evs = world.events.filter(e => e.data?.conflictId === c.id);
+      out.push({
+        type: 'unresolved_conflict_loop', entity: c.participants[0],
+        occurrences: c.attackCount, firstSeen: c.startedAt, lastSeen: c.lastMeaningfulInteraction,
+        relatedEvents: evs.slice(0, cap).map(e => e.id),
+        data: { participants: c.participants, cause: c.cause, status: c.status, durationWorldHours: Math.round(openHours * 10) / 10, attackEvents: c.attackCount },
+      });
+    }
+  }
+
+  // 8. Attacks on someone who is out of the fight — surrender/custody being ignored (a
+  // resolution semantics bug). Grouped by the (attacker, victim) pair.
+  const ignoredResolution = new Map<string, WorldEvent[]>();
+  for (const e of world.events) {
+    if (e.type !== 'attack' || !within(e, window) || !e.target) continue;
+    const victim = world.person(e.target);
+    if (!victim) continue;
+    const wasHeld = victim.custody?.active || victim.surrender;
+    if (wasHeld && e.data?.intent !== 'kill') {
+      const key = `${e.actor}:${e.target}`;
+      const list = ignoredResolution.get(key) ?? []; list.push(e); ignoredResolution.set(key, list);
+    }
+  }
+  for (const [key, list] of ignoredResolution) out.push({ type: 'surrender_or_custody_ignored', entity: list[0].actor, ...trace(list, cap), data: { key } });
+
+  // 9. Repeated arrest of the same person inside the window — a revolving-door custody problem.
+  const arrestsByDetainee = new Map<EntityId, WorldEvent[]>();
+  for (const e of world.events) {
+    if (e.type !== 'entity_arrested' || !e.target || !within(e, window * 8)) continue;
+    const list = arrestsByDetainee.get(e.target) ?? []; list.push(e); arrestsByDetainee.set(e.target, list);
+  }
+  for (const [detainee, list] of arrestsByDetainee) {
+    for (const anchor of list) {
+      const clustered = list.filter(a => Math.abs(a.tick - anchor.tick) <= window * 8);
+      if (clustered.length >= 4) { out.push({ type: 'repeated_arrest', entity: detainee, ...trace(clustered, cap), data: { worldWindowHours: (window * 8) / 3600 } }); break; }
+    }
+  }
+
+  // 10. Knowledge referring to an actor the mind could not actually identify, yet somehow
   // treated as identified downstream (an epistemic-leak regression — see
   // docs/CODEX_FIRST_PASS.md's "epistemic leakage" fix this guards against staying fixed).
   // Grouped per person: one mind holding several such claims is one integrity defect for that

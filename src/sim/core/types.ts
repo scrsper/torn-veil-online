@@ -69,6 +69,14 @@ export interface Body extends Entity {
   attackTarget: EntityId | null;
   sitAnchor: Vec3 | null;
   present: boolean;             // false when the body is withdrawn from the physical world
+  /** v0.2.3: physical-time timestamp until which this body is held incapacitated by a
+   * deliberate subdual (Constitution §11 'subdue'/'arrest'), distinct from the brief ~45s
+   * knock-down `poseUntil` recovery. While `subduedUntil > physicalTime` the body stays
+   * 'downed', does not recover health, and its owner runs no autonomous combat/movement — so a
+   * subdued target cannot spring back up and rejoin the fight a few seconds later. Persisted
+   * (unlike `attackTarget`) because a subdual that outlasts a save/reload must survive it. 0
+   * when not subdued. */
+  subduedUntil: number;
 }
 
 // ---------------------------------------------------------------- Persons / Minds
@@ -98,6 +106,15 @@ export interface Relationship {
   respect: number;    // -1..1
   familiarity: number;// 0..1
   grudge: number;     // 0..1
+  /**
+   * v0.2.3: a durable floor under `grudge` representing an unforgivable, defining grievance —
+   * the murder of a loved one, a sustained campaign of assault. Ordinary `grudge` decays over
+   * days once a conflict actually ends (mind/relationships.ts `evolveRelationships`); `grudge`
+   * never decays *below* `grievance`, and `grievance` itself only erodes over a scale of years.
+   * This is what lets "enemies who no longer fight" and "a feud that outlives the fight" both
+   * exist without either entity forgetting its history (Constitution §7, §11). Absent/0 for the
+   * overwhelming majority of relationships — set only by genuinely severe harm. */
+  grievance?: number; // 0..1
   tags: string[];     // spouse, child, parent, sibling, friend, rival, employer, employee, debtor, creditor, sweetheart
   lastUpdated: Tick;
 }
@@ -143,7 +160,10 @@ export interface Percept {
 export type GoalType =
   | 'sleep' | 'eat' | 'work' | 'socialize' | 'wander' | 'go_home' | 'flee' | 'report' | 'investigate'
   | 'confront' | 'attack' | 'rob' | 'help' | 'shelter' | 'worship' | 'patrol' | 'drink' | 'shop' | 'mourn' | 'play'
-  | 'idle' | 'talk' | 'recover_item' | 'guard_post' | 'follow' | 'return_home_safe';
+  | 'idle' | 'talk' | 'recover_item' | 'guard_post' | 'follow' | 'return_home_safe'
+  // v0.2.3: yield in a losing/hopeless fight rather than fight-to-death or flee-forever; a guard
+  // escorting a surrendered/subdued suspect into custody.
+  | 'surrender' | 'escort_custody';
 
 export interface Goal {
   type: GoalType;
@@ -158,7 +178,10 @@ export interface Goal {
   key: string;             // identity for hysteresis (type + target)
 }
 
-export type ActionType = 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 'talk' | 'tell' | 'attack' | 'look' | 'pickup' | 'face' | 'bark' | 'pray' | 'eat' | 'demand' | 'rob';
+export type ActionType = 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 'talk' | 'tell' | 'attack' | 'look' | 'pickup' | 'face' | 'bark' | 'pray' | 'eat' | 'demand' | 'rob'
+  // v0.2.3: yield (drop out of a fight, hands up); take_custody (a guard escorts a
+  // surrendered/subdued suspect into detention).
+  | 'yield' | 'take_custody';
 export interface Action {
   type: ActionType;
   pos?: Vec3;
@@ -209,6 +232,17 @@ export interface Mind {
    * not immediately re-target a victim who is merely recovering from being downed — this is
    * what actually ends a robbery instead of it silently repeating. See mind/robbery.ts. */
   robCooldowns?: Record<EntityId, number>;
+  /** v0.2.3: world-time until which this actor keeps a low profile after being released from
+   * custody — they do not initiate fresh robberies/aggression, so a released detainee does not
+   * immediately re-offend and cycle straight back into custody. Transient, not persisted. */
+  layLowUntil?: number;
+  /** v0.2.3: per-target cooldown (world-time seconds until) after abandoning a pursuit that
+   * could not physically reach its quarry. Without it, a guard who perceives an unreachable
+   * known criminal re-adopts `attack`/`confront` every think tick, replans goto→fails→gives
+   * up→re-adopts, producing a path_failure/goal_completed storm (the dominant cost of a
+   * conflict where the parties can see but not reach each other). Transient tactical state,
+   * not persisted (like `robCooldowns`). */
+  pursuitCooldowns?: Record<EntityId, number>;
 }
 
 export interface Person extends Entity {
@@ -240,6 +274,17 @@ export interface Person extends Entity {
   patrol?: Vec3[];
   desires: Desire[];
   hostile: boolean;                 // outlaw by default (bandits)
+  /** v0.2.3: this person has yielded in a conflict (Constitution §11). While set, they do not
+   * attack, and an aggressor whose intent is not explicitly lethal stops attacking them. Cleared
+   * on release/custody-start, or after `SURRENDER_HOLD_SECONDS` of world time with no further
+   * aggression (they warily get back up). Canonical and persisted — a surrender is a real state
+   * change, not a pose. */
+  surrender?: SurrenderState | null;
+  /** v0.2.3: this person is being held by an institution (Constitution §11 'arrest'/'capture').
+   * While `active`, they run no autonomous combat or movement goals and cannot be freshly
+   * arrested again; a maintenance pass releases them at `releaseAt`. Canonical and persisted —
+   * custody depends on simulation history and cannot be re-derived from present state. */
+  custody?: CustodyState | null;
   speech: { text: string; until: number } | null; // current speech bubble (physical time)
   deathTick?: Tick;
   /** Current cognitive fidelity (default 'full' for every named cast member, matching v0.2
@@ -259,6 +304,68 @@ export interface Desire { type: 'recover_item' | 'collect_debt' | 'wants_item'; 
  * in mind/agent.ts for how it governs lethality.
  */
 export type ConflictIntent = 'avoid' | 'threaten' | 'rob' | 'defend' | 'subdue' | 'arrest' | 'drive_off' | 'injure' | 'kill';
+
+// ---------------------------------------------------------------- Conflict (v0.2.3)
+/**
+ * Explicit, canonical conflict state (Constitution §11). Torn Veil had rich mechanics for
+ * *starting* conflicts (hostility, fear/grudge thresholds, robbery, arrest intent) but no
+ * general mechanic for *ending* them — the v0.2.2 scale-readiness audit showed an ordinary
+ * guard/bandit encounter at seed 918271 generating 150+ retained attack events while never
+ * resolving, and an 8-day headless run becoming pathological as a result. A `Conflict` is the
+ * simulation's canonical answer to "are these two currently in an unresolved fight, why did it
+ * start, and how did it end". Telemetry may read it; it does not own it. Lives on `World.conflicts`.
+ */
+export type ConflictCause =
+  | 'robbery' | 'crime_response' | 'self_defense' | 'faction_hostility'
+  | 'retaliation' | 'dispute' | 'territorial' | 'unknown';
+
+export type ConflictStatus =
+  | 'active'       // blows being exchanged or an aggressor actively pursuing
+  | 'disengaging'  // one side has broken off; a short grace before it counts as over
+  | 'suspended'    // no longer a fight, but not reconciled — persistent nonviolent hostility
+  | 'resolved';    // ended, with an outcome
+
+export type ConflictOutcome =
+  | 'objective_completed' | 'robbery_completed' | 'target_fled' | 'aggressor_fled'
+  | 'surrender' | 'subdual' | 'arrest' | 'custody' | 'withdrawal' | 'deterrence'
+  | 'reconciliation' | 'death';
+
+export interface Conflict {
+  id: EntityId;
+  /** The principal parties. v0.2.3 tracks pairwise conflicts (two ids); the array shape leaves
+   * room for multi-party without a schema change. */
+  participants: EntityId[];
+  initiator: EntityId;
+  cause: ConflictCause;
+  /** Current dominant intent of the aggressor side — hardens (rob → subdue → injure → kill) or
+   * softens over the life of the conflict; `conflict_escalated` fires when it hardens. */
+  intent: ConflictIntent;
+  status: ConflictStatus;
+  escalation: number;               // 0..1, rises with each exchanged blow
+  attackCount: number;              // exchanged attack events, for chronicle consolidation / anomaly
+  startedAt: Tick;
+  lastMeaningfulInteraction: Tick;   // last blow, demand, confrontation, or pursuit step
+  resolvedAt?: Tick;
+  outcome?: ConflictOutcome;
+  startEventId?: EventId;
+  resolveEventId?: EventId;
+  /** Transient hint (who last broke off) used by `maintainConflicts` to pick a disengagement
+   * outcome. Recomputed behaviour — safe to lose across a save/reload, so it is not required to
+   * persist even though it lives on the persisted object. */
+  data_disengagedBy?: EntityId;
+}
+
+export interface SurrenderState { toId: EntityId; at: Tick; conflictId?: EntityId; reason: string; }
+export interface CustodyState {
+  active: boolean;
+  byFactionId: EntityId | null;
+  byId: EntityId | null;             // the arresting individual
+  reason: string;
+  crimeKey?: string;                 // the knowledge key of the crime that justified detention
+  since: Tick;
+  releaseAt: Tick;
+  conflictId?: EntityId;
+}
 
 /** Cognitive Level of Detail (Constitution §21-27): how deeply an entity's mind is currently
  * being simulated. This is independent of power and of historical significance (§20) — a
@@ -348,6 +455,10 @@ export type EventType =
   // v0.2 world-engine additions: purely observational/institutional, never gameplay-load-bearing
   // in the sense that removing them changes no canonical outcome by itself.
   | 'path_failure' | 'leadership_changed' | 'institutional_report' | 'cognitive_lod_changed'
+  // v0.2.3 conflict resolution: each is a real canonical state change on a Conflict / a Person's
+  // surrender or custody state — never emitted just to make telemetry read better.
+  | 'conflict_started' | 'conflict_escalated' | 'conflict_disengaged' | 'conflict_resolved'
+  | 'entity_surrendered' | 'entity_subdued' | 'entity_arrested' | 'custody_started' | 'custody_ended'
   // v0.2.2: emitted when bounded-knowledge eviction (mind/knowledge.ts) removes an entry that
   // was still materially relevant to cognition (an unresolved crime report, or knowledge an
   // active goal/plan step references by key) — purely observational, never a behavior change

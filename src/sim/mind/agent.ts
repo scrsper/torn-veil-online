@@ -1,6 +1,8 @@
-import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, KnowledgeItem, Creature, Place, Anchor, ConflictIntent } from '../core/types';
+import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, KnowledgeItem, Creature, Place, Anchor, ConflictIntent, Conflict, ConflictCause } from '../core/types';
 import { World } from '../core/world';
-import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull } from './relationships';
+import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRelationships } from './relationships';
+import { maintainConflicts, beginConflict, recordConflictBlow, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
+import { maintainCustody, subdue, takeIntoCustody, beginSurrender, isSubdued } from '../social/custody';
 import { remember } from './memory';
 import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge } from './knowledge';
 import { currentScheduleEntry } from './schedule';
@@ -12,6 +14,10 @@ import { resolveRobberyCompliance, selectRobberyTake, ROBBERY_COOLDOWN_SECONDS, 
 
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
+/** v0.2.3: world-time a pursuer waits before re-targeting a quarry it just failed to physically
+ * reach. Long enough that the two are likely no longer in perception range of each other; short
+ * enough that a genuinely renewed threat still gets answered. */
+const PURSUIT_COOLDOWN_SECONDS = 45 * 60;
 
 /**
  * The Simulation runs minds and bodies at their own cadences:
@@ -22,7 +28,7 @@ const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
  *  - strategic upkeep (needs, moods, weather) runs once per world minute
  */
 export class Simulation {
-  perceptionAccum = 0; strategicAccum = 0; compactAccum = 0; onSpeech: ((p: Person, text: string) => void) | null = null; onHit: ((b: Body, pos: Vec3) => void) | null = null;
+  perceptionAccum = 0; strategicAccum = 0; compactAccum = 0; socialAccum = 0; onSpeech: ((p: Person, text: string) => void) | null = null; onHit: ((b: Body, pos: Vec3) => void) | null = null;
   /** Coarse per-subsystem wall-clock accumulator (v0.2.1 Priority 3: "create benchmark
    * instrumentation so the headless report includes coarse timing information for major
    * subsystems where practical"). Null (the default, used by the browser client and every
@@ -140,7 +146,16 @@ export class Simulation {
       // fear rises with severity, proximity and low courage; grudge with closeness to the victim
       const fear = sev * (1.2 - p.traits.courage) * (isVictim ? 1.5 : 1) * (saw ? 1 : 0.6);
       const grudge = sev * (isVictim ? 1.2 : victimClose ? 1 : 0.35 + Math.max(0, victimDisp) * 0.6);
-      if (actor) adjustRel(w, p, actor, { fear: fear * 0.7, trust: -sev * (isVictim ? 0.9 : 0.6), affection: -sev * (isVictim ? 0.7 : 0.4), grudge: grudge * 0.6, respect: -sev * 0.3 }, `${saw ? 'witnessed' : 'learned of'} ${claim.type}${isVictim ? ' on me' : claim.target ? ` on ${w.nameOf(claim.target)}` : ''}`, cause);
+      // v0.2.3: a defining, durable grievance (grudge that will not simply fade once the fight
+      // ends) forms only from genuinely severe harm — the killing of someone dear, or a
+      // sustained campaign of assault against oneself (the same attacker, several times over).
+      let grievance = 0;
+      if (claim.type === 'kill' && (isVictim || victimClose)) grievance = victimClose && isFamily(p, claim.target) ? 0.9 : 0.7;
+      else if (claim.type === 'attack' && isVictim && actor) {
+        const priorAssaults = Object.values(p.knowledge).filter(kk => kk.kind === 'event' && kk.claim.type === 'attack' && kk.claim.actor === actor && kk.claim.target === p.id).length;
+        if (priorAssaults >= 3) grievance = Math.min(0.55, 0.15 + priorAssaults * 0.08);
+      }
+      if (actor) adjustRel(w, p, actor, { fear: fear * 0.7, trust: -sev * (isVictim ? 0.9 : 0.6), affection: -sev * (isVictim ? 0.7 : 0.4), grudge: grudge * 0.6, grievance, respect: -sev * 0.3 }, `${saw ? 'witnessed' : 'learned of'} ${claim.type}${isVictim ? ' on me' : claim.target ? ` on ${w.nameOf(claim.target)}` : ''}`, cause);
       if (actor && actorP && !actorP.hostile && claim.type !== 'theft') { for (const q of w.persons()) if (q !== p && q.id !== actor && isFamily(p, q.id)) {/* family shares outrage later through telling */} }
       const emo = p.emotions; const before = { ...emo };
       emo.fear = clamp(emo.fear + fear * 0.6); emo.stress = clamp(emo.stress + sev * 0.5); emo.anger = clamp(emo.anger + grudge * 0.5 * (p.traits.aggression + 0.3));
@@ -169,11 +184,29 @@ export class Simulation {
     const G = (type: GoalType, utility: number, reasons: string[], o: Partial<Goal> = {}) => { const key = `${type}:${o.targetEntity ?? o.targetPlace ?? ''}`; cands.push({ type, utility, reasons, createdAt: now, key, ...o }); };
     const pos = body.pos; const sched = currentScheduleEntry(p, hour);
     const downed = body.pose === 'downed';
-    if (downed) { const g: Goal = { type: 'idle', utility: 1, reasons: ['incapacitated'], createdAt: now, key: 'idle:downed' }; this.setGoal(p, g, [{ type: 'wait', duration: 30, status: 'pending' }], 'incapacitated'); return; }
+    // v0.2.3 held states: a detained, surrendered, or subdued person runs no autonomous combat
+    // or movement (Constitution §11). They wait it out; the maintenance pass ends the state.
+    // Crucially this must NOT re-`setGoal` (and re-emit goal_changed) on every think tick for the
+    // whole days-long duration — hold the goal, only refresh the wait plan when it lapses.
+    const holdGoal = (key: string, type: GoalType, reason: string): void => {
+      if (m.goal?.key !== key) this.setGoal(p, { type, utility: 1, reasons: [reason], createdAt: now, key }, [{ type: 'wait', duration: 20 * 60, status: 'pending', data: { held: true } }], reason);
+      else if (!m.plan.length || m.plan.every(x => x.status === 'done' || x.status === 'failed')) m.plan = [{ type: 'wait', duration: 20 * 60, status: 'pending', data: { held: true } }];
+    };
+    if (p.custody?.active) { holdGoal('idle:custody', 'idle', `held in custody (${p.custody.reason})`); return; }
+    if (p.surrender) { holdGoal('surrender:held', 'surrender', `surrendered to ${w.nameOf(p.surrender.toId)}`); return; }
+    if (body.subduedUntil > w.physicalTime) { holdGoal('idle:subdued', 'idle', 'subdued'); return; }
+    if (downed) { holdGoal('idle:downed', 'idle', 'incapacitated'); return; }
     // ---- threat assessment from perception + relationships
     let threat: { id: EntityId; d: number; fear: number; body: Body } | null = null;
+    let avoid: { id: EntityId; d: number } | null = null; // someone we're wary of but not currently fighting
     for (const pc of m.percepts) {
       const other = w.person(pc.entityId); if (!other || !other.alive) continue; const ob = w.body(pc.bodyId)!; if (ob.dead) continue;
+      // v0.2.3: a surrendered / subdued / detained person is not a threat to anyone.
+      if (other.surrender || other.custody?.active || ob.subduedUntil > w.physicalTime) continue;
+      const attackingMeNow = ob.pose === 'attack' && ob.attackTarget === p.id && dist2(ob.pos, pos) < 3;
+      // On pursuit cooldown for this one (just failed to reach them) — stay wary, don't re-chase,
+      // unless they are actively attacking me right now.
+      if ((m.pursuitCooldowns?.[other.id] ?? 0) > now && !attackingMeNow) { if (!avoid || pc.distance < avoid.d) avoid = { id: other.id, d: pc.distance }; continue; }
       // A downed body is already incapacitated (Constitution §11: 'subdue'/'arrest' must be a
       // real terminal outcome, not merely non-lethal-and-repeatable). Without this, a subdued
       // target kept registering as an active threat every think() tick, so the subduer (or
@@ -187,16 +220,58 @@ export class Simulation {
       // attack pose nearby" — see the Body.attackTarget doc comment in core/types.ts for the
       // bystander-misattribution bug this closes.
       const attackingMe = ob.pose === 'attack' && ob.attackTarget === p.id && dist2(ob.pos, pos) < 3;
-      const knownCriminal = (p.occupation === 'guard' || p.occupation === 'captain') && !other.hostile && this.knownCrimesBy(p, other.id).length > 0;
+      const knownCriminal = (p.occupation === 'guard' || p.occupation === 'captain') && !other.hostile && pc.distance < 17 && this.knownCrimesBy(p, other.id).length > 0;
+      const theirGoal = other.mind.goal?.type;
+      const freshAggression = attackingMe || theirGoal === 'attack' || theirGoal === 'rob' || theirGoal === 'confront';
+      // v0.2.3 re-engagement gate (Priority 7): a conflict that already ended does NOT restart
+      // just because grudge/fear is still high and the other party wandered back into view.
+      // Only fresh aggression, or a fresh crime learned since the conflict wound down, re-opens it.
+      if ((fear > 0.25 || (hostileFaction && pc.distance < 14) || knownCriminal) && !freshAggression && this.reengagementBlocked(p, other.id)) {
+        if (!avoid || pc.distance < avoid.d) avoid = { id: other.id, d: pc.distance };
+        continue;
+      }
       if (fear > 0.25 || attackingMe || (hostileFaction && pc.distance < 14) || knownCriminal) { const f = fear + (attackingMe ? 0.8 : 0); if (!threat || f / (pc.distance + 1) > threat.fear / (threat.d + 1)) threat = { id: other.id, d: pc.distance, fear: f, body: ob }; }
     }
     const isGuard = p.occupation === 'guard' || p.occupation === 'captain';
     const brave = p.traits.courage + p.traits.aggression * 0.5 + (isGuard ? 0.5 : 0) + (p.hostile ? 0.4 : 0);
+    // v0.2.3: bound pursuit (Constitution §11 — "do not create endless world-spanning pursuit").
+    // If the other party in a live fight has broken contact and is well away, the fight is over:
+    // break it off here rather than re-pathing after them across the map every tick.
+    if (threat && threat.d > 26) {
+      const c = conflictBetween(w, p.id, threat.id);
+      if (c && (c.status === 'active' || c.status === 'disengaging')) { disengageConflict(w, c, p.id, 'they broke contact'); threat = null; }
+    }
     if (threat) {
       const t = w.person(threat.id)!; const r = getRel(p, threat.id);
       const armed = this.weaponOf(p) > 0; const healthy = body.health / body.maxHealth;
       const fightU = clamp(0.3 + brave * 0.5 + (armed ? 0.15 : -0.15) + healthy * 0.2 - threat.fear * 0.3 + r.grudge * 0.4 + (t.hostile !== p.hostile ? 0.25 : 0) - (isGuard ? 0 : 0.2));
       const fleeU = clamp(0.35 + threat.fear * 0.8 - brave * 0.4 - (armed ? 0.1 : 0) + (1 - healthy) * 0.3 - threat.d * 0.01);
+      // v0.2.3 disengagement + surrender (Constitution §11): a fight I am badly losing should
+      // end — by breaking off, or, when there is no way out, by yielding. These override the
+      // "brave" bandit/guard bravado that otherwise kept both sides fighting forever (v0.2.2 audit).
+      const cf = conflictBetween(w, p.id, threat.id);
+      const inFight = !!cf && (cf.status === 'active' || cf.status === 'disengaging') && cf.attackCount > 0;
+      const tBody0 = w.primaryBody(t.id);
+      const theirHealth = tBody0 ? tBody0.health / tBody0.maxHealth : 1;
+      const theyMeanToKill = cf?.intent === 'kill' || (threat.body.pose === 'attack' && this.weaponOf(t) >= 26 && r.grudge > 0.85);
+      const overwhelmed = m.percepts.filter(pc => { const o = w.person(pc.entityId); return !!o && o.alive && o.id !== p.id && relOrNull(p, o.id) && (relOrNull(p, o.id)!.fear > 0.3 || o.hostile !== p.hostile) && pc.distance < 10; }).length >= 2;
+      const cornered = threat.d < 4 && (fleeU < 0.35 || overwhelmed);
+      const losingBadly = inFight && healthy < 0.32 && (theirHealth > healthy + 0.12 || overwhelmed);
+      if (losingBadly && !theyMeanToKill) {
+        G('flee', clamp(0.62 + (1 - healthy) * 0.35 + (overwhelmed ? 0.1 : 0)), [`I'm hurt and losing this fight`, `my health ${(healthy * 100).toFixed(0)}% vs theirs ${(theirHealth * 100).toFixed(0)}%`], { targetEntity: threat.id, data: { disengage: true } });
+      }
+      // Surrender: genuinely hopeless — critically wounded AND pinned/outnumbered, opponent not
+      // out to kill. Fierce (high courage/aggression) actors and guards resist; timid ones fold.
+      const hopeless = healthy < 0.16 && (cornered || overwhelmed || threat.fear > 0.55);
+      const surrenderU = clamp(
+        (inFight && !theyMeanToKill ? 0.2 : -1)
+        + (hopeless ? 0.5 : 0) + (1 - healthy) * 0.5
+        + threat.fear * 0.25 + (overwhelmed ? 0.2 : 0) + (cornered ? 0.15 : 0)
+        + (0.45 - p.traits.courage) * 0.9 - p.traits.aggression * 0.4 - (isGuard ? 0.6 : 0) - p.traits.loyalty * 0.2,
+      );
+      if (surrenderU > 0.55 && surrenderU >= fightU) {
+        G('surrender', surrenderU, [`${t.name} has beaten me and isn't trying to kill me`, `health ${(healthy * 100).toFixed(0)}%`, overwhelmed ? 'outnumbered' : cornered ? 'nowhere to run' : `courage ${p.traits.courage.toFixed(2)}`], { targetEntity: t.id, data: { conflictId: cf?.id } });
+      }
       const crimeKnown = this.knownCrimesBy(p, threat.id);
       if (isGuard && crimeKnown.length && !t.hostile) G('confront', clamp(0.8 + crimeSeverity(crimeKnown[0].claim.type) * 0.2), [`${t.name} is known to have committed ${crimeKnown[0].claim.type}`, `source: ${crimeKnown[0].source.type}${crimeKnown[0].source.from ? ' by ' + w.nameOf(crimeKnown[0].source.from) : ''}`], { targetEntity: t.id, data: { crime: crimeKnown[0].key } });
       else if (t.hostile !== p.hostile && (isGuard || p.hostile) ) {
@@ -238,7 +313,12 @@ export class Simulation {
         const onCooldown = !!cooldownUntil && cooldownUntil > w.physicalTime;
         const planInFlight = m.plan.length > 0 && !m.plan.every(a => a.status === 'done' || a.status === 'failed');
         const alreadyRobbingThis = m.goal?.type === 'rob' && m.goal.targetEntity === t.id && planInFlight;
-        if (!isGuard && oppositionStrength > 0.45 && fleeFromOpposition > engageU && !alreadyRobbingThis) {
+        // v0.2.3: recently released from custody — keep a low profile, don't start a fresh
+        // robbery (defence against a revolving-door custody loop; §19 behavioural quality).
+        const layingLow = !isGuard && (m.layLowUntil ?? 0) > now && !alreadyRobbingThis;
+        if (layingLow) {
+          if (t.hostile !== p.hostile && (t.occupation === 'guard' || t.occupation === 'captain') && threat.d < 12) G('flee', clamp(0.5 + threat.fear * 0.4), [`the watch is about and I only just got out`, 'lying low'], { targetEntity: t.id });
+        } else if (!isGuard && oppositionStrength > 0.45 && fleeFromOpposition > engageU && !alreadyRobbingThis) {
           G('flee', fleeFromOpposition, [`${t.name} looks like more trouble than it's worth`, `opposition ${oppositionStrength.toFixed(2)}`], { targetEntity: t.id });
         } else if (!onCooldown || alreadyRobbingThis) {
           G(intent === 'rob' ? 'rob' : 'attack', engageU, [`${t.name} is an enemy`, `courage ${p.traits.courage.toFixed(2)}`, `intent: ${intent}`, pressure ? `resource pressure ${pressure.toFixed(2)}` : '', oppositionStrength > 0.2 ? `opposition ${oppositionStrength.toFixed(2)}` : ''], { targetEntity: t.id, data: { intent } });
@@ -255,6 +335,13 @@ export class Simulation {
         if (fightU > fleeU && (armed || brave > 0.9)) G('attack', fightU, [`${t.name} is a threat (fear ${threat.fear.toFixed(2)})`, `I am ${armed ? 'armed' : 'unarmed'}, courage ${p.traits.courage.toFixed(2)}`, 'intent: defend'], { targetEntity: t.id, data: { intent: 'defend' as ConflictIntent } });
         else G('flee', fleeU, [`${t.name} is a threat (fear ${threat.fear.toFixed(2)}, dist ${threat.d.toFixed(1)})`, `courage ${p.traits.courage.toFixed(2)}${armed ? '' : ', unarmed'}`], { targetEntity: t.id });
       }
+    }
+    // v0.2.3: someone we have unresolved history with is nearby, but the fight is over and there
+    // is no fresh cause — keep our distance rather than restart it (Constitution §11 "persistent
+    // nonviolent hostility"; fear/grudge influence decisions, they are not combat-forever).
+    if (!threat && avoid && !p.hostile) {
+      const ar = getRel(p, avoid.id);
+      G('flee', clamp(0.25 + ar.fear * 0.5 + ar.grudge * 0.2 - p.traits.courage * 0.2 - avoid.d * 0.01), [`${w.nameOf(avoid.id)} is about — best keep clear`, `old grudge ${ar.grudge.toFixed(2)}, fear ${ar.fear.toFixed(2)}`], { targetEntity: avoid.id, data: { avoidance: true } });
     }
     // ---- knowledge-driven goals: report crimes, investigate, recover items
     const crimes = Object.values(p.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled && now - k.learnedAt < 86400 * 3);
@@ -342,9 +429,29 @@ export class Simulation {
       if (recent && !causes.includes(recent.id)) causes.push(recent.id);
     }
     const target = g.targetEntity ? ` → ${w.nameOf(g.targetEntity)}` : g.targetPlace ? ` @ ${w.nameOf(g.targetPlace)}` : '';
-    w.emit('goal_changed', { actor: p.id, target: g.targetEntity, placeId: g.targetPlace, causes, significance: g.type === 'flee' || g.type === 'attack' || g.type === 'report' || g.type === 'investigate' || g.type === 'confront' ? 0.45 : 0.12, data: { from: prev?.type, to: g.type, utility: g.utility, reasons: g.reasons }, summary: `${p.name}: goal ${prev ? prev.type + ' → ' : ''}${g.type}${target} (u=${g.utility.toFixed(2)})` });
+    w.emit('goal_changed', { actor: p.id, target: g.targetEntity, placeId: g.targetPlace, causes, significance: g.type === 'flee' || g.type === 'attack' || g.type === 'report' || g.type === 'investigate' || g.type === 'confront' || g.type === 'surrender' ? 0.45 : 0.12, data: { from: prev?.type, to: g.type, utility: g.utility, reasons: g.reasons }, summary: `${p.name}: goal ${prev ? prev.type + ' → ' : ''}${g.type}${target} (u=${g.utility.toFixed(2)})` });
+    // v0.2.3: choosing to flee an opponent we have a live conflict with IS breaking off that
+    // conflict (Constitution §11 disengagement) — mark it so `maintainConflicts` settles it.
+    if (g.type === 'flee' && g.targetEntity) {
+      const c = conflictBetween(w, p.id, g.targetEntity);
+      if (c && (c.status === 'active' || c.status === 'disengaging')) disengageConflict(w, c, p.id, g.data?.avoidance ? 'keeping clear' : 'fled');
+    }
   }
   private knownCrimesBy(p: Person, actor: EntityId): KnowledgeItem[] { return Object.values(p.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && k.claim.actor === actor && !k.handled).sort((a, b) => crimeSeverity(b.claim.type) - crimeSeverity(a.claim.type)); }
+  /**
+   * v0.2.3 re-engagement gate (Priority 7): true when a conflict with `otherId` has already
+   * ended (resolved / suspended / disengaging) and nothing NEW has happened since to justify
+   * re-opening it. Grudge and fear on their own must not restart a fight — that is exactly the
+   * loop the v0.2.2 audit flagged. A fresh un-handled crime by them, learned AFTER the conflict
+   * wound down, is a legitimate new cause and unblocks re-engagement.
+   */
+  private reengagementBlocked(p: Person, otherId: EntityId): boolean {
+    const c = lastConflictBetween(this.world, p.id, otherId);
+    if (!c || c.status === 'active') return false;
+    const since = c.resolvedAt ?? c.lastMeaningfulInteraction;
+    const newCrime = this.knownCrimesBy(p, otherId).some(k => k.learnedAt > since);
+    return !newCrime;
+  }
   private nearestKnownGuard(p: Person, pos: Vec3, guards: Person[]): Person | null {
     const w = this.world; let best: Person | null = null; let bd = Infinity;
     for (const g of guards) { const loc = p.knowledge[`loc:${g.id}`]?.claim.pos ?? w.place(g.workId)?.inside ?? w.primaryBody(g.id)?.pos; if (!loc) continue; const d = dist2(pos, loc); if (d < bd) { bd = d; best = g; } }
@@ -378,6 +485,9 @@ export class Simulation {
       case 'report': { const g2 = w.person(g.targetEntity!)!; return [A({ type: 'goto', targetEntity: g2.id, run: true }), A({ type: 'tell', targetEntity: g2.id, data: { key: g.data?.key } })]; }
       case 'investigate': { return [A({ type: 'goto', pos: g.targetPos!, run: p.occupation === 'captain' }), A({ type: 'look', duration: 3 * 60, pos: g.targetPos!, data: { key: g.data?.key, investigate: true } })]; }
       case 'confront': case 'attack': return [A({ type: 'goto', targetEntity: g.targetEntity, run: true }), A({ type: g.type === 'confront' ? 'talk' : 'attack', targetEntity: g.targetEntity, data: g.data })];
+      // v0.2.3: yield out of a losing fight; escort a yielded/subdued suspect into custody.
+      case 'surrender': return [A({ type: 'yield', targetEntity: g.targetEntity, data: g.data })];
+      case 'escort_custody': return [A({ type: 'goto', targetEntity: g.targetEntity, run: true }), A({ type: 'take_custody', targetEntity: g.targetEntity, data: g.data })];
       // Robbery is its own goal (not plain 'attack') so it can carry a demand step and an
       // explicit completion/disengage step, rather than ending the moment the target is downed
       // with nothing actually taken (Constitution requirement: robbery must have an explicit
@@ -402,6 +512,11 @@ export class Simulation {
   private act(p: Person, body: Body, physDt: number, worldDt: number): void {
     const w = this.world; const m = p.mind;
     if (body.dead) return;
+    // v0.2.3 safety net: a chase/retry pipeline (attack/take_custody re-unshifting a `goto` when
+    // the target is out of reach) can otherwise let `plan` grow without bound with `goto/failed`
+    // entries, which never triggers a replan (the pending tail action isn't done/failed). Compact
+    // spent entries once the plan is clearly not a normal 2–14 step plan any more.
+    if (m.plan.length > 28) m.plan = m.plan.filter(x => x.status === 'pending' || x.status === 'active');
     const a = m.plan.find(x => x.status === 'pending' || x.status === 'active'); if (!a) { if (body.pose !== 'stand' && body.pose !== 'walk' && body.poseUntil < w.physicalTime) body.pose = 'stand'; return; }
     if (a.status === 'pending') { a.status = 'active'; a.startedAt = w.now; this.beginAction(p, body, a); }
     switch (a.type) {
@@ -424,11 +539,97 @@ export class Simulation {
       case 'eat': body.pose = 'sit'; body.sitAnchor = a.pos ?? null; p.needs.hunger = clamp(p.needs.hunger - worldDt / (20 * 60)); if (this.elapsed(a) || p.needs.hunger <= 0.02) { a.status = 'done'; w.emit('meal', { actor: p.id, pos: body.pos, significance: 0.05, summary: `${p.name} ate at ${w.placeAt(body.pos)?.name ?? 'home'}` }); } break;
       case 'work': body.pose = 'work'; body.sitAnchor = a.pos ?? null; this.maybeChat(p, body); if (a.pos && w.rng.next() < physDt * 0.15) { body.yaw += (w.rng.next() - 0.5) * 0.6; } if (this.elapsed(a)) a.status = 'done'; break;
       case 'pray': body.pose = 'pray'; body.sitAnchor = a.pos ?? null; if (this.elapsed(a)) a.status = 'done'; break;
-      case 'wait': body.pose = a.data?.hide ? 'stand' : 'stand'; if (a.data?.social) this.maybeChat(p, body); if (this.elapsed(a)) a.status = 'done'; break;
+      case 'wait': {
+        // v0.2.3: a held-state wait (subdued / surrendered) keeps the body on the ground; every
+        // other wait stands.
+        const heldDown = a.data?.held && (body.subduedUntil > w.physicalTime || !!p.surrender);
+        if (!heldDown) body.pose = 'stand';
+        if (a.data?.social) this.maybeChat(p, body);
+        if (this.elapsed(a)) a.status = 'done';
+        break;
+      }
       case 'look': { body.pose = 'stand'; body.yaw += physDt * 0.5; if (a.data?.investigate) { const key = a.data.key as string; const k = p.knowledge[key]; const suspect = k?.claim.actor as string | undefined; const seen = suspect ? m.percepts.find(pc => pc.entityId === suspect) : null; if (seen) { a.status = 'done'; m.investigated.add(key); m.alarm = 1; break; } if (this.elapsed(a)) { a.status = 'done'; m.investigated.add(key); if (k) k.handled = true; w.emit('investigation', { actor: p.id, pos: body.pos, placeId: k?.claim.placeId, causes: k?.source.viaEvent ? [k.source.viaEvent] : [], significance: 0.4, data: { key, outcome: 'suspect not found' }, summary: `${p.name} investigated ${k ? describeClaim(w, k) : 'a report'} but found no one` }); this.say(p, suspect ? `${w.nameOf(suspect).split(' ')[0]}... where did they go?` : 'Nothing here now.'); } } else if (this.elapsed(a)) a.status = 'done'; break; }
       case 'tell': { const t = w.person(a.targetEntity!); const tb = w.primaryBody(a.targetEntity!); if (!t || !tb || dist2(body.pos, tb.pos) > 3.5) { a.status = 'failed'; break; } const k = p.knowledge[a.data?.key]; if (k) this.tell(p, t, k); body.pose = 'talk'; body.poseUntil = w.physicalTime + 2; a.status = 'done'; break; }
-      case 'talk': { const t = w.person(a.targetEntity!); const tb = w.primaryBody(a.targetEntity!); if (!t || !tb) { a.status = 'failed'; break; } if (dist2(body.pos, tb.pos) > 3) { a.status = 'failed'; break; } this.confront(p, body, t, a); a.status = 'done'; break; }
-      case 'attack': { const tb = w.primaryBody(a.targetEntity!); if (!tb || tb.dead) { a.status = 'done'; break; } const d = dist2(body.pos, tb.pos); body.yaw = Math.atan2(-(tb.pos.x - body.pos.x), -(tb.pos.z - body.pos.z)); if (d > 2.2) { a.status = 'pending'; m.plan.unshift({ type: 'goto', targetEntity: a.targetEntity, run: true, status: 'pending' }); break; } if (w.physicalTime - body.lastAttackAt > 1.1) { this.attack(p, body, tb, a.data?.intent as ConflictIntent | undefined); } if (tb.pose === 'downed' || tb.dead) a.status = 'done'; break; }
+      case 'talk': {
+        const t = w.person(a.targetEntity!); const tb = w.primaryBody(a.targetEntity!);
+        if (!t || !tb) { a.status = 'failed'; break; }
+        if (dist2(body.pos, tb.pos) > 3) {
+          // Couldn't get to them to have words. If this was a confrontation over a crime and we
+          // keep failing to reach them, back off for a while rather than re-adopting every tick.
+          const chased = (a.data && (a.data._chase = (a.data._chase ?? 0) + 1));
+          if ((chased ?? 0) > 3 && a.targetEntity) { m.pursuitCooldowns = m.pursuitCooldowns ?? {}; m.pursuitCooldowns[a.targetEntity] = w.now + PURSUIT_COOLDOWN_SECONDS; }
+          a.status = 'failed'; break;
+        }
+        this.confront(p, body, t, a); a.status = 'done'; break;
+      }
+      case 'attack': {
+        const tb = w.primaryBody(a.targetEntity!); const tp = w.person(a.targetEntity!);
+        if (!tb || tb.dead) { a.status = 'done'; break; }
+        // v0.2.3: stop the moment the target is out of the fight (downed / subdued / surrendered).
+        if (tb.pose === 'downed' || (tp && (tp.surrender || tp.custody?.active || tb.subduedUntil > w.physicalTime))) {
+          const intent = a.data?.intent as ConflictIntent | undefined;
+          const isGuard = p.occupation === 'guard' || p.occupation === 'captain';
+          // A guard who has just put down a suspect (arrest intent, or a known crime, or an
+          // outlaw) escorts them into custody rather than standing over them.
+          if (tp && !tp.custody?.active && tp.alive && isGuard && (intent === 'arrest' || intent === 'subdue') && (a.data?.arrest || this.knownCrimesBy(p, tp.id).length > 0 || tp.hostile)) {
+            m.plan.push({ type: 'take_custody', targetEntity: tp.id, status: 'pending', data: { crime: a.data?.crime ?? this.knownCrimesBy(p, tp.id)[0]?.key } });
+          }
+          a.status = 'done'; break;
+        }
+        const d = dist2(body.pos, tb.pos); body.yaw = Math.atan2(-(tb.pos.x - body.pos.x), -(tb.pos.z - body.pos.z));
+        if (d > 2.2) {
+          // v0.2.3: bound the pursuit (Constitution §11 disengagement — "do not create endless
+          // world-spanning pursuit"). Give up after a few failed approaches, or if the target has
+          // simply outrun us; the conflict then lapses to disengaging/deterrence via maintenance.
+          const chased = (a.data && (a.data._chase = (a.data._chase ?? 0) + (m.plan[0]?.status === 'failed' ? 1 : 0)));
+          if (d > 46 || (chased ?? 0) > 4) {
+            const cf = a.targetEntity ? conflictBetween(w, p.id, a.targetEntity) : undefined;
+            if (cf && (cf.status === 'active' || cf.status === 'disengaging')) disengageConflict(w, cf, p.id, 'lost the pursuit');
+            if (a.targetEntity) { m.pursuitCooldowns = m.pursuitCooldowns ?? {}; m.pursuitCooldowns[a.targetEntity] = w.now + PURSUIT_COOLDOWN_SECONDS; }
+            a.status = 'done'; break;
+          }
+          a.status = 'pending';
+          if (m.plan[0]?.type === 'goto' && m.plan[0].status === 'failed') m.plan.shift();
+          m.plan.unshift({ type: 'goto', targetEntity: a.targetEntity, run: true, status: 'pending' });
+          break;
+        }
+        if (w.physicalTime - body.lastAttackAt > 1.1) { this.attack(p, body, tb, a.data?.intent as ConflictIntent | undefined); }
+        // If that blow put the target down/out, the guard at the top of this case re-runs next
+        // substep and takes over (custody escort / disengage). Here just stop on a kill.
+        if (tb.dead) a.status = 'done';
+        break;
+      }
+      case 'yield': {
+        const t = w.person(a.targetEntity!);
+        const cf = a.data?.conflictId ? w.conflicts.find(c => c.id === a.data!.conflictId) : (t ? conflictBetween(w, p.id, t.id) : undefined);
+        beginSurrender(w, p, a.targetEntity ?? cf?.initiator ?? p.id, 'overwhelmed in the fight', cf ?? undefined);
+        this.say(p, p.traits.courage < 0.3 ? `Please — I yield! Don't!` : `Enough. I yield.`);
+        a.status = 'done'; break;
+      }
+      case 'take_custody': {
+        const t = w.person(a.targetEntity!); const tb = t ? w.primaryBody(t.id) : undefined;
+        if (!t || !tb || !t.alive) { a.status = 'done'; break; }
+        if (t.custody?.active) { a.status = 'done'; break; }
+        // Must still be yielded/subdued/downed — if they got up and left, abandon (don't chase).
+        const yielded = t.surrender || isSubdued(w, t) || tb.pose === 'downed';
+        if (!yielded) { a.status = 'failed'; break; }
+        if (dist2(body.pos, tb.pos) > 3) {
+          const chased = (a.data && (a.data._chase = (a.data._chase ?? 0) + (m.plan[0]?.status === 'failed' ? 1 : 0)));
+          if ((chased ?? 0) > 3) {
+            if (a.targetEntity) { m.pursuitCooldowns = m.pursuitCooldowns ?? {}; m.pursuitCooldowns[a.targetEntity] = w.now + PURSUIT_COOLDOWN_SECONDS; }
+            a.status = 'failed'; break;
+          }
+          a.status = 'pending';
+          if (m.plan[0]?.type === 'goto' && m.plan[0].status === 'failed') m.plan.shift();
+          m.plan.unshift({ type: 'goto', targetEntity: a.targetEntity, run: true, status: 'pending' });
+          break;
+        }
+        const cf = conflictBetween(w, p.id, t.id) ?? lastConflictBetween(w, p.id, t.id);
+        takeIntoCustody(w, t, p, (a.data?.crime as string | undefined) ?? this.knownCrimesBy(p, t.id)[0]?.key, cf && cf.status !== 'resolved' ? cf : undefined);
+        this.say(p, `On your feet. You're in the watch's charge now.`);
+        body.pose = 'talk'; body.poseUntil = w.physicalTime + 2;
+        a.status = 'done'; break;
+      }
       // ---- robbery (Constitution requirement: an explicit demand/response step, not an
       // automatic taking). Resolved once, deterministically, then splices the rest of the
       // robbery into the plan — mirrors how confront() pushes a forced 'attack'.
@@ -439,7 +640,9 @@ export class Simulation {
         if (d > 3) { a.status = 'pending'; m.plan.unshift({ type: 'goto', targetEntity: a.targetEntity, run: true, status: 'pending' }); break; }
         body.pose = 'talk'; body.poseUntil = w.physicalTime + 1; body.yaw = Math.atan2(-(tb.pos.x - body.pos.x), -(tb.pos.z - body.pos.z));
         const intent = (a.data?.intent as ConflictIntent) ?? 'rob';
-        w.emit('confrontation', { actor: p.id, target: t.id, pos: { ...body.pos }, placeId: w.placeAt(body.pos)?.id, significance: 0.4, visibility: 16, loudness: 10, data: { demand: true, intent }, summary: `${p.name} demanded ${t.name} hand over their valuables` });
+        const demandEv = w.emit('confrontation', { actor: p.id, target: t.id, pos: { ...body.pos }, placeId: w.placeAt(body.pos)?.id, significance: 0.4, visibility: 16, loudness: 10, data: { demand: true, intent }, summary: `${p.name} demanded ${t.name} hand over their valuables` });
+        const robCf = beginConflict(w, { initiator: p.id, target: t.id, cause: 'robbery', intent: 'rob', causeEvent: demandEv.id });
+        touchConflict(w, robCf); demandEv.data.conflictId = robCf.id;
         const compliant = resolveRobberyCompliance(w, t, p);
         if (compliant) { this.say(p, `Smart. Hand it over.`); m.plan.push({ type: 'rob', targetEntity: t.id, status: 'pending', data: { intent, compliant: true } }); }
         else { this.say(p, `Wrong answer, then.`); m.plan.push({ type: 'attack', targetEntity: t.id, status: 'pending', data: { intent: intent === 'rob' ? 'subdue' : intent } }, { type: 'rob', targetEntity: t.id, status: 'pending', data: { intent, compliant: false } }); }
@@ -458,6 +661,10 @@ export class Simulation {
         if (take) this.executeRobbery(p, t, take, (a.data?.intent as ConflictIntent) ?? 'rob');
         else w.emit('confrontation', { actor: p.id, target: t.id, pos: tb?.pos ?? body.pos, significance: 0.25, visibility: 10, data: { intent: a.data?.intent, outcome: 'nothing_to_take' }, summary: `${p.name} searched ${t.name} but found nothing worth taking` });
         m.robCooldowns = m.robCooldowns ?? {}; m.robCooldowns[t.id] = w.physicalTime + ROBBERY_COOLDOWN_SECONDS;
+        // v0.2.3: a completed robbery is a real conflict resolution (Constitution §51) — the
+        // objective was met, so the conflict ends here rather than grinding on until a death.
+        const rcf = conflictBetween(w, p.id, t.id);
+        if (rcf && rcf.status !== 'resolved') resolveConflict(w, rcf, 'robbery_completed');
         // Disengage: a completed robbery ends by retreating, not by lingering next to a target
         // who will shortly recover and re-register as a threat.
         const away = this.awayFrom(body.pos, tb?.pos ?? body.pos, 22);
@@ -522,7 +729,13 @@ export class Simulation {
     if (b.pose === 'hit' || b.pose === 'downed' || b.pose === 'dead') { const nx = b.pos.x + b.vel.x * dt, nz = b.pos.z + b.vel.z * dt; if (!g.isSolidAt(nx, b.pos.y + 0.5, nz)) { b.pos.x = nx; b.pos.z = nz; } b.vel.x *= Math.max(0, 1 - dt * 4); b.vel.z *= Math.max(0, 1 - dt * 4); }
     if (b.pose === 'hit' && b.poseUntil < this.world.physicalTime) b.pose = 'stand';
     if (b.pose === 'attack' && b.poseUntil < this.world.physicalTime) { b.pose = 'stand'; b.attackTarget = null; }
-    if (b.pose === 'downed' && b.poseUntil < this.world.physicalTime) { b.pose = 'stand'; b.health = Math.max(b.health, b.maxHealth * 0.3); }
+    if (b.pose === 'downed' && b.poseUntil < this.world.physicalTime && b.subduedUntil < this.world.physicalTime) {
+      // v0.2.3: a body whose owner has surrendered or is in custody stays down — it does not
+      // spring back up when the plain knock-down timer lapses.
+      const owner = this.world.get(b.ownerId) as Person | undefined;
+      const heldByState = owner?.kind === 'person' && (!!owner.surrender || !!owner.custody?.active);
+      if (!heldByState) { b.pose = 'stand'; b.health = Math.max(b.health, b.maxHealth * 0.3); }
+    }
   }
   private creatureStep(c: Creature, dt: number): void {
     const w = this.world; const b = w.primaryBody(c.id); if (!b || b.dead) return;
@@ -566,7 +779,13 @@ export class Simulation {
   tell(speaker: Person, listener: Person, k: KnowledgeItem): void {
     const w = this.world; const sb = w.primaryBody(speaker.id);
     const text = this.tellLine(speaker, listener, k);
-    const ev = w.emit('told', { actor: speaker.id, target: listener.id, pos: sb?.pos, causes: k.source.viaEvent ? [k.source.viaEvent] : [], significance: 0.3 + (k.claim.significance ?? 0.3) * 0.4, data: { key: k.key, text, hops: k.hops + 1 }, summary: `${speaker.name} told ${listener.name}: "${describeClaim(w, k)}"`, loudness: 4 });
+    // Prefer the original canonical event (`claim.eventId`) as the cause over the speaker's own
+    // ephemeral perception of it (`source.viaEvent`) — for a retained event (a killing, an
+    // arrest) the canonical event outlives compaction where the perception does not, so gossip
+    // about it days later still resolves to a real cause instead of dangling. Fall back to the
+    // perception, then to nothing, and drop any id that no longer resolves.
+    const toldCauses = [k.claim.eventId as string | undefined, k.source.viaEvent].filter((id): id is string => !!id && !!w.event(id));
+    const ev = w.emit('told', { actor: speaker.id, target: listener.id, pos: sb?.pos, causes: toldCauses.slice(0, 1), significance: 0.3 + (k.claim.significance ?? 0.3) * 0.4, data: { key: k.key, text, hops: k.hops + 1 }, summary: `${speaker.name} told ${listener.name}: "${describeClaim(w, k)}"`, loudness: 4 });
     k.sharedWith.push(listener.id);
     this.say(speaker, text); speaker.mind.lastSpokeAt = w.physicalTime; speaker.mind.lastToldAt[listener.id] = w.physicalTime;
     if (sb) { sb.pose = 'talk'; sb.poseUntil = w.physicalTime + 2.5; }
@@ -612,9 +831,19 @@ export class Simulation {
     const sev = k ? crimeSeverity(k.claim.type) : 0.3;
     const ev = w.emit(sev >= 0.6 ? 'arrest_attempt' : 'confrontation', { actor: p.id, target: t.id, pos: body.pos, causes: k?.source.viaEvent ? [k.source.viaEvent] : [], significance: 0.5, visibility: 16, loudness: 10, data: { crime: key, source: k?.source }, summary: `${p.name} confronted ${t.name} about ${k ? describeClaim(w, k) : 'their conduct'}` });
     if (k) { k.handled = true; p.mind.investigated.add(k.key); }
+    // v0.2.3: a confrontation over a real crime opens a canonical Conflict whose initiator is the
+    // SUSPECT (their crime caused this encounter), cause 'crime_response'. So if they then flee,
+    // maintainConflicts reads it as the aggressor fleeing, not the guard withdrawing.
+    if (k) {
+      const cf = beginConflict(w, { initiator: t.id, target: p.id, cause: 'crime_response', intent: sev >= 0.6 ? 'arrest' : 'threaten', causeEvent: ev.id });
+      touchConflict(w, cf); ev.data.conflictId = cf.id;
+    }
     const src = k ? (k.source.type === 'told' ? `${w.nameOf(k.source.from).split(' ')[0]} told me` : 'I know') : '';
     if (sev >= 0.6) { this.say(p, `${t.name}! ${src} you attacked ${k?.claim.target ? w.nameOf(k.claim.target) : 'someone'}. You're coming with me.`); // escalate to force
-      p.mind.plan.push({ type: 'attack', targetEntity: t.id, status: 'pending', data: { arrest: true, intent: 'arrest' as ConflictIntent } }); }
+      p.mind.plan.push(
+        { type: 'attack', targetEntity: t.id, status: 'pending', data: { arrest: true, intent: 'arrest' as ConflictIntent, crime: key } },
+        { type: 'take_custody', targetEntity: t.id, status: 'pending', data: { crime: key } });
+    }
     else if (k?.claim.type === 'theft') { this.say(p, `${t.name}. ${src} you took ${k.claim.item ? w.nameOf(k.claim.item) : 'what isn\'t yours'}. Give it back, or answer for it.`); p.desires.push({ type: 'recover_item', targetId: k.claim.item, note: `Recover ${w.nameOf(k.claim.item)} from ${t.name}`, reward: 0, fulfilled: false }); }
     else this.say(p, `${t.name}. I've heard things about you. Mind yourself.`);
     void ev;
@@ -639,17 +868,46 @@ export class Simulation {
    */
   applyHit(attacker: Person, ab: Body, tb: Body, dmg: number, intent?: ConflictIntent): WorldEvent | null {
     const w = this.world; if (tb.dead) return null; const victim = w.get(tb.ownerId) as Person | Creature;
+    // v0.2.3: a surrendered, subdued, or in-custody person is out of the fight. An aggressor
+    // without explicit lethal intent does not keep hitting them (Constitution §11) — this is the
+    // safety net; goal selection already avoids re-targeting them. Only 'kill' may strike anyway.
+    if (victim.kind === 'person' && intent !== 'kill') {
+      const vp = victim as Person;
+      if (vp.surrender || vp.custody?.active || tb.subduedUntil > w.physicalTime) return null;
+    }
     const wasDowned = tb.pose === 'downed';
     tb.health -= dmg; tb.lastHitAt = w.physicalTime;
     const dx = tb.pos.x - ab.pos.x, dz = tb.pos.z - ab.pos.z; const d = Math.hypot(dx, dz) || 1; tb.vel.x += dx / d * 4; tb.vel.z += dz / d * 4;
     this.onHit?.(tb, { x: tb.pos.x, y: tb.pos.y + 1.2, z: tb.pos.z });
     const place = w.placeAt(tb.pos);
     const ev = w.emit('attack', { actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, significance: 0.7, visibility: 26, loudness: 14, data: { damage: Math.round(dmg), weapon: this.weaponName(attacker), health: Math.round(tb.health), intent }, summary: `${attacker.name} attacked ${victim.name}${place ? ' at ' + place.name : ''} (${Math.round(dmg)} dmg)` });
+    // v0.2.3: track this as part of a canonical Conflict (Constitution §11). Idempotent per pair.
+    let conflict: Conflict | null = null;
+    if (victim.kind === 'person') {
+      const vp = victim as Person;
+      const existing = conflictBetween(w, attacker.id, vp.id);
+      const cause: ConflictCause = existing?.cause
+        ?? (intent === 'rob' ? 'robbery'
+          : intent === 'arrest' || intent === 'subdue' ? 'crime_response'
+          : intent === 'defend' ? 'self_defense'
+          : attacker.hostile !== vp.hostile ? 'faction_hostility' : 'retaliation');
+      conflict = beginConflict(w, { initiator: attacker.id, target: vp.id, cause, intent: intent ?? 'injure', causeEvent: ev.id });
+      recordConflictBlow(w, conflict, attacker.id, intent);
+      ev.data.conflictId = conflict.id; // lets the Chronicle fold a whole fight into one entry
+    }
     if (tb.health <= 0) {
       const lethal = intent === 'kill' || victim.kind === 'creature' || (attacker.controlled && (wasDowned || (intent === undefined && dmg > 20 && w.rng.next() < 0.5)));
       if (lethal) { tb.dead = true; tb.pose = 'dead'; tb.health = 0; if (victim.kind === 'person') { victim.alive = false; victim.deathTick = w.now; victim.mind.goal = null; victim.mind.plan = []; }
         const de = w.emit('kill', { actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, causes: [ev.id], significance: 1, visibility: 26, loudness: 14, summary: `${attacker.name} killed ${victim.name}${place ? ' at ' + place.name : ''}` }); w.emit('death', { target: victim.id, pos: { ...tb.pos }, placeId: place?.id, causes: [de.id], significance: 1, summary: `${victim.name} died` }); }
-      else { tb.pose = 'downed'; tb.poseUntil = w.physicalTime + 45; tb.health = 1; if (victim.kind === 'person') { victim.mind.plan = []; victim.mind.goal = null; } }
+      else {
+        tb.pose = 'downed'; tb.poseUntil = w.physicalTime + 45; tb.health = 1; if (victim.kind === 'person') { victim.mind.plan = []; victim.mind.goal = null; }
+        // v0.2.3: a downing blow whose intent was to subdue or arrest imposes a real, longer
+        // incapacitation (Constitution §11: 'subdue'/'arrest' as an outcome, not a repeatable
+        // non-lethal loop). The act('attack') handler escalates an arrest to actual custody.
+        if (victim.kind === 'person' && (intent === 'subdue' || intent === 'arrest') && conflict) {
+          subdue(w, victim as Person, attacker.id, conflict);
+        }
+      }
     } else { tb.pose = 'hit'; tb.poseUntil = w.physicalTime + 0.4; if (victim.kind === 'person' && !victim.controlled) { victim.mind.alarm = 1; victim.mind.attention = attacker.id; const cur = victim.mind.plan.find(x => x.status === 'active'); if (cur && cur.type !== 'attack') cur.status = 'failed'; } }
     // the victim always knows who hit them (unless asleep and it was dark... keep simple: they know)
     if (victim.kind === 'person' && !victim.controlled) {
@@ -757,9 +1015,10 @@ export class Simulation {
       if (!p.alive) continue; const b = w.primaryBody(p.id); const asleep = b?.pose === 'sleep';
       p.needs.hunger = clamp(p.needs.hunger + h / 14); if (!asleep) p.needs.energy = clamp(p.needs.energy + h / 18); p.needs.social = clamp(p.needs.social + h / 10 * p.traits.sociability);
       const e = p.emotions; e.fear *= Math.pow(0.5, h / 1.5); e.anger *= Math.pow(0.5, h / 3); e.stress *= Math.pow(0.5, h / 4); e.joy = e.joy * Math.pow(0.5, h / 2) + 0.3 * (1 - Math.pow(0.5, h / 2)); e.sadness *= Math.pow(0.5, h / 48);
-      if (b && !b.dead && b.health < b.maxHealth) b.health = Math.min(b.maxHealth, b.health + minutes * 0.15);
-      // grudges and fear fade slowly
-      for (const r of Object.values(p.relationships)) { r.fear *= Math.pow(0.5, h / 36); r.grudge *= Math.pow(0.5, h / 120); }
+      // A subdued or in-custody body does not regenerate health from strategic upkeep while held
+      // incapacitated — but is not otherwise harmed. Ordinary recovery resumes on release.
+      const held = (b && b.subduedUntil > w.physicalTime) || !!p.custody?.active;
+      if (b && !b.dead && !held && b.health < b.maxHealth) b.health = Math.min(b.maxHealth, b.health + minutes * 0.15);
       // notice missing possessions when at work: inference without a witness
       if (b && p.workId && w.placeAt(b.pos)?.id === p.workId && w.rng.next() < 0.3 * minutes) {
         for (const it of w.items()) if (it.ownerId === p.id && it.holderId && it.holderId !== p.id && !p.knowledge[`missing:${it.id}`]) {
@@ -773,6 +1032,37 @@ export class Simulation {
       }
     }
     this.accum('strategic.persons', t0);
+    // Social upkeep (v0.2.3) — relationship evolution + conflict/custody lifecycle. Runs on a
+    // coarser cadence than per-minute needs: its half-lives are hours-to-days, and the conflict
+    // status transitions key off world-time thresholds far longer than a minute. Batching it to
+    // ~10-minute steps keeps a 30-day run's cost flat — the per-person work here (an all-conflicts
+    // scan, an all-knowledge scan) is what made per-minute evolution superlinear.
+    this.socialAccum += minutes;
+    if (this.socialAccum >= 10) {
+      const sh = this.socialAccum / 60; this.socialAccum = 0;
+      const tc = this.mark();
+      // One pass over conflicts builds every person's active-threat set (was O(conflicts) per
+      // person = O(conflicts x persons) every minute).
+      const threatsByPerson = new Map<string, Set<string>>();
+      for (const c of w.conflicts) {
+        if (c.status !== 'active' && c.status !== 'disengaging') continue;
+        for (const x of c.participants) for (const y of c.participants) if (x !== y) {
+          let s = threatsByPerson.get(x); if (!s) threatsByPerson.set(x, s = new Set()); s.add(y);
+        }
+      }
+      const EMPTY = new Set<string>();
+      for (const p of w.persons()) {
+        if (!p.alive) continue;
+        const unresolvedHarm = new Set<string>();
+        for (const k of Object.values(p.knowledge)) {
+          if (k.kind === 'event' && !k.handled && k.claim.actor && (k.claim.type === 'attack' || k.claim.type === 'kill' || k.claim.type === 'theft')) unresolvedHarm.add(k.claim.actor);
+        }
+        evolveRelationships(p, sh, { activeThreatIds: threatsByPerson.get(p.id) ?? EMPTY, unresolvedHarmIds: unresolvedHarm });
+      }
+      maintainConflicts(w);
+      maintainCustody(w);
+      this.accum('strategic.conflict', tc);
+    }
     // weather
     const t1 = this.mark();
     const wt = w.weather;

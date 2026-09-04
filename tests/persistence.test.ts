@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Simulation } from '../src/sim/mind/agent';
 import { deserialize, newWorld, serialize } from '../src/sim/persist/save';
+import { beginConflict, recordConflictBlow } from '../src/sim/social/conflict';
+import { subdue, takeIntoCustody, beginSurrender } from '../src/sim/social/custody';
 
 function advance(world: ReturnType<typeof newWorld>['world'], sim: Simulation, seconds: number): void {
   for (let elapsed = 0; elapsed < seconds; elapsed += 0.05) {
@@ -64,6 +66,38 @@ describe('save round trips', () => {
       expect(event.causes.every(id => restored.event(id))).toBe(true);
       expect(event.effects.every(id => restored.event(id))).toBe(true);
     }
+  });
+
+  it('persists v0.2.3 conflict / surrender / subdual / custody state across save+reload', () => {
+    const { world, gen } = newWorld(1337);
+    const skarn = gen.people.skarn; const vex = gen.people.vex;
+    const rowan = gen.people.rowan; const hale = gen.people.hale;
+
+    // An active conflict (Skarn vs Rowan), a subdued body (Vex), and a detained person (Skarn).
+    const active = beginConflict(world, { initiator: skarn.id, target: rowan.id, cause: 'faction_hostility', intent: 'injure' });
+    recordConflictBlow(world, active, skarn.id, 'injure');
+    subdue(world, vex, hale.id);
+    const crimeKey = 'ev:persist-crime';
+    hale.knowledge[crimeKey] = { key: crimeKey, kind: 'event', claim: { eventId: 'p', type: 'theft', actor: skarn.id, target: gen.people.hobb.id, tick: world.now }, confidence: 1, learnedAt: world.now, source: { type: 'witnessed' }, hops: 0, sharedWith: [] };
+    const crimeCf = beginConflict(world, { initiator: skarn.id, target: hale.id, cause: 'crime_response', intent: 'arrest' });
+    beginSurrender(world, skarn, hale.id, 'yielded', crimeCf);
+    takeIntoCustody(world, skarn, hale, crimeKey, crimeCf);
+
+    const restored = deserialize(serialize(world))!.world;
+    const rActive = restored.conflicts.find(c => c.id === active.id)!;
+    expect(rActive.status).toBe('active');
+    expect(rActive.participants.sort()).toEqual([skarn.id, rowan.id].sort());
+    expect(restored.conflicts.some(c => c.outcome === 'arrest')).toBe(true); // the resolved arrest conflict too
+    expect(restored.primaryBody(vex.id)!.subduedUntil).toBeGreaterThan(restored.physicalTime);
+    expect(restored.primaryBody(vex.id)!.pose).toBe('downed');
+    const rSkarn = restored.person(skarn.id)!;
+    expect(rSkarn.custody?.active).toBe(true);
+    expect(rSkarn.custody?.reason).toContain('theft');
+    // A reloaded detainee stays put and does not fight.
+    const sim = new Simulation(restored);
+    advance(restored, sim, 60);
+    expect(rSkarn.custody?.active).toBe(true);
+    expect(restored.events.some(e => e.type === 'attack' && e.actor === skarn.id && e.tick > world.now)).toBe(false);
   });
 
   it('persists faction leadership succession and institutional knowledge (v0.2.1 Priority 8)', () => {

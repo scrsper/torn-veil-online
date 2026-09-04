@@ -50,14 +50,23 @@ export function rebalanceCognitiveLOD(world: World, significance: Map<string, nu
   const nearRadius = opts.nearRadius ?? 40;
   const significanceFloor = opts.significanceFloor ?? 0.5;
   const playerPos = world.playerId ? world.positionOf(world.playerId) : undefined;
-  const urgentGoals = new Set(['flee', 'attack', 'confront', 'investigate', 'report', 'help']);
+  // v0.2.3: 'rob'/'surrender'/'escort_custody' are as time-critical as flee/attack — a
+  // lightweight actor that only thinks every ~7.5s cannot surrender, disengage, or finish a
+  // robbery promptly, which stretches every conflict out (and multiplies its event workload).
+  const urgentGoals = new Set(['flee', 'attack', 'confront', 'investigate', 'report', 'help', 'rob', 'surrender', 'escort_custody']);
+  // Anyone currently in an unresolved (active/disengaging) conflict stays 'full' regardless of
+  // goal — the conflict-resolution logic (surrender checks, disengagement, re-engagement gating)
+  // lives in think() and must run at full cadence for a fight to end cleanly (Constitution §11;
+  // v0.2.3 Priority 16).
+  const inConflict = new Set<string>();
+  for (const c of world.conflicts) if (c.status === 'active' || c.status === 'disengaging') for (const id of c.participants) inConflict.add(id);
   let fullCount = 0, lightweightCount = 0;
   for (const p of world.persons()) {
     if (!p.alive || p.controlled) continue;
     const pos = world.positionOf(p.id);
     const near = !!playerPos && !!pos && world.distance2d(playerPos, pos) <= nearRadius;
     const significant = (significance.get(p.id) ?? 0) >= significanceFloor;
-    const urgentlyInvolved = !!p.mind.goal && urgentGoals.has(p.mind.goal.type);
+    const urgentlyInvolved = (!!p.mind.goal && urgentGoals.has(p.mind.goal.type)) || inConflict.has(p.id);
     const shouldBeFull = near || significant || urgentlyInvolved;
     setCognitiveLOD(world, p, shouldBeFull ? 'full' : 'lightweight');
     if (shouldBeFull) fullCount++; else lightweightCount++;

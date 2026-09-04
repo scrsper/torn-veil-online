@@ -14,7 +14,12 @@ export function remember(world: World, p: Person, m: { type: string; summary: st
     p.memories.sort((a, b) => score(b, now) - score(a, now));
     p.memories.length = MAX_MEMORIES;
   }
-  if (!quiet && mem.significance >= 0.15) world.emit('memory_formed', { actor: p.id, causes: m.eventId ? [m.eventId] : [], significance: Math.min(0.5, mem.significance * 0.6), data: { memoryId: mem.id, source: m.source.type, from: m.source.from }, summary: `${p.name} remembers: ${m.summary}` });
+  // Only link the `memory_formed` event to `eventId` when that event still exists — a memory
+  // formed from being *told* about an old, since-compacted event (a confrontation gossiped days
+  // later) would otherwise leave a dangling causal reference. The memory itself still records
+  // `mem.eventId` for recall; it just isn't asserted as a live edge in the causal graph.
+  const cause = m.eventId && world.event(m.eventId) ? [m.eventId] : [];
+  if (!quiet && mem.significance >= 0.15) world.emit('memory_formed', { actor: p.id, causes: cause, significance: Math.min(0.5, mem.significance * 0.6), data: { memoryId: mem.id, source: m.source.type, from: m.source.from }, summary: `${p.name} remembers: ${m.summary}` });
   return mem;
 }
 function score(m: Memory, now: number): number { const ageDays = (now - m.tick) / 86400; return m.significance * (1 + m.recalled * 0.2) - ageDays * 0.01; }
