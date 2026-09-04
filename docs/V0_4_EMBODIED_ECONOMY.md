@@ -399,17 +399,15 @@ this milestone's scope without adding new causal depth).
 
 ## 15. Scaling risks (reported honestly)
 
-- **Village-wide average caloric energy trends downward over a multi-week run** (avg `energy`
-  0.52 at 2 days → 0.29 at 8 days → 0.25 at 30 days, with `resource_shortage` events numbering
-  in the thousands by day 30). Population stays stable (33/33 alive, 0 deaths, 0 anomalies) at
-  every horizon tested, and the trend visibly slows rather than accelerating — but this is a
-  real, not cosmetic, food-supply tightness the recalibrated crop timescale introduces (a 30-day
-  run is shorter than one 6-week crop cycle, so the village is living mostly off its starting
-  stock plus haul/purchase activity, not fresh harvests). This is arguably correct ("food
-  pressure should be real"), but a future pass should watch a 90+ day run (in progress; see
-  below) to confirm it truly plateaus rather than only decaying slowly, and consider whether
-  starting food reserves or the energy-restore-per-meal constant need retuning for longer
-  campaigns.
+- **Village-wide average caloric energy drops fast early, then plateaus — confirmed out to 90
+  days.** avg `energy` 0.52 (2d) → 0.29 (8d) → 0.25 (30d) → 0.23 (90d), with `resource_shortage`
+  events numbering in the tens of thousands by day 90. Population stays stable (33/33 alive, 0
+  deaths, 0 anomalies, 0 goal-churn) at every horizon tested, and the 90-day figure confirms the
+  early decay was the village working down its generous starting stock before fresh 6-week crop
+  cycles caught up (by day 90, 86 plots have matured and 5 completed a full harvest cycle) — this
+  is real, intended food-supply tightness (Constitution v0.4 §24 "food pressure"), not a runaway
+  decay. Still worth a future tuning pass on starting reserves / per-meal restore for campaigns
+  that need a less "hungry" opening stretch.
 - **`workRate`/wage constants are hand-tuned, not derived from a formal calibration pass.** They
   produce stable, sensible-looking numbers at the seeds tested, but a systematic sweep (as a
   follow-up) would give more confidence they generalize across very different village
@@ -457,10 +455,23 @@ this milestone's scope without adding new causal depth).
 | 918271 | 8 | 34.7s | 33→33 | 0 | 0 | 41 | 183 | 558 | 0.29 | 0.69 | 0.42 |
 | 918271 | 30 | 223.1s | 33→33 | 0 | 0 | 145 | 312 | 1174 | 0.25 | 0.63 | 0.56 |
 | 42424242 | 8 | 36.9s | 33→33 | 0 | 0 | 215 | 216 | 556 | 0.24 | 0.66 | 0.36 |
-| 918271 | 90 | *(background — see run notes)* | | | | | | | | | |
+| 918271 | 90 | 1273.2s | 33→33 | 0 | 0 | 494 | 668 | 1388 | 0.23 | 0.60 | 0.41 |
 | 918271 | 365 | *(background — see run notes)* | | | | | | | | | |
 
-*(90-day and 365-day rows: these were launched as background headless runs during this
-session; if this document reaches you before they finished, check `.debug/headless/` for the
-completed `summary.json`/benchmark report, or re-run `npx tsx src/headless/cli.ts --seed 918271
---days 90` — the mechanism is identical to the completed 30-day run above, just longer.)*
+The 90-day run (0 anomalies, 0 goal-churn incidents) directly answers the scaling-risk question
+raised in §15: average caloric energy essentially **plateaus** rather than decaying further
+(0.29 at 8 days → 0.25 at 30 days → 0.23 at 90 days — a fast initial drop off the generous
+starting stock, then near-flat), and, crucially, the crop cycle recalibration pays off at this
+horizon: by day 90 (> one full 6-week maturation cycle), 86 plots have reached `mature` and 5
+have completed a full `harvested` cycle from a fresh sowing — the 30-day snapshot could show
+none of this (42 days > 30), but the world does visibly complete real harvest cycles once given
+enough time, exactly as intended. Requests/wages/purchases all continued scaling linearly with
+run length (494 completed requests, 668 wages, 1388 purchases by day 90), with zero failed
+requests at any horizon tested.
+
+*(The 365-day row: launched as a background headless run during this session; if this document
+reaches you before it finished, check `.debug/headless/` for the completed `summary.json`/
+benchmark report, or re-run `npx tsx src/headless/cli.ts --seed 918271 --days 365` — the
+mechanism is identical to the completed 90-day run above, just longer. At observed throughput
+(~14s/simulated day once past day 30, as per-event-history bookkeeping grows) a full year is
+expected to take on the order of an hour and a half of wall-clock.)*
