@@ -1,8 +1,10 @@
 import type { HaulTask, HaulStatus, ItemType, Person, Vec3, EntityId, Place } from '../core/types';
 import type { World } from '../core/world';
-import { makeItem, ITEM_LABEL } from '../world/factory';
+import { makeItem, ITEM_LABEL, RESOURCE_MASS_KG } from '../world/factory';
 import { addPlaceStock, takePlaceStock, retireStack, stockAt } from '../world/stock';
 import { FARM_SEED_RESERVE } from '../world/metabolism';
+import { getPhysicalCapability } from '../core/attributes';
+import { createRequest, acceptRequest, completeRequest, failRequest } from '../core/requests';
 
 /**
  * Generalized canonical hauling (v0.3 Living World I, Priority 2 & 4).
@@ -21,17 +23,30 @@ import { FARM_SEED_RESERVE } from '../world/metabolism';
  */
 
 // ---- tuning
-/** Units one person carries per trip, by resource. Bulk materials are heavier than grain sacks. */
+/** An averagely-attributed, unencumbered adult's safe carry mass (kg) — see
+ * core/attributes.ts's `getPhysicalCapability` (strength 0.5, no fatigue/heat penalty: 16 +
+ * 0.5*44). Used only to SIZE a not-yet-claimed task (`generateLogisticsNeeds`/`stepConstruction`
+ * don't know who will take it yet); the claimant's OWN capacity (`personalCarryUnits`) is what
+ * actually gates how much loads onto them per trip — see `loadHaulCargo`. */
+const AVERAGE_ADULT_SAFE_CARRY_KG = 38;
+/** Units one average person carries per trip, by resource mass (v0.4 §4 — physical mass, not
+ * an arbitrary per-resource constant). Falls back to a flat trip size for anything without a
+ * mass entry (nothing bulk-hauled lacks one; kept only so this never throws). */
 export function carryCapFor(type: ItemType): number {
-  switch (type) {
-    case 'grain': return 40;
-    case 'flour': return 30;
-    case 'bread': return 24;
-    case 'plank': return 12;
-    case 'stone': return 12;
-    case 'log': return 14;
-    default: return 20;
-  }
+  const massKg = RESOURCE_MASS_KG[type];
+  return massKg ? Math.max(1, Math.floor(AVERAGE_ADULT_SAFE_CARRY_KG / massKg)) : 20;
+}
+/** v0.4 §4: how many units of `type` THIS person can safely carry in one trip, given their
+ * actual strength/fatigue/energy right now (core/attributes.ts). Never 0 — an ordinary human
+ * can always drag at least one unit of even the heaviest hauled material, just at real cost
+ * (Constitution v0.4 §2 "prefer gradients", §4 "the request can remain one request while
+ * fulfillment occurs in partial deliveries"). This is what forces a weak worker to make more
+ * trips for the same task instead of the task's `quantity` silently teleporting in one go. */
+export function personalCarryUnits(world: World, person: Person, type: ItemType): number {
+  const massKg = RESOURCE_MASS_KG[type];
+  if (!massKg) return carryCapFor(type);
+  const cap = getPhysicalCapability(person, world);
+  return Math.max(1, Math.floor(cap.safeCarryMassKg / massKg));
 }
 /** Desired on-hand stock at a consumer Place, and the level below which a haul is requested. */
 interface Demand { destType: Place['type']; resource: ItemType; sourceType: Place['type']; target: number; trigger: number; reason: string; }
@@ -59,6 +74,18 @@ export interface HaulTaskSpec {
   resource: ItemType; quantity: number; sourcePlaceId: EntityId; destPlaceId: EntityId;
   reason: string; requesterId: EntityId | null; projectId?: EntityId; priority: number;
 }
+/** v0.4 §11: base wage plus a small per-(kg·metre) rate — a longer haul of heavier cargo pays
+ * more, a token amount for a short light one. Deliberately modest (Constitution v0.4 §25 "no
+ * full market pricing yet"): this is a real, conserved wage, not a market-clearing price. */
+const HAUL_BASE_WAGE = 2;
+const HAUL_WAGE_PER_KG_METER = 0.0045;
+function haulWage(world: World, s: HaulTaskSpec): number {
+  const src = world.place(s.sourcePlaceId), dst = world.place(s.destPlaceId);
+  const distance = src && dst ? world.distance2d(src.inside, dst.inside) : 40;
+  const massKg = (RESOURCE_MASS_KG[s.resource] ?? 1) * s.quantity;
+  return Math.round(HAUL_BASE_WAGE + distance * massKg * HAUL_WAGE_PER_KG_METER);
+}
+
 export function createHaulTask(world: World, s: HaulTaskSpec): HaulTask {
   const t: HaulTask = {
     id: world.nextId('haul'), resource: s.resource, quantity: Math.max(1, Math.round(s.quantity)), carried: 0, delivered: 0,
@@ -67,6 +94,13 @@ export function createHaulTask(world: World, s: HaulTaskSpec): HaulTask {
     createdAt: world.now, updatedAt: world.now,
   };
   world.haulTasks.push(t);
+  // v0.4 §9-10: every haul is also a shared Request — the acceptance/completion/wage envelope
+  // (core/requests.ts). The HaulTask keeps owning physical fulfillment (load/carry/deposit).
+  const req = createRequest(world, {
+    type: 'haul', requesterId: s.requesterId, requesterPlaceId: s.destPlaceId, reward: haulWage(world, s),
+    cause: s.reason, payload: { haulTaskId: t.id, resource: t.resource, quantity: t.quantity },
+  });
+  t.requestId = req.id;
   world.emit('haul_requested', {
     placeId: s.destPlaceId, pos: world.place(s.destPlaceId)?.inside, significance: s.projectId ? 0.3 : 0.15,
     data: { haulId: t.id, resource: t.resource, quantity: t.quantity, from: s.sourcePlaceId, to: s.destPlaceId, reason: s.reason },
@@ -114,6 +148,8 @@ export function generateLogisticsNeeds(world: World): void {
 export function claimHaulTask(world: World, task: HaulTask, person: Person): void {
   if (task.status !== 'needed') return;
   task.claimantId = person.id; task.status = 'claimed'; task.updatedAt = world.now;
+  const req = task.requestId ? world.requests.find(r => r.id === task.requestId) : undefined;
+  if (req && req.status === 'open') acceptRequest(world, req, person);
   world.emit('haul_started', {
     actor: person.id, placeId: task.sourcePlaceId, pos: world.primaryBody(person.id)?.pos, significance: 0.12,
     data: { haulId: task.id, resource: task.resource, quantity: task.quantity, from: task.sourcePlaceId, to: task.destPlaceId },
@@ -121,11 +157,19 @@ export function claimHaulTask(world: World, task: HaulTask, person: Person): voi
   });
 }
 
-/** At the source: physically load up to the available amount into a carried stack. */
+/**
+ * At the source: physically load up to the available amount into a carried stack — capped at
+ * what THIS person can safely carry right now (v0.4 §4), never the full remaining task size.
+ * If the task still needs more than fits in one trip, it stays open for another load/deposit
+ * cycle by the same claimant (see `depositHaulCargo`) instead of the whole quantity teleporting
+ * in on the first load.
+ */
 export function loadHaulCargo(world: World, task: HaulTask, person: Person): boolean {
   if (task.status !== 'claimed' && task.status !== 'in_transit') return false;
   const avail = stockAt(world, task.resource, task.sourcePlaceId);
-  const want = task.quantity - task.carried;
+  const stillNeeded = task.quantity - task.delivered - task.carried;
+  const tripCapacity = Math.max(0, personalCarryUnits(world, person, task.resource) - task.carried);
+  const want = Math.min(stillNeeded, tripCapacity);
   const n = Math.min(want, avail);
   if (n <= 0) {
     if (task.carried > 0) { finishInTransit(world, task); return true; } // partial load already aboard — go deliver it
@@ -152,7 +196,14 @@ export function loadHaulCargo(world: World, task: HaulTask, person: Person): boo
 }
 function finishInTransit(world: World, task: HaulTask): void { task.status = 'in_transit'; task.updatedAt = world.now; }
 
-/** At the destination: deposit the carried stack into the destination Place's stock. */
+/**
+ * At the destination: deposit the carried stack into the destination Place's stock. v0.4 §4:
+ * this may be a PARTIAL delivery — if the task still needs more than this trip carried, it
+ * goes back to `claimed` (cargo cleared, same claimant) rather than terminating, so the next
+ * `haul` goal cycle for the same task loads and delivers another trip. The Request (and its
+ * wage) is only completed once the task is genuinely done — one payment for the whole job, not
+ * per trip (Constitution v0.4 §10-11).
+ */
 export function depositHaulCargo(world: World, task: HaulTask, person: Person): boolean {
   const cargo = task.cargoItemId ? world.item(task.cargoItemId) : undefined;
   if (!cargo || cargo.quantity <= 0) { failHaulTask(world, task, 'the cargo was lost'); return false; }
@@ -166,8 +217,14 @@ export function depositHaulCargo(world: World, task: HaulTask, person: Person): 
     summary: `${person.name} delivered ${n} ${task.resource} to ${world.nameOf(task.destPlaceId)}`,
   });
   addPlaceStock(world, task.resource, n, task.destPlaceId, owner, ev.id, 'delivered');
-  task.delivered += n; task.carried = 0; task.status = 'delivered'; task.updatedAt = world.now;
+  task.delivered += n; task.carried = 0; task.updatedAt = world.now;
+  task.cargoItemId = undefined;
   world.runTally[`hauled:${task.resource}`] = (world.runTally[`hauled:${task.resource}`] ?? 0) + n; // survives task pruning
+  const moreToFetch = task.delivered < task.quantity && stockAt(world, task.resource, task.sourcePlaceId) > 0;
+  if (moreToFetch) { task.status = 'claimed'; return true; } // another trip needed — stay claimed by the same hauler
+  task.status = 'delivered';
+  const req = task.requestId ? world.requests.find(r => r.id === task.requestId) : undefined;
+  if (req && req.status !== 'completed') completeRequest(world, req);
   return true;
 }
 
@@ -191,6 +248,8 @@ export function failHaulTask(world: World, task: HaulTask, reason: string): void
     droppedAt = place ? place.name : `(${Math.round(pos.x)}, ${Math.round(pos.z)})`;
   }
   task.status = 'failed'; task.claimantId = null; task.updatedAt = world.now;
+  const req = task.requestId ? world.requests.find(r => r.id === task.requestId) : undefined;
+  if (req) failRequest(world, req, reason);
   world.emit('haul_failed', {
     actor: claimant?.id, placeId: task.destPlaceId, pos: world.place(task.destPlaceId)?.inside, significance: 0.2,
     data: { haulId: task.id, resource: task.resource, reason, carried: cargo?.quantity ?? 0, droppedAt },

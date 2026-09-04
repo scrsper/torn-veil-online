@@ -41,6 +41,15 @@ export interface BenchmarkReport {
   knowledgeTransfers: number;
   pathfindingFailures: number;
   topSignificantEntities: { id: string; name: string; score: number }[];
+  /** v0.4 Embodied Economy: the compact economy signal for cross-run diffing — see
+   * history/summary.ts's `embodied` for the full breakdown this is drawn from. */
+  economy: {
+    requestsCompleted: number; requestsFailed: number;
+    wagesPaid: number; purchasesSpent: number;
+    avgFatigue: number; avgSleepDebt: number;
+    workStopped: { fatigue: number; thirst: number; heat: number; sleep: number };
+    treesFelled: number; treesMature: number; stoneRemaining: number;
+  };
   /** Coarse per-subsystem wall-clock breakdown (ms) — see Simulation.profile / runner.ts's
    * `timing`. Purely diagnostic, never fed back into simulation. */
   timing: Record<string, number>;
@@ -117,6 +126,15 @@ export function buildBenchmarkReport(result: HeadlessRunResult, opts: BuildBench
     knowledgeTransfers: summary.knowledgeTransfers,
     pathfindingFailures: summary.pathFailures,
     topSignificantEntities: significance.slice(0, 10),
+    economy: {
+      requestsCompleted: summary.embodied.requests.completed, requestsFailed: summary.embodied.requests.failed,
+      wagesPaid: summary.embodied.wagesPaid, purchasesSpent: summary.embodied.purchasesSpent,
+      avgFatigue: summary.embodied.physiology.avgFatigue, avgSleepDebt: summary.embodied.physiology.avgSleepDebt,
+      workStopped: summary.embodied.workStopped,
+      treesFelled: summary.logistics.resourceNodes.depletedEvents,
+      treesMature: summary.logistics.resourceNodes.trees.available,
+      stoneRemaining: summary.logistics.resourceNodes.stone.remaining,
+    },
     timing,
     stateHash: canonicalStateHash(world),
   };

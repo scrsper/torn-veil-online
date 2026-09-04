@@ -1,7 +1,9 @@
-import type { ResourceNode, ResourceNodeBlock, ItemType, Person, Vec3, EntityId } from '../core/types';
+import type { ResourceNode, ResourceNodeBlock, ItemType, Person, Vec3, EntityId, TreeGrowthStage } from '../core/types';
 import type { World } from '../core/world';
 import { B } from '../physical/blocks';
 import { addPlaceStock } from './stock';
+import { capabilityFor } from '../core/attributes';
+import { wearTool } from '../core/tools';
 
 /**
  * Renewable / non-renewable resource nodes (v0.3 Living World I, Priority 5-6-8).
@@ -21,8 +23,25 @@ const LOGS_PER_TREE = 6;
 const LOGS_PER_CHOP = 2;
 const STONE_PER_OUTCROP = 24;
 const STONE_PER_GATHER = 3;
-/** World-hours from a chopped tree to a grown one again. 30 world-days — real world time, not instant. */
-const TREE_REGROW_HOURS = 30 * 24;
+/**
+ * World-hours from a felled tree to a mature, harvestable one again (v0.4 §14). A felled
+ * mature tree does not return in one month — real forestry timescales run in YEARS. ~2.5
+ * in-game years (Constitution v0.4 §28's stated target) is deliberately long enough that
+ * logging pressure, transport distance and land management become economically real, while
+ * still being something a long-running world/save will visibly complete. Species variation
+ * (fast softwood, slow hardwood, magical trees) is a real future axis — `regrowHours` already
+ * lives per-node for exactly that; v0.4 uses one ordinary-tree timescale.
+ */
+const TREE_REGROW_HOURS = 2.5 * 365 * 24;
+/** Fraction of `regrowHours` elapsed at which a regrowing tree enters each lifecycle stage
+ * (Constitution v0.4 §14 "prefer lifecycle states over a magical respawn timer"). Only
+ * `mature` (fraction >= 1) is harvestable — `state` flips to 'available' exactly then. */
+const GROWTH_STAGE_THRESHOLDS: [number, TreeGrowthStage][] = [[0, 'felled'], [0.08, 'sapling'], [0.4, 'young'], [1, 'mature']];
+function growthStageForFraction(f: number): TreeGrowthStage {
+  let stage: TreeGrowthStage = 'felled';
+  for (const [threshold, s] of GROWTH_STAGE_THRESHOLDS) if (f >= threshold) stage = s;
+  return stage;
+}
 
 const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
 const isTrunk = (b: number) => b === B.Log || b === B.Log2;
@@ -183,23 +202,43 @@ export function nearestAvailableNode(world: World, kind: ResourceNode['kind'], p
   return best;
 }
 
+/** World-seconds one extraction "swing" represents — used to cost the actor real energy/
+ * fatigue/tool wear via the same capability layer every labour action goes through. */
+const SWING_SECONDS = 5 * 60;
+
 /**
  * Extract from a node (chop a tree / quarry a rock). Produces real items at the node's drop
  * Place; depletes the node when nothing is left. Shared by NPC `chop`/`gather` actions and the
  * player. Returns units produced (0 if the node is not currently workable).
+ *
+ * v0.4 §5-6: the amount produced per swing is no longer a flat constant — it scales with the
+ * actor's strength and the tool they have access to (`bestToolFor`/`toolWorkMultiplier`, core/
+ * tools.ts): an axe makes felling dramatically more effective than bare hands, a pickaxe does
+ * the same for quarrying, and the tool wears slightly from use. The swing also costs the actor
+ * real energy/hydration/fatigue (core/physiology.ts) at the `chop`/`quarry` activity rate.
+ * Never zero — an improvised bare-handed attempt is always physically possible, just far less
+ * productive (Constitution v0.4 §5).
  */
 export function extractFromNode(world: World, node: ResourceNode, actor: Person): number {
   if (node.state !== 'available' || node.remaining <= 0) return 0;
-  const per = node.kind === 'tree' ? LOGS_PER_CHOP : STONE_PER_GATHER;
+  const action = node.kind === 'tree' ? 'chop' : 'quarry';
+  const { cap, tool } = capabilityFor(world, actor, action, world.placeAt(node.pos)?.id ?? node.placeId ?? null);
+  const basePer = node.kind === 'tree' ? LOGS_PER_CHOP : STONE_PER_GATHER;
+  const per = Math.max(1, Math.round(basePer * cap.workRate * (0.6 + cap.effectiveStrength * 0.4)));
   const got = Math.min(per, node.remaining);
   node.remaining -= got;
   const verb = node.kind === 'tree' ? 'chopped' : 'quarried';
   const ev = world.emit('resource_extracted', {
     actor: actor.id, placeId: node.dropPlaceId, pos: { ...node.pos }, significance: 0.15,
-    data: { nodeId: node.id, kind: node.kind, yield: node.yield, amount: got, remaining: node.remaining },
-    summary: `${actor.name} ${verb} ${got} ${node.yield}`,
+    data: { nodeId: node.id, kind: node.kind, yield: node.yield, amount: got, remaining: node.remaining, tool: tool?.type ?? 'bare hands' },
+    summary: `${actor.name} ${verb} ${got} ${node.yield}${tool ? ` with ${tool.name}` : ' bare-handed'}`,
   });
   addPlaceStock(world, node.yield, got, node.dropPlaceId, actor.id, ev.id, verb);
+  // Energy/hydration/fatigue/heat cost is applied centrally, once per world-minute, by
+  // Simulation.strategic()'s physiology step (it classifies the actor's current goal as this
+  // same 'chop'/'quarry' activity) — see core/physiology.ts's `activityLevelFor`. Only tool
+  // wear is per-swing, since it is tied to the specific tool used for this specific extraction.
+  wearTool(world, tool, SWING_SECONDS / 3600);
   if (node.remaining <= 0) depleteNode(world, node);
   return got;
 }
@@ -208,6 +247,7 @@ function depleteNode(world: World, node: ResourceNode): void {
   node.state = 'depleted';
   node.depletedAt = world.now;
   node.regrowAt = node.renewable ? world.now + node.regrowHours * 3600 : undefined;
+  if (node.renewable) node.growthStage = 'felled';
   for (const b of node.blocks) world.grid.set(b.x, b.y, b.z, node.kind === 'stone' ? B.Gravel : B.Air);
   const bx = Math.round(node.pos.x), bz = Math.round(node.pos.z);
   world.nav.rebuildArea(bx - 4, bz - 4, bx + 4, bz + 4);
@@ -221,13 +261,29 @@ function depleteNode(world: World, node: ResourceNode): void {
   });
 }
 
-/** Deterministic upkeep: regrow depleted renewable nodes once their world-time has passed. */
+/**
+ * Deterministic upkeep: advance a depleted renewable node's growth stage (v0.4 §14 — a
+ * felled → sapling → young → mature lifecycle, not a bare timer), and regrow it exactly once
+ * that lifecycle reaches `mature`. Stage is always computed fresh from elapsed time /
+ * `regrowHours` (never incremented step-by-step), so calling this at any cadence — including
+ * once, long after depletion — reproduces the exact same stage/availability a player watching
+ * continuously would have seen; no drift from how often upkeep happens to run.
+ */
 export function maintainResourceNodes(world: World): void {
   const now = world.now;
   for (const n of world.resourceNodes) {
-    if (n.state === 'available' || !n.renewable || n.regrowAt === undefined) continue;
+    if (n.state === 'available' || !n.renewable || n.regrowAt === undefined || n.depletedAt === undefined) continue;
+    const fraction = Math.min(1, (now - n.depletedAt) / (n.regrowHours * 3600));
+    const stage = growthStageForFraction(fraction);
+    if (stage !== n.growthStage) {
+      n.growthStage = stage;
+      world.emit('tree_growth_stage', {
+        placeId: n.dropPlaceId, pos: { ...n.pos }, significance: 0.05,
+        data: { nodeId: n.id, stage }, summary: `A felled tree near ${world.nameOf(n.placeId)} is now ${stage}`,
+      });
+    }
     if (now < n.regrowAt) continue;
-    n.state = 'available'; n.remaining = n.capacity; n.regrowAt = undefined; n.depletedAt = undefined;
+    n.state = 'available'; n.remaining = n.capacity; n.regrowAt = undefined; n.depletedAt = undefined; n.growthStage = 'mature';
     for (const b of n.blocks) world.grid.set(b.x, b.y, b.z, b.id);
     const bx = Math.round(n.pos.x), bz = Math.round(n.pos.z);
     world.nav.rebuildArea(bx - 4, bz - 4, bx + 4, bz + 4);
@@ -242,12 +298,17 @@ export function maintainResourceNodes(world: World): void {
 // ---------------------------------------------------------------- observability
 export interface ResourceNodeSummary {
   trees: { total: number; available: number; depleted: number; regrowing: number };
+  /** v0.4 §14/§23: lifecycle-stage breakdown of currently-regrowing trees — "saplings/young/
+   * mature" (mature-and-regrowing is transient: it flips to `available` the same pass). */
+  treeGrowthStages: Record<'felled' | 'sapling' | 'young' | 'mature', number>;
   stone: { total: number; available: number; remaining: number };
   extracted: number; depletedEvents: number; regrewEvents: number;
 }
 export function resourceNodeSummary(world: World): ResourceNodeSummary {
   const trees = world.resourceNodes.filter(n => n.kind === 'tree');
   const stone = world.resourceNodes.filter(n => n.kind === 'stone');
+  const stages: ResourceNodeSummary['treeGrowthStages'] = { felled: 0, sapling: 0, young: 0, mature: 0 };
+  for (const n of trees) if (n.state !== 'available' && n.growthStage) stages[n.growthStage]++;
   return {
     trees: {
       total: trees.length,
@@ -255,6 +316,7 @@ export function resourceNodeSummary(world: World): ResourceNodeSummary {
       depleted: trees.filter(n => n.state === 'depleted').length,
       regrowing: trees.filter(n => n.state === 'regrowing').length,
     },
+    treeGrowthStages: stages,
     stone: {
       total: stone.length,
       available: stone.filter(n => n.state === 'available').length,

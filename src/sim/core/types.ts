@@ -92,8 +92,51 @@ export interface Traits {
 // 0 = satisfied, 1 = desperate. `thirst` (v0.2.4) rises faster than hunger and is satisfied
 // only by drinking at a canonical water source. Both drive utility/goal selection; neither is
 // instantly lethal — the point is behavioural pressure, not a survival death-spiral.
+// v0.4: `hunger`/`thirst`/`energy` are now DERIVED, user-facing expressions of the underlying
+// `Physiology` reserves below (hunger = 1 - physiology.energy, thirst = 1 - hydration, energy
+// (sleep pressure) = a blend of fatigue + sleepDebt) — see core/physiology.ts's `syncNeeds`.
+// Kept as real fields (not computed getters) because they are read in dozens of places and
+// persisted; `stepPhysiology` is the single writer.
 export interface Needs { hunger: number; energy: number; social: number; comfort: number; thirst: number; }
 export interface Emotions { fear: number; anger: number; joy: number; sadness: number; stress: number; } // 0..1
+
+// ---------------------------------------------------------------- Embodiment (v0.4)
+/**
+ * Foundational physical attributes (Constitution v0.4 §2). Deliberately minimal — strength and
+ * dexterity are the only ones any system currently reads; more (endurance, perception, ...)
+ * are added only when a real system needs them. 0..1, like Traits: 0.5 is an ordinary adult.
+ * Never gate an action on a hard threshold of these — they feed `getPhysicalCapability`
+ * (core/attributes.ts), which turns them into continuous effective capability.
+ */
+export interface Attributes { strength: number; dexterity: number; }
+
+/**
+ * Small, extensible physiology model (v0.4 §1) — deep enough for real physical causality
+ * (a hungry, exhausted, overheated worker is measurably less capable), not a medical
+ * simulator. All 0..1 except `sleepDebt` (hours) and `lastSleepAt` (a world-time timestamp).
+ * `needs.hunger`/`.thirst`/`.energy` are derived from this every physiology step — see
+ * core/physiology.ts.
+ */
+export interface Physiology {
+  /** Caloric reserve. 1 = full/satiated, 0 = starving. Drained by baseline metabolism +
+   * activity (core/physiology.ts's `ACTIVITY_ENERGY_MULT`); restored by eating. */
+  energy: number;
+  /** 1 = fully hydrated, 0 = dangerously dehydrated. Drained faster by exertion and heat;
+   * restored by drinking. */
+  hydration: number;
+  /** Short/medium-term tiredness from recent exertion. NOT the same as `energy` (calories) —
+   * a fed person can still be exhausted. Rises with work, falls with rest/sleep. */
+  fatigue: number;
+  /** Accumulated hours of unmet sleep need. Rises while awake, falls (substantially) while
+   * asleep. Long unpaid sleep debt degrades work rate, dexterity and decision weighting. */
+  sleepDebt: number;
+  /** World-time of the end of this person's last meaningful sleep (kept for future circadian/
+   * species-specific sleep hooks; not yet read for behaviour beyond `sleepDebt` itself). */
+  lastSleepAt: Tick;
+  /** Body heat load, 0 = comfortable, 1 = dangerously overheated. Rises with exertion and hot
+   * environment, falls with passive/rest cooling and (faster, while hydrated) sweat cooling. */
+  bodyHeat: number;
+}
 
 export interface Appearance {
   skin: number; hair: number; shirt: number; pants: number; hat?: number; hatStyle?: 'none' | 'helm' | 'hood' | 'cap' | 'wide';
@@ -276,6 +319,10 @@ export interface Person extends Entity {
   factionId: EntityId | null;
   householdId: EntityId | null;
   traits: Traits;
+  /** v0.4: foundational physical attributes — see `Attributes`. */
+  attributes: Attributes;
+  /** v0.4: the physiology reserves `needs.hunger/.thirst/.energy` are now derived from. */
+  physiology: Physiology;
   needs: Needs;
   emotions: Emotions;
   appearance: Appearance;
@@ -376,6 +423,9 @@ export interface HaulTask {
   priority: number;                    // 0..1 — higher = more urgent (deeper deficit)
   createdAt: Tick;
   updatedAt: Tick;
+  /** v0.4: the shared Request this task's acceptance/wage lifecycle goes through — see
+   * core/requests.ts and the `Request` doc comment above. */
+  requestId?: EntityId;
 }
 
 // ---------------------------------------------------------------- Resource nodes (v0.3)
@@ -403,7 +453,14 @@ export interface ResourceNode {
   regrowAt?: Tick;
   dropPlaceId: EntityId;               // Place where extracted items are stacked
   placeId?: EntityId;                  // wilderness/worksite area it belongs to
+  /** v0.4 Priority 14: canonical lifecycle stage for a renewable (tree) node — replaces a bare
+   * depleted→available flip with felled → sapling → young → mature, so "the forest hasn't
+   * magically returned" is a real, inspectable state, not just a long timer. Only `mature`
+   * nodes are harvestable (`state` flips to 'available' exactly when `growthStage` reaches
+   * 'mature'). Undefined/absent (non-renewable stone nodes) means the concept doesn't apply. */
+  growthStage?: TreeGrowthStage;
 }
+export type TreeGrowthStage = 'felled' | 'sapling' | 'young' | 'mature';
 
 // ---------------------------------------------------------------- Construction (v0.3)
 /**
@@ -435,6 +492,51 @@ export interface ConstructionProject {
   startedAt?: Tick;
   completedAt?: Tick;
   resultPlaceId?: EntityId;            // the Place the finished structure is (== sitePlaceId)
+}
+
+// ---------------------------------------------------------------- Work requests (v0.4)
+/**
+ * The generalized shape of paid work (Constitution v0.4 §9). Before v0.4, hauling
+ * (`HaulTask`) and construction labour (`ConstructionProject.contributions`) each invented
+ * their own ad hoc "who's doing this and are they done" bookkeeping, with no way to pay a
+ * worker for either. A `Request` is the shared acceptance/completion/payment envelope both
+ * now go through — it does NOT replace `HaulTask`/`ConstructionProject`, which still own the
+ * physical fulfillment mechanics (a haul's load/carry/deposit steps; a project's material
+ * manifest); a `Request`'s `payload` references the underlying task/project by id. This is the
+ * minimal real migration the milestone asks for: two materially different systems (logistics,
+ * construction) share one acceptance-and-wage record, instead of each growing its own.
+ *
+ *   open → accepted → completed (pays `reward`, conserved currency — see mind/economy.ts)
+ *        → accepted → failed (no payment)  |  cancelled (no payment, e.g. source dried up)
+ */
+export type RequestType = 'haul' | 'construction_labor';
+export type RequestStatus = 'open' | 'accepted' | 'completed' | 'failed' | 'cancelled';
+export interface RequestPayload {
+  haulTaskId?: EntityId;
+  projectId?: EntityId;
+  resource?: ItemType;
+  quantity?: number;
+  /** construction_labor: person-seconds of labour this request represents. */
+  seconds?: number;
+}
+export interface Request {
+  id: EntityId;
+  type: RequestType;
+  status: RequestStatus;
+  /** Who benefits from the work and (when solvent) pays for it — a business owner, a project's
+   * sponsor. Null means the work is communal/unpaid (e.g. no owner resolved). */
+  requesterId: EntityId | null;
+  requesterPlaceId?: EntityId;
+  createdAt: Tick;
+  acceptedAt?: Tick;
+  completedAt?: Tick;
+  acceptedBy?: EntityId;
+  /** Wage paid to the worker on completion. May be reduced from the nominal rate if the payer
+   * cannot afford it in full — payment never creates or destroys currency (Constitution v0.4
+   * §10: `totalCurrencyBefore === totalCurrencyAfter` for ordinary transactions). */
+  reward: number;
+  cause: string;
+  payload: RequestPayload;
 }
 
 /**
@@ -532,7 +634,10 @@ export type ItemType = 'sword' | 'dagger' | 'hammer' | 'axe' | 'bread' | 'ale' |
   | 'grain' | 'flour'
   // v0.3 building materials. `log` is a felled tree section (from a tree ResourceNode); `plank`
   // is sawn lumber (log → plank via transform()); `stone` is quarried rock (from a stone node).
-  | 'log' | 'plank' | 'stone';
+  | 'log' | 'plank' | 'stone'
+  // v0.4: new functional tools — `axe` and `hammer` already existed as cosmetic/weapon items
+  // and now double as real tools (see core/tools.ts); `pickaxe` and `saw` are new.
+  | 'pickaxe' | 'saw';
 
 /**
  * v0.2.4: a coarse category for an item type, so production/consumption logic can reason about
@@ -561,8 +666,18 @@ export interface Item extends Entity {
    * nowhere", and its inverse). */
   haulTaskId?: EntityId;
   /** v0.3: fractional spoilage carried between spoilage passes so perishables lose whole units
-   * without per-unit-per-tick simulation. Only ever set on perishable food stacks. */
+   * without per-unit-per-tick simulation. Only ever set on perishable food stacks.
+   * v0.4 Priority 14: age-based, not accumulator-based (see world/stock.ts's `addPlaceStock`) —
+   * each perishable delivery is now its own stack (its `createdAt` IS its batch age), so
+   * `spoilAccum` only smooths integer-unit rounding within one stack's own lifetime and no
+   * longer front-loads risk onto freshly delivered units merged into an older, riskier stack. */
   spoilAccum?: number;
+  /** v0.4: tool durability, 0..1 (1 = new/unused). Only meaningful on tool-category items (see
+   * core/tools.ts's `TOOL_KINDS`); absent/undefined is treated as 1 (a tool with no recorded
+   * wear, or a non-tool item for which condition is meaningless). Work slowly reduces it; a
+   * poor-condition tool is less effective (see `toolWorkMultiplier`). No repair profession yet
+   * — decay is deliberately slow so tools don't feel disposable within one milestone's play. */
+  condition?: number;
 }
 
 // ---------------------------------------------------------------- Places
@@ -639,7 +754,13 @@ export type EventType =
   | 'haul_requested' | 'haul_started' | 'resource_picked_up' | 'resource_delivered' | 'haul_failed'
   | 'resource_extracted' | 'resource_depleted' | 'resource_regrew'
   | 'construction_started' | 'construction_material_delivered' | 'construction_progress'
-  | 'construction_completed' | 'construction_cancelled' | 'resource_spoiled';
+  | 'construction_completed' | 'construction_cancelled' | 'resource_spoiled'
+  // v0.4 Embodied Economy — physiology, requests, wages, tools. Semantic milestones only (no
+  // per-tick physiology event); `wage_paid`/`purchase_made` are the currency-conservation
+  // record a headless run/test can sum to verify no currency was created or destroyed.
+  | 'collapsed_from_exhaustion' | 'sleep_completed' | 'heat_forced_rest'
+  | 'request_created' | 'request_accepted' | 'request_completed' | 'request_failed'
+  | 'wage_paid' | 'purchase_made' | 'tool_broke' | 'tree_growth_stage';
 
 export type EventCategory = 'world' | 'social' | 'cognition' | 'history';
 

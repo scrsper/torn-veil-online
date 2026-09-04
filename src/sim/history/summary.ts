@@ -6,6 +6,7 @@ import { haulSummary, type HaulSummary } from '../logistics/haul';
 import { resourceNodeSummary, type ResourceNodeSummary } from '../world/resources';
 import { constructionSummary, type ConstructionSummary } from '../world/construction';
 import { stockAt } from '../world/stock';
+import { requestSummary, type RequestSummary } from '../core/requests';
 
 /**
  * The structured, machine- and human-readable result of a headless world run (v0.2 Part 5).
@@ -53,6 +54,21 @@ export interface WorldRunSummary {
     construction: ConstructionSummary;
     /** grain/flour/bread/log/plank/stone physically at each keyed production Place. */
     stockByPlace: Record<string, Record<string, number>>;
+  };
+  /** v0.4 Embodied Economy: physiology, work-request/wage economy, and the reasons heavy
+   * labour stopped competing for a person's attention (Constitution v0.4 §23/§29). */
+  embodied: {
+    physiology: {
+      avgEnergy: number; avgHydration: number; avgFatigue: number; avgSleepDebt: number; avgBodyHeat: number;
+    };
+    requests: RequestSummary;
+    /** Real, conserved currency moved as wages vs. purchases this run (see core/requests.ts's
+     * payWage and world/metabolism.ts's buyFoodPortion — both tally directly, so these figures
+     * survive event compaction on a long run). */
+    wagesPaid: number;
+    purchasesSpent: number;
+    workStopped: { fatigue: number; thirst: number; heat: number; sleep: number };
+    toolsBroken: number;
   };
 }
 
@@ -140,6 +156,31 @@ export function buildWorldRunSummary(world: World, ctx: WorldRunSummaryContext):
       construction: constructionSummary(world),
       stockByPlace: stockByProductionPlace(world),
     },
+    embodied: embodiedSummary(world),
+  };
+}
+
+function embodiedSummary(world: World): WorldRunSummary['embodied'] {
+  const alive = world.persons().filter(p => p.alive && !p.controlled);
+  const avg = (f: (p: (typeof alive)[number]) => number) => alive.length ? Math.round((alive.reduce((a, p) => a + f(p), 0) / alive.length) * 1000) / 1000 : 0;
+  return {
+    physiology: {
+      avgEnergy: avg(p => p.physiology.energy),
+      avgHydration: avg(p => p.physiology.hydration),
+      avgFatigue: avg(p => p.physiology.fatigue),
+      avgSleepDebt: avg(p => p.physiology.sleepDebt),
+      avgBodyHeat: avg(p => p.physiology.bodyHeat),
+    },
+    requests: requestSummary(world),
+    wagesPaid: world.runTally.wage_paid_amount ?? 0,
+    purchasesSpent: world.runTally.purchase_amount ?? 0,
+    workStopped: {
+      fatigue: world.runTally.work_stopped_fatigue ?? 0,
+      thirst: world.runTally.work_stopped_thirst ?? 0,
+      heat: world.runTally.work_stopped_heat ?? 0,
+      sleep: world.runTally.work_stopped_sleep ?? 0,
+    },
+    toolsBroken: world.runTally.tool_broke ?? 0,
   };
 }
 
@@ -173,6 +214,10 @@ export function formatWorldRunSummary(s: WorldRunSummary): string {
   lines.push(`  extraction: ${L.resourceNodes.extracted} extract(s), trees ${L.resourceNodes.trees.available}/${L.resourceNodes.trees.total} standing (${L.resourceNodes.depletedEvents} felled, ${L.resourceNodes.regrewEvents} regrown), stone remaining ${L.resourceNodes.stone.remaining}`);
   lines.push(`  construction: ${L.construction.complete}/${L.construction.projects} complete${L.construction.details.map(d => ` · ${d.name}: ${d.status} (${Object.entries(d.delivered).map(([k, v]) => `${v}/${d.required[k]} ${k}`).join(', ')}, labour ${d.laborPct}%, ${d.workers} worker(s))`).join('')}`);
   for (const [place, row] of Object.entries(L.stockByPlace)) lines.push(`  stock @ ${place}: ${Object.entries(row).map(([k, v]) => `${v} ${k}`).join(', ')}`);
+  const em = s.embodied;
+  lines.push(`Embodied economy: avg energy ${em.physiology.avgEnergy.toFixed(2)}, hydration ${em.physiology.avgHydration.toFixed(2)}, fatigue ${em.physiology.avgFatigue.toFixed(2)}, sleep debt ${em.physiology.avgSleepDebt.toFixed(2)}h, body heat ${em.physiology.avgBodyHeat.toFixed(2)}`);
+  lines.push(`  requests: ${em.requests.completed} completed, ${em.requests.failed} failed, ${em.requests.open + em.requests.accepted} open/in-progress; wages paid ${em.wagesPaid}, purchases spent ${em.purchasesSpent}`);
+  lines.push(`  work stopped — fatigue ${em.workStopped.fatigue}, thirst ${em.workStopped.thirst}, heat ${em.workStopped.heat}, sleep ${em.workStopped.sleep}; tools broken ${em.toolsBroken}`);
   lines.push('');
   lines.push('Most historically significant entities:');
   for (const e of s.topSignificantEntities.slice(0, 10)) lines.push(`  ${e.score.toFixed(2).padStart(5)}  ${e.name}`);

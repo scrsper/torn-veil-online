@@ -1,4 +1,4 @@
-import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState, Conflict, Field, HaulTask, ResourceNode, ConstructionProject } from './types';
+import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request } from './types';
 import { WorldClock } from './time';
 import { RNG } from './rng';
 import { VoxelGrid } from '../physical/grid';
@@ -36,6 +36,11 @@ export class World {
   haulTasks: HaulTask[] = [];
   resourceNodes: ResourceNode[] = [];
   constructionProjects: ConstructionProject[] = [];
+  /** Canonical work-request state (v0.4 §9) — the shared acceptance/completion/wage envelope
+   * both hauling and construction labour go through. See core/requests.ts. Bounded by real
+   * open work, not calendar time. Persisted: an accepted-but-not-yet-completed request cannot
+   * be reconstructed from present state. */
+  requests: Request[] = [];
   /** v0.2.4: lifetime counts of a few high-frequency, low-significance event types that are
    * dropped by event compaction (crop/food/water/transform) — so a headless run summary can
    * report accurate totals without inflating those events' significance. Purely observational. */
@@ -227,6 +232,10 @@ const TALLIED_TYPES = new Set<EventType>([
   'haul_requested', 'haul_started', 'resource_picked_up', 'resource_delivered', 'haul_failed',
   'resource_extracted', 'resource_depleted', 'resource_regrew',
   'construction_material_delivered', 'construction_progress', 'construction_completed', 'resource_spoiled',
+  // v0.4: request/wage/purchase/tool events — frequent + low-significance, needed for accurate
+  // lifetime economy totals in the run summary (world/history/summary.ts).
+  'request_created', 'request_accepted', 'request_completed', 'request_failed',
+  'wage_paid', 'purchase_made', 'tool_broke', 'collapsed_from_exhaustion', 'heat_forced_rest', 'sleep_completed',
 ]);
 
 function defaultCategory(t: EventType): EventCategory {
@@ -248,6 +257,11 @@ function defaultCategory(t: EventType): EventCategory {
     case 'haul_failed': case 'resource_extracted': case 'resource_regrew': case 'construction_started':
     case 'construction_material_delivered': case 'construction_progress': case 'construction_cancelled':
     case 'resource_spoiled': return 'world';
+    // v0.4: request/wage/purchase lifecycle events are ordinary 'world' events judged by
+    // significance; a broken tool or a forced-rest/exhaustion collapse is worth keeping.
+    case 'tool_broke': case 'collapsed_from_exhaustion': case 'heat_forced_rest': return 'world';
+    case 'request_created': case 'request_accepted': case 'request_completed': case 'request_failed':
+    case 'wage_paid': case 'purchase_made': case 'sleep_completed': case 'tree_growth_stage': return 'world';
     default: return 'world';
   }
 }
