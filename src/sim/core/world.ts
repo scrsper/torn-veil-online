@@ -1,4 +1,4 @@
-import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState, Conflict, Field } from './types';
+import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState, Conflict, Field, HaulTask, ResourceNode, ConstructionProject } from './types';
 import { WorldClock } from './time';
 import { RNG } from './rng';
 import { VoxelGrid } from '../physical/grid';
@@ -28,6 +28,14 @@ export class World {
    * farm `Place`, each with plot-level crop lifecycle and a soil-moisture abstraction. Bounded
    * by the number of farms, not by time. */
   fields: Field[] = [];
+  /** Canonical logistics/materials/construction state (v0.3 Living World I) — see
+   * sim/logistics/haul.ts, sim/world/resources.ts, sim/world/construction.ts. Each is bounded
+   * by real activity (open tasks, mapped nodes, planned projects), not by calendar time.
+   * Persisted: a haul in transit, a depleted tree, a half-supplied project cannot be
+   * reconstructed from present state. */
+  haulTasks: HaulTask[] = [];
+  resourceNodes: ResourceNode[] = [];
+  constructionProjects: ConstructionProject[] = [];
   /** v0.2.4: lifetime counts of a few high-frequency, low-significance event types that are
    * dropped by event compaction (crop/food/water/transform) — so a headless run summary can
    * report accurate totals without inflating those events' significance. Purely observational. */
@@ -212,7 +220,14 @@ export class World {
   initNav(): void { this.nav = new Navigator(this.grid); }
 }
 
-const TALLIED_TYPES = new Set<EventType>(['crop_planted', 'crop_matured', 'crop_harvested', 'resource_transformed', 'food_consumed', 'water_consumed', 'resource_shortage', 'meal']);
+const TALLIED_TYPES = new Set<EventType>([
+  'crop_planted', 'crop_matured', 'crop_harvested', 'resource_transformed', 'food_consumed', 'water_consumed', 'resource_shortage', 'meal',
+  // v0.3: these are frequent + low-significance (dropped by compaction), so a headless run
+  // summary needs the tally to report accurate lifetime totals.
+  'haul_requested', 'haul_started', 'resource_picked_up', 'resource_delivered', 'haul_failed',
+  'resource_extracted', 'resource_depleted', 'resource_regrew',
+  'construction_material_delivered', 'construction_progress', 'construction_completed', 'resource_spoiled',
+]);
 
 function defaultCategory(t: EventType): EventCategory {
   switch (t) {
@@ -226,6 +241,13 @@ function defaultCategory(t: EventType): EventCategory {
     // crop_harvested carry enough significance to survive compaction; the rest are operational).
     case 'crop_planted': case 'crop_matured': case 'crop_harvested': case 'resource_transformed':
     case 'food_consumed': case 'water_consumed': case 'resource_shortage': return 'world';
+    // v0.3: a completed structure and a depleted notable resource are real, retained history;
+    // the rest (haul steps, deliveries, spoilage) are ordinary 'world' events judged by significance.
+    case 'construction_completed': case 'resource_depleted': return 'history';
+    case 'haul_requested': case 'haul_started': case 'resource_picked_up': case 'resource_delivered':
+    case 'haul_failed': case 'resource_extracted': case 'resource_regrew': case 'construction_started':
+    case 'construction_material_delivered': case 'construction_progress': case 'construction_cancelled':
+    case 'resource_spoiled': return 'world';
     default: return 'world';
   }
 }

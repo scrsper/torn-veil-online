@@ -39,15 +39,17 @@ export function makeItem(world: World, type: ItemType, name: string, o: { owner?
   if (it.holderId) { const h = world.person(it.holderId); if (h) h.inventory.push(it.id); }
   world.add(it); return it;
 }
-export const ITEM_VALUE: Record<ItemType, number> = { sword: 60, dagger: 15, hammer: 25, axe: 20, bread: 2, ale: 3, coins: 1, ring: 80, book: 30, herbs: 6, flowers: 1, meat: 5, cheese: 4, lantern: 12, key: 5, pie: 6, wheat: 1, grain: 1, flour: 2 };
+export const ITEM_VALUE: Record<ItemType, number> = { sword: 60, dagger: 15, hammer: 25, axe: 20, bread: 2, ale: 3, coins: 1, ring: 80, book: 30, herbs: 6, flowers: 1, meat: 5, cheese: 4, lantern: 12, key: 5, pie: 6, wheat: 1, grain: 1, flour: 2, log: 2, plank: 3, stone: 2 };
 export const ITEM_DAMAGE: Partial<Record<ItemType, number>> = { sword: 26, dagger: 14, hammer: 20, axe: 22 };
-export const ITEM_LABEL: Record<ItemType, string> = { sword: 'sword', dagger: 'dagger', hammer: 'hammer', axe: 'axe', bread: 'loaf of bread', ale: 'mug of ale', coins: 'silver coins', ring: 'ring', book: 'book', herbs: 'bundle of herbs', flowers: 'flowers', meat: 'cut of venison', cheese: 'wedge of cheese', lantern: 'lantern', key: 'iron key', pie: 'meat pie', wheat: 'sheaf of wheat', grain: 'sack of grain', flour: 'sack of flour' };
+export const ITEM_LABEL: Record<ItemType, string> = { sword: 'sword', dagger: 'dagger', hammer: 'hammer', axe: 'axe', bread: 'loaf of bread', ale: 'mug of ale', coins: 'silver coins', ring: 'ring', book: 'book', herbs: 'bundle of herbs', flowers: 'flowers', meat: 'cut of venison', cheese: 'wedge of cheese', lantern: 'lantern', key: 'iron key', pie: 'meat pie', wheat: 'sheaf of wheat', grain: 'sack of grain', flour: 'sack of flour', log: 'log', plank: 'plank', stone: 'block of stone' };
 /** v0.2.4: coarse resource category (see types.ts ResourceCategory). */
 export const RESOURCE_CATEGORY: Record<ItemType, import('../core/types').ResourceCategory> = {
   bread: 'food', pie: 'food', cheese: 'food', meat: 'food', ale: 'food', herbs: 'food',
   grain: 'crop_yield', wheat: 'crop_yield', flour: 'material',
   sword: 'tool', dagger: 'tool', hammer: 'tool', axe: 'tool', lantern: 'tool', key: 'tool', book: 'tool',
   ring: 'valuable', coins: 'valuable', flowers: 'misc',
+  // v0.3 building materials — effectively non-perishable here.
+  log: 'material', plank: 'material', stone: 'material',
 };
 export function isFood(t: ItemType): boolean { return RESOURCE_CATEGORY[t] === 'food'; }
 

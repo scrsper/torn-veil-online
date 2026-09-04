@@ -23,6 +23,8 @@ function fieldWorld(seed = 900): { world: ReturnType<typeof createTestWorld>['wo
   // lay Farmland so createFields finds plots
   for (let x = 4; x <= 12; x++) for (let z = 4; z <= 12; z++) { tw.world.grid.set(x, 1, z, 3); tw.world.grid.set(x, 1, z, 16); }
   createFields(tw.world, [{ placeId: farm.id, ownerId: farmer.id, startMoisture: 0.5 }]);
+  // v0.3: sowing now consumes seed grain from the farm's own stock — give the test farm a reserve.
+  makeItem(tw.world, 'grain', 'seed grain', { owner: farmer.id, pos: v(8, 2, 8), placeId: farm.id, quantity: 50 });
   return { world: tw.world, field: tw.world.fields[0] };
 }
 

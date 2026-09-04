@@ -17,7 +17,13 @@ const EVENT_CATEGORY: Partial<Record<string, TelemetryRecord['category']>> = {
   // v0.2.4 world metabolism
   crop_planted: 'metabolism', crop_matured: 'metabolism', crop_harvested: 'metabolism',
   resource_transformed: 'metabolism', food_consumed: 'metabolism', water_consumed: 'metabolism',
-  resource_shortage: 'metabolism',
+  resource_shortage: 'metabolism', resource_spoiled: 'metabolism',
+  // v0.3 Living World I — logistics & construction
+  haul_requested: 'logistics', haul_started: 'logistics', resource_picked_up: 'logistics',
+  resource_delivered: 'logistics', haul_failed: 'logistics',
+  resource_extracted: 'logistics', resource_depleted: 'logistics', resource_regrew: 'logistics',
+  construction_started: 'construction', construction_material_delivered: 'construction',
+  construction_progress: 'construction', construction_completed: 'construction', construction_cancelled: 'construction',
 };
 function categoryFor(type: string): TelemetryRecord['category'] { return EVENT_CATEGORY[type] ?? 'cognition'; }
 

@@ -3,8 +3,12 @@ import { World } from '../core/world';
 import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRelationships } from './relationships';
 import { maintainConflicts, beginConflict, recordConflictBlow, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
 import { maintainCustody, subdue, takeIntoCustody, beginSurrender, isSubdued } from '../social/custody';
-import { stepMetabolism, fieldFor, firstPlot, plantPlot, harvestPlot, mill, bake, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, GRAIN_CAP } from '../world/metabolism';
+import { stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, GRAIN_CAP, SEED_PER_PLOT } from '../world/metabolism';
 import { isFood } from '../world/factory';
+import { stockAt } from '../world/stock';
+import { pickHaulTask, claimHaulTask, loadHaulCargo, depositHaulCargo, failHaulTask, generateLogisticsNeeds, maintainHauls, canHaul } from '../logistics/haul';
+import { nearestAvailableNode, extractFromNode, maintainResourceNodes } from '../world/resources';
+import { stepConstruction, activeBuildProjects, contributeBuildLabor, MAX_BUILDERS } from '../world/construction';
 import { remember } from './memory';
 import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge } from './knowledge';
 import { currentScheduleEntry } from './schedule';
@@ -403,7 +407,51 @@ export class Simulation {
         const rainingNow = w.weather.kind === 'rain' || w.weather.kind === 'storm';
         const grainGlut = villageStock(w, 'grain') >= GRAIN_CAP;
         if (firstPlot(field, 'harvest') && !grainGlut) G('harvest', clamp(0.7 + (rainingNow ? -0.1 : 0)), [`wheat is ripe in ${w.nameOf(field.placeId)}`], { targetPlace: field.placeId, data: { fieldId: field.id } });
-        else if (firstPlot(field, 'plant') && !rainingNow) G('plant', 0.58, [`there is fallow ground in ${w.nameOf(field.placeId)}`], { targetPlace: field.placeId, data: { fieldId: field.id } });
+        // v0.3 Priority 13: sowing needs seed grain at the farm — don't adopt `plant` without it.
+        else if (firstPlot(field, 'plant') && !rainingNow && farmSeedGrain(w, field) >= SEED_PER_PLOT) G('plant', 0.58, [`there is fallow ground in ${w.nameOf(field.placeId)}`], { targetPlace: field.placeId, data: { fieldId: field.id } });
+      }
+    }
+    // v0.3 Living World I: physical logistics, extraction, and construction labour. Low-drama
+    // "there is useful work to be done" goals — they beat idling/socialising and (when
+    // role-matched) standing at an empty workplace, but lose to sleep/eat/flee/combat and to
+    // real production work. All shared with the player (Constitution VI). Suppressed under threat.
+    if (!threat && !p.hostile && canHaul(p)) {
+      // Haul: physically move a needed resource between two Places.
+      const haul = pickHaulTask(w, p, pos);
+      if (haul) {
+        const t = haul.task;
+        const mine = t.claimantId === p.id;
+        const src = w.place(t.sourcePlaceId);
+        G('haul', clamp((mine ? 0.68 : 0.42) + haul.score * 0.4), [`${t.resource} is needed at ${w.nameOf(t.destPlaceId)}`, t.reason], { targetPlace: src ? t.sourcePlaceId : undefined, targetPos: src?.inside, data: { taskId: t.id } });
+      }
+      // Chop: a woodcutter at the clearing fells a standing tree.
+      if (p.occupation === 'woodcutter' && sched?.activity === 'work' && sched.placeId && w.place(sched.placeId)?.type === 'wilderness') {
+        const node = nearestAvailableNode(w, 'tree', pos, 90);
+        if (node) G('chop', 0.66, [`there are trees to fell near ${w.nameOf(node.placeId)}`], { targetPos: node.pos, data: { nodeId: node.id } });
+      }
+      // Build: contribute labour to a project whose materials are on site (cap concurrent builders).
+      const proj = activeBuildProjects(w)[0];
+      if (proj) {
+        const builders = w.persons().filter(q => q.alive && q.mind.goal?.type === 'build' && q.mind.goal.data?.projectId === proj.id).map(q => q.id);
+        const site = w.place(proj.sitePlaceId);
+        if (site && dist2(pos, site.inside) < 120 && (builders.includes(p.id) || builders.length < MAX_BUILDERS)) {
+          G('build', clamp(0.5 + (proj.status === 'building' ? 0.08 : 0)), [`the village needs hands to raise ${proj.name}`], { targetPlace: proj.sitePlaceId, data: { projectId: proj.id } });
+        }
+      }
+      // Gather stone: a gathering project short of stone, with none in the pipeline yet.
+      for (const gp of w.constructionProjects) {
+        if (gp.status !== 'gathering') continue;
+        const req = gp.required.find(r => r.type === 'stone'); if (!req) continue;
+        const pipeline = stockAt(w, 'stone', gp.sitePlaceId)
+          + w.places().filter(pl => pl.type === 'quarry').reduce((n, pl) => n + stockAt(w, 'stone', pl.id), 0)
+          + w.items().filter(i => i.type === 'stone' && i.holderId).reduce((n, i) => n + i.quantity, 0);
+        if (pipeline >= req.quantity) continue;
+        const already = w.persons().filter(q => q.alive && q.id !== p.id && q.mind.goal?.type === 'gather').length;
+        const gathering = p.mind.goal?.type === 'gather';
+        const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter'].includes(p.occupation);
+        if (!gathering && (already >= 2 || !roleOk)) continue;
+        const node = nearestAvailableNode(w, 'stone', pos, 220);
+        if (node) G('gather', 0.5, [`${gp.name} still needs stone`], { targetPos: node.pos, data: { nodeId: node.id } });
       }
     }
     // ---- schedule
@@ -538,6 +586,33 @@ export class Simulation {
         const spot = target ? { x: target.x + 0.5, y: target.y, z: target.z + 0.5 } : (place?.inside ?? body.pos);
         return [A({ type: 'goto', pos: spot, placeId: field?.placeId }), A({ type: g.type, pos: spot, placeId: field?.placeId, duration: 30 * 60, data: { fieldId: field?.id } })];
       }
+      // v0.3 logistics/materials/construction. Multi-step, like robbery: walk to source, load,
+      // walk to destination, unload — no teleportation.
+      case 'haul': {
+        const task = w.haulTasks.find(t => t.id === g.data?.taskId);
+        if (!task || task.status === 'delivered' || task.status === 'failed' || task.status === 'cancelled') return [A({ type: 'wait', duration: 30 })];
+        claimHaulTask(w, task, p); // idempotent — only claims a still-`needed` task
+        const src = w.place(task.sourcePlaceId); const dst = w.place(task.destPlaceId);
+        const srcSpot = src?.anchors.find(a => a.kind === 'work')?.pos ?? src?.inside ?? body.pos;
+        const dstSpot = dst?.anchors.find(a => a.kind === 'work' || a.kind === 'inside')?.pos ?? dst?.inside ?? body.pos;
+        return [
+          A({ type: 'goto', pos: srcSpot, placeId: task.sourcePlaceId, run: false }),
+          A({ type: 'haul_load', pos: srcSpot, placeId: task.sourcePlaceId, duration: 90, data: { taskId: task.id } }),
+          A({ type: 'goto', pos: dstSpot, placeId: task.destPlaceId, run: false }),
+          A({ type: 'haul_unload', pos: dstSpot, placeId: task.destPlaceId, duration: 60, data: { taskId: task.id } }),
+        ];
+      }
+      case 'chop': case 'gather': {
+        const node = w.resourceNodes.find(n => n.id === g.data?.nodeId);
+        const spot = node ? { ...node.pos } : (g.targetPos ?? body.pos);
+        return [A({ type: 'goto', pos: spot, run: false }), A({ type: g.type, pos: spot, duration: 30 * 60, data: { nodeId: g.data?.nodeId } })];
+      }
+      case 'build': {
+        const proj = w.constructionProjects.find(pr => pr.id === g.data?.projectId);
+        const site = proj ? w.place(proj.sitePlaceId) : place;
+        const spot = site?.anchors.find(a => a.kind === 'work')?.pos ?? site?.inside ?? body.pos;
+        return [A({ type: 'goto', pos: spot, placeId: site?.id }), A({ type: 'build', pos: spot, duration: 40 * 60, data: { projectId: g.data?.projectId } })];
+      }
       case 'recover_item': return [A({ type: 'goto', pos: g.targetPos! }), A({ type: 'pickup', targetEntity: g.targetEntity })];
       case 'mourn': { const gy = place!; const grave = gy.anchors.find(a => a.kind === 'grave' && a.label?.startsWith('Anna')) ?? gy.anchors[0]; return [A({ type: 'goto', pos: grave.pos }), A({ type: 'pray', pos: grave.pos, duration: 40 * 60 })]; }
       default: return [A({ type: 'wait', duration: 60 })];
@@ -614,7 +689,7 @@ export class Simulation {
         // v0.2.4: a miller / baker at their workplace runs a production batch every ~12 world-min
         // of work (real resource transformation; conservation; demand-driven — mill/bake stop
         // when the village has plenty). Only checked on the batch cadence, so no per-substep cost.
-        if ((p.occupation === 'miller' || p.occupation === 'baker')) {
+        if ((p.occupation === 'miller' || p.occupation === 'baker' || p.occupation === 'woodcutter')) {
           a.data = a.data ?? {};
           const last = (a.data.batchAt ?? (a.startedAt ?? w.now) - 8 * 60) as number;
           if (w.now - last >= 8 * 60) {
@@ -622,6 +697,7 @@ export class Simulation {
             const t = w.placeAt(body.pos)?.type;
             if (p.occupation === 'miller' && t === 'mill') mill(w, p);
             else if (p.occupation === 'baker' && t === 'bakery') bake(w, p);
+            else if (p.occupation === 'woodcutter' && t === 'sawpit') saw(w, p); // v0.3: log → plank
           }
         }
         if (this.elapsed(a)) a.status = 'done';
@@ -645,10 +721,68 @@ export class Simulation {
             const spot = { x: plot.x + 0.5, y: plot.y, z: plot.z + 0.5 };
             if (dist2(body.pos, spot) > 2.5) { a.status = 'pending'; m.plan.unshift({ type: 'goto', pos: spot, status: 'pending' }); break; }
             body.pos.x = plot.x + 0.5; body.pos.z = plot.z + 0.5;
-            if (a.type === 'harvest') harvestPlot(w, field, plot, p); else plantPlot(w, field, plot, p);
+            if (a.type === 'harvest') harvestPlot(w, field, plot, p);
+            else if (!plantPlot(w, field, plot, p)) { a.status = 'done'; break; } // out of seed grain — stop
           } else { a.status = 'done'; break; } // no more actionable plots
         }
         if (this.elapsed(a)) a.status = 'done';
+        break;
+      }
+      // v0.3 Living World I — physical hauling, extraction, construction labour.
+      case 'haul_load': {
+        const task = w.haulTasks.find(t => t.id === a.data?.taskId);
+        if (!task || task.status === 'delivered' || task.status === 'failed' || task.status === 'cancelled') { a.status = 'done'; break; }
+        body.pose = 'work'; body.sitAnchor = null;
+        const src = w.place(task.sourcePlaceId);
+        if (src && dist2(body.pos, src.inside) > 4 && !(a.pos && dist2(body.pos, a.pos) <= 3)) {
+          a.status = 'pending'; m.plan.unshift({ type: 'goto', pos: a.pos ?? src.inside, placeId: src.id, status: 'pending' }); break;
+        }
+        if (this.elapsed(a)) {
+          const ok = loadHaulCargo(w, task, p);
+          a.status = ok && task.status === 'in_transit' ? 'done' : 'failed';
+        }
+        break;
+      }
+      case 'haul_unload': {
+        const task = w.haulTasks.find(t => t.id === a.data?.taskId);
+        if (!task || task.status === 'delivered' || task.status === 'cancelled') { a.status = 'done'; break; }
+        body.pose = 'work'; body.sitAnchor = null;
+        const dst = w.place(task.destPlaceId);
+        if (dst && dist2(body.pos, dst.inside) > 4 && !(a.pos && dist2(body.pos, a.pos) <= 3)) {
+          a.status = 'pending'; m.plan.unshift({ type: 'goto', pos: a.pos ?? dst.inside, placeId: dst.id, status: 'pending' }); break;
+        }
+        if (this.elapsed(a)) { depositHaulCargo(w, task, p); a.status = 'done'; }
+        break;
+      }
+      case 'chop': case 'gather': {
+        const node = w.resourceNodes.find(n => n.id === a.data?.nodeId);
+        body.pose = 'work'; body.sitAnchor = null;
+        if (!node || node.state !== 'available' || node.remaining <= 0) { a.status = 'done'; break; } // depleted — stop, don't retry
+        if (a.pos && dist2(body.pos, a.pos) > 2.6) { a.status = 'pending'; m.plan.unshift({ type: 'goto', pos: a.pos, status: 'pending' }); break; }
+        body.yaw = Math.atan2(-(node.pos.x - body.pos.x), -(node.pos.z - body.pos.z));
+        a.data = a.data ?? {}; const swing = 5 * 60; // ~5 world-min per extraction
+        if (a.data.swingAt === undefined || w.now - a.data.swingAt >= swing) {
+          a.data.swingAt = w.now;
+          if (extractFromNode(w, node, p) <= 0) { a.status = 'done'; break; }
+        }
+        if (this.elapsed(a)) a.status = 'done';
+        break;
+      }
+      case 'build': {
+        const proj = w.constructionProjects.find(pr => pr.id === a.data?.projectId);
+        body.pose = 'work'; body.sitAnchor = a.pos ?? null; this.maybeChat(p, body);
+        if (!proj || proj.status === 'complete' || proj.status === 'cancelled') { a.status = 'done'; break; }
+        const site = w.place(proj.sitePlaceId);
+        if (site && a.pos && dist2(body.pos, a.pos) > 3) { a.status = 'pending'; m.plan.unshift({ type: 'goto', pos: a.pos, placeId: site.id, status: 'pending' }); break; }
+        if (proj.status === 'gathering') { a.status = 'done'; break; } // materials not in yet — nothing to build
+        a.data = a.data ?? {}; const slice = 60; // credit labour every world-minute of work
+        if (a.data.laborAt === undefined) a.data.laborAt = a.startedAt ?? w.now;
+        if (w.now - a.data.laborAt >= slice) {
+          const secs = Math.min(w.now - a.data.laborAt, 300);
+          a.data.laborAt = w.now;
+          contributeBuildLabor(w, proj, p, secs);
+        }
+        if ((proj.status as string) === 'complete' || this.elapsed(a)) a.status = 'done';
         break;
       }
       case 'pray': body.pose = 'pray'; body.sitAnchor = a.pos ?? null; if (this.elapsed(a)) a.status = 'done'; break;
@@ -1030,6 +1164,19 @@ export class Simulation {
   }
   weaponName(p: Person): string { let best: string = 'fists'; let bd = 0; for (const id of p.inventory) { const it = this.world.item(id); if (it && it.damage > bd) { bd = it.damage; best = it.name; } } return best; }
 
+  /**
+   * Player/NPC-shared (Constitution VI): chop or quarry the resource node at — or adjacent to —
+   * a world cell. Same `extractFromNode` path an NPC's `chop`/`gather` action uses. Returns the
+   * units extracted, or 0 if there is no workable node there.
+   */
+  extractResourceAt(actor: Person, pos: Vec3): number {
+    const w = this.world;
+    const cx = Math.floor(pos.x), cy = Math.floor(pos.y), cz = Math.floor(pos.z);
+    const node = w.resourceNodes.find(n => n.state === 'available' && n.remaining > 0
+      && (n.blocks.some(b => b.x === cx && b.z === cz && Math.abs(b.y - cy) <= 5) || dist2(n.pos, pos) < 2.5));
+    return node ? extractFromNode(w, node, actor) : 0;
+  }
+
   // ------------------------------------------------------------------ items
   takeItem(p: Person, it: import('../core/types').Item, how: 'pickup' | 'theft' | 'recovered' | 'bought' | 'given', from?: EntityId): WorldEvent {
     const w = this.world; const pos = it.pos ? { ...it.pos } : w.primaryBody(p.id)?.pos; const place = it.placeId ? w.place(it.placeId) : pos ? w.placeAt(pos) : undefined;
@@ -1183,6 +1330,14 @@ export class Simulation {
       // only semantic transitions (crop_matured). Same ~10-min cadence as social upkeep.
       const tmet = this.mark();
       stepMetabolism(w, sh);
+      // v0.3 Living World I: logistics needs, haul-queue upkeep, construction advance, resource
+      // node regrowth, and stock spoilage — all deterministic, all on this coarse cadence so
+      // they cost nothing per physical step.
+      generateLogisticsNeeds(w);
+      stepConstruction(w);
+      maintainHauls(w);
+      maintainResourceNodes(w);
+      stepSpoilage(w, sh);
       this.accum('strategic.metabolism', tmet);
     }
     // weather

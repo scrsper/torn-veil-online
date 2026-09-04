@@ -1,8 +1,10 @@
 import { World } from '../core/world';
 import { WorldClock } from '../core/time';
 import { generateVillage } from '../world/village';
-import type { Person, Body, Item, Place, Faction, WorldEvent, Conflict, Field } from '../core/types';
+import type { Person, Body, Item, Place, Faction, WorldEvent, Conflict, Field, HaulTask, ResourceNode, ConstructionProject } from '../core/types';
 import { syncFieldBlocks } from '../world/metabolism';
+import { syncResourceNodeBlocks } from '../world/resources';
+import { materializeStructure } from '../world/construction';
 
 const KEY = 'infinite-rpg-save-v1';
 // v0.2.1 Priority 8: bumped 2 -> 3 to add faction leaderId/knowledge persistence (see
@@ -25,7 +27,13 @@ const KEY = 'infinite-rpg-save-v1';
 // + soil moisture) and `Needs.thirst`. Grain/flour/bread stock are ordinary items and already
 // round-trip. Crop *blocks* also round-trip via grid diffs, but the canonical plot state is
 // authoritative and re-projected onto the grid on load. See docs/V0_2_4_WORLD_METABOLISM.md.
-export const SAVE_VERSION = 5;
+// v0.3: bumped 5 -> 6 for Living World I canonical state — `World.haulTasks` (a haul in
+// transit / cargo that isn't at any Place), `World.resourceNodes` (tree/stone depletion +
+// regrowth timing), `World.constructionProjects` (a half-supplied project, labour done,
+// per-worker contributions). Materials/logs/planks/stone are ordinary items and round-trip;
+// chopped/built voxels round-trip via grid diffs but node/project state is authoritative and
+// re-projected on load. New Item fields (`haulTaskId`, `spoilAccum`) round-trip with the item.
+export const SAVE_VERSION = 6;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
@@ -55,7 +63,11 @@ export function serialize(world: World): string {
   const conflicts = world.conflicts.map(c => ({ ...c }));
   // v0.2.4: fields carry the crop lifecycle + soil moisture. Plain data; whole list kept.
   const fields = world.fields.map(f => ({ ...f, plots: f.plots.map(p => ({ ...p })) }));
-  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, diffs, doors, events, savedAt: Date.now() });
+  // v0.3: haul tasks, resource nodes, construction projects — all plain serializable records.
+  const haulTasks = world.haulTasks.map(t => ({ ...t }));
+  const resourceNodes = world.resourceNodes.map(n => ({ ...n, pos: { ...n.pos }, blocks: n.blocks.map(b => ({ ...b })) }));
+  const constructionProjects = world.constructionProjects.map(p => ({ ...p, required: p.required.map(r => ({ ...r })), contributions: { ...p.contributions }, siteBounds: { ...p.siteBounds } }));
+  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, diffs, doors, events, savedAt: Date.now() });
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -109,6 +121,9 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     for (const s of data.bodies) { const b = world.body(s.id); if (!b) continue; b.pos = s.pos; b.yaw = s.yaw; b.health = s.health; b.maxHealth = s.maxHealth; b.dead = s.dead; b.pose = s.pose; b.present = s.present; b.path = null; b.subduedUntil = s.subduedUntil ?? 0; }
     world.conflicts = (data.conflicts ?? []).map((c: Conflict) => ({ ...c }));
     if (data.fields?.length) { world.fields = data.fields.map((f: Field) => ({ ...f, plots: f.plots.map(p => ({ ...p })) })); }
+    world.haulTasks = (data.haulTasks ?? []).map((t: HaulTask) => ({ ...t }));
+    if (data.resourceNodes?.length) world.resourceNodes = data.resourceNodes.map((n: ResourceNode) => ({ ...n, pos: { ...n.pos }, blocks: n.blocks.map(b => ({ ...b })) }));
+    if (data.constructionProjects?.length) world.constructionProjects = data.constructionProjects.map((p: ConstructionProject) => ({ ...p, required: p.required.map(r => ({ ...r })), contributions: { ...p.contributions }, siteBounds: { ...p.siteBounds } }));
 
     for (const s of data.items) { const i = world.item(s.id); if (i) Object.assign(i, s); else world.add({ ...s, tags: [...s.tags], pos: s.pos ? { ...s.pos } : null, provenance: s.provenance.map((entry: Item['provenance'][number]) => ({ ...entry })) } as Item); }
     for (const s of data.places) { const p = world.place(s.id); if (!p) continue; p.ownerId = s.ownerId; s.anchors.forEach((o: string | null, i: number) => { if (p.anchors[i]) p.anchors[i].ownerId = o ?? undefined; }); }
@@ -118,6 +133,12 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     // v0.2.4: canonical plot state is authoritative — re-project it onto the grid (harmless if
     // the diffs already restored the same blocks; corrects any drift).
     if (world.fields.length) syncFieldBlocks(world);
+    // v0.3: re-project resource-node state, and re-raise any completed structure (village
+    // generation rebuilt its site as a bare 'construction' Place — the diffs restored the
+    // blocks, this restores the Place's identity/anchors). Idempotent.
+    if (world.resourceNodes.length) syncResourceNodeBlocks(world);
+    for (const proj of world.constructionProjects) if (proj.status === 'complete') materializeStructure(world, proj);
+    if (world.resourceNodes.length || world.constructionProjects.some(p => p.status === 'complete')) { world.grid.dirtyChunks.clear(); world.nav.rebuildAll(); }
     world.grid.recording = true;
     // Generated entity ids are part of the save schema. Refuse a malformed/incompatible
     // overlay rather than booting a world whose player has no physical manifestation.

@@ -3,7 +3,7 @@ export interface TelemetryRecord {
    * where world time and real time diverge; headless runs mostly care about `worldTick`. */
   t: number;
   worldTick: number;
-  category: 'run' | 'cognition' | 'perception' | 'knowledge' | 'relationship' | 'conflict' | 'social' | 'institutional' | 'integrity' | 'metabolism';
+  category: 'run' | 'cognition' | 'perception' | 'knowledge' | 'relationship' | 'conflict' | 'social' | 'institutional' | 'integrity' | 'metabolism' | 'logistics' | 'construction';
   type: string;
   data: Record<string, unknown>;
 }

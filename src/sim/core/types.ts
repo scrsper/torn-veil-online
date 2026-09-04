@@ -169,7 +169,12 @@ export type GoalType =
   | 'surrender' | 'escort_custody'
   // v0.2.4 world metabolism: seek water when thirsty; plant/harvest a field; the existing
   // 'work' goal covers milling/baking/tending.
-  | 'drink_water' | 'plant' | 'harvest';
+  | 'drink_water' | 'plant' | 'harvest'
+  // v0.3 Living World I — logistics, materials & construction. `haul` moves a resource stack
+  // from one Place to another with the actor physically carrying it; `chop`/`gather` extract
+  // from a ResourceNode; `build` contributes labour to a ConstructionProject. All shared with
+  // the player (Constitution VI).
+  | 'haul' | 'chop' | 'gather' | 'build';
 
 export interface Goal {
   type: GoalType;
@@ -189,7 +194,10 @@ export type ActionType = 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 't
   // surrendered/subdued suspect into detention).
   | 'yield' | 'take_custody'
   // v0.2.4: drink at a water source; plant/harvest a field plot.
-  | 'drink' | 'plant' | 'harvest';
+  | 'drink' | 'plant' | 'harvest'
+  // v0.3: load a haul cargo at the source Place; unload it at the destination; extract from a
+  // resource node; contribute one slice of construction labour.
+  | 'haul_load' | 'haul_unload' | 'chop' | 'gather' | 'build';
 export interface Action {
   type: ActionType;
   pos?: Vec3;
@@ -339,6 +347,96 @@ export interface Field {
   plots: CropPlot[];
 }
 
+// ---------------------------------------------------------------- Logistics (v0.3 Living World I)
+/**
+ * A haul task: a canonical, world-generated need to move `quantity` units of a material
+ * resource from one Place to another, with an actor physically carrying it (Constitution VII —
+ * "no teleported transport"). Tasks are generated from world state (supply/demand/distance),
+ * not from named-NPC schedules. Owned by `World.haulTasks`; persisted (a task in progress, or
+ * cargo in transit, cannot be reconstructed from present state).
+ *
+ *   needed → claimed → (actor walks to source, loads) → in_transit → (walks to dest, unloads)
+ *          → delivered   |   failed (source empty / hauler lost — cargo stays canonical)
+ */
+export type HaulStatus = 'needed' | 'claimed' | 'in_transit' | 'delivered' | 'failed' | 'cancelled';
+export interface HaulTask {
+  id: EntityId;
+  resource: ItemType;
+  quantity: number;                    // units this trip should move
+  carried: number;                     // units currently on the claimant
+  delivered: number;                   // units deposited at the destination
+  sourcePlaceId: EntityId;
+  destPlaceId: EntityId;
+  reason: string;                      // "mill low on grain", "storage shed needs planks", ...
+  requesterId: EntityId | null;        // beneficiary (institution/person), for future wages
+  projectId?: EntityId;                // set when the destination is a ConstructionProject site
+  claimantId: EntityId | null;
+  cargoItemId?: EntityId;              // the real Item stack travelling with the claimant
+  status: HaulStatus;
+  priority: number;                    // 0..1 — higher = more urgent (deeper deficit)
+  createdAt: Tick;
+  updatedAt: Tick;
+}
+
+// ---------------------------------------------------------------- Resource nodes (v0.3)
+/**
+ * A renewable or non-renewable resource patch (Constitution: materials come from somewhere).
+ * v0.3 covers trees (renewable, → `log`) and stone outcrops (slow/non-renewable, → `stone`).
+ * The node owns its canonical state; the voxel blocks it lists are a projection of that state
+ * (a depleted tree's blocks are cleared; a regrown one's are restored). Owned by
+ * `World.resourceNodes`; persisted (depletion/regrowth is history).
+ */
+export type ResourceNodeKind = 'tree' | 'stone';
+export interface ResourceNodeBlock { x: number; y: number; z: number; id: number; }
+export interface ResourceNode {
+  id: EntityId;
+  kind: ResourceNodeKind;
+  yield: ItemType;                     // 'log' | 'stone'
+  pos: Vec3;                           // a walkable cell a harvester stands at
+  blocks: ResourceNodeBlock[];         // canonical voxels (id = block to restore on regrow)
+  remaining: number;                   // units of yield left before depletion
+  capacity: number;
+  renewable: boolean;
+  regrowHours: number;                 // world-hours from depletion to available again
+  state: 'available' | 'depleted' | 'regrowing';
+  depletedAt?: Tick;
+  regrowAt?: Tick;
+  dropPlaceId: EntityId;               // Place where extracted items are stacked
+  placeId?: EntityId;                  // wilderness/worksite area it belongs to
+}
+
+// ---------------------------------------------------------------- Construction (v0.3)
+/**
+ * A construction project: a place-bound material manifest plus a labour requirement. The
+ * structure is NOT created when the project is made — the required materials must physically
+ * arrive at `sitePlaceId` (via haul tasks) and actual `build` labour must be performed before
+ * the world lays the permanent structure. Owned by `World.constructionProjects`; persisted.
+ *
+ *   gathering (waiting on materials) → ready (materials in) → building (labour underway)
+ *            → complete (structure raised, site Place becomes usable)  |  cancelled
+ */
+export type ConstructionStatus = 'gathering' | 'ready' | 'building' | 'complete' | 'cancelled';
+export interface ConstructionRequirement { type: ItemType; quantity: number; }
+export interface ConstructionProject {
+  id: EntityId;
+  name: string;
+  template: 'storage_shed';
+  siteBounds: { x0: number; z0: number; x1: number; z1: number; y0: number; y1: number };
+  sitePlaceId: EntityId;               // the site Place; materials accrue here, becomes the structure
+  required: ConstructionRequirement[];
+  laborRequired: number;               // person-seconds of `build` work
+  laborDone: number;
+  /** person-seconds contributed per worker — the hook a future wage system reads
+   * (Constitution: separate resource availability from labour availability). */
+  contributions: Record<EntityId, number>;
+  status: ConstructionStatus;
+  ownerId: EntityId | null;            // requester (an institution or person)
+  createdAt: Tick;
+  startedAt?: Tick;
+  completedAt?: Tick;
+  resultPlaceId?: EntityId;            // the Place the finished structure is (== sitePlaceId)
+}
+
 /**
  * Explicit conflict intent (Constitution §11 "Conflict Must Have Intent"). Hostility is not
  * lethal intent: a hostile faction member (a bandit) or an armed defender does not default
@@ -431,7 +529,10 @@ export interface Creature extends Entity {
 export type ItemType = 'sword' | 'dagger' | 'hammer' | 'axe' | 'bread' | 'ale' | 'coins' | 'ring' | 'book' | 'herbs' | 'flowers' | 'meat' | 'cheese' | 'lantern' | 'key' | 'pie' | 'wheat'
   // v0.2.4 world-metabolism resources. `grain` is threshed harvested wheat; `flour` is milled
   // grain; `bread` (already present) is baked flour. See RESOURCE_CATEGORY / metabolism.ts.
-  | 'grain' | 'flour';
+  | 'grain' | 'flour'
+  // v0.3 building materials. `log` is a felled tree section (from a tree ResourceNode); `plank`
+  // is sawn lumber (log → plank via transform()); `stone` is quarried rock (from a stone node).
+  | 'log' | 'plank' | 'stone';
 
 /**
  * v0.2.4: a coarse category for an item type, so production/consumption logic can reason about
@@ -453,10 +554,22 @@ export interface Item extends Entity {
   quantity: number;
   description: string;
   named: boolean;
+  /** v0.3: this stack is a haul cargo currently being carried between two Places for the named
+   * task. Set when a hauler loads at the source, cleared when it is deposited at the
+   * destination. If the hauler is interrupted/killed the stack simply stays in their inventory
+   * (or is dropped) — the resource is never destroyed (Constitution VII "no materials from
+   * nowhere", and its inverse). */
+  haulTaskId?: EntityId;
+  /** v0.3: fractional spoilage carried between spoilage passes so perishables lose whole units
+   * without per-unit-per-tick simulation. Only ever set on perishable food stacks. */
+  spoilAccum?: number;
 }
 
 // ---------------------------------------------------------------- Places
-export type PlaceType = 'house' | 'tavern' | 'smithy' | 'bakery' | 'store' | 'chapel' | 'guardhouse' | 'farm' | 'mill' | 'square' | 'well' | 'stall' | 'camp' | 'shrine' | 'graveyard' | 'wilderness' | 'hut' | 'bridge' | 'gate';
+export type PlaceType = 'house' | 'tavern' | 'smithy' | 'bakery' | 'store' | 'chapel' | 'guardhouse' | 'farm' | 'mill' | 'square' | 'well' | 'stall' | 'camp' | 'shrine' | 'graveyard' | 'wilderness' | 'hut' | 'bridge' | 'gate'
+  // v0.3: a worksite where felled logs are sawn into planks; an open rock outcrop worked for
+  // stone; a construction site where materials accumulate before a structure is raised.
+  | 'sawpit' | 'quarry' | 'construction';
 export interface Anchor { pos: Vec3; ownerId?: EntityId; entityId?: EntityId; kind: 'bed' | 'seat' | 'work' | 'counter' | 'fire' | 'altar' | 'grave' | 'stall' | 'inside' | 'post' | 'display'; label?: string; }
 export interface Place extends Entity {
   kind: 'place';
@@ -520,7 +633,13 @@ export type EventType =
   | 'knowledge_forgotten'
   // v0.2.4 world metabolism — semantic transitions only, never a per-tick growth event.
   | 'crop_planted' | 'crop_matured' | 'crop_harvested'
-  | 'resource_transformed' | 'food_consumed' | 'water_consumed' | 'resource_shortage';
+  | 'resource_transformed' | 'food_consumed' | 'water_consumed' | 'resource_shortage'
+  // v0.3 Living World I — logistics, extraction, construction, spoilage. Semantic milestones
+  // only: never a per-step "walking with cargo" event.
+  | 'haul_requested' | 'haul_started' | 'resource_picked_up' | 'resource_delivered' | 'haul_failed'
+  | 'resource_extracted' | 'resource_depleted' | 'resource_regrew'
+  | 'construction_started' | 'construction_material_delivered' | 'construction_progress'
+  | 'construction_completed' | 'construction_cancelled' | 'resource_spoiled';
 
 export type EventCategory = 'world' | 'social' | 'cognition' | 'history';
 

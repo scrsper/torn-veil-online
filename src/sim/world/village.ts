@@ -6,6 +6,8 @@ import { makePerson, makeItem, makePlace, makeBody, makeFaction, makeCreature, I
 import { CAST } from './cast';
 import type { Place, Person, Vec3, Anchor, EntityId, Item } from '../core/types';
 import { createFields, cropBlockFor } from './metabolism';
+import { plantGrove, registerStoneNodes } from './resources';
+import { createConstructionProject } from './construction';
 import { scheduleFor } from '../mind/schedule';
 import { getRel, setRelTags, adjustRel } from '../mind/relationships';
 import { remember } from '../mind/memory';
@@ -95,7 +97,28 @@ export function generateVillage(world: World): GenResult {
   const wild = (key: string, name: string, x0: number, z0: number, x1: number, z1: number, desc: string) => { const a: Anchor[] = []; for (let i = 0; i < 5; i++) { const x = x0 + 2 + Math.floor(ctx.rng.next() * (x1 - x0 - 4)), z = z0 + 2 + Math.floor(ctx.rng.next() * (z1 - z0 - 4)); a.push({ pos: v(x, terrainHeight(x, z, world.seed) + 1, z), kind: 'work', label: name }); } P(key, makePlace(world, 'wilderness', name, bounds(x0, z0, x1, z1, 0, 40), { inside: a[0].pos, anchors: a, description: desc, indoor: false })); };
   wild('forest_north', 'the northern forest', 100, 20, 140, 44, 'Deep pines where Kestrel hunts.');
   wild('river_woods', 'the river woods', 26, 130, 50, 158, 'Damp woods along the river where herbs grow.');
-  wild('clearing', "the woodcutter's clearing", 140, 150, 170, 175, 'Stumps and stacked logs at the forest edge.');
+  // v0.3 Living World I — worksites for the timber / stone / construction chain, set on flat
+  // plateau ground south of the Fletcher fields so every link is actually reachable.
+  { // the woodcutter's clearing: a deterministic grove is planted here (below), on level ground
+    reserve(ctx, 94, 128, 122, 150, 0); flatten(grid, 94, 128, 122, 150, VILLAGE_TOP, 0);
+    P('clearing', makePlace(world, 'wilderness', "the woodcutter's clearing", bounds(94, 128, 122, 150, F, F + 12), { inside: v(109, F, 139), anchors: [{ pos: v(109, F, 139), kind: 'work', label: 'clearing' }, { pos: v(107, F, 133), kind: 'work', label: 'clearing' }, { pos: v(113, F, 143), kind: 'work', label: 'clearing' }], description: 'A stand of trees the village works for timber, and stumps where it already has.', indoor: false }));
+  }
+  { // sawpit: an open worksite where felled logs are sawn into planks
+    const x0 = 116, z0 = 152, x1 = 122, z1 = 158; const fl = VILLAGE_TOP; reserve(ctx, x0 - 1, z0 - 1, x1 + 1, z1 + 1, 1); flatten(grid, x0, z0, x1, z1, fl, 1);
+    for (let x = x0; x <= x1; x++) grid.set(x, F, z0, B.Log);
+    grid.set(x0 + 1, F, z1 - 1, B.Crate); grid.set(x0 + 3, F, z1 - 1, B.Table);
+    P('sawpit', makePlace(world, 'sawpit', 'the sawpit', bounds(x0, z0, x1, z1, F, F + 3), { inside: v(x0 + 3, F, z1 - 2), anchors: [{ pos: v(x0 + 3, F, z1 - 2), kind: 'work', label: 'saw' }, { pos: v(x0 + 2, F, z1 - 3), kind: 'inside', label: 'sawpit' }], description: 'Trestles and a great two-man saw for cutting planks.', indoor: false }));
+  }
+  { // construction site: a flattened, staked-out plot where the storage shed will be raised
+    const x0 = 126, z0 = 152, x1 = 133, z1 = 159; const fl = VILLAGE_TOP; reserve(ctx, x0 - 1, z0 - 1, x1 + 1, z1 + 1, 1); flatten(grid, x0, z0, x1, z1, fl, 1);
+    for (const [cx, cz] of [[x0, z0], [x1, z0], [x0, z1], [x1, z1]]) { grid.set(cx, F, cz, B.Fence); grid.set(cx, F + 1, cz, B.Fence); }
+    grid.set(x0 + 3, F, z0, B.Sign);
+    P('shed_site', makePlace(world, 'construction', 'the storage shed site', bounds(x0, z0, x1, z1, F, F + 4), { inside: v(x0 + 3, F, z0 + 3), anchors: [{ pos: v(x0 + 3, F, z0 + 3), kind: 'work', label: 'site' }, { pos: v(x0 + 4, F, z0 + 4), kind: 'inside', label: 'site' }], description: 'A staked-out plot. The village means to raise a storage shed here.', indoor: false }));
+  }
+  { // quarry: a stone outcrop on the northern rise — a deliberately long haul to the site
+    const x0 = 68, z0 = 22, x1 = 78, z1 = 32; const fl = terrainHeight(73, 27, world.seed); reserve(ctx, x0 - 1, z0 - 1, x1 + 1, z1 + 1, 1); flatten(grid, x0, z0, x1, z1, fl, 1, B.Gravel);
+    P('quarry', makePlace(world, 'quarry', 'the north quarry', bounds(x0, z0, x1, z1, fl + 1, fl + 4), { inside: v(x0 + 5, fl + 1, z1 - 2), anchors: [{ pos: v(x0 + 5, fl + 1, z1 - 2), kind: 'work', label: 'quarry' }], description: 'Bare rock the village breaks for building stone.', indoor: false }));
+  }
   // gates (posts on the roads)
   const gate = (key: string, name: string, x: number, z: number) => { reserve(ctx, x - 3, z - 3, x + 3, z + 3, 0); for (const [ox, oz] of [[-2, 0], [2, 0]]) { const gx = x + (z === 96 ? 0 : ox), gz = z + (z === 96 ? ox : 0); fill(grid, gx, F, gz, gx, F + 3, gz, B.Log); grid.set(gx, F + 4, gz, B.Lantern); } P(key, makePlace(world, 'gate', name, bounds(x - 3, z - 3, x + 3, z + 3, F, F + 5), { inside: v(x, F, z), anchors: [{ pos: v(x, F, z + (z === 96 ? -1 : 0) + (z !== 96 ? 0 : 0)), kind: 'post', label: name }], description: 'Lantern posts marking the edge of the village.', indoor: false })); };
   gate('gate_east', 'the east gate', 168, 96); gate('gate_south', 'the south gate', 96, 160); gate('gate_west', 'the west gate', 34, 96);
@@ -126,7 +149,9 @@ export function generateVillage(world: World): GenResult {
     const fac = c.occupation === 'bandit' ? bandits : (c.occupation === 'guard' || c.occupation === 'captain') ? watch : village;
     p.factionId = fac.id; fac.members.push(p.id);
     if (home) home.residents.push(p.id); if (work) work.workers.push(p.id);
-    p.schedule = scheduleFor(p, { work: work?.id ?? null, home: home?.id ?? null, tavern: places.tavern.id, square: places.square.id, chapel: places.chapel.id, stall: c.stall ? places[c.stall].id : null, field: c.field ? places[c.field].id : null, shift: c.shift });
+    p.schedule = scheduleFor(p, { work: work?.id ?? null, home: home?.id ?? null, tavern: places.tavern.id, square: places.square.id, chapel: places.chapel.id, stall: c.stall ? places[c.stall].id : null, field: c.field ? places[c.field].id : null, saw: places.sawpit.id, shift: c.shift });
+    // v0.3: the woodcutter also works the sawpit (log → plank) in the afternoon.
+    if (c.occupation === 'woodcutter') places.sawpit.workers.push(p.id);
     // patrol routes for guards
     if (c.occupation === 'guard' || c.occupation === 'captain') p.patrol = [v(96, F, 100), v(110, F, 96), v(96, F, 112), v(96, F, 78), v(84, F, 96), v(140, F, 96), v(96, F, 130)];
     if (c.key === 'hale') p.patrol = [v(168, F, 95), v(160, F, 96)];
@@ -224,11 +249,18 @@ export function generateVillage(world: World): GenResult {
     const pl = places[placeKey]; const it = makeItem(world, type, name, { owner: people[ownerKey].id, pos: v(pl.inside.x + 0.5, pl.inside.y, pl.inside.z + 0.5), placeId: pl.id, quantity: qty });
     it.provenance.push({ tick: daysAgo(2), from: null, to: people[ownerKey].id, how: 'in store' });
   };
-  stock('grain', 'sack of grain', 'mill', 'hobb', 120);
-  stock('flour', 'sack of flour', 'mill', 'hobb', 40);
-  stock('flour', 'sack of flour', 'bakery', 'osric', 30);
-  stock('bread', 'fresh loaves', 'bakery', 'osric', 60);
-  stock('bread', 'loaves for sale', 'stall_bread', 'osric', 20);
+  // v0.3: production inputs must now be physically local (transform() no longer reaches across
+  // the village), and hauling moves them there — so the mill/bakery start with only a working
+  // day's stock, farms start with grain to be carried, and the haul chain does the rest.
+  stock('grain', 'sack of grain', 'mill', 'hobb', 24);
+  stock('flour', 'sack of flour', 'mill', 'hobb', 6);
+  stock('flour', 'sack of flour', 'bakery', 'osric', 28);
+  stock('bread', 'fresh loaves', 'bakery', 'osric', 40);
+  stock('bread', 'loaves for sale', 'stall_bread', 'osric', 14);
+  stock('grain', 'sack of grain', 'farm_alwin', 'alwin', 40);
+  stock('grain', 'sack of grain', 'farm_jory', 'jory', 34);
+  stock('grain', 'sack of grain', 'farm_maud', 'maud', 26);
+  stock('grain', 'sack of grain', 'farm_cedric', 'cedric', 22);
   // A week's larder in every household (all residents can eat it), so nobody starves before the
   // production chain settles — and a larder for the miller/baker at their own workplace-homes.
   const seenHome = new Set<string>();
@@ -242,6 +274,22 @@ export function generateVillage(world: World): GenResult {
     const ch = makeItem(world, 'cheese', ITEM_LABEL.cheese, { owner: larderOwner, pos: v(home.inside.x - 0.5, home.inside.y, home.inside.z - 0.5), placeId: home.id, quantity: 6 });
     ch.provenance.push({ tick: daysAgo(1), from: null, to: larderOwner, how: 'household larder' });
   }
+
+  // ---- World logistics, materials & construction (v0.3 Living World I)
+  // Trees near the woodcutter's clearing become canonical timber; a stone outcrop is quarried.
+  plantGrove(world, { x0: 96, z0: 130, x1: 120, z1: 148 }, places.clearing.id, places.clearing.id, 14,
+    [places.sawpit.bounds, places.farm_jory.bounds, places.house_jory.bounds]);
+  registerStoneNodes(world, places.quarry.id, [v(70, 25, 24), v(74, 25, 27), v(72, 25, 30)]);
+  // One authored construction project (Constitution §67 — authored starting condition; its
+  // *fulfilment* is entirely emergent). The structure is NOT built now: materials must be
+  // chopped/sawn/quarried, hauled here, and worked before the shed becomes real.
+  createConstructionProject(world, {
+    name: 'the village storage shed', template: 'storage_shed',
+    siteBounds: { x0: 126, z0: 152, x1: 133, z1: 159, y0: F, y1: F + 4 },
+    sitePlaceId: places.shed_site.id,
+    required: [{ type: 'plank', quantity: 16 }, { type: 'stone', quantity: 8 }],
+    ownerId: people.godwin.id, laborRequired: 3 * 3600,
+  });
 
   // ---- Player
   const player = makePerson(world, { name: 'the Traveler', gender: 'm', age: 28, occupation: 'traveler', traits: { courage: 0.7 }, appearance: { skin: 0xd9a988, hair: 0x2a1a10, shirt: 0x3a5a7a, pants: 0x3a3a3a, hatStyle: 'hood', hat: 0x3a4a5a }, bio: 'A stranger who walked in on the west road.' , wealth: 25 });

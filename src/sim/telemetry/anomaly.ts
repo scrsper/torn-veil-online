@@ -54,6 +54,14 @@ function trace(events: WorldEvent[], cap: number): Pick<Anomaly, 'occurrences' |
   };
 }
 
+/** Semantic world events that are naturally bursty and already treated as high-frequency /
+ * low-significance by the engine (TALLIED_TYPES + compaction). A cluster of these is a wave of
+ * real activity, not a stuck loop. */
+const HIGH_FREQUENCY_SEMANTIC = new Set<WorldEvent['type']>([
+  'crop_planted', 'crop_matured', 'crop_harvested', 'resource_transformed', 'food_consumed', 'water_consumed', 'meal',
+  'resource_picked_up', 'resource_delivered', 'resource_extracted', 'construction_material_delivered', 'construction_progress', 'resource_spoiled',
+]);
+
 export function detectAnomalies(world: World, opts: AnomalyOptions = {}): Anomaly[] {
   const out: Anomaly[] = [];
   const now = world.now;
@@ -98,10 +106,13 @@ export function detectAnomalies(world: World, opts: AnomalyOptions = {}): Anomal
 
   // 4. Event spam: an identical (type, actor, target) tuple repeating far past what any
   // real routine would produce inside the window (e.g. a goal loop re-emitting the same
-  // semantic event over and over without progress).
+  // semantic event over and over without progress). High-frequency *semantic* world events —
+  // crop maturation waves, deliveries, extractions, spoilage — are legitimately bursty (a
+  // whole field ripens together) and are already compaction-dropped; they are not a defect.
   const spamCounts = new Map<string, WorldEvent[]>();
   for (const e of world.events) {
     if (!within(e, window)) continue;
+    if (HIGH_FREQUENCY_SEMANTIC.has(e.type)) continue;
     const key = `${e.type}:${e.actor ?? ''}:${e.target ?? ''}`;
     const list = spamCounts.get(key) ?? []; list.push(e); spamCounts.set(key, list);
   }
@@ -142,8 +153,12 @@ export function detectAnomalies(world: World, opts: AnomalyOptions = {}): Anomal
     if (e.type !== 'attack' || !within(e, window) || !e.target) continue;
     const victim = world.person(e.target);
     if (!victim) continue;
-    const wasHeld = victim.custody?.active || victim.surrender;
-    if (wasHeld && e.data?.intent !== 'kill') {
+    // The held state must have PREDATED this blow — otherwise a victim who surrenders (or is
+    // detained) a tick after being hit by someone else retroactively turns an ordinary,
+    // already-landed attack into a false "ignored surrender" finding.
+    const heldBefore = (victim.custody?.active && (victim.custody.since ?? 0) < e.tick)
+      || (victim.surrender && victim.surrender.at < e.tick);
+    if (heldBefore && e.data?.intent !== 'kill') {
       const key = `${e.actor}:${e.target}`;
       const list = ignoredResolution.get(key) ?? []; list.push(e); ignoredResolution.set(key, list);
     }
