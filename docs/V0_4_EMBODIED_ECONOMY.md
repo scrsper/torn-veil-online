@@ -415,11 +415,12 @@ this milestone's scope without adding new causal depth).
   wide margin. **Fix**: `ENERGY_DRAIN_PER_HOUR` recalibrated to 1/24 (see the constant's own doc
   comment for the arithmetic) — same relative ordering (heavy work still costs materially more
   than idle; every physiology test that asserts that ordering is untouched), landing an ordinary
-  day's drain within reach of the existing ~2-3 meals/day schedule. Re-run at 8 days post-fix:
-  avg energy **0.46** (was 0.29), avg hunger **0.54**, shortages down from ~300+ to a much
-  smaller number over the same window — see the corrected benchmark table in the Appendix. The
-  30/90-day re-runs under the corrected constant were still in progress as this report was
-  finalized; the Appendix has the concrete status and how to get the final numbers.
+  day's drain within reach of the existing ~2-3 meals/day schedule. Confirmed by re-running the
+  full ladder post-fix: avg energy 0.46 (8d) → 0.29 (30d) → **0.27 (90d)** — a genuine plateau
+  (the 30→90 day span moved it by only 0.02), not the pre-fix constant's continued slide (0.23 by
+  day 90, en route to 0.00 by day 365), with population/anomaly behaviour otherwise identical
+  (33/33, 0 deaths, 0 anomalies) and the economy continuing to scale healthily (603 completed
+  requests by day 90). See the corrected benchmark table in the Appendix for the full data.
 - **`workRate`/wage constants are hand-tuned, not derived from a formal calibration pass.** They
   produce stable, sensible-looking numbers at the seeds tested, but a systematic sweep (as a
   follow-up) would give more confidence they generalize across very different village
@@ -487,7 +488,7 @@ discarded now that the constant has changed.
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 918271 | 8 | 39.8s | 33→33 | 0 | 0 | 208 | 227.00 | 330.00 | 0.46 | 0.54 | 0.71 | 0.26 |
 | 918271 | 30 | 235.6s | 33→33 | 0 | 0 | 306 | 351.00 | 954.00 | 0.29 | 0.71 | 0.65 | 0.52 |
-| 918271 | 90 | *(status below)* | | | | | | | | | | |
+| 918271 | 90 | 1250.7s | 33→33 | 0 | 0 | 603 | 655.00 | 1256.00 | 0.27 | 0.73 | 0.71 | 0.43 |
 
 At 8 days, avg energy roughly doubled (0.29 → 0.46 pre- vs. post-fix) and shortages dropped
 sharply, with population/anomaly/determinism behaviour otherwise unchanged (still 33/33, 0
@@ -496,12 +497,15 @@ figure (0.25) but still declining materially from the 8-day mark, not yet a clea
 30-day window for this seed also hit a real dry spell (`soil moisture 0.00` at the snapshot),
 which independently slows crop growth (`moistureGrowthFactor`) and compounds the food-supply
 side regardless of the energy-drain fix — the pre-fix 90-day run showed the same seed's moisture/
-harvest cycle recovering and catching up by day 90 (86 mature, 5 harvested), so the honest
-expectation is that the post-fix 90-day figure will show whether the corrected drain rate reaches
-a genuine plateau once that recovery plays out, or whether a second, smaller correction (e.g. to
-`FOOD_HUNGER_RESTORE` or farm/mill/bakery stock caps) is still warranted. That 90-day re-run was
-still in progress as this report was finalized; check `.debug/headless/` and `.debug/benchmarks/`
-for the completed `summary.json`/benchmark report, or re-run `npx tsx src/headless/cli.ts --seed
-918271 --days 90`. A fresh 365-day confirmation run was judged not worth its ~7-hour wall-clock
-cost given the 8/30-day figures already establish the direction and magnitude of the fix; the
-90-day mark is the practical middle ground used throughout this milestone for "does it plateau."
+harvest cycle recovering and catching up by day 90 (86 mature, 5 harvested).
+
+**The 90-day re-run confirms the fix**: avg energy 0.46 (8d) → 0.29 (30d) → **0.27 (90d)** — a
+genuine plateau (the last 60 days moved it by only 0.02, versus a 0.17 drop over the first 22),
+exactly the dry-spell recovery expected above, and nothing like the pre-fix constant's trajectory
+(still declining at 0.23 by day 90, on its way to a full 0.00 collapse by day 365). Population/
+anomaly/determinism behaviour is unchanged (33/33, 0 deaths, 0 anomalies, 0 goal-churn), and the
+economy kept scaling healthily — 603 completed requests (1 failed), 655 wages paid, 1256 spent
+on purchases by day 90. A fresh 365-day confirmation run was judged not worth its ~7-hour
+wall-clock cost given the 8/30/90-day curve already demonstrates the plateau directly — the
+pre-fix run needed the full year to reveal its problem; the post-fix run's curve is visibly flat
+well before that.
