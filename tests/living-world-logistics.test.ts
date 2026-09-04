@@ -37,7 +37,9 @@ describe('place stock (v0.3 Priority 1)', () => {
     const alwin = addPerson(tw, 'Alwin', 'farmer', v(5, 1, 5));
     const bess = addPerson(tw, 'Bess', 'farmer', v(5, 1, 5));
     addPlaceStock(tw.world, 'grain', 20, farm.id, alwin.id, undefined, 'harvested');
-    addPlaceStock(tw.world, 'grain', 5, farm.id, alwin.id, undefined, 'harvested'); // merges
+    // v0.4 §14: grain is perishable, so this starts a separate batch stack (its own spoilage
+    // age) rather than merging — stockAt still sums across stacks transparently.
+    addPlaceStock(tw.world, 'grain', 5, farm.id, alwin.id, undefined, 'harvested');
     expect(stockAt(tw.world, 'grain', farm.id)).toBe(25);
     // a second, differently-owned stack at a different place is distinguishable
     const mill = makePlace(tw.world, 'mill', 'Mill', { x0: 12, z0: 12, x1: 18, z1: 18, y0: 1, y1: 3 }, { inside: v(15, 1, 15) });

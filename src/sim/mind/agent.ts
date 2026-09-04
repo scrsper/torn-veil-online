@@ -4,11 +4,14 @@ import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRel
 import { maintainConflicts, beginConflict, recordConflictBlow, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
 import { maintainCustody, subdue, takeIntoCustody, beginSurrender, isSubdued } from '../social/custody';
 import { stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, GRAIN_CAP, SEED_PER_PLOT } from '../world/metabolism';
+import { stepPhysiology, activityLevelFor, heatBand } from '../core/physiology';
+import { getPhysicalCapability, capabilityFor } from '../core/attributes';
+import { wearTool } from '../core/tools';
 import { isFood } from '../world/factory';
 import { stockAt } from '../world/stock';
 import { pickHaulTask, claimHaulTask, loadHaulCargo, depositHaulCargo, failHaulTask, generateLogisticsNeeds, maintainHauls, canHaul } from '../logistics/haul';
 import { nearestAvailableNode, extractFromNode, maintainResourceNodes } from '../world/resources';
-import { stepConstruction, activeBuildProjects, contributeBuildLabor, MAX_BUILDERS } from '../world/construction';
+import { stepConstruction, activeBuildProjects, performBuildLabor, MAX_BUILDERS } from '../world/construction';
 import { remember } from './memory';
 import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge } from './knowledge';
 import { currentScheduleEntry } from './schedule';
@@ -189,6 +192,14 @@ export class Simulation {
     const cands: Goal[] = [];
     const G = (type: GoalType, utility: number, reasons: string[], o: Partial<Goal> = {}) => { const key = `${type}:${o.targetEntity ?? o.targetPlace ?? ''}`; cands.push({ type, utility, reasons, createdAt: now, key, ...o }); };
     const pos = body.pos; const sched = currentScheduleEntry(p, hour);
+    // v0.4 §1/§7: heat escalates progressively rather than a single on/off gate — see
+    // core/physiology.ts's `heatBand`. 'severe' dampens heavy-work utility below; 'dangerous'
+    // outbids everything with a forced-rest 'idle' goal (Constitution v0.4 §1 "dangerously hot
+    // -> forced rest / cooling behaviour"), without inventing a separate goal machinery.
+    const heat = heatBand(p);
+    if (heat === 'dangerous') {
+      G('idle', 0.95, [`dangerously overheated (body heat ${p.physiology.bodyHeat.toFixed(2)})`, 'must rest and cool down']);
+    }
     const downed = body.pose === 'downed';
     // v0.2.3 held states: a detained, surrendered, or subdued person runs no autonomous combat
     // or movement (Constitution §11). They wait it out; the maintenance pass ends the state.
@@ -415,19 +426,25 @@ export class Simulation {
     // "there is useful work to be done" goals — they beat idling/socialising and (when
     // role-matched) standing at an empty workplace, but lose to sleep/eat/flee/combat and to
     // real production work. All shared with the player (Constitution VI). Suppressed under threat.
-    if (!threat && !p.hostile && canHaul(p)) {
+    // v0.4 §7: physical capability/heat gates heavy work as a continuous multiplier, not a
+    // pile of per-goal special cases — a near-exhausted/starving/dehydrated/overheated person's
+    // `currentExertionCapacity` (core/attributes.ts) drops toward 0 and the labour goals below
+    // simply stop competing (sleep/drink/eat/idle already outbid them once needs are that high;
+    // this closes the gap for someone whose needs aren't yet critical but is still spent).
+    const laborCapacity = heat === 'dangerous' ? 0 : getPhysicalCapability(p, w).currentExertionCapacity;
+    if (!threat && !p.hostile && canHaul(p) && laborCapacity > 0.15) {
       // Haul: physically move a needed resource between two Places.
       const haul = pickHaulTask(w, p, pos);
       if (haul) {
         const t = haul.task;
         const mine = t.claimantId === p.id;
         const src = w.place(t.sourcePlaceId);
-        G('haul', clamp((mine ? 0.68 : 0.42) + haul.score * 0.4), [`${t.resource} is needed at ${w.nameOf(t.destPlaceId)}`, t.reason], { targetPlace: src ? t.sourcePlaceId : undefined, targetPos: src?.inside, data: { taskId: t.id } });
+        G('haul', clamp(((mine ? 0.68 : 0.42) + haul.score * 0.4) * laborCapacity), [`${t.resource} is needed at ${w.nameOf(t.destPlaceId)}`, t.reason, laborCapacity < 0.6 ? `but I am spent (capacity ${laborCapacity.toFixed(2)})` : ''], { targetPlace: src ? t.sourcePlaceId : undefined, targetPos: src?.inside, data: { taskId: t.id } });
       }
       // Chop: a woodcutter at the clearing fells a standing tree.
       if (p.occupation === 'woodcutter' && sched?.activity === 'work' && sched.placeId && w.place(sched.placeId)?.type === 'wilderness') {
         const node = nearestAvailableNode(w, 'tree', pos, 90);
-        if (node) G('chop', 0.66, [`there are trees to fell near ${w.nameOf(node.placeId)}`], { targetPos: node.pos, data: { nodeId: node.id } });
+        if (node) G('chop', clamp(0.66 * laborCapacity), [`there are trees to fell near ${w.nameOf(node.placeId)}`], { targetPos: node.pos, data: { nodeId: node.id } });
       }
       // Build: contribute labour to a project whose materials are on site (cap concurrent builders).
       const proj = activeBuildProjects(w)[0];
@@ -435,7 +452,7 @@ export class Simulation {
         const builders = w.persons().filter(q => q.alive && q.mind.goal?.type === 'build' && q.mind.goal.data?.projectId === proj.id).map(q => q.id);
         const site = w.place(proj.sitePlaceId);
         if (site && dist2(pos, site.inside) < 120 && (builders.includes(p.id) || builders.length < MAX_BUILDERS)) {
-          G('build', clamp(0.5 + (proj.status === 'building' ? 0.08 : 0)), [`the village needs hands to raise ${proj.name}`], { targetPlace: proj.sitePlaceId, data: { projectId: proj.id } });
+          G('build', clamp((0.5 + (proj.status === 'building' ? 0.08 : 0)) * laborCapacity), [`the village needs hands to raise ${proj.name}`], { targetPlace: proj.sitePlaceId, data: { projectId: proj.id } });
         }
       }
       // Gather stone: a gathering project short of stone, with none in the pipeline yet.
@@ -451,7 +468,7 @@ export class Simulation {
         const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter'].includes(p.occupation);
         if (!gathering && (already >= 2 || !roleOk)) continue;
         const node = nearestAvailableNode(w, 'stone', pos, 220);
-        if (node) G('gather', 0.5, [`${gp.name} still needs stone`], { targetPos: node.pos, data: { nodeId: node.id } });
+        if (node) G('gather', clamp(0.5 * laborCapacity), [`${gp.name} still needs stone`], { targetPos: node.pos, data: { nodeId: node.id } });
       }
     }
     // ---- schedule
@@ -651,7 +668,21 @@ export class Simulation {
         if (arrived) { a.status = 'done'; body.path = null; if (!a.targetEntity && dist2(body.pos, dest) > 3) { /* couldn't reach */ } if (a.data?.flee) w.emit('fled', { actor: p.id, pos: body.pos, significance: 0.3, summary: `${p.name} fled to ${w.placeAt(body.pos)?.name ?? 'safety'}` }); else if (a.placeId) w.emit('arrived', { actor: p.id, placeId: a.placeId, pos: body.pos, significance: 0.05, summary: `${p.name} arrived at ${w.nameOf(a.placeId)}` }); }
         break;
       }
-      case 'sleep': body.pose = 'sleep'; body.sitAnchor = a.pos ?? null; if (a.pos) { body.pos.x = Math.floor(a.pos.x) + 0.5; body.pos.z = Math.floor(a.pos.z) + 0.5; } p.needs.energy = clamp(p.needs.energy - worldDt / (7 * SECONDS_PER_HOUR)); if (p.needs.energy <= 0.02 && w.now - (a.startedAt ?? 0) > (a.duration ?? 0) * 0.5) a.status = 'done'; if (w.now - (a.startedAt ?? 0) > 9 * SECONDS_PER_HOUR) a.status = 'done'; break;
+      // v0.4: fatigue/sleep-debt recovery while asleep is applied centrally by
+      // Simulation.strategic()'s once-per-minute physiology step (it reads `body.pose ===
+      // 'sleep'` — see core/physiology.ts's `activityLevelFor`/`stepPhysiology`), not here.
+      case 'sleep': {
+        body.pose = 'sleep'; body.sitAnchor = a.pos ?? null;
+        if (a.pos) { body.pos.x = Math.floor(a.pos.x) + 0.5; body.pos.z = Math.floor(a.pos.z) + 0.5; }
+        const wellRested = p.needs.energy <= 0.02 && w.now - (a.startedAt ?? 0) > (a.duration ?? 0) * 0.5;
+        const overslept = w.now - (a.startedAt ?? 0) > 9 * SECONDS_PER_HOUR;
+        if (wellRested || overslept) {
+          p.physiology.lastSleepAt = w.now;
+          if (overslept) w.emit('sleep_completed', { actor: p.id, significance: 0.03, summary: `${p.name} woke up` });
+          a.status = 'done';
+        }
+        break;
+      }
       case 'sit': body.pose = 'sit'; body.sitAnchor = a.pos ?? null; if (a.pos) { body.pos.x = Math.floor(a.pos.x) + 0.5; body.pos.z = Math.floor(a.pos.z) + 0.5; } p.needs.social = clamp(p.needs.social - worldDt / (3 * SECONDS_PER_HOUR)); this.maybeChat(p, body); if (this.elapsed(a)) a.status = 'done'; break;
       case 'eat': {
         body.pose = 'sit'; body.sitAnchor = a.pos ?? null;
@@ -691,13 +722,19 @@ export class Simulation {
         // when the village has plenty). Only checked on the batch cadence, so no per-substep cost.
         if ((p.occupation === 'miller' || p.occupation === 'baker' || p.occupation === 'woodcutter')) {
           a.data = a.data ?? {};
-          const last = (a.data.batchAt ?? (a.startedAt ?? w.now) - 8 * 60) as number;
-          if (w.now - last >= 8 * 60) {
+          const t = w.placeAt(body.pos)?.type;
+          // v0.4 §2/§6: sawing's fixed log:plank ratio (SAW_RATIO) never changes — no duplication
+          // risk — but a dexterous sawyer with a saw in hand completes a batch faster than one
+          // without, so their WORK RATE (throughput over time) is real and continuous rather than
+          // a flat "woodcutter" bonus. Clamped so the interval stays sane at either extreme.
+          const sawing = p.occupation === 'woodcutter' && t === 'sawpit';
+          const batchInterval = sawing ? Math.max(3 * 60, Math.min(20 * 60, (8 * 60) / capabilityFor(w, p, 'saw', w.placeAt(body.pos)?.id).cap.workRate)) : 8 * 60;
+          const last = (a.data.batchAt ?? (a.startedAt ?? w.now) - batchInterval) as number;
+          if (w.now - last >= batchInterval) {
             a.data.batchAt = w.now;
-            const t = w.placeAt(body.pos)?.type;
             if (p.occupation === 'miller' && t === 'mill') mill(w, p);
             else if (p.occupation === 'baker' && t === 'bakery') bake(w, p);
-            else if (p.occupation === 'woodcutter' && t === 'sawpit') saw(w, p); // v0.3: log → plank
+            else if (sawing) { saw(w, p); wearTool(w, capabilityFor(w, p, 'saw', w.placeAt(body.pos)?.id).tool, batchInterval / 3600); } // v0.3: log → plank
           }
         }
         if (this.elapsed(a)) a.status = 'done';
@@ -780,7 +817,7 @@ export class Simulation {
         if (w.now - a.data.laborAt >= slice) {
           const secs = Math.min(w.now - a.data.laborAt, 300);
           a.data.laborAt = w.now;
-          contributeBuildLabor(w, proj, p, secs);
+          performBuildLabor(w, proj, p, secs);
         }
         if ((proj.status as string) === 'complete' || this.elapsed(a)) a.status = 'done';
         break;
@@ -1272,12 +1309,14 @@ export class Simulation {
     const w = this.world; const h = minutes / 60;
     const t0 = this.mark();
     for (const p of w.persons()) {
-      if (!p.alive) continue; const b = w.primaryBody(p.id); const asleep = b?.pose === 'sleep';
-      p.needs.hunger = clamp(p.needs.hunger + h / 14); if (!asleep) p.needs.energy = clamp(p.needs.energy + h / 18); p.needs.social = clamp(p.needs.social + h / 10 * p.traits.sociability);
-      // v0.2.4: thirst rises a little faster than hunger (~fully thirsty in ~11 waking hours),
-      // faster still under hot/dry weather, slowly while asleep. Deterministic.
-      const thirstRate = (asleep ? 0.3 : 1) * (w.weather.kind === 'clear' ? 1.2 : w.weather.kind === 'rain' || w.weather.kind === 'storm' ? 0.8 : 1);
-      p.needs.thirst = clamp(p.needs.thirst + h / 11 * thirstRate);
+      if (!p.alive) continue; const b = w.primaryBody(p.id);
+      p.needs.social = clamp(p.needs.social + h / 10 * p.traits.sociability);
+      // v0.4 §1: energy(calories)/hydration/fatigue/sleepDebt/bodyHeat now come from one
+      // centralized physiology step (core/physiology.ts), classified by the person's current
+      // goal (`activityLevelFor`) — replacing the flat per-minute hunger/energy/thirst deltas
+      // this used to apply directly. `needs.hunger/.thirst/.energy` are still real fields
+      // (dozens of callers read them), just derived from the physiology reserves now.
+      if (b) stepPhysiology(w, p, h, activityLevelFor(p, b), { indoor: w.isIndoors(b.pos), daylight: this.lightAt() });
       const e = p.emotions; e.fear *= Math.pow(0.5, h / 1.5); e.anger *= Math.pow(0.5, h / 3); e.stress *= Math.pow(0.5, h / 4); e.joy = e.joy * Math.pow(0.5, h / 2) + 0.3 * (1 - Math.pow(0.5, h / 2)); e.sadness *= Math.pow(0.5, h / 48);
       // A subdued or in-custody body does not regenerate health from strategic upkeep while held
       // incapacitated — but is not otherwise harmed. Ordinary recovery resumes on release.

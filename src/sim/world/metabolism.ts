@@ -1,8 +1,9 @@
 import type { CropPlot, CropState, Field, Item, ItemType, Person, Vec3, EntityId, EventId } from '../core/types';
 import type { World } from '../core/world';
 import { B } from '../physical/blocks';
-import { makeItem, RESOURCE_CATEGORY, isFood } from './factory';
+import { makeItem, RESOURCE_CATEGORY, isFood, SPOIL_RATE_PER_DAY } from './factory';
 import { addPlaceStock, takePlaceStock, retireStack, stockAt as stockAtPlace, stockTotal } from './stock';
+import { eatRestoresEnergy, drinkRestoresHydration } from '../core/physiology';
 
 // Re-exported for existing callers/tests that import stock helpers from metabolism (v0.3 moved
 // the generalized implementations to sim/world/stock.ts — Priority 1).
@@ -23,8 +24,15 @@ export { stockTotal, addPlaceStock, takePlaceStock } from './stock';
  */
 
 // ---- tuning (world-time hours). Legible constants, not scattered magic numbers.
-/** Hours from planted to mature at full soil moisture. Dry fields take proportionally longer. */
-export const MATURE_HOURS = 5 * 24;
+/**
+ * Hours from planted to mature at full soil moisture. Dry fields take proportionally longer.
+ * v0.4 §14 recalibration: real-world annual crops take roughly 8-12 weeks; Torn Veil uses
+ * ~2/3 of that as its gameplay-compression target (Constitution v0.4 §28), landing ordinary
+ * wheat at 6 weeks — weeks, not days, so a season of farming is a real commitment rather than
+ * a same-week non-event. (Was 5 world-*days* pre-v0.4 — an order of magnitude too fast to make
+ * planting/harvesting timing, seed reserves, or a bad soil-moisture spell matter.)
+ */
+export const MATURE_HOURS = 6 * 7 * 24;
 /** A harvested plot rests this long before it becomes `fallow` (replantable). */
 export const REGROW_HOURS = 24;
 /** Ripe wheat left standing this long lodges / rots and is lost — the plot reverts to `fallow`.
@@ -319,10 +327,16 @@ export function buyFoodPortion(world: World, buyer: Person, forSale: Item, n: nu
   const seller = forSale.ownerId ? world.person(forSale.ownerId) : undefined;
   if (!seller || !seller.alive || forSale.holderId || forSale.quantity <= 0) return null;
   const unit = Math.max(1, forSale.value ?? 2);
-  const take = Math.max(1, Math.min(n, forSale.quantity, Math.floor(buyer.wealth / unit)));
+  // v0.4 §12/§22: a buyer can never spend money they don't have — affordability genuinely
+  // floors at 0 units, not 1 (the pre-v0.4 `Math.max(1, ...)` here forced a sale, and therefore
+  // negative buyer wealth, whenever they couldn't afford even a single unit).
+  const affordable = Math.floor(buyer.wealth / unit);
+  if (affordable <= 0) return null;
+  const take = Math.min(n, forSale.quantity, affordable);
   if (take <= 0) return null;
   const cost = take * unit;
   buyer.wealth -= cost; seller.wealth += cost;
+  world.runTally.purchase_amount = (world.runTally.purchase_amount ?? 0) + cost;
   forSale.quantity -= take;
   if (forSale.quantity <= 0) { forSale.pos = null; forSale.placeId = null; }
   const carried = buyer.inventory.map(id => world.item(id)).find(i => !!i && i.type === forSale.type && i.holderId === buyer.id);
@@ -331,20 +345,31 @@ export function buyFoodPortion(world: World, buyer: Person, forSale: Item, n: nu
     significance: 0.1, data: { price: cost, qty: take, food: forSale.type },
     summary: `${seller.name} sold ${take} ${forSale.type} to ${buyer.name} for ${cost} silver`,
   });
+  // v0.4 §12: a semantic 'purchase_made' record, distinct from the generic 'trade' event, so a
+  // headless run can report "currency transferred in purchases" without conflating it with
+  // gifts/theft/other 'trade'-shaped events. Conserves currency and item quantity by
+  // construction (buyer.wealth/seller.wealth and forSale.quantity above are the only writes).
+  world.emit('purchase_made', {
+    actor: buyer.id, target: seller.id, item: forSale.id, pos: world.primaryBody(buyer.id)?.pos, placeId: forSale.placeId ?? undefined,
+    significance: 0.02, data: { amount: cost, qty: take, item: forSale.type },
+    summary: `${buyer.name} bought ${take} ${forSale.type} from ${seller.name} for ${cost} silver`,
+  });
   if (carried) { carried.quantity += take; carried.provenance.push({ tick: world.now, eventId: ev.id, from: seller.id, to: buyer.id, how: 'bought' }); return carried; }
   const stack = makeItem(world, forSale.type, forSale.name, { owner: buyer.id, holder: buyer.id, quantity: take, value: forSale.value });
   stack.provenance.push({ tick: world.now, eventId: ev.id, from: seller.id, to: buyer.id, how: 'bought' });
   return stack;
 }
 
-/** Consume one unit of a food item and reduce hunger. Returns the eaten item type, or null. */
+/** Consume one unit of a food item and restore caloric energy (v0.4: `needs.hunger` is now
+ * derived FROM the physiology reserve this restores — see core/physiology.ts's `syncNeeds` —
+ * rather than being decremented directly). Returns the eaten item type, or null. */
 export function eatFood(world: World, p: Person, food: Item): ItemType {
   food.quantity -= 1;
   if (food.quantity <= 0) {
     if (food.holderId === p.id) p.inventory = p.inventory.filter(id => id !== food.id);
     retireItem(food);
   }
-  p.needs.hunger = Math.max(0, p.needs.hunger - FOOD_HUNGER_RESTORE);
+  eatRestoresEnergy(p, FOOD_HUNGER_RESTORE);
   world.emit('food_consumed', {
     actor: p.id, item: food.id, pos: world.primaryBody(p.id)?.pos, significance: 0.1,
     data: { food: food.type, hunger: Math.round(p.needs.hunger * 100) / 100 },
@@ -366,7 +391,7 @@ export function nearestWaterSource(world: World, pos: Vec3): { pos: Vec3; placeI
 }
 
 export function drinkAt(world: World, p: Person, sourcePlaceId?: EntityId): void {
-  p.needs.thirst = Math.max(0, p.needs.thirst - WATER_THIRST_RESTORE);
+  drinkRestoresHydration(p, WATER_THIRST_RESTORE);
   world.emit('water_consumed', {
     actor: p.id, placeId: sourcePlaceId, pos: world.primaryBody(p.id)?.pos, significance: 0.08,
     data: { thirst: Math.round(p.needs.thirst * 100) / 100 },
@@ -374,20 +399,20 @@ export function drinkAt(world: World, p: Person, sourcePlaceId?: EntityId): void
   });
 }
 
-// ---------------------------------------------------------------- spoilage (v0.3 Priority 14)
-/**
- * Fraction of a stack lost per world-day. Not microbial biology — a broad durability tier:
- * bread short, flour medium, grain long. Materials (log/plank/stone) are absent → never spoil.
- */
-const SPOIL_RATE_PER_DAY: Partial<Record<ItemType, number>> = {
-  bread: 0.10, pie: 0.10, meat: 0.10, cheese: 0.05, flour: 0.015, grain: 0.003,
-};
-
+// ---------------------------------------------------------------- spoilage (v0.3 Priority 14, recalibrated v0.4 §14)
 /**
  * Advance stock spoilage by `hours` of world time. Stack-level batched: each perishable stack
  * accumulates fractional loss between passes and drops whole units when the accumulator crosses
  * 1 — no per-item-per-minute work, no event storm (at most one `resource_spoiled` per stack per
  * pass). Deterministic. Call on the coarse upkeep cadence.
+ *
+ * v0.4 §14: each perishable DELIVERY is now its own stack (see world/stock.ts's
+ * `addPlaceStock`), so a stack's own age is real and a fresh delivery merged conceptually into
+ * "the pile" no longer inherits — nor imposes — another batch's accumulated spoilage risk. The
+ * known v0.3 limitation (replenishing a stack silently reset/skewed its effective spoilage
+ * pressure because the same accumulator then scaled against a larger post-merge quantity) is
+ * fixed by this batch separation, not by changing the math below (which was already correct
+ * per-stack — the bug was upstream, in what got merged into what).
  */
 export function stepSpoilage(world: World, hours: number): void {
   if (hours <= 0) return;

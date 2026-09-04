@@ -1,6 +1,6 @@
 import type { Item, ItemType, EntityId, EventId } from '../core/types';
 import type { World } from '../core/world';
-import { makeItem, ITEM_LABEL } from './factory';
+import { makeItem, ITEM_LABEL, isPerishable } from './factory';
 
 /**
  * First-class material stock at Places (v0.3 Living World I, Priority 1).
@@ -48,12 +48,19 @@ export function worldStock(world: World, type: ItemType): number {
 
 /**
  * Add `qty` units of `type` to a Place's stock, merging into the existing unheld stack there
- * when one exists (so a Place holds at most one stack of each resource type). Records
- * provenance. Returns the stack.
+ * when one exists (so a Place holds at most one stack of each resource type) — EXCEPT for
+ * perishables (v0.4 §14), which always start a fresh stack. `Item.createdAt` is that stack's
+ * batch age (see world/metabolism.ts's `stepSpoilage`); merging a fresh delivery into an older
+ * stack would apply the older stack's spoilage-accumulator pressure to units that just arrived
+ * (the v0.3 "replenishment resets/skews spoilage" limitation this fixes) — `takePlaceStock`
+ * already drains oldest-stack-first, so multiple perishable stacks per Place FIFO correctly
+ * with no other change needed anywhere that reads stock. Non-perishables keep single-stack
+ * merging (no aging to get wrong, and it keeps the item count down). Records provenance.
+ * Returns the stack.
  */
 export function addPlaceStock(world: World, type: ItemType, qty: number, placeId: EntityId, ownerId: EntityId | null, eventId: EventId | undefined, how: string): Item {
   const place = world.place(placeId);
-  const existing = world.items().find(i => i.type === type && !i.holderId && i.placeId === placeId);
+  const existing = isPerishable(type) ? undefined : world.items().find(i => i.type === type && !i.holderId && i.placeId === placeId);
   if (existing) {
     existing.quantity += qty;
     if (existing.quantity > 0 && !existing.pos && place) existing.pos = { ...place.inside };

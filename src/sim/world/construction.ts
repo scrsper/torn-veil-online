@@ -3,6 +3,9 @@ import type { World } from '../core/world';
 import { B } from '../physical/blocks';
 import { stockAt, takePlaceStock } from './stock';
 import { createHaulTask, openHaulTasks, carryCapFor } from '../logistics/haul';
+import { capabilityFor } from '../core/attributes';
+import { wearTool } from '../core/tools';
+import { createRequest, acceptRequest, completeRequest } from '../core/requests';
 
 /**
  * Construction projects (v0.3 Living World I, Priority 9-10-12).
@@ -91,6 +94,30 @@ export function contributeBuildLabor(world: World, p: ConstructionProject, worke
     });
   }
   if (p.laborDone >= p.laborRequired) completeProject(world, p);
+}
+
+/** v0.4 §6/§9-11: real-world seconds of a worker's effort at the site, turned into credited
+ * labour-seconds and a paid wage. Dexterity/strength/fatigue/heat and a hammer (core/
+ * attributes.ts's `capabilityFor`) scale how much of the elapsed time actually counts as
+ * useful contribution — "the woodcutter works faster because they have an axe, strength,
+ * energy and low fatigue" (Constitution v0.4 §30), applied here to construction's hammer/
+ * dexterity/strength instead. Wraps `contributeBuildLabor` with the shared Request lifecycle
+ * (core/requests.ts) instead of moving money directly, so haul wages and construction wages
+ * are the same audited path. No materials on site yet -> no work, no request, no pay. */
+const CONSTRUCTION_WAGE_PER_SECOND = 0.008;
+export function performBuildLabor(world: World, p: ConstructionProject, worker: Person, elapsedSeconds: number): number {
+  if ((p.status !== 'ready' && p.status !== 'building') || elapsedSeconds <= 0) return 0;
+  const { cap, tool } = capabilityFor(world, worker, 'construct', p.sitePlaceId);
+  const creditedSeconds = elapsedSeconds * cap.workRate;
+  const req = createRequest(world, {
+    type: 'construction_labor', requesterId: p.ownerId, requesterPlaceId: p.sitePlaceId,
+    reward: Math.round(creditedSeconds * CONSTRUCTION_WAGE_PER_SECOND * 100) / 100,
+    cause: `${p.name} needs labour`, payload: { projectId: p.id, seconds: creditedSeconds },
+  });
+  acceptRequest(world, req, worker);
+  contributeBuildLabor(world, p, worker, creditedSeconds);
+  wearTool(world, tool, elapsedSeconds / 3600);
+  return completeRequest(world, req);
 }
 
 function completeProject(world: World, p: ConstructionProject): void {

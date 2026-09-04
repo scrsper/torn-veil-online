@@ -1,0 +1,185 @@
+import type { Body, Person } from './types';
+import type { World } from './world';
+
+/**
+ * Embodied physiology (v0.4 §1). Small and extensible, not a medical simulator: five reserves
+ * (energy/calories, hydration, fatigue, sleep debt, body heat), one activity-level table that
+ * is the SINGLE source of truth for how hard each kind of exertion is, and one step function.
+ * Runs on simulation (world) time, never render FPS or wall-clock (Constitution v0.4 §20).
+ *
+ * `Needs.hunger/.thirst/.energy` (core/types.ts) are DERIVED from this every step — see
+ * `syncNeeds` — so existing goal-utility code (mind/agent.ts's `think()`) keeps working
+ * unchanged while the numbers underneath now come from a real physiological model instead of
+ * being the model themselves (staged migration, Constitution v0.4 preamble).
+ */
+
+/** Every activity the simulation's labour actions can report to physiology. One ordered table
+ * drives energy cost, fatigue gain, hydration loss and heat generation — no scattered magic
+ * numbers in individual action handlers (Constitution v0.4 §6). Ordering matches the milestone
+ * spec exactly: sleep < idle < walk < craft < construct < chop < haul < quarry. */
+export type ActivityLevel = 'sleep' | 'idle' | 'walk' | 'craft' | 'construct' | 'chop' | 'haul' | 'quarry';
+
+/** Energy (caloric) cost multiplier relative to idle metabolism. Idle itself already costs
+ * baseline calories (a body at rest still burns fuel) — sleep costs less than that. */
+export const ACTIVITY_ENERGY_MULT: Record<ActivityLevel, number> = {
+  sleep: 0.4, idle: 1.0, walk: 1.7, craft: 2.1, construct: 2.7, chop: 3.3, haul: 3.8, quarry: 4.4,
+};
+/** Fatigue accumulated per hour of the activity (0 for sleep — sleep is what REDUCES fatigue,
+ * via `sleepRecover` below, never accumulates it). */
+export const ACTIVITY_FATIGUE_PER_HOUR: Record<ActivityLevel, number> = {
+  sleep: 0, idle: 0.01, walk: 0.035, craft: 0.055, construct: 0.08, chop: 0.11, haul: 0.13, quarry: 0.15,
+};
+/** Hydration lost per hour, relative to idle. Heavy/hot exertion sweats you dry faster. */
+export const ACTIVITY_HYDRATION_MULT: Record<ActivityLevel, number> = {
+  sleep: 0.3, idle: 1.0, walk: 1.3, craft: 1.3, construct: 1.6, chop: 1.9, haul: 2.1, quarry: 2.3,
+};
+/** Heat generated per hour by the activity itself (exertion heat), before environment. */
+export const ACTIVITY_HEAT_PER_HOUR: Record<ActivityLevel, number> = {
+  sleep: 0, idle: 0.015, walk: 0.04, craft: 0.05, construct: 0.075, chop: 0.1, haul: 0.115, quarry: 0.13,
+};
+
+// ---- baseline (idle) rates: full reserve 1 -> 0 in roughly this many waking hours at idle.
+/** Idle-equivalent hours to drain a full caloric reserve — close to the pre-v0.4 hunger pace
+ * (`needs.hunger` used to reach 1.0 in 14 hours) so the felt rhythm of the world doesn't lurch. */
+const ENERGY_DRAIN_PER_HOUR = 1 / 16;
+/** Idle-equivalent hours to fully dehydrate — matches the pre-v0.4 thirst pace (~11 hours). */
+const HYDRATION_DRAIN_PER_HOUR = 1 / 11;
+/** One meal (`eatFood`) restores this fraction of the caloric reserve. */
+export const FOOD_ENERGY_RESTORE = 0.6;
+/** One drink restores this fraction of hydration. */
+export const WATER_HYDRATION_RESTORE = 0.85;
+
+// ---- fatigue recovery
+const REST_FATIGUE_RECOVERY_PER_HOUR = 0.12;   // sitting/idling recovers some fatigue
+const SLEEP_FATIGUE_RECOVERY_PER_HOUR = 0.5;   // sleep recovers substantially more
+const SLEEP_DEBT_RECOVERY_PER_HOUR = 1.1;      // an hour asleep pays off ~1.1 hours of debt
+const AWAKE_SLEEP_DEBT_PER_HOUR = 1;           // every awake hour adds one hour of debt
+
+// ---- heat model (bounded 0..1, Constitution v0.4 §1 "a bounded model is sufficient")
+const HEAT_PASSIVE_COOLING_PER_HOUR = 0.11;
+const HEAT_REST_COOLING_PER_HOUR = 0.05;       // extra cooling while idle/sleeping
+const HEAT_HYDRATION_COOLING_PER_HOUR = 0.07;  // scaled by current hydration (sweat needs water)
+/** Environmental heat gain/loss per hour, by weather kind, applied outdoors at midday strength;
+ * scaled by daylight (see `stepPhysiology`) and halved indoors. */
+const ENVIRONMENTAL_HEAT_PER_HOUR: Record<'clear' | 'cloudy' | 'rain' | 'storm' | 'fog', number> = {
+  clear: 0.09, cloudy: 0.02, fog: 0, rain: -0.05, storm: -0.09,
+};
+
+export const HEAT_MILD = 0.4;      // reduced work efficiency (getPhysicalCapability)
+export const HEAT_HOT = 0.6;       // increased thirst/fatigue (already folded into the rate tables)
+export const HEAT_SEVERE = 0.8;    // heavy work becomes unattractive (think()'s goal utility)
+export const HEAT_DANGEROUS = 0.92; // forced rest / cooling behaviour
+
+const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+
+export function defaultPhysiology(now = 0): Person['physiology'] {
+  return { energy: 0.8, hydration: 0.8, fatigue: 0.1, sleepDebt: 0, lastSleepAt: now, bodyHeat: 0.2 };
+}
+
+/**
+ * Advance one person's physiology by `hours` of world time under `activity`. Deterministic —
+ * no RNG. `indoor`/`daylight` shape the environmental heat term; both are cheap to compute at
+ * the call site (see mind/agent.ts's activity classification).
+ */
+export function stepPhysiology(world: World, p: Person, hours: number, activity: ActivityLevel, o: { indoor: boolean; daylight: number } = { indoor: false, daylight: 0.7 }): void {
+  if (hours <= 0) return;
+  const phys = p.physiology;
+  const asleep = activity === 'sleep';
+
+  // energy (calories)
+  phys.energy = clamp01(phys.energy - ENERGY_DRAIN_PER_HOUR * ACTIVITY_ENERGY_MULT[activity] * hours);
+
+  // hydration — exertion and heat both raise loss
+  const heatHydrationFactor = 1 + Math.max(0, phys.bodyHeat - HEAT_MILD) * 1.2;
+  phys.hydration = clamp01(phys.hydration - HYDRATION_DRAIN_PER_HOUR * ACTIVITY_HYDRATION_MULT[activity] * heatHydrationFactor * hours);
+
+  // fatigue — heat makes exertion feel worse (Constitution v0.4 §1 "hot -> increased fatigue")
+  const heatFatigueFactor = 1 + Math.max(0, phys.bodyHeat - HEAT_HOT) * 1.5;
+  if (activity === 'idle') phys.fatigue = clamp01(phys.fatigue - REST_FATIGUE_RECOVERY_PER_HOUR * hours);
+  else phys.fatigue = clamp01(phys.fatigue + ACTIVITY_FATIGUE_PER_HOUR[activity] * heatFatigueFactor * hours);
+
+  // sleep debt
+  if (asleep) phys.sleepDebt = Math.max(0, phys.sleepDebt - SLEEP_DEBT_RECOVERY_PER_HOUR * hours);
+  else phys.sleepDebt = Math.min(16, phys.sleepDebt + AWAKE_SLEEP_DEBT_PER_HOUR * hours);
+
+  // body heat: exertion + environment - passive/rest/hydration-supported cooling
+  const envKind = world.weather.kind;
+  const envStrength = o.indoor ? 0.4 : 1;
+  const environmentalHeat = ENVIRONMENTAL_HEAT_PER_HOUR[envKind] * envStrength * (0.4 + o.daylight * 0.6);
+  const restCooling = (activity === 'idle' || asleep) ? HEAT_REST_COOLING_PER_HOUR : 0;
+  const hydrationCooling = HEAT_HYDRATION_COOLING_PER_HOUR * phys.hydration;
+  const heatDelta = ACTIVITY_HEAT_PER_HOUR[activity] + environmentalHeat - HEAT_PASSIVE_COOLING_PER_HOUR - restCooling - hydrationCooling;
+  phys.bodyHeat = clamp01(phys.bodyHeat + heatDelta * hours);
+
+  syncNeeds(p);
+}
+
+/** Sleeping: substantially reduces fatigue and pays off sleep debt (Constitution v0.4 §1 "sleep
+ * reduces substantially more fatigue than ordinary rest"). Called by the `sleep` action instead
+ * of `stepPhysiology`'s ordinary fatigue-gain path, since sleep itself is the recovery. */
+export function sleepRecover(p: Person, hours: number): void {
+  if (hours <= 0) return;
+  const phys = p.physiology;
+  phys.fatigue = clamp01(phys.fatigue - SLEEP_FATIGUE_RECOVERY_PER_HOUR * hours);
+  phys.sleepDebt = Math.max(0, phys.sleepDebt - SLEEP_DEBT_RECOVERY_PER_HOUR * hours);
+  syncNeeds(p);
+}
+
+/** Ordinary rest (sitting, waiting, idling) — real recovery, just much less than sleep. */
+export function restRecover(p: Person, hours: number): void {
+  if (hours <= 0) return;
+  p.physiology.fatigue = clamp01(p.physiology.fatigue - REST_FATIGUE_RECOVERY_PER_HOUR * hours);
+  syncNeeds(p);
+}
+
+export function eatRestoresEnergy(p: Person, fraction = FOOD_ENERGY_RESTORE): void {
+  p.physiology.energy = clamp01(p.physiology.energy + fraction);
+  syncNeeds(p);
+}
+export function drinkRestoresHydration(p: Person, fraction = WATER_HYDRATION_RESTORE): void {
+  p.physiology.hydration = clamp01(p.physiology.hydration + fraction);
+  syncNeeds(p);
+}
+
+/** Recompute the legacy `Needs` fields from the physiology reserves that now ground them
+ * (Constitution v0.4 preamble: "existing hunger should become a user-facing expression of
+ * underlying energy state"). `needs.energy` (sleep pressure) blends fatigue and sleep debt —
+ * a person can be fatigued from one hard day OR sleep-deprived from several short nights, and
+ * either alone should push toward sleep. */
+export function syncNeeds(p: Person): void {
+  const phys = p.physiology;
+  p.needs.hunger = clamp01(1 - phys.energy);
+  p.needs.thirst = clamp01(1 - phys.hydration);
+  p.needs.energy = clamp01(phys.fatigue * 0.55 + Math.min(1, phys.sleepDebt / 9) * 0.55);
+}
+
+/**
+ * The activity level for the physiology-cost step (Simulation.strategic()'s once-per-minute
+ * pass) — classified from the person's CURRENT goal, so cost tracks what they are actually
+ * doing right now without every action handler needing its own physiology bookkeeping
+ * (Constitution v0.4 §6: one centralized cost path). Falls back to body pose (walking/running
+ * outside a classified goal, e.g. mid-`goto` for a non-labour goal) and finally 'idle'.
+ */
+export function activityLevelFor(p: Person, body: Body): ActivityLevel {
+  if (body.pose === 'sleep') return 'sleep';
+  switch (p.mind.goal?.type) {
+    case 'chop': return 'chop';
+    case 'gather': return 'quarry';
+    case 'haul': return 'haul';
+    case 'build': return 'construct';
+    case 'work': case 'plant': case 'harvest': return 'craft';
+  }
+  if (body.pose === 'walk' || body.pose === 'run') return 'walk';
+  return 'idle';
+}
+
+/** Named severity bands for goal/priority code (Constitution v0.4 §7 "avoid giant nested
+ * special-case conditionals" — read these, don't re-derive thresholds inline). */
+export function heatBand(p: Person): 'comfortable' | 'mild' | 'hot' | 'severe' | 'dangerous' {
+  const h = p.physiology.bodyHeat;
+  if (h >= HEAT_DANGEROUS) return 'dangerous';
+  if (h >= HEAT_SEVERE) return 'severe';
+  if (h >= HEAT_HOT) return 'hot';
+  if (h >= HEAT_MILD) return 'mild';
+  return 'comfortable';
+}

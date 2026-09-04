@@ -216,6 +216,13 @@ export function generateVillage(world: World): GenResult {
   for (const [who, t, n] of [[people.garrick, 'hammer', 'a heavy hammer'], [people.bors, 'axe', "Bors's axe"], [people.kestrel, 'dagger', 'a hunting knife'], [people.hale, 'sword', 'a watch sword'], [people.brigid, 'sword', 'a watch sword'], [people.dunstan, 'sword', 'a watch sword'], [people.skarn, 'sword', 'a notched sword'], [people.vex, 'dagger', 'a curved knife'], [people.tomas, 'hammer', 'an apprentice hammer']] as [Person, Item['type'], string][]) {
     const it = item(t, n, { owner: who.id, holder: who.id }); it.provenance.push({ tick: yearsAgo(1), from: null, to: who.id, how: 'owned' });
   }
+  // v0.4 §5: communal worksite tools — nobody personally owns these, but anyone actually
+  // working the quarry/sawpit/construction site can use them in place (core/tools.ts's
+  // `bestToolFor`). Whoever the generic labour pool sends to gather stone/build without a
+  // personal tool still works far more effectively here than bare-handed elsewhere.
+  item('pickaxe', 'the quarry pickaxe', { placeId: places.quarry.id, pos: { ...places.quarry.inside } });
+  item('saw', 'the sawpit saw', { placeId: places.sawpit.id, pos: { ...places.sawpit.inside } });
+  item('hammer', "the builders' hammer", { placeId: places.shed_site.id, pos: { ...places.shed_site.inside } });
   // shop goods on display
   const display = (placeKey: string, type: Item['type'], name: string, ownerKey: string, n: number, price?: number) => { const pl = places[placeKey]; const spots = pl.anchors.filter(a => a.kind === 'display'); for (let i = 0; i < n; i++) { const a = spots[i % spots.length]; if (!a) break; const it = item(type, name, { owner: people[ownerKey].id, pos: v(a.pos.x + 0.5 + (i % 2) * 0.3 - 0.15, a.pos.y, a.pos.z + 0.5 + (i % 3) * 0.25 - 0.25), placeId: pl.id, value: price }); it.provenance.push({ tick: daysAgo(0.3), from: null, to: people[ownerKey].id, how: 'made' }); } };
   display('bakery', 'bread', ITEM_LABEL.bread, 'osric', 4); display('bakery', 'pie', ITEM_LABEL.pie, 'osric', 1); display('stall_bread', 'bread', ITEM_LABEL.bread, 'osric', 3);
