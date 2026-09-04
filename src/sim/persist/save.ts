@@ -1,7 +1,8 @@
 import { World } from '../core/world';
 import { WorldClock } from '../core/time';
 import { generateVillage } from '../world/village';
-import type { Person, Body, Item, Place, Faction, WorldEvent, Conflict } from '../core/types';
+import type { Person, Body, Item, Place, Faction, WorldEvent, Conflict, Field } from '../core/types';
+import { syncFieldBlocks } from '../world/metabolism';
 
 const KEY = 'infinite-rpg-save-v1';
 // v0.2.1 Priority 8: bumped 2 -> 3 to add faction leaderId/knowledge persistence (see
@@ -18,12 +19,13 @@ const KEY = 'infinite-rpg-save-v1';
 // `knowledge`, by contrast, depend on simulation HISTORY (who died when, what a leader
 // personally learned) that cannot be re-derived from present state alone, so they must be
 // persisted explicitly. See docs/V0_2_1_WORLD_ENGINE_STABILIZATION.md.
-// v0.2.3: bumped 3 -> 4 for conflict-resolution canonical state that depends on simulation
-// history and cannot be re-derived from present state: `World.conflicts` (the whole conflict
-// lifecycle), `Person.surrender` / `Person.custody`, and `Body.subduedUntil`. A subdual/surrender
-// or an active custody must survive a save/reload exactly like faction leadership does. See
-// docs/V0_2_3_CONFLICT_RESOLUTION.md. Older saves stop being offered as resumable (hasSave()).
-export const SAVE_VERSION = 4;
+// v0.2.3: bumped 3 -> 4 for conflict-resolution canonical state (World.conflicts, Person
+// surrender/custody, Body.subduedUntil).
+// v0.2.4: bumped 4 -> 5 for world-metabolism canonical state — `World.fields` (crop lifecycle
+// + soil moisture) and `Needs.thirst`. Grain/flour/bread stock are ordinary items and already
+// round-trip. Crop *blocks* also round-trip via grid diffs, but the canonical plot state is
+// authoritative and re-projected onto the grid on load. See docs/V0_2_4_WORLD_METABOLISM.md.
+export const SAVE_VERSION = 5;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
@@ -51,7 +53,9 @@ export function serialize(world: World): string {
   // v0.2.3: conflicts are plain serializable records (ids, ticks, strings, numbers). The whole
   // list is kept — a resolved conflict is history and its outcome feeds re-engagement gating.
   const conflicts = world.conflicts.map(c => ({ ...c }));
-  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, diffs, doors, events, savedAt: Date.now() });
+  // v0.2.4: fields carry the crop lifecycle + soil moisture. Plain data; whole list kept.
+  const fields = world.fields.map(f => ({ ...f, plots: f.plots.map(p => ({ ...p })) }));
+  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, diffs, doors, events, savedAt: Date.now() });
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -104,11 +108,16 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     for (const s of data.persons) { const p = world.person(s.id); if (!p) continue; Object.assign(p, { needs: s.needs, emotions: s.emotions, relationships: s.relationships, memories: s.memories, knowledge: s.knowledge, inventory: s.inventory, wealth: s.wealth, alive: s.alive, desires: s.desires, deathTick: s.deathTick, timeRate: s.timeRate ?? 1, surrender: s.surrender ?? null, custody: s.custody ?? null }); p.mind.goal = s.goal ?? null; p.mind.plan = []; p.mind.investigated = new Set(s.investigated ?? []); p.mind.decision = s.decision ?? null; }
     for (const s of data.bodies) { const b = world.body(s.id); if (!b) continue; b.pos = s.pos; b.yaw = s.yaw; b.health = s.health; b.maxHealth = s.maxHealth; b.dead = s.dead; b.pose = s.pose; b.present = s.present; b.path = null; b.subduedUntil = s.subduedUntil ?? 0; }
     world.conflicts = (data.conflicts ?? []).map((c: Conflict) => ({ ...c }));
+    if (data.fields?.length) { world.fields = data.fields.map((f: Field) => ({ ...f, plots: f.plots.map(p => ({ ...p })) })); }
+
     for (const s of data.items) { const i = world.item(s.id); if (i) Object.assign(i, s); else world.add({ ...s, tags: [...s.tags], pos: s.pos ? { ...s.pos } : null, provenance: s.provenance.map((entry: Item['provenance'][number]) => ({ ...entry })) } as Item); }
     for (const s of data.places) { const p = world.place(s.id); if (!p) continue; p.ownerId = s.ownerId; s.anchors.forEach((o: string | null, i: number) => { if (p.anchors[i]) p.anchors[i].ownerId = o ?? undefined; }); }
     for (const s of data.factions ?? []) { const f = world.faction(s.id); if (!f) continue; f.leaderId = s.leaderId; f.knowledge = s.knowledge; }
     if (data.diffs?.length) { world.grid.recording = false; world.grid.applyDiffs(data.diffs); world.grid.initCaches(); world.nav.rebuildAll(); world.grid.dirtyChunks.clear(); }
     if (data.doors?.length) world.grid.restoreDoorStates(data.doors);
+    // v0.2.4: canonical plot state is authoritative — re-project it onto the grid (harmless if
+    // the diffs already restored the same blocks; corrects any drift).
+    if (world.fields.length) syncFieldBlocks(world);
     world.grid.recording = true;
     // Generated entity ids are part of the save schema. Refuse a malformed/incompatible
     // overlay rather than booting a world whose player has no physical manifestation.

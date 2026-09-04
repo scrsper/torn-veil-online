@@ -14,6 +14,10 @@ const EVENT_CATEGORY: Partial<Record<string, TelemetryRecord['category']>> = {
   marriage: 'social', birth: 'social', mourning: 'social', prayer: 'social',
   institutional_report: 'institutional', leadership_changed: 'institutional',
   path_failure: 'integrity', item_missing: 'integrity',
+  // v0.2.4 world metabolism
+  crop_planted: 'metabolism', crop_matured: 'metabolism', crop_harvested: 'metabolism',
+  resource_transformed: 'metabolism', food_consumed: 'metabolism', water_consumed: 'metabolism',
+  resource_shortage: 'metabolism',
 };
 function categoryFor(type: string): TelemetryRecord['category'] { return EVENT_CATEGORY[type] ?? 'cognition'; }
 

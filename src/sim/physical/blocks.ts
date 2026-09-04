@@ -4,7 +4,8 @@ export const enum B {
   Air = 0, Grass, Dirt, Stone, Cobble, Planks, DarkPlanks, Log, Leaves, Water, Sand, Thatch, Brick, Glass,
   Door, Torch, Farmland, Wheat, Hay, Furnace, Anvil, Table, Bed, Barrel, Fence, Flowers, Path, RoofTile,
   Chair, Counter, Fire, Chimney, Bookshelf, Altar, Bench, Gravestone, Mossy, Tallgrass, Bush, Pumpkin,
-  Cloth, ClothRed, ClothBlue, Wool, StoneBrick, Well, Lantern, Log2, Leaves2, Gravel, Crate, Sign, Snow, Mud, Plaster
+  Cloth, ClothRed, ClothBlue, Wool, StoneBrick, Well, Lantern, Log2, Leaves2, Gravel, Crate, Sign, Snow, Mud, Plaster,
+  Sprout
 }
 export type Shape = 'cube' | 'cross' | 'slab' | 'inset' | 'post' | 'none';
 export interface BlockDef {
@@ -69,6 +70,9 @@ export const BLOCKS: Record<number, BlockDef> = {
   [B.Snow]: { name: 'snow', color: c(240, 244, 250), shape: 'cube', solid: true, opaque: true, walkCost: 1.5 },
   [B.Mud]: { name: 'mud', color: c(80, 62, 44), shape: 'cube', solid: true, opaque: true, walkCost: 2, noise: 0.08 },
   [B.Plaster]: { name: 'plaster', color: c(226, 214, 190), shape: 'cube', solid: true, opaque: true, walkCost: 1, noise: 0.04 },
+  // v0.2.4: a young/growing crop — green, short. Mature wheat stays B.Wheat (golden). The
+  // renderer projects a CropPlot's canonical state onto one of {Air, Sprout, Wheat}.
+  [B.Sprout]: { name: 'sprouts', color: c(120, 170, 80), shape: 'cross', solid: false, opaque: false, walkCost: 1, height: 0.5 },
 };
 export function blockDef(id: number): BlockDef { return BLOCKS[id] ?? BLOCKS[B.Air]; }
 export function isSolid(id: number): boolean { return blockDef(id).solid; }

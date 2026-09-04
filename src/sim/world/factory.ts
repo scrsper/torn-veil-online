@@ -22,7 +22,7 @@ export function makePerson(world: World, s: PersonSpec): Person {
   const p: Person = {
     id: world.nextId('p'), kind: 'person', name: s.name, createdAt: world.now - s.age * 365 * 86400, tags: s.tags ?? [], slug: s.slug,
     gender: s.gender, age: s.age, occupation: s.occupation, title: s.title, homeId: s.home ?? null, workId: s.work ?? null, factionId: null, householdId: null,
-    traits, needs: { hunger: 0.3, energy: 0.2, social: 0.3, comfort: 0.2 }, emotions: { fear: 0, anger: 0, joy: 0.3, sadness: 0, stress: 0 },
+    traits, needs: { hunger: 0.3, energy: 0.2, social: 0.3, comfort: 0.2, thirst: 0.25 }, emotions: { fear: 0, anger: 0, joy: 0.3, sadness: 0, stress: 0 },
     appearance, bodies: [], timeRate: s.timeRate ?? 1, relationships: {}, memories: [], knowledge: {}, inventory: [], wealth: s.wealth ?? 20,
     mind: { goal: null, plan: [], decision: null, lastThink: -99, thinkBudget: 0, thinkInterval: 1.5, alarm: 0, percepts: [], attention: null, lastSpokeAt: -99, lastToldAt: {}, investigated: new Set() },
     schedule: [], bio: s.bio, alive: true, controlled: false, desires: [], hostile: !!s.hostile, speech: null, cognitiveLOD: 'full',
@@ -39,9 +39,17 @@ export function makeItem(world: World, type: ItemType, name: string, o: { owner?
   if (it.holderId) { const h = world.person(it.holderId); if (h) h.inventory.push(it.id); }
   world.add(it); return it;
 }
-export const ITEM_VALUE: Record<ItemType, number> = { sword: 60, dagger: 15, hammer: 25, axe: 20, bread: 2, ale: 3, coins: 1, ring: 80, book: 30, herbs: 6, flowers: 1, meat: 5, cheese: 4, lantern: 12, key: 5, pie: 6, wheat: 1 };
+export const ITEM_VALUE: Record<ItemType, number> = { sword: 60, dagger: 15, hammer: 25, axe: 20, bread: 2, ale: 3, coins: 1, ring: 80, book: 30, herbs: 6, flowers: 1, meat: 5, cheese: 4, lantern: 12, key: 5, pie: 6, wheat: 1, grain: 1, flour: 2 };
 export const ITEM_DAMAGE: Partial<Record<ItemType, number>> = { sword: 26, dagger: 14, hammer: 20, axe: 22 };
-export const ITEM_LABEL: Record<ItemType, string> = { sword: 'sword', dagger: 'dagger', hammer: 'hammer', axe: 'axe', bread: 'loaf of bread', ale: 'mug of ale', coins: 'silver coins', ring: 'ring', book: 'book', herbs: 'bundle of herbs', flowers: 'flowers', meat: 'cut of venison', cheese: 'wedge of cheese', lantern: 'lantern', key: 'iron key', pie: 'meat pie', wheat: 'sheaf of wheat' };
+export const ITEM_LABEL: Record<ItemType, string> = { sword: 'sword', dagger: 'dagger', hammer: 'hammer', axe: 'axe', bread: 'loaf of bread', ale: 'mug of ale', coins: 'silver coins', ring: 'ring', book: 'book', herbs: 'bundle of herbs', flowers: 'flowers', meat: 'cut of venison', cheese: 'wedge of cheese', lantern: 'lantern', key: 'iron key', pie: 'meat pie', wheat: 'sheaf of wheat', grain: 'sack of grain', flour: 'sack of flour' };
+/** v0.2.4: coarse resource category (see types.ts ResourceCategory). */
+export const RESOURCE_CATEGORY: Record<ItemType, import('../core/types').ResourceCategory> = {
+  bread: 'food', pie: 'food', cheese: 'food', meat: 'food', ale: 'food', herbs: 'food',
+  grain: 'crop_yield', wheat: 'crop_yield', flour: 'material',
+  sword: 'tool', dagger: 'tool', hammer: 'tool', axe: 'tool', lantern: 'tool', key: 'tool', book: 'tool',
+  ring: 'valuable', coins: 'valuable', flowers: 'misc',
+};
+export function isFood(t: ItemType): boolean { return RESOURCE_CATEGORY[t] === 'food'; }
 
 export function makePlace(world: World, type: PlaceType, name: string, bounds: Place['bounds'], o: { door?: Vec3 | null; inside?: Vec3; anchors?: Anchor[]; owner?: EntityId | null; description?: string; indoor?: boolean; parent?: EntityId | null; fires?: Vec3[]; chimneys?: Vec3[]; tags?: string[]; slug?: string } = {}): Place {
   const p: Place = {

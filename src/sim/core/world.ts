@@ -1,4 +1,4 @@
-import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState, Conflict } from './types';
+import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState, Conflict, Field } from './types';
 import { WorldClock } from './time';
 import { RNG } from './rng';
 import { VoxelGrid } from '../physical/grid';
@@ -24,6 +24,14 @@ export class World {
    * here so it persists and so telemetry can observe without owning. Append-only within a run
    * (a resolved conflict stays as history); bounded by real social activity, not calendar time. */
   conflicts: Conflict[] = [];
+  /** Canonical cultivated-field state (v0.2.4) — see sim/world/metabolism.ts. One `Field` per
+   * farm `Place`, each with plot-level crop lifecycle and a soil-moisture abstraction. Bounded
+   * by the number of farms, not by time. */
+  fields: Field[] = [];
+  /** v0.2.4: lifetime counts of a few high-frequency, low-significance event types that are
+   * dropped by event compaction (crop/food/water/transform) — so a headless run summary can
+   * report accurate totals without inflating those events' significance. Purely observational. */
+  runTally: Record<string, number> = {};
   clock: WorldClock;
   rng: RNG;
   seed: number;
@@ -133,6 +141,7 @@ export class World {
       perceivedBy: [], significance: o.significance ?? 0.2, summary: o.summary ?? type, visibility: o.visibility, loudness: o.loudness,
     };
     if (!e.placeId && e.pos) e.placeId = this.placeAt(e.pos)?.id;
+    if (TALLIED_TYPES.has(type)) this.runTally[type] = (this.runTally[type] ?? 0) + 1;
     this.events.push(e); this.eventIndex.set(id, e);
     for (const c of e.causes) { const ce = this.eventIndex.get(c); if (ce) ce.effects.push(id); }
     if (e.visibility || e.loudness) this.pendingStimuli.push(e);
@@ -203,6 +212,8 @@ export class World {
   initNav(): void { this.nav = new Navigator(this.grid); }
 }
 
+const TALLIED_TYPES = new Set<EventType>(['crop_planted', 'crop_matured', 'crop_harvested', 'resource_transformed', 'food_consumed', 'water_consumed', 'resource_shortage', 'meal']);
+
 function defaultCategory(t: EventType): EventCategory {
   switch (t) {
     case 'perceived': case 'memory_formed': case 'knowledge_gained': case 'knowledge_forgotten': case 'relationship_changed': case 'emotion_changed': case 'goal_changed': case 'goal_completed': case 'arrived': return 'cognition';
@@ -211,6 +222,10 @@ function defaultCategory(t: EventType): EventCategory {
     // v0.2.3: the terminal / status-change conflict events are real history and always kept;
     // conflict_started / _escalated / _disengaged are ordinary 'world' events judged by significance.
     case 'conflict_resolved': case 'entity_surrendered': case 'entity_arrested': case 'custody_started': case 'custody_ended': return 'history';
+    // v0.2.4 metabolism events are ordinary 'world' events judged by significance (crop_matured /
+    // crop_harvested carry enough significance to survive compaction; the rest are operational).
+    case 'crop_planted': case 'crop_matured': case 'crop_harvested': case 'resource_transformed':
+    case 'food_consumed': case 'water_consumed': case 'resource_shortage': return 'world';
     default: return 'world';
   }
 }

@@ -3,6 +3,8 @@ import { World } from '../core/world';
 import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRelationships } from './relationships';
 import { maintainConflicts, beginConflict, recordConflictBlow, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
 import { maintainCustody, subdue, takeIntoCustody, beginSurrender, isSubdued } from '../social/custody';
+import { stepMetabolism, fieldFor, firstPlot, plantPlot, harvestPlot, mill, bake, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, GRAIN_CAP } from '../world/metabolism';
+import { isFood } from '../world/factory';
 import { remember } from './memory';
 import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge } from './knowledge';
 import { currentScheduleEntry } from './schedule';
@@ -375,7 +377,35 @@ export class Simulation {
     }
     const mealTime = sched?.activity === 'eat' && !ateRecently;
     const satiatedPenalty = ateRecently && n.hunger < 0.2 ? 0.35 : 0;
-    G('eat', clamp(n.hunger * 0.9 + (mealTime ? 0.3 : -0.1) - satiatedPenalty), [`hunger ${n.hunger.toFixed(2)}`, mealTime ? 'meal time' : ateRecently ? 'recently ate' : ''], { targetPlace: (sched?.activity === 'eat' && sched.placeId) ? sched.placeId : (p.homeId ?? undefined) });
+    // v0.2.4: eat where the food actually is — carried food or the household larder (free),
+    // else the bakery/market (buy). The `eat` action consumes a real food item (mind/metabolism).
+    const foodHome = findAccessibleFood(w, p, p.homeId ?? null) ?? findAccessibleFood(w, p, w.placeAt(pos)?.id ?? null);
+    const gaveUp = (m.noFoodUntil ?? 0) > now;
+    const eatPlace = foodHome
+      ? ((foodHome.holderId === p.id ? w.placeAt(pos)?.id : foodHome.placeId) ?? p.homeId ?? undefined)
+      : (this.placeIdOfType('bakery') ?? (sched?.activity === 'eat' ? sched.placeId : undefined) ?? p.homeId ?? undefined);
+    if (!gaveUp || foodHome) {
+      G('eat', clamp(n.hunger * 0.9 + (mealTime ? 0.3 : -0.1) - satiatedPenalty - (gaveUp ? 0.3 : 0)), [`hunger ${n.hunger.toFixed(2)}`, mealTime ? 'meal time' : ateRecently ? 'recently ate' : '', foodHome ? '' : 'must find food'], { targetPlace: eatPlace, data: { food: foodHome?.id } });
+    }
+    // v0.2.4: thirst — seek a canonical water source (well / river). Rises faster than hunger,
+    // so this is a common everyday goal, kept low-drama (no death spiral).
+    let drankRecently = false;
+    for (let i = w.events.length - 1; i >= 0; i--) { const ev = w.events[i]; if (now - ev.tick >= 30 * 60) break; if (ev.type === 'water_consumed' && ev.actor === p.id) { drankRecently = true; break; } }
+    if (n.thirst > 0.38 && !drankRecently && !threat && sched?.activity !== 'sleep') {
+      const src = nearestWaterSource(w, pos);
+      if (src) G('drink_water', clamp(0.2 + n.thirst * 0.8 - (night ? 0.25 : 0)), [`thirst ${n.thirst.toFixed(2)}`], { targetPos: src.pos, targetPlace: src.placeId, data: { water: true } });
+    }
+    // v0.2.4: a farmer whose schedule has them at their field does real field work — harvest a
+    // ripe plot, or sow a fallow one — in preference to the generic 'work' animation.
+    if ((p.occupation === 'farmer') && sched?.activity === 'work' && sched.placeId) {
+      const field = fieldFor(w, sched.placeId);
+      if (field) {
+        const rainingNow = w.weather.kind === 'rain' || w.weather.kind === 'storm';
+        const grainGlut = villageStock(w, 'grain') >= GRAIN_CAP;
+        if (firstPlot(field, 'harvest') && !grainGlut) G('harvest', clamp(0.7 + (rainingNow ? -0.1 : 0)), [`wheat is ripe in ${w.nameOf(field.placeId)}`], { targetPlace: field.placeId, data: { fieldId: field.id } });
+        else if (firstPlot(field, 'plant') && !rainingNow) G('plant', 0.58, [`there is fallow ground in ${w.nameOf(field.placeId)}`], { targetPlace: field.placeId, data: { fieldId: field.id } });
+      }
+    }
     // ---- schedule
     if (sched && !['sleep', 'eat'].includes(sched.activity)) {
       const rainingNow = w.weather.kind === 'rain' || w.weather.kind === 'storm';
@@ -386,7 +416,10 @@ export class Simulation {
     }
     // rain shelter (and keep sheltering while it rains)
     const raining = w.weather.kind === 'rain' || w.weather.kind === 'storm';
-    if (raining && (!w.isIndoors(pos) || m.goal?.type === 'shelter') && !isGuard && !p.hostile) G('shelter', clamp(0.5 + w.weather.intensity * 0.3 - p.traits.courage * 0.15), [`it is ${w.weather.kind}ing and I am outside`], { targetPlace: dist2(pos, w.place(p.homeId!)?.inside ?? pos) < dist2(pos, w.place(this.tavernId())?.inside ?? pos) ? p.homeId ?? undefined : this.tavernId() });
+    // v0.2.4: someone whose schedule has them at an INDOOR workplace (miller, baker, smith,
+    // merchant...) does not abandon their work to shelter — they were heading inside anyway.
+    const indoorWork = sched?.activity === 'work' && !!w.place(sched.placeId)?.indoor;
+    if (raining && (!w.isIndoors(pos) || m.goal?.type === 'shelter') && !isGuard && !p.hostile && !indoorWork) G('shelter', clamp(0.5 + w.weather.intensity * 0.3 - p.traits.courage * 0.15), [`it is ${w.weather.kind}ing and I am outside`], { targetPlace: dist2(pos, w.place(p.homeId!)?.inside ?? pos) < dist2(pos, w.place(this.tavernId())?.inside ?? pos) ? p.homeId ?? undefined : this.tavernId() });
     // socialising when the need is high
     G('socialize', clamp(n.social * 0.7 * (0.5 + p.traits.sociability * 0.8) - (night ? 0.3 : 0)), [`social need ${n.social.toFixed(2)}`, `sociability ${p.traits.sociability.toFixed(2)}`], { targetPlace: hour > 16 ? this.tavernId() : this.squareId() });
     // mourning
@@ -457,6 +490,7 @@ export class Simulation {
     for (const g of guards) { const loc = p.knowledge[`loc:${g.id}`]?.claim.pos ?? w.place(g.workId)?.inside ?? w.primaryBody(g.id)?.pos; if (!loc) continue; const d = dist2(pos, loc); if (d < bd) { bd = d; best = g; } }
     return best;
   }
+  placeIdOfType(type: import('../core/types').PlaceType): string | undefined { return this.world.places().find(p => p.type === type)?.id; }
   tavernId(): string { return this.world.places().find(p => p.type === 'tavern')!.id; }
   squareId(): string { return this.world.places().find(p => p.type === 'square')!.id; }
   chapelId(): string { return this.world.places().find(p => p.type === 'chapel')!.id; }
@@ -496,6 +530,14 @@ export class Simulation {
       // splices in either a direct 'rob' (voluntary compliance) or 'attack' + 'rob' (resistance).
       case 'rob': return [A({ type: 'goto', targetEntity: g.targetEntity, run: true }), A({ type: 'demand', targetEntity: g.targetEntity, data: g.data })];
       case 'help': return [A({ type: 'goto', targetEntity: g.targetEntity, run: true }), A({ type: 'use', targetEntity: g.targetEntity, duration: 60, data: { heal: true } })];
+      // v0.2.4 metabolism goals.
+      case 'drink_water': { const wp = g.targetPos ?? place?.inside ?? body.pos; return [A({ type: 'goto', pos: wp, placeId: g.targetPlace }), A({ type: 'drink', pos: wp, placeId: g.targetPlace, duration: 90 })]; }
+      case 'plant': case 'harvest': {
+        const field = w.fields.find(f => f.id === g.data?.fieldId) ?? (place ? w.fields.find(f => f.placeId === place.id) : undefined);
+        const target = field?.plots.find(pl => g.type === 'harvest' ? pl.state === 'mature' : pl.state === 'fallow');
+        const spot = target ? { x: target.x + 0.5, y: target.y, z: target.z + 0.5 } : (place?.inside ?? body.pos);
+        return [A({ type: 'goto', pos: spot, placeId: field?.placeId }), A({ type: g.type, pos: spot, placeId: field?.placeId, duration: 30 * 60, data: { fieldId: field?.id } })];
+      }
       case 'recover_item': return [A({ type: 'goto', pos: g.targetPos! }), A({ type: 'pickup', targetEntity: g.targetEntity })];
       case 'mourn': { const gy = place!; const grave = gy.anchors.find(a => a.kind === 'grave' && a.label?.startsWith('Anna')) ?? gy.anchors[0]; return [A({ type: 'goto', pos: grave.pos }), A({ type: 'pray', pos: grave.pos, duration: 40 * 60 })]; }
       default: return [A({ type: 'wait', duration: 60 })];
@@ -536,8 +578,79 @@ export class Simulation {
       }
       case 'sleep': body.pose = 'sleep'; body.sitAnchor = a.pos ?? null; if (a.pos) { body.pos.x = Math.floor(a.pos.x) + 0.5; body.pos.z = Math.floor(a.pos.z) + 0.5; } p.needs.energy = clamp(p.needs.energy - worldDt / (7 * SECONDS_PER_HOUR)); if (p.needs.energy <= 0.02 && w.now - (a.startedAt ?? 0) > (a.duration ?? 0) * 0.5) a.status = 'done'; if (w.now - (a.startedAt ?? 0) > 9 * SECONDS_PER_HOUR) a.status = 'done'; break;
       case 'sit': body.pose = 'sit'; body.sitAnchor = a.pos ?? null; if (a.pos) { body.pos.x = Math.floor(a.pos.x) + 0.5; body.pos.z = Math.floor(a.pos.z) + 0.5; } p.needs.social = clamp(p.needs.social - worldDt / (3 * SECONDS_PER_HOUR)); this.maybeChat(p, body); if (this.elapsed(a)) a.status = 'done'; break;
-      case 'eat': body.pose = 'sit'; body.sitAnchor = a.pos ?? null; p.needs.hunger = clamp(p.needs.hunger - worldDt / (20 * 60)); if (this.elapsed(a) || p.needs.hunger <= 0.02) { a.status = 'done'; w.emit('meal', { actor: p.id, pos: body.pos, significance: 0.05, summary: `${p.name} ate at ${w.placeAt(body.pos)?.name ?? 'home'}` }); } break;
-      case 'work': body.pose = 'work'; body.sitAnchor = a.pos ?? null; this.maybeChat(p, body); if (a.pos && w.rng.next() < physDt * 0.15) { body.yaw += (w.rng.next() - 0.5) * 0.6; } if (this.elapsed(a)) a.status = 'done'; break;
+      case 'eat': {
+        body.pose = 'sit'; body.sitAnchor = a.pos ?? null;
+        // v0.2.4: a meal consumes a real food item. Resolve once, when the sit-down settles in.
+        if (!a.data?.done && w.now - (a.startedAt ?? 0) > 60) {
+          a.data = a.data ?? {}; a.data.done = true;
+          const hereId = w.placeAt(body.pos)?.id ?? null;
+          let food = findAccessibleFood(w, p, hereId) ?? findAccessibleFood(w, p, p.homeId ?? null);
+          // Not free to hand: buy a few units from a food vendor here (carry the rest home so one
+          // trip covers several meals — keeps the whole village off one counter every few hours).
+          if (!food) {
+            const forSale = w.items().find(i => !i.holderId && isFood(i.type) && i.placeId === hereId && i.ownerId && i.ownerId !== p.id && w.person(i.ownerId)?.alive && i.quantity > 0);
+            if (forSale) food = buyFoodPortion(w, p, forSale, 3);
+          }
+          if (food && food.quantity > 0) {
+            const type = eatFood(w, p, food);
+            w.emit('meal', { actor: p.id, pos: body.pos, significance: 0.05, summary: `${p.name} ate ${type} at ${w.placeAt(body.pos)?.name ?? 'home'}` });
+            a.status = 'done'; break;
+          }
+          // Genuinely nothing. Give up the search for a while (hunger keeps rising — pressure),
+          // and log the shortage at most once per give-up window rather than every tick.
+          const since = w.now - (m.noFoodUntil ?? -Infinity) + 30 * 60;
+          if (!m.noFoodUntil || since >= 30 * 60) {
+            w.emit('resource_shortage', { actor: p.id, pos: body.pos, placeId: w.placeAt(body.pos)?.id, significance: 0.3, data: { need: 'food', hunger: Math.round(p.needs.hunger * 100) / 100 }, summary: `${p.name} could find nothing to eat` });
+          }
+          m.noFoodUntil = w.now + 30 * 60;
+          a.status = 'failed'; break;
+        }
+        if (this.elapsed(a)) a.status = 'done';
+        break;
+      }
+      case 'work': {
+        body.pose = 'work'; body.sitAnchor = a.pos ?? null; this.maybeChat(p, body);
+        if (a.pos && w.rng.next() < physDt * 0.15) { body.yaw += (w.rng.next() - 0.5) * 0.6; }
+        // v0.2.4: a miller / baker at their workplace runs a production batch every ~12 world-min
+        // of work (real resource transformation; conservation; demand-driven — mill/bake stop
+        // when the village has plenty). Only checked on the batch cadence, so no per-substep cost.
+        if ((p.occupation === 'miller' || p.occupation === 'baker')) {
+          a.data = a.data ?? {};
+          const last = (a.data.batchAt ?? (a.startedAt ?? w.now) - 8 * 60) as number;
+          if (w.now - last >= 8 * 60) {
+            a.data.batchAt = w.now;
+            const t = w.placeAt(body.pos)?.type;
+            if (p.occupation === 'miller' && t === 'mill') mill(w, p);
+            else if (p.occupation === 'baker' && t === 'bakery') bake(w, p);
+          }
+        }
+        if (this.elapsed(a)) a.status = 'done';
+        break;
+      }
+      case 'drink': {
+        body.pose = 'stand'; body.yaw = a.pos ? Math.atan2(-(a.pos.x - body.pos.x), -(a.pos.z - body.pos.z)) : body.yaw;
+        if (this.elapsed(a)) { drinkAt(w, p, a.placeId); a.status = 'done'; }
+        break;
+      }
+      case 'plant': case 'harvest': {
+        body.pose = 'work'; body.sitAnchor = null;
+        const field = w.fields.find(f => f.id === a.data?.fieldId);
+        if (!field) { a.status = 'failed'; break; }
+        // Work one plot at a time; each plot takes a slice of the action's duration.
+        a.data = a.data ?? {}; const perPlot = 4 * 60; // ~4 world-minutes per plot
+        if (w.now - (a.data.plotAt ?? a.startedAt ?? w.now) >= perPlot || a.data.plotAt === undefined) {
+          a.data.plotAt = w.now;
+          const plot = field.plots.find(pl => a.type === 'harvest' ? pl.state === 'mature' : pl.state === 'fallow');
+          if (plot) {
+            const spot = { x: plot.x + 0.5, y: plot.y, z: plot.z + 0.5 };
+            if (dist2(body.pos, spot) > 2.5) { a.status = 'pending'; m.plan.unshift({ type: 'goto', pos: spot, status: 'pending' }); break; }
+            body.pos.x = plot.x + 0.5; body.pos.z = plot.z + 0.5;
+            if (a.type === 'harvest') harvestPlot(w, field, plot, p); else plantPlot(w, field, plot, p);
+          } else { a.status = 'done'; break; } // no more actionable plots
+        }
+        if (this.elapsed(a)) a.status = 'done';
+        break;
+      }
       case 'pray': body.pose = 'pray'; body.sitAnchor = a.pos ?? null; if (this.elapsed(a)) a.status = 'done'; break;
       case 'wait': {
         // v0.2.3: a held-state wait (subdued / surrendered) keeps the body on the ground; every
@@ -1014,6 +1127,10 @@ export class Simulation {
     for (const p of w.persons()) {
       if (!p.alive) continue; const b = w.primaryBody(p.id); const asleep = b?.pose === 'sleep';
       p.needs.hunger = clamp(p.needs.hunger + h / 14); if (!asleep) p.needs.energy = clamp(p.needs.energy + h / 18); p.needs.social = clamp(p.needs.social + h / 10 * p.traits.sociability);
+      // v0.2.4: thirst rises a little faster than hunger (~fully thirsty in ~11 waking hours),
+      // faster still under hot/dry weather, slowly while asleep. Deterministic.
+      const thirstRate = (asleep ? 0.3 : 1) * (w.weather.kind === 'clear' ? 1.2 : w.weather.kind === 'rain' || w.weather.kind === 'storm' ? 0.8 : 1);
+      p.needs.thirst = clamp(p.needs.thirst + h / 11 * thirstRate);
       const e = p.emotions; e.fear *= Math.pow(0.5, h / 1.5); e.anger *= Math.pow(0.5, h / 3); e.stress *= Math.pow(0.5, h / 4); e.joy = e.joy * Math.pow(0.5, h / 2) + 0.3 * (1 - Math.pow(0.5, h / 2)); e.sadness *= Math.pow(0.5, h / 48);
       // A subdued or in-custody body does not regenerate health from strategic upkeep while held
       // incapacitated — but is not otherwise harmed. Ordinary recovery resumes on release.
@@ -1062,6 +1179,11 @@ export class Simulation {
       maintainConflicts(w);
       maintainCustody(w);
       this.accum('strategic.conflict', tc);
+      // v0.2.4 world metabolism: weather → soil moisture → crop growth. Deterministic, emits
+      // only semantic transitions (crop_matured). Same ~10-min cadence as social upkeep.
+      const tmet = this.mark();
+      stepMetabolism(w, sh);
+      this.accum('strategic.metabolism', tmet);
     }
     // weather
     const t1 = this.mark();
