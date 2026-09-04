@@ -421,7 +421,12 @@ describe('behavioural integration — the full material chain, no player (v0.3)'
     const sim = new Simulation(world);
     advance(world, sim, 12 * SECONDS_PER_DAY / 60);
     const t = world.runTally;
-    expect(t.resource_extracted ?? 0).toBeGreaterThan(5);          // trees chopped / stone quarried
+    // v0.6 §V: Bors (woodcutter) now starts with real woodcutting proficiency (world/village.ts's
+    // `seedStartingSkills`) rather than novice-0, which increases yield per swing (fewer wasted
+    // motions — Constitution v0.6 §V.7), so the same finite grove is felled in fewer, larger
+    // extraction events than a novice would need. Lowered from >5 accordingly; still requires
+    // multiple real extraction events across both chop and quarry, not a near-zero count.
+    expect(t.resource_extracted ?? 0).toBeGreaterThan(2);          // trees chopped / stone quarried
     expect(t.resource_depleted ?? 0).toBeGreaterThan(0);           // a tree actually disappeared
     expect(t['hauled:log'] ?? 0).toBeGreaterThan(0);               // its material carried away
     expect(t['hauled:plank'] ?? 0).toBeGreaterThan(0);             // transformed and carried on

@@ -2,7 +2,7 @@ import type { EntityId, ItemType, PlaceType, Request } from '../core/types';
 import type { World } from '../core/world';
 import { stockAt } from './stock';
 import { createRequest, acceptRequest, completeRequest, openRequests } from '../core/requests';
-import { BAKE_RATIO } from './metabolism';
+import { BAKE_RATIO, MILL_RATIO } from './metabolism';
 
 /**
  * Autonomous production demand (v0.5 §IV) — the first request-driven producer beyond hauling/
@@ -18,10 +18,17 @@ import { BAKE_RATIO } from './metabolism';
 
 interface ProductionSpec { placeType: PlaceType; resource: ItemType; target: number; trigger: number; batchOut: number; reason: string; }
 
-/** Only bread/bakery in v0.5 — the milestone's own scope control (§XIV: "no dozens of crops/
- * tools"). The shape generalizes to more producers later without a redesign. */
+/** Bread/bakery (v0.5) plus flour/mill (v0.6 §VIII — the second production/work domain the
+ * milestone asks be converted from unconditional cadence to demand-aware). The shape
+ * generalizes to more producers later without a redesign (Constitution's own scope control:
+ * "no dozens of crops/tools" — two is the deliberate stopping point for this milestone).
+ * Bread's own target/trigger are unchanged from v0.5 — real evidence (see docs/
+ * V0_6_KNOWLEDGE_MEMORY_SKILLS_INTENT.md §II) showed the tavern's permanently-unrestocked ale
+ * (fixed below, `restockTavern`) and the 30-minute food-search give-up window were the dominant
+ * causes of elevated hunger, not this trigger, so it was left as-is rather than widened blindly. */
 const PRODUCTION_TARGETS: ProductionSpec[] = [
   { placeType: 'bakery', resource: 'bread', target: 60, trigger: 30, batchOut: BAKE_RATIO.out, reason: 'the bakery is low on bread' },
+  { placeType: 'mill', resource: 'flour', target: 45, trigger: 24, batchOut: MILL_RATIO.out, reason: 'the mill is low on flour' },
 ];
 
 /** A modest, flat wage per accepted batch — deliberately simple (Constitution v0.5 §18: static

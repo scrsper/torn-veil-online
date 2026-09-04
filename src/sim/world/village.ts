@@ -11,7 +11,8 @@ import { createConstructionProject } from './construction';
 import { scheduleFor } from '../mind/schedule';
 import { getRel, setRelTags, adjustRel } from '../mind/relationships';
 import { remember } from '../mind/memory';
-import { learn } from '../mind/knowledge';
+import { learn, learnPlace } from '../mind/knowledge';
+import { seedStartingSkills } from '../core/skills';
 import { SECONDS_PER_DAY } from '../core/time';
 
 const F = VILLAGE_TOP + 1; // feet level in the village
@@ -146,6 +147,9 @@ export function generateVillage(world: World): GenResult {
     const home = places[c.home]; const work = c.work ? places[c.work] : null;
     const p = makePerson(world, { name: c.name, gender: c.gender, age: c.age, occupation: c.occupation, title: c.title, home: home?.id, work: work?.id, traits: c.traits, appearance: c.look, bio: c.bio, wealth: c.wealth, hostile: c.hostile, slug: c.key });
     people[c.key] = p;
+    // v0.6 §V.10: profession-seeded starting proficiency — world-generation background, not
+    // magical job permission (Constitution v0.6 §V.10).
+    seedStartingSkills(p);
     const fac = c.occupation === 'bandit' ? bandits : (c.occupation === 'guard' || c.occupation === 'captain') ? watch : village;
     p.factionId = fac.id; fac.members.push(p.id);
     if (home) home.residents.push(p.id); if (work) work.workers.push(p.id);
@@ -394,6 +398,19 @@ function seedHistory(world: World, pp: Record<string, Person>, pl: Record<string
   for (const p of [pp.garrick, pp.tomas, pp.edda, pp.rowan, pp.godwin, pp.hobb, pp.bors]) learn(world, p, { key: `owner:${hammerIt.id}`, kind: 'ownership', claim: { itemId: hammerIt.id, ownerId: pp.garrick.id }, confidence: 1, source: { type: 'prior' } }, true);
   // everyone knows where the important places are and who lives/works where
   for (const p of all) for (const q of all) if (p !== q && q.homeId) learn(world, p, { key: `home:${q.id}`, kind: 'fact', claim: { text: `${q.name} lives at ${world.nameOf(q.homeId)}`, entityId: q.id, placeId: q.homeId }, confidence: 0.9, source: { type: 'prior' } }, true);
+  // v0.6 §III.1: existing role/home knowledge — the third acquisition path, seeded at
+  // generation rather than learned through play. A settlement this size (33 people) plausibly
+  // has everyone knowing its handful of central services (the bakery, the well/river bank, the
+  // tavern, the store) exactly as everyone already knows everyone else's home above; a farmer
+  // additionally knows their own assigned field. Deliberately NOT seeded: the sawpit, quarry,
+  // mill, or any resource node/haul-task opportunity — those remain genuinely learned through
+  // direct observation or economic encounter (mind/knowledge.ts's `learnPlace`), which is what
+  // makes a deliberately knowledge-sparse person (tests/knowledge-memory-skills-intent.test.ts)
+  // behave differently from an ordinary villager instead of everyone being uniformly omniscient.
+  const commonServices = [pl.bakery, pl.well, pl.riverbank, pl.tavern, pl.store].filter((x): x is Place => !!x);
+  for (const p of all) for (const place of commonServices) learnPlace(world, p, place, { type: 'prior' });
+  const farmOf: Record<string, string> = { alwin: 'farm_alwin', jory: 'farm_jory', cedric: 'farm_cedric', maud: 'farm_maud' };
+  for (const [key, farmKey] of Object.entries(farmOf)) { const farmer = pp[key]; const field = pl[farmKey]; if (farmer && field) learnPlace(world, farmer, field, { type: 'prior' }); }
   // emotional residue
   pp.cedric.emotions.sadness = 0.6; pp.hobb.emotions.anger = 0.4; pp.fenn.emotions.stress = 0.4; pp.tomas.emotions.stress = 0.3; pp.osric.emotions.anger = 0.2;
   world.events.forEach(e => { if (e.category === 'history') e.summary = e.summary; });

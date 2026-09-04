@@ -4,6 +4,7 @@ import { B } from '../physical/blocks';
 import { addPlaceStock } from './stock';
 import { capabilityFor } from '../core/attributes';
 import { wearTool } from '../core/tools';
+import { practiceSkill } from '../core/skills';
 
 /**
  * Renewable / non-renewable resource nodes (v0.3 Living World I, Priority 5-6-8).
@@ -239,6 +240,9 @@ export function extractFromNode(world: World, node: ResourceNode, actor: Person)
   // same 'chop'/'quarry' activity) — see core/physiology.ts's `activityLevelFor`. Only tool
   // wear is per-swing, since it is tied to the specific tool used for this specific extraction.
   wearTool(world, tool, SWING_SECONDS / 3600);
+  // v0.6 §V.9: a real successful extraction (got > 0, already guaranteed here) is meaningful
+  // work — practice once per swing.
+  practiceSkill(actor, action === 'chop' ? 'woodcutting' : 'quarrying', 1);
   if (node.remaining <= 0) depleteNode(world, node);
   return got;
 }

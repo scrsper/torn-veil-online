@@ -26,3 +26,7 @@ function score(m: Memory, now: number): number { const ageDays = (now - m.tick) 
 export function recentMemories(p: Person, n = 8): Memory[] { return [...p.memories].sort((a, b) => b.tick - a.tick).slice(0, n); }
 export function significantMemories(p: Person, n = 8): Memory[] { return [...p.memories].sort((a, b) => b.significance - a.significance).slice(0, n); }
 export function memoriesAbout(p: Person, other: EntityId): Memory[] { return p.memories.filter(m => m.entities.includes(other)).sort((a, b) => b.significance - a.significance); }
+/** v0.6 §IV.4: memories tied to a PLACE (a purchase, a shortage) rather than an entity
+ * involved in them — `entities` is for people/items an event involved, not the place it
+ * happened at, so this is a distinct lookup, not a duplicate of `memoriesAbout`. */
+export function memoriesAtPlace(p: Person, placeId: EntityId): Memory[] { return p.memories.filter(m => m.placeId === placeId).sort((a, b) => b.tick - a.tick); }

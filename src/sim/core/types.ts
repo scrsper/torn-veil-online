@@ -110,6 +110,19 @@ export interface Emotions { fear: number; anger: number; joy: number; sadness: n
  */
 export interface Attributes { strength: number; dexterity: number; }
 
+// ---------------------------------------------------------------- Skills (v0.6 §V)
+/**
+ * Learned capability, distinct from `Attributes` (physical characteristics someone is born
+ * with/grows into) and from `Physiology`/tools (current state / equipment). A strong novice with
+ * an axe differs from an experienced woodcutter with the same axe and body — that difference
+ * lives here. One skill per materially different kind of work the simulation actually has
+ * (Constitution v0.6 §V: "do not create a huge generic skill catalogue"). 0 = complete novice
+ * (identical to pre-v0.6 behavior — see `getPhysicalCapability`'s skill terms, which are all
+ * identity multipliers at 0), 1 = theoretical mastery (unreached in practice; gains diminish
+ * as proficiency rises — see core/skills.ts's `practiceSkill`).
+ */
+export type SkillId = 'woodcutting' | 'quarrying' | 'hauling' | 'sawing' | 'construction' | 'baking';
+
 /** v0.5 §I.2: individual physiological variation layered on top of a species profile (see
  * core/species.ts). Kept here (not in species.ts) alongside `Physiology`/`Attributes` since it
  * is per-person canonical state, exactly like them. */
@@ -189,7 +202,10 @@ export interface Memory {
 
 export interface KnowledgeItem {
   key: string;             // e.g. "ev:e_100", "loc:i_5", "owner:i_5"
-  kind: 'event' | 'location' | 'ownership' | 'state' | 'fact';
+  // v0.6 §III: 'service' is what a Place offers — "the bakery sells food," "the well has
+  // water" — distinct from 'location' (where an ENTITY currently is) and 'fact' (a general
+  // social/institutional fact like a home address). See mind/knowledge.ts's `learnPlace`.
+  kind: 'event' | 'location' | 'ownership' | 'state' | 'fact' | 'service';
   claim: Record<string, any>;
   confidence: number;      // 0..1
   learnedAt: Tick;
@@ -197,6 +213,12 @@ export interface KnowledgeItem {
   hops: number;            // 0 = first hand
   sharedWith: EntityId[];  // who I have told
   handled?: boolean;       // e.g. guard has investigated
+  /** v0.6 §III: world-time this belief was last checked against reality (a purchase attempt,
+   * a fresh visit) — distinct from `learnedAt` (when first believed). A belief can go stale
+   * (the bakery ran out) without being wrong (the bakery still exists); this is what lets a
+   * mind tell "I haven't checked in a while" apart from "I was just told." Absent = never
+   * reconfirmed since first learned. */
+  lastConfirmedAt?: Tick;
 }
 
 export interface Percept {
@@ -351,6 +373,32 @@ export interface Mind {
    * `GoalCommitment` above and mind/commitment.ts. Null for the overwhelming majority of ticks
    * (most goals are 'free' and never get a commitment record at all). */
   commitment?: GoalCommitment | null;
+  /** v0.6 §VI: the currently held intention, if any — see `Intention` below. Not persisted (it
+   * is re-derived fresh every think() tick from current need/knowledge/memory, exactly like
+   * `Goal` itself is a fresh candidate every tick — only `commitment` needs to survive a
+   * save/reload, since only it depends on history a fresh think() tick cannot recompute). */
+  intention?: Intention | null;
+}
+
+// ---------------------------------------------------------------- Intention (v0.6 §VI)
+/**
+ * The missing layer between a raw physiological NEED ("I need calories") and a physical ACTION
+ * ("walk to the bakery"): an Intention is what the mind has decided to DO about a need, given
+ * what it currently knows/remembers — "I intend to obtain bread from the bakery, because I know
+ * it sells bread and I have bought there before." `Goal`/`Action` already carry the mechanical
+ * "what am I doing and how" (utility, target, plan); `Intention` carries the COGNITIVE "why this
+ * particular target, and on what evidence" — which knowledge/memory resolved it, distinct from a
+ * goal's own `reasons` (which are about utility, not epistemic grounding). Kept deliberately thin
+ * (Constitution v0.6 §VI: "do not over-generalize") — used only where it materially helps explain
+ * a decision (currently: obtaining food), not threaded through every goal type.
+ */
+export interface Intention {
+  type: string;             // e.g. 'obtain_food'
+  target?: EntityId;        // the resolved target place/person, if any
+  reason: string;           // e.g. "know the bakery sells bread", "bought bread here before", "no known food source — searching"
+  createdAt: Tick;
+  confidence?: number;      // 0..1 — how sure the mind is this target will actually work out
+  grounded: boolean;        // true = resolved from real knowledge/memory; false = an uninformed search
 }
 
 export interface Person extends Entity {
@@ -374,6 +422,11 @@ export interface Person extends Entity {
   species: string;
   /** v0.5 §I.2: individual variation on top of the species profile — see `PhysiologyTraits`. */
   physiologyTraits: PhysiologyTraits;
+  /** v0.6 §V: learned capability per `SkillId`, 0..1. Absent/undefined for a given skill means
+   * complete novice (0) — see core/skills.ts's `skillOf`. Seeded modestly for plausible starting
+   * professions at village generation (world/village.ts); otherwise improves only through actual
+   * successful practice (`practiceSkill`). */
+  skills: Partial<Record<SkillId, number>>;
   needs: Needs;
   emotions: Emotions;
   appearance: Appearance;
@@ -823,7 +876,12 @@ export type EventType =
   // (Constitution v0.5 §12: "canonical, observable, reason-coded... avoid event spam", so only
   // real transitions, never a per-tick "still committed" heartbeat) and the new production
   // request kind's creation, which reuses the existing request_* events above.
-  | 'goal_committed' | 'goal_suspended' | 'goal_resumed' | 'goal_abandoned';
+  | 'goal_committed' | 'goal_suspended' | 'goal_resumed' | 'goal_abandoned'
+  // v0.6 Knowledge, Memory, Skills & Intentional Action — a mind forming (or changing) an
+  // intention about how to answer a need. Fired only on a real change, exactly like
+  // `goal_changed`, never per-tick. No per-practice skill event (Constitution v0.6 §V.9's
+  // "avoid grindy XP popups" / event-spam avoidance) — skill state is inspectable directly.
+  | 'intention_formed';
 
 export type EventCategory = 'world' | 'social' | 'cognition' | 'history';
 

@@ -1,5 +1,6 @@
-import type { Person, KnowledgeItem, Source, EntityId, WorldEvent, Vec3 } from '../core/types';
+import type { Person, KnowledgeItem, Source, EntityId, WorldEvent, Vec3, Place, PlaceType } from '../core/types';
 import { World } from '../core/world';
+import { memoriesAtPlace, remember } from './memory';
 
 /**
  * Knowledge is what a mind believes about the world, always tagged with how it was learned.
@@ -271,7 +272,83 @@ export function describeClaim(world: World, k: KnowledgeItem): string {
     case 'ownership': return `${world.nameOf(c.itemId)} belongs to ${world.nameOf(c.ownerId)}`;
     case 'state': return c.text ?? `${world.nameOf(c.entityId)} is ${c.state}`;
     case 'fact': return c.text ?? k.key;
+    case 'service': return `${world.nameOf(c.placeId)} offers ${(c.offers as string[]).join(', ')}`;
   }
+}
+
+// ---------------------------------------------------------------- economic opportunity (v0.6 §III)
+/**
+ * Which kind of place TYPE plausibly offers what, for the purpose of seeding/observing "service"
+ * knowledge (Constitution v0.6 §III: "bakery sells bread," "well has water"). This is a belief
+ * about the KIND of place, not a live stock check — whether food is actually THERE right now is
+ * still resolved at the point of use (world/metabolism.ts's `findAccessibleFood`/`buyFoodPortion`)
+ * exactly as before; knowledge only decides which place a hungry mind considers going to.
+ */
+const SERVICE_OFFERS: Partial<Record<PlaceType, ('food' | 'water')[]>> = {
+  bakery: ['food'], store: ['food'], tavern: ['food'], stall: ['food'], well: ['water'],
+};
+
+/**
+ * Direct observation (Constitution v0.6 §III.3): arriving at / being at a place is itself
+ * evidence of what it is. Called on real arrival (mind/agent.ts's `goto` completion) and on a
+ * successful purchase (world/metabolism.ts's `buyFoodPortion`) — never a blind global scan.
+ * A no-op for a place type with nothing worth knowing (a house, the guardhouse, ...).
+ */
+export function learnPlace(world: World, p: Person, place: Place, source: Source): void {
+  const offers = SERVICE_OFFERS[place.type];
+  if (!offers) return;
+  learn(world, p, { key: `svc:${place.id}`, kind: 'service', claim: { placeId: place.id, placeType: place.type, offers }, confidence: 1, source }, true);
+}
+
+/**
+ * The bounded-awareness resolver for "where would I go to get food" (Constitution v0.6 §III.2 —
+ * replacing `world.places().find(p => p.type === 'bakery')`'s implicit omniscience). Ranks
+ * KNOWN food-service places, not every food-selling place that exists in the world: a person who
+ * has never learned of a food source (never been told, never visited, never bought there)
+ * simply has none to return — `mind/agent.ts`'s think() must then fall back to searching, not to
+ * a global scan. Among known candidates, recent memory nudges the ranking (Constitution v0.6
+ * §IV.4): a place bought from successfully recently is preferred; a place recently found empty
+ * is avoided — both bounded, neither able to permanently lock in a preference.
+ */
+/** How long a successful purchase keeps boosting a source's ranking — a real, if unremarkable,
+ * "I've had good luck here" belief, roughly a day's worth of it being worth walking back to. */
+const FOOD_PREFERENCE_WINDOW_SECONDS = 12 * 3600;
+/** v0.6 §IX: how long a single failed visit keeps a source demoted. Deliberately much shorter
+ * than the preference window above — measured directly (a 30-world-day run) that a long
+ * avoidance window compounds badly: avoiding the village's best-supplied source for half a day
+ * over one bad-luck failure (which the production system typically resolves within 1-2 batch
+ * cadences, ~15-40 world-minutes) pushed people toward less reliable alternatives more often,
+ * not less, which were themselves more likely to fail for unrelated reasons (e.g. simply being
+ * farther away) — a genuine demotion feedback loop, not a stable "learn to avoid the bad spot."
+ * A temporary stockout is exactly that — temporary — and `learnPlace`'s own re-`learn()` call on
+ * the next arrival there already restores full confidence; this window only needs to outlast one
+ * ordinary restock cycle, not a whole day. */
+const FOOD_AVOIDANCE_WINDOW_SECONDS = 2 * 3600;
+export function knownFoodPlace(world: World, p: Person): EntityId | undefined {
+  const now = world.now;
+  const candidates = Object.values(p.knowledge).filter(k => k.kind === 'service' && (k.claim.offers as string[])?.includes('food'));
+  if (!candidates.length) return undefined;
+  let best: KnowledgeItem | undefined; let bestScore = -Infinity;
+  for (const k of candidates) {
+    const placeId = k.claim.placeId as EntityId;
+    const memories = memoriesAtPlace(p, placeId);
+    const boughtRecently = memories.some(m => m.type === 'purchase' && now - m.tick < FOOD_PREFERENCE_WINDOW_SECONDS);
+    const foundEmptyRecently = memories.some(m => m.type === 'shortage' && now - m.tick < FOOD_AVOIDANCE_WINDOW_SECONDS);
+    const score = k.confidence + (boughtRecently ? 0.35 : 0) - (foundEmptyRecently ? 0.5 : 0);
+    if (score > bestScore) { bestScore = score; best = k; }
+  }
+  return best ? (best.claim.placeId as EntityId) : undefined;
+}
+
+/** v0.6 §IV.4: a real, recent failure to find food at a specific place — the second required
+ * memory-consequence (Constitution: "recent failed resource attempt changes immediate
+ * behavior"). Called from the `eat` action's give-up path (mind/agent.ts) so the SAME place
+ * isn't immediately retargeted the very next attempt, without erasing the knowledge that the
+ * place exists (it may simply be temporarily out of stock — see `KnowledgeItem.lastConfirmedAt`). */
+export function noteFoodShortage(world: World, p: Person, placeId: EntityId): void {
+  const k = p.knowledge[`svc:${placeId}`];
+  if (k) { k.lastConfirmedAt = world.now; k.confidence = Math.max(0.4, k.confidence - 0.15); }
+  remember(world, p, { type: 'shortage', summary: `I found nothing to eat at ${world.nameOf(placeId)}`, significance: 0.12, valence: -0.15, source: { type: 'self' }, placeId });
 }
 
 export function locationKnowledge(world: World, p: Person, entityId: EntityId, pos: Vec3, source: Source): void {

@@ -5,6 +5,7 @@ import { addPlaceStock, takePlaceStock, retireStack, stockAt } from '../world/st
 import { FARM_SEED_RESERVE } from '../world/metabolism';
 import { getPhysicalCapability } from '../core/attributes';
 import { createRequest, acceptRequest, completeRequest, failRequest } from '../core/requests';
+import { skillOf, practiceSkill } from '../core/skills';
 
 /**
  * Generalized canonical hauling (v0.3 Living World I, Priority 2 & 4).
@@ -45,7 +46,9 @@ export function carryCapFor(type: ItemType): number {
 export function personalCarryUnits(world: World, person: Person, type: ItemType): number {
   const massKg = RESOURCE_MASS_KG[type];
   if (!massKg) return carryCapFor(type);
-  const cap = getPhysicalCapability(person, world);
+  // v0.6 §V.8: hauling has no tool-governed ToolAction, so its skill is passed explicitly
+  // rather than auto-resolved from an action (see core/attributes.ts).
+  const cap = getPhysicalCapability(person, world, { skill: skillOf(person, 'hauling') });
   return Math.max(1, Math.floor(cap.safeCarryMassKg / massKg));
 }
 /** Desired on-hand stock at a consumer Place, and the level below which a haul is requested. */
@@ -219,6 +222,9 @@ export function depositHaulCargo(world: World, task: HaulTask, person: Person): 
   addPlaceStock(world, task.resource, n, task.destPlaceId, owner, ev.id, 'delivered');
   task.delivered += n; task.carried = 0; task.updatedAt = world.now;
   task.cargoItemId = undefined;
+  // v0.6 §V.9: a real, physically-completed delivery leg is meaningful work — practice once per
+  // leg (not per unit, so a heavy single-trip delivery doesn't train faster than a light one).
+  practiceSkill(person, 'hauling', 1);
   world.runTally[`hauled:${task.resource}`] = (world.runTally[`hauled:${task.resource}`] ?? 0) + n; // survives task pruning
   const moreToFetch = task.delivered < task.quantity && stockAt(world, task.resource, task.sourcePlaceId) > 0;
   if (moreToFetch) { task.status = 'claimed'; return true; } // another trip needed — stay claimed by the same hauler

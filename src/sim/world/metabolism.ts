@@ -5,6 +5,9 @@ import { makeItem, RESOURCE_CATEGORY, isFood, SPOIL_RATE_PER_DAY } from './facto
 import { addPlaceStock, takePlaceStock, retireStack, stockAt as stockAtPlace, stockTotal } from './stock';
 import { eatRestoresEnergy, drinkRestoresHydration } from '../core/physiology';
 import { effectivePrice } from './pricing';
+import { practiceSkill } from '../core/skills';
+import { learnPlace } from '../mind/knowledge';
+import { remember } from '../mind/memory';
 
 // Re-exported for existing callers/tests that import stock helpers from metabolism (v0.3 moved
 // the generalized implementations to sim/world/stock.ts — Priority 1).
@@ -282,7 +285,9 @@ export function bake(world: World, baker: Person): TransformResult {
   if (!bakeryId) return { ok: false, produced: 0, consumed: 0 };
   if (villageStock(world, 'bread') >= BREAD_CAP) return { ok: false, produced: 0, consumed: 0 };
   if (stockAtPlace(world, 'flour', bakeryId) < BAKE_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'flour' };
-  return transform(world, { actor: baker.id, inputType: 'flour', inputQty: BAKE_RATIO.in, inputPlaces: [bakeryId], outputType: 'bread', outputQty: BAKE_RATIO.out, outputPlace: bakeryId, ownerId: baker.id, how: 'baked' });
+  const result = transform(world, { actor: baker.id, inputType: 'flour', inputQty: BAKE_RATIO.in, inputPlaces: [bakeryId], outputType: 'bread', outputQty: BAKE_RATIO.out, outputPlace: bakeryId, ownerId: baker.id, how: 'baked' });
+  if (result.ok) practiceSkill(baker, 'baking', 1); // v0.6 §V.9: one real batch = one unit of practice
+  return result;
 }
 
 /**
@@ -295,14 +300,50 @@ export function saw(world: World, sawyer: Person): TransformResult {
   if (!sawpitId) return { ok: false, produced: 0, consumed: 0 };
   if (stockTotal(world, 'plank', [sawpitId]) >= PLANK_CAP) return { ok: false, produced: 0, consumed: 0 };
   if (stockAtPlace(world, 'log', sawpitId) < SAW_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'log' };
-  return transform(world, { actor: sawyer.id, inputType: 'log', inputQty: SAW_RATIO.in, inputPlaces: [sawpitId], outputType: 'plank', outputQty: SAW_RATIO.out, outputPlace: sawpitId, ownerId: sawyer.id, how: 'sawn' });
+  const result = transform(world, { actor: sawyer.id, inputType: 'log', inputQty: SAW_RATIO.in, inputPlaces: [sawpitId], outputType: 'plank', outputQty: SAW_RATIO.out, outputPlace: sawpitId, ownerId: sawyer.id, how: 'sawn' });
+  if (result.ok) practiceSkill(sawyer, 'sawing', 1);
+  return result;
+}
+
+/**
+ * v0.6 §II: `ale`/`meat`/`cheese` have no modeled ingredient chain (unlike grain→flour→bread) —
+ * they were only ever seeded once at village generation with no restock, which meant every
+ * occupation whose schedule eats at the tavern (smith, apprentice, captain, guard) permanently
+ * ran out of anything to buy there after the first day or two, and fell back to an increasingly
+ * bare household larder. Measured directly (seed 918271, 8 days, pre-fix): 695 failed
+ * food-seeking attempts against only 486 successful meals village-wide — a genuine "economic
+ * access" cause of elevated hunger (Constitution v0.6 §II), not merely a tolerance-model
+ * artifact. This is the same abstraction level the game already uses for these background food
+ * types (no inputs consumed, exactly like their original one-time seeding) — the innkeeper
+ * keeping the larder stocked while working, not a new production chain.
+ */
+export const ALE_RESTOCK_TRIGGER = 8;
+const ALE_RESTOCK_QTY = 6;
+export function restockTavern(world: World, innkeeper: Person): boolean {
+  const tavernId = world.places().find(p => p.type === 'tavern')?.id;
+  if (!tavernId) return false;
+  if (stockAtPlace(world, 'ale', tavernId) >= ALE_RESTOCK_TRIGGER) return false;
+  const ev = world.emit('resource_transformed', {
+    actor: innkeeper.id, placeId: tavernId, significance: 0.05,
+    data: { from: 'larder', fromQty: 0, to: 'ale', toQty: ALE_RESTOCK_QTY, how: 'restocked' },
+    summary: `${innkeeper.name} brought up fresh ale from the cellar`,
+  });
+  addPlaceStock(world, 'ale', ALE_RESTOCK_QTY, tavernId, innkeeper.id, ev.id, 'restocked');
+  return true;
 }
 
 // ---------------------------------------------------------------- eating & drinking
 /**
  * Find a food item this person can legitimately eat: their own inventory first, then unheld
- * food at their current position's place / their home, owned by them, the place, or nobody.
- * Never conjures food from nowhere.
+ * food at their current position's place / their home, owned by them, the place, or nobody —
+ * OR, at home only, food a fellow household member is actually carrying (v0.6 §II). Real
+ * families eat from what whoever went to market brought back, not only a communal bowl on the
+ * table; without this, anyone who cannot personally earn/spend (a child, wealth 0) had no path
+ * to food at all once the one-time starting larder ran out, even while a parent was walking
+ * around with bought bread in their own pack the whole time. Bounded to household members who
+ * are physically AT home right now (never a phantom village-wide pantry). Never conjures food
+ * from nowhere — this only widens WHOSE existing stock counts as accessible, exactly like the
+ * place-owner/household checks below already do for placed (not carried) food.
  */
 export function findAccessibleFood(world: World, p: Person, atPlaceId: EntityId | null): Item | null {
   const carried = p.inventory.map(id => world.item(id)).find(i => !!i && isFood(i.type) && i.quantity > 0);
@@ -312,7 +353,20 @@ export function findAccessibleFood(world: World, p: Person, atPlaceId: EntityId 
     const place = world.place(placeId);
     const household = isHome ? new Set(place?.residents ?? []) : new Set<EntityId>();
     const okOwner = (i: Item) => i.ownerId == null || i.ownerId === p.id || i.ownerId === place?.ownerId || household.has(i.ownerId);
-    return world.items().find(i => i.placeId === placeId && !i.holderId && isFood(i.type) && i.quantity > 0 && okOwner(i)) ?? null;
+    const placed = world.items().find(i => i.placeId === placeId && !i.holderId && isFood(i.type) && i.quantity > 0 && okOwner(i));
+    if (placed) return placed;
+    if (isHome && household.size) {
+      for (const residentId of household) {
+        if (residentId === p.id) continue;
+        const resident = world.person(residentId);
+        if (!resident || !resident.alive) continue;
+        const residentBody = world.primaryBody(residentId);
+        if (!residentBody || world.placeAt(residentBody.pos)?.id !== placeId) continue;
+        const held = resident.inventory.map(id => world.item(id)).find(i => !!i && isFood(i.type) && i.quantity > 0);
+        if (held) return held;
+      }
+    }
+    return null;
   };
   return scan(atPlaceId, atPlaceId === p.homeId) ?? scan(p.homeId, true);
 }
@@ -339,6 +393,7 @@ export function buyFoodPortion(world: World, buyer: Person, forSale: Item, n: nu
   const take = Math.min(n, forSale.quantity, affordable);
   if (take <= 0) return null;
   const cost = take * unit;
+  const boughtAtPlaceId = forSale.placeId ?? undefined;
   buyer.wealth -= cost; seller.wealth += cost;
   world.runTally.purchase_amount = (world.runTally.purchase_amount ?? 0) + cost;
   forSale.quantity -= take;
@@ -358,6 +413,14 @@ export function buyFoodPortion(world: World, buyer: Person, forSale: Item, n: nu
     significance: 0.02, data: { amount: cost, qty: take, item: forSale.type },
     summary: `${buyer.name} bought ${take} ${forSale.type} from ${seller.name} for ${cost} silver`,
   });
+  // v0.6 §III.3: economic observation — a successful purchase is first-hand evidence this place
+  // sells food, and (§IV.4) a memory of it, so a later hunger decision can prefer a source that
+  // has actually worked before (mind/agent.ts's `knownFoodPlace`) over one that hasn't.
+  if (isFood(forSale.type) && boughtAtPlaceId) {
+    const place = world.place(boughtAtPlaceId);
+    if (place) learnPlace(world, buyer, place, { type: 'self' });
+    remember(world, buyer, { type: 'purchase', summary: `I bought ${forSale.type} at ${world.nameOf(boughtAtPlaceId)}`, entities: [seller.id], significance: 0.15, valence: 0.2, source: { type: 'self' }, placeId: boughtAtPlaceId });
+  }
   if (carried) { carried.quantity += take; carried.provenance.push({ tick: world.now, eventId: ev.id, from: seller.id, to: buyer.id, how: 'bought' }); return carried; }
   const stack = makeItem(world, forSale.type, forSale.name, { owner: buyer.id, holder: buyer.id, quantity: take, value: forSale.value });
   stack.provenance.push({ tick: world.now, eventId: ev.id, from: seller.id, to: buyer.id, how: 'bought' });
@@ -370,7 +433,11 @@ export function buyFoodPortion(world: World, buyer: Person, forSale: Item, n: nu
 export function eatFood(world: World, p: Person, food: Item): ItemType {
   food.quantity -= 1;
   if (food.quantity <= 0) {
-    if (food.holderId === p.id) p.inventory = p.inventory.filter(id => id !== food.id);
+    // v0.6 §II: `food` may be a fellow household member's carried stack (see
+    // `findAccessibleFood`), not necessarily `p`'s own — clean up whoever actually holds it,
+    // not just `p`, so a shared family meal never leaves a stale item id in someone else's
+    // inventory pointing at a retired item.
+    if (food.holderId) { const holder = world.person(food.holderId); if (holder) holder.inventory = holder.inventory.filter(id => id !== food.id); }
     retireItem(food);
   }
   eatRestoresEnergy(p, FOOD_HUNGER_RESTORE);
