@@ -3,6 +3,7 @@ import type { World } from '../core/world';
 import { stockAt } from './stock';
 import { createRequest, acceptRequest, completeRequest, openRequests } from '../core/requests';
 import { BAKE_RATIO, MILL_RATIO } from './metabolism';
+import { MEAT_TO_STEW_RATIO } from './cooking';
 
 /**
  * Autonomous production demand (v0.5 §IV) — the first request-driven producer beyond hauling/
@@ -29,6 +30,10 @@ interface ProductionSpec { placeType: PlaceType; resource: ItemType; target: num
 const PRODUCTION_TARGETS: ProductionSpec[] = [
   { placeType: 'bakery', resource: 'bread', target: 60, trigger: 30, batchOut: BAKE_RATIO.out, reason: 'the bakery is low on bread' },
   { placeType: 'mill', resource: 'flour', target: 45, trigger: 24, batchOut: MILL_RATIO.out, reason: 'the mill is low on flour' },
+  // v0.8 §D: the tavern's stew — the first production process demand-gated on both a stock
+  // deficit AND real fire/heat (world/cooking.ts's `cook`, which returns `produced: 0` and
+  // therefore never pays a wage if the hearth isn't genuinely burning hot enough).
+  { placeType: 'tavern', resource: 'stew', target: 18, trigger: 8, batchOut: MEAT_TO_STEW_RATIO.out, reason: 'the tavern is low on stew' },
 ];
 
 /** A modest, flat wage per accepted batch — deliberately simple (Constitution v0.5 §18: static

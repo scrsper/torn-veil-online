@@ -70,6 +70,10 @@ export const PLANK_CAP = 40;
 export const GRAIN_CAP = 500;
 export const FLOUR_CAP = 120;
 export const BREAD_CAP = 200;
+/** v0.8 §A/F: herbs stop being gathered once the herbalist's own stock is comfortably ahead of
+ * what crafting (world/crafting.ts's binding component) and ordinary sale could plausibly use —
+ * same demand-bounded spirit as the caps above, not "infinite gathering." */
+export const HERBS_CAP = 40;
 /** How much one meal / one drink restores. */
 export const FOOD_HUNGER_RESTORE = 0.55;
 export const WATER_THIRST_RESTORE = 0.85;
@@ -348,6 +352,32 @@ export function restockTavern(world: World, innkeeper: Person): boolean {
     summary: `${innkeeper.name} brought up fresh ale from the cellar${cost > 0 ? ` (paid ${cost} silver for supplies)` : ''}`,
   });
   addPlaceStock(world, 'ale', ALE_RESTOCK_QTY, tavernId, innkeeper.id, ev.id, 'restocked');
+  return true;
+}
+
+/**
+ * v0.8 §A/F: `herbs` (core/materials.ts's `plantFiber`) had a real `ItemType`/value/category
+ * entry since v0.1 but no production path anywhere — pure flavor, never actually obtainable
+ * (confirmed by a full-codebase search before writing this). This gives the herbalist a real,
+ * bounded gathering loop at her own workplace — the same `restockTavern`-shaped pattern (a
+ * background stock top-up while working, gated by a demand cap, no modeled sub-ingredient chain
+ * because none is needed for "gather what's growing nearby") — closing a genuine "materials come
+ * from somewhere" gap AND giving world/crafting.ts's binding component (stick + suitable stone +
+ * herbs → stone axe) a real physical source instead of spawning from nowhere.
+ */
+const HERB_GATHER_TRIGGER = 16;
+const HERB_GATHER_QTY = 4;
+export function gatherHerbs(world: World, herbalist: Person): boolean {
+  const placeId = herbalist.workId;
+  if (!placeId) return false;
+  if (stockAtPlace(world, 'herbs', placeId) >= Math.min(HERB_GATHER_TRIGGER, HERBS_CAP)) return false;
+  const ev = world.emit('resource_extracted', {
+    actor: herbalist.id, placeId, significance: 0.05,
+    data: { kind: 'herb', yield: 'herbs', amount: HERB_GATHER_QTY },
+    summary: `${herbalist.name} gathered ${HERB_GATHER_QTY} bundles of herbs`,
+  });
+  addPlaceStock(world, 'herbs', HERB_GATHER_QTY, placeId, herbalist.id, ev.id, 'gathered');
+  practiceSkill(herbalist, 'herbalism', 1);
   return true;
 }
 

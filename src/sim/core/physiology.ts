@@ -74,6 +74,14 @@ const HEAT_HYDRATION_COOLING_PER_HOUR = 0.07;  // scaled by current hydration (s
 const ENVIRONMENTAL_HEAT_PER_HOUR: Record<'clear' | 'cloudy' | 'rain' | 'storm' | 'fog', number> = {
   clear: 0.09, cloudy: 0.02, fog: 0, rain: -0.05, storm: -0.09,
 };
+/** v0.8 §D: heat gain per hour at full (intensity 1) proximity to a lit fire — comparable in
+ * magnitude to a clear day's own environmental term, deliberately modest (a fire warms, it does
+ * not instantly overheat someone standing near it). */
+const FIRE_WARMTH_PER_HOUR = 0.1;
+/** v0.8 §D: drying rate bonus per hour at full fire proximity, on top of whichever base indoor/
+ * outdoor rate already applies (`stepWetness`) — a real reason to dry off by a fire rather than
+ * just waiting it out. */
+const FIRE_DRYING_BONUS_PER_HOUR = 0.4;
 
 export const HEAT_MILD = 0.4;      // reduced work efficiency (getPhysicalCapability)
 export const HEAT_HOT = 0.6;       // increased thirst/fatigue (already folded into the rate tables)
@@ -107,16 +115,18 @@ const WETNESS_FATIGUE_PER_HOUR = 0.02;
  * (outdoors, and it is actually raining/storming right now); dries otherwise, indoors always
  * faster than out. Deterministic, bounded 0..1. `syncNeeds` (below) turns this into
  * `needs.comfort`, which is what goal-utility code (mind/agent.ts) actually reads — nothing
- * downstream reacts to `world.weather.kind` directly any more for shelter-seeking.
+ * downstream reacts to `world.weather.kind` directly any more for shelter-seeking. `nearFire`
+ * (v0.8 §D, 0..1) adds a real drying bonus — standing by a lit fire is a genuine reason to dry
+ * off faster, not just waiting it out indoors.
  */
-function stepWetness(world: World, p: Person, hours: number, indoor: boolean): void {
+function stepWetness(world: World, p: Person, hours: number, indoor: boolean, nearFire = 0): void {
   const phys = p.physiology;
   const wk = world.weather.kind;
   const raining = (wk === 'rain' || wk === 'storm') ? world.weather.intensity : 0;
   if (!indoor && raining > 0) {
     phys.wetness = clamp01(phys.wetness + WETNESS_RAIN_GAIN_PER_HOUR * raining * hours);
   } else {
-    const dryRate = indoor ? WETNESS_DRY_INDOOR_PER_HOUR : WETNESS_DRY_OUTDOOR_PER_HOUR;
+    const dryRate = (indoor ? WETNESS_DRY_INDOOR_PER_HOUR : WETNESS_DRY_OUTDOOR_PER_HOUR) + FIRE_DRYING_BONUS_PER_HOUR * nearFire;
     phys.wetness = clamp01(phys.wetness - dryRate * hours);
   }
 }
@@ -126,9 +136,10 @@ function stepWetness(world: World, p: Person, hours: number, indoor: boolean): v
  * no RNG. `indoor`/`daylight` shape the environmental heat term; both are cheap to compute at
  * the call site (see mind/agent.ts's activity classification).
  */
-export function stepPhysiology(world: World, p: Person, hours: number, activity: ActivityLevel, o: { indoor: boolean; daylight: number } = { indoor: false, daylight: 0.7 }): void {
+export function stepPhysiology(world: World, p: Person, hours: number, activity: ActivityLevel, o: { indoor: boolean; daylight: number; nearFire?: number } = { indoor: false, daylight: 0.7 }): void {
   if (hours <= 0) return;
-  stepWetness(world, p, hours, o.indoor);
+  const nearFire = o.nearFire ?? 0;
+  stepWetness(world, p, hours, o.indoor, nearFire);
   const phys = p.physiology;
   const asleep = activity === 'sleep';
   // v0.5 §I: species profile + individual variation scale the human-baseline rates below — see
@@ -162,9 +173,13 @@ export function stepPhysiology(world: World, p: Person, hours: number, activity:
   const envKind = world.weather.kind;
   const envStrength = o.indoor ? 0.4 : 1;
   const environmentalHeat = ENVIRONMENTAL_HEAT_PER_HOUR[envKind] * envStrength * (0.4 + o.daylight * 0.6);
+  // v0.8 §D: a real, lit fire genuinely warms whoever is at that Place, scaled by its own
+  // intensity — the same "physical fact -> consequence" chain as weather's own term above, not
+  // a separate "near a fire" status flag.
+  const fireWarmth = FIRE_WARMTH_PER_HOUR * nearFire;
   const restCooling = (activity === 'idle' || asleep) ? HEAT_REST_COOLING_PER_HOUR : 0;
   const hydrationCooling = HEAT_HYDRATION_COOLING_PER_HOUR * phys.hydration;
-  const heatDelta = ACTIVITY_HEAT_PER_HOUR[activity] + environmentalHeat - HEAT_PASSIVE_COOLING_PER_HOUR - restCooling - hydrationCooling;
+  const heatDelta = ACTIVITY_HEAT_PER_HOUR[activity] + environmentalHeat + fireWarmth - HEAT_PASSIVE_COOLING_PER_HOUR - restCooling - hydrationCooling;
   phys.bodyHeat = clamp01(phys.bodyHeat + heatDelta * hours);
 
   syncNeeds(p);

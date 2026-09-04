@@ -14,6 +14,7 @@ import { remember } from '../mind/memory';
 import { learn, learnPlace, learnAffordance } from '../mind/knowledge';
 import { seedStartingSkills } from '../core/skills';
 import { STARTING_AFFORDANCE_KNOWLEDGE } from '../core/affordance';
+import { createFire } from './fire';
 import { SECONDS_PER_DAY } from '../core/time';
 
 const F = VILLAGE_TOP + 1; // feet level in the village
@@ -61,6 +62,10 @@ export function generateVillage(world: World): GenResult {
 
   // ---- Buildings
   const tav = buildTavern(ctx, 112, 78, 127, 89, VILLAGE_TOP, 'W', []); fromBuild('tavern', 'tavern', 'The Gilded Boar', 112, 78, 127, 89, F, tav, 'The village tavern: ale, stew, gossip and a warm fire.');
+  // v0.8 §C/D: a real, canonical fire at the tavern's own hearth (the existing fireplace block
+  // this Place has always had) — unlit until the cook actually lights it (world/cooking.ts).
+  // Indoor, so never rain-exposed (`exposed: false`).
+  if (tav.fires[0]) createFire(world, places.tavern.id, tav.fires[0], false);
   const smi = buildSmithy(ctx, 112, 102, 122, 110, VILLAGE_TOP, 'W'); fromBuild('smithy', 'smithy', "Ironhand's Smithy", 112, 102, 122, 110, F, smi, 'Garrick Ironhand\'s forge. The ring of the hammer carries across the square.', false);
   const bak = buildShop(ctx, 70, 78, 79, 86, VILLAGE_TOP, 'E', 'bakery', []); fromBuild('bakery', 'bakery', "Bramble's Bakery", 70, 78, 79, 86, F, bak, 'Osric Bramble\'s bakery. The ovens are lit before dawn.');
   const sto = buildShop(ctx, 69, 102, 79, 110, VILLAGE_TOP, 'E', 'store', []); fromBuild('store', 'store', "Crane's General Store", 69, 102, 79, 110, F, sto, 'Wendel Crane\'s store: tools, cloth, cheese, candles, and credit at a price.');

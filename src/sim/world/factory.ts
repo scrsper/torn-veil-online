@@ -50,18 +50,20 @@ export function makeItem(world: World, type: ItemType, name: string, o: { owner?
   if (it.holderId) { const h = world.person(it.holderId); if (h) h.inventory.push(it.id); }
   world.add(it); return it;
 }
-const TOOL_TYPES = new Set<ItemType>(['axe', 'pickaxe', 'saw', 'hammer']);
-export const ITEM_VALUE: Record<ItemType, number> = { sword: 60, dagger: 15, hammer: 25, axe: 20, bread: 2, ale: 3, coins: 1, ring: 80, book: 30, herbs: 6, flowers: 1, meat: 5, cheese: 4, lantern: 12, key: 5, pie: 6, wheat: 1, grain: 1, flour: 2, log: 2, plank: 3, stone: 2, pickaxe: 28, saw: 22 };
-export const ITEM_DAMAGE: Partial<Record<ItemType, number>> = { sword: 26, dagger: 14, hammer: 20, axe: 22 };
-export const ITEM_LABEL: Record<ItemType, string> = { sword: 'sword', dagger: 'dagger', hammer: 'hammer', axe: 'axe', bread: 'loaf of bread', ale: 'mug of ale', coins: 'silver coins', ring: 'ring', book: 'book', herbs: 'bundle of herbs', flowers: 'flowers', meat: 'cut of venison', cheese: 'wedge of cheese', lantern: 'lantern', key: 'iron key', pie: 'meat pie', wheat: 'sheaf of wheat', grain: 'sack of grain', flour: 'sack of flour', log: 'log', plank: 'plank', stone: 'block of stone', pickaxe: 'pickaxe', saw: 'two-man saw' };
+const TOOL_TYPES = new Set<ItemType>(['axe', 'pickaxe', 'saw', 'hammer', 'stoneaxe']);
+export const ITEM_VALUE: Record<ItemType, number> = { sword: 60, dagger: 15, hammer: 25, axe: 20, bread: 2, ale: 3, coins: 1, ring: 80, book: 30, herbs: 6, flowers: 1, meat: 5, cheese: 4, lantern: 12, key: 5, pie: 6, wheat: 1, grain: 1, flour: 2, log: 2, plank: 3, stone: 2, pickaxe: 28, saw: 22, stick: 1, stew: 6, stoneaxe: 12 };
+export const ITEM_DAMAGE: Partial<Record<ItemType, number>> = { sword: 26, dagger: 14, hammer: 20, axe: 22, stoneaxe: 14 };
+export const ITEM_LABEL: Record<ItemType, string> = { sword: 'sword', dagger: 'dagger', hammer: 'hammer', axe: 'axe', bread: 'loaf of bread', ale: 'mug of ale', coins: 'silver coins', ring: 'ring', book: 'book', herbs: 'bundle of herbs', flowers: 'flowers', meat: 'cut of venison', cheese: 'wedge of cheese', lantern: 'lantern', key: 'iron key', pie: 'meat pie', wheat: 'sheaf of wheat', grain: 'sack of grain', flour: 'sack of flour', log: 'log', plank: 'plank', stone: 'block of stone', pickaxe: 'pickaxe', saw: 'two-man saw', stick: 'stick', stew: 'bowl of stew', stoneaxe: 'stone axe' };
 /** v0.2.4: coarse resource category (see types.ts ResourceCategory). */
 export const RESOURCE_CATEGORY: Record<ItemType, import('../core/types').ResourceCategory> = {
-  bread: 'food', pie: 'food', cheese: 'food', meat: 'food', ale: 'food', herbs: 'food',
+  bread: 'food', pie: 'food', cheese: 'food', meat: 'food', ale: 'food', herbs: 'food', stew: 'food',
   grain: 'crop_yield', wheat: 'crop_yield', flour: 'material',
-  sword: 'tool', dagger: 'tool', hammer: 'tool', axe: 'tool', lantern: 'tool', key: 'tool', book: 'tool', pickaxe: 'tool', saw: 'tool',
+  sword: 'tool', dagger: 'tool', hammer: 'tool', axe: 'tool', lantern: 'tool', key: 'tool', book: 'tool', pickaxe: 'tool', saw: 'tool', stoneaxe: 'tool',
   ring: 'valuable', coins: 'valuable', flowers: 'misc',
   // v0.3 building materials — effectively non-perishable here.
   log: 'material', plank: 'material', stone: 'material',
+  // v0.8: a raw crafting component, not food/tool/material-in-the-construction-sense on its own.
+  stick: 'material',
 };
 export function isFood(t: ItemType): boolean { return RESOURCE_CATEGORY[t] === 'food'; }
 
@@ -73,7 +75,7 @@ export function isFood(t: ItemType): boolean { return RESOURCE_CATEGORY[t] === '
  * `WATER_UNIT_MASS_KG` is used by physiology's hydration accounting; water is not an `Item`.
  */
 export const RESOURCE_MASS_KG: Partial<Record<ItemType, number>> = {
-  grain: 0.7, flour: 0.65, bread: 0.5, wheat: 0.5, log: 25, plank: 8, stone: 15,
+  grain: 0.7, flour: 0.65, bread: 0.5, wheat: 0.5, log: 25, plank: 8, stone: 15, stick: 0.3, herbs: 0.4,
 };
 export const WATER_UNIT_MASS_KG = 1;
 
@@ -84,7 +86,7 @@ export const WATER_UNIT_MASS_KG = 1;
  * world/stock.ts can decide per-type batching (see `addPlaceStock`) without a circular import.
  */
 export const SPOIL_RATE_PER_DAY: Partial<Record<ItemType, number>> = {
-  bread: 0.10, pie: 0.10, meat: 0.10, cheese: 0.05, flour: 0.015, grain: 0.003,
+  bread: 0.10, pie: 0.10, meat: 0.10, cheese: 0.05, flour: 0.015, grain: 0.003, stew: 0.12,
 };
 export function isPerishable(t: ItemType): boolean { return SPOIL_RATE_PER_DAY[t] !== undefined; }
 

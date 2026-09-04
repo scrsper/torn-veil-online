@@ -1,7 +1,7 @@
 import { World } from '../core/world';
 import { WorldClock } from '../core/time';
 import { generateVillage } from '../world/village';
-import type { Person, Body, Item, Place, Faction, WorldEvent, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request } from '../core/types';
+import type { Person, Body, Item, Place, Faction, WorldEvent, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire } from '../core/types';
 import { syncFieldBlocks } from '../world/metabolism';
 import { syncResourceNodeBlocks } from '../world/resources';
 import { materializeStructure } from '../world/construction';
@@ -72,7 +72,13 @@ const KEY = 'infinite-rpg-save-v1';
 // `needs.comfort` too (the same class of bug v0.4 bumped 6 -> 7 to prevent for `Person.
 // physiology` itself). Bumping forces `hasSave()`/`deserialize` to reject a pre-v0.7 save
 // outright instead of silently loading corrupted physiology.
-export const SAVE_VERSION = 10;
+// v0.8: bumped 10 -> 11 for `World.fires` (v0.8 §C) — new top-level canonical state (whether a
+// fire is lit and how much fuel remains cannot be reconstructed from present state alone),
+// exactly the same class of addition `World.haulTasks`/`resourceNodes`/`constructionProjects`
+// were at v0.3. An old save simply predates the concept (`data.fires ?? []` below defaults it
+// to no fires, all unlit — safe, not corrupting, but still version-gated for consistency with
+// every other top-level array this file persists).
+export const SAVE_VERSION = 11;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
@@ -108,7 +114,9 @@ export function serialize(world: World): string {
   const constructionProjects = world.constructionProjects.map(p => ({ ...p, required: p.required.map(r => ({ ...r })), contributions: { ...p.contributions }, siteBounds: { ...p.siteBounds } }));
   // v0.4: work requests are plain serializable records (ids, ticks, strings, numbers).
   const requests = world.requests.map(r => ({ ...r, payload: { ...r.payload } }));
-  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, diffs, doors, events, savedAt: Date.now() });
+  // v0.8: fires — plain serializable records (ids, ticks, strings, numbers, one Vec3 `pos`).
+  const fires = world.fires.map(f => ({ ...f, pos: { ...f.pos } }));
+  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, diffs, doors, events, savedAt: Date.now() });
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -166,6 +174,11 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     if (data.resourceNodes?.length) world.resourceNodes = data.resourceNodes.map((n: ResourceNode) => ({ ...n, pos: { ...n.pos }, blocks: n.blocks.map(b => ({ ...b })) }));
     if (data.constructionProjects?.length) world.constructionProjects = data.constructionProjects.map((p: ConstructionProject) => ({ ...p, required: p.required.map(r => ({ ...r })), contributions: { ...p.contributions }, siteBounds: { ...p.siteBounds } }));
     world.requests = (data.requests ?? []).map((r: Request) => ({ ...r, payload: { ...r.payload } }));
+    // v0.8: same pattern as `resourceNodes`/`constructionProjects` above — fires are pre-
+    // registered by `generateVillage` (just called), so an old, pre-v0.8 save with no `data.fires`
+    // at all should keep the freshly-generated (unlit) ones rather than overwrite them with
+    // nothing; a save that DOES have fire data (post-v0.8) is authoritative and replaces them.
+    if (data.fires?.length) world.fires = data.fires.map((f: Fire) => ({ ...f, pos: { ...f.pos } }));
 
     for (const s of data.items) { const i = world.item(s.id); if (i) Object.assign(i, s); else world.add({ ...s, tags: [...s.tags], pos: s.pos ? { ...s.pos } : null, provenance: s.provenance.map((entry: Item['provenance'][number]) => ({ ...entry })) } as Item); }
     for (const s of data.places) { const p = world.place(s.id); if (!p) continue; p.ownerId = s.ownerId; s.anchors.forEach((o: string | null, i: number) => { if (p.anchors[i]) p.anchors[i].ownerId = o ?? undefined; }); }

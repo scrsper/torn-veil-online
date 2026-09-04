@@ -66,6 +66,17 @@ export const AFFORDANCE_DEF: Partial<Record<ItemType, AffordanceDef>> = {
     affordances: ['strike', 'construct'],
     knownUses: ['drive nails/pegs', 'shape metal at a forge', 'weapon-like use'],
   },
+  // v0.8 §F: the practical-crafting vertical slice's own result — a real, weaker tool made from
+  // raw components (world/crafting.ts), not a forged one. Its affordance is taught to the
+  // crafter the moment they make it (learning by making, the same "learning by doing" spirit
+  // v0.7 already established for using a tool).
+  stoneaxe: {
+    identity: 'stone axe',
+    composition: ['stone head', 'stick handle', 'plant-fiber binding'],
+    properties: ['crude edge', 'hard head', 'handheld leverage'],
+    affordances: ['cut', 'chop', 'strike'],
+    knownUses: ['fell trees', 'split timber', 'weapon-like use'],
+  },
 };
 
 export function affordancesOf(type: ItemType): AffordanceDef | undefined {
