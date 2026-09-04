@@ -211,8 +211,11 @@ function depleteNode(world: World, node: ResourceNode): void {
   for (const b of node.blocks) world.grid.set(b.x, b.y, b.z, node.kind === 'stone' ? B.Gravel : B.Air);
   const bx = Math.round(node.pos.x), bz = Math.round(node.pos.z);
   world.nav.rebuildArea(bx - 4, bz - 4, bx + 4, bz + 4);
+  // A single felled tree is an ordinary world event (it regrows); a worked-out stone outcrop —
+  // a non-renewable notable site being exhausted — is real history and Chronicle-eligible.
   world.emit('resource_depleted', {
-    placeId: node.dropPlaceId, pos: { ...node.pos }, significance: node.kind === 'tree' ? 0.35 : 0.4, category: 'history',
+    placeId: node.dropPlaceId, pos: { ...node.pos }, significance: node.kind === 'tree' ? 0.2 : 0.55,
+    category: node.kind === 'tree' ? 'world' : 'history',
     data: { nodeId: node.id, kind: node.kind, renewable: node.renewable, regrowAt: node.regrowAt },
     summary: node.kind === 'tree' ? `A tree near ${world.nameOf(node.placeId)} was felled` : `The stone outcrop at ${world.nameOf(node.placeId)} was worked out`,
   });
