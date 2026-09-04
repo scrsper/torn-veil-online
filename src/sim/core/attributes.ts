@@ -3,6 +3,7 @@ import type { World } from './world';
 import { heatBand } from './physiology';
 import { bestToolFor, toolWorkMultiplier, type ToolAction } from './tools';
 import { physiologyProfileFor } from './species';
+import { skillOf, SKILL_FOR_TOOL_ACTION } from './skills';
 
 /**
  * The centralized physical-capability layer (v0.4 §3). Every action that cares "how strong/
@@ -44,9 +45,18 @@ const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const BASE_CARRY_KG = 16;
 const CARRY_PER_STRENGTH_KG = 44; // strength 1.0 adds this much on top of BASE_CARRY_KG
 
-export function getPhysicalCapability(p: Person, _world: World, ctx: { action?: ToolAction; tool?: Item | null } = {}): PhysicalCapability {
+export function getPhysicalCapability(p: Person, _world: World, ctx: { action?: ToolAction; tool?: Item | null; skill?: number } = {}): PhysicalCapability {
   const attrs: Attributes = p.attributes;
   const phys = p.physiology;
+  // v0.6 §V: learned capability (core/skills.ts) — resolved automatically from `ctx.action` via
+  // `SKILL_FOR_TOOL_ACTION` when the caller doesn't pass one explicitly (haul, which has no
+  // tool-governed action, passes it directly instead). 0 for a complete novice — the identity
+  // multiplier, so every pre-v0.6 call site (and every person who has never practiced this
+  // skill) is numerically unchanged. Bounded effects only (Constitution v0.6 §V.7): faster
+  // technique and somewhat better energy/fatigue efficiency for the SAME nominal work, never a
+  // magical output multiplier — extraction yield and batch ratios are untouched by this.
+  const actionSkillId = ctx.action ? SKILL_FOR_TOOL_ACTION[ctx.action] : undefined;
+  const skill = clamp(ctx.skill ?? (actionSkillId ? skillOf(p, actionSkillId) : 0), 0, 1);
   // Being tired, starving or overheated saps the attributes you can actually bring to bear —
   // the attribute itself (a trait of the body) is unchanged; what's "effective" right now isn't.
   const fatiguePenalty = 1 - phys.fatigue * 0.5;
@@ -57,15 +67,24 @@ export function getPhysicalCapability(p: Person, _world: World, ctx: { action?: 
   const effectiveStrength = clamp(attrs.strength * fatiguePenalty * hungerPenalty, 0.05, 2);
   const effectiveDexterity = clamp(attrs.dexterity * fatiguePenalty * sleepPenalty, 0.05, 2);
 
-  const safeCarryMassKg = BASE_CARRY_KG + effectiveStrength * CARRY_PER_STRENGTH_KG;
+  // v0.6 §V.7 (hauling): skill represents packing/load-handling technique, not raw strength —
+  // strength remains the primary carrying constraint (CARRY_PER_STRENGTH_KG dominates this), a
+  // skilled hauler just wastes a little less of it. Bounded small (+9% at mastery).
+  const safeCarryMassKg = (BASE_CARRY_KG + effectiveStrength * CARRY_PER_STRENGTH_KG) * (1 + skill * 0.09);
 
   const tool = ctx.action ? ctx.tool ?? null : null;
   const toolMult = ctx.action ? toolWorkMultiplier(ctx.action, tool) : 1;
   const baseWorkRate = 0.35 + effectiveDexterity * 0.45 + effectiveStrength * 0.35;
-  const workRate = clamp(baseWorkRate, 0.1, 2.2) * toolMult * heatPenalty;
+  // v0.6 §V.7: an experienced worker uses the SAME tool/body more effectively — faster technique
+  // (work rate) and fewer wasted motions (energy/fatigue efficiency) — bounded well short of
+  // "level 10 = +500%" (Constitution v0.6 §V.7): up to +30% work rate and -15% energy/fatigue
+  // cost at theoretical mastery (skill 1, unreached in practice — see core/skills.ts).
+  const skillWorkMult = 1 + skill * 0.3;
+  const skillEfficiency = 1 - skill * 0.15;
+  const workRate = clamp(baseWorkRate, 0.1, 2.2) * toolMult * heatPenalty * skillWorkMult;
 
-  const energyCostMultiplier = 1 / clamp(effectiveStrength * 0.6 + 0.4, 0.4, 1.6);
-  const fatigueMultiplier = (1 + Math.max(0, phys.bodyHeat - 0.6) * 1.2) / clamp(effectiveStrength * 0.5 + 0.5, 0.5, 1.5);
+  const energyCostMultiplier = (1 / clamp(effectiveStrength * 0.6 + 0.4, 0.4, 1.6)) * skillEfficiency;
+  const fatigueMultiplier = ((1 + Math.max(0, phys.bodyHeat - 0.6) * 1.2) / clamp(effectiveStrength * 0.5 + 0.5, 0.5, 1.5)) * skillEfficiency;
   // v0.5 §I: read from the species profile (core/species.ts) rather than hardcoded — 1 for
   // ordinary humans; a future ontological tier or heat-adapted species raises this.
   const heatTolerance = physiologyProfileFor(p.species).heatTolerance;

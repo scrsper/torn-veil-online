@@ -9,6 +9,7 @@ import { stockAt } from '../world/stock';
 import { requestSummary, type RequestSummary } from '../core/requests';
 import { productionSummary, type ProductionSummary } from '../world/production';
 import { effectivePrice } from '../world/pricing';
+import type { SkillId } from '../core/types';
 
 /**
  * The structured, machine- and human-readable result of a headless world run (v0.2 Part 5).
@@ -79,6 +80,26 @@ export interface WorldRunSummary {
   commitments: { committed: number; suspended: number; resumed: number; abandoned: number };
   production: ProductionSummary;
   pricing: { breadPriceAtBakery: number | null; breadPriceAtStall: number | null };
+  /** v0.6 Knowledge, Memory, Skills & Intentional Action. `*BandMinutes` are TIME-WEIGHTED (world-
+   * minutes actually spent at each severity band — mind/agent.ts's `strategic()`), not a single
+   * end-of-run snapshot, so they answer "how much of a person's day is spent at this severity"
+   * rather than "what was it at the instant the run ended." Divide by total person-minutes
+   * simulated (population × simulatedWorldSeconds/60) for a share. */
+  cognition: {
+    hungerBandMinutes: Record<string, number>;
+    thirstBandMinutes: Record<string, number>;
+    sleepBandMinutes: Record<string, number>;
+    avgKnowledgePerPerson: number;
+    avgMemoriesPerPerson: number;
+    knowledgeGained: number;
+    knowledgeForgotten: number;
+    memoriesFormed: number;
+    intentionsFormed: number;
+    /** Village-wide average proficiency per skill (novices, still at 0, included) — a coarse
+     * "is anyone actually getting better at anything" signal without a full per-occupation
+     * breakdown (available directly from the Inspector's Skills tab for a specific person). */
+    avgSkillBySkill: Partial<Record<SkillId, number>>;
+  };
 }
 
 export interface WorldRunSummaryContext {
@@ -174,6 +195,29 @@ export function buildWorldRunSummary(world: World, ctx: WorldRunSummaryContext):
     },
     production: productionSummary(world),
     pricing: breadPricingSnapshot(world),
+    cognition: cognitionSummary(world),
+  };
+}
+
+const SEVERITY_BANDS = ['comfortable', 'noticeable', 'uncomfortable', 'urgent', 'critical'] as const;
+const SKILL_IDS: SkillId[] = ['woodcutting', 'quarrying', 'hauling', 'sawing', 'construction', 'baking'];
+function cognitionSummary(world: World): WorldRunSummary['cognition'] {
+  const bandMinutes = (prefix: string) => Object.fromEntries(SEVERITY_BANDS.map(b => [b, world.runTally[`${prefix}_${b}_min`] ?? 0]));
+  const alive = world.persons().filter(p => p.alive && !p.controlled);
+  const avg = (n: number) => alive.length ? Math.round((n / alive.length) * 100) / 100 : 0;
+  const avgSkillBySkill: Partial<Record<SkillId, number>> = {};
+  for (const id of SKILL_IDS) avgSkillBySkill[id] = avg(alive.reduce((n, p) => n + (p.skills?.[id] ?? 0), 0));
+  return {
+    hungerBandMinutes: bandMinutes('hunger_band'),
+    thirstBandMinutes: bandMinutes('thirst_band'),
+    sleepBandMinutes: bandMinutes('sleep_band'),
+    avgKnowledgePerPerson: avg(alive.reduce((n, p) => n + Object.keys(p.knowledge).length, 0)),
+    avgMemoriesPerPerson: avg(alive.reduce((n, p) => n + p.memories.length, 0)),
+    knowledgeGained: world.runTally.knowledge_gained ?? 0,
+    knowledgeForgotten: world.runTally.knowledge_forgotten ?? 0,
+    memoriesFormed: world.runTally.memory_formed ?? 0,
+    intentionsFormed: world.runTally.intention_formed ?? 0,
+    avgSkillBySkill,
   };
 }
 

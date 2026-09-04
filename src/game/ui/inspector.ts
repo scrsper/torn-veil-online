@@ -49,6 +49,15 @@ export class Inspector {
     s += `<h4>Last decision ${m.decision ? `(${formatWorldTime(m.decision.tick)}, ${esc(m.decision.note)})` : ''}</h4>`;
     if (m.decision) s += m.decision.candidates.map(c => `<div class="cand ${c.key === m.decision!.chosen ? 'chosen' : ''}"><b>${c.type}</b> ${c.utility.toFixed(2)}<div class="r">${c.reasons.map(esc).join(' · ')}</div></div>`).join('');
     s += `<h4>Cognition</h4><div class="kv"><div>subjective rate</div><div>${p.timeRate}× (thinks every ${(m.thinkInterval / p.timeRate).toFixed(2)}s physical)</div><div>alarm</div><div>${this.meter(m.alarm)}</div><div>attention</div><div>${m.attention ? w.nameOf(m.attention) : '—'}</div></div>`;
+    // v0.6 §VI/§XVI: intention + commitment — "why is this NPC doing this", not just what.
+    s += `<h4>Intention</h4>`;
+    s += m.intention
+      ? `<div class="kv"><div>intending</div><div><b>${esc(m.intention.type)}</b>${m.intention.target ? ` → ${w.nameOf(m.intention.target)}` : ''}</div><div>because</div><div>${esc(m.intention.reason)}</div><div>grounded</div><div>${m.intention.grounded ? 'yes — known/remembered source' : 'no — searching, uninformed'}</div></div>`
+      : `<div style="color:var(--dim)">none</div>`;
+    s += `<h4>Commitment</h4>`;
+    s += m.commitment
+      ? `<div class="kv"><div>committed to</div><div><b>${m.commitment.goalType}</b>${m.commitment.targetPlace ? ` @ ${w.nameOf(m.commitment.targetPlace)}` : ''}</div><div>status</div><div>${m.commitment.status}${m.commitment.suspendedBy ? ` (set aside for ${m.commitment.suspendedBy})` : ''}</div><div>interruptibility</div><div>${m.commitment.interruptibility}</div><div>since</div><div>${formatWorldTime(m.commitment.startedAt)}</div></div>`
+      : `<div style="color:var(--dim)">none</div>`;
     return s;
   }
   tab_identity(p: Person): string {
@@ -60,6 +69,9 @@ export class Inspector {
     const phys = p.physiology;
     return `<h4>Body</h4><div class="kv"><div>health</div><div>${b ? `${Math.round(b.health)} / ${b.maxHealth}` : '—'}</div><div>pose</div><div>${b?.pose}</div><div>position</div><div>${b ? `${b.pos.x.toFixed(1)}, ${b.pos.y.toFixed(1)}, ${b.pos.z.toFixed(1)} — ${this.world.placeAt(b.pos)?.name ?? 'outside'}` : '—'}</div></div>`
       + `<h4>Attributes</h4><div class="kv"><div>strength</div><div>${this.meter(p.attributes.strength)}</div><div>dexterity</div><div>${this.meter(p.attributes.dexterity)}</div></div>`
+      // v0.6 §V/§XVI: learned skill, distinct from the body attributes above — only shown when
+      // it's above novice (0), so an ordinary person's tab isn't padded with a wall of zeroes.
+      + `<h4>Skills</h4><div class="kv">${Object.entries(p.skills ?? {}).filter(([, v]) => (v ?? 0) > 0.001).map(([k, v]) => `<div>${k}</div><div>${this.meter(v ?? 0)}</div>`).join('') || '<div style="color:var(--dim)">novice at everything</div>'}</div>`
       + `<h4>Physiology (1 = full/comfortable, sleep debt in hours)</h4><div class="kv"><div>energy (calories)</div><div>${this.meter(phys.energy)}</div><div>hydration</div><div>${this.meter(phys.hydration)}</div><div>fatigue</div><div>${this.meter(phys.fatigue)}</div><div>sleep debt</div><div>${phys.sleepDebt.toFixed(1)}h</div><div>body heat</div><div>${this.meter(phys.bodyHeat)}</div></div>`
       + `<h4>Needs (0 = satisfied)</h4><div class="kv">${Object.entries(p.needs).map(([k, v]) => `<div>${k}</div><div>${this.meter(v)}</div>`).join('')}</div><h4>Emotions</h4><div class="kv">${Object.entries(p.emotions).map(([k, v]) => `<div>${k}</div><div>${this.meter(v)}</div>`).join('')}</div>`;
   }
@@ -73,9 +85,14 @@ export class Inspector {
   }
   tab_knowledge(p: Person): string {
     const w = this.world; const ks = Object.values(p.knowledge).sort((a, b) => b.learnedAt - a.learnedAt);
-    const ev = ks.filter(k => k.kind === 'event'), loc = ks.filter(k => k.kind === 'location'), other = ks.filter(k => k.kind !== 'event' && k.kind !== 'location');
-    const row = (k: KnowledgeItem) => `<div class="mem"><div>${k.claim.eventId ? `<span data-ev="${k.claim.eventId}" style="cursor:pointer">${esc(describeClaim(w, k))}</span>` : esc(describeClaim(w, k))}${k.handled ? ' <span class="src">(handled)</span>' : ''}</div><div class="t"><span class="src ${k.source.type}">${k.source.type}${k.source.from ? ' by ' + w.nameOf(k.source.from) : ''}</span>${k.source.viaEvent ? ` <span data-ev="${k.source.viaEvent}" style="cursor:pointer;color:var(--accent)">[evidence]</span>` : ''} · ${k.hops === 0 ? 'first-hand' : `${k.hops} hop${k.hops > 1 ? 's' : ''}`} · confidence ${k.confidence.toFixed(2)} · learned ${formatRelativeTime(k.learnedAt, w.now)}${k.sharedWith.length ? ` · told ${k.sharedWith.map(id => w.nameOf(id)).join(', ')}` : ''}</div></div>`;
-    return `<h4>Events known (${ev.length})</h4>${ev.map(row).join('') || '—'}<h4>Locations (${loc.length})</h4>${loc.slice(0, 20).map(row).join('') || '—'}<h4>Other (${other.length})</h4>${other.slice(0, 30).map(row).join('') || '—'}`;
+    const ev = ks.filter(k => k.kind === 'event'), loc = ks.filter(k => k.kind === 'location');
+    // v0.6 §III/§XVI: economic-opportunity ("service") knowledge gets its own section — this is
+    // exactly the belief the food/knownFoodPlace decision reads, so it must stay visible even
+    // when a person's 'other' bucket is dominated by dozens of same-timestamp 'home:<id>' facts
+    // seeded at generation (which would otherwise crowd it out of a plain top-30 cut).
+    const svc = ks.filter(k => k.kind === 'service'), other = ks.filter(k => k.kind !== 'event' && k.kind !== 'location' && k.kind !== 'service');
+    const row = (k: KnowledgeItem) => `<div class="mem"><div>${k.claim.eventId ? `<span data-ev="${k.claim.eventId}" style="cursor:pointer">${esc(describeClaim(w, k))}</span>` : esc(describeClaim(w, k))}${k.handled ? ' <span class="src">(handled)</span>' : ''}</div><div class="t"><span class="src ${k.source.type}">${k.source.type}${k.source.from ? ' by ' + w.nameOf(k.source.from) : ''}</span>${k.source.viaEvent ? ` <span data-ev="${k.source.viaEvent}" style="cursor:pointer;color:var(--accent)">[evidence]</span>` : ''} · ${k.hops === 0 ? 'first-hand' : `${k.hops} hop${k.hops > 1 ? 's' : ''}`} · confidence ${k.confidence.toFixed(2)} · learned ${formatRelativeTime(k.learnedAt, w.now)}${k.lastConfirmedAt ? ` · confirmed ${formatRelativeTime(k.lastConfirmedAt, w.now)}` : ''}${k.sharedWith.length ? ` · told ${k.sharedWith.map(id => w.nameOf(id)).join(', ')}` : ''}</div></div>`;
+    return `<h4>Known services (${svc.length})</h4>${svc.map(row).join('') || '<div style="color:var(--dim)">none — would have to search/discover one</div>'}<h4>Events known (${ev.length})</h4>${ev.map(row).join('') || '—'}<h4>Locations (${loc.length})</h4>${loc.slice(0, 20).map(row).join('') || '—'}<h4>Other (${other.length})</h4>${other.slice(0, 30).map(row).join('') || '—'}`;
   }
   tab_perception(p: Person): string {
     const w = this.world; const pc = p.mind.percepts;

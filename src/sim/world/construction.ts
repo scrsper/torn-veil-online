@@ -6,6 +6,7 @@ import { createHaulTask, openHaulTasks, carryCapFor } from '../logistics/haul';
 import { capabilityFor } from '../core/attributes';
 import { wearTool } from '../core/tools';
 import { createRequest, acceptRequest, completeRequest } from '../core/requests';
+import { practiceSkill } from '../core/skills';
 
 /**
  * Construction projects (v0.3 Living World I, Priority 9-10-12).
@@ -117,6 +118,9 @@ export function performBuildLabor(world: World, p: ConstructionProject, worker: 
   acceptRequest(world, req, worker);
   contributeBuildLabor(world, p, worker, creditedSeconds);
   wearTool(world, tool, elapsedSeconds / 3600);
+  // v0.6 §V.9: real credited labour is meaningful work — one "unit" = one minute of credited
+  // labour, so a longer slice trains proportionally more, not per-tick.
+  practiceSkill(worker, 'construction', creditedSeconds / 60);
   return completeRequest(world, req);
 }
 

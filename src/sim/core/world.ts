@@ -240,6 +240,10 @@ const TALLIED_TYPES = new Set<EventType>([
   // an accurate lifetime count for the benchmark report (§XII "goal suspensions/resumptions/
   // abandonments") even after compaction drops the low-significance ones.
   'goal_committed', 'goal_suspended', 'goal_resumed', 'goal_abandoned',
+  // v0.6: knowledge/memory/intention formation is frequent + low-significance (the overwhelming
+  // majority get dropped by compaction on a long run) — an accurate LIFETIME count for the
+  // benchmark report needs the tally, exactly like v0.4/v0.5's own frequent event types above.
+  'knowledge_gained', 'knowledge_forgotten', 'memory_formed', 'intention_formed',
 ]);
 
 function defaultCategory(t: EventType): EventCategory {

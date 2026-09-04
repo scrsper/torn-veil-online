@@ -40,9 +40,18 @@ export const ACTIVITY_HEAT_PER_HOUR: Record<ActivityLevel, number> = {
 };
 
 // ---- baseline (idle) rates: full reserve 1 -> 0 in roughly this many waking hours at idle.
-/** Idle-equivalent hours to drain a full caloric reserve — close to the pre-v0.4 hunger pace
- * (`needs.hunger` used to reach 1.0 in 14 hours) so the felt rhythm of the world doesn't lurch. */
-const ENERGY_DRAIN_PER_HOUR = 1 / 16;
+/** Idle-equivalent hours to drain a full caloric reserve. v0.6 §II: raised from 16 to 21 hours —
+ * real evidence (seed 918271, headless) showed village-average hunger sitting at 0.71-0.76
+ * under the v0.5 calibration, well into the 'urgent' band for a typical villager most of the
+ * day rather than the milestone's intended "comfortable/noticeable common, critical unusual"
+ * distribution. The root access causes (see `findAccessibleFood`'s household-sharing fix,
+ * `restockTavern`) were fixed directly rather than papered over here, but a person whose
+ * schedule keeps them working 6-12 real hours between meals still outpaces a 16-hour drain
+ * long before those fixes can help — 21 hours keeps an ordinary day's two meals genuinely
+ * sufficient (still far short of "never hungry": a skipped meal is still felt) without
+ * loosening any tolerance/interruption threshold itself. See docs/
+ * V0_6_KNOWLEDGE_MEMORY_SKILLS_INTENT.md §II for the before/after numbers. */
+const ENERGY_DRAIN_PER_HOUR = 1 / 21;
 /** Idle-equivalent hours to fully dehydrate — matches the pre-v0.4 thirst pace (~11 hours). */
 const HYDRATION_DRAIN_PER_HOUR = 1 / 11;
 /** One meal (`eatFood`) restores this fraction of the caloric reserve. */

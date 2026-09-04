@@ -3,10 +3,11 @@ import { World } from '../core/world';
 import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRelationships } from './relationships';
 import { maintainConflicts, beginConflict, recordConflictBlow, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
 import { maintainCustody, subdue, takeIntoCustody, beginSurrender, isSubdued } from '../social/custody';
-import { stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, GRAIN_CAP, SEED_PER_PLOT } from '../world/metabolism';
-import { stepPhysiology, activityLevelFor, heatBand, hungerBand, thirstBand, sleepBand } from '../core/physiology';
+import { stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, restockTavern, GRAIN_CAP, SEED_PER_PLOT } from '../world/metabolism';
+import { stepPhysiology, activityLevelFor, heatBand, hungerBand, thirstBand, sleepBand, severityAtLeast } from '../core/physiology';
 import { isCommittable, EMERGENCY_GOAL_TYPES, interruptionSeverityMet, startCommitment, suspendCommitment, resumeCommitment, finishCommitment, commitmentValidity } from './commitment';
 import { getPhysicalCapability, capabilityFor } from '../core/attributes';
+import { skillOf } from '../core/skills';
 import { wearTool } from '../core/tools';
 import { isFood } from '../world/factory';
 import { stockAt } from '../world/stock';
@@ -15,7 +16,7 @@ import { generateProductionNeeds, claimedProductionRequest, fulfillProductionReq
 import { nearestAvailableNode, extractFromNode, maintainResourceNodes } from '../world/resources';
 import { stepConstruction, activeBuildProjects, performBuildLabor, MAX_BUILDERS } from '../world/construction';
 import { remember } from './memory';
-import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge } from './knowledge';
+import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge, learnPlace, knownFoodPlace, noteFoodShortage } from './knowledge';
 import { currentScheduleEntry } from './schedule';
 import { SECONDS_PER_HOUR } from '../core/time';
 import { B } from '../physical/blocks';
@@ -29,6 +30,13 @@ const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
  * reach. Long enough that the two are likely no longer in perception range of each other; short
  * enough that a genuinely renewed threat still gets answered. */
 const PURSUIT_COOLDOWN_SECONDS = 45 * 60;
+/** v0.6 §II: how long a failed food-seeking attempt suppresses re-adopting `eat`. Measured
+ * directly (seed 918271) that shortening this alone (30 -> 15 min) did not help — for the
+ * specific people who fail repeatedly (a schedule that rarely brings them near a food source
+ * while genuinely hungry), retrying twice as often just means failing twice as often, not
+ * succeeding sooner; see docs/V0_6_KNOWLEDGE_MEMORY_SKILLS_INTENT.md §II for the full
+ * before/after evidence. Kept at the original v0.4/v0.5 value. */
+const NO_FOOD_RETRY_SECONDS = 30 * 60;
 
 /**
  * The Simulation runs minds and bodies at their own cadences:
@@ -395,14 +403,29 @@ export class Simulation {
     const mealTime = sched?.activity === 'eat' && !ateRecently;
     const satiatedPenalty = ateRecently && n.hunger < 0.2 ? 0.35 : 0;
     // v0.2.4: eat where the food actually is — carried food or the household larder (free),
-    // else the bakery/market (buy). The `eat` action consumes a real food item (mind/metabolism).
+    // else a food source THEY KNOW ABOUT (buy). The `eat` action consumes a real food item
+    // (mind/metabolism). v0.6 §III.2: `knownFoodPlace` replaces the old omniscient
+    // `world.places().find(type === 'bakery')` scan — a hungry mind can only target a food
+    // source it has actually learned of (generation seeding, direct observation, or a past
+    // purchase — see mind/knowledge.ts), never every bakery/tavern/store that happens to exist.
     const foodHome = findAccessibleFood(w, p, p.homeId ?? null) ?? findAccessibleFood(w, p, w.placeAt(pos)?.id ?? null);
     const gaveUp = (m.noFoodUntil ?? 0) > now;
+    const knownFood = knownFoodPlace(w, p);
     const eatPlace = foodHome
       ? ((foodHome.holderId === p.id ? w.placeAt(pos)?.id : foodHome.placeId) ?? p.homeId ?? undefined)
-      : (this.placeIdOfType('bakery') ?? (sched?.activity === 'eat' ? sched.placeId : undefined) ?? p.homeId ?? undefined);
+      : (knownFood ?? (sched?.activity === 'eat' ? sched.placeId : undefined) ?? p.homeId ?? undefined);
     if (!gaveUp || foodHome) {
-      G('eat', clamp(n.hunger * 0.9 + (mealTime ? 0.3 : -0.1) - satiatedPenalty - (gaveUp ? 0.3 : 0)), [`hunger ${n.hunger.toFixed(2)}`, mealTime ? 'meal time' : ateRecently ? 'recently ate' : '', foodHome ? '' : 'must find food'], { targetPlace: eatPlace, data: { food: foodHome?.id } });
+      const grounded = !!(foodHome || knownFood);
+      const intentionReason = foodHome ? 'have food on hand or at home' : knownFood ? 'know a place that sells food' : sched?.activity === 'eat' ? 'scheduled meal' : 'no known food source';
+      G('eat', clamp(n.hunger * 0.9 + (mealTime ? 0.3 : -0.1) - satiatedPenalty - (gaveUp ? 0.3 : 0)), [`hunger ${n.hunger.toFixed(2)}`, mealTime ? 'meal time' : ateRecently ? 'recently ate' : '', foodHome ? '' : 'must find food'], { targetPlace: eatPlace, data: { food: foodHome?.id, intentionReason, grounded } });
+    }
+    // v0.6 §VI: the information-limited contrasting case — hunger with no accessible food and no
+    // known food source (and no scheduled meal to fall back on) is a real, physical SEARCH, never
+    // a magically-resolved trip to an unknown bakery. Bounded utility (never close to a genuine
+    // emergency or an informed eat goal); see plan()'s 'wander' case for how the search targets an
+    // unvisited place — arriving there is itself how the knowledge gap eventually closes.
+    if (!foodHome && !knownFood && !gaveUp && sched?.activity !== 'eat' && severityAtLeast(hungerBand(p), 'uncomfortable')) {
+      G('wander', clamp(0.25 + n.hunger * 0.5), [`hunger ${n.hunger.toFixed(2)}`, "I don't know where to find food — looking around"], { data: { foodSearch: true } });
     }
     // v0.2.4: thirst — seek a canonical water source (well / river). Rises faster than hunger,
     // so this is a common everyday goal, kept low-drama (no death spiral).
@@ -671,6 +694,32 @@ export class Simulation {
       const c = conflictBetween(w, p.id, g.targetEntity);
       if (c && (c.status === 'active' || c.status === 'disengaging')) disengageConflict(w, c, p.id, g.data?.avoidance ? 'keeping clear' : 'fled');
     }
+    this.updateIntention(p, g);
+  }
+  /**
+   * v0.6 §VI: the vertical slice's Intention layer — what the mind has decided to DO about a
+   * need and on what evidence, distinct from the Goal's own utility-driven `reasons`. Only set
+   * for the goal types where it materially helps explain a decision (Constitution v0.6 §VI:
+   * "do not over-generalize") — currently the food case, informed and information-limited alike.
+   * Updated only on a real goal ADOPTION (called from `setGoal`, never per-tick), exactly like
+   * `goal_changed`/`goal_committed`'s own event cadence.
+   */
+  private updateIntention(p: Person, g: Goal): void {
+    const w = this.world; const m = p.mind;
+    const isFoodIntention = g.type === 'eat' || (g.type === 'wander' && g.data?.foodSearch);
+    if (!isFoodIntention) {
+      if (m.intention && (m.intention.type === 'obtain_food' || m.intention.type === 'search_food')) m.intention = null;
+      return;
+    }
+    const type = g.type === 'eat' ? 'obtain_food' : 'search_food';
+    const reason = g.type === 'eat' ? (g.data?.intentionReason as string ?? '') : "no known food source — searching";
+    const grounded = g.type === 'eat' ? !!g.data?.grounded : false;
+    if (m.intention && m.intention.type === type && m.intention.target === g.targetPlace && m.intention.reason === reason) return;
+    m.intention = { type, target: g.targetPlace, reason, createdAt: w.now, grounded };
+    w.emit('intention_formed', {
+      actor: p.id, target: g.targetPlace, significance: 0.05, data: { type, reason, grounded },
+      summary: `${p.name} intends to ${type === 'obtain_food' ? 'obtain food' : 'find food'}${g.targetPlace ? ` at ${w.nameOf(g.targetPlace)}` : ''} (${reason})`,
+    });
   }
   private knownCrimesBy(p: Person, actor: EntityId): KnowledgeItem[] { return Object.values(p.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && k.claim.actor === actor && !k.handled).sort((a, b) => crimeSeverity(b.claim.type) - crimeSeverity(a.claim.type)); }
   /**
@@ -713,7 +762,21 @@ export class Simulation {
       case 'work': { const pl = place; const spot = anchorIn(pl, ['work']) ?? pl?.inside ?? body.pos; return [A({ type: 'goto', pos: spot, placeId: pl?.id }), A({ type: 'work', pos: spot, duration: 40 * 60 + w.rng.next() * 30 * 60, placeId: pl?.id })]; }
       case 'worship': { const pl = place ?? w.place(this.chapelId()); const spot = (p.occupation === 'priest' || p.occupation === 'acolyte') ? anchorIn(pl, ['altar']) : anchorIn(pl, ['seat']); return [A({ type: 'goto', pos: spot ?? pl!.inside, placeId: pl?.id }), A({ type: 'pray', pos: spot ?? pl!.inside, duration: 40 * 60 })]; }
       case 'socialize': case 'drink': case 'play': case 'idle': { const pl = place ?? w.place(this.squareId()); const spot = anchorIn(pl, g.type === 'drink' ? ['seat', 'inside'] : ['seat', 'inside', 'work']) ?? pl?.inside ?? body.pos; return [A({ type: 'goto', pos: spot, placeId: pl?.id }), A({ type: g.type === 'play' ? 'wait' : 'sit', pos: spot, duration: (g.type === 'play' ? 8 : 25) * 60 + w.rng.next() * 15 * 60, data: { social: true } })]; }
-      case 'wander': { const pl = w.place(this.squareId())!; return [A({ type: 'goto', pos: { x: pl.inside.x + (w.rng.next() - 0.5) * 16, y: pl.inside.y, z: pl.inside.z + (w.rng.next() - 0.5) * 16 } }), A({ type: 'wait', duration: 5 * 60 })]; }
+      case 'wander': {
+        // v0.6 §VI/§VII: a hunger-driven search (no known food source) targets a nearby place
+        // NOT yet known as a food source, rather than idle jitter — arriving there and perceiving
+        // it is the direct-observation acquisition path (act()'s goto-arrival calls `learnPlace`).
+        // Still just physical movement among places that already exist in the voxel world
+        // (Constitution v0.6 §VII: knowledge bounds BELIEFS about services, not raw navigation).
+        if (g.data?.foodSearch) {
+          const candidateTypes: Array<Place['type']> = ['bakery', 'store', 'tavern', 'stall', 'well'];
+          const known = w.places().filter(pl2 => candidateTypes.includes(pl2.type));
+          const unknown = known.filter(pl2 => !p.knowledge[`svc:${pl2.id}`]);
+          const target = (unknown.length ? unknown : known).sort((a, b) => dist2(body.pos, a.inside) - dist2(body.pos, b.inside))[0];
+          if (target) return [A({ type: 'goto', pos: target.inside, placeId: target.id }), A({ type: 'wait', duration: 3 * 60 })];
+        }
+        const pl = w.place(this.squareId())!; return [A({ type: 'goto', pos: { x: pl.inside.x + (w.rng.next() - 0.5) * 16, y: pl.inside.y, z: pl.inside.z + (w.rng.next() - 0.5) * 16 } }), A({ type: 'wait', duration: 5 * 60 })];
+      }
       case 'go_home': case 'shelter': case 'return_home_safe': { const pl = place ?? w.place(p.homeId); return [A({ type: 'goto', pos: anchorIn(pl, ['seat', 'fire', 'inside']) ?? pl?.inside ?? body.pos, placeId: pl?.id }), A({ type: 'wait', duration: 30 * 60 })]; }
       case 'patrol': { const pts = p.patrol ?? []; const start = Math.floor(w.rng.next() * pts.length); const acts: Action[] = []; for (let i = 0; i < pts.length; i++) { const pt = pts[(start + i) % pts.length]; acts.push(A({ type: 'goto', pos: pt }), A({ type: 'look', duration: 40, pos: pt })); } return acts.length ? acts : [A({ type: 'wait', duration: 60 })]; }
       case 'guard_post': { const pl = place ?? w.place(p.workId); const post = p.occupation === 'guard' ? (w.places().find(x => x.type === 'gate' && x.name.includes('east'))?.anchors[0].pos ?? pl?.inside) : anchorIn(pl, ['post', 'work', 'inside']); return [A({ type: 'goto', pos: post ?? body.pos }), A({ type: 'look', duration: 20 * 60, pos: post ?? body.pos })]; }
@@ -802,7 +865,18 @@ export class Simulation {
         body.speed = a.run ? 5.6 : (p.occupation === 'child' ? 3.6 : 3.2 + (p.age > 60 ? -0.8 : 0));
         body.pose = a.run ? 'run' : 'walk';
         const arrived = this.followPath(body, physDt);
-        if (arrived) { a.status = 'done'; body.path = null; if (!a.targetEntity && dist2(body.pos, dest) > 3) { /* couldn't reach */ } if (a.data?.flee) w.emit('fled', { actor: p.id, pos: body.pos, significance: 0.3, summary: `${p.name} fled to ${w.placeAt(body.pos)?.name ?? 'safety'}` }); else if (a.placeId) w.emit('arrived', { actor: p.id, placeId: a.placeId, pos: body.pos, significance: 0.05, summary: `${p.name} arrived at ${w.nameOf(a.placeId)}` }); }
+        if (arrived) {
+          a.status = 'done'; body.path = null; if (!a.targetEntity && dist2(body.pos, dest) > 3) { /* couldn't reach */ }
+          if (a.data?.flee) w.emit('fled', { actor: p.id, pos: body.pos, significance: 0.3, summary: `${p.name} fled to ${w.placeAt(body.pos)?.name ?? 'safety'}` });
+          else if (a.placeId) {
+            w.emit('arrived', { actor: p.id, placeId: a.placeId, pos: body.pos, significance: 0.05, summary: `${p.name} arrived at ${w.nameOf(a.placeId)}` });
+            // v0.6 §III.3: direct observation — arriving somewhere teaches what it is (Constitution
+            // v0.6 §VII "current place... may expose information"). Quiet (no knowledge_gained
+            // spam for every ordinary arrival at a place already known) and a no-op for place
+            // types with nothing service-relevant to learn (see mind/knowledge.ts's SERVICE_OFFERS).
+            const arrivedPlace = w.place(a.placeId); if (arrivedPlace && !p.controlled) learnPlace(w, p, arrivedPlace, { type: 'witnessed' });
+          }
+        }
         break;
       }
       // v0.4: fatigue/sleep-debt recovery while asleep is applied centrally by
@@ -840,12 +914,17 @@ export class Simulation {
             a.status = 'done'; break;
           }
           // Genuinely nothing. Give up the search for a while (hunger keeps rising — pressure),
-          // and log the shortage at most once per give-up window rather than every tick.
-          const since = w.now - (m.noFoodUntil ?? -Infinity) + 30 * 60;
-          if (!m.noFoodUntil || since >= 30 * 60) {
+          // and log the shortage at most once per give-up window rather than every tick — see
+          // `NO_FOOD_RETRY_SECONDS`'s own comment for why this window was investigated and kept.
+          const since = w.now - (m.noFoodUntil ?? -Infinity) + NO_FOOD_RETRY_SECONDS;
+          if (!m.noFoodUntil || since >= NO_FOOD_RETRY_SECONDS) {
             w.emit('resource_shortage', { actor: p.id, pos: body.pos, placeId: w.placeAt(body.pos)?.id, significance: 0.3, data: { need: 'food', hunger: Math.round(p.needs.hunger * 100) / 100 }, summary: `${p.name} could find nothing to eat` });
           }
-          m.noFoodUntil = w.now + 30 * 60;
+          // v0.6 §IV.4: a real, place-tagged memory of failure — the second required memory
+          // consequence — so `knownFoodPlace` demotes this specific source next time rather than
+          // the whole village silently retrying it forever.
+          if (hereId && !p.controlled) noteFoodShortage(w, p, hereId);
+          m.noFoodUntil = w.now + NO_FOOD_RETRY_SECONDS;
           a.status = 'failed'; break;
         }
         if (this.elapsed(a)) a.status = 'done';
@@ -857,7 +936,7 @@ export class Simulation {
         // v0.2.4: a miller / baker at their workplace runs a production batch every ~12 world-min
         // of work (real resource transformation; conservation; demand-driven — mill/bake stop
         // when the village has plenty). Only checked on the batch cadence, so no per-substep cost.
-        if ((p.occupation === 'miller' || p.occupation === 'baker' || p.occupation === 'woodcutter')) {
+        if ((p.occupation === 'miller' || p.occupation === 'baker' || p.occupation === 'woodcutter' || p.occupation === 'innkeeper')) {
           a.data = a.data ?? {};
           const t = w.placeAt(body.pos)?.type;
           // v0.4 §2/§6: sawing's fixed log:plank ratio (SAW_RATIO) never changes — no duplication
@@ -865,21 +944,42 @@ export class Simulation {
           // without, so their WORK RATE (throughput over time) is real and continuous rather than
           // a flat "woodcutter" bonus. Clamped so the interval stays sane at either extreme.
           const sawing = p.occupation === 'woodcutter' && t === 'sawpit';
-          const batchInterval = sawing ? Math.max(3 * 60, Math.min(20 * 60, (8 * 60) / capabilityFor(w, p, 'saw', w.placeAt(body.pos)?.id).cap.workRate)) : 8 * 60;
+          const baking = p.occupation === 'baker' && t === 'bakery';
+          // v0.6 §V.7 (baking): skill improves TIME efficiency, never batch size (BAKE_RATIO is
+          // untouched) — a practiced baker completes the same batch in less real time, exactly
+          // the effect the milestone names for this trade ("do not create extra bread from
+          // nothing"). Bounded, symmetric with sawing's own capability-driven cadence below.
+          const bakeRateMult = baking ? 1 + skillOf(p, 'baking') * 0.4 : 1;
+          const batchInterval = sawing
+            ? Math.max(3 * 60, Math.min(20 * 60, (8 * 60) / capabilityFor(w, p, 'saw', w.placeAt(body.pos)?.id).cap.workRate))
+            : baking ? Math.max(4 * 60, 8 * 60 / bakeRateMult)
+            : 8 * 60;
           const last = (a.data.batchAt ?? (a.startedAt ?? w.now) - batchInterval) as number;
           if (w.now - last >= batchInterval) {
             a.data.batchAt = w.now;
-            if (p.occupation === 'miller' && t === 'mill') mill(w, p);
+            // v0.6 §VIII: milling converted from unconditional cadence production to the same
+            // demand-aware Request pattern v0.5 already gave baking — a second production/work
+            // domain made emergent rather than "every batch, regardless of need" (Constitution
+            // v0.6 §VIII). world/production.ts's PRODUCTION_TARGETS now includes the mill.
+            if (p.occupation === 'miller' && t === 'mill') {
+              const millId = w.placeAt(body.pos)!.id;
+              const req = claimedProductionRequest(w, millId, 'flour', p.id);
+              if (req) fulfillProductionRequest(w, req, p, mill(w, p).ok);
+            }
             // v0.5 §IV: baking is now demand-driven through the shared Request lifecycle rather
             // than an unconditional per-batch call — a baker only bakes (and is only paid) when
             // the bakery has genuinely raised a production request (world/production.ts's
             // `generateProductionNeeds`, upkeep-driven from real stock vs. desired reserve).
-            else if (p.occupation === 'baker' && t === 'bakery') {
+            else if (baking) {
               const bakeryId = w.placeAt(body.pos)!.id;
               const req = claimedProductionRequest(w, bakeryId, 'bread', p.id);
               if (req) fulfillProductionRequest(w, req, p, bake(w, p).ok);
             }
             else if (sawing) { saw(w, p); wearTool(w, capabilityFor(w, p, 'saw', w.placeAt(body.pos)?.id).tool, batchInterval / 3600); } // v0.3: log → plank
+            // v0.6 §II: the innkeeper keeps the tavern's larder stocked while working — see
+            // world/metabolism.ts's `restockTavern` doc comment for why this closed a genuine
+            // "always runs out after day one" access bug rather than being new economic scope.
+            else if (p.occupation === 'innkeeper' && t === 'tavern') restockTavern(w, p);
           }
         }
         if (this.elapsed(a)) a.status = 'done';
@@ -1462,6 +1562,16 @@ export class Simulation {
       // this used to apply directly. `needs.hunger/.thirst/.energy` are still real fields
       // (dozens of callers read them), just derived from the physiology reserves now.
       if (b) stepPhysiology(w, p, h, activityLevelFor(p, b), { indoor: w.isIndoors(b.pos), daylight: this.lightAt() });
+      // v0.6 §XV: time-weighted (not point-in-time-snapshot) severity-band distribution — how
+      // many world-MINUTES the village actually spends at each band, the benchmark evidence the
+      // milestone asks for ("average hunger band distribution") rather than a single end-of-run
+      // sample that a busy/idle moment could skew. Purely observational (never read back into
+      // any decision); a few comparisons per person per world-minute, not a new hot path.
+      if (!p.controlled) {
+        w.runTally[`hunger_band_${hungerBand(p)}_min`] = (w.runTally[`hunger_band_${hungerBand(p)}_min`] ?? 0) + minutes;
+        w.runTally[`thirst_band_${thirstBand(p)}_min`] = (w.runTally[`thirst_band_${thirstBand(p)}_min`] ?? 0) + minutes;
+        w.runTally[`sleep_band_${sleepBand(p)}_min`] = (w.runTally[`sleep_band_${sleepBand(p)}_min`] ?? 0) + minutes;
+      }
       const e = p.emotions; e.fear *= Math.pow(0.5, h / 1.5); e.anger *= Math.pow(0.5, h / 3); e.stress *= Math.pow(0.5, h / 4); e.joy = e.joy * Math.pow(0.5, h / 2) + 0.3 * (1 - Math.pow(0.5, h / 2)); e.sadness *= Math.pow(0.5, h / 48);
       // A subdued or in-custody body does not regenerate health from strategic upkeep while held
       // incapacitated — but is not otherwise harmed. Ordinary recovery resumes on release.
