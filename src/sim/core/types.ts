@@ -110,6 +110,11 @@ export interface Emotions { fear: number; anger: number; joy: number; sadness: n
  */
 export interface Attributes { strength: number; dexterity: number; }
 
+/** v0.5 §I.2: individual physiological variation layered on top of a species profile (see
+ * core/species.ts). Kept here (not in species.ts) alongside `Physiology`/`Attributes` since it
+ * is per-person canonical state, exactly like them. */
+export interface PhysiologyTraits { bodySizeFactor: number; conditioning: number; sleepNeedFactor: number; }
+
 /**
  * Small, extensible physiology model (v0.4 §1) — deep enough for real physical causality
  * (a hungry, exhausted, overheated worker is measurably less capable), not a medical
@@ -264,6 +269,42 @@ export interface DecisionRecord {
 
 export interface ScheduleEntry { start: number; end: number; activity: GoalType; placeId?: EntityId; label: string; }
 
+// ---------------------------------------------------------------- Goal commitment (v0.5 §III)
+/**
+ * How resistant a goal is to being preempted by an ordinary competing goal (Constitution v0.5
+ * §9). 'free' goals (socializing, idle wandering) yield to whatever currently scores highest,
+ * exactly like pre-v0.5 behavior. 'committed' goals (a multi-trip haul, a construction shift)
+ * persist through ordinary utility fluctuation and require a genuinely severe physiological
+ * need (or a real emergency) to interrupt. 'emergency_only' (sleep) is even more resistant.
+ * 'checkpoint' is reserved for a future finer-grained policy; v0.5 does not use it.
+ */
+export type Interruptibility = 'free' | 'checkpoint' | 'committed' | 'emergency_only';
+export type CommitmentStatus = 'active' | 'suspended' | 'completed' | 'abandoned';
+
+/**
+ * A committed goal (Constitution v0.5 §8) — separates DESIRE (a candidate goal scored fresh
+ * every think() tick) from COMMITMENT (a goal that has been adopted and should persist). Not a
+ * lock: `interruptionSeverityMet`/`EMERGENCY_GOAL_TYPES` (mind/commitment.ts) still allow a
+ * genuine physiological emergency or a real threat to interrupt it — the point is stability, not
+ * lock-in. See mind/commitment.ts for the full lifecycle (start/suspend/resume/finish) and
+ * mind/agent.ts's think() for the fix to the v0.4-disclosed multi-trip-haul hysteresis pathology.
+ */
+export interface GoalCommitment {
+  goalKey: string;              // matches Goal.key — identifies which goal this commits to
+  goalType: GoalType;
+  startedAt: Tick;
+  commitmentStrength: number;   // 0..1, informational/tunable — not currently read as a gate
+  interruptibility: Interruptibility;
+  status: CommitmentStatus;
+  suspendedBy?: string;         // the need/reason that suspended it, e.g. 'drink_water'
+  suspendedAt?: Tick;
+  targetEntity?: EntityId;
+  targetPlace?: EntityId;
+  /** A snapshot of the goal's own `data` (e.g. `{ taskId }`/`{ projectId }`) — what
+   * `commitmentValidity` reads to check whether the underlying deliverable still exists. */
+  data?: Record<string, any>;
+}
+
 export interface Mind {
   goal: Goal | null;
   plan: Action[];
@@ -306,6 +347,10 @@ export interface Mind {
    * conflict where the parties can see but not reach each other). Transient tactical state,
    * not persisted (like `robCooldowns`). */
   pursuitCooldowns?: Record<EntityId, number>;
+  /** v0.5 §III: the currently active/suspended/finished goal commitment, if any — see
+   * `GoalCommitment` above and mind/commitment.ts. Null for the overwhelming majority of ticks
+   * (most goals are 'free' and never get a commitment record at all). */
+  commitment?: GoalCommitment | null;
 }
 
 export interface Person extends Entity {
@@ -323,6 +368,12 @@ export interface Person extends Entity {
   attributes: Attributes;
   /** v0.4: the physiology reserves `needs.hunger/.thirst/.energy` are now derived from. */
   physiology: Physiology;
+  /** v0.5 §I: which `SpeciesPhysiologyProfile` (core/species.ts) governs this person's
+   * metabolism. Every ordinary NPC is 'human' until another species is introduced — never
+   * baked into physiology formulas directly, so a future non-human profile is additive. */
+  species: string;
+  /** v0.5 §I.2: individual variation on top of the species profile — see `PhysiologyTraits`. */
+  physiologyTraits: PhysiologyTraits;
   needs: Needs;
   emotions: Emotions;
   appearance: Appearance;
@@ -509,7 +560,12 @@ export interface ConstructionProject {
  *   open → accepted → completed (pays `reward`, conserved currency — see mind/economy.ts)
  *        → accepted → failed (no payment)  |  cancelled (no payment, e.g. source dried up)
  */
-export type RequestType = 'haul' | 'construction_labor';
+// v0.5 §IV: 'production' is the new autonomous-demand request kind — a producer Place (a
+// bakery) whose stock has fallen below its desired reserve raises one, which a worker with the
+// right capability/workplace accepts and fulfills by actually performing the production
+// transform (see world/production.ts). Mirrors haul/construction_labor's "world demand → shared
+// Request → real work → wage" shape rather than inventing a fourth ad hoc mechanism.
+export type RequestType = 'haul' | 'construction_labor' | 'production';
 export type RequestStatus = 'open' | 'accepted' | 'completed' | 'failed' | 'cancelled';
 export interface RequestPayload {
   haulTaskId?: EntityId;
@@ -518,6 +574,8 @@ export interface RequestPayload {
   quantity?: number;
   /** construction_labor: person-seconds of labour this request represents. */
   seconds?: number;
+  /** production: the Place where the production batch happens (a bakery, ...). */
+  placeId?: EntityId;
 }
 export interface Request {
   id: EntityId;
@@ -760,7 +818,12 @@ export type EventType =
   // record a headless run/test can sum to verify no currency was created or destroyed.
   | 'collapsed_from_exhaustion' | 'sleep_completed' | 'heat_forced_rest'
   | 'request_created' | 'request_accepted' | 'request_completed' | 'request_failed'
-  | 'wage_paid' | 'purchase_made' | 'tool_broke' | 'tree_growth_stage';
+  | 'wage_paid' | 'purchase_made' | 'tool_broke' | 'tree_growth_stage'
+  // v0.5 Human Physiology / Autonomous Economy — goal commitment lifecycle transitions
+  // (Constitution v0.5 §12: "canonical, observable, reason-coded... avoid event spam", so only
+  // real transitions, never a per-tick "still committed" heartbeat) and the new production
+  // request kind's creation, which reuses the existing request_* events above.
+  | 'goal_committed' | 'goal_suspended' | 'goal_resumed' | 'goal_abandoned';
 
 export type EventCategory = 'world' | 'social' | 'cognition' | 'history';
 

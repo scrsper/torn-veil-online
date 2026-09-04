@@ -4,12 +4,14 @@ import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRel
 import { maintainConflicts, beginConflict, recordConflictBlow, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
 import { maintainCustody, subdue, takeIntoCustody, beginSurrender, isSubdued } from '../social/custody';
 import { stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, GRAIN_CAP, SEED_PER_PLOT } from '../world/metabolism';
-import { stepPhysiology, activityLevelFor, heatBand } from '../core/physiology';
+import { stepPhysiology, activityLevelFor, heatBand, hungerBand, thirstBand, sleepBand } from '../core/physiology';
+import { isCommittable, EMERGENCY_GOAL_TYPES, interruptionSeverityMet, startCommitment, suspendCommitment, resumeCommitment, finishCommitment, commitmentValidity } from './commitment';
 import { getPhysicalCapability, capabilityFor } from '../core/attributes';
 import { wearTool } from '../core/tools';
 import { isFood } from '../world/factory';
 import { stockAt } from '../world/stock';
 import { pickHaulTask, claimHaulTask, loadHaulCargo, depositHaulCargo, failHaulTask, generateLogisticsNeeds, maintainHauls, canHaul } from '../logistics/haul';
+import { generateProductionNeeds, claimedProductionRequest, fulfillProductionRequest } from '../world/production';
 import { nearestAvailableNode, extractFromNode, maintainResourceNodes } from '../world/resources';
 import { stepConstruction, activeBuildProjects, performBuildLabor, MAX_BUILDERS } from '../world/construction';
 import { remember } from './memory';
@@ -18,7 +20,7 @@ import { currentScheduleEntry } from './schedule';
 import { SECONDS_PER_HOUR } from '../core/time';
 import { B } from '../physical/blocks';
 import { makeItem } from '../world/factory';
-import { banditResourcePressure } from './economy';
+import { banditResourcePressure, laborIncentive } from './economy';
 import { resolveRobberyCompliance, selectRobberyTake, ROBBERY_COOLDOWN_SECONDS, type RobberyTake } from './robbery';
 
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
@@ -436,38 +438,56 @@ export class Simulation {
     // physiological pressure is currently the dominant reason labour isn't competing for this
     // person. Never read back into any decision; a headless run's summary reports these so the
     // benchmark can show WHY, not just THAT, heavy work fell off.
-    if (!threat && !p.hostile && canHaul(p) && laborCapacity <= 0.15) {
+    const laborOk = laborCapacity > 0.15;
+    // v0.5 §III: a person already COMMITTED to a haul/build (mind/commitment.ts) keeps that one
+    // candidate available even through a momentary capacity dip AT the 0.15 boundary — without
+    // this, capacity noise right at the threshold (ordinary fatigue fluctuation between think()
+    // ticks) made the candidate flicker in and out of `cands`, which read as "the work vanished"
+    // to the protection logic below and caused rapid suspend/resume thrash instead of one clean
+    // interruption. A GENUINE incapacitation still ends the commitment correctly — it shows up
+    // as a real severity-band need (hunger/thirst/sleep) crossing the interruption threshold,
+    // since those and `laborCapacity` are driven by the same underlying physiology.
+    const committedHaulOrBuild = m.commitment && (m.commitment.status === 'active' || m.commitment.status === 'suspended') && (m.commitment.goalType === 'haul' || m.commitment.goalType === 'build') ? m.commitment.goalType : null;
+    if (!threat && !p.hostile && canHaul(p) && !laborOk && !committedHaulOrBuild) {
       const n = p.needs;
       if (heat === 'dangerous' || heat === 'severe') w.runTally.work_stopped_heat = (w.runTally.work_stopped_heat ?? 0) + 1;
       else if (p.physiology.hydration < 0.25) w.runTally.work_stopped_thirst = (w.runTally.work_stopped_thirst ?? 0) + 1;
       else if (n.energy > 0.75) w.runTally.work_stopped_sleep = (w.runTally.work_stopped_sleep ?? 0) + 1;
       else w.runTally.work_stopped_fatigue = (w.runTally.work_stopped_fatigue ?? 0) + 1;
     }
-    if (!threat && !p.hostile && canHaul(p) && laborCapacity > 0.15) {
+    if (!threat && !p.hostile && canHaul(p) && (laborOk || committedHaulOrBuild)) {
+      // v0.5 §V.19: paid work's own utility is weighted by how much this person NEEDS the wage
+      // right now (mind/economy.ts's `laborIncentive` — poor and hungry values it more, wealthy
+      // and fed values it less). A genuinely critical physiological need still overrides it
+      // regardless, since eat/drink_water/sleep's own utilities (and the commitment/interrupt
+      // machinery above) are computed entirely independently of this factor.
+      const incentive = laborIncentive(p);
       // Haul: physically move a needed resource between two Places.
-      const haul = pickHaulTask(w, p, pos);
-      if (haul) {
-        const t = haul.task;
-        const mine = t.claimantId === p.id;
-        const src = w.place(t.sourcePlaceId);
-        G('haul', clamp(((mine ? 0.68 : 0.42) + haul.score * 0.4) * laborCapacity), [`${t.resource} is needed at ${w.nameOf(t.destPlaceId)}`, t.reason, laborCapacity < 0.6 ? `but I am spent (capacity ${laborCapacity.toFixed(2)})` : ''], { targetPlace: src ? t.sourcePlaceId : undefined, targetPos: src?.inside, data: { taskId: t.id } });
+      if (laborOk || committedHaulOrBuild === 'haul') {
+        const haul = pickHaulTask(w, p, pos);
+        if (haul) {
+          const t = haul.task;
+          const mine = t.claimantId === p.id;
+          const src = w.place(t.sourcePlaceId);
+          G('haul', clamp(((mine ? 0.68 : 0.42) + haul.score * 0.4) * laborCapacity * incentive), [`${t.resource} is needed at ${w.nameOf(t.destPlaceId)}`, t.reason, laborCapacity < 0.6 ? `but I am spent (capacity ${laborCapacity.toFixed(2)})` : '', incentive > 1 ? `and I could use the silver` : incentive < 1 ? `though I am not short of coin` : ''], { targetPlace: src ? t.sourcePlaceId : undefined, targetPos: src?.inside, data: { taskId: t.id } });
+        }
       }
       // Chop: a woodcutter at the clearing fells a standing tree.
-      if (p.occupation === 'woodcutter' && sched?.activity === 'work' && sched.placeId && w.place(sched.placeId)?.type === 'wilderness') {
+      if (laborOk && p.occupation === 'woodcutter' && sched?.activity === 'work' && sched.placeId && w.place(sched.placeId)?.type === 'wilderness') {
         const node = nearestAvailableNode(w, 'tree', pos, 90);
         if (node) G('chop', clamp(0.66 * laborCapacity), [`there are trees to fell near ${w.nameOf(node.placeId)}`], { targetPos: node.pos, data: { nodeId: node.id } });
       }
       // Build: contribute labour to a project whose materials are on site (cap concurrent builders).
-      const proj = activeBuildProjects(w)[0];
+      const proj = laborOk || committedHaulOrBuild === 'build' ? activeBuildProjects(w)[0] : undefined;
       if (proj) {
         const builders = w.persons().filter(q => q.alive && q.mind.goal?.type === 'build' && q.mind.goal.data?.projectId === proj.id).map(q => q.id);
         const site = w.place(proj.sitePlaceId);
         if (site && dist2(pos, site.inside) < 120 && (builders.includes(p.id) || builders.length < MAX_BUILDERS)) {
-          G('build', clamp((0.5 + (proj.status === 'building' ? 0.08 : 0)) * laborCapacity), [`the village needs hands to raise ${proj.name}`], { targetPlace: proj.sitePlaceId, data: { projectId: proj.id } });
+          G('build', clamp((0.5 + (proj.status === 'building' ? 0.08 : 0)) * laborCapacity * incentive), [`the village needs hands to raise ${proj.name}`], { targetPlace: proj.sitePlaceId, data: { projectId: proj.id } });
         }
       }
       // Gather stone: a gathering project short of stone, with none in the pipeline yet.
-      for (const gp of w.constructionProjects) {
+      for (const gp of (laborOk ? w.constructionProjects : [])) {
         if (gp.status !== 'gathering') continue;
         const req = gp.required.find(r => r.type === 'stone'); if (!req) continue;
         const pipeline = stockAt(w, 'stone', gp.sitePlaceId)
@@ -479,7 +499,7 @@ export class Simulation {
         const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter'].includes(p.occupation);
         if (!gathering && (already >= 2 || !roleOk)) continue;
         const node = nearestAvailableNode(w, 'stone', pos, 220);
-        if (node) G('gather', clamp(0.5 * laborCapacity), [`${gp.name} still needs stone`], { targetPos: node.pos, data: { nodeId: node.id } });
+        if (node) G('gather', clamp(0.5 * laborCapacity * incentive), [`${gp.name} still needs stone`], { targetPos: node.pos, data: { nodeId: node.id } });
       }
     }
     // ---- schedule
@@ -503,9 +523,78 @@ export class Simulation {
     // worship for the pious at service times
     if (p.traits.piety > 0.55 && ((hour >= 7 && hour < 8) || (hour >= 18 && hour < 19)) && p.occupation !== 'priest' && p.occupation !== 'acolyte' && !isGuard) G('worship', clamp(0.35 + p.traits.piety * 0.35), [`piety ${p.traits.piety.toFixed(2)}`, 'service is being held'], { targetPlace: this.chapelId() });
     G('idle', 0.1, ['nothing better to do']);
-    // ---- choose with hysteresis
+    // v0.5: resolve the current commitment against canonical world state BEFORE using it to
+    // protect/boost anything this tick — a commitment whose deliverable already completed/
+    // vanished must not keep forcing a stale candidate (see core/commitment.ts's
+    // `commitmentValidity`, which reads the real HaulTask/ConstructionProject rather than "is
+    // it in `cands` right now," so a momentary threat/fatigue dip never misreads as
+    // abandonment). A suspension that has dragged on far past any reasonable "I'll get back to
+    // it" window (Constitution v0.5 §12 — persistent inability to resume is itself a valid
+    // abandonment reason, alongside the request simply no longer existing) is abandoned
+    // explicitly too, and — for a haul specifically — the physically-carried cargo is dropped
+    // canonically (`failHaulTask`) so the task genuinely reopens for someone else, rather than
+    // staying claimed by someone who in practice never returns to finish it.
+    const MAX_SUSPEND_SECONDS = 6 * SECONDS_PER_HOUR;
+    if (m.commitment && (m.commitment.status === 'active' || m.commitment.status === 'suspended')) {
+      const validity = commitmentValidity(w, m.commitment);
+      const staleSuspension = m.commitment.status === 'suspended' && now - (m.commitment.suspendedAt ?? m.commitment.startedAt) > MAX_SUSPEND_SECONDS;
+      if (validity === 'completed') finishCommitment(w, p, 'completed');
+      else if (validity === 'abandoned' || staleSuspension) {
+        if (m.commitment.goalType === 'haul' && m.commitment.data?.taskId) {
+          const task = w.haulTasks.find(x => x.id === m.commitment!.data!.taskId);
+          if (task && task.claimantId === p.id && (task.status === 'claimed' || task.status === 'in_transit')) failHaulTask(w, task, 'the worker never returned to finish it');
+        }
+        finishCommitment(w, p, 'abandoned', staleSuspension ? 'set aside too long to realistically finish' : 'the work is no longer available');
+      }
+    }
+    // v0.5 §11: a SUSPENDED commitment (a temporary physiological interruption set it aside,
+    // not destroyed it) gets a modest utility bonus toward resuming — "the agent should
+    // remember: I am still committed... and preferentially resume it afterward," not silently
+    // forget it the moment the interrupting need passes and some other ordinary goal (a
+    // schedule slot, socializing) happens to be scored slightly higher that particular tick.
+    // Deliberately a BONUS, not an absolute override (unlike an ACTIVE commitment's protection
+    // below) — a large fixed haul/build task should not indefinitely starve a person's own
+    // occupational schedule once they have already stepped away from it for good reason; the
+    // max-suspension abandonment above is the backstop that keeps this bounded either way.
+    if (m.commitment && m.commitment.status === 'suspended') {
+      const resumeCand = cands.find(c => c.key === m.commitment!.goalKey);
+      if (resumeCand) resumeCand.utility = clamp(resumeCand.utility + 0.4);
+    }
+    // ---- choose with hysteresis + goal commitment (v0.5 §III)
     cands.sort((a, b) => b.utility - a.utility);
-    const best = cands[0]; const cur = m.goal;
+    const best0 = cands[0]; const cur = m.goal;
+    const needBands = { hunger: hungerBand(p), thirst: thirstBand(p), sleep: sleepBand(p) };
+    // A protected goal (an in-progress 'sleep', or a just-adopted need-driven survival goal
+    // within its short grace window) overrides `best` UNLESS the raw best candidate is a real
+    // emergency (threat, forced-rest heat, help/flee/attack/confront/surrender) or a
+    // physiological need that has actually crossed the interruption threshold for how resistant
+    // this goal is (Constitution v0.5 §10). 'committed' (haul/build) is handled differently,
+    // below — see `forceNotDone`.
+    let best = best0;
+    const protect = (protectedCand: Goal | undefined, interruptibility: import('../core/types').Interruptibility, hardGrace = false): void => {
+      if (!protectedCand || protectedCand.key === best0.key) return;
+      const emergency = !!threat || heat === 'dangerous' || EMERGENCY_GOAL_TYPES.has(best0.type);
+      const allow = emergency || (!hardGrace && interruptionSeverityMet(interruptibility, best0.type, needBands));
+      if (!allow) best = protectedCand;
+    };
+    // v0.5 §10/§11: TWO genuinely critical needs (e.g. critical hunger AND critical sleep
+    // pressure at once, both clamped to the same top utility) can otherwise out-preempt each
+    // OTHER every think() tick, forever — neither ever gets the few real seconds it needs to
+    // either succeed or hit its own natural failure/cooldown path (findAccessibleFood's
+    // `noFoodUntil`, the sleep action's own wake conditions). A short hard grace window after
+    // adopting a need-driven survival goal (sleep/eat/drink_water) blocks even a same-or-lesser
+    // severity competing need from preempting it before that; only a real emergency still can.
+    const NEED_GOAL_GRACE_SECONDS = 5 * 60;
+    // Only protects a genuinely IN-PROGRESS attempt — once the plan has already finished (the
+    // meal was eaten, the drink taken, `goal_completed` fired), there is nothing left to shield
+    // from interruption, and forcing `best` back onto it anyway would just re-run the action
+    // from scratch against an already-satisfied need (observed: a satiated person eating
+    // repeatedly for the length of the grace window instead of once).
+    const curInProgress = m.plan.length > 0 && !m.plan.every(a => a.status === 'done' || a.status === 'failed');
+    if (cur && curInProgress && (cur.type === 'sleep' || cur.type === 'eat' || cur.type === 'drink_water')) {
+      const withinGrace = now - cur.createdAt < NEED_GOAL_GRACE_SECONDS;
+      protect(cands.find(c => c.key === cur.key), cur.type === 'sleep' ? 'emergency_only' : 'committed', withinGrace);
+    }
     let chosen = best; let switched = false; let note = '';
     if (cur && cur.key !== best.key) {
       const curCand = cands.find(c => c.key === cur.key);
@@ -520,13 +609,50 @@ export class Simulation {
       // finishes" defect this stabilization pass exists to close.
       const inFlightPipeline = cur.type === 'rob' || cur.type === 'attack' || cur.type === 'confront';
       const curU = curCand?.utility ?? (inFlightPipeline ? 0.9 : 0);
-      const done = m.plan.length === 0 || m.plan.every(a => a.status === 'done' || a.status === 'failed');
+      // v0.5 §III: a 'committed' goal (haul/build) whose deliverable is still open must NOT lose
+      // hysteresis protection just because THIS particular leg's plan finished (goto+load+goto+
+      // unload is one leg of a possibly-many-trip haul) — that reset-to-unprotected-at-every-
+      // leg-boundary was exactly the v0.4-disclosed pathology (docs/V0_4_EMBODIED_ECONOMY.md
+      // §15). Treat it as still "not done" for hysteresis purposes, so the SAME ordinary +0.12
+      // margin that already protects a mid-action goal now also protects it across leg
+      // boundaries — persistent through trivial utility fluctuation (idle curiosity, a passing
+      // urge to socialize), but still fairly outbid by something that legitimately deserves to
+      // win (a schedule-driven occupational duty, a real need). Deliberately NOT an absolute
+      // block — over-protecting here previously caused a baker who opportunistically picked up
+      // an unrelated haul task to neglect the bakery for days (see the scaling-risks section of
+      // docs/V0_5_HUMAN_PHYSIOLOGY_AUTONOMOUS_ECONOMY.md).
+      const committedNotDone = !!m.commitment && m.commitment.status === 'active' && cur.key === m.commitment.goalKey;
+      const done = (m.plan.length === 0 || m.plan.every(a => a.status === 'done' || a.status === 'failed')) && !committedNotDone;
       if (!done && best.utility < curU + 0.12 && !(best.type === 'flee' || best.type === 'attack' || best.type === 'confront' || best.type === 'rob')) { chosen = { ...cur, utility: curU }; note = `kept ${cur.type} (hysteresis)`; }
-      else { switched = true; note = `switched from ${cur.type} to ${best.type}`; }
+      else { switched = true; note = best === best0 ? `switched from ${cur.type} to ${best.type}` : `resumed ${best.type} (committed)`; }
     } else if (!cur) { switched = true; note = `adopted ${best.type}`; }
-    else { chosen = cur; note = `continuing ${cur.type}`; }
+    else { chosen = cur; note = best === best0 ? `continuing ${cur.type}` : `continuing ${cur.type} (committed)`; }
     m.decision = { tick: now, candidates: cands.slice(0, 8).map(c => ({ type: c.type, key: c.key, utility: c.utility, reasons: c.reasons.filter(Boolean) })), chosen: chosen.key, switched, note };
-    if (switched) { this.setGoal(p, chosen, this.plan(p, body, chosen), note); }
+    if (switched) {
+      // v0.5 §III: commitment transitions, driven by what we're actually leaving/adopting —
+      // never a per-tick heartbeat, only on a real switch.
+      if (m.commitment && m.commitment.status === 'active' && cur && cur.key === m.commitment.goalKey && chosen.key !== m.commitment.goalKey) {
+        suspendCommitment(w, p, chosen.type);
+      }
+      // Resuming must match the SAME underlying deliverable, not merely the same goal key (two
+      // different haul tasks from the same source place share a key — see Goal.key's comment).
+      // If it drifted (the old task was reassigned/replaced while suspended), the old commitment
+      // is superseded rather than silently kept pointing at someone else's task.
+      const matchesCommitment = !!m.commitment && chosen.key === m.commitment.goalKey
+        && (chosen.type === 'haul' ? chosen.data?.taskId === m.commitment.data?.taskId
+          : chosen.type === 'build' ? chosen.data?.projectId === m.commitment.data?.projectId
+          : true);
+      if (m.commitment && m.commitment.status === 'suspended' && matchesCommitment) {
+        resumeCommitment(w, p);
+      }
+      if (isCommittable(chosen.type) && !matchesCommitment) {
+        if (m.commitment && (m.commitment.status === 'active' || m.commitment.status === 'suspended')) {
+          finishCommitment(w, p, 'abandoned', 'a different commitment was adopted');
+        }
+        startCommitment(w, p, chosen);
+      }
+      this.setGoal(p, chosen, this.plan(p, body, chosen), note);
+    }
     else if (m.plan.length === 0 || m.plan.every(a => a.status === 'done' || a.status === 'failed')) { m.plan = this.plan(p, body, chosen); }
   }
   private setGoal(p: Person, g: Goal, plan: Action[], note: string): void {
@@ -744,7 +870,15 @@ export class Simulation {
           if (w.now - last >= batchInterval) {
             a.data.batchAt = w.now;
             if (p.occupation === 'miller' && t === 'mill') mill(w, p);
-            else if (p.occupation === 'baker' && t === 'bakery') bake(w, p);
+            // v0.5 §IV: baking is now demand-driven through the shared Request lifecycle rather
+            // than an unconditional per-batch call — a baker only bakes (and is only paid) when
+            // the bakery has genuinely raised a production request (world/production.ts's
+            // `generateProductionNeeds`, upkeep-driven from real stock vs. desired reserve).
+            else if (p.occupation === 'baker' && t === 'bakery') {
+              const bakeryId = w.placeAt(body.pos)!.id;
+              const req = claimedProductionRequest(w, bakeryId, 'bread', p.id);
+              if (req) fulfillProductionRequest(w, req, p, bake(w, p).ok);
+            }
             else if (sawing) { saw(w, p); wearTool(w, capabilityFor(w, p, 'saw', w.placeAt(body.pos)?.id).tool, batchInterval / 3600); } // v0.3: log → plank
           }
         }
@@ -1384,6 +1518,7 @@ export class Simulation {
       // node regrowth, and stock spoilage — all deterministic, all on this coarse cadence so
       // they cost nothing per physical step.
       generateLogisticsNeeds(w);
+      generateProductionNeeds(w);
       stepConstruction(w);
       maintainHauls(w);
       maintainResourceNodes(w);

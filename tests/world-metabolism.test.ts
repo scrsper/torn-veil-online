@@ -73,7 +73,14 @@ describe('needs — hunger & thirst (v0.2.4 Priority 1)', () => {
     const sim = new Simulation(world);
     const p = gen.people.alwin;
     world.clock.worldSeconds = 100 * SECONDS_PER_DAY + 8 * SECONDS_PER_HOUR;
-    p.needs.hunger = 0.95;
+    // v0.5 §II: `needs.hunger` is a DERIVED read of `physiology.energy` (core/physiology.ts's
+    // `syncNeeds`), recomputed on every physiology step (~once per world-minute) — setting the
+    // derived field directly reverts on the very next sync and never represents real, sustained
+    // hunger. Setting the canonical `physiology.energy` low instead keeps hunger genuinely
+    // elevated (critical band) through the run, which is also what correctly lets it override
+    // even a currently-sleeping villager's protected sleep goal (v0.5 §9/§10) rather than the
+    // test depending on some unrelated villager happening to be awake and hungry at this hour.
+    p.physiology.energy = 0.03;
     const mealsBefore = world.runTally.food_consumed ?? 0;
     advance(world, sim, 90); // ~1.5 world-hours
     expect((world.runTally.food_consumed ?? 0)).toBeGreaterThan(mealsBefore);

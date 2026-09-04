@@ -18,6 +18,11 @@ export interface RequestSpec {
   payload: RequestPayload;
 }
 
+/** Human-readable label for a request type, used only in event summaries. */
+export function requestTypeLabel(type: RequestType): string {
+  return type === 'haul' ? 'hauling' : type === 'production' ? 'production' : 'construction labour';
+}
+
 export function createRequest(world: World, s: RequestSpec): Request {
   const r: Request = {
     id: world.nextId('req'), type: s.type, status: 'open', requesterId: s.requesterId, requesterPlaceId: s.requesterPlaceId,
@@ -27,7 +32,7 @@ export function createRequest(world: World, s: RequestSpec): Request {
   world.emit('request_created', {
     placeId: s.requesterPlaceId, significance: 0.05,
     data: { requestId: r.id, type: r.type, reward: r.reward, cause: r.cause },
-    summary: `A request for ${r.type === 'haul' ? 'hauling' : 'construction labour'} was raised — ${r.cause}`,
+    summary: `A request for ${requestTypeLabel(r.type)} was raised — ${r.cause}`,
   });
   return r;
 }
@@ -38,7 +43,7 @@ export function acceptRequest(world: World, r: Request, worker: Person): void {
   world.emit('request_accepted', {
     actor: worker.id, placeId: r.requesterPlaceId, significance: 0.05,
     data: { requestId: r.id, type: r.type },
-    summary: `${worker.name} took on a ${r.type === 'haul' ? 'hauling' : 'construction labour'} request`,
+    summary: `${worker.name} took on a ${requestTypeLabel(r.type)} request`,
   });
 }
 
@@ -75,7 +80,7 @@ export function completeRequest(world: World, r: Request): number {
   world.emit('request_completed', {
     actor: r.acceptedBy, placeId: r.requesterPlaceId, significance: 0.08,
     data: { requestId: r.id, type: r.type, paid },
-    summary: `${r.acceptedBy ? world.nameOf(r.acceptedBy) : 'Someone'} completed a ${r.type === 'haul' ? 'haul' : 'construction labour'} request${paid ? ` and was paid ${paid} silver` : ''}`,
+    summary: `${r.acceptedBy ? world.nameOf(r.acceptedBy) : 'Someone'} completed a ${r.type === 'haul' ? 'haul' : requestTypeLabel(r.type)} request${paid ? ` and was paid ${paid} silver` : ''}`,
   });
   return paid;
 }
