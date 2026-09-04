@@ -51,7 +51,7 @@ Playwright against an actual Chromium build.
 | Test files | 31 | 32 |
 | Tests | 313 | 328 |
 | Typecheck | clean | clean |
-| Production build | clean (789.92 kB / 222.20 kB gzip) | clean (TBD — see §6) |
+| Production build | clean (789.92 kB / 222.20 kB gzip) | clean (795.50 kB / 223.78 kB gzip) |
 | `SAVE_VERSION` | 10 | **11** |
 
 15 new tests in `tests/materials-fire-crafting.test.ts`: material properties consumed by real
