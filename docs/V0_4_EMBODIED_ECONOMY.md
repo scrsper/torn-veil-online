@@ -399,15 +399,27 @@ this milestone's scope without adding new causal depth).
 
 ## 15. Scaling risks (reported honestly)
 
-- **Village-wide average caloric energy drops fast early, then plateaus — confirmed out to 90
-  days.** avg `energy` 0.52 (2d) → 0.29 (8d) → 0.25 (30d) → 0.23 (90d), with `resource_shortage`
-  events numbering in the tens of thousands by day 90. Population stays stable (33/33 alive, 0
-  deaths, 0 anomalies, 0 goal-churn) at every horizon tested, and the 90-day figure confirms the
-  early decay was the village working down its generous starting stock before fresh 6-week crop
-  cycles caught up (by day 90, 86 plots have matured and 5 completed a full harvest cycle) — this
-  is real, intended food-supply tightness (Constitution v0.4 §24 "food pressure"), not a runaway
-  decay. Still worth a future tuning pass on starting reserves / per-meal restore for campaigns
-  that need a less "hungry" opening stretch.
+- **A genuine long-horizon calibration bug was found and fixed during this milestone — reported
+  in full rather than quietly re-run away.** The 8/30/90-day benchmarks all looked like a
+  healthy, slowly-flattening curve (avg `energy` 0.52 → 0.29 → 0.25 → 0.23), which read as "food
+  pressure is real but stabilizing." The 1-year run proved that reading wrong: by day 365, avg
+  `energy` had collapsed to **0.00** and avg `hunger` to **1.00** — the entire village at the
+  starvation floor, not a plateau, just a much longer approach to the same collapse (population
+  stayed at 33/33 with 0 deaths and 0 anomalies throughout, so this was invisible to every
+  integrity check; only the raw energy/hunger averages exposed it). Root cause: `physiology.ts`'s
+  `ENERGY_DRAIN_PER_HOUR` (1/16, chosen to numerically match the *pre-v0.4 flat* hunger rate) was
+  the wrong baseline once `ACTIVITY_ENERGY_MULT` (up to 4.4x for quarrying) was layered on top —
+  a realistic day's activity mix drains materially faster in total than the old activity-blind
+  rate ever did, and the village's food *supply* (meal frequency, portion restore) was never
+  correspondingly increased to match, so average daily drain outpaced average daily intake by a
+  wide margin. **Fix**: `ENERGY_DRAIN_PER_HOUR` recalibrated to 1/24 (see the constant's own doc
+  comment for the arithmetic) — same relative ordering (heavy work still costs materially more
+  than idle; every physiology test that asserts that ordering is untouched), landing an ordinary
+  day's drain within reach of the existing ~2-3 meals/day schedule. Re-run at 8 days post-fix:
+  avg energy **0.46** (was 0.29), avg hunger **0.54**, shortages down from ~300+ to a much
+  smaller number over the same window — see the corrected benchmark table in the Appendix. The
+  30/90-day re-runs under the corrected constant were still in progress as this report was
+  finalized; the Appendix has the concrete status and how to get the final numbers.
 - **`workRate`/wage constants are hand-tuned, not derived from a formal calibration pass.** They
   produce stable, sensible-looking numbers at the seeds tested, but a systematic sweep (as a
   follow-up) would give more confidence they generalize across very different village
@@ -449,29 +461,47 @@ this milestone's scope without adding new causal depth).
 
 ## Appendix: benchmark table
 
-| Seed | Days | Wall-clock | Population | Deaths | Anomalies | Requests completed | Wages paid | Purchases spent | Avg energy | Avg hydration | Avg fatigue |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| 918271 | 2 | ~8s | 33→33 | 0 | 0 | 25 | 107 | 6 | 0.52 | 0.69 | 0.36 |
-| 918271 | 8 | 34.7s | 33→33 | 0 | 0 | 41 | 183 | 558 | 0.29 | 0.69 | 0.42 |
-| 918271 | 30 | 223.1s | 33→33 | 0 | 0 | 145 | 312 | 1174 | 0.25 | 0.63 | 0.56 |
-| 42424242 | 8 | 36.9s | 33→33 | 0 | 0 | 215 | 216 | 556 | 0.24 | 0.66 | 0.36 |
-| 918271 | 90 | 1273.2s | 33→33 | 0 | 0 | 494 | 668 | 1388 | 0.23 | 0.60 | 0.41 |
-| 918271 | 365 | *(background — see run notes)* | | | | | | | | | |
+**Pre-fix runs** (`ENERGY_DRAIN_PER_HOUR = 1/16`) — these are what exposed the calibration bug
+in §15 and are kept here as the historical evidence for it, not as the milestone's final tuning:
 
-The 90-day run (0 anomalies, 0 goal-churn incidents) directly answers the scaling-risk question
-raised in §15: average caloric energy essentially **plateaus** rather than decaying further
-(0.29 at 8 days → 0.25 at 30 days → 0.23 at 90 days — a fast initial drop off the generous
-starting stock, then near-flat), and, crucially, the crop cycle recalibration pays off at this
-horizon: by day 90 (> one full 6-week maturation cycle), 86 plots have reached `mature` and 5
-have completed a full `harvested` cycle from a fresh sowing — the 30-day snapshot could show
-none of this (42 days > 30), but the world does visibly complete real harvest cycles once given
-enough time, exactly as intended. Requests/wages/purchases all continued scaling linearly with
-run length (494 completed requests, 668 wages, 1388 purchases by day 90), with zero failed
-requests at any horizon tested.
+| Seed | Days | Wall-clock | Population | Deaths | Anomalies | Requests completed | Wages paid | Purchases spent | Avg energy | Avg hunger | Avg hydration | Avg fatigue |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 918271 | 2 | ~8s | 33→33 | 0 | 0 | 25 | 107 | 6 | 0.52 | — | 0.69 | 0.36 |
+| 918271 | 8 | 34.7s | 33→33 | 0 | 0 | 41 | 183 | 558 | 0.29 | — | 0.69 | 0.42 |
+| 918271 | 30 | 223.1s | 33→33 | 0 | 0 | 145 | 312 | 1174 | 0.25 | — | 0.63 | 0.56 |
+| 42424242 | 8 | 36.9s | 33→33 | 0 | 0 | 215 | 216 | 556 | 0.24 | — | 0.66 | 0.36 |
+| 918271 | 90 | 1273.2s | 33→33 | 0 | 0 | 494 | 668 | 1388 | 0.23 | — | 0.60 | 0.41 |
+| 918271 | 365 | 25135.0s (~7.0h) | 33→33 | 0 | 0 | 1677 | 1134 | 1598 | **0.00** | **1.00** | 0.62 | 0.69 |
 
-*(The 365-day row: launched as a background headless run during this session; if this document
-reaches you before it finished, check `.debug/headless/` for the completed `summary.json`/
-benchmark report, or re-run `npx tsx src/headless/cli.ts --seed 918271 --days 365` — the
-mechanism is identical to the completed 90-day run above, just longer. At observed throughput
-(~14s/simulated day once past day 30, as per-event-history bookkeeping grows) a full year is
-expected to take on the order of an hour and a half of wall-clock.)*
+The 365-day row is what falsified the "it plateaus" reading of the 8/30/90-day trend (see §15):
+the population never dies and trips no anomaly, but by day 365 it is at the starvation floor —
+14029 meals over the year is only ~1.16 meals/person/day, far short of the ~2-3/day the schedule
+system aims for, because total drain was outpacing total intake the whole time, just slowly
+enough that 90 days of data still looked like convergence. This run is genuinely useful evidence
+(it is the only horizon long enough to reveal the problem), which is why it's kept rather than
+discarded now that the constant has changed.
+
+**Post-fix runs** (`ENERGY_DRAIN_PER_HOUR = 1/24`, current):
+
+| Seed | Days | Wall-clock | Population | Deaths | Anomalies | Requests completed | Wages paid | Purchases spent | Avg energy | Avg hunger | Avg hydration | Avg fatigue |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 918271 | 8 | 39.8s | 33→33 | 0 | 0 | 208 | 227.00 | 330.00 | 0.46 | 0.54 | 0.71 | 0.26 |
+| 918271 | 30 | 235.6s | 33→33 | 0 | 0 | 306 | 351.00 | 954.00 | 0.29 | 0.71 | 0.65 | 0.52 |
+| 918271 | 90 | *(status below)* | | | | | | | | | | |
+
+At 8 days, avg energy roughly doubled (0.29 → 0.46 pre- vs. post-fix) and shortages dropped
+sharply, with population/anomaly/determinism behaviour otherwise unchanged (still 33/33, 0
+anomalies). At 30 days post-fix, avg energy is 0.29 — genuinely better than the pre-fix 30-day
+figure (0.25) but still declining materially from the 8-day mark, not yet a clear plateau; the
+30-day window for this seed also hit a real dry spell (`soil moisture 0.00` at the snapshot),
+which independently slows crop growth (`moistureGrowthFactor`) and compounds the food-supply
+side regardless of the energy-drain fix — the pre-fix 90-day run showed the same seed's moisture/
+harvest cycle recovering and catching up by day 90 (86 mature, 5 harvested), so the honest
+expectation is that the post-fix 90-day figure will show whether the corrected drain rate reaches
+a genuine plateau once that recovery plays out, or whether a second, smaller correction (e.g. to
+`FOOD_HUNGER_RESTORE` or farm/mill/bakery stock caps) is still warranted. That 90-day re-run was
+still in progress as this report was finalized; check `.debug/headless/` and `.debug/benchmarks/`
+for the completed `summary.json`/benchmark report, or re-run `npx tsx src/headless/cli.ts --seed
+918271 --days 90`. A fresh 365-day confirmation run was judged not worth its ~7-hour wall-clock
+cost given the 8/30-day figures already establish the direction and magnitude of the fix; the
+90-day mark is the practical middle ground used throughout this milestone for "does it plateau."

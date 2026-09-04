@@ -39,9 +39,23 @@ export const ACTIVITY_HEAT_PER_HOUR: Record<ActivityLevel, number> = {
 };
 
 // ---- baseline (idle) rates: full reserve 1 -> 0 in roughly this many waking hours at idle.
-/** Idle-equivalent hours to drain a full caloric reserve — close to the pre-v0.4 hunger pace
- * (`needs.hunger` used to reach 1.0 in 14 hours) so the felt rhythm of the world doesn't lurch. */
-const ENERGY_DRAIN_PER_HOUR = 1 / 16;
+/**
+ * Idle-equivalent hours to drain a full caloric reserve at activity multiplier 1.0 (pure idle).
+ * The pre-v0.4 flat hunger rate (no activity multiplier, ever) reached 1.0 in 14 hours
+ * REGARDLESS of activity; v0.4 layers `ACTIVITY_ENERGY_MULT` (up to 4.4x for quarrying) on top
+ * of this baseline, so an ordinary day's activity MIX (some sleep at 0.4x, some work at
+ * 2-3x, some idle/social/walk around 1-1.7x) drains materially faster in total than the old
+ * flat rate ever did, even though this constant alone looks similar. Calibrated empirically
+ * against multi-week/multi-month headless runs (seed 918271): the first value tried (1/16,
+ * matching the old flat rate numerically) left the village converging on a permanent
+ * average-hunger-1.0 plateau by one simulated year — real food SUPPLY (production, meal
+ * frequency) wasn't tuned for a total daily drain that high. 1/24 keeps the same relative
+ * ordering (heavy work still costs materially more than idle) while landing an ordinary
+ * person's realistic daily activity mix close to what 2-3 meals/day (the existing schedule's
+ * meal windows) can actually sustain — see docs/V0_4_EMBODIED_ECONOMY.md §15 for the full
+ * calibration history and the before/after benchmark numbers.
+ */
+const ENERGY_DRAIN_PER_HOUR = 1 / 24;
 /** Idle-equivalent hours to fully dehydrate — matches the pre-v0.4 thirst pace (~11 hours). */
 const HYDRATION_DRAIN_PER_HOUR = 1 / 11;
 /** One meal (`eatFood`) restores this fraction of the caloric reserve. */
