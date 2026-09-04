@@ -1,7 +1,7 @@
 import type { Occupation, ScheduleEntry, Person, EntityId } from '../core/types';
 
 /** Schedules are default rhythms of life, not scripts. The decision system weighs them against everything else. */
-export function scheduleFor(p: Person, refs: { work: EntityId | null; home: EntityId | null; tavern: EntityId; square: EntityId; chapel: EntityId; stall?: EntionId | null; field?: EntityId | null; shift?: string }): ScheduleEntry[] {
+export function scheduleFor(p: Person, refs: { work: EntityId | null; home: EntityId | null; tavern: EntityId; square: EntityId; chapel: EntityId; stall?: EntionId | null; field?: EntityId | null; saw?: EntityId | null; shift?: string }): ScheduleEntry[] {
   const W = refs.work, H = refs.home, T = refs.tavern, S = refs.square, C = refs.chapel;
   const e = (start: number, end: number, activity: ScheduleEntry['activity'], placeId: EntityId | null | undefined, label: string): ScheduleEntry => ({ start, end, activity, placeId: placeId ?? undefined, label });
   switch (p.occupation) {
@@ -28,7 +28,7 @@ export function scheduleFor(p: Person, refs: { work: EntityId | null; home: Enti
     case 'miller': return [e(21, 6, 'sleep', H, 'sleep'), e(6, 7, 'eat', H, 'breakfast'), e(7, 12, 'work', W, 'mill grain'), e(12, 13, 'eat', H, 'lunch'), e(13, 17, 'work', W, 'mill grain'), e(17, 21, 'socialize', T, 'evening at the tavern')];
     case 'hunter': return [e(21, 4, 'sleep', H, 'sleep'), e(4, 13, 'work', W, 'hunt'), e(13, 16, 'work', refs.stall ?? S, 'sell game'), e(16, 19, 'socialize', T, 'evening'), e(19, 21, 'idle', H, 'mend gear')];
     case 'herbalist': return [e(20, 5, 'sleep', H, 'sleep'), e(5, 11, 'work', W, 'gather herbs'), e(11, 15, 'work', H, 'brew'), e(15, 18, 'socialize', S, 'visit the village'), e(18, 20, 'idle', H, 'evening')];
-    case 'woodcutter': return [e(22, 6, 'sleep', H, 'sleep'), e(6, 7, 'eat', H, 'breakfast'), e(7, 16, 'work', W, 'cut timber'), e(16, 22, 'drink', T, 'drink at the tavern')];
+    case 'woodcutter': return [e(22, 6, 'sleep', H, 'sleep'), e(6, 7, 'eat', H, 'breakfast'), e(7, 13, 'work', W, 'cut timber'), e(13, 17, 'work', refs.saw ?? W, 'saw planks'), e(17, 22, 'drink', T, 'drink at the tavern')];
     case 'elder': return [e(21, 7, 'sleep', H, 'sleep'), e(7, 8, 'eat', H, 'breakfast'), e(8, 12, 'socialize', S, 'hold court in the square'), e(12, 14, 'eat', H, 'lunch and rest'), e(14, 18, 'socialize', T, 'afternoon at the tavern'), e(18, 19, 'worship', C, 'evening service'), e(19, 21, 'idle', H, 'evening')];
     case 'vagrant': return [e(2, 10, 'sleep', H, 'sleep it off'), e(10, 17, 'idle', S, 'beg in the square'), e(17, 2, 'drink', T, 'drink')];
     case 'child': return [e(20, 7, 'sleep', H, 'sleep'), e(7, 8, 'eat', H, 'breakfast'), e(8, 12, 'play', S, 'play'), e(12, 13, 'eat', H, 'lunch'), e(13, 18, 'play', S, 'play'), e(18, 20, 'idle', H, 'evening at home')];

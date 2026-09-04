@@ -2,6 +2,10 @@ import { World } from '../core/world';
 import type { Anomaly } from '../telemetry/anomaly';
 import type { SignificantEntity } from './significance';
 import { metabolismSummary, type MetabolismSummary } from '../world/metabolism';
+import { haulSummary, type HaulSummary } from '../logistics/haul';
+import { resourceNodeSummary, type ResourceNodeSummary } from '../world/resources';
+import { constructionSummary, type ConstructionSummary } from '../world/construction';
+import { stockAt } from '../world/stock';
 
 /**
  * The structured, machine- and human-readable result of a headless world run (v0.2 Part 5).
@@ -40,6 +44,15 @@ export interface WorldRunSummary {
   metabolism: MetabolismSummary & {
     cropsPlanted: number; cropsMatured: number; cropsHarvested: number;
     resourceTransforms: number; mealsEaten: number; drinks: number; resourceShortages: number;
+    resourceSpoiled: number;
+  };
+  /** v0.3 Living World I: physical logistics, extraction, and construction. */
+  logistics: {
+    haul: HaulSummary;
+    resourceNodes: ResourceNodeSummary;
+    construction: ConstructionSummary;
+    /** grain/flour/bread/log/plank/stone physically at each keyed production Place. */
+    stockByPlace: Record<string, Record<string, number>>;
   };
 }
 
@@ -119,8 +132,27 @@ export function buildWorldRunSummary(world: World, ctx: WorldRunSummaryContext):
       mealsEaten: world.runTally.food_consumed ?? 0,
       drinks: world.runTally.water_consumed ?? 0,
       resourceShortages: world.runTally.resource_shortage ?? 0,
+      resourceSpoiled: world.runTally.resource_spoiled ?? 0,
+    },
+    logistics: {
+      haul: haulSummary(world),
+      resourceNodes: resourceNodeSummary(world),
+      construction: constructionSummary(world),
+      stockByPlace: stockByProductionPlace(world),
     },
   };
+}
+
+function stockByProductionPlace(world: World): Record<string, Record<string, number>> {
+  const out: Record<string, Record<string, number>> = {};
+  const RES = ['grain', 'flour', 'bread', 'log', 'plank', 'stone'] as const;
+  for (const pl of world.places()) {
+    if (!['farm', 'mill', 'bakery', 'stall', 'sawpit', 'quarry', 'construction', 'hut'].includes(pl.type)) continue;
+    const row: Record<string, number> = {};
+    for (const r of RES) { const n = stockAt(world, r, pl.id); if (n > 0) row[r] = n; }
+    if (Object.keys(row).length) out[pl.name] = row;
+  }
+  return out;
 }
 
 export function formatWorldRunSummary(s: WorldRunSummary): string {
@@ -135,7 +167,12 @@ export function formatWorldRunSummary(s: WorldRunSummary): string {
   const m = s.metabolism;
   lines.push(`Metabolism: ${m.fields} field(s), soil moisture ${m.avgSoilMoisture.toFixed(2)}, crops fallow=${m.crops.fallow}/planted=${m.crops.planted}/growing=${m.crops.growing}/mature=${m.crops.mature}/harvested=${m.crops.harvested} (avg growth ${m.avgGrowth.toFixed(2)})`);
   lines.push(`  chain: ${m.cropsPlanted} planted, ${m.cropsMatured} matured, ${m.cropsHarvested} harvested → ${m.resourceTransforms} transform(s) → grain ${m.stock.grain} / flour ${m.stock.flour} / bread ${m.stock.bread}`);
-  lines.push(`  needs: avg hunger ${m.avgHunger.toFixed(2)}, avg thirst ${m.avgThirst.toFixed(2)}; ${m.mealsEaten} meal(s), ${m.drinks} drink(s), ${m.resourceShortages} shortage(s)`);
+  lines.push(`  needs: avg hunger ${m.avgHunger.toFixed(2)}, avg thirst ${m.avgThirst.toFixed(2)}; ${m.mealsEaten} meal(s), ${m.drinks} drink(s), ${m.resourceShortages} shortage(s), ${m.resourceSpoiled} spoiled`);
+  const L = s.logistics;
+  lines.push(`Logistics: ${L.haul.requested} haul(s) requested, ${L.haul.delivered} delivered, ${L.haul.failed} failed, ${L.haul.open} open now; moved ${Object.entries(L.haul.unitsMovedByResource).map(([k, v]) => `${v} ${k}`).join(', ') || 'nothing'}`);
+  lines.push(`  extraction: ${L.resourceNodes.extracted} extract(s), trees ${L.resourceNodes.trees.available}/${L.resourceNodes.trees.total} standing (${L.resourceNodes.depletedEvents} felled, ${L.resourceNodes.regrewEvents} regrown), stone remaining ${L.resourceNodes.stone.remaining}`);
+  lines.push(`  construction: ${L.construction.complete}/${L.construction.projects} complete${L.construction.details.map(d => ` · ${d.name}: ${d.status} (${Object.entries(d.delivered).map(([k, v]) => `${v}/${d.required[k]} ${k}`).join(', ')}, labour ${d.laborPct}%, ${d.workers} worker(s))`).join('')}`);
+  for (const [place, row] of Object.entries(L.stockByPlace)) lines.push(`  stock @ ${place}: ${Object.entries(row).map(([k, v]) => `${v} ${k}`).join(', ')}`);
   lines.push('');
   lines.push('Most historically significant entities:');
   for (const e of s.topSignificantEntities.slice(0, 10)) lines.push(`  ${e.score.toFixed(2).padStart(5)}  ${e.name}`);

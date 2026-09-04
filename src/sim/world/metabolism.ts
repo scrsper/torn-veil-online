@@ -2,6 +2,12 @@ import type { CropPlot, CropState, Field, Item, ItemType, Person, Vec3, EntityId
 import type { World } from '../core/world';
 import { B } from '../physical/blocks';
 import { makeItem, RESOURCE_CATEGORY, isFood } from './factory';
+import { addPlaceStock, takePlaceStock, retireStack, stockAt as stockAtPlace, stockTotal } from './stock';
+
+// Re-exported for existing callers/tests that import stock helpers from metabolism (v0.3 moved
+// the generalized implementations to sim/world/stock.ts — Priority 1).
+export { stockAt, stockItemsAt, worldStock } from './stock';
+export { stockTotal, addPlaceStock, takePlaceStock } from './stock';
 
 /**
  * World metabolism (v0.2.4): the smallest complete example of a world that materially changes
@@ -32,9 +38,19 @@ const RAIN_MOISTURE_PER_HOUR = 0.11;
 const DRY_MOISTURE_PER_HOUR = 0.035;
 /** Grain produced per plot harvested (deterministic — plot index gives the small spread). */
 const GRAIN_PER_PLOT_BASE = 5;
-/** Milling: grain in : flour out. Baking: flour in : bread out. */
+/** v0.3 Priority 13: sowing a plot now consumes seed grain, drawn from the field's own farm
+ * stock. One grain per plot; a plot cannot be sown if the farm has none. */
+export const SEED_PER_PLOT = 1;
+/** v0.3: grain kept back at a farm as seed reserve — the logistics need generator only hauls
+ * grain *above* this to the mill, so a run of harvests never leaves a farm unable to re-sow.
+ * (~4 plots' worth per farm, replenished by every harvest.) */
+export const FARM_SEED_RESERVE = 12;
+/** Milling: grain in : flour out. Baking: flour in : bread out. Sawing: logs in : planks out. */
 export const MILL_RATIO = { in: 3, out: 4 } as const;
 export const BAKE_RATIO = { in: 2, out: 5 } as const;
+export const SAW_RATIO = { in: 2, out: 3 } as const;
+/** Stop sawing once the sawpit is holding this many planks — the first non-food transform cap. */
+export const PLANK_CAP = 40;
 /** Stock ceilings that make the pipeline demand-driven rather than infinite: a farmer stops
  * harvesting once the village has plenty of grain, a miller stops once there is plenty of
  * flour, a baker stops once there is plenty of bread. Production resumes when stock falls.
@@ -147,14 +163,32 @@ export function fieldFor(world: World, placeId: EntityId | null | undefined): Fi
   return world.fields.find(f => f.placeId === placeId);
 }
 
-export function plantPlot(world: World, field: Field, plot: CropPlot, farmer: Person): void {
-  if (plot.state !== 'fallow') return;
+/** Grain available at a farm for sowing (its whole grain stock; the seed reserve is enforced by
+ * the logistics generator, not here — a farm can sow down to its last grain if nothing hauled it away). */
+export function farmSeedGrain(world: World, field: Field): number { return stockAtPlace(world, 'grain', field.placeId); }
+
+/**
+ * Sow a fallow plot. v0.3 Priority 13: consumes `SEED_PER_PLOT` grain from the field's own farm
+ * stock. Returns true if sown, false (no state change) if there was no seed grain — the caller
+ * then treats seed as a shortage. Fields no longer produce future grain from literally nothing.
+ */
+export function plantPlot(world: World, field: Field, plot: CropPlot, farmer: Person): boolean {
+  if (plot.state !== 'fallow') return false;
+  const took = takePlaceStock(world, 'grain', SEED_PER_PLOT, [field.placeId]);
+  if (took < SEED_PER_PLOT) {
+    world.emit('resource_shortage', {
+      actor: farmer.id, placeId: field.placeId, pos: { x: plot.x + 0.5, y: plot.y, z: plot.z + 0.5 }, significance: 0.2,
+      data: { need: 'grain', reason: 'seed', have: took }, summary: `${farmer.name} had no seed grain to sow in ${world.nameOf(field.placeId)}`,
+    });
+    return false;
+  }
   plot.state = 'planted'; plot.growth = 0; plot.plantedAt = world.now; plot.maturedAt = undefined; plot.harvestedAt = undefined;
   world.grid.set(plot.x, plot.y, plot.z, cropBlockFor('planted'));
   world.emit('crop_planted', {
     actor: farmer.id, placeId: field.placeId, pos: { x: plot.x + 0.5, y: plot.y, z: plot.z + 0.5 }, significance: 0.15,
-    data: { fieldId: field.id, crop: plot.crop }, summary: `${farmer.name} sowed wheat in ${world.nameOf(field.placeId)}`,
+    data: { fieldId: field.id, crop: plot.crop, seed: SEED_PER_PLOT }, summary: `${farmer.name} sowed wheat in ${world.nameOf(field.placeId)}`,
   });
+  return true;
 }
 
 /**
@@ -170,53 +204,12 @@ export function harvestPlot(world: World, field: Field, plot: CropPlot, farmer: 
     actor: farmer.id, placeId: field.placeId, pos: { x: plot.x + 0.5, y: plot.y, z: plot.z + 0.5 }, significance: 0.35,
     data: { fieldId: field.id, crop: plot.crop, yield: yield_ }, summary: `${farmer.name} harvested wheat in ${world.nameOf(field.placeId)} (+${yield_} grain)`,
   });
-  addStock(world, 'grain', yield_, field.placeId, field.ownerId ?? farmer.id, ev.id, 'harvested');
+  addPlaceStock(world, 'grain', yield_, field.placeId, field.ownerId ?? farmer.id, ev.id, 'harvested');
   return yield_;
 }
 
-// ---------------------------------------------------------------- resource stock + transforms
-/** Items of `type` available for production/consumption at a place: not carried by anyone, and
- * matching `placeId` (or lying at that place's position). */
-export function stockAt(world: World, type: ItemType, placeId: EntityId): Item[] {
-  return world.items().filter(i => i.type === type && !i.holderId && i.quantity > 0 && i.placeId === placeId);
-}
-export function stockTotal(world: World, type: ItemType, placeIds: EntityId[]): number {
-  let n = 0;
-  for (const i of world.items()) if (i.type === type && !i.holderId && i.quantity > 0 && i.placeId && placeIds.includes(i.placeId)) n += i.quantity;
-  return n;
-}
-
-function addStock(world: World, type: ItemType, qty: number, placeId: EntityId, ownerId: EntityId | null, eventId: EventId | undefined, how: string): Item {
-  const place = world.place(placeId);
-  const existing = world.items().find(i => i.type === type && !i.holderId && i.placeId === placeId);
-  if (existing) { existing.quantity += qty; existing.provenance.push({ tick: world.now, eventId, from: null, to: ownerId, how }); return existing; }
-  const it = makeItem(world, type, `${qty} ${type === 'grain' ? 'grain' : type === 'flour' ? 'flour' : type}`, {
-    owner: ownerId, pos: place ? { ...place.inside } : undefined, placeId, quantity: qty,
-  });
-  it.provenance.push({ tick: world.now, eventId, from: null, to: ownerId, how });
-  return it;
-}
-
-/** Consume up to `qty` units of `type` from the given places (oldest item first). Returns how
- * many were actually consumed. A depleted stack is emptied in place (quantity 0, detached from
- * the world) rather than deleted — the entity stays so its provenance and any event references
- * remain valid (Constitution §51). It is inert once quantity 0. */
-function consumeStock(world: World, type: ItemType, qty: number, placeIds: EntityId[]): number {
-  let need = qty;
-  const items = world.items()
-    .filter(i => i.type === type && !i.holderId && i.quantity > 0 && i.placeId && placeIds.includes(i.placeId))
-    .sort((a, b) => a.id.localeCompare(b.id));
-  for (const it of items) {
-    if (need <= 0) break;
-    const take = Math.min(need, it.quantity);
-    it.quantity -= take; need -= take;
-    if (it.quantity <= 0) retireItem(it);
-  }
-  return qty - need;
-}
-
-/** Detach a fully-consumed item from the physical world without deleting the entity. */
-function retireItem(it: Item): void { it.pos = null; it.placeId = null; it.holderId = null; }
+// ---------------------------------------------------------------- resource transforms
+const retireItem = retireStack;
 
 export interface TransformResult { ok: boolean; produced: number; consumed: number; shortage?: ItemType; eventId?: EventId; }
 
@@ -239,13 +232,13 @@ export function transform(world: World, o: {
     });
     return { ok: false, produced: 0, consumed: 0, shortage: o.inputType };
   }
-  const consumed = consumeStock(world, o.inputType, o.inputQty, o.inputPlaces);
+  const consumed = takePlaceStock(world, o.inputType, o.inputQty, o.inputPlaces);
   const ev = world.emit('resource_transformed', {
     actor: o.actor, placeId: o.outputPlace, significance: 0.15,
     data: { from: o.inputType, fromQty: consumed, to: o.outputType, toQty: o.outputQty, how: o.how },
     summary: `${world.nameOf(o.actor)} turned ${consumed} ${o.inputType} into ${o.outputQty} ${o.outputType} (${o.how})`,
   });
-  addStock(world, o.outputType, o.outputQty, o.outputPlace, o.ownerId, ev.id, o.how);
+  addPlaceStock(world, o.outputType, o.outputQty, o.outputPlace, o.ownerId, ev.id, o.how);
   return { ok: true, produced: o.outputQty, consumed, shortage: undefined, eventId: ev.id };
 }
 
@@ -254,25 +247,46 @@ export function villageStock(world: World, type: ItemType): number {
     + world.items().filter(i => i.type === type && i.holderId).reduce((a, b) => a + b.quantity, 0);
 }
 
-/** One milling batch, unless the village already has plenty of flour. Draws grain from the mill
- * and every farm; produces flour at the mill. Returns null-ish when demand is already met. */
+/**
+ * One milling batch. v0.3 Priority 3: the mill consumes ONLY grain that is physically at the
+ * mill (delivered there by a haul task) — it no longer reaches across the village for its
+ * input. If there is no grain at the mill, `transform` fires a `resource_shortage` and a
+ * logistics need to haul grain there is raised on the next upkeep pass. Still demand-driven:
+ * nothing runs once the village has plenty of flour.
+ */
 export function mill(world: World, miller: Person): TransformResult {
   const millId = world.places().find(p => p.type === 'mill')?.id;
   if (!millId) return { ok: false, produced: 0, consumed: 0 };
   if (villageStock(world, 'flour') >= FLOUR_CAP) return { ok: false, produced: 0, consumed: 0 };
-  const sources = [millId, ...world.fields.map(f => f.placeId)];
-  return transform(world, { actor: miller.id, inputType: 'grain', inputQty: MILL_RATIO.in, inputPlaces: sources, outputType: 'flour', outputQty: MILL_RATIO.out, outputPlace: millId, ownerId: miller.id, how: 'milled' });
+  // Quiet no-op when the input simply hasn't been delivered yet — that is not a "shortage",
+  // it is normal demand-driven operation, and the logistics generator already raises a haul.
+  if (stockAtPlace(world, 'grain', millId) < MILL_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'grain' };
+  return transform(world, { actor: miller.id, inputType: 'grain', inputQty: MILL_RATIO.in, inputPlaces: [millId], outputType: 'flour', outputQty: MILL_RATIO.out, outputPlace: millId, ownerId: miller.id, how: 'milled' });
 }
 
-/** One baking batch, unless the village already has plenty of bread. Draws flour from the
- * bakery and the mill; produces bread at the bakery. */
+/**
+ * One baking batch. v0.3 Priority 3: the bakery consumes ONLY flour physically at the bakery
+ * (hauled from the mill). It cannot bake from flour still sitting at the mill.
+ */
 export function bake(world: World, baker: Person): TransformResult {
   const bakeryId = world.places().find(p => p.type === 'bakery')?.id;
-  const millId = world.places().find(p => p.type === 'mill')?.id;
   if (!bakeryId) return { ok: false, produced: 0, consumed: 0 };
   if (villageStock(world, 'bread') >= BREAD_CAP) return { ok: false, produced: 0, consumed: 0 };
-  const sources = [bakeryId, ...(millId ? [millId] : [])];
-  return transform(world, { actor: baker.id, inputType: 'flour', inputQty: BAKE_RATIO.in, inputPlaces: sources, outputType: 'bread', outputQty: BAKE_RATIO.out, outputPlace: bakeryId, ownerId: baker.id, how: 'baked' });
+  if (stockAtPlace(world, 'flour', bakeryId) < BAKE_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'flour' };
+  return transform(world, { actor: baker.id, inputType: 'flour', inputQty: BAKE_RATIO.in, inputPlaces: [bakeryId], outputType: 'bread', outputQty: BAKE_RATIO.out, outputPlace: bakeryId, ownerId: baker.id, how: 'baked' });
+}
+
+/**
+ * One sawing batch (v0.3): logs physically at the sawpit → planks at the sawpit. The first
+ * non-food production chain, reusing the same conservation-respecting `transform`. Demand-driven
+ * via a plain plank cap (no cross-module dependency on construction).
+ */
+export function saw(world: World, sawyer: Person): TransformResult {
+  const sawpitId = world.places().find(p => p.type === 'sawpit')?.id;
+  if (!sawpitId) return { ok: false, produced: 0, consumed: 0 };
+  if (stockTotal(world, 'plank', [sawpitId]) >= PLANK_CAP) return { ok: false, produced: 0, consumed: 0 };
+  if (stockAtPlace(world, 'log', sawpitId) < SAW_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'log' };
+  return transform(world, { actor: sawyer.id, inputType: 'log', inputQty: SAW_RATIO.in, inputPlaces: [sawpitId], outputType: 'plank', outputQty: SAW_RATIO.out, outputPlace: sawpitId, ownerId: sawyer.id, how: 'sawn' });
 }
 
 // ---------------------------------------------------------------- eating & drinking
@@ -358,6 +372,43 @@ export function drinkAt(world: World, p: Person, sourcePlaceId?: EntityId): void
     data: { thirst: Math.round(p.needs.thirst * 100) / 100 },
     summary: `${p.name} drank${sourcePlaceId ? ' at ' + world.nameOf(sourcePlaceId) : ''}`,
   });
+}
+
+// ---------------------------------------------------------------- spoilage (v0.3 Priority 14)
+/**
+ * Fraction of a stack lost per world-day. Not microbial biology — a broad durability tier:
+ * bread short, flour medium, grain long. Materials (log/plank/stone) are absent → never spoil.
+ */
+const SPOIL_RATE_PER_DAY: Partial<Record<ItemType, number>> = {
+  bread: 0.10, pie: 0.10, meat: 0.10, cheese: 0.05, flour: 0.015, grain: 0.003,
+};
+
+/**
+ * Advance stock spoilage by `hours` of world time. Stack-level batched: each perishable stack
+ * accumulates fractional loss between passes and drops whole units when the accumulator crosses
+ * 1 — no per-item-per-minute work, no event storm (at most one `resource_spoiled` per stack per
+ * pass). Deterministic. Call on the coarse upkeep cadence.
+ */
+export function stepSpoilage(world: World, hours: number): void {
+  if (hours <= 0) return;
+  const days = hours / 24;
+  for (const it of world.items()) {
+    const rate = SPOIL_RATE_PER_DAY[it.type];
+    if (!rate || it.quantity <= 0) continue;
+    it.spoilAccum = (it.spoilAccum ?? 0) + it.quantity * rate * days;
+    if (it.spoilAccum < 1) continue;
+    const lost = Math.min(it.quantity, Math.floor(it.spoilAccum));
+    it.spoilAccum -= lost;
+    it.quantity -= lost;
+    if (lost > 0) {
+      world.emit('resource_spoiled', {
+        placeId: it.placeId ?? undefined, item: it.id, pos: it.pos ?? undefined, significance: 0.1,
+        data: { resource: it.type, lost, remaining: it.quantity },
+        summary: `${lost} ${it.type} spoiled${it.placeId ? ' at ' + world.nameOf(it.placeId) : it.holderId ? ` in ${world.nameOf(it.holderId)}'s pack` : ''}`,
+      });
+    }
+    if (it.quantity <= 0) retireItem(it);
+  }
 }
 
 // ---------------------------------------------------------------- observability
