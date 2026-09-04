@@ -1,7 +1,7 @@
 import type { CropPlot, CropState, Field, Item, ItemType, Person, Vec3, EntityId, EventId } from '../core/types';
 import type { World } from '../core/world';
 import { B } from '../physical/blocks';
-import { makeItem, RESOURCE_CATEGORY, isFood, SPOIL_RATE_PER_DAY } from './factory';
+import { makeItem, RESOURCE_CATEGORY, isFood, SPOIL_RATE_PER_DAY, ITEM_VALUE } from './factory';
 import { addPlaceStock, takePlaceStock, retireStack, stockAt as stockAtPlace, stockTotal } from './stock';
 import { eatRestoresEnergy, drinkRestoresHydration } from '../core/physiology';
 import { effectivePrice } from './pricing';
@@ -333,13 +333,24 @@ const ALE_RESTOCK_QTY = 6;
  * one-way leak without inventing a brewer NPC or a new production chain. This is an explicit
  * currency EXIT (Constitution v0.7 §B: "if currency enters or exits the simulation, that must be
  * explicit") — tracked in `world.runTally.supply_cost_amount` for auditability — not a manufactured
- * expense hidden inside an opaque number. */
-const ALE_SUPPLY_COST_PER_UNIT = 1;
+ * expense hidden inside an opaque number.
+ *
+ * A first attempt at this cost (a flat 1/unit, a third of ale's fixed retail value) was measured
+ * to only SLOW the sink, not close it: a positive per-batch margin, however small, still
+ * compounds without bound over a long enough horizon — re-validated at 90 days and the
+ * innkeeper pair's share was back to 58.1%, barely different from the pre-fix 59.1%, just
+ * delayed. `ale` has no scarcity-based pricing (`world/pricing.ts`'s `PRICE_REFERENCE_STOCK`
+ * doesn't include it), so it always sells at its flat `ITEM_VALUE.ale` — supply cost is set to a
+ * thin, near-break-even margin below that fixed price instead of an arbitrary fraction of it, a
+ * real (if modest) profit a small tavern business should still turn, but one that cannot compound
+ * into an unbounded, village-dominating sink over any realistic run length. */
+const ALE_MARGIN_PER_UNIT = 0.1;
+const ALE_SUPPLY_COST_PER_UNIT = ITEM_VALUE.ale - ALE_MARGIN_PER_UNIT;
 export function restockTavern(world: World, innkeeper: Person): boolean {
   const tavernId = world.places().find(p => p.type === 'tavern')?.id;
   if (!tavernId) return false;
   if (stockAtPlace(world, 'ale', tavernId) >= ALE_RESTOCK_TRIGGER) return false;
-  const cost = Math.max(0, Math.min(ALE_RESTOCK_QTY * ALE_SUPPLY_COST_PER_UNIT, innkeeper.wealth));
+  const cost = Math.round(Math.max(0, Math.min(ALE_RESTOCK_QTY * ALE_SUPPLY_COST_PER_UNIT, innkeeper.wealth)) * 100) / 100;
   innkeeper.wealth -= cost;
   world.runTally.supply_cost_amount = (world.runTally.supply_cost_amount ?? 0) + cost;
   const ev = world.emit('resource_transformed', {
