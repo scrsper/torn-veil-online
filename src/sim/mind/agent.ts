@@ -4,7 +4,7 @@ import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRel
 import { maintainConflicts, beginConflict, recordConflictBlow, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
 import { maintainCustody, subdue, takeIntoCustody, beginSurrender, isSubdued } from '../social/custody';
 import { stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, restockTavern, GRAIN_CAP, SEED_PER_PLOT } from '../world/metabolism';
-import { stepPhysiology, activityLevelFor, heatBand, hungerBand, thirstBand, sleepBand, severityAtLeast } from '../core/physiology';
+import { stepPhysiology, activityLevelFor, heatBand, hungerBand, thirstBand, sleepBand, comfortBand, severityAtLeast } from '../core/physiology';
 import { isCommittable, EMERGENCY_GOAL_TYPES, interruptionSeverityMet, startCommitment, suspendCommitment, resumeCommitment, finishCommitment, commitmentValidity } from './commitment';
 import { getPhysicalCapability, capabilityFor } from '../core/attributes';
 import { skillOf } from '../core/skills';
@@ -533,12 +533,26 @@ export class Simulation {
       const base = 0.45 + (sched.activity === 'work' ? 0.1 : 0) + (sched.activity === 'patrol' || sched.activity === 'guard_post' ? 0.15 : 0) - rainPenalty;
       G(sched.activity, clamp(base + (p.traits.loyalty - 0.5) * 0.1), [`schedule: ${sched.label} (${sched.start}:00–${sched.end}:00)`, rainPenalty ? 'but it is raining out there' : ''], { targetPlace: sched.placeId, data: { label: sched.label } });
     }
-    // rain shelter (and keep sheltering while it rains)
+    // rain shelter (and keep sheltering while it rains) — v0.7: the CONDITION that makes shelter
+    // worth considering is still "it is raining and I am outside" (real, current perception),
+    // but the DESIRE is driven by accumulated wetness/discomfort (`needs.comfort`, derived from
+    // `physiology.wetness` — core/physiology.ts), not by the instantaneous fact of rain itself
+    // (Constitution v0.7: "rain is not an instruction" — the bad pattern is `rain -> shelter`
+    // directly; the desired one is `rain -> wetness -> discomfort -> a person weighs shelter
+    // against everything else they're doing"). A moment in a light shower barely registers; only
+    // someone who has actually gotten wet finds shelter genuinely attractive — and even then,
+    // this is one utility candidate among many: it can still lose to a higher-utility goal, and
+    // it can never interrupt a `committed` haul/build (mind/commitment.ts's
+    // `interruptionSeverityMet` only ever lets eat/drink/sleep distress do that).
     const raining = w.weather.kind === 'rain' || w.weather.kind === 'storm';
     // v0.2.4: someone whose schedule has them at an INDOOR workplace (miller, baker, smith,
     // merchant...) does not abandon their work to shelter — they were heading inside anyway.
     const indoorWork = sched?.activity === 'work' && !!w.place(sched.placeId)?.indoor;
-    if (raining && (!w.isIndoors(pos) || m.goal?.type === 'shelter') && !isGuard && !p.hostile && !indoorWork) G('shelter', clamp(0.5 + w.weather.intensity * 0.3 - p.traits.courage * 0.15), [`it is ${w.weather.kind}ing and I am outside`], { targetPlace: dist2(pos, w.place(p.homeId!)?.inside ?? pos) < dist2(pos, w.place(this.tavernId())?.inside ?? pos) ? p.homeId ?? undefined : this.tavernId() });
+    if (raining && (!w.isIndoors(pos) || m.goal?.type === 'shelter') && !isGuard && !p.hostile && !indoorWork) {
+      const comfort = p.needs.comfort; // 0 dry .. 1 soaked through
+      const desc = comfort > 0.6 ? 'soaked through' : comfort > 0.3 ? 'getting wet' : 'starting to feel the rain';
+      G('shelter', clamp(comfort * 0.75 + w.weather.intensity * 0.1 - p.traits.courage * 0.15), [`${desc} and outside in the ${w.weather.kind}`], { targetPlace: dist2(pos, w.place(p.homeId!)?.inside ?? pos) < dist2(pos, w.place(this.tavernId())?.inside ?? pos) ? p.homeId ?? undefined : this.tavernId() });
+    }
     // socialising when the need is high
     G('socialize', clamp(n.social * 0.7 * (0.5 + p.traits.sociability * 0.8) - (night ? 0.3 : 0)), [`social need ${n.social.toFixed(2)}`, `sociability ${p.traits.sociability.toFixed(2)}`], { targetPlace: hour > 16 ? this.tavernId() : this.squareId() });
     // mourning
@@ -1571,6 +1585,7 @@ export class Simulation {
         w.runTally[`hunger_band_${hungerBand(p)}_min`] = (w.runTally[`hunger_band_${hungerBand(p)}_min`] ?? 0) + minutes;
         w.runTally[`thirst_band_${thirstBand(p)}_min`] = (w.runTally[`thirst_band_${thirstBand(p)}_min`] ?? 0) + minutes;
         w.runTally[`sleep_band_${sleepBand(p)}_min`] = (w.runTally[`sleep_band_${sleepBand(p)}_min`] ?? 0) + minutes;
+        w.runTally[`comfort_band_${comfortBand(p)}_min`] = (w.runTally[`comfort_band_${comfortBand(p)}_min`] ?? 0) + minutes;
       }
       const e = p.emotions; e.fear *= Math.pow(0.5, h / 1.5); e.anger *= Math.pow(0.5, h / 3); e.stress *= Math.pow(0.5, h / 4); e.joy = e.joy * Math.pow(0.5, h / 2) + 0.3 * (1 - Math.pow(0.5, h / 2)); e.sadness *= Math.pow(0.5, h / 48);
       // A subdued or in-custody body does not regenerate health from strategic upkeep while held

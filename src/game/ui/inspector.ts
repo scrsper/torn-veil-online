@@ -1,7 +1,7 @@
 import type { World } from '../../sim/core/world';
 import type { Person, Relationship, KnowledgeItem } from '../../sim/core/types';
 import { describeRel } from '../../sim/mind/relationships';
-import { describeClaim } from '../../sim/mind/knowledge';
+import { describeClaim, recognizedUses } from '../../sim/mind/knowledge';
 import { currentScheduleEntry } from '../../sim/mind/schedule';
 import { formatWorldTime, formatRelativeTime } from '../../sim/core/time';
 import { esc } from './events';
@@ -72,7 +72,7 @@ export class Inspector {
       // v0.6 §V/§XVI: learned skill, distinct from the body attributes above — only shown when
       // it's above novice (0), so an ordinary person's tab isn't padded with a wall of zeroes.
       + `<h4>Skills</h4><div class="kv">${Object.entries(p.skills ?? {}).filter(([, v]) => (v ?? 0) > 0.001).map(([k, v]) => `<div>${k}</div><div>${this.meter(v ?? 0)}</div>`).join('') || '<div style="color:var(--dim)">novice at everything</div>'}</div>`
-      + `<h4>Physiology (1 = full/comfortable, sleep debt in hours)</h4><div class="kv"><div>energy (calories)</div><div>${this.meter(phys.energy)}</div><div>hydration</div><div>${this.meter(phys.hydration)}</div><div>fatigue</div><div>${this.meter(phys.fatigue)}</div><div>sleep debt</div><div>${phys.sleepDebt.toFixed(1)}h</div><div>body heat</div><div>${this.meter(phys.bodyHeat)}</div></div>`
+      + `<h4>Physiology (1 = full/comfortable, sleep debt in hours)</h4><div class="kv"><div>energy (calories)</div><div>${this.meter(phys.energy)}</div><div>hydration</div><div>${this.meter(phys.hydration)}</div><div>fatigue</div><div>${this.meter(phys.fatigue)}</div><div>sleep debt</div><div>${phys.sleepDebt.toFixed(1)}h</div><div>body heat</div><div>${this.meter(phys.bodyHeat)}</div><div>wetness</div><div>${this.meter(phys.wetness)}</div></div>`
       + `<h4>Needs (0 = satisfied)</h4><div class="kv">${Object.entries(p.needs).map(([k, v]) => `<div>${k}</div><div>${this.meter(v)}</div>`).join('')}</div><h4>Emotions</h4><div class="kv">${Object.entries(p.emotions).map(([k, v]) => `<div>${k}</div><div>${this.meter(v)}</div>`).join('')}</div>`;
   }
   tab_relations(p: Person): string {
@@ -90,9 +90,14 @@ export class Inspector {
     // exactly the belief the food/knownFoodPlace decision reads, so it must stay visible even
     // when a person's 'other' bucket is dominated by dozens of same-timestamp 'home:<id>' facts
     // seeded at generation (which would otherwise crowd it out of a plain top-30 cut).
-    const svc = ks.filter(k => k.kind === 'service'), other = ks.filter(k => k.kind !== 'event' && k.kind !== 'location' && k.kind !== 'service');
+    const svc = ks.filter(k => k.kind === 'service');
+    // v0.7 §Affordances: same reasoning as v0.6's "Known services" section above — this is the
+    // literal belief `recognizedUses` reads, so it gets its own visible section.
+    const aff = ks.filter(k => k.kind === 'affordance');
+    const other = ks.filter(k => k.kind !== 'event' && k.kind !== 'location' && k.kind !== 'service' && k.kind !== 'affordance');
     const row = (k: KnowledgeItem) => `<div class="mem"><div>${k.claim.eventId ? `<span data-ev="${k.claim.eventId}" style="cursor:pointer">${esc(describeClaim(w, k))}</span>` : esc(describeClaim(w, k))}${k.handled ? ' <span class="src">(handled)</span>' : ''}</div><div class="t"><span class="src ${k.source.type}">${k.source.type}${k.source.from ? ' by ' + w.nameOf(k.source.from) : ''}</span>${k.source.viaEvent ? ` <span data-ev="${k.source.viaEvent}" style="cursor:pointer;color:var(--accent)">[evidence]</span>` : ''} · ${k.hops === 0 ? 'first-hand' : `${k.hops} hop${k.hops > 1 ? 's' : ''}`} · confidence ${k.confidence.toFixed(2)} · learned ${formatRelativeTime(k.learnedAt, w.now)}${k.lastConfirmedAt ? ` · confirmed ${formatRelativeTime(k.lastConfirmedAt, w.now)}` : ''}${k.sharedWith.length ? ` · told ${k.sharedWith.map(id => w.nameOf(id)).join(', ')}` : ''}</div></div>`;
-    return `<h4>Known services (${svc.length})</h4>${svc.map(row).join('') || '<div style="color:var(--dim)">none — would have to search/discover one</div>'}<h4>Events known (${ev.length})</h4>${ev.map(row).join('') || '—'}<h4>Locations (${loc.length})</h4>${loc.slice(0, 20).map(row).join('') || '—'}<h4>Other (${other.length})</h4>${other.slice(0, 30).map(row).join('') || '—'}`;
+    const affRow = (k: KnowledgeItem) => { const uses = recognizedUses(p, k.claim.itemType); return `<div class="mem"><div>${esc(k.claim.itemType)}: ${uses.join(', ')}</div><div class="t"><span class="src ${k.source.type}">${k.source.type}</span> · learned ${formatRelativeTime(k.learnedAt, w.now)}</div></div>`; };
+    return `<h4>Known services (${svc.length})</h4>${svc.map(row).join('') || '<div style="color:var(--dim)">none — would have to search/discover one</div>'}<h4>Known affordances (${aff.length})</h4>${aff.map(affRow).join('') || '<div style="color:var(--dim)">none — would not recognize a tool\'s conventional uses</div>'}<h4>Events known (${ev.length})</h4>${ev.map(row).join('') || '—'}<h4>Locations (${loc.length})</h4>${loc.slice(0, 20).map(row).join('') || '—'}<h4>Other (${other.length})</h4>${other.slice(0, 30).map(row).join('') || '—'}`;
   }
   tab_perception(p: Person): string {
     const w = this.world; const pc = p.mind.percepts;

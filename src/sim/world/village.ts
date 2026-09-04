@@ -11,8 +11,9 @@ import { createConstructionProject } from './construction';
 import { scheduleFor } from '../mind/schedule';
 import { getRel, setRelTags, adjustRel } from '../mind/relationships';
 import { remember } from '../mind/memory';
-import { learn, learnPlace } from '../mind/knowledge';
+import { learn, learnPlace, learnAffordance } from '../mind/knowledge';
 import { seedStartingSkills } from '../core/skills';
+import { STARTING_AFFORDANCE_KNOWLEDGE } from '../core/affordance';
 import { SECONDS_PER_DAY } from '../core/time';
 
 const F = VILLAGE_TOP + 1; // feet level in the village
@@ -150,6 +151,10 @@ export function generateVillage(world: World): GenResult {
     // v0.6 §V.10: profession-seeded starting proficiency — world-generation background, not
     // magical job permission (Constitution v0.6 §V.10).
     seedStartingSkills(p);
+    // v0.7 §Affordances: plausible starting recognition of common worksite tools by profession —
+    // world-generation background, exactly like starting skills/knowledge (never omniscient: an
+    // occupation absent from the table recognizes none of these until they use one themselves).
+    for (const t of STARTING_AFFORDANCE_KNOWLEDGE[c.occupation] ?? []) learnAffordance(world, p, t, { type: 'prior' });
     const fac = c.occupation === 'bandit' ? bandits : (c.occupation === 'guard' || c.occupation === 'captain') ? watch : village;
     p.factionId = fac.id; fac.members.push(p.id);
     if (home) home.residents.push(p.id); if (work) work.workers.push(p.id);

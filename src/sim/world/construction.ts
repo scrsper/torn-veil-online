@@ -7,6 +7,7 @@ import { capabilityFor } from '../core/attributes';
 import { wearTool } from '../core/tools';
 import { createRequest, acceptRequest, completeRequest } from '../core/requests';
 import { practiceSkill } from '../core/skills';
+import { learnAffordance } from '../mind/knowledge';
 
 /**
  * Construction projects (v0.3 Living World I, Priority 9-10-12).
@@ -121,6 +122,8 @@ export function performBuildLabor(world: World, p: ConstructionProject, worker: 
   // v0.6 §V.9: real credited labour is meaningful work — one "unit" = one minute of credited
   // labour, so a longer slice trains proportionally more, not per-tick.
   practiceSkill(worker, 'construction', creditedSeconds / 60);
+  // v0.7 §Affordances: real use of the hammer is evidence of what it's for.
+  if (tool) learnAffordance(world, worker, tool.type, { type: 'self' });
   return completeRequest(world, req);
 }
 

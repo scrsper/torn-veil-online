@@ -5,6 +5,7 @@ import { addPlaceStock } from './stock';
 import { capabilityFor } from '../core/attributes';
 import { wearTool } from '../core/tools';
 import { practiceSkill } from '../core/skills';
+import { learnAffordance } from '../mind/knowledge';
 
 /**
  * Renewable / non-renewable resource nodes (v0.3 Living World I, Priority 5-6-8).
@@ -243,6 +244,9 @@ export function extractFromNode(world: World, node: ResourceNode, actor: Person)
   // v0.6 §V.9: a real successful extraction (got > 0, already guaranteed here) is meaningful
   // work — practice once per swing.
   practiceSkill(actor, action === 'chop' ? 'woodcutting' : 'quarrying', 1);
+  // v0.7 §Affordances: using a tool for its real purpose is itself evidence of what it's good
+  // for — learning by doing, the second acquisition path alongside profession seeding.
+  if (tool) learnAffordance(world, actor, tool.type, { type: 'self' });
   if (node.remaining <= 0) depleteNode(world, node);
   return got;
 }

@@ -1,6 +1,7 @@
 import type { Person, KnowledgeItem, Source, EntityId, WorldEvent, Vec3, Place, PlaceType } from '../core/types';
 import { World } from '../core/world';
 import { memoriesAtPlace, remember } from './memory';
+import { affordancesOf } from '../core/affordance';
 
 /**
  * Knowledge is what a mind believes about the world, always tagged with how it was learned.
@@ -273,6 +274,7 @@ export function describeClaim(world: World, k: KnowledgeItem): string {
     case 'state': return c.text ?? `${world.nameOf(c.entityId)} is ${c.state}`;
     case 'fact': return c.text ?? k.key;
     case 'service': return `${world.nameOf(c.placeId)} offers ${(c.offers as string[]).join(', ')}`;
+    case 'affordance': return `knows what a ${c.itemType} is good for`;
   }
 }
 
@@ -372,3 +374,37 @@ export function isCrime(type: string, intent?: string): boolean {
   return true;
 }
 export function crimeSeverity(type: string): number { return type === 'kill' ? 1 : type === 'attack' ? 0.6 : type === 'theft' ? 0.35 : 0; }
+
+// ---------------------------------------------------------------- affordance recognition (v0.7)
+/**
+ * Learn that an object of `itemType` is good for what it's good for (Constitution v0.7:
+ * "a knowledgeable person may understand more uses" — an ACQUIRED belief, separate from the
+ * object's physical affordance, which is always real regardless of who knows it —
+ * core/affordance.ts). Two acquisition paths, mirroring `learnPlace`'s v0.6 pattern: generation-
+ * time seeding by plausible occupation (world/village.ts's population loop reads
+ * `core/affordance.ts`'s `STARTING_AFFORDANCE_KNOWLEDGE`), and learning by doing — using the
+ * tool for its real purpose (world/resources.ts's `extractFromNode`, world/construction.ts's
+ * `performBuildLabor`). A no-op for an item type with no defined affordance (nothing to
+ * recognize).
+ */
+export function learnAffordance(world: World, p: Person, itemType: import('../core/types').ItemType, source: Source): void {
+  if (!affordancesOf(itemType)) return;
+  learn(world, p, { key: `aff:${itemType}`, kind: 'affordance', claim: { itemType }, confidence: 1, source }, true);
+}
+
+export function knowsAffordance(p: Person, itemType: import('../core/types').ItemType): boolean {
+  return !!p.knowledge[`aff:${itemType}`];
+}
+
+/**
+ * What `p` would actually articulate an object of `itemType` is good for — empty if they have
+ * never learned its affordance (Constitution v0.7: "a person may see an object without knowing
+ * its conventional name" — they can still physically pick it up and swing it; `core/tools.ts`'s
+ * mechanical multiplier is unaffected either way, this only gates what a mind CONSCIOUSLY
+ * recognizes/reasons about). Demonstrated non-omniscient by construction: a freshly-built
+ * person with an empty `knowledge` map next to a real axe recognizes nothing about it.
+ */
+export function recognizedUses(p: Person, itemType: import('../core/types').ItemType): string[] {
+  if (!knowsAffordance(p, itemType)) return [];
+  return affordancesOf(itemType)?.knownUses ?? [];
+}

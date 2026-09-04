@@ -154,6 +154,12 @@ export interface Physiology {
   /** Body heat load, 0 = comfortable, 1 = dangerously overheated. Rises with exertion and hot
    * environment, falls with passive/rest cooling and (faster, while hydrated) sweat cooling. */
   bodyHeat: number;
+  /** v0.7 §Environmental exposure: 0 = dry, 1 = soaked. Rises while outdoors and unsheltered in
+   * rain/storm, dries out (falls) indoors or under clear/cloudy/fog skies — a real accumulating
+   * consequence of weather, not a per-tick reaction to it (Constitution v0.7: "rain is not an
+   * instruction" — see mind/agent.ts's `stepPhysiology` call site and `syncNeeds`, which derives
+   * `needs.comfort` from this). */
+  wetness: number;
 }
 
 export interface Appearance {
@@ -205,7 +211,11 @@ export interface KnowledgeItem {
   // v0.6 §III: 'service' is what a Place offers — "the bakery sells food," "the well has
   // water" — distinct from 'location' (where an ENTITY currently is) and 'fact' (a general
   // social/institutional fact like a home address). See mind/knowledge.ts's `learnPlace`.
-  kind: 'event' | 'location' | 'ownership' | 'state' | 'fact' | 'service';
+  // v0.7 §Affordances: 'affordance' is what an OBJECT TYPE can be used for — "an axe fells
+  // trees" — a real acquired belief distinct from the object's physical affordance, which
+  // exists (core/affordance.ts) whether or not any mind has recognized it. See mind/
+  // knowledge.ts's `learnAffordance`/`recognizedUses`.
+  kind: 'event' | 'location' | 'ownership' | 'state' | 'fact' | 'service' | 'affordance';
   claim: Record<string, any>;
   confidence: number;      // 0..1
   learnedAt: Tick;
@@ -530,6 +540,12 @@ export interface HaulTask {
   /** v0.4: the shared Request this task's acceptance/wage lifecycle goes through — see
    * core/requests.ts and the `Request` doc comment above. */
   requestId?: EntityId;
+  /** v0.7 §A: the person who actually owned this cargo's stock at the source Place, captured at
+   * first pickup (before hauling's own ownership-reassignment to the requester would otherwise
+   * erase it) — see logistics/haul.ts's `loadHaulCargo` and world/trade.ts's `settleWholesale`.
+   * Lets a real wholesale sale (grain delivered to the mill, flour to the bakery, planks/stone
+   * to a construction site) pay the actual producer, not just "whoever asked for it." */
+  materialSellerId?: EntityId | null;
 }
 
 // ---------------------------------------------------------------- Resource nodes (v0.3)
