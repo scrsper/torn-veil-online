@@ -1,0 +1,32 @@
+name: PR gate
+
+# v0.8 §18: a PR should no longer be accepted solely because an implementation agent says tests
+# passed locally. This runs the same commands documented in AGENTS.md/package.json — typecheck,
+# the deterministic vitest suite, a production build, and a fast WorldLab smoke run — on every
+# push to a pull request. It deliberately does NOT run `npm run world:check`/`world:soak`
+# (multi-seed/multi-day validation): those are for a milestone PR to run and report on
+# explicitly, not a per-push CI cost (§18 "do not run expensive 30/90-day soak validation on
+# every PR"). The Playwright browser functional harness (`npm run test:browser`, §10) is also not
+# run here yet — it currently relies on a pre-installed Chromium path specific to the development
+# sandbox (`PLAYWRIGHT_CHROMIUM_PATH`, default `/opt/pw-browsers/chromium`) rather than a
+# `playwright install` step; wiring that up for a fresh CI runner is a documented follow-up, not
+# done in this workflow to avoid a step that would only ever fail here.
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npm run world:smoke

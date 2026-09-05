@@ -62,7 +62,17 @@ class Humanoid {
     if (pose === 'attack') { const k = Math.min(1, (physTime - body.lastAttackAt) / 0.4); const swing = Math.sin(k * Math.PI); lerp(this.armR, -2.4 + swing * 2.6, -0.3, 0.6); lerp(this.armL, -0.4, 0.2); lerp(this.legL, 0.2); lerp(this.legR, -0.2); return; }
     if (pose === 'hit') { this.pivot.rotation.x = -0.25; lerp(this.armL, -1.2, -0.4, 0.5); lerp(this.armR, -1.2, 0.4, 0.5); return; }
     if (pose === 'work') { const w = Math.sin(t * 7); lerp(this.armR, -1.4 + w * 0.9, 0, 0.4); lerp(this.armL, -0.6 + Math.sin(t * 3.5) * 0.2); lerp(this.legL, 0); lerp(this.legR, 0); this.pivot.rotation.x = 0.15; return; }
+    // v0.8 §16: felling/quarrying gets a distinct overhead-swing rhythm — raise, then a sharper
+    // downward chop — instead of `work`'s low side-to-side motion, so extraction reads as its
+    // own action rather than generic labour.
+    if (pose === 'chop') { const cycle = (t * 1.35) % (Math.PI * 2); const raise = Math.max(0, Math.sin(cycle)); const chop = Math.max(0, -Math.sin(cycle)) ** 0.5; lerp(this.armR, -0.3 - raise * 2.2 + chop * 2.0, 0.1, 0.5); lerp(this.armL, -0.5, -0.1); lerp(this.legL, 0.1); lerp(this.legR, -0.1); this.pivot.rotation.x = 0.12; return; }
     if (pose === 'talk') { lerp(this.armR, -0.4 + Math.sin(t * 5) * 0.3, -0.2); lerp(this.armL, -0.2 + Math.sin(t * 4 + 1) * 0.2, 0.15); lerp(this.legL, 0); lerp(this.legR, 0); this.head.rotation.y = Math.sin(t * 2) * 0.1; return; }
+    // v0.8 "The Legible World" §B: `eat`/`drink`/`haul` are now real, distinct poses (see
+    // core/types.ts's `Pose`) — each gets its own silhouette instead of reusing `sit`/`stand`/
+    // `work`, so a player can tell them apart without opening the Inspector.
+    if (pose === 'eat') { this.pivot.position.y = -0.4; lerp(this.legL, -Math.PI / 2 + 0.1); lerp(this.legR, -Math.PI / 2 + 0.1); lerp(this.armL, -0.5); const bite = Math.sin(t * 2.2) * 0.5 + 0.5; lerp(this.armR, -1.9 - bite * 0.3, -0.15); this.head.rotation.x = -bite * 0.15; return; }
+    if (pose === 'drink') { const sip = Math.sin(t * 1.6) * 0.5 + 0.5; lerp(this.armR, -2.0 - sip * 0.25, -0.1); lerp(this.armL, -0.2); lerp(this.legL, 0); lerp(this.legR, 0); this.head.rotation.x = -sip * 0.2; return; }
+    if (pose === 'haul') { const a = Math.sin(p) * Math.min(1.0, speed * 0.28); lerp(this.legL, a, 0, 0.5); lerp(this.legR, -a, 0, 0.5); lerp(this.armL, -1.9, 0.25, 0.35); lerp(this.armR, -1.9, -0.25, 0.35); this.pivot.position.y = Math.abs(Math.sin(p)) * 0.04; this.pivot.rotation.x = 0.08; return; }
     if (walking) { const a = Math.sin(p) * Math.min(1.1, speed * 0.32); lerp(this.legL, a, 0, 0.5); lerp(this.legR, -a, 0, 0.5); lerp(this.armL, -a * 0.8, 0.08, 0.5); lerp(this.armR, a * 0.8, -0.08, 0.5); this.pivot.position.y = Math.abs(Math.sin(p)) * 0.05; }
     else { lerp(this.legL, 0); lerp(this.legR, 0); lerp(this.armL, Math.sin(t * 1.3) * 0.04, 0.06); lerp(this.armR, Math.sin(t * 1.3 + 1) * 0.04, -0.06); this.torso.position.y = 1.07 + Math.sin(t * 1.6) * 0.01; }
   }
@@ -129,7 +139,7 @@ export class ActorRenderer {
         // canonical facing direction. Canonical nav is untouched.
         h.root.position.set(b.pos.x, b.pos.y, b.pos.z); h.root.rotation.y = b.yaw + Math.PI;
         const held = p.inventory.map(id => this.world.item(id)).find(i => i && ['sword', 'dagger', 'hammer', 'axe', 'lantern'].includes(i.type));
-        h.setHeld(b.pose === 'sleep' || b.pose === 'dead' ? '' : (held?.type ?? ''));
+        h.setHeld((b.pose === 'sleep' || b.pose === 'dead' || b.pose === 'eat' || b.pose === 'drink' || b.pose === 'haul') ? '' : (held?.type ?? ''));
         h.animate(dt, b, physTime);
       } else if (b.shape === 'chicken') {
         let c = this.chickens.get(b.id); if (!c) { c = new Chicken(); this.chickens.set(b.id, c); this.group.add(c.root); c.root.userData.bodyId = b.id; }

@@ -36,7 +36,17 @@ export interface Entity {
 }
 
 // ---------------------------------------------------------------- Bodies
-export type Pose = 'stand' | 'walk' | 'run' | 'sit' | 'sleep' | 'work' | 'attack' | 'hit' | 'dead' | 'talk' | 'pray' | 'downed';
+// v0.8 "The Legible World" §B: `eat`/`drink`/`haul` are real, distinct canonical actions
+// (`ActionType` below) that previously all rendered as an indistinguishable `sit`/`stand`/`work`
+// — the player could never tell an eating villager from one merely sitting, or a hauler from an
+// idle worker. Each gets its own pose so `game/actors/actors.ts`'s renderer can give it a
+// distinct animation.
+export type Pose = 'stand' | 'walk' | 'run' | 'sit' | 'sleep' | 'work' | 'attack' | 'hit' | 'dead' | 'talk' | 'pray' | 'downed' | 'eat' | 'drink' | 'haul'
+  // v0.8 §16 "visible causality": resource extraction (felling a tree, quarrying stone) gets its
+  // own overhead-swing silhouette instead of reusing the generic side-to-side `work` pose, so
+  // "someone is chopping/quarrying" is readable at a glance — the same rationale that already
+  // gave `eat`/`drink`/`haul` their own poses.
+  | 'chop';
 
 export interface Body extends Entity {
   kind: 'body';
@@ -888,6 +898,10 @@ export type EventType =
   | 'collapsed_from_exhaustion' | 'sleep_completed' | 'heat_forced_rest'
   | 'request_created' | 'request_accepted' | 'request_completed' | 'request_failed'
   | 'wage_paid' | 'purchase_made' | 'tool_broke' | 'tree_growth_stage'
+  // v0.8 §1B: a fulfilled recover_item desire pays a real, conserved reward — see
+  // `core/requests.ts`'s `payRecoveryReward` (the same honest-transfer semantics `wage_paid`
+  // already uses).
+  | 'reward_paid'
   // v0.5 Human Physiology / Autonomous Economy — goal commitment lifecycle transitions
   // (Constitution v0.5 §12: "canonical, observable, reason-coded... avoid event spam", so only
   // real transitions, never a per-tick "still committed" heartbeat) and the new production

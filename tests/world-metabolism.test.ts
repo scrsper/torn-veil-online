@@ -6,7 +6,7 @@ import { makeItem, makePlace } from '../src/sim/world/factory';
 import {
   createFields, stepMetabolism, moistureGrowthFactor, plantPlot, harvestPlot, mill, bake,
   transform, findAccessibleFood, eatFood, drinkAt, nearestWaterSource, metabolismSummary,
-  stockTotal, villageStock, MATURE_HOURS,
+  stockTotal, villageStock, MATURE_HOURS, cropBlockFor,
 } from '../src/sim/world/metabolism';
 import type { Field, Person } from '../src/sim/core/types';
 import { SECONDS_PER_DAY, SECONDS_PER_HOUR } from '../src/sim/core/time';
@@ -245,11 +245,13 @@ describe('persistence (v0.2.4 Priority 1 + SAVE_VERSION 5)', () => {
     expect(rf0.plots.map(p => p.state).join(',')).toBe(plotStates);
     expect(restored.person(gen.people.alwin.id)!.needs.thirst).toBeCloseTo(thirst, 5);
     expect(villageStock(restored, 'grain')).toBe(grain);
-    // reloaded crop blocks match canonical plot state
+    // reloaded crop blocks match canonical plot state — v0.8 "The Legible World" §C gave every
+    // non-fallow state (including `planted`/`harvested`) its own distinct block, so this reads
+    // the same `cropBlockFor` the game itself uses rather than hardcoding block IDs that go
+    // stale the moment a new crop-visual block is added.
     for (const p of rf0.plots.slice(0, 10)) {
       const b = restored.grid.get(p.x, p.y, p.z);
-      const expected = p.state === 'mature' ? 17 : p.state === 'growing' ? 55 : 0;
-      expect(b).toBe(expected);
+      expect(b).toBe(cropBlockFor(p.state));
     }
   });
 

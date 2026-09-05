@@ -17,12 +17,14 @@ import { nearestAvailableNode, extractFromNode, maintainResourceNodes } from '..
 import { stepConstruction, activeBuildProjects, performBuildLabor, MAX_BUILDERS } from '../world/construction';
 import { remember } from './memory';
 import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge, learnPlace, knownFoodPlace, noteFoodShortage } from './knowledge';
+import { realizeClaim } from './realize';
 import { currentScheduleEntry } from './schedule';
 import { SECONDS_PER_HOUR } from '../core/time';
 import { B } from '../physical/blocks';
 import { makeItem } from '../world/factory';
 import { banditResourcePressure, laborIncentive } from './economy';
 import { resolveRobberyCompliance, selectRobberyTake, ROBBERY_COOLDOWN_SECONDS, type RobberyTake } from './robbery';
+import { payRecoveryReward } from '../core/requests';
 
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -877,7 +879,12 @@ export class Simulation {
         if (!dest) { failGoto('no destination'); break; }
         if (!body.path) { if (dist2(body.pos, dest) < 1.2) { a.status = 'done'; break; } this.pathTo(body, dest, a); if (!body.path) { failGoto('no path found'); break; } }
         body.speed = a.run ? 5.6 : (p.occupation === 'child' ? 3.6 : 3.2 + (p.age > 60 ? -0.8 : 0));
-        body.pose = a.run ? 'run' : 'walk';
+        // v0.8 "The Legible World" §B: a hauler physically carrying real cargo (a claimed,
+        // in-transit HaulTask with units actually loaded) is visually distinct from an ordinary
+        // walk — previously indistinguishable, so the player could never tell "moving supplies"
+        // from "just walking somewhere".
+        const hauling = w.haulTasks.some(t => t.claimantId === p.id && t.status === 'in_transit' && t.carried > 0);
+        body.pose = hauling ? 'haul' : (a.run ? 'run' : 'walk');
         const arrived = this.followPath(body, physDt);
         if (arrived) {
           a.status = 'done'; body.path = null; if (!a.targetEntity && dist2(body.pos, dest) > 3) { /* couldn't reach */ }
@@ -910,7 +917,7 @@ export class Simulation {
       }
       case 'sit': body.pose = 'sit'; body.sitAnchor = a.pos ?? null; if (a.pos) { body.pos.x = Math.floor(a.pos.x) + 0.5; body.pos.z = Math.floor(a.pos.z) + 0.5; } p.needs.social = clamp(p.needs.social - worldDt / (3 * SECONDS_PER_HOUR)); this.maybeChat(p, body); if (this.elapsed(a)) a.status = 'done'; break;
       case 'eat': {
-        body.pose = 'sit'; body.sitAnchor = a.pos ?? null;
+        body.pose = 'eat'; body.sitAnchor = a.pos ?? null;
         // v0.2.4: a meal consumes a real food item. Resolve once, when the sit-down settles in.
         if (!a.data?.done && w.now - (a.startedAt ?? 0) > 60) {
           a.data = a.data ?? {}; a.data.done = true;
@@ -1000,7 +1007,7 @@ export class Simulation {
         break;
       }
       case 'drink': {
-        body.pose = 'stand'; body.yaw = a.pos ? Math.atan2(-(a.pos.x - body.pos.x), -(a.pos.z - body.pos.z)) : body.yaw;
+        body.pose = 'drink'; body.yaw = a.pos ? Math.atan2(-(a.pos.x - body.pos.x), -(a.pos.z - body.pos.z)) : body.yaw;
         if (this.elapsed(a)) { drinkAt(w, p, a.placeId); a.status = 'done'; }
         break;
       }
@@ -1052,7 +1059,9 @@ export class Simulation {
       }
       case 'chop': case 'gather': {
         const node = w.resourceNodes.find(n => n.id === a.data?.nodeId);
-        body.pose = 'work'; body.sitAnchor = null;
+        // v0.8 §16: felling a tree / quarrying stone is now visibly its own action, not
+        // indistinguishable generic "work" — see core/types.ts's `Pose` and actors.ts.
+        body.pose = 'chop'; body.sitAnchor = null;
         if (!node || node.state !== 'available' || node.remaining <= 0) { a.status = 'done'; break; } // depleted — stop, don't retry
         if (a.pos && dist2(body.pos, a.pos) > 2.6) { a.status = 'pending'; m.plan.unshift({ type: 'goto', pos: a.pos, status: 'pending' }); break; }
         body.yaw = Math.atan2(-(node.pos.x - body.pos.x), -(node.pos.z - body.pos.z));
@@ -1347,21 +1356,23 @@ export class Simulation {
       this.sayLater(listener, isGuard ? `${k.claim.type === 'kill' ? 'Murder?!' : 'An assault?'} Where? I'll see to it.` : listener.traits.courage > 0.6 ? `That so? Someone should do something.` : `Gods. I'll keep my door barred.`, 1.2);
     } else if (learned) { this.sayLater(listener, ['Is that so.', 'I hadn\'t heard.', 'Well, well.', 'Hm.', 'Really?'][Math.floor(w.rng.next() * 5)], 1.5); }
   }
+  /**
+   * v0.8 "The Legible World" §A: ambient NPC-to-NPC gossip is exactly the same grounded
+   * knowledge → speech step player-facing dialogue (`mind/dialogue.ts`) already goes through —
+   * previously this had its OWN separate, more repetitive switch-per-event-type template here
+   * ("X! Y attacked Z at W. Q told me!"), the exact database-log style the v0.8 playtest flagged,
+   * just in a code path the player never directly interacts with (a speech bubble, not a
+   * dialogue menu) — arguably MORE visible than the on-demand dialogue system, since it fires
+   * constantly during ordinary play. Reusing `realizeClaim` here means ambient gossip and
+   * deliberate conversation are the SAME synthesis, not two divergent narrative layers that
+   * could drift out of sync with each other or with what's actually grounded.
+   */
   private tellLine(sp: Person, li: Person, k: KnowledgeItem): string {
-    const w = this.world; const c = k.claim; const first = li.name.split(' ')[0]; const src = k.source.type === 'witnessed' ? 'I saw it myself' : k.source.type === 'heard' ? 'I heard it happen' : k.source.from ? `${w.nameOf(k.source.from).split(' ')[0]} told me` : 'they say';
-    const who = (id: string | undefined, unk?: boolean) => unk ? 'someone' : id ? (id === li.id ? 'you' : w.nameOf(id)) : 'someone';
-    switch (c.type) {
-      case 'attack': return `${first}! ${who(c.actor, c.actorUnknown)} attacked ${who(c.target)}${c.placeId ? ' at ' + w.nameOf(c.placeId) : ''}. ${src}!`;
-      case 'kill': return `${first}, ${who(c.target)} is dead. ${who(c.actor, c.actorUnknown)} killed ${li.gender === 'f' ? 'him' : 'them'}. ${src}.`;
-      case 'theft': return `${who(c.actor, c.actorUnknown)} took ${c.item ? w.nameOf(c.item) : 'something'} from ${who(c.target)}. ${src}.`;
-      case 'gift': return `Did you hear? ${who(c.actor)} gave ${who(c.target)} ${c.item ? w.nameOf(c.item) : 'a gift'}.`;
-      case 'returned_item': return `${who(c.actor)} brought ${c.item ? w.nameOf(c.item) : 'it'} back to ${who(c.target)}. ${src}.`;
-      case 'rumor': return `${src}: ${c.text}.`;
-      case 'debt': return `${who(c.actor)} still owes ${who(c.target)} ${c.amount} silver, ${src}.`;
-      case 'dispute': return `${who(c.actor)} and ${who(c.target)} had words${c.about ? ' over ' + c.about : ''}. ${src}.`;
-      case 'heal': return `${who(c.actor)} patched up ${who(c.target)}, ${src}.`;
-      default: return `${src}: ${describeClaim(w, k)}.`;
-    }
+    const c = k.claim; const first = li.name.split(' ')[0];
+    const body = realizeClaim(this.world, sp, k);
+    // Direct address is kept only for the two "you need to know this NOW" urgent types — the
+    // rest read naturally as realizeClaim already produces them.
+    return (c.type === 'attack' || c.type === 'kill') ? `${first}! ${body}` : body;
   }
   say(p: Person, text: string): void { p.speech = { text, until: this.world.physicalTime + 3 + text.length * 0.05 }; this.onSpeech?.(p, text); }
   private pendingSpeech: { p: Person; text: string; at: number }[] = [];
@@ -1473,15 +1484,71 @@ export class Simulation {
     return node ? extractFromNode(w, node, actor) : 0;
   }
 
+  /**
+   * v0.8 "The Legible World" §D (player/NPC affordance parity): a mature wheat plot is real,
+   * canonical resource state (`CropPlot`) exactly like a `ResourceNode` — this is the same
+   * shape of wrapper as `extractResourceAt` above, calling the SAME `harvestPlot`/`plantPlot`
+   * an NPC's own `harvest`/`plant` action already uses (`case 'harvest'`/`'plant'` below), never
+   * a player-only shortcut. No tool/capability gate is added here because none exists for an
+   * NPC's own harvest/plant either — parity means matching the real requirement, not inventing
+   * a stricter one for the player. Yield/seed-cost still flow through the field's real
+   * `ownerId` (a hired hand's harvest already paid the landowner, not themselves; the player
+   * harvesting someone else's field behaves identically — the same canonical rule, not a
+   * special case). Returns grain yielded (0 if nothing to harvest here).
+   */
+  harvestWheatAt(actor: Person, pos: Vec3): number {
+    const w = this.world;
+    const cx = Math.floor(pos.x), cy = Math.floor(pos.y), cz = Math.floor(pos.z);
+    const place = w.placeAt(pos); const field = place ? fieldFor(w, place.id) : undefined;
+    const plot = field?.plots.find(p => p.x === cx && p.y === cy && p.z === cz);
+    if (!field || !plot) return 0;
+    return harvestPlot(w, field, plot, actor);
+  }
+  /** Sibling of `harvestWheatAt` for sowing a fallow plot — same parity rationale. Returns
+   * whether a plot was actually sown (false if there is none here, or no seed grain at the
+   * farm). */
+  plantWheatAt(actor: Person, pos: Vec3): boolean {
+    const w = this.world;
+    const cx = Math.floor(pos.x), cy = Math.floor(pos.y), cz = Math.floor(pos.z);
+    const place = w.placeAt(pos); const field = place ? fieldFor(w, place.id) : undefined;
+    const plot = field?.plots.find(p => p.x === cx && p.y === cy && p.z === cz);
+    if (!field || !plot) return false;
+    return plantPlot(w, field, plot, actor);
+  }
+
   // ------------------------------------------------------------------ items
+  /**
+   * v0.8 §1A: whether `actor` picking up `it` (which someone else owns) is a grounded, authorized
+   * recovery rather than theft. This requires ALL of:
+   *  - the owner has an active (unfulfilled) `recover_item` desire naming this exact item — not
+   *    "any owned item", and not a request that has already been fulfilled or withdrawn;
+   *  - `actor` has actually learned of that specific request through canonical knowledge (the
+   *    `wanted:<itemId>` fact `DialogueSystem.hearDesire` grants when the owner asks for help) —
+   *    never simulation omniscience;
+   *  - that learned fact still names the correct requester and item, so stale or wrong knowledge
+   *    doesn't authorize picking up a different owner's property.
+   * Ordinary unrelated pickup of someone else's belongings remains theft; this is a narrow,
+   * evidence-gated exception, not a blanket "owned items are exempt from theft" rule.
+   */
+  isAuthorizedRecovery(actor: Person, it: import('../core/types').Item): boolean {
+    if (!it.ownerId || it.ownerId === actor.id) return false;
+    const owner = this.world.person(it.ownerId);
+    if (!owner) return false;
+    const desire = owner.desires.find(d => d.type === 'recover_item' && d.targetId === it.id && !d.fulfilled);
+    if (!desire) return false;
+    const known = actor.knowledge[`wanted:${it.id}`];
+    return !!known && known.claim.itemId === it.id && known.claim.requesterId === owner.id;
+  }
   takeItem(p: Person, it: import('../core/types').Item, how: 'pickup' | 'theft' | 'recovered' | 'bought' | 'given', from?: EntityId): WorldEvent {
     const w = this.world; const pos = it.pos ? { ...it.pos } : w.primaryBody(p.id)?.pos; const place = it.placeId ? w.place(it.placeId) : pos ? w.placeAt(pos) : undefined;
     const prevHolder = it.holderId; if (prevHolder) { const h = w.person(prevHolder); if (h) h.inventory = h.inventory.filter(x => x !== it.id); }
     it.holderId = p.id; it.pos = null; it.placeId = null; if (!p.inventory.includes(it.id)) p.inventory.push(it.id);
-    const stolen = how === 'theft' || (how === 'pickup' && it.ownerId && it.ownerId !== p.id);
-    const type = stolen ? 'theft' : how === 'recovered' ? 'recovered' : how === 'given' ? 'give' : how === 'bought' ? 'trade' : 'pickup';
+    const ownedByOther = how === 'pickup' && !!it.ownerId && it.ownerId !== p.id;
+    const authorizedRecovery = ownedByOther && this.isAuthorizedRecovery(p, it);
+    const stolen = how === 'theft' || (ownedByOther && !authorizedRecovery);
+    const type = stolen ? 'theft' : how === 'recovered' || authorizedRecovery ? 'recovered' : how === 'given' ? 'give' : how === 'bought' ? 'trade' : 'pickup';
     it.provenance.push({ tick: w.now, from: from ?? prevHolder ?? it.ownerId ?? null, to: p.id, how: stolen ? 'stolen' : how });
-    const ev = w.emit(type, { actor: p.id, target: stolen ? it.ownerId! : (from ?? it.ownerId ?? undefined), item: it.id, pos, placeId: place?.id, significance: stolen ? 0.5 : 0.15, visibility: stolen ? 16 : 8, data: { how }, summary: stolen ? `${p.name} stole ${it.name} from ${w.nameOf(it.ownerId)}${place ? ' at ' + place.name : ''}` : `${p.name} ${how === 'recovered' ? 'recovered' : how === 'bought' ? 'bought' : 'picked up'} ${it.name}${place ? ' at ' + place.name : ''}` });
+    const ev = w.emit(type, { actor: p.id, target: stolen ? it.ownerId! : (from ?? it.ownerId ?? undefined), item: it.id, pos, placeId: place?.id, significance: stolen ? 0.5 : 0.15, visibility: stolen ? 16 : 8, data: { how, authorized: authorizedRecovery || undefined }, summary: stolen ? `${p.name} stole ${it.name} from ${w.nameOf(it.ownerId)}${place ? ' at ' + place.name : ''}` : authorizedRecovery ? `${p.name} recovered ${it.name} to return to ${w.nameOf(it.ownerId)}${place ? ' at ' + place.name : ''}` : `${p.name} ${how === 'recovered' ? 'recovered' : how === 'bought' ? 'bought' : 'picked up'} ${it.name}${place ? ' at ' + place.name : ''}` });
     it.provenance[it.provenance.length - 1].eventId = ev.id;
     if (how === 'bought') it.ownerId = p.id;
     else if (!stolen && how !== 'given') it.ownerId = it.ownerId ?? p.id;
@@ -1529,7 +1596,13 @@ export class Simulation {
     const pos = w.primaryBody(to.id)?.pos;
     const ev = w.emit(returned ? 'returned_item' : 'gift', { actor: from.id, target: to.id, item: it.id, pos, significance: returned ? 0.6 : 0.4, visibility: 14, loudness: 6, summary: `${from.name} ${returned ? 'returned' : 'gave'} ${it.name} to ${to.name}` });
     it.provenance[it.provenance.length - 1].eventId = ev.id;
-    for (const d of to.desires) if (!d.fulfilled && d.type === 'recover_item' && d.targetId === it.id) { d.fulfilled = true; adjustRel(w, to, from.id, { affection: 0.6, trust: 0.5, respect: 0.3 }, `returned ${it.name}`, ev.id); to.emotions.joy = 1; to.emotions.sadness *= 0.5; this.say(to, `You... you found it. I don't know what to say. Thank you, stranger.`); }
+    for (const d of to.desires) if (!d.fulfilled && d.type === 'recover_item' && d.targetId === it.id) {
+      d.fulfilled = true; adjustRel(w, to, from.id, { affection: 0.6, trust: 0.5, respect: 0.3 }, `returned ${it.name}`, ev.id); to.emotions.joy = 1; to.emotions.sadness *= 0.5;
+      // v0.8 §1B: a promised reward is really paid, from the requester who offered it, honestly
+      // capped by what they actually have (payRecoveryReward never manufactures currency).
+      const paid = d.reward > 0 ? payRecoveryReward(w, to.id, from, d.reward) : 0;
+      this.say(to, paid >= d.reward ? `You... you found it. I don't know what to say. Thank you, stranger. Here — ${paid} silver, as promised.` : paid > 0 ? `You found it! Thank you. I've only ${paid} silver on me right now, but take it — it's yours.` : `You... you found it. I don't know what to say. Thank you, stranger.`);
+    }
     return ev;
   }
 
@@ -1654,8 +1727,10 @@ export class Simulation {
     const t1 = this.mark();
     const wt = w.weather;
     if (w.now >= wt.nextChangeAt) {
-      const r = w.rng.next(); const kinds: import('../core/types').WeatherKind[] = wt.kind === 'clear' ? ['clear', 'cloudy', 'cloudy', 'fog'] : wt.kind === 'cloudy' ? ['clear', 'rain', 'cloudy', 'storm'] : wt.kind === 'rain' ? ['cloudy', 'rain', 'storm', 'clear'] : wt.kind === 'storm' ? ['rain', 'cloudy'] : ['clear', 'cloudy'];
-      const kind = kinds[Math.floor(r * kinds.length)]; const prev = wt.kind; wt.kind = kind; wt.intensity = kind === 'storm' ? 1 : kind === 'rain' ? 0.5 + w.rng.next() * 0.4 : kind === 'fog' ? 0.7 : 0; wt.wind = 0.1 + w.rng.next() * (kind === 'storm' ? 1 : 0.5); wt.nextChangeAt = w.now + (1.5 + w.rng.next() * 4) * SECONDS_PER_HOUR;
+      // v0.8 §9: weather draws from its own forked stream (`w.weatherRng`) precisely so that
+      // weather is never a source of, or victim of, RNG-sequence coupling with anything else.
+      const r = w.weatherRng.next(); const kinds: import('../core/types').WeatherKind[] = wt.kind === 'clear' ? ['clear', 'cloudy', 'cloudy', 'fog'] : wt.kind === 'cloudy' ? ['clear', 'rain', 'cloudy', 'storm'] : wt.kind === 'rain' ? ['cloudy', 'rain', 'storm', 'clear'] : wt.kind === 'storm' ? ['rain', 'cloudy'] : ['clear', 'cloudy'];
+      const kind = kinds[Math.floor(r * kinds.length)]; const prev = wt.kind; wt.kind = kind; wt.intensity = kind === 'storm' ? 1 : kind === 'rain' ? 0.5 + w.weatherRng.next() * 0.4 : kind === 'fog' ? 0.7 : 0; wt.wind = 0.1 + w.weatherRng.next() * (kind === 'storm' ? 1 : 0.5); wt.nextChangeAt = w.now + (1.5 + w.weatherRng.next() * 4) * SECONDS_PER_HOUR;
       if (prev !== kind) w.emit('weather', { significance: 0.2, data: { kind }, summary: `The weather turned to ${kind}` });
     }
     this.accum('strategic.weather', t1);

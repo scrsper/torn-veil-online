@@ -47,6 +47,19 @@ export class World {
   runTally: Record<string, number> = {};
   clock: WorldClock;
   rng: RNG;
+  /**
+   * v0.8 §9 RNG coupling investigation: `rng` is one single shared stream consumed, in
+   * iteration order, by world generation AND every per-tick runtime system (agent decisions,
+   * combat rolls, gossip-line selection, weather, ...) — see docs/RNG_ARCHITECTURE.md. That
+   * means an unrelated code change that adds or removes even one `rng.next()` call anywhere
+   * shifts every subsequent "random" draw everywhere else in the run, for the rest of the run.
+   * This is a first, narrow, low-risk cut at the "derived streams" direction that document
+   * recommends: weather is a fully self-contained subsystem (one call site, `strategic()`'s
+   * weather block) with no reason to share a stream with anything else, so it gets its own fork
+   * — a real, tested decoupling — while the larger job of separating agent/combat/resource
+   * streams is documented as a deliberate follow-up rather than attempted here.
+   */
+  weatherRng: RNG;
   seed: number;
   grid!: VoxelGrid;
   nav!: Navigator;
@@ -76,7 +89,7 @@ export class World {
    */
   private byKind = new Map<Entity['kind'], Entity[]>();
 
-  constructor(seed: number, clock?: WorldClock) { this.seed = seed; this.rng = new RNG(seed); this.clock = clock ?? new WorldClock(); }
+  constructor(seed: number, clock?: WorldClock) { this.seed = seed; this.rng = new RNG(seed); this.weatherRng = this.rng.fork(97); this.clock = clock ?? new WorldClock(); }
 
   get now(): number { return this.clock.worldSeconds; }
   nextId(prefix: string): string { const n = (this.counters[prefix] = (this.counters[prefix] ?? 0) + 1); return `${prefix}_${n}`; }

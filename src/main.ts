@@ -26,10 +26,19 @@ document.getElementById('btn-continue')!.onclick = () => boot(false);
 document.getElementById('btn-new')!.onclick = () => { clearSave(); boot(true); };
 
 let game: Game | null = null;
+/** §10 reusable browser functional harness: `?seed=NNNN` lets a test (or a developer) boot a
+ * specific deterministic village instead of the default 1337, without touching an existing save.
+ * Only applies to a fresh world — "Continue" always resumes whatever was actually saved. */
+function requestedSeed(): number | null {
+  const raw = new URLSearchParams(location.search).get('seed');
+  if (raw === null) return null;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : null;
+}
 async function boot(fresh: boolean): Promise<void> {
   loading.textContent = 'Generating Ashford Vale…'; await new Promise(r => setTimeout(r, 30));
   const t0 = performance.now();
-  const res = (!fresh && load()) || newWorld(1337);
+  const res = (!fresh && load()) || newWorld(requestedSeed() ?? 1337);
   loading.textContent = `World ready in ${Math.round(performance.now() - t0)} ms. Building meshes…`; await new Promise(r => setTimeout(r, 30));
   game = new Game(res.world); window.game = game;
   startEl.style.display = 'none'; game.start();
