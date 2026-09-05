@@ -26,8 +26,12 @@ interface ProductionSpec { placeType: PlaceType; resource: ItemType; target: num
  * V0_6_KNOWLEDGE_MEMORY_SKILLS_INTENT.md §II) showed the tavern's permanently-unrestocked ale
  * (fixed below, `restockTavern`) and the 30-minute food-search give-up window were the dominant
  * causes of elevated hunger, not this trigger, so it was left as-is rather than widened blindly. */
+/** v0.8 §P0-E: exported so `mind/agent.ts`'s harvest gate can reuse the SAME "is bread actually
+ * short" threshold this file already uses to decide when to raise a baking request, instead of
+ * inventing a second magic number that could drift out of sync with it. */
+export const BREAD_SHORTAGE_TRIGGER = 30;
 const PRODUCTION_TARGETS: ProductionSpec[] = [
-  { placeType: 'bakery', resource: 'bread', target: 60, trigger: 30, batchOut: BAKE_RATIO.out, reason: 'the bakery is low on bread' },
+  { placeType: 'bakery', resource: 'bread', target: 60, trigger: BREAD_SHORTAGE_TRIGGER, batchOut: BAKE_RATIO.out, reason: 'the bakery is low on bread' },
   { placeType: 'mill', resource: 'flour', target: 45, trigger: 24, batchOut: MILL_RATIO.out, reason: 'the mill is low on flour' },
 ];
 

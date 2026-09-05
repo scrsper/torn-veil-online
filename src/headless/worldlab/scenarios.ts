@@ -4,13 +4,24 @@ import { makeItem } from '../../sim/world/factory';
 import { learn } from '../../sim/mind/knowledge';
 import { INVARIANTS } from './invariants';
 import { LIVENESS } from './liveness';
+import { TAIL_CHECKS } from './tail';
+import { THROUGHPUT_CHECKS } from './throughput';
+import { TREND_CHECKS } from './trend';
 import type { InvariantCheck, LivenessCheck, ScenarioSpec } from './types';
+
+// v0.8 §21 "four classes of health check": `LIVENESS` (mechanism-liveness, pre-existing),
+// `TAIL_CHECKS` (individual/tail), `THROUGHPUT_CHECKS` (service/throughput), `TREND_CHECKS`
+// (sustainability) each live in their own file/array — merged here only at the point scenarios
+// pick checks by category, so a scenario asking for e.g. 'survival' automatically picks up both
+// the old village-wide liveness checks AND the new per-person tail checks without a separate
+// per-scenario wire-up.
+const ALL_LIVENESS: LivenessCheck[] = [...LIVENESS, ...TAIL_CHECKS, ...THROUGHPUT_CHECKS, ...TREND_CHECKS];
 
 function invariantsIn(categories: string[]): InvariantCheck[] {
   return INVARIANTS.filter(i => categories.includes(i.category));
 }
 function livenessIn(categories: string[]): LivenessCheck[] {
-  return LIVENESS.filter(l => categories.includes(l.category));
+  return ALL_LIVENESS.filter(l => categories.includes(l.category));
 }
 
 // Structural invariants worth checking in EVERY scenario regardless of focus — corruption here
@@ -32,13 +43,18 @@ const ALWAYS_INVARIANTS = invariantsIn(['economy', 'logistics', 'cognition']);
  */
 export const SCENARIOS: ScenarioSpec[] = [
   {
+    // v0.8 §P2-B/C (independent audit §4.8): 1337 is the seed `main.ts` actually boots — the
+    // audit measured it among the worst (-47% spendable wealth, 22/32 unable to buy any meal by
+    // day 30) while it sat in no WorldLab tier at all. 30 days matches this milestone's own
+    // "standard multi-seed 30-day horizon" requirement — every finding in the audit was already
+    // visible by day ~10 and unambiguous by day 20; a 7-day window could not have caught it.
     id: 'baseline-village', title: 'Baseline Village',
-    seeds: [918271, 42424242, 12345], days: 7, probeIntervalSeconds: 3600 * 6,
-    invariants: INVARIANTS, liveness: LIVENESS,
+    seeds: [918271, 42424242, 12345, 1337], days: 30, probeIntervalSeconds: 3600 * 6,
+    invariants: INVARIANTS, liveness: ALL_LIVENESS,
   },
   {
     id: 'food-chain', title: 'Food Chain (crops -> grain -> flour -> bread)',
-    seeds: [918271, 42424242, 12345], days: 10, probeIntervalSeconds: 3600 * 3,
+    seeds: [918271, 42424242, 12345], days: 21, probeIntervalSeconds: 3600 * 3,
     invariants: [...ALWAYS_INVARIANTS], liveness: livenessIn(['agriculture', 'production', 'survival']),
   },
   {

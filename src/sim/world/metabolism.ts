@@ -61,8 +61,16 @@ export const FARM_SEED_RESERVE = 12;
 export const MILL_RATIO = { in: 3, out: 4 } as const;
 export const BAKE_RATIO = { in: 2, out: 5 } as const;
 export const SAW_RATIO = { in: 2, out: 3 } as const;
-/** Stop sawing once the sawpit is holding this many planks — the first non-food transform cap. */
-export const PLANK_CAP = 40;
+/** v0.8 §P1 (independent audit §3.4/§8 P2-D): the old flat `PLANK_CAP = 40` had no relationship
+ * to actual demand — measured directly, one storage-shed project needed 16 planks total, so a
+ * flat cap of 40 meant sawing ran to roughly 2.5x real demand every cycle, consuming ~36 of the
+ * world's 84 lifetime logs to fill a buffer nothing had asked for (this project's entire
+ * standing timber budget is ~2.3 sheds at real demand — see `resources.ts`'s regrow-horizon doc
+ * comment; wasting two-thirds of a felled tree on an oversized buffer is the actual problem, not
+ * the multi-year regrow time). A small flat floor remains (so sawing can still get ahead of a
+ * FRESH project before its deficit is known) but the effective cap now tracks the real,
+ * currently-open plank deficit across active construction projects — see `plankCapFor` below. */
+const PLANK_BASE_BUFFER = 10;
 /** Stock ceilings that make the pipeline demand-driven rather than infinite: a farmer stops
  * harvesting once the village has plenty of grain, a miller stops once there is plenty of
  * flour, a baker stops once there is plenty of bread. Production resumes when stock falls.
@@ -301,15 +309,32 @@ export function bake(world: World, baker: Person): TransformResult {
   return result;
 }
 
+/** v0.8 §P1: real, currently-open plank deficit across active construction projects, plus a
+ * small base buffer (`PLANK_BASE_BUFFER`) so sawing can still get ahead of a freshly-created
+ * project before its manifest is known. Reads `world.constructionProjects` directly rather than
+ * importing `construction.ts`'s own `projectDeficits` helper, to keep this a one-way, minimal
+ * dependency (metabolism -> canonical project state only, not construction's haul-raising logic). */
+function plankCapFor(world: World): number {
+  let deficit = 0;
+  for (const proj of world.constructionProjects) {
+    if (proj.status === 'complete' || proj.status === 'cancelled') continue;
+    for (const req of proj.required) {
+      if (req.type !== 'plank') continue;
+      deficit += Math.max(0, req.quantity - stockAtPlace(world, 'plank', proj.sitePlaceId));
+    }
+  }
+  return PLANK_BASE_BUFFER + deficit;
+}
+
 /**
  * One sawing batch (v0.3): logs physically at the sawpit → planks at the sawpit. The first
  * non-food production chain, reusing the same conservation-respecting `transform`. Demand-driven
- * via a plain plank cap (no cross-module dependency on construction).
+ * via a real plank cap tracking open construction demand (see `plankCapFor`), not a flat number.
  */
 export function saw(world: World, sawyer: Person): TransformResult {
   const sawpitId = world.places().find(p => p.type === 'sawpit')?.id;
   if (!sawpitId) return { ok: false, produced: 0, consumed: 0 };
-  if (stockTotal(world, 'plank', [sawpitId]) >= PLANK_CAP) return { ok: false, produced: 0, consumed: 0 };
+  if (stockTotal(world, 'plank', [sawpitId]) >= plankCapFor(world)) return { ok: false, produced: 0, consumed: 0 };
   if (stockAtPlace(world, 'log', sawpitId) < SAW_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'log' };
   const result = transform(world, { actor: sawyer.id, inputType: 'log', inputQty: SAW_RATIO.in, inputPlaces: [sawpitId], outputType: 'plank', outputQty: SAW_RATIO.out, outputPlace: sawpitId, ownerId: sawyer.id, how: 'sawn' });
   if (result.ok) practiceSkill(sawyer, 'sawing', 1);

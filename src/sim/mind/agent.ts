@@ -4,15 +4,15 @@ import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRel
 import { maintainConflicts, beginConflict, recordConflictBlow, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
 import { maintainCustody, subdue, takeIntoCustody, beginSurrender, isSubdued } from '../social/custody';
 import { stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, restockTavern, GRAIN_CAP, SEED_PER_PLOT } from '../world/metabolism';
-import { stepPhysiology, activityLevelFor, heatBand, hungerBand, thirstBand, sleepBand, comfortBand, severityAtLeast } from '../core/physiology';
+import { stepPhysiology, activityLevelFor, heatBand, hungerBand, thirstBand, sleepBand, comfortBand, severityAtLeast, syncNeeds } from '../core/physiology';
 import { isCommittable, EMERGENCY_GOAL_TYPES, interruptionSeverityMet, startCommitment, suspendCommitment, resumeCommitment, finishCommitment, commitmentValidity } from './commitment';
 import { getPhysicalCapability, capabilityFor } from '../core/attributes';
 import { skillOf } from '../core/skills';
 import { wearTool } from '../core/tools';
 import { isFood } from '../world/factory';
-import { stockAt } from '../world/stock';
+import { stockAt, retireStack } from '../world/stock';
 import { pickHaulTask, claimHaulTask, loadHaulCargo, depositHaulCargo, failHaulTask, generateLogisticsNeeds, maintainHauls, canHaul } from '../logistics/haul';
-import { generateProductionNeeds, claimedProductionRequest, fulfillProductionRequest } from '../world/production';
+import { generateProductionNeeds, claimedProductionRequest, fulfillProductionRequest, BREAD_SHORTAGE_TRIGGER } from '../world/production';
 import { nearestAvailableNode, extractFromNode, maintainResourceNodes } from '../world/resources';
 import { stepConstruction, activeBuildProjects, performBuildLabor, MAX_BUILDERS } from '../world/construction';
 import { remember } from './memory';
@@ -443,7 +443,19 @@ export class Simulation {
       const field = fieldFor(w, sched.placeId);
       if (field) {
         const rainingNow = w.weather.kind === 'rain' || w.weather.kind === 'storm';
-        const grainGlut = villageStock(w, 'grain') >= GRAIN_CAP;
+        // v0.8 §P0-E fix (independent audit §3.3/§4.3): `GRAIN_CAP` alone gates harvest on
+        // whether the FIRST stage of the chain (raw grain) has a full warehouse — it says
+        // nothing about whether bread, several stages downstream, is actually feeding anyone.
+        // Measured directly: harvest froze for 12+ straight days once grain hit its cap while
+        // bread stayed pinned at a fraction of its own stock target the whole time (3466
+        // resource_shortage events in 30 days) — mature wheat sat unharvested not because no one
+        // could reach it, but because the gate was watching the wrong stage of the chain. This
+        // reuses the bakery's own existing "bread is short" threshold (`BREAD_SHORTAGE_TRIGGER`,
+        // world/production.ts — the same number that already decides when to raise a baking
+        // request) rather than inventing a second magic number: grain is only treated as a
+        // genuine glut worth pausing harvest for when bread is ALSO not currently short.
+        const breadShort = villageStock(w, 'bread') < BREAD_SHORTAGE_TRIGGER;
+        const grainGlut = villageStock(w, 'grain') >= GRAIN_CAP && !breadShort;
         if (firstPlot(field, 'harvest') && !grainGlut) G('harvest', clamp(0.7 + (rainingNow ? -0.1 : 0)), [`wheat is ripe in ${w.nameOf(field.placeId)}`], { targetPlace: field.placeId, data: { fieldId: field.id } });
         // v0.3 Priority 13: sowing needs seed grain at the farm — don't adopt `plant` without it.
         else if (firstPlot(field, 'plant') && !rainingNow && farmSeedGrain(w, field) >= SEED_PER_PLOT) G('plant', 0.58, [`there is fallow ground in ${w.nameOf(field.placeId)}`], { targetPlace: field.placeId, data: { fieldId: field.id } });
@@ -1555,11 +1567,12 @@ export class Simulation {
     return ev;
   }
   /**
-   * Canonical robbery completion: transfers whatever `selectRobberyTake` chose, using the same
-   * item/wealth APIs as everything else (`takeItem` for a real item, `makeItem` to materialize
-   * abstract wealth exactly like `sellItem` does), then makes sure the victim — who was present
-   * and directly targeted — always knows they were robbed, with full provenance, the same way
-   * `applyHit` guarantees a victim always knows who struck them.
+   * Canonical robbery completion: transfers whatever `selectRobberyTake` chose — `takeItem` for
+   * a real physical item/coin stack, a direct `wealth` transfer for abstract money (v0.8 §P0-B:
+   * no longer materializes a new coin item nobody but the player can spend — see the doc
+   * comments on each branch below) — then makes sure the victim — who was present and directly
+   * targeted — always knows they were robbed, with full provenance, the same way `applyHit`
+   * guarantees a victim always knows who struck them.
    */
   private executeRobbery(bandit: Person, victim: Person, take: RobberyTake, intent: ConflictIntent): WorldEvent {
     const w = this.world; const vb = w.primaryBody(victim.id); const pos = vb?.pos ?? w.primaryBody(bandit.id)?.pos;
@@ -1567,11 +1580,38 @@ export class Simulation {
     let ev: WorldEvent;
     if (take.kind === 'coins' || take.kind === 'item') {
       ev = this.takeItem(bandit, take.item, 'theft', victim.id);
+      // v0.8 §P0-B: an NPC's money must stay spendable. Every NPC economic action —
+      // `buyFoodPortion`, `payWage`, `payRecoveryReward`, `settleWholesale`, `laborIncentive`,
+      // `banditResourcePressure` — reads `Person.wealth`; none of them ever reads a physical
+      // `coins` Item (only the player's own dialogue/inventory UI does). A bandit who steals an
+      // existing physical coin stack (this only realistically happens when the victim is the
+      // player, who is the one entity that actually carries coins as a literal prop) still needs
+      // that money banked to be able to spend it like any other villager. The player keeps
+      // physically losing/gaining coin items when robbed/looted — only a *non-player* recipient
+      // auto-deposits, immediately, into their own spendable wealth.
+      if (take.kind === 'coins' && !bandit.controlled) {
+        const amount = take.item.quantity;
+        bandit.wealth += amount; bandit.inventory = bandit.inventory.filter(id => id !== take.item.id);
+        take.item.quantity = 0; retireStack(take.item);
+      }
     } else {
-      victim.wealth -= take.amount;
-      const coins = makeItem(w, 'coins', 'silver coins', { owner: bandit.id, holder: bandit.id, quantity: take.amount });
-      ev = w.emit('theft', { actor: bandit.id, target: victim.id, item: coins.id, pos, placeId: place?.id, significance: 0.5, visibility: 16, data: { intent, wealth: true }, summary: `${bandit.name} robbed ${take.amount} silver from ${victim.name}${place ? ' at ' + place.name : ''}` });
-      coins.provenance.push({ tick: w.now, eventId: ev.id, from: victim.id, to: bandit.id, how: 'stolen' });
+      // v0.8 §P0-B (audit finding — §3.1/§4.1 of the independent review): this branch used to
+      // mint a brand-new `coins` Item for the bandit, creating a SECOND, incompatible
+      // representation of money that no NPC economic action can ever spend (listed above). Over
+      // a real run that is a one-way pump: spendable purchasing power drains out of the village
+      // into an inert reservoir (measured: hundreds of silver per simulated month; `Person.wealth`
+      // and total coin-item counts diverge while a "wealth + coin items" conservation check
+      // reports a perfect residual throughout, because the quantity it conserves is not the
+      // quantity anyone can spend). A direct wealth-to-wealth transfer is the smallest
+      // structurally coherent fix: it is exactly the operation `buyFoodPortion`/`payWage`/
+      // `sellItem`'s buyer side already perform for every other NPC-to-NPC payment in this
+      // codebase, it keeps stolen money spendable by the bandit (closing `mind/economy.ts`'s
+      // documented-but-previously-inert `banditResourcePressure` feedback loop for the first
+      // time — a bandit faction's measured wealth now actually falls when it robs successfully),
+      // and it invents no new mechanism. No item is created because none is needed: 'wealth'
+      // means abstract money, not a physical coin stack that has to exist as an object.
+      victim.wealth -= take.amount; bandit.wealth += take.amount;
+      ev = w.emit('theft', { actor: bandit.id, target: victim.id, pos, placeId: place?.id, significance: 0.5, visibility: 16, data: { intent, wealth: true, amount: take.amount }, summary: `${bandit.name} robbed ${take.amount} silver from ${victim.name}${place ? ' at ' + place.name : ''}` });
     }
     if (victim.alive && !victim.controlled && !ev.perceivedBy.some(x => x.who === victim.id)) {
       ev.perceivedBy.push({ who: victim.id, how: 'saw', tick: w.now });
@@ -1649,6 +1689,24 @@ export class Simulation {
       // this used to apply directly. `needs.hunger/.thirst/.energy` are still real fields
       // (dozens of callers read them), just derived from the physiology reserves now.
       if (b) stepPhysiology(w, p, h, activityLevelFor(p, b), { indoor: w.isIndoors(b.pos), daylight: this.lightAt() });
+      // v0.8 §P0-D fix: a detainee has no agency to seek their own food/water — `custody?.active`
+      // already suspends their autonomous goal system entirely (this file's think(), the
+      // `idle:custody` hold) — so an institution holding someone has a basic duty of care, the
+      // same way it already prevents ordinary health regen without providing MORE than survival
+      // (see the "held" health-regen guard a few lines below this one). Before this fix, a
+      // multi-day detention (`custodyDurationFor`: 1.5-6 days) combined with zero sustenance
+      // mechanism meant a detainee's hunger/thirst climbed to `critical` and simply stayed there
+      // for the ENTIRE detention — measured directly (seed 918271: Vex arrested at hour 5, held
+      // until hour 113, critical hunger+thirst for over 100 continuous hours) — an institutional
+      // neglect bug, not a consequence of a bandit's chosen precarious lifestyle. This floors
+      // (never restores past) hunger/thirst at "uncomfortable", not comfortable — a cell is still
+      // not a good place to be, but a real jail feeds and waters its prisoners enough that they
+      // don't starve or dehydrate to crisis while held.
+      if (p.custody?.active) {
+        p.physiology.energy = Math.max(p.physiology.energy, 0.4);
+        p.physiology.hydration = Math.max(p.physiology.hydration, 0.45);
+        syncNeeds(p);
+      }
       // v0.6 §XV: time-weighted (not point-in-time-snapshot) severity-band distribution — how
       // many world-MINUTES the village actually spends at each band, the benchmark evidence the
       // milestone asks for ("average hunger band distribution") rather than a single end-of-run
@@ -1667,7 +1725,19 @@ export class Simulation {
       if (b && !b.dead && !held && b.health < b.maxHealth) b.health = Math.min(b.maxHealth, b.health + minutes * 0.15);
       // notice missing possessions when at work: inference without a witness
       if (b && p.workId && w.placeAt(b.pos)?.id === p.workId && w.rng.next() < 0.3 * minutes) {
-        for (const it of w.items()) if (it.ownerId === p.id && it.holderId && it.holderId !== p.id && !p.knowledge[`missing:${it.id}`]) {
+        // v0.8 §P0-F fix: an item legitimately assigned to a haul task and carried by that
+        // task's authorized claimant is not missing — it is exactly where a haul is supposed to
+        // put it, in transit. Before this check, a bakery owner "noticing" their own flour is
+        // gone every time a hauler had legitimately picked it up (`loadHaulCargo` makes the
+        // owner the requester and the holder the hauler, on purpose) produced a real,
+        // provenance-stamped FALSE belief ("someone took it") at a measured rate of roughly one
+        // per day across a 20-day run — a confident false belief formed from a broken inference,
+        // which Constitution §5/§6 explicitly forbids. `it.haulTaskId` is the authoritative
+        // "this stack is a haul cargo currently being carried between two Places for the named
+        // task" signal (see core/types.ts's `Item.haulTaskId` doc) — checking it directly (not
+        // merely suppressing the emitted event) is what makes this a real custody/transport
+        // distinction rather than a name-based patch.
+        for (const it of w.items()) if (it.ownerId === p.id && it.holderId && it.holderId !== p.id && !it.haulTaskId && !p.knowledge[`missing:${it.id}`]) {
           const knownTheft = Object.values(p.knowledge).find(k => k.kind === 'event' && k.claim.type === 'theft' && k.claim.item === it.id);
           if (knownTheft) continue;
           const ev = w.emit('item_missing', { actor: p.id, item: it.id, pos: b.pos, placeId: p.workId, significance: 0.45, summary: `${p.name} noticed ${it.name} is missing` });

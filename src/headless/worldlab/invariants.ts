@@ -5,7 +5,9 @@ import { buildPersonTrace } from './trace';
 const WORK_GOAL_TYPES = new Set(['work', 'haul', 'chop', 'gather', 'build', 'plant', 'harvest']);
 
 function finding(id: string, category: string, severity: 'warning' | 'failure', message: string, trace?: Finding['trace']): Finding {
-  return { id, kind: 'invariant', severity, category, message, trace };
+  // Every check in this file is, by the v0.8 §21 taxonomy, an integrity check: a property that
+  // must never be false, checked at every probe — see types.ts's `FindingClass` doc.
+  return { id, kind: 'invariant', class: 'integrity', severity, category, message, trace };
 }
 
 /** §4 invariants: "always true" properties of canonical state. Each check is a pure read over
@@ -103,6 +105,69 @@ export const INVARIANTS: InvariantCheck[] = [
     check: (world) => {
       const out: Finding[] = [];
       for (const it of world.items()) if (it.ownerId && !world.person(it.ownerId)) out.push(finding('WL-ORPHAN-OWNER', 'economy', 'failure', `Item ${it.name} (${it.id}) claims ownerId ${it.ownerId}, but no such person exists.`));
+      return out;
+    },
+  },
+  {
+    id: 'spendable-currency-is-real',
+    category: 'economy',
+    description: 'Spendable wealth never falls while total currency (wealth + coins) holds steady — that signature means money is being converted into a form nothing can spend, not conserved.',
+    // v0.8 §P0-A/B (independent audit §4.1): the pre-existing `currency-conservation` check
+    // above only asks "is the loss explained?", which a robbery converting wealth into an inert
+    // coin item satisfies trivially (the coin item IS the explanation). This asks the question
+    // that actually matters: even when every silver is accounted for, is it still SPENDABLE?
+    // `executeRobbery` (mind/agent.ts) was the one place this could happen; it has been fixed to
+    // transfer wealth directly rather than minting a coin item — this check is the regression
+    // guard, not the fix itself.
+    check: (world, prev, curr) => {
+      if (!prev) return [];
+      const spendableDrop = prev.economy.spendableWealth - curr.economy.spendableWealth;
+      const totalDrop = prev.totalCurrency - curr.totalCurrency;
+      const convertedToInert = spendableDrop - totalDrop; // > 0 means spendable fell more than total currency did
+      if (convertedToInert <= 0.5) return [];
+      return [finding('WL-CURRENCY-INERT-CONVERSION', 'economy', 'failure',
+        `${convertedToInert.toFixed(2)} silver of SPENDABLE wealth disappeared between day ${prev.atWorldDays} and day ${curr.atWorldDays} while total currency `
+        + `(wealth+coins) only fell by ${totalDrop.toFixed(2)} — money is being converted into a physical coin item no NPC economic action can spend `
+        + `(spendable ${prev.economy.spendableWealth}->${curr.economy.spendableWealth}, coins ${prev.economy.coinItems}->${curr.economy.coinItems}).`)];
+    },
+  },
+  {
+    id: 'no-inert-currency-growth',
+    category: 'economy',
+    description: 'No non-player person ever holds a physical coins item — every NPC economic action reads Person.wealth, never a coin Item, so a held coin item is dead money.',
+    check: (world) => {
+      const out: Finding[] = [];
+      for (const it of world.items()) {
+        if (it.type !== 'coins' || !it.holderId || it.quantity <= 0) continue;
+        const holder = world.person(it.holderId);
+        if (holder && !holder.controlled) out.push(finding('WL-NPC-HOLDS-INERT-COINS', 'economy', 'warning',
+          `${holder.name} (${holder.occupation}) is holding ${it.quantity} physical silver coins as an item — no NPC purchase path can spend a coin item, only Person.wealth. This money is inert.`));
+      }
+      return out;
+    },
+  },
+  {
+    id: 'no-false-theft-belief',
+    category: 'social',
+    description: 'An item legitimately assigned to an open haul task and carried by its authorized claimant never generates a missing/stolen belief in its owner\'s mind.',
+    // v0.8 §P0-F regression guard for the fix in mind/agent.ts's strategic() item_missing
+    // inference — checks LIVE state (never `world.events`, which the independent audit showed
+    // drops item_missing's significance-0.45 events well before a long run's compaction floor).
+    check: (world) => {
+      const out: Finding[] = [];
+      for (const t of world.haulTasks) {
+        if (t.status !== 'claimed' && t.status !== 'in_transit') continue;
+        if (!t.cargoItemId) continue;
+        const cargo = world.item(t.cargoItemId);
+        if (!cargo || !cargo.ownerId) continue;
+        const owner = world.person(cargo.ownerId);
+        if (!owner) continue;
+        const falselyBelievesMissing = !!owner.knowledge[`missing:${cargo.id}`];
+        const falseDesire = owner.desires.some(d => d.type === 'recover_item' && d.targetId === cargo.id && !d.fulfilled);
+        if (falselyBelievesMissing || falseDesire) out.push(finding('WL-FALSE-THEFT-BELIEF', 'social', 'failure',
+          `${owner.name} believes ${cargo.name} is missing/stolen, but it is legitimate in-transit haul cargo (task ${t.id}) carried by its authorized claimant ${t.claimantId ? world.nameOf(t.claimantId) : '?'}.`,
+          buildPersonTrace(world, world.now, owner.id, 'WL-FALSE-THEFT-BELIEF', 'false theft belief on haul cargo')));
+      }
       return out;
     },
   },

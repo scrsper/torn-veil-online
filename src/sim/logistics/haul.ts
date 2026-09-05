@@ -343,7 +343,23 @@ export function canHaul(p: Person): boolean {
   if (!p.alive || p.controlled || p.custody?.active || p.surrender) return false;
   if (p.hostile) return false;
   const b = p.occupation;
-  return b !== 'child' && b !== 'guard' && b !== 'captain' && b !== 'priest' && b !== 'acolyte' && b !== 'elder';
+  // v0.8 §P0-D fix (independent audit §3.2/§8): 'guard'/'captain'/'priest'/'acolyte' used to be
+  // excluded here on the assumption that institutional occupations have some other income — they
+  // do not; NOTHING in the game pays a wage for scheduled guard duty or worship the way baking/
+  // sawing/milling are paid for their scheduled work. The exclusion was the actual defect, not a
+  // deliberate design choice with an alternative already in place: measured directly (seed
+  // 918271), a guard's one-time starting wealth (20-90 silver) drains to 0 by roughly day 7-8
+  // with zero income, after which their `eat` goal keeps correctly finding and targeting a real
+  // seller but can never complete the purchase — permanent hunger, not a scheduling/access bug.
+  // This restores their access to the SAME existing, conservation-respecting haul-wage mechanism
+  // every other occupation already uses (the requester's own real wealth pays the wage — nothing
+  // is created); `laborIncentive`/`getPhysicalCapability` already weight this so an on-duty guard
+  // still strongly prefers patrolling and only competes for a haul job when genuinely poor and
+  // hungry, not as a replacement for their actual duty. 'child' stays excluded (too young for
+  // heavy manual labour); 'elder' stays excluded (already comfortably wealthy — Elder Godwin
+  // starts at 100 silver — and retirement-age labour is a bigger thematic shift than an off-duty
+  // guard or acolyte picking up occasional work).
+  return b !== 'child' && b !== 'elder';
 }
 
 /** How well-suited a person is to a given haul (0 = won't consider it). */

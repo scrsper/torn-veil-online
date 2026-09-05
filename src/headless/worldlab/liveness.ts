@@ -79,13 +79,19 @@ export const LIVENESS: LivenessCheck[] = [
     category: 'logistics',
     boundHours: 24,
     description: 'A loaded haul task eventually gets delivered, released, or explicitly failed — not stuck in transit indefinitely.',
-    check: (world) => {
+    check: (world, series) => {
       const out: Finding[] = [];
       for (const t of world.haulTasks) {
         if (t.status !== 'in_transit' && t.status !== 'claimed') continue;
         const ageHours = (world.now - t.updatedAt) / SECONDS_PER_HOUR;
         if (ageHours >= 24) out.push(finding('WL-HAUL-STUCK', 'logistics', `Haul task ${t.id} (${t.resource}, ${t.reason}) has been '${t.status}' for ${ageHours.toFixed(0)}h with no resolution.`, t.claimantId ? buildPersonTrace(world, world.now - ageHours * SECONDS_PER_HOUR, t.claimantId, 'WL-HAUL-STUCK', 'stale haul task') : undefined));
       }
+      // v0.8 §P1-C: the check above only sees a task that is STILL stuck at the final probe —
+      // `HaulTask`s are pruned ~90 minutes after resolution (`RESOLVED_KEEP_SECONDS`), so a task
+      // that stalled for days mid-run and later resolved was previously invisible. `probe.ts`
+      // tracks the oldest open task's age at every probe specifically to catch this.
+      const worstMidRun = series.reduce((m, o) => Math.max(m, o.maxOpenHaulTaskAgeHours), 0);
+      if (worstMidRun >= 24 && !out.length) out.push({ id: 'WL-HAUL-STUCK-MIDRUN', kind: 'liveness', class: 'integrity', severity: 'failure', category: 'logistics', message: `A haul task was stuck (claimed/in_transit with no update) for ${worstMidRun.toFixed(0)}h at some point during the run, even though none is currently stuck.` });
       return out;
     },
   },
@@ -143,12 +149,64 @@ export const LIVENESS: LivenessCheck[] = [
     category: 'social',
     boundHours: 12,
     description: 'An active conflict eventually disengages, is suspended, or resolves — it does not stay "active" (blows/pursuit) indefinitely.',
-    check: (world) => {
+    check: (world, series) => {
       const out: Finding[] = [];
       for (const c of world.conflicts) {
         if (c.status !== 'active') continue;
         const ageHours = (world.now - c.lastMeaningfulInteraction) / SECONDS_PER_HOUR;
         if (ageHours >= 12) out.push(finding('WL-CONFLICT-STUCK', 'social', `Conflict ${c.id} between ${c.participants.map(id => world.nameOf(id)).join(' and ')} has been 'active' with no meaningful interaction for ${ageHours.toFixed(0)}h.`, buildPersonTrace(world, 0, c.participants[0], 'WL-CONFLICT-STUCK', 'conflict never resolved')));
+      }
+      // v0.8 §P1-C: same "later resolved but was stuck mid-run" blind spot as haul tasks above —
+      // `world.conflicts` is append-only, but `status` can already read 'resolved' by the final
+      // probe even if it sat 'active' for days first.
+      const worstMidRun = series.reduce((m, o) => Math.max(m, o.maxActiveConflictAgeHours), 0);
+      if (worstMidRun >= 12 && !out.length) out.push({ id: 'WL-CONFLICT-STUCK-MIDRUN', kind: 'liveness', class: 'integrity', severity: 'failure', category: 'social', message: `A conflict sat 'active' with no meaningful interaction for ${worstMidRun.toFixed(0)}h at some point during the run, even though none is currently stuck.` });
+      return out;
+    },
+  },
+  {
+    id: 'construction-material-deficit-shrinks',
+    category: 'construction',
+    boundHours: 48,
+    // v0.8 §P1-D fix (independent audit §4.4): the check above is gated on
+    // `materialsComplete && workers > 0`, which is false EXACTLY during a gathering stall — it
+    // cannot fire during the failure mode that actually happens most often. This checks the
+    // OTHER half of construction's lifecycle: while a project is still gathering, its total
+    // material deficit must shrink at least once per 48h, or name which resource is stuck and
+    // whether any producer place actually holds stock of it (separating "nobody is hauling" from
+    // "there is nothing to haul").
+    description: 'While gathering, a project\'s total material deficit strictly decreases at least once per 48h.',
+    check: (world, series) => {
+      const out: Finding[] = [];
+      if (series.length < 2) return out;
+      const deficitOf = (d: { required: Record<string, number>; delivered: Record<string, number> }) =>
+        Object.entries(d.required).reduce((sum, [res, need]) => sum + Math.max(0, need - (d.delivered[res] ?? 0)), 0);
+      const byName = (o: Observation) => new Map(o.summary.logistics.construction.details.map(d => [d.name, d]));
+      for (let i = 0; i < series.length; i++) {
+        const start = byName(series[i]);
+        for (let j = i + 1; j < series.length; j++) {
+          const spanHours = (series[j].atWorldSeconds - series[i].atWorldSeconds) / SECONDS_PER_HOUR;
+          if (spanHours < 48) continue;
+          const end = byName(series[j]);
+          for (const [name, d0] of start) {
+            if (d0.status !== 'gathering') continue;
+            const d1 = end.get(name);
+            if (!d1 || d1.status !== 'gathering') continue; // it progressed past gathering — fine
+            const def0 = deficitOf(d0), def1 = deficitOf(d1);
+            if (def1 >= def0 && def1 > 0) {
+              const stuckResource = Object.entries(d1.required).map(([res, need]) => ({ res, missing: need - (d1.delivered[res] ?? 0) })).filter(r => r.missing > 0).sort((a, b) => b.missing - a.missing)[0];
+              const producerHasStock = stuckResource ? world.places().some(p => world.items().some(it => it.type === stuckResource.res && it.placeId === p.id && !it.holderId && it.quantity > 0)) : false;
+              const site = world.places().find(p => p.name === name);
+              out.push({
+                id: 'WL-CONSTRUCTION-MATERIAL-STALLED', kind: 'liveness', class: 'throughput', severity: 'failure', category: 'construction',
+                message: `${name} has been gathering with an unchanging material deficit (${def0}->${def1} units short) from day ${series[i].atWorldDays} to day ${series[j].atWorldDays}`
+                  + (stuckResource ? ` — most deficient: ${stuckResource.missing} ${stuckResource.res} still needed; ${producerHasStock ? 'a producer DOES hold stock (a hauling/logistics problem)' : 'NO producer currently holds any stock (a production/supply problem)'}.` : '.'),
+                trace: site ? buildPlaceTrace(world, 0, site.id, 'WL-CONSTRUCTION-MATERIAL-STALLED', 'material deficit not shrinking') : undefined,
+              });
+            }
+          }
+          break;
+        }
       }
       return out;
     },
