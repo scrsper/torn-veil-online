@@ -3,7 +3,7 @@ import { World } from '../core/world';
 import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRelationships } from './relationships';
 import { maintainConflicts, beginConflict, recordConflictBlow, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
 import { maintainCustody, subdue, takeIntoCustody, beginSurrender, isSubdued } from '../social/custody';
-import { stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, restockTavern, gatherHerbs, GRAIN_CAP, SEED_PER_PLOT } from '../world/metabolism';
+import { stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, restockTavern, gatherHerbs, huntGame, GRAIN_CAP, SEED_PER_PLOT } from '../world/metabolism';
 import { stepPhysiology, activityLevelFor, heatBand, hungerBand, thirstBand, sleepBand, comfortBand, severityAtLeast } from '../core/physiology';
 import { isCommittable, EMERGENCY_GOAL_TYPES, interruptionSeverityMet, startCommitment, suspendCommitment, resumeCommitment, finishCommitment, commitmentValidity } from './commitment';
 import { getPhysicalCapability, capabilityFor } from '../core/attributes';
@@ -952,7 +952,7 @@ export class Simulation {
         // v0.2.4: a miller / baker at their workplace runs a production batch every ~12 world-min
         // of work (real resource transformation; conservation; demand-driven — mill/bake stop
         // when the village has plenty). Only checked on the batch cadence, so no per-substep cost.
-        if ((p.occupation === 'miller' || p.occupation === 'baker' || p.occupation === 'woodcutter' || p.occupation === 'innkeeper' || p.occupation === 'herbalist' || p.occupation === 'cook')) {
+        if ((p.occupation === 'miller' || p.occupation === 'baker' || p.occupation === 'woodcutter' || p.occupation === 'innkeeper' || p.occupation === 'herbalist' || p.occupation === 'cook' || p.occupation === 'hunter')) {
           a.data = a.data ?? {};
           const t = w.placeAt(body.pos)?.type;
           // v0.4 §2/§6: sawing's fixed log:plank ratio (SAW_RATIO) never changes — no duplication
@@ -998,6 +998,11 @@ export class Simulation {
             else if (p.occupation === 'innkeeper' && t === 'tavern') restockTavern(w, p);
             // v0.8 §A/F: the herbalist gathers at her own workplace, real bounded stock.
             else if (p.occupation === 'herbalist') gatherHerbs(w, p);
+            // v0.8 §D (found via this milestone's own 90-day benchmark): the hunter restocks her
+            // own stall while working there — without this, meat was one-time-seeded and never
+            // replenished, so cook()'s new haul demand could only ever move the original stock
+            // once. See world/metabolism.ts's `huntGame` doc comment.
+            else if (p.occupation === 'hunter' && t === 'stall') huntGame(w, p);
             // v0.8 §D: the cook tends the tavern hearth (lighting it if needed, from whatever
             // wood is on hand) and, once it's genuinely burning, cooks a real batch — see
             // world/cooking.ts. Demand-gated exactly like baking/milling (claimedProductionRequest).
