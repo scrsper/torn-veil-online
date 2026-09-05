@@ -563,7 +563,10 @@ describe('canonical integrity (v0.4 §22)', () => {
     // `world.runTally.supply_cost_amount` for exactly this kind of audit. Total wealth is still
     // conserved once that tracked, intentional exit is accounted for — nothing untracked
     // appeared or vanished.
-    expect(totalBefore - totalAfter).toBe(world.runTally.supply_cost_amount ?? 0);
+    // toBeCloseTo, not toBe: several restocks each contribute a rounded-to-cents cost, and
+    // summing several such floats can accumulate a sub-cent floating-point residue (e.g.
+    // 17.40000000000009) — real money conservation, not a precision bug in the game itself.
+    expect(totalBefore - totalAfter).toBeCloseTo(world.runTally.supply_cost_amount ?? 0, 6);
   });
 
   it('interrupted hauling mid-multi-trip conserves cargo exactly', () => {
