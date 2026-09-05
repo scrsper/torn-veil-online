@@ -58,6 +58,30 @@ const CONSUMER_DEMANDS: Demand[] = [
   { destType: 'mill', resource: 'grain', sourceType: 'farm', target: 55, trigger: 36, reason: 'the mill is low on grain' },
   { destType: 'bakery', resource: 'flour', sourceType: 'mill', target: 34, trigger: 20, reason: 'the bakery is low on flour' },
   { destType: 'stall', resource: 'bread', sourceType: 'bakery', target: 16, trigger: 6, reason: 'the market stall is low on bread' },
+  // v0.8 §D: the tavern never had ANY logistics path for meat at all — Kestrel only ever sold it
+  // retail at her own stall, so world/cooking.ts's `cook()` (meat -> stew) had no real input to
+  // work with regardless of the fire (found by direct headless inspection: `stewsCooked` stayed
+  // 0 across an 8-day run even though the fire itself lit and burned correctly). A real physical
+  // delivery, same as every other consumer demand here — `world/trade.ts`'s wholesale-trade
+  // mechanism pays Kestrel for it automatically (WHOLESALE_DEST_TYPES includes 'tavern').
+  // v0.8: `meat` is real, generic food stock the same as anywhere else — any hungry villager at
+  // the tavern can (and does) buy/eat it raw via the existing generic food-purchase path before
+  // the cook ever gets to it (real, measured competition, not a bug: raw meat genuinely can be
+  // eaten OR cooked). A wider target/trigger than the other consumer demands gives the cook a
+  // real chance at some of what arrives rather than every delivery being eaten raw first.
+  { destType: 'tavern', resource: 'meat', sourceType: 'stall', target: 20, trigger: 10, reason: 'the tavern is low on meat for the cook' },
+  // v0.8 §C/D: same gap, one resource earlier in the chain — the tavern never had ANY firewood
+  // delivery either, so `tendTavernFire`'s own fuel search always found nothing (real headless
+  // evidence: the hearth never once lit across an 8-day run despite the fire mechanism itself
+  // working correctly in isolation — tests/materials-fire-crafting.test.ts already proves that).
+  // `stick` (not `log`) deliberately: it's a free byproduct of felling (world/resources.ts's
+  // `extractFromNode`), never consumed by the sawpit/construction chain, so this demand cannot
+  // compete with construction's own log needs for the same clearing stock — a real regression
+  // found directly (the 12-world-day full-chain construction test blew its time budget when this
+  // was `log`, because the tavern's own demand started draining the clearing before the sawpit
+  // got enough). `sourceType: 'wilderness'` resolves to the clearing specifically because it's
+  // the only wilderness Place that ever holds `stick` stock.
+  { destType: 'tavern', resource: 'stick', sourceType: 'wilderness', target: 12, trigger: 4, reason: 'the tavern needs kindling for the hearth' },
 ];
 /** How long (world seconds) a claimed-but-not-progressing task waits before its claim is released. */
 const STALE_CLAIM_SECONDS = 40 * 60;

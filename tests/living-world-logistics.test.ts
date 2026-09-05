@@ -420,14 +420,17 @@ describe('behavioural integration — the full material chain, no player (v0.3)'
     const { world } = newWorld(918271);
     const sim = new Simulation(world);
     // v0.8 "The Legible World": this exact test has now been seen to need anywhere from 12 to
-    // ~25-30 world-days to complete the full chain at this seed, across THREE completely
-    // unrelated change sets (a firewood haul-demand addition, a meat-buffer/hunter fix, and now
-    // dialogue/pose changes with zero logical connection to hauling or construction). Directly
-    // diagnosed each time: the shed is never permanently stuck, only delayed — the woodcutter
-    // (Bors Ashwood) intermittently drifts into other schedule activities (eating, socializing,
-    // gossip) before returning to sawing, and exactly how long that drift lasts is extremely
-    // sensitive to ANY change that shifts the timing of the single shared deterministic RNG
-    // stream, however unrelated the change looks. 35 days gives real margin beyond the ~30 days
+    // ~25-30 world-days to complete the full chain at this seed, across FOUR completely
+    // unrelated change sets (a firewood haul-demand addition, a meat-buffer/hunter fix, dialogue/
+    // pose changes, and — merged in alongside this one — the tavern's own real, recurring meat/
+    // firewood haul demands from world/cooking.ts/`huntGame`, which delayed the storage shed's
+    // LAST plank past a previous 12-day mark by competing for the same finite pool of villagers
+    // who do hauling at all). Directly diagnosed each time: the shed is never permanently stuck,
+    // only delayed — the woodcutter (Bors Ashwood) intermittently drifts into other schedule
+    // activities (eating, socializing, gossip) before returning to sawing, and exactly how long
+    // that drift lasts is extremely sensitive to ANY change that shifts the timing of the single
+    // shared deterministic RNG stream or adds one more haul task competing for the same hauler
+    // pool, however unrelated the change looks. 35 days gives real margin beyond the ~30 days
     // directly confirmed sufficient; the invariant this test checks (the full chain genuinely
     // completes) is unchanged. This sensitivity is itself worth someone's attention some day
     // (see the v0.8 report's FOLLOW-UP/ARCHITECTURAL QUESTION disclosure) — repeatedly bumping

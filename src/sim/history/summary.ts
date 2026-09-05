@@ -9,6 +9,7 @@ import { stockAt } from '../world/stock';
 import { requestSummary, type RequestSummary } from '../core/requests';
 import { productionSummary, type ProductionSummary } from '../world/production';
 import { effectivePrice } from '../world/pricing';
+import { fireSummary, type FireSummary } from '../world/fire';
 import type { SkillId } from '../core/types';
 
 /**
@@ -100,6 +101,14 @@ export interface WorldRunSummary {
     supplyCostAmount: number;
     wealthByOccupation: Record<string, { avg: number; min: number; max: number; n: number }>;
     villagersBelow3Silver: number;
+  };
+  /** v0.8 Materials, Fire, Processes & Practical Crafting. */
+  materials: {
+    fire: FireSummary;
+    stewsCooked: number;
+    itemsCrafted: number;
+    sticksGathered: number;
+    herbsAtRiverWoods: number;
   };
   /** v0.6 Knowledge, Memory, Skills & Intentional Action. `*BandMinutes` are TIME-WEIGHTED (world-
    * minutes actually spent at each severity band — mind/agent.ts's `strategic()`), not a single
@@ -221,9 +230,27 @@ export function buildWorldRunSummary(world: World, ctx: WorldRunSummaryContext):
     pricing: breadPricingSnapshot(world),
     cognition: cognitionSummary(world),
     circulation: circulationSummary(world),
+    materials: materialsSummary(world),
   };
 }
 
+function materialsSummary(world: World): WorldRunSummary['materials'] {
+  const riverWoods = world.places().find(p => p.slug === 'river_woods');
+  return {
+    fire: fireSummary(world),
+    stewsCooked: world.runTally.stew_cooked ?? 0,
+    itemsCrafted: world.runTally.item_crafted ?? 0,
+    sticksGathered: world.runTally.stick_gathered ?? 0,
+    herbsAtRiverWoods: riverWoods ? stockAt(world, 'herbs', riverWoods.id) : 0,
+  };
+}
+
+/** `resource_transformed`/`resource_extracted` are tallied as one lifetime COUNT each (see
+ * core/world.ts's `TALLIED_TYPES`) — that tally doesn't distinguish per-`how` the way this
+ * summary wants for stew/stick counts specifically, so those two are read directly off
+ * surviving events instead: a coarse, honestly-labelled approximation on a long run where
+ * compaction has dropped most low-significance events of that type (same caveat
+ * `topSignificantEvents` already carries elsewhere in this file), not a precise lifetime total. */
 function circulationSummary(world: World): WorldRunSummary['circulation'] {
   const alive = world.persons().filter(p => p.alive && !p.controlled);
   const byOcc: Record<string, number[]> = {};
@@ -342,6 +369,8 @@ export function formatWorldRunSummary(s: WorldRunSummary): string {
   const cr = s.circulation;
   lines.push(`Circulation: wholesale trade ${cr.wholesaleAmount} silver, supply costs ${cr.supplyCostAmount} silver (explicit exit); ${cr.villagersBelow3Silver}/${Object.values(cr.wealthByOccupation).reduce((n, v) => n + v.n, 0)} villagers below 3 silver`);
   lines.push(`  wealth by occupation (avg/min/max): ${Object.entries(cr.wealthByOccupation).map(([occ, w]) => `${occ}=${w.avg}/${w.min}/${w.max}`).join(', ')}`);
+  const mat = s.materials;
+  lines.push(`Materials/Fire/Crafting: fire ${mat.fire.lit}/${mat.fire.total} lit now (${mat.fire.extinguishedTotal} extinguished, ${mat.fire.extinguishedByStorm} by storm); ${mat.stewsCooked} stew batch(es) cooked, ${mat.itemsCrafted} item(s) crafted, ${mat.sticksGathered} stick(s) gathered while felling, ${mat.herbsAtRiverWoods} herbs at the river woods`);
   lines.push('');
   lines.push('Most historically significant entities:');
   for (const e of s.topSignificantEntities.slice(0, 10)) lines.push(`  ${e.score.toFixed(2).padStart(5)}  ${e.name}`);

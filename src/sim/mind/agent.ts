@@ -3,7 +3,7 @@ import { World } from '../core/world';
 import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRelationships } from './relationships';
 import { maintainConflicts, beginConflict, recordConflictBlow, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
 import { maintainCustody, subdue, takeIntoCustody, beginSurrender, isSubdued } from '../social/custody';
-import { stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, restockTavern, GRAIN_CAP, SEED_PER_PLOT } from '../world/metabolism';
+import { stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, restockTavern, gatherHerbs, huntGame, GRAIN_CAP, SEED_PER_PLOT } from '../world/metabolism';
 import { stepPhysiology, activityLevelFor, heatBand, hungerBand, thirstBand, sleepBand, comfortBand, severityAtLeast, syncNeeds } from '../core/physiology';
 import { isCommittable, EMERGENCY_GOAL_TYPES, interruptionSeverityMet, startCommitment, suspendCommitment, resumeCommitment, finishCommitment, commitmentValidity } from './commitment';
 import { getPhysicalCapability, capabilityFor } from '../core/attributes';
@@ -15,6 +15,8 @@ import { pickHaulTask, claimHaulTask, loadHaulCargo, depositHaulCargo, failHaulT
 import { generateProductionNeeds, claimedProductionRequest, fulfillProductionRequest, BREAD_SHORTAGE_TRIGGER } from '../world/production';
 import { nearestAvailableNode, extractFromNode, maintainResourceNodes } from '../world/resources';
 import { stepConstruction, activeBuildProjects, performBuildLabor, MAX_BUILDERS } from '../world/construction';
+import { stepFire, igniteFire, feedFire, fireIntensityAt, fireAt } from '../world/fire';
+import { cook, tendTavernFire } from '../world/cooking';
 import { remember } from './memory';
 import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge, learnPlace, knownFoodPlace, noteFoodShortage } from './knowledge';
 import { realizeClaim } from './realize';
@@ -1024,7 +1026,7 @@ export class Simulation {
         // v0.2.4: a miller / baker at their workplace runs a production batch every ~12 world-min
         // of work (real resource transformation; conservation; demand-driven — mill/bake stop
         // when the village has plenty). Only checked on the batch cadence, so no per-substep cost.
-        if ((p.occupation === 'miller' || p.occupation === 'baker' || p.occupation === 'woodcutter' || p.occupation === 'innkeeper')) {
+        if ((p.occupation === 'miller' || p.occupation === 'baker' || p.occupation === 'woodcutter' || p.occupation === 'innkeeper' || p.occupation === 'herbalist' || p.occupation === 'cook' || p.occupation === 'hunter')) {
           a.data = a.data ?? {};
           const t = w.placeAt(body.pos)?.type;
           // v0.4 §2/§6: sawing's fixed log:plank ratio (SAW_RATIO) never changes — no duplication
@@ -1068,6 +1070,22 @@ export class Simulation {
             // world/metabolism.ts's `restockTavern` doc comment for why this closed a genuine
             // "always runs out after day one" access bug rather than being new economic scope.
             else if (p.occupation === 'innkeeper' && t === 'tavern') restockTavern(w, p);
+            // v0.8 §A/F: the herbalist gathers at her own workplace, real bounded stock.
+            else if (p.occupation === 'herbalist') gatherHerbs(w, p);
+            // v0.8 §D (found via this milestone's own 90-day benchmark): the hunter restocks her
+            // own stall while working there — without this, meat was one-time-seeded and never
+            // replenished, so cook()'s new haul demand could only ever move the original stock
+            // once. See world/metabolism.ts's `huntGame` doc comment.
+            else if (p.occupation === 'hunter' && t === 'stall') huntGame(w, p);
+            // v0.8 §D: the cook tends the tavern hearth (lighting it if needed, from whatever
+            // wood is on hand) and, once it's genuinely burning, cooks a real batch — see
+            // world/cooking.ts. Demand-gated exactly like baking/milling (claimedProductionRequest).
+            else if (p.occupation === 'cook' && t === 'tavern') {
+              const tavernId = w.placeAt(body.pos)!.id;
+              tendTavernFire(w, p);
+              const req = claimedProductionRequest(w, tavernId, 'stew', p.id);
+              if (req) fulfillProductionRequest(w, req, p, cook(w, p).ok);
+            }
           }
         }
         if (this.elapsed(a)) a.status = 'done';
@@ -1126,9 +1144,11 @@ export class Simulation {
       }
       case 'chop': case 'gather': {
         const node = w.resourceNodes.find(n => n.id === a.data?.nodeId);
-        // v0.8 §16: felling a tree / quarrying stone is now visibly its own action, not
-        // indistinguishable generic "work" — see core/types.ts's `Pose` and actors.ts.
-        body.pose = 'chop'; body.sitAnchor = null;
+        // v0.8 §16: felling a tree / quarrying stone is now visibly distinct from generic
+        // labour — same pattern `case 'build'` above already uses (`body.pose = 'work'`, with the
+        // finer chop-vs-quarry distinction resolved by the renderer's `workStyleFor` from this
+        // Action's own `nodeId`/type — see game/presentation/activityCues.ts and actors.ts).
+        body.pose = 'work'; body.sitAnchor = null;
         if (!node || node.state !== 'available' || node.remaining <= 0) { a.status = 'done'; break; } // depleted — stop, don't retry
         if (a.pos && dist2(body.pos, a.pos) > 2.6) { a.status = 'pending'; m.plan.unshift({ type: 'goto', pos: a.pos, status: 'pending' }); break; }
         body.yaw = Math.atan2(-(node.pos.x - body.pos.x), -(node.pos.z - body.pos.z));
@@ -1789,7 +1809,11 @@ export class Simulation {
       // goal (`activityLevelFor`) — replacing the flat per-minute hunger/energy/thirst deltas
       // this used to apply directly. `needs.hunger/.thirst/.energy` are still real fields
       // (dozens of callers read them), just derived from the physiology reserves now.
-      if (b) stepPhysiology(w, p, h, activityLevelFor(p, b), { indoor: w.isIndoors(b.pos), daylight: this.lightAt() });
+      // v0.8 §D: a real, lit fire warms whoever is actually at that Place — genuine physical
+      // consequence of the fire's own intensity, not a separate "warm" status effect.
+      const firePlace = b ? w.placeAt(b.pos) : undefined;
+      const nearFire = firePlace ? fireIntensityAt(w, firePlace.id) : 0;
+      if (b) stepPhysiology(w, p, h, activityLevelFor(p, b), { indoor: w.isIndoors(b.pos), daylight: this.lightAt(), nearFire });
       // v0.8 §P0-D fix: a detainee has no agency to seek their own food/water — `custody?.active`
       // already suspends their autonomous goal system entirely (this file's think(), the
       // `idle:custody` hold) — so an institution holding someone has a basic duty of care, the
@@ -1892,6 +1916,9 @@ export class Simulation {
       maintainHauls(w);
       maintainResourceNodes(w);
       stepSpoilage(w, sh);
+      // v0.8 §C: fire as a real world process — fuel consumption, rain suppression for an
+      // exposed fire. Same coarse cadence as everything else in this block.
+      stepFire(w, sh);
       this.accum('strategic.metabolism', tmet);
     }
     // weather

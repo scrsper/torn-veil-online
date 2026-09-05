@@ -10,7 +10,7 @@ import type { World } from './world';
  * `inventory.includes('axe')`).
  */
 export type ToolAction = 'chop' | 'quarry' | 'saw' | 'construct';
-export const TOOL_KINDS: ItemType[] = ['axe', 'pickaxe', 'saw', 'hammer'];
+export const TOOL_KINDS: ItemType[] = ['axe', 'pickaxe', 'saw', 'hammer', 'stoneaxe'];
 
 interface ToolDef {
   supports: ToolAction[];
@@ -18,11 +18,16 @@ interface ToolDef {
   workMultiplier: number;
   massKg: number;
 }
-const TOOL_DEF: Record<'axe' | 'pickaxe' | 'saw' | 'hammer', ToolDef> = {
+const TOOL_DEF: Record<'axe' | 'pickaxe' | 'saw' | 'hammer' | 'stoneaxe', ToolDef> = {
   axe: { supports: ['chop'], workMultiplier: 5, massKg: 2 },
   pickaxe: { supports: ['quarry'], workMultiplier: 6, massKg: 3 },
   saw: { supports: ['saw'], workMultiplier: 4, massKg: 1.5 },
   hammer: { supports: ['construct'], workMultiplier: 1.6, massKg: 1.5 },
+  // v0.8 §F: a real, weaker tool — genuinely useful (well above bare-handed), but a smith-forged
+  // axe still wins `bestToolFor`'s own score comparison whenever both are available, exactly as
+  // a hand-bound stone head should compare to a proper forged one. No special-casing needed —
+  // `bestToolFor`'s `workMultiplier * condition` scoring already prefers the better tool.
+  stoneaxe: { supports: ['chop'], workMultiplier: 2.4, massKg: 2.2 },
 };
 
 /** What a bare-handed (or wrong-tool) worker can still manage, as a fraction of the
@@ -38,8 +43,8 @@ const WEAR_PER_WORK_HOUR = 0.001;
  * (a worn-out axe is still better than nothing, just not much). */
 const WORN_THRESHOLD = 0.35;
 
-function toolKind(it: Item): 'axe' | 'pickaxe' | 'saw' | 'hammer' | null {
-  return (TOOL_KINDS as string[]).includes(it.type) ? (it.type as 'axe' | 'pickaxe' | 'saw' | 'hammer') : null;
+function toolKind(it: Item): 'axe' | 'pickaxe' | 'saw' | 'hammer' | 'stoneaxe' | null {
+  return (TOOL_KINDS as string[]).includes(it.type) ? (it.type as 'axe' | 'pickaxe' | 'saw' | 'hammer' | 'stoneaxe') : null;
 }
 
 /**
@@ -82,4 +87,4 @@ export function wearTool(world: World, tool: Item | null, hours: number): void {
   }
 }
 
-export const TOOL_MASS_KG: Partial<Record<ItemType, number>> = { axe: 2, pickaxe: 3, saw: 1.5, hammer: 1.5 };
+export const TOOL_MASS_KG: Partial<Record<ItemType, number>> = { axe: 2, pickaxe: 3, saw: 1.5, hammer: 1.5, stoneaxe: 2.2 };
