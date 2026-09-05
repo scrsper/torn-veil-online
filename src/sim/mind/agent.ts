@@ -17,6 +17,7 @@ import { nearestAvailableNode, extractFromNode, maintainResourceNodes } from '..
 import { stepConstruction, activeBuildProjects, performBuildLabor, MAX_BUILDERS } from '../world/construction';
 import { remember } from './memory';
 import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge, learnPlace, knownFoodPlace, noteFoodShortage } from './knowledge';
+import { realizeClaim } from './realize';
 import { currentScheduleEntry } from './schedule';
 import { SECONDS_PER_HOUR } from '../core/time';
 import { B } from '../physical/blocks';
@@ -877,7 +878,12 @@ export class Simulation {
         if (!dest) { failGoto('no destination'); break; }
         if (!body.path) { if (dist2(body.pos, dest) < 1.2) { a.status = 'done'; break; } this.pathTo(body, dest, a); if (!body.path) { failGoto('no path found'); break; } }
         body.speed = a.run ? 5.6 : (p.occupation === 'child' ? 3.6 : 3.2 + (p.age > 60 ? -0.8 : 0));
-        body.pose = a.run ? 'run' : 'walk';
+        // v0.8 "The Legible World" §B: a hauler physically carrying real cargo (a claimed,
+        // in-transit HaulTask with units actually loaded) is visually distinct from an ordinary
+        // walk — previously indistinguishable, so the player could never tell "moving supplies"
+        // from "just walking somewhere".
+        const hauling = w.haulTasks.some(t => t.claimantId === p.id && t.status === 'in_transit' && t.carried > 0);
+        body.pose = hauling ? 'haul' : (a.run ? 'run' : 'walk');
         const arrived = this.followPath(body, physDt);
         if (arrived) {
           a.status = 'done'; body.path = null; if (!a.targetEntity && dist2(body.pos, dest) > 3) { /* couldn't reach */ }
@@ -910,7 +916,7 @@ export class Simulation {
       }
       case 'sit': body.pose = 'sit'; body.sitAnchor = a.pos ?? null; if (a.pos) { body.pos.x = Math.floor(a.pos.x) + 0.5; body.pos.z = Math.floor(a.pos.z) + 0.5; } p.needs.social = clamp(p.needs.social - worldDt / (3 * SECONDS_PER_HOUR)); this.maybeChat(p, body); if (this.elapsed(a)) a.status = 'done'; break;
       case 'eat': {
-        body.pose = 'sit'; body.sitAnchor = a.pos ?? null;
+        body.pose = 'eat'; body.sitAnchor = a.pos ?? null;
         // v0.2.4: a meal consumes a real food item. Resolve once, when the sit-down settles in.
         if (!a.data?.done && w.now - (a.startedAt ?? 0) > 60) {
           a.data = a.data ?? {}; a.data.done = true;
@@ -1000,7 +1006,7 @@ export class Simulation {
         break;
       }
       case 'drink': {
-        body.pose = 'stand'; body.yaw = a.pos ? Math.atan2(-(a.pos.x - body.pos.x), -(a.pos.z - body.pos.z)) : body.yaw;
+        body.pose = 'drink'; body.yaw = a.pos ? Math.atan2(-(a.pos.x - body.pos.x), -(a.pos.z - body.pos.z)) : body.yaw;
         if (this.elapsed(a)) { drinkAt(w, p, a.placeId); a.status = 'done'; }
         break;
       }
@@ -1347,21 +1353,23 @@ export class Simulation {
       this.sayLater(listener, isGuard ? `${k.claim.type === 'kill' ? 'Murder?!' : 'An assault?'} Where? I'll see to it.` : listener.traits.courage > 0.6 ? `That so? Someone should do something.` : `Gods. I'll keep my door barred.`, 1.2);
     } else if (learned) { this.sayLater(listener, ['Is that so.', 'I hadn\'t heard.', 'Well, well.', 'Hm.', 'Really?'][Math.floor(w.rng.next() * 5)], 1.5); }
   }
+  /**
+   * v0.8 "The Legible World" §A: ambient NPC-to-NPC gossip is exactly the same grounded
+   * knowledge → speech step player-facing dialogue (`mind/dialogue.ts`) already goes through —
+   * previously this had its OWN separate, more repetitive switch-per-event-type template here
+   * ("X! Y attacked Z at W. Q told me!"), the exact database-log style the v0.8 playtest flagged,
+   * just in a code path the player never directly interacts with (a speech bubble, not a
+   * dialogue menu) — arguably MORE visible than the on-demand dialogue system, since it fires
+   * constantly during ordinary play. Reusing `realizeClaim` here means ambient gossip and
+   * deliberate conversation are the SAME synthesis, not two divergent narrative layers that
+   * could drift out of sync with each other or with what's actually grounded.
+   */
   private tellLine(sp: Person, li: Person, k: KnowledgeItem): string {
-    const w = this.world; const c = k.claim; const first = li.name.split(' ')[0]; const src = k.source.type === 'witnessed' ? 'I saw it myself' : k.source.type === 'heard' ? 'I heard it happen' : k.source.from ? `${w.nameOf(k.source.from).split(' ')[0]} told me` : 'they say';
-    const who = (id: string | undefined, unk?: boolean) => unk ? 'someone' : id ? (id === li.id ? 'you' : w.nameOf(id)) : 'someone';
-    switch (c.type) {
-      case 'attack': return `${first}! ${who(c.actor, c.actorUnknown)} attacked ${who(c.target)}${c.placeId ? ' at ' + w.nameOf(c.placeId) : ''}. ${src}!`;
-      case 'kill': return `${first}, ${who(c.target)} is dead. ${who(c.actor, c.actorUnknown)} killed ${li.gender === 'f' ? 'him' : 'them'}. ${src}.`;
-      case 'theft': return `${who(c.actor, c.actorUnknown)} took ${c.item ? w.nameOf(c.item) : 'something'} from ${who(c.target)}. ${src}.`;
-      case 'gift': return `Did you hear? ${who(c.actor)} gave ${who(c.target)} ${c.item ? w.nameOf(c.item) : 'a gift'}.`;
-      case 'returned_item': return `${who(c.actor)} brought ${c.item ? w.nameOf(c.item) : 'it'} back to ${who(c.target)}. ${src}.`;
-      case 'rumor': return `${src}: ${c.text}.`;
-      case 'debt': return `${who(c.actor)} still owes ${who(c.target)} ${c.amount} silver, ${src}.`;
-      case 'dispute': return `${who(c.actor)} and ${who(c.target)} had words${c.about ? ' over ' + c.about : ''}. ${src}.`;
-      case 'heal': return `${who(c.actor)} patched up ${who(c.target)}, ${src}.`;
-      default: return `${src}: ${describeClaim(w, k)}.`;
-    }
+    const c = k.claim; const first = li.name.split(' ')[0];
+    const body = realizeClaim(this.world, sp, k);
+    // Direct address is kept only for the two "you need to know this NOW" urgent types — the
+    // rest read naturally as realizeClaim already produces them.
+    return (c.type === 'attack' || c.type === 'kill') ? `${first}! ${body}` : body;
   }
   say(p: Person, text: string): void { p.speech = { text, until: this.world.physicalTime + 3 + text.length * 0.05 }; this.onSpeech?.(p, text); }
   private pendingSpeech: { p: Person; text: string; at: number }[] = [];
@@ -1471,6 +1479,38 @@ export class Simulation {
     const node = w.resourceNodes.find(n => n.state === 'available' && n.remaining > 0
       && (n.blocks.some(b => b.x === cx && b.z === cz && Math.abs(b.y - cy) <= 5) || dist2(n.pos, pos) < 2.5));
     return node ? extractFromNode(w, node, actor) : 0;
+  }
+
+  /**
+   * v0.8 "The Legible World" §D (player/NPC affordance parity): a mature wheat plot is real,
+   * canonical resource state (`CropPlot`) exactly like a `ResourceNode` — this is the same
+   * shape of wrapper as `extractResourceAt` above, calling the SAME `harvestPlot`/`plantPlot`
+   * an NPC's own `harvest`/`plant` action already uses (`case 'harvest'`/`'plant'` below), never
+   * a player-only shortcut. No tool/capability gate is added here because none exists for an
+   * NPC's own harvest/plant either — parity means matching the real requirement, not inventing
+   * a stricter one for the player. Yield/seed-cost still flow through the field's real
+   * `ownerId` (a hired hand's harvest already paid the landowner, not themselves; the player
+   * harvesting someone else's field behaves identically — the same canonical rule, not a
+   * special case). Returns grain yielded (0 if nothing to harvest here).
+   */
+  harvestWheatAt(actor: Person, pos: Vec3): number {
+    const w = this.world;
+    const cx = Math.floor(pos.x), cy = Math.floor(pos.y), cz = Math.floor(pos.z);
+    const place = w.placeAt(pos); const field = place ? fieldFor(w, place.id) : undefined;
+    const plot = field?.plots.find(p => p.x === cx && p.y === cy && p.z === cz);
+    if (!field || !plot) return 0;
+    return harvestPlot(w, field, plot, actor);
+  }
+  /** Sibling of `harvestWheatAt` for sowing a fallow plot — same parity rationale. Returns
+   * whether a plot was actually sown (false if there is none here, or no seed grain at the
+   * farm). */
+  plantWheatAt(actor: Person, pos: Vec3): boolean {
+    const w = this.world;
+    const cx = Math.floor(pos.x), cy = Math.floor(pos.y), cz = Math.floor(pos.z);
+    const place = w.placeAt(pos); const field = place ? fieldFor(w, place.id) : undefined;
+    const plot = field?.plots.find(p => p.x === cx && p.y === cy && p.z === cz);
+    if (!field || !plot) return false;
+    return plantPlot(w, field, plot, actor);
   }
 
   // ------------------------------------------------------------------ items

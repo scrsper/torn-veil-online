@@ -54,6 +54,18 @@ export class Interaction {
         const got = this.sim.extractResourceAt(this.player, { x: t.x + 0.5, y: t.y, z: t.z + 0.5 });
         if (got > 0) { this.onPickup?.(); this.onMessage?.(`You work loose ${got} ${id === B.StoneBrick ? 'stone' : 'logs'}, left at the site.`); return; }
       }
+      // v0.8 "The Legible World" §D: harvest/sow a field plot through the same canonical
+      // `harvestPlot`/`plantPlot` an NPC's own harvest/plant action uses — see
+      // `Simulation.harvestWheatAt`/`plantWheatAt`. Mature wheat is the acceptance case; sowing
+      // a fallow plot (bare ground above `B.Farmland`) is the natural symmetric counterpart.
+      if (id === B.Wheat) {
+        const yield_ = this.sim.harvestWheatAt(this.player, { x: t.x, y: t.y, z: t.z });
+        if (yield_ > 0) { this.onPickup?.(); this.onMessage?.(`You harvest the wheat (+${yield_} grain, left at the field).`); return; }
+      }
+      if (id === B.Farmland) {
+        // The crop cell sits one block above the (solid, raycast-hit) farmland itself.
+        if (this.sim.plantWheatAt(this.player, { x: t.x, y: t.y + 1, z: t.z })) { this.onMessage?.('You sow the plot with grain.'); return; }
+      }
       if (id === B.Door) { const wasOpen = w.isDoorOpen({ x: t.x, y: t.y, z: t.z }); w.toggleDoor({ x: t.x, y: t.y, z: t.z }, this.player.id); this.onMessage?.(`You ${wasOpen ? 'close' : 'open'} the door.`); } else if (id === B.Bed) { this.onMessage?.('Not your bed.'); } else if (id === B.Sign) this.onMessage?.('"The Gilded Boar — ale, stew, beds. No fighting."'); else if (id === B.Gravestone) { const gy = w.places().find(p => p.type === 'graveyard'); const g = gy?.anchors.find(a => a.kind === 'grave' && Math.floor(a.pos.x) === t.x && Math.floor(a.pos.z) === t.z + 1); this.onMessage?.(g ? `Here lies ${g.label}.` : 'A weathered headstone.'); } else if (id === B.Altar) this.onMessage?.('An altar to the Lantern-Bearer. A candle gutters.'); else if (id === B.Well) this.onMessage?.('Cold, clear water.'); else this.onMessage?.(`${t.name}.`); }
   }
   private loot(p: Person): void { const w = this.world; for (const id of [...p.inventory]) { const it = w.item(id); if (!it) continue; const b = w.primaryBody(p.id); this.sim.dropItem(p, it, { x: (b?.pos.x ?? 0) + (w.rng.next() - 0.5), y: b?.pos.y ?? 0, z: (b?.pos.z ?? 0) + (w.rng.next() - 0.5) }); } }

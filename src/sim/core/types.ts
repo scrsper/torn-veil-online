@@ -36,7 +36,12 @@ export interface Entity {
 }
 
 // ---------------------------------------------------------------- Bodies
-export type Pose = 'stand' | 'walk' | 'run' | 'sit' | 'sleep' | 'work' | 'attack' | 'hit' | 'dead' | 'talk' | 'pray' | 'downed';
+// v0.8 "The Legible World" §B: `eat`/`drink`/`haul` are real, distinct canonical actions
+// (`ActionType` below) that previously all rendered as an indistinguishable `sit`/`stand`/`work`
+// — the player could never tell an eating villager from one merely sitting, or a hauler from an
+// idle worker. Each gets its own pose so `game/actors/actors.ts`'s renderer can give it a
+// distinct animation.
+export type Pose = 'stand' | 'walk' | 'run' | 'sit' | 'sleep' | 'work' | 'attack' | 'hit' | 'dead' | 'talk' | 'pray' | 'downed' | 'eat' | 'drink' | 'haul';
 
 export interface Body extends Entity {
   kind: 'body';

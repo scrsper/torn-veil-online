@@ -104,8 +104,19 @@ export function createFields(world: World, farmPlaceIds: { placeId: EntityId; ow
   }
 }
 
+/** v0.8 "The Legible World" §C: all four non-fallow crop states now have a distinct voxel
+ * projection — `fallow` alone stays `B.Air` (bare, untilled ground; the `B.Farmland` block
+ * beneath it is still visible and already reads as "worked soil"). Before this, `planted` and
+ * `harvested` were indistinguishable from `fallow` (and from each other) — a freshly-sown plot
+ * and a just-harvested one both looked like nothing had ever happened there. */
 export function cropBlockFor(state: CropState): number {
-  return state === 'mature' ? B.Wheat : state === 'growing' ? B.Sprout : B.Air;
+  switch (state) {
+    case 'mature': return B.Wheat;
+    case 'growing': return B.Sprout;
+    case 'planted': return B.Seedling;
+    case 'harvested': return B.Stubble;
+    case 'fallow': return B.Air;
+  }
 }
 
 /** Re-project every plot's canonical state onto its voxel cell (used after load). */

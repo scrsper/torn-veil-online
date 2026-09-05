@@ -65,7 +65,14 @@ export class ChunkMesher {
   }
   private cross(gb: GeoBuilder, x: number, y: number, z: number, def: BlockDef, id: number): void {
     const col = this.colorFor(def, id, x, y, z, 2); const em = def.emissive ?? [0, 0, 0];
-    const h = id === B.Fire ? 1.0 : id === B.Wheat ? 0.9 : 0.8; const o = (hash2(x, z, 9) - 0.5) * 0.3;
+    // v0.8 "The Legible World" §C: read the block's own declared `height` instead of
+    // special-casing individual block IDs here — a crop lifecycle state (or any future
+    // cross-shaped block) is legible by declaring its height in `blocks.ts` once, not by also
+    // editing the mesher. This actually applies `B.Sprout`'s long-declared `height: 0.5` for the
+    // first time (previously silently ignored by the old `id === B.Wheat ? 0.9 : 0.8` special
+    // case) — a growing sprout now genuinely renders shorter than mature wheat, not just a
+    // different color at the same height.
+    const h = def.height ?? 0.8; const o = (hash2(x, z, 9) - 0.5) * 0.3;
     const a = [x + 0.1 + o, y, z + 0.1, x + 0.9 + o, y + h, z + 0.9], b = [x + 0.9 + o, y, z + 0.1, x + 0.1 + o, y + h, z + 0.9];
     for (const q of [a, b]) {
       const vs = [[q[0], q[1], q[2]], [q[3], q[1], q[5]], [q[3], q[4], q[5]], [q[0], q[4], q[2]]];
