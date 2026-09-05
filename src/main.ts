@@ -6,6 +6,8 @@ import { load, save, newWorld, hasSave, clearSave } from './sim/persist/save';
 import { VoxelRenderer } from './game/voxel/mesher';
 import { Atmosphere } from './game/render/scene';
 import { ActorRenderer } from './game/actors/actors';
+import { ConstructionRenderer } from './game/presentation/constructionRenderer';
+import { ExtractionEffectsController } from './game/presentation/extractionEffects';
 import { PlayerController } from './game/player/controller';
 import { Interaction } from './game/player/interaction';
 import { HUD } from './game/ui/hud';
@@ -36,7 +38,7 @@ async function boot(fresh: boolean): Promise<void> {
 }
 
 class Game {
-  renderer: THREE.WebGLRenderer; scene = new THREE.Scene(); camera: THREE.PerspectiveCamera; sim: Simulation; voxels: VoxelRenderer; atmo: Atmosphere; actors: ActorRenderer; ctrl: PlayerController; inter: Interaction; hud: HUD; dialogue: DialogueUI; feed: EventFeed; inspector: Inspector; audio = new AudioSys();
+  renderer: THREE.WebGLRenderer; scene = new THREE.Scene(); camera: THREE.PerspectiveCamera; sim: Simulation; voxels: VoxelRenderer; atmo: Atmosphere; actors: ActorRenderer; ctrl: PlayerController; inter: Interaction; hud: HUD; dialogue: DialogueUI; feed: EventFeed; inspector: Inspector; audio = new AudioSys(); construction: ConstructionRenderer; extractionEffects: ExtractionEffectsController;
   speedMult = 1; paused = false; lastFrame = performance.now(); autosaveTimer = 0; followId: string | null = null; hitParticles: { m: THREE.Mesh; v: THREE.Vector3; life: number }[] = [];
   // v0.2 Part 18: automatic play-session logging — no manual "press F8" step. `sessionId` names
   // the localStorage entry this session's telemetry flushes to (see browserSessionSink.ts).
@@ -52,6 +54,8 @@ class Game {
     this.voxels = new VoxelRenderer(world.grid); this.voxels.buildAll(); this.scene.add(this.voxels.group);
     this.atmo = new Atmosphere(this.scene, world);
     this.actors = new ActorRenderer(world); this.scene.add(this.actors.group);
+    this.construction = new ConstructionRenderer(world); this.scene.add(this.construction.group);
+    this.extractionEffects = new ExtractionEffectsController(world); this.scene.add(this.extractionEffects.group);
     this.ctrl = new PlayerController(world, this.camera, this.renderer.domElement);
     this.inter = new Interaction(world, this.sim, this.ctrl, this.renderer.domElement);
     this.hud = new HUD(world, this.camera); this.dialogue = new DialogueUI(new DialogueSystem(world, this.sim)); this.feed = new EventFeed(world); this.inspector = new Inspector(world);
@@ -128,6 +132,7 @@ class Game {
     this.inter.update();
     this.voxels.update(); this.voxels.setTime(w.physicalTime);
     this.actors.sync(dt, w.physicalTime, !this.ctrl.thirdPerson && !this.followId);
+    this.construction.update(); this.extractionEffects.update(dt);
     const pb = this.ctrl.body; const ppos = new THREE.Vector3(pb.pos.x, pb.pos.y, pb.pos.z);
     this.atmo.update(dt, w.clock.dayFraction, ppos, this.camera.position);
     for (let i = this.hitParticles.length - 1; i >= 0; i--) { const p = this.hitParticles[i]; p.life -= dt; p.v.y -= 12 * dt; p.m.position.addScaledVector(p.v, dt); if (p.life <= 0) { this.scene.remove(p.m); this.hitParticles.splice(i, 1); } }
