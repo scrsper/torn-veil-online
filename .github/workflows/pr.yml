@@ -1,0 +1,29 @@
+name: PR gate
+
+# Bootstrap PR validation workflow: a PR should not be accepted solely because someone says
+# tests passed locally. This runs the project's own documented checks (see package.json/
+# AGENTS.md) on every push to a pull request targeting main: typecheck, the deterministic
+# vitest suite, and a production build.
+#
+# This intentionally does NOT run `npm run world:smoke` (or any WorldLab check) — that harness
+# does not exist on main yet; it lives on a separate, still-in-review PR. Add a world:smoke (or
+# equivalent) step to this gate once that harness lands on main or is separately approved, rather
+# than bringing simulation/WorldLab code into this CI-only bootstrap.
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
