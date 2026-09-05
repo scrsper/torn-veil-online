@@ -1,13 +1,14 @@
 import type { World } from '../../sim/core/world';
 import { SECONDS_PER_HOUR } from '../../sim/core/time';
-import { detectAnomalies } from '../../sim/telemetry/anomaly';
+import { detectAnomalies, telemetryToEvents } from '../../sim/telemetry/anomaly';
+import type { MemorySink } from '../../sim/telemetry/recorder';
 import { topSignificantEntities } from '../../sim/history/significance';
 import { buildWorldRunSummary } from '../../sim/history/summary';
 import { hungerBand, thirstBand, sleepBand } from '../../sim/core/physiology';
 import { stockAt } from '../../sim/world/stock';
 import { effectivePrice } from '../../sim/world/pricing';
 import { isFood } from '../../sim/world/factory';
-import type { EconomySnapshot, Observation, PersonBands } from './types';
+import type { EconomySnapshot, Observation, PersonBands, RecoveryPhase, RecoveryProgress } from './types';
 
 export interface ProbeContext {
   seed: number;
@@ -103,10 +104,43 @@ function totalCurrency(world: World): number {
   return total;
 }
 
+/** v0.8 §P0-H: derives each open `recover_item` desire's causal phase from real, live evidence —
+ * no field on `Desire` itself tracks this; it is read back out of the exact same knowledge/item
+ * state the cognition system (`isAuthorizedRecovery`, agent.ts line ~415) itself consults, so the
+ * phase reported here can never be "ahead of" what the simulation actually knows. */
+function recoveryProgress(world: World): RecoveryProgress[] {
+  const out: RecoveryProgress[] = [];
+  for (const p of world.persons()) {
+    if (!p.alive) continue;
+    for (const d of p.desires) {
+      if (d.type !== 'recover_item' || !d.targetId) continue;
+      const item = world.item(d.targetId);
+      if (!item) continue;
+      if (d.fulfilled) { out.push({ personId: p.id, itemId: item.id, phase: 'returned' }); continue; }
+      const ownerKnowsLoc = !!p.knowledge[`loc:${item.id}`];
+      const others = world.persons().filter(q => q.alive && q.id !== p.id);
+      const anyoneKnowsLoc = ownerKnowsLoc || others.some(q => !!q.knowledge[`loc:${item.id}`]);
+      const authorizedRecoverer = others.find(q => { const k = q.knowledge[`wanted:${item.id}`]; return k && k.claim.itemId === item.id && k.claim.requesterId === p.id; });
+      const recoveredInTransit = !!item.holderId && item.holderId !== p.id && !!authorizedRecoverer && item.holderId === authorizedRecoverer.id;
+      let phase: RecoveryPhase = 'requested';
+      if (recoveredInTransit) phase = 'item-recovered';
+      else if (authorizedRecoverer) phase = 'recovery-authorized';
+      else if (ownerKnowsLoc) phase = 'item-locatable';
+      else if (anyoneKnowsLoc) phase = 'info-discoverable';
+      out.push({ personId: p.id, itemId: item.id, phase });
+    }
+  }
+  return out;
+}
+
 /** Read-only: takes one `Observation` snapshot of the live world. Safe to call at any point in
- * a run — never mutates `world`. */
-export function takeProbe(ctx: ProbeContext, world: World, worldSecondsElapsed: number): Observation {
-  const anomalies = detectAnomalies(world);
+ * a run — never mutates `world`. `telemetry`, when passed (v0.8 §P0-I — `runHeadless`'s
+ * `onProbe` now hands back the SAME `MemorySink` it already records the whole run to), is
+ * preferred over `world.events` as `detectAnomalies`'s event source: it isn't subject to
+ * `World.compactEvents`'s significance-based pruning, so rate/clustering checks over a
+ * multi-day run see the real recent history instead of whatever happened to survive compaction. */
+export function takeProbe(ctx: ProbeContext, world: World, worldSecondsElapsed: number, telemetry?: MemorySink): Observation {
+  const anomalies = detectAnomalies(world, {}, telemetry ? telemetryToEvents(telemetry.records) : undefined);
   const significance = topSignificantEntities(world, 10);
   const summary = buildWorldRunSummary(world, {
     seed: ctx.seed, requestedDays: ctx.requestedDays, worldStart: ctx.worldStart,
@@ -120,6 +154,7 @@ export function takeProbe(ctx: ProbeContext, world: World, worldSecondsElapsed: 
     personBands: personBandsSnapshot(world),
     maxOpenHaulTaskAgeHours: maxOpenHaulTaskAgeHours(world),
     maxActiveConflictAgeHours: maxActiveConflictAgeHours(world),
+    recoveryProgress: recoveryProgress(world),
     alivePopulation: summary.endingPopulation,
     summary,
     anomalies,

@@ -124,6 +124,25 @@ export class Simulation {
       if (how) { percepts.push({ entityId: other.ownerId, bodyId: other.id, how, tick: w.now, pos: { ...other.pos }, distance: d }); if (how === 'saw' && !p.controlled) locationKnowledge(w, p, other.ownerId, other.pos, { type: 'witnessed' }); }
     }
     p.mind.percepts = percepts;
+    // v0.8 §P0-G (independent audit §4.6): an unheld item in view is exactly as observable as a
+    // body — `locationKnowledge` already existed and had exactly one call site (bodies, above).
+    // Before this, `loc:<itemId>` was NEVER written at runtime by anything, so a real lost/
+    // stolen item could never actually be found by a witness: the recover-item chain had a
+    // mechanism (`recover_item` desires, authorized recovery, real reward payment — see
+    // requests.ts's `payRecoveryReward`) with no way for the FIRST link (someone seeing where
+    // the item is) to ever form. Same cheap-distance-then-lineOfSight gate as the body loop
+    // above, so this costs comparably little more per perceive() tick; `pruneKnowledge` (already
+    // called by `learn()`/`locationKnowledge`) is the existing, general bound on knowledge-map
+    // growth this relies on, same as it already does for the body/person case.
+    if (!asleep && !p.controlled) {
+      for (const it of w.items()) {
+        if (it.holderId || !it.pos) continue;
+        const d = Math.hypot(it.pos.x - eye.x, it.pos.z - eye.z); if (d > seeRange) continue;
+        const dx = (it.pos.x - eye.x) / (d + 1e-5), dz = (it.pos.z - eye.z) / (d + 1e-5); const dot = dx * facing.x + dz * facing.z;
+        if (d >= 2.5 && dot <= -0.1) continue;
+        if (w.grid.lineOfSight(eye, { x: it.pos.x, y: it.pos.y + 0.3, z: it.pos.z }, 32)) locationKnowledge(w, p, it.id, it.pos, { type: 'witnessed' });
+      }
+    }
     // stimuli: events with visibility/loudness
     for (const e of stimuli) {
       if (!e.pos || e.actor === p.id && e.type !== 'told') { if (e.actor === p.id) continue; }
@@ -394,6 +413,34 @@ export class Simulation {
     for (const pc of m.percepts) { const o = w.person(pc.entityId); const ob = w.body(pc.bodyId); if (!o || !ob || !o.alive) continue; if ((ob.pose === 'downed' || ob.health < ob.maxHealth * 0.5) && isClose(p, o.id) && !threat) G('help', 0.7, [`${o.name} is hurt and dear to me`], { targetEntity: o.id }); }
     // desires
     for (const d of p.desires) if (!d.fulfilled && d.type === 'recover_item') { const loc = p.knowledge[`loc:${d.targetId}`]; const it = w.item(d.targetId); if (loc && it && !it.holderId && it.pos && !threat) G('recover_item', 0.6, [`I know where ${it.name} is (${loc.source.type})`], { targetEntity: it.id, targetPos: it.pos }); }
+    // v0.8 §P0-G/H (independent audit §4.6): an authorized third party — someone who has heard
+    // `wanted:<itemId>` (via `maybeAskForHelp`/`hearDesire`) AND separately, through real
+    // perception/gossip, actually knows where the item is — can now act on both facts together,
+    // rather than that combination being a dead end unless a player happens to open the "ask
+    // about an item" dialogue menu (`askAboutItemMenu`). No new knowledge is invented here: both
+    // `wanted:` and `loc:` must already be present through their own real, provenance-carrying
+    // channels.
+    for (const k of Object.values(p.knowledge)) {
+      if (k.kind !== 'fact' || !k.claim.wantedItem || !k.claim.itemId) continue;
+      const itemId = k.claim.itemId as string; const requesterId = k.claim.requesterId as string;
+      if (!requesterId || requesterId === p.id) continue;
+      const requester = w.person(requesterId); if (!requester || !requester.alive) continue;
+      const desire = requester.desires.find(rd => rd.type === 'recover_item' && rd.targetId === itemId && !rd.fulfilled);
+      if (!desire) continue;
+      const it = w.item(itemId); const loc = p.knowledge[`loc:${itemId}`];
+      // v0.8 §P0-G/H fix: keeps proposing the SAME candidate once the item is actually in this
+      // person's own hands mid-delivery (`it.holderId === p.id`), not only while it is still
+      // lying loose. Without this, the goal stopped being offered the instant `pickup` succeeded
+      // (the item is no longer "loose" — the ordinary `recover_item` gate a few lines above has
+      // the same `!it.holderId` shape, which is correct there since the OWNER'S OWN copy of this
+      // check should stop once someone else holds it) — leaving nothing to out-compete an
+      // ordinary need (hunger, sleep) on the very next think() tick and stranding a helper
+      // holding someone else's ring indefinitely. A higher utility while actively carrying it
+      // mirrors `mind/commitment.ts`'s 'committed' protection for haul/build: the closer the
+      // deliverable is to done, the less it should be interrupted (Constitution v0.5 §8).
+      const carrying = it && it.holderId === p.id;
+      if (it && ((carrying) || (loc && !it.holderId && it.pos)) && !threat) G('help_recover_item', clamp((carrying ? 0.78 : 0.5) + p.traits.honesty * 0.15), [carrying ? `I have ${it.name} — I should bring it to ${requester.name}` : `I know where ${it.name} is`, `${requester.name} asked me to find it`], { targetEntity: it.id, targetPos: it.pos ?? undefined, data: { deliverTo: requesterId } });
+    }
     // ---- needs
     const n = p.needs; const night = hour >= 22 || hour < 5;
     G('sleep', clamp(n.energy * 0.9 + (sched?.activity === 'sleep' ? 0.35 : 0) + (night ? 0.15 : -0.1)), [`energy need ${n.energy.toFixed(2)}`, sched?.activity === 'sleep' ? 'it is my time to sleep' : ''], { targetPlace: p.homeId ?? undefined });
@@ -859,6 +906,14 @@ export class Simulation {
         return [A({ type: 'goto', pos: spot, placeId: site?.id }), A({ type: 'build', pos: spot, duration: 40 * 60, data: { projectId: g.data?.projectId } })];
       }
       case 'recover_item': return [A({ type: 'goto', pos: g.targetPos! }), A({ type: 'pickup', targetEntity: g.targetEntity })];
+      case 'help_recover_item': {
+        const to = w.person(g.data?.deliverTo as EntityId);
+        const toBody = to ? w.primaryBody(to.id) : undefined;
+        const dest = toBody?.pos ?? (to?.homeId ? w.place(to.homeId)?.inside : undefined) ?? g.targetPos!;
+        const acts = [A({ type: 'goto', pos: g.targetPos! }), A({ type: 'pickup', targetEntity: g.targetEntity })];
+        if (to) acts.push(A({ type: 'goto', pos: dest, targetEntity: to.id }), A({ type: 'give', targetEntity: to.id, data: { item: g.targetEntity } }));
+        return acts;
+      }
       case 'mourn': { const gy = place!; const grave = gy.anchors.find(a => a.kind === 'grave' && a.label?.startsWith('Anna')) ?? gy.anchors[0]; return [A({ type: 'goto', pos: grave.pos }), A({ type: 'pray', pos: grave.pos, duration: 40 * 60 })]; }
       default: return [A({ type: 'wait', duration: 60 })];
     }
@@ -1237,6 +1292,11 @@ export class Simulation {
       }
       case 'use': { if (a.data?.heal) { const tb = w.primaryBody(a.targetEntity!); if (tb && dist2(body.pos, tb.pos) < 3) { body.pose = 'work'; tb.health = Math.min(tb.maxHealth, tb.health + worldDt * 0.02); if (this.elapsed(a)) { a.status = 'done'; if (tb.pose === 'downed') tb.pose = 'stand'; w.emit('heal', { actor: p.id, target: a.targetEntity, pos: body.pos, significance: 0.4, visibility: 12, summary: `${p.name} tended to ${w.nameOf(a.targetEntity)}'s wounds` }); this.say(p, `There. You'll live.`); } } else a.status = 'failed'; } else a.status = 'done'; break; }
       case 'pickup': { const it = w.item(a.targetEntity!); if (it && it.pos && !it.holderId && dist2(body.pos, it.pos) < 2.5) { this.takeItem(p, it, 'recovered'); } a.status = 'done'; break; }
+      // v0.8 §P0-G/H: the delivery step of the 'help_recover_item' plan — hand a carried item
+      // (already in `p.inventory` from the preceding 'pickup' step) to the person it was fetched
+      // for. Fails harmlessly (does nothing, just ends) if the recipient walked out of reach or
+      // the item somehow isn't actually being carried — never teleports the hand-off.
+      case 'give': { const it = w.item(a.data?.item); const to = w.person(a.targetEntity!); const tb = to ? w.primaryBody(to.id) : undefined; if (it && to && tb && it.holderId === p.id && dist2(body.pos, tb.pos) < 3.5) { this.giveItem(p, to, it); } a.status = 'done'; break; }
       default: a.status = 'done';
     }
     if (a.status === 'done' && m.plan.every(x => x.status === 'done' || x.status === 'failed')) { const g = m.goal; if (g) { w.emit('goal_completed', { actor: p.id, significance: 0.05, summary: `${p.name} finished ${g.type}` }); } m.thinkBudget = m.thinkInterval; body.sitAnchor = null; }
@@ -1318,16 +1378,48 @@ export class Simulation {
     const other = near[Math.floor(w.rng.next() * near.length)];
     if (w.physicalTime - (p.mind.lastToldAt[other.id] ?? -99) < 25) return;
     p.mind.lastSpokeAt = w.physicalTime; p.mind.lastToldAt[other.id] = w.physicalTime;
+    // v0.8 §P0-G/H (independent audit §4.6): before falling back to ordinary gossip, an NPC who
+    // is themself the victim of an unfulfilled `recover_item` desire gets a chance to actually
+    // ASK for help, exactly like `DialogueSystem.hearDesire` lets a player ask an NPC "is there
+    // anything you need?" — without this, `isAuthorizedRecovery` could only ever be satisfied by
+    // a player being asked directly, meaning no NPC-to-NPC recovery chain could ever complete.
+    if (this.maybeAskForHelp(p, other)) return;
     // share the most significant thing I know that they don't seem to know
     const share = this.pickGossip(p, other);
     if (share) this.tell(p, other, share); else { const lines = this.smallTalk(p, other); this.say(p, lines); adjustRel(w, p, other.id, { familiarity: 0.02, affection: 0.01 }, 'chatted', undefined, true); adjustRel(w, other, p.id, { familiarity: 0.02 }, 'chatted', undefined, true); p.needs.social = clamp(p.needs.social - 0.05); other.needs.social = clamp(other.needs.social - 0.03); }
   }
+  /** v0.8 §P0-G/H: the NPC-side mirror of `DialogueSystem.hearDesire` — writes the exact same
+   * `wanted:<itemId>` fact knowledge shape (see dialogue.ts) so `isAuthorizedRecovery` and
+   * `askAboutItemMenu` treat a request heard from an NPC identically to one heard from a player.
+   * Returns true (and consumes this chat turn) only when there was a real unfulfilled desire to
+   * voice and the listener didn't already know about it. */
+  private maybeAskForHelp(p: Person, other: Person): boolean {
+    const w = this.world;
+    const desire = p.desires.find(d => d.type === 'recover_item' && !d.fulfilled && d.targetId && !other.knowledge[`wanted:${d.targetId}`]);
+    if (!desire || !desire.targetId) return false;
+    const line = desire.note + ` I'd pay ${desire.reward} silver to whoever brings it.`;
+    learn(w, other, { key: `wanted:${desire.targetId}`, kind: 'fact', claim: { text: line, wantedItem: true, itemId: desire.targetId, requesterId: p.id, reward: desire.reward }, confidence: 1, source: { type: 'told', from: p.id } }, true);
+    this.say(p, line);
+    adjustRel(w, other, p.id, { affection: 0.02 }, 'asked for help', undefined, true);
+    return true;
+  }
   private pickGossip(p: Person, other: Person): KnowledgeItem | null {
     const w = this.world; const r = getRel(p, other.id); if (r.trust < -0.3) return null;
-    const cands = Object.values(p.knowledge).filter(k => k.kind === 'event' && ((k.claim.significance ?? 0.3) >= 0.2 || isCrime(k.claim.type, k.claim.intent)) && !k.sharedWith.includes(other.id) && k.claim.actor !== other.id && k.source.from !== other.id && (w.now - k.learnedAt < 86400 * 4 || isCrime(k.claim.type, k.claim.intent)) && !other.knowledge[k.key]);
-    if (!cands.length) return null;
-    cands.sort((a, b) => (b.claim.significance ?? 0.3) * (isCrime(b.claim.type, b.claim.intent) ? 1.5 : 1) - (a.claim.significance ?? 0.3) * (isCrime(a.claim.type, a.claim.intent) ? 1.5 : 1));
-    const best = cands[0]; if ((best.claim.significance ?? 0.3) < 0.2 && p.traits.sociability < 0.6) return null; return best;
+    const eventCands = Object.values(p.knowledge).filter(k => k.kind === 'event' && ((k.claim.significance ?? 0.3) >= 0.2 || isCrime(k.claim.type, k.claim.intent)) && !k.sharedWith.includes(other.id) && k.claim.actor !== other.id && k.source.from !== other.id && (w.now - k.learnedAt < 86400 * 4 || isCrime(k.claim.type, k.claim.intent)) && !other.knowledge[k.key]);
+    const value = (k: KnowledgeItem) => (k.claim.significance ?? 0.3) * (isCrime(k.claim.type, k.claim.intent) ? 1.5 : 1);
+    // v0.8 §P0-G (independent audit §4.6): a KNOWN item location can now travel too, not just
+    // event news — the whole reason `locationKnowledge` was extended to items (see `perceive`
+    // above) is so this information can reach the person who actually needs it, exactly the way
+    // real gossip works ("I saw Anna's ring at the well"). Ranked well below ordinary news UNLESS
+    // it directly answers an active `recover_item` desire the LISTENER holds — that is the one
+    // case genuinely worth interrupting small talk for.
+    const locationCands = Object.values(p.knowledge).filter(k => k.kind === 'location' && w.get(k.claim.entityId as string)?.kind === 'item' && !k.sharedWith.includes(other.id) && !other.knowledge[k.key]);
+    const locationValue = (k: KnowledgeItem) => other.desires.some(d => d.type === 'recover_item' && !d.fulfilled && d.targetId === k.claim.entityId) ? 0.9 : 0.12;
+    const best = [...eventCands.map(k => ({ k, v: value(k) })), ...locationCands.map(k => ({ k, v: locationValue(k) }))]
+      .sort((a, b) => b.v - a.v)[0];
+    if (!best) return null;
+    if (best.v < 0.2 && p.traits.sociability < 0.6) return null;
+    return best.k;
   }
   private smallTalk(p: Person, other: Person): string {
     const w = this.world; const r = getRel(p, other.id); const first = other.name.split(' ')[0]; const h = w.clock.hourF; const wk = w.weather.kind;
@@ -1564,6 +1656,15 @@ export class Simulation {
     it.provenance[it.provenance.length - 1].eventId = ev.id;
     if (how === 'bought') it.ownerId = p.id;
     else if (!stolen && how !== 'given') it.ownerId = it.ownerId ?? p.id;
+    // v0.8 §P0-H (independent audit §4.6): `giveItem` below already closes a `recover_item`
+    // desire (and pays a reward) when a THIRD PARTY hands the item back — but an owner who finds
+    // and picks up their OWN lost item directly (this 'pickup'/'recovered' path, no `giveItem`
+    // involved) never went through any code that closed the matching desire, leaving it open
+    // forever even though the item was, in fact, back in its owner's hands. No reward is paid
+    // here (there is no third-party helper to compensate for finding one's own property).
+    if (!stolen && it.ownerId === p.id) {
+      for (const d of p.desires) if (!d.fulfilled && d.type === 'recover_item' && d.targetId === it.id) { d.fulfilled = true; p.emotions.joy = clamp(p.emotions.joy + 0.3); }
+    }
     return ev;
   }
   /**

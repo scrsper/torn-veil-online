@@ -257,6 +257,13 @@ export type GoalType =
   // v0.2.3: yield in a losing/hopeless fight rather than fight-to-death or flee-forever; a guard
   // escorting a surrendered/subdued suspect into custody.
   | 'surrender' | 'escort_custody'
+  // v0.8 §P0-G/H: distinct from 'recover_item' (an owner going to fetch their OWN known-location
+  // item) — this is a THIRD PARTY who has both `wanted:<itemId>` authorization (heard via
+  // `maybeAskForHelp`/`hearDesire`) and real `loc:<itemId>` knowledge (from perception/gossip)
+  // acting on it: go get it, then physically deliver it to the requester. Without this, an NPC
+  // could become authorized and still never have any mechanism to follow through — only a player
+  // could ever complete a third-party recovery via the dialogue-only `askAboutItemMenu`.
+  | 'help_recover_item'
   // v0.2.4 world metabolism: seek water when thirsty; plant/harvest a field; the existing
   // 'work' goal covers milling/baking/tending.
   | 'drink_water' | 'plant' | 'harvest'
@@ -287,7 +294,11 @@ export type ActionType = 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 't
   | 'drink' | 'plant' | 'harvest'
   // v0.3: load a haul cargo at the source Place; unload it at the destination; extract from a
   // resource node; contribute one slice of construction labour.
-  | 'haul_load' | 'haul_unload' | 'chop' | 'gather' | 'build';
+  | 'haul_load' | 'haul_unload' | 'chop' | 'gather' | 'build'
+  // v0.8 §P0-G/H: hand a carried item to another person in person — the 'help_recover_item'
+  // plan's delivery step (see GoalType). Distinct from the existing NPC-to-player trade/`bought`
+  // path; this always uses `Simulation.giveItem` (mind/agent.ts), which pays any owed reward.
+  | 'give';
 export interface Action {
   type: ActionType;
   pos?: Vec3;

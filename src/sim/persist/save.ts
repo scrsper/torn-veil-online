@@ -108,7 +108,12 @@ export function serialize(world: World): string {
   const constructionProjects = world.constructionProjects.map(p => ({ ...p, required: p.required.map(r => ({ ...r })), contributions: { ...p.contributions }, siteBounds: { ...p.siteBounds } }));
   // v0.4: work requests are plain serializable records (ids, ticks, strings, numbers).
   const requests = world.requests.map(r => ({ ...r, payload: { ...r.payload } }));
-  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, diffs, doors, events, savedAt: Date.now() });
+  // v0.8 §P1 (independent audit §3.5): the actual PRNG stream position at save time, not just
+  // the original generation seed — see `core/rng.ts`'s `RNG.state()` doc. Additive/optional (an
+  // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
+  // falls back to today's behavior (rewind to post-generation position) when absent.
+  const rng = world.rng.state(); const weatherRng = world.weatherRng.state();
+  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, diffs, doors, events, rng, weatherRng, savedAt: Date.now() });
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -158,6 +163,14 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     for (const e of data.events) { world.events.push(e); world.eventIndex.set(e.id, e); }
     if (!world.events.length) { world.events = genEvents; for (const e of genEvents) world.eventIndex.set(e.id, e); }
     world.setCounters(data.counters); world.clock = new WorldClock(data.clock); world.physicalTime = data.physicalTime ?? 0; world.weather = data.weather; world.playerId = data.playerId;
+    // v0.8 §P1 (independent audit §3.5): restore the ACTUAL PRNG stream position from the save,
+    // not the fresh post-`generateVillage` position `new World`/`generateVillage` above just
+    // left both RNGs at — without this, every load silently rewound `world.rng`/`world.weatherRng`
+    // to identical replay points, so "random" outcomes right after a load repeated whatever
+    // sequence generation itself produces, load after load. Absent on a pre-v0.8 save (no
+    // `data.rng`), so old saves keep exactly today's (rewind) behavior rather than failing to load.
+    if (typeof data.rng === 'number') world.rng.setState(data.rng);
+    if (typeof data.weatherRng === 'number') world.weatherRng.setState(data.weatherRng);
     for (const s of data.persons) { const p = world.person(s.id); if (!p) continue; Object.assign(p, { needs: s.needs, emotions: s.emotions, relationships: s.relationships, memories: s.memories, knowledge: s.knowledge, inventory: s.inventory, wealth: s.wealth, alive: s.alive, desires: s.desires, deathTick: s.deathTick, timeRate: s.timeRate ?? 1, surrender: s.surrender ?? null, custody: s.custody ?? null, attributes: s.attributes ?? p.attributes, physiology: s.physiology ?? p.physiology, species: s.species ?? p.species, physiologyTraits: s.physiologyTraits ?? p.physiologyTraits, skills: s.skills ?? p.skills }); p.mind.goal = s.goal ?? null; p.mind.plan = []; p.mind.investigated = new Set(s.investigated ?? []); p.mind.decision = s.decision ?? null; p.mind.commitment = s.commitment ?? null; p.mind.intention = null; }
     for (const s of data.bodies) { const b = world.body(s.id); if (!b) continue; b.pos = s.pos; b.yaw = s.yaw; b.health = s.health; b.maxHealth = s.maxHealth; b.dead = s.dead; b.pose = s.pose; b.present = s.present; b.path = null; b.subduedUntil = s.subduedUntil ?? 0; }
     world.conflicts = (data.conflicts ?? []).map((c: Conflict) => ({ ...c }));

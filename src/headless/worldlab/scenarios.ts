@@ -1,7 +1,6 @@
 import type { World } from '../../sim/core/world';
 import type { Simulation } from '../../sim/mind/agent';
 import { makeItem } from '../../sim/world/factory';
-import { learn } from '../../sim/mind/knowledge';
 import { INVARIANTS } from './invariants';
 import { LIVENESS } from './liveness';
 import { TAIL_CHECKS } from './tail';
@@ -49,7 +48,9 @@ export const SCENARIOS: ScenarioSpec[] = [
     // "standard multi-seed 30-day horizon" requirement — every finding in the audit was already
     // visible by day ~10 and unambiguous by day 20; a 7-day window could not have caught it.
     id: 'baseline-village', title: 'Baseline Village',
-    seeds: [918271, 42424242, 12345, 1337], days: 30, probeIntervalSeconds: 3600 * 6,
+    // v0.8 §22 "re-run matrix": at least 5 seeds at the 30-day standard horizon — the 4 the
+    // milestone names explicitly (918271, 918272, 1337, 42424242) plus one more (12345).
+    seeds: [918271, 918272, 1337, 42424242, 12345], days: 30, probeIntervalSeconds: 3600 * 6,
     invariants: INVARIANTS, liveness: ALL_LIVENESS,
   },
   {
@@ -81,20 +82,26 @@ export const SCENARIOS: ScenarioSpec[] = [
     id: 'recover-item', title: 'Recover Item (authorization + reward)',
     seeds: [918271, 42424242, 12345], days: 5, probeIntervalSeconds: 3600 * 2,
     invariants: [...ALWAYS_INVARIANTS], liveness: livenessIn(['social']),
-    // §7 "avoid scripting the desired outcome into existence": this seeds only the PRECONDITION
-    // (an active request + a witness who genuinely knows where the item is, exactly the same
-    // `learn()`/`desires.push` shape a real in-fiction loss would produce) — whether it actually
-    // gets resolved and paid is left entirely to the real cognition/goal system to accomplish or
-    // fail to accomplish on its own.
+    // §7 "avoid scripting the desired outcome into existence": this seeds only the loss itself —
+    // an active `recover_item` desire (an owner's belief about their OWN property is not
+    // omniscience; it's the one fact an in-fiction owner is entitled to know without having
+    // witnessed anything) and a ring left lying loose where the owner is not currently present.
+    // v0.8 §P0-G (independent audit §4.6): earlier this ALSO hand-authored a witness's `loc:`
+    // knowledge via a direct `learn()` call — i.e. the harness told a bystander a fact the
+    // simulation itself never gave them any evidence for, exactly the kind of confident,
+    // provenance-less belief Constitution §5/§6 forbids. That line is gone: whoever ends up
+    // knowing where the ring is, and whether that knowledge ever reaches the owner or an
+    // authorized recoverer, is now entirely up to the real `perceive()` (mind/agent.ts, item-
+    // location perception) → `pickGossip`/`tell` (knowledge travel) → `maybeAskForHelp`
+    // (authorization) → goal-formation (line ~415) chain to accomplish or fail to accomplish on
+    // its own — the scenario supplies a lost ring, not a solved case.
     setup: (world: World, _sim: Simulation) => {
       const owner = world.persons().find(p => p.alive && p.occupation === 'farmer');
-      const witness = world.persons().find(p => p.alive && p.id !== owner?.id);
-      if (!owner || !witness) return;
+      if (!owner) return;
       const place = world.places().find(p => p.type === 'chapel') ?? world.places()[0];
       if (!place) return;
       const ring = makeItem(world, 'ring', `${owner.name}'s ring`, { owner: owner.id, pos: place.anchors[0]?.pos ?? { x: 0, y: 1, z: 0 }, placeId: place.id });
       owner.desires.push({ type: 'recover_item', targetId: ring.id, note: 'My ring was lost. I would give anything to have it back.', reward: 20, fulfilled: false });
-      learn(world, witness, { key: `loc:${ring.id}`, kind: 'location', claim: { entityId: ring.id, pos: ring.pos, placeId: place.id }, confidence: 0.9, source: { type: 'witnessed' } }, true);
     },
   },
 ];

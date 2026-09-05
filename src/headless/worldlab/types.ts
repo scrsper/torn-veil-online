@@ -66,6 +66,20 @@ export interface EconomySnapshot {
 export type SeveritySnapshot = 'comfortable' | 'noticeable' | 'uncomfortable' | 'urgent' | 'critical';
 export interface PersonBands { hunger: SeveritySnapshot; thirst: SeveritySnapshot; sleep: SeveritySnapshot; }
 
+/**
+ * v0.8 §P0-H (independent audit §4.6): the old recovery-liveness check only ever asked "is the
+ * item already in the requester's hands" — a single endpoint test that cannot distinguish "the
+ * request was never even discoverable" from "someone knows exactly where it is but nobody has
+ * gone to get it" from "it's on its way back right now." These are the real causal stages the
+ * canonical recovery chain (`mind/agent.ts`'s item-location `perceive()` → `pickGossip`/`tell` →
+ * `maybeAskForHelp` → `isAuthorizedRecovery` → `takeItem`/`giveItem`) actually passes through, in
+ * order — a state machine, not a boolean. `info-discoverable`/`item-locatable` are split because
+ * SOMEONE knowing where an item is (a bystander who saw it) is a different, earlier fact than the
+ * REQUESTER themselves knowing (the fact their own goal-formation, agent.ts line ~415, needs).
+ */
+export type RecoveryPhase = 'requested' | 'info-discoverable' | 'item-locatable' | 'recovery-authorized' | 'item-recovered' | 'returned';
+export interface RecoveryProgress { personId: EntityId; itemId: EntityId; phase: RecoveryPhase; }
+
 export interface Observation {
   /** World-seconds elapsed since this run's `worldStart` (0 at the initial baseline probe). */
   atWorldSeconds: number;
@@ -88,6 +102,10 @@ export interface Observation {
    * followed by resolution before the run's final probe was still invisible to an end-of-run-
    * only scan of `status === 'active'`). */
   maxActiveConflictAgeHours: number;
+  /** v0.8 §P0-H: one entry per currently-tracked (person, item) `recover_item` desire, at this
+   * probe's phase — see `RecoveryPhase`. Empty in scenarios with no such desires (cheap: O(alive
+   * persons x their own desires), not a world-wide scan). */
+  recoveryProgress: RecoveryProgress[];
   alivePopulation: number;
   summary: WorldRunSummary;
   anomalies: Anomaly[];

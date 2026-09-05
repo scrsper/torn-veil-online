@@ -1,6 +1,6 @@
 import type { World } from '../../sim/core/world';
 import { SECONDS_PER_HOUR } from '../../sim/core/time';
-import type { Finding, LivenessCheck, Observation } from './types';
+import type { Finding, LivenessCheck, Observation, RecoveryProgress } from './types';
 import { buildPersonTrace, buildPlaceTrace } from './trace';
 
 function finding(id: string, category: string, message: string, trace?: Finding['trace']): Finding {
@@ -129,16 +129,38 @@ export const LIVENESS: LivenessCheck[] = [
     id: 'recovery-request-eventually-fulfills-and-pays',
     category: 'social',
     boundHours: 72,
-    description: 'An active recover_item desire, once a valid return is physically possible, eventually gets fulfilled and paid — not left open indefinitely once the item is back with the requester.',
-    check: (world) => {
+    description: 'An open recover_item desire keeps ADVANCING through its real causal phases (request -> information discoverable -> item locatable by the requester -> an authorized recoverer -> item physically recovered -> returned+paid) rather than sitting stuck at any one phase for the whole bound — a state-machine liveness check (v0.8 §P0-H), not a single "is it already in their hands" snapshot.',
+    check: (world, series) => {
       const out: Finding[] = [];
-      for (const p of world.persons()) {
-        for (const d of p.desires) {
-          if (d.type !== 'recover_item' || d.fulfilled || !d.targetId) continue;
-          const item = world.item(d.targetId);
-          // The item is physically WITH the requester already but the desire is still open —
-          // that's a real stuck state (giveItem should have fulfilled it on arrival).
-          if (item && item.holderId === p.id) out.push(finding('WL-RECOVERY-UNPAID', 'social', `${p.name}'s recover_item request for ${item.name} is unfulfilled even though the item is already in their possession.`, buildPersonTrace(world, 0, p.id, 'WL-RECOVERY-UNPAID', 'recovery not finalized')));
+      const ORDER: Record<Observation['recoveryProgress'][number]['phase'], number> = { requested: 0, 'info-discoverable': 1, 'item-locatable': 2, 'recovery-authorized': 3, 'item-recovered': 4, returned: 5 };
+      // Track every (person, item) pair that ever appeared as an open recovery anywhere in the
+      // series — a pair can vanish from later probes either because it resolved (good) or the
+      // person/item stopped existing (death, despawn); only a pair still open at the run's own
+      // last probe, or one that regressed, is worth reporting.
+      const pairs = new Set<string>();
+      for (const o of series) for (const rp of o.recoveryProgress) pairs.add(`${rp.personId}::${rp.itemId}`);
+      for (const key of pairs) {
+        const [personId, itemId] = key.split('::');
+        const trail = series.map(o => ({ o, rp: o.recoveryProgress.find(r => r.personId === personId && r.itemId === itemId) })).filter((x): x is { o: Observation; rp: RecoveryProgress } => !!x.rp);
+        if (!trail.length) continue;
+        const last = trail[trail.length - 1];
+        if (last.rp.phase === 'returned') continue; // resolved — no finding regardless of how long it took
+        // Find the first point this pair's phase stopped advancing for >= boundHours while still
+        // open — same "stuck window" shape as `findStuckWindow`, but phase-ordinal instead of a
+        // monotonic counter (phase CAN regress, e.g. an authorized recoverer dies before
+        // delivering — a regression is itself worth surfacing, not silently re-baselined).
+        for (let i = 0; i < trail.length; i++) {
+          for (let j = i + 1; j < trail.length; j++) {
+            const spanHours = (trail[j].o.atWorldSeconds - trail[i].o.atWorldSeconds) / SECONDS_PER_HOUR;
+            if (spanHours < 72) continue;
+            if (ORDER[trail[j].rp.phase] <= ORDER[trail[i].rp.phase]) {
+              const p = world.person(personId); const it = world.item(itemId);
+              const label = p && it ? `${p.name}'s recover_item request for ${it.name}` : `recover_item request ${key}`;
+              const verb = ORDER[trail[j].rp.phase] < ORDER[trail[i].rp.phase] ? `regressed from '${trail[i].rp.phase}' back to '${trail[j].rp.phase}'` : `has been stuck at phase '${trail[i].rp.phase}'`;
+              out.push(finding('WL-RECOVERY-STUCK', 'social', `${label} ${verb} for ${spanHours.toFixed(0)}h (day ${trail[i].o.atWorldDays} -> day ${trail[j].o.atWorldDays}) without reaching 'returned'.`, p ? buildPersonTrace(world, 0, p.id, 'WL-RECOVERY-STUCK', 'recovery chain not progressing') : undefined));
+            }
+            break;
+          }
         }
       }
       return out;

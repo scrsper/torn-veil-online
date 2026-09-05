@@ -29,9 +29,19 @@ function categoryFor(type: string): TelemetryRecord['category'] { return EVENT_C
 
 // High-frequency, low-value-per-record event types that would otherwise dominate the
 // stream without adding observability (Part 3: "record meaningful semantic changes rather
-// than rendering frames"). `arrived`/`block_changed` fire constantly as NPCs walk their
-// routines and open doors; they carry no anomaly or narrative signal on their own.
-const SKIP_TYPES = new Set(['arrived', 'block_changed']);
+// than rendering frames"). `arrived` fires constantly as NPCs walk their routines (pure
+// movement telemetry, never cited as a `causes` reference by anything); it carries no anomaly
+// or narrative signal on its own.
+// v0.8 §P0-I (independent audit §4.7): `block_changed` USED to be skipped here too, on the same
+// "fires constantly" reasoning — but `mind/agent.ts`'s `perceive()` routinely cites a
+// `block_changed` event as a `perceived` event's `causes` (someone genuinely perceiving a door
+// open/close). Skipping it from telemetry meant that causal link could never be traced back
+// through the fuller telemetry history `detectAnomalies`'s `dangling_cause` check now prefers
+// (see `telemetryToEvents`) — every such perception looked like a genuine dangling reference,
+// even though nothing was actually broken; the door event legitimately happened. Recording it
+// (still excluded from `event_spam`/other rate checks — see `HIGH_FREQUENCY_SEMANTIC`) closes
+// that gap for the one thing telemetry is actually used for here: causal tracing.
+const SKIP_TYPES = new Set(['arrived']);
 
 /**
  * Subscribes to World's canonical event stream and turns a curated subset into structured
@@ -46,9 +56,16 @@ export class TelemetryRecorder {
 
   private onEvent(e: WorldEvent): void {
     if (SKIP_TYPES.has(e.type)) return;
+    // v0.8 §P0-I: `e.data` (the payload each emit() call writes) legitimately reuses common key
+    // names for DIFFERENT things than the canonical top-level fields — e.g. `settleWholesale`'s
+    // `data.item` is a resource TYPE string ('grain'), not the EntityId `WorldEvent.item` means.
+    // The canonical identity fields (id/actor/target/item/placeId/...) MUST win over any
+    // same-named payload key, so they are spread LAST — anyone reading `record.data.item` back
+    // out as an EntityId (see `telemetry/anomaly.ts`'s `telemetryToEvents`) needs that guarantee
+    // to hold, and a same-named payload key was previously free to silently clobber it.
     const record: TelemetryRecord = {
       t: Date.now(), worldTick: e.tick, category: categoryFor(e.type), type: e.type,
-      data: { id: e.id, actor: e.actor, target: e.target, item: e.item, placeId: e.placeId, significance: e.significance, summary: e.summary, causes: e.causes, ...e.data },
+      data: { ...e.data, id: e.id, actor: e.actor, target: e.target, item: e.item, placeId: e.placeId, significance: e.significance, summary: e.summary, causes: e.causes },
     };
     this.writeAll(record);
   }

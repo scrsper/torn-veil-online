@@ -14,6 +14,21 @@ export class RNG {
   chance(p: number): boolean { return this.next() < p; }
   shuffle<T>(arr: T[]): T[] { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(this.next() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
   fork(salt: number): RNG { return new RNG((this.s ^ Math.imul(salt + 1, 0x9e3779b1)) >>> 0); }
+  /**
+   * v0.8 §P1 (independent audit §3.5): the mulberry32 state IS just `s` — a save/load cycle that
+   * only restores the constructor `seed` (not the current `s` after however many draws happened
+   * during play) silently rewinds this stream back to its post-village-generation position,
+   * replaying the same "random" sequence every time the same save is reloaded. `state()`/
+   * `setState()` let `persist/save.ts` round-trip the actual stream position, the same way
+   * `WorldClock.state()` round-trips clock state, instead of the constructor's `seed` alone.
+   */
+  state(): number { return this.s; }
+  // No `>>> 0` here, deliberately: `next()`'s `this.s += 0x6d2b79f5` never re-masks `s` itself
+  // back into 32-bit range (only the local `t` used for the RETURNED value is bit-masked/imul'd)
+  // — `s` legitimately grows into an ordinary large JS number over many calls. Coercing a
+  // restored large state through `>>> 0` (ToUint32) would silently wrap it to the WRONG value,
+  // corrupting the exact stream position this method exists to preserve.
+  setState(s: number): void { this.s = s; }
 }
 
 export function hash2(x: number, y: number, seed = 0): number {

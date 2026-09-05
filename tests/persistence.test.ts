@@ -126,4 +126,38 @@ describe('save round trips', () => {
     expect(restoredFaction.leaderId).toBe(gen.people.vex.id);
     expect(restoredFaction.knowledge['ev:test-crime']?.claim.type).toBe('attack');
   });
+
+  it('continues the PRNG stream across save+reload rather than rewinding to the post-generation position (v0.8 §P1)', () => {
+    // Regression: `deserialize` always called `new World(seed)` + `generateVillage(world)`,
+    // which leaves `world.rng`/`world.weatherRng` at whatever position generation itself left
+    // them at — every reload of the SAME save used to silently rewind both streams back to that
+    // identical point, replaying the same "random" sequence load after load instead of
+    // continuing from wherever play had actually advanced them to.
+    const { world, gen } = newWorld(1337);
+    const sim = new Simulation(world);
+    advance(world, sim, 90); // consume a real, non-trivial number of RNG draws during play
+
+    const preSaveRngState = world.rng.state();
+    const preSaveWeatherState = world.weatherRng.state();
+    const saveStr = serialize(world); // captures the stream position AT this exact instant
+    const saved = JSON.parse(saveStr);
+    expect(saved.rng).toBe(preSaveRngState);
+    expect(saved.weatherRng).toBe(preSaveWeatherState);
+    // Continuing to draw from the SAME (unsaved) world's RNG from this exact point is what a
+    // reloaded copy of this exact save should also produce next.
+    const expectedNext = [world.rng.next(), world.rng.next()];
+    const expectedWeatherNext = [world.weatherRng.next(), world.weatherRng.next()];
+
+    const restored = deserialize(saveStr)!.world;
+
+    expect(restored.rng.state()).toBe(preSaveRngState);
+    expect(restored.weatherRng.state()).toBe(preSaveWeatherState);
+    expect([restored.rng.next(), restored.rng.next()]).toEqual(expectedNext);
+    expect([restored.weatherRng.next(), restored.weatherRng.next()]).toEqual(expectedWeatherNext);
+
+    // An old save with no `rng`/`weatherRng` fields must still load cleanly (backward
+    // compatible — falls back to today's pre-v0.8 behavior, never a hard failure).
+    const legacy = JSON.parse(serialize(world)); delete legacy.rng; delete legacy.weatherRng;
+    expect(deserialize(JSON.stringify(legacy))).not.toBeNull();
+  });
 });

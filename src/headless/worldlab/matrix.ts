@@ -1,6 +1,8 @@
 import { runHeadless } from '../runner';
 import { takeProbe, type ProbeContext } from './probe';
 import { verdictOf } from './scorecard';
+import { structuralFindingsFrom } from './invariants';
+import { telemetryToEvents } from '../../sim/telemetry/anomaly';
 import type { Observation, ScenarioResult, ScenarioSeedResult, ScenarioSpec } from './types';
 
 /** Runs one scenario against one seed: the real `runHeadless` loop (same canonical
@@ -17,13 +19,17 @@ export function runScenarioSeed(scenario: ScenarioSpec, seed: number): ScenarioS
 
   const result = runHeadless({
     seed, days: scenario.days, probeIntervalSeconds: scenario.probeIntervalSeconds,
+    // v0.8 §P0-I: a multi-day WorldLab run needs more than the browser-session-sized default
+    // ring buffer for the 24h-window anomaly checks to reliably still have that much telemetry
+    // on hand at probe time (see `sim/telemetry/anomaly.ts`).
+    telemetryCap: 200_000,
     onSetup: (world, sim) => {
       ctx = { seed, requestedDays: scenario.days, worldStart: world.now, startingPopulation: world.persons().filter(p => p.alive).length };
       scenario.setup?.(world, sim);
     },
-    onProbe: (world, _sim, worldSeconds) => {
+    onProbe: (world, _sim, worldSeconds, telemetry) => {
       if (!ctx) return;
-      const obs = takeProbe(ctx, world, worldSeconds);
+      const obs = takeProbe(ctx, world, worldSeconds, telemetry);
       observations.push(obs);
       for (const inv of scenario.invariants) findings.push(...inv.check(world, prev, obs));
       prev = obs;
@@ -31,6 +37,7 @@ export function runScenarioSeed(scenario: ScenarioSpec, seed: number): ScenarioS
   });
 
   for (const l of scenario.liveness) findings.push(...l.check(result.world, observations));
+  findings.push(...structuralFindingsFrom(result.world, telemetryToEvents(result.telemetry.records)));
 
   return {
     scenarioId: scenario.id, seed, verdict: verdictOf(findings), findings, observations,

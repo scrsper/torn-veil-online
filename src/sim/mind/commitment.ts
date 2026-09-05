@@ -31,6 +31,12 @@ const INTERRUPTIBILITY: Partial<Record<GoalType, Interruptibility>> = {
   haul: 'committed',
   build: 'committed',
   sleep: 'emergency_only',
+  // v0.8 §P0-G/H: without this, a helper who had already picked up someone else's lost item
+  // (agent.ts's 'help_recover_item' — see `commitmentValidity` below) could get preempted by an
+  // ordinary mundane goal (socialize, an idle schedule slot) mid-delivery, on a moment's utility
+  // fluctuation — physically abandoning it with the item still in their inventory. Same shape,
+  // same fix, as the v0.5 hauler-oscillation pathology this whole file exists for.
+  help_recover_item: 'committed',
 };
 export function interruptibilityOf(type: GoalType): Interruptibility { return INTERRUPTIBILITY[type] ?? 'free'; }
 export function isCommittable(type: GoalType): boolean { return interruptibilityOf(type) === 'committed'; }
@@ -132,6 +138,15 @@ export function commitmentValidity(world: World, c: GoalCommitment): 'valid' | '
     if (!proj) return 'abandoned';
     if (proj.status === 'complete') return 'completed';
     if (proj.status === 'cancelled') return 'abandoned';
+    return 'valid';
+  }
+  if (c.goalType === 'help_recover_item') {
+    const it = c.targetEntity ? world.item(c.targetEntity) : undefined;
+    const requester = c.data?.deliverTo ? world.person(c.data.deliverTo) : undefined;
+    if (!it || !requester || !requester.alive) return 'abandoned';
+    const desire = requester.desires.find(d => d.type === 'recover_item' && d.targetId === it.id);
+    if (!desire) return 'abandoned'; // the request was withdrawn, or already resolved some other way
+    if (desire.fulfilled) return 'completed';
     return 'valid';
   }
   return null;

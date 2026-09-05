@@ -1,6 +1,8 @@
 import type { World } from '../../sim/core/world';
+import type { WorldEvent } from '../../sim/core/types';
 import type { Finding, InvariantCheck, Observation } from './types';
 import { buildPersonTrace } from './trace';
+import { detectAnomalies } from '../../sim/telemetry/anomaly';
 
 const WORK_GOAL_TYPES = new Set(['work', 'haul', 'chop', 'gather', 'build', 'plant', 'harvest']);
 
@@ -176,5 +178,43 @@ export const INVARIANTS: InvariantCheck[] = [
 export function runInvariants(world: World, prev: Observation | null, curr: Observation): Finding[] {
   const out: Finding[] = [];
   for (const inv of INVARIANTS) out.push(...inv.check(world, prev, curr));
+  return out;
+}
+
+/**
+ * v0.8 §P0-I (independent audit §4.7): `sim/telemetry/anomaly.ts`'s `detectAnomalies` has always
+ * been able to notice things like dangling causal references, invalid entity ids, and epistemic
+ * leaks — but WorldLab never actually LOOKED at what it found: `Observation.anomalies` was pure
+ * observational data, collected every probe and then never consulted again, so `verdictOf`
+ * (scorecard.ts) could report PASS/21-of-21 on a run that `detectAnomalies` itself had already
+ * flagged as structurally broken. This converts the subset of anomaly types that are genuinely
+ * unambiguous structural-integrity defects (never a legitimate behavioral pattern, unlike e.g.
+ * `event_spam`/`goal_churn`, which can be real activity — see `HIGH_FREQUENCY_SEMANTIC`) into
+ * real `Finding`s, once per run, over the FINAL world + the fullest available event history —
+ * exactly the shape a liveness check already uses. `stuck_agent` is kept at 'warning': a
+ * clustered path-failure run CAN legitimately mean "there is no route" (a map-edge or
+ * under-construction area), not only a pathing bug, so it should degrade a run rather than fail
+ * it outright.
+ */
+const STRUCTURAL_ANOMALY_SEVERITY: Partial<Record<string, 'warning' | 'failure'>> = {
+  dangling_cause: 'failure',
+  invalid_entity_reference: 'failure',
+  epistemic_leak: 'failure',
+  surrender_or_custody_ignored: 'failure',
+  stuck_agent: 'warning',
+};
+export function structuralFindingsFrom(world: World, eventSource?: WorldEvent[]): Finding[] {
+  const anomalies = detectAnomalies(world, {}, eventSource);
+  const out: Finding[] = [];
+  for (const a of anomalies) {
+    const severity = STRUCTURAL_ANOMALY_SEVERITY[a.type];
+    if (!severity) continue;
+    const who = a.entity ? world.nameOf(a.entity) : undefined;
+    out.push({
+      id: `WL-ANOMALY-${a.type.toUpperCase()}`, kind: 'invariant', class: 'integrity', severity, category: 'cognition',
+      message: `${who ? `${who}: ` : ''}${a.type.replace(/_/g, ' ')} (${a.occurrences} occurrence(s), ${JSON.stringify(a.data)})`,
+      trace: a.entity ? buildPersonTrace(world, world.now, a.entity, `WL-ANOMALY-${a.type.toUpperCase()}`, a.type) : undefined,
+    });
+  }
   return out;
 }
