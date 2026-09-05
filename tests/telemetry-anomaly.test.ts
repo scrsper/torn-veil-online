@@ -12,11 +12,15 @@ describe('telemetry (v0.2 Part 3: automatic, purely observational)', () => {
     const b = addPerson(tw, 'B', 'farmer', v(6, 1, 5));
     tw.world.emit('attack', { actor: a.id, target: b.id, significance: 0.7, summary: 'A attacked B' });
     tw.world.emit('arrived', { actor: a.id, significance: 0.05, summary: 'A arrived' }); // routine — must be skipped
-    tw.world.emit('block_changed', { actor: a.id, significance: 0.08, summary: 'door' }); // routine — must be skipped
+    // v0.8 §P0-I: `block_changed` rejoined telemetry (recorder.ts's `SKIP_TYPES`) — `perceive()`
+    // legitimately cites it as a `causes` reference, and `detectAnomalies`'s `dangling_cause`
+    // check (via `telemetryToEvents`) needs it retained to trace that causal link correctly. Only
+    // `arrived` (pure per-step movement, never cited as a cause by anything) is still skipped.
+    tw.world.emit('block_changed', { actor: a.id, significance: 0.08, summary: 'door' });
 
     expect(sink.records.some(r => r.type === 'attack' && r.category === 'conflict')).toBe(true);
     expect(sink.records.some(r => r.type === 'arrived')).toBe(false);
-    expect(sink.records.some(r => r.type === 'block_changed')).toBe(false);
+    expect(sink.records.some(r => r.type === 'block_changed')).toBe(true);
     expect(sink.countByCategory().conflict).toBeGreaterThanOrEqual(1);
   });
 
