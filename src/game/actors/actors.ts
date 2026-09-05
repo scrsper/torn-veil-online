@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { World } from '../../sim/core/world';
 import type { Body, Person, Creature, Appearance, Item } from '../../sim/core/types';
+import { workStyleFor, type WorkStyle } from '../presentation/activityCues';
 
 /** Voxel humanoid: the physical projection of a Person's body. Procedural animation driven by pose and velocity. */
 class Humanoid {
@@ -44,7 +45,7 @@ class Humanoid {
     if (type === 'sword' || type === 'dagger') { const gd = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.05, 0.05), new THREE.MeshLambertMaterial({ color: 0x6a5030 })); gd.position.y = 0.12; g.add(gd); }
     g.position.set(0, -0.7, 0.1); g.rotation.x = -Math.PI / 2 + 0.3; this.held = g as any; this.armR.add(g);
   }
-  animate(dt: number, body: Body, physTime: number): void {
+  animate(dt: number, body: Body, physTime: number, workStyle: WorkStyle | null = null): void {
     const speed = Math.hypot(body.vel.x, body.vel.z);
     const walking = speed > 0.3 && (body.pose === 'walk' || body.pose === 'run' || body.pose === 'stand');
     this.phase += dt * (speed * 2.6 + (walking ? 0 : 0));
@@ -61,7 +62,24 @@ class Humanoid {
     this.head.rotation.x = 0;
     if (pose === 'attack') { const k = Math.min(1, (physTime - body.lastAttackAt) / 0.4); const swing = Math.sin(k * Math.PI); lerp(this.armR, -2.4 + swing * 2.6, -0.3, 0.6); lerp(this.armL, -0.4, 0.2); lerp(this.legL, 0.2); lerp(this.legR, -0.2); return; }
     if (pose === 'hit') { this.pivot.rotation.x = -0.25; lerp(this.armL, -1.2, -0.4, 0.5); lerp(this.armR, -1.2, 0.4, 0.5); return; }
-    if (pose === 'work') { const w = Math.sin(t * 7); lerp(this.armR, -1.4 + w * 0.9, 0, 0.4); lerp(this.armL, -0.6 + Math.sin(t * 3.5) * 0.2); lerp(this.legL, 0); lerp(this.legR, 0); this.pivot.rotation.x = 0.15; return; }
+    if (pose === 'work') {
+      // Semantic Activity Projection (spec §15): a `chop`/`gather` worker swings distinctly from
+      // generic labour instead of collapsing to the same "pose = work" motion — see
+      // game/presentation/activityCues.ts, which resolves `workStyle` from the actor's currently
+      // active canonical Action. `null`/'hammer' keeps the original generic bob (construction's
+      // build labour reads visually as hammering already, so it needs no new motion).
+      if (workStyle === 'chop') {
+        const cyc = (t * 1.3) % 1; const raise = cyc < 0.5 ? cyc / 0.5 : 1 - (cyc - 0.5) / 0.5;
+        lerp(this.armR, -2.6 + raise * 2.3, -0.15, 0.5); lerp(this.armL, -2.0 + raise * 1.8, 0.15, 0.5);
+        lerp(this.legL, 0.1); lerp(this.legR, -0.1); this.pivot.rotation.x = 0.1 + (1 - raise) * 0.15; return;
+      }
+      if (workStyle === 'quarry') {
+        const cyc = (t * 1.6) % 1; const raise = cyc < 0.4 ? cyc / 0.4 : 1 - (cyc - 0.4) / 0.6;
+        lerp(this.armR, -1.8 + raise * 1.6, -0.1, 0.55); lerp(this.armL, -0.5, 0.1, 0.4);
+        lerp(this.legL, 0); lerp(this.legR, 0); this.pivot.rotation.x = 0.25; return;
+      }
+      const w = Math.sin(t * 7); lerp(this.armR, -1.4 + w * 0.9, 0, 0.4); lerp(this.armL, -0.6 + Math.sin(t * 3.5) * 0.2); lerp(this.legL, 0); lerp(this.legR, 0); this.pivot.rotation.x = 0.15; return;
+    }
     if (pose === 'talk') { lerp(this.armR, -0.4 + Math.sin(t * 5) * 0.3, -0.2); lerp(this.armL, -0.2 + Math.sin(t * 4 + 1) * 0.2, 0.15); lerp(this.legL, 0); lerp(this.legR, 0); this.head.rotation.y = Math.sin(t * 2) * 0.1; return; }
     if (walking) { const a = Math.sin(p) * Math.min(1.1, speed * 0.32); lerp(this.legL, a, 0, 0.5); lerp(this.legR, -a, 0, 0.5); lerp(this.armL, -a * 0.8, 0.08, 0.5); lerp(this.armR, a * 0.8, -0.08, 0.5); this.pivot.position.y = Math.abs(Math.sin(p)) * 0.05; }
     else { lerp(this.legL, 0); lerp(this.legR, 0); lerp(this.armL, Math.sin(t * 1.3) * 0.04, 0.06); lerp(this.armR, Math.sin(t * 1.3 + 1) * 0.04, -0.06); this.torso.position.y = 1.07 + Math.sin(t * 1.6) * 0.01; }
@@ -130,7 +148,7 @@ export class ActorRenderer {
         h.root.position.set(b.pos.x, b.pos.y, b.pos.z); h.root.rotation.y = b.yaw + Math.PI;
         const held = p.inventory.map(id => this.world.item(id)).find(i => i && ['sword', 'dagger', 'hammer', 'axe', 'lantern'].includes(i.type));
         h.setHeld(b.pose === 'sleep' || b.pose === 'dead' ? '' : (held?.type ?? ''));
-        h.animate(dt, b, physTime);
+        h.animate(dt, b, physTime, b.pose === 'work' ? workStyleFor(this.world, p) : null);
       } else if (b.shape === 'chicken') {
         let c = this.chickens.get(b.id); if (!c) { c = new Chicken(); this.chickens.set(b.id, c); this.group.add(c.root); c.root.userData.bodyId = b.id; }
         c.root.position.set(b.pos.x, b.pos.y, b.pos.z); c.root.rotation.y = b.yaw + Math.PI; c.animate(dt, b);
