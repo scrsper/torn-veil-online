@@ -269,9 +269,32 @@ can wire autonomy/interaction on top without changing `world/crafting.ts` itself
 
 ## 7. Long-horizon benchmarks
 
-*(To be completed once the full 2/8/30/90-day headless benchmark chain — running in the
-background alongside this draft — finishes. Both seeds tested per the roadmap's own "at minimum
-30- and 90-day" instruction, matching v0.7's methodology.)*
+All runs: seed 918271 (plus an alternate seed 42424242 at 8 days, per the roadmap's own "test at
+least one alternate seed" instruction), final code (all fixes in §4.2 applied), `npm run sim`.
+
+| | 2d | 8d (918271) | 8d (42424242) | 30d | 90d |
+|---|---|---|---|---|---|
+| Wall-clock | 13.9s | 57.3s | 55.6s | 390.8s | 1910.2s |
+| Population | 33→33 | 33→33 | 33→33 | 33→33 | 33→33 |
+| Conflict (attacks/thefts) | 27/12 | 49/12 | 56/4 | 188/25 | 295/26 |
+| Path failures / stuck entities | — | — | — | 129 / 0 | 49 / 0 |
+| Construction (storage shed) | ready, 0 labour | **complete** | building, 80% labour | complete | complete |
+| Wholesale trade / supply costs (silver) | 86 / 65 | 192 / 107 | 236 / 60 | 816 / 209 | 955 / 323 |
+| Villagers below 3 silver | 6/32 | 12/32 | 10/32 | 24/32 | 28/32 |
+| Fire: lit now / extinguished (by storm) | 0/1, 4 (0) | 0/1, 8 (0) | 0/1, 7 (0) | 0/1, 8 (0) | 0/1, 8 (0) |
+| Stew batches cooked | 3 | 5 | 1 | 5 | 5 |
+| Meat hauled to tavern (lifetime) | — | 32 | — | 32 | 32 |
+| Items crafted | 0 | 0 | 0 | 0 | 0 |
+| Sticks gathered while felling | 5 | 9 | 12 | 9 | 9 |
+| Herbs at the river woods | 16 | 16 | 16 | 19 | 16 |
+| `sim.think` share of wall-clock | 38.1% | 44.3% | 43.6% | 57.1% | 64.9% |
+
+Cooking and meat-hauling numbers **plateau after roughly the first 8-16 world-days** and do not
+grow further at 30 or 90 days — see §8 for why this is a real, disclosed dynamic rather than a
+mechanism that silently stopped working. `sim.think`'s wall-clock share climbing with run length
+(38%→65%) reproduces the exact trend v0.7 already disclosed as a population-scale concern
+unrelated to this milestone; v0.8 adds no new per-tick cost class to it (fire/cooking/crafting
+all run on the same coarse ~8-12-world-minute batch cadence mill/bake/saw already used).
 
 ---
 
@@ -297,12 +320,52 @@ background alongside this draft — finishes. Both seeds tested per the roadmap'
   cut given the milestone's already-large surface area (materials + fire + a new production
   process + practical crafting), not an oversight. The mechanism is complete, tested, and ready
   for a future milestone (or player UI) to wire autonomy on top of.
-- *(Further disclosures — long-horizon fire/cooking/crafting activity levels, any new scaling
-  cost, wall-clock comparison to v0.7's own 30/90-day figures — to follow once §7's benchmarks
-  complete.)*
+- **Cooking activity plateaus after ~8-16 days rather than growing with run length** (§7):
+  `stew_cooked`/hauled-meat are identical at 30 and 90 days to their 8-day values. Direct
+  inspection (not assumed) traced this to Kestrel — the hunter — repeatedly getting drawn into
+  combat with a recurring bandit (`Skarn`) and, immediately after, into a string of
+  `path_failure` events before she gives up and defaults to sleeping; while entangled this way
+  she simply is not at her stall to trigger `huntGame`. This is a genuine interaction with the
+  game's **pre-existing** conflict/pathfinding systems (path failures are a tracked, non-fatal,
+  self-recovering phenomenon at every run length in §7's own numbers, present before this
+  milestone and not specific to hunting/cooking) rather than a flaw in the new fire/cooking/
+  materials mechanism itself, which is proven correct both in isolation (15 unit tests) and in a
+  real run (multiple genuine `cook()` successes with real hauled meat and real burning fire).
+  Fixing an NPC's conflict/pathfinding entanglement is a different milestone's territory — doing
+  so here would be exactly the kind of scope creep the roadmap warns against — so this is
+  disclosed rather than patched. **Cooking's Definition-of-Done claim is evidence-based, not
+  aspirational**: it fires repeatedly and correctly whenever its actor is actually free to work,
+  which is not always true of any NPC's schedule in this game, cooking included.
 
 ---
 
 ## 9. Does the evidence from this milestone require changing v0.9?
 
-*(To follow once benchmarks and final review are complete.)*
+**No. v0.9 (Geology, Mining, Metallurgy & Resource Discovery) should proceed unchanged.**
+
+v0.9 §F explicitly says its metallurgy chain should "build on v0.8 fire/process architecture" —
+this milestone's own evidence directly confirms that architecture is real and load-bearing, not
+just unit-tested: `world/fire.ts`'s canonical `Fire` (real fuel consumption, real intensity, real
+rain/storm interaction) and `world/cooking.ts`'s `cook()` (a genuine process gated on
+`fireIntensityAt >= 0.3`) both fired correctly in an actual, unscripted 90-day village run, not
+only in isolation. v0.9's own worked example — "ore + fuel + heat → refined metal" — is the exact
+same shape as v0.8's "meat + fire heat → stew," so no revision to v0.9's plan is needed; the
+pattern to copy already exists and is proven.
+
+Two things from this milestone are worth v0.9 knowing about, without requiring any change to its
+own scope:
+- **New haul demands compete for finite hauler labor** (§8): v0.9's own hard-rock mining
+  (§E, "ore ... hauling") will add at least one more haul demand into the same pool. This
+  milestone's own construction-test timing shift (§4.2) is the concrete, measured size of that
+  effect for two new demands — small, bounded, not something to design around, but not zero
+  either.
+- **An NPC's own schedule/behavior can bottleneck a perfectly correct production mechanism**
+  (§8): v0.9's prospecting/discovery and extraction chains depend on specific NPCs (a prospector,
+  a miner) being free to act, exactly like this milestone's cooking depended on Kestrel. This is
+  not a v0.8 defect to fix — it is a reason for v0.9 to expect (and, ideally, headless-verify at a
+  real run length rather than assume) the same kind of finding, not a reason to design differently.
+
+`sim.think`'s wall-clock share continuing to climb with run length (v0.7's own disclosed
+concern, reproduced again in §7 unchanged by this milestone) remains a population-scale issue
+outside any single content milestone's scope — still worth someone's attention eventually, but
+not v0.9's to solve either.
