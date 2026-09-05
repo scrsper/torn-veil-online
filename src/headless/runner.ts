@@ -34,6 +34,24 @@ export interface HeadlessRunOptions {
    * institutional-knowledge sync, leadership-vacancy checks. Default 1 simulated hour. */
   maintenanceIntervalSeconds?: number;
   onProgress?: (worldDaysElapsed: number) => void;
+  /**
+   * WorldLab (v0.8 §2-3) hook: called read-only at `probeIntervalSeconds` (world-time) so a
+   * caller can observe how the world evolves over time, not just its final state. Called with
+   * the exact same live `world`/`sim` this run is using — nothing here duplicates simulation
+   * state. Callers must not mutate `world`/`sim` from inside this callback; WorldLab enforces
+   * that contract by only ever reading from it (see worldlab/probe.ts).
+   */
+  onProbe?: (world: World, sim: Simulation, worldSecondsElapsed: number) => void;
+  /** World-time seconds between `onProbe` calls. Default 1 simulated hour, matching the existing
+   * maintenance cadence. Ignored if `onProbe` is not set. */
+  probeIntervalSeconds?: number;
+  /**
+   * WorldLab scenario setup (v0.8 §7): called once, right after village generation, before any
+   * simulated time passes. Exists so a scenario can establish a precondition (e.g. give the
+   * player a controlled body, seed a specific desire) through the same `World`/`Simulation` APIs
+   * anything else uses — never scripting the outcome being validated, only its precondition.
+   */
+  onSetup?: (world: World, sim: Simulation) => void;
 }
 
 export interface HeadlessRunResult {
@@ -64,6 +82,7 @@ export function runHeadless(opts: HeadlessRunOptions): HeadlessRunResult {
   accum('villageGen', t0);
   const sim = new Simulation(world);
   sim.profile = {};
+  opts.onSetup?.(world, sim);
 
   const memSink = new MemorySink();
   const recorder = new TelemetryRecorder(world, [memSink, ...(opts.sinks ?? [])]);
@@ -85,6 +104,9 @@ export function runHeadless(opts: HeadlessRunOptions): HeadlessRunResult {
   const totalWorldSeconds = opts.days * SECONDS_PER_DAY;
 
   let sinceMaintenance = 0;
+  let sinceProbe = 0;
+  const probeInterval = opts.probeIntervalSeconds ?? 3600;
+  if (opts.onProbe) opts.onProbe(world, sim, 0); // t=0 baseline, before any simulated time passes
   let lastReportedDay = -1;
   while (world.now - worldStart < totalWorldSeconds) {
     // Clamp the final physical substep so we land close to the requested world-time target
@@ -107,7 +129,9 @@ export function runHeadless(opts: HeadlessRunOptions): HeadlessRunResult {
     }
     const day = Math.floor((world.now - worldStart) / SECONDS_PER_DAY);
     if (opts.onProgress && day !== lastReportedDay) { lastReportedDay = day; opts.onProgress(day); }
+    if (opts.onProbe) { sinceProbe += worldDt; if (sinceProbe >= probeInterval) { sinceProbe = 0; opts.onProbe(world, sim, world.now - worldStart); } }
   }
+  if (opts.onProbe) opts.onProbe(world, sim, world.now - worldStart); // final observation
 
   t0 = mark(); const anomalies = detectAnomalies(world); accum('anomalies', t0);
   t0 = mark(); const significance = topSignificantEntities(world, 15); accum('significance', t0);
