@@ -326,26 +326,49 @@ const ALE_RESTOCK_QTY = 6;
  * measured directly (seed 918271, headless, pre-fix) — the innkeeper pair's share of total
  * village wealth climbed monotonically from 7.9% (8 days) to 36.8% (30 days) to 59.1% (90 days),
  * silently starving every other occupation (including the ones §A's wholesale-trade fix just
- * gave real income to) despite total village wealth staying roughly conserved. A modest, real,
- * bounded cost — representing buying supplies from an outside source this game does not yet
- * model (the same "no modeled ingredient chain" abstraction this function's own doc comment
- * already used to justify the free restock in the first place, just no longer free) — closes the
- * one-way leak without inventing a brewer NPC or a new production chain. This is an explicit
- * currency EXIT (Constitution v0.7 §B: "if currency enters or exits the simulation, that must be
- * explicit") — tracked in `world.runTally.supply_cost_amount` for auditability — not a manufactured
- * expense hidden inside an opaque number.
+ * gave real income to) despite total village wealth staying roughly conserved.
  *
- * A first attempt at this cost (a flat 1/unit, a third of ale's fixed retail value) was measured
- * to only SLOW the sink, not close it: a positive per-batch margin, however small, still
- * compounds without bound over a long enough horizon — re-validated at 90 days and the
- * innkeeper pair's share was back to 58.1%, barely different from the pre-fix 59.1%, just
- * delayed. `ale` has no scarcity-based pricing (`world/pricing.ts`'s `PRICE_REFERENCE_STOCK`
- * doesn't include it), so it always sells at its flat `ITEM_VALUE.ale` — supply cost is set to a
- * thin, near-break-even margin below that fixed price instead of an arbitrary fraction of it, a
- * real (if modest) profit a small tavern business should still turn, but one that cannot compound
- * into an unbounded, village-dominating sink over any realistic run length. */
-const ALE_MARGIN_PER_UNIT = 0.1;
-const ALE_SUPPLY_COST_PER_UNIT = ITEM_VALUE.ale - ALE_MARGIN_PER_UNIT;
+ * TWO earlier attempts at a fix (flat 1/unit, then `ITEM_VALUE.ale - 0.1`) both charged a
+ * POSITIVE per-unit margin below ale's flat retail price and were validated only by checking
+ * that a 90-day benchmark's wealth-share number looked small. Both are wrong for the same
+ * structural reason: `ale` has no scarcity-based pricing (`world/pricing.ts`'s
+ * `PRICE_REFERENCE_STOCK` doesn't include it, so `effectivePrice` always returns the flat
+ * `ITEM_VALUE.ale`) — restocking runs on its own stock-trigger cadence, entirely decoupled from
+ * how often a unit actually sells. ANY positive margin per unit therefore compounds linearly
+ * with the number of restock cycles, which itself grows without bound as the run gets longer —
+ * "58.1% instead of 59.1%" was never a fix, only a slower version of the same unbounded sink,
+ * and tuning the margin further would only be tuning the SPEED of an uncapped accumulation
+ * until a chosen benchmark window happened to look flat. That is exactly the "calibrate until
+ * the graph looks right" trap this project's own Constitution (`no unexplained wealth
+ * creation`, `currency must remain auditable`) rules out.
+ *
+ * The structurally correct fix sets the supply cost EXACTLY equal to ale's flat retail price
+ * (`ITEM_VALUE.ale`), not a margin below it. This is not a tuning choice — it is the same
+ * number effectivePrice already always returns for ale, made explicit in both directions. With
+ * cost-per-unit-restocked == price-per-unit-sold, by construction:
+ *
+ *   net wealth the innkeeper accumulates from ale trading
+ *   = ITEM_VALUE.ale × (units restocked − units sold)
+ *   = ITEM_VALUE.ale × (ale currently sitting unsold in the tavern's own stock)
+ *
+ * which is bounded by the tavern's own small stock cap (`ALE_RESTOCK_TRIGGER`/`ALE_RESTOCK_QTY`,
+ * a handful of units) REGARDLESS OF RUN LENGTH — not merely small at the specific horizons this
+ * project happens to have benchmarked. `tests/ale-supply-invariant.test.ts` proves this
+ * directly (net wealth change is unchanged whether the restock/sell cycle runs 5 times or 500),
+ * not by asserting a specific wealth percentage.
+ *
+ * What this still abstracts, explicitly: there is no modeled brewer NPC, grain-to-ale
+ * production chain, or real upstream supplier entity — `ale` continues to enter the simulation
+ * from an unmodeled "outside source," exactly as bread/meat/cheese already do for other trades
+ * this game hasn't built ingredient chains for. This function represents that abstraction as a
+ * literal pass-through cost of goods (buy at the same flat price it's later sold for) rather
+ * than inventing either a fabricated profit margin or a fabricated production chain. Building a
+ * real upstream ale economy (a brewer, grain demand, a modeled cellar) remains legitimate
+ * FOLLOW-UP work, not something this fix should quietly half-implement. This is an explicit
+ * currency EXIT during restocking and an explicit currency ENTRY during sale (Constitution
+ * "if currency enters or exits the simulation, that must be explicit") — both tracked
+ * (`world.runTally.supply_cost_amount`) for auditability. */
+const ALE_SUPPLY_COST_PER_UNIT = ITEM_VALUE.ale;
 export function restockTavern(world: World, innkeeper: Person): boolean {
   const tavernId = world.places().find(p => p.type === 'tavern')?.id;
   if (!tavernId) return false;
