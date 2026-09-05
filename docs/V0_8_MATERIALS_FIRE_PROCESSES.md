@@ -369,3 +369,57 @@ own scope:
 concern, reproduced again in §7 unchanged by this milestone) remains a population-scale issue
 outside any single content milestone's scope — still worth someone's attention eventually, but
 not v0.9's to solve either.
+
+---
+
+## 10. Status update: this branch is preserved, not the current v0.8 milestone
+
+A direct player browser playtest performed after this report was written found that Torn Veil's
+*internal* simulation sophistication (including this milestone's own fire/materials/cooking/
+crafting work) has outpaced what an ordinary player can actually perceive, understand, or
+interact with — dialogue reads like an event-log dump, crop lifecycle isn't visually legible,
+NPC work is invisible, generated tasks can't reliably be completed end-to-end, and several
+rendering/orientation defects make the world look less capable than it is. Per direct
+instruction, **v0.8 has been renamed and redirected to "The Legible World"** (a new milestone
+making existing canonical behavior perceivable and interactable, on branch
+`claude/v0.8-legible-world`) rather than continuing to build new simulation breadth on top of
+this branch.
+
+This branch (`claude/v0.8-materials-fire-processes`) and this PR are **preserved, not
+discarded**: the canonical fire process, materials, fuel consumption, weather interaction,
+cooking, crafting, and their tests/observability are real, tested, working systems that remain
+useful future materials/domestic-process work. They are **not being merged as "the" v0.8
+milestone**, and this branch should **not be further extended** (no more hunting, animals,
+ecology, livestock, crafting categories, geology, mining, metallurgy, or additional food-
+production chains) until a future milestone deliberately picks it back up.
+
+### Two abstraction debts, disclosed explicitly so they cannot silently become permanent ontology
+
+Both of the following were built as the smallest possible fix for a real, measured gap (§4.2/§4.3)
+— not because either is believed to be the right long-term model:
+
+1. **`gatherHerbs()` (`world/metabolism.ts`) creates herbs with no canonical plant/resource
+   source.** Herbs simply appear in the herbalist's own stock at a fixed rate while she works,
+   the same abstraction level as the pre-v0.6 free ale restock — there is no `ResourceNode`, no
+   plant entity, no growth/regrowth model behind it, unlike trees or stone (which *do* have real
+   `resourceNodes` with finite quantity and regrowth). This is a real ontological shortcut, not
+   merely an implementation-detail placeholder.
+2. **`huntGame()` (`world/metabolism.ts`) produces meat from an abstract "wilderness," not
+   modeled animals/game.** There is no animal entity, no population, no depletion, no ecology —
+   meat simply appears in Kestrel's stall stock while she works, structurally identical to (1).
+
+Both are **explicitly classified as ARCHITECTURAL QUESTION / FOLLOW-UP**, not resolved by this
+report and not to be resolved by silently building ecology now:
+- **FOLLOW-UP** (not required for any currently active milestone): give herbs a real
+  `ResourceNode`-backed plant source, matching the tree/stone pattern already established.
+- **ARCHITECTURAL QUESTION** (Constitution §40 "Ecology" describes creatures as full entities/
+  species occupying a world, with habitat/diet/predators/prey/reproduction/territorial behavior
+  — a considerably larger undertaking than a `ResourceNode`): whether `huntGame`'s abstraction
+  should eventually be replaced by real modeled animals under a dedicated ecology milestone, or
+  whether a smaller intermediate step (a game population state without full ecology) is
+  constitutionally acceptable as a longer-lived abstraction. This report does not resolve that
+  question and no future agent should treat `huntGame`'s current shape as a permanent design
+  decision merely because it already exists in code.
+
+Neither debt blocks "The Legible World" milestone, and neither should be used to justify
+expanding this branch further in the meantime.
