@@ -70,6 +70,10 @@ export const PLANK_CAP = 40;
 export const GRAIN_CAP = 500;
 export const FLOUR_CAP = 120;
 export const BREAD_CAP = 200;
+/** v0.8 §A/F: herbs stop being gathered once the herbalist's own stock is comfortably ahead of
+ * what crafting (world/crafting.ts's binding component) and ordinary sale could plausibly use —
+ * same demand-bounded spirit as the caps above, not "infinite gathering." */
+export const HERBS_CAP = 40;
 /** How much one meal / one drink restores. */
 export const FOOD_HUNGER_RESTORE = 0.55;
 export const WATER_THIRST_RESTORE = 0.85;
@@ -382,6 +386,64 @@ export function restockTavern(world: World, innkeeper: Person): boolean {
     summary: `${innkeeper.name} brought up fresh ale from the cellar${cost > 0 ? ` (paid ${cost} silver for supplies)` : ''}`,
   });
   addPlaceStock(world, 'ale', ALE_RESTOCK_QTY, tavernId, innkeeper.id, ev.id, 'restocked');
+  return true;
+}
+
+/**
+ * v0.8 §A/F: `herbs` (core/materials.ts's `plantFiber`) had a real `ItemType`/value/category
+ * entry since v0.1 but no production path anywhere — pure flavor, never actually obtainable
+ * (confirmed by a full-codebase search before writing this). This gives the herbalist a real,
+ * bounded gathering loop at her own workplace — the same `restockTavern`-shaped pattern (a
+ * background stock top-up while working, gated by a demand cap, no modeled sub-ingredient chain
+ * because none is needed for "gather what's growing nearby") — closing a genuine "materials come
+ * from somewhere" gap AND giving world/crafting.ts's binding component (stick + suitable stone +
+ * herbs → stone axe) a real physical source instead of spawning from nowhere.
+ */
+const HERB_GATHER_TRIGGER = 16;
+const HERB_GATHER_QTY = 4;
+export function gatherHerbs(world: World, herbalist: Person): boolean {
+  const placeId = herbalist.workId;
+  if (!placeId) return false;
+  if (stockAtPlace(world, 'herbs', placeId) >= Math.min(HERB_GATHER_TRIGGER, HERBS_CAP)) return false;
+  const ev = world.emit('resource_extracted', {
+    actor: herbalist.id, placeId, significance: 0.05,
+    data: { kind: 'herb', yield: 'herbs', amount: HERB_GATHER_QTY },
+    summary: `${herbalist.name} gathered ${HERB_GATHER_QTY} bundles of herbs`,
+  });
+  addPlaceStock(world, 'herbs', HERB_GATHER_QTY, placeId, herbalist.id, ev.id, 'gathered');
+  practiceSkill(herbalist, 'herbalism', 1);
+  return true;
+}
+
+/**
+ * v0.8 §D (found via this milestone's own 90-day headless benchmark, not anticipated going in):
+ * `meat`, like `ale`/`cheese` before v0.6 §II, was only ever seeded once at village generation
+ * with no restock — Kestrel's stall never replenished, so the tavern's new haul demand (added
+ * to give `cook()` a real input at all) only ever moved the original one-time-seeded stock, and
+ * `cook()` — fully correct in isolation and gated on genuine fire — could only ever succeed once
+ * in an entire 90-day run regardless of the tavern's own buffer size. Same "no modeled ingredient
+ * chain" abstraction already used for ale, but built from the start with the corrected,
+ * near-break-even-margin shape v0.7 §B's own follow-up fix required for ale (a naively free
+ * restock is a real wealth sink the moment currency flows in from retail sales with nothing
+ * flowing out) — not repeating that mistake a second time now that it's understood.
+ */
+const MEAT_RESTOCK_TRIGGER = 6;
+const MEAT_RESTOCK_QTY = 4;
+const MEAT_MARGIN_PER_UNIT = 0.5;
+const MEAT_SUPPLY_COST_PER_UNIT = ITEM_VALUE.meat - MEAT_MARGIN_PER_UNIT;
+export function huntGame(world: World, hunter: Person): boolean {
+  const stallId = world.places().find(p => p.slug === 'stall_game')?.id;
+  if (!stallId) return false;
+  if (stockAtPlace(world, 'meat', stallId) >= MEAT_RESTOCK_TRIGGER) return false;
+  const cost = Math.round(Math.max(0, Math.min(MEAT_RESTOCK_QTY * MEAT_SUPPLY_COST_PER_UNIT, hunter.wealth)) * 100) / 100;
+  hunter.wealth -= cost;
+  world.runTally.supply_cost_amount = (world.runTally.supply_cost_amount ?? 0) + cost;
+  const ev = world.emit('resource_transformed', {
+    actor: hunter.id, placeId: stallId, significance: 0.05,
+    data: { from: 'wilderness', fromQty: 0, to: 'meat', toQty: MEAT_RESTOCK_QTY, how: 'hunted', cost },
+    summary: `${hunter.name} brought back fresh game${cost > 0 ? ` (spent ${cost} silver on gear and provisions)` : ''}`,
+  });
+  addPlaceStock(world, 'meat', MEAT_RESTOCK_QTY, stallId, hunter.id, ev.id, 'hunted');
   return true;
 }
 

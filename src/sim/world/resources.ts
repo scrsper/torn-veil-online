@@ -236,6 +236,20 @@ export function extractFromNode(world: World, node: ResourceNode, actor: Person)
     summary: `${actor.name} ${verb} ${got} ${node.yield}${tool ? ` with ${tool.name}` : ' bare-handed'}`,
   });
   addPlaceStock(world, node.yield, got, node.dropPlaceId, actor.id, ev.id, verb);
+  // v0.8 §E: a real byproduct, not a separate production chain — felling a tree naturally
+  // leaves small branches alongside the trunk (Constitution v0.8: "wood + felling → heat/ash"
+  // language generalizes to "primary product + byproduct" for any real process; here the
+  // byproduct is `stick`, world/crafting.ts's raw-material input, not waste). Deterministic:
+  // exactly one per successful chop, never scaled with `got` (a stronger worker gets more logs
+  // per swing from the same tree, not proportionally more branches).
+  if (node.kind === 'tree') {
+    addPlaceStock(world, 'stick', 1, node.dropPlaceId, actor.id, ev.id, 'gathered as a byproduct while felling');
+    // Observational only (history/summary.ts) — `resource_extracted` is already tallied as one
+    // lifetime COUNT (core/world.ts's TALLIED_TYPES), which can't distinguish "how many of those
+    // also yielded a stick" on its own, and the event's own `data` has no `how` field to filter
+    // by (unlike `resource_transformed`, which does).
+    world.runTally.stick_gathered = (world.runTally.stick_gathered ?? 0) + 1;
+  }
   // Energy/hydration/fatigue/heat cost is applied centrally, once per world-minute, by
   // Simulation.strategic()'s physiology step (it classifies the actor's current goal as this
   // same 'chop'/'quarry' activity) — see core/physiology.ts's `activityLevelFor`. Only tool

@@ -1,4 +1,4 @@
-import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request } from './types';
+import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire } from './types';
 import { WorldClock } from './time';
 import { RNG } from './rng';
 import { VoxelGrid } from '../physical/grid';
@@ -41,6 +41,11 @@ export class World {
    * open work, not calendar time. Persisted: an accepted-but-not-yet-completed request cannot
    * be reconstructed from present state. */
   requests: Request[] = [];
+  /** Canonical fire state (v0.8 §C) — see sim/world/fire.ts. A fire is a real, bounded world
+   * process (fuel/heat/ignition/burning/extinguishing), not a visual status effect; bounded by
+   * the number of real hearths/fires actually lit, not calendar time. Persisted: whether a fire
+   * is currently lit and how much fuel remains cannot be reconstructed from present state alone. */
+  fires: Fire[] = [];
   /** v0.2.4: lifetime counts of a few high-frequency, low-significance event types that are
    * dropped by event compaction (crop/food/water/transform) — so a headless run summary can
    * report accurate totals without inflating those events' significance. Purely observational. */
@@ -244,6 +249,10 @@ const TALLIED_TYPES = new Set<EventType>([
   // majority get dropped by compaction on a long run) — an accurate LIFETIME count for the
   // benchmark report needs the tally, exactly like v0.4/v0.5's own frequent event types above.
   'knowledge_gained', 'knowledge_forgotten', 'memory_formed', 'intention_formed',
+  // v0.8: fire lifecycle + crafting are semantic milestones, not per-tick, but still frequent
+  // enough over a long run that an accurate lifetime count needs the tally (world/fire.ts's
+  // `fireSummary`, world/crafting.ts).
+  'fire_lit', 'fire_extinguished', 'item_crafted',
 ]);
 
 function defaultCategory(t: EventType): EventCategory {
@@ -275,6 +284,10 @@ function defaultCategory(t: EventType): EventCategory {
     // ordinary, frequent 'cognition' events (like goal_changed), judged by significance.
     case 'goal_committed': case 'goal_suspended': case 'goal_resumed': return 'cognition';
     case 'goal_abandoned': return 'world';
+    // v0.8: fire lighting/extinguishing are ordinary, frequent 'world' events judged by
+    // significance; a completed craft (a real, rare, made-by-hand object entering the world) is
+    // worth keeping as history, the same tier construction_completed already gets.
+    case 'item_crafted': return 'history';
     default: return 'world';
   }
 }

@@ -28,8 +28,11 @@ import { ITEM_VALUE } from './factory';
  * resolved from the DESTINATION place's operator (its `ownerId`, falling back to its first
  * worker, exactly like `logistics/haul.ts`'s existing `dest.ownerId ?? dest.workers[0]`
  * convention) except for construction, where the site Place has no operator of its own and the
- * real buyer is the project's owner (the one paying `performBuildLabor`'s wages too). */
-export const WHOLESALE_DEST_TYPES = new Set<import('../core/types').Place['type']>(['mill', 'bakery', 'sawpit', 'construction']);
+ * real buyer is the project's owner (the one paying `performBuildLabor`'s wages too). v0.8:
+ * `tavern` covers meat delivered for the cook's own stew production (world/cooking.ts) — paid
+ * by whoever `logistics/haul.ts`'s own dest.ownerId/workers[0] convention resolves to there
+ * (the cook herself, in the current cast — she sources her own ingredients). */
+export const WHOLESALE_DEST_TYPES = new Set<import('../core/types').Place['type']>(['mill', 'bakery', 'sawpit', 'construction', 'tavern']);
 
 /**
  * Execute (or attempt) the wholesale sale for `qty` units of `type` just delivered to

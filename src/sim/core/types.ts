@@ -121,7 +121,9 @@ export interface Attributes { strength: number; dexterity: number; }
  * identity multipliers at 0), 1 = theoretical mastery (unreached in practice; gains diminish
  * as proficiency rises — see core/skills.ts's `practiceSkill`).
  */
-export type SkillId = 'woodcutting' | 'quarrying' | 'hauling' | 'sawing' | 'construction' | 'baking';
+export type SkillId = 'woodcutting' | 'quarrying' | 'hauling' | 'sawing' | 'construction' | 'baking'
+  // v0.8: gathering herbs, cooking over a real fire, and crafting a tool from raw components.
+  | 'herbalism' | 'cooking' | 'crafting';
 
 /** v0.5 §I.2: individual physiological variation layered on top of a species profile (see
  * core/species.ts). Kept here (not in species.ts) alongside `Physiology`/`Attributes` since it
@@ -582,6 +584,33 @@ export interface ResourceNode {
 }
 export type TreeGrowthStage = 'felled' | 'sapling' | 'young' | 'mature';
 
+// ---------------------------------------------------------------- Fire (v0.8 §C)
+/**
+ * A real, canonical fire — fuel/heat/ignition/burning/extinguishing, not a visual status effect
+ * (Constitution v0.8 §C). One per real hearth/campfire actually in use; see world/fire.ts for
+ * the lifecycle (`igniteFire`/`feedFire`/`stepFire`/`extinguishFire`) and world/village.ts for
+ * where fires are pre-registered (at an existing fireplace, unlit until someone lights it).
+ */
+export interface Fire {
+  id: EntityId;
+  placeId: EntityId;
+  pos: Vec3;
+  lit: boolean;
+  /** World-seconds of burn time remaining from currently-loaded fuel. 0 when unlit. */
+  fuelRemaining: number;
+  /** 0..1 current burn strength — ramps toward 1 as fuel is added, decays toward 0 as it runs
+   * out. Read by world/cooking.ts (a process needs real heat, not just "lit === true") and by
+   * mind/agent.ts's physiology step (nearby warmth). */
+  intensity: number;
+  /** Outdoor and rain-exposed (mirrors `!Place.indoor` at creation) — an exposed fire can be
+   * suppressed by rain (Constitution v0.7/v0.8: "rain suppresses exposed fire"); a hearth under
+   * a roof cannot. */
+  exposed: boolean;
+  createdAt: Tick;
+  litAt?: Tick;
+  extinguishedAt?: Tick;
+}
+
 // ---------------------------------------------------------------- Construction (v0.3)
 /**
  * A construction project: a place-bound material manifest plus a labour requirement. The
@@ -764,7 +793,14 @@ export type ItemType = 'sword' | 'dagger' | 'hammer' | 'axe' | 'bread' | 'ale' |
   | 'log' | 'plank' | 'stone'
   // v0.4: new functional tools — `axe` and `hammer` already existed as cosmetic/weapon items
   // and now double as real tools (see core/tools.ts); `pickaxe` and `saw` are new.
-  | 'pickaxe' | 'saw';
+  | 'pickaxe' | 'saw'
+  // v0.8: `stick` is a real byproduct of felling a tree (core/materials.ts's wood, alongside
+  // `log`); `stew` is a fire-cooked dish (world/cooking.ts's `cook()`, meat -> stew, requiring
+  // an actual lit Fire — Part D/E's "at least one production process uses real fire/heat");
+  // `stoneaxe` is the practical-crafting vertical slice's result (world/crafting.ts) — a real,
+  // weaker-than-forged tool built from stick + suitable stone + herbs (binding), not spawned
+  // from a recipe match alone.
+  | 'stick' | 'stew' | 'stoneaxe';
 
 /**
  * v0.2.4: a coarse category for an item type, so production/consumption logic can reason about
@@ -897,7 +933,12 @@ export type EventType =
   // intention about how to answer a need. Fired only on a real change, exactly like
   // `goal_changed`, never per-tick. No per-practice skill event (Constitution v0.6 §V.9's
   // "avoid grindy XP popups" / event-spam avoidance) — skill state is inspectable directly.
-  | 'intention_formed';
+  | 'intention_formed'
+  // v0.8 Materials, Fire, Processes & Practical Crafting — a real, canonical fire being lit or
+  // going out (fuel depletion, a storm suppressing an exposed one, or being put out) and a
+  // completed crafting act. Semantic milestones only, matching v0.3's own construction/
+  // extraction events — never a per-tick "still burning" heartbeat.
+  | 'fire_lit' | 'fire_extinguished' | 'item_crafted';
 
 export type EventCategory = 'world' | 'social' | 'cognition' | 'history';
 
