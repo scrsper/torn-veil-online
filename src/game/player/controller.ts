@@ -48,7 +48,16 @@ export class PlayerController {
     if (pos.x < 1) pos.x = 1; if (pos.z < 1) pos.z = 1; if (pos.x > g.W - 1) pos.x = g.W - 1; if (pos.z > g.D - 1) pos.z = g.D - 1;
     b.vel = { x: (pos.x - b.pos.x) / Math.max(dt, 1e-4), y: (pos.y - b.pos.y) / Math.max(dt, 1e-4), z: (pos.z - b.pos.z) / Math.max(dt, 1e-4) };
     b.pos = { x: pos.x, y: pos.y, z: pos.z }; b.onGround = this.onGround;
-    if (!dead) { b.yaw = this.yaw; if (b.pose !== 'attack' && b.pose !== 'hit') b.pose = Math.hypot(this.vel.x, this.vel.z) > 0.5 ? (this.sprint ? 'run' : 'walk') : 'stand'; }
+    if (!dead) {
+      b.yaw = this.yaw;
+      // A timed action pose (attack/hit/chop) holds until its own `poseUntil` expires, then
+      // falls back to movement-based pose — previously 'attack'/'hit' were excluded from this
+      // assignment UNCONDITIONALLY, so a player's swing pose never actually reverted once set
+      // (bodyPhysics's own poseUntil decay explicitly skips controlled bodies). Same fix covers
+      // the new v0.8 §16 'chop' pose.
+      const timedPoseHeld = (b.pose === 'attack' || b.pose === 'hit' || b.pose === 'chop') && b.poseUntil > this.world.physicalTime;
+      if (!timedPoseHeld) b.pose = Math.hypot(this.vel.x, this.vel.z) > 0.5 ? (this.sprint ? 'run' : 'walk') : 'stand';
+    }
     // camera
     const hs = Math.hypot(this.vel.x, this.vel.z);
     if (this.onGround && hs > 0.5) { this.bobPhase += dt * hs * 1.8; if (Math.sin(this.bobPhase) > 0.97 && performance.now() - this.lastStep > 250) { this.lastStep = performance.now(); this.onStep?.(); } } else this.bobPhase = 0;

@@ -62,6 +62,10 @@ class Humanoid {
     if (pose === 'attack') { const k = Math.min(1, (physTime - body.lastAttackAt) / 0.4); const swing = Math.sin(k * Math.PI); lerp(this.armR, -2.4 + swing * 2.6, -0.3, 0.6); lerp(this.armL, -0.4, 0.2); lerp(this.legL, 0.2); lerp(this.legR, -0.2); return; }
     if (pose === 'hit') { this.pivot.rotation.x = -0.25; lerp(this.armL, -1.2, -0.4, 0.5); lerp(this.armR, -1.2, 0.4, 0.5); return; }
     if (pose === 'work') { const w = Math.sin(t * 7); lerp(this.armR, -1.4 + w * 0.9, 0, 0.4); lerp(this.armL, -0.6 + Math.sin(t * 3.5) * 0.2); lerp(this.legL, 0); lerp(this.legR, 0); this.pivot.rotation.x = 0.15; return; }
+    // v0.8 §16: felling/quarrying gets a distinct overhead-swing rhythm — raise, then a sharper
+    // downward chop — instead of `work`'s low side-to-side motion, so extraction reads as its
+    // own action rather than generic labour.
+    if (pose === 'chop') { const cycle = (t * 1.35) % (Math.PI * 2); const raise = Math.max(0, Math.sin(cycle)); const chop = Math.max(0, -Math.sin(cycle)) ** 0.5; lerp(this.armR, -0.3 - raise * 2.2 + chop * 2.0, 0.1, 0.5); lerp(this.armL, -0.5, -0.1); lerp(this.legL, 0.1); lerp(this.legR, -0.1); this.pivot.rotation.x = 0.12; return; }
     if (pose === 'talk') { lerp(this.armR, -0.4 + Math.sin(t * 5) * 0.3, -0.2); lerp(this.armL, -0.2 + Math.sin(t * 4 + 1) * 0.2, 0.15); lerp(this.legL, 0); lerp(this.legR, 0); this.head.rotation.y = Math.sin(t * 2) * 0.1; return; }
     // v0.8 "The Legible World" §B: `eat`/`drink`/`haul` are now real, distinct poses (see
     // core/types.ts's `Pose`) — each gets its own silhouette instead of reusing `sit`/`stand`/

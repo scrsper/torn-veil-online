@@ -52,7 +52,12 @@ export class Interaction {
       // v0.3: chop a tree / quarry a rock — the same canonical extraction NPCs use.
       if (id === B.Log || id === B.Log2 || id === B.Leaves || id === B.Leaves2 || id === B.StoneBrick) {
         const got = this.sim.extractResourceAt(this.player, { x: t.x + 0.5, y: t.y, z: t.z + 0.5 });
-        if (got > 0) { this.onPickup?.(); this.onMessage?.(`You work loose ${got} ${id === B.StoneBrick ? 'stone' : 'logs'}, left at the site.`); return; }
+        if (got > 0) {
+          // v0.8 §16: same visible "chop" silhouette an NPC's own extraction action gets — the
+          // player's action briefly looks like what it is instead of nothing happening visually.
+          const pb = this.ctrl.body; pb.pose = 'chop'; pb.poseUntil = w.physicalTime + 0.6;
+          this.onPickup?.(); this.onMessage?.(`You work loose ${got} ${id === B.StoneBrick ? 'stone' : 'logs'}, left at the site.`); return;
+        }
       }
       // v0.8 "The Legible World" §D: harvest/sow a field plot through the same canonical
       // `harvestPlot`/`plantPlot` an NPC's own harvest/plant action uses — see

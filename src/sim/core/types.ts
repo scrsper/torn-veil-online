@@ -41,7 +41,12 @@ export interface Entity {
 // — the player could never tell an eating villager from one merely sitting, or a hauler from an
 // idle worker. Each gets its own pose so `game/actors/actors.ts`'s renderer can give it a
 // distinct animation.
-export type Pose = 'stand' | 'walk' | 'run' | 'sit' | 'sleep' | 'work' | 'attack' | 'hit' | 'dead' | 'talk' | 'pray' | 'downed' | 'eat' | 'drink' | 'haul';
+export type Pose = 'stand' | 'walk' | 'run' | 'sit' | 'sleep' | 'work' | 'attack' | 'hit' | 'dead' | 'talk' | 'pray' | 'downed' | 'eat' | 'drink' | 'haul'
+  // v0.8 §16 "visible causality": resource extraction (felling a tree, quarrying stone) gets its
+  // own overhead-swing silhouette instead of reusing the generic side-to-side `work` pose, so
+  // "someone is chopping/quarrying" is readable at a glance — the same rationale that already
+  // gave `eat`/`drink`/`haul` their own poses.
+  | 'chop';
 
 export interface Body extends Entity {
   kind: 'body';

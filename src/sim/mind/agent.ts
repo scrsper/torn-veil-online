@@ -1059,7 +1059,9 @@ export class Simulation {
       }
       case 'chop': case 'gather': {
         const node = w.resourceNodes.find(n => n.id === a.data?.nodeId);
-        body.pose = 'work'; body.sitAnchor = null;
+        // v0.8 §16: felling a tree / quarrying stone is now visibly its own action, not
+        // indistinguishable generic "work" — see core/types.ts's `Pose` and actors.ts.
+        body.pose = 'chop'; body.sitAnchor = null;
         if (!node || node.state !== 'available' || node.remaining <= 0) { a.status = 'done'; break; } // depleted — stop, don't retry
         if (a.pos && dist2(body.pos, a.pos) > 2.6) { a.status = 'pending'; m.plan.unshift({ type: 'goto', pos: a.pos, status: 'pending' }); break; }
         body.yaw = Math.atan2(-(node.pos.x - body.pos.x), -(node.pos.z - body.pos.z));
