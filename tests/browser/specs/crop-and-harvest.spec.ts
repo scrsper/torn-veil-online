@@ -1,5 +1,5 @@
 import type { BrowserSpec } from '../run';
-import { startGame, advanceWorld, movePlayerTo, lookAt, interact, readCanonicalState } from '../helpers';
+import { startGame, advanceWorld, standOnAndLookDown, interact, readCanonicalState } from '../helpers';
 
 /**
  * v0.8 §10/§16: crop lifecycle is visibly distinct AND player harvest/sow go through the exact
@@ -11,7 +11,7 @@ export const cropAndHarvest: BrowserSpec = {
   name: 'crop states differ and player harvest/sow use the canonical path',
   run: async (page, baseURL) => {
     await startGame(page, 918271, baseURL);
-    await advanceWorld(page, 3600 * 3, 2); // let some crops actually progress through stages (fast sub-stepping)
+    await advanceWorld(page, 3600 * 12, 2); // let some crops actually progress through stages (fast sub-stepping)
 
     // §16: crop states visibly differ — assert more than one distinct CropPlot.state exists
     // canonically (the pre-requisite for the block projection in world/metabolism.ts's
@@ -58,9 +58,12 @@ export const cropAndHarvest: BrowserSpec = {
       return stockAt((window as any).game.world, 'grain', placeId);
     }, maturePlot.placeId);
 
+    // Fields are a dense grid of adjacent 1×1 plots, each independently in its own lifecycle
+    // state — approaching from the side risks the crosshair grazing a NEIGHBORING plot's cell
+    // first (confirmed empirically). Standing directly on the target tile and looking straight
+    // down keeps the raycast inside this one column.
     const plotWorldPos = { x: maturePlot.x + 0.5, y: maturePlot.y, z: maturePlot.z + 0.5 };
-    await movePlayerTo(page, plotWorldPos, 1.4);
-    await lookAt(page, plotWorldPos);
+    await standOnAndLookDown(page, plotWorldPos);
     await page.waitForTimeout(150); // let a real frame refresh Interaction.target
     await interact(page);
     await page.waitForTimeout(100);
@@ -89,8 +92,7 @@ export const cropAndHarvest: BrowserSpec = {
     });
     if (fallowPlot) {
       const fallowWorldPos = { x: fallowPlot.x + 0.5, y: fallowPlot.y, z: fallowPlot.z + 0.5 };
-      await movePlayerTo(page, fallowWorldPos, 1.4);
-      await lookAt(page, fallowWorldPos);
+      await standOnAndLookDown(page, fallowWorldPos);
       await page.waitForTimeout(150);
       await interact(page);
       await page.waitForTimeout(100);

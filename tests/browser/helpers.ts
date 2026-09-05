@@ -19,13 +19,19 @@ export async function startGame(page: Page, seed: number, baseURL: string): Prom
   await page.waitForFunction(() => !!(window as any).game?.world?.playerId, undefined, { timeout: 20_000 });
 }
 
-/** Advance simulated time without waiting on real wall-clock frames — `Game.stepSim`, the exact
- * same deterministic sub-stepping the headless runner and tests use, just invoked in-browser.
- * `sub` (world-seconds per physics step, like the headless runner's own `stepSeconds`) defaults
- * coarser than the render-frame default (0.05s) since a test fast-forwarding hours of village
- * life cares about throughput, not frame-smooth motion. */
-export async function advanceWorld(page: Page, seconds: number, sub = 1): Promise<void> {
-  await page.evaluate((args: { seconds: number; sub: number }) => (window as any).game.stepSim(args.seconds, args.sub), { seconds, sub });
+/** Advance simulated WORLD time (not wall-clock/physical time) without waiting on real frames.
+ * `Game.stepSim(physicalSeconds, sub)` takes PHYSICAL seconds and scales them by
+ * `world.clock.timeScale` (60x by default — `core/time.ts`) internally, exactly like the real
+ * frame loop's `dt * speedMult` does; this helper takes the more useful WORLD-seconds quantity
+ * (matching the headless runner's own `days`/world-time framing) and does that division for you,
+ * so `advanceWorld(page, 3600 * 3)` really means "3 world-hours," not "3 hours × 60 timeScale."
+ * `sub` (physical seconds per sub-step) defaults coarser than the render-frame default (0.05s)
+ * since fast-forwarding village life cares about throughput, not frame-smooth motion. */
+export async function advanceWorld(page: Page, worldSeconds: number, sub = 1): Promise<void> {
+  await page.evaluate((args: { worldSeconds: number; sub: number }) => {
+    const game = (window as any).game;
+    game.stepSim(args.worldSeconds / game.world.clock.timeScale, args.sub);
+  }, { worldSeconds, sub });
 }
 
 /** Read arbitrary canonical state from the live `window.game` for assertions. The function runs
@@ -76,6 +82,20 @@ export async function lookAt(page: Page, pos: { x: number; y: number; z: number 
     const dx = pos.x - eye.x, dy = pos.y - eye.y, dz = pos.z - eye.z;
     ctrl.yaw = Math.atan2(-dx, -dz);
     ctrl.pitch = Math.max(-1.5, Math.min(1.5, Math.atan2(dy, Math.hypot(dx, dz))));
+  }, pos);
+}
+
+/** Stand directly on a ground-level tile (e.g. a crop plot) and look straight down at it. Useful
+ * specifically because farmland/crop fields are a dense grid of adjacent 1×1 plots in DIFFERENT
+ * states — approaching one from the side risks the crosshair raycast grazing a neighboring
+ * plot's cell first (confirmed empirically: a fixed horizontal standoff reliably hit the
+ * NEIGHBORING plot the player was standing on, not the intended target one tile away). Standing
+ * directly on the target tile and looking straight down keeps the ray inside that one column. */
+export async function standOnAndLookDown(page: Page, pos: { x: number; y: number; z: number }): Promise<void> {
+  await page.evaluate((pos) => {
+    const ctrl = (window as any).game.ctrl;
+    ctrl.teleport({ x: pos.x, y: pos.y, z: pos.z });
+    ctrl.pitch = -1.45;
   }, pos);
 }
 
