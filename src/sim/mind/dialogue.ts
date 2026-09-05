@@ -3,6 +3,7 @@ import { World } from '../core/world';
 import { Simulation } from './agent';
 import { getRel, describeRel, disposition, adjustRel, isClose } from './relationships';
 import { describeClaim, isCrime, learn } from './knowledge';
+import { realizeClaim } from './realize';
 import { memoriesAbout, recentMemories } from './memory';
 import { formatRelativeTime } from '../core/time';
 import { ITEM_LABEL } from '../world/factory';
@@ -72,9 +73,50 @@ export class DialogueSystem {
     if (known.length) opts.push({ label: 'Tell them something…', next: () => this.tellMenu(npc, player) });
     if (rel.grudge > 0.2 || rel.fear > 0.3) opts.push({ label: 'Apologize', next: () => this.apologize(npc, player) });
     const desire = npc.desires.find(d => !d.fulfilled);
-    if (desire) opts.push({ label: 'Is there anything you need?', next: () => ({ speaker: npc, lines: [desire.note + (desire.type === 'recover_item' ? ` I'd pay ${desire.reward} silver to whoever brings it.` : '')], options: this.options(npc, player) }) });
+    if (desire) opts.push({ label: 'Is there anything you need?', next: () => this.hearDesire(npc, player, desire) });
+    const wantedItems = Object.values(player.knowledge).filter(k => k.kind === 'fact' && k.claim.wantedItem && !w.person(k.claim.requesterId)?.desires.find(d => d.targetId === k.claim.itemId)?.fulfilled);
+    if (wantedItems.length) opts.push({ label: 'Ask about an item…', next: () => this.askAboutItemMenu(npc, player, wantedItems) });
     opts.push({ label: 'Goodbye', next: () => null });
     return opts;
+  }
+  /**
+   * v0.8 "The Legible World" §E: hearing a desire used to be pure flavor text with no lasting
+   * effect on the player's own knowledge — there was no way to later ASK someone else where the
+   * wanted item actually is. Learning it here (a real, grounded `fact` KnowledgeItem, exactly
+   * the same `learn()` path any other acquired knowledge goes through) is what makes "Ask about
+   * an item…" below possible, and is what a generated lost/stolen-property task needs to be
+   * completable rather than a dead end after the first conversation.
+   */
+  private hearDesire(npc: Person, player: Person, desire: import('../core/types').Desire): DialogueState {
+    const w = this.world;
+    const line = desire.note + (desire.type === 'recover_item' ? ` I'd pay ${desire.reward} silver to whoever brings it.` : '');
+    if (desire.type === 'recover_item' && desire.targetId) {
+      learn(w, player, { key: `wanted:${desire.targetId}`, kind: 'fact', claim: { text: line, wantedItem: true, itemId: desire.targetId, requesterId: npc.id, reward: desire.reward }, confidence: 1, source: { type: 'told', from: npc.id } }, true);
+    }
+    return { speaker: npc, lines: [line], options: this.options(npc, player) };
+  }
+  private askAboutItemMenu(npc: Person, player: Person, wantedItems: KnowledgeItem[]): DialogueState {
+    const w = this.world;
+    const opts: DialogueOption[] = wantedItems.map(k => ({ label: w.nameOf(k.claim.itemId), next: () => ({ speaker: npc, lines: [this.aboutItem(npc, k.claim.itemId, k.claim.requesterId)], options: this.options(npc, player) }) }));
+    opts.push({ label: 'Never mind', next: () => ({ speaker: npc, lines: ['Ask away.'], options: this.options(npc, player) }) });
+    return { speaker: npc, lines: ['Which one?'], options: opts };
+  }
+  /**
+   * Grounded exactly like `about()` does for a person's last-known location: only ever states
+   * what THIS npc's own knowledge (`loc:<itemId>`, real provenance, real staleness) actually
+   * supports — never a fabricated or omniscient answer just because the simulation itself knows
+   * where the item really is.
+   */
+  private aboutItem(npc: Person, itemId: string, requesterId: string): string {
+    const w = this.world; const item = w.item(itemId);
+    const requesterName = w.nameOf(requesterId);
+    if (!item) return `I couldn't tell you. Ask ${requesterName}, maybe.`;
+    const loc = npc.knowledge[`loc:${itemId}`];
+    if (!loc) return `I've heard ${requesterName} is missing ${w.nameOf(itemId)}, but I couldn't say where it ended up.`;
+    const where = loc.claim.placeId ? w.nameOf(loc.claim.placeId) : loc.claim.pos ? 'nearby' : 'somewhere';
+    const src = loc.source.type === 'witnessed' ? 'I saw it there myself' : loc.source.type === 'heard' ? 'so I heard' : loc.source.from ? `${w.nameOf(loc.source.from)} told me` : 'so they say';
+    const age = formatRelativeTime(loc.learnedAt, w.now);
+    return `${w.nameOf(itemId)}? Last I know of it, it was at ${where}, ${age}. ${src}.`;
   }
   private identity(npc: Person): string {
     const w = this.world; const home = w.nameOf(npc.homeId); const work = npc.workId ? w.nameOf(npc.workId) : null;
@@ -94,7 +136,7 @@ export class DialogueSystem {
     const cands = Object.values(npc.knowledge).filter(k => k.kind === 'event' && !k.sharedWith.includes(player.id) && k.claim.actor !== player.id).sort((a, b) => (b.claim.significance ?? 0.3) - (a.claim.significance ?? 0.3) + (b.learnedAt - a.learnedAt) / 864000);
     const lines: string[] = [];
     if (!cands.length) lines.push(`Nothing you haven't heard, I expect.`);
-    else { const k = cands[0]; const src = k.source.type === 'witnessed' ? 'I saw it myself' : k.source.type === 'heard' ? 'I heard it' : k.source.type === 'inferred' ? 'I worked it out' : k.source.from ? `${w.nameOf(k.source.from)} told me` : 'so they say'; lines.push(`${describeClaim(w, k)}${k.claim.tick ? `, ${formatRelativeTime(k.claim.tick, w.now)}` : ''}. ${src}${k.confidence < 0.6 ? ', though I only half believe it' : ''}.`); k.sharedWith.push(player.id);
+    else { const k = cands[0]; lines.push(realizeClaim(w, npc, k)); k.sharedWith.push(player.id);
       learn(w, player, { key: k.key, kind: k.kind, claim: { ...k.claim }, confidence: k.confidence * 0.8, source: { type: 'told', from: npc.id }, hops: k.hops + 1, summary: describeClaim(w, k) }, true);
       w.emit('told', { actor: npc.id, target: player.id, pos: w.primaryBody(npc.id)?.pos, significance: 0.2, data: { key: k.key }, summary: `${npc.name} told the Traveler: "${describeClaim(w, k)}"` }); }
     return { speaker: npc, lines, options: this.options(npc, player) };
@@ -111,7 +153,7 @@ export class DialogueSystem {
     if (r.tags.length) s += `${o.gender === 'f' ? 'She' : 'He'}'s my ${r.tags.filter(t => t !== 'employer' && t !== 'employee').join(' and ') || r.tags[0]}. `;
     const d = disposition(npc, id); s += d > 0.5 ? `I'd trust ${o.gender === 'f' ? 'her' : 'him'} with my life. ` : d > 0.2 ? `Good sort. ` : d < -0.4 ? `Don't get me started. ` : d < -0.1 ? `We don't get on. ` : ``;
     if (r.fear > 0.4) s += `Frightens me, truth be told. `;
-    if (facts.length) s += facts.map(k => `${describeClaim(w, k)} (${k.source.type === 'told' ? `${w.nameOf(k.source.from)} told me` : k.source.type})`).join('. ') + '.';
+    if (facts.length) s += facts.map(k => realizeClaim(w, npc, k)).join(' ');
     const loc = npc.knowledge[`loc:${id}`]; if (loc && w.now - loc.learnedAt < 3600 * 3) s += ` Last I saw ${o.gender === 'f' ? 'her' : 'him'} ${loc.claim.placeId ? 'at ' + w.nameOf(loc.claim.placeId) : 'about'}, ${formatRelativeTime(loc.learnedAt, w.now)}.`;
     return s;
   }

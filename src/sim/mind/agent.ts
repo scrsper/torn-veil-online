@@ -4,27 +4,29 @@ import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRel
 import { maintainConflicts, beginConflict, recordConflictBlow, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
 import { maintainCustody, subdue, takeIntoCustody, beginSurrender, isSubdued } from '../social/custody';
 import { stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, restockTavern, gatherHerbs, huntGame, GRAIN_CAP, SEED_PER_PLOT } from '../world/metabolism';
-import { stepPhysiology, activityLevelFor, heatBand, hungerBand, thirstBand, sleepBand, comfortBand, severityAtLeast } from '../core/physiology';
+import { stepPhysiology, activityLevelFor, heatBand, hungerBand, thirstBand, sleepBand, comfortBand, severityAtLeast, syncNeeds } from '../core/physiology';
 import { isCommittable, EMERGENCY_GOAL_TYPES, interruptionSeverityMet, startCommitment, suspendCommitment, resumeCommitment, finishCommitment, commitmentValidity } from './commitment';
 import { getPhysicalCapability, capabilityFor } from '../core/attributes';
 import { skillOf } from '../core/skills';
 import { wearTool } from '../core/tools';
 import { isFood } from '../world/factory';
-import { stockAt } from '../world/stock';
+import { stockAt, retireStack } from '../world/stock';
 import { pickHaulTask, claimHaulTask, loadHaulCargo, depositHaulCargo, failHaulTask, generateLogisticsNeeds, maintainHauls, canHaul } from '../logistics/haul';
-import { generateProductionNeeds, claimedProductionRequest, fulfillProductionRequest } from '../world/production';
+import { generateProductionNeeds, claimedProductionRequest, fulfillProductionRequest, BREAD_SHORTAGE_TRIGGER } from '../world/production';
 import { nearestAvailableNode, extractFromNode, maintainResourceNodes } from '../world/resources';
 import { stepConstruction, activeBuildProjects, performBuildLabor, MAX_BUILDERS } from '../world/construction';
 import { stepFire, igniteFire, feedFire, fireIntensityAt, fireAt } from '../world/fire';
 import { cook, tendTavernFire } from '../world/cooking';
 import { remember } from './memory';
 import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge, learnPlace, knownFoodPlace, noteFoodShortage } from './knowledge';
+import { realizeClaim } from './realize';
 import { currentScheduleEntry } from './schedule';
 import { SECONDS_PER_HOUR } from '../core/time';
 import { B } from '../physical/blocks';
 import { makeItem } from '../world/factory';
 import { banditResourcePressure, laborIncentive } from './economy';
 import { resolveRobberyCompliance, selectRobberyTake, ROBBERY_COOLDOWN_SECONDS, type RobberyTake } from './robbery';
+import { payRecoveryReward } from '../core/requests';
 
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -124,6 +126,25 @@ export class Simulation {
       if (how) { percepts.push({ entityId: other.ownerId, bodyId: other.id, how, tick: w.now, pos: { ...other.pos }, distance: d }); if (how === 'saw' && !p.controlled) locationKnowledge(w, p, other.ownerId, other.pos, { type: 'witnessed' }); }
     }
     p.mind.percepts = percepts;
+    // v0.8 §P0-G (independent audit §4.6): an unheld item in view is exactly as observable as a
+    // body — `locationKnowledge` already existed and had exactly one call site (bodies, above).
+    // Before this, `loc:<itemId>` was NEVER written at runtime by anything, so a real lost/
+    // stolen item could never actually be found by a witness: the recover-item chain had a
+    // mechanism (`recover_item` desires, authorized recovery, real reward payment — see
+    // requests.ts's `payRecoveryReward`) with no way for the FIRST link (someone seeing where
+    // the item is) to ever form. Same cheap-distance-then-lineOfSight gate as the body loop
+    // above, so this costs comparably little more per perceive() tick; `pruneKnowledge` (already
+    // called by `learn()`/`locationKnowledge`) is the existing, general bound on knowledge-map
+    // growth this relies on, same as it already does for the body/person case.
+    if (!asleep && !p.controlled) {
+      for (const it of w.items()) {
+        if (it.holderId || !it.pos) continue;
+        const d = Math.hypot(it.pos.x - eye.x, it.pos.z - eye.z); if (d > seeRange) continue;
+        const dx = (it.pos.x - eye.x) / (d + 1e-5), dz = (it.pos.z - eye.z) / (d + 1e-5); const dot = dx * facing.x + dz * facing.z;
+        if (d >= 2.5 && dot <= -0.1) continue;
+        if (w.grid.lineOfSight(eye, { x: it.pos.x, y: it.pos.y + 0.3, z: it.pos.z }, 32)) locationKnowledge(w, p, it.id, it.pos, { type: 'witnessed' });
+      }
+    }
     // stimuli: events with visibility/loudness
     for (const e of stimuli) {
       if (!e.pos || e.actor === p.id && e.type !== 'told') { if (e.actor === p.id) continue; }
@@ -394,6 +415,34 @@ export class Simulation {
     for (const pc of m.percepts) { const o = w.person(pc.entityId); const ob = w.body(pc.bodyId); if (!o || !ob || !o.alive) continue; if ((ob.pose === 'downed' || ob.health < ob.maxHealth * 0.5) && isClose(p, o.id) && !threat) G('help', 0.7, [`${o.name} is hurt and dear to me`], { targetEntity: o.id }); }
     // desires
     for (const d of p.desires) if (!d.fulfilled && d.type === 'recover_item') { const loc = p.knowledge[`loc:${d.targetId}`]; const it = w.item(d.targetId); if (loc && it && !it.holderId && it.pos && !threat) G('recover_item', 0.6, [`I know where ${it.name} is (${loc.source.type})`], { targetEntity: it.id, targetPos: it.pos }); }
+    // v0.8 §P0-G/H (independent audit §4.6): an authorized third party — someone who has heard
+    // `wanted:<itemId>` (via `maybeAskForHelp`/`hearDesire`) AND separately, through real
+    // perception/gossip, actually knows where the item is — can now act on both facts together,
+    // rather than that combination being a dead end unless a player happens to open the "ask
+    // about an item" dialogue menu (`askAboutItemMenu`). No new knowledge is invented here: both
+    // `wanted:` and `loc:` must already be present through their own real, provenance-carrying
+    // channels.
+    for (const k of Object.values(p.knowledge)) {
+      if (k.kind !== 'fact' || !k.claim.wantedItem || !k.claim.itemId) continue;
+      const itemId = k.claim.itemId as string; const requesterId = k.claim.requesterId as string;
+      if (!requesterId || requesterId === p.id) continue;
+      const requester = w.person(requesterId); if (!requester || !requester.alive) continue;
+      const desire = requester.desires.find(rd => rd.type === 'recover_item' && rd.targetId === itemId && !rd.fulfilled);
+      if (!desire) continue;
+      const it = w.item(itemId); const loc = p.knowledge[`loc:${itemId}`];
+      // v0.8 §P0-G/H fix: keeps proposing the SAME candidate once the item is actually in this
+      // person's own hands mid-delivery (`it.holderId === p.id`), not only while it is still
+      // lying loose. Without this, the goal stopped being offered the instant `pickup` succeeded
+      // (the item is no longer "loose" — the ordinary `recover_item` gate a few lines above has
+      // the same `!it.holderId` shape, which is correct there since the OWNER'S OWN copy of this
+      // check should stop once someone else holds it) — leaving nothing to out-compete an
+      // ordinary need (hunger, sleep) on the very next think() tick and stranding a helper
+      // holding someone else's ring indefinitely. A higher utility while actively carrying it
+      // mirrors `mind/commitment.ts`'s 'committed' protection for haul/build: the closer the
+      // deliverable is to done, the less it should be interrupted (Constitution v0.5 §8).
+      const carrying = it && it.holderId === p.id;
+      if (it && ((carrying) || (loc && !it.holderId && it.pos)) && !threat) G('help_recover_item', clamp((carrying ? 0.78 : 0.5) + p.traits.honesty * 0.15), [carrying ? `I have ${it.name} — I should bring it to ${requester.name}` : `I know where ${it.name} is`, `${requester.name} asked me to find it`], { targetEntity: it.id, targetPos: it.pos ?? undefined, data: { deliverTo: requesterId } });
+    }
     // ---- needs
     const n = p.needs; const night = hour >= 22 || hour < 5;
     G('sleep', clamp(n.energy * 0.9 + (sched?.activity === 'sleep' ? 0.35 : 0) + (night ? 0.15 : -0.1)), [`energy need ${n.energy.toFixed(2)}`, sched?.activity === 'sleep' ? 'it is my time to sleep' : ''], { targetPlace: p.homeId ?? undefined });
@@ -443,7 +492,19 @@ export class Simulation {
       const field = fieldFor(w, sched.placeId);
       if (field) {
         const rainingNow = w.weather.kind === 'rain' || w.weather.kind === 'storm';
-        const grainGlut = villageStock(w, 'grain') >= GRAIN_CAP;
+        // v0.8 §P0-E fix (independent audit §3.3/§4.3): `GRAIN_CAP` alone gates harvest on
+        // whether the FIRST stage of the chain (raw grain) has a full warehouse — it says
+        // nothing about whether bread, several stages downstream, is actually feeding anyone.
+        // Measured directly: harvest froze for 12+ straight days once grain hit its cap while
+        // bread stayed pinned at a fraction of its own stock target the whole time (3466
+        // resource_shortage events in 30 days) — mature wheat sat unharvested not because no one
+        // could reach it, but because the gate was watching the wrong stage of the chain. This
+        // reuses the bakery's own existing "bread is short" threshold (`BREAD_SHORTAGE_TRIGGER`,
+        // world/production.ts — the same number that already decides when to raise a baking
+        // request) rather than inventing a second magic number: grain is only treated as a
+        // genuine glut worth pausing harvest for when bread is ALSO not currently short.
+        const breadShort = villageStock(w, 'bread') < BREAD_SHORTAGE_TRIGGER;
+        const grainGlut = villageStock(w, 'grain') >= GRAIN_CAP && !breadShort;
         if (firstPlot(field, 'harvest') && !grainGlut) G('harvest', clamp(0.7 + (rainingNow ? -0.1 : 0)), [`wheat is ripe in ${w.nameOf(field.placeId)}`], { targetPlace: field.placeId, data: { fieldId: field.id } });
         // v0.3 Priority 13: sowing needs seed grain at the farm — don't adopt `plant` without it.
         else if (firstPlot(field, 'plant') && !rainingNow && farmSeedGrain(w, field) >= SEED_PER_PLOT) G('plant', 0.58, [`there is fallow ground in ${w.nameOf(field.placeId)}`], { targetPlace: field.placeId, data: { fieldId: field.id } });
@@ -847,6 +908,14 @@ export class Simulation {
         return [A({ type: 'goto', pos: spot, placeId: site?.id }), A({ type: 'build', pos: spot, duration: 40 * 60, data: { projectId: g.data?.projectId } })];
       }
       case 'recover_item': return [A({ type: 'goto', pos: g.targetPos! }), A({ type: 'pickup', targetEntity: g.targetEntity })];
+      case 'help_recover_item': {
+        const to = w.person(g.data?.deliverTo as EntityId);
+        const toBody = to ? w.primaryBody(to.id) : undefined;
+        const dest = toBody?.pos ?? (to?.homeId ? w.place(to.homeId)?.inside : undefined) ?? g.targetPos!;
+        const acts = [A({ type: 'goto', pos: g.targetPos! }), A({ type: 'pickup', targetEntity: g.targetEntity })];
+        if (to) acts.push(A({ type: 'goto', pos: dest, targetEntity: to.id }), A({ type: 'give', targetEntity: to.id, data: { item: g.targetEntity } }));
+        return acts;
+      }
       case 'mourn': { const gy = place!; const grave = gy.anchors.find(a => a.kind === 'grave' && a.label?.startsWith('Anna')) ?? gy.anchors[0]; return [A({ type: 'goto', pos: grave.pos }), A({ type: 'pray', pos: grave.pos, duration: 40 * 60 })]; }
       default: return [A({ type: 'wait', duration: 60 })];
     }
@@ -879,7 +948,12 @@ export class Simulation {
         if (!dest) { failGoto('no destination'); break; }
         if (!body.path) { if (dist2(body.pos, dest) < 1.2) { a.status = 'done'; break; } this.pathTo(body, dest, a); if (!body.path) { failGoto('no path found'); break; } }
         body.speed = a.run ? 5.6 : (p.occupation === 'child' ? 3.6 : 3.2 + (p.age > 60 ? -0.8 : 0));
-        body.pose = a.run ? 'run' : 'walk';
+        // v0.8 "The Legible World" §B: a hauler physically carrying real cargo (a claimed,
+        // in-transit HaulTask with units actually loaded) is visually distinct from an ordinary
+        // walk — previously indistinguishable, so the player could never tell "moving supplies"
+        // from "just walking somewhere".
+        const hauling = w.haulTasks.some(t => t.claimantId === p.id && t.status === 'in_transit' && t.carried > 0);
+        body.pose = hauling ? 'haul' : (a.run ? 'run' : 'walk');
         const arrived = this.followPath(body, physDt);
         if (arrived) {
           a.status = 'done'; body.path = null; if (!a.targetEntity && dist2(body.pos, dest) > 3) { /* couldn't reach */ }
@@ -912,7 +986,7 @@ export class Simulation {
       }
       case 'sit': body.pose = 'sit'; body.sitAnchor = a.pos ?? null; if (a.pos) { body.pos.x = Math.floor(a.pos.x) + 0.5; body.pos.z = Math.floor(a.pos.z) + 0.5; } p.needs.social = clamp(p.needs.social - worldDt / (3 * SECONDS_PER_HOUR)); this.maybeChat(p, body); if (this.elapsed(a)) a.status = 'done'; break;
       case 'eat': {
-        body.pose = 'sit'; body.sitAnchor = a.pos ?? null;
+        body.pose = 'eat'; body.sitAnchor = a.pos ?? null;
         // v0.2.4: a meal consumes a real food item. Resolve once, when the sit-down settles in.
         if (!a.data?.done && w.now - (a.startedAt ?? 0) > 60) {
           a.data = a.data ?? {}; a.data.done = true;
@@ -1018,7 +1092,7 @@ export class Simulation {
         break;
       }
       case 'drink': {
-        body.pose = 'stand'; body.yaw = a.pos ? Math.atan2(-(a.pos.x - body.pos.x), -(a.pos.z - body.pos.z)) : body.yaw;
+        body.pose = 'drink'; body.yaw = a.pos ? Math.atan2(-(a.pos.x - body.pos.x), -(a.pos.z - body.pos.z)) : body.yaw;
         if (this.elapsed(a)) { drinkAt(w, p, a.placeId); a.status = 'done'; }
         break;
       }
@@ -1070,6 +1144,10 @@ export class Simulation {
       }
       case 'chop': case 'gather': {
         const node = w.resourceNodes.find(n => n.id === a.data?.nodeId);
+        // v0.8 §16: felling a tree / quarrying stone is now visibly distinct from generic
+        // labour — same pattern `case 'build'` above already uses (`body.pose = 'work'`, with the
+        // finer chop-vs-quarry distinction resolved by the renderer's `workStyleFor` from this
+        // Action's own `nodeId`/type — see game/presentation/activityCues.ts and actors.ts).
         body.pose = 'work'; body.sitAnchor = null;
         if (!node || node.state !== 'available' || node.remaining <= 0) { a.status = 'done'; break; } // depleted — stop, don't retry
         if (a.pos && dist2(body.pos, a.pos) > 2.6) { a.status = 'pending'; m.plan.unshift({ type: 'goto', pos: a.pos, status: 'pending' }); break; }
@@ -1234,6 +1312,11 @@ export class Simulation {
       }
       case 'use': { if (a.data?.heal) { const tb = w.primaryBody(a.targetEntity!); if (tb && dist2(body.pos, tb.pos) < 3) { body.pose = 'work'; tb.health = Math.min(tb.maxHealth, tb.health + worldDt * 0.02); if (this.elapsed(a)) { a.status = 'done'; if (tb.pose === 'downed') tb.pose = 'stand'; w.emit('heal', { actor: p.id, target: a.targetEntity, pos: body.pos, significance: 0.4, visibility: 12, summary: `${p.name} tended to ${w.nameOf(a.targetEntity)}'s wounds` }); this.say(p, `There. You'll live.`); } } else a.status = 'failed'; } else a.status = 'done'; break; }
       case 'pickup': { const it = w.item(a.targetEntity!); if (it && it.pos && !it.holderId && dist2(body.pos, it.pos) < 2.5) { this.takeItem(p, it, 'recovered'); } a.status = 'done'; break; }
+      // v0.8 §P0-G/H: the delivery step of the 'help_recover_item' plan — hand a carried item
+      // (already in `p.inventory` from the preceding 'pickup' step) to the person it was fetched
+      // for. Fails harmlessly (does nothing, just ends) if the recipient walked out of reach or
+      // the item somehow isn't actually being carried — never teleports the hand-off.
+      case 'give': { const it = w.item(a.data?.item); const to = w.person(a.targetEntity!); const tb = to ? w.primaryBody(to.id) : undefined; if (it && to && tb && it.holderId === p.id && dist2(body.pos, tb.pos) < 3.5) { this.giveItem(p, to, it); } a.status = 'done'; break; }
       default: a.status = 'done';
     }
     if (a.status === 'done' && m.plan.every(x => x.status === 'done' || x.status === 'failed')) { const g = m.goal; if (g) { w.emit('goal_completed', { actor: p.id, significance: 0.05, summary: `${p.name} finished ${g.type}` }); } m.thinkBudget = m.thinkInterval; body.sitAnchor = null; }
@@ -1315,16 +1398,48 @@ export class Simulation {
     const other = near[Math.floor(w.rng.next() * near.length)];
     if (w.physicalTime - (p.mind.lastToldAt[other.id] ?? -99) < 25) return;
     p.mind.lastSpokeAt = w.physicalTime; p.mind.lastToldAt[other.id] = w.physicalTime;
+    // v0.8 §P0-G/H (independent audit §4.6): before falling back to ordinary gossip, an NPC who
+    // is themself the victim of an unfulfilled `recover_item` desire gets a chance to actually
+    // ASK for help, exactly like `DialogueSystem.hearDesire` lets a player ask an NPC "is there
+    // anything you need?" — without this, `isAuthorizedRecovery` could only ever be satisfied by
+    // a player being asked directly, meaning no NPC-to-NPC recovery chain could ever complete.
+    if (this.maybeAskForHelp(p, other)) return;
     // share the most significant thing I know that they don't seem to know
     const share = this.pickGossip(p, other);
     if (share) this.tell(p, other, share); else { const lines = this.smallTalk(p, other); this.say(p, lines); adjustRel(w, p, other.id, { familiarity: 0.02, affection: 0.01 }, 'chatted', undefined, true); adjustRel(w, other, p.id, { familiarity: 0.02 }, 'chatted', undefined, true); p.needs.social = clamp(p.needs.social - 0.05); other.needs.social = clamp(other.needs.social - 0.03); }
   }
+  /** v0.8 §P0-G/H: the NPC-side mirror of `DialogueSystem.hearDesire` — writes the exact same
+   * `wanted:<itemId>` fact knowledge shape (see dialogue.ts) so `isAuthorizedRecovery` and
+   * `askAboutItemMenu` treat a request heard from an NPC identically to one heard from a player.
+   * Returns true (and consumes this chat turn) only when there was a real unfulfilled desire to
+   * voice and the listener didn't already know about it. */
+  private maybeAskForHelp(p: Person, other: Person): boolean {
+    const w = this.world;
+    const desire = p.desires.find(d => d.type === 'recover_item' && !d.fulfilled && d.targetId && !other.knowledge[`wanted:${d.targetId}`]);
+    if (!desire || !desire.targetId) return false;
+    const line = desire.note + ` I'd pay ${desire.reward} silver to whoever brings it.`;
+    learn(w, other, { key: `wanted:${desire.targetId}`, kind: 'fact', claim: { text: line, wantedItem: true, itemId: desire.targetId, requesterId: p.id, reward: desire.reward }, confidence: 1, source: { type: 'told', from: p.id } }, true);
+    this.say(p, line);
+    adjustRel(w, other, p.id, { affection: 0.02 }, 'asked for help', undefined, true);
+    return true;
+  }
   private pickGossip(p: Person, other: Person): KnowledgeItem | null {
     const w = this.world; const r = getRel(p, other.id); if (r.trust < -0.3) return null;
-    const cands = Object.values(p.knowledge).filter(k => k.kind === 'event' && ((k.claim.significance ?? 0.3) >= 0.2 || isCrime(k.claim.type, k.claim.intent)) && !k.sharedWith.includes(other.id) && k.claim.actor !== other.id && k.source.from !== other.id && (w.now - k.learnedAt < 86400 * 4 || isCrime(k.claim.type, k.claim.intent)) && !other.knowledge[k.key]);
-    if (!cands.length) return null;
-    cands.sort((a, b) => (b.claim.significance ?? 0.3) * (isCrime(b.claim.type, b.claim.intent) ? 1.5 : 1) - (a.claim.significance ?? 0.3) * (isCrime(a.claim.type, a.claim.intent) ? 1.5 : 1));
-    const best = cands[0]; if ((best.claim.significance ?? 0.3) < 0.2 && p.traits.sociability < 0.6) return null; return best;
+    const eventCands = Object.values(p.knowledge).filter(k => k.kind === 'event' && ((k.claim.significance ?? 0.3) >= 0.2 || isCrime(k.claim.type, k.claim.intent)) && !k.sharedWith.includes(other.id) && k.claim.actor !== other.id && k.source.from !== other.id && (w.now - k.learnedAt < 86400 * 4 || isCrime(k.claim.type, k.claim.intent)) && !other.knowledge[k.key]);
+    const value = (k: KnowledgeItem) => (k.claim.significance ?? 0.3) * (isCrime(k.claim.type, k.claim.intent) ? 1.5 : 1);
+    // v0.8 §P0-G (independent audit §4.6): a KNOWN item location can now travel too, not just
+    // event news — the whole reason `locationKnowledge` was extended to items (see `perceive`
+    // above) is so this information can reach the person who actually needs it, exactly the way
+    // real gossip works ("I saw Anna's ring at the well"). Ranked well below ordinary news UNLESS
+    // it directly answers an active `recover_item` desire the LISTENER holds — that is the one
+    // case genuinely worth interrupting small talk for.
+    const locationCands = Object.values(p.knowledge).filter(k => k.kind === 'location' && w.get(k.claim.entityId as string)?.kind === 'item' && !k.sharedWith.includes(other.id) && !other.knowledge[k.key]);
+    const locationValue = (k: KnowledgeItem) => other.desires.some(d => d.type === 'recover_item' && !d.fulfilled && d.targetId === k.claim.entityId) ? 0.9 : 0.12;
+    const best = [...eventCands.map(k => ({ k, v: value(k) })), ...locationCands.map(k => ({ k, v: locationValue(k) }))]
+      .sort((a, b) => b.v - a.v)[0];
+    if (!best) return null;
+    if (best.v < 0.2 && p.traits.sociability < 0.6) return null;
+    return best.k;
   }
   private smallTalk(p: Person, other: Person): string {
     const w = this.world; const r = getRel(p, other.id); const first = other.name.split(' ')[0]; const h = w.clock.hourF; const wk = w.weather.kind;
@@ -1365,21 +1480,23 @@ export class Simulation {
       this.sayLater(listener, isGuard ? `${k.claim.type === 'kill' ? 'Murder?!' : 'An assault?'} Where? I'll see to it.` : listener.traits.courage > 0.6 ? `That so? Someone should do something.` : `Gods. I'll keep my door barred.`, 1.2);
     } else if (learned) { this.sayLater(listener, ['Is that so.', 'I hadn\'t heard.', 'Well, well.', 'Hm.', 'Really?'][Math.floor(w.rng.next() * 5)], 1.5); }
   }
+  /**
+   * v0.8 "The Legible World" §A: ambient NPC-to-NPC gossip is exactly the same grounded
+   * knowledge → speech step player-facing dialogue (`mind/dialogue.ts`) already goes through —
+   * previously this had its OWN separate, more repetitive switch-per-event-type template here
+   * ("X! Y attacked Z at W. Q told me!"), the exact database-log style the v0.8 playtest flagged,
+   * just in a code path the player never directly interacts with (a speech bubble, not a
+   * dialogue menu) — arguably MORE visible than the on-demand dialogue system, since it fires
+   * constantly during ordinary play. Reusing `realizeClaim` here means ambient gossip and
+   * deliberate conversation are the SAME synthesis, not two divergent narrative layers that
+   * could drift out of sync with each other or with what's actually grounded.
+   */
   private tellLine(sp: Person, li: Person, k: KnowledgeItem): string {
-    const w = this.world; const c = k.claim; const first = li.name.split(' ')[0]; const src = k.source.type === 'witnessed' ? 'I saw it myself' : k.source.type === 'heard' ? 'I heard it happen' : k.source.from ? `${w.nameOf(k.source.from).split(' ')[0]} told me` : 'they say';
-    const who = (id: string | undefined, unk?: boolean) => unk ? 'someone' : id ? (id === li.id ? 'you' : w.nameOf(id)) : 'someone';
-    switch (c.type) {
-      case 'attack': return `${first}! ${who(c.actor, c.actorUnknown)} attacked ${who(c.target)}${c.placeId ? ' at ' + w.nameOf(c.placeId) : ''}. ${src}!`;
-      case 'kill': return `${first}, ${who(c.target)} is dead. ${who(c.actor, c.actorUnknown)} killed ${li.gender === 'f' ? 'him' : 'them'}. ${src}.`;
-      case 'theft': return `${who(c.actor, c.actorUnknown)} took ${c.item ? w.nameOf(c.item) : 'something'} from ${who(c.target)}. ${src}.`;
-      case 'gift': return `Did you hear? ${who(c.actor)} gave ${who(c.target)} ${c.item ? w.nameOf(c.item) : 'a gift'}.`;
-      case 'returned_item': return `${who(c.actor)} brought ${c.item ? w.nameOf(c.item) : 'it'} back to ${who(c.target)}. ${src}.`;
-      case 'rumor': return `${src}: ${c.text}.`;
-      case 'debt': return `${who(c.actor)} still owes ${who(c.target)} ${c.amount} silver, ${src}.`;
-      case 'dispute': return `${who(c.actor)} and ${who(c.target)} had words${c.about ? ' over ' + c.about : ''}. ${src}.`;
-      case 'heal': return `${who(c.actor)} patched up ${who(c.target)}, ${src}.`;
-      default: return `${src}: ${describeClaim(w, k)}.`;
-    }
+    const c = k.claim; const first = li.name.split(' ')[0];
+    const body = realizeClaim(this.world, sp, k);
+    // Direct address is kept only for the two "you need to know this NOW" urgent types — the
+    // rest read naturally as realizeClaim already produces them.
+    return (c.type === 'attack' || c.type === 'kill') ? `${first}! ${body}` : body;
   }
   say(p: Person, text: string): void { p.speech = { text, until: this.world.physicalTime + 3 + text.length * 0.05 }; this.onSpeech?.(p, text); }
   private pendingSpeech: { p: Person; text: string; at: number }[] = [];
@@ -1491,26 +1608,92 @@ export class Simulation {
     return node ? extractFromNode(w, node, actor) : 0;
   }
 
+  /**
+   * v0.8 "The Legible World" §D (player/NPC affordance parity): a mature wheat plot is real,
+   * canonical resource state (`CropPlot`) exactly like a `ResourceNode` — this is the same
+   * shape of wrapper as `extractResourceAt` above, calling the SAME `harvestPlot`/`plantPlot`
+   * an NPC's own `harvest`/`plant` action already uses (`case 'harvest'`/`'plant'` below), never
+   * a player-only shortcut. No tool/capability gate is added here because none exists for an
+   * NPC's own harvest/plant either — parity means matching the real requirement, not inventing
+   * a stricter one for the player. Yield/seed-cost still flow through the field's real
+   * `ownerId` (a hired hand's harvest already paid the landowner, not themselves; the player
+   * harvesting someone else's field behaves identically — the same canonical rule, not a
+   * special case). Returns grain yielded (0 if nothing to harvest here).
+   */
+  harvestWheatAt(actor: Person, pos: Vec3): number {
+    const w = this.world;
+    const cx = Math.floor(pos.x), cy = Math.floor(pos.y), cz = Math.floor(pos.z);
+    const place = w.placeAt(pos); const field = place ? fieldFor(w, place.id) : undefined;
+    const plot = field?.plots.find(p => p.x === cx && p.y === cy && p.z === cz);
+    if (!field || !plot) return 0;
+    return harvestPlot(w, field, plot, actor);
+  }
+  /** Sibling of `harvestWheatAt` for sowing a fallow plot — same parity rationale. Returns
+   * whether a plot was actually sown (false if there is none here, or no seed grain at the
+   * farm). */
+  plantWheatAt(actor: Person, pos: Vec3): boolean {
+    const w = this.world;
+    const cx = Math.floor(pos.x), cy = Math.floor(pos.y), cz = Math.floor(pos.z);
+    const place = w.placeAt(pos); const field = place ? fieldFor(w, place.id) : undefined;
+    const plot = field?.plots.find(p => p.x === cx && p.y === cy && p.z === cz);
+    if (!field || !plot) return false;
+    return plantPlot(w, field, plot, actor);
+  }
+
   // ------------------------------------------------------------------ items
+  /**
+   * v0.8 §1A: whether `actor` picking up `it` (which someone else owns) is a grounded, authorized
+   * recovery rather than theft. This requires ALL of:
+   *  - the owner has an active (unfulfilled) `recover_item` desire naming this exact item — not
+   *    "any owned item", and not a request that has already been fulfilled or withdrawn;
+   *  - `actor` has actually learned of that specific request through canonical knowledge (the
+   *    `wanted:<itemId>` fact `DialogueSystem.hearDesire` grants when the owner asks for help) —
+   *    never simulation omniscience;
+   *  - that learned fact still names the correct requester and item, so stale or wrong knowledge
+   *    doesn't authorize picking up a different owner's property.
+   * Ordinary unrelated pickup of someone else's belongings remains theft; this is a narrow,
+   * evidence-gated exception, not a blanket "owned items are exempt from theft" rule.
+   */
+  isAuthorizedRecovery(actor: Person, it: import('../core/types').Item): boolean {
+    if (!it.ownerId || it.ownerId === actor.id) return false;
+    const owner = this.world.person(it.ownerId);
+    if (!owner) return false;
+    const desire = owner.desires.find(d => d.type === 'recover_item' && d.targetId === it.id && !d.fulfilled);
+    if (!desire) return false;
+    const known = actor.knowledge[`wanted:${it.id}`];
+    return !!known && known.claim.itemId === it.id && known.claim.requesterId === owner.id;
+  }
   takeItem(p: Person, it: import('../core/types').Item, how: 'pickup' | 'theft' | 'recovered' | 'bought' | 'given', from?: EntityId): WorldEvent {
     const w = this.world; const pos = it.pos ? { ...it.pos } : w.primaryBody(p.id)?.pos; const place = it.placeId ? w.place(it.placeId) : pos ? w.placeAt(pos) : undefined;
     const prevHolder = it.holderId; if (prevHolder) { const h = w.person(prevHolder); if (h) h.inventory = h.inventory.filter(x => x !== it.id); }
     it.holderId = p.id; it.pos = null; it.placeId = null; if (!p.inventory.includes(it.id)) p.inventory.push(it.id);
-    const stolen = how === 'theft' || (how === 'pickup' && it.ownerId && it.ownerId !== p.id);
-    const type = stolen ? 'theft' : how === 'recovered' ? 'recovered' : how === 'given' ? 'give' : how === 'bought' ? 'trade' : 'pickup';
+    const ownedByOther = how === 'pickup' && !!it.ownerId && it.ownerId !== p.id;
+    const authorizedRecovery = ownedByOther && this.isAuthorizedRecovery(p, it);
+    const stolen = how === 'theft' || (ownedByOther && !authorizedRecovery);
+    const type = stolen ? 'theft' : how === 'recovered' || authorizedRecovery ? 'recovered' : how === 'given' ? 'give' : how === 'bought' ? 'trade' : 'pickup';
     it.provenance.push({ tick: w.now, from: from ?? prevHolder ?? it.ownerId ?? null, to: p.id, how: stolen ? 'stolen' : how });
-    const ev = w.emit(type, { actor: p.id, target: stolen ? it.ownerId! : (from ?? it.ownerId ?? undefined), item: it.id, pos, placeId: place?.id, significance: stolen ? 0.5 : 0.15, visibility: stolen ? 16 : 8, data: { how }, summary: stolen ? `${p.name} stole ${it.name} from ${w.nameOf(it.ownerId)}${place ? ' at ' + place.name : ''}` : `${p.name} ${how === 'recovered' ? 'recovered' : how === 'bought' ? 'bought' : 'picked up'} ${it.name}${place ? ' at ' + place.name : ''}` });
+    const ev = w.emit(type, { actor: p.id, target: stolen ? it.ownerId! : (from ?? it.ownerId ?? undefined), item: it.id, pos, placeId: place?.id, significance: stolen ? 0.5 : 0.15, visibility: stolen ? 16 : 8, data: { how, authorized: authorizedRecovery || undefined }, summary: stolen ? `${p.name} stole ${it.name} from ${w.nameOf(it.ownerId)}${place ? ' at ' + place.name : ''}` : authorizedRecovery ? `${p.name} recovered ${it.name} to return to ${w.nameOf(it.ownerId)}${place ? ' at ' + place.name : ''}` : `${p.name} ${how === 'recovered' ? 'recovered' : how === 'bought' ? 'bought' : 'picked up'} ${it.name}${place ? ' at ' + place.name : ''}` });
     it.provenance[it.provenance.length - 1].eventId = ev.id;
     if (how === 'bought') it.ownerId = p.id;
     else if (!stolen && how !== 'given') it.ownerId = it.ownerId ?? p.id;
+    // v0.8 §P0-H (independent audit §4.6): `giveItem` below already closes a `recover_item`
+    // desire (and pays a reward) when a THIRD PARTY hands the item back — but an owner who finds
+    // and picks up their OWN lost item directly (this 'pickup'/'recovered' path, no `giveItem`
+    // involved) never went through any code that closed the matching desire, leaving it open
+    // forever even though the item was, in fact, back in its owner's hands. No reward is paid
+    // here (there is no third-party helper to compensate for finding one's own property).
+    if (!stolen && it.ownerId === p.id) {
+      for (const d of p.desires) if (!d.fulfilled && d.type === 'recover_item' && d.targetId === it.id) { d.fulfilled = true; p.emotions.joy = clamp(p.emotions.joy + 0.3); }
+    }
     return ev;
   }
   /**
-   * Canonical robbery completion: transfers whatever `selectRobberyTake` chose, using the same
-   * item/wealth APIs as everything else (`takeItem` for a real item, `makeItem` to materialize
-   * abstract wealth exactly like `sellItem` does), then makes sure the victim — who was present
-   * and directly targeted — always knows they were robbed, with full provenance, the same way
-   * `applyHit` guarantees a victim always knows who struck them.
+   * Canonical robbery completion: transfers whatever `selectRobberyTake` chose — `takeItem` for
+   * a real physical item/coin stack, a direct `wealth` transfer for abstract money (v0.8 §P0-B:
+   * no longer materializes a new coin item nobody but the player can spend — see the doc
+   * comments on each branch below) — then makes sure the victim — who was present and directly
+   * targeted — always knows they were robbed, with full provenance, the same way `applyHit`
+   * guarantees a victim always knows who struck them.
    */
   private executeRobbery(bandit: Person, victim: Person, take: RobberyTake, intent: ConflictIntent): WorldEvent {
     const w = this.world; const vb = w.primaryBody(victim.id); const pos = vb?.pos ?? w.primaryBody(bandit.id)?.pos;
@@ -1518,11 +1701,38 @@ export class Simulation {
     let ev: WorldEvent;
     if (take.kind === 'coins' || take.kind === 'item') {
       ev = this.takeItem(bandit, take.item, 'theft', victim.id);
+      // v0.8 §P0-B: an NPC's money must stay spendable. Every NPC economic action —
+      // `buyFoodPortion`, `payWage`, `payRecoveryReward`, `settleWholesale`, `laborIncentive`,
+      // `banditResourcePressure` — reads `Person.wealth`; none of them ever reads a physical
+      // `coins` Item (only the player's own dialogue/inventory UI does). A bandit who steals an
+      // existing physical coin stack (this only realistically happens when the victim is the
+      // player, who is the one entity that actually carries coins as a literal prop) still needs
+      // that money banked to be able to spend it like any other villager. The player keeps
+      // physically losing/gaining coin items when robbed/looted — only a *non-player* recipient
+      // auto-deposits, immediately, into their own spendable wealth.
+      if (take.kind === 'coins' && !bandit.controlled) {
+        const amount = take.item.quantity;
+        bandit.wealth += amount; bandit.inventory = bandit.inventory.filter(id => id !== take.item.id);
+        take.item.quantity = 0; retireStack(take.item);
+      }
     } else {
-      victim.wealth -= take.amount;
-      const coins = makeItem(w, 'coins', 'silver coins', { owner: bandit.id, holder: bandit.id, quantity: take.amount });
-      ev = w.emit('theft', { actor: bandit.id, target: victim.id, item: coins.id, pos, placeId: place?.id, significance: 0.5, visibility: 16, data: { intent, wealth: true }, summary: `${bandit.name} robbed ${take.amount} silver from ${victim.name}${place ? ' at ' + place.name : ''}` });
-      coins.provenance.push({ tick: w.now, eventId: ev.id, from: victim.id, to: bandit.id, how: 'stolen' });
+      // v0.8 §P0-B (audit finding — §3.1/§4.1 of the independent review): this branch used to
+      // mint a brand-new `coins` Item for the bandit, creating a SECOND, incompatible
+      // representation of money that no NPC economic action can ever spend (listed above). Over
+      // a real run that is a one-way pump: spendable purchasing power drains out of the village
+      // into an inert reservoir (measured: hundreds of silver per simulated month; `Person.wealth`
+      // and total coin-item counts diverge while a "wealth + coin items" conservation check
+      // reports a perfect residual throughout, because the quantity it conserves is not the
+      // quantity anyone can spend). A direct wealth-to-wealth transfer is the smallest
+      // structurally coherent fix: it is exactly the operation `buyFoodPortion`/`payWage`/
+      // `sellItem`'s buyer side already perform for every other NPC-to-NPC payment in this
+      // codebase, it keeps stolen money spendable by the bandit (closing `mind/economy.ts`'s
+      // documented-but-previously-inert `banditResourcePressure` feedback loop for the first
+      // time — a bandit faction's measured wealth now actually falls when it robs successfully),
+      // and it invents no new mechanism. No item is created because none is needed: 'wealth'
+      // means abstract money, not a physical coin stack that has to exist as an object.
+      victim.wealth -= take.amount; bandit.wealth += take.amount;
+      ev = w.emit('theft', { actor: bandit.id, target: victim.id, pos, placeId: place?.id, significance: 0.5, visibility: 16, data: { intent, wealth: true, amount: take.amount }, summary: `${bandit.name} robbed ${take.amount} silver from ${victim.name}${place ? ' at ' + place.name : ''}` });
     }
     if (victim.alive && !victim.controlled && !ev.perceivedBy.some(x => x.who === victim.id)) {
       ev.perceivedBy.push({ who: victim.id, how: 'saw', tick: w.now });
@@ -1547,7 +1757,13 @@ export class Simulation {
     const pos = w.primaryBody(to.id)?.pos;
     const ev = w.emit(returned ? 'returned_item' : 'gift', { actor: from.id, target: to.id, item: it.id, pos, significance: returned ? 0.6 : 0.4, visibility: 14, loudness: 6, summary: `${from.name} ${returned ? 'returned' : 'gave'} ${it.name} to ${to.name}` });
     it.provenance[it.provenance.length - 1].eventId = ev.id;
-    for (const d of to.desires) if (!d.fulfilled && d.type === 'recover_item' && d.targetId === it.id) { d.fulfilled = true; adjustRel(w, to, from.id, { affection: 0.6, trust: 0.5, respect: 0.3 }, `returned ${it.name}`, ev.id); to.emotions.joy = 1; to.emotions.sadness *= 0.5; this.say(to, `You... you found it. I don't know what to say. Thank you, stranger.`); }
+    for (const d of to.desires) if (!d.fulfilled && d.type === 'recover_item' && d.targetId === it.id) {
+      d.fulfilled = true; adjustRel(w, to, from.id, { affection: 0.6, trust: 0.5, respect: 0.3 }, `returned ${it.name}`, ev.id); to.emotions.joy = 1; to.emotions.sadness *= 0.5;
+      // v0.8 §1B: a promised reward is really paid, from the requester who offered it, honestly
+      // capped by what they actually have (payRecoveryReward never manufactures currency).
+      const paid = d.reward > 0 ? payRecoveryReward(w, to.id, from, d.reward) : 0;
+      this.say(to, paid >= d.reward ? `You... you found it. I don't know what to say. Thank you, stranger. Here — ${paid} silver, as promised.` : paid > 0 ? `You found it! Thank you. I've only ${paid} silver on me right now, but take it — it's yours.` : `You... you found it. I don't know what to say. Thank you, stranger.`);
+    }
     return ev;
   }
 
@@ -1598,6 +1814,24 @@ export class Simulation {
       const firePlace = b ? w.placeAt(b.pos) : undefined;
       const nearFire = firePlace ? fireIntensityAt(w, firePlace.id) : 0;
       if (b) stepPhysiology(w, p, h, activityLevelFor(p, b), { indoor: w.isIndoors(b.pos), daylight: this.lightAt(), nearFire });
+      // v0.8 §P0-D fix: a detainee has no agency to seek their own food/water — `custody?.active`
+      // already suspends their autonomous goal system entirely (this file's think(), the
+      // `idle:custody` hold) — so an institution holding someone has a basic duty of care, the
+      // same way it already prevents ordinary health regen without providing MORE than survival
+      // (see the "held" health-regen guard a few lines below this one). Before this fix, a
+      // multi-day detention (`custodyDurationFor`: 1.5-6 days) combined with zero sustenance
+      // mechanism meant a detainee's hunger/thirst climbed to `critical` and simply stayed there
+      // for the ENTIRE detention — measured directly (seed 918271: Vex arrested at hour 5, held
+      // until hour 113, critical hunger+thirst for over 100 continuous hours) — an institutional
+      // neglect bug, not a consequence of a bandit's chosen precarious lifestyle. This floors
+      // (never restores past) hunger/thirst at "uncomfortable", not comfortable — a cell is still
+      // not a good place to be, but a real jail feeds and waters its prisoners enough that they
+      // don't starve or dehydrate to crisis while held.
+      if (p.custody?.active) {
+        p.physiology.energy = Math.max(p.physiology.energy, 0.4);
+        p.physiology.hydration = Math.max(p.physiology.hydration, 0.45);
+        syncNeeds(p);
+      }
       // v0.6 §XV: time-weighted (not point-in-time-snapshot) severity-band distribution — how
       // many world-MINUTES the village actually spends at each band, the benchmark evidence the
       // milestone asks for ("average hunger band distribution") rather than a single end-of-run
@@ -1616,7 +1850,19 @@ export class Simulation {
       if (b && !b.dead && !held && b.health < b.maxHealth) b.health = Math.min(b.maxHealth, b.health + minutes * 0.15);
       // notice missing possessions when at work: inference without a witness
       if (b && p.workId && w.placeAt(b.pos)?.id === p.workId && w.rng.next() < 0.3 * minutes) {
-        for (const it of w.items()) if (it.ownerId === p.id && it.holderId && it.holderId !== p.id && !p.knowledge[`missing:${it.id}`]) {
+        // v0.8 §P0-F fix: an item legitimately assigned to a haul task and carried by that
+        // task's authorized claimant is not missing — it is exactly where a haul is supposed to
+        // put it, in transit. Before this check, a bakery owner "noticing" their own flour is
+        // gone every time a hauler had legitimately picked it up (`loadHaulCargo` makes the
+        // owner the requester and the holder the hauler, on purpose) produced a real,
+        // provenance-stamped FALSE belief ("someone took it") at a measured rate of roughly one
+        // per day across a 20-day run — a confident false belief formed from a broken inference,
+        // which Constitution §5/§6 explicitly forbids. `it.haulTaskId` is the authoritative
+        // "this stack is a haul cargo currently being carried between two Places for the named
+        // task" signal (see core/types.ts's `Item.haulTaskId` doc) — checking it directly (not
+        // merely suppressing the emitted event) is what makes this a real custody/transport
+        // distinction rather than a name-based patch.
+        for (const it of w.items()) if (it.ownerId === p.id && it.holderId && it.holderId !== p.id && !it.haulTaskId && !p.knowledge[`missing:${it.id}`]) {
           const knownTheft = Object.values(p.knowledge).find(k => k.kind === 'event' && k.claim.type === 'theft' && k.claim.item === it.id);
           if (knownTheft) continue;
           const ev = w.emit('item_missing', { actor: p.id, item: it.id, pos: b.pos, placeId: p.workId, significance: 0.45, summary: `${p.name} noticed ${it.name} is missing` });
@@ -1679,8 +1925,10 @@ export class Simulation {
     const t1 = this.mark();
     const wt = w.weather;
     if (w.now >= wt.nextChangeAt) {
-      const r = w.rng.next(); const kinds: import('../core/types').WeatherKind[] = wt.kind === 'clear' ? ['clear', 'cloudy', 'cloudy', 'fog'] : wt.kind === 'cloudy' ? ['clear', 'rain', 'cloudy', 'storm'] : wt.kind === 'rain' ? ['cloudy', 'rain', 'storm', 'clear'] : wt.kind === 'storm' ? ['rain', 'cloudy'] : ['clear', 'cloudy'];
-      const kind = kinds[Math.floor(r * kinds.length)]; const prev = wt.kind; wt.kind = kind; wt.intensity = kind === 'storm' ? 1 : kind === 'rain' ? 0.5 + w.rng.next() * 0.4 : kind === 'fog' ? 0.7 : 0; wt.wind = 0.1 + w.rng.next() * (kind === 'storm' ? 1 : 0.5); wt.nextChangeAt = w.now + (1.5 + w.rng.next() * 4) * SECONDS_PER_HOUR;
+      // v0.8 §9: weather draws from its own forked stream (`w.weatherRng`) precisely so that
+      // weather is never a source of, or victim of, RNG-sequence coupling with anything else.
+      const r = w.weatherRng.next(); const kinds: import('../core/types').WeatherKind[] = wt.kind === 'clear' ? ['clear', 'cloudy', 'cloudy', 'fog'] : wt.kind === 'cloudy' ? ['clear', 'rain', 'cloudy', 'storm'] : wt.kind === 'rain' ? ['cloudy', 'rain', 'storm', 'clear'] : wt.kind === 'storm' ? ['rain', 'cloudy'] : ['clear', 'cloudy'];
+      const kind = kinds[Math.floor(r * kinds.length)]; const prev = wt.kind; wt.kind = kind; wt.intensity = kind === 'storm' ? 1 : kind === 'rain' ? 0.5 + w.weatherRng.next() * 0.4 : kind === 'fog' ? 0.7 : 0; wt.wind = 0.1 + w.weatherRng.next() * (kind === 'storm' ? 1 : 0.5); wt.nextChangeAt = w.now + (1.5 + w.weatherRng.next() * 4) * SECONDS_PER_HOUR;
       if (prev !== kind) w.emit('weather', { significance: 0.2, data: { kind }, summary: `The weather turned to ${kind}` });
     }
     this.accum('strategic.weather', t1);

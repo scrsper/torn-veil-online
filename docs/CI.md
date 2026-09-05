@@ -1,13 +1,10 @@
-# Continuous Integration
+# Continuous Integration (v0.8 §18)
 
 `.github/workflows/pr.yml` runs on every pull request targeting `main`: `npm ci`, `npm run
-typecheck`, `npm test`, `npm run build`.
-
-This is a deliberately minimal bootstrap. It does not run `npm run world:smoke` (or any
-WorldLab/multi-seed validation) — that harness does not exist on `main` yet; it currently lives
-on a separate, still-in-review PR. **Add a `world:smoke` (or equivalent) step to this gate once
-that harness lands on `main` or is separately approved** — do not backport WorldLab/simulation/
-rendering/gameplay code into this workflow just to run it sooner.
+typecheck`, `npm test`, `npm run build`, `npm run world:smoke`. It deliberately does not run
+`npm run world:check`/`world:soak` (multi-seed/multi-day WorldLab validation) — those are meant
+to be run explicitly before a milestone PR is considered ready, not on every push (§18: "do not
+run expensive 30/90-day soak validation on every PR").
 
 **This workflow reports status; it does not by itself block a merge.** Making it actually gate
 merges requires a one-time, manual repository setting that only a repo admin can make (a GitHub
@@ -21,13 +18,15 @@ Actions workflow file cannot enable this on its own):
 5. Save the rule.
 
 Until that manual step is done, `pr.yml`'s result is visible on every PR (and via the commit
-status API) but a PR can still be merged with it failing. This is the precise permission/
-configuration step required after merge — documented here rather than silently skipped.
+status API) but a PR can still be merged with it failing. This is the "precise permission/
+configuration blocker" §18 asks to be documented rather than silently skipped or worked around.
 
-## What is NOT covered by this workflow
+## What is NOT covered by CI yet
 
-- **WorldLab / `world:smoke`**: see above — not on `main` yet.
-- **The Playwright browser functional harness** (if/when one exists): expect it to need an
-  explicit `npx playwright install --with-deps chromium` step (plus the associated wall-clock/
-  download cost on every PR) to run on a fresh GitHub Actions runner, unlike a development
-  sandbox that may have a browser pre-installed at a fixed path.
+The Playwright browser functional harness (`npm run test:browser`, §10) is not part of `pr.yml`.
+It currently launches Chromium from a fixed path (`PLAYWRIGHT_CHROMIUM_PATH`, default
+`/opt/pw-browsers/chromium`) that exists in this project's development sandbox but not on a
+stock GitHub Actions runner, which would need an explicit `npx playwright install --with-deps
+chromium` step (and the accompanying wall-clock/download cost on every PR) to work at all. Wiring
+that up is a reasonable follow-up, not attempted here to avoid adding a CI step that would only
+ever fail on a fresh runner.

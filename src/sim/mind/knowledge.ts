@@ -326,17 +326,34 @@ const FOOD_PREFERENCE_WINDOW_SECONDS = 12 * 3600;
  * the next arrival there already restores full confidence; this window only needs to outlast one
  * ordinary restock cycle, not a whole day. */
 const FOOD_AVOIDANCE_WINDOW_SECONDS = 2 * 3600;
+/**
+ * v0.8 §P0-D: beyond this many blocks, distance dominates confidence in the scoring below — a
+ * hungry person strongly prefers a closer, less-certain option over a farther, well-known one.
+ * Chosen to be well inside ordinary village scale (the whole map is roughly a few hundred blocks
+ * across) so it discriminates "across the village" from "at the far edge of the map", not
+ * "next door" from "across the square".
+ */
+const FOOD_DISTANCE_SCALE = 120;
 export function knownFoodPlace(world: World, p: Person): EntityId | undefined {
   const now = world.now;
   const candidates = Object.values(p.knowledge).filter(k => k.kind === 'service' && (k.claim.offers as string[])?.includes('food'));
   if (!candidates.length) return undefined;
+  // v0.8 §P0-D fix (independent audit §3.2/§8): this used to score purely by confidence/recency,
+  // with no notion of physical distance — an isolated resident (Old Wyn, living alone at the
+  // map's edge) could "know" the bakery exists with high confidence and always target it, then
+  // never actually arrive before the goal was reconsidered or the trip interrupted, while a
+  // closer (even if less certain) option sat unconsidered. A real hungry person weighs how far
+  // away help actually is, not just how sure they are it exists.
+  const body = world.primaryBody(p.id);
   let best: KnowledgeItem | undefined; let bestScore = -Infinity;
   for (const k of candidates) {
     const placeId = k.claim.placeId as EntityId;
     const memories = memoriesAtPlace(p, placeId);
     const boughtRecently = memories.some(m => m.type === 'purchase' && now - m.tick < FOOD_PREFERENCE_WINDOW_SECONDS);
     const foundEmptyRecently = memories.some(m => m.type === 'shortage' && now - m.tick < FOOD_AVOIDANCE_WINDOW_SECONDS);
-    const score = k.confidence + (boughtRecently ? 0.35 : 0) - (foundEmptyRecently ? 0.5 : 0);
+    const place = world.place(placeId);
+    const distancePenalty = body && place ? Math.min(0.6, world.distance2d(body.pos, place.inside) / FOOD_DISTANCE_SCALE) : 0;
+    const score = k.confidence + (boughtRecently ? 0.35 : 0) - (foundEmptyRecently ? 0.5 : 0) - distancePenalty;
     if (score > bestScore) { bestScore = score; best = k; }
   }
   return best ? (best.claim.placeId as EntityId) : undefined;

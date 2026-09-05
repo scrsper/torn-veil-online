@@ -51,7 +51,11 @@ export const ACTIVITY_HEAT_PER_HOUR: Record<ActivityLevel, number> = {
  * sufficient (still far short of "never hungry": a skipped meal is still felt) without
  * loosening any tolerance/interruption threshold itself. See docs/
  * V0_6_KNOWLEDGE_MEMORY_SKILLS_INTENT.md §II for the before/after numbers. */
-const ENERGY_DRAIN_PER_HOUR = 1 / 21;
+// v0.8 §P0-E: exported so WorldLab can DERIVE the required meals/person/day figure from the
+// same constants physiology actually uses (`ENERGY_DRAIN_PER_HOUR` / `FOOD_HUNGER_RESTORE` in
+// world/metabolism.ts), instead of a hardcoded number that silently drifts out of sync with a
+// future tuning pass.
+export const ENERGY_DRAIN_PER_HOUR = 1 / 21;
 /** Idle-equivalent hours to fully dehydrate — matches the pre-v0.4 thirst pace (~11 hours). */
 const HYDRATION_DRAIN_PER_HOUR = 1 / 11;
 /** One meal (`eatFood`) restores this fraction of the caloric reserve. */

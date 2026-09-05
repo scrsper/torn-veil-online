@@ -101,7 +101,10 @@ describe('robbery causal loop (Priority 1 stabilization)', () => {
       expect(vb.pose).not.toBe('downed'); // compliance path must never require force
     }
     expect(robbed).toBe(true);
-    expect(bandit.inventory.length).toBeGreaterThan(0);
+    // v0.8 §P0-B: a non-player bandit immediately banks a stolen coin stack into spendable
+    // wealth rather than carrying it as an inert item nothing but the player's own UI can spend
+    // — see agent.ts's `executeRobbery`.
+    expect(bandit.wealth).toBeGreaterThan(0);
   });
 
   it('resisted robbery: a defiant, armed target is subdued (not automatically killed) before anything is taken', () => {
@@ -127,14 +130,21 @@ describe('robbery causal loop (Priority 1 stabilization)', () => {
     expect(theftEvent).not.toBeNull(); // and the robbery still completed afterward
   });
 
-  it('actually transfers valuables through canonical item APIs, with provenance', () => {
+  it('actually transfers valuables through canonical item APIs, with provenance, and the money stays spendable', () => {
     const { tw, bandit, villager } = setupBanditAndVictim(313);
     tw.world.rng = new FixedRNG(0.99) as unknown as RNG;
     const coins = makeItem(tw.world, 'coins', 'silver coins', { owner: villager.id, holder: villager.id, quantity: 20 });
-    for (let i = 0; i < 160 && coins.holderId !== bandit.id; i++) step(tw, 0.25);
-    expect(coins.holderId).toBe(bandit.id);
-    expect(bandit.inventory).toContain(coins.id);
+    let theftEvent: ReturnType<typeof tw.world.events.find> = undefined;
+    for (let i = 0; i < 160 && !theftEvent; i++) { step(tw, 0.25); theftEvent = tw.world.events.find(e => e.type === 'theft' && e.actor === bandit.id); }
+    expect(theftEvent).toBeTruthy();
     expect(villager.inventory).not.toContain(coins.id);
+    // v0.8 §P0-B: the bandit picks the coin stack up (a real item transfer, with provenance —
+    // asserted below) and then immediately banks it into spendable `wealth`, exactly like every
+    // other NPC-to-NPC payment in the game, rather than carrying an item no NPC purchase path
+    // can ever spend.
+    expect(bandit.inventory).not.toContain(coins.id);
+    expect(coins.quantity).toBe(0);
+    expect(bandit.wealth).toBeGreaterThanOrEqual(20);
     const lastProvenance = coins.provenance[coins.provenance.length - 1];
     expect(lastProvenance.how).toBe('stolen');
     expect(lastProvenance.from).toBe(villager.id);

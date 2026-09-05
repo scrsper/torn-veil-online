@@ -5,7 +5,13 @@ export const enum B {
   Door, Torch, Farmland, Wheat, Hay, Furnace, Anvil, Table, Bed, Barrel, Fence, Flowers, Path, RoofTile,
   Chair, Counter, Fire, Chimney, Bookshelf, Altar, Bench, Gravestone, Mossy, Tallgrass, Bush, Pumpkin,
   Cloth, ClothRed, ClothBlue, Wool, StoneBrick, Well, Lantern, Log2, Leaves2, Gravel, Crate, Sign, Snow, Mud, Plaster,
-  Sprout
+  Sprout,
+  // v0.8 "The Legible World" §C: `fallow`/`planted`/`harvested` crop states previously all
+  // projected to Air, indistinguishable from bare, never-worked soil (`world/metabolism.ts`'s
+  // `cropBlockFor`). Appended at the END of the enum (never inserted earlier) — block IDs are
+  // persisted as raw numbers in every save's voxel grid, so renumbering existing entries would
+  // silently corrupt old saves.
+  Seedling, Stubble
 }
 export type Shape = 'cube' | 'cross' | 'slab' | 'inset' | 'post' | 'none';
 export interface BlockDef {
@@ -32,7 +38,7 @@ export const BLOCKS: Record<number, BlockDef> = {
   [B.Door]: { name: 'door', color: c(130, 90, 50), shape: 'inset', inset: 0.08, solid: true, opaque: true, walkCost: 1.2 },
   [B.Torch]: { name: 'torch', color: c(255, 200, 100), shape: 'post', solid: false, opaque: false, walkCost: 1, emissive: [1.0, 0.7, 0.3], light: 6, height: 0.6 },
   [B.Farmland]: { name: 'farmland', color: c(86, 60, 38), shape: 'slab', height: 0.9, solid: true, opaque: true, walkCost: 2, noise: 0.07 },
-  [B.Wheat]: { name: 'wheat', color: c(210, 180, 80), shape: 'cross', solid: false, opaque: false, walkCost: 2 },
+  [B.Wheat]: { name: 'wheat', color: c(210, 180, 80), shape: 'cross', solid: false, opaque: false, walkCost: 2, height: 0.9 },
   [B.Hay]: { name: 'hay bale', color: c(200, 170, 70), shape: 'cube', solid: true, opaque: true, walkCost: 1, noise: 0.1 },
   [B.Furnace]: { name: 'oven', color: c(90, 88, 86), shape: 'cube', solid: true, opaque: true, walkCost: 1, emissive: [0.6, 0.25, 0.05], light: 5 },
   [B.Anvil]: { name: 'anvil', color: c(60, 60, 66), shape: 'inset', inset: 0.2, height: 0.7, solid: false, opaque: false, walkCost: 3 },
@@ -45,7 +51,7 @@ export const BLOCKS: Record<number, BlockDef> = {
   [B.RoofTile]: { name: 'roof tiles', color: c(120, 50, 40), shape: 'cube', solid: true, opaque: true, walkCost: 1, noise: 0.08 },
   [B.Chair]: { name: 'chair', color: c(140, 100, 60), shape: 'inset', inset: 0.25, height: 0.5, solid: false, opaque: false, walkCost: 2 },
   [B.Counter]: { name: 'counter', color: c(120, 80, 45), shape: 'slab', height: 0.9, solid: true, opaque: false, walkCost: 10 },
-  [B.Fire]: { name: 'fire', color: c(255, 140, 40), shape: 'cross', solid: false, opaque: false, walkCost: 30, emissive: [1.0, 0.5, 0.15], light: 9 },
+  [B.Fire]: { name: 'fire', color: c(255, 140, 40), shape: 'cross', solid: false, opaque: false, walkCost: 30, emissive: [1.0, 0.5, 0.15], light: 9, height: 1.0 },
   [B.Chimney]: { name: 'chimney', color: c(100, 96, 92), shape: 'cube', solid: true, opaque: true, walkCost: 1, noise: 0.1 },
   [B.Bookshelf]: { name: 'bookshelf', color: c(110, 80, 50), color2: c(160, 60, 60), shape: 'cube', solid: true, opaque: true, walkCost: 1 },
   [B.Altar]: { name: 'altar', color: c(220, 215, 200), shape: 'slab', height: 0.85, solid: true, opaque: false, walkCost: 10 },
@@ -73,6 +79,12 @@ export const BLOCKS: Record<number, BlockDef> = {
   // v0.2.4: a young/growing crop — green, short. Mature wheat stays B.Wheat (golden). The
   // renderer projects a CropPlot's canonical state onto one of {Air, Sprout, Wheat}.
   [B.Sprout]: { name: 'sprouts', color: c(120, 170, 80), shape: 'cross', solid: false, opaque: false, walkCost: 1, height: 0.5 },
+  // v0.8 §C: a just-sown plot — shorter and sparser than a Sprout (real growth, not yet begun),
+  // so "just planted" reads visibly different from "already growing".
+  [B.Seedling]: { name: 'seedlings', color: c(90, 140, 70), shape: 'cross', solid: false, opaque: false, walkCost: 1, height: 0.25 },
+  // v0.8 §C: cut stalks left after harvest — pale/dry, low, visibly distinct from both a
+  // never-planted fallow plot (bare Farmland, Air above it) and from standing Wheat.
+  [B.Stubble]: { name: 'stubble', color: c(170, 150, 110), shape: 'cross', solid: false, opaque: false, walkCost: 1, height: 0.2 },
 };
 export function blockDef(id: number): BlockDef { return BLOCKS[id] ?? BLOCKS[B.Air]; }
 export function isSolid(id: number): boolean { return blockDef(id).solid; }

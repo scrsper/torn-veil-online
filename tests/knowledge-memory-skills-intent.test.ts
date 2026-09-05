@@ -63,12 +63,16 @@ describe('knowledge: non-omniscient economic opportunity (v0.6 §III)', () => {
     const p = addPerson(tw, 'Villager', 'traveler', v(3, 1, 3));
     learnPlace(tw.world, p, bakery, { type: 'prior' });
     learnPlace(tw.world, p, store, { type: 'prior' });
-    const before = p.knowledge[`svc:${bakery.id}`].confidence;
-    expect(knownFoodPlace(tw.world, p)).toBe(bakery.id); // first-seeded tie-break
-    noteFoodShortage(tw.world, p, bakery.id);
-    expect(p.knowledge[`svc:${bakery.id}`].confidence).toBeLessThan(before);
-    expect(p.knowledge[`svc:${bakery.id}`]).toBeDefined(); // demoted, not erased — the place may just be temporarily out
-    expect(knownFoodPlace(tw.world, p)).toBe(store.id); // now prefers the untainted alternative
+    const before = p.knowledge[`svc:${store.id}`].confidence;
+    // v0.8 §P0-D: `knownFoodPlace` now weighs physical distance (the whole point of the fix — a
+    // hungry person prefers a closer, equally-confident option over a farther one) — the
+    // villager starts right next to the store, so that is the real first choice, not a same-
+    // confidence tie-break.
+    expect(knownFoodPlace(tw.world, p)).toBe(store.id);
+    noteFoodShortage(tw.world, p, store.id);
+    expect(p.knowledge[`svc:${store.id}`].confidence).toBeLessThan(before);
+    expect(p.knowledge[`svc:${store.id}`]).toBeDefined(); // demoted, not erased — the place may just be temporarily out
+    expect(knownFoodPlace(tw.world, p)).toBe(bakery.id); // now prefers the untainted (if farther) alternative
   });
 
   it('knowledge round-trips save/load: service kind, confidence and lastConfirmedAt survive', () => {

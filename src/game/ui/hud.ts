@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { World } from '../../sim/core/world';
-import type { Person } from '../../sim/core/types';
+import type { Item, Person } from '../../sim/core/types';
 import type { Target } from '../player/interaction';
 import { formatWorldTime } from '../../sim/core/time';
 
@@ -10,6 +10,26 @@ export class HUD {
   labels = new Map<string, HTMLElement>(); selected: string | null = null; lastHurt = -9;
   constructor(private world: World, private camera: THREE.PerspectiveCamera) {}
   message(text: string): void { const d = document.createElement('div'); d.textContent = text; this.msgs.appendChild(d); setTimeout(() => d.remove(), 4000); while (this.msgs.children.length > 3) this.msgs.firstChild?.remove(); }
+  /**
+   * v0.8 "The Legible World" §G: a ground item's ownership status must respect what the PLAYER
+   * actually knows, not the simulation's omniscient `ownerId` — the previous version of this
+   * label named the true owner unconditionally the instant an item was merely looked at, before
+   * the player had done anything to learn who it belonged to. Distinguishes:
+   *  - unowned → no status at all (reads as abandoned, which it genuinely is);
+   *  - on a shop's own display counter → "for sale", inferable by anyone without special
+   *    knowledge (that's what a market stall display means);
+   *  - the player has REAL acquired knowledge of the owner (`mind/knowledge.ts`'s
+   *    `owner:<itemId>` KnowledgeItem — witnessed, told, or seeded prior knowledge) → names them;
+   *  - otherwise → an honest "not sure whose this is", never a fabricated or omniscient answer.
+   */
+  private itemStatusFor(it: Item, player: Person): string {
+    const w = this.world;
+    if (!it.ownerId || it.ownerId === player.id) return '';
+    const onDisplay = it.placeId && it.pos ? w.place(it.placeId)?.anchors.some(a => a.kind === 'display' && Math.hypot(a.pos.x - it.pos!.x, a.pos.z - it.pos!.z) < 1.5) : false;
+    if (onDisplay) return ' · for sale';
+    if (player.knowledge[`owner:${it.id}`]) return ` · belongs to ${w.nameOf(it.ownerId)}`;
+    return ' · not sure whose this is';
+  }
   update(target: Target, speedMult: number, paused: boolean): void {
     const w = this.world; const c = w.clock;
     this.topTime.textContent = `${formatWorldTime(c.worldSeconds)}${paused ? ' ⏸' : speedMult !== 1 ? ` ×${speedMult}` : ''}`;
@@ -21,7 +41,7 @@ export class HUD {
     this.inv.innerHTML = 'Carrying: ' + (player.inventory.map(id => w.item(id)).filter(Boolean).map(i => `<b>${i!.name}${i!.quantity > 1 ? ` ×${i!.quantity}` : ''}</b>`).join(', ') || 'nothing');
     if (!target) this.target.innerHTML = '';
     else if (target.kind === 'body') { const p = target.person; if (p) { const goal = p.mind.goal; const st = target.body.dead ? 'dead' : target.body.pose === 'downed' ? 'incapacitated' : target.body.pose === 'sleep' ? 'asleep' : goal ? `${goal.type}${goal.data?.label ? ': ' + goal.data.label : ''}` : 'idle'; this.target.innerHTML = `<div class="name">${p.name}</div><div class="hint">${p.occupation} · ${st} · ${Math.round(target.body.health)}/${target.body.maxHealth} hp<br>[E] talk · [F] inspect · [LMB/X] attack</div>`; } else this.target.innerHTML = `<div class="name">${w.nameOf(target.body.ownerId)}</div>`; }
-    else if (target.kind === 'item') { const it = target.item; const owner = it.ownerId && it.ownerId !== w.playerId ? ` · belongs to ${w.nameOf(it.ownerId)}` : ''; this.target.innerHTML = `<div class="name">${it.name}${it.quantity > 1 ? ` ×${it.quantity}` : ''}</div><div class="hint">${it.type}${owner}<br>[E] take</div>`; }
+    else if (target.kind === 'item') { const it = target.item; const status = this.itemStatusFor(it, player); this.target.innerHTML = `<div class="name">${it.name}${it.quantity > 1 ? ` ×${it.quantity}` : ''}</div><div class="hint">${it.type}${status}<br>[E] take</div>`; }
     else this.target.innerHTML = `<div class="hint">${target.name} · [E] use</div>`;
     this.updateLabels();
   }

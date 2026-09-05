@@ -49,22 +49,48 @@ export function acceptRequest(world: World, r: Request, worker: Person): void {
 
 /**
  * A payer never pays more than they actually have (Constitution v0.4 §10 — no negative wealth
- * unless debt is deliberately implemented, which it isn't). A request with no resolvable payer
- * (an ownerless workplace) pays nothing — real physical work still happened, it just wasn't
- * commissioned by anyone able to fund it; this is honest under-payment, not currency creation.
- * Returns the amount actually transferred (0..nominal).
+ * unless debt is deliberately implemented, which it isn't). A payer who can't be resolved, or who
+ * is resolved but insolvent, pays nothing or less than nominal — this is honest under-payment,
+ * not currency creation. Every payment path in the simulation (wages, recovery rewards, ...)
+ * shares this one transfer so currency conservation only has to be proven once. Returns the
+ * amount actually transferred (0..nominal).
  */
-export function payWage(world: World, payerId: EntityId | null, worker: Person, nominal: number): number {
+function transferWealth(world: World, payerId: EntityId | null, recipient: Person, nominal: number): number {
   if (nominal <= 0) return 0;
   const payer = payerId ? world.person(payerId) : undefined;
   if (!payer || !payer.alive) return 0;
   const amount = Math.max(0, Math.min(nominal, payer.wealth));
   if (amount <= 0) return 0;
-  payer.wealth -= amount; worker.wealth += amount;
+  payer.wealth -= amount; recipient.wealth += amount;
+  return amount;
+}
+
+/** A request with no resolvable payer (an ownerless workplace) pays nothing — real physical work
+ * still happened, it just wasn't commissioned by anyone able to fund it. */
+export function payWage(world: World, payerId: EntityId | null, worker: Person, nominal: number): number {
+  const amount = transferWealth(world, payerId, worker, nominal);
+  if (amount <= 0) return 0;
   world.runTally.wage_paid_amount = (world.runTally.wage_paid_amount ?? 0) + amount;
   world.emit('wage_paid', {
-    actor: payer.id, target: worker.id, significance: 0.08,
-    data: { amount, nominal }, summary: `${payer.name} paid ${worker.name} ${amount} silver for their work`,
+    actor: payerId!, target: worker.id, significance: 0.08,
+    data: { amount, nominal }, summary: `${world.nameOf(payerId)} paid ${worker.name} ${amount} silver for their work`,
+  });
+  return amount;
+}
+
+/**
+ * v0.8 §1B: a promised recover-item reward is real, conserved payment from the requester who
+ * offered it — never manufactured currency, and never a debt/IOU system. Reuses the exact same
+ * honest transfer `payWage` uses: an insolvent requester pays what they can (including nothing),
+ * which is represented honestly rather than papered over. Returns the amount actually paid.
+ */
+export function payRecoveryReward(world: World, payerId: EntityId, recipient: Person, nominal: number): number {
+  const amount = transferWealth(world, payerId, recipient, nominal);
+  if (amount <= 0) return 0;
+  world.runTally.reward_paid_amount = (world.runTally.reward_paid_amount ?? 0) + amount;
+  world.emit('reward_paid', {
+    actor: payerId, target: recipient.id, significance: 0.3,
+    data: { amount, nominal }, summary: `${world.nameOf(payerId)} paid ${recipient.name} ${amount} silver for recovering their property`,
   });
   return amount;
 }

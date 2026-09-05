@@ -36,7 +36,17 @@ export interface Entity {
 }
 
 // ---------------------------------------------------------------- Bodies
-export type Pose = 'stand' | 'walk' | 'run' | 'sit' | 'sleep' | 'work' | 'attack' | 'hit' | 'dead' | 'talk' | 'pray' | 'downed';
+// v0.8 "The Legible World" §B: `eat`/`drink`/`haul` are real, distinct canonical actions
+// (`ActionType` below) that previously all rendered as an indistinguishable `sit`/`stand`/`work`
+// — the player could never tell an eating villager from one merely sitting, or a hauler from an
+// idle worker. Each gets its own pose so `game/actors/actors.ts`'s renderer can give it a
+// distinct animation.
+export type Pose = 'stand' | 'walk' | 'run' | 'sit' | 'sleep' | 'work' | 'attack' | 'hit' | 'dead' | 'talk' | 'pray' | 'downed' | 'eat' | 'drink' | 'haul'
+  // v0.8 §16 "visible causality": resource extraction (felling a tree, quarrying stone) gets its
+  // own overhead-swing silhouette instead of reusing the generic side-to-side `work` pose, so
+  // "someone is chopping/quarrying" is readable at a glance — the same rationale that already
+  // gave `eat`/`drink`/`haul` their own poses.
+  | 'chop';
 
 export interface Body extends Entity {
   kind: 'body';
@@ -249,6 +259,13 @@ export type GoalType =
   // v0.2.3: yield in a losing/hopeless fight rather than fight-to-death or flee-forever; a guard
   // escorting a surrendered/subdued suspect into custody.
   | 'surrender' | 'escort_custody'
+  // v0.8 §P0-G/H: distinct from 'recover_item' (an owner going to fetch their OWN known-location
+  // item) — this is a THIRD PARTY who has both `wanted:<itemId>` authorization (heard via
+  // `maybeAskForHelp`/`hearDesire`) and real `loc:<itemId>` knowledge (from perception/gossip)
+  // acting on it: go get it, then physically deliver it to the requester. Without this, an NPC
+  // could become authorized and still never have any mechanism to follow through — only a player
+  // could ever complete a third-party recovery via the dialogue-only `askAboutItemMenu`.
+  | 'help_recover_item'
   // v0.2.4 world metabolism: seek water when thirsty; plant/harvest a field; the existing
   // 'work' goal covers milling/baking/tending.
   | 'drink_water' | 'plant' | 'harvest'
@@ -279,7 +296,11 @@ export type ActionType = 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 't
   | 'drink' | 'plant' | 'harvest'
   // v0.3: load a haul cargo at the source Place; unload it at the destination; extract from a
   // resource node; contribute one slice of construction labour.
-  | 'haul_load' | 'haul_unload' | 'chop' | 'gather' | 'build';
+  | 'haul_load' | 'haul_unload' | 'chop' | 'gather' | 'build'
+  // v0.8 §P0-G/H: hand a carried item to another person in person — the 'help_recover_item'
+  // plan's delivery step (see GoalType). Distinct from the existing NPC-to-player trade/`bought`
+  // path; this always uses `Simulation.giveItem` (mind/agent.ts), which pays any owed reward.
+  | 'give';
 export interface Action {
   type: ActionType;
   pos?: Vec3;
@@ -924,6 +945,10 @@ export type EventType =
   | 'collapsed_from_exhaustion' | 'sleep_completed' | 'heat_forced_rest'
   | 'request_created' | 'request_accepted' | 'request_completed' | 'request_failed'
   | 'wage_paid' | 'purchase_made' | 'tool_broke' | 'tree_growth_stage'
+  // v0.8 §1B: a fulfilled recover_item desire pays a real, conserved reward — see
+  // `core/requests.ts`'s `payRecoveryReward` (the same honest-transfer semantics `wage_paid`
+  // already uses).
+  | 'reward_paid'
   // v0.5 Human Physiology / Autonomous Economy — goal commitment lifecycle transitions
   // (Constitution v0.5 §12: "canonical, observable, reason-coded... avoid event spam", so only
   // real transitions, never a per-tick "still committed" heartbeat) and the new production
