@@ -47,15 +47,26 @@ describe('generated lost/stolen-property task, end to end (v0.8 §E)', () => {
     expect(answer.lines.join(' ')).not.toContain('Cedric said'); // never attributed to someone who doesn't actually know
 
     // 3. Player physically travels to the real place and picks up the REAL item (no phantom copy).
+    // v0.8 §1A: the player already learned of Cedric's active recover_item request for this
+    // EXACT item (step 1), so this is a grounded, authorized recovery — not theft.
     const pickedUp = tw.sim.takeItem(player, ring, 'pickup');
-    expect(pickedUp.type).toBe('theft'); // it still belongs to Cedric — taking it without him present is recorded honestly
+    expect(pickedUp.type).toBe('recovered');
     expect(ring.holderId).toBe(player.id);
+    expect(ring.ownerId).toBe(requester.id); // ownership stays with Cedric while the player carries it back
     expect(player.inventory).toContain(ring.id);
 
     // 4. Player returns it to the actual requester — real canonical payment/state change.
+    const requesterWealthBefore = requester.wealth; const playerWealthBefore = player.wealth;
     const returnEv = tw.sim.giveItem(player, requester, ring);
     expect(returnEv.type).toBe('returned_item');
     expect(ring.ownerId).toBe(requester.id);
     expect(requester.desires.find(d => d.targetId === ring.id)?.fulfilled).toBe(true);
+    // v0.8 §1B: the promised 30-silver reward is really paid, from Cedric, not conjured — and
+    // honestly capped at what Cedric actually has (a default villager starts with 20 silver, so
+    // this also proves insufficient-funds is represented honestly rather than papered over).
+    const expectedPaid = Math.min(30, requesterWealthBefore);
+    expect(expectedPaid).toBeGreaterThan(0);
+    expect(player.wealth).toBe(playerWealthBefore + expectedPaid);
+    expect(requester.wealth).toBe(requesterWealthBefore - expectedPaid);
   });
 });

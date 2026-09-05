@@ -24,6 +24,7 @@ import { B } from '../physical/blocks';
 import { makeItem } from '../world/factory';
 import { banditResourcePressure, laborIncentive } from './economy';
 import { resolveRobberyCompliance, selectRobberyTake, ROBBERY_COOLDOWN_SECONDS, type RobberyTake } from './robbery';
+import { payRecoveryReward } from '../core/requests';
 
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -1514,14 +1515,38 @@ export class Simulation {
   }
 
   // ------------------------------------------------------------------ items
+  /**
+   * v0.8 §1A: whether `actor` picking up `it` (which someone else owns) is a grounded, authorized
+   * recovery rather than theft. This requires ALL of:
+   *  - the owner has an active (unfulfilled) `recover_item` desire naming this exact item — not
+   *    "any owned item", and not a request that has already been fulfilled or withdrawn;
+   *  - `actor` has actually learned of that specific request through canonical knowledge (the
+   *    `wanted:<itemId>` fact `DialogueSystem.hearDesire` grants when the owner asks for help) —
+   *    never simulation omniscience;
+   *  - that learned fact still names the correct requester and item, so stale or wrong knowledge
+   *    doesn't authorize picking up a different owner's property.
+   * Ordinary unrelated pickup of someone else's belongings remains theft; this is a narrow,
+   * evidence-gated exception, not a blanket "owned items are exempt from theft" rule.
+   */
+  isAuthorizedRecovery(actor: Person, it: import('../core/types').Item): boolean {
+    if (!it.ownerId || it.ownerId === actor.id) return false;
+    const owner = this.world.person(it.ownerId);
+    if (!owner) return false;
+    const desire = owner.desires.find(d => d.type === 'recover_item' && d.targetId === it.id && !d.fulfilled);
+    if (!desire) return false;
+    const known = actor.knowledge[`wanted:${it.id}`];
+    return !!known && known.claim.itemId === it.id && known.claim.requesterId === owner.id;
+  }
   takeItem(p: Person, it: import('../core/types').Item, how: 'pickup' | 'theft' | 'recovered' | 'bought' | 'given', from?: EntityId): WorldEvent {
     const w = this.world; const pos = it.pos ? { ...it.pos } : w.primaryBody(p.id)?.pos; const place = it.placeId ? w.place(it.placeId) : pos ? w.placeAt(pos) : undefined;
     const prevHolder = it.holderId; if (prevHolder) { const h = w.person(prevHolder); if (h) h.inventory = h.inventory.filter(x => x !== it.id); }
     it.holderId = p.id; it.pos = null; it.placeId = null; if (!p.inventory.includes(it.id)) p.inventory.push(it.id);
-    const stolen = how === 'theft' || (how === 'pickup' && it.ownerId && it.ownerId !== p.id);
-    const type = stolen ? 'theft' : how === 'recovered' ? 'recovered' : how === 'given' ? 'give' : how === 'bought' ? 'trade' : 'pickup';
+    const ownedByOther = how === 'pickup' && !!it.ownerId && it.ownerId !== p.id;
+    const authorizedRecovery = ownedByOther && this.isAuthorizedRecovery(p, it);
+    const stolen = how === 'theft' || (ownedByOther && !authorizedRecovery);
+    const type = stolen ? 'theft' : how === 'recovered' || authorizedRecovery ? 'recovered' : how === 'given' ? 'give' : how === 'bought' ? 'trade' : 'pickup';
     it.provenance.push({ tick: w.now, from: from ?? prevHolder ?? it.ownerId ?? null, to: p.id, how: stolen ? 'stolen' : how });
-    const ev = w.emit(type, { actor: p.id, target: stolen ? it.ownerId! : (from ?? it.ownerId ?? undefined), item: it.id, pos, placeId: place?.id, significance: stolen ? 0.5 : 0.15, visibility: stolen ? 16 : 8, data: { how }, summary: stolen ? `${p.name} stole ${it.name} from ${w.nameOf(it.ownerId)}${place ? ' at ' + place.name : ''}` : `${p.name} ${how === 'recovered' ? 'recovered' : how === 'bought' ? 'bought' : 'picked up'} ${it.name}${place ? ' at ' + place.name : ''}` });
+    const ev = w.emit(type, { actor: p.id, target: stolen ? it.ownerId! : (from ?? it.ownerId ?? undefined), item: it.id, pos, placeId: place?.id, significance: stolen ? 0.5 : 0.15, visibility: stolen ? 16 : 8, data: { how, authorized: authorizedRecovery || undefined }, summary: stolen ? `${p.name} stole ${it.name} from ${w.nameOf(it.ownerId)}${place ? ' at ' + place.name : ''}` : authorizedRecovery ? `${p.name} recovered ${it.name} to return to ${w.nameOf(it.ownerId)}${place ? ' at ' + place.name : ''}` : `${p.name} ${how === 'recovered' ? 'recovered' : how === 'bought' ? 'bought' : 'picked up'} ${it.name}${place ? ' at ' + place.name : ''}` });
     it.provenance[it.provenance.length - 1].eventId = ev.id;
     if (how === 'bought') it.ownerId = p.id;
     else if (!stolen && how !== 'given') it.ownerId = it.ownerId ?? p.id;
@@ -1569,7 +1594,13 @@ export class Simulation {
     const pos = w.primaryBody(to.id)?.pos;
     const ev = w.emit(returned ? 'returned_item' : 'gift', { actor: from.id, target: to.id, item: it.id, pos, significance: returned ? 0.6 : 0.4, visibility: 14, loudness: 6, summary: `${from.name} ${returned ? 'returned' : 'gave'} ${it.name} to ${to.name}` });
     it.provenance[it.provenance.length - 1].eventId = ev.id;
-    for (const d of to.desires) if (!d.fulfilled && d.type === 'recover_item' && d.targetId === it.id) { d.fulfilled = true; adjustRel(w, to, from.id, { affection: 0.6, trust: 0.5, respect: 0.3 }, `returned ${it.name}`, ev.id); to.emotions.joy = 1; to.emotions.sadness *= 0.5; this.say(to, `You... you found it. I don't know what to say. Thank you, stranger.`); }
+    for (const d of to.desires) if (!d.fulfilled && d.type === 'recover_item' && d.targetId === it.id) {
+      d.fulfilled = true; adjustRel(w, to, from.id, { affection: 0.6, trust: 0.5, respect: 0.3 }, `returned ${it.name}`, ev.id); to.emotions.joy = 1; to.emotions.sadness *= 0.5;
+      // v0.8 §1B: a promised reward is really paid, from the requester who offered it, honestly
+      // capped by what they actually have (payRecoveryReward never manufactures currency).
+      const paid = d.reward > 0 ? payRecoveryReward(w, to.id, from, d.reward) : 0;
+      this.say(to, paid >= d.reward ? `You... you found it. I don't know what to say. Thank you, stranger. Here — ${paid} silver, as promised.` : paid > 0 ? `You found it! Thank you. I've only ${paid} silver on me right now, but take it — it's yours.` : `You... you found it. I don't know what to say. Thank you, stranger.`);
+    }
     return ev;
   }
 

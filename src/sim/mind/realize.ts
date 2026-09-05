@@ -44,7 +44,7 @@ const FACT_VARIANTS: Partial<Record<string, (world: World, c: Record<string, any
   theft: (world, c) => { const a = who(world, c.actor, c.actorUnknown); const t = who(world, c.target); const it = c.item ? world.nameOf(c.item) : 'something'; return [`${a} stole ${it} from ${t}`, `${a} made off with ${it} that belonged to ${t}`, `${it} went missing, and ${a} is the one who took it from ${t}`]; },
   dispute: (world, c) => { const a = who(world, c.actor); const t = who(world, c.target); const about = c.about ? ` over ${c.about}` : ''; return [`${a} and ${t} quarrelled${about}`, `there's bad blood between ${a} and ${t}${about ? `, something${about}` : ''}`]; },
   death: (world, c) => { const t = who(world, c.target); const w = c.placeId ? ` near ${world.nameOf(c.placeId)}` : ''; return [`${t} died${w}`, `${t} is gone${w}`]; },
-  arrest_attempt: (world, c) => { const a = who(world, c.actor); const t = who(world, c.target); return [`${a} tried to arrest ${t}`, `${a} came for ${t}, badge out`]; },
+  arrest_attempt: (world, c) => { const a = who(world, c.actor); const t = who(world, c.target); return [`${a} tried to arrest ${t}`, `${a} came to take ${t} into custody`]; },
   confrontation: (world, c) => { const a = who(world, c.actor); const t = who(world, c.target); return [`${a} confronted ${t}`, `${a} had words with ${t}`]; },
   threat_spotted: (world, c) => { const a = who(world, c.actor, c.actorUnknown); const w = c.placeId ? ` near ${world.nameOf(c.placeId)}` : ''; return [`${a} was seen prowling${w}`, `${a} was skulking about${w}`]; },
 };
@@ -86,16 +86,20 @@ function relationalPrefix(world: World, speaker: Person, k: KnowledgeItem, seed:
   return '';
 }
 
-/** Recency/social-currency suffix — grounded in the claim's own recorded significance, never a
- * fabricated sense of importance. Returned as a comma-led fragment (no terminal punctuation) so
- * it can be folded into the same sentence as the fact/attribution rather than starting a new,
- * awkwardly-capitalized one. */
-function socialCurrency(world: World, k: KnowledgeItem, seed: string): string {
-  const sig = k.claim.significance ?? 0;
-  const recentEnough = k.claim.tick !== undefined && world.now - k.claim.tick < 3600 * 24 * 3; // within 3 world-days
-  if (sig < 0.5 || !recentEnough) return '';
-  return ', ' + pick(['and people are still talking about it', "though it's all anyone's spoken of lately", 'and half the village has an opinion on it'], seed);
-}
+/**
+ * v0.8 §1C: there used to be a "social-currency" suffix here ("people are still talking about
+ * it", "half the village has an opinion on it") added whenever a claim's significance and
+ * recency crossed a threshold. That is not evidence of village-wide awareness — a speaker who
+ * personally witnessed or was told one fact has no way to actually know how many OTHER people
+ * know it too, and the simulation does not currently track gossip reach per fact/person to make
+ * such a statement true. Significance + recency describe how noteworthy and fresh a fact is to
+ * the SPEAKER, not how far it has spread; asserting the latter from the former is exactly the
+ * kind of invented-not-paraphrased fact this module is constitutionally forbidden from adding
+ * (Constitution §5-6, AGENTS.md "Distinguish implemented code from behavior proven by tests").
+ * FOLLOW-UP: if gossip reach is ever tracked per fact (e.g. a count of how many people have
+ * independently learned a given `k.key`), a grounded version of this could return, keyed off
+ * that real count rather than significance/recency alone.
+ */
 
 /**
  * The main entry point: turn one grounded `KnowledgeItem` into one natural spoken line. Falls
@@ -112,8 +116,8 @@ export function realizeClaim(world: World, speaker: Person, k: KnowledgeItem): s
   else fact = describeClaim(world, k);
   const prefix = relationalPrefix(world, speaker, k, seed);
   const attrib = attribution(world, k, seed);
-  // hedge/socialCurrency are comma-led fragments (or empty) — exactly one terminal period, added
-  // once here, so a run of doubt/social-currency clauses never produces "...told me. and..."
-  const tail = hedge(k, seed) + socialCurrency(world, k, seed) + '.';
+  // hedge is a comma-led fragment (or empty) — exactly one terminal period, added once here, so
+  // a hedge clause never produces "...told me. ,though..."
+  const tail = hedge(k, seed) + '.';
   return `${prefix}${fact}, ${attrib}${tail}`;
 }

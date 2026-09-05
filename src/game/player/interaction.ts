@@ -47,7 +47,7 @@ export class Interaction {
     const t = this.target; if (!t) return; const w = this.world;
     if (t.kind === 'body' && t.person) { if (t.body.dead) { this.onMessage?.(`${t.person.name} is dead.`); this.loot(t.person); return; } if (t.body.pose === 'sleep') { this.onMessage?.(`${t.person.name} is asleep.`); return; } this.onTalk?.(t.person); }
     else if (t.kind === 'body') { this.onMessage?.('The chicken regards you with suspicion.'); }
-    else if (t.kind === 'item') { const it = t.item; const stolen = it.ownerId && it.ownerId !== this.player.id; this.sim.takeItem(this.player, it, stolen ? 'theft' : 'pickup'); this.onPickup?.(); this.onMessage?.(stolen ? `You take ${it.name}. It belongs to ${w.nameOf(it.ownerId)}.` : `You pick up ${it.name}.`); }
+    else if (t.kind === 'item') { const it = t.item; const ev = this.sim.takeItem(this.player, it, 'pickup'); this.onPickup?.(); this.onMessage?.(ev.type === 'theft' ? `You take ${it.name}. It belongs to ${w.nameOf(it.ownerId)}.` : ev.type === 'recovered' ? `You pick up ${it.name}, to return to ${w.nameOf(it.ownerId)}.` : `You pick up ${it.name}.`); }
     else if (t.kind === 'block') { const id = w.grid.get(t.x, t.y, t.z);
       // v0.3: chop a tree / quarry a rock — the same canonical extraction NPCs use.
       if (id === B.Log || id === B.Log2 || id === B.Leaves || id === B.Leaves2 || id === B.StoneBrick) {

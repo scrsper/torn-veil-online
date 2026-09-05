@@ -103,6 +103,39 @@ describe('dialogue grounding (v0.8 §A — realization may paraphrase, never fab
     expect(a).toBe(b);
   });
 
+  it('never asserts village-wide awareness ("everyone is talking about it" etc.) from significance/recency alone (v0.8 §1C)', () => {
+    const tw = createTestWorld(209, 16);
+    const speaker = addPerson(tw, 'Speaker', 'guard', v(3.5, 1, 3.5));
+    const actor = addPerson(tw, 'Vex', 'vagrant', v(4.5, 1, 3.5));
+    const victim = addPerson(tw, 'Bramble', 'baker', v(5.5, 1, 3.5));
+    // High significance + very recent — under the old (removed) heuristic this alone used to
+    // trigger a fabricated "everyone's talking about it" style clause with no actual evidence
+    // that anyone besides the speaker knows.
+    const k: KnowledgeItem = {
+      key: 'ev:e9', kind: 'event',
+      claim: { eventId: 'e9', type: 'attack', actor: actor.id, target: victim.id, significance: 1, tick: tw.world.now },
+      confidence: 1, learnedAt: tw.world.now, source: { type: 'witnessed' }, hops: 0, sharedWith: [],
+    };
+    const text = realizeClaim(tw.world, speaker, k);
+    expect(text).not.toMatch(/everyone|half the village|all anyone|anyone's spoken|still talking about it|village has an opinion/i);
+  });
+
+  it('an arrest_attempt claim never invents an unwitnessed physical detail like "badge out" (v0.8 §1C)', () => {
+    const tw = createTestWorld(210, 16);
+    const speaker = addPerson(tw, 'Speaker', 'guard', v(3.5, 1, 3.5));
+    const guard = addPerson(tw, 'Rowan', 'guard', v(4.5, 1, 3.5));
+    const suspect = addPerson(tw, 'Vex', 'vagrant', v(5.5, 1, 3.5));
+    for (let i = 0; i < 8; i++) {
+      const k: KnowledgeItem = {
+        key: `ev:arrest${i}`, kind: 'event',
+        claim: { eventId: `arrest${i}`, type: 'arrest_attempt', actor: guard.id, target: suspect.id, tick: tw.world.now },
+        confidence: 0.9, learnedAt: tw.world.now, source: { type: 'witnessed' }, hops: 0, sharedWith: [],
+      };
+      const text = realizeClaim(tw.world, speaker, k);
+      expect(text).not.toMatch(/badge out/i);
+    }
+  });
+
   it('produces varied phrasing across different NPCs/claims rather than one fixed template (natural synthesis, not an event-log dump)', () => {
     const { tw } = witnessedAttack(208);
     const actor = addPerson(tw, 'Skarn', 'bandit', v(7.5, 1, 3.5));

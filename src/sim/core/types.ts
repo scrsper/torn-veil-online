@@ -893,6 +893,10 @@ export type EventType =
   | 'collapsed_from_exhaustion' | 'sleep_completed' | 'heat_forced_rest'
   | 'request_created' | 'request_accepted' | 'request_completed' | 'request_failed'
   | 'wage_paid' | 'purchase_made' | 'tool_broke' | 'tree_growth_stage'
+  // v0.8 §1B: a fulfilled recover_item desire pays a real, conserved reward — see
+  // `core/requests.ts`'s `payRecoveryReward` (the same honest-transfer semantics `wage_paid`
+  // already uses).
+  | 'reward_paid'
   // v0.5 Human Physiology / Autonomous Economy — goal commitment lifecycle transitions
   // (Constitution v0.5 §12: "canonical, observable, reason-coded... avoid event spam", so only
   // real transitions, never a per-tick "still committed" heartbeat) and the new production
