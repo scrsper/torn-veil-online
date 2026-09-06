@@ -104,7 +104,10 @@ export function completeRequest(world: World, r: Request): number {
   const paid = worker ? payWage(world, r.requesterId, worker, r.reward) : 0;
   r.status = 'completed'; r.completedAt = world.now;
   world.emit('request_completed', {
-    actor: r.acceptedBy, placeId: r.requesterPlaceId, significance: 0.08,
+    // v0.10 §II: naming the person the work was FOR makes a completed request legible as what it
+    // socially is — one person having done another a turn — so the obligation layer can settle a
+    // standing stake without `core/` needing to know that layer exists.
+    actor: r.acceptedBy, target: r.requesterId ?? undefined, placeId: r.requesterPlaceId, significance: 0.08,
     data: { requestId: r.id, type: r.type, paid },
     summary: `${r.acceptedBy ? world.nameOf(r.acceptedBy) : 'Someone'} completed a ${r.type === 'haul' ? 'haul' : requestTypeLabel(r.type)} request${paid ? ` and was paid ${paid} silver` : ''}`,
   });
@@ -116,7 +119,7 @@ export function failRequest(world: World, r: Request, reason: string): void {
   if (r.status === 'completed' || r.status === 'failed' || r.status === 'cancelled') return;
   r.status = 'failed';
   world.emit('request_failed', {
-    actor: r.acceptedBy, placeId: r.requesterPlaceId, significance: 0.08,
+    actor: r.acceptedBy, target: r.requesterId ?? undefined, placeId: r.requesterPlaceId, significance: 0.08,
     data: { requestId: r.id, type: r.type, reason }, summary: `A ${r.type} request failed: ${reason}`,
   });
 }

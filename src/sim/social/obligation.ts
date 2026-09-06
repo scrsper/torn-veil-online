@@ -391,7 +391,18 @@ export function noteRequestEvent(world: World, e: WorldEvent): void {
     if (worker) recordAcceptedTask(world, worker, request, e.id);
     return;
   }
-  if (e.type === 'request_completed') { settleRequestObligations(world, request, 'fulfilled', 'work_done', e.id); return; }
+  if (e.type === 'request_completed') {
+    settleRequestObligations(world, request, 'fulfilled', 'work_done', e.id);
+    // Doing someone's work is one of the most ordinary ways of doing them a turn. A standing
+    // stake toward the person the work was for is settled by having actually done it — which is
+    // what closes the reciprocity loop instead of leaving a debt live forever after it has, in
+    // fact, been answered.
+    const worker = request.acceptedBy ? world.person(request.acceptedBy) : undefined;
+    if (worker && request.requesterId && request.requesterId !== worker.id) {
+      dischargeToward(world, worker, request.requesterId, 'repaid', e.id);
+    }
+    return;
+  }
   if (e.type === 'request_failed') { settleRequestObligations(world, request, 'failed', (e.data?.reason as string) ?? 'the work was never finished', e.id); return; }
 }
 

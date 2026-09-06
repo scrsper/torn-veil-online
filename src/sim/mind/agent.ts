@@ -40,8 +40,8 @@ import { woundSeverity, SERIOUS_WOUND } from '../core/attributes';
 // (`motivationBoost`), so concerns, obligations and purposes bend goal utility together and
 // under one shared cap rather than each quietly adding its own.
 import {
-  activePursuits, formPursuits, maintainPursuits, motivationBoost, notePursuitAttempt, notePursuitProgress,
-  pursuitById, pursuitSteps, pursuitStepUtility, describePursuit, PURSUIT_FORBIDDEN_GOALS,
+  activePursuits, formPursuits, maintainPursuits, motivationBoost, notePursuitProgress,
+  pursuitById, linkGoalToPursuit, pursuitSteps, pursuitStepUtility, describePursuit, resolvePursuit, satisfiedNow, PURSUIT_FORBIDDEN_GOALS,
 } from './pursuit';
 import { formObligations, forgivenessFor, maintainObligations, noteBenefitEvent, noteRequestEvent, noticeBrokenPromises } from '../social/obligation';
 import { takePortionInHand } from '../world/metabolism';
@@ -333,6 +333,23 @@ export class Simulation {
     if (p.surrender) { holdGoal('surrender:held', 'surrender', `surrendered to ${w.nameOf(p.surrender.toId)}`); return; }
     if (body.subduedUntil > w.physicalTime) { holdGoal('idle:subdued', 'idle', 'subdued'); return; }
     if (downed) { holdGoal('idle:downed', 'idle', 'incapacitated'); return; }
+    // ---- v0.10 §III "people must remain embodied": how much room this person's body currently
+    // leaves for anything that is not their body. Computed once, up here, because two different
+    // things read it: `bodyRoom` scales the ordinary social-duty goals below, and `embodiment`
+    // (further down, once threat assessment has run) scales every purpose-driven candidate.
+    //
+    // `bodyRoom` exists because of a measured pathology that predates this milestone but is
+    // exactly the failure mode the milestone is required to protect against. `report` clamps to
+    // 1.00 on any serious crime involving someone close — 0.45 base + severity + honesty +
+    // closeness already exceeds 1 before any concern boost — which ties or beats a CRITICAL
+    // thirst and then wins the +0.12 hysteresis margin. Measured on seed 777: a villager spent
+    // fourteen straight world hours trying to tell the watch at thirst 1.00 and hunger 1.00,
+    // never drinking and never sleeping. It is an identity multiplier (1.0) for anyone who is
+    // not actually in distress, so ordinary reporting behaviour is unchanged.
+    const purposeBands = { hunger: hungerBand(p), thirst: thirstBand(p), sleep: sleepBand(p) };
+    const criticalNeed = severityAtLeast(purposeBands.hunger, 'critical') || severityAtLeast(purposeBands.thirst, 'critical') || severityAtLeast(purposeBands.sleep, 'critical');
+    const urgentNeed = severityAtLeast(purposeBands.hunger, 'urgent') || severityAtLeast(purposeBands.thirst, 'urgent') || severityAtLeast(purposeBands.sleep, 'urgent');
+    const bodyRoom = criticalNeed ? 0.35 : urgentNeed ? 0.7 : 1;
     // ---- threat assessment from perception + relationships
     let threat: { id: EntityId; d: number; fear: number; body: Body } | null = null;
     let avoid: { id: EntityId; d: number } | null = null; // someone we're wary of but not currently fighting
@@ -494,7 +511,7 @@ export class Simulation {
         const already = w.persons().some(g => (g.occupation === 'guard' || g.occupation === 'captain') && k.sharedWith.includes(g.id));
         if (guards.length && !already && p.occupation !== 'child' || (p.occupation === 'child' && guards.length && !already && victimClose)) {
           const g = this.nearestKnownGuard(p, pos, guards);
-          if (g) G('report', clamp(0.45 + sev * 0.5 + p.traits.honesty * 0.2 + (victimClose ? 0.15 : 0) + (victimIsMe ? 0.1 : 0) - (threat ? 0.15 : 0)), [`I know ${describeClaim(w, k)} (${k.source.type})`, `the watch should hear of it`, `honesty ${p.traits.honesty.toFixed(2)}`], { targetEntity: g.id, data: { key: k.key } });
+          if (g) G('report', clamp(0.45 + sev * 0.5 + p.traits.honesty * 0.2 + (victimClose ? 0.15 : 0) + (victimIsMe ? 0.1 : 0) - (threat ? 0.15 : 0)) * bodyRoom, [`I know ${describeClaim(w, k)} (${k.source.type})`, `the watch should hear of it`, `honesty ${p.traits.honesty.toFixed(2)}`], { targetEntity: g.id, data: { key: k.key } });
         }
       }
     }
@@ -581,12 +598,21 @@ export class Simulation {
     // and nobody starves for a social purpose. A purpose can never propose a combat or
     // confrontation goal (`PURSUIT_FORBIDDEN_GOALS`); that is the v0.9 justice-concern feedback
     // loop made structurally impossible rather than merely avoided.
-    const purposeBands = { hunger: hungerBand(p), thirst: thirstBand(p), sleep: sleepBand(p) };
-    const criticalNeed = severityAtLeast(purposeBands.hunger, 'critical') || severityAtLeast(purposeBands.thirst, 'critical') || severityAtLeast(purposeBands.sleep, 'critical');
-    const urgentNeed = severityAtLeast(purposeBands.hunger, 'urgent') || severityAtLeast(purposeBands.thirst, 'urgent') || severityAtLeast(purposeBands.sleep, 'urgent');
     const embodiment = threat || heat === 'dangerous' || downed ? 0 : criticalNeed ? 0.25 : urgentNeed ? 0.55 : 1;
+    // (`bodyRoom`, computed alongside the severity bands above, applies the same principle that predate v0.10 but share
+    // the failure mode. Measured directly (seed 777, family scenario): `report` clamps to 1.00
+    // on any serious crime involving someone close — 0.45 base + severity + honesty + closeness
+    // already exceeds 1 before any concern boost — which ties or beats a CRITICAL thirst and
+    // then wins the +0.12 hysteresis margin, so a villager spent fourteen straight world hours
+    // trying to tell the watch while at thirst 1.00 and hunger 1.00, never drinking and never
+    // sleeping. That is precisely the "a social goal becomes absolute and people stop looking
+    // after themselves" pathology this milestone is required to protect against, and the fix is
+    // the same one purposes get: real physiological severity leaves less room for anything else.
     if (embodiment > 0) {
       for (const pu of activePursuits(p)) {
+        // A purpose whose condition is already met ends here and now — see `satisfiedNow`.
+        const done = satisfiedNow(w, p, pu);
+        if (done) { resolvePursuit(w, p, pu, 'satisfied', done); continue; }
         for (const step of pursuitSteps(w, p, pu)) {
           if (PURSUIT_FORBIDDEN_GOALS.has(step.goal)) continue; // belt and braces; see the set's doc
           G(step.goal, pursuitStepUtility(pu, step, embodiment), [
@@ -957,7 +983,11 @@ export class Simulation {
     // it has been tried again and which step it is on. `Pursuit.steps` is the visible evidence
     // that one purpose produced several DIFFERENT actions over time, and `attempts` is half of
     // the backstop that stops a purpose nobody can finish from running forever.
-    { const pu = pursuitById(p, g.data?.pursuitId as string | undefined); if (pu && pu.status === 'active') notePursuitAttempt(w, pu, g.key, g.type); }
+    // `pursuitForGoal` matches on the DELIVERABLE, not on which candidate happened to win — see
+    // its doc comment for the gap that caused. Stamping the id back onto the goal's own data is
+    // what makes `goal_changed` (and therefore the event feed, the observer overlay and the trace
+    // harness) able to answer "and what is that in aid of".
+    linkGoalToPursuit(w, p, g);
     const causes: string[] = []; if (g.causeEvent) causes.push(g.causeEvent);
     // link to the most recent knowledge/relationship change that motivated it
     if (g.type === 'flee' || g.type === 'attack' || g.type === 'confront' || g.type === 'report' || g.type === 'investigate' || g.type === 'help') {
@@ -965,7 +995,7 @@ export class Simulation {
       if (recent && !causes.includes(recent.id)) causes.push(recent.id);
     }
     const target = g.targetEntity ? ` → ${w.nameOf(g.targetEntity)}` : g.targetPlace ? ` @ ${w.nameOf(g.targetPlace)}` : '';
-    w.emit('goal_changed', { actor: p.id, target: g.targetEntity, placeId: g.targetPlace, causes, significance: g.type === 'flee' || g.type === 'attack' || g.type === 'report' || g.type === 'investigate' || g.type === 'confront' || g.type === 'surrender' ? 0.45 : 0.12, data: { from: prev?.type, to: g.type, utility: g.utility, reasons: g.reasons }, summary: `${p.name}: goal ${prev ? prev.type + ' → ' : ''}${g.type}${target} (u=${g.utility.toFixed(2)})` });
+    w.emit('goal_changed', { actor: p.id, target: g.targetEntity, placeId: g.targetPlace, causes, significance: g.type === 'flee' || g.type === 'attack' || g.type === 'report' || g.type === 'investigate' || g.type === 'confront' || g.type === 'surrender' ? 0.45 : 0.12, data: { from: prev?.type, to: g.type, utility: g.utility, reasons: g.reasons, key: g.key, pursuitId: g.data?.pursuitId }, summary: `${p.name}: goal ${prev ? prev.type + ' → ' : ''}${g.type}${target} (u=${g.utility.toFixed(2)})` });
     // v0.2.3: choosing to flee an opponent we have a live conflict with IS breaking off that
     // conflict (Constitution §11 disengagement) — mark it so `maintainConflicts` settles it.
     if (g.type === 'flee' && g.targetEntity) {
@@ -1612,7 +1642,12 @@ export class Simulation {
     if (a.status === 'done' && m.plan.every(x => x.status === 'done' || x.status === 'failed')) {
       const g = m.goal;
       if (g) {
-        w.emit('goal_completed', { actor: p.id, significance: 0.05, summary: `${p.name} finished ${g.type}` });
+        // v0.10: naming the goal and the purpose it was serving makes a completed PLAN legible.
+        // One purpose routinely produces several completed plans — a many-trip haul, a walk over
+        // and a walk back — and "how many times did this person finish a leg of what they are
+        // trying to do" is exactly the question the observer overlay and the trace harness ask.
+        const servingPursuit = g.data?.pursuitId as string | undefined;
+        w.emit('goal_completed', { actor: p.id, significance: 0.05, data: { goalType: g.type, goalKey: g.key, pursuitId: servingPursuit }, summary: `${p.name} finished ${g.type}` });
         // v0.10 §I.A: a completed plan is a purpose GETTING SOMEWHERE, not a purpose ending. This
         // is the exact distinction the milestone is about: "help my injured spouse" must not cease
         // to exist because one `check_on` finished. Recording progress here resets the
@@ -2106,7 +2141,12 @@ export class Simulation {
     const returned = it.ownerId === to.id; if (!returned) it.ownerId = to.id;
     it.provenance.push({ tick: w.now, from: from.id, to: to.id, how: returned ? 'returned' : 'gift' });
     const pos = w.primaryBody(to.id)?.pos;
-    const ev = w.emit(returned ? 'returned_item' : 'gift', { actor: from.id, target: to.id, item: it.id, pos, significance: returned ? 0.6 : 0.4, visibility: 14, loudness: 6, summary: `${from.name} ${returned ? 'returned' : 'gave'} ${it.name} to ${to.name}` });
+    // v0.10 §II: a real material gift now has durable consequences — it creates an obligation that
+    // can still be shaping the recipient's decisions days later (social/obligation.ts). An event a
+    // later state points back at for its provenance must be significant enough to survive
+    // `World.compactEvents`' 0.5 threshold, or the "because of what canonical event" question the
+    // milestone requires an answer to dead-ends at exactly the point it starts mattering.
+    const ev = w.emit(returned ? 'returned_item' : 'gift', { actor: from.id, target: to.id, item: it.id, pos, significance: returned ? 0.6 : 0.5, visibility: 14, loudness: 6, summary: `${from.name} ${returned ? 'returned' : 'gave'} ${it.name} to ${to.name}` });
     it.provenance[it.provenance.length - 1].eventId = ev.id;
     for (const d of to.desires) if (!d.fulfilled && d.type === 'recover_item' && d.targetId === it.id) {
       d.fulfilled = true; adjustRel(w, to, from.id, { affection: 0.6, trust: 0.5, respect: 0.3 }, `returned ${it.name}`, ev.id); to.emotions.joy = 1; to.emotions.sadness *= 0.5;

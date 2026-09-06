@@ -1,4 +1,4 @@
-import type { Concern, EntityId, EventId, GoalType, Item, Obligation, Person, Pursuit, PursuitKind, PursuitStatus, Vec3 } from '../core/types';
+import type { Concern, EntityId, EventId, Goal, GoalType, Item, Obligation, Person, Pursuit, PursuitKind, PursuitStatus, Vec3 } from '../core/types';
 import type { World } from '../core/world';
 import { concernsOf, concernGoalBoost } from './concern';
 import { getRel, isClose, isFamily } from './relationships';
@@ -67,10 +67,22 @@ export const NO_PROGRESS_SECONDS = 30 * SECONDS_PER_HOUR;
 export const TEND_CONCERN_THRESHOLD = 0.28;
 /** Below this an obligation is remembered and biases decisions, but is not a purpose of its own. */
 export const RECIPROCATE_THRESHOLD = 0.3;
-/** Utility range a pursuit-driven step may propose: enough to beat idling, socialising and an
- * ordinary schedule slot; never enough to beat a real need, a claimed haul in hand, or danger. */
-export const PURSUIT_BASE_UTILITY = 0.18;
-export const PURSUIT_UTILITY_SPAN = 0.44;
+/**
+ * Utility range a pursuit-driven step may propose, before `fit` and the caller's embodiment
+ * factor scale it down: 0.24 at the faintest, 0.80 at the most pressing.
+ *
+ * The top of the band is chosen against the things it has to be weighed against, not picked out
+ * of the air. An ordinary scheduled work shift sits at ~0.55; idling at 0.10; socialising at
+ * ~0.5-0.8 depending on need; a claimed haul in hand at 0.68; bedtime sleep, a critical thirst
+ * and a genuine emergency all reach 1.00. So a maximal purpose — a spouse you believe is badly
+ * hurt — outweighs your shift and your evening in the tavern, and still loses to your own body
+ * and to danger. Measured directly: at the previous ceiling (0.62 before `fit`), a villager who
+ * had just been told her husband was beaten, with bread in the larder to bring him, scored the
+ * errand at 0.40 against a 0.55 work shift and simply went to work — which is a person who
+ * "has a purpose" in name only, the exact failure mode this milestone defines itself against.
+ */
+export const PURSUIT_BASE_UTILITY = 0.24;
+export const PURSUIT_UTILITY_SPAN = 0.56;
 /** The most an active pursuit may add to a candidate someone else proposed. */
 export const MAX_PURSUIT_BONUS = 0.2;
 /** A newly-active pursuit holds its place for at least this long, and must be beaten by
@@ -82,6 +94,9 @@ export const PRIORITY_MARGIN = 0.08;
  * that keeps being renewed (a spouse in and out of view all evening) produced a stream of
  * near-identical short-lived purposes rather than one that a person is actually holding. */
 export const PURSUIT_REFORM_COOLDOWN_SECONDS = 3 * SECONDS_PER_HOUR;
+/** How long after setting out to look in on someone before setting out again is reasonable. The
+ * same value `mind/concern.ts` uses for acting on a concern, for the same reason. */
+export const CHECK_ON_STEP_COOLDOWN_SECONDS = 3 * SECONDS_PER_HOUR;
 
 /**
  * Goal types a pursuit is NEVER allowed to propose or boost, stated once and enforced by a test.
@@ -90,6 +105,19 @@ export const PURSUIT_REFORM_COOLDOWN_SECONDS = 3 * SECONDS_PER_HOUR;
  */
 export const PURSUIT_FORBIDDEN_GOALS: ReadonlySet<GoalType> = new Set<GoalType>([
   'attack', 'confront', 'rob', 'investigate', 'escort_custody', 'flee', 'surrender',
+]);
+/**
+ * The goal types that actually SERVE a person, and therefore the only ones an active purpose may
+ * add weight to when they happen to be aimed at that person.
+ *
+ * A whitelist rather than a "not forbidden" test, because of a real defect this caught: `report`
+ * takes a GUARD as its target, so a villager who owed a favour to someone who happens to be of
+ * the watch had "tell the watch about a crime" credited to the purpose of doing right by them —
+ * and boosted accordingly. Reporting a crime to your benefactor is not repaying them. Only goals
+ * whose whole point is to do the target some good belong here.
+ */
+export const PURSUIT_SERVING_GOALS: ReadonlySet<GoalType> = new Set<GoalType>([
+  'help', 'check_on', 'help_recover_item', 'provide', 'recover_item', 'haul', 'build',
 ]);
 
 export function pursuitsOf(p: Person): Pursuit[] { return (p.mind.pursuits ??= []); }
@@ -323,7 +351,12 @@ export function believedHarm(world: World, p: Person, subjectId: EntityId): numb
     const type = k.claim.type as string;
     if (type !== 'attack' && type !== 'kill') continue;
     if (world.now - ((k.claim.tick as number) ?? k.learnedAt) > 2 * 24 * 3600) continue;
-    worst = Math.max(worst, type === 'kill' ? 1 : 0.55 * k.confidence);
+    // Confidence scales this GENTLY on purpose. It is not "how likely is it that this happened"
+    // — the concern layer already discounts a third-hand rumour on exactly that axis, and
+    // discounting twice is what made a spouse who had been told her husband was beaten treat it
+    // as barely worth bringing anything for. This answers a different question: GIVEN that I
+    // believe it, how badly off do I think they are? A beating is a beating.
+    worst = Math.max(worst, type === 'kill' ? 1 : 0.4 + 0.25 * k.confidence);
   }
   return worst;
 }
@@ -390,24 +423,33 @@ function tendSteps(world: World, p: Person, pu: Pursuit): PursuitStep[] {
   // Not in front of me. If I believe they are hurt and I can lay hands on something worth
   // bringing, that is a better answer than turning up empty-handed.
   const believed = believedHarm(world, p, subjectId);
-  if (believed >= 0.4) {
+  if (believed >= 0.35) {
     const provision = provisionFor(world, p);
     if (provision) {
       const dest = believedPosition(world, p, subjectId);
       if (dest) return [{
         goal: 'provide', targetEntity: subjectId, targetPos: dest.pos, targetPlace: dest.placeId,
         data: { itemId: provision.item.id, sourcePlaceId: provision.sourcePlaceId },
-        fit: 0.9,
+        // The most direct thing you can do for someone you believe is hurt and cannot see:
+        // pick something up and take it to them.
+        fit: 1,
         reason: `${subject.name} is hurt — I can bring ${provision.item.name}`,
       }];
     }
   }
   const dest = believedPosition(world, p, subjectId);
   if (!dest) return []; // I have no idea where to even look; going nowhere is honest
+  // Going to look is an ERRAND, and errands are spaced out. Without this the purpose re-proposed
+  // the same walk the instant the previous one's plan finished — measured directly as a
+  // check_on/socialize alternation four times inside twenty minutes, which is oscillation
+  // wearing a purpose's clothes. Mirrors `mind/concern.ts`'s own action cooldown, which the
+  // v0.9 `check_on` candidate already respects; the purpose must respect it too or it simply
+  // routes around it.
+  if (pu.steps[pu.steps.length - 1] === 'check_on' && world.now - (pu.lastAttemptAt ?? 0) < CHECK_ON_STEP_COOLDOWN_SECONDS) return [];
   return [{
     goal: 'check_on', targetEntity: subjectId, targetPos: dest.pos, targetPlace: dest.placeId,
     data: { concernId: pu.source.kind === 'concern' ? pu.source.id : undefined },
-    fit: 0.75,
+    fit: 0.8,
     reason: `I have not seen ${subject.name} and I want to know how they are`,
   }];
 }
@@ -624,6 +666,36 @@ export function pursuitOutcome(world: World, p: Person, pu: Pursuit): { status: 
   return null;
 }
 
+/**
+ * The cheap, immediate satisfaction test, run from think() rather than only from the coarse
+ * upkeep pass. A purpose whose condition is ALREADY met must end at the moment it is met, not up
+ * to ten world-minutes later.
+ *
+ * This is not an optimisation. Measured directly (seed 4242): a husband carrying bread to his
+ * wife arrived at the shop where they both work, saw her plainly recovered — at which point
+ * `pursuitSteps` correctly had nothing left to propose — and then flipped between the errand and
+ * his own work shift every three minutes until the next upkeep pass got round to discharging the
+ * concern behind it. The purpose was over; only the bookkeeping had not caught up, and the
+ * oscillation was entirely an artefact of that gap.
+ */
+export function satisfiedNow(world: World, p: Person, pu: Pursuit): string | null {
+  if (pu.status !== 'active' && pu.status !== 'deferred') return null;
+  if (pu.kind === 'tend' && pu.subjectId) {
+    const subject = world.person(pu.subjectId);
+    const seen = p.mind.percepts.some(pc => pc.entityId === pu.subjectId);
+    if (!subject || !seen) return null;
+    const body = world.primaryBody(pu.subjectId);
+    if (subject.alive && body && !body.dead && body.pose !== 'downed' && body.health >= body.maxHealth * 0.9) return 'seen_well';
+    return null;
+  }
+  if (pu.kind === 'recover' && pu.itemId) {
+    const it = world.item(pu.itemId);
+    const ownerId = it?.ownerId ?? pu.subjectId;
+    if (it && ownerId && it.holderId === ownerId) return 'delivered';
+  }
+  return null;
+}
+
 export function resolvePursuit(world: World, p: Person, pu: Pursuit, status: PursuitStatus, resolution: string): void {
   if (pu.status !== 'active' && pu.status !== 'deferred') return;
   pu.status = status;
@@ -676,17 +748,39 @@ export function maintainPursuits(world: World, p: Person): void {
   const settled = list.filter(x => x.status !== 'active' && x.status !== 'deferred').sort((a, b) => (b.resolvedAt ?? 0) - (a.resolvedAt ?? 0));
   const keep = [...live, ...settled.slice(0, 3)];
   if (keep.length !== list.length) { list.length = 0; list.push(...keep); }
+  // Whatever this person is doing right now may already be serving one of these purposes — see
+  // `linkGoalToPursuit` for why catching it here as well as at adoption time is necessary.
+  linkGoalToPursuit(world, p, p.mind.goal);
 }
 
-/** A step of this purpose has just been adopted as the person's actual goal. */
-export function notePursuitAttempt(world: World, pu: Pursuit, goalKey: string, stepLabel: string): void {
+/**
+ * Record that this person's CURRENT goal is serving `pu`, if it is — and that no other purpose is.
+ *
+ * Called from two places, and it needs both. `setGoal` catches the ordinary case, where a goal is
+ * adopted while the purpose already exists. The upkeep pass catches the case that ordinary case
+ * misses entirely: a haul is adopted, `plan()` claims the task, claiming it accepts the canonical
+ * `Request`, accepting it creates the obligation, and only at the NEXT upkeep does the purpose to
+ * discharge it exist — by which point the goal is long since adopted and hysteresis will keep it
+ * for the rest of the job, so `setGoal` is never called again. Measured on seed 42424242: every
+ * single `discharge` purpose in a two-day run reported zero attempts and no steps, while the work
+ * it stood for was being done the whole time.
+ *
+ * `attempts` counts how many times this purpose has taken the reins, not how many ticks it has
+ * held them, so re-recording the same goal key is a no-op.
+ */
+export function linkGoalToPursuit(world: World, p: Person, goal: Goal | null): Pursuit | undefined {
+  if (!goal) return undefined;
+  const pu = pursuitForGoal(world, p, goal);
+  for (const other of pursuitsOf(p)) if (other !== pu && other.currentStep) other.currentStep = undefined;
+  if (!pu || pu.status !== 'active') return undefined;
+  goal.data = { ...(goal.data ?? {}), pursuitId: pu.id };
+  if (pu.currentStep === goal.key) return pu;
   pu.attempts += 1;
   pu.lastAttemptAt = world.now;
-  if (pu.currentStep !== goalKey) {
-    pu.currentStep = goalKey;
-    if (pu.steps[pu.steps.length - 1] !== stepLabel) pu.steps.push(stepLabel);
-    if (pu.steps.length > 12) pu.steps.splice(0, pu.steps.length - 12);
-  }
+  pu.currentStep = goal.key;
+  if (pu.steps[pu.steps.length - 1] !== goal.type) pu.steps.push(goal.type);
+  if (pu.steps.length > 12) pu.steps.splice(0, pu.steps.length - 12);
+  return pu;
 }
 /** A step of this purpose actually got somewhere — resets the no-progress backstop. */
 export function notePursuitProgress(world: World, pu: Pursuit): void { pu.lastProgressAt = world.now; }
@@ -704,7 +798,7 @@ export function notePursuitProgress(world: World, pu: Pursuit): void { pu.lastPr
 export interface PursuitBoost { bonus: number; reasons: string[]; pursuitId?: string; }
 export function pursuitGoalBoost(p: Person, goalType: GoalType, targetId?: EntityId, beneficiaryId?: EntityId): PursuitBoost {
   const list = p.mind.pursuits;
-  if (!list || !list.length || PURSUIT_FORBIDDEN_GOALS.has(goalType)) return { bonus: 0, reasons: [] };
+  if (!list || !list.length || !PURSUIT_SERVING_GOALS.has(goalType)) return { bonus: 0, reasons: [] };
   let bonus = 0; let best: Pursuit | null = null;
   for (const pu of list) {
     if (pu.status !== 'active') continue;
@@ -768,4 +862,55 @@ export function describePursuit(world: World | undefined, pu: Pursuit): string {
 export function pursuitForGoalKey(p: Person, goalKey: string | undefined): Pursuit | undefined {
   if (!goalKey) return undefined;
   return pursuitsOf(p).find(pu => pu.status === 'active' && pu.currentStep === goalKey);
+}
+
+/**
+ * Which purpose, if any, the goal a person has just adopted is actually serving.
+ *
+ * The obvious answer — "the one that proposed it" — is not enough, and assuming it was produced a
+ * real and misleading gap. A purpose competes by PROPOSING an ordinary goal, but the simulation
+ * frequently had an equally good reason of its own to adopt that same goal: a hauler picks up the
+ * very task they promised to do because it is also the nearest useful work, and the ordinary
+ * candidate (0.68) simply outscores the purpose's own (≈0.5). Measured on seed 42424242: every
+ * haul serving a `discharge` purpose was adopted through the ordinary path, so the purpose looked
+ * — in its own records and in the observer overlay — as though it had never done anything, while
+ * the work it stood for was in fact being carried out.
+ *
+ * So the link is established by MATCHING, not by attribution: a goal serves a purpose when it is
+ * aimed at that purpose's subject, item, or deliverable. That is also the right answer for the
+ * observer overlay, which has to explain a goal however it came to be chosen.
+ */
+export function pursuitForGoal(world: World, p: Person, goal: Goal): Pursuit | undefined {
+  const explicit = pursuitById(p, goal.data?.pursuitId as string | undefined);
+  if (explicit) return explicit;
+  if (!PURSUIT_SERVING_GOALS.has(goal.type)) return undefined;
+  for (const pu of pursuitsOf(p)) {
+    if (pu.status !== 'active') continue;
+    switch (pu.kind) {
+      case 'discharge': {
+        if (goal.type === 'haul' && goal.data?.taskId) {
+          const task = world.haulTasks.find(t => t.id === goal.data!.taskId);
+          if (task && task.requestId === pu.source.id) return pu;
+        }
+        if (goal.type === 'build' && goal.data?.projectId) {
+          const req = requestById(world, pu.source.id);
+          if (req?.payload.projectId === goal.data.projectId) return pu;
+        }
+        break;
+      }
+      case 'recover': {
+        if (pu.itemId && goal.targetEntity === pu.itemId) return pu;
+        break;
+      }
+      case 'tend': case 'reciprocate': {
+        if (pu.subjectId && (goal.targetEntity === pu.subjectId || goal.data?.deliverTo === pu.subjectId || goal.data?.beneficiary === pu.subjectId)) return pu;
+        if (pu.subjectId && goal.type === 'haul' && goal.data?.taskId) {
+          const task = world.haulTasks.find(t => t.id === goal.data!.taskId);
+          if (task && task.requesterId === pu.subjectId) return pu;
+        }
+        break;
+      }
+    }
+  }
+  return undefined;
 }
