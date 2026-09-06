@@ -110,6 +110,19 @@ export const arpgObserver: BrowserSpec = {
       return { followId: g.followId, goal: g.world.person(g.observer.sel).mind.goal?.key ?? null, pos: { x: b.pos.x, z: b.pos.z }, camX: g.camera.position.x, camZ: g.camera.position.z };
     });
     if (followStart.followId !== watched.id) throw new Error('follow did not take');
+    // Watching is not touching. Toggling follow must change the CAMERA and nothing about the
+    // person being watched — no goal, no plan, no position, no cognition state. (The player
+    // stands still while you watch someone else, which is a control decision about the player
+    // and the less interfering of the two options: WASD still reaching a body you cannot see
+    // would blunder it into walls and people.)
+    const untouched = await page.evaluate((id) => {
+      const g = (window as any).game;
+      const snap = () => { const p = g.world.person(id); const b = g.world.primaryBody(id); return JSON.stringify({ goal: p.mind.goal?.key ?? null, plan: p.mind.plan.map((a: any) => `${a.type}:${a.status}`), pos: [b.pos.x, b.pos.y, b.pos.z], pursuits: (p.mind.pursuits ?? []).map((x: any) => `${x.id}:${x.status}:${x.attempts}`), concerns: (p.mind.concerns ?? []).length }); };
+      const before = snap();
+      g.observer.setFollow(false); g.observer.setFollow(true);
+      return { before, after: snap() };
+    }, watched.id);
+    if (untouched.before !== untouched.after) throw new Error(`observing changed the observed person\n${untouched.before}\n${untouched.after}`);
 
     // ---- 7. time control from the overlay drives the same clock the T key does
     await page.click('#observer [data-s="16"]');

@@ -11,11 +11,14 @@ import { blockDef } from '../../sim/physical/blocks';
  * canonical state, never decides what anyone does, and is deliberately not a second renderer —
  * the same `THREE.PerspectiveCamera`, the same scene, the same meshes as the immersive mode.
  *
- * The one piece of real work here is obstruction handling: an overhead-ish camera in a village
- * of solid voxel buildings spends a lot of its time with a roof between it and whoever it is
- * watching, so the camera is pulled in along its own boom until it has a clear line to the
- * focus — the same technique the existing third-person camera in `player/controller.ts` uses,
- * just over a longer boom and with a floor on how close it may come.
+ * The one piece of real work here is obstruction, and it has two branches because the two cases
+ * want opposite answers. OUTDOORS the camera is pulled in along its own boom until it has a clear
+ * line to the focus — the same technique the existing third-person camera in
+ * `player/controller.ts` uses, over a longer boom and with a floor on how close it may come.
+ * INDOORS that answer is wrong: it collapses to arm's length against whatever wall the subject
+ * happens to be standing beside, which is a close-up of masonry. So indoors the ROOF goes
+ * instead (`VoxelRenderer.setRoofCut`, driven by the frame loop), the boom steepens, and it stops
+ * avoiding geometry that is no longer being drawn — see `update`'s `roofCutY` parameter.
  */
 export class ArpgCamera {
   /** Rotation about the world Y axis, radians. */

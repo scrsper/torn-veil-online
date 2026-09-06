@@ -114,7 +114,11 @@ Each is asserted structurally in `tests/motivated-lives.test.ts`.
 
 7. **Presentation owns nothing.** The elevated camera and the observer overlay read canonical
    state and never write it. Following someone is a camera decision made entirely on the
-   presentation side; the followed person has no way to tell.
+   presentation side; the followed person has no way to tell, and the browser spec asserts that
+   toggling follow changes nothing about their goal, plan, position, purposes or concerns. The
+   *player* does stand still while you watch someone else — a control decision about the player,
+   and the less interfering of the two options, since WASD still reaching a body you cannot see
+   would blunder it into walls and people.
 
 ## Generalized rather than added
 
@@ -163,6 +167,12 @@ simulation, and not a second set of player actions.
 
 `F2` toggles the camera, `F6` the overlay. While the overlay is open the primary click *selects*
 rather than swings; attacking is unchanged on `X`.
+
+**Click-to-move was not implemented.** The brief marks it desirable but explicitly not required,
+and the honest way to add it is through the same navigation the NPCs use rather than a player-only
+path mechanic — more than a camera's worth of work, and the brief also warns against letting the
+interface consume the milestone. WASD, which the brief names as acceptable, drives the same
+collision and the same canonical body in both modes.
 
 ## Verification
 
