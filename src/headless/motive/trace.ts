@@ -9,7 +9,7 @@ import { activeConcerns, describeConcern } from '../../sim/mind/concern';
 import {
   describePursuit, livePursuits, pursuitsOf, motivationBoost, PRIORITY_MARGIN,
 } from '../../sim/mind/pursuit';
-import { describeObligation, liveObligations, obligationsOf, obligationCredit, obligationGoalBoost } from '../../sim/social/obligation';
+import { describeObligation, obligationsOf, obligationCredit, obligationGoalBoost } from '../../sim/social/obligation';
 import { canHaul } from '../../sim/logistics/haul';
 
 /**

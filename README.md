@@ -60,8 +60,10 @@ cognition, dialogue) runs client-side and deterministically from a seed.
 | `Q` | drop your last item |
 | `V` | toggle first/third person |
 | `F` | inspect the person you're looking at |
+| `F2` | switch between the immersive camera and the **elevated (ARPG) view** |
 | `F3` | open the **Simulation Inspector** |
 | `F4` | open the **live event feed** |
+| `F6` | open the **observer overlay** (developer view; brings up the elevated camera) |
 | `T` | cycle time speed ×1 / ×4 / ×16 |
 | `P` | pause |
 | `F5` | save (also autosaves every 30s) |
@@ -147,6 +149,24 @@ their needs/emotions, and their inventory with full item provenance (who made it
 it, how it changed hands). A **go to** action on a selected, present person moves the player
 to a nearby walkable, line-of-sight spot next to them — handy for testing dialogue and
 consequences without hunting through the village.
+
+## The elevated view and the observer overlay (`F2` / `F6`)
+
+The same world, from a camera that can see a street rather than a doorway: an angled overhead
+boom you can zoom with the wheel and turn by dragging the middle mouse button, following whoever
+you are watching. Indoors it takes the roof off rather than shoving itself into your face, so a
+village at night reads as a cutaway — hearths lit, people asleep in their own beds.
+
+`F6` adds the **observer overlay**, which is developer tooling and says so: it reads canonical
+state directly, including what the person themselves does not know. Click anyone to watch them and
+see, in one panel, what they are doing, what they are *trying to bring about* and since when, the
+canonical event that put them on it, what they have already done toward it, what else is competing
+for them, what they owe whom, and what their body is telling them. **follow** keeps the camera on
+them without taking control of them or changing anything they do; the time controls are the same
+pause and ×1/×4/×16 the `P` and `T` keys drive.
+
+Normal play stays epistemically honest throughout. The overlay is the one omniscient surface in
+the game, and it is a microscope, not a HUD.
 
 ## The event feed (`F4`)
 

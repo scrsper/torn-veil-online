@@ -36,9 +36,9 @@ import { requestById } from '../core/requests';
  *  1. **No approach-the-suspect goals.** v0.9 measured a 40x combat explosion when a justice
  *     concern was allowed to boost `investigate`/`confront`: an approach goal renews contact,
  *     the renewed fight emits fresh crime events, which strengthen the concern, which boosts the
- *     approach goal again. `STEP_GOALS` below contains no combat or confrontation goal of any
- *     kind, and `formPursuits` refuses to orient anyone toward someone they fear or across the
- *     outlaw line. See `PURSUIT_FORBIDDEN_GOALS` for the enforced statement of this.
+ *     approach goal again. `PURSUIT_FORBIDDEN_GOALS` and the `PURSUIT_SERVING_GOALS` whitelist
+ *     below contain no combat or confrontation goal of any kind, and `formPursuits` refuses to
+ *     orient anyone toward someone they fear or across the outlaw line.
  *  2. **People stay embodied.** A purpose's utility is multiplied by an embodiment factor the
  *     caller computes from real physiological severity and threat, so no purpose can ever
  *     outbid eating, drinking, sleeping or fleeing. A village where a devoted spouse starves is
@@ -857,13 +857,6 @@ export function describePursuit(world: World | undefined, pu: Pursuit): string {
   }
 }
 
-/** Nearest active pursuit to a goal key — used by the observer overlay and the trace harness to
- * answer "why is this person doing this". */
-export function pursuitForGoalKey(p: Person, goalKey: string | undefined): Pursuit | undefined {
-  if (!goalKey) return undefined;
-  return pursuitsOf(p).find(pu => pu.status === 'active' && pu.currentStep === goalKey);
-}
-
 /**
  * Which purpose, if any, the goal a person has just adopted is actually serving.
  *
@@ -902,8 +895,15 @@ export function pursuitForGoal(world: World, p: Person, goal: Goal): Pursuit | u
         if (pu.itemId && goal.targetEntity === pu.itemId) return pu;
         break;
       }
-      case 'tend': case 'reciprocate': {
+      case 'tend': {
+        if (pu.subjectId && (goal.targetEntity === pu.subjectId || goal.data?.deliverTo === pu.subjectId)) return pu;
+        break;
+      }
+      case 'reciprocate': {
         if (pu.subjectId && (goal.targetEntity === pu.subjectId || goal.data?.deliverTo === pu.subjectId || goal.data?.beneficiary === pu.subjectId)) return pu;
+        // Carrying a load for the person you owe IS doing them a turn; carrying one for someone
+        // you are merely WORRIED about is not, which is why only this branch reads the haul's
+        // requester.
         if (pu.subjectId && goal.type === 'haul' && goal.data?.taskId) {
           const task = world.haulTasks.find(t => t.id === goal.data!.taskId);
           if (task && task.requesterId === pu.subjectId) return pu;
