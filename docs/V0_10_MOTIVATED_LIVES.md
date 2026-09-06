@@ -183,7 +183,7 @@ collision and the same canonical body in both modes.
 | Typecheck / production build | clean |
 | Browser specs | 7/7 against the real client, including the new elevated/observer spec |
 | WorldLab | smoke tier PASS (7/7); check tier FAIL on both `main` and this branch — see below |
-| Causal traces | `npm run motive:trace` — 4 scenarios, 22 checks, all passing |
+| Causal traces | `npm run motive:trace` — 4 scenarios, 21 checks, all passing; `npm run social:trace` — 36 checks, all passing |
 | Multi-day | 5 seeds × 10 days, measured against `main` back to back — see below |
 | Real client | `tools/audit/arpg-visual-check.ts`; screenshots in `docs/v0_10/` |
 
