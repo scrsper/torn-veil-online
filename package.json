@@ -13,7 +13,8 @@
     "world:smoke": "tsx src/headless/worldlab/cli.ts --tier smoke",
     "world:check": "tsx src/headless/worldlab/cli.ts --tier check",
     "world:soak": "tsx src/headless/worldlab/cli.ts --tier soak",
-    "test:browser": "tsx tests/browser/run.ts"
+    "test:browser": "tsx tests/browser/run.ts",
+    "social:trace": "tsx src/headless/social/cli.ts"
   },
   "dependencies": {
     "three": "^0.170.0"

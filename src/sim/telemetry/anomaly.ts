@@ -144,10 +144,23 @@ export function detectAnomalies(world: World, opts: AnomalyOptions = {}, eventSo
   // `events` array being scanned) is checked first; `world.event(c)` remains a second, cheaper
   // check for the plain `world.events`-only fallback case where the two collapse to the same set.
   const knownEventIds = new Set(events.map(e => e.id));
+  // v0.9 precision fix. The telemetry stream this scans is a bounded RING BUFFER (recorder.ts's
+  // `MemorySink`), so on any sufficiently busy run its oldest records are evicted while events
+  // that CITE them are still inside the window. That is a property of the observation window,
+  // not of the causal graph — `World.compactEvents` re-parents surviving events onto surviving
+  // ancestors, so `world.events` itself never carries a broken edge — and it made this check
+  // fire in proportion to total event VOLUME rather than to anything actually wrong. Event ids
+  // are monotonic (`e_<n>`, see World.nextId), so a cause older than the oldest record still in
+  // the window is definitionally an eviction, and a cause at or after that floor which resolves
+  // nowhere is a real, fabricated reference. This narrows what is reported; it does not stop
+  // reporting anything that was genuinely broken before.
+  const ordinal = (id: string): number => { const n = Number(id.slice(id.indexOf('_') + 1)); return Number.isFinite(n) ? n : -1; };
+  const windowFloor = events.reduce((min, e) => { const n = ordinal(e.id); return n >= 0 && n < min ? n : min; }, Number.POSITIVE_INFINITY);
+  const agedOut = (id: string): boolean => { const n = ordinal(id); return n >= 0 && n < windowFloor; };
   const danglingCauses = new Map<string, WorldEvent[]>();
   const invalidRefs = new Map<string, WorldEvent[]>();
   for (const e of events) {
-    for (const c of e.causes) if (!knownEventIds.has(c) && !world.event(c)) { const list = danglingCauses.get(c) ?? []; list.push(e); danglingCauses.set(c, list); }
+    for (const c of e.causes) if (!knownEventIds.has(c) && !world.event(c) && !agedOut(c)) { const list = danglingCauses.get(c) ?? []; list.push(e); danglingCauses.set(c, list); }
     for (const id of [e.actor, e.target, e.item, e.placeId]) if (id && !world.get(id)) { const list = invalidRefs.get(id) ?? []; list.push(e); invalidRefs.set(id, list); }
   }
   for (const [missingCause, events] of danglingCauses) out.push({ type: 'dangling_cause', ...trace(events, cap), data: { missingCause } });

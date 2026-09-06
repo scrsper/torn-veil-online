@@ -116,6 +116,14 @@ function clusterKey(e: WorldEvent): string {
  * those retellings alone dominated the Chronicle. */
 const PROPAGATION_TYPES = new Set<WorldEvent['type']>(['told', 'conversation', 'greeting']);
 
+/** v0.9: bookkeeping about a happening, not a happening. `situation_opened`/`situation_resolved`
+ * (sim/social/situation.ts) mark that the world has started or stopped tracking a matter as
+ * unresolved — but the matter itself IS a canonical event (the assault, the theft, the arrest,
+ * the returned item) which already stands or falls on its own significance and gets its own
+ * Chronicle entry. Including both would double-count every notable event, exactly the way
+ * including every retelling of it used to. Same reasoning as PROPAGATION_TYPES above. */
+const BOOKKEEPING_TYPES = new Set<WorldEvent['type']>(['situation_opened', 'situation_resolved', 'concern_formed', 'concern_resolved']);
+
 export function buildChronicle(world: World, opts: ChronicleOptions = {}): ChronicleEntry[] {
   const threshold = opts.minSignificance ?? 0.5;
   const window = opts.consolidationWindowSeconds ?? 30 * 60;
@@ -123,7 +131,7 @@ export function buildChronicle(world: World, opts: ChronicleOptions = {}): Chron
   const maxSig = Math.max(0, ...sig.values());
 
   const allCandidates = world.events
-    .filter(e => e.category !== 'cognition' && !PROPAGATION_TYPES.has(e.type))
+    .filter(e => e.category !== 'cognition' && !PROPAGATION_TYPES.has(e.type) && !BOOKKEEPING_TYPES.has(e.type))
     .filter(e => e.category === 'history' || chronicleScore(e, sig, maxSig) >= threshold || (e.data?.conflictId && CONFLICT_DETAIL_TYPES.has(e.type)))
     .sort((a, b) => a.tick - b.tick || a.id.localeCompare(b.id));
 

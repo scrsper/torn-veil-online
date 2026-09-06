@@ -45,9 +45,32 @@ const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const BASE_CARRY_KG = 16;
 const CARRY_PER_STRENGTH_KG = 44; // strength 1.0 adds this much on top of BASE_CARRY_KG
 
-export function getPhysicalCapability(p: Person, _world: World, ctx: { action?: ToolAction; tool?: Item | null; skill?: number } = {}): PhysicalCapability {
+/**
+ * v0.9 §D: how badly hurt this body is, 0 (unhurt) .. 1 (at death's door). Injury was previously
+ * invisible to every system except combat itself — a person beaten to a fifth of their health
+ * went straight back to hauling sacks the moment they stood up, so a serious assault produced no
+ * consequence in ordinary life at all. This is the single derivation every other system reads;
+ * nothing infers "is hurt" from raw `health` on its own any more.
+ *
+ * Deliberately a smooth curve with a dead zone: minor knocks (>85% health) cost nothing, so
+ * ordinary scuffles do not silently tax the whole village's productivity.
+ */
+export function woundSeverity(body: { health: number; maxHealth: number; dead: boolean } | undefined | null): number {
+  if (!body || body.dead || body.maxHealth <= 0) return 0;
+  const fraction = body.health / body.maxHealth;
+  return clamp((0.85 - fraction) / 0.85, 0, 1);
+}
+/** The threshold at which an injury is a real, behaviour-changing wound rather than a bruise —
+ * roughly "below half health". Read by mind/agent.ts's think() and social/absence.ts. */
+export const SERIOUS_WOUND = 0.45;
+
+export function getPhysicalCapability(p: Person, world: World, ctx: { action?: ToolAction; tool?: Item | null; skill?: number } = {}): PhysicalCapability {
   const attrs: Attributes = p.attributes;
   const phys = p.physiology;
+  // v0.9 §D: a real wound is a real physical limit, folded in here — the one centralized place
+  // this file's own header already promises "future systems (… injury …)" would extend, rather
+  // than a new per-job check in every work handler.
+  const wound = woundSeverity(world.primaryBody(p.id));
   // v0.6 §V: learned capability (core/skills.ts) — resolved automatically from `ctx.action` via
   // `SKILL_FOR_TOOL_ACTION` when the caller doesn't pass one explicitly (haul, which has no
   // tool-governed action, passes it directly instead). 0 for a complete novice — the identity
@@ -64,8 +87,9 @@ export function getPhysicalCapability(p: Person, _world: World, ctx: { action?: 
   const heatPenalty = phys.bodyHeat > 0.4 ? Math.max(0.25, 1 - (phys.bodyHeat - 0.4) * 1.15) : 1;
   const sleepPenalty = 1 - Math.min(1, phys.sleepDebt / 16) * 0.35;
 
-  const effectiveStrength = clamp(attrs.strength * fatiguePenalty * hungerPenalty, 0.05, 2);
-  const effectiveDexterity = clamp(attrs.dexterity * fatiguePenalty * sleepPenalty, 0.05, 2);
+  const woundPenalty = 1 - wound * 0.65;
+  const effectiveStrength = clamp(attrs.strength * fatiguePenalty * hungerPenalty * woundPenalty, 0.05, 2);
+  const effectiveDexterity = clamp(attrs.dexterity * fatiguePenalty * sleepPenalty * woundPenalty, 0.05, 2);
 
   // v0.6 §V.7 (hauling): skill represents packing/load-handling technique, not raw strength —
   // strength remains the primary carrying constraint (CARRY_PER_STRENGTH_KG dominates this), a
@@ -92,7 +116,8 @@ export function getPhysicalCapability(p: Person, _world: World, ctx: { action?: 
   const heat = heatBand(p);
   const heatExertionPenalty = heat === 'dangerous' ? 0.9 : heat === 'severe' ? 0.55 : heat === 'hot' ? 0.2 : 0;
   const currentExertionCapacity = clamp(
-    1 - phys.fatigue * 0.75 - Math.max(0, 0.35 - phys.energy) * 1.3 - Math.max(0, 0.3 - phys.hydration) * 1.1 - heatExertionPenalty,
+    1 - phys.fatigue * 0.75 - Math.max(0, 0.35 - phys.energy) * 1.3 - Math.max(0, 0.3 - phys.hydration) * 1.1 - heatExertionPenalty
+    - wound * 0.95,
     0, 1,
   );
 

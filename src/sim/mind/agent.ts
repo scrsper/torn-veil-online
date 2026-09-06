@@ -19,7 +19,7 @@ import { stepFire, igniteFire, feedFire, fireIntensityAt, fireAt } from '../worl
 import { cook, tendTavernFire } from '../world/cooking';
 import { remember } from './memory';
 import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge, learnPlace, knownFoodPlace, noteFoodShortage } from './knowledge';
-import { realizeClaim } from './realize';
+import { realizeClaim, realizeTopic } from './realize';
 import { currentScheduleEntry } from './schedule';
 import { SECONDS_PER_HOUR } from '../core/time';
 import { B } from '../physical/blocks';
@@ -28,6 +28,13 @@ import { banditResourcePressure, laborIncentive } from './economy';
 import { resolveRobberyCompliance, selectRobberyTake, ROBBERY_COOLDOWN_SECONDS, type RobberyTake } from './robbery';
 import { payRecoveryReward } from '../core/requests';
 import { haulOffersFrom, activeHaulFor, acceptHaulOffer, progressHaul, abandonHaul, buyMealFrom, eatAtHand, drinkHere, type HaulOffer, type HaulProgress } from '../logistics/participation';
+// v0.9 Social Causality Vertical Slice — the four generic primitives this milestone adds.
+import { noteEventForSituations, maintainSituations } from '../social/situation';
+import { appraiseClaim } from '../social/appraisal';
+import { formConcerns, maintainConcerns, concernGoalBoost, activeConcerns, concernActionable, noteConcernActedOn } from './concern';
+import { selectTopic, type Topic } from './conversation';
+import { noticeAbsences } from '../social/absence';
+import { woundSeverity, SERIOUS_WOUND } from '../core/attributes';
 
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -42,6 +49,10 @@ const PURSUIT_COOLDOWN_SECONDS = 45 * 60;
  * succeeding sooner; see docs/V0_6_KNOWLEDGE_MEMORY_SKILLS_INTENT.md §II for the full
  * before/after evidence. Kept at the original v0.4/v0.5 value. */
 const NO_FOOD_RETRY_SECONDS = 30 * 60;
+/** v0.9 §D: below this fraction of max health a body is not "wounded and carrying on" — it is on
+ * the floor. Recovery up to this point runs at the original, un-slowed rate; see the health-regen
+ * call site in `strategic` for the combat-grind pathology that distinction prevents. */
+const INCAPACITATED_FRACTION = 0.35;
 
 /**
  * The Simulation runs minds and bodies at their own cadences:
@@ -61,7 +72,19 @@ export class Simulation {
    * reads the accumulated milliseconds back out; this never reads simulation state and never
    * feeds back into any decision, so it cannot affect canonical outcomes or determinism. */
   profile: Record<string, number> | null = null;
-  constructor(public world: World) {}
+  constructor(public world: World) {
+    // v0.9: every canonical event flows through ongoing-matter bookkeeping exactly once (see
+    // World.eventObserver). The re-entrancy guard exists because `noteEventForSituations` itself
+    // emits `situation_opened`/`situation_resolved`; those are not openers or resolvers, so
+    // recursing would be a no-op, but iterating `world.situations` while a nested call mutates
+    // it is the kind of thing that only breaks later. Deterministic and allocation-free.
+    world.eventObserver = (e) => {
+      if (this.inSituationHook) return;
+      this.inSituationHook = true;
+      try { noteEventForSituations(world, e); } finally { this.inSituationHook = false; }
+    };
+  }
+  private inSituationHook = false;
   private mark(): number { return this.profile ? performance.now() : 0; }
   private accum(bucket: string, t0: number): void { if (this.profile) this.profile[bucket] = (this.profile[bucket] ?? 0) + (performance.now() - t0); }
 
@@ -174,15 +197,29 @@ export class Simulation {
     const k = learn(w, p, { key: `ev:${e.id}`, kind: 'event', claim, confidence: saw ? 1 : 0.6, source: { type: saw ? 'witnessed' : 'heard', viaEvent: perc.id }, cause: perc.id, summary: claimSummary });
     const isVictim = claim.target === p.id;
     const victimClose = claim.target ? isClose(p, claim.target) : false;
-    const sig = e.significance * (isVictim ? 1.4 : victimClose ? 1.2 : 1) * (saw ? 1 : 0.7);
+    // v0.9 §A: how much this event matters to THIS person is now a real appraisal over their own
+    // relationships, role, material stake, traits and the provenance of the belief — not the
+    // event's own significance times a two-branch victim/close multiplier. The same appraisal
+    // then decides what (if anything) they end up carrying about it (`formConcerns`), so memory
+    // weight, emotional reaction and downstream behaviour all agree about who cares and why.
+    const appraisal = k ? appraiseClaim(w, p, k) : null;
+    const sig = appraisal
+      ? clamp(e.significance * 0.45 + appraisal.weight * 0.85) * (saw ? 1 : 0.85)
+      : e.significance * (isVictim ? 1.4 : victimClose ? 1.2 : 1) * (saw ? 1 : 0.7);
     const valence = isCrime(e.type, e.data?.intent) ? -0.8 : e.type === 'gift' || e.type === 'returned_item' || e.type === 'heal' ? 0.6 : 0;
     remember(w, p, { type: e.type, summary: saw ? `I saw: ${claimSummary}` : `I heard: ${claimSummary}`, eventId: e.id, entities: [claim.actor, claim.target, claim.item].filter(Boolean) as string[], significance: clamp(sig), valence, source: { type: saw ? 'witnessed' : 'heard', viaEvent: perc.id }, placeId: claim.placeId });
     if (p.controlled) return;
-    this.reactTo(p, body, e, perc.id, saw, isVictim, victimClose, k);
+    if (k && appraisal) formConcerns(w, p, k, appraisal);
+    this.reactTo(p, body, e, perc.id, saw, isVictim, victimClose, k, appraisal);
   }
 
-  private reactTo(p: Person, body: Body, e: WorldEvent, cause: string, saw: boolean, isVictim: boolean, victimClose: boolean, k: KnowledgeItem | null): void {
+  private reactTo(p: Person, body: Body, e: WorldEvent, cause: string, saw: boolean, isVictim: boolean, victimClose: boolean, k: KnowledgeItem | null, appraisal?: import('../social/appraisal').Appraisal | null): void {
     const w = this.world; const claim = k?.claim ?? eventClaim(w, e, saw); const actor = claim.actor as EntityId | undefined;
+    // v0.9 §A/§C: the strength of the RELATIONSHIP change scales with personal significance, so
+    // the victim's spouse, the attacker's friend, a guard and an unrelated passer-by no longer
+    // move by the same amount on the same event. Falls back to 1 (pre-v0.9 magnitudes) when
+    // there is no appraisal to read, so nothing silently changes on paths that lack one.
+    const personal = appraisal ? clamp(0.45 + appraisal.weight * 1.1, 0.35, 1.6) : 1;
     if (isCrime(claim.type, claim.intent) && actor !== p.id) {
       const sev = crimeSeverity(claim.type); const actorP = w.person(actor);
       const victimDisp = claim.target ? disposition(p, claim.target) : 0;
@@ -198,7 +235,7 @@ export class Simulation {
         const priorAssaults = Object.values(p.knowledge).filter(kk => kk.kind === 'event' && kk.claim.type === 'attack' && kk.claim.actor === actor && kk.claim.target === p.id).length;
         if (priorAssaults >= 3) grievance = Math.min(0.55, 0.15 + priorAssaults * 0.08);
       }
-      if (actor) adjustRel(w, p, actor, { fear: fear * 0.7, trust: -sev * (isVictim ? 0.9 : 0.6), affection: -sev * (isVictim ? 0.7 : 0.4), grudge: grudge * 0.6, grievance, respect: -sev * 0.3 }, `${saw ? 'witnessed' : 'learned of'} ${claim.type}${isVictim ? ' on me' : claim.target ? ` on ${w.nameOf(claim.target)}` : ''}`, cause);
+      if (actor) adjustRel(w, p, actor, { fear: fear * 0.7 * personal, trust: -sev * (isVictim ? 0.9 : 0.6) * personal, affection: -sev * (isVictim ? 0.7 : 0.4) * personal, grudge: grudge * 0.6 * personal, grievance, respect: -sev * 0.3 * personal }, `${saw ? 'witnessed' : 'learned of'} ${claim.type}${isVictim ? ' on me' : claim.target ? ` on ${w.nameOf(claim.target)}` : ''}${appraisal ? ` (${appraisal.roles[0]}, personal significance ${appraisal.weight.toFixed(2)})` : ''}`, cause);
       if (actor && actorP && !actorP.hostile && claim.type !== 'theft') { for (const q of w.persons()) if (q !== p && q.id !== actor && isFamily(p, q.id)) {/* family shares outrage later through telling */} }
       const emo = p.emotions; const before = { ...emo };
       emo.fear = clamp(emo.fear + fear * 0.6); emo.stress = clamp(emo.stress + sev * 0.5); emo.anger = clamp(emo.anger + grudge * 0.5 * (p.traits.aggression + 0.3));
@@ -224,7 +261,18 @@ export class Simulation {
   private think(p: Person, body: Body): void {
     const w = this.world; const m = p.mind; const now = w.now; const hour = w.clock.hourF;
     const cands: Goal[] = [];
-    const G = (type: GoalType, utility: number, reasons: string[], o: Partial<Goal> = {}) => { const key = `${type}:${o.targetEntity ?? o.targetPlace ?? ''}`; cands.push({ type, utility, reasons, createdAt: now, key, ...o }); };
+    // v0.9 §B: every candidate goal, whatever proposed it, is offered up to the concerns this
+    // person is carrying (mind/concern.ts's `concernGoalBoost`). This is the one place knowledge
+    // turns into behaviour, and it is deliberately generic: a welfare concern makes going to see
+    // that particular person more attractive, a justice concern makes reporting/investigating
+    // more attractive, a work concern makes turning up to the short-handed workplace more
+    // attractive — and the goals themselves are the ordinary ones the simulation already had.
+    // Bounded (a maximal concern adds < 0.3), so a concern bends a decision, never dictates it.
+    const G = (type: GoalType, utility: number, reasons: string[], o: Partial<Goal> = {}) => {
+      const key = `${type}:${o.targetEntity ?? o.targetPlace ?? ''}`;
+      const boost = concernGoalBoost(p, type, o.targetEntity ?? o.targetPlace);
+      cands.push({ type, utility: boost.bonus ? clamp(utility + boost.bonus) : utility, reasons: boost.bonus ? [...reasons, ...boost.reasons] : reasons, createdAt: now, key, ...o });
+    };
     const pos = body.pos; const sched = currentScheduleEntry(p, hour);
     // v0.4 §1/§7: heat escalates progressively rather than a single on/off gate — see
     // core/physiology.ts's `heatBand`. 'severe' dampens heavy-work utility below; 'dangerous'
@@ -444,6 +492,53 @@ export class Simulation {
       const carrying = it && it.holderId === p.id;
       if (it && ((carrying) || (loc && !it.holderId && it.pos)) && !threat) G('help_recover_item', clamp((carrying ? 0.78 : 0.5) + p.traits.honesty * 0.15), [carrying ? `I have ${it.name} — I should bring it to ${requester.name}` : `I know where ${it.name} is`, `${requester.name} asked me to find it`], { targetEntity: it.id, targetPos: it.pos ?? undefined, data: { deliverTo: requesterId } });
     }
+    // ---- v0.9 §B/§D: concerns that call for going somewhere or doing something specific.
+    // A welfare concern about someone I have no fresh information about is answered by physically
+    // going to look — the same thing a real person does. Suppressed while a threat is present and
+    // while the person is already in front of me (there is nothing to go and find out).
+    for (const c of activeConcerns(p)) {
+      if (c.kind !== 'welfare' || !c.subjectId || c.subjectId === p.id) continue;
+      if (threat || !concernActionable(w, c)) continue;
+      // Only a real worry gets someone to drop what they are doing and cross the village. A
+      // faint one is felt (it still colours conversation and relationships) without becoming an
+      // errand — measured directly on the WorldLab construction scenario, where an unbounded
+      // version of this goal diverted enough ordinary labour that the village's only building
+      // project stalled four planks short at every seed.
+      if (c.intensity < 0.3) continue;
+      const subject = w.person(c.subjectId); if (!subject || !subject.alive) continue;
+      // Concern is not courage: nobody walks across the village to look in on someone they are
+      // afraid of, or someone on the other side of an outlaw/settled divide. Without this, a
+      // pastoral concern formed about a subdued outlaw sent an unarmed elder repeatedly toward
+      // the bandit camp — a real behaviour, but not a sane one, and it never discharged because
+      // he could never safely arrive.
+      if (subject.hostile !== p.hostile) continue;
+      if (getRel(p, c.subjectId).fear > 0.25) continue;
+      const seenNow = m.percepts.some(pc => pc.entityId === c.subjectId);
+      if (seenNow) continue; // 'help' below already covers someone hurt in front of me
+      const loc = p.knowledge[`loc:${c.subjectId}`];
+      const believedPos = (loc?.claim.pos as Vec3 | undefined);
+      const homePos = w.place(subject.homeId)?.inside;
+      const dest = believedPos ?? homePos;
+      if (!dest) continue; // I have no idea where to even look — going nowhere is honest
+      const staleHours = loc ? (now - loc.learnedAt) / 3600 : 99;
+      // Deliberately capped below a claimed haul (0.68) and an occupational work shift, so going
+      // to see someone competes with idling, socialising and errands — not with the work the
+      // village depends on. A genuine emergency (someone hurt in front of me) is the 'help' goal,
+      // which is scored separately and much higher.
+      G('check_on', clamp(0.18 + c.intensity * 0.32), [
+        `I have not seen ${subject.name} ${loc ? `in ${staleHours.toFixed(0)}h` : 'at all lately'}`,
+        ...c.reasons.slice(0, 2),
+      ], { targetEntity: c.subjectId, targetPos: { ...dest }, targetPlace: loc?.claim.placeId ?? subject.homeId ?? undefined, data: { concernId: c.id } });
+    }
+    // v0.9 §D: a badly hurt person withdraws from ordinary life. This is the mechanism that makes
+    // an assault produce a real, observable secondary consequence — the injured worker is not at
+    // work, which is exactly what social/absence.ts lets other people notice. Generic to any
+    // cause of injury (a brawl, a fall in a fight, a robbery), not special-cased to assault.
+    const wound = woundSeverity(body);
+    if (wound >= SERIOUS_WOUND && !threat) {
+      G('go_home', clamp(0.45 + wound * 0.5), [`I am badly hurt (wound ${wound.toFixed(2)})`, 'I am fit for nothing but resting'], { targetPlace: p.homeId ?? undefined });
+    }
+
     // ---- needs
     const n = p.needs; const night = hour >= 22 || hour < 5;
     G('sleep', clamp(n.energy * 0.9 + (sched?.activity === 'sleep' ? 0.35 : 0) + (night ? 0.15 : -0.1)), [`energy need ${n.energy.toFixed(2)}`, sched?.activity === 'sleep' ? 'it is my time to sleep' : ''], { targetPlace: p.homeId ?? undefined });
@@ -594,8 +689,12 @@ export class Simulation {
       const rainingNow = w.weather.kind === 'rain' || w.weather.kind === 'storm';
       const outdoorTask = !sched.placeId || !(w.place(sched.placeId)?.indoor);
       const rainPenalty = rainingNow && outdoorTask && !isGuard && !p.hostile ? 0.2 + w.weather.intensity * 0.15 : 0;
-      const base = 0.45 + (sched.activity === 'work' ? 0.1 : 0) + (sched.activity === 'patrol' || sched.activity === 'guard_post' ? 0.15 : 0) - rainPenalty;
-      G(sched.activity, clamp(base + (p.traits.loyalty - 0.5) * 0.1), [`schedule: ${sched.label} (${sched.start}:00–${sched.end}:00)`, rainPenalty ? 'but it is raining out there' : ''], { targetPlace: sched.placeId, data: { label: sched.label } });
+      // v0.9 §D: being seriously hurt keeps you off your shift. `laborCapacity` already gates the
+      // heavy v0.3 labour goals through `getPhysicalCapability`, but a baker's ordinary scheduled
+      // work goal never consulted capability at all, so an injured baker still stood at the oven.
+      const woundPenalty = wound >= SERIOUS_WOUND ? Math.min(0.6, wound * 0.75) : 0;
+      const base = 0.45 + (sched.activity === 'work' ? 0.1 : 0) + (sched.activity === 'patrol' || sched.activity === 'guard_post' ? 0.15 : 0) - rainPenalty - woundPenalty;
+      G(sched.activity, clamp(base + (p.traits.loyalty - 0.5) * 0.1), [`schedule: ${sched.label} (${sched.start}:00–${sched.end}:00)`, rainPenalty ? 'but it is raining out there' : '', woundPenalty ? `but I am hurt (wound ${wound.toFixed(2)})` : ''], { targetPlace: sched.placeId, data: { label: sched.label } });
     }
     // rain shelter (and keep sheltering while it rains) — v0.7: the CONDITION that makes shelter
     // worth considering is still "it is raining and I am outside" (real, current perception),
@@ -873,6 +972,19 @@ export class Simulation {
       // splices in either a direct 'rob' (voluntary compliance) or 'attack' + 'rob' (resistance).
       case 'rob': return [A({ type: 'goto', targetEntity: g.targetEntity, run: true }), A({ type: 'demand', targetEntity: g.targetEntity, data: g.data })];
       case 'help': return [A({ type: 'goto', targetEntity: g.targetEntity, run: true }), A({ type: 'use', targetEntity: g.targetEntity, duration: 60, data: { heal: true } })];
+      // v0.9 §B: go to where I BELIEVE they are and look. Deliberately targets the remembered
+      // position (`Goal.targetPos`, taken from my own `loc:` knowledge or their home), never the
+      // live body — if they have moved since I last saw them I walk to the wrong place and find
+      // nothing, which is the correct outcome for someone acting on stale information.
+      case 'check_on': {
+        // Setting the cooldown here, at adoption, rather than only on a successful look: the
+        // point is to space out ATTEMPTS. A person who sets out and does not find them has still
+        // spent that effort, and should get on with their day before trying again.
+        const started = (p.mind.concerns ?? []).find(c => c.id === g.data?.concernId);
+        if (started) noteConcernActedOn(w, started);
+        const dest = g.targetPos ?? w.place(g.targetPlace)?.inside ?? body.pos;
+        return [A({ type: 'goto', pos: dest, placeId: g.targetPlace, run: true }), A({ type: 'look', pos: dest, duration: 90, data: { checkOn: g.targetEntity, concernId: g.data?.concernId } })];
+      }
       // v0.2.4 metabolism goals.
       case 'drink_water': { const wp = g.targetPos ?? place?.inside ?? body.pos; return [A({ type: 'goto', pos: wp, placeId: g.targetPlace }), A({ type: 'drink', pos: wp, placeId: g.targetPlace, duration: 90 })]; }
       case 'plant': case 'harvest': {
@@ -917,7 +1029,18 @@ export class Simulation {
         if (to) acts.push(A({ type: 'goto', pos: dest, targetEntity: to.id }), A({ type: 'give', targetEntity: to.id, data: { item: g.targetEntity } }));
         return acts;
       }
-      case 'mourn': { const gy = place!; const grave = gy.anchors.find(a => a.kind === 'grave' && a.label?.startsWith('Anna')) ?? gy.anchors[0]; return [A({ type: 'goto', pos: grave.pos }), A({ type: 'pray', pos: grave.pos, duration: 40 * 60 })]; }
+      // v0.9 §F/Constitution §66 ("avoid bespoke character scripting"): this used to look for a
+      // grave anchor whose label begins with one hardcoded first name, so every mourner in the
+      // world walked to the same authored grave regardless of whom they had actually lost. It now
+      // resolves the grave from a real grief CONCERN (mind/concern.ts) — the person this mourner
+      // actually grieves — and falls back to any grave when the mourner has no such concern.
+      case 'mourn': {
+        const gy = place!;
+        const grieving = activeConcerns(p).filter(c => c.kind === 'grief' && c.subjectId).sort((a, b) => b.intensity - a.intensity)[0];
+        const name = grieving?.subjectId ? w.nameOf(grieving.subjectId).split(' ')[0] : null;
+        const grave = (name ? gy.anchors.find(a => a.kind === 'grave' && a.label?.startsWith(name)) : undefined) ?? gy.anchors.find(a => a.kind === 'grave') ?? gy.anchors[0];
+        return [A({ type: 'goto', pos: grave.pos }), A({ type: 'pray', pos: grave.pos, duration: 40 * 60 })];
+      }
       default: return [A({ type: 'wait', duration: 60 })];
     }
   }
@@ -1188,7 +1311,36 @@ export class Simulation {
         if (this.elapsed(a)) a.status = 'done';
         break;
       }
-      case 'look': { body.pose = 'stand'; body.yaw += physDt * 0.5; if (a.data?.investigate) { const key = a.data.key as string; const k = p.knowledge[key]; const suspect = k?.claim.actor as string | undefined; const seen = suspect ? m.percepts.find(pc => pc.entityId === suspect) : null; if (seen) { a.status = 'done'; m.investigated.add(key); m.alarm = 1; break; } if (this.elapsed(a)) { a.status = 'done'; m.investigated.add(key); if (k) k.handled = true; w.emit('investigation', { actor: p.id, pos: body.pos, placeId: k?.claim.placeId, causes: k?.source.viaEvent ? [k.source.viaEvent] : [], significance: 0.4, data: { key, outcome: 'suspect not found' }, summary: `${p.name} investigated ${k ? describeClaim(w, k) : 'a report'} but found no one` }); this.say(p, suspect ? `${w.nameOf(suspect).split(' ')[0]}... where did they go?` : 'Nothing here now.'); } } else if (this.elapsed(a)) a.status = 'done'; break; }
+      case 'look': { body.pose = 'stand'; body.yaw += physDt * 0.5;
+        // v0.9 §B: arriving somewhere out of concern for someone and actually LOOKING is a real
+        // epistemic act — it either closes the information gap (they are here; how they are is
+        // now something I have seen for myself) or confirms it (they are not, and I know that
+        // first-hand rather than by inference). Either way the concern has been acted on, so it
+        // stops driving the same walk on the next think() tick without pretending to be resolved.
+        if (a.data?.checkOn) {
+          const subjectId = a.data.checkOn as EntityId;
+          const concern = (p.mind.concerns ?? []).find(c => c.id === a.data?.concernId);
+          const seen = m.percepts.find(pc => pc.entityId === subjectId && pc.how === 'saw');
+          if (seen || this.elapsed(a)) {
+            if (concern) noteConcernActedOn(w, concern);
+            const subjectBody = seen ? w.body(seen.bodyId) : undefined;
+            if (subjectBody) {
+              // A first-hand belief about how they actually are — provenance 'witnessed', formed
+              // by looking at them, not read off canonical state from across the map.
+              const wound = woundSeverity(subjectBody);
+              const state = subjectBody.dead ? 'dead' : wound >= SERIOUS_WOUND ? 'badly hurt' : wound > 0.1 ? 'hurt' : 'unharmed';
+              learn(w, p, { key: `state:${subjectId}`, kind: 'state', claim: { entityId: subjectId, state, wound: Math.round(wound * 100) / 100, tick: w.now, text: `${w.nameOf(subjectId)} is ${state}` }, confidence: 1, source: { type: 'witnessed' } }, true);
+              remember(w, p, { type: 'checked_on', summary: `I found ${w.nameOf(subjectId)} ${state}`, entities: [subjectId], significance: 0.35, valence: state === 'unharmed' ? 0.2 : -0.4, source: { type: 'witnessed' }, placeId: w.placeAt(body.pos)?.id });
+              this.say(p, state === 'unharmed' ? `${w.nameOf(subjectId).split(' ')[0]}. Good — I had to see for myself.` : `${w.nameOf(subjectId).split(' ')[0]}... gods. Let me help you.`);
+            } else {
+              remember(w, p, { type: 'checked_on', summary: `I went looking for ${w.nameOf(subjectId)} and did not find them`, entities: [subjectId], significance: 0.3, valence: -0.35, source: { type: 'witnessed' }, placeId: w.placeAt(body.pos)?.id });
+              this.say(p, `${w.nameOf(subjectId).split(' ')[0]}? ...Not here either.`);
+            }
+            a.status = 'done';
+          }
+          break;
+        }
+        if (a.data?.investigate) { const key = a.data.key as string; const k = p.knowledge[key]; const suspect = k?.claim.actor as string | undefined; const seen = suspect ? m.percepts.find(pc => pc.entityId === suspect) : null; if (seen) { a.status = 'done'; m.investigated.add(key); m.alarm = 1; break; } if (this.elapsed(a)) { a.status = 'done'; m.investigated.add(key); if (k) k.handled = true; w.emit('investigation', { actor: p.id, pos: body.pos, placeId: k?.claim.placeId, causes: k?.source.viaEvent ? [k.source.viaEvent] : [], significance: 0.4, data: { key, outcome: 'suspect not found' }, summary: `${p.name} investigated ${k ? describeClaim(w, k) : 'a report'} but found no one` }); this.say(p, suspect ? `${w.nameOf(suspect).split(' ')[0]}... where did they go?` : 'Nothing here now.'); } } else if (this.elapsed(a)) a.status = 'done'; break; }
       case 'tell': { const t = w.person(a.targetEntity!); const tb = w.primaryBody(a.targetEntity!); if (!t || !tb || dist2(body.pos, tb.pos) > 3.5) { a.status = 'failed'; break; } const k = p.knowledge[a.data?.key]; if (k) this.tell(p, t, k); body.pose = 'talk'; body.poseUntil = w.physicalTime + 2; a.status = 'done'; break; }
       case 'talk': {
         const t = w.person(a.targetEntity!); const tb = w.primaryBody(a.targetEntity!);
@@ -1424,10 +1576,21 @@ export class Simulation {
     adjustRel(w, other, p.id, { affection: 0.02 }, 'asked for help', undefined, true);
     return true;
   }
+  /**
+   * v0.9 §E: what (if anything) is worth saying to THIS person, right now. The ranking is no
+   * longer "the most significant unshared fact I hold" — that is what made the village read like
+   * an event log being recited. `selectTopic` (mind/conversation.ts) weighs my own involvement,
+   * whether I am carrying a concern about it, whether the matter is still unresolved AS FAR AS I
+   * KNOW, how recently I learned it, and whether it is any of this listener's business. Returning
+   * null — silence — is a normal and preferred outcome.
+   */
   private pickGossip(p: Person, other: Person): KnowledgeItem | null {
     const w = this.world; const r = getRel(p, other.id); if (r.trust < -0.3) return null;
-    const eventCands = Object.values(p.knowledge).filter(k => k.kind === 'event' && ((k.claim.significance ?? 0.3) >= 0.2 || isCrime(k.claim.type, k.claim.intent)) && !k.sharedWith.includes(other.id) && k.claim.actor !== other.id && k.source.from !== other.id && (w.now - k.learnedAt < 86400 * 4 || isCrime(k.claim.type, k.claim.intent)) && !other.knowledge[k.key]);
-    const value = (k: KnowledgeItem) => (k.claim.significance ?? 0.3) * (isCrime(k.claim.type, k.claim.intent) ? 1.5 : 1);
+    const topic = selectTopic(w, p, other);
+    if (topic) { this.lastTopic.set(p.id, topic); return topic.k; }
+    this.lastTopic.delete(p.id);
+    // Item-location knowledge is not an "ongoing matter" and has no situation of its own, so it
+    // is ranked separately below rather than through `selectTopic`.
     // v0.8 §P0-G (independent audit §4.6): a KNOWN item location can now travel too, not just
     // event news — the whole reason `locationKnowledge` was extended to items (see `perceive`
     // above) is so this information can reach the person who actually needs it, exactly the way
@@ -1436,20 +1599,39 @@ export class Simulation {
     // case genuinely worth interrupting small talk for.
     const locationCands = Object.values(p.knowledge).filter(k => k.kind === 'location' && w.get(k.claim.entityId as string)?.kind === 'item' && !k.sharedWith.includes(other.id) && !other.knowledge[k.key]);
     const locationValue = (k: KnowledgeItem) => other.desires.some(d => d.type === 'recover_item' && !d.fulfilled && d.targetId === k.claim.entityId) ? 0.9 : 0.12;
-    const best = [...eventCands.map(k => ({ k, v: value(k) })), ...locationCands.map(k => ({ k, v: locationValue(k) }))]
-      .sort((a, b) => b.v - a.v)[0];
+    const best = locationCands.map(k => ({ k, v: locationValue(k) })).sort((a, b) => b.v - a.v)[0];
     if (!best) return null;
     if (best.v < 0.2 && p.traits.sociability < 0.6) return null;
     return best.k;
   }
+  /** The topic `pickGossip` most recently chose per speaker, so `tellLine` can realize it with
+   * its supporting facts and its personally-known resolution status instead of re-deriving them.
+   * Transient presentation state only — never read back into any decision, never persisted. */
+  private lastTopic = new Map<EntityId, Topic>();
+  /**
+   * v0.9 §F ("no fabricated history") audit finding. This pool used to assert things that had
+   * never happened in the simulation and that no mind held any belief about: "Still owe me for
+   * that timber" (no such debt existed), "Candles are two coppers now" (no such price), "It's
+   * quiet without her" (naming a bereavement the speaker may not have suffered, about a person
+   * the simulation never lost). Those were the clearest source of the "statements that appear to
+   * describe history that did not actually occur" this milestone was called to fix — and they
+   * were in the AMBIENT path, which fires constantly during ordinary play.
+   *
+   * Small talk is now strictly phatic: greetings, weather (a real, canonical `world.weather`),
+   * the time of day, and openers that ask rather than assert. Nothing here states that anything
+   * happened. When a speaker actually HAS something to say, `pickGossip`/`selectTopic` has
+   * already taken this turn — small talk is what is left when there is honestly nothing.
+   */
   private smallTalk(p: Person, other: Person): string {
     const w = this.world; const r = getRel(p, other.id); const first = other.name.split(' ')[0]; const h = w.clock.hourF; const wk = w.weather.kind;
     const pool = [`Fine ${h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening'}, ${first}.`, wk === 'rain' ? `This rain will rot the wheat.` : wk === 'clear' ? `Good weather for it.` : `Looks like weather coming.`, `How's the family, ${first}?`, `Busy day.`, `Have you eaten?`];
-    if (r.tags.includes('spouse')) pool.push(`Don't forget the firewood.`, `You look tired, love.`);
-    if (r.tags.includes('rival')) pool.push(`Hmph. ${first}.`, `Still owe me for that timber.`);
-    if (p.occupation === 'merchant') pool.push(`Candles are two coppers now. Don't look at me like that.`);
-    if (p.occupation === 'child') pool.push(`Race you to the well!`, `Did you see the traveler?`);
-    if (p.emotions.sadness > 0.4) pool.push(`...`, `It's quiet without her.`);
+    if (r.tags.includes('spouse')) pool.push(`You look tired, love.`, `Will you be home before dark?`);
+    if (r.tags.includes('rival')) pool.push(`Hmph. ${first}.`, `${first}.`);
+    if (p.occupation === 'merchant') pool.push(`Everything has a price, ${first}.`);
+    if (p.occupation === 'child') pool.push(`Race you to the well!`);
+    // Sadness is a real, canonical emotion — expressing it is not a factual claim. Naming a
+    // specific loss would be; that is what was removed.
+    if (p.emotions.sadness > 0.4) pool.push(`...`, `I've not much to say today.`);
     return pool[Math.floor(w.rng.next() * pool.length)];
   }
   /** One mind tells another something it knows. Knowledge travels with provenance. */
@@ -1472,9 +1654,17 @@ export class Simulation {
     remember(w, listener, { type: 'told', summary: `${speaker.name} told me ${describeClaim(w, k)}`, eventId: k.claim.eventId, entities: [speaker.id, k.claim.actor, k.claim.target].filter(Boolean) as string[], significance: clamp((k.claim.significance ?? 0.3) * 0.7), valence: isCrime(k.claim.type, k.claim.intent) ? -0.4 : 0, source: { type: 'told', from: speaker.id, viaEvent: ev.id } });
     ev.perceivedBy.push({ who: listener.id, how: 'heard', tick: w.now });
     adjustRel(w, listener, speaker.id, { familiarity: 0.03, affection: 0.02 }, 'talked', undefined, true);
+    // v0.9 §A/§B/§C: hearsay is appraised and can form real concerns exactly like perception —
+    // this is the step that makes "knowledge can cause behaviour" true for information that
+    // TRAVELLED, not only for what a person saw with their own eyes. Provenance and confidence
+    // are already folded into the appraisal (a third-hand rumour lands lighter than an eyewitness
+    // account), so nothing here needs a separate hearsay discount.
+    const listenerAppraisal = learned ? appraiseClaim(w, listener, learned) : null;
+    if (learned && listenerAppraisal) formConcerns(w, listener, learned, listenerAppraisal);
+    const toldPersonal = listenerAppraisal ? clamp(0.45 + listenerAppraisal.weight * 1.1, 0.35, 1.6) : 1;
     if (learned && isCrime(k.claim.type, k.claim.intent) && k.claim.actor) {
       const sev = crimeSeverity(k.claim.type); const victimClose = k.claim.target ? isClose(listener, k.claim.target) : false;
-      adjustRel(w, listener, k.claim.actor, { fear: sev * 0.3 * conf * (1.2 - listener.traits.courage), trust: -sev * 0.4 * conf, grudge: sev * conf * (victimClose ? 0.6 : 0.2), affection: -sev * 0.3 * conf }, `was told by ${speaker.name}`, ev.id);
+      adjustRel(w, listener, k.claim.actor, { fear: sev * 0.3 * conf * (1.2 - listener.traits.courage) * toldPersonal, trust: -sev * 0.4 * conf * toldPersonal, grudge: sev * conf * (victimClose ? 0.6 : 0.2) * toldPersonal, affection: -sev * 0.3 * conf * toldPersonal }, `was told by ${speaker.name}`, ev.id);
       listener.mind.alarm = 1;
       const lb = w.primaryBody(listener.id); if (lb) { lb.pose = 'talk'; lb.poseUntil = w.physicalTime + 1.5; }
       const isGuard = listener.occupation === 'guard' || listener.occupation === 'captain';
@@ -1494,7 +1684,12 @@ export class Simulation {
    */
   private tellLine(sp: Person, li: Person, k: KnowledgeItem): string {
     const c = k.claim; const first = li.name.split(' ')[0];
-    const body = realizeClaim(this.world, sp, k);
+    // v0.9 §E: when this line came from a chosen topic, realize the whole SITUATION — the fact,
+    // one supporting fact the speaker also believes, and (only if the speaker personally knows
+    // it) whether the matter has since been settled. Falls back to the single-claim realization
+    // for lines raised any other way (a `report` goal's `tell` action, a player-driven `tell`).
+    const topic = this.lastTopic.get(sp.id);
+    const body = topic && topic.k.key === k.key ? realizeTopic(this.world, sp, topic) : realizeClaim(this.world, sp, k);
     // Direct address is kept only for the two "you need to know this NOW" urgent types — the
     // rest read naturally as realizeClaim already produces them.
     return (c.type === 'attack' || c.type === 'kill') ? `${first}! ${body}` : body;
@@ -1880,7 +2075,24 @@ export class Simulation {
       // A subdued or in-custody body does not regenerate health from strategic upkeep while held
       // incapacitated — but is not otherwise harmed. Ordinary recovery resumes on release.
       const held = (b && b.subduedUntil > w.physicalTime) || !!p.custody?.active;
-      if (b && !b.dead && !held && b.health < b.maxHealth) b.health = Math.min(b.maxHealth, b.health + minutes * 0.15);
+      // v0.9 §D: a real wound takes real time to MEND. The flat 0.15/minute rate healed a
+      // near-fatal beating in about four world hours, which is precisely why a serious assault
+      // used to have no consequences in ordinary life — by the next work shift there was nothing
+      // left to notice.
+      //
+      // The slowdown deliberately applies only ABOVE `INCAPACITATED_FRACTION`. Getting back on
+      // your feet is not the slow part; mending is. Slowing recovery all the way down to zero
+      // health instead produced a measured, severe pathology (seed 918271, 10 days): a bandit and
+      // a guard locked in a 74-world-hour, 3623-blow grind, because the loser was pinned in the
+      // knocked-down/stand-up/knocked-down band for hours instead of recovering enough to win,
+      // flee, or die. Below the threshold, recovery is exactly the pre-v0.9 rate; above it, a
+      // serious wound still costs the better part of a working day. Tended wounds close faster:
+      // the `heal` action adds health directly on top of this, unchanged.
+      if (b && !b.dead && !held && b.health < b.maxHealth) {
+        const fraction = b.health / b.maxHealth;
+        const rate = fraction < INCAPACITATED_FRACTION ? 0.15 : 0.15 * (0.35 + 0.65 * fraction);
+        b.health = Math.min(b.maxHealth, b.health + minutes * rate);
+      }
       // notice missing possessions when at work: inference without a witness
       if (b && p.workId && w.placeAt(b.pos)?.id === p.workId && w.rng.next() < 0.3 * minutes) {
         // v0.8 §P0-F fix: an item legitimately assigned to a haul task and carried by that
@@ -1899,7 +2111,13 @@ export class Simulation {
           const knownTheft = Object.values(p.knowledge).find(k => k.kind === 'event' && k.claim.type === 'theft' && k.claim.item === it.id);
           if (knownTheft) continue;
           const ev = w.emit('item_missing', { actor: p.id, item: it.id, pos: b.pos, placeId: p.workId, significance: 0.45, summary: `${p.name} noticed ${it.name} is missing` });
-          learn(w, p, { key: `missing:${it.id}`, kind: 'event', claim: { eventId: ev.id, type: 'item_missing', item: it.id, placeId: p.workId, tick: w.now, actorUnknown: true, significance: 0.45 }, confidence: 0.9, source: { type: 'inferred', viaEvent: ev.id }, cause: ev.id, summary: `${it.name} is missing` });
+          const missing = learn(w, p, { key: `missing:${it.id}`, kind: 'event', claim: { eventId: ev.id, type: 'item_missing', item: it.id, placeId: p.workId, tick: w.now, actorUnknown: true, significance: 0.45 }, confidence: 0.9, source: { type: 'inferred', viaEvent: ev.id }, cause: ev.id, summary: `${it.name} is missing` });
+          // v0.9 §B: a belief acquired by INFERENCE forms concerns exactly like one acquired by
+          // perception or hearsay. Without this, the one path in the whole simulation by which an
+          // unwitnessed theft is ever discovered produced a belief that changed nothing about the
+          // owner's behaviour and was never worth mentioning to anyone — the precise failure mode
+          // ("NPCs just know more things") this milestone exists to close.
+          if (missing) formConcerns(w, p, missing);
           remember(w, p, { type: 'item_missing', summary: `${it.name} is gone from its place. Someone took it.`, eventId: ev.id, entities: [it.id], significance: 0.6, valence: -0.5, source: { type: 'inferred', viaEvent: ev.id } });
           p.emotions.anger = clamp(p.emotions.anger + 0.4); p.desires.push({ type: 'recover_item', targetId: it.id, note: `${it.name} was taken from ${w.nameOf(p.workId)}. I want it back.`, reward: 15, fulfilled: false }); this.say(p, `Where is ${it.name}?! It was right here!`);
         }
@@ -1935,6 +2153,20 @@ export class Simulation {
       }
       maintainConflicts(w);
       maintainCustody(w);
+      // v0.9 §G: ongoing matters age and settle at the world level; the concerns people carry
+      // about them age and discharge at the personal level. Same coarse cadence as relationship
+      // evolution above — both work on half-lives of hours to days.
+      maintainSituations(w);
+      for (const p of w.persons()) {
+        if (!p.alive || p.controlled) continue;
+        maintainConcerns(w, p, sh);
+        // v0.9 §D: notice that someone who ought to be here is not — the generic information-gap
+        // inference (social/absence.ts). On this coarse cadence rather than per world-minute:
+        // its thresholds are measured in HOURS, so a ten-minute granularity changes no outcome,
+        // and its first step is a `placeAt` scan over every Place — running that for every person
+        // every simulated minute was a measurable, entirely avoidable cost.
+        noticeAbsences(w, p, w.clock.hourF);
+      }
       this.accum('strategic.conflict', tc);
       // v0.2.4 world metabolism: weather → soil moisture → crop growth. Deterministic, emits
       // only semantic transitions (crop_matured). Same ~10-min cadence as social upkeep.

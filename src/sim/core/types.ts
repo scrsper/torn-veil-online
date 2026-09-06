@@ -273,7 +273,12 @@ export type GoalType =
   // from one Place to another with the actor physically carrying it; `chop`/`gather` extract
   // from a ResourceNode; `build` contributes labour to a ConstructionProject. All shared with
   // the player (Constitution VI).
-  | 'haul' | 'chop' | 'gather' | 'build';
+  | 'haul' | 'chop' | 'gather' | 'build'
+  // v0.9 Social Causality: go and see, with your own eyes, how someone you are CONCERNED about
+  // actually is (mind/concern.ts). Generic — the concern may come from a witnessed assault, a
+  // reported theft, a noticed absence, or a death in the family; this goal only knows "I hold a
+  // welfare concern about that person and I do not currently have good information about them."
+  | 'check_on';
 
 export interface Goal {
   type: GoalType;
@@ -360,6 +365,102 @@ export interface GoalCommitment {
   data?: Record<string, any>;
 }
 
+// ---------------------------------------------------------------- Situations (v0.9)
+/**
+ * A SITUATION is an ongoing social matter in the world — the thing that a significant event
+ * starts and that later events can change or end. It is deliberately NOT a quest, a story beat,
+ * or a per-event-type handler: it is a small, generic grouping record over canonical events
+ * (`eventIds`), owned by the World (`World.situations`), maintained by sim/social/situation.ts.
+ *
+ * Why it exists (v0.9 §G "situations age and resolve"): before this, an event was either "in
+ * someone's memory" or not, with no representation of whether the matter it started was still
+ * live. So a three-week-old assault stayed exactly as newsworthy as this morning's, and nothing
+ * in the simulation could express "that was dealt with." A Situation gives the world one honest
+ * place to record: this began, these later events bore on it, and it is now (or is not yet)
+ * over.
+ *
+ * CRUCIALLY, a Situation is canonical bookkeeping, NOT shared knowledge. No mind reads
+ * `status` directly. What a person believes about a situation is derived from the events THEY
+ * actually know about (`personalSituationView` in social/situation.ts) — so a villager who never
+ * heard about the arrest still, correctly, thinks the matter is unresolved. Constitution §III
+ * (local knowledge) / §5.
+ */
+export type SituationKind = 'harm' | 'property' | 'loss' | 'disruption' | 'grief' | 'obligation';
+export type SituationStatus = 'active' | 'resolved' | 'dormant';
+export interface Situation {
+  id: string;
+  kind: SituationKind;
+  /** The canonical event that opened it. */
+  rootEventId: EventId;
+  rootType: string;
+  /** Every canonical event so far judged to bear on this matter, root first. */
+  eventIds: EventId[];
+  /** Who this is happening TO (the victim, the owner, the absent worker, the deceased). */
+  subjectId?: EntityId;
+  /** Who is responsible, when the world itself knows (may be unknown to every mind). */
+  actorId?: EntityId;
+  itemId?: EntityId;
+  placeId?: EntityId;
+  openedAt: Tick;
+  lastEventAt: Tick;
+  status: SituationStatus;
+  resolvedAt?: Tick;
+  /** Short, reason-coded: 'answered_for' | 'recovered' | 'returned' | 'settled' | 'died' |
+   * 'returned_to_work' | 'faded'. Never free-form narrative. */
+  resolution?: string;
+  /** The canonical event that resolved it, when one did — this is what a mind must actually
+   * know about before it may believe the matter is over. */
+  resolvingEventId?: EventId;
+  /** 0..1 canonical severity of the root event (crimeSeverity/significance), independent of who
+   * cares about it. Personal significance is `social/appraisal.ts`'s job, not this. */
+  severity: number;
+}
+
+// ---------------------------------------------------------------- Concerns (v0.9)
+/**
+ * A CONCERN is knowledge that has acquired behavioural force. v0.9 §B: "knowledge must not exist
+ * only so an NPC can repeat it in dialogue." Learning that your husband was beaten is not merely
+ * a new row in `knowledge`; it is a thing you now carry around that changes what you do next.
+ *
+ * Deliberately a very small vocabulary of KINDS (six), because the milestone asks for a few deep
+ * generic primitives rather than a reaction handler per event type. The same six cover assault,
+ * theft, missing property, work disruption, injury, death and family events — see
+ * mind/concern.ts's `CONCERN_RULES`.
+ *
+ * A concern is personal and epistemic: it is formed from an appraisal of what THIS person
+ * believes (a `KnowledgeItem` with real provenance), never from canonical world state they have
+ * no access to.
+ */
+export type ConcernKind = 'welfare' | 'safety' | 'justice' | 'property' | 'work' | 'grief';
+export type ConcernStatus = 'active' | 'addressed' | 'faded';
+export interface Concern {
+  id: string;
+  kind: ConcernKind;
+  /** The person this concern is ABOUT in the caring sense — whose welfare/work/property. */
+  subjectId?: EntityId;
+  /** The person this concern is DIRECTED at — whom I fear, blame, or want answered for. */
+  aboutId?: EntityId;
+  itemId?: EntityId;
+  placeId?: EntityId;
+  /** The world Situation this concern answers to, when the concern came from one. Used only to
+   * ask "do I personally know of anything that ended this", never to read canonical status. */
+  situationId?: string;
+  /** Knowledge keys this concern rests on — its evidential basis. If they are all gone, so is
+   * the concern's justification. */
+  basisKeys: string[];
+  /** 0..1 — how much this presses on me right now. Decays; reinforced by fresh evidence. */
+  intensity: number;
+  createdAt: Tick;
+  lastReinforcedAt: Tick;
+  status: ConcernStatus;
+  /** World-time this concern was last acted on, so a person does not re-walk across the village
+   * to check on the same person every think() tick. */
+  lastActedAt?: Tick;
+  addressedAt?: Tick;
+  /** Human-readable, grounded reasons — the same convention `Goal.reasons` uses. */
+  reasons: string[];
+}
+
 export interface Mind {
   goal: Goal | null;
   plan: Action[];
@@ -406,6 +507,10 @@ export interface Mind {
    * `GoalCommitment` above and mind/commitment.ts. Null for the overwhelming majority of ticks
    * (most goals are 'free' and never get a commitment record at all). */
   commitment?: GoalCommitment | null;
+  /** v0.9 §B: the concerns this mind currently carries — see `Concern`. Persisted: a concern
+   * depends on what this person learned and when, and cannot be re-derived from present state.
+   * Bounded (mind/concern.ts's MAX_CONCERNS); empty for most people most of the time. */
+  concerns?: Concern[];
   /** v0.6 §VI: the currently held intention, if any — see `Intention` below. Not persisted (it
    * is re-derived fresh every think() tick from current need/knowledge/memory, exactly like
    * `Goal` itself is a fresh candidate every tick — only `commitment` needs to survive a
@@ -963,7 +1068,16 @@ export type EventType =
   // going out (fuel depletion, a storm suppressing an exposed one, or being put out) and a
   // completed crafting act. Semantic milestones only, matching v0.3's own construction/
   // extraction events — never a per-tick "still burning" heartbeat.
-  | 'fire_lit' | 'fire_extinguished' | 'item_crafted';
+  | 'fire_lit' | 'fire_extinguished' | 'item_crafted'
+  // v0.9 Social Causality Vertical Slice — the canonical state changes this milestone adds.
+  // `situation_opened`/`situation_resolved` are real transitions on `World.situations`
+  // (sim/social/situation.ts): a significant event opening an ongoing social matter, and a later
+  // canonical event (an arrest, a healing, a returned item, a death, an apology) actually ending
+  // it. `concern_formed`/`concern_resolved` are real transitions on a `Mind.concerns` entry
+  // (sim/mind/concern.ts) — knowledge acquiring behavioural force, or losing it. `absence_noticed`
+  // is a real INFERENCE from a real information gap (I expected you here and you were not), with
+  // provenance, never an omniscient read of where you actually are.
+  | 'situation_opened' | 'situation_resolved' | 'concern_formed' | 'concern_resolved' | 'absence_noticed';
 
 export type EventCategory = 'world' | 'social' | 'cognition' | 'history';
 

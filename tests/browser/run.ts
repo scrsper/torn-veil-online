@@ -3,13 +3,21 @@
 // of one-off disposable scripts. `npm run test:browser` runs every spec in tests/browser/specs/.
 import { createServer, type ViteDevServer } from 'vite';
 import { chromium, type Browser, type Page } from 'playwright';
-import { readdirSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 export interface BrowserSpec { name: string; run: (page: Page, baseURL: string) => Promise<void>; }
 
-const CHROMIUM_PATH = process.env.PLAYWRIGHT_CHROMIUM_PATH ?? '/opt/pw-browsers/chromium';
+// v0.9: the fixed `/opt/pw-browsers/chromium` default only exists in this project's Linux
+// development sandbox. On a machine where Playwright manages its own browsers (`npx playwright
+// install chromium` — the Windows dev machine, a stock CI runner), passing ANY explicit
+// executablePath fails with `spawn UNKNOWN`, because Playwright's own resolution picks a
+// different binary from the one `chromium.executablePath()` reports. Leaving it undefined lets
+// Playwright resolve its managed install, which is the correct behaviour everywhere the fixed
+// path does not exist; setting PLAYWRIGHT_CHROMIUM_PATH still pins it for the sandbox.
+const CHROMIUM_PATH = process.env.PLAYWRIGHT_CHROMIUM_PATH
+  ?? (existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined);
 
 async function loadSpecs(): Promise<BrowserSpec[]> {
   const dir = join(import.meta.dirname, 'specs');
@@ -35,7 +43,7 @@ async function main(): Promise<void> {
   let browser: Browser | null = null;
   const results: { name: string; ok: boolean; error?: string; ms: number }[] = [];
   try {
-    browser = await chromium.launch({ executablePath: CHROMIUM_PATH, headless: true });
+    browser = await chromium.launch({ ...(CHROMIUM_PATH ? { executablePath: CHROMIUM_PATH } : {}), headless: true });
     const specs = (await loadSpecs()).filter(s => !filter || s.name.includes(filter));
     if (!specs.length) { console.error(filter ? `No spec matches "${filter}"` : 'No browser specs found in tests/browser/specs/'); process.exitCode = 1; return; }
     console.log(`Running ${specs.length} browser spec(s)...\n`);
