@@ -78,7 +78,11 @@ const KEY = 'infinite-rpg-save-v1';
 // were at v0.3. An old save simply predates the concept (`data.fires ?? []` below defaults it
 // to no fires, all unlit — safe, not corrupting, but still version-gated for consistency with
 // every other top-level array this file persists).
-export const SAVE_VERSION = 11;
+// Player embodiment: bumped 11 -> 12 — the player's purchasing power moved from a carried
+// `coins` Item to `Person.wealth` (one currency for every person). A version-11 save would
+// resume with the Traveler's silver stranded in a prop nothing can spend; a fresh world is
+// the honest option, exactly like every other semantic change to persisted meaning.
+export const SAVE_VERSION = 12;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
