@@ -2195,7 +2195,7 @@ export class Simulation {
       if (take.kind === 'coins' && !bandit.controlled) {
         const amount = take.item.quantity;
         bandit.wealth += amount; bandit.inventory = bandit.inventory.filter(id => id !== take.item.id);
-        take.item.quantity = 0; retireStack(take.item);
+        take.item.quantity = 0; retireStack(w, take.item);
       }
     } else {
       // v0.8 §P0-B (audit finding — §3.1/§4.1 of the independent review): this branch used to

@@ -570,7 +570,7 @@ export function takePortionInHand(world: World, taker: Person, stack: Item, n: n
   if (stack.quantity <= 0 || n <= 0) return null;
   const take = Math.min(n, stack.quantity);
   stack.quantity -= take;
-  if (stack.quantity <= 0) retireStack(stack);
+  if (stack.quantity <= 0) retireStack(world, stack);
   const ev = world.emit('pickup', {
     actor: taker.id, item: stack.id, pos: world.primaryBody(taker.id)?.pos, placeId: stack.placeId ?? undefined,
     significance: 0.08, visibility: 8, data: { qty: take, how },
@@ -592,9 +592,8 @@ export function eatFood(world: World, p: Person, food: Item): ItemType {
     // v0.6 §II: `food` may be a fellow household member's carried stack (see
     // `findAccessibleFood`), not necessarily `p`'s own — clean up whoever actually holds it,
     // not just `p`, so a shared family meal never leaves a stale item id in someone else's
-    // inventory pointing at a retired item.
-    if (food.holderId) { const holder = world.person(food.holderId); if (holder) holder.inventory = holder.inventory.filter(id => id !== food.id); }
-    retireItem(food);
+    // inventory pointing at a retired item. v0.10.1: `retireStack` now resolves the holder itself.
+    retireItem(world, food);
   }
   eatRestoresEnergy(p, FOOD_HUNGER_RESTORE);
   world.emit('food_consumed', {
@@ -659,7 +658,7 @@ export function stepSpoilage(world: World, hours: number): void {
         summary: `${lost} ${it.type} spoiled${it.placeId ? ' at ' + world.nameOf(it.placeId) : it.holderId ? ` in ${world.nameOf(it.holderId)}'s pack` : ''}`,
       });
     }
-    if (it.quantity <= 0) retireItem(it);
+    if (it.quantity <= 0) retireItem(world, it);
   }
 }
 
