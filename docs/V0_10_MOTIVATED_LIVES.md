@@ -248,7 +248,10 @@ down ~31%, netting to +0.5% total time in any critical band.
 From `tools/audit/motivation-longrun.ts` over the same runs: `pursuit_formed` ≈ `pursuit_resolved`
 (e.g. 93/92, 104/99), **no purpose outlived the run window** (`neverEnd = 0` on every seed), live
 purposes per person 1–5, `obligation_formed` ≈ `obligation_resolved` (196/193, 190/190), live
-obligations 0–6, and the per-person obligation count reaches but never exceeds the cap of 8.
+obligations 0–6, and the per-person obligation count reaches but never exceeds the cap of 8. In
+ordinary village life with nothing triggered, the longest arc anyone sees through is two distinct
+goal kinds; the family-responsibility trace, where a real injury is introduced, reaches three
+(`provide → help → provide`, five adoptions).
 
 **One attack outlier, investigated and not ours.** Across eight seeds the largest number of blows
 between any one pair of people is 5–14 on `main` and 6–13 on this branch — except seed 918271,
