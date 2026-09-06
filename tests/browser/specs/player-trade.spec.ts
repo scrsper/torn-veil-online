@@ -222,12 +222,23 @@ export const playerTrade: BrowserSpec = {
         qty: stack ? stack.quantity : 0,
         total: w.items().filter((i: any) => i.type === type).reduce((n: number, i: any) => n + i.quantity, 0),
         ghosts: w.persons().filter((p: any) => p.inventory.some((id: string) => { const it = w.item(id); return !it || it.quantity <= 0; })).length,
+        ghostDetail: w.persons().flatMap((p: any) => p.inventory
+          .map((id: string) => ({ p, id, it: w.item(id) }))
+          .filter((r: any) => !r.it || r.it.quantity <= 0)
+          .map((r: any) => ({
+            person: `${r.p.name} (${r.p.id})`, controlled: !!r.p.controlled,
+            itemId: r.id, type: r.it?.type ?? '(entity gone)', quantity: r.it?.quantity ?? null,
+            holderId: r.it?.holderId ?? null, ownerId: r.it?.ownerId ?? null,
+            placeId: r.it?.placeId ?? null, pos: r.it?.pos ?? null,
+            provenance: (r.it?.provenance ?? []).map((v: any) => `${v.how}:${v.from ?? '-'}>${v.to ?? '-'}`),
+            lastEvents: w.events.filter((e: any) => e.item === r.id).slice(-4).map((e: any) => `${e.type} ${e.summary}`),
+          }))),
       };
     }, good.type);
     if (!(eaten.energy > hungerBefore)) throw new Error(`eating the ${good.type} did not feed the player (energy ${hungerBefore} → ${eaten.energy})`);
     if (eaten.qty !== qtyBefore - 1) throw new Error(`eating consumed ${qtyBefore - eaten.qty} units instead of one`);
     if (eaten.total !== after.totals[good.type] - 1) throw new Error(`eating one ${good.type} changed the world total by ${after.totals[good.type] - eaten.total}`);
-    if (eaten.ghosts) throw new Error(`${eaten.ghosts} people are carrying an item id that no longer refers to anything`);
+    if (eaten.ghosts) throw new Error(`${eaten.ghosts} people are carrying an item id that no longer refers to anything\n${JSON.stringify(eaten.ghostDetail, null, 2)}`);
 
     // ---- 5. no coin: the sale is refused and nothing moves
     await page.keyboard.press('KeyI');
