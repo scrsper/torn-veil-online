@@ -1,146 +1,90 @@
 import * as THREE from 'three';
 import type { World } from '../../sim/core/world';
-import type { Body, Person, Creature, Appearance, Item } from '../../sim/core/types';
-import { workStyleFor, type WorkStyle } from '../presentation/activityCues';
+import type { Body, Person, Creature, Item } from '../../sim/core/types';
+import { workStyleFor } from '../presentation/activityCues';
+import { HumanoidRig } from '../presentation/humanoid';
+import { GeoAccum, UNIT, place as xf, rgb, shade, tapered } from '../presentation/geo';
+import { surfaceMaterial, surfaceTex } from '../presentation/textures';
 
-/** Voxel humanoid: the physical projection of a Person's body. Procedural animation driven by pose and velocity. */
-class Humanoid {
-  root = new THREE.Group(); pivot = new THREE.Group();
-  head: THREE.Mesh; torso: THREE.Mesh; armL: THREE.Group; armR: THREE.Group; legL: THREE.Group; legR: THREE.Group; held: THREE.Mesh | null = null; heldType = '';
-  phase = 0; hitFlash = 0; bodyMats: THREE.MeshLambertMaterial[] = []; scale = 1;
-  constructor(public app: Appearance) {
-    const mat = (c: number) => { const m = new THREE.MeshLambertMaterial({ color: c }); this.bodyMats.push(m); return m; };
-    const box = (w: number, h: number, d: number, c: number) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c)); m.castShadow = true; m.receiveShadow = true; return m; };
-    const B = app.build; this.scale = app.height;
-    // legs (pivot at hip)
-    this.legL = new THREE.Group(); this.legR = new THREE.Group();
-    for (const [g, x] of [[this.legL, -0.13 * B], [this.legR, 0.13 * B]] as [THREE.Group, number][]) { const l = box(0.22 * B, 0.7, 0.24, app.pants); l.position.y = -0.35; g.add(l); g.position.set(x, 0.72, 0); this.pivot.add(g); }
-    this.torso = box(0.56 * B, 0.7, 0.32 * B, app.shirt); this.torso.position.y = 1.07; this.pivot.add(this.torso);
-    if (app.apron) { const a = box(0.4 * B, 0.55, 0.06, app.apron); a.position.set(0, 0.95, 0.18 * B); this.pivot.add(a); }
-    this.armL = new THREE.Group(); this.armR = new THREE.Group();
-    for (const [g, x] of [[this.armL, -0.37 * B], [this.armR, 0.37 * B]] as [THREE.Group, number][]) { const a = box(0.18 * B, 0.66, 0.2, app.shirt); a.position.y = -0.3; g.add(a); const hand = box(0.16 * B, 0.12, 0.18, app.skin); hand.position.y = -0.66; g.add(hand); g.position.set(x, 1.38, 0); this.pivot.add(g); }
-    this.head = box(0.44, 0.44, 0.44, app.skin); this.head.position.y = 1.67; this.pivot.add(this.head);
-    // hair cap
-    const hair = box(0.47, 0.14, 0.47, app.hair); hair.position.set(0, 0.2, 0); this.head.add(hair);
-    const hairBack = box(0.47, 0.3, 0.1, app.hair); hairBack.position.set(0, 0.02, -0.2); this.head.add(hairBack);
-    if (app.beard) { const bd = box(0.36, 0.16, 0.08, app.beard); bd.position.set(0, -0.2, 0.2); this.head.add(bd); }
-    // eyes
-    for (const x of [-0.1, 0.1]) { const e = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.04), new THREE.MeshBasicMaterial({ color: 0x1a1410 })); e.position.set(x, 0.04, 0.22); this.head.add(e); }
-    switch (app.hatStyle) {
-      case 'helm': { const h = box(0.5, 0.3, 0.5, app.hat ?? 0x888890); h.position.y = 0.16; this.head.add(h); const nose = box(0.1, 0.3, 0.06, app.hat ?? 0x888890); nose.position.set(0, -0.02, 0.24); this.head.add(nose); break; }
-      case 'hood': { const h = box(0.5, 0.36, 0.5, app.hat ?? 0x333333); h.position.y = 0.1; this.head.add(h); const c = box(0.6, 0.25, 0.4, app.hat ?? 0x333333); c.position.set(0, -0.3, -0.05); this.torso.add(c); break; }
-      case 'cap': { const h = box(0.48, 0.14, 0.48, app.hat ?? 0x444466); h.position.y = 0.26; this.head.add(h); break; }
-      case 'wide': { const h = box(0.9, 0.06, 0.9, app.hat ?? 0xb0a060); h.position.y = 0.24; this.head.add(h); const t = box(0.4, 0.16, 0.4, app.hat ?? 0xb0a060); t.position.y = 0.3; this.head.add(t); break; }
-    }
-    this.pivot.scale.setScalar(this.scale); this.root.add(this.pivot);
-  }
-  setHeld(type: string): void {
-    if (type === this.heldType) return; this.heldType = type;
-    if (this.held) { this.armR.remove(this.held); this.held = null; }
-    if (!type) return;
-    const col = type === 'sword' ? 0xc0c4cc : type === 'dagger' ? 0xb0b4bc : type === 'hammer' ? 0x606068 : type === 'axe' ? 0x808890 : type === 'lantern' ? 0xffd080 : type === 'bread' ? 0xc89050 : 0x9a8060;
-    const len = type === 'sword' ? 0.9 : type === 'dagger' ? 0.4 : 0.55;
-    const g = new THREE.Group(); const blade = new THREE.Mesh(new THREE.BoxGeometry(0.07, len, 0.12), new THREE.MeshLambertMaterial({ color: col, emissive: type === 'lantern' ? 0xff9020 : 0x000000 })); blade.position.y = len / 2; blade.castShadow = true; g.add(blade);
-    if (type === 'hammer' || type === 'axe') { const hd = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.16, 0.18), new THREE.MeshLambertMaterial({ color: 0x505058 })); hd.position.y = len; g.add(hd); }
-    if (type === 'sword' || type === 'dagger') { const gd = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.05, 0.05), new THREE.MeshLambertMaterial({ color: 0x6a5030 })); gd.position.y = 0.12; g.add(gd); }
-    g.position.set(0, -0.7, 0.1); g.rotation.x = -Math.PI / 2 + 0.3; this.held = g as any; this.armR.add(g);
-  }
-  animate(dt: number, body: Body, physTime: number, workStyle: WorkStyle | null = null): void {
-    const speed = Math.hypot(body.vel.x, body.vel.z);
-    const walking = speed > 0.3 && (body.pose === 'walk' || body.pose === 'run' || body.pose === 'stand');
-    this.phase += dt * (speed * 2.6 + (walking ? 0 : 0));
-    const p = this.phase; const t = physTime;
-    const pose = body.pose;
-    const lerp = (o: THREE.Object3D, rx: number, rz = 0, k = 0.25) => { o.rotation.x += (rx - o.rotation.x) * k; o.rotation.z += (rz - o.rotation.z) * k; };
-    this.pivot.position.y = 0; this.pivot.rotation.x = 0; this.pivot.rotation.z = 0;
-    const flash = body.lastHitAt > physTime - 0.35;
-    for (const m of this.bodyMats) m.emissive.setHex(flash ? 0x802020 : 0x000000);
-    if (pose === 'dead' || pose === 'downed') { this.pivot.rotation.x = -Math.PI / 2 * 0.95; this.pivot.position.y = 0.35; this.pivot.position.z = 0; lerp(this.armL, 0.3, -0.6); lerp(this.armR, 0.3, 0.6); lerp(this.legL, 0.1); lerp(this.legR, -0.1); return; }
-    if (pose === 'sleep') { this.pivot.rotation.x = -Math.PI / 2; this.pivot.position.y = 0.55; lerp(this.armL, 0, 0); lerp(this.armR, 0, 0); lerp(this.legL, 0); lerp(this.legR, 0); return; }
-    if (pose === 'sit') { this.pivot.position.y = -0.4; lerp(this.legL, -Math.PI / 2 + 0.1); lerp(this.legR, -Math.PI / 2 + 0.1); lerp(this.armL, -0.5); lerp(this.armR, -0.5); return; }
-    if (pose === 'pray') { this.pivot.position.y = -0.55; lerp(this.legL, -Math.PI / 2 + 0.2); lerp(this.legR, -Math.PI / 2 + 0.2); lerp(this.armL, -1.2, 0.35); lerp(this.armR, -1.2, -0.35); this.head.rotation.x = 0.4; return; }
-    this.head.rotation.x = 0;
-    if (pose === 'attack') { const k = Math.min(1, (physTime - body.lastAttackAt) / 0.4); const swing = Math.sin(k * Math.PI); lerp(this.armR, -2.4 + swing * 2.6, -0.3, 0.6); lerp(this.armL, -0.4, 0.2); lerp(this.legL, 0.2); lerp(this.legR, -0.2); return; }
-    if (pose === 'hit') { this.pivot.rotation.x = -0.25; lerp(this.armL, -1.2, -0.4, 0.5); lerp(this.armR, -1.2, 0.4, 0.5); return; }
-    if (pose === 'work') {
-      // Semantic Activity Projection (spec §15): a `chop`/`gather` worker swings distinctly from
-      // generic labour instead of collapsing to the same "pose = work" motion — see
-      // game/presentation/activityCues.ts, which resolves `workStyle` from the actor's currently
-      // active canonical Action. `null`/'hammer' keeps the original generic bob (construction's
-      // build labour reads visually as hammering already, so it needs no new motion). This is
-      // the NPC path: an NPC's chop/gather Action keeps `body.pose === 'work'` (mind/agent.ts,
-      // matching how `build` already does it) and this table differentiates chop vs quarry.
-      if (workStyle === 'chop') {
-        const cyc = (t * 1.3) % 1; const raise = cyc < 0.5 ? cyc / 0.5 : 1 - (cyc - 0.5) / 0.5;
-        lerp(this.armR, -2.6 + raise * 2.3, -0.15, 0.5); lerp(this.armL, -2.0 + raise * 1.8, 0.15, 0.5);
-        lerp(this.legL, 0.1); lerp(this.legR, -0.1); this.pivot.rotation.x = 0.1 + (1 - raise) * 0.15; return;
-      }
-      if (workStyle === 'quarry') {
-        const cyc = (t * 1.6) % 1; const raise = cyc < 0.4 ? cyc / 0.4 : 1 - (cyc - 0.4) / 0.6;
-        lerp(this.armR, -1.8 + raise * 1.6, -0.1, 0.55); lerp(this.armL, -0.5, 0.1, 0.4);
-        lerp(this.legL, 0); lerp(this.legR, 0); this.pivot.rotation.x = 0.25; return;
-      }
-      const w = Math.sin(t * 7); lerp(this.armR, -1.4 + w * 0.9, 0, 0.4); lerp(this.armL, -0.6 + Math.sin(t * 3.5) * 0.2); lerp(this.legL, 0); lerp(this.legR, 0); this.pivot.rotation.x = 0.15; return;
-    }
-    // v0.8 §16: the PLAYER's own successful-extraction interaction (game/player/interaction.ts)
-    // is a discrete, one-shot event rather than a sustained canonical Action with a `nodeId` for
-    // `workStyleFor` to read — it briefly flashes this dedicated pose (0.6s, controller.ts's
-    // `poseUntil` handling) instead of the chop/quarry-differentiated `work` rhythm above, which
-    // is keyed off an actively-worked resource node an interact-driven swing doesn't have.
-    if (pose === 'chop') { const cycle = (t * 1.35) % (Math.PI * 2); const raise = Math.max(0, Math.sin(cycle)); const chop = Math.max(0, -Math.sin(cycle)) ** 0.5; lerp(this.armR, -0.3 - raise * 2.2 + chop * 2.0, 0.1, 0.5); lerp(this.armL, -0.5, -0.1); lerp(this.legL, 0.1); lerp(this.legR, -0.1); this.pivot.rotation.x = 0.12; return; }
-    if (pose === 'talk') { lerp(this.armR, -0.4 + Math.sin(t * 5) * 0.3, -0.2); lerp(this.armL, -0.2 + Math.sin(t * 4 + 1) * 0.2, 0.15); lerp(this.legL, 0); lerp(this.legR, 0); this.head.rotation.y = Math.sin(t * 2) * 0.1; return; }
-    // v0.8 "The Legible World" §B: `eat`/`drink`/`haul` are now real, distinct poses (see
-    // core/types.ts's `Pose`) — each gets its own silhouette instead of reusing `sit`/`stand`/
-    // `work`, so a player can tell them apart without opening the Inspector.
-    if (pose === 'eat') { this.pivot.position.y = -0.4; lerp(this.legL, -Math.PI / 2 + 0.1); lerp(this.legR, -Math.PI / 2 + 0.1); lerp(this.armL, -0.5); const bite = Math.sin(t * 2.2) * 0.5 + 0.5; lerp(this.armR, -1.9 - bite * 0.3, -0.15); this.head.rotation.x = -bite * 0.15; return; }
-    if (pose === 'drink') { const sip = Math.sin(t * 1.6) * 0.5 + 0.5; lerp(this.armR, -2.0 - sip * 0.25, -0.1); lerp(this.armL, -0.2); lerp(this.legL, 0); lerp(this.legR, 0); this.head.rotation.x = -sip * 0.2; return; }
-    if (pose === 'haul') { const a = Math.sin(p) * Math.min(1.0, speed * 0.28); lerp(this.legL, a, 0, 0.5); lerp(this.legR, -a, 0, 0.5); lerp(this.armL, -1.9, 0.25, 0.35); lerp(this.armR, -1.9, -0.25, 0.35); this.pivot.position.y = Math.abs(Math.sin(p)) * 0.04; this.pivot.rotation.x = 0.08; return; }
-    if (walking) { const a = Math.sin(p) * Math.min(1.1, speed * 0.32); lerp(this.legL, a, 0, 0.5); lerp(this.legR, -a, 0, 0.5); lerp(this.armL, -a * 0.8, 0.08, 0.5); lerp(this.armR, a * 0.8, -0.08, 0.5); this.pivot.position.y = Math.abs(Math.sin(p)) * 0.05; }
-    else { lerp(this.legL, 0); lerp(this.legR, 0); lerp(this.armL, Math.sin(t * 1.3) * 0.04, 0.06); lerp(this.armR, Math.sin(t * 1.3 + 1) * 0.04, -0.06); this.torso.position.y = 1.07 + Math.sin(t * 1.6) * 0.01; }
-  }
-}
+/**
+ * The projection of canonical bodies and loose items into the scene.
+ *
+ * v0.11 replaced the block figure with `presentation/humanoid.ts`'s proportioned rig; this file
+ * keeps its original job unchanged — walk every canonical `Body` each frame, make sure it has a
+ * visual, and hand that visual the body's own state. It still reads and never writes.
+ */
 
+const propMaterial = (() => { let m: THREE.MeshStandardMaterial | null = null; return () => (m ??= surfaceMaterial('grain', { roughness: 0.8 })); })();
+const featherMaterial = (() => { let m: THREE.MeshStandardMaterial | null = null; return () => (m ??= surfaceMaterial('cloth', { roughness: 0.9 })); })();
+
+/** Fowl: still simple, but round rather than cubic, so it reads as a bird beside a person. */
 class Chicken {
-  root = new THREE.Group(); phase = 0; body: THREE.Mesh;
+  root = new THREE.Group(); phase = 0; body: THREE.Mesh; head: THREE.Group;
   constructor() {
-    const m = (c: number) => new THREE.MeshLambertMaterial({ color: c });
-    this.body = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.28, 0.42), m(0xf0ece0)); this.body.position.y = 0.3; this.body.castShadow = true; this.root.add(this.body);
-    const head = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.2, 0.18), m(0xf0ece0)); head.position.set(0, 0.52, 0.22); this.root.add(head);
-    const beak = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.06, 0.1), m(0xe8a030)); beak.position.set(0, 0.5, 0.35); this.root.add(beak);
-    const comb = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.1, 0.12), m(0xd83030)); comb.position.set(0, 0.66, 0.2); this.root.add(comb);
-    for (const x of [-0.08, 0.08]) { const l = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.18, 0.05), m(0xe8a030)); l.position.set(x, 0.09, 0); this.root.add(l); }
+    const acc = new GeoAccum();
+    const uv = surfaceTex('cloth').uvScale;
+    const feather = rgb(0xf0ece0), comb = rgb(0xd83030), beak = rgb(0xe8a030);
+    acc.add(UNIT.sphere, xf(0, 0.3, 0, 0.34, 0.3, 0.44), feather, uv);
+    acc.add(UNIT.cone, xf(0, 0.3, -0.26, 0.24, 0.26, 0.24, 0, -Math.PI / 2.4, 0), shade(feather, 0.92), uv);
+    for (const s of [-1, 1]) acc.add(UNIT.sphereLo, xf(s * 0.16, 0.32, 0.02, 0.1, 0.24, 0.3), shade(feather, 0.88), uv);
+    for (const s of [-1, 1]) acc.add(UNIT.cyl6, xf(s * 0.07, 0.1, 0.02, 0.045, 0.2, 0.045), beak, uv);
+    const g = acc.build()!;
+    this.body = new THREE.Mesh(g, featherMaterial());
+    this.body.castShadow = true; this.root.add(this.body);
+    const hacc = new GeoAccum();
+    hacc.add(UNIT.sphere, xf(0, 0, 0, 0.19, 0.2, 0.19), feather, uv);
+    hacc.add(UNIT.cone, xf(0, 0.005, 0.12, 0.07, 0.11, 0.07, 0, Math.PI / 2, 0), beak, uv);
+    hacc.add(UNIT.box, xf(0, 0.12, -0.01, 0.03, 0.09, 0.11), comb, uv);
+    for (const s of [-1, 1]) hacc.add(UNIT.sphereLo, xf(s * 0.07, 0.03, 0.09, 0.03, 0.03, 0.02), rgb(0x1a1410), uv);
+    this.head = new THREE.Group();
+    const hm = new THREE.Mesh(hacc.build()!, featherMaterial()); hm.castShadow = true;
+    this.head.add(hm); this.head.position.set(0, 0.53, 0.2);
+    this.root.add(this.head);
   }
-  animate(dt: number, body: Body): void { const s = Math.hypot(body.vel.x, body.vel.z); this.phase += dt * (4 + s * 6); this.body.position.y = 0.3 + Math.abs(Math.sin(this.phase)) * 0.03 * (s > 0.1 ? 1 : 0.3); this.root.rotation.z = Math.sin(this.phase) * 0.04 * (s > 0.1 ? 1 : 0); }
+  animate(dt: number, body: Body): void {
+    const s = Math.hypot(body.vel.x, body.vel.z);
+    this.phase += dt * (4 + s * 6);
+    this.body.position.y = Math.abs(Math.sin(this.phase)) * 0.03 * (s > 0.1 ? 1 : 0.3);
+    this.head.position.z = 0.2 + Math.sin(this.phase * 1.3) * (s > 0.1 ? 0.05 : 0.015);
+    this.head.rotation.x = Math.sin(this.phase * 0.7) * 0.12;
+    this.root.rotation.z = Math.sin(this.phase) * 0.04 * (s > 0.1 ? 1 : 0);
+  }
 }
 
-/** Small props for items lying in the world. */
+/** Small props for items lying in the world — one merged mesh per item, one shared material. */
 function makeItemMesh(it: Item): THREE.Object3D {
-  const g = new THREE.Group(); const m = (c: number, e = 0x000000) => new THREE.MeshLambertMaterial({ color: c, emissive: e });
-  const add = (w: number, h: number, d: number, c: number, x = 0, y = 0, z = 0, e = 0) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m(c, e)); b.position.set(x, y, z); b.castShadow = true; g.add(b); return b; };
+  const acc = new GeoAccum();
+  const uv = surfaceTex('grain').uvScale;
+  const add = (geo: THREE.BufferGeometry, m: THREE.Matrix4, c: number) => acc.add(geo, m, rgb(c), uv);
   switch (it.type) {
-    case 'sword': add(0.06, 0.1, 0.8, 0xc4c8d0, 0, 0.06, 0); add(0.22, 0.06, 0.05, 0x6a5030, 0, 0.06, -0.3); break;
-    case 'dagger': add(0.05, 0.08, 0.4, 0xb8bcc4, 0, 0.05, 0); add(0.14, 0.05, 0.05, 0x5a4020, 0, 0.05, -0.15); break;
-    case 'hammer': add(0.06, 0.06, 0.55, 0x5a4020, 0, 0.05, 0); add(0.16, 0.14, 0.24, 0x505058, 0, 0.09, 0.2); break;
-    case 'axe': add(0.06, 0.06, 0.6, 0x5a4020, 0, 0.05, 0); add(0.22, 0.05, 0.2, 0x808890, 0, 0.07, 0.2); break;
-    case 'bread': add(0.22, 0.14, 0.4, 0xc89050, 0, 0.08, 0); add(0.16, 0.05, 0.3, 0xe0b070, 0, 0.16, 0); break;
-    case 'pie': add(0.34, 0.1, 0.34, 0xd0a060, 0, 0.06, 0); add(0.26, 0.04, 0.26, 0xa05030, 0, 0.13, 0); break;
-    case 'ale': add(0.18, 0.24, 0.18, 0x8a6a40, 0, 0.13, 0); add(0.14, 0.04, 0.14, 0xf0e8c0, 0, 0.27, 0); break;
-    case 'coins': add(0.24, 0.16, 0.2, 0x8a6a40, 0, 0.09, 0); add(0.08, 0.04, 0.08, 0xf0d060, 0.06, 0.19, 0); break;
-    case 'ring': add(0.14, 0.05, 0.14, 0xe8e8f0, 0, 0.03, 0, 0x404050); add(0.06, 0.06, 0.06, 0xd0b060, 0, 0.06, 0.05); break;
-    case 'cheese': add(0.3, 0.14, 0.3, 0xf0d060, 0, 0.08, 0); break;
-    case 'lantern': add(0.18, 0.28, 0.18, 0xffd080, 0, 0.15, 0, 0xff8020); add(0.22, 0.04, 0.22, 0x404040, 0, 0.3, 0); break;
-    case 'herbs': add(0.26, 0.1, 0.26, 0x4a8a3a, 0, 0.06, 0); break;
-    case 'flowers': add(0.2, 0.2, 0.2, 0xe060a0, 0, 0.12, 0); break;
-    case 'meat': add(0.3, 0.12, 0.42, 0xa03030, 0, 0.07, 0); break;
-    case 'wheat': add(0.24, 0.3, 0.24, 0xd8c060, 0, 0.16, 0); break;
-    default: add(0.2, 0.2, 0.2, 0x9a8060, 0, 0.1, 0);
+    case 'sword': add(UNIT.box, xf(0, 0.06, 0.1, 0.05, 0.03, 0.72), 0xc4c8d0); add(UNIT.box, xf(0, 0.06, -0.3, 0.2, 0.05, 0.05), 0x6a5030); break;
+    case 'dagger': add(UNIT.box, xf(0, 0.05, 0.06, 0.04, 0.025, 0.36), 0xb8bcc4); add(UNIT.box, xf(0, 0.05, -0.15, 0.13, 0.045, 0.045), 0x5a4020); break;
+    case 'hammer': add(UNIT.cyl8, xf(0, 0.05, -0.05, 0.05, 0.5, 0.05, 0, Math.PI / 2, 0), 0x5a4020); add(UNIT.box, xf(0, 0.08, 0.2, 0.14, 0.12, 0.2), 0x505058); break;
+    case 'axe': add(UNIT.cyl8, xf(0, 0.05, -0.06, 0.05, 0.55, 0.05, 0, Math.PI / 2, 0), 0x5a4020); add(UNIT.box, xf(0, 0.07, 0.2, 0.06, 0.18, 0.17), 0x808890); break;
+    case 'bread': add(UNIT.sphere, xf(0, 0.09, 0, 0.24, 0.16, 0.4), 0xc89050); break;
+    case 'pie': add(UNIT.cyl12, xf(0, 0.06, 0, 0.34, 0.11, 0.34), 0xd0a060); add(UNIT.cyl12, xf(0, 0.12, 0, 0.26, 0.04, 0.26), 0xa05030); break;
+    case 'ale': add(tapered(0.88), xf(0, 0.13, 0, 0.2, 0.26, 0.2), 0x8a6a40); add(UNIT.cyl8, xf(0, 0.27, 0, 0.16, 0.04, 0.16), 0xf0e8c0); break;
+    case 'coins': add(tapered(0.8), xf(0, 0.08, 0, 0.22, 0.17, 0.22), 0x8a6a40); for (let i = 0; i < 3; i++) add(UNIT.cyl8, xf((i - 1) * 0.05, 0.18, 0.02, 0.09, 0.02, 0.09), 0xf0d060); break;
+    case 'ring': add(UNIT.cyl12, xf(0, 0.03, 0, 0.13, 0.03, 0.13), 0xe8e8f0); break;
+    case 'cheese': add(UNIT.cyl6, xf(0, 0.08, 0, 0.3, 0.15, 0.3), 0xf0d060); break;
+    case 'lantern': add(tapered(0.85), xf(0, 0.14, 0, 0.17, 0.26, 0.17), 0xffd080); add(UNIT.cyl8, xf(0, 0.29, 0, 0.2, 0.04, 0.2), 0x404040); break;
+    case 'herbs': add(UNIT.blobLo, xf(0, 0.07, 0, 0.26, 0.14, 0.26), 0x4a8a3a); break;
+    case 'flowers': add(UNIT.blobLo, xf(0, 0.12, 0, 0.2, 0.2, 0.2), 0xe060a0); break;
+    case 'meat': add(UNIT.sphere, xf(0, 0.07, 0, 0.3, 0.13, 0.4), 0xa03030); break;
+    case 'wheat': add(tapered(1.4), xf(0, 0.17, 0, 0.22, 0.34, 0.22), 0xd8c060); break;
+    case 'log': add(UNIT.cyl8, xf(0, 0.13, 0, 0.26, 0.8, 0.26, 0, Math.PI / 2, 0), 0x68512f); break;
+    case 'stone': for (let i = 0; i < 3; i++) add(UNIT.blobLo, xf((i - 1) * 0.14, 0.09, (i % 2) * 0.1, 0.22, 0.18, 0.22, i), 0x7a7c7e); break;
+    default: add(UNIT.blobLo, xf(0, 0.1, 0, 0.22, 0.2, 0.22), 0x9a8060);
   }
+  const geo = acc.build();
+  const g = new THREE.Group();
+  if (geo) { const m = new THREE.Mesh(geo, propMaterial()); m.castShadow = true; m.receiveShadow = true; g.add(m); }
   return g;
 }
 
 export class ActorRenderer {
   group = new THREE.Group();
-  private humans = new Map<string, Humanoid>(); private chickens = new Map<string, Chicken>(); private itemMeshes = new Map<string, THREE.Object3D>();
+  private humans = new Map<string, HumanoidRig>(); private chickens = new Map<string, Chicken>(); private itemMeshes = new Map<string, THREE.Object3D>();
   constructor(private world: World) { this.group.name = 'actors'; }
   meshFor(bodyId: string): THREE.Object3D | undefined { return this.humans.get(bodyId)?.root ?? this.chickens.get(bodyId)?.root; }
   /** Sync every body's visual to the canonical body state. */
@@ -152,12 +96,12 @@ export class ActorRenderer {
       const owner = this.world.get(b.ownerId) as Person | Creature | undefined; if (!owner) continue;
       if (b.shape === 'humanoid') {
         const p = owner as Person; let h = this.humans.get(b.id);
-        if (!h) { h = new Humanoid(p.appearance); this.humans.set(b.id, h); this.group.add(h.root); h.root.userData.bodyId = b.id; }
+        if (!h) { h = new HumanoidRig(p.appearance); this.humans.set(b.id, h); this.group.add(h.root); h.root.userData.bodyId = b.id; }
         h.root.visible = !(hidePlayerBody && p.controlled);
         // Canonical facing is `(-sin yaw, -cos yaw)` (the convention perception + combat use —
-        // see Simulation.perceive / followPath). This voxel mesh's "front" (eyes, held item) is
-        // its local +Z, which `rotation.y = yaw` alone would point the OTHER way — the cause of
-        // the "NPCs walking backwards" the v0.2.3 playtest saw. Add PI so the mesh faces the
+        // see Simulation.perceive / followPath). This mesh's "front" (face, held item) is its
+        // local +Z, which `rotation.y = yaw` alone would point the OTHER way — the cause of the
+        // "NPCs walking backwards" the v0.2.3 playtest saw. Add PI so the mesh faces the
         // canonical facing direction. Canonical nav is untouched.
         h.root.position.set(b.pos.x, b.pos.y, b.pos.z); h.root.rotation.y = b.yaw + Math.PI;
         const held = p.inventory.map(id => this.world.item(id)).find(i => i && ['sword', 'dagger', 'hammer', 'axe', 'lantern'].includes(i.type));

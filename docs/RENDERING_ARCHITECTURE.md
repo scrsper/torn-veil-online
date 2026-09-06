@@ -1,7 +1,16 @@
 # Rendering Architecture — audit and hybrid semantic direction (v0.8 §12-16)
 
-**Status:** audit + direction for this milestone. Not a rewrite plan — see "What this milestone
-does NOT do" at the bottom.
+**Status:** audit + direction for the v0.8 milestone. Not a rewrite plan — see "What this
+milestone does NOT do" at the bottom.
+
+> **Superseded in part by v0.11.** The migration path below (items 1, 2 and 5 — semantic crop,
+> construction and tree renderers replacing the "everything becomes a voxel" mechanism) was taken
+> further than this document proposed, and generalised: `src/game/presentation/style.ts` now routes
+> every block id to exactly one renderer, and terrain, vegetation, crops and building roofs are all
+> drawn by semantic skins reading canonical cells. See
+> `docs/V0_11_PRESENTATION_PROTOTYPE.md`. The architectural analysis below — what should stay
+> voxel, why `blocks.ts`'s visual hints are a wrinkle, how action → animation already works — is
+> still accurate and is what v0.11 was built on.
 
 ## Constitutional framing
 

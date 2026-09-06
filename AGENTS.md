@@ -116,10 +116,19 @@ witnesses learn about it" stays true instead of becoming a scripted one-off.
   seed, then overlay saved mind/relationship/item/voxel state. Saves carry a schema version;
   bump it (and accept that older saves stop being offered as resumable) rather than silently
   changing what a save's fields mean.
-- `src/game/` — everything Three.js: chunked voxel mesher (`voxel/`), atmosphere/weather/sky
-  (`render/scene.ts`), procedural actor rigs (`actors/`), the first-person controller +
-  interaction targeting (`player/`), procedural WebAudio (`audio/`), and all UI including the
-  Simulation Inspector and event feed (`ui/`). v0.10 adds a SECOND CAMERA over the same world —
+- `src/game/presentation/` — the v0.11 presentation layer: `style.ts` maps every canonical block
+  id to exactly ONE renderer (a "channel") and one material family, and the skins beside it draw
+  what they own — `terrainSkin.ts` (one smoothed surface over the canonical height field),
+  `foliageSkin.ts` (trees, crops, undergrowth), `buildingSkin.ts` (pitched roofs, timber framing,
+  windows, swinging doors, stall awnings), `humanoid.ts` (the proportioned character rig),
+  `textures.ts` (every texture, generated procedurally at boot), `worldSkin.ts` (the orchestrator
+  that owns the shared dirty-chunk set). Ownership is exclusive by construction, so nothing is
+  drawn twice; `BuildingSkin.claimedCells()` is how the chunk mesher is told to stand down. Read
+  `docs/V0_11_PRESENTATION_PROTOTYPE.md` before changing how anything is drawn.
+- `src/game/` — everything else Three.js: chunked voxel mesher for what is genuinely block-shaped
+  (`voxel/`), atmosphere/weather/sky (`render/scene.ts`), actor sync (`actors/`), the first-person
+  controller + interaction targeting (`player/`), procedural WebAudio (`audio/`), and all UI
+  including the Simulation Inspector and event feed (`ui/`). v0.10 adds a SECOND CAMERA over the same world —
   `render/arpgCamera.ts` (elevated/angled, F2) and `ui/observer.ts` (the developer overlay, F6) —
   not a second simulation. `PlayerController.aimOrigin()/aimDir()` is the one place that knows how
   the current camera turns "the player is reaching for that" into a ray; everything below it,
