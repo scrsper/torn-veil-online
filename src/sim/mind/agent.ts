@@ -3,7 +3,7 @@ import { World } from '../core/world';
 import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRelationships } from './relationships';
 import { maintainConflicts, beginConflict, recordConflictBlow, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
 import { maintainCustody, subdue, takeIntoCustody, beginSurrender, isSubdued } from '../social/custody';
-import { stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, restockTavern, gatherHerbs, huntGame, GRAIN_CAP, SEED_PER_PLOT } from '../world/metabolism';
+import { SAW_RATIO, stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, restockTavern, gatherHerbs, huntGame, GRAIN_CAP, SEED_PER_PLOT } from '../world/metabolism';
 import { stepPhysiology, activityLevelFor, heatBand, hungerBand, thirstBand, sleepBand, comfortBand, severityAtLeast, syncNeeds } from '../core/physiology';
 import { isCommittable, EMERGENCY_GOAL_TYPES, interruptionSeverityMet, startCommitment, suspendCommitment, resumeCommitment, finishCommitment, commitmentValidity } from './commitment';
 import { getPhysicalCapability, capabilityFor } from '../core/attributes';
@@ -785,6 +785,48 @@ export class Simulation {
         if (site && dist2(pos, site.inside) < 120 && (builders.includes(p.id) || builders.length < MAX_BUILDERS)) {
           G('build', clamp((0.5 + (proj.status === 'building' ? 0.08 : 0)) * laborCapacity * incentive), [`the village needs hands to raise ${proj.name}`], { targetPlace: proj.sitePlaceId, data: { projectId: proj.id } });
         }
+      }
+      // Fell for planks: a gathering project short of planks, with no wood anywhere that could
+      // still become one.
+      //
+      // v0.10.1 §X/§XI: this is the missing symmetric half of the stone rule below, and it is the
+      // root of the `WL-CONSTRUCTION-MATERIAL-STALLED` violation v0.9 and v0.10 both recorded as
+      // pre-existing. Demand for planks propagates from the site to the sawpit
+      // (`world/construction.ts` raises a plank haul) and from the sawpit to the clearing (it
+      // raises a log haul) — but the last link, "and therefore somebody should fell a tree", does
+      // not exist. Wood only ever appears because the woodcutter's SCHEDULE happens to put him at
+      // the clearing while he is fit to work.
+      //
+      // Measured on seed 918271 (this is what a 45-day run looks like when that coincidence fails
+      // to happen): the shed sits at 15 of 16 planks with the sawpit holding two logs, the
+      // clearing empty, twelve trees still standing, and no haul task open, for weeks. The
+      // woodcutter is chronically fatigued and hungry — on `main` too, identically — so he sleeps
+      // or socialises through shift after shift. The village has the trees, the tools and the
+      // need, and nothing connects them.
+      //
+      // The rule is the stone rule with wood's own pipeline: what could still become a plank is
+      // planks on site, planks at the sawpit, logs at the sawpit (`SAW_RATIO`), logs in the
+      // clearing, and logs being carried. Same role list, same concurrency cap, same utility, and
+      // it stops the moment the pipeline can cover the requirement.
+      for (const gp of (laborOk ? w.constructionProjects : [])) {
+        if (gp.status !== 'gathering') continue;
+        const req = gp.required.find(r => r.type === 'plank'); if (!req) continue;
+        const sawpits = w.places().filter(pl => pl.type === 'sawpit');
+        const clearings = w.places().filter(pl => pl.type === 'wilderness' && pl.slug === 'clearing');
+        const logsToPlanks = (logs: number) => Math.floor(logs / SAW_RATIO.in) * SAW_RATIO.out;
+        const looseLogs = w.items().filter(i => i.type === 'log' && i.holderId).reduce((n, i) => n + i.quantity, 0);
+        const pipeline = stockAt(w, 'plank', gp.sitePlaceId)
+          + sawpits.reduce((n, pl) => n + stockAt(w, 'plank', pl.id), 0)
+          + w.items().filter(i => i.type === 'plank' && i.holderId).reduce((n, i) => n + i.quantity, 0)
+          + logsToPlanks(sawpits.reduce((n, pl) => n + stockAt(w, 'log', pl.id), 0)
+            + clearings.reduce((n, pl) => n + stockAt(w, 'log', pl.id), 0) + looseLogs);
+        if (pipeline >= req.quantity) continue;
+        const already = w.persons().filter(q => q.alive && q.id !== p.id && q.mind.goal?.type === 'chop').length;
+        const chopping = p.mind.goal?.type === 'chop';
+        const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter'].includes(p.occupation);
+        if (!chopping && (already >= 2 || !roleOk)) continue;
+        const node = nearestAvailableNode(w, 'tree', pos, 220);
+        if (node) G('chop', clamp(0.5 * laborCapacity * incentive), [`${gp.name} still needs planks, and there is no wood for them`], { targetPos: node.pos, data: { nodeId: node.id } });
       }
       // Gather stone: a gathering project short of stone, with none in the pipeline yet.
       for (const gp of (laborOk ? w.constructionProjects : [])) {
