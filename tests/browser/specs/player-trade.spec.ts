@@ -216,8 +216,17 @@ export const playerTrade: BrowserSpec = {
     // ---- 5. no coin: the sale is refused and nothing moves
     await page.keyboard.press('KeyI');
     await page.evaluate(() => { const w = (window as any).game.world; w.person(w.playerId).wealth = 0; });
+    // Re-aim: the village has been running throughout, and a shopkeeper who has taken a few steps
+    // is no longer under the crosshair from where the player stood a moment ago.
+    const stillAt = await page.evaluate((id: string) => {
+      const b = (window as any).game.world.primaryBody(id);
+      return { x: b.pos.x, y: b.pos.y, z: b.pos.z };
+    }, seller.id);
+    await movePlayerTo(page, stillAt, 1.4);
+    await lookAt(page, { x: stillAt.x, y: stillAt.y + 0.9, z: stillAt.z });
+    await page.evaluate(() => { (window as any).game.inter.update(); });
     await page.keyboard.press('KeyR');
-    await page.waitForSelector('#dialogue[style*="display: block"]', { timeout: 5000 });
+    await page.waitForSelector('#dialogue[style*="display: block"]', { timeout: 8000 });
     const poorMenu = await readDialogue(page);
     const anyBuy = poorMenu.options.find(o => o.includes('Buy'));
     if (anyBuy) {
