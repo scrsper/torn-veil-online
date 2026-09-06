@@ -53,8 +53,8 @@ export type RobberyTake =
 /**
  * What a robbery actually takes, preferring something the victim genuinely carries (Constitution
  * requirement: "robbery should select something the target actually possesses where possible").
- * Falls back to abstract wealth (materialized into a real coin item by the caller, exactly like
- * `sellItem()` already does), then to the most valuable other carried item, then nothing.
+ * Falls back to abstract wealth (transferred wealth-to-wealth by the caller — the one currency
+ * every person spends), then to the most valuable other carried item, then nothing.
  */
 export function selectRobberyTake(world: World, victim: Person): RobberyTake | null {
   const coinItem = victim.inventory

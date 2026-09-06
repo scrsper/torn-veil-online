@@ -3,10 +3,12 @@ import type { World } from '../../sim/core/world';
 import type { Item, Person } from '../../sim/core/types';
 import type { Target } from '../player/interaction';
 import { formatWorldTime } from '../../sim/core/time';
+import { hungerBand, thirstBand, sleepBand, type Severity } from '../../sim/core/physiology';
+import { activeHaulFor } from '../../sim/logistics/participation';
 
 const $ = (s: string) => document.querySelector(s) as HTMLElement;
 export class HUD {
-  topTime = $('#topbar .time'); topSub = $('#topbar .sub'); target = $('#target'); bar = $('#vitals .bar i'); inv = $('#inv'); msgs = $('#messages'); bubbles = $('#bubbles'); damage = $('#damage');
+  topTime = $('#topbar .time'); topSub = $('#topbar .sub'); target = $('#target'); bar = $('#vitals .bar i'); inv = $('#inv'); needs = $('#needs'); purse = $('#purse'); job = $('#job'); msgs = $('#messages'); bubbles = $('#bubbles'); damage = $('#damage');
   labels = new Map<string, HTMLElement>(); selected: string | null = null; lastHurt = -9;
   constructor(private world: World, private camera: THREE.PerspectiveCamera) {}
   message(text: string): void { const d = document.createElement('div'); d.textContent = text; this.msgs.appendChild(d); setTimeout(() => d.remove(), 4000); while (this.msgs.children.length > 3) this.msgs.firstChild?.remove(); }
@@ -38,12 +40,37 @@ export class HUD {
     const player = w.person(w.playerId)!; const pb = w.primaryBody(player.id)!;
     this.bar.style.width = `${Math.max(0, pb.health / pb.maxHealth * 100)}%`;
     if (pb.lastHitAt > this.lastHurt) { this.lastHurt = pb.lastHitAt; this.damage.style.opacity = '1'; setTimeout(() => this.damage.style.opacity = '0', 250); }
+    this.updateEmbodiment(player);
     this.inv.innerHTML = 'Carrying: ' + (player.inventory.map(id => w.item(id)).filter(Boolean).map(i => `<b>${i!.name}${i!.quantity > 1 ? ` ×${i!.quantity}` : ''}</b>`).join(', ') || 'nothing');
     if (!target) this.target.innerHTML = '';
     else if (target.kind === 'body') { const p = target.person; if (p) { const goal = p.mind.goal; const st = target.body.dead ? 'dead' : target.body.pose === 'downed' ? 'incapacitated' : target.body.pose === 'sleep' ? 'asleep' : goal ? `${goal.type}${goal.data?.label ? ': ' + goal.data.label : ''}` : 'idle'; this.target.innerHTML = `<div class="name">${p.name}</div><div class="hint">${p.occupation} · ${st} · ${Math.round(target.body.health)}/${target.body.maxHealth} hp<br>[E] talk · [F] inspect · [LMB/X] attack</div>`; } else this.target.innerHTML = `<div class="name">${w.nameOf(target.body.ownerId)}</div>`; }
     else if (target.kind === 'item') { const it = target.item; const status = this.itemStatusFor(it, player); this.target.innerHTML = `<div class="name">${it.name}${it.quantity > 1 ? ` ×${it.quantity}` : ''}</div><div class="hint">${it.type}${status}<br>[E] take</div>`; }
-    else this.target.innerHTML = `<div class="hint">${target.name} · [E] use</div>`;
+    else this.target.innerHTML = `<div class="hint">${target.name} · [E] ${target.name === 'well' || target.name === 'water' ? 'drink' : 'use'}</div>`;
     this.updateLabels();
+  }
+  /**
+   * Player embodiment: the Traveler's own canonical needs (the same `needs` every NPC has, fed
+   * by the same `stepPhysiology`), purse (`wealth`, the one currency), and current haul job
+   * (`world.haulTasks` — the same task an NPC would be carrying). Everything shown is the
+   * player's OWN state — nothing here reads another person's mind.
+   */
+  private lastEmbodiment = '';
+  private updateEmbodiment(player: Person): void {
+    const w = this.world; const n = player.needs;
+    const rows: [string, number, Severity][] = [['hunger', n.hunger, hungerBand(player)], ['thirst', n.thirst, thirstBand(player)], ['rest', n.energy, sleepBand(player)]];
+    const task = activeHaulFor(w, player);
+    let jobText = '';
+    if (task) {
+      const carrying = task.carried > 0;
+      jobText = carrying
+        ? `Job: deliver <b>${task.carried} ${task.resource}</b> to <b>${w.nameOf(task.destPlaceId)}</b> — press <b>G</b> there`
+        : `Job: fetch <b>${task.quantity - task.delivered} ${task.resource}</b> at <b>${w.nameOf(task.sourcePlaceId)}</b> — press <b>G</b> there`;
+    }
+    const sig = rows.map(r => `${Math.round(r[1] * 20)}${r[2]}`).join('|') + '|' + player.wealth + '|' + jobText;
+    if (sig === this.lastEmbodiment) return; this.lastEmbodiment = sig;
+    this.needs.innerHTML = rows.map(([label, v, band]) => `<div class="row ${band}"><span>${label}</span><div class="bar"><i style="width:${Math.round(Math.max(0, Math.min(1, v)) * 100)}%"></i></div><span class="band">${band}</span></div>`).join('');
+    this.purse.textContent = `${player.wealth} silver`;
+    this.job.innerHTML = jobText;
   }
   private updateLabels(): void {
     const w = this.world; const cam = this.camera; const seen = new Set<string>(); const v = new THREE.Vector3(); const W = window.innerWidth, H = window.innerHeight;

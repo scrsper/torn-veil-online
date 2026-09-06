@@ -27,6 +27,7 @@ import { makeItem } from '../world/factory';
 import { banditResourcePressure, laborIncentive } from './economy';
 import { resolveRobberyCompliance, selectRobberyTake, ROBBERY_COOLDOWN_SECONDS, type RobberyTake } from './robbery';
 import { payRecoveryReward } from '../core/requests';
+import { haulOffersFrom, activeHaulFor, acceptHaulOffer, progressHaul, abandonHaul, buyMealFrom, eatAtHand, drinkHere, type HaulOffer, type HaulProgress } from '../logistics/participation';
 
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -1767,34 +1768,66 @@ export class Simulation {
     return ev;
   }
 
-  /** Canonical purchase path used by dialogue and available to any future actor intent. */
+  /** Canonical purchase of a specific displayed item. Payment is `wealth` -> `wealth` — the one
+   * currency every NPC economic path already reads (`buyFoodPortion`, `payWage`,
+   * `settleWholesale`, robbery). The player used to pay from a carried `coins` Item instead,
+   * the last live instance of the dual-currency split the independent audit flagged
+   * (Constitution §9: no separate player ontology; and an inert-money leak by construction). */
   buyItem(buyer: Person, seller: Person, it: import('../core/types').Item, price: number): WorldEvent | null {
-    const w = this.world; const coins = buyer.inventory.map(id => w.item(id)).find(item => item?.type === 'coins');
-    if (!coins || coins.quantity < price || it.holderId || it.ownerId !== seller.id) return null;
-    coins.quantity -= price; seller.wealth += price;
+    if (buyer.wealth < price || it.holderId || it.ownerId !== seller.id) return null;
+    buyer.wealth -= price; seller.wealth += price;
+    this.world.runTally.purchase_amount = (this.world.runTally.purchase_amount ?? 0) + price;
     const ev = this.takeItem(buyer, it, 'bought', seller.id);
     ev.data.price = price; ev.data.buyer = buyer.id; ev.data.seller = seller.id;
     ev.summary = `${buyer.name} bought ${it.name} from ${seller.name} for ${price} silver`;
-    coins.provenance.push({ tick: w.now, eventId: ev.id, from: buyer.id, to: seller.id, how: 'trade payment' });
     return ev;
   }
 
-  /** Canonical sale path. Payment becomes a real carried coin entity when needed. */
+  /** Canonical sale path: the seller's item goes on the buyer's display, the buyer's `wealth`
+   * pays the seller's `wealth`. No coin Item is minted (see `buyItem`). */
   sellItem(seller: Person, buyer: Person, it: import('../core/types').Item, price: number, displayPos?: Vec3, placeId?: EntityId): WorldEvent | null {
     const w = this.world;
     if (buyer.wealth < price || it.holderId !== seller.id || !seller.inventory.includes(it.id)) return null;
-    buyer.wealth -= price;
-    let coins = seller.inventory.map(id => w.item(id)).find(item => item?.type === 'coins');
-    if (coins) coins.quantity += price;
-    else coins = makeItem(w, 'coins', 'silver coins', { owner: seller.id, holder: seller.id, quantity: price });
+    buyer.wealth -= price; seller.wealth += price;
     seller.inventory = seller.inventory.filter(id => id !== it.id);
     it.holderId = null; it.ownerId = buyer.id;
     const pos = displayPos ?? w.primaryBody(buyer.id)?.pos ?? w.primaryBody(seller.id)?.pos ?? null;
     it.pos = pos ? { ...pos } : null; it.placeId = placeId ?? (pos ? w.placeAt(pos)?.id ?? null : null);
     const ev = w.emit('trade', { actor: seller.id, target: buyer.id, item: it.id, pos: pos ?? undefined, placeId: it.placeId ?? undefined, significance: 0.2, visibility: 10, data: { price, buyer: buyer.id, seller: seller.id }, summary: `${seller.name} sold ${it.name} to ${buyer.name} for ${price} silver` });
     it.provenance.push({ tick: w.now, eventId: ev.id, from: seller.id, to: buyer.id, how: 'sold' });
-    coins.provenance.push({ tick: w.now, eventId: ev.id, from: buyer.id, to: seller.id, how: 'trade payment' });
     return ev;
+  }
+
+  // ------------------------------------------------------------------ participation (any person, incl. the player)
+  // Thin canonical entry points over logistics/participation.ts — the same functions an NPC's
+  // own `haul`/`eat`/`drink` actions bottom out in, exposed so the client calls Simulation (per
+  // AGENTS.md) rather than reaching into the world. None of these read `controlled`.
+  haulOffersFrom(npc: Person): HaulOffer[] { return haulOffersFrom(this.world, npc); }
+  activeHaulFor(p: Person): import('../core/types').HaulTask | undefined { return activeHaulFor(this.world, p); }
+  acceptHaul(p: Person, task: import('../core/types').HaulTask): boolean { return acceptHaulOffer(this.world, task, p); }
+  /** One physical step of the person's current haul from where they stand (load / deposit /
+   * still to walk). Briefly shows the same `work` pose an NPC's load/unload step shows. */
+  progressHaul(p: Person): HaulProgress {
+    const b = this.world.primaryBody(p.id); if (!b) return { kind: 'no_job' };
+    const r = progressHaul(this.world, p, b.pos);
+    if (r.kind === 'loaded' || r.kind === 'delivered') { b.pose = 'work'; b.poseUntil = this.world.physicalTime + 0.8; }
+    return r;
+  }
+  abandonHaul(p: Person): boolean { return abandonHaul(this.world, p); }
+  buyMeal(buyer: Person, seller: Person, n = 1): import('../core/types').Item | null { return buyMealFrom(this.world, buyer, seller, n); }
+  /** Eat one unit of food to hand (own carried food, or the household larder at home). */
+  eatAtHand(p: Person): import('../core/types').ItemType | null {
+    const b = this.world.primaryBody(p.id); const here = b ? this.world.placeAt(b.pos)?.id ?? null : null;
+    const type = eatAtHand(this.world, p, here);
+    if (type && b) { b.pose = 'eat'; b.poseUntil = this.world.physicalTime + 1.5; }
+    return type;
+  }
+  /** Drink at the water source the person is standing at, if any. */
+  drinkHere(p: Person): boolean {
+    const b = this.world.primaryBody(p.id); if (!b) return false;
+    const ok = drinkHere(this.world, p, b.pos);
+    if (ok) { b.pose = 'drink'; b.poseUntil = this.world.physicalTime + 1.2; }
+    return ok;
   }
 
   // ------------------------------------------------------------------ strategic (per world minute)

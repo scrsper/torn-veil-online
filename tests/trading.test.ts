@@ -10,18 +10,20 @@ interface TradingSimulation extends Simulation {
 }
 
 describe('canonical trading', () => {
-  it('creates a real coin stack when a player without coins sells an item', () => {
+  // Player embodiment: money is `Person.wealth` for every person — the player included. These
+  // tests used to assert a player-only carried coin stack (retired: see docs/PLAYER_EMBODIMENT.md).
+  it('pays a selling player into their wealth — no coin item is minted', () => {
     const tw = createTestWorld(81, 16);
     const player = addPerson(tw, 'the Traveler', 'traveler', v(4.5, 1, 4.5), { controlled: true });
     const merchant = addPerson(tw, 'Merchant', 'merchant', v(5.5, 1, 4.5), { workId: tw.places.tavern });
-    merchant.wealth = 50;
+    merchant.wealth = 50; player.wealth = 0;
     const item = makeItem(tw.world, 'bread', 'travel bread', { owner: player.id, holder: player.id });
 
     const event = (tw.sim as TradingSimulation).sellItem(player, merchant, item, 7, v(6.5, 1, 4.5), tw.places.tavern);
 
     expect(event?.type).toBe('trade');
-    const coins = player.inventory.map(id => tw.world.item(id)).find(i => i?.type === 'coins');
-    expect(coins).toMatchObject({ ownerId: player.id, holderId: player.id, quantity: 7 });
+    expect(player.wealth).toBe(7);
+    expect(tw.world.items().some(i => i.type === 'coins')).toBe(false);
     expect(merchant.wealth).toBe(43);
     expect(player.inventory).not.toContain(item.id);
     expect(item).toMatchObject({ ownerId: merchant.id, holderId: null, placeId: tw.places.tavern, pos: v(6.5, 1, 4.5) });
@@ -32,14 +34,13 @@ describe('canonical trading', () => {
     const tw = createTestWorld(82, 16);
     const player = addPerson(tw, 'the Traveler', 'traveler', v(4.5, 1, 4.5), { controlled: true });
     const merchant = addPerson(tw, 'Merchant', 'merchant', v(5.5, 1, 4.5));
-    merchant.wealth = 10;
-    const coins = makeItem(tw.world, 'coins', 'silver coins', { owner: player.id, holder: player.id, quantity: 12 });
+    merchant.wealth = 10; player.wealth = 12;
     const goods = makeItem(tw.world, 'cheese', 'cheese', { owner: merchant.id, pos: v(5.5, 1, 5.5), placeId: tw.places.tavern });
 
     const event = (tw.sim as TradingSimulation).buyItem(player, merchant, goods, 5);
 
     expect(event?.type).toBe('trade');
-    expect(coins.quantity).toBe(7);
+    expect(player.wealth).toBe(7);
     expect(merchant.wealth).toBe(15);
     expect(goods).toMatchObject({ ownerId: player.id, holderId: player.id, pos: null, placeId: null });
     expect(player.inventory).toContain(goods.id);
@@ -50,11 +51,11 @@ describe('canonical trading', () => {
     const tw = createTestWorld(83, 16);
     const player = addPerson(tw, 'the Traveler', 'traveler', v(4.5, 1, 4.5), { controlled: true });
     const merchant = addPerson(tw, 'Merchant', 'merchant', v(5.5, 1, 4.5));
-    const coins = makeItem(tw.world, 'coins', 'silver coins', { owner: player.id, holder: player.id, quantity: 2 });
+    player.wealth = 2;
     const goods = makeItem(tw.world, 'cheese', 'cheese', { owner: merchant.id, pos: v(5.5, 1, 5.5) });
 
     expect((tw.sim as TradingSimulation).buyItem(player, merchant, goods, 5)).toBeNull();
-    expect(coins.quantity).toBe(2);
+    expect(player.wealth).toBe(2);
     expect(goods).toMatchObject({ ownerId: merchant.id, holderId: null, pos: v(5.5, 1, 5.5) });
   });
 });

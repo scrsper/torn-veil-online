@@ -14,7 +14,7 @@ export class Interaction {
   constructor(private world: World, private sim: Simulation, private ctrl: PlayerController, dom: HTMLElement) {
     dom.addEventListener('mousedown', (e) => { if (!this.ctrl.locked || !this.enabled) return; if (e.button === 0) this.attack(); else if (e.button === 2) this.interact(); });
     dom.addEventListener('contextmenu', e => e.preventDefault());
-    window.addEventListener('keydown', (e) => { if (!this.enabled || (e.target as HTMLElement)?.tagName === 'INPUT') return; if (e.code === 'KeyE') this.interact(); if (e.code === 'KeyQ') this.drop(); if (e.code === 'KeyX') this.attack(); if (e.code === 'KeyF' && this.target?.kind === 'body' && this.target.person) this.onInspect?.(this.target.person); });
+    window.addEventListener('keydown', (e) => { if (!this.enabled || (e.target as HTMLElement)?.tagName === 'INPUT') return; if (e.code === 'KeyE') this.interact(); if (e.code === 'KeyQ') this.drop(); if (e.code === 'KeyX') this.attack(); if (e.code === 'KeyC') this.eat(); if (e.code === 'KeyG') this.work(); if (e.code === 'KeyF' && this.target?.kind === 'body' && this.target.person) this.onInspect?.(this.target.person); });
   }
   get player(): Person { return this.world.person(this.world.playerId)!; }
   update(): void {
@@ -71,8 +71,35 @@ export class Interaction {
         // The crop cell sits one block above the (solid, raycast-hit) farmland itself.
         if (this.sim.plantWheatAt(this.player, { x: t.x, y: t.y + 1, z: t.z })) { this.onMessage?.('You sow the plot with grain.'); return; }
       }
-      if (id === B.Door) { const wasOpen = w.isDoorOpen({ x: t.x, y: t.y, z: t.z }); w.toggleDoor({ x: t.x, y: t.y, z: t.z }, this.player.id); this.onMessage?.(`You ${wasOpen ? 'close' : 'open'} the door.`); } else if (id === B.Bed) { this.onMessage?.('Not your bed.'); } else if (id === B.Sign) this.onMessage?.('"The Gilded Boar — ale, stew, beds. No fighting."'); else if (id === B.Gravestone) { const gy = w.places().find(p => p.type === 'graveyard'); const g = gy?.anchors.find(a => a.kind === 'grave' && Math.floor(a.pos.x) === t.x && Math.floor(a.pos.z) === t.z + 1); this.onMessage?.(g ? `Here lies ${g.label}.` : 'A weathered headstone.'); } else if (id === B.Altar) this.onMessage?.('An altar to the Lantern-Bearer. A candle gutters.'); else if (id === B.Well) this.onMessage?.('Cold, clear water.'); else this.onMessage?.(`${t.name}.`); }
+      if (id === B.Door) { const wasOpen = w.isDoorOpen({ x: t.x, y: t.y, z: t.z }); w.toggleDoor({ x: t.x, y: t.y, z: t.z }, this.player.id); this.onMessage?.(`You ${wasOpen ? 'close' : 'open'} the door.`); } else if (id === B.Bed) { this.onMessage?.('Not your bed.'); } else if (id === B.Sign) this.onMessage?.('"The Gilded Boar — ale, stew, beds. No fighting."'); else if (id === B.Gravestone) { const gy = w.places().find(p => p.type === 'graveyard'); const g = gy?.anchors.find(a => a.kind === 'grave' && Math.floor(a.pos.x) === t.x && Math.floor(a.pos.z) === t.z + 1); this.onMessage?.(g ? `Here lies ${g.label}.` : 'A weathered headstone.'); } else if (id === B.Altar) this.onMessage?.('An altar to the Lantern-Bearer. A candle gutters.'); else if (id === B.Well || id === B.Water) { if (this.sim.drinkHere(this.player)) { this.onPickup?.(); this.onMessage?.('You drink. Cold, clear water.'); } else this.onMessage?.('Cold, clear water, out of reach from here.'); } else this.onMessage?.(`${t.name}.`); }
+  }
+  /** Player embodiment: eat one unit of food to hand — `eatFood` via participation.ts, the same
+   * function an NPC's `eat` action calls, with the same accessibility rule. */
+  eat(): void {
+    const p = this.player; const hungerBefore = p.needs.hunger;
+    const type = this.sim.eatAtHand(p);
+    if (!type) { this.onMessage?.('You have nothing to eat. Buy a meal from someone who sells food.'); return; }
+    this.onPickup?.(); this.onMessage?.(`You eat ${type}.${hungerBefore < 0.25 ? ' You were not really hungry.' : ''}`);
+  }
+  /** Player embodiment: one physical step of the haul job you took on — load at the source,
+   * deposit at the destination — through `loadHaulCargo`/`depositHaulCargo`, the same functions
+   * an NPC hauler's own actions call. The wage arrives through `completeRequest`, like theirs. */
+  work(): void {
+    const w = this.world; const r = this.sim.progressHaul(this.player);
+    switch (r.kind) {
+      case 'no_job': this.onMessage?.('You have no work on. Ask someone whose business needs carrying — the baker, the miller, a stall-keeper.'); break;
+      case 'loaded': this.onPickup?.(); this.onMessage?.(`You load ${r.units} ${r.task.resource}${r.task.carried < r.task.quantity - r.task.delivered ? ` — as much as you can carry` : ''}. Take it to ${w.nameOf(r.task.destPlaceId)}.`); break;
+      case 'delivered': this.onPickup?.(); this.onMessage?.(r.complete ? `You deliver ${r.units} ${r.task.resource}.${r.paid > 0 ? ` ${w.nameOf(r.task.requesterId)} pays you ${r.paid} silver.` : ' Nobody is able to pay you for it.'}` : `You deliver ${r.units} ${r.task.resource}. More is still needed — back to ${w.nameOf(r.task.sourcePlaceId)}.`); break;
+      case 'go_to': this.onMessage?.(`${r.leg === 'source' ? 'Fetch' : 'Deliver'} the ${r.task.resource} at ${r.place.name} — about ${Math.round(r.distance)} paces ${this.bearing(r.place.inside)}.`); break;
+      case 'failed': this.onMessage?.(`The haul is off: ${r.reason}.`); break;
+    }
+  }
+  private bearing(to: Vec3): string {
+    const b = this.ctrl.body; const dx = to.x - b.pos.x, dz = to.z - b.pos.z;
+    const ang = Math.atan2(dx, -dz); const dirs = ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'];
+    return dirs[((Math.round(ang / (Math.PI / 4)) % 8) + 8) % 8];
   }
   private loot(p: Person): void { const w = this.world; for (const id of [...p.inventory]) { const it = w.item(id); if (!it) continue; const b = w.primaryBody(p.id); this.sim.dropItem(p, it, { x: (b?.pos.x ?? 0) + (w.rng.next() - 0.5), y: b?.pos.y ?? 0, z: (b?.pos.z ?? 0) + (w.rng.next() - 0.5) }); } }
-  drop(): void { const p = this.player; const id = p.inventory[p.inventory.length - 1]; const it = this.world.item(id); if (!it) return; const f = this.ctrl.forward(); const b = this.ctrl.body; this.sim.dropItem(p, it, { x: b.pos.x + f.x * 1.2, y: this.world.nav.floorY(Math.floor(b.pos.x + f.x * 1.2), Math.floor(b.pos.z + f.z * 1.2)) >= 0 ? this.world.nav.floorY(Math.floor(b.pos.x + f.x * 1.2), Math.floor(b.pos.z + f.z * 1.2)) : b.pos.y, z: b.pos.z + f.z * 1.2 }); this.onMessage?.(`You drop ${it.name}.`); }
+  drop(): void { const p = this.player; const id = p.inventory[p.inventory.length - 1]; const it = this.world.item(id); if (!it) return;
+    if (it.haulTaskId) { this.sim.abandonHaul(p); this.onMessage?.(`You set down the ${it.name} and give up the haul.`); return; } const f = this.ctrl.forward(); const b = this.ctrl.body; this.sim.dropItem(p, it, { x: b.pos.x + f.x * 1.2, y: this.world.nav.floorY(Math.floor(b.pos.x + f.x * 1.2), Math.floor(b.pos.z + f.z * 1.2)) >= 0 ? this.world.nav.floorY(Math.floor(b.pos.x + f.x * 1.2), Math.floor(b.pos.z + f.z * 1.2)) : b.pos.y, z: b.pos.z + f.z * 1.2 }); this.onMessage?.(`You drop ${it.name}.`); }
 }
