@@ -5,6 +5,7 @@ import { DialogueSystem } from './sim/mind/dialogue';
 import { load, save, newWorld, hasSave, clearSave } from './sim/persist/save';
 import { VoxelRenderer } from './game/voxel/mesher';
 import { Atmosphere } from './game/render/scene';
+import { revealFor } from './game/render/interior';
 import { ActorRenderer } from './game/actors/actors';
 import { ConstructionRenderer } from './game/presentation/constructionRenderer';
 import { ExtractionEffectsController } from './game/presentation/extractionEffects';
@@ -55,7 +56,7 @@ class Game {
   // the localStorage entry this session's telemetry flushes to (see browserSessionSink.ts).
   telemetry = new MemorySink(); telemetryRecorder: TelemetryRecorder; sessionId = String(Date.now());
   constructor(public world: World) {
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' }); this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); this.renderer.setSize(innerWidth, innerHeight); this.renderer.shadowMap.enabled = true; this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.05; this.renderer.outputColorSpace = THREE.SRGBColorSpace; this.renderer.localClippingEnabled = true;
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' }); this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); this.renderer.setSize(innerWidth, innerHeight); this.renderer.shadowMap.enabled = true; this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.05; this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     app.appendChild(this.renderer.domElement);
     this.camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.1, 500);
     window.addEventListener('resize', () => { this.camera.aspect = innerWidth / innerHeight; this.camera.updateProjectionMatrix(); this.renderer.setSize(innerWidth, innerHeight); });
@@ -78,7 +79,10 @@ class Game {
     this.ctrl.onStep = () => this.audio.sfx('step');
     this.sim.onHit = (b, pos) => { this.audio.sfx(b.ownerId === world.playerId ? 'hurt' : 'hit'); this.spawnHitParticles(pos); };
     this.sim.onSpeech = (p, t) => { const b = world.primaryBody(p.id); const pb = world.primaryBody(world.playerId)!; if (b && Math.hypot(b.pos.x - pb.pos.x, b.pos.z - pb.pos.z) < 12) this.audio.sfx('talk'); };
-    this.dialogue.onClose = () => { this.inter.enabled = true; this.ctrl.enabled = true; if (!document.pointerLockElement) void this.renderer.domElement.requestPointerLock().catch(() => { /* embedded clients may reject pointer lock */ }); };
+    // Closing dialogue hands control back. Pointer lock is what "the mouse is driving the view"
+    // means in the immersive modes; in the elevated mode the cursor is what picks targets, so
+    // re-grabbing it here would leave the player unable to aim at anything.
+    this.dialogue.onClose = () => { this.inter.enabled = true; this.ctrl.enabled = true; if (this.ctrl.mode !== 'arpg' && !document.pointerLockElement) void this.renderer.domElement.requestPointerLock().catch(() => { /* embedded clients may reject pointer lock */ }); };
     this.dialogue.onOption = () => this.audio.sfx('talk');
     this.inspector.onFollow = (id) => { this.followId = id; if (id) { this.ctrl.thirdPerson = true; } };
     this.inspector.onVisit = (id) => {
@@ -146,17 +150,22 @@ class Game {
     window.addEventListener('beforeunload', () => { this.doSave(true); this.flushTelemetry(); });
     this.renderer.domElement.addEventListener('click', () => this.audio.init(), { once: true });
     world.emit('player_spawn', { actor: world.playerId!, pos: world.primaryBody(world.playerId)!.pos, significance: 0.3, summary: 'the Traveler arrived on the west road' });
+    // v0.10.1 Part I: the elevated view is the game's normal camera now, not a developer aid.
+    // Going through `setCameraMode` rather than defaulting the field means boot takes exactly the
+    // same path F2 does — the badge, the crosshair, the camera snap and the pointer-lock release
+    // all happen once, in one place, instead of being duplicated as an initial state.
+    this.setCameraMode('arpg');
   }
   /** v0.10 Part V: switch which camera is presenting the one canonical world. Not a game mode —
    * no simulation state changes here, and the player can act identically either way. */
   setCameraMode(mode: 'first' | 'third' | 'arpg'): void {
     this.ctrl.setMode(mode);
-    if (mode !== 'arpg') { this.followId = null; this.observer.toggle(false); this.ctrl.roofCutY = null; this.voxels.setRoofCut(null); }
+    if (mode !== 'arpg') { this.followId = null; this.observer.toggle(false); this.ctrl.roofCutY = null; this.voxels.setReveal(null); }
     this.modeBadge.classList.toggle('on', mode === 'arpg');
     // The crosshair means "you are aiming down your own nose". In the elevated view the cursor
     // is doing that job, so the crosshair would just be a dot in the middle of the screen.
     (document.getElementById('crosshair') as HTMLElement).style.display = mode === 'arpg' ? 'none' : '';
-    this.hud.message(mode === 'arpg' ? 'Elevated view. Wheel to zoom, middle-drag to turn, F6 for the observer overlay.' : 'Immersive view.');
+    this.hud.message(mode === 'arpg' ? 'Wheel to zoom, middle-drag to turn. F2 for the first-person view.' : 'First-person view. Click to capture the mouse; F2 returns to the elevated view.');
   }
   /** Advance the simulation without rendering (used for tests and for skipping time). */
   stepSim(seconds: number, sub = 0.05): void { const w = this.world; let t = 0; while (t < seconds) { const worldDt = w.clock.advance(sub); w.physicalTime += sub; this.sim.step(sub, worldDt); this.sim.flushSpeech(); t += sub; } }
@@ -189,9 +198,13 @@ class Game {
       // Indoors, take the roof off rather than shoving the camera into the subject's face —
       // see `VoxelRenderer.setRoofCut`. The cut sits just above head height at the focus, so the
       // walls of the room stay, which is what makes it readable rather than disorienting.
+      // v0.10.1 Part III: the reveal follows whoever the camera is actually centred on — the
+      // player in ordinary play, the followed person while the developer observer is watching
+      // someone else — and covers THAT ONE BUILDING (`render/interior.ts`), not the whole world.
       const focus = this.ctrl.followPos ?? this.ctrl.body.pos;
-      this.ctrl.roofCutY = w.isIndoors(focus) ? focus.y + 2.6 : null;
-      this.voxels.setRoofCut(this.ctrl.roofCutY);
+      const reveal = revealFor(w, focus);
+      this.ctrl.roofCutY = reveal ? reveal.y : null;
+      this.voxels.setReveal(reveal);
     } else if (this.followId) { const b = w.primaryBody(this.followId); if (b) { const target = new THREE.Vector3(b.pos.x, b.pos.y + 1.4, b.pos.z); const off = new THREE.Vector3(Math.sin(now * 0.0002) * 6, 3.5, Math.cos(now * 0.0002) * 6); this.camera.position.lerp(target.clone().add(off), 0.08); this.camera.lookAt(target); } }
     this.inter.update();
     this.voxels.update(); this.voxels.setTime(w.physicalTime);
