@@ -578,6 +578,36 @@ export function buyFoodPortion(world: World, buyer: Person, forSale: Item, n: nu
   return stack;
 }
 
+/**
+ * v0.10 §I: take `n` units off a stack this person may access, into their own hands, so they can
+ * physically carry it somewhere. This is the same physical act `buyFoodPortion` performs once
+ * payment has cleared — split the source stack, merge into a carried one of the same type —
+ * with no price attached, because this is someone picking up their own household's bread to
+ * bring to an injured relative, not a purchase.
+ *
+ * Access is the SAME household rule `findAccessibleFood` uses (own stack, the place owner's, or
+ * a fellow resident's) and is the caller's responsibility to have checked; nothing here can turn
+ * into a theft, because nothing here moves a stack whose access has not already been
+ * established. Returns the carried stack, or null if there was nothing to take.
+ */
+export function takePortionInHand(world: World, taker: Person, stack: Item, n: number, how: string): Item | null {
+  if (stack.holderId === taker.id) return stack;
+  if (stack.quantity <= 0 || n <= 0) return null;
+  const take = Math.min(n, stack.quantity);
+  stack.quantity -= take;
+  if (stack.quantity <= 0) retireStack(stack);
+  const ev = world.emit('pickup', {
+    actor: taker.id, item: stack.id, pos: world.primaryBody(taker.id)?.pos, placeId: stack.placeId ?? undefined,
+    significance: 0.08, visibility: 8, data: { qty: take, how },
+    summary: `${taker.name} took ${take} ${stack.type} ${how}`,
+  });
+  const carried = taker.inventory.map(id => world.item(id)).find(i => !!i && i.type === stack.type && i.holderId === taker.id);
+  if (carried) { carried.quantity += take; carried.provenance.push({ tick: world.now, eventId: ev.id, from: stack.ownerId, to: taker.id, how }); return carried; }
+  const fresh = makeItem(world, stack.type, stack.name, { owner: taker.id, holder: taker.id, quantity: take, value: stack.value });
+  fresh.provenance.push({ tick: world.now, eventId: ev.id, from: stack.ownerId, to: taker.id, how });
+  return fresh;
+}
+
 /** Consume one unit of a food item and restore caloric energy (v0.4: `needs.hunger` is now
  * derived FROM the physiology reserve this restores — see core/physiology.ts's `syncNeeds` —
  * rather than being decremented directly). Returns the eaten item type, or null. */

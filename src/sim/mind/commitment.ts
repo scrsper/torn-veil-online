@@ -37,6 +37,11 @@ const INTERRUPTIBILITY: Partial<Record<GoalType, Interruptibility>> = {
   // fluctuation — physically abandoning it with the item still in their inventory. Same shape,
   // same fix, as the v0.5 hauler-oscillation pathology this whole file exists for.
   help_recover_item: 'committed',
+  // v0.10 §I: someone who has picked up food (or anything else) to carry to a person they are
+  // looking after must not be preempted mid-errand by an idle schedule slot — same shape, same
+  // reasoning, as `help_recover_item` directly above. A genuine physiological emergency still
+  // interrupts it; that is the whole point of `interruptionSeverityMet`.
+  provide: 'committed',
 };
 export function interruptibilityOf(type: GoalType): Interruptibility { return INTERRUPTIBILITY[type] ?? 'free'; }
 export function isCommittable(type: GoalType): boolean { return interruptibilityOf(type) === 'committed'; }
@@ -138,6 +143,17 @@ export function commitmentValidity(world: World, c: GoalCommitment): 'valid' | '
     if (!proj) return 'abandoned';
     if (proj.status === 'complete') return 'completed';
     if (proj.status === 'cancelled') return 'abandoned';
+    return 'valid';
+  }
+  // v0.10: a `provide` errand's deliverable is "this person still needs what I am carrying".
+  // It completes when the thing is in their hands, and is abandoned when there is no longer
+  // anyone to bring it to or nothing left to bring.
+  if (c.goalType === 'provide') {
+    const to = c.targetEntity ? world.person(c.targetEntity) : undefined;
+    if (!to || !to.alive) return 'abandoned';
+    const it = c.data?.itemId ? world.item(c.data.itemId) : undefined;
+    if (!it) return 'abandoned';
+    if (it.holderId === to.id || to.inventory.includes(it.id)) return 'completed';
     return 'valid';
   }
   if (c.goalType === 'help_recover_item') {

@@ -282,6 +282,10 @@ const TALLIED_TYPES = new Set<EventType>([
   // enough over a long run that an accurate lifetime count needs the tally (world/fire.ts's
   // `fireSummary`, world/crafting.ts).
   'fire_lit', 'fire_extinguished', 'item_crafted',
+  // v0.10: purpose/obligation transitions are individually low-significance and are dropped by
+  // compaction on a long run — the benchmark report needs accurate LIFETIME counts of them to
+  // show that purposes actually terminate and obligations actually resolve rather than piling up.
+  'pursuit_formed', 'pursuit_resolved', 'obligation_formed', 'obligation_resolved', 'obligation_failed',
 ]);
 
 function defaultCategory(t: EventType): EventCategory {
@@ -296,6 +300,13 @@ function defaultCategory(t: EventType): EventCategory {
     // simply is not a historical turning point, the same way `perceived` and `memory_formed`
     // are not.
     case 'absence_noticed': case 'concern_formed': case 'concern_resolved': return 'cognition';
+    // v0.10: forming or ending a persistent purpose is a cognitive transition, like a concern.
+    // Forming or discharging an obligation is a SOCIAL fact between two people. BREAKING one is
+    // an ordinary 'world' event judged by significance — real, minor, and consequential, the same
+    // tier `goal_abandoned` already sits at.
+    case 'pursuit_formed': case 'pursuit_resolved': return 'cognition';
+    case 'obligation_formed': case 'obligation_resolved': return 'social';
+    case 'obligation_failed': return 'world';
     case 'told': case 'conversation': case 'rumor': case 'greeting': case 'gift': case 'apology': case 'trade': return 'social';
     case 'birth': case 'death': case 'marriage': case 'debt': case 'dispute': return 'history';
     // v0.2.3: the terminal / status-change conflict events are real history and always kept;

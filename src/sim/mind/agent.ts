@@ -26,15 +26,25 @@ import { B } from '../physical/blocks';
 import { makeItem } from '../world/factory';
 import { banditResourcePressure, laborIncentive } from './economy';
 import { resolveRobberyCompliance, selectRobberyTake, ROBBERY_COOLDOWN_SECONDS, type RobberyTake } from './robbery';
-import { payRecoveryReward } from '../core/requests';
+import { payRecoveryReward, recentlyFailedRequests } from '../core/requests';
 import { haulOffersFrom, activeHaulFor, acceptHaulOffer, progressHaul, abandonHaul, buyMealFrom, eatAtHand, drinkHere, type HaulOffer, type HaulProgress } from '../logistics/participation';
 // v0.9 Social Causality Vertical Slice — the four generic primitives this milestone adds.
 import { noteEventForSituations, maintainSituations } from '../social/situation';
 import { appraiseClaim } from '../social/appraisal';
-import { formConcerns, maintainConcerns, concernGoalBoost, activeConcerns, concernActionable, noteConcernActedOn } from './concern';
+import { formConcerns, maintainConcerns, activeConcerns, concernActionable, noteConcernActedOn } from './concern';
 import { selectTopic, type Topic } from './conversation';
 import { noticeAbsences } from '../social/absence';
 import { woundSeverity, SERIOUS_WOUND } from '../core/attributes';
+// v0.10 Motivated Lives — persistent purposes (mind/pursuit.ts) and social stakes with
+// provenance (social/obligation.ts). Both are read through ONE combined behavioural bridge
+// (`motivationBoost`), so concerns, obligations and purposes bend goal utility together and
+// under one shared cap rather than each quietly adding its own.
+import {
+  activePursuits, formPursuits, maintainPursuits, motivationBoost, notePursuitAttempt, notePursuitProgress,
+  pursuitById, pursuitSteps, pursuitStepUtility, describePursuit, PURSUIT_FORBIDDEN_GOALS,
+} from './pursuit';
+import { formObligations, forgivenessFor, maintainObligations, noteBenefitEvent, noteRequestEvent, noticeBrokenPromises } from '../social/obligation';
+import { takePortionInHand } from '../world/metabolism';
 
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -53,6 +63,9 @@ const NO_FOOD_RETRY_SECONDS = 30 * 60;
  * the floor. Recovery up to this point runs at the original, un-slowed rate; see the health-regen
  * call site in `strategic` for the combat-grind pathology that distinction prevents. */
 const INCAPACITATED_FRACTION = 0.35;
+/** v0.10 §I.B: how many units of food a `provide` errand takes off a household stack to carry to
+ * someone who needs it. A couple of meals — enough to matter, not the whole larder. */
+const PROVISION_UNITS = 2;
 
 /**
  * The Simulation runs minds and bodies at their own cadences:
@@ -81,7 +94,16 @@ export class Simulation {
     world.eventObserver = (e) => {
       if (this.inSituationHook) return;
       this.inSituationHook = true;
-      try { noteEventForSituations(world, e); } finally { this.inSituationHook = false; }
+      try {
+        noteEventForSituations(world, e);
+        // v0.10 §II: the same one-hook discipline, for the same reasons. `noteBenefitEvent`
+        // discharges an actor's own standing obligations toward whoever they just did good by
+        // (you always know what you yourself did — no perception needed); `noteRequestEvent`
+        // keeps the accepted-task obligation in step with the canonical `Request` lifecycle
+        // without `core/requests.ts` having to know that `social/` exists.
+        noteBenefitEvent(world, e);
+        noteRequestEvent(world, e);
+      } finally { this.inSituationHook = false; }
     };
   }
   private inSituationHook = false;
@@ -210,6 +232,9 @@ export class Simulation {
     remember(w, p, { type: e.type, summary: saw ? `I saw: ${claimSummary}` : `I heard: ${claimSummary}`, eventId: e.id, entities: [claim.actor, claim.target, claim.item].filter(Boolean) as string[], significance: clamp(sig), valence, source: { type: saw ? 'witnessed' : 'heard', viaEvent: perc.id }, placeId: claim.placeId });
     if (p.controlled) return;
     if (k && appraisal) formConcerns(w, p, k, appraisal);
+    // v0.10 §II: an obligation forms from a belief with real provenance, exactly like a concern —
+    // being helped is something you have to NOTICE, not something the world tells you.
+    if (k) formObligations(w, p, k);
     this.reactTo(p, body, e, perc.id, saw, isVictim, victimClose, k, appraisal);
   }
 
@@ -235,7 +260,13 @@ export class Simulation {
         const priorAssaults = Object.values(p.knowledge).filter(kk => kk.kind === 'event' && kk.claim.type === 'attack' && kk.claim.actor === actor && kk.claim.target === p.id).length;
         if (priorAssaults >= 3) grievance = Math.min(0.55, 0.15 + priorAssaults * 0.08);
       }
-      if (actor) adjustRel(w, p, actor, { fear: fear * 0.7 * personal, trust: -sev * (isVictim ? 0.9 : 0.6) * personal, affection: -sev * (isVictim ? 0.7 : 0.4) * personal, grudge: grudge * 0.6 * personal, grievance, respect: -sev * 0.3 * personal }, `${saw ? 'witnessed' : 'learned of'} ${claim.type}${isVictim ? ' on me' : claim.target ? ` on ${w.nameOf(claim.target)}` : ''}${appraisal ? ` (${appraisal.roles[0]}, personal significance ${appraisal.weight.toFixed(2)})` : ''}`, cause);
+      // v0.10 §II "forgive a minor offence": someone I genuinely owe gets more benefit of the
+      // doubt over something small than a stranger would. Bounded (never more than half the
+      // reaction), and — by construction in `forgivenessFor` — never applied to severe harm: a
+      // standing favour does not buy forgiveness for a beating or a killing.
+      const forgiveness = actor ? forgivenessFor(p, actor, sev) : 0;
+      const soften = 1 - forgiveness;
+      if (actor) adjustRel(w, p, actor, { fear: fear * 0.7 * personal * soften, trust: -sev * (isVictim ? 0.9 : 0.6) * personal * soften, affection: -sev * (isVictim ? 0.7 : 0.4) * personal * soften, grudge: grudge * 0.6 * personal * soften, grievance, respect: -sev * 0.3 * personal * soften }, `${saw ? 'witnessed' : 'learned of'} ${claim.type}${isVictim ? ' on me' : claim.target ? ` on ${w.nameOf(claim.target)}` : ''}${appraisal ? ` (${appraisal.roles[0]}, personal significance ${appraisal.weight.toFixed(2)})` : ''}${forgiveness > 0.05 ? `, tempered by what I owe them (${forgiveness.toFixed(2)})` : ''}`, cause);
       if (actor && actorP && !actorP.hostile && claim.type !== 'theft') { for (const q of w.persons()) if (q !== p && q.id !== actor && isFamily(p, q.id)) {/* family shares outrage later through telling */} }
       const emo = p.emotions; const before = { ...emo };
       emo.fear = clamp(emo.fear + fear * 0.6); emo.stress = clamp(emo.stress + sev * 0.5); emo.anger = clamp(emo.anger + grudge * 0.5 * (p.traits.aggression + 0.3));
@@ -268,10 +299,17 @@ export class Simulation {
     // more attractive, a work concern makes turning up to the short-handed workplace more
     // attractive — and the goals themselves are the ordinary ones the simulation already had.
     // Bounded (a maximal concern adds < 0.3), so a concern bends a decision, never dictates it.
+    // v0.10 §III: `concernGoalBoost` has been generalized into `motivationBoost` — one bridge
+    // that folds a live concern, a standing obligation and an active purpose together under ONE
+    // shared cap, rather than three independent bonuses that could stack into a decision
+    // override. `data.beneficiary` lets a goal whose target is a PLACE or a task still declare
+    // whom it is actually for (a haul serves whoever requested it), which is what makes "I'll
+    // carry his flour, he stood by me" expressible without a special case.
     const G = (type: GoalType, utility: number, reasons: string[], o: Partial<Goal> = {}) => {
       const key = `${type}:${o.targetEntity ?? o.targetPlace ?? ''}`;
-      const boost = concernGoalBoost(p, type, o.targetEntity ?? o.targetPlace);
-      cands.push({ type, utility: boost.bonus ? clamp(utility + boost.bonus) : utility, reasons: boost.bonus ? [...reasons, ...boost.reasons] : reasons, createdAt: now, key, ...o });
+      const boost = motivationBoost(p, type, o.targetEntity ?? o.targetPlace, o.data?.beneficiary as EntityId | undefined);
+      const data = boost.pursuitId && !o.data?.pursuitId ? { ...(o.data ?? {}), pursuitId: boost.pursuitId } : o.data;
+      cands.push({ type, utility: boost.bonus ? clamp(utility + boost.bonus) : utility, reasons: boost.bonus ? [...reasons, ...boost.reasons] : reasons, createdAt: now, key, ...o, data });
     };
     const pos = body.pos; const sched = currentScheduleEntry(p, hour);
     // v0.4 §1/§7: heat escalates progressively rather than a single on/off gate — see
@@ -530,6 +568,41 @@ export class Simulation {
         ...c.reasons.slice(0, 2),
       ], { targetEntity: c.subjectId, targetPos: { ...dest }, targetPlace: loc?.claim.placeId ?? subject.homeId ?? undefined, data: { concernId: c.id } });
     }
+    // ---- v0.10 §I: PERSISTENT PURPOSES propose their own next step.
+    //
+    // This is the block that turns "reacting to things" into "trying to do something". Each
+    // ACTIVE pursuit is asked, fresh, what would serve it given the world as it actually is and
+    // as this person believes it to be (`pursuitSteps`); the answer is an ordinary existing goal,
+    // offered as an ordinary candidate that has to win on utility like everything else.
+    //
+    // `embodiment` is the guarantee that people stay people (§III). It is computed from real
+    // physiological severity bands and the presence of a threat, and it multiplies every
+    // purpose-driven candidate — so a devoted spouse with a critical thirst answers the thirst,
+    // and nobody starves for a social purpose. A purpose can never propose a combat or
+    // confrontation goal (`PURSUIT_FORBIDDEN_GOALS`); that is the v0.9 justice-concern feedback
+    // loop made structurally impossible rather than merely avoided.
+    const purposeBands = { hunger: hungerBand(p), thirst: thirstBand(p), sleep: sleepBand(p) };
+    const criticalNeed = severityAtLeast(purposeBands.hunger, 'critical') || severityAtLeast(purposeBands.thirst, 'critical') || severityAtLeast(purposeBands.sleep, 'critical');
+    const urgentNeed = severityAtLeast(purposeBands.hunger, 'urgent') || severityAtLeast(purposeBands.thirst, 'urgent') || severityAtLeast(purposeBands.sleep, 'urgent');
+    const embodiment = threat || heat === 'dangerous' || downed ? 0 : criticalNeed ? 0.25 : urgentNeed ? 0.55 : 1;
+    if (embodiment > 0) {
+      for (const pu of activePursuits(p)) {
+        for (const step of pursuitSteps(w, p, pu)) {
+          if (PURSUIT_FORBIDDEN_GOALS.has(step.goal)) continue; // belt and braces; see the set's doc
+          G(step.goal, pursuitStepUtility(pu, step, embodiment), [
+            `purpose: ${describePursuit(w, pu)} (priority ${pu.priority.toFixed(2)})`,
+            step.reason,
+            ...pu.reasons.slice(0, 1),
+            embodiment < 1 ? `but my own body is telling me otherwise (${criticalNeed ? 'critical' : 'urgent'} need)` : '',
+          ], {
+            targetEntity: step.targetEntity, targetPlace: step.targetPlace, targetPos: step.targetPos,
+            data: { ...(step.data ?? {}), pursuitId: pu.id },
+            causeEvent: pu.causeEventId,
+          });
+        }
+      }
+    }
+
     // v0.9 §D: a badly hurt person withdraws from ordinary life. This is the mechanism that makes
     // an assault produce a real, observable secondary consequence — the injured worker is not at
     // work, which is exactly what social/absence.ts lets other people notice. Generic to any
@@ -651,7 +724,7 @@ export class Simulation {
           const t = haul.task;
           const mine = t.claimantId === p.id;
           const src = w.place(t.sourcePlaceId);
-          G('haul', clamp(((mine ? 0.68 : 0.42) + haul.score * 0.4) * laborCapacity * incentive), [`${t.resource} is needed at ${w.nameOf(t.destPlaceId)}`, t.reason, laborCapacity < 0.6 ? `but I am spent (capacity ${laborCapacity.toFixed(2)})` : '', incentive > 1 ? `and I could use the silver` : incentive < 1 ? `though I am not short of coin` : ''], { targetPlace: src ? t.sourcePlaceId : undefined, targetPos: src?.inside, data: { taskId: t.id } });
+          G('haul', clamp(((mine ? 0.68 : 0.42) + haul.score * 0.4) * laborCapacity * incentive), [`${t.resource} is needed at ${w.nameOf(t.destPlaceId)}`, t.reason, laborCapacity < 0.6 ? `but I am spent (capacity ${laborCapacity.toFixed(2)})` : '', incentive > 1 ? `and I could use the silver` : incentive < 1 ? `though I am not short of coin` : ''], { targetPlace: src ? t.sourcePlaceId : undefined, targetPos: src?.inside, data: { taskId: t.id, beneficiary: t.requesterId ?? undefined } });
         }
       }
       // Chop: a woodcutter at the clearing fells a standing tree.
@@ -760,6 +833,29 @@ export class Simulation {
       const resumeCand = cands.find(c => c.key === m.commitment!.goalKey);
       if (resumeCand) resumeCand.utility = clamp(resumeCand.utility + 0.4);
     }
+    // v0.10: two different motivations can legitimately propose the SAME errand — a welfare
+    // concern's own `check_on` and a `tend` purpose's next step are literally the same walk to
+    // the same door. Collapse candidates by key, keeping the strongest case and merging the
+    // reasons and data (so the surviving candidate still carries the `pursuitId` link even when
+    // the pre-existing rule out-scored the purpose's own proposal). Without this, hysteresis's
+    // `cands.find(c => c.key === cur.key)` could match whichever duplicate happened to be pushed
+    // first rather than the one that actually won. Insertion order is preserved, so this changes
+    // no ordering and no determinism.
+    if (cands.length > 1) {
+      const byKey = new Map<string, Goal>();
+      for (const c of cands) {
+        const prev = byKey.get(c.key);
+        if (!prev) { byKey.set(c.key, c); continue; }
+        const keep = c.utility > prev.utility ? c : prev;
+        const drop = keep === c ? prev : c;
+        for (const r of drop.reasons) if (r && !keep.reasons.includes(r)) keep.reasons.push(r);
+        if (drop.data) keep.data = { ...drop.data, ...(keep.data ?? {}) };
+        if (!keep.causeEvent && drop.causeEvent) keep.causeEvent = drop.causeEvent;
+        if (!keep.targetPos && drop.targetPos) keep.targetPos = drop.targetPos;
+        byKey.set(c.key, keep);
+      }
+      if (byKey.size !== cands.length) { cands.length = 0; cands.push(...byKey.values()); }
+    }
     // ---- choose with hysteresis + goal commitment (v0.5 §III)
     cands.sort((a, b) => b.utility - a.utility);
     const best0 = cands[0]; const cur = m.goal;
@@ -857,6 +953,11 @@ export class Simulation {
   }
   private setGoal(p: Person, g: Goal, plan: Action[], note: string): void {
     const w = this.world; const prev = p.mind.goal; p.mind.goal = g; p.mind.plan = plan;
+    // v0.10 §I: when the adopted goal is serving a persistent purpose, the purpose records that
+    // it has been tried again and which step it is on. `Pursuit.steps` is the visible evidence
+    // that one purpose produced several DIFFERENT actions over time, and `attempts` is half of
+    // the backstop that stops a purpose nobody can finish from running forever.
+    { const pu = pursuitById(p, g.data?.pursuitId as string | undefined); if (pu && pu.status === 'active') notePursuitAttempt(w, pu, g.key, g.type); }
     const causes: string[] = []; if (g.causeEvent) causes.push(g.causeEvent);
     // link to the most recent knowledge/relationship change that motivated it
     if (g.type === 'flee' || g.type === 'attack' || g.type === 'confront' || g.type === 'report' || g.type === 'investigate' || g.type === 'help') {
@@ -1027,6 +1128,28 @@ export class Simulation {
         const dest = toBody?.pos ?? (to?.homeId ? w.place(to.homeId)?.inside : undefined) ?? g.targetPos!;
         const acts = [A({ type: 'goto', pos: g.targetPos! }), A({ type: 'pickup', targetEntity: g.targetEntity })];
         if (to) acts.push(A({ type: 'goto', pos: dest, targetEntity: to.id }), A({ type: 'give', targetEntity: to.id, data: { item: g.targetEntity } }));
+        return acts;
+      }
+      // v0.10 §I.B: the "obtain something required, then bring it" step of a persistent purpose.
+      // Composed entirely from actions the simulation already had — goto, pickup, goto, give —
+      // and it deliberately walks to the person's LIVE body when one is perceivable and to the
+      // remembered/home position otherwise, exactly like `check_on`: acting on stale information
+      // and arriving to find nobody there is the honest outcome, not a bug.
+      case 'provide': {
+        const to = w.person(g.targetEntity!);
+        const it = w.item(g.data?.itemId as EntityId | undefined);
+        if (!to || !it || !to.alive) return [A({ type: 'wait', duration: 5 * 60 })];
+        const toBody = w.primaryBody(to.id);
+        const seen = p.mind.percepts.some(pc => pc.entityId === to.id);
+        const dest = (seen && toBody ? toBody.pos : undefined) ?? g.targetPos ?? toBody?.pos ?? (to.homeId ? w.place(to.homeId)?.inside : undefined) ?? body.pos;
+        const acts: Action[] = [];
+        if (it.holderId !== p.id) {
+          const src = it.pos ?? w.place(g.data?.sourcePlaceId as EntityId | undefined)?.inside ?? w.place(p.homeId)?.inside ?? body.pos;
+          acts.push(A({ type: 'goto', pos: { ...src }, placeId: g.data?.sourcePlaceId as EntityId | undefined }));
+          acts.push(A({ type: 'pickup', targetEntity: it.id, data: { provision: true } }));
+        }
+        acts.push(A({ type: 'goto', pos: { ...dest }, targetEntity: seen ? to.id : undefined, placeId: g.targetPlace }));
+        acts.push(A({ type: 'give', targetEntity: to.id, data: { item: it.id, provision: true } }));
         return acts;
       }
       // v0.9 §F/Constitution §66 ("avoid bespoke character scripting"): this used to look for a
@@ -1464,7 +1587,21 @@ export class Simulation {
         a.status = 'done'; break;
       }
       case 'use': { if (a.data?.heal) { const tb = w.primaryBody(a.targetEntity!); if (tb && dist2(body.pos, tb.pos) < 3) { body.pose = 'work'; tb.health = Math.min(tb.maxHealth, tb.health + worldDt * 0.02); if (this.elapsed(a)) { a.status = 'done'; if (tb.pose === 'downed') tb.pose = 'stand'; w.emit('heal', { actor: p.id, target: a.targetEntity, pos: body.pos, significance: 0.4, visibility: 12, summary: `${p.name} tended to ${w.nameOf(a.targetEntity)}'s wounds` }); this.say(p, `There. You'll live.`); } } else a.status = 'failed'; } else a.status = 'done'; break; }
-      case 'pickup': { const it = w.item(a.targetEntity!); if (it && it.pos && !it.holderId && dist2(body.pos, it.pos) < 2.5) { this.takeItem(p, it, 'recovered'); } a.status = 'done'; break; }
+      case 'pickup': {
+        const it = w.item(a.targetEntity!);
+        if (it && it.pos && !it.holderId && dist2(body.pos, it.pos) < 2.5) {
+          // v0.10 §I.B: a `provide` errand takes a PORTION off a household stack rather than the
+          // whole larder — `takePortionInHand` (world/metabolism.ts) is the same split-and-carry
+          // step a purchase performs once payment has cleared, with no price, because this is
+          // someone's own household bread. The delivery step is retargeted onto the carried
+          // stack the split produced, since the source stack may now be empty and retired.
+          if (a.data?.provision) {
+            const carried = takePortionInHand(w, p, it, PROVISION_UNITS, 'to bring to someone who needs it');
+            if (carried) for (const step of m.plan) { if (step.type === 'give' && step.data?.provision) step.data.item = carried.id; }
+          } else this.takeItem(p, it, 'recovered');
+        }
+        a.status = 'done'; break;
+      }
       // v0.8 §P0-G/H: the delivery step of the 'help_recover_item' plan — hand a carried item
       // (already in `p.inventory` from the preceding 'pickup' step) to the person it was fetched
       // for. Fails harmlessly (does nothing, just ends) if the recipient walked out of reach or
@@ -1472,7 +1609,20 @@ export class Simulation {
       case 'give': { const it = w.item(a.data?.item); const to = w.person(a.targetEntity!); const tb = to ? w.primaryBody(to.id) : undefined; if (it && to && tb && it.holderId === p.id && dist2(body.pos, tb.pos) < 3.5) { this.giveItem(p, to, it); } a.status = 'done'; break; }
       default: a.status = 'done';
     }
-    if (a.status === 'done' && m.plan.every(x => x.status === 'done' || x.status === 'failed')) { const g = m.goal; if (g) { w.emit('goal_completed', { actor: p.id, significance: 0.05, summary: `${p.name} finished ${g.type}` }); } m.thinkBudget = m.thinkInterval; body.sitAnchor = null; }
+    if (a.status === 'done' && m.plan.every(x => x.status === 'done' || x.status === 'failed')) {
+      const g = m.goal;
+      if (g) {
+        w.emit('goal_completed', { actor: p.id, significance: 0.05, summary: `${p.name} finished ${g.type}` });
+        // v0.10 §I.A: a completed plan is a purpose GETTING SOMEWHERE, not a purpose ending. This
+        // is the exact distinction the milestone is about: "help my injured spouse" must not cease
+        // to exist because one `check_on` finished. Recording progress here resets the
+        // no-progress backstop, and the pursuit simply proposes its next step on the next think()
+        // tick — which may well be a different goal entirely, because the world has changed.
+        const pu = pursuitById(p, g.data?.pursuitId as string | undefined);
+        if (pu && (pu.status === 'active' || pu.status === 'deferred')) notePursuitProgress(w, pu);
+      }
+      m.thinkBudget = m.thinkInterval; body.sitAnchor = null;
+    }
     if (a.status === 'failed') {
       body.sitAnchor = null; body.path = null;
       // v0.2.1 Priority 7 fix: every OTHER action failure forces an immediate rethink next
@@ -1661,6 +1811,11 @@ export class Simulation {
     // account), so nothing here needs a separate hearsay discount.
     const listenerAppraisal = learned ? appraiseClaim(w, listener, learned) : null;
     if (learned && listenerAppraisal) formConcerns(w, listener, learned, listenerAppraisal);
+    // v0.10 §II: hearing about a debt you owe (the seeded `debt` beliefs travel this way) is a
+    // real way to come by one. `formObligations` applies its own epistemic test — it only ever
+    // forms a stake when the CLAIM names this listener as the one helped or the one who owes —
+    // so third-party gossip about other people's favours creates nothing.
+    if (learned) formObligations(w, listener, learned);
     const toldPersonal = listenerAppraisal ? clamp(0.45 + listenerAppraisal.weight * 1.1, 0.35, 1.6) : 1;
     if (learned && isCrime(k.claim.type, k.claim.intent) && k.claim.actor) {
       const sev = crimeSeverity(k.claim.type); const victimClose = k.claim.target ? isClose(listener, k.claim.target) : false;
@@ -2143,6 +2298,9 @@ export class Simulation {
         }
       }
       const EMPTY = new Set<string>();
+      // v0.10: computed once for the whole pass rather than rescanned per person — see
+      // `recentlyFailedRequests`.
+      const failedWork = recentlyFailedRequests(w);
       for (const p of w.persons()) {
         if (!p.alive) continue;
         const unresolvedHarm = new Set<string>();
@@ -2160,6 +2318,15 @@ export class Simulation {
       for (const p of w.persons()) {
         if (!p.alive || p.controlled) continue;
         maintainConcerns(w, p, sh);
+        // v0.10 §I/§II: the personal layers age and settle on the same coarse cadence as
+        // concerns, and in this order for a reason — obligations first (they are one of the
+        // things a purpose can rest on), then purposes are formed from whatever is currently
+        // live, then re-prioritised and resolved. `noticeBrokenPromises` is the honest,
+        // inference-based way a person finds out that work they commissioned was dropped.
+        maintainObligations(w, p, sh);
+        noticeBrokenPromises(w, p, failedWork);
+        formPursuits(w, p);
+        maintainPursuits(w, p);
         // v0.9 §D: notice that someone who ought to be here is not — the generic information-gap
         // inference (social/absence.ts). On this coarse cadence rather than per world-minute:
         // its thresholds are measured in HOURS, so a ten-minute granularity changes no outcome,
