@@ -142,8 +142,12 @@ export class Observer {
           + `</div>`);
       }
     }
-    const settled = pursuitsOf(p).filter(x => x.status !== 'active' && x.status !== 'deferred');
-    if (settled.length) rows.push(`<div class="k dim">finished</div><div class="v dim">${settled.slice(-3).map(x => `${esc(describePursuit(w, x))} — ${x.status}${x.resolution ? `:${x.resolution}` : ''}`).join('<br>')}</div>`);
+    // Most recently finished first: `maintainPursuits` keeps the settled tail in resolved-at
+    // order, so taking from the front shows what they have just seen through rather than the
+    // oldest thing still being remembered.
+    const settled = pursuitsOf(p).filter(x => x.status !== 'active' && x.status !== 'deferred')
+      .sort((a, x) => (x.resolvedAt ?? 0) - (a.resolvedAt ?? 0));
+    if (settled.length) rows.push(`<div class="k dim">finished</div><div class="v dim">${settled.slice(0, 3).map(x => `${esc(describePursuit(w, x))} — ${x.status}${x.resolution ? `:${x.resolution}` : ''}`).join('<br>')}</div>`);
 
     // ---- commitment (v0.5), the "why am I not dropping this" layer
     if (m.commitment) {
