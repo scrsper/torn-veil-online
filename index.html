@@ -64,6 +64,29 @@
   .cand { padding: 3px 6px; margin: 2px 0; border-left: 3px solid rgba(255,255,255,0.1); } .cand.chosen { border-color: var(--accent); background: rgba(232,184,96,0.08); }
   .cand .r { color: var(--dim); font-size: 11px; }
   .chain { font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; } .chain .ev { padding: 2px 0 2px 0; cursor: pointer; } .chain .ev:hover { color: var(--accent); } .chain .depth { color: var(--dim); }
+  /* v0.10 observer overlay — the developer/simulation-microscope panel (Part VI). Visually
+     distinct from the player-facing HUD on purpose: this one is allowed to be omniscient. */
+  #observer { right: 12px; top: 12px; width: min(400px, 40vw); max-height: calc(100vh - 190px); display: none; flex-direction: column; pointer-events: auto; border-color: rgba(160,128,208,0.4); }
+  #observer.open { display: flex; }
+  #observer .head { padding: 7px 10px; border-bottom: 1px solid var(--line); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  #observer .head b { color: #c8a8f0; }
+  #observer .head .warn { color: var(--dim); font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; margin-right: auto; }
+  #observer button { background: #1c2030; color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 2px 6px; font-size: 11.5px; cursor: pointer; }
+  #observer button.on { border-color: #c8a8f0; color: #c8a8f0; }
+  #observer .clock { padding: 5px 10px; border-bottom: 1px solid var(--line); display: flex; gap: 5px; align-items: center; }
+  #observer .clock .t { color: var(--accent); font-weight: 600; margin-right: auto; }
+  #observer .body { overflow: auto; padding: 8px 10px; flex: 1; min-height: 0; font-size: 12px; }
+  #observer .hint { color: var(--dim); line-height: 1.5; }
+  #observer .obs { display: grid; grid-template-columns: 92px 1fr; gap: 3px 8px; align-items: baseline; }
+  #observer .obs .who { grid-column: 1 / -1; font-size: 14px; margin-bottom: 4px; } #observer .obs .who b { color: var(--accent); }
+  #observer .obs .sect { grid-column: 1 / -1; margin-top: 7px; color: #c8a8f0; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid rgba(200,168,240,0.15); }
+  #observer .obs .k { color: var(--dim); text-align: right; } #observer .obs .v { min-width: 0; overflow-wrap: anywhere; }
+  #observer .obs .sub { color: var(--dim); font-size: 11px; margin-left: 2px; }
+  #observer .obs .dim { color: var(--dim); } #observer .obs .on { color: var(--accent); } #observer .obs .bad { color: var(--red); }
+  #observer .obs .tag { background: rgba(232,184,96,0.16); color: var(--accent); border-radius: 3px; padding: 0 4px; font-size: 10.5px; }
+  #observer .obs b.uncomfortable { color: #d0b070; } #observer .obs b.urgent, #observer .obs b.critical { color: var(--red); }
+  #modebadge { position: absolute; left: 300px; top: 12px; padding: 4px 12px; color: #c8a8f0; font-size: 11.5px; letter-spacing: 0.04em; display: none; }
+  #modebadge.on { display: block; }
   /* events */
   #events { left: 12px; top: 90px; width: min(440px, 44vw); max-height: 46vh; display: none; flex-direction: column; pointer-events: auto; }
   #events.open { display: flex; }
@@ -94,7 +117,9 @@
     <div id="topbar" class="panel"><div class="time">—</div><div class="sub">—</div></div>
     <div id="vitals" class="panel"><div>Health</div><div class="bar"><i style="width:100%"></i></div><div id="needs"></div><div id="purse"></div><div id="job"></div><div id="inv"></div></div>
     <div id="messages"></div>
-    <div id="hints" class="panel"><b>WASD</b> move · <b>Shift</b> sprint · <b>Space</b> jump · <b>V</b> view<br><b>E</b>/RMB talk · pick up · use · drink at a well · <b>LMB</b>/<b>X</b> attack · <b>Q</b> drop<br><b>C</b> eat what you carry · <b>G</b> load / deliver your haul job<br><b>F</b> inspect target · <b>F3</b> inspector · <b>F4</b> event feed<br><b>T</b> time ×1/×4/×16 · <b>P</b> pause · <b>F5</b> save · <b>Esc</b> mouse</div>
+    <div id="hints" class="panel"><b>WASD</b> move · <b>Shift</b> sprint · <b>Space</b> jump · <b>V</b> view<br><b>E</b>/RMB talk · pick up · use · drink at a well · <b>LMB</b>/<b>X</b> attack · <b>Q</b> drop<br><b>C</b> eat what you carry · <b>G</b> load / deliver your haul job<br><b>F</b> inspect target · <b>F3</b> inspector · <b>F4</b> event feed<br><b>F2</b> elevated (ARPG) view · <b>F6</b> observer overlay<br><b>T</b> time ×1/×4/×16 · <b>P</b> pause · <b>F5</b> save · <b>Esc</b> mouse</div>
+    <div id="modebadge" class="panel">ELEVATED VIEW · <b>F2</b> back · <b>F6</b> observer · wheel zoom · middle-drag turn</div>
+    <div id="observer" class="panel"></div>
     <div id="events" class="panel"></div>
     <div id="chainpane" class="panel"></div>
     <div id="inspector" class="panel"></div>
@@ -102,7 +127,7 @@
     <div id="start"><div class="card">
       <h1>Torn Veil Online</h1><div class="sub">Ashford Vale · a living voxel village</div>
       <p>You arrive on the west road. Thirty-two people live here. They wake, work, eat, gossip, pray, drink and sleep whether or not you are watching. They know only what they have seen, heard, or been told. What you do here will be remembered by those who witnessed it — and by whoever they tell.</p>
-      <div class="keys"><div><b>WASD / Shift / Space</b> move, sprint, jump</div><div><b>Mouse</b> look (click to capture)</div><div><b>E</b> or right-click: talk / take / use / drink</div><div><b>C</b> eat · <b>G</b> work your haul job</div><div><b>Left-click</b> attack with what you hold</div><div><b>F</b> inspect the person you look at</div><div><b>F3 / F4</b> simulation inspector / event feed</div><div><b>T</b> time speed · <b>P</b> pause · <b>V</b> third person</div><div><b>F5</b> save (also autosaves every 30 s)</div></div>
+      <div class="keys"><div><b>WASD / Shift / Space</b> move, sprint, jump</div><div><b>Mouse</b> look (click to capture)</div><div><b>E</b> or right-click: talk / take / use / drink</div><div><b>C</b> eat · <b>G</b> work your haul job</div><div><b>Left-click</b> attack with what you hold</div><div><b>F</b> inspect the person you look at</div><div><b>F3 / F4</b> simulation inspector / event feed</div><div><b>F2 / F6</b> elevated view · observer overlay</div><div><b>T</b> time speed · <b>P</b> pause · <b>V</b> third person</div><div><b>F5</b> save (also autosaves every 30 s)</div></div>
       <div><button id="btn-continue">Continue</button><button id="btn-new" class="alt">New world</button></div>
       <div id="loading"></div>
     </div></div>

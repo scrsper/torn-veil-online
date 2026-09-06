@@ -14,6 +14,7 @@ import { HUD } from './game/ui/hud';
 import { DialogueUI } from './game/ui/dialogue';
 import { EventFeed } from './game/ui/events';
 import { Inspector } from './game/ui/inspector';
+import { Observer } from './game/ui/observer';
 import { AudioSys } from './game/audio/audio';
 import { TelemetryRecorder, MemorySink } from './sim/telemetry/recorder';
 import { flushBrowserSession } from './sim/telemetry/browserSessionSink';
@@ -47,13 +48,14 @@ async function boot(fresh: boolean): Promise<void> {
 }
 
 class Game {
-  renderer: THREE.WebGLRenderer; scene = new THREE.Scene(); camera: THREE.PerspectiveCamera; sim: Simulation; voxels: VoxelRenderer; atmo: Atmosphere; actors: ActorRenderer; ctrl: PlayerController; inter: Interaction; hud: HUD; dialogue: DialogueUI; feed: EventFeed; inspector: Inspector; audio = new AudioSys(); construction: ConstructionRenderer; extractionEffects: ExtractionEffectsController;
+  renderer: THREE.WebGLRenderer; scene = new THREE.Scene(); camera: THREE.PerspectiveCamera; sim: Simulation; voxels: VoxelRenderer; atmo: Atmosphere; actors: ActorRenderer; ctrl: PlayerController; inter: Interaction; hud: HUD; dialogue: DialogueUI; feed: EventFeed; inspector: Inspector; observer: Observer; audio = new AudioSys(); construction: ConstructionRenderer; extractionEffects: ExtractionEffectsController;
+  modeBadge = document.getElementById('modebadge')!;
   speedMult = 1; paused = false; lastFrame = performance.now(); autosaveTimer = 0; followId: string | null = null; hitParticles: { m: THREE.Mesh; v: THREE.Vector3; life: number }[] = [];
   // v0.2 Part 18: automatic play-session logging — no manual "press F8" step. `sessionId` names
   // the localStorage entry this session's telemetry flushes to (see browserSessionSink.ts).
   telemetry = new MemorySink(); telemetryRecorder: TelemetryRecorder; sessionId = String(Date.now());
   constructor(public world: World) {
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' }); this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); this.renderer.setSize(innerWidth, innerHeight); this.renderer.shadowMap.enabled = true; this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.05; this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' }); this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); this.renderer.setSize(innerWidth, innerHeight); this.renderer.shadowMap.enabled = true; this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.05; this.renderer.outputColorSpace = THREE.SRGBColorSpace; this.renderer.localClippingEnabled = true;
     app.appendChild(this.renderer.domElement);
     this.camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.1, 500);
     window.addEventListener('resize', () => { this.camera.aspect = innerWidth / innerHeight; this.camera.updateProjectionMatrix(); this.renderer.setSize(innerWidth, innerHeight); });
@@ -67,7 +69,7 @@ class Game {
     this.extractionEffects = new ExtractionEffectsController(world); this.scene.add(this.extractionEffects.group);
     this.ctrl = new PlayerController(world, this.camera, this.renderer.domElement);
     this.inter = new Interaction(world, this.sim, this.ctrl, this.renderer.domElement);
-    this.hud = new HUD(world, this.camera); this.dialogue = new DialogueUI(new DialogueSystem(world, this.sim)); this.feed = new EventFeed(world); this.inspector = new Inspector(world);
+    this.hud = new HUD(world, this.camera); this.dialogue = new DialogueUI(new DialogueSystem(world, this.sim)); this.feed = new EventFeed(world); this.inspector = new Inspector(world); this.observer = new Observer(world);
     // wiring
     this.inter.onMessage = (s) => this.hud.message(s);
     this.inter.onTalk = (p) => this.openDialogue(p);
@@ -100,9 +102,40 @@ class Game {
       this.inspector.toggle(false); this.hud.message(`Moved near ${world.nameOf(id)}. This is an inspector test aid.`);
     };
     this.inspector.onShowChain = (id) => { if (!this.feed.open) this.feed.toggle(); this.feed.showChain(id); };
+    // ---- v0.10 Part V/VI/VII: the elevated presentation + observer mode.
+    //
+    // Everything here is wiring between EXISTING pieces. The camera is the same camera, the
+    // scene is the same scene, the simulation is untouched, and the observer's follow is a
+    // camera decision only — `ctrl.followPos` moves where the boom points and parks the player,
+    // and nothing anywhere reaches into the followed person. Time control reuses the same
+    // `speedMult`/`paused` the T and P keys already drive; there is no second time model.
+    this.observer.onFollow = (id) => { this.followId = id; this.hud.selected = id; if (!id) this.ctrl.followPos = null; };
+    this.observer.onSpeed = (mult) => { this.paused = false; this.speedMult = mult; this.world.clock.speedMultiplier = mult; this.hud.message(`Time ×${mult}`); };
+    this.observer.onPause = () => { this.paused = !this.paused; this.hud.message(this.paused ? 'Paused' : 'Resumed'); };
+    this.observer.onOpenInspector = (id) => { this.inspector.toggle(true); this.inspector.select(id); };
+    // While the observer overlay is open, the primary click SELECTS whoever is under the cursor
+    // rather than swinging — a microscope's click should not start a fight. Attacking is still
+    // available on X, unchanged, through the identical canonical path.
+    this.inter.onPrimaryClick = () => {
+      if (!this.observer.open || this.ctrl.mode !== 'arpg') return false;
+      const picked = this.inter.pickPersonUnderCursor();
+      if (!picked) return false;
+      this.observer.select(picked.id);
+      this.hud.selected = picked.id;
+      return true;
+    };
     this.inspector.onFocusEvents = (id) => { if (!this.feed.open) this.feed.toggle(); this.feed.setFocus(id); };
     window.addEventListener('keydown', (e) => {
       if ((e.target as HTMLElement)?.tagName === 'INPUT' || (e.target as HTMLElement)?.tagName === 'SELECT') return;
+      if (e.code === 'F2') { e.preventDefault(); this.setCameraMode(this.ctrl.mode === 'arpg' ? 'first' : 'arpg'); }
+      if (e.code === 'F6') {
+        e.preventDefault();
+        this.observer.toggle();
+        // The overlay is only usable from the elevated camera (it needs a free cursor and a view
+        // of more than one person), so asking for it asks for that view too.
+        if (this.observer.open && this.ctrl.mode !== 'arpg') this.setCameraMode('arpg');
+        if (this.observer.open && !this.observer.sel && this.inter.target?.kind === 'body' && this.inter.target.person) this.observer.select(this.inter.target.person.id);
+      }
       if (e.code === 'F3') { e.preventDefault(); this.inspector.toggle(); if (this.inspector.open && this.inter.target?.kind === 'body' && this.inter.target.person) this.inspector.select(this.inter.target.person.id); }
       if (e.code === 'F4') { e.preventDefault(); this.feed.toggle(); }
       if (e.code === 'F5') { e.preventDefault(); this.doSave(); }
@@ -113,6 +146,17 @@ class Game {
     window.addEventListener('beforeunload', () => { this.doSave(true); this.flushTelemetry(); });
     this.renderer.domElement.addEventListener('click', () => this.audio.init(), { once: true });
     world.emit('player_spawn', { actor: world.playerId!, pos: world.primaryBody(world.playerId)!.pos, significance: 0.3, summary: 'the Traveler arrived on the west road' });
+  }
+  /** v0.10 Part V: switch which camera is presenting the one canonical world. Not a game mode —
+   * no simulation state changes here, and the player can act identically either way. */
+  setCameraMode(mode: 'first' | 'third' | 'arpg'): void {
+    this.ctrl.setMode(mode);
+    if (mode !== 'arpg') { this.followId = null; this.observer.toggle(false); this.ctrl.roofCutY = null; this.voxels.setRoofCut(null); }
+    this.modeBadge.classList.toggle('on', mode === 'arpg');
+    // The crosshair means "you are aiming down your own nose". In the elevated view the cursor
+    // is doing that job, so the crosshair would just be a dot in the middle of the screen.
+    (document.getElementById('crosshair') as HTMLElement).style.display = mode === 'arpg' ? 'none' : '';
+    this.hud.message(mode === 'arpg' ? 'Elevated view. Wheel to zoom, middle-drag to turn, F6 for the observer overlay.' : 'Immersive view.');
   }
   /** Advance the simulation without rendering (used for tests and for skipping time). */
   stepSim(seconds: number, sub = 0.05): void { const w = this.world; let t = 0; while (t < seconds) { const worldDt = w.clock.advance(sub); w.physicalTime += sub; this.sim.step(sub, worldDt); this.sim.flushSpeech(); t += sub; } }
@@ -136,18 +180,30 @@ class Game {
       this.sim.flushSpeech();
       this.checkPlayerDeath();
     }
-    // follow camera
-    if (this.followId) { const b = w.primaryBody(this.followId); if (b) { const target = new THREE.Vector3(b.pos.x, b.pos.y + 1.4, b.pos.z); const off = new THREE.Vector3(Math.sin(now * 0.0002) * 6, 3.5, Math.cos(now * 0.0002) * 6); this.camera.position.lerp(target.clone().add(off), 0.08); this.camera.lookAt(target); } }
+    // follow camera. In the elevated mode the follow target is handed to the controller, which
+    // owns the camera for that mode (`ctrl.followPos`); the pre-existing orbit-follow below is
+    // what the immersive Inspector's own "follow" button has always done, and is unchanged.
+    if (this.ctrl.mode === 'arpg') {
+      const b = this.followId ? w.primaryBody(this.followId) : null;
+      this.ctrl.followPos = b ? { ...b.pos } : null;
+      // Indoors, take the roof off rather than shoving the camera into the subject's face —
+      // see `VoxelRenderer.setRoofCut`. The cut sits just above head height at the focus, so the
+      // walls of the room stay, which is what makes it readable rather than disorienting.
+      const focus = this.ctrl.followPos ?? this.ctrl.body.pos;
+      this.ctrl.roofCutY = w.isIndoors(focus) ? focus.y + 2.6 : null;
+      this.voxels.setRoofCut(this.ctrl.roofCutY);
+    } else if (this.followId) { const b = w.primaryBody(this.followId); if (b) { const target = new THREE.Vector3(b.pos.x, b.pos.y + 1.4, b.pos.z); const off = new THREE.Vector3(Math.sin(now * 0.0002) * 6, 3.5, Math.cos(now * 0.0002) * 6); this.camera.position.lerp(target.clone().add(off), 0.08); this.camera.lookAt(target); } }
     this.inter.update();
     this.voxels.update(); this.voxels.setTime(w.physicalTime);
-    this.actors.sync(dt, w.physicalTime, !this.ctrl.thirdPerson && !this.followId);
+    // The player's own body is hidden only when the camera is literally inside their head.
+    this.actors.sync(dt, w.physicalTime, this.ctrl.mode === 'first' && !this.ctrl.thirdPerson && !this.followId);
     this.construction.update(); this.extractionEffects.update(dt);
     const pb = this.ctrl.body; const ppos = new THREE.Vector3(pb.pos.x, pb.pos.y, pb.pos.z);
     this.atmo.update(dt, w.clock.dayFraction, ppos, this.camera.position);
     for (let i = this.hitParticles.length - 1; i >= 0; i--) { const p = this.hitParticles[i]; p.life -= dt; p.v.y -= 12 * dt; p.m.position.addScaledVector(p.v, dt); if (p.life <= 0) { this.scene.remove(p.m); this.hitParticles.splice(i, 1); } }
     this.audio.update(dt, w.clock.dayFraction, w.weather.kind === 'rain' || w.weather.kind === 'storm' ? w.weather.intensity : 0, w.isIndoors(pb.pos), w.weather.wind);
-    this.hud.selected = this.inspector.open ? this.inspector.sel : null;
-    this.hud.update(this.inter.target, this.speedMult, this.paused); this.feed.update(); this.inspector.update();
+    this.hud.selected = this.observer.open ? this.observer.sel : this.inspector.open ? this.inspector.sel : null;
+    this.hud.update(this.inter.target, this.speedMult, this.paused); this.feed.update(); this.inspector.update(); this.observer.update(this.speedMult, this.paused);
     this.autosaveTimer += dt; if (this.autosaveTimer > 30) { this.autosaveTimer = 0; this.doSave(true); this.flushTelemetry(); }
     this.renderer.render(this.scene, this.camera);
   }
