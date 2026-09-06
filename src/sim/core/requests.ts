@@ -104,7 +104,10 @@ export function completeRequest(world: World, r: Request): number {
   const paid = worker ? payWage(world, r.requesterId, worker, r.reward) : 0;
   r.status = 'completed'; r.completedAt = world.now;
   world.emit('request_completed', {
-    actor: r.acceptedBy, placeId: r.requesterPlaceId, significance: 0.08,
+    // v0.10 §II: naming the person the work was FOR makes a completed request legible as what it
+    // socially is — one person having done another a turn — so the obligation layer can settle a
+    // standing stake without `core/` needing to know that layer exists.
+    actor: r.acceptedBy, target: r.requesterId ?? undefined, placeId: r.requesterPlaceId, significance: 0.08,
     data: { requestId: r.id, type: r.type, paid },
     summary: `${r.acceptedBy ? world.nameOf(r.acceptedBy) : 'Someone'} completed a ${r.type === 'haul' ? 'haul' : requestTypeLabel(r.type)} request${paid ? ` and was paid ${paid} silver` : ''}`,
   });
@@ -116,7 +119,7 @@ export function failRequest(world: World, r: Request, reason: string): void {
   if (r.status === 'completed' || r.status === 'failed' || r.status === 'cancelled') return;
   r.status = 'failed';
   world.emit('request_failed', {
-    actor: r.acceptedBy, placeId: r.requesterPlaceId, significance: 0.08,
+    actor: r.acceptedBy, target: r.requesterId ?? undefined, placeId: r.requesterPlaceId, significance: 0.08,
     data: { requestId: r.id, type: r.type, reason }, summary: `A ${r.type} request failed: ${reason}`,
   });
 }
@@ -124,6 +127,46 @@ export function failRequest(world: World, r: Request, reason: string): void {
 export function cancelRequest(world: World, r: Request): void {
   if (r.status === 'completed' || r.status === 'failed' || r.status === 'cancelled') return;
   r.status = 'cancelled';
+}
+
+/**
+ * Id → Request index (v0.10). `World.requests` is append-only within a run and grows with total
+ * commissioned work, so a linear `find` is fine once per delivery but NOT once per deliberating
+ * mind per think() tick — which is exactly what v0.10's persistent purposes need in order to ask
+ * "is the work I took on still open?". Same lazy-rebuild-on-change pattern
+ * `social/situation.ts` uses for its event index: rebuilt only when the array's identity or
+ * length changes (a fresh request, or a save being loaded), which is rare relative to lookups.
+ */
+const requestIndex = new WeakMap<World, { arr: Request[]; count: number; map: Map<EntityId, Request> }>();
+export function requestById(world: World, id: EntityId | undefined | null): Request | undefined {
+  if (!id) return undefined;
+  let entry = requestIndex.get(world);
+  if (!entry || entry.arr !== world.requests || entry.count !== world.requests.length) {
+    const map = new Map<EntityId, Request>();
+    for (const r of world.requests) map.set(r.id, r);
+    entry = { arr: world.requests, count: world.requests.length, map };
+    requestIndex.set(world, entry);
+  }
+  return entry.map.get(id);
+}
+
+/**
+ * v0.10 §II: requests that have FAILED recently enough that the person who commissioned them
+ * could still plausibly be finding out about it. Computed once per upkeep pass and shared across
+ * every person, rather than each of them rescanning the whole (run-long) request history.
+ * Requests are appended in creation order, so the backwards scan with an early break is bounded
+ * by recent activity rather than by how long the run has been going.
+ */
+export const BROKEN_PROMISE_WINDOW_SECONDS = 3 * 24 * 3600;
+export function recentlyFailedRequests(world: World): Request[] {
+  const out: Request[] = [];
+  const cutoff = world.now - BROKEN_PROMISE_WINDOW_SECONDS;
+  for (let i = world.requests.length - 1; i >= 0; i--) {
+    const r = world.requests[i];
+    if (r.createdAt < cutoff) break;
+    if (r.status === 'failed' && r.acceptedBy) out.push(r);
+  }
+  return out;
 }
 
 export function openRequests(world: World): Request[] { return world.requests.filter(r => r.status === 'open'); }

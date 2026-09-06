@@ -1,6 +1,16 @@
 # Torn Veil Online — Forward Development Roadmap
 ## v0.7 through v0.11
 
+> **Superseded for v0.9 and v0.10.** This roadmap was written after v0.6 and its ordering has
+> since been changed twice by the project's creator on the evidence of what the simulation
+> actually needed next — which is what the "Evidence can change the roadmap" rule below is for.
+> v0.9 shipped as **Social Causality** (`docs/V0_9_SOCIAL_CAUSALITY.md`) rather than geology and
+> mining, and v0.10 as **Motivated Lives** (`docs/V0_10_MOTIVATED_LIVES.md`) rather than animals
+> and ecology. The reasoning in both cases was the same: events were being learned and then
+> forgotten, and people were reacting without ever pursuing anything, so another content layer
+> would have been built on a world whose inhabitants had no continuity. The unbuilt milestones
+> below remain the intended direction.
+
 Current completed milestone: **v0.6 — Knowledge, Memory, Skills & Intent**
 
 The next five versions are intended to establish enough ordinary-world reality that later magic,

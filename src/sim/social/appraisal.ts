@@ -52,6 +52,10 @@ export interface Appraisal {
 const KIND_BY_TYPE: Record<string, SituationKind> = {
   attack: 'harm', kill: 'harm', death: 'grief', theft: 'property', item_missing: 'loss',
   absence_noticed: 'disruption', dispute: 'obligation', debt: 'obligation', heal: 'harm',
+  // v0.10 §II: a responsibility someone took on toward me and then broke. Not a crime — nobody
+  // is arrested for it — but genuinely an unsettled matter between two people, which is exactly
+  // what the pre-existing 'obligation' kind already means.
+  obligation_failed: 'obligation',
 };
 
 /** Occupations whose ROLE gives them an institutional stake in wrongdoing. Not a name list —
@@ -190,6 +194,13 @@ export function proposeConcerns(world: World, p: Person, ap: Appraisal): Concern
   // PROPERTY — something of mine is gone.
   if ((ap.kind === 'property' || ap.kind === 'loss') && has('victim', 'owner')) {
     out.push({ kind: 'property', subjectId: p.id, aboutId: ap.actorId, itemId: ap.itemId, intensity: w, reasons: ap.reasons.slice(0, 2) });
+  }
+  // BROKEN RESPONSIBILITY — someone took on work for me and did not do it. The consequence is a
+  // WORK concern (the thing still needs doing, and now I am the one short-handed), never a
+  // justice concern: a broken promise is not a crime and must not send anyone toward the watch or
+  // toward the person who broke it. Same discipline as the JUSTICE gate directly above.
+  if (ap.kind === 'obligation' && ap.subjectId === p.id && ap.actorId && ap.actorId !== p.id) {
+    out.push({ kind: 'work', subjectId: ap.actorId, intensity: w * 0.7, reasons: ap.reasons.slice(0, 2) });
   }
   // WORK — the work I depend on, or that depends on me, has been disturbed.
   if ((ap.kind === 'disruption' || ap.kind === 'harm') && has('coworker', 'employer', 'employee') && ap.subjectId !== p.id) {

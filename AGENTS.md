@@ -97,6 +97,17 @@ witnesses learn about it" stays true instead of becoming a scripted one-off.
   builders in `structures.ts`), the 32-person cast (`cast.ts`), and `village.ts`, which wires
   it all together and seeds pre-history (marriages, grudges, debts, rumors, a decade of
   events) so the world has a past before the player spawns.
+- `src/sim/mind/pursuit.ts` / `src/sim/social/obligation.ts` — the v0.10 "Motivated Lives" layer.
+  A `Pursuit` is a PERSISTENT PURPOSE (what someone is trying to bring about, across hours or
+  days) sitting between a concern and a goal; it carries no plan — `pursuitSteps` re-derives which
+  ordinary existing goal serves it from current world state every time it is asked. An
+  `Obligation` is a social stake with real provenance (who owes whom, why, because of which
+  canonical event, whether it is live, how it ended) — deliberately NOT a favour-point score.
+  Both reach goal utility through the ONE bridge `motivationBoost`, which folds them together with
+  concerns under a single cap. See `docs/V0_10_MOTIVATED_LIVES.md` for the invariants; the two
+  that matter most are that a purpose may never propose or boost an approach/combat goal, and
+  that every purpose-driven candidate is multiplied by an embodiment factor so nobody starves for
+  a social purpose.
 - `src/sim/mind/concern.ts` / `conversation.ts` — knowledge that has acquired behavioural force
   (a `Concern` bends goal utility through `concernGoalBoost`, capped so it never dictates a
   decision), and whether anything is worth saying to a given listener at all (`selectTopic`
@@ -108,7 +119,11 @@ witnesses learn about it" stays true instead of becoming a scripted one-off.
 - `src/game/` — everything Three.js: chunked voxel mesher (`voxel/`), atmosphere/weather/sky
   (`render/scene.ts`), procedural actor rigs (`actors/`), the first-person controller +
   interaction targeting (`player/`), procedural WebAudio (`audio/`), and all UI including the
-  Simulation Inspector and event feed (`ui/`).
+  Simulation Inspector and event feed (`ui/`). v0.10 adds a SECOND CAMERA over the same world —
+  `render/arpgCamera.ts` (elevated/angled, F2) and `ui/observer.ts` (the developer overlay, F6) —
+  not a second simulation. `PlayerController.aimOrigin()/aimDir()` is the one place that knows how
+  the current camera turns "the player is reaching for that" into a ray; everything below it,
+  including reach and ownership rules, is identical in both modes.
 - `src/main.ts` — the only file that owns the frame loop and wires simulation + renderer + UI
   together.
 
@@ -120,6 +135,7 @@ npm run typecheck    # tsc --noEmit — run this after any change, it's fast and
 npm test              # vitest — the deterministic simulation test suite (tests/)
 npm run build          # typecheck + production build
 npm run social:trace   # v0.9 deterministic causal traces on the real generated village
+npm run motive:trace   # v0.10 motivated-life causal traces (the four acceptance scenarios)
 npm run test:browser   # Playwright functional harness against the real client
 ```
 
@@ -148,6 +164,12 @@ advance simulation time deterministically without waiting on `requestAnimationFr
   candidate goals with `reasons: string[]`, `plan()` turns a chosen goal into an `Action[]`)
   rather than bespoke per-NPC scripting — the whole point of the architecture is that the same
   systems produce different behavior for different people.
+- Anything that makes a goal more attractive because of what someone knows, owes, or is trying to
+  do goes through `motivationBoost` (`mind/pursuit.ts`) and inherits its single shared cap. Adding
+  a fourth independent bonus somewhere else is how "a concern bends a decision, it never dictates
+  one" quietly stops being true. And nothing in that path may ever lift a goal that walks somebody
+  toward a fight: that is the v0.9 justice-concern regression, and `PURSUIT_FORBIDDEN_GOALS` /
+  `PURSUIT_SERVING_GOALS` exist to make reintroducing it require deleting a test.
 - Don't give any entity more than one "current body" assumption in new code — the ontology
   intentionally supports zero-or-many bodies per entity even though every current NPC happens
   to have exactly one.

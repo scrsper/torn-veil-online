@@ -278,7 +278,14 @@ export type GoalType =
   // actually is (mind/concern.ts). Generic — the concern may come from a witnessed assault, a
   // reported theft, a noticed absence, or a death in the family; this goal only knows "I hold a
   // welfare concern about that person and I do not currently have good information about them."
-  | 'check_on';
+  | 'check_on'
+  // v0.10 Motivated Lives §I.B: obtain something a person I am oriented toward actually needs and
+  // physically carry it to them. Deliberately generic — the plan is goto/pickup/goto/give, all
+  // pre-existing canonical actions — and deliberately NOT limited to food: `Goal.data.itemId`
+  // names whatever the pursuit resolved as the thing needed. This is the "possibly obtain
+  // something required -> return/help again" step of a multi-step purpose; without it a `tend`
+  // purpose could only ever walk over and look, which is one action, not a life.
+  | 'provide';
 
 export interface Goal {
   type: GoalType;
@@ -461,6 +468,138 @@ export interface Concern {
   reasons: string[];
 }
 
+// ---------------------------------------------------------------- Obligations (v0.10)
+/**
+ * An OBLIGATION is a real, personal, provenance-carrying social stake one person holds toward
+ * another (v0.10 §II). It is deliberately NOT "+10 favour points": a favour-point counter can
+ * answer "how much do you like them", but it cannot answer *why*, *because of what*, *is it
+ * still live*, and *how did it end* — which are exactly the questions the milestone requires the
+ * simulation to be able to answer, and exactly the questions a relationship score cannot.
+ *
+ * Relationship change is a CONSEQUENCE of an obligation being kept or broken
+ * (mind/relationships.ts), never the obligation itself. The two are separate on purpose: you can
+ * dislike someone and still owe them, and you can be fond of someone you owe nothing.
+ *
+ * Epistemics: an obligation may only form from something the person actually knows — either
+ * their own act (accepting a request is self-knowledge) or a belief with real provenance
+ * (`basisKey` names the `KnowledgeItem` it rests on). See social/obligation.ts.
+ */
+export type ObligationKind =
+  /** I took on a piece of work/help that someone asked for. The one obligation you can BREAK by
+   * simply not doing it — see `failObligation`. */
+  | 'accepted_task'
+  /** Someone did something materially useful for me at real cost or inconvenience. */
+  | 'was_helped'
+  /** Someone tended my wounds. */
+  | 'was_tended'
+  /** Someone gave me, or gave me back, something of real value. */
+  | 'was_given'
+  /** Someone stepped in physically when I was being harmed. */
+  | 'was_protected'
+  /** A pre-existing material debt (village generation seeds these; `debt`/`debt_paid` events
+   * maintain them). */
+  | 'debt';
+export type ObligationStatus = 'live' | 'fulfilled' | 'forgiven' | 'failed' | 'lapsed';
+export interface Obligation {
+  id: string;
+  kind: ObligationKind;
+  /** Whom I owe. Always another person; an obligation is never toward "the village". */
+  towardId: EntityId;
+  /** WHY — the canonical event that created it. This is the provenance the milestone requires:
+   * `world.event(causeEventId)` is the answer to "because of what". */
+  causeEventId?: EventId;
+  /** The belief through which I know of it, when it came through the knowledge layer rather than
+   * from my own act. */
+  basisKey?: string;
+  /** The canonical `Request` this discharges, for 'accepted_task'. */
+  requestId?: string;
+  itemId?: EntityId;
+  situationId?: string;
+  /** 0..1 — how much I owe. Derived from real context (material cost, risk, inconvenience,
+   * relationship), not a flat constant per event type. */
+  magnitude: number;
+  createdAt: Tick;
+  lastReinforcedAt: Tick;
+  status: ObligationStatus;
+  resolvedAt?: Tick;
+  /** Short, reason-coded: 'repaid' | 'work_done' | 'forgiven' | 'abandoned' | 'they_died' |
+   * 'faded' | 'settled'. Never free-form narrative. */
+  resolution?: string;
+  /** Human-readable grounded reasons, same convention as `Goal.reasons`/`Concern.reasons`. */
+  reasons: string[];
+}
+
+// ---------------------------------------------------------------- Pursuits (v0.10)
+/**
+ * A PURSUIT is a PERSISTENT PURPOSE — what a person is trying to bring about, as distinct from
+ * what they happen to be doing this minute (v0.10 §I).
+ *
+ * The layering this completes:
+ *   `Concern` / `Obligation` / `Desire` — WHY something matters to me;
+ *   `Pursuit`                          — WHAT I am trying to achieve, across hours or days;
+ *   `Goal` + `Action[]`                — WHAT I am doing right now;
+ *   `GoalCommitment`                   — why I do not casually drop the task in hand;
+ *   `status`/`resolution`              — how the purpose ended, and what followed.
+ *
+ * A pursuit does NOT carry a script. It carries an ORIENTATION (kind + subject) and a live
+ * SOURCE; `mind/pursuit.ts`'s `pursuitSteps` re-derives, every time it is asked, which ordinary
+ * existing goal currently serves it given the actual state of the world and of this person's
+ * knowledge. That is what makes "learn she is hurt -> go find her -> fetch food -> bring it ->
+ * check again -> conclude she is well" emerge from state rather than from an authored sequence.
+ *
+ * It is bounded on every axis that could otherwise grow without limit: a maximum count, a
+ * per-kind maximum lifetime, an attempt budget, and a source that must remain live.
+ */
+export type PursuitKind =
+  /** See to the welfare of a particular person until I have reason to believe they are alright. */
+  | 'tend'
+  /** Get a particular thing back to whoever it belongs to (mine, or someone else's). */
+  | 'recover'
+  /** Carry out a responsibility I actually took on. */
+  | 'discharge'
+  /** Do right by someone who did right by me — when an ordinary opportunity presents itself. */
+  | 'reciprocate';
+export type PursuitStatus = 'active' | 'deferred' | 'satisfied' | 'abandoned' | 'impossible';
+export interface Pursuit {
+  id: string;
+  kind: PursuitKind;
+  /** The person this purpose is oriented toward (the one I am tending, owe, or am acting for). */
+  subjectId?: EntityId;
+  itemId?: EntityId;
+  placeId?: EntityId;
+  /** The live thing that justifies this purpose. If it is gone, so is the purpose — this is what
+   * prevents a pursuit from outliving its own reason. */
+  source: { kind: 'concern' | 'obligation' | 'desire' | 'request'; id: string };
+  /** The canonical event that ultimately caused this, when traceable — "what caused the current
+   * purpose" in the observer overlay. */
+  causeEventId?: EventId;
+  situationId?: string;
+  /** 0..1, recomputed from the live source every upkeep. Decides active vs deferred. */
+  priority: number;
+  createdAt: Tick;
+  /** World-time a step of this purpose last actually got somewhere. Drives the no-progress
+   * abandonment backstop. */
+  lastProgressAt: Tick;
+  lastAttemptAt?: Tick;
+  /** How many times a step of this purpose has been adopted. Bounded — see MAX_PURSUIT_ATTEMPTS. */
+  attempts: number;
+  /** Hard world-time ceiling. A purpose that has not resolved by now is abandoned, with a
+   * reason. No purpose is immortal. */
+  expiresAt: Tick;
+  status: PursuitStatus;
+  resolvedAt?: Tick;
+  /** Reason-coded: 'satisfied' | 'seen_well' | 'delivered' | 'work_done' | 'repaid' | 'expired' |
+   * 'no_progress' | 'source_gone' | 'they_died' | 'superseded'. */
+  resolution?: string;
+  /** The `Goal.key` of the step currently serving this purpose — continuity, and the link the
+   * observer overlay follows from "what are they doing" to "why". */
+  currentStep?: string;
+  /** Bounded record of the step KINDS actually taken, in order — the visible evidence that one
+   * purpose produced several different actions. */
+  steps: string[];
+  reasons: string[];
+}
+
 export interface Mind {
   goal: Goal | null;
   plan: Action[];
@@ -511,6 +650,16 @@ export interface Mind {
    * depends on what this person learned and when, and cannot be re-derived from present state.
    * Bounded (mind/concern.ts's MAX_CONCERNS); empty for most people most of the time. */
   concerns?: Concern[];
+  /** v0.10 §II: the social stakes this person currently holds toward other people — see
+   * `Obligation`. Persisted: an obligation depends entirely on this run's history (who did what
+   * for whom, and whether it has since been repaid) and cannot be re-derived from present state.
+   * Bounded (social/obligation.ts's MAX_OBLIGATIONS); empty for most people most of the time. */
+  obligations?: Obligation[];
+  /** v0.10 §I: the persistent purposes this person is currently oriented toward — see `Pursuit`.
+   * Persisted for the same reason `concerns`/`commitment` are: a purpose records that this person
+   * has been trying to do something since a particular moment, which a fresh think() tick cannot
+   * recompute. Bounded (mind/pursuit.ts's MAX_PURSUITS). */
+  pursuits?: Pursuit[];
   /** v0.6 §VI: the currently held intention, if any — see `Intention` below. Not persisted (it
    * is re-derived fresh every think() tick from current need/knowledge/memory, exactly like
    * `Goal` itself is a fresh candidate every tick — only `commitment` needs to survive a
@@ -1077,7 +1226,18 @@ export type EventType =
   // (sim/mind/concern.ts) — knowledge acquiring behavioural force, or losing it. `absence_noticed`
   // is a real INFERENCE from a real information gap (I expected you here and you were not), with
   // provenance, never an omniscient read of where you actually are.
-  | 'situation_opened' | 'situation_resolved' | 'concern_formed' | 'concern_resolved' | 'absence_noticed';
+  | 'situation_opened' | 'situation_resolved' | 'concern_formed' | 'concern_resolved' | 'absence_noticed'
+  // v0.10 Motivated Lives — the canonical state changes this milestone adds.
+  // `pursuit_formed`/`pursuit_resolved` are real transitions on a `Mind.pursuits` entry
+  // (mind/pursuit.ts): a person becoming oriented toward a purpose that outlives any one plan,
+  // and that purpose ending (satisfied, abandoned, made impossible, superseded).
+  // `obligation_formed`/`obligation_resolved`/`obligation_failed` are real transitions on a
+  // `Mind.obligations` entry (social/obligation.ts): a social stake coming into being with real
+  // provenance, being discharged, or being BROKEN — the last of which is a genuine social event
+  // other people can learn about and react to through the ordinary v0.9 machinery.
+  // As with v0.5's commitment events and v0.9's concern events: only real transitions, never a
+  // per-tick "still pursuing" heartbeat.
+  | 'pursuit_formed' | 'pursuit_resolved' | 'obligation_formed' | 'obligation_resolved' | 'obligation_failed';
 
 export type EventCategory = 'world' | 'social' | 'cognition' | 'history';
 

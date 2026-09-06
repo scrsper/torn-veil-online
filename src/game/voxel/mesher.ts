@@ -157,6 +157,40 @@ export class VoxelRenderer {
   buildAll(): void { for (let cx = 0; cx < this.grid.W / CHUNK; cx++) for (let cz = 0; cz < this.grid.D / CHUNK; cz++) this.rebuild(cx, cz); this.grid.dirtyChunks.clear(); }
   update(): void { if (!this.grid.dirtyChunks.size) return; for (const key of this.grid.dirtyChunks) this.rebuild(Math.floor(key / 1024), key % 1024); this.grid.dirtyChunks.clear(); }
   setTime(t: number): void { for (const m of [this.matOpaque, this.matWater]) { const s = (m as any).userData.shader; if (s) s.uniforms.uTime.value = t; } }
+  /**
+   * v0.10 Part V ("reasonable handling when buildings/geometry obscure the player"): cut the
+   * voxel world off above `y`, or pass null to stop cutting.
+   *
+   * An elevated camera in a village of solid voxel buildings spends most of its indoor time
+   * looking at the underside of a roof; pulling the camera in until it has line of sight (which
+   * is what the boom does outdoors, and what a first-person third-person camera does) collapses
+   * it to a hand's breadth from the person's face inside a small room, which is worse than
+   * useless. So indoors the ROOF goes instead of the camera — the standard solution for this
+   * camera, and here it is one clipping plane on the two chunk materials.
+   *
+   * Deliberately LOCAL clipping (the two voxel materials only), not a renderer-wide plane: a
+   * global plane would also slice the sky dome and the weather particles in half. Actors, items
+   * and effects are below the cut and are unaffected. Nothing here touches canonical state — it
+   * decides which triangles are drawn, and that is all.
+   */
+  private roofCut: number | null = null;
+  private roofPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
+  setRoofCut(y: number | null): void {
+    if (y === this.roofCut) return;
+    // Only when the plane COUNT changes does three.js have to recompile the shader, so moving an
+    // existing cut is free while turning it on or off is not — hence the early-out above and the
+    // reused plane object. (Setting `needsUpdate` every frame here recompiled the chunk shaders
+    // once per frame, which is precisely the kind of cost a presentation nicety must not add.)
+    const hadCut = this.roofCut !== null;
+    this.roofCut = y;
+    if (y !== null) this.roofPlane.constant = y;
+    const planes = y === null ? [] : [this.roofPlane];
+    for (const m of [this.matOpaque, this.matWater]) {
+      m.clippingPlanes = planes;
+      m.clipShadows = false;
+      if (hadCut !== (y !== null)) m.needsUpdate = true;
+    }
+  }
   private rebuild(cx: number, cz: number): void {
     const key = cx * 1024 + cz; const old = this.meshes.get(key);
     if (old) { for (const m of [old.opaque, old.water]) if (m) { this.group.remove(m); m.geometry.dispose(); } }

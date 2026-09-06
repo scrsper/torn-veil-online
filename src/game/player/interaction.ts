@@ -10,15 +10,34 @@ export type Target = { kind: 'body'; body: Body; person: Person | null; dist: nu
 /** Targeting, attack, pickup, talk. The player's actions go through the same canonical Simulation calls NPCs use. */
 export class Interaction {
   target: Target = null; lastAttack = -9; onTalk: ((p: Person) => void) | null = null; onInspect: ((p: Person) => void) | null = null; onMessage: ((s: string) => void) | null = null; onSwing: (() => void) | null = null; onPickup: (() => void) | null = null;
+  /** Lets the observer overlay claim the primary click for selection instead of a swing. Returns
+   * true when it has handled the click. Null (the default) leaves the click as an attack. */
+  onPrimaryClick: (() => boolean) | null = null;
   enabled = true;
   constructor(private world: World, private sim: Simulation, private ctrl: PlayerController, dom: HTMLElement) {
-    dom.addEventListener('mousedown', (e) => { if (!this.ctrl.locked || !this.enabled) return; if (e.button === 0) this.attack(); else if (e.button === 2) this.interact(); });
+    dom.addEventListener('mousedown', (e) => {
+      if (!this.enabled) return;
+      // Mouse actions need pointer lock in the immersive modes (that is what "the mouse is
+      // driving the view" means there) but must NOT in the elevated mode, where the cursor is
+      // free and is what picks the target in the first place. Watching someone else through the
+      // observer camera is not playing, so it takes no actions either.
+      const usable = this.ctrl.mode === 'arpg' ? !this.ctrl.followPos : this.ctrl.locked;
+      if (!usable) return;
+      if (e.button === 0) { if (this.onPrimaryClick?.()) return; this.attack(); }
+      else if (e.button === 2) this.interact();
+    });
     dom.addEventListener('contextmenu', e => e.preventDefault());
     window.addEventListener('keydown', (e) => { if (!this.enabled || (e.target as HTMLElement)?.tagName === 'INPUT') return; if (e.code === 'KeyE') this.interact(); if (e.code === 'KeyQ') this.drop(); if (e.code === 'KeyX') this.attack(); if (e.code === 'KeyC') this.eat(); if (e.code === 'KeyG') this.work(); if (e.code === 'KeyF' && this.target?.kind === 'body' && this.target.person) this.onInspect?.(this.target.person); });
   }
   get player(): Person { return this.world.person(this.world.playerId)!; }
   update(): void {
-    const eye = this.ctrl.eye(); const dir = this.ctrl.forward(); const w = this.world;
+    // v0.10 Part V: `aimOrigin`/`aimDir` (player/controller.ts) is the ONE place that knows how
+    // the current camera turns "the player is reaching for that" into a ray. In the immersive
+    // modes it is eye + look direction, exactly as before; in the elevated mode it is eye +
+    // direction toward whatever the cursor is over. Everything below — the reach limit, the
+    // ownership rules, the canonical calls — is identical in both, because the player's reach is
+    // a property of their body, not of the camera watching it.
+    const eye = this.ctrl.aimOrigin(); const dir = this.ctrl.aimDir(); const w = this.world;
     let best: Target = null; let bestD = 4.2;
     const o = { x: eye.x, y: eye.y, z: eye.z };
     const hit = w.grid.raycastBlock(o, { x: dir.x, y: dir.y, z: dir.z }, 4.2); const blockD = hit ? hit.dist : 4.2;
@@ -40,8 +59,36 @@ export class Interaction {
   }
   attack(): void {
     const w = this.world; const t = this.target; const now = w.physicalTime; if (now - this.lastAttack < 0.55) return; this.lastAttack = now;
-    const pb = this.ctrl.body; pb.pose = 'attack'; pb.poseUntil = now + 0.4; pb.lastAttackAt = now; this.onSwing?.();
+    const pb = this.ctrl.body; pb.pose = 'attack'; pb.poseUntil = now + 0.4; pb.lastAttackAt = now;
+    // Face what is being struck. In the immersive modes the body is already facing it (that is
+    // how it got targeted); in the elevated mode the cursor picked it, so the body turns to it —
+    // the same canonical `Simulation.attack` either way.
+    if (t?.kind === 'body' && this.ctrl.mode === 'arpg') pb.yaw = Math.atan2(-(t.body.pos.x - pb.pos.x), -(t.body.pos.z - pb.pos.z));
+    this.onSwing?.();
     if (t?.kind === 'body' && t.dist < 3.2) this.sim.attack(this.player, pb, t.body);
+  }
+  /** What the cursor is over right now, whatever its distance — the observer overlay's
+   * click-to-select uses this, so selecting someone across the square does not require walking
+   * over to them. Read-only: it never touches canonical state and never acts on anyone. */
+  pickPersonUnderCursor(): Person | null {
+    const w = this.world;
+    const origin = this.ctrl.mode === 'arpg' ? this.ctrl.camera.position : this.ctrl.eye();
+    const dir = this.ctrl.mode === 'arpg'
+      ? new THREE.Vector3(this.ctrl.cursor.x, this.ctrl.cursor.y, 0.5).unproject(this.ctrl.camera).sub(this.ctrl.camera.position).normalize()
+      : this.ctrl.forward();
+    let best: Person | null = null; let bestScore = Infinity;
+    for (const b of w.bodies()) {
+      if (!b.present || b.shape !== 'humanoid') continue;
+      const p = w.person(b.ownerId); if (!p) continue;
+      const centre = new THREE.Vector3(b.pos.x, b.pos.y + 0.9, b.pos.z);
+      const to = centre.clone().sub(origin);
+      const along = to.dot(dir);
+      if (along <= 0) continue;
+      const perp = to.clone().sub(dir.clone().multiplyScalar(along)).length();
+      if (perp > 0.9) continue;
+      if (along < bestScore) { bestScore = along; best = p; }
+    }
+    return best;
   }
   interact(): void {
     const t = this.target; if (!t) return; const w = this.world;

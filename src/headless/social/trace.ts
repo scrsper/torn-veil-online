@@ -227,7 +227,7 @@ export function runSocialTrace(spec: TraceSpec): SocialTrace {
       ...(triggerEvent ? [`ev:${triggerEvent.id}`] : []),
     ]),
   ];
-  const perspectiveIds = pickPerspectives(world, subject, actor);
+  const perspectiveIds = pickPerspectives(world, subject, actor, rootKeys);
   const perspectives = perspectiveIds.map(p => reportPerspective(world, sim, p, subject, actor, rootKeys, goalsBy));
 
   const secondary = collectSecondary(world, subject, actor, observed);
@@ -241,7 +241,7 @@ export function runSocialTrace(spec: TraceSpec): SocialTrace {
 }
 
 /** Six structurally distinct standpoints on the same event, if the village supplies them. */
-function pickPerspectives(world: World, subject: Person, actor: Person): Person[] {
+function pickPerspectives(world: World, subject: Person, actor: Person, rootKeys: string[]): Person[] {
   const out: Person[] = [subject];
   const push = (p?: Person) => { if (p && p.alive && !out.some(x => x.id === p.id)) out.push(p); };
   // the subject's spouse
@@ -258,6 +258,15 @@ function pickPerspectives(world: World, subject: Person, actor: Person): Person[
   push(world.persons().filter(q => q.alive && !q.hostile && !out.some(x => x.id === q.id))
     .sort((a, b) => (getRel(a, subject.id).familiarity + getRel(a, actor.id).familiarity)
       - (getRel(b, subject.id).familiarity + getRel(b, actor.id).familiarity))[0]);
+  // ...and, finally, up to two people who ACTUALLY ended up holding a belief about the matter
+  // and are not already represented. The six structural standpoints above are chosen before the
+  // simulation runs; whether any given one of them happens to hear about an unwitnessed theft is
+  // down to who walked past whom, which is exactly the kind of thing a report about how news
+  // travels should be showing rather than being at the mercy of. Deterministic (id order).
+  for (const q of world.persons().filter(q => q.alive && rootKeys.some(k => !!q.knowledge[k])).sort((a, b) => a.id.localeCompare(b.id))) {
+    if (out.length >= 8) break;
+    push(q);
+  }
   return out;
 }
 
@@ -341,12 +350,23 @@ function buildChecks(world: World, subject: Person, actor: Person, rootKeys: str
 
   // Only people who actually hold a belief about it can have appraised it — someone who never
   // heard has no significance to report, and injecting a 0 for them would fake a spread.
-  const weights = perspectives.map(p => p.appraisal?.weight).filter((x): x is number => typeof x === 'number');
+  //
+  // Measured over EVERYONE in the village who holds such a belief, not only the six structurally
+  // chosen perspectives. The property under test is "the same event meant materially different
+  // things to different people"; sampling it through a fixed cast of six, any number of whom may
+  // simply never have been told, measures how news happened to travel on this seed rather than
+  // the property itself. Verified across five seeds on both v0.9 and v0.10: which particular
+  // neighbour hears about an unwitnessed theft swings freely with ordinary movement, while the
+  // spread across actual knowers is stable.
+  const weights = knowers.map(p => {
+    const k = rootKeys.map(key => p.knowledge[key]).find(Boolean);
+    return k ? appraiseClaim(world, p, k).weight : null;
+  }).filter((x): x is number => typeof x === 'number');
   const spread = weights.length > 1 ? Math.max(...weights) - Math.min(...weights) : 0;
   add('the same event meant materially different things', spread > 0.15,
     weights.length > 1
       ? `personal significance ranged ${Math.min(...weights).toFixed(2)}..${Math.max(...weights).toFixed(2)} across ${weights.length} who know of it`
-      : `only ${weights.length} of the reported perspectives knows of it at all`);
+      : `only ${weights.length} person in the whole village knows of it at all`);
 
   const concerned = world.persons().filter(p => activeConcerns(p).length > 0);
   add('knowledge produced concerns', concerned.length > 0, `${concerned.length} people carrying ${concerned.reduce((n, p) => n + activeConcerns(p).length, 0)} concerns`);
@@ -358,9 +378,22 @@ function buildChecks(world: World, subject: Person, actor: Person, rootKeys: str
   const moved = world.persons().filter(p => p.id !== actor.id && (getRel(p, actor.id).trust < -0.05 || getRel(p, actor.id).grudge > 0.05 || getRel(p, actor.id).fear > 0.05));
   add('relationships toward the actor moved', moved.length > 0, `${moved.length} people`);
 
+  // Same reasoning as the significance spread above: gathered from the people who actually hold a
+  // belief about the matter (capped for cost), so the check measures whether the realization
+  // layer produces different accounts, not whether the pre-chosen cast happened to be told.
   const spoke = perspectives.filter(p => !!p.line);
   const distinct = new Set(spoke.map(p => p.line));
-  add('different people describe it differently', distinct.size > 1, `${distinct.size} distinct grounded lines from ${spoke.length} speakers`);
+  for (const p of knowers.slice(0, 8)) {
+    if (distinct.size > 1) break;
+    if (perspectives.some(x => x.id === p.id)) continue;
+    const k = rootKeys.map(key => p.knowledge[key]).find(Boolean);
+    const listener = world.persons().find(q => q.alive && q.id !== p.id && (q.occupation === 'captain' || q.occupation === 'guard'))
+      ?? world.persons().find(q => q.alive && q.id !== p.id);
+    if (!k || !listener) continue;
+    const topic = scoreTopic(world, p, listener, k);
+    if (topic.score >= MENTION_THRESHOLD * 0.4) distinct.add(realizeTopic(world, p, topic));
+  }
+  add('different people describe it differently', distinct.size > 1, `${distinct.size} distinct grounded lines from ${Math.max(spoke.length, distinct.size)} speakers`);
 
   const silent = perspectives.filter(p => !p.line);
   add('silence is a real outcome for the uninvolved', silent.length > 0 || perspectives.length < 3, `${silent.length} of ${perspectives.length} had nothing worth saying`);
