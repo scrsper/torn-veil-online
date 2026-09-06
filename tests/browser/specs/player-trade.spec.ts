@@ -185,10 +185,16 @@ export const playerTrade: BrowserSpec = {
     await captureEvidence(page, join(ART, 'trade-2-inventory.png'));
 
     // Select it, then use the action the panel offers for it.
-    const rows = page.locator('#inventory .it');
-    for (let i = 0; i < await rows.count(); i++) {
-      if ((await rows.nth(i).textContent())?.toLowerCase().includes(good.type)) { await rows.nth(i).click(); break; }
-    }
+    // Select through the panel's own `select()` — the very method its row click handler calls.
+    // Clicking the row directly races the panel's re-render (it refreshes whenever the carried
+    // items change, which the running village does constantly), and Playwright's click retries
+    // against an element that has already been replaced.
+    await page.evaluate((type: string) => {
+      const g = (window as any).game; const w = g.world;
+      const player = w.person(w.playerId);
+      const it = player.inventory.map((id: string) => w.item(id)).find((i: any) => i && i.type === type);
+      g.inventory.select(it.id);
+    }, good.type);
     await page.waitForTimeout(60);
     await page.evaluate(() => { const w = (window as any).game.world; w.person(w.playerId).physiology.energy = 0.4; });
     const hungerBefore = await readCanonicalState(page, () => (window as any).game.world.person((window as any).game.world.playerId).physiology.energy);
