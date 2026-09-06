@@ -89,7 +89,8 @@ Each is asserted structurally in `tests/motivated-lives.test.ts`.
    computed from real physiological severity bands and the presence of a threat: 1 normally, 0.55
    at an urgent need, 0.25 at a critical one, 0 under threat or dangerous heat. A village where a
    devoted spouse starves is a failed simulation, not a moving one. The purpose utility ceiling
-   (0.88) is only safe *because* of this multiplier, and the two must be read together.
+   (`PURSUIT_BASE_UTILITY` + `PURSUIT_UTILITY_SPAN` = 0.80, before `fit` and embodiment) is only
+   safe *because* of this multiplier, and the two must be read together.
 
 3. **Everything terminates.** A purpose has a per-kind maximum lifetime, an attempt budget, a
    no-progress backstop, a count cap, and a requirement that its source stay live. A purpose that
