@@ -7,7 +7,7 @@ export class DialogueUI {
     window.addEventListener('keydown', (e) => { if (!this.state) return; if (e.code === 'Escape') { this.close(); return; } const n = parseInt(e.key); if (n >= 1 && n <= 9) { const o = this.state.options[n - 1]; if (o) this.choose(o.next); } });
   }
   get open(): boolean { return !!this.state; }
-  start(npc: Person, player: Person): void { this.show(this.ds.start(npc, player)); }
+  start(npc: Person, player: Person, at: 'greeting' | 'trade' = 'greeting'): void { this.show(at === 'trade' ? this.ds.startTrade(npc, player) : this.ds.start(npc, player)); }
   private show(s: DialogueState | null): void { if (!s) { this.close(); return; } this.state = s; this.render(); }
   private choose(next: () => DialogueState | null): void { this.onOption?.(); this.show(next()); }
   close(): void { this.state = null; this.el.style.display = 'none'; this.onClose?.(); }

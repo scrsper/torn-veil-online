@@ -246,8 +246,9 @@ export function depositHaulCargo(world: World, task: HaulTask, person: Person): 
   const cargo = task.cargoItemId ? world.item(task.cargoItemId) : undefined;
   if (!cargo || cargo.quantity <= 0) { failHaulTask(world, task, 'the cargo was lost'); return false; }
   const n = cargo.quantity;
-  person.inventory = person.inventory.filter(id => id !== cargo.id);
-  cargo.quantity = 0; cargo.haulTaskId = undefined; retireStack(cargo);
+  // Whoever is actually carrying it lets go — `retireStack` resolves that from `holderId`,
+  // which is not always the person making the delivery.
+  cargo.quantity = 0; cargo.haulTaskId = undefined; retireStack(world, cargo);
   const owner = task.requesterId ?? world.place(task.destPlaceId)?.ownerId ?? null;
   const ev = world.emit('resource_delivered', {
     actor: person.id, item: cargo.id, placeId: task.destPlaceId, pos: world.place(task.destPlaceId)?.inside, significance: task.projectId ? 0.4 : 0.18,

@@ -79,8 +79,24 @@ export class PlayerController {
     const out = aimAt.sub(eye);
     return out.lengthSq() < 1e-6 ? this.forward() : out.normalize();
   }
-  /** ARPG mode moves relative to the camera, not to where the body happens to be facing. */
-  private moveYaw(): number { return this.mode === 'arpg' ? this.arpg.yaw + Math.PI : this.yaw; }
+  /**
+   * The heading that W means. `update` builds the movement vector in a camera-local basis
+   * (W = -Z, D = +X) and rotates it by this angle, so this is the one number that decides what
+   * "forward" is on screen.
+   *
+   * In the immersive modes that is where the player is looking (`this.yaw`, the same angle
+   * `forward()` uses). In the elevated mode it is where the CAMERA is looking, which is
+   * `arpg.yaw` and not its opposite: `ArpgCamera.update` places the camera at
+   * `focus + boom·distance` with `boom = (sin(yaw)·cosφ, sinφ, cos(yaw)·cosφ)` and then looks
+   * back down the boom at the focus, so the camera's own view direction across the ground is
+   * `(-sin(yaw), -cos(yaw))` — exactly what rotating (0,0,-1) by `arpg.yaw` produces.
+   *
+   * v0.10.1: this returned `arpg.yaw + Math.PI`, which is that vector negated, so every key did
+   * the opposite of what the screen showed — W walked away from the camera, A went right — and
+   * turning the camera turned the error with it. The basis is now shared with the camera by
+   * construction rather than by an offset that has to be kept correct by hand.
+   */
+  private moveYaw(): number { return this.mode === 'arpg' ? this.arpg.yaw : this.yaw; }
 
   update(dt: number): void {
     const b = this.body; const g = this.world.grid;

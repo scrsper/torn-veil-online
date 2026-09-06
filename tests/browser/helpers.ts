@@ -108,6 +108,37 @@ export async function walk(page: Page, direction: 'forward' | 'backward' | 'left
   await page.keyboard.up(key);
 }
 
+/**
+ * Point the CURSOR at a world position — the elevated view's equivalent of `lookAt`.
+ *
+ * In the elevated camera the cursor, not the head, is what the player reaches with
+ * (`PlayerController.aimDir`), so a test that wants to interact with a specific barrel has to put
+ * the cursor over it. This projects the position through the live camera and writes the resulting
+ * normalized device coordinates, which is exactly what a real `pointermove` would have produced;
+ * the interaction itself still goes through the real targeting and the real keys.
+ */
+export async function aimCursorAt(page: Page, pos: { x: number; y: number; z: number }): Promise<void> {
+  await page.evaluate((p) => {
+    const g = (window as any).game;
+    // Bring the camera to where the player actually is before projecting through it. This harness
+    // renders at a few frames a second, so after a teleport the camera can still be at the old
+    // location, and a cursor projected through a stale camera aims at nothing. `snapTo` + one
+    // controller tick is exactly what the frame loop would have done next.
+    g.ctrl.arpg.snapTo(g.ctrl.body.pos);
+    g.ctrl.update(0.016);
+    const cam = g.camera;
+    cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+    const m = cam.projectionMatrix.clone().multiply(cam.matrixWorldInverse);
+    const e = m.elements;
+    const cw = e[3] * p.x + e[7] * p.y + e[11] * p.z + e[15];
+    const cx = (e[0] * p.x + e[4] * p.y + e[8] * p.z + e[12]) / cw;
+    const cy = (e[1] * p.x + e[5] * p.y + e[9] * p.z + e[13]) / cw;
+    g.ctrl.cursor.set(cx, cy);
+    g.inter.update();
+  }, pos);
+  await page.waitForTimeout(40);
+}
+
 export interface TargetSummary { kind: 'body' | 'item' | 'block' | null; name: string | null; dist: number | null; }
 
 /** What the player's crosshair currently targets — mirrors `Interaction.target`, the same state

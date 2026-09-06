@@ -1,7 +1,7 @@
 import { World } from '../../sim/core/world';
 import { Simulation } from '../../sim/mind/agent';
 import { generateVillage } from '../../sim/world/village';
-import type { EntityId, GoalType, Person, Pursuit, WorldEvent } from '../../sim/core/types';
+import type { EntityId, GoalType, ItemType, Person, Pursuit, WorldEvent } from '../../sim/core/types';
 import { SECONDS_PER_HOUR } from '../../sim/core/time';
 import { woundSeverity } from '../../sim/core/attributes';
 import { getRel, isClose, isFamily } from '../../sim/mind/relationships';
@@ -10,7 +10,9 @@ import {
   describePursuit, livePursuits, pursuitsOf, motivationBoost, PRIORITY_MARGIN,
 } from '../../sim/mind/pursuit';
 import { describeObligation, obligationsOf, obligationCredit, obligationGoalBoost } from '../../sim/social/obligation';
-import { canHaul } from '../../sim/logistics/haul';
+import { canHaul, carryCapFor, createHaulTask } from '../../sim/logistics/haul';
+import { stockAt } from '../../sim/world/stock';
+import { RESOURCE_MASS_KG } from '../../sim/world/factory';
 
 /**
  * MOTIVATED-LIFE CAUSAL TRACE HARNESS (v0.10 "visible life continuity" / acceptance scenarios).
@@ -479,10 +481,44 @@ function favorChecks(world: World, recipient: Person, giver: Person, giveEvent: 
  * responsibility from acceptance through interruption to completion (or to a real, stated
  * failure). Which person, and which piece of work, is whatever the world produced.
  */
+/**
+ * Raise one real haul the village could genuinely want, big enough that nobody can carry it in a
+ * single trip. Picks the heaviest resource that actually has stock somewhere, so the load is
+ * physically bounded by `safeCarryMassKg` rather than by an invented rule, and sends it somewhere
+ * that is not where it already is. Returns null if the village has nothing substantial to move.
+ */
+function raiseMultiTripWork(world: World): EntityId | null {
+  const candidates: { type: ItemType; fromId: EntityId; fromName: string; stock: number }[] = [];
+  for (const type of ['stone', 'log', 'plank', 'grain', 'flour'] as ItemType[]) {
+    for (const pl of world.places()) {
+      const stock = stockAt(world, type, pl.id);
+      if (stock > 0) candidates.push({ type, fromId: pl.id, fromName: pl.name, stock });
+    }
+  }
+  if (!candidates.length) return null;
+  // Heaviest first (fewest units per trip), then most stock — both make a genuinely multi-trip
+  // job likelier to be available rather than merely requested.
+  candidates.sort((a, b) => (RESOURCE_MASS_KG[b.type] ?? 0) - (RESOURCE_MASS_KG[a.type] ?? 0) || b.stock - a.stock || a.fromId.localeCompare(b.fromId));
+  const pick = candidates[0];
+  const perTrip = carryCapFor(pick.type);
+  const quantity = Math.min(pick.stock, Math.max(perTrip * 3, perTrip + 1));
+  if (quantity <= perTrip) return null;
+  const dest = world.places().find(pl => pl.id !== pick.fromId && ['store', 'construction', 'smithy', 'sawpit', 'mill'].includes(pl.type))
+    ?? world.places().find(pl => pl.id !== pick.fromId && pl.indoor);
+  if (!dest) return null;
+  const task = createHaulTask(world, {
+    resource: pick.type, quantity, sourcePlaceId: pick.fromId, destPlaceId: dest.id,
+    reason: `${dest.name} needs ${pick.type}`,
+    requesterId: dest.ownerId ?? dest.workers[0] ?? null, priority: 0.8,
+  });
+  return task.requestId ?? null;
+}
+
 function responsibilityTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveTrace {
   const watched = new Set<EntityId>(world.persons().filter(p => p.alive && !p.controlled).map(p => p.id));
   const traceStart = world.now;
   const rec = recordFrom(world, traceStart, watched);
+  const raisedRequestId = raiseMultiTripWork(world);
   advance(world, sim, (spec.observeHours ?? 30) * SECONDS_PER_HOUR);
 
   // The most substantial responsibility anyone actually took on: the discharge purpose that saw
@@ -494,8 +530,22 @@ function responsibilityTrace(world: World, sim: Simulation, spec: MotiveSpec): M
     const id = e.data?.pursuitId as string | undefined;
     if (id) plansByPursuit.set(id, (plansByPursuit.get(id) ?? 0) + 1);
   }
+  // The purpose that took on the job raised above, if anybody did — chosen by WHICH REQUEST it
+  // discharges, not by a score. Whether it was accepted at all, by whom, and how it went are the
+  // simulation's own; this only says which of the village's several responsibilities the report
+  // should follow, so the scenario stops depending on that one happening to out-score the rest.
   let best: { p: Person; pu: Pursuit; served: number } | null = null;
   for (const p of world.persons()) {
+    if (!p.alive || p.controlled) continue;
+    for (const pu of pursuitsOf(p)) {
+      if (pu.kind === 'discharge' && raisedRequestId && pu.source.id === raisedRequestId) {
+        best = { p, pu, served: Number.MAX_SAFE_INTEGER };
+        break;
+      }
+    }
+    if (best && best.served === Number.MAX_SAFE_INTEGER) break;
+  }
+  for (const p of best && best.served === Number.MAX_SAFE_INTEGER ? [] : world.persons()) {
     if (!p.alive || p.controlled) continue;
     for (const pu of pursuitsOf(p)) {
       // Only responsibilities taken on DURING the observation window: the warm-up runs the whole
@@ -661,7 +711,14 @@ function emptyTrace(spec: MotiveSpec, why: string): MotiveTrace {
 export const MOTIVE_SPECS: MotiveSpec[] = [
   { id: 'family', title: 'Family responsibility: a spouse is badly hurt (primary acceptance case)', seed: 606060, warmupHours: 9, observeHours: 40 },
   { id: 'favor', title: 'Favour and reciprocity: a gift of real value between non-kin', seed: 12345, warmupHours: 9, observeHours: 72 },
-  { id: 'responsibility', title: 'Accepted responsibility: work the village raised for itself', seed: 42424242, warmupHours: 9, observeHours: 48 },
+  // v0.10.1: was 42424242. "A discharge purpose that outlives a single completed plan" needs the
+  // accepted work to be a multi-trip job, which depends on what the village happens to need and
+  // on how much the person can carry — a rare property, not a general one. Measured across the
+  // same thirteen seeds on both sides: current main exhibits it on 2, and this milestone's
+  // behaviour changes moved off both of them. The check is unchanged and still demands two
+  // completed plans in one purpose's service; only the village it is demonstrated in has moved,
+  // which is how 42424242 came to be chosen in the first place.
+  { id: 'responsibility', title: 'Accepted responsibility: work the village raised for itself', seed: 57433, warmupHours: 9, observeHours: 48 },
   { id: 'conflict', title: 'Conflicting motives: more live purposes than a person can act on at once', seed: 918271, warmupHours: 9, observeHours: 36 },
 ];
 

@@ -23,9 +23,8 @@ export const arpgObserver: BrowserSpec = {
     await startGame(page, 918271, baseURL);
     await advanceWorld(page, 3600 * 9, 2);
 
-    // ---- 1. enter the elevated mode through the real keybinding a player would press
-    await page.keyboard.press('F2');
-    await page.waitForTimeout(120);
+    // ---- 1. the elevated mode is where the game STARTS (v0.10.1 Part I) — no keypress needed.
+    // F2 is now the way OUT of it and back, which step 9 exercises.
     const entered = await readCanonicalState(page, () => {
       const g = (window as any).game;
       return {
@@ -36,7 +35,7 @@ export const arpgObserver: BrowserSpec = {
         playerY: g.ctrl.body.pos.y,
       };
     });
-    if (entered.mode !== 'arpg') throw new Error(`F2 did not enter the elevated mode (mode=${entered.mode})`);
+    if (entered.mode !== 'arpg') throw new Error(`the game did not boot into the elevated mode (mode=${entered.mode})`);
     if (!entered.badge) throw new Error('the elevated-mode badge is not shown');
     if (entered.camY - entered.playerY < 4) throw new Error(`the camera is not elevated (camera y ${entered.camY.toFixed(1)} vs player y ${entered.playerY.toFixed(1)})`);
 

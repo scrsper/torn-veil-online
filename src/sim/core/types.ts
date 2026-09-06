@@ -500,6 +500,39 @@ export type ObligationKind =
    * maintain them). */
   | 'debt';
 export type ObligationStatus = 'live' | 'fulfilled' | 'forgiven' | 'failed' | 'lapsed';
+/**
+ * v0.10.1 §XII — reporting a crime as something a person is GETTING DONE, rather than as a
+ * standing urge that reappears at full strength every cognition tick until it happens to succeed.
+ *
+ * The states are the ones that actually differ in the world and in behaviour: there is somebody
+ * to tell and they have been told (`delivered`); there is somebody to tell and this person is on
+ * their way (`seeking`, the ordinary case); they went and could not get to them (`unavailable`,
+ * which backs off and tries again later); there is nobody appropriate to tell at all
+ * (`no_authority`); or it has stopped mattering (`moot` — the matter resolved, or the belief
+ * aged out). Everything about which state applies is read from canonical facts: `sharedWith` on
+ * the belief, the guards who exist and are known, and the Situation's own resolution as this
+ * person sees it (`personalSituationView`).
+ */
+export type ReportStatus = 'seeking' | 'unavailable' | 'delivered' | 'no_authority' | 'moot';
+export interface ReportProgress {
+  /** The `KnowledgeItem.key` being reported. */
+  key: string;
+  status: ReportStatus;
+  /** Who they last set out to tell. */
+  towardId?: EntityId;
+  /** Times they have actually arrived at, or failed to arrive at, an authority for this. */
+  attempts: number;
+  firstAt: Tick;
+  lastAttemptAt: Tick;
+  /** While set and in the future, this is not proposed — the back-off after a failed approach. */
+  deferUntil?: Tick;
+  /** Who it was finally told to, and when. */
+  deliveredToId?: EntityId;
+  deliveredAt?: Tick;
+  /** Why it ended, in words, for the Inspector and the traces. */
+  note?: string;
+}
+
 export interface Obligation {
   id: string;
   kind: ObligationKind;
@@ -646,6 +679,17 @@ export interface Mind {
    * `GoalCommitment` above and mind/commitment.ts. Null for the overwhelming majority of ticks
    * (most goals are 'free' and never get a commitment record at all). */
   commitment?: GoalCommitment | null;
+  /**
+   * v0.10.1 §XII: how telling the watch about each crime this person knows of is actually GOING —
+   * keyed by the same `KnowledgeItem.key` the report goal is raised for. See
+   * `mind/reporting.ts`.
+   *
+   * Persisted, for the reason `concerns` are: "I have tried three times to find a guard and
+   * failed" is a fact about this run's history, not something a fresh `think()` tick could
+   * recompute. Absent for almost everyone almost always — an entry appears only once someone has
+   * actually set out to report something.
+   */
+  reports?: Record<string, ReportProgress>;
   /** v0.9 §B: the concerns this mind currently carries — see `Concern`. Persisted: a concern
    * depends on what this person learned and when, and cannot be re-derived from present state.
    * Bounded (mind/concern.ts's MAX_CONCERNS); empty for most people most of the time. */

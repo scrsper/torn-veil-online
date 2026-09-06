@@ -25,8 +25,14 @@ export class ArpgCamera {
   yaw = Math.PI * 0.25;
   /** How far above the horizon the camera sits, radians. Clamped to a useful band. */
   pitch = 0.62;
-  /** Boom length in blocks. */
-  distance = 18;
+  /**
+   * Boom length in blocks. v0.10.1: this is the DEFAULT GAMEPLAY framing now that the elevated
+   * camera is the one the game boots into, not a broad observer sweep. 18 read as a survey of the
+   * neighbourhood with the player as one figure among many; 14 keeps a meaningful chunk of the
+   * village on screen while the person you are actually playing is legibly the subject of the
+   * shot. The wheel still spans the full 6..52, so anyone who wants the survey has it.
+   */
+  distance = 14;
   /** The point the camera is currently looking at — lerped toward the requested focus so that
    * following a walking person, or switching who is followed, glides instead of snapping. */
   private focus = new THREE.Vector3();

@@ -49,6 +49,17 @@ async function main(): Promise<void> {
     console.log(`Running ${specs.length} browser spec(s)...\n`);
     for (const spec of specs) {
       const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+      // `page.evaluate(fn)` ships the transpiled SOURCE of `fn` and runs it in the page. This
+      // project builds specs with tsx/esbuild, whose `keepNames` rewrites any function assigned
+      // to a variable — `const snap = () => ...` inside an evaluate callback — into
+      // `__name(fn, "snap")`, a helper that exists in the Node module's own output and nowhere in
+      // the browser. The result is `ReferenceError: __name is not defined`, thrown before the
+      // callback does anything, which reads like a broken client rather than a build artefact.
+      // Defining the helper as an identity function in the page makes the whole class of failure
+      // go away, instead of every spec author having to remember not to name a local function.
+      await context.addInitScript(() => {
+        (window as unknown as { __name: <T>(fn: T) => T }).__name = <T>(fn: T): T => fn;
+      });
       const page = await context.newPage();
       const t0 = Date.now();
       try {

@@ -98,7 +98,7 @@ export function craftItem(world: World, actor: Person, recipeId: string): CraftR
 
   for (const { item, qty } of consumed) {
     item.quantity -= qty;
-    if (item.quantity <= 0) { actor.inventory = actor.inventory.filter(id => id !== item.id); retireStack(item); }
+    if (item.quantity <= 0) retireStack(world, item);
   }
   const ev = world.emit('item_crafted', {
     actor: actor.id, significance: 0.2,

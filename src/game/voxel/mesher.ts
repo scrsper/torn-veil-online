@@ -3,22 +3,47 @@ import { B, BLOCKS, type BlockDef } from '../../sim/physical/blocks';
 import { VoxelGrid, CHUNK } from '../../sim/physical/grid';
 import { hash2 } from '../../sim/core/rng';
 
+/**
+ * A region of the world that is being drawn WITHOUT its upper geometry — the roof (and anything
+ * above `y`) of one building, so an elevated camera can see into the room the player is standing
+ * in. Purely a presentation mask: the blocks are still there in the canonical grid, and nothing
+ * outside this box is affected.
+ */
+export interface RevealBox { x0: number; x1: number; z0: number; z1: number; y: number; }
+
 /** Builds chunk meshes from the canonical voxel grid: vertex colours, baked ambient occlusion, emissive attribute. */
 export class ChunkMesher {
   constructor(private grid: VoxelGrid) {}
+  /** Set by `VoxelRenderer`; see `RevealBox`. */
+  reveal: RevealBox | null = null;
+
+  /**
+   * The block at (x,y,z) AS DRAWN — the canonical block, except inside the current reveal box
+   * above its cut height, where it reads as air.
+   *
+   * Every read in this class goes through here, including the neighbour reads that decide face
+   * culling and ambient occlusion. That is the whole point: if the mask were applied only where
+   * geometry is emitted, the wall course just under the cut would still cull its top face against
+   * a roof block that is no longer drawn, and the building would be visibly open at the seam.
+   */
+  private at(x: number, y: number, z: number): number {
+    const r = this.reveal;
+    if (r && y >= r.y && x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1) return B.Air;
+    return this.grid.get(x, y, z);
+  }
 
   build(cx: number, cz: number): { opaque: THREE.BufferGeometry | null; water: THREE.BufferGeometry | null } {
     const g = this.grid; const x0 = cx * CHUNK, z0 = cz * CHUNK;
     const op = new GeoBuilder(), wa = new GeoBuilder();
     for (let x = x0; x < x0 + CHUNK; x++) for (let z = z0; z < z0 + CHUNK; z++) for (let y = 0; y < g.H; y++) {
-      const id = g.get(x, y, z); if (id === B.Air) continue;
+      const id = this.at(x, y, z); if (id === B.Air) continue;
       const def = BLOCKS[id];
-      if (id === B.Water) { if (g.get(x, y + 1, z) !== B.Water) this.waterTop(wa, x, y, z); for (const [dx, dy, dz, f] of DIRS) { if (dy) continue; const n = g.get(x + dx, y + dy, z + dz); if (n === B.Air) this.face(wa, x, y, z, f, def, id, 0, 1, 0, 1, 0, 1, true); } continue; }
+      if (id === B.Water) { if (this.at(x, y + 1, z) !== B.Water) this.waterTop(wa, x, y, z); for (const [dx, dy, dz, f] of DIRS) { if (dy) continue; const n = this.at(x + dx, y + dy, z + dz); if (n === B.Air) this.face(wa, x, y, z, f, def, id, 0, 1, 0, 1, 0, 1, true); } continue; }
       switch (def.shape) {
-        case 'cube': for (let i = 0; i < 6; i++) { const [dx, dy, dz, f] = DIRS[i]; const n = g.get(x + dx, y + dy, z + dz); const nd = BLOCKS[n]; if (n !== B.Air && nd.opaque && nd.shape === 'cube') continue; if (n === id && (id === B.Glass || id === B.Leaves || id === B.Leaves2)) continue; this.face(id === B.Glass ? wa : op, x, y, z, f, def, id, 0, 1, 0, 1, 0, 1, true); } break;
+        case 'cube': for (let i = 0; i < 6; i++) { const [dx, dy, dz, f] = DIRS[i]; const n = this.at(x + dx, y + dy, z + dz); const nd = BLOCKS[n]; if (n !== B.Air && nd.opaque && nd.shape === 'cube') continue; if (n === id && (id === B.Glass || id === B.Leaves || id === B.Leaves2)) continue; this.face(id === B.Glass ? wa : op, x, y, z, f, def, id, 0, 1, 0, 1, 0, 1, true); } break;
         case 'slab': this.box(op, x, y, z, def, id, 0, def.height ?? 0.5, 0, 1, 0, 1); break;
         case 'inset': { if (id === B.Door) this.door(op, x, y, z, def, id); else { const i = def.inset ?? 0.2; this.box(op, x, y, z, def, id, 0, def.height ?? 1, i, 1 - i, i, 1 - i); } break; }
-        case 'post': { const h = def.height ?? 1; if (id === B.Torch) { this.box(op, x, y, z, def, id, 0, h, 0.42, 0.58, 0.42, 0.58); } else { this.box(op, x, y, z, def, id, 0, h, 0.35, 0.65, 0.35, 0.65); const nx = g.get(x + 1, y, z) === id, nz = g.get(x, y, z + 1) === id; if (nx) this.box(op, x, y, z, def, id, 0.55, 0.85, 0.5, 1.5, 0.42, 0.58); if (nz) this.box(op, x, y, z, def, id, 0.55, 0.85, 0.42, 0.58, 0.5, 1.5); } break; }
+        case 'post': { const h = def.height ?? 1; if (id === B.Torch) { this.box(op, x, y, z, def, id, 0, h, 0.42, 0.58, 0.42, 0.58); } else { this.box(op, x, y, z, def, id, 0, h, 0.35, 0.65, 0.35, 0.65); const nx = this.at(x + 1, y, z) === id, nz = this.at(x, y, z + 1) === id; if (nx) this.box(op, x, y, z, def, id, 0.55, 0.85, 0.5, 1.5, 0.42, 0.58); if (nz) this.box(op, x, y, z, def, id, 0.55, 0.85, 0.42, 0.58, 0.5, 1.5); } break; }
         case 'cross': this.cross(op, x, y, z, def, id); break;
       }
     }
@@ -34,7 +59,7 @@ export class ChunkMesher {
     return [Math.max(0, r + h), Math.max(0, g + h), Math.max(0, b + h)];
   }
   private ao(x: number, y: number, z: number, face: number, cornerA: number[], cornerB: number[], cornerC: number[]): number {
-    const s = (dx: number, dy: number, dz: number) => { const b = this.grid.get(x + dx, y + dy, z + dz); return b !== B.Air && BLOCKS[b].opaque && BLOCKS[b].shape === 'cube' ? 1 : 0; };
+    const s = (dx: number, dy: number, dz: number) => { const b = this.at(x + dx, y + dy, z + dz); return b !== B.Air && BLOCKS[b].opaque && BLOCKS[b].shape === 'cube' ? 1 : 0; };
     const a = s(cornerA[0], cornerA[1], cornerA[2]), b = s(cornerB[0], cornerB[1], cornerB[2]), c = s(cornerC[0], cornerC[1], cornerC[2]);
     const v = (a && b) ? 0 : 3 - (a + b + c); return 0.55 + 0.45 * (v / 3);
   }
@@ -56,7 +81,7 @@ export class ChunkMesher {
   }
   private door(gb: GeoBuilder, x: number, y: number, z: number, def: BlockDef, id: number): void {
     const wallLike = (block: number) => block !== B.Air && block !== B.Door && BLOCKS[block].shape === 'cube';
-    const alongX = Number(wallLike(this.grid.get(x - 1, y, z))) + Number(wallLike(this.grid.get(x + 1, y, z))) >= Number(wallLike(this.grid.get(x, y, z - 1))) + Number(wallLike(this.grid.get(x, y, z + 1)));
+    const alongX = Number(wallLike(this.at(x - 1, y, z))) + Number(wallLike(this.at(x + 1, y, z))) >= Number(wallLike(this.at(x, y, z - 1))) + Number(wallLike(this.at(x, y, z + 1)));
     if (!this.grid.isDoorOpen(x, y, z)) {
       if (alongX) this.box(gb, x, y, z, def, id, 0, 1, 0.04, 0.96, 0.42, 0.58);
       else this.box(gb, x, y, z, def, id, 0, 1, 0.42, 0.58, 0.04, 0.96);
@@ -158,39 +183,47 @@ export class VoxelRenderer {
   update(): void { if (!this.grid.dirtyChunks.size) return; for (const key of this.grid.dirtyChunks) this.rebuild(Math.floor(key / 1024), key % 1024); this.grid.dirtyChunks.clear(); }
   setTime(t: number): void { for (const m of [this.matOpaque, this.matWater]) { const s = (m as any).userData.shader; if (s) s.uniforms.uTime.value = t; } }
   /**
-   * v0.10 Part V ("reasonable handling when buildings/geometry obscure the player"): cut the
-   * voxel world off above `y`, or pass null to stop cutting.
+   * v0.10 Part V / v0.10.1 Part III: draw ONE building without its roof, so an elevated camera
+   * can see into the room the player is standing in.
    *
-   * An elevated camera in a village of solid voxel buildings spends most of its indoor time
-   * looking at the underside of a roof; pulling the camera in until it has line of sight (which
-   * is what the boom does outdoors, and what a first-person third-person camera does) collapses
-   * it to a hand's breadth from the person's face inside a small room, which is worse than
-   * useless. So indoors the ROOF goes instead of the camera — the standard solution for this
-   * camera, and here it is one clipping plane on the two chunk materials.
+   * v0.10 did this with a single horizontal clipping plane on the two chunk materials. That
+   * works, and it is nearly free, but it is a plane: it cuts the whole world at that height, so
+   * stepping through the baker's door lifted the lid off every house, wall and roof in the
+   * village at once — the town read as a floor plan rather than as a place with a building you
+   * had entered. It also sliced buildings mid-course wherever they happened to cross the plane.
    *
-   * Deliberately LOCAL clipping (the two voxel materials only), not a renderer-wide plane: a
-   * global plane would also slice the sky dome and the weather particles in half. Actors, items
-   * and effects are below the cut and are unaffected. Nothing here touches canonical state — it
-   * decides which triangles are drawn, and that is all.
+   * The reveal is now a BOX (`RevealBox`, from the canonical `Place.bounds` of the building
+   * actually occupied), and it is applied in the mesher rather than in the shader, so what is
+   * left is a correctly-formed building with its roof off: neighbouring geometry is untouched,
+   * and the walls of the revealed room close properly at the cut because the mask is applied to
+   * neighbour reads too (see `ChunkMesher.at`).
+   *
+   * The cost is a chunk rebuild on entering and leaving a building — a handful of chunks, at
+   * human door-opening frequency — instead of a per-frame shader uniform. That is the right
+   * trade for something that decides whether the view is legible.
    */
-  private roofCut: number | null = null;
-  private roofPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
-  setRoofCut(y: number | null): void {
-    if (y === this.roofCut) return;
-    // Only when the plane COUNT changes does three.js have to recompile the shader, so moving an
-    // existing cut is free while turning it on or off is not — hence the early-out above and the
-    // reused plane object. (Setting `needsUpdate` every frame here recompiled the chunk shaders
-    // once per frame, which is precisely the kind of cost a presentation nicety must not add.)
-    const hadCut = this.roofCut !== null;
-    this.roofCut = y;
-    if (y !== null) this.roofPlane.constant = y;
-    const planes = y === null ? [] : [this.roofPlane];
-    for (const m of [this.matOpaque, this.matWater]) {
-      m.clippingPlanes = planes;
-      m.clipShadows = false;
-      if (hadCut !== (y !== null)) m.needsUpdate = true;
+  private reveal: RevealBox | null = null;
+  setReveal(box: RevealBox | null): void {
+    const a = this.reveal, b = box;
+    if (a === b || (a && b && a.x0 === b.x0 && a.x1 === b.x1 && a.z0 === b.z0 && a.z1 === b.z1 && a.y === b.y)) return;
+    this.reveal = b;
+    this.mesher.reveal = b;
+    // Rebuild every chunk the OLD box covered (to put the roof back) and every chunk the NEW one
+    // covers (to take it off). Usually the same one to four chunks.
+    const dirty = new Set<number>();
+    for (const r of [a, b]) {
+      if (!r) continue;
+      for (let cx = Math.floor(r.x0 / CHUNK); cx <= Math.floor(r.x1 / CHUNK); cx++) {
+        for (let cz = Math.floor(r.z0 / CHUNK); cz <= Math.floor(r.z1 / CHUNK); cz++) {
+          if (cx >= 0 && cz >= 0 && cx < this.grid.W / CHUNK && cz < this.grid.D / CHUNK) dirty.add(cx * 1024 + cz);
+        }
+      }
     }
+    for (const key of dirty) this.rebuild(Math.floor(key / 1024), key % 1024);
   }
+  /** The building currently being drawn without its roof, or null. */
+  get revealed(): RevealBox | null { return this.reveal; }
+
   private rebuild(cx: number, cz: number): void {
     const key = cx * 1024 + cz; const old = this.meshes.get(key);
     if (old) { for (const m of [old.opaque, old.water]) if (m) { this.group.remove(m); m.geometry.dispose(); } }

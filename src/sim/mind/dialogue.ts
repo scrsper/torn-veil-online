@@ -14,6 +14,20 @@ import { ITEM_LABEL } from '../world/factory';
 import { foodForSaleBy, canAcceptHaul } from '../logistics/participation';
 import { effectivePrice } from '../world/pricing';
 import { stockAt as stockAtPlace } from '../world/stock';
+import type { RefusalReason } from '../world/commerce';
+
+/** What a seller says when the simulation refuses a sale — one line per canonical reason, so a
+ * refusal is explained rather than silently doing nothing. */
+function refusalLine(npc: Person, reason: RefusalReason): string {
+  switch (reason) {
+    case 'hostile': return `I'll not trade with you.`;
+    case 'not_theirs': return `That's not mine to sell.`;
+    case 'personal': return `That's not for sale. It's mine.`;
+    case 'needed_for_work': return `I need that for my work.`;
+    case 'committed': return `That one's spoken for.`;
+    case 'last_food': return `${npc.traits.greed > 0.7 ? "I'd sooner eat than sell it." : "I've barely enough for myself."}`;
+  }
+}
 
 export interface DialogueOption { label: string; next: () => DialogueState | null; }
 export interface DialogueState { speaker: Person; lines: string[]; options: DialogueOption[]; }
@@ -96,8 +110,12 @@ export class DialogueSystem {
     opts.push({ label: 'What do you think of me?', next: () => ({ speaker: npc, lines: [this.opinionOfPlayer(npc, player)], options: this.options(npc, player) }) });
     if (activeConcerns(npc).some(c => c.intensity > 0.15)) opts.push({ label: "What's troubling you?", next: () => this.troubles(npc, player) });
     opts.push({ label: 'Ask about someone…', next: () => this.askAboutMenu(npc, player) });
-    const forSale = w.items().filter(i => i.ownerId === npc.id && i.pos && !i.holderId);
-    if (forSale.length && ['merchant', 'baker', 'innkeeper', 'smith', 'hunter', 'farmer', 'herbalist'].includes(npc.occupation)) opts.push({ label: 'Trade', next: () => this.trade(npc, player) });
+    // v0.10.1 Part VII: whether Trade is on the table is decided by whether this person actually
+    // has anything they would sell (`world/commerce.ts`), not by whether their occupation is on a
+    // list of shopkeeper job titles. A farmer with a surplus sack of grain can sell it; a smith
+    // with nothing but his own tools cannot, and neither can a merchant who has sold out.
+    const offers = this.sim.tradeOffers(npc, player);
+    if (offers.length) opts.push({ label: 'Trade', next: () => this.trade(npc, player) });
     // Player embodiment: a meal bought the way a hungry NPC buys one (`buyFoodPortion` — scarcity
     // priced, one unit), and honest work offered by the person who actually raised the request
     // (logistics/participation.ts's `haulOffersFrom`) — the same Request an NPC hauler would take.
@@ -258,17 +276,72 @@ export class DialogueSystem {
     const loc = npc.knowledge[`loc:${id}`]; if (loc && w.now - loc.learnedAt < 3600 * 3) s += ` Last I saw ${o.gender === 'f' ? 'her' : 'him'} ${loc.claim.placeId ? 'at ' + w.nameOf(loc.claim.placeId) : 'about'}, ${formatRelativeTime(loc.learnedAt, w.now)}.`;
     return s;
   }
+  /**
+   * v0.10.1 Parts VI/VII: what is on the table comes from `world/commerce.ts`, which reads the
+   * canonical world — who owns it, where it is sitting, what is already promised elsewhere, what
+   * they need themselves. There is no shop inventory anywhere in this file, and no per-occupation
+   * stock list: this menu renders whatever `tradeOffers` says, and the refusals it shows are the
+   * ones the simulation actually gave.
+   *
+   * Buying goes through the Simulation's own transaction functions — `buyUnits` for a stack (the
+   * same `purchaseUnits` a hungry NPC's food purchase uses) and `buyItem` for a whole object.
+   * Both re-check willingness at the moment of sale, so a menu drawn a minute ago cannot complete
+   * a trade the seller would now refuse.
+   */
+  /** Open straight into the Trade menu — the client's "Trade" prompt on a selected person. Same
+   * state the `Trade` option produces; the shortcut skips the greeting, not any of the rules. */
+  startTrade(npc: Person, player: Person): DialogueState { return this.trade(npc, player); }
   private trade(npc: Person, player: Person): DialogueState {
-    const w = this.world; const r = getRel(npc, player.id);
-    if (r.fear > 0.45 || r.grudge > 0.5) return { speaker: npc, lines: [`I'll not trade with you. Get out.`], options: this.options(npc, player) };
-    const goods = w.items().filter(i => i.ownerId === npc.id && i.pos && !i.holderId);
+    const w = this.world;
+    const offers = this.sim.tradeOffers(npc, player);
+    if (!offers.length) {
+      const refusals = this.sim.tradeRefusals(npc, player);
+      const hostile = refusals.find(r => r.reason === 'hostile');
+      if (hostile) return { speaker: npc, lines: [`I'll not trade with you. Get out.`], options: this.options(npc, player) };
+      const first = refusals[0];
+      return { speaker: npc, lines: [first ? `Nothing for sale — ${first.note}.` : `I've nothing to sell just now.`], options: this.options(npc, player) };
+    }
+    const opts: DialogueOption[] = offers.slice(0, 8).map(o => {
+      const stack = o.item.quantity > 1;
+      const label = stack
+        ? `Buy ${o.item.type} (${o.unitPrice}s each, ${o.available} to be had)`
+        : `Buy ${o.item.name} (${o.unitPrice}s)`;
+      return {
+        label,
+        next: () => {
+          if (stack) {
+            const r = this.sim.buyUnits(player, npc, o.item, 1);
+            if (!r.units) return { speaker: npc, lines: [r.refused ? refusalLine(npc, r.refused) : `You haven't the coin.`], options: this.options(npc, player) };
+            adjustRel(w, npc, player.id, { affection: 0.05, trust: 0.05 }, 'traded', r.event?.id);
+            return { speaker: npc, lines: [`${r.units} ${o.item.type}, ${r.paid} silver. ${npc.traits.greed > 0.7 ? 'Pleasure doing business.' : 'Fair price.'}`], options: this.options(npc, player) };
+          }
+          const ev = this.sim.buyItem(player, npc, o.item);
+          if (!ev) return { speaker: npc, lines: [player.wealth < o.unitPrice ? `You haven't the coin.` : `I've changed my mind about that one.`], options: this.options(npc, player) };
+          adjustRel(w, npc, player.id, { affection: 0.05, trust: 0.05 }, 'traded', ev.id);
+          return { speaker: npc, lines: [`Done. ${npc.traits.greed > 0.7 ? 'Pleasure doing business.' : 'Fair price.'}`], options: this.options(npc, player) };
+        },
+      };
+    });
+    // Selling TO them: the mirror of the same rules. They will not knowingly buy what someone
+    // else owns, and `sellItem` conserves the money and the object.
     const markup = 1 + npc.traits.greed * 0.5 - Math.max(0, disposition(npc, player.id)) * 0.3;
-    const opts: DialogueOption[] = goods.slice(0, 8).map(it => { const price = Math.max(1, Math.round(it.value * markup)); return { label: `Buy ${it.name} (${price}s)`, next: () => { const ev = this.sim.buyItem(player, npc, it, price); if (!ev) { return { speaker: npc, lines: [`You haven't the coin.`], options: this.options(npc, player) }; } adjustRel(w, npc, player.id, { affection: 0.05, trust: 0.05 }, 'traded', ev.id); return { speaker: npc, lines: [`Done. ${npc.traits.greed > 0.7 ? 'Pleasure doing business.' : 'Fair price.'}`], options: this.options(npc, player) }; } }; });
-    // sell
-    for (const id of player.inventory) { const it = w.item(id); if (!it || it.type === 'coins' || it.type === 'dagger') continue; if (it.ownerId && it.ownerId !== player.id && npc.knowledge[`owner:${it.id}`]) continue; const price = Math.max(1, Math.round(it.value * 0.5 / markup)); opts.push({ label: `Sell ${it.name} (${price}s)`, next: () => { const spot = w.place(npc.workId)?.anchors.find(a => a.kind === 'display'); const pos = spot ? { x: spot.pos.x + 0.5, y: spot.pos.y, z: spot.pos.z + 0.5 } : { ...w.primaryBody(npc.id)!.pos }; const ev = this.sim.sellItem(player, npc, it, price, pos, npc.workId ?? undefined); if (!ev) return { speaker: npc, lines: [`I haven't the coin for that.`], options: this.options(npc, player) }; return { speaker: npc, lines: [`I'll take it. ${price} silver.`], options: this.options(npc, player) }; } }); }
+    for (const id of player.inventory) {
+      const it = w.item(id); if (!it || it.type === 'coins' || it.type === 'dagger') continue;
+      if (it.ownerId && it.ownerId !== player.id && npc.knowledge[`owner:${it.id}`]) continue;
+      if (it.haulTaskId) continue;
+      const price = Math.max(1, Math.round(it.value * 0.5 / markup));
+      opts.push({ label: `Sell ${it.name} (${price}s)`, next: () => {
+        const spot = w.place(npc.workId)?.anchors.find(a => a.kind === 'display');
+        const pos = spot ? { x: spot.pos.x + 0.5, y: spot.pos.y, z: spot.pos.z + 0.5 } : { ...w.primaryBody(npc.id)!.pos };
+        const ev = this.sim.sellItem(player, npc, it, price, pos, npc.workId ?? undefined);
+        if (!ev) return { speaker: npc, lines: [`I haven't the coin for that.`], options: this.options(npc, player) };
+        return { speaker: npc, lines: [`I'll take it. ${price} silver.`], options: this.options(npc, player) };
+      } });
+    }
     opts.push({ label: 'Nothing today', next: () => ({ speaker: npc, lines: ['Suit yourself.'], options: this.options(npc, player) }) });
     return { speaker: npc, lines: [`Have a look. You've ${player.wealth} silver.`], options: opts };
   }
+
   /** Honest work: open haul Requests this person speaks for. Accepting is `claimHaulTask` via
    * participation.ts — the identical claim an NPC hauler makes; loading, carrying, depositing
    * and the wage all then happen through the same functions and the same conservation rules. */

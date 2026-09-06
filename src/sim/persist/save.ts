@@ -99,7 +99,14 @@ const KEY = 'infinite-rpg-save-v1';
 // world rather than an old one. New optional `Goal.data.pursuitId` links and the new `provide`
 // GoalType round-trip automatically (`goal` is whole-object-persisted); `Mind.intention` remains
 // deliberately unpersisted, unchanged from v0.6.
-export const SAVE_VERSION = 14;
+// v0.10.1 Interaction & Simulation Coherence: bumped 14 -> 15 for `Person.mind.reports` — how far
+// this person has got with telling the watch about each crime they know of (attempted, could not
+// find anyone, told whom and when, backing off until). It is the same kind of state as `concerns`
+// and `pursuits`: "I went to the guardhouse twice and he wasn't there" is a fact about this run's
+// history that no fresh `think()` tick can recompute, and losing it on load would put every
+// villager back to full urgency on every crime they remember — precisely the behaviour v0.10
+// disclosed and this milestone exists to fix.
+export const SAVE_VERSION = 15;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
@@ -110,7 +117,7 @@ export function serialize(world: World): string {
   // investigated is a Set in memory (v0.2.2 Phase 3: O(1) membership instead of an
   // ever-growing array's O(length) .includes() on every guard's every think() tick) — JSON has
   // no native Set, so it round-trips as a plain array here and is rebuilt into a Set on load.
-  const persons = world.persons().map(p => ({ id: p.id, concerns: p.mind.concerns ?? [], obligations: p.mind.obligations ?? [], pursuits: p.mind.pursuits ?? [], needs: p.needs, emotions: p.emotions, relationships: p.relationships, memories: p.memories, knowledge: p.knowledge, inventory: p.inventory, wealth: p.wealth, alive: p.alive, desires: p.desires, deathTick: p.deathTick, goal: p.mind.goal, investigated: [...p.mind.investigated], decision: p.mind.decision, timeRate: p.timeRate, surrender: p.surrender ?? null, custody: p.custody ?? null, attributes: p.attributes, physiology: p.physiology, species: p.species, physiologyTraits: p.physiologyTraits, commitment: p.mind.commitment ?? null, skills: p.skills }));
+  const persons = world.persons().map(p => ({ id: p.id, concerns: p.mind.concerns ?? [], obligations: p.mind.obligations ?? [], pursuits: p.mind.pursuits ?? [], reports: p.mind.reports ?? {}, needs: p.needs, emotions: p.emotions, relationships: p.relationships, memories: p.memories, knowledge: p.knowledge, inventory: p.inventory, wealth: p.wealth, alive: p.alive, desires: p.desires, deathTick: p.deathTick, goal: p.mind.goal, investigated: [...p.mind.investigated], decision: p.mind.decision, timeRate: p.timeRate, surrender: p.surrender ?? null, custody: p.custody ?? null, attributes: p.attributes, physiology: p.physiology, species: p.species, physiologyTraits: p.physiologyTraits, commitment: p.mind.commitment ?? null, skills: p.skills }));
   // v0.2.3: a subdued body must reload still subdued (unlike `pose`, which is reset). Persist the
   // physical-time timestamp; a downed pose is reconstructed from it on load.
   const bodies = world.bodies().map(b => ({ id: b.id, pos: b.pos, yaw: b.yaw, health: b.health, maxHealth: b.maxHealth, dead: b.dead, pose: b.pose === 'dead' ? 'dead' : (b.subduedUntil > world.physicalTime ? 'downed' : 'stand'), present: b.present, subduedUntil: b.subduedUntil }));
@@ -206,7 +213,10 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
       // v0.10: deep-copied like `concerns` for the same reason — the saved JSON's arrays must not
       // become live simulation state that a later save then re-serializes by reference.
       p.mind.obligations = (s.obligations ?? []).map((o: import('../core/types').Obligation) => ({ ...o, reasons: [...o.reasons] }));
-      p.mind.pursuits = (s.pursuits ?? []).map((pu: import('../core/types').Pursuit) => ({ ...pu, source: { ...pu.source }, steps: [...pu.steps], reasons: [...pu.reasons] })); }
+      p.mind.pursuits = (s.pursuits ?? []).map((pu: import('../core/types').Pursuit) => ({ ...pu, source: { ...pu.source }, steps: [...pu.steps], reasons: [...pu.reasons] }));
+      // v0.10.1: same deep copy, same reason. A pre-15 save simply has no reports, which is the
+      // correct reading of it — those villagers had not started trying to tell anyone yet.
+      p.mind.reports = Object.fromEntries(Object.entries((s.reports ?? {}) as Record<string, import('../core/types').ReportProgress>).map(([k, r]) => [k, { ...r }])); }
     for (const s of data.bodies) { const b = world.body(s.id); if (!b) continue; b.pos = s.pos; b.yaw = s.yaw; b.health = s.health; b.maxHealth = s.maxHealth; b.dead = s.dead; b.pose = s.pose; b.present = s.present; b.path = null; b.subduedUntil = s.subduedUntil ?? 0; }
     world.conflicts = (data.conflicts ?? []).map((c: Conflict) => ({ ...c }));
     if (data.fields?.length) { world.fields = data.fields.map((f: Field) => ({ ...f, plots: f.plots.map(p => ({ ...p })) })); }
