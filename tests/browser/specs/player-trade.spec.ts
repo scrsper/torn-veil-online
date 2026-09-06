@@ -208,7 +208,10 @@ export const playerTrade: BrowserSpec = {
     const consumeBtn = page.locator('#inventory .acts button', { hasText: /^(Eat|Drink)/ });
     if (!await consumeBtn.count()) throw new Error(`the inventory offered no way to consume the ${good.type}`);
     const qtyBefore = bought.qty;
-    await consumeBtn.first().click();
+    // `dispatchEvent` rather than `click`: pausing puts a message toast over the panel, and
+    // Playwright's hit-testing refuses to click through it. This still fires the button's own
+    // handler — the same `onAction` → `Simulation.consumeItem` path a player's click takes.
+    await consumeBtn.first().dispatchEvent('click');
     await page.waitForTimeout(120);
 
     const eaten = await page.evaluate((type: string) => {
