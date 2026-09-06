@@ -182,12 +182,82 @@ collision and the same canonical body in both modes.
 | Deterministic suite | 48 files, 445 tests, all passing |
 | Typecheck / production build | clean |
 | Browser specs | 7/7 against the real client, including the new elevated/observer spec |
-| WorldLab | smoke and check tiers pass |
+| WorldLab | smoke tier PASS (7/7); check tier FAIL on both `main` and this branch — see below |
 | Causal traces | `npm run motive:trace` — 4 scenarios, 22 checks, all passing |
+| Multi-day | 5 seeds × 10 days, measured against `main` back to back — see below |
 | Real client | `tools/audit/arpg-visual-check.ts`; screenshots in `docs/v0_10/` |
 
 `npm run motive:trace` is the v0.10 counterpart of `npm run social:trace`. Two of its four
 scenarios trigger nothing at all and simply watch what the village does on its own.
+
+### WorldLab: pre-existing check-tier failures, measured on both sides
+
+The `check` tier was already red before this milestone and is still red, with the **same scenarios
+and the same violation codes** on both sides. Recorded here rather than absorbed into scope, per
+v0.9's finding that it was red before v0.9 too.
+
+| Scenario (3 seeds each) | `main` | v0.10 |
+| --- | --- | --- |
+| Baseline Village | FAIL ×3 | FAIL ×3 |
+| Food Chain | FAIL ×3 | FAIL ×3 |
+| Water Survival | FAIL ×3 | FAIL ×3 |
+| Logistics | PASS ×3 | PASS ×3 |
+| Construction | FAIL, **PASS**, FAIL | FAIL, **FAIL**, FAIL |
+| Conflict Resolution | PASS ×3 | PASS ×3 |
+| Recover Item | PASS ×3 | PASS ×3 |
+| **Overall** | **FAIL** | **FAIL** |
+
+Violation codes are identical in kind on both sides (`HUNGER-DEPRIVED` 12/12, `NUTRITION-DEFICIT`
+9/9, `CONSUMER-BACKLOG` 6/6, `ANOMALY-STUCK` 6/6, `PURCHASING-POWER` 3/3, `MONEY-SUPPLY-TREND` 3/3,
+`DOWNSTREAM-STARVED` 3/3, `CROP-UNHARVESTED` 2/2, `TIMBER-HORIZON` 2/1).
+
+The one difference is `Construction` on seed 42424242, and the one code whose *count* moves is
+`CONSTRUCTION-MATERIAL-STALLED` (88 → 220 emitted lines, though it is emitted once per overlapping
+2-day window, so a stall lasting a few days longer produces many more lines). v0.9 already records
+this check as pre-existing and **strongly seed-sensitive**, and warns against reading one seed as a
+regression signal. Re-running the scenario across the same five extra seeds v0.9 used:
+
+| seeds 7, 101, 555, 90210, 31337 | result |
+| --- | --- |
+| `main` | FAIL, FAIL, FAIL, **PASS**, FAIL — 1 pass |
+| v0.10 | **PASS**, FAIL, FAIL, DEGRADED, **PASS** — 2 passes + 1 degraded |
+
+So across eight seeds in total this branch is not worse on the construction stall; it moves within
+the same known band, which is the RNG-stream coupling described in `docs/RNG_ARCHITECTURE.md`.
+
+### Multi-day stability, measured against `main`
+
+Five seeds, ten world-days each, both branches run **alone** on the same machine and back to back
+(`tools/audit/baseline-compare.ts`; deprivation integrated by sampling every 30 world-minutes, not read off
+a single final instant). Averages over the five seeds:
+
+| | `main` | v0.10 |
+| --- | --- | --- |
+| `goal_changed` per run | 5819 | 5830 |
+| meals eaten | 490 | 489 |
+| deaths | 4 on every seed | 4 on every seed |
+| person-hours at critical hunger | 721 | 716 |
+| person-hours at critical thirst | 171 | 198 |
+| person-hours at critical exhaustion | 56 | 38 |
+
+**Goal churn is flat** (+0.2%), which was the headline risk: a persistent purpose that re-proposed
+itself every tick would show up here immediately. **Nobody starves for a purpose** — meals, deaths
+and critical-hunger hours are all unchanged; critical thirst is up ~15% and critical exhaustion
+down ~31%, netting to +0.5% total time in any critical band.
+
+From `tools/audit/motivation-longrun.ts` over the same runs: `pursuit_formed` ≈ `pursuit_resolved`
+(e.g. 93/92, 104/99), **no purpose outlived the run window** (`neverEnd = 0` on every seed), live
+purposes per person 1–5, `obligation_formed` ≈ `obligation_resolved` (196/193, 190/190), live
+obligations 0–6, and the per-person obligation count reaches but never exceeds the cap of 8.
+
+**One attack outlier, investigated and not ours.** Across eight seeds the largest number of blows
+between any one pair of people is 5–14 on `main` and 6–13 on this branch — except seed 918271,
+where it is 6 on `main` and **122** here. Reading the events directly: 118 of those blows fall
+inside about three world-hours of a single `defend`/`robbery` conflict between a hunter and a
+bandit, which then resolved; **neither participant held any pursuit or obligation at any point**,
+so `forgivenessFor` was 0 and no v0.10 code path took part. It is the single shared RNG stream
+(`docs/RNG_ARCHITECTURE.md`) landing differently in pre-existing combat code. Total attacks across
+the eight seeds excluding that one: `main` 460, v0.10 440.
 
 ## What the trace harness caught that unit tests did not
 
@@ -257,11 +327,21 @@ mechanism rather than in the report:
 
 ## Measured cost
 
-A two-day headless run of the generated village at seed 1337: ~14.1 s, against ~13.6 s on
-`main` — roughly 4%, spent almost entirely in the coarse 10-minute upkeep pass
-(`maintainObligations` / `formPursuits` / `maintainPursuits`) and in `pursuitSteps` for the small
-number of people holding an active purpose at any moment. The full deterministic suite went from
-433 s to 521 s, of which ~88 s is the two new suites.
+Ten world-days of the generated village, five seeds, each branch run alone and back to back
+(the v0.9 doc warns that a first timing delta here is usually contention, so this was measured
+twice with the order reversed):
+
+| | round 1 | round 2 | mean |
+| --- | --- | --- | --- |
+| `main` | 100.7 s | 102.2 s | **101.5 s** |
+| v0.10 | 120.9 s | 116.6 s | **118.7 s** |
+
+**Roughly +17%**, spent in the coarse 10-minute upkeep pass (`maintainObligations` /
+`formPursuits` / `maintainPursuits` / `noticeBrokenPromises`) and in `pursuitSteps` for the people
+holding an active purpose at that moment. A shorter two-day run at seed 1337 costs only ~4%
+(14.1 s against 13.6 s) because far fewer purposes and obligations have accumulated by then — the
+ten-day figure is the honest one to plan against. The full deterministic suite went from 433 s to
+521 s, of which ~88 s is the two new suites.
 
 Save schema 13 → 14: `Mind.pursuits` and `Mind.obligations` are persisted, for the same reason
 v0.9's `concerns` are — they record that this person has been trying to do something, or has owed
