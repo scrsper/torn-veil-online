@@ -274,7 +274,18 @@ export function purchaseUnits(world: World, buyer: Person, seller: Person, sourc
   world.runTally.purchase_amount = (world.runTally.purchase_amount ?? 0) + cost;
   source.quantity -= take;
   const drained = source.quantity <= 0;
-  if (drained) { source.pos = null; source.placeId = null; }
+  if (drained) {
+    source.pos = null; source.placeId = null;
+    // A stack bought out entirely leaves the world. `retireStack` (below) clears `holderId` but
+    // cannot reach the holder's own `inventory` array, and unlike `buyFoodPortion` — whose source
+    // was always unheld place stock — this path is also reached for something the seller was
+    // CARRYING, because carried surplus is on the offer list. Without this the seller keeps an id
+    // pointing at nothing. Caught by the player-trade spec's ghost-inventory audit.
+    if (source.holderId) {
+      const holder = world.person(source.holderId);
+      if (holder) holder.inventory = holder.inventory.filter(id => id !== source.id);
+    }
+  }
 
   const pos = opts.pos ?? world.primaryBody(buyer.id)?.pos;
   const ev = world.emit('trade', {
