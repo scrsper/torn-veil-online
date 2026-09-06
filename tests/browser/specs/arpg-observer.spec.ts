@@ -115,12 +115,19 @@ export const arpgObserver: BrowserSpec = {
     // stands still while you watch someone else, which is a control decision about the player
     // and the less interfering of the two options: WASD still reaching a body you cannot see
     // would blunder it into walls and people.)
+    // Written without a named local function on purpose: `page.evaluate` serializes this
+    // callback and runs it in the page, and tsx/esbuild's keepNames rewrites a function assigned
+    // to a `const` into `__name(fn, "...")` — a helper that exists in the bundler's output and
+    // not in the browser. Taking the snapshot twice through a loop keeps the body free of it.
     const untouched = await page.evaluate((id) => {
       const g = (window as any).game;
-      const snap = () => { const p = g.world.person(id); const b = g.world.primaryBody(id); return JSON.stringify({ goal: p.mind.goal?.key ?? null, plan: p.mind.plan.map((a: any) => `${a.type}:${a.status}`), pos: [b.pos.x, b.pos.y, b.pos.z], pursuits: (p.mind.pursuits ?? []).map((x: any) => `${x.id}:${x.status}:${x.attempts}`), concerns: (p.mind.concerns ?? []).length }); };
-      const before = snap();
-      g.observer.setFollow(false); g.observer.setFollow(true);
-      return { before, after: snap() };
+      const shots: string[] = [];
+      for (let i = 0; i < 2; i++) {
+        const p = g.world.person(id); const b = g.world.primaryBody(id);
+        shots.push(JSON.stringify({ goal: p.mind.goal?.key ?? null, plan: p.mind.plan.map((a: any) => `${a.type}:${a.status}`), pos: [b.pos.x, b.pos.y, b.pos.z], pursuits: (p.mind.pursuits ?? []).map((x: any) => `${x.id}:${x.status}:${x.attempts}`), concerns: (p.mind.concerns ?? []).length }));
+        if (i === 0) { g.observer.setFollow(false); g.observer.setFollow(true); }
+      }
+      return { before: shots[0], after: shots[1] };
     }, watched.id);
     if (untouched.before !== untouched.after) throw new Error(`observing changed the observed person\n${untouched.before}\n${untouched.after}`);
 
