@@ -3,7 +3,7 @@ import { World } from './sim/core/world';
 import { Simulation } from './sim/mind/agent';
 import { DialogueSystem } from './sim/mind/dialogue';
 import { load, save, newWorld, hasSave, clearSave } from './sim/persist/save';
-import { VoxelRenderer } from './game/voxel/mesher';
+import { WorldSkin } from './game/presentation/worldSkin';
 import { Atmosphere } from './game/render/scene';
 import { revealFor } from './game/render/interior';
 import { describeCarried } from './sim/core/interaction';
@@ -52,7 +52,10 @@ async function boot(fresh: boolean): Promise<void> {
 }
 
 class Game {
-  renderer: THREE.WebGLRenderer; scene = new THREE.Scene(); camera: THREE.PerspectiveCamera; sim: Simulation; voxels: VoxelRenderer; atmo: Atmosphere; actors: ActorRenderer; ctrl: PlayerController; inter: Interaction; hud: HUD; dialogue: DialogueUI; feed: EventFeed; inspector: Inspector; observer: Observer; inventory: InventoryUI; audio = new AudioSys(); construction: ConstructionRenderer; extractionEffects: ExtractionEffectsController;
+  renderer: THREE.WebGLRenderer; scene = new THREE.Scene(); camera: THREE.PerspectiveCamera; sim: Simulation; skin: WorldSkin; atmo: Atmosphere; actors: ActorRenderer; ctrl: PlayerController; inter: Interaction; hud: HUD; dialogue: DialogueUI; feed: EventFeed; inspector: Inspector; observer: Observer; inventory: InventoryUI; audio = new AudioSys(); construction: ConstructionRenderer; extractionEffects: ExtractionEffectsController;
+  /** The chunk renderer, one skin among several now (see `presentation/worldSkin.ts`). Kept as a
+   * named handle because the browser harness asserts against the geometry it actually draws. */
+  get voxels() { return this.skin.voxels; }
   modeBadge = document.getElementById('modebadge')!;
   speedMult = 1; paused = false; lastFrame = performance.now(); autosaveTimer = 0; followId: string | null = null; hitParticles: { m: THREE.Mesh; v: THREE.Vector3; life: number }[] = [];
   // v0.2 Part 18: automatic play-session logging — no manual "press F8" step. `sessionId` names
@@ -66,7 +69,7 @@ class Game {
     this.sim = new Simulation(world);
     this.telemetryRecorder = new TelemetryRecorder(world, [this.telemetry]);
     this.telemetryRecorder.runStart({ seed: world.seed, mode: 'browser', sessionId: this.sessionId });
-    this.voxels = new VoxelRenderer(world.grid); this.voxels.buildAll(); this.scene.add(this.voxels.group);
+    this.skin = new WorldSkin(world); this.skin.buildAll(); this.scene.add(this.skin.group);
     this.atmo = new Atmosphere(this.scene, world);
     this.actors = new ActorRenderer(world); this.scene.add(this.actors.group);
     this.construction = new ConstructionRenderer(world); this.scene.add(this.construction.group);
@@ -188,7 +191,7 @@ class Game {
    * no simulation state changes here, and the player can act identically either way. */
   setCameraMode(mode: 'first' | 'third' | 'arpg'): void {
     this.ctrl.setMode(mode);
-    if (mode !== 'arpg') { this.followId = null; this.observer.toggle(false); this.ctrl.roofCutY = null; this.voxels.setReveal(null); }
+    if (mode !== 'arpg') { this.followId = null; this.observer.toggle(false); this.ctrl.roofCutY = null; this.skin.setReveal(null); }
     this.modeBadge.classList.toggle('on', mode === 'arpg');
     // The crosshair means "you are aiming down your own nose". In the elevated view the cursor
     // is doing that job, so the crosshair would just be a dot in the middle of the screen.
@@ -240,10 +243,10 @@ class Game {
       const focus = this.ctrl.followPos ?? this.ctrl.body.pos;
       const reveal = revealFor(w, focus);
       this.ctrl.roofCutY = reveal ? reveal.y : null;
-      this.voxels.setReveal(reveal);
+      this.skin.setReveal(reveal);
     } else if (this.followId) { const b = w.primaryBody(this.followId); if (b) { const target = new THREE.Vector3(b.pos.x, b.pos.y + 1.4, b.pos.z); const off = new THREE.Vector3(Math.sin(now * 0.0002) * 6, 3.5, Math.cos(now * 0.0002) * 6); this.camera.position.lerp(target.clone().add(off), 0.08); this.camera.lookAt(target); } }
     this.inter.update();
-    this.voxels.update(); this.voxels.setTime(w.physicalTime);
+    this.skin.update(dt); this.skin.setTime(w.physicalTime, w.weather.wind);
     // The player's own body is hidden only when the camera is literally inside their head.
     this.actors.sync(dt, w.physicalTime, this.ctrl.mode === 'first' && !this.ctrl.thirdPerson && !this.followId);
     this.construction.update(); this.extractionEffects.update(dt);

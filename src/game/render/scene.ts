@@ -14,7 +14,10 @@ export class Atmosphere {
   fog: THREE.Fog; lightLevel = 1; sunTarget = new THREE.Object3D();
   constructor(public scene: THREE.Scene, private world: World) {
     this.sun = new THREE.DirectionalLight(0xffffff, 2.2); this.sun.castShadow = true;
-    const s = this.sun.shadow; s.mapSize.set(2048, 2048); s.camera.near = 1; s.camera.far = 220; s.camera.left = -60; s.camera.right = 60; s.camera.top = 60; s.camera.bottom = -60; s.bias = -0.0015; s.normalBias = 0.6;
+    // v0.11: a tighter, higher-resolution shadow frustum. The elevated camera looks at a few
+    // dozen metres of village, so spending the map there instead of on 120m of empty field is
+    // what turns "a dark smudge under a house" into a readable roof shadow across a street.
+    const s = this.sun.shadow; s.mapSize.set(2048, 2048); s.camera.near = 1; s.camera.far = 200; s.camera.left = -46; s.camera.right = 46; s.camera.top = 46; s.camera.bottom = -46; s.bias = -0.0008; s.normalBias = 0.22;
     scene.add(this.sun); scene.add(this.sunTarget); this.sun.target = this.sunTarget;
     this.hemi = new THREE.HemisphereLight(0x8fb8ff, 0x5a4a30, 0.7); scene.add(this.hemi);
     this.ambient = new THREE.AmbientLight(0xffffff, 0.15); scene.add(this.ambient);
@@ -38,9 +41,20 @@ export class Atmosphere {
     this.smoke = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(this.smokePos, 3)), this.smokeMat); this.smoke.frustumCulled = false; scene.add(this.smoke);
     this.emberPos = new Float32Array(this.emberCount * 3); this.emberLife = new Float32Array(this.emberCount).fill(-1);
     this.embers = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(this.emberPos, 3)), new THREE.PointsMaterial({ color: 0xffa040, size: 0.18, transparent: true, opacity: 0.9, sizeAttenuation: true, depthWrite: false })); this.embers.frustumCulled = false; scene.add(this.embers);
-    // voxel clouds
+    // clouds. v0.11: rounded masses rather than stacked boxes — a cube in the sky reads as
+    // "voxel game" from anywhere in the village, and this is the cheapest place to stop saying it.
     this.clouds = new THREE.Group(); const cm = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
-    for (let i = 0; i < 14; i++) { const c = new THREE.Group(); const n = 4 + Math.floor(Math.random() * 6); for (let k = 0; k < n; k++) { const b = new THREE.Mesh(new THREE.BoxGeometry(6 + Math.random() * 10, 2 + Math.random() * 2, 5 + Math.random() * 8), cm); b.position.set((Math.random() - 0.5) * 20, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 14); b.castShadow = true; c.add(b); } c.position.set(Math.random() * 400 - 100, 58 + Math.random() * 10, Math.random() * 400 - 100); this.clouds.add(c); }
+    const puff = new THREE.SphereGeometry(1, 8, 6);
+    for (let i = 0; i < 14; i++) {
+      const c = new THREE.Group(); const n = 5 + Math.floor(Math.random() * 6);
+      for (let k = 0; k < n; k++) {
+        const b = new THREE.Mesh(puff, cm);
+        b.scale.set(5 + Math.random() * 7, 2 + Math.random() * 2, 4 + Math.random() * 6);
+        b.position.set((Math.random() - 0.5) * 20, (Math.random() - 0.5) * 2.5, (Math.random() - 0.5) * 14);
+        b.castShadow = true; c.add(b);
+      }
+      c.position.set(Math.random() * 400 - 100, 58 + Math.random() * 10, Math.random() * 400 - 100); this.clouds.add(c);
+    }
     scene.add(this.clouds);
     for (let i = 0; i < 10; i++) { const l = new THREE.PointLight(0xffb060, 0, 14, 1.6); l.castShadow = false; scene.add(l); this.lights.push(l); }
     this.collectLightBlocks();
