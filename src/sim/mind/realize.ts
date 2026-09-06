@@ -2,6 +2,8 @@ import type { KnowledgeItem, Person, EntityId } from '../core/types';
 import type { World } from '../core/world';
 import { disposition } from './relationships';
 import { isCrime, describeClaim } from './knowledge';
+import type { Topic } from './conversation';
+import { formatRelativeTime } from '../core/time';
 
 /**
  * Natural-language SYNTHESIS for player-facing dialogue — the last step of the Constitution's
@@ -47,6 +49,10 @@ const FACT_VARIANTS: Partial<Record<string, (world: World, c: Record<string, any
   arrest_attempt: (world, c) => { const a = who(world, c.actor); const t = who(world, c.target); return [`${a} tried to arrest ${t}`, `${a} came to take ${t} into custody`]; },
   confrontation: (world, c) => { const a = who(world, c.actor); const t = who(world, c.target); return [`${a} confronted ${t}`, `${a} had words with ${t}`]; },
   threat_spotted: (world, c) => { const a = who(world, c.actor, c.actorUnknown); const w = c.placeId ? ` near ${world.nameOf(c.placeId)}` : ''; return [`${a} was seen prowling${w}`, `${a} was skulking about${w}`]; },
+  // v0.9: a noticed absence is a real inference the speaker made themselves (social/absence.ts).
+  // Every variant states exactly what the claim holds — who, where — and nothing about WHY.
+  absence_noticed: (world, c) => { const t = who(world, c.target); const w = c.placeId ? ` at ${world.nameOf(c.placeId)}` : ''; return [`${t} has not been${w}`, `there has been no sign of ${t}${w}`, `${t} hasn't turned up${w}`]; },
+  item_missing: (world, c) => { const it = c.item ? world.nameOf(c.item) : 'something'; const w = c.placeId ? ` from ${world.nameOf(c.placeId)}` : ''; return [`${it} has gone missing${w}`, `${it} is not where it should be${w}`]; },
 };
 
 /** How the speaker came to know it — the attribution clause, varied but never claiming a
@@ -107,6 +113,46 @@ function relationalPrefix(world: World, speaker: Person, k: KnowledgeItem, seed:
  * fully grounded — just without extra phrasing variety, a disclosed, bounded scope limit rather
  * than a silent gap).
  */
+/**
+ * v0.9 §E: turn a chosen TOPIC — a grounded belief plus the speaker's other grounded beliefs
+ * about the same people, plus what the speaker personally knows about whether the matter was
+ * settled — into ONE natural statement rather than a bare fact plus an attribution clause.
+ *
+ * Every clause is traceable:
+ *  - the core fact and its attribution come from `realizeClaim` (unchanged rules);
+ *  - a follow-on clause is another real `KnowledgeItem` of the speaker's, realized the same way;
+ *  - the "and it has been dealt with" clause appears ONLY when the speaker personally holds the
+ *    knowledge item recording the resolving event (`Topic.resolvedForSpeaker`, which is computed
+ *    by `personalSituationView` from the speaker's own knowledge map, never from
+ *    `Situation.status`);
+ *  - the "and nothing has been done about it" clause appears only when the speaker is actually
+ *    carrying an unresolved justice/welfare concern about it.
+ * Nothing here can name an entity, a place or an event that the speaker does not already believe
+ * in — which is the property `tests/dialogue-grounding.test.ts` asserts structurally.
+ */
+export function realizeTopic(world: World, speaker: Person, topic: Topic): string {
+  const seed = `${speaker.id}:${topic.k.key}:topic`;
+  const parts: string[] = [realizeClaim(world, speaker, topic.k)];
+  // One supporting fact, at most — a person adds context, they do not read out a dossier.
+  const support = topic.supporting[0];
+  if (support) {
+    const c = support.claim;
+    const variants = support.kind === 'event' ? FACT_VARIANTS[c.type as string] : undefined;
+    const fact = variants ? pick(variants(world, c), seed + support.key) : describeClaim(world, support);
+    const lead = pick(['And ', "What's more, ", 'Mind, '], seed + 'lead');
+    const age = support.kind === 'event' && typeof c.tick === 'number' ? ` (${formatRelativeTime(c.tick as number, world.now)})` : '';
+    parts.push(`${lead}${fact}${age}.`);
+  }
+  if (topic.resolvedForSpeaker) {
+    parts.push(pick(["That's been dealt with, mind.", "It's settled now, so far as I know.", 'That much is behind us.'], seed + 'res'));
+  } else if (topic.concern && (topic.concern.kind === 'justice' || topic.concern.kind === 'welfare') && topic.concern.intensity > 0.3) {
+    parts.push(topic.concern.kind === 'justice'
+      ? pick(["And nothing's been done about it yet.", 'No one has answered for it.'], seed + 'unres')
+      : pick(["I've not stopped thinking about it.", 'It sits badly with me.'], seed + 'unres'));
+  }
+  return parts.join(' ');
+}
+
 export function realizeClaim(world: World, speaker: Person, k: KnowledgeItem): string {
   const seed = `${speaker.id}:${k.key}`;
   const c = k.claim;

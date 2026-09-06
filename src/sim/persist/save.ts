@@ -1,7 +1,7 @@
 import { World } from '../core/world';
 import { WorldClock } from '../core/time';
 import { generateVillage } from '../world/village';
-import type { Person, Body, Item, Place, Faction, WorldEvent, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire } from '../core/types';
+import type { Person, Body, Item, Place, Faction, WorldEvent, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation } from '../core/types';
 import { syncFieldBlocks } from '../world/metabolism';
 import { syncResourceNodeBlocks } from '../world/resources';
 import { materializeStructure } from '../world/construction';
@@ -82,7 +82,14 @@ const KEY = 'infinite-rpg-save-v1';
 // `coins` Item to `Person.wealth` (one currency for every person). A version-11 save would
 // resume with the Traveler's silver stranded in a prop nothing can spend; a fresh world is
 // the honest option, exactly like every other semantic change to persisted meaning.
-export const SAVE_VERSION = 12;
+// v0.9 Social Causality: bumped 12 -> 13 for two new pieces of canonical state that cannot be
+// reconstructed from present state — `World.situations` (whether an ongoing matter is still open
+// and which canonical event settled it) and `Person.mind.concerns` (what each person is actually
+// carrying about those matters, and how hard). Both depend entirely on this run's history: who
+// learned what, when, and whether they have since heard it was dealt with. Loading a v12 save
+// into a v0.9 world would produce a village where nothing is unresolved and no one is worried
+// about anything, which is a silently wrong world rather than an old one.
+export const SAVE_VERSION = 13;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
@@ -93,7 +100,7 @@ export function serialize(world: World): string {
   // investigated is a Set in memory (v0.2.2 Phase 3: O(1) membership instead of an
   // ever-growing array's O(length) .includes() on every guard's every think() tick) — JSON has
   // no native Set, so it round-trips as a plain array here and is rebuilt into a Set on load.
-  const persons = world.persons().map(p => ({ id: p.id, needs: p.needs, emotions: p.emotions, relationships: p.relationships, memories: p.memories, knowledge: p.knowledge, inventory: p.inventory, wealth: p.wealth, alive: p.alive, desires: p.desires, deathTick: p.deathTick, goal: p.mind.goal, investigated: [...p.mind.investigated], decision: p.mind.decision, timeRate: p.timeRate, surrender: p.surrender ?? null, custody: p.custody ?? null, attributes: p.attributes, physiology: p.physiology, species: p.species, physiologyTraits: p.physiologyTraits, commitment: p.mind.commitment ?? null, skills: p.skills }));
+  const persons = world.persons().map(p => ({ id: p.id, concerns: p.mind.concerns ?? [], needs: p.needs, emotions: p.emotions, relationships: p.relationships, memories: p.memories, knowledge: p.knowledge, inventory: p.inventory, wealth: p.wealth, alive: p.alive, desires: p.desires, deathTick: p.deathTick, goal: p.mind.goal, investigated: [...p.mind.investigated], decision: p.mind.decision, timeRate: p.timeRate, surrender: p.surrender ?? null, custody: p.custody ?? null, attributes: p.attributes, physiology: p.physiology, species: p.species, physiologyTraits: p.physiologyTraits, commitment: p.mind.commitment ?? null, skills: p.skills }));
   // v0.2.3: a subdued body must reload still subdued (unlike `pose`, which is reset). Persist the
   // physical-time timestamp; a downed pose is reconstructed from it on load.
   const bodies = world.bodies().map(b => ({ id: b.id, pos: b.pos, yaw: b.yaw, health: b.health, maxHealth: b.maxHealth, dead: b.dead, pose: b.pose === 'dead' ? 'dead' : (b.subduedUntil > world.physicalTime ? 'downed' : 'stand'), present: b.present, subduedUntil: b.subduedUntil }));
@@ -120,12 +127,14 @@ export function serialize(world: World): string {
   const requests = world.requests.map(r => ({ ...r, payload: { ...r.payload } }));
   // v0.8: fires — plain serializable records (ids, ticks, strings, numbers, one Vec3 `pos`).
   const fires = world.fires.map(f => ({ ...f, pos: { ...f.pos } }));
+  // v0.9: plain serializable records (ids, ticks, strings, numbers, one string array).
+  const situations = world.situations.map(s => ({ ...s, eventIds: [...s.eventIds] }));
   // v0.8 §P1 (independent audit §3.5): the actual PRNG stream position at save time, not just
   // the original generation seed — see `core/rng.ts`'s `RNG.state()` doc. Additive/optional (an
   // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
   // falls back to today's behavior (rewind to post-generation position) when absent.
   const rng = world.rng.state(); const weatherRng = world.weatherRng.state();
-  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, diffs, doors, events, rng, weatherRng, savedAt: Date.now() });
+  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, diffs, doors, events, rng, weatherRng, savedAt: Date.now() });
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -183,7 +192,7 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     // `data.rng`), so old saves keep exactly today's (rewind) behavior rather than failing to load.
     if (typeof data.rng === 'number') world.rng.setState(data.rng);
     if (typeof data.weatherRng === 'number') world.weatherRng.setState(data.weatherRng);
-    for (const s of data.persons) { const p = world.person(s.id); if (!p) continue; Object.assign(p, { needs: s.needs, emotions: s.emotions, relationships: s.relationships, memories: s.memories, knowledge: s.knowledge, inventory: s.inventory, wealth: s.wealth, alive: s.alive, desires: s.desires, deathTick: s.deathTick, timeRate: s.timeRate ?? 1, surrender: s.surrender ?? null, custody: s.custody ?? null, attributes: s.attributes ?? p.attributes, physiology: s.physiology ?? p.physiology, species: s.species ?? p.species, physiologyTraits: s.physiologyTraits ?? p.physiologyTraits, skills: s.skills ?? p.skills }); p.mind.goal = s.goal ?? null; p.mind.plan = []; p.mind.investigated = new Set(s.investigated ?? []); p.mind.decision = s.decision ?? null; p.mind.commitment = s.commitment ?? null; p.mind.intention = null; }
+    for (const s of data.persons) { const p = world.person(s.id); if (!p) continue; Object.assign(p, { needs: s.needs, emotions: s.emotions, relationships: s.relationships, memories: s.memories, knowledge: s.knowledge, inventory: s.inventory, wealth: s.wealth, alive: s.alive, desires: s.desires, deathTick: s.deathTick, timeRate: s.timeRate ?? 1, surrender: s.surrender ?? null, custody: s.custody ?? null, attributes: s.attributes ?? p.attributes, physiology: s.physiology ?? p.physiology, species: s.species ?? p.species, physiologyTraits: s.physiologyTraits ?? p.physiologyTraits, skills: s.skills ?? p.skills }); p.mind.goal = s.goal ?? null; p.mind.plan = []; p.mind.investigated = new Set(s.investigated ?? []); p.mind.decision = s.decision ?? null; p.mind.commitment = s.commitment ?? null; p.mind.intention = null; p.mind.concerns = (s.concerns ?? []).map((c: import('../core/types').Concern) => ({ ...c, basisKeys: [...c.basisKeys], reasons: [...c.reasons] })); }
     for (const s of data.bodies) { const b = world.body(s.id); if (!b) continue; b.pos = s.pos; b.yaw = s.yaw; b.health = s.health; b.maxHealth = s.maxHealth; b.dead = s.dead; b.pose = s.pose; b.present = s.present; b.path = null; b.subduedUntil = s.subduedUntil ?? 0; }
     world.conflicts = (data.conflicts ?? []).map((c: Conflict) => ({ ...c }));
     if (data.fields?.length) { world.fields = data.fields.map((f: Field) => ({ ...f, plots: f.plots.map(p => ({ ...p })) })); }
@@ -196,6 +205,7 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     // at all should keep the freshly-generated (unlit) ones rather than overwrite them with
     // nothing; a save that DOES have fire data (post-v0.8) is authoritative and replaces them.
     if (data.fires?.length) world.fires = data.fires.map((f: Fire) => ({ ...f, pos: { ...f.pos } }));
+    world.situations = (data.situations ?? []).map((s: Situation) => ({ ...s, eventIds: [...s.eventIds] }));
 
     for (const s of data.items) { const i = world.item(s.id); if (i) Object.assign(i, s); else world.add({ ...s, tags: [...s.tags], pos: s.pos ? { ...s.pos } : null, provenance: s.provenance.map((entry: Item['provenance'][number]) => ({ ...entry })) } as Item); }
     for (const s of data.places) { const p = world.place(s.id); if (!p) continue; p.ownerId = s.ownerId; s.anchors.forEach((o: string | null, i: number) => { if (p.anchors[i]) p.anchors[i].ownerId = o ?? undefined; }); }

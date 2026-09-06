@@ -86,10 +86,21 @@ witnesses learn about it" stays true instead of becoming a scripted one-off.
 - `src/sim/mind/` — the agent runtime: perception, memory, knowledge (with provenance),
   relationships, utility-based goal selection + planning, and deterministic dialogue. This is
   the file to read (`agent.ts`) to understand the whole cognitive loop.
+- `src/sim/social/` — the cross-cutting social layer: canonical ongoing matters
+  (`situation.ts` — what is unresolved, and what settled it), personal significance
+  (`appraisal.ts` — what an event means to a particular person), and the "you were not where I
+  expected you" inference (`absence.ts`). `situation.ts`'s `personalSituationView` is the ONLY
+  sanctioned way a mind may form a belief about whether a matter is over — never
+  `Situation.status`. Also holds the pre-existing conflict/custody state machines. See
+  `docs/V0_9_SOCIAL_CAUSALITY.md` for the invariants.
 - `src/sim/world/` — deterministic generation: terrain, structures (procedural building
   builders in `structures.ts`), the 32-person cast (`cast.ts`), and `village.ts`, which wires
   it all together and seeds pre-history (marriages, grudges, debts, rumors, a decade of
   events) so the world has a past before the player spawns.
+- `src/sim/mind/concern.ts` / `conversation.ts` — knowledge that has acquired behavioural force
+  (a `Concern` bends goal utility through `concernGoalBoost`, capped so it never dictates a
+  decision), and whether anything is worth saying to a given listener at all (`selectTopic`
+  returns null — silence — as a normal outcome).
 - `src/sim/persist/save.ts` — save/load: regenerate the world deterministically from its
   seed, then overlay saved mind/relationship/item/voxel state. Saves carry a schema version;
   bump it (and accept that older saves stop being offered as resumable) rather than silently
@@ -108,6 +119,8 @@ npm run dev          # Vite dev server
 npm run typecheck    # tsc --noEmit — run this after any change, it's fast and catches most breakage
 npm test              # vitest — the deterministic simulation test suite (tests/)
 npm run build          # typecheck + production build
+npm run social:trace   # v0.9 deterministic causal traces on the real generated village
+npm run test:browser   # Playwright functional harness against the real client
 ```
 
 Run `npm test` after touching anything in `src/sim/`. The suite in `tests/` (see

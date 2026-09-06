@@ -1,4 +1,4 @@
-import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire } from './types';
+import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation } from './types';
 import { WorldClock } from './time';
 import { RNG } from './rng';
 import { VoxelGrid } from '../physical/grid';
@@ -46,6 +46,14 @@ export class World {
    * the number of real hearths/fires actually lit, not calendar time. Persisted: whether a fire
    * is currently lit and how much fuel remains cannot be reconstructed from present state alone. */
   fires: Fire[] = [];
+  /** Canonical ongoing social matters (v0.9 §G) — see sim/social/situation.ts. A Situation
+   * groups the canonical events that bear on one unresolved matter (an assault, a theft, a
+   * noticed absence) and records whether and how it ended. Bounded by real social activity
+   * (MAX_SITUATIONS), not calendar time. Persisted: whether a matter is still open, and which
+   * canonical event settled it, cannot be reconstructed from present state alone.
+   *
+   * NOT knowledge: no mind may read `status` off this. See `personalSituationView`. */
+  situations: Situation[] = [];
   /** v0.2.4: lifetime counts of a few high-frequency, low-significance event types that are
    * dropped by event compaction (crop/food/water/transform) — so a headless run summary can
    * report accurate totals without inflating those events' significance. Purely observational. */
@@ -73,6 +81,8 @@ export class World {
   playerId: EntityId | null = null;
   private counters: Record<string, number> = {};
   private listeners: ((e: WorldEvent) => void)[] = [];
+  /** See the call site in `emit`. Set once, by `Simulation`'s constructor. */
+  eventObserver: ((e: WorldEvent) => void) | null = null;
   /** Events emitted since last perception pass that carry stimulus (visibility/loudness). */
   pendingStimuli: WorldEvent[] = [];
   /** Stable-slug → id registry (Constitution §50 "Stable Identity"). See Entity.slug. */
@@ -176,6 +186,12 @@ export class World {
     this.events.push(e); this.eventIndex.set(id, e);
     for (const c of e.causes) { const ce = this.eventIndex.get(c); if (ce) ce.effects.push(id); }
     if (e.visibility || e.loudness) this.pendingStimuli.push(e);
+    // v0.9: one hook, installed by the Simulation, through which EVERY canonical event passes
+    // exactly once so ongoing-matter bookkeeping (sim/social/situation.ts) can never miss one or
+    // see one twice. Kept as an injected callback rather than a direct import so `core/` stays
+    // free of any dependency on `social/` (the same layering rule `sim/` keeps against `game/`).
+    // Runs BEFORE listeners so a UI listener already sees a world with the situation opened.
+    if (this.eventObserver) this.eventObserver(e);
     for (const l of this.listeners) l(e);
     return e;
   }
@@ -271,6 +287,15 @@ const TALLIED_TYPES = new Set<EventType>([
 function defaultCategory(t: EventType): EventCategory {
   switch (t) {
     case 'perceived': case 'memory_formed': case 'knowledge_gained': case 'knowledge_forgotten': case 'relationship_changed': case 'emotion_changed': case 'goal_changed': case 'goal_completed': case 'arrived': return 'cognition';
+    // v0.9: one person CONCLUDING that someone was not where they expected them is a cognitive
+    // act — a belief formed from an information gap (social/absence.ts) — not a happening in the
+    // world. Classifying it as 'world' put it in front of the Chronicle's significance filter,
+    // where it promptly buried the village's actual history: measured at seed 918271 over 10
+    // days, 815 of 891 Chronicle entries were "X noticed Y has not been at Z". The absence is
+    // still fully canonical, still opens a real ongoing matter, and still travels as gossip — it
+    // simply is not a historical turning point, the same way `perceived` and `memory_formed`
+    // are not.
+    case 'absence_noticed': case 'concern_formed': case 'concern_resolved': return 'cognition';
     case 'told': case 'conversation': case 'rumor': case 'greeting': case 'gift': case 'apology': case 'trade': return 'social';
     case 'birth': case 'death': case 'marriage': case 'debt': case 'dispute': return 'history';
     // v0.2.3: the terminal / status-change conflict events are real history and always kept;
