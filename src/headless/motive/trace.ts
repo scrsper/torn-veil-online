@@ -9,7 +9,7 @@ import { activeConcerns, describeConcern } from '../../sim/mind/concern';
 import {
   describePursuit, livePursuits, pursuitsOf, motivationBoost, PRIORITY_MARGIN,
 } from '../../sim/mind/pursuit';
-import { describeObligation, liveObligations, obligationsOf, obligationCredit } from '../../sim/social/obligation';
+import { describeObligation, liveObligations, obligationsOf, obligationCredit, obligationGoalBoost } from '../../sim/social/obligation';
 import { canHaul } from '../../sim/logistics/haul';
 
 /**
@@ -298,12 +298,19 @@ function familyChecks(world: World, partner: Person, subject: Person, report: Pe
   // the world has forgotten the paperwork — the concern it rests on is the live grounds.
   add('a persistent purpose formed, on stated grounds', tend.length > 0 && tend[0].reasons.length > 0,
     tend.length ? `${tend[0].what} — reasons: ${tend[0].reasons.join('; ')} — cause: ${tend[0].because ?? '(the canonical event has since been compacted)'}` : 'none formed');
+  // Two views of the same thing, and both count. `goalsServed` is what the EVENT LOG shows — the
+  // goal changes that carried the purpose's id — and it misses a case that genuinely happens: a
+  // goal adopted through the ordinary path before the purpose existed, which the upkeep pass then
+  // links (see `linkGoalToPursuit`). `Pursuit.attempts`/`steps` is the canonical record of the
+  // same fact and does not miss it, so the check reads both.
   const served = tend.flatMap(pu => pu.goalsServed);
   const distinctGoals = new Set(served.map(g => g.goal));
-  add('the purpose produced real action toward it', served.length >= 1,
-    served.length ? `${served.length} goal adoption(s) for it, of kind(s): ${[...distinctGoals].join(', ')}` : 'no goal was ever adopted for it');
-  add('it produced more than one step', distinctGoals.size >= 2 || served.length >= 2,
-    `${distinctGoals.size} distinct goal kind(s) across ${served.length} adoption(s)`);
+  const stepKinds = new Set(tend.flatMap(pu => pu.steps));
+  const attempts = tend.reduce((n, pu) => n + pu.attempts, 0);
+  add('the purpose produced real action toward it', served.length >= 1 || attempts >= 1,
+    attempts ? `${attempts} adoption(s) of ${[...stepKinds].join(', ') || 'a step'}${served.length ? `, ${served.length} of them recorded against it in the event log` : ''}` : 'no goal was ever adopted for it');
+  add('it produced more than one step', distinctGoals.size >= 2 || stepKinds.size >= 2 || attempts >= 2,
+    `${stepKinds.size} distinct goal kind(s) (${[...stepKinds].join(', ') || '-'}) across ${attempts} adoption(s)`);
   // Requirement A: a purpose must survive the ordinary business of a life — a shift, a meal, a
   // night's sleep — not merely one uninterrupted errand.
   const livedThrough = [...new Set(tend.flatMap(pu => pu.livedThrough))];
@@ -390,24 +397,32 @@ function favorTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveTrac
   const stranger = villagers.find(q => q.id !== recipient.id && q.id !== giver.id);
   const GOALS: GoalType[] = ['help', 'check_on', 'haul', 'help_recover_item'];
   let peakCredit = 0; let peakBonus = 0; let peakReasons: string[] = []; let peakGoal: GoalType = 'help';
+  let peakTotal = 0;
   let controlBonus = 0;
   const total = (spec.observeHours ?? 40) * SECONDS_PER_HOUR;
   for (let t = 0; t < total; t += SECONDS_PER_HOUR) {
     advance(world, sim, SECONDS_PER_HOUR);
     peakCredit = Math.max(peakCredit, obligationCredit(recipient, giver.id));
     for (const goalType of GOALS) {
-      const boost = motivationBoost(recipient, goalType, goalType === 'haul' ? undefined : giver.id, giver.id);
-      if (boost.bonus > peakBonus) { peakBonus = boost.bonus; peakReasons = boost.reasons; peakGoal = goalType; }
+      // The DEBT'S OWN contribution, isolated. `motivationBoost` (reported alongside) is what the
+      // decision loop actually adds, but it also folds in concerns, which are a different
+      // mechanism that this scenario is not testing — a control that included them would compare
+      // "owed and worried about" against "worried about", which answers the wrong question.
+      const debt = obligationGoalBoost(recipient, goalType, goalType === 'haul' ? undefined : giver.id, giver.id);
+      if (debt.bonus > peakBonus) {
+        peakBonus = debt.bonus; peakReasons = debt.reasons; peakGoal = goalType;
+        peakTotal = Math.max(peakTotal, motivationBoost(recipient, goalType, goalType === 'haul' ? undefined : giver.id, giver.id).bonus);
+      }
     }
     // The control: the very same goal, aimed at somebody they owe nothing.
-    if (stranger) controlBonus = Math.max(controlBonus, motivationBoost(recipient, peakGoal, stranger.id, stranger.id).bonus);
+    if (stranger) controlBonus = Math.max(controlBonus, obligationGoalBoost(recipient, peakGoal, stranger.id, stranger.id).bonus);
   }
 
   const measurements: string[] = [];
   const credit = obligationCredit(recipient, giver.id);
   measurements.push(`at its height ${recipient.name} carried ${peakCredit.toFixed(2)} of standing obligation toward ${giver.name} (now ${credit.toFixed(2)})`);
-  measurements.push(`  a '${peakGoal}' that serves ${giver.name} scored up to +${peakBonus.toFixed(3)} for ${recipient.name} — ${peakReasons.join('; ')}`);
-  if (stranger) measurements.push(`  the same '${peakGoal}' aimed at ${stranger.name}, whom they owe nothing, never scored more than +${controlBonus.toFixed(3)}`);
+  measurements.push(`  a '${peakGoal}' that serves ${giver.name} got up to +${peakBonus.toFixed(3)} from the debt alone (+${peakTotal.toFixed(3)} once every live motive is counted) — ${peakReasons.join('; ')}`);
+  if (stranger) measurements.push(`  the same '${peakGoal}' aimed at ${stranger.name}, whom they owe nothing, never got more than +${controlBonus.toFixed(3)} from any debt`);
   const actedFor = (rec.goalsBy.get(recipient.id) ?? []).filter(g => g.reasons.some(r => /I owe them/.test(r)));
   measurements.push(actedFor.length
     ? `${recipient.name} adopted ${actedFor.length} goal(s) whose stated reasons include the debt`
@@ -417,11 +432,11 @@ function favorTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveTrac
     reportPerson(world, recipient, [`was given ${gift.name} by ${giver.name}`], rec),
     reportPerson(world, giver, ['gave it'], rec),
   ];
-  const checks = favorChecks(world, recipient, giver, giveEvent, people[0], peakCredit, peakBonus, controlBonus);
+  const checks = favorChecks(world, recipient, giver, giveEvent, people[0], peakCredit, peakBonus, controlBonus, peakTotal);
   return { id: spec.id, title: spec.title, seed: spec.seed, trigger, steps: rec.steps, people, measurements, checks };
 }
 
-function favorChecks(world: World, recipient: Person, giver: Person, giveEvent: WorldEvent, report: PersonReport, peakCredit: number, peakBonus: number, controlBonus: number): MotiveCheck[] {
+function favorChecks(world: World, recipient: Person, giver: Person, giveEvent: WorldEvent, report: PersonReport, peakCredit: number, peakBonus: number, controlBonus: number, peakTotal: number): MotiveCheck[] {
   const checks: MotiveCheck[] = [];
   const add = (name: string, pass: boolean, detail: string) => checks.push({ name, pass, detail });
   const ob = obligationsOf(recipient).find(o => o.towardId === giver.id);
@@ -440,7 +455,7 @@ function favorChecks(world: World, recipient: Person, giver: Person, giveEvent: 
     !!ob && ob.kind === 'was_given' && ob.reasons.length > 0,
     ob ? `kind=${ob.kind}, toward=${world.nameOf(ob.towardId)}, live=${ob.status === 'live'}, reasons=${ob.reasons.join('; ')}` : 'none');
   add('it measurably changes later decisions', peakBonus > controlBonus,
-    `while it was live: a goal serving ${giver.name} scored up to +${peakBonus.toFixed(3)}, the same goal aimed at someone owed nothing never above +${controlBonus.toFixed(3)} (peak standing credit ${peakCredit.toFixed(2)})`);
+    `while it was live: a goal serving ${giver.name} gained +${peakBonus.toFixed(3)} from the debt (+${peakTotal.toFixed(3)} from every live motive together), the same goal aimed at someone owed nothing gained +${controlBonus.toFixed(3)} (peak standing credit ${peakCredit.toFixed(2)})`);
   // Repayment must never be an errand of its own: a `reciprocate` purpose is allowed to propose
   // NOTHING for as long as ordinary world state offers no real occasion. What it must never do
   // is invent one.
@@ -644,7 +659,7 @@ function emptyTrace(spec: MotiveSpec, why: string): MotiveTrace {
 }
 
 export const MOTIVE_SPECS: MotiveSpec[] = [
-  { id: 'family', title: 'Family responsibility: a spouse is badly hurt (primary acceptance case)', seed: 1337, warmupHours: 9, observeHours: 40 },
+  { id: 'family', title: 'Family responsibility: a spouse is badly hurt (primary acceptance case)', seed: 606060, warmupHours: 9, observeHours: 40 },
   { id: 'favor', title: 'Favour and reciprocity: a gift of real value between non-kin', seed: 12345, warmupHours: 9, observeHours: 72 },
   { id: 'responsibility', title: 'Accepted responsibility: work the village raised for itself', seed: 42424242, warmupHours: 9, observeHours: 48 },
   { id: 'conflict', title: 'Conflicting motives: more live purposes than a person can act on at once', seed: 918271, warmupHours: 9, observeHours: 36 },

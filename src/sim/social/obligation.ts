@@ -92,17 +92,27 @@ export function obligationCredit(p: Person, towardId: EntityId): number {
 // ---------------------------------------------------------------- formation
 /** Which canonical event types are BENEFITS — the single table this module is driven by. Adding a
  * new kind of help to the simulation means adding one row here, not a new handler. */
+/**
+ * `base` is deliberately SMALL for the kinds whose weight ought to come from what actually
+ * happened. A gift is only as much of a favour as the thing given was worth to the person giving
+ * it; being tended is only as much of one as you needed tending. Loading that weight into the
+ * base instead would mean a shared crust of bread and a horse both put you in someone's debt,
+ * which is exactly the "turn every friendly action into a debt" failure the milestone forbids —
+ * and is what the base of 0.30 originally did (a worthless crumb cleared the formation threshold
+ * on its own). Returning something that was lost, and settling someone's debt, carry more of
+ * their own weight because the act itself is the substance.
+ */
 interface BenefitSpec { kind: ObligationKind; base: number; /** does `claim.target` name the person helped? */ targetIsBeneficiary: boolean; }
 const BENEFITS: Record<string, BenefitSpec> = {
-  heal: { kind: 'was_tended', base: 0.34, targetIsBeneficiary: true },
-  gift: { kind: 'was_given', base: 0.3, targetIsBeneficiary: true },
-  returned_item: { kind: 'was_given', base: 0.42, targetIsBeneficiary: true },
-  debt_paid: { kind: 'was_helped', base: 0.34, targetIsBeneficiary: true },
+  heal: { kind: 'was_tended', base: 0.12, targetIsBeneficiary: true },
+  gift: { kind: 'was_given', base: 0.1, targetIsBeneficiary: true },
+  returned_item: { kind: 'was_given', base: 0.24, targetIsBeneficiary: true },
+  debt_paid: { kind: 'was_helped', base: 0.2, targetIsBeneficiary: true },
   // A subdual/arrest names the person SUBDUED as its target — the person protected by it is
   // whoever that person was harming, which only the protected party's own beliefs can establish.
   // See `protectionBeneficiary` below.
-  entity_subdued: { kind: 'was_protected', base: 0.3, targetIsBeneficiary: false },
-  entity_arrested: { kind: 'was_protected', base: 0.26, targetIsBeneficiary: false },
+  entity_subdued: { kind: 'was_protected', base: 0.18, targetIsBeneficiary: false },
+  entity_arrested: { kind: 'was_protected', base: 0.16, targetIsBeneficiary: false },
 };
 
 /**
@@ -156,11 +166,11 @@ function assessMagnitude(world: World, p: Person, benefactor: Person, spec: Bene
     const wound = typeof k.claim.wound === 'number' ? (k.claim.wound as number) : undefined;
     const body = world.primaryBody(p.id);
     const hurt = wound ?? (body ? clamp(1 - body.health / body.maxHealth) : 0.4);
-    m += hurt * 0.35;
+    m += hurt * 0.45;
     reasons.push(hurt > 0.5 ? `I was in a bad way and ${benefactor.name} tended me` : `${benefactor.name} tended my wounds`);
   }
   if (spec.kind === 'was_protected') {
-    m += 0.1;
+    m += 0.14;
     reasons.push(`${benefactor.name} put a stop to it`);
   }
 
