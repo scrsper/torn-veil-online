@@ -482,5 +482,7 @@ describe('behavioural integration — the full material chain, no player (v0.3)'
     expect(t['hauled:flour'] ?? 0).toBeGreaterThan(0);
     expect(t.food_consumed ?? 0).toBeGreaterThan(100);
     expect(world.persons().filter(p => p.alive).length).toBe(33);
-  }, 600000);
+    // 45 world-days of a full village is a genuinely long run; the previous 600 s budget was set
+    // for 35 and the extra ten days overrun it.
+  }, 1200000);
 });
