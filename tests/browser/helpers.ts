@@ -120,6 +120,12 @@ export async function walk(page: Page, direction: 'forward' | 'backward' | 'left
 export async function aimCursorAt(page: Page, pos: { x: number; y: number; z: number }): Promise<void> {
   await page.evaluate((p) => {
     const g = (window as any).game;
+    // Bring the camera to where the player actually is before projecting through it. This harness
+    // renders at a few frames a second, so after a teleport the camera can still be at the old
+    // location, and a cursor projected through a stale camera aims at nothing. `snapTo` + one
+    // controller tick is exactly what the frame loop would have done next.
+    g.ctrl.arpg.snapTo(g.ctrl.body.pos);
+    g.ctrl.update(0.016);
     const cam = g.camera;
     cam.updateMatrixWorld(); cam.updateProjectionMatrix();
     const m = cam.projectionMatrix.clone().multiply(cam.matrixWorldInverse);

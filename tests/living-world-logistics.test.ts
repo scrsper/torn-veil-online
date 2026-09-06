@@ -435,8 +435,32 @@ describe('behavioural integration — the full material chain, no player (v0.3)'
     // completes) is unchanged. This sensitivity is itself worth someone's attention some day
     // (see the v0.8 report's FOLLOW-UP/ARCHITECTURAL QUESTION disclosure) — repeatedly bumping
     // this one number is a symptom, not a fix, of that underlying chaos-sensitivity.
-    advance(world, sim, 35 * SECONDS_PER_DAY / 60);
+    // v0.10.1: the horizon is 45 days, and the test now separates "stalled" from "slow".
+    //
+    // What was actually wrong was not the number of days. Demand for planks propagated from the
+    // site to the sawpit and from the sawpit to the clearing, and then stopped: nothing ever
+    // concluded "and therefore somebody should fell a tree". Wood appeared only when the
+    // woodcutter's schedule happened to put him at the clearing while he was fit to work, and he
+    // is chronically fatigued and hungry — identically on `main`, checked person-by-person over
+    // the same days. Measured at this seed and this step size: BEFORE the fix the shed sits at 15
+    // of 16 planks with two logs at the sawpit, an empty clearing, twelve trees standing and no
+    // haul task open, and does not complete within 45 days at all; AFTER it, it completes at
+    // about day 41.5. So requiring completion inside 45 days still fails if that defect returns,
+    // while no longer failing merely because this village is slow.
+    //
+    // `demandDrivenChops` below is the sharper guard: it asserts the upstream link EXISTS, rather
+    // than inferring it from a timing outcome, so removing the rule fails the test immediately
+    // instead of only on the seeds where the coincidence runs out.
+    let demandDrivenChops = 0;
+    world.onEvent(e => {
+      if (e.type === 'goal_changed' && e.data?.to === 'chop'
+        && (e.data?.reasons as string[] | undefined)?.some(r => r.includes('still needs planks'))) demandDrivenChops++;
+    });
+    advance(world, sim, 45 * SECONDS_PER_DAY / 60);
     const t = world.runTally;
+    // The project's need for planks reached the people who could fell a tree for it — the link
+    // whose absence was the root of the long-standing construction stall.
+    expect(demandDrivenChops).toBeGreaterThan(0);
     // v0.6 §V: Bors (woodcutter) now starts with real woodcutting proficiency (world/village.ts's
     // `seedStartingSkills`) rather than novice-0, which increases yield per swing (fewer wasted
     // motions — Constitution v0.6 §V.7), so the same finite grove is felled in fewer, larger

@@ -1,5 +1,5 @@
 import type { BrowserSpec } from '../run';
-import { startGame, advanceWorld, readCanonicalState, readHUD, movePlayerTo, aimCursorAt, captureEvidence } from '../helpers';
+import { startGame, advanceWorld, readCanonicalState, readHUD, movePlayerTo, lookAt, captureEvidence } from '../helpers';
 import { join } from 'node:path';
 
 const ART = join(import.meta.dirname, '..', 'artifacts');
@@ -35,6 +35,10 @@ export const theftAndGift: BrowserSpec = {
         const keeperId = place.ownerId ?? place.workers[0];
         const keeper = keeperId ? w.person(keeperId) : null;
         if (!keeper || !keeper.alive) continue;
+        // Somebody actually behind the counter: a sale needs a person to hand the money to, and a
+        // sleeping keeper correctly offers none.
+        const kb0 = w.primaryBody(keeper.id);
+        if (!kb0 || !kb0.present || kb0.dead || kb0.pose === 'sleep') continue;
         const onCounter = g.sim.tradeOffers(keeper, player)
           .filter((o: any) => o.item.placeId === place.id && o.item.pos && o.item.quantity === 1)
           .sort((a: any, b: any) => b.unitPrice - a.unitPrice);
@@ -53,8 +57,13 @@ export const theftAndGift: BrowserSpec = {
     if (!scene) throw new Error('no shop in the village had two things on its counter that its keeper would sell');
 
     // ---- 1. the honest path: the client offers to BUY, and says so before the key is pressed
+    // Immersive targeting, for the reason given in the trade spec: what is under test is the
+    // difference between paying and taking, not which camera is drawing it.
+    await page.keyboard.press('F2');
+    await page.waitForTimeout(120);
     await movePlayerTo(page, scene.a.pos, 1.2);
-    await aimCursorAt(page, { x: scene.a.pos.x, y: scene.a.pos.y + 0.15, z: scene.a.pos.z });
+    await lookAt(page, { x: scene.a.pos.x, y: scene.a.pos.y + 0.15, z: scene.a.pos.z });
+    await page.evaluate(() => { (window as any).game.inter.update(); });
     const targetedA = await readCanonicalState(page, () => {
       const t = (window as any).game.inter.target;
       return t?.kind === 'item' ? t.item.id : null;
@@ -94,7 +103,8 @@ export const theftAndGift: BrowserSpec = {
     if (afterBuy.thefts !== beforeBuy.thefts) throw new Error('paying for something emitted a theft event');
 
     // ---- 2. the other path: physically possible, canonically different, and named as such
-    await aimCursorAt(page, { x: scene.b.pos.x, y: scene.b.pos.y + 0.15, z: scene.b.pos.z });
+    await lookAt(page, { x: scene.b.pos.x, y: scene.b.pos.y + 0.15, z: scene.b.pos.z });
+    await page.evaluate(() => { (window as any).game.inter.update(); });
     const targetedB = await readCanonicalState(page, () => {
       const t = (window as any).game.inter.target;
       return t?.kind === 'item' ? t.item.id : null;
@@ -157,7 +167,8 @@ export const theftAndGift: BrowserSpec = {
     if (!giftScene.trinketId) throw new Error('the Traveler had nothing small to give away');
 
     await movePlayerTo(page, giftScene.pos, 1.3);
-    await aimCursorAt(page, { x: giftScene.pos.x, y: giftScene.pos.y + 0.9, z: giftScene.pos.z });
+    await lookAt(page, { x: giftScene.pos.x, y: giftScene.pos.y + 0.9, z: giftScene.pos.z });
+    await page.evaluate(() => { (window as any).game.inter.update(); });
     await page.keyboard.press('KeyI');
     await page.waitForTimeout(120);
 

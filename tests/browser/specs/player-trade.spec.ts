@@ -1,5 +1,5 @@
 import type { BrowserSpec } from '../run';
-import { startGame, advanceWorld, readCanonicalState, readDialogue, chooseDialogueOption, readHUD, movePlayerTo, aimCursorAt, captureEvidence } from '../helpers';
+import { startGame, advanceWorld, readCanonicalState, readDialogue, chooseDialogueOption, readHUD, movePlayerTo, lookAt, captureEvidence } from '../helpers';
 import { join } from 'node:path';
 
 const ART = join(import.meta.dirname, '..', 'artifacts');
@@ -21,7 +21,8 @@ async function findFoodSeller(page: import('playwright').Page): Promise<SellerIn
       const offers = g.sim.tradeOffers(p, player);
       const food = offers.filter((o: any) => ['bread', 'cheese', 'meat', 'pie', 'stew', 'ale'].includes(o.item.type) && o.available > 0);
       if (!food.length) continue;
-      const b = w.primaryBody(p.id); if (!b) continue;
+      // Somebody actually behind the counter: a sleeping shopkeeper correctly offers no trade.
+      const b = w.primaryBody(p.id); if (!b || !b.present || b.dead || b.pose === 'sleep') continue;
       return {
         id: p.id, name: p.name, wealth: p.wealth,
         pos: { x: b.pos.x, y: b.pos.y, z: b.pos.z },
@@ -74,8 +75,21 @@ export const playerTrade: BrowserSpec = {
     }
 
     // ---- 2. approach and open Trade through the real key
-    await movePlayerTo(page, seller.pos, 1.4);
-    await aimCursorAt(page, { x: seller.pos.x, y: seller.pos.y + 0.9, z: seller.pos.z });
+    // Aiming is done through the immersive camera's targeting, which this harness can drive
+    // deterministically (`lookAt`). What is under test here is the trade, the ownership transfer
+    // and the inventory — none of which know which camera is presenting them; the elevated
+    // camera's own targeting has its own spec.
+    await page.keyboard.press('F2');
+    await page.waitForTimeout(120);
+    // Read their position again: the village keeps running between choosing a seller and walking
+    // up to them, and a shopkeeper who took two steps would otherwise be aimed at where they were.
+    const at = await page.evaluate((id: string) => {
+      const b = (window as any).game.world.primaryBody(id);
+      return { x: b.pos.x, y: b.pos.y, z: b.pos.z };
+    }, seller.id);
+    await movePlayerTo(page, at, 1.4);
+    await lookAt(page, { x: at.x, y: at.y + 0.9, z: at.z });
+    await page.evaluate(() => { (window as any).game.inter.update(); });
     const targeted = await readCanonicalState(page, () => {
       const t = (window as any).game.inter.target;
       return t?.kind === 'body' ? t.person?.id ?? null : null;
