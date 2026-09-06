@@ -487,7 +487,7 @@ function favorChecks(world: World, recipient: Person, giver: Person, giveEvent: 
  * physically bounded by `safeCarryMassKg` rather than by an invented rule, and sends it somewhere
  * that is not where it already is. Returns null if the village has nothing substantial to move.
  */
-function raiseMultiTripWork(world: World): void {
+function raiseMultiTripWork(world: World): EntityId | null {
   const candidates: { type: ItemType; fromId: EntityId; fromName: string; stock: number }[] = [];
   for (const type of ['stone', 'log', 'plank', 'grain', 'flour'] as ItemType[]) {
     for (const pl of world.places()) {
@@ -495,28 +495,30 @@ function raiseMultiTripWork(world: World): void {
       if (stock > 0) candidates.push({ type, fromId: pl.id, fromName: pl.name, stock });
     }
   }
-  if (!candidates.length) return;
+  if (!candidates.length) return null;
   // Heaviest first (fewest units per trip), then most stock — both make a genuinely multi-trip
   // job likelier to be available rather than merely requested.
   candidates.sort((a, b) => (RESOURCE_MASS_KG[b.type] ?? 0) - (RESOURCE_MASS_KG[a.type] ?? 0) || b.stock - a.stock || a.fromId.localeCompare(b.fromId));
   const pick = candidates[0];
   const perTrip = carryCapFor(pick.type);
   const quantity = Math.min(pick.stock, Math.max(perTrip * 3, perTrip + 1));
-  if (quantity <= perTrip) return;
+  if (quantity <= perTrip) return null;
   const dest = world.places().find(pl => pl.id !== pick.fromId && ['store', 'construction', 'smithy', 'sawpit', 'mill'].includes(pl.type))
     ?? world.places().find(pl => pl.id !== pick.fromId && pl.indoor);
-  if (!dest) return;
-  createHaulTask(world, {
+  if (!dest) return null;
+  const task = createHaulTask(world, {
     resource: pick.type, quantity, sourcePlaceId: pick.fromId, destPlaceId: dest.id,
     reason: `${dest.name} needs ${pick.type}`,
     requesterId: dest.ownerId ?? dest.workers[0] ?? null, priority: 0.8,
   });
+  return task.requestId ?? null;
 }
 
 function responsibilityTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveTrace {
   const watched = new Set<EntityId>(world.persons().filter(p => p.alive && !p.controlled).map(p => p.id));
   const traceStart = world.now;
   const rec = recordFrom(world, traceStart, watched);
+  const raisedRequestId = raiseMultiTripWork(world);
   advance(world, sim, (spec.observeHours ?? 30) * SECONDS_PER_HOUR);
 
   // The most substantial responsibility anyone actually took on: the discharge purpose that saw
@@ -528,8 +530,22 @@ function responsibilityTrace(world: World, sim: Simulation, spec: MotiveSpec): M
     const id = e.data?.pursuitId as string | undefined;
     if (id) plansByPursuit.set(id, (plansByPursuit.get(id) ?? 0) + 1);
   }
+  // The purpose that took on the job raised above, if anybody did — chosen by WHICH REQUEST it
+  // discharges, not by a score. Whether it was accepted at all, by whom, and how it went are the
+  // simulation's own; this only says which of the village's several responsibilities the report
+  // should follow, so the scenario stops depending on that one happening to out-score the rest.
   let best: { p: Person; pu: Pursuit; served: number } | null = null;
   for (const p of world.persons()) {
+    if (!p.alive || p.controlled) continue;
+    for (const pu of pursuitsOf(p)) {
+      if (pu.kind === 'discharge' && raisedRequestId && pu.source.id === raisedRequestId) {
+        best = { p, pu, served: Number.MAX_SAFE_INTEGER };
+        break;
+      }
+    }
+    if (best && best.served === Number.MAX_SAFE_INTEGER) break;
+  }
+  for (const p of best && best.served === Number.MAX_SAFE_INTEGER ? [] : world.persons()) {
     if (!p.alive || p.controlled) continue;
     for (const pu of pursuitsOf(p)) {
       // Only responsibilities taken on DURING the observation window: the warm-up runs the whole

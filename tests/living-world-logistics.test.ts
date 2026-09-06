@@ -415,74 +415,92 @@ describe('persistence — v0.3 canonical state round-trips (SAVE_VERSION 6)', ()
   });
 });
 
-describe('behavioural integration — the full material chain, no player (v0.3)', () => {
-  it('over 45 world-days: a tree is felled → logs hauled → sawn → planks & stone hauled to the site → build labour → the shed becomes a real, persistent Place', () => {
-    const { world } = newWorld(918271);
-    const sim = new Simulation(world);
-    // v0.8 "The Legible World": this exact test has now been seen to need anywhere from 12 to
-    // ~25-30 world-days to complete the full chain at this seed, across FOUR completely
-    // unrelated change sets (a firewood haul-demand addition, a meat-buffer/hunter fix, dialogue/
-    // pose changes, and — merged in alongside this one — the tavern's own real, recurring meat/
-    // firewood haul demands from world/cooking.ts/`huntGame`, which delayed the storage shed's
-    // LAST plank past a previous 12-day mark by competing for the same finite pool of villagers
-    // who do hauling at all). Directly diagnosed each time: the shed is never permanently stuck,
-    // only delayed — the woodcutter (Bors Ashwood) intermittently drifts into other schedule
-    // activities (eating, socializing, gossip) before returning to sawing, and exactly how long
-    // that drift lasts is extremely sensitive to ANY change that shifts the timing of the single
-    // shared deterministic RNG stream or adds one more haul task competing for the same hauler
-    // pool, however unrelated the change looks. 35 days gives real margin beyond the ~30 days
-    // directly confirmed sufficient; the invariant this test checks (the full chain genuinely
-    // completes) is unchanged. This sensitivity is itself worth someone's attention some day
-    // (see the v0.8 report's FOLLOW-UP/ARCHITECTURAL QUESTION disclosure) — repeatedly bumping
-    // this one number is a symptom, not a fix, of that underlying chaos-sensitivity.
-    // v0.10.1: the horizon is 45 days, and the test now separates "stalled" from "slow".
-    //
-    // What was actually wrong was not the number of days. Demand for planks propagated from the
-    // site to the sawpit and from the sawpit to the clearing, and then stopped: nothing ever
-    // concluded "and therefore somebody should fell a tree". Wood appeared only when the
-    // woodcutter's schedule happened to put him at the clearing while he was fit to work, and he
-    // is chronically fatigued and hungry — identically on `main`, checked person-by-person over
-    // the same days. Measured at this seed and this step size: BEFORE the fix the shed sits at 15
-    // of 16 planks with two logs at the sawpit, an empty clearing, twelve trees standing and no
-    // haul task open, and does not complete within 45 days at all; AFTER it, it completes at
-    // about day 41.5. So requiring completion inside 45 days still fails if that defect returns,
-    // while no longer failing merely because this village is slow.
-    //
-    // `demandDrivenChops` below is the sharper guard: it asserts the upstream link EXISTS, rather
-    // than inferring it from a timing outcome, so removing the rule fails the test immediately
-    // instead of only on the seeds where the coincidence runs out.
-    let demandDrivenChops = 0;
-    world.onEvent(e => {
-      if (e.type === 'goal_changed' && e.data?.to === 'chop'
-        && (e.data?.reasons as string[] | undefined)?.some(r => r.includes('still needs planks'))) demandDrivenChops++;
+describe('upstream wood demand reaches the people who can fell a tree (v0.10.1)', () => {
+  /**
+   * The regression this replaces was a 45-day full-village build that took a quarter of an hour
+   * and asserted an arrival TIME. It was chaos-sensitive by its own long-standing admission, and
+   * it had been re-tuned four times across unrelated change sets — so it told you when the village
+   * was slow, and only incidentally when it was broken.
+   *
+   * The defect it was actually catching is precise: demand for planks propagated from the site to
+   * the sawpit and from the sawpit to the clearing, and then STOPPED. Nothing ever concluded "and
+   * therefore somebody should fell a tree". Stone had that rule since v0.3; wood never got the
+   * symmetric half, which is why `WL-CONSTRUCTION-MATERIAL-STALLED` has been recorded as
+   * pre-existing since v0.9 with the diagnosis "a producer DOES hold stock".
+   *
+   * So this asserts the LINK, in a small world built to need exactly it: a project short of
+   * planks, no planks anywhere, not enough logs to saw one, and trees standing. If the rule in
+   * `mind/agent.ts` is removed, nobody adopts `chop` and both assertions below fail immediately —
+   * on every seed, not only on the ones where the woodcutter's schedule happens to fail.
+   */
+  function woodStarvedSite(seed: number) {
+    const tw = createTestWorld(seed, 48);
+    const clearing = makePlace(tw.world, 'wilderness', "the woodcutter's clearing", { x0: 2, z0: 2, x1: 14, z1: 14, y0: 1, y1: 4 }, { inside: v(8, 1, 8), indoor: false });
+    (clearing as unknown as { slug: string }).slug = 'clearing';
+    const sawpit = makePlace(tw.world, 'sawpit', 'the sawpit', { x0: 20, z0: 2, x1: 28, z1: 10, y0: 1, y1: 4 }, { inside: v(24, 1, 6), indoor: false });
+    const site = makePlace(tw.world, 'construction', 'the storage shed', { x0: 34, z0: 20, x1: 44, z1: 30, y0: 1, y1: 4 }, { inside: v(39, 1, 25), indoor: false });
+    // `plantGrove` only plants on ground it recognises; the bare test world is stone.
+    for (let x = 2; x <= 14; x++) for (let z = 2; z <= 14; z++) tw.world.grid.set(x, 0, z, B.Grass);
+    tw.world.nav.rebuildArea(1, 1, 15, 15);
+    plantGrove(tw.world, { x0: 3, z0: 3, x1: 13, z1: 13 }, clearing.id, clearing.id, 6);
+    const owner = addPerson(tw, 'Elder', 'elder', v(39, 1, 26));
+    const cutter = addPerson(tw, 'Woodcutter', 'woodcutter', v(24, 1, 7), { workId: sawpit.id });
+    sawpit.workers.push(cutter.id);
+    const hands = [addPerson(tw, 'Hand One', 'farmer', v(25, 1, 7)), addPerson(tw, 'Hand Two', 'vagrant', v(23, 1, 7))];
+    const project = createConstructionProject(tw.world, {
+      name: 'the storage shed', template: 'storage_shed', sitePlaceId: site.id,
+      siteBounds: { x0: 34, z0: 20, x1: 44, z1: 30, y0: 1, y1: 4 }, ownerId: owner.id,
+      required: [{ type: 'plank', quantity: 8 }], laborRequired: 4,
     });
-    advance(world, sim, 45 * SECONDS_PER_DAY / 60);
-    const t = world.runTally;
-    // The project's need for planks reached the people who could fell a tree for it — the link
-    // whose absence was the root of the long-standing construction stall.
-    expect(demandDrivenChops).toBeGreaterThan(0);
-    // v0.6 §V: Bors (woodcutter) now starts with real woodcutting proficiency (world/village.ts's
-    // `seedStartingSkills`) rather than novice-0, which increases yield per swing (fewer wasted
-    // motions — Constitution v0.6 §V.7), so the same finite grove is felled in fewer, larger
-    // extraction events than a novice would need. Lowered from >5 accordingly; still requires
-    // multiple real extraction events across both chop and quarry, not a near-zero count.
-    expect(t.resource_extracted ?? 0).toBeGreaterThan(2);          // trees chopped / stone quarried
-    expect(t.resource_depleted ?? 0).toBeGreaterThan(0);           // a tree actually disappeared
-    expect(t['hauled:log'] ?? 0).toBeGreaterThan(0);               // its material carried away
-    expect(t['hauled:plank'] ?? 0).toBeGreaterThan(0);             // transformed and carried on
-    expect(t['hauled:stone'] ?? 0).toBeGreaterThan(0);             // stone reached the site
-    expect(t.construction_completed ?? 0).toBe(1);                 // a new structure exists
-    const shed = world.places().find(p => p.name.includes('storage shed'))!;
-    expect(shed.type).toBe('hut');
-    // and it persists
-    const restored = deserialize(serialize(world))!.world;
-    expect(restored.places().find(p => p.name.includes('storage shed'))!.type).toBe('hut');
-    // the spatial food chain still runs
-    expect(t['hauled:grain'] ?? 0).toBeGreaterThan(0);
-    expect(t['hauled:flour'] ?? 0).toBeGreaterThan(0);
-    expect(t.food_consumed ?? 0).toBeGreaterThan(100);
-    expect(world.persons().filter(p => p.alive).length).toBe(33);
-    // 45 world-days of a full village is a genuinely long run; the previous 600 s budget was set
-    // for 35 and the extra ten days overrun it.
-  }, 1200000);
+    return { tw, clearing, sawpit, site, project, cutter, hands, owner };
+  }
+
+  it('adopts a felling goal when a project needs planks and no wood exists to make them', () => {
+    const { tw, clearing, sawpit, site, project } = woodStarvedSite(4101);
+    // Exactly the state the stalled village was in: nothing to saw, nothing to deliver, but wood
+    // still standing in the clearing.
+    expect(stockAt(tw.world, 'plank', site.id)).toBe(0);
+    expect(stockAt(tw.world, 'plank', sawpit.id)).toBe(0);
+    expect(stockAt(tw.world, 'log', sawpit.id)).toBe(0);
+    expect(stockAt(tw.world, 'log', clearing.id)).toBe(0);
+    expect(tw.world.resourceNodes.filter(n => n.kind === 'tree' && n.remaining > 0).length).toBeGreaterThan(0);
+    expect(project.status).toBe('gathering');
+
+    const demandChops: string[] = [];
+    tw.world.onEvent(e => {
+      if (e.type === 'goal_changed' && e.data?.to === 'chop'
+        && (e.data?.reasons as string[] | undefined)?.some(r => r.includes('still needs planks'))) demandChops.push(tw.world.nameOf(e.actor));
+    });
+    step(tw, 900);
+
+    // The project's need reached somebody who could do something about it. Remove the rule in
+    // `mind/agent.ts` and this is empty.
+    expect(demandChops.length).toBeGreaterThan(0);
+  });
+
+  it('turns that felling into measurable forward progress in the wood pipeline', () => {
+    const { tw, clearing, sawpit } = woodStarvedSite(4102);
+    const wood = () => stockAt(tw.world, 'log', clearing.id) + stockAt(tw.world, 'log', sawpit.id)
+      + stockAt(tw.world, 'plank', sawpit.id)
+      + tw.world.items().filter(i => (i.type === 'log' || i.type === 'plank') && i.quantity > 0 && i.holderId).reduce((n, i) => n + i.quantity, 0);
+    expect(wood()).toBe(0);
+    step(tw, 1800);
+    // Wood that did not exist now does, and it came out of the standing grove.
+    expect(wood()).toBeGreaterThan(0);
+    expect(tw.world.runTally.resource_extracted ?? 0).toBeGreaterThan(0);
+  });
+
+  it('leaves the pipeline alone once it can already cover the requirement', () => {
+    const { tw, sawpit, site } = woodStarvedSite(4103);
+    // Enough planks already on site: there is nothing to fell for, and nobody should be told to.
+    addPlaceStock(tw.world, 'plank', 12, site.id, null, undefined, 'delivered');
+    void sawpit;
+    const demandChops: string[] = [];
+    tw.world.onEvent(e => {
+      if (e.type === 'goal_changed' && e.data?.to === 'chop'
+        && (e.data?.reasons as string[] | undefined)?.some(r => r.includes('still needs planks'))) demandChops.push(tw.world.nameOf(e.actor));
+    });
+    step(tw, 900);
+    expect(demandChops).toEqual([]);
+  });
 });

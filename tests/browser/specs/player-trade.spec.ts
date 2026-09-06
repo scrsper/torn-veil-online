@@ -176,6 +176,13 @@ export const playerTrade: BrowserSpec = {
     // ---- 4. it is in a real inventory, and eating it is the same canonical act an NPC performs
     await page.keyboard.press('Escape');
     await page.waitForTimeout(80);
+    // Pause the world with the player's own P key before working the inventory panel. The panel
+    // re-renders whenever the carried items change, which a running village does constantly, so a
+    // click that has located a row or a button races the next refresh and lands on a detached
+    // element. Pausing is what a player would do, and it is the same `paused` flag the observer
+    // overlay's pause button sets — no test-only mechanism.
+    await page.keyboard.press('KeyP');
+    await page.waitForTimeout(80);
     await page.keyboard.press('KeyI');
     await page.waitForTimeout(120);
     const invOpen = await readCanonicalState(page, () => (document.getElementById('inventory') as HTMLElement).classList.contains('open'));
@@ -221,6 +228,9 @@ export const playerTrade: BrowserSpec = {
 
     // ---- 5. no coin: the sale is refused and nothing moves
     await page.keyboard.press('KeyI');
+    // Let the village run again for the rest of the spec.
+    await page.keyboard.press('KeyP');
+    await page.waitForTimeout(80);
     await page.evaluate(() => { const w = (window as any).game.world; w.person(w.playerId).wealth = 0; });
     // Re-aim: the village has been running throughout, and a shopkeeper who has taken a few steps
     // is no longer under the crosshair from where the player stood a moment ago.
