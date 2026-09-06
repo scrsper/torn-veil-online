@@ -41,6 +41,11 @@ export const theftAndGift: BrowserSpec = {
         if (onCounter.length < 2) continue;
         const pick = (o: any) => ({ id: o.item.id, name: o.item.name, price: o.unitPrice, pos: { x: o.item.pos.x, y: o.item.pos.y, z: o.item.pos.z } });
         player.wealth = 500;
+        // The keeper stands at their own counter. Buying needs somebody to hand the money to
+        // (`SELLER_REACH`), and where a villager happens to be at hour eight of a run is not what
+        // this spec is about — so their position is setup, like the player's own.
+        const kb = w.primaryBody(keeper.id);
+        if (kb) { kb.pos = { x: onCounter[0].item.pos.x + 1, y: onCounter[0].item.pos.y, z: onCounter[0].item.pos.z }; kb.pose = 'stand'; }
         return { placeName: place.name, keeperId: keeper.id, keeperName: keeper.name, a: pick(onCounter[0]), b: pick(onCounter[1]) };
       }
       return null;

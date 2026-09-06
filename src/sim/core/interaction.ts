@@ -84,8 +84,13 @@ export function actionsForWorldItem(world: World, viewer: Person, it: Item): Pla
   }
 
   // Someone else's. Is there a sale to be made here?
+  //
+  // A sale needs somebody to pay. Goods on an unattended counter are still someone's goods, and
+  // helping yourself to them while the keeper is asleep upstairs is a theft, not a transaction —
+  // so `buy` is offered only when the seller is actually present to take the money.
   const display = onSaleDisplay(world, it);
-  const seller = display?.seller ?? (knowsOwnerOf(viewer, it) ? world.person(it.ownerId) ?? null : null);
+  const candidate = display?.seller ?? (knowsOwnerOf(viewer, it) ? world.person(it.ownerId) ?? null : null);
+  const seller = candidate && sellerIsAtHand(world, viewer, candidate) ? candidate : null;
   if (seller && seller.alive && seller.id !== viewer.id) {
     const willing = willingnessFor(world, seller, it, viewer);
     if (!willing.reason) {
@@ -96,7 +101,7 @@ export function actionsForWorldItem(world: World, viewer: Person, it: Item): Pla
         label: it.quantity > 1 ? `Buy one ${it.type} — ${price}s` : `Buy ${label} — ${price}s`,
         detail: affordable ? `from ${seller.name}` : `from ${seller.name} · you have ${viewer.wealth} silver`,
       });
-    } else if (display) {
+    } else {
       out.push({ kind: 'inspect', label: `Not for sale`, detail: willing.note });
     }
   }
@@ -138,6 +143,16 @@ export function actionsForCarriedItem(world: World, holder: Person, it: Item, ne
   out.push({ kind: 'drop', label: it.haulTaskId ? `Set down — gives up the haul` : `Drop ${label}`, detail: it.haulTaskId ? 'this is cargo you took on' : undefined, grave: !!it.haulTaskId });
   out.push(...inspectAction(holder, it));
   return out;
+}
+
+/** How far away a seller may be and still be someone you can hand money to. Generous enough to
+ * cover a keeper standing anywhere behind their own counter, short enough that an empty shop is
+ * an empty shop. */
+export const SELLER_REACH = 7;
+function sellerIsAtHand(world: World, viewer: Person, seller: Person): boolean {
+  const a = world.primaryBody(viewer.id), b = world.primaryBody(seller.id);
+  if (!a || !b || !b.present || b.dead || b.pose === 'sleep') return false;
+  return Math.hypot(a.pos.x - b.pos.x, a.pos.y - b.pos.y, a.pos.z - b.pos.z) <= SELLER_REACH;
 }
 
 /** Inspect is always available and is the one action that is purely epistemic — it reports what

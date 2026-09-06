@@ -68,6 +68,8 @@ const INCAPACITATED_FRACTION = 0.35;
 /** v0.10 §I.B: how many units of food a `provide` errand takes off a household stack to carry to
  * someone who needs it. A couple of meals — enough to matter, not the whole larder. */
 const PROVISION_UNITS = 2;
+/** Shared empty list, so the common "no crimes to report" case allocates nothing. */
+const EMPTY_PERSONS: readonly Person[] = [];
 
 /**
  * The Simulation runs minds and bodies at their own cadences:
@@ -501,6 +503,11 @@ export class Simulation {
     }
     // ---- knowledge-driven goals: report crimes, investigate, recover items
     const crimes = Object.values(p.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled && now - k.learnedAt < 86400 * 3);
+    // Resolved once for the whole loop rather than per belief: this is a scan of everyone alive,
+    // and a person who remembers five crimes was otherwise paying for it five times a tick.
+    const authorities = crimes.length && !isGuard && !p.hostile
+      ? w.persons().filter(g => (g.occupation === 'guard' || g.occupation === 'captain') && g.alive)
+      : EMPTY_PERSONS;
     for (const k of crimes) {
       const sev = crimeSeverity(k.claim.type); const victimClose = k.claim.target ? isClose(p, k.claim.target) : false; const victimIsMe = k.claim.target === p.id;
       const actorIsMe = k.claim.actor === p.id; if (actorIsMe) continue;
@@ -513,7 +520,6 @@ export class Simulation {
         // (`mind/reporting.ts`) knows whether this has already been delivered, whether the matter
         // is over as far as THIS person has heard, whether there is anyone to tell, and how many
         // trips have already come to nothing — and it is what decides whether to set out again.
-        const authorities = w.persons().filter(g => (g.occupation === 'guard' || g.occupation === 'captain') && g.alive);
         const progress = refreshReport(w, p, k, authorities);
         const untold = authorities.filter(g => !k.sharedWith.includes(g.id));
         const eligible = p.occupation !== 'child' || victimClose;

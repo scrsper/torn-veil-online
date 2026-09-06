@@ -83,20 +83,34 @@ describe('commerce: what a person will actually sell', () => {
 
   it('will not sell the food it needs itself while hungry, and will while fed', () => {
     const { tw, keeper, buyer } = shopWorld(9005);
-    const shelf = stock(tw, keeper, 'bread', PERSONAL_FOOD_RESERVE);
+    // Their OWN supply, carried — not shop stock. That distinction is the rule.
+    const supper = makeItem(tw.world, 'bread', 'bread', { owner: keeper.id, holder: keeper.id, quantity: PERSONAL_FOOD_RESERVE });
 
     keeper.physiology.energy = 0.1; syncNeeds(keeper);          // hungry
-    expect(willingnessFor(tw.world, keeper, shelf, buyer).reason).toBe('last_food');
+    expect(willingnessFor(tw.world, keeper, supper, buyer).reason).toBe('last_food');
 
     keeper.physiology.energy = 1; syncNeeds(keeper);            // fed
-    expect(willingnessFor(tw.world, keeper, shelf, buyer).reason).toBeNull();
+    expect(willingnessFor(tw.world, keeper, supper, buyer).reason).toBeNull();
   });
 
   it('sells the surplus above its own reserve rather than refusing outright', () => {
     const { tw, keeper, buyer } = shopWorld(9006);
-    const shelf = stock(tw, keeper, 'bread', PERSONAL_FOOD_RESERVE + 5);
+    const supper = makeItem(tw.world, 'bread', 'bread', { owner: keeper.id, holder: keeper.id, quantity: PERSONAL_FOOD_RESERVE + 5 });
     keeper.physiology.energy = 0.1; syncNeeds(keeper);
-    expect(willingnessFor(tw.world, keeper, shelf, buyer).available).toBe(5);
+    expect(willingnessFor(tw.world, keeper, supper, buyer).available).toBe(5);
+  });
+
+  it('does not treat shop stock as a personal larder', () => {
+    // A tavern down to two mugs needs a delivery; its keeper is not about to starve. Applying the
+    // personal reserve to commercial stock also deadlocks the shop — below the reserve it could
+    // never sell again, so its stock would stop circulating entirely. Found by the ale-supply
+    // invariant, which hung outright.
+    const { tw, keeper, buyer } = shopWorld(9006_1);
+    const shelf = stock(tw, keeper, 'ale', PERSONAL_FOOD_RESERVE);
+    keeper.physiology.energy = 0.05; syncNeeds(keeper);
+    const w = willingnessFor(tw.world, keeper, shelf, buyer);
+    expect(w.reason).toBeNull();
+    expect(w.available).toBe(PERSONAL_FOOD_RESERVE);
   });
 
   it('will not sell what belongs to somebody else', () => {
@@ -176,10 +190,11 @@ describe('commerce: the transaction itself', () => {
 
   it('re-checks willingness at the till, not only when the menu was drawn', () => {
     const { tw, keeper, buyer } = shopWorld(9013);
-    const shelf = stock(tw, keeper, 'bread', PERSONAL_FOOD_RESERVE);
-    expect(tradeOffersFrom(tw.world, keeper, buyer).map(o => o.item.id)).toContain(shelf.id);
-    keeper.physiology.energy = 0.1; syncNeeds(keeper);
-    const r = purchaseUnits(tw.world, buyer, keeper, shelf, 1);
+    const supper = makeItem(tw.world, 'bread', 'bread', { owner: keeper.id, holder: keeper.id, quantity: PERSONAL_FOOD_RESERVE });
+    keeper.physiology.energy = 1; syncNeeds(keeper);            // well fed: it is on the menu
+    expect(tradeOffersFrom(tw.world, keeper, buyer).map(o => o.item.id)).toContain(supper.id);
+    keeper.physiology.energy = 0.1; syncNeeds(keeper);          // and then they get hungry
+    const r = purchaseUnits(tw.world, buyer, keeper, supper, 1);
     expect(r.units).toBe(0);
     expect(r.refused).toBe('last_food');
   });
@@ -191,6 +206,7 @@ describe('interaction: possession, ownership and what the player is told', () =>
     const tavern = tw.world.place(tw.places.tavern)!;
     tavern.anchors.push({ pos: v(19, 1, 4), kind: 'display', label: 'counter' });
     const shelf = stock(tw, keeper, 'bread', 6);
+    keeper.physiology.energy = 1; syncNeeds(keeper);
 
     const acts = actionsForWorldItem(tw.world, buyer, shelf);
     expect(acts[0].kind).toBe('buy');
@@ -233,6 +249,21 @@ describe('interaction: possession, ownership and what the player is told', () =>
     const acts = actionsForWorldItem(tw.world, buyer, lost);
     expect(acts.some(a => a.kind === 'recover')).toBe(true);
     expect(acts.some(a => a.kind === 'steal')).toBe(false);
+  });
+
+  it('will not sell you goods on an unattended counter — that is a theft, not a transaction', () => {
+    const { tw, keeper, buyer } = shopWorld(9026);
+    const tavern = tw.world.place(tw.places.tavern)!;
+    tavern.anchors.push({ pos: v(19, 1, 4), kind: 'display', label: 'counter' });
+    const shelf = stock(tw, keeper, 'bread', 6);
+    keeper.physiology.energy = 1; syncNeeds(keeper);
+    expect(actionsForWorldItem(tw.world, buyer, shelf)[0].kind).toBe('buy');
+
+    // The keeper wanders off; the bread does not become free.
+    tw.world.primaryBody(keeper.id)!.pos = v(2, 1, 2);
+    const alone = actionsForWorldItem(tw.world, buyer, shelf);
+    expect(alone.some(a => a.kind === 'buy')).toBe(false);
+    expect(alone.some(a => a.kind === 'steal')).toBe(true);
   });
 
   it('offers Trade on a person only when they would really sell something', () => {

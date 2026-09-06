@@ -90,6 +90,10 @@ function placeOf(world: World, it: Item): Place | undefined {
  */
 export function committedUnits(world: World, it: Item): number {
   if (it.haulTaskId) return it.quantity;
+  // A haul task reserves stock AT A SOURCE PLACE, so a carried or loose stack can never be
+  // reserved by one — and skipping the scan matters, because `world.haulTasks` accumulates for
+  // the life of a run and this is asked on a per-decision path.
+  if (!it.placeId) return 0;
   let reserved = 0;
   for (const t of world.haulTasks) {
     if (t.status !== 'needed' && t.status !== 'claimed' && t.status !== 'in_transit') continue;
@@ -107,14 +111,19 @@ function isWorkingTool(seller: Person, it: Item): boolean {
   return it.holderId === seller.id && (TOOL_KINDS as ItemType[]).includes(it.type);
 }
 
-/** All food this person can reach without buying it: what they carry plus what is theirs where
- * they are. Used only to decide whether selling would leave them short. */
+/** All food this person can reach without buying it: what they carry plus what is theirs lying
+ * about. Used only to decide whether selling would leave them short — and only reached when the
+ * seller is already hungry and the thing being asked for is food, which is why a scan of the
+ * item list is affordable here and would not be on the ordinary path. */
 function ownFoodUnits(world: World, p: Person): number {
   let n = 0;
+  for (const id of p.inventory) {
+    const it = world.item(id);
+    if (it && it.quantity > 0 && isFood(it.type)) n += it.quantity;
+  }
   for (const it of world.items()) {
-    if (it.quantity <= 0 || !isFood(it.type)) continue;
-    if (it.holderId === p.id) { n += it.quantity; continue; }
-    if (!it.holderId && it.ownerId === p.id) n += it.quantity;
+    if (it.holderId || it.quantity <= 0 || it.ownerId !== p.id || !isFood(it.type)) continue;
+    n += it.quantity;
   }
   return n;
 }
@@ -156,7 +165,12 @@ export function willingnessFor(world: World, seller: Person, it: Item, buyer?: P
   let available = it.quantity - committedUnits(world, it);
   if (available <= 0) return no('committed', 'that is already promised to someone');
 
-  if (isFood(it.type) && severityAtLeast(hungerBand(seller), 'noticeable')) {
+  // The milestone's rule is "food they personally need to avoid starvation", and that is what
+  // this is: their OWN supplies. It deliberately does not apply to commercial stock. A tavern
+  // down to its last two mugs is a tavern that needs a delivery, not an innkeeper about to
+  // starve — and treating shop stock as a personal larder produced a genuine deadlock, since a
+  // shop can then never sell below the reserve and its stock stops circulating entirely.
+  if (!commercial && isFood(it.type) && severityAtLeast(hungerBand(seller), 'noticeable')) {
     const spare = ownFoodUnits(world, seller) - PERSONAL_FOOD_RESERVE;
     if (spare <= 0) return no('last_food', `${seller.name} needs that ${it.type} themselves`);
     available = Math.min(available, spare);

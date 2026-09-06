@@ -52,7 +52,7 @@ export function reportFor(p: Person, key: string): ReportProgress | undefined {
 /** Is anyone this person could tell already in the know? The existing success test, kept in one
  * place: `tell` pushes the listener onto `sharedWith`, so a guard appearing there IS the report
  * having been delivered. */
-export function toldAnAuthority(k: KnowledgeItem, authorities: Person[]): Person | undefined {
+export function toldAnAuthority(k: KnowledgeItem, authorities: readonly Person[]): Person | undefined {
   return authorities.find(g => k.sharedWith.includes(g.id));
 }
 
@@ -63,7 +63,7 @@ export function toldAnAuthority(k: KnowledgeItem, authorities: Person[]): Person
  * `authorities` is the list of living guards/captains — passed in rather than recomputed, because
  * `think()` already has it and this runs per crime belief per tick.
  */
-export function refreshReport(world: World, p: Person, k: KnowledgeItem, authorities: Person[]): ReportProgress {
+export function refreshReport(world: World, p: Person, k: KnowledgeItem, authorities: readonly Person[]): ReportProgress {
   const now = world.now;
   const store = reportsOf(p);
   let r = store[k.key];
