@@ -416,7 +416,7 @@ describe('persistence — v0.3 canonical state round-trips (SAVE_VERSION 6)', ()
 });
 
 describe('behavioural integration — the full material chain, no player (v0.3)', () => {
-  it('over 35 world-days: a tree is felled → logs hauled → sawn → planks & stone hauled to the site → build labour → the shed becomes a real, persistent Place', () => {
+  it('over 45 world-days: a tree is felled → logs hauled → sawn → planks & stone hauled to the site → build labour → the shed becomes a real, persistent Place', () => {
     const { world } = newWorld(918271);
     const sim = new Simulation(world);
     // v0.8 "The Legible World": this exact test has now been seen to need anywhere from 12 to

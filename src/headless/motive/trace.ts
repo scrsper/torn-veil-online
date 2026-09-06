@@ -1,7 +1,7 @@
 import { World } from '../../sim/core/world';
 import { Simulation } from '../../sim/mind/agent';
 import { generateVillage } from '../../sim/world/village';
-import type { EntityId, GoalType, Person, Pursuit, WorldEvent } from '../../sim/core/types';
+import type { EntityId, GoalType, ItemType, Person, Pursuit, WorldEvent } from '../../sim/core/types';
 import { SECONDS_PER_HOUR } from '../../sim/core/time';
 import { woundSeverity } from '../../sim/core/attributes';
 import { getRel, isClose, isFamily } from '../../sim/mind/relationships';
@@ -10,7 +10,9 @@ import {
   describePursuit, livePursuits, pursuitsOf, motivationBoost, PRIORITY_MARGIN,
 } from '../../sim/mind/pursuit';
 import { describeObligation, obligationsOf, obligationCredit, obligationGoalBoost } from '../../sim/social/obligation';
-import { canHaul } from '../../sim/logistics/haul';
+import { canHaul, carryCapFor, createHaulTask } from '../../sim/logistics/haul';
+import { stockAt } from '../../sim/world/stock';
+import { RESOURCE_MASS_KG } from '../../sim/world/factory';
 
 /**
  * MOTIVATED-LIFE CAUSAL TRACE HARNESS (v0.10 "visible life continuity" / acceptance scenarios).
@@ -479,6 +481,38 @@ function favorChecks(world: World, recipient: Person, giver: Person, giveEvent: 
  * responsibility from acceptance through interruption to completion (or to a real, stated
  * failure). Which person, and which piece of work, is whatever the world produced.
  */
+/**
+ * Raise one real haul the village could genuinely want, big enough that nobody can carry it in a
+ * single trip. Picks the heaviest resource that actually has stock somewhere, so the load is
+ * physically bounded by `safeCarryMassKg` rather than by an invented rule, and sends it somewhere
+ * that is not where it already is. Returns null if the village has nothing substantial to move.
+ */
+function raiseMultiTripWork(world: World): void {
+  const candidates: { type: ItemType; fromId: EntityId; fromName: string; stock: number }[] = [];
+  for (const type of ['stone', 'log', 'plank', 'grain', 'flour'] as ItemType[]) {
+    for (const pl of world.places()) {
+      const stock = stockAt(world, type, pl.id);
+      if (stock > 0) candidates.push({ type, fromId: pl.id, fromName: pl.name, stock });
+    }
+  }
+  if (!candidates.length) return;
+  // Heaviest first (fewest units per trip), then most stock — both make a genuinely multi-trip
+  // job likelier to be available rather than merely requested.
+  candidates.sort((a, b) => (RESOURCE_MASS_KG[b.type] ?? 0) - (RESOURCE_MASS_KG[a.type] ?? 0) || b.stock - a.stock || a.fromId.localeCompare(b.fromId));
+  const pick = candidates[0];
+  const perTrip = carryCapFor(pick.type);
+  const quantity = Math.min(pick.stock, Math.max(perTrip * 3, perTrip + 1));
+  if (quantity <= perTrip) return;
+  const dest = world.places().find(pl => pl.id !== pick.fromId && ['store', 'construction', 'smithy', 'sawpit', 'mill'].includes(pl.type))
+    ?? world.places().find(pl => pl.id !== pick.fromId && pl.indoor);
+  if (!dest) return;
+  createHaulTask(world, {
+    resource: pick.type, quantity, sourcePlaceId: pick.fromId, destPlaceId: dest.id,
+    reason: `${dest.name} needs ${pick.type}`,
+    requesterId: dest.ownerId ?? dest.workers[0] ?? null, priority: 0.8,
+  });
+}
+
 function responsibilityTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveTrace {
   const watched = new Set<EntityId>(world.persons().filter(p => p.alive && !p.controlled).map(p => p.id));
   const traceStart = world.now;

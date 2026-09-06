@@ -81,10 +81,35 @@ export const playerTrade: BrowserSpec = {
     // camera's own targeting has its own spec.
     await page.keyboard.press('F2');
     await page.waitForTimeout(120);
-    // Read their position again: the village keeps running between choosing a seller and walking
-    // up to them, and a shopkeeper who took two steps would otherwise be aimed at where they were.
+    // Stand them somewhere the player can actually point at.
+    //
+    // Where a villager happens to be at hour eight is not what this spec is about, and the square
+    // is furnished: the seller was found standing beside the well, whose block won the targeting
+    // raycast over the person behind it. So the seller is placed on open ground — the same setup
+    // shortcut `theft-and-gift.spec.ts` uses for its shopkeeper, and the same open-ground search
+    // the movement spec uses — after which every action below goes through the real keys and the
+    // real targeting.
     const at = await page.evaluate((id: string) => {
-      const b = (window as any).game.world.primaryBody(id);
+      const w = (window as any).game.world;
+      const nav = w.nav;
+      const sq = w.places().find((p: any) => p.type === 'square');
+      const cx = Math.floor(sq.inside.x), cz = Math.floor(sq.inside.z);
+      let spot: { x: number; y: number; z: number } | null = null;
+      for (let r = 0; r < 40 && !spot; r++) {
+        for (let dx = -r; dx <= r && !spot; dx++) for (let dz = -r; dz <= r && !spot; dz++) {
+          if (Math.max(Math.abs(dx), Math.abs(dz)) !== r) continue;
+          const x = cx + dx, z = cz + dz, y = nav.floorY(x, z);
+          if (y < 0) continue;
+          let clear = true;
+          for (let ax = -3; ax <= 3 && clear; ax++) for (let az = -3; az <= 3 && clear; az++) {
+            if (!nav.isWalkable(x + ax, z + az) || nav.floorY(x + ax, z + az) !== y) clear = false;
+            for (let ay = 0; ay < 3 && clear; ay++) if (w.grid.isSolidAt(x + ax, y + ay, z + az)) clear = false;
+          }
+          if (clear) spot = { x: x + 0.5, y, z: z + 0.5 };
+        }
+      }
+      const b = w.primaryBody(id);
+      if (spot) { b.pos = { ...spot }; b.path = null; b.pose = 'stand'; }
       return { x: b.pos.x, y: b.pos.y, z: b.pos.z };
     }, seller.id);
     await movePlayerTo(page, at, 1.4);
