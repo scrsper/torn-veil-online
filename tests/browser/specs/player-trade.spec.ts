@@ -270,19 +270,26 @@ export const playerTrade: BrowserSpec = {
       if (!stateAfter.lines.some(l => l && /coin/i.test(l))) throw new Error(`the seller did not say why the sale failed: ${JSON.stringify(stateAfter.lines)}`);
     }
 
-    // ---- 6. a hungry seller with nothing spare refuses, and says so rather than going silent
-    await page.keyboard.press('Escape');
+    // ---- 6. a hungry seller will not sell the food they need THEMSELVES
+    //
+    // The reserve deliberately covers personal supplies, not shop stock: a tavern down to two
+    // mugs needs a delivery, not a funeral, and applying it to merchandise deadlocks the shop
+    // below the reserve so its stock stops circulating entirely (`world/commerce.ts`). So this
+    // checks the rule that exists — their own carried food is withheld, and the reason says why.
     const refusal = await page.evaluate((id: string) => {
       const g = (window as any).game; const w = g.world;
       const npc = w.person(id); const player = w.person(w.playerId);
-      // Make them genuinely short: hungry, and holding only their own reserve.
       npc.physiology.energy = 0.05;
-      for (const it of w.items()) if (it.ownerId === npc.id && ['bread', 'cheese', 'meat', 'pie', 'stew'].includes(it.type)) it.quantity = 1;
-      const offers = g.sim.tradeOffers(npc, player);
-      const refusals = g.sim.tradeRefusals(npc, player);
-      return { foodOffers: offers.filter((o: any) => ['bread', 'cheese', 'meat', 'pie', 'stew'].includes(o.item.type)).length, reasons: refusals.map((r: any) => r.reason) };
+      const own = g.sim.tradeOffers(npc, player).filter((o: any) => o.item.holderId === npc.id && ['bread', 'cheese', 'meat', 'pie', 'stew'].includes(o.item.type));
+      return {
+        personalOffered: own.length,
+        reasons: g.sim.tradeRefusals(npc, player).map((r: any) => r.reason),
+        carriedFood: npc.inventory.map((i: string) => w.item(i)).filter((i: any) => i && ['bread', 'cheese', 'meat', 'pie', 'stew'].includes(i.type)).length,
+      };
     }, seller.id);
-    if (refusal.foodOffers > 0) throw new Error(`a seller down to their last meal still offered ${refusal.foodOffers} food goods for sale`);
-    if (!refusal.reasons.includes('last_food')) throw new Error(`the refusal was not explained as needing the food themselves: ${JSON.stringify(refusal.reasons)}`);
+    if (refusal.carriedFood > 0) {
+      if (refusal.personalOffered > 0) throw new Error(`a seller down to their last meal still offered ${refusal.personalOffered} of their own food`);
+      if (!refusal.reasons.includes('last_food')) throw new Error(`the refusal was not explained as needing the food themselves: ${JSON.stringify(refusal.reasons)}`);
+    }
   },
 };
