@@ -31,7 +31,7 @@ import { payRecoveryReward, recentlyFailedRequests } from '../core/requests';
 import { haulOffersFrom, activeHaulFor, acceptHaulOffer, progressHaul, abandonHaul, buyMealFrom, eatAtHand, drinkHere, type HaulOffer, type HaulProgress } from '../logistics/participation';
 // v0.9 Social Causality Vertical Slice — the four generic primitives this milestone adds.
 import { noteEventForSituations, maintainSituations } from '../social/situation';
-import { refreshReport, shouldSeekAuthority, reportUrgencyFactor, noteReportDelivered, noteReportFailed, pruneReports } from './reporting';
+import { refreshReport, reportFor, shouldSeekAuthority, reportUrgencyFactor, noteReportDelivered, noteReportFailed, pruneReports } from './reporting';
 import { appraiseClaim } from '../social/appraisal';
 import { formConcerns, maintainConcerns, activeConcerns, concernActionable, noteConcernActedOn } from './concern';
 import { selectTopic, type Topic } from './conversation';
@@ -998,6 +998,18 @@ export class Simulation {
   }
   private setGoal(p: Person, g: Goal, plan: Action[], note: string): void {
     const w = this.world; const prev = p.mind.goal; p.mind.goal = g; p.mind.plan = plan;
+    // v0.10.1 §XII: a report that is being ABANDONED is an attempt that did not land, and has to
+    // be recorded as one. `tell` records the case where they arrived and the guard had moved on;
+    // this records every other way the errand ends — a failed path, an interruption, something
+    // more urgent — which is most of them. Without it the record sits at zero attempts for
+    // anyone who keeps getting distracted, and they re-adopt at full urgency indefinitely.
+    if (prev && prev.type === 'report' && prev.key !== g.key) {
+      const key = prev.data?.key as string | undefined;
+      const record = key ? reportFor(p, key) : undefined;
+      if (key && record && record.status !== 'delivered' && record.status !== 'moot') {
+        noteReportFailed(w, p, key, prev.targetEntity, 'set out and did not get there');
+      }
+    }
     // v0.10 §I: when the adopted goal is serving a persistent purpose, the purpose records that
     // it has been tried again and which step it is on. `Pursuit.steps` is the visible evidence
     // that one purpose produced several DIFFERENT actions over time, and `attempts` is half of

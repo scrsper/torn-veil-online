@@ -140,9 +140,16 @@ export function noteReportDelivered(world: World, p: Person, key: string, toId: 
 }
 
 /**
- * Record that the person went and could not deliver it — the authority had moved on, or was
- * never reachable. Backs off, doubling, and after `MAX_REPORT_ATTEMPTS` stops treating it as
- * today's business at all.
+ * Record that the person set out and did not deliver it — the authority had moved on, was never
+ * reachable, or the errand was simply overtaken by the rest of their day. Backs off, doubling,
+ * and after `MAX_REPORT_ATTEMPTS` stops treating it as today's business at all.
+ *
+ * The "overtaken" case is the one that matters most, and it is easy to miss: an attempt that ends
+ * because the goal was dropped on the way — a failed path, an interruption, something more urgent
+ * — never reaches the `tell` action at all. Counting only the attempts that got as far as
+ * speaking left the record permanently at zero attempts for anyone who kept being distracted, and
+ * they then re-adopted at full urgency for days. Measured on the family trace: five separate
+ * report goals at 1.00 across two world-days, none of them recorded, none of them delivered.
  */
 export function noteReportFailed(world: World, p: Person, key: string, towardId: EntityId | undefined, why: string): void {
   const store = reportsOf(p);
