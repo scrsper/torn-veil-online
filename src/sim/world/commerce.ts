@@ -177,14 +177,23 @@ export function refusesToDeal(seller: Person, buyer: Person): boolean {
   return r.fear > 0.45 || r.grudge > 0.5;
 }
 
-/** This seller's price for one unit, at the place they are selling it from: the same
- * scarcity-adjusted price `buyFoodPortion` charges an NPC, then bent by who is asking. A greedy
- * merchant charges more; someone who likes you charges less. Never below 1. */
+/**
+ * This seller's price for one unit, at the place they are selling it from: the same
+ * scarcity-adjusted price (`world/pricing.ts`) every NPC food purchase already paid, then bent by
+ * who is doing the asking.
+ *
+ * The personal term is deliberately MEAN-PRESERVING — `greed - 0.5`, not `greed` — so a village
+ * of average traders charges exactly what it charged before this module existed. A greedy one
+ * charges more and a generous one less, which is the point, but the milestone is explicitly not
+ * an economy rebalance and a flat `1 + greed * 0.5` would have quietly raised the price of food
+ * across the whole village by about a quarter. Someone who likes you shades it down further.
+ * Never below 1.
+ */
 export function unitPriceFor(world: World, seller: Person, it: Item, buyer?: Person): number {
   const stock = it.placeId ? stockAt(world, it.type, it.placeId) : it.quantity;
   const base = effectivePrice(it.type, it.value ?? 1, stock);
-  const markup = 1 + seller.traits.greed * 0.5 - (buyer ? Math.max(0, disposition(seller, buyer.id)) * 0.3 : 0);
-  return Math.max(1, Math.round(base * markup));
+  const markup = 1 + (seller.traits.greed - 0.5) * 0.5 - (buyer ? Math.max(0, disposition(seller, buyer.id)) * 0.3 : 0);
+  return Math.max(1, Math.round(base * Math.max(0.5, markup)));
 }
 
 /**
@@ -279,18 +288,15 @@ export function purchaseUnits(world: World, buyer: Person, seller: Person, sourc
   return { units: take, paid: cost, stack, event: ev, refused: null };
 }
 
-/** The whole-object sale: a unique thing (a ring, a book, a named blade) changes hands entire
- * rather than by the unit. Kept distinct from `purchaseUnits` because a stack split makes no
- * sense here — and routed through the same willingness test, so a merchant's own lantern is as
- * unbuyable as their own bread. */
-export function purchaseItem(world: World, buyer: Person, seller: Person, it: Item): PurchaseResult {
-  if (it.quantity !== 1) return purchaseUnits(world, buyer, seller, it, 1);
-  const willing = willingnessFor(world, seller, it, buyer);
-  if (willing.reason) return { units: 0, paid: 0, stack: null, event: null, refused: willing.reason };
-  const price = unitPriceFor(world, seller, it, buyer);
-  if (buyer.wealth < price) return { units: 0, paid: 0, stack: null, event: null, refused: null };
-  return { units: 1, paid: price, stack: it, event: null, refused: null, ...{} };
-}
+/**
+ * The whole-object sale — a unique thing (a ring, a book, a named blade) changing hands entire
+ * rather than by the unit — is NOT here. It goes through `Simulation.buyItem`, because moving a
+ * whole Item between owners is `Simulation.takeItem`'s job and that is the one place that keeps
+ * inventories, provenance and the theft/recovery distinction straight. What that path takes from
+ * this module is the part that belongs to this module: `willingnessFor` decides whether the sale
+ * may happen at all, and `unitPriceFor` decides what it costs, so a merchant's own lantern is
+ * exactly as unbuyable as their own bread and neither answer is written down twice.
+ */
 
 /** How much of `type` the seller could sell right now, across every stack they may sell from —
  * the quantity a client should offer, and the number an integrity check can compare against. */

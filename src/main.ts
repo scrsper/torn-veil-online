@@ -6,6 +6,8 @@ import { load, save, newWorld, hasSave, clearSave } from './sim/persist/save';
 import { VoxelRenderer } from './game/voxel/mesher';
 import { Atmosphere } from './game/render/scene';
 import { revealFor } from './game/render/interior';
+import { describeCarried } from './sim/core/interaction';
+import { recognizedUses } from './sim/mind/knowledge';
 import { ActorRenderer } from './game/actors/actors';
 import { ConstructionRenderer } from './game/presentation/constructionRenderer';
 import { ExtractionEffectsController } from './game/presentation/extractionEffects';
@@ -16,6 +18,7 @@ import { DialogueUI } from './game/ui/dialogue';
 import { EventFeed } from './game/ui/events';
 import { Inspector } from './game/ui/inspector';
 import { Observer } from './game/ui/observer';
+import { InventoryUI } from './game/ui/inventory';
 import { AudioSys } from './game/audio/audio';
 import { TelemetryRecorder, MemorySink } from './sim/telemetry/recorder';
 import { flushBrowserSession } from './sim/telemetry/browserSessionSink';
@@ -49,7 +52,7 @@ async function boot(fresh: boolean): Promise<void> {
 }
 
 class Game {
-  renderer: THREE.WebGLRenderer; scene = new THREE.Scene(); camera: THREE.PerspectiveCamera; sim: Simulation; voxels: VoxelRenderer; atmo: Atmosphere; actors: ActorRenderer; ctrl: PlayerController; inter: Interaction; hud: HUD; dialogue: DialogueUI; feed: EventFeed; inspector: Inspector; observer: Observer; audio = new AudioSys(); construction: ConstructionRenderer; extractionEffects: ExtractionEffectsController;
+  renderer: THREE.WebGLRenderer; scene = new THREE.Scene(); camera: THREE.PerspectiveCamera; sim: Simulation; voxels: VoxelRenderer; atmo: Atmosphere; actors: ActorRenderer; ctrl: PlayerController; inter: Interaction; hud: HUD; dialogue: DialogueUI; feed: EventFeed; inspector: Inspector; observer: Observer; inventory: InventoryUI; audio = new AudioSys(); construction: ConstructionRenderer; extractionEffects: ExtractionEffectsController;
   modeBadge = document.getElementById('modebadge')!;
   speedMult = 1; paused = false; lastFrame = performance.now(); autosaveTimer = 0; followId: string | null = null; hitParticles: { m: THREE.Mesh; v: THREE.Vector3; life: number }[] = [];
   // v0.2 Part 18: automatic play-session logging — no manual "press F8" step. `sessionId` names
@@ -70,10 +73,13 @@ class Game {
     this.extractionEffects = new ExtractionEffectsController(world); this.scene.add(this.extractionEffects.group);
     this.ctrl = new PlayerController(world, this.camera, this.renderer.domElement);
     this.inter = new Interaction(world, this.sim, this.ctrl, this.renderer.domElement);
-    this.hud = new HUD(world, this.camera); this.dialogue = new DialogueUI(new DialogueSystem(world, this.sim)); this.feed = new EventFeed(world); this.inspector = new Inspector(world); this.observer = new Observer(world);
+    this.hud = new HUD(world, this.camera); this.dialogue = new DialogueUI(new DialogueSystem(world, this.sim)); this.feed = new EventFeed(world); this.inspector = new Inspector(world); this.observer = new Observer(world); this.inventory = new InventoryUI(world);
     // wiring
     this.inter.onMessage = (s) => this.hud.message(s);
     this.inter.onTalk = (p) => this.openDialogue(p);
+    // R on a person goes straight to their wares — the "select a person → Trade" step the
+    // milestone asks for, reaching the same dialogue state the Trade option does.
+    this.inter.onTrade = (p) => { if (!p.alive) return; this.openDialogue(p, 'trade'); };
     this.inter.onInspect = (p) => { this.inspector.toggle(true); this.inspector.select(p.id); this.hud.selected = p.id; };
     this.inter.onSwing = () => this.audio.sfx('swing'); this.inter.onPickup = () => this.audio.sfx('pickup');
     this.ctrl.onStep = () => this.audio.sfx('step');
@@ -129,9 +135,31 @@ class Game {
       return true;
     };
     this.inspector.onFocusEvents = (id) => { if (!this.feed.open) this.feed.toggle(); this.feed.setFocus(id); };
+    // v0.10.1 Part IV: the inventory panel decides nothing. It hands back a canonical action and
+    // the item it applies to, and every branch here is a Simulation call an NPC also makes.
+    this.inventory.onAction = (action, item) => {
+      const player = world.person(world.playerId)!;
+      switch (action.kind) {
+        case 'eat': case 'drink': {
+          const type = this.sim.consumeItem(player, item);
+          this.hud.message(type ? `You ${action.kind} the ${type}.` : 'You cannot.');
+          if (type) this.audio.sfx('pickup');
+          break;
+        }
+        case 'give': {
+          const to = this.inventory.nearby;
+          if (!to) { this.hud.message('Nobody close enough to hand it to.'); break; }
+          this.inter.give(to, item);
+          break;
+        }
+        case 'drop': this.inter.dropItem(item); break;
+        case 'inspect': this.hud.message(this.describeItem(item)); break;
+      }
+    };
     window.addEventListener('keydown', (e) => {
       if ((e.target as HTMLElement)?.tagName === 'INPUT' || (e.target as HTMLElement)?.tagName === 'SELECT') return;
       if (e.code === 'F2') { e.preventDefault(); this.setCameraMode(this.ctrl.mode === 'arpg' ? 'first' : 'arpg'); }
+      if (e.code === 'KeyI') { e.preventDefault(); this.inventory.toggle(); }
       if (e.code === 'F6') {
         e.preventDefault();
         this.observer.toggle();
@@ -167,10 +195,18 @@ class Game {
     (document.getElementById('crosshair') as HTMLElement).style.display = mode === 'arpg' ? 'none' : '';
     this.hud.message(mode === 'arpg' ? 'Wheel to zoom, middle-drag to turn. F2 for the first-person view.' : 'First-person view. Click to capture the mouse; F2 returns to the elevated view.');
   }
+  /** What the Traveler can honestly say about a thing they are holding — its identity and uses as
+   * far as they have learned them (`recognizedUses`), never the omniscient definition. */
+  describeItem(item: import('./sim/core/types').Item): string {
+    const player = this.world.person(this.world.playerId)!;
+    const parts = describeCarried(this.world, player, item);
+    const uses = recognizedUses(player, item.type);
+    return `${item.name}: ${parts.join(', ')}.${uses.length ? ` You know it for: ${uses.join(', ')}.` : ''}`;
+  }
   /** Advance the simulation without rendering (used for tests and for skipping time). */
   stepSim(seconds: number, sub = 0.05): void { const w = this.world; let t = 0; while (t < seconds) { const worldDt = w.clock.advance(sub); w.physicalTime += sub; this.sim.step(sub, worldDt); this.sim.flushSpeech(); t += sub; } }
   start(): void { this.lastFrame = performance.now(); requestAnimationFrame(() => this.frame()); }
-  openDialogue(p: Person): void { if (!p.alive) return; this.inter.enabled = false; this.ctrl.enabled = false; document.exitPointerLock(); const b = this.world.primaryBody(p.id); const pb = this.ctrl.body; if (b) { b.yaw = Math.atan2(-(pb.pos.x - b.pos.x), -(pb.pos.z - b.pos.z)); b.pose = 'talk'; b.poseUntil = this.world.physicalTime + 3; } this.dialogue.start(p, this.world.person(this.world.playerId)!); }
+  openDialogue(p: Person, at: 'greeting' | 'trade' = 'greeting'): void { if (!p.alive) return; this.inter.enabled = false; this.ctrl.enabled = false; document.exitPointerLock(); const b = this.world.primaryBody(p.id); const pb = this.ctrl.body; if (b) { b.yaw = Math.atan2(-(pb.pos.x - b.pos.x), -(pb.pos.z - b.pos.z)); b.pose = 'talk'; b.poseUntil = this.world.physicalTime + 3; } this.dialogue.start(p, this.world.person(this.world.playerId)!, at); }
   doSave(quiet = false): void { if (save(this.world) && !quiet) this.hud.message('World saved.'); }
   /** v0.2 Part 18: called on unload and piggy-backed on the existing 30s autosave cadence, so a
    * dev session's trace exists automatically — inspect it later via
@@ -216,7 +252,9 @@ class Game {
     for (let i = this.hitParticles.length - 1; i >= 0; i--) { const p = this.hitParticles[i]; p.life -= dt; p.v.y -= 12 * dt; p.m.position.addScaledVector(p.v, dt); if (p.life <= 0) { this.scene.remove(p.m); this.hitParticles.splice(i, 1); } }
     this.audio.update(dt, w.clock.dayFraction, w.weather.kind === 'rain' || w.weather.kind === 'storm' ? w.weather.intensity : 0, w.isIndoors(pb.pos), w.weather.wind);
     this.hud.selected = this.observer.open ? this.observer.sel : this.inspector.open ? this.inspector.sel : null;
-    this.hud.update(this.inter.target, this.speedMult, this.paused); this.feed.update(); this.inspector.update(); this.observer.update(this.speedMult, this.paused);
+    // Who is close enough to hand something to — the same reach the interact key uses.
+    this.inventory.nearby = this.inter.target?.kind === 'body' ? this.inter.target.person : null;
+    this.hud.update(this.inter.target, this.speedMult, this.paused); this.feed.update(); this.inspector.update(); this.observer.update(this.speedMult, this.paused); this.inventory.update();
     this.autosaveTimer += dt; if (this.autosaveTimer > 30) { this.autosaveTimer = 0; this.doSave(true); this.flushTelemetry(); }
     this.renderer.render(this.scene, this.camera);
   }

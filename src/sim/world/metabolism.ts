@@ -4,7 +4,7 @@ import { B } from '../physical/blocks';
 import { makeItem, RESOURCE_CATEGORY, isFood, SPOIL_RATE_PER_DAY, ITEM_VALUE } from './factory';
 import { addPlaceStock, takePlaceStock, retireStack, stockAt as stockAtPlace, stockTotal } from './stock';
 import { eatRestoresEnergy, drinkRestoresHydration } from '../core/physiology';
-import { effectivePrice } from './pricing';
+import { purchaseUnits } from './commerce';
 import { practiceSkill } from '../core/skills';
 import { learnPlace } from '../mind/knowledge';
 import { remember } from '../mind/memory';
@@ -523,47 +523,25 @@ export function findAccessibleFood(world: World, p: Person, atPlaceId: EntityId 
 }
 
 /**
- * Buy up to `n` units of a food item from its owner, paying from `wealth` (the existing
- * economic system — most villagers carry no coin item). The units become a carried stack in
- * the buyer's inventory, so one trip to the baker/market stocks several meals and the village
- * does not funnel every hungry person to one counter every few hours. Conservation of money
- * and of food. Returns the buyer's new carried food stack, or null if unaffordable/unavailable.
+ * Buy up to `n` units of a food item from its owner. This is the hungry-NPC path: find food for
+ * sale, pay for it, walk away with a few meals' worth so the village does not funnel everyone to
+ * one counter every few hours.
+ *
+ * v0.10.1: the transaction itself moved to `world/commerce.ts`'s `purchaseUnits`, which the
+ * player's Trade menu also goes through — so "who may sell what, at what price, and does
+ * ownership move exactly once" has one implementation and one place to audit, instead of an NPC
+ * answer here and a player answer in the dialogue code. What stays here is what is specifically
+ * about food and about eating: the seller lookup, and the economic knowledge/memory a successful
+ * food purchase leaves behind.
+ *
+ * Returns the buyer's new carried food stack, or null if unaffordable, unavailable, or refused.
  */
 export function buyFoodPortion(world: World, buyer: Person, forSale: Item, n: number): Item | null {
   const seller = forSale.ownerId ? world.person(forSale.ownerId) : undefined;
   if (!seller || !seller.alive || forSale.holderId || forSale.quantity <= 0) return null;
-  // v0.5 §V: the price responds to how scarce this resource currently is AT THIS PLACE — bounded,
-  // deterministic (world/pricing.ts), never a flat constant regardless of supply anymore.
-  const stockHere = forSale.placeId ? stockAtPlace(world, forSale.type, forSale.placeId) : forSale.quantity;
-  const unit = effectivePrice(forSale.type, forSale.value ?? 2, stockHere);
-  // v0.4 §12/§22: a buyer can never spend money they don't have — affordability genuinely
-  // floors at 0 units, not 1 (the pre-v0.4 `Math.max(1, ...)` here forced a sale, and therefore
-  // negative buyer wealth, whenever they couldn't afford even a single unit).
-  const affordable = Math.floor(buyer.wealth / unit);
-  if (affordable <= 0) return null;
-  const take = Math.min(n, forSale.quantity, affordable);
-  if (take <= 0) return null;
-  const cost = take * unit;
   const boughtAtPlaceId = forSale.placeId ?? undefined;
-  buyer.wealth -= cost; seller.wealth += cost;
-  world.runTally.purchase_amount = (world.runTally.purchase_amount ?? 0) + cost;
-  forSale.quantity -= take;
-  if (forSale.quantity <= 0) { forSale.pos = null; forSale.placeId = null; }
-  const carried = buyer.inventory.map(id => world.item(id)).find(i => !!i && i.type === forSale.type && i.holderId === buyer.id);
-  const ev = world.emit('trade', {
-    actor: seller.id, target: buyer.id, item: forSale.id, pos: world.primaryBody(buyer.id)?.pos, placeId: forSale.placeId ?? undefined,
-    significance: 0.1, data: { price: cost, qty: take, food: forSale.type },
-    summary: `${seller.name} sold ${take} ${forSale.type} to ${buyer.name} for ${cost} silver`,
-  });
-  // v0.4 §12: a semantic 'purchase_made' record, distinct from the generic 'trade' event, so a
-  // headless run can report "currency transferred in purchases" without conflating it with
-  // gifts/theft/other 'trade'-shaped events. Conserves currency and item quantity by
-  // construction (buyer.wealth/seller.wealth and forSale.quantity above are the only writes).
-  world.emit('purchase_made', {
-    actor: buyer.id, target: seller.id, item: forSale.id, pos: world.primaryBody(buyer.id)?.pos, placeId: forSale.placeId ?? undefined,
-    significance: 0.02, data: { amount: cost, qty: take, item: forSale.type },
-    summary: `${buyer.name} bought ${take} ${forSale.type} from ${seller.name} for ${cost} silver`,
-  });
+  const result = purchaseUnits(world, buyer, seller, forSale, n);
+  if (!result.stack) return null;
   // v0.6 §III.3: economic observation — a successful purchase is first-hand evidence this place
   // sells food, and (§IV.4) a memory of it, so a later hunger decision can prefer a source that
   // has actually worked before (mind/agent.ts's `knownFoodPlace`) over one that hasn't.
@@ -572,10 +550,7 @@ export function buyFoodPortion(world: World, buyer: Person, forSale: Item, n: nu
     if (place) learnPlace(world, buyer, place, { type: 'self' });
     remember(world, buyer, { type: 'purchase', summary: `I bought ${forSale.type} at ${world.nameOf(boughtAtPlaceId)}`, entities: [seller.id], significance: 0.15, valence: 0.2, source: { type: 'self' }, placeId: boughtAtPlaceId });
   }
-  if (carried) { carried.quantity += take; carried.provenance.push({ tick: world.now, eventId: ev.id, from: seller.id, to: buyer.id, how: 'bought' }); return carried; }
-  const stack = makeItem(world, forSale.type, forSale.name, { owner: buyer.id, holder: buyer.id, quantity: take, value: forSale.value });
-  stack.provenance.push({ tick: world.now, eventId: ev.id, from: seller.id, to: buyer.id, how: 'bought' });
-  return stack;
+  return result.stack;
 }
 
 /**

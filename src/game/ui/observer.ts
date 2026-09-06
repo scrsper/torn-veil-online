@@ -7,6 +7,7 @@ import { currentScheduleEntry } from '../../sim/mind/schedule';
 import { activeConcerns, describeConcern } from '../../sim/mind/concern';
 import { describePursuit, livePursuits, pursuitsOf } from '../../sim/mind/pursuit';
 import { describeObligation, liveObligations } from '../../sim/social/obligation';
+import { describeReport } from '../../sim/mind/reporting';
 import { situationsInvolving, describeSituation } from '../../sim/social/situation';
 import { esc } from './events';
 
@@ -157,6 +158,10 @@ export class Observer {
     // ---- what they carry (v0.9 / v0.10)
     const concerns = activeConcerns(p);
     if (concerns.length) rows.push(`<div class="sect">concerns</div><div class="k"></div><div class="v">${concerns.sort((a, x) => x.intensity - a.intensity).slice(0, 5).map(c => `${esc(describeConcern(w, c))} <span class="dim">[${c.intensity.toFixed(2)}]</span>`).join('<br>')}</div>`);
+    // v0.10.1 §XII: how the crimes this person knows of are actually going — the state that used
+    // to be invisible, and whose absence is what made the report loop hard to see.
+    const reports = Object.values(p.mind.reports ?? {}).filter(r => r.status !== 'moot');
+    if (reports.length) rows.push(`<div class="sect">telling the watch</div><div class="k"></div><div class="v">${reports.slice(0, 4).map(r => `<span class="${r.status === 'delivered' ? 'dim' : r.status === 'no_authority' ? 'bad' : 'on'}">${esc(describeReport(w, r))}</span>`).join('<br>')}</div>`);
     const owed = liveObligations(p);
     if (owed.length) rows.push(`<div class="sect">obligations</div><div class="k"></div><div class="v">${owed.sort((a, x) => x.magnitude - a.magnitude).slice(0, 5).map(o => `${esc(describeObligation(w, o))} <span class="dim">[${o.magnitude.toFixed(2)}]${o.reasons[0] ? ` — ${esc(o.reasons[0])}` : ''}</span>`).join('<br>')}</div>`);
 

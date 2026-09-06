@@ -5,6 +5,7 @@ import type { Target } from '../player/interaction';
 import { formatWorldTime } from '../../sim/core/time';
 import { hungerBand, thirstBand, sleepBand, type Severity } from '../../sim/core/physiology';
 import { activeHaulFor } from '../../sim/logistics/participation';
+import { actionsForWorldItem, actionsForPerson } from '../../sim/core/interaction';
 
 const $ = (s: string) => document.querySelector(s) as HTMLElement;
 export class HUD {
@@ -43,8 +44,34 @@ export class HUD {
     this.updateEmbodiment(player);
     this.inv.innerHTML = 'Carrying: ' + (player.inventory.map(id => w.item(id)).filter(Boolean).map(i => `<b>${i!.name}${i!.quantity > 1 ? ` ×${i!.quantity}` : ''}</b>`).join(', ') || 'nothing');
     if (!target) this.target.innerHTML = '';
-    else if (target.kind === 'body') { const p = target.person; if (p) { const goal = p.mind.goal; const st = target.body.dead ? 'dead' : target.body.pose === 'downed' ? 'incapacitated' : target.body.pose === 'sleep' ? 'asleep' : goal ? `${goal.type}${goal.data?.label ? ': ' + goal.data.label : ''}` : 'idle'; this.target.innerHTML = `<div class="name">${p.name}</div><div class="hint">${p.occupation} · ${st} · ${Math.round(target.body.health)}/${target.body.maxHealth} hp<br>[E] talk · [F] inspect · [LMB/X] attack</div>`; } else this.target.innerHTML = `<div class="name">${w.nameOf(target.body.ownerId)}</div>`; }
-    else if (target.kind === 'item') { const it = target.item; const status = this.itemStatusFor(it, player); this.target.innerHTML = `<div class="name">${it.name}${it.quantity > 1 ? ` ×${it.quantity}` : ''}</div><div class="hint">${it.type}${status}<br>[E] take</div>`; }
+    else if (target.kind === 'body') {
+      const p = target.person;
+      if (p) {
+        const goal = p.mind.goal;
+        const st = target.body.dead ? 'dead' : target.body.pose === 'downed' ? 'incapacitated' : target.body.pose === 'sleep' ? 'asleep' : goal ? `${goal.type}${goal.data?.label ? ': ' + goal.data.label : ''}` : 'idle';
+        // v0.10.1 Part IX: the prompts are derived, not written here — "Trade" appears when this
+        // person would genuinely sell the player something, and not otherwise.
+        const acts = actionsForPerson(w, player, p, player.inventory.map(id => w.item(id)).filter((i): i is Item => !!i));
+        const keys: string[] = ['[E] talk'];
+        if (acts.some(a => a.kind === 'trade')) keys.push('[R] trade');
+        if (acts.some(a => a.kind === 'give')) keys.push('[I] give');
+        keys.push('[F] inspect', '[X] attack');
+        this.target.innerHTML = `<div class="name">${p.name}</div><div class="hint">${p.occupation} · ${st} · ${Math.round(target.body.health)}/${target.body.maxHealth} hp<br>${keys.join(' · ')}</div>`;
+      } else this.target.innerHTML = `<div class="name">${w.nameOf(target.body.ownerId)}</div>`;
+    }
+    else if (target.kind === 'item') {
+      const it = target.item; const status = this.itemStatusFor(it, player);
+      // What E will actually do, named before it is done. `actionsForWorldItem` puts the least
+      // surprising reading first, so a shop's goods prompt "[E] Buy … — 3s" and the theft the
+      // player may still commit is the explicitly-labelled alternative on Shift+E.
+      const acts = actionsForWorldItem(w, player, it);
+      const primary = acts[0];
+      const alt = primary && primary.kind !== 'steal' && primary.kind !== 'take' ? acts.find(a => a.kind === 'steal' || a.kind === 'take') : undefined;
+      const lines = [`${it.type}${status}`];
+      if (primary) lines.push(`<b>[E] ${primary.label}</b>${primary.detail ? ` <span class="dim">— ${primary.detail}</span>` : ''}`);
+      if (alt) lines.push(`<span class="${alt.grave ? 'grave' : ''}">[Shift+E] ${alt.label}${alt.detail ? ` — ${alt.detail}` : ''}</span>`);
+      this.target.innerHTML = `<div class="name">${it.name}${it.quantity > 1 ? ` ×${it.quantity}` : ''}</div><div class="hint">${lines.join('<br>')}</div>`;
+    }
     else this.target.innerHTML = `<div class="hint">${target.name} · [E] ${target.name === 'well' || target.name === 'water' ? 'drink' : 'use'}</div>`;
     this.updateLabels();
   }

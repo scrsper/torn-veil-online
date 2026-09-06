@@ -5,6 +5,7 @@ export { canAcceptHaul } from './haul';
 import { stockAt } from '../world/stock';
 import { isFood } from '../world/factory';
 import { buyFoodPortion, eatFood, drinkAt, findAccessibleFood } from '../world/metabolism';
+import { willingnessFor } from '../world/commerce';
 
 /**
  * Participation — the ordinary-life verbs of the Request market and metabolism, expressed for
@@ -119,14 +120,19 @@ export function abandonHaul(world: World, person: Person): boolean {
 
 /** Food `seller` has out for sale at the place they are at or work at — what an NPC's `eat`
  * action finds with its own "for sale here" scan (mind/agent.ts). */
-export function foodForSaleBy(world: World, seller: Person): Item[] {
-  return world.items().filter(i => !i.holderId && i.pos && i.ownerId === seller.id && isFood(i.type) && i.quantity > 0);
+export function foodForSaleBy(world: World, seller: Person, buyer?: Person): Item[] {
+  // v0.10.1 Part VII: "food this person owns and has put down somewhere" is not the same as
+  // "food this person will sell you" — a hungry farmer's own supper was on that list. The
+  // willingness rule (`world/commerce.ts`) is the same one the Trade menu and every NPC food
+  // purchase go through, so a stall that shows a loaf will still have it when you ask for it.
+  return world.items().filter(i => !i.holderId && i.pos && i.ownerId === seller.id && isFood(i.type) && i.quantity > 0
+    && !willingnessFor(world, seller, i, buyer).reason);
 }
 
 /** Buy `n` units of food from `seller` through the ordinary scarcity-priced purchase path.
  * Returns the carried stack, or null if unaffordable / nothing offered. */
 export function buyMealFrom(world: World, buyer: Person, seller: Person, n = 1): Item | null {
-  const forSale = foodForSaleBy(world, seller).sort((a, b) => a.id.localeCompare(b.id))[0];
+  const forSale = foodForSaleBy(world, seller, buyer).sort((a, b) => a.id.localeCompare(b.id))[0];
   if (!forSale) return null;
   return buyFoodPortion(world, buyer, forSale, n);
 }

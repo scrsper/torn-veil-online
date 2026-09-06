@@ -17,6 +17,7 @@ import { nearestAvailableNode, extractFromNode, maintainResourceNodes } from '..
 import { stepConstruction, activeBuildProjects, performBuildLabor, MAX_BUILDERS } from '../world/construction';
 import { stepFire, igniteFire, feedFire, fireIntensityAt, fireAt } from '../world/fire';
 import { cook, tendTavernFire } from '../world/cooking';
+import { willingnessFor, unitPriceFor, tradeOffersFrom, refusalsFrom, purchaseUnits, type TradeOffer, type Refusal, type PurchaseResult } from '../world/commerce';
 import { remember } from './memory';
 import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge, learnPlace, knownFoodPlace, noteFoodShortage } from './knowledge';
 import { realizeClaim, realizeTopic } from './realize';
@@ -30,6 +31,7 @@ import { payRecoveryReward, recentlyFailedRequests } from '../core/requests';
 import { haulOffersFrom, activeHaulFor, acceptHaulOffer, progressHaul, abandonHaul, buyMealFrom, eatAtHand, drinkHere, type HaulOffer, type HaulProgress } from '../logistics/participation';
 // v0.9 Social Causality Vertical Slice — the four generic primitives this milestone adds.
 import { noteEventForSituations, maintainSituations } from '../social/situation';
+import { refreshReport, shouldSeekAuthority, reportUrgencyFactor, noteReportDelivered, noteReportFailed, pruneReports } from './reporting';
 import { appraiseClaim } from '../social/appraisal';
 import { formConcerns, maintainConcerns, activeConcerns, concernActionable, noteConcernActedOn } from './concern';
 import { selectTopic, type Topic } from './conversation';
@@ -507,11 +509,22 @@ export class Simulation {
       if (isGuard) {
         if (!m.investigated.has(k.key) && k.claim.pos) G('investigate', clamp(0.55 + sev * 0.4 + (k.hops === 0 ? 0.1 : 0)), [`I know of a ${k.claim.type} (${k.source.type}${k.source.from ? ' by ' + w.nameOf(k.source.from) : ''}, confidence ${k.confidence.toFixed(2)})`, 'my duty is to investigate'], { targetPos: k.claim.pos, targetPlace: k.claim.placeId, data: { key: k.key, suspect: k.claim.actor }, causeEvent: k.source.viaEvent });
       } else if (!p.hostile) {
-        const guards = w.persons().filter(g => (g.occupation === 'guard' || g.occupation === 'captain') && g.alive && !k.sharedWith.includes(g.id));
-        const already = w.persons().some(g => (g.occupation === 'guard' || g.occupation === 'captain') && k.sharedWith.includes(g.id));
-        if (guards.length && !already && p.occupation !== 'child' || (p.occupation === 'child' && guards.length && !already && victimClose)) {
-          const g = this.nearestKnownGuard(p, pos, guards);
-          if (g) G('report', clamp(0.45 + sev * 0.5 + p.traits.honesty * 0.2 + (victimClose ? 0.15 : 0) + (victimIsMe ? 0.1 : 0) - (threat ? 0.15 : 0)) * bodyRoom, [`I know ${describeClaim(w, k)} (${k.source.type})`, `the watch should hear of it`, `honesty ${p.traits.honesty.toFixed(2)}`], { targetEntity: g.id, data: { key: k.key } });
+        // v0.10.1 §XII: reporting is progress toward an outcome, not a standing urge. The record
+        // (`mind/reporting.ts`) knows whether this has already been delivered, whether the matter
+        // is over as far as THIS person has heard, whether there is anyone to tell, and how many
+        // trips have already come to nothing — and it is what decides whether to set out again.
+        const authorities = w.persons().filter(g => (g.occupation === 'guard' || g.occupation === 'captain') && g.alive);
+        const progress = refreshReport(w, p, k, authorities);
+        const untold = authorities.filter(g => !k.sharedWith.includes(g.id));
+        const eligible = p.occupation !== 'child' || victimClose;
+        if (eligible && untold.length && shouldSeekAuthority(w, progress)) {
+          const g = this.nearestKnownGuard(p, pos, untold);
+          if (g) {
+            const base = clamp(0.45 + sev * 0.5 + p.traits.honesty * 0.2 + (victimClose ? 0.15 : 0) + (victimIsMe ? 0.1 : 0) - (threat ? 0.15 : 0));
+            const reasons = [`I know ${describeClaim(w, k)} (${k.source.type})`, `the watch should hear of it`, `honesty ${p.traits.honesty.toFixed(2)}`];
+            if (progress.attempts > 0) reasons.push(`I have tried ${progress.attempts} time${progress.attempts === 1 ? '' : 's'} already`);
+            G('report', base * reportUrgencyFactor(progress) * bodyRoom, reasons, { targetEntity: g.id, data: { key: k.key } });
+          }
         }
       }
     }
@@ -995,7 +1008,10 @@ export class Simulation {
       if (recent && !causes.includes(recent.id)) causes.push(recent.id);
     }
     const target = g.targetEntity ? ` → ${w.nameOf(g.targetEntity)}` : g.targetPlace ? ` @ ${w.nameOf(g.targetPlace)}` : '';
-    w.emit('goal_changed', { actor: p.id, target: g.targetEntity, placeId: g.targetPlace, causes, significance: g.type === 'flee' || g.type === 'attack' || g.type === 'report' || g.type === 'investigate' || g.type === 'confront' || g.type === 'surrender' ? 0.45 : 0.12, data: { from: prev?.type, to: g.type, utility: g.utility, reasons: g.reasons, key: g.key, pursuitId: g.data?.pursuitId }, summary: `${p.name}: goal ${prev ? prev.type + ' → ' : ''}${g.type}${target} (u=${g.utility.toFixed(2)})` });
+    w.emit('goal_changed', { actor: p.id, target: g.targetEntity, placeId: g.targetPlace, causes, significance: g.type === 'flee' || g.type === 'attack' || g.type === 'report' || g.type === 'investigate' || g.type === 'confront' || g.type === 'surrender' ? 0.45 : 0.12, // v0.10.1 §XI: `fromUtility` makes "was this task dropped for something meaningfully better,
+      // or for noise?" answerable from the event log alone — the difference between a person
+      // changing their mind and a person flickering.
+      data: { from: prev?.type, fromUtility: prev?.utility, to: g.type, utility: g.utility, reasons: g.reasons, key: g.key, pursuitId: g.data?.pursuitId }, summary: `${p.name}: goal ${prev ? prev.type + ' → ' : ''}${g.type}${target} (u=${g.utility.toFixed(2)})` });
     // v0.2.3: choosing to flee an opponent we have a live conflict with IS breaking off that
     // conflict (Constitution §11 disengagement) — mark it so `maintainConflicts` settles it.
     if (g.type === 'flee' && g.targetEntity) {
@@ -1272,7 +1288,14 @@ export class Simulation {
           // Not free to hand: buy a few units from a food vendor here (carry the rest home so one
           // trip covers several meals — keeps the whole village off one counter every few hours).
           if (!food) {
-            const forSale = w.items().find(i => !i.holderId && isFood(i.type) && i.placeId === hereId && i.ownerId && i.ownerId !== p.id && w.person(i.ownerId)?.alive && i.quantity > 0);
+            // v0.10.1: ask whether the owner would actually sell it before walking up to the
+            // counter, rather than letting the purchase fail at the till. Same rule as the
+            // player's Trade menu (`world/commerce.ts`).
+            const forSale = w.items().find(i => {
+              if (i.holderId || !isFood(i.type) || i.placeId !== hereId || !i.ownerId || i.ownerId === p.id || i.quantity <= 0) return false;
+              const owner = w.person(i.ownerId);
+              return !!owner?.alive && !willingnessFor(w, owner, i, p).reason;
+            });
             if (forSale) food = buyFoodPortion(w, p, forSale, 3);
           }
           if (food && food.quantity > 0) {
@@ -1494,7 +1517,20 @@ export class Simulation {
           break;
         }
         if (a.data?.investigate) { const key = a.data.key as string; const k = p.knowledge[key]; const suspect = k?.claim.actor as string | undefined; const seen = suspect ? m.percepts.find(pc => pc.entityId === suspect) : null; if (seen) { a.status = 'done'; m.investigated.add(key); m.alarm = 1; break; } if (this.elapsed(a)) { a.status = 'done'; m.investigated.add(key); if (k) k.handled = true; w.emit('investigation', { actor: p.id, pos: body.pos, placeId: k?.claim.placeId, causes: k?.source.viaEvent ? [k.source.viaEvent] : [], significance: 0.4, data: { key, outcome: 'suspect not found' }, summary: `${p.name} investigated ${k ? describeClaim(w, k) : 'a report'} but found no one` }); this.say(p, suspect ? `${w.nameOf(suspect).split(' ')[0]}... where did they go?` : 'Nothing here now.'); } } else if (this.elapsed(a)) a.status = 'done'; break; }
-      case 'tell': { const t = w.person(a.targetEntity!); const tb = w.primaryBody(a.targetEntity!); if (!t || !tb || dist2(body.pos, tb.pos) > 3.5) { a.status = 'failed'; break; } const k = p.knowledge[a.data?.key]; if (k) this.tell(p, t, k); body.pose = 'talk'; body.poseUntil = w.physicalTime + 2; a.status = 'done'; break; }
+      case 'tell': {
+        const t = w.person(a.targetEntity!); const tb = w.primaryBody(a.targetEntity!);
+        const key = a.data?.key as string | undefined;
+        // v0.10.1 §XII: the failure case is where the old loop lived. Getting to where the guard
+        // was and finding them gone is a real outcome and is recorded as one, so the next tick
+        // does not simply set out again at the same urgency.
+        if (!t || !tb || dist2(body.pos, tb.pos) > 3.5) {
+          if (key && p.knowledge[key]) noteReportFailed(w, p, key, a.targetEntity, t ? `${t.name} had moved on` : 'they were not there');
+          a.status = 'failed'; break;
+        }
+        const k = key ? p.knowledge[key] : undefined;
+        if (k) { this.tell(p, t, k); if ((t.occupation === 'guard' || t.occupation === 'captain') && key) noteReportDelivered(w, p, key, t.id); }
+        body.pose = 'talk'; body.poseUntil = w.physicalTime + 2; a.status = 'done'; break;
+      }
       case 'talk': {
         const t = w.person(a.targetEntity!); const tb = w.primaryBody(a.targetEntity!);
         if (!t || !tb) { a.status = 'failed'; break; }
@@ -2158,19 +2194,44 @@ export class Simulation {
     return ev;
   }
 
-  /** Canonical purchase of a specific displayed item. Payment is `wealth` -> `wealth` — the one
-   * currency every NPC economic path already reads (`buyFoodPortion`, `payWage`,
-   * `settleWholesale`, robbery). The player used to pay from a carried `coins` Item instead,
-   * the last live instance of the dual-currency split the independent audit flagged
-   * (Constitution §9: no separate player ontology; and an inert-money leak by construction). */
-  buyItem(buyer: Person, seller: Person, it: import('../core/types').Item, price: number): WorldEvent | null {
-    if (buyer.wealth < price || it.holderId || it.ownerId !== seller.id) return null;
-    buyer.wealth -= price; seller.wealth += price;
-    this.world.runTally.purchase_amount = (this.world.runTally.purchase_amount ?? 0) + price;
+  /**
+   * Canonical purchase of one whole object. Payment is `wealth` -> `wealth` — the one currency
+   * every NPC economic path already reads (`buyFoodPortion`, `payWage`, `settleWholesale`,
+   * robbery). The player used to pay from a carried `coins` Item instead, the last live instance
+   * of the dual-currency split the independent audit flagged (Constitution §9: no separate player
+   * ontology; and an inert-money leak by construction).
+   *
+   * v0.10.1: whether the sale may happen at all, and what it costs, now come from
+   * `world/commerce.ts` — the same `willingnessFor`/`unitPriceFor` the offer list and every NPC
+   * stack purchase use. The caller may still name a price it agreed with the seller, but it is
+   * clamped to what this seller would actually charge, so a stale menu cannot undercut them. A
+   * refusal comes back as null with the reason available from `willingnessFor` for the caller to
+   * report; ownership moves through `takeItem`, which is the one place that keeps inventories,
+   * provenance and the theft/recovery distinction straight.
+   */
+  buyItem(buyer: Person, seller: Person, it: import('../core/types').Item, price?: number): WorldEvent | null {
+    const w = this.world;
+    if (it.holderId || it.quantity <= 0) return null;
+    if (willingnessFor(w, seller, it, buyer).reason) return null;
+    const asking = unitPriceFor(w, seller, it, buyer);
+    const paid = Math.max(asking, price ?? asking);
+    if (buyer.wealth < paid) return null;
+    buyer.wealth -= paid; seller.wealth += paid;
+    w.runTally.purchase_amount = (w.runTally.purchase_amount ?? 0) + paid;
     const ev = this.takeItem(buyer, it, 'bought', seller.id);
-    ev.data.price = price; ev.data.buyer = buyer.id; ev.data.seller = seller.id;
-    ev.summary = `${buyer.name} bought ${it.name} from ${seller.name} for ${price} silver`;
+    ev.data.price = paid; ev.data.buyer = buyer.id; ev.data.seller = seller.id;
+    ev.summary = `${buyer.name} bought ${it.name} from ${seller.name} for ${paid} silver`;
     return ev;
+  }
+  /** What this person would sell that person right now, and why the rest is not on offer — the
+   * client's Trade menu asks the Simulation rather than reaching into `world/commerce.ts`
+   * itself, per AGENTS.md. */
+  tradeOffers(seller: Person, buyer: Person): TradeOffer[] { return tradeOffersFrom(this.world, seller, buyer); }
+  tradeRefusals(seller: Person, buyer: Person): Refusal[] { return refusalsFrom(this.world, seller, buyer); }
+  /** Buy `qty` units off a stack — the same `purchaseUnits` a hungry NPC's own food purchase
+   * goes through. */
+  buyUnits(buyer: Person, seller: Person, stack: import('../core/types').Item, qty: number): PurchaseResult {
+    return purchaseUnits(this.world, buyer, seller, stack, qty);
   }
 
   /** Canonical sale path: the seller's item goes on the buyer's display, the buyer's `wealth`
@@ -2210,6 +2271,18 @@ export class Simulation {
     const b = this.world.primaryBody(p.id); const here = b ? this.world.placeAt(b.pos)?.id ?? null : null;
     const type = eatAtHand(this.world, p, here);
     if (type && b) { b.pose = 'eat'; b.poseUntil = this.world.physicalTime + 1.5; }
+    return type;
+  }
+  /**
+   * Eat/drink ONE named thing this person is carrying — the inventory panel's version of the
+   * same act `eatAtHand` performs when a person just wants food. Refuses anything they are not
+   * actually holding, so a stale panel cannot consume something already given away.
+   */
+  consumeItem(p: Person, it: import('../core/types').Item): import('../core/types').ItemType | null {
+    if (it.holderId !== p.id || it.quantity <= 0 || !isFood(it.type)) return null;
+    const b = this.world.primaryBody(p.id);
+    const type = eatFood(this.world, p, it);
+    if (b) { b.pose = it.type === 'ale' ? 'drink' : 'eat'; b.poseUntil = this.world.physicalTime + 1.5; }
     return type;
   }
   /** Drink at the water source the person is standing at, if any. */
@@ -2367,6 +2440,9 @@ export class Simulation {
         noticeBrokenPromises(w, p, failedWork);
         formPursuits(w, p);
         maintainPursuits(w, p);
+        // v0.10.1 §XII: drop report records whose belief is gone or whose outcome is old — this
+        // is bookkeeping, so it belongs in the coarse pass rather than in `think()`.
+        pruneReports(w, p);
         // v0.9 §D: notice that someone who ought to be here is not — the generic information-gap
         // inference (social/absence.ts). On this coarse cadence rather than per world-minute:
         // its thresholds are measured in HOURS, so a ten-minute granularity changes no outcome,
