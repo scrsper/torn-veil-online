@@ -45,9 +45,7 @@ describe('save round trips', () => {
     const doorX = (doorXZ - doorZ) / world.grid.D;
     world.setDoorOpen({ x: doorX, y: doorY, z: doorZ }, true, player.id);
 
-    const oldCoins = player.inventory.map(id => world.item(id)).find(item => item?.type === 'coins')!;
-    player.inventory = player.inventory.filter(id => id !== oldCoins.id);
-    world.entities.delete(oldCoins.id);
+    const wealthBeforeSale = player.wealth;
     const sold = player.inventory.map(id => world.item(id)).find(item => item?.type === 'bread')!;
     const trade = sim.sellItem(player, merchant, sold, 4, { x: 75.5, y: 14, z: 106.5 }, merchant.workId ?? undefined)!;
 
@@ -61,7 +59,9 @@ describe('save round trips', () => {
     expect(restored.isDoorOpen({ x: doorX, y: doorY, z: doorZ })).toBe(true);
     expect(restored.item(sold.id)).toMatchObject({ ownerId: merchant.id, holderId: null, provenance: expect.arrayContaining([expect.objectContaining({ eventId: trade.id, how: 'sold' })]) });
     const restoredPlayer = restored.person(player.id)!;
-    expect(restoredPlayer.inventory.map(id => restored.item(id)).find(item => item?.type === 'coins')).toMatchObject({ holderId: player.id, quantity: 4 });
+    // Player embodiment: the sale paid into `wealth` (one currency), and wealth round-trips.
+    expect(restoredPlayer.wealth).toBe(wealthBeforeSale + 4);
+    expect(restoredPlayer.inventory.map(id => restored.item(id)).some(item => item?.type === 'coins')).toBe(false);
     for (const event of restored.events) {
       expect(event.causes.every(id => restored.event(id))).toBe(true);
       expect(event.effects.every(id => restored.event(id))).toBe(true);

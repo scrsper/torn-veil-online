@@ -55,8 +55,11 @@ export class PlayerController {
       // assignment UNCONDITIONALLY, so a player's swing pose never actually reverted once set
       // (bodyPhysics's own poseUntil decay explicitly skips controlled bodies). Same fix covers
       // the new v0.8 §16 'chop' pose.
-      const timedPoseHeld = (b.pose === 'attack' || b.pose === 'hit' || b.pose === 'chop') && b.poseUntil > this.world.physicalTime;
-      if (!timedPoseHeld) b.pose = Math.hypot(this.vel.x, this.vel.z) > 0.5 ? (this.sprint ? 'run' : 'walk') : 'stand';
+      const timedPoseHeld = (b.pose === 'attack' || b.pose === 'hit' || b.pose === 'chop' || b.pose === 'eat' || b.pose === 'drink' || b.pose === 'work') && b.poseUntil > this.world.physicalTime;
+      // Player embodiment: cargo genuinely loaded on a haul task the player claimed shows the same
+      // `haul` pose an NPC carrying cargo shows (actors.ts) — derived from world.haulTasks, not set.
+      const hauling = this.world.haulTasks.some(t => t.claimantId === b.ownerId && t.status === 'in_transit' && t.carried > 0);
+      if (!timedPoseHeld) b.pose = Math.hypot(this.vel.x, this.vel.z) > 0.5 ? (hauling ? 'haul' : this.sprint ? 'run' : 'walk') : 'stand';
     }
     // camera
     const hs = Math.hypot(this.vel.x, this.vel.z);

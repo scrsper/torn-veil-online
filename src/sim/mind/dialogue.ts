@@ -1,4 +1,4 @@
-import type { Person, KnowledgeItem, Item } from '../core/types';
+import type { Person, KnowledgeItem, Item, Desire } from '../core/types';
 import { World } from '../core/world';
 import { Simulation } from './agent';
 import { getRel, describeRel, disposition, adjustRel, isClose } from './relationships';
@@ -7,6 +7,9 @@ import { realizeClaim } from './realize';
 import { memoriesAbout, recentMemories } from './memory';
 import { formatRelativeTime } from '../core/time';
 import { ITEM_LABEL } from '../world/factory';
+import { foodForSaleBy, canAcceptHaul } from '../logistics/participation';
+import { effectivePrice } from '../world/pricing';
+import { stockAt as stockAtPlace } from '../world/stock';
 
 export interface DialogueOption { label: string; next: () => DialogueState | null; }
 export interface DialogueState { speaker: Person; lines: string[]; options: DialogueOption[]; }
@@ -68,6 +71,14 @@ export class DialogueSystem {
     opts.push({ label: 'Ask about someone…', next: () => this.askAboutMenu(npc, player) });
     const forSale = w.items().filter(i => i.ownerId === npc.id && i.pos && !i.holderId);
     if (forSale.length && ['merchant', 'baker', 'innkeeper', 'smith', 'hunter', 'farmer', 'herbalist'].includes(npc.occupation)) opts.push({ label: 'Trade', next: () => this.trade(npc, player) });
+    // Player embodiment: a meal bought the way a hungry NPC buys one (`buyFoodPortion` — scarcity
+    // priced, one unit), and honest work offered by the person who actually raised the request
+    // (logistics/participation.ts's `haulOffersFrom`) — the same Request an NPC hauler would take.
+    if (this.sim.haulOffersFrom(npc).length || this.sim.activeHaulFor(player)) opts.push({ label: 'Any work going?', next: () => this.workMenu(npc, player) });
+    const meal = foodForSaleBy(w, npc)[0];
+    if (meal) { const price = effectivePrice(meal.type, meal.value ?? 2, meal.placeId ? stockAtPlace(w, meal.type, meal.placeId) : meal.quantity); opts.push({ label: `Buy a meal — ${meal.type} (${price}s)`, next: () => this.buyMeal(npc, player) }); }
+    const debt = npc.desires.find(d => d.type === 'collect_debt' && !d.fulfilled);
+    if (debt && player.wealth >= 20) opts.push({ label: "Pay Fenn's twenty silver for him", next: () => this.payDebt(npc, player, debt) });
     if (player.inventory.length) opts.push({ label: 'Give something…', next: () => this.giveMenu(npc, player) });
     const known = Object.values(player.knowledge).filter(k => k.kind === 'event' && !k.sharedWith.includes(npc.id) && !npc.knowledge[k.key]);
     if (known.length) opts.push({ label: 'Tell them something…', next: () => this.tellMenu(npc, player) });
@@ -161,18 +172,57 @@ export class DialogueSystem {
     const w = this.world; const r = getRel(npc, player.id);
     if (r.fear > 0.45 || r.grudge > 0.5) return { speaker: npc, lines: [`I'll not trade with you. Get out.`], options: this.options(npc, player) };
     const goods = w.items().filter(i => i.ownerId === npc.id && i.pos && !i.holderId);
-    const coins = player.inventory.map(id => w.item(id)).find(i => i?.type === 'coins');
     const markup = 1 + npc.traits.greed * 0.5 - Math.max(0, disposition(npc, player.id)) * 0.3;
     const opts: DialogueOption[] = goods.slice(0, 8).map(it => { const price = Math.max(1, Math.round(it.value * markup)); return { label: `Buy ${it.name} (${price}s)`, next: () => { const ev = this.sim.buyItem(player, npc, it, price); if (!ev) { return { speaker: npc, lines: [`You haven't the coin.`], options: this.options(npc, player) }; } adjustRel(w, npc, player.id, { affection: 0.05, trust: 0.05 }, 'traded', ev.id); return { speaker: npc, lines: [`Done. ${npc.traits.greed > 0.7 ? 'Pleasure doing business.' : 'Fair price.'}`], options: this.options(npc, player) }; } }; });
     // sell
     for (const id of player.inventory) { const it = w.item(id); if (!it || it.type === 'coins' || it.type === 'dagger') continue; if (it.ownerId && it.ownerId !== player.id && npc.knowledge[`owner:${it.id}`]) continue; const price = Math.max(1, Math.round(it.value * 0.5 / markup)); opts.push({ label: `Sell ${it.name} (${price}s)`, next: () => { const spot = w.place(npc.workId)?.anchors.find(a => a.kind === 'display'); const pos = spot ? { x: spot.pos.x + 0.5, y: spot.pos.y, z: spot.pos.z + 0.5 } : { ...w.primaryBody(npc.id)!.pos }; const ev = this.sim.sellItem(player, npc, it, price, pos, npc.workId ?? undefined); if (!ev) return { speaker: npc, lines: [`I haven't the coin for that.`], options: this.options(npc, player) }; return { speaker: npc, lines: [`I'll take it. ${price} silver.`], options: this.options(npc, player) }; } }); }
     opts.push({ label: 'Nothing today', next: () => ({ speaker: npc, lines: ['Suit yourself.'], options: this.options(npc, player) }) });
-    return { speaker: npc, lines: [`Have a look. You've ${coins?.quantity ?? 0} silver.`], options: opts };
+    return { speaker: npc, lines: [`Have a look. You've ${player.wealth} silver.`], options: opts };
+  }
+  /** Honest work: open haul Requests this person speaks for. Accepting is `claimHaulTask` via
+   * participation.ts — the identical claim an NPC hauler makes; loading, carrying, depositing
+   * and the wage all then happen through the same functions and the same conservation rules. */
+  private workMenu(npc: Person, player: Person): DialogueState {
+    const w = this.world; const mine = this.sim.activeHaulFor(player);
+    if (mine) {
+      const carrying = mine.carried > 0;
+      return { speaker: npc, lines: [`You've already taken on carrying ${mine.resource} to ${w.nameOf(mine.destPlaceId)}. ${carrying ? 'Get it there first.' : `Fetch it from ${w.nameOf(mine.sourcePlaceId)} first.`}`], options: this.options(npc, player) };
+    }
+    if (!canAcceptHaul(player)) return { speaker: npc, lines: ['Not for the likes of you, not today.'], options: this.options(npc, player) };
+    const offers = this.sim.haulOffersFrom(npc);
+    if (!offers.length) return { speaker: npc, lines: ['Nothing needs carrying just now.'], options: this.options(npc, player) };
+    const opts: DialogueOption[] = offers.slice(0, 6).map(o => ({
+      label: `Carry ${o.task.quantity} ${o.task.resource} from ${o.source.name} to ${o.destination.name} (${o.request.reward}s)`,
+      next: () => {
+        if (!this.sim.acceptHaul(player, o.task)) return { speaker: npc, lines: ['Someone else has it in hand.'], options: this.options(npc, player) };
+        return { speaker: npc, lines: [`Good. ${o.task.reason.charAt(0).toUpperCase() + o.task.reason.slice(1)}. Fetch it from ${o.source.name}, bring it to ${o.destination.name}, and ${w.nameOf(o.request.requesterId) === npc.name ? "I'll" : `${w.nameOf(o.request.requesterId)} will`} pay ${o.request.reward} silver when it's all there.`], options: this.options(npc, player) };
+      },
+    }));
+    opts.push({ label: 'Not today', next: () => ({ speaker: npc, lines: ['Suit yourself.'], options: this.options(npc, player) }) });
+    return { speaker: npc, lines: [`There's carrying to be done, if your back is up to it. You've ${player.wealth} silver.`], options: opts };
+  }
+  /** A single meal through `buyFoodPortion` — the NPC purchase path (scarcity-priced, real stock,
+   * real wealth transfer), not a player shop screen. */
+  private buyMeal(npc: Person, player: Person): DialogueState {
+    const w = this.world; const r = getRel(npc, player.id);
+    if (r.fear > 0.45 || r.grudge > 0.5) return { speaker: npc, lines: [`I'll not serve you. Get out.`], options: this.options(npc, player) };
+    const before = player.wealth;
+    const got = this.sim.buyMeal(player, npc, 1);
+    if (!got) return { speaker: npc, lines: [player.wealth < 1 ? `You haven't the coin.` : `Nothing left to sell you.`], options: this.options(npc, player) };
+    adjustRel(w, npc, player.id, { affection: 0.03, trust: 0.03 }, 'traded');
+    return { speaker: npc, lines: [`${got.type.charAt(0).toUpperCase() + got.type.slice(1)}, ${before - player.wealth} silver. Eat it while it's fresh.`], options: this.options(npc, player) };
+  }
+  private payDebt(npc: Person, player: Person, debt: Desire): DialogueState {
+    const w = this.world;
+    if (player.wealth < 20) return { speaker: npc, lines: ['You haven\'t twenty silver on you.'], options: this.options(npc, player) };
+    player.wealth -= 20; npc.wealth += 20; debt.fulfilled = true;
+    const ev = w.emit('debt_paid', { actor: player.id, target: npc.id, pos: w.primaryBody(npc.id)?.pos, significance: 0.5, visibility: 10, summary: `the Traveler paid ${npc.name} Fenn's twenty silver` });
+    adjustRel(w, npc, player.id, { affection: 0.4, trust: 0.4, respect: 0.2 }, 'paid a debt', ev.id);
+    return { speaker: npc, lines: [`Well! Twenty silver, counted. I'll not forget this. Fenn can keep his miserable hide.`], options: this.options(npc, player) };
   }
   private giveMenu(npc: Person, player: Person): DialogueState {
     const w = this.world;
     const opts: DialogueOption[] = player.inventory.map(id => w.item(id)!).filter(Boolean).map(it => ({ label: `${it.name}${it.quantity > 1 ? ` ×${it.quantity}` : ''}`, next: () => {
-      if (it.type === 'coins') { const debt = npc.desires.find(d => d.type === 'collect_debt' && !d.fulfilled); if (debt && it.quantity >= 20) { it.quantity -= 20; npc.wealth += 20; debt.fulfilled = true; const ev = w.emit('debt_paid', { actor: player.id, target: npc.id, pos: w.primaryBody(npc.id)?.pos, significance: 0.5, visibility: 10, summary: `the Traveler paid ${npc.name} Fenn's twenty silver` }); adjustRel(w, npc, player.id, { affection: 0.4, trust: 0.4, respect: 0.2 }, 'paid a debt', ev.id); return { speaker: npc, lines: [`Well! Twenty silver, counted. I'll not forget this. Fenn can keep his miserable hide.`], options: this.options(npc, player) }; } const n = Math.min(5, it.quantity); it.quantity -= n; npc.wealth += n; adjustRel(w, npc, player.id, { affection: 0.1, trust: 0.05 }, 'gave coins'); return { speaker: npc, lines: [`Coin? Well... thank you.`], options: this.options(npc, player) }; }
       const ev = this.sim.giveItem(player, npc, it); const line = it.ownerId === npc.id && ev.type === 'returned_item' ? (npc.speech?.text ?? `That's mine! Thank you.`) : `${it.type === 'bread' || it.type === 'pie' || it.type === 'cheese' ? 'Food! Kind of you.' : it.type === 'flowers' ? 'Flowers? For me?' : 'A gift? Well. Thank you.'}`;
       if (ev.type === 'gift') adjustRel(w, npc, player.id, { affection: 0.15, trust: 0.1 }, 'received a gift', ev.id);
       return { speaker: npc, lines: [line], options: this.options(npc, player) }; } }));

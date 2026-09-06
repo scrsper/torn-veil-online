@@ -23,6 +23,11 @@
   #vitals { position: absolute; left: 12px; bottom: 12px; padding: 8px 12px; width: 260px; }
   .bar { height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; margin: 4px 0 8px; } .bar > i { display: block; height: 100%; background: var(--red); }
   #inv { margin-top: 6px; color: var(--dim); } #inv b { color: var(--text); font-weight: 500; }
+  #needs .row { display: grid; grid-template-columns: 52px 1fr 88px; gap: 6px; align-items: center; font-size: 11.5px; color: var(--dim); }
+  #needs .row .bar { margin: 0; height: 6px; } #needs .row .bar > i { background: var(--blue); } #needs .row.uncomfortable .bar > i { background: #d0b070; } #needs .row.urgent .bar > i, #needs .row.critical .bar > i { background: var(--red); }
+  #needs .row .band { text-align: right; } #needs .row.urgent .band, #needs .row.critical .band { color: #ffb0a0; }
+  #purse { margin-top: 6px; color: var(--accent); font-weight: 600; }
+  #job { color: var(--text); font-size: 12px; } #job:empty { display: none; } #job b { color: var(--accent); font-weight: 500; }
   #messages { position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%); text-align: center; font-size: 14px; text-shadow: 0 1px 3px #000; }
   #messages div { opacity: 0; animation: msg 4s forwards; } @keyframes msg { 0% { opacity: 0; transform: translateY(6px);} 8% { opacity: 1; transform: none;} 80% { opacity: 1;} 100% { opacity: 0; } }
   #hints { position: absolute; right: 12px; bottom: 12px; padding: 8px 12px; color: var(--dim); font-size: 11.5px; max-width: 300px; } #hints b { color: var(--text); font-weight: 500; }
@@ -87,9 +92,9 @@
     <div id="crosshair"></div>
     <div id="target"></div>
     <div id="topbar" class="panel"><div class="time">—</div><div class="sub">—</div></div>
-    <div id="vitals" class="panel"><div>Health</div><div class="bar"><i style="width:100%"></i></div><div id="inv"></div></div>
+    <div id="vitals" class="panel"><div>Health</div><div class="bar"><i style="width:100%"></i></div><div id="needs"></div><div id="purse"></div><div id="job"></div><div id="inv"></div></div>
     <div id="messages"></div>
-    <div id="hints" class="panel"><b>WASD</b> move · <b>Shift</b> sprint · <b>Space</b> jump · <b>V</b> view<br><b>E</b>/RMB talk · pick up · use · <b>LMB</b>/<b>X</b> attack · <b>Q</b> drop<br><b>F</b> inspect target · <b>F3</b> inspector · <b>F4</b> event feed<br><b>T</b> time ×1/×4/×16 · <b>P</b> pause · <b>F5</b> save · <b>Esc</b> mouse</div>
+    <div id="hints" class="panel"><b>WASD</b> move · <b>Shift</b> sprint · <b>Space</b> jump · <b>V</b> view<br><b>E</b>/RMB talk · pick up · use · drink at a well · <b>LMB</b>/<b>X</b> attack · <b>Q</b> drop<br><b>C</b> eat what you carry · <b>G</b> load / deliver your haul job<br><b>F</b> inspect target · <b>F3</b> inspector · <b>F4</b> event feed<br><b>T</b> time ×1/×4/×16 · <b>P</b> pause · <b>F5</b> save · <b>Esc</b> mouse</div>
     <div id="events" class="panel"></div>
     <div id="chainpane" class="panel"></div>
     <div id="inspector" class="panel"></div>
@@ -97,7 +102,7 @@
     <div id="start"><div class="card">
       <h1>Torn Veil Online</h1><div class="sub">Ashford Vale · a living voxel village</div>
       <p>You arrive on the west road. Thirty-two people live here. They wake, work, eat, gossip, pray, drink and sleep whether or not you are watching. They know only what they have seen, heard, or been told. What you do here will be remembered by those who witnessed it — and by whoever they tell.</p>
-      <div class="keys"><div><b>WASD / Shift / Space</b> move, sprint, jump</div><div><b>Mouse</b> look (click to capture)</div><div><b>E</b> or right-click: talk / take / use</div><div><b>Left-click</b> attack with what you hold</div><div><b>F</b> inspect the person you look at</div><div><b>F3 / F4</b> simulation inspector / event feed</div><div><b>T</b> time speed · <b>P</b> pause · <b>V</b> third person</div><div><b>F5</b> save (also autosaves every 30 s)</div></div>
+      <div class="keys"><div><b>WASD / Shift / Space</b> move, sprint, jump</div><div><b>Mouse</b> look (click to capture)</div><div><b>E</b> or right-click: talk / take / use / drink</div><div><b>C</b> eat · <b>G</b> work your haul job</div><div><b>Left-click</b> attack with what you hold</div><div><b>F</b> inspect the person you look at</div><div><b>F3 / F4</b> simulation inspector / event feed</div><div><b>T</b> time speed · <b>P</b> pause · <b>V</b> third person</div><div><b>F5</b> save (also autosaves every 30 s)</div></div>
       <div><button id="btn-continue">Continue</button><button id="btn-new" class="alt">New world</button></div>
       <div id="loading"></div>
     </div></div>
