@@ -1,0 +1,20 @@
+"""Run in the project editor. A template floor for integration, not the final settlement."""
+import unreal
+level = '/Game/TornVeil/Maps/Ashford'
+unreal.EditorAssetLibrary.make_directory('/Game/TornVeil/Maps')
+sub = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
+sub.new_level(level)
+actors = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
+floor = actors.spawn_actor_from_class(unreal.StaticMeshActor, unreal.Vector(0, 0, -50))
+floor.set_actor_label('Foundation floor - canonical plateau y=14')
+floor.static_mesh_component.set_static_mesh(unreal.load_asset('/Engine/BasicShapes/Cube'))
+floor.set_actor_scale3d(unreal.Vector(192, 192, 1))
+sun = actors.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, 2000), unreal.Rotator(-45, -35, 0))
+sun.light_component.set_editor_property('intensity', 3.0)
+actors.spawn_actor_from_class(unreal.SkyLight, unreal.Vector(0, 0, 1000))
+actors.spawn_actor_from_class(unreal.SkyAtmosphere, unreal.Vector(0, 0, 0))
+start = actors.spawn_actor_from_class(unreal.PlayerStart, unreal.Vector(-5550, 50, 92))
+start.set_actor_label('Traveler - canonical west road spawn')
+sub.save_current_level()
+unreal.EditorLevelLibrary.set_level_viewport_camera_info(unreal.Vector(-6000, -600, 600), unreal.Rotator(-20, 30, 0))
+print('FOUNDATION_LEVEL_READY', level)

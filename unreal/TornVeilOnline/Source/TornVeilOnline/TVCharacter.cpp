@@ -1,0 +1,106 @@
+#include "TVCharacter.h"
+#include "TVBridgeSubsystem.h"
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Components/TextRenderComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Animation/AnimSingleNodeInstance.h"
+#include "Animation/AnimationAsset.h"
+#include "Dom/JsonObject.h"
+#include "Serialization/JsonSerializer.h"
+#include "Camera/PlayerCameraManager.h"
+#include "GameFramework/PlayerController.h"
+#include "UObject/ConstructorHelpers.h"
+
+ATVCharacter::ATVCharacter() {
+    PrimaryActorTick.bCanEverTick = true;
+    GetCapsuleComponent()->InitCapsuleSize(30, 90);
+    bUseControllerRotationYaw = false; bUseControllerRotationPitch = false; bUseControllerRotationRoll = false;
+    GetCharacterMovement()->bOrientRotationToMovement = true; GetCharacterMovement()->RotationRate = FRotator(0, 540, 0);
+    GetCharacterMovement()->MaxWalkSpeed = 460; GetCharacterMovement()->MaxStepHeight = 105;
+    GetCharacterMovement()->BrakingDecelerationWalking = 2000;
+    CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom")); CameraBoom->SetupAttachment(RootComponent);
+    CameraBoom->TargetArmLength = 450; CameraBoom->SocketOffset = FVector(0, 45, 70); CameraBoom->bUsePawnControlRotation = true;
+    CameraBoom->bEnableCameraLag = true; CameraBoom->CameraLagSpeed = 12;
+    Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera")); Camera->SetupAttachment(CameraBoom); Camera->FieldOfView = 75;
+    Nameplate = CreateDefaultSubobject<UTextRenderComponent>(TEXT("CanonicalName")); Nameplate->SetupAttachment(RootComponent);
+    Nameplate->SetRelativeLocation(FVector(0, 0, 125)); Nameplate->SetWorldSize(18); Nameplate->SetHorizontalAlignment(EHTA_Center); Nameplate->SetTextRenderColor(FColor(235, 210, 160));
+    static ConstructorHelpers::FObjectFinder<USkeletalMesh> Humanoid(TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple"));
+    if (Humanoid.Succeeded()) GetMesh()->SetSkeletalMesh(Humanoid.Object);
+    GetMesh()->SetRelativeLocation(FVector(0, 0, -90)); GetMesh()->SetRelativeRotation(FRotator(0, -90, 0)); GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    static ConstructorHelpers::FObjectFinder<UAnimationAsset> Loc(TEXT("/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run")); Locomotion = Loc.Object;
+    static ConstructorHelpers::FObjectFinder<UAnimationAsset> Atk(TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Attack/MM_Attack_01")); AttackAnimation = Atk.Object;
+    static ConstructorHelpers::FObjectFinder<UAnimationAsset> Hit(TEXT("/Game/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Lgt_01")); HitAnimation = Hit.Object;
+    static ConstructorHelpers::FObjectFinder<UAnimationAsset> Down(TEXT("/Game/Characters/Mannequins/Anims/Death/MM_Death_Front_01")); DownAnimation = Down.Object;
+}
+void ATVCharacter::BeginPlay() {
+    Super::BeginPlay();
+    if (IsPlayerControlled()) { bCanonicalPlayer = true; Controller->SetControlRotation(FRotator(-18, 0, 0)); Nameplate->SetVisibility(false); }
+    else { GetCharacterMovement()->DisableMovement(); GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision); }
+}
+FVector ATVCharacter::IntentDirection() const {
+    if (!Controller || bIncapacitated) return FVector::ZeroVector;
+    const FRotationMatrix Basis(FRotator(0, Controller->GetControlRotation().Yaw, 0));
+    return (Basis.GetUnitAxis(EAxis::X) * ForwardAxis + Basis.GetUnitAxis(EAxis::Y) * RightAxis).GetClampedToMaxSize(1);
+}
+void ATVCharacter::Tick(float Dt) {
+    Super::Tick(Dt); SnapshotAge += Dt;
+    auto* Bridge = GetWorld()->GetSubsystem<UTVBridgeSubsystem>();
+    const bool Live = Bridge && Bridge->SinceSnapshot < 0.5f;
+    if (bCanonicalPlayer) {
+        CameraBoom->TargetArmLength = FMath::FInterpTo(CameraBoom->TargetArmLength, ZoomTarget, Dt, 8);
+        CameraBoom->SocketOffset.Y = FMath::GetMappedRangeValueClamped(FVector2D(160, 700), FVector2D(55, 0), ZoomTarget);
+        GetCharacterMovement()->MaxWalkSpeed = bSprint ? 713 : 460;
+        if (Live && !bIncapacitated) AddMovementInput(IntentDirection()); else GetCharacterMovement()->StopMovementImmediately();
+        if (bProjected && Live) {
+            const FVector Expected = TargetPosition + CanonicalVelocity * FMath::Min(SnapshotAge, 0.1f);
+            const FVector Error = Expected - GetActorLocation();
+            if (Error.Size() > 250) SetActorLocation(Expected, false, nullptr, ETeleportType::TeleportPhysics);
+            else SetActorLocation(GetActorLocation() + Error * FMath::Min(Dt * 6, 1.f), false);
+        }
+    } else if (bProjected) {
+        const float Alpha = FMath::Clamp(SnapshotAge / 0.1f, 0.f, 1.f);
+        SetActorLocation(FMath::Lerp(PreviousPosition, TargetPosition, Alpha));
+        SetActorRotation(FMath::RInterpTo(GetActorRotation(), FRotator(0, TargetYaw, 0), Dt, 10));
+        if (auto* PC = GetWorld()->GetFirstPlayerController()) { const auto R = (PC->PlayerCameraManager->GetCameraLocation() - Nameplate->GetComponentLocation()).Rotation(); Nameplate->SetWorldRotation(R); }
+    }
+    Animate(bCanonicalPlayer ? GetVelocity().Size2D() : (Live ? CanonicalVelocity.Size2D() : 0));
+}
+void ATVCharacter::Project(const TSharedPtr<FJsonObject>& D, bool First) {
+    BodyId = D->GetStringField(TEXT("bodyId")); EntityId = D->GetStringField(TEXT("entityId")); DisplayName = D->GetStringField(TEXT("name"));
+    Activity = D->GetStringField(TEXT("activity")); Occupation = D->GetStringField(TEXT("occupation")); CanonicalPose = D->GetStringField(TEXT("pose"));
+    Health = D->GetNumberField(TEXT("health")); MaxHealth = D->GetNumberField(TEXT("maxHealth")); bIncapacitated = D->GetBoolField(TEXT("incapacitated")) || D->GetBoolField(TEXT("dead"));
+    const auto P = D->GetObjectField(TEXT("pos")), V = D->GetObjectField(TEXT("velocity"));
+    PreviousPosition = GetActorLocation(); TargetPosition = FVector((P->GetNumberField(TEXT("x")) - 96) * 100, (P->GetNumberField(TEXT("z")) - 96) * 100, (P->GetNumberField(TEXT("y")) - 14) * 100 + 90);
+    CanonicalVelocity = FVector(V->GetNumberField(TEXT("x")), V->GetNumberField(TEXT("z")), V->GetNumberField(TEXT("y"))) * 100;
+    const float Yaw = D->GetNumberField(TEXT("yaw")); TargetYaw = FMath::RadiansToDegrees(FMath::Atan2(-FMath::Cos(Yaw), -FMath::Sin(Yaw)));
+    SnapshotAge = 0; bProjected = true;
+    if (First) { PreviousPosition = TargetPosition; SetActorLocation(TargetPosition, false, nullptr, ETeleportType::TeleportPhysics); }
+    Nameplate->SetText(FText::FromString(DisplayName + TEXT("\n") + Activity));
+    const TSharedPtr<FJsonObject>* Debug;
+    if (D->TryGetObjectField(TEXT("debug"), Debug)) { auto Writer = TJsonWriterFactory<>::Create(&DebugText); DebugText.Empty(); FJsonSerializer::Serialize(Debug->ToSharedRef(), Writer); }
+}
+void ATVCharacter::Animate(float Speed) {
+    UAnimationAsset* Wanted = bIncapacitated ? DownAnimation.Get() : CanonicalPose == TEXT("attack") ? AttackAnimation.Get() : CanonicalPose == TEXT("hit") ? HitAnimation.Get() : Locomotion.Get();
+    if (!Wanted) return;
+    if (CurrentAnimation != Wanted) { CurrentAnimation = Wanted; GetMesh()->PlayAnimation(Wanted, Wanted == Locomotion); }
+    if (Wanted == Locomotion) if (auto* Anim = GetMesh()->GetSingleNodeInstance()) Anim->SetBlendSpacePosition(FVector(Speed, 0, 0));
+}
+void ATVCharacter::SetupPlayerInputComponent(UInputComponent* I) {
+    Super::SetupPlayerInputComponent(I);
+    I->BindAxis(TEXT("Forward"), this, &ATVCharacter::Forward); I->BindAxis(TEXT("Right"), this, &ATVCharacter::Right);
+    I->BindAxis(TEXT("Turn"), this, &ATVCharacter::Turn); I->BindAxis(TEXT("Look"), this, &ATVCharacter::Look); I->BindAxis(TEXT("Zoom"), this, &ATVCharacter::Zoom);
+    I->BindAction(TEXT("Sprint"), IE_Pressed, this, &ATVCharacter::SprintOn); I->BindAction(TEXT("Sprint"), IE_Released, this, &ATVCharacter::SprintOff);
+    I->BindAction(TEXT("Target"), IE_Pressed, this, &ATVCharacter::SelectTarget);
+    I->BindAction(TEXT("Interact"), IE_Pressed, this, &ATVCharacter::Interact); I->BindAction(TEXT("Inspector"), IE_Pressed, this, &ATVCharacter::Inspector);
+}
+void ATVCharacter::Forward(float V) { ForwardAxis = V; } void ATVCharacter::Right(float V) { RightAxis = V; }
+void ATVCharacter::Turn(float V) { AddControllerYawInput(V); } void ATVCharacter::Look(float V) { AddControllerPitchInput(V); }
+void ATVCharacter::Zoom(float V) { ZoomTarget = FMath::Clamp(ZoomTarget - V * 100, 160.f, 1500.f); }
+void ATVCharacter::SprintOn() { bSprint = true; } void ATVCharacter::SprintOff() { bSprint = false; }
+void ATVCharacter::SelectTarget() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->CycleTarget(); }
+void ATVCharacter::Interact() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->SendIntent(TEXT("interact")); }
+void ATVCharacter::Inspector() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->bInspector = !B->bInspector; }
+
