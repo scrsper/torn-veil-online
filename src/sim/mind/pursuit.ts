@@ -825,8 +825,8 @@ export function pursuitGoalBoost(p: Person, goalType: GoalType, targetId?: Entit
  */
 export const MAX_MOTIVATION_BONUS = 0.34;
 export interface MotivationBoost { bonus: number; reasons: string[]; pursuitId?: string; }
-export function motivationBoost(p: Person, goalType: GoalType, targetId?: EntityId, beneficiaryId?: EntityId): MotivationBoost {
-  const concern = concernGoalBoost(p, goalType, targetId);
+export function motivationBoost(p: Person, goalType: GoalType, targetId?: EntityId, beneficiaryId?: EntityId, resource?: import('../core/types').ItemType): MotivationBoost {
+  const concern = concernGoalBoost(p, goalType, targetId, resource);
   const obligation = obligationGoalBoost(p, goalType, targetId, beneficiaryId);
   const purpose = pursuitGoalBoost(p, goalType, targetId, beneficiaryId);
   const raw = concern.bonus + obligation.bonus + purpose.bonus;

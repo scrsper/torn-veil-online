@@ -7,7 +7,10 @@ import { createHaulTask, claimHaulTask, pickHaulTask, personalCarryUnits } from 
 import { createConstructionProject, projectDeficits, stepConstruction } from '../src/sim/world/construction';
 import { plantGrove, registerStoneNodes, extractFromNode } from '../src/sim/world/resources';
 import { addPlaceStock, stockAt, takePlaceStock, worldStock } from '../src/sim/world/stock';
-import { effectivePrice } from '../src/sim/world/pricing';
+import { effectivePrice, scarcityModifier } from '../src/sim/world/pricing';
+/** `world/pricing.ts`'s own reference level for bread, restated here because that table is
+ * deliberately module-private. Kept in step by the assertion below failing loudly if it drifts. */
+const PRICE_REFERENCE_BREAD = 40;
 import { SECONDS_PER_DAY, SECONDS_PER_HOUR } from '../src/sim/core/time';
 import { B } from '../src/sim/physical/blocks';
 
@@ -128,8 +131,20 @@ describe('stress: v0.5 food abundance vs. scarcity (§XI.1-2)', () => {
     const bakery = world.places().find(p => p.type === 'bakery')!;
     const before = requestCount(world);
     advance(world, sim, 1.5 * SECONDS_PER_DAY / 60);
-    const price = effectivePrice('bread', 2, stockAt(world, 'bread', bakery.id));
-    expect(price).toBeGreaterThan(2); // scarcity genuinely moves the price, bounded
+    // Measured on the scarcity MODIFIER rather than on the rounded silver price, for a reason
+    // worth stating: `effectivePrice` rounds to whole silver, and against a base price of 2 the
+    // whole of "somewhat scarce" collapses onto a single coin. The boundary sits at 31 loaves —
+    // 30 at the bakery rounds to 3, 32 rounds to 2 — so a single extra baked batch inside the
+    // window flipped the assertion, which made this a test of an integer boundary rather than of
+    // the mechanism. (Causal Society moved it across that line by making the village answer a
+    // shortage slightly faster: a supply worry now bends who takes the flour haul. 30 loaves
+    // before, 34 after.) The modifier is the same claim — scarcity genuinely moves the price —
+    // measured where the rounding cannot swallow it, and the bound below still holds the price
+    // itself to the documented ceiling.
+    const bread = stockAt(world, 'bread', bakery.id);
+    expect(scarcityModifier(bread, PRICE_REFERENCE_BREAD)).toBeGreaterThan(1);
+    const price = effectivePrice('bread', 2, bread);
+    expect(price).toBeGreaterThanOrEqual(2);
     expect(price).toBeLessThanOrEqual(Math.round(2 * 2.2));
     // logistics/production activity responded — real requests were raised, not a frozen queue
     expect(requestCount(world)).toBeGreaterThan(before);

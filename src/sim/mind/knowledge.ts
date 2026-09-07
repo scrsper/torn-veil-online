@@ -237,6 +237,10 @@ export function eventClaim(world: World, e: WorldEvent, saw: boolean): Record<st
   // Carry explicit conflict intent (Constitution §11) into the claim so a witness can tell a
   // guard's lawful subdual/arrest apart from an actual crime — see isCrime below.
   if (e.data?.intent) claim.intent = e.data.intent;
+  // Causal Society: a stoppage is ABOUT a material, and the material is the whole content of the
+  // belief — "he was standing at the mill" says nothing without "and there was no grain". Both
+  // are plainly visible to anyone who is there, so both travel with the claim.
+  if (e.data?.need) { claim.need = e.data.need; claim.making = e.data.making; }
   if (saw || e.type === 'told') { claim.actor = e.actor; claim.target = e.target; claim.item = e.item; }
   else { claim.target = e.target; claim.item = e.item; claim.actorUnknown = true; }
   return claim;
@@ -265,6 +269,7 @@ export function describeClaim(world: World, k: KnowledgeItem): string {
         case 'debt_paid': return `${who(c.actor)} paid ${who(c.target)} what was owed`;
         case 'threat_spotted': return `${who(c.actor)} was seen prowling${where}`;
         case 'confrontation': return `${who(c.actor)} confronted ${who(c.target)}${where}`;
+        case 'work_blocked': return `there is no ${c.need ?? 'material'}${where}, so no ${c.making ?? 'work'} is being made`;
         case 'arrest_attempt': return `${who(c.actor)} tried to arrest ${who(c.target)}${where}`;
         default: return c.text ?? `${c.type}${where}`;
       }
@@ -275,6 +280,10 @@ export function describeClaim(world: World, k: KnowledgeItem): string {
     case 'fact': return c.text ?? k.key;
     case 'service': return `${world.nameOf(c.placeId)} offers ${(c.offers as string[]).join(', ')}`;
     case 'affordance': return `knows what a ${c.itemType} is good for`;
+    // Causal Society: a belief about WHY. `c.text` is written once, at inference time, out of the
+    // two beliefs it was drawn from — never re-derived here, so a cause can still be described
+    // after one of the beliefs behind it has been forgotten or corrected.
+    case 'cause': return c.text ?? 'something is behind this';
   }
 }
 

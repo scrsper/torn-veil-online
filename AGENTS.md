@@ -108,6 +108,23 @@ witnesses learn about it" stays true instead of becoming a scripted one-off.
   that matter most are that a purpose may never propose or boost an approach/combat goal, and
   that every purpose-driven candidate is multiplied by an embodiment factor so nobody starves for
   a social purpose.
+- `src/sim/world/shortfall.ts` / `src/sim/mind/inference.ts` / `src/sim/world/supply.ts` — the
+  Causal Society layer, which connects the physical economy to cognition. `shortfall.ts` turns a
+  trade standing idle for want of its input into a perceivable `work_blocked` event and a STANDING
+  belief keyed `short:<place>:<resource>` (one belief per continuing shortage, however it was come
+  by — never one per re-notice, and a re-notice keeps `sharedWith`). `inference.ts` is the only
+  place a mind draws a conclusion from two beliefs it already holds: a `'cause'` KnowledgeItem
+  naming `effectKey` and `becauseKey`, always weaker and never closer to the source than either
+  premise, naming a responsible party only when the evidence does. `supply.ts` is the small public
+  table of which trade makes what out of what — over OCCUPATIONS and RESOURCE TYPES only, never
+  over people or places. See `docs/CAUSAL_SOCIETY_V0_4.md` for the invariants; the ones that matter
+  most are that an inference may never make a mind more certain than its evidence, that a
+  `'supply'` concern reaches only goals that move materials (never one that walks somebody toward a
+  person), and that an inferred grievance is capped far below a witnessed one.
+- `src/sim/history/causality.ts` — the causal trace: a READER over links that already exist
+  (goal → concern → belief → cause-belief → event), used by tests, the trace harness and
+  developers. It stores nothing of its own, and `CausalNode.depth` exists so sibling reasons are
+  never rendered as a chain — a trace must not invent causation.
 - `src/sim/mind/concern.ts` / `conversation.ts` — knowledge that has acquired behavioural force
   (a `Concern` bends goal utility through `concernGoalBoost`, capped so it never dictates a
   decision), and whether anything is worth saying to a given listener at all (`selectTopic`
@@ -136,6 +153,7 @@ npm test              # vitest — the deterministic simulation test suite (test
 npm run build          # typecheck + production build
 npm run social:trace   # v0.9 deterministic causal traces on the real generated village
 npm run motive:trace   # v0.10 motivated-life causal traces (the four acceptance scenarios)
+npm run causal:trace   # Causal Society long-run unattended traces (30 world days, no player)
 npm run test:browser   # Playwright functional harness against the real client
 ```
 

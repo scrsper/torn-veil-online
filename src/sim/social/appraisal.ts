@@ -1,7 +1,8 @@
-import type { ConcernKind, EntityId, KnowledgeItem, Person, SituationKind } from '../core/types';
+import type { ConcernKind, EntityId, ItemType, KnowledgeItem, Person, SituationKind } from '../core/types';
 import type { World } from '../core/world';
 import { crimeSeverity, isCrime } from '../mind/knowledge';
 import { disposition, isClose, isFamily } from '../mind/relationships';
+import { tradeMakes, tradeNeeds } from '../world/supply';
 
 /**
  * APPRAISAL — "what does this mean to ME?" (v0.9 §A).
@@ -30,7 +31,18 @@ export type AppraisalRole =
   | 'kin_of_actor' | 'close_to_actor' | 'afraid_of_actor' | 'aggrieved_by_actor'
   | 'institutional' | 'pastoral' | 'healer'
   | 'coworker' | 'employer' | 'employee'
-  | 'neighbour' | 'at_my_place' | 'bystander';
+  | 'neighbour' | 'at_my_place' | 'bystander'
+  // Causal Society — structural positions relative to a MATERIAL, read off the public trades
+  // table (world/supply.ts). None of them names a person or a place.
+  /** My own trade cannot be carried out without the thing that has run out. */
+  | 'livelihood'
+  /** What they could not make is what my trade needs next. The shortage is coming for me. */
+  | 'downstream'
+  /** Supplying that material is MY trade — the failure is at my end of the chain. */
+  | 'supplier'
+  /** I hold a belief that this event is why my own living was disrupted. Formed only by
+   * inference (mind/inference.ts), never by seeing the event itself. */
+  | 'materially_affected';
 
 export interface Appraisal {
   /** 0..1 — how much this matters to this person. */
@@ -47,11 +59,28 @@ export interface Appraisal {
   subjectId?: EntityId;
   actorId?: EntityId;
   itemId?: EntityId;
+  /** Causal Society: the MATERIAL this is about, for a stoppage. Its presence is also what tells
+   * a material disruption apart from a personal one — 'disruption' covers both. */
+  resource?: ItemType;
+  placeId?: EntityId;
+}
+
+/** Causal Society: what a mind has separately CONCLUDED about an event, which the event itself
+ * cannot tell it. Supplied only by `mind/inference.ts`, at the moment a cause-belief forms. */
+export interface AppraisalContext {
+  /** 0..1 — how much of this person's own living they believe this event cost them. */
+  materialStake?: number;
+  /** Grounded, human-readable justification for that stake. */
+  reason?: string;
 }
 
 const KIND_BY_TYPE: Record<string, SituationKind> = {
   attack: 'harm', kill: 'harm', death: 'grief', theft: 'property', item_missing: 'loss',
   absence_noticed: 'disruption', dispute: 'obligation', debt: 'obligation', heal: 'harm',
+  // Causal Society: a trade standing idle for want of its input is a disruption in exactly the
+  // sense `absence_noticed` already is — something that ought to be happening is not. The two
+  // are told apart downstream by whether the appraisal carries a `resource`.
+  work_blocked: 'disruption',
   // v0.10 §II: a responsibility someone took on toward me and then broke. Not a crime — nobody
   // is arrested for it — but genuinely an unsettled matter between two people, which is exactly
   // what the pre-existing 'obligation' kind already means.
@@ -65,7 +94,7 @@ const LAW_ROLES = new Set(['guard', 'captain']);
 const PASTORAL_ROLES = new Set(['priest', 'acolyte', 'elder']);
 const HEALER_ROLES = new Set(['herbalist']);
 
-export function appraiseClaim(world: World, p: Person, k: KnowledgeItem): Appraisal {
+export function appraiseClaim(world: World, p: Person, k: KnowledgeItem, ctx?: AppraisalContext): Appraisal {
   const c = k.claim;
   const roles: AppraisalRole[] = [];
   const reasons: string[] = [];
@@ -74,6 +103,8 @@ export function appraiseClaim(world: World, p: Person, k: KnowledgeItem): Apprai
   const actorId = c.actorUnknown ? undefined : (c.actor as EntityId | undefined);
   const itemId = c.item as EntityId | undefined;
 
+  const resource = c.need as ItemType | undefined;
+  const making = c.making as ItemType | undefined;
   const crime = k.kind === 'event' && isCrime(c.type as string, c.intent as string | undefined);
   const severity = crime ? crimeSeverity(c.type as string) : clamp(c.significance ?? 0.3);
   let weight = severity * 0.35;
@@ -133,6 +164,24 @@ export function appraiseClaim(world: World, p: Person, k: KnowledgeItem): Apprai
   const placeId = c.placeId as EntityId | undefined;
   if (placeId && (placeId === p.workId || placeId === p.homeId)) { add(0.15, 'at_my_place', `it happened at ${world.nameOf(placeId)}`); stake += 0.2; }
 
+  // ---- material stake: does this shortage reach MY trade? Read off world/supply.ts's public
+  // table of who makes what out of what — never off a private fact about anyone. A miller who
+  // hears the bakery has no flour is not a bystander; nor is the baker who hears the mill has no
+  // grain, because that is his flour a day from now.
+  if (resource) {
+    if (tradeNeeds(p.occupation, resource)) { add(0.3, 'livelihood', `I cannot work without ${resource} either`); stake += 0.4; }
+    if (tradeMakes(p.occupation, resource)) { add(0.22, 'supplier', `${resource} is what my trade puts out`); stake += 0.25; }
+  }
+  if (making && tradeNeeds(p.occupation, making)) { add(0.25, 'downstream', `${making} is what my own work runs on`); stake += 0.35; }
+
+  // ---- what I have separately concluded about this event (mind/inference.ts). A beating I never
+  // witnessed, done to somebody I barely knew, is a different matter to me once I believe it is
+  // the reason my own trade has stopped.
+  if (ctx?.materialStake) {
+    add(Math.min(0.4, ctx.materialStake * 0.5), 'materially_affected', ctx.reason ?? 'this is why my own living stopped');
+    stake += Math.min(0.5, ctx.materialStake);
+  }
+
   if (!roles.length) { roles.push('bystander'); reasons.push('it did not touch me'); }
 
   // ---- traits: an honest person weighs wrongdoing more; a cowardly one weighs danger more.
@@ -145,7 +194,7 @@ export function appraiseClaim(world: World, p: Person, k: KnowledgeItem): Apprai
   weight *= provenance * hopPenalty;
   if (k.hops > 0) reasons.push(`${k.hops === 1 ? 'second-hand' : `${k.hops} hops away`} (confidence ${k.confidence.toFixed(2)})`);
 
-  return { weight: clamp(weight), roles, reasons, stake: clamp(stake), kind, crime, subjectId, actorId, itemId };
+  return { weight: clamp(weight), roles, reasons, stake: clamp(stake), kind, crime, subjectId, actorId, itemId, resource, placeId };
 }
 
 /**
@@ -153,7 +202,7 @@ export function appraiseClaim(world: World, p: Person, k: KnowledgeItem): Apprai
  * me" to "what I now carry around about it". One table, six kinds, no per-event-type handlers.
  * Returned in priority order; `mind/concern.ts` turns them into real `Concern` records.
  */
-export interface ConcernProposal { kind: ConcernKind; subjectId?: EntityId; aboutId?: EntityId; itemId?: EntityId; intensity: number; reasons: string[]; }
+export interface ConcernProposal { kind: ConcernKind; subjectId?: EntityId; aboutId?: EntityId; itemId?: EntityId; resource?: ItemType; placeId?: EntityId; intensity: number; reasons: string[]; }
 
 export function proposeConcerns(world: World, p: Person, ap: Appraisal): ConcernProposal[] {
   const out: ConcernProposal[] = [];
@@ -164,7 +213,10 @@ export function proposeConcerns(world: World, p: Person, ap: Appraisal): Concern
   // WELFARE — someone I have reason to care about has come to harm, or has gone missing from
   // where they should be. Covers spouse, kin, friend, coworker, employer, and the pastoral /
   // healing occupations, through the same rule.
-  if ((ap.kind === 'harm' || ap.kind === 'grief' || ap.kind === 'disruption')
+  // Causal Society: `!ap.resource` keeps a MATERIAL disruption out of this rule. That the baker
+  // could not bake is not evidence that anything has befallen the baker, and reading it as such
+  // would have every stockout generate spurious worry about whoever happened to be on shift.
+  if ((ap.kind === 'harm' || ap.kind === 'grief' || (ap.kind === 'disruption' && !ap.resource))
     && ap.subjectId && ap.subjectId !== p.id
     && has('kin_of_subject', 'close_to_subject', 'coworker', 'employer', 'employee', 'neighbour', 'pastoral', 'healer')) {
     out.push({ kind: 'welfare', subjectId: ap.subjectId, aboutId: ap.actorId, intensity: w, reasons: ap.reasons.slice(0, 3) });
@@ -202,10 +254,30 @@ export function proposeConcerns(world: World, p: Person, ap: Appraisal): Concern
   if (ap.kind === 'obligation' && ap.subjectId === p.id && ap.actorId && ap.actorId !== p.id) {
     out.push({ kind: 'work', subjectId: ap.actorId, intensity: w * 0.7, reasons: ap.reasons.slice(0, 2) });
   }
-  // WORK — the work I depend on, or that depends on me, has been disturbed.
-  if ((ap.kind === 'disruption' || ap.kind === 'harm') && has('coworker', 'employer', 'employee') && ap.subjectId !== p.id) {
+  // WORK — the work I depend on, or that depends on me, has been disturbed. Same `!ap.resource`
+  // discipline as WELFARE above: a shortage is not short-handedness, and it has its own kind.
+  if (((ap.kind === 'disruption' && !ap.resource) || ap.kind === 'harm') && has('coworker', 'employer', 'employee') && ap.subjectId !== p.id) {
     out.push({ kind: 'work', subjectId: ap.subjectId, intensity: w * 0.85, reasons: ap.reasons.filter(r => /work|roof/i.test(r)).slice(0, 2) });
   }
-  void world;
+  // SUPPLY — the material I depend on is not to be had. Deliberately gated on a real STRUCTURAL
+  // stake rather than on merely having heard about it: the whole village learning that the mill
+  // is idle must not put the whole village to work on flour. Whoever the shortage actually
+  // reaches — the one it stopped, the ones who work there, the trade that needs it, the trade
+  // that should have supplied it — is exactly who ends up carrying it.
+  if (ap.kind === 'disruption' && ap.resource
+    && has('victim', 'livelihood', 'downstream', 'supplier', 'coworker', 'employer', 'employee', 'at_my_place')) {
+    // A supply worry's reasons must be about the MATERIAL. The appraisal's own reason list is
+    // ordered by how the weight was arrived at, and for a colleague's stoppage that leads with
+    // the colleague ("Mara is my child") — true, and a completely misleading account of why this
+    // person is worried about flour. So the material fact is stated first, and only the reasons
+    // that actually bear on it are kept after it.
+    const where = ap.placeId ? ` at ${world.nameOf(ap.placeId)}` : '';
+    const material = new RegExp(`\\b${ap.resource}\\b`);
+    out.push({
+      kind: 'supply', resource: ap.resource, placeId: ap.placeId, subjectId: ap.subjectId,
+      intensity: w,
+      reasons: [`there is no ${ap.resource}${where}`, ...ap.reasons.filter(r => material.test(r) || /happened at|work at/.test(r))].slice(0, 3),
+    });
+  }
   return out;
 }

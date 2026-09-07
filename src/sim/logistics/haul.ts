@@ -7,6 +7,7 @@ import { getPhysicalCapability } from '../core/attributes';
 import { createRequest, acceptRequest, completeRequest, failRequest } from '../core/requests';
 import { skillOf, practiceSkill } from '../core/skills';
 import { settleWholesale, wholesaleBuyerFor } from '../world/trade';
+import { adjustRel } from '../mind/relationships';
 
 /**
  * Generalized canonical hauling (v0.3 Living World I, Priority 2 & 4).
@@ -256,6 +257,27 @@ export function depositHaulCargo(world: World, task: HaulTask, person: Person): 
     summary: `${person.name} delivered ${n} ${task.resource} to ${world.nameOf(task.destPlaceId)}`,
   });
   addPlaceStock(world, task.resource, n, task.destPlaceId, owner, ev.id, 'delivered');
+  // Causal Society (relationships must follow from what people actually do for each other).
+  // Repeated cooperation was the one ordinary, everyday relationship input the simulation had no
+  // path for at all: two people could spend a month carrying each other's grain and end it as
+  // exact strangers, because nothing but violence, gifts and conversation could move a
+  // relationship. A delivery is a real service rendered to a real person, and the person it was
+  // rendered TO is the one whose regard should move.
+  //
+  // Gated on the requester actually BEING there to see it land — the same epistemic discipline as
+  // everywhere else; a delivery made to an empty mill is still a delivery, and the miller who
+  // was not there to see it owes the hauler nothing they know about. Small and quiet on purpose:
+  // one trip is a small thing, and it is the accumulation over many that is meant to add up to
+  // a person you have come to rely on.
+  const requester = task.requesterId ? world.person(task.requesterId) : undefined;
+  if (requester && requester.alive && !requester.controlled && requester.id !== person.id) {
+    const rb = world.primaryBody(requester.id);
+    const here = rb ? world.placeAt(rb.pos)?.id : undefined;
+    if (here === task.destPlaceId) {
+      adjustRel(world, requester, person.id, { trust: 0.03, affection: 0.02, familiarity: 0.04, respect: 0.015 },
+        `carried ${task.resource} to ${world.nameOf(task.destPlaceId)} for me`, ev.id, true);
+    }
+  }
   // v0.7 §A: a real wholesale sale, not just a physical move — the receiving side's operator
   // pays the producer for what just arrived (world/trade.ts). A no-op for destinations that
   // aren't wholesale-eligible (food-chain retail deliveries like bread->stall_bread stay exactly

@@ -1,4 +1,4 @@
-import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, KnowledgeItem, Creature, Place, Anchor, ConflictIntent, Conflict, ConflictCause } from '../core/types';
+import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, ItemType, KnowledgeItem, Creature, Place, Anchor, ConflictIntent, Conflict, ConflictCause } from '../core/types';
 import { World } from '../core/world';
 import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRelationships } from './relationships';
 import { maintainConflicts, beginConflict, recordConflictBlow, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
@@ -36,6 +36,9 @@ import { appraiseClaim } from '../social/appraisal';
 import { formConcerns, maintainConcerns, activeConcerns, concernActionable, noteConcernActedOn } from './concern';
 import { selectTopic, type Topic } from './conversation';
 import { noticeAbsences } from '../social/absence';
+import { noteWorkBlocked, clearShortfall, shortfallKey } from '../world/shortfall';
+import { drawInferences } from './inference';
+import type { TransformResult } from '../world/metabolism';
 import { woundSeverity, SERIOUS_WOUND } from '../core/attributes';
 // v0.10 Motivated Lives — persistent purposes (mind/pursuit.ts) and social stakes with
 // provenance (social/obligation.ts). Both are read through ONE combined behavioural bridge
@@ -49,6 +52,20 @@ import { formObligations, forgivenessFor, maintainObligations, noteBenefitEvent,
 import { takePortionInHand } from '../world/metabolism';
 
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+
+/**
+ * Causal Society — how much of a whole kindness one event of each type is.
+ *
+ * All of these are discrete acts EXCEPT tending, which is the same act repeated for as long as
+ * somebody is hurt: a single episode of care emits a stream of `heal` events. Measured on a
+ * 30-day undisturbed run at seed 918271 before this weighting existed — a father tending his
+ * daughter took his wife's and his daughter's trust AND affection toward him to a saturated
+ * 1.00 inside a day, purely by repetition. Tending is not less kind than a gift; it is just not
+ * a fresh kindness every few seconds.
+ */
+const KINDNESS_WEIGHT: Record<string, number> = {
+  gift: 1, returned_item: 1, debt_paid: 1, apology: 1, heal: 0.3,
+};
 const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
 /** v0.2.3: world-time a pursuer waits before re-targeting a quarry it just failed to physically
  * reach. Long enough that the two are likely no longer in perception range of each other; short
@@ -80,7 +97,7 @@ const EMPTY_PERSONS: readonly Person[] = [];
  *  - strategic upkeep (needs, moods, weather) runs once per world minute
  */
 export class Simulation {
-  perceptionAccum = 0; strategicAccum = 0; compactAccum = 0; socialAccum = 0; onSpeech: ((p: Person, text: string) => void) | null = null; onHit: ((b: Body, pos: Vec3) => void) | null = null;
+  perceptionAccum = 0; strategicAccum = 0; compactAccum = 0; socialAccum = 0; inferenceAccum = 0; onSpeech: ((p: Person, text: string) => void) | null = null; onHit: ((b: Body, pos: Vec3) => void) | null = null;
   /** Coarse per-subsystem wall-clock accumulator (v0.2.1 Priority 3: "create benchmark
    * instrumentation so the headless report includes coarse timing information for major
    * subsystems where practical"). Null (the default, used by the browser client and every
@@ -220,7 +237,17 @@ export class Simulation {
     const claim = eventClaim(w, e, saw);
     const claimSummary = describeClaim(w, { kind: 'event', claim } as KnowledgeItem);
     const perc = w.emit('perceived', { actor: p.id, target: saw ? claim.actor : undefined, causes: [e.id], significance: e.significance * 0.5, data: { how, eventType: e.type, eventId: e.id, actorKnown: !!claim.actor }, summary: `${p.name} ${how} ${claimSummary}` });
-    const k = learn(w, p, { key: `ev:${e.id}`, kind: 'event', claim, confidence: saw ? 1 : 0.6, source: { type: saw ? 'witnessed' : 'heard', viaEvent: perc.id }, cause: perc.id, summary: claimSummary });
+    // Causal Society: most events are keyed by the event, because each one is a separate thing
+    // that happened. A stoppage is not: "there is no flour at the bakery" is a STANDING STATE, and
+    // it must land in the same slot however it was come by, or the village ends up holding one
+    // belief per re-notice — none of which merge, each of which is fresh news to be passed on to
+    // everyone all over again. Measured directly on a 30-day seed-918271 run before this: four
+    // separate beliefs about the one continuing bakery shortage, told around the whole village
+    // four times over, and four separate copies of the same conclusion drawn from them.
+    const key = claim.type === 'work_blocked' && claim.placeId && claim.need
+      ? shortfallKey(claim.placeId as EntityId, claim.need as ItemType)
+      : `ev:${e.id}`;
+    const k = learn(w, p, { key, kind: 'event', claim, confidence: saw ? 1 : 0.6, source: { type: saw ? 'witnessed' : 'heard', viaEvent: perc.id }, cause: perc.id, summary: claimSummary });
     const isVictim = claim.target === p.id;
     const victimClose = claim.target ? isClose(p, claim.target) : false;
     // v0.9 §A: how much this event matters to THIS person is now a real appraisal over their own
@@ -278,8 +305,26 @@ export class Simulation {
       p.mind.alarm = 1; p.mind.attention = actor ?? null;
       const line = this.reactionLine(p, claim.type, actorP, claim.target, isVictim, victimClose);
       if (line) this.say(p, line);
-    } else if (e.type === 'gift' || e.type === 'returned_item' || e.type === 'apology' || e.type === 'debt_paid') {
-      if (actor) adjustRel(w, p, actor, { trust: 0.1 * (isVictim ? 3 : 1), affection: 0.1 * (isVictim ? 3 : 1), respect: 0.05 }, `saw ${e.type}`, cause);
+    } else if (e.type === 'gift' || e.type === 'returned_item' || e.type === 'apology' || e.type === 'debt_paid' || e.type === 'heal') {
+      // Causal Society. Kindness was the half of the ledger v0.9's appraisal never reached: harm
+      // moved a relationship in proportion to what the event MEANT to this person, help moved it
+      // by a flat +0.1 for everybody. So watching a stranger hand a coin to a stranger changed a
+      // bystander's regard exactly as much as watching someone tend their own child — which is
+      // the "every witness reacts identically" failure the milestone names.
+      //
+      // Two terms now, both read off this person's own relationships. The same `personal` factor
+      // the harm branch uses, and — with no counterpart on the harm side — how much I care about
+      // the person who was HELPED. A kindness done to someone dear to me is a kindness done to
+      // me, and that is a real and ordinary asymmetry between witnesses.
+      if (actor && actor !== p.id) {
+        const beneficiary = claim.target as EntityId | undefined;
+        const forSomeoneDear = beneficiary && beneficiary !== p.id
+          ? Math.max(0, disposition(p, beneficiary)) + (isClose(p, beneficiary) ? 0.5 : 0)
+          : 0;
+        const warmth = clamp((isVictim ? 3 : 1 + forSomeoneDear) * personal * (KINDNESS_WEIGHT[e.type] ?? 1), 0, 3);
+        adjustRel(w, p, actor, { trust: 0.1 * warmth, affection: 0.1 * warmth, respect: 0.05 * warmth },
+          `${saw ? 'saw' : 'heard of'} ${e.type}${beneficiary && beneficiary !== p.id ? ` done for ${w.nameOf(beneficiary)}` : ''}${forSomeoneDear > 0.2 ? ' — someone I care about' : ''}`, cause);
+      }
       if (isVictim) p.emotions.joy = clamp(p.emotions.joy + 0.3);
     } else if (e.type === 'death') { p.emotions.sadness = clamp(p.emotions.sadness + (victimClose ? 0.7 : 0.2)); p.mind.alarm = 0.6; }
     void k;
@@ -311,7 +356,7 @@ export class Simulation {
     // carry his flour, he stood by me" expressible without a special case.
     const G = (type: GoalType, utility: number, reasons: string[], o: Partial<Goal> = {}) => {
       const key = `${type}:${o.targetEntity ?? o.targetPlace ?? ''}`;
-      const boost = motivationBoost(p, type, o.targetEntity ?? o.targetPlace, o.data?.beneficiary as EntityId | undefined);
+      const boost = motivationBoost(p, type, o.targetEntity ?? o.targetPlace, o.data?.beneficiary as EntityId | undefined, o.data?.resource as ItemType | undefined);
       const data = boost.pursuitId && !o.data?.pursuitId ? { ...(o.data ?? {}), pursuitId: boost.pursuitId } : o.data;
       cands.push({ type, utility: boost.bonus ? clamp(utility + boost.bonus) : utility, reasons: boost.bonus ? [...reasons, ...boost.reasons] : reasons, createdAt: now, key, ...o, data });
     };
@@ -767,9 +812,12 @@ export class Simulation {
         const haul = pickHaulTask(w, p, pos);
         if (haul) {
           const t = haul.task;
+          // Causal Society: `data.resource` is how a haul candidate declares WHAT it would carry,
+          // so a supply worry can lift the haul that answers it and leave the rest of the board
+          // alone — the material counterpart of `data.beneficiary` declaring whom a haul is for.
           const mine = t.claimantId === p.id;
           const src = w.place(t.sourcePlaceId);
-          G('haul', clamp(((mine ? 0.68 : 0.42) + haul.score * 0.4) * laborCapacity * incentive), [`${t.resource} is needed at ${w.nameOf(t.destPlaceId)}`, t.reason, laborCapacity < 0.6 ? `but I am spent (capacity ${laborCapacity.toFixed(2)})` : '', incentive > 1 ? `and I could use the silver` : incentive < 1 ? `though I am not short of coin` : ''], { targetPlace: src ? t.sourcePlaceId : undefined, targetPos: src?.inside, data: { taskId: t.id, beneficiary: t.requesterId ?? undefined } });
+          G('haul', clamp(((mine ? 0.68 : 0.42) + haul.score * 0.4) * laborCapacity * incentive), [`${t.resource} is needed at ${w.nameOf(t.destPlaceId)}`, t.reason, laborCapacity < 0.6 ? `but I am spent (capacity ${laborCapacity.toFixed(2)})` : '', incentive > 1 ? `and I could use the silver` : incentive < 1 ? `though I am not short of coin` : ''], { targetPlace: src ? t.sourcePlaceId : undefined, targetPos: src?.inside, data: { taskId: t.id, beneficiary: t.requesterId ?? undefined, resource: t.resource } });
         }
       }
       // Chop: a woodcutter at the clearing fells a standing tree.
@@ -1411,19 +1459,29 @@ export class Simulation {
             // demand-aware Request pattern v0.5 already gave baking — a second production/work
             // domain made emergent rather than "every batch, regardless of need" (Constitution
             // v0.6 §VIII). world/production.ts's PRODUCTION_TARGETS now includes the mill.
+            // Causal Society: the batch result is no longer read for `.ok` alone. A batch that
+            // could not run for want of its input is a real thing that happened to a real person
+            // standing in a real place, and `noteWorkBlocked` is what turns it into a belief
+            // they hold (and everyone present can see) instead of a discarded return value.
+            // That was the exact point at which the economic chain stopped propagating: the
+            // physical stoppage was already correct, it just left no trace in any mind.
+            const runBatch = (placeId: string, input: ItemType, output: ItemType, run: () => TransformResult) => {
+              const req = claimedProductionRequest(w, placeId, output, p.id);
+              if (!req) return;
+              const result = run();
+              fulfillProductionRequest(w, req, p, result.ok);
+              if (result.ok) clearShortfall(w, p, placeId, input);
+              else if (result.shortage) noteWorkBlocked(w, p, placeId, result.shortage, output);
+            };
             if (p.occupation === 'miller' && t === 'mill') {
-              const millId = w.placeAt(body.pos)!.id;
-              const req = claimedProductionRequest(w, millId, 'flour', p.id);
-              if (req) fulfillProductionRequest(w, req, p, mill(w, p).ok);
+              runBatch(w.placeAt(body.pos)!.id, 'grain', 'flour', () => mill(w, p));
             }
             // v0.5 §IV: baking is now demand-driven through the shared Request lifecycle rather
             // than an unconditional per-batch call — a baker only bakes (and is only paid) when
             // the bakery has genuinely raised a production request (world/production.ts's
             // `generateProductionNeeds`, upkeep-driven from real stock vs. desired reserve).
             else if (baking) {
-              const bakeryId = w.placeAt(body.pos)!.id;
-              const req = claimedProductionRequest(w, bakeryId, 'bread', p.id);
-              if (req) fulfillProductionRequest(w, req, p, bake(w, p).ok);
+              runBatch(w.placeAt(body.pos)!.id, 'flour', 'bread', () => bake(w, p));
             }
             else if (sawing) { saw(w, p); wearTool(w, capabilityFor(w, p, 'saw', w.placeAt(body.pos)?.id).tool, batchInterval / 3600); } // v0.3: log → plank
             // v0.6 §II: the innkeeper keeps the tavern's larder stocked while working — see
@@ -1443,8 +1501,7 @@ export class Simulation {
             else if (p.occupation === 'cook' && t === 'tavern') {
               const tavernId = w.placeAt(body.pos)!.id;
               tendTavernFire(w, p);
-              const req = claimedProductionRequest(w, tavernId, 'stew', p.id);
-              if (req) fulfillProductionRequest(w, req, p, cook(w, p).ok);
+              runBatch(tavernId, 'meat', 'stew', () => cook(w, p));
             }
           }
         }
@@ -2474,6 +2531,14 @@ export class Simulation {
       // v0.10: computed once for the whole pass rather than rescanned per person — see
       // `recentlyFailedRequests`.
       const failedWork = recentlyFailedRequests(w);
+      // Causal Society: drawing conclusions runs on an HOURLY cadence, not this block's ten-minute
+      // one. Its first step is a full scan of a mind's knowledge map (to find what it currently
+      // believes is short), which is the most expensive thing in this pass, and a conclusion
+      // stands for a day once drawn (`REINFER_SECONDS`) — so running it six times an hour buys
+      // nothing and costs six times as much.
+      this.inferenceAccum += sh;
+      const drawNow = this.inferenceAccum >= 1;
+      if (drawNow) this.inferenceAccum = 0;
       for (const p of w.persons()) {
         if (!p.alive) continue;
         const unresolvedHarm = new Set<string>();
@@ -2509,6 +2574,10 @@ export class Simulation {
         // and its first step is a `placeAt` scan over every Place — running that for every person
         // every simulated minute was a measurable, entirely avoidable cost.
         noticeAbsences(w, p, w.clock.hourF);
+        // Causal Society: and, from what they now believe, work out WHY (mind/inference.ts).
+        // Placed immediately after `noticeAbsences` because an absence is one of its premises,
+        // so a conclusion can be drawn in the same pass the gap was noticed in.
+        if (drawNow) drawInferences(w, p);
       }
       this.accum('strategic.conflict', tc);
       // v0.2.4 world metabolism: weather → soil moisture → crop growth. Deterministic, emits

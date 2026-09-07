@@ -1,7 +1,7 @@
 import { World } from '../../sim/core/world';
 import { Simulation } from '../../sim/mind/agent';
 import { generateVillage } from '../../sim/world/village';
-import type { EntityId, Person, WorldEvent } from '../../sim/core/types';
+import type { EntityId, Person, Vec3, WorldEvent } from '../../sim/core/types';
 import { SECONDS_PER_HOUR } from '../../sim/core/time';
 import { appraiseClaim } from '../../sim/social/appraisal';
 import { activeConcerns, describeConcern } from '../../sim/mind/concern';
@@ -114,6 +114,32 @@ function pickAggressor(world: World, notId: EntityId): Person | undefined {
     .sort((a, b) => (b.traits.aggression - a.traits.aggression) || a.id.localeCompare(b.id))[0];
 }
 
+/** How long the theft trigger will wait for somebody to be in a position to see it. Half a
+ * working day: long enough that ordinary schedules bring someone past a workplace, short enough
+ * that the trace still observes the aftermath it was asked to observe. */
+const ONLOOKER_WAIT_SECONDS = 6 * SECONDS_PER_HOUR;
+const ONLOOKER_STEP_SECONDS = 15 * 60;
+/** Somebody who is neither party, close enough to `spot` and with a clear line to it. Uses the
+ * same `grid.lineOfSight` the simulation's own perception does, so "could see it" here means
+ * what it means everywhere else. */
+function onlookerAt(world: World, spot: Vec3, exclude: EntityId[]): Person | undefined {
+  const eye = { x: spot.x, y: spot.y + 1, z: spot.z };
+  for (const p of world.persons()) {
+    if (!p.alive || p.controlled || exclude.includes(p.id)) continue;
+    const b = world.primaryBody(p.id);
+    if (!b || !b.present || b.pose === 'sleep') continue;
+    if (Math.hypot(b.pos.x - spot.x, b.pos.z - spot.z) > 14) continue;
+    if (world.grid.lineOfSight(eye, { x: b.pos.x, y: b.pos.y + 1.2, z: b.pos.z }, 32)) return p;
+  }
+  return undefined;
+}
+function waitForOnlooker(world: World, sim: Simulation, spot: Vec3, exclude: EntityId[]): void {
+  const until = world.now + ONLOOKER_WAIT_SECONDS;
+  while (world.now < until && !onlookerAt(world, spot, exclude)) {
+    advance(world, sim, ONLOOKER_STEP_SECONDS);
+  }
+}
+
 function placeBeside(world: World, mover: Person, anchor: Person): void {
   const ab = world.primaryBody(anchor.id); const mb = world.primaryBody(mover.id);
   if (!ab || !mb) return;
@@ -191,6 +217,22 @@ export function runSocialTrace(spec: TraceSpec): SocialTrace {
     const owned = world.items().find(i => i.ownerId === subject.id && !i.holderId && i.pos)
       ?? makeItem(world, 'ring', `${subject.name}'s ring`, { owner: subject.id, pos: { ...spot }, placeId: workPlace?.id });
     owned.pos = { ...spot }; owned.placeId = workPlace?.id ?? null;
+    // ...and the SECOND coin flip, one step further along, which the note above does not cover:
+    // whether anybody could see the taking. That is what decides whether this trace has more than
+    // one standpoint to report at all, and it is decided by where everyone happens to be standing.
+    // Measured at seed 918271: the theft was witnessed by a passing child and reached 25 people;
+    // an unrelated perturbation elsewhere in the simulation moved that child, the theft went
+    // unwitnessed, and the trace was left with a single speaker and nothing to compare — the
+    // "different people describe it differently" check failing not because anything was broken
+    // but because nobody had been looking.
+    //
+    // So this waits, bounded, for somebody who is neither party to be within sight of the spot.
+    // It is a PRECONDITION in exactly the sense the item placement above is: it establishes that
+    // the information CAN exist, and scripts nothing whatever about who ends up believing what,
+    // how confidently, or what any of them do about it. If nobody turns up inside the window the
+    // theft happens anyway, unwitnessed, and the owner's own "my property is gone" inference is
+    // still the honest path it always was.
+    waitForOnlooker(world, sim, spot, [actor.id, subject.id]);
     placeBeside(world, actor, subject);
     triggerEvent = sim.takeItem(actor, owned, 'theft', subject.id);
     triggerText = `${actor.name} stole ${owned.name} from ${subject.name} at ${workPlace?.name ?? 'their place'}`;
