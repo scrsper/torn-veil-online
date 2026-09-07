@@ -145,9 +145,9 @@ def lantern(label, position, material):
     light.set_actor_label(label + ' light')
     light.tags = [TAG]
     component = light.light_component
-    component.set_editor_property('intensity', 1400.0)
-    component.set_editor_property('attenuation_radius', 900.0)
-    component.set_editor_property('light_color', unreal.Color(255, 176, 96))
+    component.set_editor_property('intensity', 250.0)
+    component.set_editor_property('attenuation_radius', 500.0)
+    component.set_editor_property('light_color', unreal.Color(r=255, g=176, b=96))
     component.set_editor_property('source_radius', 12.0)
     component.set_editor_property('cast_shadows', True)
     component.set_editor_property('volumetric_scattering_intensity', 2.4)
@@ -289,15 +289,33 @@ def frange(start, stop, step):
 
 # ------------------------------------------------------------------ light
 def light_the_corner(materials):
-    """Late afternoon, low and warm, with enough fog for the eaves to have depth under them."""
+    """Late afternoon, low and warm, with enough fog for the eaves to have depth under them.
+
+    These numbers are physical units, and the first version of this file was written in units
+    that do not exist here. Getting them wrong does not fail -- it renders, wrongly, which is
+    worse. Three things are worth knowing before changing any of them:
+
+    * A DirectionalLight's intensity is LUX. 9000 is a low, late-afternoon sun. The 5.5 this
+      once had is a moonlit reading, which is why the lanterns -- point lights in CANDELAS,
+      at 1400 -- were about 250x the sun and flooded every surface within their radius to a
+      flat cream, including a roof whose albedo is 0.022.
+    * `r.DefaultFeature.AutoExposure.ExtendDefaultLuminanceRange=True` in DefaultEngine.ini
+      makes the post-process auto-exposure Min/Max EV100 rather than a raw multiplier. 10..14
+      is daylight. The 0.6..2.2 this once had is near-darkness EV, so the camera compensated
+      by making everything enormously bright.
+    * `unreal.Color` is FColor, whose fields are declared B, G, R, A -- so positional
+      `unreal.Color(255, 226, 188)` sets BLUE to 255 and renders a cold blue sun. Always pass
+      it by keyword, as below. `unreal.LinearColor` is the ordinary R, G, B, A and is fine
+      positionally, which is why the materials were right while the lights were not.
+    """
     for actor in actors.get_all_level_actors():
         if isinstance(actor, unreal.DirectionalLight):
-            actor.light_component.set_editor_property('intensity', 5.5)
-            actor.light_component.set_editor_property('light_color', unreal.Color(255, 226, 188))
+            actor.light_component.set_editor_property('intensity', 9000.0)
+            actor.light_component.set_editor_property('light_color', unreal.Color(r=255, g=226, b=188))
             actor.set_actor_rotation(unreal.Rotator(0, -14, -128), False)
             actor.light_component.set_editor_property('volumetric_scattering_intensity', 2.0)
         elif isinstance(actor, unreal.SkyLight):
-            actor.light_component.set_editor_property('intensity', 1.2)
+            actor.light_component.set_editor_property('intensity', 0.55)
             actor.light_component.set_editor_property('real_time_capture', True)
 
     fog = actors.spawn_actor_from_class(unreal.ExponentialHeightFog, unreal.Vector(0, 0, 0))
@@ -315,9 +333,9 @@ def light_the_corner(materials):
     post.set_editor_property('unbound', True)
     settings = post.get_editor_property('settings')
     settings.set_editor_property('override_auto_exposure_min_brightness', True)
-    settings.set_editor_property('auto_exposure_min_brightness', 0.6)
+    settings.set_editor_property('auto_exposure_min_brightness', 10.0)
     settings.set_editor_property('override_auto_exposure_max_brightness', True)
-    settings.set_editor_property('auto_exposure_max_brightness', 2.2)
+    settings.set_editor_property('auto_exposure_max_brightness', 14.0)
     settings.set_editor_property('override_bloom_intensity', True)
     settings.set_editor_property('bloom_intensity', 0.55)
     post.set_editor_property('settings', settings)
