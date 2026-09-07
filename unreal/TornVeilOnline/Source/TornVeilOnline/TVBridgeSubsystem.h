@@ -17,12 +17,21 @@ public:
     void SendIntent(const FString& Type, const FString& TargetBody = TEXT(""));
     void SendHandIntent(bool bConsume);
     void SendDropIntent();
+    /** Opens/advances a TypeScript-owned dialogue session.  Native code receives rendered
+     * strings and opaque option ids only; it never recreates an NPC's knowledge or choices. */
+    void Interact();
+    void CloseDialogue();
+    void ChooseDialogueOption(int32 Index);
     UPROPERTY(BlueprintReadOnly) FString PlayerVitals;
     UPROPERTY(BlueprintReadOnly) FString CarriedSummary;
     UPROPERTY(BlueprintReadOnly) FString NearbyPrompt;
     UPROPERTY(BlueprintReadOnly) FString ConsumePrompt;
     UPROPERTY(BlueprintReadOnly) FString DropPrompt;
     FString NearbyInteraction, ConsumeInteraction, DropInteraction;
+    FString TalkTargetBody;
+    bool bDialogueOpen = false;
+    FString DialogueSpeaker, DialogueOccupation;
+    TArray<FString> DialogueLines, DialogueOptionIds, DialogueOptionLabels;
     void CycleTarget();
     ATVCharacter* Selected() const;
     FString Status = TEXT("Connecting to simulation..."), LastResult, LastEvent, PlayerId;

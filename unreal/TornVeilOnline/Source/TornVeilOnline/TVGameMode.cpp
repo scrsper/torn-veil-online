@@ -42,4 +42,17 @@ void ATVHUD::DrawHUD() {
     // that swung, not inside a target panel that may not be open.
     if (!B->LastResult.IsEmpty()) DrawText(B->LastResult, FLinearColor(0.95f, 0.5f, 0.4f), Canvas->SizeX * 0.5f - 60, Canvas->SizeY * 0.5f + 60);
     DrawText(B->LastEvent, FLinearColor(0.9f, 0.85f, 0.7f), 30, Canvas->SizeY - 45);
+    if (B->bDialogueOpen) {
+        const float X = Canvas->SizeX * 0.17f, W = Canvas->SizeX * 0.66f, Y = Canvas->SizeY * 0.18f;
+        const float H = 190.f + B->DialogueLines.Num() * 28.f + B->DialogueOptionLabels.Num() * 25.f;
+        DrawRect(FLinearColor(0.018f, 0.014f, 0.025f, 0.96f), X, Y, W, H);
+        DrawText(B->DialogueSpeaker + TEXT("  /  ") + B->DialogueOccupation, FLinearColor(1.f, 0.78f, 0.42f), X + 26, Y + 24, nullptr, 1.35f);
+        float Cursor = Y + 64.f;
+        for (const FString& Line : B->DialogueLines) { DrawText(Line.Left(116), FLinearColor(0.94f, 0.91f, 0.84f), X + 26, Cursor); Cursor += 28.f; }
+        Cursor += 12.f;
+        for (int32 Index = 0; Index < B->DialogueOptionLabels.Num(); ++Index) {
+            DrawText(FString::Printf(TEXT("%d  %s"), Index + 1, *B->DialogueOptionLabels[Index].Left(96)), FLinearColor(0.72f, 0.83f, 0.95f), X + 26, Cursor); Cursor += 25.f;
+        }
+        DrawText(TEXT("1-9 choose  |  E chooses first  |  Esc closes"), FLinearColor(0.55f, 0.61f, 0.7f), X + 26, Y + H - 30.f);
+    }
 }

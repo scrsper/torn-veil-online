@@ -7,6 +7,8 @@ class USpringArmComponent;
 class UCameraComponent;
 class UTextRenderComponent;
 class UAnimationAsset;
+class UStaticMeshComponent;
+class UMaterialInstanceDynamic;
 
 /** One rendered manifestation. No damage, cognition, schedule or inventory authority. */
 UCLASS()
@@ -40,6 +42,16 @@ public:
     void Consume();
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
     void Drop();
+    UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input") void Dialogue1();
+    UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input") void Dialogue2();
+    UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input") void Dialogue3();
+    UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input") void Dialogue4();
+    UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input") void Dialogue5();
+    UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input") void Dialogue6();
+    UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input") void Dialogue7();
+    UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input") void Dialogue8();
+    UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input") void Dialogue9();
+    UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input") void CloseDialogue();
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
     void Attack();
     /** The F6 handler. Reflected for the same reason: a developer mode that cannot be entered
@@ -50,13 +62,22 @@ public:
     UPROPERTY(VisibleAnywhere) TObjectPtr<UCameraComponent> Camera;
     UPROPERTY(VisibleAnywhere) TObjectPtr<UTextRenderComponent> Nameplate;
 private:
+    /** Renderer-owned attachments. Their palette and shape are derived from the canonical
+     * appearance data in Project(); they are never a source of age, identity or occupation. */
+    UPROPERTY() TObjectPtr<UStaticMeshComponent> HairProxy;
+    UPROPERTY() TObjectPtr<UStaticMeshComponent> GarmentProxy;
+    UPROPERTY() TObjectPtr<UStaticMeshComponent> OccupationProp;
+    UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> SkinMaterial;
+    UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> ClothMaterial;
+    UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> HairMaterial;
+    UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> PropMaterial;
     UPROPERTY() TObjectPtr<UAnimationAsset> Locomotion;
     UPROPERTY() TObjectPtr<UAnimationAsset> AttackAnimation;
     UPROPERTY() TObjectPtr<UAnimationAsset> HitAnimation;
     UPROPERTY() TObjectPtr<UAnimationAsset> DownAnimation;
     UPROPERTY() TObjectPtr<UAnimationAsset> CurrentAnimation;
     FVector TargetPosition = FVector::ZeroVector, PreviousPosition = FVector::ZeroVector, CanonicalVelocity = FVector::ZeroVector;
-    float TargetYaw = 0, SnapshotAge = 0, ZoomTarget = 450, ForwardAxis = 0, RightAxis = 0;
+    float TargetYaw = 0, SnapshotAge = 0, ZoomTarget = 340, ForwardAxis = 0, RightAxis = 0;
     /** Canonical walk speed (Unreal units/s) and sprint multiplier, both taken from the snapshot. */
     float CanonicalSpeed = 340, CanonicalSprintMultiplier = 1.55f;
     /** Canonical timestamps of this body's last swing and last flinch. A swing lasts 0.45 s and a
@@ -73,6 +94,7 @@ private:
     void Turn(float Value); void Look(float Value); void Zoom(float Value);
     void SprintOn(); void SprintOff();
     void Animate(float Speed);
+    void ApplyAppearance(const TSharedPtr<class FJsonObject>& Data);
     /** A recognised class is a reading of someone's life, not a badge they wear. A passer-by cannot
      *  see it, so it belongs to the developer inspector rather than to every nameplate in the vale.
      *  -1 means "never applied", so the first call always writes. */
