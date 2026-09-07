@@ -27,7 +27,7 @@ const NATIVE_CLIENT_HEADERS = { 'X-Torn-Veil-Client': 'unreal' };
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 type Row = Record<string, any>;
-type Snapshot = { type: 'snapshot'; tick: number; ack: number; playerId: string; bodies: Row[]; events: Row[] };
+type Snapshot = { type: 'snapshot'; tick: number; ack: number; playerId: string; bodies: Row[]; events: Row[]; interactions: Row[] };
 type Scene = { type: 'scene'; seed: number; origin: { x: number; y: number; z: number }; unitsPerMetre: number; places: Row[]; resources: Row[] };
 
 const checks: { name: string; ok: boolean; detail: string }[] = [];
@@ -269,6 +269,28 @@ async function main(): Promise<void> {
       check('the canonical recovery expires (the next swing is no longer on cooldown)', again !== 'cooldown',
         `result "${again}" (striker pose ${self2.pose}, incapacitated ${self2.incapacitated})`);
     }
+
+    // The same opaque action ID the Unreal E/C handlers submit; no nutrition crosses the wire.
+    const handState = snapshots[snapshots.length - 1];
+    const foodAction = handState.interactions.find(a => a.slot === 'consume');
+    check('canonical HUD values and interaction labels cross the wire',
+      typeof handState.bodies.find(b => b.entityId === playerId)!.wealth === 'number'
+      && !!foodAction?.label);
+    if (foodAction) {
+      const beforeFood = handState.bodies.find(b => b.entityId === playerId)!;
+      const foodId = foodAction.id.slice(foodAction.id.indexOf(':') + 1);
+      const qty = beforeFood.inventory.find((i: Row) => i.id === foodId).quantity;
+      const result = await intentResult(socket, results, ++sequence, { type: 'interact', interactionId: foodAction.id });
+      await sleep(200);
+      const afterFood = snapshots[snapshots.length - 1].bodies.find(b => b.entityId === playerId)!;
+      check('a carried-food interaction uses canonical consumption over the real protocol', result === 'accepted'
+        && (afterFood.inventory.find((i: Row) => i.id === foodId)?.quantity ?? 0) === qty - 1
+        && afterFood.needs.hunger < beforeFood.needs.hunger);
+      check('replaying an interaction packet is refused',
+        await intentResult(socket, results, sequence, { type: 'interact', interactionId: foodAction.id }) === 'invalid_sequence_or_version');
+    }
+    check('a fabricated interaction ID is refused',
+      await intentResult(socket, results, ++sequence, { type: 'interact', interactionId: 'grant:bread' }) === 'invalid_interaction');
 
     // ---------------------------------------------------------------- no runaway spawning
     const ids = snapshots.map(s => s.bodies.map(b => b.bodyId).sort().join('|'));

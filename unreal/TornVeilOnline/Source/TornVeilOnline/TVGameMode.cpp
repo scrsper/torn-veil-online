@@ -10,7 +10,15 @@ void ATVHUD::DrawHUD() {
     DrawRect(FLinearColor(0.015f, 0.02f, 0.035f, 0.85f), 20, 20, 660, 100);
     DrawText(TEXT("TORN VEIL  /  ASHFORD VALE"), FLinearColor(0.9f, 0.72f, 0.4f), 36, 30, nullptr, 1.5f);
     DrawText(B->SinceSnapshot < 0.5f ? B->Status : TEXT("Simulation disconnected - movement paused"), FLinearColor::White, 36, 65);
-    DrawText(TEXT("WASD move  |  Shift run  |  Mouse orbit  |  Wheel zoom  |  Tab target  |  LMB strike  |  E gather  |  F6 inspect"), FLinearColor(0.7f, 0.75f, 0.8f), 36, 90);
+    DrawText(TEXT("WASD move  |  Shift run  |  Mouse orbit  |  Wheel zoom  |  Tab target  |  LMB strike  |  E interact  |  C eat  |  F6 inspect"), FLinearColor(0.7f, 0.75f, 0.8f), 36, 90);
+    if (B->SinceSnapshot < 0.5f) {
+        DrawRect(FLinearColor(0.015f, 0.02f, 0.035f, 0.85f), 20, Canvas->SizeY - 150, 660, 85);
+        DrawText(B->PlayerVitals, FLinearColor::White, 36, Canvas->SizeY - 140);
+        DrawText(B->CarriedSummary, FLinearColor(0.9f, 0.85f, 0.7f), 36, Canvas->SizeY - 118);
+        const FString Prompt = (B->NearbyPrompt.IsEmpty() ? FString() : TEXT("E - ") + B->NearbyPrompt)
+            + (B->ConsumePrompt.IsEmpty() ? FString() : TEXT("    C - ") + B->ConsumePrompt);
+        DrawText(Prompt, FLinearColor(1, 0.8f, 0.45f), 36, Canvas->SizeY - 92);
+    }
     if (auto* T = B->Selected()) {
         // Occupation is what this person does for a living, and anyone in the vale can see it. A
         // recognised class is a reading of their capability and history that no passer-by could

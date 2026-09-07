@@ -54,7 +54,7 @@ appears as a missing SDK rather than as a missing link.
 
 Controls: WASD camera-relative movement, Shift run, mouse orbit, wheel smooth zoom,
 Tab select nearby canonical person, LMB (or X) a light melee strike, F6 developer inspector,
-E gather a nearby resource through the existing simulation action (when available).
+E performs the nearby canonical interaction; C consumes carried food.
 
 A strike is intent and nothing else. The client may name a body it can see; the simulation
 re-checks reach, facing and recovery against canonical state and resolves the blow through
@@ -197,3 +197,22 @@ everything and persisted none of it, so close the editor first or run the script
 `.ps1` files here must stay ASCII: Windows PowerShell 5.1 reads a BOM-less script as the system
 ANSI codepage, so a UTF-8 em dash in a string silently breaks the file's parse and the engine is
 never reached. PowerShell 7 reads it fine, which is how one got committed.
+
+## Playable life loop
+
+The lower HUD reads hunger, thirst, wealth and carried quantities from snapshots. E buys one
+unit of reachable merchandise or drinks at a reachable water source; C consumes carried food.
+The prompt and price come from canonical action derivation. An interaction packet contains only
+an opaque interaction ID and the ordinary protocol version/sequence. TypeScript re-derives the
+action and checks the item, seller, possession, reach and solid passage before calling the existing
+commerce or consumption path. Stock, payment, nutrition and ownership are never authored in C++.
+
+For PIE automation, Interact/Consume and Forward/Right are the reflected handlers bound to E/C
+and movement. Disable hardware input polling on the pawn while driving its axis handlers, then
+restore it afterward; otherwise the idle keyboard overwrites injected axis values. These handlers
+still submit ordinary intents. No direct bridge packet is needed to test the Unreal client.
+
+Phase 1 observed in PIE: 32 NPCs, purchase 50 -> 49 silver and bread 2 -> 3, consumption bread
+3 -> 2 with hunger reduced to zero, then a walk to the village well and thirst reduced to zero.
+The HUD and both prompts were also checked in captured PIE frames. Existing bakery art/collision
+and camera clipping remain a presentation follow-up.

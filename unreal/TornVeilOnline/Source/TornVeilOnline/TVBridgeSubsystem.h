@@ -15,6 +15,12 @@ public:
     virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UTVBridgeSubsystem, STATGROUP_Tickables); }
     virtual bool DoesSupportWorldType(EWorldType::Type Type) const override { return Type == EWorldType::Game || Type == EWorldType::PIE; }
     void SendIntent(const FString& Type, const FString& TargetBody = TEXT(""));
+    void SendHandIntent(bool bConsume);
+    UPROPERTY(BlueprintReadOnly) FString PlayerVitals;
+    UPROPERTY(BlueprintReadOnly) FString CarriedSummary;
+    UPROPERTY(BlueprintReadOnly) FString NearbyPrompt;
+    UPROPERTY(BlueprintReadOnly) FString ConsumePrompt;
+    FString NearbyInteraction, ConsumeInteraction;
     void CycleTarget();
     ATVCharacter* Selected() const;
     FString Status = TEXT("Connecting to simulation..."), LastResult, LastEvent, PlayerId;

@@ -151,9 +151,15 @@ export function eatAtHand(world: World, person: Person, atPlaceId: EntityId | nu
 /** Drink from a water source the person is standing at (a `well`-type Place — the village well
  * or the river bank). Returns false if there is no water source here. */
 export function drinkHere(world: World, person: Person, pos: Vec3): boolean {
-  const place = world.placeAt(pos);
-  const source = place?.type === 'well' ? place : world.places().find(p => p.type === 'well' && Math.hypot(p.inside.x - pos.x, p.inside.z - pos.z) <= 4);
+  const source = waterSourceAtHand(world, pos);
   if (!source) return false;
   drinkAt(world, person, source.id);
   return true;
+}
+
+/** Physical access to existing water places, shared by prompts and execution. */
+export function waterSourceAtHand(world: World, pos: Vec3): Place | undefined {
+  return world.places().find(p => p.type === 'well'
+    && Math.hypot(p.inside.x - pos.x, p.inside.y - pos.y, p.inside.z - pos.z) <= 4
+    && world.grid.lineOfPassage({ ...pos, y: pos.y + 1.2 }, { ...p.inside, y: p.inside.y + 1.2 }, 5.2));
 }

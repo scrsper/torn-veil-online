@@ -35,6 +35,10 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
     void SelectTarget();
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
+    void Interact();
+    UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
+    void Consume();
+    UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
     void Attack();
     /** The F6 handler. Reflected for the same reason: a developer mode that cannot be entered
      *  from a test is a developer mode nobody checks still works. */
@@ -58,8 +62,14 @@ private:
      * rather than the pose is what lets a second blow replay the montage. */
     float LastAttackAt = -99, LastHitAt = -99, PlayedAttackAt = -99, PlayedHitAt = -99;
     bool bSprint = false, bProjected = false;
-    void Forward(float Value); void Right(float Value); void Turn(float Value); void Look(float Value); void Zoom(float Value);
-    void SprintOn(); void SprintOff(); void Interact();
+public:
+    UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
+    void Forward(float Value);
+    UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
+    void Right(float Value);
+private:
+    void Turn(float Value); void Look(float Value); void Zoom(float Value);
+    void SprintOn(); void SprintOff();
     void Animate(float Speed);
     /** A recognised class is a reading of someone's life, not a badge they wear. A passer-by cannot
      *  see it, so it belongs to the developer inspector rather than to every nameplate in the vale.
