@@ -59,9 +59,24 @@ nothing is redistributed, and it runs on a bare UE 5.8 install. Swapping any of 
 real modular meshes later is a per-actor change, not a rewrite. Humanoids stay Epic's template
 skeleton; no procedural people are generated here or anywhere else.
 
-**Unverified.** This script was authored without an editor to run it in. Its Python parses and
-its geometry is derived rather than eyeballed, but nobody has yet seen the corner. Treat the
-first run as a review, not a result.
+**Seen now.** It has been run and looked at, and it took four fixes to get there. Three were
+units the engine does not check: `FColor` is declared B, G, R, A, so a positional
+`unreal.Color(255, 226, 188)` made both the sun and the paper lanterns cold blue; a
+DirectionalLight's intensity is lux and was set to 5.5, while the lanterns are candelas and were
+set to 1400, so the lanterns outshone the sun by about 250x and flooded a 0.022-albedo roof to
+flat cream; and `ExtendDefaultLuminanceRange=True` makes the post-process exposure clamp EV100
+rather than a multiplier, so 0.6..2.2 was near-darkness EV and the camera compensated by blowing
+out everything left. The fourth was `volumetric_fog`, which is not a property name --
+`enable_volumetric_fog` is -- and which aborted the script before it saved anything.
+
+None of those fail loudly. They render, wrongly. `light_the_corner`'s docstring now carries the
+reasoning so the constants are not mistaken for taste.
+
+What it looks like: the bakery reads as intended -- deep eaves with a real shadow line under
+them, dark timber posts on the ken grid with cream plaster between, the raised engawa, warm
+paper lanterns at the wall. Two things are still visibly wrong and were deliberately not chased:
+the roof reads warm brown rather than charcoal because the low sun tints it, and the integration
+floor is a featureless orange plane, so the corner sits in a desert rather than a village.
 
 The rest of the map is deliberately an integration floor, not settlement art. Canonical terrain and
 building collision still live in TypeScript; detailed visual/collision projection remains
@@ -108,14 +123,34 @@ packets are rejected, and that the projected body set never grows (no runaway sp
 This is the reproducible part of "press Play and look". It does not replace looking: meshes,
 animation, camera feel and lighting still need a human at the editor.
 
+And it does not replace looking in a second way, learned the hard way. This suite passed 33/33
+against a bridge the real client could not connect to at all. It opens its socket with the `ws`
+package while the client uses libwebsockets, and the bridge's admission test happened to turn on
+a header the two send differently — so the one client on the machine that the bridge would admit
+was the test's own. Where this file speaks *for* the client, it has to open the connection the
+way the client does; it now sends the same handshake header `TVBridgeSubsystem::Connect` sends.
+Treat "livecheck passes" as evidence about the protocol, never as evidence that Play works.
+
 ## Editor automation
 
-Two independent channels reach the editor, and this project used to have one of them silently
-misconfigured — see the note in `Config/DefaultEngine.ini`. The Remote Control settings lived
-under `WebRemoteControl.WebRemoteControlSettings`, which is not the class that owns them, so the
-web server started (making the endpoint reachable) while `bEnableRemotePythonExecution` was never
-read and every Python call over it was refused. They now live under the correct
-`[/Script/RemoteControl.RemoteControlSettings]`.
+Two independent channels reach the editor, and this project had one of them silently
+misconfigured for longer than anyone could tell — see `Config/DefaultRemoteControl.ini`, which
+now holds the settings and explains the trap at length.
+
+Briefly: `URemoteControlSettings` is `UCLASS(config = RemoteControl)` and lives in the
+`RemoteControlCommon` module, so it is read from `Config/DefaultRemoteControl.ini` under
+`[/Script/RemoteControlCommon.RemoteControlSettings]`. The settings were in `DefaultEngine.ini`,
+where no section name works at all. Both the original section and a previous attempt to correct
+it named the wrong module as well.
+
+The reason this survived two fixes is that it cannot be diagnosed from the endpoint.
+`bAutoStartWebServer` defaults to true, so `/remote/info` answers 200 and the channel looks
+healthy; `bRestrictServerAccess` also defaults to true, so calls are refused whether or not the
+section is read. A reachable server that refuses everything is what *both* the broken and the
+"fixed" configuration look like from outside. Three switches gate a Python call arriving as a
+console command and all three are required — see the ini.
+
+Level authoring should not depend on that channel at all, and this is why:
 
 Level authoring should not depend on that channel at all:
 
@@ -125,3 +160,10 @@ Level authoring should not depend on that channel at all:
 
 `UnrealEditor-Cmd.exe -run=pythonscript` loads the same project, plugins and `unreal` module
 headlessly and returns a real exit code.
+
+Two things worth knowing about that path. It cannot save a level the interactive editor has
+open — the save fails with a sharing violation and the script exits non-zero having built
+everything and persisted none of it, so close the editor first or run the script inside it. And
+`.ps1` files here must stay ASCII: Windows PowerShell 5.1 reads a BOM-less script as the system
+ANSI codepage, so a UTF-8 em dash in a string silently breaks the file's parse and the engine is
+never reached. PowerShell 7 reads it fine, which is how one got committed.
