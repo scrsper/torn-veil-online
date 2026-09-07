@@ -29,6 +29,17 @@ public:
     bool bCanonicalPlayer = false;
     FVector IntentDirection() const;
     bool IsSprinting() const { return bSprint; }
+    /** The same two handlers the Tab and LMB/X bindings call — reflected so a test can press them
+     *  without a mouse. They send intent and nothing else; the simulation still decides whether a
+     *  swing reaches anyone, so exposing them grants no authority a player does not already have. */
+    UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
+    void SelectTarget();
+    UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
+    void Attack();
+    /** The F6 handler. Reflected for the same reason: a developer mode that cannot be entered
+     *  from a test is a developer mode nobody checks still works. */
+    UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
+    void Inspector();
     UPROPERTY(VisibleAnywhere) TObjectPtr<USpringArmComponent> CameraBoom;
     UPROPERTY(VisibleAnywhere) TObjectPtr<UCameraComponent> Camera;
     UPROPERTY(VisibleAnywhere) TObjectPtr<UTextRenderComponent> Nameplate;
@@ -48,6 +59,11 @@ private:
     float LastAttackAt = -99, LastHitAt = -99, PlayedAttackAt = -99, PlayedHitAt = -99;
     bool bSprint = false, bProjected = false;
     void Forward(float Value); void Right(float Value); void Turn(float Value); void Look(float Value); void Zoom(float Value);
-    void SprintOn(); void SprintOff(); void SelectTarget(); void Interact(); void Inspector(); void Attack();
+    void SprintOn(); void SprintOff(); void Interact();
     void Animate(float Speed);
+    /** A recognised class is a reading of someone's life, not a badge they wear. A passer-by cannot
+     *  see it, so it belongs to the developer inspector rather than to every nameplate in the vale.
+     *  -1 means "never applied", so the first call always writes. */
+    void ApplyNameplate(bool bShowClass);
+    int8 NameplateClassShown = -1;
 };

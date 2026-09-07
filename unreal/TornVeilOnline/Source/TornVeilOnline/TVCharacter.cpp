@@ -66,6 +66,7 @@ void ATVCharacter::Tick(float Dt) {
         SetActorLocation(FMath::Lerp(PreviousPosition, TargetPosition, Alpha));
         SetActorRotation(FMath::RInterpTo(GetActorRotation(), FRotator(0, TargetYaw, 0), Dt, 10));
         if (auto* PC = GetWorld()->GetFirstPlayerController()) { const auto R = (PC->PlayerCameraManager->GetCameraLocation() - Nameplate->GetComponentLocation()).Rotation(); Nameplate->SetWorldRotation(R); }
+        ApplyNameplate(Bridge && Bridge->bInspector); // no-op unless F6 was toggled since the last snapshot
     }
     Animate(bCanonicalPlayer ? GetVelocity().Size2D() : (Live ? CanonicalVelocity.Size2D() : 0));
 }
@@ -98,9 +99,16 @@ void ATVCharacter::Project(const TSharedPtr<FJsonObject>& D, bool First) {
         const TArray<TSharedPtr<FJsonValue>>* Lines;
         if ((*Class)->TryGetArrayField(TEXT("evidence"), Lines)) for (const auto& L : *Lines) ClassEvidence += (ClassEvidence.IsEmpty() ? FString() : FString(TEXT("  -  "))) + L->AsString();
     }
-    Nameplate->SetText(FText::FromString(DisplayName + (RecognisedClass.IsEmpty() ? FString() : FString(TEXT("  /  ")) + RecognisedClass) + TEXT("\n") + Activity));
+    NameplateClassShown = -1; // name/activity may have changed; force a rewrite
+    ApplyNameplate(Bridge && Bridge->bInspector);
     const TSharedPtr<FJsonObject>* Debug;
     if (D->TryGetObjectField(TEXT("debug"), Debug)) { auto Writer = TJsonWriterFactory<>::Create(&DebugText); DebugText.Empty(); FJsonSerializer::Serialize(Debug->ToSharedRef(), Writer); }
+}
+void ATVCharacter::ApplyNameplate(bool bShowClass) {
+    if (NameplateClassShown == static_cast<int8>(bShowClass)) return;
+    NameplateClassShown = static_cast<int8>(bShowClass);
+    const FString Suffix = (bShowClass && !RecognisedClass.IsEmpty()) ? FString(TEXT("  /  ")) + RecognisedClass : FString();
+    Nameplate->SetText(FText::FromString(DisplayName + Suffix + TEXT("\n") + Activity));
 }
 void ATVCharacter::Animate(float Speed) {
     UAnimationAsset* Wanted = bIncapacitated ? DownAnimation.Get() : CanonicalPose == TEXT("attack") ? AttackAnimation.Get() : CanonicalPose == TEXT("hit") ? HitAnimation.Get() : Locomotion.Get();
