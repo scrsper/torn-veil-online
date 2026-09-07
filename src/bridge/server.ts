@@ -13,10 +13,25 @@ const http = createServer((req, res) => {
 });
 const wss = new WebSocketServer({ server: http, maxPayload: 4096 });
 let controller: WebSocket | null = null;
+// Loopback developer bridge. What must not happen is a web page driving the Traveler.
+//
+// The test used to be "the handshake carries no Origin header", on the reasoning that browsers
+// always send one. Browsers do — but so does Unreal: its libwebsockets client sends
+// `Origin: http://127.0.0.1`, so the real client was refused on every retry and Play showed an
+// empty village. The livecheck could not see this, because the `ws` client it uses sends no
+// Origin, so 33/33 passed against a bridge the actual client could never connect to.
+//
+// A browser cannot set a custom header on a WebSocket handshake — the WebSocket API gives a page
+// no way to do it, unlike Origin which it sets automatically. So requiring one is a strictly
+// stronger control than requiring Origin's absence, and it is one a native client can satisfy.
+const NATIVE_CLIENT_HEADER = 'x-torn-veil-client';
 wss.on('connection', (socket, request) => {
-  // Loopback developer bridge. Browser pages are not permitted to submit cross-origin input.
-  if (request.headers.origin) { socket.close(1008, 'Native local client only'); return; }
+  if (request.headers[NATIVE_CLIENT_HEADER] !== 'unreal') {
+    console.warn(`bridge: refused a client without the native-client header (origin: ${request.headers.origin ?? 'none'})`);
+    socket.close(1008, 'Native local client only'); return;
+  }
   const controls = !controller;
+  console.log(`bridge: ${controls ? 'controller' : 'observer'} connected`);
   if (controls) { controller = socket; session.resetInput(); }
   socket.send(JSON.stringify({ version: 1, type: 'hello', controls, playerId: session.world.playerId }));
   socket.send(JSON.stringify(session.scene()));

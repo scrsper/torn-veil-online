@@ -19,6 +19,11 @@ import { dirname, resolve } from 'node:path';
 
 const PORT = Number(process.env.TORN_VEIL_PORT ?? 8799);
 const URL = `ws://127.0.0.1:${PORT}`;
+/** The same handshake header TVBridgeSubsystem::Connect sends. This file's whole claim is that it
+ *  speaks what the Unreal client speaks, so it has to open the connection the same way it does —
+ *  the previous version did not, which is exactly how a bridge no real client could connect to
+ *  passed every check here. */
+const NATIVE_CLIENT_HEADERS = { 'X-Torn-Veil-Client': 'unreal' };
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 type Row = Record<string, any>;
@@ -87,7 +92,7 @@ async function main(): Promise<void> {
     for (let attempt = 0; attempt < 40 && !socket; attempt++) {
       await sleep(500);
       socket = await new Promise<WebSocket | null>(res => {
-        const s = new WebSocket(URL);
+        const s = new WebSocket(URL, { headers: NATIVE_CLIENT_HEADERS });
         listen(s);
         s.once('open', () => res(s));
         s.once('error', () => res(null));
@@ -274,7 +279,7 @@ async function main(): Promise<void> {
     check('snapshot cadence is the documented ~10 Hz of canonical time', cadence > 0.08 && cadence < 0.13, `${(1 / cadence).toFixed(1)} Hz of world time per snapshot`);
 
     // ---------------------------------------------------------------- a second client observes, never controls
-    const observer = new WebSocket(URL);
+    const observer = new WebSocket(URL, { headers: NATIVE_CLIENT_HEADERS });
     const observerHello = await new Promise<Row | null>(res => {
       observer.once('message', b => res(JSON.parse(b.toString())));
       observer.once('error', () => res(null));

@@ -17,7 +17,12 @@ void UTVBridgeSubsystem::Deinitialize() {
 }
 void UTVBridgeSubsystem::Connect() {
     if (Socket) { Socket->OnMessage().Clear(); Socket->OnConnected().Clear(); Socket->OnConnectionError().Clear(); Socket->OnClosed().Clear(); Socket->Close(); }
-    Socket = FWebSocketsModule::Get().CreateWebSocket(TEXT("ws://127.0.0.1:8787"));
+    // The bridge admits a client that proves it is not a web page. A browser cannot set a custom
+    // header on a WebSocket handshake; this client can. Absence of an Origin header cannot be the
+    // proof, because libwebsockets sends `Origin: http://127.0.0.1` on our behalf whether we want
+    // it or not -- which is what used to get every one of these connections refused.
+    const TMap<FString, FString> UpgradeHeaders = { { TEXT("X-Torn-Veil-Client"), TEXT("unreal") } };
+    Socket = FWebSocketsModule::Get().CreateWebSocket(TEXT("ws://127.0.0.1:8787"), FString(), UpgradeHeaders);
     Socket->OnConnected().AddWeakLambda(this, [this]() { Status = TEXT("Connected - waiting for canonical state"); Sequence = 0; });
     Socket->OnConnectionError().AddWeakLambda(this, [this](const FString& Error) { Status = TEXT("Simulation offline - run npm run bridge"); bControls = false; });
     Socket->OnClosed().AddWeakLambda(this, [this](int32, const FString&, bool) { Status = TEXT("Disconnected - reconnecting"); bControls = false; });
