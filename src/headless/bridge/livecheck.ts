@@ -190,6 +190,25 @@ async function main(): Promise<void> {
       rejects.length === 3 && rejects.filter(r => r === 'invalid_sequence_or_version').length === 2 && rejects.includes('invalid_intent'),
       rejects.join(', '));
 
+    // ---------------------------------------------------------------- class recognition
+    const withClass = mid.bodies.filter(b => b.recognisedClass);
+    check('a recognised class reaches the client with the evidence it was read from',
+      withClass.length > 0 && withClass.every(b => typeof b.recognisedClass.name === 'string' && Array.isArray(b.recognisedClass.evidence) && b.recognisedClass.evidence.length > 0),
+      withClass.map(b => `${b.name}: ${b.recognisedClass.name} ${(b.recognisedClass.confidence * 100).toFixed(0)}%`).join(', '));
+    check('most of the cast is recognised as nothing in particular',
+      withClass.length > 0 && withClass.length < mid.bodies.length / 2, `${withClass.length} of ${mid.bodies.length}`);
+    // A class that lined up one-to-one with a trade would just be a rename of it. (Whether two
+    // people of the SAME trade can be read differently is a property of the derivation rather
+    // than of who happens to be standing in the village — tests/vocation.test.ts holds that.)
+    const spans = new Map<string, Set<string>>();
+    for (const b of withClass) {
+      const set = spans.get(b.recognisedClass.name) ?? new Set<string>();
+      set.add(b.occupation); spans.set(b.recognisedClass.name, set);
+    }
+    check('a class spans several trades rather than renaming one',
+      [...spans.values()].every(set => set.size > 1),
+      [...spans].map(([c, set]) => `${c}: ${[...set].join('/')}`).join(', '));
+
     // ---------------------------------------------------------------- combat round trip
     // Walk to the nearest villager and swing. Damage truth stays in TypeScript throughout: the
     // client only ever says "attack", and reads what happened out of the next snapshot.

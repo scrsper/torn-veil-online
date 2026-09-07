@@ -3,6 +3,7 @@ import { Simulation } from '../sim/mind/agent';
 import { generateVillage } from '../sim/world/village';
 import { moveByIntent, SPRINT_MULTIPLIER } from '../sim/physical/input';
 import { meleeStrike, MELEE_REACH, MELEE_COOLDOWN } from '../sim/physical/melee';
+import { recogniseClass, type RecognisedClass } from '../sim/mind/vocation';
 
 export const BRIDGE_VERSION = 1;
 export class BridgeSession {
@@ -10,6 +11,10 @@ export class BridgeSession {
   readonly sim: Simulation;
   private move = { x: 0, z: 0, sprint: false, expires: 0 };
   private sequence = -1;
+  /** A class is a reading of a whole life; it does not change between two snapshots. Re-derived
+   * on a slow cadence so the projection stays cheap — the derivation itself stays canonical. */
+  private classes = new Map<string, RecognisedClass | null>();
+  private classesAt = -Infinity;
   constructor(seed = 918271) {
     this.world = new World(seed);
     generateVillage(this.world);
@@ -48,6 +53,12 @@ export class BridgeSession {
     moveByIntent(this.sim, p, b, live ? this.move.x : 0, live ? this.move.z : 0, live && this.move.sprint, dt);
     this.sim.step(dt, wd); this.sim.flushSpeech();
   }
+  private classOf(id: string): RecognisedClass | null {
+    const w = this.world;
+    if (w.physicalTime - this.classesAt > 5) { this.classes.clear(); this.classesAt = w.physicalTime; }
+    if (!this.classes.has(id)) { const p = w.person(id); this.classes.set(id, p ? recogniseClass(w, p) : null); }
+    return this.classes.get(id) ?? null;
+  }
   snapshot() {
     const w = this.world;
     return {
@@ -63,6 +74,9 @@ export class BridgeSession {
           pose: b.pose, health: b.health, maxHealth: b.maxHealth, alive: p.alive, dead: b.dead,
           incapacitated: b.pose === 'downed' || b.subduedUntil > w.physicalTime || !!p.surrender || !!p.custody?.active,
           occupation: p.occupation, appearance: p.appearance,
+          // Capability before class (Constitution §12): derived, never assigned, and carrying the
+          // canonical evidence it was read from. Null for most people, which is the ordinary case.
+          recognisedClass: this.classOf(p.id),
           activity: p.mind.plan.find(a => a.status === 'active')?.type ?? b.pose,
           inventory: p.inventory.map(id => w.item(id)).filter(Boolean).map(it => ({ id: it!.id, name: it!.name, type: it!.type, quantity: it!.quantity })),
           weapon: this.sim.weaponName(p), needs: p.needs,

@@ -19,6 +19,10 @@ public:
     virtual void SetupPlayerInputComponent(UInputComponent* Input) override;
     void Project(const TSharedPtr<class FJsonObject>& Data, bool bFirst);
     FString BodyId, EntityId, DisplayName, Activity, CanonicalPose, Occupation, DebugText, AttackTargetEntity;
+    /** The class the simulation recognises in this life, and what it read to get there.
+     * Empty for most people. Derived canonically; this client only shows it. */
+    FString RecognisedClass, ClassEvidence;
+    float ClassConfidence = 0;
     bool bDead = false;
     float Health = 100, MaxHealth = 100;
     bool bIncapacitated = false;

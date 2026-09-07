@@ -90,7 +90,15 @@ void ATVCharacter::Project(const TSharedPtr<FJsonObject>& D, bool First) {
     const float Yaw = D->GetNumberField(TEXT("yaw")); TargetYaw = FMath::RadiansToDegrees(FMath::Atan2(-FMath::Cos(Yaw), -FMath::Sin(Yaw)));
     SnapshotAge = 0; bProjected = true;
     if (First) { PreviousPosition = TargetPosition; SetActorLocation(TargetPosition, false, nullptr, ETeleportType::TeleportPhysics); }
-    Nameplate->SetText(FText::FromString(DisplayName + TEXT("\n") + Activity));
+    const TSharedPtr<FJsonObject>* Class;
+    RecognisedClass.Empty(); ClassEvidence.Empty(); ClassConfidence = 0;
+    if (D->TryGetObjectField(TEXT("recognisedClass"), Class) && Class->IsValid()) {
+        (*Class)->TryGetStringField(TEXT("name"), RecognisedClass);
+        ClassConfidence = static_cast<float>((*Class)->GetNumberField(TEXT("confidence")));
+        const TArray<TSharedPtr<FJsonValue>>* Lines;
+        if ((*Class)->TryGetArrayField(TEXT("evidence"), Lines)) for (const auto& L : *Lines) ClassEvidence += (ClassEvidence.IsEmpty() ? TEXT("") : TEXT("  -  ")) + L->AsString();
+    }
+    Nameplate->SetText(FText::FromString(DisplayName + (RecognisedClass.IsEmpty() ? TEXT("") : TEXT("  /  ") + RecognisedClass) + TEXT("\n") + Activity));
     const TSharedPtr<FJsonObject>* Debug;
     if (D->TryGetObjectField(TEXT("debug"), Debug)) { auto Writer = TJsonWriterFactory<>::Create(&DebugText); DebugText.Empty(); FJsonSerializer::Serialize(Debug->ToSharedRef(), Writer); }
 }

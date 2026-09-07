@@ -48,6 +48,20 @@ The first native WebSocket connection controls the Traveler; later connections o
 This is a local development bridge, not a multiplayer/public server. Every body has its
 own ID and owner entity ID; withdrawn bodies are removed independently of identities.
 
+## Recognised class
+
+`src/sim/mind/vocation.ts` reads a class out of a life: Armsman, Artisan or Scout, or — for most
+people — nothing at all. It is a recognition, not a label anyone is issued and not a container of
+stats. It reads skills (which only rose through real successful practice), attributes, canonical
+`Conflict` history and first-hand place knowledge; it never reads occupation, and a test greps the
+file to keep that true. Nothing in it writes to the world or multiplies anything: a recognised
+Armsman hits exactly as hard as the same person did before anyone recognised them.
+
+The consequence is deliberate and worth expecting: Ashford's bakers and its cook are read as
+Artisans and its smith is not, because the smith has not yet practised anything in the
+simulation's terms. Class follows practice, not title. Unreal shows it on the nameplate and in
+the target panel, alongside — never instead of — occupation, with the evidence it was read from.
+
 ## Verifying the integration
 
 ```bash
