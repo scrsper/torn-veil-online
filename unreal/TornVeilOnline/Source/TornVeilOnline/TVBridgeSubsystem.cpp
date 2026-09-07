@@ -8,7 +8,9 @@
 #include "GameFramework/PlayerController.h"
 #include "Async/Async.h"
 
-void UTVBridgeSubsystem::Initialize(FSubsystemCollectionBase& Collection) { Super::Initialize(Collection); }
+// Connect on the very first tick rather than after a retry interval, so pressing Play does not
+// begin with three seconds of an empty village.
+void UTVBridgeSubsystem::Initialize(FSubsystemCollectionBase& Collection) { Super::Initialize(Collection); RetryClock = 1000; }
 void UTVBridgeSubsystem::Deinitialize() {
     if (Socket) { Socket->OnConnected().Clear(); Socket->OnConnectionError().Clear(); Socket->OnClosed().Clear(); Socket->OnMessage().Clear(); Socket->Close(); Socket.Reset(); }
     Bodies.Empty(); Super::Deinitialize();
@@ -49,6 +51,15 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
     double Version = 0; if (!M->TryGetNumberField(TEXT("version"), Version) || Version != 1) { Status = TEXT("Incompatible bridge protocol"); bControls = false; return; }
     FString Type; if (!M->TryGetStringField(TEXT("type"), Type)) return;
     if (Type == TEXT("hello")) { M->TryGetBoolField(TEXT("controls"), bControls); M->TryGetStringField(TEXT("playerId"), PlayerId); return; }
+    if (Type == TEXT("scene")) {
+        // Where the canonical world's origin is, and how many centimetres a canonical metre is,
+        // are TypeScript's to state. Reading them here keeps one source of truth for the
+        // projection instead of a constant duplicated in this client.
+        const TSharedPtr<FJsonObject>* Origin;
+        if (M->TryGetObjectField(TEXT("origin"), Origin)) CanonicalOrigin = FVector((*Origin)->GetNumberField(TEXT("x")), (*Origin)->GetNumberField(TEXT("y")), (*Origin)->GetNumberField(TEXT("z")));
+        double Units = 0; if (M->TryGetNumberField(TEXT("unitsPerMetre"), Units) && Units > 0) UnitsPerMetre = static_cast<float>(Units);
+        return;
+    }
     if (Type == TEXT("result")) { FString Result; M->TryGetStringField(TEXT("result"), Result); if (Result != TEXT("accepted")) LastResult = Result; return; }
     if (Type != TEXT("snapshot")) return;
     const TArray<TSharedPtr<FJsonValue>>* Rows;

@@ -20,6 +20,13 @@ public:
     FString Status = TEXT("Connecting to simulation..."), LastResult, LastEvent, PlayerId;
     float ServerTick = 0, SinceSnapshot = 100;
     bool bInspector = false, bControls = false;
+    /** Canonical metre->centimetre projection, taken from the bridge's `scene` message rather
+     * than baked in here. TypeScript owns where the world's origin is. */
+    FVector CanonicalOrigin = FVector(96, 14, 96);
+    float UnitsPerMetre = 100;
+    FVector ToUnreal(const FVector& Metres) const {
+        return FVector((Metres.X - CanonicalOrigin.X) * UnitsPerMetre, (Metres.Z - CanonicalOrigin.Z) * UnitsPerMetre, (Metres.Y - CanonicalOrigin.Y) * UnitsPerMetre + 90);
+    }
     UPROPERTY() TMap<FString, TObjectPtr<ATVCharacter>> Bodies;
 private:
     TSharedPtr<IWebSocket> Socket;

@@ -1,6 +1,10 @@
 import type { Body, Person } from '../core/types';
 import type { Simulation } from '../mind/agent';
 
+/** How much faster a sprint is than a walk. Canonical, and reported to external clients in the
+ * bridge snapshot so a presentation layer predicts with this number rather than one of its own. */
+export const SPRINT_MULTIPLIER = 1.55;
+
 /** External control is intent, never a client-authored transform. Uses the canonical grid. */
 export function moveByIntent(sim: Simulation, actor: Person, body: Body, x: number, z: number, sprint: boolean, dt: number): void {
   const w = sim.world;
@@ -11,7 +15,7 @@ export function moveByIntent(sim: Simulation, actor: Person, body: Body, x: numb
   }
   if (![x, z, dt].every(Number.isFinite) || dt <= 0 || dt > 0.1) return;
   const length = Math.max(1, Math.hypot(x, z));
-  const speed = body.speed * (sprint ? 1.55 : 1);
+  const speed = body.speed * (sprint ? SPRINT_MULTIPLIER : 1);
   const old = { ...body.pos };
   const g = w.grid;
   const fits = (px: number, pz: number): boolean => {

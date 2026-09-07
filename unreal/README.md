@@ -38,3 +38,39 @@ Debug endpoints: `http://127.0.0.1:8787/health`, `/snapshot`, `/scene`.
 The first native WebSocket connection controls the Traveler; later connections observe.
 This is a local development bridge, not a multiplayer/public server. Every body has its
 own ID and owner entity ID; withdrawn bodies are removed independently of identities.
+
+## Verifying the integration
+
+```bash
+npm run bridge:verify
+```
+
+`src/headless/bridge/livecheck.ts` starts a real bridge on its own port and drives it over the
+real protocol, speaking exactly what `TVBridgeSubsystem.cpp` speaks — a native connection, a
+`move` intent every 50 ms, and the same projection math `ATVCharacter::Project` applies. It
+asserts the canonical player and all 32 canonical NPCs are projected with real Torn Veil
+identities, that NPCs move under canonical simulation state, that the player moves *only*
+because TypeScript moved him, that client-side prediction stays inside the smoothing budget,
+that abandoned input expires after the documented grace, that replayed/mis-versioned/non-intent
+packets are rejected, and that the projected body set never grows (no runaway spawning).
+
+This is the reproducible part of "press Play and look". It does not replace looking: meshes,
+animation, camera feel and lighting still need a human at the editor.
+
+## Editor automation
+
+Two independent channels reach the editor, and this project used to have one of them silently
+misconfigured — see the note in `Config/DefaultEngine.ini`. The Remote Control settings lived
+under `WebRemoteControl.WebRemoteControlSettings`, which is not the class that owns them, so the
+web server started (making the endpoint reachable) while `bEnableRemotePythonExecution` was never
+read and every Python call over it was refused. They now live under the correct
+`[/Script/RemoteControl.RemoteControlSettings]`.
+
+Level authoring should not depend on that channel at all:
+
+```powershell
+./unreal/scripts/Run-EditorPython.ps1 -Script unreal/scripts/create_foundation_level.py
+```
+
+`UnrealEditor-Cmd.exe -run=pythonscript` loads the same project, plugins and `unreal` module
+headlessly and returns a real exit code.

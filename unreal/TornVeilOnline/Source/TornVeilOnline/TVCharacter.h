@@ -35,6 +35,8 @@ private:
     UPROPERTY() TObjectPtr<UAnimationAsset> CurrentAnimation;
     FVector TargetPosition = FVector::ZeroVector, PreviousPosition = FVector::ZeroVector, CanonicalVelocity = FVector::ZeroVector;
     float TargetYaw = 0, SnapshotAge = 0, ZoomTarget = 450, ForwardAxis = 0, RightAxis = 0;
+    /** Canonical walk speed (Unreal units/s) and sprint multiplier, both taken from the snapshot. */
+    float CanonicalSpeed = 340, CanonicalSprintMultiplier = 1.55f;
     bool bSprint = false, bProjected = false;
     void Forward(float Value); void Right(float Value); void Turn(float Value); void Look(float Value); void Zoom(float Value);
     void SprintOn(); void SprintOff(); void SelectTarget(); void Interact(); void Inspector();

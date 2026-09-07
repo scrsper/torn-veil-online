@@ -1,7 +1,7 @@
 import { World } from '../sim/core/world';
 import { Simulation } from '../sim/mind/agent';
 import { generateVillage } from '../sim/world/village';
-import { moveByIntent } from '../sim/physical/input';
+import { moveByIntent, SPRINT_MULTIPLIER } from '../sim/physical/input';
 
 export const BRIDGE_VERSION = 1;
 export class BridgeSession {
@@ -49,6 +49,8 @@ export class BridgeSession {
       bodies: w.bodies().filter(b => b.shape === 'humanoid' && b.present).flatMap(b => {
         const p = w.person(b.ownerId); if (!p) return [];
         return [{ bodyId: b.id, entityId: p.id, name: p.name, pos: b.pos, velocity: b.vel, yaw: b.yaw,
+          // Canonical, so the client never holds a movement constant of its own to predict with.
+          speed: b.speed, sprintMultiplier: SPRINT_MULTIPLIER,
           pose: b.pose, health: b.health, maxHealth: b.maxHealth, alive: p.alive, dead: b.dead,
           incapacitated: b.pose === 'downed' || b.subduedUntil > w.physicalTime || !!p.surrender || !!p.custody?.active,
           occupation: p.occupation, appearance: p.appearance,

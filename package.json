@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "bridge": "tsx src/bridge/server.ts",
+    "bridge:verify": "tsx src/headless/bridge/livecheck.ts",
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host",

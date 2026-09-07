@@ -20,7 +20,8 @@ ATVCharacter::ATVCharacter() {
     bUseControllerRotationYaw = false; bUseControllerRotationPitch = false; bUseControllerRotationRoll = false;
     GetCharacterMovement()->bOrientRotationToMovement = true; GetCharacterMovement()->RotationRate = FRotator(0, 540, 0);
     GetCharacterMovement()->MaxWalkSpeed = 460; GetCharacterMovement()->MaxStepHeight = 105;
-    GetCharacterMovement()->BrakingDecelerationWalking = 2000;
+    GetCharacterMovement()->BrakingDecelerationWalking = 6000; GetCharacterMovement()->MaxAcceleration = 6000;
+    GetCharacterMovement()->GroundFriction = 12;
     CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom")); CameraBoom->SetupAttachment(RootComponent);
     CameraBoom->TargetArmLength = 450; CameraBoom->SocketOffset = FVector(0, 45, 70); CameraBoom->bUsePawnControlRotation = true;
     CameraBoom->bEnableCameraLag = true; CameraBoom->CameraLagSpeed = 12;
@@ -52,7 +53,7 @@ void ATVCharacter::Tick(float Dt) {
     if (bCanonicalPlayer) {
         CameraBoom->TargetArmLength = FMath::FInterpTo(CameraBoom->TargetArmLength, ZoomTarget, Dt, 8);
         CameraBoom->SocketOffset.Y = FMath::GetMappedRangeValueClamped(FVector2D(160, 700), FVector2D(55, 0), ZoomTarget);
-        GetCharacterMovement()->MaxWalkSpeed = bSprint ? 713 : 460;
+        GetCharacterMovement()->MaxWalkSpeed = CanonicalSpeed * (bSprint ? CanonicalSprintMultiplier : 1.f);
         if (Live && !bIncapacitated) AddMovementInput(IntentDirection()); else GetCharacterMovement()->StopMovementImmediately();
         if (bProjected && Live) {
             const FVector Expected = TargetPosition + CanonicalVelocity * FMath::Min(SnapshotAge, 0.1f);
@@ -73,8 +74,15 @@ void ATVCharacter::Project(const TSharedPtr<FJsonObject>& D, bool First) {
     Activity = D->GetStringField(TEXT("activity")); Occupation = D->GetStringField(TEXT("occupation")); CanonicalPose = D->GetStringField(TEXT("pose"));
     Health = D->GetNumberField(TEXT("health")); MaxHealth = D->GetNumberField(TEXT("maxHealth")); bIncapacitated = D->GetBoolField(TEXT("incapacitated")) || D->GetBoolField(TEXT("dead"));
     const auto P = D->GetObjectField(TEXT("pos")), V = D->GetObjectField(TEXT("velocity"));
-    PreviousPosition = GetActorLocation(); TargetPosition = FVector((P->GetNumberField(TEXT("x")) - 96) * 100, (P->GetNumberField(TEXT("z")) - 96) * 100, (P->GetNumberField(TEXT("y")) - 14) * 100 + 90);
-    CanonicalVelocity = FVector(V->GetNumberField(TEXT("x")), V->GetNumberField(TEXT("z")), V->GetNumberField(TEXT("y"))) * 100;
+    auto* Bridge = GetWorld()->GetSubsystem<UTVBridgeSubsystem>();
+    const float Units = Bridge ? Bridge->UnitsPerMetre : 100.f;
+    PreviousPosition = GetActorLocation();
+    TargetPosition = Bridge ? Bridge->ToUnreal(FVector(P->GetNumberField(TEXT("x")), P->GetNumberField(TEXT("y")), P->GetNumberField(TEXT("z")))) : TargetPosition;
+    CanonicalVelocity = FVector(V->GetNumberField(TEXT("x")), V->GetNumberField(TEXT("z")), V->GetNumberField(TEXT("y"))) * Units;
+    // The walk/sprint speed the local prediction runs at is canonical, never a constant of this
+    // client's own -- otherwise the predicted body leans permanently ahead of canonical truth.
+    double Speed = 0; if (D->TryGetNumberField(TEXT("speed"), Speed) && Speed > 0) CanonicalSpeed = static_cast<float>(Speed) * Units;
+    double Sprint = 0; if (D->TryGetNumberField(TEXT("sprintMultiplier"), Sprint) && Sprint > 0) CanonicalSprintMultiplier = static_cast<float>(Sprint);
     const float Yaw = D->GetNumberField(TEXT("yaw")); TargetYaw = FMath::RadiansToDegrees(FMath::Atan2(-FMath::Cos(Yaw), -FMath::Sin(Yaw)));
     SnapshotAge = 0; bProjected = true;
     if (First) { PreviousPosition = TargetPosition; SetActorLocation(TargetPosition, false, nullptr, ETeleportType::TeleportPhysics); }
