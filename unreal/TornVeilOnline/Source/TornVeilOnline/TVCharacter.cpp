@@ -74,7 +74,7 @@ void ATVCharacter::Project(const TSharedPtr<FJsonObject>& D, bool First) {
     Activity = D->GetStringField(TEXT("activity")); Occupation = D->GetStringField(TEXT("occupation")); CanonicalPose = D->GetStringField(TEXT("pose"));
     Health = D->GetNumberField(TEXT("health")); MaxHealth = D->GetNumberField(TEXT("maxHealth"));
     bDead = D->GetBoolField(TEXT("dead")); bIncapacitated = D->GetBoolField(TEXT("incapacitated")) || bDead;
-    D->TryGetStringField(TEXT("attackTarget"), AttackTargetEntity);
+    AttackTargetEntity.Empty(); D->TryGetStringField(TEXT("attackTarget"), AttackTargetEntity); // null when not swinging
     double At = 0; if (D->TryGetNumberField(TEXT("lastAttackAt"), At)) LastAttackAt = static_cast<float>(At);
     double Hit = 0; if (D->TryGetNumberField(TEXT("lastHitAt"), Hit)) LastHitAt = static_cast<float>(Hit);
     const auto P = D->GetObjectField(TEXT("pos")), V = D->GetObjectField(TEXT("velocity"));
@@ -96,9 +96,9 @@ void ATVCharacter::Project(const TSharedPtr<FJsonObject>& D, bool First) {
         (*Class)->TryGetStringField(TEXT("name"), RecognisedClass);
         ClassConfidence = static_cast<float>((*Class)->GetNumberField(TEXT("confidence")));
         const TArray<TSharedPtr<FJsonValue>>* Lines;
-        if ((*Class)->TryGetArrayField(TEXT("evidence"), Lines)) for (const auto& L : *Lines) ClassEvidence += (ClassEvidence.IsEmpty() ? TEXT("") : TEXT("  -  ")) + L->AsString();
+        if ((*Class)->TryGetArrayField(TEXT("evidence"), Lines)) for (const auto& L : *Lines) ClassEvidence += (ClassEvidence.IsEmpty() ? FString() : FString(TEXT("  -  "))) + L->AsString();
     }
-    Nameplate->SetText(FText::FromString(DisplayName + (RecognisedClass.IsEmpty() ? TEXT("") : TEXT("  /  ") + RecognisedClass) + TEXT("\n") + Activity));
+    Nameplate->SetText(FText::FromString(DisplayName + (RecognisedClass.IsEmpty() ? FString() : FString(TEXT("  /  ")) + RecognisedClass) + TEXT("\n") + Activity));
     const TSharedPtr<FJsonObject>* Debug;
     if (D->TryGetObjectField(TEXT("debug"), Debug)) { auto Writer = TJsonWriterFactory<>::Create(&DebugText); DebugText.Empty(); FJsonSerializer::Serialize(Debug->ToSharedRef(), Writer); }
 }

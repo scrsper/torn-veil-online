@@ -17,7 +17,7 @@ void ATVHUD::DrawHUD() {
         // capability and history add up to — the two are deliberately separate, and most people
         // have only the first.
         DrawText(T->DisplayName + TEXT("  /  ") + T->Occupation
-            + (T->RecognisedClass.IsEmpty() ? TEXT("") : FString::Printf(TEXT("  /  %s (%.0f%%)"), *T->RecognisedClass, T->ClassConfidence * 100)),
+            + (T->RecognisedClass.IsEmpty() ? FString() : FString::Printf(TEXT("  /  %s (%.0f%%)"), *T->RecognisedClass, T->ClassConfidence * 100)),
             FLinearColor(1, 0.8, 0.45), 36, 150);
         // Condition is read straight off the canonical body. This client never decides that
         // someone is down, and never decides that someone is dead.

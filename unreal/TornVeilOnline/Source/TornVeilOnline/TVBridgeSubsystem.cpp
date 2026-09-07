@@ -66,7 +66,7 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
         if (Result == TEXT("accepted")) return;
         // The simulation's refusals, said plainly. The codes themselves are the canonical answer;
         // this only chooses the wording shown to the player.
-        LastResult = Result == TEXT("out_of_reach") ? TEXT("Too far to reach.")
+        LastResult = Result == TEXT("out_of_reach") ? FString(TEXT("Too far to reach."))
             : Result == TEXT("no_target") ? TEXT("Nothing in reach.")
             : Result == TEXT("cooldown") ? TEXT("Still recovering.")
             : Result == TEXT("incapacitated") ? TEXT("You cannot act.")
