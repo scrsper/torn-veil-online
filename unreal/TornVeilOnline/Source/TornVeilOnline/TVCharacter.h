@@ -39,6 +39,8 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
     void Consume();
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
+    void Drop();
+    UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
     void Attack();
     /** The F6 handler. Reflected for the same reason: a developer mode that cannot be entered
      *  from a test is a developer mode nobody checks still works. */

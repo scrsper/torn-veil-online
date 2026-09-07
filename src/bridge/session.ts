@@ -87,7 +87,7 @@ export class BridgeSession {
           debug: { goal: p.mind.goal, pursuits: p.mind.pursuits, concerns: p.mind.concerns },
         }];
       }),
-      events: w.events.filter(e => ['attack', 'death', 'kill', 'harvest', 'produce', 'trade', 'pickup', 'extract', 'haul_deliver'].includes(e.type)).slice(-24).map(e => ({ id: e.id, type: e.type, actor: e.actor, target: e.target, summary: e.summary, data: e.data })),
+      events: w.events.filter(e => ['attack', 'death', 'kill', 'harvest', 'produce', 'trade', 'pickup', 'drop', 'resource_extracted', 'resource_depleted', 'resource_regrew', 'haul_deliver'].includes(e.type)).slice(-24).map(e => ({ id: e.id, type: e.type, actor: e.actor, target: e.target, summary: e.summary, data: e.data })),
     };
   }
   scene() {

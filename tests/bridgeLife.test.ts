@@ -97,6 +97,27 @@ describe('canonical hand interactions', () => {
     const before = node.remaining;
     expect(s.intent({ version: 1, sequence: 1, type: 'interact', interactionId: action!.id }).result).toBe('accepted');
     expect(node.remaining).toBeLessThan(before);
-    expect(s.world.events.some(e => e.type === 'resource_extracted' && e.actor === p.id)).toBe(true);
+    const extraction = s.world.events.filter(e => e.type === 'resource_extracted' && e.actor === p.id).at(-1)!;
+    const item = s.world.items().find(i => i.quantity > 0 && i.provenance.some(entry => entry.eventId === extraction.id))!;
+    expect(item).toBeDefined();
+
+    body.pos = { x: item.pos!.x + 1.5, y: item.pos!.y, z: item.pos!.z }; body.yaw = Math.PI / 2;
+    const take = s.snapshot().interactions.find(a => a.id.endsWith(`:${item.id}`) && ['take', 'steal', 'recover'].includes(a.kind));
+    expect(take).toBeDefined();
+    expect(s.intent({ version: 1, sequence: 2, type: 'interact', interactionId: take!.id }).result).toBe('accepted');
+    expect(item.holderId).toBe(p.id); expect(p.inventory).toContain(item.id);
+
+    const drop = s.snapshot().interactions.find(a => a.id === `drop:${item.id}`);
+    expect(drop).toBeDefined();
+    expect(s.intent({ version: 1, sequence: 3, type: 'interact', interactionId: drop!.id }).result).toBe('accepted');
+    expect(item.holderId).toBeNull(); expect(item.pos).not.toBeNull(); expect(p.inventory).not.toContain(item.id);
+    expect(s.world.events.some(e => e.type === 'drop' && e.actor === p.id && e.item === item.id)).toBe(true);
+  });
+  it('refuses a world-item take through a solid passage', () => {
+    const t = setup(); const loose = makeItem(t.world, 'stone', 'Stone', { pos: v(11.5, 1, 10), quantity: 2 });
+    wall(t, 11, 8, 12);
+    expect(handInteractions(t.sim, t.p).some(a => a.id === `take:${loose.id}`)).toBe(false);
+    expect(t.act(`take:${loose.id}`)).toBe('interaction_unavailable');
+    expect(loose.holderId).toBeNull(); expect(t.p.inventory).not.toContain(loose.id);
   });
 });

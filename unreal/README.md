@@ -54,7 +54,7 @@ appears as a missing SDK rather than as a missing link.
 
 Controls: WASD camera-relative movement, Shift run, mouse orbit, wheel smooth zoom,
 Tab select nearby canonical person, LMB (or X) a light melee strike, F6 developer inspector,
-E performs the nearby canonical interaction; C consumes carried food.
+E performs the nearby canonical interaction; C consumes carried food; Q drops the last carried item.
 
 A strike is intent and nothing else. The client may name a body it can see; the simulation
 re-checks reach, facing and recovery against canonical state and resolves the blow through
@@ -201,13 +201,14 @@ never reached. PowerShell 7 reads it fine, which is how one got committed.
 ## Playable life loop
 
 The lower HUD reads hunger, thirst, wealth and carried quantities from snapshots. E buys one
-unit of reachable merchandise or drinks at a reachable water source; C consumes carried food.
+unit of reachable merchandise, takes a reachable world item, gathers a reachable resource, or
+drinks at a reachable water source; C consumes carried food; Q drops the last carried item.
 The prompt and price come from canonical action derivation. An interaction packet contains only
 an opaque interaction ID and the ordinary protocol version/sequence. TypeScript re-derives the
 action and checks the item, seller, possession, reach and solid passage before calling the existing
 commerce or consumption path. Stock, payment, nutrition and ownership are never authored in C++.
 
-For PIE automation, Interact/Consume and Forward/Right are the reflected handlers bound to E/C
+For PIE automation, Interact/Consume/Drop and Forward/Right are the reflected handlers bound to E/C/Q
 and movement. Disable hardware input polling on the pawn while driving its axis handlers, then
 restore it afterward; otherwise the idle keyboard overwrites injected axis values. These handlers
 still submit ordinary intents. No direct bridge packet is needed to test the Unreal client.

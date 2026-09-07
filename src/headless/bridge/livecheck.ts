@@ -124,6 +124,43 @@ async function main(): Promise<void> {
       (scene as Scene).seed > 0 && (scene as Scene).unitsPerMetre === 100 && typeof (scene as Scene).origin.x === 'number',
       `seed ${(scene as Scene).seed}, origin ${JSON.stringify((scene as Scene).origin)}, ${(scene as Scene).places.length} places`);
 
+    let sequence = (hello as Row).sequence ?? 0;
+    // Exercise the same opaque action IDs the Unreal E/C/Q handlers submit while the player is
+    // still at the open spawn. The later combat walk is intentionally allowed to face a wall;
+    // that is a valid reason for a drop prompt not to exist, not a reason for this protocol check
+    // to become timing- or position-dependent.
+    const handState = snapshots[snapshots.length - 1];
+    const foodAction = handState.interactions.find(a => a.slot === 'consume');
+    check('canonical HUD values and interaction labels cross the wire',
+      typeof handState.bodies.find(b => b.entityId === playerId)!.wealth === 'number'
+      && !!foodAction?.label);
+    if (foodAction) {
+      const beforeFood = handState.bodies.find(b => b.entityId === playerId)!;
+      const foodId = foodAction.id.slice(foodAction.id.indexOf(':') + 1);
+      const qty = beforeFood.inventory.find((i: Row) => i.id === foodId).quantity;
+      const result = await intentResult(socket, results, ++sequence, { type: 'interact', interactionId: foodAction.id });
+      await sleep(200);
+      const afterFood = snapshots[snapshots.length - 1].bodies.find(b => b.entityId === playerId)!;
+      check('a carried-food interaction uses canonical consumption over the real protocol', result === 'accepted'
+        && (afterFood.inventory.find((i: Row) => i.id === foodId)?.quantity ?? 0) === qty - 1
+        && afterFood.needs.hunger < beforeFood.needs.hunger);
+      check('replaying an interaction packet is refused',
+        await intentResult(socket, results, sequence, { type: 'interact', interactionId: foodAction.id }) === 'invalid_sequence_or_version');
+    }
+    const dropState = snapshots[snapshots.length - 1];
+    const dropAction = dropState.interactions.find(a => a.slot === 'drop');
+    check('a canonical drop action label crosses the wire', !!dropAction?.label);
+    if (dropAction) {
+      const dropId = dropAction.id.slice(dropAction.id.indexOf(':') + 1);
+      const beforeDrop = dropState.bodies.find(b => b.entityId === playerId)!;
+      const dropped = await intentResult(socket, results, ++sequence, { type: 'interact', interactionId: dropAction.id });
+      await sleep(200);
+      const afterDrop = snapshots[snapshots.length - 1].bodies.find(b => b.entityId === playerId)!;
+      check('a carried item drops through the real protocol', dropped === 'accepted'
+        && !afterDrop.inventory.some((i: Row) => i.id === dropId)
+        && beforeDrop.inventory.some((i: Row) => i.id === dropId));
+    }
+
     // ---------------------------------------------------------------- canonical NPC motion
     const before = new Map(npcs.map(b => [b.bodyId, { ...b.pos }]));
     await sleep(6000);
@@ -143,7 +180,7 @@ async function main(): Promise<void> {
     const speed = typeof startRow.speed === 'number' ? startRow.speed : 3.4;
     let predicted = toUnreal(startRow.pos, scene as Scene);
     let worstError = 0;
-    let sequence = (hello as Row).sequence ?? 0;
+    const movementResultsAt = results.length;
     const dt = 0.05;
     for (let i = 0; i < 60; i++) {
       socket.send(JSON.stringify({ version: 1, sequence: ++sequence, type: 'move', x: 1, z: 0, sprint: false }));
@@ -166,8 +203,9 @@ async function main(): Promise<void> {
     // its 250 cm teleport threshold — above it the client would visibly rubber-band.
     check('client-side prediction stays inside the smoothing budget', worstError < 25,
       `worst per-snapshot reconciliation error ${worstError.toFixed(1)} cm (teleport threshold 250 cm)`);
-    check('the bridge acknowledges each accepted intent', results.length > 0 && results.every(r => r.result === 'accepted' || r.result === 'no_resource'),
-      `${results.length} results, ${new Set(results.map(r => r.result)).size} distinct`);
+    const movementResults = results.slice(movementResultsAt);
+    check('the bridge acknowledges each accepted intent', movementResults.length > 0 && movementResults.every(r => r.result === 'accepted' || r.result === 'no_resource'),
+      `${movementResults.length} results, ${new Set(movementResults.map(r => r.result)).size} distinct`);
     await sleep(200); // the ack rides the next snapshot, which may already have been in flight
     check('snapshot ack tracks the client sequence', snapshots[snapshots.length - 1].ack === sequence, `ack ${snapshots[snapshots.length - 1].ack} of ${sequence}`);
 
@@ -270,25 +308,6 @@ async function main(): Promise<void> {
         `result "${again}" (striker pose ${self2.pose}, incapacitated ${self2.incapacitated})`);
     }
 
-    // The same opaque action ID the Unreal E/C handlers submit; no nutrition crosses the wire.
-    const handState = snapshots[snapshots.length - 1];
-    const foodAction = handState.interactions.find(a => a.slot === 'consume');
-    check('canonical HUD values and interaction labels cross the wire',
-      typeof handState.bodies.find(b => b.entityId === playerId)!.wealth === 'number'
-      && !!foodAction?.label);
-    if (foodAction) {
-      const beforeFood = handState.bodies.find(b => b.entityId === playerId)!;
-      const foodId = foodAction.id.slice(foodAction.id.indexOf(':') + 1);
-      const qty = beforeFood.inventory.find((i: Row) => i.id === foodId).quantity;
-      const result = await intentResult(socket, results, ++sequence, { type: 'interact', interactionId: foodAction.id });
-      await sleep(200);
-      const afterFood = snapshots[snapshots.length - 1].bodies.find(b => b.entityId === playerId)!;
-      check('a carried-food interaction uses canonical consumption over the real protocol', result === 'accepted'
-        && (afterFood.inventory.find((i: Row) => i.id === foodId)?.quantity ?? 0) === qty - 1
-        && afterFood.needs.hunger < beforeFood.needs.hunger);
-      check('replaying an interaction packet is refused',
-        await intentResult(socket, results, sequence, { type: 'interact', interactionId: foodAction.id }) === 'invalid_sequence_or_version');
-    }
     check('a fabricated interaction ID is refused',
       await intentResult(socket, results, ++sequence, { type: 'interact', interactionId: 'grant:bread' }) === 'invalid_interaction');
 
