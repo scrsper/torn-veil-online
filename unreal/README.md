@@ -19,8 +19,38 @@ npm run bridge
 Open `unreal/TornVeilOnline/TornVeilOnline.uproject` with UE **5.8** and press Play.
 `Setup-Assets.ps1` copies the installed Epic template Manny skeleton/animations locally.
 Requires UE Templates and Feature Packs, Visual Studio C++ tools, Windows SDK 22621,
-and the .NET Framework SDK. This machine's incomplete SDK/toolchain was reconstructed
-in ignored `.debug/AutoSDK`; `Build.ps1` and `Launch.ps1` use it when present.
+and the .NET Framework SDK.
+
+### If Windows has no usable SDK installed
+
+UnrealBuildTool will refuse before it compiles anything:
+
+```
+Platform Win64 is not a valid platform to build. SDK validation failed:
+  Sdk: not found. Required version 10.0.19041.0.
+```
+
+`Build.ps1` and `Launch.ps1` set `UE_SDKS_ROOT` to `.debug/AutoSDK` when that directory
+exists, which lets a hand-assembled toolchain stand in for an installed one. `.debug/` is
+gitignored, so this is per-machine and never committed. The layout UBT looks for is:
+
+```
+.debug/AutoSDK/HostWin64/Win64/
+  VS2026/<MSVC version>/          bin, include, lib   (from the MSVC toolchain)
+  Windows Kits/10/                Include/<ver>, Lib/<ver>, bin
+  Windows Kits/NETFXSDK/4.6.2/    Include/um, Lib
+```
+
+This machine's copy carries MSVC 14.51.36231 and Windows SDK 10.0.22621.0. Confirm the
+build is actually using it — the log names the toolchain it picked:
+
+```
+Using Visual Studio 14.51.36256 toolchain (...\.debug\AutoSDK\...) and Windows 10.0.22621.0 SDK (...)
+```
+
+It must be a real directory here, not a junction into another checkout. A link into a
+second clone works right up until that clone is deleted or moved, and then the failure
+appears as a missing SDK rather than as a missing link.
 
 Controls: WASD camera-relative movement, Shift run, mouse orbit, wheel smooth zoom,
 Tab select nearby canonical person, LMB (or X) a light melee strike, F6 developer inspector,
