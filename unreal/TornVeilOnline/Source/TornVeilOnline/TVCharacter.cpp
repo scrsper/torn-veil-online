@@ -72,7 +72,11 @@ void ATVCharacter::Tick(float Dt) {
 void ATVCharacter::Project(const TSharedPtr<FJsonObject>& D, bool First) {
     BodyId = D->GetStringField(TEXT("bodyId")); EntityId = D->GetStringField(TEXT("entityId")); DisplayName = D->GetStringField(TEXT("name"));
     Activity = D->GetStringField(TEXT("activity")); Occupation = D->GetStringField(TEXT("occupation")); CanonicalPose = D->GetStringField(TEXT("pose"));
-    Health = D->GetNumberField(TEXT("health")); MaxHealth = D->GetNumberField(TEXT("maxHealth")); bIncapacitated = D->GetBoolField(TEXT("incapacitated")) || D->GetBoolField(TEXT("dead"));
+    Health = D->GetNumberField(TEXT("health")); MaxHealth = D->GetNumberField(TEXT("maxHealth"));
+    bDead = D->GetBoolField(TEXT("dead")); bIncapacitated = D->GetBoolField(TEXT("incapacitated")) || bDead;
+    D->TryGetStringField(TEXT("attackTarget"), AttackTargetEntity);
+    double At = 0; if (D->TryGetNumberField(TEXT("lastAttackAt"), At)) LastAttackAt = static_cast<float>(At);
+    double Hit = 0; if (D->TryGetNumberField(TEXT("lastHitAt"), Hit)) LastHitAt = static_cast<float>(Hit);
     const auto P = D->GetObjectField(TEXT("pos")), V = D->GetObjectField(TEXT("velocity"));
     auto* Bridge = GetWorld()->GetSubsystem<UTVBridgeSubsystem>();
     const float Units = Bridge ? Bridge->UnitsPerMetre : 100.f;
@@ -93,7 +97,14 @@ void ATVCharacter::Project(const TSharedPtr<FJsonObject>& D, bool First) {
 void ATVCharacter::Animate(float Speed) {
     UAnimationAsset* Wanted = bIncapacitated ? DownAnimation.Get() : CanonicalPose == TEXT("attack") ? AttackAnimation.Get() : CanonicalPose == TEXT("hit") ? HitAnimation.Get() : Locomotion.Get();
     if (!Wanted) return;
-    if (CurrentAnimation != Wanted) { CurrentAnimation = Wanted; GetMesh()->PlayAnimation(Wanted, Wanted == Locomotion); }
+    // A second swing or a second blow leaves the canonical pose unchanged, so replaying on a
+    // pose transition alone would silently drop every hit after the first in an exchange.
+    const bool Restart = (Wanted == AttackAnimation && LastAttackAt > PlayedAttackAt) || (Wanted == HitAnimation && LastHitAt > PlayedHitAt);
+    if (CurrentAnimation != Wanted || Restart) {
+        CurrentAnimation = Wanted; GetMesh()->PlayAnimation(Wanted, Wanted == Locomotion);
+        if (Wanted == AttackAnimation) PlayedAttackAt = LastAttackAt;
+        if (Wanted == HitAnimation) PlayedHitAt = LastHitAt;
+    }
     if (Wanted == Locomotion) if (auto* Anim = GetMesh()->GetSingleNodeInstance()) Anim->SetBlendSpacePosition(FVector(Speed, 0, 0));
 }
 void ATVCharacter::SetupPlayerInputComponent(UInputComponent* I) {
@@ -103,6 +114,7 @@ void ATVCharacter::SetupPlayerInputComponent(UInputComponent* I) {
     I->BindAction(TEXT("Sprint"), IE_Pressed, this, &ATVCharacter::SprintOn); I->BindAction(TEXT("Sprint"), IE_Released, this, &ATVCharacter::SprintOff);
     I->BindAction(TEXT("Target"), IE_Pressed, this, &ATVCharacter::SelectTarget);
     I->BindAction(TEXT("Interact"), IE_Pressed, this, &ATVCharacter::Interact); I->BindAction(TEXT("Inspector"), IE_Pressed, this, &ATVCharacter::Inspector);
+    I->BindAction(TEXT("Attack"), IE_Pressed, this, &ATVCharacter::Attack);
 }
 void ATVCharacter::Forward(float V) { ForwardAxis = V; } void ATVCharacter::Right(float V) { RightAxis = V; }
 void ATVCharacter::Turn(float V) { AddControllerYawInput(V); } void ATVCharacter::Look(float V) { AddControllerPitchInput(V); }
@@ -111,4 +123,8 @@ void ATVCharacter::SprintOn() { bSprint = true; } void ATVCharacter::SprintOff()
 void ATVCharacter::SelectTarget() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->CycleTarget(); }
 void ATVCharacter::Interact() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->SendIntent(TEXT("interact")); }
 void ATVCharacter::Inspector() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->bInspector = !B->bInspector; }
+/** Intent only. Whether this swing reaches anyone, what it costs them, and whether they get back
+ * up are all resolved by the TypeScript simulation on the same path an NPC's attack takes; this
+ * client learns the outcome from the next snapshot like any other observer. */
+void ATVCharacter::Attack() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->SendIntent(TEXT("attack")); }
 

@@ -32,6 +32,21 @@ function check(name: string, ok: boolean, detail = ''): void {
 }
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
+/** Send one intent and wait for the bridge's own verdict on it. */
+async function intentResult(socket: WebSocket, results: Row[], sequence: number, body: Row): Promise<string> {
+  const at = results.length;
+  socket.send(JSON.stringify({ version: 1, sequence, ...body }));
+  for (let i = 0; i < 40 && results.length === at; i++) await sleep(25);
+  return results.length > at ? String(results[at].result) : 'no_reply';
+}
+
+function farthestFrom(snapshot: Snapshot, playerId: string): string {
+  const me = snapshot.bodies.find(b => b.entityId === playerId)!;
+  return snapshot.bodies.filter(b => b.entityId !== playerId)
+    .map(b => ({ b, d: Math.hypot(b.pos.x - me.pos.x, b.pos.z - me.pos.z) }))
+    .sort((a, c) => c.d - a.d)[0].b.bodyId;
+}
+
 /** The exact transform `ATVCharacter::Project` applies, driven by the scene message. */
 function toUnreal(pos: { x: number; y: number; z: number }, scene: Scene): { X: number; Y: number; Z: number } {
   const u = scene.unitsPerMetre;
@@ -67,6 +82,7 @@ async function main(): Promise<void> {
         else if (m.type === 'result') results.push(m);
       });
     };
+    let closed = '';
     let socket: WebSocket | null = null;
     for (let attempt = 0; attempt < 40 && !socket; attempt++) {
       await sleep(500);
@@ -75,6 +91,7 @@ async function main(): Promise<void> {
         listen(s);
         s.once('open', () => res(s));
         s.once('error', () => res(null));
+        s.once('close', (code, reason) => { closed = `code ${code} ${reason?.toString() ?? ''}`; });
       });
     }
     if (!socket) { check('bridge accepts a native client connection', false, banner.slice(-400)); return finish(stop); }
@@ -146,6 +163,7 @@ async function main(): Promise<void> {
       `worst per-snapshot reconciliation error ${worstError.toFixed(1)} cm (teleport threshold 250 cm)`);
     check('the bridge acknowledges each accepted intent', results.length > 0 && results.every(r => r.result === 'accepted' || r.result === 'no_resource'),
       `${results.length} results, ${new Set(results.map(r => r.result)).size} distinct`);
+    await sleep(200); // the ack rides the next snapshot, which may already have been in flight
     check('snapshot ack tracks the client sequence', snapshots[snapshots.length - 1].ack === sequence, `ack ${snapshots[snapshots.length - 1].ack} of ${sequence}`);
 
     // ---------------------------------------------------------------- input expiry
@@ -172,6 +190,62 @@ async function main(): Promise<void> {
       rejects.length === 3 && rejects.filter(r => r === 'invalid_sequence_or_version').length === 2 && rejects.includes('invalid_intent'),
       rejects.join(', '));
 
+    // ---------------------------------------------------------------- combat round trip
+    // Walk to the nearest villager and swing. Damage truth stays in TypeScript throughout: the
+    // client only ever says "attack", and reads what happened out of the next snapshot.
+    const here = snapshots[snapshots.length - 1].bodies.find(b => b.entityId === playerId)!;
+    const nearest = snapshots[snapshots.length - 1].bodies
+      .filter(b => b.entityId !== playerId && !b.dead)
+      .map(b => ({ b, d: Math.hypot(b.pos.x - here.pos.x, b.pos.z - here.pos.z) }))
+      .sort((a, c) => a.d - c.d)[0];
+    check('a body across the village cannot be named as a melee target',
+      (await intentResult(socket, results, ++sequence, { type: 'attack', targetBodyId: farthestFrom(snapshots[snapshots.length - 1], playerId) })) === 'out_of_reach');
+
+    // Steer toward whoever is nearest right now, sliding along anything canonical that blocks
+    // the straight line — this client has no pathfinder, exactly like a player holding W.
+    let quarry = nearest.b.bodyId;
+    let reached = false, sidestep = 0, lastDistance = Infinity, stalled = 0;
+    for (let i = 0; i < 600 && !reached; i++) {
+      const shot = snapshots[snapshots.length - 1];
+      const me = shot.bodies.find(b => b.entityId === playerId)!;
+      const closest = shot.bodies.filter(b => b.entityId !== playerId && !b.dead)
+        .map(b => ({ b, d: Math.hypot(b.pos.x - me.pos.x, b.pos.z - me.pos.z) })).sort((a, c) => a.d - c.d)[0];
+      quarry = closest.b.bodyId;
+      if (closest.d < (me.reach ?? 3.2) - 0.6) { reached = true; break; }
+      if (closest.d > lastDistance - 0.02) stalled++; else stalled = 0;
+      lastDistance = closest.d;
+      if (stalled > 6) { sidestep = sidestep ? 0 : (i % 2 ? 1 : -1); stalled = 0; }
+      const dx = (closest.b.pos.x - me.pos.x) / closest.d, dz = (closest.b.pos.z - me.pos.z) / closest.d;
+      const x = sidestep ? -dz * sidestep : dx, z = sidestep ? dx * sidestep : dz;
+      socket.send(JSON.stringify({ version: 1, sequence: ++sequence, type: 'move', x, z, sprint: true }));
+      await sleep(50);
+    }
+    const quarryName = snapshots[snapshots.length - 1].bodies.find(b => b.bodyId === quarry)?.name ?? '?';
+    check('the player can close to melee range under canonical movement', reached, `closed on ${quarryName}`);
+    if (reached) {
+      const beforeHealth = snapshots[snapshots.length - 1].bodies.find(b => b.bodyId === quarry)!.health;
+      const landed = await intentResult(socket, results, ++sequence, { type: 'attack', targetBodyId: quarry });
+      await sleep(250);
+      const struck = snapshots[snapshots.length - 1].bodies.find(b => b.bodyId === quarry)!;
+      const striker = snapshots[snapshots.length - 1].bodies.find(b => b.entityId === playerId)!;
+      check('an attack intent resolves through the canonical simulation', landed === 'accepted', `result "${landed}"`);
+      check('the target loses canonical health the client never authored', struck.health < beforeHealth,
+        `${beforeHealth.toFixed(0)} -> ${struck.health.toFixed(0)} of ${struck.maxHealth}`);
+      check('the striker is reported swinging, at the person actually struck',
+        striker.pose === 'attack' && striker.attackTarget === struck.entityId, `${striker.pose} / ${striker.attackTarget}`);
+      check('a canonical attack event names the player as the actor',
+        snapshots[snapshots.length - 1].events.some(e => e.type === 'attack' && e.actor === playerId));
+      check('a second swing inside the canonical recovery is refused',
+        (await intentResult(socket, results, ++sequence, { type: 'attack', targetBodyId: quarry })) === 'cooldown');
+      await sleep(700);
+      const again = await intentResult(socket, results, ++sequence, { type: 'attack', targetBodyId: quarry });
+      const self2 = snapshots[snapshots.length - 1].bodies.find(b => b.entityId === playerId)!;
+      // A villager who has just been hit may well hit back, or walk off — either is a canonical
+      // reason for the next swing to be refused, and only 'cooldown' would mean recovery is stuck.
+      check('the canonical recovery expires (the next swing is no longer on cooldown)', again !== 'cooldown',
+        `result "${again}" (striker pose ${self2.pose}, incapacitated ${self2.incapacitated})`);
+    }
+
     // ---------------------------------------------------------------- no runaway spawning
     const ids = snapshots.map(s => s.bodies.map(b => b.bodyId).sort().join('|'));
     const distinct = new Set(ids);
@@ -182,9 +256,13 @@ async function main(): Promise<void> {
 
     // ---------------------------------------------------------------- a second client observes, never controls
     const observer = new WebSocket(URL);
-    await new Promise(r => observer.once('open', r));
-    const observerHello = await new Promise<Row>(r => observer.once('message', b => r(JSON.parse(b.toString()))));
-    check('a second connection observes and is refused control', observerHello.controls === false);
+    const observerHello = await new Promise<Row | null>(res => {
+      observer.once('message', b => res(JSON.parse(b.toString())));
+      observer.once('error', () => res(null));
+      setTimeout(() => res(null), 3000);
+    });
+    check('a second connection observes and is refused control', observerHello?.controls === false,
+      observerHello ? `controls ${observerHello.controls}` : `no hello; control socket ${closed || 'still open'}`);
     observer.close();
 
     socket.close();

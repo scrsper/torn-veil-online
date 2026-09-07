@@ -32,7 +32,7 @@ private:
     TSharedPtr<IWebSocket> Socket;
     FString SelectedBody;
     int32 Sequence = 0;
-    float SendClock = 0, RetryClock = 0;
+    float SendClock = 0, RetryClock = 0, ResultClock = 0;
     void Connect();
     void Receive(const FString& Message);
     void Send(const TSharedRef<class FJsonObject>& Message);

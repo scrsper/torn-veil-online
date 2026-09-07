@@ -26,6 +26,7 @@ void UTVBridgeSubsystem::Connect() {
 }
 void UTVBridgeSubsystem::Tick(float Dt) {
     SinceSnapshot += Dt; RetryClock += Dt;
+    ResultClock += Dt; if (ResultClock > 2.5f && !LastResult.IsEmpty()) LastResult.Empty();
     if ((!Socket || !Socket->IsConnected()) && RetryClock > 3) { RetryClock = 0; Connect(); }
     SendClock += Dt;
     if (bControls && SinceSnapshot < 0.5f && SendClock >= 0.05f) {
@@ -60,7 +61,20 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
         double Units = 0; if (M->TryGetNumberField(TEXT("unitsPerMetre"), Units) && Units > 0) UnitsPerMetre = static_cast<float>(Units);
         return;
     }
-    if (Type == TEXT("result")) { FString Result; M->TryGetStringField(TEXT("result"), Result); if (Result != TEXT("accepted")) LastResult = Result; return; }
+    if (Type == TEXT("result")) {
+        FString Result; M->TryGetStringField(TEXT("result"), Result);
+        if (Result == TEXT("accepted")) return;
+        // The simulation's refusals, said plainly. The codes themselves are the canonical answer;
+        // this only chooses the wording shown to the player.
+        LastResult = Result == TEXT("out_of_reach") ? TEXT("Too far to reach.")
+            : Result == TEXT("no_target") ? TEXT("Nothing in reach.")
+            : Result == TEXT("cooldown") ? TEXT("Still recovering.")
+            : Result == TEXT("incapacitated") ? TEXT("You cannot act.")
+            : Result == TEXT("no_resource") ? TEXT("Nothing here to gather.")
+            : Result;
+        ResultClock = 0;
+        return;
+    }
     if (Type != TEXT("snapshot")) return;
     const TArray<TSharedPtr<FJsonValue>>* Rows;
     if (!M->TryGetArrayField(TEXT("bodies"), Rows)) return;

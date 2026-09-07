@@ -23,8 +23,17 @@ and the .NET Framework SDK. This machine's incomplete SDK/toolchain was reconstr
 in ignored `.debug/AutoSDK`; `Build.ps1` and `Launch.ps1` use it when present.
 
 Controls: WASD camera-relative movement, Shift run, mouse orbit, wheel smooth zoom,
-Tab select nearby canonical person, F6 developer inspector, E gather a nearby resource
-through the existing simulation action (when available). No player combat in the foundation.
+Tab select nearby canonical person, LMB (or X) a light melee strike, F6 developer inspector,
+E gather a nearby resource through the existing simulation action (when available).
+
+A strike is intent and nothing else. The client may name a body it can see; the simulation
+re-checks reach, facing and recovery against canonical state and resolves the blow through
+`Simulation.attack` -> `Simulation.applyHit` — the same path an NPC's own attack takes, with the
+same lethality rules (an ordinary blow downs a person rather than killing them; a subdued,
+surrendered or in-custody person is out of the fight and cannot be struck further) and the same
+perception, so witnesses learn about it the ordinary way. No damage number, no hit decision and
+no death ever originates in Unreal. Attack, hit, downed and dead are read back off the canonical
+body (`pose`, `health`, `incapacitated`, `dead`, `lastAttackAt`, `lastHitAt`).
 
 The map is deliberately an integration floor, not settlement art. Canonical terrain and
 building collision still live in TypeScript; detailed visual/collision projection remains

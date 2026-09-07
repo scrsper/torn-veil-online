@@ -18,7 +18,8 @@ public:
     virtual void Tick(float DeltaSeconds) override;
     virtual void SetupPlayerInputComponent(UInputComponent* Input) override;
     void Project(const TSharedPtr<class FJsonObject>& Data, bool bFirst);
-    FString BodyId, EntityId, DisplayName, Activity, CanonicalPose, Occupation, DebugText;
+    FString BodyId, EntityId, DisplayName, Activity, CanonicalPose, Occupation, DebugText, AttackTargetEntity;
+    bool bDead = false;
     float Health = 100, MaxHealth = 100;
     bool bIncapacitated = false;
     bool bCanonicalPlayer = false;
@@ -37,8 +38,12 @@ private:
     float TargetYaw = 0, SnapshotAge = 0, ZoomTarget = 450, ForwardAxis = 0, RightAxis = 0;
     /** Canonical walk speed (Unreal units/s) and sprint multiplier, both taken from the snapshot. */
     float CanonicalSpeed = 340, CanonicalSprintMultiplier = 1.55f;
+    /** Canonical timestamps of this body's last swing and last flinch. A swing lasts 0.45 s and a
+     * flinch 0.4 s, so either can begin and end between two snapshots; comparing the timestamp
+     * rather than the pose is what lets a second blow replay the montage. */
+    float LastAttackAt = -99, LastHitAt = -99, PlayedAttackAt = -99, PlayedHitAt = -99;
     bool bSprint = false, bProjected = false;
     void Forward(float Value); void Right(float Value); void Turn(float Value); void Look(float Value); void Zoom(float Value);
-    void SprintOn(); void SprintOff(); void SelectTarget(); void Interact(); void Inspector();
+    void SprintOn(); void SprintOff(); void SelectTarget(); void Interact(); void Inspector(); void Attack();
     void Animate(float Speed);
 };
