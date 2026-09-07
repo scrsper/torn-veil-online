@@ -5,6 +5,8 @@ import { moveByIntent, SPRINT_MULTIPLIER } from '../sim/physical/input';
 import { meleeStrike, MELEE_REACH, MELEE_COOLDOWN } from '../sim/physical/melee';
 import { recogniseClass, type RecognisedClass } from '../sim/mind/vocation';
 
+import { handInteractions, performHandInteraction } from '../sim/physical/hand';
+
 export const BRIDGE_VERSION = 1;
 export class BridgeSession {
   readonly world: World;
@@ -39,8 +41,7 @@ export class BridgeSession {
       // every NPC uses. No damage number ever crosses this boundary.
       result = meleeStrike(this.sim, p, b, typeof m.targetBodyId === 'string' ? m.targetBodyId : null);
     } else if (m.type === 'interact') {
-      // The existing shared resource action resolves capability, tools and yield.
-      result = this.sim.extractResourceAt(p, { x: b.pos.x - Math.sin(b.yaw) * 1.5, y: b.pos.y, z: b.pos.z - Math.cos(b.yaw) * 1.5 }) > 0 ? 'accepted' : 'no_resource';
+      result = performHandInteraction(this.sim, p, m.interactionId);
     }
     return { sequence: seq, result };
   }
@@ -63,6 +64,7 @@ export class BridgeSession {
     const w = this.world;
     return {
       version: BRIDGE_VERSION, type: 'snapshot', tick: w.physicalTime, worldTime: w.now, ack: this.sequence, playerId: w.playerId,
+      interactions: handInteractions(this.sim, w.person(w.playerId)!),
       bodies: w.bodies().filter(b => b.shape === 'humanoid' && b.present).flatMap(b => {
         const p = w.person(b.ownerId); if (!p) return [];
         return [{ bodyId: b.id, entityId: p.id, name: p.name, pos: b.pos, velocity: b.vel, yaw: b.yaw,
@@ -78,14 +80,14 @@ export class BridgeSession {
           // canonical evidence it was read from. Null for most people, which is the ordinary case.
           recognisedClass: this.classOf(p.id),
           activity: p.mind.plan.find(a => a.status === 'active')?.type ?? b.pose,
-          inventory: p.inventory.map(id => w.item(id)).filter(Boolean).map(it => ({ id: it!.id, name: it!.name, type: it!.type, quantity: it!.quantity })),
-          weapon: this.sim.weaponName(p), needs: p.needs,
+          inventory: p.inventory.map(id => w.item(id)).filter(Boolean).map(it => ({ id: it!.id, name: it!.name, type: it!.type, quantity: it!.quantity, ownerId: it!.ownerId, holderId: it!.holderId })),
+          weapon: this.sim.weaponName(p), needs: p.needs, wealth: p.wealth,
           speech: p.speech && p.speech.until > w.physicalTime ? p.speech.text : '',
           // Explicitly developer-only. These fields are never fed into a character's knowledge.
           debug: { goal: p.mind.goal, pursuits: p.mind.pursuits, concerns: p.mind.concerns },
         }];
       }),
-      events: w.events.filter(e => ['attack', 'death', 'kill', 'harvest', 'produce', 'trade', 'pickup', 'extract', 'haul_deliver'].includes(e.type)).slice(-24).map(e => ({ id: e.id, type: e.type, actor: e.actor, target: e.target, summary: e.summary, data: e.data })),
+      events: w.events.filter(e => ['attack', 'death', 'kill', 'harvest', 'produce', 'trade', 'pickup', 'drop', 'resource_extracted', 'resource_depleted', 'resource_regrew', 'haul_deliver'].includes(e.type)).slice(-24).map(e => ({ id: e.id, type: e.type, actor: e.actor, target: e.target, summary: e.summary, data: e.data })),
     };
   }
   scene() {

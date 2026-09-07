@@ -51,6 +51,18 @@ void UTVBridgeSubsystem::SendIntent(const FString& Type, const FString& TargetBo
     auto M = MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"), Type);
     M->SetStringField(TEXT("targetBodyId"), TargetBody.IsEmpty() ? SelectedBody : TargetBody); Send(M);
 }
+void UTVBridgeSubsystem::SendHandIntent(bool bConsume) {
+    if (SinceSnapshot >= 0.5f) return;
+    const FString Id = bConsume ? ConsumeInteraction : NearbyInteraction;
+    if (Id.IsEmpty()) return;
+    auto M = MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"), TEXT("interact"));
+    M->SetStringField(TEXT("interactionId"), Id); Send(M);
+}
+void UTVBridgeSubsystem::SendDropIntent() {
+    if (SinceSnapshot >= 0.5f || DropInteraction.IsEmpty()) return;
+    auto M = MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"), TEXT("interact"));
+    M->SetStringField(TEXT("interactionId"), DropInteraction); Send(M);
+}
 void UTVBridgeSubsystem::Receive(const FString& Message) {
     TSharedPtr<FJsonObject> M;
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Message), M) || !M.IsValid()) return;
@@ -75,7 +87,7 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
             : Result == TEXT("no_target") ? TEXT("Nothing in reach.")
             : Result == TEXT("cooldown") ? TEXT("Still recovering.")
             : Result == TEXT("incapacitated") ? TEXT("You cannot act.")
-            : Result == TEXT("no_resource") ? TEXT("Nothing here to gather.")
+            : Result == TEXT("no_resource") || Result == TEXT("unavailable_resource") ? TEXT("Nothing here to gather.")
             : Result;
         ResultClock = 0;
         return;
@@ -84,6 +96,15 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
     const TArray<TSharedPtr<FJsonValue>>* Rows;
     if (!M->TryGetArrayField(TEXT("bodies"), Rows)) return;
     ServerTick = M->GetNumberField(TEXT("tick")); SinceSnapshot = 0; M->TryGetStringField(TEXT("playerId"), PlayerId);
+    NearbyInteraction.Empty(); ConsumeInteraction.Empty(); DropInteraction.Empty(); NearbyPrompt.Empty(); ConsumePrompt.Empty(); DropPrompt.Empty();
+    const TArray<TSharedPtr<FJsonValue>>* Interactions;
+    if (M->TryGetArrayField(TEXT("interactions"), Interactions)) for (const auto& V : *Interactions) {
+        const auto A = V->AsObject(); if (!A) continue;
+        const FString Slot = A->GetStringField(TEXT("slot"));
+        FString& Id = Slot == TEXT("consume") ? ConsumeInteraction : Slot == TEXT("drop") ? DropInteraction : NearbyInteraction;
+        FString& Prompt = Slot == TEXT("consume") ? ConsumePrompt : Slot == TEXT("drop") ? DropPrompt : NearbyPrompt;
+        if (Id.IsEmpty()) { Id = A->GetStringField(TEXT("id")); Prompt = A->GetStringField(TEXT("label")); }
+    }
     TSet<FString> Present;
     for (const auto& V : *Rows) {
         const auto D = V->AsObject(); if (!D) continue;
@@ -96,6 +117,16 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
             C->bCanonicalPlayer = Entity == PlayerId; Bodies.Add(Id, C);
         }
         C->Project(D, First);
+        if (Entity == PlayerId) {
+            const auto Needs = D->GetObjectField(TEXT("needs"));
+            PlayerVitals = FString::Printf(TEXT("Hunger %.0f%%   Thirst %.0f%%   %.0f silver"), Needs->GetNumberField(TEXT("hunger")) * 100, Needs->GetNumberField(TEXT("thirst")) * 100, D->GetNumberField(TEXT("wealth")));
+            TArray<FString> Items;
+            for (const auto& Item : D->GetArrayField(TEXT("inventory"))) {
+                const auto I = Item->AsObject(); const double Qty = I->GetNumberField(TEXT("quantity"));
+                if (Qty > 0) Items.Add(FString::Printf(TEXT("%s x%.0f"), *I->GetStringField(TEXT("name")), Qty));
+            }
+            CarriedSummary = Items.IsEmpty() ? TEXT("Empty hands") : FString::Join(Items, TEXT("  |  "));
+        }
     }
     TArray<FString> Removed;
     for (const auto& Pair : Bodies) if (!Present.Contains(Pair.Key)) { if (IsValid(Pair.Value) && !Pair.Value->bCanonicalPlayer) Pair.Value->Destroy(); Removed.Add(Pair.Key); }
