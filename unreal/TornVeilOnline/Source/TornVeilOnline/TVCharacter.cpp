@@ -130,6 +130,8 @@ void ATVCharacter::SetupPlayerInputComponent(UInputComponent* I) {
     I->BindAction(TEXT("Sprint"), IE_Pressed, this, &ATVCharacter::SprintOn); I->BindAction(TEXT("Sprint"), IE_Released, this, &ATVCharacter::SprintOff);
     I->BindAction(TEXT("Target"), IE_Pressed, this, &ATVCharacter::SelectTarget);
     I->BindAction(TEXT("Interact"), IE_Pressed, this, &ATVCharacter::Interact); I->BindAction(TEXT("Inspector"), IE_Pressed, this, &ATVCharacter::Inspector);
+    I->BindAction(TEXT("Consume"), IE_Pressed, this, &ATVCharacter::Consume);
+    I->BindAction(TEXT("Drop"), IE_Pressed, this, &ATVCharacter::Drop);
     I->BindAction(TEXT("Attack"), IE_Pressed, this, &ATVCharacter::Attack);
 }
 void ATVCharacter::Forward(float V) { ForwardAxis = V; } void ATVCharacter::Right(float V) { RightAxis = V; }
@@ -137,7 +139,9 @@ void ATVCharacter::Turn(float V) { AddControllerYawInput(V); } void ATVCharacter
 void ATVCharacter::Zoom(float V) { ZoomTarget = FMath::Clamp(ZoomTarget - V * 100, 160.f, 1500.f); }
 void ATVCharacter::SprintOn() { bSprint = true; } void ATVCharacter::SprintOff() { bSprint = false; }
 void ATVCharacter::SelectTarget() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->CycleTarget(); }
-void ATVCharacter::Interact() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->SendIntent(TEXT("interact")); }
+void ATVCharacter::Consume() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->SendHandIntent(true); }
+void ATVCharacter::Drop() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->SendDropIntent(); }
+void ATVCharacter::Interact() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->SendHandIntent(false); }
 void ATVCharacter::Inspector() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->bInspector = !B->bInspector; }
 /** Intent only. Whether this swing reaches anyone, what it costs them, and whether they get back
  * up are all resolved by the TypeScript simulation on the same path an NPC's attack takes; this
