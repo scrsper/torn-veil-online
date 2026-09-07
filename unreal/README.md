@@ -35,7 +35,35 @@ perception, so witnesses learn about it the ordinary way. No damage number, no h
 no death ever originates in Unreal. Attack, hit, downed and dead are read back off the canonical
 body (`pose`, `health`, `incapacitated`, `dead`, `lastAttackAt`, `lastHitAt`).
 
-The map is deliberately an integration floor, not settlement art. Canonical terrain and
+## One settlement corner
+
+```powershell
+npm run bridge                                    # in another terminal
+./unreal/scripts/Run-EditorPython.ps1 -Script unreal/scripts/create_settlement_corner.py
+```
+
+`create_settlement_corner.py` dresses exactly three canonical places — Bramble's Bakery, the
+bread stall and the village well, the north-west approach the Traveler spawns onto — and nothing
+else. The footprints, heights and doorways all come from the running bridge's `/scene`, so the
+corner sits where the simulation says those buildings are; the script refuses to run without the
+bridge rather than invent a footprint. Re-running is safe: everything it makes is tagged and the
+tagged actors are cleared first.
+
+The look is grounded Japanese vernacular, not European half-timber: charcoal kawara over an eave
+that reaches 1.65 m past the wall, dark timber posts on a ken grid with cream plaster between
+them, a raised engawa on the side the canonical door is on, and warm paper lanterns. Late
+afternoon sun, low and warm, with volumetric fog so the overhang has depth under it.
+
+It is built from engine primitives and generated materials on purpose — nothing is downloaded,
+nothing is redistributed, and it runs on a bare UE 5.8 install. Swapping any of these boxes for
+real modular meshes later is a per-actor change, not a rewrite. Humanoids stay Epic's template
+skeleton; no procedural people are generated here or anywhere else.
+
+**Unverified.** This script was authored without an editor to run it in. Its Python parses and
+its geometry is derived rather than eyeballed, but nobody has yet seen the corner. Treat the
+first run as a review, not a result.
+
+The rest of the map is deliberately an integration floor, not settlement art. Canonical terrain and
 building collision still live in TypeScript; detailed visual/collision projection remains
 future work. Do not treat the floor as a second world or add Unreal NPC schedules.
 
