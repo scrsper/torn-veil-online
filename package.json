@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "bridge": "tsx src/bridge/server.ts",
+    "bridge:verify": "tsx src/headless/bridge/livecheck.ts",
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host",
@@ -18,11 +20,13 @@
     "motive:trace": "tsx src/headless/motive/cli.ts"
   },
   "dependencies": {
-    "three": "^0.170.0"
+    "three": "^0.170.0",
+    "ws": "^8.21.3"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
     "@types/three": "^0.170.0",
+    "@types/ws": "^8.18.1",
     "playwright": "^1.62.1",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3",
