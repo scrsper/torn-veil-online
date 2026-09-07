@@ -37,7 +37,18 @@ export function meleeStrike(sim: Simulation, actor: Person, body: Body, targetBo
     const holder = w.get(b.ownerId);
     if (!holder || (holder.kind !== 'person' && holder.kind !== 'creature')) return null;
     const d = Math.hypot(b.pos.x - body.pos.x, b.pos.z - body.pos.z);
-    return d <= MELEE_REACH ? d : null;
+    if (d > MELEE_REACH) return null;
+    // Being within 3.2 m of someone is not the same as being able to hit them: a wall, a shutter
+    // or a closed door may be in the way. The browser player has never been able to strike through
+    // one, because it picks its target by raycast and the wall stops the pick — this path picked by
+    // distance alone, so an external client could stand outside the bakery and strike the baker
+    // inside it. The check belongs here, on the canonical side, and not in any client.
+    const chest = 1.2;
+    if (!w.grid.lineOfPassage(
+      { x: body.pos.x, y: body.pos.y + chest, z: body.pos.z },
+      { x: b.pos.x, y: b.pos.y + chest, z: b.pos.z },
+      MELEE_REACH + 1)) return null;
+    return d;
   };
 
   let target: Body | null = null;

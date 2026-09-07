@@ -73,6 +73,18 @@ export class VoxelGrid {
 
   /** DDA raycast through opaque blocks. Returns true if the segment is unobstructed. */
   lineOfSight(a: Vec3, b: Vec3, maxDist = 64): boolean {
+    return this.castClear(a, b, maxDist, (x, y, z) => this.isOpaqueAt(x, y, z));
+  }
+  /**
+   * The same cast, but stopped by anything SOLID rather than anything opaque. Sight and passage
+   * are not the same question: a glass pane is solid and see-through, leaves are opaque-ish and
+   * walk-through, and a closed door is both while an open one is neither. A blow travels through
+   * what a body could travel through, so it asks this one.
+   */
+  lineOfPassage(a: Vec3, b: Vec3, maxDist = 64): boolean {
+    return this.castClear(a, b, maxDist, (x, y, z) => this.isSolidAt(x, y, z));
+  }
+  private castClear(a: Vec3, b: Vec3, maxDist: number, blocked: (x: number, y: number, z: number) => boolean): boolean {
     let dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z;
     const dist = Math.hypot(dx, dy, dz);
     if (dist < 1e-4) return true;
@@ -90,7 +102,7 @@ export class VoxelGrid {
       else if (tMaxY < tMaxZ) { y += stepY; t = tMaxY; tMaxY += tDeltaY; }
       else { z += stepZ; t = tMaxZ; tMaxZ += tDeltaZ; }
       if (t >= dist) break;
-      if (this.isOpaqueAt(x, y, z)) return false;
+      if (blocked(x, y, z)) return false;
     }
     return true;
   }

@@ -3,7 +3,7 @@ import { BridgeSession } from '../src/bridge/session';
 import { meleeStrike, MELEE_REACH, MELEE_COOLDOWN } from '../src/sim/physical/melee';
 import { subdue } from '../src/sim/social/custody';
 import { beginConflict } from '../src/sim/social/conflict';
-import { createTestWorld, addPerson, v, step } from './helpers/world';
+import { createTestWorld, addPerson, v, step, wall } from './helpers/world';
 
 /**
  * The external client may say "I am swinging, at them". Everything that follows — whether the
@@ -120,5 +120,55 @@ describe('attack over the bridge protocol', () => {
     expect(s.intent({ version: 1, sequence: 1, type: 'attack', targetBodyId: far.b.bodyId }).result).toBe('out_of_reach');
     // The village's own seeded history contains fights; only the player's swing is in question.
     expect(s.world.events.some(e => e.type === 'attack' && e.actor === s.world.playerId)).toBe(false);
+  });
+});
+
+/**
+ * Reach is a distance AND a clear path. The browser player has never been able to strike through
+ * a wall — it picks its target by raycast, so the wall stops the pick before the swing exists.
+ * The external-client path picked by distance alone, which let a client stand outside a building
+ * and hit whoever was inside it. These pin the canonical rule, not the client that motivated it.
+ */
+describe('melee cannot pass through canonical solid geometry', () => {
+  const between = (tw: ReturnType<typeof createTestWorld>) => wall(tw, 11, 6, 14);
+
+  it('refuses a named target standing on the other side of a wall, at a distance it could otherwise reach', () => {
+    const tw = createTestWorld();
+    const player = addPerson(tw, 'Traveler', 'traveler', v(10, 1, 10), { controlled: true });
+    const inside = addPerson(tw, 'Osric Bramble', 'baker', v(12, 1, 10));
+    between(tw);
+    const pb = tw.world.primaryBody(player.id)!, ib = tw.world.primaryBody(inside.id)!;
+    // Close enough that only the wall can be the reason.
+    expect(Math.hypot(ib.pos.x - pb.pos.x, ib.pos.z - pb.pos.z)).toBeLessThan(MELEE_REACH);
+
+    const before = ib.health;
+    expect(meleeStrike(tw.sim, player, pb, ib.id)).toBe('out_of_reach');
+    expect(ib.health).toBe(before);
+    expect(tw.world.events.some(e => e.type === 'attack' && e.actor === player.id)).toBe(false);
+  });
+
+  it('refuses the same target on an untargeted swing, so aiming by facing is no way around it', () => {
+    const tw = createTestWorld();
+    const player = addPerson(tw, 'Traveler', 'traveler', v(10, 1, 10), { controlled: true });
+    const inside = addPerson(tw, 'Osric Bramble', 'baker', v(12, 1, 10));
+    between(tw);
+    const pb = tw.world.primaryBody(player.id)!, ib = tw.world.primaryBody(inside.id)!;
+    pb.yaw = Math.atan2(-(ib.pos.x - pb.pos.x), -(ib.pos.z - pb.pos.z));
+
+    const before = ib.health;
+    expect(meleeStrike(tw.sim, player, pb, null)).toBe('no_target');
+    expect(ib.health).toBe(before);
+  });
+
+  it('still lands on the same geometry once the two are on the same side of it', () => {
+    const tw = createTestWorld();
+    const player = addPerson(tw, 'Traveler', 'traveler', v(10, 1, 10), { controlled: true });
+    const near = addPerson(tw, 'Mara Bramble', 'baker', v(8.6, 1, 10));
+    between(tw);
+    const pb = tw.world.primaryBody(player.id)!, nb = tw.world.primaryBody(near.id)!;
+
+    const before = nb.health;
+    expect(meleeStrike(tw.sim, player, pb, nb.id)).toBe('accepted');
+    expect(nb.health).toBeLessThan(before);
   });
 });
