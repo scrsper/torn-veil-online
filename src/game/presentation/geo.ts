@@ -138,6 +138,18 @@ export const UNIT = {
   capsule: new THREE.CapsuleGeometry(0.5, 1, 3, 8),
 };
 
+/**
+ * An open-ended tapered shell — a sleeve, a robe skirt, a hem band. Open at both ends and drawn
+ * double-sided, so it reads as cloth hanging off a body rather than as a solid tube.
+ */
+const shellCache = new Map<string, THREE.BufferGeometry>();
+export function shell(topRatio: number, radial = 10): THREE.BufferGeometry {
+  const k = `${Math.round(topRatio * 20)}:${radial}`;
+  let g = shellCache.get(k);
+  if (!g) { g = new THREE.CylinderGeometry(0.5 * topRatio, 0.5, 1, radial, 1, true); shellCache.set(k, g); }
+  return g;
+}
+
 /** A tapered cylinder — cached by rounded taper ratio so trunks/limbs share buffers. */
 const taperCache = new Map<string, THREE.BufferGeometry>();
 export function tapered(topRatio: number, radial = 8): THREE.BufferGeometry {

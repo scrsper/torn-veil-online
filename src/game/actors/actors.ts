@@ -3,6 +3,7 @@ import type { World } from '../../sim/core/world';
 import type { Body, Person, Creature, Item } from '../../sim/core/types';
 import { workStyleFor } from '../presentation/activityCues';
 import { HumanoidRig } from '../presentation/humanoid';
+import { attireFor } from '../presentation/culture';
 import { GeoAccum, UNIT, place as xf, rgb, shade, tapered } from '../presentation/geo';
 import { surfaceMaterial, surfaceTex } from '../presentation/textures';
 
@@ -96,7 +97,7 @@ export class ActorRenderer {
       const owner = this.world.get(b.ownerId) as Person | Creature | undefined; if (!owner) continue;
       if (b.shape === 'humanoid') {
         const p = owner as Person; let h = this.humans.get(b.id);
-        if (!h) { h = new HumanoidRig(p.appearance); this.humans.set(b.id, h); this.group.add(h.root); h.root.userData.bodyId = b.id; }
+        if (!h) { h = new HumanoidRig(attireFor(p)); this.humans.set(b.id, h); this.group.add(h.root); h.root.userData.bodyId = b.id; }
         h.root.visible = !(hidePlayerBody && p.controlled);
         // Canonical facing is `(-sin yaw, -cos yaw)` (the convention perception + combat use —
         // see Simulation.perceive / followPath). This mesh's "front" (face, held item) is its

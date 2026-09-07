@@ -116,15 +116,19 @@ witnesses learn about it" stays true instead of becoming a scripted one-off.
   seed, then overlay saved mind/relationship/item/voxel state. Saves carry a schema version;
   bump it (and accept that older saves stop being offered as resumable) rather than silently
   changing what a save's fields mean.
-- `src/game/presentation/` — the v0.11 presentation layer: `style.ts` maps every canonical block
-  id to exactly ONE renderer (a "channel") and one material family, and the skins beside it draw
+- `src/game/presentation/` — the presentation layer: `style.ts` maps every canonical block
+  id to exactly ONE renderer (a "channel") and one material family, and `culture.ts` (v0.12) maps
+  canonical `PlaceType`/`Occupation` through culture-free middle terms (`BuildingArchetype`,
+  `AttireRole`) to a style pack — the seam that keeps a cultural look out of the world ontology.
+  NEVER hardcode a cultural detail into a skin; add it to a pack. The skins draw
   what they own — `terrainSkin.ts` (one smoothed surface over the canonical height field),
   `foliageSkin.ts` (trees, crops, undergrowth), `buildingSkin.ts` (pitched roofs, timber framing,
-  windows, swinging doors, stall awnings), `humanoid.ts` (the proportioned character rig),
+  windows, swinging doors, stall awnings), `humanoid.ts` (the layered character rig — its garments
+  and equipment come from `culture.ts`'s `AttireSpec`, never from invented gameplay state),
   `textures.ts` (every texture, generated procedurally at boot), `worldSkin.ts` (the orchestrator
   that owns the shared dirty-chunk set). Ownership is exclusive by construction, so nothing is
   drawn twice; `BuildingSkin.claimedCells()` is how the chunk mesher is told to stand down. Read
-  `docs/V0_11_PRESENTATION_PROTOTYPE.md` before changing how anything is drawn.
+  `docs/V0_11_PRESENTATION_PROTOTYPE.md` and `docs/V0_12_ARPG_VISUAL_DIRECTION.md` before changing how anything is drawn.
 - `src/game/` — everything else Three.js: chunked voxel mesher for what is genuinely block-shaped
   (`voxel/`), atmosphere/weather/sky (`render/scene.ts`), actor sync (`actors/`), the first-person
   controller + interaction targeting (`player/`), procedural WebAudio (`audio/`), and all UI
