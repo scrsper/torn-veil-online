@@ -306,7 +306,7 @@ def light_the_corner(materials):
     fog.component.set_editor_property('fog_density', 0.035)
     fog.component.set_editor_property('fog_height_falloff', 0.12)
     fog.component.set_editor_property('fog_inscattering_luminance', unreal.LinearColor(0.16, 0.19, 0.25, 1.0))
-    fog.component.set_editor_property('volumetric_fog', True)
+    fog.component.set_editor_property('enable_volumetric_fog', True)
     fog.component.set_editor_property('volumetric_fog_extinction_scale', 1.5)
 
     post = actors.spawn_actor_from_class(unreal.PostProcessVolume, unreal.Vector(0, 0, 0))
