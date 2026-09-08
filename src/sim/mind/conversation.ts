@@ -1,10 +1,11 @@
-import type { Concern, EntityId, KnowledgeItem, Person, Situation } from '../core/types';
+import type { Concern, EntityId, ItemType, KnowledgeItem, Person, Situation } from '../core/types';
 import type { World } from '../core/world';
 import { appraiseClaim, type Appraisal } from '../social/appraisal';
 import { personalSituationView, situationForEvent } from '../social/situation';
 import { activeConcerns } from './concern';
 import { isCrime } from './knowledge';
 import { getRel } from './relationships';
+import { tradeMakes, tradeNeeds } from '../world/supply';
 
 /**
  * CONVERSATION RELEVANCE — deciding whether something is worth saying at all (v0.9 §E).
@@ -88,6 +89,27 @@ function listenerRelevance(world: World, speaker: Person, listener: Person, k: K
   } else if (rel.familiarity > 0.3) value += rel.familiarity * 0.15;
   // I do not gossip to someone I distrust.
   if (rel.trust < -0.3) value -= 0.5;
+  // Causal Society: a shortage is the business of whoever it actually reaches — the trades that
+  // need the material or supply it, and the people who work or live where it has run out. It is
+  // not the business of everybody.
+  //
+  // Without this clause it was: measured on a 30-day seed-918271 run, one bakery shortage reached
+  // all thirty villagers inside a day and crowded a genuine theft out of the conversation
+  // entirely, which `tests/social-causality-trace.test.ts` caught as "only one person in the whole
+  // village knows of it at all". Every hop of that spread was a real conversation and the hop
+  // counts were honest — the fault was not that the news travelled, but that it was ranked as
+  // being everyone's business, so it won every chat turn it was offered in.
+  const need = c.need as ItemType | undefined;
+  if (need) {
+    const placeId = c.placeId as EntityId | undefined;
+    if (tradeNeeds(listener.occupation, need) || tradeMakes(listener.occupation, need)) {
+      value += 0.3; reasons.push(`${need} is ${listener.name}'s trade`);
+    } else if (placeId && (listener.workId === placeId || listener.homeId === placeId)) {
+      value += 0.25; reasons.push(`${listener.name} is there every day`);
+    } else {
+      value -= 0.35;
+    }
+  }
   // A person named in the matter does not need to be informed of it by me.
   if (listener.id === actorId || listener.id === subjectId) value -= 1;
   return { value: clamp(value, -1, 1.2), reasons };

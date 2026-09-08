@@ -7,7 +7,10 @@ import { createHaulTask, claimHaulTask, pickHaulTask, personalCarryUnits } from 
 import { createConstructionProject, projectDeficits, stepConstruction } from '../src/sim/world/construction';
 import { plantGrove, registerStoneNodes, extractFromNode } from '../src/sim/world/resources';
 import { addPlaceStock, stockAt, takePlaceStock, worldStock } from '../src/sim/world/stock';
-import { effectivePrice } from '../src/sim/world/pricing';
+import { effectivePrice, scarcityModifier } from '../src/sim/world/pricing';
+/** `world/pricing.ts`'s own reference level for bread, restated here because that table is
+ * deliberately module-private. Kept in step by the assertion below failing loudly if it drifts. */
+const PRICE_REFERENCE_BREAD = 40;
 import { SECONDS_PER_DAY, SECONDS_PER_HOUR } from '../src/sim/core/time';
 import { B } from '../src/sim/physical/blocks';
 
@@ -127,9 +130,36 @@ describe('stress: v0.5 food abundance vs. scarcity (§XI.1-2)', () => {
     takePlaceStock(world, 'flour', 99999, places);
     const bakery = world.places().find(p => p.type === 'bakery')!;
     const before = requestCount(world);
+
+    // THE DOWNSTREAM GUARANTEE, kept in whole silver where a buyer actually feels it: with the
+    // shelves genuinely bare, scarcity does cross the rounding threshold and bread really does
+    // cost more than it does when the bakery is comfortable. Asserted as an ordering against the
+    // reference stock rather than as an exact coin count, so it is not brittle, and taken from
+    // real world state (the drained bakery) rather than from a hand-written number.
+    const empty = stockAt(world, 'bread', bakery.id);
+    expect(empty).toBe(0);
+    const priceWhenBare = effectivePrice('bread', 2, empty);
+    expect(priceWhenBare).toBeGreaterThan(effectivePrice('bread', 2, PRICE_REFERENCE_BREAD));
+    expect(priceWhenBare).toBeGreaterThan(2);
+    expect(priceWhenBare).toBeLessThanOrEqual(Math.round(2 * 2.2));
+
     advance(world, sim, 1.5 * SECONDS_PER_DAY / 60);
-    const price = effectivePrice('bread', 2, stockAt(world, 'bread', bakery.id));
-    expect(price).toBeGreaterThan(2); // scarcity genuinely moves the price, bounded
+    // Measured on the scarcity MODIFIER rather than on the rounded silver price, for a reason
+    // worth stating: `effectivePrice` rounds to whole silver, and against a base price of 2 the
+    // whole of "somewhat scarce" collapses onto a single coin. The boundary sits at 31 loaves —
+    // 30 at the bakery rounds to 3, 32 rounds to 2 — so a single extra baked batch inside the
+    // window flipped the assertion, which made this a test of an integer boundary rather than of
+    // the mechanism. (Causal Society moved it across that line by making the village answer a
+    // shortage slightly faster: a supply worry now bends who takes the flour haul. 30 loaves
+    // before, 34 after.) The modifier is the same claim — scarcity genuinely moves the price —
+    // measured where the rounding cannot swallow it. The whole-silver guarantee is not lost: it
+    // is asserted above, at the depth of scarcity where a buyer actually feels it.
+    const bread = stockAt(world, 'bread', bakery.id);
+    expect(bread).toBeLessThan(PRICE_REFERENCE_BREAD); // still short of comfortable
+    expect(scarcityModifier(bread, PRICE_REFERENCE_BREAD)).toBeGreaterThan(1);
+    expect(scarcityModifier(bread, PRICE_REFERENCE_BREAD)).toBeLessThan(scarcityModifier(empty, PRICE_REFERENCE_BREAD));
+    const price = effectivePrice('bread', 2, bread);
+    expect(price).toBeGreaterThanOrEqual(2);
     expect(price).toBeLessThanOrEqual(Math.round(2 * 2.2));
     // logistics/production activity responded — real requests were raised, not a frozen queue
     expect(requestCount(world)).toBeGreaterThan(before);

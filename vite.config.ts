@@ -6,5 +6,13 @@ export default defineConfig({
   // tests/browser/**/*.spec.ts are the v0.8 §10 Playwright browser functional harness (run via
   // `npm run test:browser`, not vitest) — they have no describe/it suites, they're plain async
   // functions driven by tests/browser/run.ts against a real browser + dev server.
-  test: { exclude: [...configDefaults.exclude, 'tests/browser/**'] },
+  // tests/causal-society-longrun.test.ts is the Causal Society ACCEPTANCE run (`npm run
+  // causal:accept`), not a unit test: it simulates 17 unattended world days, which is ~2 minutes
+  // of solid CPU in a single file. Left in the default suite it does not merely make the suite
+  // slower — it starves the other workers, and a neighbour with a tight per-test budget then
+  // fails for want of a core rather than for want of correctness (measured: embodied-economy's
+  // 5 s currency-conservation test takes 1.35 s alone and 5.2 s beside it). Widening that
+  // neighbour's budget would have hidden the cause; running the acceptance separately removes
+  // it. Same treatment, and the same reason, as `world:soak` and `test:browser`.
+  test: { exclude: [...configDefaults.exclude, 'tests/browser/**', 'tests/causal-society-longrun.test.ts'] },
 });

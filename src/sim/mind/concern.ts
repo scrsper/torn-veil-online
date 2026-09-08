@@ -1,7 +1,8 @@
-import type { Concern, ConcernKind, EntityId, GoalType, KnowledgeItem, Person } from '../core/types';
+import type { Concern, ConcernKind, EntityId, GoalType, ItemType, KnowledgeItem, Person } from '../core/types';
 import type { World } from '../core/world';
 import { appraiseClaim, proposeConcerns, type Appraisal } from '../social/appraisal';
 import { personalSituationView, situationById, situationForEvent } from '../social/situation';
+import { tradeMakes } from '../world/supply';
 
 /**
  * CONCERNS — the mechanism by which knowledge acquires behavioural force (v0.9 §B).
@@ -13,8 +14,10 @@ import { personalSituationView, situationById, situationForEvent } from '../soci
  * it decides what is worth saying (`mind/conversation.ts`), and it fades when the matter that
  * caused it is settled — from THAT PERSON'S point of view, not the world's.
  *
- * There are six kinds and one formation rule (`social/appraisal.ts`'s `proposeConcerns`). There
- * are no per-event-type reaction handlers here.
+ * There are seven kinds and one formation rule (`social/appraisal.ts`'s `proposeConcerns`). There
+ * are no per-event-type reaction handlers here. The seventh, 'supply', is Causal Society's: the
+ * material a person's living depends on is not to be had. It is the shortage counterpart of
+ * 'work', which is about a PERSON the work depends on.
  */
 
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
@@ -29,7 +32,11 @@ export const EVENT_WORTHY_INTENSITY = 0.25;
  * fades within a couple of days if nothing renews it. These are the "situations age" knobs at
  * the personal level, complementing `Situation`'s own ageing at the world level (v0.9 §G). */
 export const CONCERN_HALFLIFE_HOURS: Record<ConcernKind, number> = {
-  welfare: 30, safety: 26, justice: 60, property: 72, work: 22, grief: 400,
+  // Causal Society: a supply worry fades on roughly a work-worry's timescale. A shortage that is
+  // still real keeps renewing it (every fresh stoppage reinforces), and one that has been made
+  // good stops pressing on its own — which is the honest outcome for somebody who never found
+  // out either way.
+  welfare: 30, safety: 26, justice: 60, property: 72, work: 22, grief: 400, supply: 20,
 };
 /** How long after acting on a concern before acting on it again is reasonable. Without this a
  * worried spouse re-crosses the village every think() tick. */
@@ -53,16 +60,20 @@ export function activeConcerns(p: Person): Concern[] {
  * person, which crowded `MAX_CONCERNS` and made `concernGoalBoost` read the same intensity
  * repeatedly instead of a single accumulating one.
  */
-export function concernIdentity(kind: ConcernKind, subjectId?: EntityId, aboutId?: EntityId, itemId?: EntityId): string {
+export function concernIdentity(kind: ConcernKind, subjectId?: EntityId, aboutId?: EntityId, itemId?: EntityId, resource?: ItemType): string {
   switch (kind) {
     case 'welfare': case 'work': case 'grief': return `${kind}:${subjectId ?? '?'}`;
     case 'safety': case 'justice': return `${kind}:${aboutId ?? '?'}`;
     case 'property': return `${kind}:${itemId ?? subjectId ?? '?'}`;
+    // Causal Society: keyed by the MATERIAL alone, not by the place. Finding no flour at the
+    // bakery and then no flour at the mill is one deepening worry about flour, not two — and it
+    // is the one that should carry the more recent, more useful place with it.
+    case 'supply': return `supply:${resource ?? '?'}`;
   }
 }
-export function concernAbout(p: Person, kind: ConcernKind, subjectId?: EntityId, aboutId?: EntityId, itemId?: EntityId): Concern | undefined {
-  const id = concernIdentity(kind, subjectId, aboutId, itemId);
-  return concernsOf(p).find(c => concernIdentity(c.kind, c.subjectId, c.aboutId, c.itemId) === id);
+export function concernAbout(p: Person, kind: ConcernKind, subjectId?: EntityId, aboutId?: EntityId, itemId?: EntityId, resource?: ItemType): Concern | undefined {
+  const id = concernIdentity(kind, subjectId, aboutId, itemId, resource);
+  return concernsOf(p).find(c => concernIdentity(c.kind, c.subjectId, c.aboutId, c.itemId, c.resource) === id);
 }
 /**
  * The single formation path: a belief was acquired (or refined), it was appraised, and the
@@ -80,7 +91,7 @@ export function formConcerns(world: World, p: Person, k: KnowledgeItem, ap?: App
   const list = concernsOf(p);
   for (const prop of proposals) {
     if (prop.intensity < 0.12) continue;
-    const existing = concernAbout(p, prop.kind, prop.subjectId, prop.aboutId, prop.itemId);
+    const existing = concernAbout(p, prop.kind, prop.subjectId, prop.aboutId, prop.itemId, prop.resource);
     if (existing) {
       // Fresh evidence for something I already carry: it presses harder, and it is live again.
       const before = existing.intensity;
@@ -90,6 +101,9 @@ export function formConcerns(world: World, p: Person, k: KnowledgeItem, ap?: App
       existing.addressedAt = undefined;
       if (!existing.basisKeys.includes(k.key)) existing.basisKeys.push(k.key);
       if (situation && !existing.situationId) existing.situationId = situation.id;
+      // Causal Society: the place a supply worry points at is the freshest one I have evidence
+      // for, so "there is no flour" travels with me from the bakery to the mill.
+      if (prop.placeId) existing.placeId = prop.placeId;
       for (const r of prop.reasons) if (!existing.reasons.includes(r)) existing.reasons.push(r);
       if (existing.intensity - before > 0.05) formed.push(existing);
       continue;
@@ -100,6 +114,8 @@ export function formConcerns(world: World, p: Person, k: KnowledgeItem, ap?: App
       subjectId: prop.subjectId,
       aboutId: prop.aboutId,
       itemId: prop.itemId,
+      resource: prop.resource,
+      placeId: prop.placeId,
       situationId: situation?.id,
       basisKeys: [k.key],
       intensity: clamp(prop.intensity),
@@ -166,6 +182,16 @@ export function maintainConcerns(world: World, p: Person, hours: number): void {
       if (item && (item.holderId === p.id || (item.ownerId === p.id && !item.holderId && item.placeId && item.placeId === p.homeId))) {
         resolveConcern(world, p, c, 'recovered'); continue;
       }
+    }
+    // Causal Society: a supply worry ends when the shortage it rests on has actually been made
+    // good in this person's own experience — `world/shortfall.ts`'s `clearShortfall` marks the
+    // belief `handled` when they themselves next get a batch out of the material they believed
+    // was gone. Somebody who only ever HEARD about the shortage holds a belief nothing will ever
+    // mark handled, and their worry fades on its half-life instead: they stopped worrying, they
+    // did not find out. That distinction is the point.
+    if (c.kind === 'supply') {
+      const basis = c.basisKeys.map(key => p.knowledge[key]).filter(Boolean);
+      if (basis.length && basis.every(b => b.handled === true)) { resolveConcern(world, p, c, 'supplied'); continue; }
     }
     // A welfare concern about someone I can see up and about, who is not hurt, is discharged.
     if ((c.kind === 'welfare' || c.kind === 'work') && c.subjectId) {
@@ -249,11 +275,24 @@ const CONCERN_GOALS: Record<ConcernKind, { subject: GoalType[]; about: GoalType[
   // The work is short-handed: turn up to it.
   work: { subject: [], about: [], any: ['work', 'haul'] },
   grief: { subject: [], about: [], any: ['mourn'] },
+  // The material is not to be had: carry some, make some, or go and buy some. Every one of these
+  // is an ordinary goal the simulation already proposes for ordinary reasons; the concern only
+  // makes the ones that answer THIS shortage compete harder. Note what is absent — nothing here
+  // walks anybody toward another person, which is the v0.9 justice-concern discipline applied to
+  // a new kind rather than re-litigated.
+  supply: { subject: [], about: [], any: ['haul', 'work', 'shop'] },
 };
 
 export interface ConcernBoost { bonus: number; reasons: string[]; }
 
-export function concernGoalBoost(p: Person, goalType: GoalType, targetId?: EntityId): ConcernBoost {
+/**
+ * Causal Society: `resource` is the material the candidate goal would actually move, when it
+ * would move one (a haul carries a named resource). It exists so a flour shortage makes the
+ * FLOUR haul more attractive and not every haul on the board — the same targeting discipline
+ * `targetId` already gives a welfare concern, applied to a goal whose object is a material
+ * rather than a person.
+ */
+export function concernGoalBoost(p: Person, goalType: GoalType, targetId?: EntityId, resource?: ItemType): ConcernBoost {
   let bonus = 0;
   const reasons: string[] = [];
   // Iterating the raw list rather than `activeConcerns` deliberately: this runs once per
@@ -269,6 +308,13 @@ export function concernGoalBoost(p: Person, goalType: GoalType, targetId?: Entit
     else if (targetId && c.aboutId === targetId && spec.about.includes(goalType)) matches = true;
     else if (spec.any.includes(goalType)) matches = true;
     if (!matches) continue;
+    if (c.kind === 'supply') {
+      // A haul only answers this worry if it is carrying the very thing that has run out.
+      if (goalType === 'haul' && resource !== c.resource) continue;
+      // Turning up to work only answers it if it is MY trade that puts that material out. A
+      // baker standing at an empty bakery does not make flour appear by being there.
+      if (goalType === 'work' && !(c.resource && tradeMakes(p.occupation, c.resource))) continue;
+    }
     // Deliberately bounded: a concern bends a decision, it never dictates one. Even a maximal
     // concern adds less than the gap between idling and answering a physiological emergency.
     const contribution = Math.min(0.3, c.intensity * 0.42);
@@ -290,5 +336,6 @@ export function describeConcern(world: World | undefined, c: Concern): string {
     case 'property': return `after ${c.itemId ? name(c.itemId) : 'what was taken'}`;
     case 'work': return `short-handed without ${name(c.subjectId)}`;
     case 'grief': return `grieving ${name(c.subjectId)}`;
+    case 'supply': return `short of ${c.resource ?? 'what is needed'}${c.placeId ? ` at ${name(c.placeId)}` : ''}`;
   }
 }

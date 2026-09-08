@@ -227,7 +227,13 @@ export interface KnowledgeItem {
   // trees" — a real acquired belief distinct from the object's physical affordance, which
   // exists (core/affordance.ts) whether or not any mind has recognized it. See mind/
   // knowledge.ts's `learnAffordance`/`recognizedUses`.
-  kind: 'event' | 'location' | 'ownership' | 'state' | 'fact' | 'service' | 'affordance';
+  // Causal Society: 'cause' is a belief about WHY something is the case — "the bakery has no
+  // flour because the miller has not been at the mill." It is always acquired by INFERENCE from
+  // other beliefs this mind already holds (mind/inference.ts), never observed directly, and it
+  // names those beliefs (`claim.effectKey` / `claim.becauseKey`) so the reasoning can be walked
+  // back. It is what lets a mind hold "what is so" and "what I believe is behind it" as two
+  // separate beliefs with two separate confidences.
+  kind: 'event' | 'location' | 'ownership' | 'state' | 'fact' | 'service' | 'affordance' | 'cause';
   claim: Record<string, any>;
   confidence: number;      // 0..1
   learnedAt: Tick;
@@ -438,7 +444,10 @@ export interface Situation {
  * believes (a `KnowledgeItem` with real provenance), never from canonical world state they have
  * no access to.
  */
-export type ConcernKind = 'welfare' | 'safety' | 'justice' | 'property' | 'work' | 'grief';
+// Causal Society: 'supply' is "the material I depend on is not to be had" — the shortage
+// counterpart of 'work' (which is about a PERSON the work depends on). It is what makes a real
+// stockout press on a decision instead of merely being true of the world.
+export type ConcernKind = 'welfare' | 'safety' | 'justice' | 'property' | 'work' | 'grief' | 'supply';
 export type ConcernStatus = 'active' | 'addressed' | 'faded';
 export interface Concern {
   id: string;
@@ -449,6 +458,10 @@ export interface Concern {
   aboutId?: EntityId;
   itemId?: EntityId;
   placeId?: EntityId;
+  /** Causal Society: the MATERIAL a 'supply' concern is about. A resource type is not an entity,
+   * so it cannot ride on `itemId`; and a shortage of flour at the bakery is one worry however
+   * many separate stacks it happens to involve. Unused by every other kind. */
+  resource?: ItemType;
   /** The world Situation this concern answers to, when the concern came from one. Used only to
    * ask "do I personally know of anything that ended this", never to read canonical status. */
   situationId?: string;
@@ -1281,7 +1294,16 @@ export type EventType =
   // other people can learn about and react to through the ordinary v0.9 machinery.
   // As with v0.5's commitment events and v0.9's concern events: only real transitions, never a
   // per-tick "still pursuing" heartbeat.
-  | 'pursuit_formed' | 'pursuit_resolved' | 'obligation_formed' | 'obligation_resolved' | 'obligation_failed';
+  | 'pursuit_formed' | 'pursuit_resolved' | 'obligation_formed' | 'obligation_resolved' | 'obligation_failed'
+  // Causal Society — a worker stood at their own trade and could not carry it out because a
+  // specific material input was not there. Deliberately a DISTINCT type from the pre-existing,
+  // high-frequency `resource_shortage` (which fires from any failed transform or failed food
+  // search, and is bounded as ordinary operational friction by WorldLab's
+  // `throughput-consumer-backlog` check). `work_blocked` is the rare, socially legible version:
+  // it is PERCEIVABLE (it carries a position and a small visibility radius), it is rate-limited
+  // by the worker's own standing belief about the shortage, and it is the door through which an
+  // economic stoppage becomes something minds can know, carry, say, and reason backwards from.
+  | 'work_blocked';
 
 export type EventCategory = 'world' | 'social' | 'cognition' | 'history';
 

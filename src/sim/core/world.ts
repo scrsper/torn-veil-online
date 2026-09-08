@@ -266,6 +266,9 @@ const TALLIED_TYPES = new Set<EventType>([
   'haul_requested', 'haul_started', 'resource_picked_up', 'resource_delivered', 'haul_failed',
   'resource_extracted', 'resource_depleted', 'resource_regrew',
   'construction_material_delivered', 'construction_progress', 'construction_completed', 'resource_spoiled',
+  // Causal Society: rate-limited and comparatively rare, but below the compaction retention
+  // floor, so a long run needs the tally to report an accurate lifetime count of stoppages.
+  'work_blocked',
   // v0.4: request/wage/purchase/tool events — frequent + low-significance, needed for accurate
   // lifetime economy totals in the run summary (world/history/summary.ts).
   'request_created', 'request_accepted', 'request_completed', 'request_failed',
@@ -316,6 +319,10 @@ function defaultCategory(t: EventType): EventCategory {
     // crop_harvested carry enough significance to survive compaction; the rest are operational).
     case 'crop_planted': case 'crop_matured': case 'crop_harvested': case 'resource_transformed':
     case 'food_consumed': case 'water_consumed': case 'resource_shortage': return 'world';
+    // Causal Society: a trade standing idle for want of its input is an ordinary 'world' event
+    // judged by significance — real and consequential, but not in itself a historical turning
+    // point. What makes it matter is what minds do with it, which is cognition and social.
+    case 'work_blocked': return 'world';
     // v0.3: a completed structure and a depleted notable resource are real, retained history;
     // the rest (haul steps, deliveries, spoilage) are ordinary 'world' events judged by significance.
     case 'construction_completed': case 'resource_depleted': return 'history';
