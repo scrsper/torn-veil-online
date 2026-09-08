@@ -125,6 +125,23 @@ witnesses learn about it" stays true instead of becoming a scripted one-off.
   most are that an inference may never make a mind more certain than its evidence, that a
   `'supply'` concern reaches only goals that move materials (never one that walks somebody toward a
   person), and that an inferred grievance is capped far below a witnessed one.
+- `src/sim/world/labor.ts` / `src/sim/mind/succession.ts` / `src/sim/mind/apprenticeship.ts` — the
+  Adaptive Society layer, which lets a village lose a worker and sometimes get the work done again.
+  `labor.ts` DERIVES whether a productive place's work is going undone, from canonical staffing,
+  capability and output — there is no vacancy flag anywhere, `p.occupation` is not read in the file
+  at all, and `workAuthorization` (you work here, or the work is going undone and you are fit) is
+  what replaced `p.occupation === 'miller'` as the gate on whether a batch happens. `succession.ts`
+  scores how plausible it is that a given person would take up that work and returns a number and
+  its reasons; it decides nothing, and `mind/agent.ts` turns the number into ONE ordinary `work`
+  candidate that competes with everything else. `apprenticeship.ts` is the whole teaching path: a
+  `'technique'` belief with the teacher on its `source`, which grants NO proficiency and only makes
+  later real practice count for more. A `WorkStint` (`World.workStints`) is opened only AFTER a
+  successful batch, which is what keeps it provenance rather than permission — nothing in the
+  authorization path reads one. See `docs/ADAPTIVE_SOCIETY_V0_5.md` for the invariants; the ones
+  that matter most are that no candidacy exists without real acquired knowledge of the shortage
+  (so the nearest idle NPC is usually not the responder), that a lesson never writes to `skills`,
+  that a settled tradesman pays no novice penalty (so the working village is unchanged), and that a
+  village with nobody plausible simply stays short — societies are allowed to fail.
 - `src/sim/history/causality.ts` — the causal trace: a READER over links that already exist
   (goal → concern → belief → cause-belief → event), used by tests, the trace harness and
   developers. It stores nothing of its own, and `CausalNode.depth` exists so sibling reasons are
@@ -158,8 +175,17 @@ npm run build          # typecheck + production build
 npm run social:trace   # v0.9 deterministic causal traces on the real generated village
 npm run motive:trace   # v0.10 motivated-life causal traces (the four acceptance scenarios)
 npm run causal:trace   # Causal Society long-run unattended traces (30 world days, no player)
+npm run causal:accept  # the Causal Society acceptance run as pass/fail (17 world days, ~2 min)
+npm run adapt:trace    # Adaptive Society succession/recovery trace (30 world days, no player)
+npm run adapt:accept   # the Adaptive Society acceptance run as pass/fail (30 world days, ~4 min)
 npm run test:browser   # Playwright functional harness against the real client
 ```
+
+The two `*:accept` runs are deliberately NOT part of `npm test` (see the note in
+`vite.config.ts`): each simulates weeks of unattended world time in a single file, and left in the
+default suite they starve the other vitest workers until a neighbour with a tight per-test budget
+fails for want of a core rather than for want of correctness. Run them when you have touched the
+economy, cognition, or the labour/succession layer.
 
 Run `npm test` after touching anything in `src/sim/`. The suite in `tests/` (see
 `tests/helpers/world.ts` for the shared setup) drives the simulation headlessly through

@@ -1,4 +1,4 @@
-import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation } from './types';
+import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation, WorkStint } from './types';
 import { WorldClock } from './time';
 import { RNG } from './rng';
 import { VoxelGrid } from '../physical/grid';
@@ -54,6 +54,13 @@ export class World {
    *
    * NOT knowledge: no mind may read `status` off this. See `personalSituationView`. */
   situations: Situation[] = [];
+  /** Adaptive Society (v0.5): canonical record of somebody working a productive place they are
+   * not the worker of — see `WorkStint` in core/types.ts. Bounded by real activity (one per
+   * person per place they have stood in for), never by calendar time. Persisted: who stepped in
+   * when a trade fell vacant, how much work they got out of it, and who had taught them cannot
+   * be reconstructed from present state alone. NOT a permission: `world/labor.ts` decides who
+   * may work from staffing, capability and demand, and never reads this. */
+  workStints: WorkStint[] = [];
   /** v0.2.4: lifetime counts of a few high-frequency, low-significance event types that are
    * dropped by event compaction (crop/food/water/transform) — so a headless run summary can
    * report accurate totals without inflating those events' significance. Purely observational. */

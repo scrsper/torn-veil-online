@@ -36,7 +36,70 @@ export function practiceSkill(p: Person, id: SkillId, amount = 1): void {
   const cur = skillOf(p, id);
   if (cur >= 1) return;
   p.skills = p.skills ?? {};
-  p.skills[id] = clamp01(cur + BASE_GAIN * amount * (1 - cur));
+  p.skills[id] = clamp01(cur + BASE_GAIN * amount * instructionFactor(p, id) * (1 - cur));
+}
+
+// ---------------------------------------------------------------- Adaptive Society (v0.5)
+/**
+ * INSTRUCTION IS NOT CAPABILITY.
+ *
+ * Being shown how a trade is done leaves a `technique` belief in the student's head, with the
+ * teacher named on it (see mind/apprenticeship.ts). That belief is worth exactly one thing: real
+ * practice afterwards counts for more. It grants no proficiency of its own, it unlocks nothing,
+ * and a person who has been taught and never worked is indistinguishable, mechanically, from one
+ * who was never taught at all — which is the whole point. A lesson followed by no work is a
+ * memory of a lesson.
+ *
+ * Kept here rather than in `mind/` so `practiceSkill` — which every trade calls from
+ * `world/metabolism.ts` — can consult it without the world layer reaching into cognition.
+ */
+export function techniqueKey(id: SkillId): string { return `technique:${id}`; }
+/** How much more a taught novice gets out of the same batch. Deliberately modest: instruction
+ * shortens the road, it does not replace walking it. A taught novice still needs dozens of real
+ * batches to reach a working proficiency. */
+export const INSTRUCTION_PRACTICE_BONUS = 0.6;
+export function instructionFactor(p: Person, id: SkillId): number {
+  const k = p.knowledge?.[techniqueKey(id)];
+  if (!k || k.claim.skill !== id) return 1;
+  // A half-remembered lesson helps less than a fresh one — the belief's own confidence carries
+  // that, for free, through the ordinary knowledge machinery.
+  return 1 + INSTRUCTION_PRACTICE_BONUS * clamp01(k.confidence);
+}
+
+/**
+ * THE PROFICIENCY A SETTLED TRADESMAN HAS.
+ *
+ * Ashford's baker, miller, cook and herbalist all begin around here (`STARTING_SKILLS` below) —
+ * not because the number is issued to them by their occupation, but because a person who has
+ * ground grain for twenty years IS this good at it. It is read as a REFERENCE POINT, never as a
+ * cap or a permission: the only thing it decides is what "working at the ordinary pace of the
+ * trade" means, so that somebody below it is measurably a novice and somebody above it is not
+ * rewarded twice for the same mastery.
+ *
+ * Sizing it at exactly the seeded professional proficiency is deliberate: it means the existing
+ * village works precisely as it did before this milestone, and every penalty below is paid only
+ * by people who genuinely have not learned the work yet.
+ */
+export const TRADE_BASELINE = 0.6;
+/** 1 at total novice, 0 at (or above) a settled tradesman's proficiency. */
+export function noviceShortfall(skill: number): number {
+  return clamp01((TRADE_BASELINE - skill) / TRADE_BASELINE);
+}
+/** How much longer a batch takes for someone still learning. A complete novice at the mill spends
+ * close to twice as long on one batch as Hobb did — real time, and therefore real energy and real
+ * hours not spent on anything else, without inventing a separate exhaustion rule for novices. */
+export const NOVICE_TIME_PENALTY = 0.75;
+/** How much of a batch a novice spoils. A complete novice gets half the flour out of the same
+ * grain; the grain is consumed either way, because badly ground meal is still ground. Never below
+ * one unit — a batch that produced literally nothing would be a failed batch, not a poor one, and
+ * would (wrongly) read to the rest of the simulation as a material shortage. */
+export const NOVICE_YIELD_PENALTY = 0.5;
+
+export function tradeBatchSeconds(base: number, skill: number): number {
+  return base * (1 + noviceShortfall(skill) * NOVICE_TIME_PENALTY);
+}
+export function tradeYield(full: number, skill: number): number {
+  return Math.max(1, Math.round(full * (1 - noviceShortfall(skill) * NOVICE_YIELD_PENALTY)));
 }
 
 /** Which skill (if any) a given tool action draws on — lets `getPhysicalCapability` (core/
@@ -58,6 +121,11 @@ export const SKILL_FOR_TOOL_ACTION: Partial<Record<ToolAction, SkillId>> = {
 const STARTING_SKILLS: Partial<Record<Occupation, Partial<Record<SkillId, number>>>> = {
   woodcutter: { woodcutting: 0.55, sawing: 0.4, hauling: 0.25 },
   baker: { baking: 0.6 },
+  // Adaptive Society (v0.5): milling became a real learned capability this milestone, so the man
+  // who has run Ashford's mill for years needs the proficiency to match — at exactly
+  // `TRADE_BASELINE`, so nothing about how the working village behaves changes, and every novice
+  // penalty falls only on people who have genuinely not learned the trade.
+  miller: { milling: 0.6, hauling: 0.25 },
   farmer: { hauling: 0.3 },
   apprentice: { construction: 0.2, hauling: 0.25 },
   vagrant: { hauling: 0.2 },
