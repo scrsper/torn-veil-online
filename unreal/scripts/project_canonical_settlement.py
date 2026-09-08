@@ -28,6 +28,8 @@ levels = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
 CUBE = unreal.load_asset('/Engine/BasicShapes/Cube')
 CYLINDER = unreal.load_asset('/Engine/BasicShapes/Cylinder')
 CONE = unreal.load_asset('/Engine/BasicShapes/Cone')
+SPHERE = unreal.load_asset('/Engine/BasicShapes/Sphere')
+LIGHTING_PRESET = os.environ.get('TV_LIGHTING_PRESET', 'day').lower()
 
 
 def canonical_scene():
@@ -47,7 +49,8 @@ class Projection:
 
 def make_material(name, colour, roughness, emissive=None, tint_parameter=False):
     path = '%s/%s' % (MATERIAL_DIR, name)
-    if unreal.EditorAssetLibrary.does_asset_exist(path):
+    exists = unreal.EditorAssetLibrary.does_asset_exist(path)
+    if exists:
         material = unreal.load_asset(path)
         # Appearance profiles apply these four parameterised materials to the Epic-compatible
         # skeletal mesh.  The usage flag is a renderer requirement, not a character fact; keep
@@ -56,9 +59,13 @@ def make_material(name, colour, roughness, emissive=None, tint_parameter=False):
             material.set_editor_property('used_with_skeletal_mesh', True)
             unreal.MaterialEditingLibrary.recompile_material(material)
             unreal.EditorAssetLibrary.save_asset(path)
-        return material
-    unreal.EditorAssetLibrary.make_directory(MATERIAL_DIR)
-    material = unreal.AssetToolsHelpers.get_asset_tools().create_asset(name, MATERIAL_DIR, unreal.Material, unreal.MaterialFactoryNew())
+            return material
+        # Project materials are generated assets: rebuilding their compact graph is deliberate
+        # and keeps the source of truth in this diffable script rather than a binary editor pass.
+        unreal.MaterialEditingLibrary.delete_all_material_expressions(material)
+    else:
+        unreal.EditorAssetLibrary.make_directory(MATERIAL_DIR)
+        material = unreal.AssetToolsHelpers.get_asset_tools().create_asset(name, MATERIAL_DIR, unreal.Material, unreal.MaterialFactoryNew())
     if tint_parameter:
         material.set_editor_property('used_with_skeletal_mesh', True)
     base = unreal.MaterialEditingLibrary.create_material_expression(material, unreal.MaterialExpressionVectorParameter if tint_parameter else unreal.MaterialExpressionConstant3Vector, -400, 0)
@@ -70,6 +77,9 @@ def make_material(name, colour, roughness, emissive=None, tint_parameter=False):
     rough.set_editor_property('r', roughness)
     unreal.MaterialEditingLibrary.connect_material_property(base, '', unreal.MaterialProperty.MP_BASE_COLOR)
     unreal.MaterialEditingLibrary.connect_material_property(rough, '', unreal.MaterialProperty.MP_ROUGHNESS)
+    # Roughness plus modeled tile/stone/timber relief supplies a stable grazing-light response.
+    # UE 5.8 does not expose its height-to-normal material node to Python, so relief lives in the
+    # deterministic mesh kit instead of an opaque hand-authored binary graph.
     if emissive:
         glow = unreal.MaterialEditingLibrary.create_material_expression(material, unreal.MaterialExpressionConstant3Vector, -400, 300)
         glow.set_editor_property('constant', unreal.LinearColor(emissive[0], emissive[1], emissive[2], 1))
@@ -123,6 +133,41 @@ def box(label, centre, size, material, rotation=None, mesh=None, camera_block=Tr
     actor.set_actor_scale3d(unreal.Vector(size[0] / 100., size[1] / 100., size[2] / 100.))
     if camera_block: visual_blocker(component)
     return actor
+
+
+# Modular Ashford kit.  Calls below assemble these reusable pieces; canonical footprints remain
+# the only source of placement and extent.  Engine primitives are merely the reproducible source
+# meshes, while overlapping courses, round members and shallow trim provide silhouette/depth.
+def kit_post(label, pos, height, p, width=24): return box(label, pos, (width, width, height), p['timber'])
+def kit_beam(label, pos, size, p, rotation=None): return box(label, pos, size, p['timber'], rotation)
+def kit_plinth(label, pos, size, p): return box(label, pos, size, p['stone'])
+def kit_step(label, pos, size, p): return box(label, pos, size, p['stone'])
+def kit_deck(label, pos, size, p): return box(label, pos, size, p['timber'])
+def kit_rail(label, pos, length, along_x, p):
+    kit_beam(label + ' rail', (pos[0], pos[1], pos[2] + 55), (length, 10, 10) if along_x else (10, length, 10), p)
+    for s in (-1, 1): kit_post(label + ' upright', (pos[0] + (s * length / 2 if along_x else 0), pos[1] + (0 if along_x else s * length / 2), pos[2] + 30), 60, p, 10)
+def kit_shoji(label, pos, axis, p):
+    panel = (12, 118, 205) if axis == 'x' else (118, 12, 205)
+    box(label + ' paper', pos, panel, p['plaster'])
+    for i in (-2, -1, 0, 1, 2):
+        off = i * 20; kit_beam(label + ' lattice', (pos[0], pos[1] + off, pos[2]) if axis == 'x' else (pos[0] + off, pos[1], pos[2]), (15, 5, 205) if axis == 'x' else (5, 15, 205), p)
+def kit_jar(label, pos, p):
+    box(label + ' body', pos, (42, 42, 55), p['stone'], mesh=SPHERE); box(label + ' neck', (pos[0], pos[1], pos[2] + 30), (24, 24, 25), p['stone'], mesh=CYLINDER)
+def kit_basket(label, pos, p): return box(label, pos, (44, 44, 30), p['earth'], mesh=CYLINDER)
+def kit_crate(label, pos, p): return box(label, pos, (55, 55, 48), p['timber'])
+def kit_firewood(label, pos, p, along_x=True):
+    for row in range(3):
+        for col in range(4):
+            x, y, z = pos[0] + (col * 24 if not along_x else 0), pos[1] + (col * 24 if along_x else 0), pos[2] + row * 22
+            box(label + ' log', (x, y, z), (70, 17, 17) if along_x else (17, 70, 17), p['timber'], mesh=CYLINDER)
+def kit_noren(label, pos, size, p):
+    for i in range(3): box(label + ' panel', (pos[0] + (i - 1) * size[0] / 3., pos[1], pos[2]), (size[0] / 3. - 3, size[1], size[2]), p['banner'])
+def kit_rafter_tails(label, cx, cy, z, width, depth, p):
+    count = max(4, int(max(width, depth) / 85))
+    for i in range(count + 1):
+        t = i / float(count) - .5
+        kit_beam(label + ' rafter N', (cx + t * width, cy - depth / 2. - 62, z), (12, 145, 14), p)
+        kit_beam(label + ' rafter S', (cx + t * width, cy + depth / 2. + 62, z), (12, 145, 14), p)
 
 
 def lantern(label, pos, p):
@@ -186,6 +231,16 @@ def roof(label, cx, cy, floor, width, depth, p, style='gable', tier=0):
             yaw = (0 if side > 0 else 180) + (0 if along_y else 90)
             box(label + ' roof', (x, y, z), (slope, ridge, 22) if along_y else (ridge, slope, 22), p['tile'], unreal.Rotator(0, -31, yaw))
     box(label + ' ridge', (cx, cy, floor + WALL_H + rise + 14), (32, ridge, 28) if along_y else (ridge, 32, 28), p['tile'])
+    # Tile courses break the slab highlight and the end caps make the ridge legible at distance.
+    for side in (-1, 1):
+        for course in range(5):
+            offset = reach * (.12 + course * .18) * side
+            x, y = (cx + offset, cy) if along_y else (cx, cy + offset)
+            box(label + ' tile course', (x, y, z + (4 - course) * 14), (16, ridge, 18) if along_y else (ridge, 16, 18), p['tile'], mesh=CYLINDER)
+    for side in (-1, 1):
+        pos = (cx, cy + side * ridge / 2., floor + WALL_H + rise + 14) if along_y else (cx + side * ridge / 2., cy, floor + WALL_H + rise + 14)
+        box(label + ' gold ridge end', pos, (42, 18, 42) if along_y else (18, 42, 42), p['gold'], mesh=CYLINDER)
+    kit_rafter_tails(label, cx, cy, floor + WALL_H - 4, width, depth, p)
 
 
 def banner(label, cx, cy, z, p, gold=False):
@@ -196,28 +251,51 @@ def banner(label, cx, cy, z, p, gold=False):
 def japanese_building(place, projection, p, variant, family):
     x0, y0, x1, y1, floor, width, depth = bounds(place, projection); cx, cy = (x0 + x1) / 2., (y0 + y1) / 2.
     name, door = place['name'], door_side(place, projection, cx, cy)
-    box(name + ' stone plinth', (cx, cy, floor - 12), (width + 45, depth + 45, 24), p['stone'])
+    kit_plinth(name + ' stone plinth', (cx, cy, floor - 12), (width + 45, depth + 45, 24), p)
     tall = 2 if variant in ('two_storey', 'two_storey_shop', 'tall_gatehouse') else 1
     wall_shell(name, cx, cy, floor, width, depth, door, p, tall)
     if tall == 2:
         box(name + ' upper ledge', (cx, cy, floor + WALL_H + 15), (width + 80, depth + 80, 30), p['timber'])
     roof(name, cx, cy, floor + (WALL_H if tall == 2 else 0), width + (0 if tall == 1 else 25), depth + (0 if tall == 1 else 25), p, 'hip' if variant in ('raised_sidewing', 'two_storey_shop') else 'gable')
+    if variant == 'raised_sidewing':
+        wing_w, wing_d = width * .48, depth * .62
+        wx, wy = cx + width * .53, cy + depth * .12
+        wall_shell(name + ' side wing', wx, wy, floor + 28, wing_w, wing_d, None, p)
+        roof(name + ' side wing', wx, wy, floor + 28, wing_w, wing_d, p, 'gable', 1)
+    elif variant in ('open_shed', 'sawpit_shed', 'storage_frame'):
+        # Open work bay: posts carry the roof, leaving the occupation activity visible.
+        for sx in (-1, 1):
+            for sy in (-1, 1): kit_post(name + ' open bay post', (cx + sx * width * .34, cy + sy * depth * .42, floor + 105), 210, p)
+    elif variant == 'forge_front':
+        kit_noren(name + ' indigo work curtain', (cx, cy - depth / 2. - 12, floor + 188), (180, 8, 70), dict(p, banner=p['indigo']))
     if door:
         axis, sign = door; ex, ey = (cx + sign * (width / 2. + 65), cy) if axis == 'x' else (cx, cy + sign * (depth / 2. + 65))
         size = (130, depth, 40) if axis == 'x' else (width, 130, 40)
-        box(name + ' raised engawa', (ex, ey, floor + 20), size, p['timber'])
+        kit_deck(name + ' raised engawa', (ex, ey, floor + 20), size, p)
+        kit_rail(name + ' engawa', (ex, ey, floor + 30), depth * .72 if axis == 'x' else width * .72, axis != 'x', p)
         # The bridge's current canonical door state controls whether the visible entrance is a
         # dark timber panel or an open threshold.  It never changes passage authority.
         if not place.get('doorOpen', False):
             panel = (18, 118, 205) if axis == 'x' else (118, 18, 205)
-            box(name + ' canonical closed door', (ex, ey, floor + 104), panel, p['timber'])
+            kit_shoji(name + ' canonical closed door', (ex, ey, floor + 104), axis, p)
         lantern(name + ' lantern', (ex, ey, floor + WALL_H - 62), p)
+        kit_noren(name + ' noren', (ex, ey - (12 if axis == 'y' else 0), floor + WALL_H - 55), (105, 8, 54), p)
     if family == 'shop':
         banner(name, cx, cy - depth / 2. - 30, floor, p)
         box(name + ' counter', (cx, cy - depth / 2. - 55, floor + 55), (min(width * .7, 420), 55, 90), p['timber'])
     if family == 'workshop':
-        box(name + ' forge chimney', (cx + width * .28, cy + depth * .28, floor + 205), (85, 85, 410), p['stone'])
+        chimney_h = 520 if variant == 'tall_chimney' else 390
+        box(name + ' forge chimney', (cx + width * .28, cy + depth * .28, floor + chimney_h / 2.), (85, 85, chimney_h), p['stone'])
         box(name + ' worktable', (cx - width * .25, cy - depth * .35, floor + 52), (150, 80, 78), p['timber'])
+        # Anvil is a compact, unmistakable smith cue rather than a generic signboard.
+        kit_post(name + ' anvil stump', (cx - width * .24, cy - depth * .25, floor + 36), 72, p, 42)
+        box(name + ' anvil', (cx - width * .24, cy - depth * .25, floor + 82), (72, 30, 25), p['stone'])
+    props = PROFILE.families[family].props
+    prop_origin = (cx - width * .32, cy + depth * .38, floor + 35)
+    if 'woodpile' in props or 'timber_stack' in props: kit_firewood(name + ' firewood', prop_origin, p)
+    if 'jar' in props: kit_jar(name + ' jar', prop_origin, p)
+    if 'basket' in props: kit_basket(name + ' basket', prop_origin, p)
+    if 'crate' in props: kit_crate(name + ' crate', prop_origin, p)
     return cx, cy, floor
 
 
@@ -261,8 +339,9 @@ def farm(place, projection, p, seed):
 
 
 def tree(label, x, y, z, p, scale=1):
-    box(label + ' trunk', (x, y, z + 145 * scale), (36 * scale, 36 * scale, 290 * scale), p['timber'])
-    box(label + ' crown', (x, y, z + 350 * scale), (215 * scale, 215 * scale, 215 * scale), p['foliage'], mesh=CONE)
+    box(label + ' trunk', (x, y, z + 145 * scale), (38 * scale, 38 * scale, 290 * scale), p['timber'], mesh=CYLINDER)
+    for i, (ox, oy, oz, size) in enumerate(((-70, 5, 315, 145), (60, -35, 350, 170), (0, 65, 390, 155), (5, -5, 445, 135))):
+        box(label + ' foliage %d' % i, (x + ox * scale, y + oy * scale, z + oz * scale), (size * scale, size * scale, size * .72 * scale), p['foliage'], mesh=SPHERE, camera_block=False)
 
 
 def wilderness(place, projection, p, seed):
@@ -312,17 +391,25 @@ def project_terrain(scene, projection, p):
         box('canonical fence', (x, y, z), (14, 14, 110), p['timber'])
 
 
-def light_valley(p):
+def light_valley(p, preset=LIGHTING_PRESET):
     # These are deliberately profile-owned atmosphere choices, not a replacement terrain or
     # weather simulation.  A future biome profile can supply a different sky, light and fog
     # treatment while this projection continues to consume the exact same canonical scene.
     sun = actors.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, 4200)); sun.set_actor_label('Ashford warm valley sun'); sun.tags = [TAG]
-    sun.light_component.set_editor_property('intensity', 3.5); sun.light_component.set_editor_property('light_color', unreal.Color(r=255, g=226, b=188)); sun.light_component.set_editor_property('atmosphere_sun_light', True); sun.set_actor_rotation(unreal.Rotator(0, -35, -128), False)
+    # Directional-light units are lux.  Values in the single digits force exposure compensation
+    # and were the root of the old amber wash; these are plausible outdoor illuminances.
+    dusk = preset == 'dusk'; sun.light_component.set_editor_property('intensity', 900. if dusk else 7500.); sun.light_component.set_editor_property('light_color', unreal.Color(r=255, g=188 if dusk else 238, b=135 if dusk else 220)); sun.light_component.set_editor_property('atmosphere_sun_light', True); sun.set_actor_rotation(unreal.Rotator(-28 if dusk else -42, -118, 0), False)
     sky_light = actors.spawn_actor_from_class(unreal.SkyLight, unreal.Vector(0, 0, 1200)); sky_light.set_actor_label('Ashford valley skylight'); sky_light.tags = [TAG]
-    sky_light.light_component.set_editor_property('intensity', 1.5); sky_light.light_component.set_editor_property('real_time_capture', True)
+    sky_light.light_component.set_editor_property('intensity', .32 if dusk else .72); sky_light.light_component.set_editor_property('real_time_capture', True)
     atmosphere = actors.spawn_actor_from_class(unreal.SkyAtmosphere, unreal.Vector()); atmosphere.set_actor_label('Ashford valley sky'); atmosphere.tags = [TAG]
     fog = actors.spawn_actor_from_class(unreal.ExponentialHeightFog, unreal.Vector()); fog.set_actor_label('Ashford valley air'); fog.tags = [TAG]
-    fog.component.set_editor_property('fog_density', .004); fog.component.set_editor_property('fog_height_falloff', .12); fog.component.set_editor_property('enable_volumetric_fog', True)
+    fog.component.set_editor_property('fog_density', .0012 if dusk else .00065); fog.component.set_editor_property('fog_height_falloff', .18); fog.component.set_editor_property('enable_volumetric_fog', True)
+    post = actors.spawn_actor_from_class(unreal.PostProcessVolume, unreal.Vector()); post.set_actor_label('Ashford fixed exposure'); post.tags = [TAG]
+    post.set_editor_property('unbound', True); settings = post.get_editor_property('settings')
+    settings.set_editor_property('override_auto_exposure_method', True); settings.set_editor_property('auto_exposure_method', unreal.AutoExposureMethod.AEM_MANUAL)
+    settings.set_editor_property('override_auto_exposure_bias', True); settings.set_editor_property('auto_exposure_bias', -0.35 if dusk else 0.0)
+    settings.set_editor_property('override_color_saturation', True); settings.set_editor_property('color_saturation', unreal.Vector4(.96, .94, .90, 1.0))
+    post.set_editor_property('settings', settings)
 
 
 def presentation_camera(scene, projection):
@@ -333,9 +420,16 @@ def presentation_camera(scene, projection):
     """
     square = next((place for place in scene['places'] if place['type'] == 'square'), scene['places'][0])
     x0, y0, x1, y1, _, _, _ = bounds(square, projection); cx, cy = (x0 + x1) / 2., (y0 + y1) / 2.
-    camera = actors.spawn_actor_from_class(unreal.CameraActor, unreal.Vector(cx - 3300, cy - 3300, 3300), unreal.Rotator(0, -45, 45))
-    camera.set_actor_label('Ashford presentation inspection camera'); camera.tags = [TAG]
-    camera.camera_component.set_editor_property('field_of_view', 68.)
+    specs = (
+        ('TV_Camera_Overview', (cx - 3300, cy - 3300, 3300), (cx, cy, 250), 68.),
+        ('TV_Camera_Street', (cx - 3000, cy - 3000, 210), (cx, cy, 210), 58.),
+        ('TV_Camera_Market', (cx - 1900, cy - 1900, 1050), (cx, cy, 180), 62.),
+        ('TV_Camera_Edge', (cx + 3300, cy + 3300, 1150), (cx, cy, 220), 62.),
+    )
+    for label, location, target, fov in specs:
+        rotation = unreal.MathLibrary.find_look_at_rotation(unreal.Vector(*location), unreal.Vector(*target))
+        camera = actors.spawn_actor_from_class(unreal.CameraActor, unreal.Vector(*location), rotation)
+        camera.set_actor_label(label); camera.tags = [TAG]; camera.camera_component.set_editor_property('field_of_view', fov)
 
 
 def main():
