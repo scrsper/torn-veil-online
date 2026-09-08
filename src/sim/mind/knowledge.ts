@@ -284,6 +284,10 @@ export function describeClaim(world: World, k: KnowledgeItem): string {
     // two beliefs it was drawn from — never re-derived here, so a cause can still be described
     // after one of the beliefs behind it has been forgotten or corrected.
     case 'cause': return c.text ?? 'something is behind this';
+    // Adaptive Society: instruction received. Described from the belief's own claim rather than
+    // from the student's current skill, because the two are deliberately unrelated — the whole
+    // point of a `technique` belief is that holding it says nothing about how good you are.
+    case 'technique': return `${c.teacherId ? world.nameOf(c.teacherId) : 'someone'} showed them how ${c.skill ?? 'the work'} is done`;
   }
 }
 

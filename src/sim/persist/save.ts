@@ -1,7 +1,7 @@
 import { World } from '../core/world';
 import { WorldClock } from '../core/time';
 import { generateVillage } from '../world/village';
-import type { Person, Body, Item, Place, Faction, WorldEvent, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation } from '../core/types';
+import type { Person, Body, Item, Place, Faction, WorldEvent, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation, WorkStint } from '../core/types';
 import { syncFieldBlocks } from '../world/metabolism';
 import { syncResourceNodeBlocks } from '../world/resources';
 import { materializeStructure } from '../world/construction';
@@ -106,7 +106,16 @@ const KEY = 'infinite-rpg-save-v1';
 // history that no fresh `think()` tick can recompute, and losing it on load would put every
 // villager back to full urgency on every crime they remember — precisely the behaviour v0.10
 // disclosed and this milestone exists to fix.
-export const SAVE_VERSION = 15;
+// v0.5 Adaptive Society: bumped 15 -> 16 for `World.workStints` — who has stepped in to work a
+// productive place they are not the worker of, how many real batches they have got out of it,
+// what their proficiency was when they began, and who (if anyone) had taught them. Like every
+// bump above it is state this run's history produced and no fresh tick can recompute: the whole
+// point of a stint is that it records something that HAPPENED. Note what does NOT need a bump —
+// `Person.skills` gained a `milling` entry, but `skills` is already whole-object-persisted, and a
+// v15 save simply has nobody with that skill, which is not wrong, merely a world where nobody had
+// yet learned to mill. The version still moves because losing the stints would silently rewrite
+// a village that had adapted into one that never did.
+export const SAVE_VERSION = 16;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
@@ -146,12 +155,14 @@ export function serialize(world: World): string {
   const fires = world.fires.map(f => ({ ...f, pos: { ...f.pos } }));
   // v0.9: plain serializable records (ids, ticks, strings, numbers, one string array).
   const situations = world.situations.map(s => ({ ...s, eventIds: [...s.eventIds] }));
+  // v0.5: plain serializable records (ids, ticks, strings, numbers).
+  const workStints = world.workStints.map(s => ({ ...s }));
   // v0.8 §P1 (independent audit §3.5): the actual PRNG stream position at save time, not just
   // the original generation seed — see `core/rng.ts`'s `RNG.state()` doc. Additive/optional (an
   // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
   // falls back to today's behavior (rewind to post-generation position) when absent.
   const rng = world.rng.state(); const weatherRng = world.weatherRng.state();
-  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, diffs, doors, events, rng, weatherRng, savedAt: Date.now() });
+  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, diffs, doors, events, rng, weatherRng, savedAt: Date.now() });
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -230,6 +241,7 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     // nothing; a save that DOES have fire data (post-v0.8) is authoritative and replaces them.
     if (data.fires?.length) world.fires = data.fires.map((f: Fire) => ({ ...f, pos: { ...f.pos } }));
     world.situations = (data.situations ?? []).map((s: Situation) => ({ ...s, eventIds: [...s.eventIds] }));
+    world.workStints = (data.workStints ?? []).map((s: WorkStint) => ({ ...s }));
 
     for (const s of data.items) { const i = world.item(s.id); if (i) Object.assign(i, s); else world.add({ ...s, tags: [...s.tags], pos: s.pos ? { ...s.pos } : null, provenance: s.provenance.map((entry: Item['provenance'][number]) => ({ ...entry })) } as Item); }
     for (const s of data.places) { const p = world.place(s.id); if (!p) continue; p.ownerId = s.ownerId; s.anchors.forEach((o: string | null, i: number) => { if (p.anchors[i]) p.anchors[i].ownerId = o ?? undefined; }); }

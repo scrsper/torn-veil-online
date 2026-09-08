@@ -40,7 +40,11 @@ const RECOGNITION_THRESHOLD = 0.5;
 const ACCOMPLISHED = 0.7;
 
 /** The makings. Breadth across them separates a maker from a labourer good at one motion. */
-const CRAFT_SKILLS: SkillId[] = ['crafting', 'baking', 'cooking', 'construction', 'sawing'];
+// v0.5 Adaptive Society: milling joins them. It became a real learned capability this milestone,
+// and a life spent at the stones is exactly the kind of accumulated making this reading is for —
+// including, pointedly, for somebody who took the work up because nobody else would and was never
+// called a miller by anyone.
+const CRAFT_SKILLS: SkillId[] = ['crafting', 'baking', 'cooking', 'construction', 'sawing', 'milling'];
 /** Skills whose practice happens away from a workbench, out in the country. */
 const FIELD_SKILLS: SkillId[] = ['herbalism', 'woodcutting', 'quarrying', 'hauling'];
 

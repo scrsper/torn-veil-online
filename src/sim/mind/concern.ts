@@ -311,9 +311,26 @@ export function concernGoalBoost(p: Person, goalType: GoalType, targetId?: Entit
     if (c.kind === 'supply') {
       // A haul only answers this worry if it is carrying the very thing that has run out.
       if (goalType === 'haul' && resource !== c.resource) continue;
-      // Turning up to work only answers it if it is MY trade that puts that material out. A
-      // baker standing at an empty bakery does not make flour appear by being there.
-      if (goalType === 'work' && !(c.resource && tradeMakes(p.occupation, c.resource))) continue;
+      // Turning up to work only answers it if the work actually puts that material out. A baker
+      // standing at an empty bakery does not make flour appear by being there.
+      //
+      // Two ways a `work` goal can qualify, and the order matters. FIRST: the goal itself
+      // declares the material it would produce — that is Adaptive Society's stand-in candidate
+      // (mind/succession.ts), which names a real place with a real canonical process behind it,
+      // so the claim "this work makes flour" is grounded in `world/labor.ts` rather than in what
+      // anybody is called. SECOND, and only when the goal declares nothing: the pre-v0.5
+      // fallback, the public trades table's description of what this person's trade puts out.
+      // Keeping the label path second rather than removing it is deliberate — an ordinary
+      // scheduled shift declares no resource, and a miller turning up to the mill because flour
+      // is short is a true and useful boost — but it is now the WEAKER of the two readings, and
+      // it can no longer be the only way somebody's work counts as answering a shortage. That
+      // was the §IX inversion: before this, a person capable of milling, standing at a mill
+      // nobody was working, got no help from their own worry because their occupation said
+      // otherwise.
+      if (goalType === 'work') {
+        if (resource) { if (resource !== c.resource) continue; }
+        else if (!(c.resource && tradeMakes(p.occupation, c.resource))) continue;
+      }
     }
     // Deliberately bounded: a concern bends a decision, it never dictates one. Even a maximal
     // concern adds less than the gap between idling and answering a physiological emergency.

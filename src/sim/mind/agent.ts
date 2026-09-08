@@ -7,7 +7,7 @@ import { SAW_RATIO, stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot
 import { stepPhysiology, activityLevelFor, heatBand, hungerBand, thirstBand, sleepBand, comfortBand, severityAtLeast, syncNeeds } from '../core/physiology';
 import { isCommittable, EMERGENCY_GOAL_TYPES, interruptionSeverityMet, startCommitment, suspendCommitment, resumeCommitment, finishCommitment, commitmentValidity } from './commitment';
 import { getPhysicalCapability, capabilityFor } from '../core/attributes';
-import { skillOf } from '../core/skills';
+import { skillOf, tradeBatchSeconds } from '../core/skills';
 import { wearTool } from '../core/tools';
 import { isFood } from '../world/factory';
 import { stockAt, retireStack } from '../world/stock';
@@ -38,6 +38,13 @@ import { selectTopic, type Topic } from './conversation';
 import { noticeAbsences } from '../social/absence';
 import { noteWorkBlocked, clearShortfall, shortfallKey } from '../world/shortfall';
 import { drawInferences } from './inference';
+// v0.5 Adaptive Society — vacant productive work derived from staffing/capability/output
+// (world/labor.ts), who is plausibly moved to take it up (mind/succession.ts), and the smallest
+// teaching path (mind/apprenticeship.ts). None of the three decides anything on its own: the
+// first is a read-only view, the second returns a number, the third writes a belief.
+import { maintainWorkStints, noteStandInBatch, processFor, runTradeBatch, underServedPosts, workAuthorization, type TradePost } from '../world/labor';
+import { peopleAwareOfShortage, standInCandidacy } from './succession';
+import { maybeTeachAt } from './apprenticeship';
 import type { TransformResult } from '../world/metabolism';
 import { woundSeverity, SERIOUS_WOUND } from '../core/attributes';
 // v0.10 Motivated Lives — persistent purposes (mind/pursuit.ts) and social stakes with
@@ -67,6 +74,8 @@ const KINDNESS_WEIGHT: Record<string, number> = {
   gift: 1, returned_item: 1, debt_paid: 1, apology: 1, heal: 0.3,
 };
 const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
+/** Shared, never mutated — the ordinary case, where no productive place is going unworked. */
+const EMPTY_AWARENESS: ReadonlySet<EntityId> = new Set<EntityId>();
 /** v0.2.3: world-time a pursuer waits before re-targeting a quarry it just failed to physically
  * reach. Long enough that the two are likely no longer in perception range of each other; short
  * enough that a genuinely renewed threat still gets answered. */
@@ -106,6 +115,22 @@ export class Simulation {
    * reads the accumulated milliseconds back out; this never reads simulation state and never
    * feeds back into any decision, so it cannot affect canonical outcomes or determinism. */
   profile: Record<string, number> | null = null;
+  /**
+   * v0.5 Adaptive Society: the productive places whose work nobody is currently doing, refreshed
+   * once per coarse strategic pass (see `strategic`). A read-only DERIVED view — `world/labor.ts`
+   * computes it from staffing, capability and demand, and nothing writes it back — cached here
+   * for one reason only: `think()` consults it per deliberating person per tick, and re-deriving
+   * it there would mean a scan of every place and every open request each time. Ten world-minutes
+   * of staleness cannot change an answer that moves on the scale of hours.
+   */
+  vacantPosts: TradePost[] = [];
+  /**
+   * v0.5: who currently holds anything at all that could bear on a shortage — the cheap gate in
+   * front of `standInCandidacy`, refreshed beside `vacantPosts` on the same coarse pass. See
+   * `peopleAwareOfShortage` for why it exists (a measured cost regression, not a design choice)
+   * and why widening it can never change an answer.
+   */
+  awareOfShortage: ReadonlySet<EntityId> = EMPTY_AWARENESS;
   constructor(public world: World) {
     // v0.9: every canonical event flows through ongoing-matter bookkeeping exactly once (see
     // World.eventObserver). The re-entrancy guard exists because `noteEventForSituations` itself
@@ -892,6 +917,29 @@ export class Simulation {
         if (node) G('gather', clamp(0.5 * laborCapacity * incentive), [`${gp.name} still needs stone`], { targetPos: node.pos, data: { nodeId: node.id } });
       }
     }
+    // ---- Adaptive Society (v0.5): work that nobody is doing.
+    //
+    // This is the whole behavioural half of the milestone, and it is four lines because it had to
+    // be: taking up a vacant trade is ONE MORE ORDINARY CANDIDATE, scored by
+    // `mind/succession.ts` from what this person knows, can do, owes, needs and has time for, and
+    // then left to compete with sleep, hunger, their own shift and everything else on the board.
+    // Nobody is assigned. Nobody is told. `standInCandidacy` returns null — no candidate at all —
+    // for the overwhelming majority of the village, most often because they have simply never
+    // learned that anything is short, and that silence is the mechanism, not a gap in it.
+    //
+    // `this.vacantPosts` is refreshed on the coarse strategic pass rather than derived here: the
+    // derivation reads every place and every request, under-servedness moves on the scale of
+    // hours, and doing it inside think() would cost that scan per deliberating person per tick.
+    if (!threat && !p.hostile && laborOk && this.vacantPosts.length && this.awareOfShortage.has(p.id)) {
+      for (const post of this.vacantPosts) {
+        const cand = standInCandidacy(w, p, post);
+        if (!cand) continue;
+        G('work', cand.utility, cand.reasons, {
+          targetPlace: post.place.id,
+          data: { standIn: post.place.id, resource: post.process.output, standInCauses: cand.causes, teacherId: cand.teacherId },
+        });
+      }
+    }
     // ---- schedule
     if (sched && !['sleep', 'eat'].includes(sched.activity)) {
       const rainingNow = w.weather.kind === 'rain' || w.weather.kind === 'storm';
@@ -1434,23 +1482,51 @@ export class Simulation {
         // v0.2.4: a miller / baker at their workplace runs a production batch every ~12 world-min
         // of work (real resource transformation; conservation; demand-driven — mill/bake stop
         // when the village has plenty). Only checked on the batch cadence, so no per-substep cost.
-        if ((p.occupation === 'miller' || p.occupation === 'baker' || p.occupation === 'woodcutter' || p.occupation === 'innkeeper' || p.occupation === 'herbalist' || p.occupation === 'cook' || p.occupation === 'hunter')) {
+        //
+        // v0.5 Adaptive Society: the gate on the two REQUEST-DRIVEN transforms is no longer the
+        // worker's occupation. `p.occupation === 'miller'` deciding whether a batch of flour
+        // happens is precisely the "a label grants the capability" inversion Constitution §IX
+        // forbids, and it is the exact mechanism by which a village could lose its miller and
+        // never grind again: the work stopped existing along with the label. What decides it now
+        // is `world/labor.ts`'s `workAuthorization` — you work here, or the place's work is going
+        // undone and you are in a state to do it — and how WELL it goes is decided by proficiency
+        // (`core/skills.ts`), which is earned by doing it. The gathering trades below are
+        // unchanged; see the note on `TRADE_PROCESSES` for why they are a different shape.
+        // Who could POSSIBLY have a batch to run here — a cheap prefilter in front of the
+        // `placeAt` scan, which walks every Place and is paid per physical substep. This matters:
+        // resolving the place unconditionally, for everybody with a `work` action, cost enough
+        // that a neighbouring test with a five-second budget timed out (see the note on
+        // `peopleAwareOfShortage`). Two of the three terms are O(1) map lookups.
+        //
+        // None of them is a permission, and the first is deliberately NOT occupation: `workId` is
+        // the canonical record of where somebody works, so the mill's own worker qualifies
+        // whatever they are called. The gathering trades keep the occupation prefilter they have
+        // had since v0.6 — their branches below are occupation-gated anyway (see the note on
+        // `TRADE_PROCESSES` for why they are a different shape of work).
+        const ownTradeHasAProcess = !!processFor(w.place(p.workId ?? '')?.type);
+        const couldStandIn = this.vacantPosts.length > 0 && this.awareOfShortage.has(p.id);
+        if (ownTradeHasAProcess || couldStandIn || p.occupation === 'woodcutter' || p.occupation === 'innkeeper' || p.occupation === 'herbalist' || p.occupation === 'cook' || p.occupation === 'hunter') {
+          const herePlace = w.placeAt(body.pos);
+          const t = herePlace?.type;
+          const process = processFor(t);
           a.data = a.data ?? {};
-          const t = w.placeAt(body.pos)?.type;
           // v0.4 §2/§6: sawing's fixed log:plank ratio (SAW_RATIO) never changes — no duplication
           // risk — but a dexterous sawyer with a saw in hand completes a batch faster than one
           // without, so their WORK RATE (throughput over time) is real and continuous rather than
           // a flat "woodcutter" bonus. Clamped so the interval stays sane at either extreme.
           const sawing = p.occupation === 'woodcutter' && t === 'sawpit';
-          const baking = p.occupation === 'baker' && t === 'bakery';
           // v0.6 §V.7 (baking): skill improves TIME efficiency, never batch size (BAKE_RATIO is
           // untouched) — a practiced baker completes the same batch in less real time, exactly
           // the effect the milestone names for this trade ("do not create extra bread from
           // nothing"). Bounded, symmetric with sawing's own capability-driven cadence below.
-          const bakeRateMult = baking ? 1 + skillOf(p, 'baking') * 0.4 : 1;
+          // v0.5: and `tradeBatchSeconds` adds the other end of the same continuum — somebody who
+          // has NOT learned the trade takes materially longer over one batch, which is where a
+          // novice's higher time-and-energy cost comes from without inventing a second rule for it.
+          const proficiency = process ? skillOf(p, process.skill) : 0;
+          const bakeRateMult = process?.skill === 'baking' ? 1 + proficiency * 0.4 : 1;
           const batchInterval = sawing
             ? Math.max(3 * 60, Math.min(20 * 60, (8 * 60) / capabilityFor(w, p, 'saw', w.placeAt(body.pos)?.id).cap.workRate))
-            : baking ? Math.max(4 * 60, 8 * 60 / bakeRateMult)
+            : process ? Math.max(4 * 60, tradeBatchSeconds(process.baseBatchSeconds / bakeRateMult, proficiency))
             : 8 * 60;
           const last = (a.data.batchAt ?? (a.startedAt ?? w.now) - batchInterval) as number;
           if (w.now - last >= batchInterval) {
@@ -1465,23 +1541,45 @@ export class Simulation {
             // they hold (and everyone present can see) instead of a discarded return value.
             // That was the exact point at which the economic chain stopped propagating: the
             // physical stoppage was already correct, it just left no trace in any mind.
-            const runBatch = (placeId: string, input: ItemType, output: ItemType, run: () => TransformResult) => {
+            //
+            // v0.5 §IV: baking (and, since v0.6 §VIII, milling) is demand-driven through the
+            // shared Request lifecycle rather than an unconditional per-batch call — nobody
+            // produces, and nobody is paid, unless the place has genuinely raised a production
+            // request (world/production.ts's `generateProductionNeeds`, upkeep-driven from real
+            // stock vs. desired reserve).
+            //
+            // v0.5 Adaptive Society: `workAuthorization` is resolved HERE, on the batch cadence,
+            // rather than every physical substep — the derivation reads every open request, and a
+            // person's standing at a place cannot meaningfully change between two batches.
+            const runBatch = (placeId: string, input: ItemType, output: ItemType, run: () => TransformResult, onProduced?: () => void) => {
               const req = claimedProductionRequest(w, placeId, output, p.id);
               if (!req) return;
               const result = run();
               fulfillProductionRequest(w, req, p, result.ok);
-              if (result.ok) clearShortfall(w, p, placeId, input);
+              if (result.ok) { clearShortfall(w, p, placeId, input); onProduced?.(); }
               else if (result.shortage) noteWorkBlocked(w, p, placeId, result.shortage, output);
             };
-            if (p.occupation === 'miller' && t === 'mill') {
-              runBatch(w.placeAt(body.pos)!.id, 'grain', 'flour', () => mill(w, p));
-            }
-            // v0.5 §IV: baking is now demand-driven through the shared Request lifecycle rather
-            // than an unconditional per-batch call — a baker only bakes (and is only paid) when
-            // the bakery has genuinely raised a production request (world/production.ts's
-            // `generateProductionNeeds`, upkeep-driven from real stock vs. desired reserve).
-            else if (baking) {
-              runBatch(w.placeAt(body.pos)!.id, 'flour', 'bread', () => bake(w, p));
+            const auth = process ? workAuthorization(w, p, herePlace) : null;
+            if (auth) {
+              const { post } = auth;
+              const skillBefore = skillOf(p, post.process.skill);
+              runBatch(post.place.id, post.process.input, post.process.output, () => runTradeBatch(w, p, post), () => {
+                // Somebody who is not this place's worker just got real output out of it. The
+                // record is opened only now, AFTER the fact, which is what keeps it provenance
+                // rather than permission — see `WorkStint` in core/types.ts.
+                if (auth.standing !== 'stand_in') return;
+                const g = p.mind.goal;
+                noteStandInBatch(w, p, post, {
+                  reason: (g?.data?.standIn === post.place.id ? g.reasons.filter(Boolean)[0] : undefined) ?? auth.why,
+                  teacherId: g?.data?.teacherId as string | undefined,
+                  causes: (g?.data?.standInCauses as string[] | undefined)?.filter(id => !!w.event(id)) ?? [],
+                  skillBefore,
+                });
+              });
+              // Being shown how, at the work — the smallest teaching path (mind/apprenticeship.ts).
+              // Whoever is ahead teaches; instruction grants no proficiency, it only makes the
+              // practice that follows count for more.
+              maybeTeachAt(w, p, post.process.skill, post.place.id);
             }
             else if (sawing) { saw(w, p); wearTool(w, capabilityFor(w, p, 'saw', w.placeAt(body.pos)?.id).tool, batchInterval / 3600); } // v0.3: log → plank
             // v0.6 §II: the innkeeper keeps the tavern's larder stocked while working — see
@@ -2589,6 +2687,13 @@ export class Simulation {
       // they cost nothing per physical step.
       generateLogisticsNeeds(w);
       generateProductionNeeds(w);
+      // v0.5 Adaptive Society: end stints that reality has already ended (the place's own worker
+      // is fit and back, the stand-in died, or they simply stopped), then re-derive which posts
+      // are going unworked. In this order, and AFTER `generateProductionNeeds`, because
+      // under-servedness is defined partly by demand this pass may just have raised.
+      maintainWorkStints(w);
+      this.vacantPosts = underServedPosts(w);
+      this.awareOfShortage = this.vacantPosts.length ? peopleAwareOfShortage(w) : EMPTY_AWARENESS;
       stepConstruction(w);
       maintainHauls(w);
       maintainResourceNodes(w);

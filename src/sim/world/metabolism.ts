@@ -5,7 +5,7 @@ import { makeItem, RESOURCE_CATEGORY, isFood, SPOIL_RATE_PER_DAY, ITEM_VALUE } f
 import { addPlaceStock, takePlaceStock, retireStack, stockAt as stockAtPlace, stockTotal } from './stock';
 import { eatRestoresEnergy, drinkRestoresHydration } from '../core/physiology';
 import { purchaseUnits } from './commerce';
-import { practiceSkill } from '../core/skills';
+import { practiceSkill, skillOf, tradeYield } from '../core/skills';
 import { learnPlace } from '../mind/knowledge';
 import { remember } from '../mind/memory';
 
@@ -296,7 +296,19 @@ export function mill(world: World, miller: Person): TransformResult {
   // Quiet no-op when the input simply hasn't been delivered yet — that is not a "shortage",
   // it is normal demand-driven operation, and the logistics generator already raises a haul.
   if (stockAtPlace(world, 'grain', millId) < MILL_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'grain' };
-  return transform(world, { actor: miller.id, inputType: 'grain', inputQty: MILL_RATIO.in, inputPlaces: [millId], outputType: 'flour', outputQty: MILL_RATIO.out, outputPlace: millId, ownerId: miller.id, how: 'milled' });
+  // Adaptive Society (v0.5): the grain consumed never changes — three measures go under the
+  // stones however clumsily they are handled — but how much usable flour comes back out does. A
+  // complete novice gets half; somebody at a settled tradesman's proficiency
+  // (`TRADE_BASELINE`) gets all of it, which is why nothing about the working village changed
+  // when this was introduced. Never zero: a batch that produced literally nothing would read to
+  // the rest of the simulation as a material shortage, which would be a lie about the world.
+  const out = tradeYield(MILL_RATIO.out, skillOf(miller, 'milling'));
+  const result = transform(world, { actor: miller.id, inputType: 'grain', inputQty: MILL_RATIO.in, inputPlaces: [millId], outputType: 'flour', outputQty: out, outputPlace: millId, ownerId: miller.id, how: 'milled' });
+  // ...and the work itself is how anybody ever stops being a novice. One real batch, one unit of
+  // practice — the same rule baking and sawing have followed since v0.6, applied to the trade
+  // that until now had no learned capability behind it at all.
+  if (result.ok) practiceSkill(miller, 'milling', 1);
+  return result;
 }
 
 /**
@@ -308,7 +320,11 @@ export function bake(world: World, baker: Person): TransformResult {
   if (!bakeryId) return { ok: false, produced: 0, consumed: 0 };
   if (villageStock(world, 'bread') >= BREAD_CAP) return { ok: false, produced: 0, consumed: 0 };
   if (stockAtPlace(world, 'flour', bakeryId) < BAKE_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'flour' };
-  const result = transform(world, { actor: baker.id, inputType: 'flour', inputQty: BAKE_RATIO.in, inputPlaces: [bakeryId], outputType: 'bread', outputQty: BAKE_RATIO.out, outputPlace: bakeryId, ownerId: baker.id, how: 'baked' });
+  // v0.5 Adaptive Society: the same novice yield milling now pays. Osric and Mara are seeded at
+  // `TRADE_BASELINE`, so the bakery's real output is untouched; somebody standing in for them is
+  // measurably worse at it.
+  const out = tradeYield(BAKE_RATIO.out, skillOf(baker, 'baking'));
+  const result = transform(world, { actor: baker.id, inputType: 'flour', inputQty: BAKE_RATIO.in, inputPlaces: [bakeryId], outputType: 'bread', outputQty: out, outputPlace: bakeryId, ownerId: baker.id, how: 'baked' });
   if (result.ok) practiceSkill(baker, 'baking', 1); // v0.6 §V.9: one real batch = one unit of practice
   return result;
 }
