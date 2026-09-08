@@ -89,9 +89,15 @@ export function canonicalStateHash(world: World): string {
     const b = world.primaryBody(p.id);
     parts.push([
       p.id, p.alive ? 1 : 0, Math.round(p.wealth), p.factionId ?? '', Object.keys(p.knowledge).length,
+      p.birthTick, p.lifeStage, p.householdId ?? '', p.parentIds.join(','),
+      p.physiology.pregnancy ? `${p.physiology.pregnancy.state}:${p.physiology.pregnancy.otherParentId}:${p.physiology.pregnancy.dueAt}` : '',
       b ? Math.round(b.pos.x) : '', b ? Math.round(b.pos.z) : '', b ? Math.round(b.health) : '',
     ].join(':'));
   }
+  for (const household of [...world.households()].sort((a, b) => a.id.localeCompare(b.id))) {
+    parts.push(`household:${household.id}:${household.memberIds.join(',')}:${household.homeId ?? ''}:${household.wealth}`);
+  }
+  parts.push(`eras:${world.chronicleEras.length}:${world.chronicleCompactedEventIds.size}`);
   parts.push(`events:${world.events.length}`);
   const last = world.events[world.events.length - 1];
   if (last) parts.push(`lastEvent:${last.id}:${last.type}`);

@@ -98,7 +98,7 @@ export function runHeadless(opts: HeadlessRunOptions): HeadlessRunResult {
   const recorder = new TelemetryRecorder(world, [memSink, ...(opts.sinks ?? [])]);
   recorder.runStart({ seed: opts.seed, requestedDays: opts.days, mode: 'headless' });
 
-  const startingPopulation = world.persons().filter(p => p.alive).length;
+  const startingPopulation = world.livingPersons().length;
   const substep = opts.stepSeconds ?? 0.15;
   const maintenanceInterval = opts.maintenanceIntervalSeconds ?? 3600;
   // `days` is WORLD days (calendar days — what a player or historian would mean by "day"),

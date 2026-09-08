@@ -44,7 +44,7 @@ function cheapestMealPrice(world: World): number {
 /** v0.8 §P0-A: the decomposed economic snapshot — see `types.ts`'s `EconomySnapshot` doc for
  * why `spendableWealth`/`coinItems` are never collapsed into one figure. */
 function economySnapshot(world: World): EconomySnapshot {
-  const alive = world.persons().filter(p => p.alive && !p.controlled);
+  const alive = world.livingPersons().filter(p => !p.controlled);
   const wealths = alive.map(p => p.wealth);
   const spendableWealth = Math.round(wealths.reduce((a, b) => a + b, 0) * 100) / 100;
   let coinItems = 0;
@@ -100,6 +100,7 @@ function maxActiveConflictAgeHours(world: World): number {
 function totalCurrency(world: World): number {
   let total = 0;
   for (const p of world.persons()) total += p.wealth;
+  for (const h of world.households()) total += h.wealth;
   for (const it of world.items()) if (it.type === 'coins') total += it.quantity ?? 0;
   return total;
 }
