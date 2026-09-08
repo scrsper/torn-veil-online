@@ -9,6 +9,7 @@ unreal/**/DerivedDataCache/
 unreal/**/.vs/
 unreal/**/*.sln
 unreal/TornVeilOnline/Content/Characters/
+unreal/scripts/__pycache__/
 .unrealmcp.json
 
 # Automatic telemetry/anomaly/summary output from headless runs (v0.2 Part 3) and browser

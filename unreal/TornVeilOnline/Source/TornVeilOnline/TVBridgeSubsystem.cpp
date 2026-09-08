@@ -63,6 +63,20 @@ void UTVBridgeSubsystem::SendDropIntent() {
     auto M = MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"), TEXT("interact"));
     M->SetStringField(TEXT("interactionId"), DropInteraction); Send(M);
 }
+void UTVBridgeSubsystem::Interact() {
+    if (bDialogueOpen) { ChooseDialogueOption(0); return; }
+    if (!TalkTargetBody.IsEmpty()) { SendIntent(TEXT("talk"), TalkTargetBody); return; }
+    SendHandIntent(false);
+}
+void UTVBridgeSubsystem::CloseDialogue() {
+    if (!bDialogueOpen) return;
+    auto M = MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"), TEXT("dialogue_close")); Send(M);
+}
+void UTVBridgeSubsystem::ChooseDialogueOption(int32 Index) {
+    if (!bDialogueOpen || !DialogueOptionIds.IsValidIndex(Index)) return;
+    auto M = MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"), TEXT("dialogue_option"));
+    M->SetStringField(TEXT("optionId"), DialogueOptionIds[Index]); Send(M);
+}
 void UTVBridgeSubsystem::Receive(const FString& Message) {
     TSharedPtr<FJsonObject> M;
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Message), M) || !M.IsValid()) return;
@@ -96,7 +110,7 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
     const TArray<TSharedPtr<FJsonValue>>* Rows;
     if (!M->TryGetArrayField(TEXT("bodies"), Rows)) return;
     ServerTick = M->GetNumberField(TEXT("tick")); SinceSnapshot = 0; M->TryGetStringField(TEXT("playerId"), PlayerId);
-    NearbyInteraction.Empty(); ConsumeInteraction.Empty(); DropInteraction.Empty(); NearbyPrompt.Empty(); ConsumePrompt.Empty(); DropPrompt.Empty();
+    NearbyInteraction.Empty(); ConsumeInteraction.Empty(); DropInteraction.Empty(); NearbyPrompt.Empty(); ConsumePrompt.Empty(); DropPrompt.Empty(); TalkTargetBody.Empty();
     const TArray<TSharedPtr<FJsonValue>>* Interactions;
     if (M->TryGetArrayField(TEXT("interactions"), Interactions)) for (const auto& V : *Interactions) {
         const auto A = V->AsObject(); if (!A) continue;
@@ -104,6 +118,30 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
         FString& Id = Slot == TEXT("consume") ? ConsumeInteraction : Slot == TEXT("drop") ? DropInteraction : NearbyInteraction;
         FString& Prompt = Slot == TEXT("consume") ? ConsumePrompt : Slot == TEXT("drop") ? DropPrompt : NearbyPrompt;
         if (Id.IsEmpty()) { Id = A->GetStringField(TEXT("id")); Prompt = A->GetStringField(TEXT("label")); }
+    }
+    const TArray<TSharedPtr<FJsonValue>>* TalkTargets;
+    if (M->TryGetArrayField(TEXT("talkTargets"), TalkTargets) && TalkTargets->Num()) {
+        const auto Talk = (*TalkTargets)[0]->AsObject();
+        if (Talk) {
+            TalkTargetBody = Talk->GetStringField(TEXT("bodyId"));
+            NearbyPrompt = FString::Printf(TEXT("Talk to %s"), *Talk->GetStringField(TEXT("name")));
+        }
+    }
+    const TSharedPtr<FJsonObject>* Dialogue;
+    if (M->TryGetObjectField(TEXT("dialogue"), Dialogue) && Dialogue && Dialogue->IsValid()) {
+        bDialogueOpen = true;
+        DialogueSpeaker = (*Dialogue)->GetStringField(TEXT("name"));
+        DialogueOccupation = (*Dialogue)->GetStringField(TEXT("occupation"));
+        DialogueLines.Empty(); DialogueOptionIds.Empty(); DialogueOptionLabels.Empty();
+        const TArray<TSharedPtr<FJsonValue>>* Lines;
+        if ((*Dialogue)->TryGetArrayField(TEXT("lines"), Lines)) for (const auto& Line : *Lines) DialogueLines.Add(Line->AsString());
+        const TArray<TSharedPtr<FJsonValue>>* Options;
+        if ((*Dialogue)->TryGetArrayField(TEXT("options"), Options)) for (const auto& Value : *Options) {
+            const auto Option = Value->AsObject(); if (!Option) continue;
+            DialogueOptionIds.Add(Option->GetStringField(TEXT("id"))); DialogueOptionLabels.Add(Option->GetStringField(TEXT("label")));
+        }
+    } else {
+        bDialogueOpen = false; DialogueSpeaker.Empty(); DialogueOccupation.Empty(); DialogueLines.Empty(); DialogueOptionIds.Empty(); DialogueOptionLabels.Empty();
     }
     TSet<FString> Present;
     for (const auto& V : *Rows) {

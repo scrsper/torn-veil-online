@@ -4,8 +4,11 @@ import { generateVillage } from '../sim/world/village';
 import { moveByIntent, SPRINT_MULTIPLIER } from '../sim/physical/input';
 import { meleeStrike, MELEE_REACH, MELEE_COOLDOWN } from '../sim/physical/melee';
 import { recogniseClass, type RecognisedClass } from '../sim/mind/vocation';
-
 import { handInteractions, performHandInteraction } from '../sim/physical/hand';
+import { DialogueSystem, type DialogueState } from '../sim/mind/dialogue';
+import { actionsForPerson } from '../sim/core/interaction';
+import { B } from '../sim/physical/blocks';
+import type { Item, Person } from '../sim/core/types';
 
 export const BRIDGE_VERSION = 1;
 export class BridgeSession {
@@ -13,6 +16,16 @@ export class BridgeSession {
   readonly sim: Simulation;
   private move = { x: 0, z: 0, sprint: false, expires: 0 };
   private sequence = -1;
+  /**
+   * A dialogue is a small, ephemeral view onto canonical mind state.  The callbacks in a
+   * DialogueState remain on this side of the bridge; Unreal receives only grounded text and
+   * opaque option ids, then asks the simulation to perform the selected option.  This is
+   * deliberately not a second dialogue implementation in C++.
+   */
+  private readonly dialogue: DialogueSystem;
+  private dialogueState: DialogueState | null = null;
+  private dialogueSpeakerBodyId: string | null = null;
+  private dialogueRevision = 0;
   /** A class is a reading of a whole life; it does not change between two snapshots. Re-derived
    * on a slow cadence so the projection stays cheap — the derivation itself stays canonical. */
   private classes = new Map<string, RecognisedClass | null>();
@@ -21,8 +34,12 @@ export class BridgeSession {
     this.world = new World(seed);
     generateVillage(this.world);
     this.sim = new Simulation(this.world);
+    this.dialogue = new DialogueSystem(this.world, this.sim);
   }
-  resetInput(): void { this.sequence = -1; this.move = { x: 0, z: 0, sprint: false, expires: 0 }; }
+  resetInput(): void {
+    this.sequence = -1; this.move = { x: 0, z: 0, sprint: false, expires: 0 };
+    this.closeDialogue();
+  }
   intent(input: unknown): { sequence: number; result: string } {
     if (!input || typeof input !== 'object') return { sequence: -1, result: 'invalid_message' };
     const m = input as Record<string, unknown>;
@@ -42,6 +59,12 @@ export class BridgeSession {
       result = meleeStrike(this.sim, p, b, typeof m.targetBodyId === 'string' ? m.targetBodyId : null);
     } else if (m.type === 'interact') {
       result = performHandInteraction(this.sim, p, m.interactionId);
+    } else if (m.type === 'talk') {
+      result = this.beginDialogue(p, typeof m.targetBodyId === 'string' ? m.targetBodyId : '');
+    } else if (m.type === 'dialogue_option') {
+      result = this.chooseDialogue(typeof m.optionId === 'string' ? m.optionId : '');
+    } else if (m.type === 'dialogue_close') {
+      this.closeDialogue(); result = 'accepted';
     }
     return { sequence: seq, result };
   }
@@ -65,6 +88,11 @@ export class BridgeSession {
     return {
       version: BRIDGE_VERSION, type: 'snapshot', tick: w.physicalTime, worldTime: w.now, ack: this.sequence, playerId: w.playerId,
       interactions: handInteractions(this.sim, w.person(w.playerId)!),
+      dialogue: this.dialogueProjection(),
+      // The client can show the nearest person it may legitimately address.  It receives no
+      // hidden memories/knowledge; the actual greeting and all option availability remain in
+      // DialogueSystem on a validated talk intent.
+      talkTargets: this.talkTargets(w.person(w.playerId)!),
       bodies: w.bodies().filter(b => b.shape === 'humanoid' && b.present).flatMap(b => {
         const p = w.person(b.ownerId); if (!p) return [];
         return [{ bodyId: b.id, entityId: p.id, name: p.name, pos: b.pos, velocity: b.vel, yaw: b.yaw,
@@ -75,7 +103,7 @@ export class BridgeSession {
           attackTarget: b.attackTarget, lastAttackAt: b.lastAttackAt, lastHitAt: b.lastHitAt,
           pose: b.pose, health: b.health, maxHealth: b.maxHealth, alive: p.alive, dead: b.dead,
           incapacitated: b.pose === 'downed' || b.subduedUntil > w.physicalTime || !!p.surrender || !!p.custody?.active,
-          occupation: p.occupation, appearance: p.appearance,
+          occupation: p.occupation, age: p.age, gender: p.gender, slug: p.slug ?? null, appearance: p.appearance,
           // Capability before class (Constitution §12): derived, never assigned, and carrying the
           // canonical evidence it was read from. Null for most people, which is the ordinary case.
           recognisedClass: this.classOf(p.id),
@@ -92,11 +120,92 @@ export class BridgeSession {
   }
   scene() {
     const w = this.world;
+    const g = w.grid;
+    const terrain: number[][] = [];
+    for (let x = 0; x < g.W; x++) for (let z = 0; z < g.D; z++) {
+      const y = g.groundHeight(x, z);
+      // A compact canonical surface sample.  The visual client decides how grass, paths,
+      // fields, stone and water look; it does not decide their location or elevation.
+      terrain.push([x, z, y, g.get(x, y, z)]);
+    }
+    const openings: { x: number; y: number; z: number; open: boolean }[] = [];
+    const fences: { x: number; y: number; z: number }[] = [];
+    for (let x = 0; x < g.W; x++) for (let z = 0; z < g.D; z++) for (let y = 0; y < g.H; y++) {
+      const block = g.get(x, y, z);
+      if (block === B.Door) openings.push({ x, y, z, open: g.isDoorOpen(x, y, z) });
+      else if (block === B.Fence) fences.push({ x, y, z });
+    }
     return { version: BRIDGE_VERSION, type: 'scene', seed: w.seed,
       // TS metres (x,y-up,z) map to UE centimetres (X=x,Y=z,Z=y), centred on the square.
       origin: { x: 96, y: 14, z: 96 }, unitsPerMetre: 100,
       places: w.places().map(p => ({ id: p.id, name: p.name, type: p.type, bounds: p.bounds, inside: p.inside, door: p.door })),
       resources: w.resourceNodes.map(n => ({ id: n.id, pos: n.pos, remaining: n.remaining, state: n.state })),
+      // This is a read-only canonical geometry projection, intentionally separate from the
+      // Unreal culture/style profile.  It is bounded to this loaded simulation region; future
+      // streamed regions can provide the same shape independently.
+      terrain: { width: g.W, depth: g.D, columns: terrain, openings, fences },
+    };
+  }
+
+  private closeDialogue(): void {
+    this.dialogueState = null;
+    this.dialogueSpeakerBodyId = null;
+    this.dialogueRevision++;
+  }
+
+  private talkTargets(player: Person) {
+    const w = this.world, source = w.primaryBody(player.id);
+    if (!source || source.dead || !player.alive) return [];
+    return w.bodies().flatMap(body => {
+      if (!body.present || body.ownerId === player.id || body.dead || body.shape !== 'humanoid') return [];
+      const person = w.person(body.ownerId);
+      if (!person || !person.alive || body.pose === 'sleep') return [];
+      const carrying = player.inventory.map(id => w.item(id)).filter((item): item is Item => !!item);
+      if (!actionsForPerson(w, player, person, carrying).some(action => action.kind === 'talk')) return [];
+      const distance = Math.hypot(source.pos.x - body.pos.x, source.pos.y - body.pos.y, source.pos.z - body.pos.z);
+      if (distance > 3.1 || !w.grid.lineOfPassage({ ...source.pos, y: source.pos.y + 1.2 }, { ...body.pos, y: body.pos.y + 1.2 }, 4.3)) return [];
+      return [{ bodyId: body.id, entityId: person.id, name: person.name, occupation: person.occupation, distance }];
+    }).sort((a, b) => a.distance - b.distance || a.bodyId.localeCompare(b.bodyId));
+  }
+
+  private beginDialogue(player: Person, targetBodyId: string): string {
+    const target = this.talkTargets(player).find(candidate => candidate.bodyId === targetBodyId);
+    if (!target) return 'interaction_unavailable';
+    const speaker = this.world.person(target.entityId);
+    if (!speaker) return 'interaction_unavailable';
+    this.dialogueState = this.dialogue.start(speaker, player);
+    this.dialogueSpeakerBodyId = targetBodyId;
+    this.dialogueRevision++;
+    return 'accepted';
+  }
+
+  private chooseDialogue(optionId: string): string {
+    if (!this.dialogueState) return 'no_dialogue';
+    const prefix = `dialogue:${this.dialogueRevision}:`;
+    if (!optionId.startsWith(prefix)) return 'invalid_dialogue_option';
+    const index = Number(optionId.slice(prefix.length));
+    if (!Number.isSafeInteger(index) || index < 0 || index >= this.dialogueState.options.length) return 'invalid_dialogue_option';
+    const next = this.dialogueState.options[index].next();
+    if (next) this.dialogueState = next;
+    else { this.dialogueState = null; this.dialogueSpeakerBodyId = null; }
+    this.dialogueRevision++;
+    return 'accepted';
+  }
+
+  private dialogueProjection() {
+    const state = this.dialogueState;
+    if (!state) return null;
+    return {
+      revision: this.dialogueRevision,
+      speakerId: state.speaker.id,
+      speakerBodyId: this.dialogueSpeakerBodyId,
+      name: state.speaker.name,
+      occupation: state.speaker.occupation,
+      lines: state.lines,
+      // The native panel exposes enough of a canonical menu for merchant/trade branches to be
+      // reachable without inventing a renderer-side shortcut.  This remains a presentation
+      // limit: option ids resolve only against the current DialogueSystem state.
+      options: state.options.slice(0, 9).map((option, index) => ({ id: `dialogue:${this.dialogueRevision}:${index}`, label: option.label })),
     };
   }
 }

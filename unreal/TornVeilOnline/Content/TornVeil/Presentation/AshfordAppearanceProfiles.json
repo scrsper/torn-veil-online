@@ -1,0 +1,25 @@
+{
+  "profile": "ashford_japanese_medieval_fantasy",
+  "source": "art/reference/cultures/ashford/characters",
+  "purpose": "Renderer-only clothing, hair, silhouette and occupation-cue grammar. Canonical age, sex/body, occupation and appearance colours remain supplied by the simulation.",
+  "namedOverrides": {},
+  "generic": {
+    "garment": "layered_kimono",
+    "hair": "dark_styled",
+    "status": "modest"
+  },
+  "occupations": {
+    "baker": { "garment": "indigo_apron", "prop": "bread_basket" },
+    "smith": { "garment": "charcoal_apron", "prop": "hammer" },
+    "merchant": { "garment": "burgundy_noren", "prop": "ledger" },
+    "innkeeper": { "garment": "dark_vest", "prop": "tray" },
+    "farmer": { "garment": "work_kimono", "prop": "hoe" },
+    "guard": { "garment": "indigo_lamellar", "prop": "spear" },
+    "captain": { "garment": "black_gold_lamellar", "prop": "sword" },
+    "priest": { "garment": "ceremonial_robe", "prop": "beads" },
+    "hunter": { "garment": "travel_robe", "prop": "bow" },
+    "woodcutter": { "garment": "work_kimono", "prop": "axe" },
+    "miller": { "garment": "work_kimono", "prop": "grain_sack" },
+    "healer": { "garment": "violet_robe", "prop": "satchel" }
+  }
+}
