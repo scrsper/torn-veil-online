@@ -127,17 +127,23 @@ describe('Adaptive Society — unattended acceptance', () => {
   });
 
   it('grants nobody a trade they did not earn', () => {
-    // Every stint began well short of a settled tradesman's hands...
-    for (const s of report.standIns) expect(s.skillAtStart).toBeLessThan(0.2);
-    // ...and where somebody came back to the work a second time, they began exactly where their
+    // A first stint begins at nothing; where somebody came back to the work a second time, they
+    // may now be above the old 0.2 novice threshold because they genuinely earned it earlier.
+    // They must begin no higher than their preceding stint actually left them.
     // own earlier work had left them — the proficiency is carried by the person, not reset by the
     // record and not conferred by it.
     const byPerson = new Map<string, typeof report.standIns>();
-    for (const s of report.standIns) byPerson.set(s.who, [...(byPerson.get(s.who) ?? []), s]);
+    for (const s of report.standIns) {
+      const key = `${s.who}:${s.resource}`;
+      byPerson.set(key, [...(byPerson.get(key) ?? []), s]);
+    }
     for (const runs of byPerson.values()) {
       const ordered = [...runs].sort((a, b) => a.day - b.day);
       expect(ordered[0].skillAtStart).toBe(0);
-      for (let i = 1; i < ordered.length; i++) expect(ordered[i].skillAtStart).toBeGreaterThan(ordered[i - 1].skillAtStart);
+      for (let i = 1; i < ordered.length; i++) {
+        expect(ordered[i].skillAtStart).toBeGreaterThan(ordered[i - 1].skillAtStart);
+        expect(ordered[i].skillAtStart).toBeLessThanOrEqual(ordered[i - 1].skillNow);
+      }
     }
     // No lesson is credited to anybody who never worked — instruction and capability stay apart.
     for (const l of report.lessons) {

@@ -13,7 +13,7 @@ export type Tick = number; // world seconds
 export interface Vec3 { x: number; y: number; z: number; }
 
 // ---------------------------------------------------------------- Entities
-export type EntityKind = 'person' | 'item' | 'place' | 'faction' | 'body' | 'creature';
+export type EntityKind = 'person' | 'item' | 'place' | 'faction' | 'body' | 'creature' | 'household';
 
 export interface Entity {
   id: EntityId;
@@ -183,6 +183,19 @@ export interface Physiology {
    * instruction" — see mind/agent.ts's `stepPhysiology` call site and `syncNeeds`, which derives
    * `needs.comfort` from this). */
   wetness: number;
+  /** Durable reproductive physiology. Gestation advances with ordinary physiology. */
+  pregnancy?: Pregnancy | null;
+}
+
+export type PregnancyState = 'gestating' | 'completed' | 'lost';
+export interface Pregnancy {
+  gestationalParentId: EntityId;
+  otherParentId: EntityId;
+  conceivedAt: Tick;
+  dueAt: Tick;
+  state: PregnancyState;
+  lastProgressAt: Tick;
+  causeEventId?: EventId;
 }
 
 export interface Appearance {
@@ -308,7 +321,9 @@ export type GoalType =
   // names whatever the pursuit resolved as the thing needed. This is the "possibly obtain
   // something required -> return/help again" step of a multi-step purpose; without it a `tend`
   // purpose could only ever walk over and look, which is one action, not a life.
-  | 'provide';
+  | 'provide'
+  // Demographic continuity: an ordinary relationship-motivated social goal.
+  | 'court';
 
 export interface Goal {
   type: GoalType;
@@ -335,7 +350,7 @@ export type ActionType = 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 't
   // v0.8 §P0-G/H: hand a carried item to another person in person — the 'help_recover_item'
   // plan's delivery step (see GoalType). Distinct from the existing NPC-to-player trade/`bought`
   // path; this always uses `Simulation.giveItem` (mind/agent.ts), which pays any owed reward.
-  | 'give';
+  | 'give' | 'propose';
 export interface Action {
   type: ActionType;
   pos?: Vec3;
@@ -766,6 +781,12 @@ export interface Person extends Entity {
   kind: 'person';
   gender: 'm' | 'f';
   age: number;
+  /** Exact calendar birth time and durable lineage. `age` is a derived cached year count. */
+  birthTick: Tick;
+  parentIds: EntityId[];
+  lifeStage: 'infant' | 'child' | 'adolescent' | 'adult' | 'elder';
+  /** Minimal reproductive biology, explicit rather than inferred from names or occupations. */
+  reproductiveRole: 'gestational' | 'fertilizing';
   occupation: Occupation;
   title?: string;
   homeId: EntityId | null;
@@ -775,6 +796,9 @@ export interface Person extends Entity {
   traits: Traits;
   /** v0.4: foundational physical attributes — see `Attributes`. */
   attributes: Attributes;
+  /** Age when base attributes were established; derived age modifiers use this as the identity
+   * point so development/decline never compounds mutations into already-aged attributes. */
+  attributeAgeBasis: number;
   /** v0.4: the physiology reserves `needs.hunger/.thirst/.energy` are now derived from. */
   physiology: Physiology;
   /** v0.5 §I: which `SpeciesPhysiologyProfile` (core/species.ts) governs this person's
@@ -819,10 +843,20 @@ export interface Person extends Entity {
   custody?: CustodyState | null;
   speech: { text: string; until: number } | null; // current speech bubble (physical time)
   deathTick?: Tick;
+  inheritanceSettled?: boolean;
   /** Current cognitive fidelity (default 'full' for every named cast member, matching v0.2
    * scope — see CognitiveLOD). Absent/undefined is treated as 'full' for backward compat
    * with any state created before this field existed (e.g. old saves). */
   cognitiveLOD?: CognitiveLOD;
+}
+
+/** Stable social/economic identity for co-residents. Shared goods remain ordinary items whose
+ * ownerId is this household; shared currency is the same conserved wealth quantity. */
+export interface Household extends Entity {
+  kind: 'household';
+  memberIds: EntityId[];
+  homeId: EntityId | null;
+  wealth: number;
 }
 
 export interface Desire { type: 'recover_item' | 'collect_debt' | 'wants_item'; targetId?: EntityId; itemType?: string; note: string; reward: number; fulfilled: boolean; }
@@ -1364,7 +1398,9 @@ export type EventType =
   // transitions, on the same discipline as every cognition event above: a stint emits ONCE when
   // it opens and once when it is given up, never per batch, and instruction is rate-limited by
   // the student's own standing belief about having been taught.
-  | 'work_taken_up' | 'work_given_up' | 'work_taught';
+  | 'work_taken_up' | 'work_given_up' | 'work_taught'
+  // Demographic continuity — semantic transitions only, never per-tick heartbeats.
+  | 'courtship' | 'pregnancy_started' | 'pregnancy_lost' | 'coming_of_age' | 'inheritance';
 
 export type EventCategory = 'world' | 'social' | 'cognition' | 'history';
 
@@ -1387,6 +1423,23 @@ export interface WorldEvent {
   /** physical stimulus properties, for perception */
   visibility?: number;   // range in blocks at which it can be seen
   loudness?: number;     // range in blocks at which it can be heard
+}
+
+/** A deterministic summary of Chronicle entries old enough to leave the detailed window. The
+ * source ids and causal anchors keep the era auditable; identities are never discarded. */
+export interface ChronicleEra {
+  id: string;
+  anchorEventId: EventId;
+  startTick: Tick;
+  endTick: Tick;
+  entryCount: number;
+  births: number;
+  deaths: number;
+  marriages: number;
+  text: string;
+  people: EntityId[];
+  sourceEventIds: EventId[];
+  causes: EventId[];
 }
 
 export type WeatherKind = 'clear' | 'cloudy' | 'rain' | 'storm' | 'fog';

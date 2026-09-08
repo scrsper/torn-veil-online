@@ -16,6 +16,7 @@ import { seedStartingSkills } from '../core/skills';
 import { STARTING_AFFORDANCE_KNOWLEDGE } from '../core/affordance';
 import { createFire } from './fire';
 import { SECONDS_PER_DAY } from '../core/time';
+import { establishHouseholds } from './household';
 
 const F = VILLAGE_TOP + 1; // feet level in the village
 
@@ -182,9 +183,10 @@ export function generateVillage(world: World): GenResult {
   ];
   for (const h of historical) {
     const person = makePerson(world, { name: h.name, gender: h.gender, age: h.age, occupation: h.occupation, home: places[h.home]?.id, work: h.work ? places[h.work]?.id : null, traits: {}, appearance: {}, bio: h.bio, slug: h.key });
-    person.alive = false; person.deathTick = h.died; person.factionId = village.id; person.createdAt = h.died - h.age * 365 * SECONDS_PER_DAY;
+    world.markPersonDead(person, h.died); person.factionId = village.id; person.createdAt = h.died - h.age * 365 * SECONDS_PER_DAY; person.birthTick = person.createdAt;
     village.members.push(person.id); people[h.key] = person;
   }
+  establishHouseholds(world);
   const graveOwners: Record<string, EntityId> = { 'Anna Wold': people.anna.id, 'Lissa Bramble': people.lissa.id, 'Old Tam Reed': people.tam.id, 'Mira Reed': people.mira.id };
   for (const grave of graves) if (grave.label && graveOwners[grave.label]) grave.entityId = graveOwners[grave.label];
   // assign beds
@@ -337,7 +339,7 @@ function seedHistory(world: World, pp: Record<string, Person>, pl: Record<string
   // families
   both(pp.garrick, pp.edda, { affection: 0.7, trust: 0.7 }, 'spouse'); both(pp.hilda, pp.bram, { affection: 0.6, trust: 0.7 }, 'spouse'); both(pp.wendel, pp.petra, { affection: 0.4, trust: 0.6 }, 'spouse');
   both(pp.alwin, pp.greta, { affection: 0.7, trust: 0.8 }, 'spouse'); both(pp.jory, pp.nell, { affection: 0.6, trust: 0.7 }, 'spouse');
-  const parent = (c: Person, ...ps: Person[]) => { for (const p of ps) { rel(c, p, { affection: 0.8, trust: 0.9, respect: 0.4 }, 'parent'); rel(p, c, { affection: 0.9, trust: 0.6 }, 'child'); } };
+  const parent = (c: Person, ...ps: Person[]) => { c.parentIds = ps.map(p => p.id); for (const p of ps) { rel(c, p, { affection: 0.8, trust: 0.9, respect: 0.4 }, 'parent'); rel(p, c, { affection: 0.9, trust: 0.6 }, 'child'); } };
   parent(pp.ysolde, pp.hilda, pp.bram); parent(pp.pip, pp.alwin, pp.greta); parent(pp.tilly, pp.jory, pp.nell); parent(pp.mara, pp.osric); parent(pp.nell, pp.maud);
   both(pp.cedric, pp.anna, { affection: 0.9, trust: 0.9 }, 'spouse');
   both(pp.osric, pp.lissa, { affection: 0.8, trust: 0.8 }, 'spouse');

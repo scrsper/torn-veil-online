@@ -519,7 +519,7 @@ export function findAccessibleFood(world: World, p: Person, atPlaceId: EntityId 
     if (!placeId) return null;
     const place = world.place(placeId);
     const household = isHome ? new Set(place?.residents ?? []) : new Set<EntityId>();
-    const okOwner = (i: Item) => i.ownerId == null || i.ownerId === p.id || i.ownerId === place?.ownerId || household.has(i.ownerId);
+    const okOwner = (i: Item) => i.ownerId == null || i.ownerId === p.id || i.ownerId === p.householdId || i.ownerId === place?.ownerId || household.has(i.ownerId);
     const placed = world.items().find(i => i.placeId === placeId && !i.holderId && isFood(i.type) && i.quantity > 0 && okOwner(i));
     if (placed) return placed;
     if (isHome && household.size) {
@@ -695,7 +695,7 @@ export function metabolismSummary(world: World): MetabolismSummary {
     for (const p of f.plots) { crops[p.state]++; if (p.state === 'planted' || p.state === 'growing') { growthSum += p.growth; growthN++; } }
   }
   const anywhere = world.places().map(p => p.id);
-  const alive = world.persons().filter(p => p.alive && !p.controlled);
+  const alive = world.livingPersons().filter(p => !p.controlled);
   return {
     fields: world.fields.length,
     avgSoilMoisture: world.fields.length ? Math.round((moistSum / world.fields.length) * 1000) / 1000 : 0,

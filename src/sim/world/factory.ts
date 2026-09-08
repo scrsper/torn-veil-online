@@ -2,7 +2,7 @@ import type { Person, Body, Item, Place, Faction, Creature, Occupation, Traits, 
 import { World } from '../core/world';
 import { defaultAttributesFor } from '../core/attributes';
 import { defaultPhysiology } from '../core/physiology';
-import { defaultPhysiologyTraitsFor } from '../core/species';
+import { defaultPhysiologyTraitsFor, lifeStageFor } from '../core/species';
 
 export function makeBody(world: World, ownerId: EntityId, pos: Vec3, shape: Body['shape'] = 'humanoid', maxHealth = 80): Body {
   const b: Body = {
@@ -28,8 +28,8 @@ export function makePerson(world: World, s: PersonSpec): Person {
   const attributes: Attributes = { ...defaultAttributesFor(s.age, s.gender), ...s.attributes };
   const p: Person = {
     id: world.nextId('p'), kind: 'person', name: s.name, createdAt: world.now - s.age * 365 * 86400, tags: s.tags ?? [], slug: s.slug,
-    gender: s.gender, age: s.age, occupation: s.occupation, title: s.title, homeId: s.home ?? null, workId: s.work ?? null, factionId: null, householdId: null,
-    traits, attributes, physiology: defaultPhysiology(world.now),
+    gender: s.gender, age: s.age, birthTick: world.now - s.age * 365 * 86400, parentIds: [], lifeStage: lifeStageFor('human', s.age), reproductiveRole: s.gender === 'f' ? 'gestational' : 'fertilizing', occupation: s.occupation, title: s.title, homeId: s.home ?? null, workId: s.work ?? null, factionId: null, householdId: null,
+    traits, attributes, attributeAgeBasis: s.age, physiology: defaultPhysiology(world.now),
     species: 'human', physiologyTraits: defaultPhysiologyTraitsFor(s.age, appearance.build, appearance.height, attributes.strength),
     skills: {},
     needs: { hunger: 0.3, energy: 0.2, social: 0.3, comfort: 0.2, thirst: 0.25 }, emotions: { fear: 0, anger: 0, joy: 0.3, sadness: 0, stress: 0 },

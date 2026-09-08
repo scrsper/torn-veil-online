@@ -137,7 +137,9 @@ export function staffOf(world: World, place: Place): Person[] {
   if (place.ownerId) ids.add(place.ownerId);
   const out: Person[] = [];
   for (const id of ids) { const p = world.person(id); if (p) out.push(p); }
-  for (const p of world.persons()) if (p.workId === place.id && !ids.has(p.id)) out.push(p);
+  // Registered ids above preserve dead historical workers where vacancy explanation needs them;
+  // the fallback discovery path only needs current workers and must not scan every past person.
+  for (const p of world.livingPersons()) if (p.workId === place.id && !ids.has(p.id)) out.push(p);
   return out.sort((a, b) => a.id.localeCompare(b.id));
 }
 

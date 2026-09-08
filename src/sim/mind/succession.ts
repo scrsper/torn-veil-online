@@ -235,8 +235,8 @@ export function standInCandidacy(world: World, p: Person, post: TradePost): Stan
  */
 export function peopleAwareOfShortage(world: World): Set<EntityId> {
   const out = new Set<EntityId>();
-  for (const p of world.persons()) {
-    if (!p.alive || p.controlled) continue;
+  for (const p of world.livingPersons()) {
+    if (p.controlled) continue;
     let aware = false;
     for (const c of p.mind.concerns ?? []) {
       if (c.status === 'active' && (c.kind === 'supply' || c.kind === 'work')) { aware = true; break; }

@@ -2,7 +2,7 @@ import type { Attributes, Body, Item, Person } from './types';
 import type { World } from './world';
 import { heatBand } from './physiology';
 import { bestToolFor, toolWorkMultiplier, type ToolAction } from './tools';
-import { physiologyProfileFor } from './species';
+import { ageCapabilityModifier, physiologyProfileFor } from './species';
 import { skillOf, SKILL_FOR_TOOL_ACTION } from './skills';
 
 /**
@@ -90,8 +90,11 @@ export function getPhysicalCapability(p: Person, world: World, ctx: { body?: Bod
   const sleepPenalty = 1 - Math.min(1, phys.sleepDebt / 16) * 0.35;
 
   const woundPenalty = 1 - Math.max(wound, body?.injuries?.arm ?? 0) * 0.65;
-  const effectiveStrength = clamp(attrs.strength * fatiguePenalty * hungerPenalty * woundPenalty, 0.05, 2);
-  const effectiveDexterity = clamp(attrs.dexterity * fatiguePenalty * sleepPenalty * woundPenalty, 0.05, 2);
+  const ageNow = ageCapabilityModifier(p.species, p.age);
+  const ageBasis = ageCapabilityModifier(p.species, p.attributeAgeBasis ?? p.age);
+  const ageModifier = ageNow / Math.max(0.1, ageBasis);
+  const effectiveStrength = clamp(attrs.strength * ageModifier * fatiguePenalty * hungerPenalty * woundPenalty, 0.05, 2);
+  const effectiveDexterity = clamp(attrs.dexterity * ageModifier * fatiguePenalty * sleepPenalty * woundPenalty, 0.05, 2);
 
   // v0.6 §V.7 (hauling): skill represents packing/load-handling technique, not raw strength —
   // strength remains the primary carrying constraint (CARRY_PER_STRENGTH_KG dominates this), a

@@ -32,6 +32,10 @@ export interface SpeciesPhysiologyProfile {
   heatTolerance: number;
   /** Multiplier on sleep/rest recovery rates (how much one hour of rest/sleep actually restores). */
   recoveryRateMultiplier: number;
+  gestationDays: number;
+  adulthoodAge: number;
+  elderAge: number;
+  fertileAges: { gestational: [number, number]; fertilizing: [number, number] };
 }
 
 /** The only profile implemented in v0.5. Every multiplier is 1 — the numbers this modifies
@@ -50,6 +54,10 @@ export const HUMAN_PHYSIOLOGY_PROFILE: SpeciesPhysiologyProfile = {
   sleepNeedMultiplier: 1,
   heatTolerance: 1,
   recoveryRateMultiplier: 1,
+  gestationDays: 280,
+  adulthoodAge: 18,
+  elderAge: 65,
+  fertileAges: { gestational: [18, 43], fertilizing: [18, 68] },
 };
 
 const SPECIES_PROFILES: Record<string, SpeciesPhysiologyProfile> = {
@@ -107,3 +115,33 @@ export function defaultPhysiologyTraitsFor(age: number, build: number, height: n
  * docs/V0_5_HUMAN_PHYSIOLOGY_AUTONOMOUS_ECONOMY.md is calibrated to hold exactly.
  */
 export const AVERAGE_HUMAN_ADULT: IndividualPhysiologyTraits = { bodySizeFactor: 1, conditioning: 1, sleepNeedFactor: 1 };
+
+export function ageInYears(birthTick: number, now: number): number {
+  return Math.max(0, Math.floor((now - birthTick) / (365 * 86400)));
+}
+
+export function lifeStageFor(speciesId: string, age: number): 'infant' | 'child' | 'adolescent' | 'adult' | 'elder' {
+  const profile = physiologyProfileFor(speciesId);
+  if (age < 2) return 'infant';
+  if (age < 12) return 'child';
+  if (age < profile.adulthoodAge) return 'adolescent';
+  if (age < profile.elderAge) return 'adult';
+  return 'elder';
+}
+
+/** Annual natural-mortality hazard. This is a hazard curve, never a fixed death age. */
+export function annualMortalityHazard(speciesId: string, age: number): number {
+  void speciesId;
+  if (age < 1) return 0.006;
+  if (age < 15) return 0.00025;
+  if (age < 50) return 0.0007 + Math.max(0, age - 30) * 0.00005;
+  return Math.min(0.48, 0.002 * Math.exp((age - 50) / 12));
+}
+
+/** Non-compounding derived capability modifier used at point of calculation. */
+export function ageCapabilityModifier(speciesId: string, age: number): number {
+  const adult = physiologyProfileFor(speciesId).adulthoodAge;
+  if (age < adult) return Math.max(0.25, 0.45 + 0.55 * age / adult);
+  if (age <= 55) return 1;
+  return Math.max(0.55, 1 - (age - 55) * 0.012);
+}

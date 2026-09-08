@@ -24,7 +24,7 @@ import { remember } from './memory';
 import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge, learnPlace, knownFoodPlace, noteFoodShortage } from './knowledge';
 import { realizeClaim, realizeTopic } from './realize';
 import { currentScheduleEntry } from './schedule';
-import { SECONDS_PER_HOUR } from '../core/time';
+import { SECONDS_PER_DAY, SECONDS_PER_HOUR } from '../core/time';
 import { B } from '../physical/blocks';
 import { makeItem } from '../world/factory';
 import { banditResourcePressure, laborIncentive } from './economy';
@@ -59,6 +59,8 @@ import {
 } from './pursuit';
 import { formObligations, forgivenessFor, maintainObligations, noteBenefitEvent, noteRequestEvent, noticeBrokenPromises } from '../social/obligation';
 import { takePortionInHand } from '../world/metabolism';
+import { courtshipCompatibility, diePerson, marry, stepDemographics } from '../world/demographics';
+import { compactChronicle } from '../history/chronicle';
 
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 
@@ -96,6 +98,10 @@ const INCAPACITATED_FRACTION = 0.35;
 /** v0.10 §I.B: how many units of food a `provide` errand takes off a household stack to carry to
  * someone who needs it. A couple of meals — enough to matter, not the whole larder. */
 const PROVISION_UNITS = 2;
+/** Event compaction is a maintenance batch, not a simulation clock. Calling it hourly made a
+ * centuries-long permanent-history prefix get re-filtered thousands of times without changing
+ * the result. A weekly cadence keeps recent detail generous and amortizes the canonical pass. */
+export const EVENT_COMPACTION_INTERVAL_SECONDS = 7 * SECONDS_PER_DAY;
 /** Shared empty list, so the common "no crimes to report" case allocates nothing. */
 const EMPTY_PERSONS: readonly Person[] = [];
 
@@ -133,7 +139,9 @@ export class Simulation {
    * and why widening it can never change an answer.
    */
   awareOfShortage: ReadonlySet<EntityId> = EMPTY_AWARENESS;
+  private demographicDay: number;
   constructor(public world: World) {
+    this.demographicDay = world.clock.day;
     // v0.9: every canonical event flows through ongoing-matter bookkeeping exactly once (see
     // World.eventObserver). The re-entrancy guard exists because `noteEventForSituations` itself
     // emits `situation_opened`/`situation_resolved`; those are not openers or resolvers, so
@@ -166,7 +174,7 @@ export class Simulation {
     const doPerceive = this.perceptionAccum >= 0.2;
     if (doPerceive) this.perceptionAccum = 0;
     const stimuli = doPerceive ? w.pendingStimuli.splice(0) : [];
-    for (const p of w.persons()) {
+    for (const p of w.livingPersons()) {
       if (!p.alive || p.controlled) { if (p.controlled && doPerceive) this.perceive(p, stimuli); continue; }
       const body = w.primaryBody(p.id); if (!body) continue;
       if (doPerceive) { const t0 = this.mark(); this.perceive(p, stimuli); this.accum('perceive', t0); }
@@ -180,24 +188,24 @@ export class Simulation {
     }
     { const t0 = this.mark(); for (const c of w.creatures()) this.creatureStep(c, physDt); this.accum('creatures', t0); }
     // 4. body physics for all non-player bodies
-    { const t0 = this.mark(); for (const b of w.bodies()) { const owner = w.get(b.ownerId) as Person | undefined; if (owner?.controlled) continue; this.bodyPhysics(b, physDt); } this.accum('bodyPhysics', t0); }
+    { const t0 = this.mark(); for (const b of w.activeBodies()) { const owner = w.get(b.ownerId) as Person | undefined; if (owner?.controlled) continue; this.bodyPhysics(b, physDt); } this.accum('bodyPhysics', t0); }
     // 5. strategic upkeep once per world minute
     this.strategicAccum += worldDt;
     if (this.strategicAccum >= 60) { const minutes = Math.floor(this.strategicAccum / 60); this.strategicAccum -= minutes * 60; const t0 = this.mark(); this.strategic(minutes); this.accum('strategic', t0); }
+    while (this.demographicDay < w.clock.day) { this.demographicDay++; stepDemographics(w); if (this.demographicDay % 365 === 0) compactChronicle(w); }
     // 6. event-log compaction (Constitution §71 "computational pragmatism": this is purely a
     // memory/perf bound, not a gameplay mechanic — nothing about WHICH events survive or their
     // causal ancestry depends on how often this runs, only on `world.events.length` when it
     // does). v0.2.1 Priority 3: this used to run every world-minute from inside strategic(),
-    // but compactEvents' own "kept" set keeps every individually-significant event forever
-    // (correctly — that's what makes it a real historical record), so as significant events
-    // accumulate over a long run, a minute-granular cadence meant re-filtering and re-walking
-    // the causal ancestry of that same, ever-growing "already kept" set on almost every call —
+    // but before the era substrate existed, compactEvents kept every individually-significant
+    // event, so a minute-granular cadence meant re-filtering and re-walking the causal ancestry
+    // of that same, ever-growing "already kept" set on almost every call —
     // measured as the single largest cost in a 2-day headless run (~35% of total wall time).
-    // Once an hour is still far more often than the compaction threshold (1.5x `keep`, default
-    // 6000 events) is likely to be freshly crossed, and produces byte-for-byte identical kept
-    // events/causal ancestry to calling it every minute — only the call frequency changes.
+    // Once eras exist, a weekly pass produces the same retained facts and causal ancestry; before
+    // the first era, hourly upkeep preserves the established short-horizon memory behavior.
     this.compactAccum += worldDt;
-    if (this.compactAccum >= 3600) { this.compactAccum = 0; const t0 = this.mark(); w.compactEvents(); this.accum('compact', t0); }
+    const compactionInterval = w.chronicleEras.length ? EVENT_COMPACTION_INTERVAL_SECONDS : SECONDS_PER_HOUR;
+    if (this.compactAccum >= compactionInterval) { this.compactAccum %= compactionInterval; const t0 = this.mark(); w.compactEvents(); this.accum('compact', t0); }
   }
 
   // ------------------------------------------------------------------ perception
@@ -208,7 +216,7 @@ export class Simulation {
     const facing = { x: -Math.sin(body.yaw), z: -Math.cos(body.yaw) };
     const percepts: Percept[] = [];
     const seeRange = asleep ? 0 : (w.weather.kind === 'fog' ? 14 : 28) * (this.lightAt() * 0.5 + 0.5);
-    for (const other of w.bodies()) {
+    for (const other of w.activeBodies()) {
       if (other.id === body.id || !other.present) continue;
       const d = Math.hypot(other.pos.x - eye.x, other.pos.z - eye.z); if (d > 30) continue;
       let how: 'saw' | 'heard' | null = null;
@@ -942,6 +950,20 @@ export class Simulation {
         });
       }
     }
+    // Courtship is local relationship-driven behaviour, not a global matching pass. It is an
+    // ordinary candidate and therefore yields to embodied need, danger, and stronger duties.
+    if (!threat && !criticalNeed) {
+      let bestCourt: { person: Person; score: number } | null = null;
+      for (const percept of m.percepts) {
+        const other = w.person(percept.entityId); if (!other) continue;
+        const score = courtshipCompatibility(w, p, other);
+        if (score >= 0.35 && (!bestCourt || score > bestCourt.score)) bestCourt = { person: other, score };
+      }
+      if (bestCourt) G('court', clamp(0.2 + bestCourt.score * 0.55) * bodyRoom, [
+        `affection, trust and familiarity with ${bestCourt.person.name}`,
+        `compatibility ${bestCourt.score.toFixed(2)}`,
+      ], { targetEntity: bestCourt.person.id });
+    }
     // ---- schedule
     if (sched && !['sleep', 'eat'].includes(sched.activity)) {
       const rainingNow = w.weather.kind === 'rain' || w.weather.kind === 'storm';
@@ -1162,7 +1184,12 @@ export class Simulation {
     const causes: string[] = []; if (g.causeEvent) causes.push(g.causeEvent);
     // link to the most recent knowledge/relationship change that motivated it
     if (g.type === 'flee' || g.type === 'attack' || g.type === 'confront' || g.type === 'report' || g.type === 'investigate' || g.type === 'help') {
-      const recent = [...w.events].reverse().find(e => e.actor === p.id && (e.type === 'knowledge_gained' || e.type === 'relationship_changed' || e.type === 'perceived') && w.now - e.tick < 600);
+      let recent: WorldEvent | undefined;
+      for (let i = w.events.length - 1; i >= 0; i--) {
+        const event = w.events[i];
+        if (w.now - event.tick >= 600) break;
+        if (event.actor === p.id && (event.type === 'knowledge_gained' || event.type === 'relationship_changed' || event.type === 'perceived')) { recent = event; break; }
+      }
       if (recent && !causes.includes(recent.id)) causes.push(recent.id);
     }
     const target = g.targetEntity ? ` → ${w.nameOf(g.targetEntity)}` : g.targetPlace ? ` @ ${w.nameOf(g.targetPlace)}` : '';
@@ -1266,6 +1293,7 @@ export class Simulation {
       case 'report': { const g2 = w.person(g.targetEntity!)!; return [A({ type: 'goto', targetEntity: g2.id, run: true }), A({ type: 'tell', targetEntity: g2.id, data: { key: g.data?.key } })]; }
       case 'investigate': { return [A({ type: 'goto', pos: g.targetPos!, run: p.occupation === 'captain' }), A({ type: 'look', duration: 3 * 60, pos: g.targetPos!, data: { key: g.data?.key, investigate: true } })]; }
       case 'confront': case 'attack': return [A({ type: 'goto', targetEntity: g.targetEntity, run: true }), A({ type: g.type === 'confront' ? 'talk' : 'attack', targetEntity: g.targetEntity, data: g.data })];
+      case 'court': return [A({ type: 'goto', targetEntity: g.targetEntity }), A({ type: 'propose', targetEntity: g.targetEntity, duration: 90 })];
       // v0.2.3: yield out of a losing fight; escort a yielded/subdued suspect into custody.
       case 'surrender': return [A({ type: 'yield', targetEntity: g.targetEntity, data: g.data })];
       case 'escort_custody': return [A({ type: 'goto', targetEntity: g.targetEntity, run: true }), A({ type: 'take_custody', targetEntity: g.targetEntity, data: g.data })];
@@ -1371,7 +1399,7 @@ export class Simulation {
       default: return [A({ type: 'wait', duration: 60 })];
     }
   }
-  private anchorTaken(pos: Vec3, selfBody: string): boolean { for (const b of this.world.bodies()) if (b.id !== selfBody && b.present && b.sitAnchor && b.sitAnchor.x === pos.x && b.sitAnchor.z === pos.z) return true; return false; }
+  private anchorTaken(pos: Vec3, selfBody: string): boolean { for (const b of this.world.activeBodies()) if (b.id !== selfBody && b.sitAnchor && b.sitAnchor.x === pos.x && b.sitAnchor.z === pos.z) return true; return false; }
   private awayFrom(from: Vec3, threat: Vec3, d: number): Vec3 {
     const w = this.world; let dx = from.x - threat.x, dz = from.z - threat.z; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l;
     for (let tries = 0; tries < 8; tries++) { const ang = (tries / 8) * Math.PI * 2 * (tries % 2 ? 1 : -1) * 0.25; const cx = Math.cos(ang) * dx - Math.sin(ang) * dz, cz = Math.sin(ang) * dx + Math.cos(ang) * dz; const x = Math.round(from.x + cx * d), z = Math.round(from.z + cz * d); const n = w.nav.nearestWalkable(x, z, 4); if (n) return { x: n.x + 0.5, y: w.nav.floorY(n.x, n.z), z: n.z + 0.5 }; }
@@ -1748,6 +1776,13 @@ export class Simulation {
         if (k) { this.tell(p, t, k); if ((t.occupation === 'guard' || t.occupation === 'captain') && key) noteReportDelivered(w, p, key, t.id); }
         body.pose = 'talk'; body.poseUntil = w.physicalTime + 2; a.status = 'done'; break;
       }
+      case 'propose': {
+        const target = w.person(a.targetEntity!); const targetBody = w.primaryBody(a.targetEntity!);
+        if (!target || !targetBody || dist2(body.pos, targetBody.pos) > 3.5) { a.status = 'failed'; break; }
+        const court = w.emit('courtship', { actor: p.id, target: target.id, pos: { ...body.pos }, significance: 0.4, visibility: 9, summary: `${p.name} asked ${target.name} to build a household together` });
+        if (marry(w, p, target, court.id)) this.say(p, `${target.name.split(' ')[0]}, let us make a life together.`);
+        a.status = 'done'; break;
+      }
       case 'talk': {
         const t = w.person(a.targetEntity!); const tb = w.primaryBody(a.targetEntity!);
         if (!t || !tb) { a.status = 'failed'; break; }
@@ -1948,7 +1983,7 @@ export class Simulation {
     const doorX = Math.floor(nx), doorZ = Math.floor(nz), doorY = this.world.nav.floorY(doorX, doorZ);
     if (doorY >= 0 && this.world.grid.get(doorX, doorY, doorZ) === B.Door && !this.world.grid.isDoorOpen(doorX, doorY, doorZ)) this.world.setDoorOpen({ x: doorX, y: doorY, z: doorZ }, true, body.ownerId);
     // separation from other bodies
-    let sx = 0, sz = 0; for (const o of this.world.bodies()) { if (o === body || !o.present || o.dead) continue; const ox = body.pos.x - o.pos.x, oz = body.pos.z - o.pos.z; const od = Math.hypot(ox, oz); if (od < 0.7 && od > 1e-3) { sx += ox / od * (0.7 - od); sz += oz / od * (0.7 - od); } }
+    let sx = 0, sz = 0; for (const o of this.world.activeBodies()) { if (o === body) continue; const ox = body.pos.x - o.pos.x, oz = body.pos.z - o.pos.z; const od = Math.hypot(ox, oz); if (od < 0.7 && od > 1e-3) { sx += ox / od * (0.7 - od); sz += oz / od * (0.7 - od); } }
     body.pos.x = nx + sx * dt * 2; body.pos.z = nz + sz * dt * 2;
     const targetYaw = Math.atan2(-dx, -dz); let dy = targetYaw - body.yaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2; body.yaw += dy * Math.min(1, dt * 10);
     body.vel.x = dx / d * speed; body.vel.z = dz / d * speed;
@@ -1978,7 +2013,7 @@ export class Simulation {
     c.wanderTimer -= dt;
     if (c.wanderTimer <= 0) { c.wanderTimer = 2 + w.rng.next() * 6; if (w.rng.next() < 0.6) { const home = w.place(c.homeId)?.inside ?? b.pos; const tx = home.x + (w.rng.next() - 0.5) * 14, tz = home.z + (w.rng.next() - 0.5) * 10; const n = w.nav.nearestWalkable(Math.floor(tx), Math.floor(tz), 3); if (n && w.nav.walkCost(n.x, n.z) < 3) { b.path = [{ x: n.x + 0.5, y: w.nav.floorY(n.x, n.z), z: n.z + 0.5 }]; b.pathIndex = 0; b.pose = 'walk'; } } else { b.path = null; b.pose = 'stand'; } }
     // flee from nearby humans
-    for (const o of w.bodies()) { if (o.shape !== 'humanoid' || !o.present) continue; const d = dist2(o.pos, b.pos); if (d < 2.2 && Math.hypot(o.vel.x, o.vel.z) > 1.5) { const away = this.awayFrom(b.pos, o.pos, 4); b.path = [away]; b.pathIndex = 0; b.pose = 'walk'; c.wanderTimer = 1.5; break; } }
+    for (const o of w.activeBodies()) { if (o.shape !== 'humanoid') continue; const d = dist2(o.pos, b.pos); if (d < 2.2 && Math.hypot(o.vel.x, o.vel.z) > 1.5) { const away = this.awayFrom(b.pos, o.pos, 4); b.path = [away]; b.pathIndex = 0; b.pose = 'walk'; c.wanderTimer = 1.5; break; } }
     if (b.path) { b.speed = 2.2; if (this.followPath(b, dt)) { b.path = null; b.pose = 'stand'; } }
   }
 
@@ -2225,8 +2260,11 @@ export class Simulation {
     }
     if (tb.health <= 0) {
       const lethal = intent === 'kill' || victim.kind === 'creature' || (!combat && attacker.controlled && (wasDowned || (intent === undefined && dmg > 20 && w.rng.next() < 0.5)));
-      if (lethal) { tb.dead = true; tb.pose = 'dead'; tb.health = 0; if (victim.kind === 'person') { victim.alive = false; victim.deathTick = w.now; victim.mind.goal = null; victim.mind.plan = []; }
-        const de = w.emit('kill', { actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, causes: [ev.id], significance: 1, visibility: 26, loudness: 14, summary: `${attacker.name} killed ${victim.name}${place ? ' at ' + place.name : ''}` }); w.emit('death', { target: victim.id, pos: { ...tb.pos }, placeId: place?.id, causes: [de.id], significance: 1, summary: `${victim.name} died` }); }
+      if (lethal) {
+        const de = w.emit('kill', { actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, causes: [ev.id], significance: 1, visibility: 26, loudness: 14, summary: `${attacker.name} killed ${victim.name}${place ? ' at ' + place.name : ''}` });
+        if (victim.kind === 'person') diePerson(w, victim, de.id, `injuries inflicted by ${attacker.name}`);
+        else { tb.dead = true; tb.pose = 'dead'; tb.health = 0; tb.present = false; }
+      }
       else {
         tb.pose = 'downed'; tb.poseUntil = w.physicalTime + 45; tb.health = 1; if (victim.kind === 'person') { victim.mind.plan = []; victim.mind.goal = null; }
         // v0.2.3: a downing blow whose intent was to subdue or arrest imposes a real, longer
@@ -2525,8 +2563,8 @@ export class Simulation {
   private strategic(minutes: number): void {
     const w = this.world; const h = minutes / 60;
     const t0 = this.mark();
-    for (const p of w.persons()) {
-      if (!p.alive) continue; const b = w.primaryBody(p.id);
+    for (const p of w.livingPersons()) {
+      const b = w.primaryBody(p.id);
       p.needs.social = clamp(p.needs.social + h / 10 * p.traits.sociability);
       // v0.4 §1: energy(calories)/hydration/fatigue/sleepDebt/bodyHeat now come from one
       // centralized physiology step (core/physiology.ts), classified by the person's current
@@ -2650,8 +2688,7 @@ export class Simulation {
       this.inferenceAccum += sh;
       const drawNow = this.inferenceAccum >= 1;
       if (drawNow) this.inferenceAccum = 0;
-      for (const p of w.persons()) {
-        if (!p.alive) continue;
+      for (const p of w.livingPersons()) {
         const unresolvedHarm = new Set<string>();
         for (const k of Object.values(p.knowledge)) {
           if (k.kind === 'event' && !k.handled && k.claim.actor && (k.claim.type === 'attack' || k.claim.type === 'kill' || k.claim.type === 'theft')) unresolvedHarm.add(k.claim.actor);
@@ -2664,8 +2701,8 @@ export class Simulation {
       // about them age and discharge at the personal level. Same coarse cadence as relationship
       // evolution above — both work on half-lives of hours to days.
       maintainSituations(w);
-      for (const p of w.persons()) {
-        if (!p.alive || p.controlled) continue;
+      for (const p of w.livingPersons()) {
+        if (p.controlled) continue;
         maintainConcerns(w, p, sh);
         // v0.10 §I/§II: the personal layers age and settle on the same coarse cadence as
         // concerns, and in this order for a reason — obligations first (they are one of the

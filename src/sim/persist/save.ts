@@ -1,7 +1,7 @@
 import { World } from '../core/world';
 import { WorldClock } from '../core/time';
 import { generateVillage } from '../world/village';
-import type { Person, Body, Item, Place, Faction, WorldEvent, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation, WorkStint } from '../core/types';
+import type { Person, Body, Item, Place, Faction, WorldEvent, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation, WorkStint, Household, ChronicleEra } from '../core/types';
 import { syncFieldBlocks } from '../world/metabolism';
 import { syncResourceNodeBlocks } from '../world/resources';
 import { materializeStructure } from '../world/construction';
@@ -120,7 +120,9 @@ const KEY = 'infinite-rpg-save-v1';
 // yet learned to mill. The version still moves because losing the stints would silently rewrite
 // a village that had adapted into one that never did. The same version gate covers the injury
 // overlay above so neither branch's canonical state can be silently discarded.
-export const SAVE_VERSION = 17;
+// Demographic continuity + year-scale substrate: generated people/bodies, lineage, households,
+// pregnancy, materialized significance, Chronicle eras, and the demographic RNG stream.
+export const SAVE_VERSION = 18;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
@@ -131,10 +133,15 @@ export function serialize(world: World): string {
   // investigated is a Set in memory (v0.2.2 Phase 3: O(1) membership instead of an
   // ever-growing array's O(length) .includes() on every guard's every think() tick) — JSON has
   // no native Set, so it round-trips as a plain array here and is rebuilt into a Set on load.
-  const persons = world.persons().map(p => ({ id: p.id, concerns: p.mind.concerns ?? [], obligations: p.mind.obligations ?? [], pursuits: p.mind.pursuits ?? [], reports: p.mind.reports ?? {}, needs: p.needs, emotions: p.emotions, relationships: p.relationships, memories: p.memories, knowledge: p.knowledge, inventory: p.inventory, wealth: p.wealth, alive: p.alive, desires: p.desires, deathTick: p.deathTick, goal: p.mind.goal, investigated: [...p.mind.investigated], decision: p.mind.decision, timeRate: p.timeRate, surrender: p.surrender ?? null, custody: p.custody ?? null, attributes: p.attributes, physiology: p.physiology, species: p.species, physiologyTraits: p.physiologyTraits, commitment: p.mind.commitment ?? null, skills: p.skills }));
+  const persons = world.persons().map(p => ({
+    ...p, tags: [...p.tags], parentIds: [...p.parentIds], bodies: [...p.bodies], inventory: [...p.inventory],
+    relationships: structuredClone(p.relationships), memories: p.memories.map(m => ({ ...m, entities: [...m.entities], source: { ...m.source } })),
+    knowledge: structuredClone(p.knowledge), desires: p.desires.map(d => ({ ...d })), schedule: p.schedule.map(s => ({ ...s })),
+    mind: { ...p.mind, investigated: [...p.mind.investigated], plan: p.mind.plan.map(a => ({ ...a, data: a.data ? { ...a.data } : undefined })) },
+  }));
   // v0.2.3: a subdued body must reload still subdued (unlike `pose`, which is reset). Persist the
   // physical-time timestamp; a downed pose is reconstructed from it on load.
-  const bodies = world.bodies().map(b => ({ id: b.id, pos: b.pos, yaw: b.yaw, health: b.health, injuries: b.injuries, maxHealth: b.maxHealth, dead: b.dead, pose: b.pose === 'dead' ? 'dead' : (b.subduedUntil > world.physicalTime ? 'downed' : 'stand'), present: b.present, subduedUntil: b.subduedUntil }));
+  const bodies = world.bodies().map(b => ({ ...b, tags: [...b.tags], pos: { ...b.pos }, vel: { ...b.vel }, path: b.path?.map(v => ({ ...v })) ?? null, pathGoal: b.pathGoal ? { ...b.pathGoal } : null, sitAnchor: b.sitAnchor ? { ...b.sitAnchor } : null, pose: b.pose === 'dead' ? 'dead' : (b.subduedUntil > world.physicalTime ? 'downed' : 'stand') }));
   const items = world.items().map(i => ({ ...i, tags: [...i.tags], pos: i.pos ? { ...i.pos } : null, provenance: i.provenance.map(entry => ({ ...entry })) }));
   const places = world.places().map(p => ({ id: p.id, ownerId: p.ownerId, anchors: p.anchors.map(a => a.ownerId ?? null) }));
   // v0.2.1 Priority 8: leaderId (leadership succession) and knowledge (institutional memory,
@@ -162,12 +169,17 @@ export function serialize(world: World): string {
   const situations = world.situations.map(s => ({ ...s, eventIds: [...s.eventIds] }));
   // v0.5: plain serializable records (ids, ticks, strings, numbers).
   const workStints = world.workStints.map(s => ({ ...s }));
+  const households = world.households().map(h => ({ ...h, tags: [...h.tags], memberIds: [...h.memberIds] }));
+  const chronicleEras = world.chronicleEras.map(e => ({ ...e, people: [...e.people], sourceEventIds: [...e.sourceEventIds], causes: [...e.causes] }));
+  const chronicleCompactedEventIds = [...world.chronicleCompactedEventIds];
+  const chronicleEventAliases = [...world.chronicleEventAliases.entries()];
+  const historicalSignificance = [...world.historicalSignificance.entries()];
   // v0.8 §P1 (independent audit §3.5): the actual PRNG stream position at save time, not just
   // the original generation seed — see `core/rng.ts`'s `RNG.state()` doc. Additive/optional (an
   // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
   // falls back to today's behavior (rewind to post-generation position) when absent.
-  const rng = world.rng.state(); const weatherRng = world.weatherRng.state();
-  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, diffs, doors, events, rng, weatherRng, savedAt: Date.now() });
+  const rng = world.rng.state(); const weatherRng = world.weatherRng.state(); const demographicRng = world.demographicRng.state();
+  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -225,15 +237,18 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     // `data.rng`), so old saves keep exactly today's (rewind) behavior rather than failing to load.
     if (typeof data.rng === 'number') world.rng.setState(data.rng);
     if (typeof data.weatherRng === 'number') world.weatherRng.setState(data.weatherRng);
-    for (const s of data.persons) { const p = world.person(s.id); if (!p) continue; Object.assign(p, { needs: s.needs, emotions: s.emotions, relationships: s.relationships, memories: s.memories, knowledge: s.knowledge, inventory: s.inventory, wealth: s.wealth, alive: s.alive, desires: s.desires, deathTick: s.deathTick, timeRate: s.timeRate ?? 1, surrender: s.surrender ?? null, custody: s.custody ?? null, attributes: s.attributes ?? p.attributes, physiology: s.physiology ?? p.physiology, species: s.species ?? p.species, physiologyTraits: s.physiologyTraits ?? p.physiologyTraits, skills: s.skills ?? p.skills }); p.mind.goal = s.goal ?? null; p.mind.plan = []; p.mind.investigated = new Set(s.investigated ?? []); p.mind.decision = s.decision ?? null; p.mind.commitment = s.commitment ?? null; p.mind.intention = null; p.mind.concerns = (s.concerns ?? []).map((c: import('../core/types').Concern) => ({ ...c, basisKeys: [...c.basisKeys], reasons: [...c.reasons] }));
-      // v0.10: deep-copied like `concerns` for the same reason — the saved JSON's arrays must not
-      // become live simulation state that a later save then re-serializes by reference.
-      p.mind.obligations = (s.obligations ?? []).map((o: import('../core/types').Obligation) => ({ ...o, reasons: [...o.reasons] }));
-      p.mind.pursuits = (s.pursuits ?? []).map((pu: import('../core/types').Pursuit) => ({ ...pu, source: { ...pu.source }, steps: [...pu.steps], reasons: [...pu.reasons] }));
-      // v0.10.1: same deep copy, same reason. A pre-15 save simply has no reports, which is the
-      // correct reading of it — those villagers had not started trying to tell anyone yet.
-      p.mind.reports = Object.fromEntries(Object.entries((s.reports ?? {}) as Record<string, import('../core/types').ReportProgress>).map(([k, r]) => [k, { ...r }])); }
-    for (const s of data.bodies) { const b = world.body(s.id); if (!b) continue; b.pos = s.pos; b.yaw = s.yaw; b.health = s.health; b.injuries = s.injuries; b.maxHealth = s.maxHealth; b.dead = s.dead; b.pose = s.pose; b.present = s.present; b.path = null; b.subduedUntil = s.subduedUntil ?? 0; }
+    if (typeof data.demographicRng === 'number') world.demographicRng.setState(data.demographicRng);
+    for (const s of data.persons) {
+      const legacyMind = s.mind ?? { goal: s.goal ?? null, plan: [], decision: s.decision ?? null, commitment: s.commitment ?? null, concerns: s.concerns ?? [], obligations: s.obligations ?? [], pursuits: s.pursuits ?? [], reports: s.reports ?? {}, investigated: s.investigated ?? [] };
+      const restored = { ...s, parentIds: [...(s.parentIds ?? [])], birthTick: s.birthTick ?? s.createdAt, lifeStage: s.lifeStage ?? 'adult', reproductiveRole: s.reproductiveRole ?? (s.gender === 'f' ? 'gestational' : 'fertilizing'), attributeAgeBasis: s.attributeAgeBasis ?? s.age, mind: { ...legacyMind, investigated: new Set(legacyMind.investigated ?? []), plan: [], intention: null } } as Person;
+      const existing = world.person(s.id);
+      if (existing) Object.assign(existing, restored); else world.add(restored);
+    }
+    for (const s of data.bodies) {
+      const restored = { ...s, vel: { x: 0, y: 0, z: 0 }, path: null, pathGoal: null, sitAnchor: null } as Body;
+      const existing = world.body(s.id);
+      if (existing) Object.assign(existing, restored); else world.add(restored);
+    }
     world.conflicts = (data.conflicts ?? []).map((c: Conflict) => ({ ...c }));
     if (data.fields?.length) { world.fields = data.fields.map((f: Field) => ({ ...f, plots: f.plots.map(p => ({ ...p })) })); }
     world.haulTasks = (data.haulTasks ?? []).map((t: HaulTask) => ({ ...t }));
@@ -247,6 +262,16 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     if (data.fires?.length) world.fires = data.fires.map((f: Fire) => ({ ...f, pos: { ...f.pos } }));
     world.situations = (data.situations ?? []).map((s: Situation) => ({ ...s, eventIds: [...s.eventIds] }));
     world.workStints = (data.workStints ?? []).map((s: WorkStint) => ({ ...s }));
+    for (const s of data.households ?? []) {
+      const restored = { ...s, memberIds: [...s.memberIds], tags: [...s.tags] } as Household;
+      const existing = world.get<Household>(s.id);
+      if (existing?.kind === 'household') Object.assign(existing, restored); else world.add(restored);
+    }
+    world.chronicleEras = (data.chronicleEras ?? []).map((e: ChronicleEra) => ({ ...e, anchorEventId: e.anchorEventId ?? e.sourceEventIds[0], people: [...e.people], sourceEventIds: [...e.sourceEventIds], causes: [...e.causes] }));
+    world.chronicleCompactedEventIds = new Set(data.chronicleCompactedEventIds ?? []);
+    world.chronicleEventAliases = new Map(data.chronicleEventAliases ?? world.chronicleEras.flatMap(era => era.sourceEventIds.map(id => [id, era.anchorEventId])));
+    if (data.historicalSignificance) world.historicalSignificance = new Map(data.historicalSignificance);
+    else world.rebuildHistoricalSignificance();
 
     for (const s of data.items) { const i = world.item(s.id); if (i) Object.assign(i, s); else world.add({ ...s, tags: [...s.tags], pos: s.pos ? { ...s.pos } : null, provenance: s.provenance.map((entry: Item['provenance'][number]) => ({ ...entry })) } as Item); }
     for (const s of data.places) { const p = world.place(s.id); if (!p) continue; p.ownerId = s.ownerId; s.anchors.forEach((o: string | null, i: number) => { if (p.anchors[i]) p.anchors[i].ownerId = o ?? undefined; }); }
@@ -263,6 +288,7 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     for (const proj of world.constructionProjects) if (proj.status === 'complete') materializeStructure(world, proj);
     if (world.resourceNodes.length || world.constructionProjects.some(p => p.status === 'complete')) { world.grid.dirtyChunks.clear(); world.nav.rebuildAll(); }
     world.grid.recording = true;
+    world.rebuildLivingIndices();
     // Generated entity ids are part of the save schema. Refuse a malformed/incompatible
     // overlay rather than booting a world whose player has no physical manifestation.
     if (!world.person(world.playerId) || !world.primaryBody(world.playerId)) return null;
