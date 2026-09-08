@@ -1,4 +1,4 @@
-import type { Attributes, Item, Person } from './types';
+import type { Attributes, Body, Item, Person } from './types';
 import type { World } from './world';
 import { heatBand } from './physiology';
 import { bestToolFor, toolWorkMultiplier, type ToolAction } from './tools';
@@ -16,6 +16,7 @@ import { skillOf, SKILL_FOR_TOOL_ACTION } from './skills';
  * hard binary gate.
  */
 export interface PhysicalCapability {
+  movementMultiplier: number;
   effectiveStrength: number;
   effectiveDexterity: number;
   /** Mass (kg) this person can safely carry for a haul right now. */
@@ -64,13 +65,14 @@ export function woundSeverity(body: { health: number; maxHealth: number; dead: b
  * roughly "below half health". Read by mind/agent.ts's think() and social/absence.ts. */
 export const SERIOUS_WOUND = 0.45;
 
-export function getPhysicalCapability(p: Person, world: World, ctx: { action?: ToolAction; tool?: Item | null; skill?: number } = {}): PhysicalCapability {
+export function getPhysicalCapability(p: Person, world: World, ctx: { body?: Body; action?: ToolAction; tool?: Item | null; skill?: number } = {}): PhysicalCapability {
   const attrs: Attributes = p.attributes;
   const phys = p.physiology;
   // v0.9 §D: a real wound is a real physical limit, folded in here — the one centralized place
   // this file's own header already promises "future systems (… injury …)" would extend, rather
   // than a new per-job check in every work handler.
-  const wound = woundSeverity(world.primaryBody(p.id));
+  const body = ctx.body ?? world.primaryBody(p.id);
+  const wound = Math.max(woundSeverity(body), body?.injuries?.head ?? 0, body?.injuries?.torso ?? 0);
   // v0.6 §V: learned capability (core/skills.ts) — resolved automatically from `ctx.action` via
   // `SKILL_FOR_TOOL_ACTION` when the caller doesn't pass one explicitly (haul, which has no
   // tool-governed action, passes it directly instead). 0 for a complete novice — the identity
@@ -87,7 +89,7 @@ export function getPhysicalCapability(p: Person, world: World, ctx: { action?: T
   const heatPenalty = phys.bodyHeat > 0.4 ? Math.max(0.25, 1 - (phys.bodyHeat - 0.4) * 1.15) : 1;
   const sleepPenalty = 1 - Math.min(1, phys.sleepDebt / 16) * 0.35;
 
-  const woundPenalty = 1 - wound * 0.65;
+  const woundPenalty = 1 - Math.max(wound, body?.injuries?.arm ?? 0) * 0.65;
   const effectiveStrength = clamp(attrs.strength * fatiguePenalty * hungerPenalty * woundPenalty, 0.05, 2);
   const effectiveDexterity = clamp(attrs.dexterity * fatiguePenalty * sleepPenalty * woundPenalty, 0.05, 2);
 
@@ -121,7 +123,7 @@ export function getPhysicalCapability(p: Person, world: World, ctx: { action?: T
     0, 1,
   );
 
-  return { effectiveStrength, effectiveDexterity, safeCarryMassKg, workRate, energyCostMultiplier, fatigueMultiplier, heatTolerance, currentExertionCapacity };
+  return { movementMultiplier: movementMultiplier(body), effectiveStrength, effectiveDexterity, safeCarryMassKg, workRate, energyCostMultiplier, fatigueMultiplier, heatTolerance, currentExertionCapacity };
 }
 
 /** Convenience: resolve the best tool for `action` at the person's current place, then return
@@ -144,4 +146,9 @@ export function defaultAttributesFor(age: number, gender: 'm' | 'f'): Attributes
     strength: clamp(0.5 * ageFactor * genderFactor, 0.15, 0.95),
     dexterity: clamp(0.5 * dexAgeFactor, 0.15, 0.95),
   };
+}
+
+/** Canonical locomotion capability; every movement adapter consumes this same multiplier. */
+export function movementMultiplier(body: Body | undefined | null): number {
+  return 1 - clamp(body?.injuries?.leg ?? 0, 0, 1) * 0.65;
 }

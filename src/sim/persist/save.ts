@@ -106,7 +106,11 @@ const KEY = 'infinite-rpg-save-v1';
 // history that no fresh `think()` tick can recompute, and losing it on load would put every
 // villager back to full urgency on every crime they remember — precisely the behaviour v0.10
 // disclosed and this milestone exists to fix.
-// v0.5 Adaptive Society: bumped 15 -> 16 for `World.workStints` — who has stepped in to work a
+// v0.5 Adaptive Society + emergent combat foundation: bumped 15 -> 17 for `World.workStints`
+// and localized functional body injuries. Both are state this run's history produced and no fresh
+// tick can reconstruct: a village that had adapted into a stand-in workforce must not reload as
+// one that never did, and a wounded body must not return uninjured. Earlier saves are not resumable.
+// `World.workStints` records who has stepped in to work a
 // productive place they are not the worker of, how many real batches they have got out of it,
 // what their proficiency was when they began, and who (if anyone) had taught them. Like every
 // bump above it is state this run's history produced and no fresh tick can recompute: the whole
@@ -114,8 +118,9 @@ const KEY = 'infinite-rpg-save-v1';
 // `Person.skills` gained a `milling` entry, but `skills` is already whole-object-persisted, and a
 // v15 save simply has nobody with that skill, which is not wrong, merely a world where nobody had
 // yet learned to mill. The version still moves because losing the stints would silently rewrite
-// a village that had adapted into one that never did.
-export const SAVE_VERSION = 16;
+// a village that had adapted into one that never did. The same version gate covers the injury
+// overlay above so neither branch's canonical state can be silently discarded.
+export const SAVE_VERSION = 17;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
@@ -129,7 +134,7 @@ export function serialize(world: World): string {
   const persons = world.persons().map(p => ({ id: p.id, concerns: p.mind.concerns ?? [], obligations: p.mind.obligations ?? [], pursuits: p.mind.pursuits ?? [], reports: p.mind.reports ?? {}, needs: p.needs, emotions: p.emotions, relationships: p.relationships, memories: p.memories, knowledge: p.knowledge, inventory: p.inventory, wealth: p.wealth, alive: p.alive, desires: p.desires, deathTick: p.deathTick, goal: p.mind.goal, investigated: [...p.mind.investigated], decision: p.mind.decision, timeRate: p.timeRate, surrender: p.surrender ?? null, custody: p.custody ?? null, attributes: p.attributes, physiology: p.physiology, species: p.species, physiologyTraits: p.physiologyTraits, commitment: p.mind.commitment ?? null, skills: p.skills }));
   // v0.2.3: a subdued body must reload still subdued (unlike `pose`, which is reset). Persist the
   // physical-time timestamp; a downed pose is reconstructed from it on load.
-  const bodies = world.bodies().map(b => ({ id: b.id, pos: b.pos, yaw: b.yaw, health: b.health, maxHealth: b.maxHealth, dead: b.dead, pose: b.pose === 'dead' ? 'dead' : (b.subduedUntil > world.physicalTime ? 'downed' : 'stand'), present: b.present, subduedUntil: b.subduedUntil }));
+  const bodies = world.bodies().map(b => ({ id: b.id, pos: b.pos, yaw: b.yaw, health: b.health, injuries: b.injuries, maxHealth: b.maxHealth, dead: b.dead, pose: b.pose === 'dead' ? 'dead' : (b.subduedUntil > world.physicalTime ? 'downed' : 'stand'), present: b.present, subduedUntil: b.subduedUntil }));
   const items = world.items().map(i => ({ ...i, tags: [...i.tags], pos: i.pos ? { ...i.pos } : null, provenance: i.provenance.map(entry => ({ ...entry })) }));
   const places = world.places().map(p => ({ id: p.id, ownerId: p.ownerId, anchors: p.anchors.map(a => a.ownerId ?? null) }));
   // v0.2.1 Priority 8: leaderId (leadership succession) and knowledge (institutional memory,
@@ -228,7 +233,7 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
       // v0.10.1: same deep copy, same reason. A pre-15 save simply has no reports, which is the
       // correct reading of it — those villagers had not started trying to tell anyone yet.
       p.mind.reports = Object.fromEntries(Object.entries((s.reports ?? {}) as Record<string, import('../core/types').ReportProgress>).map(([k, r]) => [k, { ...r }])); }
-    for (const s of data.bodies) { const b = world.body(s.id); if (!b) continue; b.pos = s.pos; b.yaw = s.yaw; b.health = s.health; b.maxHealth = s.maxHealth; b.dead = s.dead; b.pose = s.pose; b.present = s.present; b.path = null; b.subduedUntil = s.subduedUntil ?? 0; }
+    for (const s of data.bodies) { const b = world.body(s.id); if (!b) continue; b.pos = s.pos; b.yaw = s.yaw; b.health = s.health; b.injuries = s.injuries; b.maxHealth = s.maxHealth; b.dead = s.dead; b.pose = s.pose; b.present = s.present; b.path = null; b.subduedUntil = s.subduedUntil ?? 0; }
     world.conflicts = (data.conflicts ?? []).map((c: Conflict) => ({ ...c }));
     if (data.fields?.length) { world.fields = data.fields.map((f: Field) => ({ ...f, plots: f.plots.map(p => ({ ...p })) })); }
     world.haulTasks = (data.haulTasks ?? []).map((t: HaulTask) => ({ ...t }));

@@ -50,6 +50,8 @@ describe('melee intent from an external client', () => {
     expect(pb.pose).toBe('attack');
     expect(meleeStrike(tw.sim, player, pb, tw.world.primaryBody(victim.id)!.id)).toBe('cooldown');
     step(tw, MELEE_COOLDOWN + 0.1);
+    // Keep range fixed: autonomous movement during recovery is tested separately.
+    tw.world.primaryBody(victim.id)!.pos = { x: pb.pos.x + 1.5, y: pb.pos.y, z: pb.pos.z };
     expect(meleeStrike(tw.sim, player, pb, tw.world.primaryBody(victim.id)!.id)).toBe('accepted');
   });
 

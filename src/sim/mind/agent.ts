@@ -1,3 +1,5 @@
+import { applyInjury } from '../physical/injury';
+import { resolveCombatAttack, combatReach, type CombatAttackIntent, type CombatAttackResult } from '../physical/combat';
 import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, ItemType, KnowledgeItem, Creature, Place, Anchor, ConflictIntent, Conflict, ConflictCause } from '../core/types';
 import { World } from '../core/world';
 import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRelationships } from './relationships';
@@ -6,7 +8,7 @@ import { maintainCustody, subdue, takeIntoCustody, beginSurrender, isSubdued } f
 import { SAW_RATIO, stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, restockTavern, gatherHerbs, huntGame, GRAIN_CAP, SEED_PER_PLOT } from '../world/metabolism';
 import { stepPhysiology, activityLevelFor, heatBand, hungerBand, thirstBand, sleepBand, comfortBand, severityAtLeast, syncNeeds } from '../core/physiology';
 import { isCommittable, EMERGENCY_GOAL_TYPES, interruptionSeverityMet, startCommitment, suspendCommitment, resumeCommitment, finishCommitment, commitmentValidity } from './commitment';
-import { getPhysicalCapability, capabilityFor } from '../core/attributes';
+import { getPhysicalCapability, capabilityFor, movementMultiplier } from '../core/attributes';
 import { skillOf, tradeBatchSeconds } from '../core/skills';
 import { wearTool } from '../core/tools';
 import { isFood } from '../world/factory';
@@ -1773,7 +1775,7 @@ export class Simulation {
           a.status = 'done'; break;
         }
         const d = dist2(body.pos, tb.pos); body.yaw = Math.atan2(-(tb.pos.x - body.pos.x), -(tb.pos.z - body.pos.z));
-        if (d > 2.2) {
+        if (d > combatReach(w, p)) {
           // v0.2.3: bound the pursuit (Constitution §11 disengagement — "do not create endless
           // world-spanning pursuit"). Give up after a few failed approaches, or if the target has
           // simply outrun us; the conflict then lapses to disengaging/deterrence via maintenance.
@@ -1941,14 +1943,15 @@ export class Simulation {
     if (body.pathIndex >= path.length) return true;
     const t = path[body.pathIndex]; const dx = t.x - body.pos.x, dz = t.z - body.pos.z; const d = Math.hypot(dx, dz);
     if (d < 0.25) { body.pathIndex++; if (body.pathIndex >= path.length) { body.vel.x = 0; body.vel.z = 0; return true; } return false; }
-    const step = Math.min(d, body.speed * dt); const nx = body.pos.x + dx / d * step, nz = body.pos.z + dz / d * step;
+    const speed = body.speed * movementMultiplier(body);
+    const step = Math.min(d, speed * dt); const nx = body.pos.x + dx / d * step, nz = body.pos.z + dz / d * step;
     const doorX = Math.floor(nx), doorZ = Math.floor(nz), doorY = this.world.nav.floorY(doorX, doorZ);
     if (doorY >= 0 && this.world.grid.get(doorX, doorY, doorZ) === B.Door && !this.world.grid.isDoorOpen(doorX, doorY, doorZ)) this.world.setDoorOpen({ x: doorX, y: doorY, z: doorZ }, true, body.ownerId);
     // separation from other bodies
     let sx = 0, sz = 0; for (const o of this.world.bodies()) { if (o === body || !o.present || o.dead) continue; const ox = body.pos.x - o.pos.x, oz = body.pos.z - o.pos.z; const od = Math.hypot(ox, oz); if (od < 0.7 && od > 1e-3) { sx += ox / od * (0.7 - od); sz += oz / od * (0.7 - od); } }
     body.pos.x = nx + sx * dt * 2; body.pos.z = nz + sz * dt * 2;
     const targetYaw = Math.atan2(-dx, -dz); let dy = targetYaw - body.yaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2; body.yaw += dy * Math.min(1, dt * 10);
-    body.vel.x = dx / d * body.speed; body.vel.z = dz / d * body.speed;
+    body.vel.x = dx / d * speed; body.vel.z = dz / d * speed;
     return false;
   }
   private bodyPhysics(b: Body, dt: number): void {
@@ -2165,10 +2168,20 @@ export class Simulation {
   }
 
   // ------------------------------------------------------------------ combat
-  attack(attacker: Person, ab: Body, tb: Body, intent?: ConflictIntent): void {
-    const w = this.world; ab.lastAttackAt = w.physicalTime; ab.pose = 'attack'; ab.poseUntil = w.physicalTime + 0.45; ab.attackTarget = tb.ownerId;
-    const dmg = Math.max(6, this.weaponOf(attacker) || 7) * (0.8 + w.rng.next() * 0.4);
-    this.applyHit(attacker, ab, tb, dmg, intent);
+  attack(attacker: Person, ab: Body, tb: Body, intent?: ConflictIntent): CombatAttackResult {
+    return this.resolveAttack({ attackerId: attacker.id, attackerBodyId: ab.id, targetBodyId: tb.id, attackMode: 'strike', intent });
+  }
+  resolveAttack(intent: CombatAttackIntent): CombatAttackResult {
+    const w = this.world;
+    const result = resolveCombatAttack(w, intent, w.rng);
+    if (!result.attempted) return result;
+    const attacker = w.person(intent.attackerId)!, ab = w.body(intent.attackerBodyId)!, tb = w.body(intent.targetBodyId)!;
+    ab.lastAttackAt = w.physicalTime; ab.pose = 'attack'; ab.poseUntil = w.physicalTime + 0.45; ab.attackTarget = tb.ownerId;
+    attacker.physiology.fatigue += result.exertionCost;
+    syncNeeds(attacker);
+    if (result.injury) applyInjury(tb, result.injury);
+    this.applyHit(attacker, ab, tb, result.impact, intent.intent ?? 'injure', result);
+    return result;
   }
   /**
    * Canonical hit application, used by player and NPC attacks alike. Emits perceivable events.
@@ -2181,7 +2194,7 @@ export class Simulation {
    * target instead. `intent` is optional so existing direct callers (and tests) keep their
    * previous non-hostile-driven behavior unchanged.
    */
-  applyHit(attacker: Person, ab: Body, tb: Body, dmg: number, intent?: ConflictIntent): WorldEvent | null {
+  applyHit(attacker: Person, ab: Body, tb: Body, dmg: number, intent?: ConflictIntent, combat?: CombatAttackResult): WorldEvent | null {
     const w = this.world; if (tb.dead) return null; const victim = w.get(tb.ownerId) as Person | Creature;
     // v0.2.3: a surrendered, subdued, or in-custody person is out of the fight. An aggressor
     // without explicit lethal intent does not keep hitting them (Constitution §11) — this is the
@@ -2195,7 +2208,7 @@ export class Simulation {
     const dx = tb.pos.x - ab.pos.x, dz = tb.pos.z - ab.pos.z; const d = Math.hypot(dx, dz) || 1; tb.vel.x += dx / d * 4; tb.vel.z += dz / d * 4;
     this.onHit?.(tb, { x: tb.pos.x, y: tb.pos.y + 1.2, z: tb.pos.z });
     const place = w.placeAt(tb.pos);
-    const ev = w.emit('attack', { actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, significance: 0.7, visibility: 26, loudness: 14, data: { damage: Math.round(dmg), weapon: this.weaponName(attacker), health: Math.round(tb.health), intent }, summary: `${attacker.name} attacked ${victim.name}${place ? ' at ' + place.name : ''} (${Math.round(dmg)} dmg)` });
+    const ev = w.emit('attack', { actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, significance: 0.7, visibility: 26, loudness: 14, data: { combat, damage: Math.round(dmg), weapon: combat ? (combat.weaponId ? w.nameOf(combat.weaponId) : 'fists') : this.weaponName(attacker), health: Math.round(tb.health), intent }, summary: `${attacker.name} attacked ${victim.name}${place ? ' at ' + place.name : ''} (${Math.round(dmg)} dmg)` });
     // v0.2.3: track this as part of a canonical Conflict (Constitution §11). Idempotent per pair.
     let conflict: Conflict | null = null;
     if (victim.kind === 'person') {
@@ -2211,7 +2224,7 @@ export class Simulation {
       ev.data.conflictId = conflict.id; // lets the Chronicle fold a whole fight into one entry
     }
     if (tb.health <= 0) {
-      const lethal = intent === 'kill' || victim.kind === 'creature' || (attacker.controlled && (wasDowned || (intent === undefined && dmg > 20 && w.rng.next() < 0.5)));
+      const lethal = intent === 'kill' || victim.kind === 'creature' || (!combat && attacker.controlled && (wasDowned || (intent === undefined && dmg > 20 && w.rng.next() < 0.5)));
       if (lethal) { tb.dead = true; tb.pose = 'dead'; tb.health = 0; if (victim.kind === 'person') { victim.alive = false; victim.deathTick = w.now; victim.mind.goal = null; victim.mind.plan = []; }
         const de = w.emit('kill', { actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, causes: [ev.id], significance: 1, visibility: 26, loudness: 14, summary: `${attacker.name} killed ${victim.name}${place ? ' at ' + place.name : ''}` }); w.emit('death', { target: victim.id, pos: { ...tb.pos }, placeId: place?.id, causes: [de.id], significance: 1, summary: `${victim.name} died` }); }
       else {

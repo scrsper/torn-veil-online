@@ -1,3 +1,4 @@
+import { meleeStrike } from '../../sim/physical/melee';
 import * as THREE from 'three';
 import type { World } from '../../sim/core/world';
 import type { Body, Item, Person, Vec3 } from '../../sim/core/types';
@@ -71,14 +72,9 @@ export class Interaction {
     this.target = best;
   }
   attack(): void {
-    const w = this.world; const t = this.target; const now = w.physicalTime; if (now - this.lastAttack < 0.55) return; this.lastAttack = now;
-    const pb = this.ctrl.body; pb.pose = 'attack'; pb.poseUntil = now + 0.4; pb.lastAttackAt = now;
-    // Face what is being struck. In the immersive modes the body is already facing it (that is
-    // how it got targeted); in the elevated mode the cursor picked it, so the body turns to it —
-    // the same canonical `Simulation.attack` either way.
-    if (t?.kind === 'body' && this.ctrl.mode === 'arpg') pb.yaw = Math.atan2(-(t.body.pos.x - pb.pos.x), -(t.body.pos.z - pb.pos.z));
-    this.onSwing?.();
-    if (t?.kind === 'body' && t.dist < 3.2) this.sim.attack(this.player, pb, t.body);
+    const t = this.target;
+    const result = meleeStrike(this.sim, this.player, this.ctrl.body, t?.kind === 'body' ? t.body.id : null);
+    if (result !== 'cooldown' && result !== 'incapacitated') this.onSwing?.();
   }
   /** What the cursor is over right now, whatever its distance — the observer overlay's
    * click-to-select uses this, so selecting someone across the square does not require walking

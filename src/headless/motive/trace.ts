@@ -10,7 +10,7 @@ import {
   describePursuit, livePursuits, pursuitsOf, motivationBoost, PRIORITY_MARGIN,
 } from '../../sim/mind/pursuit';
 import { describeObligation, obligationsOf, obligationCredit, obligationGoalBoost } from '../../sim/social/obligation';
-import { canHaul, carryCapFor, createHaulTask } from '../../sim/logistics/haul';
+import { canHaul, carryCapFor, personalCarryUnits, createHaulTask } from '../../sim/logistics/haul';
 import { stockAt } from '../../sim/world/stock';
 import { RESOURCE_MASS_KG } from '../../sim/world/factory';
 
@@ -235,8 +235,8 @@ export function runMotiveTrace(spec: MotiveSpec): MotiveTrace {
  * SCENARIO 1 — family responsibility.
  *
  * A close family member suffers a real injury, delivered through the same `Simulation.applyHit`
- * an NPC or the player uses. Everything after that is the ordinary simulation: whether the
- * spouse hears of it, whether they form a concern, whether that concern becomes a purpose, what
+ * an NPC or the player uses. Everything after that is the ordinary simulation: a timely canonical report to the
+ * spouse, whether they form a concern, whether that concern becomes a purpose, what
  * that purpose makes them actually do, and whether they eventually conclude it is over.
  */
 function familyTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveTrace {
@@ -255,22 +255,38 @@ function familyTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveTra
   const aggressor = ordinaryVillagers(world).filter(p => p.id !== subject.id && p.id !== partner.id)
     .sort((a, b) => (b.traits.aggression - a.traits.aggression) || a.id.localeCompare(b.id))[0];
 
+  // The multi-step acceptance case requires timely news, not a lucky next-day encounter.
+  // Stage a messenger who hears from the victim, then reports through the ordinary knowledge/tell pipeline.
+  const messenger = world.persons().filter(p => p.alive && !p.controlled && !p.hostile
+    && ![subject.id, partner.id, aggressor.id].includes(p.id))
+    .sort((a, b) => getRel(partner, b.id).trust - getRel(partner, a.id).trust || a.id.localeCompare(b.id))[0];
+  const messengerBody = world.primaryBody(messenger.id)!;
+  const messengerHome = { ...messengerBody.pos };
+  placeBeside(world, messenger, subject);
+
   const watched = new Set<EntityId>([subject.id, partner.id]);
   const rec = recordFrom(world, world.now, watched);
 
   const subjectBody = world.primaryBody(subject.id)!;
   const aggressorBody = world.primaryBody(aggressor.id)!;
-  placeBeside(world, aggressor, subject);
   const before = { ...aggressorBody.pos };
+  placeBeside(world, aggressor, subject);
   let guard = 0;
   // Beaten until the wound is genuinely serious — a scratch heals within the hour and would give
   // any purpose about it nothing to survive. The aggressor is then put back where they came from,
   // so what the trace observes is the CONSEQUENCES rather than an ongoing brawl.
   while (woundSeverity(subjectBody) < 0.8 && !subjectBody.dead && guard++ < 30) sim.applyHit(aggressor, aggressorBody, subjectBody, 12, 'injure');
   aggressorBody.pos = before;
+  const report = Object.values(subject.knowledge).find(k => k.claim.type === 'attack'
+    && k.claim.actor === aggressor.id && k.claim.target === subject.id && k.source.type === 'witnessed');
+  if (!report) throw new Error('Family trace requires the victim to know the assault before reporting it');
+  sim.tell(subject, messenger, report);
+  placeBeside(world, messenger, partner);
+  sim.tell(messenger, partner, messenger.knowledge[report.key]);
+  messengerBody.pos = messengerHome;
   const partnerBody = world.primaryBody(partner.id)!;
   const gap = Math.hypot(partnerBody.pos.x - subjectBody.pos.x, partnerBody.pos.z - subjectBody.pos.z);
-  const trigger = `${aggressor.name} beat ${subject.name} (wound ${woundSeverity(subjectBody).toFixed(2)}); ${partner.name} is their spouse and is ${gap.toFixed(0)} paces away, at ${world.placeAt(partnerBody.pos)?.name ?? 'the wilds'}`;
+  const trigger = `${aggressor.name} beat ${subject.name} (wound ${woundSeverity(subjectBody).toFixed(2)}); ${partner.name} is their spouse and is ${gap.toFixed(0)} paces away, at ${world.placeAt(partnerBody.pos)?.name ?? 'the wilds'}; ${messenger.name} relayed the victim's report` ;
 
   advance(world, sim, (spec.observeHours ?? 40) * SECONDS_PER_HOUR);
 
@@ -492,7 +508,10 @@ function raiseMultiTripWork(world: World): EntityId | null {
   for (const type of ['stone', 'log', 'plank', 'grain', 'flour'] as ItemType[]) {
     for (const pl of world.places()) {
       const stock = stockAt(world, type, pl.id);
-      if (stock > 0) candidates.push({ type, fromId: pl.id, fromName: pl.name, stock });
+      // Combat now changes who remains fit to haul. Require real multi-trip stock for
+      // the strongest eligible worker, not just the old average-adult estimate.
+      const largestLoad = Math.max(carryCapFor(type), ...world.persons().filter(p => p.alive && !p.controlled).map(p => personalCarryUnits(world, p, type)));
+      if (stock > largestLoad * 2) candidates.push({ type, fromId: pl.id, fromName: pl.name, stock });
     }
   }
   if (!candidates.length) return null;

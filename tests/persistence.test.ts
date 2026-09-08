@@ -34,6 +34,20 @@ describe('save round trips', () => {
     tomasBody.pos = { x: 100.5, y: 14, z: 96.5 };
     maraBody.pos = { x: 100.5, y: 14, z: 100.5 };
     maraBody.yaw = 0;
+    tomasBody.injuries = { arm: 0.35, leg: 0.6 };
+    const stint = {
+      id: world.nextId('stint'),
+      personId: tomas.id,
+      placeId: gen.places.mill.id,
+      resource: 'flour' as const,
+      startedAt: world.now - 120,
+      lastBatchAt: world.now - 30,
+      batches: 3,
+      skillAtStart: 0.12,
+      teacherId: gen.people.hobb.id,
+      reason: 'the mill needed a hand',
+    };
+    world.workStints.push(stint);
     const attack = sim.applyHit(player, playerBody, tomasBody, 8)!;
     advance(world, sim, 0.3);
     expect(mara.knowledge[`ev:${attack.id}`]?.source.type).toBe('witnessed');
@@ -49,9 +63,13 @@ describe('save round trips', () => {
     const sold = player.inventory.map(id => world.item(id)).find(item => item?.type === 'bread')!;
     const trade = sim.sellItem(player, merchant, sold, 4, { x: 75.5, y: 14, z: 106.5 }, merchant.workId ?? undefined)!;
 
-    const loaded = deserialize(serialize(world));
+    const save = serialize(world);
+    expect(JSON.parse(save).version).toBe(17);
+    const loaded = deserialize(save);
     expect(loaded).not.toBeNull();
     const restored = loaded!.world;
+    expect(restored.primaryBody(tomas.id)!.injuries).toEqual({ arm: 0.35, leg: 0.6 });
+    expect(restored.workStints).toEqual([stint]);
     const restoredMara = restored.person(mara.id)!;
     expect(restoredMara.knowledge[`ev:${attack.id}`]).toMatchObject({ source: { type: 'witnessed' }, claim: { actor: player.id } });
     expect(restoredMara.memories.some(memory => memory.eventId === attack.id)).toBe(true);
