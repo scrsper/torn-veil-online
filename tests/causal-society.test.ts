@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addPerson, createTestWorld, face, step, v } from './helpers/world';
+import { addPerson, createTestWorld, face, step, v, wall } from './helpers/world';
 import { makeItem, makePlace } from '../src/sim/world/factory';
 import { addPlaceStock } from '../src/sim/world/stock';
 import { learn } from '../src/sim/mind/knowledge';
@@ -9,8 +9,15 @@ import { clearShortfall, noteWorkBlocked, shortfallKey } from '../src/sim/world/
 import { causeOf, drawInferences, MAX_INFERRED_GRIEVANCE } from '../src/sim/mind/inference';
 import { claimHaulTask, createHaulTask, depositHaulCargo, loadHaulCargo } from '../src/sim/logistics/haul';
 import { explainConcern, explainGoal, explainRelationship, traceLines } from '../src/sim/history/causality';
-import { TRADE_MAKES, TRADE_NEEDS } from '../src/sim/world/supply';
-import { bake, mill } from '../src/sim/world/metabolism';
+import { TRADE_MAKES, TRADE_NEEDS, tradeMakes, tradeNeeds, tradesThatMake } from '../src/sim/world/supply';
+import { bake, mill, saw } from '../src/sim/world/metabolism';
+import { productionSpecs } from '../src/sim/world/production';
+import { consumerDemands } from '../src/sim/logistics/haul';
+import { ITEM_LABEL } from '../src/sim/world/factory';
+import { generateVillage } from '../src/sim/world/village';
+import { World } from '../src/sim/core/world';
+import { handInteractions, performHandInteraction } from '../src/sim/physical/hand';
+import { appraiseClaim } from '../src/sim/social/appraisal';
 import type { Person, Vec3 } from '../src/sim/core/types';
 
 /**
@@ -235,8 +242,10 @@ describe('Causal Society — the trades table describes the mechanics it claims 
   it('names, for each trade, the material its real transform actually stops for', () => {
     const tw = createTestWorld(4401, 40);
     const pl = withTrades(tw);
+    makePlace(tw.world, 'sawpit', 'test sawpit', { x0: 22, z0: 2, x1: 27, z1: 7, y0: 1, y1: 4 }, { inside: v(24, 1, 4) });
     const miller = addPerson(tw, 'Miller', 'miller', pl.millPos, { workId: pl.mill });
     const baker = addPerson(tw, 'Baker', 'baker', pl.bakeryPos, { workId: pl.bakery });
+    const sawyer = addPerson(tw, 'Sawyer', 'woodcutter', v(24, 1, 4));
 
     const milled = mill(tw.world, miller);
     expect(milled.ok).toBe(false);
@@ -248,8 +257,78 @@ describe('Causal Society — the trades table describes the mechanics it claims 
     expect(TRADE_NEEDS.baker).toContain(baked.shortage);
     expect(TRADE_MAKES.baker).toContain('bread');
 
+    const sawn = saw(tw.world, sawyer);
+    expect(sawn.ok).toBe(false);
+    expect(TRADE_NEEDS.woodcutter).toContain(sawn.shortage);
+    expect(TRADE_MAKES.woodcutter).toContain('plank');
+
     // ...and the two ends of the chain line up: what the baker needs is what the miller makes.
     expect(TRADE_MAKES.miller).toEqual(expect.arrayContaining(TRADE_NEEDS.baker!));
+  });
+
+  it('agrees with the canonical production and logistics records over the real generated village', () => {
+    const world = new World(918271);
+    generateVillage(world);
+
+    // OUTPUT side, against `world/production.ts`: whatever a place canonically puts out, the
+    // table must name a trade working there that makes it. A renamed or deleted row fails here.
+    for (const spec of productionSpecs()) {
+      const place = world.places().find(p => p.type === spec.placeType);
+      if (!place) continue;
+      const trades = place.workers.map(id => world.person(id)).filter(Boolean).map(p => p!.occupation);
+      expect(trades.length).toBeGreaterThan(0);
+      expect(trades.some(t => tradeMakes(t, spec.resource))).toBe(true);
+    }
+
+    // INPUT side, against `logistics/haul.ts`: for every place that canonically produces
+    // something, at least one material the village actually hauls INTO it must be one the table
+    // says a trade working there needs. This is what covers the cook, whose transform cannot be
+    // driven empty in a unit test without first lighting a real fire.
+    for (const spec of productionSpecs()) {
+      const place = world.places().find(p => p.type === spec.placeType);
+      if (!place) continue;
+      const trades = place.workers.map(id => world.person(id)).filter(Boolean).map(p => p!.occupation);
+      const delivered = consumerDemands().filter(d => d.destType === spec.placeType).map(d => d.resource);
+      expect(delivered.some(r => trades.some(t => tradeNeeds(t, r)))).toBe(true);
+    }
+
+    // Every trade named is a trade somebody in this world actually plies.
+    const occupations = new Set(world.persons().map(p => p.occupation));
+    for (const occ of [...Object.keys(TRADE_MAKES), ...Object.keys(TRADE_NEEDS)]) {
+      expect(occupations.has(occ as never)).toBe(true);
+    }
+
+    // Nothing may be needed that the world cannot supply: either a trade makes it, or it comes
+    // out of the ground. A row asking for a material with no source anywhere would let a mind
+    // form a supply worry about something that can never arrive.
+    const fromTheGround = new Set(world.resourceNodes.map(n => n.yield));
+    for (const [occ, needs] of Object.entries(TRADE_NEEDS)) {
+      for (const need of needs ?? []) {
+        expect(tradesThatMake(need).length > 0 || fromTheGround.has(need),
+          `${occ} needs ${need}, which nothing makes and no resource node yields`).toBe(true);
+      }
+    }
+
+    // Every material named anywhere in the table is a real item type the world can hold.
+    for (const list of [...Object.values(TRADE_MAKES), ...Object.values(TRADE_NEEDS)]) {
+      for (const r of list ?? []) expect(ITEM_LABEL[r]).toBeTruthy();
+    }
+  });
+
+  it('can name a producer for every material a real stoppage can be about', () => {
+    // The property the inference engine actually depends on: if a transform can report a material
+    // missing, some trade must be nameable as its source, or no stoppage of it could ever be
+    // explained. Derived from the real transforms rather than restated by hand.
+    const tw = createTestWorld(4403, 40);
+    const pl = withTrades(tw);
+    makePlace(tw.world, 'sawpit', 'test sawpit', { x0: 22, z0: 2, x1: 27, z1: 7, y0: 1, y1: 4 }, { inside: v(24, 1, 4) });
+    const shortages = [
+      mill(tw.world, addPerson(tw, 'M', 'miller', pl.millPos, { workId: pl.mill })).shortage,
+      bake(tw.world, addPerson(tw, 'B', 'baker', pl.bakeryPos, { workId: pl.bakery })).shortage,
+      saw(tw.world, addPerson(tw, 'W', 'woodcutter', v(24, 1, 4))).shortage,
+    ].filter(Boolean);
+    expect(shortages.length).toBe(3);
+    for (const r of shortages) expect(tradesThatMake(r!).length).toBeGreaterThan(0);
   });
 
   it('is a description, not a gate: it stops nobody from doing anything', () => {
@@ -262,7 +341,11 @@ describe('Causal Society — the trades table describes the mechanics it claims 
     const milled = mill(tw.world, smith);
     expect(milled.ok).toBe(true);
     expect(milled.produced).toBeGreaterThan(0);
-    expect(TRADE_MAKES.smith).not.toContain('flour');
+    expect(tradeMakes('smith', 'flour')).toBe(false);
+    // And the smith has no row at all, because nothing in the simulation forges anything — see
+    // the rule at the top of world/supply.ts.
+    expect(TRADE_MAKES.smith).toBeUndefined();
+    expect(TRADE_NEEDS.smith).toBeUndefined();
   });
 });
 
@@ -390,6 +473,99 @@ describe('Causal Society — working out why', () => {
 
 // ---------------------------------------------------------------------------------------------
 
+/**
+ * The epistemic guarantees stated as a group, over the same standing shortage belief. Several of
+ * them are also asserted in context above; this block exists so that if one is ever weakened, a
+ * test whose NAME is the guarantee fails, rather than an incidental assertion inside a test about
+ * something else.
+ */
+describe('Causal Society — provenance invariants', () => {
+  it('never lets a belief get better by being passed along, however far or however often', () => {
+    const tw = createTestWorld(4501, 40);
+    const pl = withTrades(tw);
+    const baker = addPerson(tw, 'Baker', 'baker', pl.bakeryPos, { workId: pl.bakery });
+    const chain = ['A', 'B', 'C', 'D'].map((n, i) => addPerson(tw, n, 'farmer', v(14.5 + i * 0.5, 1, 4)));
+
+    const origin = noteWorkBlocked(tw.world, baker, pl.bakery, 'flour', 'bread')!;
+    let teller: Person = baker;
+    let tellerBelief = origin;
+    const seen: { hops: number; confidence: number }[] = [{ hops: origin.hops, confidence: origin.confidence }];
+    for (const listener of chain) {
+      tw.sim.tell(teller, listener, tellerBelief);
+      const heard = listener.knowledge[origin.key];
+      // Each link: strictly one more hop, and never more confident than whoever told them.
+      expect(heard.hops).toBe(tellerBelief.hops + 1);
+      expect(heard.confidence).toBeLessThan(tellerBelief.confidence);
+      expect(heard.source.type).toBe('told');
+      expect(heard.source.from).toBe(teller.id);
+      seen.push({ hops: heard.hops, confidence: heard.confidence });
+      teller = listener; tellerBelief = heard;
+    }
+    // Monotonic the whole way down — no link anywhere in the chain recovers anything.
+    for (let i = 1; i < seen.length; i++) {
+      expect(seen[i].hops).toBeGreaterThan(seen[i - 1].hops);
+      expect(seen[i].confidence).toBeLessThan(seen[i - 1].confidence);
+    }
+    // Repetition is not evidence: hearing the same thing again from the same person changes
+    // nothing at all, and hearing it back from someone further away cannot make it worse either.
+    const mid = chain[1];
+    const before = { ...mid.knowledge[origin.key] };
+    tw.sim.tell(chain[0], mid, chain[0].knowledge[origin.key]);
+    tw.sim.tell(chain[3], mid, chain[3].knowledge[origin.key]);
+    expect(mid.knowledge[origin.key].hops).toBe(before.hops);
+    expect(mid.knowledge[origin.key].confidence).toBe(before.confidence);
+  });
+
+  it('never lets a conclusion get firmer by being drawn again', () => {
+    const tw = createTestWorld(4502, 40);
+    const pl = withTrades(tw);
+    const baker = addPerson(tw, 'Baker', 'baker', pl.bakeryPos, { workId: pl.bakery });
+    const miller = addPerson(tw, 'Miller', 'miller', pl.millPos, { workId: pl.mill });
+    const raider = addPerson(tw, 'Raider', 'bandit', v(30.5, 1, 30.5));
+    noteWorkBlocked(tw.world, baker, pl.bakery, 'flour', 'bread');
+    const premise = attackBelief(tw, baker, raider.id, miller.id, { confidence: 0.85, hops: 1 });
+
+    drawInferences(tw.world, baker);
+    const why = causeOf(baker, shortfallKey(pl.bakery, 'flour'))!;
+    const first = { confidence: why.confidence, hops: why.hops };
+    expect(first.confidence).toBeLessThan(premise.confidence);
+
+    for (let i = 0; i < 5; i++) drawInferences(tw.world, baker);
+    expect(why.confidence).toBe(first.confidence);
+    expect(why.hops).toBe(first.hops);
+    // ...and the conclusion is still no firmer than the weakest thing it rests on.
+    expect(why.confidence).toBeLessThan(baker.knowledge[premise.key].confidence);
+    expect(why.hops).toBeGreaterThanOrEqual(baker.knowledge[premise.key].hops);
+  });
+
+  it('gives a stoppage to nobody who neither saw it nor was told of it, in a real running world', () => {
+    const tw = createTestWorld(4503, 40);
+    const pl = withTrades(tw);
+    const baker = addPerson(tw, 'Baker', 'baker', pl.bakeryPos, { workId: pl.bakery });
+    const inTheRoom = addPerson(tw, 'InTheRoom', 'server', v(15, 1, 4), { workId: pl.bakery });
+    const acrossTheVillage = addPerson(tw, 'AcrossTheVillage', 'farmer', v(36.5, 1, 36.5));
+    const behindAWall = addPerson(tw, 'BehindAWall', 'smith', v(9, 1, 4));
+    wall(tw, 10, 0, 12);
+    face(inTheRoom, tw, pl.bakeryPos);
+    face(behindAWall, tw, pl.bakeryPos);
+
+    noteWorkBlocked(tw.world, baker, pl.bakery, 'flour', 'bread');
+    step(tw, 3);
+
+    const key = shortfallKey(pl.bakery, 'flour');
+    expect(inTheRoom.knowledge[key]).toBeTruthy();          // line of sight
+    expect(behindAWall.knowledge[key]).toBeUndefined();     // no line of sight
+    expect(acrossTheVillage.knowledge[key]).toBeUndefined(); // out of range
+    // Nobody without the belief carries a worry about it either.
+    for (const p of [behindAWall, acrossTheVillage]) {
+      expect(activeConcerns(p).some(c => c.kind === 'supply')).toBe(false);
+      expect(causeOf(p, key)).toBeUndefined();
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------------------------
+
 describe('Causal Society — relationships follow from what people actually do', () => {
   it('moves a witness who cares about the person helped further than one who does not', () => {
     const tw = createTestWorld(4201, 40);
@@ -446,6 +622,96 @@ describe('Causal Society — relationships follow from what people actually do',
     // Someone who was nowhere near owes the hauler nothing they could know about.
     deliver(absentee);
     expect(absentee.relationships[hauler.id]).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * CROSS-SYSTEM: the playable-life hand-interaction path (`sim/physical/hand.ts`, the entry point
+ * the Unreal client's E key reaches) must produce exactly the ordinary social and perceptual
+ * consequences an NPC doing the same thing produces. This is the integration seam between that
+ * milestone and this one, and it is asserted by running the SAME theft twice — once by an NPC
+ * through `Simulation.takeItem`, once by a controlled player through the bridge's own
+ * `performHandInteraction` — into two identically generated worlds, and comparing what the
+ * witness ends up holding. Nothing player-specific is introduced by this test; it exists to fail
+ * if anything player-specific ever is.
+ */
+describe('Causal Society — a player action lands on the village like anybody else\'s', () => {
+  function theftWorld(seed: number, takerControlled: boolean) {
+    const tw = createTestWorld(seed, 40);
+    const owner = addPerson(tw, 'Owner', 'farmer', v(20.5, 1, 20.5));
+    const taker = addPerson(tw, 'Taker', 'traveler', v(10.5, 1, 10.5), {
+      controlled: takerControlled,
+      traits: { honesty: 0.5, courage: 0.5, sociability: 0.5 },
+    });
+    const witness = addPerson(tw, 'Witness', 'server', v(13.5, 1, 10.5), {
+      traits: { honesty: 0.9, courage: 0.5, sociability: 0.5 },
+    });
+    face(witness, tw, v(10.5, 1, 10.5));
+    const purse = makeItem(tw.world, 'ring', "Owner's ring", { owner: owner.id, pos: v(11.2, 1, 10.5) });
+    return { tw, owner, taker, witness, purse };
+  }
+
+  it('gives a witness the same belief, the same worry and the same souring, whoever took it', () => {
+    const npcRun = theftWorld(4601, false);
+    npcRun.tw.sim.takeItem(npcRun.taker, npcRun.purse, 'theft', npcRun.owner.id);
+    step(npcRun.tw, 2);
+
+    const playerRun = theftWorld(4601, true);
+    const offer = handInteractions(playerRun.tw.sim, playerRun.taker).find(a => a.kind === 'steal');
+    expect(offer, 'the hand path must offer the same taking an NPC can perform').toBeTruthy();
+    expect(performHandInteraction(playerRun.tw.sim, playerRun.taker, offer!.id)).toBe('accepted');
+    step(playerRun.tw, 2);
+
+    for (const run of [npcRun, playerRun]) {
+      const belief = Object.values(run.witness.knowledge)
+        .find(k => k.kind === 'event' && k.claim.type === 'theft' && k.claim.actor === run.taker.id);
+      expect(belief, 'the witness saw it happen').toBeTruthy();
+      expect(belief!.source.type).toBe('witnessed');
+      expect(belief!.hops).toBe(0);
+      // It meant something to them, and their regard for the taker moved against them.
+      expect(appraiseClaim(run.tw.world, run.witness, belief!).weight).toBeGreaterThan(0);
+      expect(getRel(run.witness, run.taker.id).trust).toBeLessThan(0);
+      expect(getRel(run.witness, run.taker.id).grudge).toBeGreaterThan(0);
+      // ...and the world recorded a real theft with the taker named as the actor.
+      expect(run.tw.world.events.some(e => e.type === 'theft' && e.actor === run.taker.id)).toBe(true);
+    }
+
+    // The two are not merely both non-zero — they are the SAME, to six places, because the same
+    // code ran on the same world. Any player-specific branch anywhere in perception, appraisal or
+    // reaction would separate these numbers.
+    const fingerprint = (run: ReturnType<typeof theftWorld>) => {
+      const rel = getRel(run.witness, run.taker.id);
+      const belief = Object.values(run.witness.knowledge)
+        .find(k => k.kind === 'event' && k.claim.type === 'theft' && k.claim.actor === run.taker.id)!;
+      return {
+        trust: rel.trust, grudge: rel.grudge, affection: rel.affection, fear: rel.fear, respect: rel.respect,
+        confidence: belief.confidence, hops: belief.hops, source: belief.source.type,
+        weight: appraiseClaim(run.tw.world, run.witness, belief).weight,
+        concerns: activeConcerns(run.witness).map(c => c.kind).sort().join(','),
+        ownerAfter: run.purse.ownerId === run.owner.id,
+      };
+    };
+    expect(fingerprint(playerRun)).toEqual(fingerprint(npcRun));
+    expect(playerRun.purse.holderId).toBe(playerRun.taker.id);
+  });
+
+  it('leaves the player their own mind: the taker forms no worry about their own deed either way', () => {
+    // `formConcerns`/`drawInferences` skip a controlled entity for the pre-existing reason every
+    // cognition path does — a player's beliefs are the player's own, not because a different rule
+    // applies to them. The NPC taker forms nothing about it either, because an appraisal of one's
+    // own theft proposes no concern.
+    const npcRun = theftWorld(4602, false);
+    npcRun.tw.sim.takeItem(npcRun.taker, npcRun.purse, 'theft', npcRun.owner.id);
+    step(npcRun.tw, 2);
+    expect(activeConcerns(npcRun.taker).some(c => c.aboutId === npcRun.taker.id)).toBe(false);
+
+    const playerRun = theftWorld(4602, true);
+    const offer = handInteractions(playerRun.tw.sim, playerRun.taker).find(a => a.kind === 'steal')!;
+    performHandInteraction(playerRun.tw.sim, playerRun.taker, offer.id);
+    step(playerRun.tw, 2);
+    expect(activeConcerns(playerRun.taker)).toHaveLength(0);
   });
 });
 

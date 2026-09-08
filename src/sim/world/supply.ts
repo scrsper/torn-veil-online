@@ -26,10 +26,22 @@ import type { ItemType, Occupation } from '../core/types';
  * person with the wrong occupation who nonetheless has grain and a mill is not stopped by this
  * file. What it summarises is what a VILLAGER would say if asked where flour comes from.
  *
+ * THE RULE FOR ADDING A ROW: name the canonical process it describes. Every entry below points at
+ * one — `mill`, `bake`, `saw`, `cook`, `restockTavern`, `huntGame`, `gatherHerbs`, and the crop
+ * harvest. A row with no process behind it is not a summary of anything; it is a second, quietly
+ * contradictory account of what the village produces, which is precisely what §IX forbids. The
+ * milestone's first draft carried exactly that mistake — a `smith` row claiming swords out of
+ * stone, when nothing anywhere in the simulation forges a weapon or consumes stone as a trade
+ * input — and it was removed rather than left to mislead the inference engine into explaining
+ * shortages that cannot happen.
+ *
  * Because it is a description, it can drift out of step with what it describes.
- * `tests/causal-society.test.ts`'s "the trades table describes the mechanics it claims to" drives
- * the real transforms with empty inputs and asserts that the material each one actually reports
- * missing is the material this table says that trade needs.
+ * `tests/causal-society.test.ts`'s "the trades table describes the mechanics it claims to" is the
+ * alarm: it drives the real transforms with empty inputs and checks the material each one reports
+ * missing against this table, agrees the OUTPUT side against `world/production.ts`'s canonical
+ * production specs and the INPUT side against `logistics/haul.ts`'s canonical consumer demands
+ * over the real generated village, and refuses a resource that no trade and no resource node in
+ * the world can actually supply.
  */
 
 /** What a trade turns out, when it is working. */
@@ -42,7 +54,6 @@ export const TRADE_MAKES: Partial<Record<Occupation, ItemType[]>> = {
   herbalist: ['herbs'],
   woodcutter: ['log', 'plank'],
   innkeeper: ['ale'],
-  smith: ['sword', 'dagger', 'axe', 'hammer'],
 };
 
 /** What a trade consumes to do that. A trade with no entry lives off what it gathers. */
@@ -51,7 +62,6 @@ export const TRADE_NEEDS: Partial<Record<Occupation, ItemType[]>> = {
   baker: ['flour'],
   cook: ['meat', 'log'],
   woodcutter: ['log'],
-  smith: ['stone'],
 };
 
 /** The trades a villager would name if asked where `resource` comes from. */

@@ -21,6 +21,14 @@ import { runCausalTrace, type CausalTraceReport } from '../src/headless/causal/t
  * contains the whole chain. The full thirty- and sixty-day runs are `npm run causal:trace`, kept
  * out of the unit suite because re-running them on every commit buys no evidence this does not
  * already give — see docs/CAUSAL_SOCIETY_V0_4.md for their recorded output.
+ *
+ * RUN IT WITH `npm run causal:accept`. This file is deliberately NOT part of `npm test`: it is an
+ * acceptance run, not a unit test, and seventeen simulated days is ~100 seconds of solid CPU in a
+ * single file. Left in the default suite it starves the other workers, and a neighbour with a
+ * tight per-test budget then fails for want of a core rather than for want of correctness —
+ * measured: `embodied-economy`'s 5 s currency-conservation test takes 1.35 s alone and 5.2 s
+ * beside this one. Widening that neighbour's budget would have hidden the cause. See
+ * `vitest.accept.config.ts`.
  */
 describe('Causal Society — unattended acceptance', () => {
   // Run once, in `beforeAll` rather than at collection time, so the suite's other files are not

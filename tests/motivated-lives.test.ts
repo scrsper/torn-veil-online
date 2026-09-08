@@ -11,7 +11,8 @@ import {
   noticeBrokenPromises, obligationCredit, obligationGoalBoost, obligationsOf,
 } from '../src/sim/social/obligation';
 import {
-  MAX_ACTIVE_PURSUITS, MAX_MOTIVATION_BONUS, MAX_PURSUITS, PURSUIT_FORBIDDEN_GOALS,
+  MAX_ACTIVE_PURSUITS, MAX_MOTIVATION_BONUS, MAX_PURSUITS, PRIORITY_MARGIN,
+  PURSUIT_FORBIDDEN_GOALS, PURSUIT_MIN_DWELL_SECONDS,
   PURSUIT_SERVING_GOALS, believedHarm, formPursuits, livePursuits, maintainPursuits,
   motivationBoost, pursuitGoalBoost, pursuitOutcome, pursuitPriority, pursuitStepUtility, pursuitSteps, pursuitsOf,
 } from '../src/sim/mind/pursuit';
@@ -345,6 +346,60 @@ describe('v0.10 §I — persistent purposes outlive the plans that serve them', 
     expect(active.length).toBeLessThanOrEqual(MAX_ACTIVE_PURSUITS);
     // What is set aside is kept, not thrown away.
     expect(livePursuits(worrier).some(x => x.status === 'deferred')).toBe(true);
+  });
+
+  /**
+   * The deterministic counterpart of `npm run motive:trace`'s "the choice changes when the state
+   * changes". That harness looks for someone who HAPPENED to accumulate three live purposes in a
+   * 36-hour window — roughly 1% of person-samples — so which village demonstrates it is decided by
+   * where everybody was standing, and any change to simulation behaviour re-rolls it (measured:
+   * `main` itself fails that check at seed 1337). The semantics do not need luck to be checked:
+   * build the competition directly and drive the state change by hand.
+   */
+  it('changes which purposes are being pursued when the state changes, and keeps the displaced one', () => {
+    const tw = createTestWorld(10_110, 40);
+    const attacker = addPerson(tw, 'Attacker', 'woodcutter', v(20.5, 1, 20.5));
+    const carer = addPerson(tw, 'Carer', 'cook', v(5.5, 1, 5.5));
+    const hurt = [0, 1, 2].map(i => {
+      const friend = addPerson(tw, `Friend${i}`, 'farmer', v(30.5 + i, 1, 30.5));
+      setRelTags(carer, friend.id, 'friend'); setRelTags(friend, carer.id, 'friend');
+      formConcerns(tw.world, carer, learn(tw.world, carer, attackBelief(tw, attacker.id, friend.id) as KnowledgeItem)!);
+      return friend;
+    });
+    formPursuits(tw.world, carer);
+    maintainPursuits(tw.world, carer);
+
+    const live = livePursuits(carer);
+    expect(live.length).toBeGreaterThan(MAX_ACTIVE_PURSUITS);
+    const activeBefore = live.filter(x => x.status === 'active');
+    const deferredBefore = live.filter(x => x.status === 'deferred');
+    expect(activeBefore.length).toBe(MAX_ACTIVE_PURSUITS);
+    expect(deferredBefore.length).toBeGreaterThan(0);
+
+    // The set-aside worry becomes the pressing one, and the least pressing active one eases —
+    // through the concerns the purposes actually rest on, not by writing priorities directly.
+    const promoted = deferredBefore[0];
+    const demoted = [...activeBefore].sort((a, b) => a.priority - b.priority)[0];
+    carer.mind.concerns!.find(c => c.id === promoted.source.id)!.intensity = 1;
+    carer.mind.concerns!.find(c => c.id === demoted.source.id)!.intensity = 0.15;
+    // Past the dwell window, so a purpose in hand is no longer being held for anti-oscillation.
+    tw.world.clock.advance(PURSUIT_MIN_DWELL_SECONDS + 60);
+
+    maintainPursuits(tw.world, carer);
+
+    expect(promoted.status).toBe('active');
+    expect(promoted.priority).toBeGreaterThan(demoted.priority + PRIORITY_MARGIN);
+    // The displaced purpose is SET ASIDE, not discarded: still live, still re-considered.
+    expect(demoted.status).toBe('deferred');
+    expect(livePursuits(carer)).toContain(demoted);
+    expect(pursuitsOf(carer).filter(x => x.status === 'active').length).toBeLessThanOrEqual(MAX_ACTIVE_PURSUITS);
+    // ...and the active set really is the most pressing live ones, not a fixed ordering.
+    const nowActive = livePursuits(carer).filter(x => x.status === 'active');
+    const nowDeferred = livePursuits(carer).filter(x => x.status === 'deferred');
+    for (const d of nowDeferred) {
+      expect(Math.min(...nowActive.map(a => a.priority))).toBeGreaterThan(d.priority - PRIORITY_MARGIN);
+    }
+    void hurt;
   });
 
   it('always loses to the body: a purpose is scaled by real physiological severity', () => {

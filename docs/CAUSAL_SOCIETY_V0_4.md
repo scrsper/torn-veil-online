@@ -128,9 +128,10 @@ the same conclusions, and the same attributions against *themselves*, through th
 
 ```
 npm run typecheck
-npx vitest run tests/causal-society.test.ts            # 18 focused causal-semantics tests
-npx vitest run tests/causal-society-longrun.test.ts    # 17-day unattended acceptance
-npm test                                               # full suite
+npx vitest run tests/causal-society.test.ts            # 27 focused causal-semantics tests
+npm run causal:accept                                  # 17-day unattended acceptance
+npm run bridge:verify                                  # live Unreal-bridge integration
+npm test                                               # full unit suite
 npm run causal:trace                                   # 30-day traces, both scenarios
 ```
 
@@ -280,20 +281,82 @@ seed moved (918271 → 42). A genuine bug in the harness's own selection was fix
 — it weighted "more samples" above "the active set actually changed", so it could report zero
 changes about a village where the choice had in fact changed.
 
+*And then the semantics were taken off the seed entirely.* Moving a seed answers "does this
+village still happen to show it?", which is not the question the milestone cares about. The
+question is whether the selection rule works, and that needs no luck to check: "changes which
+purposes are being pursued when the state changes, and keeps the displaced one" in
+`tests/motivated-lives.test.ts` builds the competition directly — three friends hurt, three
+purposes, two slots — drives the state change through the concerns the purposes actually rest on,
+advances past the anti-oscillation dwell window, and asserts the active set really changed, that
+the displaced purpose is *deferred* rather than discarded, and that no set-aside purpose is more
+pressing than one being pursued. Verified non-vacuous by widening `PRIORITY_MARGIN` so displacement
+becomes impossible: the test fails. The trace harness is now supporting evidence that the
+phenomenon occurs in a real village; the guarantee itself is deterministic and seed-free.
+
 **3. `stress-benchmarks` (food scarcity raises the bread price): an integer-rounding boundary.**
 `effectivePrice` rounds to whole silver, and against a base price of 2 the whole of "somewhat
 scarce" collapses onto one coin — the boundary is at 31 loaves. The village restocked to 34 after
 this milestone rather than 30, because a supply worry now bends who takes the flour haul: one
-extra baked batch, and the assertion flipped. The test now measures `scarcityModifier` — the same
-claim, at a resolution the rounding cannot swallow — and still holds the price itself to the
-documented ceiling.
+extra baked batch, and the assertion flipped.
+
+The economic guarantee is kept at full strength, in two places rather than one. **In whole silver,
+where a buyer actually feels it:** with the shelves genuinely bare the test asserts that bread
+costs strictly more than it does at the comfortable reference stock, strictly more than base, and
+no more than the documented ×2.2 ceiling — an *ordering* against real world state, not an exact
+coin count, so it cannot sit on a boundary. **And in the modifier, after the village has had a day
+and a half to respond:** stock is still below comfortable, the modifier is still above 1, and it is
+strictly less severe than it was when the shelves were bare — which is the recovery the
+request-count assertion measures from the other side. Nothing was traded away; a claim that the
+rounding could swallow was moved to where it cannot, and the whole-silver claim was moved to the
+depth of scarcity where it genuinely holds.
+
+### Integration with the playable-life milestone
+
+This branch was written against an older base and merged `origin/main` (`41227cb`, the Unreal
+playable-life / canonical physical-item work) afterwards. The merge was textually clean — the two
+milestones changed disjoint files — but the seam that matters is behavioural, and it is asserted
+rather than assumed.
+
+`sim/physical/hand.ts` is the entry point the Unreal client's interact key reaches, and it routes
+every action through the same `Simulation` methods an NPC uses (`takeItem`, `dropItem`,
+`consumeItem`, `buyUnits`, `extractResourceAt`, `drinkHere`). "A player action lands on the
+village like anybody else's" in `tests/causal-society.test.ts` runs the *same theft twice* into
+two identically generated worlds — once by an NPC through `Simulation.takeItem`, once by a
+controlled player through `performHandInteraction` — and compares a fingerprint of everything the
+witness ends up with: the belief's confidence, hops and provenance; the appraisal weight; the
+concerns carried; and all five relationship dimensions. They match to six places, because the same
+code ran. A deliberately introduced player-specific branch in the reaction path separates them,
+which is what the test exists to catch.
+
+### The trades table's drift alarm
+
+`world/supply.ts` is a *description* of processes that live elsewhere, and Constitution §IX
+("capability over labels") makes it dangerous exactly to the extent that it can quietly become a
+second account of what the village produces. It had already started to: the first draft carried a
+`smith` row claiming swords out of stone, when nothing anywhere in the simulation forges a weapon
+or consumes stone as a trade input. That row is gone, and the rule for adding one — name the
+canonical process — is now stated at the top of the file.
+
+The alarm that keeps it honest checks four things, and all of them are derived rather than
+restated: the real transforms driven empty (`mill`, `bake`, `saw`) must report the material the
+table says that trade needs; the OUTPUT side must agree with `world/production.ts`'s canonical
+production specs over the real generated village; the INPUT side must agree with
+`logistics/haul.ts`'s canonical consumer demands (which is what covers the cook, whose transform
+cannot be driven empty without first lighting a real fire); and nothing may be *needed* that no
+trade makes and no resource node yields. Verified non-vacuous: mislabelling two rows fails eleven
+tests, including all three drift checks.
 
 ### Test status
 
-- `tests/causal-society.test.ts` — 20 passing.
-- `tests/causal-society-longrun.test.ts` — 7 passing (17-day unattended run; see the file's header
-  for why seventeen and not thirty).
-- Full suite: 54 files, 528 tests, all passing, 148 s.
+- `tests/causal-society.test.ts` — 27 passing, including the provenance invariants stated as a
+  group and the player/NPC consequence-parity fingerprint above.
+- `npm run causal:accept` — 7 passing (17-day unattended run, ~100 s). Deliberately outside
+  `npm test`: it is an acceptance run, not a unit test, and beside the unit workers it starved
+  them until a neighbour with a tight per-test budget failed for want of a core (measured:
+  `embodied-economy`'s 5 s currency test, 1.35 s alone and 5.2 s beside it). Widening that budget
+  would have hidden the cause; running the acceptance separately removes it.
+- `npm run bridge:verify` — 39/39 live-integration checks, against the real bridge process over
+  the real protocol, with causal society merged in.
 - `npm run causal:trace` — both scenarios, all five acceptance items observed.
 - `npm run social:trace`, `npm run motive:trace` — all scenarios, all checks passing.
 
@@ -334,3 +397,13 @@ documented ceiling.
   relationship as `partner, loves, trusts, respects, stranger` — "stranger" because seeded
   backstory sets affection/trust/respect but leaves `familiarity` at 0. Cosmetic, in `sim/`, and
   outside this milestone's lane.
+- **A stoppage never reaches the Unreal client.** `src/bridge/session.ts`'s snapshot event
+  allowlist does not include `work_blocked`, so a player standing in an idle bakery sees the
+  shortage in the world (no bread to buy) but never in the event feed. That is a one-word
+  presentation change in the other milestone's file and was deliberately not made here.
+- **`TRADE_NEEDS.cook` lists `log`.** The tavern hearth does burn wood, but what logistics
+  actually delivers for it is `stick` (see `CONSUMER_DEMANDS`' own note on why). The drift alarm
+  passes on `meat`, so this row is unchecked by it. Harmless today — no transform reports a `log`
+  shortage at the tavern — but it is the kind of near-miss the rule at the top of `supply.ts`
+  exists to catch, and it should be either corrected to `stick` or dropped when someone next
+  touches the fire chain.

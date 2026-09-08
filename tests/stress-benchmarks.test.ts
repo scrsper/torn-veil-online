@@ -130,6 +130,19 @@ describe('stress: v0.5 food abundance vs. scarcity (§XI.1-2)', () => {
     takePlaceStock(world, 'flour', 99999, places);
     const bakery = world.places().find(p => p.type === 'bakery')!;
     const before = requestCount(world);
+
+    // THE DOWNSTREAM GUARANTEE, kept in whole silver where a buyer actually feels it: with the
+    // shelves genuinely bare, scarcity does cross the rounding threshold and bread really does
+    // cost more than it does when the bakery is comfortable. Asserted as an ordering against the
+    // reference stock rather than as an exact coin count, so it is not brittle, and taken from
+    // real world state (the drained bakery) rather than from a hand-written number.
+    const empty = stockAt(world, 'bread', bakery.id);
+    expect(empty).toBe(0);
+    const priceWhenBare = effectivePrice('bread', 2, empty);
+    expect(priceWhenBare).toBeGreaterThan(effectivePrice('bread', 2, PRICE_REFERENCE_BREAD));
+    expect(priceWhenBare).toBeGreaterThan(2);
+    expect(priceWhenBare).toBeLessThanOrEqual(Math.round(2 * 2.2));
+
     advance(world, sim, 1.5 * SECONDS_PER_DAY / 60);
     // Measured on the scarcity MODIFIER rather than on the rounded silver price, for a reason
     // worth stating: `effectivePrice` rounds to whole silver, and against a base price of 2 the
@@ -139,10 +152,12 @@ describe('stress: v0.5 food abundance vs. scarcity (§XI.1-2)', () => {
     // the mechanism. (Causal Society moved it across that line by making the village answer a
     // shortage slightly faster: a supply worry now bends who takes the flour haul. 30 loaves
     // before, 34 after.) The modifier is the same claim — scarcity genuinely moves the price —
-    // measured where the rounding cannot swallow it, and the bound below still holds the price
-    // itself to the documented ceiling.
+    // measured where the rounding cannot swallow it. The whole-silver guarantee is not lost: it
+    // is asserted above, at the depth of scarcity where a buyer actually feels it.
     const bread = stockAt(world, 'bread', bakery.id);
+    expect(bread).toBeLessThan(PRICE_REFERENCE_BREAD); // still short of comfortable
     expect(scarcityModifier(bread, PRICE_REFERENCE_BREAD)).toBeGreaterThan(1);
+    expect(scarcityModifier(bread, PRICE_REFERENCE_BREAD)).toBeLessThan(scarcityModifier(empty, PRICE_REFERENCE_BREAD));
     const price = effectivePrice('bread', 2, bread);
     expect(price).toBeGreaterThanOrEqual(2);
     expect(price).toBeLessThanOrEqual(Math.round(2 * 2.2));

@@ -17,7 +17,7 @@ import { MEAT_TO_STEW_RATIO } from './cooking';
  * raises production demand because bread stock is below desired reserve" over a schedule).
  */
 
-interface ProductionSpec { placeType: PlaceType; resource: ItemType; target: number; trigger: number; batchOut: number; reason: string; }
+export interface ProductionSpec { placeType: PlaceType; resource: ItemType; target: number; trigger: number; batchOut: number; reason: string; }
 
 /** Bread/bakery (v0.5) plus flour/mill (v0.6 §VIII — the second production/work domain the
  * milestone asks be converted from unconditional cadence to demand-aware). The shape
@@ -44,6 +44,14 @@ const PRODUCTION_TARGETS: ProductionSpec[] = [
  * capability-based wage, no bidding loop), the same "real, conserved, but not a market-clearing
  * price" spirit as `HAUL_BASE_WAGE`/`CONSTRUCTION_WAGE_PER_SECOND`. */
 const PRODUCTION_WAGE_PER_BATCH = 3;
+
+/**
+ * The canonical "which place puts out what" record, read-only. Exposed so the trades table in
+ * `world/supply.ts` — which is a DESCRIPTION of these processes for minds to reason with, never a
+ * second authority over them — can be checked against them and fail loudly when the two drift
+ * apart. Nothing in the simulation reads it through this accessor.
+ */
+export function productionSpecs(): readonly ProductionSpec[] { return PRODUCTION_TARGETS; }
 
 export function openProductionRequests(world: World): Request[] {
   return world.requests.filter(r => r.type === 'production' && (r.status === 'open' || r.status === 'accepted'));

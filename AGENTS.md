@@ -117,7 +117,11 @@ witnesses learn about it" stays true instead of becoming a scripted one-off.
   naming `effectKey` and `becauseKey`, always weaker and never closer to the source than either
   premise, naming a responsible party only when the evidence does. `supply.ts` is the small public
   table of which trade makes what out of what — over OCCUPATIONS and RESOURCE TYPES only, never
-  over people or places. See `docs/CAUSAL_SOCIETY_V0_4.md` for the invariants; the ones that matter
+  over people or places, and every row must name the canonical process it describes — a row with
+  no process behind it is a second, contradictory account of what the village produces
+  (Constitution §IX), and `tests/causal-society.test.ts` fails loudly when the table and the real
+  transforms / production specs / consumer demands drift apart. See `docs/CAUSAL_SOCIETY_V0_4.md`
+  for the invariants; the ones that matter
   most are that an inference may never make a mind more certain than its evidence, that a
   `'supply'` concern reaches only goals that move materials (never one that walks somebody toward a
   person), and that an inferred grievance is capped far below a witnessed one.

@@ -18,7 +18,8 @@
     "test:browser": "tsx tests/browser/run.ts",
     "social:trace": "tsx src/headless/social/cli.ts",
     "motive:trace": "tsx src/headless/motive/cli.ts",
-    "causal:trace": "tsx src/headless/causal/cli.ts"
+    "causal:trace": "tsx src/headless/causal/cli.ts",
+    "causal:accept": "vitest run --config vitest.accept.config.ts"
   },
   "dependencies": {
     "three": "^0.170.0",

@@ -143,6 +143,14 @@ export function createHaulTask(world: World, s: HaulTaskSpec): HaulTask {
  * world-minute upkeep cadence. Same mechanism serves food logistics, the wood/stone chain, and
  * construction sites — no per-need special-casing beyond the source/destination lookup.
  */
+/**
+ * The canonical "which place has what carried into it" record, read-only. Exposed for the same
+ * reason `world/production.ts`'s `productionSpecs` is: it is the second half of what
+ * `world/supply.ts`'s trades table claims to describe, and the drift alarm needs to be able to
+ * disagree with it out loud. Nothing in the simulation reads it through this accessor.
+ */
+export function consumerDemands(): readonly Demand[] { return CONSUMER_DEMANDS; }
+
 export function generateLogisticsNeeds(world: World): void {
   // 1. Food chain: consumer Place below trigger + a supplier Place with surplus → one task.
   for (const d of CONSUMER_DEMANDS) {
