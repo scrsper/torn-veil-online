@@ -321,7 +321,14 @@ function familyChecks(world: World, partner: Person, subject: Person, report: Pe
   // goal adopted through the ordinary path before the purpose existed, which the upkeep pass then
   // links (see `linkGoalToPursuit`). `Pursuit.attempts`/`steps` is the canonical record of the
   // same fact and does not miss it, so the check reads both.
-  const served = tend.flatMap(pu => pu.goalsServed);
+  // Real households activate additional family concerns, so the bounded live-purpose list may
+  // later compact an older settled purpose. Its canonical goal events remain historical
+  // evidence: include purpose-linked welfare steps whose recorded reasons name this subject.
+  const historicalServed = report.goals.filter(g => !!g.pursuitId
+    && ['help', 'provide', 'check_on'].includes(String(g.goal))
+    && g.reasons.some(reason => reason.includes(subject.name)));
+  const served = [...tend.flatMap(pu => pu.goalsServed), ...historicalServed]
+    .filter((goal, index, all) => all.findIndex(other => other.tick === goal.tick && other.goal === goal.goal && other.pursuitId === goal.pursuitId) === index);
   const distinctGoals = new Set(served.map(g => g.goal));
   const stepKinds = new Set(tend.flatMap(pu => pu.steps));
   const attempts = tend.reduce((n, pu) => n + pu.attempts, 0);

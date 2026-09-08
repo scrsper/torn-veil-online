@@ -55,7 +55,12 @@ export interface ChronicleOptions {
    * the same consolidated entry. Default 30 minutes: long enough to catch one scattered
    * encounter, short enough not to merge unrelated events days apart. */
   consolidationWindowSeconds?: number;
+  /** Internal compactor escape hatch: include details already represented by an era. */
+  includeCompacted?: boolean;
 }
+
+export const CHRONICLE_DETAIL_RETENTION_DAYS = 5 * 365;
+export const CHRONICLE_ERA_YEARS = 5;
 
 /** How much a raw event's own significance is boosted by causal centrality (it set off several
  * further recorded events — Constitution §51 "Causal History") and by the historical
@@ -131,6 +136,7 @@ export function buildChronicle(world: World, opts: ChronicleOptions = {}): Chron
   const maxSig = Math.max(0, ...sig.values());
 
   const allCandidates = world.events
+    .filter(e => opts.includeCompacted || !world.chronicleCompactedEventIds.has(e.id))
     .filter(e => e.category !== 'cognition' && !PROPAGATION_TYPES.has(e.type) && !BOOKKEEPING_TYPES.has(e.type))
     .filter(e => e.category === 'history' || chronicleScore(e, sig, maxSig) >= threshold || (e.data?.conflictId && CONFLICT_DETAIL_TYPES.has(e.type)))
     .sort((a, b) => a.tick - b.tick || a.id.localeCompare(b.id));
@@ -173,6 +179,47 @@ export function buildChronicle(world: World, opts: ChronicleOptions = {}): Chron
   const entries = [...clusters.map(clusterEntry), ...conflictEntries];
   entries.sort((a, b) => a.tick - b.tick || a.eventId.localeCompare(b.eventId));
   return entries;
+}
+
+/** Collapse sufficiently old detailed entries into deterministic five-year eras. Retired source
+ * ids resolve to one retained canonical anchor, so causal lookups remain live without retaining
+ * every detailed event object. */
+export function compactChronicle(world: World, retentionDays = CHRONICLE_DETAIL_RETENTION_DAYS): void {
+  const cutoff = world.now - retentionDays * SECONDS_PER_DAY;
+  const old = buildChronicle(world, { includeCompacted: true }).filter(entry => entry.tick < cutoff && entry.sourceEventIds.some(id => !world.chronicleCompactedEventIds.has(id)));
+  if (!old.length) return;
+  const eraSeconds = CHRONICLE_ERA_YEARS * 365 * SECONDS_PER_DAY;
+  const groups = new Map<number, ChronicleEntry[]>();
+  for (const entry of old) { const start = Math.floor(entry.tick / eraSeconds) * eraSeconds; const group = groups.get(start) ?? []; group.push(entry); groups.set(start, group); }
+  for (const [startTick, entries] of groups) {
+    const id = `era:${Math.floor(startTick / SECONDS_PER_DAY)}`;
+    const existing = world.chronicleEras.find(era => era.id === id);
+    const newSourceEventIds = [...new Set(entries.flatMap(e => e.sourceEventIds))]
+      .filter(source => !existing?.sourceEventIds.includes(source));
+    const sourceEventIds = [...new Set([...(existing?.sourceEventIds ?? []), ...newSourceEventIds])].sort();
+    const sourceSet = new Set(sourceEventIds);
+    // Count only newly absorbed concrete events. Looking up an old source id may now return its
+    // era anchor by design, which must never be mistaken for the source a second time.
+    const sourceEvents = newSourceEventIds.map(eid => world.events.find(e => e.id === eid)).filter((e): e is WorldEvent => !!e);
+    const people = [...new Set([...(existing?.people ?? []), ...sourceEvents.flatMap(e => [e.actor, e.target].filter((x): x is EntityId => !!x))])].sort();
+    const causes = [...new Set([...(existing?.causes ?? []), ...entries.flatMap(e => e.causes)].filter(c => !sourceSet.has(c)))].sort();
+    const births = (existing?.births ?? 0) + sourceEvents.filter(e => e.type === 'birth').length;
+    const deaths = (existing?.deaths ?? 0) + sourceEvents.filter(e => e.type === 'death').length;
+    const marriages = (existing?.marriages ?? 0) + sourceEvents.filter(e => e.type === 'marriage').length;
+    const entryCount = (existing?.entryCount ?? 0) + entries.length;
+    const anchorEventId = existing?.anchorEventId ?? entries[0].eventId;
+    const era = {
+      id, anchorEventId, startTick, endTick: startTick + eraSeconds, entryCount, births, deaths, marriages,
+      text: `Years ${Math.floor(startTick / eraSeconds) * CHRONICLE_ERA_YEARS}–${Math.floor(startTick / eraSeconds) * CHRONICLE_ERA_YEARS + CHRONICLE_ERA_YEARS - 1}: ${entryCount} notable episodes; ${births} births, ${deaths} deaths, ${marriages} marriages.`,
+      people, sourceEventIds, causes,
+    };
+    if (existing) Object.assign(existing, era); else world.chronicleEras.push(era);
+    for (const source of sourceEventIds) {
+      world.chronicleCompactedEventIds.add(source);
+      world.chronicleEventAliases.set(source, anchorEventId);
+    }
+  }
+  world.chronicleEras.sort((a, b) => a.startTick - b.startTick || a.id.localeCompare(b.id));
 }
 
 /** One historical entry for an entire conflict, from its operational-detail events (blows,

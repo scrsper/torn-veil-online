@@ -64,7 +64,7 @@ describe('save round trips', () => {
     const trade = sim.sellItem(player, merchant, sold, 4, { x: 75.5, y: 14, z: 106.5 }, merchant.workId ?? undefined)!;
 
     const save = serialize(world);
-    expect(JSON.parse(save).version).toBe(17);
+    expect(JSON.parse(save).version).toBe(18);
     const loaded = deserialize(save);
     expect(loaded).not.toBeNull();
     const restored = loaded!.world;

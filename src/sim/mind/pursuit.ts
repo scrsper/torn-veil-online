@@ -291,7 +291,8 @@ function prune(world: World, p: Person): void {
   if (list.length <= MAX_PURSUITS) return;
   // Drop the lowest-priority LIVE purpose (with its own honest resolution) rather than silently
   // deleting a row — a purpose that was crowded out is a real thing that happened to a person.
-  const live = list.filter(x => x.status === 'active' || x.status === 'deferred').sort((a, b) => a.priority - b.priority);
+  const live = list.filter(x => x.status === 'active' || x.status === 'deferred').sort((a, b) =>
+    (a.attempts > 0 ? 1 : 0) - (b.attempts > 0 ? 1 : 0) || a.priority - b.priority);
   while (list.length > MAX_PURSUITS && live.length) {
     const victim = live.shift()!;
     resolvePursuit(world, p, victim, 'abandoned', 'superseded');
@@ -299,7 +300,11 @@ function prune(world: World, p: Person): void {
     if (i >= 0) list.splice(i, 1);
   }
   if (list.length > MAX_PURSUITS) {
-    const settled = list.filter(x => x.status !== 'active' && x.status !== 'deferred').sort((a, b) => (a.resolvedAt ?? 0) - (b.resolvedAt ?? 0));
+    // Keep purposes that produced real action ahead of no-op/redundant ones. Activating real
+    // households legitimately creates more family concerns; chronological-only pruning let a
+    // later zero-step check erase the causal record of a spouse who actually tended someone.
+    const settled = list.filter(x => x.status !== 'active' && x.status !== 'deferred').sort((a, b) =>
+      (a.attempts > 0 ? 1 : 0) - (b.attempts > 0 ? 1 : 0) || (a.resolvedAt ?? 0) - (b.resolvedAt ?? 0));
     for (const s of settled) { if (list.length <= MAX_PURSUITS) break; list.splice(list.indexOf(s), 1); }
   }
 }
@@ -605,7 +610,7 @@ export function provisionFor(world: World, p: Person): { item: Item; sourcePlace
   const residents = new Set(home.residents ?? []);
   for (const it of world.items()) {
     if (it.holderId || it.placeId !== home.id || !isFood(it.type) || it.quantity <= 0) continue;
-    if (it.ownerId && it.ownerId !== p.id && !residents.has(it.ownerId)) continue;
+    if (it.ownerId && it.ownerId !== p.id && it.ownerId !== p.householdId && !residents.has(it.ownerId)) continue;
     return { item: it, sourcePlaceId: home.id };
   }
   return null;
@@ -745,7 +750,8 @@ export function maintainPursuits(world: World, p: Person): void {
     if (shouldBeActive && pu.status !== 'active') pu.status = 'active';
     else if (!shouldBeActive && pu.status === 'active') { pu.status = 'deferred'; pu.currentStep = undefined; }
   }
-  const settled = list.filter(x => x.status !== 'active' && x.status !== 'deferred').sort((a, b) => (b.resolvedAt ?? 0) - (a.resolvedAt ?? 0));
+  const settled = list.filter(x => x.status !== 'active' && x.status !== 'deferred').sort((a, b) =>
+    (b.attempts > 0 ? 1 : 0) - (a.attempts > 0 ? 1 : 0) || (b.resolvedAt ?? 0) - (a.resolvedAt ?? 0));
   const keep = [...live, ...settled.slice(0, 3)];
   if (keep.length !== list.length) { list.length = 0; list.push(...keep); }
   // Whatever this person is doing right now may already be serving one of these purposes — see

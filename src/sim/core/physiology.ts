@@ -155,6 +155,13 @@ export function stepPhysiology(world: World, p: Person, hours: number, activity:
 
   // energy (calories) — larger bodies burn somewhat more baseline fuel for the same activity.
   phys.energy = clamp01(phys.energy - ENERGY_DRAIN_PER_HOUR * ACTIVITY_ENERGY_MULT[activity] * profile.energyDrainMultiplier * traits.bodySizeFactor * hours);
+  // Pregnancy is embodied metabolic work. Scarcity therefore reduces reproductive success via
+  // the same caloric reserve later read by demographic physiology, never through a famine flag.
+  if (phys.pregnancy?.state === 'gestating') {
+    const progress = clamp01((world.now - phys.pregnancy.conceivedAt) / Math.max(1, phys.pregnancy.dueAt - phys.pregnancy.conceivedAt));
+    phys.energy = clamp01(phys.energy - ENERGY_DRAIN_PER_HOUR * (0.08 + progress * 0.18) * hours);
+    phys.fatigue = clamp01(phys.fatigue + 0.006 * progress * hours);
+  }
 
   // hydration — exertion and heat both raise loss
   const heatHydrationFactor = 1 + Math.max(0, phys.bodyHeat - HEAT_MILD) * 1.2;

@@ -3,6 +3,7 @@ import type { WorldEvent } from '../../sim/core/types';
 import type { Finding, InvariantCheck, Observation } from './types';
 import { buildPersonTrace } from './trace';
 import { detectAnomalies } from '../../sim/telemetry/anomaly';
+import { householdConsistencyErrors } from '../../sim/world/household';
 
 const WORK_GOAL_TYPES = new Set(['work', 'haul', 'chop', 'gather', 'build', 'plant', 'harvest']);
 
@@ -31,6 +32,16 @@ export const INVARIANTS: InvariantCheck[] = [
       }
       return out;
     },
+  },
+  {
+    id: 'living-index-consistency', category: 'identity',
+    description: 'Living/active indices exactly match canonical person/body life state.',
+    check: (world) => world.livingIndexErrors().map(message => finding('WL-LIVING-INDEX', 'identity', 'failure', message)),
+  },
+  {
+    id: 'household-consistency', category: 'social',
+    description: 'Every household membership is reciprocal and contains only living people.',
+    check: (world) => householdConsistencyErrors(world).map(message => finding('WL-HOUSEHOLD', 'social', 'failure', message)),
   },
   {
     id: 'currency-conservation',
@@ -106,7 +117,7 @@ export const INVARIANTS: InvariantCheck[] = [
     description: 'An item\'s ownerId, when set, always names a person that actually exists.',
     check: (world) => {
       const out: Finding[] = [];
-      for (const it of world.items()) if (it.ownerId && !world.person(it.ownerId)) out.push(finding('WL-ORPHAN-OWNER', 'economy', 'failure', `Item ${it.name} (${it.id}) claims ownerId ${it.ownerId}, but no such person exists.`));
+      for (const it of world.items()) if (it.ownerId && !world.person(it.ownerId) && world.get(it.ownerId)?.kind !== 'household') out.push(finding('WL-ORPHAN-OWNER', 'economy', 'failure', `Item ${it.name} (${it.id}) claims ownerId ${it.ownerId}, but no such person or household exists.`));
       return out;
     },
   },

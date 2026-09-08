@@ -1,9 +1,10 @@
-import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation, WorkStint } from './types';
+import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation, WorkStint, Household, ChronicleEra } from './types';
 import { WorldClock } from './time';
 import { RNG } from './rng';
 import { VoxelGrid } from '../physical/grid';
 import { Navigator } from '../physical/nav';
 import { B } from '../physical/blocks';
+import { effectCentralityDelta, eventHistoricalContributions } from './historicalSignificance';
 
 export interface EmitOptions {
   actor?: EntityId; target?: EntityId; item?: EntityId; placeId?: EntityId; pos?: Vec3;
@@ -61,6 +62,13 @@ export class World {
    * be reconstructed from present state alone. NOT a permission: `world/labor.ts` decides who
    * may work from staffing, capability and demand, and never reads this. */
   workStints: WorkStint[] = [];
+  /** Materialized historical importance, updated at event emission/effect linking. */
+  historicalSignificance = new Map<EntityId, number>();
+  /** Era summaries and the detailed Chronicle sources they replace. */
+  chronicleEras: ChronicleEra[] = [];
+  chronicleCompactedEventIds = new Set<EventId>();
+  /** Retired Chronicle source id -> one retained canonical event anchoring its era. */
+  chronicleEventAliases = new Map<EventId, EventId>();
   /** v0.2.4: lifetime counts of a few high-frequency, low-significance event types that are
    * dropped by event compaction (crop/food/water/transform) — so a headless run summary can
    * report accurate totals without inflating those events' significance. Purely observational. */
@@ -80,6 +88,8 @@ export class World {
    * streams is documented as a deliberate follow-up rather than attempted here.
    */
   weatherRng: RNG;
+  /** Independent stream so births/deaths do not perturb combat, weather, or dialogue draws. */
+  demographicRng: RNG;
   seed: number;
   grid!: VoxelGrid;
   nav!: Navigator;
@@ -110,8 +120,17 @@ export class World {
    * find the ones matching one kind; that scan cost was the dominant cost of a headless run.
    */
   private byKind = new Map<Entity['kind'], Entity[]>();
+  /** Hot-loop indices. Historical buckets above remain append-only and addressable forever. */
+  private livingPeople: Person[] = [];
+  private livingPeopleSet = new Set<EntityId>();
+  private livingBodies: Body[] = [];
+  private livingBodiesSet = new Set<EntityId>();
+  /** Event count at the last attempted compaction. Storage cleanup is deliberately batched:
+   * retaining a little extra recent detail is safe, while re-walking the same retained prefix
+   * every weekly clock tick is pure repeated work once the event log is above the threshold. */
+  private lastCompactionEventCount = 0;
 
-  constructor(seed: number, clock?: WorldClock) { this.seed = seed; this.rng = new RNG(seed); this.weatherRng = this.rng.fork(97); this.clock = clock ?? new WorldClock(); }
+  constructor(seed: number, clock?: WorldClock) { this.seed = seed; this.rng = new RNG(seed); this.weatherRng = this.rng.fork(97); this.demographicRng = this.rng.fork(151); this.clock = clock ?? new WorldClock(); }
 
   get now(): number { return this.clock.worldSeconds; }
   nextId(prefix: string): string { const n = (this.counters[prefix] = (this.counters[prefix] ?? 0) + 1); return `${prefix}_${n}`; }
@@ -122,6 +141,11 @@ export class World {
     this.entities.set(e.id, e);
     if (e.slug) this.slugs.set(e.slug, e.id);
     const bucket = this.byKind.get(e.kind); if (bucket) bucket.push(e); else this.byKind.set(e.kind, [e]);
+    if (e.kind === 'person' && (e as unknown as Person).alive) this.addLivingPerson(e as unknown as Person);
+    if (e.kind === 'body') {
+      const b = e as unknown as Body; const owner = this.person(b.ownerId);
+      if (!b.dead && b.present && owner?.alive) this.addLivingBody(b);
+    }
     return e;
   }
   /** Look up an authored entity by its stable slug (e.g. 'rowan', 'ashford-vale', 'watch').
@@ -148,6 +172,40 @@ export class World {
   items(): Item[] { return (this.byKind.get('item') as Item[] | undefined) ?? []; }
   places(): Place[] { return (this.byKind.get('place') as Place[] | undefined) ?? []; }
   creatures(): Creature[] { return (this.byKind.get('creature') as Creature[] | undefined) ?? []; }
+  households(): Household[] { return (this.byKind.get('household') as Household[] | undefined) ?? []; }
+  livingPersons(): readonly Person[] { return this.livingPeople; }
+  activeBodies(): readonly Body[] { return this.livingBodies; }
+  isLivingIndexed(id: EntityId): boolean { return this.livingPeopleSet.has(id); }
+  rebuildLivingIndices(): void {
+    this.livingPeople = []; this.livingPeopleSet.clear(); this.livingBodies = []; this.livingBodiesSet.clear();
+    for (const p of this.persons()) if (p.alive) this.addLivingPerson(p);
+    for (const b of this.bodies()) if (!b.dead && b.present && this.person(b.ownerId)?.alive) this.addLivingBody(b);
+  }
+  livingIndexErrors(): string[] {
+    const errors: string[] = [];
+    const expectedPeople = this.persons().filter(p => p.alive).map(p => p.id).sort();
+    const indexedPeople = this.livingPeople.map(p => p.id).sort();
+    if (JSON.stringify(expectedPeople) !== JSON.stringify(indexedPeople)) errors.push(`living people index differs: expected ${expectedPeople.join(',')} got ${indexedPeople.join(',')}`);
+    const expectedBodies = this.bodies().filter(b => !b.dead && b.present && this.person(b.ownerId)?.alive).map(b => b.id).sort();
+    const indexedBodies = this.livingBodies.map(b => b.id).sort();
+    if (JSON.stringify(expectedBodies) !== JSON.stringify(indexedBodies)) errors.push(`active body index differs: expected ${expectedBodies.join(',')} got ${indexedBodies.join(',')}`);
+    return errors;
+  }
+  private addLivingPerson(p: Person): void { if (!this.livingPeopleSet.has(p.id)) { this.livingPeopleSet.add(p.id); this.livingPeople.push(p); } }
+  private addLivingBody(b: Body): void { if (!this.livingBodiesSet.has(b.id)) { this.livingBodiesSet.add(b.id); this.livingBodies.push(b); } }
+  /** The single canonical living→dead transition. Idempotent; identities and historical buckets remain. */
+  markPersonDead(personOrId: Person | EntityId, tick = this.now): boolean {
+    const p = typeof personOrId === 'string' ? this.person(personOrId) : personOrId;
+    if (!p || !p.alive) return false;
+    p.alive = false; p.deathTick = tick; p.mind.goal = null; p.mind.plan = [];
+    if (this.livingPeopleSet.delete(p.id)) this.livingPeople = this.livingPeople.filter(x => x.id !== p.id);
+    for (const bodyId of p.bodies) {
+      const b = this.body(bodyId); if (!b) continue;
+      b.dead = true; b.health = 0; b.pose = 'dead'; b.present = false;
+      if (this.livingBodiesSet.delete(b.id)) this.livingBodies = this.livingBodies.filter(x => x.id !== b.id);
+    }
+    return true;
+  }
   nameOf(id: EntityId | null | undefined): string { if (!id) return '?'; return this.get(id)?.name ?? id; }
 
   /** Primary body of an entity (ordinary beings have exactly one). */
@@ -191,7 +249,8 @@ export class World {
     if (!e.placeId && e.pos) e.placeId = this.placeAt(e.pos)?.id;
     if (TALLIED_TYPES.has(type)) this.runTally[type] = (this.runTally[type] ?? 0) + 1;
     this.events.push(e); this.eventIndex.set(id, e);
-    for (const c of e.causes) { const ce = this.eventIndex.get(c); if (ce) ce.effects.push(id); }
+    this.applySignificance(e);
+    for (const c of e.causes) { const ce = this.eventIndex.get(c); if (ce) { const before = ce.effects.length; ce.effects.push(id); const delta = ce.actor ? effectCentralityDelta(before, ce.effects.length) : 0; if (ce.actor && delta) this.addSignificance(ce.actor, delta); } }
     if (e.visibility || e.loudness) this.pendingStimuli.push(e);
     // v0.9: one hook, installed by the Simulation, through which EVERY canonical event passes
     // exactly once so ongoing-matter bookkeeping (sim/social/situation.ts) can never miss one or
@@ -202,7 +261,16 @@ export class World {
     for (const l of this.listeners) l(e);
     return e;
   }
-  event(id: EventId | undefined): WorldEvent | undefined { return id ? this.eventIndex.get(id) : undefined; }
+  private addSignificance(id: EntityId, amount: number): void { if (amount > 0) this.historicalSignificance.set(id, (this.historicalSignificance.get(id) ?? 0) + amount); }
+  private applySignificance(event: WorldEvent): void { for (const [id, amount] of eventHistoricalContributions(event)) this.addSignificance(id, amount); }
+  rebuildHistoricalSignificance(): void {
+    this.historicalSignificance.clear();
+    for (const event of this.events) this.applySignificance(event);
+  }
+  event(id: EventId | undefined): WorldEvent | undefined {
+    if (!id) return undefined;
+    return this.eventIndex.get(id) ?? this.eventIndex.get(this.chronicleEventAliases.get(id) ?? '');
+  }
   /**
    * Compact old low-significance events to bound memory (Constitution §51 "Causal History",
    * v0.2 Part 15). A recent window is always kept verbatim; beyond that, only events judged
@@ -223,15 +291,48 @@ export class World {
    */
   compactEvents(keep = 4000): void {
     if (this.events.length <= keep * 1.5) return;
+    const batch = Math.max(1, Math.floor(keep * 0.25));
+    if (this.lastCompactionEventCount > 0 && this.events.length - this.lastCompactionEventCount < batch) return;
     const cutoff = this.events.length - keep;
     // v0.2.2 Phase 3 (long-run perf): reuse the current index by reference rather than cloning
     // it — `this.eventIndex` isn't mutated anywhere below until it's reassigned to a fresh Map
     // at the end, so a clone bought nothing but an O(events.length) copy on every call.
     const previousIndex = this.eventIndex;
-    const kept = this.events.filter((e, i) => i >= cutoff || e.significance >= 0.5 || e.category === 'history');
+    // Exact events named by living cognition or conserved provenance remain pinned. Other old
+    // operational/cognitive detail may retire once its Chronicle era supplies a causal anchor.
+    const referenced = new Set<EventId>();
+    const visit = (value: unknown, seen = new Set<object>()): void => {
+      if (typeof value === 'string') { if (previousIndex.has(value)) referenced.add(value); return; }
+      if (!value || typeof value !== 'object' || seen.has(value as object)) return;
+      seen.add(value as object);
+      if (value instanceof Set) { for (const v of value) visit(v, seen); return; }
+      if (value instanceof Map) { for (const [k, v] of value) { visit(k, seen); visit(v, seen); } return; }
+      for (const v of Object.values(value)) visit(v, seen);
+    };
+    for (const p of this.livingPersons()) visit({ memories: p.memories, knowledge: p.knowledge, mind: p.mind, desires: p.desires });
+    for (const item of this.items()) visit(item.provenance);
+    visit({ situations: this.situations, conflicts: this.conflicts, requests: this.requests, haulTasks: this.haulTasks, workStints: this.workStints, eraCauses: this.chronicleEras.map(era => era.causes) });
+    const pinCauses = (id: EventId): void => {
+      const event = previousIndex.get(id); if (!event) return;
+      for (const cause of event.causes) if (!referenced.has(cause)) { referenced.add(cause); pinCauses(cause); }
+    };
+    for (const id of [...referenced]) pinCauses(id);
+    const eraAnchors = new Set(this.chronicleEras.map(era => era.anchorEventId));
+    const kept = this.events.filter((e, i) => {
+      if (i >= cutoff || referenced.has(e.id) || eraAnchors.has(e.id)) return true;
+      // Once an era owns the discoverability and alias contract, its unpinned detailed source
+      // can retire regardless of category. Identity/lineage/provenance remain canonical state.
+      if (this.chronicleCompactedEventIds.has(e.id)) return false;
+      if (e.category === 'history') return true;
+      if (e.category === 'cognition') return !this.chronicleEras.length && e.significance >= 0.5;
+      return e.significance >= 0.5;
+    });
+    if (kept.length === this.events.length) { this.lastCompactionEventCount = this.events.length; return; }
     const keptIds = new Set(kept.map(e => e.id));
     const survivingCauses = (id: EventId, visiting = new Set<EventId>()): EventId[] => {
       if (keptIds.has(id)) return [id];
+      const alias = this.chronicleEventAliases.get(id);
+      if (alias && keptIds.has(alias)) return [alias];
       if (visiting.has(id)) return [];
       const removed = previousIndex.get(id); if (!removed) return [];
       const next = new Set(visiting); next.add(id);
@@ -252,11 +353,14 @@ export class World {
       event.effects = [];
     }
     this.events = kept;
+    this.lastCompactionEventCount = this.events.length;
     this.eventIndex = new Map(kept.map(event => [event.id, event]));
     for (const event of kept) for (const cause of event.causes) {
       const parent = this.eventIndex.get(cause);
       if (parent && !parent.effects.includes(event.id)) parent.effects.push(event.id);
     }
+    // Compaction changes storage detail, not what historically happened. Rebuilding from only
+    // the retained detail would erase contributions now represented by an era.
     this.pendingStimuli = this.pendingStimuli.filter(event => keptIds.has(event.id));
   }
   distance(a: Vec3, b: Vec3): number { return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z); }
@@ -296,6 +400,10 @@ const TALLIED_TYPES = new Set<EventType>([
   // compaction on a long run — the benchmark report needs accurate LIFETIME counts of them to
   // show that purposes actually terminate and obligations actually resolve rather than piling up.
   'pursuit_formed', 'pursuit_resolved', 'obligation_formed', 'obligation_resolved', 'obligation_failed',
+  // Generational continuity: these lifetime totals must survive both ordinary event-log
+  // pruning and Chronicle era compaction so epoch telemetry never mistakes retained detail
+  // for the number of demographic events that actually occurred.
+  'birth', 'death', 'marriage', 'inheritance', 'coming_of_age', 'pregnancy_started', 'pregnancy_lost',
 ]);
 
 function defaultCategory(t: EventType): EventCategory {
@@ -318,7 +426,7 @@ function defaultCategory(t: EventType): EventCategory {
     case 'obligation_formed': case 'obligation_resolved': return 'social';
     case 'obligation_failed': return 'world';
     case 'told': case 'conversation': case 'rumor': case 'greeting': case 'gift': case 'apology': case 'trade': return 'social';
-    case 'birth': case 'death': case 'marriage': case 'debt': case 'dispute': return 'history';
+    case 'birth': case 'death': case 'marriage': case 'inheritance': case 'coming_of_age': case 'pregnancy_started': case 'pregnancy_lost': case 'debt': case 'dispute': return 'history';
     // v0.2.3: the terminal / status-change conflict events are real history and always kept;
     // conflict_started / _escalated / _disengaged are ordinary 'world' events judged by significance.
     case 'conflict_resolved': case 'entity_surrendered': case 'entity_arrested': case 'custody_started': case 'custody_ended': return 'history';

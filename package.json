@@ -15,13 +15,15 @@
     "world:smoke": "tsx src/headless/worldlab/cli.ts --tier smoke",
     "world:check": "tsx src/headless/worldlab/cli.ts --tier check",
     "world:soak": "tsx src/headless/worldlab/cli.ts --tier soak",
+    "world:epoch": "tsx src/headless/worldlab/epochCli.ts",
     "test:browser": "tsx tests/browser/run.ts",
     "social:trace": "tsx src/headless/social/cli.ts",
     "motive:trace": "tsx src/headless/motive/cli.ts",
     "causal:trace": "tsx src/headless/causal/cli.ts",
     "adapt:trace": "tsx src/headless/adaptive/cli.ts",
     "causal:accept": "vitest run --config vitest.accept.config.ts",
-    "adapt:accept": "vitest run --config vitest.adaptive.config.ts"
+    "adapt:accept": "vitest run --config vitest.adaptive.config.ts",
+    "epoch:accept": "vitest run --config vitest.epoch.config.ts"
   },
   "dependencies": {
     "three": "^0.170.0",

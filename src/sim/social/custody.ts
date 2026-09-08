@@ -164,7 +164,7 @@ export function releaseFromCustody(world: World, detainee: Person, reason: strin
  */
 export function maintainCustody(world: World): void {
   const now = world.now;
-  for (const p of world.persons()) {
+  for (const p of world.livingPersons()) {
     if (p.custody?.active && now >= p.custody.releaseAt) {
       releaseFromCustody(world, p, 'detention served');
       continue;
