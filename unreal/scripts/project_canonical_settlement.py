@@ -21,7 +21,7 @@ LEVEL = '/Game/TornVeil/Maps/Ashford'
 MATERIAL_DIR = '/Game/TornVeil/Materials'
 TAG = 'TornVeilCanonicalProjection'
 BRIDGE = 'http://127.0.0.1:8787/scene'
-KEN, POST, WALL_H, EAVE = 182.0, 20.0, 250.0, 135.0
+KEN, POST, WALL_H, EAVE = 182.0, 16.0, 240.0, 70.0
 
 actors = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
 levels = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
@@ -30,6 +30,7 @@ CYLINDER = unreal.load_asset('/Engine/BasicShapes/Cylinder')
 CONE = unreal.load_asset('/Engine/BasicShapes/Cone')
 SPHERE = unreal.load_asset('/Engine/BasicShapes/Sphere')
 LIGHTING_PRESET = os.environ.get('TV_LIGHTING_PRESET', 'day').lower()
+REBUILD_MATERIALS = os.environ.get('TV_REBUILD_MATERIALS', '0') == '1'
 
 
 def canonical_scene():
@@ -59,6 +60,8 @@ def make_material(name, colour, roughness, emissive=None, tint_parameter=False):
             material.set_editor_property('used_with_skeletal_mesh', True)
             unreal.MaterialEditingLibrary.recompile_material(material)
             unreal.EditorAssetLibrary.save_asset(path)
+            return material
+        if not REBUILD_MATERIALS:
             return material
         # Project materials are generated assets: rebuilding their compact graph is deliberate
         # and keeps the source of truth in this diffable script rather than a binary editor pass.
@@ -166,8 +169,8 @@ def kit_rafter_tails(label, cx, cy, z, width, depth, p):
     count = max(4, int(max(width, depth) / 85))
     for i in range(count + 1):
         t = i / float(count) - .5
-        kit_beam(label + ' rafter N', (cx + t * width, cy - depth / 2. - 62, z), (12, 145, 14), p)
-        kit_beam(label + ' rafter S', (cx + t * width, cy + depth / 2. + 62, z), (12, 145, 14), p)
+        kit_beam(label + ' rafter N', (cx + t * width, cy - depth / 2. - 32, z), (10, 76, 12), p)
+        kit_beam(label + ' rafter S', (cx + t * width, cy + depth / 2. + 32, z), (10, 76, 12), p)
 
 
 def lantern(label, pos, p):
@@ -259,7 +262,7 @@ def japanese_building(place, projection, p, variant, family):
     roof(name, cx, cy, floor + (WALL_H if tall == 2 else 0), width + (0 if tall == 1 else 25), depth + (0 if tall == 1 else 25), p, 'hip' if variant in ('raised_sidewing', 'two_storey_shop') else 'gable')
     if variant == 'raised_sidewing':
         wing_w, wing_d = width * .48, depth * .62
-        wx, wy = cx + width * .53, cy + depth * .12
+        wx, wy = cx + width * .25, cy + depth * .12
         wall_shell(name + ' side wing', wx, wy, floor + 28, wing_w, wing_d, None, p)
         roof(name + ' side wing', wx, wy, floor + 28, wing_w, wing_d, p, 'gable', 1)
     elif variant in ('open_shed', 'sawpit_shed', 'storage_frame'):
@@ -269,8 +272,8 @@ def japanese_building(place, projection, p, variant, family):
     elif variant == 'forge_front':
         kit_noren(name + ' indigo work curtain', (cx, cy - depth / 2. - 12, floor + 188), (180, 8, 70), dict(p, banner=p['indigo']))
     if door:
-        axis, sign = door; ex, ey = (cx + sign * (width / 2. + 65), cy) if axis == 'x' else (cx, cy + sign * (depth / 2. + 65))
-        size = (130, depth, 40) if axis == 'x' else (width, 130, 40)
+        axis, sign = door; ex, ey = (cx + sign * (width / 2. + 37.5), cy) if axis == 'x' else (cx, cy + sign * (depth / 2. + 37.5))
+        size = (75, depth * .82, 28) if axis == 'x' else (width * .82, 75, 28)
         kit_deck(name + ' raised engawa', (ex, ey, floor + 20), size, p)
         kit_rail(name + ' engawa', (ex, ey, floor + 30), depth * .72 if axis == 'x' else width * .72, axis != 'x', p)
         # The bridge's current canonical door state controls whether the visible entrance is a
@@ -304,7 +307,7 @@ def stall(place, projection, p, variant):
     for sx in (-1, 1):
         for sy in (-1, 1): box(name + ' post', (cx + sx * width / 2., cy + sy * depth / 2., floor + 100), (18, 18, 200), p['timber'])
     box(name + ' counter', (cx, cy - depth / 2. + 30, floor + 48), (width + 25, 70, 88), p['timber'])
-    roof(name + ' canopy', cx, cy, floor - 55, width + 145, depth + 145, p, 'gable')
+    roof(name + ' canopy', cx, cy, floor - 55, width + 60, depth + 60, p, 'gable')
     banner(name, cx + width * .33, cy, floor, p)
     for index in range(3): box(name + ' basket', (cx - width * .25 + index * 55, cy - depth * .35, floor + 104), (34, 34, 30), p['crop'], mesh=CYLINDER)
 
