@@ -137,6 +137,9 @@ export function beginConflict(world: World, o: BeginConflictOpts): Conflict {
 /** Record an exchanged blow: bumps escalation, refreshes the "still live" timestamp, and — if
  * the aggressor's intent has hardened — emits `conflict_escalated`. */
 export function recordConflictBlow(world: World, c: Conflict, attacker: EntityId, intent?: ConflictIntent): void {
+  // Getting up off the ground and coming back at somebody is a real resumption of the fight, and
+  // it is the only thing that clears a recorded downing — see `recordDowning`.
+  if (c.downed?.who === attacker) c.downed = undefined;
   c.attackCount++;
   c.escalation = Math.min(1, c.escalation + ESCALATION_PER_BLOW);
   c.lastMeaningfulInteraction = world.now;
@@ -172,6 +175,29 @@ export function disengageConflict(world: World, c: Conflict, who: EntityId, reas
     });
   }
   c.data_disengagedBy = who; // transient hint for maintainConflicts' outcome choice
+}
+
+/**
+ * One party has been beaten to the ground: record it on the conflict.
+ *
+ * This is the missing HALF of a mechanism that already existed. `applyHit` has always downed a
+ * non-lethally beaten body, and `act`'s attack handler has always stopped the moment it saw a
+ * downed target — but the downing lasts 45 physical seconds and the observation is instantaneous,
+ * so whether the fight ended came down to how often the caller stepped the simulation. Nothing
+ * else about the fight was cadence-dependent: the blows, the damage, the escalation and the
+ * knowledge all accumulated identically. Only the ENDING could be missed.
+ *
+ * So the ending is recorded here instead of being re-observed, and NOTHING ELSE happens. It is
+ * deliberately not a `disengageConflict` and not a `resolveConflict`: the fight ends the way it
+ * always has, by the attacker stopping and `maintainConflicts` then finding the conflict stale.
+ * Ending it here instead was tried and measured — at play cadence it cut fights short that the
+ * lifecycle would have carried a while longer, and `npm run causal:accept`'s deepest causal walk
+ * stopped existing, which is a real loss of world behaviour for no gain. The record's whole job is
+ * to let the attacker's own stop condition survive a coarse step; the lifecycle stays untouched.
+ */
+export function recordDowning(world: World, c: Conflict, downedId: EntityId, byId: EntityId): void {
+  if (c.status === 'resolved') return;
+  c.downed = { who: downedId, by: byId, at: world.now };
 }
 
 /** Terminally resolve a conflict with an outcome (Constitution §51: a real consequence, linked

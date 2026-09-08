@@ -32,6 +32,10 @@ export function scheduleFor(p: Person, refs: { work: EntityId | null; home: Enti
     case 'elder': return [e(21, 7, 'sleep', H, 'sleep'), e(7, 8, 'eat', H, 'breakfast'), e(8, 12, 'socialize', S, 'hold court in the square'), e(12, 14, 'eat', H, 'lunch and rest'), e(14, 18, 'socialize', T, 'afternoon at the tavern'), e(18, 19, 'worship', C, 'evening service'), e(19, 21, 'idle', H, 'evening')];
     case 'vagrant': return [e(2, 10, 'sleep', H, 'sleep it off'), e(10, 17, 'idle', S, 'beg in the square'), e(17, 2, 'drink', T, 'drink')];
     case 'child': return [e(20, 7, 'sleep', H, 'sleep'), e(7, 8, 'eat', H, 'breakfast'), e(8, 12, 'play', S, 'play'), e(12, 13, 'eat', H, 'lunch'), e(13, 18, 'play', S, 'play'), e(18, 20, 'idle', H, 'evening at home')];
+    // A grown person with no trade of their own. Their day is not a child's and not a
+    // tradesman's: they are about the village, where the fetching and carrying is, which is also
+    // where somebody eventually gets shown a trade (mind/livelihood.ts, mind/apprenticeship.ts).
+    case 'villager': return [e(21, 6, 'sleep', H, 'sleep'), e(6, 7, 'eat', H, 'breakfast'), e(7, 12, 'work', W, 'find work about the village'), e(12, 13, 'eat', H, 'lunch'), e(13, 18, 'work', W, 'find work about the village'), e(18, 21, 'socialize', p.traits.sociability > 0.5 ? T : H, 'evening')];
     case 'bandit': return [e(23, 7, 'sleep', H, 'sleep'), e(7, 12, 'guard_post', W, 'watch the camp'), e(12, 13, 'eat', W, 'eat'), e(13, 19, 'guard_post', W, 'watch the camp'), e(19, 23, 'drink', W, 'drink by the fire')];
     default: return [e(22, 6, 'sleep', H, 'sleep'), e(6, 22, 'wander', null, 'wander')];
   }

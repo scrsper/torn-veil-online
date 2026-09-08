@@ -3,7 +3,7 @@ import { resolveCombatAttack, combatReach, type CombatAttackIntent, type CombatA
 import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, ItemType, KnowledgeItem, Creature, Place, Anchor, ConflictIntent, Conflict, ConflictCause } from '../core/types';
 import { World } from '../core/world';
 import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRelationships } from './relationships';
-import { maintainConflicts, beginConflict, recordConflictBlow, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
+import { maintainConflicts, beginConflict, recordConflictBlow, recordDowning, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
 import { maintainCustody, subdue, takeIntoCustody, beginSurrender, isSubdued } from '../social/custody';
 import { SAW_RATIO, stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, restockTavern, gatherHerbs, huntGame, GRAIN_CAP, SEED_PER_PLOT } from '../world/metabolism';
 import { stepPhysiology, activityLevelFor, heatBand, hungerBand, thirstBand, sleepBand, comfortBand, severityAtLeast, syncNeeds } from '../core/physiology';
@@ -44,8 +44,9 @@ import { drawInferences } from './inference';
 // (world/labor.ts), who is plausibly moved to take it up (mind/succession.ts), and the smallest
 // teaching path (mind/apprenticeship.ts). None of the three decides anything on its own: the
 // first is a read-only view, the second returns a number, the third writes a belief.
-import { maintainWorkStints, noteStandInBatch, processFor, runTradeBatch, underServedPosts, workAuthorization, type TradePost } from '../world/labor';
+import { maintainWorkStints, noteStandInBatch, processFor, runTradeBatch, underServedPosts, workAuthorization, WORK_CAPACITY_FLOOR, type TradePost } from '../world/labor';
 import { peopleAwareOfShortage, standInCandidacy } from './succession';
+import { livelihoodProspects } from './livelihood';
 import { maybeTeachAt } from './apprenticeship';
 import type { TransformResult } from '../world/metabolism';
 import { woundSeverity, SERIOUS_WOUND } from '../core/attributes';
@@ -80,6 +81,10 @@ const KINDNESS_WEIGHT: Record<string, number> = {
 const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
 /** Shared, never mutated — the ordinary case, where no productive place is going unworked. */
 const EMPTY_AWARENESS: ReadonlySet<EntityId> = new Set<EntityId>();
+/** How long an ordinary melee exchange takes, in physical seconds. Longer than the combat
+ * resolver's own `ATTACK_COOLDOWN` on purpose: that is the floor on what is physically legal,
+ * this is the pace an ordinary fighter actually keeps. */
+const MELEE_SWING_SECONDS = 1.1;
 /** v0.2.3: world-time a pursuer waits before re-targeting a quarry it just failed to physically
  * reach. Long enough that the two are likely no longer in perception range of each other; short
  * enough that a genuinely renewed threat still gets answered. */
@@ -905,7 +910,7 @@ export class Simulation {
         if (pipeline >= req.quantity) continue;
         const already = w.livingPersons().filter(q => q.id !== p.id && q.mind.goal?.type === 'chop').length;
         const chopping = p.mind.goal?.type === 'chop';
-        const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter'].includes(p.occupation);
+        const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter', 'villager'].includes(p.occupation);
         if (!chopping && (already >= 2 || !roleOk)) continue;
         const node = nearestAvailableNode(w, 'tree', pos, 220);
         if (node) G('chop', clamp(0.5 * laborCapacity * incentive), [`${gp.name} still needs planks, and there is no wood for them`], { targetPos: node.pos, data: { nodeId: node.id } });
@@ -920,7 +925,7 @@ export class Simulation {
         if (pipeline >= req.quantity) continue;
         const already = w.livingPersons().filter(q => q.id !== p.id && q.mind.goal?.type === 'gather').length;
         const gathering = p.mind.goal?.type === 'gather';
-        const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter'].includes(p.occupation);
+        const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter', 'villager'].includes(p.occupation);
         if (!gathering && (already >= 2 || !roleOk)) continue;
         const node = nearestAvailableNode(w, 'stone', pos, 220);
         if (node) G('gather', clamp(0.5 * laborCapacity * incentive), [`${gp.name} still needs stone`], { targetPos: node.pos, data: { nodeId: node.id } });
@@ -946,6 +951,26 @@ export class Simulation {
         G('work', cand.utility, cand.reasons, {
           targetPlace: post.place.id,
           data: { standIn: post.place.id, resource: post.process.output, standInCauses: cand.causes, teacherId: cand.teacherId },
+        });
+      }
+    }
+    // ---- Generational continuity: being at a trade you might grow into.
+    //
+    // The other half of `coming_of_age` having a consumer (mind/livelihood.ts). Somebody who
+    // holds no work of their own, whose household works a trade or who has already been shown
+    // one, has a real reason to be at that work — and being there is what makes them a student in
+    // `maybeTeachAt`'s eyes, which is the only door into a trade this simulation has. It is one
+    // ordinary candidate among twenty-five and loses to hunger, thirst, sleep and danger like
+    // everything else; nobody is placed anywhere.
+    //
+    // `!p.workId` is the prefilter and it is what makes this affordable: in Ashford it is true of
+    // a handful of people, so the place scan inside `livelihoodProspects` is paid for almost
+    // nobody, almost never.
+    if (!threat && !p.hostile && !p.workId && laborOk) {
+      for (const prospect of livelihoodProspects(w, p)) {
+        G('work', clamp(0.22 + prospect.score * 0.3) * bodyRoom, prospect.reasons, {
+          targetPlace: prospect.place.id,
+          data: { learningAt: prospect.place.id, teacherId: prospect.teacherId },
         });
       }
     }
@@ -1798,7 +1823,14 @@ export class Simulation {
         const tb = w.primaryBody(a.targetEntity!); const tp = w.person(a.targetEntity!);
         if (!tb || tb.dead) { a.status = 'done'; break; }
         // v0.2.3: stop the moment the target is out of the fight (downed / subdued / surrendered).
-        if (tb.pose === 'downed' || (tp && (tp.surrender || tp.custody?.active || tb.subduedUntil > w.physicalTime))) {
+        // The `Conflict.downed` half of that test is what makes it cadence-independent: the pose
+        // itself lasts 45 physical seconds, so a caller stepping in coarser increments than that
+        // never sees it and the fight never ends (see `recordDowning`). Reading the durable
+        // record as well as the live pose means the same fight ends the same way whether the
+        // world is stepped sixty times a second or once a calendar day.
+        const liveConflict = a.targetEntity ? conflictBetween(w, p.id, a.targetEntity) : undefined;
+        if (tb.pose === 'downed' || liveConflict?.downed?.who === a.targetEntity
+          || (tp && (tp.surrender || tp.custody?.active || tb.subduedUntil > w.physicalTime))) {
           const intent = a.data?.intent as ConflictIntent | undefined;
           const isGuard = p.occupation === 'guard' || p.occupation === 'captain';
           // A guard who has just put down a suspect (arrest intent, or a known crime, or an
@@ -1825,7 +1857,7 @@ export class Simulation {
           m.plan.unshift({ type: 'goto', targetEntity: a.targetEntity, run: true, status: 'pending' });
           break;
         }
-        if (w.physicalTime - body.lastAttackAt > 1.1) { this.attack(p, body, tb, a.data?.intent as ConflictIntent | undefined); }
+        if (w.physicalTime - body.lastAttackAt > MELEE_SWING_SECONDS) this.exchangeBlows(p, body, tb, physDt, a.data?.intent as ConflictIntent | undefined);
         // If that blow put the target down/out, the guard at the top of this case re-runs next
         // substep and takes over (custody escort / disengage). Here just stop on a kill.
         if (tb.dead) a.status = 'done';
@@ -2202,6 +2234,48 @@ export class Simulation {
   }
 
   // ------------------------------------------------------------------ combat
+  /**
+   * The blows one call of `act` covers.
+   *
+   * A fight is the only thing in this simulation whose rate was pinned to the CALLER's step size
+   * rather than to time. Every other extended act — building, hauling, milling, sleeping — carries
+   * a duration and consumes however much of it the step actually covers, so stepping the world in
+   * coarser increments changes only the graininess of the record, never the outcome. Combat threw
+   * exactly one blow per call however long the call represented, while the strategic pass healed
+   * the target for the whole of that same interval. At play cadence (a step is a fraction of a
+   * second) that asymmetry is invisible. At the epoch tier's one-step-per-calendar-day cadence a
+   * fighter landed one blow per simulated day against a target recovering a day's worth of health
+   * between blows, so no fight could ever conclude: measured on seed 918271, seven people spent
+   * five simulated years and 5,657 blows on fights that take minutes at play cadence, and the
+   * perceptions and beliefs those blows generated were what made per-tick cost grow with history.
+   *
+   * So the number of swings follows the physical seconds the step covers, bounded by the two
+   * things that really bound a fight: the target going down, and the attacker running out of
+   * wind. `WORK_CAPACITY_FLOOR` is the same exhaustion floor heavy labour uses (`world/labor.ts`)
+   * — a fight you are too spent to swing in is a fight you have stopped fighting. At play cadence
+   * a step covers less than one swing interval, so this delivers exactly one blow and nothing
+   * about the existing behaviour changes.
+   */
+  private exchangeBlows(attacker: Person, ab: Body, tb: Body, physDt: number, intent?: ConflictIntent): void {
+    const w = this.world;
+    const swings = Math.max(1, Math.floor(physDt / MELEE_SWING_SECONDS));
+    for (let i = 0; i < swings; i++) {
+      if (tb.dead) break;
+      const tp = w.person(tb.ownerId);
+      if (tb.pose === 'downed' || tb.subduedUntil > w.physicalTime || tp?.surrender || tp?.custody?.active) break;
+      if (dist2(ab.pos, tb.pos) > combatReach(w, attacker)) break;
+      if (i > 0) {
+        if (getPhysicalCapability(attacker, w, { body: ab }).currentExertionCapacity < WORK_CAPACITY_FLOOR) break;
+        // This swing falls later inside the same step, so the attacker's own swing clock has
+        // moved on with it. Rewound rather than faked: `resolveCombatAttack` writes it back to
+        // `physicalTime` on every legal attempt, and the cooldown it enforces is the same one.
+        ab.lastAttackAt = w.physicalTime - MELEE_SWING_SECONDS * 2;
+      }
+      if (!this.attack(attacker, ab, tb, intent).attempted) break;
+    }
+    ab.lastAttackAt = w.physicalTime;
+  }
+
   attack(attacker: Person, ab: Body, tb: Body, intent?: ConflictIntent): CombatAttackResult {
     return this.resolveAttack({ attackerId: attacker.id, attackerBodyId: ab.id, targetBodyId: tb.id, attackMode: 'strike', intent });
   }
@@ -2266,6 +2340,10 @@ export class Simulation {
       }
       else {
         tb.pose = 'downed'; tb.poseUntil = w.physicalTime + 45; tb.health = 1; if (victim.kind === 'person') { victim.mind.plan = []; victim.mind.goal = null; }
+        // The fight is over: this is the canonical record of it, kept because the pose above is
+        // not durable enough to be read by anybody stepping the world coarsely (see
+        // `social/conflict.ts`'s `recordDowning`).
+        if (conflict) recordDowning(w, conflict, victim.id, attacker.id);
         // v0.2.3: a downing blow whose intent was to subdue or arrest imposes a real, longer
         // incapacitation (Constitution §11: 'subdue'/'arrest' as an outcome, not a repeatable
         // non-lethal loop). The act('attack') handler escalates an arrest to actual custody.

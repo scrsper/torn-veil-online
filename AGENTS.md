@@ -97,6 +97,20 @@ witnesses learn about it" stays true instead of becoming a scripted one-off.
   builders in `structures.ts`), the 32-person cast (`cast.ts`), and `village.ts`, which wires
   it all together and seeds pre-history (marriages, grudges, debts, rumors, a decade of
   events) so the world has a past before the player spawns.
+- `src/sim/mind/livelihood.ts` — generational continuity: the consumer of `coming_of_age`. A
+  READING in the same shape as `mind/vocation.ts`'s `recogniseClass`, never an assignment — it asks
+  whether what has actually happened to somebody (been shown the trade, practised it, got batches
+  out of the place, grown up in the household that works it, and room at the work) adds up to a
+  trade. Acquired basis is a HARD GATE on holding one; household proximity gates only being at the
+  work at all, which is the door instruction comes through. Recognition writes `workId` and the
+  place's own `workers` — the canonical record `world/labor.ts` reads — and the occupation label
+  LAST, as a summary. Nothing in the labour path reads that label. See
+  `docs/DEMOGRAPHIC_CONTINUITY_YEAR_SCALE.md` Revision 2 §5.
+- `src/sim/world/locality.ts` — `nearestPlaceOfType`, the shape a "which place of this kind"
+  question should take: nearest to the asker, not `world.places().find(p => p.type === X)` (which
+  means "the first place of this type anywhere in the world" and silently binds every caller to
+  settlement A the moment a second settlement exists). Straight-line today; reachability over the
+  navigator later, without a signature change. Deliberately NOT a settlement-id filter.
 - `src/sim/mind/pursuit.ts` / `src/sim/social/obligation.ts` — the v0.10 "Motivated Lives" layer.
   A `Pursuit` is a PERSISTENT PURPOSE (what someone is trying to bring about, across hours or
   days) sitting between a concern and a goal; it carries no plan — `pursuitSteps` re-derives which
@@ -175,9 +189,16 @@ npm run build          # typecheck + production build
 npm run social:trace   # v0.9 deterministic causal traces on the real generated village
 npm run motive:trace   # v0.10 motivated-life causal traces (the four acceptance scenarios)
 npm run causal:trace   # Causal Society long-run unattended traces (30 world days, no player)
-npm run causal:accept  # the Causal Society acceptance run as pass/fail (17 world days, ~2 min)
+npm run causal:accept  # the Causal Society acceptance run as pass/fail (17 world days, ~4 min)
 npm run adapt:trace    # Adaptive Society succession/recovery trace (30 world days, no player)
-npm run adapt:accept   # the Adaptive Society acceptance run as pass/fail (30 world days, ~4 min)
+npm run adapt:accept   # the Adaptive Society acceptance run as pass/fail (30 world days, ~9 min)
+npm run world:epoch    # the year-scale WorldLab tier (--seed <n> --years 1|5|25)
+npm run epoch:accept   # the epoch acceptance run: the whole seed matrix at 5 years, plus 25 years
+                       #   (~8 min). READ docs/DEMOGRAPHIC_CONTINUITY_YEAR_SCALE.md Revision 2 §4
+                       #   before drawing any conclusion from it about demography, economy or
+                       #   behaviour: at one step per calendar day every person in the world sits
+                       #   at zero food and water reserve and never forms a work goal, so it is a
+                       #   regression tripwire for accumulated-state growth and nothing more.
 npm run test:browser   # Playwright functional harness against the real client
 ```
 
@@ -221,6 +242,12 @@ advance simulation time deterministically without waiting on `requestAnimationFr
 - Don't give any entity more than one "current body" assumption in new code — the ontology
   intentionally supports zero-or-many bodies per entity even though every current NPC happens
   to have exactly one.
+- A canonical outcome must never depend on how often the world is observed. Every extended act
+  carries a duration and consumes however much of it the caller's step covers; combat was the one
+  exception (one blow per call however long the call represented, and a stop condition that read a
+  45-second pose) and it made fights unendable at the epoch tier's cadence. If you add a mechanism
+  whose ENDING is an instantaneous observation of a transient, record the ending instead — see
+  `Conflict.downed`.
 - This is a single-village vertical slice by design. Prefer depth (more interaction between
   existing systems) over breadth (new mechanics, more world, crafting, multiplayer) unless
   explicitly asked.

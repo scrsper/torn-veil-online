@@ -6,6 +6,19 @@ import type { World } from '../../sim/core/world';
 import { canonicalStateHash } from '../benchmarkReport';
 
 export const EPOCH_YEAR_DAYS = 365;
+
+/**
+ * The seed matrix this tier is judged on, and deliberately the SAME conventions the other
+ * WorldLab tiers use (`headless/worldlab/scenarios.ts`'s `baseline-village`) plus seed 1, the
+ * seed the original epoch acceptance was written against.
+ *
+ * Running a scale tier on one hand-picked seed is how a scale claim gets made about a world that
+ * happens to be quiet. Measured on this matrix at five years, the flat-cost claim this tier exists
+ * to make held on seed 1 and failed on 918271 — the very seed every other tier and every trace CLI
+ * uses, and the one `docs/V0_2_2_SCALE_READINESS_AUDIT.md` named for pathological
+ * non-convergence.
+ */
+export const EPOCH_SEEDS = [918271, 918272, 1337, 42424242, 12345, 1] as const;
 /** One canonical Simulation.step per calendar day. This is a named WorldLab observation
  * cadence, not a different demographic model: daily physiology, economy, cognition, lifecycle,
  * event emission, and maintenance still run through Simulation. */
@@ -27,6 +40,16 @@ export interface EpochYearTelemetry {
   ticks: number;
   msPerTick: number;
   msPerTickPerLiving: number;
+  /** Everything the per-tick cognition loops actually walk, summed over living minds: knowledge
+   * items, memories, relationships, concerns and pursuits. Deterministic, unlike wall time. */
+  mindStateItems: number;
+  /** The retained event log plus that mind state, per living person — this tier's DETERMINISTIC
+   * proxy for "how much accumulated history does one person's tick have to traverse". Wall-clock
+   * cost per tick is the honest end measurement but it is also the noisy one (a contended machine
+   * moved the same five-year run between 24 s and 54 s on the hardware this was measured on);
+   * this number is identical on every machine and every run for a given seed, which is what makes
+   * it assertable rather than merely reportable. */
+  workingSetPerLiving: number;
 }
 
 export interface EpochReport {
@@ -45,6 +68,12 @@ export interface EpochReport {
     normalizedChangePercent: number;
     eventGrowth: number;
     detailedChronicleGrowth: number;
+    /** Deterministic counterpart of `normalizedChangePercent` — see `workingSetPerLiving`. */
+    firstWorkingSetPerLiving: number;
+    lastWorkingSetPerLiving: number;
+    workingSetChangePercent: number;
+    /** Retained events added per living person per simulated year, averaged over the run. */
+    eventGrowthPerLivingPerYear: number;
   };
   final: {
     livingPopulation: number;
@@ -60,6 +89,12 @@ export interface EpochReport {
     maxLineageDepth: number;
     inheritanceTransfers: number;
     demographicHistoryEvents: number;
+    comingOfAgeEvents: number;
+    /** Born-during-run adults still carrying a child's occupation summary and a child's schedule.
+     * Must be zero: `coming_of_age` having no consumer is exactly the failure this counts. */
+    bornDuringRunAdultsWithAChildsDay: number;
+    /** Born-during-run adults who hold a post of their own (`workId`). */
+    bornDuringRunAdultsAtWork: number;
   };
   invariantErrors: string[];
   conservation: { currencyUnexplainedDelta: number; invalidItemOwners: number };
@@ -113,6 +148,12 @@ export function runEpochWorldLab(options: { seed: number; years: 1 | 5 | 25; ste
       const livingPopulation = world.livingPersons().length;
       const birthTotal = tally(world, 'birth'); const deathTotal = tally(world, 'death'); const inheritanceTotal = tally(world, 'inheritance');
       const chronicleDetailedEntries = buildChronicle(world).length;
+      let mindStateItems = 0;
+      for (const person of world.livingPersons()) {
+        mindStateItems += Object.keys(person.knowledge).length + person.memories.length
+          + Object.keys(person.relationships).length
+          + (person.mind.concerns?.length ?? 0) + (person.mind.pursuits?.length ?? 0);
+      }
       records.push({
         year, wallMs, heapUsedBytes: process.memoryUsage().heapUsed,
         livingPopulation, cumulativePeople: world.persons().length, cumulativeEntities: world.entities.size,
@@ -121,6 +162,7 @@ export function runEpochWorldLab(options: { seed: number; years: 1 | 5 | 25; ste
         inheritances: inheritanceTotal - (previousTallies?.inheritance ?? inheritanceTotal),
         eventLogSize: world.events.length, chronicleDetailedEntries, chronicleEraCount: world.chronicleEras.length,
         ticks, msPerTick: wallMs / ticks, msPerTickPerLiving: wallMs / ticks / Math.max(1, livingPopulation),
+        mindStateItems, workingSetPerLiving: (world.events.length + mindStateItems) / Math.max(1, livingPopulation),
       });
       previousTallies = { birth: birthTotal, death: deathTotal, inheritance: inheritanceTotal };
       lastWall = now; lastWorldSeconds = elapsed;
@@ -157,6 +199,12 @@ export function runEpochWorldLab(options: { seed: number; years: 1 | 5 | 25; ste
       normalizedChangePercent: first ? ((last.msPerTickPerLiving / first.msPerTickPerLiving) - 1) * 100 : 0,
       eventGrowth: last ? last.eventLogSize - first.eventLogSize : 0,
       detailedChronicleGrowth: last ? last.chronicleDetailedEntries - first.chronicleDetailedEntries : 0,
+      firstWorkingSetPerLiving: first?.workingSetPerLiving ?? 0,
+      lastWorkingSetPerLiving: last?.workingSetPerLiving ?? 0,
+      workingSetChangePercent: first?.workingSetPerLiving ? ((last.workingSetPerLiving / first.workingSetPerLiving) - 1) * 100 : 0,
+      eventGrowthPerLivingPerYear: records.length > 1
+        ? (last.eventLogSize - first.eventLogSize) / (records.length - 1) / Math.max(1, last.livingPopulation)
+        : 0,
     },
     final: {
       livingPopulation: result.world.livingPersons().length,
@@ -172,6 +220,12 @@ export function runEpochWorldLab(options: { seed: number; years: 1 | 5 | 25; ste
       maxLineageDepth: Math.max(0, ...people.map(p => lineageDepth(p.id))),
       inheritanceTransfers: result.world.events.filter(e => e.type === 'inheritance' && (Number(e.data.amount ?? 0) > 0 || ((e.data.itemIds as string[] | undefined)?.length ?? 0) > 0)).length,
       demographicHistoryEvents: result.world.events.filter(e => ['birth', 'death', 'inheritance'].includes(e.type)).length,
+      comingOfAgeEvents: result.world.events.filter(e => e.type === 'coming_of_age').length,
+      bornDuringRunAdultsWithAChildsDay: people.filter(p => p.birthTick >= runStartTick && p.alive
+        && (p.lifeStage === 'adult' || p.lifeStage === 'elder')
+        && (p.occupation === 'child' || p.schedule.some(s => s.activity === 'play'))).length,
+      bornDuringRunAdultsAtWork: people.filter(p => p.birthTick >= runStartTick && p.alive
+        && (p.lifeStage === 'adult' || p.lifeStage === 'elder') && !!p.workId).length,
     },
     invariantErrors,
     conservation: {

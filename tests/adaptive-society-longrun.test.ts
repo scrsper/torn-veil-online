@@ -73,7 +73,20 @@ describe('Adaptive Society — unattended acceptance', () => {
     }
     // Plausibility is not a ranking the world acts on: the people who could have answered are
     // not the same list as the people who did.
-    expect(report.candidates.length).toBeGreaterThanOrEqual(report.standIns.length);
+    //
+    // Compared PER PERSON AND PLACE, not by raw list length. `candidates` is deduplicated per
+    // person and post; `standIns` is one record per `WorkStint`, and one person legitimately opens
+    // several stints at the same mill across a month (they work, they miss two days, the stint
+    // lapses, they come back). Comparing the two lengths was therefore comparing distinct people
+    // against total spells of work, and it broke the first time somebody's spells were counted
+    // differently — for a reason that had nothing to do with the invariant it was guarding.
+    const standInKeys = new Set(report.standIns.map(s => `${s.who}@${s.place}`));
+    const candidateKeys = new Set(report.candidates.map(c => `${c.who}@${c.place}`));
+    expect(candidateKeys.size).toBeGreaterThanOrEqual(standInKeys.size);
+    // And the assertion that actually matters, which the length comparison never made: NOBODY
+    // worked a post the world had not independently found them a plausible responder for. That is
+    // the "the nearest idle NPC does not just get assigned" invariant, stated directly.
+    for (const key of standInKeys) expect([...candidateKeys]).toContain(key);
   });
 
   it('4. somebody did the work, badly, and got better at it by doing it', () => {

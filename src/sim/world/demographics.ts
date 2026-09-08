@@ -5,12 +5,30 @@ import { annualMortalityHazard, ageInYears, lifeStageFor, physiologyProfileFor }
 import { makeBody, makePerson } from './factory';
 import { joinHousehold, leaveHousehold, makeHousehold } from './household';
 import { getRel, setRelTags } from '../mind/relationships';
-import { scheduleFor } from '../mind/schedule';
+import { dailyScheduleFor, stepLivelihoods } from '../mind/livelihood';
 
+/**
+ * The pool a newborn's given name is drawn from.
+ *
+ * Widened from 25 to 120 because 25 was not a naming scheme, it was a collision generator: with
+ * one surname per parent line, a village that has been running for a few generations exhausts the
+ * distinct `<given> <surname>` pairs and every subsequent birth falls into `generatedName`'s
+ * disambiguation loop. Culturally this is still one culture's pool — a second settlement with its
+ * own naming is a world-generation concern (see the site/spec work), not a longer list here.
+ */
 const GIVEN_NAMES = [
   'Aster', 'Briar', 'Cora', 'Dain', 'Elowen', 'Flint', 'Galen', 'Hester', 'Iris', 'Jonas',
   'Kael', 'Lark', 'Maren', 'Nico', 'Orla', 'Perrin', 'Quill', 'Rhea', 'Silas', 'Thora',
   'Una', 'Vale', 'Wren', 'Yara', 'Zev',
+  'Alder', 'Anwen', 'Arden', 'Bramble', 'Brenna', 'Calder', 'Cassia', 'Cedric', 'Delwyn', 'Doran',
+  'Edda', 'Emrys', 'Fenn', 'Fern', 'Gwyn', 'Hallis', 'Harrow', 'Idris', 'Ilse', 'Ivor',
+  'Juniper', 'Kerrin', 'Linnet', 'Lowan', 'Maeve', 'Marrow', 'Meriel', 'Morwen', 'Neve', 'Norrin',
+  'Oriel', 'Osric', 'Peran', 'Petra', 'Rennick', 'Rill', 'Rowan', 'Sable', 'Saoirse', 'Selwyn',
+  'Sorrel', 'Tamsin', 'Teagan', 'Torrin', 'Ulric', 'Verity', 'Wilder', 'Winnow', 'Yestin', 'Ysolde',
+  'Ansel', 'Beryl', 'Corvin', 'Dessa', 'Eirian', 'Faron', 'Greer', 'Halla', 'Ingram', 'Jessa',
+  'Kelda', 'Leoric', 'Mabon', 'Nerys', 'Ovid', 'Pell', 'Rhodri', 'Senna', 'Talwyn', 'Ulla',
+  'Varian', 'Wenna', 'Yarrow', 'Zephyr', 'Alys', 'Brand', 'Coel', 'Dilwen', 'Ewan', 'Fable',
+  'Gareth', 'Hesper', 'Isolde', 'Jarl', 'Kirsa', 'Lorcan', 'Mireth', 'Nolwen', 'Oren', 'Pryn',
 ];
 
 function partneredWith(world: World, p: Person): Person | undefined {
@@ -73,13 +91,26 @@ function tryConception(world: World, p: Person): void {
   p.physiology.pregnancy = { gestationalParentId: p.id, otherParentId: partner.id, conceivedAt: world.now, dueAt: world.now + profile.gestationDays * SECONDS_PER_DAY, state: 'gestating', lastProgressAt: world.now, causeEventId: ev.id };
 }
 
+/**
+ * A newborn's name. The two RNG draws (given name, which parent's line the surname comes from)
+ * happen exactly once regardless of how many names are already taken, so the demographic stream
+ * stays deterministic and independent of cumulative population.
+ *
+ * The taken-name check used to walk `world.persons()` — the append-only historical bucket, the
+ * dead included — once per iteration of a retry loop, per birth. That is the shape the year-scale
+ * substrate exists to remove: invisible at 39 people, quadratic across a lineage, and increasingly
+ * likely to iterate as the pool of distinct `<given> <surname>` pairs was consumed. One pass over
+ * the bucket builds the set; the loop then only reads it.
+ */
 function generatedName(world: World, gestationalParent: Person, otherParent: Person): string {
   const given = GIVEN_NAMES[Math.floor(world.demographicRng.next() * GIVEN_NAMES.length)];
   const surnameSource = world.demographicRng.next() < 0.5 ? gestationalParent : otherParent;
   const surname = surnameSource.name.trim().split(/\s+/).slice(-1)[0] || 'Vale';
+  const taken = new Set<string>();
+  for (const p of world.persons()) taken.add(p.name);
   let name = `${given} ${surname}`;
   let suffix = 2;
-  while (world.persons().some(p => p.name === name)) name = `${given} ${surname} ${suffix++}`;
+  while (taken.has(name)) name = `${given} ${surname} ${suffix++}`;
   return name;
 }
 
@@ -102,10 +133,10 @@ export function giveBirth(world: World, parent: Person): Person | null {
   const home = world.place(child.homeId); if (home && !home.residents.includes(child.id)) home.residents.push(child.id);
   const pos = world.positionOf(parent.id) ?? home?.inside ?? { x: 96, y: 20, z: 96 };
   const body = makeBody(world, child.id, pos, 'humanoid', 35); child.bodies.push(body.id);
-  const tavern = world.places().find(x => x.type === 'tavern') ?? home;
-  const square = world.places().find(x => x.type === 'square') ?? home;
-  const chapel = world.places().find(x => x.type === 'chapel') ?? home;
-  if (home && tavern && square && chapel) child.schedule = scheduleFor(child, { work: null, home: home.id, tavern: tavern.id, square: square.id, chapel: chapel.id });
+  // The everyday places a child's day is built around are resolved from where they actually live
+  // (`world/locality.ts`), not from whichever tavern happens to be first in the world's place
+  // list — a newborn in a second settlement must not be given the first settlement's square.
+  child.schedule = dailyScheduleFor(world, child, null);
   setRelTags(child, parent.id, 'parent'); setRelTags(child, other.id, 'parent');
   setRelTags(parent, child.id, 'child'); setRelTags(other, child.id, 'child');
   getRel(child, parent.id).affection = 0.9; getRel(child, other.id).affection = 0.9;
@@ -116,11 +147,29 @@ export function giveBirth(world: World, parent: Person): Person | null {
   return child;
 }
 
+/**
+ * Everyone alive who descends from this person, in deterministic birth order.
+ *
+ * The BFS walks the lineage, and it used to re-scan `world.persons()` — the whole append-only
+ * bucket, dead identities included — once per node it visited, on every death. Cost was therefore
+ * O(cumulative people x descendants) per death and grew with the whole recorded history of the
+ * world rather than with the family being settled. One pass now builds the parent -> children
+ * index the walk actually needs; the walk itself touches only the lineage. Dead intermediate
+ * generations still have to be traversed (a grandchild inherits through a dead parent), which is
+ * why the index is built over `persons()` rather than `livingPersons()`.
+ */
 function livingDescendants(world: World, personId: EntityId): Person[] {
+  const childrenOf = new Map<EntityId, Person[]>();
+  for (const p of world.persons()) {
+    for (const parentId of p.parentIds) {
+      const bucket = childrenOf.get(parentId);
+      if (bucket) bucket.push(p); else childrenOf.set(parentId, [p]);
+    }
+  }
   const out: Person[] = []; const queue = [personId]; const seen = new Set(queue);
   while (queue.length) {
     const parentId = queue.shift()!;
-    for (const p of world.persons()) if (!seen.has(p.id) && p.parentIds.includes(parentId)) {
+    for (const p of childrenOf.get(parentId) ?? []) if (!seen.has(p.id)) {
       seen.add(p.id); queue.push(p.id); if (p.alive) out.push(p);
     }
   }
@@ -177,7 +226,17 @@ export function stepDemographics(world: World): void {
   for (const p of living) {
     const oldAge = p.age; const oldStage = p.lifeStage;
     p.age = ageInYears(p.birthTick, world.now); p.lifeStage = lifeStageFor(p.species, p.age);
-    if (oldStage !== p.lifeStage && p.lifeStage === 'adult') world.emit('coming_of_age', { actor: p.id, category: 'history', significance: 0.6, data: { age: p.age }, summary: `${p.name} came of age` });
+    if (oldStage !== p.lifeStage && p.lifeStage === 'adult') {
+      // Coming of age is a real transition, so it has a real consequence: a grown person stops
+      // keeping a child's day. `scheduleFor` reads the occupation summary, and 'child' is no
+      // longer a true summary of somebody who is eighteen — which is why a person born in a run
+      // used to spend their whole adult life playing in the square. What they are called instead
+      // is 'villager': a grown person with no trade of their own, which is exactly what they are
+      // until their life makes something else of them (`mind/livelihood.ts`). No work is assigned
+      // here and none is implied; the schedule below carries a null workplace.
+      if (p.occupation === 'child' && !p.workId) { p.occupation = 'villager'; p.schedule = dailyScheduleFor(world, p, null); }
+      world.emit('coming_of_age', { actor: p.id, category: 'history', significance: 0.6, data: { age: p.age, occupation: p.occupation }, summary: `${p.name} came of age` });
+    }
     if (oldAge !== p.age) {
       // Re-derived from immutable base appearance/current age; never compounds prior attributes.
       const agePenalty = p.age < 18 ? 0.75 + p.age / 72 : p.age > 55 ? Math.max(0.6, 1 - (p.age - 55) * 0.01) : 1;
@@ -199,4 +258,8 @@ export function stepDemographics(world: World): void {
     const daily = 1 - Math.exp(-annual / 365);
     if (world.demographicRng.next() < daily) diePerson(world, p, undefined, p.age < 50 && physiologicalFitness(world, p) < 0.3 ? 'physical decline' : 'natural causes');
   }
+  // Coming of age has a consumer: the same daily pass asks whether anybody's life has added up to
+  // a trade yet (`mind/livelihood.ts`). Nothing here assigns anybody anything — the reading either
+  // recognises a pattern the world already contains, or, far more often, does not.
+  stepLivelihoods(world);
 }

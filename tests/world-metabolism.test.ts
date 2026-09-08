@@ -280,7 +280,15 @@ describe('renderer-independent orientation (v0.2.4 Priority 11)', () => {
 });
 
 describe('long-run: the whole chain actually works (v0.2.4 Priority 10)', () => {
-  it('an 8 world-day run shows rain→moisture→growth→harvest→grain→flour→bread→eaten, and no runaway', { timeout: 120000 }, () => {
+  // 300 s, not 120 s, and the extra budget is for CONTENTION rather than for the work. Run alone
+  // on an idle machine this file's eight simulated world-days take ~95-115 s; run beside the rest
+  // of the suite it competes for cores with every other worker, and the measured spread is wide
+  // enough that a 120 s ceiling was being missed on a bad draw. That failure said nothing about
+  // the chain this test asserts — it is the same "starved for a core rather than wrong" failure
+  // mode the acceptance runs are excluded from the default suite for (see vite.config.ts). The
+  // assertions below are deliberately untouched: the fix for a test that is close to its budget
+  // is a budget with headroom in it, never a weaker claim.
+  it('an 8 world-day run shows rain→moisture→growth→harvest→grain→flour→bread→eaten, and no runaway', { timeout: 300_000 }, () => {
     const { world } = newWorld(918271);
     const sim = new Simulation(world);
     advance(world, sim, 8 * SECONDS_PER_DAY / 60); // 8 world-days

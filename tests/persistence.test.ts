@@ -64,7 +64,10 @@ describe('save round trips', () => {
     const trade = sim.sellItem(player, merchant, sold, 4, { x: 75.5, y: 14, z: 106.5 }, merchant.workId ?? undefined)!;
 
     const save = serialize(world);
-    expect(JSON.parse(save).version).toBe(18);
+    // Pinned to the literal on purpose: a bump has to be a deliberate edit here as well as in
+    // save.ts, so nobody changes what a saved field means without noticing that old saves stop
+    // being resumable.
+    expect(JSON.parse(save).version).toBe(19);
     const loaded = deserialize(save);
     expect(loaded).not.toBeNull();
     const restored = loaded!.world;
