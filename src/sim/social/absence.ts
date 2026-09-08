@@ -56,15 +56,15 @@ export function currentExpectations(world: World, p: Person, hour: number): Expe
   const here = world.placeAt(body.pos)?.id;
   const sched = currentScheduleEntry(p, hour);
   if (p.workId && here === p.workId && sched?.activity === 'work') {
-    for (const q of world.persons()) {
-      if (q.id === p.id || !q.alive || q.controlled) continue;
+    for (const q of world.livingPersons()) {
+      if (q.id === p.id || q.controlled) continue;
       if (q.workId !== p.workId) continue;
       out.push({ who: q.id, placeId: p.workId, kind: 'work', threshold: WORK_ABSENCE_SECONDS });
     }
   }
   if (p.householdId && p.homeId && here === p.homeId && (hour >= 20 || hour < 6)) {
-    for (const q of world.persons()) {
-      if (q.id === p.id || !q.alive || q.controlled) continue;
+    for (const q of world.livingPersons()) {
+      if (q.id === p.id || q.controlled) continue;
       if (!q.householdId || q.householdId !== p.householdId) continue;
       out.push({ who: q.id, placeId: p.homeId, kind: 'household', threshold: HOUSEHOLD_ABSENCE_SECONDS });
     }

@@ -125,6 +125,10 @@ export class World {
   private livingPeopleSet = new Set<EntityId>();
   private livingBodies: Body[] = [];
   private livingBodiesSet = new Set<EntityId>();
+  /** Event count at the last attempted compaction. Storage cleanup is deliberately batched:
+   * retaining a little extra recent detail is safe, while re-walking the same retained prefix
+   * every weekly clock tick is pure repeated work once the event log is above the threshold. */
+  private lastCompactionEventCount = 0;
 
   constructor(seed: number, clock?: WorldClock) { this.seed = seed; this.rng = new RNG(seed); this.weatherRng = this.rng.fork(97); this.demographicRng = this.rng.fork(151); this.clock = clock ?? new WorldClock(); }
 
@@ -287,6 +291,8 @@ export class World {
    */
   compactEvents(keep = 4000): void {
     if (this.events.length <= keep * 1.5) return;
+    const batch = Math.max(1, Math.floor(keep * 0.25));
+    if (this.lastCompactionEventCount > 0 && this.events.length - this.lastCompactionEventCount < batch) return;
     const cutoff = this.events.length - keep;
     // v0.2.2 Phase 3 (long-run perf): reuse the current index by reference rather than cloning
     // it — `this.eventIndex` isn't mutated anywhere below until it's reassigned to a fresh Map
@@ -321,7 +327,7 @@ export class World {
       if (e.category === 'cognition') return !this.chronicleEras.length && e.significance >= 0.5;
       return e.significance >= 0.5;
     });
-    if (kept.length === this.events.length) return;
+    if (kept.length === this.events.length) { this.lastCompactionEventCount = this.events.length; return; }
     const keptIds = new Set(kept.map(e => e.id));
     const survivingCauses = (id: EventId, visiting = new Set<EventId>()): EventId[] => {
       if (keptIds.has(id)) return [id];
@@ -347,6 +353,7 @@ export class World {
       event.effects = [];
     }
     this.events = kept;
+    this.lastCompactionEventCount = this.events.length;
     this.eventIndex = new Map(kept.map(event => [event.id, event]));
     for (const event of kept) for (const cause of event.causes) {
       const parent = this.eventIndex.get(cause);

@@ -34,6 +34,7 @@ export interface EpochReport {
   years: number;
   stepSeconds: number;
   totalWallMs: number;
+  timing: Record<string, number>;
   initialLivingPopulation: number;
   stateHash: string;
   yearsTelemetry: EpochYearTelemetry[];
@@ -143,7 +144,7 @@ export function runEpochWorldLab(options: { seed: number; years: 1 | 5 | 25; ste
     depthMemo.set(id, depth); return depth;
   };
   return {
-    seed, years, stepSeconds, totalWallMs, initialLivingPopulation, stateHash: canonicalStateHash(result.world), yearsTelemetry: records,
+    seed, years, stepSeconds, totalWallMs, timing: result.timing, initialLivingPopulation, stateHash: canonicalStateHash(result.world), yearsTelemetry: records,
     totals: {
       births: records.reduce((n, x) => n + x.births, 0),
       deaths: records.reduce((n, x) => n + x.deaths, 0),

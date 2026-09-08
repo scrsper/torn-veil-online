@@ -158,8 +158,8 @@ export function maybeTeachAt(world: World, worker: Person, skill: SkillId, place
     (q.mind.goal?.type === 'work' && q.mind.goal.targetPlace === placeId)
     || world.workStints.some(s => s.personId === q.id && s.placeId === placeId && !s.endedAt);
   if (!atTheWork(worker) && !world.place(placeId)?.workers.includes(worker.id)) return null;
-  const near = world.persons()
-    .filter(q => q.id !== worker.id && q.alive && !q.hostile && atTheWork(q))
+  const near = world.livingPersons()
+    .filter(q => q.id !== worker.id && !q.hostile && atTheWork(q))
     .sort((a, b) => a.id.localeCompare(b.id));
   for (const other of near) {
     const opp = teachingOpportunity(world, worker, other, skill);

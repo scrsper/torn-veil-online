@@ -333,7 +333,6 @@ export class Simulation {
       const forgiveness = actor ? forgivenessFor(p, actor, sev) : 0;
       const soften = 1 - forgiveness;
       if (actor) adjustRel(w, p, actor, { fear: fear * 0.7 * personal * soften, trust: -sev * (isVictim ? 0.9 : 0.6) * personal * soften, affection: -sev * (isVictim ? 0.7 : 0.4) * personal * soften, grudge: grudge * 0.6 * personal * soften, grievance, respect: -sev * 0.3 * personal * soften }, `${saw ? 'witnessed' : 'learned of'} ${claim.type}${isVictim ? ' on me' : claim.target ? ` on ${w.nameOf(claim.target)}` : ''}${appraisal ? ` (${appraisal.roles[0]}, personal significance ${appraisal.weight.toFixed(2)})` : ''}${forgiveness > 0.05 ? `, tempered by what I owe them (${forgiveness.toFixed(2)})` : ''}`, cause);
-      if (actor && actorP && !actorP.hostile && claim.type !== 'theft') { for (const q of w.persons()) if (q !== p && q.id !== actor && isFamily(p, q.id)) {/* family shares outrage later through telling */} }
       const emo = p.emotions; const before = { ...emo };
       emo.fear = clamp(emo.fear + fear * 0.6); emo.stress = clamp(emo.stress + sev * 0.5); emo.anger = clamp(emo.anger + grudge * 0.5 * (p.traits.aggression + 0.3));
       if (Math.abs(emo.fear - before.fear) + Math.abs(emo.anger - before.anger) > 0.1) w.emit('emotion_changed', { actor: p.id, causes: [cause], significance: 0.25, data: { fear: emo.fear, anger: emo.anger, stress: emo.stress }, summary: `${p.name} feels ${emo.fear > emo.anger ? `afraid (fear ${emo.fear.toFixed(2)})` : `angry (anger ${emo.anger.toFixed(2)})`}` });
@@ -586,7 +585,7 @@ export class Simulation {
     // Resolved once for the whole loop rather than per belief: this is a scan of everyone alive,
     // and a person who remembers five crimes was otherwise paying for it five times a tick.
     const authorities = crimes.length && !isGuard && !p.hostile
-      ? w.persons().filter(g => (g.occupation === 'guard' || g.occupation === 'captain') && g.alive)
+      ? w.livingPersons().filter(g => (g.occupation === 'guard' || g.occupation === 'captain'))
       : EMPTY_PERSONS;
     for (const k of crimes) {
       const sev = crimeSeverity(k.claim.type); const victimClose = k.claim.target ? isClose(p, k.claim.target) : false; const victimIsMe = k.claim.target === p.id;
@@ -863,7 +862,7 @@ export class Simulation {
       // Build: contribute labour to a project whose materials are on site (cap concurrent builders).
       const proj = laborOk || committedHaulOrBuild === 'build' ? activeBuildProjects(w)[0] : undefined;
       if (proj) {
-        const builders = w.persons().filter(q => q.alive && q.mind.goal?.type === 'build' && q.mind.goal.data?.projectId === proj.id).map(q => q.id);
+        const builders = w.livingPersons().filter(q => q.mind.goal?.type === 'build' && q.mind.goal.data?.projectId === proj.id).map(q => q.id);
         const site = w.place(proj.sitePlaceId);
         if (site && dist2(pos, site.inside) < 120 && (builders.includes(p.id) || builders.length < MAX_BUILDERS)) {
           G('build', clamp((0.5 + (proj.status === 'building' ? 0.08 : 0)) * laborCapacity * incentive), [`the village needs hands to raise ${proj.name}`], { targetPlace: proj.sitePlaceId, data: { projectId: proj.id } });
@@ -904,7 +903,7 @@ export class Simulation {
           + logsToPlanks(sawpits.reduce((n, pl) => n + stockAt(w, 'log', pl.id), 0)
             + clearings.reduce((n, pl) => n + stockAt(w, 'log', pl.id), 0) + looseLogs);
         if (pipeline >= req.quantity) continue;
-        const already = w.persons().filter(q => q.alive && q.id !== p.id && q.mind.goal?.type === 'chop').length;
+        const already = w.livingPersons().filter(q => q.id !== p.id && q.mind.goal?.type === 'chop').length;
         const chopping = p.mind.goal?.type === 'chop';
         const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter'].includes(p.occupation);
         if (!chopping && (already >= 2 || !roleOk)) continue;
@@ -919,7 +918,7 @@ export class Simulation {
           + w.places().filter(pl => pl.type === 'quarry').reduce((n, pl) => n + stockAt(w, 'stone', pl.id), 0)
           + w.items().filter(i => i.type === 'stone' && i.holderId).reduce((n, i) => n + i.quantity, 0);
         if (pipeline >= req.quantity) continue;
-        const already = w.persons().filter(q => q.alive && q.id !== p.id && q.mind.goal?.type === 'gather').length;
+        const already = w.livingPersons().filter(q => q.id !== p.id && q.mind.goal?.type === 'gather').length;
         const gathering = p.mind.goal?.type === 'gather';
         const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter'].includes(p.occupation);
         if (!gathering && (already >= 2 || !roleOk)) continue;
@@ -1289,7 +1288,7 @@ export class Simulation {
       case 'go_home': case 'shelter': case 'return_home_safe': { const pl = place ?? w.place(p.homeId); return [A({ type: 'goto', pos: anchorIn(pl, ['seat', 'fire', 'inside']) ?? pl?.inside ?? body.pos, placeId: pl?.id }), A({ type: 'wait', duration: 30 * 60 })]; }
       case 'patrol': { const pts = p.patrol ?? []; const start = Math.floor(w.rng.next() * pts.length); const acts: Action[] = []; for (let i = 0; i < pts.length; i++) { const pt = pts[(start + i) % pts.length]; acts.push(A({ type: 'goto', pos: pt }), A({ type: 'look', duration: 40, pos: pt })); } return acts.length ? acts : [A({ type: 'wait', duration: 60 })]; }
       case 'guard_post': { const pl = place ?? w.place(p.workId); const post = p.occupation === 'guard' ? (w.places().find(x => x.type === 'gate' && x.name.includes('east'))?.anchors[0].pos ?? pl?.inside) : anchorIn(pl, ['post', 'work', 'inside']); return [A({ type: 'goto', pos: post ?? body.pos }), A({ type: 'look', duration: 20 * 60, pos: post ?? body.pos })]; }
-      case 'flee': { const threatPos = w.primaryBody(g.targetEntity!)?.pos ?? body.pos; const guards = w.persons().filter(q => (q.occupation === 'guard' || q.occupation === 'captain') && q.alive && q.id !== g.targetEntity); const gd = p.traits.sociability > 0.3 && !p.hostile ? this.nearestKnownGuard(p, body.pos, guards) : null; let dest: Vec3; if (gd) { dest = p.knowledge[`loc:${gd.id}`]?.claim.pos ?? w.place(gd.workId)?.inside ?? w.primaryBody(gd.id)!.pos; } else { const home = w.place(p.homeId); dest = home?.inside ?? this.awayFrom(body.pos, threatPos, 18); } if (dist2(dest, threatPos) < 8) dest = this.awayFrom(body.pos, threatPos, 20); return [A({ type: 'goto', pos: dest, run: true, data: { flee: true } }), A({ type: 'wait', duration: 3 * 60, data: { hide: true } })]; }
+      case 'flee': { const threatPos = w.primaryBody(g.targetEntity!)?.pos ?? body.pos; const guards = w.livingPersons().filter(q => (q.occupation === 'guard' || q.occupation === 'captain') && q.id !== g.targetEntity); const gd = p.traits.sociability > 0.3 && !p.hostile ? this.nearestKnownGuard(p, body.pos, guards) : null; let dest: Vec3; if (gd) { dest = p.knowledge[`loc:${gd.id}`]?.claim.pos ?? w.place(gd.workId)?.inside ?? w.primaryBody(gd.id)!.pos; } else { const home = w.place(p.homeId); dest = home?.inside ?? this.awayFrom(body.pos, threatPos, 18); } if (dist2(dest, threatPos) < 8) dest = this.awayFrom(body.pos, threatPos, 20); return [A({ type: 'goto', pos: dest, run: true, data: { flee: true } }), A({ type: 'wait', duration: 3 * 60, data: { hide: true } })]; }
       case 'report': { const g2 = w.person(g.targetEntity!)!; return [A({ type: 'goto', targetEntity: g2.id, run: true }), A({ type: 'tell', targetEntity: g2.id, data: { key: g.data?.key } })]; }
       case 'investigate': { return [A({ type: 'goto', pos: g.targetPos!, run: p.occupation === 'captain' }), A({ type: 'look', duration: 3 * 60, pos: g.targetPos!, data: { key: g.data?.key, investigate: true } })]; }
       case 'confront': case 'attack': return [A({ type: 'goto', targetEntity: g.targetEntity, run: true }), A({ type: g.type === 'confront' ? 'talk' : 'attack', targetEntity: g.targetEntity, data: g.data })];

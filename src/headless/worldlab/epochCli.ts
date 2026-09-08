@@ -26,6 +26,7 @@ async function main(): Promise<void> {
     ms_tick: +y.msPerTick.toFixed(3), us_tick_living: +(y.msPerTickPerLiving * 1000).toFixed(3),
   })));
   console.log(`Total ${(report.totalWallMs / 1000).toFixed(2)}s; births ${report.totals.births}, deaths ${report.totals.deaths}, inheritances ${report.totals.inheritances}.`);
+  console.log(`Timing ms: ${Object.entries(report.timing).map(([key, ms]) => `${key}=${ms.toFixed(1)}`).join(', ')}`);
   console.log(`Normalized first→last change: ${report.trend.normalizedChangePercent.toFixed(1)}%; living ${report.final.livingPopulation}, cumulative people ${report.final.cumulativePeople}, dead ${report.final.deadPeople}.`);
   console.log(`Born-during-run adults ${report.final.bornDuringRunAdults}; maximum lineage depth ${report.final.maxLineageDepth}.`);
   console.log(`State ${report.stateHash}; unexplained currency delta ${report.conservation.currencyUnexplainedDelta.toFixed(4)}; invalid item owners ${report.conservation.invalidItemOwners}.`);
