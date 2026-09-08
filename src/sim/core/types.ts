@@ -138,7 +138,13 @@ export interface Attributes { strength: number; dexterity: number; }
  */
 export type SkillId = 'woodcutting' | 'quarrying' | 'hauling' | 'sawing' | 'construction' | 'baking'
   // v0.8: gathering herbs, cooking over a real fire, and crafting a tool from raw components.
-  | 'herbalism' | 'cooking' | 'crafting';
+  | 'herbalism' | 'cooking' | 'crafting'
+  // Adaptive Society (v0.5): grinding grain into flour. Milling was the one production process in
+  // the village with no learned capability behind it at all — `mill()` ran at a flat rate for
+  // anybody the occupation gate let through — which is exactly why a lost miller could never be
+  // replaced by a worse one: there was no "worse" to be. See core/skills.ts's trade-proficiency
+  // helpers and world/labor.ts.
+  | 'milling';
 
 /** v0.5 §I.2: individual physiological variation layered on top of a species profile (see
  * core/species.ts). Kept here (not in species.ts) alongside `Physiology`/`Attributes` since it
@@ -238,7 +244,13 @@ export interface KnowledgeItem {
   // names those beliefs (`claim.effectKey` / `claim.becauseKey`) so the reasoning can be walked
   // back. It is what lets a mind hold "what is so" and "what I believe is behind it" as two
   // separate beliefs with two separate confidences.
-  kind: 'event' | 'location' | 'ownership' | 'state' | 'fact' | 'service' | 'affordance' | 'cause';
+  // Adaptive Society (v0.5): 'technique' is instruction received — "Hobb showed me how the stones
+  // are dressed." It is knowledge ABOUT a craft rather than about the world, its `source` names
+  // whoever taught it (that is the whole provenance of an apprenticeship), and it is emphatically
+  // NOT capability: holding it raises no skill and unlocks nothing. All it does is make real,
+  // physical practice count for more (core/skills.ts's `practiceSkill`), which is why a taught
+  // novice still has to do the work before they can do the work.
+  kind: 'event' | 'location' | 'ownership' | 'state' | 'fact' | 'service' | 'affordance' | 'cause' | 'technique';
   claim: Record<string, any>;
   confidence: number;      // 0..1
   learnedAt: Tick;
@@ -1033,6 +1045,43 @@ export interface Request {
 }
 
 /**
+ * ADAPTIVE SOCIETY (v0.5) — a record that somebody who is not this place's worker has been doing
+ * its work.
+ *
+ * Provenance, not permission. Nothing anywhere consults a stint to decide whether a person MAY
+ * work: that is decided every time from canonical staffing, capability and demand
+ * (world/labor.ts's `workAuthorization`). A stint is opened only AFTER a real batch has already
+ * come out of the place, which is why it can never be the thing that made the batch possible.
+ *
+ * It exists so the world can later answer questions a bare skill number cannot: who stepped in
+ * when the mill stopped, how many batches it took them, who — if anyone — had shown them how,
+ * and whether they are still at it. That is the "know who taught whom" the milestone asks for,
+ * held on the world's side; the student's own `technique` belief holds the other half, in their
+ * head and with their own provenance.
+ */
+export interface WorkStint {
+  id: EntityId;
+  personId: EntityId;
+  placeId: EntityId;
+  /** What the work puts out — the same `ItemType` the place's canonical process produces. */
+  resource: ItemType;
+  startedAt: Tick;
+  /** World-time of the most recent batch that actually produced something. */
+  lastBatchAt?: Tick;
+  /** Set when the stint ends: the place's own worker is fit again, or this person stopped. */
+  endedAt?: Tick;
+  /** Batches that actually produced something. Failed attempts are not work done. */
+  batches: number;
+  /** Proficiency in the trade's skill when they began — so "they got better by doing it" is
+   * answerable from the record rather than only from a live comparison. */
+  skillAtStart: number;
+  /** Whoever had taught them the trade before they began, if anybody had. */
+  teacherId?: EntityId;
+  /** In plain words, what made them take it up — drawn from their own reasons at the time. */
+  reason: string;
+}
+
+/**
  * Explicit conflict intent (Constitution §11 "Conflict Must Have Intent"). Hostility is not
  * lethal intent: a hostile faction member (a bandit) or an armed defender does not default
  * to killing whoever they fight. Only `'kill'` may end a fight in death; every other intent
@@ -1308,7 +1357,14 @@ export type EventType =
   // it is PERCEIVABLE (it carries a position and a small visibility radius), it is rate-limited
   // by the worker's own standing belief about the shortage, and it is the door through which an
   // economic stoppage becomes something minds can know, carry, say, and reason backwards from.
-  | 'work_blocked';
+  | 'work_blocked'
+  // Adaptive Society (v0.5) — somebody who is not the canonical worker of a productive place got
+  // real output out of it for the first time (`work_taken_up`, opening a `WorkStint`), and one
+  // person taught another how a trade is done (`work_taught`). Both are rare, socially legible
+  // transitions, on the same discipline as every cognition event above: a stint emits ONCE when
+  // it opens and once when it is given up, never per batch, and instruction is rate-limited by
+  // the student's own standing belief about having been taught.
+  | 'work_taken_up' | 'work_given_up' | 'work_taught';
 
 export type EventCategory = 'world' | 'social' | 'cognition' | 'history';
 

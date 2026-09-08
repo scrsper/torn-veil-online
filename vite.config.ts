@@ -14,5 +14,10 @@ export default defineConfig({
   // 5 s currency-conservation test takes 1.35 s alone and 5.2 s beside it). Widening that
   // neighbour's budget would have hidden the cause; running the acceptance separately removes
   // it. Same treatment, and the same reason, as `world:soak` and `test:browser`.
-  test: { exclude: [...configDefaults.exclude, 'tests/browser/**', 'tests/causal-society-longrun.test.ts'] },
+  // tests/adaptive-society-longrun.test.ts is Adaptive Society's acceptance run (`npm run
+  // adapt:accept`), excluded for exactly the same reason and at a larger scale: 30 unattended
+  // world days, ~4 minutes of solid CPU. It is longer than the causal one because the chain it
+  // has to contain is longer — the loss, the fortnight of flour the bakery had in hand, the
+  // stand-in taking the work up, and the recovery working its way back down to the bakery.
+  test: { exclude: [...configDefaults.exclude, 'tests/browser/**', 'tests/causal-society-longrun.test.ts', 'tests/adaptive-society-longrun.test.ts'] },
 });

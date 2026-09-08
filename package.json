@@ -19,7 +19,9 @@
     "social:trace": "tsx src/headless/social/cli.ts",
     "motive:trace": "tsx src/headless/motive/cli.ts",
     "causal:trace": "tsx src/headless/causal/cli.ts",
-    "causal:accept": "vitest run --config vitest.accept.config.ts"
+    "adapt:trace": "tsx src/headless/adaptive/cli.ts",
+    "causal:accept": "vitest run --config vitest.accept.config.ts",
+    "adapt:accept": "vitest run --config vitest.adaptive.config.ts"
   },
   "dependencies": {
     "three": "^0.170.0",
