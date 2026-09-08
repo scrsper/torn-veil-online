@@ -1,3 +1,4 @@
+import { movementMultiplier } from '../core/attributes';
 import type { Body, Person } from '../core/types';
 import type { Simulation } from '../mind/agent';
 
@@ -15,7 +16,7 @@ export function moveByIntent(sim: Simulation, actor: Person, body: Body, x: numb
   }
   if (![x, z, dt].every(Number.isFinite) || dt <= 0 || dt > 0.1) return;
   const length = Math.max(1, Math.hypot(x, z));
-  const speed = body.speed * (sprint ? SPRINT_MULTIPLIER : 1);
+  const speed = body.speed * movementMultiplier(body) * (sprint ? SPRINT_MULTIPLIER : 1);
   const old = { ...body.pos };
   const g = w.grid;
   const fits = (px: number, pz: number): boolean => {

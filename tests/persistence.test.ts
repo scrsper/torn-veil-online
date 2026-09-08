@@ -34,6 +34,7 @@ describe('save round trips', () => {
     tomasBody.pos = { x: 100.5, y: 14, z: 96.5 };
     maraBody.pos = { x: 100.5, y: 14, z: 100.5 };
     maraBody.yaw = 0;
+    tomasBody.injuries = { arm: 0.35, leg: 0.6 };
     const attack = sim.applyHit(player, playerBody, tomasBody, 8)!;
     advance(world, sim, 0.3);
     expect(mara.knowledge[`ev:${attack.id}`]?.source.type).toBe('witnessed');
@@ -52,6 +53,7 @@ describe('save round trips', () => {
     const loaded = deserialize(serialize(world));
     expect(loaded).not.toBeNull();
     const restored = loaded!.world;
+    expect(restored.primaryBody(tomas.id)!.injuries).toEqual({ arm: 0.35, leg: 0.6 });
     const restoredMara = restored.person(mara.id)!;
     expect(restoredMara.knowledge[`ev:${attack.id}`]).toMatchObject({ source: { type: 'witnessed' }, claim: { actor: player.id } });
     expect(restoredMara.memories.some(memory => memory.eventId === attack.id)).toBe(true);

@@ -1,3 +1,4 @@
+import { applyInjury } from '../physical/injury';
 import { resolveCombatAttack, combatReach, type CombatAttackIntent, type CombatAttackResult } from '../physical/combat';
 import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, ItemType, KnowledgeItem, Creature, Place, Anchor, ConflictIntent, Conflict, ConflictCause } from '../core/types';
 import { World } from '../core/world';
@@ -7,7 +8,7 @@ import { maintainCustody, subdue, takeIntoCustody, beginSurrender, isSubdued } f
 import { SAW_RATIO, stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, restockTavern, gatherHerbs, huntGame, GRAIN_CAP, SEED_PER_PLOT } from '../world/metabolism';
 import { stepPhysiology, activityLevelFor, heatBand, hungerBand, thirstBand, sleepBand, comfortBand, severityAtLeast, syncNeeds } from '../core/physiology';
 import { isCommittable, EMERGENCY_GOAL_TYPES, interruptionSeverityMet, startCommitment, suspendCommitment, resumeCommitment, finishCommitment, commitmentValidity } from './commitment';
-import { getPhysicalCapability, capabilityFor } from '../core/attributes';
+import { getPhysicalCapability, capabilityFor, movementMultiplier } from '../core/attributes';
 import { skillOf } from '../core/skills';
 import { wearTool } from '../core/tools';
 import { isFood } from '../world/factory';
@@ -1844,14 +1845,15 @@ export class Simulation {
     if (body.pathIndex >= path.length) return true;
     const t = path[body.pathIndex]; const dx = t.x - body.pos.x, dz = t.z - body.pos.z; const d = Math.hypot(dx, dz);
     if (d < 0.25) { body.pathIndex++; if (body.pathIndex >= path.length) { body.vel.x = 0; body.vel.z = 0; return true; } return false; }
-    const step = Math.min(d, body.speed * dt); const nx = body.pos.x + dx / d * step, nz = body.pos.z + dz / d * step;
+    const speed = body.speed * movementMultiplier(body);
+    const step = Math.min(d, speed * dt); const nx = body.pos.x + dx / d * step, nz = body.pos.z + dz / d * step;
     const doorX = Math.floor(nx), doorZ = Math.floor(nz), doorY = this.world.nav.floorY(doorX, doorZ);
     if (doorY >= 0 && this.world.grid.get(doorX, doorY, doorZ) === B.Door && !this.world.grid.isDoorOpen(doorX, doorY, doorZ)) this.world.setDoorOpen({ x: doorX, y: doorY, z: doorZ }, true, body.ownerId);
     // separation from other bodies
     let sx = 0, sz = 0; for (const o of this.world.bodies()) { if (o === body || !o.present || o.dead) continue; const ox = body.pos.x - o.pos.x, oz = body.pos.z - o.pos.z; const od = Math.hypot(ox, oz); if (od < 0.7 && od > 1e-3) { sx += ox / od * (0.7 - od); sz += oz / od * (0.7 - od); } }
     body.pos.x = nx + sx * dt * 2; body.pos.z = nz + sz * dt * 2;
     const targetYaw = Math.atan2(-dx, -dz); let dy = targetYaw - body.yaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2; body.yaw += dy * Math.min(1, dt * 10);
-    body.vel.x = dx / d * body.speed; body.vel.z = dz / d * body.speed;
+    body.vel.x = dx / d * speed; body.vel.z = dz / d * speed;
     return false;
   }
   private bodyPhysics(b: Body, dt: number): void {
@@ -2079,6 +2081,7 @@ export class Simulation {
     ab.lastAttackAt = w.physicalTime; ab.pose = 'attack'; ab.poseUntil = w.physicalTime + 0.45; ab.attackTarget = tb.ownerId;
     attacker.physiology.fatigue += result.exertionCost;
     syncNeeds(attacker);
+    if (result.injury) applyInjury(tb, result.injury);
     this.applyHit(attacker, ab, tb, result.impact, intent.intent ?? 'injure', result);
     return result;
   }

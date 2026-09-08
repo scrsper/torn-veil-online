@@ -1,3 +1,6 @@
+import { getPhysicalCapability } from '../src/sim/core/attributes';
+import { injuryFromImpact, applyInjury } from '../src/sim/physical/injury';
+import { moveByIntent } from '../src/sim/physical/input';
 import { describe, expect, it } from 'vitest';
 import { createTestWorld, addPerson, v, wall } from './helpers/world';
 import { makeBody, makeItem } from '../src/sim/world/factory';
@@ -77,5 +80,41 @@ describe('canonical combat foundation', () => {
     expect(x.sim.resolveAttack(intent).rejection).toBe('cooldown');
     x.world.physicalTime += 1; x.tb.pos.x = 12; wall(x, 11, 6, 14);
     expect(x.sim.resolveAttack(x.intent).rejection).toBe('obstructed');
+  });
+});
+
+describe('localized injury consequences', () => {
+  it('replays injuries deterministically and records them on the struck body and event', () => {
+    const a = setup(), b = setup();
+    const first = a.sim.resolveAttack(a.intent), replay = b.sim.resolveAttack(b.intent);
+    expect(first.injury).not.toBeNull(); expect(first.injury).toEqual(replay.injury);
+    expect(a.tb.injuries?.[first.injury!.region]).toBe(first.injury!.severity);
+    expect(a.world.events.find(e => e.type === 'attack')!.data.combat.injury).toEqual(first.injury);
+    expect(a.ab.injuries).toBeUndefined();
+    const weak = injuryFromImpact(a.tb, 8, 0.6)!, strong = injuryFromImpact(a.tb, 28, 0.6)!;
+    expect(weak.region).toBe('arm'); expect(strong.severity).toBeGreaterThan(weak.severity);
+    expect(injuryFromImpact(a.tb, 0, 0.6)).toBeNull();
+  });
+  it('arm severity reduces combat capability independently of flat health and preserves the worse wound', () => {
+    const x = setup();
+    const before = resolveCombatAttack(x.world, x.intent, new RNG(42));
+    const cap = getPhysicalCapability(x.a, x.world, { body: x.ab });
+    applyInjury(x.ab, { region: 'arm', severity: 0.6 });
+    applyInjury(x.ab, { region: 'arm', severity: 0.2 });
+    const hurt = getPhysicalCapability(x.a, x.world, { body: x.ab });
+    expect(x.ab.health).toBe(x.ab.maxHealth); expect(x.ab.injuries!.arm).toBe(0.6);
+    expect(hurt.effectiveStrength).toBeLessThan(cap.effectiveStrength);
+    expect(hurt.effectiveDexterity).toBeLessThan(cap.effectiveDexterity);
+    expect(resolveCombatAttack(x.world, x.intent, new RNG(42)).impact).toBeLessThan(before.impact);
+  });
+  it('leg severity slows canonical movement without changing arm capability', () => {
+    const a = setup(), b = setup();
+    applyInjury(b.ab, { region: 'leg', severity: 0.5 });
+    const cap = getPhysicalCapability(b.a, b.world, { body: b.ab });
+    expect(cap.movementMultiplier).toBeCloseTo(0.675);
+    expect(cap.effectiveStrength).toBe(getPhysicalCapability(a.a, a.world).effectiveStrength);
+    moveByIntent(a.sim, a.a, a.ab, 0, 1, false, 0.1);
+    moveByIntent(b.sim, b.a, b.ab, 0, 1, false, 0.1);
+    expect(b.ab.pos.z - 10).toBeCloseTo((a.ab.pos.z - 10) * cap.movementMultiplier);
   });
 });

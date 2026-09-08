@@ -1,5 +1,6 @@
-import type { Body, ConflictIntent, EntityId, Item, ItemType, Person } from '../core/types';
+import type { Body, LocalizedInjury, ConflictIntent, EntityId, Item, ItemType, Person } from '../core/types';
 import type { World } from '../core/world';
+import { injuryFromImpact } from './injury';
 import { getPhysicalCapability } from '../core/attributes';
 
 export interface WeaponProperties { reach: number; impact: number; handling: number; }
@@ -52,6 +53,7 @@ export interface CombatAttackResult extends CombatAttackIntent {
   hit: boolean;
   impact: number;
   exertionCost: number;
+  injury: LocalizedInjury | null;
 }
 /** Read-only resolution. Only a legal attempt consumes one draw from the supplied canonical
  * RNG. No client flags or primary-body assumptions: the intent names a manifestation. */
@@ -59,7 +61,7 @@ export function resolveCombatAttack(w: World, intent: CombatAttackIntent, rng: {
   const p = w.person(intent.attackerId), ab = w.body(intent.attackerBodyId), tb = w.body(intent.targetBodyId);
   const result: CombatAttackResult = { ...intent, targetId: tb?.ownerId ?? null, weaponId: intent.weaponId ?? null,
     distance: ab && tb ? Math.hypot(ab.pos.x - tb.pos.x, ab.pos.y - tb.pos.y, ab.pos.z - tb.pos.z) : null,
-    reach: 0, attempted: false, rejection: null, hit: false, impact: 0, exertionCost: 0 };
+    reach: 0, attempted: false, rejection: null, hit: false, impact: 0, exertionCost: 0, injury: null };
   const reject = (reason: AttackRejection) => { result.rejection = reason; return result; };
   if (!p || !ab || ab.ownerId !== p.id || !p.bodies.includes(ab.id)) return reject('invalid_attacker');
   if (!p.alive || !ab.present || ab.dead || ab.health <= 0 || ab.pose === 'downed' || ab.pose === 'sleep'
@@ -83,8 +85,10 @@ export function resolveCombatAttack(w: World, intent: CombatAttackIntent, rng: {
   const cap = getPhysicalCapability(p, w, { body: ab });
   result.attempted = true; result.hit = true;
   // No evasion system yet: a legal strike connects. Dexterity/handling influence delivery.
+  const roll = rng.next();
   result.impact = weapon.impact * (0.5 + cap.effectiveStrength) * (0.7 + Math.min(1, cap.effectiveDexterity) * 0.3)
-    * (0.8 + weapon.handling * 0.2) * (0.8 + rng.next() * 0.4);
+    * (0.8 + weapon.handling * 0.2) * (0.8 + roll * 0.4);
+  result.injury = injuryFromImpact(tb, result.impact, roll);
   result.exertionCost = Math.min(1 - p.physiology.fatigue, 0.025 * (2 - weapon.handling) * cap.fatigueMultiplier);
   return result;
 }

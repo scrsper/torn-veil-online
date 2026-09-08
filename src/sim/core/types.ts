@@ -48,8 +48,13 @@ export type Pose = 'stand' | 'walk' | 'run' | 'sit' | 'sleep' | 'work' | 'attack
   // gave `eat`/`drink`/`haul` their own poses.
   | 'chop';
 
+export type BodyRegion = 'head' | 'torso' | 'arm' | 'leg';
+export interface LocalizedInjury { region: BodyRegion; severity: number; }
+
 export interface Body extends Entity {
   kind: 'body';
+  /** Peak functional injury severity per region, 0..1. No treatment model yet. */
+  injuries?: Partial<Record<BodyRegion, number>>;
   ownerId: EntityId;            // the entity this body manifests
   shape: 'humanoid' | 'chicken' | 'wisp';
   pos: Vec3;
