@@ -1,4 +1,4 @@
-import type { Attributes, Item, Person } from './types';
+import type { Attributes, Body, Item, Person } from './types';
 import type { World } from './world';
 import { heatBand } from './physiology';
 import { bestToolFor, toolWorkMultiplier, type ToolAction } from './tools';
@@ -64,13 +64,13 @@ export function woundSeverity(body: { health: number; maxHealth: number; dead: b
  * roughly "below half health". Read by mind/agent.ts's think() and social/absence.ts. */
 export const SERIOUS_WOUND = 0.45;
 
-export function getPhysicalCapability(p: Person, world: World, ctx: { action?: ToolAction; tool?: Item | null; skill?: number } = {}): PhysicalCapability {
+export function getPhysicalCapability(p: Person, world: World, ctx: { body?: Body; action?: ToolAction; tool?: Item | null; skill?: number } = {}): PhysicalCapability {
   const attrs: Attributes = p.attributes;
   const phys = p.physiology;
   // v0.9 §D: a real wound is a real physical limit, folded in here — the one centralized place
   // this file's own header already promises "future systems (… injury …)" would extend, rather
   // than a new per-job check in every work handler.
-  const wound = woundSeverity(world.primaryBody(p.id));
+  const wound = woundSeverity(ctx.body ?? world.primaryBody(p.id));
   // v0.6 §V: learned capability (core/skills.ts) — resolved automatically from `ctx.action` via
   // `SKILL_FOR_TOOL_ACTION` when the caller doesn't pass one explicitly (haul, which has no
   // tool-governed action, passes it directly instead). 0 for a complete novice — the identity

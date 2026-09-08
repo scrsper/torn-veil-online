@@ -10,7 +10,7 @@ import {
   describePursuit, livePursuits, pursuitsOf, motivationBoost, PRIORITY_MARGIN,
 } from '../../sim/mind/pursuit';
 import { describeObligation, obligationsOf, obligationCredit, obligationGoalBoost } from '../../sim/social/obligation';
-import { canHaul, carryCapFor, createHaulTask } from '../../sim/logistics/haul';
+import { canHaul, carryCapFor, personalCarryUnits, createHaulTask } from '../../sim/logistics/haul';
 import { stockAt } from '../../sim/world/stock';
 import { RESOURCE_MASS_KG } from '../../sim/world/factory';
 
@@ -492,7 +492,10 @@ function raiseMultiTripWork(world: World): EntityId | null {
   for (const type of ['stone', 'log', 'plank', 'grain', 'flour'] as ItemType[]) {
     for (const pl of world.places()) {
       const stock = stockAt(world, type, pl.id);
-      if (stock > 0) candidates.push({ type, fromId: pl.id, fromName: pl.name, stock });
+      // Combat now changes who remains fit to haul. Require real multi-trip stock for
+      // the strongest eligible worker, not just the old average-adult estimate.
+      const largestLoad = Math.max(carryCapFor(type), ...world.persons().filter(p => p.alive && !p.controlled).map(p => personalCarryUnits(world, p, type)));
+      if (stock > largestLoad * 2) candidates.push({ type, fromId: pl.id, fromName: pl.name, stock });
     }
   }
   if (!candidates.length) return null;

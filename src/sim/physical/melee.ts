@@ -1,13 +1,11 @@
+import { combatReach, ATTACK_COOLDOWN } from './combat';
 import type { Body, Person } from '../core/types';
 import type { Simulation } from '../mind/agent';
 
-/**
- * How far a light melee swing reaches, and how long between swings. The same numbers the
- * in-browser player already swings at (`game/player/interaction.ts`), lifted here because an
- * external presentation client must not be allowed to invent its own.
- */
+/** Legacy maximum presentation reach. Actual eligibility uses the actor's weapon reach.
+ * Recovery and resolution remain canonical for every client. */
 export const MELEE_REACH = 3.2;
-export const MELEE_COOLDOWN = 0.55;
+export const MELEE_COOLDOWN = ATTACK_COOLDOWN;
 
 /** How far off directly-ahead a body may be and still be struck by an untargeted swing. */
 const SWING_ARC = 0.35;
@@ -28,6 +26,7 @@ export type MeleeResult = 'accepted' | 'cooldown' | 'out_of_reach' | 'no_target'
  */
 export function meleeStrike(sim: Simulation, actor: Person, body: Body, targetBodyId: string | null): MeleeResult {
   const w = sim.world;
+  const reach = combatReach(w, actor);
   if (body.ownerId !== actor.id || !body.present || body.dead || !actor.alive) return 'incapacitated';
   if (actor.surrender || actor.custody?.active || body.pose === 'downed' || body.subduedUntil > w.physicalTime) return 'incapacitated';
   if (w.physicalTime - body.lastAttackAt < MELEE_COOLDOWN) return 'cooldown';
@@ -36,8 +35,8 @@ export function meleeStrike(sim: Simulation, actor: Person, body: Body, targetBo
     if (b.id === body.id || !b.present || b.dead || b.shape !== 'humanoid') return null;
     const holder = w.get(b.ownerId);
     if (!holder || (holder.kind !== 'person' && holder.kind !== 'creature')) return null;
-    const d = Math.hypot(b.pos.x - body.pos.x, b.pos.z - body.pos.z);
-    if (d > MELEE_REACH) return null;
+    const d = Math.hypot(b.pos.x - body.pos.x, b.pos.y - body.pos.y, b.pos.z - body.pos.z);
+    if (d > reach) return null;
     // Being within 3.2 m of someone is not the same as being able to hit them: a wall, a shutter
     // or a closed door may be in the way. The browser player has never been able to strike through
     // one, because it picks its target by raycast and the wall stops the pick — this path picked by
@@ -47,7 +46,7 @@ export function meleeStrike(sim: Simulation, actor: Person, body: Body, targetBo
     if (!w.grid.lineOfPassage(
       { x: body.pos.x, y: body.pos.y + chest, z: body.pos.z },
       { x: b.pos.x, y: b.pos.y + chest, z: b.pos.z },
-      MELEE_REACH + 1)) return null;
+      reach + 1)) return null;
     return d;
   };
 
