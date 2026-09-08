@@ -41,7 +41,7 @@ ASHFORD_JAPANESE_MEDIEVAL_FANTASY = CultureVisualProfile(
     # sheets.  The seed chooses one; no place name chooses one.
     families={
         'dwelling': BuildingFamily('dwelling', ('low_gable', 'raised_sidewing', 'two_storey'), 'gable', ('woodpile', 'jar')),
-        'workshop': BuildingFamily('workshop', ('forge_front', 'open_shed', 'tall_chimney'), 'gable', ('anvil', 'timber_stack')),
+        'workshop': BuildingFamily('workshop', ('forge_front', 'open_shed', 'storage_lean_to'), 'gable', ('anvil', 'timber_stack')),
         'shop': BuildingFamily('shop', ('open_front', 'deep_noren', 'two_storey_shop'), 'gable', ('counter', 'basket', 'banner')),
         'temple': BuildingFamily('temple', ('small_shrine', 'ceremonial_hall', 'layered_hall'), 'layered', ('steps', 'lantern_pillar', 'crest_banner')),
         'stall': BuildingFamily('stall', ('noren_canopy', 'tile_canopy', 'side_canopy'), 'canopy', ('counter', 'basket', 'banner')),

@@ -29,8 +29,10 @@ CUBE = unreal.load_asset('/Engine/BasicShapes/Cube')
 CYLINDER = unreal.load_asset('/Engine/BasicShapes/Cylinder')
 CONE = unreal.load_asset('/Engine/BasicShapes/Cone')
 SPHERE = unreal.load_asset('/Engine/BasicShapes/Sphere')
+INSTANCE_CLASS = None if os.environ.get('TV_CAPTURE_UNBATCHED', '0') == '1' else getattr(unreal, 'TVProjectionInstances', None)
 LIGHTING_PRESET = os.environ.get('TV_LIGHTING_PRESET', 'day').lower()
 REBUILD_MATERIALS = os.environ.get('TV_REBUILD_MATERIALS', '0') == '1'
+BATCHES = {}
 
 
 def canonical_scene():
@@ -93,10 +95,10 @@ def make_material(name, colour, roughness, emissive=None, tint_parameter=False):
 
 def palette():
     return {
-        'tile': make_material('M_TV_RoofTile', (0.022, 0.024, 0.030), .34),
-        'timber': make_material('M_TV_DarkTimber', (.042, .030, .022), .72),
-        'plaster': make_material('M_TV_Plaster', (.56, .52, .44), .88),
-        'stone': make_material('M_TV_Stone', (.18, .178, .168), .82),
+        'tile': make_material('M_TV_RoofTile', (0.045, 0.050, 0.060), .42, (.012, .014, .018)),
+        'timber': make_material('M_TV_DarkTimber', (.065, .045, .030), .76, (.010, .007, .004)),
+        'plaster': make_material('M_TV_Plaster', (.52, .48, .40), .90, (.035, .030, .022)),
+        'stone': make_material('M_TV_Stone', (.18, .178, .168), .82, (.012, .014, .012)),
         'earth': make_material('M_TV_PackedEarth', (.105, .088, .068), .95),
         'paper': make_material('M_TV_LanternPaper', (.90, .62, .30), .55, (4.5, 2.3, .75)),
         'grass': make_material('M_TV_ValleyGrass', (.115, .235, .075), .96),
@@ -130,12 +132,36 @@ def visual_blocker(component):
 
 
 def box(label, centre, size, material, rotation=None, mesh=None, camera_block=True):
+    if INSTANCE_CLASS:
+        source_mesh = mesh or CUBE
+        key = (source_mesh.get_path_name(), material.get_path_name(), camera_block)
+        BATCHES.setdefault(key, {'mesh': source_mesh, 'material': material, 'items': []})['items'].append((centre, rotation or unreal.Rotator(), size, label))
+        return None
     actor = actors.spawn_actor_from_class(unreal.StaticMeshActor, unreal.Vector(*centre), rotation or unreal.Rotator())
     actor.set_actor_label(label); actor.tags = [TAG]
     component = actor.static_mesh_component; component.set_static_mesh(mesh or CUBE); component.set_material(0, material)
     actor.set_actor_scale3d(unreal.Vector(size[0] / 100., size[1] / 100., size[2] / 100.))
     if camera_block: visual_blocker(component)
     return actor
+
+
+def flush_instances():
+    if not INSTANCE_CLASS:
+        return
+    for index, ((_, _, camera_block), batch) in enumerate(sorted(BATCHES.items(), key=lambda item: item[0])):
+        actor = actors.spawn_actor_from_class(INSTANCE_CLASS, unreal.Vector())
+        actor.set_actor_label('Ashford visual batch %02d' % index); actor.tags = [TAG]
+        actor.configure(batch['mesh'], batch['material'], camera_block)
+        for centre, rotation, size, _ in batch['items']:
+            actor.add_visual(unreal.Vector(*centre), rotation, unreal.Vector(size[0] / 100., size[1] / 100., size[2] / 100.))
+        actor.finalize_visuals()
+    print('VISUAL_BATCHES groups=%d instances=%d' % (len(BATCHES), sum(len(batch['items']) for batch in BATCHES.values())))
+
+
+def rod(label, centre, length, diameter, material, axis='x', camera_block=True):
+    """Round kit member; the engine cylinder's long axis is local Z."""
+    rotation = unreal.Rotator(pitch=90, yaw=0, roll=0) if axis == 'x' else unreal.Rotator(pitch=0, yaw=0, roll=90)
+    return box(label, centre, (diameter, diameter, length), material, rotation, CYLINDER, camera_block)
 
 
 # Modular Ashford kit.  Calls below assemble these reusable pieces; canonical footprints remain
@@ -162,7 +188,7 @@ def kit_firewood(label, pos, p, along_x=True):
     for row in range(3):
         for col in range(4):
             x, y, z = pos[0] + (col * 24 if not along_x else 0), pos[1] + (col * 24 if along_x else 0), pos[2] + row * 22
-            box(label + ' log', (x, y, z), (70, 17, 17) if along_x else (17, 70, 17), p['timber'], mesh=CYLINDER)
+            rod(label + ' log', (x, y, z), 70, 17, p['timber'], 'x' if along_x else 'y')
 def kit_noren(label, pos, size, p):
     for i in range(3): box(label + ' panel', (pos[0] + (i - 1) * size[0] / 3., pos[1], pos[2]), (size[0] / 3. - 3, size[1], size[2]), p['banner'])
 def kit_rafter_tails(label, cx, cy, z, width, depth, p):
@@ -214,35 +240,54 @@ def wall_shell(label, cx, cy, floor, width, depth, door, p, tall=1):
         for sy in (-1, 1): box(label + ' corner post', (cx + sx * width / 2., cy + sy * depth / 2., floor + h / 2.), (POST, POST, h), p['timber'])
     box(label + ' head beam N', (cx, cy - depth / 2., floor + h - 10), (width + 30, 20, 20), p['timber'])
     box(label + ' head beam S', (cx, cy + depth / 2., floor + h - 10), (width + 30, 20, 20), p['timber'])
+    # Horizontal sill/mid beams and evenly spaced posts create post-and-infill rhythm without
+    # drifting into forbidden Tudor X-bracing.
+    for sy in (-1, 1):
+        kit_beam(label + ' sill', (cx, cy + sy * depth / 2., floor + 38), (width + 20, 14, 16), p)
+        kit_beam(label + ' mid beam', (cx, cy + sy * depth / 2., floor + h * .58), (width + 20, 12, 14), p)
+    bays = max(2, min(5, int(width / KEN)))
+    for bay in range(1, bays):
+        x = cx - width / 2. + width * bay / bays
+        for sy in (-1, 1): kit_post(label + ' facade post', (x, cy + sy * depth / 2., floor + h / 2.), h, p, 13)
 
 
 def roof(label, cx, cy, floor, width, depth, p, style='gable', tier=0):
-    eave = EAVE + tier * 18; rise = (min(width, depth) / 2. + eave) * math.tan(math.radians(31))
+    pitch = 30 + min(tier, 2) * 2
+    eave = EAVE + tier * 10; rise = (min(width, depth) / 2. + eave) * math.tan(math.radians(pitch))
     if style == 'layered':
         roof(label + ' lower roof', cx, cy, floor, width, depth, p, 'hip', 0)
         roof(label + ' upper roof', cx, cy, floor + 145, width * .67, depth * .67, p, 'hip', 1); return
     along_y = depth >= width; span = width if along_y else depth; ridge = (depth if along_y else width) + 2 * eave
-    reach = span / 2. + eave; slope = reach / math.cos(math.radians(31)); z = floor + WALL_H + rise / 2.
+    reach = span / 2. + eave; slope = reach / math.cos(math.radians(pitch)); z = floor + WALL_H + rise / 2.
     if style == 'hip':
         for side in (-1, 1):
             x, y = (cx + side * reach / 2., cy) if along_y else (cx, cy + side * reach / 2.)
             yaw = (0 if side > 0 else 180) + (0 if along_y else 90)
-            box(label + ' roof', (x, y, z), (slope, ridge, 20) if along_y else (ridge, slope, 20), p['tile'], unreal.Rotator(0, -31, yaw))
+            box(label + ' roof', (x, y, z), (slope, ridge, 7) if along_y else (ridge, slope, 7), p['tile'], unreal.Rotator(pitch=-pitch, yaw=yaw, roll=0))
+            for end in (-1, 1):
+                tx, ty = (x, cy + end * ridge / 2.) if along_y else (cx + end * ridge / 2., y)
+                box(label + ' eave fascia', (tx, ty, z), (slope, 10, 13) if along_y else (10, slope, 13), p['timber'], unreal.Rotator(pitch=-pitch, yaw=yaw, roll=0))
     else:
         for side in (-1, 1):
             x, y = (cx + side * reach / 2., cy) if along_y else (cx, cy + side * reach / 2.)
             yaw = (0 if side > 0 else 180) + (0 if along_y else 90)
-            box(label + ' roof', (x, y, z), (slope, ridge, 22) if along_y else (ridge, slope, 22), p['tile'], unreal.Rotator(0, -31, yaw))
-    box(label + ' ridge', (cx, cy, floor + WALL_H + rise + 14), (32, ridge, 28) if along_y else (ridge, 32, 28), p['tile'])
-    # Tile courses break the slab highlight and the end caps make the ridge legible at distance.
+            box(label + ' roof', (x, y, z), (slope, ridge, 7) if along_y else (ridge, slope, 7), p['tile'], unreal.Rotator(pitch=-pitch, yaw=yaw, roll=0))
+            for end in (-1, 1):
+                tx, ty = (x, cy + end * ridge / 2.) if along_y else (cx + end * ridge / 2., y)
+                box(label + ' gable fascia', (tx, ty, z), (slope, 10, 13) if along_y else (10, slope, 13), p['timber'], unreal.Rotator(pitch=-pitch, yaw=yaw, roll=0))
+    ridge_z = floor + WALL_H + rise + 7
+    rod(label + ' ridge', (cx, cy, ridge_z), ridge, 24, p['tile'], 'y' if along_y else 'x')
+    # Six modeled courses are enough to read as kawara rhythm at gameplay distance without
+    # paying for individual tiles.
     for side in (-1, 1):
-        for course in range(5):
-            offset = reach * (.12 + course * .18) * side
+        for course in range(6):
+            offset = reach * (.10 + course * .17) * side
             x, y = (cx + offset, cy) if along_y else (cx, cy + offset)
-            box(label + ' tile course', (x, y, z + (4 - course) * 14), (16, ridge, 18) if along_y else (ridge, 16, 18), p['tile'], mesh=CYLINDER)
+            course_z = floor + WALL_H + (reach - abs(offset)) * math.tan(math.radians(pitch)) + 5
+            rod(label + ' tile course', (x, y, course_z), ridge, 10, p['tile'], 'y' if along_y else 'x', False)
     for side in (-1, 1):
-        pos = (cx, cy + side * ridge / 2., floor + WALL_H + rise + 14) if along_y else (cx + side * ridge / 2., cy, floor + WALL_H + rise + 14)
-        box(label + ' gold ridge end', pos, (42, 18, 42) if along_y else (18, 42, 42), p['gold'], mesh=CYLINDER)
+        pos = (cx, cy + side * ridge / 2., ridge_z) if along_y else (cx + side * ridge / 2., cy, ridge_z)
+        rod(label + ' gold ridge end', pos, 16, 36, p['gold'], 'y' if along_y else 'x')
     kit_rafter_tails(label, cx, cy, floor + WALL_H - 4, width, depth, p)
 
 
@@ -271,6 +316,12 @@ def japanese_building(place, projection, p, variant, family):
             for sy in (-1, 1): kit_post(name + ' open bay post', (cx + sx * width * .34, cy + sy * depth * .42, floor + 105), 210, p)
     elif variant == 'forge_front':
         kit_noren(name + ' indigo work curtain', (cx, cy - depth / 2. - 12, floor + 188), (180, 8, 70), dict(p, banner=p['indigo']))
+    elif variant == 'storage_lean_to':
+        lean_w, lean_d = width * .42, depth * .72
+        lx, ly = cx + width * .27, cy + depth * .08
+        for sx in (-1, 1):
+            for sy in (-1, 1): kit_post(name + ' storage lean-to post', (lx + sx * lean_w / 2., ly + sy * lean_d / 2., floor + 82), 164, p, 14)
+        box(name + ' storage lean-to roof', (lx, ly, floor + 174), (lean_w + 50, lean_d + 50, 7), p['tile'], unreal.Rotator(pitch=-12, yaw=0, roll=0))
     if door:
         axis, sign = door; ex, ey = (cx + sign * (width / 2. + 37.5), cy) if axis == 'x' else (cx, cy + sign * (depth / 2. + 37.5))
         size = (75, depth * .82, 28) if axis == 'x' else (width * .82, 75, 28)
@@ -283,12 +334,16 @@ def japanese_building(place, projection, p, variant, family):
             kit_shoji(name + ' canonical closed door', (ex, ey, floor + 104), axis, p)
         lantern(name + ' lantern', (ex, ey, floor + WALL_H - 62), p)
         kit_noren(name + ' noren', (ex, ey - (12 if axis == 'y' else 0), floor + WALL_H - 55), (105, 8, 54), p)
+        for step in range(3):
+            distance = 72 + step * 42
+            sx, sy = (cx + sign * (width / 2. + distance), cy) if axis == 'x' else (cx, cy + sign * (depth / 2. + distance))
+            kit_step(name + ' entry stone', (sx, sy, floor + 3), (44, 48, 10), p)
+        wear_x, wear_y = (cx + sign * (width / 2. + 155), cy) if axis == 'x' else (cx, cy + sign * (depth / 2. + 155))
+        box(name + ' worn threshold ground', (wear_x, wear_y, floor + 1), (150, 105, 3), p['earth'], camera_block=False)
     if family == 'shop':
         banner(name, cx, cy - depth / 2. - 30, floor, p)
         box(name + ' counter', (cx, cy - depth / 2. - 55, floor + 55), (min(width * .7, 420), 55, 90), p['timber'])
     if family == 'workshop':
-        chimney_h = 520 if variant == 'tall_chimney' else 390
-        box(name + ' forge chimney', (cx + width * .28, cy + depth * .28, floor + chimney_h / 2.), (85, 85, chimney_h), p['stone'])
         box(name + ' worktable', (cx - width * .25, cy - depth * .35, floor + 52), (150, 80, 78), p['timber'])
         # Anvil is a compact, unmistakable smith cue rather than a generic signboard.
         kit_post(name + ' anvil stump', (cx - width * .24, cy - depth * .25, floor + 36), 72, p, 42)
@@ -366,7 +421,7 @@ def landmark(place, projection, p, seed):
         box(name + ' gate roof', (cx, cy, floor + 390), (width + 115, 105, 36), p['tile'])
     elif typ in ('mill', 'sawpit', 'construction'):
         japanese_building(place, projection, p, stable_variant(seed, place['id'], ('mill_house', 'sawpit_shed', 'storage_frame')), 'industrial')
-        if typ == 'mill': box(name + ' wheel', (cx - width / 2. - 45, cy, floor + 115), (30, 230, 230), p['timber'], mesh=CYLINDER)
+        if typ == 'mill': box(name + ' wheel', (cx - width / 2. - 45, cy, floor + 115), (230, 230, 30), p['timber'], unreal.Rotator(pitch=90, yaw=0, roll=0), CYLINDER)
     elif typ == 'shrine':
         temple(place, projection, p, 'small_shrine')
     elif typ == 'camp':
@@ -381,14 +436,23 @@ def project_terrain(scene, projection, p):
     terrain = scene.get('terrain', {}); columns = terrain.get('columns', [])
     if not columns: return
     cells = {(row[0], row[1]): row for row in columns}; stride = 4
+    # The compact column contract reports the highest voxel, which includes canonical building
+    # walls/roofs. Those structures are projected separately below; treating their top voxels as
+    # ground creates giant terrain towers around the visual building. Filter only the cells whose
+    # canonical place already has a structural visual, without moving or altering either fact.
+    occupied = [place['bounds'] for place in scene['places'] if family_for_place(place['type']) or place['type'] == 'well']
+    def is_structural_cell(ix, iz):
+        return any(b['x0'] <= ix < b['x1'] and b['z0'] <= iz < b['z1'] for b in occupied)
     material_for = {1: p['grass'], 2: p['earth'], 3: p['stone'], 9: p['water'], 10: p['earth'], 15: p['field'], 16: p['crop'], 26: p['path'], 42: p['grass'], 43: p['foliage'], 48: p['path'], 51: p['earth']}
     for x in range(0, terrain['width'], stride):
         for z in range(0, terrain['depth'], stride):
-            sample = [cells[(ix, iz)] for ix in range(x, min(x + stride, terrain['width'])) for iz in range(z, min(z + stride, terrain['depth'])) if (ix, iz) in cells]
+            sample = [cells[(ix, iz)] for ix in range(x, min(x + stride, terrain['width'])) for iz in range(z, min(z + stride, terrain['depth'])) if (ix, iz) in cells and not is_structural_cell(ix, iz)]
             if not sample: continue
             average_y = sum(row[2] for row in sample) / float(len(sample)); blocks = [row[3] for row in sample]
             block = max(set(blocks), key=blocks.count); cx, cy = projection.xy(x + stride / 2., z + stride / 2.)
-            box('canonical terrain %d %d' % (x, z), (cx, cy, projection.z(average_y) - 8), (stride * 100 + 4, stride * 100 + 4, 16), material_for.get(block, p['grass']), camera_block=False)
+            top = projection.z(average_y); base = -320.; height = max(20., top - base - 12)
+            box('canonical terrain body %d %d' % (x, z), (cx, cy, base + height / 2.), (stride * 100 + 2, stride * 100 + 2, height), p['earth'], camera_block=False)
+            box('canonical terrain cap %d %d' % (x, z), (cx, cy, top - 6), (stride * 100 + 4, stride * 100 + 4, 12), material_for.get(block, p['grass']), camera_block=False)
     for fence in terrain.get('fences', []):
         x, y = projection.xy(fence['x'] + .5, fence['z'] + .5); z = projection.z(fence['y']) + 50
         box('canonical fence', (x, y, z), (14, 14, 110), p['timber'])
@@ -401,16 +465,19 @@ def light_valley(p, preset=LIGHTING_PRESET):
     sun = actors.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, 4200)); sun.set_actor_label('Ashford warm valley sun'); sun.tags = [TAG]
     # Directional-light units are lux.  Values in the single digits force exposure compensation
     # and were the root of the old amber wash; these are plausible outdoor illuminances.
-    dusk = preset == 'dusk'; sun.light_component.set_editor_property('intensity', 900. if dusk else 7500.); sun.light_component.set_editor_property('light_color', unreal.Color(r=255, g=188 if dusk else 238, b=135 if dusk else 220)); sun.light_component.set_editor_property('atmosphere_sun_light', True); sun.set_actor_rotation(unreal.Rotator(-28 if dusk else -42, -118, 0), False)
+    dusk = preset == 'dusk'; sun.light_component.set_editor_property('intensity', 900. if dusk else 7500.); sun.light_component.set_editor_property('light_color', unreal.Color(r=255, g=188 if dusk else 238, b=135 if dusk else 220)); sun.light_component.set_editor_property('atmosphere_sun_light', True); sun.set_actor_rotation(unreal.Rotator(pitch=-28 if dusk else -42, yaw=-118, roll=0), False)
     sky_light = actors.spawn_actor_from_class(unreal.SkyLight, unreal.Vector(0, 0, 1200)); sky_light.set_actor_label('Ashford valley skylight'); sky_light.tags = [TAG]
-    sky_light.light_component.set_editor_property('intensity', .32 if dusk else .72); sky_light.light_component.set_editor_property('real_time_capture', True)
+    sky_light.light_component.set_editor_property('intensity', .55 if dusk else 1.65); sky_light.light_component.set_editor_property('light_color', unreal.Color(r=230, g=238, b=255)); sky_light.light_component.set_editor_property('real_time_capture', True)
+    fill = actors.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, 4000)); fill.set_actor_label('Ashford soft sky fill'); fill.tags = [TAG]
+    fill.light_component.set_editor_property('intensity', 120. if dusk else 850.); fill.light_component.set_editor_property('light_color', unreal.Color(r=190, g=210, b=255)); fill.light_component.set_editor_property('cast_shadows', False)
+    fill.set_actor_rotation(unreal.Rotator(pitch=-35, yaw=62, roll=0), False)
     atmosphere = actors.spawn_actor_from_class(unreal.SkyAtmosphere, unreal.Vector()); atmosphere.set_actor_label('Ashford valley sky'); atmosphere.tags = [TAG]
     fog = actors.spawn_actor_from_class(unreal.ExponentialHeightFog, unreal.Vector()); fog.set_actor_label('Ashford valley air'); fog.tags = [TAG]
     fog.component.set_editor_property('fog_density', .0012 if dusk else .00065); fog.component.set_editor_property('fog_height_falloff', .18); fog.component.set_editor_property('enable_volumetric_fog', True)
     post = actors.spawn_actor_from_class(unreal.PostProcessVolume, unreal.Vector()); post.set_actor_label('Ashford fixed exposure'); post.tags = [TAG]
     post.set_editor_property('unbound', True); settings = post.get_editor_property('settings')
     settings.set_editor_property('override_auto_exposure_method', True); settings.set_editor_property('auto_exposure_method', unreal.AutoExposureMethod.AEM_MANUAL)
-    settings.set_editor_property('override_auto_exposure_bias', True); settings.set_editor_property('auto_exposure_bias', -0.35 if dusk else 0.0)
+    settings.set_editor_property('override_auto_exposure_bias', True); settings.set_editor_property('auto_exposure_bias', -0.15 if dusk else 0.65)
     settings.set_editor_property('override_color_saturation', True); settings.set_editor_property('color_saturation', unreal.Vector4(.96, .94, .90, 1.0))
     post.set_editor_property('settings', settings)
 
@@ -423,12 +490,34 @@ def presentation_camera(scene, projection):
     """
     square = next((place for place in scene['places'] if place['type'] == 'square'), scene['places'][0])
     x0, y0, x1, y1, _, _, _ = bounds(square, projection); cx, cy = (x0 + x1) / 2., (y0 + y1) / 2.
-    specs = (
+    specs = [
         ('TV_Camera_Overview', (cx - 3300, cy - 3300, 3300), (cx, cy, 250), 68.),
         ('TV_Camera_Street', (cx - 3000, cy - 3000, 210), (cx, cy, 210), 58.),
         ('TV_Camera_Market', (cx - 1900, cy - 1900, 1050), (cx, cy, 180), 62.),
         ('TV_Camera_Edge', (cx + 3300, cy + 3300, 1150), (cx, cy, 220), 62.),
-    )
+    ]
+    seed = scene['seed']
+    structural = [place for place in scene['places'] if family_for_place(place['type'])]
+    def nearest_clearance(place):
+        b = place['bounds']; distances = []
+        for other in structural:
+            if other is place: continue
+            o = other['bounds']; dx = max(0, max(b['x0'], o['x0']) - min(b['x1'], o['x1'])); dz = max(0, max(b['z0'], o['z0']) - min(b['z1'], o['z1']))
+            distances.append(math.sqrt(dx * dx + dz * dz))
+        return min(distances) if distances else 0
+    dwellings = [place for place in structural if family_for_place(place['type']) == 'dwelling' and stable_variant(seed, place['id'], PROFILE.families['dwelling'].variants) == 'low_gable']
+    workshops = [place for place in structural if family_for_place(place['type']) in ('workshop', 'industrial')]
+    dwelling = dwellings[1] if len(dwellings) > 1 else (dwellings[0] if dwellings else None)
+    workshop = max(workshops, key=nearest_clearance) if workshops else None
+    for label, place in (('TV_Camera_CloseDwelling', dwelling), ('TV_Camera_CloseWorkshop', workshop)):
+        if not place: continue
+        x0, y0, x1, y1, floor, width, depth = bounds(place, projection); bx, by = (x0 + x1) / 2., (y0 + y1) / 2.
+        side = door_side(place, projection, bx, by) or ('y', 1)
+        axis, sign = side
+        outward_x = sign if axis == 'x' else .22
+        outward_y = sign if axis == 'y' else .22
+        location = (bx + outward_x * (width / 2. + 1180), by + outward_y * (depth / 2. + 1180), floor + 360)
+        specs.append((label, location, (bx, by, floor + 165), 48.))
     for label, location, target, fov in specs:
         rotation = unreal.MathLibrary.find_look_at_rotation(unreal.Vector(*location), unreal.Vector(*target))
         camera = actors.spawn_actor_from_class(unreal.CameraActor, unreal.Vector(*location), rotation)
@@ -436,7 +525,7 @@ def presentation_camera(scene, projection):
 
 
 def main():
-    scene = canonical_scene(); projection = Projection(scene); levels.load_level(LEVEL)
+    BATCHES.clear(); scene = canonical_scene(); projection = Projection(scene); levels.load_level(LEVEL)
     for actor in actors.get_all_level_actors():
         if TAG in [str(t) for t in actor.tags] or 'Foundation floor' in actor.get_actor_label(): actors.destroy_actor(actor)
     p, seed = palette(), scene['seed']; project_terrain(scene, projection, p)
@@ -456,7 +545,7 @@ def main():
         x, y = projection.xy(node['pos']['x'], node['pos']['z']); z = projection.z(node['pos']['y'])
         material = p['stone'] if node['pos']['y'] > scene['origin']['y'] + 2 else p['foliage']
         box('canonical resource %s' % node['id'], (x, y, z + 45), (75, 75, 90), material)
-    light_valley(p); presentation_camera(scene, projection); levels.save_current_level()
+    flush_instances(); light_valley(p); presentation_camera(scene, projection); levels.save_current_level()
     print('CANONICAL_SETTLEMENT_READY profile=%s places=%d resources=%d' % (PROFILE.key, len(scene['places']), len(scene['resources'])))
 
 
