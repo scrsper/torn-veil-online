@@ -1,226 +1,267 @@
-# Agent instructions for this repository
+# Torn Veil Online — Agent Instructions
 
-This file gives coding agents (and future sessions of the same agent) the context needed to
-work on Torn Veil Online without breaking its core design.
+This file contains the permanent rules needed to work safely and efficiently in Torn Veil Online.
 
-## Constitutional Authority
+It is intentionally concise. Detailed subsystem knowledge belongs in `.ai/REPO_MAP.md`, current project status belongs in `.ai/STATE.md`, durable design decisions belong in `.ai/DECISIONS.md`, and deep design authority belongs in `docs/TORN_VEIL_CONSTITUTION.md`.
 
-**`docs/TORN_VEIL_CONSTITUTION.md` is the highest-level canonical design authority for Torn
-Veil Online.** It defines the project's ontology, simulation philosophy, and long-term
-architectural direction — the artificial-world universe Torn Veil is ultimately meant to
-become, not just the current single-village prototype.
+---
 
-Every AI development agent — and every human contributor — must read the Constitution before
-undertaking significant architectural, simulation, ontology, progression, cognition,
-world-generation, faction, economy, metaphysics, LLM, or scaling work. This applies whether
-the work is a small change to an existing system or the introduction of a new one, if that
-system touches how Torn Veil represents entities, truth, knowledge, power, or history.
+## 1. Constitutional authority
 
-Priority relationships in this repository, from highest conceptual authority to most
-concrete evidence:
+`docs/TORN_VEIL_CONSTITUTION.md` is the highest-level canonical design authority for Torn Veil Online.
 
-```
-docs/TORN_VEIL_CONSTITUTION.md
-      → project philosophy / ontology / long-term architectural authority
-                    ↓
-AGENTS.md (this file)
-      → practical coding and repository conventions
-                    ↓
-Current implementation (src/)
-      → experimental implementation of those principles
-                    ↓
-Tests (tests/)
-      → evidence that particular implemented behavior actually works
-```
+It defines what Torn Veil fundamentally is meant to become. Current code is an implementation of that vision, not a specification that supersedes it.
 
-The current implementation is a vertical slice of the Constitution's vision, not a
-specification that supersedes it. Existing implementation details — including everything
-described later in this file — do not override constitutional principles merely because
-they already exist in code. Do not let the current prototype become an accidental
-specification simply because it was built first.
+Do not knowingly violate a constitutional invariant merely because another implementation is easier.
 
-Agents must not knowingly violate a constitutional invariant (see the Constitution's
-"Constitutional Invariants" section) merely because a different implementation is easier or
-faster to build. If a requested feature appears to conflict with the Constitution, identify
-and surface that conflict rather than silently working around the principle or silently
-reinterpreting the document.
+If a requested feature conflicts with the Constitution, surface the conflict instead of silently weakening or reinterpreting the principle.
 
-The Constitution is expected to evolve — it may be amended by the project's creator over
-time. Agents should always read the current version of `docs/TORN_VEIL_CONSTITUTION.md` in
-this repository rather than relying on a remembered or cached summary of it.
+### Constitution reading policy
 
-AGENTS.md (this file) provides day-to-day implementation conventions for working in this
-codebase. The Constitution defines what Torn Veil fundamentally is and is intended to
-become. When the two appear to disagree, the Constitution wins, and the disagreement should
-be raised rather than silently resolved.
+Do **not** read the full Constitution automatically at the beginning of every task.
 
-## What this project is
+The permanent invariants summarized in this file are sufficient for ordinary implementation work.
 
-A browser-based, client-only prototype (TypeScript + Vite + Three.js, no backend, no LLM
-calls at runtime) simulating one voxel village whose people are autonomous, only know what
-they've perceived/been told/inferred, and remember and react accordingly. See `README.md`
-for the player-facing overview and `src/sim/core/types.ts` for the full ontology.
+Consult the relevant Constitution section when:
 
-## Non-negotiable architectural rule
+- introducing or changing a major architectural boundary;
+- changing ontology or what counts as canonical truth;
+- changing cognition, knowledge, memory, provenance, or epistemic rules;
+- changing progression, metaphysics, ranks, powers, or entity/body semantics;
+- introducing a major new simulation subsystem;
+- making a decision that could change Torn Veil's underlying simulation philosophy;
+- existing code and project principles appear to conflict;
+- architectural ambiguity cannot be resolved from the code and focused subsystem docs;
+- or the user explicitly requests constitutional review.
 
-**`src/sim/` must never import from `src/game/`.** The simulation (`sim/`) is the canonical
-world — entities, events, minds, physics, navigation. The renderer (`game/`) is a read-mostly
-projection of that world onto Three.js. If you need the renderer to trigger a world change
-(attack, pickup, dialogue choice), do it by calling into `Simulation` /
-`sim/mind/agent.ts` methods, the same methods NPCs call on themselves — never by mutating
-World state directly from UI code, and never by giving `sim/` a reference to a THREE object,
-the DOM, or the camera.
+When consultation is necessary, locate and read the relevant section first.
 
-Corollary: an NPC and the player should always go through the same code path for the same
-action (e.g. `Simulation.applyHit`, `Simulation.takeItem`, `Simulation.tell`). Don't special-
-case the player's combat/inventory/knowledge logic — that's how "player attacks NPC, only
-witnesses learn about it" stays true instead of becoming a scripted one-off.
+Read the entire Constitution only when the task genuinely spans the project's overall design philosophy.
 
-## Where things live
+Always use the current repository version when consulting it.
 
-- `src/sim/core/` — entity/event ontology (`types.ts`), the `World` registry + causal event
-  log (`world.ts`), RNG/noise (`rng.ts`), layered time (`time.ts`).
-- `src/sim/physical/` — voxel grid + block palette (no mesh/material concerns — that's
-  `game/voxel/`), doors (authoritative open/closed state, collision, and line-of-sight
-  behavior), and A* navigation over the grid.
-- `src/sim/mind/` — the agent runtime: perception, memory, knowledge (with provenance),
-  relationships, utility-based goal selection + planning, and deterministic dialogue. This is
-  the file to read (`agent.ts`) to understand the whole cognitive loop.
-- `src/sim/social/` — the cross-cutting social layer: canonical ongoing matters
-  (`situation.ts` — what is unresolved, and what settled it), personal significance
-  (`appraisal.ts` — what an event means to a particular person), and the "you were not where I
-  expected you" inference (`absence.ts`). `situation.ts`'s `personalSituationView` is the ONLY
-  sanctioned way a mind may form a belief about whether a matter is over — never
-  `Situation.status`. Also holds the pre-existing conflict/custody state machines. See
-  `docs/V0_9_SOCIAL_CAUSALITY.md` for the invariants.
-- `src/sim/world/` — deterministic generation: terrain, structures (procedural building
-  builders in `structures.ts`), the 32-person cast (`cast.ts`), and `village.ts`, which wires
-  it all together and seeds pre-history (marriages, grudges, debts, rumors, a decade of
-  events) so the world has a past before the player spawns.
-- `src/sim/mind/pursuit.ts` / `src/sim/social/obligation.ts` — the v0.10 "Motivated Lives" layer.
-  A `Pursuit` is a PERSISTENT PURPOSE (what someone is trying to bring about, across hours or
-  days) sitting between a concern and a goal; it carries no plan — `pursuitSteps` re-derives which
-  ordinary existing goal serves it from current world state every time it is asked. An
-  `Obligation` is a social stake with real provenance (who owes whom, why, because of which
-  canonical event, whether it is live, how it ended) — deliberately NOT a favour-point score.
-  Both reach goal utility through the ONE bridge `motivationBoost`, which folds them together with
-  concerns under a single cap. See `docs/V0_10_MOTIVATED_LIVES.md` for the invariants; the two
-  that matter most are that a purpose may never propose or boost an approach/combat goal, and
-  that every purpose-driven candidate is multiplied by an embodiment factor so nobody starves for
-  a social purpose.
-- `src/sim/world/shortfall.ts` / `src/sim/mind/inference.ts` / `src/sim/world/supply.ts` — the
-  Causal Society layer, which connects the physical economy to cognition. `shortfall.ts` turns a
-  trade standing idle for want of its input into a perceivable `work_blocked` event and a STANDING
-  belief keyed `short:<place>:<resource>` (one belief per continuing shortage, however it was come
-  by — never one per re-notice, and a re-notice keeps `sharedWith`). `inference.ts` is the only
-  place a mind draws a conclusion from two beliefs it already holds: a `'cause'` KnowledgeItem
-  naming `effectKey` and `becauseKey`, always weaker and never closer to the source than either
-  premise, naming a responsible party only when the evidence does. `supply.ts` is the small public
-  table of which trade makes what out of what — over OCCUPATIONS and RESOURCE TYPES only, never
-  over people or places, and every row must name the canonical process it describes — a row with
-  no process behind it is a second, contradictory account of what the village produces
-  (Constitution §IX), and `tests/causal-society.test.ts` fails loudly when the table and the real
-  transforms / production specs / consumer demands drift apart. See `docs/CAUSAL_SOCIETY_V0_4.md`
-  for the invariants; the ones that matter
-  most are that an inference may never make a mind more certain than its evidence, that a
-  `'supply'` concern reaches only goals that move materials (never one that walks somebody toward a
-  person), and that an inferred grievance is capped far below a witnessed one.
-- `src/sim/world/labor.ts` / `src/sim/mind/succession.ts` / `src/sim/mind/apprenticeship.ts` — the
-  Adaptive Society layer, which lets a village lose a worker and sometimes get the work done again.
-  `labor.ts` DERIVES whether a productive place's work is going undone, from canonical staffing,
-  capability and output — there is no vacancy flag anywhere, `p.occupation` is not read in the file
-  at all, and `workAuthorization` (you work here, or the work is going undone and you are fit) is
-  what replaced `p.occupation === 'miller'` as the gate on whether a batch happens. `succession.ts`
-  scores how plausible it is that a given person would take up that work and returns a number and
-  its reasons; it decides nothing, and `mind/agent.ts` turns the number into ONE ordinary `work`
-  candidate that competes with everything else. `apprenticeship.ts` is the whole teaching path: a
-  `'technique'` belief with the teacher on its `source`, which grants NO proficiency and only makes
-  later real practice count for more. A `WorkStint` (`World.workStints`) is opened only AFTER a
-  successful batch, which is what keeps it provenance rather than permission — nothing in the
-  authorization path reads one. See `docs/ADAPTIVE_SOCIETY_V0_5.md` for the invariants; the ones
-  that matter most are that no candidacy exists without real acquired knowledge of the shortage
-  (so the nearest idle NPC is usually not the responder), that a lesson never writes to `skills`,
-  that a settled tradesman pays no novice penalty (so the working village is unchanged), and that a
-  village with nobody plausible simply stays short — societies are allowed to fail.
-- `src/sim/history/causality.ts` — the causal trace: a READER over links that already exist
-  (goal → concern → belief → cause-belief → event), used by tests, the trace harness and
-  developers. It stores nothing of its own, and `CausalNode.depth` exists so sibling reasons are
-  never rendered as a chain — a trace must not invent causation.
-- `src/sim/mind/concern.ts` / `conversation.ts` — knowledge that has acquired behavioural force
-  (a `Concern` bends goal utility through `concernGoalBoost`, capped so it never dictates a
-  decision), and whether anything is worth saying to a given listener at all (`selectTopic`
-  returns null — silence — as a normal outcome).
-- `src/sim/persist/save.ts` — save/load: regenerate the world deterministically from its
-  seed, then overlay saved mind/relationship/item/voxel state. Saves carry a schema version;
-  bump it (and accept that older saves stop being offered as resumable) rather than silently
-  changing what a save's fields mean.
-- `src/game/` — everything Three.js: chunked voxel mesher (`voxel/`), atmosphere/weather/sky
-  (`render/scene.ts`), procedural actor rigs (`actors/`), the first-person controller +
-  interaction targeting (`player/`), procedural WebAudio (`audio/`), and all UI including the
-  Simulation Inspector and event feed (`ui/`). v0.10 adds a SECOND CAMERA over the same world —
-  `render/arpgCamera.ts` (elevated/angled, F2) and `ui/observer.ts` (the developer overlay, F6) —
-  not a second simulation. `PlayerController.aimOrigin()/aimDir()` is the one place that knows how
-  the current camera turns "the player is reaching for that" into a ray; everything below it,
-  including reach and ownership rules, is identical in both modes.
-- `src/main.ts` — the only file that owns the frame loop and wires simulation + renderer + UI
-  together.
+---
 
-## Commands
+## 2. What Torn Veil is
 
-```bash
-npm run dev          # Vite dev server
-npm run typecheck    # tsc --noEmit — run this after any change, it's fast and catches most breakage
-npm test              # vitest — the deterministic simulation test suite (tests/)
-npm run build          # typecheck + production build
-npm run social:trace   # v0.9 deterministic causal traces on the real generated village
-npm run motive:trace   # v0.10 motivated-life causal traces (the four acceptance scenarios)
-npm run causal:trace   # Causal Society long-run unattended traces (30 world days, no player)
-npm run causal:accept  # the Causal Society acceptance run as pass/fail (17 world days, ~2 min)
-npm run adapt:trace    # Adaptive Society succession/recovery trace (30 world days, no player)
-npm run adapt:accept   # the Adaptive Society acceptance run as pass/fail (30 world days, ~4 min)
-npm run test:browser   # Playwright functional harness against the real client
-```
+Torn Veil is not primarily a scripted RPG with simulation layered on top.
 
-The two `*:accept` runs are deliberately NOT part of `npm test` (see the note in
-`vite.config.ts`): each simulates weeks of unattended world time in a single file, and left in the
-default suite they starve the other vitest workers until a neighbour with a tight per-test budget
-fails for want of a core rather than for want of correctness. Run them when you have touched the
-economy, cognition, or the labour/succession layer.
+It is a persistent artificial world in which canonical systems produce history, relationships, economies, conflicts, knowledge, consequences, and stories that the developer does not need to author in advance.
 
-Run `npm test` after touching anything in `src/sim/`. The suite in `tests/` (see
-`tests/helpers/world.ts` for the shared setup) drives the simulation headlessly through
-`Simulation`/`World` directly — no browser, no rendering — and asserts on actual state
-(`world.events`, a person's `mind.goal`/`knowledge`/`memories`/`relationships`), not on log
-text. It already covers the witness→report→secondhand-knowledge→investigation chain, unseen-
-crime isolation, heard-but-unidentified crimes and their later refinement, trading, doors,
-navigation, and save/reload of consequences — extend those files rather than starting a
-parallel test setup.
+The current implementation is a vertical slice of that larger world.
 
-For anything that needs the actual renderer/UI (interaction targeting, HUD, inspector
-rendering), drive it headlessly instead: boot the dev server, open it with Playwright (or
-similar), and call into `window.game` — `main.ts` assigns the running `Game` instance there,
-which exposes `game.world`, `game.sim` (the `Simulation`), and `game.stepSim(seconds)` to
-advance simulation time deterministically without waiting on `requestAnimationFrame`.
+Prefer systems that interact with other systems over isolated mechanics.
 
-## Working conventions
+Prefer causes, state, incentives, constraints, and consequences over scripted outcomes.
 
-- Keep `sim/` renderer-agnostic: no `THREE.*` imports, no DOM access, no `window`.
-- New event types go in `WorldEvent['type']` in `types.ts` and should carry `causes` (and, if
-  perceivable, `visibility`/`loudness`) so they participate in the causal chain the event feed
-  displays.
-- New NPC behavior should go through the goal/utility system in `agent.ts` (`think()` builds
-  candidate goals with `reasons: string[]`, `plan()` turns a chosen goal into an `Action[]`)
-  rather than bespoke per-NPC scripting — the whole point of the architecture is that the same
-  systems produce different behavior for different people.
-- Anything that makes a goal more attractive because of what someone knows, owes, or is trying to
-  do goes through `motivationBoost` (`mind/pursuit.ts`) and inherits its single shared cap. Adding
-  a fourth independent bonus somewhere else is how "a concern bends a decision, it never dictates
-  one" quietly stops being true. And nothing in that path may ever lift a goal that walks somebody
-  toward a fight: that is the v0.9 justice-concern regression, and `PURSUIT_FORBIDDEN_GOALS` /
-  `PURSUIT_SERVING_GOALS` exist to make reintroducing it require deleting a test.
-- Don't give any entity more than one "current body" assumption in new code — the ontology
-  intentionally supports zero-or-many bodies per entity even though every current NPC happens
-  to have exactly one.
-- This is a single-village vertical slice by design. Prefer depth (more interaction between
-  existing systems) over breadth (new mechanics, more world, crafting, multiplayer) unless
-  explicitly asked.
+Different initial conditions and seeds should be capable of producing different but structurally plausible histories.
+
+Do not preserve prototype assumptions merely because they happened to be implemented first.
+
+---
+
+## 3. Canonical-world invariant
+
+`src/sim/` is the canonical world.
+
+`src/game/` and Unreal are projections/presentation layers unless an explicitly approved architecture change says otherwise.
+
+### Hard boundary
+
+`src/sim/` must never import from `src/game/`.
+
+Simulation code must not depend on:
+
+- Three.js;
+- Unreal;
+- DOM state;
+- cameras;
+- renderer objects;
+- UI state;
+- presentation-only representations.
+
+Renderer or UI code may request canonical actions through the simulation.
+
+It must not directly mutate canonical world state.
+
+---
+
+## 4. One world, one set of mechanics
+
+NPCs and players should use the same canonical mechanics for equivalent actions.
+
+Combat, movement, inventory changes, communication, ownership, work, knowledge acquisition, and other world actions must not gain separate "player truth" and "NPC truth" implementations.
+
+Presentation may differ.
+
+Canonical mechanics should not.
+
+---
+
+## 5. Truth, knowledge, and causality
+
+Canonical world truth and what an individual believes are different things.
+
+A mind may know something only through supported mechanisms such as perception, communication, inference, memory, institutional knowledge, or another explicit provenance-bearing path.
+
+Do not give agents omniscient access to canonical state merely because that state is convenient to query.
+
+New perceivable events should participate in the causal system.
+
+When applicable, events should carry:
+
+- causes;
+- visibility;
+- loudness;
+- provenance or other information needed for downstream knowledge.
+
+Do not invent causal links in readers, traces, UI, or diagnostics that do not exist in canonical state.
+
+---
+
+## 6. Autonomous behavior
+
+New NPC behavior should normally participate in the existing goal / utility / planning architecture.
+
+Do not solve systemic behavior problems with bespoke scripts for individual NPCs.
+
+Knowledge, relationships, concerns, pursuits, obligations, embodiment, skills, resources, environment, and other state should influence ordinary decision-making rather than bypass it.
+
+A system may influence a decision without automatically dictating it unless the underlying mechanic explicitly requires otherwise.
+
+Avoid accumulating independent hidden utility bonuses when an existing shared motivation path is intended to combine those influences.
+
+---
+
+## 7. Derived state over duplicate truth
+
+Prefer deriving facts from canonical state over creating new flags that can disagree with it.
+
+Examples:
+
+- derive whether labor is missing from actual staffing/capability/output;
+- derive shortages from actual resources and production;
+- derive knowledge from provenance-bearing evidence;
+- derive consequences from canonical events.
+
+Do not introduce a second representation of a fact when an authoritative representation already exists.
+
+---
+
+## 8. Determinism and procedural systems
+
+Simulation behavior intended to be deterministic must remain reproducible from the same canonical inputs and seed.
+
+Do not use uncontrolled randomness in canonical simulation paths.
+
+Procedural generation should create meaningful variation while preserving systemic plausibility.
+
+Do not merely randomize cosmetic output while keeping the underlying society, economy, history, or relationships identical when the feature is intended to be procedural.
+
+Authored scenarios may remain as explicit regression/reference scenarios instead of defining the only possible world.
+
+---
+
+## 9. Entity assumptions
+
+Do not introduce new assumptions that an entity can have exactly one current body.
+
+The ontology supports zero-or-many bodies even when the current prototype commonly uses one.
+
+Avoid encoding current prototype cardinalities as permanent ontology.
+
+---
+
+## 10. Systemic depth
+
+Prefer systemic depth over disconnected feature breadth.
+
+New mechanics should connect to existing world systems where appropriate.
+
+Expansion to additional settlements, populations, regions, species, economies, or other content should come from reusable canonical systems rather than parallel hard-coded implementations.
+
+Do not use "the current village already works" as a reason to preserve architecture that prevents broader procedural worlds.
+
+---
+
+## 11. Context and exploration discipline
+
+Do not perform a broad repository audit at the start of every task.
+
+Start with:
+
+1. the user's requested outcome;
+2. this file;
+3. `.ai/REPO_MAP.md` when subsystem location is needed;
+4. targeted `rg` / `rg --files` searches;
+5. directly relevant source and tests;
+6. subsystem documentation only when required;
+7. relevant Constitution sections only when architectural uncertainty requires them.
+
+Do not recursively read:
+
+- every document in `docs/`;
+- previous milestone reports;
+- historical planning documents;
+- the full Constitution;
+- unrelated systems;
+- large source trees;
+
+merely to establish general context.
+
+Search narrowly before opening large files.
+
+Reuse repository structure already described in `.ai/REPO_MAP.md` rather than rediscovering it.
+
+Read `.ai/STATE.md` when current milestone/branch/system status matters.
+
+Read `.ai/DECISIONS.md` when a task touches a previously settled architectural decision.
+
+---
+
+## 12. Implementation discipline
+
+Inspect the existing implementation before creating a parallel abstraction.
+
+Prefer extending canonical systems over duplicating them.
+
+Before adding a new table, registry, flag, service, or source of truth, determine whether the information can be derived from existing canonical state.
+
+Make the smallest coherent architectural change that solves the actual problem.
+
+Do not artificially constrain a solution to the exact implementation proposed in a work order when repository evidence supports a cleaner design that preserves the requested outcome and invariants.
+
+When implementation evidence contradicts an assumption in the work order, follow the evidence and explain the adjustment.
+
+---
+
+## 13. Repository map
+
+Use `.ai/REPO_MAP.md` to locate systems and their deeper documentation.
+
+Do not duplicate detailed subsystem documentation into this file.
+
+---
+
+## 14. Testing
+
+Use the testing policy in `.ai/TESTING.md`.
+
+Default behavior:
+
+1. run the narrowest relevant tests during implementation;
+2. run typecheck when TypeScript changes warrant it;
+3. expand verification according to the blast radius;
+4. run broad or long-running acceptance suites for meaningful integration/final milestone verification rather than reflexively after every small edit.
+
+Do not rerun expensive unchanged verification without a concrete reason.
+
+---
+
+## 15. Working principle
+
+Preserve Torn Veil's defining focus:
+
+**The world should increasingly explain its own history through canonical interacting systems rather than through authored outcomes.**
+
+Implementation convenience must not quietly replace that objective.
