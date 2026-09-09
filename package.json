@@ -23,7 +23,9 @@
     "adapt:trace": "tsx src/headless/adaptive/cli.ts",
     "causal:accept": "vitest run --config vitest.accept.config.ts",
     "adapt:accept": "vitest run --config vitest.adaptive.config.ts",
-    "epoch:accept": "vitest run --config vitest.epoch.config.ts"
+    "epoch:accept": "vitest run --config vitest.epoch.config.ts",
+    "world:settlements": "tsx src/headless/worldlab/settlementsCli.ts",
+    "settlements:accept": "vitest run --config vitest.settlements.config.ts"
   },
   "dependencies": {
     "three": "^0.170.0",

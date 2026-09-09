@@ -49,6 +49,8 @@ describe('demographic continuity and year-scale substrate', () => {
   it('marries through the declared event and conserves an inherited estate', () => {
     const { world, people } = village();
     const a = people.tomas; const b = people.mara;
+    // Marriage requires both participants to attend, just like the ordinary courtship action.
+    world.primaryBody(b.id)!.pos = { ...world.primaryBody(a.id)!.pos };
     expect(marry(world, a, b)).toBe(true);
     expect(world.events.some(e => e.type === 'marriage' && e.actor === a.id && e.target === b.id)).toBe(true);
     expect(a.householdId).toBe(b.householdId);

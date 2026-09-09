@@ -585,6 +585,10 @@ describe('v0.5 persistence round-trip (SAVE_VERSION 8)', () => {
 
 // ==================================================================== Stress scenario smoke test
 describe('stress scenario: scarcity-driven price/production response (v0.5 §XI)', () => {
+  // Budget, not correctness. Measured at `main`'s own da5a2ed, before this branch touched it:
+  // 62.2 s against a 60 s ceiling, run alone on an idle machine. It is over its ceiling on main alone and further over here, because the wider
+  // trade economy made a headless run about a third more expensive (see
+  // docs/ADAPTIVE_SOCIETY_V0_5.md). The assertions below are untouched.
   it('food scarcity raises price and production demand without arbitrary resource creation', () => {
     const result = runHeadless({ seed: 5920, days: 3 });
     const { world } = result;
@@ -597,5 +601,5 @@ describe('stress scenario: scarcity-driven price/production response (v0.5 §XI)
     // both of which move money between existing people — never create or destroy it.
     const totalWealth = world.persons().reduce((a, p) => a + p.wealth, 0);
     expect(Number.isFinite(totalWealth)).toBe(true);
-  }, 60000);
+  }, 180_000);
 });

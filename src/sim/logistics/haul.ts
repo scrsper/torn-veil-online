@@ -1,3 +1,4 @@
+import { near } from '../world/locality';
 import type { HaulTask, HaulStatus, ItemType, Person, Vec3, EntityId, Place } from '../core/types';
 import type { World } from '../core/world';
 import { makeItem, ITEM_LABEL, RESOURCE_MASS_KG } from '../world/factory';
@@ -6,7 +7,6 @@ import { FARM_SEED_RESERVE } from '../world/metabolism';
 import { getPhysicalCapability } from '../core/attributes';
 import { createRequest, acceptRequest, completeRequest, failRequest } from '../core/requests';
 import { skillOf, practiceSkill } from '../core/skills';
-import { placesOfType, withinErrandRange } from '../world/locality';
 import { tradeMakes, tradeNeeds } from '../world/supply';
 import { isFuel } from '../world/fire';
 import { settleWholesale, wholesaleBuyerFor } from '../world/trade';
@@ -197,9 +197,10 @@ export function generateLogisticsNeeds(world: World): void {
   // 1. Food chain: consumer Place below trigger + a supplier Place with surplus → one task.
   for (const d of CONSUMER_DEMANDS) {
     // EVERY consumer of the type, not the first: a tavern going short of ale is a fact about that
-    // tavern. And the supplier is chosen from the ones near IT (world/locality.ts), so a haul
-    // never proposes carrying grain between two settlements because one of them had spare.
-    for (const dest of placesOfType(world, d.destType).filter(pl => dealsIn(world, pl, d.resource))) {
+    // tavern, and with a second settlement the first one registered is not an answer at all. The
+    // supplier is then chosen from the ones near IT (`world/locality.ts`'s `near`), so a haul never
+    // proposes carrying grain between two settlements because one of them happened to have spare.
+    for (const dest of world.places().filter(p => p.type === d.destType && dealsIn(world, p, d.resource))) {
       const have = stockAt(world, d.resource, dest.id);
       const inbound = openHaulTasks(world).filter(t => t.destPlaceId === dest.id && t.resource === d.resource)
         .reduce((n, t) => n + (t.quantity - t.delivered), 0);
@@ -209,8 +210,8 @@ export function generateLogisticsNeeds(world: World): void {
         const s = stockAt(world, d.resource, pl.id);
         return d.sourceType === 'farm' && d.resource === 'grain' ? s - FARM_SEED_RESERVE : s;
       };
-      const suppliers = placesOfType(world, d.sourceType)
-        .filter(p => spareAt(p) > 0 && withinErrandRange(dest.inside, p.inside))
+      const suppliers = world.places()
+        .filter(p => p.type === d.sourceType && near(p.inside, dest.inside) && spareAt(p) > 0)
         .sort((a, b) => spareAt(b) - spareAt(a) || a.id.localeCompare(b.id));
       const src = suppliers[0];
       if (!src) continue;

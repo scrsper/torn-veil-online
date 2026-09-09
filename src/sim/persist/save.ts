@@ -1,3 +1,4 @@
+import { generateProceduralWorld } from '../world/settlement';
 import { World } from '../core/world';
 import { WorldClock } from '../core/time';
 import { generateVillage } from '../world/village';
@@ -187,7 +188,7 @@ export function serialize(world: World): string {
   // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
   // falls back to today's behavior (rewind to post-generation position) when absent.
   const rng = world.rng.state(); const weatherRng = world.weatherRng.state(); const demographicRng = world.demographicRng.state();
-  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
+  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, physicalPlaces: world.settlementSites ? world.places() : undefined, settlements: world.settlements(), settlementSites: world.settlementSites, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -230,7 +231,11 @@ export function load(): { world: World; gen: ReturnType<typeof generateVillage> 
 export function deserialize(raw: string): { world: World; gen: ReturnType<typeof generateVillage> } | null {
   try {
     const data = JSON.parse(raw); if (data.version !== SAVE_VERSION) return null;
-    const world = new World(data.seed); const gen = generateVillage(world);
+    const world = new World(data.seed);
+    const generated = data.settlementSites ? generateProceduralWorld(world, data.settlementSites) : undefined;
+    const gen = generated ? { places: Object.fromEntries(generated.flatMap(s => Object.entries(s.places).map(([k, p]) => [s.spec.site.id + ':' + k, p]))), people: Object.fromEntries(generated.flatMap(s => Object.entries(s.people).map(([k, p]) => [s.spec.site.id + ':' + k, p]))) } : generateVillage(world);
+    for (const s of data.settlements ?? []) { const existing = world.get(s.id); if (existing?.kind === 'settlement') Object.assign(existing, s); else world.add(s); }
+    for (const p of data.physicalPlaces ?? []) { const existing = world.place(p.id); if (existing) Object.assign(existing, p); else world.add(p); }
     // overlay
     const genEvents = world.events; // history events regenerated; replace with saved log (which contains them)
     world.events = []; world.eventIndex.clear();
@@ -299,7 +304,7 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     world.rebuildLivingIndices();
     // Generated entity ids are part of the save schema. Refuse a malformed/incompatible
     // overlay rather than booting a world whose player has no physical manifestation.
-    if (!world.person(world.playerId) || !world.primaryBody(world.playerId)) return null;
+    if (world.playerId !== null && (!world.person(world.playerId) || !world.primaryBody(world.playerId))) return null;
     return { world, gen };
   } catch (e) { console.warn('load failed', e); return null; }
 }

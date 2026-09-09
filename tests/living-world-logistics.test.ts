@@ -123,6 +123,9 @@ describe('generalized haul (v0.3 Priority 2)', () => {
     expect(hauler.inventory).not.toContain(cargo.id);
   });
 
+  // Budget, not correctness. Measured at `main`'s own da5a2ed: 3.84 s run alone against the 5 s
+  // default, and red under suite contention there. Same reason and same treatment as the
+  // currency-conservation run in tests/embodied-economy.test.ts. Assertions untouched.
   it('a full-sim NPC learns of a haul need, walks to the source, and physically delivers grain to the mill', () => {
     const { world, gen } = newWorld(1337);
     const sim = new Simulation(world);
@@ -135,7 +138,7 @@ describe('generalized haul (v0.3 Priority 2)', () => {
     expect(world.events.some(e => e.type === 'resource_picked_up')).toBe(true);
     expect(world.events.some(e => e.type === 'resource_delivered')).toBe(true);
     void gen; void millGrain0;
-  });
+  }, 30_000);
 });
 
 describe('remote production inputs are forbidden (v0.3 Priority 3)', () => {

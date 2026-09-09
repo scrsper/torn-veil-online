@@ -1,3 +1,4 @@
+import { peopleTogether, placeForPerson } from './locality';
 import type { EntityId, Household, Person } from '../core/types';
 import type { World } from '../core/world';
 import { SECONDS_PER_DAY } from '../core/time';
@@ -50,6 +51,7 @@ export function courtshipCompatibility(world: World, p: Person, q: Person): numb
 }
 
 export function marry(world: World, a: Person, b: Person, cause?: string): boolean {
+  if (!peopleTogether(world, a, b)) return false;
   if (courtshipCompatibility(world, a, b) < 0.42 || courtshipCompatibility(world, b, a) < 0.35) return false;
   setRelTags(a, b.id, 'spouse'); setRelTags(b, a.id, 'spouse');
   const ar = getRel(a, b.id); const br = getRel(b, a.id);
@@ -77,7 +79,7 @@ function physiologicalFitness(world: World, p: Person): number {
 
 function tryConception(world: World, p: Person): void {
   if (p.reproductiveRole !== 'gestational' || p.physiology.pregnancy?.state === 'gestating') return;
-  const partner = partneredWith(world, p); if (!partner) return;
+  const partner = partneredWith(world, p); if (!partner || !peopleTogether(world, p, partner)) return;
   const profile = physiologyProfileFor(p.species);
   const [min, max] = profile.fertileAges.gestational;
   const [pmin, pmax] = profile.fertileAges.fertilizing;
@@ -133,9 +135,8 @@ export function giveBirth(world: World, parent: Person): Person | null {
   const home = world.place(child.homeId); if (home && !home.residents.includes(child.id)) home.residents.push(child.id);
   const pos = world.positionOf(parent.id) ?? home?.inside ?? { x: 96, y: 20, z: 96 };
   const body = makeBody(world, child.id, pos, 'humanoid', 35); child.bodies.push(body.id);
-  // The everyday places a child's day is built around are resolved from where they actually live
-  // (`world/locality.ts`), not from whichever tavern happens to be first in the world's place
-  // list — a newborn in a second settlement must not be given the first settlement's square.
+  // The everyday places a child's day is built around are resolved from where they actually
+  // live (`world/locality.ts`), never from whichever tavern is first in the world's place list.
   child.schedule = dailyScheduleFor(world, child, null);
   setRelTags(child, parent.id, 'parent'); setRelTags(child, other.id, 'parent');
   setRelTags(parent, child.id, 'child'); setRelTags(other, child.id, 'child');

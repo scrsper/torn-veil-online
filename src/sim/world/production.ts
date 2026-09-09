@@ -4,7 +4,6 @@ import { stockAt } from './stock';
 import { createRequest, acceptRequest, completeRequest, openRequests } from '../core/requests';
 import { BAKE_RATIO, MILL_RATIO, PLANK_BASE_BUFFER, SAW_RATIO, plankCapFor } from './metabolism';
 import { MEAT_TO_STEW_RATIO } from './cooking';
-import { placesOfType } from './locality';
 
 /**
  * Autonomous production demand (v0.5 §IV) — the first request-driven producer beyond hauling/
@@ -100,10 +99,7 @@ export function openProductionRequests(world: World): Request[] {
  */
 export function generateProductionNeeds(world: World): void {
   for (const spec of PRODUCTION_TARGETS) {
-    // EVERY place of the type, not the first one. Demand is a fact about a particular bakery
-    // being short of its own bread; a second village's bakery going hungry is not answered by
-    // raising a request against the first one that happens to be registered.
-    for (const place of placesOfType(world, spec.placeType)) {
+    for (const place of world.places().filter(p => p.type === spec.placeType)) {
       const { trigger } = reserveFor(world, spec, place);
       const have = stockAt(world, spec.resource, place.id);
       const pipeline = openProductionRequests(world)

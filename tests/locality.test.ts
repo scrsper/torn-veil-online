@@ -1,9 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { addPerson, createTestWorld, v } from './helpers/world';
 import { makePlace } from '../src/sim/world/factory';
-import {
-  ERRAND_RADIUS_METRES, nearestPlaceOfType, nearestPlaceWhere, placesOfType, whereaboutsOf, withinErrandRange,
-} from '../src/sim/world/locality';
+import { DAILY_LOCAL_RANGE, localPlaces, near, placeForPerson } from '../src/sim/world/locality';
 import { INVARIANTS } from '../src/headless/worldlab/invariants';
 import type { Finding } from '../src/headless/worldlab/types';
 import type { Place } from '../src/sim/core/types';
@@ -22,52 +20,30 @@ const findings = (world: Parameters<typeof localityCheck.check>[0]): Finding[] =
   localityCheck.check(world, null, null as never);
 
 describe('resolving a place from somewhere', () => {
-  it('answers with the nearest one, not the first registered', () => {
+  it('answers with a place in the asker\'s own locality, not the first one registered', () => {
     const tw = createTestWorld(1, 600);
-    const near = makePlace(tw.world, 'mill', 'the near mill', { x0: 10, z0: 10, x1: 14, z1: 14, y0: 1, y1: 4 }, { inside: v(12, 1, 12) });
+    const near1 = makePlace(tw.world, 'mill', 'the near mill', { x0: 10, z0: 10, x1: 14, z1: 14, y0: 1, y1: 4 }, { inside: v(12, 1, 12) });
     const far = makePlace(tw.world, 'mill', 'the far mill', { x0: 500, z0: 500, x1: 504, z1: 504, y0: 1, y1: 4 }, { inside: v(502, 1, 502) });
-    expect(nearestPlaceOfType(tw.world, v(500, 1, 500), 'mill')?.id).toBe(far.id);
-    expect(nearestPlaceOfType(tw.world, v(11, 1, 11), 'mill')?.id).toBe(near.id);
-    // Registration order decides only when the asker has no position at all.
-    expect(nearestPlaceOfType(tw.world, null, 'mill')?.id).toBe(near.id);
+    const here = addPerson(tw, 'Local', 'miller', v(12, 1, 12));
+    const yonder = addPerson(tw, 'Distant', 'miller', v(502, 1, 502));
+    expect(placeForPerson(tw.world, here, 'mill')?.id).toBe(near1.id);
+    expect(placeForPerson(tw.world, yonder, 'mill')?.id).toBe(far.id);
   });
 
-  it('resolves a person from their body, then their work, then their home', () => {
+  it('lists only the places within an ordinary day of where the question is asked', () => {
     const tw = createTestWorld(1, 600);
-    const home = makePlace(tw.world, 'house', 'a house', { x0: 8, z0: 8, x1: 12, z1: 12, y0: 1, y1: 4 }, { inside: v(10, 1, 10) });
-    const work = makePlace(tw.world, 'mill', 'a mill', { x0: 400, z0: 400, x1: 404, z1: 404, y0: 1, y1: 4 }, { inside: v(402, 1, 402) });
-    const p = addPerson(tw, 'Walker', 'miller', v(200, 1, 200), { workId: work.id, homeId: home.id });
-    expect(whereaboutsOf(tw.world, p)).toEqual(tw.world.primaryBody(p.id)!.pos);
-    // With no body left, the canonical record of where they work and live still gives an answer.
-    tw.world.primaryBody(p.id)!.present = false;
-    p.bodies = [];
-    expect(whereaboutsOf(tw.world, p)).toEqual(work.inside);
-    p.workId = null;
-    expect(whereaboutsOf(tw.world, p)).toEqual(home.inside);
+    makePlace(tw.world, 'bakery', 'one bakery', { x0: 10, z0: 10, x1: 14, z1: 14, y0: 1, y1: 4 }, { inside: v(12, 1, 12) });
+    makePlace(tw.world, 'bakery', 'another bakery', { x0: 500, z0: 500, x1: 504, z1: 504, y0: 1, y1: 4 }, { inside: v(502, 1, 502) });
+    const localIds = localPlaces(tw.world, v(12, 1, 12)).filter(p => p.type === 'bakery').map(p => p.name);
+    expect(localIds).toEqual(['one bakery']);
+    // ...and the same question asked from nowhere has no answer, rather than a wrong one.
+    expect(localPlaces(tw.world, undefined)).toEqual([]);
   });
 
-  it('lists every place of a kind, deterministically — what a demand pass needs', () => {
-    const tw = createTestWorld(1, 600);
-    const a = makePlace(tw.world, 'bakery', 'one bakery', { x0: 10, z0: 10, x1: 14, z1: 14, y0: 1, y1: 4 }, { inside: v(12, 1, 12) });
-    const b = makePlace(tw.world, 'bakery', 'another bakery', { x0: 500, z0: 500, x1: 504, z1: 504, y0: 1, y1: 4 }, { inside: v(502, 1, 502) });
-    const ids = placesOfType(tw.world, 'bakery').map(p => p.id);
-    expect(ids).toHaveLength(2);
-    expect(ids).toContain(a.id);
-    expect(ids).toContain(b.id);
-    expect(placesOfType(tw.world, 'bakery').map(p => p.id)).toEqual(ids); // stable
-  });
-
-  it('answers questions about places identified by something other than their type', () => {
-    const tw = createTestWorld(1, 600);
-    makePlace(tw.world, 'wilderness', 'the north forest', { x0: 10, z0: 10, x1: 14, z1: 14, y0: 1, y1: 4 }, { inside: v(12, 1, 12), slug: 'forest' });
-    const clearing = makePlace(tw.world, 'wilderness', 'the clearing', { x0: 500, z0: 500, x1: 504, z1: 504, y0: 1, y1: 4 }, { inside: v(502, 1, 502), slug: 'clearing' });
-    expect(nearestPlaceWhere(tw.world, v(12, 1, 12), p => p.slug === 'clearing')?.id).toBe(clearing.id);
-  });
-
-  it('treats an unknown position as unplaceable rather than as a violation', () => {
-    expect(withinErrandRange(undefined, v(0, 0, 0))).toBe(true);
-    expect(withinErrandRange(v(0, 1, 0), v(ERRAND_RADIUS_METRES - 1, 1, 0))).toBe(true);
-    expect(withinErrandRange(v(0, 1, 0), v(ERRAND_RADIUS_METRES + 1, 1, 0))).toBe(false);
+  it('treats an unknown position as unplaceable rather than as near', () => {
+    expect(near(undefined, v(0, 0, 0))).toBe(false);
+    expect(near(v(0, 1, 0), v(DAILY_LOCAL_RANGE - 1, 1, 0))).toBe(true);
+    expect(near(v(0, 1, 0), v(DAILY_LOCAL_RANGE + 1, 1, 0))).toBe(false);
   });
 });
 

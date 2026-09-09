@@ -13,7 +13,21 @@ export type Tick = number; // world seconds
 export interface Vec3 { x: number; y: number; z: number; }
 
 // ---------------------------------------------------------------- Entities
-export type EntityKind = 'person' | 'item' | 'place' | 'faction' | 'body' | 'creature' | 'household';
+export type EntityKind = 'person' | 'item' | 'place' | 'faction' | 'body' | 'creature' | 'household' | 'settlement';
+
+/** Historical geographic identity, independent of continued habitation. IDs are World-scoped.
+ * Population history is an observational ledger, never an input to growth or survival. */
+export interface Settlement extends Entity {
+  kind: 'settlement';
+  siteId: string;
+  localSeed: number;
+  location: Vec3;
+  bounds: { x0: number; x1: number; z0: number; z1: number };
+  foundedAt: Tick | null;
+  generatedAt: Tick;
+  formerInhabitantIds: EntityId[];
+  populationHistory: { tick: Tick; population: number; type: 'baseline' | 'residence' | 'birth' | 'death'; personId?: EntityId; eventId?: EventId }[];
+}
 
 export interface Entity {
   id: EntityId;
@@ -1298,6 +1312,7 @@ export type PlaceType = 'house' | 'tavern' | 'smithy' | 'bakery' | 'store' | 'ch
 export interface Anchor { pos: Vec3; ownerId?: EntityId; entityId?: EntityId; kind: 'bed' | 'seat' | 'work' | 'counter' | 'fire' | 'altar' | 'grave' | 'stall' | 'inside' | 'post' | 'display'; label?: string; }
 export interface Place extends Entity {
   kind: 'place';
+  settlementId?: EntityId;
   type: PlaceType;
   bounds: { x0: number; z0: number; x1: number; z1: number; y0: number; y1: number; };
   door: Vec3 | null;                // cell just outside the door

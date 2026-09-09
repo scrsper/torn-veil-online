@@ -1,3 +1,4 @@
+import { learn } from '../../src/sim/mind/knowledge';
 import type { Occupation, Person, Traits, Vec3 } from '../../src/sim/core/types';
 import { World } from '../../src/sim/core/world';
 import { B } from '../../src/sim/physical/blocks';
@@ -43,6 +44,8 @@ export function addPerson(
     appearance: {},
     bio: `${name} exists for a deterministic simulation test.`,
   });
+  // These fixtures model established residents who know their local civic places.
+  for (const id of Object.values(tw.places)) learn(tw.world, p, { key: 'place:' + id, kind: 'fact', claim: { placeId: id }, confidence: 1, source: { type: 'prior' } }, true);
   p.controlled = options.controlled ?? false;
   p.mind.thinkInterval = options.controlled ? Number.POSITIVE_INFINITY : 0.25;
   const body = makeBody(tw.world, p.id, pos);

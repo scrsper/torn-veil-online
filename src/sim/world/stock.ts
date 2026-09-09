@@ -18,13 +18,13 @@ import { makeItem, ITEM_LABEL, isPerishable } from './factory';
 
 /** Every unheld stack of `type` physically at `placeId`. */
 export function stockItemsAt(world: World, type: ItemType, placeId: EntityId): Item[] {
-  return world.items().filter(i => i.type === type && !i.holderId && i.quantity > 0 && i.placeId === placeId);
+  return world.itemsAtPlaces([placeId]).filter(i => i.type === type && !i.holderId && i.quantity > 0 && i.placeId === placeId);
 }
 
 /** How many units of `type` are physically at `placeId` (unheld stacks only). */
 export function stockAt(world: World, type: ItemType, placeId: EntityId): number {
   let n = 0;
-  for (const i of world.items()) if (i.type === type && !i.holderId && i.quantity > 0 && i.placeId === placeId) n += i.quantity;
+  for (const i of world.itemsAtPlaces([placeId])) if (i.type === type && !i.holderId && i.quantity > 0 && i.placeId === placeId) n += i.quantity;
   return n;
 }
 
@@ -60,7 +60,7 @@ export function worldStock(world: World, type: ItemType): number {
  */
 export function addPlaceStock(world: World, type: ItemType, qty: number, placeId: EntityId, ownerId: EntityId | null, eventId: EventId | undefined, how: string): Item {
   const place = world.place(placeId);
-  const existing = isPerishable(type) ? undefined : world.items().find(i => i.type === type && !i.holderId && i.placeId === placeId);
+  const existing = isPerishable(type) ? undefined : world.itemsAtPlaces([placeId]).find(i => i.type === type && !i.holderId && i.placeId === placeId);
   if (existing) {
     existing.quantity += qty;
     if (existing.quantity > 0 && !existing.pos && place) existing.pos = { ...place.inside };

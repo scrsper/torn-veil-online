@@ -1,6 +1,6 @@
 import type { World } from '../../sim/core/world';
 import type { Vec3, WorldEvent } from '../../sim/core/types';
-import { ERRAND_RADIUS_METRES, withinErrandRange } from '../../sim/world/locality';
+import { DAILY_LOCAL_RANGE, near } from '../../sim/world/locality';
 import type { Finding, InvariantCheck, Observation } from './types';
 import { buildPersonTrace } from './trace';
 import { detectAnomalies } from '../../sim/telemetry/anomaly';
@@ -205,7 +205,7 @@ export const INVARIANTS: InvariantCheck[] = [
      *    probe is fine, the same query per person per TICK is not — which is exactly why
      *    `world/locality.ts` resolves by distance in the hot path and is CHECKED by path here.
      *  - LOCALITY, that the reachable thing is also within the reach of an ordinary day
-     *    (`ERRAND_RADIUS_METRES`). A post on the far side of a continent is walkable in principle
+     *    (`DAILY_LOCAL_RANGE`). A post on the far side of a continent is walkable in principle
      *    and is still not somebody's work.
      *
      * Judged against where the person LIVES rather than where they happen to be standing: that is
@@ -314,9 +314,9 @@ export const INVARIANTS: InvariantCheck[] = [
             out.push(finding('WL-LOCALITY-UNREACHABLE', 'logistics', 'failure',
               `${person.name} has committed to something they cannot walk to: ${what} is at (${pos.x.toFixed(0)}, ${pos.z.toFixed(0)}) and no path exists from ${world.nameOf(person.homeId)}.`,
               buildPersonTrace(world, world.now, person.id, 'WL-LOCALITY-UNREACHABLE', 'unreachable commitment')));
-          } else if (!withinErrandRange(home, pos)) {
+          } else if (!near(home, pos)) {
             out.push(finding('WL-LOCALITY-DISTANT', 'logistics', 'failure',
-              `${person.name}'s locality does not extend to ${what}: ${Math.hypot(pos.x - home.x, pos.z - home.z).toFixed(0)}m from ${world.nameOf(person.homeId)}, past the ${ERRAND_RADIUS_METRES}m an ordinary day reaches — a commitment resolved outside their own settlement.`,
+              `${person.name}'s locality does not extend to ${what}: ${Math.hypot(pos.x - home.x, pos.z - home.z).toFixed(0)}m from ${world.nameOf(person.homeId)}, past the ${DAILY_LOCAL_RANGE}m an ordinary day reaches — a commitment resolved outside their own settlement.`,
               buildPersonTrace(world, world.now, person.id, 'WL-LOCALITY-DISTANT', 'commitment outside locality')));
           }
         }

@@ -1,3 +1,4 @@
+import { knownPlaceForPerson } from '../world/locality';
 import type { Concern, EntityId, EventId, Goal, GoalType, Item, Obligation, Person, Pursuit, PursuitKind, PursuitStatus, Vec3 } from '../core/types';
 import type { World } from '../core/world';
 import { concernsOf, concernGoalBoost } from './concern';
@@ -7,7 +8,6 @@ import { woundSeverity, SERIOUS_WOUND } from '../core/attributes';
 import { isFood } from '../world/factory';
 import { SECONDS_PER_HOUR } from '../core/time';
 import { requestById } from '../core/requests';
-import { nearestPlaceOfType, whereaboutsOf } from '../world/locality';
 
 /**
  * PURSUITS — persistent purposes (v0.10 §I).
@@ -491,10 +491,7 @@ function recoverSteps(world: World, p: Person, pu: Pursuit): PursuitStep[] {
   // about into a standing errand and pulled people away from where they were — including away
   // from items they were about to notice for themselves, which is the opposite of helpful.
   if (p.needs.social < 0.32) return [];
-  // Where THIS person would go to be among people, not where the world's first square happens to
-  // be (world/locality.ts) — the whole point of the step is being where their own neighbours are.
-  const from = whereaboutsOf(world, p);
-  const gathering = nearestPlaceOfType(world, from, 'square') ?? nearestPlaceOfType(world, from, 'tavern');
+  const gathering = knownPlaceForPerson(world, p, 'square') ?? knownPlaceForPerson(world, p, 'tavern');
   if (!gathering) return [];
   return [{
     goal: 'socialize', targetPlace: gathering.id, fit: 0.4,

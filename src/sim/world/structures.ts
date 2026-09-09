@@ -9,7 +9,7 @@ export interface BuildCtx { grid: VoxelGrid; reserved: Uint8Array; rng: RNG; }
 
 export function v(x: number, y: number, z: number): Vec3 { return { x, y, z }; }
 export function fill(g: VoxelGrid, x0: number, y0: number, z0: number, x1: number, y1: number, z1: number, b: number): void {
-  for (let x = Math.min(x0, x1); x <= Math.max(x0, x1); x++) for (let y = Math.min(y0, y1); y <= Math.max(y0, y1); y++) for (let z = Math.min(z0, z1); z <= Math.max(z0, z1); z++) if (g.inBounds(x, y, z)) g.data[g.idx(x, y, z)] = b;
+  for (let x = Math.min(x0, x1); x <= Math.max(x0, x1); x++) for (let y = Math.min(y0, y1); y <= Math.max(y0, y1); y++) for (let z = Math.min(z0, z1); z <= Math.max(z0, z1); z++) if (g.inBounds(x, y, z)) { if (g.sparse) g.set(x, y, z, b); else g.data[g.idx(x, y, z)] = b; }
 }
 export function reserve(ctx: BuildCtx, x0: number, z0: number, x1: number, z1: number, margin = 1): void {
   for (let x = x0 - margin; x <= x1 + margin; x++) for (let z = z0 - margin; z <= z1 + margin; z++) if (x >= 0 && z >= 0 && x < ctx.grid.W && z < ctx.grid.D) ctx.reserved[x * ctx.grid.D + z] = 1;
@@ -18,7 +18,7 @@ export function reserve(ctx: BuildCtx, x0: number, z0: number, x1: number, z1: n
 export function flatten(g: VoxelGrid, x0: number, z0: number, x1: number, z1: number, top: number, margin = 1, surface = B.Grass): void {
   for (let x = x0 - margin; x <= x1 + margin; x++) for (let z = z0 - margin; z <= z1 + margin; z++) {
     if (!g.inBounds(x, 0, z)) continue;
-    for (let y = 1; y < g.H; y++) { const want = y < top - 2 ? B.Stone : y < top ? B.Dirt : y === top ? surface : B.Air; g.data[g.idx(x, y, z)] = want; }
+    for (let y = 1; y < g.H; y++) { const want = y < top - 2 ? B.Stone : y < top ? B.Dirt : y === top ? surface : B.Air; if (g.sparse) g.set(x, y, z, want); else g.data[g.idx(x, y, z)] = want; }
   }
 }
 

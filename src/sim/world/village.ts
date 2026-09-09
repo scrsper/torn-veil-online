@@ -421,6 +421,8 @@ function seedHistory(world: World, pp: Record<string, Person>, pl: Record<string
   // makes a deliberately knowledge-sparse person (tests/knowledge-memory-skills-intent.test.ts)
   // behave differently from an ordinary villager instead of everyone being uniformly omniscient.
   const commonServices = [pl.bakery, pl.well, pl.riverbank, pl.tavern, pl.store].filter((x): x is Place => !!x);
+  // Established residents have prior geographical knowledge of the village's public spaces.
+  for (const p of all) for (const place of [pl.square, pl.chapel, pl.graveyard, pl.gate_east, pl.gate_south, pl.gate_west]) learn(world, p, { key: 'place:' + place.id, kind: 'fact', claim: { placeId: place.id }, confidence: 1, source: { type: 'prior' } }, true);
   for (const p of all) for (const place of commonServices) learnPlace(world, p, place, { type: 'prior' });
   const farmOf: Record<string, string> = { alwin: 'farm_alwin', jory: 'farm_jory', cedric: 'farm_cedric', maud: 'farm_maud' };
   for (const [key, farmKey] of Object.entries(farmOf)) { const farmer = pp[key]; const field = pl[farmKey]; if (farmer && field) learnPlace(world, farmer, field, { type: 'prior' }); }

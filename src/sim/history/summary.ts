@@ -10,7 +10,6 @@ import { requestSummary, type RequestSummary } from '../core/requests';
 import { productionSummary, type ProductionSummary } from '../world/production';
 import { effectivePrice } from '../world/pricing';
 import { fireSummary, type FireSummary } from '../world/fire';
-import { nearestPlaceOfType, nearestPlaceWhere } from '../world/locality';
 import type { SkillId } from '../core/types';
 
 /**
@@ -236,12 +235,11 @@ export function buildWorldRunSummary(world: World, ctx: WorldRunSummaryContext):
 }
 
 function materialsSummary(world: World): WorldRunSummary['materials'] {
-  // Telemetry, and the only lookups in this pass that are still world-global by design: a run
-  // summary reports on the world, not from anybody's standpoint. They stay named and explicit
-  // (`nearestPlaceWhere` with no origin returns the first match, deterministically) rather than
-  // being quietly re-pointed at a locality nobody asked about — and when a run contains more than
-  // one settlement these fields need per-settlement grouping, not a nearer answer.
-  const riverWoods = nearestPlaceWhere(world, null, p => p.slug === 'river_woods');
+  // Telemetry, and deliberately still world-global: a run summary reports on the world, not from
+  // anybody's standpoint, so it must NOT be re-pointed at a locality nobody asked about. When a
+  // run contains more than one settlement these fields need per-settlement grouping, which is a
+  // reporting change rather than a nearer answer.
+  const riverWoods = world.places().find(p => p.slug === 'river_woods');
   return {
     fire: fireSummary(world),
     stewsCooked: world.runTally.stew_cooked ?? 0,
@@ -301,8 +299,8 @@ function cognitionSummary(world: World): WorldRunSummary['cognition'] {
 
 function breadPricingSnapshot(world: World): WorldRunSummary['pricing'] {
   // Telemetry — see the note in `materialsSummary` on why these stay world-global.
-  const bakery = nearestPlaceOfType(world, null, 'bakery');
-  const stall = nearestPlaceWhere(world, null, p => p.type === 'stall' && p.name.toLowerCase().includes('bread'));
+  const bakery = world.places().find(p => p.type === 'bakery');
+  const stall = world.places().find(p => p.type === 'stall' && p.name.toLowerCase().includes('bread'));
   return {
     breadPriceAtBakery: bakery ? effectivePrice('bread', 2, stockAt(world, 'bread', bakery.id)) : null,
     breadPriceAtStall: stall ? effectivePrice('bread', 2, stockAt(world, 'bread', stall.id)) : null,

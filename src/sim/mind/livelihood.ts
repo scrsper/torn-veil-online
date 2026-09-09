@@ -4,7 +4,7 @@ import { skillOf } from '../core/skills';
 import { lifeStageFor } from '../core/species';
 import { instructionOf } from './apprenticeship';
 import { scheduleFor } from './schedule';
-import { nearestPlaceOfType } from '../world/locality';
+import { localPlaces, placeForPerson } from '../world/locality';
 import { processFor, stintsOf, tradePostAt, unfitReason, type TradeProcess } from '../world/labor';
 
 /**
@@ -239,10 +239,9 @@ export function takeUpLivelihood(world: World, p: Person, prospect: LivelihoodPr
  */
 export function dailyScheduleFor(world: World, p: Person, workId: EntityId | null) {
   const home = world.place(p.homeId ?? '') ?? null;
-  const from = home?.inside ?? world.primaryBody(p.id)?.pos ?? null;
-  const tavern = nearestPlaceOfType(world, from, 'tavern');
-  const square = nearestPlaceOfType(world, from, 'square');
-  const chapel = nearestPlaceOfType(world, from, 'chapel');
+  const tavern = placeForPerson(world, p, 'tavern');
+  const square = placeForPerson(world, p, 'square');
+  const chapel = placeForPerson(world, p, 'chapel');
   if (!home || !tavern || !square || !chapel) return p.schedule;
   // Somebody with no post of their own still has working hours, and they spend them where the
   // village's work is actually done. This is a RHYTHM, not a post and not a permission: the
@@ -251,20 +250,13 @@ export function dailyScheduleFor(world: World, p: Person, workId: EntityId | nul
   // the mill who is neither its worker nor filling in for an absent one gets no flour out of it.
   // What being there does buy is the one thing a trade cannot be learned without: being present
   // while somebody who knows the work is doing it (`mind/apprenticeship.ts`).
-  const work = workId ?? (p.occupation === 'villager' ? nearestTradePlace(world, from)?.id ?? null : null);
+  const work = workId ?? (p.occupation === 'villager' ? localTradePlace(world, p)?.id ?? null : null);
   return scheduleFor(p, { work, home: home.id, tavern: tavern.id, square: square.id, chapel: chapel.id });
 }
 
-/** The nearest place where a real trade process is carried out. */
-function nearestTradePlace(world: World, from: { x: number; z: number } | null): Place | undefined {
-  let best: Place | undefined; let bestD = Number.POSITIVE_INFINITY;
-  for (const place of world.places()) {
-    if (!processFor(place.type)) continue;
-    if (!from) return place;
-    const d = Math.hypot(place.inside.x - from.x, place.inside.z - from.z);
-    if (d < bestD || (d === bestD && best && place.id < best.id)) { best = place; bestD = d; }
-  }
-  return best;
+/** A place within this person's own locality where a real trade process is carried out. */
+function localTradePlace(world: World, p: Person): Place | undefined {
+  return localPlaces(world, world.positionOf(p.id) ?? world.place(p.homeId)?.inside).find(place => !!processFor(place.type));
 }
 
 /**

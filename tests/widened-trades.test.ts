@@ -36,10 +36,15 @@ type TW = ReturnType<typeof createTestWorld>;
 const TRADES = tradeProcesses().map(t => ({ ...t }));
 
 function placeFor(tw: TW, type: PlaceType, at: { x: number; z: number }): Place {
-  const place = makePlace(tw.world, type, `test ${type}`, { x0: at.x - 3, z0: at.z - 3, x1: at.x + 3, z1: at.z + 3, y0: 1, y1: 4 }, { inside: v(at.x, 1, at.z) });
+  // The test world already has a tavern, and a second one in the same locality would be a trap
+  // rather than a fixture: `world/locality.ts`'s `placeForPerson` answers with a place in the
+  // asker's locality, and when two of a kind are both in it the cook can legitimately resolve the
+  // one this test did not stock. Reuse the world's own where it has one.
+  const existing = type === 'tavern' ? tw.world.place(tw.places.tavern)! : undefined;
+  const place = existing ?? makePlace(tw.world, type, `test ${type}`, { x0: at.x - 3, z0: at.z - 3, x1: at.x + 3, z1: at.z + 3, y0: 1, y1: 4 }, { inside: v(at.x, 1, at.z) });
   // The tavern's stew needs a real hearth. Creating one is world generation's job, not the
   // trade's — `runTradeBatch` lights and feeds it from whatever fuel is in the house.
-  if (type === 'tavern') { createFire(tw.world, place.id, v(at.x, 1, at.z), false); addPlaceStock(tw.world, 'stick', 20, place.id, null, undefined, 'seeded'); }
+  if (type === 'tavern') { createFire(tw.world, place.id, { ...place.inside }, false); addPlaceStock(tw.world, 'stick', 20, place.id, null, undefined, 'seeded'); }
   return place;
 }
 
