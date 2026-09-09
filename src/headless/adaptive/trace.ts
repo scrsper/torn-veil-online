@@ -45,7 +45,7 @@ export interface StandInRecord {
   who: string; place: string; resource: string; day: number;
   batches: number; skillAtStart: number; skillNow: number; teacher?: string; reason: string; ended?: string;
 }
-export interface LessonRecord { day: number; teacher: string; student: string; skill: string; studentSkillThen: number; studentSkillNow: number; }
+export interface LessonRecord { day: number; teacher: string; student: string; skill: string; teacherSkillThen: number; studentSkillThen: number; studentSkillNow: number; }
 export interface OutputRecord { day: number; hour: number; at: number; place: string; resource: string; by: string; quantity: number; }
 export interface StoppageRecord { day: number; hour: number; place: string; need: string; making: string; worker: string; }
 export interface TraceChain { title: string; lines: string[]; }
@@ -151,7 +151,7 @@ export function runAdaptiveTrace(opts: AdaptiveTraceOptions): AdaptiveTraceRepor
       } else if (e.type === 'work_taught') {
         const student = world.person(e.target ?? '');
         const skill = String(e.data.skill);
-        lessons.push({ day, teacher: world.nameOf(e.actor ?? ''), student: world.nameOf(e.target ?? ''), skill, studentSkillThen: round(Number(e.data.studentSkill ?? 0)), studentSkillNow: 0 });
+        lessons.push({ day, teacher: world.nameOf(e.actor ?? ''), student: world.nameOf(e.target ?? ''), skill, teacherSkillThen: round(Number(e.data.teacherSkill ?? 0)), studentSkillThen: round(Number(e.data.studentSkill ?? 0)), studentSkillNow: 0 });
         if (student) skillAtLesson.set(`${student.id}:${skill}`, Number(e.data.studentSkill ?? 0));
       }
     }

@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { runAdaptiveTrace, type AdaptiveTraceReport } from '../src/headless/adaptive/trace';
+import { TEACH_MIN_GAP, TEACH_MIN_SKILL } from '../src/sim/mind/apprenticeship';
 
 /**
  * THE UNATTENDED ACCEPTANCE RUN.
@@ -39,7 +40,14 @@ import { runAdaptiveTrace, type AdaptiveTraceReport } from '../src/headless/adap
  */
 describe('Adaptive Society — unattended acceptance', () => {
   let report: AdaptiveTraceReport;
-  beforeAll(() => { report = runAdaptiveTrace({ scenario: 'producer_lost', seed: 918271, days: 30 }); }, 900_000);
+  // 1800 s, and the headroom is the point. Thirty unattended world days is the most expensive
+  // thing this repository runs, and it has been getting more expensive for real reasons rather
+  // than through waste: measured on this machine, ~484 s before procedural settlements landed,
+  // 832.9 s on `main` at da5a2ed (i.e. already at 93 % of the old 900 s ceiling with nothing
+  // wrong), and over it once the wider trade economy made a headless run about a third dearer
+  // again. A budget a run has all but grown into stops measuring correctness and starts
+  // measuring the machine. Nothing below is weakened.
+  beforeAll(() => { report = runAdaptiveTrace({ scenario: 'producer_lost', seed: 918271, days: 30 }); }, 1_800_000);
 
   it('runs the whole village with no player embodied', () => {
     expect(report.population).toBeGreaterThan(20);
@@ -167,10 +175,22 @@ describe('Adaptive Society — unattended acceptance', () => {
         expect(ordered[i].skillAtStart).toBeLessThanOrEqual(ordered[i - 1].skillNow);
       }
     }
-    // No lesson is credited to anybody who never worked — instruction and capability stay apart.
+    // Every lesson is real instruction rather than two novices comparing notes: the teacher can
+    // genuinely do the work (`TEACH_MIN_SKILL`) and is genuinely ahead of the student
+    // (`TEACH_MIN_GAP`), and nothing about the lesson lowers what the student can do.
+    //
+    // This used to assert `studentSkillThen === 0`, which held only because the village had
+    // exactly two trades and every lesson in this scenario therefore happened to reach a complete
+    // novice. With the sawpit and the tavern in the process table a student can be part-trained —
+    // somebody one batch into milling (0.02) being shown by a hand at 0.6 is precisely the case
+    // `mind/apprenticeship.ts` is for, not a violation of it. The invariant the comment named all
+    // along is the gap, and that is what is asserted now. That instruction grants no proficiency
+    // is proven directly, on the mechanism, in tests/adaptive-society.test.ts.
+    expect(report.lessons.length).toBeGreaterThan(0);
     for (const l of report.lessons) {
-      expect(l.studentSkillThen).toBe(0);
-      expect(l.studentSkillNow).toBeGreaterThanOrEqual(0);
+      expect(l.teacherSkillThen).toBeGreaterThanOrEqual(TEACH_MIN_SKILL);
+      expect(l.teacherSkillThen - l.studentSkillThen).toBeGreaterThanOrEqual(TEACH_MIN_GAP);
+      expect(l.studentSkillNow).toBeGreaterThanOrEqual(l.studentSkillThen);
     }
   });
 }, 900_000);
