@@ -1,3 +1,4 @@
+import { placeForPerson } from './locality';
 import type { Person, ItemType } from '../core/types';
 import type { World } from '../core/world';
 import { transform, villageStock, type TransformResult } from './metabolism';
@@ -24,9 +25,9 @@ export const STEW_CAP = 30;
 const MIN_FIRE_INTENSITY_TO_COOK = 0.3;
 
 export function cook(world: World, cookPerson: Person): TransformResult {
-  const tavernId = world.places().find(p => p.type === 'tavern')?.id;
+  const tavernId = placeForPerson(world, cookPerson, 'tavern')?.id;
   if (!tavernId) return { ok: false, produced: 0, consumed: 0 };
-  if (villageStock(world, 'stew') >= STEW_CAP) return { ok: false, produced: 0, consumed: 0 };
+  if (villageStock(world, 'stew', world.place(tavernId)?.inside) >= STEW_CAP) return { ok: false, produced: 0, consumed: 0 };
   if (fireIntensityAt(world, tavernId) < MIN_FIRE_INTENSITY_TO_COOK) return { ok: false, produced: 0, consumed: 0 };
   if (stockAtPlace(world, 'meat', tavernId) < MEAT_TO_STEW_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'meat' };
   const result = transform(world, {
@@ -59,7 +60,7 @@ const TEND_BELOW_SECONDS = 3600;
  * true if the fire is lit (or was already burning comfortably) after this call.
  */
 export function tendTavernFire(world: World, cookPerson: Person): boolean {
-  const tavernId = world.places().find(p => p.type === 'tavern')?.id;
+  const tavernId = placeForPerson(world, cookPerson, 'tavern')?.id;
   if (!tavernId) return false;
   const fire = fireAt(world, tavernId);
   if (!fire) return false;

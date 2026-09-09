@@ -58,10 +58,11 @@ describe('knowledge upgrades', () => {
     // well-under-the-cap runs — every existing test in this suite must keep working unchanged.
     const tw = createTestWorld(53, 16);
     const thinker = addPerson(tw, 'Thinker', 'farmer', v(3.5, 1, 3.5));
+    const priorCount = Object.keys(thinker.knowledge).length;
     for (let i = 0; i < 100; i++) {
       learn(tw.world, thinker, { key: `ev:e${i}`, kind: 'event', claim: { eventId: `e${i}`, type: 'rumor', text: `rumor ${i}` }, confidence: 0.5, source: { type: 'heard' } }, true);
     }
-    expect(Object.keys(thinker.knowledge).length).toBe(100);
+    expect(Object.keys(thinker.knowledge).length).toBe(priorCount + 100);
   });
 
   it('bounds a mind\'s knowledge map once it grows past a generous cap (v0.2.1 Priority 9)', () => {

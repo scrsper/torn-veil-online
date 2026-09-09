@@ -1,3 +1,5 @@
+import { tradeMakes } from '../world/supply';
+import { near } from '../world/locality';
 import type { HaulTask, HaulStatus, ItemType, Person, Vec3, EntityId, Place } from '../core/types';
 import type { World } from '../core/world';
 import { makeItem, ITEM_LABEL, RESOURCE_MASS_KG } from '../world/factory';
@@ -154,30 +156,31 @@ export function consumerDemands(): readonly Demand[] { return CONSUMER_DEMANDS; 
 export function generateLogisticsNeeds(world: World): void {
   // 1. Food chain: consumer Place below trigger + a supplier Place with surplus → one task.
   for (const d of CONSUMER_DEMANDS) {
-    const dest = world.places().find(p => p.type === d.destType);
-    if (!dest) continue;
-    const have = stockAt(world, d.resource, dest.id);
-    const inbound = openHaulTasks(world).filter(t => t.destPlaceId === dest.id && t.resource === d.resource)
-      .reduce((n, t) => n + (t.quantity - t.delivered), 0);
-    if (have + inbound >= d.trigger) continue;
-    // pick the supplier with the most spare stock (deterministic tiebreak by id)
-    const spareAt = (pl: Place) => {
-      const s = stockAt(world, d.resource, pl.id);
-      return d.sourceType === 'farm' && d.resource === 'grain' ? s - FARM_SEED_RESERVE : s;
-    };
-    const suppliers = world.places()
-      .filter(p => p.type === d.sourceType && spareAt(p) > 0)
-      .sort((a, b) => spareAt(b) - spareAt(a) || a.id.localeCompare(b.id));
-    const src = suppliers[0];
-    if (!src) continue;
-    if (existingTask(world, d.resource, src.id, dest.id)) continue;
-    const want = Math.min(carryCapFor(d.resource), d.target - have - inbound, Math.floor(spareAt(src)));
-    if (want <= 0) continue;
-    const priority = Math.min(1, 1 - (have + inbound) / Math.max(1, d.target));
-    createHaulTask(world, {
-      resource: d.resource, quantity: want, sourcePlaceId: src.id, destPlaceId: dest.id,
-      reason: d.reason, requesterId: dest.ownerId ?? dest.workers[0] ?? null, priority,
-    });
+    for (const dest of world.places().filter(p => p.type === d.destType)) {
+      if (dest.type === 'stall' && !tradeMakes(world.person(dest.ownerId)?.occupation ?? 'vagrant', d.resource) && stockAt(world, d.resource, dest.id) === 0) continue;
+      const have = stockAt(world, d.resource, dest.id);
+      const inbound = openHaulTasks(world).filter(t => t.destPlaceId === dest.id && t.resource === d.resource)
+        .reduce((n, t) => n + (t.quantity - t.delivered), 0);
+      if (have + inbound >= d.trigger) continue;
+      // pick the supplier with the most spare stock (deterministic tiebreak by id)
+      const spareAt = (pl: Place) => {
+        const s = stockAt(world, d.resource, pl.id);
+        return d.sourceType === 'farm' && d.resource === 'grain' ? s - FARM_SEED_RESERVE : s;
+      };
+      const suppliers = world.places()
+        .filter(p => p.type === d.sourceType && near(p.inside, dest.inside) && spareAt(p) > 0)
+        .sort((a, b) => spareAt(b) - spareAt(a) || a.id.localeCompare(b.id));
+      const src = suppliers[0];
+      if (!src) continue;
+      if (existingTask(world, d.resource, src.id, dest.id)) continue;
+      const want = Math.min(carryCapFor(d.resource), d.target - have - inbound, Math.floor(spareAt(src)));
+      if (want <= 0) continue;
+      const priority = Math.min(1, 1 - (have + inbound) / Math.max(1, d.target));
+      createHaulTask(world, {
+        resource: d.resource, quantity: want, sourcePlaceId: src.id, destPlaceId: dest.id,
+        reason: d.reason, requesterId: dest.ownerId ?? dest.workers[0] ?? null, priority,
+      });
+    }
   }
 }
 

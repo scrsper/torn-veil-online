@@ -20,6 +20,8 @@ import { syncFactionInstitutionalKnowledge, checkLeadershipVacancies } from '../
  */
 export interface HeadlessRunOptions {
   seed: number;
+  /** Canonical generation hook; defaults to authored Ashford. */
+  generate?: (world: World) => unknown;
   /** Requested simulated duration, in world days. */
   days: number;
   /** Additional telemetry sinks (e.g. a FileSink for JSONL output). A MemorySink is always
@@ -36,6 +38,8 @@ export interface HeadlessRunOptions {
    * frame-smooth motion, and nothing here depends on sub-perception-interval precision
    * (perception itself samples at ~5Hz / 0.2s regardless of substep size). */
   stepSeconds?: number;
+  /** Deterministic observation cadence by elapsed world seconds (never wall time). */
+  stepSecondsAt?: (elapsedWorldSeconds: number) => number;
   /** How often (world seconds) to run the periodic maintenance pass: CLOD rebalancing,
    * institutional-knowledge sync, leadership-vacancy checks. Default 1 simulated hour. */
   maintenanceIntervalSeconds?: number;
@@ -88,7 +92,7 @@ export function runHeadless(opts: HeadlessRunOptions): HeadlessRunResult {
 
   let t0 = mark();
   const world = new World(opts.seed);
-  generateVillage(world);
+  (opts.generate ?? generateVillage)(world);
   accum('villageGen', t0);
   const sim = new Simulation(world);
   sim.profile = {};
@@ -122,7 +126,9 @@ export function runHeadless(opts: HeadlessRunOptions): HeadlessRunResult {
     // Clamp the final physical substep so we land close to the requested world-time target
     // instead of overshooting by up to one full (substep * timeScale) world-seconds.
     const remainingWorld = totalWorldSeconds - (world.now - worldStart);
-    const dt = remainingWorld < substep * world.clock.timeScale ? Math.max(remainingWorld / world.clock.timeScale, 0.001) : substep;
+    const requestedStep = opts.stepSecondsAt?.(world.now - worldStart) ?? substep;
+    if (!Number.isFinite(requestedStep) || requestedStep <= 0) throw new Error('Invalid physical step');
+    const dt = remainingWorld < requestedStep * world.clock.timeScale ? Math.max(remainingWorld / world.clock.timeScale, 0.001) : requestedStep;
     const worldDt = world.clock.advance(dt);
     world.physicalTime += dt;
     sim.step(dt, worldDt);

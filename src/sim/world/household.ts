@@ -15,6 +15,7 @@ export function joinHousehold(world: World, person: Person, household: Household
   person.householdId = household.id;
   person.homeId = household.homeId ?? person.homeId;
   if (!household.memberIds.includes(person.id) && person.alive) household.memberIds.push(person.id);
+  world.recordSettlementPopulations();
 }
 
 export function leaveHousehold(world: World, person: Person): void {

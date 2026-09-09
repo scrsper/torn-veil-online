@@ -87,6 +87,8 @@ export function teachingOpportunity(world: World, a: Person, b: Person, skill: S
  * write to `teacher.skills`. That absence is the invariant.
  */
 export function teach(world: World, teacher: Person, student: Person, skill: SkillId): KnowledgeItem | null {
+  const a = world.positionOf(teacher.id), b = world.positionOf(student.id);
+  if (!teacher.alive || !student.alive || !a || !b || Math.hypot(a.x - b.x, a.z - b.z) > TEACH_RANGE_METRES) return null;
   const key = techniqueKey(skill);
   const existing = instructionOf(student, skill);
   if (existing && world.now - existing.learnedAt < TEACH_RENOTICE_SECONDS) {
@@ -158,7 +160,7 @@ export function maybeTeachAt(world: World, worker: Person, skill: SkillId, place
     (q.mind.goal?.type === 'work' && q.mind.goal.targetPlace === placeId)
     || world.workStints.some(s => s.personId === q.id && s.placeId === placeId && !s.endedAt);
   if (!atTheWork(worker) && !world.place(placeId)?.workers.includes(worker.id)) return null;
-  const near = world.livingPersons()
+  const near = [...new Set(world.nearbyBodies(wb.pos, TEACH_RANGE_METRES).map(b => world.person(b.ownerId)).filter((p): p is Person => !!p))]
     .filter(q => q.id !== worker.id && !q.hostile && atTheWork(q))
     .sort((a, b) => a.id.localeCompare(b.id));
   for (const other of near) {

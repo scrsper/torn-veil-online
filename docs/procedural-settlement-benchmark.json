@@ -1,0 +1,1038 @@
+{
+  "measuredOn": "2026-09-09",
+  "runs": [
+    {
+      "run": "42-5y-first",
+      "seed": 42,
+      "years": 5,
+      "detailedDays": 7,
+      "detailedStepSeconds": 5,
+      "epochStepSeconds": 1440,
+      "initialPopulation": 85,
+      "finalPopulation": 86,
+      "wallMs": 308253.9844,
+      "msPerDayPerInitialPerson": 1.987132856728445,
+      "hash": "0fe34389644dd48af3ac2f1f9c3972ce6b7f0510c91b299963d833d0d2093508",
+      "errors": [],
+      "samples": [
+        {
+          "day": 0,
+          "population": 85,
+          "wallMs": 1859.8232999999998,
+          "heapBytes": 89459640
+        },
+        {
+          "day": 365,
+          "population": 85,
+          "wallMs": 137346.0109,
+          "heapBytes": 154240920
+        },
+        {
+          "day": 730,
+          "population": 87,
+          "wallMs": 178416.8674,
+          "heapBytes": 199930168
+        },
+        {
+          "day": 1095,
+          "population": 87,
+          "wallMs": 222085.3302,
+          "heapBytes": 291969512
+        },
+        {
+          "day": 1460,
+          "population": 87,
+          "wallMs": 264980.8985,
+          "heapBytes": 135470992
+        },
+        {
+          "day": 1825,
+          "population": 86,
+          "wallMs": 308230.3506,
+          "heapBytes": 224204040
+        }
+      ],
+      "earlyEconomies": {
+        "site_0": {
+          "population": 16,
+          "hungry": 13,
+          "grain": 317,
+          "flour": 38,
+          "bread": 40,
+          "history": {
+            "goal_changed": 781,
+            "block_changed": 10,
+            "intention_formed": 192,
+            "path_failure": 107,
+            "perceived": 8,
+            "knowledge_gained": 89,
+            "memory_formed": 2382,
+            "told": 24,
+            "request_created": 7,
+            "haul_requested": 1,
+            "arrived": 348,
+            "food_consumed": 123,
+            "meal": 123,
+            "goal_completed": 362,
+            "resource_extracted": 4,
+            "goal_committed": 1,
+            "request_accepted": 1,
+            "haul_started": 3,
+            "crop_harvested": 27,
+            "goal_suspended": 3,
+            "water_consumed": 118,
+            "goal_resumed": 2,
+            "resource_spoiled": 157,
+            "goal_abandoned": 1,
+            "situation_opened": 64,
+            "absence_noticed": 2352,
+            "concern_formed": 32,
+            "pursuit_formed": 123,
+            "sleep_completed": 92,
+            "pursuit_resolved": 123,
+            "concern_resolved": 56,
+            "situation_resolved": 15,
+            "cognitive_lod_changed": 5
+          }
+        },
+        "site_1": {
+          "population": 25,
+          "hungry": 18,
+          "grain": 297,
+          "flour": 41,
+          "bread": 30,
+          "history": {
+            "goal_changed": 1084,
+            "block_changed": 7,
+            "path_failure": 267,
+            "intention_formed": 266,
+            "perceived": 21,
+            "knowledge_gained": 272,
+            "memory_formed": 6267,
+            "told": 90,
+            "request_created": 10,
+            "arrived": 628,
+            "food_consumed": 246,
+            "meal": 246,
+            "goal_completed": 742,
+            "crop_harvested": 20,
+            "resource_transformed": 4,
+            "request_accepted": 2,
+            "wage_paid": 2,
+            "request_completed": 2,
+            "water_consumed": 217,
+            "haul_requested": 2,
+            "resource_spoiled": 261,
+            "situation_opened": 165,
+            "absence_noticed": 6164,
+            "concern_formed": 87,
+            "pursuit_formed": 406,
+            "concern_resolved": 160,
+            "situation_resolved": 51,
+            "sleep_completed": 142,
+            "pursuit_resolved": 405
+          }
+        },
+        "site_2": {
+          "population": 27,
+          "hungry": 20,
+          "grain": 559,
+          "flour": 55,
+          "bread": 19,
+          "history": {
+            "goal_changed": 1238,
+            "block_changed": 9,
+            "intention_formed": 318,
+            "path_failure": 146,
+            "perceived": 21,
+            "knowledge_gained": 270,
+            "memory_formed": 6159,
+            "request_created": 9,
+            "haul_requested": 1,
+            "arrived": 782,
+            "food_consumed": 270,
+            "meal": 270,
+            "goal_completed": 768,
+            "crop_harvested": 65,
+            "water_consumed": 258,
+            "resource_transformed": 4,
+            "request_accepted": 3,
+            "wage_paid": 3,
+            "request_completed": 3,
+            "resource_spoiled": 94,
+            "told": 80,
+            "situation_opened": 156,
+            "absence_noticed": 6063,
+            "concern_formed": 98,
+            "pursuit_formed": 441,
+            "concern_resolved": 160,
+            "situation_resolved": 44,
+            "sleep_completed": 176,
+            "pursuit_resolved": 437,
+            "cognitive_lod_changed": 2
+          }
+        },
+        "site_3": {
+          "population": 17,
+          "hungry": 12,
+          "grain": 498,
+          "flour": 31,
+          "bread": 25,
+          "history": {
+            "goal_changed": 721,
+            "block_changed": 8,
+            "path_failure": 27,
+            "intention_formed": 171,
+            "perceived": 11,
+            "knowledge_gained": 141,
+            "memory_formed": 1736,
+            "request_created": 8,
+            "haul_requested": 1,
+            "arrived": 531,
+            "food_consumed": 155,
+            "meal": 155,
+            "goal_completed": 445,
+            "crop_harvested": 49,
+            "fire_lit": 5,
+            "water_consumed": 156,
+            "fire_extinguished": 5,
+            "resource_spoiled": 88,
+            "told": 59,
+            "situation_opened": 89,
+            "absence_noticed": 1671,
+            "concern_formed": 40,
+            "pursuit_formed": 102,
+            "sleep_completed": 89,
+            "pursuit_resolved": 102,
+            "concern_resolved": 70,
+            "situation_resolved": 28,
+            "cognitive_lod_changed": 4,
+            "crop_planted": 9,
+            "resource_transformed": 1,
+            "obligation_formed": 1,
+            "request_accepted": 1,
+            "wage_paid": 1,
+            "obligation_resolved": 1,
+            "request_completed": 1
+          }
+        }
+      },
+      "settlements": [
+        {
+          "site": {
+            "id": "site_0",
+            "x": 256,
+            "z": 128
+          },
+          "seed": 3309673843,
+          "name": "Grovemere",
+          "biome": "woodland",
+          "resources": {
+            "timber": 16,
+            "stone": 7,
+            "fields": 2,
+            "foodReserve": 12
+          },
+          "roles": [
+            "hunter",
+            "woodcutter",
+            "hunter",
+            "herbalist",
+            "cook",
+            "miller",
+            "farmer",
+            "baker",
+            "woodcutter",
+            "innkeeper",
+            "farmer"
+          ],
+          "initialPopulation": 16,
+          "finalPopulation": 16
+        },
+        {
+          "site": {
+            "id": "site_1",
+            "x": 1000000256,
+            "z": 128
+          },
+          "seed": 12791761,
+          "name": "Juniperhaven",
+          "biome": "woodland",
+          "resources": {
+            "timber": 24,
+            "stone": 5,
+            "fields": 3,
+            "foodReserve": 15
+          },
+          "roles": [
+            "woodcutter",
+            "innkeeper",
+            "farmer",
+            "hunter",
+            "woodcutter",
+            "hunter",
+            "farmer",
+            "herbalist",
+            "cook",
+            "baker",
+            "miller",
+            "farmer"
+          ],
+          "initialPopulation": 25,
+          "finalPopulation": 24
+        },
+        {
+          "site": {
+            "id": "site_2",
+            "x": 2000000256,
+            "z": 128
+          },
+          "seed": 1723539047,
+          "name": "Valemere",
+          "biome": "woodland",
+          "resources": {
+            "timber": 21,
+            "stone": 3,
+            "fields": 3,
+            "foodReserve": 6
+          },
+          "roles": [
+            "innkeeper",
+            "woodcutter",
+            "farmer",
+            "cook",
+            "miller",
+            "hunter",
+            "woodcutter",
+            "farmer",
+            "hunter",
+            "baker",
+            "herbalist",
+            "farmer"
+          ],
+          "initialPopulation": 27,
+          "finalPopulation": 28
+        },
+        {
+          "site": {
+            "id": "site_3",
+            "x": 3000000256,
+            "z": 128
+          },
+          "seed": 492011225,
+          "name": "Lindenstead",
+          "biome": "grassland",
+          "resources": {
+            "timber": 9,
+            "stone": 6,
+            "fields": 3,
+            "foodReserve": 7
+          },
+          "roles": [
+            "miller",
+            "innkeeper",
+            "farmer",
+            "baker",
+            "herbalist",
+            "farmer",
+            "hunter",
+            "farmer",
+            "cook",
+            "woodcutter"
+          ],
+          "initialPopulation": 17,
+          "finalPopulation": 18
+        }
+      ]
+    },
+    {
+      "run": "42-5y-replay",
+      "seed": 42,
+      "years": 5,
+      "detailedDays": 7,
+      "detailedStepSeconds": 5,
+      "epochStepSeconds": 1440,
+      "initialPopulation": 85,
+      "finalPopulation": 86,
+      "wallMs": 274900.81719999993,
+      "msPerDayPerInitialPerson": 1.7721245266720382,
+      "hash": "0fe34389644dd48af3ac2f1f9c3972ce6b7f0510c91b299963d833d0d2093508",
+      "errors": [],
+      "samples": [
+        {
+          "day": 0,
+          "population": 85,
+          "wallMs": 1981.5990999999922,
+          "heapBytes": 67788112
+        },
+        {
+          "day": 365,
+          "population": 85,
+          "wallMs": 99416.00469999999,
+          "heapBytes": 252087736
+        },
+        {
+          "day": 730,
+          "population": 87,
+          "wallMs": 143889.44659999997,
+          "heapBytes": 87387528
+        },
+        {
+          "day": 1095,
+          "population": 87,
+          "wallMs": 187680.05109999998,
+          "heapBytes": 167159208
+        },
+        {
+          "day": 1460,
+          "population": 87,
+          "wallMs": 231066.20499999996,
+          "heapBytes": 240565224
+        },
+        {
+          "day": 1825,
+          "population": 86,
+          "wallMs": 274877.83199999994,
+          "heapBytes": 314963704
+        }
+      ],
+      "earlyEconomies": {
+        "site_0": {
+          "population": 16,
+          "hungry": 13,
+          "grain": 317,
+          "flour": 38,
+          "bread": 40,
+          "history": {
+            "goal_changed": 781,
+            "block_changed": 10,
+            "intention_formed": 192,
+            "path_failure": 107,
+            "perceived": 8,
+            "knowledge_gained": 89,
+            "memory_formed": 2382,
+            "told": 24,
+            "request_created": 7,
+            "haul_requested": 1,
+            "arrived": 348,
+            "food_consumed": 123,
+            "meal": 123,
+            "goal_completed": 362,
+            "resource_extracted": 4,
+            "goal_committed": 1,
+            "request_accepted": 1,
+            "haul_started": 3,
+            "crop_harvested": 27,
+            "goal_suspended": 3,
+            "water_consumed": 118,
+            "goal_resumed": 2,
+            "resource_spoiled": 157,
+            "goal_abandoned": 1,
+            "situation_opened": 64,
+            "absence_noticed": 2352,
+            "concern_formed": 32,
+            "pursuit_formed": 123,
+            "sleep_completed": 92,
+            "pursuit_resolved": 123,
+            "concern_resolved": 56,
+            "situation_resolved": 15,
+            "cognitive_lod_changed": 5
+          }
+        },
+        "site_1": {
+          "population": 25,
+          "hungry": 18,
+          "grain": 297,
+          "flour": 41,
+          "bread": 30,
+          "history": {
+            "goal_changed": 1084,
+            "block_changed": 7,
+            "path_failure": 267,
+            "intention_formed": 266,
+            "perceived": 21,
+            "knowledge_gained": 272,
+            "memory_formed": 6267,
+            "told": 90,
+            "request_created": 10,
+            "arrived": 628,
+            "food_consumed": 246,
+            "meal": 246,
+            "goal_completed": 742,
+            "crop_harvested": 20,
+            "resource_transformed": 4,
+            "request_accepted": 2,
+            "wage_paid": 2,
+            "request_completed": 2,
+            "water_consumed": 217,
+            "haul_requested": 2,
+            "resource_spoiled": 261,
+            "situation_opened": 165,
+            "absence_noticed": 6164,
+            "concern_formed": 87,
+            "pursuit_formed": 406,
+            "concern_resolved": 160,
+            "situation_resolved": 51,
+            "sleep_completed": 142,
+            "pursuit_resolved": 405
+          }
+        },
+        "site_2": {
+          "population": 27,
+          "hungry": 20,
+          "grain": 559,
+          "flour": 55,
+          "bread": 19,
+          "history": {
+            "goal_changed": 1238,
+            "block_changed": 9,
+            "intention_formed": 318,
+            "path_failure": 146,
+            "perceived": 21,
+            "knowledge_gained": 270,
+            "memory_formed": 6159,
+            "request_created": 9,
+            "haul_requested": 1,
+            "arrived": 782,
+            "food_consumed": 270,
+            "meal": 270,
+            "goal_completed": 768,
+            "crop_harvested": 65,
+            "water_consumed": 258,
+            "resource_transformed": 4,
+            "request_accepted": 3,
+            "wage_paid": 3,
+            "request_completed": 3,
+            "resource_spoiled": 94,
+            "told": 80,
+            "situation_opened": 156,
+            "absence_noticed": 6063,
+            "concern_formed": 98,
+            "pursuit_formed": 441,
+            "concern_resolved": 160,
+            "situation_resolved": 44,
+            "sleep_completed": 176,
+            "pursuit_resolved": 437,
+            "cognitive_lod_changed": 2
+          }
+        },
+        "site_3": {
+          "population": 17,
+          "hungry": 12,
+          "grain": 498,
+          "flour": 31,
+          "bread": 25,
+          "history": {
+            "goal_changed": 721,
+            "block_changed": 8,
+            "path_failure": 27,
+            "intention_formed": 171,
+            "perceived": 11,
+            "knowledge_gained": 141,
+            "memory_formed": 1736,
+            "request_created": 8,
+            "haul_requested": 1,
+            "arrived": 531,
+            "food_consumed": 155,
+            "meal": 155,
+            "goal_completed": 445,
+            "crop_harvested": 49,
+            "fire_lit": 5,
+            "water_consumed": 156,
+            "fire_extinguished": 5,
+            "resource_spoiled": 88,
+            "told": 59,
+            "situation_opened": 89,
+            "absence_noticed": 1671,
+            "concern_formed": 40,
+            "pursuit_formed": 102,
+            "sleep_completed": 89,
+            "pursuit_resolved": 102,
+            "concern_resolved": 70,
+            "situation_resolved": 28,
+            "cognitive_lod_changed": 4,
+            "crop_planted": 9,
+            "resource_transformed": 1,
+            "obligation_formed": 1,
+            "request_accepted": 1,
+            "wage_paid": 1,
+            "obligation_resolved": 1,
+            "request_completed": 1
+          }
+        }
+      },
+      "settlements": [
+        {
+          "site": {
+            "id": "site_0",
+            "x": 256,
+            "z": 128
+          },
+          "seed": 3309673843,
+          "name": "Grovemere",
+          "biome": "woodland",
+          "resources": {
+            "timber": 16,
+            "stone": 7,
+            "fields": 2,
+            "foodReserve": 12
+          },
+          "roles": [
+            "hunter",
+            "woodcutter",
+            "hunter",
+            "herbalist",
+            "cook",
+            "miller",
+            "farmer",
+            "baker",
+            "woodcutter",
+            "innkeeper",
+            "farmer"
+          ],
+          "initialPopulation": 16,
+          "finalPopulation": 16
+        },
+        {
+          "site": {
+            "id": "site_1",
+            "x": 1000000256,
+            "z": 128
+          },
+          "seed": 12791761,
+          "name": "Juniperhaven",
+          "biome": "woodland",
+          "resources": {
+            "timber": 24,
+            "stone": 5,
+            "fields": 3,
+            "foodReserve": 15
+          },
+          "roles": [
+            "woodcutter",
+            "innkeeper",
+            "farmer",
+            "hunter",
+            "woodcutter",
+            "hunter",
+            "farmer",
+            "herbalist",
+            "cook",
+            "baker",
+            "miller",
+            "farmer"
+          ],
+          "initialPopulation": 25,
+          "finalPopulation": 24
+        },
+        {
+          "site": {
+            "id": "site_2",
+            "x": 2000000256,
+            "z": 128
+          },
+          "seed": 1723539047,
+          "name": "Valemere",
+          "biome": "woodland",
+          "resources": {
+            "timber": 21,
+            "stone": 3,
+            "fields": 3,
+            "foodReserve": 6
+          },
+          "roles": [
+            "innkeeper",
+            "woodcutter",
+            "farmer",
+            "cook",
+            "miller",
+            "hunter",
+            "woodcutter",
+            "farmer",
+            "hunter",
+            "baker",
+            "herbalist",
+            "farmer"
+          ],
+          "initialPopulation": 27,
+          "finalPopulation": 28
+        },
+        {
+          "site": {
+            "id": "site_3",
+            "x": 3000000256,
+            "z": 128
+          },
+          "seed": 492011225,
+          "name": "Lindenstead",
+          "biome": "grassland",
+          "resources": {
+            "timber": 9,
+            "stone": 6,
+            "fields": 3,
+            "foodReserve": 7
+          },
+          "roles": [
+            "miller",
+            "innkeeper",
+            "farmer",
+            "baker",
+            "herbalist",
+            "farmer",
+            "hunter",
+            "farmer",
+            "cook",
+            "woodcutter"
+          ],
+          "initialPopulation": 17,
+          "finalPopulation": 18
+        }
+      ]
+    },
+    {
+      "run": "43-5y-other",
+      "seed": 43,
+      "years": 5,
+      "detailedDays": 7,
+      "detailedStepSeconds": 5,
+      "epochStepSeconds": 1440,
+      "initialPopulation": 76,
+      "finalPopulation": 82,
+      "wallMs": 110115.03499999992,
+      "msPerDayPerInitialPerson": 0.7939079668348948,
+      "hash": "87b32de4e9e8f6a99be0853a36ec5d3c88090b26d0b39c6cd2194d898eb06458",
+      "errors": [],
+      "samples": [
+        {
+          "day": 0,
+          "population": 76,
+          "wallMs": 1896.640699999989,
+          "heapBytes": 112233656
+        },
+        {
+          "day": 365,
+          "population": 76,
+          "wallMs": 54706.55039999995,
+          "heapBytes": 231127632
+        },
+        {
+          "day": 730,
+          "population": 77,
+          "wallMs": 59540.61209999991,
+          "heapBytes": 208731824
+        },
+        {
+          "day": 1095,
+          "population": 78,
+          "wallMs": 70190.42039999994,
+          "heapBytes": 180517776
+        },
+        {
+          "day": 1460,
+          "population": 80,
+          "wallMs": 90011.1719999999,
+          "heapBytes": 194312768
+        },
+        {
+          "day": 1825,
+          "population": 82,
+          "wallMs": 110094.26069999998,
+          "heapBytes": 197068720
+        }
+      ],
+      "earlyEconomies": {
+        "site_0": {
+          "population": 20,
+          "hungry": 19,
+          "grain": 504,
+          "flour": 38,
+          "bread": 16,
+          "history": {
+            "goal_changed": 809,
+            "block_changed": 8,
+            "path_failure": 82,
+            "intention_formed": 205,
+            "perceived": 14,
+            "knowledge_gained": 141,
+            "memory_formed": 2462,
+            "told": 29,
+            "request_created": 10,
+            "haul_requested": 2,
+            "arrived": 547,
+            "food_consumed": 172,
+            "meal": 172,
+            "goal_completed": 493,
+            "crop_harvested": 51,
+            "resource_transformed": 3,
+            "request_accepted": 3,
+            "wage_paid": 3,
+            "request_completed": 3,
+            "water_consumed": 167,
+            "resource_spoiled": 70,
+            "situation_opened": 107,
+            "absence_noticed": 2422,
+            "concern_formed": 62,
+            "pursuit_formed": 145,
+            "concern_resolved": 98,
+            "situation_resolved": 35,
+            "sleep_completed": 95,
+            "pursuit_resolved": 145,
+            "resource_shortage": 8
+          }
+        },
+        "site_1": {
+          "population": 20,
+          "hungry": 14,
+          "grain": 396,
+          "flour": 24,
+          "bread": 26,
+          "history": {
+            "goal_changed": 916,
+            "block_changed": 9,
+            "intention_formed": 222,
+            "path_failure": 164,
+            "perceived": 14,
+            "knowledge_gained": 150,
+            "memory_formed": 4356,
+            "request_created": 10,
+            "haul_requested": 2,
+            "arrived": 572,
+            "food_consumed": 208,
+            "meal": 208,
+            "goal_completed": 549,
+            "goal_committed": 10,
+            "obligation_formed": 1,
+            "request_accepted": 1,
+            "haul_started": 31,
+            "pursuit_formed": 133,
+            "crop_harvested": 35,
+            "fire_lit": 1,
+            "goal_suspended": 39,
+            "resource_spoiled": 211,
+            "water_consumed": 179,
+            "goal_resumed": 30,
+            "fire_extinguished": 1,
+            "told": 58,
+            "situation_opened": 97,
+            "absence_noticed": 4290,
+            "concern_formed": 51,
+            "concern_resolved": 83,
+            "situation_resolved": 26,
+            "sleep_completed": 128,
+            "pursuit_resolved": 132,
+            "goal_abandoned": 9,
+            "cognitive_lod_changed": 4
+          }
+        },
+        "site_2": {
+          "population": 19,
+          "hungry": 13,
+          "grain": 466,
+          "flour": 28,
+          "bread": 26,
+          "history": {
+            "goal_changed": 870,
+            "block_changed": 8,
+            "intention_formed": 208,
+            "path_failure": 143,
+            "perceived": 12,
+            "knowledge_gained": 155,
+            "memory_formed": 2968,
+            "request_created": 10,
+            "haul_requested": 2,
+            "arrived": 521,
+            "food_consumed": 191,
+            "meal": 191,
+            "goal_completed": 503,
+            "told": 42,
+            "crop_harvested": 56,
+            "resource_spoiled": 183,
+            "water_consumed": 160,
+            "situation_opened": 101,
+            "absence_noticed": 2920,
+            "concern_formed": 60,
+            "pursuit_formed": 246,
+            "concern_resolved": 104,
+            "situation_resolved": 27,
+            "sleep_completed": 99,
+            "pursuit_resolved": 245,
+            "cognitive_lod_changed": 6
+          }
+        },
+        "site_3": {
+          "population": 17,
+          "hungry": 8,
+          "grain": 497,
+          "flour": 57,
+          "bread": 28,
+          "history": {
+            "goal_changed": 791,
+            "block_changed": 9,
+            "intention_formed": 183,
+            "path_failure": 70,
+            "perceived": 13,
+            "knowledge_gained": 108,
+            "memory_formed": 1210,
+            "request_created": 9,
+            "haul_requested": 1,
+            "arrived": 529,
+            "food_consumed": 169,
+            "meal": 169,
+            "goal_completed": 420,
+            "goal_committed": 1,
+            "request_accepted": 4,
+            "haul_started": 2,
+            "crop_harvested": 59,
+            "fire_lit": 1,
+            "told": 30,
+            "goal_suspended": 2,
+            "resource_spoiled": 191,
+            "fire_extinguished": 1,
+            "water_consumed": 150,
+            "goal_resumed": 1,
+            "goal_abandoned": 1,
+            "situation_opened": 72,
+            "absence_noticed": 1172,
+            "concern_formed": 37,
+            "pursuit_formed": 152,
+            "sleep_completed": 64,
+            "pursuit_resolved": 152,
+            "concern_resolved": 65,
+            "situation_resolved": 24,
+            "cognitive_lod_changed": 6,
+            "resource_transformed": 3,
+            "wage_paid": 3,
+            "request_completed": 3
+          }
+        }
+      },
+      "settlements": [
+        {
+          "site": {
+            "id": "site_0",
+            "x": 256,
+            "z": 128
+          },
+          "seed": 1318397896,
+          "name": "Keldford",
+          "biome": "grassland",
+          "resources": {
+            "timber": 12,
+            "stone": 3,
+            "fields": 4,
+            "foodReserve": 5
+          },
+          "roles": [
+            "farmer",
+            "miller",
+            "farmer",
+            "innkeeper",
+            "herbalist",
+            "cook",
+            "baker",
+            "hunter",
+            "woodcutter",
+            "farmer",
+            "farmer"
+          ],
+          "initialPopulation": 20,
+          "finalPopulation": 23
+        },
+        {
+          "site": {
+            "id": "site_1",
+            "x": 1000000256,
+            "z": 128
+          },
+          "seed": 3822113596,
+          "name": "Fenford",
+          "biome": "woodland",
+          "resources": {
+            "timber": 17,
+            "stone": 4,
+            "fields": 3,
+            "foodReserve": 15
+          },
+          "roles": [
+            "hunter",
+            "herbalist",
+            "farmer",
+            "cook",
+            "innkeeper",
+            "hunter",
+            "woodcutter",
+            "woodcutter",
+            "farmer",
+            "miller",
+            "farmer",
+            "baker"
+          ],
+          "initialPopulation": 20,
+          "finalPopulation": 22
+        },
+        {
+          "site": {
+            "id": "site_2",
+            "x": 2000000256,
+            "z": 128
+          },
+          "seed": 1225291050,
+          "name": "Ivesford",
+          "biome": "woodland",
+          "resources": {
+            "timber": 23,
+            "stone": 7,
+            "fields": 2,
+            "foodReserve": 14
+          },
+          "roles": [
+            "baker",
+            "hunter",
+            "woodcutter",
+            "woodcutter",
+            "farmer",
+            "innkeeper",
+            "herbalist",
+            "miller",
+            "hunter",
+            "farmer",
+            "cook"
+          ],
+          "initialPopulation": 19,
+          "finalPopulation": 20
+        },
+        {
+          "site": {
+            "id": "site_3",
+            "x": 3000000256,
+            "z": 128
+          },
+          "seed": 1732095008,
+          "name": "Stonestead",
+          "biome": "woodland",
+          "resources": {
+            "timber": 20,
+            "stone": 4,
+            "fields": 2,
+            "foodReserve": 15
+          },
+          "roles": [
+            "cook",
+            "herbalist",
+            "woodcutter",
+            "innkeeper",
+            "hunter",
+            "baker",
+            "farmer",
+            "hunter",
+            "woodcutter",
+            "miller",
+            "farmer"
+          ],
+          "initialPopulation": 17,
+          "finalPopulation": 17
+        }
+      ]
+    }
+  ]
+}

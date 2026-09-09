@@ -1,0 +1,11 @@
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { runSettlementWorldLab } from './settlements';
+const args = process.argv.slice(2);
+const value = (key: string, fallback: number) => args.includes(key) ? Number(args[args.indexOf(key) + 1]) : fallback;
+const seed = value('--seed', 42), days = args.includes('--years') ? value('--years', 1) * 365 : value('--days', 7);
+const mode = args.includes('--epoch') ? 'epoch' : 'detailed';
+const report = runSettlementWorldLab({ seed, days, mode, onProgress: day => { if (day % 7 === 0) console.log('Completed day', day); }, stepSeconds: args.includes('--step') ? value('--step', 0.15) : undefined });
+mkdirSync('.debug/settlements', { recursive: true });
+writeFileSync(`.debug/settlements/${seed}-${days}d-${mode}.json`, JSON.stringify(report, null, 2));
+console.log(JSON.stringify({ seed, days, mode, population: [report.initialPopulation, report.finalPopulation], wallMs: report.wallMs, hash: report.hash, errors: report.errors, settlements: report.settlements.map(s => ({ name: s.spec.name, seed: s.spec.seed, population: s.finalPopulation })) }, null, 2));
+if (report.errors.length) process.exitCode = 1;

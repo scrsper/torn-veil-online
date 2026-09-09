@@ -67,18 +67,18 @@ export function openProductionRequests(world: World): Request[] {
  */
 export function generateProductionNeeds(world: World): void {
   for (const spec of PRODUCTION_TARGETS) {
-    const place = world.places().find(p => p.type === spec.placeType);
-    if (!place) continue;
-    const have = stockAt(world, spec.resource, place.id);
-    const pipeline = openProductionRequests(world)
-      .filter(r => r.payload.placeId === place.id && r.payload.resource === spec.resource)
-      .reduce((n, r) => n + (r.payload.quantity ?? 0), 0);
-    if (have + pipeline >= spec.trigger) continue;
-    createRequest(world, {
-      type: 'production', requesterId: place.ownerId ?? place.workers[0] ?? null, requesterPlaceId: place.id,
-      reward: PRODUCTION_WAGE_PER_BATCH, cause: spec.reason,
-      payload: { resource: spec.resource, quantity: spec.batchOut, placeId: place.id },
-    });
+    for (const place of world.places().filter(p => p.type === spec.placeType)) {
+      const have = stockAt(world, spec.resource, place.id);
+      const pipeline = openProductionRequests(world)
+        .filter(r => r.payload.placeId === place.id && r.payload.resource === spec.resource)
+        .reduce((n, r) => n + (r.payload.quantity ?? 0), 0);
+      if (have + pipeline >= spec.trigger) continue;
+      createRequest(world, {
+        type: 'production', requesterId: place.ownerId ?? place.workers[0] ?? null, requesterPlaceId: place.id,
+        reward: PRODUCTION_WAGE_PER_BATCH, cause: spec.reason,
+        payload: { resource: spec.resource, quantity: spec.batchOut, placeId: place.id },
+      });
+    }
   }
 }
 

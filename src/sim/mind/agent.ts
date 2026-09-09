@@ -1,3 +1,4 @@
+import { localPlaces, near, knownPlaceForPerson } from '../world/locality';
 import { applyInjury } from '../physical/injury';
 import { resolveCombatAttack, combatReach, type CombatAttackIntent, type CombatAttackResult } from '../physical/combat';
 import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, ItemType, KnowledgeItem, Creature, Place, Anchor, ConflictIntent, Conflict, ConflictCause } from '../core/types';
@@ -216,7 +217,7 @@ export class Simulation {
     const facing = { x: -Math.sin(body.yaw), z: -Math.cos(body.yaw) };
     const percepts: Percept[] = [];
     const seeRange = asleep ? 0 : (w.weather.kind === 'fog' ? 14 : 28) * (this.lightAt() * 0.5 + 0.5);
-    for (const other of w.activeBodies()) {
+    for (const other of w.nearbyBodies(eye, 30)) {
       if (other.id === body.id || !other.present) continue;
       const d = Math.hypot(other.pos.x - eye.x, other.pos.z - eye.z); if (d > 30) continue;
       let how: 'saw' | 'heard' | null = null;
@@ -239,7 +240,7 @@ export class Simulation {
     // called by `learn()`/`locationKnowledge`) is the existing, general bound on knowledge-map
     // growth this relies on, same as it already does for the body/person case.
     if (!asleep && !p.controlled) {
-      for (const it of w.items()) {
+      for (const it of w.nearbyItems(eye, seeRange)) {
         if (it.holderId || !it.pos) continue;
         const d = Math.hypot(it.pos.x - eye.x, it.pos.z - eye.z); if (d > seeRange) continue;
         const dx = (it.pos.x - eye.x) / (d + 1e-5), dz = (it.pos.z - eye.z) / (d + 1e-5); const dot = dx * facing.x + dz * facing.z;
@@ -796,8 +797,8 @@ export class Simulation {
         // world/production.ts — the same number that already decides when to raise a baking
         // request) rather than inventing a second magic number: grain is only treated as a
         // genuine glut worth pausing harvest for when bread is ALSO not currently short.
-        const breadShort = villageStock(w, 'bread') < BREAD_SHORTAGE_TRIGGER;
-        const grainGlut = villageStock(w, 'grain') >= GRAIN_CAP && !breadShort;
+        const breadShort = villageStock(w, 'bread', pos) < BREAD_SHORTAGE_TRIGGER;
+        const grainGlut = villageStock(w, 'grain', pos) >= GRAIN_CAP && !breadShort;
         if (firstPlot(field, 'harvest') && !grainGlut) G('harvest', clamp(0.7 + (rainingNow ? -0.1 : 0)), [`wheat is ripe in ${w.nameOf(field.placeId)}`], { targetPlace: field.placeId, data: { fieldId: field.id } });
         // v0.3 Priority 13: sowing needs seed grain at the farm — don't adopt `plant` without it.
         else if (firstPlot(field, 'plant') && !rainingNow && farmSeedGrain(w, field) >= SEED_PER_PLOT) G('plant', 0.58, [`there is fallow ground in ${w.nameOf(field.placeId)}`], { targetPlace: field.placeId, data: { fieldId: field.id } });
@@ -860,7 +861,7 @@ export class Simulation {
         if (node) G('chop', clamp(0.66 * laborCapacity), [`there are trees to fell near ${w.nameOf(node.placeId)}`], { targetPos: node.pos, data: { nodeId: node.id } });
       }
       // Build: contribute labour to a project whose materials are on site (cap concurrent builders).
-      const proj = laborOk || committedHaulOrBuild === 'build' ? activeBuildProjects(w)[0] : undefined;
+      const proj = laborOk || committedHaulOrBuild === 'build' ? activeBuildProjects(w).find(project => near(pos, w.place(project.sitePlaceId)?.inside)) : undefined;
       if (proj) {
         const builders = w.livingPersons().filter(q => q.mind.goal?.type === 'build' && q.mind.goal.data?.projectId === proj.id).map(q => q.id);
         const site = w.place(proj.sitePlaceId);
@@ -891,19 +892,19 @@ export class Simulation {
       // clearing, and logs being carried. Same role list, same concurrency cap, same utility, and
       // it stops the moment the pipeline can cover the requirement.
       for (const gp of (laborOk ? w.constructionProjects : [])) {
-        if (gp.status !== 'gathering') continue;
+        if (gp.status !== 'gathering' || !near(pos, w.place(gp.sitePlaceId)?.inside)) continue;
         const req = gp.required.find(r => r.type === 'plank'); if (!req) continue;
-        const sawpits = w.places().filter(pl => pl.type === 'sawpit');
-        const clearings = w.places().filter(pl => pl.type === 'wilderness' && pl.slug === 'clearing');
+        const sawpits = localPlaces(w, pos).filter(pl => pl.type === 'sawpit');
+        const clearings = localPlaces(w, pos).filter(pl => pl.type === 'wilderness' && (pl.slug === 'clearing' || pl.slug?.endsWith(':clearing')));
         const logsToPlanks = (logs: number) => Math.floor(logs / SAW_RATIO.in) * SAW_RATIO.out;
-        const looseLogs = w.items().filter(i => i.type === 'log' && i.holderId).reduce((n, i) => n + i.quantity, 0);
+        const looseLogs = w.items().filter(i => i.type === 'log' && i.holderId && near(pos, w.positionOf(i.holderId))).reduce((n, i) => n + i.quantity, 0);
         const pipeline = stockAt(w, 'plank', gp.sitePlaceId)
           + sawpits.reduce((n, pl) => n + stockAt(w, 'plank', pl.id), 0)
-          + w.items().filter(i => i.type === 'plank' && i.holderId).reduce((n, i) => n + i.quantity, 0)
+          + w.items().filter(i => i.type === 'plank' && i.holderId && near(pos, w.positionOf(i.holderId))).reduce((n, i) => n + i.quantity, 0)
           + logsToPlanks(sawpits.reduce((n, pl) => n + stockAt(w, 'log', pl.id), 0)
             + clearings.reduce((n, pl) => n + stockAt(w, 'log', pl.id), 0) + looseLogs);
         if (pipeline >= req.quantity) continue;
-        const already = w.livingPersons().filter(q => q.id !== p.id && q.mind.goal?.type === 'chop').length;
+        const already = w.livingPersons().filter(q => q.id !== p.id && near(pos, w.positionOf(q.id)) && q.mind.goal?.type === 'chop').length;
         const chopping = p.mind.goal?.type === 'chop';
         const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter'].includes(p.occupation);
         if (!chopping && (already >= 2 || !roleOk)) continue;
@@ -912,13 +913,13 @@ export class Simulation {
       }
       // Gather stone: a gathering project short of stone, with none in the pipeline yet.
       for (const gp of (laborOk ? w.constructionProjects : [])) {
-        if (gp.status !== 'gathering') continue;
+        if (gp.status !== 'gathering' || !near(pos, w.place(gp.sitePlaceId)?.inside)) continue;
         const req = gp.required.find(r => r.type === 'stone'); if (!req) continue;
         const pipeline = stockAt(w, 'stone', gp.sitePlaceId)
-          + w.places().filter(pl => pl.type === 'quarry').reduce((n, pl) => n + stockAt(w, 'stone', pl.id), 0)
-          + w.items().filter(i => i.type === 'stone' && i.holderId).reduce((n, i) => n + i.quantity, 0);
+          + localPlaces(w, pos).filter(pl => pl.type === 'quarry').reduce((n, pl) => n + stockAt(w, 'stone', pl.id), 0)
+          + w.items().filter(i => i.type === 'stone' && i.holderId && near(pos, w.positionOf(i.holderId))).reduce((n, i) => n + i.quantity, 0);
         if (pipeline >= req.quantity) continue;
-        const already = w.livingPersons().filter(q => q.id !== p.id && q.mind.goal?.type === 'gather').length;
+        const already = w.livingPersons().filter(q => q.id !== p.id && near(pos, w.positionOf(q.id)) && q.mind.goal?.type === 'gather').length;
         const gathering = p.mind.goal?.type === 'gather';
         const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter'].includes(p.occupation);
         if (!gathering && (already >= 2 || !roleOk)) continue;
@@ -993,14 +994,14 @@ export class Simulation {
     if (raining && (!w.isIndoors(pos) || m.goal?.type === 'shelter') && !isGuard && !p.hostile && !indoorWork) {
       const comfort = p.needs.comfort; // 0 dry .. 1 soaked through
       const desc = comfort > 0.6 ? 'soaked through' : comfort > 0.3 ? 'getting wet' : 'starting to feel the rain';
-      G('shelter', clamp(comfort * 0.75 + w.weather.intensity * 0.1 - p.traits.courage * 0.15), [`${desc} and outside in the ${w.weather.kind}`], { targetPlace: dist2(pos, w.place(p.homeId!)?.inside ?? pos) < dist2(pos, w.place(this.tavernId())?.inside ?? pos) ? p.homeId ?? undefined : this.tavernId() });
+      G('shelter', clamp(comfort * 0.75 + w.weather.intensity * 0.1 - p.traits.courage * 0.15), [`${desc} and outside in the ${w.weather.kind}`], { targetPlace: dist2(pos, w.place(p.homeId!)?.inside ?? pos) < dist2(pos, w.place(this.tavernId(p))?.inside ?? pos) ? p.homeId ?? undefined : this.tavernId(p) });
     }
     // socialising when the need is high
-    G('socialize', clamp(n.social * 0.7 * (0.5 + p.traits.sociability * 0.8) - (night ? 0.3 : 0)), [`social need ${n.social.toFixed(2)}`, `sociability ${p.traits.sociability.toFixed(2)}`], { targetPlace: hour > 16 ? this.tavernId() : this.squareId() });
+    G('socialize', clamp(n.social * 0.7 * (0.5 + p.traits.sociability * 0.8) - (night ? 0.3 : 0)), [`social need ${n.social.toFixed(2)}`, `sociability ${p.traits.sociability.toFixed(2)}`], { targetPlace: hour > 16 ? this.tavernId(p) : this.squareId(p) });
     // mourning
-    if (p.emotions.sadness > 0.4 && hour >= 17 && hour < 20 && p.homeId) { const gy = w.places().find(pl => pl.type === 'graveyard'); if (gy) G('mourn', clamp(0.4 + p.emotions.sadness * 0.4), [`sadness ${p.emotions.sadness.toFixed(2)}`, 'the graveyard, at evening'], { targetPlace: gy.id }); }
+    if (p.emotions.sadness > 0.4 && hour >= 17 && hour < 20 && p.homeId) { const gy = knownPlaceForPerson(w, p, 'graveyard'); if (gy) G('mourn', clamp(0.4 + p.emotions.sadness * 0.4), [`sadness ${p.emotions.sadness.toFixed(2)}`, 'the graveyard, at evening'], { targetPlace: gy.id }); }
     // worship for the pious at service times
-    if (p.traits.piety > 0.55 && ((hour >= 7 && hour < 8) || (hour >= 18 && hour < 19)) && p.occupation !== 'priest' && p.occupation !== 'acolyte' && !isGuard) G('worship', clamp(0.35 + p.traits.piety * 0.35), [`piety ${p.traits.piety.toFixed(2)}`, 'service is being held'], { targetPlace: this.chapelId() });
+    if (p.traits.piety > 0.55 && ((hour >= 7 && hour < 8) || (hour >= 18 && hour < 19)) && p.occupation !== 'priest' && p.occupation !== 'acolyte' && !isGuard) G('worship', clamp(0.35 + p.traits.piety * 0.35), [`piety ${p.traits.piety.toFixed(2)}`, 'service is being held'], { targetPlace: this.chapelId(p) });
     G('idle', 0.1, ['nothing better to do']);
     // v0.5: resolve the current commitment against canonical world state BEFORE using it to
     // protect/boost anything this tick — a commitment whose deliverable already completed/
@@ -1246,13 +1247,13 @@ export class Simulation {
   }
   private nearestKnownGuard(p: Person, pos: Vec3, guards: Person[]): Person | null {
     const w = this.world; let best: Person | null = null; let bd = Infinity;
-    for (const g of guards) { const loc = p.knowledge[`loc:${g.id}`]?.claim.pos ?? w.place(g.workId)?.inside ?? w.primaryBody(g.id)?.pos; if (!loc) continue; const d = dist2(pos, loc); if (d < bd) { bd = d; best = g; } }
+    for (const g of guards) { if (!near(pos, w.positionOf(g.id))) continue; const loc = p.knowledge[`loc:${g.id}`]?.claim.pos ?? w.place(g.workId)?.inside ?? w.primaryBody(g.id)?.pos; if (!loc) continue; const d = dist2(pos, loc); if (d < bd) { bd = d; best = g; } }
     return best;
   }
-  placeIdOfType(type: import('../core/types').PlaceType): string | undefined { return this.world.places().find(p => p.type === type)?.id; }
-  tavernId(): string { return this.world.places().find(p => p.type === 'tavern')!.id; }
-  squareId(): string { return this.world.places().find(p => p.type === 'square')!.id; }
-  chapelId(): string { return this.world.places().find(p => p.type === 'chapel')!.id; }
+  placeIdOfType(type: import('../core/types').PlaceType, p: Person): string | undefined { return knownPlaceForPerson(this.world, p, type)?.id; }
+  tavernId(p: Person): string { return knownPlaceForPerson(this.world, p, 'tavern')?.id ?? p.homeId!; }
+  squareId(p: Person): string { return knownPlaceForPerson(this.world, p, 'square')?.id ?? p.homeId!; }
+  chapelId(p: Person): string { return knownPlaceForPerson(this.world, p, 'chapel')?.id ?? p.homeId!; }
   weaponOf(p: Person): number { let best = 0; for (const id of p.inventory) { const it = this.world.item(id); if (it && it.damage > best) best = it.damage; } return best; }
 
   // ------------------------------------------------------------------ planning
@@ -1268,8 +1269,8 @@ export class Simulation {
       case 'sleep': { const home = w.place(p.homeId); const bed = anchorIn(home, ['bed'], true) ?? anchorIn(home, ['bed']) ?? home?.inside ?? body.pos; return [A({ type: 'goto', pos: bed, placeId: home?.id }), A({ type: 'sleep', pos: bed, duration: 3 * SECONDS_PER_HOUR })]; }
       case 'eat': { const pl = place ?? w.place(p.homeId); const seat = anchorIn(pl, ['seat']) ?? anchorIn(pl, ['fire', 'inside']) ?? pl?.inside ?? body.pos; return [A({ type: 'goto', pos: seat, placeId: pl?.id }), A({ type: 'eat', pos: seat, duration: 25 * 60 })]; }
       case 'work': { const pl = place; const spot = anchorIn(pl, ['work']) ?? pl?.inside ?? body.pos; return [A({ type: 'goto', pos: spot, placeId: pl?.id }), A({ type: 'work', pos: spot, duration: 40 * 60 + w.rng.next() * 30 * 60, placeId: pl?.id })]; }
-      case 'worship': { const pl = place ?? w.place(this.chapelId()); const spot = (p.occupation === 'priest' || p.occupation === 'acolyte') ? anchorIn(pl, ['altar']) : anchorIn(pl, ['seat']); return [A({ type: 'goto', pos: spot ?? pl!.inside, placeId: pl?.id }), A({ type: 'pray', pos: spot ?? pl!.inside, duration: 40 * 60 })]; }
-      case 'socialize': case 'drink': case 'play': case 'idle': { const pl = place ?? w.place(this.squareId()); const spot = anchorIn(pl, g.type === 'drink' ? ['seat', 'inside'] : ['seat', 'inside', 'work']) ?? pl?.inside ?? body.pos; return [A({ type: 'goto', pos: spot, placeId: pl?.id }), A({ type: g.type === 'play' ? 'wait' : 'sit', pos: spot, duration: (g.type === 'play' ? 8 : 25) * 60 + w.rng.next() * 15 * 60, data: { social: true } })]; }
+      case 'worship': { const pl = place ?? w.place(this.chapelId(p)); const spot = (p.occupation === 'priest' || p.occupation === 'acolyte') ? anchorIn(pl, ['altar']) : anchorIn(pl, ['seat']); return [A({ type: 'goto', pos: spot ?? pl!.inside, placeId: pl?.id }), A({ type: 'pray', pos: spot ?? pl!.inside, duration: 40 * 60 })]; }
+      case 'socialize': case 'drink': case 'play': case 'idle': { const pl = place ?? w.place(this.squareId(p)); const spot = anchorIn(pl, g.type === 'drink' ? ['seat', 'inside'] : ['seat', 'inside', 'work']) ?? pl?.inside ?? body.pos; return [A({ type: 'goto', pos: spot, placeId: pl?.id }), A({ type: g.type === 'play' ? 'wait' : 'sit', pos: spot, duration: (g.type === 'play' ? 8 : 25) * 60 + w.rng.next() * 15 * 60, data: { social: true } })]; }
       case 'wander': {
         // v0.6 §VI/§VII: a hunger-driven search (no known food source) targets a nearby place
         // NOT yet known as a food source, rather than idle jitter — arriving there and perceiving
@@ -1278,16 +1279,16 @@ export class Simulation {
         // (Constitution v0.6 §VII: knowledge bounds BELIEFS about services, not raw navigation).
         if (g.data?.foodSearch) {
           const candidateTypes: Array<Place['type']> = ['bakery', 'store', 'tavern', 'stall', 'well'];
-          const known = w.places().filter(pl2 => candidateTypes.includes(pl2.type));
+          const known = localPlaces(w, body.pos).filter(pl2 => candidateTypes.includes(pl2.type));
           const unknown = known.filter(pl2 => !p.knowledge[`svc:${pl2.id}`]);
           const target = (unknown.length ? unknown : known).sort((a, b) => dist2(body.pos, a.inside) - dist2(body.pos, b.inside))[0];
           if (target) return [A({ type: 'goto', pos: target.inside, placeId: target.id }), A({ type: 'wait', duration: 3 * 60 })];
         }
-        const pl = w.place(this.squareId())!; return [A({ type: 'goto', pos: { x: pl.inside.x + (w.rng.next() - 0.5) * 16, y: pl.inside.y, z: pl.inside.z + (w.rng.next() - 0.5) * 16 } }), A({ type: 'wait', duration: 5 * 60 })];
+        const pl = w.place(this.squareId(p))!; return [A({ type: 'goto', pos: { x: pl.inside.x + (w.rng.next() - 0.5) * 16, y: pl.inside.y, z: pl.inside.z + (w.rng.next() - 0.5) * 16 } }), A({ type: 'wait', duration: 5 * 60 })];
       }
       case 'go_home': case 'shelter': case 'return_home_safe': { const pl = place ?? w.place(p.homeId); return [A({ type: 'goto', pos: anchorIn(pl, ['seat', 'fire', 'inside']) ?? pl?.inside ?? body.pos, placeId: pl?.id }), A({ type: 'wait', duration: 30 * 60 })]; }
       case 'patrol': { const pts = p.patrol ?? []; const start = Math.floor(w.rng.next() * pts.length); const acts: Action[] = []; for (let i = 0; i < pts.length; i++) { const pt = pts[(start + i) % pts.length]; acts.push(A({ type: 'goto', pos: pt }), A({ type: 'look', duration: 40, pos: pt })); } return acts.length ? acts : [A({ type: 'wait', duration: 60 })]; }
-      case 'guard_post': { const pl = place ?? w.place(p.workId); const post = p.occupation === 'guard' ? (w.places().find(x => x.type === 'gate' && x.name.includes('east'))?.anchors[0].pos ?? pl?.inside) : anchorIn(pl, ['post', 'work', 'inside']); return [A({ type: 'goto', pos: post ?? body.pos }), A({ type: 'look', duration: 20 * 60, pos: post ?? body.pos })]; }
+      case 'guard_post': { const pl = place ?? w.place(p.workId); const post = p.occupation === 'guard' ? (localPlaces(w, body.pos).find(x => x.type === 'gate' && x.name.includes('east'))?.anchors[0].pos ?? pl?.inside) : anchorIn(pl, ['post', 'work', 'inside']); return [A({ type: 'goto', pos: post ?? body.pos }), A({ type: 'look', duration: 20 * 60, pos: post ?? body.pos })]; }
       case 'flee': { const threatPos = w.primaryBody(g.targetEntity!)?.pos ?? body.pos; const guards = w.livingPersons().filter(q => (q.occupation === 'guard' || q.occupation === 'captain') && q.id !== g.targetEntity); const gd = p.traits.sociability > 0.3 && !p.hostile ? this.nearestKnownGuard(p, body.pos, guards) : null; let dest: Vec3; if (gd) { dest = p.knowledge[`loc:${gd.id}`]?.claim.pos ?? w.place(gd.workId)?.inside ?? w.primaryBody(gd.id)!.pos; } else { const home = w.place(p.homeId); dest = home?.inside ?? this.awayFrom(body.pos, threatPos, 18); } if (dist2(dest, threatPos) < 8) dest = this.awayFrom(body.pos, threatPos, 20); return [A({ type: 'goto', pos: dest, run: true, data: { flee: true } }), A({ type: 'wait', duration: 3 * 60, data: { hide: true } })]; }
       case 'report': { const g2 = w.person(g.targetEntity!)!; return [A({ type: 'goto', targetEntity: g2.id, run: true }), A({ type: 'tell', targetEntity: g2.id, data: { key: g.data?.key } })]; }
       case 'investigate': { return [A({ type: 'goto', pos: g.targetPos!, run: p.occupation === 'captain' }), A({ type: 'look', duration: 3 * 60, pos: g.targetPos!, data: { key: g.data?.key, investigate: true } })]; }
@@ -1982,7 +1983,7 @@ export class Simulation {
     const doorX = Math.floor(nx), doorZ = Math.floor(nz), doorY = this.world.nav.floorY(doorX, doorZ);
     if (doorY >= 0 && this.world.grid.get(doorX, doorY, doorZ) === B.Door && !this.world.grid.isDoorOpen(doorX, doorY, doorZ)) this.world.setDoorOpen({ x: doorX, y: doorY, z: doorZ }, true, body.ownerId);
     // separation from other bodies
-    let sx = 0, sz = 0; for (const o of this.world.activeBodies()) { if (o === body) continue; const ox = body.pos.x - o.pos.x, oz = body.pos.z - o.pos.z; const od = Math.hypot(ox, oz); if (od < 0.7 && od > 1e-3) { sx += ox / od * (0.7 - od); sz += oz / od * (0.7 - od); } }
+    let sx = 0, sz = 0; for (const o of this.world.nearbyBodies(body.pos, 0.7)) { if (o === body) continue; const ox = body.pos.x - o.pos.x, oz = body.pos.z - o.pos.z; const od = Math.hypot(ox, oz); if (od < 0.7 && od > 1e-3) { sx += ox / od * (0.7 - od); sz += oz / od * (0.7 - od); } }
     body.pos.x = nx + sx * dt * 2; body.pos.z = nz + sz * dt * 2;
     const targetYaw = Math.atan2(-dx, -dz); let dy = targetYaw - body.yaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2; body.yaw += dy * Math.min(1, dt * 10);
     body.vel.x = dx / d * speed; body.vel.z = dz / d * speed;

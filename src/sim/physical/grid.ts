@@ -9,8 +9,8 @@ export class VoxelGrid {
   readonly diffs = new Map<number, number>(); // modifications relative to generation (for persistence)
   readonly doorStates = new Map<number, boolean>(); // false = closed, true = open
   recording = false;
-  constructor(public readonly W: number, public readonly H: number, public readonly D: number) {
-    this.data = new Uint8Array(W * H * D);
+  constructor(public readonly W: number, public readonly H: number, public readonly D: number, public readonly sparse = false) {
+    this.data = new Uint8Array(sparse ? 0 : W * H * D);
   }
   idx(x: number, y: number, z: number): number { return (x * this.D + z) * this.H + y; }
   inBounds(x: number, y: number, z: number): boolean { return x >= 0 && z >= 0 && y >= 0 && x < this.W && z < this.D && y < this.H; }

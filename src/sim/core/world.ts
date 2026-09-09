@@ -1,4 +1,5 @@
-import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation, WorkStint, Household, ChronicleEra } from './types';
+import { SpatialIndex, watchGeometry, watchValue } from './spatial';
+import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation, WorkStint, Household, ChronicleEra, Settlement } from './types';
 import { WorldClock } from './time';
 import { RNG } from './rng';
 import { VoxelGrid } from '../physical/grid';
@@ -90,6 +91,8 @@ export class World {
   weatherRng: RNG;
   /** Independent stream so births/deaths do not perturb combat, weather, or dialogue draws. */
   demographicRng: RNG;
+  /** Optional deterministic generation recipe; absent means authored Ashford. */
+  settlementSites?: { id: string; x: number; z: number }[];
   seed: number;
   grid!: VoxelGrid;
   nav!: Navigator;
@@ -119,6 +122,20 @@ export class World {
    * inside per-minute upkeep — did a full generator scan of every entity of every kind just to
    * find the ones matching one kind; that scan cost was the dominant cost of a headless run.
    */
+  private bodySpace = new SpatialIndex<Body>();
+  private itemPlaces = new Map<string, Set<Item>>();
+  private itemOrder = new Map<Item, number>();
+  itemsAtPlaces(ids: readonly string[]): Item[] {
+    const result = new Set<Item>();
+    for (const id of ids) for (const item of this.itemPlaces.get(id) ?? []) result.add(item);
+    return [...result].sort((a, b) => this.itemOrder.get(a)! - this.itemOrder.get(b)!);
+  }
+  private itemSpace = new SpatialIndex<Item>();
+  private placeSpace = new SpatialIndex<Place>();
+  nearbyBodies(pos: Vec3, radius: number): Body[] { return this.bodySpace.query(pos, radius).filter(b => this.livingBodiesSet.has(b.id) && Math.hypot(b.pos.x - pos.x, b.pos.z - pos.z) <= radius); }
+  nearbyItems(pos: Vec3, radius: number): Item[] { return this.itemSpace.query(pos, radius).filter(i => !i.holderId && i.pos && Math.hypot(i.pos.x - pos.x, i.pos.z - pos.z) <= radius); }
+  nearbyPlaces(pos: Vec3, radius: number): Place[] { return this.placeSpace.query(pos, radius).filter(p => Math.hypot(p.inside.x - pos.x, p.inside.z - pos.z) <= radius); }
+  spatialStats() { return { bodyCandidates: this.bodySpace.candidates, itemCandidates: this.itemSpace.candidates, placeCandidates: this.placeSpace.candidates }; }
   private byKind = new Map<Entity['kind'], Entity[]>();
   /** Hot-loop indices. Historical buckets above remain append-only and addressable forever. */
   private livingPeople: Person[] = [];
@@ -146,6 +163,16 @@ export class World {
       const b = e as unknown as Body; const owner = this.person(b.ownerId);
       if (!b.dead && b.present && owner?.alive) this.addLivingBody(b);
     }
+    if (e.kind === 'body') { const b = e as unknown as Body; watchGeometry(b, 'pos', ['x', 'z'], () => this.bodySpace.point(b, b.pos)); }
+    if (e.kind === 'item') {
+      const i = e as unknown as Item; this.itemOrder.set(i, this.itemOrder.size);
+      watchGeometry(i, 'pos', ['x', 'z'], () => this.itemSpace.point(i, i.pos));
+      watchValue(i, 'placeId', (previous, next) => {
+        if (previous) { const bucket = this.itemPlaces.get(previous); bucket?.delete(i); if (!bucket?.size) this.itemPlaces.delete(previous); }
+        if (next) { let bucket = this.itemPlaces.get(next); if (!bucket) this.itemPlaces.set(next, bucket = new Set()); bucket.add(i); }
+      });
+    }
+    if (e.kind === 'place') { const p = e as unknown as Place; watchGeometry(p, 'bounds', ['x0', 'x1', 'z0', 'z1'], () => this.placeSpace.update(p, { ...p.bounds, x1: p.bounds.x1 + 1, z1: p.bounds.z1 + 1 })); }
     return e;
   }
   /** Look up an authored entity by its stable slug (e.g. 'rowan', 'ashford-vale', 'watch').
@@ -172,6 +199,19 @@ export class World {
   items(): Item[] { return (this.byKind.get('item') as Item[] | undefined) ?? []; }
   places(): Place[] { return (this.byKind.get('place') as Place[] | undefined) ?? []; }
   creatures(): Creature[] { return (this.byKind.get('creature') as Creature[] | undefined) ?? []; }
+  settlements(): Settlement[] { return (this.byKind.get('settlement') as Settlement[] | undefined) ?? []; }
+  settlementOf(person: Person): Settlement | undefined { const e = this.get<Settlement>(this.place(person.homeId)?.settlementId); return e?.kind === 'settlement' ? e : undefined; }
+  recordSettlementPopulations(event?: WorldEvent): void {
+    for (const settlement of this.settlements()) {
+      const residents = this.persons().filter(p => this.settlementOf(p)?.id === settlement.id);
+      const population = residents.filter(p => p.alive).length;
+      for (const p of residents) if (!settlement.formerInhabitantIds.includes(p.id)) settlement.formerInhabitantIds.push(p.id);
+      const person = this.person(event?.target);
+      const vital = (event?.type === 'birth' || event?.type === 'death') && person && this.settlementOf(person)?.id === settlement.id;
+      if (vital || settlement.populationHistory.at(-1)?.population !== population) settlement.populationHistory.push({ tick: event?.tick ?? this.now, population,
+        type: vital ? event!.type as 'birth' | 'death' : 'residence', ...(vital ? { personId: person!.id, eventId: event!.id } : {}) });
+    }
+  }
   households(): Household[] { return (this.byKind.get('household') as Household[] | undefined) ?? []; }
   livingPersons(): readonly Person[] { return this.livingPeople; }
   activeBodies(): readonly Body[] { return this.livingBodies; }
@@ -226,7 +266,7 @@ export class World {
 
   placeAt(pos: Vec3): Place | undefined {
     let best: Place | undefined; let bestArea = Infinity;
-    for (const p of this.ofKind<Place>('place')) {
+    for (const p of this.placeSpace.query(pos, 0)) {
       const b = p.bounds;
       if (pos.x >= b.x0 && pos.x <= b.x1 + 1 && pos.z >= b.z0 && pos.z <= b.z1 + 1 && pos.y >= b.y0 - 1 && pos.y <= b.y1 + 2) {
         const area = (b.x1 - b.x0) * (b.z1 - b.z0); if (area < bestArea) { best = p; bestArea = area; }
@@ -250,6 +290,7 @@ export class World {
     if (TALLIED_TYPES.has(type)) this.runTally[type] = (this.runTally[type] ?? 0) + 1;
     this.events.push(e); this.eventIndex.set(id, e);
     this.applySignificance(e);
+    if (type === 'birth' || type === 'death') this.recordSettlementPopulations(e);
     for (const c of e.causes) { const ce = this.eventIndex.get(c); if (ce) { const before = ce.effects.length; ce.effects.push(id); const delta = ce.actor ? effectCentralityDelta(before, ce.effects.length) : 0; if (ce.actor && delta) this.addSignificance(ce.actor, delta); } }
     if (e.visibility || e.loudness) this.pendingStimuli.push(e);
     // v0.9: one hook, installed by the Simulation, through which EVERY canonical event passes

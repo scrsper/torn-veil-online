@@ -424,6 +424,10 @@ Do not fill it with session logs.
 
 # Documentation routing
 
+Settlement continuity: `src/sim/world/settlementContinuity.ts` and the `Settlement` entity in `src/sim/core/types.ts`. Physical query indexes: `src/sim/core/spatial.ts`. Detailed benchmark measurements: `docs/procedural-settlement-detailed-benchmark.json`; epoch semantics are audited in `docs/PROCEDURAL_SETTLEMENTS.md`.
+
+Procedural settlement generation and shared-world locality: `src/sim/world/settlementSpec.ts`, `src/sim/world/settlement.ts`, `src/sim/world/locality.ts`; sparse terrain: `src/sim/physical/regionalGrid.ts`; acceptance harness: `src/headless/worldlab/settlements.ts`. See `docs/PROCEDURAL_SETTLEMENTS.md` for the pipeline, audit, commands, and simulation-resolution limits. Authored Ashford remains in `village.ts` / `cast.ts`.
+
 Use this order when additional context is needed:
 
 1. relevant source;

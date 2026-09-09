@@ -1,3 +1,4 @@
+import { localPlaces, near, placeForPerson } from './locality';
 import type { CropPlot, CropState, Field, Item, ItemType, Person, Vec3, EntityId, EventId } from '../core/types';
 import type { World } from '../core/world';
 import { B } from '../physical/blocks';
@@ -277,9 +278,9 @@ export function transform(world: World, o: {
   return { ok: true, produced: o.outputQty, consumed, shortage: undefined, eventId: ev.id };
 }
 
-export function villageStock(world: World, type: ItemType): number {
-  return stockTotal(world, type, world.places().map(p => p.id))
-    + world.items().filter(i => i.type === type && i.holderId).reduce((a, b) => a + b.quantity, 0);
+export function villageStock(world: World, type: ItemType, pos?: Vec3): number {
+  return stockTotal(world, type, (pos ? localPlaces(world, pos) : world.places()).map(p => p.id))
+    + world.items().filter(i => i.type === type && i.holderId && (!pos || near(pos, world.positionOf(i.holderId)))).reduce((a, b) => a + b.quantity, 0);
 }
 
 /**
@@ -290,9 +291,9 @@ export function villageStock(world: World, type: ItemType): number {
  * nothing runs once the village has plenty of flour.
  */
 export function mill(world: World, miller: Person): TransformResult {
-  const millId = world.places().find(p => p.type === 'mill')?.id;
+  const millId = placeForPerson(world, miller, 'mill')?.id;
   if (!millId) return { ok: false, produced: 0, consumed: 0 };
-  if (villageStock(world, 'flour') >= FLOUR_CAP) return { ok: false, produced: 0, consumed: 0 };
+  if (villageStock(world, 'flour', world.place(millId)?.inside) >= FLOUR_CAP) return { ok: false, produced: 0, consumed: 0 };
   // Quiet no-op when the input simply hasn't been delivered yet — that is not a "shortage",
   // it is normal demand-driven operation, and the logistics generator already raises a haul.
   if (stockAtPlace(world, 'grain', millId) < MILL_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'grain' };
@@ -316,9 +317,9 @@ export function mill(world: World, miller: Person): TransformResult {
  * (hauled from the mill). It cannot bake from flour still sitting at the mill.
  */
 export function bake(world: World, baker: Person): TransformResult {
-  const bakeryId = world.places().find(p => p.type === 'bakery')?.id;
+  const bakeryId = placeForPerson(world, baker, 'bakery')?.id;
   if (!bakeryId) return { ok: false, produced: 0, consumed: 0 };
-  if (villageStock(world, 'bread') >= BREAD_CAP) return { ok: false, produced: 0, consumed: 0 };
+  if (villageStock(world, 'bread', world.place(bakeryId)?.inside) >= BREAD_CAP) return { ok: false, produced: 0, consumed: 0 };
   if (stockAtPlace(world, 'flour', bakeryId) < BAKE_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'flour' };
   // v0.5 Adaptive Society: the same novice yield milling now pays. Osric and Mara are seeded at
   // `TRADE_BASELINE`, so the bakery's real output is untouched; somebody standing in for them is
@@ -334,10 +335,10 @@ export function bake(world: World, baker: Person): TransformResult {
  * project before its manifest is known. Reads `world.constructionProjects` directly rather than
  * importing `construction.ts`'s own `projectDeficits` helper, to keep this a one-way, minimal
  * dependency (metabolism -> canonical project state only, not construction's haul-raising logic). */
-function plankCapFor(world: World): number {
+function plankCapFor(world: World, pos?: Vec3): number {
   let deficit = 0;
   for (const proj of world.constructionProjects) {
-    if (proj.status === 'complete' || proj.status === 'cancelled') continue;
+    if (proj.status === 'complete' || proj.status === 'cancelled' || (pos && !near(pos, world.place(proj.sitePlaceId)?.inside))) continue;
     for (const req of proj.required) {
       if (req.type !== 'plank') continue;
       deficit += Math.max(0, req.quantity - stockAtPlace(world, 'plank', proj.sitePlaceId));
@@ -352,9 +353,9 @@ function plankCapFor(world: World): number {
  * via a real plank cap tracking open construction demand (see `plankCapFor`), not a flat number.
  */
 export function saw(world: World, sawyer: Person): TransformResult {
-  const sawpitId = world.places().find(p => p.type === 'sawpit')?.id;
+  const sawpitId = placeForPerson(world, sawyer, 'sawpit')?.id;
   if (!sawpitId) return { ok: false, produced: 0, consumed: 0 };
-  if (stockTotal(world, 'plank', [sawpitId]) >= plankCapFor(world)) return { ok: false, produced: 0, consumed: 0 };
+  if (stockTotal(world, 'plank', [sawpitId]) >= plankCapFor(world, world.place(sawpitId)?.inside)) return { ok: false, produced: 0, consumed: 0 };
   if (stockAtPlace(world, 'log', sawpitId) < SAW_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'log' };
   const result = transform(world, { actor: sawyer.id, inputType: 'log', inputQty: SAW_RATIO.in, inputPlaces: [sawpitId], outputType: 'plank', outputQty: SAW_RATIO.out, outputPlace: sawpitId, ownerId: sawyer.id, how: 'sawn' });
   if (result.ok) practiceSkill(sawyer, 'sawing', 1);
@@ -426,7 +427,7 @@ const ALE_RESTOCK_QTY = 6;
  * (`world.runTally.supply_cost_amount`) for auditability. */
 const ALE_SUPPLY_COST_PER_UNIT = ITEM_VALUE.ale;
 export function restockTavern(world: World, innkeeper: Person): boolean {
-  const tavernId = world.places().find(p => p.type === 'tavern')?.id;
+  const tavernId = placeForPerson(world, innkeeper, 'tavern')?.id;
   if (!tavernId) return false;
   if (stockAtPlace(world, 'ale', tavernId) >= ALE_RESTOCK_TRIGGER) return false;
   const cost = Math.round(Math.max(0, Math.min(ALE_RESTOCK_QTY * ALE_SUPPLY_COST_PER_UNIT, innkeeper.wealth)) * 100) / 100;
@@ -484,7 +485,7 @@ const MEAT_RESTOCK_QTY = 4;
 const MEAT_MARGIN_PER_UNIT = 0.5;
 const MEAT_SUPPLY_COST_PER_UNIT = ITEM_VALUE.meat - MEAT_MARGIN_PER_UNIT;
 export function huntGame(world: World, hunter: Person): boolean {
-  const stallId = world.places().find(p => p.slug === 'stall_game')?.id;
+  const stallId = localPlaces(world, world.positionOf(hunter.id)).find(p => p.slug === 'stall_game' || p.slug?.endsWith(':stall_game'))?.id;
   if (!stallId) return false;
   if (stockAtPlace(world, 'meat', stallId) >= MEAT_RESTOCK_TRIGGER) return false;
   const cost = Math.round(Math.max(0, Math.min(MEAT_RESTOCK_QTY * MEAT_SUPPLY_COST_PER_UNIT, hunter.wealth)) * 100) / 100;
@@ -518,6 +519,7 @@ export function findAccessibleFood(world: World, p: Person, atPlaceId: EntityId 
   const scan = (placeId: EntityId | null | undefined, isHome: boolean): Item | null => {
     if (!placeId) return null;
     const place = world.place(placeId);
+    if (!place || !near(world.positionOf(p.id), place.inside)) return null;
     const household = isHome ? new Set(place?.residents ?? []) : new Set<EntityId>();
     const okOwner = (i: Item) => i.ownerId == null || i.ownerId === p.id || i.ownerId === p.householdId || i.ownerId === place?.ownerId || household.has(i.ownerId);
     const placed = world.items().find(i => i.placeId === placeId && !i.holderId && isFood(i.type) && i.quantity > 0 && okOwner(i));
@@ -623,7 +625,7 @@ export function eatFood(world: World, p: Person, food: Item): ItemType {
 /** Canonical water sources: the `well`-type Places (the village well, and a river-bank draw
  * near the mill). Cheap — a scan over ~2 Places, no per-tile grid probing. */
 export function nearestWaterSource(world: World, pos: Vec3): { pos: Vec3; placeId?: EntityId } | null {
-  let best: { pos: Vec3; placeId?: EntityId } | null = null; let bd = Infinity;
+  let best: { pos: Vec3; placeId?: EntityId } | null = null; let bd = 256;
   for (const pl of world.ofKind<import('../core/types').Place>('place')) {
     if (pl.type !== 'well') continue;
     const d = Math.hypot(pl.inside.x - pos.x, pl.inside.z - pos.z);

@@ -1,3 +1,4 @@
+import { localPlaces, near } from './locality';
 import type { ConstructionProject, ConstructionRequirement, ItemType, Person, Place, Vec3, EntityId } from '../core/types';
 import type { World } from '../core/world';
 import { B } from '../physical/blocks';
@@ -198,15 +199,17 @@ export function stepConstruction(world: World): void {
   // upstream link of the wood chain (tree → log → HAUL → sawpit → plank).
   const anyNeedsPlanks = world.constructionProjects.some(p => p.status === 'gathering' && projectDeficits(world, p).some(d => d.type === 'plank'));
   if (anyNeedsPlanks) {
-    const sawpit = world.places().find(p => p.type === 'sawpit');
-    const clearing = world.places().find(p => p.type === 'wilderness' && p.slug === 'clearing');
-    if (sawpit && clearing && stockAt(world, 'log', sawpit.id) < 10 && stockAt(world, 'log', clearing.id) > 0
-      && !openHaulTasks(world).some(t => t.resource === 'log' && t.destPlaceId === sawpit.id)) {
-      const want = Math.min(carryCapFor('log'), stockAt(world, 'log', clearing.id));
-      createHaulTask(world, {
-        resource: 'log', quantity: want, sourcePlaceId: clearing.id, destPlaceId: sawpit.id,
-        reason: 'the sawpit needs logs', requesterId: sawpit.workers[0] ?? null, priority: 0.7,
-      });
+    for (const sawpit of world.places().filter(p => p.type === 'sawpit')) {
+      if (!world.constructionProjects.some(p => p.status === 'gathering' && near(sawpit.inside, world.place(p.sitePlaceId)?.inside) && projectDeficits(world, p).some(d => d.type === 'plank'))) continue;
+      const clearing = localPlaces(world, sawpit.inside).find(p => p.type === 'wilderness' && (p.slug === 'clearing' || p.slug?.endsWith(':clearing')));
+      if (sawpit && clearing && stockAt(world, 'log', sawpit.id) < 10 && stockAt(world, 'log', clearing.id) > 0
+        && !openHaulTasks(world).some(t => t.resource === 'log' && t.destPlaceId === sawpit.id)) {
+        const want = Math.min(carryCapFor('log'), stockAt(world, 'log', clearing.id));
+        createHaulTask(world, {
+          resource: 'log', quantity: want, sourcePlaceId: clearing.id, destPlaceId: sawpit.id,
+          reason: 'the sawpit needs logs', requesterId: sawpit.workers[0] ?? null, priority: 0.7,
+        });
+      }
     }
   }
   for (const p of world.constructionProjects) {
@@ -223,7 +226,7 @@ export function stepConstruction(world: World): void {
     if (p.status !== 'gathering') continue;
     // Raise a haul task per still-deficient material from the matching producer.
     for (const { type, deficit } of projectDeficits(world, p)) {
-      const src = producerPlace(world, type);
+      const src = producerPlace(world, type, p.sitePlaceId);
       if (!src) continue;
       const already = openHaulTasks(world).some(t => t.projectId === p.id && t.resource === type);
       if (already) continue;
@@ -238,11 +241,12 @@ export function stepConstruction(world: World): void {
   }
 }
 
-function producerPlace(world: World, type: ItemType): Place | undefined {
-  if (type === 'plank') return world.places().find(p => p.type === 'sawpit');
-  if (type === 'stone') return world.places().find(p => p.type === 'quarry');
-  if (type === 'log') return world.places().find(p => p.type === 'wilderness' && p.slug === 'clearing') ?? world.places().find(p => p.type === 'sawpit');
-  return world.places().find(p => p.id === type); // no other producers in v0.3
+function producerPlace(world: World, type: ItemType, siteId: string): Place | undefined {
+  const places = localPlaces(world, world.place(siteId)?.inside);
+  if (type === 'plank') return places.find(p => p.type === 'sawpit');
+  if (type === 'stone') return places.find(p => p.type === 'quarry');
+  if (type === 'log') return places.find(p => p.type === 'wilderness' && (p.slug === 'clearing' || p.slug?.endsWith(':clearing'))) ?? places.find(p => p.type === 'sawpit');
+  return places.find(p => p.id === type); // no other producers in v0.3
 }
 
 // ---------------------------------------------------------------- observability

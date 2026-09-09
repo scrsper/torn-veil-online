@@ -1,3 +1,4 @@
+import { near } from '../world/locality';
 import type { Person, KnowledgeItem, Source, EntityId, WorldEvent, Vec3, Place, PlaceType } from '../core/types';
 import { World } from '../core/world';
 import { memoriesAtPlace, remember } from './memory';
@@ -365,6 +366,7 @@ export function knownFoodPlace(world: World, p: Person): EntityId | undefined {
     const boughtRecently = memories.some(m => m.type === 'purchase' && now - m.tick < FOOD_PREFERENCE_WINDOW_SECONDS);
     const foundEmptyRecently = memories.some(m => m.type === 'shortage' && now - m.tick < FOOD_AVOIDANCE_WINDOW_SECONDS);
     const place = world.place(placeId);
+    if (!body || !place || !near(body.pos, place.inside)) continue;
     const distancePenalty = body && place ? Math.min(0.6, world.distance2d(body.pos, place.inside) / FOOD_DISTANCE_SCALE) : 0;
     const score = k.confidence + (boughtRecently ? 0.35 : 0) - (foundEmptyRecently ? 0.5 : 0) - distancePenalty;
     if (score > bestScore) { bestScore = score; best = k; }
