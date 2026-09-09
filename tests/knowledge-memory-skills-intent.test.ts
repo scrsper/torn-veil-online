@@ -276,10 +276,17 @@ describe('mill converted to demand-aware production (v0.6 §VIII)', () => {
 
 // ==================================================================== Determinism (unchanged)
 describe('v0.6 determinism', () => {
+  // 180 s, not 60 s. This runs the full headless village TWICE for two world-days, and the wider
+  // trade economy made those runs genuinely more expensive: measured on seed 918271, one two-day
+  // run went from 17.9 s to 23.9 s (+33 %), essentially all of it in `sim.act` (3.4 s -> 8.2 s),
+  // because the tavern is now a real trade its four staff work and the sawpit's batches go through
+  // the authorization path instead of a bespoke occupation branch. That is the cost of the work
+  // being real, not a regression to tune away, and the assertion below — byte-identical canonical
+  // state — is untouched.
   it('the same seed produces byte-identical canonical state after several world-days with the new systems active', () => {
     const a = runHeadless({ seed: 918271, days: 2 });
     const b = runHeadless({ seed: 918271, days: 2 });
     expect(a.summary.metabolism.avgHunger).toBe(b.summary.metabolism.avgHunger);
     expect(JSON.stringify(a.summary.cognition)).toBe(JSON.stringify(b.summary.cognition));
-  }, 60000);
+  }, 180_000);
 });

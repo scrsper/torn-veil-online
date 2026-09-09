@@ -112,7 +112,14 @@ export interface Body extends Entity {
 export type Occupation =
   | 'smith' | 'apprentice' | 'baker' | 'innkeeper' | 'cook' | 'server' | 'merchant' | 'priest' | 'acolyte'
   | 'guard' | 'captain' | 'farmer' | 'miller' | 'hunter' | 'herbalist' | 'woodcutter' | 'elder' | 'vagrant'
-  | 'child' | 'bandit' | 'traveler';
+  | 'child' | 'bandit' | 'traveler'
+  // A grown person with no trade of their own. Not a role anybody is given and not a station:
+  // it is the SUMMARY of a real canonical state — past childhood (`lifeStage`), holding no
+  // `workId` — and it is what a person born in the world is called between coming of age and
+  // whatever their life turns out to make of them (`mind/livelihood.ts`). Nothing gates on it
+  // that does not equally gate on 'vagrant' or 'apprentice'; it exists so a grown person stops
+  // being handed a child's day by `mind/schedule.ts`.
+  | 'villager';
 
 export interface Traits {
   courage: number; sociability: number; honesty: number; aggression: number;
@@ -1187,6 +1194,26 @@ export interface Conflict {
    * outcome. Recomputed behaviour — safe to lose across a save/reload, so it is not required to
    * persist even though it lives on the persisted object. */
   data_disengagedBy?: EntityId;
+  /**
+   * Who this conflict has already put on the ground, and when — the durable record of the
+   * ordinary way a fight without lethal intent ends.
+   *
+   * It is durable precisely BECAUSE the pose is not. `Simulation.applyHit` downs a beaten body
+   * for 45 PHYSICAL seconds and `bodyPhysics` then stands it back up at 30% health, while the
+   * only thing that ever stopped an attacker was an instantaneous observation of
+   * `Body.pose === 'downed'` inside `act`. Whether a fight ended therefore depended on the
+   * caller's physical step size: at play cadence somebody always looked inside the window, and
+   * at the epoch tier's one-step-per-calendar-day cadence nobody ever did — measured on seed
+   * 918271, where two bandits and five villagers exchanged 5,657 blows across five years without
+   * a single fight ending. A canonical outcome may not depend on how often the world is observed
+   * (Constitution invariant I, §46). Recording the downing on the `Conflict` — which already
+   * outlives event compaction and persists — makes "I put them down" a fact rather than a
+   * glimpse, so the same fight ends the same way at every cadence.
+   *
+   * Cleared by `recordConflictBlow` when the downed party strikes back: getting up and coming at
+   * somebody again is a real resumption, and this must not become a permanent immunity.
+   */
+  downed?: { who: EntityId; by: EntityId; at: Tick };
 }
 
 export interface SurrenderState { toId: EntityId; at: Tick; conflictId?: EntityId; reason: string; }
@@ -1414,6 +1441,12 @@ export type EventType =
   // it opens and once when it is given up, never per batch, and instruction is rate-limited by
   // the student's own standing belief about having been taught.
   | 'work_taken_up' | 'work_given_up' | 'work_taught'
+  // Generational continuity — somebody who held no trade of their own has been recognised as
+  // holding one, because of what they were taught, practised and had the opportunity to do
+  // (`mind/livelihood.ts`). A real canonical transition: `workId` and the place's own `workers`
+  // change with it, which is what decides whether a batch can happen there. Emitted once, when
+  // the trade is taken up — never per batch and never per birthday.
+  | 'livelihood_taken_up'
   // Demographic continuity — semantic transitions only, never per-tick heartbeats.
   | 'courtship' | 'pregnancy_started' | 'pregnancy_lost' | 'coming_of_age' | 'inheritance';
 

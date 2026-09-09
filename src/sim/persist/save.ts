@@ -123,7 +123,15 @@ const KEY = 'infinite-rpg-save-v1';
 // overlay above so neither branch's canonical state can be silently discarded.
 // Demographic continuity + year-scale substrate: generated people/bodies, lineage, households,
 // pregnancy, materialized significance, Chronicle eras, and the demographic RNG stream.
-export const SAVE_VERSION = 18;
+// 18 -> 19: `Conflict.downed` (who a fight has already put on the ground, and who put them
+// there) and the trades people have taken up in-run (`Person.workId`/`occupation` written by
+// `mind/livelihood.ts`, and the `livelihood_taken_up` events behind them). Both are, like every
+// bump above, state a run's history PRODUCED and no fresh tick can recompute. Losing the downing
+// would restart fights that had already been settled by one; losing the livelihood record would
+// silently rewrite a village that had staffed itself from its own children into one that never
+// did. Conflicts and people are whole-object-persisted, so a v18 save would technically load —
+// which is exactly why the gate has to be explicit rather than left to chance.
+export const SAVE_VERSION = 19;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and

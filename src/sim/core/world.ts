@@ -238,11 +238,14 @@ export class World {
     const p = typeof personOrId === 'string' ? this.person(personOrId) : personOrId;
     if (!p || !p.alive) return false;
     p.alive = false; p.deathTick = tick; p.mind.goal = null; p.mind.plan = [];
-    if (this.livingPeopleSet.delete(p.id)) this.livingPeople = this.livingPeople.filter(x => x.id !== p.id);
+    // Spliced in place rather than rebuilt with `.filter()`: the index is a hot loop read on
+    // every physical step, and a death should cost one removal, not a fresh array of everybody
+    // still alive. Order is preserved either way, which is what determinism depends on.
+    if (this.livingPeopleSet.delete(p.id)) { const at = this.livingPeople.indexOf(p); if (at >= 0) this.livingPeople.splice(at, 1); }
     for (const bodyId of p.bodies) {
       const b = this.body(bodyId); if (!b) continue;
       b.dead = true; b.health = 0; b.pose = 'dead'; b.present = false;
-      if (this.livingBodiesSet.delete(b.id)) this.livingBodies = this.livingBodies.filter(x => x.id !== b.id);
+      if (this.livingBodiesSet.delete(b.id)) { const at = this.livingBodies.indexOf(b); if (at >= 0) this.livingBodies.splice(at, 1); }
     }
     return true;
   }

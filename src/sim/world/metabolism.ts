@@ -71,7 +71,7 @@ export const SAW_RATIO = { in: 2, out: 3 } as const;
  * the multi-year regrow time). A small flat floor remains (so sawing can still get ahead of a
  * FRESH project before its deficit is known) but the effective cap now tracks the real,
  * currently-open plank deficit across active construction projects — see `plankCapFor` below. */
-const PLANK_BASE_BUFFER = 10;
+export const PLANK_BASE_BUFFER = 10;
 /** Stock ceilings that make the pipeline demand-driven rather than infinite: a farmer stops
  * harvesting once the village has plenty of grain, a miller stops once there is plenty of
  * flour, a baker stops once there is plenty of bread. Production resumes when stock falls.
@@ -335,7 +335,9 @@ export function bake(world: World, baker: Person): TransformResult {
  * project before its manifest is known. Reads `world.constructionProjects` directly rather than
  * importing `construction.ts`'s own `projectDeficits` helper, to keep this a one-way, minimal
  * dependency (metabolism -> canonical project state only, not construction's haul-raising logic). */
-function plankCapFor(world: World, pos?: Vec3): number {
+/** Exported so `world/production.ts` can make the sawpit's plank reserve the size of what the
+ * village has actually asked for, rather than a fixed larder — see `ProductionSpec.reserve`. */
+export function plankCapFor(world: World, pos?: Vec3): number {
   let deficit = 0;
   for (const proj of world.constructionProjects) {
     if (proj.status === 'complete' || proj.status === 'cancelled' || (pos && !near(pos, world.place(proj.sitePlaceId)?.inside))) continue;

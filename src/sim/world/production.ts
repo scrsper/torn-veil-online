@@ -1,8 +1,8 @@
-import type { EntityId, ItemType, PlaceType, Request } from '../core/types';
+import type { EntityId, ItemType, Place, PlaceType, Request } from '../core/types';
 import type { World } from '../core/world';
 import { stockAt } from './stock';
 import { createRequest, acceptRequest, completeRequest, openRequests } from '../core/requests';
-import { BAKE_RATIO, MILL_RATIO } from './metabolism';
+import { BAKE_RATIO, MILL_RATIO, PLANK_BASE_BUFFER, SAW_RATIO, plankCapFor } from './metabolism';
 import { MEAT_TO_STEW_RATIO } from './cooking';
 
 /**
@@ -17,7 +17,27 @@ import { MEAT_TO_STEW_RATIO } from './cooking';
  * raises production demand because bread stock is below desired reserve" over a schedule).
  */
 
-export interface ProductionSpec { placeType: PlaceType; resource: ItemType; target: number; trigger: number; batchOut: number; reason: string; }
+export interface ProductionSpec {
+  placeType: PlaceType; resource: ItemType; target: number; trigger: number; batchOut: number; reason: string;
+  /**
+   * A reserve that is not a fixed larder but the size of what has actually been asked for.
+   *
+   * A bakery wants roughly the same amount of bread on the shelf whatever else is happening; a
+   * sawpit wants exactly as many planks as the village currently has projects for, and no more —
+   * `world/metabolism.ts`'s `plankCapFor` is already the canonical answer to that, and it exists
+   * because an oversized standing plank buffer was measured wasting two-thirds of the world's
+   * lifetime timber on stock nobody had asked for. Optional, so the ordinary case stays two plain
+   * numbers; when present it overrides both, and every reader resolves it through
+   * `reserveFor` rather than reading `target`/`trigger` directly.
+   */
+  reserve?: (world: World, place: Place) => { target: number; trigger: number };
+}
+
+/** The reserve this place wants of this resource right now — the one place both the demand pass
+ * and `world/labor.ts`'s under-served derivation ask, so the two can never disagree. */
+export function reserveFor(world: World, spec: ProductionSpec, place: Place): { target: number; trigger: number } {
+  return spec.reserve ? spec.reserve(world, place) : { target: spec.target, trigger: spec.trigger };
+}
 
 /** Bread/bakery (v0.5) plus flour/mill (v0.6 §VIII — the second production/work domain the
  * milestone asks be converted from unconditional cadence to demand-aware). The shape
@@ -38,6 +58,18 @@ const PRODUCTION_TARGETS: ProductionSpec[] = [
   // deficit AND real fire/heat (world/cooking.ts's `cook`, which returns `produced: 0` and
   // therefore never pays a wage if the hearth isn't genuinely burning hot enough).
   { placeType: 'tavern', resource: 'stew', target: 18, trigger: 8, batchOut: MEAT_TO_STEW_RATIO.out, reason: 'the tavern is low on stew' },
+  // The sawpit's planks. Converted from an unconditional per-cadence `saw()` call to the same
+  // demand-driven Request shape every other producer uses, which is what lets the sawpit become a
+  // real `TradeProcess` (world/labor.ts): under-servedness is defined by demand a place has
+  // genuinely raised and cannot fill, and a place that never raises one can never be found short
+  // of hands. The reserve is `plankCapFor` — the open plank deficit across live construction
+  // projects plus a small base buffer — so the sawpit is asked for exactly the timber the village
+  // has projects for, which is the same bound the transform itself already respected.
+  {
+    placeType: 'sawpit', resource: 'plank', target: PLANK_BASE_BUFFER, trigger: PLANK_BASE_BUFFER, batchOut: SAW_RATIO.out,
+    reason: 'the sawpit is short of planks for the work in hand',
+    reserve: (world) => { const cap = plankCapFor(world); return { target: cap, trigger: cap }; },
+  },
 ];
 
 /** A modest, flat wage per accepted batch — deliberately simple (Constitution v0.5 §18: static
@@ -68,11 +100,12 @@ export function openProductionRequests(world: World): Request[] {
 export function generateProductionNeeds(world: World): void {
   for (const spec of PRODUCTION_TARGETS) {
     for (const place of world.places().filter(p => p.type === spec.placeType)) {
+      const { trigger } = reserveFor(world, spec, place);
       const have = stockAt(world, spec.resource, place.id);
       const pipeline = openProductionRequests(world)
         .filter(r => r.payload.placeId === place.id && r.payload.resource === spec.resource)
         .reduce((n, r) => n + (r.payload.quantity ?? 0), 0);
-      if (have + pipeline >= spec.trigger) continue;
+      if (have + pipeline >= trigger) continue;
       createRequest(world, {
         type: 'production', requesterId: place.ownerId ?? place.workers[0] ?? null, requesterPlaceId: place.id,
         reward: PRODUCTION_WAGE_PER_BATCH, cause: spec.reason,

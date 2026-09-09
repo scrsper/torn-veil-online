@@ -1,4 +1,3 @@
-import { tradeMakes } from '../world/supply';
 import { near } from '../world/locality';
 import type { HaulTask, HaulStatus, ItemType, Person, Vec3, EntityId, Place } from '../core/types';
 import type { World } from '../core/world';
@@ -8,6 +7,8 @@ import { FARM_SEED_RESERVE } from '../world/metabolism';
 import { getPhysicalCapability } from '../core/attributes';
 import { createRequest, acceptRequest, completeRequest, failRequest } from '../core/requests';
 import { skillOf, practiceSkill } from '../core/skills';
+import { tradeMakes, tradeNeeds } from '../world/supply';
+import { isFuel } from '../world/fire';
 import { settleWholesale, wholesaleBuyerFor } from '../world/trade';
 import { adjustRel } from '../mind/relationships';
 
@@ -85,6 +86,15 @@ const CONSUMER_DEMANDS: Demand[] = [
   // got enough). `sourceType: 'wilderness'` resolves to the clearing specifically because it's
   // the only wilderness Place that ever holds `stick` stock.
   { destType: 'tavern', resource: 'stick', sourceType: 'wilderness', target: 12, trigger: 4, reason: 'the tavern needs kindling for the hearth' },
+  // The sawpit's own logs. This used to be a bespoke block inside `world/construction.ts`'s
+  // `stepConstruction` — the one consumer in the village whose input arrived by a hand-rolled
+  // haul rather than through this table — and it is here now because the sawpit became a real
+  // `TradeProcess` (world/labor.ts): a trade whose input supply is invisible to the canonical
+  // logistics record is a trade whose stoppages cannot be reasoned about, and
+  // `tests/causal-society.test.ts`'s drift alarm said so out loud the moment the process was
+  // added. Ten logs is the same standing buffer the deleted block used, and the same figure
+  // `PLANK_BASE_BUFFER` uses for the planks that come out of them.
+  { destType: 'sawpit', resource: 'log', sourceType: 'wilderness', target: 10, trigger: 10, reason: 'the sawpit is short of logs' },
 ];
 /** How long (world seconds) a claimed-but-not-progressing task waits before its claim is released. */
 const STALE_CLAIM_SECONDS = 40 * 60;
@@ -153,11 +163,44 @@ export function createHaulTask(world: World, s: HaulTaskSpec): HaulTask {
  */
 export function consumerDemands(): readonly Demand[] { return CONSUMER_DEMANDS; }
 
+/**
+ * Does this place deal in this resource at all?
+ *
+ * A demand is keyed by PLACE TYPE, and a type is not always one place: Ashford has four stalls,
+ * and only one of them is the bread stall. Taking "the first place of this type" hid that — it
+ * happened to return the bread stall because village generation registers it first, which is not
+ * a reason for anything. Asking every stall instead would have the vegetable stall, the grain
+ * stall and the hunter's stall all demanding bread.
+ *
+ * So the question is answered from canonical facts rather than from a slug or a name: the place
+ * already holds some of the resource, somebody who works it plies a trade that makes or needs it
+ * (`world/supply.ts`, the village's own public account of which trade makes what), or the place
+ * has a hearth and the resource is something that burns (`world/fire.ts`). A stall that has sold
+ * out is still the bread stall, because the baker still keeps it; and the tavern has business
+ * receiving kindling because it has a fire in it, which no trade table says and no slug needed
+ * to — that third clause exists because leaving it out silently stopped the tavern's hearth ever
+ * being supplied, and with it the cook's stew.
+ */
+function dealsIn(world: World, place: Place, resource: ItemType): boolean {
+  if (stockAt(world, resource, place.id) > 0) return true;
+  if (place.fires.length && isFuel(resource)) return true;
+  const keepers = new Set<EntityId>(place.workers);
+  if (place.ownerId) keepers.add(place.ownerId);
+  for (const id of keepers) {
+    const person = world.person(id);
+    if (person && (tradeMakes(person.occupation, resource) || tradeNeeds(person.occupation, resource))) return true;
+  }
+  return false;
+}
+
 export function generateLogisticsNeeds(world: World): void {
   // 1. Food chain: consumer Place below trigger + a supplier Place with surplus → one task.
   for (const d of CONSUMER_DEMANDS) {
-    for (const dest of world.places().filter(p => p.type === d.destType)) {
-      if (dest.type === 'stall' && !tradeMakes(world.person(dest.ownerId)?.occupation ?? 'vagrant', d.resource) && stockAt(world, d.resource, dest.id) === 0) continue;
+    // EVERY consumer of the type, not the first: a tavern going short of ale is a fact about that
+    // tavern, and with a second settlement the first one registered is not an answer at all. The
+    // supplier is then chosen from the ones near IT (`world/locality.ts`'s `near`), so a haul never
+    // proposes carrying grain between two settlements because one of them happened to have spare.
+    for (const dest of world.places().filter(p => p.type === d.destType && dealsIn(world, p, d.resource))) {
       const have = stockAt(world, d.resource, dest.id);
       const inbound = openHaulTasks(world).filter(t => t.destPlaceId === dest.id && t.resource === d.resource)
         .reduce((n, t) => n + (t.quantity - t.delivered), 0);

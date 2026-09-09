@@ -235,6 +235,10 @@ export function buildWorldRunSummary(world: World, ctx: WorldRunSummaryContext):
 }
 
 function materialsSummary(world: World): WorldRunSummary['materials'] {
+  // Telemetry, and deliberately still world-global: a run summary reports on the world, not from
+  // anybody's standpoint, so it must NOT be re-pointed at a locality nobody asked about. When a
+  // run contains more than one settlement these fields need per-settlement grouping, which is a
+  // reporting change rather than a nearer answer.
   const riverWoods = world.places().find(p => p.slug === 'river_woods');
   return {
     fire: fireSummary(world),
@@ -294,6 +298,7 @@ function cognitionSummary(world: World): WorldRunSummary['cognition'] {
 }
 
 function breadPricingSnapshot(world: World): WorldRunSummary['pricing'] {
+  // Telemetry — see the note in `materialsSummary` on why these stay world-global.
   const bakery = world.places().find(p => p.type === 'bakery');
   const stall = world.places().find(p => p.type === 'stall' && p.name.toLowerCase().includes('bread'));
   return {

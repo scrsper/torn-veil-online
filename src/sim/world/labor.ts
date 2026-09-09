@@ -1,10 +1,12 @@
 import type { EntityId, ItemType, Person, Place, PlaceType, SkillId, WorkStint } from '../core/types';
+import type { ToolAction } from '../core/tools';
 import type { World } from '../core/world';
 import { getPhysicalCapability, SERIOUS_WOUND, woundSeverity } from '../core/attributes';
 import { skillOf } from '../core/skills';
-import { productionSpecs } from './production';
+import { productionSpecs, reserveFor } from './production';
 import { stockAt } from './stock';
-import { bake, mill, type TransformResult } from './metabolism';
+import { bake, mill, saw, type TransformResult } from './metabolism';
+import { cook, tendTavernFire } from './cooking';
 
 /**
  * VACANT WORK, DERIVED (Adaptive Society v0.5).
@@ -49,6 +51,12 @@ export interface TradeProcess {
   /** Ordinary seconds of work per batch for a settled tradesman (see core/skills.ts's
    * `TRADE_BASELINE`). A novice pays more; nobody pays less for this term. */
   baseBatchSeconds: number;
+  /** The tool this work is done with, if it is done with one. A sawyer with a saw in hand gets
+   * through a log measurably faster than one without (`core/tools.ts`, `core/attributes.ts`'s
+   * `workRate`), and the tool wears with the work. Declared here rather than branched on at the
+   * call site, which is how it used to be: `p.occupation === 'woodcutter' && placeType ===
+   * 'sawpit'` was the last occupation gate left in the batch path. */
+  toolAction?: ToolAction;
 }
 
 /**
@@ -66,6 +74,21 @@ export interface TradeProcess {
 const TRADE_PROCESSES: TradeProcess[] = [
   { placeType: 'mill', input: 'grain', output: 'flour', skill: 'milling', verb: 'milling', baseBatchSeconds: 8 * 60 },
   { placeType: 'bakery', input: 'flour', output: 'bread', skill: 'baking', verb: 'baking', baseBatchSeconds: 8 * 60 },
+  // The sawpit. It qualifies on every clause of the rule above and always did — a request-driven
+  // transform of a material input into a material output at a fixed place — and was outside this
+  // table only because sawing was still an unconditional cadence call gated on
+  // `p.occupation === 'woodcutter'`. Both of those are now gone: `world/production.ts` raises real
+  // plank demand from the open deficit across live construction projects, and the batch runs
+  // through `workAuthorization` like every other trade.
+  { placeType: 'sawpit', input: 'log', output: 'plank', skill: 'sawing', verb: 'sawing', baseBatchSeconds: 8 * 60, toolAction: 'saw' },
+  // The tavern's stew. The one process with a second physical precondition — the hearth has to be
+  // genuinely burning, not merely lit (`world/cooking.ts`) — which is why the note above used to
+  // give it as the example of work this model had nothing to say about. It turns out the model
+  // does not need to say anything: `runTradeBatch` tends the fire and then cooks, so a stand-in
+  // who has never been near the tavern lights it from whatever fuel is in the house exactly as
+  // its own cook does, and a batch that could not be cooked returns `produced: 0` and is never
+  // paid for. The precondition lives in the transform, where it always did.
+  { placeType: 'tavern', input: 'meat', output: 'stew', skill: 'cooking', verb: 'cooking', baseBatchSeconds: 8 * 60 },
 ];
 
 export function processFor(placeType: PlaceType | undefined): TradeProcess | undefined {
@@ -201,7 +224,7 @@ export function tradePostAt(world: World, place: Place | undefined | null): Trad
     return { place, process, staff, ableStaff, unfit, openDemand: 0, underServed: false, standIns: standInsAt(world, place.id) };
   }
   const spec = productionSpecs().find(s => s.placeType === place.type && s.resource === process.output);
-  const shortOfOutput = !spec || stockAt(world, process.output, place.id) < spec.trigger;
+  const shortOfOutput = !spec || stockAt(world, process.output, place.id) < reserveFor(world, spec, place).trigger;
   let openDemand = 0;
   let demandSince = Number.POSITIVE_INFINITY;
   let last: number | undefined;
@@ -300,6 +323,10 @@ export function runTradeBatch(world: World, worker: Person, post: TradePost): Tr
   switch (post.process.placeType) {
     case 'mill': return mill(world, worker);
     case 'bakery': return bake(world, worker);
+    case 'sawpit': return saw(world, worker);
+    // The hearth first, then the pot. Tending it is part of doing the work, not part of being
+    // called a cook — which is what it was gated on before (`p.occupation === 'cook'`).
+    case 'tavern': tendTavernFire(world, worker); return cook(world, worker);
     default: return { ok: false, produced: 0, consumed: 0 };
   }
 }

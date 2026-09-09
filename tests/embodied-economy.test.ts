@@ -548,6 +548,10 @@ describe('canonical integrity (v0.4 §22)', () => {
     expect(p.needs.thirst).toBeLessThanOrEqual(1);
   });
 
+  // Budget, not correctness. Measured at `main`'s own da5a2ed: 4.95 s run alone against the 5 s
+  // default, and red under suite contention there — the "starved for a core rather than wrong"
+  // failure this repo documents in vite.config.ts. The wider trade economy made a headless run
+  // about a third more expensive, which takes it over. The assertions below are untouched.
   it('no impossible currency duplication across a short deterministic run — total wealth is conserved exactly minus only EXPLICIT, tracked exits', () => {
     const { world } = newWorld(918271);
     const sim = new Simulation(world);
@@ -567,7 +571,7 @@ describe('canonical integrity (v0.4 §22)', () => {
     // summing several such floats can accumulate a sub-cent floating-point residue (e.g.
     // 17.40000000000009) — real money conservation, not a precision bug in the game itself.
     expect(totalBefore - totalAfter).toBeCloseTo(world.runTally.supply_cost_amount ?? 0, 6);
-  });
+  }, 30_000);
 
   it('interrupted hauling mid-multi-trip conserves cargo exactly', () => {
     const tw = createTestWorld(4703, 48);

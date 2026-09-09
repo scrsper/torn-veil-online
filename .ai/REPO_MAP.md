@@ -248,6 +248,15 @@ It should provide evidence/utility to the normal decision system rather than ind
 
 Teaching/learning path.
 
+## `src/sim/mind/livelihood.ts`
+
+Reads whether somebody's life has added up to a trade — taught, practised, batches actually
+produced, household trade, room at the work — and records it if so. The consumer of
+`coming_of_age`.
+
+A trade is recognised, never issued. Acquired basis is a hard gate; the occupation label is written
+last and nothing in the labor path reads it.
+
 Knowledge of a technique is not automatically equivalent to proficiency.
 
 Practice and canonical skill state remain meaningful.
@@ -426,7 +435,7 @@ Do not fill it with session logs.
 
 Settlement continuity: `src/sim/world/settlementContinuity.ts` and the `Settlement` entity in `src/sim/core/types.ts`. Physical query indexes: `src/sim/core/spatial.ts`. Detailed benchmark measurements: `docs/procedural-settlement-detailed-benchmark.json`; epoch semantics are audited in `docs/PROCEDURAL_SETTLEMENTS.md`.
 
-Procedural settlement generation and shared-world locality: `src/sim/world/settlementSpec.ts`, `src/sim/world/settlement.ts`, `src/sim/world/locality.ts`; sparse terrain: `src/sim/physical/regionalGrid.ts`; acceptance harness: `src/headless/worldlab/settlements.ts`. See `docs/PROCEDURAL_SETTLEMENTS.md` for the pipeline, audit, commands, and simulation-resolution limits. Authored Ashford remains in `village.ts` / `cast.ts`.
+Procedural settlement generation and shared-world locality: `src/sim/world/settlementSpec.ts`, `src/sim/world/settlement.ts`, `src/sim/world/locality.ts` (checked at probe cadence by `locality-of-commitments` in `src/headless/worldlab/invariants.ts` — see `docs/LOCALITY_V0_11.md`); sparse terrain: `src/sim/physical/regionalGrid.ts`; acceptance harness: `src/headless/worldlab/settlements.ts`. See `docs/PROCEDURAL_SETTLEMENTS.md` for the pipeline, audit, commands, and simulation-resolution limits. Authored Ashford remains in `village.ts` / `cast.ts`.
 
 Use this order when additional context is needed:
 

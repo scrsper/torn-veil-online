@@ -4,7 +4,7 @@ import { resolveCombatAttack, combatReach, type CombatAttackIntent, type CombatA
 import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, ItemType, KnowledgeItem, Creature, Place, Anchor, ConflictIntent, Conflict, ConflictCause } from '../core/types';
 import { World } from '../core/world';
 import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRelationships } from './relationships';
-import { maintainConflicts, beginConflict, recordConflictBlow, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
+import { maintainConflicts, beginConflict, recordConflictBlow, recordDowning, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
 import { maintainCustody, subdue, takeIntoCustody, beginSurrender, isSubdued } from '../social/custody';
 import { SAW_RATIO, stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, restockTavern, gatherHerbs, huntGame, GRAIN_CAP, SEED_PER_PLOT } from '../world/metabolism';
 import { stepPhysiology, activityLevelFor, heatBand, hungerBand, thirstBand, sleepBand, comfortBand, severityAtLeast, syncNeeds } from '../core/physiology';
@@ -19,7 +19,6 @@ import { generateProductionNeeds, claimedProductionRequest, fulfillProductionReq
 import { nearestAvailableNode, extractFromNode, maintainResourceNodes } from '../world/resources';
 import { stepConstruction, activeBuildProjects, performBuildLabor, MAX_BUILDERS } from '../world/construction';
 import { stepFire, igniteFire, feedFire, fireIntensityAt, fireAt } from '../world/fire';
-import { cook, tendTavernFire } from '../world/cooking';
 import { willingnessFor, unitPriceFor, tradeOffersFrom, refusalsFrom, purchaseUnits, type TradeOffer, type Refusal, type PurchaseResult } from '../world/commerce';
 import { remember } from './memory';
 import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge, learnPlace, knownFoodPlace, noteFoodShortage } from './knowledge';
@@ -45,8 +44,9 @@ import { drawInferences } from './inference';
 // (world/labor.ts), who is plausibly moved to take it up (mind/succession.ts), and the smallest
 // teaching path (mind/apprenticeship.ts). None of the three decides anything on its own: the
 // first is a read-only view, the second returns a number, the third writes a belief.
-import { maintainWorkStints, noteStandInBatch, processFor, runTradeBatch, underServedPosts, workAuthorization, type TradePost } from '../world/labor';
+import { maintainWorkStints, noteStandInBatch, processFor, runTradeBatch, tradeProcesses, underServedPosts, workAuthorization, WORK_CAPACITY_FLOOR, type TradePost } from '../world/labor';
 import { peopleAwareOfShortage, standInCandidacy } from './succession';
+import { livelihoodProspects } from './livelihood';
 import { maybeTeachAt } from './apprenticeship';
 import type { TransformResult } from '../world/metabolism';
 import { woundSeverity, SERIOUS_WOUND } from '../core/attributes';
@@ -81,6 +81,10 @@ const KINDNESS_WEIGHT: Record<string, number> = {
 const dist2 = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
 /** Shared, never mutated — the ordinary case, where no productive place is going unworked. */
 const EMPTY_AWARENESS: ReadonlySet<EntityId> = new Set<EntityId>();
+/** How long an ordinary melee exchange takes, in physical seconds. Longer than the combat
+ * resolver's own `ATTACK_COOLDOWN` on purpose: that is the floor on what is physically legal,
+ * this is the pace an ordinary fighter actually keeps. */
+const MELEE_SWING_SECONDS = 1.1;
 /** v0.2.3: world-time a pursuer waits before re-targeting a quarry it just failed to physically
  * reach. Long enough that the two are likely no longer in perception range of each other; short
  * enough that a genuinely renewed threat still gets answered. */
@@ -585,8 +589,12 @@ export class Simulation {
     const crimes = Object.values(p.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled && now - k.learnedAt < 86400 * 3);
     // Resolved once for the whole loop rather than per belief: this is a scan of everyone alive,
     // and a person who remembers five crimes was otherwise paying for it five times a tick.
+    // Watchmen this person could plausibly reach. `nearestKnownGuard` narrows it further to the
+    // ones whose whereabouts they actually have grounds to believe; the range filter here is the
+    // physical half of the same question (world/locality.ts).
     const authorities = crimes.length && !isGuard && !p.hostile
-      ? w.livingPersons().filter(g => (g.occupation === 'guard' || g.occupation === 'captain'))
+      ? w.livingPersons().filter(g => (g.occupation === 'guard' || g.occupation === 'captain')
+        && near(pos, w.place(g.workId ?? '')?.inside ?? w.primaryBody(g.id)?.pos))
       : EMPTY_PERSONS;
     for (const k of crimes) {
       const sev = crimeSeverity(k.claim.type); const victimClose = k.claim.target ? isClose(p, k.claim.target) : false; const victimIsMe = k.claim.target === p.id;
@@ -906,7 +914,7 @@ export class Simulation {
         if (pipeline >= req.quantity) continue;
         const already = w.livingPersons().filter(q => q.id !== p.id && near(pos, w.positionOf(q.id)) && q.mind.goal?.type === 'chop').length;
         const chopping = p.mind.goal?.type === 'chop';
-        const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter'].includes(p.occupation);
+        const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter', 'villager'].includes(p.occupation);
         if (!chopping && (already >= 2 || !roleOk)) continue;
         const node = nearestAvailableNode(w, 'tree', pos, 220);
         if (node) G('chop', clamp(0.5 * laborCapacity * incentive), [`${gp.name} still needs planks, and there is no wood for them`], { targetPos: node.pos, data: { nodeId: node.id } });
@@ -921,7 +929,7 @@ export class Simulation {
         if (pipeline >= req.quantity) continue;
         const already = w.livingPersons().filter(q => q.id !== p.id && near(pos, w.positionOf(q.id)) && q.mind.goal?.type === 'gather').length;
         const gathering = p.mind.goal?.type === 'gather';
-        const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter'].includes(p.occupation);
+        const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter', 'villager'].includes(p.occupation);
         if (!gathering && (already >= 2 || !roleOk)) continue;
         const node = nearestAvailableNode(w, 'stone', pos, 220);
         if (node) G('gather', clamp(0.5 * laborCapacity * incentive), [`${gp.name} still needs stone`], { targetPos: node.pos, data: { nodeId: node.id } });
@@ -947,6 +955,26 @@ export class Simulation {
         G('work', cand.utility, cand.reasons, {
           targetPlace: post.place.id,
           data: { standIn: post.place.id, resource: post.process.output, standInCauses: cand.causes, teacherId: cand.teacherId },
+        });
+      }
+    }
+    // ---- Generational continuity: being at a trade you might grow into.
+    //
+    // The other half of `coming_of_age` having a consumer (mind/livelihood.ts). Somebody who
+    // holds no work of their own, whose household works a trade or who has already been shown
+    // one, has a real reason to be at that work — and being there is what makes them a student in
+    // `maybeTeachAt`'s eyes, which is the only door into a trade this simulation has. It is one
+    // ordinary candidate among twenty-five and loses to hunger, thirst, sleep and danger like
+    // everything else; nobody is placed anywhere.
+    //
+    // `!p.workId` is the prefilter and it is what makes this affordable: in Ashford it is true of
+    // a handful of people, so the place scan inside `livelihoodProspects` is paid for almost
+    // nobody, almost never.
+    if (!threat && !p.hostile && !p.workId && laborOk) {
+      for (const prospect of livelihoodProspects(w, p)) {
+        G('work', clamp(0.22 + prospect.score * 0.3) * bodyRoom, prospect.reasons, {
+          targetPlace: prospect.place.id,
+          data: { learningAt: prospect.place.id, teacherId: prospect.teacherId },
         });
       }
     }
@@ -1245,6 +1273,17 @@ export class Simulation {
     const newCrime = this.knownCrimesBy(p, otherId).some(k => k.learnedAt > since);
     return !newCrime;
   }
+  /**
+   * The nearest watchman this person could actually go and find.
+   *
+   * Two things bound it, and both used to be missing. First, WHERE they are is what this person
+   * believes: their own `loc:` knowledge if they have any, otherwise the watchman's own
+   * workplace, which is as public as the guardhouse door. The third fallback this used to carry —
+   * the guard's live body position — was omniscience with no provenance at all, and it is gone.
+   * Second, the guard has to be somewhere this person could plausibly walk to: a watchman a
+   * fortnight's travel away in another settlement is not who you report a theft to
+   * (`world/locality.ts`).
+   */
   private nearestKnownGuard(p: Person, pos: Vec3, guards: Person[]): Person | null {
     const w = this.world; let best: Person | null = null; let bd = Infinity;
     for (const g of guards) { if (!near(pos, w.positionOf(g.id))) continue; const loc = p.knowledge[`loc:${g.id}`]?.claim.pos ?? w.place(g.workId)?.inside ?? w.primaryBody(g.id)?.pos; if (!loc) continue; const d = dist2(pos, loc); if (d < bd) { bd = d; best = g; } }
@@ -1534,8 +1573,14 @@ export class Simulation {
         // had since v0.6 — their branches below are occupation-gated anyway (see the note on
         // `TRADE_PROCESSES` for why they are a different shape of work).
         const ownTradeHasAProcess = !!processFor(w.place(p.workId ?? '')?.type);
+        // Somebody who has actually learned one of the village's trades might have a batch to run
+        // wherever they are standing — the woodcutter is registered on the sawpit's staff but his
+        // `workId` is the clearing, so `ownTradeHasAProcess` alone would skip him. Read from
+        // proficiency rather than from what he is called: `p.occupation === 'woodcutter'` was the
+        // term this replaces, and a handful of map lookups is what the prefilter costs either way.
+        const hasLearnedATrade = tradeProcesses().some(t => skillOf(p, t.skill) > 0);
         const couldStandIn = this.vacantPosts.length > 0 && this.awareOfShortage.has(p.id);
-        if (ownTradeHasAProcess || couldStandIn || p.occupation === 'woodcutter' || p.occupation === 'innkeeper' || p.occupation === 'herbalist' || p.occupation === 'cook' || p.occupation === 'hunter') {
+        if (ownTradeHasAProcess || hasLearnedATrade || couldStandIn || p.occupation === 'innkeeper' || p.occupation === 'herbalist' || p.occupation === 'cook' || p.occupation === 'hunter') {
           const herePlace = w.placeAt(body.pos);
           const t = herePlace?.type;
           const process = processFor(t);
@@ -1544,7 +1589,11 @@ export class Simulation {
           // risk — but a dexterous sawyer with a saw in hand completes a batch faster than one
           // without, so their WORK RATE (throughput over time) is real and continuous rather than
           // a flat "woodcutter" bonus. Clamped so the interval stays sane at either extreme.
-          const sawing = p.occupation === 'woodcutter' && t === 'sawpit';
+          // The tool this process is done with, if it is done with one — declared on the process
+          // (`world/labor.ts`'s `TradeProcess.toolAction`) rather than branched on here. The line
+          // this replaced was `p.occupation === 'woodcutter' && t === 'sawpit'`: the last place in
+          // the batch path where what somebody was CALLED decided whether work happened.
+          const tooling = process?.toolAction ? capabilityFor(w, p, process.toolAction, herePlace?.id) : null;
           // v0.6 §V.7 (baking): skill improves TIME efficiency, never batch size (BAKE_RATIO is
           // untouched) — a practiced baker completes the same batch in less real time, exactly
           // the effect the milestone names for this trade ("do not create extra bread from
@@ -1554,9 +1603,10 @@ export class Simulation {
           // novice's higher time-and-energy cost comes from without inventing a second rule for it.
           const proficiency = process ? skillOf(p, process.skill) : 0;
           const bakeRateMult = process?.skill === 'baking' ? 1 + proficiency * 0.4 : 1;
-          const batchInterval = sawing
-            ? Math.max(3 * 60, Math.min(20 * 60, (8 * 60) / capabilityFor(w, p, 'saw', w.placeAt(body.pos)?.id).cap.workRate))
-            : process ? Math.max(4 * 60, tradeBatchSeconds(process.baseBatchSeconds / bakeRateMult, proficiency))
+          // A tool makes the same batch quicker, proficiency makes it quicker still, and a novice
+          // pays for having never done it — one expression rather than a branch per trade.
+          const batchInterval = process
+            ? Math.max(3 * 60, tradeBatchSeconds(process.baseBatchSeconds / bakeRateMult / Math.max(0.35, tooling?.cap.workRate ?? 1), proficiency))
             : 8 * 60;
           const last = (a.data.batchAt ?? (a.startedAt ?? w.now) - batchInterval) as number;
           if (w.now - last >= batchInterval) {
@@ -1606,31 +1656,38 @@ export class Simulation {
                   skillBefore,
                 });
               });
+              // Real work wears a real tool — for whichever trades have one, on the same batch
+              // cadence the work itself runs on.
+              if (tooling?.tool) wearTool(w, tooling.tool, batchInterval / 3600);
               // Being shown how, at the work — the smallest teaching path (mind/apprenticeship.ts).
               // Whoever is ahead teaches; instruction grants no proficiency, it only makes the
               // practice that follows count for more.
               maybeTeachAt(w, p, post.process.skill, post.place.id);
             }
-            else if (sawing) { saw(w, p); wearTool(w, capabilityFor(w, p, 'saw', w.placeAt(body.pos)?.id).tool, batchInterval / 3600); } // v0.3: log → plank
+            // KEEPING THE PLACE, which is not the same thing as working its trade and no longer
+            // excludes it. These used to be `else if` arms of the branch above, which was harmless
+            // only while the sole places with a `TradeProcess` were the mill and the bakery, where
+            // none of them applied. The tavern is now a trade AND a house somebody keeps: its
+            // stew comes out of `runTradeBatch` above, and its cellar is still restocked here. Had
+            // these stayed an `else`, adding the tavern to the process table would have silently
+            // stopped the ale.
+            //
+            // The occupation tests that remain are the gathering/keeping trades, which are a
+            // different shape of work — no material input to be short of, nothing for a stand-in
+            // to take over, their own stall and their own stock (see `TRADE_PROCESSES`'s own note
+            // on why they are not in the table). They are honest gaps, not gates on a process.
+            //
             // v0.6 §II: the innkeeper keeps the tavern's larder stocked while working — see
             // world/metabolism.ts's `restockTavern` doc comment for why this closed a genuine
             // "always runs out after day one" access bug rather than being new economic scope.
-            else if (p.occupation === 'innkeeper' && t === 'tavern') restockTavern(w, p);
+            if (p.occupation === 'innkeeper' && t === 'tavern') restockTavern(w, p);
             // v0.8 §A/F: the herbalist gathers at her own workplace, real bounded stock.
             else if (p.occupation === 'herbalist') gatherHerbs(w, p);
             // v0.8 §D (found via this milestone's own 90-day benchmark): the hunter restocks her
             // own stall while working there — without this, meat was one-time-seeded and never
-            // replenished, so cook()'s new haul demand could only ever move the original stock
-            // once. See world/metabolism.ts's `huntGame` doc comment.
+            // replenished, so cook()'s haul demand could only ever move the original stock once.
+            // See world/metabolism.ts's `huntGame` doc comment.
             else if (p.occupation === 'hunter' && t === 'stall') huntGame(w, p);
-            // v0.8 §D: the cook tends the tavern hearth (lighting it if needed, from whatever
-            // wood is on hand) and, once it's genuinely burning, cooks a real batch — see
-            // world/cooking.ts. Demand-gated exactly like baking/milling (claimedProductionRequest).
-            else if (p.occupation === 'cook' && t === 'tavern') {
-              const tavernId = w.placeAt(body.pos)!.id;
-              tendTavernFire(w, p);
-              runBatch(tavernId, 'meat', 'stew', () => cook(w, p));
-            }
           }
         }
         if (this.elapsed(a)) a.status = 'done';
@@ -1799,7 +1856,14 @@ export class Simulation {
         const tb = w.primaryBody(a.targetEntity!); const tp = w.person(a.targetEntity!);
         if (!tb || tb.dead) { a.status = 'done'; break; }
         // v0.2.3: stop the moment the target is out of the fight (downed / subdued / surrendered).
-        if (tb.pose === 'downed' || (tp && (tp.surrender || tp.custody?.active || tb.subduedUntil > w.physicalTime))) {
+        // The `Conflict.downed` half of that test is what makes it cadence-independent: the pose
+        // itself lasts 45 physical seconds, so a caller stepping in coarser increments than that
+        // never sees it and the fight never ends (see `recordDowning`). Reading the durable
+        // record as well as the live pose means the same fight ends the same way whether the
+        // world is stepped sixty times a second or once a calendar day.
+        const liveConflict = a.targetEntity ? conflictBetween(w, p.id, a.targetEntity) : undefined;
+        if (tb.pose === 'downed' || liveConflict?.downed?.who === a.targetEntity
+          || (tp && (tp.surrender || tp.custody?.active || tb.subduedUntil > w.physicalTime))) {
           const intent = a.data?.intent as ConflictIntent | undefined;
           const isGuard = p.occupation === 'guard' || p.occupation === 'captain';
           // A guard who has just put down a suspect (arrest intent, or a known crime, or an
@@ -1826,7 +1890,7 @@ export class Simulation {
           m.plan.unshift({ type: 'goto', targetEntity: a.targetEntity, run: true, status: 'pending' });
           break;
         }
-        if (w.physicalTime - body.lastAttackAt > 1.1) { this.attack(p, body, tb, a.data?.intent as ConflictIntent | undefined); }
+        if (w.physicalTime - body.lastAttackAt > MELEE_SWING_SECONDS) this.exchangeBlows(p, body, tb, physDt, a.data?.intent as ConflictIntent | undefined);
         // If that blow put the target down/out, the guard at the top of this case re-runs next
         // substep and takes over (custody escort / disengage). Here just stop on a kill.
         if (tb.dead) a.status = 'done';
@@ -2203,6 +2267,48 @@ export class Simulation {
   }
 
   // ------------------------------------------------------------------ combat
+  /**
+   * The blows one call of `act` covers.
+   *
+   * A fight is the only thing in this simulation whose rate was pinned to the CALLER's step size
+   * rather than to time. Every other extended act — building, hauling, milling, sleeping — carries
+   * a duration and consumes however much of it the step actually covers, so stepping the world in
+   * coarser increments changes only the graininess of the record, never the outcome. Combat threw
+   * exactly one blow per call however long the call represented, while the strategic pass healed
+   * the target for the whole of that same interval. At play cadence (a step is a fraction of a
+   * second) that asymmetry is invisible. At the epoch tier's one-step-per-calendar-day cadence a
+   * fighter landed one blow per simulated day against a target recovering a day's worth of health
+   * between blows, so no fight could ever conclude: measured on seed 918271, seven people spent
+   * five simulated years and 5,657 blows on fights that take minutes at play cadence, and the
+   * perceptions and beliefs those blows generated were what made per-tick cost grow with history.
+   *
+   * So the number of swings follows the physical seconds the step covers, bounded by the two
+   * things that really bound a fight: the target going down, and the attacker running out of
+   * wind. `WORK_CAPACITY_FLOOR` is the same exhaustion floor heavy labour uses (`world/labor.ts`)
+   * — a fight you are too spent to swing in is a fight you have stopped fighting. At play cadence
+   * a step covers less than one swing interval, so this delivers exactly one blow and nothing
+   * about the existing behaviour changes.
+   */
+  private exchangeBlows(attacker: Person, ab: Body, tb: Body, physDt: number, intent?: ConflictIntent): void {
+    const w = this.world;
+    const swings = Math.max(1, Math.floor(physDt / MELEE_SWING_SECONDS));
+    for (let i = 0; i < swings; i++) {
+      if (tb.dead) break;
+      const tp = w.person(tb.ownerId);
+      if (tb.pose === 'downed' || tb.subduedUntil > w.physicalTime || tp?.surrender || tp?.custody?.active) break;
+      if (dist2(ab.pos, tb.pos) > combatReach(w, attacker)) break;
+      if (i > 0) {
+        if (getPhysicalCapability(attacker, w, { body: ab }).currentExertionCapacity < WORK_CAPACITY_FLOOR) break;
+        // This swing falls later inside the same step, so the attacker's own swing clock has
+        // moved on with it. Rewound rather than faked: `resolveCombatAttack` writes it back to
+        // `physicalTime` on every legal attempt, and the cooldown it enforces is the same one.
+        ab.lastAttackAt = w.physicalTime - MELEE_SWING_SECONDS * 2;
+      }
+      if (!this.attack(attacker, ab, tb, intent).attempted) break;
+    }
+    ab.lastAttackAt = w.physicalTime;
+  }
+
   attack(attacker: Person, ab: Body, tb: Body, intent?: ConflictIntent): CombatAttackResult {
     return this.resolveAttack({ attackerId: attacker.id, attackerBodyId: ab.id, targetBodyId: tb.id, attackMode: 'strike', intent });
   }
@@ -2267,6 +2373,10 @@ export class Simulation {
       }
       else {
         tb.pose = 'downed'; tb.poseUntil = w.physicalTime + 45; tb.health = 1; if (victim.kind === 'person') { victim.mind.plan = []; victim.mind.goal = null; }
+        // The fight is over: this is the canonical record of it, kept because the pose above is
+        // not durable enough to be read by anybody stepping the world coarsely (see
+        // `social/conflict.ts`'s `recordDowning`).
+        if (conflict) recordDowning(w, conflict, victim.id, attacker.id);
         // v0.2.3: a downing blow whose intent was to subdue or arrest imposes a real, longer
         // incapacitation (Constitution §11: 'subdue'/'arrest' as an outcome, not a repeatable
         // non-lethal loop). The act('attack') handler escalates an arrest to actual custody.
