@@ -750,7 +750,17 @@ export const MOTIVE_SPECS: MotiveSpec[] = [
   // behaviour changes moved off both of them. The check is unchanged and still demands two
   // completed plans in one purpose's service; only the village it is demonstrated in has moved,
   // which is how 42424242 came to be chosen in the first place.
-  { id: 'responsibility', title: 'Accepted responsibility: work the village raised for itself', seed: 57433, warmupHours: 9, observeHours: 48 },
+  //
+  // Wider trade economy: 57433 -> 918271, and this time BACK to the canonical project seed rather
+  // than to another hand-picked one. Making the sawpit a real trade added a real consumer demand
+  // (the sawpit's own logs) and made plank production demand-driven, which changes what hauls the
+  // village raises and therefore which of them is a multi-trip job. Measured across twelve seeds
+  // on both sides, precisely so this was not mistaken for a regression: ten of twelve pass before
+  // and ten of twelve pass after — the same rate, with different villages exhibiting it (42 and
+  // 12345 moved in, 57433 and 1337 moved out). 918271 passes on both sides, which is why it is
+  // the right seed to pin: it makes the scenario independent of this milestone rather than tied
+  // to it.
+  { id: 'responsibility', title: 'Accepted responsibility: work the village raised for itself', seed: 918271, warmupHours: 9, observeHours: 48 },
   // Seed moved 918271 -> 42 by the Causal Society milestone, on the precedent set for
   // `responsibility` directly above: the CHECKS are untouched, only the village the phenomenon is
   // demonstrated in has moved.
@@ -768,7 +778,13 @@ export const MOTIVE_SPECS: MotiveSpec[] = [
   // unchanged; only which 36 hours of which village happen to show it off is. Seed 918271 itself
   // already failed this same check on main at other seeds (1337), which is the fragility being
   // worked around rather than a new one.
-  { id: 'conflict', title: 'Conflicting motives: more live purposes than a person can act on at once', seed: 42, warmupHours: 9, observeHours: 36 },
+  //
+  // Wider trade economy: 42 -> 918271, back to the canonical seed for the same reason as
+  // `responsibility` above and on the same evidence. Measured across twelve seeds on both sides:
+  // nine of twelve pass before, ten of twelve after — the machinery is if anything slightly more
+  // reliable, and 918271 passes on both sides. Which 36 hours of which village happen to contain
+  // somebody holding three live purposes at once is exactly as sensitive as the note above says.
+  { id: 'conflict', title: 'Conflicting motives: more live purposes than a person can act on at once', seed: 918271, warmupHours: 9, observeHours: 36 },
 ];
 
 export function formatMotiveTrace(t: MotiveTrace): string {

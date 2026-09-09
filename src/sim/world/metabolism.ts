@@ -5,6 +5,7 @@ import { makeItem, RESOURCE_CATEGORY, isFood, SPOIL_RATE_PER_DAY, ITEM_VALUE } f
 import { addPlaceStock, takePlaceStock, retireStack, stockAt as stockAtPlace, stockTotal } from './stock';
 import { eatRestoresEnergy, drinkRestoresHydration } from '../core/physiology';
 import { purchaseUnits } from './commerce';
+import { nearestPlaceWhere, placeNear, whereaboutsOf } from './locality';
 import { practiceSkill, skillOf, tradeYield } from '../core/skills';
 import { learnPlace } from '../mind/knowledge';
 import { remember } from '../mind/memory';
@@ -70,7 +71,7 @@ export const SAW_RATIO = { in: 2, out: 3 } as const;
  * the multi-year regrow time). A small flat floor remains (so sawing can still get ahead of a
  * FRESH project before its deficit is known) but the effective cap now tracks the real,
  * currently-open plank deficit across active construction projects — see `plankCapFor` below. */
-const PLANK_BASE_BUFFER = 10;
+export const PLANK_BASE_BUFFER = 10;
 /** Stock ceilings that make the pipeline demand-driven rather than infinite: a farmer stops
  * harvesting once the village has plenty of grain, a miller stops once there is plenty of
  * flour, a baker stops once there is plenty of bread. Production resumes when stock falls.
@@ -290,7 +291,7 @@ export function villageStock(world: World, type: ItemType): number {
  * nothing runs once the village has plenty of flour.
  */
 export function mill(world: World, miller: Person): TransformResult {
-  const millId = world.places().find(p => p.type === 'mill')?.id;
+  const millId = placeNear(world, miller, 'mill')?.id;
   if (!millId) return { ok: false, produced: 0, consumed: 0 };
   if (villageStock(world, 'flour') >= FLOUR_CAP) return { ok: false, produced: 0, consumed: 0 };
   // Quiet no-op when the input simply hasn't been delivered yet — that is not a "shortage",
@@ -316,7 +317,7 @@ export function mill(world: World, miller: Person): TransformResult {
  * (hauled from the mill). It cannot bake from flour still sitting at the mill.
  */
 export function bake(world: World, baker: Person): TransformResult {
-  const bakeryId = world.places().find(p => p.type === 'bakery')?.id;
+  const bakeryId = placeNear(world, baker, 'bakery')?.id;
   if (!bakeryId) return { ok: false, produced: 0, consumed: 0 };
   if (villageStock(world, 'bread') >= BREAD_CAP) return { ok: false, produced: 0, consumed: 0 };
   if (stockAtPlace(world, 'flour', bakeryId) < BAKE_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'flour' };
@@ -334,7 +335,7 @@ export function bake(world: World, baker: Person): TransformResult {
  * project before its manifest is known. Reads `world.constructionProjects` directly rather than
  * importing `construction.ts`'s own `projectDeficits` helper, to keep this a one-way, minimal
  * dependency (metabolism -> canonical project state only, not construction's haul-raising logic). */
-function plankCapFor(world: World): number {
+export function plankCapFor(world: World): number {
   let deficit = 0;
   for (const proj of world.constructionProjects) {
     if (proj.status === 'complete' || proj.status === 'cancelled') continue;
@@ -352,7 +353,7 @@ function plankCapFor(world: World): number {
  * via a real plank cap tracking open construction demand (see `plankCapFor`), not a flat number.
  */
 export function saw(world: World, sawyer: Person): TransformResult {
-  const sawpitId = world.places().find(p => p.type === 'sawpit')?.id;
+  const sawpitId = placeNear(world, sawyer, 'sawpit')?.id;
   if (!sawpitId) return { ok: false, produced: 0, consumed: 0 };
   if (stockTotal(world, 'plank', [sawpitId]) >= plankCapFor(world)) return { ok: false, produced: 0, consumed: 0 };
   if (stockAtPlace(world, 'log', sawpitId) < SAW_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'log' };
@@ -426,7 +427,8 @@ const ALE_RESTOCK_QTY = 6;
  * (`world.runTally.supply_cost_amount`) for auditability. */
 const ALE_SUPPLY_COST_PER_UNIT = ITEM_VALUE.ale;
 export function restockTavern(world: World, innkeeper: Person): boolean {
-  const tavernId = world.places().find(p => p.type === 'tavern')?.id;
+  // The tavern this innkeeper actually keeps, not the first one registered in the world.
+  const tavernId = (world.place(innkeeper.workId ?? '')?.type === 'tavern' ? world.place(innkeeper.workId!) : placeNear(world, innkeeper, 'tavern'))?.id;
   if (!tavernId) return false;
   if (stockAtPlace(world, 'ale', tavernId) >= ALE_RESTOCK_TRIGGER) return false;
   const cost = Math.round(Math.max(0, Math.min(ALE_RESTOCK_QTY * ALE_SUPPLY_COST_PER_UNIT, innkeeper.wealth)) * 100) / 100;
@@ -484,7 +486,9 @@ const MEAT_RESTOCK_QTY = 4;
 const MEAT_MARGIN_PER_UNIT = 0.5;
 const MEAT_SUPPLY_COST_PER_UNIT = ITEM_VALUE.meat - MEAT_MARGIN_PER_UNIT;
 export function huntGame(world: World, hunter: Person): boolean {
-  const stallId = world.places().find(p => p.slug === 'stall_game')?.id;
+  // The hunter's own stall: theirs if they have one, otherwise the nearest game stall to them.
+  const own = world.place(hunter.workId ?? '');
+  const stallId = (own?.slug === 'stall_game' ? own : nearestPlaceWhere(world, whereaboutsOf(world, hunter), pl => pl.slug === 'stall_game'))?.id;
   if (!stallId) return false;
   if (stockAtPlace(world, 'meat', stallId) >= MEAT_RESTOCK_TRIGGER) return false;
   const cost = Math.round(Math.max(0, Math.min(MEAT_RESTOCK_QTY * MEAT_SUPPLY_COST_PER_UNIT, hunter.wealth)) * 100) / 100;

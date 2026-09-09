@@ -265,3 +265,110 @@ npm run adapt:trace -- --scenario undisturbed --days 8   # the no-false-vacancie
 npm run adapt:accept        # the same run as a pass/fail acceptance suite
 npm run causal:accept       # Causal Society's own acceptance, unaffected by this milestone
 ```
+
+---
+
+# A wider trade economy (work order 2, Track A)
+
+The layer above covered **two of the village's twenty occupations**. `TRADE_PROCESSES` had two rows
+— mill (grain→flour) and bakery (flour→bread) — so vacancy derivation, stand-in succession,
+apprenticeship and growing into a trade (`mind/livelihood.ts`) applied to the miller and the baker
+and to nobody else. The achievement was real and narrower than it read: the village could work out
+who grinds the grain, and nothing else.
+
+## What was added, and what was deliberately not
+
+**Added: the sawpit (log → plank, `sawing`).** It qualified on every clause of the table's own rule
+and always had — a request-driven transform of a material input into a material output at a fixed
+place. It was outside the table only because sawing was still an unconditional per-cadence call
+gated on `p.occupation === 'woodcutter'`, the last occupation gate left in the batch path. Three
+things moved to make it a real trade:
+
+- `world/production.ts` raises real plank demand. Its reserve is not a fixed larder but
+  `plankCapFor` — the open plank deficit across live construction projects — so `ProductionSpec`
+  gained an optional `reserve(world, place)` and both readers (the demand pass and
+  `world/labor.ts`'s under-served derivation) resolve it through one `reserveFor`.
+- The sawpit's own log supply became a `CONSUMER_DEMANDS` row and the bespoke "feed the sawpit"
+  block in `stepConstruction` was deleted. `tests/causal-society.test.ts`'s drift alarm is what
+  found this: a trade whose input arrives by a hand-rolled haul is invisible to the canonical
+  logistics record, and a trade whose supply is invisible is one whose stoppages nothing can
+  reason about.
+- `TradeProcess` gained `toolAction`. A sawyer with a saw gets through a log faster and the saw
+  wears with the work; that used to be a branch at the call site, and it is now one expression
+  covering every trade — `batchInterval` folds tool work-rate, proficiency and the novice penalty
+  together.
+
+**Added: the tavern (meat → stew, `cooking`).** The previous milestone named this as the example of
+work its model had nothing to say about, because the hearth has to be genuinely burning and not
+merely lit. It turns out the model needs to say nothing: `runTradeBatch` tends the fire and then
+cooks, so a stand-in who has never been near the tavern lights it from whatever fuel is in the
+house exactly as its own cook does, and a batch that could not be cooked returns `produced: 0` and
+is never paid for. The precondition lives in the transform, where it always did.
+
+One structural change fell out of it, and it was a latent bug rather than a concession. The
+place-keeping calls (`restockTavern`, `gatherHerbs`, `huntGame`) were `else if` arms of the branch
+that runs the trade batch. That was harmless only while the sole places with a process were the
+mill and the bakery, where none of them applied. The tavern is a trade AND a house somebody keeps:
+had they stayed an `else`, adding the tavern to the table would have silently stopped the ale.
+
+**Not added: the smithy.** It is a real place with a real occupation and a real schedule, and
+nothing in this simulation forges anything — no process consumes ore or stone as a trade input and
+none produces a weapon. `world/supply.ts`'s own doc records that a `smith` row claiming swords out
+of stone was written once and removed for exactly this reason. A fake process is worse than an
+honest gap, and `tests/widened-trades.test.ts` asserts the gap rather than filling it.
+
+**Not added: brewing.** `restockTavern` does not transform grain into ale; it buys ale from an
+unmodelled outside supplier for money, and that is the village's only disclosed external currency
+sink — deliberately at exactly zero margin, which `tests/ale-supply-invariant.test.ts` pins as a
+structural invariant, and which `worldlab`'s money-supply-solvency check reports the trajectory of.
+Turning it into a real grain→ale chain is mechanically possible and is not a "widen the table"
+change: it deletes that sink, puts brewing in competition with the mill for grain, and moves
+currency conservation, the ale invariant and the solvency trend all at once. That is an economic
+decision, not a labour-layer one.
+
+## Acceptance
+
+`tests/widened-trades.test.ts` (35 tests) is parameterised over `tradeProcesses()`, so a row added
+to the table without the mechanism working for it fails these tests rather than passing by
+omission. For every trade in the table: the village raises real demand for its output; its input
+arrives through `CONSUMER_DEMANDS`; `world/supply.ts` agrees about what is made here and out of
+what; losing the holder derives a stoppage from staffing, demand and output with no vacancy flag;
+somebody plausible becomes a candidate on what they know rather than what they are called, while
+somebody with no idea anything is short does not; the stand-in gets real output out of the stopped
+place and the stint is opened only afterwards; the decision walks back to the shortage that caused
+it; and the trade can be taught without teaching being able.
+
+`mind/livelihood.ts`'s `TRADE_SUMMARY` gained `sawpit: 'woodcutter'` and `tavern: 'cook'`, so both
+are trades a person born in the world can now grow into.
+
+## Measured cost
+
+Real work costs real time. One two-day headless run of seed 918271 went from **17.9 s to 23.9 s
+(+33 %)**, essentially all of it in `sim.act` (3.4 s → 8.2 s): the tavern is now a trade its four
+staff work, and the sawpit's batches go through the authorization path instead of a bespoke
+occupation branch. `tests/knowledge-memory-skills-intent.test.ts`'s determinism run was given
+budget headroom for it; its assertion is untouched.
+
+## Two acceptance runs moved, both measured on both sides
+
+- `motive:trace`'s `responsibility` and `conflict` scenarios were pinned to seeds 57433 and 42.
+  Both are explicitly seed-sensitive (see their own notes) and adding a real consumer demand
+  changes which village exhibits them. Measured across twelve seeds before and after: responsibility
+  10/12 → 10/12, conflict 9/12 → 10/12 — the machinery is unchanged. Both are now pinned to
+  **918271**, which passes on both sides, so the scenarios no longer depend on this milestone.
+- `adapt:accept`'s "the shortage eased without being cured" asserted `worriedPeople > 0` on the
+  final day. That was a knife edge measuring the wrong thing: on day 130 the bakery holds 0–1
+  flour against 28 the day the miller was lost — the shortage is worse than ever — while the people
+  who only ever HEARD of it have had their worry fade on its half-life, which is `mind/concern.ts`
+  behaving exactly as documented. The assertion now states the material fact (final flour below
+  half the pre-loss level) and keeps a cognition-side claim where it is true (the shortage was
+  carried as a real worry once it reached people). Strictly stronger.
+
+## What this did not fix
+
+The generational acceptance (a person born in a run acquiring a vocation inside a 25-year epoch
+run) still fails, and the reason is unchanged from the previous pass: at the epoch tier's
+one-step-per-calendar-day cadence nobody in the world ever forms a work goal at all. Widening the
+table changes the odds of a child being born near a trade; it does not change a cadence at which no
+trade is ever practised. Re-measured on seed 1 over 25 years: three people born in the run reach
+adulthood, none holds a trade, and none has been taught one.

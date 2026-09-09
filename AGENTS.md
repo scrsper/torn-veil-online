@@ -106,11 +106,15 @@ witnesses learn about it" stays true instead of becoming a scripted one-off.
   place's own `workers` — the canonical record `world/labor.ts` reads — and the occupation label
   LAST, as a summary. Nothing in the labour path reads that label. See
   `docs/DEMOGRAPHIC_CONTINUITY_YEAR_SCALE.md` Revision 2 §5.
-- `src/sim/world/locality.ts` — `nearestPlaceOfType`, the shape a "which place of this kind"
-  question should take: nearest to the asker, not `world.places().find(p => p.type === X)` (which
-  means "the first place of this type anywhere in the world" and silently binds every caller to
-  settlement A the moment a second settlement exists). Straight-line today; reachability over the
-  navigator later, without a signature change. Deliberately NOT a settlement-id filter.
+- `src/sim/world/locality.ts` — every "which place of this kind" question, answered FROM SOMEWHERE.
+  `nearestPlaceOfType`/`nearestPlaceWhere` (nearest to the asker), `placesOfType` (all of them, for
+  the demand-raising passes), `whereaboutsOf`/`placeNear` (a person's own anchor), and
+  `withinErrandRange`. `world.places().find(p => p.type === X)` means "the first place of this type
+  anywhere in the world" and silently binds every caller to settlement A the moment a second
+  settlement exists; there are none left in `src/sim/`. Straight-line decides in the hot path;
+  `headless/worldlab/invariants.ts`'s `locality-of-commitments` CHECKS those answers against real
+  walkability at probe cadence. Deliberately NOT a settlement-id filter — that is a label doing a
+  mechanism's job. See `docs/LOCALITY_V0_11.md`.
 - `src/sim/mind/pursuit.ts` / `src/sim/social/obligation.ts` — the v0.10 "Motivated Lives" layer.
   A `Pursuit` is a PERSISTENT PURPOSE (what someone is trying to bring about, across hours or
   days) sitting between a concern and a goal; it carries no plan — `pursuitSteps` re-derives which

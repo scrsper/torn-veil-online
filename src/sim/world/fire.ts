@@ -20,6 +20,10 @@ import { materialOf } from '../core/materials';
 const FUEL_SECONDS_PER_UNIT: Partial<Record<ItemType, number>> = {
   log: 2 * 3600, plank: 1 * 3600, stick: 20 * 60,
 };
+/** Is this material fuel at all? The one authority on the question, read by anything that needs
+ * to know whether a place with a hearth has business receiving a delivery of it
+ * (`logistics/haul.ts`). Nothing here decides what burns — the table above does. */
+export function isFuel(type: ItemType): boolean { return (FUEL_SECONDS_PER_UNIT[type] ?? 0) > 0; }
 /** Below this flammability, a material is not real fuel — `core/materials.ts`'s `stone` is 0
  * (never qualifies); this exists so a future low-flammability material doesn't silently start
  * "working" as fuel just because someone adds a `FUEL_SECONDS_PER_UNIT` entry for it. */

@@ -4,6 +4,7 @@ import { transform, villageStock, type TransformResult } from './metabolism';
 import { stockAt as stockAtPlace } from './stock';
 import { fireAt, fireIntensityAt, igniteFire, feedFire } from './fire';
 import { practiceSkill } from '../core/skills';
+import { placeNear } from './locality';
 
 /**
  * The first real production process to require actual fire/heat (v0.8 §D/E), proving the
@@ -24,7 +25,7 @@ export const STEW_CAP = 30;
 const MIN_FIRE_INTENSITY_TO_COOK = 0.3;
 
 export function cook(world: World, cookPerson: Person): TransformResult {
-  const tavernId = world.places().find(p => p.type === 'tavern')?.id;
+  const tavernId = placeNear(world, cookPerson, 'tavern')?.id;
   if (!tavernId) return { ok: false, produced: 0, consumed: 0 };
   if (villageStock(world, 'stew') >= STEW_CAP) return { ok: false, produced: 0, consumed: 0 };
   if (fireIntensityAt(world, tavernId) < MIN_FIRE_INTENSITY_TO_COOK) return { ok: false, produced: 0, consumed: 0 };
@@ -59,7 +60,7 @@ const TEND_BELOW_SECONDS = 3600;
  * true if the fire is lit (or was already burning comfortably) after this call.
  */
 export function tendTavernFire(world: World, cookPerson: Person): boolean {
-  const tavernId = world.places().find(p => p.type === 'tavern')?.id;
+  const tavernId = placeNear(world, cookPerson, 'tavern')?.id;
   if (!tavernId) return false;
   const fire = fireAt(world, tavernId);
   if (!fire) return false;

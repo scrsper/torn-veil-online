@@ -18,7 +18,6 @@ import { generateProductionNeeds, claimedProductionRequest, fulfillProductionReq
 import { nearestAvailableNode, extractFromNode, maintainResourceNodes } from '../world/resources';
 import { stepConstruction, activeBuildProjects, performBuildLabor, MAX_BUILDERS } from '../world/construction';
 import { stepFire, igniteFire, feedFire, fireIntensityAt, fireAt } from '../world/fire';
-import { cook, tendTavernFire } from '../world/cooking';
 import { willingnessFor, unitPriceFor, tradeOffersFrom, refusalsFrom, purchaseUnits, type TradeOffer, type Refusal, type PurchaseResult } from '../world/commerce';
 import { remember } from './memory';
 import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge, learnPlace, knownFoodPlace, noteFoodShortage } from './knowledge';
@@ -44,9 +43,10 @@ import { drawInferences } from './inference';
 // (world/labor.ts), who is plausibly moved to take it up (mind/succession.ts), and the smallest
 // teaching path (mind/apprenticeship.ts). None of the three decides anything on its own: the
 // first is a read-only view, the second returns a number, the third writes a belief.
-import { maintainWorkStints, noteStandInBatch, processFor, runTradeBatch, underServedPosts, workAuthorization, WORK_CAPACITY_FLOOR, type TradePost } from '../world/labor';
+import { maintainWorkStints, noteStandInBatch, processFor, runTradeBatch, tradeProcesses, underServedPosts, workAuthorization, WORK_CAPACITY_FLOOR, type TradePost } from '../world/labor';
 import { peopleAwareOfShortage, standInCandidacy } from './succession';
 import { livelihoodProspects } from './livelihood';
+import { nearestPlaceOfType, nearestPlaceWhere, whereaboutsOf, withinErrandRange } from '../world/locality';
 import { maybeTeachAt } from './apprenticeship';
 import type { TransformResult } from '../world/metabolism';
 import { woundSeverity, SERIOUS_WOUND } from '../core/attributes';
@@ -589,8 +589,12 @@ export class Simulation {
     const crimes = Object.values(p.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled && now - k.learnedAt < 86400 * 3);
     // Resolved once for the whole loop rather than per belief: this is a scan of everyone alive,
     // and a person who remembers five crimes was otherwise paying for it five times a tick.
+    // Watchmen this person could plausibly reach. `nearestKnownGuard` narrows it further to the
+    // ones whose whereabouts they actually have grounds to believe; the range filter here is the
+    // physical half of the same question (world/locality.ts).
     const authorities = crimes.length && !isGuard && !p.hostile
-      ? w.livingPersons().filter(g => (g.occupation === 'guard' || g.occupation === 'captain'))
+      ? w.livingPersons().filter(g => (g.occupation === 'guard' || g.occupation === 'captain')
+        && withinErrandRange(pos, w.place(g.workId ?? '')?.inside ?? w.primaryBody(g.id)?.pos))
       : EMPTY_PERSONS;
     for (const k of crimes) {
       const sev = crimeSeverity(k.claim.type); const victimClose = k.claim.target ? isClose(p, k.claim.target) : false; const victimIsMe = k.claim.target === p.id;
@@ -908,7 +912,12 @@ export class Simulation {
           + logsToPlanks(sawpits.reduce((n, pl) => n + stockAt(w, 'log', pl.id), 0)
             + clearings.reduce((n, pl) => n + stockAt(w, 'log', pl.id), 0) + looseLogs);
         if (pipeline >= req.quantity) continue;
-        const already = w.livingPersons().filter(q => q.id !== p.id && q.mind.goal?.type === 'chop').length;
+        // How many hands are already on THIS job, not how many people are chopping anywhere in the
+        // world. The cap exists so one shed does not put the whole village in the woods; counting
+        // it world-wide would mean a woodcutter in one settlement silently rations another
+        // settlement's (world/locality.ts).
+        const already = w.livingPersons().filter(q => q.id !== p.id && q.mind.goal?.type === 'chop'
+          && withinErrandRange(w.primaryBody(q.id)?.pos, gp ? w.place(gp.sitePlaceId)?.inside : undefined)).length;
         const chopping = p.mind.goal?.type === 'chop';
         const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter', 'villager'].includes(p.occupation);
         if (!chopping && (already >= 2 || !roleOk)) continue;
@@ -923,7 +932,9 @@ export class Simulation {
           + w.places().filter(pl => pl.type === 'quarry').reduce((n, pl) => n + stockAt(w, 'stone', pl.id), 0)
           + w.items().filter(i => i.type === 'stone' && i.holderId).reduce((n, i) => n + i.quantity, 0);
         if (pipeline >= req.quantity) continue;
-        const already = w.livingPersons().filter(q => q.id !== p.id && q.mind.goal?.type === 'gather').length;
+        // Scoped to this project's locality, for the same reason as the chop cap above.
+        const already = w.livingPersons().filter(q => q.id !== p.id && q.mind.goal?.type === 'gather'
+          && withinErrandRange(w.primaryBody(q.id)?.pos, w.place(gp.sitePlaceId)?.inside)).length;
         const gathering = p.mind.goal?.type === 'gather';
         const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter', 'villager'].includes(p.occupation);
         if (!gathering && (already >= 2 || !roleOk)) continue;
@@ -1018,14 +1029,14 @@ export class Simulation {
     if (raining && (!w.isIndoors(pos) || m.goal?.type === 'shelter') && !isGuard && !p.hostile && !indoorWork) {
       const comfort = p.needs.comfort; // 0 dry .. 1 soaked through
       const desc = comfort > 0.6 ? 'soaked through' : comfort > 0.3 ? 'getting wet' : 'starting to feel the rain';
-      G('shelter', clamp(comfort * 0.75 + w.weather.intensity * 0.1 - p.traits.courage * 0.15), [`${desc} and outside in the ${w.weather.kind}`], { targetPlace: dist2(pos, w.place(p.homeId!)?.inside ?? pos) < dist2(pos, w.place(this.tavernId())?.inside ?? pos) ? p.homeId ?? undefined : this.tavernId() });
+      G('shelter', clamp(comfort * 0.75 + w.weather.intensity * 0.1 - p.traits.courage * 0.15), [`${desc} and outside in the ${w.weather.kind}`], { targetPlace: dist2(pos, w.place(p.homeId!)?.inside ?? pos) < dist2(pos, w.place(this.tavernFor(p))?.inside ?? pos) ? p.homeId ?? undefined : this.tavernFor(p) });
     }
     // socialising when the need is high
-    G('socialize', clamp(n.social * 0.7 * (0.5 + p.traits.sociability * 0.8) - (night ? 0.3 : 0)), [`social need ${n.social.toFixed(2)}`, `sociability ${p.traits.sociability.toFixed(2)}`], { targetPlace: hour > 16 ? this.tavernId() : this.squareId() });
+    G('socialize', clamp(n.social * 0.7 * (0.5 + p.traits.sociability * 0.8) - (night ? 0.3 : 0)), [`social need ${n.social.toFixed(2)}`, `sociability ${p.traits.sociability.toFixed(2)}`], { targetPlace: hour > 16 ? this.tavernFor(p) : this.squareFor(p) });
     // mourning
-    if (p.emotions.sadness > 0.4 && hour >= 17 && hour < 20 && p.homeId) { const gy = w.places().find(pl => pl.type === 'graveyard'); if (gy) G('mourn', clamp(0.4 + p.emotions.sadness * 0.4), [`sadness ${p.emotions.sadness.toFixed(2)}`, 'the graveyard, at evening'], { targetPlace: gy.id }); }
+    if (p.emotions.sadness > 0.4 && hour >= 17 && hour < 20 && p.homeId) { const gy = nearestPlaceOfType(w, w.place(p.homeId ?? '')?.inside ?? pos, 'graveyard'); if (gy) G('mourn', clamp(0.4 + p.emotions.sadness * 0.4), [`sadness ${p.emotions.sadness.toFixed(2)}`, 'the graveyard, at evening'], { targetPlace: gy.id }); }
     // worship for the pious at service times
-    if (p.traits.piety > 0.55 && ((hour >= 7 && hour < 8) || (hour >= 18 && hour < 19)) && p.occupation !== 'priest' && p.occupation !== 'acolyte' && !isGuard) G('worship', clamp(0.35 + p.traits.piety * 0.35), [`piety ${p.traits.piety.toFixed(2)}`, 'service is being held'], { targetPlace: this.chapelId() });
+    if (p.traits.piety > 0.55 && ((hour >= 7 && hour < 8) || (hour >= 18 && hour < 19)) && p.occupation !== 'priest' && p.occupation !== 'acolyte' && !isGuard) G('worship', clamp(0.35 + p.traits.piety * 0.35), [`piety ${p.traits.piety.toFixed(2)}`, 'service is being held'], { targetPlace: this.chapelFor(p) });
     G('idle', 0.1, ['nothing better to do']);
     // v0.5: resolve the current commitment against canonical world state BEFORE using it to
     // protect/boost anything this tick — a commitment whose deliverable already completed/
@@ -1269,15 +1280,41 @@ export class Simulation {
     const newCrime = this.knownCrimesBy(p, otherId).some(k => k.learnedAt > since);
     return !newCrime;
   }
+  /**
+   * The nearest watchman this person could actually go and find.
+   *
+   * Two things bound it, and both used to be missing. First, WHERE they are is what this person
+   * believes: their own `loc:` knowledge if they have any, otherwise the watchman's own
+   * workplace, which is as public as the guardhouse door. The third fallback this used to carry —
+   * the guard's live body position — was omniscience with no provenance at all, and it is gone.
+   * Second, the guard has to be somewhere this person could plausibly walk to: a watchman a
+   * fortnight's travel away in another settlement is not who you report a theft to
+   * (`world/locality.ts`).
+   */
   private nearestKnownGuard(p: Person, pos: Vec3, guards: Person[]): Person | null {
     const w = this.world; let best: Person | null = null; let bd = Infinity;
-    for (const g of guards) { const loc = p.knowledge[`loc:${g.id}`]?.claim.pos ?? w.place(g.workId)?.inside ?? w.primaryBody(g.id)?.pos; if (!loc) continue; const d = dist2(pos, loc); if (d < bd) { bd = d; best = g; } }
+    for (const g of guards) {
+      const loc = p.knowledge[`loc:${g.id}`]?.claim.pos ?? w.place(g.workId)?.inside;
+      if (!loc || !withinErrandRange(pos, loc)) continue;
+      const d = dist2(pos, loc); if (d < bd) { bd = d; best = g; }
+    }
     return best;
   }
-  placeIdOfType(type: import('../core/types').PlaceType): string | undefined { return this.world.places().find(p => p.type === type)?.id; }
-  tavernId(): string { return this.world.places().find(p => p.type === 'tavern')!.id; }
-  squareId(): string { return this.world.places().find(p => p.type === 'square')!.id; }
-  chapelId(): string { return this.world.places().find(p => p.type === 'chapel')!.id; }
+  /**
+   * The everyday places of a person's life, resolved FROM THEM (world/locality.ts).
+   *
+   * These used to be `world.places().find(p => p.type === 'tavern')` — "the first tavern anywhere
+   * in the world" — reached through `this.tavernId()` from a dozen goal and plan sites. In one
+   * village that is right by accident; with a second settlement every villager in it would walk
+   * to the first village's tavern to drink, its square to socialise and its chapel to pray. The
+   * `person` argument is what makes the question answerable.
+   */
+  placeIdOfType(type: import('../core/types').PlaceType, person?: Person): string | undefined {
+    return nearestPlaceOfType(this.world, person ? whereaboutsOf(this.world, person) : null, type)?.id;
+  }
+  private tavernFor(p: Person): string { return this.placeIdOfType('tavern', p)!; }
+  private squareFor(p: Person): string { return this.placeIdOfType('square', p)!; }
+  private chapelFor(p: Person): string { return this.placeIdOfType('chapel', p)!; }
   weaponOf(p: Person): number { let best = 0; for (const id of p.inventory) { const it = this.world.item(id); if (it && it.damage > best) best = it.damage; } return best; }
 
   // ------------------------------------------------------------------ planning
@@ -1293,8 +1330,8 @@ export class Simulation {
       case 'sleep': { const home = w.place(p.homeId); const bed = anchorIn(home, ['bed'], true) ?? anchorIn(home, ['bed']) ?? home?.inside ?? body.pos; return [A({ type: 'goto', pos: bed, placeId: home?.id }), A({ type: 'sleep', pos: bed, duration: 3 * SECONDS_PER_HOUR })]; }
       case 'eat': { const pl = place ?? w.place(p.homeId); const seat = anchorIn(pl, ['seat']) ?? anchorIn(pl, ['fire', 'inside']) ?? pl?.inside ?? body.pos; return [A({ type: 'goto', pos: seat, placeId: pl?.id }), A({ type: 'eat', pos: seat, duration: 25 * 60 })]; }
       case 'work': { const pl = place; const spot = anchorIn(pl, ['work']) ?? pl?.inside ?? body.pos; return [A({ type: 'goto', pos: spot, placeId: pl?.id }), A({ type: 'work', pos: spot, duration: 40 * 60 + w.rng.next() * 30 * 60, placeId: pl?.id })]; }
-      case 'worship': { const pl = place ?? w.place(this.chapelId()); const spot = (p.occupation === 'priest' || p.occupation === 'acolyte') ? anchorIn(pl, ['altar']) : anchorIn(pl, ['seat']); return [A({ type: 'goto', pos: spot ?? pl!.inside, placeId: pl?.id }), A({ type: 'pray', pos: spot ?? pl!.inside, duration: 40 * 60 })]; }
-      case 'socialize': case 'drink': case 'play': case 'idle': { const pl = place ?? w.place(this.squareId()); const spot = anchorIn(pl, g.type === 'drink' ? ['seat', 'inside'] : ['seat', 'inside', 'work']) ?? pl?.inside ?? body.pos; return [A({ type: 'goto', pos: spot, placeId: pl?.id }), A({ type: g.type === 'play' ? 'wait' : 'sit', pos: spot, duration: (g.type === 'play' ? 8 : 25) * 60 + w.rng.next() * 15 * 60, data: { social: true } })]; }
+      case 'worship': { const pl = place ?? w.place(this.chapelFor(p)); const spot = (p.occupation === 'priest' || p.occupation === 'acolyte') ? anchorIn(pl, ['altar']) : anchorIn(pl, ['seat']); return [A({ type: 'goto', pos: spot ?? pl!.inside, placeId: pl?.id }), A({ type: 'pray', pos: spot ?? pl!.inside, duration: 40 * 60 })]; }
+      case 'socialize': case 'drink': case 'play': case 'idle': { const pl = place ?? w.place(this.squareFor(p)); const spot = anchorIn(pl, g.type === 'drink' ? ['seat', 'inside'] : ['seat', 'inside', 'work']) ?? pl?.inside ?? body.pos; return [A({ type: 'goto', pos: spot, placeId: pl?.id }), A({ type: g.type === 'play' ? 'wait' : 'sit', pos: spot, duration: (g.type === 'play' ? 8 : 25) * 60 + w.rng.next() * 15 * 60, data: { social: true } })]; }
       case 'wander': {
         // v0.6 §VI/§VII: a hunger-driven search (no known food source) targets a nearby place
         // NOT yet known as a food source, rather than idle jitter — arriving there and perceiving
@@ -1308,12 +1345,12 @@ export class Simulation {
           const target = (unknown.length ? unknown : known).sort((a, b) => dist2(body.pos, a.inside) - dist2(body.pos, b.inside))[0];
           if (target) return [A({ type: 'goto', pos: target.inside, placeId: target.id }), A({ type: 'wait', duration: 3 * 60 })];
         }
-        const pl = w.place(this.squareId())!; return [A({ type: 'goto', pos: { x: pl.inside.x + (w.rng.next() - 0.5) * 16, y: pl.inside.y, z: pl.inside.z + (w.rng.next() - 0.5) * 16 } }), A({ type: 'wait', duration: 5 * 60 })];
+        const pl = w.place(this.squareFor(p))!; return [A({ type: 'goto', pos: { x: pl.inside.x + (w.rng.next() - 0.5) * 16, y: pl.inside.y, z: pl.inside.z + (w.rng.next() - 0.5) * 16 } }), A({ type: 'wait', duration: 5 * 60 })];
       }
       case 'go_home': case 'shelter': case 'return_home_safe': { const pl = place ?? w.place(p.homeId); return [A({ type: 'goto', pos: anchorIn(pl, ['seat', 'fire', 'inside']) ?? pl?.inside ?? body.pos, placeId: pl?.id }), A({ type: 'wait', duration: 30 * 60 })]; }
       case 'patrol': { const pts = p.patrol ?? []; const start = Math.floor(w.rng.next() * pts.length); const acts: Action[] = []; for (let i = 0; i < pts.length; i++) { const pt = pts[(start + i) % pts.length]; acts.push(A({ type: 'goto', pos: pt }), A({ type: 'look', duration: 40, pos: pt })); } return acts.length ? acts : [A({ type: 'wait', duration: 60 })]; }
-      case 'guard_post': { const pl = place ?? w.place(p.workId); const post = p.occupation === 'guard' ? (w.places().find(x => x.type === 'gate' && x.name.includes('east'))?.anchors[0].pos ?? pl?.inside) : anchorIn(pl, ['post', 'work', 'inside']); return [A({ type: 'goto', pos: post ?? body.pos }), A({ type: 'look', duration: 20 * 60, pos: post ?? body.pos })]; }
-      case 'flee': { const threatPos = w.primaryBody(g.targetEntity!)?.pos ?? body.pos; const guards = w.livingPersons().filter(q => (q.occupation === 'guard' || q.occupation === 'captain') && q.id !== g.targetEntity); const gd = p.traits.sociability > 0.3 && !p.hostile ? this.nearestKnownGuard(p, body.pos, guards) : null; let dest: Vec3; if (gd) { dest = p.knowledge[`loc:${gd.id}`]?.claim.pos ?? w.place(gd.workId)?.inside ?? w.primaryBody(gd.id)!.pos; } else { const home = w.place(p.homeId); dest = home?.inside ?? this.awayFrom(body.pos, threatPos, 18); } if (dist2(dest, threatPos) < 8) dest = this.awayFrom(body.pos, threatPos, 20); return [A({ type: 'goto', pos: dest, run: true, data: { flee: true } }), A({ type: 'wait', duration: 3 * 60, data: { hide: true } })]; }
+      case 'guard_post': { const pl = place ?? w.place(p.workId); const post = p.occupation === 'guard' ? (nearestPlaceWhere(w, w.place(p.workId ?? '')?.inside ?? body.pos, x => x.type === 'gate' && x.name.includes('east'))?.anchors[0].pos ?? pl?.inside) : anchorIn(pl, ['post', 'work', 'inside']); return [A({ type: 'goto', pos: post ?? body.pos }), A({ type: 'look', duration: 20 * 60, pos: post ?? body.pos })]; }
+      case 'flee': { const threatPos = w.primaryBody(g.targetEntity!)?.pos ?? body.pos; const guards = w.livingPersons().filter(q => (q.occupation === 'guard' || q.occupation === 'captain') && q.id !== g.targetEntity && withinErrandRange(body.pos, w.place(q.workId ?? '')?.inside ?? w.primaryBody(q.id)?.pos)); const gd = p.traits.sociability > 0.3 && !p.hostile ? this.nearestKnownGuard(p, body.pos, guards) : null; let dest: Vec3; if (gd) { dest = p.knowledge[`loc:${gd.id}`]?.claim.pos ?? w.place(gd.workId)?.inside ?? w.primaryBody(gd.id)!.pos; } else { const home = w.place(p.homeId); dest = home?.inside ?? this.awayFrom(body.pos, threatPos, 18); } if (dist2(dest, threatPos) < 8) dest = this.awayFrom(body.pos, threatPos, 20); return [A({ type: 'goto', pos: dest, run: true, data: { flee: true } }), A({ type: 'wait', duration: 3 * 60, data: { hide: true } })]; }
       case 'report': { const g2 = w.person(g.targetEntity!)!; return [A({ type: 'goto', targetEntity: g2.id, run: true }), A({ type: 'tell', targetEntity: g2.id, data: { key: g.data?.key } })]; }
       case 'investigate': { return [A({ type: 'goto', pos: g.targetPos!, run: p.occupation === 'captain' }), A({ type: 'look', duration: 3 * 60, pos: g.targetPos!, data: { key: g.data?.key, investigate: true } })]; }
       case 'confront': case 'attack': return [A({ type: 'goto', targetEntity: g.targetEntity, run: true }), A({ type: g.type === 'confront' ? 'talk' : 'attack', targetEntity: g.targetEntity, data: g.data })];
@@ -1558,8 +1595,14 @@ export class Simulation {
         // had since v0.6 — their branches below are occupation-gated anyway (see the note on
         // `TRADE_PROCESSES` for why they are a different shape of work).
         const ownTradeHasAProcess = !!processFor(w.place(p.workId ?? '')?.type);
+        // Somebody who has actually learned one of the village's trades might have a batch to run
+        // wherever they are standing — the woodcutter is registered on the sawpit's staff but his
+        // `workId` is the clearing, so `ownTradeHasAProcess` alone would skip him. Read from
+        // proficiency rather than from what he is called: `p.occupation === 'woodcutter'` was the
+        // term this replaces, and a handful of map lookups is what the prefilter costs either way.
+        const hasLearnedATrade = tradeProcesses().some(t => skillOf(p, t.skill) > 0);
         const couldStandIn = this.vacantPosts.length > 0 && this.awareOfShortage.has(p.id);
-        if (ownTradeHasAProcess || couldStandIn || p.occupation === 'woodcutter' || p.occupation === 'innkeeper' || p.occupation === 'herbalist' || p.occupation === 'cook' || p.occupation === 'hunter') {
+        if (ownTradeHasAProcess || hasLearnedATrade || couldStandIn || p.occupation === 'innkeeper' || p.occupation === 'herbalist' || p.occupation === 'cook' || p.occupation === 'hunter') {
           const herePlace = w.placeAt(body.pos);
           const t = herePlace?.type;
           const process = processFor(t);
@@ -1568,7 +1611,11 @@ export class Simulation {
           // risk — but a dexterous sawyer with a saw in hand completes a batch faster than one
           // without, so their WORK RATE (throughput over time) is real and continuous rather than
           // a flat "woodcutter" bonus. Clamped so the interval stays sane at either extreme.
-          const sawing = p.occupation === 'woodcutter' && t === 'sawpit';
+          // The tool this process is done with, if it is done with one — declared on the process
+          // (`world/labor.ts`'s `TradeProcess.toolAction`) rather than branched on here. The line
+          // this replaced was `p.occupation === 'woodcutter' && t === 'sawpit'`: the last place in
+          // the batch path where what somebody was CALLED decided whether work happened.
+          const tooling = process?.toolAction ? capabilityFor(w, p, process.toolAction, herePlace?.id) : null;
           // v0.6 §V.7 (baking): skill improves TIME efficiency, never batch size (BAKE_RATIO is
           // untouched) — a practiced baker completes the same batch in less real time, exactly
           // the effect the milestone names for this trade ("do not create extra bread from
@@ -1578,9 +1625,10 @@ export class Simulation {
           // novice's higher time-and-energy cost comes from without inventing a second rule for it.
           const proficiency = process ? skillOf(p, process.skill) : 0;
           const bakeRateMult = process?.skill === 'baking' ? 1 + proficiency * 0.4 : 1;
-          const batchInterval = sawing
-            ? Math.max(3 * 60, Math.min(20 * 60, (8 * 60) / capabilityFor(w, p, 'saw', w.placeAt(body.pos)?.id).cap.workRate))
-            : process ? Math.max(4 * 60, tradeBatchSeconds(process.baseBatchSeconds / bakeRateMult, proficiency))
+          // A tool makes the same batch quicker, proficiency makes it quicker still, and a novice
+          // pays for having never done it — one expression rather than a branch per trade.
+          const batchInterval = process
+            ? Math.max(3 * 60, tradeBatchSeconds(process.baseBatchSeconds / bakeRateMult / Math.max(0.35, tooling?.cap.workRate ?? 1), proficiency))
             : 8 * 60;
           const last = (a.data.batchAt ?? (a.startedAt ?? w.now) - batchInterval) as number;
           if (w.now - last >= batchInterval) {
@@ -1630,31 +1678,38 @@ export class Simulation {
                   skillBefore,
                 });
               });
+              // Real work wears a real tool — for whichever trades have one, on the same batch
+              // cadence the work itself runs on.
+              if (tooling?.tool) wearTool(w, tooling.tool, batchInterval / 3600);
               // Being shown how, at the work — the smallest teaching path (mind/apprenticeship.ts).
               // Whoever is ahead teaches; instruction grants no proficiency, it only makes the
               // practice that follows count for more.
               maybeTeachAt(w, p, post.process.skill, post.place.id);
             }
-            else if (sawing) { saw(w, p); wearTool(w, capabilityFor(w, p, 'saw', w.placeAt(body.pos)?.id).tool, batchInterval / 3600); } // v0.3: log → plank
+            // KEEPING THE PLACE, which is not the same thing as working its trade and no longer
+            // excludes it. These used to be `else if` arms of the branch above, which was harmless
+            // only while the sole places with a `TradeProcess` were the mill and the bakery, where
+            // none of them applied. The tavern is now a trade AND a house somebody keeps: its
+            // stew comes out of `runTradeBatch` above, and its cellar is still restocked here. Had
+            // these stayed an `else`, adding the tavern to the process table would have silently
+            // stopped the ale.
+            //
+            // The occupation tests that remain are the gathering/keeping trades, which are a
+            // different shape of work — no material input to be short of, nothing for a stand-in
+            // to take over, their own stall and their own stock (see `TRADE_PROCESSES`'s own note
+            // on why they are not in the table). They are honest gaps, not gates on a process.
+            //
             // v0.6 §II: the innkeeper keeps the tavern's larder stocked while working — see
             // world/metabolism.ts's `restockTavern` doc comment for why this closed a genuine
             // "always runs out after day one" access bug rather than being new economic scope.
-            else if (p.occupation === 'innkeeper' && t === 'tavern') restockTavern(w, p);
+            if (p.occupation === 'innkeeper' && t === 'tavern') restockTavern(w, p);
             // v0.8 §A/F: the herbalist gathers at her own workplace, real bounded stock.
             else if (p.occupation === 'herbalist') gatherHerbs(w, p);
             // v0.8 §D (found via this milestone's own 90-day benchmark): the hunter restocks her
             // own stall while working there — without this, meat was one-time-seeded and never
-            // replenished, so cook()'s new haul demand could only ever move the original stock
-            // once. See world/metabolism.ts's `huntGame` doc comment.
+            // replenished, so cook()'s haul demand could only ever move the original stock once.
+            // See world/metabolism.ts's `huntGame` doc comment.
             else if (p.occupation === 'hunter' && t === 'stall') huntGame(w, p);
-            // v0.8 §D: the cook tends the tavern hearth (lighting it if needed, from whatever
-            // wood is on hand) and, once it's genuinely burning, cooks a real batch — see
-            // world/cooking.ts. Demand-gated exactly like baking/milling (claimedProductionRequest).
-            else if (p.occupation === 'cook' && t === 'tavern') {
-              const tavernId = w.placeAt(body.pos)!.id;
-              tendTavernFire(w, p);
-              runBatch(tavernId, 'meat', 'stew', () => cook(w, p));
-            }
           }
         }
         if (this.elapsed(a)) a.status = 'done';

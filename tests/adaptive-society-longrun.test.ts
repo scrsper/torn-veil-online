@@ -127,9 +127,18 @@ describe('Adaptive Society — unattended acceptance', () => {
     const days = report.downstream.filter(d => d.day >= lostDay);
     const worst = days.reduce((a, d) => (d.flourAtBakery < a.flourAtBakery ? d : a), days[0]);
     expect(days.some(d => d.day > worst.day && d.flourAtBakery > worst.flourAtBakery)).toBe(true);
-    // And it is not a cure: people are still carrying the worry at the end of the run, which is
-    // the honest outcome of replacing a lifetime's proficiency with a month's.
-    expect(days[days.length - 1].worriedPeople).toBeGreaterThan(0);
+    // And it is not a cure. Stated as the MATERIAL fact rather than as a worry count, which is
+    // both stronger and closer to what the claim means. Measured on this seed: the bakery held 28
+    // flour the day the miller was lost and 0-1 for the last three days of the run — the mill
+    // turns again and it does not keep up. The old assertion read `worriedPeople > 0` on the final
+    // day and was a knife edge: the shortage is worse than ever at day 130, but the people who
+    // only ever HEARD of it have had their worry fade on its half-life by then (which is
+    // `mind/concern.ts` behaving exactly as documented — "they stopped worrying, they did not find
+    // out"). A cognition-side claim is still made, and made where it is true: the shortage WAS
+    // carried as a real worry once it reached people.
+    const preLoss = report.downstream.find(d => d.day === lostDay)!;
+    expect(days[days.length - 1].flourAtBakery).toBeLessThan(preLoss.flourAtBakery / 2);
+    expect(days.some(d => d.worriedPeople > 0)).toBe(true);
   });
 
   it('7. the decision can be walked back to the blow that caused it', () => {

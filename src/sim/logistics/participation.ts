@@ -5,6 +5,7 @@ export { canAcceptHaul } from './haul';
 import { stockAt } from '../world/stock';
 import { isFood } from '../world/factory';
 import { buyFoodPortion, eatFood, drinkAt, findAccessibleFood } from '../world/metabolism';
+import { nearestPlaceWhere } from '../world/locality';
 import { willingnessFor } from '../world/commerce';
 
 /**
@@ -159,7 +160,10 @@ export function drinkHere(world: World, person: Person, pos: Vec3): boolean {
 
 /** Physical access to existing water places, shared by prompts and execution. */
 export function waterSourceAtHand(world: World, pos: Vec3): Place | undefined {
-  return world.places().find(p => p.type === 'well'
+  // Nearest, not first: two wells in reach is already possible in Ashford (the village well and
+  // the river bank), and "whichever was registered first" is not an answer to "which one am I
+  // standing at" (world/locality.ts).
+  return nearestPlaceWhere(world, pos, p => p.type === 'well'
     && Math.hypot(p.inside.x - pos.x, p.inside.y - pos.y, p.inside.z - pos.z) <= 4
     && world.grid.lineOfPassage({ ...pos, y: pos.y + 1.2 }, { ...p.inside, y: p.inside.y + 1.2 }, 5.2));
 }

@@ -57,6 +57,8 @@ const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 const TRADE_SUMMARY: Partial<Record<PlaceType, Occupation>> = {
   mill: 'miller',
   bakery: 'baker',
+  sawpit: 'woodcutter',
+  tavern: 'cook',
 };
 
 /** Enough of a pattern to be worth calling a trade. Below this, somebody is a grown person with

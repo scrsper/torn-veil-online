@@ -8,6 +8,7 @@ import { wearTool } from '../core/tools';
 import { createRequest, acceptRequest, completeRequest } from '../core/requests';
 import { practiceSkill } from '../core/skills';
 import { learnAffordance } from '../mind/knowledge';
+import { nearestPlaceOfType, nearestPlaceWhere } from './locality';
 
 /**
  * Construction projects (v0.3 Living World I, Priority 9-10-12).
@@ -196,19 +197,11 @@ export function materializeStructure(world: World, p: ConstructionProject): void
 export function stepConstruction(world: World): void {
   // Feed the sawpit from the woodcutter's clearing while any project still needs planks — the
   // upstream link of the wood chain (tree → log → HAUL → sawpit → plank).
-  const anyNeedsPlanks = world.constructionProjects.some(p => p.status === 'gathering' && projectDeficits(world, p).some(d => d.type === 'plank'));
-  if (anyNeedsPlanks) {
-    const sawpit = world.places().find(p => p.type === 'sawpit');
-    const clearing = world.places().find(p => p.type === 'wilderness' && p.slug === 'clearing');
-    if (sawpit && clearing && stockAt(world, 'log', sawpit.id) < 10 && stockAt(world, 'log', clearing.id) > 0
-      && !openHaulTasks(world).some(t => t.resource === 'log' && t.destPlaceId === sawpit.id)) {
-      const want = Math.min(carryCapFor('log'), stockAt(world, 'log', clearing.id));
-      createHaulTask(world, {
-        resource: 'log', quantity: want, sourcePlaceId: clearing.id, destPlaceId: sawpit.id,
-        reason: 'the sawpit needs logs', requesterId: sawpit.workers[0] ?? null, priority: 0.7,
-      });
-    }
-  }
+  // The sawpit's own log supply used to be raised here, by a block that duplicated what
+  // `logistics/haul.ts`'s `CONSUMER_DEMANDS` does for every other consumer in the village. It is
+  // a row in that table now: the sawpit is a real trade with a real input, and a trade whose
+  // supply is invisible to the canonical logistics record is one whose stoppages nothing can
+  // reason about.
   for (const p of world.constructionProjects) {
     if (p.status === 'complete' || p.status === 'cancelled') continue;
     if (p.status === 'gathering' && materialsComplete(world, p)) {
@@ -223,7 +216,7 @@ export function stepConstruction(world: World): void {
     if (p.status !== 'gathering') continue;
     // Raise a haul task per still-deficient material from the matching producer.
     for (const { type, deficit } of projectDeficits(world, p)) {
-      const src = producerPlace(world, type);
+      const src = producerPlace(world, type, world.place(p.sitePlaceId)?.inside);
       if (!src) continue;
       const already = openHaulTasks(world).some(t => t.projectId === p.id && t.resource === type);
       if (already) continue;
@@ -238,10 +231,12 @@ export function stepConstruction(world: World): void {
   }
 }
 
-function producerPlace(world: World, type: ItemType): Place | undefined {
-  if (type === 'plank') return world.places().find(p => p.type === 'sawpit');
-  if (type === 'stone') return world.places().find(p => p.type === 'quarry');
-  if (type === 'log') return world.places().find(p => p.type === 'wilderness' && p.slug === 'clearing') ?? world.places().find(p => p.type === 'sawpit');
+/** Where this material is made, as asked from the site that needs it — never "the first sawpit in
+ * the world" (world/locality.ts). */
+function producerPlace(world: World, type: ItemType, near: Vec3 | undefined): Place | undefined {
+  if (type === 'plank') return nearestPlaceOfType(world, near, 'sawpit');
+  if (type === 'stone') return nearestPlaceOfType(world, near, 'quarry');
+  if (type === 'log') return nearestPlaceWhere(world, near, p => p.type === 'wilderness' && p.slug === 'clearing') ?? nearestPlaceOfType(world, near, 'sawpit');
   return world.places().find(p => p.id === type); // no other producers in v0.3
 }
 
