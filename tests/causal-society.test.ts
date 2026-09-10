@@ -55,6 +55,18 @@ function attackBelief(tw: TW, p: Person, actorId: string | undefined, targetId: 
 // ---------------------------------------------------------------------------------------------
 
 describe('Causal Society — a stoppage becomes something minds can hold', () => {
+  it('does not lend eyewitness certainty to a detail learned through hearsay',()=>{
+    const tw=createTestWorld(4020,40);
+    const listener=addPerson(tw,'Listener','farmer',v(5,1,5));
+    const victim=addPerson(tw,'Victim','farmer',v(6,1,5));
+    const suspect=addPerson(tw,'Suspect','farmer',v(7,1,5));
+    attackBelief(tw,listener,undefined,victim.id,{confidence:1});
+    const refined=attackBelief(tw,listener,suspect.id,victim.id,{confidence:0.65,hops:1});
+    expect(refined.claim.actor).toBe(suspect.id);
+    expect(refined.source.type).toBe('told'); expect(refined.hops).toBe(1);
+    expect(refined.confidence).toBe(0.65);
+  });
+
   it('gives the worker who found the bin empty a first-hand belief and a supply worry, and nobody else anything', () => {
     const tw = createTestWorld(4001, 40);
     const pl = withTrades(tw);
@@ -96,6 +108,22 @@ describe('Causal Society — a stoppage becomes something minds can hold', () =>
     expect(belief.confidence).toBe(1);
     expect(belief.lastConfirmedAt).toBe(tw.world.now);
     expect(activeConcerns(baker).filter(c => c.kind === 'supply')).toHaveLength(1);
+  });
+
+  it('records firsthand evidence when a told shortage is encountered through real work',()=>{
+    const tw=createTestWorld(4019,40), pl=withTrades(tw);
+    const baker=addPerson(tw,'Baker','baker',pl.bakeryPos,{workId:pl.bakery});
+    const helper=addPerson(tw,'Helper','server',v(14.5,1,4),{workId:pl.bakery});
+    const original=noteWorkBlocked(tw.world,baker,pl.bakery,'flour','bread')!;
+    tw.sim.tell(baker,helper,original);
+    const heard=helper.knowledge[shortfallKey(pl.bakery,'flour')];
+    expect(heard.source.type).toBe('told'); expect(heard.confidence).toBeLessThan(1);
+    const attempted=noteWorkBlocked(tw.world,helper,pl.bakery,'flour','bread')!;
+    expect(attempted).toBe(heard); expect(attempted.source.type).toBe('self');
+    expect(attempted.hops).toBe(0); expect(attempted.confidence).toBe(1);
+    const evidence=tw.world.event(attempted.source.viaEvent);
+    expect(evidence?.type).toBe('work_blocked'); expect(evidence?.actor).toBe(helper.id);
+    expect(noteWorkBlocked(tw.world,helper,pl.bakery,'flour','bread')).toBeNull();
   });
 
   it('lands in the same slot however it was come by, so one continuing shortage is one belief', () => {
@@ -189,6 +217,13 @@ describe('Causal Society — a stoppage becomes something minds can hold', () =>
     expect(concernGoalBoost(miller, 'work').bonus).toBeGreaterThan(0);
     // A concern bends a decision, it never dictates one.
     expect(concernGoalBoost(miller, 'work').bonus).toBeLessThanOrEqual(0.3);
+    const farmer = addPerson(tw, 'Farmer', 'farmer', pl.millPos);
+    const grain = noteWorkBlocked(tw.world, miller, pl.mill, 'grain', 'flour')!;
+    tw.sim.tell(miller, farmer, grain);
+    for (const action of ['harvest', 'plant'] as const) {
+      expect(concernGoalBoost(farmer, action, undefined, 'grain').bonus).toBeGreaterThan(0);
+      expect(concernGoalBoost(farmer, action, undefined, 'log').bonus).toBe(0);
+    }
     // Nothing that walks anybody toward another person.
     for (const g of ['attack', 'confront', 'investigate', 'rob'] as const) {
       expect(concernGoalBoost(baker, g, miller.id, 'flour').bonus).toBe(0);

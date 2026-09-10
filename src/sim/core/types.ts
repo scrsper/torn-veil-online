@@ -159,7 +159,7 @@ export interface Attributes { strength: number; dexterity: number; }
  */
 export type SkillId = 'woodcutting' | 'quarrying' | 'hauling' | 'sawing' | 'construction' | 'baking'
   // v0.8: gathering herbs, cooking over a real fire, and crafting a tool from raw components.
-  | 'herbalism' | 'cooking' | 'crafting'
+  | 'herbalism' | 'cooking' | 'crafting' | 'hunting'
   // Adaptive Society (v0.5): grinding grain into flour. Milling was the one production process in
   // the village with no learned capability behind it at all — `mill()` ran at a flat rate for
   // anybody the occupation gate let through — which is exactly why a lost miller could never be
@@ -344,7 +344,7 @@ export type GoalType =
   // purpose could only ever walk over and look, which is one action, not a life.
   | 'provide'
   // Demographic continuity: an ordinary relationship-motivated social goal.
-  | 'court';
+  | 'court' | 'provision_home';
 
 export interface Goal {
   type: GoalType;
@@ -371,7 +371,7 @@ export type ActionType = 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 't
   // v0.8 §P0-G/H: hand a carried item to another person in person — the 'help_recover_item'
   // plan's delivery step (see GoalType). Distinct from the existing NPC-to-player trade/`bought`
   // path; this always uses `Simulation.giveItem` (mind/agent.ts), which pays any owed reward.
-  | 'give' | 'propose';
+  | 'give' | 'propose' | 'buy_food' | 'manage_household';
 export interface Action {
   type: ActionType;
   pos?: Vec3;
@@ -962,9 +962,11 @@ export interface HaulTask {
  * (a depleted tree's blocks are cleared; a regrown one's are restored). Owned by
  * `World.resourceNodes`; persisted (depletion/regrowth is history).
  */
-export type ResourceNodeKind = 'tree' | 'stone';
+export type ResourceNodeKind = 'tree' | 'stone' | 'game';
 export interface ResourceNodeBlock { x: number; y: number; z: number; id: number; }
 export interface ResourceNode {
+  /** Last density update for a hunting ground; fractional remaining is real biomass. */
+  renewedAt?: Tick;
   id: EntityId;
   kind: ResourceNodeKind;
   yield: ItemType;                     // 'log' | 'stone'
@@ -1095,6 +1097,7 @@ export interface Request {
    * cannot afford it in full — payment never creates or destroys currency (Constitution v0.4
    * §10: `totalCurrencyBefore === totalCurrencyAfter` for ordinary transactions). */
   reward: number;
+  paid?: number;
   cause: string;
   payload: RequestPayload;
 }
@@ -1389,7 +1392,7 @@ export type EventType =
   // v0.8 §1B: a fulfilled recover_item desire pays a real, conserved reward — see
   // `core/requests.ts`'s `payRecoveryReward` (the same honest-transfer semantics `wage_paid`
   // already uses).
-  | 'reward_paid'
+  | 'reward_paid' | 'household_provisioned'
   // v0.5 Human Physiology / Autonomous Economy — goal commitment lifecycle transitions
   // (Constitution v0.5 §12: "canonical, observable, reason-coded... avoid event spam", so only
   // real transitions, never a per-tick "still committed" heartbeat) and the new production

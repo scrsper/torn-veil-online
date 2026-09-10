@@ -27,16 +27,23 @@ const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
  * hunger — a bounded, deterministic weighting (not sophisticated utility theory). A well-fed,
  * wealthy person has little reason to take on an unpleasant low-wage haul; a poor, hungry one
  * has a strong one. Multiplies (does not replace) a labour goal's own capability/urgency-based
- * utility (mind/agent.ts's haul/build/gather candidates) — a genuinely critical physiological
- * need (thirst, exhaustion) still outbids ANY wage opportunity on its own terms, independent of
- * this factor, exactly as it already did before v0.5 (Constitution v0.5 §19's "critical
- * physiological need still overrides wage opportunity" falls out of the existing need-goal
- * utilities being computed independently, not from this multiplier).
+ * utility (mind/agent.ts's haul/build/gather candidates). Capability gates, need goals and
+ * physiological interruption rules still apply. Witnessed food-price pressure can make a
+ * real paid job preferable to a routine duty; the multiplier cannot create a job or a wage.
  */
-export function laborIncentive(p: Person): number {
+export function laborIncentive(p: Person, world?: World): number {
   // 0 (wealthy — 80+ silver, comfortably above what a few days of ordinary living costs) .. 1 (destitute)
   const wealthPressure = clamp01(1 - p.wealth / 80);
   const hungerPressure = p.needs.hunger; // 0 (well fed) .. 1 (starving)
   const need = clamp01(wealthPressure * 0.6 + hungerPressure * 0.4);
-  return 0.7 + need * 0.6; // 0.7 (comfortable, well fed) .. 1.3 (destitute, starving)
+  // Own witnessed meal quotes let the same incentive express a concrete livelihood need.
+  // Two meals of cash is a short planning reserve, not a guaranteed living wage. No remote
+  // price or relative's wallet is consulted, and an old quote ceases to be evidence.
+  const quotes = world ? Object.values(p.knowledge).filter(k => k.key.startsWith('food-access:')
+    && world.now - k.learnedAt < 12 * 3600 && Number(k.claim.price) > 0).map(k => Number(k.claim.price)) : [];
+  const mealBudget = quotes.length ? Math.min(...quotes) * 2 : 0;
+  const foodPressure = mealBudget ? clamp01(1 - p.wealth / mealBudget) * hungerPressure : 0;
+  // Reuse one bounded pressure factor. Near insolvency, earning the next meal can outweigh
+  // routine unpaid duties while capability, actual jobs and urgent bodily needs still matter.
+  return 0.7 + Math.max(need * 0.6, foodPressure * 1.6);
 }

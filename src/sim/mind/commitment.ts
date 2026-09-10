@@ -42,6 +42,7 @@ const INTERRUPTIBILITY: Partial<Record<GoalType, Interruptibility>> = {
   // reasoning, as `help_recover_item` directly above. A genuine physiological emergency still
   // interrupts it; that is the whole point of `interruptionSeverityMet`.
   provide: 'committed',
+  provision_home: 'committed',
 };
 export function interruptibilityOf(type: GoalType): Interruptibility { return INTERRUPTIBILITY[type] ?? 'free'; }
 export function isCommittable(type: GoalType): boolean { return interruptibilityOf(type) === 'committed'; }

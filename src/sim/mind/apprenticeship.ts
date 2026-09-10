@@ -102,7 +102,7 @@ export function teach(world: World, teacher: Person, student: Person, skill: Ski
     pos: body ? { ...body.pos } : undefined,
     placeId: body ? world.placeAt(body.pos)?.id : undefined,
     significance: 0.35, visibility: 8,
-    data: { skill, teacherSkill: Math.round(skillOf(teacher, skill) * 100) / 100, studentSkill: Math.round(skillOf(student, skill) * 100) / 100 },
+    data: { skill, teacherSkill: skillOf(teacher, skill), studentSkill: skillOf(student, skill) },
     summary: `${teacher.name} showed ${student.name} how ${skill} is done`,
   });
   const claim = { type: 'technique', skill, teacherId: teacher.id, tick: world.now, significance: 0.35, eventId: ev.id };

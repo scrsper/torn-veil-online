@@ -172,7 +172,8 @@ export function stepPhysiology(world: World, p: Person, hours: number, activity:
   const heatFatigueFactor = 1 + Math.max(0, phys.bodyHeat - HEAT_HOT) * 1.5;
   const fatigueRateMult = (profile.fatigueMultiplier / traits.conditioning);
   const wetnessFatigue = WETNESS_FATIGUE_PER_HOUR * phys.wetness * hours;
-  if (activity === 'idle') phys.fatigue = clamp01(phys.fatigue - REST_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * hours + wetnessFatigue);
+  if (asleep) phys.fatigue = clamp01(phys.fatigue - SLEEP_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * hours + wetnessFatigue);
+  else if (activity === 'idle') phys.fatigue = clamp01(phys.fatigue - REST_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * hours + wetnessFatigue);
   else phys.fatigue = clamp01(phys.fatigue + ACTIVITY_FATIGUE_PER_HOUR[activity] * heatFatigueFactor * fatigueRateMult * hours + wetnessFatigue);
 
   // sleep debt
@@ -196,9 +197,8 @@ export function stepPhysiology(world: World, p: Person, hours: number, activity:
   syncNeeds(p);
 }
 
-/** Sleeping: substantially reduces fatigue and pays off sleep debt (Constitution v0.4 §1 "sleep
- * reduces substantially more fatigue than ordinary rest"). Called by the `sleep` action instead
- * of `stepPhysiology`'s ordinary fatigue-gain path, since sleep itself is the recovery. */
+/** Explicit rest outside the advancing simulation. The live simulation applies these same
+ * recovery rates once in stepPhysiology; its sleep action must not call this a second time. */
 export function sleepRecover(p: Person, hours: number): void {
   if (hours <= 0) return;
   const phys = p.physiology;
@@ -243,21 +243,26 @@ export function syncNeeds(p: Person): void {
 
 /**
  * The activity level for the physiology-cost step (Simulation.strategic()'s once-per-minute
- * pass) — classified from the person's CURRENT goal, so cost tracks what they are actually
+ * pass) — classified from the person's current action and pose, so cost tracks what they are actually
  * doing right now without every action handler needing its own physiology bookkeeping
  * (Constitution v0.4 §6: one centralized cost path). Falls back to body pose (walking/running
  * outside a classified goal, e.g. mid-`goto` for a non-labour goal) and finally 'idle'.
  */
-export function activityLevelFor(p: Person, body: Body): ActivityLevel {
+export function activityLevelFor(p: Person, body: Body, world?: World): ActivityLevel {
   if (body.pose === 'sleep') return 'sleep';
-  switch (p.mind.goal?.type) {
+  // Intending to haul is not carrying a load. Travel to the work and the work itself
+  // have different costs, including when a scheduled work plan performs extraction.
+  if (body.pose === 'haul') return 'haul';
+  if (body.pose === 'walk' || body.pose === 'run') return 'walk';
+  const action = p.mind.plan.find(a => a.status === 'active');
+  switch (action?.type) {
     case 'chop': return 'chop';
-    case 'gather': return 'quarry';
-    case 'haul': return 'haul';
+    case 'gather': return world?.resourceNodes.find(n => n.id === action.data?.nodeId)?.kind === 'game' ? 'walk' : 'quarry';
+    case 'haul_load': case 'haul_unload': return 'haul';
     case 'build': return 'construct';
     case 'work': case 'plant': case 'harvest': return 'craft';
   }
-  if (body.pose === 'walk' || body.pose === 'run') return 'walk';
+  if (body.pose === 'work') return 'craft';
   return 'idle';
 }
 

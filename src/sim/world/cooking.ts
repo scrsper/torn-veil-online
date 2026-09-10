@@ -1,4 +1,5 @@
 import { placeForPerson } from './locality';
+import { economicOperatorFor } from './trade';
 import type { Person, ItemType } from '../core/types';
 import type { World } from '../core/world';
 import { transform, villageStock, type TransformResult } from './metabolism';
@@ -32,7 +33,7 @@ export function cook(world: World, cookPerson: Person): TransformResult {
   if (stockAtPlace(world, 'meat', tavernId) < MEAT_TO_STEW_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'meat' };
   const result = transform(world, {
     actor: cookPerson.id, inputType: 'meat', inputQty: MEAT_TO_STEW_RATIO.in, inputPlaces: [tavernId],
-    outputType: 'stew', outputQty: MEAT_TO_STEW_RATIO.out, outputPlace: tavernId, ownerId: cookPerson.id, how: 'cooked over the hearth',
+    outputType: 'stew', outputQty: MEAT_TO_STEW_RATIO.out, outputPlace: tavernId, ownerId: economicOperatorFor(world, tavernId) ?? cookPerson.id, how: 'cooked over the hearth',
   });
   if (result.ok) {
     practiceSkill(cookPerson, 'cooking', 1);

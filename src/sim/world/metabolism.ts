@@ -1,11 +1,16 @@
+import { payWage } from '../core/requests';
+import { fireIntensityAt } from './fire';
+import { economicOperatorFor } from './trade';
+import { nearestAvailableNode, extractFromNode } from './resources';
 import { localPlaces, near, placeForPerson } from './locality';
 import type { CropPlot, CropState, Field, Item, ItemType, Person, Vec3, EntityId, EventId } from '../core/types';
 import type { World } from '../core/world';
 import { B } from '../physical/blocks';
-import { makeItem, RESOURCE_CATEGORY, isFood, SPOIL_RATE_PER_DAY, ITEM_VALUE } from './factory';
+import { makeItem, RESOURCE_CATEGORY, isFood, isPerishable, SPOIL_RATE_PER_DAY, ITEM_VALUE } from './factory';
 import { addPlaceStock, takePlaceStock, retireStack, stockAt as stockAtPlace, stockTotal } from './stock';
 import { eatRestoresEnergy, drinkRestoresHydration } from '../core/physiology';
-import { purchaseUnits } from './commerce';
+import { purchaseUnits, unitPriceFor, willingnessFor } from './commerce';
+import { householdOwns, householdOf, householdMembers } from './household';
 import { practiceSkill, skillOf, tradeYield } from '../core/skills';
 import { learnPlace } from '../mind/knowledge';
 import { remember } from '../mind/memory';
@@ -72,11 +77,8 @@ export const SAW_RATIO = { in: 2, out: 3 } as const;
  * FRESH project before its deficit is known) but the effective cap now tracks the real,
  * currently-open plank deficit across active construction projects — see `plankCapFor` below. */
 export const PLANK_BASE_BUFFER = 10;
-/** Stock ceilings that make the pipeline demand-driven rather than infinite: a farmer stops
- * harvesting once the village has plenty of grain, a miller stops once there is plenty of
- * flour, a baker stops once there is plenty of bread. Production resumes when stock falls.
- * Sized so ~33 people eating ~3 meals/day are comfortably supplied with a working surplus. */
-export const GRAIN_CAP = 500;
+/** Processing stock ceilings, alongside request-driven demand. Harvest has no such ceiling:
+ * ripe plots must be collected before they rot, and the next crop takes weeks to mature. */
 export const FLOUR_CAP = 120;
 export const BREAD_CAP = 200;
 /** v0.8 §A/F: herbs stop being gathered once the herbalist's own stock is comfortably ahead of
@@ -109,9 +111,10 @@ export function createFields(world: World, farmPlaceIds: { placeId: EntityId; ow
       const cropY = farmlandY + 1;
       const above = world.grid.get(x, cropY, z);
       const state: CropState = above === B.Wheat ? 'mature' : 'fallow';
-      plots.push({ x, y: cropY, z, crop: 'wheat', state, growth: state === 'mature' ? 1 : 0, plantedAt: state === 'mature' ? world.now - MATURE_HOURS * 3600 : 0, maturedAt: state === 'mature' ? world.now : undefined });
+      const plot: CropPlot = { x, y: cropY, z, crop: 'wheat', state, growth: state === 'mature' ? 1 : 0, plantedAt: state === 'mature' ? world.now - MATURE_HOURS * 3600 : 0, maturedAt: state === 'mature' ? world.now : undefined };
+      plots.push(plot);
       // normalize the block to our canonical projection (Pumpkin/other → cleared)
-      world.grid.set(x, cropY, z, cropBlockFor(state));
+      projectCrop(world, plot);
     }
     world.fields.push({ id: world.nextId('fld'), placeId, ownerId, soilMoisture: clamp01(startMoisture), plots });
   }
@@ -132,9 +135,16 @@ export function cropBlockFor(state: CropState): number {
   }
 }
 
+/** Crop projection also changes the traversable world. In particular, initialization can
+ * clear an old obstruction; retaining its cached navigation cell can strand a farmer. */
+function projectCrop(world: World, plot: CropPlot): void {
+  world.grid.set(plot.x, plot.y, plot.z, cropBlockFor(plot.state));
+  world.nav.rebuildArea(plot.x, plot.z, plot.x, plot.z);
+}
+
 /** Re-project every plot's canonical state onto its voxel cell (used after load). */
 export function syncFieldBlocks(world: World): void {
-  for (const f of world.fields) for (const p of f.plots) world.grid.set(p.x, p.y, p.z, cropBlockFor(p.state));
+  for (const f of world.fields) for (const p of f.plots) projectCrop(world, p);
 }
 
 // ---------------------------------------------------------------- per-tick model
@@ -160,7 +170,7 @@ export function stepMetabolism(world: World, hours: number): void {
         const next: CropState = plot.growth >= 1 ? 'mature' : plot.growth >= 0.15 ? 'growing' : 'planted';
         if (next !== plot.state) {
           plot.state = next;
-          world.grid.set(plot.x, plot.y, plot.z, cropBlockFor(next));
+          projectCrop(world, plot);
           if (next === 'mature') {
             plot.maturedAt = world.now;
             world.emit('crop_matured', {
@@ -171,11 +181,11 @@ export function stepMetabolism(world: World, hours: number): void {
         }
       } else if (plot.state === 'harvested' && plot.harvestedAt !== undefined && world.now - plot.harvestedAt >= REGROW_HOURS * 3600) {
         plot.state = 'fallow'; plot.growth = 0;
-        world.grid.set(plot.x, plot.y, plot.z, cropBlockFor('fallow'));
+        projectCrop(world, plot);
       } else if (plot.state === 'mature' && plot.maturedAt !== undefined && world.now - plot.maturedAt >= SPOIL_HOURS * 3600) {
         // Over-ripe wheat lodged in the field and was lost — plot reverts to fallow.
         plot.state = 'fallow'; plot.growth = 0; plot.maturedAt = undefined;
-        world.grid.set(plot.x, plot.y, plot.z, cropBlockFor('fallow'));
+        projectCrop(world, plot);
       }
     }
   }
@@ -219,7 +229,7 @@ export function plantPlot(world: World, field: Field, plot: CropPlot, farmer: Pe
     return false;
   }
   plot.state = 'planted'; plot.growth = 0; plot.plantedAt = world.now; plot.maturedAt = undefined; plot.harvestedAt = undefined;
-  world.grid.set(plot.x, plot.y, plot.z, cropBlockFor('planted'));
+  projectCrop(world, plot);
   world.emit('crop_planted', {
     actor: farmer.id, placeId: field.placeId, pos: { x: plot.x + 0.5, y: plot.y, z: plot.z + 0.5 }, significance: 0.15,
     data: { fieldId: field.id, crop: plot.crop, seed: SEED_PER_PLOT }, summary: `${farmer.name} sowed wheat in ${world.nameOf(field.placeId)}`,
@@ -235,12 +245,13 @@ export function harvestPlot(world: World, field: Field, plot: CropPlot, farmer: 
   if (plot.state !== 'mature') return 0;
   const yield_ = GRAIN_PER_PLOT_BASE + ((plot.x + plot.z) % 4); // deterministic small spread
   plot.state = 'harvested'; plot.growth = 0; plot.harvestedAt = world.now; plot.lastYield = yield_;
-  world.grid.set(plot.x, plot.y, plot.z, cropBlockFor('harvested'));
+  projectCrop(world, plot);
   const ev = world.emit('crop_harvested', {
     actor: farmer.id, placeId: field.placeId, pos: { x: plot.x + 0.5, y: plot.y, z: plot.z + 0.5 }, significance: 0.35,
     data: { fieldId: field.id, crop: plot.crop, yield: yield_ }, summary: `${farmer.name} harvested wheat in ${world.nameOf(field.placeId)} (+${yield_} grain)`,
   });
   addPlaceStock(world, 'grain', yield_, field.placeId, field.ownerId ?? farmer.id, ev.id, 'harvested');
+  payWage(world, field.ownerId, farmer, 1);
   return yield_;
 }
 
@@ -304,7 +315,7 @@ export function mill(world: World, miller: Person): TransformResult {
   // when this was introduced. Never zero: a batch that produced literally nothing would read to
   // the rest of the simulation as a material shortage, which would be a lie about the world.
   const out = tradeYield(MILL_RATIO.out, skillOf(miller, 'milling'));
-  const result = transform(world, { actor: miller.id, inputType: 'grain', inputQty: MILL_RATIO.in, inputPlaces: [millId], outputType: 'flour', outputQty: out, outputPlace: millId, ownerId: miller.id, how: 'milled' });
+  const result = transform(world, { actor: miller.id, inputType: 'grain', inputQty: MILL_RATIO.in, inputPlaces: [millId], outputType: 'flour', outputQty: out, outputPlace: millId, ownerId: economicOperatorFor(world, millId) ?? miller.id, how: 'milled' });
   // ...and the work itself is how anybody ever stops being a novice. One real batch, one unit of
   // practice — the same rule baking and sawing have followed since v0.6, applied to the trade
   // that until now had no learned capability behind it at all.
@@ -325,7 +336,7 @@ export function bake(world: World, baker: Person): TransformResult {
   // `TRADE_BASELINE`, so the bakery's real output is untouched; somebody standing in for them is
   // measurably worse at it.
   const out = tradeYield(BAKE_RATIO.out, skillOf(baker, 'baking'));
-  const result = transform(world, { actor: baker.id, inputType: 'flour', inputQty: BAKE_RATIO.in, inputPlaces: [bakeryId], outputType: 'bread', outputQty: out, outputPlace: bakeryId, ownerId: baker.id, how: 'baked' });
+  const result = transform(world, { actor: baker.id, inputType: 'flour', inputQty: BAKE_RATIO.in, inputPlaces: [bakeryId], outputType: 'bread', outputQty: out, outputPlace: bakeryId, ownerId: economicOperatorFor(world, bakeryId) ?? baker.id, how: 'baked' });
   if (result.ok) practiceSkill(baker, 'baking', 1); // v0.6 §V.9: one real batch = one unit of practice
   return result;
 }
@@ -359,89 +370,24 @@ export function saw(world: World, sawyer: Person): TransformResult {
   if (!sawpitId) return { ok: false, produced: 0, consumed: 0 };
   if (stockTotal(world, 'plank', [sawpitId]) >= plankCapFor(world, world.place(sawpitId)?.inside)) return { ok: false, produced: 0, consumed: 0 };
   if (stockAtPlace(world, 'log', sawpitId) < SAW_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'log' };
-  const result = transform(world, { actor: sawyer.id, inputType: 'log', inputQty: SAW_RATIO.in, inputPlaces: [sawpitId], outputType: 'plank', outputQty: SAW_RATIO.out, outputPlace: sawpitId, ownerId: sawyer.id, how: 'sawn' });
+  const result = transform(world, { actor: sawyer.id, inputType: 'log', inputQty: SAW_RATIO.in, inputPlaces: [sawpitId], outputType: 'plank', outputQty: SAW_RATIO.out, outputPlace: sawpitId, ownerId: economicOperatorFor(world, sawpitId) ?? sawyer.id, how: 'sawn' });
   if (result.ok) practiceSkill(sawyer, 'sawing', 1);
   return result;
 }
 
-/**
- * v0.6 §II: `ale`/`meat`/`cheese` have no modeled ingredient chain (unlike grain→flour→bread) —
- * they were only ever seeded once at village generation with no restock, which meant every
- * occupation whose schedule eats at the tavern (smith, apprentice, captain, guard) permanently
- * ran out of anything to buy there after the first day or two, and fell back to an increasingly
- * bare household larder. Measured directly (seed 918271, 8 days, pre-fix): 695 failed
- * food-seeking attempts against only 486 successful meals village-wide — a genuine "economic
- * access" cause of elevated hunger (Constitution v0.6 §II), not merely a tolerance-model
- * artifact. This is the same abstraction level the game already uses for these background food
- * types (no inputs consumed, exactly like their original one-time seeding) — the innkeeper
- * keeping the larder stocked while working, not a new production chain.
- */
+/** Brewing uses local grain, the tavern hearth and a real work batch. The existing name
+ * remains the public entry point; no goods or currency cross an unmodelled world boundary. */
 export const ALE_RESTOCK_TRIGGER = 8;
-const ALE_RESTOCK_QTY = 6;
-/** v0.7 §B (found via this milestone's own new circulation instrumentation, not anticipated
- * going in): restocking used to be entirely free — real currency flowed IN every time an ale
- * was sold (buyFoodPortion), but never OUT, because nothing was ever spent to replace the stock.
- * Over a long run this makes the tavern a one-way wealth sink rather than a circulating business:
- * measured directly (seed 918271, headless, pre-fix) — the innkeeper pair's share of total
- * village wealth climbed monotonically from 7.9% (8 days) to 36.8% (30 days) to 59.1% (90 days),
- * silently starving every other occupation (including the ones §A's wholesale-trade fix just
- * gave real income to) despite total village wealth staying roughly conserved.
- *
- * TWO earlier attempts at a fix (flat 1/unit, then `ITEM_VALUE.ale - 0.1`) both charged a
- * POSITIVE per-unit margin below ale's flat retail price and were validated only by checking
- * that a 90-day benchmark's wealth-share number looked small. Both are wrong for the same
- * structural reason: `ale` has no scarcity-based pricing (`world/pricing.ts`'s
- * `PRICE_REFERENCE_STOCK` doesn't include it, so `effectivePrice` always returns the flat
- * `ITEM_VALUE.ale`) — restocking runs on its own stock-trigger cadence, entirely decoupled from
- * how often a unit actually sells. ANY positive margin per unit therefore compounds linearly
- * with the number of restock cycles, which itself grows without bound as the run gets longer —
- * "58.1% instead of 59.1%" was never a fix, only a slower version of the same unbounded sink,
- * and tuning the margin further would only be tuning the SPEED of an uncapped accumulation
- * until a chosen benchmark window happened to look flat. That is exactly the "calibrate until
- * the graph looks right" trap this project's own Constitution (`no unexplained wealth
- * creation`, `currency must remain auditable`) rules out.
- *
- * The structurally correct fix sets the supply cost EXACTLY equal to ale's flat retail price
- * (`ITEM_VALUE.ale`), not a margin below it. This is not a tuning choice — it is the same
- * number effectivePrice already always returns for ale, made explicit in both directions. With
- * cost-per-unit-restocked == price-per-unit-sold, by construction:
- *
- *   net wealth the innkeeper accumulates from ale trading
- *   = ITEM_VALUE.ale × (units restocked − units sold)
- *   = ITEM_VALUE.ale × (ale currently sitting unsold in the tavern's own stock)
- *
- * which is bounded by the tavern's own small stock cap (`ALE_RESTOCK_TRIGGER`/`ALE_RESTOCK_QTY`,
- * a handful of units) REGARDLESS OF RUN LENGTH — not merely small at the specific horizons this
- * project happens to have benchmarked. `tests/ale-supply-invariant.test.ts` proves this
- * directly (net wealth change is unchanged whether the restock/sell cycle runs 5 times or 500),
- * not by asserting a specific wealth percentage.
- *
- * What this still abstracts, explicitly: there is no modeled brewer NPC, grain-to-ale
- * production chain, or real upstream supplier entity — `ale` continues to enter the simulation
- * from an unmodeled "outside source," exactly as bread/meat/cheese already do for other trades
- * this game hasn't built ingredient chains for. This function represents that abstraction as a
- * literal pass-through cost of goods (buy at the same flat price it's later sold for) rather
- * than inventing either a fabricated profit margin or a fabricated production chain. Building a
- * real upstream ale economy (a brewer, grain demand, a modeled cellar) remains legitimate
- * FOLLOW-UP work, not something this fix should quietly half-implement. This is an explicit
- * currency EXIT during restocking and an explicit currency ENTRY during sale (Constitution
- * "if currency enters or exits the simulation, that must be explicit") — both tracked
- * (`world.runTally.supply_cost_amount`) for auditability. */
-const ALE_SUPPLY_COST_PER_UNIT = ITEM_VALUE.ale;
-export function restockTavern(world: World, innkeeper: Person): boolean {
-  const tavernId = placeForPerson(world, innkeeper, 'tavern')?.id;
-  if (!tavernId) return false;
-  if (stockAtPlace(world, 'ale', tavernId) >= ALE_RESTOCK_TRIGGER) return false;
-  const cost = Math.round(Math.max(0, Math.min(ALE_RESTOCK_QTY * ALE_SUPPLY_COST_PER_UNIT, innkeeper.wealth)) * 100) / 100;
-  innkeeper.wealth -= cost;
-  world.runTally.supply_cost_amount = (world.runTally.supply_cost_amount ?? 0) + cost;
-  const ev = world.emit('resource_transformed', {
-    actor: innkeeper.id, placeId: tavernId, significance: 0.05,
-    data: { from: 'larder', fromQty: 0, to: 'ale', toQty: ALE_RESTOCK_QTY, how: 'restocked', cost },
-    summary: `${innkeeper.name} brought up fresh ale from the cellar${cost > 0 ? ` (paid ${cost} silver for supplies)` : ''}`,
-  });
-  addPlaceStock(world, 'ale', ALE_RESTOCK_QTY, tavernId, innkeeper.id, ev.id, 'restocked');
-  return true;
+export const BREW_RATIO = { in: 3, out: 6 } as const;
+export function restockTavern(world: World, brewer: Person): boolean {
+  const pos = world.positionOf(brewer.id), tavern = pos ? world.placeAt(pos) : undefined;
+  if (!tavern || tavern.type !== 'tavern' || stockAtPlace(world, 'ale', tavern.id) >= ALE_RESTOCK_TRIGGER) return false;
+  if (fireIntensityAt(world, tavern.id) < 0.3) return false;
+  const result = transform(world, { actor: brewer.id, inputType: 'grain', inputQty: BREW_RATIO.in, inputPlaces: [tavern.id],
+    outputType: 'ale', outputQty: BREW_RATIO.out, outputPlace: tavern.id,
+    ownerId: economicOperatorFor(world, tavern.id) ?? brewer.id, how: 'brewed over the hearth' });
+  if (result.ok) { practiceSkill(brewer, 'cooking', 1); payWage(world, economicOperatorFor(world, tavern.id), brewer, 3); }
+  return result.ok;
 }
 
 /**
@@ -470,76 +416,71 @@ export function gatherHerbs(world: World, herbalist: Person): boolean {
   return true;
 }
 
-/**
- * v0.8 §D (found via this milestone's own 90-day headless benchmark, not anticipated going in):
- * `meat`, like `ale`/`cheese` before v0.6 §II, was only ever seeded once at village generation
- * with no restock — Kestrel's stall never replenished, so the tavern's new haul demand (added
- * to give `cook()` a real input at all) only ever moved the original one-time-seeded stock, and
- * `cook()` — fully correct in isolation and gated on genuine fire — could only ever succeed once
- * in an entire 90-day run regardless of the tavern's own buffer size. Same "no modeled ingredient
- * chain" abstraction already used for ale, but built from the start with the corrected,
- * near-break-even-margin shape v0.7 §B's own follow-up fix required for ale (a naively free
- * restock is a real wealth sink the moment currency flows in from retail sales with nothing
- * flowing out) — not repeating that mistake a second time now that it's understood.
- */
-const MEAT_RESTOCK_TRIGGER = 6;
-const MEAT_RESTOCK_QTY = 4;
-const MEAT_MARGIN_PER_UNIT = 0.5;
-const MEAT_SUPPLY_COST_PER_UNIT = ITEM_VALUE.meat - MEAT_MARGIN_PER_UNIT;
+/** Kept for callers of the former restock API. Hunting now requires standing at a real,
+ * finite hunting ground. Its output stays there until somebody carries it to market. */
 export function huntGame(world: World, hunter: Person): boolean {
-  const stallId = localPlaces(world, world.positionOf(hunter.id)).find(p => p.slug === 'stall_game' || p.slug?.endsWith(':stall_game'))?.id;
-  if (!stallId) return false;
-  if (stockAtPlace(world, 'meat', stallId) >= MEAT_RESTOCK_TRIGGER) return false;
-  const cost = Math.round(Math.max(0, Math.min(MEAT_RESTOCK_QTY * MEAT_SUPPLY_COST_PER_UNIT, hunter.wealth)) * 100) / 100;
-  hunter.wealth -= cost;
-  world.runTally.supply_cost_amount = (world.runTally.supply_cost_amount ?? 0) + cost;
-  const ev = world.emit('resource_transformed', {
-    actor: hunter.id, placeId: stallId, significance: 0.05,
-    data: { from: 'wilderness', fromQty: 0, to: 'meat', toQty: MEAT_RESTOCK_QTY, how: 'hunted', cost },
-    summary: `${hunter.name} brought back fresh game${cost > 0 ? ` (spent ${cost} silver on gear and provisions)` : ''}`,
-  });
-  addPlaceStock(world, 'meat', MEAT_RESTOCK_QTY, stallId, hunter.id, ev.id, 'hunted');
-  return true;
+  const pos = world.positionOf(hunter.id); if (!pos) return false;
+  const node = nearestAvailableNode(world, 'game', pos, 3);
+  return !!node && extractFromNode(world, node, hunter) > 0;
 }
 
 // ---------------------------------------------------------------- eating & drinking
 /**
  * Find a food item this person can legitimately eat: their own inventory first, then unheld
- * food at their current position's place / their home, owned by them, the place, or nobody —
+ * food at their current position's place, owned by them or nobody —
  * OR, at home only, food a fellow household member is actually carrying (v0.6 §II). Real
  * families eat from what whoever went to market brought back, not only a communal bowl on the
  * table; without this, anyone who cannot personally earn/spend (a child, wealth 0) had no path
  * to food at all once the one-time starting larder ran out, even while a parent was walking
  * around with bought bread in their own pack the whole time. Bounded to household members who
  * are physically AT home right now (never a phantom village-wide pantry). Never conjures food
- * from nowhere — this only widens WHOSE existing stock counts as accessible, exactly like the
- * place-owner/household checks below already do for placed (not carried) food.
+ * from nowhere. At home, placed household property is shared too. Vendor property and
+ * employer-owned freight remain inaccessible without an actual purchase or transfer.
  */
 export function findAccessibleFood(world: World, p: Person, atPlaceId: EntityId | null): Item | null {
-  const carried = p.inventory.map(id => world.item(id)).find(i => !!i && isFood(i.type) && i.quantity > 0);
+  const carried = p.inventory.map(id => world.item(id)).find(i => !!i && i.holderId === p.id && i.ownerId === p.id && !i.haulTaskId && isFood(i.type) && i.quantity > 0);
   if (carried) return carried;
   const scan = (placeId: EntityId | null | undefined, isHome: boolean): Item | null => {
     if (!placeId) return null;
     const place = world.place(placeId);
-    if (!place || !near(world.positionOf(p.id), place.inside)) return null;
-    const household = isHome ? new Set(place?.residents ?? []) : new Set<EntityId>();
-    const okOwner = (i: Item) => i.ownerId == null || i.ownerId === p.id || i.ownerId === p.householdId || i.ownerId === place?.ownerId || household.has(i.ownerId);
-    const placed = world.items().find(i => i.placeId === placeId && !i.holderId && isFood(i.type) && i.quantity > 0 && okOwner(i));
+    const pos = world.positionOf(p.id);
+    if (!place || !pos || (world.placeAt(pos)?.id !== placeId && world.distance2d(pos, place.inside) > 3)) return null;
+    const h = isHome ? householdOf(world, p) : undefined;
+    const household = h ? householdMembers(world, h) : [];
+    const okOwner = (i: Item) => i.ownerId == null || i.ownerId === p.id || (isHome && householdOwns(world, p, i));
+    const placed = world.itemsAtPlaces([placeId]).find(i => !i.holderId && !i.haulTaskId && isFood(i.type) && i.quantity > 0 && okOwner(i));
     if (placed) return placed;
-    if (isHome && household.size) {
-      for (const residentId of household) {
-        if (residentId === p.id) continue;
-        const resident = world.person(residentId);
-        if (!resident || !resident.alive) continue;
-        const residentBody = world.primaryBody(residentId);
+    if (isHome && household.length) {
+      for (const resident of household) {
+        if (resident.id === p.id) continue;
+        const residentBody = world.primaryBody(resident.id);
         if (!residentBody || world.placeAt(residentBody.pos)?.id !== placeId) continue;
-        const held = resident.inventory.map(id => world.item(id)).find(i => !!i && isFood(i.type) && i.quantity > 0);
+        const held = resident.inventory.map(id => world.item(id)).find(i => !!i && i.ownerId === resident.id && !i.haulTaskId && isFood(i.type) && i.quantity > 0);
         if (held) return held;
       }
     }
     return null;
   };
   return scan(atPlaceId, atPlaceId === p.homeId) ?? scan(p.homeId, true);
+}
+
+export type FoodFailure = 'unaffordable' | 'unavailable';
+
+/** A visit to a counter compares the actual offers there. The first stack in entity order
+ * must not mask a cheaper meal. No off-site stock query or remote purchase. */
+export function buyFoodHere(world: World, buyer: Person, want: number, sourcePlaceId?: EntityId): { food: Item | null; reason?: FoodFailure; price?: number } {
+  const pos = world.positionOf(buyer.id), here = sourcePlaceId ? world.place(sourcePlaceId) : pos ? world.placeAt(pos) : undefined;
+  if (!here || !pos || (world.placeAt(pos)?.id !== here.id && world.distance2d(pos, here.inside) > 3)) return { food: null, reason: 'unavailable' };
+  const offers = world.itemsAtPlaces([here.id]).flatMap(item => {
+    const seller = world.person(item.ownerId);
+    if (!seller?.alive || seller.id === buyer.id || item.holderId || !isFood(item.type) || item.quantity <= 0) return [];
+    const willing = willingnessFor(world, seller, item, buyer);
+    return willing.available >= 1 ? [{ item, price: unitPriceFor(world, seller, item, buyer) }] : [];
+  }).sort((a,b) => a.price - b.price || a.item.id.localeCompare(b.item.id));
+  const offer = offers[0];
+  if (!offer) return { food: null, reason: 'unavailable' };
+  if (buyer.wealth < offer.price) return { food: null, reason: 'unaffordable', price: offer.price };
+  return { food: buyFoodPortion(world, buyer, offer.item, want), price: offer.price };
 }
 
 /**
@@ -568,6 +509,8 @@ export function buyFoodPortion(world: World, buyer: Person, forSale: Item, n: nu
   if (isFood(forSale.type) && boughtAtPlaceId) {
     const place = world.place(boughtAtPlaceId);
     if (place) learnPlace(world, buyer, place, { type: 'self' });
+    // A completed purchase supersedes this buyer's earlier failed quote/empty-shelf report.
+    delete buyer.knowledge[`food-access:${boughtAtPlaceId}`];
     remember(world, buyer, { type: 'purchase', summary: `I bought ${forSale.type} at ${world.nameOf(boughtAtPlaceId)}`, entities: [seller.id], significance: 0.15, valence: 0.2, source: { type: 'self' }, placeId: boughtAtPlaceId });
   }
   return result.stack;
@@ -580,15 +523,17 @@ export function buyFoodPortion(world: World, buyer: Person, forSale: Item, n: nu
  * with no price attached, because this is someone picking up their own household's bread to
  * bring to an injured relative, not a purchase.
  *
- * Access is the SAME household rule `findAccessibleFood` uses (own stack, the place owner's, or
- * a fellow resident's) and is the caller's responsibility to have checked; nothing here can turn
- * into a theft, because nothing here moves a stack whose access has not already been
- * established. Returns the carried stack, or null if there was nothing to take.
+ * The caller must check physical access and ownership at execution time, using the same
+ * household rule as `findAccessibleFood` for a family errand. This helper only splits and
+ * carries authorized stock; it does not itself grant access. Returns the carried stack, or
+ * null if there was nothing to take.
  */
 export function takePortionInHand(world: World, taker: Person, stack: Item, n: number, how: string): Item | null {
   if (stack.holderId === taker.id) return stack;
   if (stack.quantity <= 0 || n <= 0) return null;
   const take = Math.min(n, stack.quantity);
+  const spoilShare = (stack.spoilAccum ?? 0) * take / stack.quantity;
+  stack.spoilAccum = (stack.spoilAccum ?? 0) - spoilShare;
   stack.quantity -= take;
   if (stack.quantity <= 0) retireStack(world, stack);
   const ev = world.emit('pickup', {
@@ -596,9 +541,11 @@ export function takePortionInHand(world: World, taker: Person, stack: Item, n: n
     significance: 0.08, visibility: 8, data: { qty: take, how },
     summary: `${taker.name} took ${take} ${stack.type} ${how}`,
   });
-  const carried = taker.inventory.map(id => world.item(id)).find(i => !!i && i.type === stack.type && i.holderId === taker.id);
-  if (carried) { carried.quantity += take; carried.provenance.push({ tick: world.now, eventId: ev.id, from: stack.ownerId, to: taker.id, how }); return carried; }
+  const carried = taker.inventory.map(id => world.item(id)).find(i => !!i && i.type === stack.type && i.holderId === taker.id && i.ownerId === taker.id && !i.haulTaskId
+    && (!isPerishable(i.type) || i.createdAt === stack.createdAt));
+  if (carried) { carried.quantity += take; carried.spoilAccum = (carried.spoilAccum ?? 0) + spoilShare; carried.provenance.push({ tick: world.now, eventId: ev.id, from: stack.ownerId, to: taker.id, how }); return carried; }
   const fresh = makeItem(world, stack.type, stack.name, { owner: taker.id, holder: taker.id, quantity: take, value: stack.value });
+  fresh.createdAt = stack.createdAt; fresh.spoilAccum = spoilShare;
   fresh.provenance.push({ tick: world.now, eventId: ev.id, from: stack.ownerId, to: taker.id, how });
   return fresh;
 }

@@ -1,52 +1,46 @@
 import type { EntityId, ItemType } from '../core/types';
 import type { World } from '../core/world';
 import { ITEM_VALUE } from './factory';
+import { effectivePrice } from './pricing';
+import { stockAt } from './stock';
+
+/** Wholesale procurement transfers existing money from a workplace operator to the actual
+ * owner of the input goods. Haulers settle at pickup, before taking title; quantity is capped
+ * by available funds. Posted bulk prices follow source scarcity and leave a handling margin.
+ * No purchase, wage or inventory entry is an external source of currency. */
+
+/** Destinations that procure real inputs or retail stock. The living operator pays, except
+ * at a construction site where the project's owner is the buyer. */
+export const WHOLESALE_DEST_TYPES = new Set<import('../core/types').Place['type']>(['mill', 'bakery', 'sawpit', 'construction', 'tavern', 'stall', 'store']);
+
+/** Contracting party for ongoing business. Existing title and old stock are untouched.
+ * A vacant trade's actual replacement can own new output and buy its next inputs, rather
+ * than producing for a dead wallet. Work stints are evidence of work already performed. */
+export function economicOperatorFor(world: World, placeId: EntityId): EntityId | null {
+  const place = world.place(placeId); if (!place) return null;
+  for (const id of [place.ownerId, ...place.workers]) if (world.person(id)?.alive) return id!;
+  const stint = world.workStints.filter(s => s.placeId === placeId && !s.endedAt && s.batches > 0 && world.person(s.personId)?.alive)
+    .sort((a,b)=>a.startedAt-b.startedAt || a.id.localeCompare(b.id))[0];
+  return stint?.personId ?? null;
+}
+
+export function wholesaleUnitPrice(world: World, type: ItemType, sourcePlaceId?: EntityId): number {
+  // Bulk procurement leaves room for retail handling and spoilage; scarcity still moves
+  // both prices. This is a posted price, not a guarantee that a business makes a profit.
+  return sourcePlaceId ? Math.max(1, Math.floor(effectivePrice(type, ITEM_VALUE[type], stockAt(world, type, sourcePlaceId)) * 0.8)) : Math.max(1, Math.round(ITEM_VALUE[type]));
+}
 
 /**
- * Wholesale trade (v0.7 §A) — the missing link v0.6 disclosed (docs/
- * V0_6_KNOWLEDGE_MEMORY_SKILLS_INTENT.md §3.4): a haul delivery already moves goods physically
- * from a producer to a consumer, but ownership of the delivered stock silently transferred to
- * the consumer's side for free (`logistics/haul.ts`'s `loadHaulCargo` reassigns the cargo's
- * `ownerId` to the requester at pickup). Farmers, millers, sawyers and quarriers therefore had
- * no real income from the resources they actually produced — only from hauling/building labour
- * itself, which is a real but separate wage. This module closes that gap with one small,
- * general mechanism: when a wholesale-eligible delivery lands, the RECEIVING side's operator
- * pays the ORIGINAL PRODUCER for the goods, in real conserved currency, capped by what the
- * payer actually has (Constitution: "a payer never pays more than they have" — the same rule
- * `core/requests.ts`'s `payWage` and `world/metabolism.ts`'s `buyFoodPortion` already follow).
- *
- * Deliberately NOT a market: flat per-unit prices (`ITEM_VALUE`, the same base values retail
- * pricing already starts from), no bidding, no scarcity curve — Constitution's own "no full
- * market pricing yet" applies as much to this internal wholesale leg as it does to haul/
- * production wages. The result is a real, causal, self-funding chain: the bakery's retail bread
- * revenue (from consumers) pays the miller for flour, which pays the farmer for grain — money
- * flows down the production chain because each stage genuinely buys its input from the stage
- * before it, not because currency was invented to plug a poverty hole.
+ * Pay for the wholesale purchase before taking title to its goods. The procurement caller
+ * must cap quantity to affordability before transferring materials. This transfer defensively
+ * caps payment to the buyer's wallet; a partial payment never authorizes taking unpaid units.
+ * Missing/dead parties and self-transfers pay zero.
  */
-
-/** Which (resource, destination Place type) deliveries constitute a real sale, and who pays —
- * resolved from the DESTINATION place's operator (its `ownerId`, falling back to its first
- * worker, exactly like `logistics/haul.ts`'s existing `dest.ownerId ?? dest.workers[0]`
- * convention) except for construction, where the site Place has no operator of its own and the
- * real buyer is the project's owner (the one paying `performBuildLabor`'s wages too). v0.8:
- * `tavern` covers meat delivered for the cook's own stew production (world/cooking.ts) — paid
- * by whoever `logistics/haul.ts`'s own dest.ownerId/workers[0] convention resolves to there
- * (the cook herself, in the current cast — she sources her own ingredients). */
-export const WHOLESALE_DEST_TYPES = new Set<import('../core/types').Place['type']>(['mill', 'bakery', 'sawpit', 'construction', 'tavern']);
-
-/**
- * Execute (or attempt) the wholesale sale for `qty` units of `type` just delivered to
- * `destPlaceId`, paid by `buyerId` to `sellerId`. Returns the amount actually paid (0 if either
- * party is missing/dead, the parties are the same person — a self-delivery nets nothing and
- * costs nothing, deliberately left as a no-op rather than a pointless self-transfer — or the
- * buyer cannot afford any of it). Never pays more than the buyer currently has (honest
- * under-payment, never manufactured currency, matching `core/requests.ts`'s `payWage`).
- */
-export function settleWholesale(world: World, sellerId: EntityId | null | undefined, buyerId: EntityId | null | undefined, type: ItemType, qty: number, destPlaceId: EntityId): number {
+export function settleWholesale(world: World, sellerId: EntityId | null | undefined, buyerId: EntityId | null | undefined, type: ItemType, qty: number, destPlaceId: EntityId, sourcePlaceId?: EntityId): number {
   if (!sellerId || !buyerId || sellerId === buyerId || qty <= 0) return 0;
   const seller = world.person(sellerId); const buyer = world.person(buyerId);
   if (!seller || !seller.alive || !buyer || !buyer.alive) return 0;
-  const unit = Math.max(1, Math.round(ITEM_VALUE[type] ?? 1));
+  const unit = wholesaleUnitPrice(world, type, sourcePlaceId);
   const nominal = unit * qty;
   const amount = Math.max(0, Math.min(nominal, buyer.wealth));
   if (amount <= 0) return 0;
@@ -73,5 +67,5 @@ export function wholesaleBuyerFor(world: World, destPlaceId: EntityId, projectId
     const project = projectId ? world.constructionProjects.find(p => p.id === projectId) : undefined;
     return project ? project.ownerId : null;
   }
-  return dest.ownerId ?? dest.workers[0] ?? null;
+  return economicOperatorFor(world, dest.id);
 }

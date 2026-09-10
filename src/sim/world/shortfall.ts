@@ -61,7 +61,10 @@ export function shortfallKey(placeId: EntityId, resource: ItemType): string { re
 export function noteWorkBlocked(world: World, worker: Person, placeId: EntityId, resource: ItemType, making: ItemType): KnowledgeItem | null {
   const key = shortfallKey(placeId, resource);
   const existing: KnowledgeItem | undefined = worker.knowledge[key];
-  if (existing && existing.handled !== true && world.now - existing.learnedAt < SHORTAGE_RENOTICE_SECONDS) {
+  // Only my own already-recorded attempt can be quietly reconfirmed. Trying work after
+  // hearing of its shortage is new firsthand evidence, with its own event and provenance.
+  if (existing && existing.source.type === 'self' && existing.claim.actor === worker.id
+    && existing.handled !== true && world.now - existing.learnedAt < SHORTAGE_RENOTICE_SECONDS) {
     existing.lastConfirmedAt = world.now;
     existing.confidence = 1;
     return null;

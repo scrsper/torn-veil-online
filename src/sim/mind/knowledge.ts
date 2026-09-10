@@ -1,4 +1,4 @@
-import { near } from '../world/locality';
+import { localPlaces, near } from '../world/locality';
 import type { Person, KnowledgeItem, Source, EntityId, WorldEvent, Vec3, Place, PlaceType } from '../core/types';
 import { World } from '../core/world';
 import { memoriesAtPlace, remember } from './memory';
@@ -20,7 +20,9 @@ export function learn(world: World, p: Person, k: { key: string; kind: Knowledge
     if (!refinement && !betterConfidence && !betterHops && !betterSource) return null;
 
     if (refinement || correction || betterConfidence || betterHops || betterSource) existing.claim = mergeClaim(existing.claim, k.claim);
-    existing.confidence = Math.max(existing.confidence, k.confidence);
+    // Certainty about the old, less specific claim cannot certify newly supplied details.
+    // The source chosen for a refinement must also govern confidence in that refined claim.
+    existing.confidence = refinement ? k.confidence : Math.max(existing.confidence, k.confidence);
     // A more specific claim may legitimately come through an extra hop. Its provenance must
     // describe the evidence responsible for the refinement rather than pretending it was heard.
     if (refinement || betterSource || (betterHops && k.confidence >= existing.confidence - 0.1) || betterConfidence) {
@@ -117,6 +119,18 @@ const FOUNDATIONAL_SCORE = 1000; // backstory ('prior') knowledge: effectively p
 // cross zero) is what actually keeps a real relationship from losing to a flood of brand-new,
 // zero-age trivial rumor once enough simulated time has passed. See knowledgeScore below.
 const DURABLE_BASE = 10;
+// Knowing where to obtain necessities, and what just failed there, must survive a busy
+// day's routine events about familiar people. This remains below foundational knowledge
+// and inside the same finite cache; stale stock/price observations lose this protection.
+const PRACTICAL_BASE = DURABLE_BASE * 10;
+
+function practicalKnowledge(k: KnowledgeItem, now: number): boolean {
+  if (k.kind === 'service' || (k.kind === 'fact' && k.key.startsWith('place:'))) return true;
+  const age = now - (k.lastConfirmedAt ?? k.learnedAt);
+  if (k.key.startsWith('food-access:')) return age < FOOD_PREFERENCE_WINDOW_SECONDS;
+  if (k.key.startsWith('pantry:')) return age < 24 * 3600;
+  return k.key.startsWith('short:') && !k.handled && age < 2 * 3600;
+}
 
 /** How much `p` cares about the entity a piece of knowledge concerns, 0..~1.7. Any real
  * relationship (positive OR negative — a rival or a feared threat is just as worth remembering
@@ -131,6 +145,7 @@ function relationalWeight(p: Person, k: KnowledgeItem): number {
 
 function knowledgeScore(p: Person, k: KnowledgeItem, now: number): number {
   if (k.source.type === 'prior') return FOUNDATIONAL_SCORE + k.confidence;
+  if (practicalKnowledge(k, now)) return PRACTICAL_BASE + k.confidence - (now - (k.lastConfirmedAt ?? k.learnedAt)) / 86400 * 0.002;
   const significance = k.claim.significance ?? 0.2;
   const unresolvedCrime = k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled;
   const relWeight = relationalWeight(p, k);
@@ -157,7 +172,8 @@ function knowledgeScore(p: Person, k: KnowledgeItem, now: number): number {
  * unresolved crime report, or a key an in-flight goal/plan step names directly (Constitution:
  * forgetting must not silently pull the rug out from under live cognition — see the
  * `knowledge_forgotten` emission below). */
-function isActivelyRelevant(p: Person, key: string, k: KnowledgeItem): boolean {
+function isActivelyRelevant(p: Person, key: string, k: KnowledgeItem, now: number): boolean {
+  if (practicalKnowledge(k, now)) return true;
   if (k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled) return true;
   if (p.mind.goal?.data?.crime === key) return true;
   return p.mind.plan.some(a => a.data?.crime === key || a.data?.key === key);
@@ -170,7 +186,7 @@ function pruneKnowledge(world: World, p: Person): void {
   keys.sort((a, b) => knowledgeScore(p, p.knowledge[b], now) - knowledgeScore(p, p.knowledge[a], now));
   for (const key of keys.slice(MAX_KNOWLEDGE)) {
     const k = p.knowledge[key];
-    if (isActivelyRelevant(p, key, k)) {
+    if (isActivelyRelevant(p, key, k, now)) {
       world.emit('knowledge_forgotten', {
         actor: p.id, significance: 0, category: 'cognition',
         data: { key, kind: k.kind, wasUnresolvedCrime: k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled },
@@ -304,6 +320,11 @@ const SERVICE_OFFERS: Partial<Record<PlaceType, ('food' | 'water')[]>> = {
   bakery: ['food'], store: ['food'], tavern: ['food'], stall: ['food'], well: ['water'],
 };
 
+/** Physical places to investigate, not knowledge that their shelves contain food. */
+export function foodSearchPlaces(world: World, pos: Vec3): Place[] {
+  return localPlaces(world, pos).filter(place => SERVICE_OFFERS[place.type]?.includes('food'));
+}
+
 /**
  * Direct observation (Constitution v0.6 §III.3): arriving at / being at a place is itself
  * evidence of what it is. Called on real arrival (mind/agent.ts's `goto` completion) and on a
@@ -340,6 +361,14 @@ const FOOD_PREFERENCE_WINDOW_SECONDS = 12 * 3600;
  * the next arrival there already restores full confidence; this window only needs to outlast one
  * ordinary restock cycle, not a whole day. */
 const FOOD_AVOIDANCE_WINDOW_SECONDS = 2 * 3600;
+
+/** A witnessed quote remains a planning constraint until money changes or the quote ages.
+ * Unknown prices are worth trying; this never reads remote prices or merchant inventory. */
+export function expectsAffordableFood(world: World, p: Person, placeId: EntityId): boolean {
+  const quote = p.knowledge[`food-access:${placeId}`];
+  return !quote || world.now - quote.learnedAt >= FOOD_PREFERENCE_WINDOW_SECONDS
+    || !Number.isFinite(Number(quote.claim.price)) || Number(quote.claim.price) <= p.wealth;
+}
 /**
  * v0.8 §P0-D: beyond this many blocks, distance dominates confidence in the scoring below — a
  * hungry person strongly prefers a closer, less-certain option over a farther, well-known one.
@@ -359,16 +388,29 @@ export function knownFoodPlace(world: World, p: Person): EntityId | undefined {
   // closer (even if less certain) option sat unconsidered. A real hungry person weighs how far
   // away help actually is, not just how sure they are it exists.
   const body = world.primaryBody(p.id);
+  let hasUntriedCounter: boolean | undefined;
   let best: KnowledgeItem | undefined; let bestScore = -Infinity;
   for (const k of candidates) {
     const placeId = k.claim.placeId as EntityId;
     const memories = memoriesAtPlace(p, placeId);
     const boughtRecently = memories.some(m => m.type === 'purchase' && now - m.tick < FOOD_PREFERENCE_WINDOW_SECONDS);
-    const foundEmptyRecently = memories.some(m => m.type === 'shortage' && now - m.tick < FOOD_AVOIDANCE_WINDOW_SECONDS);
+    const observation = p.knowledge[`food-access:${placeId}`];
+    const foundEmptyRecently = observation?.claim.reason === 'unavailable' && now - observation.learnedAt < FOOD_AVOIDANCE_WINDOW_SECONDS;
+    // Passing a sign again confirms the service exists; it does not refill the shelves.
+    // Try another known counter, or physically search if every known source was empty.
+    if (foundEmptyRecently) continue;
+    if (observation?.claim.reason === 'unavailable' && now - observation.learnedAt < FOOD_PREFERENCE_WINDOW_SECONDS && body) {
+      hasUntriedCounter ??= foodSearchPlaces(world, body.pos).some(place => !p.knowledge[`svc:${place.id}`]);
+      // A retry timer is not evidence of a refill. Cycling through a few empty shops
+      // must not prevent ever investigating another counter. Once all are known, the
+      // ordinary retry/search paths can revisit them without an arbitrary long lockout.
+      if (hasUntriedCounter) continue;
+    }
     const place = world.place(placeId);
     if (!body || !place || !near(body.pos, place.inside)) continue;
     const distancePenalty = body && place ? Math.min(0.6, world.distance2d(body.pos, place.inside) / FOOD_DISTANCE_SCALE) : 0;
-    const score = k.confidence + (boughtRecently ? 0.35 : 0) - (foundEmptyRecently ? 0.5 : 0) - distancePenalty;
+    const unaffordable = !expectsAffordableFood(world, p, placeId);
+    const score = k.confidence + (boughtRecently ? 0.35 : 0) - distancePenalty - (unaffordable ? 2 : 0);
     if (score > bestScore) { bestScore = score; best = k; }
   }
   return best ? (best.claim.placeId as EntityId) : undefined;
@@ -379,10 +421,16 @@ export function knownFoodPlace(world: World, p: Person): EntityId | undefined {
  * behavior"). Called from the `eat` action's give-up path (mind/agent.ts) so the SAME place
  * isn't immediately retargeted the very next attempt, without erasing the knowledge that the
  * place exists (it may simply be temporarily out of stock — see `KnowledgeItem.lastConfirmedAt`). */
-export function noteFoodShortage(world: World, p: Person, placeId: EntityId): void {
+export function noteFoodShortage(world: World, p: Person, placeId: EntityId, reason: 'unavailable' | 'unaffordable' = 'unavailable', price?: number, eventId?: string): void {
   const k = p.knowledge[`svc:${placeId}`];
-  if (k) { k.lastConfirmedAt = world.now; k.confidence = Math.max(0.4, k.confidence - 0.15); }
-  remember(world, p, { type: 'shortage', summary: `I found nothing to eat at ${world.nameOf(placeId)}`, significance: 0.12, valence: -0.15, source: { type: 'self' }, placeId });
+  if (k && reason === 'unavailable') { k.lastConfirmedAt = world.now; k.confidence = Math.max(0.4, k.confidence - 0.15); }
+  const summary = reason === 'unaffordable' ? `I cannot afford a meal at ${world.nameOf(placeId)} (${price} silver)` : `I found nothing to eat at ${world.nameOf(placeId)}`;
+  learn(world, p, { key: `food-access:${placeId}`, kind: 'state', claim: { placeId, reason, price }, confidence: 1, source: { type: 'self', viaEvent: eventId } }, true);
+  // This is a fresh observation of a changing quote, not a stronger rumour of a fixed fact.
+  const observation = p.knowledge[`food-access:${placeId}`];
+  if (observation) Object.assign(observation, { claim: { placeId, reason, price }, learnedAt: world.now, confidence: 1,
+    source: { type: 'self', viaEvent: eventId }, hops: 0, sharedWith: [] });
+  remember(world, p, { type: 'shortage', summary, significance: 0.12, valence: -0.15, eventId, source: { type: 'self', viaEvent: eventId }, placeId });
 }
 
 export function locationKnowledge(world: World, p: Person, entityId: EntityId, pos: Vec3, source: Source): void {

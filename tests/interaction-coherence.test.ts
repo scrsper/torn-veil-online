@@ -58,13 +58,13 @@ describe('commerce: what a person will actually sell', () => {
     expect(willingnessFor(tw.world, keeper, onRack, buyer).reason).toBeNull();
   });
 
-  it('reserves stock a live haul task is waiting on, and sells what is left over', () => {
+  it('reserves stock an active carrier is collecting, and sells what is left over', () => {
     const { tw, keeper, buyer } = shopWorld(9003);
     const shelf = stock(tw, keeper, 'flour', 20);
     tw.world.haulTasks.push({
       id: 'ht_1', resource: 'flour', quantity: 8, carried: 0, delivered: 0,
       sourcePlaceId: tw.places.tavern, destPlaceId: tw.places.chapel, reason: 'the bakery needs flour',
-      requesterId: null, claimantId: null, status: 'needed', priority: 0.5,
+      requesterId: null, claimantId: buyer.id, status: 'claimed', priority: 0.5,
       createdAt: tw.world.now, updatedAt: tw.world.now,
     });
 

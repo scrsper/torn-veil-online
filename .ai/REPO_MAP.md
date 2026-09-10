@@ -206,6 +206,8 @@ Procedural population systems should not require every world seed to reproduce t
 
 # Economy and supply
 
+Living economy mechanics and measurement: `docs/LIVING_ECONOMY_SURVIVAL.md`. Household provisioning is in `src/sim/world/household.ts`; food access in `metabolism.ts`; procurement and freight in `src/sim/logistics/haul.ts`; repeatable survival reports in `src/headless/economy/`.
+
 ## `src/sim/world/supply.ts`
 
 Public mapping between occupations, resources, and canonical production processes.

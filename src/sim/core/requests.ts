@@ -5,8 +5,8 @@ import type { World } from './world';
  * The shared Request lifecycle (v0.4 §9-10). See the `Request` doc comment in types.ts for why
  * this exists alongside `HaulTask`/`ConstructionProject` rather than instead of them. Payment
  * is real, conserved currency (Constitution v0.4 §10) — `completeRequest` is the ONLY place a
- * worker is paid for accepted work, so haul wages and construction wages go through one audited
- * path instead of each inventing its own money-moving code.
+ * terminal settlement happens. Completed partial work also uses the shared payWage transfer,
+ * so freight and construction cannot invent money through separate payment paths.
  */
 
 export interface RequestSpec {
@@ -37,12 +37,13 @@ export function createRequest(world: World, s: RequestSpec): Request {
   return r;
 }
 
-export function acceptRequest(world: World, r: Request, worker: Person): void {
-  if (r.status !== 'open') return;
+export function acceptRequest(world: World, r: Request, worker: Person, replacingWorkerId?: EntityId): void {
+  if (r.status !== 'open' && !(r.status === 'accepted' && replacingWorkerId === r.acceptedBy && replacingWorkerId !== undefined)) return;
+  const previousWorkerId = r.acceptedBy;
   r.status = 'accepted'; r.acceptedBy = worker.id; r.acceptedAt = world.now;
   world.emit('request_accepted', {
     actor: worker.id, placeId: r.requesterPlaceId, significance: 0.05,
-    data: { requestId: r.id, type: r.type },
+    data: { requestId: r.id, type: r.type, previousWorkerId },
     summary: `${worker.name} took on a ${requestTypeLabel(r.type)} request`,
   });
 }
@@ -58,7 +59,7 @@ export function acceptRequest(world: World, r: Request, worker: Person): void {
 function transferWealth(world: World, payerId: EntityId | null, recipient: Person, nominal: number): number {
   if (nominal <= 0) return 0;
   const payer = payerId ? world.person(payerId) : undefined;
-  if (!payer || !payer.alive) return 0;
+  if (!payer || !payer.alive || payer.id === recipient.id) return 0;
   const amount = Math.max(0, Math.min(nominal, payer.wealth));
   if (amount <= 0) return 0;
   payer.wealth -= amount; recipient.wealth += amount;
@@ -98,17 +99,17 @@ export function payRecoveryReward(world: World, payerId: EntityId, recipient: Pe
 /** Completing a request pays the accepted worker (Constitution v0.4 §10-11) and closes it.
  * Never called for work that didn't actually happen — callers (haul.ts's deliver step,
  * construction.ts's labour credit) only call this once the physical result is real. */
-export function completeRequest(world: World, r: Request): number {
+export function completeRequest(world: World, r: Request, completionReward = r.reward): number {
   if (r.status !== 'accepted' && r.status !== 'open') return 0;
   const worker = r.acceptedBy ? world.person(r.acceptedBy) : undefined;
-  const paid = worker ? payWage(world, r.requesterId, worker, r.reward) : 0;
-  r.status = 'completed'; r.completedAt = world.now;
+  const paid = worker ? payWage(world, r.requesterId, worker, completionReward) : 0;
+  r.status = 'completed'; r.completedAt = world.now; r.paid = (r.paid ?? 0) + paid;
   world.emit('request_completed', {
     // v0.10 §II: naming the person the work was FOR makes a completed request legible as what it
     // socially is — one person having done another a turn — so the obligation layer can settle a
     // standing stake without `core/` needing to know that layer exists.
     actor: r.acceptedBy, target: r.requesterId ?? undefined, placeId: r.requesterPlaceId, significance: 0.08,
-    data: { requestId: r.id, type: r.type, paid },
+    data: { requestId: r.id, type: r.type, paid: r.paid },
     summary: `${r.acceptedBy ? world.nameOf(r.acceptedBy) : 'Someone'} completed a ${r.type === 'haul' ? 'haul' : requestTypeLabel(r.type)} request${paid ? ` and was paid ${paid} silver` : ''}`,
   });
   return paid;

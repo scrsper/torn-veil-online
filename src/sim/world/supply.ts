@@ -52,12 +52,13 @@ export const TRADE_MAKES: Partial<Record<Occupation, ItemType[]>> = {
   farmer: ['grain', 'wheat'],
   hunter: ['meat'],
   herbalist: ['herbs'],
-  woodcutter: ['log', 'plank'],
+  woodcutter: ['log', 'plank', 'stick'],
   innkeeper: ['ale'],
 };
 
 /** What a trade consumes to do that. A trade with no entry lives off what it gathers. */
 export const TRADE_NEEDS: Partial<Record<Occupation, ItemType[]>> = {
+  innkeeper: ['grain', 'stick', 'log'],
   miller: ['grain'],
   baker: ['flour'],
   cook: ['meat', 'log'],

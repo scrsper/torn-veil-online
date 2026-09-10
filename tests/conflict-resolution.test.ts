@@ -111,6 +111,8 @@ describe('disengagement (Constitution §11, v0.2.3)', () => {
     expect(g.mind.plan.length).toBeLessThan(20);
     const pf = tw.world.events.filter(e => e.type === 'path_failure' && e.actor === g.id).length;
     expect(pf).toBeLessThan(60); // not a per-substep path_failure storm
+    expect(g.mind.pursuitCooldowns?.[crim.id]).toBeGreaterThan(tw.world.now);
+    expect(g.mind.investigated.has(crimeKey)).toBe(false); // never reached the scene
   });
 });
 

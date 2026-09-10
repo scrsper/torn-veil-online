@@ -5,12 +5,13 @@ import { makeItem, ITEM_LABEL, RESOURCE_MASS_KG } from '../world/factory';
 import { addPlaceStock, takePlaceStock, retireStack, stockAt, stockItemsAt } from '../world/stock';
 import { FARM_SEED_RESERVE } from '../world/metabolism';
 import { getPhysicalCapability } from '../core/attributes';
-import { createRequest, acceptRequest, completeRequest, failRequest } from '../core/requests';
+import { createRequest, acceptRequest, completeRequest, failRequest, payWage } from '../core/requests';
 import { skillOf, practiceSkill } from '../core/skills';
 import { tradeMakes, tradeNeeds } from '../world/supply';
 import { isFuel } from '../world/fire';
-import { settleWholesale, wholesaleBuyerFor } from '../world/trade';
+import { settleWholesale, wholesaleBuyerFor, wholesaleUnitPrice, economicOperatorFor } from '../world/trade';
 import { adjustRel } from '../mind/relationships';
+import { clearShortfall } from '../world/shortfall';
 
 /**
  * Generalized canonical hauling (v0.3 Living World I, Priority 2 & 4).
@@ -59,6 +60,9 @@ export function personalCarryUnits(world: World, person: Person, type: ItemType)
 /** Desired on-hand stock at a consumer Place, and the level below which a haul is requested. */
 interface Demand { destType: Place['type']; resource: ItemType; sourceType: Place['type']; target: number; trigger: number; reason: string; }
 const CONSUMER_DEMANDS: Demand[] = [
+  { destType: 'store', resource: 'bread', sourceType: 'bakery', target: 18, trigger: 8, reason: 'the general store needs bread to sell' },
+  { destType: 'tavern', resource: 'grain', sourceType: 'farm', target: 18, trigger: 9, reason: 'the tavern needs grain for brewing' },
+  { destType: 'stall', resource: 'meat', sourceType: 'wilderness', target: 8, trigger: 4, reason: 'the game stall needs the hunters catch' },
   { destType: 'mill', resource: 'grain', sourceType: 'farm', target: 55, trigger: 36, reason: 'the mill is low on grain' },
   { destType: 'bakery', resource: 'flour', sourceType: 'mill', target: 34, trigger: 20, reason: 'the bakery is low on flour' },
   { destType: 'stall', resource: 'bread', sourceType: 'bakery', target: 16, trigger: 6, reason: 'the market stall is low on bread' },
@@ -78,14 +82,10 @@ const CONSUMER_DEMANDS: Demand[] = [
   // delivery either, so `tendTavernFire`'s own fuel search always found nothing (real headless
   // evidence: the hearth never once lit across an 8-day run despite the fire mechanism itself
   // working correctly in isolation — tests/materials-fire-crafting.test.ts already proves that).
-  // `stick` (not `log`) deliberately: it's a free byproduct of felling (world/resources.ts's
-  // `extractFromNode`), never consumed by the sawpit/construction chain, so this demand cannot
-  // compete with construction's own log needs for the same clearing stock — a real regression
-  // found directly (the 12-world-day full-chain construction test blew its time budget when this
-  // was `log`, because the tavern's own demand started draining the clearing before the sawpit
-  // got enough). `sourceType: 'wilderness'` resolves to the clearing specifically because it's
-  // the only wilderness Place that ever holds `stick` stock.
+  // Kindling and sustained fuel have distinct uses in the existing fire simulation. Logs
+  // compete with sawyers and construction for real timber; that competition is intentional.
   { destType: 'tavern', resource: 'stick', sourceType: 'wilderness', target: 12, trigger: 4, reason: 'the tavern needs kindling for the hearth' },
+  { destType: 'tavern', resource: 'log', sourceType: 'wilderness', target: 3, trigger: 1, reason: 'the tavern needs sustained fuel for cooking and brewing' },
   // The sawpit's own logs. This used to be a bespoke block inside `world/construction.ts`'s
   // `stepConstruction` — the one consumer in the village whose input arrived by a hand-rolled
   // haul rather than through this table — and it is here now because the sawpit became a real
@@ -125,6 +125,24 @@ function haulWage(world: World, s: HaulTaskSpec): number {
   const distance = src && dst ? world.distance2d(src.inside, dst.inside) : 40;
   const massKg = (RESOURCE_MASS_KG[s.resource] ?? 1) * s.quantity;
   return Math.round(HAUL_BASE_WAGE + distance * massKg * HAUL_WAGE_PER_KG_METER);
+}
+
+/** The issuer budgets a new order from their own wallet and the supplier's posted price.
+ * This is order availability, never permission for a worker to inspect somebody's savings. */
+export function affordableHaulQuantity(world: World, s: HaulTaskSpec): number {
+  const operator = wholesaleBuyerFor(world, s.destPlaceId, s.projectId);
+  if (operator === undefined) return s.quantity;
+  const buyerId = operator ?? s.requesterId;
+  const stacks = stockItemsAt(world, s.resource, s.sourcePlaceId).filter(i => !i.ownerId || world.person(i.ownerId)?.alive).sort((a,b)=>a.id.localeCompare(b.id));
+  if (!stacks.length) return 0;
+  const seller = stacks[0]?.ownerId;
+  if (!seller || seller === buyerId) return s.quantity;
+  const buyer = world.person(buyerId);
+  if (!buyer?.alive || !world.person(seller)?.alive) return 0;
+  const unit = wholesaleUnitPrice(world, s.resource, s.sourcePlaceId);
+  let quantity = Math.min(s.quantity, Math.floor(buyer.wealth / unit));
+  while (quantity > 0 && quantity * unit + haulWage(world, { ...s, quantity }) > buyer.wealth) quantity--;
+  return quantity;
 }
 
 export function createHaulTask(world: World, s: HaulTaskSpec): HaulTask {
@@ -182,6 +200,7 @@ export function consumerDemands(): readonly Demand[] { return CONSUMER_DEMANDS; 
  * being supplied, and with it the cook's stew.
  */
 function dealsIn(world: World, place: Place, resource: ItemType): boolean {
+  if (place.type === 'store' && resource === 'bread') return true;
   if (stockAt(world, resource, place.id) > 0) return true;
   if (place.fires.length && isFuel(resource)) return true;
   const keepers = new Set<EntityId>(place.workers);
@@ -219,10 +238,12 @@ export function generateLogisticsNeeds(world: World): void {
       const want = Math.min(carryCapFor(d.resource), d.target - have - inbound, Math.floor(spareAt(src)));
       if (want <= 0) continue;
       const priority = Math.min(1, 1 - (have + inbound) / Math.max(1, d.target));
-      createHaulTask(world, {
+      const order: HaulTaskSpec = {
         resource: d.resource, quantity: want, sourcePlaceId: src.id, destPlaceId: dest.id,
-        reason: d.reason, requesterId: dest.ownerId ?? dest.workers[0] ?? null, priority,
-      });
+        reason: d.reason, requesterId: economicOperatorFor(world, dest.id), priority,
+      };
+      order.quantity = affordableHaulQuantity(world, order);
+      if (order.quantity > 0) createHaulTask(world, order);
     }
   }
 }
@@ -232,12 +253,21 @@ export function claimHaulTask(world: World, task: HaulTask, person: Person): voi
   if (task.status !== 'needed') return;
   task.claimantId = person.id; task.status = 'claimed'; task.updatedAt = world.now;
   const req = task.requestId ? world.requests.find(r => r.id === task.requestId) : undefined;
-  if (req && req.status === 'open') acceptRequest(world, req, person);
+  if (req) acceptRequest(world, req, person, req.acceptedBy);
   world.emit('haul_started', {
     actor: person.id, placeId: task.sourcePlaceId, pos: world.primaryBody(person.id)?.pos, significance: 0.12,
     data: { haulId: task.id, resource: task.resource, quantity: task.quantity, from: task.sourcePlaceId, to: task.destPlaceId },
     summary: `${person.name} set out to carry ${task.resource} to ${world.nameOf(task.destPlaceId)}`,
   });
+}
+
+/** Actual progress toward a haul endpoint keeps the claim alive for either controller. */
+export function noteHaulMovement(world: World, person: Person, from: Vec3, to: Vec3): void {
+  for (const task of world.haulTasks) {
+    if (task.claimantId !== person.id || (task.status !== 'claimed' && task.status !== 'in_transit')) continue;
+    const dest=world.place(task.status==='in_transit' ? task.destPlaceId : task.sourcePlaceId);
+    if (dest && dist2(to,dest.inside) < dist2(from,dest.inside)) task.updatedAt=world.now;
+  }
 }
 
 /**
@@ -248,15 +278,35 @@ export function claimHaulTask(world: World, task: HaulTask, person: Person): voi
  * in on the first load.
  */
 export function loadHaulCargo(world: World, task: HaulTask, person: Person): boolean {
+  if (task.claimantId !== person.id) return false;
   if (task.status !== 'claimed' && task.status !== 'in_transit') return false;
   const avail = stockAt(world, task.resource, task.sourcePlaceId);
   const stillNeeded = task.quantity - task.delivered - task.carried;
   const tripCapacity = Math.max(0, personalCarryUnits(world, person, task.resource) - task.carried);
   const want = Math.min(stillNeeded, tripCapacity);
-  const n = Math.min(want, avail);
+  let n = Math.min(want, avail);
+  const sourceStacks = stockItemsAt(world, task.resource, task.sourcePlaceId).filter(i => !i.ownerId || world.person(i.ownerId)?.alive).sort((a, b) => a.id.localeCompare(b.id));
+  const stack = sourceStacks[0];
+  if (!stack) n = 0;
+  const operator = wholesaleBuyerFor(world, task.destPlaceId, task.projectId);
+  const sellerId = stack?.ownerId;
+  // Moving one's own stock into an unoperated place is storage, not a sale to a phantom buyer.
+  const buyerId = operator === undefined ? undefined : operator ?? task.requesterId ?? (sellerId === person.id ? person.id : null);
+  // Pay for the particular producer's goods before taking title. An insolvent buyer can
+  // buy fewer units; they cannot drain a supplier's stock in exchange for a partial payment.
+  // Fill a real load across batches of this producer. Limiting a trip to one five-loaf
+  // baking batch would quietly reduce throughput regardless of the carrier's capacity.
+  const ownedStacks = sourceStacks.filter(s => s.ownerId === sellerId);
+  if (stack) n = Math.min(n, ownedStacks.reduce((sum, s) => sum + s.quantity, 0));
+  if (stack && sellerId && buyerId !== undefined && sellerId !== buyerId) {
+    const buyer = world.person(buyerId), seller = world.person(sellerId);
+    const unit = wholesaleUnitPrice(world, task.resource, task.sourcePlaceId);
+    n = buyer?.alive && seller?.alive ? Math.min(n, Math.floor(buyer.wealth / unit)) : 0;
+    if (n > 0) settleWholesale(world, sellerId, buyerId, task.resource, n, task.destPlaceId, task.sourcePlaceId);
+  }
   if (n <= 0) {
     if (task.carried > 0) { finishInTransit(world, task); return true; } // partial load already aboard — go deliver it
-    failHaulTask(world, task, 'nothing left at the source to carry');
+    failHaulTask(world, task, avail > 0 ? 'the buyer cannot fund this delivery' : 'nothing left at the source to carry');
     return false;
   }
   // v0.7 §A: capture who actually owned this stock BEFORE `takePlaceStock`/the cargo's own
@@ -265,13 +315,20 @@ export function loadHaulCargo(world: World, task: HaulTask, person: Person): boo
   // directly off the oldest matching stack (the one `takePlaceStock` is about to drain first),
   // not the place, so it correctly follows the actual producer even where the Place itself has
   // no fixed owner (the quarry: stone there is owned by whoever quarried it, not a place role).
-  if (task.materialSellerId === undefined) {
-    const stack = stockItemsAt(world, task.resource, task.sourcePlaceId).sort((a, b) => a.id.localeCompare(b.id))[0];
-    task.materialSellerId = stack?.ownerId ?? world.place(task.sourcePlaceId)?.ownerId ?? world.place(task.sourcePlaceId)?.workers[0] ?? null;
+  task.materialSellerId = sellerId ?? null;
+  if (!stack) return false;
+  let remaining = n, spoilage = 0, oldest = world.now;
+  for (const source of ownedStacks) {
+    const take = Math.min(remaining, source.quantity);
+    const pressure = (source.spoilAccum ?? 0) * take / source.quantity;
+    spoilage += pressure; source.spoilAccum = (source.spoilAccum ?? 0) - pressure;
+    oldest = Math.min(oldest, source.createdAt);
+    source.quantity -= take; remaining -= take;
+    if (source.quantity <= 0) retireStack(world, source);
+    if (remaining <= 0) break;
   }
-  takePlaceStock(world, task.resource, n, [task.sourcePlaceId]);
   let cargo = task.cargoItemId ? world.item(task.cargoItemId) : undefined;
-  const owner = task.requesterId ?? world.place(task.sourcePlaceId)?.ownerId ?? null;
+  const owner = buyerId ?? task.requesterId ?? sellerId ?? world.place(task.sourcePlaceId)?.ownerId ?? null;
   if (!cargo) {
     cargo = makeItem(world, task.resource, ITEM_LABEL[task.resource], { owner, holder: person.id, quantity: n });
     cargo.haulTaskId = task.id;
@@ -279,6 +336,8 @@ export function loadHaulCargo(world: World, task: HaulTask, person: Person): boo
   } else {
     cargo.quantity += n;
   }
+  cargo.createdAt = Math.min(cargo.createdAt, oldest);
+  cargo.spoilAccum = (cargo.spoilAccum ?? 0) + spoilage;
   task.carried += n; task.status = 'in_transit'; task.updatedAt = world.now;
   world.emit('resource_picked_up', {
     actor: person.id, item: cargo.id, placeId: task.sourcePlaceId, pos: world.primaryBody(person.id)?.pos, significance: 0.12,
@@ -294,23 +353,28 @@ function finishInTransit(world: World, task: HaulTask): void { task.status = 'in
  * this may be a PARTIAL delivery — if the task still needs more than this trip carried, it
  * goes back to `claimed` (cargo cleared, same claimant) rather than terminating, so the next
  * `haul` goal cycle for the same task loads and delivers another trip. The Request (and its
- * wage) is only completed once the task is genuinely done — one payment for the whole job, not
- * per trip (Constitution v0.4 §10-11).
+ * completion) is settled once the task is done; each delivered leg earns its share of freight.
  */
 export function depositHaulCargo(world: World, task: HaulTask, person: Person): boolean {
+  if (task.claimantId !== person.id || task.status !== 'in_transit') return false;
   const cargo = task.cargoItemId ? world.item(task.cargoItemId) : undefined;
+  if (cargo && cargo.holderId !== person.id) return false;
   if (!cargo || cargo.quantity <= 0) { failHaulTask(world, task, 'the cargo was lost'); return false; }
   const n = cargo.quantity;
   // Whoever is actually carrying it lets go — `retireStack` resolves that from `holderId`,
   // which is not always the person making the delivery.
   cargo.quantity = 0; cargo.haulTaskId = undefined; retireStack(world, cargo);
-  const owner = task.requesterId ?? world.place(task.destPlaceId)?.ownerId ?? null;
+  const owner = cargo.ownerId;
   const ev = world.emit('resource_delivered', {
     actor: person.id, item: cargo.id, placeId: task.destPlaceId, pos: world.place(task.destPlaceId)?.inside, significance: task.projectId ? 0.4 : 0.18,
     data: { haulId: task.id, resource: task.resource, quantity: n, to: task.destPlaceId, projectId: task.projectId },
     summary: `${person.name} delivered ${n} ${task.resource} to ${world.nameOf(task.destPlaceId)}`,
   });
-  addPlaceStock(world, task.resource, n, task.destPlaceId, owner, ev.id, 'delivered');
+  const delivered = addPlaceStock(world, task.resource, n, task.destPlaceId, owner, ev.id, 'delivered');
+  delivered.createdAt = Math.min(delivered.createdAt, cargo.createdAt);
+  delivered.spoilAccum = (delivered.spoilAccum ?? 0) + (cargo.spoilAccum ?? 0);
+  cargo.spoilAccum = 0;
+  clearShortfall(world, person, task.destPlaceId, task.resource);
   // Causal Society (relationships must follow from what people actually do for each other).
   // Repeated cooperation was the one ordinary, everyday relationship input the simulation had no
   // path for at all: two people could spend a month carrying each other's grain and end it as
@@ -332,23 +396,21 @@ export function depositHaulCargo(world: World, task: HaulTask, person: Person): 
         `carried ${task.resource} to ${world.nameOf(task.destPlaceId)} for me`, ev.id, true);
     }
   }
-  // v0.7 §A: a real wholesale sale, not just a physical move — the receiving side's operator
-  // pays the producer for what just arrived (world/trade.ts). A no-op for destinations that
-  // aren't wholesale-eligible (food-chain retail deliveries like bread->stall_bread stay exactly
-  // as before) and for a self-delivery (the same person on both sides of the trade).
-  const buyer = wholesaleBuyerFor(world, task.destPlaceId, task.projectId);
-  if (buyer !== undefined) settleWholesale(world, task.materialSellerId, buyer, task.resource, n, task.destPlaceId);
+  // Material ownership and payment were settled at pickup. Delivery earns the freight wage.
   task.delivered += n; task.carried = 0; task.updatedAt = world.now;
   task.cargoItemId = undefined;
   // v0.6 §V.9: a real, physically-completed delivery leg is meaningful work — practice once per
   // leg (not per unit, so a heavy single-trip delivery doesn't train faster than a light one).
   practiceSkill(person, 'hauling', 1);
   world.runTally[`hauled:${task.resource}`] = (world.runTally[`hauled:${task.resource}`] ?? 0) + n; // survives task pruning
+  // Pay for the leg actually delivered, even if later legs become impossible or another
+  // carrier takes over. Neither a failed pickup nor completion can pay this same leg twice.
+  const req = task.requestId ? world.requests.find(r => r.id === task.requestId) : undefined;
+  if (req) req.paid = (req.paid ?? 0) + payWage(world, req.requesterId, person, req.reward * n / task.quantity);
   const moreToFetch = task.delivered < task.quantity && stockAt(world, task.resource, task.sourcePlaceId) > 0;
   if (moreToFetch) { task.status = 'claimed'; return true; } // another trip needed — stay claimed by the same hauler
   task.status = 'delivered';
-  const req = task.requestId ? world.requests.find(r => r.id === task.requestId) : undefined;
-  if (req && req.status !== 'completed') completeRequest(world, req);
+  if (req && req.status !== 'completed') completeRequest(world, req, 0);
   return true;
 }
 

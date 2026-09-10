@@ -4,9 +4,9 @@ import type { World } from '../core/world';
 import { getPhysicalCapability, SERIOUS_WOUND, woundSeverity } from '../core/attributes';
 import { skillOf } from '../core/skills';
 import { productionSpecs, reserveFor } from './production';
-import { stockAt } from './stock';
+import { unreservedStockAt, stockAt } from './stock';
 import { bake, mill, saw, type TransformResult } from './metabolism';
-import { cook, tendTavernFire } from './cooking';
+import { cook, tendTavernFire, MEAT_TO_STEW_RATIO } from './cooking';
 
 /**
  * VACANT WORK, DERIVED (Adaptive Society v0.5).
@@ -224,7 +224,7 @@ export function tradePostAt(world: World, place: Place | undefined | null): Trad
     return { place, process, staff, ableStaff, unfit, openDemand: 0, underServed: false, standIns: standInsAt(world, place.id) };
   }
   const spec = productionSpecs().find(s => s.placeType === place.type && s.resource === process.output);
-  const shortOfOutput = !spec || stockAt(world, process.output, place.id) < reserveFor(world, spec, place).trigger;
+  const shortOfOutput = !spec || unreservedStockAt(world, process.output, place.id) < reserveFor(world, spec, place).trigger;
   let openDemand = 0;
   let demandSince = Number.POSITIVE_INFINITY;
   let last: number | undefined;
@@ -326,7 +326,9 @@ export function runTradeBatch(world: World, worker: Person, post: TradePost): Tr
     case 'sawpit': return saw(world, worker);
     // The hearth first, then the pot. Tending it is part of doing the work, not part of being
     // called a cook — which is what it was gated on before (`p.occupation === 'cook'`).
-    case 'tavern': tendTavernFire(world, worker); return cook(world, worker);
+    case 'tavern':
+      if (stockAt(world, 'meat', post.place.id) < MEAT_TO_STEW_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'meat' };
+      tendTavernFire(world, worker); return cook(world, worker);
     default: return { ok: false, produced: 0, consumed: 0 };
   }
 }

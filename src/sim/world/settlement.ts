@@ -7,7 +7,7 @@ import { B } from '../physical/blocks';
 import { buildHouse, buildTavern, buildShop, buildMill, buildFarm, buildWell, flatten, type BuildResult, type Facing } from './structures';
 import { makePerson, makePlace, makeBody, makeItem, makeFaction } from './factory';
 import { createFields } from './metabolism';
-import { plantGrove, registerStoneNodes } from './resources';
+import { plantGrove, registerStoneNodes, registerGameGround } from './resources';
 import { makeHousehold, joinHousehold } from './household';
 import { getRel, setRelTags } from '../mind/relationships';
 import { learn, learnPlace, learnAffordance } from '../mind/knowledge';
@@ -90,6 +90,7 @@ function materialize(world: World, spec: SettlementSpec, regional: RegionalGrid)
     joinHousehold(world, p, households.get(c.household)!); home.residents.push(p.id);
     const bed = home.anchors.find(a => a.kind === 'bed' && !a.ownerId); if (bed) bed.ownerId = p.id;
     if (work) { work.workers.push(p.id); work.ownerId ??= p.id; }
+    if (c.occupation === 'hunter') { places.stall_game.workers.push(p.id); places.stall_game.ownerId ??= p.id; }
     home.ownerId ??= p.id;
     const b = makeBody(world, p.id, home.inside); p.bodies.push(b.id);
     p.schedule = scheduleFor(p, { home: home.id, work: work?.id ?? null, tavern: places.tavern.id, square: places.square.id, chapel: places.chapel.id, field: c.occupation === 'farmer' ? work?.id : null, saw: places.sawpit.id, stall: c.occupation === 'hunter' ? places.stall_game.id : null });
@@ -152,6 +153,7 @@ function materialize(world: World, spec: SettlementSpec, regional: RegionalGrid)
     places.sawpit.workers.push(p.id); makeItem(world, 'axe', `${p.name}'s axe`, { owner: p.id, holder: p.id });
   }
   plantGrove(world, places.clearing.bounds, places.clearing.id, places.clearing.id, spec.resources.timber);
+  registerGameGround(world, places.forest.id, Math.round(20 + spec.resources.timber * 3 * spec.moisture));
   registerStoneNodes(world, places.quarry.id, Array.from({ length: spec.resources.stone }, (_, i) => ({ x: places.quarry.bounds.x0 + 3 + (i % 3) * 4, y: 0, z: places.quarry.bounds.z0 + 3 + Math.floor(i / 3) * 4 })));
   // Route footpaths through actual navigable ground, never through buildings. These are local
   // streets, not roads across the intervening wilderness.

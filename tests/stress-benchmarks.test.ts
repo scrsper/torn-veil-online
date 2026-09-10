@@ -13,9 +13,10 @@ import { effectivePrice, scarcityModifier } from '../src/sim/world/pricing';
 const PRICE_REFERENCE_BREAD = 40;
 import { SECONDS_PER_DAY, SECONDS_PER_HOUR } from '../src/sim/core/time';
 import { B } from '../src/sim/physical/blocks';
+import { syncFieldBlocks } from '../src/sim/world/metabolism';
 
-function advance(world: ReturnType<typeof newWorld>['world'], sim: Simulation, seconds: number): void {
-  for (let e = 0; e < seconds; e += 0.15) { const dt = Math.min(0.15, seconds - e); const wdt = world.clock.advance(dt); world.physicalTime += dt; sim.step(dt, wdt); sim.flushSpeech(); }
+function advance(world: ReturnType<typeof newWorld>['world'], sim: Simulation, seconds: number, onStep?: () => void): void {
+  for (let e = 0; e < seconds; e += 0.15) { const dt = Math.min(0.15, seconds - e); const wdt = world.clock.advance(dt); world.physicalTime += dt; sim.step(dt, wdt); sim.flushSpeech(); onStep?.(); }
 }
 
 /**
@@ -24,7 +25,7 @@ function advance(world: ReturnType<typeof newWorld>['world'], sim: Simulation, s
  * queues persist, output degrades) rather than papering over the shortage.
  */
 describe('stress: food pressure', () => {
-  it('draining most village food/grain reserves creates real shortage pressure without collapse', () => {
+  it('losing stored food and standing crops creates real shortage pressure without collapse', () => {
     const { world } = newWorld(918271);
     const sim = new Simulation(world);
     // Drain almost all grain/flour/bread everywhere — a deliberate, meaningful shortfall.
@@ -33,6 +34,12 @@ describe('stress: food pressure', () => {
     takePlaceStock(world, 'flour', 99999, places);
     takePlaceStock(world, 'bread', 99999, places);
     for (const it of world.items()) if ((it.type === 'bread' || it.type === 'cheese' || it.type === 'meat' || it.type === 'pie') && it.holderId) it.quantity = 0;
+    // Standing ripe crops are food reserves too. Leaving them intact allows real harvest
+    // and processing to recover before anyone attempts work with a missing input.
+    for (const field of world.fields) for (const plot of field.plots) {
+      plot.state = 'fallow'; plot.growth = 0; plot.maturedAt = undefined; plot.harvestedAt = undefined;
+    }
+    syncFieldBlocks(world);
     const totalFoodBefore = worldStock(world, 'grain') + worldStock(world, 'flour') + worldStock(world, 'bread');
     expect(totalFoodBefore).toBeLessThan(5);
 
@@ -40,6 +47,7 @@ describe('stress: food pressure', () => {
     // The shortage is real and visible — a shortage signal fired, and nobody's needs went
     // impossible (bounded 0..1) even under genuine scarcity.
     expect(world.runTally.resource_shortage ?? 0).toBeGreaterThan(0);
+    expect(world.runTally.crop_harvested ?? 0).toBe(0);
     expect(world.persons().every(p => p.needs.hunger >= 0 && p.needs.hunger <= 1)).toBe(true);
     expect(world.persons().every(p => p.physiology.energy >= 0 && p.physiology.energy <= 1)).toBe(true);
     // The population survives a day and a half of real scarcity without collapsing outright.
@@ -143,7 +151,10 @@ describe('stress: v0.5 food abundance vs. scarcity (§XI.1-2)', () => {
     expect(priceWhenBare).toBeGreaterThan(2);
     expect(priceWhenBare).toBeLessThanOrEqual(Math.round(2 * 2.2));
 
-    advance(world, sim, 1.5 * SECONDS_PER_DAY / 60);
+    let firstRestock = 0;
+    advance(world, sim, 1.5 * SECONDS_PER_DAY / 60, () => {
+      if (!firstRestock) firstRestock = stockAt(world, 'bread', bakery.id);
+    });
     // Measured on the scarcity MODIFIER rather than on the rounded silver price, for a reason
     // worth stating: `effectivePrice` rounds to whole silver, and against a base price of 2 the
     // whole of "somewhat scarce" collapses onto a single coin. The boundary sits at 31 loaves —
@@ -157,7 +168,10 @@ describe('stress: v0.5 food abundance vs. scarcity (§XI.1-2)', () => {
     const bread = stockAt(world, 'bread', bakery.id);
     expect(bread).toBeLessThan(PRICE_REFERENCE_BREAD); // still short of comfortable
     expect(scarcityModifier(bread, PRICE_REFERENCE_BREAD)).toBeGreaterThan(1);
-    expect(scarcityModifier(bread, PRICE_REFERENCE_BREAD)).toBeLessThan(scarcityModifier(empty, PRICE_REFERENCE_BREAD));
+    // The first replenishment lowers scarcity. Customers may buy it before the final
+    // snapshot; an empty counter at the endpoint does not imply production never responded.
+    expect(firstRestock).toBeGreaterThan(0);
+    expect(scarcityModifier(firstRestock, PRICE_REFERENCE_BREAD)).toBeLessThan(scarcityModifier(empty, PRICE_REFERENCE_BREAD));
     const price = effectivePrice('bread', 2, bread);
     expect(price).toBeGreaterThanOrEqual(2);
     expect(price).toBeLessThanOrEqual(Math.round(2 * 2.2));

@@ -129,7 +129,7 @@ const STARTING_SKILLS: Partial<Record<Occupation, Partial<Record<SkillId, number
   farmer: { hauling: 0.3 },
   apprentice: { construction: 0.2, hauling: 0.25 },
   vagrant: { hauling: 0.2 },
-  hunter: { hauling: 0.2 },
+  hunter: { hauling: 0.2, hunting: 0.6 },
   smith: { construction: 0.15 },
   // v0.8: plausible starting proficiency by profession — Old Wyn already has "found things at
   // the old shrine that others have lost" and lives off the woods; Edda already cooks at the

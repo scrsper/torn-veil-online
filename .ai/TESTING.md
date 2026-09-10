@@ -8,19 +8,20 @@ Use verification proportional to the blast radius of the change.
 
 # General rule
 
-During implementation:
+Default workflow:
 
-**targeted tests first.**
+```text
+coherent implementation slice (several related edits)
+    → targeted/affected tests
+    → continue implementation
+    → occasional typecheck/integration check
+    → full regression suite near completion
+    → only relevant milestone acceptance/world/browser/Unreal checks
+```
 
-At meaningful integration points:
+Tests validate a coherent implementation. Do not run them after every tiny edit as a substitute for reasoning. Bare `npm test` is a checkpoint/final-verification command, not an edit-loop command. Config/docs-only work may need only inspection and cheap command/config validation; not every task requires a full suite.
 
-**broader tests.**
-
-At milestone completion:
-
-**full relevant verification.**
-
-Do not repeatedly run an expensive suite when no relevant code has changed since the previous successful run.
+A successful check remains valid until relevant code, tests, dependencies, configuration, or execution conditions change. Keep a brief verification record (command/scope, result, and relevant changes since it ran). Committing, pushing, or editing unrelated files does not invalidate that evidence. Do not rerun expensive unchanged verification for reassurance or duplicate already-valid targeted checks at final verification.
 
 ---
 
@@ -46,9 +47,21 @@ Examples:
 
 ```bash
 npm test -- tests/<relevant-file>.test.ts
+# Or select normal-suite tests through Vitest's dependency graph:
+npm run test:changed
+npm run test:branch
 ```
 
-or another appropriately targeted Vitest invocation already supported by the repository.
+`test:changed` covers staged, unstaged, and untracked changes. `test:branch` also includes committed changes since the merge base with the local `origin/main` ref; fetch origin when that baseline needs refreshing, not on every edit. Both are one-shot runs and exit successfully when no tests are affected; that means no tests ran, not that behavior was verified.
+
+Affected selection follows imports, not every behavioral dependency. Choose explicit relevant tests for dependencies it cannot discover. Shared modules can select many tests; package/config changes can select the entire normal suite. Preview without executing tests when scope is uncertain:
+
+```bash
+npm exec -- vitest list --changed --filesOnly
+npm exec -- vitest list --changed origin/main --filesOnly
+```
+
+If selection is broad during active development, use explicit relevant files until a meaningful checkpoint. Affected commands use the existing default exclusions: specialized acceptance and browser suites remain separate and must be selected explicitly when relevant.
 
 Use targeted tests after each logical implementation slice.
 
@@ -64,16 +77,14 @@ npm test
 
 The simulation suite operates headlessly over canonical `World` / `Simulation` state.
 
-Use the full suite when:
+Run the full suite at a meaningful integration checkpoint or near completion when the blast radius warrants it, particularly after:
 
 - shared simulation behavior changed;
 - several simulation subsystems were modified;
 - a change touches a heavily reused primitive;
 - targeted tests indicate possible cross-system regression;
-- preparing a meaningful checkpoint;
-- performing final milestone verification.
 
-Do not require the full suite after every trivial edit merely because a file lives under `src/sim/`.
+These scope indicators justify checkpoint coverage, not an immediate full run after each edit. Do not require the full suite merely because a file lives under `src/sim/`. Do not launch several expensive suites concurrently and create avoidable CPU contention or timeout failures.
 
 ---
 
@@ -225,25 +236,7 @@ Likewise, do not run Unreal merely to verify simulation code that can be establi
 
 # Verification escalation
 
-A useful default progression is:
-
-```text
-changed code
-    ↓
-targeted test
-    ↓
-typecheck
-    ↓
-broader relevant tests
-    ↓
-full npm test when blast radius warrants it
-    ↓
-relevant long trace/acceptance when behavior warrants it
-    ↓
-build / browser / Unreal integration when presentation warrants it
-```
-
-Not every change needs every step.
+Follow the default workflow above. Broaden only to answer a concrete unresolved regression or integration question; do not advance through every command as a checklist. Preserve the specialized acceptance configurations and their coverage. WorldLab, long traces, browser, and Unreal checks belong only to milestones that can affect their scenarios.
 
 ---
 
@@ -255,7 +248,7 @@ If a test fails:
 2. inspect the smallest relevant evidence;
 3. fix the underlying issue;
 4. rerun the failed/relevant test first;
-5. expand verification only after the narrow failure is resolved.
+5. rerun the full suite only after failing/relevant tests pass and the implementation reaches a meaningful checkpoint.
 
 Do not rerun the complete suite repeatedly while a known targeted failure remains.
 

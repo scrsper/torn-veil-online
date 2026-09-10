@@ -172,7 +172,7 @@ describe('player embodiment — the same haul market', () => {
     expect(player.skills.hauling ?? 0).toBeGreaterThan(0);
   });
 
-  it('a carry too heavy for one trip stays the same job and pays once, on completion — like an NPC hauler', () => {
+  it('a carry too heavy for one trip stays the same job and pays for each completed leg — like an NPC hauler', () => {
     const { tw, src, dst, player, baker } = haulWorld(9109);
     // stone at 15 kg/unit: an average adult carries 2 per trip — this job genuinely takes several
     addPlaceStock(tw.world, 'stone', 6, src.id, null, undefined, 'quarried');
@@ -185,8 +185,10 @@ describe('player embodiment — the same haul market', () => {
     moveTo(tw, player, v(40.5, 1, 40.5));
     const w0 = player.wealth;
     const r = tw.sim.progressHaul(player);
-    expect(r.kind).toBe('delivered'); if (r.kind === 'delivered') { expect(r.complete).toBe(false); expect(r.paid).toBe(0); }
-    expect(player.wealth).toBe(w0); expect(task.status).toBe('claimed');
+    const req = tw.world.requests.find(r => r.id === task.requestId)!;
+    const legWage = req.reward * firstTrip / task.quantity;
+    expect(r.kind).toBe('delivered'); if (r.kind === 'delivered') { expect(r.complete).toBe(false); expect(r.paid).toBe(legWage); }
+    expect(player.wealth).toBe(w0 + legWage); expect(task.status).toBe('claimed');
     moveTo(tw, player, v(6.5, 1, 6.5)); tw.sim.progressHaul(player);
     moveTo(tw, player, v(40.5, 1, 40.5));
     while (task.status !== 'delivered') { const rr = tw.sim.progressHaul(player); if (rr.kind === 'go_to') moveTo(tw, player, rr.leg === 'source' ? v(6.5, 1, 6.5) : v(40.5, 1, 40.5)); if (rr.kind === 'failed') throw new Error(rr.reason); }

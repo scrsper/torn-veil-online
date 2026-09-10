@@ -111,7 +111,14 @@ describe('memory has behavioral consequence (v0.6 §IV)', () => {
     const p = addPerson(tw, 'Villager', 'traveler', v(3, 1, 3));
     learnPlace(tw.world, p, bakery, { type: 'prior' });
     noteFoodShortage(tw.world, p, bakery.id);
-    // still known — a memory of one bad visit doesn't erase the place from the world
+    // Still known, but the current empty shelves prompt a physical search elsewhere.
+    expect(p.knowledge[`svc:${bakery.id}`]).toBeDefined();
+    expect(knownFoodPlace(tw.world, p)).toBeUndefined();
+    tw.world.clock.worldSeconds += 2 * 3600;
+    // The unvisited tavern deserves investigation before another attempt at a counter
+    // still only known to have been empty. A retry timer is not a refill observation.
+    expect(knownFoodPlace(tw.world, p)).toBeUndefined();
+    tw.world.clock.worldSeconds += 10 * 3600;
     expect(knownFoodPlace(tw.world, p)).toBe(bakery.id);
     expect(memoriesAtPlace(p, bakery.id).length).toBeGreaterThan(0);
   });

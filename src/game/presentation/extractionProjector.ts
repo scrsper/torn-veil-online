@@ -53,7 +53,7 @@ function phaseFor(node: ResourceNode, worker: ActiveExtractionWorker | null): Ex
 export function deriveExtractionPresentation(world: World, node: ResourceNode): ExtractionPresentation {
   const worker = activeExtractionWorker(world, node);
   const phase = phaseFor(node, worker);
-  const workStyle: 'chop' | 'quarry' | null = phase === 'active' ? (node.kind === 'tree' ? 'chop' : 'quarry') : null;
+  const workStyle: 'chop' | 'quarry' | null = phase === 'active' && node.kind !== 'game' ? (node.kind === 'tree' ? 'chop' : 'quarry') : null;
 
   const cues: PresentationCue[] = [];
   if (phase === 'active' && worker) {

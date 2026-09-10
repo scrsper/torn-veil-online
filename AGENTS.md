@@ -249,12 +249,14 @@ Use the testing policy in `.ai/TESTING.md`.
 
 Default behavior:
 
-1. run the narrowest relevant tests during implementation;
-2. run typecheck when TypeScript changes warrant it;
-3. expand verification according to the blast radius;
-4. run broad or long-running acceptance suites for meaningful integration/final milestone verification rather than reflexively after every small edit.
+1. complete a coherent implementation slice; several related edits may precede verification;
+2. during implementation, run one or a few directly relevant test files, `npm run test:changed`, or `npm run test:branch`; inspect selection if shared code/config changes could select most tests;
+3. run typecheck relatively often when TypeScript changes warrant it; expand integration checks at meaningful checkpoints;
+4. reserve bare `npm test` for checkpoint/final regression verification, **not the edit loop**; run only the specialized acceptance/world/browser/Unreal checks relevant to the milestone.
 
-Do not rerun expensive unchanged verification without a concrete reason.
+A successful verification remains valid until relevant code, tests, dependencies, configuration, or execution conditions change. Keep a brief record of what passed and what changed afterward; a commit, push, or unrelated edit does not invalidate it. Do not rerun expensive unchanged verification merely for reassurance.
+
+After a failure, fix and rerun the failing/relevant tests first. Rerun the full suite only once those pass and the implementation reaches a meaningful checkpoint. Tests validate a coherent implementation; running them after every tiny edit is not a substitute for reasoning. Never weaken assertions or fold specialized long-run suites into normal tests to make this workflow faster.
 
 ---
 

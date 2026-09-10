@@ -82,9 +82,12 @@ describe('wholesale trade (v0.7 §A): the real producer gets paid, not just the 
     expect(wholesaleBuyerFor(tw.world, site.id, project.id)).toBe(owner.id);
   });
 
-  it('bread hauled to a market stall is not wholesale-eligible — retail sale is the only revenue event there', () => {
+  it('a market stall is a wholesale buyer when an actual operator can pay', () => {
     const tw = createTestWorld(70005, 40);
-    expect(wholesaleBuyerFor(tw.world, makePlace(tw.world, 'stall', 'Stall', { x0: 2, z0: 2, x1: 6, z1: 6, y0: 1, y1: 3 }, { inside: v(4, 1, 4) }).id)).toBeUndefined();
+    const stall = makePlace(tw.world, 'stall', 'Stall', { x0: 2, z0: 2, x1: 6, z1: 6, y0: 1, y1: 3 }, { inside: v(4, 1, 4) });
+    expect(wholesaleBuyerFor(tw.world, stall.id)).toBeNull();
+    const keeper = addPerson(tw, 'Keeper', 'merchant', stall.inside); stall.ownerId = keeper.id;
+    expect(wholesaleBuyerFor(tw.world, stall.id)).toBe(keeper.id);
   });
 });
 

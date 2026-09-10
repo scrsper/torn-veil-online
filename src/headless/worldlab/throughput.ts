@@ -1,7 +1,7 @@
 import type { World } from '../../sim/core/world';
 import { SECONDS_PER_HOUR } from '../../sim/core/time';
 import { ENERGY_DRAIN_PER_HOUR } from '../../sim/core/physiology';
-import { FOOD_HUNGER_RESTORE, GRAIN_CAP } from '../../sim/world/metabolism';
+import { FOOD_HUNGER_RESTORE, MILL_RATIO, BAKE_RATIO } from '../../sim/world/metabolism';
 import type { Finding, LivenessCheck, Observation } from './types';
 
 /**
@@ -40,14 +40,12 @@ function nutritionAdequacyCheck(): LivenessCheck {
   };
 }
 
-/** FAIL if a downstream stock (bread) trends monotonically down over >=5 days while the upstream
- * stock (grain) sits at/near its cap — the exact "chain moves but backlog never clears" pattern
- * measured in the audit, distinct from a genuine, recovering shortage. */
+/** Detect sustained falling bread despite raw grain sufficient to feed the population. */
 function downstreamNotStarvingCheck(): LivenessCheck {
   const spanDays = 5;
   return {
     id: 'throughput-downstream-not-starving', category: 'production', boundHours: spanDays * 24,
-    description: `Bread stock must not trend monotonically down for ${spanDays}+ days while grain sits at/near its cap.`,
+    description: `Bread stock must not trend monotonically down for ${spanDays}+ days while grain could cover that interval's nutritional demand.`,
     check: (_world: World, series: Observation[]) => {
       for (let i = 0; i < series.length; i++) {
         for (let j = i + 1; j < series.length; j++) {
@@ -57,11 +55,12 @@ function downstreamNotStarvingCheck(): LivenessCheck {
           const bread = window.map(o => o.summary.metabolism.stock.bread ?? 0);
           const grain = window.map(o => o.summary.metabolism.stock.grain ?? 0);
           const breadFalling = bread[bread.length - 1] < bread[0] && bread.every((v, k) => k === 0 || v <= bread[k - 1] + 1); // allow ±1 rounding noise
-          const grainNearCap = grain.filter(v => v >= GRAIN_CAP * 0.8).length >= grain.length * 0.5;
-          if (breadFalling && grainNearCap) {
+          const grainPerMeal=(MILL_RATIO.in/MILL_RATIO.out)*(BAKE_RATIO.in/BAKE_RATIO.out);
+          const rawSupplyAdequate=window.filter((o,k)=>grain[k]>=o.alivePopulation*REQUIRED_MEALS_PER_DAY*spanDays*grainPerMeal).length>=window.length*0.5;
+          if (breadFalling && rawSupplyAdequate) {
             return [finding('WL-DOWNSTREAM-STARVED', 'production', 'failure',
               `Bread fell from ${bread[0]} to ${bread[bread.length - 1]} over ${spanHours.toFixed(0)}h (day ${series[i].atWorldDays}->${series[j].atWorldDays}) while grain sat `
-              + `at/near its ${GRAIN_CAP}-unit cap the whole time (${grain[0]}->${grain[grain.length - 1]}) — the mill/bakery stage is the bottleneck, not raw supply.`)];
+              + `above ${spanDays} days of raw nutritional demand in at least half the samples (${grain[0]}->${grain[grain.length - 1]}) — processing or distribution needs investigation.`)];
           }
           break;
         }

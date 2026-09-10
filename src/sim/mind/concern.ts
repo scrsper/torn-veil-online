@@ -280,7 +280,7 @@ const CONCERN_GOALS: Record<ConcernKind, { subject: GoalType[]; about: GoalType[
   // makes the ones that answer THIS shortage compete harder. Note what is absent — nothing here
   // walks anybody toward another person, which is the v0.9 justice-concern discipline applied to
   // a new kind rather than re-litigated.
-  supply: { subject: [], about: [], any: ['haul', 'work', 'shop'] },
+  supply: { subject: [], about: [], any: ['haul', 'work', 'shop', 'harvest', 'plant', 'chop', 'gather'] },
 };
 
 export interface ConcernBoost { bonus: number; reasons: string[]; }
@@ -311,6 +311,7 @@ export function concernGoalBoost(p: Person, goalType: GoalType, targetId?: Entit
     if (c.kind === 'supply') {
       // A haul only answers this worry if it is carrying the very thing that has run out.
       if (goalType === 'haul' && resource !== c.resource) continue;
+      if (['harvest', 'plant', 'chop', 'gather'].includes(goalType) && resource !== c.resource) continue;
       // Turning up to work only answers it if the work actually puts that material out. A baker
       // standing at an empty bakery does not make flour appear by being there.
       //

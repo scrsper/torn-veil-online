@@ -1,6 +1,7 @@
 import { movementMultiplier } from '../core/attributes';
 import type { Body, Person } from '../core/types';
 import type { Simulation } from '../mind/agent';
+import { noteHaulMovement } from '../logistics/haul';
 
 /** How much faster a sprint is than a walk. Canonical, and reported to external clients in the
  * bridge snapshot so a presentation layer predicts with this number rather than one of its own. */
@@ -22,7 +23,7 @@ export function moveByIntent(sim: Simulation, actor: Person, body: Body, x: numb
   const fits = (px: number, pz: number): boolean => {
     if (px < 1 || pz < 1 || px > g.W - 1 || pz > g.D - 1) return false;
     const floor = w.nav.floorY(Math.floor(px), Math.floor(pz));
-    if (floor < 0 || Math.abs(floor - body.pos.y) > 1.05) return false;
+    if (!w.nav.canStepTo(body.pos, px, pz)) return false;
     for (let ix = Math.floor(px - 0.3); ix <= Math.floor(px + 0.3); ix++)
       for (let iz = Math.floor(pz - 0.3); iz <= Math.floor(pz + 0.3); iz++)
         for (let iy = Math.floor(floor + 0.05); iy <= Math.floor(floor + 1.75); iy++)
@@ -36,6 +37,7 @@ export function moveByIntent(sim: Simulation, actor: Person, body: Body, x: numb
   const floor = w.nav.floorY(Math.floor(body.pos.x), Math.floor(body.pos.z));
   if (floor >= 0) body.pos.y = floor;
   body.vel = { x: (body.pos.x - old.x) / dt, y: (body.pos.y - old.y) / dt, z: (body.pos.z - old.z) / dt };
+  noteHaulMovement(w,actor,old,body.pos);
   body.onGround = true;
   const moving = Math.hypot(body.vel.x, body.vel.z) > 0.05;
   if (moving) body.yaw = Math.atan2(-body.vel.x, -body.vel.z);

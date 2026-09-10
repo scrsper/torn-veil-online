@@ -131,7 +131,7 @@ const KEY = 'infinite-rpg-save-v1';
 // silently rewrite a village that had staffed itself from its own children into one that never
 // did. Conflicts and people are whole-object-persisted, so a v18 save would technically load —
 // which is exactly why the gate has to be explicit rather than left to chance.
-export const SAVE_VERSION = 19;
+export const SAVE_VERSION = 20;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and

@@ -23,6 +23,7 @@ export function workStyleFor(world: World, person: Person): WorkStyle | null {
   if (action.type === 'build') return 'hammer';
   if (action.type === 'chop' || action.type === 'gather') {
     const node = world.resourceNodes.find(n => n.id === action.data?.nodeId);
+    if (node?.kind === 'game') return null;
     return (node?.kind ?? (action.type === 'chop' ? 'tree' : 'stone')) === 'stone' ? 'quarry' : 'chop';
   }
   return null;

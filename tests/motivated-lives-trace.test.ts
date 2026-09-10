@@ -3,9 +3,9 @@ import { runMotiveTrace, MOTIVE_SPECS } from '../src/headless/motive/trace';
 
 /**
  * v0.10 "required in-game proof": the milestone's acceptance scenarios, run against the REAL
- * generated village — the same `generateVillage` the browser client boots. Two of the four
- * trigger nothing at all and simply watch what the village does on its own; the other two seed
- * exactly one event, through a canonical `Simulation` method.
+ * generated village — the same `generateVillage` the browser client boots. Scenarios disclose
+ * injuries, gifts, or funded orders staged through canonical actions using existing property.
+ * Subsequent priorities, purposes, decisions, and resolutions belong to the simulation.
  *
  * Every check is a property of the resulting world state (purposes, their steps, their stated
  * resolutions, obligations and their provenance, the priorities behind a choice), never of a log

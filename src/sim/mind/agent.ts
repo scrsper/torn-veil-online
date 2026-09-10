@@ -6,7 +6,7 @@ import { World } from '../core/world';
 import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRelationships } from './relationships';
 import { maintainConflicts, beginConflict, recordConflictBlow, recordDowning, conflictBetween, lastConflictBetween, disengageConflict, resolveConflict, touchConflict } from '../social/conflict';
 import { maintainCustody, subdue, takeIntoCustody, beginSurrender, isSubdued } from '../social/custody';
-import { SAW_RATIO, stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, restockTavern, gatherHerbs, huntGame, GRAIN_CAP, SEED_PER_PLOT } from '../world/metabolism';
+import { SAW_RATIO, stepMetabolism, stepSpoilage, fieldFor, firstPlot, plantPlot, farmSeedGrain, harvestPlot, mill, bake, saw, findAccessibleFood, eatFood, buyFoodPortion, nearestWaterSource, drinkAt, villageStock, restockTavern, gatherHerbs, SEED_PER_PLOT } from '../world/metabolism';
 import { stepPhysiology, activityLevelFor, heatBand, hungerBand, thirstBand, sleepBand, comfortBand, severityAtLeast, syncNeeds } from '../core/physiology';
 import { isCommittable, EMERGENCY_GOAL_TYPES, interruptionSeverityMet, startCommitment, suspendCommitment, resumeCommitment, finishCommitment, commitmentValidity } from './commitment';
 import { getPhysicalCapability, capabilityFor, movementMultiplier } from '../core/attributes';
@@ -14,14 +14,14 @@ import { skillOf, tradeBatchSeconds } from '../core/skills';
 import { wearTool } from '../core/tools';
 import { isFood } from '../world/factory';
 import { stockAt, retireStack } from '../world/stock';
-import { pickHaulTask, claimHaulTask, loadHaulCargo, depositHaulCargo, failHaulTask, generateLogisticsNeeds, maintainHauls, canHaul } from '../logistics/haul';
-import { generateProductionNeeds, claimedProductionRequest, fulfillProductionRequest, BREAD_SHORTAGE_TRIGGER } from '../world/production';
+import { pickHaulTask, claimHaulTask, loadHaulCargo, depositHaulCargo, failHaulTask, generateLogisticsNeeds, maintainHauls, canHaul, noteHaulMovement } from '../logistics/haul';
+import { generateProductionNeeds, claimedProductionRequest, fulfillProductionRequest } from '../world/production';
 import { nearestAvailableNode, extractFromNode, maintainResourceNodes } from '../world/resources';
 import { stepConstruction, activeBuildProjects, performBuildLabor, MAX_BUILDERS } from '../world/construction';
 import { stepFire, igniteFire, feedFire, fireIntensityAt, fireAt } from '../world/fire';
 import { willingnessFor, unitPriceFor, tradeOffersFrom, refusalsFrom, purchaseUnits, type TradeOffer, type Refusal, type PurchaseResult } from '../world/commerce';
 import { remember } from './memory';
-import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge, learnPlace, knownFoodPlace, noteFoodShortage } from './knowledge';
+import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge, learnPlace, knownFoodPlace, noteFoodShortage, expectsAffordableFood, foodSearchPlaces } from './knowledge';
 import { realizeClaim, realizeTopic } from './realize';
 import { currentScheduleEntry } from './schedule';
 import { SECONDS_PER_DAY, SECONDS_PER_HOUR } from '../core/time';
@@ -62,6 +62,9 @@ import { formObligations, forgivenessFor, maintainObligations, noteBenefitEvent,
 import { takePortionInHand } from '../world/metabolism';
 import { courtshipCompatibility, diePerson, marry, stepDemographics } from '../world/demographics';
 import { compactChronicle } from '../history/chronicle';
+import { householdOf, householdMembers, observeHome, provisionHousehold } from '../world/household';
+import { buyFoodHere } from '../world/metabolism';
+import { tendTavernFire } from '../world/cooking';
 
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 
@@ -274,6 +277,9 @@ export class Simulation {
     e.perceivedBy.push({ who: p.id, how, tick: w.now });
     if (e.type === 'told') { if (e.target !== p.id) return; return; } // handled directly in tell()
     const saw = how === 'saw';
+    if (saw && e.type === 'resource_delivered' && e.placeId && e.data.quantity > 0) {
+      clearShortfall(w, p, e.placeId, e.data.resource as ItemType);
+    }
     const claim = eventClaim(w, e, saw);
     const claimSummary = describeClaim(w, { kind: 'event', claim } as KnowledgeItem);
     const perc = w.emit('perceived', { actor: p.id, target: saw ? claim.actor : undefined, causes: [e.id], significance: e.significance * 0.5, data: { how, eventType: e.type, eventId: e.id, actorKnown: !!claim.actor }, summary: `${p.name} ${how} ${claimSummary}` });
@@ -602,6 +608,7 @@ export class Simulation {
       const actorP = w.person(k.claim.actor);
       if (actorP?.hostile && k.claim.type !== 'kill' && !isGuard) continue; // bandit crimes are old news
       if (isGuard) {
+        if ((m.pursuitCooldowns?.[k.claim.actor] ?? 0) > now) continue;
         if (!m.investigated.has(k.key) && k.claim.pos) G('investigate', clamp(0.55 + sev * 0.4 + (k.hops === 0 ? 0.1 : 0)), [`I know of a ${k.claim.type} (${k.source.type}${k.source.from ? ' by ' + w.nameOf(k.source.from) : ''}, confidence ${k.confidence.toFixed(2)})`, 'my duty is to investigate'], { targetPos: k.claim.pos, targetPlace: k.claim.placeId, data: { key: k.key, suspect: k.claim.actor }, causeEvent: k.source.viaEvent });
       } else if (!p.hostile) {
         // v0.10.1 §XII: reporting is progress toward an outcome, not a standing urge. The record
@@ -764,10 +771,26 @@ export class Simulation {
     const foodHome = findAccessibleFood(w, p, p.homeId ?? null) ?? findAccessibleFood(w, p, w.placeAt(pos)?.id ?? null);
     const gaveUp = (m.noFoodUntil ?? 0) > now;
     const knownFood = knownFoodPlace(w, p);
+    observeHome(w, p);
+    const household = householdOf(w, p);
+    const pantry = household ? p.knowledge[`pantry:${household.id}`] : undefined;
+    const householdTarget = household ? householdMembers(w, household).length * 2 : 0;
+    const pantryCount = Number(pantry?.claim.quantity ?? 0);
+    // Personal observation of an empty pantry can motivate a shopping trip before the
+    // shopper is hungry. A remembered supply at home also gives dependants somewhere to go.
+    const rememberedHomeFood = pantry && now - pantry.learnedAt < 24 * 3600 && pantryCount > 0;
+    const canBuyKnownFood = !!knownFood && expectsAffordableFood(w, p, knownFood);
+    const ownSurplus = foodHome?.ownerId === p.id && foodHome.quantity > 1
+      && (foodHome.holderId === p.id || foodHome.placeId !== p.homeId) ? foodHome : undefined;
+    if (household && pantry && !threat && !criticalNeed && (!gaveUp || ownSurplus) && pantryCount < householdTarget && (ownSurplus || (canBuyKnownFood && p.wealth >= 2))) {
+      G('provision_home', 0.3 + 0.25 * (1 - pantryCount / householdTarget), ['the household pantry is running low', ownSurplus ? 'I have surplus food to bring home' : 'I can bring food home'],
+        { targetPlace: ownSurplus ? (ownSurplus.placeId ?? p.homeId!) : knownFood,
+          data: { food: ownSurplus?.id, quantity: Math.min(8, Math.max(3, householdTarget - pantryCount + 1)) } });
+    }
     const eatPlace = foodHome
       ? ((foodHome.holderId === p.id ? w.placeAt(pos)?.id : foodHome.placeId) ?? p.homeId ?? undefined)
-      : (knownFood ?? (sched?.activity === 'eat' ? sched.placeId : undefined) ?? p.homeId ?? undefined);
-    if (!gaveUp || foodHome) {
+      : (rememberedHomeFood ? p.homeId! : knownFood ?? (sched?.activity === 'eat' ? sched.placeId : undefined) ?? p.homeId ?? undefined);
+    if ((!gaveUp || foodHome) && (foodHome || rememberedHomeFood || canBuyKnownFood || (!knownFood && mealTime))) {
       const grounded = !!(foodHome || knownFood);
       const intentionReason = foodHome ? 'have food on hand or at home' : knownFood ? 'know a place that sells food' : sched?.activity === 'eat' ? 'scheduled meal' : 'no known food source';
       G('eat', clamp(n.hunger * 0.9 + (mealTime ? 0.3 : -0.1) - satiatedPenalty - (gaveUp ? 0.3 : 0)), [`hunger ${n.hunger.toFixed(2)}`, mealTime ? 'meal time' : ateRecently ? 'recently ate' : '', foodHome ? '' : 'must find food'], { targetPlace: eatPlace, data: { food: foodHome?.id, intentionReason, grounded } });
@@ -794,22 +817,11 @@ export class Simulation {
       const field = fieldFor(w, sched.placeId);
       if (field) {
         const rainingNow = w.weather.kind === 'rain' || w.weather.kind === 'storm';
-        // v0.8 §P0-E fix (independent audit §3.3/§4.3): `GRAIN_CAP` alone gates harvest on
-        // whether the FIRST stage of the chain (raw grain) has a full warehouse — it says
-        // nothing about whether bread, several stages downstream, is actually feeding anyone.
-        // Measured directly: harvest froze for 12+ straight days once grain hit its cap while
-        // bread stayed pinned at a fraction of its own stock target the whole time (3466
-        // resource_shortage events in 30 days) — mature wheat sat unharvested not because no one
-        // could reach it, but because the gate was watching the wrong stage of the chain. This
-        // reuses the bakery's own existing "bread is short" threshold (`BREAD_SHORTAGE_TRIGGER`,
-        // world/production.ts — the same number that already decides when to raise a baking
-        // request) rather than inventing a second magic number: grain is only treated as a
-        // genuine glut worth pausing harvest for when bread is ALSO not currently short.
-        const breadShort = villageStock(w, 'bread', pos) < BREAD_SHORTAGE_TRIGGER;
-        const grainGlut = villageStock(w, 'grain', pos) >= GRAIN_CAP && !breadShort;
-        if (firstPlot(field, 'harvest') && !grainGlut) G('harvest', clamp(0.7 + (rainingNow ? -0.1 : 0)), [`wheat is ripe in ${w.nameOf(field.placeId)}`], { targetPlace: field.placeId, data: { fieldId: field.id } });
+        // Ripe crops perish in days; the next crop takes weeks. Harvest remains real labor
+        // against finite plots, even when today's bread counter and granary look full.
+        if (firstPlot(field, 'harvest')) G('harvest', clamp(0.7 + (rainingNow ? -0.1 : 0)), [`wheat is ripe in ${w.nameOf(field.placeId)}`], { targetPlace: field.placeId, data: { fieldId: field.id, resource: 'grain' } });
         // v0.3 Priority 13: sowing needs seed grain at the farm — don't adopt `plant` without it.
-        else if (firstPlot(field, 'plant') && !rainingNow && farmSeedGrain(w, field) >= SEED_PER_PLOT) G('plant', 0.58, [`there is fallow ground in ${w.nameOf(field.placeId)}`], { targetPlace: field.placeId, data: { fieldId: field.id } });
+        else if (firstPlot(field, 'plant') && !rainingNow && farmSeedGrain(w, field) >= SEED_PER_PLOT) G('plant', 0.58, [`there is fallow ground in ${w.nameOf(field.placeId)}`], { targetPlace: field.placeId, data: { fieldId: field.id, resource: 'grain' } });
       }
     }
     // v0.3 Living World I: physical logistics, extraction, and construction labour. Low-drama
@@ -827,6 +839,20 @@ export class Simulation {
     // person. Never read back into any decision; a headless run's summary reports these so the
     // benchmark can show WHY, not just THAT, heavy work fell off.
     const laborOk = laborCapacity > 0.15;
+    // Making food is another way to obtain a meal. A practiced food producer who has
+    // personally found empty counters can use their known trade, including outside a
+    // routine shift. Input failure is still learned at the workplace, never remotely.
+    const foodTrade = processFor(w.place(p.workId)?.type);
+    const seekingMealWork = !foodHome && !rememberedHomeFood && n.hunger > 0.4 && foodTrade && isFood(foodTrade.output)
+      && skillOf(p, foodTrade.skill) > 0 && Object.values(p.knowledge).some(k => k.key.startsWith('food-access:')
+        && k.claim.reason === 'unavailable' && now - k.learnedAt < 12 * 3600);
+    const inputShortage = foodTrade && p.workId ? p.knowledge[`short:${p.workId}:${foodTrade.input}`] : undefined;
+    const inputKnownMissing = inputShortage && !inputShortage.handled && now - (inputShortage.lastConfirmedAt ?? inputShortage.learnedAt) < 2 * 3600;
+    if (!threat && laborOk && seekingMealWork && !inputKnownMissing
+      && claimedProductionRequest(w, p.workId!, foodTrade!.output, p.id)) {
+      G('work', n.hunger * 0.9, ['I found no ready meal', `I know how to make ${foodTrade!.output}`],
+        { targetPlace: p.workId!, data: { resource: foodTrade!.output } });
+    }
     // v0.5 §III: a person already COMMITTED to a haul/build (mind/commitment.ts) keeps that one
     // candidate available even through a momentary capacity dip AT the 0.15 boundary — without
     // this, capacity noise right at the threshold (ordinary fatigue fluctuation between think()
@@ -849,7 +875,16 @@ export class Simulation {
       // and fed values it less). A genuinely critical physiological need still overrides it
       // regardless, since eat/drink_water/sleep's own utilities (and the commitment/interrupt
       // machinery above) are computed entirely independently of this factor.
-      const incentive = laborIncentive(p);
+      const incentive = laborIncentive(p, w);
+      // A hunting ground is a known workplace, or something personally discovered there.
+      // Poverty can make subsistence hunting attractive, but never reveals unknown resources.
+      for (const node of w.resourceNodes) {
+        if (node.kind !== 'game' || !near(pos, node.pos) || node.state !== 'available' || !laborOk) continue;
+        const known = p.workId === node.placeId || p.schedule.some(e => e.placeId === node.placeId) || !!p.knowledge[`game:${node.id}`];
+        if (!known) continue;
+        if (p.wealth < 3 && n.hunger > 0.4) G('gather', clamp((0.4 + n.hunger * 0.5) * laborCapacity),
+          ['I need food and know a hunting ground'], { targetPlace: node.placeId, targetPos: node.pos, data: { nodeId: node.id, resource: node.yield } });
+      }
       // Haul: physically move a needed resource between two Places.
       if (laborOk || committedHaulOrBuild === 'haul') {
         const haul = pickHaulTask(w, p, pos);
@@ -860,13 +895,15 @@ export class Simulation {
           // alone — the material counterpart of `data.beneficiary` declaring whom a haul is for.
           const mine = t.claimantId === p.id;
           const src = w.place(t.sourcePlaceId);
-          G('haul', clamp(((mine ? 0.68 : 0.42) + haul.score * 0.4) * laborCapacity * incentive), [`${t.resource} is needed at ${w.nameOf(t.destPlaceId)}`, t.reason, laborCapacity < 0.6 ? `but I am spent (capacity ${laborCapacity.toFixed(2)})` : '', incentive > 1 ? `and I could use the silver` : incentive < 1 ? `though I am not short of coin` : ''], { targetPlace: src ? t.sourcePlaceId : undefined, targetPos: src?.inside, data: { taskId: t.id, beneficiary: t.requesterId ?? undefined, resource: t.resource } });
+          const forMeal = seekingMealWork && inputKnownMissing && t.destPlaceId === p.workId && t.resource === foodTrade!.input;
+          const haulUtility = ((mine ? 0.68 : 0.42) + haul.score * 0.4) * laborCapacity * incentive;
+          G('haul', clamp(Math.max(haulUtility, forMeal ? n.hunger * 0.9 : 0)), [`${t.resource} is needed at ${w.nameOf(t.destPlaceId)}`, t.reason, forMeal ? 'these inputs let me make food' : '', laborCapacity < 0.6 ? `but I am spent (capacity ${laborCapacity.toFixed(2)})` : '', incentive > 1 ? `and I could use the silver` : incentive < 1 ? `though I am not short of coin` : ''], { targetPlace: src ? t.sourcePlaceId : undefined, targetPos: src?.inside, data: { taskId: t.id, beneficiary: t.requesterId ?? undefined, resource: t.resource } });
         }
       }
       // Chop: a woodcutter at the clearing fells a standing tree.
       if (laborOk && p.occupation === 'woodcutter' && sched?.activity === 'work' && sched.placeId && w.place(sched.placeId)?.type === 'wilderness') {
         const node = nearestAvailableNode(w, 'tree', pos, 90);
-        if (node) G('chop', clamp(0.66 * laborCapacity), [`there are trees to fell near ${w.nameOf(node.placeId)}`], { targetPos: node.pos, data: { nodeId: node.id } });
+        if (node) G('chop', clamp(0.66 * laborCapacity), [`there are trees to fell near ${w.nameOf(node.placeId)}`], { targetPos: node.pos, data: { nodeId: node.id, resource: node.yield } });
       }
       // Build: contribute labour to a project whose materials are on site (cap concurrent builders).
       const proj = laborOk || committedHaulOrBuild === 'build' ? activeBuildProjects(w).find(project => near(pos, w.place(project.sitePlaceId)?.inside)) : undefined;
@@ -917,7 +954,7 @@ export class Simulation {
         const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter', 'villager'].includes(p.occupation);
         if (!chopping && (already >= 2 || !roleOk)) continue;
         const node = nearestAvailableNode(w, 'tree', pos, 220);
-        if (node) G('chop', clamp(0.5 * laborCapacity * incentive), [`${gp.name} still needs planks, and there is no wood for them`], { targetPos: node.pos, data: { nodeId: node.id } });
+        if (node) G('chop', clamp(0.5 * laborCapacity * incentive), [`${gp.name} still needs planks, and there is no wood for them`], { targetPos: node.pos, data: { nodeId: node.id, resource: node.yield } });
       }
       // Gather stone: a gathering project short of stone, with none in the pipeline yet.
       for (const gp of (laborOk ? w.constructionProjects : [])) {
@@ -932,7 +969,7 @@ export class Simulation {
         const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter', 'villager'].includes(p.occupation);
         if (!gathering && (already >= 2 || !roleOk)) continue;
         const node = nearestAvailableNode(w, 'stone', pos, 220);
-        if (node) G('gather', clamp(0.5 * laborCapacity * incentive), [`${gp.name} still needs stone`], { targetPos: node.pos, data: { nodeId: node.id } });
+        if (node) G('gather', clamp(0.5 * laborCapacity * incentive), [`${gp.name} still needs stone`], { targetPos: node.pos, data: { nodeId: node.id, resource: node.yield } });
       }
     }
     // ---- Adaptive Society (v0.5): work that nobody is doing.
@@ -993,7 +1030,10 @@ export class Simulation {
       ], { targetEntity: bestCourt.person.id });
     }
     // ---- schedule
-    if (sched && !['sleep', 'eat'].includes(sched.activity)) {
+    // Field work is the concrete sow/harvest candidates above. Offering generic work as
+    // well let a grain concern boost standing in the field above actually harvesting it.
+    const fieldShift = p.occupation === 'farmer' && sched?.activity === 'work' && !!fieldFor(w, sched.placeId ?? '');
+    if (sched && !['sleep', 'eat'].includes(sched.activity) && !fieldShift) {
       const rainingNow = w.weather.kind === 'rain' || w.weather.kind === 'storm';
       const outdoorTask = !sched.placeId || !(w.place(sched.placeId)?.indoor);
       const rainPenalty = rainingNow && outdoorTask && !isGuard && !p.hostile ? 0.2 + w.weather.intensity * 0.15 : 0;
@@ -1024,8 +1064,9 @@ export class Simulation {
       const desc = comfort > 0.6 ? 'soaked through' : comfort > 0.3 ? 'getting wet' : 'starting to feel the rain';
       G('shelter', clamp(comfort * 0.75 + w.weather.intensity * 0.1 - p.traits.courage * 0.15), [`${desc} and outside in the ${w.weather.kind}`], { targetPlace: dist2(pos, w.place(p.homeId!)?.inside ?? pos) < dist2(pos, w.place(this.tavernId(p))?.inside ?? pos) ? p.homeId ?? undefined : this.tavernId(p) });
     }
-    // socialising when the need is high
-    G('socialize', clamp(n.social * 0.7 * (0.5 + p.traits.sociability * 0.8) - (night ? 0.3 : 0)), [`social need ${n.social.toFixed(2)}`, `sociability ${p.traits.sociability.toFixed(2)}`], { targetPlace: hour > 16 ? this.tavernId(p) : this.squareId(p) });
+    // Ordinary leisure has the same physiological room as social duties and purposes.
+    // Otherwise high sociability (0.91) can permanently outrank maximum off-schedule hunger (0.8).
+    G('socialize', bodyRoom * clamp(n.social * 0.7 * (0.5 + p.traits.sociability * 0.8) - (night ? 0.3 : 0)), [`social need ${n.social.toFixed(2)}`, `sociability ${p.traits.sociability.toFixed(2)}`, urgentNeed ? 'my body leaves little room for company' : ''], { targetPlace: hour > 16 ? this.tavernId(p) : this.squareId(p) });
     // mourning
     if (p.emotions.sadness > 0.4 && hour >= 17 && hour < 20 && p.homeId) { const gy = knownPlaceForPerson(w, p, 'graveyard'); if (gy) G('mourn', clamp(0.4 + p.emotions.sadness * 0.4), [`sadness ${p.emotions.sadness.toFixed(2)}`, 'the graveyard, at evening'], { targetPlace: gy.id }); }
     // worship for the pious at service times
@@ -1305,9 +1346,35 @@ export class Simulation {
       return null;
     };
     switch (g.type) {
-      case 'sleep': { const home = w.place(p.homeId); const bed = anchorIn(home, ['bed'], true) ?? anchorIn(home, ['bed']) ?? home?.inside ?? body.pos; return [A({ type: 'goto', pos: bed, placeId: home?.id }), A({ type: 'sleep', pos: bed, duration: 3 * SECONDS_PER_HOUR })]; }
-      case 'eat': { const pl = place ?? w.place(p.homeId); const seat = anchorIn(pl, ['seat']) ?? anchorIn(pl, ['fire', 'inside']) ?? pl?.inside ?? body.pos; return [A({ type: 'goto', pos: seat, placeId: pl?.id }), A({ type: 'eat', pos: seat, duration: 25 * 60 })]; }
-      case 'work': { const pl = place; const spot = anchorIn(pl, ['work']) ?? pl?.inside ?? body.pos; return [A({ type: 'goto', pos: spot, placeId: pl?.id }), A({ type: 'work', pos: spot, duration: 40 * 60 + w.rng.next() * 30 * 60, placeId: pl?.id })]; }
+      case 'sleep': { const home = w.place(p.homeId); const bed = anchorIn(home, ['bed'], true) ?? anchorIn(home, ['bed']) ?? home?.inside ?? body.pos; return [A({ type: 'goto', pos: bed, placeId: home?.id }), A({ type: 'manage_household' }), A({ type: 'sleep', pos: bed, duration: 3 * SECONDS_PER_HOUR })]; }
+      case 'provision_home': {
+        const home = w.place(p.homeId);
+        if (!home || !place) return [];
+        const stock = g.data?.food ? w.item(g.data.food) : undefined;
+        const acquire = stock
+          ? (stock.holderId === p.id ? [] : [A({ type: 'goto', pos: stock.pos ?? place.inside, placeId: place.id }),
+            A({ type: 'pickup', targetEntity: stock.id, data: { provision: true, ownProvisions: true } })])
+          : [A({ type: 'goto', pos: place.inside, placeId: place.id }), A({ type: 'buy_food', placeId: place.id, data: { quantity: g.data?.quantity ?? 3 } })];
+        return [...acquire,
+          A({ type: 'goto', pos: home.inside, placeId: home.id }), A({ type: 'manage_household' })];
+      }
+      case 'eat': {
+        const carried = p.inventory.some(id => { const i = w.item(id); return i && i.holderId === p.id && i.ownerId === p.id && !i.haulTaskId && isFood(i.type) && i.quantity > 0; });
+        if (carried) return [A({ type: 'eat', pos: body.pos, duration: 25 * 60 })];
+        const pl = place ?? w.place(p.homeId), spot = pl?.inside ?? body.pos;
+        return [A({ type: 'goto', pos: spot, placeId: pl?.id }), A({ type: 'eat', pos: spot, placeId: pl?.id, duration: 25 * 60 })];
+      }
+      case 'work': {
+        const pl = place;
+        // A hunter's known forest shift is actual extraction, with the same work time and
+        // finite resource as any gather action. Generic work at a sales stall cannot hunt.
+        const game = p.occupation === 'hunter' && pl?.type === 'wilderness'
+          ? w.resourceNodes.find(n => n.kind === 'game' && n.placeId === pl.id) : undefined;
+        if (game) return [A({ type: 'goto', pos: game.pos, placeId: pl?.id }),
+          A({ type: 'gather', pos: game.pos, duration: 30 * 60, data: { nodeId: game.id } })];
+        const spot = anchorIn(pl, ['work']) ?? pl?.inside ?? body.pos;
+        return [A({ type: 'goto', pos: spot, placeId: pl?.id }), A({ type: 'work', pos: spot, duration: 40 * 60 + w.rng.next() * 30 * 60, placeId: pl?.id })];
+      }
       case 'worship': { const pl = place ?? w.place(this.chapelId(p)); const spot = (p.occupation === 'priest' || p.occupation === 'acolyte') ? anchorIn(pl, ['altar']) : anchorIn(pl, ['seat']); return [A({ type: 'goto', pos: spot ?? pl!.inside, placeId: pl?.id }), A({ type: 'pray', pos: spot ?? pl!.inside, duration: 40 * 60 })]; }
       case 'socialize': case 'drink': case 'play': case 'idle': { const pl = place ?? w.place(this.squareId(p)); const spot = anchorIn(pl, g.type === 'drink' ? ['seat', 'inside'] : ['seat', 'inside', 'work']) ?? pl?.inside ?? body.pos; return [A({ type: 'goto', pos: spot, placeId: pl?.id }), A({ type: g.type === 'play' ? 'wait' : 'sit', pos: spot, duration: (g.type === 'play' ? 8 : 25) * 60 + w.rng.next() * 15 * 60, data: { social: true } })]; }
       case 'wander': {
@@ -1317,11 +1384,16 @@ export class Simulation {
         // Still just physical movement among places that already exist in the voxel world
         // (Constitution v0.6 §VII: knowledge bounds BELIEFS about services, not raw navigation).
         if (g.data?.foodSearch) {
-          const candidateTypes: Array<Place['type']> = ['bakery', 'store', 'tavern', 'stall', 'well'];
-          const known = localPlaces(w, body.pos).filter(pl2 => candidateTypes.includes(pl2.type));
+          const known = foodSearchPlaces(w, body.pos);
           const unknown = known.filter(pl2 => !p.knowledge[`svc:${pl2.id}`]);
-          const target = (unknown.length ? unknown : known).sort((a, b) => dist2(body.pos, a.inside) - dist2(body.pos, b.inside))[0];
-          if (target) return [A({ type: 'goto', pos: target.inside, placeId: target.id }), A({ type: 'wait', duration: 3 * 60 })];
+          const lastTried = (id: EntityId) => p.knowledge[`food-access:${id}`]?.learnedAt ?? -Infinity;
+          const target = (unknown.length ? unknown : known).sort((a, b) =>
+            (lastTried(a.id)===lastTried(b.id) ? 0 : lastTried(a.id)-lastTried(b.id))
+            || dist2(body.pos, a.inside)-dist2(body.pos, b.inside) || a.id.localeCompare(b.id))[0];
+          // Searching means checking an offer, not repeatedly looking at the nearest empty
+          // shop's sign. The ordinary meal action purchases or records a fresh local failure.
+          if (target) return [A({ type: 'goto', pos: target.inside, placeId: target.id }),
+            A({ type: 'eat', pos: target.inside, placeId: target.id, duration: 25 * 60 })];
         }
         const pl = w.place(this.squareId(p))!; return [A({ type: 'goto', pos: { x: pl.inside.x + (w.rng.next() - 0.5) * 16, y: pl.inside.y, z: pl.inside.z + (w.rng.next() - 0.5) * 16 } }), A({ type: 'wait', duration: 5 * 60 })];
       }
@@ -1375,8 +1447,10 @@ export class Simulation {
         const srcSpot = src?.anchors.find(a => a.kind === 'work')?.pos ?? src?.inside ?? body.pos;
         const dstSpot = dst?.anchors.find(a => a.kind === 'work' || a.kind === 'inside')?.pos ?? dst?.inside ?? body.pos;
         return [
-          A({ type: 'goto', pos: srcSpot, placeId: task.sourcePlaceId, run: false }),
-          A({ type: 'haul_load', pos: srcSpot, placeId: task.sourcePlaceId, duration: 90, data: { taskId: task.id } }),
+          ...(task.status === 'in_transit' && task.carried > 0 ? [] : [
+            A({ type: 'goto', pos: srcSpot, placeId: task.sourcePlaceId, run: false }),
+            A({ type: 'haul_load', pos: srcSpot, placeId: task.sourcePlaceId, duration: 90, data: { taskId: task.id } }),
+          ]),
           A({ type: 'goto', pos: dstSpot, placeId: task.destPlaceId, run: false }),
           A({ type: 'haul_unload', pos: dstSpot, placeId: task.destPlaceId, duration: 60, data: { taskId: task.id } }),
         ];
@@ -1384,7 +1458,7 @@ export class Simulation {
       case 'chop': case 'gather': {
         const node = w.resourceNodes.find(n => n.id === g.data?.nodeId);
         const spot = node ? { ...node.pos } : (g.targetPos ?? body.pos);
-        return [A({ type: 'goto', pos: spot, run: false }), A({ type: g.type, pos: spot, duration: 30 * 60, data: { nodeId: g.data?.nodeId } })];
+        return [A({ type: 'goto', pos: spot, placeId: node?.placeId, run: false }), A({ type: g.type, pos: spot, duration: 30 * 60, data: { nodeId: g.data?.nodeId } })];
       }
       case 'build': {
         const proj = w.constructionProjects.find(pr => pr.id === g.data?.projectId);
@@ -1460,7 +1534,15 @@ export class Simulation {
       case 'goto': {
         // Observational only (Constitution §53): records that pathing failed, for headless
         // telemetry/anomaly detection. Never changes canonical decisions itself.
-        const failGoto = (reason: string) => { a.status = 'failed'; w.emit('path_failure', { actor: p.id, pos: body.pos, significance: 0, data: { reason, goal: m.goal?.type }, summary: `${p.name} could not path (${reason})` }); };
+        const failGoto = (reason: string) => {
+          const suspect = m.goal?.type === 'investigate' ? m.goal.data?.suspect as EntityId | undefined : undefined;
+          if (suspect) this.losePursuit(p, suspect);
+          else if (a.targetEntity && (m.goal?.type === 'confront' || m.plan.some(next => next.type === 'attack' && next.targetEntity === a.targetEntity))) this.losePursuit(p, a.targetEntity);
+          // Later steps depend on getting there. A failed trip cannot become a remote
+          // purchase, meal, work shift, or observation of an unvisited counter's stock.
+          for (const next of m.plan.slice(m.plan.indexOf(a))) if (next.status === 'pending' || next.status === 'active') next.status = 'failed';
+          w.emit('path_failure', { actor: p.id, pos: body.pos, significance: 0, data: { reason, goal: m.goal?.type, destination: dest, placeId: a.placeId }, summary: `${p.name} could not path (${reason})` });
+        };
         let dest = a.pos ?? null;
         if (a.targetEntity) { const tb = w.primaryBody(a.targetEntity); if (!tb) { failGoto('target has no body'); break; } dest = tb.pos; if (dist2(body.pos, dest) < 1.8) { body.path = null; a.status = 'done'; body.pose = 'stand'; body.yaw = Math.atan2(-(dest.x - body.pos.x), -(dest.z - body.pos.z)); break; } if (!body.path || !body.pathGoal || dist2(body.pathGoal, dest) > 2.5) this.pathTo(body, dest, a); }
         if (!dest) { failGoto('no destination'); break; }
@@ -1472,9 +1554,13 @@ export class Simulation {
         // from "just walking somewhere".
         const hauling = w.haulTasks.some(t => t.claimantId === p.id && t.status === 'in_transit' && t.carried > 0);
         body.pose = hauling ? 'haul' : (a.run ? 'run' : 'walk');
+        const beforeMove = { ...body.pos };
         const arrived = this.followPath(body, physDt);
+        noteHaulMovement(w,p,beforeMove,body.pos);
         if (arrived) {
-          a.status = 'done'; body.path = null; if (!a.targetEntity && dist2(body.pos, dest) > 3) { /* couldn't reach */ }
+          body.path = null;
+          if (!a.targetEntity && dist2(body.pos, dest) > 3) { failGoto('destination is out of reach'); break; }
+          a.status = 'done';
           if (a.data?.flee) w.emit('fled', { actor: p.id, pos: body.pos, significance: 0.3, summary: `${p.name} fled to ${w.placeAt(body.pos)?.name ?? 'safety'}` });
           else if (a.placeId) {
             w.emit('arrived', { actor: p.id, placeId: a.placeId, pos: body.pos, significance: 0.05, summary: `${p.name} arrived at ${w.nameOf(a.placeId)}` });
@@ -1483,6 +1569,9 @@ export class Simulation {
             // spam for every ordinary arrival at a place already known) and a no-op for place
             // types with nothing service-relevant to learn (see mind/knowledge.ts's SERVICE_OFFERS).
             const arrivedPlace = w.place(a.placeId); if (arrivedPlace && !p.controlled) learnPlace(w, p, arrivedPlace, { type: 'witnessed' });
+            for (const node of w.resourceNodes) if (node.kind === 'game' && node.placeId === a.placeId && dist2(body.pos, node.pos) < 12) {
+              learn(w, p, { key: `game:${node.id}`, kind: 'affordance', claim: { placeId: node.placeId, resource: 'meat' }, confidence: 1, source: { type: 'witnessed' } }, true);
+            }
           }
         }
         break;
@@ -1491,8 +1580,7 @@ export class Simulation {
       // Simulation.strategic()'s once-per-minute physiology step (it reads `body.pose ===
       // 'sleep'` — see core/physiology.ts's `activityLevelFor`/`stepPhysiology`), not here.
       case 'sleep': {
-        body.pose = 'sleep'; body.sitAnchor = a.pos ?? null;
-        if (a.pos) { body.pos.x = Math.floor(a.pos.x) + 0.5; body.pos.z = Math.floor(a.pos.z) + 0.5; }
+        body.pose = 'sleep'; this.settleRestPosition(body, a.pos);
         const wellRested = p.needs.energy <= 0.02 && w.now - (a.startedAt ?? 0) > (a.duration ?? 0) * 0.5;
         const overslept = w.now - (a.startedAt ?? 0) > 9 * SECONDS_PER_HOUR;
         if (wellRested || overslept) {
@@ -1502,26 +1590,24 @@ export class Simulation {
         }
         break;
       }
-      case 'sit': body.pose = 'sit'; body.sitAnchor = a.pos ?? null; if (a.pos) { body.pos.x = Math.floor(a.pos.x) + 0.5; body.pos.z = Math.floor(a.pos.z) + 0.5; } p.needs.social = clamp(p.needs.social - worldDt / (3 * SECONDS_PER_HOUR)); this.maybeChat(p, body); if (this.elapsed(a)) a.status = 'done'; break;
+      case 'sit': body.pose = 'sit'; this.settleRestPosition(body, a.pos); p.needs.social = clamp(p.needs.social - worldDt / (3 * SECONDS_PER_HOUR)); this.maybeChat(p, body); if (this.elapsed(a)) a.status = 'done'; break;
       case 'eat': {
         body.pose = 'eat'; body.sitAnchor = a.pos ?? null;
         // v0.2.4: a meal consumes a real food item. Resolve once, when the sit-down settles in.
         if (!a.data?.done && w.now - (a.startedAt ?? 0) > 60) {
           a.data = a.data ?? {}; a.data.done = true;
           const hereId = w.placeAt(body.pos)?.id ?? null;
+          if (hereId === p.homeId) provisionHousehold(w, p);
           let food = findAccessibleFood(w, p, hereId) ?? findAccessibleFood(w, p, p.homeId ?? null);
           // Not free to hand: buy a few units from a food vendor here (carry the rest home so one
           // trip covers several meals — keeps the whole village off one counter every few hours).
+          let purchase: ReturnType<typeof buyFoodHere> | undefined;
           if (!food) {
             // v0.10.1: ask whether the owner would actually sell it before walking up to the
             // counter, rather than letting the purchase fail at the till. Same rule as the
             // player's Trade menu (`world/commerce.ts`).
-            const forSale = w.items().find(i => {
-              if (i.holderId || !isFood(i.type) || i.placeId !== hereId || !i.ownerId || i.ownerId === p.id || i.quantity <= 0) return false;
-              const owner = w.person(i.ownerId);
-              return !!owner?.alive && !willingnessFor(w, owner, i, p).reason;
-            });
-            if (forSale) food = buyFoodPortion(w, p, forSale, 3);
+            purchase = buyFoodHere(w, p, 3, a.placeId);
+            food = purchase.food;
           }
           if (food && food.quantity > 0) {
             const type = eatFood(w, p, food);
@@ -1533,16 +1619,27 @@ export class Simulation {
           // `NO_FOOD_RETRY_SECONDS`'s own comment for why this window was investigated and kept.
           const since = w.now - (m.noFoodUntil ?? -Infinity) + NO_FOOD_RETRY_SECONDS;
           if (!m.noFoodUntil || since >= NO_FOOD_RETRY_SECONDS) {
-            w.emit('resource_shortage', { actor: p.id, pos: body.pos, placeId: w.placeAt(body.pos)?.id, significance: 0.3, data: { need: 'food', hunger: Math.round(p.needs.hunger * 100) / 100 }, summary: `${p.name} could find nothing to eat` });
+            this.noteMealFailure(p, purchase?.reason ?? 'unavailable', purchase?.price, a.placeId);
           }
           // v0.6 §IV.4: a real, place-tagged memory of failure — the second required memory
           // consequence — so `knownFoodPlace` demotes this specific source next time rather than
           // the whole village silently retrying it forever.
-          if (hereId && !p.controlled) noteFoodShortage(w, p, hereId);
           m.noFoodUntil = w.now + NO_FOOD_RETRY_SECONDS;
           a.status = 'failed'; break;
         }
         if (this.elapsed(a)) a.status = 'done';
+        break;
+      }
+      case 'manage_household': {
+        provisionHousehold(w, p); a.status = 'done'; break;
+      }
+      case 'buy_food': {
+        const result = buyFoodHere(w, p, a.data?.quantity ?? 3, a.placeId);
+        if (!result.food) {
+          this.noteMealFailure(p, result.reason ?? 'unavailable', result.price, a.placeId);
+          m.noFoodUntil = w.now + NO_FOOD_RETRY_SECONDS;
+          a.status = 'failed';
+        } else a.status = 'done';
         break;
       }
       case 'work': {
@@ -1680,14 +1777,11 @@ export class Simulation {
             // v0.6 §II: the innkeeper keeps the tavern's larder stocked while working — see
             // world/metabolism.ts's `restockTavern` doc comment for why this closed a genuine
             // "always runs out after day one" access bug rather than being new economic scope.
-            if (p.occupation === 'innkeeper' && t === 'tavern') restockTavern(w, p);
+            if (p.occupation === 'innkeeper' && t === 'tavern' && herePlace && stockAt(w, 'grain', herePlace.id) >= 3 && stockAt(w, 'ale', herePlace.id) < 8) {
+              tendTavernFire(w, p); restockTavern(w, p);
+            }
             // v0.8 §A/F: the herbalist gathers at her own workplace, real bounded stock.
             else if (p.occupation === 'herbalist') gatherHerbs(w, p);
-            // v0.8 §D (found via this milestone's own 90-day benchmark): the hunter restocks her
-            // own stall while working there — without this, meat was one-time-seeded and never
-            // replenished, so cook()'s haul demand could only ever move the original stock once.
-            // See world/metabolism.ts's `huntGame` doc comment.
-            else if (p.occupation === 'hunter' && t === 'stall') huntGame(w, p);
           }
         }
         if (this.elapsed(a)) a.status = 'done';
@@ -1721,7 +1815,7 @@ export class Simulation {
       // v0.3 Living World I — physical hauling, extraction, construction labour.
       case 'haul_load': {
         const task = w.haulTasks.find(t => t.id === a.data?.taskId);
-        if (!task || task.status === 'delivered' || task.status === 'failed' || task.status === 'cancelled') { a.status = 'done'; break; }
+        if (!task || task.claimantId !== p.id || task.status === 'delivered' || task.status === 'failed' || task.status === 'cancelled') { a.status = 'failed'; m.plan = []; break; }
         body.pose = 'work'; body.sitAnchor = null;
         const src = w.place(task.sourcePlaceId);
         if (src && dist2(body.pos, src.inside) > 4 && !(a.pos && dist2(body.pos, a.pos) <= 3)) {
@@ -1735,7 +1829,7 @@ export class Simulation {
       }
       case 'haul_unload': {
         const task = w.haulTasks.find(t => t.id === a.data?.taskId);
-        if (!task || task.status === 'delivered' || task.status === 'cancelled') { a.status = 'done'; break; }
+        if (!task || task.claimantId !== p.id || task.status !== 'in_transit') { a.status = 'failed'; m.plan = []; break; }
         body.pose = 'work'; body.sitAnchor = null;
         const dst = w.place(task.destPlaceId);
         if (dst && dist2(body.pos, dst.inside) > 4 && !(a.pos && dist2(body.pos, a.pos) <= 3)) {
@@ -1754,7 +1848,8 @@ export class Simulation {
         if (!node || node.state !== 'available' || node.remaining <= 0) { a.status = 'done'; break; } // depleted — stop, don't retry
         if (a.pos && dist2(body.pos, a.pos) > 2.6) { a.status = 'pending'; m.plan.unshift({ type: 'goto', pos: a.pos, status: 'pending' }); break; }
         body.yaw = Math.atan2(-(node.pos.x - body.pos.x), -(node.pos.z - body.pos.z));
-        a.data = a.data ?? {}; const swing = 5 * 60; // ~5 world-min per extraction
+        a.data = a.data ?? {}; const swing = node.kind === 'game' ? 30 * 60 : 5 * 60;
+        if (node.kind === 'game' && a.data.swingAt === undefined) a.data.swingAt = a.startedAt ?? w.now;
         if (a.data.swingAt === undefined || w.now - a.data.swingAt >= swing) {
           a.data.swingAt = w.now;
           if (extractFromNode(w, node, p) <= 0) { a.status = 'done'; break; }
@@ -1880,9 +1975,7 @@ export class Simulation {
           // simply outrun us; the conflict then lapses to disengaging/deterrence via maintenance.
           const chased = (a.data && (a.data._chase = (a.data._chase ?? 0) + (m.plan[0]?.status === 'failed' ? 1 : 0)));
           if (d > 46 || (chased ?? 0) > 4) {
-            const cf = a.targetEntity ? conflictBetween(w, p.id, a.targetEntity) : undefined;
-            if (cf && (cf.status === 'active' || cf.status === 'disengaging')) disengageConflict(w, cf, p.id, 'lost the pursuit');
-            if (a.targetEntity) { m.pursuitCooldowns = m.pursuitCooldowns ?? {}; m.pursuitCooldowns[a.targetEntity] = w.now + PURSUIT_COOLDOWN_SECONDS; }
+            if (a.targetEntity) this.losePursuit(p, a.targetEntity);
             a.status = 'done'; break;
           }
           a.status = 'pending';
@@ -1978,6 +2071,7 @@ export class Simulation {
           // someone's own household bread. The delivery step is retargeted onto the carried
           // stack the split produced, since the source stack may now be empty and retired.
           if (a.data?.provision) {
+            if (a.data.ownProvisions && (it.ownerId !== p.id || it.haulTaskId)) { a.status = 'failed'; break; }
             const carried = takePortionInHand(w, p, it, PROVISION_UNITS, 'to bring to someone who needs it');
             if (carried) for (const step of m.plan) { if (step.type === 'give' && step.data?.provision) step.data.item = carried.id; }
           } else this.takeItem(p, it, 'recovered');
@@ -2031,9 +2125,25 @@ export class Simulation {
     }
   }
   private elapsed(a: Action): boolean { return this.world.now - (a.startedAt ?? 0) >= (a.duration ?? 0); }
+  /** Rest at the reached position if the anchor itself cannot be occupied. Approaching
+   * furniture is not permission to snap through a wall or onto an inaccessible roof. */
+  private settleRestPosition(body: Body, anchor: Vec3 | undefined): void {
+    body.sitAnchor = null;
+    if (!anchor) return;
+    const target = { x: Math.floor(anchor.x) + 0.5, y: anchor.y, z: Math.floor(anchor.z) + 0.5 };
+    const nav = this.world.nav;
+    if (dist2(body.pos, target) > 3 || !nav.canStepTo(body.pos, target.x, target.z) || !nav.clearWalk(body.pos, target)) return;
+    body.pos.x = target.x; body.pos.z = target.z; body.sitAnchor = anchor;
+  }
+  private losePursuit(p: Person, targetId: EntityId): void {
+    const w = this.world, conflict = conflictBetween(w, p.id, targetId);
+    if (conflict && (conflict.status === 'active' || conflict.status === 'disengaging')) disengageConflict(w, conflict, p.id, 'lost the pursuit');
+    p.mind.pursuitCooldowns ??= {};
+    p.mind.pursuitCooldowns[targetId] = w.now + PURSUIT_COOLDOWN_SECONDS;
+  }
   private beginAction(p: Person, body: Body, a: Action): void { if (a.type === 'goto') { body.path = null; body.sitAnchor = null; } }
   private pathTo(body: Body, dest: Vec3, a: Action): void {
-    const path = this.world.nav.findPath(body.pos, dest, 9000);
+    const path = this.world.nav.findPath(body.pos, dest);
     if (path) { body.path = path; body.pathIndex = 0; body.pathGoal = { ...dest }; } else { body.path = null; body.pathGoal = null; }
   }
   /** Move along the path; returns true on arrival. */
@@ -2048,7 +2158,18 @@ export class Simulation {
     if (doorY >= 0 && this.world.grid.get(doorX, doorY, doorZ) === B.Door && !this.world.grid.isDoorOpen(doorX, doorY, doorZ)) this.world.setDoorOpen({ x: doorX, y: doorY, z: doorZ }, true, body.ownerId);
     // separation from other bodies
     let sx = 0, sz = 0; for (const o of this.world.nearbyBodies(body.pos, 0.7)) { if (o === body) continue; const ox = body.pos.x - o.pos.x, oz = body.pos.z - o.pos.z; const od = Math.hypot(ox, oz); if (od < 0.7 && od > 1e-3) { sx += ox / od * (0.7 - od); sz += oz / od * (0.7 - od); } }
-    body.pos.x = nx + sx * dt * 2; body.pos.z = nz + sz * dt * 2;
+    const separatedX = nx + sx * dt * 2, separatedZ = nz + sz * dt * 2;
+    if (this.world.nav.canStepTo(body.pos, separatedX, separatedZ)) {
+      body.pos.x = separatedX; body.pos.z = separatedZ;
+    } else if (this.world.nav.canStepTo(body.pos, nx, nz)) {
+      // Crowding can reduce personal space, but cannot push somebody through a wall
+      // and let ground snapping lift them onto its roof. Keep the valid path step.
+      body.pos.x = nx; body.pos.z = nz;
+    } else {
+      // A previous offset or terrain change invalidated this segment. Replan from the
+      // actual position next tick rather than walking through the obstructing column.
+      body.path = null; body.vel.x = 0; body.vel.z = 0; return false;
+    }
     const targetYaw = Math.atan2(-dx, -dz); let dy = targetYaw - body.yaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2; body.yaw += dy * Math.min(1, dt * 10);
     body.vel.x = dx / d * speed; body.vel.z = dz / d * speed;
     return false;
@@ -2642,6 +2763,17 @@ export class Simulation {
   }
   abandonHaul(p: Person): boolean { return abandonHaul(this.world, p); }
   buyMeal(buyer: Person, seller: Person, n = 1): import('../core/types').Item | null { return buyMealFrom(this.world, buyer, seller, n); }
+  provisionHousehold(p: Person): boolean { return provisionHousehold(this.world, p); }
+  private noteMealFailure(p: Person, reason: 'unavailable' | 'unaffordable', price?: number, sourcePlaceId?: EntityId): void {
+    const w = this.world, pos = w.positionOf(p.id), source = w.place(sourcePlaceId);
+    const hereId = pos ? w.placeAt(pos)?.id : undefined;
+    const placeId = source && pos && (hereId === source.id || w.distance2d(pos, source.inside) <= 3) ? source.id : hereId;
+    const ev = w.emit('resource_shortage', { actor: p.id, pos, placeId, visibility: 8, significance: 0.3,
+      data: { need: 'food', reason, price, wealth: p.wealth, hunger: p.needs.hunger },
+      summary: reason === 'unaffordable' ? `${p.name} could not afford food (${price} silver a meal)` : `${p.name} could find nothing to eat` });
+    w.runTally[`meal_failure:${reason}`] = (w.runTally[`meal_failure:${reason}`] ?? 0) + 1;
+    if (placeId) noteFoodShortage(w, p, placeId, reason, price, ev.id);
+  }
   /** Eat one unit of food to hand (own carried food, or the household larder at home). */
   eatAtHand(p: Person): import('../core/types').ItemType | null {
     const b = this.world.primaryBody(p.id); const here = b ? this.world.placeAt(b.pos)?.id ?? null : null;
@@ -2685,7 +2817,7 @@ export class Simulation {
       // consequence of the fire's own intensity, not a separate "warm" status effect.
       const firePlace = b ? w.placeAt(b.pos) : undefined;
       const nearFire = firePlace ? fireIntensityAt(w, firePlace.id) : 0;
-      if (b) stepPhysiology(w, p, h, activityLevelFor(p, b), { indoor: w.isIndoors(b.pos), daylight: this.lightAt(), nearFire });
+      if (b) stepPhysiology(w, p, h, activityLevelFor(p, b, w), { indoor: w.isIndoors(b.pos), daylight: this.lightAt(), nearFire });
       // v0.8 §P0-D fix: a detainee has no agency to seek their own food/water — `custody?.active`
       // already suspends their autonomous goal system entirely (this file's think(), the
       // `idle:custody` hold) — so an institution holding someone has a basic duty of care, the

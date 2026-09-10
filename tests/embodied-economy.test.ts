@@ -556,20 +556,14 @@ describe('canonical integrity (v0.4 §22)', () => {
     const { world } = newWorld(918271);
     const sim = new Simulation(world);
     const totalBefore = world.persons().reduce((n, p) => n + p.wealth, 0)
+      + world.households().reduce((n, h) => n + h.wealth, 0)
       + world.items().filter(i => i.type === 'coins').reduce((n, i) => n + i.quantity, 0);
     advance(world, sim, 4 * SECONDS_PER_HOUR / 60);
     const totalAfter = world.persons().filter(p => p.alive).reduce((n, p) => n + p.wealth, 0)
       + world.persons().filter(p => !p.alive).reduce((n, p) => n + p.wealth, 0) // dead keep their last wealth, still accounted
+      + world.households().reduce((n, h) => n + h.wealth, 0)
       + world.items().filter(i => i.type === 'coins').reduce((n, i) => n + i.quantity, 0);
-    // v0.7 §B: `restockTavern` (world/metabolism.ts) now charges the innkeeper a real, bounded,
-    // EXPLICIT supply cost — currency deliberately leaving the simulation (Constitution v0.7 §B:
-    // "if currency enters or exits the simulation, that must be explicit"), tracked in
-    // `world.runTally.supply_cost_amount` for exactly this kind of audit. Total wealth is still
-    // conserved once that tracked, intentional exit is accounted for — nothing untracked
-    // appeared or vanished.
-    // toBeCloseTo, not toBe: several restocks each contribute a rounded-to-cents cost, and
-    // summing several such floats can accumulate a sub-cent floating-point residue (e.g.
-    // 17.40000000000009) — real money conservation, not a precision bug in the game itself.
+    // Internal purchases, household contributions and wages conserve the closed money supply.
     expect(totalBefore - totalAfter).toBeCloseTo(world.runTally.supply_cost_amount ?? 0, 6);
   }, 30_000);
 

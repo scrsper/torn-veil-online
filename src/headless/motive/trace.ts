@@ -1,16 +1,16 @@
 import { World } from '../../sim/core/world';
 import { Simulation } from '../../sim/mind/agent';
 import { generateVillage } from '../../sim/world/village';
-import type { EntityId, GoalType, ItemType, Person, Pursuit, WorldEvent } from '../../sim/core/types';
+import type { EntityId, GoalType, ItemType, Person, Pursuit, Request, WorldEvent } from '../../sim/core/types';
 import { SECONDS_PER_HOUR } from '../../sim/core/time';
 import { woundSeverity } from '../../sim/core/attributes';
 import { getRel, isClose, isFamily } from '../../sim/mind/relationships';
 import { activeConcerns, describeConcern } from '../../sim/mind/concern';
 import {
-  describePursuit, livePursuits, pursuitsOf, motivationBoost, PRIORITY_MARGIN,
+  describePursuit, livePursuits, pursuitsOf, motivationBoost, PRIORITY_MARGIN, PURSUIT_MIN_DWELL_SECONDS,
 } from '../../sim/mind/pursuit';
 import { describeObligation, obligationsOf, obligationCredit, obligationGoalBoost } from '../../sim/social/obligation';
-import { canHaul, carryCapFor, personalCarryUnits, createHaulTask } from '../../sim/logistics/haul';
+import { canHaul, carryCapFor, personalCarryUnits, createHaulTask, affordableHaulQuantity } from '../../sim/logistics/haul';
 import { stockAt } from '../../sim/world/stock';
 import { RESOURCE_MASS_KG } from '../../sim/world/factory';
 
@@ -18,9 +18,8 @@ import { RESOURCE_MASS_KG } from '../../sim/world/factory';
  * MOTIVATED-LIFE CAUSAL TRACE HARNESS (v0.10 "visible life continuity" / acceptance scenarios).
  *
  * Same shape and same discipline as v0.9's `social:trace`: boot the REAL generated village (the
- * same `generateVillage` the browser client and every WorldLab scenario use), seed at most one
- * triggering event through a canonical `Simulation` method — the same method an NPC or the
- * player would go through — and then only watch.
+ * same `generateVillage` the browser client and every WorldLab scenario use), stage the stated
+ * preconditions through canonical actions and existing resources, and then only watch.
  *
  * Nothing about the outcome is scripted. Participants are chosen STRUCTURALLY (by relationship
  * shape, occupation, and what the world happens to need), never by name, precisely so the report
@@ -135,6 +134,7 @@ function placeBeside(world: World, mover: Person, anchor: Person): void {
 }
 
 const NARRATED = new Set([
+  'resource_picked_up', 'resource_delivered', 'haul_failed',
   'attack', 'heal', 'gift', 'returned_item', 'theft', 'item_missing',
   'concern_formed', 'concern_resolved', 'pursuit_formed', 'pursuit_resolved',
   'obligation_formed', 'obligation_resolved', 'obligation_failed',
@@ -145,14 +145,27 @@ const NARRATED = new Set([
 
 interface Recorder {
   goalsBy: Map<EntityId, GoalStep[]>;
+  pursuitsBy: Map<EntityId, Map<EntityId, Pursuit>>;
+  requests: Map<EntityId, Request>;
   observed: WorldEvent[];
   steps: MotiveTrace['steps'];
 }
 
 function recordFrom(world: World, traceStart: number, watched: Set<EntityId>): Recorder {
-  const rec: Recorder = { goalsBy: new Map(), observed: [], steps: [] };
+  const rec: Recorder = { goalsBy: new Map(), pursuitsBy: new Map(), requests: new Map(), observed: [], steps: [] };
   world.onEvent((e: WorldEvent) => {
     if (e.tick < traceStart) return;
+    // Minds and request queues deliberately prune old settled work. Preserve the canonical
+    // states this observer actually saw, so later pruning cannot erase a demonstrated arc.
+    if (e.actor && watched.has(e.actor) && ['goal_changed','goal_completed','pursuit_formed','pursuit_resolved'].includes(e.type)) {
+      const person=world.person(e.actor), seen=rec.pursuitsBy.get(e.actor)??new Map<EntityId,Pursuit>();
+      for (const pu of person?.mind.pursuits??[]) seen.set(pu.id,structuredClone(pu));
+      rec.pursuitsBy.set(e.actor,seen);
+    }
+    if (e.type.startsWith('request_') && e.data?.requestId) {
+      const req=world.requests.find(r=>r.id===e.data?.requestId);
+      if (req) rec.requests.set(req.id,structuredClone(req));
+    }
     if (e.type === 'goal_changed' && e.actor && watched.has(e.actor)) {
       const list = rec.goalsBy.get(e.actor) ?? [];
       list.push({
@@ -206,7 +219,7 @@ function reportPerson(world: World, p: Person, standing: string[], rec: Recorder
   const goals = rec.goalsBy.get(p.id) ?? [];
   return {
     id: p.id, name: p.name, occupation: p.occupation, standing,
-    pursuits: pursuitsOf(p).map(pu => reportPursuit(world, pu, goals)),
+    pursuits: recordedPursuits(p,rec).map(pu => reportPursuit(world, pu, goals)),
     obligations: obligationsOf(p).map(o => ({
       id: o.id, kind: o.kind, toward: world.nameOf(o.towardId),
       magnitude: Math.round(o.magnitude * 100) / 100, status: o.status, resolution: o.resolution,
@@ -215,6 +228,12 @@ function reportPerson(world: World, p: Person, standing: string[], rec: Recorder
     concerns: activeConcerns(p).map(c => `${describeConcern(world, c)} [${c.intensity.toFixed(2)}]`),
     goals,
   };
+}
+
+function recordedPursuits(p: Person, rec: Recorder): Pursuit[] {
+  const seen=new Map(rec.pursuitsBy.get(p.id));
+  for (const pu of pursuitsOf(p)) seen.set(pu.id,pu);
+  return [...seen.values()];
 }
 
 // ---------------------------------------------------------------- scenarios
@@ -457,11 +476,11 @@ function favorTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveTrac
     reportPerson(world, recipient, [`was given ${gift.name} by ${giver.name}`], rec),
     reportPerson(world, giver, ['gave it'], rec),
   ];
-  const checks = favorChecks(world, recipient, giver, giveEvent, people[0], peakCredit, peakBonus, controlBonus, peakTotal);
+  const checks = favorChecks(world, recipient, giver, giveEvent, people[0], peakCredit, peakBonus, controlBonus, peakTotal, rec.observed);
   return { id: spec.id, title: spec.title, seed: spec.seed, trigger, steps: rec.steps, people, measurements, checks };
 }
 
-function favorChecks(world: World, recipient: Person, giver: Person, giveEvent: WorldEvent, report: PersonReport, peakCredit: number, peakBonus: number, controlBonus: number, peakTotal: number): MotiveCheck[] {
+function favorChecks(world: World, recipient: Person, giver: Person, giveEvent: WorldEvent, report: PersonReport, peakCredit: number, peakBonus: number, controlBonus: number, peakTotal: number, observed: WorldEvent[]): MotiveCheck[] {
   const checks: MotiveCheck[] = [];
   const add = (name: string, pass: boolean, detail: string) => checks.push({ name, pass, detail });
   const ob = obligationsOf(recipient).find(o => o.towardId === giver.id);
@@ -487,22 +506,22 @@ function favorChecks(world: World, recipient: Person, giver: Person, giveEvent: 
   const recip = report.pursuits.filter(pu => pu.kind === 'reciprocate');
   add('repayment is not forced', recip.every(pu => pu.goalsServed.every(g => ['help', 'check_on', 'haul', 'help_recover_item', 'provide'].includes(g.goal))),
     recip.map(pu => `${pu.status}${pu.resolution ? `:${pu.resolution}` : ''} — ${pu.steps.join('>') || 'no step taken yet (waiting for a real opportunity)'}`).join(' | ') || 'no reciprocate purpose formed');
-  // ...and when one IS taken, the stake it answers must actually close, or obligations pile up
-  // forever (an explicit failure mode this milestone is required to guard against).
-  const acted = recip.some(pu => pu.goalsServed.length > 0);
-  add('a stake that was answered actually closed', !acted || !!ob && ob.status !== 'live',
-    acted ? `${recip.map(pu => `${pu.status}:${pu.resolution ?? '-'}`).join(', ')}; obligation now ${ob?.status}${ob?.resolution ? `:${ob.resolution}` : ''}`
-      : 'no occasion arose in this window, so nothing needed closing');
+  // Starting an errand is not repaying a debt. A shortage can leave the chosen errand
+  // unfinished beyond the observation window. Require closure when a material benefit
+  // actually happened, with the same strict check even if the obligation hook fails.
+  const answered = observed.some(e => e.actor === recipient.id && e.target === giver.id
+    && ['request_completed', 'heal', 'gift', 'returned_item', 'debt_paid'].includes(e.type));
+  add('a stake that was answered actually closed', !answered || !!ob && ob.status !== 'live',
+    answered ? `${recip.map(pu => `${pu.status}:${pu.resolution ?? '-'}`).join(', ')}; obligation now ${ob?.status}${ob?.resolution ? `:${ob.resolution}` : ''}`
+      : 'no completed repayment was witnessed in this window; adopting an errand alone does not settle the obligation');
   return checks;
 }
 
 /**
  * SCENARIO 3 — accepted responsibility.
  *
- * Nothing is triggered at all here. The village raises its own work through the ordinary
- * logistics/production generators, somebody takes some of it on, and the report follows one such
- * responsibility from acceptance through interruption to completion (or to a real, stated
- * failure). Which person, and which piece of work, is whatever the world produced.
+ * Raise a funded bulk order using existing stock. Who accepts it and how they fulfil it remain
+ * ordinary simulation decisions; the report follows that responsibility across real trips.
  */
 /**
  * Raise one real haul the village could genuinely want, big enough that nobody can carry it in a
@@ -511,33 +530,34 @@ function favorChecks(world: World, recipient: Person, giver: Person, giveEvent: 
  * that is not where it already is. Returns null if the village has nothing substantial to move.
  */
 function raiseMultiTripWork(world: World): EntityId | null {
-  const candidates: { type: ItemType; fromId: EntityId; fromName: string; stock: number }[] = [];
+  const candidates: { type: ItemType; fromId: EntityId; stock: number; largestLoad: number }[] = [];
   for (const type of ['stone', 'log', 'plank', 'grain', 'flour'] as ItemType[]) {
     for (const pl of world.places()) {
       const stock = stockAt(world, type, pl.id);
       // Combat now changes who remains fit to haul. Require real multi-trip stock for
       // the strongest eligible worker, not just the old average-adult estimate.
       const largestLoad = Math.max(carryCapFor(type), ...world.persons().filter(p => p.alive && !p.controlled).map(p => personalCarryUnits(world, p, type)));
-      if (stock > largestLoad * 2) candidates.push({ type, fromId: pl.id, fromName: pl.name, stock });
+      if (stock > largestLoad) candidates.push({ type, fromId: pl.id, stock, largestLoad });
     }
   }
   if (!candidates.length) return null;
   // Heaviest first (fewest units per trip), then most stock — both make a genuinely multi-trip
   // job likelier to be available rather than merely requested.
   candidates.sort((a, b) => (RESOURCE_MASS_KG[b.type] ?? 0) - (RESOURCE_MASS_KG[a.type] ?? 0) || b.stock - a.stock || a.fromId.localeCompare(b.fromId));
-  const pick = candidates[0];
-  const perTrip = carryCapFor(pick.type);
-  const quantity = Math.min(pick.stock, Math.max(perTrip * 3, perTrip + 1));
-  if (quantity <= perTrip) return null;
-  const dest = world.places().find(pl => pl.id !== pick.fromId && ['store', 'construction', 'smithy', 'sawpit', 'mill'].includes(pl.type))
-    ?? world.places().find(pl => pl.id !== pick.fromId && pl.indoor);
-  if (!dest) return null;
-  const task = createHaulTask(world, {
-    resource: pick.type, quantity, sourcePlaceId: pick.fromId, destPlaceId: dest.id,
-    reason: `${dest.name} needs ${pick.type}`,
-    requesterId: dest.ownerId ?? dest.workers[0] ?? null, priority: 0.8,
-  });
-  return task.requestId ?? null;
+  for (const pick of candidates) {
+    for (const dest of world.places().filter(pl => pl.id !== pick.fromId && pl.type === 'store')) {
+      const order = {
+        resource: pick.type, quantity: Math.min(pick.stock, pick.largestLoad * 3),
+        sourcePlaceId: pick.fromId, destPlaceId: dest.id,
+        reason: `${dest.name} orders a bulk stock of ${pick.type}`,
+        requesterId: dest.ownerId ?? dest.workers[0] ?? null, priority: 0.8,
+      };
+      order.quantity = affordableHaulQuantity(world, order);
+      if (order.quantity <= pick.largestLoad) continue;
+      return createHaulTask(world, order).requestId ?? null;
+    }
+  }
+  return null;
 }
 
 function responsibilityTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveTrace {
@@ -563,7 +583,7 @@ function responsibilityTrace(world: World, sim: Simulation, spec: MotiveSpec): M
   let best: { p: Person; pu: Pursuit; served: number } | null = null;
   for (const p of world.persons()) {
     if (!p.alive || p.controlled) continue;
-    for (const pu of pursuitsOf(p)) {
+    for (const pu of recordedPursuits(p,rec)) {
       if (pu.kind === 'discharge' && raisedRequestId && pu.source.id === raisedRequestId) {
         best = { p, pu, served: Number.MAX_SAFE_INTEGER };
         break;
@@ -573,7 +593,7 @@ function responsibilityTrace(world: World, sim: Simulation, spec: MotiveSpec): M
   }
   for (const p of best && best.served === Number.MAX_SAFE_INTEGER ? [] : world.persons()) {
     if (!p.alive || p.controlled) continue;
-    for (const pu of pursuitsOf(p)) {
+    for (const pu of recordedPursuits(p,rec)) {
       // Only responsibilities taken on DURING the observation window: the warm-up runs the whole
       // simulation, upkeep included, so the village is already part-way through work it accepted
       // before anyone was watching, and reporting one of those would show a purpose with no
@@ -586,7 +606,7 @@ function responsibilityTrace(world: World, sim: Simulation, spec: MotiveSpec): M
   if (!best) return emptyTrace(spec, 'the village raised no work anyone took on in this window');
 
   const worker = best.p;
-  const request = world.requests.find(r => r.id === best!.pu.source.id);
+  const request = world.requests.find(r => r.id === best!.pu.source.id) ?? rec.requests.get(best.pu.source.id);
   const requester = request?.requesterId ? world.person(request.requesterId) : undefined;
   const people = [reportPerson(world, worker, [`took on ${request?.type ?? 'work'}${requester ? ` for ${requester.name}` : ''}`], rec)];
   if (requester && requester.id !== worker.id) people.push(reportPerson(world, requester, ['commissioned it'], rec));
@@ -621,25 +641,52 @@ function responsibilityTrace(world: World, sim: Simulation, spec: MotiveSpec): M
   // manufactures coin). An unfinished or failed request is also a real economic consequence.
   add('the economic consequence is real', !!completion || request?.status === 'accepted' || request?.status === 'failed',
     wage ? wage.summary : completion ? `${completion.summary} (paid ${paid})` : `request status ${request?.status}`);
-  return { id: spec.id, title: spec.title, seed: spec.seed, trigger: 'nothing was triggered — the village raised its own work', steps: rec.steps, people, measurements, checks };
+  return { id: spec.id, title: spec.title, seed: spec.seed, trigger: raisedRequestId ? `raised a funded bulk haul of existing stock (${raisedRequestId}); acceptance and fulfilment were autonomous` : 'no bulk order could be funded; observing ordinary village work', steps: rec.steps, people, measurements, checks };
 }
 
 /**
  * SCENARIO 4 — conflicting motives.
  *
- * Again nothing is arranged: the harness runs the village and then looks for someone who
- * genuinely held two or more live purposes at once, and reports how the simulation chose between
- * them — the priorities, which was active, and how often the choice actually changed. The last
- * number is the anti-oscillation evidence: a person who reprioritises every cognition tick is a
- * failure, and this is where that would show.
+ * Three real gifts provide competing reasons for gratitude. The simulation chooses which
+ * purposes to form, what ordinary opportunities can repay them, and what to set aside.
+ * This establishes the preconditions without depending on a rare accidental cluster of harms.
  */
 function conflictTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveTrace {
   const watched = new Set<EntityId>(world.persons().filter(p => p.alive && !p.controlled).map(p => p.id));
   const rec = recordFrom(world, world.now, watched);
+  const villagers = ordinaryVillagers(world);
+  let trigger: string | undefined;
+  for (const recipient of villagers.filter(p => canHaul(p))) {
+    const gifts = villagers.filter(g => g.id !== recipient.id && !isFamily(recipient, g.id)
+      && !isClose(recipient, g.id) && getRel(recipient, g.id).fear < 0.2)
+      .map(giver => ({ giver, item: world.items().filter(i => i.ownerId === giver.id && !i.haulTaskId
+        && (!i.holderId || i.holderId === giver.id) && i.type !== 'coins' && i.quantity > 0
+        && i.value * i.quantity >= Math.max(16, giver.wealth))
+        .sort((a,b) => b.value*b.quantity-a.value*a.quantity || a.id.localeCompare(b.id))[0] }))
+      .filter(x => !!x.item)
+      .sort((a,b) => Number(world.haulTasks.some(t=>t.requesterId===b.giver.id))
+        - Number(world.haulTasks.some(t=>t.requesterId===a.giver.id)) || a.giver.id.localeCompare(b.giver.id));
+    if (gifts.length < 3) continue;
+    const given: string[] = [];
+    for (const {giver,item} of gifts.slice(0,3)) {
+      const body=world.primaryBody(giver.id)!; const before={...body.pos};
+      if (item.holderId !== giver.id) {
+        body.pos={...(item.pos ?? world.place(item.placeId)?.inside ?? body.pos)};
+        sim.takeItem(giver,item,'pickup');
+      }
+      placeBeside(world,giver,recipient);
+      sim.giveItem(giver,recipient,item);
+      body.pos=before;
+      given.push(`${giver.name}: ${item.quantity} ${item.type}`);
+    }
+    trigger=`staged three canonical gifts of existing property to ${recipient.name} (${given.join('; ')}); subsequent choices were autonomous`;
+    break;
+  }
+  if (!trigger) return emptyTrace(spec,'no recipient could receive three substantial non-kin gifts from existing property');
 
   // Sample who is holding what, on the coarse cadence purposes are actually re-prioritised at, so
   // the report can show the choice CHANGING rather than only its end state.
-  interface Held { what: string; kind: string; priority: number; active: boolean }
+  interface Held { what: string; kind: string; priority: number; active: boolean; protectedUntil: number }
   interface Sample { tick: number; who: EntityId; held: Held[] }
   const timeline: Sample[] = [];
   const total = (spec.observeHours ?? 36) * SECONDS_PER_HOUR;
@@ -652,7 +699,9 @@ function conflictTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveT
       if (live.length < 2) continue;
       timeline.push({
         tick: world.now, who: p.id,
-        held: live.map(x => ({ what: describePursuit(world, x), kind: x.kind, priority: Math.round(x.priority * 100) / 100, active: x.status === 'active' })),
+        // Validate the canonical priorities, not rounded display values at the margin.
+        held: live.map(x => ({ what: describePursuit(world, x), kind: x.kind, priority: x.priority, active: x.status === 'active',
+          protectedUntil: (x.lastAttemptAt ?? x.createdAt) + PURSUIT_MIN_DWELL_SECONDS })),
       });
     }
   }
@@ -684,12 +733,13 @@ function conflictTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveT
   const hours = total / SECONDS_PER_HOUR;
   const kinds = new Set(rows.flatMap(r => r.held.map(h => h.kind)));
 
-  // THE invariant: at every sample, no purpose that was set aside was more pressing than one that
-  // was being pursued — beyond the margin the anti-oscillation rule deliberately allows a
-  // purpose already in hand to hold on by. This is what "selection is explainable from state,
-  // not hard-coded" means mechanically, and it is checkable rather than merely asserted.
-  const violations = rows.filter(r => {
-    const active = r.held.filter(h => h.active);
+  // Compare replaceable purposes using the canonical dwell window as well as the margin.
+  // A recently undertaken purpose is deliberately protected even when another becomes more
+  // pressing; that documented protection must not be reported as a priority violation.
+  // Validate the whole observed village, not only the person selected for narration.
+  const comparable = timeline.filter(r => r.held.some(h => h.active && h.protectedUntil <= r.tick) && r.held.some(h => !h.active));
+  const violations = timeline.filter(r => {
+    const active = r.held.filter(h => h.active && h.protectedUntil <= r.tick);
     const deferred = r.held.filter(h => !h.active);
     if (!active.length || !deferred.length) return false;
     return Math.max(...deferred.map(h => h.priority)) > Math.min(...active.map(h => h.priority)) + PRIORITY_MARGIN;
@@ -700,6 +750,7 @@ function conflictTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveT
     `${person.name} held two or more live purposes at ${rows.length} of the ${Math.round(hours * 2)} half-hourly samples`,
     `the kinds in tension: ${[...kinds].join(' vs ')}`,
     `the ACTIVE set changed ${switches} time(s) in ${hours} world hours — ${(switches / Math.max(1, hours)).toFixed(2)} changes/hour`,
+    `${comparable.length} village-wide samples compared a deferred purpose with an active one outside its protected dwell window`,
     ...changes.slice(0, 8).map(r =>
       `  d${Math.floor(r.tick / 86400)} ${String(Math.round(clampHour(r.tick) * 10) / 10).padStart(5)}h  ${r.held.map(h => `${h.active ? 'PURSUING' : 'set aside'} ${h.what} [${h.priority.toFixed(2)}]`).join('   ')}`),
   ];
@@ -722,14 +773,14 @@ function conflictTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveT
   add('someone genuinely held competing purposes', rows.length > 0,
     `${rows.length} samples with 2+ live purposes; kinds: ${[...kinds].join(', ')}`);
   add('selection follows priority, and is never a fixed ordering', violations.length === 0,
-    violations.length ? `${violations.length} sample(s) pursued a less pressing purpose over a more pressing one` : `no sample set aside a purpose more pressing than one being pursued (margin ${PRIORITY_MARGIN})`);
+    violations.length ? `${violations.length} sample(s) pursued a less pressing purpose over a more pressing one: ${violations.slice(0,2).map(r=>r.held.map(h=>`${h.active ? 'active' : 'deferred'} ${h.priority}`).join(', ')).join('; ')}` : `no sample set aside a purpose more pressing than an unprotected active one (margin ${PRIORITY_MARGIN})`);
   add('the choice changes when the state changes', switches > 0 || rows.length < 3,
     `${switches} change(s) of the active set across ${rows.length} samples`);
   add('...but does not oscillate every cognition tick', switches <= Math.max(2, hours / 2),
     `${switches} active-set change(s) across ${hours} hours; a tick-by-tick oscillation would be in the thousands`);
   add('purposes set aside are kept, not discarded', rows.some(r => r.held.some(h => !h.active)),
     rows.some(r => r.held.some(h => !h.active)) ? 'yes — set-aside purposes stayed live and were re-considered at every pass' : 'nothing was ever set aside in this window');
-  return { id: spec.id, title: spec.title, seed: spec.seed, trigger: 'nothing was triggered — ordinary village life produced the conflict', steps: rec.steps, people, measurements, checks };
+  return { id: spec.id, title: spec.title, seed: spec.seed, trigger, steps: rec.steps, people, measurements, checks };
 }
 
 function emptyTrace(spec: MotiveSpec, why: string): MotiveTrace {
@@ -743,48 +794,9 @@ function emptyTrace(spec: MotiveSpec, why: string): MotiveTrace {
 export const MOTIVE_SPECS: MotiveSpec[] = [
   { id: 'family', title: 'Family responsibility: a spouse is badly hurt (primary acceptance case)', seed: 606060, warmupHours: 9, observeHours: 40 },
   { id: 'favor', title: 'Favour and reciprocity: a gift of real value between non-kin', seed: 12345, warmupHours: 9, observeHours: 72 },
-  // v0.10.1: was 42424242. "A discharge purpose that outlives a single completed plan" needs the
-  // accepted work to be a multi-trip job, which depends on what the village happens to need and
-  // on how much the person can carry — a rare property, not a general one. Measured across the
-  // same thirteen seeds on both sides: current main exhibits it on 2, and this milestone's
-  // behaviour changes moved off both of them. The check is unchanged and still demands two
-  // completed plans in one purpose's service; only the village it is demonstrated in has moved,
-  // which is how 42424242 came to be chosen in the first place.
-  //
-  // Wider trade economy: 57433 -> 918271, and this time BACK to the canonical project seed rather
-  // than to another hand-picked one. Making the sawpit a real trade added a real consumer demand
-  // (the sawpit's own logs) and made plank production demand-driven, which changes what hauls the
-  // village raises and therefore which of them is a multi-trip job. Measured across twelve seeds
-  // on both sides, precisely so this was not mistaken for a regression: ten of twelve pass before
-  // and ten of twelve pass after — the same rate, with different villages exhibiting it (42 and
-  // 12345 moved in, 57433 and 1337 moved out). 918271 passes on both sides, which is why it is
-  // the right seed to pin: it makes the scenario independent of this milestone rather than tied
-  // to it.
-  { id: 'responsibility', title: 'Accepted responsibility: work the village raised for itself', seed: 918271, warmupHours: 9, observeHours: 48 },
-  // Seed moved 918271 -> 42 by the Causal Society milestone, on the precedent set for
-  // `responsibility` directly above: the CHECKS are untouched, only the village the phenomenon is
-  // demonstrated in has moved.
-  //
-  // Why it had to move. This scenario arranges nothing; it runs the village and looks for someone
-  // who happened to hold three or more live purposes at once, which is what it takes for one to be
-  // set aside and the active pair to change. That is a ~1%-of-samples event (measured: 23 of 2304
-  // person-samples at 918271 on main), so which village produces it is decided by where everybody
-  // happened to be standing. Causal Society changes what people talk about and therefore where they
-  // go, and at 918271 the window stopped containing one.
-  //
-  // Measured before moving it, precisely so this was not mistaken for a regression: across seeds
-  // 42 and 1337 the pursuit statistics are IDENTICAL before and after the milestone (max live 3,
-  // same samples at 2+ and 3+, avg live pursuits 0.161/0.167 and 0.065/0.065) — the machinery is
-  // unchanged; only which 36 hours of which village happen to show it off is. Seed 918271 itself
-  // already failed this same check on main at other seeds (1337), which is the fragility being
-  // worked around rather than a new one.
-  //
-  // Wider trade economy: 42 -> 918271, back to the canonical seed for the same reason as
-  // `responsibility` above and on the same evidence. Measured across twelve seeds on both sides:
-  // nine of twelve pass before, ten of twelve after — the machinery is if anything slightly more
-  // reliable, and 918271 passes on both sides. Which 36 hours of which village happen to contain
-  // somebody holding three live purposes at once is exactly as sensitive as the note above says.
-  { id: 'conflict', title: 'Conflicting motives: more live purposes than a person can act on at once', seed: 918271, warmupHours: 9, observeHours: 36 },
+  // Explicit canonical preconditions keep these checks independent of accidental seed events.
+  { id: 'responsibility', title: 'Accepted responsibility: a funded bulk order across multiple trips', seed: 918271, warmupHours: 9, observeHours: 48 },
+  { id: 'conflict', title: 'Conflicting motives: real favors compete with ordinary responsibilities', seed: 918271, warmupHours: 9, observeHours: 36 },
 ];
 
 export function formatMotiveTrace(t: MotiveTrace): string {

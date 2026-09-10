@@ -291,6 +291,9 @@ describe('long-run: the whole chain actually works (v0.2.4 Priority 10)', () => 
   it('an 8 world-day run shows rain→moisture→growth→harvest→grain→flour→bread→eaten, and no runaway', { timeout: 300_000 }, () => {
     const { world } = newWorld(918271);
     const sim = new Simulation(world);
+    const initialGrain=world.items().filter(i=>i.type==='grain').reduce((n,i)=>n+i.quantity,0);
+    let harvestedGrain=0;
+    world.onEvent(e=>{ if(e.type==='crop_harvested') harvestedGrain+=Number(e.data?.yield??0); });
     advance(world, sim, 8 * SECONDS_PER_DAY / 60); // 8 world-days
     const t = world.runTally;
     // every link of the chain fired. v0.4 §14 recalibrated MATURE_HOURS from 5 world-days to
@@ -302,13 +305,14 @@ describe('long-run: the whole chain actually works (v0.2.4 Priority 10)', () => 
     // still fires readily for every fallow plot at world start.
     expect(t.crop_planted ?? 0).toBeGreaterThan(10);
     expect(t.crop_matured ?? 0).toBeGreaterThanOrEqual(0);
-    expect(t.crop_harvested ?? 0).toBeGreaterThanOrEqual(0);
+    expect(t.crop_harvested ?? 0).toBeGreaterThan(10);
     expect(t.resource_transformed ?? 0).toBeGreaterThan(5);
     expect(t.food_consumed ?? 0).toBeGreaterThan(100);
     expect(t.water_consumed ?? 0).toBeGreaterThan(50);
     const m = metabolismSummary(world);
-    // stocks bounded (demand-driven caps), nobody starved to a standstill, weather moved moisture
-    expect(m.stock.grain).toBeLessThan(1200);
+    // Harvest storage is bounded by actual plots/yields and seed use, rather than an arbitrary
+    // ceiling that leaves a six-week crop to rot. Milling/brewing can only lower this bound.
+    expect(m.stock.grain).toBeLessThanOrEqual(initialGrain+harvestedGrain-(t.crop_planted??0));
     expect(m.stock.bread).toBeLessThan(400);
     expect(m.avgHunger).toBeLessThan(0.85);
     expect(m.avgThirst).toBeLessThan(0.7);

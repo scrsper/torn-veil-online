@@ -17,6 +17,18 @@ import { physiologyProfileFor } from '../src/sim/core/species';
 import { RegionalGrid } from '../src/sim/physical/regionalGrid';
 
 describe('procedural settlements', () => {
+  it('can navigate a procedural commute with the same default search used by NPC plans', () => {
+    const world = new World(918271);
+    generateProceduralWorld(world, [{id:'site_0',x:256,z:128}]);
+    const workers = world.livingPersons().filter(p=>['baker','miller','cook','innkeeper'].includes(p.occupation));
+    expect(workers.length).toBeGreaterThan(2);
+    for (const worker of workers) {
+      const body = world.primaryBody(worker.id)!, workplace = world.place(worker.workId)!;
+      const path = world.nav.findPath(body.pos,workplace.inside);
+      expect(path, `${worker.name} can reach ${workplace.name}`).not.toBeNull();
+      expect(world.distance2d(path!.at(-1)!,workplace.inside)).toBeLessThan(3);
+    }
+  });
   it('rejects regional extents that would alias distinct physical voxels', () => {
     expect(() => new RegionalGrid(Number.MAX_SAFE_INTEGER, 496, 42)).toThrow('exact voxel indexing');
     expect(() => new RegionalGrid(512, -1, 42)).toThrow('exact voxel indexing');

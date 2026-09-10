@@ -382,8 +382,15 @@ describe('v0.10 §I — persistent purposes outlive the plans that serve them', 
     const demoted = [...activeBefore].sort((a, b) => a.priority - b.priority)[0];
     carer.mind.concerns!.find(c => c.id === promoted.source.id)!.intensity = 1;
     carer.mind.concerns!.find(c => c.id === demoted.source.id)!.intensity = 0.15;
+    // A more pressing alternative cannot displace work during its protected dwell.
+    // The trace must explain this temporary priority reversal instead of calling it a defect.
+    tw.world.clock.advance((PURSUIT_MIN_DWELL_SECONDS - 60) / tw.world.clock.timeScale);
+    maintainPursuits(tw.world, carer);
+    expect(promoted.priority).toBeGreaterThan(demoted.priority + PRIORITY_MARGIN);
+    expect(promoted.status).toBe('deferred');
+    expect(demoted.status).toBe('active');
     // Past the dwell window, so a purpose in hand is no longer being held for anti-oscillation.
-    tw.world.clock.advance(PURSUIT_MIN_DWELL_SECONDS + 60);
+    tw.world.clock.advance(120 / tw.world.clock.timeScale);
 
     maintainPursuits(tw.world, carer);
 
@@ -552,13 +559,18 @@ describe('v0.10 — a purpose actually drives behaviour in a running simulation'
 
     const startDistance = Math.hypot(tw.world.primaryBody(spouse.id)!.pos.x - hurtBody.pos.x, tw.world.primaryBody(spouse.id)!.pos.z - hurtBody.pos.z);
     const goals: string[] = [];
-    tw.world.onEvent(e => { if (e.type === 'goal_changed' && e.actor === spouse.id) goals.push(String(e.data?.to)); });
+    let closestDistance = startDistance;
+    tw.world.onEvent(e => {
+      if (e.type === 'goal_changed' && e.actor === spouse.id) goals.push(String(e.data?.to));
+      const pos = tw.world.primaryBody(spouse.id)!.pos;
+      closestDistance = Math.min(closestDistance, Math.hypot(pos.x-hurtBody.pos.x,pos.z-hurtBody.pos.z));
+    });
     step(tw, 900);
 
     expect(livePursuits(spouse).length + pursuitsOf(spouse).length, 'a purpose formed during ordinary simulation').toBeGreaterThan(0);
     const purposeGoals = goals.filter(g => ['check_on', 'provide', 'help'].includes(g));
     expect(purposeGoals.length, `expected a purpose-driven goal, saw ${goals.join(',')}`).toBeGreaterThan(0);
-    const endDistance = Math.hypot(tw.world.primaryBody(spouse.id)!.pos.x - hurtBody.pos.x, tw.world.primaryBody(spouse.id)!.pos.z - hurtBody.pos.z);
-    expect(endDistance, 'they actually went toward them').toBeLessThan(startDistance);
+    // A completed visit can be followed by another errand before this 15-hour run ends.
+    expect(closestDistance, 'they actually reached their spouse').toBeLessThan(4);
   });
 });

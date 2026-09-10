@@ -28,6 +28,23 @@ export function stockAt(world: World, type: ItemType, placeId: EntityId): number
   return n;
 }
 
+/** Stock already promised outwards must be replaced by production, even before a carrier
+ * collects it. A promise never increases physical stock and remains derived from live hauls. */
+export function outboundStock(world: World, type: ItemType, placeId: EntityId, claimedOnly = false): number {
+  return world.haulTasks.filter(t => t.sourcePlaceId === placeId && t.resource === type
+    && ((!claimedOnly && t.status === 'needed') || t.status === 'claimed' || t.status === 'in_transit'))
+    .reduce((n, t) => n + Math.max(0, t.quantity - t.delivered - t.carried), 0);
+}
+
+export function unreservedStockAt(world: World, type: ItemType, placeId: EntityId): number {
+  // Estate stock remains physical property, but cannot currently reach buyers. It must
+  // not suppress a replacement operator's production demand as though it were for sale.
+  const available = stockItemsAt(world, type, placeId).filter(i => {
+    const owner = world.person(i.ownerId); return !owner || owner.alive;
+  }).reduce((n,i)=>n+i.quantity,0);
+  return Math.max(0, available - outboundStock(world, type, placeId));
+}
+
 /** How many units of `type` are physically at any of `placeIds`. */
 export function stockTotal(world: World, type: ItemType, placeIds: EntityId[]): number {
   const set = placeIds.length > 6 ? new Set(placeIds) : null;
@@ -60,7 +77,7 @@ export function worldStock(world: World, type: ItemType): number {
  */
 export function addPlaceStock(world: World, type: ItemType, qty: number, placeId: EntityId, ownerId: EntityId | null, eventId: EventId | undefined, how: string): Item {
   const place = world.place(placeId);
-  const existing = isPerishable(type) ? undefined : world.itemsAtPlaces([placeId]).find(i => i.type === type && !i.holderId && i.placeId === placeId);
+  const existing = isPerishable(type) ? undefined : world.itemsAtPlaces([placeId]).find(i => i.type === type && !i.holderId && i.placeId === placeId && i.ownerId === ownerId);
   if (existing) {
     existing.quantity += qty;
     if (existing.quantity > 0 && !existing.pos && place) existing.pos = { ...place.inside };

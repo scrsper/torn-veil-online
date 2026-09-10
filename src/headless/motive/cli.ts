@@ -6,9 +6,8 @@
 //   npm run motive:trace -- --seed 1337
 //
 // Runs the exact same canonical World / Simulation / village generation as `npm run sim`, the
-// WorldLab scenarios, `npm run social:trace` and the browser client. Where a scenario needs a
-// trigger at all it seeds exactly one, through a canonical `Simulation` method; two of the four
-// scenarios trigger nothing and simply watch what the village does on its own.
+// WorldLab scenarios, `npm run social:trace` and the browser client. Each scenario discloses
+// its canonical setup, then observes autonomous behavior and actual consequences.
 import { MOTIVE_SPECS, runMotiveTrace, formatMotiveTrace } from './trace';
 
 function main(): void {

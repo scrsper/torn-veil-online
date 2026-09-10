@@ -3,7 +3,7 @@ import type { ConstructionProject, ConstructionRequirement, ItemType, Person, Pl
 import type { World } from '../core/world';
 import { B } from '../physical/blocks';
 import { stockAt, takePlaceStock } from './stock';
-import { createHaulTask, openHaulTasks, carryCapFor } from '../logistics/haul';
+import { createHaulTask, openHaulTasks, carryCapFor, affordableHaulQuantity, type HaulTaskSpec } from '../logistics/haul';
 import { capabilityFor } from '../core/attributes';
 import { wearTool } from '../core/tools';
 import { createRequest, acceptRequest, completeRequest } from '../core/requests';
@@ -205,10 +205,12 @@ export function stepConstruction(world: World): void {
       if (sawpit && clearing && stockAt(world, 'log', sawpit.id) < 10 && stockAt(world, 'log', clearing.id) > 0
         && !openHaulTasks(world).some(t => t.resource === 'log' && t.destPlaceId === sawpit.id)) {
         const want = Math.min(carryCapFor('log'), stockAt(world, 'log', clearing.id));
-        createHaulTask(world, {
+        const order: HaulTaskSpec = {
           resource: 'log', quantity: want, sourcePlaceId: clearing.id, destPlaceId: sawpit.id,
           reason: 'the sawpit needs logs', requesterId: sawpit.workers[0] ?? null, priority: 0.7,
-        });
+        };
+        order.quantity = affordableHaulQuantity(world, order);
+        if (order.quantity > 0) createHaulTask(world, order);
       }
     }
   }
@@ -233,10 +235,12 @@ export function stepConstruction(world: World): void {
       if (stockAt(world, type, src.id) <= 0) continue; // producer has none yet — wait
       const want = Math.min(carryCapFor(type), deficit, stockAt(world, type, src.id));
       if (want <= 0) continue;
-      createHaulTask(world, {
+      const order: HaulTaskSpec = {
         resource: type, quantity: want, sourcePlaceId: src.id, destPlaceId: p.sitePlaceId,
         reason: `${p.name} needs ${type}`, requesterId: p.ownerId, projectId: p.id, priority: 0.85,
-      });
+      };
+      order.quantity = affordableHaulQuantity(world, order);
+      if (order.quantity > 0) createHaulTask(world, order);
     }
   }
 }

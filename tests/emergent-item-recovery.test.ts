@@ -74,6 +74,10 @@ describe('P0-G/H: emergent item recovery (no pre-authored knowledge)', () => {
     // Walk the helper over to where the ring actually is and let them perceive it for real.
     const helperBody = tw.world.primaryBody(helper.id)!;
     helperBody.pos = { x: ring.pos!.x + 1, y: ring.pos!.y, z: ring.pos!.z };
+    // The fixture moved them to look at the ring; an old sleep/travel action must not
+    // keep executing at that new position before the next perception sample.
+    helperBody.pose = 'stand'; helperBody.path = null; helper.mind.plan = [];
+    helper.mind.thinkBudget = -1;
     face(helper, tw, ring.pos!);
     step(tw, 5);
     expect(helper.knowledge[`loc:${ring.id}`]).toBeDefined();

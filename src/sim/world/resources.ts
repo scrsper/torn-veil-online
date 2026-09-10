@@ -2,9 +2,9 @@ import type { ResourceNode, ResourceNodeBlock, ItemType, Person, Vec3, EntityId,
 import type { World } from '../core/world';
 import { B } from '../physical/blocks';
 import { addPlaceStock } from './stock';
-import { capabilityFor } from '../core/attributes';
+import { capabilityFor, getPhysicalCapability } from '../core/attributes';
 import { wearTool } from '../core/tools';
-import { practiceSkill } from '../core/skills';
+import { practiceSkill, skillOf } from '../core/skills';
 import { learnAffordance } from '../mind/knowledge';
 
 /**
@@ -25,6 +25,16 @@ const LOGS_PER_TREE = 6;
 const LOGS_PER_CHOP = 2;
 const STONE_PER_OUTCROP = 24;
 const STONE_PER_GATHER = 3;
+
+/** Local carrying capacity, measured in obtainable meat units. Recovery represents a coarse
+ * wildlife population, not individual animals; it is gradual and bounded even under hunting. */
+export function registerGameGround(world: World, placeId: EntityId, capacity: number): void {
+  const place = world.place(placeId);
+  if (!place || capacity <= 0) return;
+  world.resourceNodes.push({ id: world.nextId('node'), kind: 'game', yield: 'meat', pos: { ...place.inside }, blocks: [],
+    remaining: capacity, capacity, renewable: true, regrowHours: 90 * 24, renewedAt: world.now,
+    state: 'available', dropPlaceId: placeId, placeId });
+}
 /**
  * World-hours from a felled tree to a mature, harvestable one again (v0.4 §14). A felled
  * mature tree does not return in one month — real forestry timescales run in YEARS. ~2.5
@@ -223,6 +233,26 @@ const SWING_SECONDS = 5 * 60;
  */
 export function extractFromNode(world: World, node: ResourceNode, actor: Person): number {
   if (node.state !== 'available' || node.remaining <= 0) return 0;
+  if (node.kind === 'game') {
+    const body = world.primaryBody(actor.id);
+    if (!actor.alive || !body?.present || body.dead || dist2(body.pos, node.pos) > 3) return 0;
+    const capability = getPhysicalCapability(actor, world, { skill: skillOf(actor, 'hunting') });
+    if (capability.currentExertionCapacity < 0.15) return 0;
+    const got = Math.min(Math.floor(node.remaining), Math.max(1, Math.round(1 + skillOf(actor, 'hunting') * 3)));
+    if (got <= 0) return 0;
+    node.remaining -= got;
+    const ev = world.emit('resource_extracted', { actor: actor.id, pos: { ...node.pos }, placeId: node.placeId,
+      visibility: 12, significance: 0.15, data: { nodeId: node.id, kind: 'game', yield: 'meat', amount: got, remaining: node.remaining },
+      summary: `${actor.name} hunted ${got} meat at ${world.nameOf(node.placeId)}` });
+    addPlaceStock(world, 'meat', got, node.dropPlaceId, actor.id, ev.id, 'hunted');
+    practiceSkill(actor, 'hunting', 1);
+    if (node.remaining < 1) {
+      node.state = 'depleted'; node.depletedAt = world.now;
+      world.emit('resource_depleted', { actor: actor.id, placeId: node.placeId, pos: { ...node.pos }, visibility: 12,
+        significance: 0.3, causes: [ev.id], data: { nodeId: node.id, kind: 'game' }, summary: `Game has become scarce at ${world.nameOf(node.placeId)}` });
+    }
+    return got;
+  }
   const action = node.kind === 'tree' ? 'chop' : 'quarry';
   const { cap, tool } = capabilityFor(world, actor, action, world.placeAt(node.pos)?.id ?? node.placeId ?? null);
   const basePer = node.kind === 'tree' ? LOGS_PER_CHOP : STONE_PER_GATHER;
@@ -294,6 +324,17 @@ function depleteNode(world: World, node: ResourceNode): void {
 export function maintainResourceNodes(world: World): void {
   const now = world.now;
   for (const n of world.resourceNodes) {
+    if (n.kind === 'game') {
+      const hours = Math.max(0, now - (n.renewedAt ?? now)) / 3600;
+      n.renewedAt = now;
+      if (n.renewable && n.regrowHours > 0) n.remaining = Math.min(n.capacity, n.remaining + n.capacity * hours / n.regrowHours);
+      if (n.remaining >= 1 && n.state !== 'available') {
+        n.state = 'available'; n.depletedAt = undefined;
+        world.emit('resource_regrew', { placeId: n.placeId, pos: { ...n.pos }, significance: 0.1,
+          data: { nodeId: n.id, kind: 'game', remaining: n.remaining }, summary: `Game returned to ${world.nameOf(n.placeId)}` });
+      }
+      continue;
+    }
     if (n.state === 'available' || !n.renewable || n.regrowAt === undefined || n.depletedAt === undefined) continue;
     const fraction = Math.min(1, (now - n.depletedAt) / (n.regrowHours * 3600));
     const stage = growthStageForFraction(fraction);

@@ -2,6 +2,11 @@ import { B, BLOCKS } from './blocks';
 import { VoxelGrid } from './grid';
 import type { Vec3 } from '../core/types';
 
+function pathBudget(a: Vec3, b: Vec3): number {
+  const dx = Math.floor(a.x) - Math.floor(b.x), dz = Math.floor(a.z) - Math.floor(b.z);
+  return Math.min(100000, Math.max(12000, 2 * (dx * dx + dz * dz)));
+}
+
 /** Grid navigation over walkable columns. Agents are ~2 blocks tall and can step up/down one block. */
 class MinHeap {
   private a: { k: number; v: number }[] = [];
@@ -65,11 +70,21 @@ export class Navigator {
   walkCost(x: number, z: number): number { return this.readCost(x * this.grid.D + z); }
   isWalkable(x: number, z: number): boolean { const y = this.floorY(x, z); return y >= 0 && this.walkCost(x, z) < 40; }
 
+  /** Shared terrain constraint for voluntary movement and crowd separation. A walkable
+   * roof is not reachable by stepping sideways from the ground below it. */
+  canStepTo(from: Vec3, x: number, z: number): boolean {
+    const cx = Math.floor(x), cz = Math.floor(z);
+    return this.isWalkable(cx, cz) && Math.abs(this.floorY(cx, cz) - from.y) <= 1.05;
+  }
+
   /** A* path from a to b in block coordinates. Returns list of cell centers (y = floor). */
-  findPath(a: Vec3, b: Vec3, maxIter = 12000): Vec3[] | null {
-    // A* reads only these integer columns, the search budget and the navigation surface.
+  findPath(a: Vec3, b: Vec3, maxIter = pathBudget(a, b)): Vec3[] | null {
+    // A fixed village-sized search allowance falsely made longer procedural commutes
+    // unreachable. Scale with the area a detour may explore, bounded by the same maximum
+    // used when settlement generation connects its roads. Explicit budgets remain exact.
+    // The intended floor matters: a counter and its roof share a horizontal column.
     // Cache failed searches too, but never make a returned mutable path shared state.
-    const key = [Math.floor(a.x), Math.floor(a.z), Math.floor(b.x), Math.floor(b.z), maxIter].join(',');
+    const key = [Math.floor(a.x), Math.floor(a.z), Math.floor(b.x), b.y, Math.floor(b.z), maxIter].join(',');
     if (this.paths.has(key)) { this.cacheHits++; return this.paths.get(key)?.map(p => ({ ...p })) ?? null; }
     this.searches++;
     const path = this.search(a, b, maxIter);
@@ -80,7 +95,9 @@ export class Navigator {
   private search(a: Vec3, b: Vec3, maxIter: number): Vec3[] | null {
     const g = this.grid; const W = g.W, D = g.D;
     let sx = Math.floor(a.x), sz = Math.floor(a.z), tx = Math.floor(b.x), tz = Math.floor(b.z);
-    if (!this.isWalkable(tx, tz)) { const alt = this.nearestWalkable(tx, tz, 4); if (!alt) return null; tx = alt.x; tz = alt.z; }
+    if (!this.isWalkable(tx, tz) || Math.abs(this.floorY(tx, tz) - b.y) > 1) {
+      const alt = this.nearestWalkable(tx, tz, 4, b.y); if (!alt) return null; tx = alt.x; tz = alt.z;
+    }
     if (!this.isWalkable(sx, sz)) { const alt = this.nearestWalkable(sx, sz, 3); if (!alt) return null; sx = alt.x; sz = alt.z; }
     const si = sx * D + sz, ti = tx * D + tz;
     if (si === ti) return [{ x: tx + 0.5, y: this.floorY(tx, tz), z: tz + 0.5 }];
@@ -125,13 +142,13 @@ export class Navigator {
     }
     return out;
   }
-  private clearWalk(a: Vec3, b: Vec3): boolean {
+  clearWalk(a: Vec3, b: Vec3): boolean {
     const n = Math.ceil(Math.hypot(b.x - a.x, b.z - a.z) * 2); let py = a.y;
     for (let s = 1; s <= n; s++) { const t = s / n; const x = Math.floor(a.x + (b.x - a.x) * t), z = Math.floor(a.z + (b.z - a.z) * t); const y = this.floorY(x, z); if (y < 0 || this.walkCost(x, z) >= 40 || this.walkCost(x, z) > 3 || Math.abs(y - py) > 1) return false; py = y; }
     return true;
   }
-  nearestWalkable(x: number, z: number, r: number): { x: number; z: number } | null {
-    for (let d = 0; d <= r; d++) for (let dx = -d; dx <= d; dx++) for (let dz = -d; dz <= d; dz++) { if (Math.max(Math.abs(dx), Math.abs(dz)) !== d) continue; if (this.isWalkable(x + dx, z + dz)) return { x: x + dx, z: z + dz }; }
+  nearestWalkable(x: number, z: number, r: number, height?: number): { x: number; z: number } | null {
+    for (let d = 0; d <= r; d++) for (let dx = -d; dx <= d; dx++) for (let dz = -d; dz <= d; dz++) { if (Math.max(Math.abs(dx), Math.abs(dz)) !== d) continue; if (this.isWalkable(x + dx, z + dz) && (height === undefined || Math.abs(this.floorY(x + dx, z + dz) - height) <= 1)) return { x: x + dx, z: z + dz }; }
     return null;
   }
 }

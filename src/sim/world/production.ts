@@ -1,6 +1,7 @@
 import type { EntityId, ItemType, Place, PlaceType, Request } from '../core/types';
 import type { World } from '../core/world';
-import { stockAt } from './stock';
+import { unreservedStockAt } from './stock';
+import { economicOperatorFor } from './trade';
 import { createRequest, acceptRequest, completeRequest, openRequests } from '../core/requests';
 import { BAKE_RATIO, MILL_RATIO, PLANK_BASE_BUFFER, SAW_RATIO, plankCapFor } from './metabolism';
 import { MEAT_TO_STEW_RATIO } from './cooking';
@@ -101,13 +102,13 @@ export function generateProductionNeeds(world: World): void {
   for (const spec of PRODUCTION_TARGETS) {
     for (const place of world.places().filter(p => p.type === spec.placeType)) {
       const { trigger } = reserveFor(world, spec, place);
-      const have = stockAt(world, spec.resource, place.id);
+      const have = unreservedStockAt(world, spec.resource, place.id);
       const pipeline = openProductionRequests(world)
         .filter(r => r.payload.placeId === place.id && r.payload.resource === spec.resource)
         .reduce((n, r) => n + (r.payload.quantity ?? 0), 0);
       if (have + pipeline >= trigger) continue;
       createRequest(world, {
-        type: 'production', requesterId: place.ownerId ?? place.workers[0] ?? null, requesterPlaceId: place.id,
+        type: 'production', requesterId: economicOperatorFor(world, place.id), requesterPlaceId: place.id,
         reward: PRODUCTION_WAGE_PER_BATCH, cause: spec.reason,
         payload: { resource: spec.resource, quantity: spec.batchOut, placeId: place.id },
       });
@@ -147,9 +148,7 @@ export function productionSummary(world: World): ProductionSummary {
     accepted: rs.filter(r => r.status === 'accepted').length,
     completed: completed.length,
     failed: rs.filter(r => r.status === 'failed').length,
-    // Nominal reward is fixed (PRODUCTION_WAGE_PER_BATCH) and payment is only ever reduced by
-    // payer insolvency (core/requests.ts's `payWage`) — summing nominal rewards is a close,
-    // honest approximation without needing a separate per-request-type wage tally.
-    wagesPaid: completed.reduce((n, r) => n + r.reward, 0),
+    // Actual transfers, including insolvency and self-work, survive request persistence.
+    wagesPaid: completed.reduce((n, r) => n + (r.paid ?? 0), 0),
   };
 }

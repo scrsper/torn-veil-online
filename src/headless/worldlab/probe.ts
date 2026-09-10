@@ -46,7 +46,8 @@ function cheapestMealPrice(world: World): number {
 function economySnapshot(world: World): EconomySnapshot {
   const alive = world.livingPersons().filter(p => !p.controlled);
   const wealths = alive.map(p => p.wealth);
-  const spendableWealth = Math.round(wealths.reduce((a, b) => a + b, 0) * 100) / 100;
+  const spendableWealth = Math.round((wealths.reduce((a, b) => a + b, 0)
+    + world.households().reduce((n, h) => n + h.wealth, 0)) * 100) / 100;
   let coinItems = 0;
   for (const it of world.items()) if (it.type === 'coins') coinItems += it.quantity ?? 0;
   const sorted = [...wealths].sort((a, b) => a - b);

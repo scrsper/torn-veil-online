@@ -397,6 +397,12 @@ export function noteRequestEvent(world: World, e: WorldEvent): void {
   const request = requestById(world, requestId);
   if (!request) return;
   if (e.type === 'request_accepted') {
+    const previous = world.person(e.data?.previousWorkerId as EntityId | undefined);
+    if (previous && previous.id !== e.actor) {
+      for (const o of liveObligations(previous)) if (o.kind === 'accepted_task' && o.requestId === request.id) {
+        resolveObligation(world, previous, o, 'lapsed', 'someone else took it on', e.id);
+      }
+    }
     const worker = e.actor ? world.person(e.actor) : undefined;
     if (worker) recordAcceptedTask(world, worker, request, e.id);
     return;

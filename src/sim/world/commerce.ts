@@ -1,8 +1,8 @@
 import type { EntityId, Item, ItemType, Person, Place, Vec3, WorldEvent } from '../core/types';
 import type { World } from '../core/world';
 import { effectivePrice } from './pricing';
-import { stockAt, retireStack } from './stock';
-import { makeItem, isFood, RESOURCE_CATEGORY } from './factory';
+import { stockAt, retireStack, outboundStock } from './stock';
+import { makeItem, isFood, isPerishable, RESOURCE_CATEGORY } from './factory';
 import { TOOL_KINDS } from '../core/tools';
 import { hungerBand, severityAtLeast } from '../core/physiology';
 import { getRel, disposition } from '../mind/relationships';
@@ -94,13 +94,14 @@ export function committedUnits(world: World, it: Item): number {
   // reserved by one — and skipping the scan matters, because `world.haulTasks` accumulates for
   // the life of a run and this is asked on a per-decision path.
   if (!it.placeId) return 0;
-  let reserved = 0;
-  for (const t of world.haulTasks) {
-    if (t.status !== 'needed' && t.status !== 'claimed' && t.status !== 'in_transit') continue;
-    if (t.resource !== it.type || t.sourcePlaceId !== it.placeId) continue;
-    reserved += Math.max(0, t.quantity - t.delivered - t.carried);
-  }
-  return reserved;
+  // An unclaimed restocking request is demand, not an exclusive contract on a seller's
+  // shelves. Only a carrier actively collecting it reserves stock; stale claims expire.
+  const reserved = outboundStock(world, it.type, it.placeId, true);
+  // A reservation is a quantity at the source, not a reservation of that quantity from
+  // EVERY perishable batch there. Allocate it in the same order pickup consumes stock.
+  const earlier = world.itemsAtPlaces([it.placeId]).filter(s => !s.holderId && s.type === it.type && s.quantity > 0 && s.id.localeCompare(it.id) < 0)
+    .reduce((n, s) => n + s.quantity, 0);
+  return Math.min(it.quantity, Math.max(0, reserved - earlier));
 }
 
 /** Is this the tool they are carrying to work with? Carried, not shelved: a smith's rack of axes
@@ -272,6 +273,8 @@ export function purchaseUnits(world: World, buyer: Person, seller: Person, sourc
   const soldFromPlaceId = source.placeId ?? undefined;
   buyer.wealth -= cost; seller.wealth += cost;
   world.runTally.purchase_amount = (world.runTally.purchase_amount ?? 0) + cost;
+  const spoilShare = (source.spoilAccum ?? 0) * take / source.quantity;
+  source.spoilAccum = (source.spoilAccum ?? 0) - spoilShare;
   source.quantity -= take;
   const drained = source.quantity <= 0;
   if (drained) { source.pos = null; source.placeId = null; }
@@ -292,10 +295,12 @@ export function purchaseUnits(world: World, buyer: Person, seller: Person, sourc
   // buyer both HOLDS and OWNS what they paid for — this is the transition that makes a purchase
   // different from a pickup.
   const how = opts.how ?? 'bought';
-  const carried = buyer.inventory.map(id => world.item(id)).find(i => !!i && i.type === source.type && i.holderId === buyer.id && i.quantity > 0);
+  const carried = buyer.inventory.map(id => world.item(id)).find(i => !!i && i.type === source.type && i.holderId === buyer.id
+    && i.ownerId === buyer.id && !i.haulTaskId && i.quantity > 0 && (!isPerishable(i.type) || i.createdAt === source.createdAt));
   let stack: Item;
   if (carried) { carried.quantity += take; stack = carried; }
-  else stack = makeItem(world, source.type, source.name, { owner: buyer.id, holder: buyer.id, quantity: take, value: source.value });
+  else { stack = makeItem(world, source.type, source.name, { owner: buyer.id, holder: buyer.id, quantity: take, value: source.value }); stack.createdAt = source.createdAt; }
+  stack.spoilAccum = (stack.spoilAccum ?? 0) + spoilShare;
   stack.ownerId = buyer.id;
   stack.provenance.push({ tick: world.now, eventId: ev.id, from: seller.id, to: buyer.id, how });
   if (drained) retireStack(world, source);

@@ -6,7 +6,7 @@ import { makePerson, makeItem, makePlace, makeBody, makeFaction, makeCreature, I
 import { CAST } from './cast';
 import type { Place, Person, Vec3, Anchor, EntityId, Item } from '../core/types';
 import { createFields, cropBlockFor } from './metabolism';
-import { plantGrove, registerStoneNodes } from './resources';
+import { plantGrove, registerStoneNodes, registerGameGround } from './resources';
 import { createConstructionProject } from './construction';
 import { scheduleFor } from '../mind/schedule';
 import { getRel, setRelTags, adjustRel } from '../mind/relationships';
@@ -167,6 +167,7 @@ export function generateVillage(world: World): GenResult {
     p.schedule = scheduleFor(p, { work: work?.id ?? null, home: home?.id ?? null, tavern: places.tavern.id, square: places.square.id, chapel: places.chapel.id, stall: c.stall ? places[c.stall].id : null, field: c.field ? places[c.field].id : null, saw: places.sawpit.id, shift: c.shift });
     // v0.3: the woodcutter also works the sawpit (log → plank) in the afternoon.
     if (c.occupation === 'woodcutter') places.sawpit.workers.push(p.id);
+    if (c.stall) { places[c.stall].workers.push(p.id); places[c.stall].ownerId ??= p.id; }
     // patrol routes for guards
     if (c.occupation === 'guard' || c.occupation === 'captain') p.patrol = [v(96, F, 100), v(110, F, 96), v(96, F, 112), v(96, F, 78), v(84, F, 96), v(140, F, 96), v(96, F, 130)];
     if (c.key === 'hale') p.patrol = [v(168, F, 95), v(160, F, 96)];
@@ -303,6 +304,7 @@ export function generateVillage(world: World): GenResult {
   plantGrove(world, { x0: 96, z0: 130, x1: 120, z1: 148 }, places.clearing.id, places.clearing.id, 14,
     [places.sawpit.bounds, places.farm_jory.bounds, places.house_jory.bounds]);
   registerStoneNodes(world, places.quarry.id, [v(70, 25, 24), v(74, 25, 27), v(72, 25, 30)]);
+  registerGameGround(world, places.forest_north.id, 80);
   // One authored construction project (Constitution §67 — authored starting condition; its
   // *fulfilment* is entirely emergent). The structure is NOT built now: materials must be
   // chopped/sawn/quarried, hauled here, and worked before the shed becomes real.

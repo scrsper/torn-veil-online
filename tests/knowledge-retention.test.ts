@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { learn, MAX_KNOWLEDGE, PRUNE_MARGIN } from '../src/sim/mind/knowledge';
+import { learn, learnPlace, noteFoodShortage, knownFoodPlace, MAX_KNOWLEDGE, PRUNE_MARGIN } from '../src/sim/mind/knowledge';
+import { noteWorkBlocked } from '../src/sim/world/shortfall';
 import { getRel } from '../src/sim/mind/relationships';
 import { addPerson, createTestWorld, v } from './helpers/world';
 
@@ -24,6 +25,34 @@ function fillWithRoutineRumors(tw: ReturnType<typeof createTestWorld>, thinker: 
 }
 
 describe('knowledge retention policy (v0.2.2 Phase 1: semantic soundness of the bound)', () => {
+  it('retains learned services and recent food/work failures amid routine events about familiar people', () => {
+    const tw=createTestWorld(), {world}=tw;
+    const thinker=addPerson(tw,'Shopper','cook',v(20,1,20));
+    const neighbor=addPerson(tw,'Neighbor','villager',v(21,1,20));
+    getRel(thinker,neighbor.id).familiarity=1;
+    const shop=world.place(tw.places.tavern)!;
+    learnPlace(world,thinker,shop,{type:'witnessed'});
+    noteFoodShortage(world,thinker,shop.id);
+    noteWorkBlocked(world,thinker,shop.id,'meat','stew');
+    const original=structuredClone(thinker.knowledge[`food-access:${shop.id}`]);
+    const pressure=(prefix:string)=>{
+      for(let i=0;i<MAX_KNOWLEDGE+PRUNE_MARGIN+100;i++) learn(world,thinker,{
+        key:`${prefix}:${i}`,kind:'event',claim:{type:'work',actor:neighbor.id,significance:0.3},
+        confidence:1,source:{type:'witnessed'},
+      },true);
+    };
+    pressure('morning');
+    expect(thinker.knowledge[`svc:${shop.id}`]).toBeDefined();
+    expect(thinker.knowledge[`food-access:${shop.id}`]).toEqual(original);
+    expect(thinker.knowledge[`short:${shop.id}:meat`]).toBeDefined();
+    expect(knownFoodPlace(world,thinker)).toBeUndefined();
+    expect(Object.keys(thinker.knowledge).length).toBeLessThanOrEqual(MAX_KNOWLEDGE+PRUNE_MARGIN);
+    world.clock.advance(13*3600/world.clock.timeScale);
+    pressure('evening');
+    expect(knownFoodPlace(world,thinker)).toBe(shop.id);
+    expect(thinker.knowledge[`food-access:${shop.id}`]).toBeUndefined();
+  });
+
   it('foundational (source: prior) facts survive massive routine pressure', () => {
     const tw = createTestWorld(700, 16);
     const thinker = addPerson(tw, 'Thinker', 'farmer', v(3.5, 1, 3.5));
