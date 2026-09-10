@@ -17,7 +17,7 @@ async function findFoodSeller(page: import('playwright').Page): Promise<SellerIn
     const g = (window as any).game; const w = g.world;
     const player = w.person(w.playerId);
     for (const p of w.persons()) {
-      if (!p.alive || p.controlled) continue;
+      if (!p.alive || (p.id === w.playerId)) continue;
       const offers = g.sim.tradeOffers(p, player);
       const food = offers.filter((o: any) => ['bread', 'cheese', 'meat', 'pie', 'stew', 'ale'].includes(o.item.type) && o.available > 0);
       if (!food.length) continue;
@@ -226,7 +226,7 @@ export const playerTrade: BrowserSpec = {
           .map((id: string) => ({ p, id, it: w.item(id) }))
           .filter((r: any) => !r.it || r.it.quantity <= 0)
           .map((r: any) => ({
-            person: `${r.p.name} (${r.p.id})`, controlled: !!r.p.controlled,
+            person: `${r.p.name} (${r.p.id})`, controlled: !!(r.p.id === w.playerId),
             itemId: r.id, type: r.it?.type ?? '(entity gone)', quantity: r.it?.quantity ?? null,
             holderId: r.it?.holderId ?? null, ownerId: r.it?.ownerId ?? null,
             placeId: r.it?.placeId ?? null, pos: r.it?.pos ?? null,

@@ -1,3 +1,4 @@
+import { isExternallyControlled } from '../runtime/controllers';
 import type { EntityId, Household, Occupation, Person, Place, PlaceType, SkillId } from '../core/types';
 import type { World } from '../core/world';
 import { skillOf } from '../core/skills';
@@ -129,7 +130,7 @@ function roomAtTheWork(world: World, place: Place): { room: number; why: string 
  * in `mind/succession.ts`.
  */
 export function livelihoodProspects(world: World, p: Person): LivelihoodProspect[] {
-  if (p.controlled || p.hostile || !p.alive || p.workId) return [];
+  if (p.hostile || !p.alive || p.workId) return [];
   // A grown frame, read from the body's own life stage rather than from a birthday: ordinary
   // trade work is not something an infant or a small child does.
   const stage = lifeStageFor(p.species, p.age);
@@ -269,7 +270,8 @@ function localTradePlace(world: World, p: Person): Place | undefined {
  */
 export function stepLivelihoods(world: World): void {
   for (const p of world.livingPersons()) {
-    if (p.workId || p.controlled || p.hostile) continue;
+    // Autonomous response dispatch; neutral prospects remain available to every person.
+    if (isExternallyControlled(p) || p.workId || p.hostile) continue;
     const prospect = recogniseLivelihood(world, p);
     if (prospect) takeUpLivelihood(world, p, prospect);
   }

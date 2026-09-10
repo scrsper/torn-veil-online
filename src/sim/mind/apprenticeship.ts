@@ -68,7 +68,6 @@ export function teachingOpportunity(world: World, a: Person, b: Person, skill: S
   if (a.id === b.id || !a.alive || !b.alive || a.hostile || b.hostile) return null;
   const ahead = skillOf(a, skill) >= skillOf(b, skill) ? a : b;
   const behind = ahead === a ? b : a;
-  if (behind.controlled) return null; // the player is taught by playing, not by a tick
   const gap = skillOf(ahead, skill) - skillOf(behind, skill);
   if (skillOf(ahead, skill) < TEACH_MIN_SKILL || gap < TEACH_MIN_GAP) return null;
   const ab = world.primaryBody(ahead.id), bb = world.primaryBody(behind.id);
@@ -157,7 +156,7 @@ export function maybeTeachAt(world: World, worker: Person, skill: SkillId, place
   const wb = world.primaryBody(worker.id);
   if (!wb) return null;
   const atTheWork = (q: Person): boolean =>
-    (q.mind.goal?.type === 'work' && q.mind.goal.targetPlace === placeId)
+    (world.primaryBody(q.id)?.pose === 'work' && world.placeAt(world.positionOf(q.id)!)?.id === placeId)
     || world.workStints.some(s => s.personId === q.id && s.placeId === placeId && !s.endedAt);
   if (!atTheWork(worker) && !world.place(placeId)?.workers.includes(worker.id)) return null;
   const near = [...new Set(world.nearbyBodies(wb.pos, TEACH_RANGE_METRES).map(b => world.person(b.ownerId)).filter((p): p is Person => !!p))]

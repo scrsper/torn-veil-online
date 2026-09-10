@@ -1,3 +1,4 @@
+import { setExternalControl } from '../src/sim/runtime/controllers';
 import { describe, expect, it } from 'vitest';
 import { addPerson, createTestWorld, step, v } from './helpers/world';
 import { makePlace } from '../src/sim/world/factory';
@@ -362,13 +363,13 @@ describe('taking up a trade never invents one', () => {
     const hobb = miller(tw, 'Hobb', place, 70);
     const child = grownChild(tw, 'Heir', place, hobb);
     hobb.householdId = 'hh_test'; child.householdId = 'hh_test';
-    child.controlled = true;
+    setExternalControl(child, true);
     teach(tw.world, hobb, child, 'milling');
     raiseDemand(tw);
     stepLivelihoods(tw.world);
     expect(child.workId).toBeNull();
-    // ...and the derivation itself is silent about them, rather than merely being ignored.
-    expect(livelihoodProspects(tw.world, child)).toEqual([]);
+    // The opportunities remain real; the human decides whether to take them up.
+    expect(livelihoodProspects(tw.world, child).length).toBeGreaterThan(0);
     void takeUpLivelihood;
   });
 });

@@ -1,3 +1,4 @@
+import { isExternallyControlled, setExternalControl, hasExternalIntention, authorizeExternalIntention } from '../runtime/controllers';
 import { generateProceduralWorld } from '../world/settlement';
 import { restoreKernel } from '../kernel/definitions';
 import { World } from '../core/world';
@@ -135,7 +136,7 @@ const KEY = 'infinite-rpg-save-v1';
 // Generative kernel definitions, physical connections, finite sources and partial labor.
 // Seven integer foundations replace two fractional attributes. Reject old saves explicitly.
 // Whole-person snapshots carry potential, development, carriers, expression and ontology exactly.
-export const SAVE_VERSION = 22;
+export const SAVE_VERSION = 23;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
@@ -193,7 +194,7 @@ export function serialize(world: World): string {
   // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
   // falls back to today's behavior (rewind to post-generation position) when absent.
   const rng = world.rng.state(); const weatherRng = world.weatherRng.state(); const demographicRng = world.demographicRng.state();
-  return JSON.stringify({ version: SAVE_VERSION, execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
+  return JSON.stringify({ version: SAVE_VERSION, creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -265,6 +266,8 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
       const existing = world.person(s.id);
       if (existing) Object.assign(existing, restored); else world.add(restored);
     }
+    for (const p of world.persons()) { const controller = (data.controllers ?? []).find((c: { id: string }) => c.id === p.id); setExternalControl(p, !!controller); if (controller?.acting) authorizeExternalIntention(p); }
+    for (const creature of data.creatures ?? []) { const current = world.get(creature.id); if (current) Object.assign(current, creature); else world.add(creature); }
     for (const s of data.bodies) {
       const restored = (data.execution ? { ...s } : { ...s, vel: { x: 0, y: 0, z: 0 }, path: null, pathGoal: null, sitAnchor: null }) as Body;
       const existing = world.body(s.id);

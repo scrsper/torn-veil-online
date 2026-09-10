@@ -1,3 +1,5 @@
+import { introduce } from '../src/sim/mind/people';
+import { isExternallyControlled } from '../src/sim/runtime/controllers';
 import { describe, expect, it } from 'vitest';
 import { DialogueSystem } from '../src/sim/mind/dialogue';
 import { Simulation } from '../src/sim/mind/agent';
@@ -19,7 +21,7 @@ describe('existing core simulation', () => {
       const dt = 0.05; const worldDt = world.clock.advance(dt); world.physicalTime += dt; sim.step(dt, worldDt);
     }
 
-    const active = world.persons().filter(person => person.alive && !person.controlled);
+    const active = world.persons().filter(person => person.alive && !isExternallyControlled(person));
     expect(active.length).toBeGreaterThan(25);
     expect(active.every(person => person.mind.goal && person.mind.decision)).toBe(true);
     expect(garrick.mind.goal?.type).toBe('work');
@@ -88,6 +90,7 @@ describe('existing core simulation', () => {
     const player = addPerson(tw, 'the Traveler', 'traveler', v(3.5, 1, 3.5), { controlled: true });
     const guard = addPerson(tw, 'Guard', 'guard', v(4.5, 1, 3.5));
     const victim = addPerson(tw, 'Tomas Reed', 'apprentice', v(5.5, 1, 3.5));
+    introduce(tw.world, victim, guard);
     learn(tw.world, guard, { key: 'ev:crime', kind: 'event', claim: { eventId: 'crime', type: 'attack', actor: player.id, target: victim.id, significance: 0.7 }, confidence: 0.8, source: { type: 'told', from: victim.id }, hops: 1 }, true);
     remember(tw.world, guard, { type: 'told', summary: `${victim.name} told me the Traveler attacked him`, eventId: 'crime', entities: [player.id, victim.id], significance: 0.7, source: { type: 'told', from: victim.id } }, true);
     adjustRel(tw.world, guard, player.id, { trust: -0.6, grudge: 0.5 }, 'credible report', undefined, true);

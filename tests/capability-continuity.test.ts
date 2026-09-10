@@ -131,8 +131,10 @@ describe('civilizational capability continuity', () => {
     const { world, inventor, mill } = fork();
     const reader = arrangeReader(world, inventor, mill), assembly = world.kernel.assemblies.find(a => a.learned)!;
     const before = assembly.inputJ;
-    expect(operateAssembly(world, reader, assembly, 1).reason).toBe('inaccessible');
-    expect(assembly.inputJ).toBe(before);
+    // Unfamiliar controls are still physically usable; knowledge is not permission.
+    expect(methodsHeld(reader)).toHaveLength(0);
+    expect(operateAssembly(world, reader, assembly, 1).reason).toBe('productive');
+    const afterAttempt = assembly.inputJ; expect(afterAttempt).toBeGreaterThan(before);
     const record = world.items().find(i => i.record)!;
     const action: Action = { type: 'read_record', status: 'pending', data: { recordId: record.id } };
     for (let i = 0; i < 20 && action.status !== 'done'; i++) actOnRecord(world, reader, action, 1);
@@ -142,7 +144,7 @@ describe('civilizational capability continuity', () => {
     expect(operateAssembly(world, reader, assembly, 1).reason).toBe('inaccessible');
     world.primaryBody(reader.id)!.pos = { ...mill.inside }; world.primaryBody(reader.id)!.pose = 'downed';
     expect(operateAssembly(world, reader, assembly, 1).reason).toBe('inaccessible');
-    expect(assembly.inputJ).toBe(before);
+    expect(assembly.inputJ).toBe(afterAttempt);
   });
 
   it('loses exposed writing to ordinary weather while sheltered writing survives', () => {

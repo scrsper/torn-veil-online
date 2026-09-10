@@ -1,3 +1,4 @@
+import { setExternalControl } from '../../sim/runtime/controllers';
 import type { Person, Place } from '../../sim/core/types';
 import type { World } from '../../sim/core/world';
 import { Simulation } from '../../sim/mind/agent';
@@ -54,6 +55,6 @@ export function arrangeReader(world: World, author: Person, place: Place): Perso
   // This acceptance isolates information surviving in writing. An available autonomous author
   // may now teach sooner than a less-developed reader finishes studying; hold their decisions
   // under observer control during this fixture rather than assuming a race always favors print.
-  author.controlled = true;
+  setExternalControl(author, true);
   return reader;
 }

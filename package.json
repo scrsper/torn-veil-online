@@ -34,7 +34,8 @@
     "epoch:accept": "vitest run --config vitest.epoch.config.ts",
     "world:settlements": "tsx src/headless/worldlab/settlementsCli.ts",
     "settlements:accept": "vitest run --config vitest.settlements.config.ts",
-    "individual:demo": "tsx src/headless/individual/cli.ts"
+    "individual:demo": "tsx src/headless/individual/cli.ts",
+    "agency:demo": "tsx src/headless/agency/cli.ts"
   },
   "dependencies": {
     "three": "^0.170.0",

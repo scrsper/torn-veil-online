@@ -1,3 +1,5 @@
+import { GameSim } from './sim/runtime/gameSim';
+import { KnowledgePanel } from './game/ui/knowledge';
 import * as THREE from 'three';
 import { World } from './sim/core/world';
 import { Simulation } from './sim/mind/agent';
@@ -53,6 +55,7 @@ async function boot(fresh: boolean): Promise<void> {
 
 class Game {
   renderer: THREE.WebGLRenderer; scene = new THREE.Scene(); camera: THREE.PerspectiveCamera; sim: Simulation; voxels: VoxelRenderer; atmo: Atmosphere; actors: ActorRenderer; ctrl: PlayerController; inter: Interaction; hud: HUD; dialogue: DialogueUI; feed: EventFeed; inspector: Inspector; observer: Observer; inventory: InventoryUI; audio = new AudioSys(); construction: ConstructionRenderer; extractionEffects: ExtractionEffectsController;
+  playerSession: GameSim; knowledgePanel: KnowledgePanel;
   modeBadge = document.getElementById('modebadge')!;
   speedMult = 1; paused = false; lastFrame = performance.now(); autosaveTimer = 0; followId: string | null = null; hitParticles: { m: THREE.Mesh; v: THREE.Vector3; life: number }[] = [];
   // v0.2 Part 18: automatic play-session logging — no manual "press F8" step. `sessionId` names
@@ -64,6 +67,8 @@ class Game {
     this.camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.1, 500);
     window.addEventListener('resize', () => { this.camera.aspect = innerWidth / innerHeight; this.camera.updateProjectionMatrix(); this.renderer.setSize(innerWidth, innerHeight); });
     this.sim = new Simulation(world);
+    this.playerSession = new GameSim(this.sim); this.playerSession.attach('local', world.playerId!);
+    this.knowledgePanel = new KnowledgePanel(this.playerSession);
     this.telemetryRecorder = new TelemetryRecorder(world, [this.telemetry]);
     this.telemetryRecorder.runStart({ seed: world.seed, mode: 'browser', sessionId: this.sessionId });
     this.voxels = new VoxelRenderer(world.grid); this.voxels.buildAll(); this.scene.add(this.voxels.group);
@@ -80,7 +85,7 @@ class Game {
     // R on a person goes straight to their wares — the "select a person → Trade" step the
     // milestone asks for, reaching the same dialogue state the Trade option does.
     this.inter.onTrade = (p) => { if (!p.alive) return; this.openDialogue(p, 'trade'); };
-    this.inter.onInspect = (p) => { this.inspector.toggle(true); this.inspector.select(p.id); this.hud.selected = p.id; };
+    this.inter.onInspect = (p) => this.knowledgePanel.show(p.id);
     this.inter.onSwing = () => this.audio.sfx('swing'); this.inter.onPickup = () => this.audio.sfx('pickup');
     this.ctrl.onStep = () => this.audio.sfx('step');
     this.sim.onHit = (b, pos) => { this.audio.sfx(b.ownerId === world.playerId ? 'hurt' : 'hit'); this.spawnHitParticles(pos); };

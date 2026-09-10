@@ -1,3 +1,4 @@
+import { isExternallyControlled } from '../runtime/controllers';
 import type { CognitiveLOD, Person } from './types';
 import { World } from './world';
 
@@ -62,7 +63,7 @@ export function rebalanceCognitiveLOD(world: World, significance: Map<string, nu
   for (const c of world.conflicts) if (c.status === 'active' || c.status === 'disengaging') for (const id of c.participants) inConflict.add(id);
   let fullCount = 0, lightweightCount = 0;
   for (const p of world.livingPersons()) {
-    if (p.controlled) continue;
+    if (isExternallyControlled(p)) continue;
     const pos = world.positionOf(p.id);
     const near = !!playerPos && !!pos && world.distance2d(playerPos, pos) <= nearRadius;
     const significant = (significance.get(p.id) ?? 0) >= significanceFloor;

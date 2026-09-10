@@ -128,7 +128,7 @@ export function tradeReadiness(p: Person, skill: SkillId): { value: number; own:
  * they are stated once here rather than scattered through `think()`.
  */
 export function standInCandidacy(world: World, p: Person, post: TradePost): StandInCandidacy | null {
-  if (p.controlled || p.hostile) return null;
+  if (p.hostile) return null;
   // Fitness first, and through the SAME call that decided the post was under-served — so a person
   // who is dead, downed, badly hurt, held, or spent is never a candidate, and "cannot work" means
   // exactly one thing in this milestone.
@@ -236,7 +236,6 @@ export function standInCandidacy(world: World, p: Person, post: TradePost): Stan
 export function peopleAwareOfShortage(world: World): Set<EntityId> {
   const out = new Set<EntityId>();
   for (const p of world.livingPersons()) {
-    if (p.controlled) continue;
     let aware = false;
     for (const c of p.mind.concerns ?? []) {
       if (c.status === 'active' && (c.kind === 'supply' || c.kind === 'work')) { aware = true; break; }

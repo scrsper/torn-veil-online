@@ -40,7 +40,7 @@ export function resolveRobberyCompliance(world: World, victim: Person, bandit: P
   const resistWill = clamp(
     victim.traits.courage * 0.55 + victim.traits.aggression * 0.25
     + (armed ? 0.25 : 0) + (healthy - 0.5) * 0.2 + (dutyBound ? 0.55 : 0)
-    - bandit.traits.aggression * 0.05,
+    - (victim.relationships[bandit.id]?.fear ?? 0) * 0.05,
   );
   return world.rng.next() >= resistWill;
 }

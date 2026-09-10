@@ -1,3 +1,4 @@
+import { isExternallyControlled } from '../../sim/runtime/controllers';
 import * as THREE from 'three';
 import type { World } from '../../sim/core/world';
 import type { Body, Person, Creature, Appearance, Item } from '../../sim/core/types';
@@ -153,7 +154,7 @@ export class ActorRenderer {
       if (b.shape === 'humanoid') {
         const p = owner as Person; let h = this.humans.get(b.id);
         if (!h) { h = new Humanoid(p.appearance); this.humans.set(b.id, h); this.group.add(h.root); h.root.userData.bodyId = b.id; }
-        h.root.visible = !(hidePlayerBody && p.controlled);
+        h.root.visible = !(hidePlayerBody && p.id === this.world.playerId);
         // Canonical facing is `(-sin yaw, -cos yaw)` (the convention perception + combat use —
         // see Simulation.perceive / followPath). This voxel mesh's "front" (eyes, held item) is
         // its local +Z, which `rotation.y = yaw` alone would point the OTHER way — the cause of

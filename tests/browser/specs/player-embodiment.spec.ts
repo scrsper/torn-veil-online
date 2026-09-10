@@ -28,7 +28,7 @@ export const playerEmbodiment: BrowserSpec = {
       found = await page.evaluate(() => {
         const g = (window as any).game; const w = g.world;
         for (const p of w.persons()) {
-          if (!p.alive || p.controlled) continue;
+          if (!p.alive || (p.id === w.playerId)) continue;
           const offers = g.sim.haulOffersFrom(p);
           if (offers.length) { const o = offers[0]; return { npcId: p.id, taskId: o.task.id, src: o.source.inside, dst: o.destination.inside, reward: o.request.reward }; }
         }

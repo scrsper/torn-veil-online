@@ -1,3 +1,4 @@
+import { knownName, perceivedName } from '../mind/people';
 import type { EntityId, Item, Person, Place } from './types';
 import type { World } from './world';
 import { RESOURCE_CATEGORY, isFood, ITEM_LABEL } from '../world/factory';
@@ -99,7 +100,7 @@ export function actionsForWorldItem(world: World, viewer: Person, it: Item): Pla
       out.push({
         kind: 'buy', price, ownerId: seller.id,
         label: it.quantity > 1 ? `Buy one ${it.type} — ${price}s` : `Buy ${label} — ${price}s`,
-        detail: affordable ? `from ${seller.name}` : `from ${seller.name} · you have ${viewer.wealth} silver`,
+        detail: affordable ? `from ${knownName(viewer, seller.id)}` : `from ${knownName(viewer, seller.id)} · you have ${viewer.wealth} silver`,
       });
     } else {
       out.push({ kind: 'inspect', label: `Not for sale`, detail: willing.note });
@@ -110,9 +111,9 @@ export function actionsForWorldItem(world: World, viewer: Person, it: Item): Pla
   // theft — they asked for it back, and this person actually heard them ask (v0.8 §1A).
   const wanted = viewer.knowledge[`wanted:${it.id}`];
   if (wanted && wanted.claim.requesterId === it.ownerId) {
-    out.push({ kind: 'recover', label: `Pick up ${label} for ${world.nameOf(it.ownerId)}`, detail: 'they asked you to find it', ownerId: it.ownerId ?? undefined });
+    out.push({ kind: 'recover', label: `Pick up ${label} for ${perceivedName(world, viewer, it.ownerId)}`, detail: 'they asked you to find it', ownerId: it.ownerId ?? undefined });
   } else if (knowsOwnerOf(viewer, it) || display) {
-    const owner = world.nameOf(display ? display.seller.id : it.ownerId!);
+    const owner = perceivedName(world, viewer, display ? display.seller.id : it.ownerId!);
     out.push({ kind: 'steal', label: `Take ${label}${qty} anyway`, detail: `it belongs to ${owner} — this is theft`, ownerId: it.ownerId ?? undefined, grave: true });
   } else {
     // They genuinely do not know whose it is. The action is still available and still canonically
@@ -138,7 +139,7 @@ export function actionsForCarriedItem(world: World, holder: Person, it: Item, ne
     });
   }
   if (nearby && nearby.alive && nearby.id !== holder.id) {
-    out.push({ kind: 'give', label: `Give to ${nearby.name}`, detail: it.ownerId && it.ownerId !== holder.id ? `note: this is ${world.nameOf(it.ownerId)}'s` : undefined });
+    out.push({ kind: 'give', label: `Give to ${knownName(holder, nearby.id)}`, detail: it.ownerId && it.ownerId !== holder.id ? `note: this is ${perceivedName(world, holder, it.ownerId)}'s` : undefined });
   }
   out.push({ kind: 'drop', label: it.haulTaskId ? `Set down — gives up the haul` : `Drop ${label}`, detail: it.haulTaskId ? 'this is cargo you took on' : undefined, grave: !!it.haulTaskId });
   out.push(...inspectAction(holder, it));
@@ -171,21 +172,21 @@ export function actionsForPerson(world: World, viewer: Person, other: Person, ca
   const out: PlayerAction[] = [];
   const body = world.primaryBody(other.id);
   if (!other.alive || body?.dead) {
-    out.push({ kind: 'take', label: `Search ${other.name}`, detail: 'they are dead' });
+    out.push({ kind: 'take', label: `Search ${knownName(viewer, other.id)}`, detail: 'they are dead' });
     out.push({ kind: 'inspect', label: 'Look closer' });
     return out;
   }
   if (body?.pose === 'sleep') {
-    out.push({ kind: 'inspect', label: `${other.name} is asleep` });
+    out.push({ kind: 'inspect', label: `${knownName(viewer, other.id)} is asleep` });
     return out;
   }
-  out.push({ kind: 'talk', label: `Talk to ${other.name}`, detail: other.occupation });
+  out.push({ kind: 'talk', label: `Talk to ${knownName(viewer, other.id)}`, detail: 'speak with this person' });
   // Trade appears only when they would actually sell this person something — the same offer list
   // the dialogue renders, so the prompt cannot promise a menu that turns out to be empty.
   if (hasAnythingToSell(world, other, viewer)) out.push({ kind: 'trade', label: 'Trade', detail: 'see what they have' });
   if (carrying.length) out.push({ kind: 'give', label: 'Give something', detail: `${carrying.length} thing${carrying.length === 1 ? '' : 's'} to hand` });
   out.push({ kind: 'inspect', label: 'Look closer' });
-  out.push({ kind: 'attack', label: `Attack ${other.name}`, grave: true });
+  out.push({ kind: 'attack', label: `Attack ${knownName(viewer, other.id)}`, grave: true });
   return out;
 }
 
@@ -207,7 +208,7 @@ export function describeCarried(world: World, holder: Person, it: Item): string[
   const lines: string[] = [];
   lines.push(RESOURCE_CATEGORY[it.type]);
   if (it.quantity > 1) lines.push(`${it.quantity} of them`);
-  if (it.ownerId && it.ownerId !== holder.id) lines.push(knowsOwnerOf(holder, it) ? `belongs to ${world.nameOf(it.ownerId)}` : 'not yours');
+  if (it.ownerId && it.ownerId !== holder.id) lines.push(knowsOwnerOf(holder, it) ? `belongs to ${perceivedName(world, holder, it.ownerId)}` : 'not yours');
   if ((TOOL_KINDS as string[]).includes(it.type) && it.condition !== undefined) {
     const c = it.condition;
     lines.push(`condition ${Math.round(c * 100)}%${c < 0.35 ? ' — worn' : ''}`);

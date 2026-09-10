@@ -1,3 +1,4 @@
+import { introduce, knownName, perceivedName } from './people';
 import type { Person, KnowledgeItem, Item, Desire } from '../core/types';
 import { World } from '../core/world';
 import { Simulation } from './agent';
@@ -44,9 +45,9 @@ export class DialogueSystem {
     const lines: string[] = [];
     if (body?.pose === 'downed') lines.push(`*${npc.name} groans on the ground.* ...leave me be...`);
     else if (npc.hostile) lines.push(r.fear > 0.5 ? `Stay back. I've seen what you can do.` : `You've walked a long way to get robbed, friend. Turn out your purse.`);
-    else if (crimes.length && (npc.occupation === 'guard' || npc.occupation === 'captain')) { const k = crimes[0]; lines.push(`${k.source.type === 'told' ? `${w.nameOf(k.source.from)} told me` : 'I know'} what you did to ${w.nameOf(k.claim.target)}. Don't think I've forgotten.`); }
+    else if (crimes.length && (npc.occupation === 'guard' || npc.occupation === 'captain')) { const k = crimes[0]; lines.push(`${k.source.type === 'told' ? `${perceivedName(w, npc, k.source.from)} told me` : 'I know'} what you did to ${perceivedName(w, npc, k.claim.target)}. Don't think I've forgotten.`); }
     else if (r.fear > 0.5) lines.push(`*${this.first(npc)} backs away.* Please. I don't want any trouble.`);
-    else if (r.grudge > 0.5) lines.push(`You have some nerve speaking to me${crimes.length ? ` after what you did to ${w.nameOf(crimes[0].claim.target)}` : ''}.`);
+    else if (r.grudge > 0.5) lines.push(`You have some nerve speaking to me${crimes.length ? ` after what you did to ${perceivedName(w, npc, crimes[0].claim.target)}` : ''}.`);
     else if (r.affection > 0.5) lines.push(`${this.first(npc) === 'Cedric' ? 'Friend' : 'Ah'}, it's you. Good to see you.`);
     else if (r.familiarity < 0.15) lines.push(this.strangerGreeting(npc));
     else lines.push(this.familiarGreeting(npc));
@@ -92,11 +93,11 @@ export class DialogueSystem {
     if (g?.type === 'mourn') {
       const grief = activeConcerns(npc).filter(c => c.kind === 'grief' && c.subjectId).sort((a, b) => b.intensity - a.intensity)[0];
       return grief?.subjectId
-        ? `*${this.first(npc)} does not look up from the grave.* ...${w.nameOf(grief.subjectId)}.`
+        ? `*${this.first(npc)} does not look up from the grave.* ...${perceivedName(w, npc, grief.subjectId)}.`
         : `*${this.first(npc)} does not look up from the grave.*`;
     }
     // v0.9 §B: a person who has just walked across the village out of worry says so.
-    if (g?.type === 'check_on' && g.targetEntity) return `Not now — I'm going to find ${w.nameOf(g.targetEntity)}.`;
+    if (g?.type === 'check_on' && g.targetEntity) return `Not now — I'm going to find ${perceivedName(w, npc, g.targetEntity)}.`;
     return `${this.first(npc) ? 'Traveler.' : ''} What can I do for you?`.trim() || `What can I do for you?`;
   }
 
@@ -106,7 +107,8 @@ export class DialogueSystem {
     const hostileNow = npc.hostile && rel.fear < 0.5;
     if (hostileNow) { opts.push({ label: 'I don\'t think so.', next: () => { this.sim.say(npc, 'Then we do it the hard way.'); npc.mind.alarm = 1; getRel(npc, player.id).grudge = 1; return null; } }); opts.push({ label: 'Leave', next: () => null }); return opts; }
     opts.push({ label: "What's the news?", next: () => this.news(npc, player) });
-    opts.push({ label: 'Who are you?', next: () => ({ speaker: npc, lines: [this.identity(npc)], options: this.options(npc, player) }) });
+    opts.push({ label: 'Who are you?', next: () => { introduce(w, npc, player); return { speaker: npc, lines: [this.identity(npc)], options: this.options(npc, player) }; } });
+    if (!npc.knowledge['identity:' + player.id]) opts.push({ label: 'Introduce yourself', next: () => { introduce(w, player, npc); return { speaker: npc, lines: ['Good to meet you.'], options: this.options(npc, player) }; } });
     opts.push({ label: 'What do you think of me?', next: () => ({ speaker: npc, lines: [this.opinionOfPlayer(npc, player)], options: this.options(npc, player) }) });
     if (activeConcerns(npc).some(c => c.intensity > 0.15)) opts.push({ label: "What's troubling you?", next: () => this.troubles(npc, player) });
     opts.push({ label: 'Ask about someone…', next: () => this.askAboutMenu(npc, player) });
@@ -130,7 +132,7 @@ export class DialogueSystem {
     const debt = npc.desires.find(d => d.type === 'collect_debt' && !d.fulfilled);
     const owed = debt ? this.debtOwedTo(npc, debt) : null;
     if (debt && owed && player.wealth >= owed.amount) {
-      opts.push({ label: `Pay ${w.nameOf(owed.debtorId).split(' ')[0]}'s ${owed.amount} silver for them`, next: () => this.payDebt(npc, player, debt, owed) });
+      opts.push({ label: `Pay ${perceivedName(w, npc, owed.debtorId)}'s ${owed.amount} silver for them`, next: () => this.payDebt(npc, player, debt, owed) });
     }
     if (player.inventory.length) opts.push({ label: 'Give something…', next: () => this.giveMenu(npc, player) });
     const known = Object.values(player.knowledge).filter(k => k.kind === 'event' && !k.sharedWith.includes(npc.id) && !npc.knowledge[k.key]);
@@ -161,7 +163,7 @@ export class DialogueSystem {
   }
   private askAboutItemMenu(npc: Person, player: Person, wantedItems: KnowledgeItem[]): DialogueState {
     const w = this.world;
-    const opts: DialogueOption[] = wantedItems.map(k => ({ label: w.nameOf(k.claim.itemId), next: () => ({ speaker: npc, lines: [this.aboutItem(npc, k.claim.itemId, k.claim.requesterId)], options: this.options(npc, player) }) }));
+    const opts: DialogueOption[] = wantedItems.map(k => ({ label: perceivedName(w, npc, k.claim.itemId), next: () => ({ speaker: npc, lines: [this.aboutItem(npc, k.claim.itemId, k.claim.requesterId)], options: this.options(npc, player) }) }));
     opts.push({ label: 'Never mind', next: () => ({ speaker: npc, lines: ['Ask away.'], options: this.options(npc, player) }) });
     return { speaker: npc, lines: ['Which one?'], options: opts };
   }
@@ -173,18 +175,18 @@ export class DialogueSystem {
    */
   private aboutItem(npc: Person, itemId: string, requesterId: string): string {
     const w = this.world; const item = w.item(itemId);
-    const requesterName = w.nameOf(requesterId);
+    const requesterName = perceivedName(w, npc, requesterId);
     if (!item) return `I couldn't tell you. Ask ${requesterName}, maybe.`;
     const loc = npc.knowledge[`loc:${itemId}`];
-    if (!loc) return `I've heard ${requesterName} is missing ${w.nameOf(itemId)}, but I couldn't say where it ended up.`;
-    const where = loc.claim.placeId ? w.nameOf(loc.claim.placeId) : loc.claim.pos ? 'nearby' : 'somewhere';
-    const src = loc.source.type === 'witnessed' ? 'I saw it there myself' : loc.source.type === 'heard' ? 'so I heard' : loc.source.from ? `${w.nameOf(loc.source.from)} told me` : 'so they say';
+    if (!loc) return `I've heard ${requesterName} is missing ${perceivedName(w, npc, itemId)}, but I couldn't say where it ended up.`;
+    const where = loc.claim.placeId ? perceivedName(w, npc, loc.claim.placeId) : loc.claim.pos ? 'nearby' : 'somewhere';
+    const src = loc.source.type === 'witnessed' ? 'I saw it there myself' : loc.source.type === 'heard' ? 'so I heard' : loc.source.from ? `${perceivedName(w, npc, loc.source.from)} told me` : 'so they say';
     const age = formatRelativeTime(loc.learnedAt, w.now);
-    return `${w.nameOf(itemId)}? Last I know of it, it was at ${where}, ${age}. ${src}.`;
+    return `${perceivedName(w, npc, itemId)}? Last I know of it, it was at ${where}, ${age}. ${src}.`;
   }
   private identity(npc: Person): string {
-    const w = this.world; const home = w.nameOf(npc.homeId); const work = npc.workId ? w.nameOf(npc.workId) : null;
-    const fam = Object.entries(npc.relationships).filter(([, r]) => r.tags.some(t => ['spouse', 'child', 'parent'].includes(t))).map(([id, r]) => `${w.nameOf(id)} (my ${r.tags.find(t => ['spouse', 'child', 'parent'].includes(t))})`);
+    const w = this.world; const home = perceivedName(w, npc, npc.homeId); const work = npc.workId ? perceivedName(w, npc, npc.workId) : null;
+    const fam = Object.entries(npc.relationships).filter(([, r]) => r.tags.some(t => ['spouse', 'child', 'parent'].includes(t))).map(([id, r]) => `${perceivedName(w, npc, id)} (my ${r.tags.find(t => ['spouse', 'child', 'parent'].includes(t))})`);
     return `I'm ${npc.name}${npc.title ? ', ' + npc.title : ''}, ${npc.age} years, the ${npc.occupation} here. I live at ${home}${work ? ` and work at ${work}` : ''}.${fam.length ? ` My family: ${fam.join(', ')}.` : ''} ${npc.bio}`;
   }
   private opinionOfPlayer(npc: Person, player: Person): string {
@@ -211,7 +213,7 @@ export class DialogueSystem {
       const k = topic.k;
       lines.push(realizeTopic(w, npc, topic));
       k.sharedWith.push(player.id);
-      learn(w, player, { key: k.key, kind: k.kind, claim: { ...k.claim }, confidence: k.confidence * 0.8, source: { type: 'told', from: npc.id }, hops: k.hops + 1, summary: describeClaim(w, k) }, true);
+      learn(w, player, { key: k.key, kind: k.kind, claim: { ...k.claim }, confidence: k.confidence * 0.8, source: { type: 'told', from: npc.id }, hops: k.hops + 1, summary: describeClaim(w, k, npc) }, true);
       // The supporting facts the NPC actually said out loud travel to the player as well, with
       // their own provenance — otherwise the player hears a claim they cannot then repeat or act
       // on, which is exactly the "dialogue-only knowledge" the Constitution forbids.
@@ -220,7 +222,7 @@ export class DialogueSystem {
         s.sharedWith.push(player.id);
         learn(w, player, { key: s.key, kind: s.kind, claim: { ...s.claim }, confidence: s.confidence * 0.8, source: { type: 'told', from: npc.id }, hops: s.hops + 1, summary: describeClaim(w, s) }, true);
       }
-      w.emit('told', { actor: npc.id, target: player.id, pos: w.primaryBody(npc.id)?.pos, significance: 0.2, data: { key: k.key, score: Math.round(topic.score * 100) / 100, reasons: topic.reasons }, summary: `${npc.name} told the Traveler: "${describeClaim(w, k)}"` });
+      w.emit('told', { actor: npc.id, target: player.id, pos: w.primaryBody(npc.id)?.pos, significance: 0.2, data: { key: k.key, score: Math.round(topic.score * 100) / 100, reasons: topic.reasons }, summary: `${npc.name} told the Traveler: "${describeClaim(w, k, npc)}"` });
     }
     return { speaker: npc, lines, options: this.options(npc, player) };
   }
@@ -246,13 +248,13 @@ export class DialogueSystem {
   }
   private askAboutMenu(npc: Person, player: Person): DialogueState {
     const w = this.world; const known = Object.entries(npc.relationships).filter(([id, r]) => r.familiarity > 0.1 && id !== player.id && w.person(id)).sort((a, b) => Math.abs(disposition(npc, b[0])) - Math.abs(disposition(npc, a[0]))).slice(0, 12);
-    const opts: DialogueOption[] = known.map(([id]) => ({ label: w.nameOf(id), next: () => ({ speaker: npc, lines: [this.about(npc, id)], options: this.options(npc, player) }) }));
+    const opts: DialogueOption[] = known.map(([id]) => ({ label: knownName(player, id), next: () => ({ speaker: npc, lines: [this.about(npc, id)], options: this.options(npc, player) }) }));
     opts.push({ label: 'Never mind', next: () => ({ speaker: npc, lines: ['Ask away.'], options: this.options(npc, player) }) });
     return { speaker: npc, lines: ['Who do you want to know about?'], options: opts };
   }
   private about(npc: Person, id: string): string {
     const w = this.world; const o = w.person(id)!; const r = getRel(npc, id); const facts = Object.values(npc.knowledge).filter(k => k.kind === 'event' && (k.claim.actor === id || k.claim.target === id)).sort((a, b) => (b.claim.significance ?? 0) - (a.claim.significance ?? 0)).slice(0, 2);
-    let s = `${o.name}? ${o.alive ? `The ${o.occupation}.` : `Dead, gods rest ${o.gender === 'f' ? 'her' : 'him'}.`} `;
+    let s = `${knownName(npc, id)}? `;
     if (r.tags.length) s += `${o.gender === 'f' ? 'She' : 'He'}'s my ${r.tags.filter(t => t !== 'employer' && t !== 'employee').join(' and ') || r.tags[0]}. `;
     const d = disposition(npc, id); s += d > 0.5 ? `I'd trust ${o.gender === 'f' ? 'her' : 'him'} with my life. ` : d > 0.2 ? `Good sort. ` : d < -0.4 ? `Don't get me started. ` : d < -0.1 ? `We don't get on. ` : ``;
     if (r.fear > 0.4) s += `Frightens me, truth be told. `;
@@ -273,7 +275,7 @@ export class DialogueSystem {
     // A first-hand belief about their physical state, if this speaker has one.
     const state = npc.knowledge[`state:${id}`];
     if (state && w.now - state.learnedAt < 86400 * 2 && state.claim.state !== 'unharmed') s += ` ${state.claim.text}, last I saw ${o.gender === 'f' ? 'her' : 'him'}.`;
-    const loc = npc.knowledge[`loc:${id}`]; if (loc && w.now - loc.learnedAt < 3600 * 3) s += ` Last I saw ${o.gender === 'f' ? 'her' : 'him'} ${loc.claim.placeId ? 'at ' + w.nameOf(loc.claim.placeId) : 'about'}, ${formatRelativeTime(loc.learnedAt, w.now)}.`;
+    const loc = npc.knowledge[`loc:${id}`]; if (loc && w.now - loc.learnedAt < 3600 * 3) s += ` Last I saw ${o.gender === 'f' ? 'her' : 'him'} ${loc.claim.placeId ? 'at ' + perceivedName(w, npc, loc.claim.placeId) : 'about'}, ${formatRelativeTime(loc.learnedAt, w.now)}.`;
     return s;
   }
   /**
@@ -349,7 +351,7 @@ export class DialogueSystem {
     const w = this.world; const mine = this.sim.activeHaulFor(player);
     if (mine) {
       const carrying = mine.carried > 0;
-      return { speaker: npc, lines: [`You've already taken on carrying ${mine.resource} to ${w.nameOf(mine.destPlaceId)}. ${carrying ? 'Get it there first.' : `Fetch it from ${w.nameOf(mine.sourcePlaceId)} first.`}`], options: this.options(npc, player) };
+      return { speaker: npc, lines: [`You've already taken on carrying ${mine.resource} to ${perceivedName(w, npc, mine.destPlaceId)}. ${carrying ? 'Get it there first.' : `Fetch it from ${perceivedName(w, npc, mine.sourcePlaceId)} first.`}`], options: this.options(npc, player) };
     }
     if (!canAcceptHaul(player)) return { speaker: npc, lines: ['Not for the likes of you, not today.'], options: this.options(npc, player) };
     const offers = this.sim.haulOffersFrom(npc);
@@ -358,7 +360,7 @@ export class DialogueSystem {
       label: `Carry ${o.task.quantity} ${o.task.resource} from ${o.source.name} to ${o.destination.name} (${o.request.reward}s)`,
       next: () => {
         if (!this.sim.acceptHaul(player, o.task)) return { speaker: npc, lines: ['Someone else has it in hand.'], options: this.options(npc, player) };
-        return { speaker: npc, lines: [`Good. ${o.task.reason.charAt(0).toUpperCase() + o.task.reason.slice(1)}. Fetch it from ${o.source.name}, bring it to ${o.destination.name}, and ${w.nameOf(o.request.requesterId) === npc.name ? "I'll" : `${w.nameOf(o.request.requesterId)} will`} pay ${o.request.reward} silver when it's all there.`], options: this.options(npc, player) };
+        return { speaker: npc, lines: [`Good. ${o.task.reason.charAt(0).toUpperCase() + o.task.reason.slice(1)}. Fetch it from ${o.source.name}, bring it to ${o.destination.name}, and ${perceivedName(w, npc, o.request.requesterId) === npc.name ? "I'll" : `${perceivedName(w, npc, o.request.requesterId)} will`} pay ${o.request.reward} silver when it's all there.`], options: this.options(npc, player) };
       },
     }));
     opts.push({ label: 'Not today', next: () => ({ speaker: npc, lines: ['Suit yourself.'], options: this.options(npc, player) }) });
@@ -390,13 +392,13 @@ export class DialogueSystem {
     const w = this.world;
     if (player.wealth < owed.amount) return { speaker: npc, lines: [`You haven't ${owed.amount} silver on you.`], options: this.options(npc, player) };
     player.wealth -= owed.amount; npc.wealth += owed.amount; debt.fulfilled = true;
-    const debtor = w.nameOf(owed.debtorId);
+    const debtor = perceivedName(w, npc, owed.debtorId);
     // `onBehalfOf` names whose obligation this discharged — without it the settlement could not
     // be matched to the ongoing matter it settles (social/situation.ts's 'pair_or_behalf'), since
     // the person handing over the coin is not the person who owed it.
     const ev = w.emit('debt_paid', { actor: player.id, target: npc.id, pos: w.primaryBody(npc.id)?.pos, significance: 0.5, visibility: 10, data: { onBehalfOf: owed.debtorId, amount: owed.amount }, summary: `the Traveler paid ${npc.name} the ${owed.amount} silver ${debtor} owed` });
     adjustRel(w, npc, player.id, { affection: 0.4, trust: 0.4, respect: 0.2 }, 'paid a debt', ev.id);
-    return { speaker: npc, lines: [`Well! ${owed.amount} silver, counted. I'll not forget this. ${debtor.split(' ')[0]} can keep his miserable hide.`], options: this.options(npc, player) };
+    return { speaker: npc, lines: [`Well! ${owed.amount} silver, counted. I'll not forget this. ${debtor} can keep his miserable hide.`], options: this.options(npc, player) };
   }
   private giveMenu(npc: Person, player: Person): DialogueState {
     const w = this.world;
@@ -409,7 +411,7 @@ export class DialogueSystem {
   }
   private tellMenu(npc: Person, player: Person): DialogueState {
     const w = this.world; const known = Object.values(player.knowledge).filter(k => k.kind === 'event' && !k.sharedWith.includes(npc.id) && !npc.knowledge[k.key]).sort((a, b) => b.learnedAt - a.learnedAt).slice(0, 8);
-    const opts: DialogueOption[] = known.map(k => ({ label: describeClaim(w, k), next: () => { this.sim.tell(player, npc, k); return { speaker: npc, lines: [npc.speech?.text ?? (isCrime(k.claim.type, k.claim.intent) ? 'Is that so...' : 'Hm.')], options: this.options(npc, player) }; } }));
+    const opts: DialogueOption[] = known.map(k => ({ label: describeClaim(w, k, npc), next: () => { this.sim.tell(player, npc, k); return { speaker: npc, lines: [npc.speech?.text ?? (isCrime(k.claim.type, k.claim.intent) ? 'Is that so...' : 'Hm.')], options: this.options(npc, player) }; } }));
     opts.push({ label: 'Never mind', next: () => ({ speaker: npc, lines: ['Go on then.'], options: this.options(npc, player) }) });
     return { speaker: npc, lines: ['What is it?'], options: opts };
   }

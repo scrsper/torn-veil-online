@@ -1,3 +1,4 @@
+import { setExternalControl } from '../src/sim/runtime/controllers';
 import { describe, expect, it } from 'vitest';
 import { addPerson, createTestWorld, v, step } from './helpers/world';
 import { makeItem, makePlace } from '../src/sim/world/factory';
@@ -34,7 +35,7 @@ describe('household provisioning',()=>{
   it('brings owned surplus food home from work without needing a purchase or money',()=>{
     const tw=family(), {world,parent}=tw;
     const work=makePlace(world,'wilderness','Gathering ground',{x0:12,z0:12,x1:17,z1:17,y0:1,y1:4},{inside:v(14,1,14)});
-    observeHome(world,parent); parent.controlled=false; parent.schedule=[]; parent.mind.thinkInterval=0.25; parent.wealth=0;
+    observeHome(world,parent); setExternalControl(parent, false); parent.schedule=[]; parent.mind.thinkInterval=0.25; parent.wealth=0;
     world.primaryBody(parent.id)!.pos={...work.inside};
     const stock=makeItem(world,'meat','catch',{owner:parent.id,placeId:work.id,pos:work.inside,quantity:6});
     stock.createdAt=world.now-86400;
@@ -62,7 +63,7 @@ describe('household provisioning',()=>{
 
   it('an ordinary goal buys food and carries it home for dependants before the shopper is hungry',()=>{
     const tw=family(), {world,parent,home}=tw, tavern=world.place(tw.places.tavern)!;
-    parent.controlled=false; parent.mind.thinkInterval=0.25; parent.schedule=[]; parent.wealth=30;
+    setExternalControl(parent, false); parent.mind.thinkInterval=0.25; parent.schedule=[]; parent.wealth=30;
     const seller=addPerson(tw,'Seller','innkeeper',tavern.inside,{controlled:true,workId:tavern.id});
     addPlaceStock(world,'bread',20,tavern.id,seller.id,undefined,'seeded'); learnPlace(world,parent,tavern,{type:'prior'});
     observeHome(world,parent); step(tw,60);

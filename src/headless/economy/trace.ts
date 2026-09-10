@@ -1,3 +1,4 @@
+import { isExternallyControlled } from '../../sim/runtime/controllers';
 import type { World } from '../../sim/core/world';
 import { SECONDS_PER_DAY } from '../../sim/core/time';
 import { isFood } from '../../sim/world/factory';
@@ -9,7 +10,7 @@ import { canonicalStateHash } from '../benchmarkReport';
 
 /** Read-only diagnostics. These totals never feed back into prices or agents' beliefs. */
 export function economyObservation(world: World, day: number) {
-  const people = world.livingPersons().filter(p => !p.controlled);
+  const people = world.livingPersons().filter(p => !isExternallyControlled(p));
   const energies = people.map(p => p.physiology.energy).sort((a,b) => a-b);
   const wallets = world.persons().reduce((n,p)=>n+p.wealth,0);
   const purses = world.households().reduce((n,h)=>n+h.wealth,0);

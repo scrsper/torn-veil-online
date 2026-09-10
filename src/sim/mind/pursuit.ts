@@ -146,7 +146,7 @@ export function pursuitIdentity(kind: PursuitKind, subjectId?: EntityId, itemId?
  * loop with a new name.
  */
 export function formPursuits(world: World, p: Person): Pursuit[] {
-  if (p.controlled || !p.alive) return [];
+  if (!p.alive) return [];
   const formed: Pursuit[] = [];
   const add = (spec: PursuitSpec): void => { const pu = record(world, p, spec); if (pu) formed.push(pu); };
 

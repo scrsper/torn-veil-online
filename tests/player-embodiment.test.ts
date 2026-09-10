@@ -119,7 +119,7 @@ describe('player embodiment — the same haul market', () => {
   it('eligibility: the player passes the shared rule but is never planned for by NPC cognition', () => {
     const { player, baker } = haulWorld(9106);
     expect(canAcceptHaul(player)).toBe(true);
-    expect(canHaul(player)).toBe(false);
+    expect(canHaul(player)).toBe(true); // physical eligibility is controller-independent
     expect(canHaul(baker)).toBe(true);
     expect(canAcceptHaul(baker)).toBe(true);
   });

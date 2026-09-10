@@ -1,3 +1,4 @@
+import { isExternallyControlled } from '../../sim/runtime/controllers';
 import { ATTRIBUTE_IDS, ironEligible } from '../../sim/core/human';
 import type { World } from '../../sim/core/world';
 import type { Person, Relationship, KnowledgeItem, Body } from '../../sim/core/types';
@@ -27,7 +28,7 @@ export class Inspector {
   }
   get open(): boolean { return this.el.classList.contains('open'); }
   toggle(force?: boolean): void { this.el.classList.toggle('open', force); if (this.open) this.render(true); }
-  fillSelect(): void { const cur = this.sel; this.select_.innerHTML = '<option value="">— select a person —</option>' + this.world.persons().filter(p => !p.controlled).sort((a, b) => a.name.localeCompare(b.name)).map(p => `<option value="${p.id}">${p.name}${p.alive ? '' : ' †'}</option>`).join('') + `<option value="${this.world.playerId}">the Traveler (you)</option>`; this.select_.value = cur ?? ''; }
+  fillSelect(): void { const cur = this.sel; this.select_.innerHTML = '<option value="">— select a person —</option>' + this.world.persons().filter(p => !isExternallyControlled(p)).sort((a, b) => a.name.localeCompare(b.name)).map(p => `<option value="${p.id}">${p.name}${p.alive ? '' : ' †'}</option>`).join('') + `<option value="${this.world.playerId}">the Traveler (you)</option>`; this.select_.value = cur ?? ''; }
   select(id: string | null): void { this.sel = id; this.select_.value = id ?? ''; if (this.follow) this.onFollow?.(id); this.render(true); }
   update(): void { if (!this.open) return; const now = performance.now(); if (now - this.lastRender > 400) this.render(false); }
   render(force: boolean): void {
@@ -43,7 +44,7 @@ export class Inspector {
     const w = this.world; const m = p.mind; const g = m.goal; const b = w.primaryBody(p.id);
     const cur = m.plan.find(a => a.status === 'active') ?? m.plan.find(a => a.status === 'pending');
     let s = `<h4>Current goal</h4>`;
-    s += g ? `<div class="kv"><div>goal</div><div><b>${g.type}</b>${g.targetEntity ? ` → <span data-p="${g.targetEntity}" style="cursor:pointer;color:var(--blue)">${w.nameOf(g.targetEntity)}</span>` : ''}${g.targetPlace ? ` @ ${w.nameOf(g.targetPlace)}` : ''} (utility ${g.utility.toFixed(2)})</div><div>reasons</div><div>${g.reasons.filter(Boolean).map(esc).join('<br>')}</div><div>since</div><div>${formatWorldTime(g.createdAt)} (${formatRelativeTime(g.createdAt, w.now)})</div>${g.causeEvent ? `<div>caused by</div><div><span data-ev="${g.causeEvent}" style="cursor:pointer;color:var(--accent)">${esc(w.event(g.causeEvent)?.summary ?? g.causeEvent)}</span></div>` : ''}</div>` : `<div style="color:var(--dim)">none${p.controlled ? ' (player-controlled)' : ''}</div>`;
+    s += g ? `<div class="kv"><div>goal</div><div><b>${g.type}</b>${g.targetEntity ? ` → <span data-p="${g.targetEntity}" style="cursor:pointer;color:var(--blue)">${w.nameOf(g.targetEntity)}</span>` : ''}${g.targetPlace ? ` @ ${w.nameOf(g.targetPlace)}` : ''} (utility ${g.utility.toFixed(2)})</div><div>reasons</div><div>${g.reasons.filter(Boolean).map(esc).join('<br>')}</div><div>since</div><div>${formatWorldTime(g.createdAt)} (${formatRelativeTime(g.createdAt, w.now)})</div>${g.causeEvent ? `<div>caused by</div><div><span data-ev="${g.causeEvent}" style="cursor:pointer;color:var(--accent)">${esc(w.event(g.causeEvent)?.summary ?? g.causeEvent)}</span></div>` : ''}</div>` : `<div style="color:var(--dim)">none${isExternallyControlled(p) ? ' (player-controlled)' : ''}</div>`;
     s += `<h4>Current action</h4>`;
     s += cur ? `<div class="kv"><div>action</div><div><b>${cur.type}</b> ${cur.targetEntity ? '→ ' + w.nameOf(cur.targetEntity) : ''}${cur.placeId ? '@ ' + w.nameOf(cur.placeId) : ''}${cur.pos ? ` to (${Math.round(cur.pos.x)}, ${Math.round(cur.pos.z)})` : ''}${cur.run ? ' (running)' : ''}</div><div>status</div><div>${cur.status}${cur.duration ? `, ${Math.max(0, Math.round((cur.duration - (w.now - (cur.startedAt ?? w.now))) / 60))} min left` : ''}</div><div>pose</div><div>${b?.pose}${b?.path ? ` · path ${b.pathIndex}/${b.path.length}` : ''}</div></div>` : `<div style="color:var(--dim)">none</div>`;
     s += `<h4>Plan</h4><div>${m.plan.map(a => `<span style="opacity:${a.status === 'done' ? 0.4 : 1}">${a.status === 'active' ? '▶ ' : a.status === 'done' ? '✓ ' : a.status === 'failed' ? '✗ ' : '· '}${a.type}${a.targetEntity ? ' ' + w.nameOf(a.targetEntity) : ''}</span>`).join(' &nbsp; ') || '—'}</div>`;

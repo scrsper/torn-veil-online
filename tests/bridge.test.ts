@@ -16,7 +16,7 @@ describe('canonical movement intents', () => {
 
 describe('bridge protocol', () => {
   it('projects the actual cast, expires abandoned input, and rejects replayed packets', () => {
-    const s = new BridgeSession(); const snapshot = s.snapshot();
+    const s = new BridgeSession(); const snapshot = s.developerSnapshot();
     expect(snapshot.bodies.filter(b => b.entityId !== s.world.playerId)).toHaveLength(32);
     const npc = snapshot.bodies.find(b => b.entityId !== s.world.playerId)!;
     expect(npc.name).toBe(s.world.person(npc.entityId)!.name);

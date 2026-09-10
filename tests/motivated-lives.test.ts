@@ -1,3 +1,4 @@
+import { isExternallyControlled } from '../src/sim/runtime/controllers';
 import { describe, expect, it } from 'vitest';
 import { addPerson, createTestWorld, face, step, v } from './helpers/world';
 import { getRel, setRelTags } from '../src/sim/mind/relationships';
@@ -510,7 +511,7 @@ describe('v0.10 — the whole layer survives a save and a reload', () => {
   it('round-trips obligations and purposes, which cannot be re-derived from present state', () => {
     const { world } = newWorld(4242);
     const sim = new Simulation(world);
-    const people = world.persons().filter(p => p.alive && !p.controlled);
+    const people = world.persons().filter(p => p.alive && !isExternallyControlled(p));
     const benefactor = people[0]; const debtor = people[1]; const hurt = people[2];
     benefactor.wealth = 20;
     const gift = makeItem(world, 'ring', 'a ring', { owner: benefactor.id }); gift.value = 50;

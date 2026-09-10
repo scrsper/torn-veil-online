@@ -1,3 +1,4 @@
+import { knownName } from './people';
 import type { Concern, EntityId, ItemType, KnowledgeItem, Person, Situation } from '../core/types';
 import type { World } from '../core/world';
 import { appraiseClaim, type Appraisal } from '../social/appraisal';
@@ -70,22 +71,22 @@ function listenerRelevance(world: World, speaker: Person, listener: Person, k: K
   // Occupation is publicly visible. Telling the watch about a crime is the paradigm case.
   const listenerIsLaw = listener.occupation === 'guard' || listener.occupation === 'captain';
   if (listenerIsLaw && isCrime(c.type as string, c.intent as string | undefined)) {
-    value += 0.55; reasons.push(`${listener.name} is of the watch`);
+    value += 0.55; reasons.push(`${knownName(speaker, listener.id)} is of the watch`);
   }
   // Shared household / shared workplace are plainly observable village facts.
   const subject = subjectId ? world.person(subjectId) : undefined;
   if (subject) {
     if (subject.householdId && listener.householdId === subject.householdId && listener.id !== subject.id) {
-      value += 0.45; reasons.push(`${listener.name} shares a roof with ${subject.name}`);
+      value += 0.45; reasons.push(`${knownName(speaker, listener.id)} shares a roof with ${knownName(speaker, subject.id)}`);
     }
     if (subject.workId && listener.workId === subject.workId && listener.id !== subject.id) {
-      value += 0.35; reasons.push(`${listener.name} works alongside ${subject.name}`);
+      value += 0.35; reasons.push(`${knownName(speaker, listener.id)} works alongside ${knownName(speaker, subject.id)}`);
     }
   }
   // My OWN relationship with the listener: I tell the people close to me things.
   const rel = getRel(speaker, listener.id);
   if (rel.tags.some(t => ['spouse', 'child', 'parent', 'sibling', 'friend', 'sweetheart'].includes(t))) {
-    value += 0.25; reasons.push(`${listener.name} is my ${rel.tags[0]}`);
+    value += 0.25; reasons.push(`${knownName(speaker, listener.id)} is my ${rel.tags[0]}`);
   } else if (rel.familiarity > 0.3) value += rel.familiarity * 0.15;
   // I do not gossip to someone I distrust.
   if (rel.trust < -0.3) value -= 0.5;
@@ -103,9 +104,9 @@ function listenerRelevance(world: World, speaker: Person, listener: Person, k: K
   if (need) {
     const placeId = c.placeId as EntityId | undefined;
     if (tradeNeeds(listener.occupation, need) || tradeMakes(listener.occupation, need)) {
-      value += 0.3; reasons.push(`${need} is ${listener.name}'s trade`);
+      value += 0.3; reasons.push(`${need} is ${knownName(speaker, listener.id)}'s trade`);
     } else if (placeId && (listener.workId === placeId || listener.homeId === placeId)) {
-      value += 0.25; reasons.push(`${listener.name} is there every day`);
+      value += 0.25; reasons.push(`${knownName(speaker, listener.id)} is there every day`);
     } else {
       value -= 0.35;
     }

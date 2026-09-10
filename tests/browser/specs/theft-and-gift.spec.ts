@@ -152,7 +152,7 @@ export const theftAndGift: BrowserSpec = {
     const giftScene = await page.evaluate((args: { keeperId: string; valuableId: string }) => {
       const w = (window as any).game.world;
       const player = w.person(w.playerId);
-      const other = w.persons().find((p: any) => p.alive && !p.controlled && p.id !== args.keeperId && w.primaryBody(p.id));
+      const other = w.persons().find((p: any) => p.alive && !(p.id === w.playerId) && p.id !== args.keeperId && w.primaryBody(p.id));
       const carried = player.inventory.map((id: string) => w.item(id)).filter((i: any) => i && i.id !== args.valuableId && i.quantity > 0);
       const trinket = carried.sort((a: any, b: any) => a.value - b.value)[0];
       const b = w.primaryBody(other.id);

@@ -28,7 +28,7 @@ export const socialAftermath: BrowserSpec = {
     const parties = await page.evaluate(() => {
       const game = (window as any).game;
       const w = game.world;
-      const ordinary = w.persons().filter((p: any) => p.alive && !p.controlled && !p.hostile
+      const ordinary = w.persons().filter((p: any) => p.alive && !(p.id === w.playerId) && !p.hostile
         && !['guard', 'captain', 'child', 'bandit', 'traveler'].includes(p.occupation));
       const subject = ordinary
         .filter((p: any) => Object.entries(p.relationships).some(([id, r]: any) => r.tags.includes('spouse') && w.person(id)?.alive)

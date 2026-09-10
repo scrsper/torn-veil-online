@@ -200,7 +200,7 @@ function assessMagnitude(world: World, p: Person, benefactor: Person, spec: Bene
  * behind it. Returns whatever was formed or reinforced.
  */
 export function formObligations(world: World, p: Person, k: KnowledgeItem): Obligation[] {
-  if (p.controlled || !p.alive || k.kind !== 'event') return [];
+  if (!p.alive || k.kind !== 'event') return [];
   const type = k.claim.type as string | undefined;
   if (!type) return [];
   const out: Obligation[] = [];
@@ -245,7 +245,7 @@ export function formObligations(world: World, p: Person, k: KnowledgeItem): Obli
 /** A worker taking on a piece of commissioned work. Self-knowledge — no perception involved: you
  * always know what you yourself agreed to. This is the one obligation kind that can be BROKEN. */
 export function recordAcceptedTask(world: World, worker: Person, request: Request, causeEventId?: EventId): Obligation | null {
-  if (worker.controlled || !request.requesterId || request.requesterId === worker.id) return null;
+  if (!request.requesterId || request.requesterId === worker.id) return null;
   const requester = world.person(request.requesterId);
   if (!requester || !requester.alive) return null;
   // The size of the stake is the size of what was promised — a token errand is not a solemn vow.
@@ -380,7 +380,7 @@ export function noteBenefitEvent(world: World, e: WorldEvent): void {
   if (!spec || !spec.targetIsBeneficiary) return;
   if (!e.actor || !e.target || e.actor === e.target) return;
   const actor = world.person(e.actor);
-  if (!actor || actor.controlled) return;
+  if (!actor) return;
   dischargeToward(world, actor, e.target, e.type === 'debt_paid' ? 'settled' : 'repaid', e.id);
 }
 
@@ -477,7 +477,7 @@ export function maintainObligations(world: World, p: Person, hours: number): voi
  * promise only if someone tells them.
  */
 export function noticeBrokenPromises(world: World, p: Person, recentlyFailed: Request[]): void {
-  if (p.controlled || !p.alive) return;
+  if (!p.alive) return;
   for (const r of recentlyFailed) {
     if (r.requesterId !== p.id || !r.acceptedBy || r.acceptedBy === p.id) continue;
     const key = `promise_broken:${r.id}`;

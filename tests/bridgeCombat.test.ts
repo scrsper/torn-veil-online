@@ -95,13 +95,13 @@ describe('attack over the bridge protocol', () => {
     const s = new BridgeSession();
     const player = s.world.person(s.world.playerId)!;
     const pb = s.world.primaryBody(player.id)!;
-    const victim = s.snapshot().bodies.find(b => b.entityId !== s.world.playerId)!;
+    const victim = s.developerSnapshot().bodies.find(b => b.entityId !== s.world.playerId)!;
     const vb = s.world.body(victim.bodyId)!;
     // Stand the Traveler next to a real member of the cast.
     pb.pos = { x: vb.pos.x + 1, y: vb.pos.y, z: vb.pos.z };
 
     expect(s.intent({ version: 1, sequence: 1, type: 'attack', targetBodyId: vb.id }).result).toBe('accepted');
-    const after = s.snapshot();
+    const after = s.developerSnapshot();
     const row = after.bodies.find(b => b.bodyId === vb.id)!;
     const self = after.bodies.find(b => b.entityId === s.world.playerId)!;
     expect(row.health).toBeLessThan(row.maxHealth);
@@ -115,7 +115,7 @@ describe('attack over the bridge protocol', () => {
 
   it('does not let a client name a body across the village', () => {
     const s = new BridgeSession();
-    const rows = s.snapshot().bodies.filter(b => b.entityId !== s.world.playerId);
+    const rows = s.developerSnapshot().bodies.filter(b => b.entityId !== s.world.playerId);
     const pb = s.world.primaryBody(s.world.playerId)!;
     const far = rows.map(b => ({ b, d: Math.hypot(b.pos.x - pb.pos.x, b.pos.z - pb.pos.z) })).sort((a, c) => c.d - a.d)[0];
     expect(far.d).toBeGreaterThan(MELEE_REACH);

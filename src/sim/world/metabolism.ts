@@ -1,3 +1,4 @@
+import { isExternallyControlled } from '../runtime/controllers';
 import { payWage } from '../core/requests';
 import { fireIntensityAt } from './fire';
 import { economicOperatorFor } from './trade';
@@ -677,7 +678,7 @@ export function metabolismSummary(world: World): MetabolismSummary {
     for (const p of f.plots) { crops[p.state]++; if (p.state === 'planted' || p.state === 'growing') { growthSum += p.growth; growthN++; } }
   }
   const anywhere = world.places().map(p => p.id);
-  const alive = world.livingPersons().filter(p => !p.controlled);
+  const alive = world.livingPersons().filter(p => !isExternallyControlled(p));
   return {
     fields: world.fields.length,
     avgSoilMoisture: world.fields.length ? Math.round((moistSum / world.fields.length) * 1000) / 1000 : 0,

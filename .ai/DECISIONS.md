@@ -43,3 +43,11 @@
 - v0.1 connects typed ports in bounded linear acyclic graphs. General branching, fluid dynamics and energy regeneration are deferred. Finite environmental input and explicit losses prevent feedback energy creation.
 - Component capabilities, actual instances and inhabitants' knowledge remain separate. Invention uses ordinary goal utility, planning/actions, knowledge/memory and conversation; a successful recipe is observed instance-independent topology, not an authored device lookup. Receiving instructions neither creates objects nor grants skill.
 - Relevant constitutional authority consulted: sections 5–6 (epistemics), 10 (motivation), 33 (universe architecture), 47 (clocks), 61 (discovery), and 65 (composition). Evidence and limitations: `docs/GENERATIVE_UNIVERSE_KERNEL.md`.
+
+## Autonomous agency, epistemic identity and mechanical evolution
+
+- Controller origin belongs to engine metadata, never a Person field or observer claim. External intention bypasses autonomous selection but uses ordinary canonical action handlers. Save envelopes preserve routing independently of the Person snapshot.
+- Canonical identity, latent traits, attributes, skills and private intentions are not observer knowledge. Names require evidence; qualitative social beliefs remain local, biased, uncertain and revisable. Public gameplay projections are allowlists, with explicit separate developer truth.
+- Familiar schedules supply personal expectations, weighted alongside needs and concerns. Field opportunities require local observations. Existing selection paths outside this bounded conversion remain documented, not treated as architectural authority.
+- Mechanical reasoning consumes a lossy observation, not a canonical method graph. Paid fitting changes actual components/connections; the shared kernel adjudicates behavior. Method and assembly ancestry follows causal events rather than a global technology version.
+- Future ranks are ordered extension names only; Normal ceiling 20 and all-seven-15 Iron readiness remain unchanged. No post-Iron mechanics are implied.

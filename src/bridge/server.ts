@@ -8,6 +8,7 @@ const http = createServer((req, res) => {
   res.setHeader('Content-Type', 'application/json');
   if (req.url === '/health') res.end(JSON.stringify({ ok: true, version: 1, tick: session.world.physicalTime, npcs: session.snapshot().bodies.length - 1 }));
   else if (req.url === '/scene') res.end(JSON.stringify(session.scene()));
+  else if (req.url === '/debug/snapshot') res.end(JSON.stringify(session.developerSnapshot()));
   else if (req.url === '/snapshot') res.end(JSON.stringify(session.snapshot()));
   else { res.statusCode = 404; res.end('{}'); }
 });

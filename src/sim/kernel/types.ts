@@ -49,7 +49,7 @@ export interface EnergySource {
 }
 export interface Connection { from: number; to: number }
 export interface Method {
-  ruleset: string; definitions: string[]; connections: Connection[]; effect: string;
+  ruleset: string; definitions: string[]; connections: Connection[]; effect: string; provenance?: string[];
 }
 export interface Bindings { energyId: string; placeId?: EntityId; inputId?: string; outputId?: string }
 export interface Assembly {
@@ -63,6 +63,7 @@ export interface Assembly {
   outputQuantity: number; lastReason?: string;
   /** Construction progress survives interrupted plans and save/load. */
   progress: Record<string, number>;
+  history?: { eventId: string; operation: string; parents: string[]; method: Method }[];
 }
 export interface KernelState {
   ruleset: Ruleset; components: Component[]; reservoirs: Reservoir[]; energy: EnergySource[]; assemblies: Assembly[];

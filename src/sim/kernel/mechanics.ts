@@ -24,7 +24,7 @@ function assemblyInstruction(p: Person, a: Assembly): KnowledgeItem | undefined 
   return Object.values(p.knowledge).find(k => k.confidence > 0.2 && k.claim.method && shape(k.claim.method) === shape(a.method));
 }
 export function mayOperate(world: World, p: Person, a: Assembly): boolean {
-  return mayUseProperty(world, p, a.ownerId, a.bindings.placeId) && (a.ownerId === p.id || understandsAssembly(p, a));
+  return mayUseProperty(world, p, a.ownerId, a.bindings.placeId);
 }
 export function reachable(world: World, p: Person, pos: Vec3, range = 3): boolean {
   return p.alive && world.bodies().some(b => b.ownerId === p.id && b.present && !b.dead && b.pose !== 'downed' && b.pose !== 'sleep'
@@ -46,10 +46,11 @@ export function startAssembly(world: World, p: Person, method: Method, bindings:
   if (method.ruleset !== world.kernel.ruleset.id || !reachable(world, p, pos) || method.definitions.length > 6 || method.definitions.length < 2
     || method.definitions.some(id => !world.kernel.ruleset.components.some(c => c.id === id))) return null;
   const a: Assembly = { id: world.nextId('assembly'), ownerId: p.id, creatorId: p.id, pos: { ...pos }, parts: [], connections: [], bindings: { ...bindings }, method: structuredClone(method), needKey,
-    tested: false, learned: false, laborSeconds: 0, operatedSeconds: 0, inputJ: 0, usefulJ: 0, dissipatedJ: 0, outputQuantity: 0, progress: {} };
+    history: [], tested: false, learned: false, laborSeconds: 0, operatedSeconds: 0, inputJ: 0, usefulJ: 0, dissipatedJ: 0, outputQuantity: 0, progress: {} };
   const cause = Object.values(p.knowledge).find(k => k.claim.method && JSON.stringify(k.claim.method) === JSON.stringify(method))?.source.viaEvent ?? p.mind.goal?.causeEvent;
   if (cause && world.event(cause)) a.lastEvent = cause;
-  world.kernel.assemblies.push(a); changed(world, p, a, 'started'); return a;
+  world.kernel.assemblies.push(a); changed(world, p, a, 'started', method.provenance ?? []);
+  a.history!.push({ eventId: a.lastEvent!, operation: 'copied or conceived', parents: [...(method.provenance ?? [])], method: structuredClone(method) }); return a;
 }
 function changed(world: World, p: Person, a: Assembly, operation: string, materialCauses: string[] = []): void {
   const ev = world.emit('assembly_changed', { actor: p.id, pos: a.pos, causes: [...new Set([...(a.lastEvent ? [a.lastEvent] : []), ...materialCauses])], visibility: 8, significance: 0.3,
@@ -75,7 +76,7 @@ export function installComponent(world: World, p: Person, a: Assembly, id: strin
 /** v0.1 deliberately supports unbranched directed networks. Cycles, fan-out/fan-in and reuse
  * cannot duplicate power; incompatible physical couplings cannot be joined. */
 export function connect(world: World, p: Person, a: Assembly, from: number, to: number): boolean {
-  if (p.id !== a.ownerId || !reachable(world, p, a.pos) || from === to || !Number.isInteger(from) || !Number.isInteger(to)) return false;
+  if (!mayUseProperty(world, p, a.ownerId, a.bindings.placeId) || !reachable(world, p, a.pos) || from === to || !Number.isInteger(from) || !Number.isInteger(to)) return false;
   const parts = a.parts.map(id => world.kernel.components.find(c => c.id === id));
   const defs = parts.map(c => world.kernel.ruleset.components.find(d => d.id === c?.definition));
   if (!parts[from] || !parts[to] || parts[from]!.assemblyId !== a.id || parts[to]!.assemblyId !== a.id || !portsMatch(defs[from]?.output, defs[to]?.input)
@@ -87,21 +88,21 @@ export function connect(world: World, p: Person, a: Assembly, from: number, to: 
   a.connections.push({ from, to }); changed(world, p, a, 'connected'); return true;
 }
 export function disconnect(world: World, p: Person, a: Assembly, from: number, to: number): boolean {
-  if (a.ownerId !== p.id || !reachable(world, p, a.pos)) return false;
+  if (!mayUseProperty(world, p, a.ownerId, a.bindings.placeId) || !reachable(world, p, a.pos)) return false;
   const i = a.connections.findIndex(c => c.from === from && c.to === to); if (i < 0) return false;
   a.connections.splice(i, 1); changed(world, p, a, 'disconnected'); return true;
 }
 export function dismantle(world: World, p: Person, a: Assembly): boolean {
-  if (a.ownerId !== p.id || !reachable(world, p, a.pos)) return false;
+  if (!mayUseProperty(world, p, a.ownerId, a.bindings.placeId) || !reachable(world, p, a.pos)) return false;
   for (const id of a.parts) { const c = world.kernel.components.find(c => c.id === id); if (c?.assemblyId === a.id) { c.assemblyId = null; c.pos = { ...a.pos }; } }
   a.parts = []; a.connections = []; changed(world, p, a, 'dismantled'); return true;
 }
 
 /** Shared physical execution. No knowledge, NPC occupation, method, or name participates. */
-export function operateAssembly(world: World, p: Person, a: Assembly, seconds: number): RunResult {
+export function operateAssembly(world: World, p: Person, a: Assembly, seconds: number, intentionEvent?: string): RunResult {
   let reason = 'disconnected', output = 0, consumed = 0, inputJ = 0, usefulJ = 0;
   const instruction = assemblyInstruction(p, a)?.source.viaEvent;
-  const causes = () => [...new Set([a.lastEvent, instruction].filter((id): id is string => !!id))];
+  const causes = () => [...new Set([a.lastEvent, instruction, intentionEvent].filter((id): id is string => !!id))];
   const finish = (): RunResult => {
     const dissipatedJ = inputJ - usefulJ;
     const ev = world.emit('mechanism_trial', { actor: p.id, pos: a.pos, placeId: a.bindings.placeId, causes: causes(), visibility: 10, loudness: inputJ > 0 ? 6 : 0, significance: 0.4,

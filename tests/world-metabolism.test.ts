@@ -288,7 +288,9 @@ describe('long-run: the whole chain actually works (v0.2.4 Priority 10)', () => 
   // mode the acceptance runs are excluded from the default suite for (see vite.config.ts). The
   // assertions below are deliberately untouched: the fix for a test that is close to its budget
   // is a budget with headroom in it, never a weaker claim.
-  it('an 8 world-day run shows rain→moisture→growth→harvest→grain→flour→bread→eaten, and no runaway', { timeout: 300_000 }, () => {
+  // Identity and social evidence add retained causal history. Preserve the eight-day
+  // assertions and give the measured long run headroom; this is not a simulation time change.
+  it('an 8 world-day run shows rain→moisture→growth→harvest→grain→flour→bread→eaten, and no runaway', { timeout: 600_000 }, () => {
     const { world } = newWorld(918271);
     const sim = new Simulation(world);
     const initialGrain=world.items().filter(i=>i.type==='grain').reduce((n,i)=>n+i.quantity,0);

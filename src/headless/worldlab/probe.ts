@@ -1,3 +1,4 @@
+import { isExternallyControlled } from '../../sim/runtime/controllers';
 import type { World } from '../../sim/core/world';
 import { SECONDS_PER_HOUR } from '../../sim/core/time';
 import { detectAnomalies, telemetryToEvents } from '../../sim/telemetry/anomaly';
@@ -44,7 +45,7 @@ function cheapestMealPrice(world: World): number {
 /** v0.8 §P0-A: the decomposed economic snapshot — see `types.ts`'s `EconomySnapshot` doc for
  * why `spendableWealth`/`coinItems` are never collapsed into one figure. */
 function economySnapshot(world: World): EconomySnapshot {
-  const alive = world.livingPersons().filter(p => !p.controlled);
+  const alive = world.livingPersons().filter(p => !isExternallyControlled(p));
   const wealths = alive.map(p => p.wealth);
   const spendableWealth = Math.round((wealths.reduce((a, b) => a + b, 0)
     + world.households().reduce((n, h) => n + h.wealth, 0)) * 100) / 100;
@@ -73,7 +74,7 @@ function economySnapshot(world: World): EconomySnapshot {
 function personBandsSnapshot(world: World): Record<string, PersonBands> {
   const out: Record<string, PersonBands> = {};
   for (const p of world.persons()) {
-    if (!p.alive || p.controlled) continue;
+    if (!p.alive || isExternallyControlled(p)) continue;
     out[p.id] = { hunger: hungerBand(p), thirst: thirstBand(p), sleep: sleepBand(p) };
   }
   return out;

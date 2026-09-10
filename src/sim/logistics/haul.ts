@@ -394,7 +394,7 @@ export function depositHaulCargo(world: World, task: HaulTask, person: Person): 
   // one trip is a small thing, and it is the accumulation over many that is meant to add up to
   // a person you have come to rely on.
   const requester = task.requesterId ? world.person(task.requesterId) : undefined;
-  if (requester && requester.alive && !requester.controlled && requester.id !== person.id) {
+  if (requester && requester.alive && requester.id !== person.id) {
     const rb = world.primaryBody(requester.id);
     const here = rb ? world.placeAt(rb.pos)?.id : undefined;
     if (here === task.destPlaceId) {
@@ -533,7 +533,7 @@ export function canAcceptHaul(p: Person): boolean {
  * `laborIncentive`/`getPhysicalCapability` already weight this so an on-duty guard still
  * strongly prefers patrolling and only competes for a haul job when genuinely poor and hungry. */
 export function canHaul(p: Person): boolean {
-  return !p.controlled && canAcceptHaul(p);
+  return canAcceptHaul(p);
 }
 
 /** How well-suited a person is to a given haul (0 = won't consider it). */
