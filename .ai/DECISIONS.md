@@ -1,5 +1,14 @@
 # Durable design decisions
 
+## Individual potential, lineage and development
+
+- Seven integer human foundations use an ordinary baseline of 8; `human.ts` centralizes old physical-unit adaptation. Current biological age affects expression, never a creation-age multiplier on newly developed adult ability. Normal 20 is a hard developed-attribute ceiling; all-seven-15 readiness is derived and does not change ontology.
+- Potential is soft developmental resistance. Parental ordinary potential uses a symmetric discrete triangular law; explicit imprint expression is subtracted before blending to avoid double-counting the same origin. No ordinary mutation or automatic upward rounding.
+- Completed activity and genuinely new complex evidence feed one diminishing-returns development model. Skills, dispositions, knowledge, temporary physiology and ontological stage remain separate. No occupation/idle-adult growth.
+- Rare imprints require sustained exceptional exposure and one conservative lifetime assessment per attribute. Compact carriers deduplicate origins, attenuate over six generations and saturate at a two-point expressed contribution per attribute. All draws/outcomes and causal references persist.
+- Canonical parentIds never initialize a newborn's mind. Testimony, physical records and bounded inference supply uncertain genealogy beliefs through existing knowledge/provenance mechanics. Inheritance can express unknown ancestry; later discovery changes only knowledge.
+- Long exposure demonstrations are explicitly controlled model experiments, not detailed autonomous lifetime simulation. Formulae, acceptance evidence, costs and resolution limits: `docs/INDIVIDUAL_POTENTIAL_LINEAGE_DEVELOPMENT.md`.
+
 ## Civilizational capability continuity
 
 - Practical records are ordinary physical items carrying snapshots of fallible knowledge, source provenance and notation. Read/write/copy use local access, intelligibility, labor and actual wood. Reading and teaching transfer information only. Item possession, title, condition and location determine access; dead minds and archived kernel plans are not learning sources.

@@ -62,6 +62,8 @@ Read when:
 
 # Minds and autonomous agents
 
+Individual human foundations: `src/sim/core/human.ts` (seven-attribute scale, generation, capability helpers and Iron readiness), `development.ts` (shared lived-activity response), `lineage.ts` (bounded birth inheritance). `mind/genealogy.ts` supplies local testimony and belief-only ancestry inference; physical family records reuse `mind/records.ts`. Demonstration: `npm run individual:demo`. Design, formulae and disclosed coarse-exposure limits: `docs/INDIVIDUAL_POTENTIAL_LINEAGE_DEVELOPMENT.md`.
+
 ## `src/sim/mind/`
 
 Core cognition and behavior.
