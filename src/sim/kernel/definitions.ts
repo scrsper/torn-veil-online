@@ -58,6 +58,13 @@ export function restoreKernel(raw: KernelState): KernelState {
     requireValue(a.parts.every(id => raw.components.some(c => c.id === id && c.assemblyId === a.id && c.ownerId === a.ownerId)), 'assembly membership');
     requireValue([a.laborSeconds, a.operatedSeconds, a.inputJ, a.usefulJ, a.dissipatedJ, a.outputQuantity, ...Object.values(a.progress)].every(x => finite(x)) && Math.abs(a.inputJ - a.usefulJ - a.dissipatedJ) < 1e-6, 'assembly accounting');
     requireValue(a.connections.every(e => Number.isInteger(e.from) && Number.isInteger(e.to) && e.from >= 0 && e.to >= 0 && e.from < a.parts.length && e.to < a.parts.length), 'connection endpoints');
+    requireValue(new Set(a.connections.map(c => c.from)).size === a.connections.length && new Set(a.connections.map(c => c.to)).size === a.connections.length, 'branching connections');
+    const defs = a.parts.map(id => raw.ruleset.components.find(d => d.id === raw.components.find(c => c.id === id)!.definition)!);
+    for (const edge of a.connections) {
+      requireValue(portsMatch(defs[edge.from].output, defs[edge.to].input), 'incompatible connection');
+      const seen = new Set<number>(); let at: number | undefined = edge.from;
+      while (at !== undefined) { requireValue(!seen.has(at), 'cyclic connection'); seen.add(at); at = a.connections.find(e => e.from === at)?.to; }
+    }
   }
   requireValue(raw.components.every(c => !c.assemblyId || raw.assemblies.some(a => a.id === c.assemblyId && a.parts.includes(c.id))), 'orphan component');
   return structuredClone(raw);

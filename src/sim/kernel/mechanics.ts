@@ -35,9 +35,20 @@ function changed(world: World, p: Person, a: Assembly, operation: string): void 
     data: { assemblyId: a.id, operation, parts: [...a.parts], connections: structuredClone(a.connections) }, summary: `${p.name} ${operation} an assembly` });
   a.lastEvent = ev.id;
 }
+/** Shared labor entry point for player/NPC construction. Installing and joining also check
+ * this progress, so neither physical mutation can bypass its authored labor requirement. */
+export function contributeAssemblyLabor(world: World, p: Person, a: Assembly, key: string, required: number, seconds: number): boolean {
+  if (a.ownerId !== p.id || !reachable(world, p, a.pos) || !Number.isFinite(required) || required <= 0 || !Number.isFinite(seconds) || seconds <= 0 || seconds > 60) return false;
+  const amount = Math.min(seconds, Math.max(0, required - (a.progress[key] ?? 0)));
+  a.progress[key] = (a.progress[key] ?? 0) + amount; a.laborSeconds += amount;
+  return a.progress[key] >= required - 1e-9;
+}
 export function installComponent(world: World, p: Person, a: Assembly, id: string): boolean {
   const c = world.kernel.components.find(c => c.id === id);
   if (a.ownerId !== p.id || !reachable(world, p, a.pos) || !c || c.holderId !== p.id || c.ownerId !== p.id || c.assemblyId || a.parts.length >= 6) return false;
+  const key = `install:${a.parts.length}`, definition = world.kernel.ruleset.components.find(d => d.id === c.definition)!;
+  if ((a.progress[key] ?? 0) < definition.installSeconds - 1e-9) return false;
+  delete a.progress[key];
   c.assemblyId = a.id; c.holderId = null; c.pos = { ...a.pos }; a.parts.push(id); changed(world, p, a, 'installed a component in'); return true;
 }
 /** v0.1 deliberately supports unbranched directed networks. Cycles, fan-out/fan-in and reuse
@@ -50,6 +61,8 @@ export function connect(world: World, p: Person, a: Assembly, from: number, to: 
     || a.connections.some(c => c.from === from || c.to === to)) return false;
   let at = to; const visited = new Set([from]);
   while (true) { if (visited.has(at)) return false; visited.add(at); const next = a.connections.find(c => c.from === at); if (!next) break; at = next.to; }
+  const key = `join:${from}:${to}`; if ((a.progress[key] ?? 0) < 0.5 - 1e-9) return false;
+  delete a.progress[key];
   a.connections.push({ from, to }); changed(world, p, a, 'connected'); return true;
 }
 export function disconnect(world: World, p: Person, a: Assembly, from: number, to: number): boolean {

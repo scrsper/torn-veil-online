@@ -2,7 +2,7 @@ import type { Action, Goal, KnowledgeItem, Person } from '../core/types';
 import type { World } from '../core/world';
 import type { Assembly, Bindings, ComponentDefinition, Method } from '../kernel/types';
 import { portsMatch } from '../kernel/definitions';
-import { acquireComponent, connect, dismantle, distance, installComponent, operateAssembly, owns, reachable, startAssembly } from '../kernel/mechanics';
+import { acquireComponent, connect, contributeAssemblyLabor, dismantle, distance, installComponent, operateAssembly, owns, reachable, startAssembly } from '../kernel/mechanics';
 import { stockItemsAt } from '../world/stock';
 import { learn } from './knowledge';
 import { remember } from './memory';
@@ -33,7 +33,13 @@ function observeOutput(world: World, p: Person, key: string, need: PracticalNeed
     if (!place || !reachable(world, p, place.inside) || !material?.legacyItem) return null;
     quantity = stockItemsAt(world, material.legacyItem, place.id).filter(i => owns(p, i.ownerId)).reduce((n, i) => n + i.quantity, 0);
   }
-  learn(world, p, { key: `observed:${key}`, kind: 'fact', claim: { quantity, at: world.now, needKey: key }, confidence: 1, source: { type: 'witnessed' } }, true);
+  const observationKey = `observed:${key}`, observation = p.knowledge[observationKey];
+  if (observation) {
+    // A fresh direct inventory observation replaces the prior measurement. learn()'s normal
+    // confidence/hops arbitration intentionally does not refresh equal-confidence claims.
+    observation.claim = { quantity, at: world.now, needKey: key }; observation.source = { type: 'witnessed' };
+    observation.learnedAt = world.now; observation.lastConfirmedAt = world.now; observation.confidence = 1; observation.hops = 0;
+  } else learn(world, p, { key: observationKey, kind: 'fact', claim: { quantity, at: world.now, needKey: key }, confidence: 1, source: { type: 'witnessed' } }, true);
   return quantity;
 }
 const effectOf = (c: ComponentDefinition): string | undefined => c.kind === 'process' ? c.process : c.kind === 'transfer' ? `transfer:${c.phase}` : undefined;
@@ -109,11 +115,7 @@ export function actOnMechanism(world: World, p: Person, action: Action, seconds:
   }
   if (!a || !reachable(world, p, a.pos) || a.ownerId !== p.id) { action.status = 'failed'; return; }
   const body = world.bodies().find(b => b.ownerId === p.id && b.present && !b.dead && distance(b.pos, a!.pos) <= 3); if (body) body.pose = 'work';
-  const spend = (key: string, required: number): boolean => {
-    const amount = Math.min(seconds, Math.max(0, required - (a!.progress[key] ?? 0)));
-    a!.progress[key] = (a!.progress[key] ?? 0) + amount; a!.laborSeconds += amount;
-    return a!.progress[key] >= required - 1e-9;
-  };
+  const spend = (key: string, required: number) => contributeAssemblyLabor(world, p, a!, key, required, seconds);
   if (action.type === 'construct_mechanism') {
     if (a.parts.length < a.method.definitions.length) {
       const index = a.parts.length, definition = a.method.definitions[index];

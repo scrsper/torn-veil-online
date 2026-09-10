@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createTestWorld, addPerson, v } from './helpers/world';
 import { mechanicalPrimitives, installRuleset, validateRuleset, restoreKernel } from '../src/sim/kernel/definitions';
-import { acquireComponent, connect, createComponent, disconnect, installComponent, operateAssembly, startAssembly } from '../src/sim/kernel/mechanics';
+import { acquireComponent, connect, contributeAssemblyLabor, createComponent, disconnect, installComponent, operateAssembly, startAssembly } from '../src/sim/kernel/mechanics';
 import { addPlaceStock, stockAt, worldStock } from '../src/sim/world/stock';
 import type { Method, Ruleset } from '../src/sim/kernel/types';
 import held from '../src/headless/kernel/held-out.json';
@@ -9,6 +9,7 @@ import { advanceKernelLab, createKernelLab, kernelMetrics } from '../src/headles
 import { candidateMethods, methodsHeld } from '../src/sim/mind/invention';
 import { deserialize, serialize } from '../src/sim/persist/save';
 import { Simulation } from '../src/sim/mind/agent';
+import type { HaulTask } from '../src/sim/core/types';
 
 /** Explicit test topology verifies physical laws only. Autonomous acceptance below uses no
  * topology fixture, and starts with zero methods, zero projects and an uninstructed recipient. */
@@ -21,8 +22,11 @@ function rig(family: 'grain' | 'water' = 'grain', variant = 'belt', material = '
   addPlaceStock(w, 'grain', 30, tw.places.square, p.id, undefined, 'test inputs');
   const method: Method = { ruleset: rules.id, definitions: ['intake', 'rotor', variant, family === 'grain' ? 'stones' : 'impeller'].map(q), connections: [{ from: 0, to: 1 }, { from: 1, to: 2 }, { from: 2, to: 3 }], effect: family === 'grain' ? q('grinding') : 'transfer:liquid' };
   const a = startAssembly(w, p, method, { energyId: 'gust', placeId: tw.places.square, inputId: 'lower', outputId: 'upper' }, pos)!;
-  for (const id of method.definitions) { const c = createComponent(w, id, p.id, pos); expect(acquireComponent(w, p, c.id)).toBe(true); expect(installComponent(w, p, a, c.id)).toBe(true); }
-  for (const e of method.connections) expect(connect(w, p, a, e.from, e.to)).toBe(true);
+  for (const id of method.definitions) { const c = createComponent(w, id, p.id, pos); expect(acquireComponent(w, p, c.id)).toBe(true);
+    expect(installComponent(w, p, a, c.id)).toBe(false);
+    const cost = rules.components.find(d => d.id === id)!.installSeconds; contributeAssemblyLabor(w, p, a, `install:${a.parts.length}`, cost, cost);
+    expect(installComponent(w, p, a, c.id)).toBe(true); }
+  for (const e of method.connections) { contributeAssemblyLabor(w, p, a, `join:${e.from}:${e.to}`, 0.5, 0.5); expect(connect(w, p, a, e.from, e.to)).toBe(true); }
   return { tw, w, p, a, q };
 }
 
@@ -53,17 +57,16 @@ describe('generative universe kernel physical laws', () => {
     const before = water.w.kernel.energy[0].remainingJ;
     expect(operateAssembly(water.w, water.p, water.a, 1).output).toBe(0); expect(water.w.kernel.energy[0].remainingJ).toBe(before);
     const rules = mechanicalPrimitives(); const q = (s: string) => `${rules.id}/${s}`;
-    rules.materials.push({ id: q('bran'), unit: 'kg', kgPerUnit: 1, phase: 'solid', maxPowerW: 0, legacyItem: 'herbs' });
-    rules.processes[0].output.quantity = 3; rules.processes[0].byproducts = [{ material: q('bran'), quantity: 0.75 }];
+    rules.processes[0].output.quantity = 3; rules.processes[0].byproducts = [{ material: q('grain'), quantity: 0.75 }];
     const grain = rig('grain', 'belt', 'water', rules); operateAssembly(grain.w, grain.p, grain.a, 1);
-    expect(worldStock(grain.w, 'grain') + worldStock(grain.w, 'flour') * 0.75 + worldStock(grain.w, 'herbs')).toBeCloseTo(30);
+    expect(worldStock(grain.w, 'grain') + worldStock(grain.w, 'flour') * 0.75).toBeCloseTo(30);
     grain.w.kernel.energy[0].remainingJ = 0; expect(operateAssembly(grain.w, grain.p, grain.a, 1).reason).toBe('source exhausted');
   });
   it('broken, absent, incompatible, cyclic and duplicate components cannot produce free work', () => {
     const { w, p, a } = rig(); const before = JSON.stringify(w.kernel.energy);
     expect(connect(w, p, a, 3, 0)).toBe(false); expect(connect(w, p, a, 0, 2)).toBe(false);
     expect(disconnect(w, p, a, 1, 2)).toBe(true); expect(operateAssembly(w, p, a, 1).output).toBe(0); expect(JSON.stringify(w.kernel.energy)).toBe(before);
-    expect(connect(w, p, a, 1, 2)).toBe(true); w.kernel.components[2].condition = 0;
+    contributeAssemblyLabor(w, p, a, 'join:1:2', 0.5, 0.5); expect(connect(w, p, a, 1, 2)).toBe(true); w.kernel.components[2].condition = 0;
     expect(operateAssembly(w, p, a, 1).reason).toBe('broken'); w.kernel.components[2].condition = 1;
     w.kernel.components[2].assemblyId = null; expect(operateAssembly(w, p, a, 1).output).toBe(0);
     w.kernel.components[2].assemblyId = a.id; a.parts[2] = a.parts[1]; expect(operateAssembly(w, p, a, 1).output).toBe(0);
@@ -76,6 +79,8 @@ describe('generative universe kernel physical laws', () => {
     for (const i of w.items()) if (i.type === 'grain') i.ownerId = stranger.id;
     expect(operateAssembly(w, p, a, 1).output).toBe(0); expect(worldStock(w, 'grain')).toBe(30);
     for (const i of w.items()) if (i.type === 'grain') i.ownerId = p.id;
+    w.haulTasks.push({ id: 'reserved', sourcePlaceId: tw.places.square, resource: 'grain', status: 'needed', quantity: 30, delivered: 0, carried: 0 } as HaulTask);
+    expect(operateAssembly(w, p, a, 1).output).toBe(0); expect(worldStock(w, 'grain')).toBe(30); w.haulTasks = [];
     w.primaryBody(p.id)!.pos.x += 10; expect(operateAssembly(w, p, a, 1).inputJ).toBe(0);
     const second = { ...w.primaryBody(p.id)!, id: w.nextId('b'), pos: v(12, 1, 12) }; w.add(second); p.bodies.push(second.id);
     expect(operateAssembly(w, p, a, 1).output).toBeGreaterThan(0);
@@ -87,6 +92,12 @@ describe('generative universe kernel physical laws', () => {
     }
     const { w } = rig(); w.kernel.energy[0].remainingJ = 1001; expect(() => restoreKernel(w.kernel)).toThrow();
   });
+  it('zero material power and wrong phase stop work without NaN or fabricated inputs', () => {
+    const rules = mechanicalPrimitives(); rules.materials[0].maxPowerW = 0; rules.components.forEach(c => c.minPowerW = 0);
+    const zero = rig('grain', 'belt', 'water', rules); const result = operateAssembly(zero.w, zero.p, zero.a, 1);
+    expect(result.reason).toBe('insufficient power'); expect(result.inputJ).toBe(0); expect(result.output).toBe(0); expect(Number.isFinite(result.usefulJ)).toBe(true);
+    const solid = rig('water', 'belt', 'grain'); expect(operateAssembly(solid.w, solid.p, solid.a, 1).reason).toBe('incompatible material');
+  });
 });
 
 describe('autonomous invention acceptance', () => {
@@ -97,6 +108,7 @@ describe('autonomous invention acceptance', () => {
     const skills = structuredClone(lab.recipient.skills);
     advanceKernelLab(lab.world, lab.sim, 80); const metrics = kernelMetrics(lab);
     expect(metrics.people.every(p => p.output > 2 && p.acquired >= 4)).toBe(true);
+    expect(lab.recipient.knowledge['observed:workshop-need'].claim.quantity).toBeCloseTo(metrics.people[1].output);
     expect(metrics.people[0].trials[0].reason).toBe('insufficient power'); expect(metrics.people[0].trials[0].consumed).toBe(0);
     const learned = methodsHeld(lab.recipient)[0]; expect(learned.source.type).toBe('told'); expect(learned.source.from).toBe(lab.inventor.id); expect(learned.claim.verifiedEvent).toBeTruthy();
     const told = lab.world.event(learned.source.viaEvent)!; expect(told.type).toBe('told'); expect(told.causes.length).toBeGreaterThan(0);
@@ -108,6 +120,13 @@ describe('autonomous invention acceptance', () => {
     const a = createKernelLab(44017, 'water'), b = createKernelLab(44017, 'water');
     advanceKernelLab(a.world, a.sim, 80); advanceKernelLab(b.world, b.sim, 80);
     expect(kernelMetrics(a)).toEqual(kernelMetrics(b));
+  });
+  it('autonomously discovers and teaches a held-out JSON variant', () => {
+    const lab = createKernelLab(918271, 'water', false, true); advanceKernelLab(lab.world, lab.sim, 80);
+    const report = kernelMetrics(lab); expect(report.people.every(p => p.output > 2 && p.acquired >= 4)).toBe(true);
+    expect(report.people[0].trials[0].reason).toBe('insufficient power');
+    expect(report.people[1].methods[0].source).toBe('told');
+    expect(report.people[1].methods[0].definitions).toContain('torn-veil:mechanics-v1/held-coupler');
   });
   it('round trips definitions, partial construction, methods, finite sources and resumed physical execution', () => {
     const lab = createKernelLab(918271, 'grain'); advanceKernelLab(lab.world, lab.sim, 3.3);
