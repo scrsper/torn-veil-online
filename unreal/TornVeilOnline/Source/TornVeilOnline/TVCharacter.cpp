@@ -76,7 +76,7 @@ FVector ATVCharacter::IntentDirection() const {
 void ATVCharacter::Tick(float Dt) {
     Super::Tick(Dt); SnapshotAge += Dt;
     auto* Bridge = GetWorld()->GetSubsystem<UTVBridgeSubsystem>();
-    const bool Live = Bridge && Bridge->SinceSnapshot < 0.5f;
+    const bool Live = Bridge && Bridge->IsLive();
     if (bCanonicalPlayer) {
         CameraBoom->TargetArmLength = FMath::FInterpTo(CameraBoom->TargetArmLength, ZoomTarget, Dt, 8);
         CameraBoom->SocketOffset.Y = FMath::GetMappedRangeValueClamped(FVector2D(160, 700), FVector2D(55, 0), ZoomTarget);

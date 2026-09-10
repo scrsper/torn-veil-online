@@ -1,0 +1,4 @@
+[2026.09.10-23.15.16:605][ 61]LogWebSockets: Verbose: FLwsWebSocket[1]::Close: Close queued with code=1009 reason=Received text message exceeded memory limit of 1048576 bytes
+[2026.09.10-23.15.16:605][ 61]LogWebSockets: Verbose: Received text message too large - use SetTextMessageMemoryLimit() to increase buffer size. Current Size=1048576
+[2026.09.10-23.15.19:722][ 71]LogWebSockets: Verbose: FLwsWebSocket[2]::Close: Close queued with code=1009 reason=Received text message exceeded memory limit of 1048576 bytes
+[2026.09.10-23.15.19:722][ 71]LogWebSockets: Verbose: Received text message too large - use SetTextMessageMemoryLimit() to increase buffer size. Current Size=1048576

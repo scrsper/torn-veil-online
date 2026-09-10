@@ -72,16 +72,23 @@ export class RegionStream {
   private dynamics = '';
   private revisions = new Map<string,string>();
   reset(): void { this.resident.clear(); this.dynamics = ''; this.revisions.clear(); }
-  frame(w: World) {
+  /** Cheap residency/revision planning. Callers can materialize regions progressively. */
+  plan(w: World) {
     const g = w.geography, p = w.playerId ? w.positionOf(w.playerId) : null; if (!g || !p) return null;
     const size=g.spec.regionSize, rx = Math.floor(p.x / size), rz = Math.floor(p.z / size), wanted = new Set<string>();
     for (let x = rx - 1; x <= rx + 1; x++) for (let z = rz - 1; z <= rz + 1; z++) if (x >= 0 && z >= 0 && x * size < w.grid.W && z * size < w.grid.D) wanted.add(`${x},${z}`);
+    const ordered = [...wanted].sort((a,b) => { const distance=(id:string)=>{const [x,z]=id.split(',').map(Number);return (x-rx)**2+(z-rz)**2;}; return distance(a)-distance(b)||a.localeCompare(b); });
     const unload = [...this.resident].filter(id => !wanted.has(id));
-    const regions = [...wanted].flatMap(id => { const [x,z]=id.split(',').map(Number), revision=JSON.stringify([(w.grid as RegionalGrid).regionRevision(x,z),w.places().filter(p=>g.regionId(p.inside.x,p.inside.z)===id).map(p=>[p.id,p.bounds,p.type,p.indoor])]); const changed=this.revisions.get(id)!==revision; this.revisions.set(id,revision); return !this.resident.has(id)||changed ? [projectRegion(w,x,z)] : []; });
+    const changed = ordered.filter(id => { const [x,z]=id.split(',').map(Number), revision=JSON.stringify([(w.grid as RegionalGrid).regionRevision(x,z),w.places().filter(p=>g.regionId(p.inside.x,p.inside.z)===id).map(p=>[p.id,p.bounds,p.type,p.indoor])]); const changed=this.revisions.get(id)!==revision; this.revisions.set(id,revision); return !this.resident.has(id)||changed; });
     for(const id of unload) this.revisions.delete(id);
     this.resident = wanted;
-    const dynamic = regionDynamics(w, wanted), fingerprint = JSON.stringify({ ...dynamic, worldTime: 0 });
+    return { origin: { x: rx * size, y: 0, z: rz * size }, center: `${rx},${rz}`, wanted: ordered, unload, changed };
+  }
+  frame(w: World) {
+    const plan=this.plan(w); if(!plan) return null;
+    const regions=plan.changed.map(id=>{const [x,z]=id.split(',').map(Number);return projectRegion(w,x,z);});
+    const dynamic = regionDynamics(w, new Set(plan.wanted)), fingerprint = JSON.stringify({ ...dynamic, worldTime: 0 });
     const changed = this.dynamics !== fingerprint || regions.length>0; this.dynamics = fingerprint;
-    return { version: 1, type: 'regions', origin: { x: rx * size, y: 0, z: rz * size }, regions, unload, ...(changed ? { dynamic } : {}) };
+    return { version: 1, type: 'regions', origin: plan.origin, regions, unload:plan.unload, ...(changed ? { dynamic } : {}) };
   }
 }

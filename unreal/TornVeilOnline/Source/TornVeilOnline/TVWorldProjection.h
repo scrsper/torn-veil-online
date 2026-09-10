@@ -30,8 +30,8 @@ public:
     ATVRegionProjection();
     void Build(const TSharedPtr<FJsonObject>& Region);
     void UpdateDynamic(const TSharedPtr<FJsonObject>& Data);
-    FString RegionId;
-    FVector CanonicalBase;
+    UPROPERTY(BlueprintReadOnly) FString RegionId;
+    UPROPERTY(BlueprintReadOnly) FVector CanonicalBase;
     int32 InstanceCount() const;
     int32 DecorativeCount = 0;
     double BuildMilliseconds = 0;
@@ -56,6 +56,8 @@ public:
     ATVWorldProjection();
     void Apply(const TSharedPtr<FJsonObject>& Frame, const FVector& Origin);
     FString Metrics() const;
+    void ResetRegions();
+    int32 RegionCount() const { return Regions.Num(); }
 private:
     UPROPERTY() TMap<FString, TObjectPtr<ATVRegionProjection>> Regions;
     double LastFrameMilliseconds = 0;

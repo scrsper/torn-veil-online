@@ -148,13 +148,15 @@ void ATVRegionProjection::UpdateDynamic(const TSharedPtr<FJsonObject>& Data) {
 }
 int32 ATVRegionProjection::InstanceCount() const { int32 Total=0; for(const auto& Pair:Batches) Total+=Pair.Value->GetInstanceCount(); return Total; }
 ATVWorldProjection::ATVWorldProjection() { PrimaryActorTick.bCanEverTick=false; }
+void ATVWorldProjection::ResetRegions() { for(auto& Pair:Regions) if(Pair.Value) Pair.Value->Destroy(); Regions.Empty(); }
 void ATVWorldProjection::Apply(const TSharedPtr<FJsonObject>& Frame,const FVector& Origin) {
     const double Start=FPlatformTime::Seconds();
     for(const auto& V:Rows(Frame,TEXT("unload"))) { const FString Id=V->AsString(); if(auto* P=Regions.FindRef(Id).Get()) P->Destroy(); Regions.Remove(Id); }
     for(auto& Pair:Regions) Pair.Value->SetActorLocation(FVector(Pair.Value->CanonicalBase.X-Origin.X,Pair.Value->CanonicalBase.Y-Origin.Z,-Origin.Y)*100);
     for(const auto& V:Rows(Frame,TEXT("regions"))) { const auto R=V->AsObject(); const FString Id=S(R,TEXT("id")); if(auto* Old=Regions.FindRef(Id).Get()) Old->Destroy();
         const auto B=R->GetObjectField(TEXT("bounds")); auto* P=GetWorld()->SpawnActor<ATVRegionProjection>(FVector(N(B,TEXT("x0"))-Origin.X,N(B,TEXT("z0"))-Origin.Z,-Origin.Y)*100,FRotator::ZeroRotator); P->Build(R); Regions.Add(Id,P); }
-    const TSharedPtr<FJsonObject>* Dynamic=nullptr; if(Frame->TryGetObjectField(TEXT("dynamic"),Dynamic)) for(auto& Pair:Regions) Pair.Value->UpdateDynamic(*Dynamic);
+    const FString DynamicRegion=S(Frame,TEXT("dynamicRegion"));
+    const TSharedPtr<FJsonObject>* Dynamic=nullptr; if(Frame->TryGetObjectField(TEXT("dynamic"),Dynamic)) for(auto& Pair:Regions) if(DynamicRegion.IsEmpty() || Pair.Key==DynamicRegion) Pair.Value->UpdateDynamic(*Dynamic);
     if(Dynamic && Dynamic->IsValid()) { const TSharedPtr<FJsonObject>* Weather; if((*Dynamic)->TryGetObjectField(TEXT("environment"),Weather)) { const FString Kind=S(*Weather,TEXT("kind")); const bool Wet=Kind==TEXT("rain")||Kind==TEXT("storm"); const double Hour=FMath::Fmod(N(*Dynamic,TEXT("worldTime"))/3600,24.); for(TActorIterator<ADirectionalLight> It(GetWorld());It;++It) { It->SetActorRotation(FRotator(-FMath::Max(5.,70.*FMath::Sin((Hour-6)/12*PI)),-35,0)); It->GetLightComponent()->SetIntensity(Hour>6&&Hour<20?(Wet?3000:12000):100); } for(TActorIterator<AExponentialHeightFog> It(GetWorld());It;++It) It->GetComponent()->SetFogDensity(Wet?.025f:.008f); } }
     LastFrameMilliseconds=(FPlatformTime::Seconds()-Start)*1000;
     UE_LOG(LogTemp,Display,TEXT("TV_STREAM %s"),*Metrics());

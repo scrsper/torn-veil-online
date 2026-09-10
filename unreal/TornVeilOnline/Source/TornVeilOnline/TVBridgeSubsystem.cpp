@@ -8,11 +8,13 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
 #include "Async/Async.h"
+#include "Misc/Base64.h"
 
 // Connect on the very first tick rather than after a retry interval, so pressing Play does not
 // begin with three seconds of an empty village.
 void UTVBridgeSubsystem::Initialize(FSubsystemCollectionBase& Collection) { Super::Initialize(Collection); RetryClock = 1000; }
 void UTVBridgeSubsystem::Deinitialize() {
+    UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE PIE ending; releasing controller"));
     if (Socket) { Socket->OnConnected().Clear(); Socket->OnConnectionError().Clear(); Socket->OnClosed().Clear(); Socket->OnMessage().Clear(); Socket->Close(); Socket.Reset(); }
     Bodies.Empty(); Super::Deinitialize();
 }
@@ -22,28 +24,72 @@ void UTVBridgeSubsystem::Connect() {
     // header on a WebSocket handshake; this client can. Absence of an Origin header cannot be the
     // proof, because libwebsockets sends `Origin: http://127.0.0.1` on our behalf whether we want
     // it or not -- which is what used to get every one of these connections refused.
-    const TMap<FString, FString> UpgradeHeaders = { { TEXT("X-Torn-Veil-Client"), TEXT("unreal") } };
+    bTransportConnected=false; bCanonicalReady=false; bWasLive=false; SnapshotCount=0; SinceSnapshot=100;
+    Assembly.Empty(); PendingPresentation.Reset(); WantedRegions.Empty(); ProjectedRegions=0;
+    if(WorldProjection) WorldProjection->ResetRegions();
+    UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE connecting; regional protocol=2 text_limit=262144"));
+    const TMap<FString, FString> UpgradeHeaders = { { TEXT("X-Torn-Veil-Client"), TEXT("unreal") }, { TEXT("X-Torn-Veil-Region-Protocol"), TEXT("2") } };
     Socket = FWebSocketsModule::Get().CreateWebSocket(TEXT("ws://127.0.0.1:8787"), FString(), UpgradeHeaders);
-    // A bounded nine-region frame with 2m settlement terrain exceeds the engine default.
-    Socket->SetTextMessageMemoryLimit(8 * 1024 * 1024);
-    Socket->OnConnected().AddWeakLambda(this, [this]() { Status = TEXT("Connected - waiting for canonical state"); Sequence = 0; });
-    Socket->OnConnectionError().AddWeakLambda(this, [this](const FString& Error) { Status = TEXT("Simulation offline - run npm run bridge"); bControls = false; UE_LOG(LogTemp,Warning,TEXT("TV_BRIDGE %s"),*Error); });
-    Socket->OnClosed().AddWeakLambda(this, [this](int32, const FString&, bool) { Status = TEXT("Disconnected - reconnecting"); bControls = false; });
+    // Wire chunks are <=128 KiB; assembly is separately bounded to 4 MiB.
+    Socket->SetTextMessageMemoryLimit(256 * 1024);
+    Socket->OnConnected().AddWeakLambda(this, [this]() { bTransportConnected=true; Status = TEXT("Connected - waiting for canonical state"); Sequence = 0; UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE connected")); });
+    Socket->OnConnectionError().AddWeakLambda(this, [this](const FString& Error) { Status = TEXT("Simulation offline - run npm run bridge:playable"); bControls = false; bTransportConnected=false; UE_LOG(LogTemp,Warning,TEXT("TV_BRIDGE connection error: %s"),*Error); });
+    Socket->OnClosed().AddWeakLambda(this, [this](int32 Code, const FString& Reason, bool Clean) { Status = TEXT("Disconnected - reconnecting"); bControls = false; bTransportConnected=false; UE_LOG(LogTemp,Warning,TEXT("TV_BRIDGE closed code=%d clean=%d reason=%s"),Code,Clean,*Reason); });
     Socket->OnMessage().AddWeakLambda(this, [this](const FString& Message) { Receive(Message); });
     Socket->Connect();
 }
 void UTVBridgeSubsystem::Tick(float Dt) {
-    SinceSnapshot += Dt; RetryClock += Dt;
+    SinceSnapshot = bCanonicalReady ? FPlatformTime::Seconds()-LastSnapshotReceived : 100; RetryClock += Dt;
     ResultClock += Dt; if (ResultClock > 2.5f && !LastResult.IsEmpty()) LastResult.Empty();
     if ((!Socket || !Socket->IsConnected()) && RetryClock > 3) { RetryClock = 0; Connect(); }
     SendClock += Dt;
-    if (bControls && SinceSnapshot < 0.5f && SendClock >= 0.05f) {
+    const bool Live=IsLive();
+    if(Live!=bWasLive) { UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE canonical %s snapshot_age=%.3f transport=%d"),Live?TEXT("LIVE"):TEXT("stalled"),SinceSnapshot,bTransportConnected); bWasLive=Live; }
+    if (bControls && Live && SendClock >= 0.05f) {
         SendClock = 0;
         if (auto* P = Cast<ATVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))) {
             auto M = MakeShared<FJsonObject>(); const FVector D = P->IntentDirection();
+            if(bMovingInput!=!D.IsNearlyZero()) { bMovingInput=!D.IsNearlyZero(); UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE move intent active=%d x=%.2f z=%.2f"),bMovingInput,D.X,D.Y); }
             M->SetStringField(TEXT("type"), TEXT("move")); M->SetNumberField(TEXT("x"), D.X); M->SetNumberField(TEXT("z"), D.Y); M->SetBoolField(TEXT("sprint"), P->IsSprinting()); Send(M);
         }
     }
+    // Network callbacks only assemble bounded data. Apply one completed transfer here,
+    // after liveness/input, and acknowledge only once projection has consumed it.
+    if(PendingPresentation) {
+        if(TransferRegion.IsEmpty() || WantedRegions.Contains(TransferRegion)) {
+            if(!WorldProjection) WorldProjection=GetWorld()->SpawnActor<ATVWorldProjection>();
+            WorldProjection->Apply(PendingPresentation,CanonicalOrigin);
+            ProjectedRegions=WorldProjection->RegionCount(); ProjectionMetrics=WorldProjection->Metrics();
+            UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE applied transfer=%d region=%s resident=%d snapshot_age=%.3f"),TransferId,*TransferRegion,ProjectedRegions,SinceSnapshot);
+        }
+        PendingPresentation.Reset(); AcknowledgePresentation(TransferId,ChunkCount-1);
+    }
+}
+bool UTVBridgeSubsystem::IsLive() const { return bTransportConnected && bCanonicalReady && FPlatformTime::Seconds()-LastSnapshotReceived<1.5; }
+FString UTVBridgeSubsystem::ConnectionStatus() const {
+    if(!bTransportConnected) return Status;
+    if(!bCanonicalReady) return TEXT("Connected - waiting for canonical player snapshot");
+    if(!IsLive()) return TEXT("Transport connected - canonical snapshots stalled; movement paused");
+    return Status+(ProjectedRegions<WantedRegions.Num()?FString::Printf(TEXT(" | streaming world %d/%d"),ProjectedRegions,WantedRegions.Num()):TEXT(""));
+}
+void UTVBridgeSubsystem::ProtocolError(const FString& Reason) { UE_LOG(LogTemp,Error,TEXT("TV_BRIDGE protocol error: %s"),*Reason); bCanonicalReady=false; Status=Reason; if(Socket) Socket->Close(1002,Reason); }
+void UTVBridgeSubsystem::AcknowledgePresentation(int32 Id,int32 Index) {
+    if(!Socket || !Socket->IsConnected()) return;
+    Socket->Send(FString::Printf(TEXT("{\"version\":1,\"type\":\"presentation_ack\",\"transferId\":%d,\"index\":%d}"),Id,Index));
+}
+void UTVBridgeSubsystem::ReceivePresentation(const TSharedPtr<FJsonObject>& M) {
+    const int32 Id=M->GetIntegerField(TEXT("transferId")),Index=M->GetIntegerField(TEXT("index")),Count=M->GetIntegerField(TEXT("count"));
+    if(M->GetIntegerField(TEXT("streamVersion"))!=2 || Count<1 || Count>64 || Index<0 || Index>=Count || PendingPresentation) { ProtocolError(TEXT("Invalid regional chunk envelope")); return; }
+    if(Index==0) { if(!Assembly.IsEmpty()) { ProtocolError(TEXT("Overlapping regional transfer"));return; } TransferId=Id;NextChunk=0;ChunkCount=Count;TransferRegion=M->GetStringField(TEXT("regionId")); }
+    if(Id!=TransferId || Index!=NextChunk || Count!=ChunkCount) { ProtocolError(TEXT("Out-of-order regional chunk"));return; }
+    TArray<uint8> Bytes;
+    if(!FBase64::Decode(M->GetStringField(TEXT("data")),Bytes) || Bytes.Num()>65536 || Assembly.Num()+Bytes.Num()>4*1024*1024) { ProtocolError(TEXT("Regional assembly exceeds bounded protocol"));return; }
+    Assembly.Append(Bytes); ++NextChunk;
+    if(NextChunk<ChunkCount) { AcknowledgePresentation(Id,Index);return; }
+    const int32 Total=Assembly.Num(); Assembly.Add(0);
+    const FString Json=UTF8_TO_TCHAR(reinterpret_cast<const char*>(Assembly.GetData())); Assembly.Empty();
+    if(!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json),PendingPresentation)) { ProtocolError(TEXT("Invalid regional JSON"));return; }
+    UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE received presentation transfer=%d region=%s bytes=%d chunks=%d"),Id,*TransferRegion,Total,Count);
 }
 void UTVBridgeSubsystem::Send(const TSharedRef<FJsonObject>& M) {
     if (!Socket || !Socket->IsConnected() || !bControls) return;
@@ -55,14 +101,14 @@ void UTVBridgeSubsystem::SendIntent(const FString& Type, const FString& TargetBo
     M->SetStringField(TEXT("targetBodyId"), TargetBody.IsEmpty() ? SelectedBody : TargetBody); Send(M);
 }
 void UTVBridgeSubsystem::SendHandIntent(bool bConsume) {
-    if (SinceSnapshot >= 0.5f) return;
+    if (!IsLive()) return;
     const FString Id = bConsume ? ConsumeInteraction : NearbyInteraction;
     if (Id.IsEmpty()) return;
     auto M = MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"), TEXT("interact"));
     M->SetStringField(TEXT("interactionId"), Id); Send(M);
 }
 void UTVBridgeSubsystem::SendDropIntent() {
-    if (SinceSnapshot >= 0.5f || DropInteraction.IsEmpty()) return;
+    if (!IsLive() || DropInteraction.IsEmpty()) return;
     auto M = MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"), TEXT("interact"));
     M->SetStringField(TEXT("interactionId"), DropInteraction); Send(M);
 }
@@ -83,11 +129,12 @@ void UTVBridgeSubsystem::ChooseDialogueOption(int32 Index) {
 }
 void UTVBridgeSubsystem::Receive(const FString& Message) {
     TSharedPtr<FJsonObject> M;
-    if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Message), M) || !M.IsValid()) return;
+    if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Message), M) || !M.IsValid()) {ProtocolError(TEXT("Invalid bridge JSON"));return;}
     double Version = 0; if (!M->TryGetNumberField(TEXT("version"), Version) || Version != 1) { Status = TEXT("Incompatible bridge protocol"); bControls = false; return; }
     FString Type; if (!M->TryGetStringField(TEXT("type"), Type)) return;
-    if (Type == TEXT("hello")) { M->TryGetBoolField(TEXT("controls"), bControls); M->TryGetStringField(TEXT("playerId"), PlayerId); return; }
+    if (Type == TEXT("hello")) { M->TryGetBoolField(TEXT("controls"), bControls); M->TryGetStringField(TEXT("playerId"), PlayerId); UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE received hello controls=%d player=%s"),bControls,*PlayerId); return; }
     if (Type == TEXT("scene")) {
+        UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE received scene chars=%d"),Message.Len());
         // Where the canonical world's origin is, and how many centimetres a canonical metre is,
         // are TypeScript's to state. Reading them here keeps one source of truth for the
         // projection instead of a constant duplicated in this client.
@@ -96,13 +143,18 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
         double Units = 0; if (M->TryGetNumberField(TEXT("unitsPerMetre"), Units) && Units > 0) UnitsPerMetre = static_cast<float>(Units);
         return;
     }
-    if (Type == TEXT("regions")) {
+    if (Type == TEXT("presentation_chunk")) { ReceivePresentation(M);return; }
+    if (Type == TEXT("regions_state")) {
+        if(M->GetIntegerField(TEXT("streamVersion"))!=2) {ProtocolError(TEXT("Regional protocol mismatch"));return;}
+        CenterRegion=M->GetStringField(TEXT("center")); WantedRegions.Empty();
+        for(const auto& V:M->GetArrayField(TEXT("resident"))) WantedRegions.Add(V->AsString());
         const auto O=M->GetObjectField(TEXT("origin")); const FVector Next(O->GetNumberField(TEXT("x")),O->GetNumberField(TEXT("y")),O->GetNumberField(TEXT("z")));
         const FVector Delta((CanonicalOrigin.X-Next.X)*100,(CanonicalOrigin.Z-Next.Z)*100,(CanonicalOrigin.Y-Next.Y)*100);
         if(!Delta.IsNearlyZero()) for(auto& Pair:Bodies) Pair.Value->RebasePresentation(Delta);
         CanonicalOrigin=Next;
         if(!WorldProjection) WorldProjection=GetWorld()->SpawnActor<ATVWorldProjection>();
-        WorldProjection->Apply(M,CanonicalOrigin); ProjectionMetrics=WorldProjection->Metrics(); return;
+        WorldProjection->Apply(M,CanonicalOrigin); ProjectedRegions=WorldProjection->RegionCount(); ProjectionMetrics=WorldProjection->Metrics();
+        UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE region state center=%s wanted=%d origin=%s"),*CenterRegion,WantedRegions.Num(),*CanonicalOrigin.ToString()); return;
     }
     if (Type == TEXT("debug_inspection")) {
         if(auto* T=Selected()) { FString Text; FJsonSerializer::Serialize(M.ToSharedRef(),TJsonWriterFactory<>::Create(&Text)); T->DebugText=Text; }
@@ -125,7 +177,9 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
     if (Type != TEXT("snapshot")) return;
     const TArray<TSharedPtr<FJsonValue>>* Rows;
     if (!M->TryGetArrayField(TEXT("bodies"), Rows)) return;
-    ServerTick = M->GetNumberField(TEXT("tick")); SinceSnapshot = 0; M->TryGetStringField(TEXT("playerId"), PlayerId);
+    const FString ControlledId=M->GetStringField(TEXT("controlledBodyId"));
+    if(ControlledId.IsEmpty() || !Rows->ContainsByPredicate([&](const auto& V){return V->AsObject()->GetStringField(TEXT("bodyId"))==ControlledId && V->AsObject()->GetStringField(TEXT("entityId"))==M->GetStringField(TEXT("playerId"));})) { ProtocolError(TEXT("Canonical player body missing from snapshot"));return; }
+    ServerTick = M->GetNumberField(TEXT("tick")); SinceSnapshot = 0; LastSnapshotReceived=FPlatformTime::Seconds(); ++SnapshotCount; M->TryGetStringField(TEXT("playerId"), PlayerId);
     NearbyInteraction.Empty(); ConsumeInteraction.Empty(); DropInteraction.Empty(); NearbyPrompt.Empty(); ConsumePrompt.Empty(); DropPrompt.Empty(); TalkTargetBody.Empty();
     const TArray<TSharedPtr<FJsonValue>>* Interactions;
     if (M->TryGetArrayField(TEXT("interactions"), Interactions)) for (const auto& V : *Interactions) {
@@ -185,6 +239,8 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
         }
         C->Project(D, First);
         if (Controlled) {
+            if(!bCanonicalReady) UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE received snapshot; bound player=%s body=%s pawn=%s pos=%s"),*Entity,*Id,*C->GetName(),*C->GetActorLocation().ToString());
+            bCanonicalReady=true;
             const auto Needs = D->GetObjectField(TEXT("needs"));
             PlayerVitals = FString::Printf(TEXT("Hunger %.0f%%   Thirst %.0f%%   %.0f silver"), Needs->GetNumberField(TEXT("hunger")) * 100, Needs->GetNumberField(TEXT("thirst")) * 100, D->GetNumberField(TEXT("wealth")));
             TArray<FString> Items;
@@ -214,6 +270,6 @@ void UTVBridgeSubsystem::CycleTarget() {
 }
 
 void UTVBridgeSubsystem::ToggleMechanisms() { bMechanismsOpen=!bMechanismsOpen; if(bMechanismsOpen) CloseDialogue(); }
-void UTVBridgeSubsystem::ChooseMechanism(int32 Index) { if(SinceSnapshot>=.5f || !MechanismIntents.IsValidIndex(Index)) return; auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("person_action")); M->SetObjectField(TEXT("intent"),MechanismIntents[Index]); Send(M); }
+void UTVBridgeSubsystem::ChooseMechanism(int32 Index) { if(!IsLive() || !MechanismIntents.IsValidIndex(Index)) return; auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("person_action")); M->SetObjectField(TEXT("intent"),MechanismIntents[Index]); Send(M); }
 void UTVBridgeSubsystem::SaveWorld() { auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("save")); Send(M); }
 void UTVBridgeSubsystem::RequestDeveloperInspection() { if(auto* T=Selected()) { auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("debug_inspect")); M->SetStringField(TEXT("personId"),T->EntityId); Send(M); } }

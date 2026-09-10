@@ -36,7 +36,8 @@
     "settlements:accept": "vitest run --config vitest.settlements.config.ts",
     "individual:demo": "tsx src/headless/individual/cli.ts",
     "agency:demo": "tsx src/headless/agency/cli.ts",
-    "bridge:playable": "tsx src/bridge/playableServer.ts"
+    "bridge:playable": "tsx src/bridge/playableServer.ts",
+    "bridge:playable:verify": "tsx src/headless/bridge/playableStartup.ts"
   },
   "dependencies": {
     "three": "^0.170.0",
