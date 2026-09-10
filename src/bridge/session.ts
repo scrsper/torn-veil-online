@@ -23,6 +23,8 @@ export const BRIDGE_VERSION = 1;
 function visibleActivity(p: Person | undefined, pose: string): string {
   if (pose !== 'work') return pose;
   const a = p?.mind.plan.find(a => a.status === 'active');
+  if(a?.type==='chop') return 'chop';
+  if(a?.type==='build') return 'repair';
   if (a?.type === 'mechanism_task') {
     const kind = a.data?.kind;
     return ['inspect', 'diagnose', 'reverse_engineer'].includes(kind) ? 'inspect' : kind === 'test' ? 'operate' : 'repair';
@@ -120,10 +122,11 @@ export class BridgeSession {
   snapshot() {
     const w = this.world, p = w.person(w.playerId)!;
     const knowledge = this.game.perceive('local')!;
-    const visible = new Set(knowledge.people.map(p => p.entityId)); visible.add(p.id);
-    return { version: BRIDGE_VERSION, type: 'snapshot', tick: w.physicalTime, worldTime: w.now, ack: this.sequence, playerId: p.id,
+    const controlledBodyId=w.primaryBody(p.id)?.id;
+    const visible = new Set(knowledge.people.map(p => p.bodyId)); if(controlledBodyId) visible.add(controlledBodyId);
+    return { version: BRIDGE_VERSION, type: 'snapshot', tick: w.physicalTime, worldTime: w.now, ack: this.sequence, playerId: p.id, controlledBodyId,
       knowledge, mechanisms: mechanismPanel(w, p), interactions: handInteractions(this.sim, p), dialogue: this.dialogueProjection(), talkTargets: this.talkTargets(p),
-      bodies: w.activeBodies().filter(b => visible.has(b.ownerId)).map(b => ({ bodyId: b.id, entityId: b.ownerId,
+      bodies: w.activeBodies().filter(b => visible.has(b.id)).map(b => ({ bodyId: b.id, entityId: b.ownerId,
         name: knownName(p, b.ownerId), activity: visibleActivity(w.person(b.ownerId), b.pose), speed: b.speed * movementMultiplier(b, w.person(b.ownerId)), sprintMultiplier: SPRINT_MULTIPLIER, lastAttackAt: b.lastAttackAt, lastHitAt: b.lastHitAt, incapacitated: b.pose === 'downed', alive: !b.dead, pos: { ...b.pos }, velocity: { ...b.vel }, yaw: b.yaw, pose: b.pose,
         appearance: { ...w.person(b.ownerId)?.appearance }, dead: b.dead,
         speech: w.person(b.ownerId)?.speech?.text ?? '',

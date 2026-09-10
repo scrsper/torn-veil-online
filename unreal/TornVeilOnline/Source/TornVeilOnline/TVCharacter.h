@@ -15,6 +15,10 @@ UCLASS()
 class TORNVEILONLINE_API ATVCharacter : public ACharacter {
     GENERATED_BODY()
 public:
+    void Mechanisms();
+    void SaveWorld();
+    UPROPERTY() TMap<FString, TObjectPtr<UAnimationAsset>> ActivityAnimations;
+    void RebasePresentation(const FVector& Delta);
     ATVCharacter();
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaSeconds) override;

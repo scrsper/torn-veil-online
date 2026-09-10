@@ -37,10 +37,10 @@ ATVCharacter::ATVCharacter() {
     Nameplate->SetRelativeLocation(FVector(0, 0, 125)); Nameplate->SetWorldSize(18); Nameplate->SetHorizontalAlignment(EHTA_Center); Nameplate->SetTextRenderColor(FColor(235, 210, 160));
     static ConstructorHelpers::FObjectFinder<USkeletalMesh> Humanoid(TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple"));
     if (Humanoid.Succeeded()) GetMesh()->SetSkeletalMesh(Humanoid.Object);
-    GetMesh()->SetRelativeLocation(FVector(0, 0, -90)); GetMesh()->SetRelativeRotation(FRotator(0, -90, 0)); GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision); GetMesh()->SetOwnerNoSee(true);
-    HairProxy = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("AshfordHair")); HairProxy->SetupAttachment(GetMesh(), TEXT("head")); HairProxy->SetCollisionEnabled(ECollisionEnabled::NoCollision); HairProxy->SetOwnerNoSee(true);
-    GarmentProxy = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("AshfordGarment")); GarmentProxy->SetupAttachment(GetMesh(), TEXT("spine_03")); GarmentProxy->SetCollisionEnabled(ECollisionEnabled::NoCollision); GarmentProxy->SetOwnerNoSee(true);
-    OccupationProp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("AshfordOccupationCue")); OccupationProp->SetupAttachment(GetMesh(), TEXT("hand_r")); OccupationProp->SetCollisionEnabled(ECollisionEnabled::NoCollision); OccupationProp->SetOwnerNoSee(true);
+    GetMesh()->SetRelativeLocation(FVector(0, 0, -90)); GetMesh()->SetRelativeRotation(FRotator(0, -90, 0)); GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision); GetMesh()->SetOwnerNoSee(false);
+    HairProxy = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("AshfordHair")); HairProxy->SetupAttachment(GetMesh(), TEXT("head")); HairProxy->SetCollisionEnabled(ECollisionEnabled::NoCollision); HairProxy->SetOwnerNoSee(false);
+    GarmentProxy = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("AshfordGarment")); GarmentProxy->SetupAttachment(GetMesh(), TEXT("spine_03")); GarmentProxy->SetCollisionEnabled(ECollisionEnabled::NoCollision); GarmentProxy->SetOwnerNoSee(false);
+    OccupationProp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("AshfordOccupationCue")); OccupationProp->SetupAttachment(GetMesh(), TEXT("hand_r")); OccupationProp->SetCollisionEnabled(ECollisionEnabled::NoCollision); OccupationProp->SetOwnerNoSee(false);
     static ConstructorHelpers::FObjectFinder<UStaticMesh> Cube(TEXT("/Engine/BasicShapes/Cube"));
     static ConstructorHelpers::FObjectFinder<UStaticMesh> Cylinder(TEXT("/Engine/BasicShapes/Cylinder"));
     if (Cylinder.Succeeded()) HairProxy->SetStaticMesh(Cylinder.Object);
@@ -63,6 +63,7 @@ ATVCharacter::ATVCharacter() {
 }
 void ATVCharacter::BeginPlay() {
     Super::BeginPlay();
+    GetCharacterMovement()->DisableMovement(); GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     if (IsPlayerControlled()) { bCanonicalPlayer = true; Controller->SetControlRotation(FRotator(-18, 0, 0)); Nameplate->SetVisibility(false); }
     else { GetCharacterMovement()->DisableMovement(); GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision); }
 }
@@ -80,10 +81,11 @@ void ATVCharacter::Tick(float Dt) {
         CameraBoom->TargetArmLength = FMath::FInterpTo(CameraBoom->TargetArmLength, ZoomTarget, Dt, 8);
         CameraBoom->SocketOffset.Y = FMath::GetMappedRangeValueClamped(FVector2D(160, 700), FVector2D(55, 0), ZoomTarget);
         GetCharacterMovement()->MaxWalkSpeed = CanonicalSpeed * (bSprint ? CanonicalSprintMultiplier : 1.f);
-        if (Live && !bIncapacitated) AddMovementInput(IntentDirection()); else GetCharacterMovement()->StopMovementImmediately();
+        // Physical movement is entirely canonical. Local gravity/collision must not compete with reconciliation.
         if (bProjected && Live) {
             const FVector Expected = TargetPosition + CanonicalVelocity * FMath::Min(SnapshotAge, 0.1f);
             const FVector Error = Expected - GetActorLocation();
+            SetActorRotation(FMath::RInterpTo(GetActorRotation(),FRotator(0,TargetYaw,0),Dt,10));
             if (Error.Size() > 250) SetActorLocation(Expected, false, nullptr, ETeleportType::TeleportPhysics);
             else SetActorLocation(GetActorLocation() + Error * FMath::Min(Dt * 6, 1.f), false);
         }
@@ -92,15 +94,16 @@ void ATVCharacter::Tick(float Dt) {
         SetActorLocation(FMath::Lerp(PreviousPosition, TargetPosition, Alpha));
         SetActorRotation(FMath::RInterpTo(GetActorRotation(), FRotator(0, TargetYaw, 0), Dt, 10));
         if (auto* PC = GetWorld()->GetFirstPlayerController()) { const auto R = (PC->PlayerCameraManager->GetCameraLocation() - Nameplate->GetComponentLocation()).Rotation(); Nameplate->SetWorldRotation(R); }
+        Nameplate->SetVisibility(Bridge && Bridge->Selected()==this);
         ApplyNameplate(Bridge && Bridge->bInspector); // no-op unless F6 was toggled since the last snapshot
     }
-    Animate(bCanonicalPlayer ? GetVelocity().Size2D() : (Live ? CanonicalVelocity.Size2D() : 0));
+    Animate(Live ? CanonicalVelocity.Size2D() : 0);
 }
 void ATVCharacter::Project(const TSharedPtr<FJsonObject>& D, bool First) {
     BodyId = D->GetStringField(TEXT("bodyId")); EntityId = D->GetStringField(TEXT("entityId")); DisplayName = D->GetStringField(TEXT("name"));
-    Activity = D->GetStringField(TEXT("activity")); Occupation = D->GetStringField(TEXT("occupation")); CanonicalPose = D->GetStringField(TEXT("pose"));
+    Activity = D->GetStringField(TEXT("activity")); Occupation.Empty(); D->TryGetStringField(TEXT("occupation"), Occupation); CanonicalPose = D->GetStringField(TEXT("pose"));
     ApplyAppearance(D);
-    Health = D->GetNumberField(TEXT("health")); MaxHealth = D->GetNumberField(TEXT("maxHealth"));
+    double H=0, MaxH=0; D->TryGetNumberField(TEXT("health"),H); D->TryGetNumberField(TEXT("maxHealth"),MaxH); Health=H; MaxHealth=MaxH;
     bDead = D->GetBoolField(TEXT("dead")); bIncapacitated = D->GetBoolField(TEXT("incapacitated")) || bDead;
     AttackTargetEntity.Empty(); D->TryGetStringField(TEXT("attackTarget"), AttackTargetEntity); // null when not swinging
     double At = 0; if (D->TryGetNumberField(TEXT("lastAttackAt"), At)) LastAttackAt = static_cast<float>(At);
@@ -185,12 +188,18 @@ void ATVCharacter::ApplyNameplate(bool bShowClass) {
 }
 void ATVCharacter::Animate(float Speed) {
     UAnimationAsset* Wanted = bIncapacitated ? DownAnimation.Get() : CanonicalPose == TEXT("attack") ? AttackAnimation.Get() : CanonicalPose == TEXT("hit") ? HitAnimation.Get() : Locomotion.Get();
+    const bool ActivityLoop = !bIncapacitated && Speed<30 && CanonicalPose!=TEXT("attack") && CanonicalPose!=TEXT("hit");
+    if(ActivityLoop) {
+        FString Key=Activity;
+        if(Key==TEXT("sit") || Key==TEXT("sleep") || Key==TEXT("pray")) Key=TEXT("rest");
+        if(!Key.IsEmpty() && Key!=TEXT("stand")) { if(!ActivityAnimations.Contains(Key)) ActivityAnimations.Add(Key,LoadObject<UAnimationAsset>(nullptr,*(TEXT("/Game/Characters/TornVeilActivities/A_TV_")+Key))); if(auto* A=ActivityAnimations.FindRef(Key).Get()) Wanted=A; }
+    }
     if (!Wanted) return;
     // A second swing or a second blow leaves the canonical pose unchanged, so replaying on a
     // pose transition alone would silently drop every hit after the first in an exchange.
     const bool Restart = (Wanted == AttackAnimation && LastAttackAt > PlayedAttackAt) || (Wanted == HitAnimation && LastHitAt > PlayedHitAt);
     if (CurrentAnimation != Wanted || Restart) {
-        CurrentAnimation = Wanted; GetMesh()->PlayAnimation(Wanted, Wanted == Locomotion);
+        CurrentAnimation = Wanted; GetMesh()->PlayAnimation(Wanted, Wanted == Locomotion || ActivityLoop);
         if (Wanted == AttackAnimation) PlayedAttackAt = LastAttackAt;
         if (Wanted == HitAnimation) PlayedHitAt = LastHitAt;
     }
@@ -210,6 +219,8 @@ void ATVCharacter::SetupPlayerInputComponent(UInputComponent* I) {
     I->BindAction(TEXT("Dialogue5"), IE_Pressed, this, &ATVCharacter::Dialogue5); I->BindAction(TEXT("CloseDialogue"), IE_Pressed, this, &ATVCharacter::CloseDialogue);
     I->BindAction(TEXT("Dialogue6"), IE_Pressed, this, &ATVCharacter::Dialogue6); I->BindAction(TEXT("Dialogue7"), IE_Pressed, this, &ATVCharacter::Dialogue7);
     I->BindAction(TEXT("Dialogue8"), IE_Pressed, this, &ATVCharacter::Dialogue8); I->BindAction(TEXT("Dialogue9"), IE_Pressed, this, &ATVCharacter::Dialogue9);
+    I->BindKey(EKeys::M,IE_Pressed,this,&ATVCharacter::Mechanisms);
+    I->BindKey(EKeys::F5,IE_Pressed,this,&ATVCharacter::SaveWorld);
     I->BindAction(TEXT("Attack"), IE_Pressed, this, &ATVCharacter::Attack);
 }
 void ATVCharacter::Forward(float V) { ForwardAxis = V; } void ATVCharacter::Right(float V) { RightAxis = V; }
@@ -220,7 +231,7 @@ void ATVCharacter::SelectTarget() { if (auto* B = GetWorld()->GetSubsystem<UTVBr
 void ATVCharacter::Consume() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->SendHandIntent(true); }
 void ATVCharacter::Drop() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->SendDropIntent(); }
 void ATVCharacter::Interact() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->Interact(); }
-void ATVCharacter::Inspector() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->bInspector = !B->bInspector; }
+void ATVCharacter::Inspector() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) { B->bInspector = !B->bInspector; if(B->bInspector) B->RequestDeveloperInspection(); } }
 void ATVCharacter::Dialogue1() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->ChooseDialogueOption(0); }
 void ATVCharacter::Dialogue2() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->ChooseDialogueOption(1); }
 void ATVCharacter::Dialogue3() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->ChooseDialogueOption(2); }
@@ -236,3 +247,8 @@ void ATVCharacter::CloseDialogue() { if (auto* B = GetWorld()->GetSubsystem<UTVB
  * client learns the outcome from the next snapshot like any other observer. */
 void ATVCharacter::Attack() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->SendIntent(TEXT("attack")); }
 
+
+void ATVCharacter::RebasePresentation(const FVector& Delta) { TargetPosition+=Delta; PreviousPosition+=Delta; SetActorLocation(GetActorLocation()+Delta); }
+
+void ATVCharacter::Mechanisms() { if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->ToggleMechanisms(); }
+void ATVCharacter::SaveWorld() { if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->SaveWorld(); }

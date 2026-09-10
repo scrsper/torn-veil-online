@@ -1,0 +1,242 @@
+{
+  "version": 1,
+  "culture": "regional-prototype",
+  "source": "Quaternius Medieval Village MegaKit Standard",
+  "license": "CC0-1.0",
+  "meshes": [
+    {
+      "asset": "/Game/ThirdParty/Quaternius/Meshes/Balcony_Simple_Straight.Balcony_Simple_Straight",
+      "min": [
+        -100.00001525878906,
+        89.7969970703125,
+        -10.508703231811523
+      ],
+      "max": [
+        100.0,
+        110.42528533935547,
+        112.47996520996094
+      ],
+      "slots": [
+        "MI_WoodTrim"
+      ]
+    },
+    {
+      "asset": "/Game/ThirdParty/Quaternius/Meshes/Door_1_Flat.Door_1_Flat",
+      "min": [
+        -4.6263108253479,
+        -5.755788326263428,
+        3.522526264190674
+      ],
+      "max": [
+        107.16030883789062,
+        6.314243793487549,
+        213.49449157714844
+      ],
+      "slots": [
+        "MI_WoodTrim",
+        "MI_WindowGlass"
+      ]
+    },
+    {
+      "asset": "/Game/ThirdParty/Quaternius/Meshes/DoorFrame_Flat_WoodDark.DoorFrame_Flat_WoodDark",
+      "min": [
+        -78.6209487915039,
+        -24.32901954650879,
+        -0.8544854521751404
+      ],
+      "max": [
+        78.77825164794922,
+        14.516199111938477,
+        230.3714599609375
+      ],
+      "slots": [
+        "MI_WoodTrim"
+      ]
+    },
+    {
+      "asset": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick.Floor_Brick",
+      "min": [
+        -100.0,
+        -100.0,
+        -1.0000547170639038
+      ],
+      "max": [
+        100.0,
+        100.0,
+        1.000015377998352
+      ],
+      "slots": [
+        "MI_Brick"
+      ]
+    },
+    {
+      "asset": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark.Floor_WoodDark",
+      "min": [
+        -100.0,
+        -100.0,
+        -1.0000547170639038
+      ],
+      "max": [
+        100.0,
+        100.0,
+        1.000015377998352
+      ],
+      "slots": [
+        "MI_WoodTrim"
+      ]
+    },
+    {
+      "asset": "/Game/ThirdParty/Quaternius/Meshes/Roof_Front_Brick4.Roof_Front_Brick4",
+      "min": [
+        -218.3807373046875,
+        -33.496368408203125,
+        -13.180208206176758
+      ],
+      "max": [
+        221.599609375,
+        79.4139633178711,
+        293.6702575683594
+      ],
+      "slots": [
+        "MI_WoodTrim",
+        "MI_Plaster"
+      ]
+    },
+    {
+      "asset": "/Game/ThirdParty/Quaternius/Meshes/Roof_Modular_RoundTiles.Roof_Modular_RoundTiles",
+      "min": [
+        -33.2467041015625,
+        -120.61224365234375,
+        0.6394326686859131
+      ],
+      "max": [
+        33.0753173828125,
+        104.55367279052734,
+        51.18769836425781
+      ],
+      "slots": [
+        "MI_RoundTiles"
+      ]
+    },
+    {
+      "asset": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2.Roof_Support2",
+      "min": [
+        -9.98499584197998,
+        -2.6965878987539327e-06,
+        -67.72639465332031
+      ],
+      "max": [
+        9.985006332397461,
+        76.51262664794922,
+        6.566549777984619
+      ],
+      "slots": [
+        "MI_WoodTrim"
+      ]
+    },
+    {
+      "asset": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1.Roof_Wooden_2x1",
+      "min": [
+        -112.89291381835938,
+        -4.117303848266602,
+        -16.119550704956055
+      ],
+      "max": [
+        112.89291381835938,
+        151.91494750976562,
+        108.71591186523438
+      ],
+      "slots": [
+        "MI_WoodTrim",
+        "MI_WoodTrim_Wear"
+      ]
+    },
+    {
+      "asset": "/Game/ThirdParty/Quaternius/Meshes/Stairs_Exterior_Straight.Stairs_Exterior_Straight",
+      "min": [
+        -100.0000228881836,
+        -107.72460174560547,
+        -20.368791580200195
+      ],
+      "max": [
+        100.0000228881836,
+        100.067138671875,
+        99.99996948242188
+      ],
+      "slots": [
+        "MI_RockTrim",
+        "MI_Brick"
+      ]
+    },
+    {
+      "asset": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Door_Flat.Wall_Plaster_Door_Flat",
+      "min": [
+        -100.00001525878906,
+        -31.403583526611328,
+        -3.2584150631009834e-06
+      ],
+      "max": [
+        100.0,
+        9.244657516479492,
+        312.26885986328125
+      ],
+      "slots": [
+        "MI_WoodTrim",
+        "MI_Plaster",
+        "MI_RockTrim"
+      ]
+    },
+    {
+      "asset": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight.Wall_Plaster_Straight",
+      "min": [
+        -100.00001525878906,
+        -31.403583526611328,
+        -0.20958854258060455
+      ],
+      "max": [
+        100.0,
+        9.244657516479492,
+        312.26885986328125
+      ],
+      "slots": [
+        "MI_WoodTrim",
+        "MI_Plaster"
+      ]
+    },
+    {
+      "asset": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat.Wall_Plaster_Window_Wide_Flat",
+      "min": [
+        -100.00001525878906,
+        -31.403583526611328,
+        -3.2584150631009834e-06
+      ],
+      "max": [
+        100.0,
+        9.244657516479492,
+        312.26885986328125
+      ],
+      "slots": [
+        "MI_Plaster",
+        "MI_Brick",
+        "MI_WoodTrim"
+      ]
+    },
+    {
+      "asset": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_WoodGrid.Wall_Plaster_WoodGrid",
+      "min": [
+        -100.0000228881836,
+        -31.403583526611328,
+        -3.258415290474659e-06
+      ],
+      "max": [
+        100.0000228881836,
+        9.244657516479492,
+        312.26885986328125
+      ],
+      "slots": [
+        "MI_WoodTrim",
+        "MI_Plaster"
+      ]
+    }
+  ]
+}

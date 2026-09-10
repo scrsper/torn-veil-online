@@ -5,6 +5,7 @@
 
 class IWebSocket;
 class ATVCharacter;
+class ATVWorldProjection;
 UCLASS()
 class TORNVEILONLINE_API UTVBridgeSubsystem : public UTickableWorldSubsystem {
     GENERATED_BODY()
@@ -33,6 +34,15 @@ public:
     FString DialogueSpeaker, DialogueOccupation;
     TArray<FString> DialogueLines, DialogueOptionIds, DialogueOptionLabels;
     void CycleTarget();
+    void ToggleMechanisms();
+    void ChooseMechanism(int32 Index);
+    void RequestDeveloperInspection();
+    void SaveWorld();
+    bool bMechanismsOpen = false;
+    TArray<FString> MechanismLabels;
+    TArray<TSharedPtr<FJsonObject>> MechanismIntents;
+    FString KnowledgeSummary, ProjectionMetrics;
+    UPROPERTY() TObjectPtr<ATVWorldProjection> WorldProjection;
     ATVCharacter* Selected() const;
     FString Status = TEXT("Connecting to simulation..."), LastResult, LastEvent, PlayerId;
     float ServerTick = 0, SinceSnapshot = 100;

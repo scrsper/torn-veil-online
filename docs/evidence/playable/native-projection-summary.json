@@ -1,0 +1,46 @@
+{
+  "date": "2026-09-10",
+  "method": "Actual UE 5.8 Play In Editor; one canonical save, explicit developer observer relocation. Not canonical travel evidence.",
+  "samples": [
+    {
+      "label": "playable-settlement-a",
+      "map": "/Game/TornVeil/Maps/UEDPIE_0_TornVeilWorld.TornVeilWorld",
+      "actors": 39,
+      "characters": 6,
+      "regions": 9,
+      "canonicalInstances": 4249.0,
+      "decorativeInstances": 6673,
+      "instancedComponents": 60.0,
+      "pcgWallMillisecondsMax": 562.4889023602009,
+      "pcgRegionsGenerated": 9,
+      "allInstanceCollisionDisabled": true
+    },
+    {
+      "label": "playable-wilderness",
+      "map": "/Game/TornVeil/Maps/UEDPIE_0_TornVeilWorld.TornVeilWorld",
+      "actors": 34,
+      "characters": 1,
+      "regions": 9,
+      "canonicalInstances": 212.0,
+      "decorativeInstances": 3779,
+      "instancedComponents": 40.0,
+      "pcgWallMillisecondsMax": 636.5902982652187,
+      "pcgRegionsGenerated": 9,
+      "allInstanceCollisionDisabled": true
+    },
+    {
+      "label": "playable-settlement-b",
+      "map": "/Game/TornVeil/Maps/UEDPIE_0_TornVeilWorld.TornVeilWorld",
+      "actors": 41,
+      "characters": 8,
+      "regions": 9,
+      "canonicalInstances": 3125.0,
+      "decorativeInstances": 6369,
+      "instancedComponents": 74.0,
+      "pcgWallMillisecondsMax": 226.34870186448097,
+      "pcgRegionsGenerated": 9,
+      "allInstanceCollisionDisabled": true
+    }
+  ],
+  "limits": "PCG elapsed wall time includes asynchronous/background editor scheduling. Actor totals include generic infrastructure; instance totals include canonical and decorative meshes. Not a frame-rate or leak benchmark."
+}

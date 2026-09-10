@@ -21,9 +21,14 @@ export function regionBounds(w: World, rx: number, rz: number) {
 /** Geometry facts only. This is not an identity, ownership, inventory, goal or mind API. */
 export function projectRegion(w: World, rx: number, rz: number) {
   if (!w.geography || !Number.isInteger(rx) || !Number.isInteger(rz) || rx < 0 || rz < 0 || rx * 256 >= w.grid.W || rz * 256 >= w.grid.D) throw new Error('Region outside world');
-  const bounds = regionBounds(w, rx, rz), columns: number[][] = [], stride = 8, openings: number[][] = [], fences: number[][] = [];
+  const bounds = regionBounds(w, rx, rz), columns: number[][] = [], stride = (w.grid as RegionalGrid).patches.some(p=>p.x<bounds.x1&&p.x+p.grid.W>bounds.x0&&p.z<bounds.z1&&p.z+p.grid.D>bounds.z0)?2:8, openings: number[][] = [], fences: number[][] = [], paths: number[][] = [];
   for (let x = bounds.x0; x <= bounds.x1; x += stride) for (let z = bounds.z0; z <= bounds.z1; z += stride) {
     const c = surface(w,x,z);
+    // Stitch 2m settlement meshes to the shared 8m wilderness boundary exactly.
+    if(stride===2 && (x===bounds.x0||x===bounds.x1||z===bounds.z0||z===bounds.z1)) {
+      const alongZ=x===bounds.x0||x===bounds.x1, axis=alongZ?z:x, lo=Math.floor(axis/8)*8,hi=lo+8,t=(axis-lo)/8;
+      c.height=surface(w,alongZ?x:lo,alongZ?lo:z).height*(1-t)+surface(w,alongZ?x:hi,alongZ?hi:z).height*t;
+    }
     columns.push([x, z, c.height + 1, c.block, c.water === null ? -1 : c.water + .9, c.forest]);
   }
   const places = w.places().filter(p => inBounds(bounds, p.inside)).map(p => ({ id: p.id, type: p.type, bounds: p.bounds, inside: p.inside, door: p.door, indoor: p.indoor,
@@ -36,10 +41,11 @@ export function projectRegion(w: World, rx: number, rz: number) {
     for (let x = x0; x < x1; x++) for (let z = z0; z < z1; z++) for (let y = 1; y < patch.grid.H; y++) {
       const b = w.grid.get(x, y, z);
       if (b === B.Door) openings.push([x, y, z, +w.grid.isDoorOpen(x, y, z)]);
-      if (b === B.Fence) fences.push([x, y, z]);
+      if (b === B.Fence) fences.push([x, y, z, w.grid.get(x-1,y,z)===B.Fence||w.grid.get(x+1,y,z)===B.Fence ? 0 : 90]);
+      if (b === B.Path) paths.push([x,y+1,z]);
     }
   }
-  return { id: `${rx},${rz}`, seed: w.geography.regionSeed(rx, rz), bounds, terrain: { stride, columns }, openings, fences, places,
+  return { id: `${rx},${rz}`, seed: w.geography.regionSeed(rx, rz), bounds, terrain: { stride, columns }, openings, fences, paths, places,
     roads: w.geography.roads.filter(r => r.points.some(p => inBounds(bounds, p))).map(r => ({ id: r.id, points: r.points.filter(p => p.x >= bounds.x0 - 128 && p.x < bounds.x1 + 128 && p.z >= bounds.z0 - 128 && p.z < bounds.z1 + 128).map(p=>({...p,y:surface(w,Math.floor(p.x),Math.floor(p.z)).height+1})) })),
     settlements: w.settlements().filter(s => s.bounds.x0 < bounds.x1 && s.bounds.x1 >= bounds.x0 && s.bounds.z0 < bounds.z1 && s.bounds.z1 >= bounds.z0).map(s => ({ id: s.id, bounds: s.bounds })),
     classification: 'canonical', decoration: { classification: 'decorative', seed: w.geography.regionSeed(rx, rz, 'dressing'), collision: false, gameplay: false } };
@@ -56,7 +62,7 @@ export function regionDynamics(w: World, ids: Set<string>) {
     mechanisms: w.kernel.assemblies.filter(a => inside(a.pos)).map(a => ({ id: a.id, pos: a.pos, parts: a.parts.length, condition: Math.min(1,...a.parts.map(id=>w.kernel.components.find(c=>c.id===id)?.condition??0)), state: w.persons().some(p=>p.mind.plan.some(t=>t.status==='active' && ['operate_mechanism','mechanism_task'].includes(t.type) && t.data?.assemblyId===a.id)) ? 'working' : 'idle', operatedSeconds:a.operatedSeconds })),
     construction: w.constructionProjects.filter(p => inside({ x: p.siteBounds.x0, z: p.siteBounds.z0 })).map(p => ({ id: p.id, bounds: p.siteBounds, pos:{x:p.siteBounds.x0,y:p.siteBounds.y0,z:p.siteBounds.z0}, state: p.status, progress: p.laborDone/Math.max(1,p.laborRequired) })),
     fires: w.fires.filter(f => inside(f.pos)).map(f => ({ id: f.id, pos: f.pos, lit: f.lit, intensity: f.intensity })),
-    doors: [...w.grid.doorStates].flatMap(([i, open]) => { const y = i % w.grid.H, col = (i - y) / w.grid.H, x = Math.floor(col / w.grid.D), z = col % w.grid.D; return inside({ x, z }) ? [{ id: `door:${x}:${y}:${z}`, pos: { x, y, z }, open }] : []; }),
+    doors: [...w.grid.doorStates].flatMap(([i, open]) => { const y = i % w.grid.H, col = (i - y) / w.grid.H, x = Math.floor(col / w.grid.D), z = col % w.grid.D; return inside({ x, z }) ? [{ id: `door:${x}:${y}:${z}`, pos: { x, y, z }, open, yaw:w.grid.get(x-1,y+1,z)!==B.Air&&w.grid.get(x+1,y+1,z)!==B.Air?0:90 }] : []; }),
     environment: { ...w.weather }, worldTime: w.now };
 }
 

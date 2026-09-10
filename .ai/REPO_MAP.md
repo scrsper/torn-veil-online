@@ -491,3 +491,13 @@ Let the task determine the search surface.
 - `src/headless/agency/showcase.ts`, `tests/agency-frontier.test.ts` — integrated workshop and focused invariants.
 - `src/game/ui/knowledge.ts` — normal avatar-belief inspection, distinct from F3 developer inspection.
 - `docs/AUTONOMOUS_AGENCY_SOCIAL_INFERENCE_CAPABILITY.md` — architecture, test surface and remaining legacy selection paths.
+
+## Continuous seeded world and native regions
+
+- `src/sim/world/geography.ts`, `playable.ts` — versioned local-seed geography, site selection, roads and body-driven wilderness resource relevance.
+- `src/sim/physical/regionalGrid.ts` — generated substrate, inhabited patches and persistent edits; region revision counters are disposable projection metadata.
+- `src/bridge/regions.ts` — bounded geometry allowlist, static invalidation, semantic changes and per-connection residency.
+- `src/bridge/playableServer.ts`, `session.ts`, `server.ts` — ordinary player entry, persistent server and native input/snapshot contracts.
+- `unreal/.../TVWorldProjection.*` — runtime terrain/modular/semantic projection and non-authoritative PCG.
+- `src/headless/worldlab/playable.ts` — detailed canonical A→B→A journey; `projectionProbe.ts` is explicitly developer relocation for visual checking only.
+- `docs/PLAYABLE_SEEDED_WORLD.md`, `unreal/ASSET_PROVENANCE.md` — setup, measured acceptance, asset reproducibility and unfinished showcase conditions.
