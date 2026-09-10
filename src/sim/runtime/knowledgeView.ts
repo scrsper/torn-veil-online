@@ -1,6 +1,8 @@
 import type { Person } from '../core/types';
 import type { World } from '../core/world';
 import { knownName, socialBeliefs, type SocialBelief } from '../mind/people';
+import { reachable } from '../kernel/mechanics';
+import { apparentWear } from '../kernel/evolution';
 
 /** Explicit allowlist. Never serialize a Person, canonical event, private goal or raw claim
  * into normal gameplay. These copies cannot mutate canonical state. */
@@ -22,6 +24,10 @@ export function knowledgeView(world: World, observer: Person) {
   const seen = observer.mind.percepts.filter(p => p.how === 'saw');
   return {
     avatarId: observer.id,
+    visibleMechanisms: world.kernel.assemblies.filter(a => a.parts.length && reachable(world, observer, a.pos, 12))
+      .map(a => ({ assemblyId: a.id, label: 'mechanism', pos: { ...a.pos } })),
+    visibleComponents: world.kernel.components.filter(c => !c.assemblyId && (!c.holderId || c.holderId === observer.id) && reachable(world, observer, c.holderId === observer.id ? world.positionOf(observer.id)! : c.pos, 8))
+      .map(c => ({ componentId: c.id, label: 'mechanical part', pos: { ...c.pos }, wear: apparentWear(observer, c), definition: observer.knowledge[`component:${c.definition}`]?.claim.component?.id as string | undefined })),
     people: seen.flatMap(percept => {
       const p = world.person(percept.entityId), b = world.body(percept.bodyId);
       if (!p || !b) return [];

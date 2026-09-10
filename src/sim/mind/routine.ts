@@ -13,10 +13,18 @@ export function observeFields(world: World, p: Person): void {
   for (const field of world.fields) {
     const place = world.place(field.placeId);
     if (!place || Math.hypot(place.inside.x - body.pos.x, place.inside.z - body.pos.z) > 24) continue;
-    const plots = field.plots.filter(plot => Math.hypot(plot.x - body.pos.x, plot.z - body.pos.z) < 16
-      && world.grid.lineOfSight(eye, { x: plot.x + 0.5, y: plot.y + 1, z: plot.z + 0.5 }, 20));
-    if (!plots.length) continue;
-    const claim = { fieldId: field.id, placeId: field.placeId, ripe: plots.some(plot => plot.state === 'mature'), fallow: plots.some(plot => plot.state === 'fallow' || plot.state === 'harvested') };
+    let visible = false, ripe = false, fallow = false;
+    for (const plot of field.plots) {
+      const mature = plot.state === 'mature', bare = plot.state === 'fallow' || plot.state === 'harvested';
+      // Once a state is witnessed, further identical plots add no evidence to this claim.
+      if (visible && (!mature || ripe) && (!bare || fallow)) continue;
+      if (Math.hypot(plot.x - body.pos.x, plot.z - body.pos.z) >= 16
+        || !world.grid.lineOfSight(eye, { x: plot.x + 0.5, y: plot.y + 1, z: plot.z + 0.5 }, 20)) continue;
+      visible = true; ripe ||= mature; fallow ||= bare;
+      if (ripe && fallow) break;
+    }
+    if (!visible) continue;
+    const claim = { fieldId: field.id, placeId: field.placeId, ripe, fallow };
     const key = `field-observation:${field.id}`, prior = p.knowledge[key];
     if (prior && JSON.stringify(prior.claim) === JSON.stringify(claim)) { prior.lastConfirmedAt = world.now; continue; }
     const ev = world.emit('production_observed', { actor: p.id, pos: body.pos, category: 'cognition', significance: 0.2,
@@ -30,6 +38,6 @@ export function observeFields(world: World, p: Person): void {
 export function routineWeight(p: Person): number {
   const welfare = Math.max(0, ...(p.mind.concerns ?? []).filter(c => c.kind === 'welfare' && c.status === 'active')
     .map(c => c.intensity * (0.35 + Math.max(0, p.relationships[c.subjectId ?? '']?.affection ?? 0) * 0.65)));
-  const obligation = Math.min(0.15, (p.mind.obligations ?? []).filter(o => o.status === 'live').length * 0.03);
-  return clamp(0.65 + p.traits.loyalty * 0.35 + obligation - welfare * 0.8 - p.emotions.stress * 0.15 - p.needs.energy * 0.12, 0.1, 1.1);
+  // Obligations already contribute through the shared motivation bridge in think().
+  return clamp(0.65 + p.traits.loyalty * 0.35 - welfare * 0.8 - p.emotions.stress * 0.15 - p.needs.energy * 0.12, 0.1, 1.1);
 }

@@ -47,13 +47,14 @@ export function manufactureStock(world: World, p: Person, definition: ComponentD
 
 /** Paid, interruptible manufacture within the existing assembly project. Stock is checked
  * before each labor slice and debited atomically on completion. Partial work is not a part. */
-export function manufactureComponent(world: World, p: Person, a: Assembly, definition: ComponentDefinition, seconds: number): 'missing' | 'working' | 'made' | 'inaccessible' {
+export function manufactureComponent(world: World, p: Person, a: Assembly, definition: ComponentDefinition, seconds: number, purpose: 'construction' | 'spare' = 'construction'): 'missing' | 'working' | 'made' | 'inaccessible' {
   const canonical = world.kernel.ruleset.components.find(d => d.id === definition.id);
-  if (!canonical || a.method.definitions[a.parts.length] !== canonical.id) return 'inaccessible';
+  if (!canonical || purpose === 'construction' && a.method.definitions[a.parts.length] !== canonical.id) return 'inaccessible';
+  if (purpose === 'spare' && !Object.values(p.knowledge).some(k => k.claim.component?.id === canonical.id)) return 'inaccessible';
   definition = canonical; // beliefs/callers cannot lower the actual material or labor bill
   const f = definition.fabrication, material = world.kernel.ruleset.materials.find(m => m.id === definition.material);
   const placeId = a.bindings.placeId;
-  if (a.ownerId !== p.id || !reachable(world, p, a.pos) || !placeId || !f || !material?.legacyItem || !materialFits(material, f)
+  if (!mayUseProperty(world, p, a.ownerId, placeId) || !reachable(world, p, a.pos) || !placeId || !f || !material?.legacyItem || !materialFits(material, f)
     || !Number.isFinite(seconds) || seconds <= 0 || seconds > 60) return 'inaccessible';
   const quantity = definition.massKg / material.kgPerUnit;
   if (manufactureStock(world, p, definition, placeId) + 1e-9 < quantity) return 'missing';
@@ -62,10 +63,11 @@ export function manufactureComponent(world: World, p: Person, a: Assembly, defin
   const rawTool = bestToolFor(world, p, 'construct', placeId);
   const tool = rawTool && owns(p, rawTool.ownerId) ? rawTool : null;
   const rate = toolWorkMultiplier('construct', tool) * (0.5 + skillOf(p, 'crafting')) * capacity * clamp(0.8 + p.attributes.dexterity * 0.025, 0.8, 1.3);
-  const key = `make:${a.parts.length}`, progress = a.progress[key] ?? 0;
+  const slot = purpose === 'construction' ? String(a.parts.length) : `spare:${p.id}:${definition.id}`;
+  const key = `make:${slot}`, laborKey = `makeLabor:${slot}`, progress = a.progress[key] ?? 0;
   const spent = Math.min(seconds, Math.max(0, f.seconds - progress) / rate);
   a.progress[key] = progress + spent * rate; a.laborSeconds += spent;
-  a.progress[`makeLabor:${a.parts.length}`] = (a.progress[`makeLabor:${a.parts.length}`] ?? 0) + spent;
+  a.progress[laborKey] = (a.progress[laborKey] ?? 0) + spent;
   wearTool(world, tool, spent * world.clock.timeScale / 3600);
   if (a.progress[key] < f.seconds - 1e-9) return 'working';
   let remaining = quantity;
@@ -80,8 +82,8 @@ export function manufactureComponent(world: World, p: Person, a: Assembly, defin
   const c = createComponent(world, definition.id, p.id, a.pos);
   const ev = world.emit('component_manufactured', { actor: p.id, placeId, pos: a.pos, causes: [...new Set(causes)], visibility: 8, significance: 0.4,
     data: { componentId: c.id, assemblyId: a.id, definition: definition.id, material: material.id, consumed, massKg: definition.massKg,
-      laborSeconds: a.progress[`makeLabor:${a.parts.length}`], toolId: tool?.id }, summary: `${p.name} shaped material into a working component` });
+      laborSeconds: a.progress[laborKey], purpose, toolId: tool?.id }, summary: `${p.name} shaped material into a working component` });
   c.madeEvent = ev.id; a.lastEvent = ev.id;
-  delete a.progress[key]; delete a.progress[`makeLabor:${a.parts.length}`]; practiceSkill(p, 'crafting', 1, world);
+  delete a.progress[key]; delete a.progress[laborKey]; practiceSkill(p, 'crafting', 1, world);
   return 'made';
 }

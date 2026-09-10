@@ -1,7 +1,7 @@
 import { portsMatch } from './definitions';
 import type { Person } from '../core/types';
 import type { World } from '../core/world';
-import type { Assembly, Connection, Method } from './types';
+import type { Assembly, Bindings, Component, Connection, Method } from './types';
 import { connect, disconnect, dismantle, mayUseProperty, reachable, owns } from './mechanics';
 import { cognitiveCapability, clamp } from '../core/human';
 import { skillOf, practiceSkill } from '../core/skills';
@@ -14,6 +14,11 @@ export interface MechanicalEvidence {
   joints: Connection[];
   looseEnds: number[];
   powered?: boolean;
+  bindings: Partial<Bindings>;
+}
+export function apparentWear(p: Person, component: Component): 'worn' | 'cracked' | undefined {
+  return (1 - component.condition) * cognitiveCapability(p).observation >= 0.35
+    ? component.condition <= 0.15 ? 'cracked' : 'worn' : undefined;
 }
 /** Observation is an intentionally lossy surface measurement. No intended method, hidden
  * graph, exact condition/efficiency, creator knowledge or past output counters are returned. */
@@ -24,7 +29,7 @@ export function inspectAssembly(world: World, p: Person, a: Assembly, cause?: st
     const c = world.kernel.components.find(c => c.id === id); if (!c) return [];
     const d = world.kernel.ruleset.components.find(d => d.id === c.definition);
     const familiar = Object.values(p.knowledge).some(k => k.confidence > 0.2 && k.claim.component?.id === c.definition);
-    const wear = (1 - c.condition) * acuity >= 0.35 ? (c.condition <= 0.15 ? 'cracked' : 'worn') as 'cracked' | 'worn' : undefined;
+    const wear = apparentWear(p, c);
     return [{ index, componentId: id, definition: familiar ? c.definition : undefined, role: familiar ? d?.kind : undefined, wear }];
   });
   // Small couplings are harder to distinguish than large moving parts. An unseen joint is
@@ -36,9 +41,15 @@ export function inspectAssembly(world: World, p: Person, a: Assembly, cause?: st
   }).map(part => part.index) : [];
   const source = world.kernel.energy.find(e => e.id === a.bindings.energyId);
   const powered = source && reachable(world, p, source.pos) && acuity >= 0.85 ? source.maxPowerW > 0 && source.remainingJ > 0 : undefined;
+  const bindings: Partial<Bindings> = { placeId: world.placeAt(a.pos)?.id };
+  if (source && reachable(world, p, source.pos)) bindings.energyId = source.id;
+  for (const key of ['inputId', 'outputId'] as const) {
+    const reservoir = world.kernel.reservoirs.find(r => r.id === a.bindings[key]);
+    if (reservoir && reachable(world, p, reservoir.pos)) bindings[key] = reservoir.id;
+  }
   const ev = world.emit('mechanism_inspected', { actor: p.id, pos: a.pos, causes: [a.lastEvent, cause].filter((x): x is string => !!x),
     visibility: 7, significance: 0.25, data: { assemblyId: a.id }, summary: `${p.name} examined a mechanism` });
-  return { assemblyId: a.id, pos: { ...a.pos }, eventId: ev.id, parts, joints, looseEnds, powered };
+  return { assemblyId: a.id, pos: { ...a.pos }, eventId: ev.id, parts, joints, looseEnds, powered, bindings };
 }
 
 export type MechanicalWork = { kind: 'replace'; part: number; componentId: string }

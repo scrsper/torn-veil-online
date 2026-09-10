@@ -18,12 +18,13 @@ describe('headless benchmarks (v0.2 Part 16)', () => {
     expect(result.summary.requestedDays).toBe(SHORT_DAYS);
     // Village generation always authors a "Traveler" player-slot entity (the same generation
     // code the browser client uses — Part 1 forbids a second implementation), but no renderer,
-    // input, or `main.ts` ever ran: the entity simply sits controlled-and-idle, untouched by
+    // input, or `main.ts` ever ran: the entity observes without adopting autonomous goals during
     // this run, exactly as "no player" should look from the simulation's own point of view.
     if (result.world.playerId) {
       const player = result.world.person(result.world.playerId)!;
       expect(isExternallyControlled(player)).toBe(true);
-      expect(result.world.events.some(e => e.actor === player.id)).toBe(false);
+      // Perception and physiology continue; no autonomous action is selected.
+      expect(result.world.events.some(e => e.actor === player.id && e.type === 'goal_changed')).toBe(false);
     }
 
     // Referential/causal integrity must hold even though nothing repaired it — these are the

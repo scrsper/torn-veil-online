@@ -2,7 +2,6 @@ import type { KnowledgeItem, Person, Source } from '../core/types';
 import type { World } from '../core/world';
 import { learn } from './knowledge';
 import { remember } from './memory';
-import { peopleTogether } from '../world/locality';
 
 export type SocialFamily = 'disposition' | 'capability' | 'standing' | 'intent';
 export interface SocialBelief {
@@ -35,7 +34,15 @@ export function learnIdentity(world: World, observer: Person, subject: string, n
   return item ?? null;
 }
 export function introduce(world: World, speaker: Person, listener: Person, claimedName = speaker.name): boolean {
-  if (!speaker.alive || !listener.alive || !peopleTogether(world, speaker, listener, 4) || !claimedName.trim() || claimedName.length > 100) return false;
+  if (!speaker.alive || !listener.alive || !claimedName.trim() || claimedName.length > 100) return false;
+  const canConverse = speaker.bodies.some(id => {
+    const a = world.body(id); if (!a?.present || a.dead || ['sleep', 'downed'].includes(a.pose)) return false;
+    return listener.bodies.some(other => {
+      const b = world.body(other); return b?.present && !b.dead && !['sleep', 'downed'].includes(b.pose)
+        && Math.hypot(a.pos.x - b.pos.x, a.pos.y - b.pos.y, a.pos.z - b.pos.z) <= 4;
+    });
+  });
+  if (!canConverse) return false;
   const ev = world.emit('introduction', { actor: speaker.id, target: listener.id, pos: world.positionOf(speaker.id),
     visibility: 5, loudness: 4, significance: 0.25, data: { claimedName }, summary: `${speaker.name} introduced themself as ${claimedName}` });
   learnIdentity(world, listener, speaker.id, claimedName, { type: 'told', from: speaker.id, viaEvent: ev.id });
@@ -83,6 +90,9 @@ export function interpretSocial(world: World, observer: Person, evidence: Knowle
     const decay = Math.exp(-age / (family === 'intent' ? 120 : 30 * 86400));
     const weight = direction * evidence.confidence;
     const support = Math.max(-3, Math.min(3, (old?.support ?? 0) * decay + weight));
+    // A saturated impression does not acquire another causal revision on every identical
+    // work stroke. Contradiction still revises it immediately; recency can be reconfirmed.
+    if (old && Math.abs(support - old.support) < 0.02) { prior.lastConfirmedAt = world.now; continue; }
     const social: SocialBelief = { subject, family, characteristic, support,
       evidence: [...(old?.evidence ?? []), { key: evidence.key, event: evidence.source.viaEvent, at: world.now, weight }].slice(-12) };
     const causes = [evidence.source.viaEvent, prior?.source.viaEvent].filter((id): id is string => !!id);

@@ -14,10 +14,15 @@ import held from './held-out.json';
 
 /** Short controlled workshop, on the ordinary canonical world/save path. Fixtures provide
  * primitive stock, a finite gust's energy, needs and primitive knowledge. No assembly or method.
- * Other residents are controlled to isolate the short mechanics demonstration from survival. */
+ * Other residents are held offstage (bodies not present) to isolate the workshop.
+ * Controller origin does not suppress perception; absent bodies provide that physical boundary. */
 export function createKernelLab(seed = 918271, family: 'grain' | 'water' = 'grain', control = false, heldOut = false) {
   const { world } = newWorld(seed);
-  for (const p of world.persons()) setExternalControl(p, true);
+  for (const p of world.persons()) {
+    setExternalControl(p, true);
+    for (const id of p.bodies) world.body(id)!.present = false;
+  }
+  world.playerId = null; // no presentation focus on an offstage body
   world.clock.timeScale = 1;
   for (let x = 4; x <= 18; x++) for (let z = 4; z <= 18; z++) {
     world.grid.set(x, 0, z, B.Stone);

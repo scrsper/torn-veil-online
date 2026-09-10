@@ -2,7 +2,7 @@ import { manufactureComponent } from '../kernel/manufacture';
 import type { Action, Goal, KnowledgeItem, Person } from '../core/types';
 import type { World } from '../core/world';
 import type { Method } from '../kernel/types';
-import { inspectAssembly, workOnAssembly, type MechanicalEvidence, type MechanicalWork } from '../kernel/evolution';
+import { apparentWear, inspectAssembly, workOnAssembly, type MechanicalEvidence, type MechanicalWork } from '../kernel/evolution';
 import { reachable, operateAssembly, mayUseProperty } from '../kernel/mechanics';
 import { cognitiveCapability, clamp } from '../core/human';
 import { skillOf } from '../core/skills';
@@ -75,6 +75,16 @@ export function mechanicalPersistence(p: Person, failures: number): number {
  * whether investigating is worth anything, and competing goals can always win. */
 export function maintenanceGoals(world: World, p: Person): Omit<Goal, 'key' | 'createdAt'>[] {
   const goals: Omit<Goal, 'key' | 'createdAt'>[] = [];
+  if (!world.kernel.assemblies.length) return goals;
+  for (const request of Object.values(p.knowledge).filter(k => k.claim.askedBy && world.now - k.learnedAt < 7200)) {
+    const requester = request.claim.askedBy as string;
+    if (!p.mind.percepts.some(pc => pc.entityId === requester && pc.how === 'saw' && pc.distance < 4)) continue;
+    const held = p.knowledge['inferred-method:' + request.claim.assemblyId] ?? p.knowledge[evidenceKey(request.claim.assemblyId)];
+    if (!held || held.sharedWith.includes(requester)) continue;
+    const relationship = p.relationships[requester];
+    const willingness = 0.25 + p.traits.sociability * 0.25 + (relationship?.affection ?? 0) * 0.2 - p.needs.energy * 0.15;
+    if (willingness > 0.2) goals.push({ type: 'teach_method', utility: willingness, targetEntity: requester, data: { key: held.key }, reasons: ['I was asked about something I have examined', 'my willingness to spend time explaining'], causeEvent: request.source.viaEvent });
+  }
   const candidates = new Set(Object.values(p.knowledge).flatMap(k => k.claim.mechanicalEvidence ? [k.claim.mechanicalEvidence.assemblyId as string] : k.claim.assemblyId && k.claim.damage > 0.2 ? [k.claim.assemblyId as string] : []));
   for (const id of candidates) {
     const a = world.kernel.assemblies.find(a => a.id === id);
@@ -94,7 +104,7 @@ export function maintenanceGoals(world: World, p: Person): Omit<Goal, 'key' | 'c
       if (history?.claim.lastOutcome === 'fitted') task.kind = 'test';
       else if (hypothesis?.kind === 'replace') {
         const part = (e?.claim.mechanicalEvidence as MechanicalEvidence | undefined)?.parts.find(part => part.index === hypothesis.part);
-        const spare = world.kernel.components.find(c => c.definition === part?.definition && !c.assemblyId && c.condition > 0.5
+        const spare = world.kernel.components.find(c => c.definition === part?.definition && !c.assemblyId && apparentWear(p, c) !== 'cracked'
           && (!c.holderId || c.holderId === p.id) && reachable(world, p, c.holderId === p.id ? a.pos : c.pos) && mayUseProperty(world, p, c.ownerId, a.bindings.placeId));
         task = spare ? { kind: 'replace', part: hypothesis.part, componentId: spare.id, assemblyId: id } : { kind: 'abandon', assemblyId: id };
       } else if (hypothesis) task = { ...hypothesis, assemblyId: id };
@@ -112,7 +122,7 @@ export function actOnMechanicalTask(world: World, p: Person, action: Action, sec
   const data = action.data!;
   const a = world.kernel.assemblies.find(a => a.id === data.assemblyId);
   if (!a || !reachable(world, p, a.pos)) { action.status = 'failed'; return; }
-  const body = world.bodies().find(b => b.ownerId === p.id && b.present && !b.dead && reachable(world, p, a.pos)); if (body) body.pose = 'work';
+  const body = world.bodies().find(b => b.ownerId === p.id && b.present && !b.dead && Math.hypot(b.pos.x - a.pos.x, b.pos.y - a.pos.y, b.pos.z - a.pos.z) <= 3); if (body) body.pose = 'work';
   const cause = data.intentionEvent ?? p.mind.goal?.causeEvent;
   if (['inspect', 'diagnose', 'reverse_engineer'].includes(data.kind)) {
     const required = data.kind === 'inspect' ? 2 : 4 / cognitiveCapability(p).reasoning;
@@ -158,7 +168,7 @@ export function actOnMechanicalTask(world: World, p: Person, action: Action, sec
     const definition = knownComponents(p).find(d => d.id === data.definition);
     const real = definition && world.kernel.ruleset.components.find(d => d.id === definition.id);
     if (!real) { action.status = 'failed'; return; }
-    const result = manufactureComponent(world, p, a, real, seconds);
+    const result = manufactureComponent(world, p, a, real, seconds, 'spare');
     if (result === 'made') action.status = 'done';
     else if (result !== 'working') action.status = 'failed';
     return;

@@ -392,7 +392,7 @@ export type ActionType = 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 't
   // v0.8 §P0-G/H: hand a carried item to another person in person — the 'help_recover_item'
   // plan's delivery step (see GoalType). Distinct from the existing NPC-to-player trade/`bought`
   // path; this always uses `Simulation.giveItem` (mind/agent.ts), which pays any owed reward.
-  | 'mechanism_task' | 'introduce' | 'give' | 'propose' | 'buy_food' | 'manage_household' | 'construct_mechanism' | 'operate_mechanism' | 'procure_material' | 'read_record' | 'write_record' | 'copy_record';
+  | 'ask_mechanism' | 'mechanism_task' | 'introduce' | 'give' | 'propose' | 'buy_food' | 'manage_household' | 'construct_mechanism' | 'operate_mechanism' | 'procure_material' | 'read_record' | 'write_record' | 'copy_record';
 export interface Action {
   type: ActionType;
   pos?: Vec3;

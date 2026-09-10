@@ -671,7 +671,7 @@ export class Simulation {
       }
     }
     // help injured close ones
-    for (const pc of m.percepts) { const o = w.person(pc.entityId); const ob = w.body(pc.bodyId); if (!o || !ob || !o.alive) continue; if ((ob.pose === 'downed' || ob.health < ob.maxHealth * 0.5) && isClose(p, o.id) && !threat) G('help', 0.7, [`${o.name} is hurt and dear to me`], { targetEntity: o.id }); }
+    for (const pc of m.percepts) { const o = w.person(pc.entityId); const ob = w.body(pc.bodyId); if (!o || !ob || !o.alive) continue; if ((ob.pose === 'downed' || ob.health < ob.maxHealth * 0.5) && isClose(p, o.id) && !threat) G('help', 0.7, [`${knownName(p, o.id)} is hurt and dear to me`], { targetEntity: o.id }); }
     // desires
     for (const d of p.desires) if (!d.fulfilled && d.type === 'recover_item') { const loc = p.knowledge[`loc:${d.targetId}`]; const it = w.item(d.targetId); if (loc && it && !it.holderId && it.pos && !threat) G('recover_item', 0.6, [`I know where ${it.name} is (${loc.source.type})`], { targetEntity: it.id, targetPos: it.pos }); }
     // v0.8 §P0-G/H (independent audit §4.6): an authorized third party — someone who has heard
@@ -852,10 +852,10 @@ export class Simulation {
       const src = nearestWaterSource(w, pos);
       if (src) G('drink_water', clamp(0.2 + n.thirst * 0.8 - (night ? 0.25 : 0)), [`thirst ${n.thirst.toFixed(2)}`], { targetPos: src.pos, targetPlace: src.placeId, data: { water: true } });
     }
-    // v0.2.4: a farmer whose schedule has them at their field does real field work — harvest a
-    // ripe plot, or sow a fallow one — in preference to the generic 'work' animation.
-    for (const evidence of Object.values(p.knowledge).filter(k => k.key.startsWith('field-observation:') && w.now - (k.lastConfirmedAt ?? k.learnedAt) < 3600)) {
-      const field = w.fields.find(f => f.id === evidence.claim.fieldId);
+    // Field evidence supports personal work candidates; an occupation is not a command.
+    for (const field of w.fields) {
+      const evidence = p.knowledge[`field-observation:${field.id}`];
+      if (!evidence || w.now - (evidence.lastConfirmedAt ?? evidence.learnedAt) >= 3600) continue;
       if (field && (field.ownerId === p.id || p.workId === field.placeId || sched?.placeId === field.placeId)) {
         const rainingNow = w.weather.kind === 'rain' || w.weather.kind === 'storm';
         // Ripe crops perish in days; the next crop takes weeks. Harvest remains real labor
@@ -1074,7 +1074,9 @@ export class Simulation {
     // Field work is the concrete sow/harvest candidates above. Offering generic work as
     // well let a grain concern boost standing in the field above actually harvesting it.
     const scheduledField = fieldFor(w, sched?.placeId);
-    const fieldShift = !!scheduledField && !!p.knowledge['field-observation:' + scheduledField.id];
+    const fieldEvidence = scheduledField && p.knowledge['field-observation:' + scheduledField.id];
+    // Stale observations cannot prevent a person returning to their familiar workplace.
+    const fieldShift = !!fieldEvidence && w.now - (fieldEvidence.lastConfirmedAt ?? fieldEvidence.learnedAt) < 3600;
     if (sched && !['sleep', 'eat'].includes(sched.activity) && !fieldShift && !(sched.activity === 'work' && localProductionChoice(w, p, sched.placeId))) {
       const rainingNow = w.weather.kind === 'rain' || w.weather.kind === 'storm';
       const outdoorTask = !sched.placeId || !(w.place(sched.placeId)?.indoor);
@@ -1596,6 +1598,14 @@ export class Simulation {
     const a = m.plan.find(x => x.status === 'pending' || x.status === 'active'); if (!a) { if (body.pose !== 'stand' && body.pose !== 'walk' && body.poseUntil < w.physicalTime) body.pose = 'stand'; return; }
     if (a.status === 'pending') { a.status = 'active'; a.startedAt = w.now; this.beginAction(p, body, a); }
     switch (a.type) {
+      case 'ask_mechanism': {
+        const other = w.person(a.targetEntity), otherBody = other && w.primaryBody(other.id);
+        if (!other?.alive || !otherBody || dist2(body.pos, otherBody.pos) > 4 || !w.grid.lineOfSight({ ...body.pos, y: body.pos.y + 1 }, { ...otherBody.pos, y: otherBody.pos.y + 1 }, 6)) { a.status = 'failed'; break; }
+        const ev = w.emit('conversation', { actor: p.id, target: other.id, pos: body.pos, visibility: 4, loudness: 4, significance: 0.2,
+          data: { topic: 'mechanism_question', assemblyId: a.data?.assemblyId }, summary: p.name + ' asked about a mechanism' });
+        learn(w, other, { key: 'mechanism-question:' + p.id + ':' + a.data?.assemblyId, kind: 'fact', claim: { askedBy: p.id, assemblyId: a.data?.assemblyId }, confidence: 1, source: { type: 'told', from: p.id, viaEvent: ev.id } }, true);
+        a.status = 'done'; break;
+      }
       case 'mechanism_task': actOnMechanicalTask(w, p, a, physDt); break;
       case 'introduce': {
         const other = w.person(a.targetEntity);
@@ -2016,7 +2026,7 @@ export class Simulation {
         const target = w.person(a.targetEntity!); const targetBody = w.primaryBody(a.targetEntity!);
         if (!target || !targetBody || dist2(body.pos, targetBody.pos) > 3.5) { a.status = 'failed'; break; }
         const court = w.emit('courtship', { actor: p.id, target: target.id, pos: { ...body.pos }, significance: 0.4, visibility: 9, summary: `${p.name} asked ${target.name} to build a household together` });
-        if (!isExternallyControlled(target) && marry(w, p, target, court.id)) this.say(p, `${target.name.split(' ')[0]}, let us make a life together.`);
+        if (!isExternallyControlled(target) && marry(w, p, target, court.id)) this.say(p, `${knownName(p, target.id).split(' ')[0]}, let us make a life together.`);
         a.status = 'done'; break;
       }
       case 'talk': {
@@ -2417,7 +2427,7 @@ export class Simulation {
     if (isExternallyControlled(listener)) return; // response-controller dispatch; receiving evidence above is universal
     if (learned && isCrime(k.claim.type, k.claim.intent) && k.claim.actor) {
       const sev = crimeSeverity(k.claim.type); const victimClose = k.claim.target ? isClose(listener, k.claim.target) : false;
-      adjustRel(w, listener, k.claim.actor, { fear: sev * 0.3 * conf * (1.2 - listener.traits.courage) * toldPersonal, trust: -sev * 0.4 * conf * toldPersonal, grudge: sev * conf * (victimClose ? 0.6 : 0.2) * toldPersonal, affection: -sev * 0.3 * conf * toldPersonal }, `was told by ${speaker.name}`, ev.id);
+      adjustRel(w, listener, k.claim.actor, { fear: sev * 0.3 * conf * (1.2 - listener.traits.courage) * toldPersonal, trust: -sev * 0.4 * conf * toldPersonal, grudge: sev * conf * (victimClose ? 0.6 : 0.2) * toldPersonal, affection: -sev * 0.3 * conf * toldPersonal }, `was told by ${knownName(listener, speaker.id)}`, ev.id);
       listener.mind.alarm = 1;
       const lb = w.primaryBody(listener.id); if (lb) { lb.pose = 'talk'; lb.poseUntil = w.physicalTime + 1.5; }
       const isGuard = listener.occupation === 'guard' || listener.occupation === 'captain';
@@ -2538,9 +2548,8 @@ export class Simulation {
    * Canonical hit application, used by player and NPC attacks alike. Emits perceivable events.
    *
    * Lethality (Constitution §11, "hostile must not automatically mean lethal"): death is
-   * reached only through an explicit `intent: 'kill'`, or a player's own deliberate choice to
-   * press an attack (a finishing blow on an already-downed target, or a heavy hit) — never
-   * merely because the attacker belongs to a hostile faction. Every other intent ('rob',
+   * reached only through an explicit `intent: 'kill'` against a person — never through
+   * controller origin, a missing intention, or membership of a hostile faction. Every other intent ('rob',
    * 'subdue', 'arrest', 'defend', 'injure', 'threaten', 'drive_off', 'avoid') downs the
    * target instead. `intent` is optional so existing direct callers (and tests) keep their
    * previous non-hostile-driven behavior unchanged.
@@ -2554,7 +2563,6 @@ export class Simulation {
       const vp = victim as Person;
       if (vp.surrender || vp.custody?.active || tb.subduedUntil > w.physicalTime) return null;
     }
-    const wasDowned = tb.pose === 'downed';
     tb.health -= dmg; tb.lastHitAt = w.physicalTime;
     const dx = tb.pos.x - ab.pos.x, dz = tb.pos.z - ab.pos.z; const d = Math.hypot(dx, dz) || 1; tb.vel.x += dx / d * 4; tb.vel.z += dz / d * 4;
     this.onHit?.(tb, { x: tb.pos.x, y: tb.pos.y + 1.2, z: tb.pos.z });
@@ -2575,7 +2583,7 @@ export class Simulation {
       ev.data.conflictId = conflict.id; // lets the Chronicle fold a whole fight into one entry
     }
     if (tb.health <= 0) {
-      const lethal = intent === 'kill' || victim.kind === 'creature' || (!combat && (wasDowned || (intent === undefined && dmg > 20 && w.rng.next() < 0.5)));
+      const lethal = intent === 'kill' || victim.kind === 'creature';
       if (lethal) {
         const de = w.emit('kill', { actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, causes: [ev.id], significance: 1, visibility: 26, loudness: 14, summary: `${attacker.name} killed ${victim.name}${place ? ' at ' + place.name : ''}` });
         if (victim.kind === 'person') diePerson(w, victim, de.id, `injuries inflicted by ${attacker.name}`);

@@ -14,7 +14,7 @@ export const inspectorExplainsBehavior: BrowserSpec = {
 
     const target = await readCanonicalState(page, () => {
       const w = (window as any).game.world;
-      const p = w.persons().find((p: any) => p.alive && !p.controlled && p.mind.goal && p.mind.goal.reasons?.length);
+      const p = w.persons().find((p: any) => p.alive && !(p.id === w.playerId) && p.mind.goal && p.mind.goal.reasons?.length);
       return p ? { id: p.id, goalType: p.mind.goal.type, reasons: p.mind.goal.reasons } : null;
     });
     if (!target) throw new Error('No living NPC with an active, reasoned goal found after 2 simulated hours');

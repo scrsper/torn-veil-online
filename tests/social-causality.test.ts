@@ -1,3 +1,4 @@
+import { introduce } from '../src/sim/mind/people';
 import { describe, expect, it } from 'vitest';
 import { addPerson, createTestWorld, face, step, v } from './helpers/world';
 import { getRel, setRelTags } from '../src/sim/mind/relationships';
@@ -347,6 +348,7 @@ describe('v0.9 §F — no fabricated history', () => {
     const player = addPerson(tw, 'the Traveler', 'traveler', v(5.5, 1, 5.5), { controlled: true });
     const creditor = addPerson(tw, 'Creditor', 'merchant', v(6.5, 1, 5.5));
     const debtor = addPerson(tw, 'Debtor', 'vagrant', v(7.5, 1, 5.5));
+    introduce(tw.world, debtor, creditor);
     player.wealth = 100;
     const debtEvent = tw.world.emit('debt', { actor: debtor.id, target: creditor.id, data: { amount: 37 }, significance: 0.5, summary: 'a debt' });
     learn(tw.world, creditor, { key: `ev:${debtEvent.id}`, kind: 'event', claim: { eventId: debtEvent.id, type: 'debt', actor: debtor.id, target: creditor.id, amount: 37, tick: tw.world.now }, confidence: 1, source: { type: 'prior' } }, true);

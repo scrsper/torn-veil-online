@@ -209,7 +209,7 @@ async function pickSomeoneWithAPurpose(page: import('playwright').Page): Promise
     const w = (window as any).game.world;
     let best: any = null;
     for (const p of w.persons()) {
-      if (!p.alive || p.controlled) continue;
+      if (!p.alive || (p.id === w.playerId)) continue;
       for (const pu of (p.mind.pursuits ?? [])) {
         if (pu.status !== 'active') continue;
         if (!best || pu.priority > best.pu.priority) best = { p, pu };

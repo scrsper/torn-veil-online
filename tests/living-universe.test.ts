@@ -16,10 +16,11 @@ import { buildChronicle } from '../src/sim/history/chronicle';
 import { RESOURCE_MASS_KG } from '../src/sim/world/factory';
 import { energyBalanceError } from '../src/sim/kernel/environment';
 
-const run = (conditions = {}, seconds = 1800) => { const lab = createLivingPressure(17, undefined, conditions); advanceLiving(lab.world, lab.sim, seconds); return lab; };
+// Explicit steady wind isolates productive power from procedural weather timing.
+const run = (conditions = {}, seconds = 1800) => { const lab = createLivingPressure(17, undefined, { steadyWind: 0.6, ...conditions }); advanceLiving(lab.world, lab.sim, seconds); return lab; };
 let ordinary: ReturnType<typeof run>, calm: ReturnType<typeof run>, manual: ReturnType<typeof run>;
 describe('living universe integration', () => {
-  beforeAll(() => { ordinary = run(); calm = run({ calm: true }); manual = run({ manualSkill: 0.6 }); }, 60000);
+  beforeAll(() => { ordinary = run(); calm = run({ calm: true }); manual = run({ manualSkill: 0.95 }); }, 60000);
   it('starts procedural towns with primitive education and resources but no components or methods', () => {
     const lab = createLivingWorld(17);
     expect(lab.world.kernel.components).toEqual([]); expect(lab.world.kernel.assemblies).toEqual([]);

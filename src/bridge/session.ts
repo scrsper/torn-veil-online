@@ -222,7 +222,6 @@ export class BridgeSession {
       speakerId: state.speaker.id,
       speakerBodyId: this.dialogueSpeakerBodyId,
       name: knownName(this.world.person(this.world.playerId)!, state.speaker.id),
-      occupation: state.speaker.occupation,
       lines: state.lines,
       // The native panel exposes enough of a canonical menu for merchant/trade branches to be
       // reachable without inventing a renderer-side shortcut.  This remains a presentation

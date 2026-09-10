@@ -368,8 +368,8 @@ describe('taking up a trade never invents one', () => {
     raiseDemand(tw);
     stepLivelihoods(tw.world);
     expect(child.workId).toBeNull();
-    // ...and the derivation itself is silent about them, rather than merely being ignored.
-    expect(livelihoodProspects(tw.world, child)).toEqual([]);
+    // The opportunities remain real; the human decides whether to take them up.
+    expect(livelihoodProspects(tw.world, child).length).toBeGreaterThan(0);
     void takeUpLivelihood;
   });
 });

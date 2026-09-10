@@ -4,11 +4,13 @@ import { GameSim } from '../src/sim/runtime/gameSim';
 import { isExternallyControlled, setExternalControl } from '../src/sim/runtime/controllers';
 import { introduce, interpretSocial, knownName, socialBeliefs } from '../src/sim/mind/people';
 import { eventClaim, learn } from '../src/sim/mind/knowledge';
-import { routineWeight } from '../src/sim/mind/routine';
+import { routineWeight, observeFields } from '../src/sim/mind/routine';
 import { mechanicalHypotheses, mechanicalPersistence, actOnMechanicalTask, reverseEngineer } from '../src/sim/mind/mechanicalReasoning';
 import { inspectAssembly, fittingCompetence, workOnAssembly } from '../src/sim/kernel/evolution';
 import { acquireComponent, connect, contributeAssemblyLabor, createComponent, installComponent, operateAssembly, startAssembly } from '../src/sim/kernel/mechanics';
 import { installRuleset, mechanicalPrimitives } from '../src/sim/kernel/definitions';
+import { manufactureComponent } from '../src/sim/kernel/manufacture';
+import { addPlaceStock, stockAt } from '../src/sim/world/stock';
 import { teachPrimitive } from '../src/sim/mind/invention';
 import { makeItem } from '../src/sim/world/factory';
 import { ONTOLOGICAL_STAGES } from '../src/sim/core/stages';
@@ -51,6 +53,24 @@ function evidence(tw: ReturnType<typeof people>, observer: Person, type: 'gift' 
 }
 
 describe('private minds, epistemic identity and controller parity', () => {
+  it('does not teach names to an unconscious or distant body', () => {
+    const tw = people(), body = tw.world.primaryBody(tw.b.id)!;
+    body.pose = 'sleep'; expect(introduce(tw.world, tw.a, tw.b)).toBe(false);
+    body.pose = 'stand'; body.pos.x += 10; expect(introduce(tw.world, tw.a, tw.b)).toBe(false);
+    expect(knownName(tw.b, tw.a.id)).toBe('an unfamiliar person');
+  });
+  it('acquires and revises crop evidence locally, without a remote schedule revealing it', () => {
+    const tw = people(), field = { id: 'test-field', placeId: tw.places.square, ownerId: tw.a.id, soilMoisture: 0.5,
+      plots: [{ x: 12, y: 1, z: 13, crop: 'wheat' as const, state: 'mature' as const, growth: 1, plantedAt: 0 }] };
+    tw.world.fields.push(field); observeFields(tw.world, tw.a);
+    const key = `field-observation:${field.id}`;
+    expect(tw.a.knowledge[key].claim.ripe).toBe(true);
+    const plot = tw.world.fields[0].plots[0]; plot.state = 'fallow'; tw.world.physicalTime += 3;
+    observeFields(tw.world, tw.a); expect(tw.a.knowledge[key].claim).toMatchObject({ ripe: false, fallow: true });
+    const remote = tw.world.primaryBody(tw.b.id)!; remote.pos.x += 50;
+    tw.b.schedule = [{ start: 0, end: 24, activity: 'work', placeId: field.placeId, label: 'farm' }];
+    observeFields(tw.world, tw.b); expect(tw.b.knowledge[key]).toBeUndefined();
+  });
   it('perceives unfamiliar people without names, hidden stats, intent or control status in either direction', () => {
     const tw = people(), game = new GameSim(tw.sim); game.attach('human-one', tw.a.id); game.attach('human-two', tw.b.id);
     step(tw, 0.3);
@@ -119,6 +139,22 @@ describe('private minds, epistemic identity and controller parity', () => {
 });
 
 describe('causal repair and fallible mechanical models', () => {
+  it('manufactures a real spare for a completed assembly using known shape, stock and paid labor', () => {
+    const tw = rig(), { world: w, a: p, assembly: a } = tw;
+    const definition = w.kernel.ruleset.components.find(d => d.id === tw.q('belt'))!;
+    const material = w.kernel.ruleset.materials.find(m => m.id === definition.material)!;
+    material.legacyItem = 'plank'; material.kgPerUnit = 4; definition.fabrication = { seconds: 4, min: {} };
+    w.place(tw.places.square)!.inside = { ...a.pos }; w.place(tw.places.square)!.ownerId = p.id;
+    addPlaceStock(w, 'plank', 10, tw.places.square, p.id, undefined, 'physical test stock');
+    const before = stockAt(w, 'plank', tw.places.square), parts = [...a.parts];
+    expect(manufactureComponent(w, p, a, definition, 0.1, 'spare')).toBe('working');
+    expect(stockAt(w, 'plank', tw.places.square)).toBe(before);
+    expect(manufactureComponent(w, p, a, definition, 60, 'spare')).toBe('made');
+    expect(before - stockAt(w, 'plank', tw.places.square)).toBeCloseTo(definition.massKg / material.kgPerUnit);
+    expect(a.parts).toEqual(parts);
+    const spare = w.kernel.components.at(-1)!; expect(spare.assemblyId).toBeNull();
+    expect(w.event(spare.madeEvent!)!.data.laborSeconds).toBeGreaterThan(0);
+  });
   it('PER changes evidence and unfamiliar examples do not disclose definitions or complete graphs', () => {
     const tw = rig(); tw.world.kernel.components.find(c => c.id === tw.assembly.parts[2])!.condition = 0.7;
     tw.a.attributes.perception = 2; const low = inspectAssembly(tw.world, tw.a, tw.assembly)!;
@@ -173,6 +209,16 @@ describe('causal repair and fallible mechanical models', () => {
     expect(workOnAssembly(tw.world, tw.b, tw.assembly, { kind: 'dismantle' }, {}, 10)).toBe('unavailable');
     expect(game.intend('human', { kind: 'replace', assemblyId: tw.assembly.id, part: NaN, componentId: 'missing' })).toBe(false);
     expect(JSON.stringify(tw.assembly)).toBe(before);
+  });
+  it('exposes local action handles without allowing a caller to inject labor or outcomes', () => {
+    const tw = rig(), game = new GameSim(tw.sim); game.attach('human', tw.a.id);
+    const spare = createComponent(tw.world, tw.q('belt'), tw.a.id, tw.assembly.pos);
+    expect(game.perceive('human')!.visibleMechanisms.map(a => a.assemblyId)).toContain(tw.assembly.id);
+    expect(game.perceive('human')!.visibleComponents.map(c => c.componentId)).toContain(spare.id);
+    expect(game.intend('human', { kind: 'replace', assemblyId: tw.assembly.id, part: 2, componentId: spare.id, labor: 100, result: 'fitted' } as any)).toBe(true);
+    expect(tw.a.mind.plan[0].data!.labor).toBeUndefined(); expect(tw.a.mind.plan[0].data!.result).toBeUndefined();
+    step(tw, 0.1); expect(tw.assembly.parts[2]).not.toBe(spare.id);
+    game.attach('human', tw.a.id); expect(tw.a.mind.plan[0].status).toBe('active');
   });
   it('a material-compatible substitute changes actual measured output and retains ancestry', () => {
     const tw = rig(), { world: w, assembly: a, a: p } = tw;

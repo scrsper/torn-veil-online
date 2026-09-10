@@ -481,3 +481,13 @@ rg --files src/sim/world
 Do not begin ordinary tasks by dumping entire directories or reading every architecture document.
 
 Let the task determine the search surface.
+
+## Autonomous agency and player epistemics
+
+- `src/sim/runtime/controllers.ts` — engine control routing outside canonical Persons.
+- `src/sim/runtime/gameSim.ts`, `knowledgeView.ts` — canonical intention adapter and detached avatar knowledge projection; debug truth is explicit.
+- `src/sim/mind/people.ts`, `routine.ts` — evidence-backed identity/social interpretation and personal routine valuation.
+- `src/sim/mind/mechanicalReasoning.ts`, `src/sim/kernel/evolution.ts` — fallible mechanical inference versus paid physical repair and technology ancestry.
+- `src/headless/agency/showcase.ts`, `tests/agency-frontier.test.ts` — integrated workshop and focused invariants.
+- `src/game/ui/knowledge.ts` — normal avatar-belief inspection, distinct from F3 developer inspection.
+- `docs/AUTONOMOUS_AGENCY_SOCIAL_INFERENCE_CAPABILITY.md` — architecture, test surface and remaining legacy selection paths.

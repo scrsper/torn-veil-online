@@ -132,7 +132,7 @@ export class DialogueSystem {
     const debt = npc.desires.find(d => d.type === 'collect_debt' && !d.fulfilled);
     const owed = debt ? this.debtOwedTo(npc, debt) : null;
     if (debt && owed && player.wealth >= owed.amount) {
-      opts.push({ label: `Pay ${perceivedName(w, npc, owed.debtorId).split(' ')[0]}'s ${owed.amount} silver for them`, next: () => this.payDebt(npc, player, debt, owed) });
+      opts.push({ label: `Pay ${perceivedName(w, npc, owed.debtorId)}'s ${owed.amount} silver for them`, next: () => this.payDebt(npc, player, debt, owed) });
     }
     if (player.inventory.length) opts.push({ label: 'Give something…', next: () => this.giveMenu(npc, player) });
     const known = Object.values(player.knowledge).filter(k => k.kind === 'event' && !k.sharedWith.includes(npc.id) && !npc.knowledge[k.key]);
@@ -398,7 +398,7 @@ export class DialogueSystem {
     // the person handing over the coin is not the person who owed it.
     const ev = w.emit('debt_paid', { actor: player.id, target: npc.id, pos: w.primaryBody(npc.id)?.pos, significance: 0.5, visibility: 10, data: { onBehalfOf: owed.debtorId, amount: owed.amount }, summary: `the Traveler paid ${npc.name} the ${owed.amount} silver ${debtor} owed` });
     adjustRel(w, npc, player.id, { affection: 0.4, trust: 0.4, respect: 0.2 }, 'paid a debt', ev.id);
-    return { speaker: npc, lines: [`Well! ${owed.amount} silver, counted. I'll not forget this. ${debtor.split(' ')[0]} can keep his miserable hide.`], options: this.options(npc, player) };
+    return { speaker: npc, lines: [`Well! ${owed.amount} silver, counted. I'll not forget this. ${debtor} can keep his miserable hide.`], options: this.options(npc, player) };
   }
   private giveMenu(npc: Person, player: Person): DialogueState {
     const w = this.world;

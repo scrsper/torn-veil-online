@@ -8,7 +8,7 @@ export const combatIntent: BrowserSpec = {
     const result = await page.evaluate(() => {
       const game = (window as any).game, w = game.world;
       const player = w.person(w.playerId), ab = game.ctrl.body;
-      const target = w.persons().find((p: any) => p.alive && !p.controlled);
+      const target = w.persons().find((p: any) => p.alive && !(p.id === w.playerId));
       const tb = w.primaryBody(target.id);
       // Fixture only: place both bodies in clear canonical space, then use the client action.
       ab.pos = { x: 10, y: 30, z: 10 }; tb.pos = { x: 11, y: 30, z: 10 };

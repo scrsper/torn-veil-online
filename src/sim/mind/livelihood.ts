@@ -1,3 +1,4 @@
+import { isExternallyControlled } from '../runtime/controllers';
 import type { EntityId, Household, Occupation, Person, Place, PlaceType, SkillId } from '../core/types';
 import type { World } from '../core/world';
 import { skillOf } from '../core/skills';
@@ -269,7 +270,8 @@ function localTradePlace(world: World, p: Person): Place | undefined {
  */
 export function stepLivelihoods(world: World): void {
   for (const p of world.livingPersons()) {
-    if (p.workId || p.hostile) continue;
+    // Autonomous response dispatch; neutral prospects remain available to every person.
+    if (isExternallyControlled(p) || p.workId || p.hostile) continue;
     const prospect = recogniseLivelihood(world, p);
     if (prospect) takeUpLivelihood(world, p, prospect);
   }
