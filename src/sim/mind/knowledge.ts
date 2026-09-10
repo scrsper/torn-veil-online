@@ -264,6 +264,7 @@ export function eventClaim(world: World, e: WorldEvent, saw: boolean): Record<st
 }
 
 export function describeClaim(world: World, k: KnowledgeItem): string {
+  if (k.claim.method) return `how to connect ${k.claim.method.definitions.length} components to perform ${k.claim.method.effect}`;
   const c = k.claim;
   const who = (id: string | undefined, unknown?: boolean) => unknown ? 'someone' : id ? world.nameOf(id) : 'someone';
   switch (k.kind) {

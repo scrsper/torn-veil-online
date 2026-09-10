@@ -269,8 +269,11 @@ export interface TransformResult { ok: boolean; produced: number; consumed: numb
 export function transform(world: World, o: {
   actor: EntityId; inputType: ItemType; inputQty: number; inputPlaces: EntityId[];
   outputType: ItemType; outputQty: number; outputPlace: EntityId; ownerId: EntityId | null; how: string;
+  /** Optional strict title boundary for compositional production; legacy callers unchanged. */
+  inputOwner?: EntityId | null; causes?: EventId[];
 }): TransformResult {
-  const available = stockTotal(world, o.inputType, o.inputPlaces);
+  const available = o.inputOwner === undefined ? stockTotal(world, o.inputType, o.inputPlaces)
+    : world.itemsAtPlaces(o.inputPlaces).filter(i => i.type === o.inputType && !i.holderId && i.ownerId === o.inputOwner && i.quantity > 0).reduce((n, i) => n + i.quantity, 0);
   if (available < o.inputQty) {
     world.emit('resource_shortage', {
       actor: o.actor, placeId: o.outputPlace, significance: 0.2,
@@ -279,8 +282,9 @@ export function transform(world: World, o: {
     });
     return { ok: false, produced: 0, consumed: 0, shortage: o.inputType };
   }
-  const consumed = takePlaceStock(world, o.inputType, o.inputQty, o.inputPlaces);
+  const consumed = takePlaceStock(world, o.inputType, o.inputQty, o.inputPlaces, o.inputOwner);
   const ev = world.emit('resource_transformed', {
+    causes: o.causes,
     actor: o.actor, placeId: o.outputPlace, significance: 0.15,
     data: { from: o.inputType, fromQty: consumed, to: o.outputType, toQty: o.outputQty, how: o.how },
     summary: `${world.nameOf(o.actor)} turned ${consumed} ${o.inputType} into ${o.outputQty} ${o.outputType} (${o.how})`,

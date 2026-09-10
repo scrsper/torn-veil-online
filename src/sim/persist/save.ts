@@ -1,4 +1,5 @@
 import { generateProceduralWorld } from '../world/settlement';
+import { restoreKernel } from '../kernel/definitions';
 import { World } from '../core/world';
 import { WorldClock } from '../core/time';
 import { generateVillage } from '../world/village';
@@ -131,7 +132,8 @@ const KEY = 'infinite-rpg-save-v1';
 // silently rewrite a village that had staffed itself from its own children into one that never
 // did. Conflicts and people are whole-object-persisted, so a v18 save would technically load —
 // which is exactly why the gate has to be explicit rather than left to chance.
-export const SAVE_VERSION = 20;
+// Generative kernel definitions, physical connections, finite sources and partial labor.
+export const SAVE_VERSION = 21;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
@@ -188,7 +190,7 @@ export function serialize(world: World): string {
   // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
   // falls back to today's behavior (rewind to post-generation position) when absent.
   const rng = world.rng.state(); const weatherRng = world.weatherRng.state(); const demographicRng = world.demographicRng.state();
-  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, physicalPlaces: world.settlementSites ? world.places() : undefined, settlements: world.settlements(), settlementSites: world.settlementSites, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
+  return JSON.stringify({ version: SAVE_VERSION, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -232,6 +234,7 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
   try {
     const data = JSON.parse(raw); if (data.version !== SAVE_VERSION) return null;
     const world = new World(data.seed);
+    world.kernel = restoreKernel(data.kernel);
     const generated = data.settlementSites ? generateProceduralWorld(world, data.settlementSites) : undefined;
     const gen = generated ? { places: Object.fromEntries(generated.flatMap(s => Object.entries(s.places).map(([k, p]) => [s.spec.site.id + ':' + k, p]))), people: Object.fromEntries(generated.flatMap(s => Object.entries(s.people).map(([k, p]) => [s.spec.site.id + ':' + k, p]))) } : generateVillage(world);
     for (const s of data.settlements ?? []) { const existing = world.get(s.id); if (existing?.kind === 'settlement') Object.assign(existing, s); else world.add(s); }

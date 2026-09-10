@@ -97,11 +97,11 @@ export function addPlaceStock(world: World, type: ItemType, qty: number, placeId
  * (quantity 0, detached from the world) rather than deleted, so its provenance and any event
  * references stay valid (Constitution VII). It is inert once quantity 0.
  */
-export function takePlaceStock(world: World, type: ItemType, qty: number, placeIds: EntityId[]): number {
+export function takePlaceStock(world: World, type: ItemType, qty: number, placeIds: EntityId[], inputOwner?: EntityId | null): number {
   let need = qty;
   const set = placeIds.length > 6 ? new Set(placeIds) : null;
   const items = world.items()
-    .filter(i => i.type === type && !i.holderId && i.quantity > 0 && i.placeId && (set ? set.has(i.placeId) : placeIds.includes(i.placeId)))
+    .filter(i => i.type === type && !i.holderId && i.quantity > 0 && i.placeId && (inputOwner === undefined || i.ownerId === inputOwner) && (set ? set.has(i.placeId) : placeIds.includes(i.placeId)))
     .sort((a, b) => a.id.localeCompare(b.id));
   for (const it of items) {
     if (need <= 0) break;

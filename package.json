@@ -15,6 +15,7 @@
     "test:changed": "vitest run --changed --passWithNoTests",
     "test:branch": "vitest run --changed origin/main --passWithNoTests",
     "sim": "tsx src/headless/cli.ts",
+    "kernel:demo": "tsx src/headless/kernel/cli.ts",
     "world:smoke": "tsx src/headless/worldlab/cli.ts --tier smoke",
     "world:check": "tsx src/headless/worldlab/cli.ts --tier check",
     "world:soak": "tsx src/headless/worldlab/cli.ts --tier soak",

@@ -1,4 +1,5 @@
 import { localPlaces, near, knownPlaceForPerson } from '../world/locality';
+import { inventionGoals, inventionPlan, actOnMechanism, dismantleFailed } from './invention';
 import { applyInjury } from '../physical/injury';
 import { resolveCombatAttack, combatReach, type CombatAttackIntent, type CombatAttackResult } from '../physical/combat';
 import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, ItemType, KnowledgeItem, Creature, Place, Anchor, ConflictIntent, Conflict, ConflictCause } from '../core/types';
@@ -1109,6 +1110,7 @@ export class Simulation {
       const resumeCand = cands.find(c => c.key === m.commitment!.goalKey);
       if (resumeCand) resumeCand.utility = clamp(resumeCand.utility + 0.4);
     }
+    for (const goal of inventionGoals(w, p)) G(goal.type!, goal.utility!, goal.reasons!, { ...goal, key: `${goal.type}:${goal.data?.needKey ?? goal.targetEntity}` });
     // v0.10: two different motivations can legitimately propose the SAME errand — a welfare
     // concern's own `check_on` and a `tend` purpose's next step are literally the same walk to
     // the same door. Collapse candidates by key, keeping the strongest case and merging the
@@ -1346,6 +1348,8 @@ export class Simulation {
       return null;
     };
     switch (g.type) {
+      case 'compose': return inventionPlan(w, p, g);
+      case 'teach_method': return [A({ type: 'goto', targetEntity: g.targetEntity }), A({ type: 'tell', targetEntity: g.targetEntity, data: { key: g.data?.key } })];
       case 'sleep': { const home = w.place(p.homeId); const bed = anchorIn(home, ['bed'], true) ?? anchorIn(home, ['bed']) ?? home?.inside ?? body.pos; return [A({ type: 'goto', pos: bed, placeId: home?.id }), A({ type: 'manage_household' }), A({ type: 'sleep', pos: bed, duration: 3 * SECONDS_PER_HOUR })]; }
       case 'provision_home': {
         const home = w.place(p.homeId);
@@ -1531,6 +1535,10 @@ export class Simulation {
     const a = m.plan.find(x => x.status === 'pending' || x.status === 'active'); if (!a) { if (body.pose !== 'stand' && body.pose !== 'walk' && body.poseUntil < w.physicalTime) body.pose = 'stand'; return; }
     if (a.status === 'pending') { a.status = 'active'; a.startedAt = w.now; this.beginAction(p, body, a); }
     switch (a.type) {
+      case 'construct_mechanism': case 'operate_mechanism': {
+        if (!dismantleFailed(w, p, a, physDt)) actOnMechanism(w, p, a, physDt);
+        break;
+      }
       case 'goto': {
         // Observational only (Constitution §53): records that pathing failed, for headless
         // telemetry/anomaly detection. Never changes canonical decisions itself.

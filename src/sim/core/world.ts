@@ -1,4 +1,5 @@
 import { SpatialIndex, watchGeometry, watchValue } from './spatial';
+import { emptyKernel } from '../kernel/types';
 import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation, WorkStint, Household, ChronicleEra, Settlement } from './types';
 import { WorldClock } from './time';
 import { RNG } from './rng';
@@ -19,6 +20,7 @@ export interface EmitOptions {
  * presentation layer watch reality without owning it.
  */
 export class World {
+  kernel = emptyKernel();
   entities = new Map<EntityId, Entity>();
   events: WorldEvent[] = [];
   eventIndex = new Map<EventId, WorldEvent>();
