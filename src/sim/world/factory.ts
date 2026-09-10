@@ -18,8 +18,8 @@ export interface PersonSpec {
   home?: EntityId | null; work?: EntityId | null; traits: Partial<Traits>; appearance: Partial<Appearance>; bio: string; wealth?: number; timeRate?: number; hostile?: boolean; tags?: string[];
   /** Stable authored identity, e.g. cast.ts's `key` ('rowan'). See Entity.slug. */
   slug?: string;
-  /** v0.4: override the deterministic age/gender-derived default (see `defaultAttributesFor`) —
-   * e.g. a named smith or hauler who is canonically stronger than average. */
+  /** Optional developed foundations for explicit starting biographies. Occupation labels
+   * never supply these; otherwise generatedHuman supplies seeded individual variation. */
   attributes?: Partial<Attributes>;
   attributePotential?: Partial<Attributes>;
 }

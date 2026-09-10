@@ -29,6 +29,9 @@ export function placeWorker(world: World, p: Person, place: Place): void {
   p.schedule = dailyScheduleFor(world, p, place.id);
   p.physiology = defaultPhysiology(world.now); p.physiology.energy = 0.95; p.physiology.hydration = 0.95; p.physiology.fatigue = 0;
   syncNeeds(p);
+  // A favorable start of shift includes recently met social needs. Coarse elapsed years or
+  // variable discovery timing must not silently turn a study fixture into an urgent social visit.
+  p.needs.social = 0.1;
   p.mind.goal = null; p.mind.plan = [];
   const body = world.primaryBody(p.id)!; body.pos = { ...place.inside }; body.path = null; body.pose = 'stand';
 }
@@ -48,8 +51,9 @@ export function arrangeReader(world: World, author: Person, place: Place): Perso
   placeWorker(world, reader, place);
   teachNotation(world, reader); // Independent prior literacy, not method knowledge or craft skill.
   reader.traits.curiosity = 0.95;
-  // Favorable study opportunity includes having recently socialized. Discovery time now varies
-  // with individual cognition; do not accidentally make this reader start socially desperate.
-  reader.needs.social = 0.1;
+  // This acceptance isolates information surviving in writing. An available autonomous author
+  // may now teach sooner than a less-developed reader finishes studying; hold their decisions
+  // under observer control during this fixture rather than assuming a race always favors print.
+  author.controlled = true;
   return reader;
 }

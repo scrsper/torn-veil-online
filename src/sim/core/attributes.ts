@@ -137,11 +137,9 @@ export function capabilityFor(world: World, p: Person, action: ToolAction, atPla
   return { cap: getPhysicalCapability(p, world, { action, tool }), tool };
 }
 
-/** Deterministic default attributes by age/gender — a mild, continuous gradient (Constitution
- * v0.4 §2: "do not make every attribute a binary requirement"), not a hard young/old cutoff.
- * No RNG: two people with the same age/gender start identical, exactly like `makePerson`'s
- * other defaults; individual variation is left to explicit `PersonSpec.attributes` overrides
- * (as traits/appearance already work). */
+/** Unvaried reference-profile helper retained for callers of the former attribute API.
+ * Real person generation uses human.ts's seeded generatedHuman profiles. These returned
+ * values use the same new integer scale; they are never an occupation or age-tick award. */
 export function defaultAttributesFor(age: number, gender: 'm' | 'f'): Attributes {
   const ageFactor = age < 16 ? 0.55 + (age / 16) * 0.35 : age > 55 ? Math.max(0.55, 1 - (age - 55) * 0.012) : 1;
   const genderFactor = gender === 'm' ? 1.06 : 0.94;

@@ -55,3 +55,10 @@ export function recoveryMultiplier(p: Person): number {
   return clamp(0.55 + p.attributes.vitality * 0.05 + p.attributes.endurance * 0.00625, 0.5, 1.8)
     * nutrition * clamp(1 - p.physiology.sleepDebt / 64, 0.5, 1);
 }
+
+/** Rest restores exertion and sleep debt even when someone badly needs rest. Tissue repair
+ * separately pays the nutrition/sleep penalties above; applying them to sleep itself creates
+ * a feedback loop that silently changes the calibrated ordinary sleep requirement. */
+export function restorationMultiplier(p: Person): number {
+  return clamp(0.8 + p.attributes.endurance * 0.0125 + p.attributes.vitality * 0.0125, 0.5, 1.5);
+}
