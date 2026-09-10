@@ -344,7 +344,7 @@ export type GoalType =
   // purpose could only ever walk over and look, which is one action, not a life.
   | 'provide'
   // Demographic continuity: an ordinary relationship-motivated social goal.
-  | 'court' | 'provision_home';
+  | 'court' | 'provision_home' | 'compose' | 'teach_method';
 
 export interface Goal {
   type: GoalType;
@@ -371,7 +371,7 @@ export type ActionType = 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 't
   // v0.8 §P0-G/H: hand a carried item to another person in person — the 'help_recover_item'
   // plan's delivery step (see GoalType). Distinct from the existing NPC-to-player trade/`bought`
   // path; this always uses `Simulation.giveItem` (mind/agent.ts), which pays any owed reward.
-  | 'give' | 'propose' | 'buy_food' | 'manage_household';
+  | 'give' | 'propose' | 'buy_food' | 'manage_household' | 'construct_mechanism' | 'operate_mechanism';
 export interface Action {
   type: ActionType;
   pos?: Vec3;
@@ -1098,6 +1098,8 @@ export interface Request {
    * §10: `totalCurrencyBefore === totalCurrencyAfter` for ordinary transactions). */
   reward: number;
   paid?: number;
+  /** Real partial output credited to a production request; never a promised future batch. */
+  fulfilledQuantity?: number;
   cause: string;
   payload: RequestPayload;
 }
@@ -1356,6 +1358,7 @@ export interface Faction extends Entity {
 
 // ---------------------------------------------------------------- Events
 export type EventType =
+  | 'component_acquired' | 'assembly_changed' | 'mechanism_trial' | 'production_observed'
   | 'attack' | 'kill' | 'theft' | 'pickup' | 'drop' | 'give' | 'trade' | 'told' | 'conversation' | 'perceived'
   | 'memory_formed' | 'knowledge_gained' | 'relationship_changed' | 'emotion_changed' | 'goal_changed'
   | 'goal_completed' | 'arrived' | 'investigation' | 'confrontation' | 'arrest_attempt' | 'fled' | 'hid'

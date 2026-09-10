@@ -295,6 +295,12 @@ Sibling reasons must remain siblings rather than being rendered as a false causa
 
 ---
 
+# Generative composition and invention
+
+Local production pressure: `src/sim/mind/productionOpportunity.ts` observes owned/held workplaces and proposes familiar work; `invention.ts` infers compositional needs from that evidence and controls voluntary teaching/contextual experimentation. Shared request fulfillment remains in `world/production.ts`. `npm run pressure:demo -- <seed>` runs contrasting physical and knowledge histories. Evidence/limits: `docs/CAUSAL_PRODUCTION_PRESSURE.md`.
+
+Generative composition/invention: `src/sim/kernel/` owns scoped material/component/process definitions, finite sources/reservoirs, connected assemblies, and execution. `src/sim/mind/invention.ts` supplies bounded candidates to the existing agent goal/action loop; methods use ordinary knowledge and conversation. `src/headless/kernel/` contains the short autonomous demonstrations and held-out data. Units, acceptance measurements, authored-versus-discovered boundary and limits: `docs/GENERATIVE_UNIVERSE_KERNEL.md`.
+
 # Persistence
 
 ## `src/sim/persist/save.ts`

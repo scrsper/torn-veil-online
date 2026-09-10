@@ -1,0 +1,11 @@
+{
+  "materials": [
+    { "id": "torn-veil:mechanics-v1/held-fiber", "unit": "kg", "kgPerUnit": 1, "phase": "solid", "maxPowerW": 12 },
+    { "id": "torn-veil:mechanics-v1/held-composite", "unit": "kg", "kgPerUnit": 1, "phase": "solid", "maxPowerW": 160 },
+    { "id": "torn-veil:mechanics-v1/held-dense-liquid", "unit": "litre", "kgPerUnit": 1.2, "phase": "liquid", "maxPowerW": 0 }
+  ],
+  "components": [
+    { "id": "torn-veil:mechanics-v1/held-coupler", "material": "torn-veil:mechanics-v1/held-composite", "massKg": 3, "kind": "transmission", "input": { "medium": "rotation", "coupling": "axle" }, "output": { "medium": "rotation", "coupling": "drive" }, "efficiency": 0.95, "maxPowerW": 160, "minPowerW": 0, "installSeconds": 1.2, "wearPerJ": 0.0000005 },
+    { "id": "torn-veil:mechanics-v1/held-weak-coupler", "material": "torn-veil:mechanics-v1/held-fiber", "massKg": 2, "kind": "transmission", "input": { "medium": "rotation", "coupling": "axle" }, "output": { "medium": "rotation", "coupling": "drive" }, "efficiency": 0.95, "maxPowerW": 160, "minPowerW": 0, "installSeconds": 1.2, "wearPerJ": 0.0000005 }
+  ]
+}

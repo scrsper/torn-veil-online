@@ -1,4 +1,5 @@
 import { generateProceduralWorld } from '../world/settlement';
+import { restoreKernel } from '../kernel/definitions';
 import { World } from '../core/world';
 import { WorldClock } from '../core/time';
 import { generateVillage } from '../world/village';
@@ -131,7 +132,8 @@ const KEY = 'infinite-rpg-save-v1';
 // silently rewrite a village that had staffed itself from its own children into one that never
 // did. Conflicts and people are whole-object-persisted, so a v18 save would technically load —
 // which is exactly why the gate has to be explicit rather than left to chance.
-export const SAVE_VERSION = 20;
+// Generative kernel definitions, physical connections, finite sources and partial labor.
+export const SAVE_VERSION = 21;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
@@ -188,7 +190,7 @@ export function serialize(world: World): string {
   // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
   // falls back to today's behavior (rewind to post-generation position) when absent.
   const rng = world.rng.state(); const weatherRng = world.weatherRng.state(); const demographicRng = world.demographicRng.state();
-  return JSON.stringify({ version: SAVE_VERSION, seed: world.seed, physicalPlaces: world.settlementSites ? world.places() : undefined, settlements: world.settlements(), settlementSites: world.settlementSites, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
+  return JSON.stringify({ version: SAVE_VERSION, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -232,6 +234,7 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
   try {
     const data = JSON.parse(raw); if (data.version !== SAVE_VERSION) return null;
     const world = new World(data.seed);
+    world.kernel = restoreKernel(data.kernel);
     const generated = data.settlementSites ? generateProceduralWorld(world, data.settlementSites) : undefined;
     const gen = generated ? { places: Object.fromEntries(generated.flatMap(s => Object.entries(s.places).map(([k, p]) => [s.spec.site.id + ':' + k, p]))), people: Object.fromEntries(generated.flatMap(s => Object.entries(s.people).map(([k, p]) => [s.spec.site.id + ':' + k, p]))) } : generateVillage(world);
     for (const s of data.settlements ?? []) { const existing = world.get(s.id); if (existing?.kind === 'settlement') Object.assign(existing, s); else world.add(s); }
@@ -253,7 +256,7 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     if (typeof data.demographicRng === 'number') world.demographicRng.setState(data.demographicRng);
     for (const s of data.persons) {
       const legacyMind = s.mind ?? { goal: s.goal ?? null, plan: [], decision: s.decision ?? null, commitment: s.commitment ?? null, concerns: s.concerns ?? [], obligations: s.obligations ?? [], pursuits: s.pursuits ?? [], reports: s.reports ?? {}, investigated: s.investigated ?? [] };
-      const restored = { ...s, parentIds: [...(s.parentIds ?? [])], birthTick: s.birthTick ?? s.createdAt, lifeStage: s.lifeStage ?? 'adult', reproductiveRole: s.reproductiveRole ?? (s.gender === 'f' ? 'gestational' : 'fertilizing'), attributeAgeBasis: s.attributeAgeBasis ?? s.age, mind: { ...legacyMind, investigated: new Set(legacyMind.investigated ?? []), plan: [], intention: null } } as Person;
+      const restored = { ...s, parentIds: [...(s.parentIds ?? [])], birthTick: s.birthTick ?? s.createdAt, lifeStage: s.lifeStage ?? 'adult', reproductiveRole: s.reproductiveRole ?? (s.gender === 'f' ? 'gestational' : 'fertilizing'), attributeAgeBasis: s.attributeAgeBasis ?? s.age, mind: { ...legacyMind, investigated: new Set(legacyMind.investigated ?? []), plan: legacyMind.plan?.some((a: import('../core/types').Action) => a.data?.productionOpportunity) ? legacyMind.plan : [], intention: null } } as Person;
       const existing = world.person(s.id);
       if (existing) Object.assign(existing, restored); else world.add(restored);
     }
@@ -263,10 +266,10 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
       if (existing) Object.assign(existing, restored); else world.add(restored);
     }
     world.conflicts = (data.conflicts ?? []).map((c: Conflict) => ({ ...c }));
-    if (data.fields?.length) { world.fields = data.fields.map((f: Field) => ({ ...f, plots: f.plots.map(p => ({ ...p })) })); }
+    if (Array.isArray(data.fields)) { world.fields = data.fields.map((f: Field) => ({ ...f, plots: f.plots.map(p => ({ ...p })) })); }
     world.haulTasks = (data.haulTasks ?? []).map((t: HaulTask) => ({ ...t }));
-    if (data.resourceNodes?.length) world.resourceNodes = data.resourceNodes.map((n: ResourceNode) => ({ ...n, pos: { ...n.pos }, blocks: n.blocks.map(b => ({ ...b })) }));
-    if (data.constructionProjects?.length) world.constructionProjects = data.constructionProjects.map((p: ConstructionProject) => ({ ...p, required: p.required.map(r => ({ ...r })), contributions: { ...p.contributions }, siteBounds: { ...p.siteBounds } }));
+    if (Array.isArray(data.resourceNodes)) world.resourceNodes = data.resourceNodes.map((n: ResourceNode) => ({ ...n, pos: { ...n.pos }, blocks: n.blocks.map(b => ({ ...b })) }));
+    if (Array.isArray(data.constructionProjects)) world.constructionProjects = data.constructionProjects.map((p: ConstructionProject) => ({ ...p, required: p.required.map(r => ({ ...r })), contributions: { ...p.contributions }, siteBounds: { ...p.siteBounds } }));
     world.requests = (data.requests ?? []).map((r: Request) => ({ ...r, payload: { ...r.payload } }));
     // v0.8: same pattern as `resourceNodes`/`constructionProjects` above — fires are pre-
     // registered by `generateVillage` (just called), so an old, pre-v0.8 save with no `data.fires`

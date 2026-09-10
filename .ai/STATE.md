@@ -1,47 +1,28 @@
-# Living Economy & Survival
+# Local production pressure and historical alternatives
 
-Started from current main `31a9782`. Implementation is frozen. **Primary survival target not met:** final Ashford has 25/32 residents at zero energy versus 13/32 on untouched main. Zero energy is the caloric reserve floor, not death. No starvation death or permanent deprivation injury was added. Full mechanisms, results, limits, and verification: `docs/LIVING_ECONOMY_SURVIVAL.md`.
+Current branch: `codex/generative-universe-kernel`; implementation checkpoint `32999b8`. Detailed results, acceptance scope and limits: `docs/CAUSAL_PRODUCTION_PRESSURE.md`. The previous kernel milestone remains documented in `docs/GENERATIVE_UNIVERSE_KERNEL.md` (previous HEAD `e0b7cf9`).
 
-## Implemented
+## Implemented and demonstrated
 
-Canonical local household pantry/purse actions, including personally owned surplus; observed poverty/shortage responses through existing goals and bounded knowledge; wholesale payment before title transfer; delivered-leg wages; workplace operator continuity; ownership, reservation, and spoilage fixes; grain/fuel brewing; finite local procedural game. Corrected sleep fatigue recovery, action-based exertion, hungry producer/input goals, crop concerns, and the arbitrary grain harvest cap. Haul progress and terrain constraints use shared player/NPC mechanics. Save schema 20 rejects older incompatible initialization. No currency creation or periodic redistribution.
+Existing local production requests now support witnessed stock observations and inferred practical needs. Familiar work and composition compete in ordinary motivation/planning using capability, knowledge, deficit, labor cost and curiosity. Existing scheduled work is retained without duplicating its action. Voluntary manual batches pay before producing; mechanism output fulfills requests by actual quantity. There is no new controller, global unlock, guaranteed recovery or outcome objective.
 
-Access corrections include height-aware counter navigation, bounded distance-scaled searches, failed-travel handling, terrain-valid crowd separation and rest anchors, and local navigation refresh after crop projection. These remove false economic failures caused by stranded workers. Focused reproductions failed before each fix. The site 0 farmer's stale blocked navigation cell was confirmed by a live/reloaded-world comparison and a fresh four-day recovery run.
+Method teaching depends on the speaker's relationship and shared work/home; failed experiments are remembered in their observed input/source context. Changed power can permit reconsideration. Shared, private and sole-holder-death histories use the existing conversation, knowledge and demographic systems. Incorrect instructions fail physically and pay legitimate construction/dismantling costs.
 
-Observer/fixture corrections preserve canonical semantics: motive traces distinguish completed material favors from intentions and respect the existing protected pursuit dwell window; the direct regression checks protection at 44 world minutes and promotion at 46. The crop-loss scarcity fixture removes standing crops as well as stored food, because labor could recover the former stores-only shock. No canonical priority rule was changed to satisfy an observer.
+The explicit trade-post dispatch fixes a real locality/title defect. Save/load preserves paid voluntary work, partial requests and explicitly empty fields/resources/projects instead of restoring generated defaults. Kernel definitions, physical connections, sources, methods and experiment knowledge retain schema 21 compatibility.
 
-## Final measured outcomes
+Commands: `npm run pressure:demo -- 918271` and `npm run pressure:demo -- 44017`. Each runs five 180-physical-second production comparisons and three 80-second knowledge histories, with save/load in the latter. No finished recipe or selected response is seeded. Pressure cases derive their need from ordinary production demand; knowledge-history cases reuse the bounded kernel water-need fixture.
 
-Seed 918271, 0.15-second physical steps, 30 world days, all implementation runs on current runtime:
-
-| World | Zero energy | Below 2 silver among zero-energy residents | Median energy | Bread | Total currency start → end | Hash |
-| --- | ---: | ---: | ---: | ---: | ---: | --- |
-| Ashford baseline | 13/32 | — | 0.382 | — | 1550 → 586 | — |
-| Ashford implementation | 25/32 | 23 | 0 | 45 | 1550 → 1550 | `77a4399b` |
-| Procedural site 0 | 11/22 | 11 | 0.017 | 41 | 715 → 715 | `40f5940f` |
-| Procedural site 3 | 3/15 | 1 | 0.353 | 26 | 704 → 704 | `ac07a3e7` |
-
-Currency includes all wallets, household purses, and coin items. Site 3 has negligible floating-point noise. Global bread totals do not establish individual access. Final reports: `.debug/economy/{Ashford-final-918271-30d,site_0-918271-30d,site_3-918271-30d}.json`; baseline `baseline-918271-30d.json`. Ashford full save: `Ashford-final-30d.save.json`. Generated artifacts are ignored; the milestone report preserves summary data. Earlier checkpoint hashes/results are superseded.
-
-Ashford circulation: retail 2685, wholesale 1799, wages 1108.93, 590 home meal deposits; 1779 unaffordable purchase attempts. Bandit cash 90 → 448. Conserving currency fixes an artificial sink but does not establish adequate household purchasing power. Site 3 had no zero-energy residents at sampled times through day 24, then 1 at day 28 and 3 at day 30. Do not describe these results as normal viability or proven systemic collapse.
-
-All six Ashford farmers, its hunter, and its woodcutter finish at zero energy. Farmer wallets total 3.77 silver; bakers 522.25, merchants 232.14, miller 141. Grain 2309/flour 49 remain. Productive-labor income and food use remain central gaps; missing civic wages alone do not explain the failure.
+Seed 918271: familiar work produces 16 flour from 12 grain in 32 recorded labor seconds; invention produces 14.337 from 10.75275 grain using 826 J and 19 seconds. The 260 J case produces only 2.3895, exhausts its source and fulfills no request. Ignorance or absent grain yields zero. Seed 44017: familiar work produces 20, invention 25.92 and the local scarcity quote falls 4 to 3. Shared knowledge produces a second working assembly; privacy and loss of the holder produce no recipient output. None of these outcomes is selected by seed/name in engine code.
 
 ## Verification
 
-- Final build/typecheck PASS: `.debug/living-economy-final2-build.log`.
-- Final full regression **691/691 across 64 files PASS**, 338.65 seconds: `.debug/living-economy-final2-suite.log`.
-- Final causal acceptance **7/7 PASS**, 274.55 seconds: `.debug/living-economy-final2-causal.log`.
-- Final adaptive acceptance **8/9 PASS, 1 FAIL**, 565.91 seconds: `.debug/living-economy-final2-adaptive.log`. Existing `6. the shortage eased without being cured` fails at tests/adaptive-society-longrun.test.ts:132 because acceptance.shortageEased is empty. Replacement production and earned skill checks pass, but the daily bakery flour-stock recovery is not observed. Root cause not isolated. Assertion, seed, and duration are unchanged; do not label the suite passed.
-- All three final 30-day economy runs complete.
-- Targeted navigation/player-embodiment/living-economy/pathfinding-livelock 54/54 and crop lifecycle 4/4 passed before final suite. No runtime changes after final build/regression. Documentation edits do not invalidate those checks.
+- Final focused pressure/kernel/adaptive tests: **46/46 PASS**, including 12 new pressure/history tests.
+- `npm run typecheck`: PASS. `npm run build`: PASS (`.debug/pressure-final-build.log`).
+- Both pressure demonstration commands: exit 0; full metrics/hashes in `.debug/pressure/<seed>.json` and the milestone report.
+- Final `npm test -- --maxWorkers=2`: **715/715 across 66 files PASS**, 494.39 seconds; log `.debug/pressure-final-regression.log`. Includes existing conservation, locality, demographics and history. No runtime changes after this verification. A fixed scheduled-work integration regression was rechecked before this run; assertions/timeouts/config exclusions were not changed. No intentional jobs remain.
 
-All final jobs have ended; session 80970 exited 1 at the adaptive acceptance failure. No agents or intentional jobs remain. The user asked how much testing remained; final testing is finished for this incomplete checkpoint. Do not rerun unchanged broad suites or probes. No subagents were used; latest developer instructions prohibit unsolicited delegation.
+## Remaining limits and prior failures
 
-## Limits and next coherent work
+Components/primitive education are fixture supplies; commercial manufacture/procurement, employee machinery contracts, weather capture and reservoir-backed drinking remain future work. Fixed reserves, scheduled occupations, legacy direct-transform lookup/first-batch behavior, construction pipeline knowledge/concurrency rules and some authored cognition constants remain next targets. No settlement viability, universal forgetting model or full uninterrupted-versus-loaded event-stream identity is claimed.
 
-Sustained fiscal/service income, continuing consumption demand for some crafts, and household food preparation from raw grain remain incomplete. Nutrition, storage, credit, and inheritance are coarse or absent. Food and labor can fail for real reasons, but incomplete income/distribution mechanics still contribute. Do not add permanent deprivation consequences or claim the primary milestone achieved. Next economic work needs sustained earned income and usable household food, not a target survival rate or unconditional transfers.
-
-The specialized adaptive recovery regression also remains open. A future focused diagnosis needs retained downstream/haul/payment observations from that scenario; the final test log contains the assertion result, not the complete in-memory trace. Do not assert a specific cause or weaken the recovery requirement without evidence.
-
-Preserve pre-existing user edits in AGENTS.md, .ai/TESTING.md, .github/workflows/pr.yml, and changed-test package scripts. No commit or push requested or made.
+Previously recorded Living Economy & Survival results remain separate: Ashford's older 30-day run ended with 25/32 residents at zero caloric reserve (not death); specialized adaptive acceptance was 8/9 with unresolved `shortageEased` at `tests/adaptive-society-longrun.test.ts:132`. These were not repaired or rerun here. See `docs/LIVING_ECONOMY_SURVIVAL.md`. Do not add invisible rescue or label legitimate decline a defect.

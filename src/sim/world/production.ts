@@ -105,7 +105,7 @@ export function generateProductionNeeds(world: World): void {
       const have = unreservedStockAt(world, spec.resource, place.id);
       const pipeline = openProductionRequests(world)
         .filter(r => r.payload.placeId === place.id && r.payload.resource === spec.resource)
-        .reduce((n, r) => n + (r.payload.quantity ?? 0), 0);
+        .reduce((n, r) => n + Math.max(0, (r.payload.quantity ?? 0) - (r.fulfilledQuantity ?? 0)), 0);
       if (have + pipeline >= trigger) continue;
       createRequest(world, {
         type: 'production', requesterId: economicOperatorFor(world, place.id), requesterPlaceId: place.id,
@@ -132,9 +132,15 @@ export function claimedProductionRequest(world: World, placeId: EntityId, resour
 /** Accept (if needed) and, once the physical batch actually produced something, complete and
  * pay the request. A batch that produced nothing (still short of flour) leaves the request
  * accepted/open for the next batch attempt — never paid for work that didn't happen. */
-export function fulfillProductionRequest(world: World, req: Request, worker: import('../core/types').Person, produced: boolean): number {
+export function fulfillProductionRequest(world: World, req: Request, worker: import('../core/types').Person, produced: boolean | number): number {
+  if (req.status !== 'open' && !(req.status === 'accepted' && req.acceptedBy === worker.id)) return 0;
   if (req.status === 'open') acceptRequest(world, req, worker);
   if (!produced) return 0;
+  if (typeof produced === 'number') {
+    if (!Number.isFinite(produced) || produced <= 0) return 0;
+    req.fulfilledQuantity = Math.min(req.payload.quantity ?? produced, (req.fulfilledQuantity ?? 0) + produced);
+    if (req.fulfilledQuantity < (req.payload.quantity ?? produced) - 1e-9) return 0;
+  }
   return completeRequest(world, req);
 }
 
