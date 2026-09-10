@@ -7,7 +7,7 @@ import { stockItemsAt, outboundStock, retireStack } from '../world/stock';
 import { getPhysicalCapability } from '../core/attributes';
 import { practiceSkill, skillOf } from '../core/skills';
 import { bestToolFor, toolWorkMultiplier, wearTool } from '../core/tools';
-import { createComponent, reachable, owns } from './mechanics';
+import { createComponent, reachable, owns, mayUseProperty } from './mechanics';
 import { materialFits, mechanicalPrimitives, validateRuleset } from './definitions';
 
 /** Narrow legacy boundary: actual stock measures and existing material hardness. Authored
@@ -39,7 +39,7 @@ export function settlementPrimitives(): Ruleset {
 export function manufactureStock(world: World, p: Person, definition: ComponentDefinition, placeId: string): number {
   const material = world.kernel.ruleset.materials.find(m => m.id === definition.material);
   const place = world.place(placeId);
-  if (!material?.legacyItem || !definition.fabrication || !place || !owns(p, place.ownerId) || !reachable(world, p, place.inside)) return 0;
+  if (!material?.legacyItem || !definition.fabrication || !place || !mayUseProperty(world, p, place.ownerId, placeId) || !reachable(world, p, place.inside)) return 0;
   return Math.max(0, stockItemsAt(world, material.legacyItem, placeId).filter(i => owns(p, i.ownerId) && !!i.pos && reachable(world, p, i.pos))
     .reduce((n, i) => n + i.quantity, 0) - outboundStock(world, material.legacyItem, placeId));
 }

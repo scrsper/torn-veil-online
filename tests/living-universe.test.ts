@@ -13,6 +13,7 @@ import { diePerson } from '../src/sim/world/demographics';
 import { householdConsistencyErrors } from '../src/sim/world/household';
 import { buildChronicle } from '../src/sim/history/chronicle';
 import { RESOURCE_MASS_KG } from '../src/sim/world/factory';
+import { energyBalanceError } from '../src/sim/kernel/environment';
 
 const run = (conditions = {}, seconds = 1800) => { const lab = createLivingPressure(17, undefined, conditions); advanceLiving(lab.world, lab.sim, seconds); return lab; };
 let ordinary: ReturnType<typeof run>, calm: ReturnType<typeof run>, manual: ReturnType<typeof run>;
@@ -53,7 +54,7 @@ describe('living universe integration', () => {
     expect(control.mechanicalOutput).toBe(0); expect(control.laborSeconds).toBeGreaterThan(0); expect(control.methods).toEqual([]);
     expect(control.baked).toBeLessThan(normal.baked);
     expect(familiar.mechanicalOutput).toBe(0); expect(familiar.baked).toBeGreaterThan(normal.baked);
-    expect(ordinary.world.kernel.energy[0].initialJ - ordinary.world.kernel.energy[0].remainingJ).toBeCloseTo(ordinary.world.kernel.assemblies.reduce((n, a) => n + a.inputJ, 0), 7);
+    expect(energyBalanceError(ordinary.world)).toBeLessThan(1e-6);
     for (const lab of [ordinary, calm, manual]) {
       expect(householdConsistencyErrors(lab.world)).toEqual([]);
       expect(lab.world.kernel.assemblies.every(a => Math.abs(a.inputJ - a.usefulJ - a.dissipatedJ) < 1e-7)).toBe(true);

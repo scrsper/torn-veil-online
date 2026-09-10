@@ -259,7 +259,7 @@ export function activityLevelFor(p: Person, body: Body, world?: World): Activity
     case 'chop': return 'chop';
     case 'gather': return world?.resourceNodes.find(n => n.id === action.data?.nodeId)?.kind === 'game' ? 'walk' : 'quarry';
     case 'haul_load': case 'haul_unload': return 'haul';
-      case 'build': case 'construct_mechanism': return 'construct';
+      case 'build': case 'construct_mechanism': case 'write_record': case 'copy_record': return 'construct';
       case 'operate_mechanism': return 'craft';
     case 'work': case 'plant': case 'harvest': return 'craft';
   }

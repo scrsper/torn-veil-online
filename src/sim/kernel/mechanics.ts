@@ -1,12 +1,31 @@
 import type { World } from '../core/world';
-import type { Person, Vec3 } from '../core/types';
+import type { KnowledgeItem, Person, Vec3 } from '../core/types';
 import { transform } from '../world/metabolism';
 import { addPlaceStock, outboundStock, stockItemsAt } from '../world/stock';
 import { portsMatch } from './definitions';
 import type { Assembly, Bindings, Component, Method, RunResult } from './types';
+import { getPhysicalCapability } from '../core/attributes';
 
 export const distance = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
 export const owns = (p: Person, owner: string | null) => owner === null || owner === p.id;
+/** A work assignment permits using the employer's productive assets at that workplace.
+ * It transfers neither title nor private assets belonging to other workers. */
+export function mayUseProperty(world: World, p: Person, owner: string | null, placeId?: string): boolean {
+  if (owns(p, owner)) return true;
+  const place = world.place(placeId);
+  return !!place && place.ownerId === owner && p.workId === place.id && place.workers.includes(p.id)
+    && (p.relationships[owner!]?.trust ?? 0) >= -0.25;
+}
+export function understandsAssembly(p: Person, a: Assembly): boolean {
+  return !!assemblyInstruction(p, a);
+}
+function assemblyInstruction(p: Person, a: Assembly): KnowledgeItem | undefined {
+  const shape = (m: Method) => JSON.stringify([m.ruleset, m.definitions, m.connections, m.effect]);
+  return Object.values(p.knowledge).find(k => k.confidence > 0.2 && k.claim.method && shape(k.claim.method) === shape(a.method));
+}
+export function mayOperate(world: World, p: Person, a: Assembly): boolean {
+  return mayUseProperty(world, p, a.ownerId, a.bindings.placeId) && (a.ownerId === p.id || understandsAssembly(p, a));
+}
 export function reachable(world: World, p: Person, pos: Vec3, range = 3): boolean {
   return p.alive && world.bodies().some(b => b.ownerId === p.id && b.present && !b.dead && b.pose !== 'downed' && b.pose !== 'sleep'
     && distance(b.pos, pos) <= range && world.grid.lineOfSight({ ...b.pos, y: b.pos.y + 1 }, { ...pos, y: pos.y + 1 }, 16));
@@ -28,7 +47,7 @@ export function startAssembly(world: World, p: Person, method: Method, bindings:
     || method.definitions.some(id => !world.kernel.ruleset.components.some(c => c.id === id))) return null;
   const a: Assembly = { id: world.nextId('assembly'), ownerId: p.id, creatorId: p.id, pos: { ...pos }, parts: [], connections: [], bindings: { ...bindings }, method: structuredClone(method), needKey,
     tested: false, learned: false, laborSeconds: 0, operatedSeconds: 0, inputJ: 0, usefulJ: 0, dissipatedJ: 0, outputQuantity: 0, progress: {} };
-  const cause = p.mind.goal?.causeEvent;
+  const cause = Object.values(p.knowledge).find(k => k.claim.method && JSON.stringify(k.claim.method) === JSON.stringify(method))?.source.viaEvent ?? p.mind.goal?.causeEvent;
   if (cause && world.event(cause)) a.lastEvent = cause;
   world.kernel.assemblies.push(a); changed(world, p, a, 'started'); return a;
 }
@@ -40,7 +59,7 @@ function changed(world: World, p: Person, a: Assembly, operation: string, materi
 /** Shared labor entry point for player/NPC construction. Installing and joining also check
  * this progress, so neither physical mutation can bypass its authored labor requirement. */
 export function contributeAssemblyLabor(world: World, p: Person, a: Assembly, key: string, required: number, seconds: number): boolean {
-  if (a.ownerId !== p.id || !reachable(world, p, a.pos) || !Number.isFinite(required) || required <= 0 || !Number.isFinite(seconds) || seconds <= 0 || seconds > 60) return false;
+  if ((key === 'run' ? !mayOperate(world, p, a) : a.ownerId !== p.id) || !reachable(world, p, a.pos) || getPhysicalCapability(p, world).currentExertionCapacity <= 0.15 || !Number.isFinite(required) || required <= 0 || !Number.isFinite(seconds) || seconds <= 0 || seconds > 60) return false;
   const amount = Math.min(seconds, Math.max(0, required - (a.progress[key] ?? 0)));
   a.progress[key] = (a.progress[key] ?? 0) + amount; a.laborSeconds += amount;
   return a.progress[key] >= required - 1e-9;
@@ -81,18 +100,20 @@ export function dismantle(world: World, p: Person, a: Assembly): boolean {
 /** Shared physical execution. No knowledge, NPC occupation, method, or name participates. */
 export function operateAssembly(world: World, p: Person, a: Assembly, seconds: number): RunResult {
   let reason = 'disconnected', output = 0, consumed = 0, inputJ = 0, usefulJ = 0;
+  const instruction = assemblyInstruction(p, a)?.source.viaEvent;
+  const causes = () => [...new Set([a.lastEvent, instruction].filter((id): id is string => !!id))];
   const finish = (): RunResult => {
     const dissipatedJ = inputJ - usefulJ;
-    const ev = world.emit('mechanism_trial', { actor: p.id, pos: a.pos, placeId: a.bindings.placeId, causes: a.lastEvent ? [a.lastEvent] : [], visibility: 10, loudness: inputJ > 0 ? 6 : 0, significance: 0.4,
+    const ev = world.emit('mechanism_trial', { actor: p.id, pos: a.pos, placeId: a.bindings.placeId, causes: causes(), visibility: 10, loudness: inputJ > 0 ? 6 : 0, significance: 0.4,
       data: { assemblyId: a.id, reason, output, consumed, inputJ, usefulJ, dissipatedJ, seconds }, summary: `${p.name} operated an assembly: ${reason}` });
     a.lastEvent = ev.id; a.lastReason = reason; a.inputJ += inputJ; a.usefulJ += usefulJ; a.dissipatedJ += dissipatedJ; a.outputQuantity += output;
     if (Number.isFinite(seconds) && seconds > 0 && reason !== 'inaccessible') a.operatedSeconds += seconds;
     return { reason, output, consumed, inputJ, usefulJ, dissipatedJ, eventId: ev.id };
   };
-  if (!(seconds > 0 && seconds <= 60) || !Number.isFinite(seconds) || a.ownerId !== p.id || !reachable(world, p, a.pos)) { reason = 'inaccessible'; return finish(); }
+  if (!(seconds > 0 && seconds <= 60) || !Number.isFinite(seconds) || !mayOperate(world, p, a) || !reachable(world, p, a.pos) || getPhysicalCapability(p, world).currentExertionCapacity <= 0.15) { reason = 'inaccessible'; return finish(); }
   const parts = a.parts.map(id => world.kernel.components.find(c => c.id === id));
   const defs = parts.map(c => world.kernel.ruleset.components.find(d => d.id === c?.definition));
-  if (parts.length < 2 || new Set(a.parts).size !== parts.length || parts.some(c => !c || c.assemblyId !== a.id || c.holderId || c.ownerId !== p.id || distance(c.pos, a.pos) > 0.01) || defs.some(d => !d)) return finish();
+  if (parts.length < 2 || new Set(a.parts).size !== parts.length || parts.some(c => !c || c.assemblyId !== a.id || c.holderId || c.ownerId !== a.ownerId || distance(c.pos, a.pos) > 0.01) || defs.some(d => !d)) return finish();
   if (parts.some(c => c!.condition <= 0)) { reason = 'broken'; return finish(); }
   if (a.connections.length !== parts.length - 1 || new Set(a.connections.map(c => c.from)).size !== a.connections.length || new Set(a.connections.map(c => c.to)).size !== a.connections.length) return finish();
   const first = defs.findIndex(d => d!.kind === 'source');
@@ -103,7 +124,7 @@ export function operateAssembly(world: World, p: Person, a: Assembly, seconds: n
   const end = defs[path.at(-1)!]!;
   if (path.length !== parts.length || !['process', 'transfer'].includes(end.kind) || a.connections.some(c => !path.includes(c.from) || !path.includes(c.to))) return finish();
   const energy = world.kernel.energy.find(e => e.id === a.bindings.energyId);
-  if (!energy || !owns(p, energy.ownerId) || distance(energy.pos, a.pos) > 3 || energy.medium !== defs[first]!.output!.medium) { reason = 'source unavailable'; return finish(); }
+  if (!energy || !mayUseProperty(world, p, energy.ownerId, a.bindings.placeId) || distance(energy.pos, a.pos) > 3 || energy.medium !== defs[first]!.output!.medium) { reason = 'source unavailable'; return finish(); }
   const r = world.kernel.ruleset;
   let maxBatches = 0, joulesPerBatch = 0;
   const process = end.kind === 'process' ? r.processes.find(d => d.id === end.process) : undefined;
@@ -111,16 +132,16 @@ export function operateAssembly(world: World, p: Person, a: Assembly, seconds: n
   let stockOwner: string | null = p.id;
   if (process) {
     const place = world.place(a.bindings.placeId);
-    if (!place || distance(place.inside, a.pos) > 3 || !owns(p, place.ownerId)) { reason = 'inaccessible stock'; return finish(); }
+    if (!place || distance(place.inside, a.pos) > 3 || !mayUseProperty(world, p, place.ownerId, place.id)) { reason = 'inaccessible stock'; return finish(); }
     const input = r.materials.find(m => m.id === process.input.material)!;
     if (!input.legacyItem || [process.output, ...process.byproducts].some(f => !r.materials.find(m => m.id === f.material)?.legacyItem)) { reason = 'unsupported stock adapter'; return finish(); }
     const stock = stockItemsAt(world, input.legacyItem, place.id);
     const own = stock.filter(i => i.ownerId === p.id).reduce((n, i) => n + i.quantity, 0);
-    stockOwner = own > 0 ? p.id : null;
+    stockOwner = own > 0 ? p.id : stock.some(i => i.ownerId === place.ownerId) ? place.ownerId : null;
     const available = Math.max(0, stock.filter(i => i.ownerId === stockOwner).reduce((n, i) => n + i.quantity, 0) - outboundStock(world, input.legacyItem, place.id));
     maxBatches = Math.min(available / process.input.quantity, process.maxBatchesPerSecond * seconds); joulesPerBatch = process.joulesPerBatch;
   } else if (end.kind === 'transfer') {
-    if (!src || !dst || src.id === dst.id || !owns(p, src.ownerId) || !owns(p, dst.ownerId) || distance(src.pos, a.pos) > 3 || distance(dst.pos, a.pos) > 3 || src.material !== dst.material) { reason = 'reservoir unavailable'; return finish(); }
+    if (!src || !dst || src.id === dst.id || !mayUseProperty(world, p, src.ownerId, a.bindings.placeId) || !mayUseProperty(world, p, dst.ownerId, a.bindings.placeId) || distance(src.pos, a.pos) > 3 || distance(dst.pos, a.pos) > 3 || src.material !== dst.material) { reason = 'reservoir unavailable'; return finish(); }
     const material = r.materials.find(m => m.id === src.material)!;
     if (!material || material.phase !== end.phase) { reason = 'incompatible material'; return finish(); }
     // Work includes declared friction plus real gravitational lift. No energy recovered on descent.
@@ -151,10 +172,10 @@ export function operateAssembly(world: World, p: Person, a: Assembly, seconds: n
   if (stalled) { reason = 'insufficient power'; return finish(); }
   if (process) {
     const im = r.materials.find(m => m.id === process.input.material)!, om = r.materials.find(m => m.id === process.output.material)!;
-    const result = transform(world, { actor: p.id, inputType: im.legacyItem!, inputQty: batches * process.input.quantity, inputPlaces: [a.bindings.placeId!], outputType: om.legacyItem!, outputQty: batches * process.output.quantity, outputPlace: a.bindings.placeId!, ownerId: p.id, inputOwner: stockOwner, how: 'mechanical processing', causes: a.lastEvent ? [a.lastEvent] : [] });
+    const result = transform(world, { actor: p.id, inputType: im.legacyItem!, inputQty: batches * process.input.quantity, inputPlaces: [a.bindings.placeId!], outputType: om.legacyItem!, outputQty: batches * process.output.quantity, outputPlace: a.bindings.placeId!, ownerId: stockOwner ?? a.ownerId, inputOwner: stockOwner, how: 'mechanical processing', causes: [...causes(), ...(energy.lastEvent ? [energy.lastEvent] : [])] });
     consumed = result.consumed; output = result.produced;
     if (result.eventId) a.lastEvent = result.eventId;
-    if (result.ok) for (const by of process.byproducts) addPlaceStock(world, r.materials.find(m => m.id === by.material)!.legacyItem!, by.quantity * batches, a.bindings.placeId!, p.id, result.eventId, 'mechanical byproduct');
+    if (result.ok) for (const by of process.byproducts) addPlaceStock(world, r.materials.find(m => m.id === by.material)!.legacyItem!, by.quantity * batches, a.bindings.placeId!, stockOwner ?? a.ownerId, result.eventId, 'mechanical byproduct');
   } else { src!.quantity -= batches; dst!.quantity += batches; consumed = batches; output = batches; }
   reason = output > 0 ? 'productive' : 'no effect'; return finish();
 }

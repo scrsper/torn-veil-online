@@ -4,27 +4,27 @@ import { RNG } from '../core/rng';
 import { learn } from '../mind/knowledge';
 import { teachPrimitive } from '../mind/invention';
 import { processFor } from './labor';
+import { teachNotation } from '../mind/records';
 
 /** Initial geography and local education, not an invention scenario. No parts, assemblies,
- * finished methods or practical needs are seeded. Future work can replace this bounded wind
- * parcel with an explicit weather flux; it is never silently replenished. */
+ * finished methods or practical needs are seeded. A boundary exposes local weather flux. */
 export function initializeSettlementMechanics(world: World, s: SettlementResult): void {
   const rng = new RNG(s.spec.seed ^ 0x3a47b13);
   const materials = world.kernel.ruleset.materials.filter(m => m.legacyItem && m.properties);
   const places = Object.values(s.places);
   for (const place of places) {
     const process = processFor(place.type);
-    if (!process || !world.kernel.ruleset.processes.some(d => world.kernel.ruleset.materials.find(m => m.id === d.output.material)?.legacyItem === process.output)) continue;
+    if (!process) continue;
     const speed = 2 + (1 - s.spec.moisture) * 4;
-    // Kinetic flux through a 2m² boundary, air density 1.2kg/m³, a finite 300s parcel.
-    const watts = 0.5 * 1.2 * 2 * speed ** 3, joules = watts * 300;
-    world.kernel.energy.push({ id: world.nextId('energy'), medium: 'kinetic', initialJ: joules, remainingJ: joules, maxPowerW: watts,
-      ownerId: null, pos: { ...place.inside }, origin: `Initial 300 physical second air parcel: 1.2 kg/m³, 2 m², ${speed} m/s; ${joules} J. No replenishment.` });
+    // Available collection sites at workplaces; no motor or stored energy is supplied.
+    world.kernel.energy.push({ id: world.nextId('energy'), medium: 'kinetic', initialJ: 0, remainingJ: 0, maxPowerW: 0,
+      wind: { areaM2: 2, airDensity: 1.2, exposure: speed / 3.6, importedJ: 0, escapedJ: 0 },
+      ownerId: null, pos: { ...place.inside }, origin: 'Weather-driven wind through a 2 m² boundary; geographical exposure derived from local moisture.' });
   }
   for (const p of Object.values(s.people)) {
     if (p.age < 18) continue;
     // Prior experience is a generated personal fact, independent of their occupation.
-    if (rng.chance(0.45)) for (const d of world.kernel.ruleset.components) teachPrimitive(world, p, d);
+    if (rng.chance(0.45)) { for (const d of world.kernel.ruleset.components) teachPrimitive(world, p, d); teachNotation(world, p); }
     for (const material of materials) {
       const item = material.legacyItem!;
       for (const place of places) {

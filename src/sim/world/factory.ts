@@ -75,6 +75,7 @@ export function isFood(t: ItemType): boolean { return RESOURCE_CATEGORY[t] === '
  * `WATER_UNIT_MASS_KG` is used by physiology's hydration accounting; water is not an `Item`.
  */
 export const RESOURCE_MASS_KG: Partial<Record<ItemType, number>> = {
+  book: 0.5,
   grain: 0.7, flour: 0.65, bread: 0.5, wheat: 0.5, log: 25, plank: 8, stone: 15, stick: 0.3, herbs: 0.4,
 };
 export const WATER_UNIT_MASS_KG = 1;

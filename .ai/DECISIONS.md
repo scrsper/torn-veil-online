@@ -1,5 +1,14 @@
 # Durable design decisions
 
+## Civilizational capability continuity
+
+- Practical records are ordinary physical items carrying snapshots of fallible knowledge, source provenance and notation. Read/write/copy use local access, intelligibility, labor and actual wood. Reading and teaching transfer information only. Item possession, title, condition and location determine access; dead minds and archived kernel plans are not learning sources.
+- Workplace permission, machine ownership, method knowledge and physical ability are separate. Employee operations preserve the input owner's output title. Explicit personal haul buyers retain the goods they procure at shared workplaces. Estates transfer place title as well as physical equipment and records.
+- Practice reservoirs are derived from existing workplace/home membership, living knowledge, records, working examples and canonical operations. They are observability, never a global technology registry or an extra institutional mind.
+- Settlement wind is an explicit weather-driven open boundary with geographical exposure, imported/escaped energy and a bounded two-second parcel. This supersedes the finite seeded settlement wind parcel; finite reference sources remain supported. Known machines survive temporary lack of power/input but cannot work without energy or functioning parts.
+- Teaching goals include the lesson key in their identity. Personal procurement inspects the work bin locally before ordering again. Instruction is preferred over untried arrangements when affordable, but may fail physically or be abandoned.
+- Evidence and controlled conditions: `docs/CIVILIZATIONAL_CAPABILITY_CONTINUITY.md`. Eighteen-year acceptance uses existing daily Epoch cadence between fine-grained demonstrations, not a claim of fully resolved multigenerational provisioning.
+
 ## Living universe integration
 
 - Procedural worlds install scoped primitive definitions, finite explicit environmental energy and local prior education, with zero finished components/assemblies/methods. Ordinary production pressure can motivate manufacture and experimentation through the existing mind and action systems.

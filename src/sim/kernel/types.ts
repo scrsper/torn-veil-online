@@ -42,6 +42,10 @@ export interface Reservoir {
 export interface EnergySource {
   id: string; medium: string; initialJ: number; remainingJ: number; maxPowerW: number;
   origin: string; pos: Vec3; ownerId: EntityId | null;
+  /** Open environmental boundary: imported = used + escaped + remaining - initial.
+   * Only the simulation clock advances this flux, never an operation or a reader. */
+  wind?: { areaM2: number; airDensity: number; exposure: number; importedJ: number; escapedJ: number; lastPowerW?: number };
+  lastEvent?: string;
 }
 export interface Connection { from: number; to: number }
 export interface Method {

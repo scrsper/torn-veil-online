@@ -1,5 +1,7 @@
 import { localPlaces, near, knownPlaceForPerson } from '../world/locality';
 import { inventionGoals, inventionPlan, actOnMechanism, dismantleFailed } from './invention';
+import { actOnRecord, recordGoals, recordPlan, weatherRecords } from './records';
+import { stepEnvironmentalEnergy } from '../kernel/environment';
 import { procureMaterial } from './componentSupply';
 import { observeProduction, productionWorkGoals, localProductionChoice } from './productionOpportunity';
 import { applyInjury } from '../physical/injury';
@@ -207,6 +209,7 @@ export class Simulation {
   // ------------------------------------------------------------------ main step
   step(physDt: number, worldDt: number): void {
     const w = this.world;
+    stepEnvironmentalEnergy(w, physDt);
     // 1. perception (stimuli + surroundings) at 5Hz
     this.perceptionAccum += physDt;
     const doPerceive = this.perceptionAccum >= 0.2;
@@ -1140,8 +1143,8 @@ export class Simulation {
       if (resumeCand) resumeCand.utility = clamp(resumeCand.utility + 0.4);
     }
     const productionOpportunities = !threat ? observeProduction(w, p) : [];
-    for (const goal of [...productionWorkGoals(w, p, productionOpportunities), ...(!threat ? inventionGoals(w, p, productionOpportunities) : [])])
-      G(goal.type!, goal.utility!, goal.reasons!, { ...goal, key: `${goal.type}:${goal.data?.needKey ?? goal.targetEntity ?? goal.targetPlace}` });
+    for (const goal of [...productionWorkGoals(w, p, productionOpportunities), ...(!threat ? [...inventionGoals(w, p, productionOpportunities), ...recordGoals(w, p)] : [])])
+      G(goal.type!, goal.utility!, goal.reasons!, { ...goal, key: `${goal.type}:${goal.data?.needKey ?? goal.targetEntity ?? goal.targetPlace}${['teach_method', 'record_method'].includes(goal.type!) ? ':' + goal.data?.key : ''}` });
     // v0.10: two different motivations can legitimately propose the SAME errand — a welfare
     // concern's own `check_on` and a `tend` purpose's next step are literally the same walk to
     // the same door. Collapse candidates by key, keeping the strongest case and merging the
@@ -1380,6 +1383,7 @@ export class Simulation {
     };
     switch (g.type) {
       case 'compose': return inventionPlan(w, p, g);
+      case 'study_record': case 'record_method': return recordPlan(w, g);
       case 'teach_method': return [A({ type: 'goto', targetEntity: g.targetEntity }), A({ type: 'tell', targetEntity: g.targetEntity, data: { key: g.data?.key } })];
       case 'sleep': { const home = w.place(p.homeId); const bed = anchorIn(home, ['bed'], true) ?? anchorIn(home, ['bed']) ?? home?.inside ?? body.pos; return [A({ type: 'goto', pos: bed, placeId: home?.id }), A({ type: 'manage_household' }), A({ type: 'sleep', pos: bed, duration: 3 * SECONDS_PER_HOUR })]; }
       case 'provision_home': {
@@ -1580,6 +1584,9 @@ export class Simulation {
       case 'construct_mechanism': case 'operate_mechanism': {
         if (!dismantleFailed(w, p, a, physDt)) actOnMechanism(w, p, a, physDt);
         break;
+      }
+      case 'read_record': case 'write_record': case 'copy_record': {
+        actOnRecord(w, p, a, physDt); body.pose = 'work'; break;
       }
       case 'goto': {
         // Observational only (Constitution §53): records that pathing failed, for headless
@@ -2353,14 +2360,14 @@ export class Simulation {
     // arrest) the canonical event outlives compaction where the perception does not, so gossip
     // about it days later still resolves to a real cause instead of dangling. Fall back to the
     // perception, then to nothing, and drop any id that no longer resolves.
-    const toldCauses = [k.claim.eventId as string | undefined, k.source.viaEvent].filter((id): id is string => !!id && !!w.event(id));
+    const toldCauses = (k.claim.method || k.claim.notation ? [k.source.viaEvent, k.claim.eventId as string | undefined] : [k.claim.eventId as string | undefined, k.source.viaEvent]).filter((id): id is string => !!id && !!w.event(id));
     const ev = w.emit('told', { actor: speaker.id, target: listener.id, pos: sb?.pos, causes: toldCauses.slice(0, 1), significance: 0.3 + (k.claim.significance ?? 0.3) * 0.4, data: { key: k.key, text, hops: k.hops + 1 }, summary: `${speaker.name} told ${listener.name}: "${describeClaim(w, k)}"`, loudness: 4 });
     k.sharedWith.push(listener.id);
     this.say(speaker, text); speaker.mind.lastSpokeAt = w.physicalTime; speaker.mind.lastToldAt[listener.id] = w.physicalTime;
     if (sb) { sb.pose = 'talk'; sb.poseUntil = w.physicalTime + 2.5; }
     if (listener.controlled) return;
     const trust = getRel(listener, speaker.id).trust; const conf = clamp(k.confidence * (0.55 + 0.35 * clamp(trust + 0.5)) * (speaker.traits.honesty * 0.3 + 0.7));
-    const learned = learn(w, listener, { key: k.key, kind: k.kind, claim: { ...k.claim }, confidence: conf, source: { type: 'told', from: speaker.id, viaEvent: ev.id }, hops: k.hops + 1, cause: ev.id, summary: describeClaim(w, k) });
+    const learned = learn(w, listener, { key: k.key, kind: k.kind, claim: structuredClone(k.claim), confidence: conf, source: { type: 'told', from: speaker.id, viaEvent: ev.id }, hops: k.hops + 1, cause: ev.id, summary: describeClaim(w, k) });
     remember(w, listener, { type: 'told', summary: `${speaker.name} told me ${describeClaim(w, k)}`, eventId: k.claim.eventId, entities: [speaker.id, k.claim.actor, k.claim.target].filter(Boolean) as string[], significance: clamp((k.claim.significance ?? 0.3) * 0.7), valence: isCrime(k.claim.type, k.claim.intent) ? -0.4 : 0, source: { type: 'told', from: speaker.id, viaEvent: ev.id } });
     ev.perceivedBy.push({ who: listener.id, how: 'heard', tick: w.now });
     adjustRel(w, listener, speaker.id, { familiarity: 0.03, affection: 0.02 }, 'talked', undefined, true);
@@ -3053,9 +3060,10 @@ export class Simulation {
       // v0.8 §9: weather draws from its own forked stream (`w.weatherRng`) precisely so that
       // weather is never a source of, or victim of, RNG-sequence coupling with anything else.
       const r = w.weatherRng.next(); const kinds: import('../core/types').WeatherKind[] = wt.kind === 'clear' ? ['clear', 'cloudy', 'cloudy', 'fog'] : wt.kind === 'cloudy' ? ['clear', 'rain', 'cloudy', 'storm'] : wt.kind === 'rain' ? ['cloudy', 'rain', 'storm', 'clear'] : wt.kind === 'storm' ? ['rain', 'cloudy'] : ['clear', 'cloudy'];
-      const kind = kinds[Math.floor(r * kinds.length)]; const prev = wt.kind; wt.kind = kind; wt.intensity = kind === 'storm' ? 1 : kind === 'rain' ? 0.5 + w.weatherRng.next() * 0.4 : kind === 'fog' ? 0.7 : 0; wt.wind = 0.1 + w.weatherRng.next() * (kind === 'storm' ? 1 : 0.5); wt.nextChangeAt = w.now + (1.5 + w.weatherRng.next() * 4) * SECONDS_PER_HOUR;
-      if (prev !== kind) w.emit('weather', { significance: 0.2, data: { kind }, summary: `The weather turned to ${kind}` });
+      const kind = kinds[Math.floor(r * kinds.length)]; const prev = wt.kind, previousWind = wt.wind; wt.kind = kind; wt.intensity = kind === 'storm' ? 1 : kind === 'rain' ? 0.5 + w.weatherRng.next() * 0.4 : kind === 'fog' ? 0.7 : 0; wt.wind = 0.1 + w.weatherRng.next() * (kind === 'storm' ? 1 : 0.5); wt.nextChangeAt = w.now + (1.5 + w.weatherRng.next() * 4) * SECONDS_PER_HOUR;
+      if (prev !== kind || previousWind !== wt.wind) w.emit('weather', { significance: 0.2, data: { kind, wind: wt.wind, intensity: wt.intensity }, summary: `The weather ${prev === kind ? 'remained' : 'turned to'} ${kind}; wind ${wt.wind.toFixed(2)}` });
     }
+    weatherRecords(w, minutes * 60);
     this.accum('strategic.weather', t1);
   }
 }

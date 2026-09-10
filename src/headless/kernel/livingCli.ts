@@ -9,6 +9,7 @@ import { diePerson } from '../../sim/world/demographics';
 import { householdConsistencyErrors } from '../../sim/world/household';
 import { restoreKernel } from '../../sim/kernel/definitions';
 import type { World } from '../../sim/core/world';
+import { energyBalanceError } from '../../sim/kernel/environment';
 
 const seed = Number(process.argv[2] ?? 17), seconds = 1800;
 const hash = (data: unknown) => createHash('sha256').update(JSON.stringify(data)).digest('hex');
@@ -16,7 +17,7 @@ const money = (w: World) => w.persons().reduce((n, p) => n + p.wealth, 0) + w.ho
 function invariants(w: World, initialMoney: number) {
   const made = w.events.filter(e => e.type === 'component_manufactured');
   const materialError = made.reduce((n, e) => n + Math.abs(e.data.massKg - e.data.consumed.reduce((sum: number, c: { quantity: number }) => sum + c.quantity * w.kernel.ruleset.materials.find(m => m.id === e.data.material)!.kgPerUnit, 0)), 0);
-  const energyError = Math.abs(w.kernel.energy.reduce((n, e) => n + e.initialJ - e.remainingJ, 0) - w.kernel.assemblies.reduce((n, a) => n + a.inputJ, 0));
+  const energyError = energyBalanceError(w);
   return { currencyDelta: money(w) - initialMoney, materialErrorKg: materialError, energyErrorJ: energyError,
     householdErrors: householdConsistencyErrors(w), validatedKernel: JSON.stringify(restoreKernel(w.kernel)) === JSON.stringify(w.kernel),
     validStocks: w.items().every(i => Number.isFinite(i.quantity) && i.quantity >= 0),
@@ -58,7 +59,7 @@ const passed = report.deterministic && report.saveLoad.exactKernel && report.sav
 mkdirSync('.debug/living', { recursive: true });
 writeFileSync(`.debug/living/${seed}.json`, JSON.stringify({ passed, ...report }, null, 2));
 const compact = (result: typeof normal) => result.state.map(s => ({ settlement: s.name, manufactured: s.manufactured.length, mechanicalFlour: s.mechanicalOutput,
-  assemblyLaborSeconds: s.laborSeconds, energyUsedJ: s.sources.reduce((n, e) => n + e.initialJ - e.remainingJ, 0), bread: s.baked,
+  assemblyLaborSeconds: s.laborSeconds, energyUsedJ: s.sources.reduce((n, e) => n + e.initialJ + (e.wind?.importedJ ?? 0) - (e.wind?.escapedJ ?? 0) - e.remainingJ, 0), bread: s.baked,
   breadWithMechanicalAncestry: s.breadWithMechanicalAncestry, flourDelivered: s.flourDelivered, methodHolders: s.methods.length }));
 console.log(JSON.stringify({ passed, seed, normal: compact(normal), calm: compact(calm), manual: compact(manual), substitution: compact(substitution), multi: compact(multi),
   deterministic: report.deterministic, replayHash: report.replayHash, saveLoad: { exactKernel, exactKnowledge, deterministicContinuation: report.saveLoad.deterministicContinuation, matchesUninterrupted: report.saveLoad.matchesUninterrupted, continuation: compact({ state: continuation, invariants: report.saveLoad.invariants }) }, loss: lost, invariants: normal.invariants }, null, 2));
