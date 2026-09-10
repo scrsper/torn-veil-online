@@ -1,3 +1,4 @@
+#include "TVWorldProjection.h"
 #include "TVBridgeSubsystem.h"
 #include "TVCharacter.h"
 #include "WebSocketsModule.h"
@@ -23,8 +24,10 @@ void UTVBridgeSubsystem::Connect() {
     // it or not -- which is what used to get every one of these connections refused.
     const TMap<FString, FString> UpgradeHeaders = { { TEXT("X-Torn-Veil-Client"), TEXT("unreal") } };
     Socket = FWebSocketsModule::Get().CreateWebSocket(TEXT("ws://127.0.0.1:8787"), FString(), UpgradeHeaders);
+    // A bounded nine-region frame with 2m settlement terrain exceeds the engine default.
+    Socket->SetTextMessageMemoryLimit(8 * 1024 * 1024);
     Socket->OnConnected().AddWeakLambda(this, [this]() { Status = TEXT("Connected - waiting for canonical state"); Sequence = 0; });
-    Socket->OnConnectionError().AddWeakLambda(this, [this](const FString& Error) { Status = TEXT("Simulation offline - run npm run bridge"); bControls = false; });
+    Socket->OnConnectionError().AddWeakLambda(this, [this](const FString& Error) { Status = TEXT("Simulation offline - run npm run bridge"); bControls = false; UE_LOG(LogTemp,Warning,TEXT("TV_BRIDGE %s"),*Error); });
     Socket->OnClosed().AddWeakLambda(this, [this](int32, const FString&, bool) { Status = TEXT("Disconnected - reconnecting"); bControls = false; });
     Socket->OnMessage().AddWeakLambda(this, [this](const FString& Message) { Receive(Message); });
     Socket->Connect();
@@ -73,6 +76,7 @@ void UTVBridgeSubsystem::CloseDialogue() {
     auto M = MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"), TEXT("dialogue_close")); Send(M);
 }
 void UTVBridgeSubsystem::ChooseDialogueOption(int32 Index) {
+    if(bMechanismsOpen) { ChooseMechanism(Index); return; }
     if (!bDialogueOpen || !DialogueOptionIds.IsValidIndex(Index)) return;
     auto M = MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"), TEXT("dialogue_option"));
     M->SetStringField(TEXT("optionId"), DialogueOptionIds[Index]); Send(M);
@@ -90,6 +94,18 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
         const TSharedPtr<FJsonObject>* Origin;
         if (M->TryGetObjectField(TEXT("origin"), Origin)) CanonicalOrigin = FVector((*Origin)->GetNumberField(TEXT("x")), (*Origin)->GetNumberField(TEXT("y")), (*Origin)->GetNumberField(TEXT("z")));
         double Units = 0; if (M->TryGetNumberField(TEXT("unitsPerMetre"), Units) && Units > 0) UnitsPerMetre = static_cast<float>(Units);
+        return;
+    }
+    if (Type == TEXT("regions")) {
+        const auto O=M->GetObjectField(TEXT("origin")); const FVector Next(O->GetNumberField(TEXT("x")),O->GetNumberField(TEXT("y")),O->GetNumberField(TEXT("z")));
+        const FVector Delta((CanonicalOrigin.X-Next.X)*100,(CanonicalOrigin.Z-Next.Z)*100,(CanonicalOrigin.Y-Next.Y)*100);
+        if(!Delta.IsNearlyZero()) for(auto& Pair:Bodies) Pair.Value->RebasePresentation(Delta);
+        CanonicalOrigin=Next;
+        if(!WorldProjection) WorldProjection=GetWorld()->SpawnActor<ATVWorldProjection>();
+        WorldProjection->Apply(M,CanonicalOrigin); ProjectionMetrics=WorldProjection->Metrics(); return;
+    }
+    if (Type == TEXT("debug_inspection")) {
+        if(auto* T=Selected()) { FString Text; FJsonSerializer::Serialize(M.ToSharedRef(),TJsonWriterFactory<>::Create(&Text)); T->DebugText=Text; }
         return;
     }
     if (Type == TEXT("result")) {
@@ -143,19 +159,32 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
     } else {
         bDialogueOpen = false; DialogueSpeaker.Empty(); DialogueOccupation.Empty(); DialogueLines.Empty(); DialogueOptionIds.Empty(); DialogueOptionLabels.Empty();
     }
+    MechanismLabels.Empty(); MechanismIntents.Empty();
+    const TArray<TSharedPtr<FJsonValue>>* Mechanisms;
+    if(M->TryGetArrayField(TEXT("mechanisms"),Mechanisms)) for(const auto& V:*Mechanisms) {
+        const auto A=V->AsObject(); const TArray<TSharedPtr<FJsonValue>>* Actions;
+        if(A->TryGetArrayField(TEXT("actions"),Actions)) for(const auto& Action:*Actions) { const auto O=Action->AsObject(); MechanismLabels.Add(O->GetStringField(TEXT("label"))); MechanismIntents.Add(O->GetObjectField(TEXT("intent"))); }
+    }
+    KnowledgeSummary.Empty(); const TSharedPtr<FJsonObject>* Knowledge;
+    if(M->TryGetObjectField(TEXT("knowledge"),Knowledge)) {
+        const TArray<TSharedPtr<FJsonValue>>* People;
+        if((*Knowledge)->TryGetArrayField(TEXT("people"),People)) for(const auto& V:*People) { const auto P=V->AsObject(); if(P->GetStringField(TEXT("bodyId"))!=SelectedBody) continue;
+            const TArray<TSharedPtr<FJsonValue>>* Beliefs; if(P->TryGetArrayField(TEXT("beliefs"),Beliefs)) for(const auto& Belief:*Beliefs) KnowledgeSummary+=Belief->AsObject()->GetStringField(TEXT("interpretation"))+TEXT(". ");
+        }
+    }
     TSet<FString> Present;
     for (const auto& V : *Rows) {
         const auto D = V->AsObject(); if (!D) continue;
-        const FString Id = D->GetStringField(TEXT("bodyId")), Entity = D->GetStringField(TEXT("entityId")); Present.Add(Id);
+        const FString Id = D->GetStringField(TEXT("bodyId")), Entity = D->GetStringField(TEXT("entityId")); Present.Add(Id); FString ControlledBody; M->TryGetStringField(TEXT("controlledBodyId"),ControlledBody); const bool Controlled=ControlledBody.IsEmpty()?Entity==PlayerId:Id==ControlledBody;
         ATVCharacter* C = Bodies.Contains(Id) ? Bodies[Id].Get() : nullptr; const bool First = !IsValid(C);
         if (First) {
-            if (Entity == PlayerId) C = Cast<ATVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+            if (Controlled) C = Cast<ATVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
             else { FActorSpawnParameters P; P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn; C = GetWorld()->SpawnActor<ATVCharacter>(FVector(0, 0, 300), FRotator::ZeroRotator, P); }
             if (!C) continue;
-            C->bCanonicalPlayer = Entity == PlayerId; Bodies.Add(Id, C);
+            C->bCanonicalPlayer = Controlled; Bodies.Add(Id, C);
         }
         C->Project(D, First);
-        if (Entity == PlayerId) {
+        if (Controlled) {
             const auto Needs = D->GetObjectField(TEXT("needs"));
             PlayerVitals = FString::Printf(TEXT("Hunger %.0f%%   Thirst %.0f%%   %.0f silver"), Needs->GetNumberField(TEXT("hunger")) * 100, Needs->GetNumberField(TEXT("thirst")) * 100, D->GetNumberField(TEXT("wealth")));
             TArray<FString> Items;
@@ -171,7 +200,7 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
     for (const auto& Id : Removed) Bodies.Remove(Id);
     const TArray<TSharedPtr<FJsonValue>>* Events;
     if (M->TryGetArrayField(TEXT("events"), Events) && Events->Num()) LastEvent = Events->Last()->AsObject()->GetStringField(TEXT("summary"));
-    Status = FString::Printf(TEXT("LIVE  |  %d canonical NPCs  |  t %.1fs%s"), FMath::Max(0, Bodies.Num() - 1), ServerTick, bControls ? TEXT("") : TEXT("  |  observer connection"));
+    Status = FString::Printf(TEXT("LIVE  |  %d visible people  |  t %.1fs%s"), FMath::Max(0, Bodies.Num() - 1), ServerTick, bControls ? TEXT("") : TEXT("  |  observer connection"));
 }
 ATVCharacter* UTVBridgeSubsystem::Selected() const { const auto* C = Bodies.Find(SelectedBody); return C ? C->Get() : nullptr; }
 void UTVBridgeSubsystem::CycleTarget() {
@@ -183,3 +212,8 @@ void UTVBridgeSubsystem::CycleTarget() {
     const int32 Index = Candidates.IndexOfByPredicate([this](const ATVCharacter* C) { return C->BodyId == SelectedBody; });
     SelectedBody = Candidates[(Index + 1) % Candidates.Num()]->BodyId;
 }
+
+void UTVBridgeSubsystem::ToggleMechanisms() { bMechanismsOpen=!bMechanismsOpen; if(bMechanismsOpen) CloseDialogue(); }
+void UTVBridgeSubsystem::ChooseMechanism(int32 Index) { if(SinceSnapshot>=.5f || !MechanismIntents.IsValidIndex(Index)) return; auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("person_action")); M->SetObjectField(TEXT("intent"),MechanismIntents[Index]); Send(M); }
+void UTVBridgeSubsystem::SaveWorld() { auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("save")); Send(M); }
+void UTVBridgeSubsystem::RequestDeveloperInspection() { if(auto* T=Selected()) { auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("debug_inspect")); M->SetStringField(TEXT("personId"),T->EntityId); Send(M); } }

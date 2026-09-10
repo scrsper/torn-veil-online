@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { BridgeSession } from '../src/bridge/session';
 import { moveByIntent } from '../src/sim/physical/input';
 import { createTestWorld, addPerson, v, wall } from './helpers/world';
+import { makeBody } from '../src/sim/world/factory';
 
 describe('canonical movement intents', () => {
   it('normalizes movement, rejects invalid values, and collides with canonical walls', () => {
@@ -15,6 +16,16 @@ describe('canonical movement intents', () => {
 });
 
 describe('bridge protocol', () => {
+  it('seeing one body does not expose another body of the same Person',()=>{
+    const s=new BridgeSession(),w=s.world,player=w.primaryBody(w.playerId)!,p=w.persons().find(p=>p.id!==w.playerId)!;
+    const near=w.primaryBody(p.id)!; near.pos={...player.pos,x:player.pos.x+1};
+    const far=makeBody(w,p.id,{x:1,y:30,z:1});p.bodies.push(far.id);
+    for(let i=0;i<6;i++) s.step(.05);
+    const snapshot=s.snapshot();
+    expect(snapshot.bodies.some(b=>b.bodyId===near.id)).toBe(true);
+    expect(snapshot.bodies.some(b=>b.bodyId===far.id)).toBe(false);
+    expect(snapshot.controlledBodyId).toBe(player.id);
+  });
   it('projects the actual cast, expires abandoned input, and rejects replayed packets', () => {
     const s = new BridgeSession(); const snapshot = s.developerSnapshot();
     expect(snapshot.bodies.filter(b => b.entityId !== s.world.playerId)).toHaveLength(32);

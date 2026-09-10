@@ -264,8 +264,8 @@ class Game {
     this.renderer.render(this.scene, this.camera);
   }
   checkPlayerDeath(): void {
-    const w = this.world; const pb = this.ctrl.body; const player = w.person(w.playerId)!;
-    if (pb.health <= 0 && !pb.dead) { pb.dead = true; pb.pose = 'dead'; w.emit('player_death', { actor: player.id, pos: pb.pos, significance: 0.8, summary: 'the Traveler fell' }); this.hud.message('You fall. Darkness... then bells.');
-      setTimeout(() => { const chapel = w.places().find(p => p.type === 'chapel')!; const d = chapel.door!; pb.dead = false; pb.health = pb.maxHealth * 0.5; pb.pose = 'stand'; this.ctrl.teleport({ x: d.x + 0.5, y: d.y, z: d.z + 2.5 }); w.emit('heal', { actor: w.persons().find(p => p.occupation === 'priest')?.id, target: player.id, pos: pb.pos, significance: 0.5, summary: 'Father Aldous tended the Traveler\'s wounds at the chapel' }); this.hud.message('You wake at the chapel. Father Aldous has bound your wounds.'); }, 3000); }
+    // Survival, injury and death belong to Simulation. A disconnected client cannot heal,
+    // resurrect, teleport, or invent a priest's intervention.
+    if (this.ctrl.body.dead) this.hud.message('You have died. The world continues.');
   }
 }

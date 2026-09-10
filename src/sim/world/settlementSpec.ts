@@ -22,13 +22,13 @@ export function settlementSeed(worldSeed: number, site: SettlementSite): number 
 const GIVEN = ['Aster', 'Briar', 'Cora', 'Dain', 'Elowen', 'Flint', 'Galen', 'Hester', 'Iris', 'Jonas', 'Kael', 'Lark', 'Maren', 'Nico', 'Orla', 'Perrin', 'Rhea', 'Silas', 'Thora', 'Una', 'Wren', 'Yara'];
 const SURNAMES = ['Alder', 'Brook', 'Cairn', 'Dale', 'Elm', 'Fen', 'Grove', 'Hart', 'Ives', 'Juniper', 'Keld', 'Linden', 'Moss', 'Nettle', 'Oak', 'Pike', 'Reed', 'Stone', 'Thorne', 'Vale'];
 
-export function generateSettlementSpec(worldSeed: number, site: SettlementSite): SettlementSpec {
+export function generateSettlementSpec(worldSeed: number, site: SettlementSite, conditions?: { moisture: number; stone: number }): SettlementSpec {
   if (!site.id || !Number.isSafeInteger(site.x) || !Number.isSafeInteger(site.z) || site.x < 0 || site.z < 0) throw new Error('Settlement sites require an ID and nonnegative integer coordinates');
   const seed = settlementSeed(worldSeed, site), rng = new RNG(seed);
-  const moisture = rng.range(0.2, 0.85), relief = rng.int(1, 4);
+  const moisture = conditions?.moisture ?? rng.range(0.2, 0.85), relief = conditions ? 2 : rng.int(1, 4);
   const biome = moisture < 0.4 ? 'dryland' : moisture > 0.65 ? 'woodland' : 'grassland';
   const fields = biome === 'grassland' ? rng.int(3, 5) : rng.int(1, 3);
-  const resources = { timber: biome === 'woodland' ? rng.int(16, 24) : rng.int(4, 12), stone: rng.int(2, 7), fields, foodReserve: rng.int(5, 16) };
+  const resources = { timber: biome === 'woodland' ? rng.int(16, 24) : rng.int(4, 12), stone: conditions ? Math.max(1, Math.round(conditions.stone * 9)) : rng.int(2, 7), fields, foodReserve: rng.int(5, 16) };
   // Expand selected consumption baskets through the existing process graph, including inputs.
   // Repeated primary producers represent site capacity; no separate occupation supply table.
   const roles: Occupation[] = [];

@@ -8,9 +8,9 @@ ATVGameMode::ATVGameMode() { DefaultPawnClass = ATVCharacter::StaticClass(); HUD
 void ATVHUD::DrawHUD() {
     Super::DrawHUD(); auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>(); if (!B || !Canvas) return;
     DrawRect(FLinearColor(0.015f, 0.02f, 0.035f, 0.85f), 20, 20, 660, 100);
-    DrawText(TEXT("TORN VEIL  /  ASHFORD VALE"), FLinearColor(0.9f, 0.72f, 0.4f), 36, 30, nullptr, 1.5f);
+    DrawText(TEXT("TORN VEIL  /  LIVING WORLD"), FLinearColor(0.9f, 0.72f, 0.4f), 36, 30, nullptr, 1.5f);
     DrawText(B->SinceSnapshot < 0.5f ? B->Status : TEXT("Simulation disconnected - movement paused"), FLinearColor::White, 36, 65);
-    DrawText(TEXT("WASD move  |  Shift run  |  Mouse orbit  |  Wheel zoom  |  Tab target  |  LMB strike  |  E interact  |  C eat  |  Q drop  |  F6 inspect"), FLinearColor(0.7f, 0.75f, 0.8f), 36, 90);
+    DrawText(TEXT("WASD move  |  Shift run  |  Mouse orbit  |  Wheel zoom  |  Tab target  |  LMB strike  |  E interact  |  C eat  |  Q drop  |  M mechanisms  |  F5 save  |  F6 debug"), FLinearColor(0.7f, 0.75f, 0.8f), 36, 90);
     if (B->SinceSnapshot < 0.5f) {
         DrawRect(FLinearColor(0.015f, 0.02f, 0.035f, 0.85f), 20, Canvas->SizeY - 150, 660, 85);
         DrawText(B->PlayerVitals, FLinearColor::White, 36, Canvas->SizeY - 140);
@@ -34,9 +34,17 @@ void ATVHUD::DrawHUD() {
         // someone is down, and never decides that someone is dead.
         const FString Condition = T->bDead ? TEXT("DEAD") : T->bIncapacitated ? TEXT("DOWNED") : T->Activity;
         const FLinearColor ConditionColour = T->bDead ? FLinearColor(0.85f, 0.3f, 0.3f) : T->bIncapacitated ? FLinearColor(0.95f, 0.7f, 0.35f) : FLinearColor::White;
-        DrawText(FString::Printf(TEXT("%s  |  %.0f / %.0f health"), *Condition, T->Health, T->MaxHealth), ConditionColour, 36, 175);
+        DrawText(Condition, ConditionColour, 36, 175);
+        DrawText(B->KnowledgeSummary.Left(100), FLinearColor::White, 36, 200);
         if (bShowClass && !T->ClassEvidence.IsEmpty()) DrawText(T->ClassEvidence.Left(96), FLinearColor(0.65f, 0.7f, 0.78f), 36, 200);
         if (B->bInspector) { DrawText(TEXT("DEVELOPER DATA - not character knowledge"), FLinearColor::Yellow, 36, 235); DrawText(T->EntityId + TEXT(" / ") + T->BodyId, FLinearColor::White, 36, 260); DrawText(T->DebugText.Left(240), FLinearColor::White, 36, 285); }
+    }
+    if(B->bInspector) DrawText(B->ProjectionMetrics,FLinearColor::Yellow,36,420);
+    if(B->bMechanismsOpen) {
+        const float X=Canvas->SizeX*.45f, Y=150; DrawRect(FLinearColor(.02f,.02f,.03f,.92f),X,Y,520,310);
+        DrawText(TEXT("Mechanisms - observed evidence / attempts"),FLinearColor(1,.8f,.45f),X+20,Y+16);
+        if(B->MechanismLabels.IsEmpty()) DrawText(TEXT("No visible mechanism in reach."),FLinearColor::White,X+20,Y+50);
+        for(int32 I=0;I<FMath::Min(9,B->MechanismLabels.Num());I++) DrawText(FString::Printf(TEXT("%d  %s"),I+1,*B->MechanismLabels[I]),FLinearColor::White,X+20,Y+50+I*25);
     }
     // Why the last intent did not take (out of reach, still recovering) belongs next to the hand
     // that swung, not inside a target panel that may not be open.

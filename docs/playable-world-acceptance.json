@@ -1,0 +1,126 @@
+{
+  "seed": 918271,
+  "specification": {
+    "version": 1,
+    "size": 24576,
+    "regionSize": 256,
+    "settlements": 7,
+    "timeScale": 6
+  },
+  "population": 128,
+  "identity": {
+    "subject": "p_39",
+    "before": "an unfamiliar person",
+    "after": "Flint Reed",
+    "evidence": {
+      "type": "heard",
+      "from": "p_39",
+      "viaEvent": "e_1425"
+    }
+  },
+  "survival": {
+    "action": "drink",
+    "hydration": 1
+  },
+  "resource": {
+    "id": "node_62",
+    "state": "depleted",
+    "remaining": 0
+  },
+  "journey": {
+    "from": "settlement_3",
+    "to": "settlement_2",
+    "roadLength": 4681.491591097769,
+    "walked": 5323.209707778203,
+    "steps": 10317,
+    "before": {
+      "time": 8666917.199999679,
+      "physicalTime": 86.19999999999938,
+      "physiology": {
+        "energy": 0.789761904761905,
+        "hydration": 0.9945454545454546,
+        "fatigue": 0.10210833333333337,
+        "sleepDebt": 0.13333333333333333,
+        "lastSleepAt": 8666400,
+        "bodyHeat": 0.19329772727272732,
+        "wetness": 0
+      },
+      "pos": {
+        "x": 12181.5,
+        "y": 17,
+        "z": 13727.5
+      },
+      "events": 5084
+    },
+    "after": {
+      "time": 8672590.199996157,
+      "physicalTime": 1031.7000000001572,
+      "physiology": {
+        "energy": 0.6615873015873044,
+        "hydration": 0.8074242424242439,
+        "fatigue": 0.15752499999999975,
+        "sleepDebt": 1.7166666666666655,
+        "lastSleepAt": 8666400,
+        "bodyHeat": 0.12521439393939388,
+        "wetness": 0
+      },
+      "pos": {
+        "x": 12078.5,
+        "y": 25,
+        "z": 9173.5
+      },
+      "events": 33651
+    },
+    "clockShared": true,
+    "unknownAtB": "an unfamiliar person"
+  },
+  "survivalAtB": "accepted",
+  "returnJourney": {
+    "metresTotal": 10510.41868639723,
+    "physicalTime": 2023.7999999992549,
+    "time": 8678542.79999246,
+    "resource": "depleted",
+    "identityStillKnown": "Flint Reed",
+    "settlement": "settlement_3"
+  },
+  "persistence": {
+    "bytes": 22444304,
+    "saveLoadMs": 3724.7737999999954,
+    "clock": 8678542.79999246,
+    "regionsAfterReconnect": 9,
+    "resourcePreserved": true
+  },
+  "performance": {
+    "elapsedSeconds": 155.7656183,
+    "steps": 20238,
+    "transitions": 118,
+    "projectionMs": 1012.0216999999511,
+    "snapshotMs": 534.377100000057,
+    "heapMB": 260.5574722290039,
+    "profile": {
+      "act": 10043.677800000685,
+      "creatures": 4.867700000557306,
+      "bodyPhysics": 1274.3853999996181,
+      "perceive": 46347.16509998954,
+      "think": 88806.47820000417,
+      "strategic.persons": 175.51619999997638,
+      "strategic.weather": 7.181499999906919,
+      "strategic": 306.42830000010053,
+      "strategic.conflict": 95.18650000003254,
+      "strategic.metabolism": 27.312599999972008,
+      "compact": 115.4600000000064
+    }
+  },
+  "visiblePoses": [
+    "walk",
+    "eat",
+    "work",
+    "run",
+    "pray",
+    "sit",
+    "talk",
+    "stand",
+    "haul",
+    "drink"
+  ]
+}

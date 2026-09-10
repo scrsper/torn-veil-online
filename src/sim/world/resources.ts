@@ -6,6 +6,13 @@ import { capabilityFor, getPhysicalCapability } from '../core/attributes';
 import { wearTool } from '../core/tools';
 import { practiceSkill, skillOf } from '../core/skills';
 import { learnAffordance } from '../mind/knowledge';
+import { makeItem } from './factory';
+
+function extractionOutput(world: World, node: ResourceNode, actor: Person, type: ItemType, quantity: number, eventId: string, how: string): void {
+  if (node.dropPlaceId) { addPlaceStock(world, type, quantity, node.dropPlaceId, actor.id, eventId, how); return; }
+  const item = makeItem(world, type, type, { owner: actor.id, pos: { ...node.pos }, quantity });
+  item.provenance.push({ tick: world.now, eventId, from: null, to: actor.id, how });
+}
 
 /**
  * Renewable / non-renewable resource nodes (v0.3 Living World I, Priority 5-6-8).
@@ -244,7 +251,7 @@ export function extractFromNode(world: World, node: ResourceNode, actor: Person,
     const ev = world.emit('resource_extracted', { actor: actor.id, pos: { ...node.pos }, placeId: node.placeId,
       visibility: 12, significance: 0.15, data: { nodeId: node.id, kind: 'game', yield: 'meat', amount: got, remaining: node.remaining },
       summary: `${actor.name} hunted ${got} meat at ${world.nameOf(node.placeId)}` });
-    addPlaceStock(world, 'meat', got, node.dropPlaceId, actor.id, ev.id, 'hunted');
+    extractionOutput(world, node, actor, 'meat', got, ev.id, 'hunted');
     practiceSkill(actor, 'hunting', 1, world);
     if (node.remaining < 1) {
       node.state = 'depleted'; node.depletedAt = world.now;
@@ -266,7 +273,7 @@ export function extractFromNode(world: World, node: ResourceNode, actor: Person,
     data: { nodeId: node.id, kind: node.kind, yield: node.yield, amount: got, remaining: node.remaining, tool: tool?.type ?? 'bare hands', ...(context ? { laborSeconds: context.laborSeconds } : {}) },
     summary: `${actor.name} ${verb} ${got} ${node.yield}${tool ? ` with ${tool.name}` : ' bare-handed'}`,
   });
-  addPlaceStock(world, node.yield, got, node.dropPlaceId, actor.id, ev.id, verb);
+  extractionOutput(world, node, actor, node.yield, got, ev.id, verb);
   // v0.8 §E: a real byproduct, not a separate production chain — felling a tree naturally
   // leaves small branches alongside the trunk (Constitution v0.8: "wood + felling → heat/ash"
   // language generalizes to "primary product + byproduct" for any real process; here the
@@ -274,7 +281,7 @@ export function extractFromNode(world: World, node: ResourceNode, actor: Person,
   // exactly one per successful chop, never scaled with `got` (a stronger worker gets more logs
   // per swing from the same tree, not proportionally more branches).
   if (node.kind === 'tree') {
-    addPlaceStock(world, 'stick', 1, node.dropPlaceId, actor.id, ev.id, 'gathered as a byproduct while felling');
+    extractionOutput(world, node, actor, 'stick', 1, ev.id, 'gathered as a byproduct while felling');
     // Observational only (history/summary.ts) — `resource_extracted` is already tallied as one
     // lifetime COUNT (core/world.ts's TALLIED_TYPES), which can't distinguish "how many of those
     // also yielded a stick" on its own, and the event's own `data` has no `how` field to filter

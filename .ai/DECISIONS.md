@@ -51,3 +51,13 @@
 - Familiar schedules supply personal expectations, weighted alongside needs and concerns. Field opportunities require local observations. Existing selection paths outside this bounded conversion remain documented, not treated as architectural authority.
 - Mechanical reasoning consumes a lossy observation, not a canonical method graph. Paid fitting changes actual components/connections; the shared kernel adjudicates behavior. Method and assembly ancestry follows causal events rather than a global technology version.
 - Future ranks are ordered extension names only; Normal ceiling 20 and all-seven-15 Iron readiness remain unchanged. No post-Iron mechanics are implied.
+
+## Playable seeded world
+
+- A versioned world geography composes with existing settlement-local seeds. All settlements inhabit one registry, clock and physical coordinate space; the billion-metre locality reference is retained separately.
+- Regional presentation residency never owns canonical lifetime. Wilderness indexing follows every active body, not Unreal requests. No distant NPC LOD or coarse stepping is introduced.
+- Baseline terrain/resources are pure local-seed queries; meaningful physical edits and indexed lifecycles persist. Canonical positions never rebase; only client-relative transforms do.
+- Runtime geometry is an allowlist distinct from avatar knowledge and explicit developer truth. Visibility is body-specific, not inferred for all bodies from seeing their owner once.
+- Quaternius/Poly Haven are replaceable prototype presentation assets. PCG grass/bush output is collision-free decoration and cannot create resources, stock, ownership or routes.
+- Playable clock rate is explicitly 6×. Save schema 24 rejects older baselines rather than silently reinterpreting them. No offline elapsed-time simulation is claimed.
+- Regional generation retains the existing primitive-education model. It does not seed a guaranteed successful mechanism merely to make a showcase pass; this remains an explicit acceptance gap.

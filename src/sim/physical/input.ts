@@ -2,6 +2,7 @@ import { movementMultiplier } from '../core/attributes';
 import type { Body, Person } from '../core/types';
 import type { Simulation } from '../mind/agent';
 import { noteHaulMovement } from '../logistics/haul';
+import { B } from './blocks';
 
 /** How much faster a sprint is than a walk. Canonical, and reported to external clients in the
  * bridge snapshot so a presentation layer predicts with this number rather than one of its own. */
@@ -24,9 +25,19 @@ export function moveByIntent(sim: Simulation, actor: Person, body: Body, x: numb
     if (px < 1 || pz < 1 || px > g.W - 1 || pz > g.D - 1) return false;
     const floor = w.nav.floorY(Math.floor(px), Math.floor(pz));
     if (!w.nav.canStepTo(body.pos, px, pz)) return false;
+    // A footprint can straddle a one-metre stair while its centre descends. Checking the
+    // entire footprint from only the lower centre floor made the old ground a new wall.
+    let clearance = floor;
+    for (let ix = Math.floor(px - 0.3); ix <= Math.floor(px + 0.3); ix++) for (let iz = Math.floor(pz - 0.3); iz <= Math.floor(pz + 0.3); iz++) {
+      const edge = w.nav.floorY(ix, iz);
+      if (edge < 0 || Math.abs(edge - floor) > 1.05) return false;
+      clearance = Math.max(clearance, edge);
+      // Same ordinary door operation as NPC path following; World emits its causal event.
+      if ((x || z) && g.get(ix, edge, iz) === B.Door && !g.isDoorOpen(ix, edge, iz)) w.setDoorOpen({ x: ix, y: edge, z: iz }, true, actor.id);
+    }
     for (let ix = Math.floor(px - 0.3); ix <= Math.floor(px + 0.3); ix++)
       for (let iz = Math.floor(pz - 0.3); iz <= Math.floor(pz + 0.3); iz++)
-        for (let iy = Math.floor(floor + 0.05); iy <= Math.floor(floor + 1.75); iy++)
+        for (let iy = Math.floor(clearance + 0.05); iy <= Math.floor(clearance + 1.75); iy++)
           if (g.isSolidAt(ix, iy, iz)) return false;
     return true;
   };

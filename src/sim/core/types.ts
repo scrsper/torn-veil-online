@@ -1005,7 +1005,7 @@ export interface ResourceNode {
   state: 'available' | 'depleted' | 'regrowing';
   depletedAt?: Tick;
   regrowAt?: Tick;
-  dropPlaceId: EntityId;               // Place where extracted items are stacked
+  dropPlaceId?: EntityId;              // Otherwise output stays on the ground at the extraction site.
   placeId?: EntityId;                  // wilderness/worksite area it belongs to
   /** v0.4 Priority 14: canonical lifecycle stage for a renewable (tree) node — replaces a bare
    * depleted→available flip with felled → sapling → young → mature, so "the forest hasn't
@@ -1532,4 +1532,3 @@ export interface ChronicleEra {
 
 export type WeatherKind = 'clear' | 'cloudy' | 'rain' | 'storm' | 'fog';
 export interface WeatherState { kind: WeatherKind; intensity: number; nextChangeAt: Tick; wind: number; }
-

@@ -1,0 +1,8 @@
+{
+  "regionBuildMaxMs": 26.04,
+  "regionBuildSamples": 36,
+  "frameApplyMaxMs": 90.29,
+  "processMemoryMinMB": 3123.0,
+  "processMemoryMaxMB": 3254.0,
+  "notes": "Final editor run; native frame application includes unload/load and synchronous mesh construction. Process memory includes Unreal editor and source assets, not only projection. Not GC-normalized."
+}
