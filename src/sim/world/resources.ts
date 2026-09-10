@@ -231,7 +231,7 @@ const SWING_SECONDS = 5 * 60;
  * Never zero — an improvised bare-handed attempt is always physically possible, just far less
  * productive (Constitution v0.4 §5).
  */
-export function extractFromNode(world: World, node: ResourceNode, actor: Person): number {
+export function extractFromNode(world: World, node: ResourceNode, actor: Person, context?: { laborSeconds: number; causes: string[] }): number {
   if (node.state !== 'available' || node.remaining <= 0) return 0;
   if (node.kind === 'game') {
     const body = world.primaryBody(actor.id);
@@ -261,8 +261,9 @@ export function extractFromNode(world: World, node: ResourceNode, actor: Person)
   node.remaining -= got;
   const verb = node.kind === 'tree' ? 'chopped' : 'quarried';
   const ev = world.emit('resource_extracted', {
+    causes: context?.causes,
     actor: actor.id, placeId: node.dropPlaceId, pos: { ...node.pos }, significance: 0.15,
-    data: { nodeId: node.id, kind: node.kind, yield: node.yield, amount: got, remaining: node.remaining, tool: tool?.type ?? 'bare hands' },
+    data: { nodeId: node.id, kind: node.kind, yield: node.yield, amount: got, remaining: node.remaining, tool: tool?.type ?? 'bare hands', ...(context ? { laborSeconds: context.laborSeconds } : {}) },
     summary: `${actor.name} ${verb} ${got} ${node.yield}${tool ? ` with ${tool.name}` : ' bare-handed'}`,
   });
   addPlaceStock(world, node.yield, got, node.dropPlaceId, actor.id, ev.id, verb);

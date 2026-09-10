@@ -20,20 +20,20 @@ export function acquireComponent(world: World, p: Person, id: string): boolean {
   const c = world.kernel.components.find(c => c.id === id);
   if (!c || c.assemblyId || (c.holderId && c.holderId !== p.id) || !owns(p, c.ownerId) || !reachable(world, p, c.pos)) return false;
   c.ownerId = p.id; c.holderId = p.id;
-  world.emit('component_acquired', { actor: p.id, pos: c.pos, data: { componentId: id }, visibility: 6, significance: 0.2, summary: `${p.name} picked up a component` });
+  world.emit('component_acquired', { actor: p.id, pos: c.pos, causes: c.madeEvent ? [c.madeEvent] : [], data: { componentId: id }, visibility: 6, significance: 0.2, summary: `${p.name} picked up a component` });
   return true;
 }
 export function startAssembly(world: World, p: Person, method: Method, bindings: Bindings, pos: Vec3, needKey?: string): Assembly | null {
   if (method.ruleset !== world.kernel.ruleset.id || !reachable(world, p, pos) || method.definitions.length > 6 || method.definitions.length < 2
     || method.definitions.some(id => !world.kernel.ruleset.components.some(c => c.id === id))) return null;
-  const a: Assembly = { id: world.nextId('assembly'), ownerId: p.id, pos: { ...pos }, parts: [], connections: [], bindings: { ...bindings }, method: structuredClone(method), needKey,
+  const a: Assembly = { id: world.nextId('assembly'), ownerId: p.id, creatorId: p.id, pos: { ...pos }, parts: [], connections: [], bindings: { ...bindings }, method: structuredClone(method), needKey,
     tested: false, learned: false, laborSeconds: 0, operatedSeconds: 0, inputJ: 0, usefulJ: 0, dissipatedJ: 0, outputQuantity: 0, progress: {} };
   const cause = p.mind.goal?.causeEvent;
   if (cause && world.event(cause)) a.lastEvent = cause;
   world.kernel.assemblies.push(a); changed(world, p, a, 'started'); return a;
 }
-function changed(world: World, p: Person, a: Assembly, operation: string): void {
-  const ev = world.emit('assembly_changed', { actor: p.id, pos: a.pos, causes: a.lastEvent ? [a.lastEvent] : [], visibility: 8, significance: 0.3,
+function changed(world: World, p: Person, a: Assembly, operation: string, materialCauses: string[] = []): void {
+  const ev = world.emit('assembly_changed', { actor: p.id, pos: a.pos, causes: [...new Set([...(a.lastEvent ? [a.lastEvent] : []), ...materialCauses])], visibility: 8, significance: 0.3,
     data: { assemblyId: a.id, operation, parts: [...a.parts], connections: structuredClone(a.connections) }, summary: `${p.name} ${operation} an assembly` });
   a.lastEvent = ev.id;
 }
@@ -51,7 +51,7 @@ export function installComponent(world: World, p: Person, a: Assembly, id: strin
   const key = `install:${a.parts.length}`, definition = world.kernel.ruleset.components.find(d => d.id === c.definition)!;
   if ((a.progress[key] ?? 0) < definition.installSeconds - 1e-9) return false;
   delete a.progress[key];
-  c.assemblyId = a.id; c.holderId = null; c.pos = { ...a.pos }; a.parts.push(id); changed(world, p, a, 'installed a component in'); return true;
+  c.assemblyId = a.id; c.holderId = null; c.pos = { ...a.pos }; a.parts.push(id); changed(world, p, a, 'installed a component in', c.madeEvent ? [c.madeEvent] : []); return true;
 }
 /** v0.1 deliberately supports unbranched directed networks. Cycles, fan-out/fan-in and reuse
  * cannot duplicate power; incompatible physical couplings cannot be joined. */

@@ -1,11 +1,14 @@
 import type { World } from '../core/world';
 import type { Person, Place, PlaceType, Occupation, Vec3, WorldEvent, Settlement } from '../core/types';
 import { RNG } from '../core/rng';
+import { installRuleset } from '../kernel/definitions';
+import { settlementPrimitives } from '../kernel/manufacture';
+import { initializeSettlementMechanics } from './settlementMechanics';
 import { VoxelGrid } from '../physical/grid';
 import { RegionalGrid } from '../physical/regionalGrid';
 import { B } from '../physical/blocks';
 import { buildHouse, buildTavern, buildShop, buildMill, buildFarm, buildWell, flatten, type BuildResult, type Facing } from './structures';
-import { makePerson, makePlace, makeBody, makeItem, makeFaction } from './factory';
+import { makePerson, makePlace, makeBody, makeItem, makeFaction, RESOURCE_MASS_KG } from './factory';
 import { createFields } from './metabolism';
 import { plantGrove, registerStoneNodes, registerGameGround } from './resources';
 import { makeHousehold, joinHousehold } from './household';
@@ -146,7 +149,14 @@ function materialize(world: World, spec: SettlementSpec, regional: RegionalGrid)
     if (pl.type === 'mill') { stock('grain', rng.int(12, 40)); stock('flour', 12); }
     if (pl.type === 'bakery') { stock('flour', rng.int(12, 40)); stock('bread', rng.int(20, 50)); }
     if (pl.type === 'tavern') { stock('ale', 12); stock('meat', 12); stock('log', 8); stock('stick', 12); stock('stew', 12); if (pl.fires[0]) createFire(world, pl.id, pl.fires[0], false); }
-    if (pl.type === 'sawpit') { stock('saw', 1); stock('log', 6); }
+    if (pl.type === 'sawpit') {
+      stock('saw', 1);
+      // The same 150kg initial timber endowment can be rough or already shaped stock.
+      // These are raw inventory conditions, not parts or an invention-specific provision.
+      const shapedLogs = rng.int(0, 3);
+      stock('log', 6 - shapedLogs);
+      if (shapedLogs) stock('plank', shapedLogs * RESOURCE_MASS_KG.log! / RESOURCE_MASS_KG.plank!);
+    }
     if (pl.type === 'quarry') stock('pickaxe', 1);
   }
   for (const p of Object.values(people)) if (p.occupation === 'woodcutter') {
@@ -192,6 +202,8 @@ export function generateProceduralWorld(world: World, sites: readonly Settlement
   const grid = new RegionalGrid(Math.max(...sites.map(s => s.x)) + SETTLEMENT_SIZE + 128, Math.max(...sites.map(s => s.z)) + SETTLEMENT_SIZE + 128, world.seed);
   world.grid = grid;
   const settlements = sorted.map(site => materialize(world, generateSettlementSpec(world.seed, site), grid));
+  installRuleset(world.kernel, settlementPrimitives());
+  for (const settlement of settlements) initializeSettlementMechanics(world, settlement);
   createFields(world, settlements.flatMap(s => Object.values(s.places).filter(p => p.type === 'farm').map(p => ({ placeId: p.id, ownerId: p.ownerId, startMoisture: s.spec.moisture }))));
   world.events.sort((a, b) => a.tick - b.tick || a.id.localeCompare(b.id));
   world.pendingStimuli = [];

@@ -12,6 +12,14 @@ import { learn } from './knowledge';
 import { laborIncentive } from './economy';
 import { currentScheduleEntry } from './schedule';
 
+/** Once physically at a kernel-enabled production post, a shift supplies a destination;
+ * actual familiar work competes on the same terms as other grounded responses. */
+export function localProductionChoice(world: World, p: Person, placeId?: string | null): boolean {
+  const place = world.place(placeId), process = processFor(place?.type);
+  return !!place && !!process && reachable(world, p, place.inside) && world.requests.some(r => r.type === 'production' && r.payload.placeId === place.id && (r.status === 'open' || r.status === 'accepted')) && world.kernel.ruleset.components.some(d => d.fabrication && d.kind === 'process'
+    && world.kernel.ruleset.processes.some(pr => pr.id === d.process && world.kernel.ruleset.materials.find(m => m.id === pr.output.material)?.legacyItem === process.output));
+}
+
 export interface ProductionOpportunity {
   place: Place; process: TradeProcess; request: Request; belief: KnowledgeItem;
   input: number; output: number; deficit: number; pressure: number;
@@ -66,7 +74,7 @@ export function productionWorkGoals(world: World, p: Person, opportunities: Prod
     // An existing work shift already proposes this action. Add opportunities outside that
     // shift without replacing its established trade/stand-in request lifecycle.
     const scheduled = currentScheduleEntry(p, world.clock.hourF);
-    if (scheduled?.activity === 'work' && scheduled.placeId === o.place.id) return [];
+    if (scheduled?.activity === 'work' && scheduled.placeId === o.place.id && !localProductionChoice(world, p, o.place.id)) return [];
     const skill = skillOf(p, o.process.skill), instruction = p.knowledge[`technique:${o.process.skill}`];
     if (!skill && !instruction) return [];
     const knownBlocked = p.knowledge[`short:${o.place.id}:${o.process.input}`];

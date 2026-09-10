@@ -357,7 +357,7 @@ export class World {
     };
     for (const p of this.livingPersons()) visit({ memories: p.memories, knowledge: p.knowledge, mind: p.mind, desires: p.desires });
     for (const item of this.items()) visit(item.provenance);
-    visit({ situations: this.situations, conflicts: this.conflicts, requests: this.requests, haulTasks: this.haulTasks, workStints: this.workStints, eraCauses: this.chronicleEras.map(era => era.causes) });
+    visit({ kernel: this.kernel, situations: this.situations, conflicts: this.conflicts, requests: this.requests, haulTasks: this.haulTasks, workStints: this.workStints, eraCauses: this.chronicleEras.map(era => era.causes) });
     const pinCauses = (id: EventId): void => {
       const event = previousIndex.get(id); if (!event) return;
       for (const cause of event.causes) if (!referenced.has(cause)) { referenced.add(cause); pinCauses(cause); }

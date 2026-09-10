@@ -17,6 +17,7 @@
     "sim": "tsx src/headless/cli.ts",
     "kernel:demo": "tsx src/headless/kernel/cli.ts",
     "pressure:demo": "tsx src/headless/kernel/pressureCli.ts",
+    "living:demo": "tsx src/headless/kernel/livingCli.ts",
     "world:smoke": "tsx src/headless/worldlab/cli.ts --tier smoke",
     "world:check": "tsx src/headless/worldlab/cli.ts --tier check",
     "world:soak": "tsx src/headless/worldlab/cli.ts --tier soak",

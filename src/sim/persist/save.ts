@@ -234,8 +234,9 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
   try {
     const data = JSON.parse(raw); if (data.version !== SAVE_VERSION) return null;
     const world = new World(data.seed);
-    world.kernel = restoreKernel(data.kernel);
+    const savedKernel = restoreKernel(data.kernel);
     const generated = data.settlementSites ? generateProceduralWorld(world, data.settlementSites) : undefined;
+    world.kernel = savedKernel;
     const gen = generated ? { places: Object.fromEntries(generated.flatMap(s => Object.entries(s.places).map(([k, p]) => [s.spec.site.id + ':' + k, p]))), people: Object.fromEntries(generated.flatMap(s => Object.entries(s.people).map(([k, p]) => [s.spec.site.id + ':' + k, p]))) } : generateVillage(world);
     for (const s of data.settlements ?? []) { const existing = world.get(s.id); if (existing?.kind === 'settlement') Object.assign(existing, s); else world.add(s); }
     for (const p of data.physicalPlaces ?? []) { const existing = world.place(p.id); if (existing) Object.assign(existing, p); else world.add(p); }
@@ -256,7 +257,8 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     if (typeof data.demographicRng === 'number') world.demographicRng.setState(data.demographicRng);
     for (const s of data.persons) {
       const legacyMind = s.mind ?? { goal: s.goal ?? null, plan: [], decision: s.decision ?? null, commitment: s.commitment ?? null, concerns: s.concerns ?? [], obligations: s.obligations ?? [], pursuits: s.pursuits ?? [], reports: s.reports ?? {}, investigated: s.investigated ?? [] };
-      const restored = { ...s, parentIds: [...(s.parentIds ?? [])], birthTick: s.birthTick ?? s.createdAt, lifeStage: s.lifeStage ?? 'adult', reproductiveRole: s.reproductiveRole ?? (s.gender === 'f' ? 'gestational' : 'fertilizing'), attributeAgeBasis: s.attributeAgeBasis ?? s.age, mind: { ...legacyMind, investigated: new Set(legacyMind.investigated ?? []), plan: legacyMind.plan?.some((a: import('../core/types').Action) => a.data?.productionOpportunity) ? legacyMind.plan : [], intention: null } } as Person;
+      const persistentPlan = legacyMind.goal?.type === 'compose' || legacyMind.plan?.some((a: import('../core/types').Action) => a.data?.productionOpportunity || a.type === 'procure_material');
+      const restored = { ...s, parentIds: [...(s.parentIds ?? [])], birthTick: s.birthTick ?? s.createdAt, lifeStage: s.lifeStage ?? 'adult', reproductiveRole: s.reproductiveRole ?? (s.gender === 'f' ? 'gestational' : 'fertilizing'), attributeAgeBasis: s.attributeAgeBasis ?? s.age, mind: { ...legacyMind, investigated: new Set(legacyMind.investigated ?? []), plan: persistentPlan ? legacyMind.plan : [], intention: null } } as Person;
       const existing = world.person(s.id);
       if (existing) Object.assign(existing, restored); else world.add(restored);
     }

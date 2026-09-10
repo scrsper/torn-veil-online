@@ -203,7 +203,22 @@ export function settleInheritance(world: World, deceased: Person, deathEventId: 
     item.ownerId = recipient.id;
     if (item.holderId === deceased.id) { item.holderId = null; item.pos = world.body(deceased.bodies[0])?.pos ?? null; item.placeId = deceased.homeId; }
   });
-  const ev = world.emit('inheritance', { actor: deceased.id, target: recipients[0]?.id, causes: [deathEventId], category: 'history', significance: 0.65, data: { heirs: recipients.map(x => x.id), amount, itemIds: items.map(x => x.id) }, summary: `${deceased.name}'s estate passed to ${recipients.map(x => x.name).join(', ')}` });
+  // Connected hardware remains one asset. Title moves through the same estate; construction
+  // intent and learned methods do not move with it. No material, condition or energy changes.
+  const assets: string[] = [];
+  let heirIndex = 0;
+  for (const a of world.kernel.assemblies.filter(a => a.ownerId === deceased.id)) {
+    a.creatorId ??= deceased.id; a.ownerId = recipients[heirIndex++ % recipients.length].id; assets.push(a.id);
+    for (const c of world.kernel.components.filter(c => c.assemblyId === a.id)) { c.ownerId = a.ownerId; assets.push(c.id); }
+  }
+  for (const c of world.kernel.components.filter(c => c.ownerId === deceased.id && !c.assemblyId)) {
+    c.ownerId = recipients[heirIndex++ % recipients.length].id; assets.push(c.id);
+    if (c.holderId === deceased.id) { c.holderId = null; c.pos = { ...(world.positionOf(deceased.id) ?? c.pos) }; }
+  }
+  for (const boundary of [...world.kernel.reservoirs, ...world.kernel.energy].filter(b => b.ownerId === deceased.id)) {
+    boundary.ownerId = recipients[heirIndex++ % recipients.length].id; assets.push(boundary.id);
+  }
+  const ev = world.emit('inheritance', { actor: deceased.id, target: recipients[0]?.id, causes: [deathEventId], category: 'history', significance: 0.65, data: { heirs: recipients.map(x => x.id), amount, itemIds: items.map(x => x.id), ...(assets.length ? { kernelAssetIds: assets } : {}) }, summary: `${deceased.name}'s estate passed to ${recipients.map(x => x.name).join(', ')}` });
   for (const item of items) item.provenance.push({ tick: world.now, eventId: ev.id, from: deceased.id, to: item.ownerId, how: 'inheritance' });
 }
 

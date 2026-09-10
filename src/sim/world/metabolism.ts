@@ -301,9 +301,17 @@ export function transform(world: World, o: {
     });
     return { ok: false, produced: 0, consumed: 0, shortage: o.inputType };
   }
+  // Carry the ancestry of the actual debited stacks into the next productive stage.
+  // A reader must not invent a machine→delivery→bread link that canon never recorded.
+  const causes = new Set(o.causes ?? []); let traced = o.inputQty;
+  for (const item of world.itemsAtPlaces(o.inputPlaces).filter(i => i.type === o.inputType && !i.holderId && i.quantity > 0 && (o.inputOwner === undefined || i.ownerId === o.inputOwner)).sort((a, b) => a.id.localeCompare(b.id))) {
+    if (traced <= 0) break;
+    for (const entry of item.provenance) if (entry.eventId) causes.add(entry.eventId);
+    traced -= Math.min(traced, item.quantity);
+  }
   const consumed = takePlaceStock(world, o.inputType, o.inputQty, o.inputPlaces, o.inputOwner);
   const ev = world.emit('resource_transformed', {
-    causes: o.causes,
+    causes: [...causes],
     actor: o.actor, placeId: o.outputPlace, significance: 0.15,
     data: { from: o.inputType, fromQty: consumed, to: o.outputType, toQty: o.outputQty, how: o.how, ...(o.laborSeconds === undefined ? {} : { laborSeconds: o.laborSeconds }) },
     summary: `${world.nameOf(o.actor)} turned ${consumed} ${o.inputType} into ${o.outputQty} ${o.outputType} (${o.how})`,

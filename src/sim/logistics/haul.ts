@@ -318,8 +318,10 @@ export function loadHaulCargo(world: World, task: HaulTask, person: Person): boo
   task.materialSellerId = sellerId ?? null;
   if (!stack) return false;
   let remaining = n, spoilage = 0, oldest = world.now;
+  const sourceCauses = new Set<string>();
   for (const source of ownedStacks) {
     const take = Math.min(remaining, source.quantity);
+    if (take > 0) for (const entry of source.provenance) if (entry.eventId) sourceCauses.add(entry.eventId);
     const pressure = (source.spoilAccum ?? 0) * take / source.quantity;
     spoilage += pressure; source.spoilAccum = (source.spoilAccum ?? 0) - pressure;
     oldest = Math.min(oldest, source.createdAt);
@@ -339,11 +341,13 @@ export function loadHaulCargo(world: World, task: HaulTask, person: Person): boo
   cargo.createdAt = Math.min(cargo.createdAt, oldest);
   cargo.spoilAccum = (cargo.spoilAccum ?? 0) + spoilage;
   task.carried += n; task.status = 'in_transit'; task.updatedAt = world.now;
-  world.emit('resource_picked_up', {
+  const pickup = world.emit('resource_picked_up', {
+    causes: [...sourceCauses],
     actor: person.id, item: cargo.id, placeId: task.sourcePlaceId, pos: world.primaryBody(person.id)?.pos, significance: 0.12,
     data: { haulId: task.id, resource: task.resource, quantity: n },
     summary: `${person.name} picked up ${n} ${task.resource} at ${world.nameOf(task.sourcePlaceId)}`,
   });
+  cargo.provenance.push({ tick: world.now, eventId: pickup.id, from: sellerId ?? null, to: owner, how: 'loaded for delivery' });
   return true;
 }
 function finishInTransit(world: World, task: HaulTask): void { task.status = 'in_transit'; task.updatedAt = world.now; }
@@ -366,6 +370,7 @@ export function depositHaulCargo(world: World, task: HaulTask, person: Person): 
   cargo.quantity = 0; cargo.haulTaskId = undefined; retireStack(world, cargo);
   const owner = cargo.ownerId;
   const ev = world.emit('resource_delivered', {
+    causes: [...new Set(cargo.provenance.flatMap(entry => entry.eventId ? [entry.eventId] : []))],
     actor: person.id, item: cargo.id, placeId: task.destPlaceId, pos: world.place(task.destPlaceId)?.inside, significance: task.projectId ? 0.4 : 0.18,
     data: { haulId: task.id, resource: task.resource, quantity: n, to: task.destPlaceId, projectId: task.projectId },
     summary: `${person.name} delivered ${n} ${task.resource} to ${world.nameOf(task.destPlaceId)}`,
