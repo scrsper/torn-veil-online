@@ -205,8 +205,13 @@ export function settleInheritance(world: World, deceased: Person, deathEventId: 
   });
   // Connected hardware remains one asset. Title moves through the same estate; construction
   // intent and learned methods do not move with it. No material, condition or energy changes.
-  const assets: string[] = [];
+  const assets: string[] = [], placeIds: string[] = [];
   let heirIndex = 0;
+  // A workplace/house is physical property too. Leaving title on a dead owner strands
+  // inherited records, stocks and machinery behind a permanently dead access principal.
+  for (const place of world.places().filter(place => place.ownerId === deceased.id)) {
+    place.ownerId = recipients[0].id; placeIds.push(place.id);
+  }
   for (const a of world.kernel.assemblies.filter(a => a.ownerId === deceased.id)) {
     a.creatorId ??= deceased.id; a.ownerId = recipients[heirIndex++ % recipients.length].id; assets.push(a.id);
     for (const c of world.kernel.components.filter(c => c.assemblyId === a.id)) { c.ownerId = a.ownerId; assets.push(c.id); }
@@ -218,7 +223,7 @@ export function settleInheritance(world: World, deceased: Person, deathEventId: 
   for (const boundary of [...world.kernel.reservoirs, ...world.kernel.energy].filter(b => b.ownerId === deceased.id)) {
     boundary.ownerId = recipients[heirIndex++ % recipients.length].id; assets.push(boundary.id);
   }
-  const ev = world.emit('inheritance', { actor: deceased.id, target: recipients[0]?.id, causes: [deathEventId], category: 'history', significance: 0.65, data: { heirs: recipients.map(x => x.id), amount, itemIds: items.map(x => x.id), ...(assets.length ? { kernelAssetIds: assets } : {}) }, summary: `${deceased.name}'s estate passed to ${recipients.map(x => x.name).join(', ')}` });
+  const ev = world.emit('inheritance', { actor: deceased.id, target: recipients[0]?.id, causes: [deathEventId], category: 'history', significance: 0.65, data: { heirs: recipients.map(x => x.id), amount, itemIds: items.map(x => x.id), ...(placeIds.length ? { placeIds } : {}), ...(assets.length ? { kernelAssetIds: assets } : {}) }, summary: `${deceased.name}'s estate passed to ${recipients.map(x => x.name).join(', ')}` });
   for (const item of items) item.provenance.push({ tick: world.now, eventId: ev.id, from: deceased.id, to: item.ownerId, how: 'inheritance' });
 }
 

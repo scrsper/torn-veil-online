@@ -360,7 +360,7 @@ export class World {
       for (const v of Object.values(value)) visit(v, seen);
     };
     for (const p of this.livingPersons()) visit({ memories: p.memories, knowledge: p.knowledge, mind: p.mind, desires: p.desires });
-    for (const item of this.items()) visit(item.provenance);
+    for (const item of this.items()) { visit(item.provenance); visit(item.record); }
     visit({ kernel: this.kernel, situations: this.situations, conflicts: this.conflicts, requests: this.requests, haulTasks: this.haulTasks, workStints: this.workStints, eraCauses: this.chronicleEras.map(era => era.causes) });
     const pinCauses = (id: EventId): void => {
       const event = previousIndex.get(id); if (!event) return;

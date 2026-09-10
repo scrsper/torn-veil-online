@@ -64,7 +64,14 @@ export function restoreKernel(raw: KernelState): KernelState {
   }
   for (const c of raw.components) requireValue(raw.ruleset.components.some(d => d.id === c.definition) && finite(c.condition) && c.condition <= 1 && !(c.holderId && c.assemblyId), 'component state');
   for (const t of raw.reservoirs) requireValue(raw.ruleset.materials.some(d => d.id === t.material) && finite(t.quantity) && finite(t.capacity) && t.quantity <= t.capacity, 'reservoir state');
-  for (const e of raw.energy) requireValue(e.medium && e.origin && finite(e.initialJ) && finite(e.remainingJ) && e.remainingJ <= e.initialJ && finite(e.maxPowerW), 'energy state');
+  for (const e of raw.energy) {
+    requireValue(e.medium && e.origin && finite(e.initialJ) && finite(e.remainingJ) && e.remainingJ <= e.initialJ + (e.wind?.importedJ ?? 0) + 1e-6 && finite(e.maxPowerW), 'energy state');
+    if (e.wind) {
+      requireValue([e.wind.areaM2, e.wind.airDensity, e.wind.exposure, e.wind.importedJ, e.wind.escapedJ].every(x => finite(x)), 'wind boundary');
+      const spent = raw.assemblies.filter(a => a.bindings.energyId === e.id).reduce((n, a) => n + a.inputJ, 0);
+      requireValue(Math.abs(e.initialJ + e.wind.importedJ - e.remainingJ - e.wind.escapedJ - spent) < 1e-5 * Math.max(1, e.wind.importedJ / 1e6), 'wind accounting');
+    }
+  }
   for (const a of raw.assemblies) {
     requireValue(a.method.ruleset === raw.ruleset.id && a.method.definitions.every(id => raw.ruleset.components.some(d => d.id === id)) && a.parts.length <= 6 && new Set(a.parts).size === a.parts.length, 'assembly definition');
     requireValue(a.parts.every(id => raw.components.some(c => c.id === id && c.assemblyId === a.id && c.ownerId === a.ownerId)), 'assembly membership');

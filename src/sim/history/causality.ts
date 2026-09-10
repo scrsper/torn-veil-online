@@ -53,6 +53,7 @@ function provenanceOf(world: World, k: KnowledgeItem): string {
     case 'witnessed': return 'witnessed directly';
     case 'heard': return 'heard it happen';
     case 'told': return `told by ${k.source.from ? world.nameOf(k.source.from) : 'someone'}`;
+    case 'read': return `read from ${k.source.from ? world.nameOf(k.source.from) : 'a record'}`;
     case 'inferred': return 'inferred';
     case 'prior': return 'known since before';
   }

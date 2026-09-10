@@ -186,9 +186,9 @@ function pruneKnowledge(world: World, p: Person): void {
   keys.sort((a, b) => knowledgeScore(p, p.knowledge[b], now) - knowledgeScore(p, p.knowledge[a], now));
   for (const key of keys.slice(MAX_KNOWLEDGE)) {
     const k = p.knowledge[key];
-    if (isActivelyRelevant(p, key, k, now)) {
+    if (k.claim.method || isActivelyRelevant(p, key, k, now)) {
       world.emit('knowledge_forgotten', {
-        actor: p.id, significance: 0, category: 'cognition',
+        actor: p.id, significance: k.claim.method ? 0.6 : 0, category: k.claim.method ? 'history' : 'cognition', causes: k.source.viaEvent ? [k.source.viaEvent] : [],
         data: { key, kind: k.kind, wasUnresolvedCrime: k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled },
         summary: `${p.name} forgot something still relevant: ${describeClaim(world, k)}`,
       });
@@ -201,7 +201,7 @@ function sourceRank(source: Source): number {
   switch (source.type) {
     case 'self': case 'witnessed': return 5;
     case 'heard': return 4;
-    case 'told': return 3;
+    case 'told': case 'read': return 3;
     case 'prior': return 2;
     case 'inferred': return 1;
   }

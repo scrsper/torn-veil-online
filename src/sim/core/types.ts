@@ -246,7 +246,7 @@ export interface Relationship {
   lastUpdated: Tick;
 }
 
-export type SourceType = 'witnessed' | 'heard' | 'told' | 'inferred' | 'prior' | 'self';
+export type SourceType = 'witnessed' | 'heard' | 'told' | 'read' | 'inferred' | 'prior' | 'self';
 export interface Source { type: SourceType; from?: EntityId; viaEvent?: EventId; }
 
 export interface Memory {
@@ -344,7 +344,7 @@ export type GoalType =
   // purpose could only ever walk over and look, which is one action, not a life.
   | 'provide'
   // Demographic continuity: an ordinary relationship-motivated social goal.
-  | 'court' | 'provision_home' | 'compose' | 'teach_method';
+  | 'court' | 'provision_home' | 'compose' | 'teach_method' | 'study_record' | 'record_method';
 
 export interface Goal {
   type: GoalType;
@@ -371,7 +371,7 @@ export type ActionType = 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 't
   // v0.8 §P0-G/H: hand a carried item to another person in person — the 'help_recover_item'
   // plan's delivery step (see GoalType). Distinct from the existing NPC-to-player trade/`bought`
   // path; this always uses `Simulation.giveItem` (mind/agent.ts), which pays any owed reward.
-  | 'give' | 'propose' | 'buy_food' | 'manage_household' | 'construct_mechanism' | 'operate_mechanism' | 'procure_material';
+  | 'give' | 'propose' | 'buy_food' | 'manage_household' | 'construct_mechanism' | 'operate_mechanism' | 'procure_material' | 'read_record' | 'write_record' | 'copy_record';
 export interface Action {
   type: ActionType;
   pos?: Vec3;
@@ -927,6 +927,8 @@ export interface Field {
  */
 export type HaulStatus = 'needed' | 'claimed' | 'in_transit' | 'delivered' | 'failed' | 'cancelled';
 export interface HaulTask {
+  /** An explicit purchase contract; absent means use the destination's current operator. */
+  buyerId?: EntityId;
   id: EntityId;
   resource: ItemType;
   quantity: number;                    // units this trip should move
@@ -1307,6 +1309,12 @@ export interface Item extends Entity {
    * poor-condition tool is less effective (see `toolWorkMultiplier`). No repair profession yet
    * — decay is deliberately slow so tools don't feel disposable within one milestone's play. */
   condition?: number;
+  /** Physical inscription, not certified truth. Dead/absent items cannot teach anyone. */
+  record?: {
+    notation: string; authorId: EntityId; eventId: EventId; copiedFrom?: EntityId;
+    knowledge: Pick<KnowledgeItem, 'key' | 'kind' | 'claim' | 'confidence' | 'source' | 'hops'>;
+    substrateKg: number;
+  };
 }
 
 // ---------------------------------------------------------------- Places
@@ -1358,6 +1366,7 @@ export interface Faction extends Entity {
 
 // ---------------------------------------------------------------- Events
 export type EventType =
+  | 'record_written' | 'record_copied' | 'record_read' | 'record_destroyed' | 'environment_energy_changed' | 'method_reproduced' | 'method_discovered'
   | 'component_acquired' | 'assembly_changed' | 'mechanism_trial' | 'production_observed' | 'component_manufactured' | 'component_supply_failed'
   | 'attack' | 'kill' | 'theft' | 'pickup' | 'drop' | 'give' | 'trade' | 'told' | 'conversation' | 'perceived'
   | 'memory_formed' | 'knowledge_gained' | 'relationship_changed' | 'emotion_changed' | 'goal_changed'

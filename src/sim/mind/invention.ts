@@ -2,7 +2,7 @@ import type { Action, Goal, KnowledgeItem, Person } from '../core/types';
 import type { World } from '../core/world';
 import type { Assembly, Bindings, ComponentDefinition, Method } from '../kernel/types';
 import { portsMatch } from '../kernel/definitions';
-import { acquireComponent, connect, contributeAssemblyLabor, dismantle, distance, installComponent, operateAssembly, owns, reachable, startAssembly } from '../kernel/mechanics';
+import { acquireComponent, connect, contributeAssemblyLabor, dismantle, distance, installComponent, operateAssembly, owns, reachable, startAssembly, mayUseProperty, mayOperate, understandsAssembly } from '../kernel/mechanics';
 import { stockItemsAt } from '../world/stock';
 import { learn } from './knowledge';
 import { remember } from './memory';
@@ -36,7 +36,7 @@ function observeOutput(world: World, p: Person, key: string, need: PracticalNeed
     const material = world.kernel.ruleset.materials.find(m => m.id === process?.output.material);
     const place = world.place(need.bindings.placeId);
     if (!place || !reachable(world, p, place.inside) || !material?.legacyItem) return null;
-    quantity = stockItemsAt(world, material.legacyItem, place.id).filter(i => owns(p, i.ownerId)).reduce((n, i) => n + i.quantity, 0);
+    quantity = stockItemsAt(world, material.legacyItem, place.id).filter(i => mayUseProperty(world, p, i.ownerId, place.id)).reduce((n, i) => n + i.quantity, 0);
   }
   const observationKey = `observed:${key}`, observation = p.knowledge[observationKey];
   if (observation) {
@@ -48,6 +48,12 @@ function observeOutput(world: World, p: Person, key: string, need: PracticalNeed
   return quantity;
 }
 const effectOf = (c: ComponentDefinition): string | undefined => c.kind === 'process' ? c.process : c.kind === 'transfer' ? `transfer:${c.phase}` : undefined;
+
+function projectFor(world: World, p: Person, key: string, need: PracticalNeed): Assembly | undefined {
+  return world.kernel.assemblies.find(a => a.ownerId === p.id && (a.creatorId ?? a.ownerId) === p.id && a.needKey === key && (a.parts.length > 0 || !a.tested))
+    ?? world.kernel.assemblies.find(a => a.learned && a.parts.length > 0 && a.method.effect === need.effect
+      && a.bindings.placeId === need.bindings.placeId && mayOperate(world, p, a) && understandsAssembly(p, a) && reachable(world, p, a.pos));
+}
 
 /** Infer when a replacement is physically equivalent from known properties. A cheaper stock
  * measure with identical power limits cannot cure the same observed transmission loss.
@@ -110,7 +116,8 @@ export function candidateMethods(world: World, p: Person, need: PracticalNeed): 
   const unique = new Map<string, Method>();
   for (const m of [...taught, ...methods]) if (!failed.has(methodSignature(m)) && !physicallyFailed.has(physicalSignature(p, m))) unique.set(methodSignature(m), m);
   const cost = (m: Method) => m.definitions.reduce((n, id) => n + (visible.some(c => c.definition === id) ? 0 : definitions.find(d => d.id === id)?.fabrication?.seconds ?? 0), 0);
-  return [...unique.values()].sort((a, b) => cost(a) - cost(b)).slice(0, 24);
+  const instructed = new Set(taught.map(methodSignature));
+  return [...unique.values()].sort((a, b) => Number(instructed.has(methodSignature(b))) - Number(instructed.has(methodSignature(a))) || cost(a) - cost(b)).slice(0, 24);
 }
 
 /** Candidate goals enter agent.ts's existing G() motivation bridge and normal competition. */
@@ -119,11 +126,11 @@ export function inventionGoals(world: World, p: Person, opportunities: Productio
   observeMaterialSources(world, p);
   const goals: Partial<Goal>[] = [];
   for (const o of opportunities) {
-    if (o.place.ownerId !== p.id) continue; // employee machinery needs a separate material/title contract
+    if (!mayUseProperty(world, p, o.place.ownerId, o.place.id)) continue;
     const effect = world.kernel.ruleset.processes.find(d => world.kernel.ruleset.materials.find(m => m.id === d.output.material)?.legacyItem === o.process.output)?.id;
     const known = effect && (methodsHeld(p).some(k => k.claim.method.effect === effect) || knownComponents(p).some(d => d.process === effect));
     if (!known) continue;
-    const energy = world.kernel.energy.find(e => owns(p, e.ownerId) && reachable(world, p, e.pos));
+    const energy = world.kernel.energy.find(e => mayUseProperty(world, p, e.ownerId, o.place.id) && reachable(world, p, e.pos));
     if (!energy) continue;
     const key = `production-need:${o.place.id}`;
     const need: PracticalNeed = { effect: effect!, targetQuantity: o.output + o.deficit, bindings: { placeId: o.place.id, energyId: energy.id }, pos: o.place.inside, requestId: o.request.id, pressure: o.pressure };
@@ -134,7 +141,7 @@ export function inventionGoals(world: World, p: Person, opportunities: Productio
   const capacity = getPhysicalCapability(p, world).currentExertionCapacity;
   for (const k of Object.values(p.knowledge)) {
     const need = k.claim.practicalNeed as PracticalNeed | undefined; if (!need) continue;
-    const active = world.kernel.assemblies.find(a => a.ownerId === p.id && (a.creatorId ?? a.ownerId) === p.id && a.needKey === k.key && (a.parts.length > 0 || !a.tested));
+    const active = projectFor(world, p, k.key, need);
     if (need.requestId && !active && !opportunities.some(o => o.place.id === need.bindings.placeId)) continue;
     // A supply trip doesn't erase the observation that motivated it. Away from the bin use
     // only that remembered measurement, and verify again on return.
@@ -158,10 +165,10 @@ export function inventionGoals(world: World, p: Person, opportunities: Productio
       goals.push({ type: 'compose', utility, targetPos: need.pos, data: { needKey: k.key, assemblyId: active?.id, method: candidate }, reasons: [`observed ${observed.toFixed(2)}; need ${need.targetQuantity}`, `${familiar ? 'learned method' : 'uncertain experiment'}; estimated ${remaining.toFixed(1)} seconds labor`], causeEvent: k.source.viaEvent });
     }
   }
-  for (const k of methodsHeld(p)) {
+  for (const k of Object.values(p.knowledge).filter(k => k.claim.method || (k.claim.notation && methodsHeld(p).length > 0))) {
     for (const percept of p.mind.percepts) {
       const listener = world.person(percept.entityId);
-      if (!listener?.alive || percept.how !== 'saw' || percept.distance >= 3 || k.sharedWith.includes(listener.id)) continue;
+      if (!listener?.alive || listener.age < 8 || percept.how !== 'saw' || percept.distance >= 3 || k.sharedWith.includes(listener.id)) continue;
       const rel = p.relationships[listener.id];
       if ((rel?.trust ?? 0) < -0.25 || (rel?.affection ?? 0) < -0.25) continue;
       // Shared work/home and MY relationship are observable reasons; never inspect the
@@ -179,9 +186,9 @@ export function inventionPlan(world: World, p: Person, g: Goal): Action[] {
   if (!need) return [];
   // Goal hysteresis intentionally retains the original Goal object. Resolve the current
   // project/candidate again when a completed plan is renewed, instead of replaying its old data.
-  const a = world.kernel.assemblies.find(a => a.ownerId === p.id && (a.creatorId ?? a.ownerId) === p.id && a.needKey === g.data?.needKey && (a.parts.length > 0 || !a.tested));
+  const a = projectFor(world, p, g.data?.needKey, need);
   const ready = a && a.parts.length === a.method.definitions.length && a.connections.length === a.method.connections.length;
-  const failed = a?.tested && a.lastReason !== 'productive';
+  const failed = a?.tested && !a.learned && a.lastReason !== 'productive';
   const candidate = a ? undefined : candidateMethods(world, p, need)[0];
   if (!a && !candidate) return [];
   if (a && !failed && a.parts.length < a.method.definitions.length) {
@@ -202,7 +209,7 @@ export function actOnMechanism(world: World, p: Person, action: Action, seconds:
     a = old ?? startAssembly(world, p, data.method, data.bindings, data.pos, data.needKey) ?? undefined;
     if (a) data.assemblyId = a.id;
   }
-  if (!a || !reachable(world, p, a.pos) || a.ownerId !== p.id) { action.status = 'failed'; return; }
+  if (!a || !reachable(world, p, a.pos) || (action.type === 'operate_mechanism' ? !mayOperate(world, p, a) : a.ownerId !== p.id)) { action.status = 'failed'; return; }
   const body = world.bodies().find(b => b.ownerId === p.id && b.present && !b.dead && distance(b.pos, a!.pos) <= 3); if (body) body.pose = 'work';
   const spend = (key: string, required: number) => contributeAssemblyLabor(world, p, a!, key, required, seconds);
   if (action.type === 'construct_mechanism') {
@@ -247,7 +254,7 @@ export function actOnMechanism(world: World, p: Person, action: Action, seconds:
   const request = world.requests.find(r => r.id === need?.requestId);
   if (request && result.output > 0) fulfillProductionRequest(world, request, p, result.output);
   recordTrial(world, p, a, result.output > 0);
-  if (!result.output) {
+  if (!result.output && !a.learned && a.ownerId === p.id) {
     // Failed candidates release their real, worn components for the next attempt.
     // Dismantling is a subsequent ordinary construction action with its own labor cost.
     action.type = 'construct_mechanism'; data.dismantle = true;
@@ -279,6 +286,11 @@ function recordTrial(world: World, p: Person, a: Assembly, success: boolean): vo
     // Only observed real output makes a method. Store instance-independent instructions.
     a.learned = true;
     const key = `method:${signature}`, taught = p.knowledge[key];
+    const ev = world.emit(taught ? 'method_reproduced' : 'method_discovered', { actor: p.id, pos: a.pos, placeId: a.bindings.placeId,
+      category: 'history', visibility: 8, significance: 0.85, causes: [...new Set([a.lastEvent, taught?.source.viaEvent].filter((id): id is string => !!id))],
+      data: { key, assemblyId: a.id, method: structuredClone(a.method), learnedFrom: taught?.source, componentIds: [...a.parts] },
+      summary: `${p.name} ${taught ? 'reproduced learned instructions in a separate working assembly' : 'discovered a working practical method'}` });
+    a.lastEvent = ev.id;
     if (taught) { taught.lastConfirmedAt = world.now; taught.claim.verifiedEvent = a.lastEvent; }
     else learn(world, p, { key, kind: 'technique', claim: { method: structuredClone(a.method), components: a.method.definitions.map(id => structuredClone(world.kernel.ruleset.components.find(d => d.id === id)!)),
       materials: Object.values(p.knowledge).filter(k => k.claim.material).map(k => structuredClone(k.claim.material)), eventId: a.lastEvent, significance: 0.7 }, confidence: 0.9, source: { type: 'self', viaEvent: a.lastEvent }, cause: a.lastEvent });

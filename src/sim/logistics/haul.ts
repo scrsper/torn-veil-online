@@ -112,6 +112,7 @@ function existingTask(world: World, resource: ItemType, sourceId: EntityId, dest
 }
 
 export interface HaulTaskSpec {
+  buyerId?: EntityId;
   resource: ItemType; quantity: number; sourcePlaceId: EntityId; destPlaceId: EntityId;
   reason: string; requesterId: EntityId | null; projectId?: EntityId; priority: number;
 }
@@ -130,7 +131,7 @@ function haulWage(world: World, s: HaulTaskSpec): number {
 /** The issuer budgets a new order from their own wallet and the supplier's posted price.
  * This is order availability, never permission for a worker to inspect somebody's savings. */
 export function affordableHaulQuantity(world: World, s: HaulTaskSpec): number {
-  const operator = wholesaleBuyerFor(world, s.destPlaceId, s.projectId);
+  const operator = s.buyerId ?? wholesaleBuyerFor(world, s.destPlaceId, s.projectId);
   if (operator === undefined) return s.quantity;
   const buyerId = operator ?? s.requesterId;
   const stacks = stockItemsAt(world, s.resource, s.sourcePlaceId).filter(i => !i.ownerId || world.person(i.ownerId)?.alive).sort((a,b)=>a.id.localeCompare(b.id));
@@ -148,7 +149,7 @@ export function affordableHaulQuantity(world: World, s: HaulTaskSpec): number {
 export function createHaulTask(world: World, s: HaulTaskSpec): HaulTask {
   const t: HaulTask = {
     id: world.nextId('haul'), resource: s.resource, quantity: Math.max(1, Math.round(s.quantity)), carried: 0, delivered: 0,
-    sourcePlaceId: s.sourcePlaceId, destPlaceId: s.destPlaceId, reason: s.reason, requesterId: s.requesterId,
+    sourcePlaceId: s.sourcePlaceId, destPlaceId: s.destPlaceId, reason: s.reason, requesterId: s.requesterId, buyerId: s.buyerId,
     projectId: s.projectId, claimantId: null, status: 'needed', priority: Math.max(0, Math.min(1, s.priority)),
     createdAt: world.now, updatedAt: world.now,
   };
@@ -288,7 +289,7 @@ export function loadHaulCargo(world: World, task: HaulTask, person: Person): boo
   const sourceStacks = stockItemsAt(world, task.resource, task.sourcePlaceId).filter(i => !i.ownerId || world.person(i.ownerId)?.alive).sort((a, b) => a.id.localeCompare(b.id));
   const stack = sourceStacks[0];
   if (!stack) n = 0;
-  const operator = wholesaleBuyerFor(world, task.destPlaceId, task.projectId);
+  const operator = task.buyerId ?? wholesaleBuyerFor(world, task.destPlaceId, task.projectId);
   const sellerId = stack?.ownerId;
   // Moving one's own stock into an unoperated place is storage, not a sale to a phantom buyer.
   const buyerId = operator === undefined ? undefined : operator ?? task.requesterId ?? (sellerId === person.id ? person.id : null);

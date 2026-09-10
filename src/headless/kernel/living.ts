@@ -17,12 +17,13 @@ export function advanceLiving(world: World, sim: Simulation, seconds: number): v
   for (let i = 0; i < Math.round(seconds * 4); i++) { const wd = world.clock.advance(0.25); world.physicalTime += 0.25; sim.step(0.25, wd); sim.flushSpeech(); }
 }
 
-export interface LivingConditions { manualSkill?: number; calm?: boolean; sawnOnly?: boolean }
+export interface LivingConditions { manualSkill?: number; calm?: boolean; sawnOnly?: boolean; steadyWind?: number }
 /** A starting shortage and inexperienced post-holders, in generated towns with every other
  * resident autonomous. No inventory additions, free components, methods, schedules or chosen
  * goals. Education, geography, families, suppliers, and resource amounts remain generated. */
 export function createLivingPressure(seed = 17, sites?: SettlementSite[], conditions: LivingConditions = {}) {
   const lab = createLivingWorld(seed, sites);
+  if (conditions.steadyWind !== undefined) { lab.world.weather.wind = conditions.steadyWind; lab.world.weather.nextChangeAt = Number.MAX_SAFE_INTEGER; }
   for (const pl of lab.world.places().filter(pl => pl.type === 'mill' || pl.type === 'bakery')) {
     for (const item of lab.world.itemsAtPlaces([pl.id])) if (item.type === 'flour' || item.type === 'bread') { item.quantity = 0; retireStack(lab.world, item); }
     if (pl.type !== 'mill') continue;
@@ -34,9 +35,7 @@ export function createLivingPressure(seed = 17, sites?: SettlementSite[], condit
       if (d && lab.world.kernel.ruleset.materials.find(m => m.id === d.material)?.legacyItem === 'log') delete p.knowledge[k.key];
     }
   }
-  if (conditions.calm) for (const source of lab.world.kernel.energy) {
-    source.initialJ = source.remainingJ = source.maxPowerW = 0; source.origin = 'Matched calm-air initial boundary: 0 J, 0 W. No replenishment.';
-  }
+  if (conditions.calm) { lab.world.weather.wind = 0; lab.world.weather.nextChangeAt = Number.MAX_SAFE_INTEGER; }
   generateProductionNeeds(lab.world);
   return lab;
 }
@@ -63,7 +62,7 @@ export function livingSnapshot(world: World) {
       flourDelivered: events.filter(e => e.type === 'resource_delivered' && e.data.resource === 'flour').reduce((n, e) => n + e.data.quantity, 0),
       manufactured: events.filter(e => e.type === 'component_manufactured').map(e => e.data),
       trials: events.filter(e => e.type === 'mechanism_trial').map(e => e.data),
-      sources: world.kernel.energy.filter(e => places.some(p => p.inside.x === e.pos.x && p.inside.z === e.pos.z)).map(e => ({ initialJ: e.initialJ, remainingJ: e.remainingJ, maxPowerW: e.maxPowerW })),
+      sources: world.kernel.energy.filter(e => places.some(p => p.inside.x === e.pos.x && p.inside.z === e.pos.z)).map(e => ({ initialJ: e.initialJ, remainingJ: e.remainingJ, maxPowerW: e.maxPowerW, wind: e.wind })),
       methods: people.flatMap(p => methodsHeld(p).map(k => ({ holder: p.id, alive: p.alive, source: k.source, method: k.claim.method }))),
       wealth: people.reduce((n, p) => n + p.wealth, 0),
       workers: people.filter(p => places.some(pl => pl.type === 'mill' && pl.workers.includes(p.id))).map(p => ({ id: p.id, name: p.name, skills: p.skills, traits: p.traits,

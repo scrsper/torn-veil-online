@@ -51,6 +51,9 @@ export function canConsiderManufacture(world: World, p: Person, d: ComponentDefi
 
 export function componentSupplyPlan(world: World, p: Person, a: Assembly): Action[] | null {
   if (!a.bindings.placeId) return null;
+  // Absence of a local measurement while away is not evidence of an empty work bin.
+  // Return to inspect it before issuing another purchase for already-delivered material.
+  if (!reachable(world, p, a.pos)) return null;
   const d = knownComponents(p).find(d => d.id === a.method.definitions[a.parts.length]);
   if (!d?.fabrication) return null;
   const material = world.kernel.ruleset.materials.find(m => m.id === d.material)!;
@@ -75,7 +78,7 @@ export function procureMaterial(world: World, p: Person, action: Action): Action
   if (!a || a.ownerId !== p.id || !a.bindings.placeId || !source || !reachable(world, p, source.inside)) { action.status = 'failed'; return []; }
   const resource = action.data!.resource;
   const spec = { resource, quantity: Math.min(action.data!.quantity, Math.floor(unreservedStockAt(world, resource, source.id))),
-    sourcePlaceId: source.id, destPlaceId: a.bindings.placeId, requesterId: p.id, priority: 0.5, reason: 'material for a personally planned component' };
+    sourcePlaceId: source.id, destPlaceId: a.bindings.placeId, requesterId: p.id, buyerId: p.id, priority: 0.5, reason: 'material for a personally planned component' };
   spec.quantity = affordableHaulQuantity(world, spec);
   if (spec.quantity <= 0) {
     const ev = world.emit('component_supply_failed', { actor: p.id, placeId: source.id, pos: source.inside, causes: a.lastEvent ? [a.lastEvent] : [], visibility: 6, significance: 0.25,
@@ -84,7 +87,7 @@ export function procureMaterial(world: World, p: Person, action: Action): Action
     learn(world, p, { key: `supply-failed:${action.data!.sourceKey}`, kind: 'fact', claim: { stock: stockAt(world, resource, source.id), wealth: p.wealth, resource, placeId: source.id }, confidence: 1, source: { type: 'witnessed', viaEvent: ev.id } }, true);
     action.status = 'failed'; return [];
   }
-  const task = openHaulTasks(world).find(t => t.requesterId === p.id && t.destPlaceId === a.bindings.placeId && t.sourcePlaceId === source.id && t.resource === resource && (!t.claimantId || t.claimantId === p.id)) ?? createHaulTask(world, spec);
+  const task = openHaulTasks(world).find(t => t.buyerId === p.id && t.requesterId === p.id && t.destPlaceId === a.bindings.placeId && t.sourcePlaceId === source.id && t.resource === resource && (!t.claimantId || t.claimantId === p.id)) ?? createHaulTask(world, spec);
   claimHaulTask(world, task, p);
   action.status = 'done';
   return [
