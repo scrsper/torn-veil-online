@@ -39,6 +39,8 @@ describe('civilizational capability continuity', () => {
     expect(world.kernel.components.some(c => c.ownerId === reader.id)).toBe(false);
     observeNeed(world, reader, mill, 40);
     expect(advanceUntil(world, sim, () => world.events.some(e => e.type === 'mechanism_trial' && e.actor === reader.id && e.data.output > 0), 120)).toBe(true);
+    const operation = world.events.find(e => e.type === 'mechanism_trial' && e.actor === reader.id && e.data.output > 0)!;
+    expect(causalAncestors(world, operation.id).has(lesson.source.viaEvent!)).toBe(true);
     expect(world.kernel.assemblies.find(a => a.learned)!.ownerId).toBe(inventor.id);
     const site = world.places().find(p => p.type === 'sawpit')!;
     addPlaceStock(world, 'plank', 6, site.id, site.ownerId, undefined, 'favorable raw supplier endowment');
@@ -117,6 +119,10 @@ describe('civilizational capability continuity', () => {
     expect(wind.wind!.importedJ).toBeGreaterThan(0); expect(wind.wind!.escapedJ).toBeGreaterThan(0);
     expect(energyBalanceError(world)).toBeLessThan(1e-6); expect(restoreKernel(world.kernel)).toEqual(world.kernel);
     expect(deserialize(serialize(world))!.world.kernel).toEqual(world.kernel);
+    expect(settlementCapabilities(world)[0].workingAssemblies).toContain(a.id);
+    const edge = a.connections.pop()!;
+    expect(settlementCapabilities(world)[0].workingAssemblies).not.toContain(a.id);
+    a.connections.push(edge);
     world.kernel.components.find(c => c.id === a.parts[0])!.condition = 0;
     expect(operateAssembly(world, inventor, a, 1).reason).toBe('broken');
   });
@@ -137,6 +143,19 @@ describe('civilizational capability continuity', () => {
     world.primaryBody(reader.id)!.pos = { ...mill.inside }; world.primaryBody(reader.id)!.pose = 'downed';
     expect(operateAssembly(world, reader, assembly, 1).reason).toBe('inaccessible');
     expect(assembly.inputJ).toBe(before);
+  });
+
+  it('loses exposed writing to ordinary weather while sheltered writing survives', () => {
+    const { world, record } = fork();
+    const square = world.places().find(p => p.type === 'square')!;
+    world.weather.kind = 'rain'; world.weather.intensity = 1;
+    const rain = world.emit('weather', { data: { kind: 'rain', wind: world.weather.wind, intensity: 1 } });
+    weatherRecords(world, 8 * 86400); expect(intactRecord(record)).toBe(true);
+    record.pos = { ...square.inside }; record.placeId = square.id;
+    weatherRecords(world, 8 * 86400); expect(intactRecord(record)).toBe(false);
+    expect(record.quantity * RESOURCE_MASS_KG.book!).toBe(record.record!.substrateKg);
+    const loss = world.events.find(e => e.type === 'record_destroyed' && e.item === record.id)!;
+    expect(loss.causes).toContain(rain.id); expect(loss.causes).toContain(record.record!.eventId);
   });
 
   it('derives a shared practice reservoir and loses local access when people, records and examples are gone', () => {

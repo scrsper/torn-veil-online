@@ -1,5 +1,5 @@
 import type { World } from '../core/world';
-import type { Person, Vec3 } from '../core/types';
+import type { KnowledgeItem, Person, Vec3 } from '../core/types';
 import { transform } from '../world/metabolism';
 import { addPlaceStock, outboundStock, stockItemsAt } from '../world/stock';
 import { portsMatch } from './definitions';
@@ -17,8 +17,11 @@ export function mayUseProperty(world: World, p: Person, owner: string | null, pl
     && (p.relationships[owner!]?.trust ?? 0) >= -0.25;
 }
 export function understandsAssembly(p: Person, a: Assembly): boolean {
-  return Object.values(p.knowledge).some(k => k.confidence > 0.2 && k.claim.method
-    && JSON.stringify(k.claim.method) === JSON.stringify(a.method));
+  return !!assemblyInstruction(p, a);
+}
+function assemblyInstruction(p: Person, a: Assembly): KnowledgeItem | undefined {
+  const shape = (m: Method) => JSON.stringify([m.ruleset, m.definitions, m.connections, m.effect]);
+  return Object.values(p.knowledge).find(k => k.confidence > 0.2 && k.claim.method && shape(k.claim.method) === shape(a.method));
 }
 export function mayOperate(world: World, p: Person, a: Assembly): boolean {
   return mayUseProperty(world, p, a.ownerId, a.bindings.placeId) && (a.ownerId === p.id || understandsAssembly(p, a));
@@ -97,9 +100,11 @@ export function dismantle(world: World, p: Person, a: Assembly): boolean {
 /** Shared physical execution. No knowledge, NPC occupation, method, or name participates. */
 export function operateAssembly(world: World, p: Person, a: Assembly, seconds: number): RunResult {
   let reason = 'disconnected', output = 0, consumed = 0, inputJ = 0, usefulJ = 0;
+  const instruction = assemblyInstruction(p, a)?.source.viaEvent;
+  const causes = () => [...new Set([a.lastEvent, instruction].filter((id): id is string => !!id))];
   const finish = (): RunResult => {
     const dissipatedJ = inputJ - usefulJ;
-    const ev = world.emit('mechanism_trial', { actor: p.id, pos: a.pos, placeId: a.bindings.placeId, causes: a.lastEvent ? [a.lastEvent] : [], visibility: 10, loudness: inputJ > 0 ? 6 : 0, significance: 0.4,
+    const ev = world.emit('mechanism_trial', { actor: p.id, pos: a.pos, placeId: a.bindings.placeId, causes: causes(), visibility: 10, loudness: inputJ > 0 ? 6 : 0, significance: 0.4,
       data: { assemblyId: a.id, reason, output, consumed, inputJ, usefulJ, dissipatedJ, seconds }, summary: `${p.name} operated an assembly: ${reason}` });
     a.lastEvent = ev.id; a.lastReason = reason; a.inputJ += inputJ; a.usefulJ += usefulJ; a.dissipatedJ += dissipatedJ; a.outputQuantity += output;
     if (Number.isFinite(seconds) && seconds > 0 && reason !== 'inaccessible') a.operatedSeconds += seconds;
@@ -167,7 +172,7 @@ export function operateAssembly(world: World, p: Person, a: Assembly, seconds: n
   if (stalled) { reason = 'insufficient power'; return finish(); }
   if (process) {
     const im = r.materials.find(m => m.id === process.input.material)!, om = r.materials.find(m => m.id === process.output.material)!;
-    const result = transform(world, { actor: p.id, inputType: im.legacyItem!, inputQty: batches * process.input.quantity, inputPlaces: [a.bindings.placeId!], outputType: om.legacyItem!, outputQty: batches * process.output.quantity, outputPlace: a.bindings.placeId!, ownerId: stockOwner ?? a.ownerId, inputOwner: stockOwner, how: 'mechanical processing', causes: [...(a.lastEvent ? [a.lastEvent] : []), ...(energy.lastEvent ? [energy.lastEvent] : [])] });
+    const result = transform(world, { actor: p.id, inputType: im.legacyItem!, inputQty: batches * process.input.quantity, inputPlaces: [a.bindings.placeId!], outputType: om.legacyItem!, outputQty: batches * process.output.quantity, outputPlace: a.bindings.placeId!, ownerId: stockOwner ?? a.ownerId, inputOwner: stockOwner, how: 'mechanical processing', causes: [...causes(), ...(energy.lastEvent ? [energy.lastEvent] : [])] });
     consumed = result.consumed; output = result.produced;
     if (result.eventId) a.lastEvent = result.eventId;
     if (result.ok) for (const by of process.byproducts) addPlaceStock(world, r.materials.find(m => m.id === by.material)!.legacyItem!, by.quantity * batches, a.bindings.placeId!, stockOwner ?? a.ownerId, result.eventId, 'mechanical byproduct');

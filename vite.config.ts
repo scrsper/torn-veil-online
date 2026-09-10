@@ -19,5 +19,7 @@ export default defineConfig({
   // world days, ~4 minutes of solid CPU. It is longer than the causal one because the chain it
   // has to contain is longer — the loss, the fortnight of flour the bakery had in hand, the
   // stand-in taking the work up, and the recovery working its way back down to the bakery.
-  test: { exclude: [...configDefaults.exclude, 'tests/browser/**', 'tests/causal-society-longrun.test.ts', 'tests/adaptive-society-longrun.test.ts', 'tests/epoch-continuity-longrun.test.ts', 'tests/settlement-worldlab-longrun.test.ts'] },
+  // CPU-bound simulations exceed their unchanged timeouts when every core competes at once.
+  // Two workers keep the normal suite deterministic and avoid memory/CPU contention.
+  test: { maxWorkers: 2, exclude: [...configDefaults.exclude, 'tests/browser/**', 'tests/causal-society-longrun.test.ts', 'tests/adaptive-society-longrun.test.ts', 'tests/epoch-continuity-longrun.test.ts', 'tests/settlement-worldlab-longrun.test.ts', 'tests/capability-continuity-longrun.test.ts'] },
 });

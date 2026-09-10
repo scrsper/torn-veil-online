@@ -1,6 +1,15 @@
 import type { World } from '../core/world';
-import { methodsHeld } from '../mind/invention';
+import { methodsHeld, methodSignature } from '../mind/invention';
 import { intactRecord } from '../mind/records';
+import type { Assembly } from '../kernel/types';
+
+/** A past success is evidence only while its actual physical topology remains intact. */
+function preservedExample(world: World, a: Assembly): boolean {
+  return a.learned && a.parts.length === a.method.definitions.length && a.parts.length > 0
+    && a.parts.every((id, index) => world.kernel.components.some(c => c.id === id && c.assemblyId === a.id && c.condition > 0 && c.definition === a.method.definitions[index]))
+    && a.connections.length === a.method.connections.length
+    && a.method.connections.every(edge => a.connections.some(c => c.from === edge.from && c.to === edge.to));
+}
 
 /** Observability only. A reservoir is a projection of existing people, physical records,
  * working examples and recorded shared practice, never an institutional unlock or mind.
@@ -14,7 +23,7 @@ export function practiceReservoirs(world: World) {
     return [...keys].filter(Boolean).map(key => {
       const holders = members.filter(p => !!p.knowledge[key]);
       const sources = records.filter(i => i.record!.knowledge.key === key);
-      const examples = world.kernel.assemblies.filter(a => a.bindings.placeId === place.id && a.learned && `method:${JSON.stringify([a.method.ruleset, a.method.definitions, a.method.connections, a.method.effect])}` === key && a.parts.length > 0 && a.parts.every(id => world.kernel.components.some(c => c.id === id && c.condition > 0)));
+      const examples = world.kernel.assemblies.filter(a => a.bindings.placeId === place.id && `method:${methodSignature(a.method)}` === key && preservedExample(world, a));
       const trials = world.events.filter(e => e.type === 'mechanism_trial' && e.data.output > 0 && examples.some(a => a.id === e.data.assemblyId));
       const practitioners = [...new Set(trials.map(e => e.actor).filter((id): id is string => !!id))];
       const alivePractitioners = practitioners.filter(id => holders.some(p => p.id === id));
@@ -30,5 +39,5 @@ export function settlementCapabilities(world: World) {
   const reservoirs = practiceReservoirs(world);
   return world.settlements().map(s => ({ id: s.id, name: s.name, reservoirs: reservoirs.filter(r => r.settlementId === s.id),
     livingMethods: [...new Set(world.livingPersons().filter(p => world.place(p.homeId)?.settlementId === s.id).flatMap(p => methodsHeld(p).filter(k => k.confidence > 0.2).map(k => k.key)))],
-    workingAssemblies: world.kernel.assemblies.filter(a => world.place(a.bindings.placeId)?.settlementId === s.id && a.learned && a.parts.length > 0 && a.parts.every(id => world.kernel.components.some(c => c.id === id && c.condition > 0))).map(a => a.id) }));
+    workingAssemblies: world.kernel.assemblies.filter(a => world.place(a.bindings.placeId)?.settlementId === s.id && preservedExample(world, a)).map(a => a.id) }));
 }

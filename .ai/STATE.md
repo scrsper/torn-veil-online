@@ -1,27 +1,28 @@
-# Living Universe Integration
+# Civilizational Capability Continuity
 
-Current branch: `codex/generative-universe-kernel`. Implementation checkpoints: `4fd1c9c` (ordinary manufacture/invention) and `85b01ca` (canonical save/load continuation), both pushed. Detailed evidence: `docs/LIVING_UNIVERSE_INTEGRATION.md`.
+Current branch: `codex/civilizational-capability-continuity`, based on origin/main at 52da4f3 after Living Universe Integration was merged. Implementation checkpoint 7ff4df3 is pushed. No PR or merge requested. Report: docs/CIVILIZATIONAL_CAPABILITY_CONTINUITY.md.
 
-## Implemented
+## Implemented and demonstrated
 
-Procedural settlements now initialize scoped mechanical primitives, personal primitive education and explicitly finite environmental energy, with no finished components/assemblies/methods. Local production pressure can lead to existing manual work, supplier visits, physical procurement/extraction, paid component manufacture, experiments and instruction through the ordinary cognition/action pipeline. Logs and planks substitute through material hardness constraints; stone supplies the abrasive surface. Ordinary inventory masses govern the new settlement process adapter.
+- Owned physical method records carry fallible claims, notation and provenance. Reading transfers information only. Writing/copying pay labor and 0.5 kg of real wood; ordinary locality, possession, theft, gifts, inheritance, save/load and destructive exposure apply.
+- Orla Thorne learns from a record, operates Perrin Nettle's machinery without owning it, then manufactures four separate physical components and procures her own stone to reproduce the system at another workplace. Crafting grows through manufacture, not instruction.
+- Existing workplace/resident membership, living knowledge, physical records/examples and actual repeated practice produce derived knowledge reservoirs. No institution registry, global method unlock or preservation controller was added. Destruction/death can remove every usable local path.
+- Real weather and geographical exposure drive explicit imported/escaped wind energy. The two-second air parcel cannot accumulate through disuse or survive calm. Known machinery persists through temporary input/power failure; broken/disconnected examples do not count as intact capability.
+- Inherited place title follows the existing estate process. Personal material orders have explicit buyers, and absent local stock observations no longer cause duplicate procurement.
+- A canonical child born after discovery reaches age 18 without method knowledge, learns notation from a living teacher, reads the record inherited after the inventor's death, and operates the machine through ordinary goals/actions. Nine-year loaded continuation matches uninterrupted execution exactly. The eighteen intervening years use the existing daily Epoch cadence, with fine-grained learning/operation and disclosed favorable adult conditions.
+- Seed 17, three settlements, 1,800 physical seconds: Juniperstead 17.394586 mechanical flour / 2 method holders; Stonehaven 0 / 0; Ivesford 8.828571 / 1. Shared rules; no outcome keyed by settlement identity.
 
-Outputs enter the normal flour→freight→bakery chain with actual causal ancestry. Physical components inherit through estates without automatically transferring knowledge. Saves now preserve attached simulation cadence/caches, stimuli, plans, intent, body paths/poses and speech; uninterrupted versus loaded settlement outcomes, kernel and full event stream match in the focused test.
+## Verification
 
-Seed 17, 1,800 physical seconds: novice case 11.427 mechanical flour, 15 bread, 69.923 assembly labor seconds and 785.994 J; calm control zero mechanical output and 5 bread; experienced manual case 35 bread; sawn-timber substitution 8.570 mechanical flour and 20 bread. Successful knowledge reaches three people. A sole-holder mortality intervention leaves zero living method holders while passing physical hardware to heirs. Three generated settlements show different resource/knowledge/production trajectories under the same runtime rules.
-
-## Verification complete
-
-- Typecheck passed.
-- Focused kernel/pressure/procedural/adaptive/living checks passed 64/64 before the final continuation refinement.
-- Complete new integration file passed 11/11; manufacture guards passed 2/2.
-- After continuation refinement, living/kernel/pressure/demographic tests passed **40/40**, including exact uninterrupted versus loaded kernel, settlement results and event stream.
-- Final normal regression passed **726/726 across 67 files** in 570.57 seconds; production build passed.
-- `npm run living:demo -- 17` passed all comparisons, same-seed replay, exact kernel/knowledge restoration, deterministic loaded branches and continuation matching uninterrupted execution. The focused test also checks all 2,159 events. Currency delta and manufactured-mass error are zero; maximum energy ledger error is 1.819e-12 J. Household, stock, kernel and causal-reference checks passed.
-- All eleven milestone completion criteria pass within the bounded evidence in the report. Logs: `.debug/living/regression.log`, `build.log`, `final-demo.log`; full data: `.debug/living/17.json`. An earlier broad run was stopped to fix continuation and is not counted as successful (`regression-interrupted-for-continuation.log`). No verification jobs remain running. No runtime edits followed final verification.
+- Focused capability/demographics: 12/12 passed at the first checkpoint.
+- Final focused capability: **8/8** passed, including access, skill separation, mass costs, copying, destruction, reproduction, shared practice/loss, explicit operation provenance, replay and save/load.
+- Final separate acceptance: **2/2** passed in 43.75 seconds, including eighteen-year continuity, exact nine-year loaded continuation and three-settlement divergence. Data: .debug/continuity/generation.json and divergence.json; log: .debug/continuity-final-accept.log.
+- Long-run energy ledger error: **5.64e-8 J**. Household invariants and kernel restoration pass in acceptance.
+- First full normal run: 728 passed / 6 timeout failures, no assertion failures. Failed files plus new capability checks then passed **97/97** with two workers. Normal Vitest concurrency is now bounded at two; timeouts and assertions were not relaxed.
+- Final normal regression: **734/734 tests across 68 files passed** in 610.30 seconds. TypeScript checking and the production Vite build passed. Logs: .debug/continuity-final-regression.log and .debug/continuity-build.log. No verification jobs remain running; no runtime changes followed these checks.
 
 ## Remaining boundaries and historical failures
 
-Finite kinetic budgets are not weather-driven replenishment. Education remains a generated prior; no written-method carrier, manufacturing market or automatic reverse engineering exists. Compositional production remains owner-operated. Reserve constants, many occupational schedules, supplier-location priors, traditional recipe approximations and incomplete route-risk estimation remain artificial boundaries.
+Limited linear mechanical graphs, declarative notation, seeded adult education/supplier priors, coarse Epoch stepping, simple workplace permissions, no autonomous reverse engineering/general machinery repair, and approximate weather collection geometry remain the main constraints. No claim of guaranteed transmission, survival, institutional durability, settlement viability or monotonic progress is made.
 
-Older failures remain visible: Ashford's prior 30-day result had 25/32 at zero caloric reserve (not death); specialized adaptive acceptance was 8/9 with `shortageEased` failing at `tests/adaptive-society-longrun.test.ts:132`. Neither was rerun or declared resolved by this milestone. See `docs/LIVING_ECONOMY_SURVIVAL.md`. No settlement viability or guaranteed adaptation is claimed.
+Older failures remain disclosed: Ashford's prior 30-day result had 25/32 at zero caloric reserve (not death); specialized adaptive acceptance was 8/9 with shortageEased failing at tests/adaptive-society-longrun.test.ts:132. Neither was rerun or declared fixed here. See docs/LIVING_ECONOMY_SURVIVAL.md and the prior Living Universe report.
