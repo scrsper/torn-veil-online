@@ -4,6 +4,7 @@ import { heatBand } from './physiology';
 import { bestToolFor, toolWorkMultiplier, type ToolAction } from './tools';
 import { ageCapabilityModifier, physiologyProfileFor } from './species';
 import { skillOf, SKILL_FOR_TOOL_ACTION } from './skills';
+import { physicalAttribute, attributeProfile } from './human';
 
 /**
  * The centralized physical-capability layer (v0.4 §3). Every action that cares "how strong/
@@ -90,11 +91,11 @@ export function getPhysicalCapability(p: Person, world: World, ctx: { body?: Bod
   const sleepPenalty = 1 - Math.min(1, phys.sleepDebt / 16) * 0.35;
 
   const woundPenalty = 1 - Math.max(wound, body?.injuries?.arm ?? 0) * 0.65;
-  const ageNow = ageCapabilityModifier(p.species, p.age);
-  const ageBasis = ageCapabilityModifier(p.species, p.attributeAgeBasis ?? p.age);
-  const ageModifier = ageNow / Math.max(0.1, ageBasis);
-  const effectiveStrength = clamp(attrs.strength * ageModifier * fatiguePenalty * hungerPenalty * woundPenalty, 0.05, 2);
-  const effectiveDexterity = clamp(attrs.dexterity * ageModifier * fatiguePenalty * sleepPenalty * woundPenalty, 0.05, 2);
+  // Current biological expression, independent of when this person was instantiated. Dividing
+  // by a newborn's age basis would multiply their practiced adult foundation a second time.
+  const ageModifier = ageCapabilityModifier(p.species, p.age);
+  const effectiveStrength = clamp(physicalAttribute(attrs.strength) * ageModifier * fatiguePenalty * hungerPenalty * woundPenalty, 0.005, 2);
+  const effectiveDexterity = clamp(physicalAttribute(attrs.dexterity) * ageModifier * fatiguePenalty * sleepPenalty * woundPenalty, 0.005, 2);
 
   // v0.6 §V.7 (hauling): skill represents packing/load-handling technique, not raw strength —
   // strength remains the primary carrying constraint (CARRY_PER_STRENGTH_KG dominates this), a
@@ -113,7 +114,7 @@ export function getPhysicalCapability(p: Person, world: World, ctx: { body?: Bod
   const workRate = clamp(baseWorkRate, 0.1, 2.2) * toolMult * heatPenalty * skillWorkMult;
 
   const energyCostMultiplier = (1 / clamp(effectiveStrength * 0.6 + 0.4, 0.4, 1.6)) * skillEfficiency;
-  const fatigueMultiplier = ((1 + Math.max(0, phys.bodyHeat - 0.6) * 1.2) / clamp(effectiveStrength * 0.5 + 0.5, 0.5, 1.5)) * skillEfficiency;
+  const fatigueMultiplier = ((1 + Math.max(0, phys.bodyHeat - 0.6) * 1.2) / clamp(physicalAttribute(attrs.endurance) * 0.5 + 0.5, 0.5, 1.5)) * skillEfficiency;
   // v0.5 §I: read from the species profile (core/species.ts) rather than hardcoded — 1 for
   // ordinary humans; a future ontological tier or heat-adapted species raises this.
   const heatTolerance = physiologyProfileFor(p.species).heatTolerance;
@@ -126,7 +127,7 @@ export function getPhysicalCapability(p: Person, world: World, ctx: { body?: Bod
     0, 1,
   );
 
-  return { movementMultiplier: movementMultiplier(body), effectiveStrength, effectiveDexterity, safeCarryMassKg, workRate, energyCostMultiplier, fatigueMultiplier, heatTolerance, currentExertionCapacity };
+  return { movementMultiplier: movementMultiplier(body, p), effectiveStrength, effectiveDexterity, safeCarryMassKg, workRate, energyCostMultiplier, fatigueMultiplier, heatTolerance, currentExertionCapacity };
 }
 
 /** Convenience: resolve the best tool for `action` at the person's current place, then return
@@ -146,12 +147,15 @@ export function defaultAttributesFor(age: number, gender: 'm' | 'f'): Attributes
   const genderFactor = gender === 'm' ? 1.06 : 0.94;
   const dexAgeFactor = age < 14 ? 0.8 + (age / 14) * 0.2 : age > 65 ? Math.max(0.6, 1 - (age - 65) * 0.015) : 1;
   return {
-    strength: clamp(0.5 * ageFactor * genderFactor, 0.15, 0.95),
-    dexterity: clamp(0.5 * dexAgeFactor, 0.15, 0.95),
+    ...attributeProfile(8),
+    strength: Math.round(clamp(8 * ageFactor * genderFactor, 1, 20)),
+    dexterity: Math.round(clamp(8 * dexAgeFactor, 1, 20)),
   };
 }
 
 /** Canonical locomotion capability; every movement adapter consumes this same multiplier. */
-export function movementMultiplier(body: Body | undefined | null): number {
-  return 1 - clamp(body?.injuries?.leg ?? 0, 0, 1) * 0.65;
+export function movementMultiplier(body: Body | undefined | null, p?: Person): number {
+  const foundation = p ? clamp(1 + (p.attributes.strength - 8) * 0.006 + (p.attributes.dexterity - 8) * 0.008 + (p.attributes.endurance - 8) * 0.006, 0.7, 1.25)
+    * (1 - p.physiology.fatigue * 0.12) : 1;
+  return foundation * (1 - clamp(body?.injuries?.leg ?? 0, 0, 1) * 0.65);
 }

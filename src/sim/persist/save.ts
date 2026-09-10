@@ -133,7 +133,9 @@ const KEY = 'infinite-rpg-save-v1';
 // did. Conflicts and people are whole-object-persisted, so a v18 save would technically load —
 // which is exactly why the gate has to be explicit rather than left to chance.
 // Generative kernel definitions, physical connections, finite sources and partial labor.
-export const SAVE_VERSION = 21;
+// Seven integer foundations replace two fractional attributes. Reject old saves explicitly.
+// Whole-person snapshots carry potential, development, carriers, expression and ontology exactly.
+export const SAVE_VERSION = 22;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
@@ -259,7 +261,7 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     for (const s of data.persons) {
       const legacyMind = s.mind ?? { goal: s.goal ?? null, plan: [], decision: s.decision ?? null, commitment: s.commitment ?? null, concerns: s.concerns ?? [], obligations: s.obligations ?? [], pursuits: s.pursuits ?? [], reports: s.reports ?? {}, investigated: s.investigated ?? [] };
       const persistentPlan = !!data.execution || legacyMind.goal?.type === 'compose' || legacyMind.plan?.some((a: import('../core/types').Action) => a.data?.productionOpportunity || a.type === 'procure_material');
-      const restored = { ...s, parentIds: [...(s.parentIds ?? [])], birthTick: s.birthTick ?? s.createdAt, lifeStage: s.lifeStage ?? 'adult', reproductiveRole: s.reproductiveRole ?? (s.gender === 'f' ? 'gestational' : 'fertilizing'), attributeAgeBasis: s.attributeAgeBasis ?? s.age, mind: { ...legacyMind, investigated: new Set(legacyMind.investigated ?? []), plan: persistentPlan ? legacyMind.plan : [], intention: data.execution ? legacyMind.intention : null } } as Person;
+      const restored = { ...s, parentIds: [...(s.parentIds ?? [])], birthTick: s.birthTick ?? s.createdAt, lifeStage: s.lifeStage ?? 'adult', reproductiveRole: s.reproductiveRole ?? (s.gender === 'f' ? 'gestational' : 'fertilizing'), mind: { ...legacyMind, investigated: new Set(legacyMind.investigated ?? []), plan: persistentPlan ? legacyMind.plan : [], intention: data.execution ? legacyMind.intention : null } } as Person;
       const existing = world.person(s.id);
       if (existing) Object.assign(existing, restored); else world.add(restored);
     }

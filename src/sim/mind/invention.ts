@@ -11,6 +11,29 @@ import { fulfillProductionRequest } from '../world/production';
 import type { ProductionOpportunity } from './productionOpportunity';
 import { manufactureComponent, manufactureStock } from '../kernel/manufacture';
 import { canConsiderManufacture, componentSupplyPlan, knownComponents, observeMaterialSources } from './componentSupply';
+import { cognitiveCapability, clamp } from '../core/human';
+import { develop, developThroughUnderstanding } from '../core/development';
+
+/** Local inspection can reveal damage, never a hidden method or unknown physical law.
+ * Acuity changes the minimum discriminable signal; repeated looks at the same mark don't train. */
+export function observeMechanisms(world: World, p: Person): void {
+  const acuity = cognitiveCapability(p).observation;
+  const local = world.kernel.components.filter(c => reachable(world, p, c.pos) && (!c.holderId || c.holderId === p.id)).slice(0, 8);
+  for (const c of local) {
+    const damage = 1 - c.condition;
+    if (damage * acuity < 0.15) continue;
+    const key = `mechanism-damage:${c.id}`, existing = p.knowledge[key];
+    const detail = Math.round(damage * 10 * acuity) / (10 * acuity);
+    if (existing && Math.abs(existing.claim.damage - detail) < 0.05) continue;
+    const a = world.kernel.assemblies.find(a => a.id === c.assemblyId);
+    const ev = world.emit('mechanism_observed', { actor: p.id, pos: c.pos, category: 'cognition', significance: 0.3,
+      causes: a?.lastEvent ? [a.lastEvent] : [], data: { componentId: c.id, observedDamage: detail }, summary: `${p.name} noticed wear in a mechanical component` });
+    // Re-observation replaces an old measurement, like inventory observation below.
+    if (existing) { existing.claim.damage = detail; existing.source = { type: 'witnessed', viaEvent: ev.id }; existing.learnedAt = world.now; }
+    else learn(world, p, { key, kind: 'fact', claim: { componentId: c.id, damage: detail }, confidence: 0.8,
+      source: { type: 'witnessed', viaEvent: ev.id } }, true);
+  }
+}
 
 export interface PracticalNeed { effect: string; targetQuantity: number; bindings: Bindings; pos: { x: number; y: number; z: number }; requestId?: string; pressure?: number }
 export const methodSignature = (m: Method) => JSON.stringify([m.ruleset, m.definitions, m.connections, m.effect]);
@@ -117,13 +140,19 @@ export function candidateMethods(world: World, p: Person, need: PracticalNeed): 
   for (const m of [...taught, ...methods]) if (!failed.has(methodSignature(m)) && !physicallyFailed.has(physicalSignature(p, m))) unique.set(methodSignature(m), m);
   const cost = (m: Method) => m.definitions.reduce((n, id) => n + (visible.some(c => c.definition === id) ? 0 : definitions.find(d => d.id === id)?.fabrication?.seconds ?? 0), 0);
   const instructed = new Set(taught.map(methodSignature));
-  return [...unique.values()].sort((a, b) => Number(instructed.has(methodSignature(b))) - Number(instructed.has(methodSignature(a))) || cost(a) - cost(b)).slice(0, 24);
+  // Same 128 visits / 24 hypotheses at every INT and LOD. Reasoning quality changes the
+  // ordering of known alternatives through inferred losses, not the amount of CPU purchased.
+  const reasoning = Math.max(0, cognitiveCapability(p).reasoning - 1);
+  const estimatedLoss = (m: Method) => 1 - m.definitions.reduce((eff, id) => eff * clamp(definitions.find(d => d.id === id)?.efficiency ?? 1, 0, 1), 1);
+  return [...unique.values()].sort((a, b) => Number(instructed.has(methodSignature(b))) - Number(instructed.has(methodSignature(a)))
+    || (cost(a) + estimatedLoss(a) * reasoning * 60) - (cost(b) + estimatedLoss(b) * reasoning * 60)).slice(0, 24);
 }
 
 /** Candidate goals enter agent.ts's existing G() motivation bridge and normal competition. */
 export function inventionGoals(world: World, p: Person, opportunities: ProductionOpportunity[] = []): Partial<Goal>[] {
   if (!world.kernel.ruleset.components.length) return [];
   observeMaterialSources(world, p);
+  observeMechanisms(world, p);
   const goals: Partial<Goal>[] = [];
   for (const o of opportunities) {
     if (!mayUseProperty(world, p, o.place.ownerId, o.place.id)) continue;
@@ -161,7 +190,11 @@ export function inventionGoals(world: World, p: Person, opportunities: Productio
       const manufactured = knownComponents(p).some(d => method.definitions.includes(d.id) && d.fabrication);
       const outputPerBatch = world.kernel.ruleset.processes.find(d => d.id === method.effect)?.output.quantity ?? 1;
       const prospectiveBatches = manufactured ? Math.max(1, (need.targetQuantity - observed) / outputPerBatch) : 1;
-      const utility = capacity * (0.18 + pressure * (0.28 + (familiar ? 0.32 : p.traits.curiosity * 0.38))) / (1 + remaining / (30 * prospectiveBatches));
+      const setbacks = Object.values(p.knowledge).filter(b => b.claim.experiment && !b.claim.success && b.claim.needKey === k.key).length;
+      // Preserve the calibrated ordinary foundation. Lower Will is more discouraged, higher
+      // Will better maintains effort; both remain bounded and compete with survival/motivation.
+      const persistence = clamp(1 + setbacks * 0.12 * (cognitiveCapability(p).persistence - 1), 0.5, 1.25);
+      const utility = capacity * (0.18 + pressure * (0.28 + (familiar ? 0.32 : p.traits.curiosity * 0.38))) / (1 + remaining / (30 * prospectiveBatches)) * (familiar ? 1 : persistence);
       goals.push({ type: 'compose', utility, targetPos: need.pos, data: { needKey: k.key, assemblyId: active?.id, method: candidate }, reasons: [`observed ${observed.toFixed(2)}; need ${need.targetQuantity}`, `${familiar ? 'learned method' : 'uncertain experiment'}; estimated ${remaining.toFixed(1)} seconds labor`], causeEvent: k.source.viaEvent });
     }
   }
@@ -280,7 +313,12 @@ function recordTrial(world: World, p: Person, a: Assembly, success: boolean): vo
   const need = p.knowledge[a.needKey ?? '']?.claim.practicalNeed as PracticalNeed | undefined;
   const context = need ? experimentContext(world, p, need) : undefined;
   const trialKey = `experiment:${signature}:${context ?? ''}`;
-  learn(world, p, { key: trialKey, kind: 'fact', claim: { experiment: true, signature, physicalSignature: physicalSignature(p, a.method), context, supplyContext: need ? supplyContext(world, p, need) : undefined, success, reason: a.lastReason, eventId: a.lastEvent, laborSeconds: a.laborSeconds, inputJ: a.inputJ, output: a.outputQuantity }, confidence: 1, source: { type: 'self', viaEvent: a.lastEvent }, cause: a.lastEvent });
+  const novel = !p.knowledge[trialKey];
+  learn(world, p, { key: trialKey, kind: 'fact', claim: { experiment: true, needKey: a.needKey, signature, physicalSignature: physicalSignature(p, a.method), context, supplyContext: need ? supplyContext(world, p, need) : undefined, success, reason: a.lastReason, eventId: a.lastEvent, laborSeconds: a.laborSeconds, inputJ: a.inputJ, output: a.outputQuantity }, confidence: 1, source: { type: 'self', viaEvent: a.lastEvent }, cause: a.lastEvent });
+  if (novel) {
+    developThroughUnderstanding(world, p, trialKey, a.method.connections.length + 1, Math.min(60, a.laborSeconds), a.lastEvent);
+    develop(world, p, { weights: { perception: 0.5, will: 0.5 }, seconds: Math.min(60, a.laborSeconds), intensity: 0.6, causeEventId: a.lastEvent });
+  }
   remember(world, p, { type: 'mechanism_trial', summary: `My arrangement ${a.lastReason}; ${a.inputJ.toFixed(1)} J used`, eventId: a.lastEvent, entities: [p.id], significance: 0.6, valence: success ? 0.4 : -0.2, source: { type: 'self', viaEvent: a.lastEvent } });
   if (success && !a.learned) {
     // Only observed real output makes a method. Store instance-independent instructions.

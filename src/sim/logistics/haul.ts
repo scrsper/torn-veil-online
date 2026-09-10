@@ -407,7 +407,7 @@ export function depositHaulCargo(world: World, task: HaulTask, person: Person): 
   task.cargoItemId = undefined;
   // v0.6 §V.9: a real, physically-completed delivery leg is meaningful work — practice once per
   // leg (not per unit, so a heavy single-trip delivery doesn't train faster than a light one).
-  practiceSkill(person, 'hauling', 1);
+  practiceSkill(person, 'hauling', 1, world);
   world.runTally[`hauled:${task.resource}`] = (world.runTally[`hauled:${task.resource}`] ?? 0) + n; // survives task pruning
   // Pay for the leg actually delivered, even if later legs become impossible or another
   // carrier takes over. Neither a failed pickup nor completion can pay this same leg twice.

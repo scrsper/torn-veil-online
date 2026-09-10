@@ -5,6 +5,8 @@ import { makeItem, RESOURCE_MASS_KG } from '../world/factory';
 import { stockItemsAt, retireStack, outboundStock } from '../world/stock';
 import { distance, mayUseProperty, owns, reachable } from '../kernel/mechanics';
 import { learn } from './knowledge';
+import { cognitiveCapability } from '../core/human';
+import { developThroughUnderstanding } from '../core/development';
 
 export const MECHANICAL_NOTATION = 'workshop-diagrams';
 export const RECORD_MASS_KG = 0.5;
@@ -22,12 +24,12 @@ export function canReadRecord(world: World, p: Person, i: Item): boolean {
   const owner = world.person(i.ownerId);
   const householdAccess = i.placeId === p.homeId && !!p.householdId && owner?.householdId === p.householdId;
   return p.age >= 8 && intactRecord(i) && knowsNotation(p, i.record!.notation)
-    && (i.holderId === p.id ? world.bodies().some(b => b.ownerId === p.id && reachable(world, p, b.pos))
+    && (i.holderId === p.id ? p.bodies.some(id => { const b = world.body(id); return !!b?.present && !b.dead && reachable(world, p, b.pos); })
       : !i.holderId && !!i.pos && reachable(world, p, i.pos) && (householdAccess || mayUseProperty(world, p, i.ownerId, i.placeId ?? undefined)));
 }
 export function localRecords(world: World, p: Person): Item[] {
   const found = new Map<string, Item>();
-  for (const b of world.bodies().filter(b => b.ownerId === p.id && b.present && !b.dead))
+  for (const b of p.bodies.map(id => world.body(id)).filter((b): b is NonNullable<typeof b> => !!b?.present && !b.dead))
     for (const i of world.nearbyItems(b.pos, 3)) if (canReadRecord(world, p, i)) found.set(i.id, i);
   for (const id of p.inventory) { const i = world.item(id); if (i && canReadRecord(world, p, i)) found.set(id, i); }
   return [...found.values()];
@@ -53,9 +55,9 @@ export function actOnRecord(world: World, p: Person, action: Action, seconds: nu
   if (!p.alive || p.age < 8 || !Number.isFinite(seconds) || seconds <= 0 || seconds > 60 || capacity <= 0.15
     || ((reading || copying) && (!source || !canReadRecord(world, p, source)))
     || (!reading && (!hasSubstrate(world, p, action.placeId!) || !knowsNotation(p, MECHANICAL_NOTATION)))
-    || (!reading && !copying && !held?.claim.method)) { action.status = 'failed'; return; }
+    || (!reading && !copying && !held?.claim.method && !held?.claim.genealogy)) { action.status = 'failed'; return; }
   const required = reading ? 4 : 12;
-  const rate = capacity * (reading ? 1 : 0.5 + (p.skills.crafting ?? 0));
+  const rate = capacity * (reading ? cognitiveCapability(p).reasoning : 0.5 + (p.skills.crafting ?? 0));
   const spent = Math.min(seconds, Math.max(0, required - (data.progress ?? 0)) / rate);
   data.progress = (data.progress ?? 0) + spent * rate; data.laborSeconds = (data.laborSeconds ?? 0) + spent;
   if (data.progress < required - 1e-9) return;
@@ -64,8 +66,9 @@ export function actOnRecord(world: World, p: Person, action: Action, seconds: nu
     const ev = world.emit('record_read', { actor: p.id, item: source!.id, placeId: source!.placeId ?? undefined, pos: world.positionOf(p.id),
       category: 'history', significance: 0.65, visibility: 4, causes: [...new Set([record.eventId, ...source!.provenance.flatMap(v => v.eventId ? [v.eventId] : [])])],
       data: { key: k.key, authorId: record.authorId, laborSeconds: data.laborSeconds }, summary: `${p.name} studied a physical record` });
-    learn(world, p, { ...structuredClone(k), confidence: Math.min(0.8, k.confidence) * (source!.condition ?? 1),
+    const acquired = learn(world, p, { ...structuredClone(k), confidence: Math.min(0.8, k.confidence) * (source!.condition ?? 1),
       source: { type: 'read', from: source!.id, viaEvent: ev.id }, hops: k.hops + 1, cause: ev.id });
+    if (acquired && k.claim.method) developThroughUnderstanding(world, p, k.key, k.claim.method.connections.length + 1, data.laborSeconds, ev.id);
   } else {
     const k = copying ? structuredClone(source!.record!.knowledge) : snapshot(held!);
     let remaining = RECORD_MASS_KG / RESOURCE_MASS_KG.plank!;
@@ -78,7 +81,9 @@ export function actOnRecord(world: World, p: Person, action: Action, seconds: nu
       if (i.quantity <= 1e-9) retireStack(world, i);
     }
     const place = world.place(action.placeId)!;
-    const item = makeItem(world, 'book', 'Carved workshop notes', { owner: p.id, placeId: place.id, pos: place.inside, condition: 1, named: true, description: 'A wooden tablet of practical diagrams; its claims may be wrong.' });
+    const family = !!k.claim.genealogy;
+    const item = makeItem(world, 'book', family ? 'Carved family testimony' : 'Carved workshop notes', { owner: p.id, placeId: place.id, pos: place.inside, condition: 1, named: true,
+      description: family ? 'A wooden tablet of family testimony; its claims may be wrong.' : 'A wooden tablet of practical diagrams; its claims may be wrong.' });
     const ev = world.emit(copying ? 'record_copied' : 'record_written', { actor: p.id, item: item.id, placeId: place.id, pos: place.inside,
       category: 'history', visibility: 6, significance: 0.7, causes: [...new Set(causes)], data: { key: k.key, copiedFrom: source?.id, consumed, substrateKg: RECORD_MASS_KG, laborSeconds: data.laborSeconds },
       summary: `${p.name} ${copying ? 'copied' : 'inscribed'} practical instructions in wood` });
@@ -104,7 +109,7 @@ export function recordGoals(world: World, p: Person): Partial<Goal>[] {
   }
   const place = [world.place(p.workId), world.place(p.homeId)].find(pl => pl && hasSubstrate(world, p, pl.id));
   if (!place) return goals;
-  for (const k of Object.values(p.knowledge).filter(k => k.claim.method && k.confidence > 0.4)) {
+  for (const k of Object.values(p.knowledge).filter(k => (k.claim.method || k.claim.genealogy) && k.confidence > 0.4)) {
     const copies = records.filter(i => i.record!.knowledge.key === k.key && i.placeId === place.id);
     if (copies.length >= 2 || copies.some(i => i.ownerId === p.id)) continue;
     const source = copies[0];

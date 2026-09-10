@@ -34,6 +34,9 @@ export function createKernelLab(seed = 918271, family: 'grain' | 'water' = 'grai
   const id = (name: string) => `${rules.id}/${name}`;
   const inventors = ['A', 'B'].map((name, i) => {
     const p = makePerson(world, { name, age: 28, gender: 'f', occupation: 'villager', home: place.id, traits: { curiosity: 0.7, sociability: 0.3 }, appearance: {}, bio: 'A workshop resident with an unmet practical need.', wealth: 10 });
+    // This regression workshop exercises discovery through an initially poor hypothesis.
+    // Explicit reference cognition keeps that fixture stable as ordinary people now vary.
+    p.attributes.intellect = p.attributes.will = 8;
     const body = makeBody(world, p.id, { ...pos, x: pos.x + i * 0.8 }); p.bodies.push(body.id);
     p.schedule = [{ start: 0, end: 24, activity: 'idle', placeId: place.id, label: 'at the workshop' }];
     p.mind.thinkInterval = 0.25;

@@ -350,7 +350,7 @@ export function mill(world: World, miller: Person, context?: TradeBatchContext):
   // ...and the work itself is how anybody ever stops being a novice. One real batch, one unit of
   // practice — the same rule baking and sawing have followed since v0.6, applied to the trade
   // that until now had no learned capability behind it at all.
-  if (result.ok) practiceSkill(miller, 'milling', 1);
+  if (result.ok) practiceSkill(miller, 'milling', 1, world);
   return result;
 }
 
@@ -368,7 +368,7 @@ export function bake(world: World, baker: Person, context?: TradeBatchContext): 
   // measurably worse at it.
   const out = tradeYield(BAKE_RATIO.out, skillOf(baker, 'baking'));
   const result = transform(world, { actor: baker.id, inputType: 'flour', inputQty: BAKE_RATIO.in, inputPlaces: [bakeryId], outputType: 'bread', outputQty: out, outputPlace: bakeryId, ownerId: economicOperatorFor(world, bakeryId) ?? baker.id, how: 'baked', causes: context?.causes, laborSeconds: context?.laborSeconds, inputOwner: context ? batchStockOwner(world, bakeryId, 'flour', baker) : undefined });
-  if (result.ok) practiceSkill(baker, 'baking', 1); // v0.6 §V.9: one real batch = one unit of practice
+  if (result.ok) practiceSkill(baker, 'baking', 1, world); // v0.6 §V.9: one real batch = one unit of practice
   return result;
 }
 
@@ -402,7 +402,7 @@ export function saw(world: World, sawyer: Person, context?: TradeBatchContext): 
   if (stockTotal(world, 'plank', [sawpitId]) >= plankCapFor(world, world.place(sawpitId)?.inside)) return { ok: false, produced: 0, consumed: 0 };
   if (stockAtPlace(world, 'log', sawpitId) < SAW_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'log' };
   const result = transform(world, { actor: sawyer.id, inputType: 'log', inputQty: SAW_RATIO.in, inputPlaces: [sawpitId], outputType: 'plank', outputQty: SAW_RATIO.out, outputPlace: sawpitId, ownerId: economicOperatorFor(world, sawpitId) ?? sawyer.id, how: 'sawn', causes: context?.causes, laborSeconds: context?.laborSeconds, inputOwner: context ? batchStockOwner(world, sawpitId, 'log', sawyer) : undefined });
-  if (result.ok) practiceSkill(sawyer, 'sawing', 1);
+  if (result.ok) practiceSkill(sawyer, 'sawing', 1, world);
   return result;
 }
 
@@ -417,7 +417,7 @@ export function restockTavern(world: World, brewer: Person): boolean {
   const result = transform(world, { actor: brewer.id, inputType: 'grain', inputQty: BREW_RATIO.in, inputPlaces: [tavern.id],
     outputType: 'ale', outputQty: BREW_RATIO.out, outputPlace: tavern.id,
     ownerId: economicOperatorFor(world, tavern.id) ?? brewer.id, how: 'brewed over the hearth' });
-  if (result.ok) { practiceSkill(brewer, 'cooking', 1); payWage(world, economicOperatorFor(world, tavern.id), brewer, 3); }
+  if (result.ok) { practiceSkill(brewer, 'cooking', 1, world); payWage(world, economicOperatorFor(world, tavern.id), brewer, 3); }
   return result.ok;
 }
 
@@ -443,7 +443,7 @@ export function gatherHerbs(world: World, herbalist: Person): boolean {
     summary: `${herbalist.name} gathered ${HERB_GATHER_QTY} bundles of herbs`,
   });
   addPlaceStock(world, 'herbs', HERB_GATHER_QTY, placeId, herbalist.id, ev.id, 'gathered');
-  practiceSkill(herbalist, 'herbalism', 1);
+  practiceSkill(herbalist, 'herbalism', 1, world);
   return true;
 }
 

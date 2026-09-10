@@ -31,6 +31,7 @@ describe('class recognition', () => {
     const tw = createTestWorld();
     const a = addPerson(tw, 'A Cook', 'cook', v(10, 1, 10));
     const b = addPerson(tw, 'A Vagrant', 'vagrant', v(12, 1, 10));
+    b.attributes = { ...a.attributes }; // Equal lives includes equal capability; people now vary.
     for (const p of [a, b]) { p.skills = {}; for (let i = 0; i < 80; i++) practiceSkill(p, 'cooking'); }
     const ra = recogniseClass(tw.world, a), rb = recogniseClass(tw.world, b);
     expect(ra?.id).toBe('artisan');
@@ -59,7 +60,7 @@ describe('class recognition', () => {
   it('needs a history of fighting, not a strong body and a blade', () => {
     const tw = createTestWorld();
     const p = addPerson(tw, 'Strong', 'traveler', v(10, 1, 10));
-    p.attributes.strength = 0.95;
+    p.attributes.strength = 15;
     expect(recogniseClass(tw.world, p)).toBeNull();
   });
 
@@ -67,7 +68,7 @@ describe('class recognition', () => {
     const tw = createTestWorld();
     const fighter = addPerson(tw, 'Fighter', 'traveler', v(10, 1, 10));
     const foe = addPerson(tw, 'Foe', 'traveler', v(12, 1, 10));
-    fighter.attributes.strength = 0.7;
+    fighter.attributes.strength = 11;
 
     const one = beginConflict(tw.world, { initiator: fighter.id, target: foe.id, cause: 'retaliation', intent: 'injure' });
     for (let i = 0; i < 4; i++) recordConflictBlow(tw.world, one, fighter.id, 'injure');

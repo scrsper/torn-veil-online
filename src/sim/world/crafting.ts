@@ -110,7 +110,7 @@ export function craftItem(world: World, actor: Person, recipeId: string): CraftR
   // v0.7 §Affordances: the crafter necessarily knows what they just made — self-taught by the
   // act of making it, the same "learning by doing" path as using any other tool for real.
   if (affordancesOf(recipe.result)) learnAffordance(world, actor, recipe.result, { type: 'self' });
-  practiceSkill(actor, 'crafting', 1);
+  practiceSkill(actor, 'crafting', 1, world);
   return { ok: true, result };
 }
 

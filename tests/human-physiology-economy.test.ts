@@ -342,7 +342,7 @@ describe('v0.4 disclosed hysteresis pathology — regression (v0.5 §III.13)', (
     const src = makePlace(tw.world, 'quarry', 'Quarry', { x0: 2, z0: 2, x1: 10, z1: 10, y0: 1, y1: 3 }, { inside: v(6, 1, 6), indoor: false });
     const dst = makePlace(tw.world, 'construction', 'Site', { x0: 30, z0: 30, x1: 36, z1: 36, y0: 1, y1: 3 }, { inside: v(33, 1, 33), indoor: false });
     const weak = addPerson(tw, 'Weak', 'vagrant', v(6, 1, 6));
-    weak.attributes.strength = 0.1;
+    weak.attributes.strength = 2;
     addPlaceStock(tw.world, 'stone', 30, src.id, null, undefined, 'test');
     const perTrip = personalCarryUnits(tw.world, weak, 'stone');
     expect(perTrip).toBeLessThan(12);
@@ -363,7 +363,7 @@ describe('v0.4 disclosed hysteresis pathology — regression (v0.5 §III.13)', (
     const { world, gen } = newWorld(5502);
     const sim = new Simulation(world);
     const hauler = gen.people.bors;
-    hauler.attributes.strength = 0.15;
+    hauler.attributes.strength = 2;
     const mill = world.places().find(p => p.type === 'mill')!;
     const bakery = world.places().find(p => p.type === 'bakery')!;
     makeItem(world, 'plank', 'plank', { placeId: mill.id, pos: { ...mill.inside }, quantity: 40 });

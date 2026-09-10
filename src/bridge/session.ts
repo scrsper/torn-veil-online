@@ -99,7 +99,7 @@ export class BridgeSession {
         const p = w.person(b.ownerId); if (!p) return [];
         return [{ bodyId: b.id, entityId: p.id, name: p.name, pos: b.pos, velocity: b.vel, yaw: b.yaw,
           // Canonical, so the client never holds a movement constant of its own to predict with.
-          speed: b.speed * movementMultiplier(b), sprintMultiplier: SPRINT_MULTIPLIER, reach: w.person(b.ownerId) ? combatReach(w, w.person(b.ownerId)!) : MELEE_REACH, cooldown: MELEE_COOLDOWN,
+          speed: b.speed * movementMultiplier(b, p), sprintMultiplier: SPRINT_MULTIPLIER, reach: w.person(b.ownerId) ? combatReach(w, w.person(b.ownerId)!) : MELEE_REACH, cooldown: MELEE_COOLDOWN,
           // Combat state is read, never authored, by the presentation layer. `lastAttackAt` and
           // `lastHitAt` let it retrigger a swing/flinch that starts and ends between snapshots.
           attackTarget: b.attackTarget, lastAttackAt: b.lastAttackAt, lastHitAt: b.lastHitAt,

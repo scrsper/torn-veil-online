@@ -110,7 +110,7 @@ export class PlayerController {
       if (this.keys.has('KeyW')) move.z -= 1; if (this.keys.has('KeyS')) move.z += 1; if (this.keys.has('KeyA')) move.x -= 1; if (this.keys.has('KeyD')) move.x += 1;
     }
     this.sprint = this.keys.has('ShiftLeft') || this.keys.has('ShiftRight');
-    const speed = (this.sprint ? 7.2 : 4.4) * movementMultiplier(b);
+    const speed = (this.sprint ? 7.2 : 4.4) * movementMultiplier(b, this.world.person(b.ownerId));
     if (move.lengthSq() > 0) { move.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), this.moveYaw()); }
     const accel = this.onGround ? 40 : 12;
     this.vel.x += (move.x * speed - this.vel.x) * Math.min(1, accel * dt); this.vel.z += (move.z * speed - this.vel.z) * Math.min(1, accel * dt);

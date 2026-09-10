@@ -119,7 +119,7 @@ describe('strength and mass-aware hauling (v0.4 §2/§4)', () => {
     const tw = createTestWorld(4101, 20);
     const weak = addPerson(tw, 'Weak', 'farmer', v(5, 1, 5));
     const strong = addPerson(tw, 'Strong', 'farmer', v(5, 1, 5));
-    weak.attributes.strength = 0.15; strong.attributes.strength = 0.9;
+    weak.attributes.strength = 2; strong.attributes.strength = 14;
     const weakCap = getPhysicalCapability(weak, tw.world).safeCarryMassKg;
     const strongCap = getPhysicalCapability(strong, tw.world).safeCarryMassKg;
     expect(strongCap).toBeGreaterThan(weakCap);
@@ -131,7 +131,7 @@ describe('strength and mass-aware hauling (v0.4 §2/§4)', () => {
     const src = makePlace(tw.world, 'quarry', 'Quarry', { x0: 2, z0: 2, x1: 10, z1: 10, y0: 1, y1: 3 }, { inside: v(6, 1, 6), indoor: false });
     const dst = makePlace(tw.world, 'construction', 'Site', { x0: 36, z0: 36, x1: 44, z1: 44, y0: 1, y1: 3 }, { inside: v(40, 1, 40), indoor: false });
     const weak = addPerson(tw, 'Weak', 'farmer', v(6, 1, 8), { workId: src.id });
-    weak.attributes.strength = 0.1;
+    weak.attributes.strength = 2;
     makeItem(tw.world, 'stone', 'stone', { placeId: src.id, pos: v(6, 1, 6), quantity: 30 });
     const task = createHaulTask(tw.world, { resource: 'stone', quantity: 12, sourcePlaceId: src.id, destPlaceId: dst.id, reason: 'x', requesterId: null, priority: 0.5 });
     claimHaulTask(tw.world, task, weak);
@@ -159,7 +159,7 @@ describe('strength and mass-aware hauling (v0.4 §2/§4)', () => {
     const { world, gen } = newWorld(4104);
     const sim = new Simulation(world);
     const hauler = gen.people.bors; // the woodcutter — already role-affine for bulk materials
-    hauler.attributes.strength = 0.15; // weak enough that one trip cannot cover the whole task
+    hauler.attributes.strength = 2; // weak enough that one trip cannot cover the whole task
     const mill = world.places().find(p => p.type === 'mill')!;
     const bakery = world.places().find(p => p.type === 'bakery')!;
     // 'plank' (8kg/unit) at strength 0.15 caps at ~2-3 units/trip — a 10-unit task needs several.
@@ -185,7 +185,7 @@ describe('strength and mass-aware hauling (v0.4 §2/§4)', () => {
   it('carry capacity is never zero even for a heavy material — an improvised trip is always possible', () => {
     const tw = createTestWorld(4103, 20);
     const veryWeak = addPerson(tw, 'Frail', 'farmer', v(5, 1, 5));
-    veryWeak.attributes.strength = 0.01;
+    veryWeak.attributes.strength = 1;
     veryWeak.physiology.fatigue = 1;
     for (const type of ['grain', 'flour', 'bread', 'log', 'plank', 'stone'] as const) {
       expect(personalCarryUnits(tw.world, veryWeak, type)).toBeGreaterThanOrEqual(1);
@@ -200,7 +200,7 @@ describe('dexterity (v0.4 §2)', () => {
     const tw = createTestWorld(4201, 20);
     const clumsy = addPerson(tw, 'Clumsy', 'woodcutter', v(5, 1, 5));
     const deft = addPerson(tw, 'Deft', 'woodcutter', v(5, 1, 5));
-    clumsy.attributes.dexterity = 0.2; deft.attributes.dexterity = 0.95;
+    clumsy.attributes.dexterity = 3; deft.attributes.dexterity = 15;
     const sawpit = makePlace(tw.world, 'sawpit', 'Sawpit', { x0: 2, z0: 2, x1: 8, z1: 8, y0: 1, y1: 3 }, { inside: v(5, 1, 5), indoor: false });
     makeItem(tw.world, 'saw', 'saw', { placeId: sawpit.id, pos: v(5, 1, 5) });
     const clumsyRate = capabilityFor(tw.world, clumsy, 'saw', sawpit.id).cap.workRate;
@@ -215,7 +215,7 @@ describe('dexterity (v0.4 §2)', () => {
     const sawpit = makePlace(tw.world, 'sawpit', 'Sawpit', { x0: 2, z0: 2, x1: 8, z1: 8, y0: 1, y1: 3 }, { inside: v(5, 1, 5), indoor: false });
     addPlaceStock(tw.world, 'log', 20, sawpit.id, null, undefined, 'test');
     const sawyer = addPerson(tw, 'Sawyer', 'woodcutter', v(5, 1, 5));
-    sawyer.attributes.dexterity = 1; // maximal — still must obey the fixed SAW_RATIO, only the CADENCE (agent.ts) varies with dexterity
+    sawyer.attributes.dexterity = 16; // maximal — still must obey the fixed SAW_RATIO, only the CADENCE (agent.ts) varies with dexterity
     const logsBefore = stockAt(tw.world, 'log', sawpit.id), planksBefore = stockAt(tw.world, 'plank', sawpit.id);
     let batches = 0;
     for (let i = 0; i < 5; i++) if (saw(tw.world, sawyer).ok) batches++;
@@ -572,7 +572,7 @@ describe('canonical integrity (v0.4 §22)', () => {
     const src = makePlace(tw.world, 'quarry', 'Quarry', { x0: 2, z0: 2, x1: 10, z1: 10, y0: 1, y1: 3 }, { inside: v(6, 1, 6) });
     const dst = makePlace(tw.world, 'construction', 'Site', { x0: 30, z0: 30, x1: 38, z1: 38, y0: 1, y1: 3 }, { inside: v(33, 1, 33) });
     const hauler = addPerson(tw, 'Hauler', 'farmer', v(6, 1, 8), { workId: src.id });
-    hauler.attributes.strength = 0.15;
+    hauler.attributes.strength = 2;
     makeItem(tw.world, 'stone', 'stone', { placeId: src.id, pos: v(6, 1, 6), quantity: 30 });
     const task = createHaulTask(tw.world, { resource: 'stone', quantity: 12, sourcePlaceId: src.id, destPlaceId: dst.id, reason: 'x', requesterId: null, priority: 0.5 });
     claimHaulTask(tw.world, task, hauler);
@@ -626,10 +626,10 @@ describe('v0.4 save/load round-trip (SAVE_VERSION 7)', () => {
     const sim = new Simulation(world);
     advance(world, sim, 3 * SECONDS_PER_HOUR / 60);
     const someone = world.persons().find(p => p.alive)!;
-    someone.attributes.strength = 0.77; someone.physiology.fatigue = 0.42; someone.physiology.sleepDebt = 3.5;
+    someone.attributes.strength = 12; someone.physiology.fatigue = 0.42; someone.physiology.sleepDebt = 3.5;
     const restored = deserialize(serialize(world))!.world;
     const back = restored.person(someone.id)!;
-    expect(back.attributes.strength).toBeCloseTo(0.77, 6);
+    expect(back.attributes.strength).toBeCloseTo(12, 6);
     expect(back.physiology.fatigue).toBeCloseTo(0.42, 6);
     expect(back.physiology.sleepDebt).toBeCloseTo(3.5, 6);
     expect(restored.requests.length).toBe(world.requests.length);

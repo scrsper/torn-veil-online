@@ -1,5 +1,7 @@
 import type { Occupation, Person, SkillId } from './types';
 import type { ToolAction } from './tools';
+import type { World } from './world';
+import { developThroughPractice } from './development';
 
 /**
  * Learned capability (v0.6 §V) — see `SkillId`'s doc comment in core/types.ts for what this is
@@ -31,8 +33,9 @@ const BASE_GAIN = 0.015;
  * haul cycle) — never for standing at a workplace or a failed/no-op attempt, so neither can
  * train a skill (Constitution v0.6 §V.9). `amount` is in the same "one unit" terms as the base
  * gain above (a fractional amount for a partial slice, e.g. minutes of build labour / 1 minute). */
-export function practiceSkill(p: Person, id: SkillId, amount = 1): void {
-  if (amount <= 0) return;
+export function practiceSkill(p: Person, id: SkillId, amount = 1, world?: World): void {
+  if (!Number.isFinite(amount) || amount <= 0) return;
+  if (world) developThroughPractice(world, p, id, amount, instructionFactor(p, id));
   const cur = skillOf(p, id);
   if (cur >= 1) return;
   p.skills = p.skills ?? {};

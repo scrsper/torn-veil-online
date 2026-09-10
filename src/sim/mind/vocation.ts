@@ -1,3 +1,4 @@
+import { physicalAttribute } from '../core/human';
 import type { Person, SkillId } from '../core/types';
 import type { World } from '../core/world';
 import { skillOf } from '../core/skills';
@@ -97,7 +98,7 @@ export function recogniseClass(world: World, p: Person): RecognisedClass | null 
   {
     const { blows, conflicts } = blowsStoodIn(world, p);
     const history = clamp01(blows / 10) * 0.65 + clamp01((conflicts - 1) / 2) * 0.35;
-    const capability = clamp01((p.attributes.strength - 0.35) / 0.5);
+    const capability = clamp01((physicalAttribute(p.attributes.strength) - 0.35) / 0.5);
     const score = history <= 0 ? 0 : clamp01(history * 0.75 + capability * 0.2 + (armed(world, p) ? 0.05 : 0));
     if (score > 0) candidates.push({
       id: 'armsman', name: 'Armsman', score,
@@ -117,7 +118,7 @@ export function recogniseClass(world: World, p: Person): RecognisedClass | null 
     const levels = CRAFT_SKILLS.map(s => skillOf(p, s)).sort((a, b) => b - a);
     const depth = levels[0];
     const breadth = levels.filter(v => v >= 0.15).length;
-    const capability = clamp01((p.attributes.dexterity - 0.35) / 0.5);
+    const capability = clamp01((physicalAttribute(p.attributes.dexterity) - 0.35) / 0.5);
     const score = depth < 0.2 ? 0 : clamp01(clamp01(depth / ACCOMPLISHED) * 0.7 + clamp01((breadth - 1) / 2) * 0.2 + capability * 0.1);
     if (score > 0) candidates.push({
       id: 'artisan', name: 'Artisan', score,
@@ -141,7 +142,7 @@ export function recogniseClass(world: World, p: Person): RecognisedClass | null 
     // Ashford seeds everyone with a working knowledge of their own village, so ground covered
     // only starts telling you something once it runs past what a settled life accounts for.
     const ground = clamp01((places - 18) / 20);
-    const capability = clamp01((p.attributes.dexterity - 0.35) / 0.5);
+    const capability = clamp01((physicalAttribute(p.attributes.dexterity) - 0.35) / 0.5);
     const score = depth < 0.2 ? 0 : clamp01(clamp01(depth / ACCOMPLISHED) * 0.7 + clamp01((breadth - 1) / 2) * 0.15 + ground * 0.1 + capability * 0.05);
     if (score > 0) candidates.push({
       id: 'scout', name: 'Scout', score,

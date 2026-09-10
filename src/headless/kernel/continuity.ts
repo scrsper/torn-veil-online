@@ -48,5 +48,8 @@ export function arrangeReader(world: World, author: Person, place: Place): Perso
   placeWorker(world, reader, place);
   teachNotation(world, reader); // Independent prior literacy, not method knowledge or craft skill.
   reader.traits.curiosity = 0.95;
+  // Favorable study opportunity includes having recently socialized. Discovery time now varies
+  // with individual cognition; do not accidentally make this reader start socially desperate.
+  reader.needs.social = 0.1;
   return reader;
 }
