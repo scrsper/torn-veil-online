@@ -28,6 +28,8 @@ export function startAssembly(world: World, p: Person, method: Method, bindings:
     || method.definitions.some(id => !world.kernel.ruleset.components.some(c => c.id === id))) return null;
   const a: Assembly = { id: world.nextId('assembly'), ownerId: p.id, pos: { ...pos }, parts: [], connections: [], bindings: { ...bindings }, method: structuredClone(method), needKey,
     tested: false, learned: false, laborSeconds: 0, operatedSeconds: 0, inputJ: 0, usefulJ: 0, dissipatedJ: 0, outputQuantity: 0, progress: {} };
+  const cause = p.mind.goal?.causeEvent;
+  if (cause && world.event(cause)) a.lastEvent = cause;
   world.kernel.assemblies.push(a); changed(world, p, a, 'started'); return a;
 }
 function changed(world: World, p: Person, a: Assembly, operation: string): void {

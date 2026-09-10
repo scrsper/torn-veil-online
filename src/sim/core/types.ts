@@ -1098,6 +1098,8 @@ export interface Request {
    * §10: `totalCurrencyBefore === totalCurrencyAfter` for ordinary transactions). */
   reward: number;
   paid?: number;
+  /** Real partial output credited to a production request; never a promised future batch. */
+  fulfilledQuantity?: number;
   cause: string;
   payload: RequestPayload;
 }
@@ -1356,7 +1358,7 @@ export interface Faction extends Entity {
 
 // ---------------------------------------------------------------- Events
 export type EventType =
-  | 'component_acquired' | 'assembly_changed' | 'mechanism_trial'
+  | 'component_acquired' | 'assembly_changed' | 'mechanism_trial' | 'production_observed'
   | 'attack' | 'kill' | 'theft' | 'pickup' | 'drop' | 'give' | 'trade' | 'told' | 'conversation' | 'perceived'
   | 'memory_formed' | 'knowledge_gained' | 'relationship_changed' | 'emotion_changed' | 'goal_changed'
   | 'goal_completed' | 'arrived' | 'investigation' | 'confrontation' | 'arrest_attempt' | 'fled' | 'hid'

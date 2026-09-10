@@ -256,7 +256,7 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     if (typeof data.demographicRng === 'number') world.demographicRng.setState(data.demographicRng);
     for (const s of data.persons) {
       const legacyMind = s.mind ?? { goal: s.goal ?? null, plan: [], decision: s.decision ?? null, commitment: s.commitment ?? null, concerns: s.concerns ?? [], obligations: s.obligations ?? [], pursuits: s.pursuits ?? [], reports: s.reports ?? {}, investigated: s.investigated ?? [] };
-      const restored = { ...s, parentIds: [...(s.parentIds ?? [])], birthTick: s.birthTick ?? s.createdAt, lifeStage: s.lifeStage ?? 'adult', reproductiveRole: s.reproductiveRole ?? (s.gender === 'f' ? 'gestational' : 'fertilizing'), attributeAgeBasis: s.attributeAgeBasis ?? s.age, mind: { ...legacyMind, investigated: new Set(legacyMind.investigated ?? []), plan: [], intention: null } } as Person;
+      const restored = { ...s, parentIds: [...(s.parentIds ?? [])], birthTick: s.birthTick ?? s.createdAt, lifeStage: s.lifeStage ?? 'adult', reproductiveRole: s.reproductiveRole ?? (s.gender === 'f' ? 'gestational' : 'fertilizing'), attributeAgeBasis: s.attributeAgeBasis ?? s.age, mind: { ...legacyMind, investigated: new Set(legacyMind.investigated ?? []), plan: legacyMind.plan?.some((a: import('../core/types').Action) => a.data?.productionOpportunity) ? legacyMind.plan : [], intention: null } } as Person;
       const existing = world.person(s.id);
       if (existing) Object.assign(existing, restored); else world.add(restored);
     }
@@ -266,10 +266,10 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
       if (existing) Object.assign(existing, restored); else world.add(restored);
     }
     world.conflicts = (data.conflicts ?? []).map((c: Conflict) => ({ ...c }));
-    if (data.fields?.length) { world.fields = data.fields.map((f: Field) => ({ ...f, plots: f.plots.map(p => ({ ...p })) })); }
+    if (Array.isArray(data.fields)) { world.fields = data.fields.map((f: Field) => ({ ...f, plots: f.plots.map(p => ({ ...p })) })); }
     world.haulTasks = (data.haulTasks ?? []).map((t: HaulTask) => ({ ...t }));
-    if (data.resourceNodes?.length) world.resourceNodes = data.resourceNodes.map((n: ResourceNode) => ({ ...n, pos: { ...n.pos }, blocks: n.blocks.map(b => ({ ...b })) }));
-    if (data.constructionProjects?.length) world.constructionProjects = data.constructionProjects.map((p: ConstructionProject) => ({ ...p, required: p.required.map(r => ({ ...r })), contributions: { ...p.contributions }, siteBounds: { ...p.siteBounds } }));
+    if (Array.isArray(data.resourceNodes)) world.resourceNodes = data.resourceNodes.map((n: ResourceNode) => ({ ...n, pos: { ...n.pos }, blocks: n.blocks.map(b => ({ ...b })) }));
+    if (Array.isArray(data.constructionProjects)) world.constructionProjects = data.constructionProjects.map((p: ConstructionProject) => ({ ...p, required: p.required.map(r => ({ ...r })), contributions: { ...p.contributions }, siteBounds: { ...p.siteBounds } }));
     world.requests = (data.requests ?? []).map((r: Request) => ({ ...r, payload: { ...r.payload } }));
     // v0.8: same pattern as `resourceNodes`/`constructionProjects` above — fires are pre-
     // registered by `generateVillage` (just called), so an old, pre-v0.8 save with no `data.fires`

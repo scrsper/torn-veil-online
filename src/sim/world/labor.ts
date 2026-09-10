@@ -319,11 +319,13 @@ export function workAuthorization(world: World, p: Person, place: Place | undefi
  * read the worker's proficiency for their yield, and the caller has already asked
  * `workAuthorization` whether this person may be working here at all.
  */
-export function runTradeBatch(world: World, worker: Person, post: TradePost): TransformResult {
+export function runTradeBatch(world: World, worker: Person, post: TradePost, laborSeconds?: number): TransformResult {
+  const cause = worker.mind.goal?.causeEvent;
+  const context = { placeId: post.place.id, causes: cause && world.event(cause) ? [cause] : [], laborSeconds };
   switch (post.process.placeType) {
-    case 'mill': return mill(world, worker);
-    case 'bakery': return bake(world, worker);
-    case 'sawpit': return saw(world, worker);
+    case 'mill': return mill(world, worker, context);
+    case 'bakery': return bake(world, worker, context);
+    case 'sawpit': return saw(world, worker, context);
     // The hearth first, then the pot. Tending it is part of doing the work, not part of being
     // called a cook — which is what it was gated on before (`p.occupation === 'cook'`).
     case 'tavern':

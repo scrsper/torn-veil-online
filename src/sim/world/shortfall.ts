@@ -58,7 +58,7 @@ export function shortfallKey(placeId: EntityId, resource: ItemType): string { re
  * existing belief is reconfirmed in place — a mind that keeps finding the bin empty becomes more
  * certain of it, not more forgetful).
  */
-export function noteWorkBlocked(world: World, worker: Person, placeId: EntityId, resource: ItemType, making: ItemType): KnowledgeItem | null {
+export function noteWorkBlocked(world: World, worker: Person, placeId: EntityId, resource: ItemType, making: ItemType, laborSeconds?: number): KnowledgeItem | null {
   const key = shortfallKey(placeId, resource);
   const existing: KnowledgeItem | undefined = worker.knowledge[key];
   // Only my own already-recorded attempt can be quietly reconfirmed. Trying work after
@@ -73,9 +73,10 @@ export function noteWorkBlocked(world: World, worker: Person, placeId: EntityId,
   const place = world.place(placeId);
   const pos = body ? { ...body.pos } : place ? { ...place.inside } : undefined;
   const ev = world.emit('work_blocked', {
+    causes: worker.mind.goal?.causeEvent && world.event(worker.mind.goal.causeEvent) ? [worker.mind.goal.causeEvent] : [],
     actor: worker.id, target: worker.id, placeId, pos,
     significance: WORK_BLOCKED_SIGNIFICANCE, visibility: WORK_BLOCKED_VISIBILITY,
-    data: { need: resource, making, trade: worker.occupation },
+    data: { need: resource, making, trade: worker.occupation, ...(laborSeconds === undefined ? {} : { laborSeconds }) },
     summary: `${worker.name} could not make ${making} at ${world.nameOf(placeId)}: there is no ${resource}`,
   });
   const claim = {

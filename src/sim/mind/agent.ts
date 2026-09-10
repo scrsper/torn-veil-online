@@ -1,5 +1,6 @@
 import { localPlaces, near, knownPlaceForPerson } from '../world/locality';
 import { inventionGoals, inventionPlan, actOnMechanism, dismantleFailed } from './invention';
+import { observeProduction, productionWorkGoals } from './productionOpportunity';
 import { applyInjury } from '../physical/injury';
 import { resolveCombatAttack, combatReach, type CombatAttackIntent, type CombatAttackResult } from '../physical/combat';
 import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, ItemType, KnowledgeItem, Creature, Place, Anchor, ConflictIntent, Conflict, ConflictCause } from '../core/types';
@@ -1110,7 +1111,9 @@ export class Simulation {
       const resumeCand = cands.find(c => c.key === m.commitment!.goalKey);
       if (resumeCand) resumeCand.utility = clamp(resumeCand.utility + 0.4);
     }
-    for (const goal of inventionGoals(w, p)) G(goal.type!, goal.utility!, goal.reasons!, { ...goal, key: `${goal.type}:${goal.data?.needKey ?? goal.targetEntity}` });
+    const productionOpportunities = !threat ? observeProduction(w, p) : [];
+    for (const goal of [...productionWorkGoals(w, p, productionOpportunities), ...(!threat ? inventionGoals(w, p, productionOpportunities) : [])])
+      G(goal.type!, goal.utility!, goal.reasons!, { ...goal, key: `${goal.type}:${goal.data?.needKey ?? goal.targetEntity ?? goal.targetPlace}` });
     // v0.10: two different motivations can legitimately propose the SAME errand — a welfare
     // concern's own `check_on` and a `tend` purpose's next step are literally the same walk to
     // the same door. Collapse candidates by key, keeping the strongest case and merging the
@@ -1370,6 +1373,10 @@ export class Simulation {
       }
       case 'work': {
         const pl = place;
+        if (g.data?.productionOpportunity) {
+          // One ordinary batch, paid in elapsed labor before output, then reconsider demand.
+          return [A({ type: 'goto', pos: pl!.inside, placeId: pl!.id }), A({ type: 'work', pos: pl!.inside, placeId: pl!.id, data: { productionOpportunity: true, requestId: g.data.requestId } })];
+        }
         // A hunter's known forest shift is actual extraction, with the same work time and
         // finite resource as any gather action. Generic work at a sales stall cannot hunt.
         const game = p.occupation === 'hunter' && pl?.type === 'wilderness'
@@ -1713,7 +1720,7 @@ export class Simulation {
           const batchInterval = process
             ? Math.max(3 * 60, tradeBatchSeconds(process.baseBatchSeconds / bakeRateMult / Math.max(0.35, tooling?.cap.workRate ?? 1), proficiency))
             : 8 * 60;
-          const last = (a.data.batchAt ?? (a.startedAt ?? w.now) - batchInterval) as number;
+          const last = (a.data.batchAt ?? (a.startedAt ?? w.now) - (a.data.productionOpportunity ? 0 : batchInterval)) as number;
           if (w.now - last >= batchInterval) {
             a.data.batchAt = w.now;
             // v0.6 §VIII: milling converted from unconditional cadence production to the same
@@ -1738,17 +1745,18 @@ export class Simulation {
             // person's standing at a place cannot meaningfully change between two batches.
             const runBatch = (placeId: string, input: ItemType, output: ItemType, run: () => TransformResult, onProduced?: () => void) => {
               const req = claimedProductionRequest(w, placeId, output, p.id);
-              if (!req) return;
+              if (!req) { if (a.data?.productionOpportunity) a.status = 'done'; return; }
               const result = run();
               fulfillProductionRequest(w, req, p, result.ok);
+              if (a.data?.productionOpportunity) a.status = 'done';
               if (result.ok) { clearShortfall(w, p, placeId, input); onProduced?.(); }
-              else if (result.shortage) noteWorkBlocked(w, p, placeId, result.shortage, output);
+              else if (result.shortage) noteWorkBlocked(w, p, placeId, result.shortage, output, a.data?.productionOpportunity ? batchInterval / w.clock.timeScale : undefined);
             };
             const auth = process ? workAuthorization(w, p, herePlace) : null;
             if (auth) {
               const { post } = auth;
               const skillBefore = skillOf(p, post.process.skill);
-              runBatch(post.place.id, post.process.input, post.process.output, () => runTradeBatch(w, p, post), () => {
+              runBatch(post.place.id, post.process.input, post.process.output, () => runTradeBatch(w, p, post, a.data?.productionOpportunity ? batchInterval / w.clock.timeScale : undefined), () => {
                 // Somebody who is not this place's worker just got real output out of it. The
                 // record is opened only now, AFTER the fact, which is what keeps it provenance
                 // rather than permission — see `WorkStint` in core/types.ts.
@@ -1768,7 +1776,7 @@ export class Simulation {
               // Whoever is ahead teaches; instruction grants no proficiency, it only makes the
               // practice that follows count for more.
               maybeTeachAt(w, p, post.process.skill, post.place.id);
-            }
+            } else if (a.data?.productionOpportunity) a.status = 'failed';
             // KEEPING THE PLACE, which is not the same thing as working its trade and no longer
             // excludes it. These used to be `else if` arms of the branch above, which was harmless
             // only while the sole places with a `TradeProcess` were the mill and the bakery, where
@@ -1792,7 +1800,7 @@ export class Simulation {
             else if (p.occupation === 'herbalist') gatherHerbs(w, p);
           }
         }
-        if (this.elapsed(a)) a.status = 'done';
+        if (!a.data?.productionOpportunity && this.elapsed(a)) a.status = 'done';
         break;
       }
       case 'drink': {

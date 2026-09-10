@@ -3,7 +3,7 @@ import { fireIntensityAt } from './fire';
 import { economicOperatorFor } from './trade';
 import { nearestAvailableNode, extractFromNode } from './resources';
 import { localPlaces, near, placeForPerson } from './locality';
-import type { CropPlot, CropState, Field, Item, ItemType, Person, Vec3, EntityId, EventId } from '../core/types';
+import type { CropPlot, CropState, Field, Item, ItemType, Person, Vec3, EntityId, EventId, PlaceType } from '../core/types';
 import type { World } from '../core/world';
 import { B } from '../physical/blocks';
 import { makeItem, RESOURCE_CATEGORY, isFood, isPerishable, SPOIL_RATE_PER_DAY, ITEM_VALUE } from './factory';
@@ -260,6 +260,24 @@ const retireItem = retireStack;
 
 export interface TransformResult { ok: boolean; produced: number; consumed: number; shortage?: ItemType; eventId?: EventId; }
 
+/** An action at a particular post must use that post's inputs and output bin. Legacy direct
+ * callers retain their settlement lookup; an explicit post additionally requires bodily reach. */
+export interface TradeBatchContext { placeId: EntityId; causes?: EventId[]; laborSeconds?: number }
+function batchPlace(world: World, p: Person, type: PlaceType, context?: TradeBatchContext): EntityId | undefined {
+  if (!context) return placeForPerson(world, p, type)?.id;
+  const place = world.place(context.placeId);
+  return place?.type === type && p.alive && p.bodies.some(id => {
+    const b = world.body(id);
+    return b?.present && !b.dead && near(b.pos, place.inside, 3)
+      && world.grid.lineOfSight({ ...b.pos, y: b.pos.y + 1 }, { ...place.inside, y: place.inside.y + 1 }, 16);
+  }) ? place.id : undefined;
+}
+
+function batchStockOwner(world: World, placeId: EntityId, type: ItemType, worker: Person): EntityId | null {
+  const operator = economicOperatorFor(world, placeId) ?? worker.id;
+  return world.itemsAtPlaces([placeId]).some(i => i.type === type && !i.holderId && i.quantity > 0 && i.ownerId === operator) ? operator : null;
+}
+
 /**
  * A conservation-respecting resource transformation: consume `inputQty` of `inputType` from
  * `inputPlaces`, produce `outputQty` of `outputType` at `outputPlace`. If the input is not
@@ -270,12 +288,13 @@ export function transform(world: World, o: {
   actor: EntityId; inputType: ItemType; inputQty: number; inputPlaces: EntityId[];
   outputType: ItemType; outputQty: number; outputPlace: EntityId; ownerId: EntityId | null; how: string;
   /** Optional strict title boundary for compositional production; legacy callers unchanged. */
-  inputOwner?: EntityId | null; causes?: EventId[];
+  inputOwner?: EntityId | null; causes?: EventId[]; laborSeconds?: number;
 }): TransformResult {
   const available = o.inputOwner === undefined ? stockTotal(world, o.inputType, o.inputPlaces)
     : world.itemsAtPlaces(o.inputPlaces).filter(i => i.type === o.inputType && !i.holderId && i.ownerId === o.inputOwner && i.quantity > 0).reduce((n, i) => n + i.quantity, 0);
   if (available < o.inputQty) {
     world.emit('resource_shortage', {
+      causes: o.causes,
       actor: o.actor, placeId: o.outputPlace, significance: 0.2,
       data: { need: o.inputType, have: available, want: o.inputQty, making: o.outputType },
       summary: `${world.nameOf(o.actor)} could not make ${o.outputType}: only ${available} ${o.inputType}`,
@@ -286,7 +305,7 @@ export function transform(world: World, o: {
   const ev = world.emit('resource_transformed', {
     causes: o.causes,
     actor: o.actor, placeId: o.outputPlace, significance: 0.15,
-    data: { from: o.inputType, fromQty: consumed, to: o.outputType, toQty: o.outputQty, how: o.how },
+    data: { from: o.inputType, fromQty: consumed, to: o.outputType, toQty: o.outputQty, how: o.how, ...(o.laborSeconds === undefined ? {} : { laborSeconds: o.laborSeconds }) },
     summary: `${world.nameOf(o.actor)} turned ${consumed} ${o.inputType} into ${o.outputQty} ${o.outputType} (${o.how})`,
   });
   addPlaceStock(world, o.outputType, o.outputQty, o.outputPlace, o.ownerId, ev.id, o.how);
@@ -305,8 +324,8 @@ export function villageStock(world: World, type: ItemType, pos?: Vec3): number {
  * logistics need to haul grain there is raised on the next upkeep pass. Still demand-driven:
  * nothing runs once the village has plenty of flour.
  */
-export function mill(world: World, miller: Person): TransformResult {
-  const millId = placeForPerson(world, miller, 'mill')?.id;
+export function mill(world: World, miller: Person, context?: TradeBatchContext): TransformResult {
+  const millId = batchPlace(world, miller, 'mill', context);
   if (!millId) return { ok: false, produced: 0, consumed: 0 };
   if (villageStock(world, 'flour', world.place(millId)?.inside) >= FLOUR_CAP) return { ok: false, produced: 0, consumed: 0 };
   // Quiet no-op when the input simply hasn't been delivered yet — that is not a "shortage",
@@ -319,7 +338,7 @@ export function mill(world: World, miller: Person): TransformResult {
   // when this was introduced. Never zero: a batch that produced literally nothing would read to
   // the rest of the simulation as a material shortage, which would be a lie about the world.
   const out = tradeYield(MILL_RATIO.out, skillOf(miller, 'milling'));
-  const result = transform(world, { actor: miller.id, inputType: 'grain', inputQty: MILL_RATIO.in, inputPlaces: [millId], outputType: 'flour', outputQty: out, outputPlace: millId, ownerId: economicOperatorFor(world, millId) ?? miller.id, how: 'milled' });
+  const result = transform(world, { actor: miller.id, inputType: 'grain', inputQty: MILL_RATIO.in, inputPlaces: [millId], outputType: 'flour', outputQty: out, outputPlace: millId, ownerId: economicOperatorFor(world, millId) ?? miller.id, how: 'milled', causes: context?.causes, laborSeconds: context?.laborSeconds, inputOwner: context ? batchStockOwner(world, millId, 'grain', miller) : undefined });
   // ...and the work itself is how anybody ever stops being a novice. One real batch, one unit of
   // practice — the same rule baking and sawing have followed since v0.6, applied to the trade
   // that until now had no learned capability behind it at all.
@@ -331,8 +350,8 @@ export function mill(world: World, miller: Person): TransformResult {
  * One baking batch. v0.3 Priority 3: the bakery consumes ONLY flour physically at the bakery
  * (hauled from the mill). It cannot bake from flour still sitting at the mill.
  */
-export function bake(world: World, baker: Person): TransformResult {
-  const bakeryId = placeForPerson(world, baker, 'bakery')?.id;
+export function bake(world: World, baker: Person, context?: TradeBatchContext): TransformResult {
+  const bakeryId = batchPlace(world, baker, 'bakery', context);
   if (!bakeryId) return { ok: false, produced: 0, consumed: 0 };
   if (villageStock(world, 'bread', world.place(bakeryId)?.inside) >= BREAD_CAP) return { ok: false, produced: 0, consumed: 0 };
   if (stockAtPlace(world, 'flour', bakeryId) < BAKE_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'flour' };
@@ -340,7 +359,7 @@ export function bake(world: World, baker: Person): TransformResult {
   // `TRADE_BASELINE`, so the bakery's real output is untouched; somebody standing in for them is
   // measurably worse at it.
   const out = tradeYield(BAKE_RATIO.out, skillOf(baker, 'baking'));
-  const result = transform(world, { actor: baker.id, inputType: 'flour', inputQty: BAKE_RATIO.in, inputPlaces: [bakeryId], outputType: 'bread', outputQty: out, outputPlace: bakeryId, ownerId: economicOperatorFor(world, bakeryId) ?? baker.id, how: 'baked' });
+  const result = transform(world, { actor: baker.id, inputType: 'flour', inputQty: BAKE_RATIO.in, inputPlaces: [bakeryId], outputType: 'bread', outputQty: out, outputPlace: bakeryId, ownerId: economicOperatorFor(world, bakeryId) ?? baker.id, how: 'baked', causes: context?.causes, laborSeconds: context?.laborSeconds, inputOwner: context ? batchStockOwner(world, bakeryId, 'flour', baker) : undefined });
   if (result.ok) practiceSkill(baker, 'baking', 1); // v0.6 §V.9: one real batch = one unit of practice
   return result;
 }
@@ -369,12 +388,12 @@ export function plankCapFor(world: World, pos?: Vec3): number {
  * non-food production chain, reusing the same conservation-respecting `transform`. Demand-driven
  * via a real plank cap tracking open construction demand (see `plankCapFor`), not a flat number.
  */
-export function saw(world: World, sawyer: Person): TransformResult {
-  const sawpitId = placeForPerson(world, sawyer, 'sawpit')?.id;
+export function saw(world: World, sawyer: Person, context?: TradeBatchContext): TransformResult {
+  const sawpitId = batchPlace(world, sawyer, 'sawpit', context);
   if (!sawpitId) return { ok: false, produced: 0, consumed: 0 };
   if (stockTotal(world, 'plank', [sawpitId]) >= plankCapFor(world, world.place(sawpitId)?.inside)) return { ok: false, produced: 0, consumed: 0 };
   if (stockAtPlace(world, 'log', sawpitId) < SAW_RATIO.in) return { ok: false, produced: 0, consumed: 0, shortage: 'log' };
-  const result = transform(world, { actor: sawyer.id, inputType: 'log', inputQty: SAW_RATIO.in, inputPlaces: [sawpitId], outputType: 'plank', outputQty: SAW_RATIO.out, outputPlace: sawpitId, ownerId: economicOperatorFor(world, sawpitId) ?? sawyer.id, how: 'sawn' });
+  const result = transform(world, { actor: sawyer.id, inputType: 'log', inputQty: SAW_RATIO.in, inputPlaces: [sawpitId], outputType: 'plank', outputQty: SAW_RATIO.out, outputPlace: sawpitId, ownerId: economicOperatorFor(world, sawpitId) ?? sawyer.id, how: 'sawn', causes: context?.causes, laborSeconds: context?.laborSeconds, inputOwner: context ? batchStockOwner(world, sawpitId, 'log', sawyer) : undefined });
   if (result.ok) practiceSkill(sawyer, 'sawing', 1);
   return result;
 }
