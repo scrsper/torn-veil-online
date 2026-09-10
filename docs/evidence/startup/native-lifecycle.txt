@@ -1,0 +1,120 @@
+[2026.09.10-23.34.05:961][489]LogTemp: Display: TV_BRIDGE connecting; regional protocol=2 text_limit=262144
+[2026.09.10-23.34.06:043][490]LogTemp: Display: TV_BRIDGE connected
+[2026.09.10-23.34.06:043][490]LogTemp: Display: TV_BRIDGE received hello controls=1 player=p_128
+[2026.09.10-23.34.06:043][490]LogTemp: Display: TV_BRIDGE received scene chars=227
+[2026.09.10-23.34.06:044][490]LogTemp: Display: TV_BRIDGE received snapshot; bound player=p_128 body=b_128 pawn=TVCharacter_0 pos=X=2250.000 Y=19750.000 Z=1690.000
+[2026.09.10-23.34.06:099][491]LogTemp: Display: TV_BRIDGE region state center=47,53 wanted=9 origin=X=12032.000 Y=0.000 Z=13568.000
+[2026.09.10-23.34.06:115][493]LogTemp: Display: TV_BRIDGE canonical LIVE snapshot_age=0.016 transport=1
+[2026.09.10-23.34.07:186][615]LogTemp: Display: TV_BRIDGE received presentation transfer=1 region=47,53 bytes=522704 chunks=8
+[2026.09.10-23.34.07:245][616]LogTemp: Display: TV_BRIDGE applied transfer=1 region=47,53 resident=1 snapshot_age=0.030
+[2026.09.10-23.34.07:258][616]LogTemp: Display: TV_STARTUP_TEST native key=W pressed seconds=2.00
+[2026.09.10-23.34.07:393][629]LogTemp: Display: TV_BRIDGE move intent active=1 x=1.00 z=0.00
+[2026.09.10-23.34.07:441][634]LogTemp: Display: TV_BRIDGE received presentation transfer=2 region=46,53 bytes=32038 chunks=1
+[2026.09.10-23.34.07:447][635]LogTemp: Display: TV_BRIDGE applied transfer=2 region=46,53 resident=2 snapshot_age=0.013
+[2026.09.10-23.34.07:562][646]LogTemp: Display: TV_BRIDGE received presentation transfer=3 region=47,52 bytes=28238 chunks=1
+[2026.09.10-23.34.07:567][647]LogTemp: Display: TV_BRIDGE applied transfer=3 region=47,52 resident=3 snapshot_age=0.014
+[2026.09.10-23.34.08:932][782]LogTemp: Display: TV_BRIDGE received presentation transfer=4 region=47,54 bytes=710093 chunks=11
+[2026.09.10-23.34.08:946][783]LogTemp: Display: TV_BRIDGE applied transfer=4 region=47,54 resident=4 snapshot_age=0.031
+[2026.09.10-23.34.09:344][824]LogTemp: Display: TV_STARTUP_TEST native key=W released
+[2026.09.10-23.34.09:394][829]LogTemp: Display: TV_BRIDGE move intent active=0 x=0.00 z=0.00
+[2026.09.10-23.34.10:105][897]LogTemp: Display: TV_BRIDGE received presentation transfer=5 region=48,53 bytes=526048 chunks=9
+[2026.09.10-23.34.10:115][898]LogTemp: Display: TV_BRIDGE applied transfer=5 region=48,53 resident=5 snapshot_age=0.029
+[2026.09.10-23.34.10:190][904]LogTemp: Display: TV_BRIDGE received presentation transfer=6 region=46,52 bytes=27851 chunks=1
+[2026.09.10-23.34.10:195][905]LogTemp: Display: TV_BRIDGE applied transfer=6 region=46,52 resident=6 snapshot_age=0.018
+[2026.09.10-23.34.10:316][913]LogTemp: Display: TV_BRIDGE received presentation transfer=7 region=46,54 bytes=45967 chunks=1
+[2026.09.10-23.34.10:321][914]LogTemp: Display: TV_BRIDGE applied transfer=7 region=46,54 resident=7 snapshot_age=0.019
+[2026.09.10-23.34.10:400][919]LogTemp: Display: TV_BRIDGE received presentation transfer=8 region=48,52 bytes=27987 chunks=1
+[2026.09.10-23.34.10:405][920]LogTemp: Display: TV_BRIDGE applied transfer=8 region=48,52 resident=8 snapshot_age=0.004
+[2026.09.10-23.34.11:753][ 17]LogTemp: Display: TV_BRIDGE received presentation transfer=9 region=48,54 bytes=685708 chunks=11
+[2026.09.10-23.34.11:762][ 18]LogTemp: Display: TV_BRIDGE applied transfer=9 region=48,54 resident=9 snapshot_age=0.028
+[2026.09.10-23.34.11:834][ 23]LogTemp: Display: TV_BRIDGE received presentation transfer=10 region= bytes=57986 chunks=1
+[2026.09.10-23.34.11:840][ 24]LogTemp: Display: TV_BRIDGE applied transfer=10 region= resident=9 snapshot_age=0.005
+[2026.09.10-23.34.17:401][363]LogPython: STARTUP_PIE_VERIFIED {"map": "/Game/TornVeil/Maps/UEDPIE_0_TornVeilWorld.TornVeilWorld", "status": "LIVE  |  0 visible people  |  t 1526.7s", "live": true, "controls": true, "snapshotAge": 0.04773540049791336, "snapshots": 89, "regions": 9, "center": "47,53", "playerId": "p_128", "controlledBodyId": "b_128", "canonicalPosition": {"x": 12059.770000000002, "y": 16, "z": 13765.5}, "worldTick": 1526.7999999991591, "ack": 186, "pawn": "TVCharacter_0", "unrealPosition": {"x": 2776.9993147458767, "y": 19750.0, "z": 1690.0}, "reconciliationErrorCm": 0.0006852543488093943, "movementMode": "<MovementMode.MOVE_NONE: 0>", "centerTerrainSections": 1}
+[2026.09.10-23.34.21:490][645]LogTemp: Display: TV_BRIDGE received presentation transfer=11 region= bytes=57986 chunks=1
+[2026.09.10-23.34.21:497][646]LogTemp: Display: TV_BRIDGE applied transfer=11 region= resident=9 snapshot_age=0.005
+[2026.09.10-23.34.33:236][436]LogTemp: Display: TV_BRIDGE received presentation transfer=12 region= bytes=57985 chunks=1
+[2026.09.10-23.34.33:242][437]LogTemp: Display: TV_BRIDGE applied transfer=12 region= resident=9 snapshot_age=0.019
+[2026.09.10-23.34.34:300][507]LogTemp: Display: TV_BRIDGE received presentation transfer=13 region= bytes=58068 chunks=1
+[2026.09.10-23.34.34:307][508]LogTemp: Display: TV_BRIDGE applied transfer=13 region= resident=9 snapshot_age=0.005
+[2026.09.10-23.34.37:400][714]LogTemp: Display: TV_STARTUP_TEST native key=A pressed seconds=2.00
+[2026.09.10-23.34.37:431][717]LogTemp: Display: TV_BRIDGE move intent active=1 x=0.00 z=-1.00
+[2026.09.10-23.34.38:177][764]LogPython: STARTUP_PIE_VERIFIED {"map": "/Game/TornVeil/Maps/UEDPIE_0_TornVeilWorld.TornVeilWorld", "status": "LIVE  |  0 visible people  |  t 1544.2s", "live": true, "controls": true, "snapshotAge": 0.06029750034213066, "snapshots": 264, "regions": 9, "center": "47,53", "playerId": "p_128", "controlledBodyId": "b_128", "canonicalPosition": {"x": 12059.770000000002, "y": 16, "z": 13763.46}, "worldTick": 1544.2999999991432, "ack": 516, "pawn": "TVCharacter_0", "unrealPosition": {"x": 2777.0000000002256, "y": 19599.257482944864, "z": 1690.0}, "reconciliationErrorCm": 53.257482944951335, "movementMode": "<MovementMode.MOVE_NONE: 0>", "centerTerrainSections": 1}
+[2026.09.10-23.34.39:393][832]LogTemp: Display: TV_STARTUP_TEST native key=A released
+[2026.09.10-23.34.39:454][836]LogTemp: Display: TV_BRIDGE move intent active=0 x=0.00 z=0.00
+[2026.09.10-23.34.44:995][206]LogTemp: Display: TV_BRIDGE received presentation transfer=14 region= bytes=58068 chunks=1
+[2026.09.10-23.34.45:002][207]LogTemp: Display: TV_BRIDGE applied transfer=14 region= resident=9 snapshot_age=0.006
+[2026.09.10-23.34.49:464][506]LogTemp: Display: TV_STARTUP_TEST native key=S pressed seconds=2.00
+[2026.09.10-23.34.49:509][510]LogTemp: Display: TV_BRIDGE move intent active=1 x=-1.00 z=0.00
+[2026.09.10-23.34.51:452][640]LogTemp: Display: TV_STARTUP_TEST native key=S released
+[2026.09.10-23.34.51:482][642]LogTemp: Display: TV_BRIDGE move intent active=0 x=0.00 z=0.00
+[2026.09.10-23.34.55:802][931]LogTemp: Display: TV_BRIDGE received presentation transfer=15 region= bytes=58145 chunks=1
+[2026.09.10-23.34.55:809][932]LogTemp: Display: TV_BRIDGE applied transfer=15 region= resident=9 snapshot_age=0.019
+[2026.09.10-23.34.57:949][ 74]LogTemp: Display: TV_BRIDGE received presentation transfer=16 region= bytes=58146 chunks=1
+[2026.09.10-23.34.57:955][ 75]LogTemp: Display: TV_BRIDGE applied transfer=16 region= resident=9 snapshot_age=0.019
+[2026.09.10-23.35.09:806][869]LogTemp: Display: TV_BRIDGE received presentation transfer=17 region= bytes=58146 chunks=1
+[2026.09.10-23.35.09:812][870]LogTemp: Display: TV_BRIDGE applied transfer=17 region= resident=9 snapshot_age=0.005
+[2026.09.10-23.35.21:614][660]LogTemp: Display: TV_BRIDGE received presentation transfer=18 region= bytes=58228 chunks=1
+[2026.09.10-23.35.21:622][661]LogTemp: Display: TV_BRIDGE applied transfer=18 region= resident=9 snapshot_age=0.005
+[2026.09.10-23.35.33:424][448]LogTemp: Display: TV_BRIDGE received presentation transfer=19 region= bytes=58228 chunks=1
+[2026.09.10-23.35.33:431][449]LogTemp: Display: TV_BRIDGE applied transfer=19 region= resident=9 snapshot_age=0.005
+[2026.09.10-23.35.43:625][129]LogTemp: Display: TV_STARTUP_TEST native key=D pressed seconds=2.00
+[2026.09.10-23.35.43:628][130]LogTemp: Display: TV_BRIDGE move intent active=1 x=0.00 z=1.00
+[2026.09.10-23.35.45:317][241]LogTemp: Display: TV_BRIDGE received presentation transfer=20 region= bytes=58228 chunks=1
+[2026.09.10-23.35.45:324][242]LogTemp: Display: TV_BRIDGE applied transfer=20 region= resident=9 snapshot_age=0.006
+[2026.09.10-23.35.45:615][261]LogTemp: Display: TV_STARTUP_TEST native key=D released
+[2026.09.10-23.35.45:674][265]LogTemp: Display: TV_BRIDGE move intent active=0 x=0.00 z=0.00
+[2026.09.10-23.35.46:383][311]LogTemp: Display: TV_BRIDGE received presentation transfer=21 region= bytes=58230 chunks=1
+[2026.09.10-23.35.46:392][312]LogTemp: Display: TV_BRIDGE applied transfer=21 region= resident=9 snapshot_age=0.006
+[2026.09.10-23.35.51:788][670]LogTemp: Display: TV_BRIDGE received presentation transfer=22 region= bytes=58312 chunks=1
+[2026.09.10-23.35.51:794][671]LogTemp: Display: TV_BRIDGE applied transfer=22 region= resident=9 snapshot_age=0.005
+[2026.09.10-23.35.58:266][101]LogTemp: Display: TV_BRIDGE received presentation transfer=23 region= bytes=58312 chunks=1
+[2026.09.10-23.35.58:273][102]LogTemp: Display: TV_BRIDGE applied transfer=23 region= resident=9 snapshot_age=0.006
+[2026.09.10-23.36.06:672][660]LogTemp: Display: TV_BRIDGE received presentation transfer=24 region= bytes=58390 chunks=1
+[2026.09.10-23.36.06:679][661]LogTemp: Display: TV_BRIDGE applied transfer=24 region= resident=9 snapshot_age=0.005
+[2026.09.10-23.36.09:810][867]LogTemp: Display: TV_BRIDGE received presentation transfer=25 region= bytes=58390 chunks=1
+[2026.09.10-23.36.09:816][868]LogTemp: Display: TV_BRIDGE applied transfer=25 region= resident=9 snapshot_age=0.005
+[2026.09.10-23.36.10:860][936]LogTemp: Display: TV_BRIDGE received presentation transfer=26 region= bytes=58471 chunks=1
+[2026.09.10-23.36.10:868][937]LogTemp: Display: TV_BRIDGE applied transfer=26 region= resident=9 snapshot_age=0.005
+[2026.09.10-23.36.21:608][650]LogTemp: Display: TV_BRIDGE received presentation transfer=27 region= bytes=58472 chunks=1
+[2026.09.10-23.36.21:614][651]LogTemp: Display: TV_BRIDGE applied transfer=27 region= resident=9 snapshot_age=0.005
+[2026.09.10-23.36.32:282][356]LogTemp: Display: TV_BRIDGE PIE ending; releasing controller
+[2026.09.10-23.36.51:112][600]LogTemp: Display: TV_BRIDGE connecting; regional protocol=2 text_limit=262144
+[2026.09.10-23.36.51:194][601]LogTemp: Display: TV_BRIDGE connected
+[2026.09.10-23.36.51:194][601]LogTemp: Display: TV_BRIDGE received hello controls=1 player=p_128
+[2026.09.10-23.36.51:195][601]LogTemp: Display: TV_BRIDGE received scene chars=227
+[2026.09.10-23.36.51:195][602]LogTemp: Display: TV_BRIDGE received snapshot; bound player=p_128 body=b_128 pawn=TVCharacter_0 pos=X=2233.000 Y=19750.000 Z=1690.000
+[2026.09.10-23.36.51:202][602]LogTemp: Display: TV_BRIDGE canonical LIVE snapshot_age=0.008 transport=1
+[2026.09.10-23.36.51:254][603]LogTemp: Display: TV_BRIDGE region state center=47,53 wanted=9 origin=X=12032.000 Y=0.000 Z=13568.000
+[2026.09.10-23.36.52:504][750]LogTemp: Display: TV_BRIDGE received presentation transfer=1 region=47,53 bytes=523108 chunks=8
+[2026.09.10-23.36.52:524][751]LogTemp: Display: TV_BRIDGE applied transfer=1 region=47,53 resident=1 snapshot_age=0.030
+[2026.09.10-23.36.52:666][765]LogTemp: Display: TV_BRIDGE received presentation transfer=2 region=46,53 bytes=32038 chunks=1
+[2026.09.10-23.36.52:670][766]LogTemp: Display: TV_BRIDGE applied transfer=2 region=46,53 resident=2 snapshot_age=0.015
+[2026.09.10-23.36.52:873][785]LogTemp: Display: TV_BRIDGE received presentation transfer=3 region=47,52 bytes=28238 chunks=1
+[2026.09.10-23.36.52:878][786]LogTemp: Display: TV_BRIDGE applied transfer=3 region=47,52 resident=3 snapshot_age=0.016
+[2026.09.10-23.36.54:741][972]LogTemp: Display: TV_BRIDGE received presentation transfer=4 region=47,54 bytes=710257 chunks=11
+[2026.09.10-23.36.54:753][973]LogTemp: Display: TV_BRIDGE applied transfer=4 region=47,54 resident=4 snapshot_age=0.031
+[2026.09.10-23.36.56:086][104]LogTemp: Display: TV_BRIDGE received presentation transfer=5 region=48,53 bytes=526047 chunks=9
+[2026.09.10-23.36.56:100][105]LogTemp: Display: TV_BRIDGE applied transfer=5 region=48,53 resident=5 snapshot_age=0.027
+[2026.09.10-23.36.56:198][113]LogTemp: Display: TV_BRIDGE received presentation transfer=6 region=46,52 bytes=27851 chunks=1
+[2026.09.10-23.36.56:202][114]LogTemp: Display: TV_BRIDGE applied transfer=6 region=46,52 resident=6 snapshot_age=0.017
+[2026.09.10-23.36.56:323][122]LogTemp: Display: TV_BRIDGE received presentation transfer=7 region=46,54 bytes=45967 chunks=1
+[2026.09.10-23.36.56:327][123]LogTemp: Display: TV_BRIDGE applied transfer=7 region=46,54 resident=7 snapshot_age=0.004
+[2026.09.10-23.36.56:447][131]LogTemp: Display: TV_BRIDGE received presentation transfer=8 region=48,52 bytes=27988 chunks=1
+[2026.09.10-23.36.56:451][132]LogTemp: Display: TV_BRIDGE applied transfer=8 region=48,52 resident=8 snapshot_age=0.004
+[2026.09.10-23.36.57:897][235]LogTemp: Display: TV_BRIDGE received presentation transfer=9 region=48,54 bytes=685709 chunks=11
+[2026.09.10-23.36.57:907][236]LogTemp: Display: TV_BRIDGE applied transfer=9 region=48,54 resident=9 snapshot_age=0.029
+[2026.09.10-23.36.57:979][241]LogTemp: Display: TV_BRIDGE received presentation transfer=10 region= bytes=58554 chunks=1
+[2026.09.10-23.36.57:985][242]LogTemp: Display: TV_BRIDGE applied transfer=10 region= resident=9 snapshot_age=0.005
+[2026.09.10-23.37.01:211][453]LogTemp: Display: TV_BRIDGE received presentation transfer=11 region= bytes=58636 chunks=1
+[2026.09.10-23.37.01:220][454]LogTemp: Display: TV_BRIDGE applied transfer=11 region= resident=9 snapshot_age=0.005
+[2026.09.10-23.37.13:100][247]LogTemp: Display: TV_BRIDGE received presentation transfer=12 region= bytes=58635 chunks=1
+[2026.09.10-23.37.13:106][248]LogTemp: Display: TV_BRIDGE applied transfer=12 region= resident=9 snapshot_age=0.006
+[2026.09.10-23.37.25:566][ 79]LogTemp: Display: TV_BRIDGE received presentation transfer=13 region= bytes=58636 chunks=1
+[2026.09.10-23.37.25:574][ 80]LogTemp: Display: TV_BRIDGE applied transfer=13 region= resident=9 snapshot_age=0.005
+[2026.09.10-23.37.30:504][405]LogPython: STARTUP_PIE_VERIFIED {"map": "/Game/TornVeil/Maps/UEDPIE_0_TornVeilWorld.TornVeilWorld", "status": "LIVE  |  0 visible people  |  t 1683.5s", "live": true, "controls": true, "snapshotAge": 0.1841832995414734, "snapshots": 302, "regions": 9, "center": "47,53", "playerId": "p_128", "controlledBodyId": "b_128", "canonicalPosition": {"x": 12054.33, "y": 16, "z": 13765.5}, "worldTick": 1683.5999999990165, "ack": 666, "pawn": "TVCharacter_0", "unrealPosition": {"x": 2232.9999999999927, "y": 19750.0, "z": 1690.0}, "reconciliationErrorCm": 0.0, "movementMode": "<MovementMode.MOVE_NONE: 0>", "centerTerrainSections": 1}
+[2026.09.10-23.37.32:097][494]LogTemp: Display: TV_BRIDGE received presentation transfer=14 region= bytes=58718 chunks=1
+[2026.09.10-23.37.32:105][495]LogTemp: Display: TV_BRIDGE applied transfer=14 region= resident=9 snapshot_age=0.019
+[2026.09.10-23.37.39:531][984]LogTemp: Display: TV_BRIDGE received presentation transfer=15 region= bytes=58718 chunks=1
+[2026.09.10-23.37.39:538][985]LogTemp: Display: TV_BRIDGE applied transfer=15 region= resident=9 snapshot_age=0.005
+[2026.09.10-23.37.53:499][918]LogTemp: Display: TV_BRIDGE received presentation transfer=16 region= bytes=58798 chunks=1
+[2026.09.10-23.37.53:508][919]LogTemp: Display: TV_BRIDGE applied transfer=16 region= resident=9 snapshot_age=0.005

@@ -61,3 +61,9 @@
 - Quaternius/Poly Haven are replaceable prototype presentation assets. PCG grass/bush output is collision-free decoration and cannot create resources, stock, ownership or routes.
 - Playable clock rate is explicitly 6×. Save schema 24 rejects older baselines rather than silently reinterpreting them. No offline elapsed-time simulation is claimed.
 - Regional generation retains the existing primitive-education model. It does not seed a guaranteed successful mechanism merely to make a showcase pass; this remains an explicit acceptance gap.
+
+## Native startup and regional transport
+
+- Canonical liveness cannot depend on completing presentation. Hello/metadata/snapshot precede progressive center-first geometry. Regional protocol 2 bounds wire messages and assembly separately, with one acknowledged presentation chunk in flight per connection.
+- Presentation application and transport/snapshot health are distinct. Canonical motion remains in TypeScript; Unreal input expires/pauses on stale canonical state, never falls back to local physics.
+- Launch performs an incremental native build. Current source in a checkout does not prove its untracked DLL is current. A stale executable or incompatible bridge must fail visibly rather than silently entering an empty world.

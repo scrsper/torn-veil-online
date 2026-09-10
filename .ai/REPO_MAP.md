@@ -496,6 +496,7 @@ Let the task determine the search surface.
 
 - `src/sim/world/geography.ts`, `playable.ts` — versioned local-seed geography, site selection, roads and body-driven wilderness resource relevance.
 - `src/sim/physical/regionalGrid.ts` — generated substrate, inhabited patches and persistent edits; region revision counters are disposable projection metadata.
+- `src/bridge/streaming.ts` — regional protocol 2: lazy center-first transfers, bounded chunks and acknowledgement backpressure. `src/headless/bridge/playableStartup.ts` exercises the real server/native contract; `unreal/scripts/verify_startup_pie.py` and editor-only `TVStartupAutomation.cpp` verify actual PIE projection/input. See `docs/PLAYABLE_STARTUP_FIX.md`.
 - `src/bridge/regions.ts` — bounded geometry allowlist, static invalidation, semantic changes and per-connection residency.
 - `src/bridge/playableServer.ts`, `session.ts`, `server.ts` — ordinary player entry, persistent server and native input/snapshot contracts.
 - `unreal/.../TVWorldProjection.*` — runtime terrain/modular/semantic projection and non-authoritative PCG.

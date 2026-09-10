@@ -1,6 +1,13 @@
 # Playable Seeded World v0.1
 
-Branch: `codex/playable-seeded-world-v0-1`, from merged main `ed70d64`. Canonical checkpoint: `cc69d4f`. No PR or merge. Report: `docs/PLAYABLE_SEEDED_WORLD.md`; detailed journey evidence: `docs/playable-world-acceptance.json`.
+Current branch: `codex/playable-bridge-startup-fix`, from merged main `09cf24d`. No PR or merge. Original milestone report: `docs/PLAYABLE_SEEDED_WORLD.md`; detailed journey evidence: `docs/playable-world-acceptance.json`.
+
+## Startup reliability
+
+- Actual Desktop checkout loaded a stale September 7 DLL: native close 1009 at 1 MiB, caused by the 2.60 MB initial region frame preceding the snapshot. Launch now runs incremental UBT and validates bridge prerequisites/checkout diagnostics.
+- Canonical hello/scene/snapshot precede lazy center-first presentation. Regional protocol 2 uses acknowledged <=128 KiB messages, <=4 MiB assembly, separate origin/residency updates and independently applicable regions. Native receive callbacks defer application; transport, snapshot freshness and streaming are distinct.
+- Existing-save native PIE reached LIVE, rendered nine regions, and held native WASD bindings changed canonical position with local movement disabled. Same-editor PIE restart reacquired the same body; controller ownership was released on stop. World/save preserved.
+- Validation: 12 focused + 44 additional relevant regression tests passed; live socket acceptance passed; typecheck/bundle and UE builds passed. Full world suite not repeated for this bridge-only change. See `docs/PLAYABLE_STARTUP_FIX.md` and `docs/evidence/startup/`.
 
 ## Implemented
 
