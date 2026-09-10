@@ -46,6 +46,8 @@ export function introduce(world: World, speaker: Person, listener: Person, claim
   const ev = world.emit('introduction', { actor: speaker.id, target: listener.id, pos: world.positionOf(speaker.id),
     visibility: 5, loudness: 4, significance: 0.25, data: { claimedName }, summary: `${speaker.name} introduced themself as ${claimedName}` });
   learnIdentity(world, listener, speaker.id, claimedName, { type: 'told', from: speaker.id, viaEvent: ev.id });
+  remember(world, speaker, { type: 'introduction', summary: 'I introduced myself to this person', entities: [listener.id],
+    significance: 0.3, valence: 0, eventId: ev.id, source: { type: 'self', viaEvent: ev.id } });
   remember(world, listener, { type: 'introduction', summary: `This person introduced themself as ${claimedName}`, entities: [speaker.id],
     significance: 0.3, valence: 0, eventId: ev.id, source: { type: 'told', from: speaker.id, viaEvent: ev.id } });
   return true;
@@ -86,16 +88,19 @@ export function interpretSocial(world: World, observer: Person, evidence: Knowle
     const key = `social:${subject}:${family}:${characteristic}`;
     const prior = observer.knowledge[key], old = prior?.claim.social as SocialBelief | undefined;
     if (old?.evidence.some(e => e.key === evidence.key)) continue;
-    const age = Math.max(0, world.now - (prior?.learnedAt ?? world.now));
-    const decay = Math.exp(-age / (family === 'intent' ? 120 : 30 * 86400));
     const weight = direction * evidence.confidence;
-    const support = Math.max(-3, Math.min(3, (old?.support ?? 0) * decay + weight));
+    const premises = [...(old?.evidence ?? []), { key: evidence.key, event: evidence.source.viaEvent, at: world.now, weight }].slice(-12);
+    // Reconstruct the impression from remembered evidence, not an endlessly accumulated score.
+    // Premise weights retain earlier interpretations, including that observer's biases.
+    const support = Math.max(-3, Math.min(3, premises.reduce((n, premise) => n + premise.weight
+      * Math.exp(-Math.max(0, world.now - premise.at) / (family === 'intent' ? 120 : 30 * 86400)), 0)));
     // A saturated impression does not acquire another causal revision on every identical
     // work stroke. Contradiction still revises it immediately; recency can be reconfirmed.
     if (old && Math.abs(support - old.support) < 0.02) { prior.lastConfirmedAt = world.now; continue; }
-    const social: SocialBelief = { subject, family, characteristic, support,
-      evidence: [...(old?.evidence ?? []), { key: evidence.key, event: evidence.source.viaEvent, at: world.now, weight }].slice(-12) };
-    const causes = [evidence.source.viaEvent, prior?.source.viaEvent].filter((id): id is string => !!id);
+    const social: SocialBelief = { subject, family, characteristic, support, evidence: premises };
+    // These are the actual inputs to this inference. Linking every previous revision would
+    // pin an unbounded chain despite the mind remembering only twelve premises.
+    const causes = [...new Set(premises.map(p => p.event).filter((id): id is string => !!id))];
     const ev = world.emit('social_inferred', { actor: observer.id, target: subject, causes, category: 'cognition', significance: 0.2,
       data: { key, premise: evidence.key, characteristic, support }, summary: `${observer.name} revised an impression of ${knownName(observer, subject)}` });
     const confidence = Math.min(0.92, Math.abs(support) / (Math.abs(support) + 1));

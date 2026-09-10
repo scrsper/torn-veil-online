@@ -1,3 +1,4 @@
+import { introduce } from '../src/sim/mind/people';
 import { describe, expect, it } from 'vitest';
 import type { Item, Person } from '../src/sim/core/types';
 import { makeItem } from '../src/sim/world/factory';
@@ -237,7 +238,10 @@ describe('interaction: possession, ownership and what the player is told', () =>
 
     learn(tw.world, buyer, { key: `owner:${theirs.id}`, kind: 'fact', claim: { itemId: theirs.id, ownerId: keeper.id }, confidence: 1, source: { type: 'witnessed' }, summary: 'saw whose it was' });
     const after = actionsForWorldItem(tw.world, buyer, theirs).find(a => a.kind === 'steal')!;
-    expect(after.detail).toMatch(new RegExp(keeper.name));
+    expect(after.detail).toContain('unfamiliar person');
+    expect(after.detail).not.toContain(keeper.name);
+    introduce(tw.world, keeper, buyer);
+    expect(actionsForWorldItem(tw.world, buyer, theirs).find(a => a.kind === 'steal')!.detail).toContain(keeper.name);
   });
 
   it('offers recovery, not theft, once the owner has actually asked for it back', () => {
@@ -420,5 +424,19 @@ describe('item transfer integrity across a whole chain', () => {
       expect(holders.length, `${it.type} is in ${holders.length} inventories`).toBeLessThanOrEqual(1);
       if (it.holderId) expect(it.pos).toBeNull();
     }
+  });
+});
+
+
+describe('identity in ordinary item menus', () => {
+  it('does not reveal an unfamiliar seller or gift recipient through action labels', () => {
+    const { tw, keeper, buyer } = shopWorld(9032);
+    tw.world.place(tw.places.tavern)!.anchors.push({ pos: v(19, 1, 4), kind: 'display', label: 'counter' });
+    const shelf = stock(tw, keeper, 'bread', 20);
+    const held = makeItem(tw.world, 'ring', 'ring', { owner: buyer.id, holder: buyer.id });
+    expect(actionsForWorldItem(tw.world, buyer, shelf).find(a => a.kind === 'buy')!.detail).toContain('unfamiliar person');
+    expect(actionsForCarriedItem(tw.world, buyer, held, keeper).find(a => a.kind === 'give')!.label).toContain('unfamiliar person');
+    introduce(tw.world, keeper, buyer);
+    expect(actionsForWorldItem(tw.world, buyer, shelf).find(a => a.kind === 'buy')!.detail).toContain(keeper.name);
   });
 });

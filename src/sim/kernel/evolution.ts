@@ -75,7 +75,7 @@ export function workOnAssembly(world: World, p: Person, a: Assembly, task: Mecha
   const rate = (0.4 + fittingCompetence(p)) * toolWorkMultiplier('construct', tool) * physical;
   const spent = Math.min(seconds, Math.max(0, required - (progress.work ?? 0)) / rate);
   progress.work = (progress.work ?? 0) + spent * rate; progress.labor = (progress.labor ?? 0) + spent; a.laborSeconds += spent;
-  wearTool(world, tool, spent / 3600);
+  wearTool(world, tool, spent * world.clock.timeScale / 3600);
   if (progress.work < required - 1e-9) return 'working';
   let result: 'fitted' | 'damaged' = 'fitted';
   const before = a.lastEvent;

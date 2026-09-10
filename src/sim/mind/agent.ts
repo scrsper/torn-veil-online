@@ -2309,7 +2309,7 @@ export class Simulation {
     // ASK for help, exactly like `DialogueSystem.hearDesire` lets a player ask an NPC "is there
     // anything you need?" — without this, `isAuthorizedRecovery` could only ever be satisfied by
     // a player being asked directly, meaning no NPC-to-NPC recovery chain could ever complete.
-    if (!p.knowledge['identity:' + other.id] && p.traits.sociability > 0.4) introduce(w, p, other);
+    if (p.traits.sociability > 0.4 && !p.memories.some(m => m.type === 'introduction' && m.source?.type === 'self' && m.entities.includes(other.id))) introduce(w, p, other);
     if (this.maybeAskForHelp(p, other)) return;
     // share the most significant thing I know that they don't seem to know
     const share = this.pickGossip(p, other);

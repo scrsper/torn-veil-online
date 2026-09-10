@@ -59,6 +59,20 @@ describe('private minds, epistemic identity and controller parity', () => {
     body.pose = 'stand'; body.pos.x += 10; expect(introduce(tw.world, tw.a, tw.b)).toBe(false);
     expect(knownName(tw.b, tw.a.id)).toBe('an unfamiliar person');
   });
+  it('autonomous conversation introduces both people without endlessly repeating the introduction', () => {
+    const tw = people();
+    for (const p of [tw.a, tw.b]) {
+      setExternalControl(p, false); p.traits.sociability = 1; p.needs.social = 1;
+      p.mind.lastSpokeAt = -100; p.schedule = []; p.mind.thinkInterval = 0.25;
+    }
+    step(tw, 60);
+    const introductions = tw.world.events.filter(e => e.type === 'introduction');
+    expect(introductions.length).toBeGreaterThan(0);
+    const pairs = introductions.map(e => `${e.actor}:${e.target}`);
+    expect(new Set(pairs).size).toBe(pairs.length);
+    expect(knownName(tw.b, tw.a.id)).toBe(tw.a.name);
+    expect(knownName(tw.a, tw.b.id)).toBe(tw.b.name);
+  });
   it('acquires and revises crop evidence locally, without a remote schedule revealing it', () => {
     const tw = people(), field = { id: 'test-field', placeId: tw.places.square, ownerId: tw.a.id, soilMoisture: 0.5,
       plots: [{ x: 12, y: 1, z: 13, crop: 'wheat' as const, state: 'mature' as const, growth: 1, plantedAt: 0 }] };
@@ -109,6 +123,15 @@ describe('private minds, epistemic identity and controller parity', () => {
     expect(tw.b.knowledge[key].claim.social.support).toBeLessThan(0);
     expect(tw.b.knowledge[key].claim.social.evidence).toHaveLength(3);
     expect(socialBeliefs(tw.b).every(k => k.confidence < 1)).toBe(true);
+  });
+  it('bounds the remembered inputs to an impression without recursively retaining every revision', () => {
+    const tw = people();
+    for (let i = 0; i < 40; i++) { tw.world.clock.worldSeconds += 60; evidence(tw, tw.b, i % 3 ? 'gift' : 'theft'); }
+    const belief = tw.b.knowledge[`social:${tw.a.id}:disposition:generous`];
+    expect(belief.claim.social.evidence).toHaveLength(12);
+    const revision = tw.world.event(belief.source.viaEvent!)!;
+    expect(revision.causes).toEqual([...new Set(belief.claim.social.evidence.map((p: { event: string }) => p.event))]);
+    expect(revision.causes.every(id => tw.world.event(id)!.type !== 'social_inferred')).toBe(true);
   });
   it('infers intent from visible action and never copies canonical intent or anonymous attribution', () => {
     const tw = people(); const event = tw.world.emit('attack', { actor: tw.a.id, target: tw.c.id, data: { intent: 'kill', goal: 'rob', traits: tw.a.traits } });
