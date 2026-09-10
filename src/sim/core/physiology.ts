@@ -1,3 +1,4 @@
+import { restorationMultiplier } from './human';
 import type { Body, Person } from './types';
 import type { World } from './world';
 import { physiologyProfileFor, AVERAGE_HUMAN_ADULT } from './species';
@@ -170,15 +171,15 @@ export function stepPhysiology(world: World, p: Person, hours: number, activity:
   // fatigue — heat makes exertion feel worse (Constitution v0.4 §1 "hot -> increased fatigue");
   // better conditioning (v0.5 §I.2) means the same exertion accumulates fatigue more slowly.
   const heatFatigueFactor = 1 + Math.max(0, phys.bodyHeat - HEAT_HOT) * 1.5;
-  const fatigueRateMult = (profile.fatigueMultiplier / traits.conditioning);
+  const fatigueRateMult = (profile.fatigueMultiplier / traits.conditioning) / (0.8 + p.attributes.endurance * 0.025);
   const wetnessFatigue = WETNESS_FATIGUE_PER_HOUR * phys.wetness * hours;
-  if (asleep) phys.fatigue = clamp01(phys.fatigue - SLEEP_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * hours + wetnessFatigue);
-  else if (activity === 'idle') phys.fatigue = clamp01(phys.fatigue - REST_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * hours + wetnessFatigue);
+  if (asleep) phys.fatigue = clamp01(phys.fatigue - SLEEP_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * restorationMultiplier(p) * hours + wetnessFatigue);
+  else if (activity === 'idle') phys.fatigue = clamp01(phys.fatigue - REST_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * restorationMultiplier(p) * hours + wetnessFatigue);
   else phys.fatigue = clamp01(phys.fatigue + ACTIVITY_FATIGUE_PER_HOUR[activity] * heatFatigueFactor * fatigueRateMult * hours + wetnessFatigue);
 
   // sleep debt
   const sleepNeedMult = profile.sleepNeedMultiplier * traits.sleepNeedFactor;
-  if (asleep) phys.sleepDebt = Math.max(0, phys.sleepDebt - SLEEP_DEBT_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * hours);
+  if (asleep) phys.sleepDebt = Math.max(0, phys.sleepDebt - SLEEP_DEBT_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * restorationMultiplier(p) * hours);
   else phys.sleepDebt = Math.min(16, phys.sleepDebt + AWAKE_SLEEP_DEBT_PER_HOUR * sleepNeedMult * hours);
 
   // body heat: exertion + environment - passive/rest/hydration-supported cooling
@@ -203,8 +204,8 @@ export function sleepRecover(p: Person, hours: number): void {
   if (hours <= 0) return;
   const phys = p.physiology;
   const profile = physiologyProfileFor(p.species);
-  phys.fatigue = clamp01(phys.fatigue - SLEEP_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * hours);
-  phys.sleepDebt = Math.max(0, phys.sleepDebt - SLEEP_DEBT_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * hours);
+  phys.fatigue = clamp01(phys.fatigue - SLEEP_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * restorationMultiplier(p) * hours);
+  phys.sleepDebt = Math.max(0, phys.sleepDebt - SLEEP_DEBT_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * restorationMultiplier(p) * hours);
   syncNeeds(p);
 }
 
@@ -212,7 +213,7 @@ export function sleepRecover(p: Person, hours: number): void {
 export function restRecover(p: Person, hours: number): void {
   if (hours <= 0) return;
   const profile = physiologyProfileFor(p.species);
-  p.physiology.fatigue = clamp01(p.physiology.fatigue - REST_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * hours);
+  p.physiology.fatigue = clamp01(p.physiology.fatigue - REST_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * restorationMultiplier(p) * hours);
   syncNeeds(p);
 }
 

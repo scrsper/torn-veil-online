@@ -4,7 +4,7 @@ import { discoverAndRecord, advanceUntil, placeWorker, observeNeed } from '../sr
 import { advanceLiving, createLivingPressure, livingSnapshot, causalAncestors } from '../src/headless/kernel/living';
 import { giveBirth, diePerson } from '../src/sim/world/demographics';
 import { methodsHeld } from '../src/sim/mind/invention';
-import { knowsNotation, MECHANICAL_NOTATION, intactRecord } from '../src/sim/mind/records';
+import { knowsNotation, MECHANICAL_NOTATION, intactRecord, canReadRecord } from '../src/sim/mind/records';
 import { deserialize, serialize } from '../src/sim/persist/save';
 import { Simulation } from '../src/sim/mind/agent';
 import { addPlaceStock } from '../src/sim/world/stock';
@@ -53,7 +53,12 @@ describe('capability continuity acceptance (separate from the edit-loop suite)',
     expect(methodsHeld(child)).toEqual([]);
     const skills = structuredClone(child.skills);
     addPlaceStock(world, 'grain', 30, mill.id, mill.ownerId, undefined, 'favorable post-epoch raw process input');
-    expect(advanceUntil(world, sim, () => methodsHeld(child).length > 0, 120)).toBe(true);
+    const studyStart = { readable: canReadRecord(world, child, record), notation: child.knowledge[`notation:${MECHANICAL_NOTATION}`], owner: record.ownerId, placeOwner: mill.ownerId, hour: world.clock.hourF };
+    let firstGoal: unknown;
+    const acquired = advanceUntil(world, sim, () => { if (!firstGoal && child.mind.goal) firstGoal = structuredClone(child.mind.goal); return methodsHeld(child).length > 0; }, 120);
+    if (!acquired) report('individual-study-diagnostic', { attributes: child.attributes, needs: child.needs, physiology: child.physiology,
+      studyStart, firstGoal, goal: child.mind.goal, plan: child.mind.plan, readable: canReadRecord(world, child, record), position: world.positionOf(child.id), recordPosition: record.pos, holder: record.holderId });
+    expect(acquired).toBe(true);
     expect(child.skills).toEqual(skills);
     const lesson = methodsHeld(child)[0]; expect(lesson.source.type).toBe('read'); expect(lesson.source.from).toBe(record.id);
     observeNeed(world, child, mill, 40);

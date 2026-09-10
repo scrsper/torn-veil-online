@@ -138,13 +138,33 @@ export interface Emotions { fear: number; anger: number; joy: number; sadness: n
 
 // ---------------------------------------------------------------- Embodiment (v0.4)
 /**
- * Foundational physical attributes (Constitution v0.4 §2). Deliberately minimal — strength and
- * dexterity are the only ones any system currently reads; more (endurance, perception, ...)
- * are added only when a real system needs them. 0..1, like Traits: 0.5 is an ordinary adult.
- * Never gate an action on a hard threshold of these — they feed `getPhysicalCapability`
- * (core/attributes.ts), which turns them into continuous effective capability.
+ * Ordinary human foundations. Canonical integers feed continuous capacity through human.ts
+ * and attributes.ts. These are neither dispositions nor proficiency nor temporary expression.
  */
-export interface Attributes { strength: number; dexterity: number; }
+export type AttributeId = 'strength' | 'dexterity' | 'endurance' | 'vitality' | 'intellect' | 'perception' | 'will';
+/** Developed foundations. Ordinary adult reference 8; Normal ceiling 20. No skills or traits. */
+export type Attributes = Record<AttributeId, number>;
+export interface LineageImprint {
+  id: string;
+  originPersonId: EntityId;
+  attribute: AttributeId;
+  magnitude: number;
+  originatingEventId: EventId;
+  transmissibility: number;
+  generationDistance: number;
+  /** One compact transmission path, even when both parents carry the same origin. */
+  transmissionEventId: EventId;
+}
+export interface AttributeDevelopment {
+  progress: Attributes;
+  /** Work-equivalent exposure, in seconds, accumulated only at actual activity hooks. */
+  exposure: Attributes;
+  day: number;
+  dailyExposure: number;
+  exceptional: Partial<Record<AttributeId, { firstAt: Tick; lastAt: Tick; seconds: number; days: number; lastDay: number; qualificationEventId: EventId; assessed?: boolean }>>;
+  /** Bounded novelty memory, distinct from knowledge: forgetting a fact does not reset practice. */
+  studied: string[];
+}
 
 // ---------------------------------------------------------------- Skills (v0.6 §V)
 /**
@@ -344,7 +364,7 @@ export type GoalType =
   // purpose could only ever walk over and look, which is one action, not a life.
   | 'provide'
   // Demographic continuity: an ordinary relationship-motivated social goal.
-  | 'court' | 'provision_home' | 'compose' | 'teach_method' | 'study_record' | 'record_method';
+  | 'court' | 'provision_home' | 'compose' | 'teach_method' | 'share_family' | 'study_record' | 'record_method';
 
 export interface Goal {
   type: GoalType;
@@ -817,9 +837,12 @@ export interface Person extends Entity {
   traits: Traits;
   /** v0.4: foundational physical attributes — see `Attributes`. */
   attributes: Attributes;
-  /** Age when base attributes were established; derived age modifiers use this as the identity
-   * point so development/decline never compounds mutations into already-aged attributes. */
-  attributeAgeBasis: number;
+  attributePotential: Attributes;
+  development: AttributeDevelopment;
+  lineage: { imprints: LineageImprint[]; expressed: Attributes; birthEventId?: EventId;
+    expressions: { imprintId: string; didExpress: boolean; strength: number; attenuation: number; contribution: number }[] };
+  /** Eligibility is derived, never a second stored truth. No breakthrough action exists yet. */
+  ontology: { stage: 'Normal' | 'Iron'; breakthroughEventId?: EventId };
   /** v0.4: the physiology reserves `needs.hunger/.thirst/.energy` are now derived from. */
   physiology: Physiology;
   /** v0.5 §I: which `SpeciesPhysiologyProfile` (core/species.ts) governs this person's
@@ -1463,7 +1486,8 @@ export type EventType =
   // the trade is taken up — never per batch and never per birthday.
   | 'livelihood_taken_up'
   // Demographic continuity — semantic transitions only, never per-tick heartbeats.
-  | 'courtship' | 'pregnancy_started' | 'pregnancy_lost' | 'coming_of_age' | 'inheritance';
+  | 'courtship' | 'pregnancy_started' | 'pregnancy_lost' | 'coming_of_age' | 'inheritance'
+  | 'attribute_developed' | 'lineage_imprint' | 'lineage_transmitted' | 'genealogy_inferred' | 'mechanism_observed';
 
 export type EventCategory = 'world' | 'social' | 'cognition' | 'history';
 

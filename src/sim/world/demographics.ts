@@ -1,3 +1,4 @@
+import { witnessParenthood } from '../mind/genealogy';
 import { peopleTogether, placeForPerson } from './locality';
 import type { EntityId, Household, Person } from '../core/types';
 import type { World } from '../core/world';
@@ -7,6 +8,9 @@ import { makeBody, makePerson } from './factory';
 import { joinHousehold, leaveHousehold, makeHousehold } from './household';
 import { getRel, setRelTags } from '../mind/relationships';
 import { dailyScheduleFor, stepLivelihoods } from '../mind/livelihood';
+import { inheritPotential } from '../core/lineage';
+import { physicalAttribute } from '../core/human';
+import { develop } from '../core/development';
 
 /**
  * The pool a newborn's given name is drawn from.
@@ -138,13 +142,13 @@ export function giveBirth(world: World, parent: Person): Person | null {
   // The everyday places a child's day is built around are resolved from where they actually
   // live (`world/locality.ts`), never from whichever tavern is first in the world's place list.
   child.schedule = dailyScheduleFor(world, child, null);
-  setRelTags(child, parent.id, 'parent'); setRelTags(child, other.id, 'parent');
   setRelTags(parent, child.id, 'child'); setRelTags(other, child.id, 'child');
   getRel(child, parent.id).affection = 0.9; getRel(child, other.id).affection = 0.9;
   getRel(parent, child.id).affection = 0.9; getRel(other, child.id).affection = 0.9;
   pregnancy.state = 'completed'; pregnancy.lastProgressAt = world.now;
   const ev = world.emit('birth', { actor: parent.id, target: child.id, placeId: child.homeId ?? undefined, causes: pregnancy.causeEventId ? [pregnancy.causeEventId] : [], category: 'history', significance: 0.8, visibility: 12, loudness: 4, data: { parentIds: child.parentIds, householdId: child.householdId, species: child.species }, summary: `${child.name} was born to ${parent.name} and ${other.name}` });
-  void ev;
+  inheritPotential(world, child, parent, other, ev.id);
+  witnessParenthood(world, parent, other, child, ev.id);
   return child;
 }
 
@@ -247,6 +251,11 @@ export function stepDemographics(world: World): void {
   for (const p of living) {
     const oldAge = p.age; const oldStage = p.lifeStage;
     p.age = ageInYears(p.birthTick, world.now); p.lifeStage = lifeStageFor(p.species, p.age);
+    // Healthy biological maturation is the explicit age-related exception, not adult idle XP.
+    // A daily maintenance sample supports only modest VIT adaptation, capped at ordinary 8.
+    // No skipped years are reconstructed as practice or healthy childhood.
+    if (p.age < 18 && p.attributes.vitality < 8)
+      develop(world, p, { weights: { vitality: 1 }, seconds: 2 * 3600, intensity: 0.5 });
     if (oldStage !== p.lifeStage && p.lifeStage === 'adult') {
       // Coming of age is a real transition, so it has a real consequence: a grown person stops
       // keeping a child's day. `scheduleFor` reads the occupation summary, and 'child' is no
@@ -261,7 +270,7 @@ export function stepDemographics(world: World): void {
     if (oldAge !== p.age) {
       // Re-derived from immutable base appearance/current age; never compounds prior attributes.
       const agePenalty = p.age < 18 ? 0.75 + p.age / 72 : p.age > 55 ? Math.max(0.6, 1 - (p.age - 55) * 0.01) : 1;
-      p.physiologyTraits.conditioning = Math.max(0.65, Math.min(1.25, (0.85 + p.attributes.strength * 0.3) * agePenalty));
+      p.physiologyTraits.conditioning = Math.max(0.65, Math.min(1.25, (0.85 + physicalAttribute(p.attributes.endurance) * 0.3) * agePenalty));
     }
     const pregnancy = p.physiology.pregnancy;
     if (pregnancy?.state === 'gestating') {

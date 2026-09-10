@@ -1,6 +1,6 @@
 import type { Person, Body, Item, Place, Faction, Creature, Occupation, Traits, Appearance, Vec3, PlaceType, Anchor, ItemType, EntityId, Attributes } from '../core/types';
 import { World } from '../core/world';
-import { defaultAttributesFor } from '../core/attributes';
+import { ATTRIBUTE_IDS, attributeProfile, defaultDevelopment, generatedHuman, physicalAttribute } from '../core/human';
 import { defaultPhysiology } from '../core/physiology';
 import { defaultPhysiologyTraitsFor, lifeStageFor } from '../core/species';
 
@@ -18,19 +18,26 @@ export interface PersonSpec {
   home?: EntityId | null; work?: EntityId | null; traits: Partial<Traits>; appearance: Partial<Appearance>; bio: string; wealth?: number; timeRate?: number; hostile?: boolean; tags?: string[];
   /** Stable authored identity, e.g. cast.ts's `key` ('rowan'). See Entity.slug. */
   slug?: string;
-  /** v0.4: override the deterministic age/gender-derived default (see `defaultAttributesFor`) —
-   * e.g. a named smith or hauler who is canonically stronger than average. */
+  /** Optional developed foundations for explicit starting biographies. Occupation labels
+   * never supply these; otherwise generatedHuman supplies seeded individual variation. */
   attributes?: Partial<Attributes>;
+  attributePotential?: Partial<Attributes>;
 }
 export function makePerson(world: World, s: PersonSpec): Person {
   const traits: Traits = { courage: 0.5, sociability: 0.5, honesty: 0.6, aggression: 0.3, greed: 0.4, piety: 0.4, curiosity: 0.5, loyalty: 0.5, ...s.traits };
   const appearance: Appearance = { skin: 0xd9a988, hair: 0x4a2f1a, shirt: 0x8a6a4a, pants: 0x4a3a2a, height: 1, build: 1, hatStyle: 'none', ...s.appearance };
-  const attributes: Attributes = { ...defaultAttributesFor(s.age, s.gender), ...s.attributes };
+  const id = world.nextId('p');
+  const generated = generatedHuman(world.seed, id, s.age);
+  const attributes: Attributes = { ...generated.attributes, ...s.attributes };
+  const attributePotential = { ...generated.potential, ...s.attributePotential };
+  for (const key of ATTRIBUTE_IDS) for (const profile of [attributes, attributePotential]) {
+    if (!Number.isInteger(profile[key]) || profile[key] < 1 || profile[key] > 20) throw new Error(`Invalid human ${key}: ${profile[key]}`);
+  }
   const p: Person = {
-    id: world.nextId('p'), kind: 'person', name: s.name, createdAt: world.now - s.age * 365 * 86400, tags: s.tags ?? [], slug: s.slug,
+    id, kind: 'person', name: s.name, createdAt: world.now - s.age * 365 * 86400, tags: s.tags ?? [], slug: s.slug,
     gender: s.gender, age: s.age, birthTick: world.now - s.age * 365 * 86400, parentIds: [], lifeStage: lifeStageFor('human', s.age), reproductiveRole: s.gender === 'f' ? 'gestational' : 'fertilizing', occupation: s.occupation, title: s.title, homeId: s.home ?? null, workId: s.work ?? null, factionId: null, householdId: null,
-    traits, attributes, attributeAgeBasis: s.age, physiology: defaultPhysiology(world.now),
-    species: 'human', physiologyTraits: defaultPhysiologyTraitsFor(s.age, appearance.build, appearance.height, attributes.strength),
+    traits, attributes, attributePotential, development: defaultDevelopment(), lineage: { imprints: [], expressed: attributeProfile(0), expressions: [] }, ontology: { stage: 'Normal' }, physiology: defaultPhysiology(world.now),
+    species: 'human', physiologyTraits: defaultPhysiologyTraitsFor(s.age, appearance.build, appearance.height, physicalAttribute(attributes.endurance)),
     skills: {},
     needs: { hunger: 0.3, energy: 0.2, social: 0.3, comfort: 0.2, thirst: 0.25 }, emotions: { fear: 0, anger: 0, joy: 0.3, sadness: 0, stress: 0 },
     appearance, bodies: [], timeRate: s.timeRate ?? 1, relationships: {}, memories: [], knowledge: {}, inventory: [], wealth: s.wealth ?? 20,

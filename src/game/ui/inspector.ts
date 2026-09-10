@@ -1,3 +1,4 @@
+import { ATTRIBUTE_IDS, ironEligible } from '../../sim/core/human';
 import type { World } from '../../sim/core/world';
 import type { Person, Relationship, KnowledgeItem, Body } from '../../sim/core/types';
 import { describeRel } from '../../sim/mind/relationships';
@@ -69,7 +70,7 @@ export class Inspector {
     const phys = p.physiology;
     return `<h4>Body</h4><div class="kv"><div>health</div><div>${b ? `${Math.round(b.health)} / ${b.maxHealth}` : '—'}</div><div>pose</div><div>${b?.pose}</div><div>position</div><div>${b ? `${b.pos.x.toFixed(1)}, ${b.pos.y.toFixed(1)}, ${b.pos.z.toFixed(1)} — ${this.world.placeAt(b.pos)?.name ?? 'outside'}` : '—'}</div></div>`
       + this.fieldSectionFor(p, b)
-      + `<h4>Attributes</h4><div class="kv"><div>strength</div><div>${this.meter(p.attributes.strength)}</div><div>dexterity</div><div>${this.meter(p.attributes.dexterity)}</div></div>`
+      + `<h4>Attributes · ${p.ontology.stage}${ironEligible(p) ? " · Iron eligible" : ""}</h4><div class="kv">${ATTRIBUTE_IDS.map(id => `<div>${id}</div><div>${p.attributes[id]} · potential ${p.attributePotential[id]}</div>`).join("")}</div>`
       // v0.6 §V/§XVI: learned skill, distinct from the body attributes above — only shown when
       // it's above novice (0), so an ordinary person's tab isn't padded with a wall of zeroes.
       + `<h4>Skills</h4><div class="kv">${Object.entries(p.skills ?? {}).filter(([, v]) => (v ?? 0) > 0.001).map(([k, v]) => `<div>${k}</div><div>${this.meter(v ?? 0)}</div>`).join('') || '<div style="color:var(--dim)">novice at everything</div>'}</div>`

@@ -122,7 +122,7 @@ export function performBuildLabor(world: World, p: ConstructionProject, worker: 
   wearTool(world, tool, elapsedSeconds / 3600);
   // v0.6 §V.9: real credited labour is meaningful work — one "unit" = one minute of credited
   // labour, so a longer slice trains proportionally more, not per-tick.
-  practiceSkill(worker, 'construction', creditedSeconds / 60);
+  practiceSkill(worker, 'construction', creditedSeconds / 60, world);
   // v0.7 §Affordances: real use of the hammer is evidence of what it's for.
   if (tool) learnAffordance(world, worker, tool.type, { type: 'self' });
   return completeRequest(world, req);

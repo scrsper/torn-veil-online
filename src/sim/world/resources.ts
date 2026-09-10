@@ -245,7 +245,7 @@ export function extractFromNode(world: World, node: ResourceNode, actor: Person,
       visibility: 12, significance: 0.15, data: { nodeId: node.id, kind: 'game', yield: 'meat', amount: got, remaining: node.remaining },
       summary: `${actor.name} hunted ${got} meat at ${world.nameOf(node.placeId)}` });
     addPlaceStock(world, 'meat', got, node.dropPlaceId, actor.id, ev.id, 'hunted');
-    practiceSkill(actor, 'hunting', 1);
+    practiceSkill(actor, 'hunting', 1, world);
     if (node.remaining < 1) {
       node.state = 'depleted'; node.depletedAt = world.now;
       world.emit('resource_depleted', { actor: actor.id, placeId: node.placeId, pos: { ...node.pos }, visibility: 12,
@@ -288,7 +288,7 @@ export function extractFromNode(world: World, node: ResourceNode, actor: Person,
   wearTool(world, tool, SWING_SECONDS / 3600);
   // v0.6 §V.9: a real successful extraction (got > 0, already guaranteed here) is meaningful
   // work — practice once per swing.
-  practiceSkill(actor, action === 'chop' ? 'woodcutting' : 'quarrying', 1);
+  practiceSkill(actor, action === 'chop' ? 'woodcutting' : 'quarrying', 1, world);
   // v0.7 §Affordances: using a tool for its real purpose is itself evidence of what it's good
   // for — learning by doing, the second acquisition path alongside profession seeding.
   if (tool) learnAffordance(world, actor, tool.type, { type: 'self' });

@@ -6,6 +6,7 @@ import { RESOURCE_MASS_KG } from '../world/factory';
 import { stockItemsAt, outboundStock, retireStack } from '../world/stock';
 import { getPhysicalCapability } from '../core/attributes';
 import { practiceSkill, skillOf } from '../core/skills';
+import { clamp } from '../core/human';
 import { bestToolFor, toolWorkMultiplier, wearTool } from '../core/tools';
 import { createComponent, reachable, owns, mayUseProperty } from './mechanics';
 import { materialFits, mechanicalPrimitives, validateRuleset } from './definitions';
@@ -60,7 +61,7 @@ export function manufactureComponent(world: World, p: Person, a: Assembly, defin
   if (capacity <= 0.15) return 'inaccessible';
   const rawTool = bestToolFor(world, p, 'construct', placeId);
   const tool = rawTool && owns(p, rawTool.ownerId) ? rawTool : null;
-  const rate = toolWorkMultiplier('construct', tool) * (0.5 + skillOf(p, 'crafting')) * capacity;
+  const rate = toolWorkMultiplier('construct', tool) * (0.5 + skillOf(p, 'crafting')) * capacity * clamp(0.8 + p.attributes.dexterity * 0.025, 0.8, 1.3);
   const key = `make:${a.parts.length}`, progress = a.progress[key] ?? 0;
   const spent = Math.min(seconds, Math.max(0, f.seconds - progress) / rate);
   a.progress[key] = progress + spent * rate; a.laborSeconds += spent;
@@ -81,6 +82,6 @@ export function manufactureComponent(world: World, p: Person, a: Assembly, defin
     data: { componentId: c.id, assemblyId: a.id, definition: definition.id, material: material.id, consumed, massKg: definition.massKg,
       laborSeconds: a.progress[`makeLabor:${a.parts.length}`], toolId: tool?.id }, summary: `${p.name} shaped material into a working component` });
   c.madeEvent = ev.id; a.lastEvent = ev.id;
-  delete a.progress[key]; delete a.progress[`makeLabor:${a.parts.length}`]; practiceSkill(p, 'crafting', 1);
+  delete a.progress[key]; delete a.progress[`makeLabor:${a.parts.length}`]; practiceSkill(p, 'crafting', 1, world);
   return 'made';
 }

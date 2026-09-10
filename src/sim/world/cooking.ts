@@ -36,7 +36,7 @@ export function cook(world: World, cookPerson: Person): TransformResult {
     outputType: 'stew', outputQty: MEAT_TO_STEW_RATIO.out, outputPlace: tavernId, ownerId: economicOperatorFor(world, tavernId) ?? cookPerson.id, how: 'cooked over the hearth',
   });
   if (result.ok) {
-    practiceSkill(cookPerson, 'cooking', 1);
+    practiceSkill(cookPerson, 'cooking', 1, world);
     // `resource_transformed` is low-significance (0.15) and shared by mill/bake/saw/cook alike,
     // so it's pruned by compaction on a long run and can't be filtered by `how` after the fact
     // (the same undercounting bug fixed for `stick_gathered`) — tally cooking specifically.

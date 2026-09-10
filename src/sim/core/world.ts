@@ -359,7 +359,8 @@ export class World {
       if (value instanceof Map) { for (const [k, v] of value) { visit(k, seen); visit(v, seen); } return; }
       for (const v of Object.values(value)) visit(v, seen);
     };
-    for (const p of this.livingPersons()) visit({ memories: p.memories, knowledge: p.knowledge, mind: p.mind, desires: p.desires });
+    for (const p of this.livingPersons()) visit({ memories: p.memories, knowledge: p.knowledge, mind: p.mind, desires: p.desires,
+      lineage: p.lineage, exceptionalDevelopment: p.development.exceptional, ontology: p.ontology });
     for (const item of this.items()) { visit(item.provenance); visit(item.record); }
     visit({ kernel: this.kernel, situations: this.situations, conflicts: this.conflicts, requests: this.requests, haulTasks: this.haulTasks, workStints: this.workStints, eraCauses: this.chronicleEras.map(era => era.causes) });
     const pinCauses = (id: EventId): void => {

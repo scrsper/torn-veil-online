@@ -1,3 +1,5 @@
+import { recoveryMultiplier } from '../core/human';
+import { genealogyGoals, inferSurnameKin } from './genealogy';
 import { localPlaces, near, knownPlaceForPerson } from '../world/locality';
 import { inventionGoals, inventionPlan, actOnMechanism, dismantleFailed } from './invention';
 import { actOnRecord, recordGoals, recordPlan, weatherRecords } from './records';
@@ -1143,8 +1145,8 @@ export class Simulation {
       if (resumeCand) resumeCand.utility = clamp(resumeCand.utility + 0.4);
     }
     const productionOpportunities = !threat ? observeProduction(w, p) : [];
-    for (const goal of [...productionWorkGoals(w, p, productionOpportunities), ...(!threat ? [...inventionGoals(w, p, productionOpportunities), ...recordGoals(w, p)] : [])])
-      G(goal.type!, goal.utility!, goal.reasons!, { ...goal, key: `${goal.type}:${goal.data?.needKey ?? goal.targetEntity ?? goal.targetPlace}${['teach_method', 'record_method'].includes(goal.type!) ? ':' + goal.data?.key : ''}` });
+    for (const goal of [...productionWorkGoals(w, p, productionOpportunities), ...(!threat ? [...inventionGoals(w, p, productionOpportunities), ...recordGoals(w, p), ...genealogyGoals(w, p)] : [])])
+      G(goal.type!, goal.utility!, goal.reasons!, { ...goal, key: `${goal.type}:${goal.data?.needKey ?? goal.targetEntity ?? goal.targetPlace}${['teach_method', 'share_family', 'record_method'].includes(goal.type!) ? ':' + goal.data?.key : ''}` });
     // v0.10: two different motivations can legitimately propose the SAME errand — a welfare
     // concern's own `check_on` and a `tend` purpose's next step are literally the same walk to
     // the same door. Collapse candidates by key, keeping the strongest case and merging the
@@ -1384,7 +1386,7 @@ export class Simulation {
     switch (g.type) {
       case 'compose': return inventionPlan(w, p, g);
       case 'study_record': case 'record_method': return recordPlan(w, g);
-      case 'teach_method': return [A({ type: 'goto', targetEntity: g.targetEntity }), A({ type: 'tell', targetEntity: g.targetEntity, data: { key: g.data?.key } })];
+      case 'share_family': case 'teach_method': return [A({ type: 'goto', targetEntity: g.targetEntity }), A({ type: 'tell', targetEntity: g.targetEntity, data: { key: g.data?.key } })];
       case 'sleep': { const home = w.place(p.homeId); const bed = anchorIn(home, ['bed'], true) ?? anchorIn(home, ['bed']) ?? home?.inside ?? body.pos; return [A({ type: 'goto', pos: bed, placeId: home?.id }), A({ type: 'manage_household' }), A({ type: 'sleep', pos: bed, duration: 3 * SECONDS_PER_HOUR })]; }
       case 'provision_home': {
         const home = w.place(p.homeId);
@@ -2210,7 +2212,7 @@ export class Simulation {
     if (body.pathIndex >= path.length) return true;
     const t = path[body.pathIndex]; const dx = t.x - body.pos.x, dz = t.z - body.pos.z; const d = Math.hypot(dx, dz);
     if (d < 0.25) { body.pathIndex++; if (body.pathIndex >= path.length) { body.vel.x = 0; body.vel.z = 0; return true; } return false; }
-    const speed = body.speed * movementMultiplier(body);
+    const speed = body.speed * movementMultiplier(body, this.world.person(body.ownerId));
     const step = Math.min(d, speed * dt); const nx = body.pos.x + dx / d * step, nz = body.pos.z + dz / d * step;
     const doorX = Math.floor(nx), doorZ = Math.floor(nz), doorY = this.world.nav.floorY(doorX, doorZ);
     if (doorY >= 0 && this.world.grid.get(doorX, doorY, doorZ) === B.Door && !this.world.grid.isDoorOpen(doorX, doorY, doorZ)) this.world.setDoorOpen({ x: doorX, y: doorY, z: doorZ }, true, body.ownerId);
@@ -2340,6 +2342,7 @@ export class Simulation {
    * already taken this turn — small talk is what is left when there is honestly nothing.
    */
   private smallTalk(p: Person, other: Person): string {
+    inferSurnameKin(this.world, p, other);
     const w = this.world; const r = getRel(p, other.id); const first = other.name.split(' ')[0]; const h = w.clock.hourF; const wk = w.weather.kind;
     const pool = [`Fine ${h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening'}, ${first}.`, wk === 'rain' ? `This rain will rot the wheat.` : wk === 'clear' ? `Good weather for it.` : `Looks like weather coming.`, `How's the family, ${first}?`, `Busy day.`, `Have you eaten?`];
     if (r.tags.includes('spouse')) pool.push(`You look tired, love.`, `Will you be home before dark?`);
@@ -2925,7 +2928,7 @@ export class Simulation {
       if (b && !b.dead && !held && b.health < b.maxHealth) {
         const fraction = b.health / b.maxHealth;
         const rate = fraction < INCAPACITATED_FRACTION ? 0.15 : 0.15 * (0.35 + 0.65 * fraction);
-        b.health = Math.min(b.maxHealth, b.health + minutes * rate);
+        b.health = Math.min(b.maxHealth, b.health + minutes * rate * recoveryMultiplier(p));
       }
       // notice missing possessions when at work: inference without a witness
       if (b && p.workId && w.placeAt(b.pos)?.id === p.workId && w.rng.next() < 0.3 * minutes) {
