@@ -21,6 +21,10 @@ export interface EmitOptions {
  */
 export class World {
   kernel = emptyKernel();
+  /** Save handoff for the attached canonical scheduler. The callback reads its live state;
+   * restoredExecution is consumed once on attachment, not a second running scheduler. */
+  executionSnapshot: (() => unknown) | null = null;
+  restoredExecution: unknown = null;
   entities = new Map<EntityId, Entity>();
   events: WorldEvent[] = [];
   eventIndex = new Map<EventId, WorldEvent>();

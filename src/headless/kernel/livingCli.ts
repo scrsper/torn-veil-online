@@ -47,9 +47,9 @@ const lost = { interventionAtPhysicalSecond: deathAt, holdersBefore: holders.len
   archivedMethods: holders.flatMap(methodsHeld).length };
 const report = { seed, physicalSeconds: seconds, normal, calm, manual, substitution, multi,
   deterministic: hash(normal) === hash(replay), replayHash: hash(normal),
-  saveLoad: { atPhysicalSecond: 90, exactKernel, exactKnowledge, deterministicContinuation: hash(continuation) === hash(livingSnapshot(loadedAgain)), continuationHash: hash(continuation), state: continuation, invariants: invariants(loaded, initialMoney) }, loss: lost };
+  saveLoad: { atPhysicalSecond: 90, exactKernel, exactKnowledge, deterministicContinuation: hash(continuation) === hash(livingSnapshot(loadedAgain)), matchesUninterrupted: hash(continuation) === hash(normal.state), continuationHash: hash(continuation), state: continuation, invariants: invariants(loaded, initialMoney) }, loss: lost };
 const valid = (i: ReturnType<typeof invariants>) => Math.abs(i.currencyDelta) < 1e-6 && i.materialErrorKg < 1e-6 && i.energyErrorJ < 1e-6 && !i.householdErrors.length && i.validatedKernel && i.validStocks && i.causalReferences;
-const passed = report.deterministic && report.saveLoad.exactKernel && report.saveLoad.exactKnowledge && report.saveLoad.deterministicContinuation
+const passed = report.deterministic && report.saveLoad.exactKernel && report.saveLoad.exactKnowledge && report.saveLoad.deterministicContinuation && report.saveLoad.matchesUninterrupted
   && [normal, calm, manual, substitution, multi].every(r => valid(r.invariants)) && valid(report.saveLoad.invariants)
   && normal.state.some(s => s.mechanicalOutput > 0 && s.breadWithMechanicalAncestry > 0 && s.methods.length > 1)
   && calm.state.every(s => s.mechanicalOutput === 0) && substitution.state.some(s => s.mechanicalOutput > 0)
@@ -61,5 +61,5 @@ const compact = (result: typeof normal) => result.state.map(s => ({ settlement: 
   assemblyLaborSeconds: s.laborSeconds, energyUsedJ: s.sources.reduce((n, e) => n + e.initialJ - e.remainingJ, 0), bread: s.baked,
   breadWithMechanicalAncestry: s.breadWithMechanicalAncestry, flourDelivered: s.flourDelivered, methodHolders: s.methods.length }));
 console.log(JSON.stringify({ passed, seed, normal: compact(normal), calm: compact(calm), manual: compact(manual), substitution: compact(substitution), multi: compact(multi),
-  deterministic: report.deterministic, replayHash: report.replayHash, saveLoad: { exactKernel, exactKnowledge, deterministicContinuation: report.saveLoad.deterministicContinuation, continuation: compact({ state: continuation, invariants: report.saveLoad.invariants }) }, loss: lost, invariants: normal.invariants }, null, 2));
+  deterministic: report.deterministic, replayHash: report.replayHash, saveLoad: { exactKernel, exactKnowledge, deterministicContinuation: report.saveLoad.deterministicContinuation, matchesUninterrupted: report.saveLoad.matchesUninterrupted, continuation: compact({ state: continuation, invariants: report.saveLoad.invariants }) }, loss: lost, invariants: normal.invariants }, null, 2));
 if (!passed) process.exitCode = 1;

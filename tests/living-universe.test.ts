@@ -91,6 +91,9 @@ describe('living universe integration', () => {
     expect(a.person(original.id)!.knowledge).toEqual(original.knowledge);
     advanceLiving(a, new Simulation(a), 1710); advanceLiving(b, new Simulation(b), 1710);
     expect(livingSnapshot(a)).toEqual(livingSnapshot(b));
+    expect(livingSnapshot(a)).toEqual(livingSnapshot(ordinary.world));
+    expect(a.kernel).toEqual(ordinary.world.kernel);
+    expect(JSON.stringify(a.events)).toBe(JSON.stringify(ordinary.world.events));
     expect(a.kernel.assemblies.reduce((n, s) => n + s.outputQuantity, 0)).toBeGreaterThan(0);
     const restored = deserialize(serialize(ordinary.world))!.world;
     expect(restored.kernel).toEqual(ordinary.world.kernel);

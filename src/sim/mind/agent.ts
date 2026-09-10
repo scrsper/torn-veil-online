@@ -124,6 +124,13 @@ const EMPTY_PERSONS: readonly Person[] = [];
  *    or immediately when something alarming is perceived
  *  - strategic upkeep (needs, moods, weather) runs once per world minute
  */
+interface ExecutionCheckpoint {
+  version: 1;
+  perceptionAccum: number; strategicAccum: number; compactAccum: number; socialAccum: number; inferenceAccum: number; demographicDay: number;
+  vacantPosts: Array<Omit<TradePost, 'place' | 'staff' | 'ableStaff' | 'unfit'> & { placeId: string; staffIds: string[]; ableStaffIds: string[]; unfitIds: { personId: string; reason: TradePost['unfit'][number]['reason'] }[] }>;
+  awareOfShortage: string[]; lastTopic: [string, Topic][]; pendingSpeech: { personId: string; text: string; at: number }[];
+}
+
 export class Simulation {
   perceptionAccum = 0; strategicAccum = 0; compactAccum = 0; socialAccum = 0; inferenceAccum = 0; onSpeech: ((p: Person, text: string) => void) | null = null; onHit: ((b: Body, pos: Vec3) => void) | null = null;
   /** Coarse per-subsystem wall-clock accumulator (v0.2.1 Priority 3: "create benchmark
@@ -153,6 +160,26 @@ export class Simulation {
   private demographicDay: number;
   constructor(public world: World) {
     this.demographicDay = world.clock.day;
+    const checkpoint = world.restoredExecution as ExecutionCheckpoint | null;
+    if (checkpoint?.version === 1) {
+      for (const key of ['perceptionAccum', 'strategicAccum', 'compactAccum', 'socialAccum', 'inferenceAccum', 'demographicDay'] as const) this[key] = checkpoint[key];
+      this.vacantPosts = checkpoint.vacantPosts.flatMap(s => {
+        const place = world.place(s.placeId); if (!place) return [];
+        const people = (ids: string[]) => ids.map(id => world.person(id)).filter((p): p is Person => !!p);
+        const { placeId: _, staffIds, ableStaffIds, unfitIds, ...post } = s;
+        return [{ ...post, place, staff: people(staffIds), ableStaff: people(ableStaffIds), unfit: unfitIds.flatMap(u => { const person = world.person(u.personId); return person ? [{ person, reason: u.reason }] : []; }),
+          standIns: s.standIns.map(stint => world.workStints.find(x => x.id === stint.id) ?? stint) }];
+      });
+      this.awareOfShortage = new Set(checkpoint.awareOfShortage);
+      this.lastTopic = new Map(checkpoint.lastTopic);
+      this.pendingSpeech = checkpoint.pendingSpeech.flatMap(s => { const p = world.person(s.personId); return p ? [{ p, text: s.text, at: s.at }] : []; });
+    }
+    world.restoredExecution = null;
+    world.executionSnapshot = (): ExecutionCheckpoint => ({ version: 1,
+      perceptionAccum: this.perceptionAccum, strategicAccum: this.strategicAccum, compactAccum: this.compactAccum, socialAccum: this.socialAccum, inferenceAccum: this.inferenceAccum, demographicDay: this.demographicDay,
+      vacantPosts: this.vacantPosts.map(({ place, staff, ableStaff, unfit, ...post }) => ({ ...post, placeId: place.id, staffIds: staff.map(p => p.id), ableStaffIds: ableStaff.map(p => p.id), unfitIds: unfit.map(u => ({ personId: u.person.id, reason: u.reason })) })),
+      awareOfShortage: [...this.awareOfShortage], lastTopic: [...this.lastTopic], pendingSpeech: this.pendingSpeech.map(s => ({ personId: s.p.id, text: s.text, at: s.at })),
+    });
     // v0.9: every canonical event flows through ongoing-matter bookkeeping exactly once (see
     // World.eventObserver). The re-entrancy guard exists because `noteEventForSituations` itself
     // emits `situation_opened`/`situation_resolved`; those are not openers or resolvers, so
