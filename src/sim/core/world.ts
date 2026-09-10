@@ -99,6 +99,9 @@ export class World {
   demographicRng: RNG;
   /** Optional deterministic generation recipe; absent means authored Ashford. */
   settlementSites?: { id: string; x: number; z: number }[];
+  geography?: import('../world/geography').WorldGeography;
+  /** Indexed wilderness substrate, independent of presentation residency. */
+  wildernessRegions = new Set<string>();
   seed: number;
   grid!: VoxelGrid;
   nav!: Navigator;

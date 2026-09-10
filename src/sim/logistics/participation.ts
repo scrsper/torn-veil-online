@@ -1,3 +1,4 @@
+import { B } from '../physical/blocks';
 import type { EntityId, HaulTask, Item, Person, Place, Request, Vec3 } from '../core/types';
 import type { World } from '../core/world';
 import { claimHaulTask, loadHaulCargo, depositHaulCargo, failHaulTask, canAcceptHaul } from './haul';
@@ -153,9 +154,20 @@ export function eatAtHand(world: World, person: Person, atPlaceId: EntityId | nu
  * or the river bank). Returns false if there is no water source here. */
 export function drinkHere(world: World, person: Person, pos: Vec3): boolean {
   const source = waterSourceAtHand(world, pos);
-  if (!source) return false;
-  drinkAt(world, person, source.id);
+  if (!source && !naturalWaterAtHand(world, pos)) return false;
+  drinkAt(world, person, source?.id);
   return true;
+}
+
+/** The same reach/occlusion check serves NPC and human intentions at generated river banks. */
+export function naturalWaterAtHand(world: World, pos: Vec3): boolean {
+  if (!world.geography) return false;
+  for (let x = Math.floor(pos.x) - 3; x <= Math.floor(pos.x) + 3; x++) for (let z = Math.floor(pos.z) - 3; z <= Math.floor(pos.z) + 3; z++) {
+    const c = world.geography.surface(x, z); if (c.water === null) continue;
+    const target = { x: x + .5, y: c.water + 1, z: z + .5 };
+    if (Math.hypot(target.x - pos.x, target.y - pos.y, target.z - pos.z) <= 4 && world.grid.get(x, c.water, z) === B.Water && world.grid.lineOfPassage({ ...pos, y: pos.y + 1.2 }, target, 5.2)) return true;
+  }
+  return false;
 }
 
 /** Physical access to existing water places, shared by prompts and execution. */

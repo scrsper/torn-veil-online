@@ -1,3 +1,5 @@
+import { finishExternalIntention } from '../runtime/controllers';
+import { indexWilderness } from '../world/playable';
 import { actOnMechanicalTask, maintenanceGoals } from './mechanicalReasoning';
 import { routineWeight, observeFields } from './routine';
 import { interpretSocial, introduce, learnIdentity, knownName, perceivedName } from './people';
@@ -214,6 +216,7 @@ export class Simulation {
 
   // ------------------------------------------------------------------ main step
   step(physDt: number, worldDt: number): void {
+    indexWilderness(this.world);
     const w = this.world;
     stepEnvironmentalEnergy(w, physDt);
     // 1. perception (stimuli + surroundings) at 5Hz
@@ -230,7 +233,7 @@ export class Simulation {
       const urgent = p.mind.alarm > 0.5;
       if (!isExternallyControlled(p) && (urgent || p.mind.thinkBudget >= p.mind.thinkInterval)) { p.mind.thinkBudget = 0; const t0 = this.mark(); this.think(p, body); this.accum('think', t0); p.mind.alarm = 0; }
       // 3. act on the current plan (continuous)
-      if (!isExternallyControlled(p) || hasExternalIntention(p)) { const t0 = this.mark(); this.act(p, body, physDt, worldDt); this.accum('act', t0); }
+      if (!isExternallyControlled(p) || hasExternalIntention(p)) { const t0 = this.mark(); this.act(p, body, physDt, worldDt); this.accum('act', t0); if(isExternallyControlled(p) && !p.mind.plan.some(a => a.status === 'active' || a.status === 'pending')) finishExternalIntention(p); }
       if (p.speech && p.speech.until < w.physicalTime) p.speech = null;
     }
     { const t0 = this.mark(); for (const c of w.creatures()) this.creatureStep(c, physDt); this.accum('creatures', t0); }

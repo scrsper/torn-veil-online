@@ -35,7 +35,8 @@
     "world:settlements": "tsx src/headless/worldlab/settlementsCli.ts",
     "settlements:accept": "vitest run --config vitest.settlements.config.ts",
     "individual:demo": "tsx src/headless/individual/cli.ts",
-    "agency:demo": "tsx src/headless/agency/cli.ts"
+    "agency:demo": "tsx src/headless/agency/cli.ts",
+    "bridge:playable": "tsx src/bridge/playableServer.ts"
   },
   "dependencies": {
     "three": "^0.170.0",

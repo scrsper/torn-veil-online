@@ -1,3 +1,7 @@
+import { mechanismPanel } from '../sim/runtime/mechanismPanel';
+import { generatePlayableWorld, indexWilderness } from '../sim/world/playable';
+import { RegionStream } from './regions';
+import { deserialize, serialize } from '../sim/persist/save';
 import { GameSim, type PersonIntent } from '../sim/runtime/gameSim';
 import { knownName } from '../sim/mind/people';
 import { movementMultiplier } from '../sim/core/attributes';
@@ -15,6 +19,16 @@ import { B } from '../sim/physical/blocks';
 import type { Item, Person } from '../sim/core/types';
 
 export const BRIDGE_VERSION = 1;
+/** Physical execution is visible; queued intentions and private goals are not. */
+function visibleActivity(p: Person | undefined, pose: string): string {
+  if (pose !== 'work') return pose;
+  const a = p?.mind.plan.find(a => a.status === 'active');
+  if (a?.type === 'mechanism_task') {
+    const kind = a.data?.kind;
+    return ['inspect', 'diagnose', 'reverse_engineer'].includes(kind) ? 'inspect' : kind === 'test' ? 'operate' : 'repair';
+  }
+  return a?.type === 'operate_mechanism' ? 'operate' : pose;
+}
 export class BridgeSession {
   readonly world: World;
   readonly sim: Simulation;
@@ -35,14 +49,26 @@ export class BridgeSession {
    * on a slow cadence so the projection stays cheap — the derivation itself stays canonical. */
   private classes = new Map<string, RecognisedClass | null>();
   private classesAt = -Infinity;
-  constructor(seed = 918271) {
-    this.world = new World(seed);
-    generateVillage(this.world);
+  readonly regions = new RegionStream();
+  constructor(seed = 918271, options: { playable?: boolean; save?: string } = {}) {
+    const loaded = options.save ? deserialize(options.save) : null;
+    if (options.save && !loaded) throw new Error('Cannot resume incompatible or invalid world save');
+    this.world = loaded?.world ?? new World(seed);
+    if (!loaded) { if (options.playable) generatePlayableWorld(this.world); else generateVillage(this.world); }
     this.sim = new Simulation(this.world);
-    this.game = new GameSim(this.sim); this.game.attach('local', this.world.playerId!);
+    this.game = new GameSim(this.sim);
+    if (!this.world.playerId) {
+      const first = this.world.geography!.roads.slice().sort((a,b) => a.length-b.length)[0];
+      const site = this.world.geography!.sites.find(s => s.id === first?.from) ?? this.world.geography!.sites[0];
+      const x = site.x - 4, z = site.z + 120;
+      this.world.playerId = this.game.spawn('local', 'Traveler', { x: x + .5, y: this.world.nav.floorY(x,z), z: z + .5 });
+    }
+    this.game.attach('local', this.world.playerId!); indexWilderness(this.world);
     this.dialogue = new DialogueSystem(this.world, this.sim);
   }
+  save(): string { return serialize(this.world); }
   resetInput(): void {
+    this.regions.reset();
     this.sequence = -1; this.move = { x: 0, z: 0, sprint: false, expires: 0 };
     this.closeDialogue();
   }
@@ -96,12 +122,12 @@ export class BridgeSession {
     const knowledge = this.game.perceive('local')!;
     const visible = new Set(knowledge.people.map(p => p.entityId)); visible.add(p.id);
     return { version: BRIDGE_VERSION, type: 'snapshot', tick: w.physicalTime, worldTime: w.now, ack: this.sequence, playerId: p.id,
-      knowledge, interactions: handInteractions(this.sim, p), dialogue: this.dialogueProjection(), talkTargets: this.talkTargets(p),
+      knowledge, mechanisms: mechanismPanel(w, p), interactions: handInteractions(this.sim, p), dialogue: this.dialogueProjection(), talkTargets: this.talkTargets(p),
       bodies: w.activeBodies().filter(b => visible.has(b.ownerId)).map(b => ({ bodyId: b.id, entityId: b.ownerId,
-        name: knownName(p, b.ownerId), pos: { ...b.pos }, velocity: { ...b.vel }, yaw: b.yaw, pose: b.pose,
+        name: knownName(p, b.ownerId), activity: visibleActivity(w.person(b.ownerId), b.pose), speed: b.speed * movementMultiplier(b, w.person(b.ownerId)), sprintMultiplier: SPRINT_MULTIPLIER, lastAttackAt: b.lastAttackAt, lastHitAt: b.lastHitAt, incapacitated: b.pose === 'downed', alive: !b.dead, pos: { ...b.pos }, velocity: { ...b.vel }, yaw: b.yaw, pose: b.pose,
         appearance: { ...w.person(b.ownerId)?.appearance }, dead: b.dead,
         speech: w.person(b.ownerId)?.speech?.text ?? '',
-        ...(b.ownerId === p.id ? { health: b.health, maxHealth: b.maxHealth, needs: { ...p.needs }, wealth: p.wealth } : {}),
+        ...(b.ownerId === p.id ? { inventory: p.inventory.flatMap(id => { const i=w.item(id); return i ? [{ id:i.id,name:i.type,type:i.type,quantity:i.quantity }] : []; }), health: b.health, maxHealth: b.maxHealth, needs: { ...p.needs }, wealth: p.wealth } : {}),
       })), events: [] };
   }
   /** Whole-world observability is available only through this explicitly named debug path. */
@@ -142,6 +168,7 @@ export class BridgeSession {
   }
   scene() {
     const w = this.world;
+    if (w.geography) return { version: 1, type: 'scene', seed: w.seed, worldId: `seeded:${w.seed}`, geography: w.geography.spec, origin: { x: 0, y: 0, z: 0 }, unitsPerMetre: 100, regional: true };
     const g = w.grid;
     const terrain: number[][] = [];
     for (let x = 0; x < g.W; x++) for (let z = 0; z < g.D; z++) {

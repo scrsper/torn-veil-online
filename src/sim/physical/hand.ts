@@ -2,7 +2,7 @@ import type { Body, Person, ResourceNode, Vec3 } from '../core/types';
 import type { Simulation } from '../mind/agent';
 import { actionsForCarriedItem, actionsForWorldItem, SELLER_REACH } from '../core/interaction';
 import { B } from './blocks';
-import { waterSourceAtHand } from '../logistics/participation';
+import { waterSourceAtHand, naturalWaterAtHand } from '../logistics/participation';
 
 /** Reach for an external hand, in canonical metres (the browser's item ray has this range). */
 export const ITEM_REACH = 2.4;
@@ -64,6 +64,7 @@ export function handInteractions(sim: Simulation, p: Person): HandInteraction[] 
   }
   const water = waterSourceAtHand(w, b.pos);
   if (water) out.push({ id: `drink:${water.id}`, kind: 'drink', label: `Drink — ${water.name}`, slot: 'nearby' });
+  if (!water && naturalWaterAtHand(w, b.pos)) out.push({ id: 'drink:natural-water', kind: 'drink', label: 'Drink — water', slot: 'nearby' });
   const resource = resourceAtHand(sim, p);
   if (resource) out.push({ id: `gather:${resource.id}`, kind: 'gather', label: `Gather ${resource.yield}`, slot: 'nearby' });
   const carried = p.inventory[p.inventory.length - 1];

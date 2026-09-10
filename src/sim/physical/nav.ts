@@ -145,6 +145,13 @@ export class Navigator {
   clearWalk(a: Vec3, b: Vec3): boolean {
     const n = Math.ceil(Math.hypot(b.x - a.x, b.z - a.z) * 2); let py = a.y;
     for (let s = 1; s <= n; s++) { const t = s / n; const x = Math.floor(a.x + (b.x - a.x) * t), z = Math.floor(a.z + (b.z - a.z) * t); const y = this.floorY(x, z); if (y < 0 || this.walkCost(x, z) >= 40 || this.walkCost(x, z) > 3 || Math.abs(y - py) > 1) return false; py = y; }
+    // Smoothing must leave room for an ordinary body, especially at door approaches.
+    // A centre line that clips the corner of a wall is not a traversable shortcut.
+    for (let s = 0; s <= n; s++) {
+      const t = n ? s / n : 0, px = a.x + (b.x - a.x) * t, pz = a.z + (b.z - a.z) * t;
+      const floor = this.floorY(Math.floor(px), Math.floor(pz));
+      for (let x = Math.floor(px - .3); x <= Math.floor(px + .3); x++) for (let z = Math.floor(pz - .3); z <= Math.floor(pz + .3); z++) if (!this.isWalkable(x,z) || Math.abs(this.floorY(x,z)-floor)>1) return false;
+    }
     return true;
   }
   nearestWalkable(x: number, z: number, r: number, height?: number): { x: number; z: number } | null {

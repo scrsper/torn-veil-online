@@ -28,8 +28,9 @@ function materialize(world: World, spec: SettlementSpec, regional: RegionalGrid)
   const rng = new RNG(spec.seed), size = SETTLEMENT_SIZE;
   const grid = new VoxelGrid(size, 48, size); grid.initCaches();
   const ctx = { grid, reserved: new Uint8Array(size * size), rng };
+  const height = (x: number, z: number) => regional.geography?.natural(x + spec.site.x, z + spec.site.z).height ?? settlementHeight(spec, x, z);
   for (let x = 0; x < size; x++) for (let z = 0; z < size; z++) {
-    const h = settlementHeight(spec, x, z);
+    const h = height(x, z);
     for (let y = 0; y <= h; y++) grid.data[grid.idx(x, y, z)] = y === h ? (spec.biome === 'dryland' ? B.Sand : B.Grass) : y > h - 3 ? B.Dirt : B.Stone;
   }
   const places: Record<string, Place> = {}, people: Record<string, Person> = {};
@@ -43,13 +44,13 @@ function materialize(world: World, spec: SettlementSpec, regional: RegionalGrid)
       const x0 = key === 'square' ? rng.int(95, 125) : rng.int(12, size - width - 12), z0 = key === 'square' ? rng.int(95, 125) : rng.int(12, size - depth - 12);
       const p = { x0, z0, x1: x0 + width - 1, z1: z0 + depth - 1 };
       if (plots.some(q => p.x0 - 6 <= q.x1 && p.x1 + 6 >= q.x0 && p.z0 - 6 <= q.z1 && p.z1 + 6 >= q.z0)) continue;
-      const hs = [settlementHeight(spec, p.x0, p.z0), settlementHeight(spec, p.x1, p.z1)];
+      const hs = [height(p.x0, p.z0), height(p.x1, p.z1)];
       if (Math.max(...hs) - Math.min(...hs) > 1) continue;
       plot = p; break;
     }
     if (!plot) throw new Error(`No fitting plot for ${spec.name}:${key}`);
     plots.push(plot);
-    const { x0, z0, x1, z1 } = plot, floor = settlementHeight(spec, Math.floor((x0 + x1) / 2), Math.floor((z0 + z1) / 2));
+    const { x0, z0, x1, z1 } = plot, floor = height(Math.floor((x0 + x1) / 2), Math.floor((z0 + z1) / 2));
     flatten(grid, x0, z0, x1, z1, floor, 2);
     const facing = rng.pick(['N', 'S', 'E', 'W'] as Facing[]);
     let r: BuildResult;
@@ -193,15 +194,15 @@ function materialize(world: World, spec: SettlementSpec, regional: RegionalGrid)
 
 /** One registry, physical coordinate space, simulation and clock. Ashford's entry point stays
  * untouched. Only generation is local-seeded; runtime systems share the canonical World. */
-export function generateProceduralWorld(world: World, sites: readonly SettlementSite[] = ISOLATED_SITES): SettlementResult[] {
+export function generateProceduralWorld(world: World, sites: readonly SettlementSite[] = ISOLATED_SITES, geography?: import('./geography').WorldGeography): SettlementResult[] {
   if (world.entities.size) throw new Error('Procedural generation requires an empty World');
   if (!sites.length || new Set(sites.map(s => s.id)).size !== sites.length) throw new Error('Expected unique settlement site IDs');
   const sorted = [...sites].sort((a, b) => a.id.localeCompare(b.id));
   for (let i = 0; i < sorted.length; i++) for (const b of sorted.slice(i + 1)) if (Math.abs(sorted[i].x - b.x) < SETTLEMENT_SIZE && Math.abs(sorted[i].z - b.z) < SETTLEMENT_SIZE) throw new Error('Settlement patches overlap');
   world.settlementSites = sorted.map(s => ({ ...s }));
-  const grid = new RegionalGrid(Math.max(...sites.map(s => s.x)) + SETTLEMENT_SIZE + 128, Math.max(...sites.map(s => s.z)) + SETTLEMENT_SIZE + 128, world.seed);
+  const grid = new RegionalGrid(geography?.spec.size ?? Math.max(...sites.map(s => s.x)) + SETTLEMENT_SIZE + 128, geography?.spec.size ?? Math.max(...sites.map(s => s.z)) + SETTLEMENT_SIZE + 128, world.seed, geography);
   world.grid = grid;
-  const settlements = sorted.map(site => materialize(world, generateSettlementSpec(world.seed, site), grid));
+  const settlements = sorted.map(site => materialize(world, generateSettlementSpec(world.seed, site, geography?.natural(site.x + 120, site.z + 120)), grid));
   installRuleset(world.kernel, settlementPrimitives());
   for (const settlement of settlements) initializeSettlementMechanics(world, settlement);
   createFields(world, settlements.flatMap(s => Object.values(s.places).filter(p => p.type === 'farm').map(p => ({ placeId: p.id, ownerId: p.ownerId, startMoisture: s.spec.moisture }))));
