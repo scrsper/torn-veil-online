@@ -1,22 +1,22 @@
 # Unreal foundation
 
-The existing TypeScript `World`, `Simulation`, and 32-person cast remain authoritative.
+The TypeScript `World` and `Simulation` remain authoritative for the seeded world and authored Ashford reference.
 The C++ client sends direction/sprint intent over a loopback WebSocket. TypeScript validates
 movement against its grid and sends snapshots at 10 Hz while stepping at 20 Hz.
-Unreal interpolates NPC manifestations and reconciles its predicted player position.
-Disconnects expire input after 300 ms and freeze client movement after 500 ms.
+Unreal interpolates manifestations and reconciles canonical player positions, with local CharacterMovement disabled.
+Abandoned input expires after 300 ms. Native snapshot freshness is separate from transport and presentation streaming; the client pauses input after 1.5 seconds without a valid snapshot.
 
 From the repository root in PowerShell:
 
 ```powershell
 npm ci
-npm run bridge
-# In another terminal (first build):
-./unreal/scripts/Build.ps1
+npm run bridge:playable
+# In another terminal (Launch performs the incremental native build):
 ./unreal/scripts/Launch.ps1
 ```
 
-Open `unreal/TornVeilOnline/TornVeilOnline.uproject` with UE **5.8** and press Play.
+Launch opens UE **5.8**; press Play. For Ashford use `npm run bridge` and `Launch.ps1 -Scenario Ashford`.
+Regional protocol 2 sends the canonical snapshot before bounded presentation chunks. See [startup reliability and evidence](../docs/PLAYABLE_STARTUP_FIX.md).
 `Setup-Assets.ps1` copies the installed Epic template Manny skeleton/animations locally.
 Requires UE Templates and Feature Packs, Visual Studio C++ tools, Windows SDK 22621,
 and the .NET Framework SDK.

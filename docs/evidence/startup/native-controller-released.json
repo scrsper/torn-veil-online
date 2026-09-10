@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "version": 1,
+  "regionProtocol": 2,
+  "tick": 1653.299999999044,
+  "settlements": 7,
+  "residents": 127,
+  "visibleNPCs": 0,
+  "playerId": "p_128",
+  "controlledBodyId": "b_128",
+  "controllerConnected": false,
+  "projectRoot": "C:\\Users\\green\\Desktop\\projects\\torn-veil-online"
+}

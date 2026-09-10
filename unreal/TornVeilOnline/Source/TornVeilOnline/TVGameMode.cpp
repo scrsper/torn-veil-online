@@ -9,9 +9,9 @@ void ATVHUD::DrawHUD() {
     Super::DrawHUD(); auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>(); if (!B || !Canvas) return;
     DrawRect(FLinearColor(0.015f, 0.02f, 0.035f, 0.85f), 20, 20, 660, 100);
     DrawText(TEXT("TORN VEIL  /  LIVING WORLD"), FLinearColor(0.9f, 0.72f, 0.4f), 36, 30, nullptr, 1.5f);
-    DrawText(B->SinceSnapshot < 0.5f ? B->Status : TEXT("Simulation disconnected - movement paused"), FLinearColor::White, 36, 65);
+    DrawText(B->ConnectionStatus(), FLinearColor::White, 36, 65);
     DrawText(TEXT("WASD move  |  Shift run  |  Mouse orbit  |  Wheel zoom  |  Tab target  |  LMB strike  |  E interact  |  C eat  |  Q drop  |  M mechanisms  |  F5 save  |  F6 debug"), FLinearColor(0.7f, 0.75f, 0.8f), 36, 90);
-    if (B->SinceSnapshot < 0.5f) {
+    if (B->IsLive()) {
         DrawRect(FLinearColor(0.015f, 0.02f, 0.035f, 0.85f), 20, Canvas->SizeY - 150, 660, 85);
         DrawText(B->PlayerVitals, FLinearColor::White, 36, Canvas->SizeY - 140);
         DrawText(B->CarriedSummary, FLinearColor(0.9f, 0.85f, 0.7f), 36, Canvas->SizeY - 118);

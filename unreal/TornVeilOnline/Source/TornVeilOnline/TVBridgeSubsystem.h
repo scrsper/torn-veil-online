@@ -45,8 +45,17 @@ public:
     UPROPERTY() TObjectPtr<ATVWorldProjection> WorldProjection;
     ATVCharacter* Selected() const;
     FString Status = TEXT("Connecting to simulation..."), LastResult, LastEvent, PlayerId;
-    float ServerTick = 0, SinceSnapshot = 100;
-    bool bInspector = false, bControls = false;
+    float ServerTick = 0;
+    UPROPERTY(BlueprintReadOnly) float SinceSnapshot = 100;
+    UPROPERTY(BlueprintReadOnly) bool bControls = false;
+    UPROPERTY(BlueprintReadOnly) bool bTransportConnected = false;
+    UPROPERTY(BlueprintReadOnly) bool bCanonicalReady = false;
+    UPROPERTY(BlueprintReadOnly) int32 SnapshotCount = 0;
+    UPROPERTY(BlueprintReadOnly) int32 ProjectedRegions = 0;
+    UPROPERTY(BlueprintReadOnly) FString CenterRegion;
+    UFUNCTION(BlueprintPure) bool IsLive() const;
+    UFUNCTION(BlueprintPure) FString ConnectionStatus() const;
+    bool bInspector = false;
     /** Canonical metre->centimetre projection, taken from the bridge's `scene` message rather
      * than baked in here. TypeScript owns where the world's origin is. */
     FVector CanonicalOrigin = FVector(96, 14, 96);
@@ -60,6 +69,16 @@ private:
     FString SelectedBody;
     int32 Sequence = 0;
     float SendClock = 0, RetryClock = 0, ResultClock = 0;
+    double LastSnapshotReceived = 0;
+    bool bWasLive = false, bMovingInput = false;
+    TSet<FString> WantedRegions;
+    TArray<uint8> Assembly;
+    int32 TransferId = 0, NextChunk = 0, ChunkCount = 0;
+    FString TransferRegion;
+    TSharedPtr<FJsonObject> PendingPresentation;
+    void AcknowledgePresentation(int32 Id, int32 Index);
+    void ProtocolError(const FString& Reason);
+    void ReceivePresentation(const TSharedPtr<FJsonObject>& Message);
     void Connect();
     void Receive(const FString& Message);
     void Send(const TSharedRef<class FJsonObject>& Message);

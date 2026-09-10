@@ -1,0 +1,73 @@
+{
+  "initialMessages": [
+    {
+      "type": "hello",
+      "bytes": 63,
+      "ms": 10.251800000000003,
+      "controls": true,
+      "playerId": "p_128"
+    },
+    {
+      "type": "scene",
+      "bytes": 219,
+      "ms": 10.34820000000002
+    },
+    {
+      "type": "regions",
+      "bytes": 2600389,
+      "ms": 442.03959999999995,
+      "regions": [
+        {
+          "id": "46,52",
+          "bytes": 26495
+        },
+        {
+          "id": "46,53",
+          "bytes": 30682
+        },
+        {
+          "id": "46,54",
+          "bytes": 44856
+        },
+        {
+          "id": "47,52",
+          "bytes": 26882
+        },
+        {
+          "id": "47,53",
+          "bytes": 495174
+        },
+        {
+          "id": "47,54",
+          "bytes": 686387
+        },
+        {
+          "id": "48,52",
+          "bytes": 26632
+        },
+        {
+          "id": "48,53",
+          "bytes": 524962
+        },
+        {
+          "id": "48,54",
+          "bytes": 684353
+        }
+      ]
+    },
+    {
+      "type": "snapshot",
+      "bytes": 947,
+      "ms": 451.86210000000005,
+      "controlledBodyId": "b_128",
+      "playerId": "p_128",
+      "body": {
+        "x": 12054.5,
+        "y": 16,
+        "z": 13765.5
+      }
+    }
+  ],
+  "snapshotCount": 103,
+  "notes": "Observed merged server before fix, using a diagnostic native-header ws client with an 8 MiB receive cap. Actual stale Unreal DLL closed at 1 MiB before reaching the snapshot."
+}

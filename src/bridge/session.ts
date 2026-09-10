@@ -171,7 +171,7 @@ export class BridgeSession {
   }
   scene() {
     const w = this.world;
-    if (w.geography) return { version: 1, type: 'scene', seed: w.seed, worldId: `seeded:${w.seed}`, geography: w.geography.spec, origin: { x: 0, y: 0, z: 0 }, unitsPerMetre: 100, regional: true };
+    if (w.geography) { const p=w.positionOf(w.playerId!)!,size=w.geography.spec.regionSize; return { version: 1, type: 'scene', seed: w.seed, worldId: `seeded:${w.seed}`, geography: w.geography.spec, origin: { x: Math.floor(p.x/size)*size, y: 0, z: Math.floor(p.z/size)*size }, unitsPerMetre: 100, regional: true }; }
     const g = w.grid;
     const terrain: number[][] = [];
     for (let x = 0; x < g.W; x++) for (let z = 0; z < g.D; z++) {

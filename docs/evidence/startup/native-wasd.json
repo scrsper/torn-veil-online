@@ -1,0 +1,71 @@
+{
+  "method": "Editor-only TV.TestMoveKey dispatches held PlayerController InputKey events through the configured WASD bindings. Bridge receives only intention. Server positions below are canonical; no teleport or local physics.",
+  "playerId": "p_128",
+  "bodyId": "b_128",
+  "trials": [
+    {
+      "key": "W",
+      "seconds": 2,
+      "before": {
+        "x": 12054.5,
+        "y": 16,
+        "z": 13765.5
+      },
+      "after": {
+        "x": 12059.770000000002,
+        "y": 16,
+        "z": 13765.5
+      },
+      "sequenceBefore": 23,
+      "sequenceAfter": 58
+    },
+    {
+      "key": "A",
+      "seconds": 2,
+      "before": {
+        "x": 12059.770000000002,
+        "y": 16,
+        "z": 13765.5
+      },
+      "after": {
+        "x": 12059.770000000002,
+        "y": 16,
+        "z": 13759.719999999998
+      },
+      "sequenceBefore": 505,
+      "sequenceAfter": 534
+    },
+    {
+      "key": "S",
+      "seconds": 2,
+      "before": {
+        "x": 12059.770000000002,
+        "y": 16,
+        "z": 13759.719999999998
+      },
+      "after": {
+        "x": 12054.33,
+        "y": 16,
+        "z": 13759.719999999998
+      },
+      "sequenceBefore": 702,
+      "sequenceAfter": 735
+    },
+    {
+      "key": "D",
+      "seconds": 2,
+      "before": {
+        "x": 12054.33,
+        "y": 16,
+        "z": 13759.719999999998
+      },
+      "after": {
+        "x": 12054.33,
+        "y": 16,
+        "z": 13765.5
+      },
+      "sequenceBefore": 1608,
+      "sequenceAfter": 1642
+    }
+  ]
+}

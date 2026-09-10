@@ -1,0 +1,28 @@
+{
+  "map": "/Game/TornVeil/Maps/UEDPIE_0_TornVeilWorld.TornVeilWorld",
+  "status": "LIVE  |  0 visible people  |  t 1544.2s",
+  "live": true,
+  "controls": true,
+  "snapshotAge": 0.06029750034213066,
+  "snapshots": 264,
+  "regions": 9,
+  "center": "47,53",
+  "playerId": "p_128",
+  "controlledBodyId": "b_128",
+  "canonicalPosition": {
+    "x": 12059.770000000002,
+    "y": 16,
+    "z": 13763.46
+  },
+  "worldTick": 1544.2999999991432,
+  "ack": 516,
+  "pawn": "TVCharacter_0",
+  "unrealPosition": {
+    "x": 2777.0000000002256,
+    "y": 19599.257482944864,
+    "z": 1690.0
+  },
+  "reconciliationErrorCm": 53.257482944951335,
+  "movementMode": "<MovementMode.MOVE_NONE: 0>",
+  "centerTerrainSections": 1
+}
