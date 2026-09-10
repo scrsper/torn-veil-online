@@ -81,7 +81,7 @@ describe('canonical hand interactions', () => {
     expect(s.intent(packet).result).toBe('invalid_sequence_or_version'); expect(food.quantity).toBe(1);
     expect(s.intent({ ...packet, sequence: 2, interactionId: 'grant:bread' }).result).toBe('invalid_interaction');
     expect(s.intent({ ...packet, sequence: 3, type: 'grant' }).result).toBe('invalid_intent');
-    const snap = s.snapshot(); const player = snap.bodies.find(b => b.entityId === p.id)!;
+    const snap = s.developerSnapshot(); const player = snap.bodies.find(b => b.entityId === p.id)!;
     expect(player.wealth).toBe(p.wealth); expect(player.needs.hunger).toBeLessThan(0.7);
     expect(player.inventory.find(i => i.id === food.id)!.quantity).toBe(1);
   });
@@ -92,7 +92,7 @@ describe('canonical hand interactions', () => {
     const body = s.world.primaryBody(p.id)!;
     body.pos = { x: node.pos.x + 1.5, y: node.pos.y, z: node.pos.z };
     body.yaw = Math.PI / 2;
-    const action = s.snapshot().interactions.find(a => a.kind === 'gather');
+    const action = s.developerSnapshot().interactions.find(a => a.kind === 'gather');
     expect(action).toBeDefined();
     const before = node.remaining;
     expect(s.intent({ version: 1, sequence: 1, type: 'interact', interactionId: action!.id }).result).toBe('accepted');
@@ -102,12 +102,12 @@ describe('canonical hand interactions', () => {
     expect(item).toBeDefined();
 
     body.pos = { x: item.pos!.x + 1.5, y: item.pos!.y, z: item.pos!.z }; body.yaw = Math.PI / 2;
-    const take = s.snapshot().interactions.find(a => a.id.endsWith(`:${item.id}`) && ['take', 'steal', 'recover'].includes(a.kind));
+    const take = s.developerSnapshot().interactions.find(a => a.id.endsWith(`:${item.id}`) && ['take', 'steal', 'recover'].includes(a.kind));
     expect(take).toBeDefined();
     expect(s.intent({ version: 1, sequence: 2, type: 'interact', interactionId: take!.id }).result).toBe('accepted');
     expect(item.holderId).toBe(p.id); expect(p.inventory).toContain(item.id);
 
-    const drop = s.snapshot().interactions.find(a => a.id === `drop:${item.id}`);
+    const drop = s.developerSnapshot().interactions.find(a => a.id === `drop:${item.id}`);
     expect(drop).toBeDefined();
     expect(s.intent({ version: 1, sequence: 3, type: 'interact', interactionId: drop!.id }).result).toBe('accepted');
     expect(item.holderId).toBeNull(); expect(item.pos).not.toBeNull(); expect(p.inventory).not.toContain(item.id);

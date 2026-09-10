@@ -1,3 +1,4 @@
+import { isExternallyControlled } from '../../sim/runtime/controllers';
 import { World } from '../../sim/core/world';
 import { Simulation } from '../../sim/mind/agent';
 import { generateVillage } from '../../sim/world/village';
@@ -91,7 +92,7 @@ function advance(world: World, sim: Simulation, worldSeconds: number, step = 0.1
 /** Ordinary villagers: not the watch, not outlaws, not children — the people the milestone's
  * "an assault between two ordinary villagers" means. Chosen by structure, never by name. */
 function ordinaryVillagers(world: World): Person[] {
-  return world.persons().filter(p => p.alive && !p.controlled && !p.hostile
+  return world.persons().filter(p => p.alive && !isExternallyControlled(p) && !p.hostile
     && !['guard', 'captain', 'child', 'bandit', 'traveler'].includes(p.occupation));
 }
 
@@ -125,7 +126,7 @@ const ONLOOKER_STEP_SECONDS = 15 * 60;
 function onlookerAt(world: World, spot: Vec3, exclude: EntityId[]): Person | undefined {
   const eye = { x: spot.x, y: spot.y + 1, z: spot.z };
   for (const p of world.persons()) {
-    if (!p.alive || p.controlled || exclude.includes(p.id)) continue;
+    if (!p.alive || isExternallyControlled(p) || exclude.includes(p.id)) continue;
     const b = world.primaryBody(p.id);
     if (!b || !b.present || b.pose === 'sleep') continue;
     if (Math.hypot(b.pos.x - spot.x, b.pos.z - spot.z) > 14) continue;

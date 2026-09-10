@@ -1,3 +1,4 @@
+import { setExternalControl } from '../../sim/runtime/controllers';
 import { newWorld } from '../../sim/persist/save';
 import { Simulation } from '../../sim/mind/agent';
 import { makeBody, makePerson, makePlace } from '../../sim/world/factory';
@@ -16,7 +17,7 @@ import held from './held-out.json';
  * Other residents are controlled to isolate the short mechanics demonstration from survival. */
 export function createKernelLab(seed = 918271, family: 'grain' | 'water' = 'grain', control = false, heldOut = false) {
   const { world } = newWorld(seed);
-  for (const p of world.persons()) p.controlled = true;
+  for (const p of world.persons()) setExternalControl(p, true);
   world.clock.timeScale = 1;
   for (let x = 4; x <= 18; x++) for (let z = 4; z <= 18; z++) {
     world.grid.set(x, 0, z, B.Stone);

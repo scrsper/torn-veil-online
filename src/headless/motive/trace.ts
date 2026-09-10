@@ -1,3 +1,4 @@
+import { isExternallyControlled } from '../../sim/runtime/controllers';
 import { World } from '../../sim/core/world';
 import { Simulation } from '../../sim/mind/agent';
 import { generateVillage } from '../../sim/world/village';
@@ -112,7 +113,7 @@ function advance(world: World, sim: Simulation, worldSeconds: number, step = 0.1
 
 /** Ordinary villagers: not the watch, not outlaws, not children. Structural, never by name. */
 function ordinaryVillagers(world: World): Person[] {
-  return world.persons().filter(p => p.alive && !p.controlled && !p.hostile
+  return world.persons().filter(p => p.alive && !isExternallyControlled(p) && !p.hostile
     && !['guard', 'captain', 'child', 'bandit', 'traveler'].includes(p.occupation));
 }
 
@@ -276,7 +277,7 @@ function familyTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveTra
 
   // The multi-step acceptance case requires timely news, not a lucky next-day encounter.
   // Stage a messenger who hears from the victim, then reports through the ordinary knowledge/tell pipeline.
-  const messenger = world.persons().filter(p => p.alive && !p.controlled && !p.hostile
+  const messenger = world.persons().filter(p => p.alive && !isExternallyControlled(p) && !p.hostile
     && ![subject.id, partner.id, aggressor.id].includes(p.id))
     .sort((a, b) => getRel(partner, b.id).trust - getRel(partner, a.id).trust || a.id.localeCompare(b.id))[0];
   const messengerBody = world.primaryBody(messenger.id)!;
@@ -536,7 +537,7 @@ function raiseMultiTripWork(world: World): EntityId | null {
       const stock = stockAt(world, type, pl.id);
       // Combat now changes who remains fit to haul. Require real multi-trip stock for
       // the strongest eligible worker, not just the old average-adult estimate.
-      const largestLoad = Math.max(carryCapFor(type), ...world.persons().filter(p => p.alive && !p.controlled).map(p => personalCarryUnits(world, p, type)));
+      const largestLoad = Math.max(carryCapFor(type), ...world.persons().filter(p => p.alive && !isExternallyControlled(p)).map(p => personalCarryUnits(world, p, type)));
       if (stock > largestLoad) candidates.push({ type, fromId: pl.id, stock, largestLoad });
     }
   }
@@ -561,7 +562,7 @@ function raiseMultiTripWork(world: World): EntityId | null {
 }
 
 function responsibilityTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveTrace {
-  const watched = new Set<EntityId>(world.persons().filter(p => p.alive && !p.controlled).map(p => p.id));
+  const watched = new Set<EntityId>(world.persons().filter(p => p.alive && !isExternallyControlled(p)).map(p => p.id));
   const traceStart = world.now;
   const rec = recordFrom(world, traceStart, watched);
   const raisedRequestId = raiseMultiTripWork(world);
@@ -582,7 +583,7 @@ function responsibilityTrace(world: World, sim: Simulation, spec: MotiveSpec): M
   // should follow, so the scenario stops depending on that one happening to out-score the rest.
   let best: { p: Person; pu: Pursuit; served: number } | null = null;
   for (const p of world.persons()) {
-    if (!p.alive || p.controlled) continue;
+    if (!p.alive || isExternallyControlled(p)) continue;
     for (const pu of recordedPursuits(p,rec)) {
       if (pu.kind === 'discharge' && raisedRequestId && pu.source.id === raisedRequestId) {
         best = { p, pu, served: Number.MAX_SAFE_INTEGER };
@@ -592,7 +593,7 @@ function responsibilityTrace(world: World, sim: Simulation, spec: MotiveSpec): M
     if (best && best.served === Number.MAX_SAFE_INTEGER) break;
   }
   for (const p of best && best.served === Number.MAX_SAFE_INTEGER ? [] : world.persons()) {
-    if (!p.alive || p.controlled) continue;
+    if (!p.alive || isExternallyControlled(p)) continue;
     for (const pu of recordedPursuits(p,rec)) {
       // Only responsibilities taken on DURING the observation window: the warm-up runs the whole
       // simulation, upkeep included, so the village is already part-way through work it accepted
@@ -652,7 +653,7 @@ function responsibilityTrace(world: World, sim: Simulation, spec: MotiveSpec): M
  * This establishes the preconditions without depending on a rare accidental cluster of harms.
  */
 function conflictTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveTrace {
-  const watched = new Set<EntityId>(world.persons().filter(p => p.alive && !p.controlled).map(p => p.id));
+  const watched = new Set<EntityId>(world.persons().filter(p => p.alive && !isExternallyControlled(p)).map(p => p.id));
   const rec = recordFrom(world, world.now, watched);
   const villagers = ordinaryVillagers(world);
   let trigger: string | undefined;
@@ -694,7 +695,7 @@ function conflictTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveT
   for (let t = 0; t < total; t += slice) {
     advance(world, sim, slice);
     for (const p of world.persons()) {
-      if (!p.alive || p.controlled) continue;
+      if (!p.alive || isExternallyControlled(p)) continue;
       const live = livePursuits(p);
       if (live.length < 2) continue;
       timeline.push({

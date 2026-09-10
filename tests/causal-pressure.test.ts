@@ -1,3 +1,4 @@
+import { setExternalControl } from '../src/sim/runtime/controllers';
 import { describe, expect, it } from 'vitest';
 import { PRESSURE_CONDITIONS, createPressureLab, pressureSnapshot, runPressure } from '../src/headless/kernel/pressure';
 import { advanceKernelLab, createKernelLab } from '../src/headless/kernel/lab';
@@ -168,7 +169,7 @@ describe('local method histories', () => {
   });
 
   it('a communicated erroneous method is an unverified belief, fails physically, and pays construction/dismantling costs', () => {
-    const lab = createKernelLab(918271, 'water'); lab.inventor.controlled = true;
+    const lab = createKernelLab(918271, 'water'); setExternalControl(lab.inventor, true);
     const method = candidateMethods(lab.world, lab.inventor, lab.inventor.knowledge['workshop-need'].claim.practicalNeed)[0];
     method.connections = [{ from: 0, to: 2 }, { from: 2, to: 1 }, { from: 1, to: 3 }];
     const belief = learn(lab.world, lab.inventor, { key: `method:${methodSignature(method)}`, kind: 'technique', claim: { method }, confidence: 0.7, source: { type: 'inferred' } }, true)!;

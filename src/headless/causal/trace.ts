@@ -1,3 +1,4 @@
+import { isExternallyControlled } from '../../sim/runtime/controllers';
 import type { Concern, EntityId, ItemType, KnowledgeItem, Person, WorldEvent } from '../../sim/core/types';
 import type { World } from '../../sim/core/world';
 import type { Simulation } from '../../sim/mind/agent';
@@ -76,7 +77,7 @@ export interface CausalTraceReport {
 const HOUR = SECONDS_PER_HOUR;
 
 function firstBy(world: World, occupation: string): Person | undefined {
-  return world.persons().filter(p => p.alive && !p.controlled && p.occupation === occupation).sort((a, b) => a.id.localeCompare(b.id))[0];
+  return world.persons().filter(p => p.alive && !isExternallyControlled(p) && p.occupation === occupation).sort((a, b) => a.id.localeCompare(b.id))[0];
 }
 
 export function runCausalTrace(opts: CausalTraceOptions): CausalTraceReport {
@@ -107,7 +108,7 @@ export function runCausalTrace(opts: CausalTraceOptions): CausalTraceReport {
     const pb = world.primaryBody(producer.id); const rb = world.primaryBody(raider.id);
     if (!pb || !rb || pb.dead) return;
     // Somebody who is not the raider has the producer in view right now.
-    const witness = world.persons().some(q => q.alive && !q.controlled && q.id !== producer.id && q.id !== raider.id
+    const witness = world.persons().some(q => q.alive && !isExternallyControlled(q) && q.id !== producer.id && q.id !== raider.id
       && q.mind.percepts.some(pc => pc.entityId === producer.id && pc.how === 'saw'));
     if (!witness) return;
     rb.pos = { x: pb.pos.x + 1, y: pb.pos.y, z: pb.pos.z };
@@ -137,7 +138,7 @@ export function runCausalTrace(opts: CausalTraceOptions): CausalTraceReport {
     }
     // A decision taken while carrying a supply worry — the behaviour half of the chain.
     for (const p of world.persons()) {
-      if (!p.alive || p.controlled || !p.mind.goal) continue;
+      if (!p.alive || isExternallyControlled(p) || !p.mind.goal) continue;
       const key = `${p.mind.goal.key}@${p.mind.goal.createdAt}`;
       if (lastGoal.get(p.id) === key) continue;
       lastGoal.set(p.id, key);
@@ -163,7 +164,7 @@ export function runCausalTrace(opts: CausalTraceOptions): CausalTraceReport {
   // ---- what people ended up believing, and how they came by it
   const spreadByKey = new Map<string, BeliefSpread>();
   for (const p of world.persons()) {
-    if (p.controlled) continue;
+    if (isExternallyControlled(p)) continue;
     for (const k of Object.values(p.knowledge)) {
       if (k.kind !== 'event' || k.claim.type !== 'work_blocked') continue;
       let s = spreadByKey.get(k.key);
@@ -180,7 +181,7 @@ export function runCausalTrace(opts: CausalTraceOptions): CausalTraceReport {
   const supplyConcerns: CausalTraceReport['supplyConcerns'] = [];
   const conclusions: ConclusionRecord[] = [];
   for (const p of world.persons()) {
-    if (p.controlled || !p.alive) continue;
+    if (isExternallyControlled(p) || !p.alive) continue;
     for (const c of activeConcerns(p)) {
       if (c.kind !== 'supply') continue;
       supplyConcerns.push({ who: p.name, what: describeConcern(world, c), intensity: round(c.intensity), reasons: c.reasons.slice(0, 3) });
@@ -202,7 +203,7 @@ export function runCausalTrace(opts: CausalTraceOptions): CausalTraceReport {
   return {
     scenario: opts.scenario, seed, days,
     wallSeconds: round((Date.now() - startedAt) / 1000),
-    population: world.persons().filter(p => p.alive && !p.controlled).length,
+    population: world.persons().filter(p => p.alive && !isExternallyControlled(p)).length,
     deaths, stoppages, spread, supplyConcerns, conclusions,
     decisions, relationshipShifts, chains,
     acceptance: assess(world, { stoppages, spread, supplyConcerns, conclusions, decisions, relationshipShifts, deaths, chains }),
@@ -214,7 +215,7 @@ export function runCausalTrace(opts: CausalTraceOptions): CausalTraceReport {
  * carries the strongest supply worry, and whoever is currently acting on one. */
 function buildChains(world: World, conclusions: ConclusionRecord[]): TraceChain[] {
   const out: TraceChain[] = [];
-  const people = world.persons().filter(p => p.alive && !p.controlled);
+  const people = world.persons().filter(p => p.alive && !isExternallyControlled(p));
 
   const withCause = people
     .map(p => ({ p, k: causeBeliefs(p).sort((a, b) => b.confidence - a.confidence)[0] }))

@@ -1,3 +1,4 @@
+import { learnIdentity, interpretSocial } from './people';
 import type { Action, Goal, Item, KnowledgeItem, Person } from '../core/types';
 import type { World } from '../core/world';
 import { getPhysicalCapability } from '../core/attributes';
@@ -55,7 +56,7 @@ export function actOnRecord(world: World, p: Person, action: Action, seconds: nu
   if (!p.alive || p.age < 8 || !Number.isFinite(seconds) || seconds <= 0 || seconds > 60 || capacity <= 0.15
     || ((reading || copying) && (!source || !canReadRecord(world, p, source)))
     || (!reading && (!hasSubstrate(world, p, action.placeId!) || !knowsNotation(p, MECHANICAL_NOTATION)))
-    || (!reading && !copying && !held?.claim.method && !held?.claim.genealogy)) { action.status = 'failed'; return; }
+    || (!reading && !copying && !held?.claim.method && !held?.claim.genealogy && !held?.claim.identity)) { action.status = 'failed'; return; }
   const required = reading ? 4 : 12;
   const rate = capacity * (reading ? cognitiveCapability(p).reasoning : 0.5 + (p.skills.crafting ?? 0));
   const spent = Math.min(seconds, Math.max(0, required - (data.progress ?? 0)) / rate);
@@ -68,6 +69,8 @@ export function actOnRecord(world: World, p: Person, action: Action, seconds: nu
       data: { key: k.key, authorId: record.authorId, laborSeconds: data.laborSeconds }, summary: `${p.name} studied a physical record` });
     const acquired = learn(world, p, { ...structuredClone(k), confidence: Math.min(0.8, k.confidence) * (source!.condition ?? 1),
       source: { type: 'read', from: source!.id, viaEvent: ev.id }, hops: k.hops + 1, cause: ev.id });
+    if (acquired) interpretSocial(world, p, acquired);
+    if (k.claim.identity) learnIdentity(world, p, k.claim.identity.subject, k.claim.identity.name, { type: 'read', from: source!.id, viaEvent: ev.id }, Math.min(0.8, k.confidence) * (source!.condition ?? 1));
     if (acquired && k.claim.method) developThroughUnderstanding(world, p, k.key, k.claim.method.connections.length + 1, data.laborSeconds, ev.id);
   } else {
     const k = copying ? structuredClone(source!.record!.knowledge) : snapshot(held!);

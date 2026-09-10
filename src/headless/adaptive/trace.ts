@@ -1,3 +1,4 @@
+import { isExternallyControlled } from '../../sim/runtime/controllers';
 import type { EntityId, Person, WorkStint } from '../../sim/core/types';
 import type { World } from '../../sim/core/world';
 import type { Simulation } from '../../sim/mind/agent';
@@ -88,7 +89,7 @@ export interface AdaptiveTraceReport {
 const HOUR = 3600;
 
 function firstBy(world: World, occupation: string): Person | undefined {
-  return world.persons().filter(p => p.alive && !p.controlled && p.occupation === occupation).sort((a, b) => a.id.localeCompare(b.id))[0];
+  return world.persons().filter(p => p.alive && !isExternallyControlled(p) && p.occupation === occupation).sort((a, b) => a.id.localeCompare(b.id))[0];
 }
 function round(v: number): number { return Math.round(v * 1000) / 1000; }
 
@@ -128,7 +129,7 @@ export function runAdaptiveTrace(opts: AdaptiveTraceOptions): AdaptiveTraceRepor
     if (!producer || !raider) return;
     const pb = world.primaryBody(producer.id); const rb = world.primaryBody(raider.id);
     if (!pb || !rb || pb.dead) return;
-    const witness = world.persons().some(q => q.alive && !q.controlled && q.id !== producer.id && q.id !== raider.id
+    const witness = world.persons().some(q => q.alive && !isExternallyControlled(q) && q.id !== producer.id && q.id !== raider.id
       && q.mind.percepts.some(pc => pc.entityId === producer.id && pc.how === 'saw'));
     if (!witness) return;
     rb.pos = { x: pb.pos.x + 1, y: pb.pos.y, z: pb.pos.z };
@@ -223,7 +224,7 @@ export function runAdaptiveTrace(opts: AdaptiveTraceOptions): AdaptiveTraceRepor
   const report: AdaptiveTraceReport = {
     scenario: opts.scenario, seed, days,
     wallSeconds: round((Date.now() - startedAt) / 1000),
-    population: world.persons().filter(p => p.alive && !p.controlled).length,
+    population: world.persons().filter(p => p.alive && !isExternallyControlled(p)).length,
     deaths, lostProducer, vacancies, candidates, standIns, lessons, stoppages, output, downstream, chains,
     acceptance: { producerLost: [], outputFell: [], shortageDownstream: [], concernFormed: [], plausibleCandidates: [], responderPerformedTheWork: [], capabilityRoseThroughWork: [], productionResumed: [], shortageEased: [], decisionTracedToTheLoss: [] },
   };
@@ -253,7 +254,7 @@ function describeStint(world: World, s: WorkStint): StandInRecord {
  * whichever stand-in got the most work done. Chosen structurally, never by name. */
 function finalChains(world: World): TraceChain[] {
   const out: TraceChain[] = [];
-  const people = world.persons().filter(p => p.alive && !p.controlled);
+  const people = world.persons().filter(p => p.alive && !isExternallyControlled(p));
   const worst = people
     .flatMap(p => activeConcerns(p).filter(c => c.kind === 'supply').map(c => ({ p, c })))
     .sort((a, b) => b.c.intensity - a.c.intensity)[0];
@@ -297,7 +298,7 @@ function assess(world: World, r: AdaptiveTraceReport): AdaptiveAcceptance {
     .map(s => `day ${s.day} ${String(s.hour).padStart(2, '0')}h: ${s.worker} could make no ${s.making} at ${s.place}`);
 
   const concernFormed = world.persons()
-    .filter(p => p.alive && !p.controlled)
+    .filter(p => p.alive && !isExternallyControlled(p))
     .flatMap(p => activeConcerns(p).filter(c => c.kind === 'supply').map(c => `${p.name}: ${describeConcern(world, c)} [${round(c.intensity)}] — ${c.reasons[0] ?? ''}`))
     .slice(0, 6);
 

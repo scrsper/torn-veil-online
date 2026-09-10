@@ -1,3 +1,5 @@
+import { GameSim, type PersonIntent } from '../sim/runtime/gameSim';
+import { knownName } from '../sim/mind/people';
 import { movementMultiplier } from '../sim/core/attributes';
 import { combatReach } from '../sim/physical/combat';
 import { World } from '../sim/core/world';
@@ -16,6 +18,7 @@ export const BRIDGE_VERSION = 1;
 export class BridgeSession {
   readonly world: World;
   readonly sim: Simulation;
+  readonly game: GameSim;
   private move = { x: 0, z: 0, sprint: false, expires: 0 };
   private sequence = -1;
   /**
@@ -36,6 +39,7 @@ export class BridgeSession {
     this.world = new World(seed);
     generateVillage(this.world);
     this.sim = new Simulation(this.world);
+    this.game = new GameSim(this.sim); this.game.attach('local', this.world.playerId!);
     this.dialogue = new DialogueSystem(this.world, this.sim);
   }
   resetInput(): void {
@@ -51,7 +55,9 @@ export class BridgeSession {
     const p = this.world.person(this.world.playerId)!;
     const b = this.world.primaryBody(p.id)!;
     let result = 'invalid_intent';
-    if (m.type === 'move' && typeof m.x === 'number' && typeof m.z === 'number' && Number.isFinite(m.x) && Number.isFinite(m.z)) {
+    if (m.type === 'person_action' && m.intent && typeof m.intent === 'object') {
+      result = this.game.intend('local', m.intent as PersonIntent) ? 'accepted' : 'invalid_intent';
+    } else if (m.type === 'move' && typeof m.x === 'number' && typeof m.z === 'number' && Number.isFinite(m.x) && Number.isFinite(m.z)) {
       this.move = { x: Math.max(-1, Math.min(1, m.x)), z: Math.max(-1, Math.min(1, m.z)), sprint: m.sprint === true, expires: this.world.physicalTime + 0.3 };
       result = 'accepted';
     } else if (m.type === 'attack') {
@@ -86,6 +92,20 @@ export class BridgeSession {
     return this.classes.get(id) ?? null;
   }
   snapshot() {
+    const w = this.world, p = w.person(w.playerId)!;
+    const knowledge = this.game.perceive('local')!;
+    const visible = new Set(knowledge.people.map(p => p.entityId)); visible.add(p.id);
+    return { version: BRIDGE_VERSION, type: 'snapshot', tick: w.physicalTime, worldTime: w.now, ack: this.sequence, playerId: p.id,
+      knowledge, interactions: handInteractions(this.sim, p), dialogue: this.dialogueProjection(), talkTargets: this.talkTargets(p),
+      bodies: w.activeBodies().filter(b => visible.has(b.ownerId)).map(b => ({ bodyId: b.id, entityId: b.ownerId,
+        name: knownName(p, b.ownerId), pos: { ...b.pos }, velocity: { ...b.vel }, yaw: b.yaw, pose: b.pose,
+        appearance: { ...w.person(b.ownerId)?.appearance }, dead: b.dead,
+        speech: w.person(b.ownerId)?.speech?.text ?? '',
+        ...(b.ownerId === p.id ? { health: b.health, maxHealth: b.maxHealth, needs: { ...p.needs }, wealth: p.wealth } : {}),
+      })), events: [] };
+  }
+  /** Whole-world observability is available only through this explicitly named debug path. */
+  developerSnapshot() {
     const w = this.world;
     return {
       version: BRIDGE_VERSION, type: 'snapshot', tick: w.physicalTime, worldTime: w.now, ack: this.sequence, playerId: w.playerId,
@@ -166,7 +186,7 @@ export class BridgeSession {
       if (!actionsForPerson(w, player, person, carrying).some(action => action.kind === 'talk')) return [];
       const distance = Math.hypot(source.pos.x - body.pos.x, source.pos.y - body.pos.y, source.pos.z - body.pos.z);
       if (distance > 3.1 || !w.grid.lineOfPassage({ ...source.pos, y: source.pos.y + 1.2 }, { ...body.pos, y: body.pos.y + 1.2 }, 4.3)) return [];
-      return [{ bodyId: body.id, entityId: person.id, name: person.name, occupation: person.occupation, distance }];
+      return [{ bodyId: body.id, entityId: person.id, name: knownName(player, person.id), distance }];
     }).sort((a, b) => a.distance - b.distance || a.bodyId.localeCompare(b.bodyId));
   }
 
@@ -201,7 +221,7 @@ export class BridgeSession {
       revision: this.dialogueRevision,
       speakerId: state.speaker.id,
       speakerBodyId: this.dialogueSpeakerBodyId,
-      name: state.speaker.name,
+      name: knownName(this.world.person(this.world.playerId)!, state.speaker.id),
       occupation: state.speaker.occupation,
       lines: state.lines,
       // The native panel exposes enough of a canonical menu for merchant/trade branches to be

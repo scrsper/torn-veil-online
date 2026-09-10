@@ -1,3 +1,4 @@
+import type { OntologicalStage } from './stages';
 /**
  * The ontology of Torn Veil Online.
  *
@@ -364,7 +365,7 @@ export type GoalType =
   // purpose could only ever walk over and look, which is one action, not a life.
   | 'provide'
   // Demographic continuity: an ordinary relationship-motivated social goal.
-  | 'court' | 'provision_home' | 'compose' | 'teach_method' | 'share_family' | 'study_record' | 'record_method';
+  | 'maintain_mechanism' | 'court' | 'provision_home' | 'compose' | 'teach_method' | 'share_family' | 'study_record' | 'record_method';
 
 export interface Goal {
   type: GoalType;
@@ -391,7 +392,7 @@ export type ActionType = 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 't
   // v0.8 §P0-G/H: hand a carried item to another person in person — the 'help_recover_item'
   // plan's delivery step (see GoalType). Distinct from the existing NPC-to-player trade/`bought`
   // path; this always uses `Simulation.giveItem` (mind/agent.ts), which pays any owed reward.
-  | 'give' | 'propose' | 'buy_food' | 'manage_household' | 'construct_mechanism' | 'operate_mechanism' | 'procure_material' | 'read_record' | 'write_record' | 'copy_record';
+  | 'mechanism_task' | 'introduce' | 'give' | 'propose' | 'buy_food' | 'manage_household' | 'construct_mechanism' | 'operate_mechanism' | 'procure_material' | 'read_record' | 'write_record' | 'copy_record';
 export interface Action {
   type: ActionType;
   pos?: Vec3;
@@ -720,6 +721,7 @@ export interface Pursuit {
 }
 
 export interface Mind {
+  fieldObservationAt?: number;
   goal: Goal | null;
   plan: Action[];
   decision: DecisionRecord | null;
@@ -842,7 +844,7 @@ export interface Person extends Entity {
   lineage: { imprints: LineageImprint[]; expressed: Attributes; birthEventId?: EventId;
     expressions: { imprintId: string; didExpress: boolean; strength: number; attenuation: number; contribution: number }[] };
   /** Eligibility is derived, never a second stored truth. No breakthrough action exists yet. */
-  ontology: { stage: 'Normal' | 'Iron'; breakthroughEventId?: EventId };
+  ontology: { stage: OntologicalStage; breakthroughEventId?: EventId };
   /** v0.4: the physiology reserves `needs.hunger/.thirst/.energy` are now derived from. */
   physiology: Physiology;
   /** v0.5 §I: which `SpeciesPhysiologyProfile` (core/species.ts) governs this person's
@@ -870,7 +872,6 @@ export interface Person extends Entity {
   schedule: ScheduleEntry[];
   bio: string;
   alive: boolean;
-  controlled: boolean;              // player-controlled
   patrol?: Vec3[];
   desires: Desire[];
   hostile: boolean;                 // outlaw by default (bandits)
@@ -1388,7 +1389,7 @@ export interface Faction extends Entity {
 }
 
 // ---------------------------------------------------------------- Events
-export type EventType =
+export type EventType = 'introduction' | 'social_inferred' | 'mechanism_inspected' | 'mechanism_hypothesized' | 'mechanism_worked' | 'mechanism_intended' | 'mechanism_abandoned'
   | 'record_written' | 'record_copied' | 'record_read' | 'record_destroyed' | 'environment_energy_changed' | 'method_reproduced' | 'method_discovered'
   | 'component_acquired' | 'assembly_changed' | 'mechanism_trial' | 'production_observed' | 'component_manufactured' | 'component_supply_failed'
   | 'attack' | 'kill' | 'theft' | 'pickup' | 'drop' | 'give' | 'trade' | 'told' | 'conversation' | 'perceived'
@@ -1531,3 +1532,4 @@ export interface ChronicleEra {
 
 export type WeatherKind = 'clear' | 'cloudy' | 'rain' | 'storm' | 'fog';
 export interface WeatherState { kind: WeatherKind; intensity: number; nextChangeAt: Tick; wind: number; }
+

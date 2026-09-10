@@ -1,3 +1,4 @@
+import { isExternallyControlled } from '../runtime/controllers';
 import { World } from '../core/world';
 import type { Anomaly } from '../telemetry/anomaly';
 import type { SignificantEntity } from './significance';
@@ -256,7 +257,7 @@ function materialsSummary(world: World): WorldRunSummary['materials'] {
  * compaction has dropped most low-significance events of that type (same caveat
  * `topSignificantEvents` already carries elsewhere in this file), not a precise lifetime total. */
 function circulationSummary(world: World): WorldRunSummary['circulation'] {
-  const alive = world.persons().filter(p => p.alive && !p.controlled);
+  const alive = world.persons().filter(p => p.alive && !isExternallyControlled(p));
   const byOcc: Record<string, number[]> = {};
   for (const p of alive) (byOcc[p.occupation] ??= []).push(p.wealth);
   const wealthByOccupation: WorldRunSummary['circulation']['wealthByOccupation'] = {};
@@ -278,7 +279,7 @@ const SEVERITY_BANDS = ['comfortable', 'noticeable', 'uncomfortable', 'urgent', 
 const SKILL_IDS: SkillId[] = ['woodcutting', 'quarrying', 'hauling', 'sawing', 'construction', 'baking'];
 function cognitionSummary(world: World): WorldRunSummary['cognition'] {
   const bandMinutes = (prefix: string) => Object.fromEntries(SEVERITY_BANDS.map(b => [b, world.runTally[`${prefix}_${b}_min`] ?? 0]));
-  const alive = world.persons().filter(p => p.alive && !p.controlled);
+  const alive = world.persons().filter(p => p.alive && !isExternallyControlled(p));
   const avg = (n: number) => alive.length ? Math.round((n / alive.length) * 100) / 100 : 0;
   const avgSkillBySkill: Partial<Record<SkillId, number>> = {};
   for (const id of SKILL_IDS) avgSkillBySkill[id] = avg(alive.reduce((n, p) => n + (p.skills?.[id] ?? 0), 0));
@@ -308,7 +309,7 @@ function breadPricingSnapshot(world: World): WorldRunSummary['pricing'] {
 }
 
 function embodiedSummary(world: World): WorldRunSummary['embodied'] {
-  const alive = world.persons().filter(p => p.alive && !p.controlled);
+  const alive = world.persons().filter(p => p.alive && !isExternallyControlled(p));
   const avg = (f: (p: (typeof alive)[number]) => number) => alive.length ? Math.round((alive.reduce((a, p) => a + f(p), 0) / alive.length) * 1000) / 1000 : 0;
   return {
     physiology: {

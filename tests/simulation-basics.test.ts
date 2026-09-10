@@ -1,3 +1,4 @@
+import { isExternallyControlled } from '../src/sim/runtime/controllers';
 import { describe, expect, it } from 'vitest';
 import { DialogueSystem } from '../src/sim/mind/dialogue';
 import { Simulation } from '../src/sim/mind/agent';
@@ -19,7 +20,7 @@ describe('existing core simulation', () => {
       const dt = 0.05; const worldDt = world.clock.advance(dt); world.physicalTime += dt; sim.step(dt, worldDt);
     }
 
-    const active = world.persons().filter(person => person.alive && !person.controlled);
+    const active = world.persons().filter(person => person.alive && !isExternallyControlled(person));
     expect(active.length).toBeGreaterThan(25);
     expect(active.every(person => person.mind.goal && person.mind.decision)).toBe(true);
     expect(garrick.mind.goal?.type).toBe('work');

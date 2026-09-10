@@ -1,3 +1,4 @@
+import { knownName } from '../mind/people';
 import type { EntityId, Item, Person, Place } from './types';
 import type { World } from './world';
 import { RESOURCE_CATEGORY, isFood, ITEM_LABEL } from '../world/factory';
@@ -171,21 +172,21 @@ export function actionsForPerson(world: World, viewer: Person, other: Person, ca
   const out: PlayerAction[] = [];
   const body = world.primaryBody(other.id);
   if (!other.alive || body?.dead) {
-    out.push({ kind: 'take', label: `Search ${other.name}`, detail: 'they are dead' });
+    out.push({ kind: 'take', label: `Search ${knownName(viewer, other.id)}`, detail: 'they are dead' });
     out.push({ kind: 'inspect', label: 'Look closer' });
     return out;
   }
   if (body?.pose === 'sleep') {
-    out.push({ kind: 'inspect', label: `${other.name} is asleep` });
+    out.push({ kind: 'inspect', label: `${knownName(viewer, other.id)} is asleep` });
     return out;
   }
-  out.push({ kind: 'talk', label: `Talk to ${other.name}`, detail: other.occupation });
+  out.push({ kind: 'talk', label: `Talk to ${knownName(viewer, other.id)}`, detail: 'speak with this person' });
   // Trade appears only when they would actually sell this person something — the same offer list
   // the dialogue renders, so the prompt cannot promise a menu that turns out to be empty.
   if (hasAnythingToSell(world, other, viewer)) out.push({ kind: 'trade', label: 'Trade', detail: 'see what they have' });
   if (carrying.length) out.push({ kind: 'give', label: 'Give something', detail: `${carrying.length} thing${carrying.length === 1 ? '' : 's'} to hand` });
   out.push({ kind: 'inspect', label: 'Look closer' });
-  out.push({ kind: 'attack', label: `Attack ${other.name}`, grave: true });
+  out.push({ kind: 'attack', label: `Attack ${knownName(viewer, other.id)}`, grave: true });
   return out;
 }
 

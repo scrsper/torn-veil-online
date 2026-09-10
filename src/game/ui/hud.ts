@@ -1,3 +1,5 @@
+import { knownName } from '../../sim/mind/people';
+import { isExternallyControlled } from '../../sim/runtime/controllers';
 import * as THREE from 'three';
 import type { World } from '../../sim/core/world';
 import type { Item, Person } from '../../sim/core/types';
@@ -37,7 +39,7 @@ export class HUD {
     const w = this.world; const c = w.clock;
     this.topTime.textContent = `${formatWorldTime(c.worldSeconds)}${paused ? ' ⏸' : speedMult !== 1 ? ` ×${speedMult}` : ''}`;
     const place = w.placeAt(w.primaryBody(w.playerId)!.pos);
-    this.topSub.textContent = `${w.weather.kind}${w.weather.kind === 'rain' || w.weather.kind === 'storm' ? ` (${Math.round(w.weather.intensity * 100)}%)` : ''} · ${place?.name ?? 'the wilds'} · ${w.persons().filter(p => p.alive && !p.controlled).length} people alive`;
+    this.topSub.textContent = `${w.weather.kind}${w.weather.kind === 'rain' || w.weather.kind === 'storm' ? ` (${Math.round(w.weather.intensity * 100)}%)` : ''} · ${place?.name ?? 'the wilds'} · ${w.persons().filter(p => p.alive && !isExternallyControlled(p)).length} people alive`;
     const player = w.person(w.playerId)!; const pb = w.primaryBody(player.id)!;
     this.bar.style.width = `${Math.max(0, pb.health / pb.maxHealth * 100)}%`;
     if (pb.lastHitAt > this.lastHurt) { this.lastHurt = pb.lastHitAt; this.damage.style.opacity = '1'; setTimeout(() => this.damage.style.opacity = '0', 250); }
@@ -56,7 +58,7 @@ export class HUD {
         if (acts.some(a => a.kind === 'trade')) keys.push('[R] trade');
         if (acts.some(a => a.kind === 'give')) keys.push('[I] give');
         keys.push('[F] inspect', '[X] attack');
-        this.target.innerHTML = `<div class="name">${p.name}</div><div class="hint">${p.occupation} · ${st} · ${Math.round(target.body.health)}/${target.body.maxHealth} hp<br>${keys.join(' · ')}</div>`;
+        this.target.innerHTML = `<div class="name">${knownName(player, p.id)}</div><div class="hint">${st}<br>${keys.join(' · ')}</div>`;
       } else this.target.innerHTML = `<div class="name">${w.nameOf(target.body.ownerId)}</div>`;
     }
     else if (target.kind === 'item') {
@@ -101,9 +103,9 @@ export class HUD {
   }
   private updateLabels(): void {
     const w = this.world; const cam = this.camera; const seen = new Set<string>(); const v = new THREE.Vector3(); const W = window.innerWidth, H = window.innerHeight;
-    const camPos = cam.position;
+    const camPos = cam.position; const viewer = w.person(w.playerId)!;
     for (const b of w.bodies()) {
-      const p = w.person(b.ownerId); if (!p || p.controlled || !b.present) continue;
+      const p = w.person(b.ownerId); if (!p || p.id === viewer.id || !b.present) continue;
       const d = Math.hypot(b.pos.x - camPos.x, b.pos.z - camPos.z); const speech = p.speech;
       if (d > (speech ? 26 : 14) && this.selected !== p.id) continue;
       v.set(b.pos.x, b.pos.y + (b.pose === 'sleep' || b.pose === 'dead' ? 0.9 : 2.05) * p.appearance.height, b.pos.z).project(cam);
@@ -112,9 +114,9 @@ export class HUD {
       if (!w.grid.lineOfSight({ x: camPos.x, y: camPos.y, z: camPos.z }, { x: b.pos.x, y: b.pos.y + 1.5, z: b.pos.z }, 40) && this.selected !== p.id) continue;
       seen.add(p.id);
       let el = this.labels.get(p.id); if (!el) { el = document.createElement('div'); this.bubbles.appendChild(el); this.labels.set(p.id, el); }
-      const goal = p.mind.goal?.type; const urgent = !!goal && ['flee', 'report', 'investigate', 'confront', 'attack', 'help'].includes(goal);
-      if (speech) { el.className = 'bubble' + (urgent ? ' alert' : ''); el.textContent = `${p.name}: ${speech.text}`; el.style.left = `${x}px`; el.style.top = `${y - 6}px`; }
-      else { el.className = 'label' + (this.selected === p.id ? ' sel' : '') + (urgent ? ' alert' : ''); el.textContent = p.name + (b.dead ? ' †' : urgent ? ` · ${goal}` : ''); el.style.left = `${x}px`; el.style.top = `${y}px`; el.style.opacity = String(Math.max(0.25, 1 - d / 16)); }
+      const goal = b.pose; const urgent = ['run', 'attack', 'downed'].includes(goal);
+      if (speech) { el.className = 'bubble' + (urgent ? ' alert' : ''); el.textContent = `${knownName(viewer, p.id)}: ${speech.text}`; el.style.left = `${x}px`; el.style.top = `${y - 6}px`; }
+      else { el.className = 'label' + (this.selected === p.id ? ' sel' : '') + (urgent ? ' alert' : ''); el.textContent = knownName(viewer, p.id) + (b.dead ? ' †' : urgent ? ` · ${goal}` : ''); el.style.left = `${x}px`; el.style.top = `${y}px`; el.style.opacity = String(Math.max(0.25, 1 - d / 16)); }
     }
     for (const [id, el] of this.labels) if (!seen.has(id)) { el.remove(); this.labels.delete(id); }
   }

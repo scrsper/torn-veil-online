@@ -1,3 +1,4 @@
+import { isExternallyControlled } from '../src/sim/runtime/controllers';
 import { describe, expect, it } from 'vitest';
 import { Simulation } from '../src/sim/mind/agent';
 import { newWorld, deserialize, serialize } from '../src/sim/persist/save';
@@ -78,7 +79,7 @@ describe('knowledge: non-omniscient economic opportunity (v0.6 §III)', () => {
   it('knowledge round-trips save/load: service kind, confidence and lastConfirmedAt survive', () => {
     const { world } = newWorld(918271);
     const bakery = world.places().find(pl => pl.type === 'bakery')!;
-    const someone = world.persons().find(pl => pl.alive && !pl.controlled)!;
+    const someone = world.persons().find(pl => pl.alive && !isExternallyControlled(pl))!;
     noteFoodShortage(world, someone, bakery.id);
     const k = someone.knowledge[`svc:${bakery.id}`];
     const raw = serialize(world);
@@ -206,7 +207,7 @@ describe('skills: learned capability distinct from attributes (v0.6 §V)', () =>
 
   it('skill persists across save/load', () => {
     const { world } = newWorld(918271);
-    const someone = world.persons().find(pl => pl.alive && !pl.controlled)!;
+    const someone = world.persons().find(pl => pl.alive && !isExternallyControlled(pl))!;
     someone.skills = { ...someone.skills, hauling: 0.42 };
     const raw = serialize(world);
     const loaded = deserialize(raw)!;

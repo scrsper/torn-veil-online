@@ -1,3 +1,4 @@
+import { isExternallyControlled } from '../src/sim/runtime/controllers';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createLivingPressure, createLivingWorld, advanceLiving, livingSnapshot, causalAncestors } from '../src/headless/kernel/living';
 import { createKernelLab } from '../src/headless/kernel/lab';
@@ -24,7 +25,7 @@ describe('living universe integration', () => {
     expect(lab.world.kernel.components).toEqual([]); expect(lab.world.kernel.assemblies).toEqual([]);
     expect(lab.world.persons().flatMap(methodsHeld)).toEqual([]);
     expect(lab.world.persons().some(p => Object.values(p.knowledge).some(k => k.claim.practicalNeed))).toBe(false);
-    expect(lab.world.persons().every(p => !p.controlled)).toBe(true);
+    expect(lab.world.persons().every(p => !isExternallyControlled(p))).toBe(true);
   });
   it('manufactures its own components, pays labor, and drives the normal grain→flour→bakery chain', () => {
     const { world } = ordinary, [report] = livingSnapshot(world);

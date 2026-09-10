@@ -1,3 +1,4 @@
+import { knownName } from './people';
 import type { Goal, KnowledgeItem, Person } from '../core/types';
 import type { World } from '../core/world';
 import { peopleTogether } from '../world/locality';
@@ -48,7 +49,8 @@ export function inferGenealogy(world: World, p: Person): void {
 /** Names are public social evidence after an actual encounter. Never a certified cousin edge. */
 export function inferSurnameKin(world: World, p: Person, other: Person): void {
   if (p.age < 8 || !peopleTogether(world, p, other) || !(p.relationships[other.id]?.familiarity)) return;
-  const surname = (x: Person) => x.name.trim().split(/\s+/).at(-1);
+  if (!p.knowledge[`identity:${other.id}`]) return;
+  const surname = (x: Person) => knownName(p, x.id).trim().split(/\s+/).at(-1);
   if (surname(p) !== surname(other)) return;
   const genealogy: GenealogyClaim = { subjectId: p.id, relativeId: other.id, relationship: 'possible_kin' };
   const key = genealogyKey(genealogy); if (p.knowledge[key]) return;

@@ -1,3 +1,4 @@
+import { introduce } from '../src/sim/mind/people';
 import { describe, expect, it } from 'vitest';
 import { attributeProfile } from '../src/sim/core/human';
 import { inheritPotential, MAX_IMPRINT_DISTANCE } from '../src/sim/core/lineage';
@@ -98,6 +99,7 @@ describe('bounded canonical inheritance and fallible known ancestry', () => {
   it('preserves uncertain and mistaken testimony, while surname inference never certifies ancestry', () => {
     const { tw, a } = family(); const child = addPerson(tw, 'Another Vale', 'villager', tw.world.positionOf(a.id)!);
     child.relationships[a.id] = { affection: 0.2, trust: 0.2, respect: 0, fear: 0, grudge: 0, familiarity: 0.5, tags: [], lastUpdated: tw.world.now };
+    introduce(tw.world, a, child);
     inferSurnameKin(tw.world, child, a);
     const belief = genealogicalBeliefs(child)[0]; expect(belief.claim.genealogy.relationship).toBe('possible_kin'); expect(belief.confidence).toBe(0.2);
     const g = { subjectId: child.id, relativeId: a.id, relationship: 'parent' as const };

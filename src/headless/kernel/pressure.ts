@@ -1,3 +1,4 @@
+import { setExternalControl } from '../../sim/runtime/controllers';
 import { createKernelLab, advanceKernelLab } from './lab';
 import { methodsHeld } from '../../sim/mind/invention';
 import { generateProductionNeeds } from '../../sim/world/production';
@@ -18,7 +19,7 @@ export function createPressureLab(seed: number, conditions: PressureConditions) 
   const projects = new Set(world.constructionProjects.map(p => p.id));
   world.constructionProjects = [];
   world.haulTasks = world.haulTasks.filter(t => !t.projectId || !projects.has(t.projectId));
-  recipient.controlled = true;
+  setExternalControl(recipient, true);
   place.type = 'mill'; place.ownerId = p.id; place.workers = [p.id]; p.workId = place.id;
   // The bin belongs to one productive household; other fixture stocks are kept elsewhere.
   for (const item of stockItemsAt(world, 'grain', place.id)) {

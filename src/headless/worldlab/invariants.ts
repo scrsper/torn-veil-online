@@ -1,3 +1,4 @@
+import { isExternallyControlled } from '../../sim/runtime/controllers';
 import type { World } from '../../sim/core/world';
 import type { Vec3, WorldEvent } from '../../sim/core/types';
 import { DAILY_LOCAL_RANGE, near } from '../../sim/world/locality';
@@ -154,7 +155,7 @@ export const INVARIANTS: InvariantCheck[] = [
       for (const it of world.items()) {
         if (it.type !== 'coins' || !it.holderId || it.quantity <= 0) continue;
         const holder = world.person(it.holderId);
-        if (holder && !holder.controlled) out.push(finding('WL-NPC-HOLDS-INERT-COINS', 'economy', 'warning',
+        if (holder && !isExternallyControlled(holder)) out.push(finding('WL-NPC-HOLDS-INERT-COINS', 'economy', 'warning',
           `${holder.name} (${holder.occupation}) is holding ${it.quantity} physical silver coins as an item — no NPC purchase path can spend a coin item, only Person.wealth. This money is inert.`));
       }
       return out;
@@ -271,7 +272,7 @@ export const INVARIANTS: InvariantCheck[] = [
         return false;
       };
       for (const person of world.livingPersons()) {
-        if (person.controlled) continue;
+        if (isExternallyControlled(person)) continue;
         const home = world.place(person.homeId ?? '')?.inside
           ?? world.place(person.workId ?? '')?.inside
           ?? world.primaryBody(person.id)?.pos;

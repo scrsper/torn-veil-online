@@ -1,3 +1,4 @@
+import { isExternallyControlled } from '../src/sim/runtime/controllers';
 import { describe, expect, it } from 'vitest';
 import { runHeadless } from '../src/headless/runner';
 import { detectAnomalies } from '../src/sim/telemetry/anomaly';
@@ -21,7 +22,7 @@ describe('headless benchmarks (v0.2 Part 16)', () => {
     // this run, exactly as "no player" should look from the simulation's own point of view.
     if (result.world.playerId) {
       const player = result.world.person(result.world.playerId)!;
-      expect(player.controlled).toBe(true);
+      expect(isExternallyControlled(player)).toBe(true);
       expect(result.world.events.some(e => e.actor === player.id)).toBe(false);
     }
 

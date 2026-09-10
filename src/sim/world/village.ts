@@ -1,3 +1,4 @@
+import { setExternalControl } from '../runtime/controllers';
 import { World } from '../core/world';
 import { B } from '../physical/blocks';
 import { WORLD_W, WORLD_H, WORLD_D, CX, CZ, VILLAGE_TOP, generateTerrain, generateVegetation, terrainHeight, riverCenter } from './terrain';
@@ -318,8 +319,8 @@ export function generateVillage(world: World): GenResult {
 
   // ---- Player
   const player = makePerson(world, { name: 'the Traveler', gender: 'm', age: 28, occupation: 'traveler', traits: { courage: 0.7 }, appearance: { skin: 0xd9a988, hair: 0x2a1a10, shirt: 0x3a5a7a, pants: 0x3a3a3a, hatStyle: 'hood', hat: 0x3a4a5a }, bio: 'A stranger who walked in on the west road.', wealth: 50 });
-  player.controlled = true; player.factionId = null; world.playerId = player.id;
-  const pb = makeBody(world, player.id, v(40.5, F, 96.5), 'humanoid', 100); pb.speed = 4.6; player.bodies.push(pb.id);
+  setExternalControl(player, true); player.factionId = null; world.playerId = player.id;
+  const pb = makeBody(world, player.id, v(40.5, F, 96.5)); player.bodies.push(pb.id);
   item('dagger', 'a travel-worn dagger', { owner: player.id, holder: player.id, description: 'Your own knife. It has been with you a long time.' });
   item('bread', ITEM_LABEL.bread, { owner: player.id, holder: player.id, quantity: 2 });
   // Player embodiment: the Traveler's money is `wealth`, the same single currency every NPC

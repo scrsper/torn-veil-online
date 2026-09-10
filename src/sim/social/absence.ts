@@ -52,19 +52,19 @@ export interface Expectation { who: EntityId; placeId: EntityId; kind: 'work' | 
 export function currentExpectations(world: World, p: Person, hour: number): Expectation[] {
   const out: Expectation[] = [];
   const body = world.primaryBody(p.id);
-  if (!body || !p.alive || p.controlled) return out;
+  if (!body || !p.alive) return out;
   const here = world.placeAt(body.pos)?.id;
   const sched = currentScheduleEntry(p, hour);
   if (p.workId && here === p.workId && sched?.activity === 'work') {
     for (const q of world.livingPersons()) {
-      if (q.id === p.id || q.controlled) continue;
+      if (q.id === p.id) continue;
       if (q.workId !== p.workId) continue;
       out.push({ who: q.id, placeId: p.workId, kind: 'work', threshold: WORK_ABSENCE_SECONDS });
     }
   }
   if (p.householdId && p.homeId && here === p.homeId && (hour >= 20 || hour < 6)) {
     for (const q of world.livingPersons()) {
-      if (q.id === p.id || q.controlled) continue;
+      if (q.id === p.id) continue;
       if (!q.householdId || q.householdId !== p.householdId) continue;
       out.push({ who: q.id, placeId: p.homeId, kind: 'household', threshold: HOUSEHOLD_ABSENCE_SECONDS });
     }

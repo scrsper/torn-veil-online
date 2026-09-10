@@ -30,7 +30,7 @@ export function observeMechanisms(world: World, p: Person): void {
       causes: a?.lastEvent ? [a.lastEvent] : [], data: { componentId: c.id, observedDamage: detail }, summary: `${p.name} noticed wear in a mechanical component` });
     // Re-observation replaces an old measurement, like inventory observation below.
     if (existing) { existing.claim.damage = detail; existing.source = { type: 'witnessed', viaEvent: ev.id }; existing.learnedAt = world.now; }
-    else learn(world, p, { key, kind: 'fact', claim: { componentId: c.id, damage: detail }, confidence: 0.8,
+    else learn(world, p, { key, kind: 'fact', claim: { componentId: c.id, assemblyId: a?.id, damage: detail }, confidence: 0.8,
       source: { type: 'witnessed', viaEvent: ev.id } }, true);
   }
 }
@@ -307,7 +307,7 @@ function recordTrial(world: World, p: Person, a: Assembly, success: boolean): vo
     const work = definitions.map(id => world.kernel.ruleset.components.find(d => d.id === id)!).find(d => effectOf(d));
     // Reproduce what was physically observed, including substitutions. Planned intent is not
     // evidence that a particular component or connection participated in the result.
-    a.method = { ruleset: world.kernel.ruleset.id, definitions, connections: structuredClone(a.connections), effect: effectOf(work!)! };
+    a.method = { ruleset: world.kernel.ruleset.id, definitions, connections: structuredClone(a.connections), effect: effectOf(work!)!, provenance: [a.lastEvent!].filter(Boolean) };
   }
   const signature = methodSignature(a.method);
   const need = p.knowledge[a.needKey ?? '']?.claim.practicalNeed as PracticalNeed | undefined;

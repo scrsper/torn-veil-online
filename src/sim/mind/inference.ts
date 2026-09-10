@@ -82,7 +82,7 @@ interface Candidate {
  * to explain and does no work at all.
  */
 export function drawInferences(world: World, p: Person): void {
-  if (!p.alive || p.controlled) return;
+  if (!p.alive) return;
   const shortages = shortfallBeliefs(p);
   if (!shortages.length) return;
   for (const s of shortages) {

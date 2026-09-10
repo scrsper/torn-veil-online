@@ -82,7 +82,6 @@ export function concernAbout(p: Person, kind: ConcernKind, subjectId?: EntityId,
  * without a belief with real provenance behind it.
  */
 export function formConcerns(world: World, p: Person, k: KnowledgeItem, ap?: Appraisal): Concern[] {
-  if (p.controlled) return [];
   const appraisal = ap ?? appraiseClaim(world, p, k);
   const proposals = proposeConcerns(world, p, appraisal);
   if (!proposals.length) return [];

@@ -1,3 +1,4 @@
+import { perceivedName } from './people';
 import { localPlaces, near } from '../world/locality';
 import type { Person, KnowledgeItem, Source, EntityId, WorldEvent, Vec3, Place, PlaceType } from '../core/types';
 import { World } from '../core/world';
@@ -253,7 +254,11 @@ export function eventClaim(world: World, e: WorldEvent, saw: boolean): Record<st
   const claim: Record<string, any> = { eventId: e.id, type: e.type, tick: e.tick, placeId: e.placeId, pos: e.pos, significance: e.significance };
   // Carry explicit conflict intent (Constitution §11) into the claim so a witness can tell a
   // guard's lawful subdual/arrest apart from an actual crime — see isCrime below.
-  if (e.data?.intent) claim.intent = e.data.intent;
+  // Intent is private. Public speech/action can support an observer's separate inference.
+  if (saw && ['mechanism_trial', 'mechanism_worked', 'mechanism_inspected', 'assembly_changed'].includes(e.type)) {
+    for (const key of ['assemblyId', 'output', 'outcome', 'operation']) if (e.data[key] !== undefined) claim[key] = e.data[key];
+  }
+  if (e.type === 'introduction') claim.claimedName = e.data.claimedName;
   // Causal Society: a stoppage is ABOUT a material, and the material is the whole content of the
   // belief — "he was standing at the mill" says nothing without "and there was no grain". Both
   // are plainly visible to anyone who is there, so both travel with the claim.
@@ -263,21 +268,21 @@ export function eventClaim(world: World, e: WorldEvent, saw: boolean): Record<st
   return claim;
 }
 
-export function describeClaim(world: World, k: KnowledgeItem): string {
-  if (k.claim.genealogy) { const g = k.claim.genealogy; return g.relationship === 'possible_kin' ? `${world.nameOf(g.subjectId)} and ${world.nameOf(g.relativeId)} may share family` : `${world.nameOf(g.relativeId)} is believed to be ${world.nameOf(g.subjectId)}'s ${g.relationship}`; }
+export function describeClaim(world: World, k: KnowledgeItem, observer?: Person): string {
+  if (k.claim.genealogy) { const g = k.claim.genealogy; return g.relationship === 'possible_kin' ? `${perceivedName(world, observer, g.subjectId)} and ${perceivedName(world, observer, g.relativeId)} may share family` : `${perceivedName(world, observer, g.relativeId)} is believed to be ${perceivedName(world, observer, g.subjectId)}'s ${g.relationship}`; }
   if (k.claim.method) return `how to connect ${k.claim.method.definitions.length} components to perform ${k.claim.method.effect}`;
   const c = k.claim;
-  const who = (id: string | undefined, unknown?: boolean) => unknown ? 'someone' : id ? world.nameOf(id) : 'someone';
+  const who = (id: string | undefined, unknown?: boolean) => unknown ? 'someone' : id ? perceivedName(world, observer, id) : 'someone';
   switch (k.kind) {
     case 'event': {
-      const where = c.placeId ? ` at ${world.nameOf(c.placeId)}` : '';
+      const where = c.placeId ? ` at ${perceivedName(world, observer, c.placeId)}` : '';
       switch (c.type) {
         case 'attack': return `${who(c.actor, c.actorUnknown)} attacked ${who(c.target)}${where}`;
         case 'kill': return `${who(c.actor, c.actorUnknown)} killed ${who(c.target)}${where}`;
-        case 'theft': return `${who(c.actor, c.actorUnknown)} stole ${c.item ? world.nameOf(c.item) : 'something'} from ${who(c.target)}${where}`;
-        case 'item_missing': return `${c.item ? world.nameOf(c.item) : 'an item'} has gone missing from ${where || 'its place'}`;
-        case 'gift': return `${who(c.actor)} gave ${c.item ? world.nameOf(c.item) : 'a gift'} to ${who(c.target)}`;
-        case 'returned_item': return `${who(c.actor)} returned ${c.item ? world.nameOf(c.item) : 'an item'} to ${who(c.target)}`;
+        case 'theft': return `${who(c.actor, c.actorUnknown)} stole ${c.item ? perceivedName(world, observer, c.item) : 'something'} from ${who(c.target)}${where}`;
+        case 'item_missing': return `${c.item ? perceivedName(world, observer, c.item) : 'an item'} has gone missing from ${where || 'its place'}`;
+        case 'gift': return `${who(c.actor)} gave ${c.item ? perceivedName(world, observer, c.item) : 'a gift'} to ${who(c.target)}`;
+        case 'returned_item': return `${who(c.actor)} returned ${c.item ? perceivedName(world, observer, c.item) : 'an item'} to ${who(c.target)}`;
         case 'death': return `${who(c.target)} died${where}`;
         case 'debt': return `${who(c.actor)} owes ${who(c.target)} ${c.amount ?? 'money'} silver`;
         case 'dispute': return `${who(c.actor)} and ${who(c.target)} quarrelled${c.about ? ` over ${c.about}` : ''}`;
@@ -293,11 +298,11 @@ export function describeClaim(world: World, k: KnowledgeItem): string {
         default: return c.text ?? `${c.type}${where}`;
       }
     }
-    case 'location': return `${world.nameOf(c.entityId)} is at ${c.placeId ? world.nameOf(c.placeId) : `(${Math.round(c.pos?.x)}, ${Math.round(c.pos?.z)})`}`;
-    case 'ownership': return `${world.nameOf(c.itemId)} belongs to ${world.nameOf(c.ownerId)}`;
-    case 'state': return c.text ?? `${world.nameOf(c.entityId)} is ${c.state}`;
+    case 'location': return `${perceivedName(world, observer, c.entityId)} is at ${c.placeId ? perceivedName(world, observer, c.placeId) : `(${Math.round(c.pos?.x)}, ${Math.round(c.pos?.z)})`}`;
+    case 'ownership': return `${perceivedName(world, observer, c.itemId)} belongs to ${perceivedName(world, observer, c.ownerId)}`;
+    case 'state': return c.text ?? `${perceivedName(world, observer, c.entityId)} is ${c.state}`;
     case 'fact': return c.text ?? k.key;
-    case 'service': return `${world.nameOf(c.placeId)} offers ${(c.offers as string[]).join(', ')}`;
+    case 'service': return `${perceivedName(world, observer, c.placeId)} offers ${(c.offers as string[]).join(', ')}`;
     case 'affordance': return `knows what a ${c.itemType} is good for`;
     // Causal Society: a belief about WHY. `c.text` is written once, at inference time, out of the
     // two beliefs it was drawn from — never re-derived here, so a cause can still be described
@@ -306,7 +311,7 @@ export function describeClaim(world: World, k: KnowledgeItem): string {
     // Adaptive Society: instruction received. Described from the belief's own claim rather than
     // from the student's current skill, because the two are deliberately unrelated — the whole
     // point of a `technique` belief is that holding it says nothing about how good you are.
-    case 'technique': return `${c.teacherId ? world.nameOf(c.teacherId) : 'someone'} showed them how ${c.skill ?? 'the work'} is done`;
+    case 'technique': return `${c.teacherId ? perceivedName(world, observer, c.teacherId) : 'someone'} showed them how ${c.skill ?? 'the work'} is done`;
   }
 }
 
