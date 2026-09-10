@@ -5,6 +5,8 @@ import type { EntityId, ItemType, Vec3 } from '../core/types';
 export interface MaterialDefinition {
   id: string; unit: string; kgPerUnit: number; phase: 'solid' | 'liquid';
   maxPowerW: number; legacyItem?: ItemType;
+  /** Dimensionless functional properties, scoped to this world's ruleset. */
+  properties?: Record<string, number>;
 }
 export interface Port { medium: string; coupling: string }
 export interface ComponentDefinition {
@@ -15,6 +17,8 @@ export interface ComponentDefinition {
   process?: string;
   /** Generic transfer restriction and work, independent of the material's name. */
   phase?: MaterialDefinition['phase']; joulesPerKg?: number; maxKgPerSecond?: number;
+  /** Manufacture a primitive shape from its material. No finished-device recipe. */
+  fabrication?: { seconds: number; min: Record<string, number>; max?: Record<string, number> };
 }
 export interface ProcessDefinition {
   id: string; input: { material: string; quantity: number };
@@ -28,6 +32,7 @@ export interface Ruleset {
 export interface Component {
   id: string; definition: string; condition: number; ownerId: EntityId | null;
   pos: Vec3; holderId: EntityId | null; assemblyId: string | null;
+  madeEvent?: string;
 }
 export interface Reservoir {
   id: string; material: string; quantity: number; capacity: number; pos: Vec3; ownerId: EntityId | null;
@@ -45,6 +50,8 @@ export interface Method {
 export interface Bindings { energyId: string; placeId?: EntityId; inputId?: string; outputId?: string }
 export interface Assembly {
   id: string; ownerId: EntityId; pos: Vec3; parts: string[]; connections: Connection[];
+  /** Project intent belongs to its author. Inheriting hardware does not inherit a mind. */
+  creatorId?: EntityId;
   bindings: Bindings; lastEvent?: string;
   /** Planned topology is intent, never used by physical execution until connections exist. */
   method: Method; needKey?: string; tested: boolean; learned: boolean;

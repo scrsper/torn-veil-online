@@ -1,6 +1,7 @@
 import { localPlaces, near, knownPlaceForPerson } from '../world/locality';
 import { inventionGoals, inventionPlan, actOnMechanism, dismantleFailed } from './invention';
-import { observeProduction, productionWorkGoals } from './productionOpportunity';
+import { procureMaterial } from './componentSupply';
+import { observeProduction, productionWorkGoals, localProductionChoice } from './productionOpportunity';
 import { applyInjury } from '../physical/injury';
 import { resolveCombatAttack, combatReach, type CombatAttackIntent, type CombatAttackResult } from '../physical/combat';
 import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, ItemType, KnowledgeItem, Creature, Place, Anchor, ConflictIntent, Conflict, ConflictCause } from '../core/types';
@@ -123,6 +124,13 @@ const EMPTY_PERSONS: readonly Person[] = [];
  *    or immediately when something alarming is perceived
  *  - strategic upkeep (needs, moods, weather) runs once per world minute
  */
+interface ExecutionCheckpoint {
+  version: 1;
+  perceptionAccum: number; strategicAccum: number; compactAccum: number; socialAccum: number; inferenceAccum: number; demographicDay: number;
+  vacantPosts: Array<Omit<TradePost, 'place' | 'staff' | 'ableStaff' | 'unfit'> & { placeId: string; staffIds: string[]; ableStaffIds: string[]; unfitIds: { personId: string; reason: TradePost['unfit'][number]['reason'] }[] }>;
+  awareOfShortage: string[]; lastTopic: [string, Topic][]; pendingSpeech: { personId: string; text: string; at: number }[];
+}
+
 export class Simulation {
   perceptionAccum = 0; strategicAccum = 0; compactAccum = 0; socialAccum = 0; inferenceAccum = 0; onSpeech: ((p: Person, text: string) => void) | null = null; onHit: ((b: Body, pos: Vec3) => void) | null = null;
   /** Coarse per-subsystem wall-clock accumulator (v0.2.1 Priority 3: "create benchmark
@@ -152,6 +160,26 @@ export class Simulation {
   private demographicDay: number;
   constructor(public world: World) {
     this.demographicDay = world.clock.day;
+    const checkpoint = world.restoredExecution as ExecutionCheckpoint | null;
+    if (checkpoint?.version === 1) {
+      for (const key of ['perceptionAccum', 'strategicAccum', 'compactAccum', 'socialAccum', 'inferenceAccum', 'demographicDay'] as const) this[key] = checkpoint[key];
+      this.vacantPosts = checkpoint.vacantPosts.flatMap(s => {
+        const place = world.place(s.placeId); if (!place) return [];
+        const people = (ids: string[]) => ids.map(id => world.person(id)).filter((p): p is Person => !!p);
+        const { placeId: _, staffIds, ableStaffIds, unfitIds, ...post } = s;
+        return [{ ...post, place, staff: people(staffIds), ableStaff: people(ableStaffIds), unfit: unfitIds.flatMap(u => { const person = world.person(u.personId); return person ? [{ person, reason: u.reason }] : []; }),
+          standIns: s.standIns.map(stint => world.workStints.find(x => x.id === stint.id) ?? stint) }];
+      });
+      this.awareOfShortage = new Set(checkpoint.awareOfShortage);
+      this.lastTopic = new Map(checkpoint.lastTopic);
+      this.pendingSpeech = checkpoint.pendingSpeech.flatMap(s => { const p = world.person(s.personId); return p ? [{ p, text: s.text, at: s.at }] : []; });
+    }
+    world.restoredExecution = null;
+    world.executionSnapshot = (): ExecutionCheckpoint => ({ version: 1,
+      perceptionAccum: this.perceptionAccum, strategicAccum: this.strategicAccum, compactAccum: this.compactAccum, socialAccum: this.socialAccum, inferenceAccum: this.inferenceAccum, demographicDay: this.demographicDay,
+      vacantPosts: this.vacantPosts.map(({ place, staff, ableStaff, unfit, ...post }) => ({ ...post, placeId: place.id, staffIds: staff.map(p => p.id), ableStaffIds: ableStaff.map(p => p.id), unfitIds: unfit.map(u => ({ personId: u.person.id, reason: u.reason })) })),
+      awareOfShortage: [...this.awareOfShortage], lastTopic: [...this.lastTopic], pendingSpeech: this.pendingSpeech.map(s => ({ personId: s.p.id, text: s.text, at: s.at })),
+    });
     // v0.9: every canonical event flows through ongoing-matter bookkeeping exactly once (see
     // World.eventObserver). The re-entrancy guard exists because `noteEventForSituations` itself
     // emits `situation_opened`/`situation_resolved`; those are not openers or resolvers, so
@@ -1035,7 +1063,7 @@ export class Simulation {
     // Field work is the concrete sow/harvest candidates above. Offering generic work as
     // well let a grain concern boost standing in the field above actually harvesting it.
     const fieldShift = p.occupation === 'farmer' && sched?.activity === 'work' && !!fieldFor(w, sched.placeId ?? '');
-    if (sched && !['sleep', 'eat'].includes(sched.activity) && !fieldShift) {
+    if (sched && !['sleep', 'eat'].includes(sched.activity) && !fieldShift && !(sched.activity === 'work' && localProductionChoice(w, p, sched.placeId))) {
       const rainingNow = w.weather.kind === 'rain' || w.weather.kind === 'storm';
       const outdoorTask = !sched.placeId || !(w.place(sched.placeId)?.indoor);
       const rainPenalty = rainingNow && outdoorTask && !isGuard && !p.hostile ? 0.2 + w.weather.intensity * 0.15 : 0;
@@ -1383,7 +1411,9 @@ export class Simulation {
           ? w.resourceNodes.find(n => n.kind === 'game' && n.placeId === pl.id) : undefined;
         if (game) return [A({ type: 'goto', pos: game.pos, placeId: pl?.id }),
           A({ type: 'gather', pos: game.pos, duration: 30 * 60, data: { nodeId: game.id } })];
-        const spot = anchorIn(pl, ['work']) ?? pl?.inside ?? body.pos;
+        // Production stock and the explicit trade-post API meet at the place's stock point.
+        // A decorative work anchor across the room must not cause every batch to fail reach.
+        const spot = processFor(pl?.type) ? pl!.inside : anchorIn(pl, ['work']) ?? pl?.inside ?? body.pos;
         return [A({ type: 'goto', pos: spot, placeId: pl?.id }), A({ type: 'work', pos: spot, duration: 40 * 60 + w.rng.next() * 30 * 60, placeId: pl?.id })];
       }
       case 'worship': { const pl = place ?? w.place(this.chapelId(p)); const spot = (p.occupation === 'priest' || p.occupation === 'acolyte') ? anchorIn(pl, ['altar']) : anchorIn(pl, ['seat']); return [A({ type: 'goto', pos: spot ?? pl!.inside, placeId: pl?.id }), A({ type: 'pray', pos: spot ?? pl!.inside, duration: 40 * 60 })]; }
@@ -1542,6 +1572,11 @@ export class Simulation {
     const a = m.plan.find(x => x.status === 'pending' || x.status === 'active'); if (!a) { if (body.pose !== 'stand' && body.pose !== 'walk' && body.poseUntil < w.physicalTime) body.pose = 'stand'; return; }
     if (a.status === 'pending') { a.status = 'active'; a.startedAt = w.now; this.beginAction(p, body, a); }
     switch (a.type) {
+      case 'procure_material': {
+        const next = procureMaterial(w, p, a);
+        m.plan.splice(m.plan.indexOf(a) + 1, 0, ...next);
+        break;
+      }
       case 'construct_mechanism': case 'operate_mechanism': {
         if (!dismantleFailed(w, p, a, physDt)) actOnMechanism(w, p, a, physDt);
         break;
@@ -1865,10 +1900,10 @@ export class Simulation {
         if (a.pos && dist2(body.pos, a.pos) > 2.6) { a.status = 'pending'; m.plan.unshift({ type: 'goto', pos: a.pos, status: 'pending' }); break; }
         body.yaw = Math.atan2(-(node.pos.x - body.pos.x), -(node.pos.z - body.pos.z));
         a.data = a.data ?? {}; const swing = node.kind === 'game' ? 30 * 60 : 5 * 60;
-        if (node.kind === 'game' && a.data.swingAt === undefined) a.data.swingAt = a.startedAt ?? w.now;
+        if ((node.kind === 'game' || a.data.paidFirstSwing) && a.data.swingAt === undefined) a.data.swingAt = a.startedAt ?? w.now;
         if (a.data.swingAt === undefined || w.now - a.data.swingAt >= swing) {
           a.data.swingAt = w.now;
-          if (extractFromNode(w, node, p) <= 0) { a.status = 'done'; break; }
+          if (extractFromNode(w, node, p, a.data.paidFirstSwing ? { laborSeconds: swing / w.clock.timeScale, causes: a.data.causeEvent ? [a.data.causeEvent] : [] } : undefined) <= 0) { a.status = 'done'; break; }
         }
         if (this.elapsed(a)) a.status = 'done';
         break;

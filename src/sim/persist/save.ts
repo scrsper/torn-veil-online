@@ -141,6 +141,7 @@ export const SAVE_VERSION = 21;
  * and voxel modifications. Consequences survive the renderer restarting.
  */
 export function serialize(world: World): string {
+  const execution = world.executionSnapshot?.() ?? world.restoredExecution;
   // investigated is a Set in memory (v0.2.2 Phase 3: O(1) membership instead of an
   // ever-growing array's O(length) .includes() on every guard's every think() tick) — JSON has
   // no native Set, so it round-trips as a plain array here and is rebuilt into a Set on load.
@@ -152,7 +153,7 @@ export function serialize(world: World): string {
   }));
   // v0.2.3: a subdued body must reload still subdued (unlike `pose`, which is reset). Persist the
   // physical-time timestamp; a downed pose is reconstructed from it on load.
-  const bodies = world.bodies().map(b => ({ ...b, tags: [...b.tags], pos: { ...b.pos }, vel: { ...b.vel }, path: b.path?.map(v => ({ ...v })) ?? null, pathGoal: b.pathGoal ? { ...b.pathGoal } : null, sitAnchor: b.sitAnchor ? { ...b.sitAnchor } : null, pose: b.pose === 'dead' ? 'dead' : (b.subduedUntil > world.physicalTime ? 'downed' : 'stand') }));
+  const bodies = world.bodies().map(b => ({ ...b, tags: [...b.tags], pos: { ...b.pos }, vel: { ...b.vel }, path: b.path?.map(v => ({ ...v })) ?? null, pathGoal: b.pathGoal ? { ...b.pathGoal } : null, sitAnchor: b.sitAnchor ? { ...b.sitAnchor } : null, pose: execution ? b.pose : b.pose === 'dead' ? 'dead' : (b.subduedUntil > world.physicalTime ? 'downed' : 'stand') }));
   const items = world.items().map(i => ({ ...i, tags: [...i.tags], pos: i.pos ? { ...i.pos } : null, provenance: i.provenance.map(entry => ({ ...entry })) }));
   const places = world.places().map(p => ({ id: p.id, ownerId: p.ownerId, anchors: p.anchors.map(a => a.ownerId ?? null) }));
   // v0.2.1 Priority 8: leaderId (leadership succession) and knowledge (institutional memory,
@@ -162,7 +163,7 @@ export function serialize(world: World): string {
   const factions = [...world.ofKind<Faction>('faction')].map(f => ({ id: f.id, leaderId: f.leaderId, knowledge: f.knowledge }));
   const diffs = [...world.grid.diffs.entries()];
   const doors = [...world.grid.doorStates.entries()];
-  const events = eventsForPersistence(world);
+  const events = execution ? world.events : eventsForPersistence(world);
   // v0.2.3: conflicts are plain serializable records (ids, ticks, strings, numbers). The whole
   // list is kept — a resolved conflict is history and its outcome feeds re-engagement gating.
   const conflicts = world.conflicts.map(c => ({ ...c }));
@@ -190,7 +191,7 @@ export function serialize(world: World): string {
   // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
   // falls back to today's behavior (rewind to post-generation position) when absent.
   const rng = world.rng.state(); const weatherRng = world.weatherRng.state(); const demographicRng = world.demographicRng.state();
-  return JSON.stringify({ version: SAVE_VERSION, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
+  return JSON.stringify({ version: SAVE_VERSION, execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -234,8 +235,9 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
   try {
     const data = JSON.parse(raw); if (data.version !== SAVE_VERSION) return null;
     const world = new World(data.seed);
-    world.kernel = restoreKernel(data.kernel);
+    const savedKernel = restoreKernel(data.kernel);
     const generated = data.settlementSites ? generateProceduralWorld(world, data.settlementSites) : undefined;
+    world.kernel = savedKernel;
     const gen = generated ? { places: Object.fromEntries(generated.flatMap(s => Object.entries(s.places).map(([k, p]) => [s.spec.site.id + ':' + k, p]))), people: Object.fromEntries(generated.flatMap(s => Object.entries(s.people).map(([k, p]) => [s.spec.site.id + ':' + k, p]))) } : generateVillage(world);
     for (const s of data.settlements ?? []) { const existing = world.get(s.id); if (existing?.kind === 'settlement') Object.assign(existing, s); else world.add(s); }
     for (const p of data.physicalPlaces ?? []) { const existing = world.place(p.id); if (existing) Object.assign(existing, p); else world.add(p); }
@@ -256,12 +258,13 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     if (typeof data.demographicRng === 'number') world.demographicRng.setState(data.demographicRng);
     for (const s of data.persons) {
       const legacyMind = s.mind ?? { goal: s.goal ?? null, plan: [], decision: s.decision ?? null, commitment: s.commitment ?? null, concerns: s.concerns ?? [], obligations: s.obligations ?? [], pursuits: s.pursuits ?? [], reports: s.reports ?? {}, investigated: s.investigated ?? [] };
-      const restored = { ...s, parentIds: [...(s.parentIds ?? [])], birthTick: s.birthTick ?? s.createdAt, lifeStage: s.lifeStage ?? 'adult', reproductiveRole: s.reproductiveRole ?? (s.gender === 'f' ? 'gestational' : 'fertilizing'), attributeAgeBasis: s.attributeAgeBasis ?? s.age, mind: { ...legacyMind, investigated: new Set(legacyMind.investigated ?? []), plan: legacyMind.plan?.some((a: import('../core/types').Action) => a.data?.productionOpportunity) ? legacyMind.plan : [], intention: null } } as Person;
+      const persistentPlan = !!data.execution || legacyMind.goal?.type === 'compose' || legacyMind.plan?.some((a: import('../core/types').Action) => a.data?.productionOpportunity || a.type === 'procure_material');
+      const restored = { ...s, parentIds: [...(s.parentIds ?? [])], birthTick: s.birthTick ?? s.createdAt, lifeStage: s.lifeStage ?? 'adult', reproductiveRole: s.reproductiveRole ?? (s.gender === 'f' ? 'gestational' : 'fertilizing'), attributeAgeBasis: s.attributeAgeBasis ?? s.age, mind: { ...legacyMind, investigated: new Set(legacyMind.investigated ?? []), plan: persistentPlan ? legacyMind.plan : [], intention: data.execution ? legacyMind.intention : null } } as Person;
       const existing = world.person(s.id);
       if (existing) Object.assign(existing, restored); else world.add(restored);
     }
     for (const s of data.bodies) {
-      const restored = { ...s, vel: { x: 0, y: 0, z: 0 }, path: null, pathGoal: null, sitAnchor: null } as Body;
+      const restored = (data.execution ? { ...s } : { ...s, vel: { x: 0, y: 0, z: 0 }, path: null, pathGoal: null, sitAnchor: null }) as Body;
       const existing = world.body(s.id);
       if (existing) Object.assign(existing, restored); else world.add(restored);
     }
@@ -305,6 +308,9 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     if (world.resourceNodes.length || world.constructionProjects.some(p => p.status === 'complete')) { world.grid.dirtyChunks.clear(); world.nav.rebuildAll(); }
     world.grid.recording = true;
     world.rebuildLivingIndices();
+    world.restoredExecution = data.execution ?? null;
+    world.pendingStimuli = (data.pendingStimuli ?? []).flatMap((id: string) => { const e = world.event(id); return e ? [e] : []; });
+    if (data.runTally) world.runTally = { ...data.runTally };
     // Generated entity ids are part of the save schema. Refuse a malformed/incompatible
     // overlay rather than booting a world whose player has no physical manifestation.
     if (world.playerId !== null && (!world.person(world.playerId) || !world.primaryBody(world.playerId))) return null;

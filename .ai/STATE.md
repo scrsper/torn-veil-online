@@ -1,28 +1,27 @@
-# Local production pressure and historical alternatives
+# Living Universe Integration
 
-Current branch: `codex/generative-universe-kernel`; implementation checkpoint `32999b8`. Detailed results, acceptance scope and limits: `docs/CAUSAL_PRODUCTION_PRESSURE.md`. The previous kernel milestone remains documented in `docs/GENERATIVE_UNIVERSE_KERNEL.md` (previous HEAD `e0b7cf9`).
+Current branch: `codex/generative-universe-kernel`. Implementation checkpoints: `4fd1c9c` (ordinary manufacture/invention) and `85b01ca` (canonical save/load continuation), both pushed. Detailed evidence: `docs/LIVING_UNIVERSE_INTEGRATION.md`.
 
-## Implemented and demonstrated
+## Implemented
 
-Existing local production requests now support witnessed stock observations and inferred practical needs. Familiar work and composition compete in ordinary motivation/planning using capability, knowledge, deficit, labor cost and curiosity. Existing scheduled work is retained without duplicating its action. Voluntary manual batches pay before producing; mechanism output fulfills requests by actual quantity. There is no new controller, global unlock, guaranteed recovery or outcome objective.
+Procedural settlements now initialize scoped mechanical primitives, personal primitive education and explicitly finite environmental energy, with no finished components/assemblies/methods. Local production pressure can lead to existing manual work, supplier visits, physical procurement/extraction, paid component manufacture, experiments and instruction through the ordinary cognition/action pipeline. Logs and planks substitute through material hardness constraints; stone supplies the abrasive surface. Ordinary inventory masses govern the new settlement process adapter.
 
-Method teaching depends on the speaker's relationship and shared work/home; failed experiments are remembered in their observed input/source context. Changed power can permit reconsideration. Shared, private and sole-holder-death histories use the existing conversation, knowledge and demographic systems. Incorrect instructions fail physically and pay legitimate construction/dismantling costs.
+Outputs enter the normal flour→freight→bakery chain with actual causal ancestry. Physical components inherit through estates without automatically transferring knowledge. Saves now preserve attached simulation cadence/caches, stimuli, plans, intent, body paths/poses and speech; uninterrupted versus loaded settlement outcomes, kernel and full event stream match in the focused test.
 
-The explicit trade-post dispatch fixes a real locality/title defect. Save/load preserves paid voluntary work, partial requests and explicitly empty fields/resources/projects instead of restoring generated defaults. Kernel definitions, physical connections, sources, methods and experiment knowledge retain schema 21 compatibility.
+Seed 17, 1,800 physical seconds: novice case 11.427 mechanical flour, 15 bread, 69.923 assembly labor seconds and 785.994 J; calm control zero mechanical output and 5 bread; experienced manual case 35 bread; sawn-timber substitution 8.570 mechanical flour and 20 bread. Successful knowledge reaches three people. A sole-holder mortality intervention leaves zero living method holders while passing physical hardware to heirs. Three generated settlements show different resource/knowledge/production trajectories under the same runtime rules.
 
-Commands: `npm run pressure:demo -- 918271` and `npm run pressure:demo -- 44017`. Each runs five 180-physical-second production comparisons and three 80-second knowledge histories, with save/load in the latter. No finished recipe or selected response is seeded. Pressure cases derive their need from ordinary production demand; knowledge-history cases reuse the bounded kernel water-need fixture.
+## Verification complete
 
-Seed 918271: familiar work produces 16 flour from 12 grain in 32 recorded labor seconds; invention produces 14.337 from 10.75275 grain using 826 J and 19 seconds. The 260 J case produces only 2.3895, exhausts its source and fulfills no request. Ignorance or absent grain yields zero. Seed 44017: familiar work produces 20, invention 25.92 and the local scarcity quote falls 4 to 3. Shared knowledge produces a second working assembly; privacy and loss of the holder produce no recipient output. None of these outcomes is selected by seed/name in engine code.
+- Typecheck passed.
+- Focused kernel/pressure/procedural/adaptive/living checks passed 64/64 before the final continuation refinement.
+- Complete new integration file passed 11/11; manufacture guards passed 2/2.
+- After continuation refinement, living/kernel/pressure/demographic tests passed **40/40**, including exact uninterrupted versus loaded kernel, settlement results and event stream.
+- Final normal regression passed **726/726 across 67 files** in 570.57 seconds; production build passed.
+- `npm run living:demo -- 17` passed all comparisons, same-seed replay, exact kernel/knowledge restoration, deterministic loaded branches and continuation matching uninterrupted execution. The focused test also checks all 2,159 events. Currency delta and manufactured-mass error are zero; maximum energy ledger error is 1.819e-12 J. Household, stock, kernel and causal-reference checks passed.
+- All eleven milestone completion criteria pass within the bounded evidence in the report. Logs: `.debug/living/regression.log`, `build.log`, `final-demo.log`; full data: `.debug/living/17.json`. An earlier broad run was stopped to fix continuation and is not counted as successful (`regression-interrupted-for-continuation.log`). No verification jobs remain running. No runtime edits followed final verification.
 
-## Verification
+## Remaining boundaries and historical failures
 
-- Final focused pressure/kernel/adaptive tests: **46/46 PASS**, including 12 new pressure/history tests.
-- `npm run typecheck`: PASS. `npm run build`: PASS (`.debug/pressure-final-build.log`).
-- Both pressure demonstration commands: exit 0; full metrics/hashes in `.debug/pressure/<seed>.json` and the milestone report.
-- Final `npm test -- --maxWorkers=2`: **715/715 across 66 files PASS**, 494.39 seconds; log `.debug/pressure-final-regression.log`. Includes existing conservation, locality, demographics and history. No runtime changes after this verification. A fixed scheduled-work integration regression was rechecked before this run; assertions/timeouts/config exclusions were not changed. No intentional jobs remain.
+Finite kinetic budgets are not weather-driven replenishment. Education remains a generated prior; no written-method carrier, manufacturing market or automatic reverse engineering exists. Compositional production remains owner-operated. Reserve constants, many occupational schedules, supplier-location priors, traditional recipe approximations and incomplete route-risk estimation remain artificial boundaries.
 
-## Remaining limits and prior failures
-
-Components/primitive education are fixture supplies; commercial manufacture/procurement, employee machinery contracts, weather capture and reservoir-backed drinking remain future work. Fixed reserves, scheduled occupations, legacy direct-transform lookup/first-batch behavior, construction pipeline knowledge/concurrency rules and some authored cognition constants remain next targets. No settlement viability, universal forgetting model or full uninterrupted-versus-loaded event-stream identity is claimed.
-
-Previously recorded Living Economy & Survival results remain separate: Ashford's older 30-day run ended with 25/32 residents at zero caloric reserve (not death); specialized adaptive acceptance was 8/9 with unresolved `shortageEased` at `tests/adaptive-society-longrun.test.ts:132`. These were not repaired or rerun here. See `docs/LIVING_ECONOMY_SURVIVAL.md`. Do not add invisible rescue or label legitimate decline a defect.
+Older failures remain visible: Ashford's prior 30-day result had 25/32 at zero caloric reserve (not death); specialized adaptive acceptance was 8/9 with `shortageEased` failing at `tests/adaptive-society-longrun.test.ts:132`. Neither was rerun or declared resolved by this milestone. See `docs/LIVING_ECONOMY_SURVIVAL.md`. No settlement viability or guaranteed adaptation is claimed.

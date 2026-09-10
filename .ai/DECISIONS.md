@@ -1,5 +1,15 @@
 # Durable design decisions
 
+## Living universe integration
+
+- Procedural worlds install scoped primitive definitions, finite explicit environmental energy and local prior education, with zero finished components/assemblies/methods. Ordinary production pressure can motivate manufacture and experimentation through the existing mind and action systems.
+- Manufacture reuses canonical raw stock, material hardness, skills, tools, ownership and physiological labor. Logs and planks can satisfy the same constraints. Their initial procedural timber stock is a mass-preserving partition of the existing endowment. The settlement grinding adapter uses canonical inventory masses; the reference workshop retains its own declared measures.
+- Supplier locations are personal beliefs. Procurement performs a real visit, extraction if known, affordability/payment, carrying and delivery. Failed supply observations can be revised locally. Known equivalent physical properties allow avoiding a repeated ineffective power arrangement; there is no certified winning recipe.
+- Connected components inherit as one physical asset. Assembly creator identity separates construction intent from title: inheritance transfers hardware, not knowledge. Methods spread by existing communication and do not grant skill or parts.
+- Component reuse, freight and downstream transforms carry recorded material ancestry. Kernel references participate in event compaction.
+- Simulation save checkpoints retain scheduler phase/caches, stimuli, plans, intent, physical paths/poses and queued speech rather than restarting neighboring agents. The attached scheduler is the single live owner; a read-only snapshot callback and one-time restore handoff avoid duplicate ticking state.
+- Details, scoped evidence and remaining assumptions: `docs/LIVING_UNIVERSE_INTEGRATION.md`. No reserve rebalance, global innovation controller, guaranteed recovery or survival target was introduced.
+
 ## Local production pressure and historical alternatives
 
 - Production requests and on-site stock observations supply a reason to consider familiar work or compositional experiments through the existing goal/motivation loop. Successful invention is not an objective of a separate controller. Capacity, knowledge, curiosity, cost and competing needs can leave work undone.

@@ -21,6 +21,10 @@ export interface EmitOptions {
  */
 export class World {
   kernel = emptyKernel();
+  /** Save handoff for the attached canonical scheduler. The callback reads its live state;
+   * restoredExecution is consumed once on attachment, not a second running scheduler. */
+  executionSnapshot: (() => unknown) | null = null;
+  restoredExecution: unknown = null;
   entities = new Map<EntityId, Entity>();
   events: WorldEvent[] = [];
   eventIndex = new Map<EventId, WorldEvent>();
@@ -357,7 +361,7 @@ export class World {
     };
     for (const p of this.livingPersons()) visit({ memories: p.memories, knowledge: p.knowledge, mind: p.mind, desires: p.desires });
     for (const item of this.items()) visit(item.provenance);
-    visit({ situations: this.situations, conflicts: this.conflicts, requests: this.requests, haulTasks: this.haulTasks, workStints: this.workStints, eraCauses: this.chronicleEras.map(era => era.causes) });
+    visit({ kernel: this.kernel, situations: this.situations, conflicts: this.conflicts, requests: this.requests, haulTasks: this.haulTasks, workStints: this.workStints, eraCauses: this.chronicleEras.map(era => era.causes) });
     const pinCauses = (id: EventId): void => {
       const event = previousIndex.get(id); if (!event) return;
       for (const cause of event.causes) if (!referenced.has(cause)) { referenced.add(cause); pinCauses(cause); }

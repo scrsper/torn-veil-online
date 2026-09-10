@@ -15,6 +15,7 @@ export function validateRuleset(r: Ruleset): void {
   for (const m of r.materials) {
     requireValue(m.unit && finite(m.kgPerUnit, Number.EPSILON) && finite(m.maxPowerW) && ['solid', 'liquid'].includes(m.phase), m.id);
     requireValue(!m.legacyItem || Object.hasOwn(ITEM_LABEL, m.legacyItem), 'unknown legacy item');
+    requireValue(Object.values(m.properties ?? {}).every(x => finite(x)), 'material properties');
   }
   requireValue(new Set(r.materials.filter(m => m.legacyItem).map(m => m.legacyItem)).size === r.materials.filter(m => m.legacyItem).length, 'duplicate legacy material truth');
   for (const p of r.processes) {
@@ -33,7 +34,18 @@ export function validateRuleset(r: Ruleset): void {
     for (const port of [c.input, c.output].filter(Boolean)) requireValue(port!.medium && port!.coupling, `port ${c.id}`);
     if (c.kind === 'process') requireValue(r.processes.some(p => p.id === c.process), `process ${c.id}`);
     if (c.kind === 'transfer') requireValue(['liquid', 'solid'].includes(c.phase!) && finite(c.joulesPerKg!, Number.EPSILON) && finite(c.maxKgPerSecond!, Number.EPSILON), `transfer ${c.id}`);
+    if (c.fabrication) {
+      requireValue(finite(c.fabrication.seconds, Number.EPSILON), 'fabrication labor');
+      const material = r.materials.find(m => m.id === c.material)!;
+      requireValue(!!material.legacyItem && materialFits(material, c.fabrication), 'fabrication material');
+    }
   }
+}
+
+/** General property constraints; neither resource names nor arrangement identity matter. */
+export function materialFits(material: Ruleset['materials'][number], requirement: NonNullable<Ruleset['components'][number]['fabrication']>): boolean {
+  return material.phase === 'solid' && Object.entries(requirement.min).every(([k, v]) => finite(v) && (material.properties?.[k] ?? -Infinity) >= v)
+    && Object.entries(requirement.max ?? {}).every(([k, v]) => finite(v) && (material.properties?.[k] ?? Infinity) <= v);
 }
 
 export function installRuleset(state: KernelState, ruleset: Ruleset): void {

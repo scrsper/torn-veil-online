@@ -441,6 +441,8 @@ Do not fill it with session logs.
 
 # Documentation routing
 
+Living universe integration: `src/sim/kernel/manufacture.ts` (raw stock → components and scoped material adapters), `src/sim/mind/componentSupply.ts` (knowledge-limited supplier visits and ordinary procurement), `src/sim/world/settlementMechanics.ts` (procedural environmental/education conditions), and `src/headless/kernel/living.ts` / `livingCli.ts` (ordinary settlement, control, substitution, divergence, replay and save/load acceptance). `tests/living-universe.test.ts` covers the integrated path. Report: `docs/LIVING_UNIVERSE_INTEGRATION.md`. Scheduler continuation is exported by `Simulation` through `World.executionSnapshot` and restored by `persist/save.ts`.
+
 Settlement continuity: `src/sim/world/settlementContinuity.ts` and the `Settlement` entity in `src/sim/core/types.ts`. Physical query indexes: `src/sim/core/spatial.ts`. Detailed benchmark measurements: `docs/procedural-settlement-detailed-benchmark.json`; epoch semantics are audited in `docs/PROCEDURAL_SETTLEMENTS.md`.
 
 Procedural settlement generation and shared-world locality: `src/sim/world/settlementSpec.ts`, `src/sim/world/settlement.ts`, `src/sim/world/locality.ts` (checked at probe cadence by `locality-of-commitments` in `src/headless/worldlab/invariants.ts` — see `docs/LOCALITY_V0_11.md`); sparse terrain: `src/sim/physical/regionalGrid.ts`; acceptance harness: `src/headless/worldlab/settlements.ts`. See `docs/PROCEDURAL_SETTLEMENTS.md` for the pipeline, audit, commands, and simulation-resolution limits. Authored Ashford remains in `village.ts` / `cast.ts`.
