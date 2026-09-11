@@ -1593,13 +1593,6 @@ export class Simulation {
   private act(p: Person, body: Body, physDt: number, worldDt: number): void {
     const w = this.world; const m = p.mind;
     if (body.dead) return;
-    // A replanned wait (or another action) must not erase an unexpired physical
-    // knock-down. Recovery belongs to bodyPhysics, just as human input is gated
-    // by moveByIntent. Keep cognition running without executing through incapacity.
-    if (body.pose === 'downed' && (body.poseUntil > w.physicalTime || body.subduedUntil > w.physicalTime || p.surrender || p.custody?.active)) {
-      body.path = null; body.vel.x = body.vel.z = 0;
-      return;
-    }
     // v0.2.3 safety net: a chase/retry pipeline (attack/take_custody re-unshifting a `goto` when
     // the target is out of reach) can otherwise let `plan` grow without bound with `goto/failed`
     // entries, which never triggers a replan (the pending tail action isn't done/failed). Compact
@@ -1980,9 +1973,10 @@ export class Simulation {
       }
       case 'pray': body.pose = 'pray'; body.sitAnchor = a.pos ?? null; if (this.elapsed(a)) a.status = 'done'; break;
       case 'wait': {
-        // v0.2.3: a held-state wait (subdued / surrendered) keeps the body on the ground; every
-        // other wait stands.
-        const heldDown = a.data?.held && (body.subduedUntil > w.physicalTime || !!p.surrender);
+        // Waiting still advances its ordinary action clock. It cannot cancel a physical
+        // knock-down before bodyPhysics releases it, including while custody holds it.
+        const heldDown = body.pose === 'downed' && (body.poseUntil > w.physicalTime
+          || body.subduedUntil > w.physicalTime || !!p.surrender || !!p.custody?.active);
         if (!heldDown) body.pose = 'stand';
         if (a.data?.social) this.maybeChat(p, body);
         if (this.elapsed(a)) a.status = 'done';

@@ -32,7 +32,12 @@ describe('humanoid visual event counts', () => {
     step(tw, 1);
     expect(tb.poseUntil).toBeGreaterThan(tw.world.physicalTime);
     expect(humanoidVisualState(tb, target.name, tb.pose).incapacitated).toBe(true);
-    expect(tb.vel.x).toBe(0); expect(tb.vel.z).toBe(0);
+    // The NPC's ordinary held-state wait must start and finish while physics holds it down.
+    const wait = target.mind.plan.find(action => action.type === 'wait')!;
+    expect(wait.startedAt).toBeDefined();
+    step(tw, 21);
+    expect(wait.status).toBe('done');
+    expect(tb.pose).toBe('downed');
   });
   it('preserves every accepted attack and hit between snapshots and across JSON/save/reconnect', () => {
     const s = new BridgeSession(), w = s.world;

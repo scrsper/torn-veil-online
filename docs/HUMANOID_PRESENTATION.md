@@ -29,7 +29,9 @@ hair and occupation proxies are hidden to expose the skeletal silhouette; real
 equipment and appearance work remains deferred.
 
 Canonical knock-downs now survive NPC replanning while recovery/subdual holds them
-down, fixing an observed one-tick overwrite by wait. Canonical death currently sets
+down, fixing an observed one-tick overwrite by wait. The wait action retains its
+ordinary start/completion clock; canonical knockback remains in body physics.
+Canonical death currently sets
 present=false, so its actor disappears immediately. A retained terminal body selects
 the collapse clip; this phase introduces no persistent corpse or delayed withdrawal.
 
