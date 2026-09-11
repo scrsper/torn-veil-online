@@ -1,0 +1,7541 @@
+[
+  {
+    "seed": 1,
+    "canonicalFootprint": {
+      "buildingId": "canonical-dwelling-fixture",
+      "widthMetres": 6,
+      "depthMetres": 8
+    },
+    "doorSlot": [
+      1,
+      1
+    ],
+    "allowedMarginCm": 20,
+    "parts": [
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          -300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            0.0
+          ],
+          [
+            -100.0,
+            -200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          -300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            312.0
+          ],
+          [
+            -100.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          -100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -200.0,
+            0.0
+          ],
+          [
+            -100.0,
+            0.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          -100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -200.0,
+            312.0
+          ],
+          [
+            -100.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            0.0,
+            0.0
+          ],
+          [
+            -100.0,
+            200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            0.0,
+            312.0
+          ],
+          [
+            -100.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            200.0,
+            0.0
+          ],
+          [
+            -100.0,
+            400.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            200.0,
+            312.0
+          ],
+          [
+            -100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          -300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -400.0,
+            0.0
+          ],
+          [
+            100.0,
+            -200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          -300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -400.0,
+            312.0
+          ],
+          [
+            100.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          -100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -200.0,
+            0.0
+          ],
+          [
+            100.0,
+            0.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          -100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -200.0,
+            312.0
+          ],
+          [
+            100.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            0.0,
+            0.0
+          ],
+          [
+            100.0,
+            200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            0.0,
+            312.0
+          ],
+          [
+            100.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            200.0,
+            0.0
+          ],
+          [
+            100.0,
+            400.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            200.0,
+            312.0
+          ],
+          [
+            100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          -300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -400.0,
+            0.0
+          ],
+          [
+            300.0,
+            -200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          -300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -400.0,
+            312.0
+          ],
+          [
+            300.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          -100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -200.0,
+            0.0
+          ],
+          [
+            300.0,
+            0.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          -100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -200.0,
+            312.0
+          ],
+          [
+            300.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            0.0,
+            0.0
+          ],
+          [
+            300.0,
+            200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            0.0,
+            312.0
+          ],
+          [
+            300.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            200.0,
+            0.0
+          ],
+          [
+            300.0,
+            400.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            200.0,
+            312.0
+          ],
+          [
+            300.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -199.99999237060604,
+          -384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            6.0
+          ],
+          [
+            -100.0,
+            -380.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          0,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          7.629393949173435e-06,
+          -384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -400.0,
+            6.0
+          ],
+          [
+            100.0,
+            -380.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          0,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          200.00000762939396,
+          -384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -400.0,
+            6.0
+          ],
+          [
+            300.0,
+            -380.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          0,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          284.54861380431163,
+          -299.99999237060604,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            -400.0,
+            6.0
+          ],
+          [
+            300.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          1,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Door_Flat",
+        "position": [
+          284.54861380431163,
+          -99.99999237060605,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            -200.0,
+            6.0
+          ],
+          [
+            300.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "door",
+        "slot": [
+          1,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          284.54861380431163,
+          100.00000762939395,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            0.0,
+            6.0
+          ],
+          [
+            300.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          1,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          284.54861380431163,
+          300.00000762939396,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            200.0,
+            6.0
+          ],
+          [
+            300.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          1,
+          3
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -200.00000762939396,
+          384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 180,
+        "targetBounds": [
+          [
+            -300.0,
+            380.0,
+            6.0
+          ],
+          [
+            -100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          2,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -7.629393949173435e-06,
+          384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 180,
+        "targetBounds": [
+          [
+            -100.0,
+            380.0,
+            6.0
+          ],
+          [
+            100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          2,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          199.99999237060604,
+          384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 180,
+        "targetBounds": [
+          [
+            100.0,
+            380.0,
+            6.0
+          ],
+          [
+            300.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          2,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat",
+        "position": [
+          -284.54861380431163,
+          -300.00000762939396,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            6.0
+          ],
+          [
+            -280.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "window",
+        "slot": [
+          3,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat",
+        "position": [
+          -284.54861380431163,
+          -100.00000762939395,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            -200.0,
+            6.0
+          ],
+          [
+            -280.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "window",
+        "slot": [
+          3,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat",
+        "position": [
+          -284.54861380431163,
+          99.99999237060605,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            0.0,
+            6.0
+          ],
+          [
+            -280.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "window",
+        "slot": [
+          3,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat",
+        "position": [
+          -284.54861380431163,
+          299.99999237060604,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            200.0,
+            6.0
+          ],
+          [
+            -280.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "window",
+        "slot": [
+          3,
+          3
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          -300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            -410.0,
+            318.0
+          ],
+          [
+            10.0,
+            -190.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          -100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            -210.0,
+            318.0
+          ],
+          [
+            10.0,
+            10.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            -10.0,
+            318.0
+          ],
+          [
+            10.0,
+            210.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            190.0,
+            318.0
+          ],
+          [
+            10.0,
+            410.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          -268.0000007048739,
+          -330.0000157592634,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -288.0,
+            -360.0,
+            248.0
+          ],
+          [
+            -268.0,
+            -300.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          -268.0000007048739,
+          329.9999842407366,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -288.0,
+            300.0,
+            248.0
+          ],
+          [
+            -268.0,
+            360.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          -300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            -410.0,
+            318.0
+          ],
+          [
+            320.0,
+            -190.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          -100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            -210.0,
+            318.0
+          ],
+          [
+            320.0,
+            10.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            -10.0,
+            318.0
+          ],
+          [
+            320.0,
+            210.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            190.0,
+            318.0
+          ],
+          [
+            320.0,
+            410.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          268.0000007048739,
+          -329.9999842407366,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            268.0,
+            -360.0,
+            248.0
+          ],
+          [
+            288.0,
+            -300.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          268.0000007048739,
+          330.0000157592634,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            268.0,
+            300.0,
+            248.0
+          ],
+          [
+            288.0,
+            360.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/AdvancedVillagePack/Meshes/SM_Barrel",
+        "position": [
+          -225.01223698687386,
+          325.10004276517446,
+          6.047462603199492
+        ],
+        "scale": [
+          0.4228300437555372,
+          0.4192175492763141,
+          0.5394570175653495
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -255.0,
+            295.0,
+            6.0
+          ],
+          [
+            -195.0,
+            355.0,
+            90.0
+          ]
+        ],
+        "role": "dressing",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/AdvancedVillagePack/Meshes/SM_Barrel",
+        "position": [
+          -225.01223698687386,
+          -324.89995723482554,
+          6.047462603199492
+        ],
+        "scale": [
+          0.4228300437555372,
+          0.4192175492763141,
+          0.5394570175653495
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -255.0,
+            -355.0,
+            6.0
+          ],
+          [
+            -195.0,
+            -295.0,
+            90.0
+          ]
+        ],
+        "role": "dressing",
+        "slot": null
+      }
+    ],
+    "graph": "/Game/TornVeil/PCG/Buildings/TV_Dwelling_6x8_S01",
+    "origin": [
+      -2200,
+      0,
+      0
+    ]
+  },
+  {
+    "seed": 2,
+    "canonicalFootprint": {
+      "buildingId": "canonical-dwelling-fixture",
+      "widthMetres": 6,
+      "depthMetres": 8
+    },
+    "doorSlot": [
+      2,
+      1
+    ],
+    "allowedMarginCm": 20,
+    "parts": [
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          -200.0,
+          -300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            0.0
+          ],
+          [
+            -100.0,
+            -200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          -300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            312.0
+          ],
+          [
+            -100.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          -200.0,
+          -100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -200.0,
+            0.0
+          ],
+          [
+            -100.0,
+            0.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          -100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -200.0,
+            312.0
+          ],
+          [
+            -100.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          -200.0,
+          100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            0.0,
+            0.0
+          ],
+          [
+            -100.0,
+            200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            0.0,
+            312.0
+          ],
+          [
+            -100.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          -200.0,
+          300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            200.0,
+            0.0
+          ],
+          [
+            -100.0,
+            400.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            200.0,
+            312.0
+          ],
+          [
+            -100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          0.0,
+          -300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -400.0,
+            0.0
+          ],
+          [
+            100.0,
+            -200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          -300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -400.0,
+            312.0
+          ],
+          [
+            100.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          0.0,
+          -100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -200.0,
+            0.0
+          ],
+          [
+            100.0,
+            0.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          -100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -200.0,
+            312.0
+          ],
+          [
+            100.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          0.0,
+          100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            0.0,
+            0.0
+          ],
+          [
+            100.0,
+            200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            0.0,
+            312.0
+          ],
+          [
+            100.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          0.0,
+          300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            200.0,
+            0.0
+          ],
+          [
+            100.0,
+            400.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            200.0,
+            312.0
+          ],
+          [
+            100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          200.0,
+          -300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -400.0,
+            0.0
+          ],
+          [
+            300.0,
+            -200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          -300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -400.0,
+            312.0
+          ],
+          [
+            300.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          200.0,
+          -100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -200.0,
+            0.0
+          ],
+          [
+            300.0,
+            0.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          -100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -200.0,
+            312.0
+          ],
+          [
+            300.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          200.0,
+          100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            0.0,
+            0.0
+          ],
+          [
+            300.0,
+            200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            0.0,
+            312.0
+          ],
+          [
+            300.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          200.0,
+          300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            200.0,
+            0.0
+          ],
+          [
+            300.0,
+            400.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            200.0,
+            312.0
+          ],
+          [
+            300.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -199.99999237060604,
+          -384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            6.0
+          ],
+          [
+            -100.0,
+            -380.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          0,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          7.629393949173435e-06,
+          -384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -400.0,
+            6.0
+          ],
+          [
+            100.0,
+            -380.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          0,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          200.00000762939396,
+          -384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -400.0,
+            6.0
+          ],
+          [
+            300.0,
+            -380.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          0,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat",
+        "position": [
+          284.54861380431163,
+          -299.99999237060604,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            -400.0,
+            6.0
+          ],
+          [
+            300.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "window",
+        "slot": [
+          1,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          284.54861380431163,
+          -99.99999237060605,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            -200.0,
+            6.0
+          ],
+          [
+            300.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          1,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          284.54861380431163,
+          100.00000762939395,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            0.0,
+            6.0
+          ],
+          [
+            300.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          1,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          284.54861380431163,
+          300.00000762939396,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            200.0,
+            6.0
+          ],
+          [
+            300.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          1,
+          3
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -200.00000762939396,
+          384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 180,
+        "targetBounds": [
+          [
+            -300.0,
+            380.0,
+            6.0
+          ],
+          [
+            -100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          2,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Door_Flat",
+        "position": [
+          -7.629393949173435e-06,
+          384.54861380431163,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 180,
+        "targetBounds": [
+          [
+            -100.0,
+            380.0,
+            6.0
+          ],
+          [
+            100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "door",
+        "slot": [
+          2,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          199.99999237060604,
+          384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 180,
+        "targetBounds": [
+          [
+            100.0,
+            380.0,
+            6.0
+          ],
+          [
+            300.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          2,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat",
+        "position": [
+          -284.54861380431163,
+          -300.00000762939396,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            6.0
+          ],
+          [
+            -280.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "window",
+        "slot": [
+          3,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -284.54861380431163,
+          -100.00000762939395,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            -200.0,
+            6.0
+          ],
+          [
+            -280.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          3,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -284.54861380431163,
+          99.99999237060605,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            0.0,
+            6.0
+          ],
+          [
+            -280.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          3,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat",
+        "position": [
+          -284.54861380431163,
+          299.99999237060604,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            200.0,
+            6.0
+          ],
+          [
+            -280.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "window",
+        "slot": [
+          3,
+          3
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          -300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            -410.0,
+            318.0
+          ],
+          [
+            10.0,
+            -190.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          -100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            -210.0,
+            318.0
+          ],
+          [
+            10.0,
+            10.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            -10.0,
+            318.0
+          ],
+          [
+            10.0,
+            210.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            190.0,
+            318.0
+          ],
+          [
+            10.0,
+            410.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          -268.0000007048739,
+          -330.0000157592634,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -288.0,
+            -360.0,
+            248.0
+          ],
+          [
+            -268.0,
+            -300.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          -268.0000007048739,
+          329.9999842407366,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -288.0,
+            300.0,
+            248.0
+          ],
+          [
+            -268.0,
+            360.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          -300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            -410.0,
+            318.0
+          ],
+          [
+            320.0,
+            -190.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          -100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            -210.0,
+            318.0
+          ],
+          [
+            320.0,
+            10.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            -10.0,
+            318.0
+          ],
+          [
+            320.0,
+            210.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            190.0,
+            318.0
+          ],
+          [
+            320.0,
+            410.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          268.0000007048739,
+          -329.9999842407366,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            268.0,
+            -360.0,
+            248.0
+          ],
+          [
+            288.0,
+            -300.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          268.0000007048739,
+          330.0000157592634,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            268.0,
+            300.0,
+            248.0
+          ],
+          [
+            288.0,
+            360.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/AdvancedVillagePack/Meshes/SM_Barrel",
+        "position": [
+          -225.10004276517446,
+          -325.01223698687386,
+          6.047462603199492
+        ],
+        "scale": [
+          0.4228300437555372,
+          0.4192175492763141,
+          0.5394570175653495
+        ],
+        "yaw": 180,
+        "targetBounds": [
+          [
+            -255.0,
+            -355.0,
+            6.0
+          ],
+          [
+            -195.0,
+            -295.0,
+            90.0
+          ]
+        ],
+        "role": "dressing",
+        "slot": null
+      }
+    ],
+    "graph": "/Game/TornVeil/PCG/Buildings/TV_Dwelling_6x8_S02",
+    "origin": [
+      -1100,
+      0,
+      0
+    ]
+  },
+  {
+    "seed": 3,
+    "canonicalFootprint": {
+      "buildingId": "canonical-dwelling-fixture",
+      "widthMetres": 6,
+      "depthMetres": 8
+    },
+    "doorSlot": [
+      3,
+      1
+    ],
+    "allowedMarginCm": 20,
+    "parts": [
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          -300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            0.0
+          ],
+          [
+            -100.0,
+            -200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          -300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            312.0
+          ],
+          [
+            -100.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          -100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -200.0,
+            0.0
+          ],
+          [
+            -100.0,
+            0.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          -100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -200.0,
+            312.0
+          ],
+          [
+            -100.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            0.0,
+            0.0
+          ],
+          [
+            -100.0,
+            200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            0.0,
+            312.0
+          ],
+          [
+            -100.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            200.0,
+            0.0
+          ],
+          [
+            -100.0,
+            400.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            200.0,
+            312.0
+          ],
+          [
+            -100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          -300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -400.0,
+            0.0
+          ],
+          [
+            100.0,
+            -200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          -300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -400.0,
+            312.0
+          ],
+          [
+            100.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          -100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -200.0,
+            0.0
+          ],
+          [
+            100.0,
+            0.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          -100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -200.0,
+            312.0
+          ],
+          [
+            100.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            0.0,
+            0.0
+          ],
+          [
+            100.0,
+            200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            0.0,
+            312.0
+          ],
+          [
+            100.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            200.0,
+            0.0
+          ],
+          [
+            100.0,
+            400.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            200.0,
+            312.0
+          ],
+          [
+            100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          -300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -400.0,
+            0.0
+          ],
+          [
+            300.0,
+            -200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          -300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -400.0,
+            312.0
+          ],
+          [
+            300.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          -100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -200.0,
+            0.0
+          ],
+          [
+            300.0,
+            0.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          -100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -200.0,
+            312.0
+          ],
+          [
+            300.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            0.0,
+            0.0
+          ],
+          [
+            300.0,
+            200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            0.0,
+            312.0
+          ],
+          [
+            300.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            200.0,
+            0.0
+          ],
+          [
+            300.0,
+            400.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            200.0,
+            312.0
+          ],
+          [
+            300.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat",
+        "position": [
+          -199.99999237060604,
+          -384.54861380431163,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            6.0
+          ],
+          [
+            -100.0,
+            -380.0,
+            318.0
+          ]
+        ],
+        "role": "window",
+        "slot": [
+          0,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat",
+        "position": [
+          7.629393949173435e-06,
+          -384.54861380431163,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -400.0,
+            6.0
+          ],
+          [
+            100.0,
+            -380.0,
+            318.0
+          ]
+        ],
+        "role": "window",
+        "slot": [
+          0,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          200.00000762939396,
+          -384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -400.0,
+            6.0
+          ],
+          [
+            300.0,
+            -380.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          0,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          284.54861380431163,
+          -299.99999237060604,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            -400.0,
+            6.0
+          ],
+          [
+            300.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          1,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          284.54861380431163,
+          -99.99999237060605,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            -200.0,
+            6.0
+          ],
+          [
+            300.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          1,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat",
+        "position": [
+          284.54861380431163,
+          100.00000762939395,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            0.0,
+            6.0
+          ],
+          [
+            300.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "window",
+        "slot": [
+          1,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat",
+        "position": [
+          284.54861380431163,
+          300.00000762939396,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            200.0,
+            6.0
+          ],
+          [
+            300.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "window",
+        "slot": [
+          1,
+          3
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -200.00000762939396,
+          384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 180,
+        "targetBounds": [
+          [
+            -300.0,
+            380.0,
+            6.0
+          ],
+          [
+            -100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          2,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -7.629393949173435e-06,
+          384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 180,
+        "targetBounds": [
+          [
+            -100.0,
+            380.0,
+            6.0
+          ],
+          [
+            100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          2,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          199.99999237060604,
+          384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 180,
+        "targetBounds": [
+          [
+            100.0,
+            380.0,
+            6.0
+          ],
+          [
+            300.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          2,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -284.54861380431163,
+          -300.00000762939396,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            6.0
+          ],
+          [
+            -280.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          3,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Door_Flat",
+        "position": [
+          -284.54861380431163,
+          -100.00000762939395,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            -200.0,
+            6.0
+          ],
+          [
+            -280.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "door",
+        "slot": [
+          3,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -284.54861380431163,
+          99.99999237060605,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            0.0,
+            6.0
+          ],
+          [
+            -280.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          3,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -284.54861380431163,
+          299.99999237060604,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            200.0,
+            6.0
+          ],
+          [
+            -280.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          3,
+          3
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          -300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            -410.0,
+            318.0
+          ],
+          [
+            10.0,
+            -190.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          -100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            -210.0,
+            318.0
+          ],
+          [
+            10.0,
+            10.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            -10.0,
+            318.0
+          ],
+          [
+            10.0,
+            210.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            190.0,
+            318.0
+          ],
+          [
+            10.0,
+            410.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          -268.0000007048739,
+          -330.0000157592634,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -288.0,
+            -360.0,
+            248.0
+          ],
+          [
+            -268.0,
+            -300.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          -268.0000007048739,
+          329.9999842407366,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -288.0,
+            300.0,
+            248.0
+          ],
+          [
+            -268.0,
+            360.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          -300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            -410.0,
+            318.0
+          ],
+          [
+            320.0,
+            -190.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          -100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            -210.0,
+            318.0
+          ],
+          [
+            320.0,
+            10.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            -10.0,
+            318.0
+          ],
+          [
+            320.0,
+            210.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            190.0,
+            318.0
+          ],
+          [
+            320.0,
+            410.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          268.0000007048739,
+          -329.9999842407366,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            268.0,
+            -360.0,
+            248.0
+          ],
+          [
+            288.0,
+            -300.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          268.0000007048739,
+          330.0000157592634,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            268.0,
+            300.0,
+            248.0
+          ],
+          [
+            288.0,
+            360.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/AdvancedVillagePack/Meshes/SM_Barrel",
+        "position": [
+          225.01223698687386,
+          324.89995723482554,
+          6.047462603199492
+        ],
+        "scale": [
+          0.4228300437555372,
+          0.4192175492763141,
+          0.5394570175653495
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            195.0,
+            295.0,
+            6.0
+          ],
+          [
+            255.0,
+            355.0,
+            90.0
+          ]
+        ],
+        "role": "dressing",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/AdvancedVillagePack/Meshes/SM_Barrel",
+        "position": [
+          225.01223698687386,
+          -325.10004276517446,
+          6.047462603199492
+        ],
+        "scale": [
+          0.4228300437555372,
+          0.4192175492763141,
+          0.5394570175653495
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            195.0,
+            -355.0,
+            6.0
+          ],
+          [
+            255.0,
+            -295.0,
+            90.0
+          ]
+        ],
+        "role": "dressing",
+        "slot": null
+      }
+    ],
+    "graph": "/Game/TornVeil/PCG/Buildings/TV_Dwelling_6x8_S03",
+    "origin": [
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "seed": 4,
+    "canonicalFootprint": {
+      "buildingId": "canonical-dwelling-fixture",
+      "widthMetres": 6,
+      "depthMetres": 8
+    },
+    "doorSlot": [
+      0,
+      1
+    ],
+    "allowedMarginCm": 20,
+    "parts": [
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          -200.0,
+          -300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            0.0
+          ],
+          [
+            -100.0,
+            -200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          -300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            312.0
+          ],
+          [
+            -100.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          -200.0,
+          -100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -200.0,
+            0.0
+          ],
+          [
+            -100.0,
+            0.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          -100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -200.0,
+            312.0
+          ],
+          [
+            -100.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          -200.0,
+          100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            0.0,
+            0.0
+          ],
+          [
+            -100.0,
+            200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            0.0,
+            312.0
+          ],
+          [
+            -100.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          -200.0,
+          300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            200.0,
+            0.0
+          ],
+          [
+            -100.0,
+            400.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            200.0,
+            312.0
+          ],
+          [
+            -100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          0.0,
+          -300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -400.0,
+            0.0
+          ],
+          [
+            100.0,
+            -200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          -300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -400.0,
+            312.0
+          ],
+          [
+            100.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          0.0,
+          -100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -200.0,
+            0.0
+          ],
+          [
+            100.0,
+            0.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          -100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -200.0,
+            312.0
+          ],
+          [
+            100.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          0.0,
+          100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            0.0,
+            0.0
+          ],
+          [
+            100.0,
+            200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            0.0,
+            312.0
+          ],
+          [
+            100.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          0.0,
+          300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            200.0,
+            0.0
+          ],
+          [
+            100.0,
+            400.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            200.0,
+            312.0
+          ],
+          [
+            100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          200.0,
+          -300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -400.0,
+            0.0
+          ],
+          [
+            300.0,
+            -200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          -300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -400.0,
+            312.0
+          ],
+          [
+            300.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          200.0,
+          -100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -200.0,
+            0.0
+          ],
+          [
+            300.0,
+            0.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          -100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -200.0,
+            312.0
+          ],
+          [
+            300.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          200.0,
+          100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            0.0,
+            0.0
+          ],
+          [
+            300.0,
+            200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            0.0,
+            312.0
+          ],
+          [
+            300.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_Brick",
+        "position": [
+          200.0,
+          300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            200.0,
+            0.0
+          ],
+          [
+            300.0,
+            400.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            200.0,
+            312.0
+          ],
+          [
+            300.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -199.99999237060604,
+          -384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            6.0
+          ],
+          [
+            -100.0,
+            -380.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          0,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Door_Flat",
+        "position": [
+          7.629393949173435e-06,
+          -384.54861380431163,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -400.0,
+            6.0
+          ],
+          [
+            100.0,
+            -380.0,
+            318.0
+          ]
+        ],
+        "role": "door",
+        "slot": [
+          0,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          200.00000762939396,
+          -384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -400.0,
+            6.0
+          ],
+          [
+            300.0,
+            -380.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          0,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          284.54861380431163,
+          -299.99999237060604,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            -400.0,
+            6.0
+          ],
+          [
+            300.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          1,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          284.54861380431163,
+          -99.99999237060605,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            -200.0,
+            6.0
+          ],
+          [
+            300.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          1,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat",
+        "position": [
+          284.54861380431163,
+          100.00000762939395,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            0.0,
+            6.0
+          ],
+          [
+            300.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "window",
+        "slot": [
+          1,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          284.54861380431163,
+          300.00000762939396,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            200.0,
+            6.0
+          ],
+          [
+            300.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          1,
+          3
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -200.00000762939396,
+          384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 180,
+        "targetBounds": [
+          [
+            -300.0,
+            380.0,
+            6.0
+          ],
+          [
+            -100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          2,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat",
+        "position": [
+          -7.629393949173435e-06,
+          384.54861380431163,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 180,
+        "targetBounds": [
+          [
+            -100.0,
+            380.0,
+            6.0
+          ],
+          [
+            100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "window",
+        "slot": [
+          2,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          199.99999237060604,
+          384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 180,
+        "targetBounds": [
+          [
+            100.0,
+            380.0,
+            6.0
+          ],
+          [
+            300.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          2,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat",
+        "position": [
+          -284.54861380431163,
+          -300.00000762939396,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            6.0
+          ],
+          [
+            -280.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "window",
+        "slot": [
+          3,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -284.54861380431163,
+          -100.00000762939395,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            -200.0,
+            6.0
+          ],
+          [
+            -280.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          3,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -284.54861380431163,
+          99.99999237060605,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            0.0,
+            6.0
+          ],
+          [
+            -280.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          3,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -284.54861380431163,
+          299.99999237060604,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            200.0,
+            6.0
+          ],
+          [
+            -280.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          3,
+          3
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          -300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            -410.0,
+            318.0
+          ],
+          [
+            10.0,
+            -190.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          -100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            -210.0,
+            318.0
+          ],
+          [
+            10.0,
+            10.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            -10.0,
+            318.0
+          ],
+          [
+            10.0,
+            210.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            190.0,
+            318.0
+          ],
+          [
+            10.0,
+            410.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          -268.0000007048739,
+          -330.0000157592634,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -288.0,
+            -360.0,
+            248.0
+          ],
+          [
+            -268.0,
+            -300.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          -268.0000007048739,
+          329.9999842407366,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -288.0,
+            300.0,
+            248.0
+          ],
+          [
+            -268.0,
+            360.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          -300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            -410.0,
+            318.0
+          ],
+          [
+            320.0,
+            -190.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          -100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            -210.0,
+            318.0
+          ],
+          [
+            320.0,
+            10.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            -10.0,
+            318.0
+          ],
+          [
+            320.0,
+            210.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            190.0,
+            318.0
+          ],
+          [
+            320.0,
+            410.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          268.0000007048739,
+          -329.9999842407366,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            268.0,
+            -360.0,
+            248.0
+          ],
+          [
+            288.0,
+            -300.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          268.0000007048739,
+          330.0000157592634,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            268.0,
+            300.0,
+            248.0
+          ],
+          [
+            288.0,
+            360.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/AdvancedVillagePack/Meshes/SM_Barrel",
+        "position": [
+          -224.89995723482554,
+          325.01223698687386,
+          6.047462603199492
+        ],
+        "scale": [
+          0.4228300437555372,
+          0.4192175492763141,
+          0.5394570175653495
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -255.0,
+            295.0,
+            6.0
+          ],
+          [
+            -195.0,
+            355.0,
+            90.0
+          ]
+        ],
+        "role": "dressing",
+        "slot": null
+      }
+    ],
+    "graph": "/Game/TornVeil/PCG/Buildings/TV_Dwelling_6x8_S04",
+    "origin": [
+      1100,
+      0,
+      0
+    ]
+  },
+  {
+    "seed": 5,
+    "canonicalFootprint": {
+      "buildingId": "canonical-dwelling-fixture",
+      "widthMetres": 6,
+      "depthMetres": 8
+    },
+    "doorSlot": [
+      1,
+      2
+    ],
+    "allowedMarginCm": 20,
+    "parts": [
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          -300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            0.0
+          ],
+          [
+            -100.0,
+            -200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          -300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            312.0
+          ],
+          [
+            -100.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          -100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -200.0,
+            0.0
+          ],
+          [
+            -100.0,
+            0.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          -100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -200.0,
+            312.0
+          ],
+          [
+            -100.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            0.0,
+            0.0
+          ],
+          [
+            -100.0,
+            200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            0.0,
+            312.0
+          ],
+          [
+            -100.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            200.0,
+            0.0
+          ],
+          [
+            -100.0,
+            400.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          -200.0,
+          300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            200.0,
+            312.0
+          ],
+          [
+            -100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          -300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -400.0,
+            0.0
+          ],
+          [
+            100.0,
+            -200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          -300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -400.0,
+            312.0
+          ],
+          [
+            100.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          -100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -200.0,
+            0.0
+          ],
+          [
+            100.0,
+            0.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          -100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -200.0,
+            312.0
+          ],
+          [
+            100.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            0.0,
+            0.0
+          ],
+          [
+            100.0,
+            200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            0.0,
+            312.0
+          ],
+          [
+            100.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            200.0,
+            0.0
+          ],
+          [
+            100.0,
+            400.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          0.0,
+          300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            200.0,
+            312.0
+          ],
+          [
+            100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          -300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -400.0,
+            0.0
+          ],
+          [
+            300.0,
+            -200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          -300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -400.0,
+            312.0
+          ],
+          [
+            300.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          -100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -200.0,
+            0.0
+          ],
+          [
+            300.0,
+            0.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          -100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -200.0,
+            312.0
+          ],
+          [
+            300.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          100.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            0.0,
+            0.0
+          ],
+          [
+            300.0,
+            200.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          100.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            0.0,
+            312.0
+          ],
+          [
+            300.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          300.0,
+          3.0000590065302943
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            200.0,
+            0.0
+          ],
+          [
+            300.0,
+            400.0,
+            6.0
+          ]
+        ],
+        "role": "floor",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Floor_WoodDark",
+        "position": [
+          200.0,
+          300.0,
+          315.0000590065303
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          2.9998948610914753
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            200.0,
+            312.0
+          ],
+          [
+            300.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "ceiling",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat",
+        "position": [
+          -199.99999237060604,
+          -384.54861380431163,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            6.0
+          ],
+          [
+            -100.0,
+            -380.0,
+            318.0
+          ]
+        ],
+        "role": "window",
+        "slot": [
+          0,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat",
+        "position": [
+          7.629393949173435e-06,
+          -384.54861380431163,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            -100.0,
+            -400.0,
+            6.0
+          ],
+          [
+            100.0,
+            -380.0,
+            318.0
+          ]
+        ],
+        "role": "window",
+        "slot": [
+          0,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat",
+        "position": [
+          200.00000762939396,
+          -384.54861380431163,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 0,
+        "targetBounds": [
+          [
+            100.0,
+            -400.0,
+            6.0
+          ],
+          [
+            300.0,
+            -380.0,
+            318.0
+          ]
+        ],
+        "role": "window",
+        "slot": [
+          0,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          284.54861380431163,
+          -299.99999237060604,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            -400.0,
+            6.0
+          ],
+          [
+            300.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          1,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          284.54861380431163,
+          -99.99999237060605,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            -200.0,
+            6.0
+          ],
+          [
+            300.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          1,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Door_Flat",
+        "position": [
+          284.54861380431163,
+          100.00000762939395,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            0.0,
+            6.0
+          ],
+          [
+            300.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "door",
+        "slot": [
+          1,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          284.54861380431163,
+          300.00000762939396,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            280.0,
+            200.0,
+            6.0
+          ],
+          [
+            300.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          1,
+          3
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat",
+        "position": [
+          -200.00000762939396,
+          384.54861380431163,
+          6.000003255609556
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9991390011831198
+        ],
+        "yaw": 180,
+        "targetBounds": [
+          [
+            -300.0,
+            380.0,
+            6.0
+          ],
+          [
+            -100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "window",
+        "slot": [
+          2,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -7.629393949173435e-06,
+          384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 180,
+        "targetBounds": [
+          [
+            -100.0,
+            380.0,
+            6.0
+          ],
+          [
+            100.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          2,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          199.99999237060604,
+          384.54861380431163,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 180,
+        "targetBounds": [
+          [
+            100.0,
+            380.0,
+            6.0
+          ],
+          [
+            300.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          2,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -284.54861380431163,
+          -300.00000762939396,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            -400.0,
+            6.0
+          ],
+          [
+            -280.0,
+            -200.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          3,
+          0
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -284.54861380431163,
+          -100.00000762939395,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            -200.0,
+            6.0
+          ],
+          [
+            -280.0,
+            0.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          3,
+          1
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -284.54861380431163,
+          99.99999237060605,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            0.0,
+            6.0
+          ],
+          [
+            -280.0,
+            200.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          3,
+          2
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+        "position": [
+          -284.54861380431163,
+          299.99999237060604,
+          6.209267633075996
+        ],
+        "scale": [
+          0.9999999237060605,
+          0.4920262104035003,
+          0.9984688595059829
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -300.0,
+            200.0,
+            6.0
+          ],
+          [
+            -280.0,
+            400.0,
+            318.0
+          ]
+        ],
+        "role": "wall",
+        "slot": [
+          3,
+          3
+        ]
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          -300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            -410.0,
+            318.0
+          ],
+          [
+            10.0,
+            -190.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          -100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            -210.0,
+            318.0
+          ],
+          [
+            10.0,
+            10.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            -10.0,
+            318.0
+          ],
+          [
+            10.0,
+            210.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          1.2921190452461246,
+          300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -320.0,
+            190.0,
+            318.0
+          ],
+          [
+            10.0,
+            410.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          -268.0000007048739,
+          -330.0000157592634,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -288.0,
+            -360.0,
+            248.0
+          ],
+          [
+            -268.0,
+            -300.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          -268.0000007048739,
+          329.9999842407366,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -288.0,
+            300.0,
+            248.0
+          ],
+          [
+            -268.0,
+            360.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          -300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            -410.0,
+            318.0
+          ],
+          [
+            320.0,
+            -190.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          -100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            -210.0,
+            318.0
+          ],
+          [
+            320.0,
+            10.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          100.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            -10.0,
+            318.0
+          ],
+          [
+            320.0,
+            210.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+        "position": [
+          -1.2921190452461246,
+          300.0,
+          342.5340111766686
+        ],
+        "scale": [
+          0.974374708557758,
+          2.1149473722761374,
+          1.5220034122368868
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            -10.0,
+            190.0,
+            318.0
+          ],
+          [
+            320.0,
+            410.0,
+            508.0
+          ]
+        ],
+        "role": "roof",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          268.0000007048739,
+          -329.9999842407366,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            268.0,
+            -360.0,
+            248.0
+          ],
+          [
+            288.0,
+            -300.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/ThirdParty/Quaternius/Meshes/Roof_Support2",
+        "position": [
+          268.0000007048739,
+          330.0000157592634,
+          311.8128918166119
+        ],
+        "scale": [
+          3.004506433002954,
+          0.26139475497489184,
+          0.9422159874781325
+        ],
+        "yaw": 270,
+        "targetBounds": [
+          [
+            268.0,
+            300.0,
+            248.0
+          ],
+          [
+            288.0,
+            360.0,
+            318.0
+          ]
+        ],
+        "role": "support",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/AdvancedVillagePack/Meshes/SM_Barrel",
+        "position": [
+          -225.01223698687386,
+          -324.89995723482554,
+          6.047462603199492
+        ],
+        "scale": [
+          0.4228300437555372,
+          0.4192175492763141,
+          0.5394570175653495
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -255.0,
+            -355.0,
+            6.0
+          ],
+          [
+            -195.0,
+            -295.0,
+            90.0
+          ]
+        ],
+        "role": "dressing",
+        "slot": null
+      },
+      {
+        "mesh": "/Game/AdvancedVillagePack/Meshes/SM_Barrel",
+        "position": [
+          -225.01223698687386,
+          325.10004276517446,
+          6.047462603199492
+        ],
+        "scale": [
+          0.4228300437555372,
+          0.4192175492763141,
+          0.5394570175653495
+        ],
+        "yaw": 90,
+        "targetBounds": [
+          [
+            -255.0,
+            295.0,
+            6.0
+          ],
+          [
+            -195.0,
+            355.0,
+            90.0
+          ]
+        ],
+        "role": "dressing",
+        "slot": null
+      }
+    ],
+    "graph": "/Game/TornVeil/PCG/Buildings/TV_Dwelling_6x8_S05",
+    "origin": [
+      2200,
+      0,
+      0
+    ]
+  }
+]
