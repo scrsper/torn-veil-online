@@ -1,5 +1,19 @@
 # Durable design decisions
 
+## Humanoid presentation and bounded dwelling geometry
+
+- Renderer-neutral per-body attackSeq/hitSeq count canonical accepted swings/applied hits.
+  They persist with bodies; older v24 saves establish zero baselines. Timestamps retain
+  recovery/recency semantics. Visual speed is actual velocity; sprint tuning is not sent.
+- Unreal represents possessed and NPC bodies through the same ATVCharacter, keyed by
+  bodyId. Animation queues are presentation history; local movement/combat authority stays off.
+- Single-node combat playback uses owned full-pose clips. The additive vendor hit is baked
+  onto idle; the short death lead-in gains a keyframed prone settle without local physics.
+- The isolated 6 × 8 m dwelling permits at most 20 cm presentation excursion per side.
+  Native PCG output is measured and hashed after regeneration/disk reload. It supplies
+  no canonical collision, navigation, existence or settlement truth. See
+  `docs/PLAYABLE_HUMANOID_PCG_DWELLING.md` for implementation and evidence.
+
 ## Individual potential, lineage and development
 
 - Seven integer human foundations use an ordinary baseline of 8; `human.ts` centralizes old physical-unit adaptation. Current biological age affects expression, never a creation-age multiplier on newly developed adult ability. Normal 20 is a hard developed-attribute ceiling; all-seven-15 readiness is derived and does not change ontology.
