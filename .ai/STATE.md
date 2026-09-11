@@ -1,8 +1,32 @@
-# Playable humanoid and PCG dwelling v0.1
+# Emergent combat choreography v0.1
 
-Current branch: `astra/playable-humanoid-pcg-dwelling-v0-1`, from main `410a0a7`.
+Current branch: `astra/emergent-combat-choreography-v0-1`, from `8a5eda3`
+(previous humanoid/PCG phase; 8 commits ahead of origin/main at start).
+Canonical checkout: `C:/Users/green/Desktop/projects/torn-veil-online`.
+
+- Ordered, bounded combat execution projection over existing causal events; preserved
+  body counters, observation gating, save/reload and burst identity.
+- Shared player/NPC native planner, stable technique fixtures, explicit pose sampling,
+  target alignment, 22 cm mesh translation limit, 12-degree lean and close foot IK.
+  Canonical actor movement remains TypeScript-owned; presentation drift telemetry is zero.
+- Two owned grounded Manny strike derivatives, restrained ribbon/impact/pose hold,
+  three presentation LODs and an isolated 14-scenario showcase. Real martial training,
+  weapon animation families, magic and supernatural movement remain deferred.
+- Architecture, reproduction, evidence and validation: `docs/EMERGENT_COMBAT_CHOREOGRAPHY_V0_1.md`.
+- Final Unreal acceptance: 93/93 checks in 14 scenarios; native automation 3/3,
+  humanoid regression 19/19, five PCG seeds/reload, owned asset editor restart verified.
+  Target-centre alignment error: near 0.003 cm, left 0.293 cm, right 1.674 cm,
+  far 13.664 cm. The far residual is retained within the 22 cm mesh-motion bound.
+- Final canonical suite: 808/808 tests in 79/79 files, 1,390 seconds with one worker
+  and Unreal closed. Targeted combat/bridge/persistence 44/44, typecheck and production
+  build passed. A baseline-reproduced social trace subject precondition was corrected;
+  all four social traces and the seven-test stress suite passed without weakened assertions.
+
+# Previous playable humanoid and PCG dwelling v0.1
+
+Phase branch: `astra/playable-humanoid-pcg-dwelling-v0-1`, from main `410a0a7`.
 Canonical checkout: `C:/Users/green/Desktop/projects/torn-veil-online`; the Documents
-checkout is stale. No PR or merge. Current phase: `docs/PLAYABLE_HUMANOID_PCG_DWELLING.md`.
+checkout is stale. No PR or merge. Phase report: `docs/PLAYABLE_HUMANOID_PCG_DWELLING.md`.
 
 - Shared Manny presentation for possessed and NPC bodyIds; typed parsing, correct 2D
   locomotion Blend Space axes, canonical combat counters and bounded one-shot replay.

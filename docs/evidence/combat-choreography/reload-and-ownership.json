@@ -1,0 +1,35 @@
+{
+  "editorRestartVerified": true,
+  "level": "/Game/TornVeil/Combat/Tests/UEDPIE_0_L_TV_CombatChoreography_Showcase.L_TV_CombatChoreography_Showcase",
+  "ownedAssets": [
+    {
+      "path": "/Game/TornVeil/Combat/Animations/A_TV_Direct",
+      "loaded": true
+    },
+    {
+      "path": "/Game/TornVeil/Combat/Animations/A_TV_Hook",
+      "loaded": true
+    },
+    {
+      "path": "/Game/TornVeil/Combat/Effects/M_TV_CombatLight",
+      "loaded": true
+    },
+    {
+      "path": "/Game/TornVeil/Combat/Tests/L_TV_CombatChoreography_Showcase",
+      "loaded": true
+    }
+  ],
+  "dirtyPackages": [],
+  "rootMotion": [
+    {
+      "path": "/Game/TornVeil/Combat/Animations/A_TV_Direct",
+      "enabled": false
+    },
+    {
+      "path": "/Game/TornVeil/Combat/Animations/A_TV_Hook",
+      "enabled": false
+    }
+  ],
+  "materialEmissive": "<Object '/Game/TornVeil/Combat/Effects/M_TV_CombatLight.M_TV_CombatLight:MaterialExpressionEyeAdaptationInverse_0' (0x000001A33342E240) Class 'MaterialExpressionEyeAdaptationInverse'>",
+  "finisherCorrection": "Renamed local alignment_error to preserve exception parameter; summaries recomputed from the same captured frames, no scenarios skipped."
+}
