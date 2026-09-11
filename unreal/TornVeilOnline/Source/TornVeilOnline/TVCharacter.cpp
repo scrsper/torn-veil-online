@@ -1,3 +1,4 @@
+#include "TVCombatPresentationComponent.h"
 #include "TVCharacter.h"
 #include "TVBridgeSubsystem.h"
 #include "Camera/CameraComponent.h"
@@ -24,6 +25,7 @@
 
 ATVCharacter::ATVCharacter() {
     PrimaryActorTick.bCanEverTick = true;
+    CombatPresentation = CreateDefaultSubobject<UTVCombatPresentationComponent>(TEXT("CombatPresentation"));
     GetCapsuleComponent()->InitCapsuleSize(30, 90);
     bUseControllerRotationYaw = false; bUseControllerRotationPitch = false; bUseControllerRotationRoll = false;
     GetCharacterMovement()->bOrientRotationToMovement = true; GetCharacterMovement()->RotationRate = FRotator(0, 540, 0);
@@ -105,7 +107,14 @@ void ATVCharacter::Tick(float Dt) {
         Nameplate->SetVisibility(Bridge && Bridge->Selected()==this);
         ApplyNameplate(Bridge && Bridge->bInspector); // no-op unless F6 was toggled since the last snapshot
     }
-    Animate(Live ? CanonicalVelocity.Size2D() : 0);
+    const FVector BeforeChoreography=GetActorLocation();
+    const bool bChoreography=CombatPresentation->Present(Dt);
+    MaxChoreographyActorDriftCm=FMath::Max(MaxChoreographyActorDriftCm,static_cast<float>(FVector::Dist(BeforeChoreography,GetActorLocation())));
+    if (!bChoreography) {
+        // Returning from the native choreography instance must restore the ordinary pose player.
+        if (GetMesh()->GetAnimationMode()!=EAnimationMode::AnimationSingleNode) CurrentAnimation=nullptr;
+        Animate(Live ? CanonicalVelocity.Size2D() : 0);
+    }
 }
 void ATVCharacter::Project(const TSharedPtr<FJsonObject>& D, bool First) {
     FTVHumanoidVisualState State; FString ParseError;
@@ -122,7 +131,7 @@ void ATVCharacter::Project(const TSharedPtr<FJsonObject>& D, bool First) {
     LastAttackAt = static_cast<float>(State.LastAttackAt); LastHitAt = static_cast<float>(State.LastHitAt);
     const int64 NewAttackSeq = FMath::Max<int64>(AttackSeq, State.AttackSeq);
     const int64 NewHitSeq = FMath::Max<int64>(HitSeq, State.HitSeq);
-    if (First) { AttackSeq = NewAttackSeq; HitSeq = NewHitSeq; }
+    if (First || bSemanticCombat) { AttackSeq = NewAttackSeq; HitSeq = NewHitSeq; PendingAttackEvents=0; PendingHitEvents=0; }
     else {
         const int64 AvailableAttacks = PendingAttackEvents + NewAttackSeq - AttackSeq;
         const int64 AvailableHits = PendingHitEvents + NewHitSeq - HitSeq;
@@ -241,15 +250,17 @@ void ATVCharacter::Animate(float Speed) {
     // BS_Idle_Walk_Run is two-dimensional: X = direction, Y = speed (cm/s).
     if (Wanted == Locomotion) if (auto* Anim = GetMesh()->GetSingleNodeInstance()) Anim->SetBlendSpacePosition(FVector(0, Speed, 0));
 }
-FString ATVCharacter::PresentationAnimation() const { return CurrentAnimation ? CurrentAnimation->GetPathName() : FString(); }
+FString ATVCharacter::PresentationAnimation() const { if (!CombatPresentation->AnimationPath().IsEmpty()) return CombatPresentation->AnimationPath(); return CurrentAnimation ? CurrentAnimation->GetPathName() : FString(); }
 FString ATVCharacter::PresentationDiagnostics() const {
     auto J = MakeShared<FJsonObject>();
     J->SetStringField(TEXT("bodyId"), BodyId); J->SetStringField(TEXT("entityId"), EntityId);
     J->SetStringField(TEXT("pose"), CanonicalPose); J->SetStringField(TEXT("animation"), PresentationAnimation());
     J->SetBoolField(TEXT("possessed"), IsPlayerControlled()); J->SetBoolField(TEXT("incapacitated"), bIncapacitated); J->SetBoolField(TEXT("dead"), bDead);
     J->SetNumberField(TEXT("attackSeq"), AttackSeq); J->SetNumberField(TEXT("hitSeq"), HitSeq);
-    J->SetNumberField(TEXT("playedAttacks"), PlayedAttackEvents); J->SetNumberField(TEXT("playedHits"), PlayedHitEvents);
-    J->SetNumberField(TEXT("pendingAttacks"), PendingAttackEvents); J->SetNumberField(TEXT("pendingHits"), PendingHitEvents);
+    J->SetNumberField(TEXT("playedAttacks"), PlayedAttackEvents+CombatPresentation->PlayedAttacks); J->SetNumberField(TEXT("playedHits"), PlayedHitEvents+CombatPresentation->PlayedHits);
+    CombatPresentation->WriteDiagnostics(J);
+    J->SetNumberField(TEXT("maxChoreographyActorDriftCm"),MaxChoreographyActorDriftCm);
+    J->SetNumberField(TEXT("pendingAttacks"), PendingAttackEvents+CombatPresentation->PendingAttacks()); J->SetNumberField(TEXT("pendingHits"), PendingHitEvents+CombatPresentation->PendingHits());
     if (const auto* Anim = GetMesh()->GetSingleNodeInstance()) {
         FVector Input, Filtered; Anim->GetBlendSpaceState(Input, Filtered);
         J->SetNumberField(TEXT("blendDirection"), Input.X); J->SetNumberField(TEXT("blendSpeed"), Input.Y);
