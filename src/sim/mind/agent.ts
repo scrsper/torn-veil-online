@@ -137,12 +137,24 @@ const EMPTY_PERSONS: readonly Person[] = [];
  */
 interface ExecutionCheckpoint {
   version: 1;
+  interactionCadence?: { physical: number; world: number };
   perceptionAccum: number; strategicAccum: number; compactAccum: number; socialAccum: number; inferenceAccum: number; demographicDay: number;
   vacantPosts: Array<Omit<TradePost, 'place' | 'staff' | 'ableStaff' | 'unfit'> & { placeId: string; staffIds: string[]; ableStaffIds: string[]; unfitIds: { personId: string; reason: TradePost['unfit'][number]['reason'] }[] }>;
   awareOfShortage: string[]; lastTopic: [string, Topic][]; pendingSpeech: { personId: string; text: string; at: number }[];
 }
 
 export class Simulation {
+  private interactionPhysical = 0;
+  private interactionWorld = 0;
+  /** The external interaction clock advances world time once. Accumulate unchanged slow
+   * systems here; persist fractional cadence so save/load cannot discard elapsed upkeep. */
+  stepScheduled(physical: number, world: number): void {
+    this.interactionPhysical+=physical;this.interactionWorld+=world;
+    if(this.interactionPhysical>=.05-1e-9) {
+      const pd=this.interactionPhysical,wd=this.interactionWorld;
+      this.interactionPhysical=0;this.interactionWorld=0;this.step(pd,wd);this.flushSpeech();
+    }
+  }
   perceptionAccum = 0; strategicAccum = 0; compactAccum = 0; socialAccum = 0; inferenceAccum = 0; onSpeech: ((p: Person, text: string) => void) | null = null; onHit: ((b: Body, pos: Vec3) => void) | null = null;
   /** Coarse per-subsystem wall-clock accumulator (v0.2.1 Priority 3: "create benchmark
    * instrumentation so the headless report includes coarse timing information for major
@@ -185,8 +197,10 @@ export class Simulation {
       this.lastTopic = new Map(checkpoint.lastTopic);
       this.pendingSpeech = checkpoint.pendingSpeech.flatMap(s => { const p = world.person(s.personId); return p ? [{ p, text: s.text, at: s.at }] : []; });
     }
+    const cadence=(world.restoredExecution as ExecutionCheckpoint|null)?.interactionCadence;
+    if(cadence&&Number.isFinite(cadence.physical)&&cadence.physical>=0&&cadence.physical<.05&&Number.isFinite(cadence.world)&&cadence.world>=0) {this.interactionPhysical=cadence.physical;this.interactionWorld=cadence.world;}
     world.restoredExecution = null;
-    world.executionSnapshot = (): ExecutionCheckpoint => ({ version: 1,
+    world.executionSnapshot = (): ExecutionCheckpoint => ({ version: 1, interactionCadence:{physical:this.interactionPhysical,world:this.interactionWorld},
       perceptionAccum: this.perceptionAccum, strategicAccum: this.strategicAccum, compactAccum: this.compactAccum, socialAccum: this.socialAccum, inferenceAccum: this.inferenceAccum, demographicDay: this.demographicDay,
       vacantPosts: this.vacantPosts.map(({ place, staff, ableStaff, unfit, ...post }) => ({ ...post, placeId: place.id, staffIds: staff.map(p => p.id), ableStaffIds: ableStaff.map(p => p.id), unfitIds: unfit.map(u => ({ personId: u.person.id, reason: u.reason })) })),
       awareOfShortage: [...this.awareOfShortage], lastTopic: [...this.lastTopic], pendingSpeech: this.pendingSpeech.map(s => ({ personId: s.p.id, text: s.text, at: s.at })),

@@ -1,0 +1,18 @@
+{
+  "revision": "tv-interaction-1",
+  "stepSeconds": 0.016666666666666666,
+  "sprintMultiplier": 1.55,
+  "radius": 0.3,
+  "height": 1.75,
+  "stepHeight": 1.05,
+  "sweepStep": 0.1,
+  "inputHorizonSeconds": 0.25,
+  "preparationSeconds": 0.3,
+  "activeSeconds": 0.15,
+  "recoverySeconds": 0.3,
+  "sidestepMetres": 1.05,
+  "backstepMetres": 0.85,
+  "defenseSeconds": 0.3,
+  "defenseRecoverySeconds": 0.3,
+  "duckHeight": 0.9
+}

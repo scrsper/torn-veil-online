@@ -1,4 +1,8 @@
 import { combatPresentation } from './combatPresentation';
+import { randomUUID, createHash } from 'node:crypto';
+import { CommandQueue, type CommandReceipt, type InteractionCommand } from './commands';
+import { INTERACTION_SPEC } from '../sim/physical/prediction';
+import { applyInteractionMovement, collisionWindow, movementState } from '../sim/physical/interactionMovement';
 import { mechanismPanel } from '../sim/runtime/mechanismPanel';
 import { generatePlayableWorld, indexWilderness } from '../sim/world/playable';
 import { RegionStream } from './regions';
@@ -38,6 +42,11 @@ export class BridgeSession {
   readonly game: GameSim;
   private move = { x: 0, z: 0, sprint: false, expires: 0 };
   private sequence = -1;
+  private appliedSequence = -1;
+  private slowAccum = 0;
+  private interactionTick = 0;
+  private control: CommandQueue | null = null;
+  private controlGeometry = '';
   /**
    * A dialogue is a small, ephemeral view onto canonical mind state.  The callbacks in a
    * DialogueState remain on this side of the bridge; Unreal receives only grounded text and
@@ -72,8 +81,53 @@ export class BridgeSession {
   save(): string { return serialize(this.world); }
   resetInput(): void {
     this.regions.reset();
-    this.sequence = -1; this.move = { x: 0, z: 0, sprint: false, expires: 0 };
+    this.sequence = -1; this.appliedSequence=-1; this.move = { x: 0, z: 0, sprint: false, expires: 0 };
+    this.control?.cancel(this.world.physicalTime,performance.now()); this.control=null; this.controlGeometry='';
     this.closeDialogue();
+  }
+  bindInteraction(controllerId: string) {
+    const body=this.world.primaryBody(this.world.playerId!);
+    if(!body) throw new Error('No controlled manifestation');
+    this.control=new CommandQueue(randomUUID(),controllerId,body.id); this.controlGeometry='';
+    return {epoch:this.control.epoch,controllerId,bodyId:body.id,specRevision:INTERACTION_SPEC.revision,specHash:createHash('sha256').update(JSON.stringify(INTERACTION_SPEC)).digest('hex'),stepSeconds:INTERACTION_SPEC.stepSeconds};
+  }
+  receiveCommand(input: unknown, now=performance.now()): CommandReceipt | null {
+    return this.control?.receive(input,this.world.physicalTime,now)??null;
+  }
+  private executeCommand(c: InteractionCommand): string {
+    const w=this.world,q=this.control,b=q&&w.body(q.bodyId),p=b&&w.person(b.ownerId);
+    if(!p||!b||!this.game.controlsBody('local',b.id)) return 'binding_mismatch';
+    if(!movementState(w,p,b).eligible) return 'incapacitated';
+    if(c.type==='move') {applyInteractionMovement(w,p,b,c,INTERACTION_SPEC.stepSeconds);return 'accepted';}
+    if(c.type==='attack') {const before=b.attackSeq;const result=meleeStrike(this.sim,p,b,c.targetBodyId??null);return b.attackSeq>before?'accepted':result;}
+    if(c.type==='interact') return performHandInteraction(this.sim,p,c.interactionId);
+    return 'unsupported_command';
+  }
+  /** Lightweight owning-controller confirmation, never a knowledge/global scene scan. */
+  localState() {
+    const q=this.control,b=q&&this.world.body(q.bodyId),p=b&&this.world.person(b.ownerId);
+    if(!q||!b||!p) return null;
+    const geometry=collisionWindow(this.world,b),changed=geometry.revision!==this.controlGeometry;
+    this.controlGeometry=geometry.revision;
+    return {version:1,type:'local_state',epoch:q.epoch,controllerId:q.controllerId,bodyId:b.id,ack:q.ack,
+      tick:this.world.physicalTime,interactionTick:this.interactionTick,serverTimeMs:performance.now(),state:movementState(this.world,p,b),...(changed?{geometry}: {})};
+  }
+  /** Advance fast interaction at 60 Hz; slow population/cognition keeps elapsed 20 Hz work. */
+  stepInteraction(now=performance.now()): CommandReceipt[] {
+    const dt=INTERACTION_SPEC.stepSeconds,w=this.world,wd=w.clock.advance(dt);w.physicalTime+=dt;this.interactionTick++;
+    this.slowAccum+=dt;
+    const cb=this.control&&w.body(this.control.bodyId);if(cb) cb.vel={x:0,y:0,z:0};
+    const receipts=this.control?.apply(w.physicalTime,now,c=>this.executeCommand(c))??[];
+    if(this.slowAccum>=.05-1e-9) {
+      if(!this.control) {
+        const p=w.person(w.playerId),b=p&&w.primaryBody(p.id);
+        if(p&&b) {const live=this.move.expires>w.physicalTime;moveByIntent(this.sim,p,b,live?this.move.x:0,live?this.move.z:0,live&&this.move.sprint,this.slowAccum);}
+        this.appliedSequence=this.sequence;
+      }
+      this.slowAccum=0;
+    }
+    this.sim.stepScheduled(dt,wd);
+    return receipts;
   }
   intent(input: unknown): { sequence: number; result: string } {
     if (!input || typeof input !== 'object') return { sequence: -1, result: 'invalid_message' };
@@ -113,6 +167,7 @@ export class BridgeSession {
     const live = this.move.expires > w.physicalTime;
     moveByIntent(this.sim, p, b, live ? this.move.x : 0, live ? this.move.z : 0, live && this.move.sprint, dt);
     this.sim.step(dt, wd); this.sim.flushSpeech();
+    this.appliedSequence=this.sequence;
   }
   private classOf(id: string): RecognisedClass | null {
     const w = this.world;
@@ -125,7 +180,7 @@ export class BridgeSession {
     const knowledge = this.game.perceive('local')!;
     const controlledBodyId=w.primaryBody(p.id)?.id;
     const visible = new Set(knowledge.people.map(p => p.bodyId)); if(controlledBodyId) visible.add(controlledBodyId);
-    return { version: BRIDGE_VERSION, type: 'snapshot', tick: w.physicalTime, worldTime: w.now, ack: this.sequence, playerId: p.id, controlledBodyId,
+    return { version: BRIDGE_VERSION, type: 'snapshot', tick: w.physicalTime, worldTime: w.now, ack: this.appliedSequence, playerId: p.id, controlledBodyId,
       knowledge, mechanisms: mechanismPanel(w, p), interactions: handInteractions(this.sim, p), dialogue: this.dialogueProjection(), talkTargets: this.talkTargets(p),
       bodies: w.activeBodies().filter(b => b.present && b.shape === 'humanoid' && visible.has(b.id)).map(b => ({
         ...humanoidVisualState(b, knownName(p, b.ownerId), visibleActivity(w.person(b.ownerId), b.pose), w.person(b.ownerId)?.appearance),
