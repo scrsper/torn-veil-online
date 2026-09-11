@@ -1,4 +1,24 @@
-# Emergent combat choreography v0.1
+# Real-time interaction/prediction — partial command/movement checkpoint
+
+Branch: `codex/realtime-interaction-v0-1`, starting at `3c1c876` (stacked choreography/humanoid work).
+Canonical checkout remains the Desktop projects checkout. Detailed delivery and remaining criteria:
+`docs/REALTIME_INTERACTION_PREDICTION_V0_1.md`.
+
+- Implemented: bounded command identities/epochs, received vs applied receipts, pure movement
+  prediction/native reconciliation, shared collision/spec data, 60 Hz interaction scheduling with
+  persisted 20 Hz slow cadence, immediate hand-attempt feedback and once-only canonical pickup.
+- Not implemented: live contact phases, physical sidestep/backstep/duck, cue-driven defense,
+  new combat arena, live choreography migration, two independently controlled bodies.
+  Existing combat is still retrospective. This is not the full milestone outcome.
+- Native local prediction is now sanctioned; obsolete blanket bans on root prediction do not
+  apply. Mesh-only choreography still has no authority. PCG/vendor assets remain unchanged.
+- Final canonical regression: 821/821 tests in 82 files (1,372 seconds), typecheck/build,
+  generated spec check, six native automation tests and automated PIE/standalone movement
+  checks passed. Loopback applied RTT p95 32.578 ms, PIE 54.825 ms, standalone startup
+  119.634 ms all miss the 30 ms target. Native input-to-engine-state p95 <0.24 ms;
+  display/physical latency and human approval remain unmeasured. Detailed evidence is in the report.
+
+# Previous emergent combat choreography v0.1
 
 Current branch: `astra/emergent-combat-choreography-v0-1`, from `8a5eda3`
 (previous humanoid/PCG phase; 8 commits ahead of origin/main at start).

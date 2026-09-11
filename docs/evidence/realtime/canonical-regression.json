@@ -1,0 +1,11 @@
+{
+  "revision": "bae3d3e",
+  "command": "npm test -- --maxWorkers=1 --reporter=dot",
+  "date": "2026-09-11",
+  "startedLocal": "11:45:51 America/Chicago",
+  "durationSeconds": 1372.14,
+  "testFilesPassed": 82,
+  "testsPassed": 821,
+  "failures": 0,
+  "competingHeavyWorkloads": "none; Unreal, builds and latency benchmarks stopped"
+}

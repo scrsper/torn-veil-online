@@ -360,6 +360,13 @@ Reach, ownership, combat resolution, knowledge effects, and other canonical cons
 
 # Unreal
 
+Real-time command/movement checkpoint: `src/bridge/commands.ts`, `scheduler.ts`,
+`src/sim/physical/interactionSpec.json`, `prediction.ts`, `interactionMovement.ts`,
+and native `TVInteractionPrediction`/`TVBridgeSubsystem`. Protocol 2 uses an applied
+local-state frontier and disposable movement replay; actor prediction is sanctioned.
+See `docs/REALTIME_INTERACTION_PREDICTION_V0_1.md`. Live canonical combat is still pending;
+do not treat existing retrospective choreography as its implementation.
+
 Combat choreography: `src/sim/physical/combatFacts.ts` records causal execution facts;
 `src/bridge/combatPresentation.ts` projects their bounded, observation-gated replay.
 Native `TVCombatChoreography`, `TVCombatAnimInstance`, and `TVCombatPresentationComponent`

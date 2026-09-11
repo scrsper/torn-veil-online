@@ -1,5 +1,20 @@
 # Durable design decisions
 
+## Disposable local prediction and applied acknowledgment
+
+- TypeScript remains sole authority. Native confirmed, predicted and rendered state are distinct.
+  The shared movement specification and equivalent pure evaluators permit local actor movement;
+  CharacterMovement stays disabled because its stock replication has no TypeScript adapter.
+- Protocol 2 receipt is not application. Reconcile from explicit owning-controller local state
+  and its resolved frontier, replaying only pure movement. Command epochs/IDs bound replay and
+  duplicate effects; separate world combat ordering is never used as input acknowledgment.
+- Canonical collision windows exclude decorative PCG. Unknown geometry blocks prediction;
+  door opening happens through the existing authoritative mechanic before passage is confirmed.
+- This supersedes blanket statements below that all local root movement must stay off.
+  Choreography itself still must not move canonical/predicted roots. Live attack/contact migration
+  remains pending; no renderer animation may determine injury or manufacture a hit.
+- See `docs/REALTIME_INTERACTION_PREDICTION_V0_1.md` for the partial checkpoint and limits.
+
 ## Combat execution projection and choreography
 
 - Combat semantics project immutable execution facts from existing causal attack events.
