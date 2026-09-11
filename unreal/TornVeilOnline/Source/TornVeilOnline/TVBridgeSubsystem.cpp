@@ -12,6 +12,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Async/Async.h"
 #include "Misc/Base64.h"
+#include "TVInteractionSpec.generated.h"
 
 // Connect on the very first tick rather than after a retry interval, so pressing Play does not
 // begin with three seconds of an empty village.
@@ -28,10 +29,11 @@ void UTVBridgeSubsystem::Connect() {
     // proof, because libwebsockets sends `Origin: http://127.0.0.1` on our behalf whether we want
     // it or not -- which is what used to get every one of these connections refused.
     bTransportConnected=false; bCanonicalReady=false; bWasLive=false; SnapshotCount=0; SinceSnapshot=100;
+    bPredictionReady=false;InteractionEpoch.Empty();PendingMovement.Empty();CommandSentAt.Empty();PredictionColumns.Empty();PredictionAccumulator=0;LastConfirmedTick=-1;
     Assembly.Empty(); PendingPresentation.Reset(); WantedRegions.Empty(); ProjectedRegions=0;
     if(WorldProjection) WorldProjection->ResetRegions();
     UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE connecting; regional protocol=2 text_limit=262144"));
-    const TMap<FString, FString> UpgradeHeaders = { { TEXT("X-Torn-Veil-Client"), TEXT("unreal") }, { TEXT("X-Torn-Veil-Region-Protocol"), TEXT("2") } };
+    const TMap<FString, FString> UpgradeHeaders = { { TEXT("X-Torn-Veil-Client"), TEXT("unreal") }, { TEXT("X-Torn-Veil-Region-Protocol"), TEXT("2") }, {TEXT("X-Torn-Veil-Interaction-Protocol"),TEXT("2")} };
     Socket = FWebSocketsModule::Get().CreateWebSocket(TEXT("ws://127.0.0.1:8787"), FString(), UpgradeHeaders);
     // Wire chunks are <=128 KiB; assembly is separately bounded to 4 MiB.
     Socket->SetTextMessageMemoryLimit(256 * 1024);
@@ -48,7 +50,7 @@ void UTVBridgeSubsystem::Tick(float Dt) {
     SendClock += Dt;
     const bool Live=IsLive();
     if(Live!=bWasLive) { UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE canonical %s snapshot_age=%.3f transport=%d"),Live?TEXT("LIVE"):TEXT("stalled"),SinceSnapshot,bTransportConnected); bWasLive=Live; }
-    if (bControls && Live && SendClock >= 0.05f) {
+    if (InteractionEpoch.IsEmpty() && bControls && Live && SendClock >= 0.05f) {
         SendClock = 0;
         if (auto* P = Cast<ATVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))) {
             auto M = MakeShared<FJsonObject>(); const FVector D = P->IntentDirection();
@@ -96,12 +98,87 @@ void UTVBridgeSubsystem::ReceivePresentation(const TSharedPtr<FJsonObject>& M) {
 }
 void UTVBridgeSubsystem::Send(const TSharedRef<FJsonObject>& M) {
     if (!Socket || !Socket->IsConnected() || !bControls) return;
+    const FString Type=M->GetStringField(TEXT("type"));
+    if(!InteractionEpoch.IsEmpty()&&(Type==TEXT("attack")||Type==TEXT("interact")||Type==TEXT("defend")||Type==TEXT("cancel"))) {
+        LastResult=TEXT("Attempting...");ResultClock=0;PendingFeedbackSequence=SendCommand(M);return;
+    }
     M->SetNumberField(TEXT("version"), 1); M->SetNumberField(TEXT("sequence"), ++Sequence);
     FString Out; auto Writer = TJsonWriterFactory<>::Create(&Out); FJsonSerializer::Serialize(M, Writer); Socket->Send(Out);
 }
 void UTVBridgeSubsystem::SendIntent(const FString& Type, const FString& TargetBody) {
     auto M = MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"), Type);
-    M->SetStringField(TEXT("targetBodyId"), TargetBody.IsEmpty() ? SelectedBody : TargetBody); Send(M);
+    const FString Target=TargetBody.IsEmpty()?SelectedBody:TargetBody;
+    if(!Target.IsEmpty())M->SetStringField(TEXT("targetBodyId"),Target);Send(M);
+}
+void UTVBridgeSubsystem::NoteInput() {InputCallbackAt=FPlatformTime::Seconds();}
+static void TVSample(TArray<double>& Samples,double Value){if(Samples.Num()>=2048)Samples.RemoveAt(0);Samples.Add(Value);}
+FString UTVBridgeSubsystem::RealtimeDiagnostics() const {
+    auto Out=MakeShared<FJsonObject>();
+    const auto Add=[&](const TCHAR* Name,TArray<double> Values){Values.Sort();auto S=MakeShared<FJsonObject>();S->SetNumberField(TEXT("count"),Values.Num());for(const auto& P:TArray<TPair<FString,double>>{{TEXT("p50"),.5},{TEXT("p95"),.95},{TEXT("p99"),.99}})S->SetNumberField(P.Key,Values.Num()?Values[FMath::Clamp(FMath::CeilToInt(Values.Num()*P.Value)-1,0,Values.Num()-1)]:0);Out->SetObjectField(Name,S);};
+    Add(TEXT("predictionCpuMs"),PredictionSamples);Add(TEXT("inputCallbackToEngineStateMs"),InputToStateSamples);Add(TEXT("appliedRoundTripMs"),AppliedRttSamples);Add(TEXT("correctionCm"),CorrectionSamples);
+    Out->SetNumberField(TEXT("pendingMovement"),PendingMovement.Num());Out->SetNumberField(TEXT("predictionCount"),PredictionCount);Out->SetBoolField(TEXT("predictionReady"),HasPrediction());
+    Out->SetStringField(TEXT("presentationTiming"),TEXT("unmeasured; engine-state samples are not display presentation or physical input-to-photon"));
+    Out->SetStringField(TEXT("specRevision"),TVInteractionSpec::revision);Out->SetStringField(TEXT("specHash"),TVInteractionSpec::hash);
+    FString Json;FJsonSerializer::Serialize(Out,TJsonWriterFactory<>::Create(&Json));return Json;
+}
+int32 UTVBridgeSubsystem::SendCommand(const TSharedRef<FJsonObject>& Command) {
+    if(!Socket||!Socket->IsConnected()||!bControls||InteractionEpoch.IsEmpty()) return -1;
+    const int32 Seq=++Sequence;const double Now=FPlatformTime::Seconds();
+    auto M=MakeShared<FJsonObject>();M->SetNumberField(TEXT("version"),2);M->SetStringField(TEXT("type"),TEXT("command"));
+    M->SetStringField(TEXT("epoch"),InteractionEpoch);M->SetStringField(TEXT("controllerId"),InteractionController);M->SetStringField(TEXT("bodyId"),InteractionBody);
+    M->SetNumberField(TEXT("sequence"),Seq);M->SetStringField(TEXT("commandId"),FString::Printf(TEXT("%s:%d"),*InteractionController,Seq));
+    M->SetStringField(TEXT("specRevision"),TVInteractionSpec::revision);M->SetNumberField(TEXT("clientTimeMs"),Now*1000);M->SetObjectField(TEXT("command"),Command);
+    FString Out;FJsonSerializer::Serialize(M,TJsonWriterFactory<>::Create(&Out));Socket->Send(Out);
+    CommandSentAt.Add(Seq,Now);return Seq;
+}
+TOptional<FTVPredictionColumn> UTVBridgeSubsystem::PredictionColumn(int32 X,int32 Z) const {
+    if(X<GeometryX||Z<GeometryZ||X>=GeometryX+GeometrySize||Z>=GeometryZ+GeometrySize)return {};
+    const int32 Index=(X-GeometryX)*GeometrySize+Z-GeometryZ;
+    return PredictionColumns.IsValidIndex(Index)?TOptional<FTVPredictionColumn>(PredictionColumns[Index]):TOptional<FTVPredictionColumn>();
+}
+void UTVBridgeSubsystem::PredictMovement(float Dt,const FVector& Direction,bool bSprint) {
+    const double Begin=FPlatformTime::Seconds();
+    if(!HasPrediction()||Begin-LastLocalStateAt>TVInteractionSpec::inputHorizonSeconds) {PredictionAccumulator=0;PredictionVelocity=FVector::ZeroVector;return;}
+    PredictionAccumulator+=FMath::Min(static_cast<double>(Dt),.1);
+    const FVector Before=Predicted.Position;const FTVMovementInput Input{Direction.X,Direction.Y,bSprint};
+    int32 Count=0;
+    while(PredictionAccumulator+1e-9>=TVInteractionSpec::stepSeconds&&Count++<6&&PendingMovement.Num()<15) {
+        PredictionAccumulator-=TVInteractionSpec::stepSeconds;
+        Predicted=FTVInteractionPrediction::Step(Predicted,Input,TVInteractionSpec::stepSeconds,[this](int32 X,int32 Z){return PredictionColumn(X,Z);});
+        auto C=MakeShared<FJsonObject>();C->SetStringField(TEXT("type"),TEXT("move"));C->SetNumberField(TEXT("x"),Input.X);C->SetNumberField(TEXT("z"),Input.Z);C->SetBoolField(TEXT("sprint"),Input.bSprint);
+        const int32 Seq=SendCommand(C);if(Seq>=0)PendingMovement.Add({Seq,Input});
+        ++PredictionCount;
+    }
+    if(PendingMovement.Num()>=15) PredictionAccumulator=0;
+    const FVector Delta=Predicted.Position-Before;
+    PredictionVelocity=FVector(Delta.X,Delta.Z,Delta.Y)*100/FMath::Max(.001f,Dt);
+    LastPredictionMs=(FPlatformTime::Seconds()-Begin)*1000;MaxPredictionMs=FMath::Max(MaxPredictionMs,LastPredictionMs);
+    TVSample(PredictionSamples,LastPredictionMs);
+    if(InputCallbackAt>0&&Count>0) {LastInputToStateMs=(FPlatformTime::Seconds()-InputCallbackAt)*1000;TVSample(InputToStateSamples,LastInputToStateMs);InputCallbackAt=0;}
+}
+void UTVBridgeSubsystem::ReceiveLocalState(const TSharedPtr<FJsonObject>& M) {
+    if(M->GetStringField(TEXT("epoch"))!=InteractionEpoch||M->GetStringField(TEXT("bodyId"))!=InteractionBody) return;
+    const double Tick=M->GetNumberField(TEXT("tick"));if(Tick<LastConfirmedTick)return;
+    LastConfirmedTick=Tick;LastLocalStateAt=FPlatformTime::Seconds();
+    const TSharedPtr<FJsonObject>* Geometry;
+    if(M->TryGetObjectField(TEXT("geometry"),Geometry)) {
+        GeometryX=(*Geometry)->GetIntegerField(TEXT("x"));GeometryZ=(*Geometry)->GetIntegerField(TEXT("z"));GeometrySize=(*Geometry)->GetIntegerField(TEXT("size"));PredictionColumns.Empty();
+        for(const auto& V:(*Geometry)->GetArrayField(TEXT("columns"))) {const auto C=V->AsObject();FTVPredictionColumn P;P.Floor=C->GetNumberField(TEXT("floor"));P.bWalkable=C->GetBoolField(TEXT("walkable"));for(const auto& Y:C->GetArrayField(TEXT("solids")))P.Solids.Add(static_cast<int32>(Y->AsNumber()));PredictionColumns.Add(P);}
+    }
+    const auto State=M->GetObjectField(TEXT("state")),Pos=State->GetObjectField(TEXT("pos"));
+    Confirmed.Position=FVector(Pos->GetNumberField(TEXT("x")),Pos->GetNumberField(TEXT("y")),Pos->GetNumberField(TEXT("z")));
+    Confirmed.Yaw=State->GetNumberField(TEXT("yaw"));Confirmed.Speed=State->GetNumberField(TEXT("speed"));Confirmed.bEligible=State->GetBoolField(TEXT("eligible"));
+    const int32 Ack=M->GetIntegerField(TEXT("ack"));PendingMovement.RemoveAll([Ack](const auto& P){return P.Sequence<=Ack;});
+    const FVector Before=Predicted.Position;Predicted=Confirmed;
+    for(const auto& P:PendingMovement) Predicted=FTVInteractionPrediction::Step(Predicted,P.Input,TVInteractionSpec::stepSeconds,[this](int32 X,int32 Z){return PredictionColumn(X,Z);});
+    if(bPredictionReady) {
+        const FVector Error=Before-Predicted.Position;CorrectionCm=Error.Size()*100;MaxCorrectionCm=FMath::Max(MaxCorrectionCm,CorrectionCm);
+        TVSample(CorrectionSamples,CorrectionCm);
+        if(CorrectionCm>.1)++CorrectionCount;
+        RenderCorrection=CorrectionCm<30?RenderCorrection+FVector(Error.X,Error.Z,Error.Y)*100:FVector::ZeroVector;
+        RenderCorrection=RenderCorrection.GetClampedToMaxSize(25);
+    }
+    bPredictionReady=GeometrySize>0;
 }
 void UTVBridgeSubsystem::SendHandIntent(bool bConsume) {
     if (!IsLive()) return;
@@ -135,6 +212,26 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Message), M) || !M.IsValid()) {ProtocolError(TEXT("Invalid bridge JSON"));return;}
     double Version = 0; if (!M->TryGetNumberField(TEXT("version"), Version) || Version != 1) { Status = TEXT("Incompatible bridge protocol"); bControls = false; return; }
     FString Type; if (!M->TryGetStringField(TEXT("type"), Type)) return;
+    if(Type==TEXT("local_state")){ReceiveLocalState(M);return;}
+    if(Type==TEXT("command_receipt")) {
+        const int32 Seq=M->GetIntegerField(TEXT("sequence"));const FString ReceiptStatus=M->GetStringField(TEXT("status"));
+        if(M->GetStringField(TEXT("epoch"))!=InteractionEpoch)return;
+        if(ReceiptStatus!=TEXT("received")) {
+            if(const double* At=CommandSentAt.Find(Seq)) {const double Rtt=(FPlatformTime::Seconds()-*At)*1000;TVSample(AppliedRttSamples,Rtt);UE_LOG(LogTemp,VeryVerbose,TEXT("TV_COMMAND seq=%d status=%s roundtrip_ms=%.3f"),Seq,*ReceiptStatus,Rtt);}
+            CommandSentAt.Remove(Seq);
+            if(ReceiptStatus==TEXT("rejected")||ReceiptStatus==TEXT("cancelled")) {PendingMovement.RemoveAll([Seq](const auto& P){return P.Sequence==Seq;});LastResult=M->GetStringField(TEXT("result"));ResultClock=0;}
+            else if(Seq==PendingFeedbackSequence){LastResult=TEXT("Confirmed");ResultClock=0;PendingFeedbackSequence=-1;}
+        }
+        return;
+    }
+    if(Type==TEXT("hello")) {
+        const TSharedPtr<FJsonObject>* Binding;
+        if(M->TryGetObjectField(TEXT("interaction"),Binding)) {
+            if((*Binding)->GetStringField(TEXT("specRevision"))!=TVInteractionSpec::revision||(*Binding)->GetStringField(TEXT("specHash"))!=TVInteractionSpec::hash){ProtocolError(TEXT("Interaction specification mismatch"));return;}
+            InteractionEpoch=(*Binding)->GetStringField(TEXT("epoch"));InteractionController=(*Binding)->GetStringField(TEXT("controllerId"));InteractionBody=(*Binding)->GetStringField(TEXT("bodyId"));
+            PendingMovement.Empty();CommandSentAt.Empty();bPredictionReady=false;PredictionAccumulator=0;LastConfirmedTick=-1;
+        }
+    }
     if (Type == TEXT("hello")) { CombatCursor=FTVCombatReplayCursor(); for(const auto& Pair:Bodies) if(IsValid(Pair.Value)) Pair.Value->CombatPresentation->Cancel(); M->TryGetBoolField(TEXT("controls"), bControls); M->TryGetStringField(TEXT("playerId"), PlayerId); UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE received hello controls=%d player=%s"),bControls,*PlayerId); return; }
     if (Type == TEXT("scene")) {
         UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE received scene chars=%d"),Message.Len());

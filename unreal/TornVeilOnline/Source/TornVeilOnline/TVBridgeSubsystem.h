@@ -2,6 +2,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "TVCombatChoreography.h"
+#include "TVInteractionPrediction.h"
 #include "TVBridgeSubsystem.generated.h"
 
 class IWebSocket;
@@ -39,6 +40,16 @@ public:
     void ChooseMechanism(int32 Index);
     void RequestDeveloperInspection();
     void SaveWorld();
+    void PredictMovement(float Dt,const FVector& Direction,bool bSprint);
+    void NoteInput();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Diagnostics") FString RealtimeDiagnostics() const;
+    bool HasPrediction() const {return bPredictionReady&&IsLive()&&bControls;}
+    FVector PredictedLocation() const {return ToUnreal(Predicted.Position);}
+    double PredictedYaw() const {return FMath::RadiansToDegrees(FMath::Atan2(-FMath::Cos(Predicted.Yaw),-FMath::Sin(Predicted.Yaw)));}
+    FVector RenderCorrection=FVector::ZeroVector;
+    FVector PredictionVelocity=FVector::ZeroVector;
+    double LastPredictionMs=0,MaxPredictionMs=0,LastInputToStateMs=0,CorrectionCm=0,MaxCorrectionCm=0;
+    int32 CorrectionCount=0,PredictionCount=0;
     bool bMechanismsOpen = false;
     TArray<FString> MechanismLabels;
     TArray<TSharedPtr<FJsonObject>> MechanismIntents;
@@ -84,4 +95,18 @@ private:
     void Connect();
     void Receive(const FString& Message);
     void Send(const TSharedRef<class FJsonObject>& Message);
+    int32 SendCommand(const TSharedRef<FJsonObject>& Command);
+    void ReceiveLocalState(const TSharedPtr<FJsonObject>& Message);
+    TOptional<FTVPredictionColumn> PredictionColumn(int32 X,int32 Z) const;
+    FString InteractionEpoch,InteractionController,InteractionBody;
+    FTVMovementState Confirmed,Predicted;
+    struct FPendingMovement {int32 Sequence;FTVMovementInput Input;};
+    TArray<FPendingMovement> PendingMovement;
+    TMap<int32,double> CommandSentAt;
+    TArray<FTVPredictionColumn> PredictionColumns;
+    int32 GeometryX=0,GeometryZ=0,GeometrySize=0;
+    double PredictionAccumulator=0,InputCallbackAt=0,LastLocalStateAt=0,LastConfirmedTick=-1;
+    bool bPredictionReady=false;
+    int32 PendingFeedbackSequence=-1;
+    TArray<double> PredictionSamples,InputToStateSamples,AppliedRttSamples,CorrectionSamples;
 };

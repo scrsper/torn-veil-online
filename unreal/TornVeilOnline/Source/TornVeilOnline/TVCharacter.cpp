@@ -92,7 +92,13 @@ void ATVCharacter::Tick(float Dt) {
         CameraBoom->SocketOffset.Y = FMath::GetMappedRangeValueClamped(FVector2D(160, 700), FVector2D(55, 0), ZoomTarget);
         GetCharacterMovement()->MaxWalkSpeed = CanonicalSpeed;
         // Physical movement is entirely canonical. Local gravity/collision must not compete with reconciliation.
-        if (bProjected && Live) {
+        if (bProjected && Bridge->HasPrediction()) {
+            Bridge->PredictMovement(Dt,IntentDirection(),bSprint);
+            Bridge->RenderCorrection=FMath::VInterpTo(Bridge->RenderCorrection,FVector::ZeroVector,Dt,15);
+            SetActorLocation(Bridge->PredictedLocation()+Bridge->RenderCorrection,false);
+            SetActorRotation(FRotator(0,Bridge->PredictedYaw(),0));
+            CanonicalVelocity=Bridge->PredictionVelocity;
+        } else if (bProjected && Live) {
             const FVector Expected = TargetPosition + CanonicalVelocity * FMath::Min(SnapshotAge, 0.1f);
             const FVector Error = Expected - GetActorLocation();
             SetActorRotation(FMath::RInterpTo(GetActorRotation(),FRotator(0,TargetYaw,0),Dt,10));
@@ -298,10 +304,10 @@ void ATVCharacter::SetupPlayerInputComponent(UInputComponent* I) {
     I->BindKey(EKeys::F5,IE_Pressed,this,&ATVCharacter::SaveWorld);
     I->BindAction(TEXT("Attack"), IE_Pressed, this, &ATVCharacter::Attack);
 }
-void ATVCharacter::Forward(float V) { ForwardAxis = V; } void ATVCharacter::Right(float V) { RightAxis = V; }
+void ATVCharacter::Forward(float V) { if(V!=ForwardAxis)if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->NoteInput();ForwardAxis = V; } void ATVCharacter::Right(float V) { if(V!=RightAxis)if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->NoteInput();RightAxis = V; }
 void ATVCharacter::Turn(float V) { AddControllerYawInput(V); } void ATVCharacter::Look(float V) { AddControllerPitchInput(V); }
 void ATVCharacter::Zoom(float V) { ZoomTarget = FMath::Clamp(ZoomTarget - V * 100, 160.f, 1500.f); }
-void ATVCharacter::SprintOn() { bSprint = true; } void ATVCharacter::SprintOff() { bSprint = false; }
+void ATVCharacter::SprintOn() { bSprint = true;if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->NoteInput(); } void ATVCharacter::SprintOff() { bSprint = false;if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->NoteInput(); }
 void ATVCharacter::SelectTarget() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->CycleTarget(); }
 void ATVCharacter::Consume() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->SendHandIntent(true); }
 void ATVCharacter::Drop() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->SendDropIntent(); }
