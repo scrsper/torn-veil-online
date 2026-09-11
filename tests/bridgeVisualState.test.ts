@@ -7,6 +7,21 @@ import { makeBody } from '../src/sim/world/factory';
 import { addPerson, createTestWorld, step, v } from './helpers/world';
 
 describe('humanoid visual event counts', () => {
+  it('projects canonical holds consistently even when the physical pose is standing', () => {
+    const s = new BridgeSession(), w = s.world, p = w.person(w.playerId)!;
+    const b = w.primaryBody(p.id)!; b.pose = 'stand';
+    const check = (expected: boolean) => {
+      expect(s.snapshot().bodies.find(row => row.bodyId === b.id)!.incapacitated).toBe(expected);
+      expect(s.developerSnapshot().bodies.find(row => row.bodyId === b.id)!.incapacitated).toBe(expected);
+    };
+    check(false);
+    b.subduedUntil = w.physicalTime + 30; check(true);
+    b.subduedUntil = 0;
+    p.surrender = { toId: 'fixture-guard', at: w.now, reason: 'yielded' }; check(true);
+    p.surrender = null;
+    p.custody = { active: true, byFactionId: null, byId: null, reason: 'held', since: w.now, releaseAt: w.now + 30 }; check(true);
+    p.custody.active = false; check(false);
+  });
   it('keeps a canonical knock-down visible when the NPC replans a wait after the hit', () => {
     const tw = createTestWorld();
     const a = addPerson(tw, 'Attacker', 'traveler', v(10, 1, 10), { controlled: true });

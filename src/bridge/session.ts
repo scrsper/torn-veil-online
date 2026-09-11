@@ -128,6 +128,7 @@ export class BridgeSession {
       knowledge, mechanisms: mechanismPanel(w, p), interactions: handInteractions(this.sim, p), dialogue: this.dialogueProjection(), talkTargets: this.talkTargets(p),
       bodies: w.activeBodies().filter(b => b.present && b.shape === 'humanoid' && visible.has(b.id)).map(b => ({
         ...humanoidVisualState(b, knownName(p, b.ownerId), visibleActivity(w.person(b.ownerId), b.pose), w.person(b.ownerId)?.appearance),
+        incapacitated: b.pose === 'downed' || b.subduedUntil > w.physicalTime || !!w.person(b.ownerId)?.surrender || !!w.person(b.ownerId)?.custody?.active,
         alive: !b.dead,
         speech: w.person(b.ownerId)?.speech?.text ?? '',
         ...(b.ownerId === p.id ? { inventory: p.inventory.flatMap(id => { const i=w.item(id); return i ? [{ id:i.id,name:i.type,type:i.type,quantity:i.quantity }] : []; }), health: b.health, maxHealth: b.maxHealth, needs: { ...p.needs }, wealth: p.wealth } : {}),
