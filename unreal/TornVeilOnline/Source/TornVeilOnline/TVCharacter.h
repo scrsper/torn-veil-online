@@ -27,6 +27,7 @@ public:
     UPROPERTY(VisibleAnywhere) TObjectPtr<class UTVCombatPresentationComponent> CombatPresentation;
     bool bSemanticCombat = false;
     void Project(const TSharedPtr<class FJsonObject>& Data, bool bFirst);
+    void ProjectCombatMotion(const TSharedPtr<class FJsonObject>& Data);
     FString BodyId, EntityId, DisplayName, Activity, CanonicalPose, Occupation, DebugText, AttackTargetEntity;
     /** The class the simulation recognises in this life, and what it read to get there.
      * Empty for most people. Derived canonically; this client only shows it. */
@@ -68,6 +69,11 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input") void CloseDialogue();
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
     void Attack();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void LowAttack();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void SidestepLeft();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void SidestepRight();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void Backstep();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void Duck();
     /** The F6 handler. Reflected for the same reason: a developer mode that cannot be entered
      *  from a test is a developer mode nobody checks still works. */
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
@@ -95,6 +101,7 @@ private:
     UPROPERTY() TObjectPtr<UAnimationAsset> CurrentAnimation;
     FVector TargetPosition = FVector::ZeroVector, PreviousPosition = FVector::ZeroVector, CanonicalVelocity = FVector::ZeroVector;
     float TargetYaw = 0, SnapshotAge = 0, ZoomTarget = 340, ForwardAxis = 0, RightAxis = 0;
+    double CombatMotionUntil=0;
     /** Presentation speed derived from the canonical horizontal velocity (Unreal units/s). */
     float CanonicalSpeed = 0;
     /** Canonical timestamps retained for recency/debugging; sequence counters drive replay. */

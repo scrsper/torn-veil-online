@@ -5,6 +5,7 @@ import { deserialize, serialize } from '../src/sim/persist/save';
 import { MELEE_COOLDOWN, meleeStrike } from '../src/sim/physical/melee';
 import { makeBody } from '../src/sim/world/factory';
 import { addPerson, createTestWorld, step, v } from './helpers/world';
+import { setExternalControl } from '../src/sim/runtime/controllers';
 
 describe('humanoid visual event counts', () => {
   it('projects canonical holds consistently even when the physical pose is standing', () => {
@@ -43,17 +44,20 @@ describe('humanoid visual event counts', () => {
     const s = new BridgeSession(), w = s.world;
     const p = w.person(w.playerId)!, ab = w.primaryBody(p.id)!;
     const victim = w.persons().find(other => other.id !== p.id)!;
+    setExternalControl(victim, true);
     const tb = w.primaryBody(victim.id)!;
     // Establish genuine local perception before exercising the normal snapshot path.
     tb.pos = { ...ab.pos, x: ab.pos.x + 1 };
+    ab.yaw = -Math.PI / 2;
     for (let i = 0; i < 6; i++) s.step(.05);
     const before = s.snapshot();
     expect(before.bodies.some(b => b.bodyId === tb.id)).toBe(true);
     tb.pos = { ...ab.pos, x: ab.pos.x + 1 };
     const a0 = ab.attackSeq, h0 = tb.hitSeq;
     for (let i = 1; i <= 2; i++) {
-      w.physicalTime += MELEE_COOLDOWN + .01;
+      if (i > 1) s.step(.8);
       expect(s.intent({ version: 1, sequence: i, type: 'attack', targetBodyId: tb.id }).result).toBe('accepted');
+      s.step(.8);
     }
     const after = s.snapshot();
     expect(after.bodies.find(b => b.bodyId === ab.id)!.attackSeq).toBe(a0 + 2);
@@ -69,15 +73,17 @@ describe('humanoid visual event counts', () => {
     expect(resumed.world.body(tb.id)!.hitSeq).toBe(h0 + 2);
     resumed.world.physicalTime += MELEE_COOLDOWN + .01;
     expect(resumed.intent({ version: 1, sequence: 1, type: 'attack', targetBodyId: tb.id }).result).toBe('accepted');
+    for (let i = 0; i < 40; i++) resumed.step(.05);
     expect(resumed.world.body(ab.id)!.attackSeq).toBe(a0 + 3);
     expect(resumed.world.body(tb.id)!.hitSeq).toBe(h0 + 3);
   });
 
   it('counts same-timestamp applied hits independently of pose and only on their manifestation', () => {
     const tw = createTestWorld(), { world: w, sim } = tw;
-    const a = addPerson(tw, 'Attacker', 'traveler', v(10, 1, 10));
-    const target = addPerson(tw, 'Target', 'farmer', v(11, 1, 10));
+    const a = addPerson(tw, 'Attacker', 'traveler', v(10, 1, 10), { controlled: true });
+    const target = addPerson(tw, 'Target', 'farmer', v(11, 1, 10), { controlled: true });
     const ab = w.primaryBody(a.id)!, tb = w.primaryBody(target.id)!;
+    ab.yaw = -Math.PI / 2;
     const other = makeBody(w, target.id, v(12, 1, 10)); target.bodies.push(other.id);
     sim.applyHit(a, ab, tb, 1);
     const first = humanoidVisualState(tb, 'Target', 'stand');
@@ -92,15 +98,17 @@ describe('humanoid visual event counts', () => {
 
   it('does not count rejected attacks; untargeted physical swings still count', () => {
     const tw = createTestWorld(), { world: w, sim } = tw;
-    const a = addPerson(tw, 'Attacker', 'traveler', v(10, 1, 10));
-    const target = addPerson(tw, 'Target', 'farmer', v(11, 1, 10));
-    const ab = w.primaryBody(a.id)!, tb = w.primaryBody(target.id)!;
+    const a = addPerson(tw, 'Attacker', 'traveler', v(10, 1, 10), { controlled: true });
+    const target = addPerson(tw, 'Target', 'farmer', v(11, 1, 10), { controlled: true });
+    const ab = w.primaryBody(a.id)!, tb = w.primaryBody(target.id)!; ab.yaw = -Math.PI / 2;
     expect(sim.attack(a, ab, tb).attempted).toBe(true);
+    step(tw, .5);
     expect(sim.attack(a, ab, tb).rejection).toBe('cooldown');
     expect([ab.attackSeq, tb.hitSeq]).toEqual([1, 1]);
     w.physicalTime += MELEE_COOLDOWN + .01;
     ab.yaw = Math.PI; // target is to the side, outside the forward swing arc.
-    expect(meleeStrike(sim, a, ab, null)).toBe('no_target');
+    expect(meleeStrike(sim, a, ab, null)).toBe('accepted');
+    step(tw, .5);
     expect([ab.attackSeq, tb.hitSeq]).toEqual([2, 1]);
     ab.pose = 'downed';
     w.physicalTime += MELEE_COOLDOWN + .01;

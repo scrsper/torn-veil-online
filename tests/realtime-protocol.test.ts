@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { CommandQueue, type CommandEnvelope } from '../src/bridge/commands';
 import { INTERACTION_SPEC, predictMovement, type CollisionColumn, type MovementState } from '../src/sim/physical/prediction';
+import { requestDefense } from '../src/sim/physical/combatAction';
+import { createTestWorld, addPerson, v } from './helpers/world';
 
 const binding = { epoch: 'e1', controllerId: 'c1', bodyId: 'b1' };
 function command(sequence: number, body: CommandEnvelope['command'] = { type: 'move', x: 1, z: 0, sprint: false }, extra: Partial<CommandEnvelope> = {}): CommandEnvelope {
@@ -37,14 +39,17 @@ describe('realtime command protocol', () => {
     expect(applied[0]).toMatchObject({ status: 'rejected', result: 'expired' });
   });
 
-  it('keeps one movement sample per server application step and bounds the queue', () => {
+  it('prioritizes combat while keeping one movement sample per step and a contiguous ack', () => {
     const q = new CommandQueue(binding.epoch, binding.controllerId, binding.bodyId), execute = vi.fn(() => 'accepted');
     expect(q.receive(command(1), 0, 0).status).toBe('received');
     expect(q.receive(command(2), 0, 1).status).toBe('received');
     expect(q.receive(command(3, { type: 'attack' }), 0, 2).status).toBe('received');
-    expect(q.apply(1, 3, execute)).toHaveLength(1);
-    expect(execute).toHaveBeenCalledTimes(1);
-    expect(q.size).toBe(2);
+    const receipts=q.apply(1, 3, execute);
+    expect(receipts.map(r=>r.sequence)).toEqual([1,3]);
+    expect(execute).toHaveBeenCalledTimes(2);
+    expect(q.size).toBe(1);expect(q.ack).toBe(1);
+    expect(q.apply(2, 20, execute).map(r=>r.sequence)).toEqual([2]);
+    expect(q.ack).toBe(3);
   });
 
   it('cancels pending commands on binding release with no execution', () => {
@@ -53,6 +58,22 @@ describe('realtime command protocol', () => {
     expect(q.cancel(1, 2)[0]).toMatchObject({ status: 'cancelled', result: 'binding_released' });
     expect(q.apply(2, 3, execute)).toEqual([]);
     expect(execute).not.toHaveBeenCalled();
+  });
+
+  it('does not move combat ahead of an earlier pickup behind queued movement', () => {
+    const q = new CommandQueue(binding.epoch, binding.controllerId, binding.bodyId);
+    let holdingWeapon=false;
+    const execute=(c:CommandEnvelope['command'])=>{
+      if(c.type==='interact')holdingWeapon=true;
+      if(c.type==='attack')expect(holdingWeapon).toBe(true);
+      return 'accepted';
+    };
+    [command(1),command(2),command(3,{type:'interact',interactionId:'pickup-weapon'}),command(4,{type:'attack'})]
+      .forEach(c=>q.receive(c,0,c.sequence));
+    expect(q.apply(1,10,execute).map(r=>r.sequence)).toEqual([1]);
+    expect(q.ack).toBe(1);
+    expect(q.apply(2,20,execute).map(r=>r.sequence)).toEqual([2,3,4]);
+    expect(q.ack).toBe(4);
   });
 });
 
@@ -80,5 +101,36 @@ describe('deterministic interaction movement prediction', () => {
     const b = predictMovement(state, { x: .5, z: 1, sprint: true }, INTERACTION_SPEC.stepSeconds, () => open);
     expect(a).toEqual(b);
     expect(state).toEqual(before);
+  });
+
+  it('reconciles a wrong open-geometry prediction against canonical blocked movement', () => {
+    const predicted = predictMovement(state, { x: 1, z: 0, sprint: false }, INTERACTION_SPEC.stepSeconds, () => open);
+    const confirmed = predictMovement(state, { x: 1, z: 0, sprint: false }, INTERACTION_SPEC.stepSeconds, () => ({ floor: 0, walkable: true, solids: [0, 1] }));
+    const correction = Math.hypot(predicted.pos.x - confirmed.pos.x, predicted.pos.y - confirmed.pos.y, predicted.pos.z - confirmed.pos.z);
+    expect(predicted.pos.x).toBeGreaterThan(confirmed.pos.x);
+    expect(correction).toBeGreaterThan(0);
+    expect(correction).toBeLessThanOrEqual(INTERACTION_SPEC.sweepStep + 1e-9);
+  });
+
+  it('replays duplicate defense command identity without a second execution', () => {
+    const q = new CommandQueue(binding.epoch, binding.controllerId, binding.bodyId);
+    const defend = command(7, { type: 'defend', kind: 'sidestep', side: 1 });
+    const execute = vi.fn(() => 'accepted');
+    expect(q.receive(defend, 0, 0).status).toBe('received');
+    expect(q.receive(defend, 0, 1).status).toBe('received');
+    expect(q.apply(1, 2, execute)).toHaveLength(1);
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(q.receive(defend, 0, 3).status).toBe('applied');
+    expect(execute).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps duplicate defense from duplicating exertion or canonical action events', () => {
+    const tw = createTestWorld(321), p = addPerson(tw, 'Defender', 'traveler', v(10, 1, 10), { controlled: true });
+    const b = tw.world.primaryBody(p.id)!;
+    const beforeFatigue = p.physiology.fatigue, beforeEvents = tw.world.events.filter(e => e.type === 'combat_action').length;
+    expect(requestDefense(tw.world, b.id, 'sidestep', 1, 'defense-once')).toBe('accepted');
+    expect(requestDefense(tw.world, b.id, 'backstep', 1, 'defense-duplicate')).toBe('cooldown');
+    expect(p.physiology.fatigue - beforeFatigue).toBeCloseTo(0.018);
+    expect(tw.world.events.filter(e => e.type === 'combat_action').length - beforeEvents).toBe(3);
   });
 });

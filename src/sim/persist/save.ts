@@ -9,6 +9,7 @@ import type { Person, Body, Item, Place, Faction, WorldEvent, Conflict, Field, H
 import { syncFieldBlocks } from '../world/metabolism';
 import { syncResourceNodeBlocks } from '../world/resources';
 import { materializeStructure } from '../world/construction';
+import { validSavedCombatAction } from './combatAction';
 
 const KEY = 'infinite-rpg-save-v1';
 // v0.2.1 Priority 8: bumped 2 -> 3 to add faction leaderId/knowledge persistence (see
@@ -272,6 +273,7 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     for (const p of world.persons()) { const controller = (data.controllers ?? []).find((c: { id: string }) => c.id === p.id); setExternalControl(p, !!controller); if (controller?.acting) authorizeExternalIntention(p); }
     for (const creature of data.creatures ?? []) { const current = world.get(creature.id); if (current) Object.assign(current, creature); else world.add(creature); }
     for (const s of data.bodies) {
+      if (!validSavedCombatAction(s.combatAction, s.id)) return null;
       // Additive presentation counters: old v24 saves establish a zero baseline. Do not
       // infer lost counts from compacted history or aggregate entity ids (many bodies).
       // New saves preserve exact counts; reject corrupt counters rather than replaying them.

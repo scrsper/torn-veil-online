@@ -14,7 +14,10 @@ import { stepEnvironmentalEnergy } from '../kernel/environment';
 import { procureMaterial } from './componentSupply';
 import { observeProduction, productionWorkGoals, localProductionChoice } from './productionOpportunity';
 import { applyInjury } from '../physical/injury';
-import { resolveCombatAttack, combatReach, type CombatAttackIntent, type CombatAttackResult } from '../physical/combat';
+import { combatReach, type CombatAttackIntent, type CombatAttackResult } from '../physical/combat';
+import { advanceCombat, captureCombatTransforms, combatBusy, requestCombatAction, requestDefense } from '../physical/combatAction';
+import { observeCombatPreparation, offerCombatDefense } from './combatReaction';
+import type { CombatTransform } from '../physical/combatGeometry';
 import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, ItemType, KnowledgeItem, Creature, Place, Anchor, ConflictIntent, Conflict, ConflictCause } from '../core/types';
 import { World } from '../core/world';
 import { getRel, adjustRel, disposition, isClose, isFamily, relOrNull, evolveRelationships } from './relationships';
@@ -148,12 +151,22 @@ export class Simulation {
   private interactionWorld = 0;
   /** The external interaction clock advances world time once. Accumulate unchanged slow
    * systems here; persist fractional cadence so save/load cannot discard elapsed upkeep. */
-  stepScheduled(physical: number, world: number): void {
+  stepScheduled(physical: number, world: number, before=captureCombatTransforms(this.world)): void {
     this.interactionPhysical+=physical;this.interactionWorld+=world;
     if(this.interactionPhysical>=.05-1e-9) {
       const pd=this.interactionPhysical,wd=this.interactionWorld;
-      this.interactionPhysical=0;this.interactionWorld=0;this.step(pd,wd);this.flushSpeech();
+      this.interactionPhysical=0;this.interactionWorld=0;this.step(pd,wd,true);this.flushSpeech();
     }
+    this.stepCombat(physical,before);
+  }
+  private stepCombat(dt:number,before:Map<string,CombatTransform>):void {
+    observeCombatPreparation(this.world);
+    advanceCombat(this.world,dt,before,(p,ab,tb,r,a)=>{
+      if(r.injury)applyInjury(tb,r.injury);
+      const ev=this.applyHit(p,ab,tb,r.impact,a.intent,r);
+      if(ev)ev.data.contact=a.contact;
+      return ev;
+    });
   }
   perceptionAccum = 0; strategicAccum = 0; compactAccum = 0; socialAccum = 0; inferenceAccum = 0; onSpeech: ((p: Person, text: string) => void) | null = null; onHit: ((b: Body, pos: Vec3) => void) | null = null;
   /** Coarse per-subsystem wall-clock accumulator (v0.2.1 Priority 3: "create benchmark
@@ -230,7 +243,8 @@ export class Simulation {
   private accum(bucket: string, t0: number): void { if (this.profile) this.profile[bucket] = (this.profile[bucket] ?? 0) + (performance.now() - t0); }
 
   // ------------------------------------------------------------------ main step
-  step(physDt: number, worldDt: number): void {
+  step(physDt: number, worldDt: number, scheduled=false): void {
+    const combatBefore=scheduled?null:captureCombatTransforms(this.world);
     indexWilderness(this.world);
     const w = this.world;
     stepEnvironmentalEnergy(w, physDt);
@@ -254,6 +268,7 @@ export class Simulation {
     { const t0 = this.mark(); for (const c of w.creatures()) this.creatureStep(c, physDt); this.accum('creatures', t0); }
     // 4. body physics for all non-player bodies
     { const t0 = this.mark(); for (const b of w.activeBodies()) { const owner = w.get(b.ownerId) as Person | undefined; if (isExternallyControlled(owner)) continue; this.bodyPhysics(b, physDt); } this.accum('bodyPhysics', t0); }
+    if(combatBefore)this.stepCombat(physDt,combatBefore);
     // 5. strategic upkeep once per world minute
     this.strategicAccum += worldDt;
     if (this.strategicAccum >= 60) { const minutes = Math.floor(this.strategicAccum / 60); this.strategicAccum -= minutes * 60; const t0 = this.mark(); this.strategic(minutes); this.accum('strategic', t0); }
@@ -331,6 +346,10 @@ export class Simulation {
   /** A mind registers an event: perception → knowledge → memory → feelings → (maybe) urgent rethink. */
   private onPerceived(p: Person, body: Body, e: WorldEvent, how: 'saw' | 'heard'): void {
     const w = this.world;
+    // Execution phases remain canonical history. Visible preparation is consumed through
+    // the provenance-bearing combat cue, shared by controlled and autonomous minds.
+    // Learning each phase as an independent social fact made memory a protocol transcript.
+    if(e.type==='combat_action')return;
     if (e.perceivedBy.some(x => x.who === p.id)) return;
     e.perceivedBy.push({ who: p.id, how, tick: w.now });
     if (e.type === 'told') { if (e.target !== p.id) return; return; } // handled directly in tell()
@@ -1608,6 +1627,8 @@ export class Simulation {
   private act(p: Person, body: Body, physDt: number, worldDt: number): void {
     const w = this.world; const m = p.mind;
     if (body.dead) return;
+    if(!isExternallyControlled(p))offerCombatDefense(w,p,body);
+    if(combatBusy(body,w.physicalTime))return;
     // v0.2.3 safety net: a chase/retry pipeline (attack/take_custody re-unshifting a `goto` when
     // the target is out of reach) can otherwise let `plan` grow without bound with `goto/failed`
     // entries, which never triggers a replan (the pending tail action isn't done/failed). Compact
@@ -1616,6 +1637,10 @@ export class Simulation {
     const a = m.plan.find(x => x.status === 'pending' || x.status === 'active'); if (!a) { if (body.pose !== 'stand' && body.pose !== 'walk' && body.poseUntil < w.physicalTime) body.pose = 'stand'; return; }
     if (a.status === 'pending') { a.status = 'active'; a.startedAt = w.now; this.beginAction(p, body, a); }
     switch (a.type) {
+      case 'defend': {
+        const result=requestDefense(w,body.id,a.data?.kind??'sidestep',a.data?.side??1);
+        a.status=result==='accepted'?'done':'failed';break;
+      }
       case 'ask_mechanism': {
         const other = w.person(a.targetEntity), otherBody = other && w.primaryBody(other.id);
         if (!other?.alive || !otherBody || dist2(body.pos, otherBody.pos) > 4 || !w.grid.lineOfSight({ ...body.pos, y: body.pos.y + 1 }, { ...otherBody.pos, y: otherBody.pos.y + 1 }, 6)) { a.status = 'failed'; break; }
@@ -2096,7 +2121,7 @@ export class Simulation {
           m.plan.unshift({ type: 'goto', targetEntity: a.targetEntity, run: true, status: 'pending' });
           break;
         }
-        if (w.physicalTime - body.lastAttackAt > MELEE_SWING_SECONDS) this.exchangeBlows(p, body, tb, physDt, a.data?.intent as ConflictIntent | undefined);
+        if (w.physicalTime - body.lastAttackAt > MELEE_SWING_SECONDS) this.attack(p, body, tb, a.data?.intent as ConflictIntent | undefined);
         // If that blow put the target down/out, the guard at the top of this case re-runs next
         // substep and takes over (custody escort / disengage). Here just stop on a kill.
         if (tb.dead) a.status = 'done';
@@ -2506,63 +2531,11 @@ export class Simulation {
   }
 
   // ------------------------------------------------------------------ combat
-  /**
-   * The blows one call of `act` covers.
-   *
-   * A fight is the only thing in this simulation whose rate was pinned to the CALLER's step size
-   * rather than to time. Every other extended act — building, hauling, milling, sleeping — carries
-   * a duration and consumes however much of it the step actually covers, so stepping the world in
-   * coarser increments changes only the graininess of the record, never the outcome. Combat threw
-   * exactly one blow per call however long the call represented, while the strategic pass healed
-   * the target for the whole of that same interval. At play cadence (a step is a fraction of a
-   * second) that asymmetry is invisible. At the epoch tier's one-step-per-calendar-day cadence a
-   * fighter landed one blow per simulated day against a target recovering a day's worth of health
-   * between blows, so no fight could ever conclude: measured on seed 918271, seven people spent
-   * five simulated years and 5,657 blows on fights that take minutes at play cadence, and the
-   * perceptions and beliefs those blows generated were what made per-tick cost grow with history.
-   *
-   * So the number of swings follows the physical seconds the step covers, bounded by the two
-   * things that really bound a fight: the target going down, and the attacker running out of
-   * wind. `WORK_CAPACITY_FLOOR` is the same exhaustion floor heavy labour uses (`world/labor.ts`)
-   * — a fight you are too spent to swing in is a fight you have stopped fighting. At play cadence
-   * a step covers less than one swing interval, so this delivers exactly one blow and nothing
-   * about the existing behaviour changes.
-   */
-  private exchangeBlows(attacker: Person, ab: Body, tb: Body, physDt: number, intent?: ConflictIntent): void {
-    const w = this.world;
-    const swings = Math.max(1, Math.floor(physDt / MELEE_SWING_SECONDS));
-    for (let i = 0; i < swings; i++) {
-      if (tb.dead) break;
-      const tp = w.person(tb.ownerId);
-      if (tb.pose === 'downed' || tb.subduedUntil > w.physicalTime || tp?.surrender || tp?.custody?.active) break;
-      if (dist2(ab.pos, tb.pos) > combatReach(w, attacker)) break;
-      if (i > 0) {
-        if (getPhysicalCapability(attacker, w, { body: ab }).currentExertionCapacity < WORK_CAPACITY_FLOOR) break;
-        // This swing falls later inside the same step, so the attacker's own swing clock has
-        // moved on with it. Rewound rather than faked: `resolveCombatAttack` writes it back to
-        // `physicalTime` on every legal attempt, and the cooldown it enforces is the same one.
-        ab.lastAttackAt = w.physicalTime - MELEE_SWING_SECONDS * 2;
-      }
-      if (!this.attack(attacker, ab, tb, intent).attempted) break;
-    }
-    ab.lastAttackAt = w.physicalTime;
-  }
-
   attack(attacker: Person, ab: Body, tb: Body, intent?: ConflictIntent): CombatAttackResult {
     return this.resolveAttack({ attackerId: attacker.id, attackerBodyId: ab.id, targetBodyId: tb.id, attackMode: 'strike', intent });
   }
   resolveAttack(intent: CombatAttackIntent): CombatAttackResult {
-    const w = this.world;
-    const result = resolveCombatAttack(w, intent, w.rng);
-    if (!result.attempted) return result;
-    const attacker = w.person(intent.attackerId)!, ab = w.body(intent.attackerBodyId)!, tb = w.body(intent.targetBodyId)!;
-    ab.lastAttackAt = w.physicalTime; ab.pose = 'attack'; ab.poseUntil = w.physicalTime + 0.45; ab.attackTarget = tb.ownerId;
-    ab.attackSeq++;
-    attacker.physiology.fatigue += result.exertionCost;
-    syncNeeds(attacker);
-    if (result.injury) applyInjury(tb, result.injury);
-    this.applyHit(attacker, ab, tb, result.impact, intent.intent ?? 'injure', result);
-    return result;
+    return requestCombatAction(this.world,intent);
   }
   /**
    * Canonical hit application, used by player and NPC attacks alike. Emits perceivable events.
@@ -2587,7 +2560,7 @@ export class Simulation {
     const dx = tb.pos.x - ab.pos.x, dz = tb.pos.z - ab.pos.z; const d = Math.hypot(dx, dz) || 1; tb.vel.x += dx / d * 4; tb.vel.z += dz / d * 4;
     this.onHit?.(tb, { x: tb.pos.x, y: tb.pos.y + 1.2, z: tb.pos.z });
     const place = w.placeAt(tb.pos);
-    const ev = w.emit('attack', { actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, significance: 0.7, visibility: 26, loudness: 14, data: { combatFacts: combatActionFacts(w, attacker, ab, tb, 'hit', combat), combat, attackerBodyId: ab.id, targetBodyId: tb.id, attackSeq: ab.attackSeq, hitSeq: tb.hitSeq, damage: Math.round(dmg), weapon: combat ? (combat.weaponId ? w.nameOf(combat.weaponId) : 'fists') : this.weaponName(attacker), health: Math.round(tb.health), intent }, summary: `${attacker.name} attacked ${victim.name}${place ? ' at ' + place.name : ''} (${Math.round(dmg)} dmg)` });
+    const ev = w.emit('attack', { causes:combat?.actionId&&ab.combatAction?.eventId?[ab.combatAction.eventId]:[], actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, significance: 0.7, visibility: 26, loudness: 14, data: { combatFacts: combatActionFacts(w, attacker, ab, tb, 'hit', combat), combat, attackerBodyId: ab.id, targetBodyId: tb.id, attackSeq: ab.attackSeq, hitSeq: tb.hitSeq, damage: Math.round(dmg), weapon: combat ? (combat.weaponId ? w.nameOf(combat.weaponId) : 'fists') : this.weaponName(attacker), health: Math.round(tb.health), intent }, summary: `${attacker.name} attacked ${victim.name}${place ? ' at ' + place.name : ''} (${Math.round(dmg)} dmg)` });
     // v0.2.3: track this as part of a canonical Conflict (Constitution §11). Idempotent per pair.
     let conflict: Conflict | null = null;
     if (victim.kind === 'person') {

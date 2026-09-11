@@ -1,4 +1,7 @@
 import { combatPresentation } from './combatPresentation';
+import { combatState } from './combatState';
+import { generateCombatArena } from '../sim/world/combatArena';
+import { requestDefense, cancelCombatAction, captureCombatTransforms } from '../sim/physical/combatAction';
 import { randomUUID, createHash } from 'node:crypto';
 import { CommandQueue, type CommandReceipt, type InteractionCommand } from './commands';
 import { INTERACTION_SPEC } from '../sim/physical/prediction';
@@ -37,6 +40,7 @@ function visibleActivity(p: Person | undefined, pose: string): string {
   return a?.type === 'operate_mechanism' ? 'operate' : pose;
 }
 export class BridgeSession {
+  readonly arena:boolean;
   readonly world: World;
   readonly sim: Simulation;
   readonly game: GameSim;
@@ -47,6 +51,7 @@ export class BridgeSession {
   private interactionTick = 0;
   private control: CommandQueue | null = null;
   private controlGeometry = '';
+  private readonly contactTimes=new Map<string,number>();
   /**
    * A dialogue is a small, ephemeral view onto canonical mind state.  The callbacks in a
    * DialogueState remain on this side of the bridge; Unreal receives only grounded text and
@@ -62,12 +67,14 @@ export class BridgeSession {
   private classes = new Map<string, RecognisedClass | null>();
   private classesAt = -Infinity;
   readonly regions = new RegionStream();
-  constructor(seed = 918271, options: { playable?: boolean; save?: string } = {}) {
+  constructor(seed = 918271, options: { playable?: boolean; arena?:boolean; save?: string } = {}) {
+    this.arena=options.arena===true;
     const loaded = options.save ? deserialize(options.save) : null;
     if (options.save && !loaded) throw new Error('Cannot resume incompatible or invalid world save');
     this.world = loaded?.world ?? new World(seed);
-    if (!loaded) { if (options.playable) generatePlayableWorld(this.world); else generateVillage(this.world); }
+    if (!loaded) { if(options.arena)generateCombatArena(this.world);else if (options.playable) generatePlayableWorld(this.world); else generateVillage(this.world); }
     this.sim = new Simulation(this.world);
+    this.world.onEvent(e=>{if(e.type==='attack'&&e.data.combat?.actionId){this.contactTimes.set(e.data.combat.actionId,performance.now());if(this.contactTimes.size>256)this.contactTimes.delete(this.contactTimes.keys().next().value!);}});
     this.game = new GameSim(this.sim);
     if (!this.world.playerId) {
       const first = this.world.geography!.roads.slice().sort((a,b) => a.length-b.length)[0];
@@ -79,6 +86,21 @@ export class BridgeSession {
     this.dialogue = new DialogueSystem(this.world, this.sim);
   }
   save(): string { return serialize(this.world); }
+  /** Urgent physical state, gated by current sight rather than a cached target intention. */
+  combatFrame() {
+    const w=this.world,p=w.person(w.playerId!),viewer=p&&w.primaryBody(p.id);if(!viewer||!p)return null;
+    const seen=new Set(p.mind.percepts.filter(percept=>percept.how==='saw').map(percept=>percept.bodyId));
+    const bodies=w.activeBodies().filter(b=>{
+      if(!b.combatAction||b.combatAction.completeAt<=w.physicalTime-.15)return false;
+      if(b.ownerId===p.id)return true;
+      const d=Math.hypot(b.pos.x-viewer.pos.x,b.pos.z-viewer.pos.z);
+      return viewer.pose!=='sleep'&&(d<2.5||seen.has(b.id))&&d<26
+        &&w.grid.lineOfSight({...viewer.pos,y:viewer.pos.y+1.5},{...b.pos,y:b.pos.y+1.2},27);
+    });
+    if(!bodies.length)return null;
+    return {version:1,type:'combat_frame',tick:w.physicalTime,serverTimeMs:performance.now(),
+      actions:bodies.map(b=>({...combatState(w,b,this.contactTimes.get(b.combatAction!.id)),pos:{...b.pos},vel:{...b.vel},yaw:b.yaw}))};
+  }
   resetInput(): void {
     this.regions.reset();
     this.sequence = -1; this.appliedSequence=-1; this.move = { x: 0, z: 0, sprint: false, expires: 0 };
@@ -94,12 +116,14 @@ export class BridgeSession {
   receiveCommand(input: unknown, now=performance.now()): CommandReceipt | null {
     return this.control?.receive(input,this.world.physicalTime,now)??null;
   }
-  private executeCommand(c: InteractionCommand): string {
+  private executeCommand(c: InteractionCommand,commandId?:string): string {
     const w=this.world,q=this.control,b=q&&w.body(q.bodyId),p=b&&w.person(b.ownerId);
     if(!p||!b||!this.game.controlsBody('local',b.id)) return 'binding_mismatch';
     if(!movementState(w,p,b).eligible) return 'incapacitated';
     if(c.type==='move') {applyInteractionMovement(w,p,b,c,INTERACTION_SPEC.stepSeconds);return 'accepted';}
-    if(c.type==='attack') {const before=b.attackSeq;const result=meleeStrike(this.sim,p,b,c.targetBodyId??null);return b.attackSeq>before?'accepted':result;}
+    if(c.type==='attack') return meleeStrike(this.sim,p,b,c.targetBodyId??null,c.trajectory,commandId);
+    if(c.type==='defend') return requestDefense(w,b.id,c.kind,c.side??1,commandId);
+    if(c.type==='cancel') return cancelCombatAction(w,b.id);
     if(c.type==='interact') return performHandInteraction(this.sim,p,c.interactionId);
     return 'unsupported_command';
   }
@@ -110,14 +134,15 @@ export class BridgeSession {
     const geometry=collisionWindow(this.world,b),changed=geometry.revision!==this.controlGeometry;
     this.controlGeometry=geometry.revision;
     return {version:1,type:'local_state',epoch:q.epoch,controllerId:q.controllerId,bodyId:b.id,ack:q.ack,
-      tick:this.world.physicalTime,interactionTick:this.interactionTick,serverTimeMs:performance.now(),state:movementState(this.world,p,b),...(changed?{geometry}: {})};
+      tick:this.world.physicalTime,interactionTick:this.interactionTick,serverTimeMs:performance.now(),state:movementState(this.world,p,b),combatAction:combatState(this.world,b,this.contactTimes.get(b.combatAction?.id??'')),...(changed?{geometry}: {})};
   }
   /** Advance fast interaction at 60 Hz; slow population/cognition keeps elapsed 20 Hz work. */
   stepInteraction(now=performance.now()): CommandReceipt[] {
+    const before=captureCombatTransforms(this.world);
     const dt=INTERACTION_SPEC.stepSeconds,w=this.world,wd=w.clock.advance(dt);w.physicalTime+=dt;this.interactionTick++;
     this.slowAccum+=dt;
     const cb=this.control&&w.body(this.control.bodyId);if(cb) cb.vel={x:0,y:0,z:0};
-    const receipts=this.control?.apply(w.physicalTime,now,c=>this.executeCommand(c))??[];
+    const receipts=this.control?.apply(w.physicalTime,now,(c,e)=>this.executeCommand(c,e.commandId))??[];
     if(this.slowAccum>=.05-1e-9) {
       if(!this.control) {
         const p=w.person(w.playerId),b=p&&w.primaryBody(p.id);
@@ -126,7 +151,7 @@ export class BridgeSession {
       }
       this.slowAccum=0;
     }
-    this.sim.stepScheduled(dt,wd);
+    this.sim.stepScheduled(dt,wd,before);
     return receipts;
   }
   intent(input: unknown): { sequence: number; result: string } {
@@ -184,11 +209,12 @@ export class BridgeSession {
       knowledge, mechanisms: mechanismPanel(w, p), interactions: handInteractions(this.sim, p), dialogue: this.dialogueProjection(), talkTargets: this.talkTargets(p),
       bodies: w.activeBodies().filter(b => b.present && b.shape === 'humanoid' && visible.has(b.id)).map(b => ({
         ...humanoidVisualState(b, knownName(p, b.ownerId), visibleActivity(w.person(b.ownerId), b.pose), w.person(b.ownerId)?.appearance),
+        combatAction:combatState(w,b),
         incapacitated: b.pose === 'downed' || b.subduedUntil > w.physicalTime || !!w.person(b.ownerId)?.surrender || !!w.person(b.ownerId)?.custody?.active,
         alive: !b.dead,
         speech: w.person(b.ownerId)?.speech?.text ?? '',
         ...(b.ownerId === p.id ? { inventory: p.inventory.flatMap(id => { const i=w.item(id); return i ? [{ id:i.id,name:i.type,type:i.type,quantity:i.quantity }] : []; }), health: b.health, maxHealth: b.maxHealth, needs: { ...p.needs }, wealth: p.wealth } : {}),
-      })), combatPresentation: combatPresentation(w, visible, p.id), events: [] };
+      })), combatActions:w.activeBodies().filter(b=>visible.has(b.id)).flatMap(b=>{const a=combatState(w,b);return a?[a]:[];}), combatPresentation: combatPresentation(w, visible, p.id), events: [] };
   }
   /** Whole-world observability is available only through this explicitly named debug path. */
   developerSnapshot() {
@@ -204,6 +230,7 @@ export class BridgeSession {
       bodies: w.bodies().filter(b => b.shape === 'humanoid' && b.present).flatMap(b => {
         const p = w.person(b.ownerId); if (!p) return [];
         return [{ ...humanoidVisualState(b, p.name, visibleActivity(p, b.pose), p.appearance),
+          combatAction:combatState(w,b),
           reach: w.person(b.ownerId) ? combatReach(w, w.person(b.ownerId)!) : MELEE_REACH, cooldown: MELEE_COOLDOWN,
           attackTarget: b.attackTarget,
           health: b.health, maxHealth: b.maxHealth, alive: p.alive,
@@ -244,7 +271,8 @@ export class BridgeSession {
     }
     return { version: BRIDGE_VERSION, type: 'scene', seed: w.seed,
       // TS metres (x,y-up,z) map to UE centimetres (X=x,Y=z,Z=y), centred on the square.
-      origin: { x: 96, y: 14, z: 96 }, unitsPerMetre: 100,
+      origin: this.arena?{x:20,y:0,z:20}:{ x: 96, y: 14, z: 96 }, unitsPerMetre: 100,
+      arena:this.arena,
       places: w.places().map(p => ({ id: p.id, name: p.name, type: p.type, bounds: p.bounds, inside: p.inside, door: p.door })),
       resources: w.resourceNodes.map(n => ({ id: n.id, pos: n.pos, remaining: n.remaining, state: n.state })),
       // This is a read-only canonical geometry projection, intentionally separate from the

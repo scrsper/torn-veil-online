@@ -1,7 +1,7 @@
 import { INTERACTION_SPEC } from '../sim/physical/prediction';
 
 export type InteractionCommand = {type:'move';x:number;z:number;sprint:boolean}
-  | {type:'attack';targetBodyId?:string} | {type:'interact';interactionId:string}
+  | {type:'attack';targetBodyId?:string;trajectory?:'high'|'mid'|'low'} | {type:'interact';interactionId:string}
   | {type:'defend';kind:'sidestep'|'backstep'|'duck';side?:number}
   | {type:'cancel'};
 export interface CommandEnvelope {
@@ -12,8 +12,9 @@ export interface CommandReceipt {
   version:1; type:'command_receipt'; commandId:string; sequence:number; epoch:string;
   status:'received'|'applied'|'rejected'|'cancelled'; result:string; tick:number;
   receivedAtMs:number; serverTimeMs:number; clientTimeMs:number;
+  tickStartedAtMs?:number; appliedAtMs?:number;
 }
-interface Pending { envelope:CommandEnvelope; receivedAtMs:number }
+interface Pending { envelope:CommandEnvelope; receivedAtMs:number; firstTickAtMs?:number }
 const identifier=(x:unknown):x is string=>typeof x==='string'&&x.length>0&&x.length<=128&&/^[a-zA-Z0-9_.:,-]+$/.test(x);
 /** Connection-owned, bounded disposable ledger. Receiving is never applying. No client time
  * or transform is used to advance the world. One movement sample buys one server step. */
@@ -44,7 +45,7 @@ export class CommandQueue {
     this.latestClientTime=m.clientTimeMs;
     const c=m.command;
     const valid=c&&((c.type==='move'&&Number.isFinite(c.x)&&Number.isFinite(c.z)&&Math.abs(c.x)<=1&&Math.abs(c.z)<=1&&typeof c.sprint==='boolean')
-      ||(c.type==='attack'&&(c.targetBodyId===undefined||identifier(c.targetBodyId)))
+      ||(c.type==='attack'&&(c.targetBodyId===undefined||identifier(c.targetBodyId))&&(c.trajectory===undefined||['high','mid','low'].includes(c.trajectory)))
       ||(c.type==='interact'&&identifier(c.interactionId))
       ||(c.type==='defend'&&['sidestep','backstep','duck'].includes(c.kind)&&(c.side===undefined||c.side===-1||c.side===1))||c.type==='cancel');
     if(!valid) return remember(reject('invalid_command'));
@@ -52,16 +53,25 @@ export class CommandQueue {
     this.pending.push({envelope:structuredClone(m as CommandEnvelope),receivedAtMs:now});
     return remember(this.receipt(m,'received','queued',tick,now,now));
   }
-  apply(tick:number,now:number,execute:(c:InteractionCommand)=>string):CommandReceipt[] {
+  apply(tick:number,now:number,execute:(c:InteractionCommand,envelope:CommandEnvelope)=>string):CommandReceipt[] {
     const out:CommandReceipt[]=[];let moved=false;
+    for(const p of this.pending)p.firstTickAtMs??=now;
     for(let count=0;this.pending.length&&count<8;count++) {
-      const p=this.pending[0],c=p.envelope.command;
-      if(c.type==='move'&&moved) break;
-      this.pending.shift();
+      // Startup can leave movement samples queued for several ticks. Combat must still
+      // receive the next response window. Keep movement order/cadence and the contiguous
+      // ack frontier; urgent actions have their own stable receipts and action binding.
+      const index=moved&&this.pending[0].envelope.command.type==='move'
+        ?this.pending.findIndex(p=>p.envelope.command.type!=='move'):0;
+      if(index<0)break;
+      // An interaction is an ordering barrier: pickup may change the weapon used by
+      // the following attack. Urgent combat can pass movement, never that dependency.
+      if(index>0&&this.pending[index].envelope.command.type==='interact')break;
+      const p=this.pending.splice(index,1)[0],c=p.envelope.command;
       const stale=now-p.receivedAtMs>INTERACTION_SPEC.inputHorizonSeconds*1000;
-      const result=stale?'expired':execute(c);
+      const result=stale?'expired':execute(c,p.envelope);
       const status=result==='accepted'?'applied':'rejected';
       const r=this.receipt(p.envelope,status,result,tick,p.receivedAtMs,now);
+      r.tickStartedAtMs=p.firstTickAtMs;r.appliedAtMs=performance.now();
       this.ledger.set(r.commandId,r);out.push(r);
       if(c.type==='move'&&!stale) moved=true;
     }

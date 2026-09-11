@@ -16,6 +16,7 @@ float Unit(float V) { return FMath::Clamp(V,0.f,1.f); }
 }
 bool FTVCombatEvent::Parse(const TSharedPtr<FJsonObject>& J, FTVCombatEvent& E) {
     E=FTVCombatEvent(); double N; FString Action;
+    if(J)J->TryGetStringField(TEXT("actionId"),E.ActionId);
     if (!Number(J,TEXT("seq"),N) || N<1 || N>9007199254740991.0 || FMath::FloorToDouble(N)!=N) return false;
     E.Seq=static_cast<int64>(N);
     if (!J->TryGetStringField(TEXT("eventId"),E.EventId) || E.EventId.IsEmpty() || E.EventId.Len()>128 ||

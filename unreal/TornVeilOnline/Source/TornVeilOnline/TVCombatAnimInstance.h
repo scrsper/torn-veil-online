@@ -14,6 +14,9 @@ public:
     float Time = 0, Weight = 0;
     FVector LeftFoot = FVector::ZeroVector, RightFoot = FVector::ZeroVector;
     float FootLock = 0;
+    FVector HandGoal=FVector::ZeroVector;
+    float HandWeight=0,Duck=0;
+    bool bLowStrike=false;
 protected:
     virtual FAnimInstanceProxy* CreateAnimInstanceProxy() override;
     virtual void DestroyAnimInstanceProxy(FAnimInstanceProxy* Proxy) override;

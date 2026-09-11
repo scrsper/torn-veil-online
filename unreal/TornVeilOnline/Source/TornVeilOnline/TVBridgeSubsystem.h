@@ -3,6 +3,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "TVCombatChoreography.h"
 #include "TVInteractionPrediction.h"
+#include "TVLiveCombat.h"
 #include "TVBridgeSubsystem.generated.h"
 
 class IWebSocket;
@@ -11,6 +12,9 @@ class ATVWorldProjection;
 UCLASS()
 class TORNVEILONLINE_API UTVBridgeSubsystem : public UTickableWorldSubsystem {
     GENERATED_BODY()
+#if WITH_DEV_AUTOMATION_TESTS
+    friend class FTVLiveCombatReconciliation;
+#endif
 public:
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
     virtual void Deinitialize() override;
@@ -18,6 +22,7 @@ public:
     virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UTVBridgeSubsystem, STATGROUP_Tickables); }
     virtual bool DoesSupportWorldType(EWorldType::Type Type) const override { return Type == EWorldType::Game || Type == EWorldType::PIE; }
     void SendIntent(const FString& Type, const FString& TargetBody = TEXT(""));
+    void SendCombat(const FString& Kind,int32 Side=1,const FString& Trajectory=TEXT("high"),double CallbackAt=0);
     void SendHandIntent(bool bConsume);
     void SendDropIntent();
     /** Opens/advances a TypeScript-owned dialogue session.  Native code receives rendered
@@ -55,6 +60,9 @@ public:
     TArray<TSharedPtr<FJsonObject>> MechanismIntents;
     FString KnowledgeSummary, ProjectionMetrics;
     UPROPERTY() TObjectPtr<ATVWorldProjection> WorldProjection;
+    UPROPERTY() TObjectPtr<class UInstancedStaticMeshComponent> ArenaBlocks;
+    bool bArena=false;
+    void RefreshArenaBlocks();
     ATVCharacter* Selected() const;
     FTVCombatReplayCursor CombatCursor;
     FString Status = TEXT("Connecting to simulation..."), LastResult, LastEvent, PlayerId;
@@ -100,7 +108,7 @@ private:
     TOptional<FTVPredictionColumn> PredictionColumn(int32 X,int32 Z) const;
     FString InteractionEpoch,InteractionController,InteractionBody;
     FTVMovementState Confirmed,Predicted;
-    struct FPendingMovement {int32 Sequence;FTVMovementInput Input;};
+    struct FPendingMovement {int32 Sequence;FTVMovementInput Input;FTVLiveCombat Action;double ActionAge=0;};
     TArray<FPendingMovement> PendingMovement;
     TMap<int32,double> CommandSentAt;
     TArray<FTVPredictionColumn> PredictionColumns;
@@ -109,4 +117,16 @@ private:
     bool bPredictionReady=false;
     int32 PendingFeedbackSequence=-1;
     TArray<double> PredictionSamples,InputToStateSamples,AppliedRttSamples,CorrectionSamples;
+    FTVLiveCombat PredictedCombat;
+    double CombatAge=0;
+    int32 CombatCommandSequence=-1;
+    TArray<double> AttackInputSamples,DefenseInputSamples,CombatCorrectionSamples,CombatCorrectionTimeSamples,RemoteActionAgeSamples,ContactReceiveSamples;
+    double ClockOffsetMs=0,ClockUncertaintyMs=1e9,ClockProbeAt=0;
+    TSet<FString> PresentedContacts;
+    TArray<FString> PresentedContactOrder;
+    double CombatCorrectionStartedAt=-1;
+    TArray<double> CombatCorrectionSettleSamples,CommandOutboundSamples,CommandApplicationSamples,CommandInboundSamples;
+    TArray<double> ContactDecisionSamples;
+    TArray<double> CombatAnimationSetupSamples,CombatAppliedRttSamples;
+    void ObserveCombat(const TSharedPtr<FJsonObject>& Message,double Tick,double ReceivedAtMs,bool Motion);
 };

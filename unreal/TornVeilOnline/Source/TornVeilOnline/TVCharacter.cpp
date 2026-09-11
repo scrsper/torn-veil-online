@@ -106,7 +106,7 @@ void ATVCharacter::Tick(float Dt) {
             else SetActorLocation(GetActorLocation() + Error * FMath::Min(Dt * 6, 1.f), false);
         }
     } else if (bProjected) {
-        const float Alpha = FMath::Clamp(SnapshotAge / 0.1f, 0.f, 1.f);
+        const float Alpha = FMath::Clamp(SnapshotAge / (GetWorld()->GetTimeSeconds()<CombatMotionUntil?1.f/30:.1f), 0.f, 1.f);
         SetActorLocation(FMath::Lerp(PreviousPosition, TargetPosition, Alpha));
         SetActorRotation(FMath::RInterpTo(GetActorRotation(), FRotator(0, TargetYaw, 0), Dt, 10));
         if (auto* PC = GetWorld()->GetFirstPlayerController()) { const auto R = (PC->PlayerCameraManager->GetCameraLocation() - Nameplate->GetComponentLocation()).Rotation(); Nameplate->SetWorldRotation(R); }
@@ -121,6 +121,14 @@ void ATVCharacter::Tick(float Dt) {
         if (GetMesh()->GetAnimationMode()!=EAnimationMode::AnimationSingleNode) CurrentAnimation=nullptr;
         Animate(Live ? CanonicalVelocity.Size2D() : 0);
     }
+}
+void ATVCharacter::ProjectCombatMotion(const TSharedPtr<FJsonObject>& D) {
+    if(bCanonicalPlayer)return;
+    const auto* Bridge=GetWorld()->GetSubsystem<UTVBridgeSubsystem>();const auto P=D->GetObjectField(TEXT("pos")),V=D->GetObjectField(TEXT("vel"));
+    PreviousPosition=GetActorLocation();TargetPosition=Bridge->ToUnreal(FVector(P->GetNumberField(TEXT("x")),P->GetNumberField(TEXT("y")),P->GetNumberField(TEXT("z"))));
+    CanonicalVelocity=FVector(V->GetNumberField(TEXT("x")),V->GetNumberField(TEXT("z")),V->GetNumberField(TEXT("y")))*100;
+    const double Yaw=D->GetNumberField(TEXT("yaw"));TargetYaw=FMath::RadiansToDegrees(FMath::Atan2(-FMath::Cos(Yaw),-FMath::Sin(Yaw)));
+    SnapshotAge=0;CombatMotionUntil=GetWorld()->GetTimeSeconds()+.15;
 }
 void ATVCharacter::Project(const TSharedPtr<FJsonObject>& D, bool First) {
     FTVHumanoidVisualState State; FString ParseError;
@@ -303,6 +311,11 @@ void ATVCharacter::SetupPlayerInputComponent(UInputComponent* I) {
     I->BindKey(EKeys::M,IE_Pressed,this,&ATVCharacter::Mechanisms);
     I->BindKey(EKeys::F5,IE_Pressed,this,&ATVCharacter::SaveWorld);
     I->BindAction(TEXT("Attack"), IE_Pressed, this, &ATVCharacter::Attack);
+    I->BindKey(EKeys::Z,IE_Pressed,this,&ATVCharacter::SidestepLeft);
+    I->BindKey(EKeys::V,IE_Pressed,this,&ATVCharacter::SidestepRight);
+    I->BindKey(EKeys::SpaceBar,IE_Pressed,this,&ATVCharacter::Backstep);
+    I->BindKey(EKeys::LeftControl,IE_Pressed,this,&ATVCharacter::Duck);
+    I->BindKey(EKeys::R,IE_Pressed,this,&ATVCharacter::LowAttack);
 }
 void ATVCharacter::Forward(float V) { if(V!=ForwardAxis)if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->NoteInput();ForwardAxis = V; } void ATVCharacter::Right(float V) { if(V!=RightAxis)if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->NoteInput();RightAxis = V; }
 void ATVCharacter::Turn(float V) { AddControllerYawInput(V); } void ATVCharacter::Look(float V) { AddControllerPitchInput(V); }
@@ -323,10 +336,13 @@ void ATVCharacter::Dialogue7() { if (auto* B = GetWorld()->GetSubsystem<UTVBridg
 void ATVCharacter::Dialogue8() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->ChooseDialogueOption(7); }
 void ATVCharacter::Dialogue9() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->ChooseDialogueOption(8); }
 void ATVCharacter::CloseDialogue() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->CloseDialogue(); }
-/** Intent only. Whether this swing reaches anyone, what it costs them, and whether they get back
- * up are all resolved by the TypeScript simulation on the same path an NPC's attack takes; this
- * client learns the outcome from the next snapshot like any other observer. */
-void ATVCharacter::Attack() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->SendIntent(TEXT("attack")); }
+/** Input starts disposable prediction immediately. TypeScript alone establishes later contact. */
+void ATVCharacter::Attack(){const double At=FPlatformTime::Seconds();if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->SendCombat(TEXT("attack"),1,TEXT("high"),At);}
+void ATVCharacter::LowAttack(){const double At=FPlatformTime::Seconds();if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->SendCombat(TEXT("attack"),1,TEXT("low"),At);}
+void ATVCharacter::SidestepLeft(){const double At=FPlatformTime::Seconds();if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->SendCombat(TEXT("sidestep"),-1,TEXT("high"),At);}
+void ATVCharacter::SidestepRight(){const double At=FPlatformTime::Seconds();if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->SendCombat(TEXT("sidestep"),1,TEXT("high"),At);}
+void ATVCharacter::Backstep(){const double At=FPlatformTime::Seconds();if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->SendCombat(TEXT("backstep"),1,TEXT("high"),At);}
+void ATVCharacter::Duck(){const double At=FPlatformTime::Seconds();if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->SendCombat(TEXT("duck"),1,TEXT("high"),At);}
 
 
 void ATVCharacter::RebasePresentation(const FVector& Delta) { TargetPosition+=Delta; PreviousPosition+=Delta; SetActorLocation(GetActorLocation()+Delta); }

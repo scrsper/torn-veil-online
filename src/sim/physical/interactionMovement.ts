@@ -24,6 +24,7 @@ export function collisionWindow(w: World,b: Body): CollisionWindow {
 /** Canonical adapter for the same disposable predictor. Ordinary automatic door operation
  * matches moveByIntent/NPC path following. Clients stop at the closed door until confirmed. */
 export function applyInteractionMovement(w: World,p: Person,b: Body,input: MovementInput,dt: number): void {
+  if(b.combatAction&&b.combatAction.completeAt>w.physicalTime)return;
   const before={...b.pos};
   const next=predictMovement(movementState(w,p,b),input,dt,(x,z)=>{
     const floor=w.nav.floorY(x,z);

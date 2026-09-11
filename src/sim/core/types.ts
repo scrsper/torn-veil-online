@@ -68,6 +68,7 @@ export interface LocalizedInjury { region: BodyRegion; severity: number; }
 
 export interface Body extends Entity {
   kind: 'body';
+  combatAction?: import('../physical/combatActionTypes').CombatAction;
   /** Peak functional injury severity per region, 0..1. No treatment model yet. */
   injuries?: Partial<Record<BodyRegion, number>>;
   ownerId: EntityId;            // the entity this body manifests
@@ -388,7 +389,7 @@ export interface Goal {
 export type ActionType = 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 'talk' | 'tell' | 'attack' | 'look' | 'pickup' | 'face' | 'bark' | 'pray' | 'eat' | 'demand' | 'rob'
   // v0.2.3: yield (drop out of a fight, hands up); take_custody (a guard escorts a
   // surrendered/subdued suspect into detention).
-  | 'yield' | 'take_custody'
+  | 'yield' | 'take_custody' | 'defend'
   // v0.2.4: drink at a water source; plant/harvest a field plot.
   | 'drink' | 'plant' | 'harvest'
   // v0.3: load a haul cargo at the source Place; unload it at the destination; extract from a
@@ -726,6 +727,7 @@ export interface Pursuit {
 }
 
 export interface Mind {
+  combatCue?: import('../physical/combatActionTypes').DefenseCue;
   fieldObservationAt?: number;
   goal: Goal | null;
   plan: Action[];
@@ -1397,7 +1399,7 @@ export interface Faction extends Entity {
 export type EventType = 'introduction' | 'social_inferred' | 'mechanism_inspected' | 'mechanism_hypothesized' | 'mechanism_worked' | 'mechanism_intended' | 'mechanism_abandoned'
   | 'record_written' | 'record_copied' | 'record_read' | 'record_destroyed' | 'environment_energy_changed' | 'method_reproduced' | 'method_discovered'
   | 'component_acquired' | 'assembly_changed' | 'mechanism_trial' | 'production_observed' | 'component_manufactured' | 'component_supply_failed'
-  | 'attack' | 'attack_missed' | 'kill' | 'theft' | 'pickup' | 'drop' | 'give' | 'trade' | 'told' | 'conversation' | 'perceived'
+  | 'combat_action' | 'attack' | 'attack_missed' | 'kill' | 'theft' | 'pickup' | 'drop' | 'give' | 'trade' | 'told' | 'conversation' | 'perceived'
   | 'memory_formed' | 'knowledge_gained' | 'relationship_changed' | 'emotion_changed' | 'goal_changed'
   | 'goal_completed' | 'arrived' | 'investigation' | 'confrontation' | 'arrest_attempt' | 'fled' | 'hid'
   | 'meal' | 'sleep' | 'work_shift' | 'service' | 'rumor' | 'weather' | 'birth' | 'death' | 'marriage'

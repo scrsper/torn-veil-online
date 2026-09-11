@@ -1,3 +1,5 @@
+import { arrangeCombatArena } from './combatArena';
+import { timedSend, transportTimings } from './transportTiming';
 import { createServer } from 'node:http';
 import { WebSocketServer, WebSocket } from 'ws';
 import { BridgeSession } from './session';
@@ -12,7 +14,7 @@ const loopDelay=monitorEventLoopDelay({resolution:10});loopDelay.enable();
 const port = Number(process.env.TORN_VEIL_PORT ?? 8787);
 const playable = process.env.TORN_VEIL_WORLD === 'playable';
 const savePath = process.env.TORN_VEIL_SAVE ? resolve(process.env.TORN_VEIL_SAVE) : null;
-const session = new BridgeSession(Number(process.env.TORN_VEIL_SEED ?? 918271), { playable, ...(savePath && existsSync(savePath) ? { save: readFileSync(savePath, 'utf8') } : {}) });
+const session = new BridgeSession(Number(process.env.TORN_VEIL_SEED ?? 918271), { playable, arena:process.env.TORN_VEIL_WORLD==='arena', ...(savePath && existsSync(savePath) ? { save: readFileSync(savePath, 'utf8') } : {}) });
 function saveWorld(): void {
   if (!savePath) return;
   mkdirSync(dirname(savePath), { recursive: true });
@@ -21,7 +23,8 @@ function saveWorld(): void {
 const http = createServer((req, res) => {
   res.setHeader('Content-Type', 'application/json');
   if (req.url === '/health') res.end(JSON.stringify({ ok: true, version: 1, regionProtocol:REGION_PROTOCOL, tick: session.world.physicalTime, settlements:session.world.settlements().length, residents:session.world.persons().filter(p=>p.id!==session.world.playerId).length, visibleNPCs:session.snapshot().bodies.filter(b=>b.entityId!==session.world.playerId).length, playerId:session.world.playerId, controlledBodyId:session.world.primaryBody(session.world.playerId!)?.id, controllerConnected:!!controller, projectRoot:process.cwd() }));
-  else if (req.url === '/metrics') res.end(JSON.stringify({scheduler:{steps:scheduler.steps,overruns:scheduler.overruns,maxDebtMs:scheduler.maxDebtMs},eventLoopMs:{p50:loopDelay.percentile(50)/1e6,p95:loopDelay.percentile(95)/1e6,p99:loopDelay.percentile(99)/1e6},memory:process.memoryUsage()}));
+  else if (req.url === '/metrics') res.end(JSON.stringify({scheduler:{steps:scheduler.steps,overruns:scheduler.overruns,maxDebtMs:scheduler.maxDebtMs},eventLoopMs:{p50:loopDelay.percentile(50)/1e6,p95:loopDelay.percentile(95)/1e6,p99:loopDelay.percentile(99)/1e6},transportTimings,memory:process.memoryUsage()}));
+  else if (process.env.TORN_VEIL_WORLD==='arena'&&req.method==='POST'&&req.url?.startsWith('/arena/')) {try {res.end(JSON.stringify(arrangeCombatArena(session,req.url.slice(7))));}catch(error){res.statusCode=400;res.end(JSON.stringify({error:String(error)}));}}
   else if (req.url === '/scene') res.end(JSON.stringify(session.scene()));
   else if (req.url?.startsWith('/region?')) {
     const q = new URL(req.url, 'http://127.0.0.1').searchParams;
@@ -81,7 +84,7 @@ wss.on('connection', (socket, request) => {
       if (++messages > (realtime?160:80)) { socket.close(1008, 'Rate limit'); return; }
       if (controller !== socket) return;
       if(message.type==='clock_probe') {socket.send(JSON.stringify({version:1,type:'clock_probe',clientTimeMs:message.clientTimeMs,serverTimeMs:performance.now()}));return;}
-      if(message.type==='command') {const receipt=session.receiveCommand(message);if(receipt)socket.send(JSON.stringify(receipt));return;}
+      if(message.type==='command') {const receipt=session.receiveCommand(message);if(receipt)timedSend(socket,receipt);wakeInteraction();return;}
       if(message.type==='move') {const active=!!(message.x||message.z);if(active!==moving){moving=active;log({event:active?'movement_started':'movement_stopped',sequence:message.sequence,playerId:session.world.playerId,pos:session.world.positionOf(session.world.playerId!)});}}
       if (message.type === 'save' && savePath) { saveWorld(); socket.send('{"version":1,"type":"result","result":"saved"}'); }
       else if (message.type === 'debug_inspect' && typeof message.personId === 'string') socket.send(JSON.stringify({ version: 1, type: 'debug_inspection', truth: session.game.debugTruth(message.personId), beliefs: session.game.beliefs('local', message.personId) }));
@@ -98,8 +101,17 @@ const update = () => {
   const receipts=session.stepInteraction();
   if(controller?.readyState===WebSocket.OPEN) {
     if(controller.bufferedAmount>256_000) {controller.close(1013,'Action backpressure');session.resetInput();}
-    else {for(const receipt of receipts)controller.send(JSON.stringify(receipt));const state=session.localState();if(state)controller.send(JSON.stringify(state));}
+    else {for(const receipt of receipts)timedSend(controller,receipt);const state=session.localState();if(state)controller.send(JSON.stringify(state));}
   }
+  const combatFrame=session.combatFrame();
+  if(combatFrame)for(const socket of wss.clients)if(socket.readyState===WebSocket.OPEN&&socket.bufferedAmount<256_000)timedSend(socket,combatFrame);
+  // Cooperative geometry batches follow urgent action traffic. A whole dense region can
+  // cost hundreds of milliseconds; never spend that response window in one projection call.
+  if(session.world.geography){const deadline=performance.now()+3;for(const [socket,stream]of streams){
+    const budget=deadline-performance.now();if(budget<=0)break;
+    if(socket.readyState===WebSocket.OPEN&&socket.bufferedAmount<MAX_PRESENTATION_MESSAGE_BYTES)try{stream.prepare(session.world,budget);}
+    catch(error){console.error('bridge presentation error',error);socket.close(1011,'Presentation bounds/generation failed; see bridge log');}
+  }}
   if (++ticks % 6) return;
   const payload = JSON.stringify(session.snapshot());
   for (const socket of wss.clients) if (socket.readyState === WebSocket.OPEN && socket.bufferedAmount < 512_000) socket.send(payload);
@@ -108,14 +120,17 @@ const update = () => {
   for (const [socket, stream] of streams) if (socket.readyState === WebSocket.OPEN && socket.bufferedAmount < MAX_PRESENTATION_MESSAGE_BYTES) {
     try {
       const state=stream.state(session.world);if(state) socket.send(JSON.stringify(state));
-      if(session.world.geography) {const chunk=stream.next(session.world);if(chunk) socket.send(JSON.stringify(chunk));}
+      if(session.world.geography) {const chunk=stream.next(session.world,performance.now(),0);if(chunk) socket.send(JSON.stringify(chunk));}
     } catch(error) {console.error('bridge presentation error',error);socket.close(1011,'Presentation bounds/generation failed; see bridge log');}
   }
   if (ticks % 3600 === 0) saveWorld();
 };
 let timer:ReturnType<typeof setTimeout>;
 let stopped=false;
-const pump=()=>{if(stopped)return;const wait=scheduler.run(performance.now(),update);timer=setTimeout(pump,Math.max(1,Math.min(16,wait)));};
+const pump=()=>{if(stopped)return;scheduler.run(performance.now(),update);timer=setTimeout(pump,Math.max(1,Math.min(16,scheduler.remaining(performance.now()))));};
+// An arriving urgent command can wake an already-due step instead of waiting for a
+// quantized host timer. This never advances the canonical deadline or backdates input.
+function wakeInteraction():void {if(scheduler.remaining(performance.now())<=0){clearTimeout(timer);pump();}}
 timer=setTimeout(pump,1);
 http.listen(port, '127.0.0.1', () => console.log(`Torn Veil canonical bridge ws://127.0.0.1:${port} | seed ${session.world.seed} | ${session.world.settlements().length} settlements | ${session.world.persons().filter(p=>p.id!==session.world.playerId).length} world residents | ${session.snapshot().bodies.filter(b=>b.entityId!==session.world.playerId).length} avatar-visible NPCs | player ${session.world.playerId} / ${session.world.primaryBody(session.world.playerId!)?.id} | regional protocol ${REGION_PROTOCOL} | ${process.cwd()}`));
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.on(signal, () => {

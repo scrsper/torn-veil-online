@@ -3,6 +3,7 @@ import { createTestWorld, addPerson, step, v } from './helpers/world';
 import { makeItem } from '../src/sim/world/factory';
 import { resolveRobberyCompliance, selectRobberyTake } from '../src/sim/mind/robbery';
 import type { RNG } from '../src/sim/core/rng';
+import { setExternalControl } from '../src/sim/runtime/controllers';
 
 /** Deterministic stand-in for World.rng: every draw returns the same fixed value, so a test can
  * force a specific compliance/take outcome instead of hunting for a lucky seed. Implements the
@@ -208,6 +209,9 @@ describe('robbery causal loop (Priority 1 stabilization)', () => {
     // Two armed guards standing right beside the intended victim: overwhelming, visible backup.
     const g1 = addPerson(tw, 'Guard One', 'guard', v(11.5, 1, 10.5));
     const g2 = addPerson(tw, 'Guard Two', 'guard', v(10.5, 1, 10.5));
+    // Hold the stated backup condition with ordinary external idle controllers. The bandit
+    // remains autonomous, so the test observes whether it re-engages sustained visible opposition.
+    setExternalControl(villager, true); setExternalControl(g1, true); setExternalControl(g2, true);
     makeItem(tw.world, 'sword', 'a sword', { owner: g1.id, holder: g1.id });
     makeItem(tw.world, 'sword', 'a sword', { owner: g2.id, holder: g2.id });
     let sawFlee = false; let robbedVillager = false;

@@ -2,6 +2,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "TVCombatChoreography.h"
+#include "TVLiveCombat.h"
 #include "TVCombatPresentationComponent.generated.h"
 
 struct FTVScheduledCombat { FTVChoreographyRequest Request; FTVChoreographyPlan Plan; double StartsAt=0; };
@@ -10,6 +11,12 @@ class TORNVEILONLINE_API UTVCombatPresentationComponent : public UActorComponent
     GENERATED_BODY()
 public:
     UTVCombatPresentationComponent();
+    virtual void BeginPlay() override;
+    void ObserveAction(const FTVLiveCombat& Action,double Age);
+    void RejectAction(const FString& CommandId);
+    void ContactReaction();
+    FString LiveActionId() const {return Live.Id;}
+    double LiveActionAge() const {return Age;}
     void Enqueue(const FTVChoreographyRequest& Request, const FTVChoreographyPlan& Plan, double Start);
     bool Present(float Dt);
     void Cancel();
@@ -29,6 +36,9 @@ private:
     TArray<FTVScheduledCombat> Queue;
     FTVScheduledCombat Current;
     bool bActive=false,bContact=false;
+    bool bLive=false,bOwningTimeline=false;
+    FTVLiveCombat Live;
+    double LiveAge=0,LiveContactReceivedAt=-1;
     float Age=0, Hold=0, MaxOffset=0, MeasuredContactError=0;
     FVector BaseLocation=FVector::ZeroVector;
     FVector LeftAnchor=FVector::ZeroVector, RightAnchor=FVector::ZeroVector;

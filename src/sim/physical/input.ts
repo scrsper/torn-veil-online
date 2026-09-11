@@ -11,6 +11,7 @@ export const SPRINT_MULTIPLIER = 1.55;
 /** External control is intent, never a client-authored transform. Uses the canonical grid. */
 export function moveByIntent(sim: Simulation, actor: Person, body: Body, x: number, z: number, sprint: boolean, dt: number): void {
   const w = sim.world;
+  if(body.combatAction&&body.combatAction.completeAt>w.physicalTime)return;
   if (body.ownerId !== actor.id || !body.present || body.dead || !actor.alive) return;
   if (actor.surrender || actor.custody?.active || body.pose === 'downed' || body.subduedUntil > w.physicalTime) {
     body.vel.x = body.vel.z = 0;

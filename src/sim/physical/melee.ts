@@ -1,4 +1,4 @@
-import { combatActionFacts } from './combatFacts';
+import { requestCombatAction } from './combatAction';
 import { combatReach, ATTACK_COOLDOWN } from './combat';
 import type { Body, Person } from '../core/types';
 import type { Simulation } from '../mind/agent';
@@ -11,21 +11,11 @@ export const MELEE_COOLDOWN = ATTACK_COOLDOWN;
 /** How far off directly-ahead a body may be and still be struck by an untargeted swing. */
 const SWING_ARC = 0.35;
 
-export type MeleeResult = 'accepted' | 'cooldown' | 'out_of_reach' | 'no_target' | 'incapacitated';
+export type MeleeResult = string;
 
-/**
- * External control is intent, never a damage number (Constitution VI, and AGENTS.md's corollary:
- * "an NPC and the player should always go through the same code path for the same action"). A
- * client may say *whom* it is swinging at — it cannot say whether the swing lands, how hard, or
- * whether the target dies. All of that is `Simulation.attack` → `Simulation.applyHit`, the exact
- * path an NPC's own `attack` action takes, including its lethality rules: an ordinary blow downs
- * a person rather than killing them, a subdued/surrendered/in-custody person is out of the fight
- * and cannot be hit further, and every witness learns about it through the normal event.
- *
- * `targetBodyId` is a hint, not an instruction — reach, facing and eligibility are re-checked
- * here against canonical state, so a client that names a body across the village gets nothing.
- */
-export function meleeStrike(sim: Simulation, actor: Person, body: Body, targetBodyId: string | null): MeleeResult {
+/** Client target selection is a hint. Acceptance starts a committed action; the shared
+ * canonical lifecycle establishes contact later, after a real response window. */
+export function meleeStrike(sim: Simulation, actor: Person, body: Body, targetBodyId: string | null, trajectory: 'high'|'mid'|'low' = 'high', commandId?: string): MeleeResult {
   const w = sim.world;
   const reach = combatReach(w, actor);
   if (body.ownerId !== actor.id || !body.present || body.dead || !actor.alive) return 'incapacitated';
@@ -52,13 +42,10 @@ export function meleeStrike(sim: Simulation, actor: Person, body: Body, targetBo
   };
 
   let target: Body | null = null;
-  let miss: MeleeResult = 'no_target';
   if (targetBodyId) {
-    // A deliberately selected target turns the body toward it, the way clicking someone in the
-    // elevated camera already does in the browser client — the swing still has to reach.
-    const named = w.bodies().find(b => b.id === targetBodyId);
-    if (named && reachable(named) !== null) target = named;
-    else miss = named ? 'out_of_reach' : 'no_target';
+    // Named requests use the shared validator, preserving precise rejection reasons.
+    const result=requestCombatAction(w,{attackerId:actor.id,attackerBodyId:body.id,targetBodyId,attackMode:'strike',trajectory},commandId);
+    return result.attempted?'accepted':result.rejection??'invalid_target';
   } else {
     let best = Infinity;
     const fx = -Math.sin(body.yaw), fz = -Math.cos(body.yaw);
@@ -71,18 +58,6 @@ export function meleeStrike(sim: Simulation, actor: Person, body: Body, targetBo
     }
   }
 
-  if (!target) {
-    // A swing at nothing is still a swing: it costs the same recovery and it is just as visible
-    // as one that lands. Matches the browser client, which poses and starts its cooldown before
-    // it ever looks at what the cursor was over.
-    body.pose = 'attack'; body.poseUntil = w.physicalTime + 0.45; body.lastAttackAt = w.physicalTime; body.attackTarget = null;
-    body.attackSeq++;
-    w.emit('attack_missed', { actor: actor.id, pos: { ...body.pos }, visibility: 26, loudness: 8,
-      data: { combatFacts: combatActionFacts(w, actor, body, null, 'miss') },
-      summary: `${actor.name} swung without connecting` });
-    return miss;
-  }
-  body.yaw = Math.atan2(-(target.pos.x - body.pos.x), -(target.pos.z - body.pos.z));
-  sim.attack(actor, body, target);
-  return 'accepted';
+  const result=requestCombatAction(w,{attackerId:actor.id,attackerBodyId:body.id,targetBodyId:target?.id??'',attackMode:'strike',trajectory},commandId);
+  return result.attempted?'accepted':result.rejection??'invalid_target';
 }

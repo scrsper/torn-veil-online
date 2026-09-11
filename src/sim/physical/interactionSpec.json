@@ -1,5 +1,6 @@
 {
-  "revision": "tv-interaction-1",
+  "revision": "tv-interaction-2",
+  "unarmedPathReach": 0.9,
   "stepSeconds": 0.016666666666666666,
   "sprintMultiplier": 1.55,
   "radius": 0.3,
@@ -14,5 +15,5 @@
   "backstepMetres": 0.85,
   "defenseSeconds": 0.3,
   "defenseRecoverySeconds": 0.3,
-  "duckHeight": 0.9
+  "duckHeight": 1.33
 }
