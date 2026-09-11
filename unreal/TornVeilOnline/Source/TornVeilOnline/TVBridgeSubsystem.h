@@ -1,6 +1,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
+#include "TVCombatChoreography.h"
 #include "TVBridgeSubsystem.generated.h"
 
 class IWebSocket;
@@ -44,6 +45,7 @@ public:
     FString KnowledgeSummary, ProjectionMetrics;
     UPROPERTY() TObjectPtr<ATVWorldProjection> WorldProjection;
     ATVCharacter* Selected() const;
+    FTVCombatReplayCursor CombatCursor;
     FString Status = TEXT("Connecting to simulation..."), LastResult, LastEvent, PlayerId;
     float ServerTick = 0;
     UPROPERTY(BlueprintReadOnly) float SinceSnapshot = 100;

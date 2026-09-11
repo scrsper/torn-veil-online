@@ -72,7 +72,7 @@ def _ha_native_attack():
 
 def _ha_combat():
     r = _ha_capture_stage('native-attack')
-    _ha_require(any('MM_Attack_01' in b['animation'] for b in r['nativeActors']), 'canonical native attack input plays attack animation')
+    _ha_require(any(('choreographyActive' in b and b['choreographyActive']) and '/Game/TornVeil/Combat/Animations/' in b['animation'] for b in r['nativeActors']), 'canonical native attack input plays choreography animation')
     _ha_require(any('A_TV_HitReact_Front' in b['animation'] for b in r['nativeActors']), 'canonical hit plays the full-pose target reaction')
 
 def _ha_burst_finished():
@@ -123,7 +123,7 @@ def _ha_finish(error=None):
     unreal.unregister_slate_post_tick_callback(_ha_handle)
     result = {'passed': error is None, 'checks': _ha_checks, 'captures': list(_ha_reports), 'error': error,
         'note': 'Native input and actual canonical fixture; NPC goto is fixture-seeded, death withdraws rather than leaving a corpse.'}
-    path = os.path.join(_ha_root, 'docs/evidence/humanoid/native-acceptance.json')
+    path = os.path.join(os.environ.get('TV_EVIDENCE_FOLDER', os.path.join(_ha_root, 'docs/evidence/humanoid')), 'native-acceptance.json')
     with open(path, 'w') as f: json.dump(result, f, indent=2)
     print('HUMANOID_ACCEPTANCE_RESULT', json.dumps(result))
 

@@ -30,7 +30,7 @@ report = {'label': label, 'map': world.get_path_name(), 'playerId': snap.get('pl
           'controlledBodyId': snap.get('controlledBodyId'), 'snapshotTick': snap.get('tick'),
           'nativeActors': native, 'actors': rows, 'pawn': player.get_name(),
           'actorCount': len(actors), 'bodyCount': len(snap.get('bodies', []))}
-folder = os.path.join(root, 'docs/evidence/humanoid'); os.makedirs(folder, exist_ok=True)
+folder = os.environ.get('TV_EVIDENCE_FOLDER', os.path.join(root, 'docs/evidence/humanoid')); os.makedirs(folder, exist_ok=True)
 with open(os.path.join(folder, label + '.json'), 'w') as f: json.dump(report, f, indent=2)
 path = os.path.join(folder, label + '.png').replace('\\', '/')
 globals()['HUMANOID_CAPTURE'] = unreal.AutomationLibrary.take_high_res_screenshot(1280, 720, path)

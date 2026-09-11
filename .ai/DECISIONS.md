@@ -1,5 +1,19 @@
 # Durable design decisions
 
+## Combat execution projection and choreography
+
+- Combat semantics project immutable execution facts from existing causal attack events.
+  The replay cache is disposable, bounded and observation-gated; body counters remain diagnostics.
+  No occupation, private plan or trade skill is represented as combat mastery.
+- One pure native planner and shared character component handle player and NPC bodies.
+  Skeletal offsets, explicit animation time and foot IK remain presentation only; animation
+  never drives the actor/capsule. Mesh deviation is capped at 22 cm; measured
+  presentation-induced actor-root drift is zero.
+- Persistent technique/lineage inputs are currently labeled fixtures only. Their stable
+  signature anchors a primary gesture; event variation adjusts timing within that vocabulary.
+  Real magic, martial progression and displacement operators require canonical mechanics first.
+- Details and acceptance: `docs/EMERGENT_COMBAT_CHOREOGRAPHY_V0_1.md`.
+
 ## Humanoid presentation and bounded dwelling geometry
 
 - Renderer-neutral per-body attackSeq/hitSeq count canonical accepted swings/applied hits.

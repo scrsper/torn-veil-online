@@ -1,3 +1,5 @@
+#include "Components/SkeletalMeshComponent.h"
+#include "TVCombatPresentationComponent.h"
 #include "TVWorldProjection.h"
 #include "TVBridgeSubsystem.h"
 #include "TVCharacter.h"
@@ -133,7 +135,7 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Message), M) || !M.IsValid()) {ProtocolError(TEXT("Invalid bridge JSON"));return;}
     double Version = 0; if (!M->TryGetNumberField(TEXT("version"), Version) || Version != 1) { Status = TEXT("Incompatible bridge protocol"); bControls = false; return; }
     FString Type; if (!M->TryGetStringField(TEXT("type"), Type)) return;
-    if (Type == TEXT("hello")) { M->TryGetBoolField(TEXT("controls"), bControls); M->TryGetStringField(TEXT("playerId"), PlayerId); UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE received hello controls=%d player=%s"),bControls,*PlayerId); return; }
+    if (Type == TEXT("hello")) { CombatCursor=FTVCombatReplayCursor(); for(const auto& Pair:Bodies) if(IsValid(Pair.Value)) Pair.Value->CombatPresentation->Cancel(); M->TryGetBoolField(TEXT("controls"), bControls); M->TryGetStringField(TEXT("playerId"), PlayerId); UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE received hello controls=%d player=%s"),bControls,*PlayerId); return; }
     if (Type == TEXT("scene")) {
         UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE received scene chars=%d"),Message.Len());
         // Where the canonical world's origin is, and how many centimetres a canonical metre is,
@@ -246,6 +248,7 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
             Bodies.Add(Id, C);
         }
         C->bCanonicalPlayer = Controlled;
+        C->bSemanticCombat=M->HasTypedField<EJson::Object>(TEXT("combatPresentation"));
         C->Project(D, First);
         if (Controlled) {
             if (auto* PC = GetWorld()->GetFirstPlayerController()) if (PC->GetPawn() != C) PC->Possess(C);
@@ -259,6 +262,24 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
                 if (Qty > 0) Items.Add(FString::Printf(TEXT("%s x%.0f"), *I->GetStringField(TEXT("name")), Qty));
             }
             CarriedSummary = Items.IsEmpty() ? TEXT("Empty hands") : FString::Join(Items, TEXT("  |  "));
+        }
+    }
+    const TSharedPtr<FJsonObject>* CombatStream;
+    if (M->TryGetObjectField(TEXT("combatPresentation"),CombatStream)) {
+        for (const auto& Event:CombatCursor.Read(*CombatStream)) {
+            auto* A=Bodies.FindRef(Event.ActorBodyId).Get();
+            auto* T=Bodies.FindRef(Event.TargetBodyId).Get();
+            if (!IsValid(A) || A->bIncapacitated) continue;
+            FTVChoreographyRequest Request; Request.Event=Event; Request.LOD=A->CombatPresentation->LOD(); Request.ActorScale=A->GetMesh()->GetRelativeScale3D().X;
+            auto Plan=FTVCombatChoreographer::Plan(Request);
+            const double Start=FMath::Max(static_cast<double>(GetWorld()->GetTimeSeconds()),FMath::Max(A->CombatPresentation->AvailableAt,IsValid(T)?T->CombatPresentation->AvailableAt:0.0));
+            A->CombatPresentation->Enqueue(Request,Plan,Start);
+            if (IsValid(T) && !T->bIncapacitated && Event.Outcome==TEXT("hit")) {
+                Request.bReaction=true; Request.LOD=T->CombatPresentation->LOD();
+                auto Reaction=FTVCombatChoreographer::Plan(Request);
+                Reaction.ContactAt=Plan.ContactAt; Reaction.Duration=Plan.Duration; Reaction.FX.HitStop=Plan.FX.HitStop;
+                T->CombatPresentation->Enqueue(Request,Reaction,Start);
+            }
         }
     }
     TArray<FString> Removed;

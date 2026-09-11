@@ -24,6 +24,8 @@ public:
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaSeconds) override;
     virtual void SetupPlayerInputComponent(UInputComponent* Input) override;
+    UPROPERTY(VisibleAnywhere) TObjectPtr<class UTVCombatPresentationComponent> CombatPresentation;
+    bool bSemanticCombat = false;
     void Project(const TSharedPtr<class FJsonObject>& Data, bool bFirst);
     FString BodyId, EntityId, DisplayName, Activity, CanonicalPose, Occupation, DebugText, AttackTargetEntity;
     /** The class the simulation recognises in this life, and what it read to get there.
@@ -76,6 +78,7 @@ public:
 private:
     int64 PlayedAttackEvents = 0, PlayedHitEvents = 0;
     int64 SkippedAttackEvents = 0, SkippedHitEvents = 0;
+    float MaxChoreographyActorDriftCm = 0;
     /** Renderer-owned attachments. Their palette and shape are derived from the canonical
      * appearance data in Project(); they are never a source of age, identity or occupation. */
     UPROPERTY() TObjectPtr<UStaticMeshComponent> HairProxy;

@@ -1,0 +1,97 @@
+{
+  "sourceCommit": "8226a57",
+  "engine": "Unreal Engine 5.8.2",
+  "editorBuild": {
+    "passed": true,
+    "command": "unreal/scripts/Build.ps1",
+    "finalIncrementalSeconds": 4.79,
+    "actions": 5,
+    "log": ".debug/combat-final-build.log"
+  },
+  "automation": {
+    "passed": true,
+    "tests": [
+      "TornVeil.Combat.Choreography.Parser",
+      "TornVeil.Combat.Choreography.Plan",
+      "TornVeil.Combat.Choreography.Replay"
+    ],
+    "completionUtc": "2026-09-11T13:50:12Z",
+    "log": "unreal/TornVeilOnline/Saved/Logs/TornVeilOnline.log"
+  },
+  "liveAcceptance": {
+    "passed": true,
+    "checks": 93,
+    "passedChecks": 93,
+    "scenarios": 14,
+    "evidence": "native-acceptance.json",
+    "alignment": [
+      {
+        "check": "near: measured recorded-target alignment",
+        "passed": true,
+        "errorCm": 0.002920799655839801,
+        "limitCm": 2
+      },
+      {
+        "check": "far: measured recorded-target alignment",
+        "passed": true,
+        "errorCm": 13.663864135742188,
+        "limitCm": 18
+      },
+      {
+        "check": "left: measured recorded-target alignment",
+        "passed": true,
+        "errorCm": 0.29316025972366333,
+        "limitCm": 2
+      },
+      {
+        "check": "right: measured recorded-target alignment",
+        "passed": true,
+        "errorCm": 1.673537254333496,
+        "limitCm": 2
+      }
+    ],
+    "note": "Measured evaluated hand to recorded execution target centre horizontally, not current target surface."
+  },
+  "regressions": {
+    "humanoidChecksPassed": 19,
+    "priorParserAndEventQueueTestsPassed": 2,
+    "pcgSeedsPassed": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "instanceCounts": [
+      52,
+      51,
+      52,
+      51,
+      52
+    ],
+    "pcgDiskReloadPassed": true
+  },
+  "ownership": {
+    "changedContentPrefix": "/Game/TornVeil/Combat/",
+    "newBinaryAssets": 4,
+    "newJsonCatalogs": 1,
+    "vendorChanges": [],
+    "gameAnimationSampleChanges": [],
+    "editorRestartVerified": true,
+    "dirtyPackages": [],
+    "evidence": "reload-and-ownership.json"
+  },
+  "review": {
+    "reviewer": "/root/unreal_tests",
+    "scope": "Read-only core planner, bridge/character integration, canonical projection and trace precondition",
+    "highOrMediumFindings": [],
+    "note": "One final independent review. The subsequent bounded directional-candidate fix was covered by expanded Plan assertions and final live acceptance."
+  },
+  "limitations": [
+    "Only unarmed primitives are art-supported.",
+    "No canonical technique, magic or combat proficiency added.",
+    "NPC duel is harness-initiated through shared canonical mechanics.",
+    "Far 1.4 m arrangement retains 13.664 cm recorded-target residual.",
+    "No Motion Matching, equipped-weapon grip solver, Niagara or afterimages."
+  ]
+}

@@ -1,3 +1,4 @@
+import { combatActionFacts } from './combatFacts';
 import { combatReach, ATTACK_COOLDOWN } from './combat';
 import type { Body, Person } from '../core/types';
 import type { Simulation } from '../mind/agent';
@@ -76,6 +77,9 @@ export function meleeStrike(sim: Simulation, actor: Person, body: Body, targetBo
     // it ever looks at what the cursor was over.
     body.pose = 'attack'; body.poseUntil = w.physicalTime + 0.45; body.lastAttackAt = w.physicalTime; body.attackTarget = null;
     body.attackSeq++;
+    w.emit('attack_missed', { actor: actor.id, pos: { ...body.pos }, visibility: 26, loudness: 8,
+      data: { combatFacts: combatActionFacts(w, actor, body, null, 'miss') },
+      summary: `${actor.name} swung without connecting` });
     return miss;
   }
   body.yaw = Math.atan2(-(target.pos.x - body.pos.x), -(target.pos.z - body.pos.z));

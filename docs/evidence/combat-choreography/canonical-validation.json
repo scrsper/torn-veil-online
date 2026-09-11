@@ -1,0 +1,81 @@
+{
+  "feature": "emergent-combat-choreography-v0.1",
+  "baseline": {
+    "head": "8a5eda35e0e0d59fa0bc05fbf64ca0695d3a11ba",
+    "targetedCombatBridgePersistence": {
+      "files": 5,
+      "passed": 36,
+      "failed": 0
+    },
+    "socialFamily": {
+      "passed": 3,
+      "total": 4,
+      "failure": "The same family assault trace failure reproduced at starting HEAD.",
+      "durationSeconds": 272.23,
+      "log": ".debug-social-baseline.log"
+    },
+    "fullSuiteAttempt": "Initial default-worker attempts did not produce a completed baseline result; not claimed as passing."
+  },
+  "stabilized": {
+    "isolatedStress": {
+      "files": 1,
+      "passed": 7,
+      "total": 7,
+      "durationSeconds": 117.54
+    },
+    "socialTrace": {
+      "files": 1,
+      "passed": 4,
+      "total": 4,
+      "durationSeconds": 363.47
+    },
+    "combatBridgePersistence": {
+      "files": 6,
+      "passed": 44,
+      "total": 44,
+      "durationSeconds": 10.3
+    },
+    "typecheck": "passed",
+    "build": {
+      "status": "passed",
+      "modules": 124
+    },
+    "finalFull": {
+      "command": "npm test -- --maxWorkers=1",
+      "files": 79,
+      "passedFiles": 79,
+      "tests": 808,
+      "passedTests": 808,
+      "failedTests": 0,
+      "exitCode": 0,
+      "durationSeconds": 1390,
+      "log": ".debug/final-full-test-max1.log",
+      "conditions": "One worker, Unreal and fixture servers closed; stabilized production source unchanged through final documentation commit."
+    }
+  },
+  "sourceCommit": "8226a57",
+  "firstImplementationFull": {
+    "passed": 806,
+    "total": 808,
+    "failed": 2,
+    "files": 79,
+    "command": "npm test -- --maxWorkers=2",
+    "exitCode": 1,
+    "durationSeconds": 1170.23,
+    "log": ".debug/final-full-test-max2.log",
+    "failures": [
+      "family trace applied no assault because its selected subject was already wounded",
+      "food-pressure stress test exceeded its existing 60-second timeout"
+    ]
+  },
+  "traceDiagnosis": {
+    "log": ".debug/family-precondition.log",
+    "subject": "Tomas Reed",
+    "bodyHealth": 15.5246,
+    "maximumHealth": 80,
+    "woundSeverity": 0.7716970565663198,
+    "assaultWoundLimit": 0.6,
+    "appliedHits": 0,
+    "note": "Current-checkout precondition probe explains the baseline-reproduced failure. The fixture now selects a present, eligible subject and asserts a hit was applied; mechanics, assertions and timeouts were not weakened."
+  }
+}

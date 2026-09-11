@@ -360,6 +360,13 @@ Reach, ownership, combat resolution, knowledge effects, and other canonical cons
 
 # Unreal
 
+Combat choreography: `src/sim/physical/combatFacts.ts` records causal execution facts;
+`src/bridge/combatPresentation.ts` projects their bounded, observation-gated replay.
+Native `TVCombatChoreography`, `TVCombatAnimInstance`, and `TVCombatPresentationComponent`
+plan and render the shared player/NPC motion path. Owned primitives and the isolated
+showcase live under `/Game/TornVeil/Combat/`. Architecture and measured acceptance:
+`docs/EMERGENT_COMBAT_CHOREOGRAPHY_V0_1.md`.
+
 Unreal is a projection/presentation target over the canonical Torn Veil simulation unless architecture is explicitly changed.
 
 Do not move world authority into Unreal merely because a feature is being visualized there.

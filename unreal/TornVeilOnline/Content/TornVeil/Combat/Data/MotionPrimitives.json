@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "primitives": [
+    {
+      "id": "direct",
+      "family": "unarmed",
+      "asset": "/Game/TornVeil/Combat/Animations/A_TV_Direct",
+      "effector": "hand_r",
+      "contactTime": 0.49,
+      "length": 0.9,
+      "reachCm": 51.482960880760814,
+      "lateralCm": 56.89972148542856,
+      "minControl": 0,
+      "maxControl": 1
+    },
+    {
+      "id": "hook",
+      "family": "unarmed",
+      "asset": "/Game/TornVeil/Combat/Animations/A_TV_Hook",
+      "effector": "hand_l",
+      "contactTime": 0.47,
+      "length": 0.9,
+      "reachCm": 79.57033511118772,
+      "lateralCm": -15.250837335185697,
+      "minControl": 0,
+      "maxControl": 1
+    },
+    {
+      "id": "recoil",
+      "family": "reaction",
+      "asset": "/Game/TornVeil/Characters/Animations/A_TV_HitReact_Front",
+      "effector": "spine_03",
+      "contactTime": 0.1,
+      "length": 0.7,
+      "reachCm": 0,
+      "lateralCm": 0,
+      "minControl": 0,
+      "maxControl": 1
+    }
+  ]
+}
