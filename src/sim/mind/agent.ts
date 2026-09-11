@@ -1593,6 +1593,13 @@ export class Simulation {
   private act(p: Person, body: Body, physDt: number, worldDt: number): void {
     const w = this.world; const m = p.mind;
     if (body.dead) return;
+    // A replanned wait (or another action) must not erase an unexpired physical
+    // knock-down. Recovery belongs to bodyPhysics, just as human input is gated
+    // by moveByIntent. Keep cognition running without executing through incapacity.
+    if (body.pose === 'downed' && (body.poseUntil > w.physicalTime || body.subduedUntil > w.physicalTime || p.surrender || p.custody?.active)) {
+      body.path = null; body.vel.x = body.vel.z = 0;
+      return;
+    }
     // v0.2.3 safety net: a chase/retry pipeline (attack/take_custody re-unshifting a `goto` when
     // the target is out of reach) can otherwise let `plan` grow without bound with `goto/failed`
     // entries, which never triggers a replan (the pending tail action isn't done/failed). Compact

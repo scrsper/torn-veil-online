@@ -4,9 +4,21 @@ import { humanoidVisualState } from '../src/bridge/visualState';
 import { deserialize, serialize } from '../src/sim/persist/save';
 import { MELEE_COOLDOWN, meleeStrike } from '../src/sim/physical/melee';
 import { makeBody } from '../src/sim/world/factory';
-import { addPerson, createTestWorld, v } from './helpers/world';
+import { addPerson, createTestWorld, step, v } from './helpers/world';
 
 describe('humanoid visual event counts', () => {
+  it('keeps a canonical knock-down visible when the NPC replans a wait after the hit', () => {
+    const tw = createTestWorld();
+    const a = addPerson(tw, 'Attacker', 'traveler', v(10, 1, 10), { controlled: true });
+    const target = addPerson(tw, 'Target', 'farmer', v(11, 1, 10));
+    const ab = tw.world.primaryBody(a.id)!, tb = tw.world.primaryBody(target.id)!;
+    tw.sim.applyHit(a, ab, tb, tb.health + 1, 'injure');
+    expect(tb.pose).toBe('downed');
+    step(tw, 1);
+    expect(tb.poseUntil).toBeGreaterThan(tw.world.physicalTime);
+    expect(humanoidVisualState(tb, target.name, tb.pose).incapacitated).toBe(true);
+    expect(tb.vel.x).toBe(0); expect(tb.vel.z).toBe(0);
+  });
   it('preserves every accepted attack and hit between snapshots and across JSON/save/reconnect', () => {
     const s = new BridgeSession(), w = s.world;
     const p = w.person(w.playerId)!, ab = w.primaryBody(p.id)!;
