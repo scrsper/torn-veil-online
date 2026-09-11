@@ -100,6 +100,12 @@ function ordinaryVillagers(world: World): Person[] {
  * workmate — so one event can demonstrate family, work and institutional consequences at once. */
 function pickSubject(world: World, requireSpouse: boolean, requireCoworker: boolean): Person | undefined {
   const candidates = ordinaryVillagers(world).filter(p => {
+    // The trigger must be able to cause a NEW serious wound. Warmup can already leave the
+    // most-connected spouse badly injured; selecting them makes the <0.6 loop do nothing.
+    // Select an eligible participant instead of healing someone or weakening protection.
+    const body = world.primaryBody(p.id);
+    if (!body?.present || body.dead || woundSeverity(body) >= 0.6 || p.surrender || p.custody?.active
+      || body.subduedUntil > world.physicalTime) return false;
     const spouse = Object.entries(p.relationships).some(([id, r]) => r.tags.includes('spouse') && world.person(id)?.alive);
     const coworker = !!p.workId && world.persons().some(q => q.alive && q.id !== p.id && q.workId === p.workId);
     return (!requireSpouse || spouse) && (!requireCoworker || coworker);
@@ -248,6 +254,7 @@ export function runSocialTrace(spec: TraceSpec): SocialTrace {
       const ev = sim.applyHit(actor, actorBody, subjectBody, 12, 'injure');
       if (ev && !triggerEvent) triggerEvent = ev;
     }
+    if (!triggerEvent) throw new Error(`Social trace ${spec.id}: no canonical assault was applied to the selected subject`);
     actorBody.pos = before;
     triggerText = `${actor.name} beat ${subject.name} (wound ${woundSeverity(subjectBody).toFixed(2)})`;
   }
