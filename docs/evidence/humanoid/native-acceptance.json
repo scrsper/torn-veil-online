@@ -1,0 +1,40 @@
+{
+  "passed": true,
+  "checks": [
+    "ordinary canonical body is possessed with local movement disabled",
+    "idle locomotion asset active",
+    "NPC and its second manifestation use the same native substrate",
+    "native held W produces canonical walk",
+    "walk drives the actual Blend Space speed axis",
+    "native W plus Shift produces canonical run",
+    "run drives the jog samples of the actual Blend Space",
+    "native release returns to idle",
+    "stop returns the actual Blend Space to idle samples",
+    "canonical NPC path following drives the same locomotion Blend Space",
+    "canonical native attack input plays attack animation",
+    "canonical hit plays target reaction",
+    "initial attack plus all three batched attacks played",
+    "all batched hit reactions played",
+    "tested combat burst was not coalesced",
+    "one removed manifestation does not remove its sibling",
+    "canonical downing overrides ordinary locomotion with collapse animation",
+    "canonical death withdrawal removes native manifestations"
+  ],
+  "captures": [
+    "idle",
+    "walk",
+    "run",
+    "stop",
+    "npc-walk",
+    "native-attack",
+    "burst-queued",
+    "burst-replayed",
+    "npc-attack",
+    "manifestation-removal",
+    "downed",
+    "downed-held",
+    "death-withdrawal"
+  ],
+  "error": null,
+  "note": "Native input and actual canonical fixture; NPC goto is fixture-seeded, death withdraws rather than leaving a corpse."
+}

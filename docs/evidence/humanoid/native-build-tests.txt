@@ -1,0 +1,5 @@
+UE 5.8.2 native automation and latest editor target build
+[2026.09.11-03.39.28:899][475]LogAutomationController: Display: Test Completed. Result={Success} Name={EventQueue} Path={TornVeil.Humanoid.VisualState.EventQueue}
+[2026.09.11-03.39.28:938][478]LogAutomationController: Display: Test Completed. Result={Success} Name={Parser} Path={TornVeil.Humanoid.VisualState.Parser}
+Result: Succeeded
+Total execution time: 4.89 seconds

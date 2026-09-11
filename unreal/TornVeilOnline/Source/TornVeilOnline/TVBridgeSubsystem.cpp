@@ -1,6 +1,7 @@
 #include "TVWorldProjection.h"
 #include "TVBridgeSubsystem.h"
 #include "TVCharacter.h"
+#include "TVHumanoidVisualState.h"
 #include "WebSocketsModule.h"
 #include "IWebSocket.h"
 #include "Dom/JsonObject.h"
@@ -229,16 +230,25 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
     TSet<FString> Present;
     for (const auto& V : *Rows) {
         const auto D = V->AsObject(); if (!D) continue;
-        const FString Id = D->GetStringField(TEXT("bodyId")), Entity = D->GetStringField(TEXT("entityId")); Present.Add(Id); FString ControlledBody; M->TryGetStringField(TEXT("controlledBodyId"),ControlledBody); const bool Controlled=ControlledBody.IsEmpty()?Entity==PlayerId:Id==ControlledBody;
+        FTVHumanoidVisualState Validated; FString VisualError;
+        if (!FTVHumanoidVisualState::Parse(D, Validated, VisualError)) { UE_LOG(LogTemp, Warning, TEXT("TV_BRIDGE skipped malformed body row: %s"), *VisualError); continue; }
+        const FString Id = Validated.BodyId, Entity = Validated.EntityId; Present.Add(Id); FString ControlledBody; M->TryGetStringField(TEXT("controlledBodyId"),ControlledBody); const bool Controlled=!ControlledBody.IsEmpty() && Id==ControlledBody;
         ATVCharacter* C = Bodies.Contains(Id) ? Bodies[Id].Get() : nullptr; const bool First = !IsValid(C);
         if (First) {
-            if (Controlled) C = Cast<ATVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-            else { FActorSpawnParameters P; P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn; C = GetWorld()->SpawnActor<ATVCharacter>(FVector(0, 0, 300), FRotator::ZeroRotator, P); }
+            // Only the unbound startup pawn can be adopted. Reusing a pawn already bound
+            // to another body aliases two manifestations and lets cleanup destroy both.
+            if (Controlled) {
+                auto* StartupPawn = Cast<ATVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+                if (StartupPawn && StartupPawn->BodyId.IsEmpty()) C = StartupPawn;
+            }
+            if (!C) { FActorSpawnParameters P; P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn; C = GetWorld()->SpawnActor<ATVCharacter>(FVector(0, 0, 300), FRotator::ZeroRotator, P); }
             if (!C) continue;
-            C->bCanonicalPlayer = Controlled; Bodies.Add(Id, C);
+            Bodies.Add(Id, C);
         }
+        C->bCanonicalPlayer = Controlled;
         C->Project(D, First);
         if (Controlled) {
+            if (auto* PC = GetWorld()->GetFirstPlayerController()) if (PC->GetPawn() != C) PC->Possess(C);
             if(!bCanonicalReady) UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE received snapshot; bound player=%s body=%s pawn=%s pos=%s"),*Entity,*Id,*C->GetName(),*C->GetActorLocation().ToString());
             bCanonicalReady=true;
             const auto Needs = D->GetObjectField(TEXT("needs"));
@@ -252,8 +262,17 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
         }
     }
     TArray<FString> Removed;
-    for (const auto& Pair : Bodies) if (!Present.Contains(Pair.Key)) { if (IsValid(Pair.Value) && !Pair.Value->bCanonicalPlayer) Pair.Value->Destroy(); Removed.Add(Pair.Key); }
+    // bodyId is manifestation identity. A withdrawn body removes exactly its presentation actor,
+    // including the possessed manifestation; another body of the same entity remains untouched.
+    for (const auto& Pair : Bodies) if (!Present.Contains(Pair.Key)) {
+        if (IsValid(Pair.Value)) {
+            if (Pair.Value->bCanonicalPlayer && Pair.Value->GetController()) Pair.Value->GetController()->UnPossess();
+            Pair.Value->Destroy();
+        }
+        Removed.Add(Pair.Key);
+    }
     for (const auto& Id : Removed) Bodies.Remove(Id);
+    if (!Present.Contains(ControlledId)) bCanonicalReady = false;
     const TArray<TSharedPtr<FJsonValue>>* Events;
     if (M->TryGetArrayField(TEXT("events"), Events) && Events->Num()) LastEvent = Events->Last()->AsObject()->GetStringField(TEXT("summary"));
     Status = FString::Printf(TEXT("LIVE  |  %d visible people  |  t %.1fs%s"), FMath::Max(0, Bodies.Num() - 1), ServerTick, bControls ? TEXT("") : TEXT("  |  observer connection"));

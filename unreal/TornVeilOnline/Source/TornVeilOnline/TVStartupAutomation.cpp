@@ -10,9 +10,9 @@
 #include "GenericPlatform/GenericPlatformInputDeviceMapper.h"
 
 static FAutoConsoleCommand TVStartupKey(
-    TEXT("TV.TestMoveKey"),TEXT("PIE acceptance: TV.TestMoveKey W|A|S|D [seconds <= 5]. Native input only."),
+    TEXT("TV.TestMoveKey"),TEXT("PIE acceptance: TV.TestMoveKey W|A|S|D|LeftShift [seconds <= 5]. Native input only."),
     FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args) {
-        if(Args.Num()<1 || !TArray<FString>{TEXT("W"),TEXT("A"),TEXT("S"),TEXT("D")}.Contains(Args[0])) return;
+        if(Args.Num()<1 || !TArray<FString>{TEXT("W"),TEXT("A"),TEXT("S"),TEXT("D"),TEXT("LeftShift")}.Contains(Args[0])) return;
         UWorld* World=nullptr;
         for(const auto& Context:GEngine->GetWorldContexts()) if(Context.WorldType==EWorldType::PIE) { if(World) {UE_LOG(LogTemp,Error,TEXT("TV_STARTUP_TEST requires exactly one PIE world"));return;} World=Context.World(); }
         if(!World || !World->GetFirstPlayerController()) return;

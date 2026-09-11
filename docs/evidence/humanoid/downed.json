@@ -1,0 +1,235 @@
+{
+  "label": "downed",
+  "map": "/Game/TornVeil/Tests/Humanoid/UEDPIE_0_L_HumanoidAcceptance.L_HumanoidAcceptance",
+  "playerId": "p_37",
+  "controlledBodyId": "b_42",
+  "snapshotTick": 141.08999999999733,
+  "nativeActors": [
+    {
+      "bodyId": "b_42",
+      "entityId": "p_37",
+      "pose": "stand",
+      "animation": "/Game/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Lgt_01.MM_HitReact_Front_Lgt_01",
+      "possessed": true,
+      "incapacitated": false,
+      "dead": false,
+      "attackSeq": 4,
+      "hitSeq": 1,
+      "playedAttacks": 4,
+      "playedHits": 1,
+      "pendingAttacks": 0,
+      "pendingHits": 0,
+      "blendDirection": 0,
+      "blendSpeed": 0,
+      "filteredBlendSpeed": 0,
+      "footSeparationCm": 33.859548815364874,
+      "skippedAttacks": 0,
+      "skippedHits": 0,
+      "speedCmPerSecond": 0,
+      "movementMode": 0,
+      "mesh": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple",
+      "animationTime": 0.2590253949165344,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 190
+      }
+    },
+    {
+      "bodyId": "b_1",
+      "entityId": "p_1",
+      "pose": "downed",
+      "animation": "/Game/Characters/Mannequins/Anims/Death/MM_Death_Front_01.MM_Death_Front_01",
+      "possessed": false,
+      "incapacitated": true,
+      "dead": false,
+      "attackSeq": 1,
+      "hitSeq": 5,
+      "playedAttacks": 1,
+      "playedHits": 4,
+      "pendingAttacks": 0,
+      "pendingHits": 0,
+      "blendDirection": 0,
+      "blendSpeed": 0,
+      "filteredBlendSpeed": 9.63837689537837e-15,
+      "footSeparationCm": 64.0914934295237,
+      "skippedAttacks": 0,
+      "skippedHits": 1,
+      "speedCmPerSecond": 0,
+      "movementMode": 0,
+      "mesh": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple",
+      "animationTime": 0,
+      "position": {
+        "x": 231.7658210639344,
+        "y": 0,
+        "z": 190
+      }
+    }
+  ],
+  "actors": [
+    {
+      "bodyId": "b_1",
+      "entityId": "p_1",
+      "canonical": {
+        "bodyId": "b_1",
+        "entityId": "p_1",
+        "name": "an unfamiliar person",
+        "pos": {
+          "x": 20.317658210639344,
+          "y": 1,
+          "z": 18
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "yaw": 1.5707963267948966,
+        "pose": "downed",
+        "activity": "downed",
+        "speed": 0,
+        "attackSeq": 1,
+        "hitSeq": 5,
+        "lastAttackAt": 138.38999999999672,
+        "lastHitAt": 139.93999999999707,
+        "dead": false,
+        "incapacitated": true,
+        "appearance": {
+          "skin": 14264712,
+          "hair": 1709330,
+          "shirt": 5917242,
+          "pants": 3090982,
+          "height": 1.06,
+          "build": 1.15,
+          "hatStyle": "none",
+          "apron": 7035464,
+          "beard": 1709330
+        },
+        "alive": true,
+        "speech": "You'll regret that!"
+      },
+      "actorPresent": true,
+      "pose": "downed",
+      "animation": "/Game/Characters/Mannequins/Anims/Death/MM_Death_Front_01.MM_Death_Front_01",
+      "possessed": false,
+      "incapacitated": true,
+      "dead": false,
+      "attackSeq": 1,
+      "hitSeq": 5,
+      "playedAttacks": 1,
+      "playedHits": 4,
+      "pendingAttacks": 0,
+      "pendingHits": 0,
+      "blendDirection": 0,
+      "blendSpeed": 0,
+      "filteredBlendSpeed": 9.63837689537837e-15,
+      "footSeparationCm": 64.0914934295237,
+      "skippedAttacks": 0,
+      "skippedHits": 1,
+      "speedCmPerSecond": 0,
+      "movementMode": 0,
+      "mesh": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple",
+      "animationTime": 0,
+      "position": {
+        "x": 231.7658210639344,
+        "y": 0,
+        "z": 190
+      }
+    },
+    {
+      "bodyId": "b_42",
+      "entityId": "p_37",
+      "canonical": {
+        "bodyId": "b_42",
+        "entityId": "p_37",
+        "name": "the Traveler",
+        "pos": {
+          "x": 18,
+          "y": 1,
+          "z": 18
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "yaw": -1.5707963267948966,
+        "pose": "stand",
+        "activity": "stand",
+        "speed": 0,
+        "attackSeq": 4,
+        "hitSeq": 1,
+        "lastAttackAt": 134.07999999999586,
+        "lastHitAt": 138.38999999999672,
+        "dead": false,
+        "incapacitated": false,
+        "appearance": {
+          "skin": 14264712,
+          "hair": 2759184,
+          "shirt": 3824250,
+          "pants": 3815994,
+          "height": 1,
+          "build": 1,
+          "hatStyle": "hood",
+          "hat": 3820122
+        },
+        "alive": true,
+        "speech": "",
+        "inventory": [
+          {
+            "id": "i_81",
+            "name": "dagger",
+            "type": "dagger",
+            "quantity": 1
+          },
+          {
+            "id": "i_82",
+            "name": "bread",
+            "type": "bread",
+            "quantity": 2
+          }
+        ],
+        "health": 67.01430010789625,
+        "maxHealth": 80,
+        "needs": {
+          "hunger": 0.3134126984126978,
+          "energy": 0.20985555555555538,
+          "social": 0.41500000000000264,
+          "comfort": 0,
+          "thirst": 0.41227272727272113
+        },
+        "wealth": 50
+      },
+      "actorPresent": true,
+      "pose": "stand",
+      "animation": "/Game/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Lgt_01.MM_HitReact_Front_Lgt_01",
+      "possessed": true,
+      "incapacitated": false,
+      "dead": false,
+      "attackSeq": 4,
+      "hitSeq": 1,
+      "playedAttacks": 4,
+      "playedHits": 1,
+      "pendingAttacks": 0,
+      "pendingHits": 0,
+      "blendDirection": 0,
+      "blendSpeed": 0,
+      "filteredBlendSpeed": 0,
+      "footSeparationCm": 33.859548815364874,
+      "skippedAttacks": 0,
+      "skippedHits": 0,
+      "speedCmPerSecond": 0,
+      "movementMode": 0,
+      "mesh": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple",
+      "animationTime": 0.2590253949165344,
+      "position": {
+        "x": 0,
+        "y": 0,
+        "z": 190
+      }
+    }
+  ],
+  "pawn": "TVCharacter_0",
+  "actorCount": 2,
+  "bodyCount": 2
+}
