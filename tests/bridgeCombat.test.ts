@@ -30,7 +30,11 @@ describe('melee intent from an external client', () => {
     expect(attack[0].actor).toBe(player.id);
     expect(attack[0].target).toBe(victim.id);
     // The victim knows who hit them, through the ordinary perception path — not a client message.
+    // Contact now occurs near .41s, after the .4s perception sample. Let the next
+    // normal sample observe the actual hit rather than accepting a startup-phase belief.
+    step(tw, .2);
     expect(Object.values(victim.knowledge).some(k => k.claim.actor === player.id)).toBe(true);
+    expect(Object.values(victim.knowledge).some(k => k.claim.eventId === attack[0].id && k.claim.actor === player.id)).toBe(true);
   });
 
   it('re-checks reach against canonical state rather than trusting the named body', () => {
