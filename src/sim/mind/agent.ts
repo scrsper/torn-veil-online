@@ -2541,6 +2541,7 @@ export class Simulation {
     if (!result.attempted) return result;
     const attacker = w.person(intent.attackerId)!, ab = w.body(intent.attackerBodyId)!, tb = w.body(intent.targetBodyId)!;
     ab.lastAttackAt = w.physicalTime; ab.pose = 'attack'; ab.poseUntil = w.physicalTime + 0.45; ab.attackTarget = tb.ownerId;
+    ab.attackSeq++;
     attacker.physiology.fatigue += result.exertionCost;
     syncNeeds(attacker);
     if (result.injury) applyInjury(tb, result.injury);
@@ -2566,11 +2567,11 @@ export class Simulation {
       const vp = victim as Person;
       if (vp.surrender || vp.custody?.active || tb.subduedUntil > w.physicalTime) return null;
     }
-    tb.health -= dmg; tb.lastHitAt = w.physicalTime;
+    tb.health -= dmg; tb.lastHitAt = w.physicalTime; tb.hitSeq++;
     const dx = tb.pos.x - ab.pos.x, dz = tb.pos.z - ab.pos.z; const d = Math.hypot(dx, dz) || 1; tb.vel.x += dx / d * 4; tb.vel.z += dz / d * 4;
     this.onHit?.(tb, { x: tb.pos.x, y: tb.pos.y + 1.2, z: tb.pos.z });
     const place = w.placeAt(tb.pos);
-    const ev = w.emit('attack', { actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, significance: 0.7, visibility: 26, loudness: 14, data: { combat, damage: Math.round(dmg), weapon: combat ? (combat.weaponId ? w.nameOf(combat.weaponId) : 'fists') : this.weaponName(attacker), health: Math.round(tb.health), intent }, summary: `${attacker.name} attacked ${victim.name}${place ? ' at ' + place.name : ''} (${Math.round(dmg)} dmg)` });
+    const ev = w.emit('attack', { actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, significance: 0.7, visibility: 26, loudness: 14, data: { combat, attackerBodyId: ab.id, targetBodyId: tb.id, attackSeq: ab.attackSeq, hitSeq: tb.hitSeq, damage: Math.round(dmg), weapon: combat ? (combat.weaponId ? w.nameOf(combat.weaponId) : 'fists') : this.weaponName(attacker), health: Math.round(tb.health), intent }, summary: `${attacker.name} attacked ${victim.name}${place ? ' at ' + place.name : ''} (${Math.round(dmg)} dmg)` });
     // v0.2.3: track this as part of a canonical Conflict (Constitution §11). Idempotent per pair.
     let conflict: Conflict | null = null;
     if (victim.kind === 'person') {

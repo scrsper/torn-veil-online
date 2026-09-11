@@ -75,6 +75,7 @@ export function meleeStrike(sim: Simulation, actor: Person, body: Body, targetBo
     // as one that lands. Matches the browser client, which poses and starts its cooldown before
     // it ever looks at what the cursor was over.
     body.pose = 'attack'; body.poseUntil = w.physicalTime + 0.45; body.lastAttackAt = w.physicalTime; body.attackTarget = null;
+    body.attackSeq++;
     return miss;
   }
   body.yaw = Math.atan2(-(target.pos.x - body.pos.x), -(target.pos.z - body.pos.z));
