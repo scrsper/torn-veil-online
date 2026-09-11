@@ -1869,7 +1869,7 @@
             "bodyId": "b_1",
             "entityId": "p_1",
             "name": "an unfamiliar person",
-            "distance": 2.015743999999998
+            "distance": 2.140903780351998
           }
         ],
         "bodies": [
@@ -1878,19 +1878,19 @@
             "entityId": "p_1",
             "name": "an unfamiliar person",
             "pos": {
-              "x": 20.015743999999998,
+              "x": 20.140903780351998,
               "y": 1,
               "z": 18
             },
             "velocity": {
-              "x": 0,
+              "x": 2.002556485632,
               "y": 0,
               "z": 0
             },
             "yaw": 1.5707963267948966,
             "pose": "downed",
             "activity": "downed",
-            "speed": 0,
+            "speed": 2.002556485632,
             "attackSeq": 1,
             "hitSeq": 4,
             "lastAttackAt": 4.789999999999999,

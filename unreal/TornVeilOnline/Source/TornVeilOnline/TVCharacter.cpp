@@ -61,8 +61,10 @@ ATVCharacter::ATVCharacter() {
     if (Prop.Succeeded()) { PropMaterial = UMaterialInstanceDynamic::Create(Prop.Object, this); OccupationProp->SetMaterial(0, PropMaterial); }
     static ConstructorHelpers::FObjectFinder<UAnimationAsset> Loc(TEXT("/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run")); Locomotion = Loc.Object;
     static ConstructorHelpers::FObjectFinder<UAnimationAsset> Atk(TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Attack/MM_Attack_01")); AttackAnimation = Atk.Object;
-    static ConstructorHelpers::FObjectFinder<UAnimationAsset> Hit(TEXT("/Game/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Lgt_01")); HitAnimation = Hit.Object;
-    static ConstructorHelpers::FObjectFinder<UAnimationAsset> Down(TEXT("/Game/Characters/Mannequins/Anims/Death/MM_Death_Front_01")); DownAnimation = Down.Object;
+    static ConstructorHelpers::FObjectFinder<UAnimationAsset> Hit(TEXT("/Game/TornVeil/Characters/Animations/A_TV_HitReact_Front")); HitAnimation = Hit.Object;
+    static ConstructorHelpers::FObjectFinder<UAnimationAsset> Down(TEXT("/Game/TornVeil/Characters/Animations/A_TV_Downed")); DownAnimation = Down.Object;
+    // Canonically visible bodies must finish their presentation even while camera-culled.
+    GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 }
 void ATVCharacter::BeginPlay() {
     Super::BeginPlay();
@@ -256,6 +258,8 @@ FString ATVCharacter::PresentationDiagnostics() const {
     const FVector LeftFoot = GetMesh()->GetSocketTransform(TEXT("foot_l"), RTS_Component).GetLocation();
     const FVector RightFoot = GetMesh()->GetSocketTransform(TEXT("foot_r"), RTS_Component).GetLocation();
     J->SetNumberField(TEXT("footSeparationCm"), FVector::Dist(LeftFoot, RightFoot));
+    J->SetNumberField(TEXT("headHeightCm"), GetMesh()->GetSocketTransform(TEXT("head"), RTS_Component).GetLocation().Z);
+    J->SetNumberField(TEXT("pelvisHeightCm"), GetMesh()->GetSocketTransform(TEXT("pelvis"), RTS_Component).GetLocation().Z);
     J->SetNumberField(TEXT("skippedAttacks"), SkippedAttackEvents); J->SetNumberField(TEXT("skippedHits"), SkippedHitEvents);
     J->SetNumberField(TEXT("speedCmPerSecond"), CanonicalVelocity.Size2D());
     J->SetNumberField(TEXT("movementMode"), static_cast<int32>(GetCharacterMovement()->MovementMode));

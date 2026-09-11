@@ -3,7 +3,7 @@
   "map": "/Game/TornVeil/Tests/Humanoid/UEDPIE_0_L_HumanoidAcceptance.L_HumanoidAcceptance",
   "playerId": "p_37",
   "controlledBodyId": "b_42",
-  "snapshotTick": 129.29999999999515,
+  "snapshotTick": 49.34999999999933,
   "nativeActors": [
     {
       "bodyId": "b_42",
@@ -22,15 +22,17 @@
       "blendDirection": 0,
       "blendSpeed": 0,
       "filteredBlendSpeed": 0,
-      "footSeparationCm": 43.689772058228286,
+      "footSeparationCm": 43.65789490083296,
+      "headHeightCm": 159.9329643121107,
+      "pelvisHeightCm": 93.89989274630938,
       "skippedAttacks": 0,
       "skippedHits": 0,
       "speedCmPerSecond": 0,
       "movementMode": 0,
       "mesh": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple",
-      "animationTime": 0.2580658495426178,
+      "animationTime": 0.07097003608942032,
       "position": {
-        "x": 1384.9508036466357,
+        "x": 1411.1884417451258,
         "y": 0,
         "z": 190
       }
@@ -45,7 +47,7 @@
         "entityId": "p_37",
         "name": "the Traveler",
         "pos": {
-          "x": 31.87200000000007,
+          "x": 32.13550000000007,
           "y": 1,
           "z": 18
         },
@@ -93,11 +95,11 @@
         "health": 80,
         "maxHealth": 80,
         "needs": {
-          "hunger": 0.3062698412698407,
-          "energy": 0.13138888888888875,
-          "social": 0.40750000000000247,
+          "hunger": 0.2405555555555553,
+          "energy": 0.055269907407407434,
+          "social": 0.34083333333333427,
           "comfort": 0,
-          "thirst": 0.3986363636363579
+          "thirst": 0.2756060606060584
         },
         "wealth": 50
       },
@@ -116,15 +118,17 @@
       "blendDirection": 0,
       "blendSpeed": 0,
       "filteredBlendSpeed": 0,
-      "footSeparationCm": 43.689772058228286,
+      "footSeparationCm": 43.65789490083296,
+      "headHeightCm": 159.9329643121107,
+      "pelvisHeightCm": 93.89989274630938,
       "skippedAttacks": 0,
       "skippedHits": 0,
       "speedCmPerSecond": 0,
       "movementMode": 0,
       "mesh": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple",
-      "animationTime": 0.2580658495426178,
+      "animationTime": 0.07097003608942032,
       "position": {
-        "x": 1384.9508036466357,
+        "x": 1411.1884417451258,
         "y": 0,
         "z": 190
       }

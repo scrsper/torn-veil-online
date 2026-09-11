@@ -9,6 +9,9 @@ _ha_capture = os.path.join(_ha_root, 'unreal/scripts/capture_humanoid_acceptance
 _ha_worlds = unreal.EditorLevelLibrary.get_pie_worlds(False)
 assert len(_ha_worlds) == 1, 'Start exactly one PIE session first'
 _ha_world = _ha_worlds[0]
+# Frame the canonical fixture along +X so knockback does not put the target behind
+# the starting camera. This changes only the viewer, never a canonical transform.
+unreal.GameplayStatics.get_player_controller(_ha_world,0).set_control_rotation(unreal.Rotator(pitch=-18,yaw=0,roll=0))
 _ha_checks = []
 _ha_reports = {}
 
@@ -70,7 +73,7 @@ def _ha_native_attack():
 def _ha_combat():
     r = _ha_capture_stage('native-attack')
     _ha_require(any('MM_Attack_01' in b['animation'] for b in r['nativeActors']), 'canonical native attack input plays attack animation')
-    _ha_require(any('MM_HitReact' in b['animation'] for b in r['nativeActors']), 'canonical hit plays target reaction')
+    _ha_require(any('A_TV_HitReact_Front' in b['animation'] for b in r['nativeActors']), 'canonical hit plays the full-pose target reaction')
 
 def _ha_burst_finished():
     r = _ha_capture_stage('burst-replayed')
@@ -86,7 +89,16 @@ def _ha_removed():
 
 def _ha_downed():
     r = _ha_capture_stage('downed')
-    _ha_require(any(b['incapacitated'] and 'MM_Death_Front_01' in b['animation'] for b in r['nativeActors']), 'canonical downing overrides ordinary locomotion with collapse animation')
+    _ha_require(any(b['incapacitated'] and 'A_TV_Downed' in b['animation'] for b in r['nativeActors']), 'canonical downing overrides ordinary locomotion with collapse animation')
+
+def _ha_downed_held():
+    actors=unreal.GameplayStatics.get_all_actors_of_class(_ha_world,unreal.TVCharacter)
+    current=[json.loads(a.presentation_diagnostics()) for a in actors]
+    target=next(b for b in current if b['bodyId']=='b_1')
+    if target['animationTime']<1.6 or target['headHeightCm']>=45 or target['pelvisHeightCm']>=45:return False
+    r=_ha_capture_stage('downed-held')
+    target=next(b for b in r['nativeActors'] if b['bodyId']=='b_1')
+    _ha_require(target['incapacitated'] and target['animationTime']>=1.6 and 0<target['headHeightCm']<45 and 0<target['pelvisHeightCm']<45, 'incapacitated body reaches and holds a measured prone pose')
 
 def _ha_death():
     r = _ha_capture_stage('death-withdrawal')
@@ -100,7 +112,7 @@ _ha_steps = [(.5, _ha_idle), (.3, lambda: _ha_command('TV.TestMoveKey W 1.8')), 
     (.25, lambda: _ha_capture_stage('burst-queued')), (3.5, _ha_burst_finished),
     (.2, lambda: _ha_stage('npc_attack')), (.25, lambda: _ha_capture_stage('npc-attack')),
     (1.0, lambda: _ha_stage('remove_twin')), (.4, _ha_removed), (.2, lambda: _ha_stage('down')),
-    (1.4, _ha_downed), (1.2, lambda: _ha_capture_stage('downed-held')), (.2, lambda: _ha_stage('death')), (.8, _ha_death)]
+    (1.4, _ha_downed), (1.2, _ha_downed_held), (.2, lambda: _ha_stage('death')), (.8, _ha_death)]
 _ha_stage('arrange_combat')
 _ha_index = 0
 _ha_busy = False

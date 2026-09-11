@@ -21,6 +21,13 @@ BS_Idle_Walk_Run uses X=direction and Y=speed in cm/s. Forward samples use X=0,
 with actual canonical horizontal velocity on Y. This corrects the former speed-on-X
 wiring, which selected idle samples while transforms moved.
 
+The owned hit clip bakes the existing additive reaction onto idle so runtime
+single-node playback does not flinch from the reference pose. The owned downed clip
+extends the short vendor death lead-in with a keyframed prone settle and removes root
+drift. Meshes always evaluate and refresh bones, including while outside the camera.
+The held-pose acceptance measures animation time and head/pelvis heights; selecting
+an asset alone is insufficient. No ragdoll or canonical displacement is introduced.
+
 CharacterMovement stays disabled, with no capsule collision. NPCs interpolate
 0.1-second snapshots; the controlled presentation reconciles using at most 0.1 second
 of canonical velocity. Local transforms never feed simulation outcomes. WASD/Shift
@@ -49,12 +56,15 @@ the collapse clip; this phase introduces no persistent corpse or delayed withdra
 5. Inspect [native acceptance](evidence/humanoid/native-acceptance.json) and per-stage
    JSON/PNGs: actual animation, Blend Space state, foot separation, possession,
    movement mode, canonical state and replay counts.
+   The supplementary `downed-side` evidence uses a fresh fixture with arrange_combat,
+   remove_twin and down stages, viewer yaw=90/pitch=-35 and HUD hidden. It captures
+   the held 1.7-second endpoint; the player retains ordinary canonical possession.
 6. End PIE, stop the fixture and restore the normal saved-world bridge.
 
 The separate `npx tsx src/headless/bridge/humanoidAcceptance.ts` exercises the
 canonical socket path on port 8799; it does not replace live native acceptance.
 
-Generic forward attack/hit/collapse clips, forward locomotion samples and simple
+Generic forward attack/hit clips, a basic keyframed collapse, forward locomotion and simple
 interpolation are v0.1 limitations. Starts/stops, pivots, stride/orientation warping,
 trajectory history and Motion Matching remain future upgrades. No traversal,
 new movement authority, weapon redesign or persistent corpse system was added.

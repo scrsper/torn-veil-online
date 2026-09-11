@@ -1,0 +1,54 @@
+{
+  "command": "npm test",
+  "testFilesPassed": 77,
+  "testFilesFailed": 1,
+  "testsPassed": 798,
+  "testsFailed": 2,
+  "durationSeconds": 1431.49,
+  "failures": [
+    {
+      "scenario": "family",
+      "file": "tests/motivated-lives-trace.test.ts",
+      "detail": "it produced more than one step: 1 distinct goal kind(s) (provide) across 1 adoption(s)"
+    },
+    {
+      "scenario": "favor",
+      "file": "tests/motivated-lives-trace.test.ts",
+      "detail": "the recipient came to know of it first-hand: Osric Bramble holds ev:e_30881"
+    }
+  ],
+  "reviewFix": {
+    "command": "npm exec -- vitest run tests/bridgeVisualState.test.ts tests/bridge.test.ts",
+    "typecheck": "passed",
+    "passed": 11,
+    "testFiles": 2
+  },
+  "resolution": {
+    "cause": "The broad downed guard froze NPC wait action clocks",
+    "fix": "Preserve downed pose inside the existing wait handler while allowing normal scheduling and body physics",
+    "baselineRevision": "410a0a7781b995cd3008ab40dcd425dd354749b7",
+    "baselineFamilyPassed": true,
+    "baselineFavorPassed": true,
+    "unchangedTraceRerun": {
+      "file": "tests/motivated-lives-trace.test.ts",
+      "passed": 4,
+      "durationSeconds": 288.94
+    },
+    "knockdownFocusedChecks": {
+      "passed": 32,
+      "typecheck": "passed"
+    },
+    "finalRelevantRegression": {
+      "passed": 71,
+      "command": "vitest run bridgeVisualState bridgeCombat combat-foundation bridge persistence player-embodiment conflict-resolution conflict-intent",
+      "durationSeconds": 9.76,
+      "files": 8
+    },
+    "canonicalSocketAcceptance": {
+      "passed": true,
+      "stages": 10,
+      "snapshots": 26
+    },
+    "status": "resolved: original four traces and final 71 relevant tests pass"
+  }
+}
