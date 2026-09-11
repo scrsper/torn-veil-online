@@ -1,0 +1,2231 @@
+{
+  "passed": true,
+  "scope": "canonical socket; native possession and animation verified separately",
+  "fixture": "disposable flat patch; seeded NPC goto plan; batched legal attacks",
+  "stages": [
+    {
+      "stage": "idle",
+      "snapshot": {
+        "version": 1,
+        "type": "snapshot",
+        "tick": 0.44999999999999996,
+        "worldTime": 8666427,
+        "ack": -1,
+        "playerId": "p_37",
+        "controlledBodyId": "b_42",
+        "knowledge": {
+          "avatarId": "p_37",
+          "visibleMechanisms": [],
+          "visibleComponents": [],
+          "people": [
+            {
+              "entityId": "p_1",
+              "name": "an unfamiliar person",
+              "knownName": false,
+              "identity": null,
+              "beliefs": [],
+              "observations": [],
+              "bodyId": "b_1",
+              "pos": {
+                "x": 20,
+                "y": 1,
+                "z": 18
+              },
+              "appearance": {
+                "skin": 14264712,
+                "hair": 1709330,
+                "shirt": 5917242,
+                "pants": 3090982,
+                "height": 1.06,
+                "build": 1.15,
+                "hatStyle": "none",
+                "apron": 7035464,
+                "beard": 1709330
+              },
+              "ageBand": "adult",
+              "visibleAction": "stand",
+              "speech": ""
+            },
+            {
+              "entityId": "p_1",
+              "name": "an unfamiliar person",
+              "knownName": false,
+              "identity": null,
+              "beliefs": [],
+              "observations": [],
+              "bodyId": "b_43",
+              "pos": {
+                "x": 22,
+                "y": 1,
+                "z": 18
+              },
+              "appearance": {
+                "skin": 14264712,
+                "hair": 1709330,
+                "shirt": 5917242,
+                "pants": 3090982,
+                "height": 1.06,
+                "build": 1.15,
+                "hatStyle": "none",
+                "apron": 7035464,
+                "beard": 1709330
+              },
+              "ageBand": "adult",
+              "visibleAction": "stand",
+              "speech": ""
+            }
+          ],
+          "mechanisms": []
+        },
+        "mechanisms": [],
+        "interactions": [
+          {
+            "id": "drop:i_82",
+            "kind": "drop",
+            "label": "Drop loaf of bread",
+            "slot": "drop"
+          },
+          {
+            "id": "consume:i_82",
+            "kind": "eat",
+            "label": "Eat loaf of bread",
+            "slot": "consume"
+          }
+        ],
+        "dialogue": null,
+        "talkTargets": [
+          {
+            "bodyId": "b_1",
+            "entityId": "p_1",
+            "name": "an unfamiliar person",
+            "distance": 2
+          }
+        ],
+        "bodies": [
+          {
+            "bodyId": "b_1",
+            "entityId": "p_1",
+            "name": "an unfamiliar person",
+            "pos": {
+              "x": 20,
+              "y": 1,
+              "z": 18
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": 2.6149466844884155,
+            "pose": "stand",
+            "activity": "stand",
+            "speed": 0,
+            "attackSeq": 0,
+            "hitSeq": 0,
+            "lastAttackAt": -99,
+            "lastHitAt": -99,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 1709330,
+              "shirt": 5917242,
+              "pants": 3090982,
+              "height": 1.06,
+              "build": 1.15,
+              "hatStyle": "none",
+              "apron": 7035464,
+              "beard": 1709330
+            },
+            "alive": true,
+            "speech": ""
+          },
+          {
+            "bodyId": "b_42",
+            "entityId": "p_37",
+            "name": "the Traveler",
+            "pos": {
+              "x": 18,
+              "y": 1,
+              "z": 18
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": -1.5707963267948966,
+            "pose": "stand",
+            "activity": "stand",
+            "speed": 0,
+            "attackSeq": 0,
+            "hitSeq": 0,
+            "lastAttackAt": -99,
+            "lastHitAt": -99,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 2759184,
+              "shirt": 3824250,
+              "pants": 3815994,
+              "height": 1,
+              "build": 1,
+              "hatStyle": "hood",
+              "hat": 3820122
+            },
+            "alive": true,
+            "speech": "",
+            "inventory": [
+              {
+                "id": "i_81",
+                "name": "dagger",
+                "type": "dagger",
+                "quantity": 1
+              },
+              {
+                "id": "i_82",
+                "name": "bread",
+                "type": "bread",
+                "quantity": 2
+              }
+            ],
+            "health": 80,
+            "maxHealth": 80,
+            "needs": {
+              "hunger": 0.3,
+              "energy": 0.2,
+              "social": 0.3,
+              "comfort": 0.2,
+              "thirst": 0.25
+            },
+            "wealth": 50
+          },
+          {
+            "bodyId": "b_43",
+            "entityId": "p_1",
+            "name": "an unfamiliar person",
+            "pos": {
+              "x": 22,
+              "y": 1,
+              "z": 18
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": 0,
+            "pose": "stand",
+            "activity": "stand",
+            "speed": 0,
+            "attackSeq": 0,
+            "hitSeq": 0,
+            "lastAttackAt": -99,
+            "lastHitAt": -99,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 1709330,
+              "shirt": 5917242,
+              "pants": 3090982,
+              "height": 1.06,
+              "build": 1.15,
+              "hatStyle": "none",
+              "apron": 7035464,
+              "beard": 1709330
+            },
+            "alive": true,
+            "speech": ""
+          }
+        ],
+        "events": []
+      }
+    },
+    {
+      "stage": "walk",
+      "snapshot": {
+        "version": 1,
+        "type": "snapshot",
+        "tick": 1.0000000000000002,
+        "worldTime": 8666460,
+        "ack": 10,
+        "playerId": "p_37",
+        "controlledBodyId": "b_42",
+        "knowledge": {
+          "avatarId": "p_37",
+          "visibleMechanisms": [],
+          "visibleComponents": [],
+          "people": [],
+          "mechanisms": []
+        },
+        "mechanisms": [],
+        "interactions": [
+          {
+            "id": "drop:i_82",
+            "kind": "drop",
+            "label": "Drop loaf of bread",
+            "slot": "drop"
+          },
+          {
+            "id": "consume:i_82",
+            "kind": "eat",
+            "label": "Eat loaf of bread",
+            "slot": "consume"
+          }
+        ],
+        "dialogue": null,
+        "talkTargets": [
+          {
+            "bodyId": "b_1",
+            "entityId": "p_1",
+            "name": "an unfamiliar person",
+            "distance": 2.6248809496813483
+          }
+        ],
+        "bodies": [
+          {
+            "bodyId": "b_42",
+            "entityId": "p_37",
+            "name": "the Traveler",
+            "pos": {
+              "x": 18,
+              "y": 1,
+              "z": 19.700000000000017
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 3.400000000000034
+            },
+            "yaw": -3.141592653589793,
+            "pose": "walk",
+            "activity": "walk",
+            "speed": 3.400000000000034,
+            "attackSeq": 0,
+            "hitSeq": 0,
+            "lastAttackAt": -99,
+            "lastHitAt": -99,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 2759184,
+              "shirt": 3824250,
+              "pants": 3815994,
+              "height": 1,
+              "build": 1,
+              "hatStyle": "hood",
+              "hat": 3820122
+            },
+            "alive": true,
+            "speech": "",
+            "inventory": [
+              {
+                "id": "i_81",
+                "name": "dagger",
+                "type": "dagger",
+                "quantity": 1
+              },
+              {
+                "id": "i_82",
+                "name": "bread",
+                "type": "bread",
+                "quantity": 2
+              }
+            ],
+            "health": 80,
+            "maxHealth": 80,
+            "needs": {
+              "hunger": 0.20134920634920628,
+              "energy": 0.05633935185185186,
+              "social": 0.30083333333333334,
+              "comfort": 0,
+              "thirst": 0.2019696969696969
+            },
+            "wealth": 50
+          }
+        ],
+        "events": []
+      }
+    },
+    {
+      "stage": "run",
+      "snapshot": {
+        "version": 1,
+        "type": "snapshot",
+        "tick": 1.6000000000000008,
+        "worldTime": 8666496,
+        "ack": 22,
+        "playerId": "p_37",
+        "controlledBodyId": "b_42",
+        "knowledge": {
+          "avatarId": "p_37",
+          "visibleMechanisms": [],
+          "visibleComponents": [],
+          "people": [],
+          "mechanisms": []
+        },
+        "mechanisms": [],
+        "interactions": [
+          {
+            "id": "drop:i_82",
+            "kind": "drop",
+            "label": "Drop loaf of bread",
+            "slot": "drop"
+          },
+          {
+            "id": "consume:i_82",
+            "kind": "eat",
+            "label": "Eat loaf of bread",
+            "slot": "consume"
+          }
+        ],
+        "dialogue": null,
+        "talkTargets": [],
+        "bodies": [
+          {
+            "bodyId": "b_42",
+            "entityId": "p_37",
+            "name": "the Traveler",
+            "pos": {
+              "x": 18,
+              "y": 1,
+              "z": 22.675000000000026
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 5.27000000000001
+            },
+            "yaw": -3.141592653589793,
+            "pose": "run",
+            "activity": "run",
+            "speed": 5.27000000000001,
+            "attackSeq": 0,
+            "hitSeq": 0,
+            "lastAttackAt": -99,
+            "lastHitAt": -99,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 2759184,
+              "shirt": 3824250,
+              "pants": 3815994,
+              "height": 1,
+              "build": 1,
+              "hatStyle": "hood",
+              "hat": 3820122
+            },
+            "alive": true,
+            "speech": "",
+            "inventory": [
+              {
+                "id": "i_81",
+                "name": "dagger",
+                "type": "dagger",
+                "quantity": 1
+              },
+              {
+                "id": "i_82",
+                "name": "bread",
+                "type": "bread",
+                "quantity": 2
+              }
+            ],
+            "health": 80,
+            "maxHealth": 80,
+            "needs": {
+              "hunger": 0.20134920634920628,
+              "energy": 0.05633935185185186,
+              "social": 0.30083333333333334,
+              "comfort": 0,
+              "thirst": 0.2019696969696969
+            },
+            "wealth": 50
+          }
+        ],
+        "events": []
+      }
+    },
+    {
+      "stage": "stop",
+      "snapshot": {
+        "version": 1,
+        "type": "snapshot",
+        "tick": 1.800000000000001,
+        "worldTime": 8666508,
+        "ack": 25,
+        "playerId": "p_37",
+        "controlledBodyId": "b_42",
+        "knowledge": {
+          "avatarId": "p_37",
+          "visibleMechanisms": [],
+          "visibleComponents": [],
+          "people": [],
+          "mechanisms": []
+        },
+        "mechanisms": [],
+        "interactions": [
+          {
+            "id": "drop:i_82",
+            "kind": "drop",
+            "label": "Drop loaf of bread",
+            "slot": "drop"
+          },
+          {
+            "id": "consume:i_82",
+            "kind": "eat",
+            "label": "Eat loaf of bread",
+            "slot": "consume"
+          }
+        ],
+        "dialogue": null,
+        "talkTargets": [],
+        "bodies": [
+          {
+            "bodyId": "b_42",
+            "entityId": "p_37",
+            "name": "the Traveler",
+            "pos": {
+              "x": 18,
+              "y": 1,
+              "z": 23.202000000000027
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": -3.141592653589793,
+            "pose": "stand",
+            "activity": "stand",
+            "speed": 0,
+            "attackSeq": 0,
+            "hitSeq": 0,
+            "lastAttackAt": -99,
+            "lastHitAt": -99,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 2759184,
+              "shirt": 3824250,
+              "pants": 3815994,
+              "height": 1,
+              "build": 1,
+              "hatStyle": "hood",
+              "hat": 3820122
+            },
+            "alive": true,
+            "speech": "",
+            "inventory": [
+              {
+                "id": "i_81",
+                "name": "dagger",
+                "type": "dagger",
+                "quantity": 1
+              },
+              {
+                "id": "i_82",
+                "name": "bread",
+                "type": "bread",
+                "quantity": 2
+              }
+            ],
+            "health": 80,
+            "maxHealth": 80,
+            "needs": {
+              "hunger": 0.20134920634920628,
+              "energy": 0.05633935185185186,
+              "social": 0.30083333333333334,
+              "comfort": 0,
+              "thirst": 0.2019696969696969
+            },
+            "wealth": 50
+          }
+        ],
+        "events": []
+      }
+    },
+    {
+      "stage": "npc_walk",
+      "snapshot": {
+        "version": 1,
+        "type": "snapshot",
+        "tick": 2.2,
+        "worldTime": 8666532,
+        "ack": 25,
+        "playerId": "p_37",
+        "controlledBodyId": "b_42",
+        "knowledge": {
+          "avatarId": "p_37",
+          "visibleMechanisms": [],
+          "visibleComponents": [],
+          "people": [
+            {
+              "entityId": "p_1",
+              "name": "an unfamiliar person",
+              "knownName": false,
+              "identity": null,
+              "beliefs": [],
+              "observations": [],
+              "bodyId": "b_1",
+              "pos": {
+                "x": 19.682271488043206,
+                "y": 1,
+                "z": 18.38491566551346
+              },
+              "appearance": {
+                "skin": 14264712,
+                "hair": 1709330,
+                "shirt": 5917242,
+                "pants": 3090982,
+                "height": 1.06,
+                "build": 1.15,
+                "hatStyle": "none",
+                "apron": 7035464,
+                "beard": 1709330
+              },
+              "ageBand": "adult",
+              "visibleAction": "walk",
+              "speech": ""
+            },
+            {
+              "entityId": "p_1",
+              "name": "an unfamiliar person",
+              "knownName": false,
+              "identity": null,
+              "beliefs": [],
+              "observations": [],
+              "bodyId": "b_43",
+              "pos": {
+                "x": 22,
+                "y": 1,
+                "z": 18
+              },
+              "appearance": {
+                "skin": 14264712,
+                "hair": 1709330,
+                "shirt": 5917242,
+                "pants": 3090982,
+                "height": 1.06,
+                "build": 1.15,
+                "hatStyle": "none",
+                "apron": 7035464,
+                "beard": 1709330
+              },
+              "ageBand": "adult",
+              "visibleAction": "stand",
+              "speech": ""
+            }
+          ],
+          "mechanisms": []
+        },
+        "mechanisms": [],
+        "interactions": [
+          {
+            "id": "drop:i_82",
+            "kind": "drop",
+            "label": "Drop loaf of bread",
+            "slot": "drop"
+          },
+          {
+            "id": "consume:i_82",
+            "kind": "eat",
+            "label": "Eat loaf of bread",
+            "slot": "consume"
+          }
+        ],
+        "dialogue": null,
+        "talkTargets": [
+          {
+            "bodyId": "b_1",
+            "entityId": "p_1",
+            "name": "an unfamiliar person",
+            "distance": 1.7257454705259325
+          }
+        ],
+        "bodies": [
+          {
+            "bodyId": "b_1",
+            "entityId": "p_1",
+            "name": "an unfamiliar person",
+            "pos": {
+              "x": 19.682271488043206,
+              "y": 1,
+              "z": 18.38491566551346
+            },
+            "velocity": {
+              "x": 1.8818099202880343,
+              "y": 0,
+              "z": 2.566104436756412
+            },
+            "yaw": 3.4988983433673413,
+            "pose": "walk",
+            "activity": "walk",
+            "speed": 3.1821534464000005,
+            "attackSeq": 0,
+            "hitSeq": 0,
+            "lastAttackAt": -99,
+            "lastHitAt": -99,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 1709330,
+              "shirt": 5917242,
+              "pants": 3090982,
+              "height": 1.06,
+              "build": 1.15,
+              "hatStyle": "none",
+              "apron": 7035464,
+              "beard": 1709330
+            },
+            "alive": true,
+            "speech": ""
+          },
+          {
+            "bodyId": "b_42",
+            "entityId": "p_37",
+            "name": "the Traveler",
+            "pos": {
+              "x": 18,
+              "y": 1,
+              "z": 18
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": -1.5707963267948966,
+            "pose": "stand",
+            "activity": "stand",
+            "speed": 0,
+            "attackSeq": 0,
+            "hitSeq": 0,
+            "lastAttackAt": -99,
+            "lastHitAt": -99,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 2759184,
+              "shirt": 3824250,
+              "pants": 3815994,
+              "height": 1,
+              "build": 1,
+              "hatStyle": "hood",
+              "hat": 3820122
+            },
+            "alive": true,
+            "speech": "",
+            "inventory": [
+              {
+                "id": "i_81",
+                "name": "dagger",
+                "type": "dagger",
+                "quantity": 1
+              },
+              {
+                "id": "i_82",
+                "name": "bread",
+                "type": "bread",
+                "quantity": 2
+              }
+            ],
+            "health": 80,
+            "maxHealth": 80,
+            "needs": {
+              "hunger": 0.20214285714285707,
+              "energy": 0.05625787037037038,
+              "social": 0.3016666666666667,
+              "comfort": 0,
+              "thirst": 0.20348484848484838
+            },
+            "wealth": 50
+          },
+          {
+            "bodyId": "b_43",
+            "entityId": "p_1",
+            "name": "an unfamiliar person",
+            "pos": {
+              "x": 22,
+              "y": 1,
+              "z": 18
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": 0,
+            "pose": "stand",
+            "activity": "stand",
+            "speed": 0,
+            "attackSeq": 0,
+            "hitSeq": 0,
+            "lastAttackAt": -99,
+            "lastHitAt": -99,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 1709330,
+              "shirt": 5917242,
+              "pants": 3090982,
+              "height": 1.06,
+              "build": 1.15,
+              "hatStyle": "none",
+              "apron": 7035464,
+              "beard": 1709330
+            },
+            "alive": true,
+            "speech": ""
+          }
+        ],
+        "events": []
+      }
+    },
+    {
+      "stage": "burst",
+      "snapshot": {
+        "version": 1,
+        "type": "snapshot",
+        "tick": 4.18,
+        "worldTime": 8666550,
+        "ack": 25,
+        "playerId": "p_37",
+        "controlledBodyId": "b_42",
+        "knowledge": {
+          "avatarId": "p_37",
+          "visibleMechanisms": [],
+          "visibleComponents": [],
+          "people": [
+            {
+              "entityId": "p_1",
+              "name": "an unfamiliar person",
+              "knownName": false,
+              "identity": null,
+              "beliefs": [],
+              "observations": [],
+              "bodyId": "b_1",
+              "pos": {
+                "x": 19.4,
+                "y": 1,
+                "z": 18
+              },
+              "appearance": {
+                "skin": 14264712,
+                "hair": 1709330,
+                "shirt": 5917242,
+                "pants": 3090982,
+                "height": 1.06,
+                "build": 1.15,
+                "hatStyle": "none",
+                "apron": 7035464,
+                "beard": 1709330
+              },
+              "ageBand": "adult",
+              "visibleAction": "hit",
+              "speech": "You'll regret that!"
+            },
+            {
+              "entityId": "p_1",
+              "name": "an unfamiliar person",
+              "knownName": false,
+              "identity": null,
+              "beliefs": [],
+              "observations": [],
+              "bodyId": "b_43",
+              "pos": {
+                "x": 22,
+                "y": 1,
+                "z": 18
+              },
+              "appearance": {
+                "skin": 14264712,
+                "hair": 1709330,
+                "shirt": 5917242,
+                "pants": 3090982,
+                "height": 1.06,
+                "build": 1.15,
+                "hatStyle": "none",
+                "apron": 7035464,
+                "beard": 1709330
+              },
+              "ageBand": "adult",
+              "visibleAction": "stand",
+              "speech": "You'll regret that!"
+            }
+          ],
+          "mechanisms": []
+        },
+        "mechanisms": [],
+        "interactions": [
+          {
+            "id": "drop:i_82",
+            "kind": "drop",
+            "label": "Drop loaf of bread",
+            "slot": "drop"
+          },
+          {
+            "id": "consume:i_82",
+            "kind": "eat",
+            "label": "Eat loaf of bread",
+            "slot": "consume"
+          }
+        ],
+        "dialogue": null,
+        "talkTargets": [
+          {
+            "bodyId": "b_1",
+            "entityId": "p_1",
+            "name": "an unfamiliar person",
+            "distance": 1.9327999999999967
+          }
+        ],
+        "bodies": [
+          {
+            "bodyId": "b_1",
+            "entityId": "p_1",
+            "name": "an unfamiliar person",
+            "pos": {
+              "x": 19.932799999999997,
+              "y": 1,
+              "z": 18
+            },
+            "velocity": {
+              "x": 2.7648,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": 1.5707963267948966,
+            "pose": "hit",
+            "activity": "hit",
+            "speed": 2.7648,
+            "attackSeq": 0,
+            "hitSeq": 3,
+            "lastAttackAt": -99,
+            "lastHitAt": 4.08,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 1709330,
+              "shirt": 5917242,
+              "pants": 3090982,
+              "height": 1.06,
+              "build": 1.15,
+              "hatStyle": "none",
+              "apron": 7035464,
+              "beard": 1709330
+            },
+            "alive": true,
+            "speech": "You'll regret that!"
+          },
+          {
+            "bodyId": "b_42",
+            "entityId": "p_37",
+            "name": "the Traveler",
+            "pos": {
+              "x": 18,
+              "y": 1,
+              "z": 18
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": -1.5707963267948966,
+            "pose": "attack",
+            "activity": "attack",
+            "speed": 0,
+            "attackSeq": 3,
+            "hitSeq": 0,
+            "lastAttackAt": 4.08,
+            "lastHitAt": -99,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 2759184,
+              "shirt": 3824250,
+              "pants": 3815994,
+              "height": 1,
+              "build": 1,
+              "hatStyle": "hood",
+              "hat": 3820122
+            },
+            "alive": true,
+            "speech": "",
+            "inventory": [
+              {
+                "id": "i_81",
+                "name": "dagger",
+                "type": "dagger",
+                "quantity": 1
+              },
+              {
+                "id": "i_82",
+                "name": "bread",
+                "type": "bread",
+                "quantity": 2
+              }
+            ],
+            "health": 80,
+            "maxHealth": 80,
+            "needs": {
+              "hunger": 0.20214285714285707,
+              "energy": 0.11400787037037037,
+              "social": 0.3016666666666667,
+              "comfort": 0,
+              "thirst": 0.20348484848484838
+            },
+            "wealth": 50
+          },
+          {
+            "bodyId": "b_43",
+            "entityId": "p_1",
+            "name": "an unfamiliar person",
+            "pos": {
+              "x": 22,
+              "y": 1,
+              "z": 18
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": 0,
+            "pose": "stand",
+            "activity": "stand",
+            "speed": 0,
+            "attackSeq": 0,
+            "hitSeq": 0,
+            "lastAttackAt": -99,
+            "lastHitAt": -99,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 1709330,
+              "shirt": 5917242,
+              "pants": 3090982,
+              "height": 1.06,
+              "build": 1.15,
+              "hatStyle": "none",
+              "apron": 7035464,
+              "beard": 1709330
+            },
+            "alive": true,
+            "speech": "You'll regret that!"
+          }
+        ],
+        "events": []
+      }
+    },
+    {
+      "stage": "npc_attack",
+      "snapshot": {
+        "version": 1,
+        "type": "snapshot",
+        "tick": 4.839999999999999,
+        "worldTime": 8666556,
+        "ack": 25,
+        "playerId": "p_37",
+        "controlledBodyId": "b_42",
+        "knowledge": {
+          "avatarId": "p_37",
+          "visibleMechanisms": [],
+          "visibleComponents": [],
+          "people": [
+            {
+              "entityId": "p_1",
+              "name": "an unfamiliar person",
+              "knownName": false,
+              "identity": null,
+              "beliefs": [
+                {
+                  "family": "disposition",
+                  "interpretation": "may not be restrained",
+                  "confidence": 0.37499999999999994,
+                  "learnedAt": 8666556,
+                  "source": {
+                    "type": "inferred",
+                    "viaEvent": "e_52"
+                  },
+                  "evidence": [
+                    {
+                      "key": "ev:e_47",
+                      "event": "e_50",
+                      "at": 8666556,
+                      "weight": -0.6
+                    }
+                  ]
+                },
+                {
+                  "family": "intent",
+                  "interpretation": "may be attacking",
+                  "confidence": 0.393939393939394,
+                  "learnedAt": 8666556,
+                  "source": {
+                    "type": "inferred",
+                    "viaEvent": "e_53"
+                  },
+                  "evidence": [
+                    {
+                      "key": "ev:e_47",
+                      "event": "e_50",
+                      "at": 8666556,
+                      "weight": 0.65
+                    }
+                  ]
+                },
+                {
+                  "family": "capability",
+                  "interpretation": "may be competent fighter",
+                  "confidence": 0.13043478260869565,
+                  "learnedAt": 8666556,
+                  "source": {
+                    "type": "inferred",
+                    "viaEvent": "e_54"
+                  },
+                  "evidence": [
+                    {
+                      "key": "ev:e_47",
+                      "event": "e_50",
+                      "at": 8666556,
+                      "weight": 0.15
+                    }
+                  ]
+                }
+              ],
+              "observations": [
+                {
+                  "key": "ev:e_47",
+                  "action": "attack",
+                  "at": 8666556,
+                  "confidence": 1,
+                  "source": {
+                    "type": "witnessed",
+                    "viaEvent": "e_50"
+                  }
+                }
+              ],
+              "bodyId": "b_1",
+              "pos": {
+                "x": 20.015743999999998,
+                "y": 1,
+                "z": 18
+              },
+              "appearance": {
+                "skin": 14264712,
+                "hair": 1709330,
+                "shirt": 5917242,
+                "pants": 3090982,
+                "height": 1.06,
+                "build": 1.15,
+                "hatStyle": "none",
+                "apron": 7035464,
+                "beard": 1709330
+              },
+              "ageBand": "adult",
+              "visibleAction": "attack",
+              "speech": "You'll regret that!"
+            },
+            {
+              "entityId": "p_1",
+              "name": "an unfamiliar person",
+              "knownName": false,
+              "identity": null,
+              "beliefs": [
+                {
+                  "family": "disposition",
+                  "interpretation": "may not be restrained",
+                  "confidence": 0.37499999999999994,
+                  "learnedAt": 8666556,
+                  "source": {
+                    "type": "inferred",
+                    "viaEvent": "e_52"
+                  },
+                  "evidence": [
+                    {
+                      "key": "ev:e_47",
+                      "event": "e_50",
+                      "at": 8666556,
+                      "weight": -0.6
+                    }
+                  ]
+                },
+                {
+                  "family": "intent",
+                  "interpretation": "may be attacking",
+                  "confidence": 0.393939393939394,
+                  "learnedAt": 8666556,
+                  "source": {
+                    "type": "inferred",
+                    "viaEvent": "e_53"
+                  },
+                  "evidence": [
+                    {
+                      "key": "ev:e_47",
+                      "event": "e_50",
+                      "at": 8666556,
+                      "weight": 0.65
+                    }
+                  ]
+                },
+                {
+                  "family": "capability",
+                  "interpretation": "may be competent fighter",
+                  "confidence": 0.13043478260869565,
+                  "learnedAt": 8666556,
+                  "source": {
+                    "type": "inferred",
+                    "viaEvent": "e_54"
+                  },
+                  "evidence": [
+                    {
+                      "key": "ev:e_47",
+                      "event": "e_50",
+                      "at": 8666556,
+                      "weight": 0.15
+                    }
+                  ]
+                }
+              ],
+              "observations": [
+                {
+                  "key": "ev:e_47",
+                  "action": "attack",
+                  "at": 8666556,
+                  "confidence": 1,
+                  "source": {
+                    "type": "witnessed",
+                    "viaEvent": "e_50"
+                  }
+                }
+              ],
+              "bodyId": "b_43",
+              "pos": {
+                "x": 22,
+                "y": 1,
+                "z": 18
+              },
+              "appearance": {
+                "skin": 14264712,
+                "hair": 1709330,
+                "shirt": 5917242,
+                "pants": 3090982,
+                "height": 1.06,
+                "build": 1.15,
+                "hatStyle": "none",
+                "apron": 7035464,
+                "beard": 1709330
+              },
+              "ageBand": "adult",
+              "visibleAction": "stand",
+              "speech": "You'll regret that!"
+            }
+          ],
+          "mechanisms": []
+        },
+        "mechanisms": [],
+        "interactions": [
+          {
+            "id": "drop:i_82",
+            "kind": "drop",
+            "label": "Drop loaf of bread",
+            "slot": "drop"
+          },
+          {
+            "id": "consume:i_82",
+            "kind": "eat",
+            "label": "Eat loaf of bread",
+            "slot": "consume"
+          }
+        ],
+        "dialogue": null,
+        "talkTargets": [
+          {
+            "bodyId": "b_1",
+            "entityId": "p_1",
+            "name": "an unfamiliar person",
+            "distance": 2.015743999999998
+          }
+        ],
+        "bodies": [
+          {
+            "bodyId": "b_1",
+            "entityId": "p_1",
+            "name": "an unfamiliar person",
+            "pos": {
+              "x": 20.015743999999998,
+              "y": 1,
+              "z": 18
+            },
+            "velocity": {
+              "x": 0.7962624000000001,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": 1.5707963267948966,
+            "pose": "attack",
+            "activity": "attack",
+            "speed": 0.7962624000000001,
+            "attackSeq": 1,
+            "hitSeq": 3,
+            "lastAttackAt": 4.789999999999999,
+            "lastHitAt": 4.08,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 1709330,
+              "shirt": 5917242,
+              "pants": 3090982,
+              "height": 1.06,
+              "build": 1.15,
+              "hatStyle": "none",
+              "apron": 7035464,
+              "beard": 1709330
+            },
+            "alive": true,
+            "speech": "You'll regret that!"
+          },
+          {
+            "bodyId": "b_42",
+            "entityId": "p_37",
+            "name": "the Traveler",
+            "pos": {
+              "x": 18,
+              "y": 1,
+              "z": 18
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": -1.5707963267948966,
+            "pose": "hit",
+            "activity": "hit",
+            "speed": 0,
+            "attackSeq": 3,
+            "hitSeq": 1,
+            "lastAttackAt": 4.08,
+            "lastHitAt": 4.789999999999999,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 2759184,
+              "shirt": 3824250,
+              "pants": 3815994,
+              "height": 1,
+              "build": 1,
+              "hatStyle": "hood",
+              "hat": 3820122
+            },
+            "alive": true,
+            "speech": "",
+            "inventory": [
+              {
+                "id": "i_81",
+                "name": "dagger",
+                "type": "dagger",
+                "quantity": 1
+              },
+              {
+                "id": "i_82",
+                "name": "bread",
+                "type": "bread",
+                "quantity": 2
+              }
+            ],
+            "health": 66.56781110776583,
+            "maxHealth": 80,
+            "needs": {
+              "hunger": 0.20214285714285707,
+              "energy": 0.11400787037037037,
+              "social": 0.3016666666666667,
+              "comfort": 0,
+              "thirst": 0.20348484848484838
+            },
+            "wealth": 50
+          },
+          {
+            "bodyId": "b_43",
+            "entityId": "p_1",
+            "name": "an unfamiliar person",
+            "pos": {
+              "x": 22,
+              "y": 1,
+              "z": 18
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": 0,
+            "pose": "stand",
+            "activity": "stand",
+            "speed": 0,
+            "attackSeq": 0,
+            "hitSeq": 0,
+            "lastAttackAt": -99,
+            "lastHitAt": -99,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 1709330,
+              "shirt": 5917242,
+              "pants": 3090982,
+              "height": 1.06,
+              "build": 1.15,
+              "hatStyle": "none",
+              "apron": 7035464,
+              "beard": 1709330
+            },
+            "alive": true,
+            "speech": "You'll regret that!"
+          }
+        ],
+        "events": []
+      }
+    },
+    {
+      "stage": "remove_twin",
+      "snapshot": {
+        "version": 1,
+        "type": "snapshot",
+        "tick": 4.939999999999999,
+        "worldTime": 8666562,
+        "ack": 25,
+        "playerId": "p_37",
+        "controlledBodyId": "b_42",
+        "knowledge": {
+          "avatarId": "p_37",
+          "visibleMechanisms": [],
+          "visibleComponents": [],
+          "people": [
+            {
+              "entityId": "p_1",
+              "name": "an unfamiliar person",
+              "knownName": false,
+              "identity": null,
+              "beliefs": [
+                {
+                  "family": "disposition",
+                  "interpretation": "may not be restrained",
+                  "confidence": 0.37499999999999994,
+                  "learnedAt": 8666556,
+                  "source": {
+                    "type": "inferred",
+                    "viaEvent": "e_52"
+                  },
+                  "evidence": [
+                    {
+                      "key": "ev:e_47",
+                      "event": "e_50",
+                      "at": 8666556,
+                      "weight": -0.6
+                    }
+                  ]
+                },
+                {
+                  "family": "intent",
+                  "interpretation": "may be attacking",
+                  "confidence": 0.393939393939394,
+                  "learnedAt": 8666556,
+                  "source": {
+                    "type": "inferred",
+                    "viaEvent": "e_53"
+                  },
+                  "evidence": [
+                    {
+                      "key": "ev:e_47",
+                      "event": "e_50",
+                      "at": 8666556,
+                      "weight": 0.65
+                    }
+                  ]
+                },
+                {
+                  "family": "capability",
+                  "interpretation": "may be competent fighter",
+                  "confidence": 0.13043478260869565,
+                  "learnedAt": 8666556,
+                  "source": {
+                    "type": "inferred",
+                    "viaEvent": "e_54"
+                  },
+                  "evidence": [
+                    {
+                      "key": "ev:e_47",
+                      "event": "e_50",
+                      "at": 8666556,
+                      "weight": 0.15
+                    }
+                  ]
+                }
+              ],
+              "observations": [
+                {
+                  "key": "ev:e_47",
+                  "action": "attack",
+                  "at": 8666556,
+                  "confidence": 1,
+                  "source": {
+                    "type": "witnessed",
+                    "viaEvent": "e_50"
+                  }
+                }
+              ],
+              "bodyId": "b_1",
+              "pos": {
+                "x": 20.015743999999998,
+                "y": 1,
+                "z": 18
+              },
+              "appearance": {
+                "skin": 14264712,
+                "hair": 1709330,
+                "shirt": 5917242,
+                "pants": 3090982,
+                "height": 1.06,
+                "build": 1.15,
+                "hatStyle": "none",
+                "apron": 7035464,
+                "beard": 1709330
+              },
+              "ageBand": "adult",
+              "visibleAction": "attack",
+              "speech": "You'll regret that!"
+            },
+            {
+              "entityId": "p_1",
+              "name": "an unfamiliar person",
+              "knownName": false,
+              "identity": null,
+              "beliefs": [
+                {
+                  "family": "disposition",
+                  "interpretation": "may not be restrained",
+                  "confidence": 0.37499999999999994,
+                  "learnedAt": 8666556,
+                  "source": {
+                    "type": "inferred",
+                    "viaEvent": "e_52"
+                  },
+                  "evidence": [
+                    {
+                      "key": "ev:e_47",
+                      "event": "e_50",
+                      "at": 8666556,
+                      "weight": -0.6
+                    }
+                  ]
+                },
+                {
+                  "family": "intent",
+                  "interpretation": "may be attacking",
+                  "confidence": 0.393939393939394,
+                  "learnedAt": 8666556,
+                  "source": {
+                    "type": "inferred",
+                    "viaEvent": "e_53"
+                  },
+                  "evidence": [
+                    {
+                      "key": "ev:e_47",
+                      "event": "e_50",
+                      "at": 8666556,
+                      "weight": 0.65
+                    }
+                  ]
+                },
+                {
+                  "family": "capability",
+                  "interpretation": "may be competent fighter",
+                  "confidence": 0.13043478260869565,
+                  "learnedAt": 8666556,
+                  "source": {
+                    "type": "inferred",
+                    "viaEvent": "e_54"
+                  },
+                  "evidence": [
+                    {
+                      "key": "ev:e_47",
+                      "event": "e_50",
+                      "at": 8666556,
+                      "weight": 0.15
+                    }
+                  ]
+                }
+              ],
+              "observations": [
+                {
+                  "key": "ev:e_47",
+                  "action": "attack",
+                  "at": 8666556,
+                  "confidence": 1,
+                  "source": {
+                    "type": "witnessed",
+                    "viaEvent": "e_50"
+                  }
+                }
+              ],
+              "bodyId": "b_43",
+              "pos": {
+                "x": 22,
+                "y": 1,
+                "z": 18
+              },
+              "appearance": {
+                "skin": 14264712,
+                "hair": 1709330,
+                "shirt": 5917242,
+                "pants": 3090982,
+                "height": 1.06,
+                "build": 1.15,
+                "hatStyle": "none",
+                "apron": 7035464,
+                "beard": 1709330
+              },
+              "ageBand": "adult",
+              "visibleAction": "stand",
+              "speech": "You'll regret that!"
+            }
+          ],
+          "mechanisms": []
+        },
+        "mechanisms": [],
+        "interactions": [
+          {
+            "id": "drop:i_82",
+            "kind": "drop",
+            "label": "Drop loaf of bread",
+            "slot": "drop"
+          },
+          {
+            "id": "consume:i_82",
+            "kind": "eat",
+            "label": "Eat loaf of bread",
+            "slot": "consume"
+          }
+        ],
+        "dialogue": null,
+        "talkTargets": [
+          {
+            "bodyId": "b_1",
+            "entityId": "p_1",
+            "name": "an unfamiliar person",
+            "distance": 2.015743999999998
+          }
+        ],
+        "bodies": [
+          {
+            "bodyId": "b_1",
+            "entityId": "p_1",
+            "name": "an unfamiliar person",
+            "pos": {
+              "x": 20.015743999999998,
+              "y": 1,
+              "z": 18
+            },
+            "velocity": {
+              "x": 0.28665446400000005,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": 1.5707963267948966,
+            "pose": "attack",
+            "activity": "attack",
+            "speed": 0.28665446400000005,
+            "attackSeq": 1,
+            "hitSeq": 3,
+            "lastAttackAt": 4.789999999999999,
+            "lastHitAt": 4.08,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 1709330,
+              "shirt": 5917242,
+              "pants": 3090982,
+              "height": 1.06,
+              "build": 1.15,
+              "hatStyle": "none",
+              "apron": 7035464,
+              "beard": 1709330
+            },
+            "alive": true,
+            "speech": "You'll regret that!"
+          },
+          {
+            "bodyId": "b_42",
+            "entityId": "p_37",
+            "name": "the Traveler",
+            "pos": {
+              "x": 18,
+              "y": 1,
+              "z": 18
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": -1.5707963267948966,
+            "pose": "hit",
+            "activity": "hit",
+            "speed": 0,
+            "attackSeq": 3,
+            "hitSeq": 1,
+            "lastAttackAt": 4.08,
+            "lastHitAt": 4.789999999999999,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 2759184,
+              "shirt": 3824250,
+              "pants": 3815994,
+              "height": 1,
+              "build": 1,
+              "hatStyle": "hood",
+              "hat": 3820122
+            },
+            "alive": true,
+            "speech": "",
+            "inventory": [
+              {
+                "id": "i_81",
+                "name": "dagger",
+                "type": "dagger",
+                "quantity": 1
+              },
+              {
+                "id": "i_82",
+                "name": "bread",
+                "type": "bread",
+                "quantity": 2
+              }
+            ],
+            "health": 66.56781110776583,
+            "maxHealth": 80,
+            "needs": {
+              "hunger": 0.20214285714285707,
+              "energy": 0.11400787037037037,
+              "social": 0.3016666666666667,
+              "comfort": 0,
+              "thirst": 0.20348484848484838
+            },
+            "wealth": 50
+          }
+        ],
+        "events": []
+      }
+    },
+    {
+      "stage": "down",
+      "snapshot": {
+        "version": 1,
+        "type": "snapshot",
+        "tick": 5.039999999999998,
+        "worldTime": 8666568,
+        "ack": 25,
+        "playerId": "p_37",
+        "controlledBodyId": "b_42",
+        "knowledge": {
+          "avatarId": "p_37",
+          "visibleMechanisms": [],
+          "visibleComponents": [],
+          "people": [
+            {
+              "entityId": "p_1",
+              "name": "an unfamiliar person",
+              "knownName": false,
+              "identity": null,
+              "beliefs": [
+                {
+                  "family": "disposition",
+                  "interpretation": "may not be restrained",
+                  "confidence": 0.37499999999999994,
+                  "learnedAt": 8666556,
+                  "source": {
+                    "type": "inferred",
+                    "viaEvent": "e_52"
+                  },
+                  "evidence": [
+                    {
+                      "key": "ev:e_47",
+                      "event": "e_50",
+                      "at": 8666556,
+                      "weight": -0.6
+                    }
+                  ]
+                },
+                {
+                  "family": "intent",
+                  "interpretation": "may be attacking",
+                  "confidence": 0.393939393939394,
+                  "learnedAt": 8666556,
+                  "source": {
+                    "type": "inferred",
+                    "viaEvent": "e_53"
+                  },
+                  "evidence": [
+                    {
+                      "key": "ev:e_47",
+                      "event": "e_50",
+                      "at": 8666556,
+                      "weight": 0.65
+                    }
+                  ]
+                },
+                {
+                  "family": "capability",
+                  "interpretation": "may be competent fighter",
+                  "confidence": 0.13043478260869565,
+                  "learnedAt": 8666556,
+                  "source": {
+                    "type": "inferred",
+                    "viaEvent": "e_54"
+                  },
+                  "evidence": [
+                    {
+                      "key": "ev:e_47",
+                      "event": "e_50",
+                      "at": 8666556,
+                      "weight": 0.15
+                    }
+                  ]
+                }
+              ],
+              "observations": [
+                {
+                  "key": "ev:e_47",
+                  "action": "attack",
+                  "at": 8666556,
+                  "confidence": 1,
+                  "source": {
+                    "type": "witnessed",
+                    "viaEvent": "e_50"
+                  }
+                }
+              ],
+              "bodyId": "b_1",
+              "pos": {
+                "x": 20.015743999999998,
+                "y": 1,
+                "z": 18
+              },
+              "appearance": {
+                "skin": 14264712,
+                "hair": 1709330,
+                "shirt": 5917242,
+                "pants": 3090982,
+                "height": 1.06,
+                "build": 1.15,
+                "hatStyle": "none",
+                "apron": 7035464,
+                "beard": 1709330
+              },
+              "ageBand": "adult",
+              "visibleAction": "downed",
+              "speech": "You'll regret that!"
+            }
+          ],
+          "mechanisms": []
+        },
+        "mechanisms": [],
+        "interactions": [
+          {
+            "id": "drop:i_82",
+            "kind": "drop",
+            "label": "Drop loaf of bread",
+            "slot": "drop"
+          },
+          {
+            "id": "consume:i_82",
+            "kind": "eat",
+            "label": "Eat loaf of bread",
+            "slot": "consume"
+          }
+        ],
+        "dialogue": null,
+        "talkTargets": [
+          {
+            "bodyId": "b_1",
+            "entityId": "p_1",
+            "name": "an unfamiliar person",
+            "distance": 2.140903780351998
+          }
+        ],
+        "bodies": [
+          {
+            "bodyId": "b_1",
+            "entityId": "p_1",
+            "name": "an unfamiliar person",
+            "pos": {
+              "x": 20.140903780351998,
+              "y": 1,
+              "z": 18
+            },
+            "velocity": {
+              "x": 2.002556485632,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": 1.5707963267948966,
+            "pose": "downed",
+            "activity": "downed",
+            "speed": 2.002556485632,
+            "attackSeq": 1,
+            "hitSeq": 4,
+            "lastAttackAt": 4.789999999999999,
+            "lastHitAt": 4.989999999999998,
+            "dead": false,
+            "incapacitated": true,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 1709330,
+              "shirt": 5917242,
+              "pants": 3090982,
+              "height": 1.06,
+              "build": 1.15,
+              "hatStyle": "none",
+              "apron": 7035464,
+              "beard": 1709330
+            },
+            "alive": true,
+            "speech": "You'll regret that!"
+          },
+          {
+            "bodyId": "b_42",
+            "entityId": "p_37",
+            "name": "the Traveler",
+            "pos": {
+              "x": 18,
+              "y": 1,
+              "z": 18
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": -1.5707963267948966,
+            "pose": "hit",
+            "activity": "hit",
+            "speed": 0,
+            "attackSeq": 3,
+            "hitSeq": 1,
+            "lastAttackAt": 4.08,
+            "lastHitAt": 4.789999999999999,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 2759184,
+              "shirt": 3824250,
+              "pants": 3815994,
+              "height": 1,
+              "build": 1,
+              "hatStyle": "hood",
+              "hat": 3820122
+            },
+            "alive": true,
+            "speech": "",
+            "inventory": [
+              {
+                "id": "i_81",
+                "name": "dagger",
+                "type": "dagger",
+                "quantity": 1
+              },
+              {
+                "id": "i_82",
+                "name": "bread",
+                "type": "bread",
+                "quantity": 2
+              }
+            ],
+            "health": 66.56781110776583,
+            "maxHealth": 80,
+            "needs": {
+              "hunger": 0.20214285714285707,
+              "energy": 0.11400787037037037,
+              "social": 0.3016666666666667,
+              "comfort": 0,
+              "thirst": 0.20348484848484838
+            },
+            "wealth": 50
+          }
+        ],
+        "events": []
+      }
+    },
+    {
+      "stage": "death",
+      "snapshot": {
+        "version": 1,
+        "type": "snapshot",
+        "tick": 5.139999999999998,
+        "worldTime": 8666574,
+        "ack": 25,
+        "playerId": "p_37",
+        "controlledBodyId": "b_42",
+        "knowledge": {
+          "avatarId": "p_37",
+          "visibleMechanisms": [],
+          "visibleComponents": [],
+          "people": [
+            {
+              "entityId": "p_1",
+              "name": "an unfamiliar person",
+              "knownName": false,
+              "identity": null,
+              "beliefs": [
+                {
+                  "family": "disposition",
+                  "interpretation": "may not be restrained",
+                  "confidence": 0.37499999999999994,
+                  "learnedAt": 8666556,
+                  "source": {
+                    "type": "inferred",
+                    "viaEvent": "e_52"
+                  },
+                  "evidence": [
+                    {
+                      "key": "ev:e_47",
+                      "event": "e_50",
+                      "at": 8666556,
+                      "weight": -0.6
+                    }
+                  ]
+                },
+                {
+                  "family": "intent",
+                  "interpretation": "may be attacking",
+                  "confidence": 0.393939393939394,
+                  "learnedAt": 8666556,
+                  "source": {
+                    "type": "inferred",
+                    "viaEvent": "e_53"
+                  },
+                  "evidence": [
+                    {
+                      "key": "ev:e_47",
+                      "event": "e_50",
+                      "at": 8666556,
+                      "weight": 0.65
+                    }
+                  ]
+                },
+                {
+                  "family": "capability",
+                  "interpretation": "may be competent fighter",
+                  "confidence": 0.13043478260869565,
+                  "learnedAt": 8666556,
+                  "source": {
+                    "type": "inferred",
+                    "viaEvent": "e_54"
+                  },
+                  "evidence": [
+                    {
+                      "key": "ev:e_47",
+                      "event": "e_50",
+                      "at": 8666556,
+                      "weight": 0.15
+                    }
+                  ]
+                }
+              ],
+              "observations": [
+                {
+                  "key": "ev:e_47",
+                  "action": "attack",
+                  "at": 8666556,
+                  "confidence": 1,
+                  "source": {
+                    "type": "witnessed",
+                    "viaEvent": "e_50"
+                  }
+                }
+              ],
+              "bodyId": "b_1",
+              "pos": {
+                "x": 20.015743999999998,
+                "y": 1,
+                "z": 18
+              },
+              "appearance": {
+                "skin": 14264712,
+                "hair": 1709330,
+                "shirt": 5917242,
+                "pants": 3090982,
+                "height": 1.06,
+                "build": 1.15,
+                "hatStyle": "none",
+                "apron": 7035464,
+                "beard": 1709330
+              },
+              "ageBand": "adult",
+              "visibleAction": "dead",
+              "speech": "You'll regret that!"
+            }
+          ],
+          "mechanisms": []
+        },
+        "mechanisms": [],
+        "interactions": [
+          {
+            "id": "steal:i_4",
+            "kind": "steal",
+            "label": "Take a heavy hammer",
+            "slot": "nearby"
+          },
+          {
+            "id": "drop:i_82",
+            "kind": "drop",
+            "label": "Drop loaf of bread",
+            "slot": "drop"
+          },
+          {
+            "id": "consume:i_82",
+            "kind": "eat",
+            "label": "Eat loaf of bread",
+            "slot": "consume"
+          }
+        ],
+        "dialogue": null,
+        "talkTargets": [],
+        "bodies": [
+          {
+            "bodyId": "b_42",
+            "entityId": "p_37",
+            "name": "the Traveler",
+            "pos": {
+              "x": 18,
+              "y": 1,
+              "z": 18
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": -1.5707963267948966,
+            "pose": "hit",
+            "activity": "hit",
+            "speed": 0,
+            "attackSeq": 3,
+            "hitSeq": 1,
+            "lastAttackAt": 4.08,
+            "lastHitAt": 4.789999999999999,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 2759184,
+              "shirt": 3824250,
+              "pants": 3815994,
+              "height": 1,
+              "build": 1,
+              "hatStyle": "hood",
+              "hat": 3820122
+            },
+            "alive": true,
+            "speech": "",
+            "inventory": [
+              {
+                "id": "i_81",
+                "name": "dagger",
+                "type": "dagger",
+                "quantity": 1
+              },
+              {
+                "id": "i_82",
+                "name": "bread",
+                "type": "bread",
+                "quantity": 2
+              }
+            ],
+            "health": 66.56781110776583,
+            "maxHealth": 80,
+            "needs": {
+              "hunger": 0.20214285714285707,
+              "energy": 0.11400787037037037,
+              "social": 0.3016666666666667,
+              "comfort": 0,
+              "thirst": 0.20348484848484838
+            },
+            "wealth": 50
+          }
+        ],
+        "events": []
+      }
+    }
+  ],
+  "actions": [
+    {
+      "name": "burst",
+      "attackerBodyId": "b_42",
+      "targetBodyId": "b_1",
+      "before": {
+        "attackSeq": 0,
+        "hitSeq": 0
+      },
+      "after": {
+        "attackSeq": 3,
+        "hitSeq": 3
+      },
+      "count": 3
+    },
+    {
+      "name": "npc_attack",
+      "attackerBodyId": "b_1",
+      "targetBodyId": "b_42",
+      "before": {
+        "attackSeq": 0,
+        "hitSeq": 0
+      },
+      "after": {
+        "attackSeq": 1,
+        "hitSeq": 1
+      },
+      "count": 1
+    },
+    {
+      "name": "remove_twin",
+      "removedBodyId": "b_43",
+      "survivingBodyId": "b_1",
+      "sameEntityId": "p_1"
+    },
+    {
+      "name": "down",
+      "eventId": "e_56",
+      "bodyId": "b_1",
+      "pose": "downed",
+      "present": true
+    },
+    {
+      "name": "death",
+      "eventId": "e_63",
+      "bodyId": "b_1",
+      "pose": "dead",
+      "present": false
+    }
+  ]
+}

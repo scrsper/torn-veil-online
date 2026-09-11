@@ -1,6 +1,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "TVHumanoidVisualState.h"
 #include "TVCharacter.generated.h"
 
 class USpringArmComponent;
@@ -33,6 +34,13 @@ public:
     float Health = 100, MaxHealth = 100;
     bool bIncapacitated = false;
     bool bCanonicalPlayer = false;
+    UPROPERTY(BlueprintReadOnly, Category="Torn Veil|Presentation") int64 PresentationAttackSeq = 0;
+    UPROPERTY(BlueprintReadOnly, Category="Torn Veil|Presentation") int64 PresentationHitSeq = 0;
+    UPROPERTY(BlueprintReadOnly, Category="Torn Veil|Presentation") int32 PendingAttackPresentation = 0;
+    UPROPERTY(BlueprintReadOnly, Category="Torn Veil|Presentation") int32 PendingHitPresentation = 0;
+    UFUNCTION(BlueprintPure, Category="Torn Veil|Presentation") FString PresentationAnimation() const;
+    /** Read-only runtime evidence. These observations never feed canonical decisions. */
+    UFUNCTION(BlueprintPure, Category="Torn Veil|Presentation") FString PresentationDiagnostics() const;
     FVector IntentDirection() const;
     bool IsSprinting() const { return bSprint; }
     /** The same two handlers the Tab and LMB/X bindings call — reflected so a test can press them
@@ -66,6 +74,8 @@ public:
     UPROPERTY(VisibleAnywhere) TObjectPtr<UCameraComponent> Camera;
     UPROPERTY(VisibleAnywhere) TObjectPtr<UTextRenderComponent> Nameplate;
 private:
+    int64 PlayedAttackEvents = 0, PlayedHitEvents = 0;
+    int64 SkippedAttackEvents = 0, SkippedHitEvents = 0;
     /** Renderer-owned attachments. Their palette and shape are derived from the canonical
      * appearance data in Project(); they are never a source of age, identity or occupation. */
     UPROPERTY() TObjectPtr<UStaticMeshComponent> HairProxy;
@@ -82,12 +92,13 @@ private:
     UPROPERTY() TObjectPtr<UAnimationAsset> CurrentAnimation;
     FVector TargetPosition = FVector::ZeroVector, PreviousPosition = FVector::ZeroVector, CanonicalVelocity = FVector::ZeroVector;
     float TargetYaw = 0, SnapshotAge = 0, ZoomTarget = 340, ForwardAxis = 0, RightAxis = 0;
-    /** Canonical walk speed (Unreal units/s) and sprint multiplier, both taken from the snapshot. */
-    float CanonicalSpeed = 340, CanonicalSprintMultiplier = 1.55f;
-    /** Canonical timestamps of this body's last swing and last flinch. A swing lasts 0.45 s and a
-     * flinch 0.4 s, so either can begin and end between two snapshots; comparing the timestamp
-     * rather than the pose is what lets a second blow replay the montage. */
+    /** Presentation speed derived from the canonical horizontal velocity (Unreal units/s). */
+    float CanonicalSpeed = 0;
+    /** Canonical timestamps retained for recency/debugging; sequence counters drive replay. */
     float LastAttackAt = -99, LastHitAt = -99, PlayedAttackAt = -99, PlayedHitAt = -99;
+    int64 AttackSeq = 0, HitSeq = 0;
+    int32 PendingAttackEvents = 0, PendingHitEvents = 0;
+    float PresentationAnimationAge = 99.f;
     bool bSprint = false, bProjected = false;
 public:
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
@@ -98,7 +109,7 @@ private:
     void Turn(float Value); void Look(float Value); void Zoom(float Value);
     void SprintOn(); void SprintOff();
     void Animate(float Speed);
-    void ApplyAppearance(const TSharedPtr<class FJsonObject>& Data);
+    void ApplyAppearance(const FTVAppearanceVisualState& Appearance);
     /** A recognised class is a reading of someone's life, not a badge they wear. A passer-by cannot
      *  see it, so it belongs to the developer inspector rather than to every nameplate in the vale.
      *  -1 means "never applied", so the first call always writes. */

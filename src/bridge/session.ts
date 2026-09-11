@@ -4,12 +4,12 @@ import { RegionStream } from './regions';
 import { deserialize, serialize } from '../sim/persist/save';
 import { GameSim, type PersonIntent } from '../sim/runtime/gameSim';
 import { knownName } from '../sim/mind/people';
-import { movementMultiplier } from '../sim/core/attributes';
+import { humanoidVisualState } from './visualState';
 import { combatReach } from '../sim/physical/combat';
 import { World } from '../sim/core/world';
 import { Simulation } from '../sim/mind/agent';
 import { generateVillage } from '../sim/world/village';
-import { moveByIntent, SPRINT_MULTIPLIER } from '../sim/physical/input';
+import { moveByIntent } from '../sim/physical/input';
 import { meleeStrike, MELEE_REACH, MELEE_COOLDOWN } from '../sim/physical/melee';
 import { recogniseClass, type RecognisedClass } from '../sim/mind/vocation';
 import { handInteractions, performHandInteraction } from '../sim/physical/hand';
@@ -126,9 +126,10 @@ export class BridgeSession {
     const visible = new Set(knowledge.people.map(p => p.bodyId)); if(controlledBodyId) visible.add(controlledBodyId);
     return { version: BRIDGE_VERSION, type: 'snapshot', tick: w.physicalTime, worldTime: w.now, ack: this.sequence, playerId: p.id, controlledBodyId,
       knowledge, mechanisms: mechanismPanel(w, p), interactions: handInteractions(this.sim, p), dialogue: this.dialogueProjection(), talkTargets: this.talkTargets(p),
-      bodies: w.activeBodies().filter(b => visible.has(b.id)).map(b => ({ bodyId: b.id, entityId: b.ownerId,
-        name: knownName(p, b.ownerId), activity: visibleActivity(w.person(b.ownerId), b.pose), speed: b.speed * movementMultiplier(b, w.person(b.ownerId)), sprintMultiplier: SPRINT_MULTIPLIER, lastAttackAt: b.lastAttackAt, lastHitAt: b.lastHitAt, incapacitated: b.pose === 'downed', alive: !b.dead, pos: { ...b.pos }, velocity: { ...b.vel }, yaw: b.yaw, pose: b.pose,
-        appearance: { ...w.person(b.ownerId)?.appearance }, dead: b.dead,
+      bodies: w.activeBodies().filter(b => b.present && b.shape === 'humanoid' && visible.has(b.id)).map(b => ({
+        ...humanoidVisualState(b, knownName(p, b.ownerId), visibleActivity(w.person(b.ownerId), b.pose), w.person(b.ownerId)?.appearance),
+        incapacitated: b.pose === 'downed' || b.subduedUntil > w.physicalTime || !!w.person(b.ownerId)?.surrender || !!w.person(b.ownerId)?.custody?.active,
+        alive: !b.dead,
         speech: w.person(b.ownerId)?.speech?.text ?? '',
         ...(b.ownerId === p.id ? { inventory: p.inventory.flatMap(id => { const i=w.item(id); return i ? [{ id:i.id,name:i.type,type:i.type,quantity:i.quantity }] : []; }), health: b.health, maxHealth: b.maxHealth, needs: { ...p.needs }, wealth: p.wealth } : {}),
       })), events: [] };
@@ -146,13 +147,10 @@ export class BridgeSession {
       talkTargets: this.talkTargets(w.person(w.playerId)!),
       bodies: w.bodies().filter(b => b.shape === 'humanoid' && b.present).flatMap(b => {
         const p = w.person(b.ownerId); if (!p) return [];
-        return [{ bodyId: b.id, entityId: p.id, name: p.name, pos: b.pos, velocity: b.vel, yaw: b.yaw,
-          // Canonical, so the client never holds a movement constant of its own to predict with.
-          speed: b.speed * movementMultiplier(b, p), sprintMultiplier: SPRINT_MULTIPLIER, reach: w.person(b.ownerId) ? combatReach(w, w.person(b.ownerId)!) : MELEE_REACH, cooldown: MELEE_COOLDOWN,
-          // Combat state is read, never authored, by the presentation layer. `lastAttackAt` and
-          // `lastHitAt` let it retrigger a swing/flinch that starts and ends between snapshots.
-          attackTarget: b.attackTarget, lastAttackAt: b.lastAttackAt, lastHitAt: b.lastHitAt,
-          pose: b.pose, health: b.health, maxHealth: b.maxHealth, alive: p.alive, dead: b.dead,
+        return [{ ...humanoidVisualState(b, p.name, visibleActivity(p, b.pose), p.appearance),
+          reach: w.person(b.ownerId) ? combatReach(w, w.person(b.ownerId)!) : MELEE_REACH, cooldown: MELEE_COOLDOWN,
+          attackTarget: b.attackTarget,
+          health: b.health, maxHealth: b.maxHealth, alive: p.alive,
           incapacitated: b.pose === 'downed' || b.subduedUntil > w.physicalTime || !!p.surrender || !!p.custody?.active,
           occupation: p.occupation, age: p.age, gender: p.gender, slug: p.slug ?? null, appearance: p.appearance,
           // Capability before class (Constitution §12): derived, never assigned, and carrying the

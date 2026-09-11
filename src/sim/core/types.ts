@@ -87,6 +87,11 @@ export interface Body extends Entity {
   dead: boolean;
   lastHitAt: number;            // physical time
   lastAttackAt: number;
+  /** Durable per-manifestation counts of accepted physical swings and applied hits.
+   * Unlike timestamps these preserve multiplicity within a coarse simulation step.
+   * Presentation observes them; they never influence combat eligibility or outcomes. */
+  attackSeq: number;
+  hitSeq: number;
   /** Who this body's current 'attack' pose is actually directed at, or null when not attacking.
    * v0.2.1 Priority 7 fix: nearby bystanders used to read ANY body in 'attack' pose within 3
    * units as "attacking me" (see mind/agent.ts's threat assessment), so an ally fighting a

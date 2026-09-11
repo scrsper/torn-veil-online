@@ -1,6 +1,29 @@
-# Playable Seeded World v0.1
+# Playable humanoid and PCG dwelling v0.1
 
-Current branch: `codex/playable-bridge-startup-fix`, from merged main `09cf24d`. No PR or merge. Original milestone report: `docs/PLAYABLE_SEEDED_WORLD.md`; detailed journey evidence: `docs/playable-world-acceptance.json`.
+Current branch: `astra/playable-humanoid-pcg-dwelling-v0-1`, from main `410a0a7`.
+Canonical checkout: `C:/Users/green/Desktop/projects/torn-veil-online`; the Documents
+checkout is stale. No PR or merge. Current phase: `docs/PLAYABLE_HUMANOID_PCG_DWELLING.md`.
+
+- Shared Manny presentation for possessed and NPC bodyIds; typed parsing, correct 2D
+  locomotion Blend Space axes, canonical combat counters and bounded one-shot replay.
+  Local CharacterMovement authority remains disabled. Native acceptance: 19 checks passed,
+  including measured prone bone heights. Owned clips bake the additive hit onto idle and
+  extend the death lead-in with a keyframed settle; vendor animations remain untouched.
+- Canonical knock-downs survive NPC wait replanning. Death still withdraws the body;
+  persistent corpse semantics are deferred. Body-specific withdrawal leaves siblings intact.
+- Five native PCG dwelling graphs and an isolated test map use Quaternius modules plus
+  pantry barrels. 6 × 8 m input produces measured 6.4 × 8.2 m geometry, at most 20 cm
+  excursion. Actual instance hashes match after cleanup/regeneration/package disk reload.
+- Vendor assets, Ashford and the separate GameAnimationSample remain untouched.
+- Final relevant canonical regression: 71 tests passed; typecheck/production build,
+  UE editor target and native parser/queue automation passed. The initial full suite
+  found two trace regressions (798 passed); a narrower wait-handler fix resolved them,
+  with all four unchanged motivated-life traces passing. Details are in the phase report.
+
+## Previous seeded-world foundation
+
+Original milestone: `docs/PLAYABLE_SEEDED_WORLD.md`; journey evidence:
+`docs/playable-world-acceptance.json`. The following records the previous startup/foundation work.
 
 ## Startup reliability
 

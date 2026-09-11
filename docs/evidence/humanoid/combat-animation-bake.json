@@ -1,0 +1,12 @@
+{
+  "hit": "/Game/TornVeil/Characters/Animations/A_TV_HitReact_Front.A_TV_HitReact_Front",
+  "hitSeconds": 0.699999988079071,
+  "down": "/Game/TornVeil/Characters/Animations/A_TV_Downed.A_TV_Downed",
+  "downSeconds": 1.7000000476837158,
+  "terminalBoneHeightsCm": {
+    "pelvis": 21.268119426351234,
+    "head": 11.79360129059117
+  },
+  "tracks": 89,
+  "vendorPackagesSaved": false
+}

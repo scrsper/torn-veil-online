@@ -1,0 +1,25 @@
+{
+  "revision": "410a0a7781b995cd3008ab40dcd425dd354749b7",
+  "results": [
+    {
+      "id": "family",
+      "elapsedSeconds": 49.0848047,
+      "failed": [],
+      "measurements": [
+        "Alwin Hollis is at 100% health (wound 0.00)",
+        "Greta Hollis adopted 58 goals in the window"
+      ]
+    },
+    {
+      "id": "favor",
+      "elapsedSeconds": 137.9564959,
+      "failed": [],
+      "measurements": [
+        "at its height Osric Bramble carried 0.47 of standing obligation toward Edda Ironhand (now 0.00)",
+        "  a 'help' that serves Edda Ironhand got up to +0.188 from the debt alone (+0.293 once every live motive is counted) — I owe them (was_given, 0.47); bowl of stew was worth 18 silver — real money to Edda Ironhand",
+        "  the same 'help' aimed at Garrick Ironhand, whom they owe nothing, never got more than +0.000 from any debt",
+        "Osric Bramble has not yet had an ordinary occasion to reciprocate (no repayment is forced)"
+      ]
+    }
+  ]
+}

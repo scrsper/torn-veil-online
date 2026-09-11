@@ -272,6 +272,13 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     for (const p of world.persons()) { const controller = (data.controllers ?? []).find((c: { id: string }) => c.id === p.id); setExternalControl(p, !!controller); if (controller?.acting) authorizeExternalIntention(p); }
     for (const creature of data.creatures ?? []) { const current = world.get(creature.id); if (current) Object.assign(current, creature); else world.add(creature); }
     for (const s of data.bodies) {
+      // Additive presentation counters: old v24 saves establish a zero baseline. Do not
+      // infer lost counts from compacted history or aggregate entity ids (many bodies).
+      // New saves preserve exact counts; reject corrupt counters rather than replaying them.
+      for (const key of ['attackSeq', 'hitSeq']) {
+        if (s[key] === undefined) s[key] = 0;
+        if (!Number.isSafeInteger(s[key]) || s[key] < 0) return null;
+      }
       const restored = (data.execution ? { ...s } : { ...s, vel: { x: 0, y: 0, z: 0 }, path: null, pathGoal: null, sitAnchor: null }) as Body;
       const existing = world.body(s.id);
       if (existing) Object.assign(existing, restored); else world.add(restored);

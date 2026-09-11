@@ -1,0 +1,140 @@
+{
+  "label": "run",
+  "map": "/Game/TornVeil/Tests/Humanoid/UEDPIE_0_L_HumanoidAcceptance.L_HumanoidAcceptance",
+  "playerId": "p_37",
+  "controlledBodyId": "b_42",
+  "snapshotTick": 47.94999999999941,
+  "nativeActors": [
+    {
+      "bodyId": "b_42",
+      "entityId": "p_37",
+      "pose": "run",
+      "animation": "/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run.BS_Idle_Walk_Run",
+      "possessed": true,
+      "incapacitated": false,
+      "dead": false,
+      "attackSeq": 0,
+      "hitSeq": 0,
+      "playedAttacks": 0,
+      "playedHits": 0,
+      "pendingAttacks": 0,
+      "pendingHits": 0,
+      "blendDirection": 0,
+      "blendSpeed": 527,
+      "filteredBlendSpeed": 527,
+      "footSeparationCm": 85.49974445916436,
+      "headHeightCm": 148.37233497033978,
+      "pelvisHeightCm": 85.25131422146117,
+      "skippedAttacks": 0,
+      "skippedHits": 0,
+      "speedCmPerSecond": 527.000000000001,
+      "movementMode": 0,
+      "mesh": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple",
+      "animationTime": 0.15247225761413574,
+      "position": {
+        "x": 828.3135851182724,
+        "y": 0,
+        "z": 190
+      }
+    }
+  ],
+  "actors": [
+    {
+      "bodyId": "b_42",
+      "entityId": "p_37",
+      "canonical": {
+        "bodyId": "b_42",
+        "entityId": "p_37",
+        "name": "the Traveler",
+        "pos": {
+          "x": 26.86550000000006,
+          "y": 1,
+          "z": 18
+        },
+        "velocity": {
+          "x": 5.27000000000001,
+          "y": 0,
+          "z": 0
+        },
+        "yaw": -1.5707963267948966,
+        "pose": "run",
+        "activity": "run",
+        "speed": 5.27000000000001,
+        "attackSeq": 0,
+        "hitSeq": 0,
+        "lastAttackAt": -99,
+        "lastHitAt": -99,
+        "dead": false,
+        "incapacitated": false,
+        "appearance": {
+          "skin": 14264712,
+          "hair": 2759184,
+          "shirt": 3824250,
+          "pants": 3815994,
+          "height": 1,
+          "build": 1,
+          "hatStyle": "hood",
+          "hat": 3820122
+        },
+        "alive": true,
+        "speech": "",
+        "inventory": [
+          {
+            "id": "i_81",
+            "name": "dagger",
+            "type": "dagger",
+            "quantity": 1
+          },
+          {
+            "id": "i_82",
+            "name": "bread",
+            "type": "bread",
+            "quantity": 2
+          }
+        ],
+        "health": 80,
+        "maxHealth": 80,
+        "needs": {
+          "hunger": 0.2384126984126982,
+          "energy": 0.054012037037037046,
+          "social": 0.33916666666666756,
+          "comfort": 0,
+          "thirst": 0.27212121212121
+        },
+        "wealth": 50
+      },
+      "actorPresent": true,
+      "pose": "run",
+      "animation": "/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run.BS_Idle_Walk_Run",
+      "possessed": true,
+      "incapacitated": false,
+      "dead": false,
+      "attackSeq": 0,
+      "hitSeq": 0,
+      "playedAttacks": 0,
+      "playedHits": 0,
+      "pendingAttacks": 0,
+      "pendingHits": 0,
+      "blendDirection": 0,
+      "blendSpeed": 527,
+      "filteredBlendSpeed": 527,
+      "footSeparationCm": 85.49974445916436,
+      "headHeightCm": 148.37233497033978,
+      "pelvisHeightCm": 85.25131422146117,
+      "skippedAttacks": 0,
+      "skippedHits": 0,
+      "speedCmPerSecond": 527.000000000001,
+      "movementMode": 0,
+      "mesh": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple",
+      "animationTime": 0.15247225761413574,
+      "position": {
+        "x": 828.3135851182724,
+        "y": 0,
+        "z": 190
+      }
+    }
+  ],
+  "pawn": "TVCharacter_0",
+  "actorCount": 1,
+  "bodyCount": 1
+}

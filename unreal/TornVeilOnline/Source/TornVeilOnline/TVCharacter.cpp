@@ -9,6 +9,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Animation/AnimSingleNodeInstance.h"
 #include "Animation/AnimationAsset.h"
+#include "Animation/AnimSequence.h"
+#include "Engine/SkeletalMesh.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
 #include "Dom/JsonObject.h"
@@ -18,6 +20,7 @@
 #include "Camera/PlayerCameraManager.h"
 #include "GameFramework/PlayerController.h"
 #include "UObject/ConstructorHelpers.h"
+#include "TVHumanoidVisualState.h"
 
 ATVCharacter::ATVCharacter() {
     PrimaryActorTick.bCanEverTick = true;
@@ -58,11 +61,16 @@ ATVCharacter::ATVCharacter() {
     if (Prop.Succeeded()) { PropMaterial = UMaterialInstanceDynamic::Create(Prop.Object, this); OccupationProp->SetMaterial(0, PropMaterial); }
     static ConstructorHelpers::FObjectFinder<UAnimationAsset> Loc(TEXT("/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run")); Locomotion = Loc.Object;
     static ConstructorHelpers::FObjectFinder<UAnimationAsset> Atk(TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Attack/MM_Attack_01")); AttackAnimation = Atk.Object;
-    static ConstructorHelpers::FObjectFinder<UAnimationAsset> Hit(TEXT("/Game/Characters/Mannequins/Anims/Rifle/HitReact/MM_HitReact_Front_Lgt_01")); HitAnimation = Hit.Object;
-    static ConstructorHelpers::FObjectFinder<UAnimationAsset> Down(TEXT("/Game/Characters/Mannequins/Anims/Death/MM_Death_Front_01")); DownAnimation = Down.Object;
+    static ConstructorHelpers::FObjectFinder<UAnimationAsset> Hit(TEXT("/Game/TornVeil/Characters/Animations/A_TV_HitReact_Front")); HitAnimation = Hit.Object;
+    static ConstructorHelpers::FObjectFinder<UAnimationAsset> Down(TEXT("/Game/TornVeil/Characters/Animations/A_TV_Downed")); DownAnimation = Down.Object;
+    // Canonically visible bodies must finish their presentation even while camera-culled.
+    GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 }
 void ATVCharacter::BeginPlay() {
     Super::BeginPlay();
+    // Manny supplies the humanoid silhouette. The old cube/cylinder placeholders
+    // obscure articulated limbs and are deferred until fitted clothing exists.
+    HairProxy->SetHiddenInGame(true); GarmentProxy->SetHiddenInGame(true); OccupationProp->SetHiddenInGame(true);
     GetCharacterMovement()->DisableMovement(); GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     if (IsPlayerControlled()) { bCanonicalPlayer = true; Controller->SetControlRotation(FRotator(-18, 0, 0)); Nameplate->SetVisibility(false); }
     else { GetCharacterMovement()->DisableMovement(); GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision); }
@@ -80,7 +88,7 @@ void ATVCharacter::Tick(float Dt) {
     if (bCanonicalPlayer) {
         CameraBoom->TargetArmLength = FMath::FInterpTo(CameraBoom->TargetArmLength, ZoomTarget, Dt, 8);
         CameraBoom->SocketOffset.Y = FMath::GetMappedRangeValueClamped(FVector2D(160, 700), FVector2D(55, 0), ZoomTarget);
-        GetCharacterMovement()->MaxWalkSpeed = CanonicalSpeed * (bSprint ? CanonicalSprintMultiplier : 1.f);
+        GetCharacterMovement()->MaxWalkSpeed = CanonicalSpeed;
         // Physical movement is entirely canonical. Local gravity/collision must not compete with reconciliation.
         if (bProjected && Live) {
             const FVector Expected = TargetPosition + CanonicalVelocity * FMath::Min(SnapshotAge, 0.1f);
@@ -100,25 +108,44 @@ void ATVCharacter::Tick(float Dt) {
     Animate(Live ? CanonicalVelocity.Size2D() : 0);
 }
 void ATVCharacter::Project(const TSharedPtr<FJsonObject>& D, bool First) {
-    BodyId = D->GetStringField(TEXT("bodyId")); EntityId = D->GetStringField(TEXT("entityId")); DisplayName = D->GetStringField(TEXT("name"));
-    Activity = D->GetStringField(TEXT("activity")); Occupation.Empty(); D->TryGetStringField(TEXT("occupation"), Occupation); CanonicalPose = D->GetStringField(TEXT("pose"));
-    ApplyAppearance(D);
+    FTVHumanoidVisualState State; FString ParseError;
+    if (!FTVHumanoidVisualState::Parse(D, State, ParseError)) {
+        UE_LOG(LogTemp, Warning, TEXT("TV_CHARACTER rejected malformed body projection: %s"), *ParseError);
+        return;
+    }
+    BodyId = State.BodyId; EntityId = State.EntityId; DisplayName = State.Name;
+    Activity = State.Activity; Occupation.Empty(); D->TryGetStringField(TEXT("occupation"), Occupation); CanonicalPose = State.Pose;
+    ApplyAppearance(State.Appearance);
     double H=0, MaxH=0; D->TryGetNumberField(TEXT("health"),H); D->TryGetNumberField(TEXT("maxHealth"),MaxH); Health=H; MaxHealth=MaxH;
-    bDead = D->GetBoolField(TEXT("dead")); bIncapacitated = D->GetBoolField(TEXT("incapacitated")) || bDead;
+    bDead = State.bDead; bIncapacitated = State.bIncapacitated || bDead;
     AttackTargetEntity.Empty(); D->TryGetStringField(TEXT("attackTarget"), AttackTargetEntity); // null when not swinging
-    double At = 0; if (D->TryGetNumberField(TEXT("lastAttackAt"), At)) LastAttackAt = static_cast<float>(At);
-    double Hit = 0; if (D->TryGetNumberField(TEXT("lastHitAt"), Hit)) LastHitAt = static_cast<float>(Hit);
-    const auto P = D->GetObjectField(TEXT("pos")), V = D->GetObjectField(TEXT("velocity"));
+    LastAttackAt = static_cast<float>(State.LastAttackAt); LastHitAt = static_cast<float>(State.LastHitAt);
+    const int64 NewAttackSeq = FMath::Max<int64>(AttackSeq, State.AttackSeq);
+    const int64 NewHitSeq = FMath::Max<int64>(HitSeq, State.HitSeq);
+    if (First) { AttackSeq = NewAttackSeq; HitSeq = NewHitSeq; }
+    else {
+        const int64 AvailableAttacks = PendingAttackEvents + NewAttackSeq - AttackSeq;
+        const int64 AvailableHits = PendingHitEvents + NewHitSeq - HitSeq;
+        PendingAttackEvents = FTVHumanoidVisualState::PendingDelta(AttackSeq, NewAttackSeq, PendingAttackEvents);
+        PendingHitEvents = FTVHumanoidVisualState::PendingDelta(HitSeq, NewHitSeq, PendingHitEvents);
+        SkippedAttackEvents += AvailableAttacks - PendingAttackEvents;
+        SkippedHitEvents += AvailableHits - PendingHitEvents;
+        AttackSeq = NewAttackSeq; HitSeq = NewHitSeq;
+    }
+    if (bIncapacitated) {
+        SkippedAttackEvents += PendingAttackEvents; SkippedHitEvents += PendingHitEvents;
+        PendingAttackEvents = 0; PendingHitEvents = 0;
+    }
+    PresentationAttackSeq = AttackSeq; PresentationHitSeq = HitSeq;
+    PendingAttackPresentation = PendingAttackEvents; PendingHitPresentation = PendingHitEvents;
     auto* Bridge = GetWorld()->GetSubsystem<UTVBridgeSubsystem>();
     const float Units = Bridge ? Bridge->UnitsPerMetre : 100.f;
     PreviousPosition = GetActorLocation();
-    TargetPosition = Bridge ? Bridge->ToUnreal(FVector(P->GetNumberField(TEXT("x")), P->GetNumberField(TEXT("y")), P->GetNumberField(TEXT("z")))) : TargetPosition;
-    CanonicalVelocity = FVector(V->GetNumberField(TEXT("x")), V->GetNumberField(TEXT("z")), V->GetNumberField(TEXT("y"))) * Units;
-    // The walk/sprint speed the local prediction runs at is canonical, never a constant of this
-    // client's own -- otherwise the predicted body leans permanently ahead of canonical truth.
-    double Speed = 0; if (D->TryGetNumberField(TEXT("speed"), Speed) && Speed > 0) CanonicalSpeed = static_cast<float>(Speed) * Units;
-    double Sprint = 0; if (D->TryGetNumberField(TEXT("sprintMultiplier"), Sprint) && Sprint > 0) CanonicalSprintMultiplier = static_cast<float>(Sprint);
-    const float Yaw = D->GetNumberField(TEXT("yaw")); TargetYaw = FMath::RadiansToDegrees(FMath::Atan2(-FMath::Cos(Yaw), -FMath::Sin(Yaw)));
+    TargetPosition = Bridge ? Bridge->ToUnreal(State.Position) : TargetPosition;
+    CanonicalVelocity = FVector(State.Velocity.X, State.Velocity.Z, State.Velocity.Y) * Units;
+    // Speed is derived from canonical velocity for presentation; no sprint tuning leaks into Unreal.
+    CanonicalSpeed = CanonicalVelocity.Size2D();
+    const float Yaw = State.Yaw; TargetYaw = FMath::RadiansToDegrees(FMath::Atan2(-FMath::Cos(Yaw), -FMath::Sin(Yaw)));
     SnapshotAge = 0; bProjected = true;
     if (First) { PreviousPosition = TargetPosition; SetActorLocation(TargetPosition, false, nullptr, ETeleportType::TeleportPhysics); }
     const TSharedPtr<FJsonObject>* Class;
@@ -159,21 +186,16 @@ static FString TVOccupationCue(const FString& Occupation) {
     }
     return Cues.FindRef(Occupation);
 }
-void ATVCharacter::ApplyAppearance(const TSharedPtr<FJsonObject>& D) {
-    const TSharedPtr<FJsonObject>* A;
-    if (!D->TryGetObjectField(TEXT("appearance"), A) || !A || !A->IsValid()) return;
-    double Value = 0;
-    if (SkinMaterial && (*A)->TryGetNumberField(TEXT("skin"), Value)) SkinMaterial->SetVectorParameterValue(TEXT("Tint"), TVHexColour(Value, FLinearColor(.72f, .48f, .32f)));
-    if (ClothMaterial && (*A)->TryGetNumberField(TEXT("shirt"), Value)) ClothMaterial->SetVectorParameterValue(TEXT("Tint"), TVHexColour(Value, FLinearColor(.08f, .12f, .26f)));
-    if (HairMaterial && (*A)->TryGetNumberField(TEXT("hair"), Value)) HairMaterial->SetVectorParameterValue(TEXT("Tint"), TVHexColour(Value, FLinearColor(.04f, .025f, .016f)));
-    float Height = 1.f, Build = 1.f;
-    if ((*A)->TryGetNumberField(TEXT("height"), Value)) Height = FMath::Clamp(static_cast<float>(Value), .82f, 1.16f);
-    if ((*A)->TryGetNumberField(TEXT("build"), Value)) Build = FMath::Clamp(static_cast<float>(Value), .82f, 1.18f);
+void ATVCharacter::ApplyAppearance(const FTVAppearanceVisualState& A) {
+    if (!A.bPresent) return;
+    if (SkinMaterial) SkinMaterial->SetVectorParameterValue(TEXT("Tint"), TVHexColour(A.Skin, FLinearColor(.72f, .48f, .32f)));
+    if (ClothMaterial) ClothMaterial->SetVectorParameterValue(TEXT("Tint"), TVHexColour(A.Shirt, FLinearColor(.08f, .12f, .26f)));
+    if (HairMaterial) HairMaterial->SetVectorParameterValue(TEXT("Tint"), TVHexColour(A.Hair, FLinearColor(.04f, .025f, .016f)));
+    const float Height = A.Height, Build = A.Build;
     GetMesh()->SetRelativeScale3D(FVector(Build, Build, Height));
     GarmentProxy->SetRelativeScale3D(FVector(.44f * Build, .30f * Build, .55f * Height));
     HairProxy->SetRelativeScale3D(FVector(.48f * Build, .48f * Build, .22f * Height));
-    FString Hat; (*A)->TryGetStringField(TEXT("hatStyle"), Hat);
-    HairProxy->SetVisibility(!Hat.Equals(TEXT("hood"), ESearchCase::IgnoreCase));
+    HairProxy->SetVisibility(!A.HatStyle.Equals(TEXT("hood"), ESearchCase::IgnoreCase));
     const FString Cue = TVOccupationCue(Occupation);
     const bool LongCue = Cue == TEXT("spear") || Cue == TEXT("bow") || Cue == TEXT("hoe") || Cue == TEXT("axe") || Cue == TEXT("sword");
     OccupationProp->SetVisibility(!Cue.IsEmpty());
@@ -187,23 +209,65 @@ void ATVCharacter::ApplyNameplate(bool bShowClass) {
     Nameplate->SetText(FText::FromString(DisplayName + Suffix + TEXT("\n") + Activity));
 }
 void ATVCharacter::Animate(float Speed) {
-    UAnimationAsset* Wanted = bIncapacitated ? DownAnimation.Get() : CanonicalPose == TEXT("attack") ? AttackAnimation.Get() : CanonicalPose == TEXT("hit") ? HitAnimation.Get() : Locomotion.Get();
-    const bool ActivityLoop = !bIncapacitated && Speed<30 && CanonicalPose!=TEXT("attack") && CanonicalPose!=TEXT("hit");
+    PresentationAnimationAge += GetWorld() ? GetWorld()->GetDeltaSeconds() : 0.f;
+    const auto ClipDuration = [](UAnimationAsset* Asset, float Fallback) {
+        const auto* Sequence = Cast<UAnimSequence>(Asset);
+        return Sequence ? FMath::Max(.1f, Sequence->GetPlayLength()) : Fallback;
+    };
+    const float HitDuration = ClipDuration(HitAnimation, .40f);
+    const float AttackDuration = ClipDuration(AttackAnimation, .45f);
+    const bool bPlayingHit = !bIncapacitated && CurrentAnimation == HitAnimation && PresentationAnimationAge < HitDuration;
+    const bool bPlayingAttack = !bIncapacitated && CurrentAnimation == AttackAnimation && PresentationAnimationAge < AttackDuration;
+    const bool bReplayHit = !bIncapacitated && !bPlayingHit && !bPlayingAttack && PendingHitEvents > 0;
+    const bool bReplayAttack = !bIncapacitated && !bPlayingHit && !bPlayingAttack && !bReplayHit && PendingAttackEvents > 0;
+    UAnimationAsset* Wanted = bIncapacitated ? DownAnimation.Get() : bPlayingHit || bReplayHit ? HitAnimation.Get() : bPlayingAttack || bReplayAttack ? AttackAnimation.Get() : Locomotion.Get();
+    const bool ActivityLoop = Wanted == Locomotion && !bIncapacitated && Speed<30 && CanonicalPose!=TEXT("attack") && CanonicalPose!=TEXT("hit");
     if(ActivityLoop) {
         FString Key=Activity;
         if(Key==TEXT("sit") || Key==TEXT("sleep") || Key==TEXT("pray")) Key=TEXT("rest");
         if(!Key.IsEmpty() && Key!=TEXT("stand")) { if(!ActivityAnimations.Contains(Key)) ActivityAnimations.Add(Key,LoadObject<UAnimationAsset>(nullptr,*(TEXT("/Game/Characters/TornVeilActivities/A_TV_")+Key))); if(auto* A=ActivityAnimations.FindRef(Key).Get()) Wanted=A; }
     }
     if (!Wanted) return;
-    // A second swing or a second blow leaves the canonical pose unchanged, so replaying on a
-    // pose transition alone would silently drop every hit after the first in an exchange.
-    const bool Restart = (Wanted == AttackAnimation && LastAttackAt > PlayedAttackAt) || (Wanted == HitAnimation && LastHitAt > PlayedHitAt);
+    // Sequence deltas preserve multiple swings/flinches even when pose stayed unchanged between
+    // bridge snapshots; the bounded queues keep a burst from monopolizing presentation.
+    const bool Restart = bReplayAttack || bReplayHit;
     if (CurrentAnimation != Wanted || Restart) {
         CurrentAnimation = Wanted; GetMesh()->PlayAnimation(Wanted, Wanted == Locomotion || ActivityLoop);
-        if (Wanted == AttackAnimation) PlayedAttackAt = LastAttackAt;
-        if (Wanted == HitAnimation) PlayedHitAt = LastHitAt;
+        PresentationAnimationAge = 0.f;
+        if (bReplayAttack) { --PendingAttackEvents; ++PlayedAttackEvents; }
+        if (bReplayHit) { --PendingHitEvents; ++PlayedHitEvents; }
+        PendingAttackPresentation = PendingAttackEvents; PendingHitPresentation = PendingHitEvents;
     }
-    if (Wanted == Locomotion) if (auto* Anim = GetMesh()->GetSingleNodeInstance()) Anim->SetBlendSpacePosition(FVector(Speed, 0, 0));
+    // BS_Idle_Walk_Run is two-dimensional: X = direction, Y = speed (cm/s).
+    if (Wanted == Locomotion) if (auto* Anim = GetMesh()->GetSingleNodeInstance()) Anim->SetBlendSpacePosition(FVector(0, Speed, 0));
+}
+FString ATVCharacter::PresentationAnimation() const { return CurrentAnimation ? CurrentAnimation->GetPathName() : FString(); }
+FString ATVCharacter::PresentationDiagnostics() const {
+    auto J = MakeShared<FJsonObject>();
+    J->SetStringField(TEXT("bodyId"), BodyId); J->SetStringField(TEXT("entityId"), EntityId);
+    J->SetStringField(TEXT("pose"), CanonicalPose); J->SetStringField(TEXT("animation"), PresentationAnimation());
+    J->SetBoolField(TEXT("possessed"), IsPlayerControlled()); J->SetBoolField(TEXT("incapacitated"), bIncapacitated); J->SetBoolField(TEXT("dead"), bDead);
+    J->SetNumberField(TEXT("attackSeq"), AttackSeq); J->SetNumberField(TEXT("hitSeq"), HitSeq);
+    J->SetNumberField(TEXT("playedAttacks"), PlayedAttackEvents); J->SetNumberField(TEXT("playedHits"), PlayedHitEvents);
+    J->SetNumberField(TEXT("pendingAttacks"), PendingAttackEvents); J->SetNumberField(TEXT("pendingHits"), PendingHitEvents);
+    if (const auto* Anim = GetMesh()->GetSingleNodeInstance()) {
+        FVector Input, Filtered; Anim->GetBlendSpaceState(Input, Filtered);
+        J->SetNumberField(TEXT("blendDirection"), Input.X); J->SetNumberField(TEXT("blendSpeed"), Input.Y);
+        J->SetNumberField(TEXT("filteredBlendSpeed"), Filtered.Y);
+    }
+    const FVector LeftFoot = GetMesh()->GetSocketTransform(TEXT("foot_l"), RTS_Component).GetLocation();
+    const FVector RightFoot = GetMesh()->GetSocketTransform(TEXT("foot_r"), RTS_Component).GetLocation();
+    J->SetNumberField(TEXT("footSeparationCm"), FVector::Dist(LeftFoot, RightFoot));
+    J->SetNumberField(TEXT("headHeightCm"), GetMesh()->GetSocketTransform(TEXT("head"), RTS_Component).GetLocation().Z);
+    J->SetNumberField(TEXT("pelvisHeightCm"), GetMesh()->GetSocketTransform(TEXT("pelvis"), RTS_Component).GetLocation().Z);
+    J->SetNumberField(TEXT("skippedAttacks"), SkippedAttackEvents); J->SetNumberField(TEXT("skippedHits"), SkippedHitEvents);
+    J->SetNumberField(TEXT("speedCmPerSecond"), CanonicalVelocity.Size2D());
+    J->SetNumberField(TEXT("movementMode"), static_cast<int32>(GetCharacterMovement()->MovementMode));
+    if (const auto* HumanoidMesh = GetMesh()->GetSkeletalMeshAsset()) J->SetStringField(TEXT("mesh"), HumanoidMesh->GetPathName());
+    if (const auto* Anim = GetMesh()->GetSingleNodeInstance()) J->SetNumberField(TEXT("animationTime"), Anim->GetCurrentTime());
+    const FVector P = GetActorLocation(); auto V = MakeShared<FJsonObject>();
+    V->SetNumberField(TEXT("x"), P.X); V->SetNumberField(TEXT("y"), P.Y); V->SetNumberField(TEXT("z"), P.Z); J->SetObjectField(TEXT("position"), V);
+    FString Out; FJsonSerializer::Serialize(J, TJsonWriterFactory<>::Create(&Out)); return Out;
 }
 void ATVCharacter::SetupPlayerInputComponent(UInputComponent* I) {
     Super::SetupPlayerInputComponent(I);

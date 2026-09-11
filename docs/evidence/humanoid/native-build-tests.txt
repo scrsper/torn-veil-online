@@ -1,0 +1,6 @@
+UE 5.8.2 native automation and latest editor target build
+[2026.09.11-05.00.59:714][461]LogAutomationController: Display: Test Completed. Result={Success} Name={EventQueue} Path={TornVeil.Humanoid.VisualState.EventQueue}
+[2026.09.11-05.00.59:759][464]LogAutomationController: Display: Test Completed. Result={Success} Name={Parser} Path={TornVeil.Humanoid.VisualState.Parser}
+Result: Succeeded
+Total execution time: 5.86 seconds
+Latest target includes full-pose hit, prone settle and always-refresh bone evaluation.
