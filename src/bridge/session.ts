@@ -1,3 +1,4 @@
+import { combatPresentation } from './combatPresentation';
 import { mechanismPanel } from '../sim/runtime/mechanismPanel';
 import { generatePlayableWorld, indexWilderness } from '../sim/world/playable';
 import { RegionStream } from './regions';
@@ -132,7 +133,7 @@ export class BridgeSession {
         alive: !b.dead,
         speech: w.person(b.ownerId)?.speech?.text ?? '',
         ...(b.ownerId === p.id ? { inventory: p.inventory.flatMap(id => { const i=w.item(id); return i ? [{ id:i.id,name:i.type,type:i.type,quantity:i.quantity }] : []; }), health: b.health, maxHealth: b.maxHealth, needs: { ...p.needs }, wealth: p.wealth } : {}),
-      })), events: [] };
+      })), combatPresentation: combatPresentation(w, visible, p.id), events: [] };
   }
   /** Whole-world observability is available only through this explicitly named debug path. */
   developerSnapshot() {
@@ -164,6 +165,7 @@ export class BridgeSession {
           debug: { goal: p.mind.goal, pursuits: p.mind.pursuits, concerns: p.mind.concerns },
         }];
       }),
+      combatPresentation: combatPresentation(w, new Set(w.activeBodies().filter(b => b.present).map(b => b.id))),
       events: w.events.filter(e => ['attack', 'death', 'kill', 'harvest', 'produce', 'trade', 'pickup', 'drop', 'resource_extracted', 'resource_depleted', 'resource_regrew', 'haul_deliver'].includes(e.type)).slice(-24).map(e => ({ id: e.id, type: e.type, actor: e.actor, target: e.target, summary: e.summary, data: e.data })),
     };
   }
