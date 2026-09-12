@@ -156,7 +156,12 @@ FTVChoreographyPlan FTVCombatChoreographer::Plan(const FTVChoreographyRequest& R
     return P;
 }
 float FTVChoreographyPlan::SampleTime(float Age) const {
-    if(bTimeline)return FMath::Clamp(Age,0.f,Motion.Length);
+    if(bTimeline){
+        if(SamplePreparation<0)return FMath::Clamp(Age,0.f,Motion.Length);
+        if(Age<Anticipation)return SamplePreparation*Age/FMath::Max(.001f,Anticipation);
+        if(Age<ContactAt)return SamplePreparation+SampleActive*(Age-Anticipation)/FMath::Max(.001f,Strike);
+        return SamplePreparation+SampleActive+SampleRecovery*FMath::Clamp((Age-ContactAt)/FMath::Max(.001f,Recovery),0.f,1.f);
+    }
     if (bReaction) return FMath::Clamp((Age-ContactAt)*1.6f,0.f,Motion.Length);
     const float Windup=Motion.ContactTime*.65f;
     if (Age<Anticipation) return Windup*Smooth(Age/Anticipation);

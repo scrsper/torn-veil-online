@@ -8,6 +8,7 @@ export interface HumanoidVisualState {
   pos: Vec3;
   velocity: Vec3;
   yaw: number;
+  crouch?:number;
   pose: Pose;
   activity: string;
   /** Actual horizontal velocity magnitude, metres/second. */
@@ -24,7 +25,7 @@ export interface HumanoidVisualState {
 export function humanoidVisualState(body: Body, name: string, activity: string, appearance?: Appearance): HumanoidVisualState {
   return {
     bodyId: body.id, entityId: body.ownerId, name,
-    pos: { ...body.pos }, velocity: { ...body.vel }, yaw: body.yaw,
+    pos: { ...body.pos }, velocity: { ...body.vel }, yaw: body.yaw,crouch:body.crouch??0,
     pose: body.pose, activity, speed: Math.hypot(body.vel.x, body.vel.z),
     attackSeq: body.attackSeq, hitSeq: body.hitSeq,
     lastAttackAt: body.lastAttackAt, lastHitAt: body.lastHitAt,

@@ -22,6 +22,7 @@ public:
     void RebasePresentation(const FVector& Delta);
     ATVCharacter();
     virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type Reason) override;
     virtual void Tick(float DeltaSeconds) override;
     virtual void SetupPlayerInputComponent(UInputComponent* Input) override;
     UPROPERTY(VisibleAnywhere) TObjectPtr<class UTVCombatPresentationComponent> CombatPresentation;
@@ -124,6 +125,11 @@ private:
     void Turn(float Value); void Look(float Value); void Zoom(float Value);
     void SprintOn(); void SprintOff();
     void Animate(float Speed);
+    void AnimateCrouch(float Amount,float Dt);
+    void ReleaseCrouch(); void LoseFocus(); void HeavyTrigger(float Value); void PracticePhysiology();
+    bool bHeavyTrigger=false; double CanonicalCrouch=0,PreviousCrouch=0;float CrouchTime=0;
+    bool bWasChoreography=false;float PoseBlendAge=1,LocomotionTime=0;
+    UPROPERTY() TMap<FString,TObjectPtr<UAnimationAsset>> CrouchAnimations;
     void ApplyAppearance(const FTVAppearanceVisualState& Appearance);
     /** A recognised class is a reading of someone's life, not a badge they wear. A passer-by cannot
      *  see it, so it belongs to the developer inspector rather than to every nameplate in the vale.

@@ -1,5 +1,5 @@
 {
-  "revision": "tv-interaction-3",
+  "revision": "tv-interaction-4",
   "unarmedPathReach": 0.9,
   "stepSeconds": 0.016666666666666666,
   "sprintMultiplier": 1.55,
@@ -22,5 +22,11 @@
   "defenseEffort": 0.035,
   "duckRecoveryAt": 0.38,
   "duckSeconds": 0.5833333333333334,
-  "duckHeight": 1.33
+  "duckHeight": 1.33,
+  "facingRadiansPerSecond": 12.566370614359172,
+  "crouchEnterSeconds": 0.18,
+  "crouchExitSeconds": 0.22,
+  "crouchSpeedMultiplier": 0.45,
+  "crouchEffort": 0.012,
+  "heldInputSeconds": 0.25
 }

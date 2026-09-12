@@ -43,7 +43,7 @@ export interface CombatAttackIntent {
   intent?: ConflictIntent;
   trajectory?: 'high' | 'mid' | 'low';
 }
-export type AttackRejection = 'invalid_attacker' | 'invalid_target' | 'self_target' | 'incapacitated' | 'cooldown' | 'invalid_weapon' | 'invalid_mode' | 'out_of_reach' | 'obstructed' | 'protected_target' | 'exhausted';
+export type AttackRejection = 'invalid_attacker' | 'invalid_target' | 'self_target' | 'incapacitated' | 'unsupported' | 'cooldown' | 'invalid_weapon' | 'invalid_mode' | 'out_of_reach' | 'obstructed' | 'protected_target' | 'exhausted';
 export interface CombatAttackResult extends CombatAttackIntent {
   actionId?: string;
   contactRegion?: import('./combatGeometry').ContactRegion;
@@ -74,6 +74,7 @@ export function resolveCombatAttack(w: World, intent: CombatAttackIntent, rng: {
   if (intent.attackMode !== 'strike' || (intent.trajectory !== undefined && !['high','mid','low'].includes(intent.trajectory))) return reject('invalid_mode');
   if (ab.combatAction ? w.physicalTime + 1e-9 < combatTransitionAt(ab.combatAction,'attack')
     : w.physicalTime - ab.lastAttackAt < ATTACK_COOLDOWN) return reject('cooldown');
+  if (!ab.onGround) return reject('unsupported');
   const item = intent.weaponId === undefined ? combatWeapon(w, p) : intent.weaponId === null ? null : w.item(intent.weaponId);
   if (intent.weaponId && !item) return reject('invalid_weapon');
   if (item && (!p.inventory.includes(item.id) || item.holderId !== p.id || item.quantity <= 0 || item.condition === 0 || !weaponProperties(item))) return reject('invalid_weapon');

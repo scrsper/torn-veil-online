@@ -26,9 +26,11 @@ void UTVCombatPresentationComponent::BeginPlay() {
         const FString Path=FString(TEXT("/Game/TornVeil/Combat/Repair/Animations/A_TV_"))+Name;
         Animations.Add(Path,LoadObject<UAnimSequence>(nullptr,*Path));
     }
+    for(const TCHAR* Name:{TEXT("JabRefined"),TEXT("RoundKick")}){const FString Path=FString(TEXT("/Game/TornVeil/Combat/Refinement/Animations/A_TV_"))+Name;Animations.Add(Path,LoadObject<UAnimSequence>(nullptr,*Path));}
     if(auto* C=Cast<ATVCharacter>(GetOwner())){C->GetMesh()->SetAnimInstanceClass(UTVCombatAnimInstance::StaticClass());C->GetMesh()->SetAnimationMode(EAnimationMode::AnimationSingleNode);}
 }
 void UTVCombatPresentationComponent::ObserveAction(const FTVLiveCombat& Action,double AtAge) {
+    if(Action.Definition==TEXT("crouch_exit")){Cancel();return;}
     const bool Same=bLive&&(Live.Id==Action.Id||(!Live.CommandId.IsEmpty()&&Live.CommandId==Action.CommandId));
     if(!Action.Running(AtAge)) {if(Same)Cancel();return;}
     if(Same) {
@@ -39,6 +41,7 @@ void UTVCombatPresentationComponent::ObserveAction(const FTVLiveCombat& Action,d
         if(NewContact){LiveContactReceivedAt=GetWorld()->GetTimeSeconds();bContact=true;}
         return;
     }
+    if(auto* C=Cast<ATVCharacter>(GetOwner()))C->GetMesh()->SnapshotPose(TransitionSnapshot);
     TransitionBase=bActive?Animations.FindRef(Current.Plan.Motion.AssetPath):nullptr;
     TransitionBaseTime=bActive?Current.Plan.SampleTime(Age):0;
     Cancel();bLive=true;bOwningTimeline=Action.bPredicted;Live=Action;LiveAge=FMath::Max(0.,AtAge);LiveContactReceivedAt=-1;
@@ -120,12 +123,14 @@ bool UTVCombatPresentationComponent::Present(float Dt) {
     C->GetMesh()->SetRelativeRotation(Rotation);
     if(auto* Anim=Cast<UTVCombatAnimInstance>(C->GetMesh()->GetAnimInstance())) {
         Anim->Time=P.SampleTime(Age); Anim->Weight=P.Weight(Age);
+        Anim->bLocomotion=false;Anim->Snapshot=TransitionSnapshot;Anim->bSnapshot=bLive&&Age<.06f;
         Anim->Base=bLive&&TransitionBase&&Age<.06f?TransitionBase:Idle;
         Anim->BaseTime=bLive&&TransitionBase&&Age<.06f?TransitionBaseTime:0;
         // Authored full-body motion supplies strikes and posture. Foot IK is capped
         // at 3 cm; canonical displacement is never extracted from the clip.
         Anim->Duck=0;Anim->HandWeight=0;Anim->bLowStrike=false;
-        Anim->FootLock=P.LOD==0&&!P.bReaction&&(!bLive||Live.IsAttack())?.25f:0;
+        Anim->FootLock=P.LOD==0&&!P.bReaction?(!bLive?.25f:Live.IsAttack()&&Age<.1f?.1f:0):0;
+        Anim->bReleaseRightFoot=bLive; // authored rear heel/striking foot may pivot; never pin both feet
         // Lock the planted foot against mesh warp. A capable fighter can step into an angle
         // and recover; the actor/capsule still follows the canonical transform unchanged.
         FVector Step=FVector::ZeroVector;

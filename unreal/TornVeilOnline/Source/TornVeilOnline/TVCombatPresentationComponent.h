@@ -3,6 +3,7 @@
 #include "Components/ActorComponent.h"
 #include "TVCombatChoreography.h"
 #include "TVLiveCombat.h"
+#include "Animation/PoseSnapshot.h"
 #include "TVCombatPresentationComponent.generated.h"
 
 struct FTVScheduledCombat { FTVChoreographyRequest Request; FTVChoreographyPlan Plan; double StartsAt=0; };
@@ -31,6 +32,7 @@ private:
     UPROPERTY() TObjectPtr<class UAnimSequence> Idle;
     UPROPERTY() TObjectPtr<class UAnimSequence> TransitionBase;
     float TransitionBaseTime=0;
+    FPoseSnapshot TransitionSnapshot;
     UPROPERTY() TMap<FString,TObjectPtr<class UAnimSequence>> Animations;
     UPROPERTY() TObjectPtr<class UProceduralMeshComponent> Ribbon;
     UPROPERTY() TObjectPtr<class UStaticMeshComponent> Flash;

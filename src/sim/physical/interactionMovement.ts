@@ -1,3 +1,4 @@
+import { combatTransitionAt } from './combatTransitions';
 import type { World } from '../core/world';
 import type { Body, Person } from '../core/types';
 import { movementMultiplier } from '../core/attributes';
@@ -6,7 +7,7 @@ import { predictMovement, type CollisionColumn, type CollisionWindow, type Movem
 import { B } from './blocks';
 
 export function movementState(w: World,p: Person,b: Body): MovementState {
-  return {pos:{...b.pos},yaw:b.yaw,speed:b.speed*movementMultiplier(b,p),eligible:p.alive&&b.present&&!b.dead&&b.health>0&&b.ownerId===p.id&&p.bodies.includes(b.id)&&!p.surrender&&!p.custody?.active&&b.pose!=='downed'&&b.pose!=='sleep'&&b.subduedUntil<=w.physicalTime};
+  return {pos:{...b.pos},yaw:b.yaw,crouch:b.crouch??0,speed:b.speed*movementMultiplier(b,p),eligible:p.alive&&b.present&&!b.dead&&b.health>0&&b.ownerId===p.id&&p.bodies.includes(b.id)&&!p.surrender&&!p.custody?.active&&b.pose!=='downed'&&b.pose!=='sleep'&&b.subduedUntil<=w.physicalTime};
 }
 export function collisionColumn(w: World,x: number,z: number): CollisionColumn | undefined {
   if(x<1||z<1||x>w.grid.W-1||z>w.grid.D-1) return undefined;
@@ -24,7 +25,10 @@ export function collisionWindow(w: World,b: Body): CollisionWindow {
 /** Canonical adapter for the same disposable predictor. Ordinary automatic door operation
  * matches moveByIntent/NPC path following. Clients stop at the closed door until confirmed. */
 export function applyInteractionMovement(w: World,p: Person,b: Body,input: MovementInput,dt: number): void {
-  if(b.combatAction&&b.combatAction.completeAt>w.physicalTime)return;
+  if(b.combatAction&&b.combatAction.completeAt>w.physicalTime){
+    if(w.physicalTime<combatTransitionAt(b.combatAction,'move')||Math.hypot(input.x,input.z)<.01)return;
+    b.combatAction.completeAt=w.physicalTime;b.poseUntil=w.physicalTime;
+  }
   const before={...b.pos};
   const next=predictMovement(movementState(w,p,b),input,dt,(x,z)=>{
     const floor=w.nav.floorY(x,z);

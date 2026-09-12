@@ -4,7 +4,7 @@ export type CombatPhase = 'requested'|'accepted'|'preparation'|'active'|'recover
 export type DefenseKind = 'sidestep'|'backstep'|'duck';
 export interface CombatInput {
   kind:'attack'|DefenseKind; trajectory?:'high'|'mid'|'low'; targetBodyId?:string;
-  side?:number; direction?:{x:number;z:number}; commandId?:string;
+  held?:boolean; side?:number; direction?:{x:number;z:number}; commandId?:string;
 }
 /** One latest action per manifestation; terminal state is replaced on the next request.
  * Timing/definition are frozen at acceptance, so saves never reinterpret a live strike. */
@@ -16,7 +16,8 @@ export interface CombatAction {
   facing:number; initialFacing:number; trackingUntil:number; turnRate:number; turnBudget:number;
   reach:number; radius:number; impact:number; exertionCost:number; intent:ConflictIntent;
   direction:Vec3; distance:number; appliedDistance:number; eventId:string;
-  variant?:'direct'|'hook'|'kick';
+  variant?:'direct'|'hook'|'kick'|'round';
+  moveId?:import('./combatRepertoire').CombatMoveId; repertoireRevision?:1;
   queuedInput?: CombatInput & { expiresAt:number };
   contact?:{bodyId:string;region:ContactRegion;position:Vec3;at:number;eventId?:string};
   stoppedAt?:number; stopReason?:string;

@@ -1,6 +1,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "Animation/PoseSnapshot.h"
 #include "TVCombatAnimInstance.generated.h"
 
 /** Two explicitly sampled poses. No root extraction, animation notifies, or gameplay callbacks. */
@@ -11,12 +12,16 @@ public:
     UTVCombatAnimInstance();
     UPROPERTY() TObjectPtr<class UAnimSequence> Base;
     UPROPERTY() TObjectPtr<class UAnimSequence> Motion;
+    UPROPERTY() TObjectPtr<class UBlendSpace> Locomotion;
+    FPoseSnapshot Snapshot;
+    bool bSnapshot=false,bLocomotion=false;
+    FVector LocomotionPosition=FVector::ZeroVector;
     float Time = 0, BaseTime = 0, Weight = 0;
     FVector LeftFoot = FVector::ZeroVector, RightFoot = FVector::ZeroVector;
     float FootLock = 0;
     FVector HandGoal=FVector::ZeroVector;
     float HandWeight=0,Duck=0;
-    bool bLowStrike=false;
+    bool bLowStrike=false,bReleaseRightFoot=false;
 protected:
     virtual FAnimInstanceProxy* CreateAnimInstanceProxy() override;
     virtual void DestroyAnimInstanceProxy(FAnimInstanceProxy* Proxy) override;

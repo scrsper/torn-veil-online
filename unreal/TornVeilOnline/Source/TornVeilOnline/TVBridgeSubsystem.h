@@ -45,7 +45,11 @@ public:
     void ChooseMechanism(int32 Index);
     void RequestDeveloperInspection();
     void SaveWorld();
-    void PredictMovement(float Dt,const FVector& Direction,bool bSprint);
+    void PredictMovement(float Dt,const FVector& Direction,bool bSprint,TOptional<double> Facing={});
+    void SetCrouch(bool Held);
+    bool bCrouchHeld=false,bPracticeRecovery=true;
+    double PredictedCrouch() const {return Predicted.Crouch;}
+    double CombatInputCallbackAt=0;
     void NoteInput();
     UFUNCTION(BlueprintCallable,Category="Torn Veil|Diagnostics") FString RealtimeDiagnostics() const;
     bool HasPrediction() const {return bPredictionReady&&IsLive()&&bControls;}
@@ -118,6 +122,7 @@ private:
     double PredictionAccumulator=0,InputCallbackAt=0,LastLocalStateAt=0,LastConfirmedTick=-1;
     bool bPredictionReady=false;
     int32 PendingFeedbackSequence=-1;
+    int32 CrouchSequence=-1;
     TArray<double> PredictionSamples,InputToStateSamples,AppliedRttSamples,CorrectionSamples;
     FTVLiveCombat PredictedCombat;
     double CombatAge=0;

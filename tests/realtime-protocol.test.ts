@@ -10,6 +10,15 @@ function command(sequence: number, body: CommandEnvelope['command'] = { type: 'm
 }
 
 describe('realtime command protocol', () => {
+  it('validates facing and deduplicates a held posture press through the ordinary ledger',()=>{
+    const q=new CommandQueue(binding.epoch,binding.controllerId,binding.bodyId);
+    const held=command(0,{type:'crouch',held:true}),execute=vi.fn(()=>'accepted');
+    q.receive(held,0,0);q.receive(held,0,1);q.apply(1,2,execute);expect(execute).toHaveBeenCalledTimes(1);
+    expect(q.receive(command(1,{type:'move',x:0,z:0,sprint:false,facing:Math.PI+1}),1,3).result).toBe('invalid_command');
+    expect(q.receive(command(2,{type:'move',x:0,z:0,sprint:false,facing:NaN}),1,4).result).toBe('invalid_command');
+    expect(q.receive(command(3,{type:'move',x:1,z:0,sprint:false,facing:0,crouch:true}),1,5).status).toBe('received');
+    expect(q.receive(command(4,{type:'crouch',held:false}),1,6).status).toBe('received');
+  });
   it('separates received acknowledgement from applied acknowledgement', () => {
     const q = new CommandQueue(binding.epoch, binding.controllerId, binding.bodyId);
     expect(q.receive(command(0), 1, 100)).toMatchObject({ status: 'received', sequence: 0 });

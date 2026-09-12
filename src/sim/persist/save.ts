@@ -274,6 +274,7 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     for (const creature of data.creatures ?? []) { const current = world.get(creature.id); if (current) Object.assign(current, creature); else world.add(creature); }
     for (const s of data.bodies) {
       if (!validSavedCombatAction(s.combatAction, s.id)) return null;
+      if(s.crouch!==undefined&&(!Number.isFinite(s.crouch)||s.crouch<0||s.crouch>1))return null;
       // Additive presentation counters: old v24 saves establish a zero baseline. Do not
       // infer lost counts from compacted history or aggregate entity ids (many bodies).
       // New saves preserve exact counts; reject corrupt counters rather than replaying them.

@@ -2,7 +2,8 @@ param(
     [string]$Engine = 'C:\Program Files\Epic Games\UE_5.8',
     [int]$Port = 8791,
     [string]$Output = '.debug/combat-repair-probe',
-    [switch]$Capture
+    [switch]$Capture,
+    [switch]$Refinement
 )
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path "$PSScriptRoot/../..").Path
@@ -13,10 +14,11 @@ New-Item -ItemType Directory -Path $outputPath -Force | Out-Null
 $env:TORN_VEIL_PORT = "$Port"
 $env:TV_REPAIR_OUTPUT = $outputPath
 $env:TV_REPAIR_CAPTURE = if ($Capture) { '1' } else { '0' }
+$probe = if ($Refinement) { 'TV.CombatRefinementProbe' } else { 'TV.CombatRepairProbe' }
 $game = Start-Process "$Engine/Engine/Binaries/Win64/UnrealEditor.exe" -WindowStyle Hidden -PassThru -ArgumentList @(
     ('"' + "$repo/unreal/TornVeilOnline/TornVeilOnline.uproject" + '"'),
     '/Game/TornVeil/Maps/TornVeilWorld', '-game', '-unattended', '-windowed', '-ResX=1280', '-ResY=720', '-NoSound',
-    '-ExecCmds="t.MaxFPS 60,t.IdleWhenNotForeground 0,TV.CombatRepairProbe"',
+    ('-ExecCmds="t.MaxFPS 60,t.IdleWhenNotForeground 0,' + $probe + '"'),
     ('-abslog="' + "$outputPath/unreal.log" + '"')
 )
 $game.WaitForExit()

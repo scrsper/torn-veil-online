@@ -3,30 +3,39 @@
 #include "Animation/AnimSequence.h"
 #include "AnimNodes/AnimNode_SequenceEvaluator.h"
 #include "AnimNodes/AnimNode_TwoWayBlend.h"
+#include "AnimNodes/AnimNode_PoseSnapshot.h"
+#include "AnimNodes/AnimNode_BlendSpacePlayer.h"
 #include "TwoBoneIK.h"
 
 struct FTVCombatAnimProxy : FAnimInstanceProxy {
     FAnimNode_SequenceEvaluator_Standalone BasePose, MotionPose;
-    FAnimNode_TwoWayBlend Blend;
+    FAnimNode_TwoWayBlend Blend, BaseSelection, MotionSelection;
+    FAnimNode_PoseSnapshot Snapshot;
+    FAnimNode_BlendSpacePlayer_Standalone Locomotion;
     FVector LeftGoal, RightGoal;
     float IKWeight=0,HandWeight=0,Duck=0;
     FVector HandGoal;
-    bool bLowStrike=false;
+    bool bLowStrike=false,bReleaseRightFoot=false;
     FTVCombatAnimProxy(UAnimInstance* Instance):FAnimInstanceProxy(Instance) {
-        Blend.A.SetLinkNode(&BasePose); Blend.B.SetLinkNode(&MotionPose);
+        BaseSelection.A.SetLinkNode(&BasePose);BaseSelection.B.SetLinkNode(&Snapshot);
+        MotionSelection.A.SetLinkNode(&MotionPose);MotionSelection.B.SetLinkNode(&Locomotion);
+        Blend.A.SetLinkNode(&BaseSelection); Blend.B.SetLinkNode(&MotionSelection);
+        Snapshot.Mode=ESnapshotSourceMode::SnapshotPin;
         BasePose.SetTeleportToExplicitTime(true); MotionPose.SetTeleportToExplicitTime(true);
         BasePose.SetShouldLoop(false); MotionPose.SetShouldLoop(false);
     }
     virtual FAnimNode_Base* GetCustomRootNode() override { return &Blend; }
-    virtual void GetCustomNodes(TArray<FAnimNode_Base*>& Nodes) override { Nodes.Add(&Blend); Nodes.Add(&BasePose); Nodes.Add(&MotionPose); }
+    virtual void GetCustomNodes(TArray<FAnimNode_Base*>& Nodes) override { Nodes.Append({&Blend,&BaseSelection,&MotionSelection,&Snapshot,&Locomotion,&BasePose,&MotionPose}); }
     virtual void PreUpdate(UAnimInstance* Instance,float Dt) override {
         FAnimInstanceProxy::PreUpdate(Instance,Dt);
         auto* A=CastChecked<UTVCombatAnimInstance>(Instance);
         BasePose.SetSequence(A->Base); BasePose.SetExplicitTime(A->BaseTime);
         MotionPose.SetSequence(A->Motion); MotionPose.SetExplicitTime(A->Time);
+        Snapshot.Snapshot=A->Snapshot;Snapshot.PreUpdate(Instance);BaseSelection.Alpha=A->bSnapshot&&A->Snapshot.bIsValid?1.f:0.f;
+        Locomotion.SetBlendSpace(A->Locomotion);Locomotion.SetPosition(A->LocomotionPosition);MotionSelection.Alpha=A->bLocomotion?1.f:0.f;
         Blend.Alpha=FMath::Clamp(A->Weight,0.f,1.f);
         LeftGoal=A->LeftFoot; RightGoal=A->RightFoot; IKWeight=A->FootLock;
-        HandWeight=A->HandWeight;HandGoal=A->HandGoal;Duck=A->Duck;bLowStrike=A->bLowStrike;
+        HandWeight=A->HandWeight;HandGoal=A->HandGoal;Duck=A->Duck;bLowStrike=A->bLowStrike;bReleaseRightFoot=A->bReleaseRightFoot;
     }
     virtual bool Evaluate(FPoseContext& Output) override {
         Blend.Evaluate_AnyThread(Output);
@@ -34,7 +43,7 @@ struct FTVCombatAnimProxy : FAnimInstanceProxy {
         FCSPose<FCompactPose> CS; CS.InitPose(Output.Pose);
         const auto& Bones=Output.Pose.GetBoneContainer();
         for(int32 Side=0;Side<2;++Side) {
-            if(bLowStrike&&HandWeight>0&&Side==1)continue;
+            if(Side==1&&(bReleaseRightFoot||bLowStrike&&HandWeight>0))continue;
             const int32 MeshIndex=Bones.GetPoseBoneIndexForBoneName(Side==0?TEXT("foot_l"):TEXT("foot_r"));
             if(MeshIndex==INDEX_NONE) continue;
             const auto Foot=Bones.MakeCompactPoseIndex(FMeshPoseBoneIndex(MeshIndex));

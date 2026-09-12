@@ -12,8 +12,9 @@ void ATVHUD::DrawHUD() {
     DrawText(B->ConnectionStatus(), FLinearColor::White, 36, 65);
     DrawText(TEXT("WASD move  |  Shift run  |  Mouse orbit  |  Wheel zoom  |  Tab target  |  LMB punch / RMB kick  |  E interact  |  C eat  |  Q drop  |  M mechanisms  |  F5 save  |  F6 debug"), FLinearColor(0.7f, 0.75f, 0.8f), 36, 90);
     if(B->bArena) {
-        DrawText(TEXT("Space + direction dodge (neutral: backstep) | Ctrl duck | F1 passive | F2 repeated attacks | F3 reset/recover"),FLinearColor(1,.85f,.5f),36,112);
-        DrawText(B->PracticeStatus+TEXT(" | last: ")+B->PracticeLast,FLinearColor(1,.85f,.5f),36,134);
+        DrawText(TEXT("Space + direction dodge | hold Ctrl crouch | F1 passive | F2 incoming | F3 reset | F4 physiology"),FLinearColor(1,.85f,.5f),36,112);
+        DrawText(B->PracticeStatus,FLinearColor(1,.85f,.5f),36,134);
+        DrawText(B->PracticeLast,FLinearColor(1,.85f,.5f),36,154);
     }
     if (B->IsLive() && !B->bArena) {
         DrawRect(FLinearColor(0.015f, 0.02f, 0.035f, 0.85f), 20, Canvas->SizeY - 150, 660, 85);

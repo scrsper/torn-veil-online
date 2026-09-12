@@ -18,7 +18,7 @@ describe('in-game scripted combat practice',()=>{
     const {s,queue,advance}=fixture(),[p,n]=s.world.persons(),pb=s.world.primaryBody(p.id)!,nb=s.world.primaryBody(n.id)!;
     advance(90);expect(nb.combatAction).toBeUndefined();
     queue({type:'practice',mode:'repeat'});advance(62); // include the next 60 Hz tick at the one-second deadline
-    expect(s.localState()?.practice).toMatchObject({scripted:true,mode:'repeat',ready:true});
+    expect(s.localState()?.practice).toMatchObject({scripted:true,mode:'repeat',ready:false,status:'recovering'});
     expect(nb.combatAction?.kind).toBe('attack');expect(nb.combatAction?.outcome).toBe('pending');expect(pb.health).toBe(pb.maxHealth);
     advance(30);expect(nb.combatAction?.outcome).toBe('hit');expect(pb.health).toBeLessThan(pb.maxHealth);
     expect(s.localState()?.practice?.lastContact).toBeTruthy();

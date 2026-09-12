@@ -51,6 +51,7 @@ struct FTVChoreographyPlan {
     FTVPresentationFXCue FX;
     FString WeaponFamily;
     float Anticipation = .2f, Strike = .14f, Recovery = .35f, ContactAt = .34f, Duration = .8f;
+    float SamplePreparation=-1,SampleActive=0,SampleRecovery=0;
     float AlignmentYaw = 0, PivotYaw = 0, LeanDegrees = 0, LeanYaw = 0, OffsetLimitCm = 22, ContactErrorCm = 0;
     FVector ContactOffset = FVector::ZeroVector;
     int32 LOD = 0;

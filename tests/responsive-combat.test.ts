@@ -47,7 +47,7 @@ describe('responsive combat repair',()=>{
   const x=arena();x.tb.pos.x=20;
   expect(submitCombatInput(x.world,x.b.id,{kind:'attack',commandId:'one'})).toBe('accepted');tick(x,18);
   expect(submitCombatInput(x.world,x.b.id,{kind:'attack',commandId:'two'})).toBe('accepted');tick(x,11);
-  expect(x.b.combatAction).toMatchObject({commandId:'two',variant:'hook'});expect(x.b.combatAction!.startedAt).toBeCloseTo(29/60,8);
+  expect(x.b.combatAction).toMatchObject({commandId:'two',variant:'hook'});expect(x.b.combatAction!.startedAt).toBeCloseTo(26/60,8);
   tick(x,18);expect(submitCombatInput(x.world,x.b.id,{kind:'attack',trajectory:'low',commandId:'three'})).toBe('accepted');tick(x,11);
   expect(x.b.combatAction).toMatchObject({commandId:'three',variant:'kick'});tick(x,90);
   expect(x.b.attackSeq).toBe(3);expect(x.b.combatAction?.queuedInput).toBeUndefined();

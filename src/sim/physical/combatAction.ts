@@ -9,10 +9,14 @@ import type { CombatAction, CombatInput, CombatPhase, DefenseKind } from './comb
 import { combatActionFacts } from './combatFacts';
 import { sampledPosture } from './combatMotion';
 import { combatTransitionAt, stepProgress } from './combatTransitions';
+import { advancePostures,beginCrouch,crouchHeld,setCrouchHeld } from './posture';
+import { postureFits } from './prediction';
+import { COMBAT_REPERTOIRE,nextUnarmedMove } from './combatRepertoire';
+import { arenaRepertoire,combatEffortScale } from './combatPracticeProfile';
 
 export const combatBusy=(b:Body,at:number)=>!!b.combatAction&&b.combatAction.completeAt>at;
 export const combatPosture=(a:CombatAction|undefined,at:number):number=> !a||a.kind!=='duck'||a.outcome==='cancelled'||a.outcome==='interrupted'?0:
-  sampledPosture(at-a.startedAt);
+  a.definition==='crouch_exit'?0:sampledPosture(at-a.startedAt);
 const angle=(x:number)=>Math.atan2(Math.sin(x),Math.cos(x));
 function phase(w:World,a:CombatAction,p:CombatPhase,at:number):WorldEvent {
   a.phase=p;
@@ -35,6 +39,7 @@ function accept(w:World,p:Person,b:Body,a:CombatAction):void {
   b.combatAction=a;b.path=null;b.vel={x:0,y:0,z:0};
   a.eventId=phase(w,a,'requested',a.startedAt).id;a.eventId=phase(w,a,'accepted',a.startedAt).id;
   a.eventId=phase(w,a,'preparation',a.startedAt).id;
+  a.exertionCost*=combatEffortScale(w,b.id);
   p.physiology.fatigue=Math.min(1,p.physiology.fatigue+a.exertionCost);syncNeeds(p);
 }
 export function requestCombatAction(w:World,intent:CombatAttackIntent,commandId?:string):CombatAttackResult {
@@ -45,6 +50,11 @@ export function requestCombatAction(w:World,intent:CombatAttackIntent,commandId?
     trajectory:intent.trajectory??'high',activeAt:a.startedAt+S.preparationSeconds,
     recoveryAt:a.startedAt+S.preparationSeconds+S.activeSeconds,completeAt:a.startedAt+S.preparationSeconds+S.activeSeconds+S.recoverySeconds,
     trackingUntil:a.startedAt+S.preparationSeconds-.1,reach:r.weaponId?r.reach-.3:S.unarmedPathReach,impact:r.impact,exertionCost:r.exertionCost,intent:intent.intent??'injure'});
+  if(!r.weaponId){
+    a.moveId=nextUnarmedMove(b.combatAction,w.physicalTime,a.trajectory==='low',arenaRepertoire(w,b.id));a.repertoireRevision=1;
+    const move=COMBAT_REPERTOIRE.moves[a.moveId];a.variant=move.variant as typeof a.variant;
+    a.activeAt=a.startedAt+move.preparation;a.recoveryAt=a.activeAt+move.active;a.completeAt=a.recoveryAt+move.recovery;a.trackingUntil=a.activeAt-.1;
+  }
   b.lastAttackAt=w.physicalTime;b.attackSeq++;b.pose='attack';b.poseUntil=a.completeAt;b.attackTarget=r.targetId;
   accept(w,p,b,a);r.actionId=a.id;return r;
 }
@@ -52,9 +62,10 @@ export function requestDefense(w:World,bodyId:string,kind:DefenseKind,side=1,com
   const b=w.body(bodyId),p=b&&w.person(b.ownerId);
   if(!b||!p||!movementState(w,p,b).eligible)return 'incapacitated';
   if(w.physicalTime+1e-9<combatTransitionAt(b.combatAction,kind))return 'cooldown';
-  if(p.physiology.fatigue+S.defenseEffort>1)return 'exhausted';
+  if(!b.onGround)return 'unsupported';
+  if(p.physiology.fatigue+S.defenseEffort*combatEffortScale(w,b.id)>1)return 'exhausted';
   if(!['sidestep','backstep','duck'].includes(kind)||![-1,1].includes(side))return 'invalid_command';
-  const a=base(w,b,kind,commandId);
+  const a=base(w,b,kind,commandId);a.repertoireRevision=1;
   if(kind==='duck'){a.recoveryAt=a.startedAt+S.duckRecoveryAt;a.completeAt=a.startedAt+S.duckSeconds;}
   a.exertionCost=S.defenseEffort;
   a.distance=kind==='sidestep'?S.sidestepMetres:kind==='backstep'?S.backstepMetres:0;
@@ -71,15 +82,30 @@ export function requestDefense(w:World,bodyId:string,kind:DefenseKind,side=1,com
  * and all capability/equipment/cost checks run again at actual startup. */
 export function submitCombatInput(w:World,bodyId:string,input:CombatInput):string {
   const b=w.body(bodyId),p=b&&w.person(b.ownerId);
+  if(b&&input.kind==='duck'&&input.held===false){setCrouchHeld(w,b,false);return 'accepted';}
   if(!b||!p||!movementState(w,p,b).eligible)return 'incapacitated';
+  if(!b.onGround)return 'unsupported';
   const a=b.combatAction,at=w.physicalTime,next=combatTransitionAt(a,input.kind);
+  if(input.held)setCrouchHeld(w,b,true);
   if(a&&next>at+1e-9){
-    if(a.outcome==='interrupted'||a.outcome==='cancelled'){a.queuedInput=undefined;return 'interrupted';}
+    if(a.outcome==='interrupted'||a.outcome==='cancelled'){a.queuedInput=undefined;setCrouchHeld(w,b,false);return 'interrupted';}
     // Even an overly early press replaces the previous follow-up; it cannot revive an old one.
-    a.queuedInput=undefined;
-    if(next-at>S.combatBufferSeconds)return 'too_early';
+    if(a.queuedInput?.held&&!input.held)setCrouchHeld(w,b,false);a.queuedInput=undefined;
+    if(next-at>S.combatBufferSeconds){if(input.held)setCrouchHeld(w,b,false);return 'too_early';}
     a.queuedInput={...input,direction:input.direction?{...input.direction}:undefined,expiresAt:at+S.combatBufferSeconds};
     return 'accepted';
+  }
+  if(input.kind==='duck'&&input.held){
+    if(!(b.crouch??0)&&p.physiology.fatigue+S.crouchEffort*combatEffortScale(w,b.id)>1){setCrouchHeld(w,b,false);return 'exhausted';}
+    if(a&&a.completeAt>at){a.completeAt=at;phase(w,a,'complete',at);b.poseUntil=at;}
+    if(beginCrouch(w,b)&&!(b.crouch??0)){p.physiology.fatigue=Math.min(1,p.physiology.fatigue+S.crouchEffort*combatEffortScale(w,b.id));syncNeeds(p);}
+    return 'accepted';
+  }
+  if((b.crouch??0)>.001){
+    if(!postureFits(movementState(w,p,b),0,(x,z)=>collisionColumn(w,x,z)))return 'standing_blocked';
+    setCrouchHeld(w,b,false);
+    const exit=base(w,b,'duck');exit.definition='crouch_exit';exit.activeAt=at;exit.recoveryAt=exit.completeAt=at+S.crouchExitSeconds;exit.exertionCost=0;
+    accept(w,p,b,exit);exit.queuedInput={...input,expiresAt:at+S.combatBufferSeconds};return 'accepted';
   }
   if(input.kind==='attack'){
     const result=requestCombatAction(w,{attackerId:p.id,attackerBodyId:b.id,targetBodyId:input.targetBodyId??'',attackMode:'strike',trajectory:input.trajectory},input.commandId);
@@ -88,9 +114,10 @@ export function submitCombatInput(w:World,bodyId:string,input:CombatInput):strin
   return requestDefense(w,b.id,input.kind,input.side??1,input.commandId,input.direction);
 }
 export function stopCombatAction(w:World,b:Body,reason:string,cancel=false,at=w.physicalTime):void {
+  setCrouchHeld(w,b,false);
   const a=b.combatAction;if(!a||a.completeAt<=at||a.outcome==='interrupted'||a.outcome==='cancelled')return;
   a.outcome=cancel?'cancelled':'interrupted';a.stoppedAt=at;a.stopReason=reason;
-  a.queuedInput=undefined;
+  a.queuedInput=undefined;setCrouchHeld(w,b,false);
   a.completeAt=at+S.defenseRecoverySeconds;a.recoveryAt=at;
   phase(w,a,a.outcome,at);b.poseUntil=a.completeAt;
 }
@@ -100,14 +127,15 @@ export function cancelCombatAction(w:World,bodyId:string):string {
   stopCombatAction(w,b,'requested',true);return 'accepted';
 }
 export function captureCombatTransforms(w:World):Map<string,CombatTransform> {
-  if(!w.bodies().some(b=>b.combatAction&&b.combatAction.phase!=='complete'))return new Map();
-  return new Map(w.activeBodies().map(b=>[b.id,{pos:{...b.pos},yaw:b.yaw,duck:combatPosture(b.combatAction,w.physicalTime)}]));
+  if(!w.bodies().some(b=>b.crouch||b.combatAction&&b.combatAction.phase!=='complete'))return new Map();
+  return new Map(w.activeBodies().map(b=>[b.id,{pos:{...b.pos},yaw:b.yaw,duck:Math.max(b.crouch??0,combatPosture(b.combatAction,w.physicalTime))}]));
 }
 type Hit=(p:Person,ab:Body,tb:Body,r:CombatAttackResult,a:CombatAction)=>WorldEvent|null;
 /** Fast physical work only. Input/ordinary locomotion have already supplied their end poses.
  * Relative sweeps include both motions. Substeps bound turning/duck curves, not the world rate. */
 export function advanceCombat(w:World,dt:number,before:Map<string,CombatTransform>,hit:Hit):void {
   const now=w.physicalTime,start=now-dt;
+  advancePostures(w,dt);
   const actions=w.bodies().filter(b=>b.combatAction&&b.combatAction.phase!=='complete');
   if(!actions.length)return;
   const bodies=w.activeBodies();
@@ -118,6 +146,7 @@ export function advanceCombat(w:World,dt:number,before:Map<string,CombatTransfor
       const weapon=w.item(a.weaponId);
       if(!weapon||weapon.holderId!==b.ownerId||!p?.inventory.includes(weapon.id)||weapon.quantity<=0||weapon.condition===0)stopCombatAction(w,b,'weapon_unavailable',false,Math.max(start,a.startedAt));
     }
+    if(a.completeAt<=start)continue;
     if(a.kind==='attack'&&a.outcome==='pending'&&start<a.trackingUntil) {
       const target=a.targetBodyId&&w.body(a.targetBodyId);
       if(target&&w.grid.lineOfSight({...b.pos,y:b.pos.y+1.5},{...target.pos,y:target.pos.y+1.2},a.reach+1)) {
@@ -127,8 +156,8 @@ export function advanceCombat(w:World,dt:number,before:Map<string,CombatTransfor
         a.facing=a.initialFacing+Math.max(-a.turnBudget,Math.min(a.turnBudget,angle(a.facing+turn-a.initialFacing)));
       }
       b.yaw=a.facing;
-    } else if(a.kind==='attack'&&a.outcome==='pending') b.yaw=a.facing;
-    if(a.kind!=='attack'&&a.outcome==='pending'&&p) {
+    } else if(a.kind==='attack'&&a.outcome==='pending'&&now<a.completeAt) b.yaw=a.facing;
+    if(a.kind!=='attack'&&a.outcome==='pending'&&p&&now<a.completeAt) {
       const elapsed=Math.max(0,Math.min(now,a.recoveryAt)-Math.max(start,a.startedAt));
       let remaining=elapsed;
       const origin={...b.pos};
@@ -146,7 +175,7 @@ export function advanceCombat(w:World,dt:number,before:Map<string,CombatTransfor
   }
   const transform=(b:Body,t:number):CombatTransform=>{
     const old=before.get(b.id),f=Math.max(0,Math.min(1,(t-start)/dt));
-    return {pos:old?lerpPoint(old.pos,b.pos,f):b.pos,yaw:b.combatAction?.kind==='attack'?b.combatAction.facing:b.yaw,duck:combatPosture(b.combatAction,t)};
+    return {pos:old?lerpPoint(old.pos,b.pos,f):b.pos,yaw:b.combatAction?.kind==='attack'?b.combatAction.facing:b.yaw,duck:Math.max((old?.duck??b.crouch??0)+((b.crouch??0)-(old?.duck??b.crouch??0))*f,combatPosture(b.combatAction,t))};
   };
   // Gather before applying consequences: simultaneous contacts do not depend on body iteration.
   const contacts:Array<{ab:Body;tb:Body;a:CombatAction;at:number;region:import('./combatGeometry').ContactRegion;position:Vec3}>=[];
@@ -207,6 +236,7 @@ export function advanceCombat(w:World,dt:number,before:Map<string,CombatTransfor
     const queued=a.queuedInput;
     if(queued){
       if(now>queued.expiresAt+1e-9)a.queuedInput=undefined;
+      else if(queued.held&&!crouchHeld(w,b))a.queuedInput=undefined;
       else if(now+1e-9>=combatTransitionAt(a,queued.kind)){
         a.queuedInput=undefined;
         const result=submitCombatInput(w,b.id,queued);

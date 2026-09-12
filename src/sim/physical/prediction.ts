@@ -4,8 +4,8 @@ import type { Vec3 } from '../core/types';
 export const INTERACTION_SPEC = Object.freeze(specification);
 export interface CollisionColumn { floor: number; walkable: boolean; solids: number[] }
 export interface CollisionWindow { revision: string; x: number; z: number; size: number; columns: CollisionColumn[] }
-export interface MovementState { pos: Vec3; yaw: number; speed: number; eligible: boolean }
-export interface MovementInput { x: number; z: number; sprint: boolean }
+export interface MovementState { pos: Vec3; yaw: number; speed: number; eligible: boolean; crouch?:number }
+export interface MovementInput { x: number; z: number; sprint: boolean; facing?:number }
 export type ColumnQuery = (x: number, z: number) => CollisionColumn | undefined;
 export function windowQuery(window: CollisionWindow): ColumnQuery {
   return (x,z) => x < window.x || z < window.z || x >= window.x+window.size || z >= window.z+window.size
@@ -17,7 +17,8 @@ export function predictMovement(state: MovementState, input: MovementInput, dt: 
   const next = { ...state, pos: { ...state.pos } }, s = INTERACTION_SPEC;
   if (!state.eligible || ![input.x,input.z,dt,state.speed].every(Number.isFinite) || dt <= 0 || dt > .1) return next;
   const length = Math.max(1,Math.hypot(input.x,input.z));
-  const speed = Math.max(0,state.speed)*(input.sprint?s.sprintMultiplier:1);
+  const forwardSprint=input.facing===undefined||(-input.x*Math.sin(input.facing)-input.z*Math.cos(input.facing))/Math.max(.001,Math.hypot(input.x,input.z))>.7;
+  const speed = Math.max(0,state.speed)*((state.crouch??0)>.01?s.crouchSpeedMultiplier:input.sprint&&forwardSprint?s.sprintMultiplier:1);
   const dx=input.x/length*speed*dt, dz=input.z/length*speed*dt;
   const count=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dz))/s.sweepStep));
   const fits=(px:number,pz:number) => {
@@ -30,7 +31,7 @@ export function predictMovement(state: MovementState, input: MovementInput, dt: 
       if(!edge || edge.floor<0 || Math.abs(edge.floor-center.floor)>s.stepHeight) return false;
       clearance=Math.max(clearance,edge.floor); footprint.push(edge);
     }
-    return footprint.every(c=>!c.solids.some(y=>y>=Math.floor(clearance+.05)&&y<=Math.floor(clearance+s.height)));
+    return footprint.every(c=>!c.solids.some(y=>y>=Math.floor(clearance+.05)&&y<=Math.floor(clearance+postureHeight(state.crouch??0))));
   };
   for(let i=0;i<count;i++) {
     if(fits(next.pos.x+dx/count,next.pos.z)) next.pos.x+=dx/count;
@@ -38,6 +39,24 @@ export function predictMovement(state: MovementState, input: MovementInput, dt: 
     const floor=column(Math.floor(next.pos.x),Math.floor(next.pos.z))?.floor;
     if(floor!==undefined&&floor>=0) next.pos.y=floor;
   }
-  if(Math.hypot(next.pos.x-state.pos.x,next.pos.z-state.pos.z)>1e-9) next.yaw=Math.atan2(-(next.pos.x-state.pos.x),-(next.pos.z-state.pos.z));
+  if(input.facing!==undefined&&Number.isFinite(input.facing)&&Math.abs(input.facing)<=Math.PI) {
+    const difference=Math.atan2(Math.sin(input.facing-state.yaw),Math.cos(input.facing-state.yaw));
+    next.yaw=Math.atan2(Math.sin(state.yaw+Math.max(-s.facingRadiansPerSecond*dt,Math.min(s.facingRadiansPerSecond*dt,difference))),Math.cos(state.yaw+Math.max(-s.facingRadiansPerSecond*dt,Math.min(s.facingRadiansPerSecond*dt,difference))));
+  } else if(Math.hypot(next.pos.x-state.pos.x,next.pos.z-state.pos.z)>1e-9) next.yaw=Math.atan2(-(next.pos.x-state.pos.x),-(next.pos.z-state.pos.z));
   return next;
+}
+
+export const postureHeight=(amount:number)=>INTERACTION_SPEC.height+(INTERACTION_SPEC.duckHeight-INTERACTION_SPEC.height)*amount;
+export function postureFits(state:MovementState,amount:number,column:ColumnQuery):boolean {
+ const s=INTERACTION_SPEC;
+ for(let x=Math.floor(state.pos.x-s.radius);x<=Math.floor(state.pos.x+s.radius);x++)for(let z=Math.floor(state.pos.z-s.radius);z<=Math.floor(state.pos.z+s.radius);z++){
+  const c=column(x,z);if(!c||c.solids.some(y=>y+1>state.pos.y+.05&&y<state.pos.y+postureHeight(amount)))return false;
+ }
+ return true;
+}
+/** Posture is advanced once per physical step, after translation, identically on replay. */
+export function predictPosture(state:MovementState,held:boolean,dt:number,column:ColumnQuery):MovementState {
+ const old=state.crouch??0;
+ const amount=held&&state.eligible?Math.min(1,old+dt/INTERACTION_SPEC.crouchEnterSeconds):Math.max(0,old-dt/INTERACTION_SPEC.crouchExitSeconds);
+ return {...state,crouch:amount>=old||!state.eligible||postureFits(state,amount,column)?amount:old};
 }

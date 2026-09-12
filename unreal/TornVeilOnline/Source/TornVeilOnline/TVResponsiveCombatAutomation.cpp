@@ -1,5 +1,6 @@
 #include "TVLiveCombat.h"
 #include "TVInteractionSpec.generated.h"
+#include "TVCombatRepertoire.generated.h"
 #if WITH_DEV_AUTOMATION_TESTS
 #include "Misc/AutomationTest.h"
 #include "Animation/AnimSequence.h"
@@ -21,6 +22,28 @@ bool FTVResponsiveCombatTransitions::RunTest(const FString&) {
  }
  TArray<FInputActionKeyMapping> Keys;GetDefault<UInputSettings>()->GetActionMappingByName(TEXT("HeavyAttack"),Keys);
  TestTrue(TEXT("heavy attack is remappable and has mouse/controller mappings"),Keys.Num()>=2);
+ return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTVCombatRefinementParity,"TornVeil.Realtime.Refinement.FacingPostureRepertoire",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FTVCombatRefinementParity::RunTest(const FString&){
+ auto Floor=[](int,int)->TOptional<FTVPredictionColumn>{return FTVPredictionColumn{1,true,{0}};};
+ FTVMovementState S{FVector(10,1,10),0,3,true};
+ for(const auto V:{FVector2D(0,-1),FVector2D(0,1),FVector2D(1,0),FVector2D(-1,0),FVector2D(1,1)}){
+  const auto N=FTVInteractionPrediction::Step(S,{V.X,V.Y,false,0.},1./60,Floor);
+  TestNearlyEqual(TEXT("facing independent of travel"),N.Yaw,0.,1e-8);TestNearlyEqual(TEXT("normalized displacement"),(N.Position-S.Position).Size(),.05,1e-8);
+ }
+ auto Turn=FTVInteractionPrediction::Step(S,{0,0,false,PI/2},1./60,Floor);TestNearlyEqual(TEXT("stationary bounded turn"),Turn.Yaw,TVInteractionSpec::facingRadiansPerSecond/60,1e-8);
+ for(int I=0;I<120;++I)S=FTVInteractionPrediction::Posture(S,true,1./60,Floor);TestEqual(TEXT("held posture persists"),S.Crouch,1.);
+ auto Slow=FTVInteractionPrediction::Step(S,{0,-1,true,0.},1./60,Floor);TestNearlyEqual(TEXT("crouch excludes sprint"),(Slow.Position-S.Position).Size(),.05*TVInteractionSpec::crouchSpeedMultiplier,1e-8);
+ S.Position.Y=1.4;auto Ceiling=[](int,int)->TOptional<FTVPredictionColumn>{return FTVPredictionColumn{1.4,true,{0,3}};};
+ TestFalse(TEXT("standing clearance blocked"),FTVInteractionPrediction::PostureFits(S,0,Ceiling));for(int I=0;I<60;++I)S=FTVInteractionPrediction::Posture(S,false,1./60,Ceiling);TestTrue(TEXT("release cannot stand through ceiling"),S.Crouch>0);
+ for(const TCHAR* Id:{TEXT("jab"),TEXT("cross"),TEXT("front_kick"),TEXT("round_kick")}){
+  const auto& M=TVCombatRepertoire::Move(Id);auto A=FTVLiveCombat::Predict(TEXT("attack"),0,1,Id);A.MoveId=Id;A.Variant=M.Variant;A.ActiveAt=M.preparation;A.RecoveryAt=M.preparation+M.active;A.CompleteAt=A.RecoveryAt+M.recovery;
+  const auto P=A.Plan(0);TestTrue(TEXT("semantic asset loads"),LoadObject<UAnimSequence>(nullptr,*P.Motion.AssetPath)!=nullptr);
+  TestNearlyEqual(TEXT("authored chain gate"),A.TransitionAge(TEXT("attack")),M.attackAt,1e-8);
+  TestTrue(TEXT("active pose remains fully weighted"),P.Weight(float(M.preparation+M.active*.5))>.99f);
+ }
+ for(const TCHAR* Name:{TEXT("CrouchEnter"),TEXT("CrouchIdle"),TEXT("CrouchMoveF"),TEXT("CrouchMoveB"),TEXT("CrouchMoveL"),TEXT("CrouchMoveR")})TestNotNull(TEXT("owned posture clip"),LoadObject<UAnimSequence>(nullptr,*(FString(TEXT("/Game/TornVeil/Combat/Refinement/Animations/A_TV_"))+Name)));
  return true;
 }
 #endif
