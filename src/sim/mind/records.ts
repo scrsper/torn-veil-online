@@ -48,6 +48,7 @@ const snapshot = (k: KnowledgeItem): NonNullable<Item['record']>['knowledge'] =>
 /** Interruptible physical labor. The action is saved by the ordinary plan serializer. A copy
  * snapshots the accessible source, including mistakes; no lookup of a certified method. */
 export function actOnRecord(world: World, p: Person, action: Action, seconds: number): void {
+  if (action.status === 'done' || action.status === 'failed') return;
   const data = action.data ??= {};
   const source = world.item(data.recordId);
   const reading = action.type === 'read_record', copying = action.type === 'copy_record';
@@ -56,7 +57,7 @@ export function actOnRecord(world: World, p: Person, action: Action, seconds: nu
   if (!p.alive || p.age < 8 || !Number.isFinite(seconds) || seconds <= 0 || seconds > 60 || capacity <= 0.15
     || ((reading || copying) && (!source || !canReadRecord(world, p, source)))
     || (!reading && (!hasSubstrate(world, p, action.placeId!) || !knowsNotation(p, MECHANICAL_NOTATION)))
-    || (!reading && !copying && !held?.claim.method && !held?.claim.genealogy && !held?.claim.identity)) { action.status = 'failed'; return; }
+    || (!reading && !copying && !held?.claim.method && !held?.claim.genealogy && !held?.claim.identity && !held?.claim.martialTechnique)) { action.status = 'failed'; return; }
   const required = reading ? 4 : 12;
   const rate = capacity * (reading ? cognitiveCapability(p).reasoning : 0.5 + (p.skills.crafting ?? 0));
   const spent = Math.min(seconds, Math.max(0, required - (data.progress ?? 0)) / rate);
@@ -72,6 +73,7 @@ export function actOnRecord(world: World, p: Person, action: Action, seconds: nu
     if (acquired) interpretSocial(world, p, acquired);
     if (k.claim.identity) learnIdentity(world, p, k.claim.identity.subject, k.claim.identity.name, { type: 'read', from: source!.id, viaEvent: ev.id }, Math.min(0.8, k.confidence) * (source!.condition ?? 1));
     if (acquired && k.claim.method) developThroughUnderstanding(world, p, k.key, k.claim.method.connections.length + 1, data.laborSeconds, ev.id);
+    if (acquired && k.claim.martialTechnique) developThroughUnderstanding(world, p, k.key, k.claim.complexity ?? 1, data.laborSeconds, ev.id);
   } else {
     const k = copying ? structuredClone(source!.record!.knowledge) : snapshot(held!);
     let remaining = RECORD_MASS_KG / RESOURCE_MASS_KG.plank!;
@@ -85,7 +87,7 @@ export function actOnRecord(world: World, p: Person, action: Action, seconds: nu
     }
     const place = world.place(action.placeId)!;
     const family = !!k.claim.genealogy;
-    const item = makeItem(world, 'book', family ? 'Carved family testimony' : 'Carved workshop notes', { owner: p.id, placeId: place.id, pos: place.inside, condition: 1, named: true,
+    const item = makeItem(world, 'book', k.claim.martialTechnique ? 'Carved martial manual' : family ? 'Carved family testimony' : 'Carved workshop notes', { owner: p.id, placeId: place.id, pos: place.inside, condition: 1, named: true,
       description: family ? 'A wooden tablet of family testimony; its claims may be wrong.' : 'A wooden tablet of practical diagrams; its claims may be wrong.' });
     const ev = world.emit(copying ? 'record_copied' : 'record_written', { actor: p.id, item: item.id, placeId: place.id, pos: place.inside,
       category: 'history', visibility: 6, significance: 0.7, causes: [...new Set(causes)], data: { key: k.key, copiedFrom: source?.id, consumed, substrateKg: RECORD_MASS_KG, laborSeconds: data.laborSeconds },
@@ -112,7 +114,7 @@ export function recordGoals(world: World, p: Person): Partial<Goal>[] {
   }
   const place = [world.place(p.workId), world.place(p.homeId)].find(pl => pl && hasSubstrate(world, p, pl.id));
   if (!place) return goals;
-  for (const k of Object.values(p.knowledge).filter(k => (k.claim.method || k.claim.genealogy) && k.confidence > 0.4)) {
+  for (const k of Object.values(p.knowledge).filter(k => (k.claim.method || k.claim.genealogy || k.claim.martialTechnique) && k.confidence > 0.4)) {
     const copies = records.filter(i => i.record!.knowledge.key === k.key && i.placeId === place.id);
     if (copies.length >= 2 || copies.some(i => i.ownerId === p.id)) continue;
     const source = copies[0];

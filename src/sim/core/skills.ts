@@ -2,6 +2,7 @@ import type { Occupation, Person, SkillId } from './types';
 import type { ToolAction } from './tools';
 import type { World } from './world';
 import { developThroughPractice } from './development';
+import type { PracticedSkillId } from './martialTypes';
 
 /**
  * Learned capability (v0.6 §V) — see `SkillId`'s doc comment in core/types.ts for what this is
@@ -16,7 +17,7 @@ const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
 /** 0 (complete novice) if the person has never practiced this skill — the same as every
  * pre-v0.6 person, since `getPhysicalCapability`'s skill terms are identity multipliers at 0. */
-export function skillOf(p: Person, id: SkillId): number { return p.skills?.[id] ?? 0; }
+export function skillOf(p: Person, id: PracticedSkillId): number { return (p.skills as Partial<Record<PracticedSkillId, number>>)?.[id] ?? 0; }
 
 /**
  * How much a bare unit of real, successful work (one extraction, one batch, one credited
@@ -33,13 +34,13 @@ const BASE_GAIN = 0.015;
  * haul cycle) — never for standing at a workplace or a failed/no-op attempt, so neither can
  * train a skill (Constitution v0.6 §V.9). `amount` is in the same "one unit" terms as the base
  * gain above (a fractional amount for a partial slice, e.g. minutes of build labour / 1 minute). */
-export function practiceSkill(p: Person, id: SkillId, amount = 1, world?: World): void {
+export function practiceSkill(p: Person, id: PracticedSkillId, amount = 1, world?: World): void {
   if (!Number.isFinite(amount) || amount <= 0) return;
   if (world) developThroughPractice(world, p, id, amount, instructionFactor(p, id));
   const cur = skillOf(p, id);
   if (cur >= 1) return;
   p.skills = p.skills ?? {};
-  p.skills[id] = clamp01(cur + BASE_GAIN * amount * instructionFactor(p, id) * (1 - cur));
+  (p.skills as Partial<Record<PracticedSkillId, number>>)[id] = clamp01(cur + BASE_GAIN * amount * instructionFactor(p, id) * (1 - cur));
 }
 
 // ---------------------------------------------------------------- Adaptive Society (v0.5)
@@ -56,12 +57,12 @@ export function practiceSkill(p: Person, id: SkillId, amount = 1, world?: World)
  * Kept here rather than in `mind/` so `practiceSkill` — which every trade calls from
  * `world/metabolism.ts` — can consult it without the world layer reaching into cognition.
  */
-export function techniqueKey(id: SkillId): string { return `technique:${id}`; }
+export function techniqueKey(id: PracticedSkillId): string { return `technique:${id}`; }
 /** How much more a taught novice gets out of the same batch. Deliberately modest: instruction
  * shortens the road, it does not replace walking it. A taught novice still needs dozens of real
  * batches to reach a working proficiency. */
 export const INSTRUCTION_PRACTICE_BONUS = 0.6;
-export function instructionFactor(p: Person, id: SkillId): number {
+export function instructionFactor(p: Person, id: PracticedSkillId): number {
   const k = p.knowledge?.[techniqueKey(id)];
   if (!k || k.claim.skill !== id) return 1;
   // A half-remembered lesson helps less than a fresh one — the belief's own confidence carries
