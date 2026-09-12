@@ -1,4 +1,23 @@
-# Responsive combat repair — ready for human playtest, 2026-09-12
+# Camera-facing combat refinement — human playtest checkpoint, 2026-09-12
+
+Feature branch `codex/realtime-interaction-v0-1`, base `947761b`.
+Report: `docs/COMBAT_CAMERA_REFINEMENT.md`; videos/curated measurements:
+`docs/evidence/combat-refinement/`. Independent canonical/native facing, held crouch,
+repaired jab derivative, one right-foot body round kick, explicit replant/transition gates,
+evaluated-pose blending and arena-only Practice Recovery extend the existing architecture.
+The approved cross/front kick and walking/sprint/step/reaction assets are preserved.
+116 focused TS tests across latest affected runs, typecheck/web build, native build and
+nine targeted native tests pass. No full regression, family investigation, merge or PR.
+Human launch: `pwsh -File unreal/scripts/Start-CombatArena.ps1 -Port 53636`.
+WASD strafe/back/forward; mouse desired facing; Shift forward sprint; LMB Light; RMB Heavy;
+Space + direction dodge; hold Ctrl crouch; F1 passive, F2 incoming, F3 reset with mode retained,
+F4 Practice Recovery/Normal Physiology. Controller equivalents are in the report.
+Three normal-speed 24-second front-oblique/side/rear videos are about 9 captured fps.
+An uncaptured 60-fps run measured callback-to-evaluated-pose around 18.5 ms, not input-to-photon.
+Stop for human playtest. Approval of the new/refined content and full acceptance are not claimed.
+Unrelated caregiver experiment and prior local raw evidence remain uncommitted and preserved.
+
+# Responsive combat repair — previous playtest checkpoint, 2026-09-12
 
 Branch `codex/realtime-interaction-v0-1`, repair base `31051ec`.
 Report: `docs/RESPONSIVE_COMBAT_REPAIR.md`; curated evidence and normal-speed video:
