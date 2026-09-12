@@ -51,7 +51,7 @@ npm ci --ignore-scripts --no-audit --no-fund
 npx tsx scripts/generate-interaction-spec.ts
 git lfs checkout 'unreal/TornVeilOnline/Content/TornVeil/Combat/**' 'unreal/TornVeilOnline/Content/TornVeil/Characters/**' 'unreal/TornVeilOnline/Content/TornVeil/Maps/TornVeilWorld.umap'
 pwsh -File unreal/scripts/Build.ps1
-pwsh -File unreal/scripts/Start-CombatArena.ps1 -Port 8791 -Save .debug/arena-integration-save.json
+pwsh -File unreal/scripts/Start-CombatArena.ps1 -Port 8793 -Save .debug/arena-integration-final-save.json
 ```
 
 The asset checkout command uses locally available LFS objects; a fresh machine must fetch those paths first. This worktree reuses the canonical checkout's template Characters and local SDK via junctions; no vendor source or canonical checkout was edited.
@@ -61,7 +61,7 @@ WASD moves; mouse orbits; Shift sprints. LMB is Light, RMB Heavy, Space + direct
 To reproduce machine evidence with the Arena server running:
 
 ```powershell
-pwsh -File unreal/scripts/Run-ResponsiveCombatProbe.ps1 -Port 8791 -Martial -Output .debug/martial-timing
+pwsh -File unreal/scripts/Run-ResponsiveCombatProbe.ps1 -Port 8793 -Martial -Output .debug/martial-timing
 npx tsx scripts/analyze-martial-combat-probe.ts .debug/martial-timing/probe.json
 ```
 

@@ -14,7 +14,7 @@ the projected canonical repertoire. F4 cycles untrained/partial/trained Arena ac
 follow-ups had no idle frames; unbuffered observed startup 16.23–27.23ms.
 Independent review complete; carried-weapon shove issue fixed and tested.
 No full regression, family investigation, main merge or PR.
-Launch: pwsh -File unreal/scripts/Start-CombatArena.ps1 -Port 8791 -Save .debug/arena-integration-save.json
+Launch: pwsh -File unreal/scripts/Start-CombatArena.ps1 -Port 8793 -Save .debug/arena-integration-final-save.json
 Full manual instructions are in the report.
 
 ---
@@ -30,7 +30,7 @@ animations and in-game scripted practice controls extend the existing architectu
 and eight targeted native tests pass. No full regression, family investigation, PR or merge.
 The family experiment and earlier local raw evidence remain uncommitted and unmodified.
 
-Human launch: `pwsh -File unreal/scripts/Start-CombatArena.ps1 -Port 8791`.
+Human launch: `pwsh -File unreal/scripts/Start-CombatArena.ps1 -Port 8793`.
 LMB punch; RMB kick; Space + direction dodge (neutral backstep); Ctrl duck; WASD/Shift
 move/sprint; F1 passive, F2 repeated incoming, F3 reset/recover. Full controller mappings
 and remaining animation/network acceptance limits are in the report. Stop for human playtest.
