@@ -1,4 +1,5 @@
 import type { Body, Vec3 } from '../core/types';
+import { sampledStrike } from './combatMotion';
 
 export type ContactRegion = 'head' | 'torso' | 'leftArm' | 'rightArm' | 'leftLeg' | 'rightLeg';
 export interface HurtVolume { region: ContactRegion; center: Vec3; radius: number }
@@ -26,7 +27,11 @@ export function sweepSphereContact(a0:Vec3,a1:Vec3,ar:number,b0:Vec3,b1:Vec3,br:
   const bb=2*(x*dx+y*dy+z*dz),disc=bb*bb-4*aa*c;if(disc<0)return null;
   const t=(-bb-Math.sqrt(disc))/(2*aa);return t>=0&&t<=1?t:null;
 }
-export function strikePoint(pos:Vec3,yaw:number,reach:number,progress:number,trajectory:'high'|'mid'|'low'):Vec3 {
+export function strikePoint(pos:Vec3,yaw:number,reach:number,progress:number,trajectory:'high'|'mid'|'low',variant?:'direct'|'hook'|'kick'):Vec3 {
+  if(variant){
+    const [side,height,forward]=sampledStrike(variant,progress);
+    return {x:pos.x-Math.sin(yaw)*forward+Math.cos(yaw)*side,y:pos.y+height,z:pos.z-Math.cos(yaw)*forward-Math.sin(yaw)*side};
+  }
   const extension=.35+(reach-.35)*Math.max(0,Math.min(1,progress));
   const side=.06*Math.sin(Math.PI*progress);
   return {x:pos.x-Math.sin(yaw)*extension+Math.cos(yaw)*side,

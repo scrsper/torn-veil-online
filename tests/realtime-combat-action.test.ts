@@ -11,6 +11,7 @@ import { GameSim } from '../src/sim/runtime/gameSim';
 import { CommandQueue } from '../src/bridge/commands';
 import { INTERACTION_SPEC, predictMovement } from '../src/sim/physical/prediction';
 import { applyInteractionMovement, movementState } from '../src/sim/physical/interactionMovement';
+import { stepProgress } from '../src/sim/physical/combatTransitions';
 import type { CombatAttackIntent } from '../src/sim/physical/combat';
 
 function setup() {
@@ -52,15 +53,16 @@ describe('canonical realtime combat action requests', () => {
     const receipt = q.apply(0, 1, () => requestDefense(x.world, x.targetBody.id, 'backstep', 1, command.commandId))[0];
     expect(receipt.status).toBe('applied');
     for (let i = 0; i < 18; i++) {
+      predicted.speed=INTERACTION_SPEC.backstepMetres*(stepProgress((i+1)/60/INTERACTION_SPEC.defenseSeconds)-stepProgress(i/60/INTERACTION_SPEC.defenseSeconds))*60;
       predicted = predictMovement(predicted, { x: 1, z: 0, sprint: false }, 1 / 60,
         () => ({ floor: 1, walkable: true, solids: [0] }));
     }
     advance(x, .3);
     const correction = Math.abs(predicted.pos.x - x.targetBody.pos.x);
-    expect(correction).toBeGreaterThan(.75); expect(correction).toBeLessThanOrEqual(.85);
+    expect(correction).toBeGreaterThan(INTERACTION_SPEC.backstepMetres-.1); expect(correction).toBeLessThanOrEqual(INTERACTION_SPEC.backstepMetres);
     expect(x.targetBody.pos.x).toBeLessThan(11.71);
     const events = x.world.events.length, fatigue = x.target.physiology.fatigue;
-    expect(fatigue).toBeCloseTo(initialFatigue + .018, 3);
+    expect(fatigue).toBeCloseTo(initialFatigue + INTERACTION_SPEC.defenseEffort, 3);
     expect(q.receive(command, .3, 20).status).toBe('applied');
     expect(q.apply(.3, 21, () => { throw new Error('replayed consequence'); })).toEqual([]);
     expect(x.world.events).toHaveLength(events); expect(x.target.physiology.fatigue).toBe(fatigue);
@@ -177,14 +179,14 @@ describe('canonical realtime combat action requests', () => {
     expect(requestDefense(side.world, side.attackerBody.id, 'sidestep', 1, 'side-1')).toBe('accepted');
     advance(side, 0.2);
     expect(side.attackerBody.pos.x - sideBefore.x).toBeGreaterThan(0.5);
-    expect(side.attackerBody.pos.x - sideBefore.x).toBeLessThanOrEqual(1.05 + 1e-6);
+    expect(side.attackerBody.pos.x - sideBefore.x).toBeLessThanOrEqual(INTERACTION_SPEC.sidestepMetres + 1e-6);
 
     const back = setup();
     const backBefore = { ...back.attackerBody.pos };
     expect(requestDefense(back.world, back.attackerBody.id, 'backstep', 1, 'back-1')).toBe('accepted');
     advance(back, 0.2);
     expect(back.attackerBody.pos.z - backBefore.z).toBeGreaterThan(0.4);
-    expect(back.attackerBody.pos.z - backBefore.z).toBeLessThanOrEqual(0.85 + 1e-6);
+    expect(back.attackerBody.pos.z - backBefore.z).toBeLessThanOrEqual(INTERACTION_SPEC.backstepMetres + 1e-6);
   });
 
   it('resolves paired trajectory counterfactuals from the same initial state', () => {

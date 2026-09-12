@@ -1,5 +1,5 @@
 {
-  "revision": "tv-interaction-2",
+  "revision": "tv-interaction-3",
   "unarmedPathReach": 0.9,
   "stepSeconds": 0.016666666666666666,
   "sprintMultiplier": 1.55,
@@ -11,9 +11,16 @@
   "preparationSeconds": 0.3,
   "activeSeconds": 0.15,
   "recoverySeconds": 0.3,
-  "sidestepMetres": 1.05,
-  "backstepMetres": 0.85,
-  "defenseSeconds": 0.3,
-  "defenseRecoverySeconds": 0.3,
+  "sidestepMetres": 0.65,
+  "backstepMetres": 0.55,
+  "defenseSeconds": 0.24,
+  "defenseRecoverySeconds": 0.12,
+  "attackChainSeconds": 0.03,
+  "attackEvadeSeconds": 0.06,
+  "combatBufferSeconds": 0.25,
+  "dodgeDeadZone": 0.2,
+  "defenseEffort": 0.035,
+  "duckRecoveryAt": 0.38,
+  "duckSeconds": 0.5833333333333334,
   "duckHeight": 1.33
 }

@@ -130,7 +130,7 @@ describe('deterministic interaction movement prediction', () => {
     const beforeFatigue = p.physiology.fatigue, beforeEvents = tw.world.events.filter(e => e.type === 'combat_action').length;
     expect(requestDefense(tw.world, b.id, 'sidestep', 1, 'defense-once')).toBe('accepted');
     expect(requestDefense(tw.world, b.id, 'backstep', 1, 'defense-duplicate')).toBe('cooldown');
-    expect(p.physiology.fatigue - beforeFatigue).toBeCloseTo(0.018);
+    expect(p.physiology.fatigue - beforeFatigue).toBeCloseTo(INTERACTION_SPEC.defenseEffort);
     expect(tw.world.events.filter(e => e.type === 'combat_action').length - beforeEvents).toBe(3);
   });
 });

@@ -156,6 +156,7 @@ FTVChoreographyPlan FTVCombatChoreographer::Plan(const FTVChoreographyRequest& R
     return P;
 }
 float FTVChoreographyPlan::SampleTime(float Age) const {
+    if(bTimeline)return FMath::Clamp(Age,0.f,Motion.Length);
     if (bReaction) return FMath::Clamp((Age-ContactAt)*1.6f,0.f,Motion.Length);
     const float Windup=Motion.ContactTime*.65f;
     if (Age<Anticipation) return Windup*Smooth(Age/Anticipation);
@@ -164,7 +165,8 @@ float FTVChoreographyPlan::SampleTime(float Age) const {
 }
 float FTVChoreographyPlan::Weight(float Age) const {
     const float Start=bReaction?ContactAt:0;
-    return Smooth((Age-Start)/.09f)*(1-Smooth((Age-(Duration-.12f))/.12f));
+    const float Fade=bTimeline?.09f:.12f;
+    return Smooth((Age-Start)/(bTimeline?.04f:.09f))*(1-Smooth((Age-(Duration-Fade))/Fade));
 }
 FVector FTVChoreographyPlan::Offset(float Age) const {
     if (bReaction) return FVector::ZeroVector;

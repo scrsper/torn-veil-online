@@ -22,7 +22,7 @@ struct FTVCombatAnimProxy : FAnimInstanceProxy {
     virtual void PreUpdate(UAnimInstance* Instance,float Dt) override {
         FAnimInstanceProxy::PreUpdate(Instance,Dt);
         auto* A=CastChecked<UTVCombatAnimInstance>(Instance);
-        BasePose.SetSequence(A->Base); BasePose.SetExplicitTime(0);
+        BasePose.SetSequence(A->Base); BasePose.SetExplicitTime(A->BaseTime);
         MotionPose.SetSequence(A->Motion); MotionPose.SetExplicitTime(A->Time);
         Blend.Alpha=FMath::Clamp(A->Weight,0.f,1.f);
         LeftGoal=A->LeftFoot; RightGoal=A->RightFoot; IKWeight=A->FootLock;
@@ -33,17 +33,6 @@ struct FTVCombatAnimProxy : FAnimInstanceProxy {
         if(IKWeight<=0&&HandWeight<=0&&Duck<=0) return true;
         FCSPose<FCompactPose> CS; CS.InitPose(Output.Pose);
         const auto& Bones=Output.Pose.GetBoneContainer();
-        if(Duck>0) {
-            const int32 Index=Bones.GetPoseBoneIndexForBoneName(TEXT("pelvis"));
-            if(Index!=INDEX_NONE){const auto Bone=Bones.MakeCompactPoseIndex(FMeshPoseBoneIndex(Index));if(Bone!=INDEX_NONE){auto T=CS.GetComponentSpaceTransform(Bone);T.AddToTranslation(FVector(0,0,-50*Duck));TArray<FBoneTransform> Changes;Changes.Emplace(Bone,T);CS.SafeSetCSBoneTransforms(Changes);}}
-        }
-        if(HandWeight>0) {
-            const int32 Index=Bones.GetPoseBoneIndexForBoneName(bLowStrike?TEXT("foot_r"):TEXT("hand_r"));
-            if(Index!=INDEX_NONE){const auto Hand=Bones.MakeCompactPoseIndex(FMeshPoseBoneIndex(Index));if(Hand!=INDEX_NONE){const auto Forearm=Bones.GetParentBoneIndex(Hand),Upper=Bones.GetParentBoneIndex(Forearm);
-                if(Forearm!=INDEX_NONE&&Upper!=INDEX_NONE){auto A=CS.GetComponentSpaceTransform(Upper),B=CS.GetComponentSpaceTransform(Forearm),C=CS.GetComponentSpaceTransform(Hand);
-                    AnimationCore::SolveTwoBoneIK(A,B,C,B.GetLocation()+FVector(0,-50,10),FMath::Lerp(C.GetLocation(),HandGoal,HandWeight),false,1.0,1.0);
-                    TArray<FBoneTransform> Changes;Changes.Emplace(Upper,A);Changes.Emplace(Forearm,B);Changes.Emplace(Hand,C);CS.SafeSetCSBoneTransforms(Changes);}}}
-        }
         for(int32 Side=0;Side<2;++Side) {
             if(bLowStrike&&HandWeight>0&&Side==1)continue;
             const int32 MeshIndex=Bones.GetPoseBoneIndexForBoneName(Side==0?TEXT("foot_l"):TEXT("foot_r"));
@@ -53,7 +42,7 @@ struct FTVCombatAnimProxy : FAnimInstanceProxy {
             const auto Shin=Bones.GetParentBoneIndex(Foot), Thigh=Bones.GetParentBoneIndex(Shin);
             if(Shin==INDEX_NONE || Thigh==INDEX_NONE) continue;
             FTransform A=CS.GetComponentSpaceTransform(Thigh), B=CS.GetComponentSpaceTransform(Shin), C=CS.GetComponentSpaceTransform(Foot);
-            const FVector Goal=FMath::Lerp(C.GetLocation(),Side==0?LeftGoal:RightGoal,IKWeight);
+            const FVector Goal=C.GetLocation()+(FMath::Lerp(C.GetLocation(),Side==0?LeftGoal:RightGoal,IKWeight)-C.GetLocation()).GetClampedToMaxSize(3);
             AnimationCore::SolveTwoBoneIK(A,B,C,B.GetLocation()+FVector(0,60,0),Goal,false,1.0,1.0);
             TArray<FBoneTransform> Changes; Changes.Emplace(Thigh,A);Changes.Emplace(Shin,B);Changes.Emplace(Foot,C);
             CS.SafeSetCSBoneTransforms(Changes);

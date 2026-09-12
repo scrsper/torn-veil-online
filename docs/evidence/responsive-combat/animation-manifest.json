@@ -1,0 +1,127 @@
+[
+  {
+    "clip": "Jab",
+    "source": "/Game/TornVeil/Combat/Repair/Retargeted/RT_jab_left_Anim.RT_jab_left_Anim",
+    "headingDegrees": 32.421,
+    "knots": [
+      [
+        0,
+        0.12
+      ],
+      [
+        0.3,
+        0.27
+      ],
+      [
+        0.45,
+        0.42
+      ],
+      [
+        0.75,
+        0.85
+      ]
+    ],
+    "effector": "middle_01_l"
+  },
+  {
+    "clip": "Cross",
+    "source": "/Game/TornVeil/Combat/Repair/Retargeted/RT_cross_right_Anim.RT_cross_right_Anim",
+    "headingDegrees": 23.626,
+    "knots": [
+      [
+        0,
+        0.36
+      ],
+      [
+        0.3,
+        0.68
+      ],
+      [
+        0.45,
+        0.84
+      ],
+      [
+        0.75,
+        1.32
+      ]
+    ],
+    "effector": "middle_01_r"
+  },
+  {
+    "clip": "Kick",
+    "source": "/Game/TornVeil/Combat/Repair/Retargeted/RT_front_kick_Anim.RT_front_kick_Anim",
+    "headingDegrees": 0,
+    "knots": [
+      [
+        0,
+        0.55
+      ],
+      [
+        0.3,
+        1.0
+      ],
+      [
+        0.45,
+        1.22
+      ],
+      [
+        0.75,
+        1.88
+      ]
+    ],
+    "effector": "foot_r"
+  },
+  {
+    "clip": "StepLeft",
+    "source": "/Game/TornVeil/Combat/Repair/Retargeted/RT_dodge_left_Anim.RT_dodge_left_Anim",
+    "trim": [
+      0.58,
+      1.55
+    ],
+    "root": "horizontal hip travel removed; canonical collision owns displacement"
+  },
+  {
+    "clip": "StepRight",
+    "source": "/Game/TornVeil/Combat/Repair/Retargeted/RT_dodge_right_Anim.RT_dodge_right_Anim",
+    "trim": [
+      0.44,
+      1.43
+    ],
+    "root": "horizontal hip travel removed; canonical collision owns displacement"
+  },
+  {
+    "clip": "StepBack",
+    "source": "/Game/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Bwd.MF_Unarmed_Walk_Bwd",
+    "trim": [
+      0,
+      0.53
+    ],
+    "root": "root travel removed"
+  },
+  {
+    "clip": "StepForward",
+    "source": "/Game/Characters/Mannequins/Anims/Unarmed/Walk/MF_Unarmed_Walk_Fwd.MF_Unarmed_Walk_Fwd",
+    "trim": [
+      0,
+      0.53
+    ],
+    "root": "root travel removed"
+  },
+  {
+    "clip": "Duck",
+    "source": [
+      "/Game/TornVeil/Combat/Repair/Retargeted/RT_M_Neutral_Transition_Stand_to_Crouch.RT_M_Neutral_Transition_Stand_to_Crouch",
+      "/Game/TornVeil/Combat/Repair/Retargeted/RT_M_Neutral_Crouch_Idle_Loop.RT_M_Neutral_Crouch_Idle_Loop",
+      "/Game/TornVeil/Combat/Repair/Retargeted/RT_M_Neutral_Transition_Crouch_to_Stand.RT_M_Neutral_Transition_Crouch_to_Stand"
+    ],
+    "entry": 0.18,
+    "hold": 0.2,
+    "recovery": 0.2
+  },
+  {
+    "clip": "Sprint",
+    "source": "/Game/TornVeil/Combat/Repair/Retargeted/RT_M_Neutral_Sprint_Loop_F.RT_M_Neutral_Sprint_Loop_F",
+    "sourceSpeedCmPerSecond": 700,
+    "root": "removed; movement speed unchanged"
+  }
+]

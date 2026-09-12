@@ -7,12 +7,15 @@
 ATVGameMode::ATVGameMode() { DefaultPawnClass = ATVCharacter::StaticClass(); HUDClass = ATVHUD::StaticClass(); }
 void ATVHUD::DrawHUD() {
     Super::DrawHUD(); auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>(); if (!B || !Canvas) return;
-    DrawRect(FLinearColor(0.015f, 0.02f, 0.035f, 0.85f), 20, 20, 660, 100);
+    DrawRect(FLinearColor(0.015f, 0.02f, 0.035f, 0.85f), 20, 20, B->bArena?960:660, B->bArena?145:100);
     DrawText(TEXT("TORN VEIL  /  LIVING WORLD"), FLinearColor(0.9f, 0.72f, 0.4f), 36, 30, nullptr, 1.5f);
     DrawText(B->ConnectionStatus(), FLinearColor::White, 36, 65);
-    DrawText(TEXT("WASD move  |  Shift run  |  Mouse orbit  |  Wheel zoom  |  Tab target  |  LMB strike  |  E interact  |  C eat  |  Q drop  |  M mechanisms  |  F5 save  |  F6 debug"), FLinearColor(0.7f, 0.75f, 0.8f), 36, 90);
-    if(B->bArena) DrawText(TEXT("CONTACT ARENA  |  X/LMB high  |  R low  |  Z/V sidestep  |  Space backstep  |  Left Ctrl duck"), FLinearColor(1,.85f,.5f),36,112);
-    if (B->IsLive()) {
+    DrawText(TEXT("WASD move  |  Shift run  |  Mouse orbit  |  Wheel zoom  |  Tab target  |  LMB punch / RMB kick  |  E interact  |  C eat  |  Q drop  |  M mechanisms  |  F5 save  |  F6 debug"), FLinearColor(0.7f, 0.75f, 0.8f), 36, 90);
+    if(B->bArena) {
+        DrawText(TEXT("Space + direction dodge (neutral: backstep) | Ctrl duck | F1 passive | F2 repeated attacks | F3 reset/recover"),FLinearColor(1,.85f,.5f),36,112);
+        DrawText(B->PracticeStatus+TEXT(" | last: ")+B->PracticeLast,FLinearColor(1,.85f,.5f),36,134);
+    }
+    if (B->IsLive() && !B->bArena) {
         DrawRect(FLinearColor(0.015f, 0.02f, 0.035f, 0.85f), 20, Canvas->SizeY - 150, 660, 85);
         DrawText(B->PlayerVitals, FLinearColor::White, 36, Canvas->SizeY - 140);
         DrawText(B->CarriedSummary, FLinearColor(0.9f, 0.85f, 0.7f), 36, Canvas->SizeY - 118);
@@ -21,7 +24,7 @@ void ATVHUD::DrawHUD() {
             + (B->DropPrompt.IsEmpty() ? FString() : TEXT("    Q - ") + B->DropPrompt);
         DrawText(Prompt, FLinearColor(1, 0.8f, 0.45f), 36, Canvas->SizeY - 92);
     }
-    if (auto* T = B->Selected()) {
+    if (auto* T = B->Selected(); T && (!B->bArena || B->bInspector)) {
         // Occupation is what this person does for a living, and anyone in the vale can see it. A
         // recognised class is a reading of their capability and history that no passer-by could
         // make, so it is developer data: it appears only with the inspector open, alongside the
@@ -49,7 +52,7 @@ void ATVHUD::DrawHUD() {
     }
     // Why the last intent did not take (out of reach, still recovering) belongs next to the hand
     // that swung, not inside a target panel that may not be open.
-    if (!B->LastResult.IsEmpty()) DrawText(B->LastResult, FLinearColor(0.95f, 0.5f, 0.4f), Canvas->SizeX * 0.5f - 60, Canvas->SizeY * 0.5f + 60);
+    if (!B->LastResult.IsEmpty()) DrawText(B->LastResult, FLinearColor(0.95f, 0.5f, 0.4f), B->bArena?36:Canvas->SizeX * 0.5f - 60, B->bArena?174:Canvas->SizeY * 0.5f + 60);
     DrawText(B->LastEvent, FLinearColor(0.9f, 0.85f, 0.7f), 30, Canvas->SizeY - 45);
     if (B->bDialogueOpen) {
         const float X = Canvas->SizeX * 0.17f, W = Canvas->SizeX * 0.66f, Y = Canvas->SizeY * 0.18f;

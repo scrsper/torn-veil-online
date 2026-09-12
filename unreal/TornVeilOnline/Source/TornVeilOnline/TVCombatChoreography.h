@@ -54,7 +54,7 @@ struct FTVChoreographyPlan {
     float AlignmentYaw = 0, PivotYaw = 0, LeanDegrees = 0, LeanYaw = 0, OffsetLimitCm = 22, ContactErrorCm = 0;
     FVector ContactOffset = FVector::ZeroVector;
     int32 LOD = 0;
-    bool bReaction = false;
+    bool bReaction = false, bTimeline = false;
     float SampleTime(float Age) const;
     float Weight(float Age) const;
     FVector Offset(float Age) const;

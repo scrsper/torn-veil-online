@@ -3,6 +3,36 @@ import { defaultPhysiology, syncNeeds } from '../sim/core/physiology';
 import { B } from '../sim/physical/blocks';
 import { setExternalControl } from '../sim/runtime/controllers';
 import { requestCombatAction } from '../sim/physical/combatAction';
+import { applyInteractionMovement } from '../sim/physical/interactionMovement';
+
+const practice=new WeakMap<BridgeSession,{mode:'passive'|'repeat';nextAt:number}>();
+export function setPracticeMode(s:BridgeSession,mode:'passive'|'repeat'|'reset'):string {
+  if(!s.world.places().some(p=>p.name==='Contact arena'))return 'arena_only';
+  if(mode==='reset')arrangeCombatArena(s,'idle');
+  practice.set(s,{mode:mode==='repeat'?'repeat':'passive',nextAt:s.world.physicalTime+1});
+  return 'accepted';
+}
+export function practiceStatus(s:BridgeSession) {
+  if(!s.world.places().some(p=>p.name==='Contact arena'))return null;
+  const [p,npc]=s.world.persons(),b=s.world.primaryBody(npc.id)!,pb=s.world.primaryBody(p.id)!;
+  const state=practice.get(s),a=b.combatAction;
+  const last=[...s.world.events].reverse().find(e=>e.type==='attack'||e.type==='attack_missed');
+  const result=last?.data.combat as {contactRegion?:string}|undefined;
+  return {scripted:true,mode:state?.mode??'passive',ready:!b.dead&&!pb.dead&&b.health>0&&pb.health>0,
+    opponentPhase:a&&a.completeAt>s.world.physicalTime?a.phase:'ready',lastContact:result?.contactRegion??null,lastOutcome:last?.type==='attack'?`hit: ${result?.contactRegion??'body'}`:last?.type==='attack_missed'?'miss':'none'};
+}
+/** Explicit scripted practice controller; every strike/move still uses ordinary canonical mechanics. */
+export function tickPractice(s:BridgeSession,dt:number):void {
+  const state=practice.get(s);if(state?.mode!=='repeat')return;
+  const w=s.world,[p,npc]=w.persons(),pb=w.primaryBody(p.id)!,b=w.primaryBody(npc.id)!;
+  if(pb.dead||b.dead||!p.alive||!npc.alive||b.health<=0||pb.health<=0)return;
+  if(b.combatAction&&b.combatAction.completeAt>w.physicalTime)return;
+  const dx=pb.pos.x-b.pos.x,dz=pb.pos.z-b.pos.z,d=Math.hypot(dx,dz);
+  if(d>1.05){applyInteractionMovement(w,npc,b,{x:dx/d,z:dz/d,sprint:false},dt);return;}
+  if(w.physicalTime<state.nextAt)return;
+  requestCombatAction(w,{attackerId:npc.id,attackerBodyId:b.id,targetBodyId:pb.id,attackMode:'strike',trajectory:'high'});
+  state.nextAt=w.physicalTime+1.3;
+}
 
 export function arrangeCombatArena(s:BridgeSession,scenario:string) {
   if(!['idle','incoming','incoming_low','blocked','npc_defense'].includes(scenario))throw new Error('Unknown arena scenario');

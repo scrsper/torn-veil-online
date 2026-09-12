@@ -74,6 +74,10 @@ public:
     UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void SidestepRight();
     UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void Backstep();
     UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void Duck();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void Dodge();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void PracticePassive();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void PracticeRepeat();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void PracticeReset();
     /** The F6 handler. Reflected for the same reason: a developer mode that cannot be entered
      *  from a test is a developer mode nobody checks still works. */
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
@@ -95,6 +99,7 @@ private:
     UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> HairMaterial;
     UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> PropMaterial;
     UPROPERTY() TObjectPtr<UAnimationAsset> Locomotion;
+    UPROPERTY() TObjectPtr<UAnimationAsset> SprintAnimation;
     UPROPERTY() TObjectPtr<UAnimationAsset> AttackAnimation;
     UPROPERTY() TObjectPtr<UAnimationAsset> HitAnimation;
     UPROPERTY() TObjectPtr<UAnimationAsset> DownAnimation;

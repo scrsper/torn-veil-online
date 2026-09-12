@@ -1,5 +1,8 @@
 #include "TVCombatPresentationComponent.h"
 #include "TVCharacter.h"
+#include "GameFramework/InputSettings.h"
+#include "GameFramework/PlayerController.h"
+#include "TVInteractionSpec.generated.h"
 #include "TVBridgeSubsystem.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -62,6 +65,7 @@ ATVCharacter::ATVCharacter() {
     if (Hair.Succeeded()) { HairMaterial = UMaterialInstanceDynamic::Create(Hair.Object, this); HairProxy->SetMaterial(0, HairMaterial); }
     if (Prop.Succeeded()) { PropMaterial = UMaterialInstanceDynamic::Create(Prop.Object, this); OccupationProp->SetMaterial(0, PropMaterial); }
     static ConstructorHelpers::FObjectFinder<UAnimationAsset> Loc(TEXT("/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run")); Locomotion = Loc.Object;
+    static ConstructorHelpers::FObjectFinder<UAnimationAsset> Sprint(TEXT("/Game/TornVeil/Combat/Repair/Animations/A_TV_Sprint")); SprintAnimation=Sprint.Object;
     static ConstructorHelpers::FObjectFinder<UAnimationAsset> Atk(TEXT("/Game/Characters/Mannequins/Anims/Unarmed/Attack/MM_Attack_01")); AttackAnimation = Atk.Object;
     static ConstructorHelpers::FObjectFinder<UAnimationAsset> Hit(TEXT("/Game/TornVeil/Characters/Animations/A_TV_HitReact_Front")); HitAnimation = Hit.Object;
     static ConstructorHelpers::FObjectFinder<UAnimationAsset> Down(TEXT("/Game/TornVeil/Characters/Animations/A_TV_Downed")); DownAnimation = Down.Object;
@@ -110,7 +114,7 @@ void ATVCharacter::Tick(float Dt) {
         SetActorLocation(FMath::Lerp(PreviousPosition, TargetPosition, Alpha));
         SetActorRotation(FMath::RInterpTo(GetActorRotation(), FRotator(0, TargetYaw, 0), Dt, 10));
         if (auto* PC = GetWorld()->GetFirstPlayerController()) { const auto R = (PC->PlayerCameraManager->GetCameraLocation() - Nameplate->GetComponentLocation()).Rotation(); Nameplate->SetWorldRotation(R); }
-        Nameplate->SetVisibility(Bridge && Bridge->Selected()==this);
+        Nameplate->SetVisibility(Bridge && Bridge->Selected()==this && !Bridge->bArena);
         ApplyNameplate(Bridge && Bridge->bInspector); // no-op unless F6 was toggled since the last snapshot
     }
     const FVector BeforeChoreography=GetActorLocation();
@@ -170,7 +174,10 @@ void ATVCharacter::Project(const TSharedPtr<FJsonObject>& D, bool First) {
     CanonicalSpeed = CanonicalVelocity.Size2D();
     const float Yaw = State.Yaw; TargetYaw = FMath::RadiansToDegrees(FMath::Atan2(-FMath::Cos(Yaw), -FMath::Sin(Yaw)));
     SnapshotAge = 0; bProjected = true;
-    if (First) { PreviousPosition = TargetPosition; SetActorLocation(TargetPosition, false, nullptr, ETeleportType::TeleportPhysics); }
+    if (First) {
+        PreviousPosition = TargetPosition; SetActorLocation(TargetPosition, false, nullptr, ETeleportType::TeleportPhysics);
+        if(bCanonicalPlayer && Bridge && Bridge->bArena)ZoomTarget=480; // entire stance remains visible in practice
+    }
     const TSharedPtr<FJsonObject>* Class;
     RecognisedClass.Empty(); ClassEvidence.Empty(); ClassConfidence = 0;
     if (D->TryGetObjectField(TEXT("recognisedClass"), Class) && Class->IsValid()) {
@@ -244,6 +251,10 @@ void ATVCharacter::Animate(float Speed) {
     const bool bReplayHit = !bIncapacitated && !bPlayingHit && !bPlayingAttack && PendingHitEvents > 0;
     const bool bReplayAttack = !bIncapacitated && !bPlayingHit && !bPlayingAttack && !bReplayHit && PendingAttackEvents > 0;
     UAnimationAsset* Wanted = bIncapacitated ? DownAnimation.Get() : bPlayingHit || bReplayHit ? HitAnimation.Get() : bPlayingAttack || bReplayAttack ? AttackAnimation.Get() : Locomotion.Get();
+    // Sprint can be slower after exertion/injury. Select the gait from intent/pose,
+    // then time-scale the clip to actual canonical speed; preserve walk/jog mapping.
+    const bool Sprinting=bCanonicalPlayer?bSprint:CanonicalPose==TEXT("run");
+    if(Wanted==Locomotion&&Sprinting&&Speed>30&&SprintAnimation)Wanted=SprintAnimation;
     const bool ActivityLoop = Wanted == Locomotion && !bIncapacitated && Speed<30 && CanonicalPose!=TEXT("attack") && CanonicalPose!=TEXT("hit");
     if(ActivityLoop) {
         FString Key=Activity;
@@ -255,13 +266,14 @@ void ATVCharacter::Animate(float Speed) {
     // bridge snapshots; the bounded queues keep a burst from monopolizing presentation.
     const bool Restart = bReplayAttack || bReplayHit;
     if (CurrentAnimation != Wanted || Restart) {
-        CurrentAnimation = Wanted; GetMesh()->PlayAnimation(Wanted, Wanted == Locomotion || ActivityLoop);
+        CurrentAnimation = Wanted; GetMesh()->PlayAnimation(Wanted, Wanted == Locomotion || Wanted==SprintAnimation || ActivityLoop);
         PresentationAnimationAge = 0.f;
         if (bReplayAttack) { --PendingAttackEvents; ++PlayedAttackEvents; }
         if (bReplayHit) { --PendingHitEvents; ++PlayedHitEvents; }
         PendingAttackPresentation = PendingAttackEvents; PendingHitPresentation = PendingHitEvents;
     }
     // BS_Idle_Walk_Run is two-dimensional: X = direction, Y = speed (cm/s).
+    if(Wanted==SprintAnimation)if(auto* Anim=GetMesh()->GetSingleNodeInstance())Anim->SetPlayRate(Speed/700.f);
     if (Wanted == Locomotion) if (auto* Anim = GetMesh()->GetSingleNodeInstance()) Anim->SetBlendSpacePosition(FVector(0, Speed, 0));
 }
 FString ATVCharacter::PresentationAnimation() const { if (!CombatPresentation->AnimationPath().IsEmpty()) return CombatPresentation->AnimationPath(); return CurrentAnimation ? CurrentAnimation->GetPathName() : FString(); }
@@ -310,12 +322,13 @@ void ATVCharacter::SetupPlayerInputComponent(UInputComponent* I) {
     I->BindAction(TEXT("Dialogue8"), IE_Pressed, this, &ATVCharacter::Dialogue8); I->BindAction(TEXT("Dialogue9"), IE_Pressed, this, &ATVCharacter::Dialogue9);
     I->BindKey(EKeys::M,IE_Pressed,this,&ATVCharacter::Mechanisms);
     I->BindKey(EKeys::F5,IE_Pressed,this,&ATVCharacter::SaveWorld);
-    I->BindAction(TEXT("Attack"), IE_Pressed, this, &ATVCharacter::Attack);
-    I->BindKey(EKeys::Z,IE_Pressed,this,&ATVCharacter::SidestepLeft);
-    I->BindKey(EKeys::V,IE_Pressed,this,&ATVCharacter::SidestepRight);
-    I->BindKey(EKeys::SpaceBar,IE_Pressed,this,&ATVCharacter::Backstep);
-    I->BindKey(EKeys::LeftControl,IE_Pressed,this,&ATVCharacter::Duck);
-    I->BindKey(EKeys::R,IE_Pressed,this,&ATVCharacter::LowAttack);
+    I->BindAction(TEXT("LightAttack"), IE_Pressed, this, &ATVCharacter::Attack);
+    I->BindAction(TEXT("HeavyAttack"),IE_Pressed,this,&ATVCharacter::LowAttack);
+    I->BindAction(TEXT("Dodge"),IE_Pressed,this,&ATVCharacter::Dodge);
+    I->BindAction(TEXT("Duck"),IE_Pressed,this,&ATVCharacter::Duck);
+    I->BindAction(TEXT("PracticePassive"),IE_Pressed,this,&ATVCharacter::PracticePassive);
+    I->BindAction(TEXT("PracticeRepeat"),IE_Pressed,this,&ATVCharacter::PracticeRepeat);
+    I->BindAction(TEXT("PracticeReset"),IE_Pressed,this,&ATVCharacter::PracticeReset);
 }
 void ATVCharacter::Forward(float V) { if(V!=ForwardAxis)if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->NoteInput();ForwardAxis = V; } void ATVCharacter::Right(float V) { if(V!=RightAxis)if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->NoteInput();RightAxis = V; }
 void ATVCharacter::Turn(float V) { AddControllerYawInput(V); } void ATVCharacter::Look(float V) { AddControllerPitchInput(V); }
@@ -349,3 +362,22 @@ void ATVCharacter::RebasePresentation(const FVector& Delta) { TargetPosition+=De
 
 void ATVCharacter::Mechanisms() { if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->ToggleMechanisms(); }
 void ATVCharacter::SaveWorld() { if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->SaveWorld(); }
+
+void ATVCharacter::Dodge() {
+    const double At=FPlatformTime::Seconds();auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>();auto* PC=Cast<APlayerController>(Controller);
+    if(!B||!PC||B->bDialogueOpen||B->bMechanismsOpen)return;
+    // Read the remapped keys at this callback, before the next axis tick. Freeze the resulting
+    // world direction for this action; later camera or stick changes cannot steer the dodge.
+    const auto Axis=[PC](const TCHAR* Name){TArray<FInputAxisKeyMapping> Keys;GetDefault<UInputSettings>()->GetAxisMappingByName(Name,Keys);float Value=0;
+        for(const auto& K:Keys)Value+=K.Scale*(K.Key.IsAnalog()?PC->GetInputAnalogKeyState(K.Key):(PC->IsInputKeyDown(K.Key)?1.f:0.f));return Value;};
+    FVector D(Axis(TEXT("Forward")),Axis(TEXT("Right")),0);
+    if(D.Size()<TVInteractionSpec::dodgeDeadZone){B->SendCombat(TEXT("backstep"),1,TEXT("high"),At);return;}
+    D.Normalize();D=FRotationMatrix(FRotator(0,PC->GetControlRotation().Yaw,0)).TransformVector(D);
+    B->SendCombat(TEXT("sidestep"),1,TEXT("high"),At,FVector(D.X,0,D.Y));
+}
+
+void ATVCharacter::PracticePassive(){if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->SetPractice(TEXT("passive"));}
+
+void ATVCharacter::PracticeRepeat(){if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->SetPractice(TEXT("repeat"));}
+
+void ATVCharacter::PracticeReset(){if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->SetPractice(TEXT("reset"));}

@@ -1,4 +1,21 @@
-# Real-time combat contact and defense v0.1 — checkpointed, acceptance incomplete
+# Responsive combat repair — ready for human playtest, 2026-09-12
+
+Branch `codex/realtime-interaction-v0-1`, repair base `31051ec`.
+Report: `docs/RESPONSIVE_COMBAT_REPAIR.md`; curated evidence and normal-speed video:
+`docs/evidence/responsive-combat/`. Free light punches/heavy kicks, semantic directional
+dodge/duck input, one bounded follow-up, explicit recovery transitions, owned full-body
+animations and in-game scripted practice controls extend the existing architecture.
+85 focused TypeScript tests pass across latest relevant runs; typecheck/build, native build
+and eight targeted native tests pass. No full regression, family investigation, PR or merge.
+The family experiment and earlier local raw evidence remain uncommitted and unmodified.
+
+Human launch: `pwsh -File unreal/scripts/Start-CombatArena.ps1 -Port 8791`.
+LMB punch; RMB kick; Space + direction dodge (neutral backstep); Ctrl duck; WASD/Shift
+move/sprint; F1 passive, F2 repeated incoming, F3 reset/recover. Full controller mappings
+and remaining animation/network acceptance limits are in the report. Stop for human playtest.
+Human animation approval and full milestone completion are not claimed.
+
+# Real-time combat contact and defense v0.1 — earlier checkpoint, acceptance incomplete
 
 Branch: `codex/realtime-interaction-v0-1`, accepted movement base `6e3af83`.
 Canonical checkout: `C:/Users/green/Desktop/projects/torn-veil-online`.

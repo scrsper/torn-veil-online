@@ -22,6 +22,10 @@ void UTVCombatPresentationComponent::BeginPlay() {
     Super::BeginPlay();
     Idle=LoadObject<UAnimSequence>(nullptr,TEXT("/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle"));
     for(const auto& P:FTVCombatChoreographer::Primitives())if(!Animations.Contains(P.AssetPath))Animations.Add(P.AssetPath,LoadObject<UAnimSequence>(nullptr,*P.AssetPath));
+    for(const TCHAR* Name:{TEXT("Jab"),TEXT("Cross"),TEXT("Kick"),TEXT("StepLeft"),TEXT("StepRight"),TEXT("StepBack"),TEXT("StepForward"),TEXT("Duck")}) {
+        const FString Path=FString(TEXT("/Game/TornVeil/Combat/Repair/Animations/A_TV_"))+Name;
+        Animations.Add(Path,LoadObject<UAnimSequence>(nullptr,*Path));
+    }
     if(auto* C=Cast<ATVCharacter>(GetOwner())){C->GetMesh()->SetAnimInstanceClass(UTVCombatAnimInstance::StaticClass());C->GetMesh()->SetAnimationMode(EAnimationMode::AnimationSingleNode);}
 }
 void UTVCombatPresentationComponent::ObserveAction(const FTVLiveCombat& Action,double AtAge) {
@@ -35,6 +39,8 @@ void UTVCombatPresentationComponent::ObserveAction(const FTVLiveCombat& Action,d
         if(NewContact){LiveContactReceivedAt=GetWorld()->GetTimeSeconds();bContact=true;}
         return;
     }
+    TransitionBase=bActive?Animations.FindRef(Current.Plan.Motion.AssetPath):nullptr;
+    TransitionBaseTime=bActive?Current.Plan.SampleTime(Age):0;
     Cancel();bLive=true;bOwningTimeline=Action.bPredicted;Live=Action;LiveAge=FMath::Max(0.,AtAge);LiveContactReceivedAt=-1;
     FTVChoreographyRequest Request;Request.Event.ActorBodyId=Action.ActorBodyId;Request.Event.ActorYaw=Action.Facing;Request.Event.Outcome=TEXT("miss");Request.LOD=LOD();
     Queue.Add({Request,Action.Plan(LOD()),GetWorld()->GetTimeSeconds()});
@@ -114,16 +120,12 @@ bool UTVCombatPresentationComponent::Present(float Dt) {
     C->GetMesh()->SetRelativeRotation(Rotation);
     if(auto* Anim=Cast<UTVCombatAnimInstance>(C->GetMesh()->GetAnimInstance())) {
         Anim->Time=P.SampleTime(Age); Anim->Weight=P.Weight(Age);
-        Anim->Duck=bLive?Live.Duck(Age):0;
-        Anim->bLowStrike=bLive&&Live.Trajectory==TEXT("low");
-        Anim->HandWeight=bLive&&Live.IsAttack()?FMath::Clamp((Age-(Live.ActiveAt-Live.StartedAt)+.10)/.10,0.,1.)*(1-FMath::Clamp((Age-(Live.RecoveryAt-Live.StartedAt))/.18,0.,1.)):0;
-        if(bLive) {
-            if(!Live.IsAttack())Anim->Weight=0;
-            const FVector Point=Live.StrikePoint(Age);
-            const FVector Goal=C->GetActorLocation()+FVector(Point.X,Point.Z,Point.Y)*100-FVector(0,0,90);
-            Anim->HandGoal=C->GetMesh()->GetComponentTransform().InverseTransformPosition(Goal);
-        }
-        Anim->FootLock=P.LOD==0 && !P.bReaction?(bLive&&Live.Kind==TEXT("duck")?1.f:P.Weight(Age)):0;
+        Anim->Base=bLive&&TransitionBase&&Age<.06f?TransitionBase:Idle;
+        Anim->BaseTime=bLive&&TransitionBase&&Age<.06f?TransitionBaseTime:0;
+        // Authored full-body motion supplies strikes and posture. Foot IK is capped
+        // at 3 cm; canonical displacement is never extracted from the clip.
+        Anim->Duck=0;Anim->HandWeight=0;Anim->bLowStrike=false;
+        Anim->FootLock=P.LOD==0&&!P.bReaction&&(!bLive||Live.IsAttack())?.25f:0;
         // Lock the planted foot against mesh warp. A capable fighter can step into an angle
         // and recover; the actor/capsule still follows the canonical transform unchanged.
         FVector Step=FVector::ZeroVector;

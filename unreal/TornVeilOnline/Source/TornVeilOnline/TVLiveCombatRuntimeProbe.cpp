@@ -21,6 +21,7 @@
 
 namespace TVLiveCombatRuntimeProbe {
 static bool Running = false;
+static TArray<FKey> PendingRelease;
 static double Started = 0;
 static FTSTicker::FDelegateHandle Handle;
 static TWeakObjectPtr<UWorld> World;
@@ -59,7 +60,12 @@ static bool IsPreparation(const FString& Source) {
 static void Input(UWorld* W, const FKey& Key, const TCHAR* Label) {
     if (!W || !W->GetFirstPlayerController()) return;
     auto* PC = W->GetFirstPlayerController();
-    PC->InputKey(FInputKeyEventArgs(nullptr, IPlatformInputDeviceMapper::Get().GetDefaultInputDevice(), Key, IE_Pressed, 1.f, false, FPlatformTime::Cycles64()));
+    // Legacy probe scenarios now exercise the semantic bindings used by the game.
+    const bool LeftStep=Key==EKeys::Z;
+    const FKey Actual=LeftStep?EKeys::SpaceBar:Key==EKeys::R?EKeys::RightMouseButton:Key;
+    if(LeftStep){PC->InputKey(FInputKeyEventArgs(nullptr,IPlatformInputDeviceMapper::Get().GetDefaultInputDevice(),EKeys::A,IE_Pressed,1.f,false,FPlatformTime::Cycles64()));PendingRelease.Add(EKeys::A);}
+    PC->InputKey(FInputKeyEventArgs(nullptr,IPlatformInputDeviceMapper::Get().GetDefaultInputDevice(),Actual,IE_Pressed,1.f,false,FPlatformTime::Cycles64()));
+    PendingRelease.Add(Actual);
     UE_LOG(LogTemp, Display, TEXT("TV_LIVE_COMBAT_INPUT %s"), Label);
     if (FCString::Stristr(Label, TEXT("repetition_attack"))) ++RepetitionAttackInputs;
     if (FCString::Stristr(Label, TEXT("repetition_duck"))) ++RepetitionDuckInputs;
@@ -83,6 +89,9 @@ static void Finish(const TCHAR* Status, const FString& Error = FString()) {
 
 static bool Tick(float) {
     if (!Running) return false;
+    if(World.IsValid()&&World->GetFirstPlayerController())for(const FKey& Key:PendingRelease)
+        World->GetFirstPlayerController()->InputKey(FInputKeyEventArgs(nullptr,IPlatformInputDeviceMapper::Get().GetDefaultInputDevice(),Key,IE_Released,0.f,false,FPlatformTime::Cycles64()));
+    PendingRelease.Empty();
     const double Now = FPlatformTime::Seconds(), Age = Now - Started;
     if (!World.IsValid() || !Player.IsValid()) {
         UWorld* Found = nullptr;
@@ -137,11 +146,11 @@ static bool Tick(float) {
     if (DefenseOnly && Phase == 0 && PrepObserved && ResponseAge > DodgeDelay) {
         const bool bDuck = DefenseKind == TEXT("duck");
         const bool bBackstep = DefenseKind == TEXT("backstep");
-        Input(World.Get(), bDuck ? EKeys::LeftControl : (bBackstep ? EKeys::SpaceBar : EKeys::Z), bDuck ? TEXT("LeftCtrl_duck_after_prep") : (bBackstep ? TEXT("Space_backstep_after_prep") : TEXT("Z_left_step_after_prep")));
+        Input(World.Get(), bDuck ? EKeys::LeftControl : (bBackstep ? EKeys::SpaceBar : EKeys::Z), bDuck ? TEXT("LeftCtrl_duck_after_prep") : (bBackstep ? TEXT("Space_backstep_after_prep") : TEXT("Space_A_left_step_after_prep")));
         Phase = 2;
     }
-    else if (!DefenseOnly && Phase == 0 && CombatAge > .5) { Input(World.Get(), EKeys::R, TEXT("R_low_attack_pressed")); Phase = 1; }
-    else if (!DefenseOnly && Phase == 1 && CombatAge > (.5 + DodgeDelay)) { Input(World.Get(), EKeys::Z, TEXT("Z_left_step_pressed")); Phase = 2; }
+    else if (!DefenseOnly && Phase == 0 && CombatAge > .5) { Input(World.Get(), EKeys::R, TEXT("RMB_low_attack_pressed")); Phase = 1; }
+    else if (!DefenseOnly && Phase == 1 && CombatAge > (.5 + DodgeDelay)) { Input(World.Get(), EKeys::Z, TEXT("Space_A_left_step_pressed")); Phase = 2; }
     else if (Phase == 2 && ResponseAge > (DefenseOnly ? .9 : 1.7)) { Input(World.Get(), EKeys::LeftControl, TEXT("LeftCtrl_duck_pressed")); if (GEngine) GEngine->Exec(World.Get(), TEXT("HighResShot 1280x720")); Samples.Add(FString::Printf(TEXT("{\"atMs\":%.3f,\"event\":\"HighResShot_1280x720\"}"), (FPlatformTime::Seconds() - Started) * 1000)); Phase = 3; }
     else if (Phase == 3 && ResponseAge > (DefenseOnly ? 2.0 : 2.8)) Finish(TEXT("complete"));
     return Running;

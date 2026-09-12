@@ -46,7 +46,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTVLiveCombatDefenseSweep,
 bool FTVLiveCombatDefenseSweep::RunTest(const FString&) {
     const auto Action = FTVLiveCombat::Predict(TEXT("sidestep"), 0, 1, TEXT("cmd-sweep"));
     const auto Clear = AdvanceDefense(Action, CombatState(), 30, FlatColumn);
-    TestTrue(TEXT("sidestep moves during its permitted defense window"), Clear.Position.X > .9 && Clear.Position.X < 1.1);
+    TestTrue(TEXT("sidestep moves during its permitted defense window"), FMath::IsNearlyEqual(Clear.Position.X,TVInteractionSpec::sidestepMetres,.0001));
     TestNearlyEqual(TEXT("sidestep preserves facing"), Clear.Yaw, 0, .0001);
 
     const auto BlockedColumn = [](int32 X, int32 Z) -> TOptional<FTVPredictionColumn> {
@@ -65,14 +65,14 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTVLiveCombatPostureGeometry,
 bool FTVLiveCombatPostureGeometry::RunTest(const FString&) {
     auto High = FTVLiveCombat::Predict(TEXT("attack"), 0, 1, TEXT("cmd-high"));
     auto Low = FTVLiveCombat::Predict(TEXT("attack"), 0, 1, TEXT("cmd-low"));
-    High.Trajectory = TEXT("high"); Low.Trajectory = TEXT("low");
+    High.Trajectory = TEXT("high"); Low.Trajectory = TEXT("low"); Low.Variant=TEXT("kick");
     const FVector HighPoint = High.StrikePoint(.375), LowPoint = Low.StrikePoint(.375);
     TestTrue(TEXT("high trajectory uses upper contact geometry"), HighPoint.Y > 1.4);
-    TestTrue(TEXT("low trajectory uses lower contact geometry"), LowPoint.Y < .6);
-    TestTrue(TEXT("trajectory changes only strike geometry"), FMath::IsNearlyEqual(HighPoint.X, LowPoint.X) && FMath::IsNearlyEqual(HighPoint.Z, LowPoint.Z));
+    TestTrue(TEXT("low trajectory uses lower contact geometry"), LowPoint.Y < HighPoint.Y);
+    TestTrue(TEXT("kick has its own authored path and full-body clip"),Low.Plan(0).Motion.AssetPath.EndsWith(TEXT("A_TV_Kick")));
 
     auto Duck = FTVLiveCombat::Predict(TEXT("duck"), 0, 1, TEXT("cmd-duck"));
-    TestTrue(TEXT("duck reaches a nonzero low posture while running"), Duck.Duck(.10) > .5);
+    TestTrue(TEXT("duck reaches a nonzero low posture while running"), Duck.Duck(.18) > .9);
     TestNearlyEqual(TEXT("duck returns to standing after completion"), static_cast<double>(Duck.Duck(Duck.CompleteAt - Duck.StartedAt + .01)), 0.0, .0001);
     return true;
 }
@@ -147,7 +147,7 @@ bool FTVLiveCombatReconciliation::RunTest(const FString&) {
     CanonicalAction->SetNumberField(TEXT("recoveryAt"),.3); CanonicalAction->SetNumberField(TEXT("completeAt"),.6);
     Message->SetObjectField(TEXT("combatAction"),CanonicalAction);
     Bridge->ReceiveLocalState(Message);
-    TestTrue(TEXT("blocked authority corrects stale open backstep by about eighty centimetres"),Bridge->CorrectionCm>75&&Bridge->CorrectionCm<85);
+    TestTrue(TEXT("blocked authority corrects stale open backstep by the configured backstep distance"),Bridge->CorrectionCm>(TVInteractionSpec::backstepMetres-.1)*100&&Bridge->CorrectionCm<=TVInteractionSpec::backstepMetres*100);
     TestTrue(TEXT("corrected position equals authority"),Bridge->Predicted.Position.Equals(Blocked.Position,.0001));
     TestEqual(TEXT("all acknowledged replay inputs are removed"),Bridge->PendingMovement.Num(),0);
     TestEqual(TEXT("command binds to authoritative identity"),Bridge->PredictedCombat.Id,FString(TEXT("authority-action")));

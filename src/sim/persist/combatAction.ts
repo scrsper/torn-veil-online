@@ -6,6 +6,14 @@ export function validSavedCombatAction(value: unknown, bodyId: string): boolean 
   if (value === undefined) return true;
   if (!value || typeof value !== 'object') return false;
   const a = value as CombatAction;
+  if(a.variant!==undefined&&!['direct','hook','kick'].includes(a.variant))return false;
+  const queued=a.queuedInput;
+  if(queued!==undefined&&(!queued||typeof queued!=='object'||Array.isArray(queued)||!Number.isFinite(queued.expiresAt)||queued.expiresAt<a.startedAt||queued.expiresAt>a.completeAt+.25||!['attack','sidestep','backstep','duck'].includes(queued.kind)
+    ||(queued.commandId!==undefined&&typeof queued.commandId!=='string')
+    ||(queued.targetBodyId!==undefined&&typeof queued.targetBodyId!=='string')
+    ||(queued.side!==undefined&&![-1,1].includes(queued.side))
+    ||(queued.trajectory!==undefined&&!['high','mid','low'].includes(queued.trajectory))
+    ||(queued.direction&&(!Number.isFinite(queued.direction.x)||!Number.isFinite(queued.direction.z)))))return false;
   const vector = (v: unknown): boolean => !!v && typeof v === 'object'
     && ['x', 'y', 'z'].every(k => Number.isFinite((v as Record<string, unknown>)[k]));
   if (typeof a.id !== 'string' || !a.id || a.actorBodyId !== bodyId

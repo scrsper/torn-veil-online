@@ -43,7 +43,8 @@ describe('melee intent from an external client', () => {
     const distant = addPerson(tw, 'Distant', 'farmer', v(10 + MELEE_REACH + 4, 1, 10));
     const pb = tw.world.primaryBody(player.id)!, db = tw.world.primaryBody(distant.id)!;
     const before = db.health;
-    expect(meleeStrike(tw.sim, player, pb, db.id)).toBe('out_of_reach');
+    expect(meleeStrike(tw.sim, player, pb, db.id)).toBe('accepted');
+    step(tw,.5);expect(pb.combatAction?.outcome).toBe('miss');
     expect(db.health).toBe(before);
     expect(tw.world.events.some(e => e.type === 'attack')).toBe(false);
   });
@@ -66,7 +67,7 @@ describe('melee intent from an external client', () => {
   it('keeps the canonical nonlethal outcome: an ordinary beating downs rather than kills', () => {
     const tw = createTestWorld();
     const player = addPerson(tw, 'Traveler', 'traveler', v(10, 1, 10), { controlled: true });
-    const victim = addPerson(tw, 'Neris Vale', 'farmer', v(11.2, 1, 10));
+    const victim = addPerson(tw, 'Neris Vale', 'farmer', v(11.0, 1, 10));
     const pb = tw.world.primaryBody(player.id)!, vb = tw.world.primaryBody(victim.id)!;
     setExternalControl(victim, true);
     vb.health = 4; // below the lightest possible bare-handed blow
@@ -81,19 +82,21 @@ describe('melee intent from an external client', () => {
   it('will not strike someone already out of the fight', () => {
     const tw = createTestWorld();
     const player = addPerson(tw, 'Traveler', 'traveler', v(10, 1, 10), { controlled: true });
-    const victim = addPerson(tw, 'Neris Vale', 'farmer', v(11.2, 1, 10));
+    const victim = addPerson(tw, 'Neris Vale', 'farmer', v(11.0, 1, 10));
     const pb = tw.world.primaryBody(player.id)!, vb = tw.world.primaryBody(victim.id)!;
     subdue(tw.world, victim, player.id, beginConflict(tw.world, { initiator: player.id, target: victim.id, cause: 'crime_response', intent: 'subdue' }));
     const before = vb.health;
     pb.yaw = Math.atan2(-(vb.pos.x - pb.pos.x), -(vb.pos.z - pb.pos.z));
-    expect(meleeStrike(tw.sim, player, pb, vb.id)).toBe('protected_target');
-    expect(vb.health).toBe(before);                                   // the blow does not land
+    expect(meleeStrike(tw.sim, player, pb, vb.id)).toBe('accepted');
+    step(tw,.5);expect(pb.combatAction?.outcome).toBe('miss');
+    expect(vb.health).toBeGreaterThanOrEqual(before); // ordinary regeneration is allowed; contact is not
+    expect(tw.world.events.some(e=>e.type==='attack'&&e.actor===player.id)).toBe(false);
   });
 
   it('refuses to swing at all while the attacker is themselves down', () => {
     const tw = createTestWorld();
     const player = addPerson(tw, 'Traveler', 'traveler', v(10, 1, 10), { controlled: true });
-    addPerson(tw, 'Neris Vale', 'farmer', v(11.2, 1, 10));
+    addPerson(tw, 'Neris Vale', 'farmer', v(11.0, 1, 10));
     const pb = tw.world.primaryBody(player.id)!;
     pb.pose = 'downed';
     expect(meleeStrike(tw.sim, player, pb, null)).toBe('incapacitated');
@@ -113,6 +116,7 @@ describe('attack over the bridge protocol', () => {
     pb.yaw = Math.PI / 2;
 
     expect(s.intent({ version: 1, sequence: 1, type: 'attack', targetBodyId: vb.id }).result).toBe('accepted');
+    expect(s.intent({version:1,sequence:2,type:'attack',targetBodyId:vb.id}).result).toBe('cooldown');
     for (let i = 0; i < 40; i++) s.stepInteraction(i);
     const after = s.developerSnapshot();
     const row = after.bodies.find(b => b.bodyId === vb.id)!;
@@ -123,16 +127,16 @@ describe('attack over the bridge protocol', () => {
     expect(after.events.some(e => e.type === 'attack' && e.actor === player.id)).toBe(true);
     // Reach, cooldown and the canonical event are all the simulation's to state.
     expect(typeof after.bodies[0].reach).toBe('number');
-    expect(s.intent({ version: 1, sequence: 2, type: 'attack', targetBodyId: vb.id }).result).toBe('cooldown');
+    expect(s.intent({ version: 1, sequence: 3, type: 'attack', targetBodyId: vb.id }).result).toBe('accepted');
   });
 
-  it('does not let a client name a body across the village', () => {
+  it('accepts a distant aim hint without applying an immediate remote hit', () => {
     const s = new BridgeSession();
     const rows = s.developerSnapshot().bodies.filter(b => b.entityId !== s.world.playerId);
     const pb = s.world.primaryBody(s.world.playerId)!;
     const far = rows.map(b => ({ b, d: Math.hypot(b.pos.x - pb.pos.x, b.pos.z - pb.pos.z) })).sort((a, c) => c.d - a.d)[0];
     expect(far.d).toBeGreaterThan(MELEE_REACH);
-    expect(s.intent({ version: 1, sequence: 1, type: 'attack', targetBodyId: far.b.bodyId }).result).toBe('out_of_reach');
+    expect(s.intent({ version: 1, sequence: 1, type: 'attack', targetBodyId: far.b.bodyId }).result).toBe('accepted');
     // The village's own seeded history contains fights; only the player's swing is in question.
     expect(s.world.events.some(e => e.type === 'attack' && e.actor === s.world.playerId)).toBe(false);
   });
@@ -147,18 +151,20 @@ describe('attack over the bridge protocol', () => {
 describe('melee cannot pass through canonical solid geometry', () => {
   const between = (tw: ReturnType<typeof createTestWorld>) => wall(tw, 11, 6, 14);
 
-  it('refuses a named target standing on the other side of a wall, at a distance it could otherwise reach', () => {
+  it('lets a swing start but blocks contact through a wall within weapon reach', () => {
     const tw = createTestWorld();
     const player = addPerson(tw, 'Traveler', 'traveler', v(10, 1, 10), { controlled: true });
     const inside = addPerson(tw, 'Osric Bramble', 'baker', v(12, 1, 10));
     const dagger = makeItem(tw.world, 'dagger', 'test dagger', { holder: player.id, damage: 14 }); player.inventory.push(dagger.id);
     between(tw);
     const pb = tw.world.primaryBody(player.id)!, ib = tw.world.primaryBody(inside.id)!;
+    pb.yaw = Math.atan2(-(ib.pos.x-pb.pos.x),-(ib.pos.z-pb.pos.z));
     // Close enough that only the wall can be the reason.
     expect(Math.hypot(ib.pos.x - pb.pos.x, ib.pos.z - pb.pos.z)).toBeLessThan(MELEE_REACH);
 
     const before = ib.health;
-    expect(meleeStrike(tw.sim, player, pb, ib.id)).toBe('obstructed');
+    expect(meleeStrike(tw.sim, player, pb, ib.id)).toBe('accepted');
+    step(tw,.5);expect(pb.combatAction?.outcome).toBe('miss');
     expect(ib.health).toBe(before);
     expect(tw.world.events.some(e => e.type === 'attack' && e.actor === player.id)).toBe(false);
   });
@@ -174,16 +180,19 @@ describe('melee cannot pass through canonical solid geometry', () => {
 
     const before = ib.health;
     expect(meleeStrike(tw.sim, player, pb, null)).toBe('accepted');
+    step(tw,.5);expect(pb.combatAction?.outcome).toBe('miss');
     expect(ib.health).toBe(before);
   });
 
   it('still lands on the same geometry once the two are on the same side of it', () => {
     const tw = createTestWorld();
     const player = addPerson(tw, 'Traveler', 'traveler', v(10, 1, 10), { controlled: true });
-    const near = addPerson(tw, 'Mara Bramble', 'baker', v(8.9, 1, 10));
+    // Isolate wall contact: an autonomous defender can now perceive and evade this swing.
+    const near = addPerson(tw, 'Mara Bramble', 'baker', v(8.9, 1, 10), {controlled:true});
     between(tw);
     const pb = tw.world.primaryBody(player.id)!, nb = tw.world.primaryBody(near.id)!;
 
+    pb.yaw = Math.atan2(-(nb.pos.x-pb.pos.x),-(nb.pos.z-pb.pos.z));
     const before = nb.health;
     expect(meleeStrike(tw.sim, player, pb, nb.id)).toBe('accepted');
     step(tw, .5);

@@ -29,6 +29,8 @@ public:
     FString AnimationPath() const;
 private:
     UPROPERTY() TObjectPtr<class UAnimSequence> Idle;
+    UPROPERTY() TObjectPtr<class UAnimSequence> TransitionBase;
+    float TransitionBaseTime=0;
     UPROPERTY() TMap<FString,TObjectPtr<class UAnimSequence>> Animations;
     UPROPERTY() TObjectPtr<class UProceduralMeshComponent> Ribbon;
     UPROPERTY() TObjectPtr<class UStaticMeshComponent> Flash;

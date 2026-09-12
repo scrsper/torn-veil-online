@@ -22,7 +22,7 @@ public:
     virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UTVBridgeSubsystem, STATGROUP_Tickables); }
     virtual bool DoesSupportWorldType(EWorldType::Type Type) const override { return Type == EWorldType::Game || Type == EWorldType::PIE; }
     void SendIntent(const FString& Type, const FString& TargetBody = TEXT(""));
-    void SendCombat(const FString& Kind,int32 Side=1,const FString& Trajectory=TEXT("high"),double CallbackAt=0);
+    void SendCombat(const FString& Kind,int32 Side=1,const FString& Trajectory=TEXT("high"),double CallbackAt=0,const FVector& Direction=FVector::ZeroVector);
     void SendHandIntent(bool bConsume);
     void SendDropIntent();
     /** Opens/advances a TypeScript-owned dialogue session.  Native code receives rendered
@@ -62,6 +62,8 @@ public:
     UPROPERTY() TObjectPtr<ATVWorldProjection> WorldProjection;
     UPROPERTY() TObjectPtr<class UInstancedStaticMeshComponent> ArenaBlocks;
     bool bArena=false;
+    FString PracticeStatus=TEXT("Scripted practice: passive target"),PracticeLast;
+    void SetPractice(const FString& Mode);
     void RefreshArenaBlocks();
     ATVCharacter* Selected() const;
     FTVCombatReplayCursor CombatCursor;
@@ -120,6 +122,12 @@ private:
     FTVLiveCombat PredictedCombat;
     double CombatAge=0;
     int32 CombatCommandSequence=-1;
+    struct FBufferedCombat {FString Kind,Trajectory,CommandId;FVector Direction=FVector::ZeroVector;int32 Side=1,Sequence=-1;double InputAt=0,ExpiresAt=0;bool bBuffered=false;};
+    TOptional<FBufferedCombat> BufferedCombat;
+    void StartPredictedCombat(const FBufferedCombat& Input);
+    void AdvanceCombatBuffer();
+    double LastCombatStartAt=0;
+    TArray<double> CombatStartGapSamples,CombatBufferSamples,CombatBufferedWaitSamples,CombatTransitionLateSamples;
     TArray<double> AttackInputSamples,DefenseInputSamples,CombatCorrectionSamples,CombatCorrectionTimeSamples,RemoteActionAgeSamples,ContactReceiveSamples;
     double ClockOffsetMs=0,ClockUncertaintyMs=1e9,ClockProbeAt=0;
     TSet<FString> PresentedContacts;

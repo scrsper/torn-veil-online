@@ -1,6 +1,7 @@
-import type { Body, LocalizedInjury, ConflictIntent, EntityId, Item, ItemType, Person } from '../core/types';
+import type { LocalizedInjury, ConflictIntent, EntityId, Item, ItemType, Person } from '../core/types';
 import type { World } from '../core/world';
 import { getPhysicalCapability } from '../core/attributes';
+import { combatTransitionAt } from './combatTransitions';
 
 export interface WeaponProperties { reach: number; impact: number; handling: number; }
 // Reach is body-origin distance in metres; impact is the base health-scale impulse.
@@ -42,7 +43,7 @@ export interface CombatAttackIntent {
   intent?: ConflictIntent;
   trajectory?: 'high' | 'mid' | 'low';
 }
-export type AttackRejection = 'invalid_attacker' | 'invalid_target' | 'self_target' | 'incapacitated' | 'cooldown' | 'invalid_weapon' | 'invalid_mode' | 'out_of_reach' | 'obstructed' | 'protected_target';
+export type AttackRejection = 'invalid_attacker' | 'invalid_target' | 'self_target' | 'incapacitated' | 'cooldown' | 'invalid_weapon' | 'invalid_mode' | 'out_of_reach' | 'obstructed' | 'protected_target' | 'exhausted';
 export interface CombatAttackResult extends CombatAttackIntent {
   actionId?: string;
   contactRegion?: import('./combatGeometry').ContactRegion;
@@ -68,23 +69,18 @@ export function resolveCombatAttack(w: World, intent: CombatAttackIntent, rng: {
   if (!p || !ab || ab.ownerId !== p.id || !p.bodies.includes(ab.id)) return reject('invalid_attacker');
   if (!p.alive || !ab.present || ab.dead || ab.health <= 0 || ab.pose === 'downed' || ab.pose === 'sleep'
     || ab.subduedUntil > w.physicalTime || p.surrender || p.custody?.active) return reject('incapacitated');
-  const target = tb && w.get(tb.ownerId);
-  const targetPerson = tb && w.person(tb.ownerId);
-  if (intent.targetBodyId && (!tb || !tb.present || tb.dead || !target || (target.kind !== 'person' && target.kind !== 'creature')
-    || (target.kind === 'person' && !targetPerson?.alive))) return reject('invalid_target');
-  if (tb?.ownerId === p.id) return reject('self_target');
+  // Selection assists bounded aiming only. An absent, stale, distant or obstructed selection
+  // cannot suppress a capable body's swing; active swept contact validates each actual body.
   if (intent.attackMode !== 'strike' || (intent.trajectory !== undefined && !['high','mid','low'].includes(intent.trajectory))) return reject('invalid_mode');
-  if (w.physicalTime - ab.lastAttackAt < ATTACK_COOLDOWN || (ab.combatAction && ab.combatAction.completeAt > w.physicalTime)) return reject('cooldown');
+  if (ab.combatAction ? w.physicalTime + 1e-9 < combatTransitionAt(ab.combatAction,'attack')
+    : w.physicalTime - ab.lastAttackAt < ATTACK_COOLDOWN) return reject('cooldown');
   const item = intent.weaponId === undefined ? combatWeapon(w, p) : intent.weaponId === null ? null : w.item(intent.weaponId);
   if (intent.weaponId && !item) return reject('invalid_weapon');
   if (item && (!p.inventory.includes(item.id) || item.holderId !== p.id || item.quantity <= 0 || item.condition === 0 || !weaponProperties(item))) return reject('invalid_weapon');
   const weapon = item ? weaponProperties(item)! : UNARMED;
   result.weaponId = item?.id ?? null; result.reach = weapon.reach;
-  if (tb && (result.distance === null || !Number.isFinite(result.distance) || result.distance > weapon.reach)) return reject('out_of_reach');
-  const chest = (b: Body) => ({ ...b.pos, y: b.pos.y + 1.2 });
-  if (tb && !w.grid.lineOfPassage(chest(ab), chest(tb), weapon.reach + 1)) return reject('obstructed');
-  if (tb && target?.kind === 'person' && intent.intent !== 'kill' && (targetPerson?.surrender || targetPerson?.custody?.active || tb.subduedUntil > w.physicalTime)) return reject('protected_target');
   const cap = getPhysicalCapability(p, w, { body: ab });
+  if (p.physiology.fatigue >= .97 || cap.currentExertionCapacity <= .03) return reject('exhausted');
   result.attempted = true;
   // Acceptance freezes potential force, never a hit or an anatomical region.
   const roll = rng.next();

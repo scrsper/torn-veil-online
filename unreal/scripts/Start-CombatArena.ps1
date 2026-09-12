@@ -34,6 +34,6 @@ Start-Process -FilePath $exe -ArgumentList @(
     ('"' + $project + '"'), '/Game/TornVeil/Maps/TornVeilWorld', '-game', '-windowed',
     '-ResX=1280', '-ResY=720', '-ExecCmds="t.MaxFPS 60,t.IdleWhenNotForeground 0"'
 ) | Out-Null
-Write-Output "Arena: $url. WASD move; Shift sprint; mouse orbit; LMB/X high strike; R low strike; Z/V sidestep; Space backstep; Left Ctrl duck."
-Write-Output "Request incoming high: Invoke-RestMethod -Method Post $url/arena/incoming"
+Write-Output "Arena: $url. WASD move; Shift sprint; mouse camera; LMB punch; RMB kick; Space + direction dodge (neutral backstep); Left Ctrl duck. F1 passive, F2 repeated attacks, F3 reset/recover."
+Write-Output "Controller: left stick move, right stick camera, RB punch, RT kick, B dodge, LB duck, L-stick click sprint; D-pad left/right passive/repeat; Menu reset."
 Write-Output "Other reset scenarios: idle, incoming_low, blocked, npc_defense. Return focus to the game before reacting."

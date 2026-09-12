@@ -11,7 +11,7 @@ public:
     UTVCombatAnimInstance();
     UPROPERTY() TObjectPtr<class UAnimSequence> Base;
     UPROPERTY() TObjectPtr<class UAnimSequence> Motion;
-    float Time = 0, Weight = 0;
+    float Time = 0, BaseTime = 0, Weight = 0;
     FVector LeftFoot = FVector::ZeroVector, RightFoot = FVector::ZeroVector;
     float FootLock = 0;
     FVector HandGoal=FVector::ZeroVector;

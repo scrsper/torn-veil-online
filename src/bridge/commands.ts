@@ -2,8 +2,8 @@ import { INTERACTION_SPEC } from '../sim/physical/prediction';
 
 export type InteractionCommand = {type:'move';x:number;z:number;sprint:boolean}
   | {type:'attack';targetBodyId?:string;trajectory?:'high'|'mid'|'low'} | {type:'interact';interactionId:string}
-  | {type:'defend';kind:'sidestep'|'backstep'|'duck';side?:number}
-  | {type:'cancel'};
+  | {type:'defend';kind:'sidestep'|'backstep'|'duck';side?:number;direction?:{x:number;z:number}}
+  | {type:'practice';mode:'passive'|'repeat'|'reset'} | {type:'cancel'};
 export interface CommandEnvelope {
   version:2; type:'command'; epoch:string; controllerId:string; bodyId:string;
   sequence:number; commandId:string; specRevision:string; clientTimeMs:number; command:InteractionCommand;
@@ -47,7 +47,8 @@ export class CommandQueue {
     const valid=c&&((c.type==='move'&&Number.isFinite(c.x)&&Number.isFinite(c.z)&&Math.abs(c.x)<=1&&Math.abs(c.z)<=1&&typeof c.sprint==='boolean')
       ||(c.type==='attack'&&(c.targetBodyId===undefined||identifier(c.targetBodyId))&&(c.trajectory===undefined||['high','mid','low'].includes(c.trajectory)))
       ||(c.type==='interact'&&identifier(c.interactionId))
-      ||(c.type==='defend'&&['sidestep','backstep','duck'].includes(c.kind)&&(c.side===undefined||c.side===-1||c.side===1))||c.type==='cancel');
+      ||(c.type==='defend'&&['sidestep','backstep','duck'].includes(c.kind)&&(c.side===undefined||c.side===-1||c.side===1)
+        &&(c.direction===undefined||(Number.isFinite(c.direction.x)&&Number.isFinite(c.direction.z)&&Math.abs(c.direction.x)<=1&&Math.abs(c.direction.z)<=1&&Math.hypot(c.direction.x,c.direction.z)>=INTERACTION_SPEC.dodgeDeadZone)))||(c.type==='practice'&&['passive','repeat','reset'].includes(c.mode))||c.type==='cancel');
     if(!valid) return remember(reject('invalid_command'));
     if(this.pending.length>=16) return remember(reject('queue_full'));
     this.pending.push({envelope:structuredClone(m as CommandEnvelope),receivedAtMs:now});
