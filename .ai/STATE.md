@@ -1,3 +1,24 @@
+# Realtime + martial integration — ready for review, 2026-09-12
+
+Branch: astra/realtime-martial-integration-v0-1.
+Worktree: C:/Users/green/Desktop/projects/tvo-combat-integration.
+Source heads: realtime 947761b and martial 0c6e881, common base 31051ec.
+Report: docs/REALTIME_MARTIAL_INTEGRATION.md. Curated video and timing evidence:
+docs/evidence/martial-combat-integration/.
+
+Canonical selection now governs unarmed realtime input and learned transitions;
+terminal resolved actions supply learning evidence without another effort charge.
+Normal saves retain martial state and Arena continuation. Native prediction queries
+the projected canonical repertoire. F4 cycles untrained/partial/trained Arena actors.
+197 relevant TS tests, TS/Vite build, UE build and 9 native tests pass. Six buffered
+follow-ups had no idle frames; unbuffered observed startup 16.23–27.23ms.
+Independent review complete; carried-weapon shove issue fixed and tested.
+No full regression, family investigation, main merge or PR.
+Launch: pwsh -File unreal/scripts/Start-CombatArena.ps1 -Port 8791 -Save .debug/arena-integration-save.json
+Full manual instructions are in the report.
+
+---
+
 # Responsive combat repair — ready for human playtest, 2026-09-12
 
 Branch `codex/realtime-interaction-v0-1`, repair base `31051ec`.

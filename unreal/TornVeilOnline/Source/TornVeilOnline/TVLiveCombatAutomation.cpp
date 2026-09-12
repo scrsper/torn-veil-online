@@ -21,6 +21,22 @@ FTVMovementState AdvanceDefense(const FTVLiveCombat& Action, FTVMovementState St
 }
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTVLiveCombatMartialProjection,
+    "TornVeil.Realtime.LiveCombat.MartialProjection", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FTVLiveCombatMartialProjection::RunTest(const FString&) {
+    auto Choices=MakeShared<FJsonObject>(), Choice=MakeShared<FJsonObject>();
+    Choice->SetStringField(TEXT("techniqueId"),TEXT("unarmed:cross"));Choice->SetStringField(TEXT("name"),TEXT("Cross"));
+    Choice->SetStringField(TEXT("transitionTechniqueId"),TEXT("unarmed:jab-to-cross"));Choice->SetStringField(TEXT("motion"),TEXT("punch"));Choice->SetStringField(TEXT("variant"),TEXT("hook"));
+    Choices->SetObjectField(TEXT("unarmed:jab|Light"),Choice);
+    auto A=FTVLiveCombat::Predict(TEXT("attack"),0,1,TEXT("cmd"));
+    TestTrue(TEXT("prediction consumes authoritative repertoire edge"),A.ApplyMartialChoice(Choices,TEXT("unarmed:jab"),TEXT("Light")));
+    TestEqual(TEXT("existing cross projection"),A.Variant,FString(TEXT("hook")));
+    TestEqual(TEXT("transition identity retained"),A.TransitionTechniqueId,FString(TEXT("unarmed:jab-to-cross")));
+    TestFalse(TEXT("missing capability cannot be predicted as a learned movement"),A.ApplyMartialChoice(Choices,TEXT("unarmed:jab"),TEXT("Heavy")));
+    TestTrue(TEXT("projection does not predict a hit"),A.Outcome==TEXT("pending")&&A.ContactAt<0);
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTVLiveCombatPrediction,
     "TornVeil.Realtime.LiveCombat.Prediction", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FTVLiveCombatPrediction::RunTest(const FString&) {

@@ -1,9 +1,9 @@
+#include "TVBridgeSubsystem.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "TVCombatPresentationComponent.h"
 #include "TVWorldProjection.h"
-#include "TVBridgeSubsystem.h"
 #include "TVCharacter.h"
 #include "TVHumanoidVisualState.h"
 #include "WebSocketsModule.h"
@@ -120,15 +120,15 @@ void UTVBridgeSubsystem::SendIntent(const FString& Type, const FString& TargetBo
     if(!Target.IsEmpty())M->SetStringField(TEXT("targetBodyId"),Target);Send(M);
 }
 static void TVSample(TArray<double>& Samples,double Value);
-void UTVBridgeSubsystem::SendCombat(const FString& Kind,int32 Side,const FString& Trajectory,double CallbackAt,const FVector& Direction) {
+void UTVBridgeSubsystem::SendCombat(const FString& Kind,int32 Side,const FString& Trajectory,double CallbackAt,const FVector& Direction,const FString& Primitive) {
     const double Begin=CallbackAt>0?CallbackAt:FPlatformTime::Seconds();
     if(!HasPrediction()||bDialogueOpen||bMechanismsOpen)return;
     BufferedCombat.Reset(); // newest press replaces the one pending follow-up
     auto M=MakeShared<FJsonObject>();M->SetStringField(TEXT("type"),Kind==TEXT("attack")?TEXT("attack"):TEXT("defend"));
-    if(Kind==TEXT("attack")){M->SetStringField(TEXT("trajectory"),Trajectory);if(!SelectedBody.IsEmpty())M->SetStringField(TEXT("targetBodyId"),SelectedBody);}
+    if(Kind==TEXT("attack")){M->SetStringField(TEXT("trajectory"),Trajectory);if(!Primitive.IsEmpty())M->SetStringField(TEXT("primitive"),Primitive);if(!SelectedBody.IsEmpty())M->SetStringField(TEXT("targetBodyId"),SelectedBody);}
     else {M->SetStringField(TEXT("kind"),Kind);M->SetNumberField(TEXT("side"),Side);}
     if(!Direction.IsNearlyZero()) {auto D=MakeShared<FJsonObject>();D->SetNumberField(TEXT("x"),Direction.X);D->SetNumberField(TEXT("z"),Direction.Z);M->SetObjectField(TEXT("direction"),D);}
-    FBufferedCombat Input;Input.Kind=Kind;Input.Side=Side;Input.Trajectory=Trajectory;Input.Direction=Direction;
+    FBufferedCombat Input;Input.Kind=Kind;Input.Side=Side;Input.Trajectory=Trajectory;Input.Direction=Direction;Input.Primitive=Primitive;
     Input.InputAt=Begin;Input.ExpiresAt=Begin+TVInteractionSpec::combatBufferSeconds;
     Input.CommandId=FString::Printf(TEXT("%s:%d"),*InteractionController,Sequence+1);
     Input.Sequence=SendCommand(M);PendingFeedbackSequence=Input.Sequence;if(Input.Sequence<0)return;
@@ -141,10 +141,13 @@ void UTVBridgeSubsystem::SendCombat(const FString& Kind,int32 Side,const FString
     StartPredictedCombat(Input);
 }
 void UTVBridgeSubsystem::StartPredictedCombat(const FBufferedCombat& Input) {
-    const FString Previous=PredictedCombat.Variant;const bool Chain=PredictedCombat.IsAttack()&&CombatAge<=PredictedCombat.CompleteAt-PredictedCombat.StartedAt+.3;
-    PredictedCombat=FTVLiveCombat::Predict(Input.Kind,Predicted.Yaw,Input.Side,Input.CommandId);
+    const FString Previous=PredictedCombat.Variant,PreviousTechnique=PredictedCombat.TechniqueId;const bool Chain=PredictedCombat.Running(CombatAge);
+    auto Next=FTVLiveCombat::Predict(Input.Kind,Predicted.Yaw,Input.Side,Input.CommandId);
+    Next.Variant=Input.Trajectory==TEXT("low")?TEXT("kick"):Chain&&Previous==TEXT("direct")?TEXT("hook"):TEXT("direct");
+    const FString Semantic=Input.Primitive==TEXT("shove")?TEXT("Shove"):Input.Kind==TEXT("attack")?(Input.Trajectory==TEXT("low")?TEXT("Heavy"):TEXT("Light")):Input.Kind==TEXT("duck")?TEXT("Duck"):Input.Kind==TEXT("backstep")?TEXT("Backstep"):Input.Kind==TEXT("cover")?TEXT("Cover"):TEXT("Dodge");
+    if(!Next.ApplyMartialChoice(MartialChoices,Chain?PreviousTechnique:FString(),Semantic)){LastResult=TEXT("Waiting for canonical capability");return;}
+    PredictedCombat=Next;
     PredictedCombat.ActorBodyId=InteractionBody;PredictedCombat.Trajectory=Input.Trajectory;
-    PredictedCombat.Variant=Input.Trajectory==TEXT("low")?TEXT("kick"):Chain&&Previous==TEXT("direct")?TEXT("hook"):TEXT("direct");
     if(!Input.Direction.IsNearlyZero())PredictedCombat.Direction=Input.Direction;
     CombatAge=0;CombatCommandSequence=Input.Sequence;
     const double Now=FPlatformTime::Seconds(),Delay=(Now-Input.InputAt)*1000;
@@ -238,10 +241,13 @@ void UTVBridgeSubsystem::ReceiveLocalState(const TSharedPtr<FJsonObject>& M) {
     const auto State=M->GetObjectField(TEXT("state")),Pos=State->GetObjectField(TEXT("pos"));
     Confirmed.Position=FVector(Pos->GetNumberField(TEXT("x")),Pos->GetNumberField(TEXT("y")),Pos->GetNumberField(TEXT("z")));
     Confirmed.Yaw=State->GetNumberField(TEXT("yaw"));Confirmed.Speed=State->GetNumberField(TEXT("speed"));Confirmed.bEligible=State->GetBoolField(TEXT("eligible"));
+    const TSharedPtr<FJsonObject>* Choices;if(M->TryGetObjectField(TEXT("martialChoices"),Choices))MartialChoices=*Choices;
     const TSharedPtr<FJsonObject>* Practice;
     if(M->TryGetObjectField(TEXT("practice"),Practice)){
         PracticeStatus=FString::Printf(TEXT("SCRIPTED PRACTICE: %s | opponent %s | %s"),*(*Practice)->GetStringField(TEXT("mode")),*(*Practice)->GetStringField(TEXT("opponentPhase")),(*Practice)->GetBoolField(TEXT("ready"))?TEXT("ready"):TEXT("recover with F3"));
         PracticeLast=(*Practice)->GetStringField(TEXT("lastOutcome"));
+        FString Profile,Technique,Transition;(*Practice)->TryGetStringField(TEXT("martialProfile"),Profile);(*Practice)->TryGetStringField(TEXT("technique"),Technique);(*Practice)->TryGetStringField(TEXT("transition"),Transition);
+        PracticeStatus+=TEXT(" | ")+Profile+TEXT(" [F4]");PracticeLast+=TEXT(" | ")+Technique+(Transition.IsEmpty()?TEXT(""):TEXT(" via ")+Transition);
     }
     const int32 Ack=M->GetIntegerField(TEXT("ack"));PendingMovement.RemoveAll([Ack](const auto& P){return P.Sequence<=Ack;});
     const double CorrectionBegin=FPlatformTime::Seconds();
@@ -542,6 +548,6 @@ void UTVBridgeSubsystem::RequestDeveloperInspection() { if(auto* T=Selected()) {
 
 void UTVBridgeSubsystem::SetPractice(const FString& Mode) {
     if(!bArena||!IsLive())return;
-    BufferedCombat.Reset();if(Mode==TEXT("reset")){PredictedCombat=FTVLiveCombat();CombatAge=0;LastCombatStartAt=0;PendingMovement.Empty();}
+    BufferedCombat.Reset();if(Mode!=TEXT("passive")&&Mode!=TEXT("repeat")){PredictedCombat=FTVLiveCombat();CombatAge=0;LastCombatStartAt=0;PendingMovement.Empty();}
     auto M=MakeShared<FJsonObject>();M->SetStringField(TEXT("type"),TEXT("practice"));M->SetStringField(TEXT("mode"),Mode);PendingFeedbackSequence=SendCommand(M);
 }

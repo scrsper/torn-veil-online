@@ -119,7 +119,7 @@ bool UTVCombatPresentationComponent::Present(float Dt) {
     const FQuat Rotation=FQuat(LeanAxis,FMath::DegreesToRadians(P.Lean(Age)))*FRotator(0,P.Yaw(Age),0).Quaternion()*BaseRotation.Quaternion();
     C->GetMesh()->SetRelativeRotation(Rotation);
     if(auto* Anim=Cast<UTVCombatAnimInstance>(C->GetMesh()->GetAnimInstance())) {
-        Anim->Time=P.SampleTime(Age); Anim->Weight=P.Weight(Age);
+        Anim->Time=bLive&&Live.Kind==TEXT("cover")?0:P.SampleTime(Age); Anim->Weight=P.Weight(Age);
         Anim->Base=bLive&&TransitionBase&&Age<.06f?TransitionBase:Idle;
         Anim->BaseTime=bLive&&TransitionBase&&Age<.06f?TransitionBaseTime:0;
         // Authored full-body motion supplies strikes and posture. Foot IK is capped
@@ -196,6 +196,7 @@ void UTVCombatPresentationComponent::WriteDiagnostics(const TSharedPtr<FJsonObje
         const FVector P=Live.StrikePoint(Age),Goal=C->GetActorLocation()+FVector(P.X,P.Z,P.Y)*100-FVector(0,0,90);
         J->SetNumberField(TEXT("strikeEffectorErrorCm"),FVector::Dist(C->GetMesh()->GetSocketLocation(*Current.Plan.Motion.Effector),Goal));
     }
+    J->SetStringField(TEXT("techniqueId"),Live.TechniqueId);J->SetStringField(TEXT("transitionTechniqueId"),Live.TransitionTechniqueId);
     J->SetStringField(TEXT("liveKind"),Live.Kind);J->SetStringField(TEXT("liveOutcome"),Live.Outcome);J->SetNumberField(TEXT("duck"),Live.Duck(Age));
     J->SetBoolField(TEXT("choreographyActive"),bActive); J->SetNumberField(TEXT("choreographySeq"),Current.Request.Event.Seq);
     J->SetNumberField(TEXT("choreographyPending"),Queue.Num()); J->SetNumberField(TEXT("choreographyDropped"),Dropped);

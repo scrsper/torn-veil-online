@@ -1,5 +1,5 @@
-#include "TVCombatPresentationComponent.h"
 #include "TVCharacter.h"
+#include "TVCombatPresentationComponent.h"
 #include "GameFramework/InputSettings.h"
 #include "GameFramework/PlayerController.h"
 #include "TVInteractionSpec.generated.h"
@@ -329,6 +329,9 @@ void ATVCharacter::SetupPlayerInputComponent(UInputComponent* I) {
     I->BindAction(TEXT("PracticePassive"),IE_Pressed,this,&ATVCharacter::PracticePassive);
     I->BindAction(TEXT("PracticeRepeat"),IE_Pressed,this,&ATVCharacter::PracticeRepeat);
     I->BindAction(TEXT("PracticeReset"),IE_Pressed,this,&ATVCharacter::PracticeReset);
+    I->BindAction(TEXT("PracticeProfile"),IE_Pressed,this,&ATVCharacter::PracticeProfile);
+    I->BindAction(TEXT("Cover"),IE_Pressed,this,&ATVCharacter::Cover);
+    I->BindAction(TEXT("Shove"),IE_Pressed,this,&ATVCharacter::Shove);
 }
 void ATVCharacter::Forward(float V) { if(V!=ForwardAxis)if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->NoteInput();ForwardAxis = V; } void ATVCharacter::Right(float V) { if(V!=RightAxis)if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->NoteInput();RightAxis = V; }
 void ATVCharacter::Turn(float V) { AddControllerYawInput(V); } void ATVCharacter::Look(float V) { AddControllerPitchInput(V); }
@@ -380,4 +383,7 @@ void ATVCharacter::PracticePassive(){if(auto* B=GetWorld()->GetSubsystem<UTVBrid
 
 void ATVCharacter::PracticeRepeat(){if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->SetPractice(TEXT("repeat"));}
 
+void ATVCharacter::PracticeProfile(){if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->SetPractice(TEXT("profile_next"));}
+void ATVCharacter::Cover(){if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->SendCombat(TEXT("cover"));}
+void ATVCharacter::Shove(){if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->SendCombat(TEXT("attack"),1,TEXT("low"),FPlatformTime::Seconds(),FVector::ZeroVector,TEXT("shove"));}
 void ATVCharacter::PracticeReset(){if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->SetPractice(TEXT("reset"));}

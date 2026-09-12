@@ -7,6 +7,8 @@ bool FTVLiveCombat::Parse(const TSharedPtr<FJsonObject>& J,FTVLiveCombat& O) {
     J->TryGetStringField(TEXT("commandId"),O.CommandId);J->TryGetStringField(TEXT("actorBodyId"),O.ActorBodyId);
     J->TryGetStringField(TEXT("phase"),O.Phase);J->TryGetStringField(TEXT("outcome"),O.Outcome);J->TryGetStringField(TEXT("trajectory"),O.Trajectory);
     J->TryGetStringField(TEXT("variant"),O.Variant);
+    J->TryGetStringField(TEXT("techniqueId"),O.TechniqueId);J->TryGetStringField(TEXT("techniqueName"),O.TechniqueName);
+    J->TryGetStringField(TEXT("transitionTechniqueId"),O.TransitionTechniqueId);J->TryGetStringField(TEXT("motion"),O.Motion);
     if(!J->TryGetNumberField(TEXT("startedAt"),O.StartedAt)||!J->TryGetNumberField(TEXT("activeAt"),O.ActiveAt)||!J->TryGetNumberField(TEXT("recoveryAt"),O.RecoveryAt)||!J->TryGetNumberField(TEXT("completeAt"),O.CompleteAt))return false;
     J->TryGetNumberField(TEXT("facing"),O.Facing);J->TryGetNumberField(TEXT("reach"),O.Reach);J->TryGetNumberField(TEXT("radius"),O.Radius);J->TryGetNumberField(TEXT("distance"),O.Distance);
     const TSharedPtr<FJsonObject>* D;
@@ -14,6 +16,14 @@ bool FTVLiveCombat::Parse(const TSharedPtr<FJsonObject>& J,FTVLiveCombat& O) {
     if(J->TryGetObjectField(TEXT("capability"),D)){O.Strength=(*D)->GetNumberField(TEXT("strength"));O.Dexterity=(*D)->GetNumberField(TEXT("dexterity"));O.Exertion=(*D)->GetNumberField(TEXT("exertion"));}
     if(J->TryGetObjectField(TEXT("contact"),D)){O.ContactAt=(*D)->GetNumberField(TEXT("at"));const auto P=(*D)->GetObjectField(TEXT("position"));O.ContactPosition=FVector(P->GetNumberField(TEXT("x")),P->GetNumberField(TEXT("y")),P->GetNumberField(TEXT("z")));}
     return FMath::IsFinite(O.StartedAt)&&FMath::IsFinite(O.CompleteAt)&&O.CompleteAt>=O.StartedAt&&O.CompleteAt-O.StartedAt<3;
+}
+bool FTVLiveCombat::ApplyMartialChoice(const TSharedPtr<FJsonObject>& Choices,const FString& Previous,const FString& Semantic) {
+    if(!Choices)return true; // old authority: retain only the primitive prediction
+    const TSharedPtr<FJsonObject>* Choice;
+    if(!Choices->TryGetObjectField((Previous.IsEmpty()?TEXT("ready"):Previous)+TEXT("|")+Semantic,Choice))return false;
+    (*Choice)->TryGetStringField(TEXT("techniqueId"),TechniqueId);(*Choice)->TryGetStringField(TEXT("name"),TechniqueName);
+    (*Choice)->TryGetStringField(TEXT("transitionTechniqueId"),TransitionTechniqueId);(*Choice)->TryGetStringField(TEXT("motion"),Motion);
+    (*Choice)->TryGetStringField(TEXT("variant"),Variant);return !TechniqueId.IsEmpty();
 }
 FTVLiveCombat FTVLiveCombat::Predict(const FString& Kind,double Facing,int32 Side,const FString& CommandId) {
     using namespace TVInteractionSpec;FTVLiveCombat A;A.Kind=Kind;A.CommandId=CommandId;A.Id=CommandId;A.Facing=Facing;A.bPredicted=true;A.Phase=TEXT("preparation");A.Outcome=TEXT("pending");
@@ -48,7 +58,8 @@ FTVChoreographyPlan FTVLiveCombat::Plan(int32 LOD) const {
     P.bTimeline=true;
     FString Clip=Variant==TEXT("kick")?TEXT("Kick"):Variant==TEXT("hook")?TEXT("Cross"):TEXT("Jab");
     P.Motion.Effector=Variant==TEXT("kick")?TEXT("foot_r"):Variant==TEXT("hook")?TEXT("middle_01_r"):TEXT("middle_01_l");
-    if(Kind==TEXT("duck"))Clip=TEXT("Duck");
+    if(Kind==TEXT("cover"))Clip=TEXT("Jab"); // existing guard pose at the beginning of Jab
+    else if(Kind==TEXT("duck"))Clip=TEXT("Duck");
     else if(!IsAttack()) {
         const double Right=Direction.X*FMath::Cos(Facing)-Direction.Z*FMath::Sin(Facing);
         const double Forward=-Direction.X*FMath::Sin(Facing)-Direction.Z*FMath::Cos(Facing);

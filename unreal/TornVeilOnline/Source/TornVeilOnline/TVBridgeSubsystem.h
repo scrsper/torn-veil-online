@@ -22,7 +22,7 @@ public:
     virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UTVBridgeSubsystem, STATGROUP_Tickables); }
     virtual bool DoesSupportWorldType(EWorldType::Type Type) const override { return Type == EWorldType::Game || Type == EWorldType::PIE; }
     void SendIntent(const FString& Type, const FString& TargetBody = TEXT(""));
-    void SendCombat(const FString& Kind,int32 Side=1,const FString& Trajectory=TEXT("high"),double CallbackAt=0,const FVector& Direction=FVector::ZeroVector);
+    void SendCombat(const FString& Kind,int32 Side=1,const FString& Trajectory=TEXT("high"),double CallbackAt=0,const FVector& Direction=FVector::ZeroVector,const FString& Primitive=TEXT(""));
     void SendHandIntent(bool bConsume);
     void SendDropIntent();
     /** Opens/advances a TypeScript-owned dialogue session.  Native code receives rendered
@@ -122,7 +122,8 @@ private:
     FTVLiveCombat PredictedCombat;
     double CombatAge=0;
     int32 CombatCommandSequence=-1;
-    struct FBufferedCombat {FString Kind,Trajectory,CommandId;FVector Direction=FVector::ZeroVector;int32 Side=1,Sequence=-1;double InputAt=0,ExpiresAt=0;bool bBuffered=false;};
+    TSharedPtr<FJsonObject> MartialChoices;
+    struct FBufferedCombat {FString Kind,Trajectory,CommandId,Primitive;FVector Direction=FVector::ZeroVector;int32 Side=1,Sequence=-1;double InputAt=0,ExpiresAt=0;bool bBuffered=false;};
     TOptional<FBufferedCombat> BufferedCombat;
     void StartPredictedCombat(const FBufferedCombat& Input);
     void AdvanceCombatBuffer();

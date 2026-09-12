@@ -78,6 +78,9 @@ public:
     UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void PracticePassive();
     UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void PracticeRepeat();
     UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void PracticeReset();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void PracticeProfile();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void Cover();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void Shove();
     /** The F6 handler. Reflected for the same reason: a developer mode that cannot be entered
      *  from a test is a developer mode nobody checks still works. */
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")

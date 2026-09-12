@@ -1,0 +1,241 @@
+{
+  "source": ".debug/martial-live-timing/probe.json",
+  "profiles": {
+    "untrained": {
+      "starts": [
+        {
+          "at": 1.0388357006013393,
+          "commandId": "local:1:190",
+          "techniqueId": "motor:basic-punch",
+          "transition": ""
+        },
+        {
+          "at": 1.5118414983153343,
+          "commandId": "local:1:211",
+          "techniqueId": "motor:second-punch",
+          "transition": ""
+        },
+        {
+          "at": 1.9946570992469788,
+          "commandId": "local:1:243",
+          "techniqueId": "motor:crude-kick",
+          "transition": ""
+        }
+      ],
+      "idleFrames": 0
+    },
+    "partial": {
+      "starts": [
+        {
+          "at": 4.328828800469637,
+          "commandId": "local:1:392",
+          "techniqueId": "unarmed:jab",
+          "transition": ""
+        },
+        {
+          "at": 4.811489697545767,
+          "commandId": "local:1:413",
+          "techniqueId": "motor:basic-punch",
+          "transition": ""
+        },
+        {
+          "at": 5.294630598276854,
+          "commandId": "local:1:445",
+          "techniqueId": "motor:crude-kick",
+          "transition": ""
+        }
+      ],
+      "idleFrames": 0
+    },
+    "trained": {
+      "starts": [
+        {
+          "at": 7.628726497292519,
+          "commandId": "local:1:594",
+          "techniqueId": "unarmed:jab",
+          "transition": ""
+        },
+        {
+          "at": 8.111502699553967,
+          "commandId": "local:1:615",
+          "techniqueId": "unarmed:cross",
+          "transition": "unarmed:jab-to-cross"
+        },
+        {
+          "at": 8.59545299783349,
+          "commandId": "local:1:647",
+          "techniqueId": "unarmed:low-kick",
+          "transition": "unarmed:cross-to-low-kick"
+        }
+      ],
+      "idleFrames": 0
+    }
+  },
+  "latency": [
+    {
+      "input": "untrained_light_1",
+      "milliseconds": 27.228303253650665
+    },
+    {
+      "input": "partial_light_1",
+      "milliseconds": 16.703899949789047
+    },
+    {
+      "input": "trained_light_1",
+      "milliseconds": 16.36520028114319
+    },
+    {
+      "input": "trained_contact",
+      "milliseconds": 16.227498650550842
+    },
+    {
+      "input": "trained_duck",
+      "milliseconds": 16.560900956392288
+    },
+    {
+      "input": "trained_backstep",
+      "milliseconds": 16.968797892332077
+    }
+  ],
+  "latencyRangeMs": [
+    16.227498650550842,
+    27.228303253650665
+  ],
+  "diagnostics": {
+    "interActionStartGapMs": {
+      "count": 8,
+      "p50": 483.50879922509193,
+      "p95": 1500.0112988054752,
+      "p99": 1500.0112988054752
+    },
+    "inputToBufferedStateMs": {
+      "count": 6,
+      "p50": 0.035800039768218994,
+      "p95": 0.04780292510986328,
+      "p99": 0.04780292510986328
+    },
+    "bufferedCombatInputs": 0,
+    "bufferedInputToStartupMs": {
+      "count": 6,
+      "p50": 117.04890057444572,
+      "p95": 150.26360005140305,
+      "p99": 150.26360005140305
+    },
+    "bufferedTransitionLatenessMs": {
+      "count": 6,
+      "p50": 3.3333333333110393,
+      "p95": 3.333333333311983,
+      "p99": 3.333333333311983
+    },
+    "combatInputToAnimationSetupMs": {
+      "count": 12,
+      "p50": 0.0469014048576355,
+      "p95": 9.687498211860657,
+      "p99": 9.687498211860657
+    },
+    "contactDecisionToPresentationMs": {
+      "count": 1,
+      "p50": 16.87075060119969,
+      "p95": 16.87075060119969,
+      "p99": 16.87075060119969
+    },
+    "clockUncertaintyMs": 0.6084499359130859,
+    "inputToPredictedAttackMs": {
+      "count": 4,
+      "p50": 0.04480034112930298,
+      "p95": 0.060401856899261475,
+      "p99": 0.060401856899261475
+    },
+    "inputToPredictedDefenseMs": {
+      "count": 2,
+      "p50": 0.04849955439567566,
+      "p95": 0.07389858365058899,
+      "p99": 0.07389858365058899
+    },
+    "combatCorrectionCm": {
+      "count": 662,
+      "p50": 0,
+      "p95": 0,
+      "p99": 3.552713678800501e-13
+    },
+    "combatCorrectionCpuMs": {
+      "count": 662,
+      "p50": 0.014599412679672241,
+      "p95": 0.021398067474365234,
+      "p99": 0.029399991035461426
+    },
+    "combatCorrectionSettleMs": {
+      "count": 2,
+      "p50": 14.951799064874649,
+      "p95": 15.119101852178574,
+      "p99": 15.119101852178574
+    },
+    "remoteActionAgeMs": {
+      "count": 470,
+      "p50": 0.898848724362324,
+      "p95": 4.788149774169142,
+      "p99": 16.626450851443224
+    },
+    "contactReceiveToPresentationMs": {
+      "count": 1,
+      "p50": 0.07580184936523438,
+      "p95": 0.07580184936523438,
+      "p99": 0.07580184936523438
+    },
+    "combatAppliedRoundTripMs": {
+      "count": 6,
+      "p50": 1.8832981586456299,
+      "p95": 18.252801150083542,
+      "p99": 18.252801150083542
+    },
+    "commandSendToServerArrivalMs": {
+      "count": 1003,
+      "p50": 0.49335212097503245,
+      "p95": 1.9793969299280434,
+      "p99": 2.065799304196844
+    },
+    "serverArrivalToApplicationMs": {
+      "count": 1003,
+      "p50": 16.79710000000341,
+      "p95": 17.00720000000001,
+      "p99": 17.144000000000233
+    },
+    "applicationToClientReceiveMs": {
+      "count": 1003,
+      "p50": 0.5909515655512223,
+      "p95": 4.110249716184626,
+      "p99": 4.926397790528426
+    },
+    "predictionCpuMs": {
+      "count": 992,
+      "p50": 0.04149973392486572,
+      "p95": 0.07510185241699219,
+      "p99": 0.09110197424888611
+    },
+    "inputCallbackToEngineStateMs": {
+      "count": 6,
+      "p50": 0.2602003514766693,
+      "p95": 0.3572031855583191,
+      "p99": 0.3572031855583191
+    },
+    "appliedRoundTripMs": {
+      "count": 1003,
+      "p50": 17.846401780843735,
+      "p95": 18.271800130605698,
+      "p99": 18.706902861595154
+    },
+    "correctionCm": {
+      "count": 997,
+      "p50": 0,
+      "p95": 0,
+      "p99": 3.552713678800501e-13
+    },
+    "pendingMovement": 1,
+    "predictionCount": 997,
+    "predictionReady": true,
+    "presentationTiming": "unmeasured; engine-state samples are not display presentation or physical input-to-photon",
+    "specRevision": "tv-interaction-3",
+    "specHash": "4925736e4fdde3a83a27f5ba73c8f0afd344b56bcf8cec093985c57492b9293c"
+  },
+  "timingMethod": "Ordinary-key dispatch to first sampled active choreography. Capture stalls rendering; use an uncaptured run for latency. Not input-to-photon."
+}

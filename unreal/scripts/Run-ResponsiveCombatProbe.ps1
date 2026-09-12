@@ -2,7 +2,8 @@ param(
     [string]$Engine = 'C:\Program Files\Epic Games\UE_5.8',
     [int]$Port = 8791,
     [string]$Output = '.debug/combat-repair-probe',
-    [switch]$Capture
+    [switch]$Capture,
+    [switch]$Martial
 )
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path "$PSScriptRoot/../..").Path
@@ -12,6 +13,7 @@ $outputPath = [IO.Path]::GetFullPath((Join-Path $repo $Output))
 New-Item -ItemType Directory -Path $outputPath -Force | Out-Null
 $env:TORN_VEIL_PORT = "$Port"
 $env:TV_REPAIR_OUTPUT = $outputPath
+$env:TV_MARTIAL_PROBE = if ($Martial) { '1' } else { '0' }
 $env:TV_REPAIR_CAPTURE = if ($Capture) { '1' } else { '0' }
 $game = Start-Process "$Engine/Engine/Binaries/Win64/UnrealEditor.exe" -WindowStyle Hidden -PassThru -ArgumentList @(
     ('"' + "$repo/unreal/TornVeilOnline/TornVeilOnline.uproject" + '"'),
