@@ -4,6 +4,7 @@ import type { MartialState, TechniqueDefinition } from '../core/martialTypes';
 import { techniqueDefinition } from '../core/martialDefinitions';
 import { skillOf } from '../core/skills';
 import { clamp, cognitiveCapability } from '../core/human';
+import { getPhysicalCapability } from '../core/attributes';
 import { learn } from './knowledge';
 
 export const martialKey = (id: string): string => `martial:${id}`;
@@ -21,10 +22,22 @@ export function knowsTechnique(p: Person, id: string): boolean {
 }
 /** Mechanics may validate prerequisites against canonical definitions; this never teaches
  * the definition, prerequisites or a lineage to the mind doing the action. */
-export function canExecuteTechnique(world: World, p: Person, id: string): boolean {
+export function physicallyAvailableTechnique(world: World, p: Person, d: TechniqueDefinition, bodyId?: string): boolean {
+  return p.alive && (bodyId ? [bodyId] : p.bodies).some(id => {
+    const b = world.body(id);
+    return p.bodies.includes(id) && b?.ownerId === p.id && b.present && !b.dead && b.shape === 'humanoid'
+      && b.subduedUntil <= world.physicalTime && getPhysicalCapability(p, world, { body: b }).currentExertionCapacity > 0.1
+      && (d.selection?.regions ?? ['arm', 'leg', 'torso']).every(region => (b.injuries?.[region as 'arm' | 'leg' | 'torso'] ?? 0) < 0.85);
+  });
+}
+export function canExecuteTechnique(world: World, p: Person, id: string, bodyId?: string): boolean {
   const d = techniqueDefinition(world, id);
-  return !!d && knowsTechnique(p, id) && skillOf(p, d.family) >= d.prerequisites.proficiency
-    && d.prerequisites.techniques.every(parent => knowsTechnique(p, parent));
+  return !!d && physicallyAvailableTechnique(world, p, d, bodyId)
+    && (d.availability === 'innate' || (knowsTechnique(p, id) && skillOf(p, d.family) >= d.prerequisites.proficiency
+      && d.prerequisites.techniques.every(parent => {
+        const prerequisite = techniqueDefinition(world, parent);
+        return prerequisite?.availability === 'innate' ? physicallyAvailableTechnique(world, p, prerequisite, bodyId) : knowsTechnique(p, parent);
+      })));
 }
 /** The supplied claim is the actual communicated/read/observed content, not a lookup of
  * canonical truth. All routes use ordinary KnowledgeItem merge/source/retention behavior. */
@@ -38,13 +51,15 @@ export function learnTechnique(world: World, p: Person, claim: Record<string, an
 /** Authored/regression background only. Runtime learning routes never call this. */
 export function seedMartialBackground(world: World, p: Person, id: string, proficiency: number, mastery: number): void {
   const d = techniqueDefinition(world, id); if (!d) throw new Error(`Unknown technique ${id}`);
+  if (d.availability === 'innate') throw new Error('Innate motor availability must not be seeded as learned knowledge');
   learnTechnique(world, p, definitionClaim(d, 0.9), 0.9, { type: 'prior' });
   Object.assign(p.skills, { [d.family]: clamp(proficiency, 0, 1) });
   martialState(p).mastery[id] = { value: clamp(mastery, 0, 1), seconds: 0 };
 }
 export function definitionClaim(d: TechniqueDefinition, understanding: number): Record<string, any> {
   return { martialTechnique: d.techniqueId, name: d.name, family: d.family, components: [...d.components], complexity: d.complexity,
-    parentId: d.parentId, originEventId: d.originEventId, creatorId: d.creatorId, understanding, significance: 0.65 };
+    parentId: d.parentId, originEventId: d.originEventId, creatorId: d.creatorId,
+    transition: d.transition ? structuredClone(d.transition) : undefined, understanding, significance: 0.65 };
 }
 
 /** A completed visible action exposes motion, not its practitioner's private teacher,

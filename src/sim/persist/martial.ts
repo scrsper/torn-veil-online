@@ -22,11 +22,21 @@ export function validMartialSave(data: any): boolean {
   const events = new Map<string, any>((data.events ?? []).map((e: any) => [e.id, e]));
   for (const [key, d] of Object.entries(defs)) {
     if (!id(key) || Object.hasOwn(UNARMED_TECHNIQUES, key) || !d || d.techniqueId !== key || d.revision !== 1
-      || !['unarmed', 'one-handed-blade', 'polearm'].includes(d.family) || !['strike', 'evasion'].includes(d.category)
+      || !['unarmed', 'one-handed-blade', 'polearm'].includes(d.family) || !['strike', 'evasion', 'guard', 'transition'].includes(d.category)
+      || (d.availability !== undefined && d.availability !== 'learned')
       || typeof d.name !== 'string' || !finite(d.complexity) || d.complexity < 1 || d.complexity > 8
       || !Array.isArray(d.components) || !d.components.length || !d.components.every(c => typeof c === 'string')
       || !d.prerequisites || !unit(d.prerequisites.proficiency) || !Array.isArray(d.prerequisites.techniques) || !d.prerequisites.techniques.every(known)
       || !d.parentId || !known(d.parentId) || d.parentId === key || !d.creatorId || !d.originEventId || !events.has(d.originEventId)) return false;
+    // New metadata is additive to v1. Missing fields retain the original learned
+    // definition semantics; no old saved discovery becomes innate during migration.
+    if (d.transition && (!known(d.transition.from) || !known(d.transition.to) || !unit(d.transition.minimumMastery))) return false;
+    if (d.selection && (!['Light', 'Heavy', 'Dodge', 'Duck'].includes(d.selection.input)
+      || !['punch', 'kick', 'shove', 'cover', 'duck', 'sidestep', 'backstep'].includes(d.selection.motion)
+      || !Array.isArray(d.selection.regions) || !d.selection.regions.every(r => ['head', 'torso', 'arm', 'leg'].includes(r))
+      || !Array.isArray(d.selection.stances) || !d.selection.stances.every(s => ['neutral', 'guarded', 'extended', 'crouched'].includes(s))
+      || !['neutral', 'guarded', 'extended', 'crouched'].includes(d.selection.endStance)
+      || typeof d.selection.entry !== 'boolean' || !finite(d.selection.priority))) return false;
     const visited = new Set<string>([key]);
     let parent: string | undefined = d.parentId;
     while (parent && Object.hasOwn(defs, parent)) {

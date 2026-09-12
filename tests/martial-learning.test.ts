@@ -319,7 +319,7 @@ describe('persistence and ordinary autonomous choice', () => {
     a.mind.percepts = [{ entityId: b.id, bodyId: b.bodies[0], how: 'saw', pos: world.body(b.bodies[0])!.pos, distance: 1, tick: world.now }];
     expect(martialGoals(world, a).some(g => g.data?.martial === 'lesson')).toBe(true);
     expect(martialGoals(world, a).some(g => g.data?.martial === 'experiment')).toBe(true);
-    expect(martialGoals(world, b)).toEqual([]); // Nearby canonical master is not mind knowledge.
+    expect(martialGoals(world, b).some(g => g.data?.martial === 'lesson' || g.data?.martial === 'experiment')).toBe(false); // Nearby canonical master is not mind knowledge; innate exercise needs no knowledge.
     teach(world, a, b);
     b.mind.percepts = [{ entityId: a.id, bodyId: a.bodies[0], how: 'saw', pos: world.body(a.bodies[0])!.pos, distance: 1, tick: world.now }];
     expect(martialGoals(world, b).some(g => g.data?.martial === 'spar')).toBe(true);

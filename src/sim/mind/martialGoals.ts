@@ -2,6 +2,7 @@ import type { Action, Goal, Person } from '../core/types';
 import type { World } from '../core/world';
 import { cognitiveCapability } from '../core/human';
 import { skillOf } from '../core/skills';
+import { INNATE_TECHNIQUE_IDS } from '../core/martialDefinitions';
 import { availableForMartial, canTeachTechnique, SOLO_MASTERY_CEILING } from './martialPractice';
 import { canExecuteTechnique, knowsTechnique, masteryOf } from './martialKnowledge';
 import { recordPlan } from './records';
@@ -14,6 +15,9 @@ export function martialGoals(world: World, p: Person): Partial<Goal>[] {
   const body = p.bodies.map(id => world.body(id)).find(b => b && availableForMartial(world, p, b.id));
   if (!body) return [];
   const goals: Partial<Goal>[] = [];
+  for (const id of INNATE_TECHNIQUE_IDS) if (canExecuteTechnique(world, p, id, body.id) && masteryOf(p, id) < SOLO_MASTERY_CEILING)
+    goals.push({ type: 'work', utility: 0.1 + p.traits.curiosity * 0.15, data: { martial: 'practice', techniqueId: id, bodyId: body.id,
+      needKey: `martial:practice:${id}:${p.id}` }, reasons: ['exercise an available bodily movement', 'curiosity competes with ordinary needs and work'] });
   // The existing recordGoals provider already proposes reading/writing/copying these
   // physical records. Do not propose those same goals a second time here.
   const known = Object.values(p.knowledge).filter(k => k.kind === 'technique' && typeof k.claim.martialTechnique === 'string').sort((a, b) => a.key.localeCompare(b.key));

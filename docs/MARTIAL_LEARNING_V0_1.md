@@ -5,10 +5,11 @@ Branch: `astra/martial-learning-techniques-v0-1`, based on combat checkpoint `31
 ## Delivered scope
 
 The canonical callable slice separates physical attributes, weapon-family proficiency in
-`Person.skills`, provenance-bearing `KnowledgeItem` understanding, and bounded per-technique
-mastery in `Person.martial`. It implements timed instruction, solo practice, consensual sparring,
+`Person.skills`, provenance-bearing `KnowledgeItem` understanding, bounded per-technique
+mastery in `Person.martial`, and the actual outcome owned by canonical combat. It implements timed instruction, solo practice, consensual sparring,
 repeated observation, one deterministic discovered variant per person/root, and ordinary
-physical manuals. The initial vocabulary is straight punch, slip, front kick and slip counter.
+physical manuals. The original straight punch/slip/front kick/slip-counter vocabulary now
+also includes explicit innate primitives, specific learned beginner movements and transitions.
 Armed families have shared skill storage/curves, but armed practice and realtime contact
 selection are deliberately outside this slice.
 
@@ -32,10 +33,13 @@ controllers must have an explicit matching martial intention before accepting a 
   `PracticedSkillId = SkillId | WeaponFamily` alias. No parallel skill map.
 - `core/martialDefinitions.ts`: immutable fixtures and canonical definition lookup.
 - `mind/martialKnowledge.ts`: knowledge queries, learning, observation and authored-background
-  seeding. `seedMartialBackground` is a world-generation/test API, never a runtime reward.
+  seeding. `seedMartialBackground` is a world-generation/test API, never a runtime reward;
+  it rejects innate IDs rather than fabricating learned knowledge for bodily availability.
 - `mind/martialPractice.ts`: canonical actions, eligibility, execution profile, cancellation,
   shared physiology classification, and the combat evidence consumer.
 - `mind/martialGoals.ts`: goal provider and plain, saveable plans.
+- `mind/martialSelection.ts`: deterministic one-action semantic selection from innate access,
+  specifically known movements/edges, current canonical action and supplied opportunities.
 - `persist/martial.ts`: validated JSON save/load adapters and small final-hook helpers.
 
 Actions require their actual owning plan and advancing physical time. Each session costs
@@ -63,6 +67,65 @@ creator, parent, origin event and one modest recovery/transition component, not 
 or rank system. These components are definition data pending realtime consumption.
 
 ## Exact deferred integration
+
+### Innate and semantic-selection steer
+
+The full supplementary work order is preserved in `.ai/MARTIAL_INNATE_STEER.md`.
+`availability: 'innate' | 'learned'` is explicit on fixtures. Missing availability on an old
+v1 saved discovery retains **learned** semantics. A capable humanoid can use eight motor
+primitives without a KnowledgeItem: basic punch, second punch, crude kick, shove, cover,
+duck, sidestep and backstep. Innate practice pays the same effort/time, develops family
+proficiency and primitive practical competence, and leaves knowledge empty. This never
+unlocks a jab, counter or other learned movement. Explicit sufficiently experienced
+self-experimentation remains a separate provenance-bearing discovery route.
+
+Learned vocabulary includes jab, cross, low kick, basic guard, hook and a specific feint
+counter. Jab→cross, cross→low kick, step→jab and a more demanding cross→feint-counter are
+specific **transition techniques**, with ordinary teachable/readable knowledge and their
+own practical mastery. Complexity belongs to a definition; it is never a character level.
+Knowing a hook does not grant other movements of comparable complexity. Knowing both
+endpoints does not automatically grant their learned connecting edge.
+
+`selectMartialAction(world,person,input,context)` returns one `single-action` selection or
+null. It never returns a multi-hit sequence, grants an outcome, changes the current action,
+charges effort, or mutates knowledge. Repeated semantic inputs therefore require repeated
+canonical action acceptance and independent contact/miss/interruption/cost resolution.
+Untrained Light→Light→Heavy selects basic punch→second punch→crude kick; the specifically
+trained repertoire selects jab→cross→low kick. The selector derives body availability
+from the existing humanoid shape, coarse regional injuries and physical capability; it
+does not invent left/right limb state. STR/DEX may make crude execution stronger/less
+clumsy while repertoire stays innate. Mastery separately affects precision, balance,
+weight transfer, recovery/stamina efficiency, defensive positioning and transition quality.
+These are execution inputs, never permission to bypass the combat timing operator.
+
+At merge, the semantic-input adapter should obtain the actual transition opportunity from
+the current combat operator, then call this selector. `MartialSelectionContext` carries
+canonical stance, selected body, opportunity bounds and allowed inputs. Current
+`Body.combatAction` remains the sole predecessor truth; its additive `techniqueId` and
+`transitionTechniqueId` fields record the producer's accepted selection, not a combo counter.
+The selector independently rejects commitment/contact-phase chaining, stale predecessor IDs,
+closed/disallowed windows and cancelled/interrupted actions that have not finished recovery.
+The actual operator must still revalidate its window when accepting the chosen action.
+
+Current combat input kinds are `attack|sidestep|backstep|duck`, with `direct|hook|kick` attack
+variants. Map individual selected motions into those canonical primitives only where an
+actual mechanic exists. A selected punch/kick/dodge/duck is still one action. Shove/cover
+remain selectable/practicable canonical vocabulary but need an appropriate physical action
+adapter before realtime use; do not pretend they are ordinary damaging attacks. Learned
+movement and transition identities should accompany the accepted action into provenance;
+the present practice/lesson/manual paths already train specific edges, while realtime
+transition-use credit needs the same actual evidence translation as movement-use credit.
+
+The steer delta passed `martial-learning` (20) plus `martial-selection` (9), 29 tests total,
+and the final `npm run build` (TypeScript plus Vite, 131 modules). The earlier 16
+`significance-chronicle` and 73 shared-system tests remain valid: those implementations did
+not change in this steer. The independent delta review found no blocking issue. Cases
+include blank knowledge, both semantic chains, specifically
+known edges/mastery, phase/window blocks, one-action/no-outcome results, body/limb/stance
+gates, stronger crude execution without knowledge, innate practice without unlocks,
+transition teaching/manual/practice and old v1 discovery compatibility.
+
+### Reserved production hooks
 
 The following files were reserved by `.ai/PARALLEL_COMBAT_HOT_FILES.md`; none was edited.
 The APIs are tested and usable now, but automatic runtime registration and the production

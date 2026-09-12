@@ -27,7 +27,7 @@ export function availableForMartial(world: World, p: Person, bodyId: string): bo
 }
 export function canTeachTechnique(world: World, teacher: Person, id: string): boolean {
   const d = techniqueDefinition(world, id);
-  return !!d && canExecuteTechnique(world, teacher, id) && masteryOf(teacher, id) >= 0.45 && skillOf(teacher, d.family) >= TEACH_MIN_SKILL;
+  return !!d && d.availability !== 'innate' && canExecuteTechnique(world, teacher, id) && masteryOf(teacher, id) >= 0.45 && skillOf(teacher, d.family) >= TEACH_MIN_SKILL;
 }
 /** A reserving session is canonical action state, not a second NPC scheduler. */
 function reservation(world: World, id: string): MartialSession | undefined {
@@ -63,9 +63,9 @@ function eligible(world: World, p: Person, s: Pick<MartialSession, 'mode' | 'tec
       || !partnerConsents(world, q, p, s.partnerBodyId)
       || !instructionPairAvailable(world, p, q, s.bodyId, s.partnerBodyId)) return false;
     return s.mode === 'lesson' ? !!lessonTeacher(world, p, q, s.techniqueId)
-      : canExecuteTechnique(world, p, s.techniqueId) && canExecuteTechnique(world, q, s.techniqueId);
+      : canExecuteTechnique(world, p, s.techniqueId, s.bodyId) && canExecuteTechnique(world, q, s.techniqueId, s.partnerBodyId);
   }
-  if (!canExecuteTechnique(world, p, s.techniqueId)) return false;
+  if (!canExecuteTechnique(world, p, s.techniqueId, s.bodyId)) return false;
   return s.mode !== 'experiment' || (masteryOf(p, s.techniqueId) >= 0.45 && skillOf(p, d.family) >= 0.45
     && cognitiveCapability(p).reasoning >= 0.9 && !d.parentId && !world.martialDefinitions?.[variantId(world, p, d)]);
 }
@@ -73,14 +73,19 @@ function eligible(world: World, p: Person, s: Pick<MartialSession, 'mode' | 'tec
 /** Execution profile for the future contact layer. Attributes shape force/control and
  * reading, while learned control separately shapes timing uncertainty. No damage bonus. */
 export function techniqueExecutionProfile(world: World, p: Person, bodyId: string, id: string) {
-  if (!canExecuteTechnique(world, p, id)) return null;
+  if (!canExecuteTechnique(world, p, id, bodyId)) return null;
   const b = world.body(bodyId); if (!b?.present || b.ownerId !== p.id || b.dead) return null;
   const d = techniqueDefinition(world, id)!, cap = getPhysicalCapability(p, world, { body: b }), cognition = cognitiveCapability(p);
   const proficiency = skillOf(p, d.family), mastery = masteryOf(p, id);
-  const control = (0.15 + proficiency * 0.35 + mastery * 0.5) * cap.effectiveDexterity;
+  const form = d.availability === 'innate' ? 0.7 : 1;
+  const control = (0.15 + proficiency * 0.35 + mastery * 0.5) * cap.effectiveDexterity * form;
   return { forceCapacity: cap.effectiveStrength, coordination: control,
     timingUncertaintySeconds: 0.3 / Math.max(0.1, cognition.observation * (0.5 + control)),
     sustainedEffort: cap.currentExertionCapacity / cap.fatigueMultiplier,
+    balance: clamp(control * 0.7 + proficiency * 0.2, 0, 1), weightTransfer: clamp(control * 0.5 + mastery * 0.35, 0, 1),
+    precision: control, recoveryEfficiency: clamp(0.2 + control * 0.4 + mastery * 0.3, 0, 1),
+    staminaEfficiency: clamp(0.3 + proficiency * 0.25 + mastery * 0.25 * form, 0, 1),
+    defensivePositioning: clamp(control * 0.5 + mastery * 0.4, 0, 1),
     composure: cognition.persistence, mastery, proficiency };
 }
 
@@ -96,7 +101,7 @@ function credit(world: World, p: Person, id: string, seconds: number, effort: nu
   const value = learningValue(seconds, effort, feedback, challenge);
   if (!value) return 0;
   const state = martialState(p), m = state.mastery[id] ??= { value: 0, seconds: 0 };
-  const before = m.value, understanding = techniqueKnowledge(p, id)!.claim.understanding;
+  const before = m.value, understanding = techniqueKnowledge(p, id)?.claim.understanding ?? 0;
   const instruction = 1 + 0.3 * clamp(understanding, 0, 1);
   m.value = Math.max(before, Math.min(ceiling, before + 0.025 * value * instruction * (1 - before)));
   m.seconds += seconds; m.lastEventId = eventId;
@@ -215,12 +220,12 @@ function discover(world: World, p: Person, parent: TechniqueDefinition, session:
   if (world.martialDefinitions?.[techniqueId]) return;
   // One modest variation per person/root, selected by stable seed/identity; no random rerolls.
   const compact = individualRng(world.seed, techniqueId).next() < 0.5;
-  const understood = techniqueKnowledge(p, parent.techniqueId)!;
+  const understood = techniqueKnowledge(p, parent.techniqueId);
   const d: TechniqueDefinition = { ...structuredClone(parent), techniqueId, name: `${compact ? 'Compact' : 'Measured'} ${parent.name.toLowerCase()}`,
-    parentId: parent.techniqueId, creatorId: p.id, originEventId: ev.id, complexity: parent.complexity + 1,
+    availability: 'learned', parentId: parent.techniqueId, creatorId: p.id, originEventId: ev.id, complexity: parent.complexity + 1,
     // Experiments compose the motions this person actually understands, including mistakes;
     // canonical parent metadata is not a back door to missing instructional content.
-    components: [...(understood.claim.components ?? []), compact ? 'compact-recovery' : 'measured-transition'],
+    components: [...(parent.availability === 'innate' ? parent.components : understood?.claim.components ?? []), compact ? 'compact-recovery' : 'measured-transition'],
     prerequisites: { proficiency: Math.max(0.25, parent.prerequisites.proficiency), techniques: [parent.techniqueId] } };
   (world.martialDefinitions ??= {})[techniqueId] = d;
   ev.data.discovery = structuredClone(d);
