@@ -1,3 +1,5 @@
+import { initializeWildlife } from '../ecology/generation';
+import { validateWildlifeSpec } from '../ecology/animals';
 import { generatePlayableWorld } from '../world/playable';
 import { isExternallyControlled, setExternalControl, hasExternalIntention, authorizeExternalIntention } from '../runtime/controllers';
 import { generateProceduralWorld } from '../world/settlement';
@@ -158,7 +160,7 @@ export function serialize(world: World): string {
   }));
   // v0.2.3: a subdued body must reload still subdued (unlike `pose`, which is reset). Persist the
   // physical-time timestamp; a downed pose is reconstructed from it on load.
-  const bodies = world.bodies().map(b => ({ ...b, tags: [...b.tags], pos: { ...b.pos }, vel: { ...b.vel }, path: b.path?.map(v => ({ ...v })) ?? null, pathGoal: b.pathGoal ? { ...b.pathGoal } : null, sitAnchor: b.sitAnchor ? { ...b.sitAnchor } : null, pose: execution ? b.pose : b.pose === 'dead' ? 'dead' : (b.subduedUntil > world.physicalTime ? 'downed' : 'stand') }));
+  const bodies = world.bodies().map(b => ({ ...b, tags: [...b.tags], pos: { ...b.pos }, vel: { ...b.vel }, path: b.path?.map(v => ({ ...v })) ?? null, pathGoal: b.pathGoal ? { ...b.pathGoal } : null, sitAnchor: b.sitAnchor ? { ...b.sitAnchor } : null, pose: execution || world.get<import('../core/types').Creature>(b.ownerId)?.wildlife ? b.pose : b.pose === 'dead' ? 'dead' : (b.subduedUntil > world.physicalTime ? 'downed' : 'stand') }));
   const items = world.items().map(i => ({ ...i, tags: [...i.tags], pos: i.pos ? { ...i.pos } : null, provenance: i.provenance.map(entry => ({ ...entry })) }));
   const places = world.places().map(p => ({ id: p.id, ownerId: p.ownerId, anchors: p.anchors.map(a => a.ownerId ?? null) }));
   // v0.2.1 Priority 8: leaderId (leadership succession) and knowledge (institutional memory,
@@ -196,7 +198,7 @@ export function serialize(world: World): string {
   // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
   // falls back to today's behavior (rewind to post-generation position) when absent.
   const rng = world.rng.state(); const weatherRng = world.weatherRng.state(); const demographicRng = world.demographicRng.state();
-  return JSON.stringify({ version: SAVE_VERSION, creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
+  return JSON.stringify({ version: SAVE_VERSION, ecology: world.ecology, creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -242,7 +244,7 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     const world = new World(data.seed);
     const savedKernel = restoreKernel(data.kernel);
     world.wildernessRegions = new Set(data.wildernessRegions ?? []);
-    const generated = data.geography ? generatePlayableWorld(world, data.geography) : data.settlementSites ? generateProceduralWorld(world, data.settlementSites) : undefined;
+    const generated = data.geography ? generatePlayableWorld(world, data.geography, false) : data.settlementSites ? generateProceduralWorld(world, data.settlementSites) : undefined;
     world.kernel = savedKernel;
     const gen = generated ? { places: Object.fromEntries(generated.flatMap(s => Object.entries(s.places).map(([k, p]) => [s.spec.site.id + ':' + k, p]))), people: Object.fromEntries(generated.flatMap(s => Object.entries(s.people).map(([k, p]) => [s.spec.site.id + ':' + k, p]))) } : generateVillage(world);
     for (const s of data.settlements ?? []) { const existing = world.get(s.id); if (existing?.kind === 'settlement') Object.assign(existing, s); else world.add(s); }
@@ -279,7 +281,7 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
         if (s[key] === undefined) s[key] = 0;
         if (!Number.isSafeInteger(s[key]) || s[key] < 0) return null;
       }
-      const restored = (data.execution ? { ...s } : { ...s, vel: { x: 0, y: 0, z: 0 }, path: null, pathGoal: null, sitAnchor: null }) as Body;
+      const restored = (data.execution || world.get<import('../core/types').Creature>(s.ownerId)?.wildlife ? { ...s } : { ...s, vel: { x: 0, y: 0, z: 0 }, path: null, pathGoal: null, sitAnchor: null }) as Body;
       const existing = world.body(s.id);
       if (existing) Object.assign(existing, restored); else world.add(restored);
     }
@@ -324,6 +326,15 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     world.grid.recording = true;
     world.rebuildLivingIndices();
     world.restoredExecution = data.execution ?? null;
+    // Additive schema-24 component: legacy saves retain their existing creature semantics.
+    world.ecology = data.ecology ?? null;
+    if (world.ecology) {
+      const e = world.ecology;
+      if (e.version !== 1 || ![e.rngState, e.processedAt, e.pendingWorldSeconds, e.pendingPhysicalSeconds, e.nextCensusAt].every(Number.isFinite)
+        || e.pendingWorldSeconds < 0 || e.pendingPhysicalSeconds < 0) return null;
+      for (const spec of Object.values(e.species)) validateWildlifeSpec(spec);
+      for (const animal of world.creatures()) if (animal.wildlife && !e.species[animal.species]) return null;
+    }
     world.pendingStimuli = (data.pendingStimuli ?? []).flatMap((id: string) => { const e = world.event(id); return e ? [e] : []; });
     if (data.runTally) world.runTally = { ...data.runTally };
     // Generated entity ids are part of the save schema. Refuse a malformed/incompatible
@@ -332,4 +343,4 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     return { world, gen };
   } catch (e) { console.warn('load failed', e); return null; }
 }
-export function newWorld(seed = 1337): { world: World; gen: ReturnType<typeof generateVillage> } { const world = new World(seed); const gen = generateVillage(world); world.grid.recording = true; return { world, gen }; }
+export function newWorld(seed = 1337): { world: World; gen: ReturnType<typeof generateVillage> } { const world = new World(seed); const gen = generateVillage(world); initializeWildlife(world); world.grid.recording = true; return { world, gen }; }

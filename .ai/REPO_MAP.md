@@ -10,6 +10,8 @@ Read only the section relevant to the current task.
 
 # Core simulation
 
+Embodied wildlife/ecology: `src/sim/core/creatureSpecies.ts` defines general species composition; `src/sim/ecology/` implements the reactive wildlife controller, persistent per-body reserves, local sensing, lifecycle and seeded founding. `world/ecologyResources.ts` registers/meters finite biomass and voxel-backed water; regeneration remains in `world/resources.ts`. `physical/travel.ts` traverses existing Navigator paths with bounded collision sweeps. `headless/ecology/cli.ts` writes reproducible population/performance evidence. Design, continuation semantics and explicit deferred hooks: `docs/EMBODIED_WILDLIFE_ECOLOGY.md`. Legacy decorative chickens and abstract hunting-game nodes are not converted or used as wildlife food.
+
 ## `src/sim/core/`
 
 Canonical entity/event/world foundations.

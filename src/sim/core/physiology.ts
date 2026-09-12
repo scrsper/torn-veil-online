@@ -1,7 +1,7 @@
 import { restorationMultiplier } from './human';
-import type { Body, Person } from './types';
+import type { Body, Person, Physiology } from './types';
 import type { World } from './world';
-import { physiologyProfileFor, AVERAGE_HUMAN_ADULT } from './species';
+import { physiologyProfileFor, AVERAGE_HUMAN_ADULT, type SpeciesPhysiologyProfile, type IndividualPhysiologyTraits } from './species';
 
 /**
  * Embodied physiology (v0.4 §1). Small and extensible, not a medical simulator: five reserves
@@ -58,7 +58,7 @@ export const ACTIVITY_HEAT_PER_HOUR: Record<ActivityLevel, number> = {
 // future tuning pass.
 export const ENERGY_DRAIN_PER_HOUR = 1 / 21;
 /** Idle-equivalent hours to fully dehydrate — matches the pre-v0.4 thirst pace (~11 hours). */
-const HYDRATION_DRAIN_PER_HOUR = 1 / 11;
+export const HYDRATION_DRAIN_PER_HOUR = 1 / 11;
 /** One meal (`eatFood`) restores this fraction of the caloric reserve. */
 export const FOOD_ENERGY_RESTORE = 0.6;
 /** One drink restores this fraction of hydration. */
@@ -124,8 +124,7 @@ const WETNESS_FATIGUE_PER_HOUR = 0.02;
  * (v0.8 §D, 0..1) adds a real drying bonus — standing by a lit fire is a genuine reason to dry
  * off faster, not just waiting it out indoors.
  */
-function stepWetness(world: World, p: Person, hours: number, indoor: boolean, nearFire = 0): void {
-  const phys = p.physiology;
+function stepWetness(world: World, phys: Physiology, hours: number, indoor: boolean, nearFire = 0): void {
   const wk = world.weather.kind;
   const raining = (wk === 'rain' || wk === 'storm') ? world.weather.intensity : 0;
   if (!indoor && raining > 0) {
@@ -143,16 +142,30 @@ function stepWetness(world: World, p: Person, hours: number, indoor: boolean, ne
  */
 export function stepPhysiology(world: World, p: Person, hours: number, activity: ActivityLevel, o: { indoor: boolean; daylight: number; nearFire?: number } = { indoor: false, daylight: 0.7 }): void {
   if (hours <= 0) return;
+  stepEmbodiedPhysiology(world, p.physiology, hours, activity, {
+    ...o, profile: physiologyProfileFor(p.species), traits: p.physiologyTraits ?? AVERAGE_HUMAN_ADULT,
+    endurance: p.attributes.endurance, restoration: restorationMultiplier(p),
+  });
+  syncNeeds(p);
+}
+
+export type BodyPhysiologyProfile = Pick<SpeciesPhysiologyProfile, 'energyDrainMultiplier' | 'hydrationDrainMultiplier' | 'fatigueMultiplier' | 'sleepNeedMultiplier' | 'recoveryRateMultiplier'>;
+/** Shared physical reserve integration, without human attributes, beliefs or need mirrors.
+ * Humans supply their existing capability modifiers; animals supply biological rates. */
+export function stepEmbodiedPhysiology(world: World, phys: Physiology, hours: number, activity: ActivityLevel, o: {
+  indoor: boolean; daylight: number; nearFire?: number; profile: BodyPhysiologyProfile;
+  traits?: IndividualPhysiologyTraits; endurance?: number; restoration?: number;
+}): void {
+  if (hours <= 0) return;
   const nearFire = o.nearFire ?? 0;
-  stepWetness(world, p, hours, o.indoor, nearFire);
-  const phys = p.physiology;
+  stepWetness(world, phys, hours, o.indoor, nearFire);
   const asleep = activity === 'sleep';
   // v0.5 §I: species profile + individual variation scale the human-baseline rates below — see
   // core/species.ts. Both default to the identity (1) for the reference AverageHumanAdult, so
   // this is a pure extension point, not a behavior change, until a second species/individual
   // spread is introduced.
-  const profile = physiologyProfileFor(p.species);
-  const traits = p.physiologyTraits ?? AVERAGE_HUMAN_ADULT;
+  const profile = o.profile;
+  const traits = o.traits ?? AVERAGE_HUMAN_ADULT;
 
   // energy (calories) — larger bodies burn somewhat more baseline fuel for the same activity.
   phys.energy = clamp01(phys.energy - ENERGY_DRAIN_PER_HOUR * ACTIVITY_ENERGY_MULT[activity] * profile.energyDrainMultiplier * traits.bodySizeFactor * hours);
@@ -171,15 +184,15 @@ export function stepPhysiology(world: World, p: Person, hours: number, activity:
   // fatigue — heat makes exertion feel worse (Constitution v0.4 §1 "hot -> increased fatigue");
   // better conditioning (v0.5 §I.2) means the same exertion accumulates fatigue more slowly.
   const heatFatigueFactor = 1 + Math.max(0, phys.bodyHeat - HEAT_HOT) * 1.5;
-  const fatigueRateMult = (profile.fatigueMultiplier / traits.conditioning) / (0.8 + p.attributes.endurance * 0.025);
+  const fatigueRateMult = (profile.fatigueMultiplier / traits.conditioning) / (0.8 + (o.endurance ?? 8) * 0.025);
   const wetnessFatigue = WETNESS_FATIGUE_PER_HOUR * phys.wetness * hours;
-  if (asleep) phys.fatigue = clamp01(phys.fatigue - SLEEP_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * restorationMultiplier(p) * hours + wetnessFatigue);
-  else if (activity === 'idle') phys.fatigue = clamp01(phys.fatigue - REST_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * restorationMultiplier(p) * hours + wetnessFatigue);
+  if (asleep) phys.fatigue = clamp01(phys.fatigue - SLEEP_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * (o.restoration ?? 1) * hours + wetnessFatigue);
+  else if (activity === 'idle') phys.fatigue = clamp01(phys.fatigue - REST_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * (o.restoration ?? 1) * hours + wetnessFatigue);
   else phys.fatigue = clamp01(phys.fatigue + ACTIVITY_FATIGUE_PER_HOUR[activity] * heatFatigueFactor * fatigueRateMult * hours + wetnessFatigue);
 
   // sleep debt
   const sleepNeedMult = profile.sleepNeedMultiplier * traits.sleepNeedFactor;
-  if (asleep) phys.sleepDebt = Math.max(0, phys.sleepDebt - SLEEP_DEBT_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * restorationMultiplier(p) * hours);
+  if (asleep) phys.sleepDebt = Math.max(0, phys.sleepDebt - SLEEP_DEBT_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * (o.restoration ?? 1) * hours);
   else phys.sleepDebt = Math.min(16, phys.sleepDebt + AWAKE_SLEEP_DEBT_PER_HOUR * sleepNeedMult * hours);
 
   // body heat: exertion + environment - passive/rest/hydration-supported cooling
@@ -195,7 +208,6 @@ export function stepPhysiology(world: World, p: Person, hours: number, activity:
   const heatDelta = ACTIVITY_HEAT_PER_HOUR[activity] + environmentalHeat + fireWarmth - HEAT_PASSIVE_COOLING_PER_HOUR - restCooling - hydrationCooling;
   phys.bodyHeat = clamp01(phys.bodyHeat + heatDelta * hours);
 
-  syncNeeds(p);
 }
 
 /** Explicit rest outside the advancing simulation. The live simulation applies these same

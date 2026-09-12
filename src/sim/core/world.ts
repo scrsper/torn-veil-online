@@ -20,6 +20,7 @@ export interface EmitOptions {
  * presentation layer watch reality without owning it.
  */
 export class World {
+  ecology: import('../ecology/types').EcologyState | null = null;
   kernel = emptyKernel();
   /** Save handoff for the attached canonical scheduler. The callback reads its live state;
    * restoredExecution is consumed once on attachment, not a second running scheduler. */
@@ -365,6 +366,7 @@ export class World {
     for (const p of this.livingPersons()) visit({ memories: p.memories, knowledge: p.knowledge, mind: p.mind, desires: p.desires,
       lineage: p.lineage, exceptionalDevelopment: p.development.exceptional, ontology: p.ontology });
     for (const item of this.items()) { visit(item.provenance); visit(item.record); }
+    for (const creature of this.creatures()) visit(creature.wildlife?.pregnancy);
     visit({ kernel: this.kernel, situations: this.situations, conflicts: this.conflicts, requests: this.requests, haulTasks: this.haulTasks, workStints: this.workStints, eraCauses: this.chronicleEras.map(era => era.causes) });
     const pinCauses = (id: EventId): void => {
       const event = previousIndex.get(id); if (!event) return;

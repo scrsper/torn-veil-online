@@ -31,6 +31,7 @@ import { stockAt, retireStack } from '../world/stock';
 import { pickHaulTask, claimHaulTask, loadHaulCargo, depositHaulCargo, failHaulTask, generateLogisticsNeeds, maintainHauls, canHaul, noteHaulMovement } from '../logistics/haul';
 import { generateProductionNeeds, claimedProductionRequest, fulfillProductionRequest } from '../world/production';
 import { nearestAvailableNode, extractFromNode, maintainResourceNodes } from '../world/resources';
+import { stepWildlife } from '../ecology/simulation';
 import { stepConstruction, activeBuildProjects, performBuildLabor, MAX_BUILDERS } from '../world/construction';
 import { stepFire, igniteFire, feedFire, fireIntensityAt, fireAt } from '../world/fire';
 import { willingnessFor, unitPriceFor, tradeOffersFrom, refusalsFrom, purchaseUnits, type TradeOffer, type Refusal, type PurchaseResult } from '../world/commerce';
@@ -237,7 +238,7 @@ export class Simulation {
       if (!isExternallyControlled(p) || hasExternalIntention(p)) { const t0 = this.mark(); this.act(p, body, physDt, worldDt); this.accum('act', t0); if(isExternallyControlled(p) && !p.mind.plan.some(a => a.status === 'active' || a.status === 'pending')) finishExternalIntention(p); }
       if (p.speech && p.speech.until < w.physicalTime) p.speech = null;
     }
-    { const t0 = this.mark(); for (const c of w.creatures()) this.creatureStep(c, physDt); this.accum('creatures', t0); }
+    { const t0 = this.mark(); stepWildlife(w, physDt, worldDt); for (const c of w.creatures()) if (!c.wildlife && c.species === 'chicken') this.creatureStep(c, physDt); this.accum('creatures', t0); }
     // 4. body physics for all non-player bodies
     { const t0 = this.mark(); for (const b of w.activeBodies()) { const owner = w.get(b.ownerId) as Person | undefined; if (isExternallyControlled(owner)) continue; this.bodyPhysics(b, physDt); } this.accum('bodyPhysics', t0); }
     // 5. strategic upkeep once per world minute

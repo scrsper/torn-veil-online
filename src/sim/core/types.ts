@@ -71,7 +71,7 @@ export interface Body extends Entity {
   /** Peak functional injury severity per region, 0..1. No treatment model yet. */
   injuries?: Partial<Record<BodyRegion, number>>;
   ownerId: EntityId;            // the entity this body manifests
-  shape: 'humanoid' | 'chicken' | 'wisp';
+  shape: 'humanoid' | 'chicken' | 'wisp' | 'quadruped';
   pos: Vec3;
   vel: Vec3;
   yaw: number;                  // radians, facing
@@ -993,14 +993,16 @@ export interface HaulTask {
  * (a depleted tree's blocks are cleared; a regrown one's are restored). Owned by
  * `World.resourceNodes`; persisted (depletion/regrowth is history).
  */
-export type ResourceNodeKind = 'tree' | 'stone' | 'game';
+export type ResourceNodeKind = 'tree' | 'stone' | 'game' | 'forage' | 'surface_water';
 export interface ResourceNodeBlock { x: number; y: number; z: number; id: number; }
 export interface ResourceNode {
   /** Last density update for a hunting ground; fractional remaining is real biomass. */
   renewedAt?: Tick;
   id: EntityId;
   kind: ResourceNodeKind;
-  yield: ItemType;                     // 'log' | 'stone'
+  yield: ItemType | 'biomass' | 'water'; // biomass/water are direct intake, not inventory items
+  /** Forage is kilograms of available plant matter; surface water is litres. */
+  forage?: 'grass' | 'browse' | 'mast';
   pos: Vec3;                           // a walkable cell a harvester stands at
   blocks: ResourceNodeBlock[];         // canonical voxels (id = block to restore on regrow)
   remaining: number;                   // units of yield left before depletion
@@ -1273,7 +1275,9 @@ export type CognitiveLOD = 'aggregate' | 'lightweight' | 'full' | 'deep';
 
 export interface Creature extends Entity {
   kind: 'creature';
-  species: 'chicken';
+  species: string;
+  /** Absent on legacy decorative creatures. Body physiology is keyed by manifestation. */
+  wildlife?: import('../ecology/types').AnimalState;
   bodies: EntityId[];
   homeId: EntityId | null;
   wanderTimer: number;
@@ -1394,7 +1398,8 @@ export interface Faction extends Entity {
 }
 
 // ---------------------------------------------------------------- Events
-export type EventType = 'introduction' | 'social_inferred' | 'mechanism_inspected' | 'mechanism_hypothesized' | 'mechanism_worked' | 'mechanism_intended' | 'mechanism_abandoned'
+export type EventType = 'animal_born' | 'animal_conceived' | 'animal_pregnancy_lost' | 'animal_died' | 'ecology_changed'
+  | 'introduction' | 'social_inferred' | 'mechanism_inspected' | 'mechanism_hypothesized' | 'mechanism_worked' | 'mechanism_intended' | 'mechanism_abandoned'
   | 'record_written' | 'record_copied' | 'record_read' | 'record_destroyed' | 'environment_energy_changed' | 'method_reproduced' | 'method_discovered'
   | 'component_acquired' | 'assembly_changed' | 'mechanism_trial' | 'production_observed' | 'component_manufactured' | 'component_supply_failed'
   | 'attack' | 'attack_missed' | 'kill' | 'theft' | 'pickup' | 'drop' | 'give' | 'trade' | 'told' | 'conversation' | 'perceived'
