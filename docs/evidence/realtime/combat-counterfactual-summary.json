@@ -1,0 +1,214 @@
+{
+  "source": {
+    "localFile": "combat-counterfactuals.json",
+    "bytes": 181900,
+    "sha256": "c8ca2d52ff58fff62bee03abc538e0a54198884842ff9066c73f16074087a9db",
+    "storage": "Original retained locally, uncommitted; curated fields below are copied from this existing measurement."
+  },
+  "seed": 123,
+  "stepHz": 60,
+  "maxContactSegmentSeconds": 0.008333333333333333,
+  "scope": "Deterministic canonical arena; these results alone do not validate rendered clients or human approval.",
+  "results": [
+    {
+      "name": "A no defense",
+      "outcome": "hit",
+      "start": 0,
+      "active": 0.3,
+      "recovery": 0.44999999999999996,
+      "complete": 0.75,
+      "initialHealth": 80,
+      "finalHealth": 73.4537127646638,
+      "displacement": 0,
+      "contact": {
+        "bodyId": "b_2",
+        "region": "head",
+        "position": {
+          "x": 21.353316908124583,
+          "y": 2.65,
+          "z": 20.04448756000551
+        },
+        "at": 0.40999552039761283,
+        "eventId": "e_6"
+      },
+      "facingChange": 0,
+      "reactionEvidence": "e_4",
+      "recordedFrameCount": 60
+    },
+    {
+      "name": "B timely sidestep",
+      "outcome": "miss",
+      "start": 0,
+      "active": 0.3,
+      "recovery": 0.44999999999999996,
+      "complete": 0.75,
+      "initialHealth": 80,
+      "finalHealth": 80,
+      "displacement": 1.0500000000000043,
+      "contact": null,
+      "facingChange": 0.13089969389957434,
+      "reactionEvidence": "e_4",
+      "recordedFrameCount": 60
+    },
+    {
+      "name": "C late sidestep",
+      "outcome": "hit",
+      "start": 0,
+      "active": 0.3,
+      "recovery": 0.44999999999999996,
+      "complete": 0.75,
+      "initialHealth": 80,
+      "finalHealth": 73.4537127646638,
+      "displacement": 0.05833333333333357,
+      "contact": {
+        "bodyId": "b_2",
+        "region": "head",
+        "position": {
+          "x": 21.36262122587289,
+          "y": 2.65,
+          "z": 20.042235621092168
+        },
+        "at": 0.4125330616016967,
+        "eventId": "e_10"
+      },
+      "facingChange": 0,
+      "reactionEvidence": "e_4",
+      "recordedFrameCount": 60
+    },
+    {
+      "name": "D blocked backstep",
+      "outcome": "hit",
+      "start": 0,
+      "active": 0.3,
+      "recovery": 0.44999999999999996,
+      "complete": 0.75,
+      "initialHealth": 80,
+      "finalHealth": 73.4537127646638,
+      "displacement": 0.04722222222222072,
+      "contact": {
+        "bodyId": "b_2",
+        "region": "head",
+        "position": {
+          "x": 21.399000579892395,
+          "y": 2.65,
+          "z": 20.032616744872865
+        },
+        "at": 0.4224547036070159,
+        "eventId": "e_11"
+      },
+      "facingChange": 0,
+      "reactionEvidence": "e_4",
+      "recordedFrameCount": 60
+    },
+    {
+      "name": "E timely backstep",
+      "outcome": "miss",
+      "start": 0,
+      "active": 0.3,
+      "recovery": 0.44999999999999996,
+      "complete": 0.75,
+      "initialHealth": 80,
+      "finalHealth": 80,
+      "displacement": 0.849999999999973,
+      "contact": null,
+      "facingChange": 0,
+      "reactionEvidence": "e_4",
+      "recordedFrameCount": 60
+    },
+    {
+      "name": "F duck against high",
+      "outcome": "miss",
+      "start": 0,
+      "active": 0.3,
+      "recovery": 0.44999999999999996,
+      "complete": 0.75,
+      "initialHealth": 80,
+      "finalHealth": 80,
+      "displacement": 0,
+      "contact": null,
+      "facingChange": 0,
+      "reactionEvidence": "e_4",
+      "recordedFrameCount": 60
+    },
+    {
+      "name": "G duck against low",
+      "outcome": "hit",
+      "start": 0,
+      "active": 0.3,
+      "recovery": 0.44999999999999996,
+      "complete": 0.75,
+      "initialHealth": 80,
+      "finalHealth": 73.4537127646638,
+      "displacement": 0,
+      "contact": {
+        "bodyId": "b_2",
+        "region": "torso",
+        "position": {
+          "x": 21.302181297219306,
+          "y": 1.43,
+          "z": 20.054056914413938
+        },
+        "at": 0.39604944469617415,
+        "eventId": "e_10"
+      },
+      "facingChange": 0,
+      "reactionEvidence": "e_4",
+      "recordedFrameCount": 60
+    },
+    {
+      "name": "H target leaves path after commitment",
+      "outcome": "miss",
+      "start": 0,
+      "active": 0.3,
+      "recovery": 0.44999999999999996,
+      "complete": 0.75,
+      "initialHealth": 80,
+      "finalHealth": 80,
+      "displacement": 2.5547835733332676,
+      "contact": null,
+      "facingChange": 0,
+      "reactionEvidence": "e_4",
+      "recordedFrameCount": 60
+    },
+    {
+      "name": "I NPC timely perception response",
+      "outcome": "miss",
+      "start": 0,
+      "active": 0.3,
+      "recovery": 0.44999999999999996,
+      "complete": 0.75,
+      "initialHealth": 80,
+      "finalHealth": 80,
+      "displacement": 1.0500000000000043,
+      "contact": null,
+      "facingChange": 0,
+      "reactionEvidence": "e_4",
+      "recordedFrameCount": 60
+    },
+    {
+      "name": "I NPC delayed response",
+      "outcome": "hit",
+      "start": 0,
+      "active": 0.3,
+      "recovery": 0.44999999999999996,
+      "complete": 0.75,
+      "initialHealth": 80,
+      "finalHealth": 73.4537127646638,
+      "displacement": 1.10734854929062,
+      "contact": {
+        "bodyId": "b_2",
+        "region": "head",
+        "position": {
+          "x": 21.353316908124583,
+          "y": 2.65,
+          "z": 20.04448756000551
+        },
+        "at": 0.40999552039761283,
+        "eventId": "e_6"
+      },
+      "facingChange": 0,
+      "reactionEvidence": "e_4",
+      "recordedFrameCount": 60
+    }
+  ]
+}

@@ -1,0 +1,594 @@
+{
+  "scope": "Existing measurements only; no new benchmark. Per-message records and bridge logs remain local. See combat-transport-stage-summary.json for stage distributions derived before this checkpoint.",
+  "runs": [
+    {
+      "localFile": "combat-transport-before.json",
+      "bytes": 40560,
+      "sha256": "9929ebdec20f376262efdbfc04e510c913a683df65e64abac3aaddce45fdbf01",
+      "storage": "Original retained locally, uncommitted; curated fields below are copied from this existing measurement.",
+      "measurement": {
+        "protocol": 2,
+        "authoritativeApplicationMeasured": true,
+        "serverMemory": {
+          "rss": 135892992,
+          "heapTotal": 63377408,
+          "heapUsed": 35647416,
+          "external": 9085129,
+          "arrayBuffers": 5024517
+        },
+        "eventLoopMs": {
+          "p50": 15.564799,
+          "p95": 17.907711,
+          "p99": 24.903679
+        },
+        "harness": "realtime-loopback",
+        "transport": "WebSocket loopback",
+        "applicationMessageDelayProxyMs": 0,
+        "applicationMessageJitterMs": 0,
+        "delaySemantics": "client-side application-message delay; includes proxy delay in observed ages",
+        "counts": {
+          "sent": 120,
+          "results": 120,
+          "snapshots": 34,
+          "correlatedResults": 120,
+          "correlatedSnapshots": 120,
+          "sequenceViolations": 0,
+          "applied": 120,
+          "rejected": 0
+        },
+        "roundTripMs": {
+          "count": 120,
+          "p50": 16.238,
+          "p95": 31.68,
+          "p99": 45.491,
+          "min": 15.084,
+          "max": 50.469
+        },
+        "receivedRoundTripMs": {
+          "count": 120,
+          "p50": 0.566,
+          "p95": 2.6,
+          "p99": 20.276,
+          "min": 0.231,
+          "max": 35.273
+        },
+        "appliedRoundTripMs": {
+          "count": 120,
+          "p50": 16.238,
+          "p95": 31.68,
+          "p99": 45.491,
+          "min": 15.084,
+          "max": 50.469
+        },
+        "snapshotAckAgeMs": {
+          "count": 120,
+          "p50": 16.283,
+          "p95": 31.721,
+          "p99": 45.533,
+          "min": 15.119,
+          "max": 50.541
+        },
+        "queueMs": {
+          "count": 120,
+          "p50": 15.044,
+          "p95": 30.286,
+          "p99": 30.976,
+          "min": 10.081,
+          "max": 31.614
+        },
+        "clock": {
+          "offsetMs": -250.047,
+          "uncertaintyMs": 0.522,
+          "probes": 8
+        },
+        "load": {
+          "durationMs": 3801.604,
+          "intentsPerSecond": 59.88,
+          "snapshotsPerSecond": 8.944,
+          "heapUsedBytes": 14586616
+        },
+        "scheduler": {
+          "steps": 198,
+          "overruns": 4,
+          "maxDebtMs": 42.07003333333023
+        }
+      },
+      "transportRecordCount": 120,
+      "bridgeLogLineCount": 0
+    },
+    {
+      "localFile": "combat-transport-after.json",
+      "bytes": 40568,
+      "sha256": "fa85a3a678fb5d97b115c18ee487b8ee84c3dfe93801c05bbd85cb50503ab5da",
+      "storage": "Original retained locally, uncommitted; curated fields below are copied from this existing measurement.",
+      "measurement": {
+        "protocol": 2,
+        "authoritativeApplicationMeasured": true,
+        "serverMemory": {
+          "rss": 132296704,
+          "heapTotal": 60477440,
+          "heapUsed": 33277312,
+          "external": 9052340,
+          "arrayBuffers": 4989365
+        },
+        "eventLoopMs": {
+          "p50": 15.482879,
+          "p95": 17.022975,
+          "p99": 20.676607
+        },
+        "harness": "realtime-loopback",
+        "transport": "WebSocket loopback",
+        "applicationMessageDelayProxyMs": 0,
+        "applicationMessageJitterMs": 0,
+        "delaySemantics": "client-side application-message delay; includes proxy delay in observed ages",
+        "counts": {
+          "sent": 120,
+          "results": 120,
+          "snapshots": 34,
+          "correlatedResults": 120,
+          "correlatedSnapshots": 120,
+          "sequenceViolations": 0,
+          "applied": 120,
+          "rejected": 0
+        },
+        "roundTripMs": {
+          "count": 120,
+          "p50": 16.245,
+          "p95": 31.866,
+          "p99": 32.418,
+          "min": 3.305,
+          "max": 46.194
+        },
+        "receivedRoundTripMs": {
+          "count": 120,
+          "p50": 0.557,
+          "p95": 3.185,
+          "p99": 16.831,
+          "min": 0.185,
+          "max": 31.645
+        },
+        "appliedRoundTripMs": {
+          "count": 120,
+          "p50": 16.245,
+          "p95": 31.866,
+          "p99": 32.418,
+          "min": 3.305,
+          "max": 46.194
+        },
+        "snapshotAckAgeMs": {
+          "count": 120,
+          "p50": 16.316,
+          "p95": 31.926,
+          "p99": 32.521,
+          "min": 3.353,
+          "max": 46.27
+        },
+        "queueMs": {
+          "count": 120,
+          "p50": 15.047,
+          "p95": 30.957,
+          "p99": 31.878,
+          "min": 0.072,
+          "max": 31.968
+        },
+        "clock": {
+          "offsetMs": -195.039,
+          "uncertaintyMs": 0.965,
+          "probes": 8
+        },
+        "load": {
+          "durationMs": 3806.154,
+          "intentsPerSecond": 59.88,
+          "snapshotsPerSecond": 8.933,
+          "heapUsedBytes": 14174080
+        },
+        "scheduler": {
+          "steps": 199,
+          "overruns": 1,
+          "maxDebtMs": 17.88289999999995
+        }
+      },
+      "transportRecordCount": 120,
+      "bridgeLogLineCount": 0
+    },
+    {
+      "localFile": "combat-transport-final.json",
+      "bytes": 698725,
+      "sha256": "f06149f372c498550d646888ae162ca62c561027253c932aa16910aebb86c1fd",
+      "storage": "Original retained locally, uncommitted; curated fields below are copied from this existing measurement.",
+      "measurement": {
+        "protocol": 2,
+        "authoritativeApplicationMeasured": true,
+        "serverMemory": {
+          "rss": 88256512,
+          "heapTotal": 33058816,
+          "heapUsed": 24354632,
+          "external": 6331548,
+          "arrayBuffers": 2277176
+        },
+        "eventLoopMs": {
+          "p50": 15.605759,
+          "p95": 16.408575,
+          "p99": 16.908287
+        },
+        "harness": "realtime-loopback",
+        "transport": "WebSocket loopback",
+        "applicationMessageDelayProxyMs": 0,
+        "applicationMessageJitterMs": 0,
+        "delaySemantics": "client-side application-message delay; includes proxy delay in observed ages",
+        "counts": {
+          "sent": 1910,
+          "results": 1910,
+          "snapshots": 334,
+          "correlatedResults": 1910,
+          "correlatedSnapshots": 1871,
+          "sequenceViolations": 0,
+          "applied": 1910,
+          "rejected": 0,
+          "combatAccepted": 40,
+          "combatRejected": 0
+        },
+        "roundTripMs": {
+          "count": 1910,
+          "p50": 31.445,
+          "p95": 93.424,
+          "p99": 94.709,
+          "min": 0.442,
+          "max": 138.288
+        },
+        "receivedRoundTripMs": {
+          "count": 1910,
+          "p50": 0.532,
+          "p95": 1.084,
+          "p99": 2.05,
+          "min": 0.112,
+          "max": 72.888
+        },
+        "appliedRoundTripMs": {
+          "count": 1910,
+          "p50": 31.445,
+          "p95": 93.424,
+          "p99": 94.709,
+          "min": 0.442,
+          "max": 138.288
+        },
+        "receivedRoundTripByKind": {
+          "movement": {
+            "count": 1870,
+            "p50": 0.533,
+            "p95": 1.07,
+            "p99": 1.996,
+            "min": 0.12,
+            "max": 72.49
+          },
+          "combat": {
+            "count": 40,
+            "p50": 0.452,
+            "p95": 1.542,
+            "p99": 72.888,
+            "min": 0.112,
+            "max": 72.888
+          }
+        },
+        "appliedRoundTripByKind": {
+          "movement": {
+            "count": 1870,
+            "p50": 31.498,
+            "p95": 93.447,
+            "p99": 94.739,
+            "min": 0.442,
+            "max": 138.288
+          },
+          "combat": {
+            "count": 40,
+            "p50": 16.436,
+            "p95": 22.454,
+            "p99": 72.893,
+            "min": 1.025,
+            "max": 72.893
+          }
+        },
+        "snapshotAckAgeMs": {
+          "count": 1871,
+          "p50": 31.572,
+          "p95": 93.517,
+          "p99": 94.84,
+          "min": 0.561,
+          "max": 138.312
+        },
+        "queueMs": {
+          "count": 1910,
+          "p50": 30.709,
+          "p95": 92.627,
+          "p99": 93.935,
+          "min": 0.071,
+          "max": 136.842
+        },
+        "clock": {
+          "offsetMs": -289.822,
+          "uncertaintyMs": 0.693,
+          "probes": 8
+        },
+        "load": {
+          "durationMs": 33734.416,
+          "intentsPerSecond": 56.619,
+          "snapshotsPerSecond": 9.901,
+          "heapUsedBytes": 15748720
+        },
+        "scheduler": {
+          "steps": 2000,
+          "overruns": 4,
+          "maxDebtMs": 88.39646666657791
+        }
+      },
+      "transportRecordCount": 1910,
+      "bridgeLogLineCount": 0
+    },
+    {
+      "localFile": "combat-transport-playable-before.json",
+      "bytes": 704776,
+      "sha256": "dab298559a63a01678105cd10aaa84c27010ccadba7bb1e6dc0a2438b05d6a90",
+      "storage": "Original retained locally, uncommitted; curated fields below are copied from this existing measurement.",
+      "measurement": {
+        "protocol": 2,
+        "authoritativeApplicationMeasured": true,
+        "serverMemory": {
+          "rss": 258224128,
+          "heapTotal": 148217856,
+          "heapUsed": 113870960,
+          "external": 28434874,
+          "arrayBuffers": 24381636
+        },
+        "eventLoopMs": {
+          "p50": 15.974399,
+          "p95": 24.559615,
+          "p99": 41.680895
+        },
+        "harness": "realtime-loopback",
+        "transport": "WebSocket loopback",
+        "applicationMessageDelayProxyMs": 0,
+        "applicationMessageJitterMs": 0,
+        "delaySemantics": "client-side application-message delay; includes proxy delay in observed ages",
+        "counts": {
+          "sent": 1910,
+          "results": 1880,
+          "snapshots": 334,
+          "correlatedResults": 1880,
+          "correlatedSnapshots": 1825,
+          "sequenceViolations": 0,
+          "applied": 1863,
+          "rejected": 47,
+          "combatAccepted": 39,
+          "combatRejected": 1
+        },
+        "roundTripMs": {
+          "count": 1910,
+          "p50": 110.942,
+          "p95": 210.68,
+          "p99": 766.985,
+          "min": 0.564,
+          "max": 1005.052
+        },
+        "receivedRoundTripMs": {
+          "count": 1880,
+          "p50": 1.289,
+          "p95": 21.554,
+          "p99": 657.594,
+          "min": 0.121,
+          "max": 867.513
+        },
+        "appliedRoundTripMs": {
+          "count": 1910,
+          "p50": 110.942,
+          "p95": 210.68,
+          "p99": 766.985,
+          "min": 0.564,
+          "max": 1005.052
+        },
+        "receivedRoundTripByKind": {
+          "combat": {
+            "count": 39,
+            "p50": 3.112,
+            "p95": 10.5,
+            "p99": 13.841,
+            "min": 0.198,
+            "max": 13.841
+          },
+          "movement": {
+            "count": 1841,
+            "p50": 1.274,
+            "p95": 22.814,
+            "p99": 657.594,
+            "min": 0.121,
+            "max": 867.513
+          }
+        },
+        "appliedRoundTripByKind": {
+          "movement": {
+            "count": 1870,
+            "p50": 111.237,
+            "p95": 214.577,
+            "p99": 772.952,
+            "min": 0.564,
+            "max": 1005.052
+          },
+          "combat": {
+            "count": 40,
+            "p50": 16.227,
+            "p95": 30.655,
+            "p99": 205.697,
+            "min": 3.26,
+            "max": 205.697
+          }
+        },
+        "snapshotAckAgeMs": {
+          "count": 1825,
+          "p50": 111.289,
+          "p95": 176.826,
+          "p99": 734.184,
+          "min": 2.274,
+          "max": 1005.225
+        },
+        "queueMs": {
+          "count": 1863,
+          "p50": 107.198,
+          "p95": 169.272,
+          "p99": 229.485,
+          "min": 0.045,
+          "max": 243.098
+        },
+        "clock": {
+          "offsetMs": -252.269,
+          "uncertaintyMs": 40.283,
+          "probes": 8
+        },
+        "load": {
+          "durationMs": 39161.98,
+          "intentsPerSecond": 48.772,
+          "snapshotsPerSecond": 8.529,
+          "heapUsedBytes": 16907128
+        },
+        "scheduler": {
+          "steps": 2003,
+          "overruns": 50,
+          "maxDebtMs": 867.0365333333057
+        }
+      },
+      "transportRecordCount": 1910,
+      "bridgeLogLineCount": 23
+    },
+    {
+      "localFile": "combat-transport-playable-after.json",
+      "bytes": 705527,
+      "sha256": "744a2a23e2cf932a1327d464497083d2b1cbdaef3b578f1ccbba08f24ef965c7",
+      "storage": "Original retained locally, uncommitted; curated fields below are copied from this existing measurement.",
+      "measurement": {
+        "protocol": 2,
+        "authoritativeApplicationMeasured": true,
+        "serverMemory": {
+          "rss": 189198336,
+          "heapTotal": 97927168,
+          "heapUsed": 57773744,
+          "external": 26396425,
+          "arrayBuffers": 22350363
+        },
+        "eventLoopMs": {
+          "p50": 15.728639,
+          "p95": 23.248895,
+          "p99": 35.880959
+        },
+        "harness": "realtime-loopback",
+        "transport": "WebSocket loopback",
+        "applicationMessageDelayProxyMs": 0,
+        "applicationMessageJitterMs": 0,
+        "delaySemantics": "client-side application-message delay; includes proxy delay in observed ages",
+        "counts": {
+          "sent": 1910,
+          "results": 1891,
+          "snapshots": 334,
+          "correlatedResults": 1891,
+          "correlatedSnapshots": 1848,
+          "sequenceViolations": 0,
+          "applied": 1887,
+          "rejected": 23,
+          "combatAccepted": 39,
+          "combatRejected": 1
+        },
+        "roundTripMs": {
+          "count": 1910,
+          "p50": 181.275,
+          "p95": 217.379,
+          "p99": 562.21,
+          "min": 1.02,
+          "max": 720.173
+        },
+        "receivedRoundTripMs": {
+          "count": 1891,
+          "p50": 1.09,
+          "p95": 9.619,
+          "p99": 457.062,
+          "min": 0.114,
+          "max": 691.303
+        },
+        "appliedRoundTripMs": {
+          "count": 1910,
+          "p50": 181.275,
+          "p95": 217.379,
+          "p99": 562.21,
+          "min": 1.02,
+          "max": 720.173
+        },
+        "receivedRoundTripByKind": {
+          "movement": {
+            "count": 1852,
+            "p50": 1.106,
+            "p95": 9.672,
+            "p99": 457.062,
+            "min": 0.114,
+            "max": 691.303
+          },
+          "combat": {
+            "count": 39,
+            "p50": 0.667,
+            "p95": 3.939,
+            "p99": 4.073,
+            "min": 0.228,
+            "max": 4.073
+          }
+        },
+        "appliedRoundTripByKind": {
+          "movement": {
+            "count": 1870,
+            "p50": 183.775,
+            "p95": 217.571,
+            "p99": 562.319,
+            "min": 5.57,
+            "max": 720.173
+          },
+          "combat": {
+            "count": 40,
+            "p50": 16.333,
+            "p95": 21.56,
+            "p99": 83.178,
+            "min": 1.02,
+            "max": 83.178
+          }
+        },
+        "snapshotAckAgeMs": {
+          "count": 1848,
+          "p50": 183.494,
+          "p95": 217.446,
+          "p99": 562.551,
+          "min": 9.282,
+          "max": 720.362
+        },
+        "queueMs": {
+          "count": 1887,
+          "p50": 172.476,
+          "p95": 204.657,
+          "p99": 227.577,
+          "min": 0.058,
+          "max": 248.262
+        },
+        "clock": {
+          "offsetMs": -222.672,
+          "uncertaintyMs": 4.79,
+          "probes": 8
+        },
+        "load": {
+          "durationMs": 37267.36,
+          "intentsPerSecond": 51.251,
+          "snapshotsPerSecond": 8.962,
+          "heapUsedBytes": 16107896
+        },
+        "scheduler": {
+          "steps": 1999,
+          "overruns": 27,
+          "maxDebtMs": 687.3695333333126
+        }
+      },
+      "transportRecordCount": 1910,
+      "bridgeLogLineCount": 22
+    }
+  ]
+}

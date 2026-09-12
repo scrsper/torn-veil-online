@@ -1,0 +1,164 @@
+{
+  "scope": "Each server-stage interval includes only records carrying both timestamps; application intervals exclude rejections. Terminal RTT includes rejections. No application-level delays or rejections are packet loss.",
+  "runs": {
+    "combat-transport-final.json": {
+      "arrivalToNextTickMs": {
+        "count": 40,
+        "p50": 15.2334,
+        "p95": 15.7779,
+        "p99": 29.068
+      },
+      "arrivalToApplicationMs": {
+        "count": 40,
+        "p50": 15.498,
+        "p95": 16.3022,
+        "p99": 29.2985
+      },
+      "applicationToSerializationMs": {
+        "count": 40,
+        "p50": 0.4312,
+        "p95": 0.7854,
+        "p99": 2.4186
+      },
+      "serializationMs": {
+        "count": 40,
+        "p50": 0.0025,
+        "p95": 0.0082,
+        "p99": 0.0119
+      },
+      "socketFlushMs": {
+        "count": 40,
+        "p50": 0.3516,
+        "p95": 0.541,
+        "p99": 1.1722
+      },
+      "terminalReceiptRttMs": {
+        "count": 40,
+        "p50": 16.436,
+        "p95": 22.454,
+        "p99": 72.893,
+        "min": 1.025,
+        "max": 72.893
+      },
+      "counts": {
+        "sent": 1910,
+        "results": 1910,
+        "snapshots": 334,
+        "correlatedResults": 1910,
+        "correlatedSnapshots": 1871,
+        "sequenceViolations": 0,
+        "applied": 1910,
+        "rejected": 0,
+        "combatAccepted": 40,
+        "combatRejected": 0
+      },
+      "maxQueuedBytes": 0
+    },
+    "combat-transport-playable-before.json": {
+      "arrivalToNextTickMs": {
+        "count": 39,
+        "p50": 12.6788,
+        "p95": 27.3833,
+        "p99": 27.8892
+      },
+      "arrivalToApplicationMs": {
+        "count": 39,
+        "p50": 12.9663,
+        "p95": 27.6116,
+        "p99": 28.1188
+      },
+      "applicationToSerializationMs": {
+        "count": 39,
+        "p50": 0.1354,
+        "p95": 0.3078,
+        "p99": 2.5079
+      },
+      "serializationMs": {
+        "count": 40,
+        "p50": 0.0022,
+        "p95": 0.0054,
+        "p99": 0.008
+      },
+      "socketFlushMs": {
+        "count": 40,
+        "p50": 0.4743,
+        "p95": 0.6317,
+        "p99": 0.7741
+      },
+      "terminalReceiptRttMs": {
+        "count": 40,
+        "p50": 16.227,
+        "p95": 30.655,
+        "p99": 205.697,
+        "min": 3.26,
+        "max": 205.697
+      },
+      "counts": {
+        "sent": 1910,
+        "results": 1880,
+        "snapshots": 334,
+        "correlatedResults": 1880,
+        "correlatedSnapshots": 1825,
+        "sequenceViolations": 0,
+        "applied": 1863,
+        "rejected": 47,
+        "combatAccepted": 39,
+        "combatRejected": 1
+      },
+      "maxQueuedBytes": 0
+    },
+    "combat-transport-playable-after.json": {
+      "arrivalToNextTickMs": {
+        "count": 39,
+        "p50": 15.0476,
+        "p95": 15.7311,
+        "p99": 15.7416
+      },
+      "arrivalToApplicationMs": {
+        "count": 39,
+        "p50": 15.3505,
+        "p95": 16.1613,
+        "p99": 16.2422
+      },
+      "applicationToSerializationMs": {
+        "count": 39,
+        "p50": 0.1536,
+        "p95": 5.7025,
+        "p99": 6.0787
+      },
+      "serializationMs": {
+        "count": 40,
+        "p50": 0.0026,
+        "p95": 0.005,
+        "p99": 0.0053
+      },
+      "socketFlushMs": {
+        "count": 40,
+        "p50": 0.4518,
+        "p95": 3.4315,
+        "p99": 3.636
+      },
+      "terminalReceiptRttMs": {
+        "count": 40,
+        "p50": 16.333,
+        "p95": 21.56,
+        "p99": 83.178,
+        "min": 1.02,
+        "max": 83.178
+      },
+      "counts": {
+        "sent": 1910,
+        "results": 1891,
+        "snapshots": 334,
+        "correlatedResults": 1891,
+        "correlatedSnapshots": 1848,
+        "sequenceViolations": 0,
+        "applied": 1887,
+        "rejected": 23,
+        "combatAccepted": 39,
+        "combatRejected": 1
+      },
+      "maxQueuedBytes": 0
+    }
+  }
+}

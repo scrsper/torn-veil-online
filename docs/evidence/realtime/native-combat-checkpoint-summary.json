@@ -1,0 +1,3734 @@
+{
+  "scope": "Existing native results only; no build, launch or measurement at checkpoint. Per-frame diagnostic streams remain local. Videos/screenshots and native automation summary are committed separately.",
+  "runs": [
+    {
+      "localFile": "native-combat-timely-rendered.json",
+      "bytes": 77031,
+      "sha256": "7019473bd98d688662c63bf3716b8b0d63e18d15856f1c685bf7f0d8a5beb932",
+      "storage": "Original retained locally, uncommitted; curated fields below are copied from this existing measurement.",
+      "measurement": {
+        "status": "complete",
+        "error": "",
+        "realtimeDiagnostics": {
+          "combatInputToAnimationSetupMs": {
+            "count": 2,
+            "p50": 0.32200291752815247,
+            "p95": 0.7718019187450409,
+            "p99": 0.7718019187450409
+          },
+          "contactDecisionToPresentationMs": {
+            "count": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "clockUncertaintyMs": 1.9848012924194336,
+          "inputToPredictedAttackMs": {
+            "count": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "inputToPredictedDefenseMs": {
+            "count": 2,
+            "p50": 0.01019984483718872,
+            "p95": 0.01300126314163208,
+            "p99": 0.01300126314163208
+          },
+          "combatCorrectionCm": {
+            "count": 115,
+            "p50": 0,
+            "p95": 5.329070518200751e-12,
+            "p99": 5.833333333328028
+          },
+          "combatCorrectionCpuMs": {
+            "count": 115,
+            "p50": 0.006198883056640625,
+            "p95": 0.02760067582130432,
+            "p99": 0.04180148243904114
+          },
+          "combatCorrectionSettleMs": {
+            "count": 2,
+            "p50": 1.620698720216751,
+            "p95": 2.7646012604236603,
+            "p99": 2.7646012604236603
+          },
+          "remoteActionAgeMs": {
+            "count": 112,
+            "p50": 52.74309854127932,
+            "p95": 137.34139825741295,
+            "p99": 198.94029871211387
+          },
+          "contactReceiveToPresentationMs": {
+            "count": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "combatAppliedRoundTripMs": {
+            "count": 2,
+            "p50": 97.7528989315033,
+            "p95": 105.99629953503609,
+            "p99": 105.99629953503609
+          },
+          "commandSendToServerArrivalMs": {
+            "count": 127,
+            "p50": 2.2188003113260493,
+            "p95": 2.594301559496671,
+            "p99": 2.687200158718042
+          },
+          "serverArrivalToApplicationMs": {
+            "count": 128,
+            "p50": 49.920699999900535,
+            "p95": 96.4550000000745,
+            "p99": 99.77760000003036
+          },
+          "applicationToClientReceiveMs": {
+            "count": 127,
+            "p50": 52.92470044561196,
+            "p95": 103.53960093692876,
+            "p99": 402.8347997223027
+          },
+          "predictionCpuMs": {
+            "count": 22,
+            "p50": 0.10969862341880798,
+            "p95": 0.13910233974456787,
+            "p99": 0.1440010964870453
+          },
+          "inputCallbackToEngineStateMs": {
+            "count": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "appliedRoundTripMs": {
+            "count": 128,
+            "p50": 99.54000264406204,
+            "p95": 204.9059011042118,
+            "p99": 449.08659905195236
+          },
+          "correctionCm": {
+            "count": 154,
+            "p50": 0,
+            "p95": 5.329070518200751e-12,
+            "p99": 5.833333333328028
+          },
+          "pendingMovement": 0,
+          "predictionCount": 126,
+          "predictionReady": true,
+          "presentationTiming": "unmeasured; engine-state samples are not display presentation or physical input-to-photon",
+          "specRevision": "tv-interaction-2",
+          "specHash": "89b59f12f981ccf56752c285745a60f282816e31a69ad3e60cdf3f212b24d690"
+        },
+        "presentation": {
+          "bodyId": "b_1",
+          "entityId": "p_1",
+          "pose": "stand",
+          "animation": "/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run.BS_Idle_Walk_Run",
+          "possessed": true,
+          "incapacitated": false,
+          "dead": false,
+          "attackSeq": 30,
+          "hitSeq": 1,
+          "playedAttacks": 0,
+          "playedHits": 0,
+          "liveCombat": false,
+          "liveActionId": "",
+          "liveCommandId": "",
+          "livePhase": "",
+          "liveKind": "",
+          "liveOutcome": "",
+          "duck": 0,
+          "choreographyActive": false,
+          "choreographySeq": 0,
+          "choreographyPending": 0,
+          "choreographyDropped": 0,
+          "presentationOffsetCm": 0,
+          "maxPresentationOffsetCm": 0,
+          "alignmentYaw": 0,
+          "plannedContactErrorCm": 0,
+          "leanDegrees": 0,
+          "measuredContactErrorCm": 0,
+          "presentationHoldSeconds": 0,
+          "choreographyAge": 0.6256700754165649,
+          "choreographyLOD": 0,
+          "complexity": 1,
+          "control": 0.40521737933158875,
+          "force": 0.37279999256134033,
+          "signatureSeed": 991189645,
+          "primitive": "hook",
+          "weaponFamily": "unarmed",
+          "magicFixture": false,
+          "playedChoreographySequences": [
+            0,
+            0
+          ],
+          "maxChoreographyActorDriftCm": 0,
+          "pendingAttacks": 0,
+          "pendingHits": 0,
+          "blendDirection": 0,
+          "blendSpeed": 0,
+          "filteredBlendSpeed": 0,
+          "footSeparationCm": 43.6787883696978,
+          "headHeightCm": 159.8958016393659,
+          "pelvisHeightCm": 93.87559509277344,
+          "skippedAttacks": 0,
+          "skippedHits": 0,
+          "speedCmPerSecond": 0,
+          "movementMode": 0,
+          "mesh": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple",
+          "animationTime": 0.05300964415073395,
+          "position": {
+            "x": 35.00000000000014,
+            "y": -104.99999999998408,
+            "z": 190
+          }
+        },
+        "repetition": {
+          "requested": 0,
+          "dispatched": 0,
+          "attackInputs": 0,
+          "duckInputs": 0
+        },
+        "run": {
+          "mode": "timely",
+          "capture": true,
+          "log": "C:\\Users\\green\\Desktop\\projects\\torn-veil-online\\.debug\\native-combat-timely-rendered-1921daa4da604867bd936a6c81357810\\unreal.log",
+          "frames": "C:\\Users\\green\\Desktop\\projects\\torn-veil-online\\.debug\\native-combat-timely-rendered-1921daa4da604867bd936a6c81357810\\frames"
+        }
+      },
+      "sampleCount": 47
+    },
+    {
+      "localFile": "native-combat-duck-high-rendered.json",
+      "bytes": 74954,
+      "sha256": "3a9a9d30f55a23ef4495f399c6e40b54fb2f88efed8ce481019443c31ce289eb",
+      "storage": "Original retained locally, uncommitted; curated fields below are copied from this existing measurement.",
+      "measurement": {
+        "status": "complete",
+        "error": "",
+        "realtimeDiagnostics": {
+          "combatInputToAnimationSetupMs": {
+            "count": 2,
+            "p50": 0.3384016454219818,
+            "p95": 0.9828992187976837,
+            "p99": 0.9828992187976837
+          },
+          "contactDecisionToPresentationMs": {
+            "count": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "clockUncertaintyMs": 2.2139015197753906,
+          "inputToPredictedAttackMs": {
+            "count": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "inputToPredictedDefenseMs": {
+            "count": 2,
+            "p50": 0.009998679161071777,
+            "p95": 0.0116005539894104,
+            "p99": 0.0116005539894104
+          },
+          "combatCorrectionCm": {
+            "count": 117,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "combatCorrectionCpuMs": {
+            "count": 117,
+            "p50": 0.005900859832763672,
+            "p95": 0.029802322387695312,
+            "p99": 0.05459785461425781
+          },
+          "combatCorrectionSettleMs": {
+            "count": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "remoteActionAgeMs": {
+            "count": 114,
+            "p50": 57.321400936925784,
+            "p95": 166.60210022889078,
+            "p99": 244.3636999297887
+          },
+          "contactReceiveToPresentationMs": {
+            "count": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "combatAppliedRoundTripMs": {
+            "count": 2,
+            "p50": 98.73909875750542,
+            "p95": 105.37419840693474,
+            "p99": 105.37419840693474
+          },
+          "commandSendToServerArrivalMs": {
+            "count": 128,
+            "p50": 2.4581988678546622,
+            "p95": 2.813499829149805,
+            "p99": 2.918599902302958
+          },
+          "serverArrivalToApplicationMs": {
+            "count": 128,
+            "p50": 55.513399999937974,
+            "p95": 102.500400000019,
+            "p99": 104.93479999992996
+          },
+          "applicationToClientReceiveMs": {
+            "count": 128,
+            "p50": 49.10450117185246,
+            "p95": 327.84700202639215,
+            "p99": 403.58019995118957
+          },
+          "predictionCpuMs": {
+            "count": 22,
+            "p50": 0.1266002655029297,
+            "p95": 0.1551993191242218,
+            "p99": 0.2110004425048828
+          },
+          "inputCallbackToEngineStateMs": {
+            "count": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "appliedRoundTripMs": {
+            "count": 128,
+            "p50": 100.59879720211029,
+            "p95": 435.91300025582314,
+            "p99": 452.58570089936256
+          },
+          "correctionCm": {
+            "count": 157,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "pendingMovement": 0,
+          "predictionCount": 126,
+          "predictionReady": true,
+          "presentationTiming": "unmeasured; engine-state samples are not display presentation or physical input-to-photon",
+          "specRevision": "tv-interaction-2",
+          "specHash": "89b59f12f981ccf56752c285745a60f282816e31a69ad3e60cdf3f212b24d690"
+        },
+        "presentation": {
+          "bodyId": "b_1",
+          "entityId": "p_1",
+          "pose": "stand",
+          "animation": "/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run.BS_Idle_Walk_Run",
+          "possessed": true,
+          "incapacitated": false,
+          "dead": false,
+          "attackSeq": 30,
+          "hitSeq": 1,
+          "playedAttacks": 0,
+          "playedHits": 0,
+          "liveCombat": false,
+          "liveActionId": "",
+          "liveCommandId": "",
+          "livePhase": "",
+          "liveKind": "",
+          "liveOutcome": "",
+          "duck": 0,
+          "choreographyActive": false,
+          "choreographySeq": 0,
+          "choreographyPending": 0,
+          "choreographyDropped": 0,
+          "presentationOffsetCm": 0,
+          "maxPresentationOffsetCm": 0,
+          "alignmentYaw": 0,
+          "plannedContactErrorCm": 0,
+          "leanDegrees": 0,
+          "measuredContactErrorCm": 0,
+          "presentationHoldSeconds": 0,
+          "choreographyAge": 0.609929084777832,
+          "choreographyLOD": 0,
+          "complexity": 1,
+          "control": 0.40521737933158875,
+          "force": 0.37279999256134033,
+          "signatureSeed": 991189645,
+          "primitive": "hook",
+          "weaponFamily": "unarmed",
+          "magicFixture": false,
+          "playedChoreographySequences": [
+            0,
+            0
+          ],
+          "maxChoreographyActorDriftCm": 0,
+          "pendingAttacks": 0,
+          "pendingHits": 0,
+          "blendDirection": 0,
+          "blendSpeed": 0,
+          "filteredBlendSpeed": 0,
+          "footSeparationCm": 43.67377411337516,
+          "headHeightCm": 159.93038231156004,
+          "pelvisHeightCm": 93.89867401123047,
+          "skippedAttacks": 0,
+          "skippedHits": 0,
+          "speedCmPerSecond": 0,
+          "movementMode": 0,
+          "mesh": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple",
+          "animationTime": 0.06853219866752625,
+          "position": {
+            "x": 35.00000000000014,
+            "y": 0,
+            "z": 190
+          }
+        },
+        "repetition": {
+          "requested": 0,
+          "dispatched": 0,
+          "attackInputs": 0,
+          "duckInputs": 0
+        },
+        "run": {
+          "mode": "duck-high",
+          "capture": true,
+          "log": "C:\\Users\\green\\Desktop\\projects\\torn-veil-online\\.debug\\native-combat-duck-high-rendered-88fbb3b9bff04b21be1d9c8566f67079\\unreal.log",
+          "frames": "C:\\Users\\green\\Desktop\\projects\\torn-veil-online\\.debug\\native-combat-duck-high-rendered-88fbb3b9bff04b21be1d9c8566f67079\\frames"
+        }
+      },
+      "sampleCount": 47
+    },
+    {
+      "localFile": "native-combat-duck-low-rendered.json",
+      "bytes": 73405,
+      "sha256": "b5f544c0956672c4db62a644785727291d01910c0089251557de44f538567122",
+      "storage": "Original retained locally, uncommitted; curated fields below are copied from this existing measurement.",
+      "measurement": {
+        "status": "complete",
+        "error": "",
+        "realtimeDiagnostics": {
+          "combatInputToAnimationSetupMs": {
+            "count": 2,
+            "p50": 0.3658980131149292,
+            "p95": 0.8368976414203644,
+            "p99": 0.8368976414203644
+          },
+          "contactDecisionToPresentationMs": {
+            "count": 1,
+            "p50": 24.871050238027237,
+            "p95": 24.871050238027237,
+            "p99": 24.871050238027237
+          },
+          "clockUncertaintyMs": 2.312150001525879,
+          "inputToPredictedAttackMs": {
+            "count": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "inputToPredictedDefenseMs": {
+            "count": 2,
+            "p50": 0.00949949026107788,
+            "p95": 0.01090019941329956,
+            "p99": 0.01090019941329956
+          },
+          "combatCorrectionCm": {
+            "count": 116,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "combatCorrectionCpuMs": {
+            "count": 116,
+            "p50": 0.006601214408874512,
+            "p95": 0.027898699045181274,
+            "p99": 0.04979968070983887
+          },
+          "combatCorrectionSettleMs": {
+            "count": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "remoteActionAgeMs": {
+            "count": 100,
+            "p50": 57.69695025018882,
+            "p95": 143.3093520110706,
+            "p99": 205.21724924014416
+          },
+          "contactReceiveToPresentationMs": {
+            "count": 1,
+            "p50": 0.13739967346191406,
+            "p95": 0.13739967346191406,
+            "p99": 0.13739967346191406
+          },
+          "combatAppliedRoundTripMs": {
+            "count": 2,
+            "p50": 100.51080211997032,
+            "p95": 104.55559939146042,
+            "p99": 104.55559939146042
+          },
+          "commandSendToServerArrivalMs": {
+            "count": 122,
+            "p50": 2.5882492584642023,
+            "p95": 3.4167508117388934,
+            "p99": 3.8314509307965636
+          },
+          "serverArrivalToApplicationMs": {
+            "count": 123,
+            "p50": 50.09999999997672,
+            "p95": 94.88760000001639,
+            "p99": 102.88439999998081
+          },
+          "applicationToClientReceiveMs": {
+            "count": 122,
+            "p50": 57.501350939972326,
+            "p95": 107.10475160833448,
+            "p99": 410.5967506011948
+          },
+          "predictionCpuMs": {
+            "count": 21,
+            "p50": 0.1238994300365448,
+            "p95": 0.16690045595169067,
+            "p99": 0.18360093235969543
+          },
+          "inputCallbackToEngineStateMs": {
+            "count": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "appliedRoundTripMs": {
+            "count": 123,
+            "p50": 104.66299951076508,
+            "p95": 212.4692015349865,
+            "p99": 449.25330206751823
+          },
+          "correctionCm": {
+            "count": 157,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "pendingMovement": 0,
+          "predictionCount": 121,
+          "predictionReady": true,
+          "presentationTiming": "unmeasured; engine-state samples are not display presentation or physical input-to-photon",
+          "specRevision": "tv-interaction-2",
+          "specHash": "89b59f12f981ccf56752c285745a60f282816e31a69ad3e60cdf3f212b24d690"
+        },
+        "presentation": {
+          "bodyId": "b_1",
+          "entityId": "p_1",
+          "pose": "stand",
+          "animation": "/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run.BS_Idle_Walk_Run",
+          "possessed": true,
+          "incapacitated": false,
+          "dead": false,
+          "attackSeq": 30,
+          "hitSeq": 2,
+          "playedAttacks": 0,
+          "playedHits": 1,
+          "liveCombat": false,
+          "liveActionId": "",
+          "liveCommandId": "",
+          "livePhase": "",
+          "liveKind": "",
+          "liveOutcome": "",
+          "duck": 0,
+          "choreographyActive": false,
+          "choreographySeq": 0,
+          "choreographyPending": 0,
+          "choreographyDropped": 0,
+          "presentationOffsetCm": 0,
+          "maxPresentationOffsetCm": 0,
+          "alignmentYaw": 0,
+          "plannedContactErrorCm": 0,
+          "leanDegrees": 0,
+          "measuredContactErrorCm": 0,
+          "presentationHoldSeconds": 0,
+          "choreographyAge": 0.6419534683227539,
+          "choreographyLOD": 0,
+          "complexity": 1,
+          "control": 0.38663768768310547,
+          "force": 0.35570666193962097,
+          "signatureSeed": 991189645,
+          "primitive": "hook",
+          "weaponFamily": "unarmed",
+          "magicFixture": false,
+          "playedChoreographySequences": [
+            0,
+            0,
+            0
+          ],
+          "maxChoreographyActorDriftCm": 0,
+          "pendingAttacks": 0,
+          "pendingHits": 0,
+          "blendDirection": 0,
+          "blendSpeed": 0,
+          "filteredBlendSpeed": 0,
+          "footSeparationCm": 43.677940753214514,
+          "headHeightCm": 159.90564116152012,
+          "pelvisHeightCm": 93.88182830810547,
+          "skippedAttacks": 0,
+          "skippedHits": 0,
+          "speedCmPerSecond": 0,
+          "movementMode": 0,
+          "mesh": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple",
+          "animationTime": 0.05770495906472206,
+          "position": {
+            "x": 35.00000000000014,
+            "y": 0,
+            "z": 190
+          }
+        },
+        "repetition": {
+          "requested": 0,
+          "dispatched": 0,
+          "attackInputs": 0,
+          "duckInputs": 0
+        },
+        "run": {
+          "mode": "duck-low",
+          "capture": true,
+          "log": "C:\\Users\\green\\Desktop\\projects\\torn-veil-online\\.debug\\native-combat-duck-low-rendered-cef577792355416e9f36e35617d32550\\unreal.log",
+          "frames": "C:\\Users\\green\\Desktop\\projects\\torn-veil-online\\.debug\\native-combat-duck-low-rendered-cef577792355416e9f36e35617d32550\\frames"
+        }
+      },
+      "sampleCount": 45
+    },
+    {
+      "localFile": "native-live-combat-timely-nocapture.json",
+      "bytes": 260800,
+      "sha256": "6f18d7d0b91480673c6d3fa4622a1c4f8f39b92fb0a3030f129b34453450f9ff",
+      "storage": "Original retained locally, uncommitted; curated fields below are copied from this existing measurement.",
+      "measurement": {
+        "status": "complete",
+        "error": "",
+        "realtimeDiagnostics": {
+          "combatInputToAnimationSetupMs": {
+            "count": 2,
+            "p50": 0.4063025116920471,
+            "p95": 0.7521994411945343,
+            "p99": 0.7521994411945343
+          },
+          "contactDecisionToPresentationMs": {
+            "count": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "clockUncertaintyMs": 0.6574993133544922,
+          "inputToPredictedAttackMs": {
+            "count": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "inputToPredictedDefenseMs": {
+            "count": 2,
+            "p50": 0.011902302503585815,
+            "p95": 0.01950189471244812,
+            "p99": 0.01950189471244812
+          },
+          "combatCorrectionCm": {
+            "count": 117,
+            "p50": 0,
+            "p95": 5.329070518200751e-12,
+            "p99": 9.947598300641403e-11
+          },
+          "combatCorrectionCpuMs": {
+            "count": 117,
+            "p50": 0.016398727893829346,
+            "p95": 0.023096799850463867,
+            "p99": 0.04780292510986328
+          },
+          "combatCorrectionSettleMs": {
+            "count": 1,
+            "p50": 248.5164999961853,
+            "p95": 248.5164999961853,
+            "p99": 248.5164999961853
+          },
+          "remoteActionAgeMs": {
+            "count": 100,
+            "p50": 0.6179968322976492,
+            "p95": 2.0519987701554783,
+            "p99": 3.4073003967059776
+          },
+          "contactReceiveToPresentationMs": {
+            "count": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "combatAppliedRoundTripMs": {
+            "count": 2,
+            "p50": 18.18789914250374,
+            "p95": 18.604502081871033,
+            "p99": 18.604502081871033
+          },
+          "commandSendToServerArrivalMs": {
+            "count": 134,
+            "p50": 0.5873028503265232,
+            "p95": 1.8952497009304352,
+            "p99": 2.020148620591499
+          },
+          "serverArrivalToApplicationMs": {
+            "count": 134,
+            "p50": 16.826399999961723,
+            "p95": 17.04889999999432,
+            "p99": 17.324800000002142
+          },
+          "applicationToClientReceiveMs": {
+            "count": 134,
+            "p50": 0.712997457885649,
+            "p95": 3.110298797604628,
+            "p99": 12.012749606336001
+          },
+          "predictionCpuMs": {
+            "count": 133,
+            "p50": 0.052500516176223755,
+            "p95": 0.07270276546478271,
+            "p99": 0.08219853043556213
+          },
+          "inputCallbackToEngineStateMs": {
+            "count": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "appliedRoundTripMs": {
+            "count": 134,
+            "p50": 18.2344987988472,
+            "p95": 18.657200038433075,
+            "p99": 21.017402410507202
+          },
+          "correctionCm": {
+            "count": 139,
+            "p50": 0,
+            "p95": 5.329070518200751e-12,
+            "p99": 9.947598300641403e-11
+          },
+          "pendingMovement": 1,
+          "predictionCount": 133,
+          "predictionReady": true,
+          "presentationTiming": "unmeasured; engine-state samples are not display presentation or physical input-to-photon",
+          "specRevision": "tv-interaction-2",
+          "specHash": "89b59f12f981ccf56752c285745a60f282816e31a69ad3e60cdf3f212b24d690"
+        },
+        "presentation": {
+          "bodyId": "b_1",
+          "entityId": "p_1",
+          "pose": "stand",
+          "animation": "/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run.BS_Idle_Walk_Run",
+          "possessed": true,
+          "incapacitated": false,
+          "dead": false,
+          "attackSeq": 0,
+          "hitSeq": 1,
+          "playedAttacks": 0,
+          "playedHits": 0,
+          "liveCombat": false,
+          "liveActionId": "",
+          "liveCommandId": "",
+          "livePhase": "",
+          "liveKind": "",
+          "liveOutcome": "",
+          "duck": 0,
+          "choreographyActive": false,
+          "choreographySeq": 0,
+          "choreographyPending": 0,
+          "choreographyDropped": 0,
+          "presentationOffsetCm": 0,
+          "maxPresentationOffsetCm": 0,
+          "alignmentYaw": 0,
+          "plannedContactErrorCm": 0,
+          "leanDegrees": 0,
+          "measuredContactErrorCm": 0,
+          "presentationHoldSeconds": 0,
+          "choreographyAge": 0.6000258922576904,
+          "choreographyLOD": 0,
+          "complexity": 1,
+          "control": 0.40521737933158875,
+          "force": 0.37279999256134033,
+          "signatureSeed": 991189645,
+          "primitive": "hook",
+          "weaponFamily": "unarmed",
+          "magicFixture": false,
+          "playedChoreographySequences": [
+            0,
+            0
+          ],
+          "maxChoreographyActorDriftCm": 0,
+          "pendingAttacks": 0,
+          "pendingHits": 0,
+          "blendDirection": 0,
+          "blendSpeed": 0,
+          "filteredBlendSpeed": 0,
+          "footSeparationCm": 43.67575343368754,
+          "headHeightCm": 159.92536013465968,
+          "pelvisHeightCm": 93.8956069946289,
+          "skippedAttacks": 0,
+          "skippedHits": 0,
+          "speedCmPerSecond": 0,
+          "movementMode": 0,
+          "mesh": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple",
+          "animationTime": 0.06607957929372787,
+          "position": {
+            "x": 35.00000000000014,
+            "y": -104.9999999999045,
+            "z": 190
+          }
+        }
+      },
+      "sampleCount": 137
+    },
+    {
+      "localFile": "native-live-combat-late-nocapture.json",
+      "bytes": 264926,
+      "sha256": "6f910ef81e46fde3b98d3f803affe846359bdad6bf1d5b9d74ad0893ed40e214",
+      "storage": "Original retained locally, uncommitted; curated fields below are copied from this existing measurement.",
+      "measurement": {
+        "status": "complete",
+        "error": "",
+        "realtimeDiagnostics": {
+          "combatInputToAnimationSetupMs": {
+            "count": 2,
+            "p50": 0.31299889087677,
+            "p95": 0.8394010365009308,
+            "p99": 0.8394010365009308
+          },
+          "contactDecisionToPresentationMs": {
+            "count": 1,
+            "p50": 15.108900466904743,
+            "p95": 15.108900466904743,
+            "p99": 15.108900466904743
+          },
+          "clockUncertaintyMs": 0.5725994110107422,
+          "inputToPredictedAttackMs": {
+            "count": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "inputToPredictedDefenseMs": {
+            "count": 2,
+            "p50": 0.01370161771774292,
+            "p95": 0.018399208784103394,
+            "p99": 0.018399208784103394
+          },
+          "combatCorrectionCm": {
+            "count": 101,
+            "p50": 0,
+            "p95": 0,
+            "p99": 17.50000000000007
+          },
+          "combatCorrectionCpuMs": {
+            "count": 101,
+            "p50": 0.013597309589385986,
+            "p95": 0.026103109121322632,
+            "p99": 0.051602721214294434
+          },
+          "combatCorrectionSettleMs": {
+            "count": 1,
+            "p50": 65.32379984855652,
+            "p95": 65.32379984855652,
+            "p99": 65.32379984855652
+          },
+          "remoteActionAgeMs": {
+            "count": 98,
+            "p50": 2.8479983276338317,
+            "p95": 10.028451336664148,
+            "p99": 14.177498751843814
+          },
+          "contactReceiveToPresentationMs": {
+            "count": 1,
+            "p50": 0.1824016571044922,
+            "p95": 0.1824016571044922,
+            "p99": 0.1824016571044922
+          },
+          "combatAppliedRoundTripMs": {
+            "count": 2,
+            "p50": 18.4984989464283,
+            "p95": 18.580999225378036,
+            "p99": 18.580999225378036
+          },
+          "commandSendToServerArrivalMs": {
+            "count": 135,
+            "p50": 0.868449356086785,
+            "p95": 2.6137015502899885,
+            "p99": 3.1132002532831393
+          },
+          "serverArrivalToApplicationMs": {
+            "count": 136,
+            "p50": 81.1189000000013,
+            "p95": 83.76410000000033,
+            "p99": 90.25860000000102
+          },
+          "applicationToClientReceiveMs": {
+            "count": 135,
+            "p50": 2.2635991515999194,
+            "p95": 9.856949450680986,
+            "p99": 16.333100625604857
+          },
+          "predictionCpuMs": {
+            "count": 134,
+            "p50": 0.056002289056777954,
+            "p95": 0.07680058479309082,
+            "p99": 0.09860098361968994
+          },
+          "inputCallbackToEngineStateMs": {
+            "count": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0
+          },
+          "appliedRoundTripMs": {
+            "count": 136,
+            "p50": 84.91099998354912,
+            "p95": 91.35650098323822,
+            "p99": 101.99389979243279
+          },
+          "correctionCm": {
+            "count": 140,
+            "p50": 0,
+            "p95": 0,
+            "p99": 17.50000000000007
+          },
+          "pendingMovement": 5,
+          "predictionCount": 139,
+          "predictionReady": true,
+          "presentationTiming": "unmeasured; engine-state samples are not display presentation or physical input-to-photon",
+          "specRevision": "tv-interaction-2",
+          "specHash": "89b59f12f981ccf56752c285745a60f282816e31a69ad3e60cdf3f212b24d690"
+        },
+        "presentation": {
+          "bodyId": "b_1",
+          "entityId": "p_1",
+          "pose": "stand",
+          "animation": "/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run.BS_Idle_Walk_Run",
+          "possessed": true,
+          "incapacitated": false,
+          "dead": false,
+          "attackSeq": 0,
+          "hitSeq": 1,
+          "playedAttacks": 0,
+          "playedHits": 1,
+          "liveCombat": false,
+          "liveActionId": "",
+          "liveCommandId": "",
+          "livePhase": "",
+          "liveKind": "",
+          "liveOutcome": "",
+          "duck": 0,
+          "choreographyActive": false,
+          "choreographySeq": 0,
+          "choreographyPending": 0,
+          "choreographyDropped": 0,
+          "presentationOffsetCm": 0,
+          "maxPresentationOffsetCm": 0,
+          "alignmentYaw": 0,
+          "plannedContactErrorCm": 0,
+          "leanDegrees": 0,
+          "measuredContactErrorCm": 0,
+          "presentationHoldSeconds": 0,
+          "choreographyAge": 0.6000027060508728,
+          "choreographyLOD": 0,
+          "complexity": 1,
+          "control": 0.3876715898513794,
+          "force": 0.35665786266326904,
+          "signatureSeed": 991189645,
+          "primitive": "hook",
+          "weaponFamily": "unarmed",
+          "magicFixture": false,
+          "playedChoreographySequences": [
+            0,
+            0,
+            0
+          ],
+          "maxChoreographyActorDriftCm": 0,
+          "pendingAttacks": 0,
+          "pendingHits": 0,
+          "blendDirection": 0,
+          "blendSpeed": 0,
+          "filteredBlendSpeed": 0,
+          "footSeparationCm": 43.67575431591774,
+          "headHeightCm": 159.92536004483208,
+          "pelvisHeightCm": 93.8956069946289,
+          "skippedAttacks": 0,
+          "skippedHits": 0,
+          "speedCmPerSecond": 0,
+          "movementMode": 0,
+          "mesh": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple",
+          "animationTime": 0.06607963144779205,
+          "position": {
+            "x": 35.00000000000014,
+            "y": -11.666666666666714,
+            "z": 190
+          }
+        }
+      },
+      "sampleCount": 137
+    }
+  ],
+  "serverObservations": [
+    {
+      "localFile": "native-combat-timely-rendered-server.json",
+      "bytes": 135760,
+      "sha256": "775f42e0ca78edec09f429b6d095f91f6c4b328572b40fd661def90d13eccf9b",
+      "storage": "Original retained locally, uncommitted; curated fields below are copied from this existing measurement.",
+      "observation": {
+        "atInput": {
+          "version": 1,
+          "type": "snapshot",
+          "tick": 907.1666666661703,
+          "worldTime": 8667307.16671398,
+          "ack": -1,
+          "playerId": "p_1",
+          "bodies": [
+            {
+              "bodyId": "b_1",
+              "entityId": "p_1",
+              "name": "Arena traveler",
+              "pos": {
+                "x": 20.35,
+                "y": 1,
+                "z": 19.88333333333344
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0,
+                "z": -3.4999999999968168
+              },
+              "yaw": -1.5707963267948966,
+              "pose": "stand",
+              "activity": "stand",
+              "speed": 3.4999999999968168,
+              "attackSeq": 30,
+              "hitSeq": 1,
+              "lastAttackAt": -99,
+              "lastHitAt": 151.21666666667915,
+              "dead": false,
+              "incapacitated": false,
+              "appearance": {
+                "skin": 14264712,
+                "hair": 4861722,
+                "shirt": 3365790,
+                "pants": 4864554,
+                "height": 1,
+                "build": 1,
+                "hatStyle": "none"
+              },
+              "combatAction": {
+                "id": "action_68",
+                "commandId": "local:5:14",
+                "actorBodyId": "b_1",
+                "kind": "sidestep",
+                "definition": "sidestep",
+                "trajectory": "high",
+                "startedAt": 907.133333332837,
+                "activeAt": 907.133333332837,
+                "recoveryAt": 907.4333333328369,
+                "completeAt": 907.7333333328369,
+                "phase": "active",
+                "outcome": "pending",
+                "facing": -1.5707963267948966,
+                "direction": {
+                  "x": -6.123233995736766e-17,
+                  "y": 0,
+                  "z": -1
+                },
+                "distance": 1.05,
+                "reach": 0,
+                "radius": 0.12,
+                "duck": 0,
+                "contact": null,
+                "capability": {
+                  "strength": 0.4705,
+                  "dexterity": 0.4705,
+                  "exertion": 0.9115
+                }
+              },
+              "reach": 1.2,
+              "cooldown": 0.55,
+              "attackTarget": null,
+              "health": 80,
+              "maxHealth": 80,
+              "alive": true,
+              "occupation": "traveler",
+              "age": 25,
+              "gender": "f",
+              "slug": null,
+              "recognisedClass": {
+                "id": "armsman",
+                "name": "Armsman",
+                "confidence": 0.5201250000000001,
+                "evidence": [
+                  "31 exchanged blows across 1 conflict",
+                  "strength 8.00",
+                  "carries no weapon"
+                ]
+              },
+              "inventory": [],
+              "weapon": "fists",
+              "needs": {
+                "hunger": 0.19999999999999996,
+                "energy": 0.06490000000000001,
+                "social": 0.3125000000000003,
+                "comfort": 0,
+                "thirst": 0.19999999999999996
+              },
+              "wealth": 20,
+              "speech": "",
+              "debug": {
+                "goal": null
+              }
+            },
+            {
+              "bodyId": "b_2",
+              "entityId": "p_2",
+              "name": "Reaction partner",
+              "pos": {
+                "x": 21.4,
+                "y": 1,
+                "z": 20
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "yaw": 1.5707963267948966,
+              "pose": "attack",
+              "activity": "attack",
+              "speed": 0,
+              "attackSeq": 3,
+              "hitSeq": 30,
+              "lastAttackAt": 906.7833333328373,
+              "lastHitAt": 782.1999999996173,
+              "dead": false,
+              "incapacitated": false,
+              "appearance": {
+                "skin": 14264712,
+                "hair": 4861722,
+                "shirt": 10505270,
+                "pants": 4864554,
+                "height": 1,
+                "build": 1,
+                "hatStyle": "none"
+              },
+              "combatAction": {
+                "id": "action_67",
+                "actorBodyId": "b_2",
+                "kind": "attack",
+                "definition": "unarmed_high",
+                "trajectory": "high",
+                "startedAt": 906.7833333328373,
+                "activeAt": 907.0833333328372,
+                "recoveryAt": 907.2333333328372,
+                "completeAt": 907.5333333328372,
+                "phase": "active",
+                "outcome": "pending",
+                "facing": 1.5707963267948966,
+                "direction": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "distance": 0,
+                "reach": 0.9,
+                "radius": 0.12,
+                "duck": 0,
+                "contact": null,
+                "capability": {
+                  "strength": 0.4080163043478261,
+                  "dexterity": 0.5245923913043479,
+                  "exertion": 0.8989130434782608
+                }
+              },
+              "reach": 1.2,
+              "cooldown": 0.55,
+              "attackTarget": "p_1",
+              "health": 80,
+              "maxHealth": 80,
+              "alive": true,
+              "occupation": "traveler",
+              "age": 25,
+              "gender": "f",
+              "slug": null,
+              "recognisedClass": {
+                "id": "armsman",
+                "name": "Armsman",
+                "confidence": 0.49637500000000007,
+                "evidence": [
+                  "31 exchanged blows across 1 conflict",
+                  "strength 7.00",
+                  "carries no weapon"
+                ]
+              },
+              "inventory": [],
+              "weapon": "fists",
+              "needs": {
+                "hunger": 0.19999999999999996,
+                "energy": 0.0741304347826087,
+                "social": 0.3125000000000003,
+                "comfort": 0,
+                "thirst": 0.19999999999999996
+              },
+              "wealth": 20,
+              "speech": "",
+              "debug": {
+                "goal": null
+              }
+            },
+            {
+              "bodyId": "b_3",
+              "entityId": "p_3",
+              "name": "Second partner",
+              "pos": {
+                "x": 22.1,
+                "y": 1,
+                "z": 24
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "yaw": 1.5707963267948966,
+              "pose": "stand",
+              "activity": "stand",
+              "speed": 0,
+              "attackSeq": 0,
+              "hitSeq": 0,
+              "lastAttackAt": -99,
+              "lastHitAt": -99,
+              "dead": false,
+              "incapacitated": false,
+              "appearance": {
+                "skin": 14264712,
+                "hair": 4861722,
+                "shirt": 10505270,
+                "pants": 4864554,
+                "height": 1,
+                "build": 1,
+                "hatStyle": "none"
+              },
+              "combatAction": null,
+              "reach": 1.2,
+              "cooldown": 0.55,
+              "attackTarget": null,
+              "health": 80,
+              "maxHealth": 80,
+              "alive": true,
+              "occupation": "traveler",
+              "age": 25,
+              "gender": "f",
+              "slug": null,
+              "recognisedClass": null,
+              "inventory": [],
+              "weapon": "fists",
+              "needs": {
+                "hunger": 0.19999999999999996,
+                "energy": 0.05500000000000001,
+                "social": 0.3125000000000003,
+                "comfort": 0,
+                "thirst": 0.19999999999999996
+              },
+              "wealth": 20,
+              "speech": "",
+              "debug": {
+                "goal": null
+              }
+            }
+          ],
+          "combatPresentation": {
+            "version": 1,
+            "firstAvailableSeq": 33,
+            "latestSeq": 32,
+            "events": []
+          }
+        },
+        "after": {
+          "version": 1,
+          "type": "snapshot",
+          "tick": 910.0999999995009,
+          "worldTime": 8667310.100047465,
+          "ack": -1,
+          "playerId": "p_1",
+          "bodies": [
+            {
+              "bodyId": "b_1",
+              "entityId": "p_1",
+              "name": "Arena traveler",
+              "pos": {
+                "x": 20.35,
+                "y": 1,
+                "z": 18.950000000000955
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "yaw": -1.5707963267948966,
+              "pose": "stand",
+              "activity": "stand",
+              "speed": 0,
+              "attackSeq": 30,
+              "hitSeq": 1,
+              "lastAttackAt": -99,
+              "lastHitAt": 151.21666666667915,
+              "dead": false,
+              "incapacitated": false,
+              "appearance": {
+                "skin": 14264712,
+                "hair": 4861722,
+                "shirt": 3365790,
+                "pants": 4864554,
+                "height": 1,
+                "build": 1,
+                "hatStyle": "none"
+              },
+              "combatAction": {
+                "id": "action_69",
+                "commandId": "local:5:68",
+                "actorBodyId": "b_1",
+                "kind": "duck",
+                "definition": "duck",
+                "trajectory": "high",
+                "startedAt": 908.0166666661695,
+                "activeAt": 908.0166666661695,
+                "recoveryAt": 908.3166666661695,
+                "completeAt": 908.6166666661694,
+                "phase": "complete",
+                "outcome": "pending",
+                "facing": -1.5707963267948966,
+                "direction": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "distance": 0,
+                "reach": 0,
+                "radius": 0.12,
+                "duck": 0,
+                "contact": null,
+                "capability": {
+                  "strength": 0.46599999999999997,
+                  "dexterity": 0.46599999999999997,
+                  "exertion": 0.898
+                }
+              },
+              "reach": 1.2,
+              "cooldown": 0.55,
+              "attackTarget": null,
+              "health": 80,
+              "maxHealth": 80,
+              "alive": true,
+              "occupation": "traveler",
+              "age": 25,
+              "gender": "f",
+              "slug": null,
+              "recognisedClass": {
+                "id": "armsman",
+                "name": "Armsman",
+                "confidence": 0.5201250000000001,
+                "evidence": [
+                  "31 exchanged blows across 1 conflict",
+                  "strength 8.00",
+                  "carries no weapon"
+                ]
+              },
+              "inventory": [],
+              "weapon": "fists",
+              "needs": {
+                "hunger": 0.19999999999999996,
+                "energy": 0.0748,
+                "social": 0.3125000000000003,
+                "comfort": 0,
+                "thirst": 0.19999999999999996
+              },
+              "wealth": 20,
+              "speech": "",
+              "debug": {
+                "goal": null
+              }
+            },
+            {
+              "bodyId": "b_2",
+              "entityId": "p_2",
+              "name": "Reaction partner",
+              "pos": {
+                "x": 21.4,
+                "y": 1,
+                "z": 20
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "yaw": 1.5707963267948966,
+              "pose": "stand",
+              "activity": "stand",
+              "speed": 0,
+              "attackSeq": 3,
+              "hitSeq": 30,
+              "lastAttackAt": 906.7833333328373,
+              "lastHitAt": 782.1999999996173,
+              "dead": false,
+              "incapacitated": false,
+              "appearance": {
+                "skin": 14264712,
+                "hair": 4861722,
+                "shirt": 10505270,
+                "pants": 4864554,
+                "height": 1,
+                "build": 1,
+                "hatStyle": "none"
+              },
+              "combatAction": {
+                "id": "action_67",
+                "actorBodyId": "b_2",
+                "kind": "attack",
+                "definition": "unarmed_high",
+                "trajectory": "high",
+                "startedAt": 906.7833333328373,
+                "activeAt": 907.0833333328372,
+                "recoveryAt": 907.2333333328372,
+                "completeAt": 907.5333333328372,
+                "phase": "complete",
+                "outcome": "miss",
+                "facing": 1.5707963267948966,
+                "direction": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "distance": 0,
+                "reach": 0.9,
+                "radius": 0.12,
+                "duck": 0,
+                "contact": null,
+                "capability": {
+                  "strength": 0.4080163043478261,
+                  "dexterity": 0.5245923913043479,
+                  "exertion": 0.8989130434782608
+                }
+              },
+              "reach": 1.2,
+              "cooldown": 0.55,
+              "attackTarget": null,
+              "health": 80,
+              "maxHealth": 80,
+              "alive": true,
+              "occupation": "traveler",
+              "age": 25,
+              "gender": "f",
+              "slug": null,
+              "recognisedClass": {
+                "id": "armsman",
+                "name": "Armsman",
+                "confidence": 0.49637500000000007,
+                "evidence": [
+                  "31 exchanged blows across 1 conflict",
+                  "strength 7.00",
+                  "carries no weapon"
+                ]
+              },
+              "inventory": [],
+              "weapon": "fists",
+              "needs": {
+                "hunger": 0.19999999999999996,
+                "energy": 0.0741304347826087,
+                "social": 0.3125000000000003,
+                "comfort": 0,
+                "thirst": 0.19999999999999996
+              },
+              "wealth": 20,
+              "speech": "",
+              "debug": {
+                "goal": null
+              }
+            },
+            {
+              "bodyId": "b_3",
+              "entityId": "p_3",
+              "name": "Second partner",
+              "pos": {
+                "x": 22.1,
+                "y": 1,
+                "z": 24
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "yaw": 1.5707963267948966,
+              "pose": "stand",
+              "activity": "stand",
+              "speed": 0,
+              "attackSeq": 0,
+              "hitSeq": 0,
+              "lastAttackAt": -99,
+              "lastHitAt": -99,
+              "dead": false,
+              "incapacitated": false,
+              "appearance": {
+                "skin": 14264712,
+                "hair": 4861722,
+                "shirt": 10505270,
+                "pants": 4864554,
+                "height": 1,
+                "build": 1,
+                "hatStyle": "none"
+              },
+              "combatAction": null,
+              "reach": 1.2,
+              "cooldown": 0.55,
+              "attackTarget": null,
+              "health": 80,
+              "maxHealth": 80,
+              "alive": true,
+              "occupation": "traveler",
+              "age": 25,
+              "gender": "f",
+              "slug": null,
+              "recognisedClass": null,
+              "inventory": [],
+              "weapon": "fists",
+              "needs": {
+                "hunger": 0.19999999999999996,
+                "energy": 0.05500000000000001,
+                "social": 0.3125000000000003,
+                "comfort": 0,
+                "thirst": 0.19999999999999996
+              },
+              "wealth": 20,
+              "speech": "",
+              "debug": {
+                "goal": null
+              }
+            }
+          ],
+          "combatPresentation": {
+            "version": 1,
+            "firstAvailableSeq": 33,
+            "latestSeq": 33,
+            "events": [
+              {
+                "eventId": "e_2509",
+                "actionId": "action_67",
+                "seq": 33,
+                "physicalTime": 907.2499999995035,
+                "actorBodyId": "b_2",
+                "targetBodyId": "b_1",
+                "actorPosition": {
+                  "x": 21.4,
+                  "y": 1,
+                  "z": 20
+                },
+                "targetPosition": {
+                  "x": 20.35,
+                  "y": 1,
+                  "z": 19.591666666667038
+                },
+                "targetVelocity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": -3.4999999999968168
+                },
+                "actorYaw": 1.5707963267948966,
+                "weaponType": "unarmed",
+                "weaponId": null,
+                "action": "strike",
+                "outcome": "miss",
+                "attackSeq": 3,
+                "hitSeq": 1,
+                "capability": {
+                  "strength": 0.4080163043478261,
+                  "dexterity": 0.5245923913043479,
+                  "exertion": 0.8989130434782608
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "localFile": "native-combat-duck-high-rendered-server.json",
+      "bytes": 136585,
+      "sha256": "b8d99196ce5b2b62ec5233b2858731e74ba5eb17b4918d05204bf54f0d99170e",
+      "storage": "Original retained locally, uncommitted; curated fields below are copied from this existing measurement.",
+      "observation": {
+        "atInput": {
+          "version": 1,
+          "type": "snapshot",
+          "tick": 956.3333333327922,
+          "worldTime": 8667356.33338321,
+          "ack": -1,
+          "playerId": "p_1",
+          "bodies": [
+            {
+              "bodyId": "b_1",
+              "entityId": "p_1",
+              "name": "Arena traveler",
+              "pos": {
+                "x": 20.35,
+                "y": 1,
+                "z": 20
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "yaw": -1.5707963267948966,
+              "pose": "stand",
+              "activity": "stand",
+              "speed": 0,
+              "attackSeq": 30,
+              "hitSeq": 1,
+              "lastAttackAt": -99,
+              "lastHitAt": 151.21666666667915,
+              "dead": false,
+              "incapacitated": false,
+              "appearance": {
+                "skin": 14264712,
+                "hair": 4861722,
+                "shirt": 3365790,
+                "pants": 4864554,
+                "height": 1,
+                "build": 1,
+                "hatStyle": "none"
+              },
+              "combatAction": {
+                "id": "action_71",
+                "commandId": "local:6:14",
+                "actorBodyId": "b_1",
+                "kind": "duck",
+                "definition": "duck",
+                "trajectory": "high",
+                "startedAt": 956.1333333327924,
+                "activeAt": 956.1333333327924,
+                "recoveryAt": 956.4333333327924,
+                "completeAt": 956.7333333327923,
+                "phase": "active",
+                "outcome": "pending",
+                "facing": -1.5707963267948966,
+                "direction": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "distance": 0,
+                "reach": 0,
+                "radius": 0.12,
+                "duck": 1,
+                "contact": null,
+                "capability": {
+                  "strength": 0.4705,
+                  "dexterity": 0.4705,
+                  "exertion": 0.9115
+                }
+              },
+              "reach": 1.2,
+              "cooldown": 0.55,
+              "attackTarget": null,
+              "health": 80,
+              "maxHealth": 80,
+              "alive": true,
+              "occupation": "traveler",
+              "age": 25,
+              "gender": "f",
+              "slug": null,
+              "recognisedClass": {
+                "id": "armsman",
+                "name": "Armsman",
+                "confidence": 0.5201250000000001,
+                "evidence": [
+                  "31 exchanged blows across 1 conflict",
+                  "strength 8.00",
+                  "carries no weapon"
+                ]
+              },
+              "inventory": [],
+              "weapon": "fists",
+              "needs": {
+                "hunger": 0.19999999999999996,
+                "energy": 0.06490000000000001,
+                "social": 0.3125000000000003,
+                "comfort": 0,
+                "thirst": 0.19999999999999996
+              },
+              "wealth": 20,
+              "speech": "",
+              "debug": {
+                "goal": null
+              }
+            },
+            {
+              "bodyId": "b_2",
+              "entityId": "p_2",
+              "name": "Reaction partner",
+              "pos": {
+                "x": 21.4,
+                "y": 1,
+                "z": 20
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "yaw": 1.5707963267948966,
+              "pose": "attack",
+              "activity": "attack",
+              "speed": 0,
+              "attackSeq": 4,
+              "hitSeq": 30,
+              "lastAttackAt": 955.7499999994594,
+              "lastHitAt": 782.1999999996173,
+              "dead": false,
+              "incapacitated": false,
+              "appearance": {
+                "skin": 14264712,
+                "hair": 4861722,
+                "shirt": 10505270,
+                "pants": 4864554,
+                "height": 1,
+                "build": 1,
+                "hatStyle": "none"
+              },
+              "combatAction": {
+                "id": "action_70",
+                "actorBodyId": "b_2",
+                "kind": "attack",
+                "definition": "unarmed_high",
+                "trajectory": "high",
+                "startedAt": 955.7499999994594,
+                "activeAt": 956.0499999994594,
+                "recoveryAt": 956.1999999994594,
+                "completeAt": 956.4999999994593,
+                "phase": "recovery",
+                "outcome": "miss",
+                "facing": 1.5707963267948966,
+                "direction": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "distance": 0,
+                "reach": 0.9,
+                "radius": 0.12,
+                "duck": 0,
+                "contact": null,
+                "capability": {
+                  "strength": 0.4080163043478261,
+                  "dexterity": 0.5245923913043479,
+                  "exertion": 0.8989130434782608
+                }
+              },
+              "reach": 1.2,
+              "cooldown": 0.55,
+              "attackTarget": "p_1",
+              "health": 80,
+              "maxHealth": 80,
+              "alive": true,
+              "occupation": "traveler",
+              "age": 25,
+              "gender": "f",
+              "slug": null,
+              "recognisedClass": {
+                "id": "armsman",
+                "name": "Armsman",
+                "confidence": 0.49637500000000007,
+                "evidence": [
+                  "31 exchanged blows across 1 conflict",
+                  "strength 7.00",
+                  "carries no weapon"
+                ]
+              },
+              "inventory": [],
+              "weapon": "fists",
+              "needs": {
+                "hunger": 0.19999999999999996,
+                "energy": 0.0741304347826087,
+                "social": 0.3125000000000003,
+                "comfort": 0,
+                "thirst": 0.19999999999999996
+              },
+              "wealth": 20,
+              "speech": "",
+              "debug": {
+                "goal": null
+              }
+            },
+            {
+              "bodyId": "b_3",
+              "entityId": "p_3",
+              "name": "Second partner",
+              "pos": {
+                "x": 22.1,
+                "y": 1,
+                "z": 24
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "yaw": 1.5707963267948966,
+              "pose": "stand",
+              "activity": "stand",
+              "speed": 0,
+              "attackSeq": 0,
+              "hitSeq": 0,
+              "lastAttackAt": -99,
+              "lastHitAt": -99,
+              "dead": false,
+              "incapacitated": false,
+              "appearance": {
+                "skin": 14264712,
+                "hair": 4861722,
+                "shirt": 10505270,
+                "pants": 4864554,
+                "height": 1,
+                "build": 1,
+                "hatStyle": "none"
+              },
+              "combatAction": null,
+              "reach": 1.2,
+              "cooldown": 0.55,
+              "attackTarget": null,
+              "health": 80,
+              "maxHealth": 80,
+              "alive": true,
+              "occupation": "traveler",
+              "age": 25,
+              "gender": "f",
+              "slug": null,
+              "recognisedClass": null,
+              "inventory": [],
+              "weapon": "fists",
+              "needs": {
+                "hunger": 0.19999999999999996,
+                "energy": 0.05500000000000001,
+                "social": 0.3125000000000003,
+                "comfort": 0,
+                "thirst": 0.19999999999999996
+              },
+              "wealth": 20,
+              "speech": "",
+              "debug": {
+                "goal": null
+              }
+            }
+          ],
+          "combatPresentation": {
+            "version": 1,
+            "firstAvailableSeq": 34,
+            "latestSeq": 34,
+            "events": [
+              {
+                "eventId": "e_2616",
+                "actionId": "action_70",
+                "seq": 34,
+                "physicalTime": 956.2166666661257,
+                "actorBodyId": "b_2",
+                "targetBodyId": "b_1",
+                "actorPosition": {
+                  "x": 21.4,
+                  "y": 1,
+                  "z": 20
+                },
+                "targetPosition": {
+                  "x": 20.35,
+                  "y": 1,
+                  "z": 20
+                },
+                "targetVelocity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "actorYaw": 1.5707963267948966,
+                "weaponType": "unarmed",
+                "weaponId": null,
+                "action": "strike",
+                "outcome": "miss",
+                "attackSeq": 4,
+                "hitSeq": 1,
+                "capability": {
+                  "strength": 0.4080163043478261,
+                  "dexterity": 0.5245923913043479,
+                  "exertion": 0.8989130434782608
+                }
+              }
+            ]
+          }
+        },
+        "after": {
+          "version": 1,
+          "type": "snapshot",
+          "tick": 958.9499999994565,
+          "worldTime": 8667358.950050013,
+          "ack": -1,
+          "playerId": "p_1",
+          "bodies": [
+            {
+              "bodyId": "b_1",
+              "entityId": "p_1",
+              "name": "Arena traveler",
+              "pos": {
+                "x": 20.35,
+                "y": 1,
+                "z": 20
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "yaw": -1.5707963267948966,
+              "pose": "stand",
+              "activity": "stand",
+              "speed": 0,
+              "attackSeq": 30,
+              "hitSeq": 1,
+              "lastAttackAt": -99,
+              "lastHitAt": 151.21666666667915,
+              "dead": false,
+              "incapacitated": false,
+              "appearance": {
+                "skin": 14264712,
+                "hair": 4861722,
+                "shirt": 3365790,
+                "pants": 4864554,
+                "height": 1,
+                "build": 1,
+                "hatStyle": "none"
+              },
+              "combatAction": {
+                "id": "action_72",
+                "commandId": "local:6:62",
+                "actorBodyId": "b_1",
+                "kind": "duck",
+                "definition": "duck",
+                "trajectory": "high",
+                "startedAt": 956.9499999994583,
+                "activeAt": 956.9499999994583,
+                "recoveryAt": 957.2499999994583,
+                "completeAt": 957.5499999994582,
+                "phase": "complete",
+                "outcome": "pending",
+                "facing": -1.5707963267948966,
+                "direction": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "distance": 0,
+                "reach": 0,
+                "radius": 0.12,
+                "duck": 0,
+                "contact": null,
+                "capability": {
+                  "strength": 0.46599999999999997,
+                  "dexterity": 0.46599999999999997,
+                  "exertion": 0.898
+                }
+              },
+              "reach": 1.2,
+              "cooldown": 0.55,
+              "attackTarget": null,
+              "health": 80,
+              "maxHealth": 80,
+              "alive": true,
+              "occupation": "traveler",
+              "age": 25,
+              "gender": "f",
+              "slug": null,
+              "recognisedClass": {
+                "id": "armsman",
+                "name": "Armsman",
+                "confidence": 0.5201250000000001,
+                "evidence": [
+                  "31 exchanged blows across 1 conflict",
+                  "strength 8.00",
+                  "carries no weapon"
+                ]
+              },
+              "inventory": [],
+              "weapon": "fists",
+              "needs": {
+                "hunger": 0.19999999999999996,
+                "energy": 0.0748,
+                "social": 0.3125000000000003,
+                "comfort": 0,
+                "thirst": 0.19999999999999996
+              },
+              "wealth": 20,
+              "speech": "",
+              "debug": {
+                "goal": null
+              }
+            },
+            {
+              "bodyId": "b_2",
+              "entityId": "p_2",
+              "name": "Reaction partner",
+              "pos": {
+                "x": 21.4,
+                "y": 1,
+                "z": 20
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "yaw": 1.5707963267948966,
+              "pose": "stand",
+              "activity": "stand",
+              "speed": 0,
+              "attackSeq": 4,
+              "hitSeq": 30,
+              "lastAttackAt": 955.7499999994594,
+              "lastHitAt": 782.1999999996173,
+              "dead": false,
+              "incapacitated": false,
+              "appearance": {
+                "skin": 14264712,
+                "hair": 4861722,
+                "shirt": 10505270,
+                "pants": 4864554,
+                "height": 1,
+                "build": 1,
+                "hatStyle": "none"
+              },
+              "combatAction": {
+                "id": "action_70",
+                "actorBodyId": "b_2",
+                "kind": "attack",
+                "definition": "unarmed_high",
+                "trajectory": "high",
+                "startedAt": 955.7499999994594,
+                "activeAt": 956.0499999994594,
+                "recoveryAt": 956.1999999994594,
+                "completeAt": 956.4999999994593,
+                "phase": "complete",
+                "outcome": "miss",
+                "facing": 1.5707963267948966,
+                "direction": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "distance": 0,
+                "reach": 0.9,
+                "radius": 0.12,
+                "duck": 0,
+                "contact": null,
+                "capability": {
+                  "strength": 0.4080163043478261,
+                  "dexterity": 0.5245923913043479,
+                  "exertion": 0.8989130434782608
+                }
+              },
+              "reach": 1.2,
+              "cooldown": 0.55,
+              "attackTarget": null,
+              "health": 80,
+              "maxHealth": 80,
+              "alive": true,
+              "occupation": "traveler",
+              "age": 25,
+              "gender": "f",
+              "slug": null,
+              "recognisedClass": {
+                "id": "armsman",
+                "name": "Armsman",
+                "confidence": 0.49637500000000007,
+                "evidence": [
+                  "31 exchanged blows across 1 conflict",
+                  "strength 7.00",
+                  "carries no weapon"
+                ]
+              },
+              "inventory": [],
+              "weapon": "fists",
+              "needs": {
+                "hunger": 0.19999999999999996,
+                "energy": 0.0741304347826087,
+                "social": 0.3125000000000003,
+                "comfort": 0,
+                "thirst": 0.19999999999999996
+              },
+              "wealth": 20,
+              "speech": "",
+              "debug": {
+                "goal": null
+              }
+            },
+            {
+              "bodyId": "b_3",
+              "entityId": "p_3",
+              "name": "Second partner",
+              "pos": {
+                "x": 22.1,
+                "y": 1,
+                "z": 24
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "yaw": 1.5707963267948966,
+              "pose": "stand",
+              "activity": "stand",
+              "speed": 0,
+              "attackSeq": 0,
+              "hitSeq": 0,
+              "lastAttackAt": -99,
+              "lastHitAt": -99,
+              "dead": false,
+              "incapacitated": false,
+              "appearance": {
+                "skin": 14264712,
+                "hair": 4861722,
+                "shirt": 10505270,
+                "pants": 4864554,
+                "height": 1,
+                "build": 1,
+                "hatStyle": "none"
+              },
+              "combatAction": null,
+              "reach": 1.2,
+              "cooldown": 0.55,
+              "attackTarget": null,
+              "health": 80,
+              "maxHealth": 80,
+              "alive": true,
+              "occupation": "traveler",
+              "age": 25,
+              "gender": "f",
+              "slug": null,
+              "recognisedClass": null,
+              "inventory": [],
+              "weapon": "fists",
+              "needs": {
+                "hunger": 0.19999999999999996,
+                "energy": 0.05500000000000001,
+                "social": 0.3125000000000003,
+                "comfort": 0,
+                "thirst": 0.19999999999999996
+              },
+              "wealth": 20,
+              "speech": "",
+              "debug": {
+                "goal": null
+              }
+            }
+          ],
+          "combatPresentation": {
+            "version": 1,
+            "firstAvailableSeq": 34,
+            "latestSeq": 34,
+            "events": [
+              {
+                "eventId": "e_2616",
+                "actionId": "action_70",
+                "seq": 34,
+                "physicalTime": 956.2166666661257,
+                "actorBodyId": "b_2",
+                "targetBodyId": "b_1",
+                "actorPosition": {
+                  "x": 21.4,
+                  "y": 1,
+                  "z": 20
+                },
+                "targetPosition": {
+                  "x": 20.35,
+                  "y": 1,
+                  "z": 20
+                },
+                "targetVelocity": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "actorYaw": 1.5707963267948966,
+                "weaponType": "unarmed",
+                "weaponId": null,
+                "action": "strike",
+                "outcome": "miss",
+                "attackSeq": 4,
+                "hitSeq": 1,
+                "capability": {
+                  "strength": 0.4080163043478261,
+                  "dexterity": 0.5245923913043479,
+                  "exertion": 0.8989130434782608
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "localFile": "native-combat-duck-low-rendered-server.json",
+      "bytes": 137269,
+      "sha256": "f639421251b372b2472940975e6987ab0e4d844cc1858469d2849198c76e2f51",
+      "storage": "Original retained locally, uncommitted; curated fields below are copied from this existing measurement.",
+      "observation": {
+        "atInput": {
+          "version": 1,
+          "type": "snapshot",
+          "tick": 992.9499999994256,
+          "worldTime": 8667392.950051786,
+          "ack": -1,
+          "playerId": "p_1",
+          "bodies": [
+            {
+              "bodyId": "b_1",
+              "entityId": "p_1",
+              "name": "Arena traveler",
+              "pos": {
+                "x": 20.35,
+                "y": 1,
+                "z": 20
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "yaw": -1.5707963267948966,
+              "pose": "hit",
+              "activity": "hit",
+              "speed": 0,
+              "attackSeq": 30,
+              "hitSeq": 2,
+              "lastAttackAt": -99,
+              "lastHitAt": 992.7999999994257,
+              "dead": false,
+              "incapacitated": false,
+              "appearance": {
+                "skin": 14264712,
+                "hair": 4861722,
+                "shirt": 3365790,
+                "pants": 4864554,
+                "height": 1,
+                "build": 1,
+                "hatStyle": "none"
+              },
+              "combatAction": {
+                "id": "action_74",
+                "commandId": "local:7:14",
+                "actorBodyId": "b_1",
+                "kind": "duck",
+                "definition": "duck",
+                "trajectory": "high",
+                "startedAt": 992.7333333327591,
+                "activeAt": 992.7333333327591,
+                "recoveryAt": 992.7875771783556,
+                "completeAt": 993.0875771783556,
+                "phase": "recovery",
+                "outcome": "interrupted",
+                "facing": -1.5707963267948966,
+                "direction": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "distance": 0,
+                "reach": 0,
+                "radius": 0.12,
+                "duck": 0,
+                "contact": null,
+                "capability": {
+                  "strength": 0.4489269980681513,
+                  "dexterity": 0.4489269980681513,
+                  "exertion": 0.844486669385249
+                }
+              },
+              "reach": 1.2,
+              "cooldown": 0.55,
+              "attackTarget": null,
+              "health": 74.3567721587578,
+              "maxHealth": 80,
+              "alive": true,
+              "occupation": "traveler",
+              "age": 25,
+              "gender": "f",
+              "slug": null,
+              "recognisedClass": {
+                "id": "armsman",
+                "name": "Armsman",
+                "confidence": 0.5201250000000001,
+                "evidence": [
+                  "32 exchanged blows across 1 conflict",
+                  "strength 8.00",
+                  "carries no weapon"
+                ]
+              },
+              "inventory": [],
+              "weapon": "fists",
+              "needs": {
+                "hunger": 0.19999999999999996,
+                "energy": 0.06490000000000001,
+                "social": 0.31333333333333363,
+                "comfort": 0,
+                "thirst": 0.19999999999999996
+              },
+              "wealth": 20,
+              "speech": "",
+              "debug": {
+                "goal": null
+              }
+            },
+            {
+              "bodyId": "b_2",
+              "entityId": "p_2",
+              "name": "Reaction partner",
+              "pos": {
+                "x": 21.4,
+                "y": 1,
+                "z": 20
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "yaw": 1.5707963267948966,
+              "pose": "attack",
+              "activity": "attack",
+              "speed": 0,
+              "attackSeq": 5,
+              "hitSeq": 30,
+              "lastAttackAt": 992.3833333327594,
+              "lastHitAt": 782.1999999996173,
+              "dead": false,
+              "incapacitated": false,
+              "appearance": {
+                "skin": 14264712,
+                "hair": 4861722,
+                "shirt": 10505270,
+                "pants": 4864554,
+                "height": 1,
+                "build": 1,
+                "hatStyle": "none"
+              },
+              "combatAction": {
+                "id": "action_73",
+                "actorBodyId": "b_2",
+                "kind": "attack",
+                "definition": "unarmed_low",
+                "trajectory": "low",
+                "startedAt": 992.3833333327594,
+                "activeAt": 992.6833333327594,
+                "recoveryAt": 992.8333333327594,
+                "completeAt": 993.1333333327593,
+                "phase": "recovery",
+                "outcome": "hit",
+                "facing": 1.5707963267948966,
+                "direction": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "distance": 0,
+                "reach": 0.9,
+                "radius": 0.12,
+                "duck": 0,
+                "contact": {
+                  "bodyId": "b_1",
+                  "region": "torso",
+                  "position": {
+                    "x": 20.6677725661471,
+                    "y": 1.43,
+                    "z": 19.95109346284226
+                  },
+                  "at": 992.7875771783556,
+                  "eventId": "e_2722"
+                },
+                "capability": {
+                  "strength": 0.4080163043478261,
+                  "dexterity": 0.5245923913043479,
+                  "exertion": 0.8989130434782608
+                }
+              },
+              "reach": 1.2,
+              "cooldown": 0.55,
+              "attackTarget": "p_1",
+              "health": 80,
+              "maxHealth": 80,
+              "alive": true,
+              "occupation": "traveler",
+              "age": 25,
+              "gender": "f",
+              "slug": null,
+              "recognisedClass": {
+                "id": "armsman",
+                "name": "Armsman",
+                "confidence": 0.49637500000000007,
+                "evidence": [
+                  "32 exchanged blows across 1 conflict",
+                  "strength 7.00",
+                  "carries no weapon"
+                ]
+              },
+              "inventory": [],
+              "weapon": "fists",
+              "needs": {
+                "hunger": 0.19999999999999996,
+                "energy": 0.0741304347826087,
+                "social": 0.31333333333333363,
+                "comfort": 0,
+                "thirst": 0.19999999999999996
+              },
+              "wealth": 20,
+              "speech": "",
+              "debug": {
+                "goal": null
+              }
+            },
+            {
+              "bodyId": "b_3",
+              "entityId": "p_3",
+              "name": "Second partner",
+              "pos": {
+                "x": 22.1,
+                "y": 1,
+                "z": 24
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "yaw": 1.5707963267948966,
+              "pose": "stand",
+              "activity": "stand",
+              "speed": 0,
+              "attackSeq": 0,
+              "hitSeq": 0,
+              "lastAttackAt": -99,
+              "lastHitAt": -99,
+              "dead": false,
+              "incapacitated": false,
+              "appearance": {
+                "skin": 14264712,
+                "hair": 4861722,
+                "shirt": 10505270,
+                "pants": 4864554,
+                "height": 1,
+                "build": 1,
+                "hatStyle": "none"
+              },
+              "combatAction": null,
+              "reach": 1.2,
+              "cooldown": 0.55,
+              "attackTarget": null,
+              "health": 80,
+              "maxHealth": 80,
+              "alive": true,
+              "occupation": "traveler",
+              "age": 25,
+              "gender": "f",
+              "slug": null,
+              "recognisedClass": null,
+              "inventory": [],
+              "weapon": "fists",
+              "needs": {
+                "hunger": 0.19999999999999996,
+                "energy": 0.05500000000000001,
+                "social": 0.31333333333333363,
+                "comfort": 0,
+                "thirst": 0.19999999999999996
+              },
+              "wealth": 20,
+              "speech": "",
+              "debug": {
+                "goal": null
+              }
+            }
+          ],
+          "combatPresentation": {
+            "version": 1,
+            "firstAvailableSeq": 35,
+            "latestSeq": 35,
+            "events": [
+              {
+                "eventId": "e_2722",
+                "actionId": "action_73",
+                "seq": 35,
+                "physicalTime": 992.7999999994257,
+                "actorBodyId": "b_2",
+                "targetBodyId": "b_1",
+                "actorPosition": {
+                  "x": 21.4,
+                  "y": 1,
+                  "z": 20
+                },
+                "targetPosition": {
+                  "x": 20.35,
+                  "y": 1,
+                  "z": 20
+                },
+                "targetVelocity": {
+                  "x": -4,
+                  "y": 0,
+                  "z": 0
+                },
+                "actorYaw": 1.5707963267948966,
+                "weaponType": "unarmed",
+                "weaponId": null,
+                "action": "strike",
+                "outcome": "hit",
+                "attackSeq": 5,
+                "hitSeq": 2,
+                "capability": {
+                  "strength": 0.4080163043478261,
+                  "dexterity": 0.5245923913043479,
+                  "exertion": 0.8989130434782608
+                }
+              }
+            ]
+          }
+        },
+        "after": {
+          "version": 1,
+          "type": "snapshot",
+          "tick": 995.4333333327567,
+          "worldTime": 8667395.43338525,
+          "ack": -1,
+          "playerId": "p_1",
+          "bodies": [
+            {
+              "bodyId": "b_1",
+              "entityId": "p_1",
+              "name": "Arena traveler",
+              "pos": {
+                "x": 20.35,
+                "y": 1,
+                "z": 20
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "yaw": -1.5707963267948966,
+              "pose": "stand",
+              "activity": "stand",
+              "speed": 0,
+              "attackSeq": 30,
+              "hitSeq": 2,
+              "lastAttackAt": -99,
+              "lastHitAt": 992.7999999994257,
+              "dead": false,
+              "incapacitated": false,
+              "appearance": {
+                "skin": 14264712,
+                "hair": 4861722,
+                "shirt": 3365790,
+                "pants": 4864554,
+                "height": 1,
+                "build": 1,
+                "hatStyle": "none"
+              },
+              "combatAction": {
+                "id": "action_75",
+                "commandId": "local:7:63",
+                "actorBodyId": "b_1",
+                "kind": "duck",
+                "definition": "duck",
+                "trajectory": "high",
+                "startedAt": 993.599999999425,
+                "activeAt": 993.599999999425,
+                "recoveryAt": 993.899999999425,
+                "completeAt": 994.1999999994249,
+                "phase": "complete",
+                "outcome": "pending",
+                "facing": -1.5707963267948966,
+                "direction": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "distance": 0,
+                "reach": 0,
+                "radius": 0.12,
+                "duck": 0,
+                "contact": null,
+                "capability": {
+                  "strength": 0.4446333285860967,
+                  "dexterity": 0.4446333285860967,
+                  "exertion": 0.830986669385249
+                }
+              },
+              "reach": 1.2,
+              "cooldown": 0.55,
+              "attackTarget": null,
+              "health": 74.3567721587578,
+              "maxHealth": 80,
+              "alive": true,
+              "occupation": "traveler",
+              "age": 25,
+              "gender": "f",
+              "slug": null,
+              "recognisedClass": {
+                "id": "armsman",
+                "name": "Armsman",
+                "confidence": 0.5201250000000001,
+                "evidence": [
+                  "32 exchanged blows across 1 conflict",
+                  "strength 8.00",
+                  "carries no weapon"
+                ]
+              },
+              "inventory": [],
+              "weapon": "fists",
+              "needs": {
+                "hunger": 0.19999999999999996,
+                "energy": 0.0748,
+                "social": 0.31333333333333363,
+                "comfort": 0,
+                "thirst": 0.19999999999999996
+              },
+              "wealth": 20,
+              "speech": "",
+              "debug": {
+                "goal": null
+              }
+            },
+            {
+              "bodyId": "b_2",
+              "entityId": "p_2",
+              "name": "Reaction partner",
+              "pos": {
+                "x": 21.4,
+                "y": 1,
+                "z": 20
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "yaw": 1.5707963267948966,
+              "pose": "stand",
+              "activity": "stand",
+              "speed": 0,
+              "attackSeq": 5,
+              "hitSeq": 30,
+              "lastAttackAt": 992.3833333327594,
+              "lastHitAt": 782.1999999996173,
+              "dead": false,
+              "incapacitated": false,
+              "appearance": {
+                "skin": 14264712,
+                "hair": 4861722,
+                "shirt": 10505270,
+                "pants": 4864554,
+                "height": 1,
+                "build": 1,
+                "hatStyle": "none"
+              },
+              "combatAction": {
+                "id": "action_73",
+                "actorBodyId": "b_2",
+                "kind": "attack",
+                "definition": "unarmed_low",
+                "trajectory": "low",
+                "startedAt": 992.3833333327594,
+                "activeAt": 992.6833333327594,
+                "recoveryAt": 992.8333333327594,
+                "completeAt": 993.1333333327593,
+                "phase": "complete",
+                "outcome": "hit",
+                "facing": 1.5707963267948966,
+                "direction": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "distance": 0,
+                "reach": 0.9,
+                "radius": 0.12,
+                "duck": 0,
+                "contact": {
+                  "bodyId": "b_1",
+                  "region": "torso",
+                  "position": {
+                    "x": 20.6677725661471,
+                    "y": 1.43,
+                    "z": 19.95109346284226
+                  },
+                  "at": 992.7875771783556,
+                  "eventId": "e_2722"
+                },
+                "capability": {
+                  "strength": 0.4080163043478261,
+                  "dexterity": 0.5245923913043479,
+                  "exertion": 0.8989130434782608
+                }
+              },
+              "reach": 1.2,
+              "cooldown": 0.55,
+              "attackTarget": null,
+              "health": 80,
+              "maxHealth": 80,
+              "alive": true,
+              "occupation": "traveler",
+              "age": 25,
+              "gender": "f",
+              "slug": null,
+              "recognisedClass": {
+                "id": "armsman",
+                "name": "Armsman",
+                "confidence": 0.49637500000000007,
+                "evidence": [
+                  "32 exchanged blows across 1 conflict",
+                  "strength 7.00",
+                  "carries no weapon"
+                ]
+              },
+              "inventory": [],
+              "weapon": "fists",
+              "needs": {
+                "hunger": 0.19999999999999996,
+                "energy": 0.0741304347826087,
+                "social": 0.31333333333333363,
+                "comfort": 0,
+                "thirst": 0.19999999999999996
+              },
+              "wealth": 20,
+              "speech": "",
+              "debug": {
+                "goal": null
+              }
+            },
+            {
+              "bodyId": "b_3",
+              "entityId": "p_3",
+              "name": "Second partner",
+              "pos": {
+                "x": 22.1,
+                "y": 1,
+                "z": 24
+              },
+              "velocity": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "yaw": 1.5707963267948966,
+              "pose": "stand",
+              "activity": "stand",
+              "speed": 0,
+              "attackSeq": 0,
+              "hitSeq": 0,
+              "lastAttackAt": -99,
+              "lastHitAt": -99,
+              "dead": false,
+              "incapacitated": false,
+              "appearance": {
+                "skin": 14264712,
+                "hair": 4861722,
+                "shirt": 10505270,
+                "pants": 4864554,
+                "height": 1,
+                "build": 1,
+                "hatStyle": "none"
+              },
+              "combatAction": null,
+              "reach": 1.2,
+              "cooldown": 0.55,
+              "attackTarget": null,
+              "health": 80,
+              "maxHealth": 80,
+              "alive": true,
+              "occupation": "traveler",
+              "age": 25,
+              "gender": "f",
+              "slug": null,
+              "recognisedClass": null,
+              "inventory": [],
+              "weapon": "fists",
+              "needs": {
+                "hunger": 0.19999999999999996,
+                "energy": 0.05500000000000001,
+                "social": 0.31333333333333363,
+                "comfort": 0,
+                "thirst": 0.19999999999999996
+              },
+              "wealth": 20,
+              "speech": "",
+              "debug": {
+                "goal": null
+              }
+            }
+          ],
+          "combatPresentation": {
+            "version": 1,
+            "firstAvailableSeq": 35,
+            "latestSeq": 35,
+            "events": [
+              {
+                "eventId": "e_2722",
+                "actionId": "action_73",
+                "seq": 35,
+                "physicalTime": 992.7999999994257,
+                "actorBodyId": "b_2",
+                "targetBodyId": "b_1",
+                "actorPosition": {
+                  "x": 21.4,
+                  "y": 1,
+                  "z": 20
+                },
+                "targetPosition": {
+                  "x": 20.35,
+                  "y": 1,
+                  "z": 20
+                },
+                "targetVelocity": {
+                  "x": -4,
+                  "y": 0,
+                  "z": 0
+                },
+                "actorYaw": 1.5707963267948966,
+                "weaponType": "unarmed",
+                "weaponId": null,
+                "action": "strike",
+                "outcome": "hit",
+                "attackSeq": 5,
+                "hitSeq": 2,
+                "capability": {
+                  "strength": 0.4080163043478261,
+                  "dexterity": 0.5245923913043479,
+                  "exertion": 0.8989130434782608
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "localFile": "native-live-combat-timely-nocapture-server-at-z.json",
+      "bytes": 8741,
+      "sha256": "cd58df675e461e4e6e41f8ba66ca20fc518878b5900701568d99e8154b80fc42",
+      "storage": "Original retained locally, uncommitted; curated fields below are copied from this existing measurement.",
+      "observation": {
+        "version": 1,
+        "type": "snapshot",
+        "tick": 397.63333333330036,
+        "worldTime": 8666797.633354072,
+        "ack": -1,
+        "playerId": "p_1",
+        "bodies": [
+          {
+            "bodyId": "b_1",
+            "entityId": "p_1",
+            "name": "Arena traveler",
+            "pos": {
+              "x": 20.35,
+              "y": 1,
+              "z": 19.65000000000032
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": -3.4999999999968168
+            },
+            "yaw": -1.5707963267948966,
+            "pose": "stand",
+            "activity": "stand",
+            "speed": 3.4999999999968168,
+            "attackSeq": 0,
+            "hitSeq": 1,
+            "lastAttackAt": -99,
+            "lastHitAt": 151.21666666667915,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 4861722,
+              "shirt": 3365790,
+              "pants": 4864554,
+              "height": 1,
+              "build": 1,
+              "hatStyle": "none"
+            },
+            "combatAction": {
+              "id": "action_5",
+              "commandId": "local:3:17",
+              "actorBodyId": "b_1",
+              "kind": "sidestep",
+              "definition": "sidestep",
+              "trajectory": "high",
+              "startedAt": 397.53333333330045,
+              "activeAt": 397.53333333330045,
+              "recoveryAt": 397.83333333330046,
+              "completeAt": 398.13333333330047,
+              "phase": "active",
+              "outcome": "pending",
+              "facing": -1.5707963267948966,
+              "direction": {
+                "x": -6.123233995736766e-17,
+                "y": 0,
+                "z": -1
+              },
+              "distance": 1.05,
+              "reach": 0,
+              "radius": 0.12,
+              "duck": 0,
+              "contact": null,
+              "capability": {
+                "strength": 0.4705,
+                "dexterity": 0.4705,
+                "exertion": 0.9115
+              }
+            },
+            "reach": 1.2,
+            "cooldown": 0.55,
+            "attackTarget": null,
+            "health": 80,
+            "maxHealth": 80,
+            "alive": true,
+            "occupation": "traveler",
+            "age": 25,
+            "gender": "f",
+            "slug": null,
+            "recognisedClass": null,
+            "inventory": [],
+            "weapon": "fists",
+            "needs": {
+              "hunger": 0.19999999999999996,
+              "energy": 0.06490000000000001,
+              "social": 0.3050000000000001,
+              "comfort": 0,
+              "thirst": 0.19999999999999996
+            },
+            "wealth": 20,
+            "speech": "",
+            "debug": {
+              "goal": null
+            }
+          },
+          {
+            "bodyId": "b_2",
+            "entityId": "p_2",
+            "name": "Reaction partner",
+            "pos": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": 1.4398966328951732,
+            "pose": "attack",
+            "activity": "attack",
+            "speed": 0,
+            "attackSeq": 2,
+            "hitSeq": 0,
+            "lastAttackAt": 397.4166666666339,
+            "lastHitAt": -99,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 4861722,
+              "shirt": 10505270,
+              "pants": 4864554,
+              "height": 1,
+              "build": 1,
+              "hatStyle": "none"
+            },
+            "combatAction": {
+              "id": "action_4",
+              "actorBodyId": "b_2",
+              "kind": "attack",
+              "definition": "unarmed_high",
+              "trajectory": "high",
+              "startedAt": 397.4166666666339,
+              "activeAt": 397.7166666666339,
+              "recoveryAt": 397.8666666666339,
+              "completeAt": 398.1666666666339,
+              "phase": "preparation",
+              "outcome": "pending",
+              "facing": 1.4398966328951732,
+              "direction": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "distance": 0,
+              "reach": 0.9,
+              "radius": 0.12,
+              "duck": 0,
+              "contact": null,
+              "capability": {
+                "strength": 0.4080163043478261,
+                "dexterity": 0.5245923913043479,
+                "exertion": 0.8989130434782608
+              }
+            },
+            "reach": 1.2,
+            "cooldown": 0.55,
+            "attackTarget": "p_1",
+            "health": 80,
+            "maxHealth": 80,
+            "alive": true,
+            "occupation": "traveler",
+            "age": 25,
+            "gender": "f",
+            "slug": null,
+            "recognisedClass": null,
+            "inventory": [],
+            "weapon": "fists",
+            "needs": {
+              "hunger": 0.19999999999999996,
+              "energy": 0.0741304347826087,
+              "social": 0.3050000000000001,
+              "comfort": 0,
+              "thirst": 0.19999999999999996
+            },
+            "wealth": 20,
+            "speech": "",
+            "debug": {
+              "goal": null
+            }
+          },
+          {
+            "bodyId": "b_3",
+            "entityId": "p_3",
+            "name": "Second partner",
+            "pos": {
+              "x": 22.1,
+              "y": 1,
+              "z": 24
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": 1.5707963267948966,
+            "pose": "stand",
+            "activity": "stand",
+            "speed": 0,
+            "attackSeq": 0,
+            "hitSeq": 0,
+            "lastAttackAt": -99,
+            "lastHitAt": -99,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 4861722,
+              "shirt": 10505270,
+              "pants": 4864554,
+              "height": 1,
+              "build": 1,
+              "hatStyle": "none"
+            },
+            "combatAction": null,
+            "reach": 1.2,
+            "cooldown": 0.55,
+            "attackTarget": null,
+            "health": 80,
+            "maxHealth": 80,
+            "alive": true,
+            "occupation": "traveler",
+            "age": 25,
+            "gender": "f",
+            "slug": null,
+            "recognisedClass": null,
+            "inventory": [],
+            "weapon": "fists",
+            "needs": {
+              "hunger": 0.19999999999999996,
+              "energy": 0.05500000000000001,
+              "social": 0.3050000000000001,
+              "comfort": 0,
+              "thirst": 0.19999999999999996
+            },
+            "wealth": 20,
+            "speech": "",
+            "debug": {
+              "goal": null
+            }
+          }
+        ],
+        "combatPresentation": {
+          "version": 1,
+          "firstAvailableSeq": 2,
+          "latestSeq": 1,
+          "events": []
+        }
+      }
+    },
+    {
+      "localFile": "native-live-combat-timely-nocapture-server-after.json",
+      "bytes": 9574,
+      "sha256": "ab10a2fad18e4652706df2d8921f5d58229b64be51b23e7d2bd160b49012a876",
+      "storage": "Original retained locally, uncommitted; curated fields below are copied from this existing measurement.",
+      "observation": {
+        "version": 1,
+        "type": "snapshot",
+        "tick": 400.89999999996405,
+        "worldTime": 8666800.900020909,
+        "ack": -1,
+        "playerId": "p_1",
+        "bodies": [
+          {
+            "bodyId": "b_1",
+            "entityId": "p_1",
+            "name": "Arena traveler",
+            "pos": {
+              "x": 20.35,
+              "y": 1,
+              "z": 18.950000000000955
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": -1.5707963267948966,
+            "pose": "stand",
+            "activity": "stand",
+            "speed": 0,
+            "attackSeq": 0,
+            "hitSeq": 1,
+            "lastAttackAt": -99,
+            "lastHitAt": 151.21666666667915,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 4861722,
+              "shirt": 3365790,
+              "pants": 4864554,
+              "height": 1,
+              "build": 1,
+              "hatStyle": "none"
+            },
+            "combatAction": {
+              "id": "action_6",
+              "commandId": "local:3:69",
+              "actorBodyId": "b_1",
+              "kind": "duck",
+              "definition": "duck",
+              "trajectory": "high",
+              "startedAt": 398.3833333332997,
+              "activeAt": 398.3833333332997,
+              "recoveryAt": 398.6833333332997,
+              "completeAt": 398.9833333332997,
+              "phase": "complete",
+              "outcome": "pending",
+              "facing": -1.5707963267948966,
+              "direction": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "distance": 0,
+              "reach": 0,
+              "radius": 0.12,
+              "duck": 0,
+              "contact": null,
+              "capability": {
+                "strength": 0.46599999999999997,
+                "dexterity": 0.46599999999999997,
+                "exertion": 0.898
+              }
+            },
+            "reach": 1.2,
+            "cooldown": 0.55,
+            "attackTarget": null,
+            "health": 80,
+            "maxHealth": 80,
+            "alive": true,
+            "occupation": "traveler",
+            "age": 25,
+            "gender": "f",
+            "slug": null,
+            "recognisedClass": null,
+            "inventory": [],
+            "weapon": "fists",
+            "needs": {
+              "hunger": 0.19999999999999996,
+              "energy": 0.0748,
+              "social": 0.3050000000000001,
+              "comfort": 0,
+              "thirst": 0.19999999999999996
+            },
+            "wealth": 20,
+            "speech": "",
+            "debug": {
+              "goal": null
+            }
+          },
+          {
+            "bodyId": "b_2",
+            "entityId": "p_2",
+            "name": "Reaction partner",
+            "pos": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": 1.4398966328951732,
+            "pose": "stand",
+            "activity": "stand",
+            "speed": 0,
+            "attackSeq": 2,
+            "hitSeq": 0,
+            "lastAttackAt": 397.4166666666339,
+            "lastHitAt": -99,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 4861722,
+              "shirt": 10505270,
+              "pants": 4864554,
+              "height": 1,
+              "build": 1,
+              "hatStyle": "none"
+            },
+            "combatAction": {
+              "id": "action_4",
+              "actorBodyId": "b_2",
+              "kind": "attack",
+              "definition": "unarmed_high",
+              "trajectory": "high",
+              "startedAt": 397.4166666666339,
+              "activeAt": 397.7166666666339,
+              "recoveryAt": 397.8666666666339,
+              "completeAt": 398.1666666666339,
+              "phase": "complete",
+              "outcome": "miss",
+              "facing": 1.4398966328951732,
+              "direction": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "distance": 0,
+              "reach": 0.9,
+              "radius": 0.12,
+              "duck": 0,
+              "contact": null,
+              "capability": {
+                "strength": 0.4080163043478261,
+                "dexterity": 0.5245923913043479,
+                "exertion": 0.8989130434782608
+              }
+            },
+            "reach": 1.2,
+            "cooldown": 0.55,
+            "attackTarget": null,
+            "health": 80,
+            "maxHealth": 80,
+            "alive": true,
+            "occupation": "traveler",
+            "age": 25,
+            "gender": "f",
+            "slug": null,
+            "recognisedClass": null,
+            "inventory": [],
+            "weapon": "fists",
+            "needs": {
+              "hunger": 0.19999999999999996,
+              "energy": 0.0741304347826087,
+              "social": 0.3050000000000001,
+              "comfort": 0,
+              "thirst": 0.19999999999999996
+            },
+            "wealth": 20,
+            "speech": "",
+            "debug": {
+              "goal": null
+            }
+          },
+          {
+            "bodyId": "b_3",
+            "entityId": "p_3",
+            "name": "Second partner",
+            "pos": {
+              "x": 22.1,
+              "y": 1,
+              "z": 24
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": 1.5707963267948966,
+            "pose": "stand",
+            "activity": "stand",
+            "speed": 0,
+            "attackSeq": 0,
+            "hitSeq": 0,
+            "lastAttackAt": -99,
+            "lastHitAt": -99,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 4861722,
+              "shirt": 10505270,
+              "pants": 4864554,
+              "height": 1,
+              "build": 1,
+              "hatStyle": "none"
+            },
+            "combatAction": null,
+            "reach": 1.2,
+            "cooldown": 0.55,
+            "attackTarget": null,
+            "health": 80,
+            "maxHealth": 80,
+            "alive": true,
+            "occupation": "traveler",
+            "age": 25,
+            "gender": "f",
+            "slug": null,
+            "recognisedClass": null,
+            "inventory": [],
+            "weapon": "fists",
+            "needs": {
+              "hunger": 0.19999999999999996,
+              "energy": 0.05500000000000001,
+              "social": 0.3050000000000001,
+              "comfort": 0,
+              "thirst": 0.19999999999999996
+            },
+            "wealth": 20,
+            "speech": "",
+            "debug": {
+              "goal": null
+            }
+          }
+        ],
+        "combatPresentation": {
+          "version": 1,
+          "firstAvailableSeq": 2,
+          "latestSeq": 2,
+          "events": [
+            {
+              "eventId": "e_164",
+              "actionId": "action_4",
+              "seq": 2,
+              "physicalTime": 397.88333333330013,
+              "actorBodyId": "b_2",
+              "targetBodyId": "b_1",
+              "actorPosition": {
+                "x": 21.4,
+                "y": 1,
+                "z": 20
+              },
+              "targetPosition": {
+                "x": 20.35,
+                "y": 1,
+                "z": 18.950000000000955
+              },
+              "targetVelocity": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "actorYaw": 1.4398966328951732,
+              "weaponType": "unarmed",
+              "weaponId": null,
+              "action": "strike",
+              "outcome": "miss",
+              "attackSeq": 2,
+              "hitSeq": 1,
+              "capability": {
+                "strength": 0.4080163043478261,
+                "dexterity": 0.5245923913043479,
+                "exertion": 0.8989130434782608
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "localFile": "native-live-combat-repetitions-server-after.json",
+      "bytes": 64523,
+      "sha256": "deed7c0414ae3d6cfd2b40479370b2f94dd7716f310d4d168e16015313ac820f",
+      "storage": "Original retained locally, uncommitted; curated fields below are copied from this existing measurement.",
+      "observation": {
+        "version": 1,
+        "type": "snapshot",
+        "tick": 785.9833333329472,
+        "worldTime": 8667185.983374326,
+        "ack": -1,
+        "playerId": "p_1",
+        "bodies": [
+          {
+            "bodyId": "b_1",
+            "entityId": "p_1",
+            "name": "Arena traveler",
+            "pos": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": -1.5707963267948966,
+            "pose": "stand",
+            "activity": "stand",
+            "speed": 0,
+            "attackSeq": 30,
+            "hitSeq": 1,
+            "lastAttackAt": 781.7666666662843,
+            "lastHitAt": 151.21666666667915,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 4861722,
+              "shirt": 3365790,
+              "pants": 4864554,
+              "height": 1,
+              "build": 1,
+              "hatStyle": "none"
+            },
+            "combatAction": {
+              "id": "action_66",
+              "commandId": "local:4:3636",
+              "actorBodyId": "b_1",
+              "kind": "duck",
+              "definition": "duck",
+              "trajectory": "high",
+              "startedAt": 782.7833333329501,
+              "activeAt": 782.7833333329501,
+              "recoveryAt": 783.08333333295,
+              "completeAt": 783.38333333295,
+              "phase": "complete",
+              "outcome": "pending",
+              "facing": -1.5707963267948966,
+              "direction": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              },
+              "distance": 0,
+              "reach": 0,
+              "radius": 0.12,
+              "duck": 0,
+              "contact": null,
+              "capability": {
+                "strength": 0.25,
+                "dexterity": 0.24981941731770832,
+                "exertion": 0.25
+              }
+            },
+            "reach": 1.2,
+            "cooldown": 0.55,
+            "attackTarget": null,
+            "health": 80,
+            "maxHealth": 80,
+            "alive": true,
+            "occupation": "traveler",
+            "age": 25,
+            "gender": "f",
+            "slug": null,
+            "recognisedClass": {
+              "id": "armsman",
+              "name": "Armsman",
+              "confidence": 0.5201250000000001,
+              "evidence": [
+                "31 exchanged blows across 1 conflict",
+                "strength 8.00",
+                "carries no weapon"
+              ]
+            },
+            "inventory": [],
+            "weapon": "fists",
+            "needs": {
+              "hunger": 0.20158730158730154,
+              "energy": 0.5520179398148148,
+              "social": 0.3108333333333336,
+              "comfort": 0,
+              "thirst": 0.2030303030303029
+            },
+            "wealth": 20,
+            "speech": "",
+            "debug": {
+              "goal": null
+            }
+          },
+          {
+            "bodyId": "b_2",
+            "entityId": "p_2",
+            "name": "Reaction partner",
+            "pos": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "velocity": {
+              "x": 120,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": 1.5707963267948966,
+            "pose": "downed",
+            "activity": "downed",
+            "speed": 120,
+            "attackSeq": 2,
+            "hitSeq": 30,
+            "lastAttackAt": -99,
+            "lastHitAt": 782.1999999996173,
+            "dead": false,
+            "incapacitated": true,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 4861722,
+              "shirt": 10505270,
+              "pants": 4864554,
+              "height": 1,
+              "build": 1,
+              "hatStyle": "none"
+            },
+            "combatAction": null,
+            "reach": 1.2,
+            "cooldown": 0.55,
+            "attackTarget": null,
+            "health": 1,
+            "maxHealth": 80,
+            "alive": true,
+            "occupation": "traveler",
+            "age": 25,
+            "gender": "f",
+            "slug": null,
+            "recognisedClass": {
+              "id": "armsman",
+              "name": "Armsman",
+              "confidence": 0.49637500000000007,
+              "evidence": [
+                "31 exchanged blows across 1 conflict",
+                "strength 7.00",
+                "carries no weapon"
+              ]
+            },
+            "inventory": [],
+            "weapon": "fists",
+            "needs": {
+              "hunger": 0.20158730158730154,
+              "energy": 0.05488363425925926,
+              "social": 0.3108333333333336,
+              "comfort": 0,
+              "thirst": 0.2030303030303029
+            },
+            "wealth": 20,
+            "speech": "",
+            "debug": {
+              "goal": null
+            }
+          },
+          {
+            "bodyId": "b_3",
+            "entityId": "p_3",
+            "name": "Second partner",
+            "pos": {
+              "x": 22.1,
+              "y": 1,
+              "z": 24
+            },
+            "velocity": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "yaw": 1.5707963267948966,
+            "pose": "stand",
+            "activity": "stand",
+            "speed": 0,
+            "attackSeq": 0,
+            "hitSeq": 0,
+            "lastAttackAt": -99,
+            "lastHitAt": -99,
+            "dead": false,
+            "incapacitated": false,
+            "appearance": {
+              "skin": 14264712,
+              "hair": 4861722,
+              "shirt": 10505270,
+              "pants": 4864554,
+              "height": 1,
+              "build": 1,
+              "hatStyle": "none"
+            },
+            "combatAction": null,
+            "reach": 1.2,
+            "cooldown": 0.55,
+            "attackTarget": null,
+            "health": 80,
+            "maxHealth": 80,
+            "alive": true,
+            "occupation": "traveler",
+            "age": 25,
+            "gender": "f",
+            "slug": null,
+            "recognisedClass": null,
+            "inventory": [],
+            "weapon": "fists",
+            "needs": {
+              "hunger": 0.20158730158730154,
+              "energy": 0.05479043981481482,
+              "social": 0.3108333333333336,
+              "comfort": 0,
+              "thirst": 0.2030303030303029
+            },
+            "wealth": 20,
+            "speech": "",
+            "debug": {
+              "goal": null
+            }
+          }
+        ],
+        "combatPresentation": {
+          "version": 1,
+          "firstAvailableSeq": 30,
+          "latestSeq": 32,
+          "events": [
+            {
+              "eventId": "e_2269",
+              "actionId": "action_61",
+              "seq": 30,
+              "physicalTime": 778.2166666662876,
+              "actorBodyId": "b_1",
+              "targetBodyId": "b_2",
+              "actorPosition": {
+                "x": 20.35,
+                "y": 1,
+                "z": 20
+              },
+              "targetPosition": {
+                "x": 21.4,
+                "y": 1,
+                "z": 20
+              },
+              "targetVelocity": {
+                "x": 112,
+                "y": 0,
+                "z": 0
+              },
+              "actorYaw": -1.5707963267948966,
+              "weaponType": "unarmed",
+              "weaponId": null,
+              "action": "strike",
+              "outcome": "hit",
+              "attackSeq": 28,
+              "hitSeq": 28,
+              "capability": {
+                "strength": 0.25,
+                "dexterity": 0.24990970865885417,
+                "exertion": 0.25
+              }
+            },
+            {
+              "eventId": "e_2342",
+              "actionId": "action_63",
+              "seq": 31,
+              "physicalTime": 780.1999999996191,
+              "actorBodyId": "b_1",
+              "targetBodyId": "b_2",
+              "actorPosition": {
+                "x": 20.35,
+                "y": 1,
+                "z": 20
+              },
+              "targetPosition": {
+                "x": 21.4,
+                "y": 1,
+                "z": 20
+              },
+              "targetVelocity": {
+                "x": 116,
+                "y": 0,
+                "z": 0
+              },
+              "actorYaw": -1.5707963267948966,
+              "weaponType": "unarmed",
+              "weaponId": null,
+              "action": "strike",
+              "outcome": "hit",
+              "attackSeq": 29,
+              "hitSeq": 29,
+              "capability": {
+                "strength": 0.2505125,
+                "dexterity": 0.25033154712320965,
+                "exertion": 0.25153749999999997
+              }
+            },
+            {
+              "eventId": "e_2415",
+              "actionId": "action_65",
+              "seq": 32,
+              "physicalTime": 782.1999999996173,
+              "actorBodyId": "b_1",
+              "targetBodyId": "b_2",
+              "actorPosition": {
+                "x": 20.35,
+                "y": 1,
+                "z": 20
+              },
+              "targetPosition": {
+                "x": 21.4,
+                "y": 1,
+                "z": 20
+              },
+              "targetVelocity": {
+                "x": 120,
+                "y": 0,
+                "z": 0
+              },
+              "actorYaw": -1.5707963267948966,
+              "weaponType": "unarmed",
+              "weaponId": null,
+              "action": "strike",
+              "outcome": "hit",
+              "attackSeq": 30,
+              "hitSeq": 30,
+              "capability": {
+                "strength": 0.25,
+                "dexterity": 0.24981941731770832,
+                "exertion": 0.25
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

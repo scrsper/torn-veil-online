@@ -1,4 +1,59 @@
-# Real-time interaction/prediction — partial command/movement checkpoint
+# Real-time combat contact and defense v0.1 — checkpointed, acceptance incomplete
+
+Branch: `codex/realtime-interaction-v0-1`, accepted movement base `6e3af83`.
+Canonical checkout: `C:/Users/green/Desktop/projects/torn-veil-online`.
+Delivery report: `docs/REALTIME_COMBAT_CONTACT_DEFENSE_V0_1.md`.
+
+User requested checkpoint and stop, with no further investigation or tests (2026-09-11).
+Production commit `7f2f418` and test commit `3bc3acc` were pushed normally to the feature branch.
+The documentation checkpoint preserves the unsuccessful `src/headless/motive/trace.ts`
+experiment locally and uncommitted. Raw measurement streams/logs also remain local; curated
+summaries and three existing native videos/screenshots accompany the report.
+Last full run: 851/852 tests passed, 84 files, 1622.62 seconds. The family motivated-life
+trace alone failed: its care purpose adopted no serving goals and performed no multi-step arc.
+Injury knowledge arrives, but no care plan reaches execution. The original caregiver repeatedly
+reported assaults/fled while the victim healed. No production fix has been justified.
+A pending harness-only change selects physically available participants and an awake caregiver
+without an active emergency goal, retaining distance ordering and every assertion. Worker A
+reviewed this scope with no findings, but the focused family rerun STILL FAILED the same two
+checks (68.79 seconds, 1 failed / 3 skipped). Typecheck passes. This is an unresolved experiment,
+not an accepted fix. No further full run is active. Resume diagnosis only after user direction.
+Raw results: `.debug/combat-full-final.json`, `.debug/combat-family-focused.json`.
+
+Budget-limited family follow-up (2026-09-11): one agent, one read-only reproduction of the
+current fixture, no further source changes. Evidence: `docs/evidence/realtime/family-causal-followup.json`.
+For Mara/Tomas, 494/502 observed purpose decisions have threat candidates and no care candidate;
+three provision offers tie reporting at 1.0 and lose stable ordering; one care offer loses to
+critical thirst. Four remaining decisions offer no care. No care plan is adopted. The purpose
+resolves at 72.148/80 partner health, above the seen-well threshold. Initial caregiver availability
+does not guarantee a multi-step care opportunity. The 17-hour delay before purpose formation is
+still unexplained: this observer starts decision capture only once a purpose exists.
+Exact family test rerun: 1 failed / 3 skipped, 69.36 seconds; same two care-action assertions.
+No fix made. Next discriminating experiment, only if authorized: pair-specific welfare concern,
+fear, percept and belief gates at upkeep from report receipt through first purpose formation.
+That investigation stopped without full regression, source edits, Unreal work or additional
+benchmarks. The subsequent checkpoint only publishes existing commits, documentation and
+curated evidence; no acceptance completion is claimed.
+
+- Persistent canonical attack phases and bounded tracking; acceptance leaves contact undecided.
+  Relative swept six-volume geometry determines contact and injury region at 60 Hz, with
+  segments bounded to 1/120 second. Active actions survive deterministic save/load.
+- Canonical collision-constrained sidestep/backstep and geometry-changing duck; shared NPC/player
+  requests and witnessed preparation cues. Internal phases do not flood social memory.
+- Existing movement prediction/reconciliation extended to immediate attack/defense startup;
+  authoritative binding does not replay animation. Live native choreography follows the action.
+- Ten counterfactual arena cases, browser attack regression, twelve native tests, TypeScript build
+  and shared generated-spec check pass. Final full regression acceptance is pending; no completion claim yet.
+- Native input-to-predicted attack/duck p95 0.0165/0.0180 ms, combat receipt p95 18.686 ms,
+  contact-to-presentation p95 11.789 ms. Cooperative regional projection reduces measured bulk
+  combat receipt p95/p99 from 30.655/205.697 to 21.560/83.178 ms. World-work stalls remain.
+- Human arena: `pwsh -File unreal/scripts/Start-CombatArena.ps1`. High strike LMB/X; low R;
+  sidestep Z/V; backstep Space; duck Left Ctrl. Three native videos and reproduction scripts
+  accompany evidence. No human approval or two-client rendered PvP is claimed.
+- No PCG/vendor/binary game assets changed. Next: two-controller rendered combat and prediction
+  hardening v0.2 before weapon content, mastery or progression.
+
+# Accepted movement checkpoint (historical)
 
 Branch: `codex/realtime-interaction-v0-1`, starting at `3c1c876` (stacked choreography/humanoid work).
 Canonical checkout remains the Desktop projects checkout. Detailed delivery and remaining criteria:

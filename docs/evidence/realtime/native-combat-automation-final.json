@@ -1,0 +1,42 @@
+{
+  "build": {
+    "status": "success",
+    "target": "TornVeilOnlineEditor Win64 Development",
+    "log": "C:/Users/green/AppData/Local/UnrealBuildTool/Log.txt"
+  },
+  "tests": {
+    "status": "12/12 green",
+    "log": "unreal/TornVeilOnline/Saved/Logs/TornVeilOnline-backup-2026.09.11-18.46.36.log",
+    "groups": {
+      "TornVeil.Realtime": [
+        "TornVeil.Realtime.LiveCombat.BlockedReconciliation",
+        "TornVeil.Realtime.LiveCombat.DefenseSweep",
+        "TornVeil.Realtime.LiveCombat.Parse",
+        "TornVeil.Realtime.LiveCombat.PlanAndBinding",
+        "TornVeil.Realtime.LiveCombat.PostureGeometry",
+        "TornVeil.Realtime.LiveCombat.Prediction",
+        "TornVeil.Realtime.MovementPrediction"
+      ],
+      "Combat.Choreography": [
+        "TornVeil.Combat.Choreography.Parser",
+        "TornVeil.Combat.Choreography.Plan",
+        "TornVeil.Combat.Choreography.Replay"
+      ],
+      "Humanoid.VisualState": [
+        "TornVeil.Humanoid.VisualState.EventQueue",
+        "TornVeil.Humanoid.VisualState.Parser"
+      ]
+    }
+  },
+  "blockedReconciliation": {
+    "status": "green",
+    "correctionCm": 80.278,
+    "cpuMs": 0.007,
+    "duplicateCorrectionCm": 0.0
+  },
+  "renderedVideos": {
+    "native-combat-timely-rendered.mp4": { "durationSeconds": 2.08, "uniquePngFrames": 20 },
+    "native-combat-duck-high-rendered.mp4": { "durationSeconds": 2.0, "uniquePngFrames": 20 },
+    "native-combat-duck-low-rendered.mp4": { "durationSeconds": 2.04, "uniquePngFrames": 19 }
+  }
+}

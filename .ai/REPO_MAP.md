@@ -364,8 +364,15 @@ Real-time command/movement checkpoint: `src/bridge/commands.ts`, `scheduler.ts`,
 `src/sim/physical/interactionSpec.json`, `prediction.ts`, `interactionMovement.ts`,
 and native `TVInteractionPrediction`/`TVBridgeSubsystem`. Protocol 2 uses an applied
 local-state frontier and disposable movement replay; actor prediction is sanctioned.
-See `docs/REALTIME_INTERACTION_PREDICTION_V0_1.md`. Live canonical combat is still pending;
-do not treat existing retrospective choreography as its implementation.
+See `docs/REALTIME_INTERACTION_PREDICTION_V0_1.md` for the accepted movement checkpoint.
+
+Live combat: `src/sim/physical/combatAction.ts`, `combatActionTypes.ts`, `combatGeometry.ts`;
+`src/sim/mind/combatReaction.ts`; `src/sim/persist/combatAction.ts` validates saved actions.
+`src/bridge/combatState.ts` projects current physical state and `transportTiming.ts` measures
+urgent receipts. Native `TVLiveCombat` extends the existing prediction/reconciliation ledger.
+`src/sim/world/combatArena.ts`, `src/bridge/combatArena.ts`, and
+`src/headless/bridge/combatAcceptance.ts` supply the isolated arena and paired counterfactuals.
+Architecture, exact controls and evidence: `docs/REALTIME_COMBAT_CONTACT_DEFENSE_V0_1.md`.
 
 Combat choreography: `src/sim/physical/combatFacts.ts` records causal execution facts;
 `src/bridge/combatPresentation.ts` projects their bounded, observation-gated replay.

@@ -1,0 +1,250 @@
+{
+  "status": "complete",
+  "error": "",
+  "realtimeDiagnostics": {
+    "combatInputToAnimationSetupMs": {
+      "count": 60,
+      "p50": 0.3130994737148285,
+      "p95": 0.36299973726272583,
+      "p99": 7.979501038789749
+    },
+    "contactDecisionToPresentationMs": {
+      "count": 30,
+      "p50": 4.773851797450334,
+      "p95": 11.788750741630793,
+      "p99": 12.615300357108936
+    },
+    "clockUncertaintyMs": 0.5837993621826172,
+    "inputToPredictedAttackMs": {
+      "count": 30,
+      "p50": 0.014200806617736816,
+      "p95": 0.016499310731887817,
+      "p99": 0.01659989356994629
+    },
+    "inputToPredictedDefenseMs": {
+      "count": 30,
+      "p50": 0.014901161193847656,
+      "p95": 0.01800060272216797,
+      "p99": 0.02099946141242981
+    },
+    "combatCorrectionCm": {
+      "count": 2048,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0
+    },
+    "combatCorrectionCpuMs": {
+      "count": 2048,
+      "p50": 0.018201768398284912,
+      "p95": 0.027701258659362793,
+      "p99": 0.04390254616737366
+    },
+    "combatCorrectionSettleMs": {
+      "count": 0,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0
+    },
+    "remoteActionAgeMs": {
+      "count": 2048,
+      "p50": 4.6354523681802675,
+      "p95": 11.700599743635394,
+      "p99": 12.30055189516861
+    },
+    "contactReceiveToPresentationMs": {
+      "count": 30,
+      "p50": 0.2390003204345703,
+      "p95": 0.3235969543457031,
+      "p99": 0.6571006774902344
+    },
+    "combatAppliedRoundTripMs": {
+      "count": 60,
+      "p50": 18.437501043081284,
+      "p95": 18.685799092054367,
+      "p99": 18.77259835600853
+    },
+    "commandSendToServerArrivalMs": {
+      "count": 2048,
+      "p50": 0.5726991180563346,
+      "p95": 0.7583487823139876,
+      "p99": 0.8635994811775163
+    },
+    "serverArrivalToApplicationMs": {
+      "count": 2048,
+      "p50": 79.0002000000095,
+      "p95": 83.58030000003055,
+      "p99": 83.67170000006445
+    },
+    "applicationToClientReceiveMs": {
+      "count": 2048,
+      "p50": 4.797650424181484,
+      "p95": 11.864352758741006,
+      "p99": 12.462501843227074
+    },
+    "predictionCpuMs": {
+      "count": 2048,
+      "p50": 0.04979968070983887,
+      "p95": 0.07239729166030884,
+      "p99": 0.08029863238334656
+    },
+    "inputCallbackToEngineStateMs": {
+      "count": 0,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0
+    },
+    "appliedRoundTripMs": {
+      "count": 2048,
+      "p50": 84.76179838180542,
+      "p95": 85.02460271120071,
+      "p99": 85.18050238490105
+    },
+    "correctionCm": {
+      "count": 2048,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0
+    },
+    "pendingMovement": 4,
+    "predictionCount": 3681,
+    "predictionReady": true,
+    "presentationTiming": "unmeasured; engine-state samples are not display presentation or physical input-to-photon",
+    "specRevision": "tv-interaction-2",
+    "specHash": "89b59f12f981ccf56752c285745a60f282816e31a69ad3e60cdf3f212b24d690"
+  },
+  "presentation": {
+    "bodyId": "b_1",
+    "entityId": "p_1",
+    "pose": "stand",
+    "animation": "/Game/Characters/Mannequins/Anims/Unarmed/BS_Idle_Walk_Run.BS_Idle_Walk_Run",
+    "possessed": true,
+    "incapacitated": false,
+    "dead": false,
+    "attackSeq": 30,
+    "hitSeq": 1,
+    "playedAttacks": 30,
+    "playedHits": 0,
+    "liveCombat": false,
+    "liveActionId": "",
+    "liveCommandId": "",
+    "livePhase": "",
+    "liveKind": "",
+    "liveOutcome": "",
+    "duck": 0,
+    "choreographyActive": false,
+    "choreographySeq": 0,
+    "choreographyPending": 0,
+    "choreographyDropped": 0,
+    "presentationOffsetCm": 0,
+    "maxPresentationOffsetCm": 0,
+    "alignmentYaw": 0,
+    "plannedContactErrorCm": 0,
+    "leanDegrees": 0,
+    "measuredContactErrorCm": 0,
+    "presentationHoldSeconds": 0,
+    "choreographyAge": 0.6000031232833862,
+    "choreographyLOD": 0,
+    "complexity": 0,
+    "control": 0.2172342836856842,
+    "force": 0.20000000298023224,
+    "signatureSeed": 991189645,
+    "primitive": "hook",
+    "weaponFamily": "unarmed",
+    "magicFixture": false,
+    "playedChoreographySequences": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "maxChoreographyActorDriftCm": 0,
+    "pendingAttacks": 0,
+    "pendingHits": 0,
+    "blendDirection": 0,
+    "blendSpeed": 0,
+    "filteredBlendSpeed": 0,
+    "footSeparationCm": 43.65931487700945,
+    "headHeightCm": 160.06507856228131,
+    "pelvisHeightCm": 94.0182876586914,
+    "skippedAttacks": 0,
+    "skippedHits": 0,
+    "speedCmPerSecond": 0,
+    "movementMode": 0,
+    "mesh": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple",
+    "animationTime": 0.15276898443698883,
+    "position": {
+      "x": 35.00000000000014,
+      "y": 0,
+      "z": 190
+    }
+  },
+  "repetition": {
+    "requested": 60,
+    "dispatched": 60,
+    "attackInputs": 30,
+    "duckInputs": 30
+  },
+  "sampleCount": 3735,
+  "rawEvidence": {
+    "file": "native-live-combat-repetitions.raw.json.gz",
+    "uncompressedSha256": "632e658fe5a82d196233278ddcdbe0df665ea4034a692d1e77b1ac50ff6ad24c",
+    "note": "Complete original per-frame diagnostics; gzip compressed without changing their contents.",
+    "storage": "Referenced compressed frame stream is retained locally and deliberately not committed in this checkpoint."
+  }
+}
