@@ -1,3 +1,4 @@
+import { seedMartialBackground, knowsTechnique } from '../sim/mind/martialKnowledge';
 import type { BridgeSession } from './session';
 import { defaultPhysiology, syncNeeds } from '../sim/core/physiology';
 import { B } from '../sim/physical/blocks';
@@ -6,11 +7,24 @@ import { requestCombatAction } from '../sim/physical/combatAction';
 import { applyInteractionMovement } from '../sim/physical/interactionMovement';
 
 const practice=new WeakMap<BridgeSession,{mode:'passive'|'repeat';nextAt:number}>();
-export function setPracticeMode(s:BridgeSession,mode:'passive'|'repeat'|'reset'):string {
+export function setPracticeMode(s:BridgeSession,mode:'passive'|'repeat'|'reset'|'profile_next'|'untrained'|'partial'|'trained'):string {
   if(!s.world.places().some(p=>p.name==='Contact arena'))return 'arena_only';
+  if(['profile_next','untrained','partial','trained'].includes(mode)){
+    const current=arenaMartialProfile(s),profile=mode==='profile_next'?current==='untrained'?'partial':current==='partial'?'trained':'untrained':mode;
+    arrangeCombatArena(s,'idle');
+    for(const p of s.world.persons()){
+      for(const key of Object.keys(p.knowledge))if(key.startsWith('martial:'))delete p.knowledge[key];
+      p.martial={mastery:{},creditedThrough:s.world.physicalTime};Object.assign(p.skills,{unarmed:0});
+      if(profile!=='untrained')for(const id of ['unarmed:jab','unarmed:cross','unarmed:low-kick',...(profile==='trained'?['unarmed:jab-to-cross','unarmed:cross-to-low-kick']:[])])seedMartialBackground(s.world,p,id,.6,.6);
+    }
+    practice.set(s,{mode:'passive',nextAt:s.world.physicalTime+1});return 'accepted';
+  }
   if(mode==='reset')arrangeCombatArena(s,'idle');
   practice.set(s,{mode:mode==='repeat'?'repeat':'passive',nextAt:s.world.physicalTime+1});
   return 'accepted';
+}
+export function arenaMartialProfile(s:BridgeSession):'untrained'|'partial'|'trained' {
+  const p=s.world.persons()[0];return !p||!knowsTechnique(p,'unarmed:jab')?'untrained':knowsTechnique(p,'unarmed:jab-to-cross')&&knowsTechnique(p,'unarmed:cross-to-low-kick')?'trained':'partial';
 }
 export function practiceStatus(s:BridgeSession) {
   if(!s.world.places().some(p=>p.name==='Contact arena'))return null;
@@ -18,7 +32,7 @@ export function practiceStatus(s:BridgeSession) {
   const state=practice.get(s),a=b.combatAction;
   const last=[...s.world.events].reverse().find(e=>e.type==='attack'||e.type==='attack_missed');
   const result=last?.data.combat as {contactRegion?:string}|undefined;
-  return {scripted:true,mode:state?.mode??'passive',ready:!b.dead&&!pb.dead&&b.health>0&&pb.health>0,
+  return {scripted:true,martialProfile:arenaMartialProfile(s),technique:pb.combatAction?.techniqueId??null,transition:pb.combatAction?.transitionTechniqueId??null,mode:state?.mode??'passive',ready:!b.dead&&!pb.dead&&b.health>0&&pb.health>0,
     opponentPhase:a&&a.completeAt>s.world.physicalTime?a.phase:'ready',lastContact:result?.contactRegion??null,lastOutcome:last?.type==='attack'?`hit: ${result?.contactRegion??'body'}`:last?.type==='attack_missed'?'miss':'none'};
 }
 /** Explicit scripted practice controller; every strike/move still uses ordinary canonical mechanics. */

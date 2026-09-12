@@ -3,18 +3,20 @@ import { sampledStrike } from './combatMotion';
 
 export type ContactRegion = 'head' | 'torso' | 'leftArm' | 'rightArm' | 'leftLeg' | 'rightLeg';
 export interface HurtVolume { region: ContactRegion; center: Vec3; radius: number }
-export interface CombatTransform { pos: Vec3; yaw: number; duck: number }
+export interface CombatTransform { pos: Vec3; yaw: number; duck: number; cover?: number }
 export const lerpPoint = (a: Vec3, b: Vec3, t: number): Vec3 => ({ x:a.x+(b.x-a.x)*t, y:a.y+(b.y-a.y)*t, z:a.z+(b.z-a.z)*t });
 /** Shape dispatch is the extension point for creature anatomy. Metres, feet origin, Y up.
  * Limb sides remain physical contact facts; existing coarse injury effects group arm/leg. */
-export function hurtVolumes(body: Pick<Body,'shape'|'pos'|'yaw'>, duck = 0): HurtVolume[] {
+export function hurtVolumes(body: Pick<Body,'shape'|'pos'|'yaw'>, duck = 0, cover = 0): HurtVolume[] {
   const d=Math.max(0,Math.min(1,duck));
   const sphere=(region:ContactRegion,side:number,height:number,radius:number):HurtVolume=>({region,radius,
     center:{x:body.pos.x+Math.cos(body.yaw)*side,y:body.pos.y+height,z:body.pos.z-Math.sin(body.yaw)*side}});
   if(body.shape==='chicken') return [sphere('torso',0,.28,.25)];
   if(body.shape!=='humanoid') return [];
+  const guard=Math.max(0,Math.min(1,cover));
+  const arm=(region:'leftArm'|'rightArm',side:number)=>{const h=sphere(region,side*(1-guard*.65),1.18-.52*d+.4*guard,.14);h.center.x-=Math.sin(body.yaw)*.22*guard;h.center.z-=Math.cos(body.yaw)*.22*guard;return h;};
   return [sphere('head',0,1.65-.50*d,.18),sphere('torso',0,1.12-.50*d,.28),
-    sphere('leftArm',-.38,1.18-.52*d,.14),sphere('rightArm',.38,1.18-.52*d,.14),
+    arm('leftArm',-.38),arm('rightArm',.38),
     sphere('leftLeg',-.16,.43-.08*d,.17),sphere('rightLeg',.16,.43-.08*d,.17)];
 }
 /** Exact first contact of linearly moving spheres. Relative motion prevents tunnelling

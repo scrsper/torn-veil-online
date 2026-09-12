@@ -1,3 +1,4 @@
+import { martialPredictionChoices } from '../sim/physical/martialCombat';
 import { setPracticeMode, practiceStatus, tickPractice } from './combatArena';
 import { combatPresentation } from './combatPresentation';
 import { combatState } from './combatState';
@@ -120,11 +121,11 @@ export class BridgeSession {
   private executeCommand(c: InteractionCommand,commandId?:string): string {
     const w=this.world,q=this.control,b=q&&w.body(q.bodyId),p=b&&w.person(b.ownerId);
     if(!p||!b) return 'binding_mismatch';
-    if(c.type==='practice'){if(c.mode==='reset')this.control?.cancel(w.physicalTime,performance.now());return setPracticeMode(this,c.mode);}
+    if(c.type==='practice'){if(c.mode==='reset'||['profile_next','untrained','partial','trained'].includes(c.mode))this.control?.cancel(w.physicalTime,performance.now());return setPracticeMode(this,c.mode);}
     if(!this.game.controlsBody('local',b.id)) return 'binding_mismatch';
     if(!movementState(w,p,b).eligible) return 'incapacitated';
     if(c.type==='move') {applyInteractionMovement(w,p,b,c,INTERACTION_SPEC.stepSeconds);return 'accepted';}
-    if(c.type==='attack') return submitCombatInput(w,b.id,{kind:'attack',trajectory:c.trajectory,targetBodyId:c.targetBodyId,commandId});
+    if(c.type==='attack') return submitCombatInput(w,b.id,{kind:'attack',trajectory:c.trajectory,primitive:c.primitive,targetBodyId:c.targetBodyId,commandId});
     if(c.type==='defend') return submitCombatInput(w,b.id,{kind:c.kind,side:c.side,direction:c.direction,commandId});
     if(c.type==='cancel') return cancelCombatAction(w,b.id);
     if(c.type==='interact') return performHandInteraction(this.sim,p,c.interactionId);
@@ -137,7 +138,7 @@ export class BridgeSession {
     const geometry=collisionWindow(this.world,b),changed=geometry.revision!==this.controlGeometry;
     this.controlGeometry=geometry.revision;
     return {version:1,type:'local_state',epoch:q.epoch,controllerId:q.controllerId,bodyId:b.id,ack:q.ack,
-      tick:this.world.physicalTime,interactionTick:this.interactionTick,serverTimeMs:performance.now(),state:movementState(this.world,p,b),combatAction:combatState(this.world,b,this.contactTimes.get(b.combatAction?.id??'')),bufferedCombatCommandId:b.combatAction?.queuedInput?.commandId??null,practice:practiceStatus(this),...(changed?{geometry}: {})};
+      tick:this.world.physicalTime,interactionTick:this.interactionTick,serverTimeMs:performance.now(),state:movementState(this.world,p,b),combatAction:combatState(this.world,b,this.contactTimes.get(b.combatAction?.id??'')),bufferedCombatCommandId:b.combatAction?.queuedInput?.commandId??null,practice:practiceStatus(this),martialChoices:martialPredictionChoices(this.world,p,b),...(changed?{geometry}: {})};
   }
   /** Advance fast interaction at 60 Hz; slow population/cognition keeps elapsed 20 Hz work. */
   stepInteraction(now=performance.now()): CommandReceipt[] {

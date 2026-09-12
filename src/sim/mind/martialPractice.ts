@@ -96,7 +96,7 @@ export function learningValue(seconds: number, effort: number, feedback: number,
     || effort < 0.1 || effort > 1 || feedback <= 0 || feedback > 1 || challenge <= 0 || challenge > 1) return 0;
   return seconds / 60 * effort * feedback * Math.sqrt(challenge);
 }
-function credit(world: World, p: Person, id: string, seconds: number, effort: number, feedback: number, challenge: number, ceiling: number, eventId: string): number {
+function credit(world: World, p: Person, id: string, seconds: number, effort: number, feedback: number, challenge: number, ceiling: number, eventId: string, awardFamily = true): number {
   const d = techniqueDefinition(world, id); if (!d || !canExecuteTechnique(world, p, id)) return 0;
   const value = learningValue(seconds, effort, feedback, challenge);
   if (!value) return 0;
@@ -107,7 +107,7 @@ function credit(world: World, p: Person, id: string, seconds: number, effort: nu
   m.seconds += seconds; m.lastEventId = eventId;
   const familyCeiling = ceiling <= SOLO_MASTERY_CEILING ? SOLO_FAMILY_CEILING : 1;
   const familyBefore = skillOf(p, d.family);
-  if (familyBefore < familyCeiling) {
+  if (awardFamily && familyBefore < familyCeiling) {
     // Cap the credited amount before calling the shared curve, not by undoing earned skill.
     const amount = Math.min(value * instruction, (familyCeiling - familyBefore) / (0.015 * instructionFactor(p, d.family) * (1 - familyBefore)));
     practiceSkill(p, d.family, amount, world);
@@ -237,7 +237,7 @@ function discover(world: World, p: Person, parent: TechniqueDefinition, session:
  * evidence to its terminal combat_action event after it has paid the physical effort.
  * No client quality/XP field is accepted. A failed hit can teach if it had real feedback. */
 export interface TechniqueUseEvidence {
-  techniqueId: string; bodyId: string; startPhysicalAt: number; endPhysicalAt: number;
+  techniqueId: string; transitionTechniqueId?: string; bodyId: string; startPhysicalAt: number; endPhysicalAt: number;
   effort: number; feedback: number; challenge: number; targetBodyId?: string;
 }
 export function submitTechniqueUse(world: World, p: Person, eventId: string): number {
@@ -254,6 +254,11 @@ export function submitTechniqueUse(world: World, p: Person, eventId: string): nu
   // its canonical responsive-target assessment, so delayed consumption never reads new motion.
   const responsive = !!target && target.ownerId !== p.id && ev.data.responsiveTarget === true;
   state.creditedThrough = use.endPhysicalAt;
-  return credit(world, p, use.techniqueId, use.endPhysicalAt - use.startPhysicalAt, use.effort, use.feedback, use.challenge,
+  const gain = credit(world, p, use.techniqueId, use.endPhysicalAt - use.startPhysicalAt, use.effort, use.feedback, use.challenge,
     responsive ? 0.95 : SOLO_MASTERY_CEILING, ev.id);
+  const edge = use.transitionTechniqueId && techniqueDefinition(world, use.transitionTechniqueId);
+  if (edge && edge.transition?.to === use.techniqueId && edge.transition.from === ev.data.previousTechniqueId)
+    credit(world, p, edge.techniqueId, (use.endPhysicalAt-use.startPhysicalAt)*0.3, use.effort, use.feedback, use.challenge,
+      responsive ? 0.95 : SOLO_MASTERY_CEILING, ev.id, false);
+  return gain;
 }

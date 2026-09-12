@@ -7,8 +7,14 @@ export function validSavedCombatAction(value: unknown, bodyId: string): boolean 
   if (!value || typeof value !== 'object') return false;
   const a = value as CombatAction;
   if(a.variant!==undefined&&!['direct','hook','kick'].includes(a.variant))return false;
+  if (['techniqueId','transitionTechniqueId','previousTechniqueId','previousActionId','learningEventId','responsiveTargetBodyId'].some(k => {
+    const v=(a as unknown as Record<string,unknown>)[k];return v!==undefined&&(typeof v!=='string'||!v);
+  })) return false;
+  if(a.motion!==undefined&&!['punch','kick','shove','cover','duck','sidestep','backstep'].includes(a.motion))return false;
+  if(a.endStance!==undefined&&!['neutral','guarded','extended','crouched'].includes(a.endStance))return false;
   const queued=a.queuedInput;
-  if(queued!==undefined&&(!queued||typeof queued!=='object'||Array.isArray(queued)||!Number.isFinite(queued.expiresAt)||queued.expiresAt<a.startedAt||queued.expiresAt>a.completeAt+.25||!['attack','sidestep','backstep','duck'].includes(queued.kind)
+  if(queued!==undefined&&(!queued||typeof queued!=='object'||Array.isArray(queued)||!Number.isFinite(queued.expiresAt)||queued.expiresAt<a.startedAt||queued.expiresAt>a.completeAt+.25||!['attack','sidestep','backstep','duck','cover'].includes(queued.kind)
+    ||(queued.primitive!==undefined&&queued.primitive!=='shove')
     ||(queued.commandId!==undefined&&typeof queued.commandId!=='string')
     ||(queued.targetBodyId!==undefined&&typeof queued.targetBodyId!=='string')
     ||(queued.side!==undefined&&![-1,1].includes(queued.side))
@@ -17,7 +23,7 @@ export function validSavedCombatAction(value: unknown, bodyId: string): boolean 
   const vector = (v: unknown): boolean => !!v && typeof v === 'object'
     && ['x', 'y', 'z'].every(k => Number.isFinite((v as Record<string, unknown>)[k]));
   if (typeof a.id !== 'string' || !a.id || a.actorBodyId !== bodyId
-    || !['attack', 'sidestep', 'backstep', 'duck'].includes(a.kind)
+    || !['attack', 'sidestep', 'backstep', 'duck', 'cover'].includes(a.kind)
     || !['high', 'mid', 'low'].includes(a.trajectory)
     || !['requested', 'accepted', 'preparation', 'active', 'recovery', 'complete', 'interrupted', 'cancelled', 'missed'].includes(a.phase)
     || !['pending', 'hit', 'miss', 'interrupted', 'cancelled'].includes(a.outcome)) return false;

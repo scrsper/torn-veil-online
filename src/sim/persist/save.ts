@@ -1,3 +1,5 @@
+import { generateCombatArena } from '../world/combatArena';
+import { martialPersistenceState, validMartialSave, restoreMartialPersistence } from './martialState';
 import { generatePlayableWorld } from '../world/playable';
 import { isExternallyControlled, setExternalControl, hasExternalIntention, authorizeExternalIntention } from '../runtime/controllers';
 import { generateProceduralWorld } from '../world/settlement';
@@ -197,7 +199,7 @@ export function serialize(world: World): string {
   // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
   // falls back to today's behavior (rewind to post-generation position) when absent.
   const rng = world.rng.state(); const weatherRng = world.weatherRng.state(); const demographicRng = world.demographicRng.state();
-  return JSON.stringify({ version: SAVE_VERSION, creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
+  return JSON.stringify({ version: SAVE_VERSION, generator: world.places().some(p=>p.name==='Contact arena')?'combat-arena':undefined, martialLearning: martialPersistenceState(world), creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -239,13 +241,15 @@ export function load(): { world: World; gen: ReturnType<typeof generateVillage> 
 /** Parse a save independently of browser storage so persistence can be regression-tested. */
 export function deserialize(raw: string): { world: World; gen: ReturnType<typeof generateVillage> } | null {
   try {
-    const data = JSON.parse(raw); if (data.version !== SAVE_VERSION) return null;
+    const data = JSON.parse(raw); if (data.version !== SAVE_VERSION || !validMartialSave(data)) return null;
     const world = new World(data.seed);
     const savedKernel = restoreKernel(data.kernel);
     world.wildernessRegions = new Set(data.wildernessRegions ?? []);
     const generated = data.geography ? generatePlayableWorld(world, data.geography) : data.settlementSites ? generateProceduralWorld(world, data.settlementSites) : undefined;
     world.kernel = savedKernel;
-    const gen = generated ? { places: Object.fromEntries(generated.flatMap(s => Object.entries(s.places).map(([k, p]) => [s.spec.site.id + ':' + k, p]))), people: Object.fromEntries(generated.flatMap(s => Object.entries(s.people).map(([k, p]) => [s.spec.site.id + ':' + k, p]))) } : generateVillage(world);
+    const arena=data.generator==='combat-arena';
+    if(arena){if(data.geography||data.settlementSites)return null;generateCombatArena(world);}
+    const gen = arena ? {places:Object.fromEntries(world.places().map(p=>[p.type,p])),people:Object.fromEntries(world.persons().map(p=>[p.id,p]))} : generated ? { places: Object.fromEntries(generated.flatMap(s => Object.entries(s.places).map(([k, p]) => [s.spec.site.id + ':' + k, p]))), people: Object.fromEntries(generated.flatMap(s => Object.entries(s.people).map(([k, p]) => [s.spec.site.id + ':' + k, p]))) } : generateVillage(world);
     for (const s of data.settlements ?? []) { const existing = world.get(s.id); if (existing?.kind === 'settlement') Object.assign(existing, s); else world.add(s); }
     for (const p of data.physicalPlaces ?? []) { const existing = world.place(p.id); if (existing) Object.assign(existing, p); else world.add(p); }
     // overlay
@@ -331,6 +335,7 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     // Generated entity ids are part of the save schema. Refuse a malformed/incompatible
     // overlay rather than booting a world whose player has no physical manifestation.
     if (world.playerId !== null && (!world.person(world.playerId) || !world.primaryBody(world.playerId))) return null;
+    restoreMartialPersistence(world, data);
     return { world, gen };
   } catch (e) { console.warn('load failed', e); return null; }
 }

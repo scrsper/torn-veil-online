@@ -1,3 +1,4 @@
+import { observeTechnique } from './martialKnowledge';
 import { combatActionFacts } from '../physical/combatFacts';
 import { finishExternalIntention } from '../runtime/controllers';
 import { indexWilderness } from '../world/playable';
@@ -349,7 +350,12 @@ export class Simulation {
     // Execution phases remain canonical history. Visible preparation is consumed through
     // the provenance-bearing combat cue, shared by controlled and autonomous minds.
     // Learning each phase as an independent social fact made memory a protocol transcript.
-    if(e.type==='combat_action')return;
+    if(e.type==='combat_action'){
+      if(how==='saw'&&e.data.martialDemonstration&&!e.perceivedBy.some(x=>x.who===p.id)){
+        e.perceivedBy.push({who:p.id,how,tick:w.now});observeTechnique(w,p,e.id);
+      }
+      return;
+    }
     if (e.perceivedBy.some(x => x.who === p.id)) return;
     e.perceivedBy.push({ who: p.id, how, tick: w.now });
     if (e.type === 'told') { if (e.target !== p.id) return; return; } // handled directly in tell()

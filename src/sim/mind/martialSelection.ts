@@ -46,14 +46,21 @@ export function selectMartialAction(world: World, p: Person, input: MartialInput
   if (previous && (previous.actorBodyId !== body.id || opportunity.previousActionId !== previous.id)) return null;
   if (!previous && opportunity.previousActionId) return null;
   if (opportunity.kind === 'chain') {
-    if (!previous || !previous.techniqueId || previous.phase !== 'recovery' || ['interrupted', 'cancelled'].includes(previous.outcome)
+    if (!previous || previous.phase !== 'recovery' || ['interrupted', 'cancelled'].includes(previous.outcome)
       || now < previous.recoveryAt || now >= previous.completeAt || opportunity.opensAt < previous.recoveryAt) return null;
   } else if (previous && now < previous.completeAt) return null;
-  const repertoire = martialRepertoire(world, p, body.id), predecessor = opportunity.kind === 'chain' ? previous!.techniqueId : undefined;
+  return chooseMartialMovement(world, p, input, context, opportunity.kind === 'chain' ? previous!.techniqueId ?? 'legacy:unknown' : undefined);
+}
+
+/** Capability projection uses the same pure choice, without fabricating a live timing opportunity. */
+export function chooseMartialMovement(world: World, p: Person, input: MartialInput, context: Pick<MartialSelectionContext, 'bodyId' | 'stance' | 'preferredMotion'>, predecessor?: string, available?: TechniqueDefinition[]): MartialSelection | null {
+  const body = world.body(context.bodyId); if (!body) return null;
+  const repertoire = available ?? martialRepertoire(world, p, body.id);
   const candidates: { d: TechniqueDefinition; edge?: TechniqueDefinition; score: number }[] = [];
   for (const d of repertoire) {
     const selection = d.selection;
     if (!selection || d.category === 'transition' || selection.input !== input || !selection.stances.includes(context.stance)) continue;
+    if (context.preferredMotion && selection.motion !== context.preferredMotion) continue;
     let edge: TechniqueDefinition | undefined;
     if (predecessor && d.availability !== 'innate') {
       edge = repertoire.filter(t => t.transition?.from === predecessor && t.transition.to === d.techniqueId
@@ -62,7 +69,6 @@ export function selectMartialAction(world: World, p: Person, input: MartialInput
       if (!edge) continue;
     } else if (!predecessor && !selection.entry) continue;
     let score = selection.priority + masteryOf(p, d.techniqueId) * 2 + (d.availability !== 'innate' ? 20 : 0) + (edge ? 100 : 0);
-    if (context.preferredMotion) score += selection.motion === context.preferredMotion ? 60 : -60;
     // Alternating crude punches is motor sequencing, not an invented learned edge.
     if (predecessor === 'motor:basic-punch' && d.techniqueId === 'motor:second-punch') score += 5;
     if (predecessor === 'motor:second-punch' && d.techniqueId === 'motor:basic-punch') score += 5;

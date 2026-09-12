@@ -368,6 +368,7 @@ export class World {
     // Discovered definitions also outlive their discoverer and any surviving manual.
     for (const p of this.persons()) visit(p.martial);
     visit(this.martialDefinitions);
+    for (const b of this.bodies()) visit(b.combatAction);
     for (const item of this.items()) { visit(item.provenance); visit(item.record); }
     visit({ kernel: this.kernel, situations: this.situations, conflicts: this.conflicts, requests: this.requests, haulTasks: this.haulTasks, workStints: this.workStints, eraCauses: this.chronicleEras.map(era => era.causes) });
     const pinCauses = (id: EventId): void => {

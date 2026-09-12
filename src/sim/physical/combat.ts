@@ -42,8 +42,9 @@ export interface CombatAttackIntent {
   weaponId?: EntityId | null;
   intent?: ConflictIntent;
   trajectory?: 'high' | 'mid' | 'low';
+  primitive?: 'shove';
 }
-export type AttackRejection = 'invalid_attacker' | 'invalid_target' | 'self_target' | 'incapacitated' | 'cooldown' | 'invalid_weapon' | 'invalid_mode' | 'out_of_reach' | 'obstructed' | 'protected_target' | 'exhausted';
+export type AttackRejection = 'invalid_attacker' | 'invalid_target' | 'self_target' | 'incapacitated' | 'cooldown' | 'invalid_weapon' | 'invalid_mode' | 'out_of_reach' | 'obstructed' | 'protected_target' | 'exhausted' | 'unavailable_technique';
 export interface CombatAttackResult extends CombatAttackIntent {
   actionId?: string;
   contactRegion?: import('./combatGeometry').ContactRegion;
