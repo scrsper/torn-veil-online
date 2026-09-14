@@ -1,0 +1,191 @@
+{
+  "healthy_701": [
+    {
+      "day": 0,
+      "alive": 8,
+      "born": 0,
+      "pregnant": 0,
+      "forageKg": 774.4,
+      "meanEnergy": 0.8,
+      "meanHydration": 0.8,
+      "travelledM": 0,
+      "deaths": {}
+    },
+    {
+      "day": 10,
+      "alive": 8,
+      "born": 0,
+      "pregnant": 2,
+      "forageKg": 769.719,
+      "meanEnergy": 0.693,
+      "meanHydration": 0.732,
+      "travelledM": 1812.03,
+      "deaths": {}
+    },
+    {
+      "day": 50,
+      "alive": 12,
+      "born": 4,
+      "pregnant": 2,
+      "forageKg": 764.393,
+      "meanEnergy": 0.707,
+      "meanHydration": 0.661,
+      "travelledM": 8908.27,
+      "deaths": {}
+    },
+    {
+      "day": 100,
+      "alive": 18,
+      "born": 10,
+      "pregnant": 1,
+      "forageKg": 750.324,
+      "meanEnergy": 0.765,
+      "meanHydration": 0.699,
+      "travelledM": 25529.72,
+      "deaths": {}
+    }
+  ],
+  "healthy_711": [
+    {
+      "day": 0,
+      "alive": 8,
+      "born": 0,
+      "pregnant": 0,
+      "forageKg": 774.4,
+      "meanEnergy": 0.8,
+      "meanHydration": 0.8,
+      "travelledM": 0,
+      "deaths": {}
+    },
+    {
+      "day": 10,
+      "alive": 8,
+      "born": 0,
+      "pregnant": 3,
+      "forageKg": 769.798,
+      "meanEnergy": 0.717,
+      "meanHydration": 0.73,
+      "travelledM": 1996.64,
+      "deaths": {}
+    },
+    {
+      "day": 50,
+      "alive": 14,
+      "born": 6,
+      "pregnant": 1,
+      "forageKg": 762.257,
+      "meanEnergy": 0.699,
+      "meanHydration": 0.653,
+      "travelledM": 9242.05,
+      "deaths": {}
+    },
+    {
+      "day": 100,
+      "alive": 15,
+      "born": 7,
+      "pregnant": 1,
+      "forageKg": 755.209,
+      "meanEnergy": 0.774,
+      "meanHydration": 0.689,
+      "travelledM": 23424.25,
+      "deaths": {}
+    }
+  ],
+  "overcrowded": [
+    {
+      "day": 0,
+      "alive": 48,
+      "born": 0,
+      "pregnant": 0,
+      "forageKg": 5,
+      "meanEnergy": 0.8,
+      "meanHydration": 0.8,
+      "travelledM": 0,
+      "deaths": {}
+    },
+    {
+      "day": 3,
+      "alive": 48,
+      "born": 0,
+      "pregnant": 0,
+      "forageKg": 0.061,
+      "meanEnergy": 0.312,
+      "meanHydration": 0.773,
+      "travelledM": 32589.12,
+      "deaths": {}
+    },
+    {
+      "day": 10,
+      "alive": 0,
+      "born": 0,
+      "pregnant": 0,
+      "forageKg": 0.321,
+      "meanEnergy": 0,
+      "meanHydration": 0,
+      "travelledM": 133380.18,
+      "deaths": {
+        "starvation": 48
+      }
+    },
+    {
+      "day": 20,
+      "alive": 0,
+      "born": 0,
+      "pregnant": 0,
+      "forageKg": 1.988,
+      "meanEnergy": 0,
+      "meanHydration": 0,
+      "travelledM": 133380.18,
+      "deaths": {
+        "starvation": 48
+      }
+    },
+    {
+      "day": 50,
+      "alive": 0,
+      "born": 0,
+      "pregnant": 0,
+      "forageKg": 5,
+      "meanEnergy": 0,
+      "meanHydration": 0,
+      "travelledM": 133380.18,
+      "deaths": {
+        "starvation": 48
+      }
+    }
+  ],
+  "water_scarcity": {
+    "day": 10,
+    "alive": 0,
+    "born": 0,
+    "pregnant": 0,
+    "forageKg": 851.84,
+    "meanEnergy": 0,
+    "meanHydration": 0,
+    "travelledM": 11732.06,
+    "deaths": {
+      "dehydration": 6
+    }
+  },
+  "performance": {
+    "individuals": 1000,
+    "days": 1,
+    "quantumSeconds": 900,
+    "elapsedMs": 20423.5,
+    "resourceNodes": 4160,
+    "resourceCandidates": 18294809,
+    "pathSearches": 7949,
+    "snapshot": {
+      "day": 1,
+      "alive": 1000,
+      "born": 0,
+      "pregnant": 5,
+      "forageKg": 27498.24,
+      "meanEnergy": 0.637,
+      "meanHydration": 0.571,
+      "travelledM": 28753.58,
+      "deaths": {}
+    }
+  },
+  "elapsedMs": 74928.9
+}
