@@ -150,7 +150,10 @@ void UTVBridgeSubsystem::StartPredictedCombat(const FBufferedCombat& Input) {
         PredictedCombat.Definition=TEXT("crouch_exit");PredictedCombat.ActiveAt=0;PredictedCombat.RecoveryAt=PredictedCombat.CompleteAt=TVInteractionSpec::crouchExitSeconds;
         CombatAge=0;auto Queued=Input;Queued.bBuffered=true;BufferedCombat=Queued;return;
     }
-    const FString Previous=PredictedCombat.Variant,PreviousMove=PredictedCombat.MoveId;const bool Chain=PredictedCombat.IsAttack()&&CombatAge<=PredictedCombat.CompleteAt-PredictedCombat.StartedAt+.3;
+    const FString Previous=PredictedCombat.Variant;
+    const bool PriorAttack=PredictedCombat.IsAttack();
+    const FString PreviousMove=PriorAttack?PredictedCombat.MoveId:PredictedCombat.PriorStrike;
+    const bool Chain=(PriorAttack||!PreviousMove.IsEmpty())&&PredictedCombat.Outcome!=TEXT("interrupted")&&PredictedCombat.Outcome!=TEXT("cancelled")&&CombatAge<=PredictedCombat.CompleteAt-PredictedCombat.StartedAt+.3;
     PredictedCombat=FTVLiveCombat::Predict(Input.Kind,Predicted.Yaw,Input.Side,Input.CommandId);
     PredictedCombat.ActorBodyId=InteractionBody;PredictedCombat.Trajectory=Input.Trajectory;
     PredictedCombat.Variant=Input.Trajectory==TEXT("low")?TEXT("kick"):Chain&&Previous==TEXT("direct")?TEXT("hook"):TEXT("direct");
@@ -158,6 +161,7 @@ void UTVBridgeSubsystem::StartPredictedCombat(const FBufferedCombat& Input) {
         PredictedCombat.MoveId=Input.Trajectory==TEXT("low")?(bArena&&Chain&&PreviousMove==TEXT("front_kick")?TEXT("round_kick"):TEXT("front_kick")):(Chain&&(PreviousMove==TEXT("jab")||PreviousMove.IsEmpty()&&Previous==TEXT("direct"))?TEXT("cross"):TEXT("jab"));
         const auto& M=TVCombatRepertoire::Move(PredictedCombat.MoveId);PredictedCombat.Variant=M.Variant;PredictedCombat.ActiveAt=M.preparation;PredictedCombat.RecoveryAt=M.preparation+M.active;PredictedCombat.CompleteAt=PredictedCombat.RecoveryAt+M.recovery;
     }
+    if(Input.Kind!=TEXT("attack")&&Input.Kind!=TEXT("duck")&&PriorAttack&&Chain)PredictedCombat.PriorStrike=PreviousMove;
     if(!Input.Direction.IsNearlyZero())PredictedCombat.Direction=Input.Direction;
     CombatAge=0;CombatCommandSequence=Input.Sequence;
     const double Now=FPlatformTime::Seconds(),Delay=(Now-Input.InputAt)*1000;

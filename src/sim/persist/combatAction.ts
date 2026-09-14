@@ -7,7 +7,8 @@ export function validSavedCombatAction(value: unknown, bodyId: string): boolean 
   if (!value || typeof value !== 'object') return false;
   const a = value as CombatAction;
   if(a.variant!==undefined&&!['direct','hook','kick','round'].includes(a.variant))return false;
-  if(a.moveId!==undefined&&(!['jab','cross','front_kick','round_kick'].includes(a.moveId)||a.repertoireRevision!==1))return false;
+  if(a.moveId!==undefined&&(!['jab','cross','front_kick','round_kick'].includes(a.moveId)||![1,2].includes(a.repertoireRevision??0)))return false;
+  if(a.priorStrike!==undefined&&(a.repertoireRevision!==2||!['sidestep','backstep'].includes(a.kind)||!['jab','cross','front_kick','round_kick'].includes(a.priorStrike)))return false;
   const queued=a.queuedInput;
   if(queued!==undefined&&(!queued||typeof queued!=='object'||Array.isArray(queued)||!Number.isFinite(queued.expiresAt)||queued.expiresAt<a.startedAt||queued.expiresAt>a.completeAt+.25||!['attack','sidestep','backstep','duck'].includes(queued.kind)
     ||(queued.commandId!==undefined&&typeof queued.commandId!=='string')

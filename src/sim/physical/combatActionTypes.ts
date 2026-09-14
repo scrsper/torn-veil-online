@@ -17,7 +17,9 @@ export interface CombatAction {
   reach:number; radius:number; impact:number; exertionCost:number; intent:ConflictIntent;
   direction:Vec3; distance:number; appliedDistance:number; eventId:string;
   variant?:'direct'|'hook'|'kick'|'round';
-  moveId?:import('./combatRepertoire').CombatMoveId; repertoireRevision?:1;
+  moveId?:import('./combatRepertoire').CombatMoveId; repertoireRevision?:1|2;
+  /** Last executed unarmed strike carried through one step for deterministic follow-up selection. */
+  priorStrike?:import('./combatRepertoire').CombatMoveId;
   queuedInput?: CombatInput & { expiresAt:number };
   contact?:{bodyId:string;region:ContactRegion;position:Vec3;at:number;eventId?:string};
   stoppedAt?:number; stopReason?:string;

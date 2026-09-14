@@ -11,7 +11,7 @@ import { sampledPosture } from './combatMotion';
 import { combatTransitionAt, stepProgress } from './combatTransitions';
 import { advancePostures,beginCrouch,crouchHeld,setCrouchHeld } from './posture';
 import { postureFits } from './prediction';
-import { COMBAT_REPERTOIRE,nextUnarmedMove } from './combatRepertoire';
+import { COMBAT_REPERTOIRE,nextUnarmedMove,precedingStrike } from './combatRepertoire';
 import { arenaRepertoire,combatEffortScale } from './combatPracticeProfile';
 
 export const combatBusy=(b:Body,at:number)=>!!b.combatAction&&b.combatAction.completeAt>at;
@@ -51,7 +51,7 @@ export function requestCombatAction(w:World,intent:CombatAttackIntent,commandId?
     recoveryAt:a.startedAt+S.preparationSeconds+S.activeSeconds,completeAt:a.startedAt+S.preparationSeconds+S.activeSeconds+S.recoverySeconds,
     trackingUntil:a.startedAt+S.preparationSeconds-.1,reach:r.weaponId?r.reach-.3:S.unarmedPathReach,impact:r.impact,exertionCost:r.exertionCost,intent:intent.intent??'injure'});
   if(!r.weaponId){
-    a.moveId=nextUnarmedMove(b.combatAction,w.physicalTime,a.trajectory==='low',arenaRepertoire(w,b.id));a.repertoireRevision=1;
+    a.moveId=nextUnarmedMove(b.combatAction,w.physicalTime,a.trajectory==='low',arenaRepertoire(w,b.id));a.repertoireRevision=2;
     const move=COMBAT_REPERTOIRE.moves[a.moveId];a.variant=move.variant as typeof a.variant;
     a.activeAt=a.startedAt+move.preparation;a.recoveryAt=a.activeAt+move.active;a.completeAt=a.recoveryAt+move.recovery;a.trackingUntil=a.activeAt-.1;
   }
@@ -65,7 +65,8 @@ export function requestDefense(w:World,bodyId:string,kind:DefenseKind,side=1,com
   if(!b.onGround)return 'unsupported';
   if(p.physiology.fatigue+S.defenseEffort*combatEffortScale(w,b.id)>1)return 'exhausted';
   if(!['sidestep','backstep','duck'].includes(kind)||![-1,1].includes(side))return 'invalid_command';
-  const a=base(w,b,kind,commandId);a.repertoireRevision=1;
+  const a=base(w,b,kind,commandId);a.repertoireRevision=2;
+  if(kind!=='duck'&&b.combatAction?.kind==='attack')a.priorStrike=precedingStrike(b.combatAction,w.physicalTime);
   if(kind==='duck'){a.recoveryAt=a.startedAt+S.duckRecoveryAt;a.completeAt=a.startedAt+S.duckSeconds;}
   a.exertionCost=S.defenseEffort;
   a.distance=kind==='sidestep'?S.sidestepMetres:kind==='backstep'?S.backstepMetres:0;
@@ -189,8 +190,8 @@ export function advanceCombat(w:World,dt:number,before:Map<string,CombatTransfor
     for(let i=0;i<n&&!best;i++) {
       const t0=from+(to-from)*i/n,t1=from+(to-from)*(i+1)/n;
       const aa0=transform(ab,t0),aa1=transform(ab,t1);
-      const v0=strikePoint(aa0.pos,aa0.yaw,a.reach,(t0-a.activeAt)/(a.recoveryAt-a.activeAt),a.trajectory,a.weaponId?undefined:a.variant);
-      const v1=strikePoint(aa1.pos,aa1.yaw,a.reach,(t1-a.activeAt)/(a.recoveryAt-a.activeAt),a.trajectory,a.weaponId?undefined:a.variant);
+      const v0=strikePoint(aa0.pos,aa0.yaw,a.reach,(t0-a.activeAt)/(a.recoveryAt-a.activeAt),a.trajectory,a.weaponId?undefined:a.variant,a.repertoireRevision);
+      const v1=strikePoint(aa1.pos,aa1.yaw,a.reach,(t1-a.activeAt)/(a.recoveryAt-a.activeAt),a.trajectory,a.weaponId?undefined:a.variant,a.repertoireRevision);
       for(const tb of bodies) {
         if(tb.ownerId===ab.ownerId||tb.dead||!tb.present)continue;
         const owner=w.get(tb.ownerId),tp=w.person(tb.ownerId);

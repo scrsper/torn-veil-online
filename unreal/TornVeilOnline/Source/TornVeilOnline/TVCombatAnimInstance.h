@@ -15,10 +15,17 @@ public:
     UPROPERTY() TObjectPtr<class UBlendSpace> Locomotion;
     FPoseSnapshot Snapshot;
     bool bSnapshot=false,bLocomotion=false;
+    // Serial changes only on action handoff, never on an authoritative receipt.
+    uint32 FlowSerial=0;
+    bool bFlow=false;
+    float FlowDuration=.14f;
+    float FlowRawAngularDegrees=0,FlowFirstAngularDegrees=0,FlowPelvisJumpCm=0,FlowRootJumpCm=0,FlowFootJumpCm=0;
+    virtual void NativePostEvaluateAnimation() override;
     FVector LocomotionPosition=FVector::ZeroVector;
     float Time = 0, BaseTime = 0, Weight = 0;
     FVector LeftFoot = FVector::ZeroVector, RightFoot = FVector::ZeroVector;
     float FootLock = 0;
+    bool bCarrySupport=false;
     FVector HandGoal=FVector::ZeroVector;
     float HandWeight=0,Duck=0;
     bool bLowStrike=false,bReleaseRightFoot=false;

@@ -39,7 +39,7 @@ ATVCharacter::ATVCharacter() {
     GetCharacterMovement()->BrakingDecelerationWalking = 6000; GetCharacterMovement()->MaxAcceleration = 6000;
     GetCharacterMovement()->GroundFriction = 12;
     CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom")); CameraBoom->SetupAttachment(RootComponent);
-    CameraBoom->TargetArmLength = 340; CameraBoom->SocketOffset = FVector(0, 45, 70); CameraBoom->bUsePawnControlRotation = true;
+    CameraBoom->TargetArmLength = 340; CameraBoom->SocketOffset = FVector(0, 45, 70); CameraBoom->bUsePawnControlRotation = false;CameraBoom->SetUsingAbsoluteRotation(true);
     // A narrow canonical entrance should pull the camera in gently, rather than pinning it to a
     // character's back.  Canonical solids still block the camera through ECC_Camera.
     CameraBoom->ProbeChannel = ECC_Camera; CameraBoom->ProbeSize = 8; CameraBoom->bEnableCameraLag = true; CameraBoom->CameraLagSpeed = 12;
@@ -91,7 +91,7 @@ void ATVCharacter::BeginPlay() {
 FVector ATVCharacter::IntentDirection() const {
     const auto* Bridge = GetWorld() ? GetWorld()->GetSubsystem<UTVBridgeSubsystem>() : nullptr;
     if (!Controller || bIncapacitated || (Bridge && Bridge->bDialogueOpen)) return FVector::ZeroVector;
-    const FRotationMatrix Basis(FRotator(0, Controller->GetControlRotation().Yaw, 0));
+    const FRotationMatrix Basis(FRotator(0, GetActorRotation().Yaw, 0));
     return (Basis.GetUnitAxis(EAxis::X) * ForwardAxis + Basis.GetUnitAxis(EAxis::Y) * RightAxis).GetClampedToMaxSize(1);
 }
 void ATVCharacter::Tick(float Dt) {
@@ -126,6 +126,9 @@ void ATVCharacter::Tick(float Dt) {
         Nameplate->SetVisibility(Bridge && Bridge->Selected()==this && !Bridge->bArena);
         ApplyNameplate(Bridge && Bridge->bInspector); // no-op unless F6 was toggled since the last snapshot
     }
+    // Desired yaw still goes through canonical facing limits. The camera follows the
+    // resulting body yaw, including commitment, while pitch is view-only.
+    if(bCanonicalPlayer&&Controller)CameraBoom->SetWorldRotation(FRotator(Controller->GetControlRotation().Pitch,GetActorRotation().Yaw,0));
     const FVector BeforeChoreography=GetActorLocation();
     const bool bChoreography=CombatPresentation->Present(Dt);
     MaxChoreographyActorDriftCm=FMath::Max(MaxChoreographyActorDriftCm,static_cast<float>(FVector::Dist(BeforeChoreography,GetActorLocation())));
@@ -328,7 +331,7 @@ FString ATVCharacter::PresentationDiagnostics() const {
     J->SetNumberField(TEXT("headHeightCm"), GetMesh()->GetSocketTransform(TEXT("head"), RTS_Component).GetLocation().Z);
     J->SetNumberField(TEXT("pelvisHeightCm"), GetMesh()->GetSocketTransform(TEXT("pelvis"), RTS_Component).GetLocation().Z);
     J->SetNumberField(TEXT("skippedAttacks"), SkippedAttackEvents); J->SetNumberField(TEXT("skippedHits"), SkippedHitEvents);
-    J->SetNumberField(TEXT("heldCrouch"),CanonicalCrouch);J->SetNumberField(TEXT("facingDegrees"),GetActorRotation().Yaw);J->SetNumberField(TEXT("cameraYaw"),Controller?Controller->GetControlRotation().Yaw:0);
+    J->SetNumberField(TEXT("heldCrouch"),CanonicalCrouch);J->SetNumberField(TEXT("facingDegrees"),GetActorRotation().Yaw);J->SetNumberField(TEXT("desiredYaw"),Controller?Controller->GetControlRotation().Yaw:0);J->SetNumberField(TEXT("cameraYaw"),CameraBoom->GetComponentRotation().Yaw);
     J->SetNumberField(TEXT("speedCmPerSecond"), CanonicalVelocity.Size2D());
     J->SetNumberField(TEXT("movementMode"), static_cast<int32>(GetCharacterMovement()->MovementMode));
     if (const auto* HumanoidMesh = GetMesh()->GetSkeletalMeshAsset()) J->SetStringField(TEXT("mesh"), HumanoidMesh->GetPathName());
@@ -405,7 +408,7 @@ void ATVCharacter::Dodge() {
         for(const auto& K:Keys)Value+=K.Scale*(K.Key.IsAnalog()?PC->GetInputAnalogKeyState(K.Key):(PC->IsInputKeyDown(K.Key)?1.f:0.f));return Value;};
     FVector D(Axis(TEXT("Forward")),Axis(TEXT("Right")),0);
     if(D.Size()<TVInteractionSpec::dodgeDeadZone){B->SendCombat(TEXT("backstep"),1,TEXT("high"),At);return;}
-    D.Normalize();D=FRotationMatrix(FRotator(0,PC->GetControlRotation().Yaw,0)).TransformVector(D);
+    D.Normalize();D=FRotationMatrix(FRotator(0,GetActorRotation().Yaw,0)).TransformVector(D);
     B->SendCombat(TEXT("sidestep"),1,TEXT("high"),At,FVector(D.X,0,D.Y));
 }
 

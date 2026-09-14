@@ -7,7 +7,7 @@ bool FTVLiveCombat::Parse(const TSharedPtr<FJsonObject>& J,FTVLiveCombat& O) {
     if(!J||!J->TryGetStringField(TEXT("id"),O.Id)||!J->TryGetStringField(TEXT("kind"),O.Kind))return false;
     J->TryGetStringField(TEXT("commandId"),O.CommandId);J->TryGetStringField(TEXT("actorBodyId"),O.ActorBodyId);
     J->TryGetStringField(TEXT("phase"),O.Phase);J->TryGetStringField(TEXT("outcome"),O.Outcome);J->TryGetStringField(TEXT("trajectory"),O.Trajectory);
-    J->TryGetStringField(TEXT("variant"),O.Variant);J->TryGetStringField(TEXT("definition"),O.Definition);J->TryGetStringField(TEXT("moveId"),O.MoveId);double Revision=0;J->TryGetNumberField(TEXT("repertoireRevision"),Revision);O.RepertoireRevision=Revision;
+    J->TryGetStringField(TEXT("variant"),O.Variant);J->TryGetStringField(TEXT("definition"),O.Definition);J->TryGetStringField(TEXT("moveId"),O.MoveId);double Revision=0;J->TryGetNumberField(TEXT("repertoireRevision"),Revision);O.RepertoireRevision=Revision;J->TryGetStringField(TEXT("priorStrike"),O.PriorStrike);
     if(!J->TryGetNumberField(TEXT("startedAt"),O.StartedAt)||!J->TryGetNumberField(TEXT("activeAt"),O.ActiveAt)||!J->TryGetNumberField(TEXT("recoveryAt"),O.RecoveryAt)||!J->TryGetNumberField(TEXT("completeAt"),O.CompleteAt))return false;
     J->TryGetNumberField(TEXT("facing"),O.Facing);J->TryGetNumberField(TEXT("reach"),O.Reach);J->TryGetNumberField(TEXT("radius"),O.Radius);J->TryGetNumberField(TEXT("distance"),O.Distance);
     const TSharedPtr<FJsonObject>* D;
@@ -17,7 +17,7 @@ bool FTVLiveCombat::Parse(const TSharedPtr<FJsonObject>& J,FTVLiveCombat& O) {
     return FMath::IsFinite(O.StartedAt)&&FMath::IsFinite(O.CompleteAt)&&O.CompleteAt>=O.StartedAt&&O.CompleteAt-O.StartedAt<3;
 }
 FTVLiveCombat FTVLiveCombat::Predict(const FString& Kind,double Facing,int32 Side,const FString& CommandId) {
-    using namespace TVInteractionSpec;FTVLiveCombat A;A.Kind=Kind;A.CommandId=CommandId;A.Id=CommandId;A.Facing=Facing;A.bPredicted=true;A.RepertoireRevision=1;A.Phase=TEXT("preparation");A.Outcome=TEXT("pending");
+    using namespace TVInteractionSpec;FTVLiveCombat A;A.Kind=Kind;A.CommandId=CommandId;A.Id=CommandId;A.Facing=Facing;A.bPredicted=true;A.RepertoireRevision=2;A.Phase=TEXT("preparation");A.Outcome=TEXT("pending");
     A.ActiveAt=Kind==TEXT("attack")?preparationSeconds:0;A.RecoveryAt=Kind==TEXT("attack")?preparationSeconds+activeSeconds:defenseSeconds;
     A.CompleteAt=A.RecoveryAt+(Kind==TEXT("attack")?recoverySeconds:defenseRecoverySeconds);A.Reach=unarmedPathReach;
     if(Kind==TEXT("duck")){A.RecoveryAt=duckRecoveryAt;A.CompleteAt=duckSeconds;}
@@ -35,18 +35,18 @@ FTVMovementState FTVLiveCombat::Step(const FTVMovementState& State,double Age,do
 double FTVLiveCombat::TransitionAge(const FString& NextKind) const {
     if(!IsValid())return 0;
     if(Outcome==TEXT("interrupted")||Outcome==TEXT("cancelled")||Kind==TEXT("duck"))return CompleteAt-StartedAt;
-    if(!MoveId.IsEmpty()) {const auto& M=TVCombatRepertoire::Move(MoveId);return FMath::Min(CompleteAt-StartedAt,NextKind==TEXT("attack")?M.attackAt:NextKind==TEXT("duck")||NextKind==TEXT("crouch")?M.postureAt:NextKind==TEXT("move")?M.moveAt:M.stepAt);}
+    if(!MoveId.IsEmpty()) {const auto& M=TVCombatRepertoire::Move(MoveId,RepertoireRevision);return FMath::Min(CompleteAt-StartedAt,NextKind==TEXT("attack")?M.attackAt:NextKind==TEXT("duck")||NextKind==TEXT("crouch")?M.postureAt:NextKind==TEXT("move")?M.moveAt:M.stepAt);}
     if(NextKind==TEXT("move")&&RepertoireRevision==0)return CompleteAt-StartedAt;
     if(IsAttack())return FMath::Min(CompleteAt-StartedAt,RecoveryAt-StartedAt+(NextKind==TEXT("attack")?TVInteractionSpec::attackChainSeconds:TVInteractionSpec::attackEvadeSeconds));
     return RecoveryAt-StartedAt;
 }
 FVector FTVLiveCombat::StrikePoint(double Age) const {
     const double Active=RecoveryAt-ActiveAt;
-    const FVector Local=TVCombatMotion::Strike(Variant,(Age-(ActiveAt-StartedAt))/FMath::Max(.001,Active)*(Variant==TEXT("round")?.2:.15));
+    const FVector Local=TVCombatMotion::Strike(Variant,(Age-(ActiveAt-StartedAt))/FMath::Max(.001,Active)*(Variant==TEXT("round")?(RepertoireRevision==2?.28:.2):.15),RepertoireRevision);
     return FVector(-FMath::Sin(Facing)*Local.Z+FMath::Cos(Facing)*Local.X,Local.Y,-FMath::Cos(Facing)*Local.Z-FMath::Sin(Facing)*Local.X);
 }
 float FTVLiveCombat::Duck(double Age) const {return Kind==TEXT("duck")&&Running(Age)?TVCombatMotion::Duck(Age):0;}
-FTVChoreographyPlan FTVLiveCombat::Plan(int32 LOD) const {
+FTVChoreographyPlan FTVLiveCombat::Plan(int32 LOD,bool Chain) const {
     FTVChoreographyRequest R;R.LOD=LOD;R.Event.WeaponType=TEXT("unarmed");R.Event.ActorBodyId=ActorBodyId;R.Event.Strength=Strength;R.Event.Dexterity=Dexterity;R.Event.Exertion=Exertion;R.Event.Outcome=TEXT("miss");
     auto P=FTVCombatChoreographer::Plan(R);P.Anticipation=ActiveAt-StartedAt;P.Strike=RecoveryAt-ActiveAt;P.Recovery=CompleteAt-RecoveryAt;P.Duration=CompleteAt-StartedAt;P.ContactAt=RecoveryAt-StartedAt;
     P.bTimeline=true;
@@ -58,7 +58,7 @@ FTVChoreographyPlan FTVLiveCombat::Plan(int32 LOD) const {
         const double Forward=-Direction.X*FMath::Sin(Facing)-Direction.Z*FMath::Cos(Facing);
         Clip=FMath::Abs(Forward)>FMath::Abs(Right)?(Forward>0?TEXT("StepForward"):TEXT("StepBack")):(Right>0?TEXT("StepRight"):TEXT("StepLeft"));
     }
-    if(!MoveId.IsEmpty()) {const auto& M=TVCombatRepertoire::Move(MoveId);P.Motion.Id=MoveId;P.Motion.AssetPath=M.Asset;P.Motion.Effector=M.Effector;P.SamplePreparation=M.samplePreparation;P.SampleActive=M.sampleActive;P.SampleRecovery=M.sampleRecovery;}
+    if(!MoveId.IsEmpty()) {const auto& M=TVCombatRepertoire::Move(MoveId,RepertoireRevision);P.Motion.Id=MoveId;P.Motion.AssetPath=Chain?M.ChainAsset:M.Asset;P.SampleStart=Chain?M.chainStart:0;P.Motion.Effector=M.Effector;P.SamplePreparation=M.samplePreparation;P.SampleActive=M.sampleActive;P.SampleRecovery=M.sampleRecovery;}
     else {P.Motion.Id=Clip;P.Motion.AssetPath=TEXT("/Game/TornVeil/Combat/Repair/Animations/A_TV_")+Clip;}
     P.Motion.Length=P.Duration;P.Motion.ContactTime=P.ContactAt;
     P.AlignmentYaw=0;P.PivotYaw=0;P.LeanDegrees=0;P.ContactOffset=FVector::ZeroVector;P.FX.HitStop=0;P.FX.Impact=0;P.FX.Camera=0;return P;

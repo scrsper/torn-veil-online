@@ -5,7 +5,7 @@
 
 /** Disposable physical timeline. Canonical seconds on wire; Age is client presentation time. */
 struct TORNVEILONLINE_API FTVLiveCombat {
-    FString MoveId,Definition,Id, CommandId, ActorBodyId, Kind, Phase, Outcome, Trajectory=TEXT("high"), Variant=TEXT("direct");
+    FString PriorStrike,MoveId,Definition,Id, CommandId, ActorBodyId, Kind, Phase, Outcome, Trajectory=TEXT("high"), Variant=TEXT("direct");
     double StartedAt=0, ActiveAt=.3, RecoveryAt=.45, CompleteAt=.75, Facing=0, Reach=.9, Radius=.12;
     FVector Direction=FVector::ZeroVector;
     double Distance=0, ContactAt=-1;
@@ -23,5 +23,5 @@ struct TORNVEILONLINE_API FTVLiveCombat {
     FTVMovementState Step(const FTVMovementState& State,double Age,double Dt,TFunctionRef<TOptional<FTVPredictionColumn>(int32,int32)> Column) const;
     FVector StrikePoint(double Age) const;
     float Duck(double Age) const;
-    FTVChoreographyPlan Plan(int32 LOD) const;
+    FTVChoreographyPlan Plan(int32 LOD,bool Chain=false) const;
 };

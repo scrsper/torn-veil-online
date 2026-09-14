@@ -1,6 +1,7 @@
 #include "TVLiveCombat.h"
 #include "TVInteractionSpec.generated.h"
 #include "TVCombatRepertoire.generated.h"
+#include "TVCombatPoseFlow.h"
 #if WITH_DEV_AUTOMATION_TESTS
 #include "Misc/AutomationTest.h"
 #include "Animation/AnimSequence.h"
@@ -44,6 +45,26 @@ bool FTVCombatRefinementParity::RunTest(const FString&){
   TestTrue(TEXT("active pose remains fully weighted"),P.Weight(float(M.preparation+M.active*.5))>.99f);
  }
  for(const TCHAR* Name:{TEXT("CrouchEnter"),TEXT("CrouchIdle"),TEXT("CrouchMoveF"),TEXT("CrouchMoveB"),TEXT("CrouchMoveL"),TEXT("CrouchMoveR")})TestNotNull(TEXT("owned posture clip"),LoadObject<UAnimSequence>(nullptr,*(FString(TEXT("/Game/TornVeil/Combat/Refinement/Animations/A_TV_"))+Name)));
+ return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTVCombatFlowContinuity,"TornVeil.Realtime.Flow.PoseAndTiming",EAutomationTestFlags::EditorContext|EAutomationTestFlags::EngineFilter)
+bool FTVCombatFlowContinuity::RunTest(const FString&) {
+ const FVector Offset(1,2,3),Velocity(-4,5,2);const float Duration=.14f,Epsilon=.00001f;
+ TestTrue(TEXT("handoff retains outgoing pose"),TVCombatPoseFlow::Residual(Offset,Velocity,0,Duration).Equals(Offset,1e-6));
+ TestTrue(TEXT("handoff retains bounded velocity"),((TVCombatPoseFlow::Residual(Offset,Velocity,Epsilon,Duration)-Offset)/Epsilon).Equals(Velocity,.03));
+ TestTrue(TEXT("contact has zero residual"),TVCombatPoseFlow::Residual(Offset,Velocity,Duration,Duration).IsZero());
+ TestTrue(TEXT("contact has zero residual velocity"),(TVCombatPoseFlow::Residual(Offset,Velocity,Duration-Epsilon,Duration)/Epsilon).IsNearlyZero(.03));
+ for(const TCHAR* Id:{TEXT("jab"),TEXT("cross"),TEXT("front_kick"),TEXT("round_kick")}){
+  const auto& M=TVCombatRepertoire::Move(Id);auto A=FTVLiveCombat::Predict(TEXT("attack"),0,1,Id);A.MoveId=Id;A.Variant=M.Variant;A.ActiveAt=M.preparation;A.RecoveryAt=A.ActiveAt+M.active;A.CompleteAt=A.RecoveryAt+M.recovery;
+  const auto P=A.Plan(0,true);TestNotNull(TEXT("owned chain derivative loads"),LoadObject<UAnimSequence>(nullptr,*P.Motion.AssetPath));
+  TestNearlyEqual(TEXT("chain contact begins at exact authored active sample"),double(P.SampleTime(M.preparation)),M.samplePreparation,.00001);
+  TestNearlyEqual(TEXT("chain never fades through idle during recovery"),double(P.Weight(A.CompleteAt-.01)),1.,.00001);
+  TestTrue(TEXT("chain does not displace canonical root"),P.Offset(.1).IsNearlyZero());
+ }
+ const auto& Old=TVCombatRepertoire::Move(TEXT("round_kick"),1);const auto& Now=TVCombatRepertoire::Move(TEXT("round_kick"),2);
+ TestNearlyEqual(TEXT("old round save keeps old commitment"),Old.attackAt,.7,1e-8);
+ TestTrue(TEXT("round chamber and follow-through have distinct expanded intervals"),Now.preparation>Old.preparation&&Now.recovery>Old.recovery&&Now.attackAt>Old.attackAt);
+ TestEqual(TEXT("approved front kick asset preserved"),FString(TVCombatRepertoire::Move(TEXT("front_kick"),1).Asset),FString(TVCombatRepertoire::Move(TEXT("front_kick"),2).Asset));
  return true;
 }
 #endif

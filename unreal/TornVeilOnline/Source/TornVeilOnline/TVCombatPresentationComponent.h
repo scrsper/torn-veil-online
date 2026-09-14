@@ -18,6 +18,7 @@ public:
     void ContactReaction();
     FString LiveActionId() const {return Live.Id;}
     double LiveActionAge() const {return Age;}
+    double TransitionAge(const FString& Kind) const {return Live.TransitionAge(Kind);}
     void Enqueue(const FTVChoreographyRequest& Request, const FTVChoreographyPlan& Plan, double Start);
     bool Present(float Dt);
     void Cancel();
@@ -30,8 +31,6 @@ public:
     FString AnimationPath() const;
 private:
     UPROPERTY() TObjectPtr<class UAnimSequence> Idle;
-    UPROPERTY() TObjectPtr<class UAnimSequence> TransitionBase;
-    float TransitionBaseTime=0;
     FPoseSnapshot TransitionSnapshot;
     UPROPERTY() TMap<FString,TObjectPtr<class UAnimSequence>> Animations;
     UPROPERTY() TObjectPtr<class UProceduralMeshComponent> Ribbon;
@@ -40,7 +39,9 @@ private:
     TArray<FTVScheduledCombat> Queue;
     FTVScheduledCombat Current;
     bool bActive=false,bContact=false;
-    bool bLive=false,bOwningTimeline=false;
+    bool bLive=false,bOwningTimeline=false,bChain=false;
+    uint32 FlowSerial=0;
+    float FlowDuration=0;
     FTVLiveCombat Live;
     double LiveAge=0,LiveContactReceivedAt=-1;
     float Age=0, Hold=0, MaxOffset=0, MeasuredContactError=0;

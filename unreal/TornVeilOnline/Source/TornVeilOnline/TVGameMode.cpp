@@ -10,7 +10,7 @@ void ATVHUD::DrawHUD() {
     DrawRect(FLinearColor(0.015f, 0.02f, 0.035f, 0.85f), 20, 20, B->bArena?960:660, B->bArena?145:100);
     DrawText(TEXT("TORN VEIL  /  LIVING WORLD"), FLinearColor(0.9f, 0.72f, 0.4f), 36, 30, nullptr, 1.5f);
     DrawText(B->ConnectionStatus(), FLinearColor::White, 36, 65);
-    DrawText(TEXT("WASD move  |  Shift run  |  Mouse orbit  |  Wheel zoom  |  Tab target  |  LMB punch / RMB kick  |  E interact  |  C eat  |  Q drop  |  M mechanisms  |  F5 save  |  F6 debug"), FLinearColor(0.7f, 0.75f, 0.8f), 36, 90);
+    DrawText(TEXT("WASD move/strafe  |  Shift run  |  Mouse face/look  |  Wheel zoom  |  Tab target  |  LMB punch / RMB kick  |  E interact  |  C eat  |  Q drop  |  M mechanisms  |  F5 save  |  F6 debug"), FLinearColor(0.7f, 0.75f, 0.8f), 36, 90);
     if(B->bArena) {
         DrawText(TEXT("Space + direction dodge | hold Ctrl crouch | F1 passive | F2 incoming | F3 reset | F4 physiology"),FLinearColor(1,.85f,.5f),36,112);
         DrawText(B->PracticeStatus,FLinearColor(1,.85f,.5f),36,134);

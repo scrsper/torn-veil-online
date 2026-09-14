@@ -27,9 +27,9 @@ export function sweepSphereContact(a0:Vec3,a1:Vec3,ar:number,b0:Vec3,b1:Vec3,br:
   const bb=2*(x*dx+y*dy+z*dz),disc=bb*bb-4*aa*c;if(disc<0)return null;
   const t=(-bb-Math.sqrt(disc))/(2*aa);return t>=0&&t<=1?t:null;
 }
-export function strikePoint(pos:Vec3,yaw:number,reach:number,progress:number,trajectory:'high'|'mid'|'low',variant?:'direct'|'hook'|'kick'|'round'):Vec3 {
+export function strikePoint(pos:Vec3,yaw:number,reach:number,progress:number,trajectory:'high'|'mid'|'low',variant?:'direct'|'hook'|'kick'|'round',revision=1):Vec3 {
   if(variant){
-    const [side,height,forward]=sampledStrike(variant,progress);
+    const [side,height,forward]=sampledStrike(variant,progress,revision);
     return {x:pos.x-Math.sin(yaw)*forward+Math.cos(yaw)*side,y:pos.y+height,z:pos.z-Math.cos(yaw)*forward-Math.sin(yaw)*side};
   }
   const extension=.35+(reach-.35)*Math.max(0,Math.min(1,progress));
