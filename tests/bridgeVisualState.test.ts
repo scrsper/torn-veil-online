@@ -102,8 +102,12 @@ describe('humanoid visual event counts', () => {
     const target = addPerson(tw, 'Target', 'farmer', v(11, 1, 10), { controlled: true });
     const ab = w.primaryBody(a.id)!, tb = w.primaryBody(target.id)!; ab.yaw = -Math.PI / 2;
     expect(sim.attack(a, ab, tb).attempted).toBe(true);
-    step(tw, .5);
+    // Startup is committed; the current repertoire permits a recovery successor at .5 s.
+    // Count a real rejected request before contact, then retain the original hit assertions.
+    step(tw, .1);
     expect(sim.attack(a, ab, tb).rejection).toBe('cooldown');
+    expect([ab.attackSeq, tb.hitSeq]).toEqual([1, 0]);
+    step(tw, .4);
     expect([ab.attackSeq, tb.hitSeq]).toEqual([1, 1]);
     w.physicalTime += MELEE_COOLDOWN + .01;
     ab.yaw = Math.PI; // target is to the side, outside the forward swing arc.
