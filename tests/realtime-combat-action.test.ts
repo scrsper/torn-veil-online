@@ -102,6 +102,23 @@ describe('canonical realtime combat action requests', () => {
     expect(restored!.world.physicalTime).toBe(x.world.physicalTime);
   });
 
+  it('preserves an endpoint-admitted defense interrupted by earlier swept contact on save/load', () => {
+    const x = setup(); x.attackerBody.yaw = -Math.PI / 2;
+    requestCombatAction(x.world, x.intent, 'swept-before-defense');
+    x.world.physicalTime = .4;
+    expect(requestDefense(x.world, x.targetBody.id, 'sidestep')).toBe('accepted');
+    const defense = x.targetBody.combatAction!;
+    x.sim.step(.15, .15);
+    expect(x.attackerBody.combatAction?.outcome).toBe('hit');
+    expect(x.attackerBody.combatAction!.contact!.at).toBeLessThan(defense.startedAt);
+    expect(defense.outcome).toBe('interrupted');
+    expect(defense.stoppedAt).toBe(defense.startedAt);
+    expect(defense.recoveryAt).toBeGreaterThanOrEqual(defense.startedAt);
+    const restored = deserialize(serialize(x.world));
+    expect(restored).not.toBeNull();
+    expect(restored!.world.body(x.targetBody.id)!.combatAction).toEqual(JSON.parse(JSON.stringify(defense)));
+  });
+
   it('rejects corrupt persisted executable actions instead of dropping them', () => {
     const x = setup(); requestCombatAction(x.world, x.intent);
     const saved = JSON.parse(serialize(x.world));

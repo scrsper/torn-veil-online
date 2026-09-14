@@ -117,6 +117,9 @@ export function submitCombatInput(w:World,bodyId:string,input:CombatInput):strin
 export function stopCombatAction(w:World,b:Body,reason:string,cancel=false,at=w.physicalTime):void {
   setCrouchHeld(w,b,false);
   const a=b.combatAction;if(!a||a.completeAt<=at||a.outcome==='interrupted'||a.outcome==='cancelled')return;
+  // Swept contact can precede a defense admitted at this timestep's endpoint. Keep the
+  // contact's own time, but that newer action cannot be interrupted before it exists.
+  at=Math.max(at,a.startedAt);
   a.outcome=cancel?'cancelled':'interrupted';a.stoppedAt=at;a.stopReason=reason;
   a.queuedInput=undefined;setCrouchHeld(w,b,false);
   a.completeAt=at+S.defenseRecoverySeconds;a.recoveryAt=at;
