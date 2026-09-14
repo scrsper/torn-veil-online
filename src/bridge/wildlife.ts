@@ -7,6 +7,8 @@ export interface WildlifeBodyProjection {
   bodyPlan: { id: string; shape: Body['shape']; heightM: number; radiusM: number };
   pos: Vec3; yaw: number; vel: Vec3;
   scale: number; ageClass: 'juvenile' | 'adult';
+  /** Coarse visible physical condition, normalized from the canonical body health. */
+  condition: number;
   alive: boolean; dead: boolean; present: boolean;
   activity: 'idle' | 'walk' | 'forage' | 'eat' | 'drink' | 'rest' | 'sleep' | 'flee' | 'dead';
 }
@@ -38,7 +40,8 @@ export function wildlifeProjection(world: World, viewer: Body | undefined, regio
     bodies.push({ bodyId: body.id, creatureId: creature.id, speciesId: creature.species, regionId,
       bodyPlan: { id: spec.bodyPlan.id, shape: body.shape, heightM: spec.bodyPlan.heightM, radiusM: spec.bodyPlan.radiusM },
       pos: { ...body.pos }, yaw: body.yaw, vel: { ...body.vel }, scale: Math.round(size * 20) / 20,
-      ageClass: size < 1 ? 'juvenile' : 'adult', alive: !body.dead, dead: body.dead, present: body.present, activity });
+      ageClass: size < 1 ? 'juvenile' : 'adult', condition: body.dead ? 0 : Math.max(0, Math.min(1, body.health / Math.max(1e-9, body.maxHealth))),
+      alive: !body.dead, dead: body.dead, present: body.present, activity });
   }
   return frame;
 }
