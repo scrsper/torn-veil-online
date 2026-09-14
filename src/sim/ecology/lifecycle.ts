@@ -8,7 +8,7 @@ import type { AnimalEmbodiment, SpeciesSpec } from './types';
 
 export function reproductiveEligibility(world: World, animal: Creature, body: Body, spec: SpeciesSpec, resources: ResourceNode[], queries: EcologyQueries, tick = world.now): boolean {
   const a = animal.wildlife!, e = a.embodiments[body.id], p = e.physiology;
-  if (a.sex !== 'female' || !isMature(animal, spec, tick) || a.nextBreedAt > tick || body.dead || !body.present
+  if (e.encounter?.threat || a.sex !== 'female' || !isMature(animal, spec, tick) || a.nextBreedAt > tick || body.dead || !body.present
     || p.energy < spec.reproduction.minCondition || p.hydration < spec.reproduction.minCondition || p.fatigue > 0.6 || p.sleepDebt > 6
     || (spec.habitats[habitatAt(world, body.pos)] ?? 0) < 0.5 || !resources.some(n => n.kind === 'surface_water')) return false;
   resources = localAvailableResources(world, body, spec, resources);
@@ -27,6 +27,7 @@ export function nurse(world: World, animal: Creature, body: Body, state: AnimalE
   if (!mother?.wildlife) return false;
   const maternalBody = mother.bodies.map(id => world.body(id)).find(b => b?.present && !b.dead && visible(world, body.pos, b.pos, 2));
   if (!maternalBody) return false;
+  if (mother.wildlife.embodiments[maternalBody.id]?.encounter?.threat) return false;
   const source = mother.wildlife.embodiments[maternalBody.id]?.physiology; if (!source) return false;
   const childScale = bodyScale(spec, ageDays(animal, tick)), motherScale = bodyScale(spec, ageDays(mother, tick));
   const transferKJ = Math.min(0.15 * spec.metabolism.energyReserveKJ * childScale, Math.max(0, source.energy - 0.35) * spec.metabolism.energyReserveKJ * motherScale);
@@ -59,7 +60,6 @@ export function stepReproduction(world: World, animal: Creature, body: Body, sta
       const child = createAnimal(world, animal.species, { ...body.pos }, { ageDays: 0, parentIds: [animal.id, gestation.mateId], tick, cause: gestation.cause });
       const childBody = world.body(child.bodies[0])!, childState = child.wildlife!.embodiments[childBody.id];
       childState.physiology.energy = 0.5; childState.physiology.hydration = 0.7;
-      queries.bodies.point(childBody, childBody.pos);
     }
     return;
   }

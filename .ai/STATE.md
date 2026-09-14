@@ -1,3 +1,14 @@
+# Realtime wildlife integration v0.2 — porting in progress, 2026-09-14
+
+Branch `codex/wildlife-realtime-integration-v0-2`, created fresh from consolidated
+main `7152abb` (wildlife ecology PR #39 + realtime combat PR #40). The unique
+functionality from the older `codex/wildlife-realtime-integration-v0-1` commit
+`3a9373e` (itself built on an older combat checkpoint `53901d5`, predating the
+continuous-combat-flow and family/robbery precondition work now on main) is being
+reapplied here rather than merging that branch's old combined ancestry. See the
+v0.1 entry immediately below for what that source functionality is; this section
+will be updated once porting/validation on the current main base is complete.
+
 # Realtime combat consolidated with wildlife main — 2026-09-13
 
 Branch `codex/realtime-interaction-v0-1`; normal merge `ee93cff` joins combat `b5693ad`
@@ -35,6 +46,30 @@ native Editor build and 10 native Realtime tests pass. No full regression was ru
 Human arena: `pwsh -File unreal/scripts/Start-CombatArena.ps1 -Port 59414`.
 Stop for human playtest; approval is not claimed. Existing unrelated local work is preserved.
 The older full-suite 851/852 family failure remains unresolved and outside this pass.
+
+# Wildlife / realtime integration v0.1 — 2026-09-13 (source evidence for v0.2 above)
+
+Branch `codex/wildlife-realtime-integration-v0-1` in the dedicated Documents worktree
+`TornVeilOnline-wildlife-integration`. Merge `39193ee` has realtime `53901d5` and wildlife
+`d991d22` as its parents. Source branches were not modified. No main merge or PR.
+Report: `docs/WILDLIFE_REALTIME_INTEGRATION_V0_1.md`.
+
+- Same canonical Creature/Body identities across background and active encounters. Active
+  movement follows the interaction clock; sensing runs at 5 Hz, biology at 900 world seconds.
+  Persisted per-body activity accounting prevents free/duplicate travel, food or sleep.
+- Common physical presence query reuses World's body spatial index. Sight-gated avoidance and
+  responsive ecological travel use existing navigation/collision and species walking limits.
+- Additive bridge wildlife observation and regional resource quantities preserve identity,
+  death vs presentation absence, finite matter and active save/load continuation. Save schema
+  remains 24, ecology version 1. No species, animal combat, hunting or ownership were added.
+- Focused distinct coverage: 216 passed, one existing humanoid visual-state cooldown assertion
+  failed identically on clean realtime base `53901d5`; it remains unchanged. Final selected
+  integration/realtime/bridge plus extra visual-state file: 128 passed, the same baseline failure;
+  original ecology: 23 passed. Typecheck/build passed.
+  Existing resource/physiology coverage passed 65 checks, including its eight-world-day case.
+- Active group bound: 128 deer / 60 physical ticks, fewer than 5,120 body broad-phase candidates.
+  Full repository regression not run. No Unreal code, assets, startup or acceptance work.
+  Native DTO/actor/animation/resource visuals and playtest work remain with the Unreal owner.
 
 # Camera-facing combat refinement — human playtest checkpoint, 2026-09-12
 

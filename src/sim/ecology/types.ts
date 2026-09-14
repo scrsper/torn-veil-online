@@ -25,8 +25,17 @@ export interface SpeciesSpec extends CreatureSpeciesSpec {
   };
   spacing: { densityRadiusM: number; comfortableNeighbours: number };
 }
-export type AnimalActivity = 'seek_food' | 'eat' | 'seek_water' | 'drink' | 'sleep' | 'rest' | 'seek_habitat' | 'roam' | 'idle' | 'nurse' | 'dead';
+export type AnimalActivity = 'seek_food' | 'eat' | 'seek_water' | 'drink' | 'sleep' | 'rest' | 'seek_habitat' | 'roam' | 'idle' | 'nurse' | 'flee' | 'dead';
 export interface AnimalEmbodiment {
+  /** Optional live encounter scheduler state; absent on legacy/background-only saves.
+   * Accounted time cannot be spent again by the coarse movement/physiology pass. */
+  encounter?: {
+    active: boolean;
+    threat: { bodyId: EntityId; pos: Vec3; seenAt: number } | null;
+    nextRouteAt: number;
+    accountedWorldSeconds: number; accountedPhysicalSeconds: number; walkingWorldSeconds: number; sleepingWorldSeconds: number;
+    intake: { nodeId: EntityId; activity: 'eat' | 'drink'; worldSeconds: number; previousActivity: AnimalActivity } | null;
+  };
   physiology: Physiology;
   activity: AnimalActivity;
   target: { pos: Vec3; resourceId?: EntityId } | null;
@@ -46,6 +55,8 @@ export interface AnimalState {
 }
 export interface EcologyState {
   version: 1;
+  /** Physical countdown for the live scheduler, separate from ecological world time. */
+  interaction?: { senseRemainingSeconds: number };
   species: Record<string, SpeciesSpec>;
   rngState: number;
   processedAt: Tick; pendingWorldSeconds: number; pendingPhysicalSeconds: number;

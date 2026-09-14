@@ -91,6 +91,7 @@ export function naturalDeath(world: World, animal: Creature, body: Body, state: 
   if (body.dead) return;
   body.health = 0; body.dead = true; body.pose = 'dead'; body.path = null; body.pathGoal = null; body.vel = { x: 0, y: 0, z: 0 };
   state.activity = 'dead'; state.target = null; state.diedAt = tick; state.deathCause = cause;
+  if (state.encounter) { state.encounter.active = false; state.encounter.threat = null; }
   world.emit('animal_died', { actor: animal.id, tick, pos: { ...body.pos }, category: 'world', significance: 0.1,
     visibility: 0.3, loudness: 0, data: { species: animal.species, bodyId: body.id, cause,
       energy: state.physiology.energy, hydration: state.physiology.hydration, starvationHours: state.starvationHours, dehydrationHours: state.dehydrationHours },

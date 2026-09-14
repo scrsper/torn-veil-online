@@ -11,6 +11,8 @@ import { applyInteractionMovement, collisionWindow, movementState } from '../sim
 import { mechanismPanel } from '../sim/runtime/mechanismPanel';
 import { generatePlayableWorld, indexWilderness } from '../sim/world/playable';
 import { RegionStream } from './regions';
+import { wildlifeProjection } from './wildlife';
+import { initializeWildlife } from '../sim/ecology/generation';
 import { deserialize, serialize } from '../sim/persist/save';
 import { GameSim, type PersonIntent } from '../sim/runtime/gameSim';
 import { knownName } from '../sim/mind/people';
@@ -74,7 +76,11 @@ export class BridgeSession {
     const loaded = options.save ? deserialize(options.save) : null;
     if (options.save && !loaded) throw new Error('Cannot resume incompatible or invalid world save');
     this.world = loaded?.world ?? new World(seed);
-    if (!loaded) { if(options.arena)generateCombatArena(this.world);else if (options.playable) generatePlayableWorld(this.world); else generateVillage(this.world); }
+    if (!loaded) {
+      if (options.arena) generateCombatArena(this.world);
+      else if (options.playable) generatePlayableWorld(this.world);
+      else { generateVillage(this.world); initializeWildlife(this.world); }
+    }
     this.sim = new Simulation(this.world);
     this.world.onEvent(e=>{if(e.type==='attack'&&e.data.combat?.actionId){this.contactTimes.set(e.data.combat.actionId,performance.now());if(this.contactTimes.size>256)this.contactTimes.delete(this.contactTimes.keys().next().value!);}});
     this.game = new GameSim(this.sim);
@@ -200,7 +206,7 @@ export class BridgeSession {
     const b = w.primaryBody(p.id)!;
     const live = this.move.expires > w.physicalTime;
     moveByIntent(this.sim, p, b, live ? this.move.x : 0, live ? this.move.z : 0, live && this.move.sprint, dt);
-    this.sim.step(dt, wd); this.sim.flushSpeech();
+    this.sim.stepScheduled(dt, wd);
     this.appliedSequence=this.sequence;
   }
   private classOf(id: string): RecognisedClass | null {
@@ -215,6 +221,7 @@ export class BridgeSession {
     const controlledBodyId=w.primaryBody(p.id)?.id;
     const visible = new Set(knowledge.people.map(p => p.bodyId)); if(controlledBodyId) visible.add(controlledBodyId);
     return { version: BRIDGE_VERSION, type: 'snapshot', tick: w.physicalTime, worldTime: w.now, ack: this.appliedSequence, playerId: p.id, controlledBodyId,
+      wildlife: wildlifeProjection(w, w.body(controlledBodyId)),
       knowledge, mechanisms: mechanismPanel(w, p), interactions: handInteractions(this.sim, p), dialogue: this.dialogueProjection(), talkTargets: this.talkTargets(p),
       bodies: w.activeBodies().filter(b => b.present && b.shape === 'humanoid' && visible.has(b.id)).map(b => ({
         ...humanoidVisualState(b, knownName(p, b.ownerId), visibleActivity(w.person(b.ownerId), b.pose), w.person(b.ownerId)?.appearance),
