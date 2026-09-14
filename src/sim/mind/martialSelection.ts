@@ -37,8 +37,19 @@ export function martialRepertoire(world: World, p: Person, bodyId: string): Tech
 }
 
 /** Pure deterministic choice of exactly one action, with no combo sequence or outcome.
- * Current Body.combatAction is the only previous-action truth; no combo index is saved. */
-export function selectMartialAction(world: World, p: Person, input: MartialInput, context: MartialSelectionContext): MartialSelection | null {
+ * Current Body.combatAction is the only previous-action truth; no combo index is saved.
+ * `available`, when supplied, restricts the candidate pool below the mind's full repertoire
+ * (e.g. to techniques a live combat producer actually has a physical move for) without
+ * changing eligibility/scoring rules — a technique outside it is simply never chosen, so a
+ * missing physical adapter falls back to whatever eligible technique remains rather than
+ * being faked. Transition-category entries (edges) must stay in `available` even when their
+ * destination is excluded elsewhere in the pool; they are never themselves a direct pick.
+ * `predecessorOverride`, when supplied for a 'chain' opportunity, replaces the immediately
+ * previous action's own techniqueId as the transition-scoring predecessor — needed when
+ * that previous action is itself a defense that only carries an executed strike THROUGH
+ * itself (the producer's own `previousTechniqueId`/`priorStrike` bookkeeping), rather than
+ * being a strike whose own identity should be treated as what the next attack chains from. */
+export function selectMartialAction(world: World, p: Person, input: MartialInput, context: MartialSelectionContext, available?: TechniqueDefinition[], predecessorOverride?: string): MartialSelection | null {
   const body = world.body(context.bodyId), opportunity = context.opportunity, now = world.physicalTime;
   if (!body || body.ownerId !== p.id || !p.bodies.includes(body.id) || !Number.isFinite(opportunity.opensAt) || !Number.isFinite(opportunity.closesAt)
     || now < opportunity.opensAt || now > opportunity.closesAt || opportunity.closesAt < opportunity.opensAt || !opportunity.allowedInputs.includes(input)) return null;
@@ -49,7 +60,8 @@ export function selectMartialAction(world: World, p: Person, input: MartialInput
     if (!previous || !previous.techniqueId || previous.phase !== 'recovery' || ['interrupted', 'cancelled'].includes(previous.outcome)
       || now < previous.recoveryAt || now >= previous.completeAt || opportunity.opensAt < previous.recoveryAt) return null;
   } else if (previous && now < previous.completeAt) return null;
-  const repertoire = martialRepertoire(world, p, body.id), predecessor = opportunity.kind === 'chain' ? previous!.techniqueId : undefined;
+  const repertoire = available ?? martialRepertoire(world, p, body.id);
+  const predecessor = opportunity.kind === 'chain' ? predecessorOverride ?? previous!.techniqueId : undefined;
   const candidates: { d: TechniqueDefinition; edge?: TechniqueDefinition; score: number }[] = [];
   for (const d of repertoire) {
     const selection = d.selection;

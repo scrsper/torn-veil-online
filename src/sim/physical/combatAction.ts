@@ -11,9 +11,9 @@ import { sampledPosture } from './combatMotion';
 import { combatTransitionAt, stepProgress } from './combatTransitions';
 import { advancePostures,beginCrouch,crouchHeld,setCrouchHeld } from './posture';
 import { postureFits } from './prediction';
-import { COMBAT_REPERTOIRE,nextUnarmedMove,precedingStrike } from './combatRepertoire';
+import { COMBAT_REPERTOIRE,precedingStrike } from './combatRepertoire';
 import { arenaRepertoire,combatEffortScale } from './combatPracticeProfile';
-import { bindMartialLabel,settleCombatLearning } from './martialCombat';
+import { resolveAttackMove,bindDefenseLabel,settleCombatLearning } from './martialCombat';
 
 export const combatBusy=(b:Body,at:number)=>!!b.combatAction&&b.combatAction.completeAt>at;
 export const combatPosture=(a:CombatAction|undefined,at:number):number=> !a||a.kind!=='duck'||a.outcome==='cancelled'||a.outcome==='interrupted'?0:
@@ -54,10 +54,17 @@ export function requestCombatAction(w:World,intent:CombatAttackIntent,commandId?
     recoveryAt:a.startedAt+S.preparationSeconds+S.activeSeconds,completeAt:a.startedAt+S.preparationSeconds+S.activeSeconds+S.recoverySeconds,
     trackingUntil:a.startedAt+S.preparationSeconds-.1,reach:r.weaponId?r.reach-.3:S.unarmedPathReach,impact:r.impact,exertionCost:r.exertionCost,intent:intent.intent??'injure'});
   if(!r.weaponId){
-    a.moveId=nextUnarmedMove(b.combatAction,w.physicalTime,a.trajectory==='low',arenaRepertoire(w,b.id));a.repertoireRevision=2;
+    // Martial selection (untrained: shared innate motor primitive; trained: a learned
+    // technique, a chain transition only with an actually mastered edge) decides WHICH
+    // implemented move is eligible; nextUnarmedMove's own native choice is the fallback
+    // inside resolveAttackMove. Everything below (timing/variant/geometry) is derived from
+    // the resolved moveId exactly as before — the existing operator still owns all of it.
+    const resolved=resolveAttackMove(w,p,b,a.trajectory,arenaRepertoire(w,b.id));
+    a.moveId=resolved.moveId;a.repertoireRevision=2;
     const move=COMBAT_REPERTOIRE.moves[a.moveId];a.variant=move.variant as typeof a.variant;
     a.activeAt=a.startedAt+move.preparation;a.recoveryAt=a.activeAt+move.active;a.completeAt=a.recoveryAt+move.recovery;a.trackingUntil=a.activeAt-.1;
-    bindMartialLabel(w,p,b,a);
+    a.techniqueId=resolved.techniqueId;a.transitionTechniqueId=resolved.transitionTechniqueId;
+    a.previousTechniqueId=resolved.previousTechniqueId;a.martialDemonstration=resolved.martialDemonstration;
   }
   b.lastAttackAt=w.physicalTime;b.attackSeq++;b.pose='attack';b.poseUntil=a.completeAt;b.attackTarget=r.targetId;
   accept(w,p,b,a);r.actionId=a.id;return r;
@@ -71,7 +78,7 @@ export function requestDefense(w:World,bodyId:string,kind:DefenseKind,side=1,com
   if(!['sidestep','backstep','duck'].includes(kind)||![-1,1].includes(side))return 'invalid_command';
   const a=base(w,b,kind,commandId);a.repertoireRevision=2;
   if(kind!=='duck'&&b.combatAction?.kind==='attack')a.priorStrike=precedingStrike(b.combatAction,w.physicalTime);
-  bindMartialLabel(w,p,b,a);
+  bindDefenseLabel(w,p,b,a);
   if(kind==='duck'){a.recoveryAt=a.startedAt+S.duckRecoveryAt;a.completeAt=a.startedAt+S.duckSeconds;}
   a.exertionCost=S.defenseEffort;
   a.distance=kind==='sidestep'?S.sidestepMetres:kind==='backstep'?S.backstepMetres:0;

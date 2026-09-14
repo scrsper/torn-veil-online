@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { createTestWorld, addPerson, v, step } from './helpers/world';
 import { submitCombatInput, advanceCombat, captureCombatTransforms } from '../src/sim/physical/combatAction';
+import { COMBAT_REPERTOIRE } from '../src/sim/physical/combatRepertoire';
 import { INTERACTION_SPEC as S } from '../src/sim/physical/prediction';
 import { seedMartialBackground, masteryOf, knowsTechnique, techniqueKnowledge } from '../src/sim/mind/martialKnowledge';
+import { martialRepertoire } from '../src/sim/mind/martialSelection';
 import { submitTechniqueUse } from '../src/sim/mind/martialPractice';
 import { serialize, deserialize } from '../src/sim/persist/save';
 import { Simulation } from '../src/sim/mind/agent';
@@ -10,6 +12,7 @@ import { skillOf } from '../src/sim/core/skills';
 import { attributeProfile } from '../src/sim/core/human';
 
 const jab = 'unarmed:jab', cross = 'unarmed:cross', kick = 'unarmed:low-kick', edge = 'unarmed:jab-to-cross';
+const hook = 'unarmed:hook', feintCounter = 'unarmed:feint-counter', crossToFeint = 'unarmed:cross-to-feint-counter';
 function fixture(profile: 'untrained' | 'partial' | 'trained' = 'untrained') {
   const x = createTestWorld(198); x.world.clock.timeScale = 1;
   const p = addPerson(x, 'Actor', 'farmer', v(10, 1, 10), { controlled: true });
@@ -20,25 +23,88 @@ function fixture(profile: 'untrained' | 'partial' | 'trained' = 'untrained') {
   return { ...x, p, t, b, tb };
 }
 function tick(x: ReturnType<typeof fixture>, n: number) { for (let i = 0; i < n; i++) { x.world.physicalTime += S.stepSeconds; x.sim.step(S.stepSeconds, S.stepSeconds); } }
-function chain(profile: 'untrained' | 'partial' | 'trained', edgeMastery = .6) {
-  const x = fixture(profile); x.tb.pos.x = 30; if (profile === 'trained') x.p.martial!.mastery[edge].value = edgeMastery;
+function chainOn(x: ReturnType<typeof fixture>) {
+  x.tb.pos.x = 30;
   expect(submitCombatInput(x.world, x.b.id, { kind: 'attack' })).toBe('accepted');
-  const ids = [x.b.combatAction!.techniqueId];
+  const ids = [x.b.combatAction!.techniqueId], moves = [x.b.combatAction!.moveId];
   tick(x, 18); expect(submitCombatInput(x.world, x.b.id, { kind: 'attack' })).toBe('accepted');
-  tick(x, 11); ids.push(x.b.combatAction!.techniqueId); expect(x.b.pose).toBe('attack');
+  tick(x, 11); ids.push(x.b.combatAction!.techniqueId); moves.push(x.b.combatAction!.moveId); expect(x.b.pose).toBe('attack');
   tick(x, 18); expect(submitCombatInput(x.world, x.b.id, { kind: 'attack', trajectory: 'low' })).toBe('accepted');
-  tick(x, 11); ids.push(x.b.combatAction!.techniqueId);
-  return { x, ids };
+  tick(x, 11); ids.push(x.b.combatAction!.techniqueId); moves.push(x.b.combatAction!.moveId);
+  return { ids, moves };
 }
-describe('realtime martial/combat integration (v0.2, label-only adapter)', () => {
+function chain(profile: 'untrained' | 'partial' | 'trained', edgeMastery = .6) {
+  const x = fixture(profile); if (profile === 'trained') x.p.martial!.mastery[edge].value = edgeMastery;
+  return { x, ...chainOn(x) };
+}
+describe('realtime martial/combat integration (v0.2, selection drives the actual move)', () => {
   it.each([
-    ['untrained', ['motor:basic-punch', 'motor:second-punch', 'motor:crude-kick']],
-    ['partial', [jab, 'motor:basic-punch', 'motor:crude-kick']],
-    ['trained', [jab, cross, kick]],
-  ] as const)('%s labels the native repertoire\'s own move sequence without changing it', (profile, expected) => {
-    const { x, ids } = chain(profile); expect(ids).toEqual(expected); expect(x.b.attackSeq).toBe(3);
-    expect(x.tb.health).toBe(x.tb.maxHealth); // Labeling never manufactures contact.
+    // untrained: pure innate alternation — identical to native's own default combo.
+    ['untrained', ['motor:basic-punch', 'motor:second-punch', 'motor:crude-kick'], ['jab', 'cross', 'front_kick']],
+    // partial: knows jab/cross/kick individually but has NO mastered transition edge, so a
+    // CHAINED follow-up cannot license the learned 'cross' (no edge = not a candidate) and
+    // falls back to the innate alternation's own top-priority pick — which, since the
+    // predecessor is the LEARNED 'unarmed:jab' rather than 'motor:basic-punch', does not
+    // itself get the innate "alternate punches" bonus and lands on 'motor:basic-punch'
+    // again. The visible consequence is exactly the point: the actual move sequence
+    // regresses to a repeated jab (['jab','jab','front_kick']) instead of the smooth
+    // jab-cross-kick a genuinely mastered chain gets — a real behavioral difference, not a
+    // relabeling of an untouched pick.
+    ['partial', [jab, 'motor:basic-punch', 'motor:crude-kick'], ['jab', 'jab', 'front_kick']],
+    // trained: mastered jab-to-cross and cross-to-low-kick edges unlock the full chain.
+    ['trained', [jab, cross, kick], ['jab', 'cross', 'front_kick']],
+  ] as const)('%s: martial selection actually picks the technique, mapped onto the real move', (profile, expectedTechniques, expectedMoves) => {
+    const { x, ids, moves } = chain(profile);
+    expect(ids).toEqual(expectedTechniques); expect(x.b.attackSeq).toBe(3);
+    // The physical adapter can map distinct techniques onto the SAME native move (no
+    // separate "crude" asset exists yet — the documented acceptable shared-visual case),
+    // but the actual SELECTED move sequence below is driven by, and can differ because of,
+    // which technique the selector actually chose — not a label layered on an untouched pick.
+    expect(moves).toEqual(expectedMoves);
+    // Selection never manufactures or alters timing/geometry: the final resolved action's
+    // active/recovery/complete timing is fully explained by its own moveId's repertoire
+    // spec, unaffected by which technique (trained or not) selected that moveId.
+    const finalAction = x.b.combatAction!, finalSpec = COMBAT_REPERTOIRE.moves[finalAction.moveId!];
+    expect(finalAction.activeAt - finalAction.startedAt).toBeCloseTo(finalSpec.preparation, 10);
+    expect(finalAction.recoveryAt - finalAction.activeAt).toBeCloseTo(finalSpec.active, 10);
+    expect(finalAction.completeAt - finalAction.recoveryAt).toBeCloseTo(finalSpec.recovery, 10);
+    expect(x.tb.health).toBe(x.tb.maxHealth); // Selection never manufactures contact.
     if (profile === 'untrained') expect(Object.values(x.p.knowledge).some(k => k.claim.martialTechnique)).toBe(false);
+  });
+  it('untrained cannot select a learned transition even when an identical edge exists in the registry', () => {
+    // An untrained repertoire contains no learned techniques at all, so no edge (whose
+    // destination is a learned technique) can ever be found for it — verified structurally,
+    // not just by outcome, since martialRepertoire() is exactly the pool selection draws from.
+    const x = fixture('untrained');
+    const pool = martialRepertoire(x.world, x.p, x.b.id);
+    expect(pool.every(d => d.availability === 'innate')).toBe(true);
+    const { moves, ids } = chainOn(x);
+    expect(ids).not.toContain(cross); expect(ids).not.toContain(jab);
+    expect(moves).toEqual(['jab', 'cross', 'front_kick']); // shared asset, un-learned identity
+  });
+  it('knowing both technique endpoints without the transition edge is insufficient for a learned chain', () => {
+    // partial() seeds jab, cross AND kick as real knowledge — deliberately NOT the edges.
+    const { x, ids } = chain('partial');
+    expect(knowsTechnique(x.p, jab)).toBe(true); expect(knowsTechnique(x.p, cross)).toBe(true);
+    expect(ids[0]).toBe(jab); // a fresh (non-chained) attempt still finds the learned entry technique
+    expect(ids[1]).not.toBe(cross); // but the CHAINED follow-up has no mastered edge to license 'cross'
+    expect(ids[1]).toBe('motor:basic-punch'); // falls back to the shared innate primitive instead
+  });
+  it('a technique without an implemented physical move is never selected for live combat, only labeled/practiced dormant', () => {
+    const x = fixture('trained');
+    for (const id of [hook, feintCounter, crossToFeint]) seedMartialBackground(x.world, x.p, id, .9, .9);
+    x.p.martial!.mastery[edge].value = .9;
+    // Still fully present in the dormant martial repertoire (learnable/practicable/teachable).
+    const pool = martialRepertoire(x.world, x.p, x.b.id);
+    expect(pool.some(d => d.techniqueId === hook)).toBe(true);
+    expect(pool.some(d => d.techniqueId === feintCounter)).toBe(true);
+    // But never chosen for the live jab->cross->? chain: cross-to-feint-counter's destination
+    // has no physical adapter, so it can never win as `d`, and selection falls back to the
+    // next eligible (adapter-mapped) candidate — here, the ordinary jab-to-cross-to-low-kick
+    // chain, exactly as an ordinary trained fighter without hook/feint-counter would get.
+    const { ids, moves } = chainOn(x);
+    expect(ids).toEqual([jab, cross, kick]); expect(moves).toEqual(['jab', 'cross', 'front_kick']);
+    expect(ids).not.toContain(hook); expect(ids).not.toContain(feintCounter);
   });
   it('charges once at admission, learns from resolved execution, and rejects replay without cost or reward', () => {
     const x = fixture(); x.tb.pos.x = 30; const before = x.p.physiology.fatigue;
