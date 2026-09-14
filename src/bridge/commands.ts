@@ -2,6 +2,7 @@ import { INTERACTION_SPEC } from '../sim/physical/prediction';
 
 export type InteractionCommand = {type:'move';x:number;z:number;sprint:boolean;facing?:number;crouch?:boolean}
   | {type:'attack';targetBodyId?:string;trajectory?:'high'|'mid'|'low'} | {type:'interact';interactionId:string}
+  | {type:'container_transfer';containerId:string;itemId:string;direction:'into'|'out'}
   | {type:'defend';kind:'sidestep'|'backstep'|'duck';side?:number;direction?:{x:number;z:number}}
   | {type:'crouch';held:boolean} | {type:'practice';mode:'passive'|'repeat'|'reset'|'recovery'|'normal'} | {type:'cancel'};
 export interface CommandEnvelope {
@@ -47,6 +48,7 @@ export class CommandQueue {
     const valid=c&&((c.type==='move'&&Number.isFinite(c.x)&&Number.isFinite(c.z)&&Math.abs(c.x)<=1&&Math.abs(c.z)<=1&&typeof c.sprint==='boolean'&&(c.facing===undefined||(Number.isFinite(c.facing)&&Math.abs(c.facing)<=Math.PI))&&(c.crouch===undefined||typeof c.crouch==='boolean'))
       ||(c.type==='attack'&&(c.targetBodyId===undefined||identifier(c.targetBodyId))&&(c.trajectory===undefined||['high','mid','low'].includes(c.trajectory)))
       ||(c.type==='interact'&&identifier(c.interactionId))
+      ||(c.type==='container_transfer'&&identifier(c.containerId)&&identifier(c.itemId)&&(c.direction==='into'||c.direction==='out'))
       ||(c.type==='defend'&&['sidestep','backstep','duck'].includes(c.kind)&&(c.side===undefined||c.side===-1||c.side===1)
         &&(c.direction===undefined||(Number.isFinite(c.direction.x)&&Number.isFinite(c.direction.z)&&Math.abs(c.direction.x)<=1&&Math.abs(c.direction.z)<=1&&Math.hypot(c.direction.x,c.direction.z)>=INTERACTION_SPEC.dodgeDeadZone)))||(c.type==='crouch'&&typeof c.held==='boolean')||(c.type==='practice'&&['passive','repeat','reset','recovery','normal'].includes(c.mode))||c.type==='cancel');
     if(!valid) return remember(reject('invalid_command'));
@@ -66,7 +68,7 @@ export class CommandQueue {
       if(index<0)break;
       // An interaction is an ordering barrier: pickup may change the weapon used by
       // the following attack. Urgent combat can pass movement, never that dependency.
-      if(index>0&&this.pending[index].envelope.command.type==='interact')break;
+      if(index>0&&['interact','container_transfer'].includes(this.pending[index].envelope.command.type))break;
       const p=this.pending.splice(index,1)[0],c=p.envelope.command;
       const stale=now-p.receivedAtMs>INTERACTION_SPEC.inputHorizonSeconds*1000;
       const result=stale?'expired':execute(c,p.envelope);

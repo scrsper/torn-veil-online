@@ -1,12 +1,14 @@
-import type { Body, Person, ResourceNode, Vec3 } from '../core/types';
+import type { Body, Container, Person, ResourceNode, Vec3 } from '../core/types';
 import type { Simulation } from '../mind/agent';
 import { actionsForCarriedItem, actionsForWorldItem, SELLER_REACH } from '../core/interaction';
 import { B } from './blocks';
 import { waterSourceAtHand, naturalWaterAtHand } from '../logistics/participation';
+import { setContainerOpen, takeItemFromContainer, transferItemToContainer } from '../core/container';
 
 /** Reach for an external hand, in canonical metres (the browser's item ray has this range). */
 export const ITEM_REACH = 2.4;
 export interface HandInteraction { id: string; kind: string; label: string; slot: 'nearby' | 'consume' | 'drop'; }
+export interface OpenContainerProjection { id: string; name: string; capacity: number; used: number; ownerId: string | null; items: { id: string; name: string; type: string; quantity: number; ownerId: string | null }[]; }
 function canAct(sim: Simulation, p: Person): boolean {
   const b = sim.world.primaryBody(p.id);
   return !!b && b.present && !b.dead && p.alive && b.pose !== 'downed' && b.subduedUntil <= sim.world.physicalTime && !p.surrender && !p.custody?.active;
@@ -47,11 +49,28 @@ function dropPositionAtHand(sim: Simulation, p: Person): Vec3 | undefined {
   const drop = { ...pos, y: floor };
   return reachable(sim, p, drop, ITEM_REACH, 0.15) ? drop : undefined;
 }
+function reachableContainers(sim: Simulation, p: Person): Container[] {
+  const body = sim.world.primaryBody(p.id); if (!body) return [];
+  return sim.world.containers().filter(c => c.pos && reachable(sim, p, c.pos, ITEM_REACH, 0.7))
+    .sort((a, b) => Math.hypot(a.pos!.x - body.pos.x, a.pos!.z - body.pos.z) - Math.hypot(b.pos!.x - body.pos.x, b.pos!.z - body.pos.z) || a.id.localeCompare(b.id));
+}
+/** Current observable contents of the nearest open physical container. This is a projection,
+ * not a second inventory; every row is rebuilt from canonical container/item state. */
+export function openContainerProjection(sim: Simulation, p: Person): OpenContainerProjection | null {
+  if (!canAct(sim, p)) return null;
+  const container = reachableContainers(sim, p).find(c => c.open); if (!container) return null;
+  const items = container.itemIds.flatMap(id => { const i = sim.world.item(id); return i && i.containerId === container.id && i.quantity > 0
+    ? [{ id: i.id, name: i.name, type: i.type, quantity: i.quantity, ownerId: i.ownerId }] : []; });
+  return { id: container.id, name: container.name, capacity: container.capacity,
+    used: items.reduce((sum, item) => sum + item.quantity, 0), ownerId: container.ownerId, items };
+}
 /** A projection of existing action derivation, not a client-owned menu. Recomputed on intent. */
 export function handInteractions(sim: Simulation, p: Person): HandInteraction[] {
   if (!canAct(sim, p)) return [];
   const w = sim.world, b = w.primaryBody(p.id)!;
   const out: HandInteraction[] = [];
+  const container = reachableContainers(sim, p)[0];
+  if (container) out.push({ id: `${container.open ? 'close' : 'open'}:${container.id}`, kind: container.open ? 'close' : 'open', label: `${container.open ? 'Close' : 'Open'} ${container.name}`, slot: 'nearby' });
   const nearby = w.items().filter(it => it.quantity > 0 && !it.holderId && it.pos && reachable(sim, p, it.pos, ITEM_REACH, itemHeight(sim, it.pos)))
     .sort((a, c) => Math.hypot(a.pos!.x - b.pos.x, a.pos!.z - b.pos.z) - Math.hypot(c.pos!.x - b.pos.x, c.pos!.z - b.pos.z) || a.id.localeCompare(c.id));
   for (const it of nearby) {
@@ -81,9 +100,14 @@ export function handInteractions(sim: Simulation, p: Person): HandInteraction[] 
   return out;
 }
 export function performHandInteraction(sim: Simulation, p: Person, id: unknown): string {
-  if (typeof id !== 'string' || !/^(buy|take|steal|recover|consume|drink|gather|drop):.+$/.test(id)) return 'invalid_interaction';
+  if (typeof id !== 'string' || !/^(buy|take|steal|recover|consume|drink|gather|drop|open|close):.+$/.test(id)) return 'invalid_interaction';
   if (!canAct(sim, p)) return 'incapacitated';
   const split = id.indexOf(':'), kind = id.slice(0, split), target = id.slice(split + 1);
+  if (kind === 'open' || kind === 'close') {
+    const container = reachableContainers(sim, p).find(c => c.id === target);
+    if (!container || !handInteractions(sim, p).some(a => a.id === id)) return 'interaction_unavailable';
+    return setContainerOpen(sim.world, p, container, kind === 'open').ok ? 'accepted' : 'interaction_unavailable';
+  }
   if (kind === 'gather') {
     const resource = resourceAtHand(sim, p);
     if (!resource || resource.id !== target) return 'interaction_unavailable';
@@ -115,4 +139,15 @@ export function performHandInteraction(sim: Simulation, p: Person, id: unknown):
   const seller = w.person(action.ownerId!)!;
   const result = sim.buyUnits(p, seller, it!, 1);
   return result.units === 1 ? 'accepted' : result.refused ?? (p.wealth < action.price! ? 'insufficient_funds' : 'unavailable_stock');
+}
+
+/** Revalidated whole-stack transfer. Unreal supplies identities and direction only. */
+export function performContainerTransfer(sim: Simulation, p: Person, containerId: unknown, itemId: unknown, direction: unknown): string {
+  if (typeof containerId !== 'string' || typeof itemId !== 'string' || (direction !== 'into' && direction !== 'out')) return 'invalid_interaction';
+  if (!canAct(sim, p)) return 'incapacitated';
+  const container = reachableContainers(sim, p).find(c => c.id === containerId && c.open);
+  if (!container) return 'interaction_unavailable';
+  const item = sim.world.item(itemId) ?? null;
+  const result = direction === 'into' ? transferItemToContainer(sim.world, p, item, container) : takeItemFromContainer(sim.world, p, container, item);
+  return result.ok ? 'accepted' : result.reason;
 }

@@ -24,7 +24,7 @@ import { generateVillage } from '../sim/world/village';
 import { moveByIntent } from '../sim/physical/input';
 import { meleeStrike, MELEE_REACH, MELEE_COOLDOWN } from '../sim/physical/melee';
 import { recogniseClass, type RecognisedClass } from '../sim/mind/vocation';
-import { handInteractions, performHandInteraction } from '../sim/physical/hand';
+import { handInteractions, openContainerProjection, performContainerTransfer, performHandInteraction } from '../sim/physical/hand';
 import { DialogueSystem, type DialogueState } from '../sim/mind/dialogue';
 import { actionsForPerson } from '../sim/core/interaction';
 import { B } from '../sim/physical/blocks';
@@ -85,10 +85,11 @@ export class BridgeSession {
     this.world.onEvent(e=>{if(e.type==='attack'&&e.data.combat?.actionId){this.contactTimes.set(e.data.combat.actionId,performance.now());if(this.contactTimes.size>256)this.contactTimes.delete(this.contactTimes.keys().next().value!);}});
     this.game = new GameSim(this.sim);
     if (!this.world.playerId) {
+      const settlement = options.playable ? this.world.settlements().slice().sort((a,b)=>a.id.localeCompare(b.id))[0] : null;
       const first = this.world.geography!.roads.slice().sort((a,b) => a.length-b.length)[0];
       const site = this.world.geography!.sites.find(s => s.id === first?.from) ?? this.world.geography!.sites[0];
-      const x = site.x - 4, z = site.z + 120;
-      this.world.playerId = this.game.spawn('local', 'Traveler', { x: x + .5, y: this.world.nav.floorY(x,z), z: z + .5 });
+      const spawn = settlement?.location ?? { x: site.x - 3.5, y: this.world.nav.floorY(site.x-4,site.z+120), z: site.z + 120.5 };
+      this.world.playerId = this.game.spawn('local', 'Traveler', spawn);
     }
     this.game.attach('local', this.world.playerId!); indexWilderness(this.world);
     this.dialogue = new DialogueSystem(this.world, this.sim);
@@ -139,6 +140,7 @@ export class BridgeSession {
     if(c.type==='defend') return submitCombatInput(w,b.id,{kind:c.kind,side:c.side,direction:c.direction,commandId});
     if(c.type==='cancel') return cancelCombatAction(w,b.id);
     if(c.type==='interact') return performHandInteraction(this.sim,p,c.interactionId);
+    if(c.type==='container_transfer') return performContainerTransfer(this.sim,p,c.containerId,c.itemId,c.direction);
     return 'unsupported_command';
   }
   /** Lightweight owning-controller confirmation, never a knowledge/global scene scan. */
@@ -190,6 +192,8 @@ export class BridgeSession {
       result = meleeStrike(this.sim, p, b, typeof m.targetBodyId === 'string' ? m.targetBodyId : null);
     } else if (m.type === 'interact') {
       result = performHandInteraction(this.sim, p, m.interactionId);
+    } else if (m.type === 'container_transfer') {
+      result = performContainerTransfer(this.sim, p, m.containerId, m.itemId, m.direction);
     } else if (m.type === 'talk') {
       result = this.beginDialogue(p, typeof m.targetBodyId === 'string' ? m.targetBodyId : '');
     } else if (m.type === 'dialogue_option') {
@@ -222,14 +226,14 @@ export class BridgeSession {
     const visible = new Set(knowledge.people.map(p => p.bodyId)); if(controlledBodyId) visible.add(controlledBodyId);
     return { version: BRIDGE_VERSION, type: 'snapshot', tick: w.physicalTime, worldTime: w.now, ack: this.appliedSequence, playerId: p.id, controlledBodyId,
       wildlife: wildlifeProjection(w, w.body(controlledBodyId)),
-      knowledge, mechanisms: mechanismPanel(w, p), interactions: handInteractions(this.sim, p), dialogue: this.dialogueProjection(), talkTargets: this.talkTargets(p),
+      knowledge, mechanisms: mechanismPanel(w, p), interactions: handInteractions(this.sim, p), container: openContainerProjection(this.sim,p), dialogue: this.dialogueProjection(), talkTargets: this.talkTargets(p),
       bodies: w.activeBodies().filter(b => b.present && b.shape === 'humanoid' && visible.has(b.id)).map(b => ({
         ...humanoidVisualState(b, knownName(p, b.ownerId), visibleActivity(w.person(b.ownerId), b.pose), w.person(b.ownerId)?.appearance),
         combatAction:combatState(w,b),
         incapacitated: b.pose === 'downed' || b.subduedUntil > w.physicalTime || !!w.person(b.ownerId)?.surrender || !!w.person(b.ownerId)?.custody?.active,
         alive: !b.dead,
         speech: w.person(b.ownerId)?.speech?.text ?? '',
-        ...(b.ownerId === p.id ? { inventory: p.inventory.flatMap(id => { const i=w.item(id); return i ? [{ id:i.id,name:i.type,type:i.type,quantity:i.quantity }] : []; }), health: b.health, maxHealth: b.maxHealth, needs: { ...p.needs }, wealth: p.wealth } : {}),
+        ...(b.ownerId === p.id ? { inventory: p.inventory.flatMap(id => { const i=w.item(id); return i ? [{ id:i.id,name:i.type,type:i.type,quantity:i.quantity,ownerId:i.ownerId,holderId:i.holderId }] : []; }), health: b.health, maxHealth: b.maxHealth, needs: { ...p.needs }, wealth: p.wealth } : {}),
       })), combatActions:w.activeBodies().filter(b=>visible.has(b.id)).flatMap(b=>{const a=combatState(w,b);return a?[a]:[];}), combatPresentation: combatPresentation(w, visible, p.id), events: [] };
   }
   /** Whole-world observability is available only through this explicitly named debug path. */

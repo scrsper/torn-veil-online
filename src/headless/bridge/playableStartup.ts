@@ -20,7 +20,7 @@ let socket:WebSocket|undefined,input:ReturnType<typeof setInterval>|undefined;
 try {
   await until(()=>log.includes('Torn Veil canonical bridge'),'server startup',60000);
   const start=performance.now(),messages:Message[]=[],snapshots:Message[]=[],regions:string[]=[],gaps:number[]=[];
-  let center='',bytesMax=0,firstSnapshotMs=0,firstRegionMs=0,previousSnapshot=0,heldAck:(()=>void)|undefined,received=Buffer.alloc(0),failure='',sequence=0;
+  let center='',initialCenter='',bytesMax=0,firstSnapshotMs=0,firstRegionMs=0,previousSnapshot=0,heldAck:(()=>void)|undefined,received=Buffer.alloc(0),failure='',sequence=0;
   socket=new WebSocket(`ws://127.0.0.1:${port}`,{headers,maxPayload:256*1024});
   socket.on('error',e=>{failure=e.message;});
   socket.on('message',raw=>{
@@ -29,7 +29,7 @@ try {
       if(messages.length<3)messages.push({type:m.type,bytes,ms:now-start,controls:m.controls});
       if(m.type==='hello') check(m.controls===true,'native controller assigned');
       if(m.type==='snapshot') {m.receivedMs=now-start;snapshots.push(m);if(!firstSnapshotMs)firstSnapshotMs=now-start;if(previousSnapshot)gaps.push(now-previousSnapshot);previousSnapshot=now;}
-      if(m.type==='regions_state')center=m.center;
+      if(m.type==='regions_state'){center=m.center;if(!initialCenter)initialCenter=m.center;}
       if(m.type==='presentation_chunk') {
         check(bytes<=MAX_PRESENTATION_MESSAGE_BYTES,`wire bound ${m.transferId}:${m.index}`);
         received=Buffer.concat([received,Buffer.from(m.data,'base64')]);
@@ -53,7 +53,10 @@ try {
   await until(()=>!!failure||(regions.length>=9 && snapshots.at(-1)!.bodies.find((b:Message)=>b.bodyId===first.controlledBodyId).pos.x<position.x-2),'progressive regions and canonical movement');
   if(failure)throw new Error(failure);
   clearInterval(input);input=undefined;socket.send(JSON.stringify({version:1,type:'move',sequence:++sequence,x:0,z:0}));
-  check(regions[0]===center,'center region applied first');
+  // Movement may legitimately cross a region seam while the first transfer is held. The
+  // ordering contract is that the initial center is prepared first, not that it equals the
+  // player's later center after the acceptance movement.
+  check(regions[0]===initialCenter,'initial center region applied first');
   check(socket.readyState===WebSocket.OPEN,'connection remains open during streaming');
   check(Math.max(...gaps)<1500,'snapshot gaps stay inside native 1.5s freshness bound');
   const final=snapshots.at(-1)!,end=final.bodies.find((b:Message)=>b.bodyId===first.controlledBodyId).pos;

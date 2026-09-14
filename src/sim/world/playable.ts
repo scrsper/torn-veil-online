@@ -3,6 +3,8 @@ import { WorldGeography, PLAYABLE_WORLD, type PlayableWorldSpec } from './geogra
 import { generateProceduralWorld } from './settlement';
 import { B } from '../physical/blocks';
 import { initializeWildlife } from '../ecology/generation';
+import { makeContainer } from '../core/container';
+import { makeItem } from './factory';
 
 export function generatePlayableWorld(world: World, spec: PlayableWorldSpec = PLAYABLE_WORLD, withWildlife = true) {
   const geography = new WorldGeography(world.seed, spec);
@@ -26,6 +28,17 @@ export function generatePlayableWorld(world: World, spec: PlayableWorldSpec = PL
     }
   }
   world.initNav(); world.grid.recording = true;
+  // A small general-purpose acceptance fixture in the first generated public square. It uses
+  // ordinary canonical item/container state; Unreal only projects these identities.
+  const first = settlements.slice().sort((a,b)=>a.spec.site.id.localeCompare(b.spec.site.id))[0];
+  if (first) {
+    const center = first.places.square.inside;
+    const containerPos = { x:center.x + 1.5, y:world.nav.floorY(center.x+1,center.z), z:center.z + .5 };
+    const loosePos = { x:center.x - 1.5, y:world.nav.floorY(center.x-2,center.z), z:center.z + .5 };
+    const chest = makeContainer(world,{name:'Traveler chest',capacity:24,pos:containerPos,placeId:first.places.square.id,tags:['physical','storage']});
+    makeItem(world,'bread','Travel bread',{container:chest.id,quantity:2,description:'A plain loaf kept for the road.'});
+    makeItem(world,'lantern','Weathered lantern',{pos:loosePos,placeId:first.places.square.id,description:'A serviceable lantern left in the square.'});
+  }
   if (withWildlife) initializeWildlife(world);
   return settlements;
 }
