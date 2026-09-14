@@ -1,6 +1,7 @@
 import type { AttributeId, Attributes, Person, SkillId } from './types';
 import type { World } from './world';
 import { ATTRIBUTE_IDS, clamp, NORMAL_CEILING, individualRng } from './human';
+import type { PracticedSkillId } from './martialTypes';
 
 export interface DevelopmentStimulus {
   weights: Partial<Attributes>;
@@ -89,7 +90,10 @@ function considerImprint(world: World, p: Person, id: AttributeId, seconds: numb
 /** Mapping describes physical practice, not occupations. A credited batch is a standardized
  * minute of exposure; construction supplies measured credited minutes. No INT for routine work.
  * PER requires actual discrimination (hunting/herbalism), WILL prolonged completed work. */
-const PRACTICE: Partial<Record<SkillId, Partial<Attributes>>> = {
+const PRACTICE: Partial<Record<PracticedSkillId, Partial<Attributes>>> = {
+  unarmed: { strength: 0.4, dexterity: 0.8, endurance: 0.7, vitality: 0.1, will: 0.2 },
+  'one-handed-blade': { strength: 0.4, dexterity: 0.8, endurance: 0.6, vitality: 0.1, will: 0.2 },
+  polearm: { strength: 0.6, dexterity: 0.7, endurance: 0.7, vitality: 0.1, will: 0.2 },
   hauling: { strength: 1, endurance: 0.8, vitality: 0.1, will: 0.15 },
   quarrying: { strength: 1, endurance: 0.8, dexterity: 0.2, vitality: 0.1, will: 0.15 },
   woodcutting: { strength: 0.8, endurance: 0.7, dexterity: 0.4, vitality: 0.1, will: 0.15 },
@@ -101,7 +105,7 @@ const PRACTICE: Partial<Record<SkillId, Partial<Attributes>>> = {
   milling: { strength: 0.5, endurance: 0.4, dexterity: 0.2 },
   baking: { dexterity: 0.4, endurance: 0.3 }, cooking: { dexterity: 0.5 },
 };
-export function developThroughPractice(world: World, p: Person, id: SkillId, amount: number, instruction = 1): void {
+export function developThroughPractice(world: World, p: Person, id: PracticedSkillId, amount: number, instruction = 1): void {
   const weights = PRACTICE[id]; if (!weights) return;
   develop(world, p, { weights, seconds: amount * 60, intensity: 0.7, instruction });
 }

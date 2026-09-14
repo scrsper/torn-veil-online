@@ -209,6 +209,10 @@ function sourceRank(source: Source): number {
 }
 
 function refinesClaim(current: Record<string, any>, incoming: Record<string, any>): boolean {
+  // A new demonstration can add practical understanding without adding another field.
+  // Its own source/confidence must govern that refinement, just like other new details.
+  if (current.martialTechnique && current.martialTechnique === incoming.martialTechnique
+    && Number.isFinite(incoming.understanding) && incoming.understanding > (current.understanding ?? 0)) return true;
   for (const [key, value] of Object.entries(incoming)) {
     if (value === undefined || value === null) continue;
     if (key.endsWith('Unknown')) continue;

@@ -375,6 +375,10 @@ export class World {
     };
     for (const p of this.livingPersons()) visit({ memories: p.memories, knowledge: p.knowledge, mind: p.mind, desires: p.desires,
       lineage: p.lineage, exceptionalDevelopment: p.development.exceptional, ontology: p.ontology });
+    // Martial execution/provenance remains in saved people after death or forgetting.
+    // Discovered definitions also outlive their discoverer and any surviving manual.
+    for (const p of this.persons()) visit(p.martial);
+    visit(this.martialDefinitions);
     for (const item of this.items()) { visit(item.provenance); visit(item.record); }
     for (const creature of this.creatures()) visit(creature.wildlife?.pregnancy);
     visit({ kernel: this.kernel, situations: this.situations, conflicts: this.conflicts, requests: this.requests, haulTasks: this.haulTasks, workStints: this.workStints, eraCauses: this.chronicleEras.map(era => era.causes) });
