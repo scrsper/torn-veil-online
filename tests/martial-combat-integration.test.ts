@@ -51,8 +51,11 @@ describe('realtime martial/combat integration (v0.2, selection drives the actual
     // jab-cross-kick a genuinely mastered chain gets — a real behavioral difference, not a
     // relabeling of an untouched pick.
     ['partial', [jab, 'motor:basic-punch', 'motor:crude-kick'], ['jab', 'jab', 'front_kick']],
-    // trained: mastered jab-to-cross and cross-to-low-kick edges unlock the full chain.
-    ['trained', [jab, cross, kick], ['jab', 'cross', 'front_kick']],
+    // trained: mastered jab-to-cross unlocks the punch chain. unarmed:low-kick has NO live
+    // physical adapter yet (front_kick is not a low kick), so even with cross-to-low-kick
+    // mastered, Heavy falls back to the crude-kick primitive — a real front_kick is never
+    // mislabeled as the unexecuted learned low-kick technique.
+    ['trained', [jab, cross, 'motor:crude-kick'], ['jab', 'cross', 'front_kick']],
   ] as const)('%s: martial selection actually picks the technique, mapped onto the real move', (profile, expectedTechniques, expectedMoves) => {
     const { x, ids, moves } = chain(profile);
     expect(ids).toEqual(expectedTechniques); expect(x.b.attackSeq).toBe(3);
@@ -100,11 +103,31 @@ describe('realtime martial/combat integration (v0.2, selection drives the actual
     expect(pool.some(d => d.techniqueId === feintCounter)).toBe(true);
     // But never chosen for the live jab->cross->? chain: cross-to-feint-counter's destination
     // has no physical adapter, so it can never win as `d`, and selection falls back to the
-    // next eligible (adapter-mapped) candidate — here, the ordinary jab-to-cross-to-low-kick
-    // chain, exactly as an ordinary trained fighter without hook/feint-counter would get.
+    // next eligible (adapter-mapped) candidate — here, the ordinary jab-to-cross chain plus
+    // the crude-kick fallback (low-kick has no adapter either), exactly as an ordinary
+    // trained fighter without hook/feint-counter would get.
     const { ids, moves } = chainOn(x);
-    expect(ids).toEqual([jab, cross, kick]); expect(moves).toEqual(['jab', 'cross', 'front_kick']);
+    expect(ids).toEqual([jab, cross, 'motor:crude-kick']); expect(moves).toEqual(['jab', 'cross', 'front_kick']);
     expect(ids).not.toContain(hook); expect(ids).not.toContain(feintCounter);
+  });
+  it('unarmed:low-kick has no live physical adapter: known/mastered but never executed, and its transition earns no combat credit', () => {
+    const x = fixture('trained'); // seeds jab, cross, low-kick, jab-to-cross and cross-to-low-kick, all mastery .6
+    expect(knowsTechnique(x.p, kick)).toBe(true); expect(masteryOf(x.p, kick)).toBeGreaterThan(0);
+    const pool = martialRepertoire(x.world, x.p, x.b.id);
+    expect(pool.some(d => d.techniqueId === kick)).toBe(true); // still a real, learnable, teachable technique
+    const { ids, moves } = chainOn(x);
+    expect(ids[2]).toBe('motor:crude-kick'); expect(ids[2]).not.toBe(kick); // never reported as the live technique
+    expect(moves[2]).toBe('front_kick');
+    tick(x, 50); // let the third action's completion settle its evidence
+    const kickEvents = x.world.events.filter(e => e.actor === x.p.id && e.data.techniqueUse?.techniqueId === 'motor:crude-kick');
+    expect(kickEvents.length).toBeGreaterThan(0);
+    // The executed front_kick credits only the crude-kick primitive it actually was.
+    expect(kickEvents.every(e => e.data.techniqueUse.techniqueId !== kick)).toBe(true);
+    // No transition-edge credit for cross-to-low-kick: it was never selected (transitionTechniqueId
+    // would only be set if an actual edge to a live-selectable destination had been used).
+    expect(kickEvents.every(e => e.data.techniqueUse.transitionTechniqueId === undefined)).toBe(true);
+    const kickMasteryAfter = masteryOf(x.p, kick);
+    expect(kickMasteryAfter).toBe(.6); // seeded value, unchanged — no execution credit reached it
   });
   it('charges once at admission, learns from resolved execution, and rejects replay without cost or reward', () => {
     const x = fixture(); x.tb.pos.x = 30; const before = x.p.physiology.fatigue;

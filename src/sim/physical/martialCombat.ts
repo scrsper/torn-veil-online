@@ -19,7 +19,12 @@ import { nextUnarmedMove, type CombatMoveId } from './combatRepertoire';
 const PHYSICAL_ADAPTER: Partial<Record<string, 'jab' | 'cross' | 'front_kick'>> = {
   'motor:basic-punch': 'jab', 'unarmed:jab': 'jab',
   'motor:second-punch': 'cross', 'unarmed:cross': 'cross',
-  'motor:crude-kick': 'front_kick', 'unarmed:low-kick': 'front_kick',
+  'motor:crude-kick': 'front_kick',
+  // unarmed:low-kick has NO adapter yet: front_kick is not a low kick. It stays fully
+  // learnable/practicable/teachable (including the cross-to-low-kick transition edge, which
+  // can still be learned and gain mastery through solo/sparring practice), but Heavy always
+  // falls back to the crude-kick primitive in live combat until a real low-kick move exists.
+  // Do not map it here to "unblock" a sequence — that would credit an unexecuted technique.
 };
 /** Restricts martial selection's candidate pool to physically-adapted techniques, so an
  * unimplemented one (e.g. unarmed:hook, unarmed:feint-counter) is simply never chosen —
