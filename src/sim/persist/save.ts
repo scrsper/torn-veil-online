@@ -1,5 +1,6 @@
 import { initializeWildlife } from '../ecology/generation';
 import { validateWildlifeSpec } from '../ecology/animals';
+import { martialPersistenceState, validMartialSave, restoreMartialPersistence } from './martial';
 import { generatePlayableWorld } from '../world/playable';
 import { isExternallyControlled, setExternalControl, hasExternalIntention, authorizeExternalIntention } from '../runtime/controllers';
 import { generateProceduralWorld } from '../world/settlement';
@@ -199,7 +200,7 @@ export function serialize(world: World): string {
   // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
   // falls back to today's behavior (rewind to post-generation position) when absent.
   const rng = world.rng.state(); const weatherRng = world.weatherRng.state(); const demographicRng = world.demographicRng.state();
-  return JSON.stringify({ version: SAVE_VERSION, ecology: world.ecology, creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
+  return JSON.stringify({ version: SAVE_VERSION, ecology: world.ecology, martialLearning: martialPersistenceState(world), creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -242,6 +243,7 @@ export function load(): { world: World; gen: ReturnType<typeof generateVillage> 
 export function deserialize(raw: string): { world: World; gen: ReturnType<typeof generateVillage> } | null {
   try {
     const data = JSON.parse(raw); if (data.version !== SAVE_VERSION) return null;
+    if (!validMartialSave(data)) return null;
     const world = new World(data.seed);
     const savedKernel = restoreKernel(data.kernel);
     world.wildernessRegions = new Set(data.wildernessRegions ?? []);
@@ -359,6 +361,10 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     // Generated entity ids are part of the save schema. Refuse a malformed/incompatible
     // overlay rather than booting a world whose player has no physical manifestation.
     if (world.playerId !== null && (!world.person(world.playerId) || !world.primaryBody(world.playerId))) return null;
+    // Additive: restores world-level technique definitions and the exact owning plan of an
+    // unfinished paid martial session. Ordinary person spreading above already preserved
+    // skills, knowledge and mastery; absence of martialLearning is a valid legacy save.
+    restoreMartialPersistence(world, data);
     return { world, gen };
   } catch (e) { console.warn('load failed', e); return null; }
 }

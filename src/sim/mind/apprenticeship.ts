@@ -60,6 +60,17 @@ export function instructionsHeld(p: Person): KnowledgeItem[] {
 
 export interface TeachingOpportunity { teacher: Person; student: Person; skill: SkillId; gap: number; }
 
+/** Shared embodied/social gate for work instruction and martial lessons. Bodies are
+ * selected explicitly: teaching never establishes a permanent one-body assumption. */
+export function instructionPairAvailable(world: World, teacher: Person, student: Person, teacherBodyId: string, studentBodyId: string): boolean {
+  const a = world.body(teacherBodyId), b = world.body(studentBodyId);
+  return teacher.id !== student.id && teacher.alive && student.alive && !teacher.hostile && !student.hostile
+    && !!a?.present && !!b?.present && !a.dead && !b.dead && a.ownerId === teacher.id && b.ownerId === student.id
+    && Math.hypot(a.pos.x - b.pos.x, a.pos.y - b.pos.y, a.pos.z - b.pos.z) <= TEACH_RANGE_METRES
+    && world.grid.lineOfSight({ ...a.pos, y: a.pos.y + 1 }, { ...b.pos, y: b.pos.y + 1 }, 16)
+    && getRel(teacher, student.id).trust >= TEACH_MIN_TRUST && getRel(student, teacher.id).trust >= TEACH_MIN_TRUST;
+}
+
 /**
  * Is this pair, standing where they are standing, a lesson? Pure — decides nothing and changes
  * nothing. The direction falls out of the skills: whoever is ahead teaches.
