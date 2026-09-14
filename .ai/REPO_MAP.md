@@ -10,6 +10,14 @@ Read only the section relevant to the current task.
 
 # Core simulation
 
+Wildlife/realtime integration: `src/sim/ecology/interaction.ts` schedules nearby canonical
+animal bodies through `Simulation.stepScheduled`, retaining coarse 900-world-second biology
+and persisted activity accounting. `World.nearbyPhysicalBodies` is the common Person/Creature
+broad phase; human cognition indexes keep their existing meaning. `src/bridge/wildlife.ts`
+projects sight-gated animal bodies, and `bridge/regions.ts` projects canonical forage/water
+quantities. Contract, merge provenance, tests and exact remaining Unreal work:
+`docs/WILDLIFE_REALTIME_INTEGRATION_V0_1.md`.
+
 Embodied wildlife/ecology: `src/sim/core/creatureSpecies.ts` defines general species composition; `src/sim/ecology/` implements the reactive wildlife controller, persistent per-body reserves, local sensing, lifecycle and seeded founding. `world/ecologyResources.ts` registers/meters finite biomass and voxel-backed water; regeneration remains in `world/resources.ts`. `physical/travel.ts` traverses existing Navigator paths with bounded collision sweeps. `headless/ecology/cli.ts` writes reproducible population/performance evidence. Design, continuation semantics and explicit deferred hooks: `docs/EMBODIED_WILDLIFE_ECOLOGY.md`. Legacy decorative chickens and abstract hunting-game nodes are not converted or used as wildlife food.
 
 ## `src/sim/core/`

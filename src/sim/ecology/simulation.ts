@@ -20,9 +20,10 @@ export function stepWildlife(world: World, physicalSeconds: number, worldSeconds
   if (!ecology) return;
   if (![physicalSeconds, worldSeconds].every(Number.isFinite) || physicalSeconds < 0 || worldSeconds < 0) throw new Error('Invalid ecology time');
   ecology.pendingWorldSeconds += worldSeconds; ecology.pendingPhysicalSeconds += physicalSeconds;
-  while (ecology.pendingWorldSeconds >= ECOLOGY_QUANTUM_SECONDS) {
+  while (ecology.pendingWorldSeconds >= ECOLOGY_QUANTUM_SECONDS - 1e-8) {
     const physical = ecology.pendingPhysicalSeconds * ECOLOGY_QUANTUM_SECONDS / ecology.pendingWorldSeconds;
-    ecology.pendingWorldSeconds -= ECOLOGY_QUANTUM_SECONDS; ecology.pendingPhysicalSeconds -= physical;
+    ecology.pendingWorldSeconds = Math.max(0, ecology.pendingWorldSeconds - ECOLOGY_QUANTUM_SECONDS);
+    ecology.pendingPhysicalSeconds = Math.max(0, ecology.pendingPhysicalSeconds - physical);
     ecology.processedAt += ECOLOGY_QUANTUM_SECONDS;
     const tick = ecology.processedAt;
     maintainResourceNodes(world, tick);
@@ -31,11 +32,11 @@ export function stepWildlife(world: World, physicalSeconds: number, worldSeconds
     for (const animal of [...world.creatures()]) {
       if (!animal.wildlife) continue;
       const spec = ecology.species[animal.species]; if (!spec) throw new Error(`Missing ecology species ${animal.species}`);
+      if (spec.cognition.controller !== 'reactive_wildlife') continue;
       for (const id of animal.bodies) {
         const body = world.body(id), state = animal.wildlife.embodiments[id];
         if (!body || !state || body.dead || !body.present) continue;
         stepAnimal(world, animal, body, state, spec, queries, tick, physical);
-        queries.bodies.point(body, body.dead ? null : body.pos);
       }
     }
     censusEcology(world, tick);
@@ -43,16 +44,36 @@ export function stepWildlife(world: World, physicalSeconds: number, worldSeconds
 }
 
 function stepAnimal(world: World, animal: Creature, body: Body, state: AnimalEmbodiment, spec: SpeciesSpec, queries: EcologyQueries, tick: number, physical: number): void {
-  const seconds = ECOLOGY_QUANTUM_SECONDS, hours = seconds / 3600, p = state.physiology;
+  const seconds = ECOLOGY_QUANTUM_SECONDS, lifeHours = seconds / 3600, p = state.physiology;
   const scale = bodyScale(spec, ageDays(animal, tick)), oldScale = bodyScale(spec, ageDays(animal, tick - seconds));
   // Increasing reserve capacity during growth cannot create food/water.
   p.energy *= oldScale / scale; p.hydration *= oldScale / scale;
+  const encounter = state.encounter;
+  const managedSeconds = encounter?.active ? seconds : Math.min(seconds, encounter?.accountedWorldSeconds ?? 0);
+  const walkingSeconds = Math.min(managedSeconds, encounter?.walkingWorldSeconds ?? 0);
+  const sleepingSeconds = Math.min(managedSeconds - walkingSeconds, encounter?.sleepingWorldSeconds ?? 0);
+  if (managedSeconds > 0) {
+    integratePhysiology(world, p, spec, walkingSeconds / 3600, 'walk', tick, scale);
+    integratePhysiology(world, p, spec, sleepingSeconds / 3600, 'sleep', tick, scale);
+    integratePhysiology(world, p, spec, (managedSeconds - walkingSeconds - sleepingSeconds) / 3600, 'idle', tick, scale);
+  }
+  const hours = (seconds - managedSeconds) / 3600;
+  physical = Math.max(0, physical - (encounter?.accountedPhysicalSeconds ?? 0));
   const resources = senseResources(world, queries, body, spec);
   const previousActivity = state.activity;
-  const decision = decide(world, body, state, spec, resources, tick);
+  if (encounter?.intake) {
+    const bout = encounter.intake, node = resources.find(n => n.id === bout.nodeId);
+    // A saved attempt is not food. Recheck current physical matter and reach at settlement;
+    // leaving a source before the coarse intake commits never permits eating remotely.
+    intake(world, animal, body, state, spec, node, bout.activity, Math.min(managedSeconds, bout.worldSeconds) / 3600, tick, scale, bout.previousActivity);
+  }
+  const decision = encounter?.active && encounter.threat ? { activity: state.activity, target: state.target } : decide(world, body, state, spec, resources, tick);
   state.activity = decision.activity; state.target = decision.target;
   let walked = 0;
-  if (decision.target && distance(body.pos, decision.target.pos) > 1.3) {
+  if (encounter?.active || hours <= 0) {
+    // Live activity already happened. Charge only its recorded effort, rest and local
+    // intake attempts; the chosen ecological target is for subsequent physical steps.
+  } else if (decision.target && distance(body.pos, decision.target.pos) > 1.3) {
     if (!body.path || !body.pathGoal || distance(body.pathGoal, decision.target.pos) > 0.5) {
       body.path = world.nav.findPath(body.pos, decision.target.pos, 512);
       body.pathIndex = 0; body.pathGoal = body.path ? { ...decision.target.pos } : null;
@@ -70,31 +91,47 @@ function stepAnimal(world: World, animal: Creature, body: Body, state: AnimalEmb
     body.path = null; body.pathGoal = null; body.vel = { x: 0, y: 0, z: 0 };
     integratePhysiology(world, p, spec, hours, state.activity === 'sleep' ? 'sleep' : 'idle', tick, scale);
     const node = decision.target?.resourceId ? resources.find(n => n.id === decision.target!.resourceId) : undefined;
-    if (node && node.kind === 'surface_water' && decision.activity === 'drink') {
-      const litres = consumeEcologicalResource(world, body, node,
-        Math.min((1 - p.hydration) * spec.metabolism.waterReserveLitres * scale, spec.metabolism.waterLitresPerDay * scale * hours / 2), tick);
-      p.hydration = clamp(p.hydration + litres / (spec.metabolism.waterReserveLitres * scale)); state.waterLitres += litres;
-      if (litres > 0 && previousActivity !== 'drink') intakeEvent(world, animal, body, node, 'water_consumed', litres, tick);
-    } else if (node?.forage && decision.activity === 'eat') {
-      const kjPerKg = spec.diet[node.forage] ?? 0;
-      const juvenileRate = Math.min(1, 0.25 + ageDays(animal, tick) / spec.reproduction.weaningDays);
-      const kg = consumeEcologicalResource(world, body, node,
-        Math.min((1 - p.energy) * spec.metabolism.energyReserveKJ * scale / kjPerKg, spec.metabolism.foodKgPerDay * scale * hours / 4 * juvenileRate), tick);
-      p.energy = clamp(p.energy + kg * kjPerKg / (spec.metabolism.energyReserveKJ * scale)); state.foodKg += kg;
-      if (kg > 0 && previousActivity !== 'eat') intakeEvent(world, animal, body, node, 'food_consumed', kg, tick);
-    }
+    intake(world, animal, body, state, spec, node, decision.activity, hours, tick, scale, previousActivity);
   }
-  if (nurse(world, animal, body, state, spec, tick)) state.activity = 'nurse';
-  state.starvationHours = p.energy <= 1e-6 ? state.starvationHours + hours : Math.max(0, state.starvationHours - hours * 0.5);
-  state.dehydrationHours = p.hydration <= 1e-6 ? state.dehydrationHours + hours : Math.max(0, state.dehydrationHours - hours);
-  if (p.energy <= 1e-6) body.health = Math.max(0, body.health - body.maxHealth * hours / spec.metabolism.starvationHours);
-  if (p.hydration <= 1e-6) body.health = Math.max(0, body.health - body.maxHealth * hours / spec.metabolism.dehydrationHours);
-  if (p.energy > 0.4 && p.hydration > 0.4) body.health = Math.min(body.maxHealth, body.health + body.maxHealth * hours / (7 * 24));
+  if (!encounter?.threat && nurse(world, animal, body, state, spec, tick)) state.activity = 'nurse';
+  state.starvationHours = p.energy <= 1e-6 ? state.starvationHours + lifeHours : Math.max(0, state.starvationHours - lifeHours * 0.5);
+  state.dehydrationHours = p.hydration <= 1e-6 ? state.dehydrationHours + lifeHours : Math.max(0, state.dehydrationHours - lifeHours);
+  if (p.energy <= 1e-6) body.health = Math.max(0, body.health - body.maxHealth * lifeHours / spec.metabolism.starvationHours);
+  if (p.hydration <= 1e-6) body.health = Math.max(0, body.health - body.maxHealth * lifeHours / spec.metabolism.dehydrationHours);
+  if (p.energy > 0.4 && p.hydration > 0.4) body.health = Math.min(body.maxHealth, body.health + body.maxHealth * lifeHours / (7 * 24));
   if (body.health <= 0 || state.dehydrationHours >= spec.metabolism.dehydrationHours || state.starvationHours >= spec.metabolism.starvationHours) {
     naturalDeath(world, animal, body, state, p.hydration <= 1e-6 ? 'dehydration' : 'starvation', tick);
   } else if (tick >= animal.wildlife!.senescenceAt) naturalDeath(world, animal, body, state, 'old_age', tick);
-  if (!body.dead) body.pose = walked > 0 ? 'walk' : state.activity === 'sleep' ? 'sleep' : state.activity === 'eat' || state.activity === 'drink' ? state.activity : 'stand';
+  if (!body.dead && !encounter?.active) body.pose = walked > 0 ? 'walk' : state.activity === 'sleep' ? 'sleep' : state.activity === 'eat' || state.activity === 'drink' ? state.activity : 'stand';
   stepReproduction(world, animal, body, state, spec, resources, queries, tick, seconds);
+  if (encounter) {
+    encounter.accountedWorldSeconds = 0; encounter.accountedPhysicalSeconds = 0; encounter.walkingWorldSeconds = 0;
+    encounter.sleepingWorldSeconds = 0; encounter.intake = null;
+    if (!encounter.active) delete state.encounter;
+    else if (!encounter.threat && decision.target?.resourceId && (decision.activity === 'eat' || decision.activity === 'drink')) {
+      encounter.intake = { nodeId: decision.target.resourceId, activity: decision.activity, worldSeconds: 0, previousActivity };
+    }
+  }
+}
+
+function intake(world: World, animal: Creature, body: Body, state: AnimalEmbodiment, spec: SpeciesSpec, node: ResourceNode | undefined,
+  activity: AnimalActivity, hours: number, tick: number, scale: number, previousActivity: AnimalActivity): void {
+  if (hours <= 0) return;
+  const p = state.physiology;
+  if (node?.kind === 'surface_water' && activity === 'drink') {
+    const litres = consumeEcologicalResource(world, body, node,
+      Math.min((1 - p.hydration) * spec.metabolism.waterReserveLitres * scale, spec.metabolism.waterLitresPerDay * scale * hours / 2), tick);
+    p.hydration = clamp(p.hydration + litres / (spec.metabolism.waterReserveLitres * scale)); state.waterLitres += litres;
+    if (litres > 0 && previousActivity !== 'drink') intakeEvent(world, animal, body, node, 'water_consumed', litres, tick);
+  } else if (node?.forage && activity === 'eat') {
+    const kjPerKg = spec.diet[node.forage] ?? 0;
+    if (kjPerKg <= 0) return;
+    const juvenileRate = Math.min(1, 0.25 + ageDays(animal, tick) / spec.reproduction.weaningDays);
+    const kg = consumeEcologicalResource(world, body, node,
+      Math.min((1 - p.energy) * spec.metabolism.energyReserveKJ * scale / kjPerKg, spec.metabolism.foodKgPerDay * scale * hours / 4 * juvenileRate), tick);
+    p.energy = clamp(p.energy + kg * kjPerKg / (spec.metabolism.energyReserveKJ * scale)); state.foodKg += kg;
+    if (kg > 0 && previousActivity !== 'eat') intakeEvent(world, animal, body, node, 'food_consumed', kg, tick);
+  }
 }
 
 function integratePhysiology(world: World, p: AnimalEmbodiment['physiology'], spec: SpeciesSpec, hours: number, activity: 'walk' | 'idle' | 'sleep', tick: number, scale: number): void {

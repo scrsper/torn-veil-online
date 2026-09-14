@@ -1,4 +1,28 @@
-# Camera-facing combat refinement — human playtest checkpoint, 2026-09-12
+# Wildlife / realtime integration v0.1 — 2026-09-13
+
+Branch `codex/wildlife-realtime-integration-v0-1` in the dedicated Documents worktree
+`TornVeilOnline-wildlife-integration`. Merge `39193ee` has realtime `53901d5` and wildlife
+`d991d22` as its parents. Source branches were not modified. No main merge or PR.
+Report: `docs/WILDLIFE_REALTIME_INTEGRATION_V0_1.md`.
+
+- Same canonical Creature/Body identities across background and active encounters. Active
+  movement follows the interaction clock; sensing runs at 5 Hz, biology at 900 world seconds.
+  Persisted per-body activity accounting prevents free/duplicate travel, food or sleep.
+- Common physical presence query reuses World's body spatial index. Sight-gated avoidance and
+  responsive ecological travel use existing navigation/collision and species walking limits.
+- Additive bridge wildlife observation and regional resource quantities preserve identity,
+  death vs presentation absence, finite matter and active save/load continuation. Save schema
+  remains 24, ecology version 1. No species, animal combat, hunting or ownership were added.
+- Focused distinct coverage: 216 passed, one existing humanoid visual-state cooldown assertion
+  failed identically on clean realtime base `53901d5`; it remains unchanged. Final selected
+  integration/realtime/bridge plus extra visual-state file: 128 passed, the same baseline failure;
+  original ecology: 23 passed. Typecheck/build passed.
+  Existing resource/physiology coverage passed 65 checks, including its eight-world-day case.
+- Active group bound: 128 deer / 60 physical ticks, fewer than 5,120 body broad-phase candidates.
+  Full repository regression not run. No Unreal code, assets, startup or acceptance work.
+  Native DTO/actor/animation/resource visuals and playtest work remain with the Unreal owner.
+
+# Previous camera-facing combat refinement — human playtest checkpoint, 2026-09-12
 
 Feature branch `codex/realtime-interaction-v0-1`, base `947761b`.
 Report: `docs/COMBAT_CAMERA_REFINEMENT.md`; videos/curated measurements:

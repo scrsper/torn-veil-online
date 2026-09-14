@@ -2,6 +2,8 @@ import type { World } from '../sim/core/world';
 import { B } from '../sim/physical/blocks';
 import { settlementSeed } from '../sim/world/settlementSpec';
 import { RegionalGrid } from '../sim/physical/regionalGrid';
+import { wildlifeProjection } from './wildlife';
+import { ecologicalResourceAvailable } from '../sim/world/ecologyResources';
 
 // Ground substance only: roofs and resource canopies are projected separately.
 const ground = new Set<number>([B.Grass,B.Dirt,B.Stone,B.Cobble,B.Sand,B.Farmland,B.Path,B.Gravel,B.Mud,B.Snow]);
@@ -63,7 +65,9 @@ export function regionDynamics(w: World, ids: Set<string>) {
   const nodes = new Map<string, import('../sim/core/types').ResourceNode>();
   for (const id of ids) { const [rx, rz] = id.split(',').map(Number); for (const n of geo.resources(rx, rz)) nodes.set(n.id, n); }
   for (const n of w.resourceNodes) if (inside(n.pos)) nodes.set(n.id, n);
-  return { resources: [...nodes.values()].map(n => ({ id: n.id, kind: n.kind, pos: n.blocks[0] ? { x: n.blocks[0].x, y: n.blocks[0].y, z: n.blocks[0].z } : n.pos, state: n.state, remaining: n.remaining, growthStage: n.growthStage })),
+  return { resources: [...nodes.values()].map(n => ({ id: n.id, kind: n.kind, pos: n.blocks[0] ? { x: n.blocks[0].x, y: n.blocks[0].y, z: n.blocks[0].z } : n.pos, state: n.state, remaining: n.remaining, growthStage: n.growthStage,
+      ...(n.kind === 'forage' || n.kind === 'surface_water' ? { capacity: n.capacity, unit: n.kind === 'forage' ? 'kg' : 'litres', forage: n.forage, physicallyAvailable: ecologicalResourceAvailable(w, n) } : {}) })),
+    wildlife: wildlifeProjection(w, w.primaryBody(w.playerId!), ids),
     items: w.items().filter(i => i.pos && !i.holderId && i.quantity > 0 && inside(i.pos)).map(i => ({ id: i.id, type: i.type, pos: i.pos, quantity: i.quantity })),
     crops: w.fields.flatMap(f => f.plots.filter(inside).map(p => ({ id: `${f.id}:${p.x}:${p.z}`, pos: { x: p.x, y: p.y, z: p.z }, state: p.state, growth: p.growth }))),
     mechanisms: w.kernel.assemblies.filter(a => inside(a.pos)).map(a => ({ id: a.id, pos: a.pos, parts: a.parts.length, condition: Math.min(1,...a.parts.map(id=>w.kernel.components.find(c=>c.id===id)?.condition??0)), state: w.persons().some(p=>p.mind.plan.some(t=>t.status==='active' && ['operate_mechanism','mechanism_task'].includes(t.type) && t.data?.assemblyId===a.id)) ? 'working' : 'idle', operatedSeconds:a.operatedSeconds })),
