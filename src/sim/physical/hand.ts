@@ -3,12 +3,12 @@ import type { Simulation } from '../mind/agent';
 import { actionsForCarriedItem, actionsForWorldItem, SELLER_REACH } from '../core/interaction';
 import { B } from './blocks';
 import { waterSourceAtHand, naturalWaterAtHand } from '../logistics/participation';
-import { setContainerOpen, takeItemFromContainer, transferItemToContainer } from '../core/container';
+import { containerAccessAllowed, setContainerOpen, takeItemFromContainer, transferItemToContainer } from '../core/container';
 
 /** Reach for an external hand, in canonical metres (the browser's item ray has this range). */
 export const ITEM_REACH = 2.4;
 export interface HandInteraction { id: string; kind: string; label: string; slot: 'nearby' | 'consume' | 'drop'; }
-export interface OpenContainerProjection { id: string; name: string; capacity: number; used: number; ownerId: string | null; items: { id: string; name: string; type: string; quantity: number; ownerId: string | null }[]; }
+export interface OpenContainerProjection { id: string; name: string; capacity: number; used: number; items: { id: string; name: string; type: string; quantity: number }[]; }
 function canAct(sim: Simulation, p: Person): boolean {
   const b = sim.world.primaryBody(p.id);
   return !!b && b.present && !b.dead && p.alive && b.pose !== 'downed' && b.subduedUntil <= sim.world.physicalTime && !p.surrender && !p.custody?.active;
@@ -60,16 +60,16 @@ export function openContainerProjection(sim: Simulation, p: Person): OpenContain
   if (!canAct(sim, p)) return null;
   const container = reachableContainers(sim, p).find(c => c.open); if (!container) return null;
   const items = container.itemIds.flatMap(id => { const i = sim.world.item(id); return i && i.containerId === container.id && i.quantity > 0
-    ? [{ id: i.id, name: i.name, type: i.type, quantity: i.quantity, ownerId: i.ownerId }] : []; });
+    ? [{ id: i.id, name: i.name, type: i.type, quantity: i.quantity }] : []; });
   return { id: container.id, name: container.name, capacity: container.capacity,
-    used: items.reduce((sum, item) => sum + item.quantity, 0), ownerId: container.ownerId, items };
+    used: items.reduce((sum, item) => sum + item.quantity, 0), items };
 }
 /** A projection of existing action derivation, not a client-owned menu. Recomputed on intent. */
 export function handInteractions(sim: Simulation, p: Person): HandInteraction[] {
   if (!canAct(sim, p)) return [];
   const w = sim.world, b = w.primaryBody(p.id)!;
   const out: HandInteraction[] = [];
-  const container = reachableContainers(sim, p)[0];
+  const container = reachableContainers(sim, p).find(c => containerAccessAllowed(p, c));
   if (container) out.push({ id: `${container.open ? 'close' : 'open'}:${container.id}`, kind: container.open ? 'close' : 'open', label: `${container.open ? 'Close' : 'Open'} ${container.name}`, slot: 'nearby' });
   const nearby = w.items().filter(it => it.quantity > 0 && !it.holderId && it.pos && reachable(sim, p, it.pos, ITEM_REACH, itemHeight(sim, it.pos)))
     .sort((a, c) => Math.hypot(a.pos!.x - b.pos.x, a.pos!.z - b.pos.z) - Math.hypot(c.pos!.x - b.pos.x, c.pos!.z - b.pos.z) || a.id.localeCompare(c.id));

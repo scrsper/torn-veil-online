@@ -38,6 +38,18 @@ describe('canonical physical containers', () => {
     expect(closed.itemIds).toHaveLength(0);
   });
 
+  it('rejects another owner\'s container and contents without inventing a theft path', () => {
+    const tw = createTestWorld();
+    const owner = addPerson(tw, 'Owner', 'merchant', v(10, 1, 10));
+    const actor = addPerson(tw, 'Traveler', 'traveler', v(10, 1, 11));
+    const container = makeContainer(tw.world, { name: 'Private chest', open: true, ownerId: owner.id, capacity: 10 });
+    const item = makeItem(tw.world, 'ring', 'owner ring', { owner: owner.id, container: container.id });
+    expect(takeItemFromContainer(tw.world, actor, container, item)).toMatchObject({ ok: false, reason: 'not_authorized' });
+    expect(container.itemIds).toEqual([item.id]);
+    expect(item.containerId).toBe(container.id);
+    expect(actor.inventory).not.toContain(item.id);
+  });
+
   it('round-trips container identity, contents, and item location through save/load', () => {
     const tw = createTestWorld();
     const person = addPerson(tw, 'Traveler', 'traveler', v(10, 1, 10));
@@ -52,5 +64,16 @@ describe('canonical physical containers', () => {
     expect(restoredItem.containerId).toBe(container.id);
     expect(restoredItem.holderId).toBeNull();
     expect(restored.person(person.id)!.inventory).not.toContain(item.id);
+  });
+
+  it('rejects a saved container topology that contradicts item location', () => {
+    const tw = createTestWorld();
+    const person = addPerson(tw, 'Traveler', 'traveler', v(10, 1, 10));
+    const container = makeContainer(tw.world, { name: 'Persistent chest', open: true, capacity: 20 });
+    const item = makeItem(tw.world, 'ring', 'ring', { owner: person.id, holder: person.id });
+    expect(transferItemToContainer(tw.world, person, item, container).ok).toBe(true);
+    const saved = JSON.parse(serialize(tw.world));
+    saved.items.find((entry: { id: string }) => entry.id === item.id).holderId = person.id;
+    expect(deserialize(JSON.stringify(saved))).toBeNull();
   });
 });

@@ -320,6 +320,28 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
       const restored = { ...s, tags: [...(s.tags ?? [])], itemIds: [...(s.itemIds ?? [])], pos: s.pos ? { ...s.pos } : null } as Container;
       const existing = world.container(s.id); if (existing) Object.assign(existing, restored); else world.add(restored);
     }
+    // Containment is one canonical location, represented bidirectionally for efficient queries.
+    // Refuse a contradictory save instead of guessing which copy was meant to be authoritative.
+    const containedBy = new Map<string, string>();
+    for (const container of world.containers()) {
+      if (!Number.isInteger(container.capacity) || container.capacity < 0 || new Set(container.itemIds).size !== container.itemIds.length) return null;
+      let used = 0;
+      for (const itemId of container.itemIds) {
+        const item = world.item(itemId);
+        if (!item || item.containerId !== container.id || containedBy.has(itemId)) return null;
+        containedBy.set(itemId, container.id); used += Math.max(0, item.quantity);
+      }
+      if (used > container.capacity) return null;
+    }
+    // Generated reconstruction may contain placeholder residents not present in compact test or
+    // authored saves. Validate against the saved inventories that are actually authoritative.
+    const carriedItems = new Set<string>((data.persons ?? []).flatMap((person: Person) => person.inventory ?? []));
+    for (const item of world.items()) {
+      const listedIn = containedBy.get(item.id);
+      if (item.containerId) {
+        if (listedIn !== item.containerId || item.holderId || item.pos || carriedItems.has(item.id)) return null;
+      } else if (listedIn) return null;
+    }
     for (const s of data.places) { const p = world.place(s.id); if (!p) continue; p.ownerId = s.ownerId; s.anchors.forEach((o: string | null, i: number) => { if (p.anchors[i]) p.anchors[i].ownerId = o ?? undefined; }); }
     for (const s of data.factions ?? []) { const f = world.faction(s.id); if (!f) continue; f.leaderId = s.leaderId; f.knowledge = s.knowledge; }
     if (data.diffs?.length) { world.grid.recording = false; world.grid.applyDiffs(data.diffs); world.grid.initCaches(); world.nav.rebuildAll(); world.grid.dirtyChunks.clear(); }

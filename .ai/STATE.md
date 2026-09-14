@@ -4,7 +4,7 @@ Branch `codex/foundational-gameplay-presentation-v0-1`, base `333665e`. Canonica
 semantic container transfers, settlement pickup/chest seeding, body-keyed wildlife projection,
 temporary engine-shape deer presentation, locomotion/camera signals, central item visuals and a
 controller-capable layered native HUD now form one playable shell. TypeScript retains movement,
-interaction, inventory, container, wildlife, combat and persistence authority. Focused TS 44/44,
+interaction, inventory, container, wildlife, combat and persistence authority. Focused TS 81/81,
 production build, generated specs, native Editor build, three native Presentation tests and the
 61-check playable startup smoke pass. Report: `docs/FOUNDATIONAL_GAMEPLAY_PRESENTATION_V0_1.md`.
 Final deer art/rig, explicit equipment slots, true CommonUI widgets and human quality approval are

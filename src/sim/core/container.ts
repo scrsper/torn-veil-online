@@ -13,7 +13,7 @@ export interface ContainerSpec {
 
 export type ContainerTransferResult =
   | { ok: true; eventId: string }
-  | { ok: false; reason: 'missing_actor' | 'actor_incapacitated' | 'missing_item' | 'missing_container' | 'container_closed' | 'not_carried' | 'not_contained' | 'capacity_exceeded' | 'invalid_quantity' };
+  | { ok: false; reason: 'missing_actor' | 'actor_incapacitated' | 'missing_item' | 'missing_container' | 'container_closed' | 'not_authorized' | 'not_carried' | 'not_contained' | 'capacity_exceeded' | 'invalid_quantity' };
 
 export function makeContainer(world: World, spec: ContainerSpec): Container {
   const container: Container = {
@@ -25,9 +25,16 @@ export function makeContainer(world: World, spec: ContainerSpec): Container {
   return world.add(container);
 }
 
+/** Minimal v0.1 authorization: unowned storage is communal; owned storage is private. A future
+ * theft/permission system must add an explicit canonical action rather than bypassing this gate. */
+export function containerAccessAllowed(actor: Person, container: Container): boolean {
+  return !container.ownerId || container.ownerId === actor.id;
+}
+
 export function setContainerOpen(world: World, actor: Person | null, container: Container, open: boolean): ContainerTransferResult {
   if (!actor) return { ok: false, reason: 'missing_actor' };
   if (!actor.alive) return { ok: false, reason: 'actor_incapacitated' };
+  if (!containerAccessAllowed(actor, container)) return { ok: false, reason: 'not_authorized' };
   if (container.open === open) return { ok: true, eventId: '' };
   container.open = open;
   const event = world.emit(open ? 'container_opened' : 'container_closed', {
@@ -50,6 +57,7 @@ export function transferItemToContainer(world: World, actor: Person | null, item
   if (!item || world.item(item.id) !== item) return { ok: false, reason: 'missing_item' };
   if (!container || world.container(container.id) !== container) return { ok: false, reason: 'missing_container' };
   if (!container.open) return { ok: false, reason: 'container_closed' };
+  if (!containerAccessAllowed(actor!, container)) return { ok: false, reason: 'not_authorized' };
   if (item.quantity <= 0) return { ok: false, reason: 'invalid_quantity' };
   if (item.holderId !== actor!.id || !actor!.inventory.includes(item.id)) return { ok: false, reason: 'not_carried' };
   if (container.itemIds.includes(item.id) || item.containerId) return { ok: false, reason: 'not_carried' };
@@ -69,6 +77,7 @@ export function takeItemFromContainer(world: World, actor: Person | null, contai
   if (!item || world.item(item.id) !== item) return { ok: false, reason: 'missing_item' };
   if (!container.open) return { ok: false, reason: 'container_closed' };
   if (item.containerId !== container.id || !container.itemIds.includes(item.id)) return { ok: false, reason: 'not_contained' };
+  if (!containerAccessAllowed(actor!, container) || (item.ownerId && item.ownerId !== actor!.id)) return { ok: false, reason: 'not_authorized' };
   container.itemIds = container.itemIds.filter(id => id !== item.id);
   item.containerId = null; item.holderId = actor!.id; item.pos = null; item.placeId = null;
   if (!actor!.inventory.includes(item.id)) actor!.inventory.push(item.id);

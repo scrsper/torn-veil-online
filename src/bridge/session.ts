@@ -233,7 +233,7 @@ export class BridgeSession {
         incapacitated: b.pose === 'downed' || b.subduedUntil > w.physicalTime || !!w.person(b.ownerId)?.surrender || !!w.person(b.ownerId)?.custody?.active,
         alive: !b.dead,
         speech: w.person(b.ownerId)?.speech?.text ?? '',
-        ...(b.ownerId === p.id ? { inventory: p.inventory.flatMap(id => { const i=w.item(id); return i ? [{ id:i.id,name:i.type,type:i.type,quantity:i.quantity,ownerId:i.ownerId,holderId:i.holderId }] : []; }), health: b.health, maxHealth: b.maxHealth, needs: { ...p.needs }, wealth: p.wealth } : {}),
+        ...(b.ownerId === p.id ? { inventory: p.inventory.flatMap(id => { const i=w.item(id); return i ? [{ id:i.id,name:i.type,type:i.type,quantity:i.quantity }] : []; }), health: b.health, maxHealth: b.maxHealth, needs: { ...p.needs }, wealth: p.wealth } : {}),
       })), combatActions:w.activeBodies().filter(b=>visible.has(b.id)).flatMap(b=>{const a=combatState(w,b);return a?[a]:[];}), combatPresentation: combatPresentation(w, visible, p.id), events: [] };
   }
   /** Whole-world observability is available only through this explicitly named debug path. */

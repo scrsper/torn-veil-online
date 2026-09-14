@@ -7,7 +7,7 @@ Status: implementation checkpoint complete on 2026-09-14; awaiting human playtes
 - One canonical-facing third-person camera now derives exploration, combat and incapacitated presentation modes. Starts, stops, pivots, acceleration, gait and shoulder hints are presentation signals; root motion and actor-translation authority are explicitly false.
 - A generic semantic prompt layer sends opaque interaction IDs for simulation revalidation. Keyboard and controller prompts share the same path.
 - A restrained layered HUD provides inventory, nearby physical container, pause/settings surface, consistent back/cancel, controller navigation and modal input lockout.
-- Canonical `Container` entities persist capacity, open state, item IDs and physical location. Transfer commands carry only container/item identity and direction; TypeScript revalidates reach, state, contents, capacity and actor capability.
+- Canonical `Container` entities persist capacity, open state, item IDs and physical location. Transfer commands carry only container/item identity and direction; TypeScript revalidates reach, state, contents, capacity, actor capability and minimal ownership authorization. Player-facing DTOs omit raw canonical owner IDs, and load rejects contradictory container/item topology.
 - The generated settlement starts the ordinary controlled person in its public square near one canonical loose item and one canonical chest, allowing pickup/open/transfer/save without developer relocation.
 - World items use one central native presentation catalog. Containers and items follow regional canonical projections and never grant interactions.
 - Observer-visible wildlife now creates disposable native actors keyed by canonical `bodyId` and associated with `creatureId`. A safe engine-shape roe-deer proxy maps idle/walk/forage/eat/drink/rest/sleep/flee/dead, interpolates canonical motion and distinguishes death from withdrawal.
@@ -29,7 +29,7 @@ WASD / left stick move; mouse / right stick look; Shift / left-stick click sprin
 
 ## Verification checkpoint
 
-- Focused TypeScript: 44 tests in 8 files passed, including container round trip, bridge transfer, ecology scheduler, wildlife identity/residency/activity, persistence and playable world.
+- Focused TypeScript: 81 tests in 11 files passed, including container authorization/round trip, bridge transfer, ecology scheduler, wildlife identity/residency/activity, persistence and playable world.
 - Typecheck and Vite production build passed.
 - Generated interaction/combat specifications are current.
 - UE 5.8 native Editor build passed using the repository AutoSDK.

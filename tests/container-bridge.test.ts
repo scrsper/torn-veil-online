@@ -26,6 +26,8 @@ describe('canonical container bridge', () => {
     expect(session.snapshot().interactions).toContainEqual(expect.objectContaining({id:`open:${chest.id}`}));
     expect(send({type:'interact',interactionId:`open:${chest.id}`})).toMatchObject({status:'applied'});
     expect(session.snapshot().container).toMatchObject({id:chest.id,items:[{id:contained.id}]});
+    expect(session.snapshot().container).not.toHaveProperty('ownerId');
+    expect(session.snapshot().container!.items[0]).not.toHaveProperty('ownerId');
 
     expect(send({type:'container_transfer',containerId:chest.id,itemId:carried.id,direction:'into'})).toMatchObject({status:'applied'});
     expect(person.inventory).not.toContain(carried.id);
@@ -36,6 +38,19 @@ describe('canonical container bridge', () => {
     body.pos.x += 10;
     expect(session.snapshot().container).toBeNull();
     expect(send({type:'container_transfer',containerId:chest.id,itemId:carried.id,direction:'out'})).toMatchObject({status:'rejected',result:'interaction_unavailable'});
+  });
+
+  it('does not project hidden ownership and rejects an unauthorized private container', () => {
+    const session = new BridgeSession(215), world = session.world;
+    const actor = world.person(world.playerId)!, body = world.primaryBody(actor.id)!;
+    const owner = world.persons().find(person => person.id !== actor.id)!;
+    const chest = makeContainer(world,{name:'Private chest',open:true,ownerId:owner.id,capacity:8,pos:{...body.pos,x:body.pos.x+.7}});
+    const item = makeItem(world,'book','Private notes',{container:chest.id,owner:owner.id});
+    const projected = session.snapshot().container!;
+    expect(projected).toMatchObject({ id: chest.id, items: [{ id: item.id }] });
+    expect(projected).not.toHaveProperty('ownerId');
+    expect(projected.items[0]).not.toHaveProperty('ownerId');
+    expect(commands(session)({type:'container_transfer',containerId:chest.id,itemId:item.id,direction:'out'})).toMatchObject({status:'rejected',result:'not_authorized'});
   });
 
   it('persists the projected container and item location through a bridge save', () => {

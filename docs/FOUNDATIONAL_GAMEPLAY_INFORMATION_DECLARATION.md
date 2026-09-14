@@ -13,7 +13,7 @@ Status: implementation checkpoint complete on 2026-09-14; native build and focus
 - Locomotion presentation currently uses canonical velocity/yaw/pose, a 2D blend space, sprint selection, pose snapshots, bounded foot IK, and combat handoffs. There are no dedicated start/stop/pivot presentation states.
 - Canonical inventory is `Person.inventory: EntityId[]` over persistent `Item` entities. Shared pickup, drop, give, buy, consume, and resource interactions exist in `src/sim/core/interaction.ts`, `src/sim/physical/hand.ts`, and `src/sim/mind/agent.ts`.
 - `handInteractions` projects semantic, observable affordances and `performHandInteraction` revalidates state, reach, passage, ownership/action kind, and availability. The bridge sends opaque interaction IDs to this canonical path.
-- Schema-24 additive canonical `Container` entities now own capacity/open state/item identities and validated whole-stack transfer; equipment slots remain absent and combat still derives weapons from carried items.
+- Schema-24 additive canonical `Container` entities now own capacity/open state/item identities and validated whole-stack transfer. Unowned storage is communal in v0.1; owned storage rejects non-owners until a future explicit permission/theft action exists. Equipment slots remain absent and combat still derives weapons from carried items.
 - Native UI remains an `AHUD::DrawHUD` implementation but now applies CommonUI-style HUD/modal/back/controller principles to inventory, physical containers and pause/settings surfaces. CommonUI is not yet enabled and no widget owns canonical state.
 - UE 5.8 CommonUI and PCGBiomeCore engine plugins are installed. No local Lyra, Electric Dreams, or Content Examples project was found in the inspected project/install locations.
 - The local Game Animation Sample exists at `C:/Users/green/Desktop/projects/GameAnimationSample` and was inspected read-only. No code or asset was imported.
@@ -22,7 +22,8 @@ Status: implementation checkpoint complete on 2026-09-14; native build and focus
 - Ecology advances on a fixed 15-minute quantum and authoritative travel is materialized in TypeScript. A native deer layer would need timestamped interpolation/reconciliation without changing canonical displacement.
 - Current PCG dressing in `TVWorldProjection` is seeded from canonical substrate, collision-free, tagged `TV.Decorative.NoGameplay`, and kept distinct from canonical resources.
 - No cleared final roe-deer mesh/rig/animation set was found. The committed v0.1 actor uses only Unreal Engine basic-shape meshes as an explicitly temporary procedural proxy; no vendor AI or animal asset was imported.
-- Save schema 24 now persists containers and contained-item location additively alongside people, items, bodies, ecology, resources and scheduler state.
+- Save schema 24 now persists containers and contained-item location additively alongside people, items, bodies, ecology, resources and scheduler state. Load rejects duplicate, missing, over-capacity or conflicting item/container topology rather than guessing authority.
+- Player-facing inventory/container DTOs omit raw canonical owner IDs; ownership truth is not promoted into player knowledge by the presentation bridge.
 
 ## B. User-established design intent
 

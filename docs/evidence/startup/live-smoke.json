@@ -67,22 +67,22 @@
     {
       "type": "hello",
       "bytes": 82,
-      "ms": 5.526299999999992,
+      "ms": 8.296500000000378,
       "controls": true
     },
     {
       "type": "scene",
       "bytes": 227,
-      "ms": 5.602899999999863
+      "ms": 8.365900000000693
     },
     {
       "type": "snapshot",
-      "bytes": 1257,
-      "ms": 7.863200000000234
+      "bytes": 1258,
+      "ms": 12.339600000000246
     }
   ],
-  "firstSnapshotMs": 7.863200000000234,
-  "firstCenterRegionMs": 2475.1574,
+  "firstSnapshotMs": 12.339600000000246,
+  "firstCenterRegionMs": 2489.2620000000006,
   "regionOrder": [
     "47,78",
     "46,78",
@@ -95,7 +95,7 @@
     "47,79"
   ],
   "maxWireBytes": 87508,
-  "maxSnapshotGapMs": 702.0689999999995,
+  "maxSnapshotGapMs": 775.7687999999998,
   "snapshotCount": 77,
   "before": {
     "x": 12035,
@@ -108,7 +108,7 @@
     "z": 20008
   },
   "playerId": "p_128",
-  "controlledBodyId": "b_139",
-  "clockBefore": 0.03333333333333333,
+  "controlledBodyId": "b_141",
+  "clockBefore": 0.016666666666666666,
   "clockAfter": 7.599999999999978
 }
