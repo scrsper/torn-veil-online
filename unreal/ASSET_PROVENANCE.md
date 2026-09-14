@@ -16,3 +16,11 @@ Verified 2026-09-10. Source assets are kept in `.debug/playable-assets`; importe
 The PCG graph generates only collision-free, noninteractive dressing from canonical substrate samples. Its graph output has the `TV.Decorative.NoGameplay` tag. Harvestable resources come from GameSim and have stable node-to-instance references. Changing either art library requires presentation adapters, not simulation changes.
 
 Run `import_playable_grass.py` and `import_playable_nature.py` for the environment meshes, then `configure_runtime_materials.py` to save instancing shader flags on the shared wrappers. Soil/stone roughness maps are retained source assets; the prototype materials currently use a shared roughness constant. Birch/pine modules are retained replacement variants; the current canonical tree renderer uses CommonTree_1. No high-resolution fir-tree model was imported: its source geometry alone was roughly 478 MB and unsuitable for this prototype subset.
+
+## Foundational presentation v0.1 temporary wildlife and item proxies
+
+| Source | License/provenance | Local-only or committed | Redistribution | Derivation | Final project path |
+|---|---|---|---|---|---|
+| Unreal Engine `/Engine/BasicShapes` sphere, cylinder, cone and cube | Installed UE 5.8 engine content; Unreal Engine license | C++ assembly/mapping committed; engine meshes are not copied | Requires the user's Unreal Engine installation | Runtime component transforms only; no vendor animal Blueprint, AI, rig or animation | `Source/TornVeilOnline/TVWildlifePresentation.*`, `TVItemPresentationCatalog.*`, `TVWorldProjection.cpp` |
+
+The wildlife silhouette is deliberately labeled a temporary proxy. No commercial-game asset, sibling-reference asset, marketplace animal, proprietary code or unclear-license deer content was imported or committed.

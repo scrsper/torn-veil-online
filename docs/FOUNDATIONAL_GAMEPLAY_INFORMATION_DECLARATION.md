@@ -1,29 +1,28 @@
 # Foundational Gameplay Presentation v0.1 — Information Declaration
 
-Status: synthesis gate reached; implementation is blocked by the base and asset gates below. Evidence was gathered read-only on 2026-09-13.
+Status: implementation checkpoint complete on 2026-09-14; native build and focused verification pass, pending human playtest.
 
 ## A. Verified facts
 
 - The canonical production checkout is `C:/Users/green/Desktop/projects/torn-veil-online`.
-- `origin/main` is `5877a720ba1e53dc0dcc9c03eb3a77c1fc6f191c` and contains merged embodied wildlife ecology (PR 39).
-- The accepted realtime work is not consolidated on `origin/main`: realtime wildlife integration is at `origin/codex/wildlife-realtime-integration-v0-1` (`3a9373e`), the pushed realtime combat branch is at `origin/codex/realtime-interaction-v0-1` (`b5693ad`), and realtime martial integration is at `origin/astra/realtime-martial-integration-v0-1` (`463b82b`). `gh pr list --state open` returned no open PRs.
-- The production checkout is on `codex/realtime-interaction-v0-1`, ahead of its remote. Its HEAD advanced concurrently from `dbee8b4` to `b9ba86a` during this investigation as unrelated combat/social regression work was committed; unrelated evidence, documentation, and Unreal assets remain untracked. This milestone did not modify or stage that work.
+- The implementation base is `origin/main` at `333665e4ce5c33baee7e751bf35044daa6b296d4`, which consolidates embodied ecology, realtime wildlife interaction, realtime combat/contact and martial selection/learning.
+- Work is isolated in `C:/Users/green/Desktop/projects/torn-veil-online-foundational` on `codex/foundational-gameplay-presentation-v0-1`; the dirty production checkout was preserved and not switched.
 - `src/sim/` owns canonical identities, bodies, position, inventory, combat, ecology, knowledge, and persistence. `src/sim/core/types.ts`, `src/sim/physical/interactionMovement.ts`, `src/sim/physical/combatAction.ts`, `src/sim/ecology/`, and `src/sim/persist/save.ts` are concrete sources.
 - Disposable native movement/combat prediction and reconciliation already exist in `src/bridge/commands.ts`, `src/bridge/session.ts`, `src/sim/physical/prediction.ts`, `TVBridgeSubsystem`, and `TVCharacter`. Native character collision/movement authority remains disabled.
 - The native camera is one spring-arm third-person presentation with collision, lag, zoom, shoulder offset, mouse/stick look, and canonical facing integration in `TVCharacter.cpp`.
 - Locomotion presentation currently uses canonical velocity/yaw/pose, a 2D blend space, sprint selection, pose snapshots, bounded foot IK, and combat handoffs. There are no dedicated start/stop/pivot presentation states.
 - Canonical inventory is `Person.inventory: EntityId[]` over persistent `Item` entities. Shared pickup, drop, give, buy, consume, and resource interactions exist in `src/sim/core/interaction.ts`, `src/sim/physical/hand.ts`, and `src/sim/mind/agent.ts`.
 - `handInteractions` projects semantic, observable affordances and `performHandInteraction` revalidates state, reach, passage, ownership/action kind, and availability. The bridge sends opaque interaction IDs to this canonical path.
-- The current simulation has no physical container model, container-transfer API, equipment slots, or equip/unequip API. `src/sim/physical/combat.ts` explicitly derives a weapon from carried items and notes that the prototype has no equipment slots.
-- Native UI is an `AHUD::DrawHUD` Canvas implementation in `TVGameMode.cpp`. The project uses UMG as a module but does not depend on or enable CommonUI. There are no native inventory/container/equipment widgets.
+- Schema-24 additive canonical `Container` entities now own capacity/open state/item identities and validated whole-stack transfer; equipment slots remain absent and combat still derives weapons from carried items.
+- Native UI remains an `AHUD::DrawHUD` implementation but now applies CommonUI-style HUD/modal/back/controller principles to inventory, physical containers and pause/settings surfaces. CommonUI is not yet enabled and no widget owns canonical state.
 - UE 5.8 CommonUI and PCGBiomeCore engine plugins are installed. No local Lyra, Electric Dreams, or Content Examples project was found in the inspected project/install locations.
 - The local Game Animation Sample exists at `C:/Users/green/Desktop/projects/GameAnimationSample` and was inspected read-only. No code or asset was imported.
 - Roe deer canonical state exists in `src/sim/ecology/species.ts` and `src/sim/ecology/types.ts`. `Creature.id` and `Body.id` are persistent; per-body activity/physiology is persisted. Death and presentation withdrawal are distinct.
-- Wildlife is not projected to Unreal. `src/bridge/session.ts` currently projects visible humanoid bodies; regional projection covers terrain/resources/items and decorative PCG, not creature actors.
+- `src/bridge/wildlife.ts` projects observer-visible activity, condition and persistent body/creature identity. `TVBridgeSubsystem` now maintains disposable actors keyed by `bodyId`; omission withdraws presentation while `dead` remains a rendered state.
 - Ecology advances on a fixed 15-minute quantum and authoritative travel is materialized in TypeScript. A native deer layer would need timestamped interpolation/reconciliation without changing canonical displacement.
 - Current PCG dressing in `TVWorldProjection` is seeded from canonical substrate, collision-free, tagged `TV.Decorative.NoGameplay`, and kept distinct from canonical resources.
-- No roe deer mesh, rig, or animation set was found in Torn Veil or Game Animation Sample. Existing Quaternius/Poly Haven environment subsets are recorded as CC0 in `unreal/ASSET_PROVENANCE.md`; Epic mannequin derivatives are local-install governed and excluded from Git.
-- Save schema 24 persists people, items, bodies, ecology, resource state, and scheduler state. It cannot persist nonexistent container/equipment state.
+- No cleared final roe-deer mesh/rig/animation set was found. The committed v0.1 actor uses only Unreal Engine basic-shape meshes as an explicitly temporary procedural proxy; no vendor AI or animal asset was imported.
+- Save schema 24 now persists containers and contained-item location additively alongside people, items, bodies, ecology, resources and scheduler state.
 
 ## B. User-established design intent
 
@@ -43,17 +42,14 @@ Status: synthesis gate reached; implementation is blocked by the base and asset 
 - A renderer-neutral movement-presentation DTO plus mesh-only start/stop/pivot selection can improve locomotion without changing authority.
 - Wildlife should use a body-keyed actor registry tied to regional residency and distinct dead/withdrawn handling.
 - The 15-minute ecology cadence will require bounded visual interpolation and may expose large corrections unless the bridge provides suitable samples; presentation must catch up rather than delaying truth.
-- Containers and equipment require small canonical extensions before their UI can honestly exist; their exact data model needs constitutional/architectural review because it creates new canonical state.
+- Explicit equipment slots remain a later canonical extension; v0.1 does not infer equipped truth from the inventory screen.
 
 ## D. Unknowns
 
-- Which consolidated commit will be the accepted base for combat, realtime wildlife, and martial integration.
-- Whether the currently unpushed/dirty realtime checkout represents final accepted work.
 - A redistribution-cleared roe deer mesh, skeleton, and animation source and its final project path.
-- The final canonical shape of physical containers, capacity, access/open state, transfer semantics, and equipment slots.
-- Whether wildlife perception/contact must land before a deer can legitimately react to a controlled person in realtime.
+- The final canonical equipment-slot model and equip/unequip semantics.
 - Whether CommonUI should be enabled immediately or introduced after a minimal UMG adapter proves bridge contracts.
-- Human approval of movement, camera, combat continuity, wildlife presentation, UI, and performance.
+- Human approval of movement, camera, combat continuity, wildlife presentation, UI, and performance; no human quality approval is claimed.
 
 ## E. References actually inspected
 
@@ -94,14 +90,14 @@ Status: synthesis gate reached; implementation is blocked by the base and asset 
 
 ## H. Risks
 
-- Base: integration against the wrong commit could overwrite accepted combat/wildlife/martial behavior.
+- Integration: later changes to bridge DTOs must retain command revalidation and body-keyed presentation identity.
 - Licensing: no cleared deer asset; several local vendor packs have unverified redistribution terms.
 - Authority: UI-only containers/equipment or Blueprint wildlife behavior would duplicate truth.
 - Persistence: new canonical state needs explicit schema/version semantics and round-trip tests.
 - Streaming: body identity, dead bodies, withdrawal, and region residency must not be conflated.
 - Performance: wildlife interpolation, UI snapshots, PCG density, and regional application share the native frame budget.
 - Presentation: low-cadence wildlife samples and network jitter can create corrections, foot sliding, or false state timing.
-- Concurrency: the production checkout contains active unrelated work and is not safe for branch switching or shared asset edits.
+- Asset quality: the safe deer proxy proves architecture and state language, not final silhouette, rigging, foot planting or animation quality.
 
 ## I. Current confidence
 
@@ -111,11 +107,12 @@ Status: synthesis gate reached; implementation is blocked by the base and asset 
 | Realtime combat/movement seams | VERIFIED | Branch/source/docs inspection |
 | Current camera/locomotion implementation | VERIFIED | Native source and sample comparison |
 | Generic item interactions | VERIFIED | Canonical and bridge source/tests |
-| Container/equipment support | VERIFIED ABSENT | Targeted source/test search and explicit combat comment |
+| Container support | VERIFIED | Canonical source, bridge tests and save/load round trip |
+| Equipment support | VERIFIED ABSENT | Combat still derives carried weapon; UI does not invent slots |
 | CommonUI availability | VERIFIED | UE 5.8 plugin installation |
 | Lyra/Electric Dreams/Content Examples availability | UNVERIFIED beyond searched locations | No local project found |
 | Canonical roe deer identity/activity/persistence | VERIFIED | Ecology/core/persistence source |
-| Unreal wildlife projection | VERIFIED ABSENT | Bridge/native projection inspection |
-| Deer asset provenance | UNVERIFIED/BLOCKING | No suitable asset found |
-| Proposed UI/locomotion/wildlife adapters | HIGH-CONFIDENCE INFERENCE | Existing seams plus inspected mature reference patterns |
-| Human-facing quality and acceptance | UNVERIFIED | No implementation or human playtest performed |
+| Unreal wildlife projection | VERIFIED | Native build plus body-keyed projection source |
+| Deer asset provenance | VERIFIED TEMPORARY | Engine basic-shape proxy; final cleared deer art remains unknown |
+| UI/locomotion/wildlife adapters | VERIFIED | Focused TypeScript/native tests, build and startup smoke |
+| Human-facing quality and acceptance | UNVERIFIED | Human playtest has not yet occurred |

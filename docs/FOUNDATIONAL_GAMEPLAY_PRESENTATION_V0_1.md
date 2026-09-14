@@ -1,61 +1,49 @@
 # Foundational Gameplay Presentation v0.1
 
-Status: investigation and synthesis complete; implementation stopped at required gates on 2026-09-13.
+Status: implementation checkpoint complete on 2026-09-14; awaiting human playtest.
 
-## Outcome
+## Implemented vertical slice
 
-The current repository already contains strong foundations for canonical realtime movement/combat, semantic hand interactions, persistent items, regional projection, decorative PCG, and persistent wildlife ecology. It does not yet contain one coherent native game shell, canonical containers/equipment, or an Unreal wildlife projection.
+- One canonical-facing third-person camera now derives exploration, combat and incapacitated presentation modes. Starts, stops, pivots, acceleration, gait and shoulder hints are presentation signals; root motion and actor-translation authority are explicitly false.
+- A generic semantic prompt layer sends opaque interaction IDs for simulation revalidation. Keyboard and controller prompts share the same path.
+- A restrained layered HUD provides inventory, nearby physical container, pause/settings surface, consistent back/cancel, controller navigation and modal input lockout.
+- Canonical `Container` entities persist capacity, open state, item IDs and physical location. Transfer commands carry only container/item identity and direction; TypeScript revalidates reach, state, contents, capacity and actor capability.
+- The generated settlement starts the ordinary controlled person in its public square near one canonical loose item and one canonical chest, allowing pickup/open/transfer/save without developer relocation.
+- World items use one central native presentation catalog. Containers and items follow regional canonical projections and never grant interactions.
+- Observer-visible wildlife now creates disposable native actors keyed by canonical `bodyId` and associated with `creatureId`. A safe engine-shape roe-deer proxy maps idle/walk/forage/eat/drink/rest/sleep/flee/dead, interpolates canonical motion and distinguishes death from withdrawal.
+- Existing biome-driven PCG remains collision-free, tagged `TV.Decorative.NoGameplay`, and separate from canonical resources. Existing combat authority and choreography remain intact while camera/modal behavior stays continuous with exploration.
 
-Implementation was intentionally not started because the work order's stop conditions are active:
-
-1. `origin/main` does not contain the accepted realtime combat, realtime wildlife integration, and realtime martial integration branches.
-2. The production checkout contains active uncommitted/unpushed work on the realtime branch, so switching or integrating there would risk collision.
-3. No redistribution-cleared roe deer mesh, skeleton, or animation set is available.
-4. Physical containers and equipment do not exist canonically; fabricating UI state would violate the authority boundary.
-
-Accordingly, no milestone branch was created, no shared Unreal asset was written, no source implementation was changed, no commit/PR/push was made, and no acceptance or quality claim is made.
-
-## Permanent architecture selected
+## Authority boundary
 
 ```text
-canonical TypeScript fact/action
-        ↓ renderer-neutral bridge DTO / semantic intent
-disposable Unreal projection and local prediction
-        ↓
-camera, animation, widgets, VFX, sound, decorative PCG
+TypeScript entity/action/container/wildlife truth
+        ↓ observable bridge projection / semantic intent
+Unreal actor, camera, animation, HUD, interpolation and decorative PCG
 ```
 
-- Movement, facing outcomes, contact, damage, inventory, item location, container/equipment state, wildlife behavior, ecology, and persistence remain TypeScript-owned.
-- Unreal may smooth, blend, warp meshes within explicit bounds, and predict locally only when disposable and reconciled.
-- The native UI reads snapshots and sends semantic/opaque intent IDs; it never grants an action.
-- Presentation actors are keyed by canonical `bodyId`/item identity. Region unload removes presentation, not canonical identity. Dead and withdrawn are different states.
-- PCG uses canonical substrate as input and produces tagged, noninteractive decoration only.
+Unreal does not decide movement, pickup, transfer, damage, wildlife behavior, death, inventory or persistence. Native prediction and smoothing remain disposable.
 
-## First coherent implementation sequence after unblock
+## Controls
 
-1. Create `codex/foundational-gameplay-presentation-v0-1` from the newly consolidated `main` and record exact base.
-2. Add focused bridge contracts/tests for movement presentation telemetry, richer item descriptors, semantic prompts, and body-keyed wildlife residency.
-3. Implement camera plus start/stop/pivot continuity without root authority; verify zero presentation-induced actor drift.
-4. Replace the player-facing Canvas surface with a thin CommonUI/UMG HUD/prompt/inventory shell; keep Canvas debug diagnostics.
-5. Design and implement the smallest canonical physical-container model and transfer action, with persistence and shared NPC/player semantics.
-6. Decide whether explicit equipment slots are required for v0.1. If required, add them canonically before the equipment view; otherwise label the view deferred rather than faking it.
-7. Acquire or create a cleared roe deer rig/animation set, record provenance, then implement the body-keyed wildlife projection and transitions.
-8. Tune one existing PCG biome slice, integrate exploration/combat shell transitions, and run the save/reload walkthrough.
+WASD / left stick move; mouse / right stick look; Shift / left-stick click sprint; wheel zoom; E / A interact; I / View inventory; arrows / D-pad select; Enter / A transfer; Escape / B back; P pause menu; Tab target; LMB / right shoulder light attack; RMB / Y heavy attack; Space / B dodge; Ctrl / left shoulder crouch; F5 save; F6 diagnostics.
 
-## Planned focused verification
+## Verification checkpoint
 
-- TypeScript: hand eligibility/projection, pickup round trip, inventory DTO, container transfer, equipment projection if added, wildlife identity/activity/residency, resource nonduplication, save/load.
-- Static/integration: typecheck, production build, generated-spec check.
-- Native: focused camera/locomotion drift, CommonUI input/focus/cancel, bridge parsing, actor residency/dead-vs-withdrawn, and existing combat regressions.
-- One broader regression only after the coherent slice is stable.
-- Human playtest and normal-speed capture only after ordinary startup supports the full acceptance sequence.
+- Focused TypeScript: 44 tests in 8 files passed, including container round trip, bridge transfer, ecology scheduler, wildlife identity/residency/activity, persistence and playable world.
+- Typecheck and Vite production build passed.
+- Generated interaction/combat specifications are current.
+- UE 5.8 native Editor build passed using the repository AutoSDK.
+- All 3 `TornVeil.Presentation` native automation tests passed.
+- Playable loopback startup passed 61 checks; evidence: `docs/evidence/startup/live-smoke.json`.
+- A fresh-world PIE capture exercised the ordinary bound Interact command and recorded the
+  projected physical chest, canonical contents, layered shell and dressed settlement at
+  `docs/evidence/foundational-gameplay/playable-shell.png`; its region/PCG inventory is beside it
+  as `playable-shell.json`.
 
-## Evidence
+## Remaining gaps
 
-- Information declaration: `docs/FOUNDATIONAL_GAMEPLAY_INFORMATION_DECLARATION.md`
-- Reference matrix: `docs/FOUNDATIONAL_GAMEPLAY_REFERENCE_MATRIX.md`
-- Existing architecture/evidence: `.ai/STATE.md`, `.ai/DECISIONS.md`, `.ai/REPO_MAP.md`, `docs/CONTINUOUS_COMBAT_FLOW.md`, `docs/EMBODIED_WILDLIFE_ECOLOGY.md`, `docs/PLAYABLE_SEEDED_WORLD.md`, `unreal/ASSET_PROVENANCE.md`
+The temporary deer proxy is not final art or animation. Explicit equipment slots/equip actions, true CommonUI/UMG widgets, device-specific glyph art, final settings/rebinding UI, a fully curated biome art pass and human approval remain deferred. No RDR2/Witcher/AAA quality claim is made.
 
 ## Human playtest
 
-Not available for this milestone because no implementation branch was safely created. Existing combat/world commands test earlier checkpoints only and are not evidence for this requested vertical slice.
+Run `pwsh -File unreal/scripts/Launch.ps1`, then use the controls above. The ordinary flow requires no console commands after startup. Stop for human feedback before treating presentation quality as accepted.

@@ -10,6 +10,13 @@ Read only the section relevant to the current task.
 
 # Core simulation
 
+Foundational presentation shell: `src/sim/core/container.ts` and `physical/hand.ts` own validated
+physical container state/actions; `bridge/session.ts`, `commands.ts`, `regions.ts` expose only
+observable DTOs and semantic intent. Native adapters are `TVLocomotionCameraPresentation`,
+`TVWildlifePresentation`, `TVItemPresentationCatalog`, `TVBridgeSubsystem`, `TVCharacter`,
+`TVGameMode`, and `TVWorldProjection`. Status and controls:
+`docs/FOUNDATIONAL_GAMEPLAY_PRESENTATION_V0_1.md`.
+
 Wildlife/realtime integration: `src/sim/ecology/interaction.ts` schedules nearby canonical
 animal bodies through `Simulation.stepScheduled`, retaining coarse 900-world-second biology
 and persisted activity accounting. `World.nearbyPhysicalBodies` is the common Person/Creature

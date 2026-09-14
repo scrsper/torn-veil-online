@@ -1,3 +1,15 @@
+# Foundational gameplay presentation v0.1 — human playtest checkpoint, 2026-09-14
+
+Branch `codex/foundational-gameplay-presentation-v0-1`, base `333665e`. Canonical containers,
+semantic container transfers, settlement pickup/chest seeding, body-keyed wildlife projection,
+temporary engine-shape deer presentation, locomotion/camera signals, central item visuals and a
+controller-capable layered native HUD now form one playable shell. TypeScript retains movement,
+interaction, inventory, container, wildlife, combat and persistence authority. Focused TS 44/44,
+production build, generated specs, native Editor build, three native Presentation tests and the
+61-check playable startup smoke pass. Report: `docs/FOUNDATIONAL_GAMEPLAY_PRESENTATION_V0_1.md`.
+Final deer art/rig, explicit equipment slots, true CommonUI widgets and human quality approval are
+not claimed. Human launch: `pwsh -File unreal/scripts/Launch.ps1`.
+
 # Realtime wildlife integration v0.2 — porting in progress, 2026-09-14
 
 Branch `codex/wildlife-realtime-integration-v0-2`, created fresh from consolidated
