@@ -98,7 +98,7 @@ function ordinaryVillagers(world: World): Person[] {
 
 /** A victim with the richest surrounding social structure — someone with a spouse AND a
  * workmate — so one event can demonstrate family, work and institutional consequences at once. */
-function pickSubject(world: World, requireSpouse: boolean, requireCoworker: boolean): Person | undefined {
+function pickSubject(world: World, requireSpouse: boolean, requireCoworker: boolean, requireOnlooker = false): Person | undefined {
   const candidates = ordinaryVillagers(world).filter(p => {
     // The trigger must be able to cause a NEW serious wound. Warmup can already leave the
     // most-connected spouse badly injured; selecting them makes the <0.6 loop do nothing.
@@ -106,6 +106,9 @@ function pickSubject(world: World, requireSpouse: boolean, requireCoworker: bool
     const body = world.primaryBody(p.id);
     if (!body?.present || body.dead || woundSeverity(body) >= 0.6 || p.surrender || p.custody?.active
       || body.subduedUntil > world.physicalTime) return false;
+    // The assault comparison needs an event that can acquire distinct witness perspectives.
+    // Select existing physical opportunity; do not give absent minds knowledge of the harm.
+    if (requireOnlooker && !onlookerAt(world, body.pos, [p.id, pickAggressor(world, p.id)?.id ?? ''])) return false;
     const spouse = Object.entries(p.relationships).some(([id, r]) => r.tags.includes('spouse') && world.person(id)?.alive);
     const coworker = !!p.workId && world.persons().some(q => q.alive && q.id !== p.id && q.workId === p.workId);
     return (!requireSpouse || spouse) && (!requireCoworker || coworker);
@@ -171,9 +174,10 @@ export function runSocialTrace(spec: TraceSpec): SocialTrace {
 
   const needsSpouse = spec.trigger === 'family_harm' || spec.trigger === 'assault';
   const needsCoworker = spec.trigger === 'work_disruption' || spec.trigger === 'assault';
+  const needsOnlooker = spec.trigger === 'assault';
   const subject = (spec.trigger === 'theft'
     ? ordinaryVillagers(world).filter(p => !!p.workId).sort((a, b) => a.id.localeCompare(b.id))[0]
-    : pickSubject(world, needsSpouse, needsCoworker)) ?? pickSubject(world, false, false)!;
+    : pickSubject(world, needsSpouse, needsCoworker, needsOnlooker)) ?? pickSubject(world, false, false, needsOnlooker)!;
   const actor = pickAggressor(world, subject.id)!;
 
   const traceStart = world.now;
@@ -244,8 +248,8 @@ export function runSocialTrace(spec: TraceSpec): SocialTrace {
     triggerEvent = sim.takeItem(actor, owned, 'theft', subject.id);
     triggerText = `${actor.name} stole ${owned.name} from ${subject.name} at ${workPlace?.name ?? 'their place'}`;
   } else {
-    // A serious beating, delivered through the SAME `Simulation.attack` an NPC or the player
-    // uses — repeated blows until the wound is genuinely serious, then the aggressor is put back
+    // A serious wound staged through the canonical contact-consequence hook `Simulation.applyHit`
+    // — repeated consequences until the wound is serious, then the aggressor is put back
     // where they came from so the trace observes consequences rather than an ongoing brawl.
     placeBeside(world, actor, subject);
     const before = { ...actorBody.pos };

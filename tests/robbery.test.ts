@@ -4,6 +4,7 @@ import { makeItem } from '../src/sim/world/factory';
 import { resolveRobberyCompliance, selectRobberyTake } from '../src/sim/mind/robbery';
 import type { RNG } from '../src/sim/core/rng';
 import { setExternalControl } from '../src/sim/runtime/controllers';
+import { B } from '../src/sim/physical/blocks';
 
 /** Deterministic stand-in for World.rng: every draw returns the same fixed value, so a test can
  * force a specific compliance/take outcome instead of hunting for a lucky seed. Implements the
@@ -108,9 +109,15 @@ describe('robbery causal loop (Priority 1 stabilization)', () => {
     expect(bandit.wealth).toBeGreaterThan(0);
   });
 
-  it('resisted robbery: a defiant, armed target is subdued (not automatically killed) before anything is taken', () => {
+  it('resisted robbery in a confined passage: a defiant, armed target is subdued before anything is taken', () => {
     const { tw, bandit, villager } = setupBanditAndVictim(312, { courage: 1, aggression: 1 });
-    tw.world.rng = new FixedRNG(0.0) as unknown as RNG; // resistWill > 0 for this target, so 0 >= resistWill is false: resistant
+    // Full-health courage/aggression 1 plus a weapon clamps resistance to 1 already.
+    // Keep the seeded RNG and establish an actual ambush passage: attempted sidesteps
+    // pay their normal cost and are blocked by canonical walls, not disabled by the test.
+    for (let x = 8; x <= 14; x++) for (let y = 1; y <= 3; y++) {
+      tw.world.grid.set(x, y, 9, B.Stone); tw.world.grid.set(x, y, 11, B.Stone);
+    }
+    tw.world.nav.rebuildArea(8, 9, 14, 11);
     // v0.2.3: the bandit is armed so it can actually overpower a defiant target — a robber that
     // is simply outmatched now (correctly) breaks off or yields rather than looping forever.
     makeItem(tw.world, 'sword', 'a notched sword', { owner: bandit.id, holder: bandit.id, damage: 26 });
