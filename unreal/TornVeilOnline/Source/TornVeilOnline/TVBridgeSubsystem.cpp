@@ -341,8 +341,8 @@ void UTVBridgeSubsystem::SendDropIntent() {
 void UTVBridgeSubsystem::Interact() {
     if (bPauseOpen || bInventoryOpen) return;
     if (bDialogueOpen) { ChooseDialogueOption(0); return; }
-    if (!TalkTargetBody.IsEmpty()) { SendIntent(TEXT("talk"), TalkTargetBody); return; }
-    SendHandIntent(false);
+    if (!NearbyInteraction.IsEmpty()) { SendHandIntent(false); return; }
+    if (!TalkTargetBody.IsEmpty()) SendIntent(TEXT("talk"), TalkTargetBody);
 }
 void UTVBridgeSubsystem::ToggleInventory() {
     if(!IsLive()||bArena)return;
@@ -485,7 +485,7 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
         const auto Talk = (*TalkTargets)[0]->AsObject();
         if (Talk) {
             TalkTargetBody = Talk->GetStringField(TEXT("bodyId"));
-            NearbyPrompt = FString::Printf(TEXT("Talk to %s"), *Talk->GetStringField(TEXT("name")));
+            if(NearbyInteraction.IsEmpty())NearbyPrompt = FString::Printf(TEXT("Talk to %s"), *Talk->GetStringField(TEXT("name")));
         }
     }
     const TSharedPtr<FJsonObject>* Dialogue;

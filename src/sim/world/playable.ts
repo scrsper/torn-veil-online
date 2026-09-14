@@ -5,6 +5,7 @@ import { B } from '../physical/blocks';
 import { initializeWildlife } from '../ecology/generation';
 import { makeContainer } from '../core/container';
 import { makeItem } from './factory';
+import { createAnimal } from '../ecology/animals';
 
 export function generatePlayableWorld(world: World, spec: PlayableWorldSpec = PLAYABLE_WORLD, withWildlife = true) {
   const geography = new WorldGeography(world.seed, spec);
@@ -39,7 +40,21 @@ export function generatePlayableWorld(world: World, spec: PlayableWorldSpec = PL
     makeItem(world,'bread','Travel bread',{container:chest.id,quantity:2,description:'A plain loaf kept for the road.'});
     makeItem(world,'lantern','Weathered lantern',{pos:loosePos,placeId:first.places.square.id,description:'A serviceable lantern left in the square.'});
   }
-  if (withWildlife) initializeWildlife(world);
+  if (withWildlife) {
+    initializeWildlife(world);
+    // The broad geography has only three bounded founder-registration corridors. Give this
+    // specific playable scenario a small canonical founder cohort in the settlement forest so
+    // the ordinary settlement-to-wilderness route demonstrates wildlife without relocation.
+    // These are normal persistent Creature/Body entities; no presentation-only animal exists.
+    if (first) {
+      const center=first.places.square.inside,forest=first.places.forest.inside;
+      const approach=world.nav.findPath(center,forest)?.filter(p=>Math.hypot(p.x-center.x,p.z-center.z)<=72);
+      const founders=approach?.slice(-2) ?? [forest];
+      for(const [index,pos] of founders.entries()) {
+        createAnimal(world,'roe_deer',pos,{sex:index===0?'female':'male'});
+      }
+    }
+  }
   return settlements;
 }
 

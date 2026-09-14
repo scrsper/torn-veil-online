@@ -19,6 +19,9 @@ describe('continuous seeded world', () => {
     expect(new Set(w.settlements().map(s => s.formerInhabitantIds.length)).size).toBeGreaterThan(1);
     expect(w.geography!.roads.some(r => r.length > 1000)).toBe(true);
     expect(session.sim.world).toBe(w); expect(session.scene()).toHaveProperty('regional', true);
+    const player=w.positionOf(w.playerId!)!;
+    const nearbyDeer=w.creatures().filter(c=>c.species==='roe_deer'&&c.bodies.some(id=>{const b=w.body(id);return !!b&&Math.hypot(b.pos.x-player.x,b.pos.z-player.z)<80;}));
+    expect(nearbyDeer).toHaveLength(2);
   });
   test('local seeds reproduce untouched regions in either visitation order and diverge across world seeds', () => {
     const a = new WorldGeography(918271), b = new WorldGeography(918271), other = new WorldGeography(7239);
