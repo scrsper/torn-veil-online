@@ -202,6 +202,9 @@ export function registerStoneNodes(world: World, placeId: EntityId, spots: Vec3[
  * state is authoritative over whatever the grid diffs happen to hold). */
 export function syncResourceNodeBlocks(world: World): void {
   for (const n of world.resourceNodes) {
+    // Surface-water voxels may also be removed by canonical terrain edits. Loading must
+    // preserve those edits, not recreate water merely because an intake ledger once existed.
+    if (n.kind === 'surface_water' && n.remaining > 0) continue;
     for (const b of n.blocks) {
       const id = n.state === 'available' ? b.id : (n.kind === 'stone' ? B.Gravel : B.Air);
       world.grid.set(b.x, b.y, b.z, id);
@@ -239,6 +242,7 @@ const SWING_SECONDS = 5 * 60;
  * productive (Constitution v0.4 §5).
  */
 export function extractFromNode(world: World, node: ResourceNode, actor: Person, context?: { laborSeconds: number; causes: string[] }): number {
+  if (node.yield === 'biomass' || node.yield === 'water') return 0; // no manufactured item output
   if (node.state !== 'available' || node.remaining <= 0) return 0;
   if (node.kind === 'game') {
     const body = world.primaryBody(actor.id);
@@ -329,9 +333,20 @@ function depleteNode(world: World, node: ResourceNode): void {
  * once, long after depletion — reproduces the exact same stage/availability a player watching
  * continuously would have seen; no drift from how often upkeep happens to run.
  */
-export function maintainResourceNodes(world: World): void {
-  const now = world.now;
+export function maintainResourceNodes(world: World, now = world.now): void {
   for (const n of world.resourceNodes) {
+    if (n.kind === 'forage') {
+      const hours = Math.max(0, now - (n.renewedAt ?? now)) / 3600;
+      // Never rewind maintenance when another scheduler has already visited this time.
+      n.renewedAt = Math.max(now, n.renewedAt ?? now);
+      if (n.renewable && n.regrowHours > 0 && forageSubstrateExists(world, n)) {
+        n.remaining = Math.min(n.capacity, n.remaining + n.capacity * hours / n.regrowHours);
+      }
+      n.state = n.remaining > 0 ? 'available' : 'depleted';
+      if (n.remaining >= n.capacity * 0.25) n.depletedAt = undefined;
+      continue;
+    }
+    if (n.kind === 'surface_water') continue; // finite voxel volume; no wildlife rain/refill timer
     if (n.kind === 'game') {
       const hours = Math.max(0, now - (n.renewedAt ?? now)) / 3600;
       n.renewedAt = now;
@@ -364,6 +379,12 @@ export function maintainResourceNodes(world: World): void {
       summary: `A new tree has grown near ${world.nameOf(n.placeId)}`,
     });
   }
+}
+
+/** Terrain removal/paving stops plant renewal. Standing timber retains its own years-long lifecycle. */
+export function forageSubstrateExists(world: World, n: ResourceNode): boolean {
+  const x = Math.floor(n.pos.x), z = Math.floor(n.pos.z), y = Math.floor(n.pos.y);
+  return [B.Grass, B.Dirt].includes(world.grid.get(x, y - 1, z)) && !world.grid.isSolidAt(x, y + 0.1, z);
 }
 
 // ---------------------------------------------------------------- observability

@@ -32,7 +32,7 @@ function resourceAtHand(sim: Simulation, p: Person): ResourceNode | undefined {
   const pos = frontInteractionPos(body);
   const cx = Math.floor(pos.x), cy = Math.floor(pos.y), cz = Math.floor(pos.z);
   return sim.world.resourceNodes
-    .filter(n => n.state === 'available' && n.remaining > 0
+    .filter(n => n.kind !== 'forage' && n.kind !== 'surface_water' && n.state === 'available' && n.remaining > 0
       && reachable(sim, p, n.pos, ITEM_REACH, 0.15)
       && (n.blocks.some(b => b.x === cx && b.z === cz && Math.abs(b.y - cy) <= 5)
         || Math.hypot(n.pos.x - pos.x, n.pos.z - pos.z) < 2.5))

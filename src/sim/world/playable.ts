@@ -2,8 +2,9 @@ import type { World } from '../core/world';
 import { WorldGeography, PLAYABLE_WORLD, type PlayableWorldSpec } from './geography';
 import { generateProceduralWorld } from './settlement';
 import { B } from '../physical/blocks';
+import { initializeWildlife } from '../ecology/generation';
 
-export function generatePlayableWorld(world: World, spec: PlayableWorldSpec = PLAYABLE_WORLD) {
+export function generatePlayableWorld(world: World, spec: PlayableWorldSpec = PLAYABLE_WORLD, withWildlife = true) {
   const geography = new WorldGeography(world.seed, spec);
   world.geography = geography;
   world.clock.timeScale = spec.timeScale;
@@ -25,6 +26,7 @@ export function generatePlayableWorld(world: World, spec: PlayableWorldSpec = PL
     }
   }
   world.initNav(); world.grid.recording = true;
+  if (withWildlife) initializeWildlife(world);
   return settlements;
 }
 
