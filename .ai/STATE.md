@@ -1,3 +1,19 @@
+# Continuous combat flow v0.3 — human playtest checkpoint, 2026-09-13
+
+Branch `codex/realtime-interaction-v0-1`, base `53901d5`, implementation `7fd8f10`.
+Report: `docs/CONTINUOUS_COMBAT_FLOW.md`; normal-speed BEFORE/AFTER continuous video,
+side-by-side jab/cross and front/round comparisons, and all pose diagnostics are under
+`docs/evidence/combat-flow/`. Evaluated pose/velocity residuals, owned chain trims,
+carried support footing and nonuniform round-kick timing remove the observed reset paths.
+Approved standalone cross/front kick and locomotion/sprint/dodge/hit assets remain unchanged.
+TypeScript still owns contact and commitment; revision 1 saves retain their old meaning.
+One executed strike may carry through one dodge. The shoulder camera follows body facing.
+72 unique focused TS tests across affected runs, typecheck/web build, generated-spec check,
+native Editor build and 10 native Realtime tests pass. No full regression was run.
+Human arena: `pwsh -File unreal/scripts/Start-CombatArena.ps1 -Port 59414`.
+Stop for human playtest; approval is not claimed. Existing unrelated local work is preserved.
+The older full-suite 851/852 family failure remains unresolved and outside this pass.
+
 # Camera-facing combat refinement â€” human playtest checkpoint, 2026-09-12
 
 Feature branch `codex/realtime-interaction-v0-1`, base `947761b`.
