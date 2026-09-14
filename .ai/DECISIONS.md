@@ -20,6 +20,13 @@
   ledgers. The existing realtime execution cadence remains independent and persistent. See
   `docs/WILDLIFE_REALTIME_INTEGRATION_V0_1.md` for scope and conservative intake settlement.
 
+## Reference-first presentation policy
+
+- For conventional presentation, UX, input, animation, camera, inventory interface, controller navigation, environmental dressing, and interaction prompts, first inspect a mature relevant reference, identify the solved pattern and the Torn Veil-specific seam, preserve canonical authority, and implement only the necessary adapter/presentation layer.
+- A custom presentation system needs a Torn Veil-specific reason. This policy does not authorize wholesale copying: commercial code/assets, sample-owned gameplay authority, and content without verified redistribution rights remain excluded.
+- TypeScript continues to own canonical movement, actions, inventory, equipment/container state, wildlife behavior, resources, knowledge and persistence. Unreal may own rendering, input collection, widgets, animation selection/blending, bounded mesh-only warping, decorative PCG, and disposable reconciled prediction.
+- The initial inspected references and adopt/defer/reject synthesis are recorded in `docs/FOUNDATIONAL_GAMEPLAY_INFORMATION_DECLARATION.md` and `docs/FOUNDATIONAL_GAMEPLAY_REFERENCE_MATRIX.md`.
+
 ## Canonical live combat contact and defense
 
 - An accepted attack starts a persistent body action; it does not establish a hit. Preparation,
