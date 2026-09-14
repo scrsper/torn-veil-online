@@ -1,7 +1,7 @@
-import type { Entity, Vec3 } from './types';
+import type { Vec3 } from './types';
 
 /** Derived physical broad phase. Stable insertion order preserves canonical tie breaks. */
-export class SpatialIndex<T extends Entity> {
+export class SpatialIndex<T extends { id: string }> {
   private buckets = new Map<string, Set<T>>();
   private cells = new Map<T, string[]>();
   private order = new Map<T, number>();

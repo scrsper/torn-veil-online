@@ -1,5 +1,13 @@
 # Durable design decisions
 
+## Embodied creatures and wildlife ecology
+
+- General species composition is independent of human identity: body plan, locomotion, cognition and senses are distinct components. Reactive wildlife biology refines that model rather than defining all future creatures. Sapient nonhumans belong on appropriate Person cognition/mechanics; unsupported controllers are never silently reduced to animal behavior.
+- Wildlife uses existing Creature identities and zero-or-many Body references. Each manifestation has its own shared Physiology reserves; Body health/dead remains mortality authority. Species data and the independent RNG stream persist with the fixed-cadence remainder. No extinction-triggered reseeding or camera-driven spawning.
+- Forage kg and surface-water litres are ResourceNode quantities, not inventory item types or population counters. Intake requires actual accessible matter. Plant renewal remains ordinary resource upkeep; water has no implicit refill. Existing trees/crops keep their prior lifecycle clocks.
+- Population census/history is observational. Biological condition, sensed mates, physical resources and paid gestation/birth drive reproduction; density only moderates conception opportunity. Local nursing transfers reserves. A dedicated simple controller avoids changes to human planners, combat and martial learning.
+- Existing human natural-water/well and abstract hunting adapters are unchanged legacy paths. Predation, hunting, ownership/domestication, common nonhuman presence/perception and projection hooks remain explicit follow-up work. See `docs/EMBODIED_WILDLIFE_ECOLOGY.md` for scope, evidence and limits.
+
 ## Combat execution projection and choreography
 
 - Combat semantics project immutable execution facts from existing causal attack events.

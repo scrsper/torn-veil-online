@@ -1,6 +1,17 @@
-# Emergent combat choreography v0.1
+# Embodied Wildlife & Ecology v0.1
 
-Current branch: `astra/emergent-combat-choreography-v0-1`, from `8a5eda3`
+Current branch: `codex/embodied-wildlife-ecology-v0-1`, based on current remote main `d9e758c`. Dedicated local branch; no PR or merge. Report: `docs/EMBODIED_WILDLIFE_ECOLOGY.md`; reproducible evidence: `docs/ecology-acceptance.json`.
+
+- Compositional species foundation and three reactive profiles: field hare, roe deer, woodland boar. Existing Creature identities and Body authority; per-manifestation reserves, finite feeding/drinking, physical travel, rest, paid gestation/birth, local nursing, growth and natural mortality. Sapience is not tied to humanity.
+- Shared physiology kernel, existing spatial/nav/time/RNG/resource upkeep, additive schema-24 ecology state and deterministic partial-cadence continuation. Chronicle gets notable tracked-population changes, not routine meals. No extinction repair spawning.
+- Focused ecology: 23 checks passed. Relevant existing physiology/resources: 65 checks passed. Typecheck and final build passed. Remaining normal regression: 743 checks in 77 files passed; combined selected coverage: 831 checks. Two long ecology cases exceeded their unchanged limits after an initial redundant visibility check; cheap eligibility gating removed that overhead and both passed on rerun. No unresolved test failures.
+- Measured: seed 701, 8 → 18 hares in 100 days; seed 711, 8 → 15. Overcrowding: 48 hares, 5 → 0.061 kg accessible forage by day 3, starvation extinction by day 10, ordinary resource recovery to 5 kg by day 50. Water-free habitat: six dehydration deaths by day 10.
+- Scale sample: 1,000 individuals / one day / 4,160 resource nodes in 20.424 s; 18.29 million spatial resource candidates, about 22× below full scans. Quarter-hour endpoint simulation; no realtime visual/century-scale claim.
+- Deferred: predation/combat/hunting, domestication/ownership/economy, full hydrology, non-walking locomotion, pack/herd/Person controller attachment, worldwide wildlife generation, shared human/nonhuman presence/perception and visualization. Legacy decorative chickens, human water actions and abstract hunting grounds remain unchanged. No Unreal or combat/martial implementation changes; shared hand query only filters new direct-intake node kinds out of gathering offers.
+
+## Previous merged milestone: Emergent combat choreography v0.1
+
+Recorded previous branch: `astra/emergent-combat-choreography-v0-1`, from `8a5eda3`
 (previous humanoid/PCG phase; 8 commits ahead of origin/main at start).
 Canonical checkout: `C:/Users/green/Desktop/projects/torn-veil-online`.
 
