@@ -1,3 +1,28 @@
+# CURRENT — main at `7152abb` (PR #40 merged), 2026-09-14
+
+`main` is `7152abb3b21d3c107c62c3bac42636aa480ac36d`: PR #40
+(`codex/realtime-interaction-v0-1` → main) merged "Realtime Interaction,
+Combat & Continuous Motion v0.1" on top of the already-merged
+"Embodied Wildlife & Ecology v0.1" (PR #39). Both foundations are present
+in one authoritative history; do not redo either.
+
+- Wildlife ecology: merged (see "Embodied Wildlife & Ecology v0.1" below).
+- Realtime combat/continuous motion: merged (see "Realtime combat
+  consolidated with wildlife main" and later checkpoints below).
+- Family/social motivated-life assertions pass on the PR #40 gate: the
+  historical 851/852 family-trace failure recorded further down is
+  superseded evidence from an earlier pre-merge checkpoint, not the
+  current acceptance state.
+- Current CI limitation: PR #40's gate reported 905 passed, 15 wall-clock
+  timeouts, 0 assertion failures. The timeouts are a runtime/performance
+  characteristic of the CI runner, not a correctness regression — see
+  the Phase 4 CI runtime diagnosis for status. Do not raise timeout
+  limits or weaken assertions to mask this without root-causing it first.
+
+Historical entries below (including the older 851/852 family-failure
+record) are retained as evidence of prior investigation, not as the
+current acceptance state.
+
 # Realtime combat consolidated with wildlife main — 2026-09-13
 
 Branch `codex/realtime-interaction-v0-1`; normal merge `ee93cff` joins combat `b5693ad`
