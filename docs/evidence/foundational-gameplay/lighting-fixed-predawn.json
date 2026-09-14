@@ -1,0 +1,276 @@
+{
+  "status": "passed",
+  "map": "/Game/TornVeil/Maps/UEDPIE_0_TornVeilWorld.TornVeilWorld",
+  "regions": [
+    {
+      "actor": "TVRegionProjection_0",
+      "location": "<Struct 'Vector' (0x00000177915B2450) {x: 0.000000, y: 0.000000, z: 0.000000}>",
+      "instances": 1546,
+      "components": 17,
+      "collision": [
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>"
+      ],
+      "pcg_generated": true,
+      "pcg_ms": 767.1523988246918,
+      "meshes": {
+        "Floor_WoodDark": 4,
+        "Wall_Plaster_Straight": 25,
+        "Wall_Plaster_Window_Wide_Flat": 7,
+        "Roof_Support2": 10,
+        "Roof_Modular_RoundTiles": 21,
+        "Balcony_Simple_Straight": 107,
+        "Cube": 1,
+        "CommonTree_1": 6,
+        "Rock_1": 7,
+        "Cone": 155,
+        "Cylinder": 2,
+        "Sphere": 2,
+        "Door_1_Flat": 2,
+        "grass_medium_01_1k": 544,
+        "Bush_1": 130
+      }
+    },
+    {
+      "actor": "TVRegionProjection_1",
+      "location": "<Struct 'Vector' (0x00000177915B2810) {x: -25600.000000, y: 0.000000, z: 0.000000}>",
+      "instances": 1735,
+      "components": 16,
+      "collision": [
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>"
+      ],
+      "pcg_generated": true,
+      "pcg_ms": 351.6969010233879,
+      "meshes": {
+        "Floor_WoodDark": 7,
+        "Wall_Plaster_Straight": 81,
+        "Roof_Support2": 7,
+        "Wall_Plaster_Window_Wide_Flat": 29,
+        "Roof_Modular_RoundTiles": 44,
+        "Wall_Plaster_WoodGrid": 11,
+        "Cube": 3,
+        "Balcony_Simple_Straight": 58,
+        "CommonTree_1": 5,
+        "Cone": 193,
+        "Cylinder": 3,
+        "Sphere": 11,
+        "Door_1_Flat": 8,
+        "grass_medium_01_1k": 558,
+        "Bush_1": 131
+      }
+    },
+    {
+      "actor": "TVRegionProjection_2",
+      "location": "<Struct 'Vector' (0x00000177915B2A40) {x: 0.000000, y: -25600.000000, z: 0.000000}>",
+      "instances": 835,
+      "components": 4,
+      "collision": [
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>"
+      ],
+      "pcg_generated": true,
+      "pcg_ms": 663.7508980929852,
+      "meshes": {
+        "Cube": 39,
+        "CommonTree_1": 30,
+        "grass_medium_01_1k": 623,
+        "Bush_1": 143
+      }
+    },
+    {
+      "actor": "TVRegionProjection_3",
+      "location": "<Struct 'Vector' (0x00000177915B2AE0) {x: 0.000000, y: 25600.000000, z: 0.000000}>",
+      "instances": 740,
+      "components": 4,
+      "collision": [
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>"
+      ],
+      "pcg_generated": true,
+      "pcg_ms": 660.3768989443779,
+      "meshes": {
+        "CommonTree_1": 6,
+        "Rock_1": 1,
+        "grass_medium_01_1k": 594,
+        "Bush_1": 139
+      }
+    },
+    {
+      "actor": "TVRegionProjection_4",
+      "location": "<Struct 'Vector' (0x00000177915B2B80) {x: 25600.000000, y: 0.000000, z: 0.000000}>",
+      "instances": 727,
+      "components": 4,
+      "collision": [
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>"
+      ],
+      "pcg_generated": true,
+      "pcg_ms": 343.52320060133934,
+      "meshes": {
+        "Cube": 59,
+        "CommonTree_1": 6,
+        "grass_medium_01_1k": 533,
+        "Bush_1": 129
+      }
+    },
+    {
+      "actor": "TVRegionProjection_5",
+      "location": "<Struct 'Vector' (0x00000177915B2C20) {x: -25600.000000, y: -25600.000000, z: 0.000000}>",
+      "instances": 834,
+      "components": 11,
+      "collision": [
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>"
+      ],
+      "pcg_generated": true,
+      "pcg_ms": 657.8196994960308,
+      "meshes": {
+        "Floor_WoodDark": 1,
+        "Wall_Plaster_Window_Wide_Flat": 5,
+        "Wall_Plaster_Straight": 11,
+        "Roof_Support2": 1,
+        "Roof_Modular_RoundTiles": 6,
+        "Cube": 41,
+        "CommonTree_1": 7,
+        "Sphere": 2,
+        "Door_1_Flat": 1,
+        "grass_medium_01_1k": 616,
+        "Bush_1": 143
+      }
+    },
+    {
+      "actor": "TVRegionProjection_6",
+      "location": "<Struct 'Vector' (0x00000177915B2DB0) {x: -25600.000000, y: 25600.000000, z: 0.000000}>",
+      "instances": 760,
+      "components": 3,
+      "collision": [
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>"
+      ],
+      "pcg_generated": true,
+      "pcg_ms": 664.5813025534153,
+      "meshes": {
+        "CommonTree_1": 6,
+        "grass_medium_01_1k": 612,
+        "Bush_1": 142
+      }
+    },
+    {
+      "actor": "TVRegionProjection_7",
+      "location": "<Struct 'Vector' (0x00000177915B2E50) {x: 25600.000000, y: -25600.000000, z: 0.000000}>",
+      "instances": 746,
+      "components": 4,
+      "collision": [
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>"
+      ],
+      "pcg_generated": true,
+      "pcg_ms": 664.4048020243645,
+      "meshes": {
+        "Cube": 49,
+        "CommonTree_1": 4,
+        "grass_medium_01_1k": 562,
+        "Bush_1": 131
+      }
+    },
+    {
+      "actor": "TVRegionProjection_8",
+      "location": "<Struct 'Vector' (0x00000177915B2EF0) {x: 25600.000000, y: 25600.000000, z: 0.000000}>",
+      "instances": 716,
+      "components": 5,
+      "collision": [
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>",
+        "<CollisionEnabled.NO_COLLISION: 0>"
+      ],
+      "pcg_generated": true,
+      "pcg_ms": 664.6663993597031,
+      "meshes": {
+        "Cube": 58,
+        "CommonTree_1": 7,
+        "Rock_1": 1,
+        "grass_medium_01_1k": 525,
+        "Bush_1": 125
+      }
+    }
+  ],
+  "terrainSections": 9,
+  "characterActors": 1,
+  "wildlifeActors": 0,
+  "wildlifeDiagnostics": [],
+  "allActors": 34,
+  "lighting": {
+    "valid": true,
+    "viewMode": "Lit",
+    "sunLux": 12000.0,
+    "sunPitch": -44.99999999999999,
+    "sunYaw": -35.0,
+    "sunMobility": "<ComponentMobility.MOVABLE: 2>",
+    "skyIntensity": 1.0,
+    "skyRealtimeCapture": true,
+    "skyAtmospheres": 1,
+    "exposureMinEV100": 12.0,
+    "exposureMaxEV100": 12.0,
+    "exposureCompensation": 1.0,
+    "lumenGIMethod": 1
+  },
+  "renderedFrame": {
+    "passed": true,
+    "error": "",
+    "metric": "Rec.709 weighted sRGB display values, normalized 0..1",
+    "roi": "x=[8%,92%), y=[20%,78%); excludes sky/top and bottom HUD",
+    "meanLuma": 0.36698653883959204,
+    "readableFraction": 0.9733951726223298,
+    "p90MinusP10": 0.23529411764705882
+  }
+}

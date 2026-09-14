@@ -25,6 +25,11 @@ Run `import_playable_grass.py` and `import_playable_nature.py` for the environme
 
 The wildlife silhouette is deliberately labeled a temporary proxy. No commercial-game asset, sibling-reference asset, marketplace animal, proprietary code or unclear-license deer content was imported or committed.
 
-Remote hardening added only self-generated PIE screenshots/JSON diagnostics and source-level timing
-instrumentation. The branch diff contains no new `.uasset`, `.umap`, FBX, audio, or third-party art;
+The earlier remote-hardening pass added only self-generated PIE screenshots/JSON diagnostics and source-level timing
+instrumentation. That pass added no `.uasset`, `.umap`, FBX, audio, or third-party art;
 the existing Engine BasicShapes runtime references above remain the only deer-proxy dependency.
+
+The PR #43 lighting correction regenerates the project's own `Content/TornVeil/Maps/TornVeilWorld.umap`
+using `create_playable_world.py` and `UTVPlayableLighting`. Only built-in Unreal light/atmosphere/fog/
+post-process actor configuration is authored; no third-party asset is imported or modified. The map,
+owned source, and self-captured Lit/diagnostic Unlit PNGs/JSON are committed. No new art license applies.

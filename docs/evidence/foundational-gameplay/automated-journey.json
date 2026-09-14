@@ -147,8 +147,8 @@
   ],
   "persistence": {
     "saveBytes": 4160161,
-    "saveMs": 49.42629999999917,
-    "loadMs": 2867.7933000000003,
+    "saveMs": 60.26469999999972,
+    "loadMs": 3196.9320000000007,
     "canonicalStateEqual": true,
     "uniqueItemCount": 226,
     "uniqueResourceCount": 2596
@@ -156,25 +156,25 @@
   "profile": {
     "snapshot": {
       "samples": 104,
-      "meanMs": 0.8206798076924385,
-      "p95Ms": 1.1904999999987922,
-      "maxMs": 4.0077000000001135,
+      "meanMs": 1.0681057692307963,
+      "p95Ms": 1.5948000000007596,
+      "maxMs": 5.0021999999999025,
       "minBytes": 1237,
       "maxBytes": 1767
     },
     "containerProjection": {
       "samples": 250,
-      "meanMs": 0.0030964000000185477,
-      "p95Ms": 0.005300000000261207,
-      "maxMs": 0.042999999999665306
+      "meanMs": 0.0046868000000158646,
+      "p95Ms": 0.0072000000000116415,
+      "maxMs": 0.06190000000015061
     },
     "regionFrame": {
-      "initialMaterializationMs": 388.67750000000024,
+      "initialMaterializationMs": 536.6598999999997,
       "steady": {
         "samples": 104,
-        "meanMs": 0.9494576923076465,
-        "p95Ms": 1.3886999999995169,
-        "maxMs": 2.4078999999992448
+        "meanMs": 1.4342692307692109,
+        "p95Ms": 2.206500000000233,
+        "maxMs": 2.441899999999805
       }
     },
     "regionUpdates": {
@@ -191,6 +191,6 @@
   "observations": [
     "Headless first-region materialization is synchronous; the native transport applies the same regions progressively."
   ],
-  "elapsedWallMs": 9653.9306,
+  "elapsedWallMs": 11639.9802,
   "acceptanceSave": ".debug/foundational-gameplay-acceptance.save.json"
 }

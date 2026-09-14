@@ -78,3 +78,61 @@ build, native `TornVeil.Presentation` 3/3, playable startup 61/61, and the autom
 No normal-speed video was produced: the unattended off-screen capture path provides verified PIE
 screenshots but not a trustworthy real-time recording. Human feel and full visual approval remain
 explicitly unverified.
+
+## PR #43 human-playtest lighting correction (2026-09-14)
+
+The black scene was a real Lit-path defect, not missing geometry. The saved-world regional
+update in `TVWorldProjection::Apply` selected **100 lux before 06:00 and after 20:00**, while
+the unbound post-process volume kept **min/max EV100 12**. The human checkout's saved clock
+was 05:43. All required movable lights, realtime skylight, atmosphere, fog and post-process
+actors were present; D3D12 SM6/Lumen were enabled. Replaying those presentation values made
+PIE near-black. Diagnostic `viewmode unlit` exposed colored terrain, buildings and characters;
+it was restored to Lit and is explicitly rejected as an acceptance mode.
+
+Fresh startup was already visible, explaining the earlier screenshot-only false confidence.
+The running human bridge also came from the main checkout (`0e4c3b5`), not this PR (`7a4572b`).
+Both maps had the identical SHA256 `dcfc79daca6499420b3a4029f531753df5e5d8bedc163fa0b44fb46e1f090dec`.
+The main-checkout save could not deserialize on this PR; it was neither migrated nor overwritten
+(SHA256 remained `3a50652916c033460860e66bed88ea2d79c00c5507a9deec990d224d226b7b6f`).
+The fixed end-to-end run used an isolated fresh fixture with that exact clock value, through
+the ordinary playable bridge → Launch → TornVeilWorld → PIE path. It is not claimed as a
+successful replay/migration of the incompatible full human save.
+
+Fix: `TVPlayableLighting` supplies a repeatable neutral daylight baseline: movable white sun
+12,000 lux at pitch -45/yaw -35, movable realtime captured skylight intensity 1, atmosphere,
+fog, and enabled unbound exposure. **EV100 min/max remain 12**; compensation +1 and histogram
+method are now explicit instead of inherited defaults. Regional updates no longer independently
+dim/rotate the sun. Canonical clock/weather remain unchanged; full time-of-day lighting is
+deferred, not simulated by resetting the save. No gameplay, camera, animation or art was added.
+
+`Launch.ps1` now rejects a different-checkout bridge and runs shared level setup/validation.
+Native ordinary PIE startup repairs missing/stale infrastructure and validates it. Reopening
+the regenerated map verified serialized actors/settings before PIE repair. Duplicate global
+actors are rejected, not silently multiplied. `Verify-PlayablePIE.ps1` requires a fresh completed
+report, not merely HTTP success from a remote Python request.
+
+The upgraded capture requires the real Lit viewport, valid light/exposure/Lumen settings,
+nine resident regions, nine terrain sections, generated PCG and populated mesh instances.
+It waits across real frames for camera settling and PNG completion. Its independent pixel
+gate samples x=8–92%, y=20–78% (excluding sky/top and bottom HUD): weighted sRGB luma mean ≥0.10,
+fraction with luma ≥0.12 ≥35%, and p90−p10 ≥0.08. This is a conservative readability smoke test,
+not an art, geometric-correctness or frame-rate score. Geometry assertions and human inspection
+remain necessary. The recorded dark image fails (mean 0.049, readable 9.99%); corrected pre-dawn
+Lit capture passes (mean 0.367, readable 97.34%).
+
+Evidence: `lighting-fixed-predawn.png/.json`, `lighting-fixed-final.png/.json`,
+`saved-time-dark.png`, `saved-time-unlit.png`, `map-reopened-environment.json`,
+`lighting-regression.json`, and `lighting-verification-summary.json` in the milestone evidence folder.
+`lighting-negative-test.json` is an **expected rejection** of injected 100-lux runtime lighting.
+
+Verification: UE Editor build/generated-spec check pass; native Presentation **5/5** (new daylight
+infrastructure/time-of-day and image-readability tests); focused TypeScript **14/14** in four files;
+`foundational:accept`, typecheck and production build pass. Existing compiler/deprecation warnings
+remain; the native isolated-world destruction test emits a harmless no-world-context warning.
+No broad simulation suite was run because no canonical code changed.
+
+Human re-test: from `C:\Users\green\Desktop\projects\torn-veil-online-foundational`, start
+`npm run bridge:playable`, then `pwsh -File unreal/scripts/Launch.ps1`, then press Play.
+For a machine-checked capture after 9/9 regions load, run
+`pwsh -File unreal/scripts/Verify-PlayablePIE.ps1 -CaptureLabel playable-lit`.
+Use this checkout's save, not the incompatible main-checkout save. Human re-approval remains pending.

@@ -1,5 +1,14 @@
 # Foundational gameplay presentation v0.1 — human playtest checkpoint, 2026-09-14
 
+PR #43 human playtest rejected near-black PIE. Fixed the proven 100-lux saved-time sun / EV100-12
+mismatch with a shared neutral-daylight setup/startup contract (`TVPlayableLighting`). Launch
+rebuilds/validates level infrastructure and rejects a mismatched bridge checkout. Lit PIE capture
+now requires complete regional geometry, runtime lighting validation and completed-image luma/
+readability checks; the recorded dark frame fails. Native presentation 5/5, focused TS 14/14,
+foundational acceptance, typecheck, production and UE builds pass. See the milestone's lighting
+correction section and `docs/evidence/foundational-gameplay/lighting-verification-summary.json`.
+Canonical clock/weather/save semantics are unchanged; human re-test is still required.
+
 Branch `codex/foundational-gameplay-presentation-v0-1`, base `333665e`. Canonical containers,
 semantic container transfers, settlement pickup/chest seeding, body-keyed wildlife projection,
 temporary engine-shape deer presentation, locomotion/camera signals, central item visuals and a

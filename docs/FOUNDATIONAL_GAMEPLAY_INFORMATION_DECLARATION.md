@@ -1,8 +1,11 @@
 # Foundational Gameplay Presentation v0.1 — Information Declaration
 
-Status: implementation checkpoint complete on 2026-09-14; native build and focused verification pass, pending human playtest.
+Status: human playtest exposed near-black PIE; daylight correction objectively verified on 2026-09-14, awaiting human re-test.
 
 ## A. Verified facts
+
+- Human-playtest lighting defect: `TVWorldProjection::Apply` previously changed the movable sun to 100 lux outside 06:00–20:00 while `create_playable_world.py` fixed exposure at EV100 12. All required lights/atmosphere/post-process actors survived PIE; D3D12 SM6 and Lumen were enabled. Replaying the 05:43 lighting values produced a dark Lit scene; Unlit exposed the existing colored geometry. Evidence: `docs/evidence/foundational-gameplay/lighting-regression.json` and the associated captures.
+- `UTVPlayableLighting` now supplies one neutral-daylight contract for map generation and `TVGameMode::StartPlay`. The reopened saved map and actual PIE both contain the configured infrastructure. Canonical clock/weather are not rewritten; complete time-of-day lighting is explicitly deferred. The new native and completed-image gates reject the recorded failure.
 
 - The canonical production checkout is `C:/Users/green/Desktop/projects/torn-veil-online`.
 - The implementation base is `origin/main` at `333665e4ce5c33baee7e751bf35044daa6b296d4`, which consolidates embodied ecology, realtime wildlife interaction, realtime combat/contact and martial selection/learning.
@@ -116,4 +119,5 @@ Status: implementation checkpoint complete on 2026-09-14; native build and focus
 | Unreal wildlife projection | VERIFIED | Native build plus body-keyed projection source |
 | Deer asset provenance | VERIFIED TEMPORARY | Engine basic-shape proxy; final cleared deer art remains unknown |
 | UI/locomotion/wildlife adapters | VERIFIED | Focused TypeScript/native tests, build and startup smoke |
-| Human-facing quality and acceptance | UNVERIFIED | Human playtest has not yet occurred |
+| Neutral Lit daylight / runtime infrastructure | VERIFIED | Reopened map, PIE, actual pixel regression and five native presentation tests |
+| Human-facing quality and acceptance | RE-TEST REQUIRED | Human rejected near-black PIE; corrected lighting is not yet human-approved |

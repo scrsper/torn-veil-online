@@ -17,6 +17,12 @@ observable DTOs and semantic intent. Native adapters are `TVLocomotionCameraPres
 `TVGameMode`, and `TVWorldProjection`. Status and controls:
 `docs/FOUNDATIONAL_GAMEPLAY_PRESENTATION_V0_1.md`.
 
+Playable daylight: native `TVPlayableLighting` is shared by `TVGameMode::StartPlay` and
+`unreal/scripts/create_playable_world.py`; `Launch.ps1` rebuilds/validates that infrastructure.
+`Verify-PlayablePIE.ps1` / `verify_playable_pie.py` require runtime Lit lighting, regional geometry
+and `TVRenderedFrameCheck` completed-image readability; `verify_lighting_regression.py` checks
+the captured black-frame regression. These own no canonical clock or weather state.
+
 Wildlife/realtime integration: `src/sim/ecology/interaction.ts` schedules nearby canonical
 animal bodies through `Simulation.stepScheduled`, retaining coarse 900-world-second biology
 and persisted activity accounting. `World.nearbyPhysicalBodies` is the common Person/Creature

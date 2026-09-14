@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "checks": {
+    "saved-time-dark": {
+      "passed": false,
+      "error": "Black/underexposed or blank world ROI: need mean >= .10, fraction at luma >= .12 >= .35, p90-p10 >= .08",
+      "metric": "Rec.709 weighted sRGB display values, normalized 0..1",
+      "roi": "x=[8%,92%), y=[20%,78%); excludes sky/top and bottom HUD",
+      "meanLuma": 0.04913948645774226,
+      "readableFraction": 0.09987815940662742,
+      "p90MinusP10": 0.10588235294117647
+    },
+    "lighting-fixed-predawn": {
+      "passed": true,
+      "error": "",
+      "metric": "Rec.709 weighted sRGB display values, normalized 0..1",
+      "roi": "x=[8%,92%), y=[20%,78%); excludes sky/top and bottom HUD",
+      "meanLuma": 0.36698653883959204,
+      "readableFraction": 0.9733951726223298,
+      "p90MinusP10": 0.23529411764705882
+    },
+    "runtime100LuxRejected": "Directional light is not the 12000-lux movable daylight baseline",
+    "unlitRejected": "PIE acceptance requires a real Lit game viewport (Unlit is not a fix)"
+  },
+  "restoredViewMode": "Lit"
+}
