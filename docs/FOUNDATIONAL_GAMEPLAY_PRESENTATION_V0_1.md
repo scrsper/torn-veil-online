@@ -47,3 +47,34 @@ The temporary deer proxy is not final art or animation. Explicit equipment slots
 ## Human playtest
 
 Run `pwsh -File unreal/scripts/Launch.ps1`, then use the controls above. The ordinary flow requires no console commands after startup. Stop for human feedback before treating presentation quality as accepted.
+
+## Remote hardening checkpoint — 2026-09-14
+
+`npm run foundational:accept` now performs one deterministic ordinary-world journey through the
+existing bridge seams: settlement spawn, loose-item pickup, inventory projection, physical chest
+open, transfer in/out, canonical travel toward wilderness, observer-scoped roe-deer identity and
+flee projection, corpse-versus-withdrawal semantics, save/reload, and exact selected canonical
+state comparison. It also rejects duplicate item/resource identities and multiply located items.
+
+Evidence is under `docs/evidence/foundational-gameplay/`:
+
+- `automated-journey.json`: passing machine-readable journey and profiles.
+- `settlement.png/.json`: fresh generated-settlement projection.
+- `container.png/.json`: ordinary bound interaction opening the canonical chest.
+- `wilderness-deer.png/.json`: body-keyed canonical wildlife/corpse projection.
+- `post-reload.png/.json`: same `bodyId`/`creatureId` after bridge restart.
+
+Measured direct snapshot payloads were 1,237–1,767 bytes (0.82 ms mean); the real startup check's
+largest bounded wire message was 87,508 bytes. Open-container projection averaged 0.0033 ms over
+250 samples. After the expected roughly 390 ms synchronous first headless region materialization,
+steady region frames averaged 0.95 ms and canonical dynamic changes appeared at 0.48/s. One nearby
+wildlife actor was present; native proxy Tick averaged about 0.025 ms over 40 samples in each of
+the wilderness and post-reload captures. Save serialization was about 49 ms and reconstruction
+about 2.9 s for a 4.16 MB world. No demonstrated runtime pathology justified optimization; native
+streaming already progressively slices the headless first-materialization work.
+
+Final remote verification: focused TypeScript 81/81, typecheck/production build, UE 5.8 Editor
+build, native `TornVeil.Presentation` 3/3, playable startup 61/61, and the automated journey pass.
+No normal-speed video was produced: the unattended off-screen capture path provides verified PIE
+screenshots but not a trustworthy real-time recording. Human feel and full visual approval remain
+explicitly unverified.

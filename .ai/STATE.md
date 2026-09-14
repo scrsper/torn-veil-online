@@ -10,6 +10,14 @@ production build, generated specs, native Editor build, three native Presentatio
 Final deer art/rig, explicit equipment slots, true CommonUI widgets and human quality approval are
 not claimed. Human launch: `pwsh -File unreal/scripts/Launch.ps1`.
 
+Remote hardening adds no gameplay system: `npm run foundational:accept` objectively traverses the
+pickup/container/wilderness/deer/save-reload path, verifies identity/location/topology and duplicate
+absence, and writes `docs/evidence/foundational-gameplay/automated-journey.json`. Four labeled PIE
+captures cover settlement, container, wildlife and post-reload. Profiles found no optimization
+trigger: direct snapshots 1.2–1.8 KB, container projection 0.0031 ms mean, steady region frame 0.95
+ms mean, one nearby wildlife actor, and native proxy Tick about 0.025 ms mean. Focused TS 81/81,
+build/typecheck, UE build, native Presentation 3/3 and playable startup 61/61 passed.
+
 # Realtime wildlife integration v0.2 — porting in progress, 2026-09-14
 
 Branch `codex/wildlife-realtime-integration-v0-2`, created fresh from consolidated

@@ -24,3 +24,7 @@ Run `import_playable_grass.py` and `import_playable_nature.py` for the environme
 | Unreal Engine `/Engine/BasicShapes` sphere, cylinder, cone and cube | Installed UE 5.8 engine content; Unreal Engine license | C++ assembly/mapping committed; engine meshes are not copied | Requires the user's Unreal Engine installation | Runtime component transforms only; no vendor animal Blueprint, AI, rig or animation | `Source/TornVeilOnline/TVWildlifePresentation.*`, `TVItemPresentationCatalog.*`, `TVWorldProjection.cpp` |
 
 The wildlife silhouette is deliberately labeled a temporary proxy. No commercial-game asset, sibling-reference asset, marketplace animal, proprietary code or unclear-license deer content was imported or committed.
+
+Remote hardening added only self-generated PIE screenshots/JSON diagnostics and source-level timing
+instrumentation. The branch diff contains no new `.uasset`, `.umap`, FBX, audio, or third-party art;
+the existing Engine BasicShapes runtime references above remain the only deer-proxy dependency.
