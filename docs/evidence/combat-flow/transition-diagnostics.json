@@ -1,0 +1,574 @@
+{
+  "method": "Component-space skeleton samples on viewport ticks; comparable first-200-ms windows include real motion and frame stalls. FirstObserved spans one render evaluation boundary. Native handoff metrics compare exact local evaluated poses before/after residual and IK; available only AFTER. Source-bookend counts use inspected lead-in ranges and poseWeight > .8. No inference about contacts or human approval.",
+  "before": {
+    "frames": 926,
+    "screenshots": 548,
+    "sequences": [
+      {
+        "stage": 0,
+        "move": "jab",
+        "at": 0.7693
+      },
+      {
+        "stage": 0,
+        "move": "cross",
+        "at": 1.1261
+      },
+      {
+        "stage": 0,
+        "move": "jab",
+        "at": 1.6114
+      },
+      {
+        "stage": 1,
+        "move": "jab",
+        "at": 4.7744
+      },
+      {
+        "stage": 1,
+        "move": "cross",
+        "at": 5.2042
+      },
+      {
+        "stage": 1,
+        "move": "front_kick",
+        "at": 5.6715
+      },
+      {
+        "stage": 1,
+        "move": "jab",
+        "at": 6.3702
+      },
+      {
+        "stage": 2,
+        "move": "front_kick",
+        "at": 8.7308
+      },
+      {
+        "stage": 2,
+        "move": "round_kick",
+        "at": 9.3734
+      },
+      {
+        "stage": 2,
+        "move": "jab",
+        "at": 10.0806
+      },
+      {
+        "stage": 3,
+        "move": "StepBack",
+        "at": 12.7356
+      },
+      {
+        "stage": 3,
+        "move": "jab",
+        "at": 12.9841
+      },
+      {
+        "stage": 3,
+        "move": "cross",
+        "at": 13.3841
+      },
+      {
+        "stage": 4,
+        "move": "jab",
+        "at": 16.74
+      },
+      {
+        "stage": 4,
+        "move": "StepBack",
+        "at": 17.196
+      },
+      {
+        "stage": 4,
+        "move": "jab",
+        "at": 17.4524
+      },
+      {
+        "stage": 5,
+        "move": "jab",
+        "at": 20.7662
+      }
+    ],
+    "transitions": [
+      {
+        "stage": 0,
+        "transition": "jab \u2192 cross",
+        "at": 1.1261,
+        "firstObservedAngularDegrees": 33.368,
+        "maxFrameAngularDegreesFirst200ms": 36.669,
+        "maxSupportFootFrameCmFirst200ms": 24.292,
+        "maxPelvisFrameCmFirst200ms": 12.869,
+        "maxPelvisFrameAngularDegreesFirst200ms": 30.804,
+        "maxRootFrameAngularDegreesFirst200ms": 8.797,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 45.57,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 3
+      },
+      {
+        "stage": 0,
+        "transition": "cross \u2192 jab",
+        "at": 1.6114,
+        "firstObservedAngularDegrees": 57.256,
+        "maxFrameAngularDegreesFirst200ms": 53.793,
+        "maxSupportFootFrameCmFirst200ms": 13.26,
+        "maxPelvisFrameCmFirst200ms": 8.449,
+        "maxPelvisFrameAngularDegreesFirst200ms": 67.912,
+        "maxRootFrameAngularDegreesFirst200ms": 8.797,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 55.02,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 3
+      },
+      {
+        "stage": 1,
+        "transition": "jab \u2192 cross",
+        "at": 5.2042,
+        "firstObservedAngularDegrees": 16.256,
+        "maxFrameAngularDegreesFirst200ms": 27.175,
+        "maxSupportFootFrameCmFirst200ms": 14.733,
+        "maxPelvisFrameCmFirst200ms": 8.689,
+        "maxPelvisFrameAngularDegreesFirst200ms": 21.349,
+        "maxRootFrameAngularDegreesFirst200ms": 5.489,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 49.25,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 3
+      },
+      {
+        "stage": 1,
+        "transition": "cross \u2192 front_kick",
+        "at": 5.6715,
+        "firstObservedAngularDegrees": 6.159,
+        "maxFrameAngularDegreesFirst200ms": 35.748,
+        "maxSupportFootFrameCmFirst200ms": 9.053,
+        "maxPelvisFrameCmFirst200ms": 5.377,
+        "maxPelvisFrameAngularDegreesFirst200ms": 32.469,
+        "maxRootFrameAngularDegreesFirst200ms": 23.482,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 49.45,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 0
+      },
+      {
+        "stage": 1,
+        "transition": "front_kick \u2192 jab",
+        "at": 6.3702,
+        "firstObservedAngularDegrees": 41.867,
+        "maxFrameAngularDegreesFirst200ms": 41.403,
+        "maxSupportFootFrameCmFirst200ms": 5.175,
+        "maxPelvisFrameCmFirst200ms": 18.864,
+        "maxPelvisFrameAngularDegreesFirst200ms": 46.102,
+        "maxRootFrameAngularDegreesFirst200ms": 27.492,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 43.95,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 4
+      },
+      {
+        "stage": 2,
+        "transition": "front_kick \u2192 round_kick",
+        "at": 9.3734,
+        "firstObservedAngularDegrees": 48.945,
+        "maxFrameAngularDegreesFirst200ms": 45.832,
+        "maxSupportFootFrameCmFirst200ms": 7.803,
+        "maxPelvisFrameCmFirst200ms": 16.717,
+        "maxPelvisFrameAngularDegreesFirst200ms": 48.08,
+        "maxRootFrameAngularDegreesFirst200ms": 29.76,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 43.42,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 4
+      },
+      {
+        "stage": 2,
+        "transition": "round_kick \u2192 jab",
+        "at": 10.0806,
+        "firstObservedAngularDegrees": 14.809,
+        "maxFrameAngularDegreesFirst200ms": 24.803,
+        "maxSupportFootFrameCmFirst200ms": 7.41,
+        "maxPelvisFrameCmFirst200ms": 26.128,
+        "maxPelvisFrameAngularDegreesFirst200ms": 23.621,
+        "maxRootFrameAngularDegreesFirst200ms": 2.291,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 43.69,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 4
+      },
+      {
+        "stage": 3,
+        "transition": "StepBack \u2192 jab",
+        "at": 12.9841,
+        "firstObservedAngularDegrees": 25.667,
+        "maxFrameAngularDegreesFirst200ms": 43.345,
+        "maxSupportFootFrameCmFirst200ms": 25.254,
+        "maxPelvisFrameCmFirst200ms": 3.856,
+        "maxPelvisFrameAngularDegreesFirst200ms": 19.207,
+        "maxRootFrameAngularDegreesFirst200ms": 20.251,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 43.53,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 4
+      },
+      {
+        "stage": 3,
+        "transition": "jab \u2192 cross",
+        "at": 13.3841,
+        "firstObservedAngularDegrees": 33.465,
+        "maxFrameAngularDegreesFirst200ms": 35.494,
+        "maxSupportFootFrameCmFirst200ms": 21.14,
+        "maxPelvisFrameCmFirst200ms": 13.1,
+        "maxPelvisFrameAngularDegreesFirst200ms": 29.484,
+        "maxRootFrameAngularDegreesFirst200ms": 7.583,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 44.08,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 4
+      },
+      {
+        "stage": 4,
+        "transition": "jab \u2192 StepBack",
+        "at": 17.196,
+        "firstObservedAngularDegrees": 74.135,
+        "maxFrameAngularDegreesFirst200ms": 73.394,
+        "maxSupportFootFrameCmFirst200ms": 46.287,
+        "maxPelvisFrameCmFirst200ms": 7.291,
+        "maxPelvisFrameAngularDegreesFirst200ms": 67.531,
+        "maxRootFrameAngularDegreesFirst200ms": 28.884,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 45.52,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 0
+      },
+      {
+        "stage": 4,
+        "transition": "StepBack \u2192 jab",
+        "at": 17.4524,
+        "firstObservedAngularDegrees": 65.285,
+        "maxFrameAngularDegreesFirst200ms": 64.71,
+        "maxSupportFootFrameCmFirst200ms": 30.719,
+        "maxPelvisFrameCmFirst200ms": 6.146,
+        "maxPelvisFrameAngularDegreesFirst200ms": 27.897,
+        "maxRootFrameAngularDegreesFirst200ms": 30.648,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 45.63,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 4
+      }
+    ],
+    "maxCanonicalRootPresentationDriftCm": 0,
+    "camera": {
+      "maxCameraBodyYawDifferenceDegrees": 0,
+      "maxDesiredBodyYawDifferenceDegrees": 0
+    }
+  },
+  "after": {
+    "frames": 1067,
+    "screenshots": 631,
+    "sequences": [
+      {
+        "stage": 0,
+        "move": "jab",
+        "at": 0.771
+      },
+      {
+        "stage": 0,
+        "move": "cross",
+        "at": 1.1304
+      },
+      {
+        "stage": 0,
+        "move": "jab",
+        "at": 1.6191
+      },
+      {
+        "stage": 1,
+        "move": "jab",
+        "at": 4.7665
+      },
+      {
+        "stage": 1,
+        "move": "cross",
+        "at": 5.1863
+      },
+      {
+        "stage": 1,
+        "move": "front_kick",
+        "at": 5.6618
+      },
+      {
+        "stage": 2,
+        "move": "front_kick",
+        "at": 8.7325
+      },
+      {
+        "stage": 2,
+        "move": "round_kick",
+        "at": 9.4131
+      },
+      {
+        "stage": 2,
+        "move": "jab",
+        "at": 10.4678
+      },
+      {
+        "stage": 3,
+        "move": "StepBack",
+        "at": 12.724
+      },
+      {
+        "stage": 3,
+        "move": "jab",
+        "at": 12.9963
+      },
+      {
+        "stage": 3,
+        "move": "cross",
+        "at": 13.4059
+      },
+      {
+        "stage": 4,
+        "move": "jab",
+        "at": 16.7675
+      },
+      {
+        "stage": 4,
+        "move": "StepBack",
+        "at": 17.2484
+      },
+      {
+        "stage": 4,
+        "move": "cross",
+        "at": 17.4516
+      },
+      {
+        "stage": 5,
+        "move": "jab",
+        "at": 20.7762
+      },
+      {
+        "stage": 6,
+        "move": "jab",
+        "at": 24.7447
+      }
+    ],
+    "transitions": [
+      {
+        "stage": 0,
+        "transition": "jab \u2192 cross",
+        "at": 1.1304,
+        "firstObservedAngularDegrees": 4.226,
+        "maxFrameAngularDegreesFirst200ms": 21.172,
+        "maxSupportFootFrameCmFirst200ms": 1.861,
+        "maxPelvisFrameCmFirst200ms": 4.284,
+        "maxPelvisFrameAngularDegreesFirst200ms": 19.598,
+        "maxRootFrameAngularDegreesFirst200ms": 3.089,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 49.54,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 0,
+        "flowDuration": 0.14,
+        "rawHandoffAngularDegrees": 25.5032,
+        "effectiveHandoffAngularDegrees": 0.0,
+        "handoffPelvisJumpCm": 0.0,
+        "handoffRootJumpCm": 0,
+        "handoffSupportFootJumpCm": 0.0
+      },
+      {
+        "stage": 0,
+        "transition": "cross \u2192 jab",
+        "at": 1.6191,
+        "firstObservedAngularDegrees": 2.366,
+        "maxFrameAngularDegreesFirst200ms": 25.788,
+        "maxSupportFootFrameCmFirst200ms": 0.043,
+        "maxPelvisFrameCmFirst200ms": 2.595,
+        "maxPelvisFrameAngularDegreesFirst200ms": 32.296,
+        "maxRootFrameAngularDegreesFirst200ms": 3.544,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 47.98,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 0,
+        "flowDuration": 0.14,
+        "rawHandoffAngularDegrees": 27.89,
+        "effectiveHandoffAngularDegrees": 0.0,
+        "handoffPelvisJumpCm": 0.0,
+        "handoffRootJumpCm": 0,
+        "handoffSupportFootJumpCm": 0.0
+      },
+      {
+        "stage": 1,
+        "transition": "jab \u2192 cross",
+        "at": 5.1863,
+        "firstObservedAngularDegrees": 1.703,
+        "maxFrameAngularDegreesFirst200ms": 21.153,
+        "maxSupportFootFrameCmFirst200ms": 2.463,
+        "maxPelvisFrameCmFirst200ms": 3.973,
+        "maxPelvisFrameAngularDegreesFirst200ms": 20.749,
+        "maxRootFrameAngularDegreesFirst200ms": 2.955,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 47.26,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 0,
+        "flowDuration": 0.14,
+        "rawHandoffAngularDegrees": 27.9253,
+        "effectiveHandoffAngularDegrees": 0.0,
+        "handoffPelvisJumpCm": 0.0,
+        "handoffRootJumpCm": 0,
+        "handoffSupportFootJumpCm": 0.0
+      },
+      {
+        "stage": 1,
+        "transition": "cross \u2192 front_kick",
+        "at": 5.6618,
+        "firstObservedAngularDegrees": 1.6,
+        "maxFrameAngularDegreesFirst200ms": 11.723,
+        "maxSupportFootFrameCmFirst200ms": 0.083,
+        "maxPelvisFrameCmFirst200ms": 3.832,
+        "maxPelvisFrameAngularDegreesFirst200ms": 7.313,
+        "maxRootFrameAngularDegreesFirst200ms": 7.685,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 44.33,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 0,
+        "flowDuration": 0.14,
+        "rawHandoffAngularDegrees": 26.4013,
+        "effectiveHandoffAngularDegrees": 0.0,
+        "handoffPelvisJumpCm": 0.0,
+        "handoffRootJumpCm": 0,
+        "handoffSupportFootJumpCm": 0.0
+      },
+      {
+        "stage": 2,
+        "transition": "front_kick \u2192 round_kick",
+        "at": 9.4131,
+        "firstObservedAngularDegrees": 4.291,
+        "maxFrameAngularDegreesFirst200ms": 29.337,
+        "maxSupportFootFrameCmFirst200ms": 0.235,
+        "maxPelvisFrameCmFirst200ms": 4.092,
+        "maxPelvisFrameAngularDegreesFirst200ms": 15.506,
+        "maxRootFrameAngularDegreesFirst200ms": 9.194,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 44.37,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 0,
+        "flowDuration": 0.18,
+        "rawHandoffAngularDegrees": 17.0507,
+        "effectiveHandoffAngularDegrees": 0.0,
+        "handoffPelvisJumpCm": 0,
+        "handoffRootJumpCm": 0,
+        "handoffSupportFootJumpCm": 0.0
+      },
+      {
+        "stage": 2,
+        "transition": "round_kick \u2192 jab",
+        "at": 10.4678,
+        "firstObservedAngularDegrees": 7.638,
+        "maxFrameAngularDegreesFirst200ms": 10.586,
+        "maxSupportFootFrameCmFirst200ms": 0.323,
+        "maxPelvisFrameCmFirst200ms": 8.716,
+        "maxPelvisFrameAngularDegreesFirst200ms": 11.61,
+        "maxRootFrameAngularDegreesFirst200ms": 1.182,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 44.68,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 0,
+        "flowDuration": 0.14,
+        "rawHandoffAngularDegrees": 15.6042,
+        "effectiveHandoffAngularDegrees": 0.0,
+        "handoffPelvisJumpCm": 0,
+        "handoffRootJumpCm": 0,
+        "handoffSupportFootJumpCm": 0.0
+      },
+      {
+        "stage": 3,
+        "transition": "StepBack \u2192 jab",
+        "at": 12.9963,
+        "firstObservedAngularDegrees": 5.277,
+        "maxFrameAngularDegreesFirst200ms": 22.122,
+        "maxSupportFootFrameCmFirst200ms": 12.19,
+        "maxPelvisFrameCmFirst200ms": 2.119,
+        "maxPelvisFrameAngularDegreesFirst200ms": 10.373,
+        "maxRootFrameAngularDegreesFirst200ms": 10.263,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 44.55,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 0,
+        "flowDuration": 0.14,
+        "rawHandoffAngularDegrees": 31.4067,
+        "effectiveHandoffAngularDegrees": 0.0,
+        "handoffPelvisJumpCm": 0,
+        "handoffRootJumpCm": 0,
+        "handoffSupportFootJumpCm": 0.0
+      },
+      {
+        "stage": 3,
+        "transition": "jab \u2192 cross",
+        "at": 13.4059,
+        "firstObservedAngularDegrees": 2.648,
+        "maxFrameAngularDegreesFirst200ms": 19.354,
+        "maxSupportFootFrameCmFirst200ms": 0.047,
+        "maxPelvisFrameCmFirst200ms": 3.57,
+        "maxPelvisFrameAngularDegreesFirst200ms": 18.875,
+        "maxRootFrameAngularDegreesFirst200ms": 2.799,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 44.61,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 0,
+        "flowDuration": 0.14,
+        "rawHandoffAngularDegrees": 27.5084,
+        "effectiveHandoffAngularDegrees": 0.0,
+        "handoffPelvisJumpCm": 0.0,
+        "handoffRootJumpCm": 0,
+        "handoffSupportFootJumpCm": 0.0
+      },
+      {
+        "stage": 4,
+        "transition": "jab \u2192 StepBack",
+        "at": 17.2484,
+        "firstObservedAngularDegrees": 4.859,
+        "maxFrameAngularDegreesFirst200ms": 35.875,
+        "maxSupportFootFrameCmFirst200ms": 28.933,
+        "maxPelvisFrameCmFirst200ms": 2.68,
+        "maxPelvisFrameAngularDegreesFirst200ms": 30.812,
+        "maxRootFrameAngularDegreesFirst200ms": 14.673,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 55.56,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 0,
+        "flowDuration": 0.1,
+        "rawHandoffAngularDegrees": 31.8802,
+        "effectiveHandoffAngularDegrees": 0.0,
+        "handoffPelvisJumpCm": 0.0,
+        "handoffRootJumpCm": 0,
+        "handoffSupportFootJumpCm": 0.0
+      },
+      {
+        "stage": 4,
+        "transition": "StepBack \u2192 cross",
+        "at": 17.4516,
+        "firstObservedAngularDegrees": 11.753,
+        "maxFrameAngularDegreesFirst200ms": 21.072,
+        "maxSupportFootFrameCmFirst200ms": 16.673,
+        "maxPelvisFrameCmFirst200ms": 2.552,
+        "maxPelvisFrameAngularDegreesFirst200ms": 11.643,
+        "maxRootFrameAngularDegreesFirst200ms": 9.042,
+        "rootTranslationJumpCm": 0.0,
+        "maxFrameIntervalMs": 62.01,
+        "locomotionFramesBetweenActions": 0,
+        "weightedNeutralLeadInSamples": 0,
+        "flowDuration": 0.14,
+        "rawHandoffAngularDegrees": 25.7311,
+        "effectiveHandoffAngularDegrees": 0.0,
+        "handoffPelvisJumpCm": 0,
+        "handoffRootJumpCm": 0,
+        "handoffSupportFootJumpCm": 0.0
+      }
+    ],
+    "maxCanonicalRootPresentationDriftCm": 0,
+    "camera": {
+      "maxCameraBodyYawDifferenceDegrees": 0,
+      "maxDesiredBodyYawDifferenceDegrees": 6.561844348907471
+    }
+  }
+}

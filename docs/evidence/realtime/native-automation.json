@@ -1,0 +1,51 @@
+{
+  "parity": {
+    "succeeded": 1,
+    "failed": 0,
+    "tests": [
+      {
+        "fullTestPath": "TornVeil.Realtime.MovementPrediction",
+        "state": "Success",
+        "duration": 0.008016902953386307
+      }
+    ]
+  },
+  "note": "Six native checks passed; strengthened common JSON parity passed separately at 0.00001 tolerance",
+  "native": {
+    "succeeded": 6,
+    "failed": 0,
+    "tests": [
+      {
+        "fullTestPath": "TornVeil.Combat.Choreography.Parser",
+        "state": "Success",
+        "duration": 0.00811459869146347
+      },
+      {
+        "fullTestPath": "TornVeil.Combat.Choreography.Plan",
+        "state": "Success",
+        "duration": 0.008066099137067795
+      },
+      {
+        "fullTestPath": "TornVeil.Combat.Choreography.Replay",
+        "state": "Success",
+        "duration": 0.007984600961208344
+      },
+      {
+        "fullTestPath": "TornVeil.Humanoid.VisualState.EventQueue",
+        "state": "Success",
+        "duration": 0.008031297475099564
+      },
+      {
+        "fullTestPath": "TornVeil.Humanoid.VisualState.Parser",
+        "state": "Success",
+        "duration": 0.008306100964546204
+      },
+      {
+        "fullTestPath": "TornVeil.Realtime.MovementPrediction",
+        "state": "Success",
+        "duration": 0.008271399885416031
+      }
+    ]
+  },
+  "configuration": "UE 5.8 Development editor automation, NullRHI, canonical TypeScript remains separate"
+}

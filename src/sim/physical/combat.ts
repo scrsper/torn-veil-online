@@ -1,12 +1,12 @@
-import type { Body, LocalizedInjury, ConflictIntent, EntityId, Item, ItemType, Person } from '../core/types';
+import type { LocalizedInjury, ConflictIntent, EntityId, Item, ItemType, Person } from '../core/types';
 import type { World } from '../core/world';
-import { injuryFromImpact } from './injury';
 import { getPhysicalCapability } from '../core/attributes';
+import { combatTransitionAt } from './combatTransitions';
 
 export interface WeaponProperties { reach: number; impact: number; handling: number; }
 // Reach is body-origin distance in metres; impact is the base health-scale impulse.
 // Handling (0..1) expresses ease of delivering that impulse, not learned mastery.
-export const UNARMED: Readonly<WeaponProperties> = { reach: 2.1, impact: 7, handling: 1 };
+export const UNARMED: Readonly<WeaponProperties> = { reach: 1.2, impact: 7, handling: 1 };
 const WEAPONS: Partial<Record<ItemType, WeaponProperties>> = {
   dagger: { reach: 2.4, impact: 14, handling: 0.95 },
   sword: { reach: 3.2, impact: 26, handling: 0.8 },
@@ -41,9 +41,12 @@ export interface CombatAttackIntent {
   attackMode: 'strike';
   weaponId?: EntityId | null;
   intent?: ConflictIntent;
+  trajectory?: 'high' | 'mid' | 'low';
 }
-export type AttackRejection = 'invalid_attacker' | 'invalid_target' | 'self_target' | 'incapacitated' | 'cooldown' | 'invalid_weapon' | 'invalid_mode' | 'out_of_reach' | 'obstructed' | 'protected_target';
+export type AttackRejection = 'invalid_attacker' | 'invalid_target' | 'self_target' | 'incapacitated' | 'unsupported' | 'cooldown' | 'invalid_weapon' | 'invalid_mode' | 'out_of_reach' | 'obstructed' | 'protected_target' | 'exhausted';
 export interface CombatAttackResult extends CombatAttackIntent {
+  actionId?: string;
+  contactRegion?: import('./combatGeometry').ContactRegion;
   targetId: EntityId | null;
   weaponId: EntityId | null;
   distance: number | null;
@@ -55,7 +58,7 @@ export interface CombatAttackResult extends CombatAttackIntent {
   exertionCost: number;
   injury: LocalizedInjury | null;
 }
-/** Read-only resolution. Only a legal attempt consumes one draw from the supplied canonical
+/** Attempt validation. Only a legal attempt consumes one draw from the supplied canonical
  * RNG. No client flags or primary-body assumptions: the intent names a manifestation. */
 export function resolveCombatAttack(w: World, intent: CombatAttackIntent, rng: { next(): number }): CombatAttackResult {
   const p = w.person(intent.attackerId), ab = w.body(intent.attackerBodyId), tb = w.body(intent.targetBodyId);
@@ -66,32 +69,27 @@ export function resolveCombatAttack(w: World, intent: CombatAttackIntent, rng: {
   if (!p || !ab || ab.ownerId !== p.id || !p.bodies.includes(ab.id)) return reject('invalid_attacker');
   if (!p.alive || !ab.present || ab.dead || ab.health <= 0 || ab.pose === 'downed' || ab.pose === 'sleep'
     || ab.subduedUntil > w.physicalTime || p.surrender || p.custody?.active) return reject('incapacitated');
-  const target = tb && w.get(tb.ownerId);
-  const targetPerson = tb && w.person(tb.ownerId);
-  if (!tb || !tb.present || tb.dead || !target || (target.kind !== 'person' && target.kind !== 'creature')
-    || (target.kind === 'person' && !targetPerson?.alive)) return reject('invalid_target');
-  if (tb.ownerId === p.id) return reject('self_target');
-  if (intent.attackMode !== 'strike') return reject('invalid_mode');
-  if (w.physicalTime - ab.lastAttackAt < ATTACK_COOLDOWN) return reject('cooldown');
+  // Selection assists bounded aiming only. An absent, stale, distant or obstructed selection
+  // cannot suppress a capable body's swing; active swept contact validates each actual body.
+  if (intent.attackMode !== 'strike' || (intent.trajectory !== undefined && !['high','mid','low'].includes(intent.trajectory))) return reject('invalid_mode');
+  if (ab.combatAction ? w.physicalTime + 1e-9 < combatTransitionAt(ab.combatAction,'attack')
+    : w.physicalTime - ab.lastAttackAt < ATTACK_COOLDOWN) return reject('cooldown');
+  if (!ab.onGround) return reject('unsupported');
   const item = intent.weaponId === undefined ? combatWeapon(w, p) : intent.weaponId === null ? null : w.item(intent.weaponId);
   if (intent.weaponId && !item) return reject('invalid_weapon');
   if (item && (!p.inventory.includes(item.id) || item.holderId !== p.id || item.quantity <= 0 || item.condition === 0 || !weaponProperties(item))) return reject('invalid_weapon');
   const weapon = item ? weaponProperties(item)! : UNARMED;
   result.weaponId = item?.id ?? null; result.reach = weapon.reach;
-  if (result.distance === null || !Number.isFinite(result.distance) || result.distance > weapon.reach) return reject('out_of_reach');
-  const chest = (b: Body) => ({ ...b.pos, y: b.pos.y + 1.2 });
-  if (!w.grid.lineOfPassage(chest(ab), chest(tb), weapon.reach + 1)) return reject('obstructed');
-  if (target.kind === 'person' && intent.intent !== 'kill' && (targetPerson?.surrender || targetPerson?.custody?.active || tb.subduedUntil > w.physicalTime)) return reject('protected_target');
   const cap = getPhysicalCapability(p, w, { body: ab });
-  result.attempted = true; result.hit = true;
-  // No evasion system yet: a legal strike connects. Dexterity/handling influence delivery.
+  if (p.physiology.fatigue >= .97 || cap.currentExertionCapacity <= .03) return reject('exhausted');
+  result.attempted = true;
+  // Acceptance freezes potential force, never a hit or an anatomical region.
   const roll = rng.next();
   result.impact = weapon.impact * (0.5 + cap.effectiveStrength) * (0.7 + Math.min(1, cap.effectiveDexterity) * 0.3)
     * (0.8 + weapon.handling * 0.2) * (0.8 + roll * 0.4);
-  result.injury = injuryFromImpact(tb, result.impact, roll);
   result.exertionCost = Math.min(1 - p.physiology.fatigue, 0.025 * (2 - weapon.handling) * cap.fatigueMultiplier);
   return result;
 }
 export function combatTrace(r: CombatAttackResult): string {
-  return `${r.attackerId} attacks ${r.targetId ?? r.targetBodyId} weapon:${r.weaponId ?? 'fists'} distance:${r.distance?.toFixed(2) ?? '?'} range:${r.reach} result:${r.rejection ?? 'hit'} impact:${r.impact.toFixed(2)} exertion:${r.exertionCost.toFixed(4)}`;
+  return `${r.attackerId} attacks ${r.targetId ?? r.targetBodyId} weapon:${r.weaponId ?? 'fists'} distance:${r.distance?.toFixed(2) ?? '?'} range:${r.reach} result:${r.rejection ?? (r.hit?'hit':'accepted')} impact:${r.impact.toFixed(2)} exertion:${r.exertionCost.toFixed(4)}`;
 }

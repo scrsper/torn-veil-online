@@ -1,0 +1,1000 @@
+{
+  "date": "2026-09-11",
+  "scope": "One agent, family trace only; one read-only instrumented reproduction; no simulation or fixture edits in this continuation.",
+  "revision": "3bc3acc",
+  "fixture": "Existing uncommitted caregiver eligibility experiment preserved unchanged.",
+  "pair": {
+    "subject": {
+      "id": "p_3",
+      "name": "Tomas Reed"
+    },
+    "caregiver": {
+      "id": "p_5",
+      "name": "Mara Bramble"
+    },
+    "start": 8698800,
+    "initialGoal": {
+      "type": "shelter",
+      "key": "shelter:pl_9",
+      "utility": 0.7393749999999993,
+      "reasons": [
+        "soaked through and outside in the storm"
+      ]
+    }
+  },
+  "knowledge": [
+    {
+      "elapsed": 0,
+      "key": "ev:e_21161",
+      "claim": {
+        "eventId": "e_21161",
+        "type": "attack",
+        "tick": 8698800,
+        "placeId": "pl_1",
+        "pos": {
+          "x": 94.62663845358985,
+          "y": 14,
+          "z": 107.25983072153902
+        },
+        "significance": 0.7,
+        "actor": "p_28",
+        "target": "p_3"
+      },
+      "source": {
+        "type": "told",
+        "from": "p_4",
+        "viaEvent": "e_21203"
+      },
+      "learnedAt": 8698800,
+      "confidence": 0.504531006728575,
+      "believedHarm": 0.5261327516821438
+    }
+  ],
+  "staging": [
+    {
+      "event": "e_21161",
+      "health": 68,
+      "wound": 0
+    },
+    {
+      "event": "e_21169",
+      "health": 56,
+      "wound": 0.17647058823529416
+    },
+    {
+      "event": "e_21175",
+      "health": 44,
+      "wound": 0.35294117647058815
+    },
+    {
+      "event": "e_21180",
+      "health": 32,
+      "wound": 0.5294117647058824
+    },
+    {
+      "event": "e_21185",
+      "health": 20,
+      "wound": 0.7058823529411765
+    },
+    {
+      "event": "e_21190",
+      "health": 8,
+      "wound": 0.8823529411764706
+    }
+  ],
+  "groups": {
+    "care_candidate_absent|socialize": {
+      "count": 1,
+      "first": 61272,
+      "last": 61272,
+      "minCare": 1,
+      "maxCare": 0,
+      "minWinner": 0.77,
+      "maxWinner": 0.77
+    },
+    "threat_candidates|flee": {
+      "count": 165,
+      "first": 61290,
+      "last": 80829,
+      "minCare": 1,
+      "maxCare": 0,
+      "minWinner": 0.574562263263012,
+      "maxWinner": 1
+    },
+    "care_candidate_absent|report": {
+      "count": 2,
+      "first": 61461,
+      "last": 76923,
+      "minCare": 1,
+      "maxCare": 0,
+      "minWinner": 0.944,
+      "maxWinner": 1
+    },
+    "care_candidate_present|report": {
+      "count": 3,
+      "first": 61659,
+      "last": 62712,
+      "minCare": 1,
+      "maxCare": 1,
+      "minWinner": 1,
+      "maxWinner": 1
+    },
+    "threat_candidates|report": {
+      "count": 329,
+      "first": 77121,
+      "last": 83394,
+      "minCare": 1,
+      "maxCare": 0,
+      "minWinner": 0.5694999999999999,
+      "maxWinner": 0.839
+    },
+    "care_candidate_absent|drink_water": {
+      "count": 1,
+      "first": 80667,
+      "last": 80667,
+      "minCare": 1,
+      "maxCare": 0,
+      "minWinner": 0.8515272727272813,
+      "maxWinner": 0.8515272727272813
+    },
+    "care_candidate_present|drink_water": {
+      "count": 1,
+      "first": 80928,
+      "last": 80928,
+      "minCare": 0.7775771547094015,
+      "maxCare": 0.7775771547094015,
+      "minWinner": 0.8571696969697056,
+      "maxWinner": 0.8571696969697056
+    }
+  },
+  "decisiveSamples": [
+    {
+      "elapsed": 61272,
+      "gate": "care_candidate_absent",
+      "purpose": {
+        "id": "pu_53",
+        "status": "active",
+        "priority": 1,
+        "attempts": 0,
+        "steps": [],
+        "createdAt": 8760000,
+        "source": {
+          "kind": "concern",
+          "id": "cn_409"
+        }
+      },
+      "before": [
+        {
+          "purpose": {
+            "id": "pu_53",
+            "status": "active",
+            "priority": 1,
+            "attempts": 0,
+            "steps": [],
+            "createdAt": 8760000,
+            "source": {
+              "kind": "concern",
+              "id": "cn_409"
+            }
+          },
+          "steps": []
+        }
+      ],
+      "subject": {
+        "health": 62.6203459043598,
+        "maxHealth": 80,
+        "wound": 0.07911256023000292,
+        "pose": "run",
+        "pos": {
+          "x": 87.66820745305353,
+          "y": 14,
+          "z": 78.66820745305353
+        }
+      },
+      "caregiver": {
+        "health": 80,
+        "maxHealth": 80,
+        "wound": 0,
+        "pose": "stand",
+        "pos": {
+          "x": 84.5,
+          "y": 14,
+          "z": 75.668677874688
+        }
+      },
+      "bands": {
+        "hunger": "noticeable",
+        "thirst": "noticeable",
+        "sleep": "uncomfortable",
+        "heat": "comfortable"
+      },
+      "seen": true,
+      "believedHarm": 0.65,
+      "care": [],
+      "threat": [],
+      "top": [
+        {
+          "type": "socialize",
+          "key": "socialize:pl_1",
+          "utility": 0.77,
+          "reasons": [
+            "social need 1.00",
+            "my appetite for company",
+            ""
+          ]
+        },
+        {
+          "type": "sleep",
+          "key": "sleep:pl_9",
+          "utility": 0.40382453000000007,
+          "reasons": [
+            "energy need 0.56",
+            ""
+          ]
+        }
+      ],
+      "chosen": {
+        "type": "socialize",
+        "key": "socialize:pl_1",
+        "utility": 0.77,
+        "reasons": [
+          "social need 1.00",
+          "my appetite for company",
+          ""
+        ]
+      },
+      "decision": "switched from flee to socialize",
+      "plan": [
+        {
+          "type": "goto",
+          "status": "pending"
+        },
+        {
+          "type": "sit",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "elapsed": 61659,
+      "gate": "care_candidate_present",
+      "purpose": {
+        "id": "pu_53",
+        "status": "active",
+        "priority": 1,
+        "attempts": 0,
+        "steps": [],
+        "createdAt": 8760000,
+        "source": {
+          "kind": "concern",
+          "id": "cn_409"
+        }
+      },
+      "before": [
+        {
+          "purpose": {
+            "id": "pu_53",
+            "status": "active",
+            "priority": 1,
+            "attempts": 0,
+            "steps": [],
+            "createdAt": 8760000,
+            "source": {
+              "kind": "concern",
+              "id": "cn_409"
+            }
+          },
+          "steps": [
+            {
+              "goal": "provide",
+              "targetEntity": "p_3",
+              "targetPos": {
+                "x": 94.29643925829933,
+                "y": 14,
+                "z": 92.44075659087356
+              },
+              "targetPlace": "pl_1",
+              "data": {
+                "itemId": "i_41",
+                "sourcePlaceId": "pl_9"
+              },
+              "fit": 1,
+              "reason": "Tomas Reed is hurt \u2014 I can bring fresh loaves"
+            }
+          ]
+        }
+      ],
+      "subject": {
+        "health": 42.80573269671273,
+        "maxHealth": 80,
+        "wound": 0.3705039309306951,
+        "pose": "run",
+        "pos": {
+          "x": 95.39033911592956,
+          "y": 14,
+          "z": 93.4978339792899
+        }
+      },
+      "caregiver": {
+        "health": 80,
+        "maxHealth": 80,
+        "wound": 0,
+        "pose": "run",
+        "pos": {
+          "x": 83.79885953272819,
+          "y": 14,
+          "z": 81.79885953272819
+        }
+      },
+      "bands": {
+        "hunger": "noticeable",
+        "thirst": "noticeable",
+        "sleep": "uncomfortable",
+        "heat": "comfortable"
+      },
+      "seen": false,
+      "believedHarm": 0.65,
+      "care": [
+        {
+          "type": "provide",
+          "key": "provide:p_3",
+          "utility": 1,
+          "target": "p_3",
+          "pursuit": "pu_53",
+          "reasons": [
+            "purpose: see to Tomas Reed (priority 1.00)",
+            "Tomas Reed is hurt \u2014 I can bring fresh loaves",
+            "I am worried about Tomas Reed",
+            "",
+            "purpose: see to them (1.00)",
+            "I am worried about Tomas Reed"
+          ]
+        },
+        {
+          "type": "check_on",
+          "key": "check_on:p_3",
+          "utility": 0.8113558786302739,
+          "target": "p_3",
+          "pursuit": "pu_53",
+          "reasons": [
+            "I have not seen an unfamiliar person in 0h",
+            "Tomas Reed is my spouse",
+            "we share a roof",
+            "purpose: see to them (1.00)",
+            "I am worried about Tomas Reed",
+            "concern: worried about them (0.91)",
+            "Tomas Reed is my spouse"
+          ]
+        }
+      ],
+      "threat": [],
+      "top": [
+        {
+          "type": "report",
+          "key": "report:p_16",
+          "utility": 1,
+          "target": "p_16",
+          "reasons": [
+            "I know an unfamiliar person attacked an unfamiliar person at the village square (witnessed)",
+            "the watch should hear of it",
+            "my sense of honesty",
+            "concern: set on seeing them answer for it (0.89)",
+            "Tomas Reed is my spouse",
+            "we share a roof"
+          ]
+        },
+        {
+          "type": "provide",
+          "key": "provide:p_3",
+          "utility": 1,
+          "target": "p_3",
+          "pursuit": "pu_53",
+          "reasons": [
+            "purpose: see to Tomas Reed (priority 1.00)",
+            "Tomas Reed is hurt \u2014 I can bring fresh loaves",
+            "I am worried about Tomas Reed",
+            "",
+            "purpose: see to them (1.00)",
+            "I am worried about Tomas Reed"
+          ]
+        }
+      ],
+      "chosen": {
+        "type": "report",
+        "key": "report:p_16",
+        "utility": 1,
+        "target": "p_16",
+        "reasons": [
+          "I know an unfamiliar person attacked an unfamiliar person at the village square (witnessed)",
+          "the watch should hear of it",
+          "my sense of honesty",
+          "concern: set on seeing them answer for it (0.89)",
+          "Tomas Reed is my spouse",
+          "we share a roof"
+        ]
+      },
+      "decision": "switched from flee to report",
+      "plan": [
+        {
+          "type": "goto",
+          "status": "pending"
+        },
+        {
+          "type": "tell",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "elapsed": 61821,
+      "gate": "care_candidate_present",
+      "purpose": {
+        "id": "pu_53",
+        "status": "active",
+        "priority": 1,
+        "attempts": 0,
+        "steps": [],
+        "createdAt": 8760000,
+        "source": {
+          "kind": "concern",
+          "id": "cn_409"
+        }
+      },
+      "before": [
+        {
+          "purpose": {
+            "id": "pu_53",
+            "status": "active",
+            "priority": 1,
+            "attempts": 0,
+            "steps": [],
+            "createdAt": 8760000,
+            "source": {
+              "kind": "concern",
+              "id": "cn_409"
+            }
+          },
+          "steps": [
+            {
+              "goal": "provide",
+              "targetEntity": "p_3",
+              "targetPos": {
+                "x": 98.5,
+                "y": 14,
+                "z": 94.5
+              },
+              "targetPlace": "pl_2",
+              "data": {
+                "itemId": "i_41",
+                "sourcePlaceId": "pl_9"
+              },
+              "fit": 1,
+              "reason": "Tomas Reed is hurt \u2014 I can bring fresh loaves"
+            }
+          ]
+        }
+      ],
+      "subject": {
+        "health": 43.05719558485344,
+        "maxHealth": 80,
+        "wound": 0.366805947281567,
+        "pose": "run",
+        "pos": {
+          "x": 93.65990720286123,
+          "y": 14,
+          "z": 91.40916868034088
+        }
+      },
+      "caregiver": {
+        "health": 80,
+        "maxHealth": 80,
+        "wound": 0,
+        "pose": "run",
+        "pos": {
+          "x": 81.8001441692467,
+          "y": 14,
+          "z": 79.8001441692467
+        }
+      },
+      "bands": {
+        "hunger": "noticeable",
+        "thirst": "noticeable",
+        "sleep": "uncomfortable",
+        "heat": "comfortable"
+      },
+      "seen": false,
+      "believedHarm": 0.65,
+      "care": [
+        {
+          "type": "provide",
+          "key": "provide:p_3",
+          "utility": 1,
+          "target": "p_3",
+          "pursuit": "pu_53",
+          "reasons": [
+            "purpose: see to Tomas Reed (priority 1.00)",
+            "Tomas Reed is hurt \u2014 I can bring fresh loaves",
+            "I am worried about Tomas Reed",
+            "",
+            "purpose: see to them (1.00)",
+            "I am worried about Tomas Reed"
+          ]
+        },
+        {
+          "type": "check_on",
+          "key": "check_on:p_3",
+          "utility": 0.8102360777229858,
+          "target": "p_3",
+          "pursuit": "pu_53",
+          "reasons": [
+            "I have not seen an unfamiliar person in 0h",
+            "Tomas Reed is my spouse",
+            "we share a roof",
+            "purpose: see to them (1.00)",
+            "I am worried about Tomas Reed",
+            "concern: worried about them (0.91)",
+            "Tomas Reed is my spouse"
+          ]
+        }
+      ],
+      "threat": [],
+      "top": [
+        {
+          "type": "report",
+          "key": "report:p_16",
+          "utility": 1,
+          "target": "p_16",
+          "reasons": [
+            "I know an unfamiliar person attacked an unfamiliar person at the village square (witnessed)",
+            "the watch should hear of it",
+            "my sense of honesty",
+            "I have tried 1 time already",
+            "concern: set on seeing them answer for it (0.97)",
+            "Tomas Reed is my spouse",
+            "we share a roof"
+          ]
+        },
+        {
+          "type": "provide",
+          "key": "provide:p_3",
+          "utility": 1,
+          "target": "p_3",
+          "pursuit": "pu_53",
+          "reasons": [
+            "purpose: see to Tomas Reed (priority 1.00)",
+            "Tomas Reed is hurt \u2014 I can bring fresh loaves",
+            "I am worried about Tomas Reed",
+            "",
+            "purpose: see to them (1.00)",
+            "I am worried about Tomas Reed"
+          ]
+        }
+      ],
+      "chosen": {
+        "type": "report",
+        "key": "report:p_16",
+        "utility": 1,
+        "target": "p_16",
+        "reasons": [
+          "I know an unfamiliar person attacked an unfamiliar person at the village square (witnessed)",
+          "the watch should hear of it",
+          "my sense of honesty",
+          "I have tried 1 time already",
+          "concern: set on seeing them answer for it (0.97)",
+          "Tomas Reed is my spouse",
+          "we share a roof"
+        ]
+      },
+      "decision": "switched from flee to report",
+      "plan": [
+        {
+          "type": "goto",
+          "status": "pending"
+        },
+        {
+          "type": "tell",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "elapsed": 62712,
+      "gate": "care_candidate_present",
+      "purpose": {
+        "id": "pu_53",
+        "status": "active",
+        "priority": 1,
+        "attempts": 0,
+        "steps": [],
+        "createdAt": 8760000,
+        "source": {
+          "kind": "concern",
+          "id": "cn_409"
+        }
+      },
+      "before": [
+        {
+          "purpose": {
+            "id": "pu_53",
+            "status": "active",
+            "priority": 1,
+            "attempts": 0,
+            "steps": [],
+            "createdAt": 8760000,
+            "source": {
+              "kind": "concern",
+              "id": "cn_409"
+            }
+          },
+          "steps": [
+            {
+              "goal": "provide",
+              "targetEntity": "p_3",
+              "targetPos": {
+                "x": 93.5,
+                "y": 14,
+                "z": 91.5
+              },
+              "targetPlace": "pl_1",
+              "data": {
+                "itemId": "i_41",
+                "sourcePlaceId": "pl_9"
+              },
+              "fit": 1,
+              "reason": "Tomas Reed is hurt \u2014 I can bring fresh loaves"
+            }
+          ]
+        }
+      ],
+      "subject": {
+        "health": 44.315468936402674,
+        "maxHealth": 80,
+        "wound": 0.348301927405843,
+        "pose": "run",
+        "pos": {
+          "x": 90.23906918912486,
+          "y": 14,
+          "z": 88.23909390025467
+        }
+      },
+      "caregiver": {
+        "health": 80,
+        "maxHealth": 80,
+        "wound": 0,
+        "pose": "run",
+        "pos": {
+          "x": 87.51256239553625,
+          "y": 14,
+          "z": 97.38814153105433
+        }
+      },
+      "bands": {
+        "hunger": "noticeable",
+        "thirst": "noticeable",
+        "sleep": "uncomfortable",
+        "heat": "comfortable"
+      },
+      "seen": false,
+      "believedHarm": 0.65,
+      "care": [
+        {
+          "type": "provide",
+          "key": "provide:p_3",
+          "utility": 1,
+          "target": "p_3",
+          "pursuit": "pu_53",
+          "reasons": [
+            "purpose: see to Tomas Reed (priority 1.00)",
+            "Tomas Reed is hurt \u2014 I can bring fresh loaves",
+            "I am worried about Tomas Reed",
+            "",
+            "purpose: see to them (1.00)",
+            "I am worried about Tomas Reed"
+          ]
+        },
+        {
+          "type": "check_on",
+          "key": "check_on:p_3",
+          "utility": 0.8091205806728151,
+          "target": "p_3",
+          "pursuit": "pu_53",
+          "reasons": [
+            "I have not seen an unfamiliar person in 0h",
+            "Tomas Reed is my spouse",
+            "we share a roof",
+            "purpose: see to them (1.00)",
+            "I am worried about Tomas Reed",
+            "concern: worried about them (0.90)",
+            "Tomas Reed is my spouse"
+          ]
+        }
+      ],
+      "threat": [],
+      "top": [
+        {
+          "type": "report",
+          "key": "report:p_15",
+          "utility": 1,
+          "target": "p_15",
+          "reasons": [
+            "I know an unfamiliar person attacked an unfamiliar person at the village square (witnessed)",
+            "the watch should hear of it",
+            "my sense of honesty",
+            "I have tried 1 time already",
+            "concern: set on seeing them answer for it (1.00)",
+            "Tomas Reed is my spouse",
+            "we share a roof",
+            "I have tried 2 times already",
+            "I know an unfamiliar person attacked an unfamiliar person at the hunter's stall (witnessed)"
+          ]
+        },
+        {
+          "type": "provide",
+          "key": "provide:p_3",
+          "utility": 1,
+          "target": "p_3",
+          "pursuit": "pu_53",
+          "reasons": [
+            "purpose: see to Tomas Reed (priority 1.00)",
+            "Tomas Reed is hurt \u2014 I can bring fresh loaves",
+            "I am worried about Tomas Reed",
+            "",
+            "purpose: see to them (1.00)",
+            "I am worried about Tomas Reed"
+          ]
+        }
+      ],
+      "chosen": {
+        "type": "report",
+        "key": "report:p_15",
+        "utility": 1,
+        "target": "p_15",
+        "reasons": [
+          "I know an unfamiliar person attacked an unfamiliar person at the village square (witnessed)",
+          "the watch should hear of it",
+          "my sense of honesty",
+          "I have tried 1 time already",
+          "concern: set on seeing them answer for it (1.00)",
+          "Tomas Reed is my spouse",
+          "we share a roof",
+          "I have tried 2 times already",
+          "I know an unfamiliar person attacked an unfamiliar person at the hunter's stall (witnessed)"
+        ]
+      },
+      "decision": "switched from flee to report",
+      "plan": [
+        {
+          "type": "goto",
+          "status": "pending"
+        },
+        {
+          "type": "tell",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "elapsed": 80928,
+      "gate": "care_candidate_present",
+      "purpose": {
+        "id": "pu_53",
+        "status": "active",
+        "priority": 0.9674286084668796,
+        "attempts": 0,
+        "steps": [],
+        "createdAt": 8760000,
+        "source": {
+          "kind": "concern",
+          "id": "cn_409"
+        }
+      },
+      "before": [
+        {
+          "purpose": {
+            "id": "pu_53",
+            "status": "active",
+            "priority": 0.9674286084668796,
+            "attempts": 0,
+            "steps": [],
+            "createdAt": 8760000,
+            "source": {
+              "kind": "concern",
+              "id": "cn_409"
+            }
+          },
+          "steps": [
+            {
+              "goal": "provide",
+              "targetEntity": "p_3",
+              "targetPos": {
+                "x": 89.73363757415359,
+                "y": 14,
+                "z": 95.37408352205942
+              },
+              "targetPlace": "pl_1",
+              "data": {
+                "itemId": "i_41",
+                "sourcePlaceId": "pl_9"
+              },
+              "fit": 1,
+              "reason": "Tomas Reed is hurt \u2014 I can bring fresh loaves"
+            }
+          ]
+        }
+      ],
+      "subject": {
+        "health": 69.02550891389653,
+        "maxHealth": 80,
+        "wound": 0,
+        "pose": "run",
+        "pos": {
+          "x": 87.74342329231897,
+          "y": 14,
+          "z": 97.25657670768103
+        }
+      },
+      "caregiver": {
+        "health": 80,
+        "maxHealth": 80,
+        "wound": 0,
+        "pose": "run",
+        "pos": {
+          "x": 101.23406400283943,
+          "y": 14,
+          "z": 92.49492078365884
+        }
+      },
+      "bands": {
+        "hunger": "urgent",
+        "thirst": "critical",
+        "sleep": "uncomfortable",
+        "heat": "comfortable"
+      },
+      "seen": false,
+      "believedHarm": 0.65,
+      "care": [
+        {
+          "type": "check_on",
+          "key": "check_on:p_3",
+          "utility": 0.7775771547094015,
+          "target": "p_3",
+          "pursuit": "pu_53",
+          "reasons": [
+            "I have not seen an unfamiliar person in 0h",
+            "Tomas Reed is my spouse",
+            "we share a roof",
+            "purpose: see to them (0.97)",
+            "I am worried about Tomas Reed",
+            "concern: worried about them (0.80)",
+            "Tomas Reed is my spouse"
+          ]
+        },
+        {
+          "type": "provide",
+          "key": "provide:p_3",
+          "utility": 0.39544000518536315,
+          "target": "p_3",
+          "pursuit": "pu_53",
+          "reasons": [
+            "purpose: see to Tomas Reed (priority 0.97)",
+            "Tomas Reed is hurt \u2014 I can bring fresh loaves",
+            "I am worried about Tomas Reed",
+            "but my own body is telling me otherwise (critical need)",
+            "purpose: see to them (0.97)",
+            "I am worried about Tomas Reed"
+          ]
+        }
+      ],
+      "threat": [],
+      "top": [
+        {
+          "type": "drink_water",
+          "key": "drink_water:pl_2",
+          "utility": 0.8571696969697056,
+          "reasons": [
+            "thirst 0.82"
+          ]
+        },
+        {
+          "type": "check_on",
+          "key": "check_on:p_3",
+          "utility": 0.7775771547094015,
+          "target": "p_3",
+          "pursuit": "pu_53",
+          "reasons": [
+            "I have not seen an unfamiliar person in 0h",
+            "Tomas Reed is my spouse",
+            "we share a roof",
+            "purpose: see to them (0.97)",
+            "I am worried about Tomas Reed",
+            "concern: worried about them (0.80)",
+            "Tomas Reed is my spouse"
+          ]
+        }
+      ],
+      "chosen": {
+        "type": "drink_water",
+        "key": "drink_water:pl_2",
+        "utility": 0.8571696969697056,
+        "reasons": [
+          "thirst 0.82"
+        ]
+      },
+      "decision": "switched from flee to drink_water",
+      "plan": [
+        {
+          "type": "goto",
+          "status": "pending"
+        },
+        {
+          "type": "drink",
+          "status": "pending"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "elapsed": 83403,
+    "stagedHits": 6,
+    "purposes": [
+      {
+        "id": "pu_53",
+        "status": "satisfied",
+        "priority": 0.9551250758163188,
+        "attempts": 0,
+        "steps": [],
+        "createdAt": 8760000,
+        "resolvedAt": 8782203,
+        "resolution": "seen_well",
+        "source": {
+          "kind": "concern",
+          "id": "cn_409"
+        }
+      }
+    ],
+    "subject": {
+      "health": 72.14817109073005,
+      "maxHealth": 80,
+      "wound": 0,
+      "pose": "walk",
+      "pos": {
+        "x": 99.51956791645885,
+        "y": 14,
+        "z": 86.48179322795934
+      }
+    },
+    "caregiver": {
+      "health": 80,
+      "maxHealth": 80,
+      "wound": 0,
+      "pose": "talk",
+      "pos": {
+        "x": 95.80916067457065,
+        "y": 14,
+        "z": 93.16353593682987
+      }
+    }
+  },
+  "findings": [
+    "All six staged contacts applied; delivered attack knowledge at time zero supports believed harm 0.5261327516821438.",
+    "First recorded care purpose created 61200 world seconds after injury. Its first observed decision at +61272 sees partner health 62.6203/80 and wound 0.07911256, below the help step threshold of 0.08, so pursuitSteps returns no step.",
+    "Across 502 observed decisions with the care purpose present, 494 include non-avoidance threat-response candidates and no care candidate. Production embodiment gating suppresses purpose candidates while a threat is perceived.",
+    "Three safe decisions offer provide at utility 1.0; report also has utility 1.0 and precedes it in stable candidate ordering. Report is selected. One later check_on candidate (0.77758) loses to critical thirst drink_water (0.85717).",
+    "Other four decisions have no care candidate. No purpose-serving goal/plan is adopted; attempts and steps remain zero.",
+    "Purpose resolves seen_well at +83403 seconds; partner health 72.14817/80 exceeds the 90% resolution threshold. No execution failure was reached.",
+    "Initial caregiver availability does not establish an uninterrupted care opportunity in this village. A successful multi-step arc is an invalid guaranteed fixture assumption under the observed competing causes. No production defect has been established."
+  ],
+  "uncertainty": "The instrumented decision trace starts when a tend purpose exists. It does not establish why this pair forms that purpose only at +61200 seconds; the bounded early-event buffer also fills before formation. Do not claim the initial reported injury directly formed the later purpose.",
+  "nextDiscriminatingExperiment": "If authorized, log only this caregiver and partner at injury report and each coarse upkeep until first tend creation: welfare concern status/intensity/basis keys, subject-relative fear/hostility, current percept and believed-harm state. Capture the exact first failed formPursuits predicate and the later evidence that changes it. Do not modify participants or priorities.",
+  "rawObserver": ".debug/family-causal-probe.ts",
+  "rawEvidence": ".debug/family-causal-probe.json",
+  "focusedCommand": "npm test -- tests/motivated-lives-trace.test.ts -t \"family:\" --reporter=default --reporter=json --outputFile.json=.debug/family-causal-focused-test.json > .debug/family-causal-focused-test.log 2>&1",
+  "focusedTest": {
+    "status": "failed",
+    "passed": 0,
+    "failed": 1,
+    "skipped": 3,
+    "durationSeconds": 69.378
+  },
+  "fullRegression": "NOT RUN. Eventual command (from canonical checkout): npm test -- --reporter=default --reporter=json --outputFile.json=.debug/combat-full-eventual.json > .debug/combat-full-eventual.log 2>&1"
+}

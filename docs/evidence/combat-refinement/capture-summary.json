@@ -1,0 +1,154 @@
+{
+  "status": "complete",
+  "capture": "timestamps preserved, no interpolation; external camera",
+  "views": [
+    {
+      "view": 0,
+      "frames": 217
+    },
+    {
+      "view": 1,
+      "frames": 219
+    },
+    {
+      "view": 2,
+      "frames": 220
+    }
+  ],
+  "diagnostics": {
+    "interActionStartGapMs": {
+      "count": 23,
+      "p50": 571.5072005987167,
+      "p95": 3880.6696981191635,
+      "p99": 3893.4881016612053
+    },
+    "inputToBufferedStateMs": {
+      "count": 18,
+      "p50": 0.03339722752571106,
+      "p95": 0.052697956562042236,
+      "p99": 0.052697956562042236
+    },
+    "bufferedCombatInputs": 0,
+    "bufferedInputToStartupMs": {
+      "count": 17,
+      "p50": 115.55999889969826,
+      "p95": 217.29309856891632,
+      "p99": 217.29309856891632
+    },
+    "bufferedTransitionLatenessMs": {
+      "count": 17,
+      "p50": 9.999999999808995,
+      "p95": 13.333333332984697,
+      "p99": 13.333333332984697
+    },
+    "combatInputToAnimationSetupMs": {
+      "count": 32,
+      "p50": 0.06920099258422852,
+      "p95": 0.08399784564971924,
+      "p99": 8.540697395801544
+    },
+    "contactDecisionToPresentationMs": {
+      "count": 8,
+      "p50": 58.56869791261852,
+      "p95": 92.51115228881827,
+      "p99": 92.51115228881827
+    },
+    "clockUncertaintyMs": 0.5160999298095703,
+    "inputToPredictedAttackMs": {
+      "count": 9,
+      "p50": 0.03469735383987427,
+      "p95": 0.048298388719558716,
+      "p99": 0.048298388719558716
+    },
+    "inputToPredictedDefenseMs": {
+      "count": 6,
+      "p50": 0.03929808735847473,
+      "p95": 0.04409998655319214,
+      "p99": 0.04409998655319214
+    },
+    "combatCorrectionCm": {
+      "count": 2048,
+      "p50": 0,
+      "p95": 0,
+      "p99": 5.51529477954916e-12
+    },
+    "combatCorrectionCpuMs": {
+      "count": 2048,
+      "p50": 0.007700175046920776,
+      "p95": 0.022698193788528442,
+      "p99": 0.033799558877944946
+    },
+    "combatCorrectionSettleMs": {
+      "count": 4,
+      "p50": 2.3235008120536804,
+      "p95": 15.451300889253616,
+      "p99": 15.451300889253616
+    },
+    "remoteActionAgeMs": {
+      "count": 1448,
+      "p50": 44.400400219717994,
+      "p95": 95.95420135499444,
+      "p99": 101.73119981383206
+    },
+    "contactReceiveToPresentationMs": {
+      "count": 8,
+      "p50": 0.12510299682617188,
+      "p95": 0.15689849853515625,
+      "p99": 0.15689849853515625
+    },
+    "combatAppliedRoundTripMs": {
+      "count": 16,
+      "p50": 18.13890039920807,
+      "p95": 115.53080007433891,
+      "p99": 115.53080007433891
+    },
+    "commandSendToServerArrivalMs": {
+      "count": 2048,
+      "p50": 0.7201010620337911,
+      "p95": 1.071697976673022,
+      "p99": 1.304598760965746
+    },
+    "serverArrivalToApplicationMs": {
+      "count": 2048,
+      "p50": 68.58070000004955,
+      "p95": 111.21510000003036,
+      "p99": 118.64579999999842
+    },
+    "applicationToClientReceiveMs": {
+      "count": 2048,
+      "p50": 42.54449979553465,
+      "p95": 95.370199536148,
+      "p99": 102.02849965821952
+    },
+    "predictionCpuMs": {
+      "count": 1326,
+      "p50": 0.07639825344085693,
+      "p95": 0.1475997269153595,
+      "p99": 0.19299983978271484
+    },
+    "inputCallbackToEngineStateMs": {
+      "count": 39,
+      "p50": 0.28860196471214294,
+      "p95": 0.3506988286972046,
+      "p99": 0.460602343082428
+    },
+    "appliedRoundTripMs": {
+      "count": 2048,
+      "p50": 106.92400112748146,
+      "p95": 190.71419909596443,
+      "p99": 207.34770223498344
+    },
+    "correctionCm": {
+      "count": 2048,
+      "p50": 0,
+      "p95": 0,
+      "p99": 5.739584601870543e-12
+    },
+    "pendingMovement": 1,
+    "predictionCount": 4417,
+    "predictionReady": true,
+    "presentationTiming": "unmeasured; engine-state samples are not display presentation or physical input-to-photon",
+    "specRevision": "tv-interaction-4",
+    "specHash": "19a85ee30c33b89a18747e8cb18963ba30acc6026abb954460f8d3186138f1d4"
+  }
+}

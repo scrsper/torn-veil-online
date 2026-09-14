@@ -1,0 +1,103 @@
+{
+  "baseline": "31051ec",
+  "typescript": [
+    {
+      "file": "tests/responsive-combat.test.ts",
+      "passed": 14,
+      "sourceLog": ".debug/repair-contact-final.log",
+      "sourceLogSha256": "860ee6a3212a5ec6f7d4b8b9a5cfcc1846905f855629077c60ec27fd772f9f75",
+      "note": "Per-file result at latest relevant run; mixed earlier run failures were subsequently fixed in their own focused runs."
+    },
+    {
+      "file": "tests/realtime-combat-action.test.ts",
+      "passed": 19,
+      "sourceLog": ".debug/repair-contact-final.log",
+      "sourceLogSha256": "860ee6a3212a5ec6f7d4b8b9a5cfcc1846905f855629077c60ec27fd772f9f75",
+      "note": "Per-file result at latest relevant run; mixed earlier run failures were subsequently fixed in their own focused runs."
+    },
+    {
+      "file": "tests/realtime-combat-geometry.test.ts",
+      "passed": 5,
+      "sourceLog": ".debug/repair-contact-final.log",
+      "sourceLogSha256": "860ee6a3212a5ec6f7d4b8b9a5cfcc1846905f855629077c60ec27fd772f9f75",
+      "note": "Per-file result at latest relevant run; mixed earlier run failures were subsequently fixed in their own focused runs."
+    },
+    {
+      "file": "tests/bridgeCombat.test.ts",
+      "passed": 11,
+      "sourceLog": ".debug/repair-contact-final.log",
+      "sourceLogSha256": "860ee6a3212a5ec6f7d4b8b9a5cfcc1846905f855629077c60ec27fd772f9f75",
+      "note": "Per-file result at latest relevant run; mixed earlier run failures were subsequently fixed in their own focused runs."
+    },
+    {
+      "file": "tests/combat-practice.test.ts",
+      "passed": 3,
+      "sourceLog": ".debug/repair-contact-final.log",
+      "sourceLogSha256": "860ee6a3212a5ec6f7d4b8b9a5cfcc1846905f855629077c60ec27fd772f9f75",
+      "note": "Per-file result at latest relevant run; mixed earlier run failures were subsequently fixed in their own focused runs."
+    },
+    {
+      "file": "tests/combat-foundation.test.ts",
+      "passed": 9,
+      "sourceLog": ".debug/repair-foundation-green.log",
+      "sourceLogSha256": "9bc412d59db32398825e78799bcbba7bc395e1eb3c5bc98dd0a5a8e86c55f41a",
+      "note": "Per-file result at latest relevant run; mixed earlier run failures were subsequently fixed in their own focused runs."
+    },
+    {
+      "file": "tests/combat-presentation.test.ts",
+      "passed": 8,
+      "sourceLog": ".debug/repair-focused-tests.log",
+      "sourceLogSha256": "658b755d45d0c148efc84526235bccc094a21512d8c8d03711f9f6689a85de22",
+      "note": "Per-file result at latest relevant run; mixed earlier run failures were subsequently fixed in their own focused runs."
+    },
+    {
+      "file": "tests/realtime-session.test.ts",
+      "passed": 5,
+      "sourceLog": ".debug/repair-bridge-tests.log",
+      "sourceLogSha256": "bcd0ac6fd5a20f2530fed29b0b816aab7af5de7d201bf8d39ea171187aca340a",
+      "note": "Per-file result at latest relevant run; mixed earlier run failures were subsequently fixed in their own focused runs."
+    },
+    {
+      "file": "tests/realtime-protocol.test.ts",
+      "passed": 11,
+      "sourceLog": ".debug/repair-bridge-rerun.log",
+      "sourceLogSha256": "d49bc730bde90621a8b9addb14add1897e02547a23095d95a3b58c70c4c40077",
+      "note": "Per-file result at latest relevant run; mixed earlier run failures were subsequently fixed in their own focused runs."
+    }
+  ],
+  "totalUniqueFocusedTests": 85,
+  "native": {
+    "filter": "TornVeil.Realtime",
+    "passed": 8,
+    "failed": 0,
+    "tests": [
+      "TornVeil.Realtime.LiveCombat.BlockedReconciliation",
+      "TornVeil.Realtime.LiveCombat.DefenseSweep",
+      "TornVeil.Realtime.LiveCombat.Parse",
+      "TornVeil.Realtime.LiveCombat.PlanAndBinding",
+      "TornVeil.Realtime.LiveCombat.PostureGeometry",
+      "TornVeil.Realtime.LiveCombat.Prediction",
+      "TornVeil.Realtime.Repair.Transitions",
+      "TornVeil.Realtime.MovementPrediction"
+    ],
+    "report": ".debug/repair-native-tests-closeout/index.json",
+    "changesAfterward": "Arena-only camera widening and whitespace cleanup; later native build and rendered probe succeeded."
+  },
+  "builds": [
+    {
+      "name": "TypeScript + Vite",
+      "result": "passed",
+      "sourceLog": ".debug/repair-build-final.log",
+      "sha256": "7af3617cc620d1a6df74f85b3ddf3eae6dae6f39e317425d4aea897720dd5c13"
+    },
+    {
+      "name": "Unreal Development Editor",
+      "result": "passed",
+      "sourceLog": ".debug/repair-native-build-camera.log",
+      "sha256": "a25dcc93831cf56e648d9bf7840c1dccd07d9f05d6ab9fd5f7d249fa0a9b63b2"
+    }
+  ],
+  "fullRegression": "Not run. Last earlier full suite: 851/852; family trace unresolved.",
+  "humanApproval": false,
+  "renderedPvP": false
+}

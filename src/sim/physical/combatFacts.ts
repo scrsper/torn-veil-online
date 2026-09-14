@@ -6,6 +6,7 @@ import { combatWeapon, type CombatAttackResult } from './combat';
 /** Immutable execution facts on the causal event, not an animation request or a mind read.
  * Optional on old events/saves. There is no canonical combat proficiency/technique yet. */
 export interface CombatActionFacts {
+  actionId?:string;
   seq: number;
   physicalTime: number;
   actorBodyId: string;
@@ -28,6 +29,7 @@ export function combatActionFacts(w: World, p: Person, ab: Body, tb: Body | null
   const weapon = combat ? (combat.weaponId ? w.item(combat.weaponId) : null) : combatWeapon(w, p);
   const cap = getPhysicalCapability(p, w, { body: ab });
   return {
+    actionId:combat?.actionId,
     seq: Number(w.nextId('combat').slice(7)), physicalTime: w.physicalTime,
     actorBodyId: ab.id, targetBodyId: tb?.id ?? null,
     actorPosition: { ...ab.pos }, targetPosition: tb ? { ...tb.pos } : null,

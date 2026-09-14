@@ -1,6 +1,7 @@
 #include "TVCombatPresentationComponent.h"
 #include "TVCombatAnimInstance.h"
 #include "TVCharacter.h"
+#include "TVBridgeSubsystem.h"
 #include "Animation/AnimSequence.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -17,6 +18,51 @@ int32 UTVCombatPresentationComponent::LOD() const {
     const float Distance=Camera?FVector::Dist(Camera->GetCameraLocation(),GetOwner()->GetActorLocation()):0;
     return Distance>2500?2:Distance>1200?1:0;
 }
+void UTVCombatPresentationComponent::BeginPlay() {
+    Super::BeginPlay();
+    Idle=LoadObject<UAnimSequence>(nullptr,TEXT("/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle"));
+    for(const auto& P:FTVCombatChoreographer::Primitives())if(!Animations.Contains(P.AssetPath))Animations.Add(P.AssetPath,LoadObject<UAnimSequence>(nullptr,*P.AssetPath));
+    for(const TCHAR* Name:{TEXT("Jab"),TEXT("Cross"),TEXT("Kick"),TEXT("StepLeft"),TEXT("StepRight"),TEXT("StepBack"),TEXT("StepForward"),TEXT("Duck")}) {
+        const FString Path=FString(TEXT("/Game/TornVeil/Combat/Repair/Animations/A_TV_"))+Name;
+        Animations.Add(Path,LoadObject<UAnimSequence>(nullptr,*Path));
+    }
+    for(const TCHAR* Name:{TEXT("JabRefined"),TEXT("RoundKick")}){const FString Path=FString(TEXT("/Game/TornVeil/Combat/Refinement/Animations/A_TV_"))+Name;Animations.Add(Path,LoadObject<UAnimSequence>(nullptr,*Path));}
+    if(auto* C=Cast<ATVCharacter>(GetOwner())){C->GetMesh()->SetAnimInstanceClass(UTVCombatAnimInstance::StaticClass());C->GetMesh()->SetAnimationMode(EAnimationMode::AnimationSingleNode);}
+}
+void UTVCombatPresentationComponent::ObserveAction(const FTVLiveCombat& Action,double AtAge) {
+    if(Action.Definition==TEXT("crouch_exit")){Cancel();return;}
+    const bool Same=bLive&&(Live.Id==Action.Id||(!Live.CommandId.IsEmpty()&&Live.CommandId==Action.CommandId));
+    if(!Action.Running(AtAge)) {if(Same)Cancel();return;}
+    if(Same) {
+        // The owning prediction keeps its cursor; an applied receipt never plays startup twice.
+        LiveAge=bOwningTimeline?FMath::Max(LiveAge,AtAge):AtAge;
+        const bool NewContact=Live.ContactAt<0&&Action.ContactAt>=0;
+        const FString PriorAsset=Current.Plan.Motion.AssetPath;
+        Live=Action;Current.Plan=Live.Plan(LOD(),bChain);
+        if(PriorAsset!=Current.Plan.Motion.AssetPath){
+            // A wrong predicted move changes the target pose at the retained cursor.
+            // Ordinary confirmation never changes the serial or restarts the motion.
+            const FString Path=Current.Plan.Motion.AssetPath;
+            if(!Animations.Contains(Path))Animations.Add(Path,LoadObject<UAnimSequence>(nullptr,*Path));
+            if(auto* C=Cast<ATVCharacter>(GetOwner()))if(auto* A=Cast<UTVCombatAnimInstance>(C->GetMesh()->GetAnimInstance()))A->Motion=Animations.FindRef(Path);
+            ++FlowSerial;FlowDuration=FMath::Clamp(Current.Plan.Anticipation-static_cast<float>(LiveAge)-.035f,0.f,.14f);
+        }
+        if(NewContact){LiveContactReceivedAt=GetWorld()->GetTimeSeconds();bContact=true;}
+        return;
+    }
+    const bool Chain=bLive&&Live.IsValid()&&Age<=Live.CompleteAt-Live.StartedAt+.3&&Live.Outcome!=TEXT("interrupted")&&Live.Outcome!=TEXT("cancelled");
+    if(auto* C=Cast<ATVCharacter>(GetOwner()))C->GetMesh()->SnapshotPose(TransitionSnapshot);
+    Cancel();bChain=Chain;++FlowSerial;bLive=true;bOwningTimeline=Action.bPredicted;Live=Action;LiveAge=FMath::Max(0.,AtAge);LiveContactReceivedAt=-1;
+    FTVChoreographyRequest Request;Request.Event.ActorBodyId=Action.ActorBodyId;Request.Event.ActorYaw=Action.Facing;Request.Event.Outcome=TEXT("miss");Request.LOD=LOD();
+    Queue.Add({Request,Action.Plan(LOD(),bChain),GetWorld()->GetTimeSeconds()});
+    Present(0);
+}
+void UTVCombatPresentationComponent::RejectAction(const FString& CommandId){if(bLive&&Live.CommandId==CommandId)Cancel();}
+void UTVCombatPresentationComponent::ContactReaction() {
+    Cancel();FTVChoreographyRequest R;R.bReaction=true;R.LOD=LOD();R.Event.Outcome=TEXT("hit");R.Event.WeaponType=TEXT("unarmed");
+    auto P=FTVCombatChoreographer::Plan(R);P.ContactAt=0;P.Anticipation=0;P.Strike=.05;P.Recovery=.35;P.Duration=.4;P.FX.HitStop=0;
+    Enqueue(R,P,GetWorld()->GetTimeSeconds());Present(0);
+}
 int32 UTVCombatPresentationComponent::PendingAttacks() const { return Queue.FilterByPredicate([](const auto& R){return !R.Request.bReaction;}).Num(); }
 int32 UTVCombatPresentationComponent::PendingHits() const { return Queue.FilterByPredicate([](const auto& R){return R.Request.bReaction;}).Num(); }
 FString UTVCombatPresentationComponent::AnimationPath() const { return bActive?Current.Plan.Motion.AssetPath:FString(); }
@@ -31,7 +77,7 @@ void UTVCombatPresentationComponent::Cancel() {
         C->Camera->SetRelativeLocation(FVector::ZeroVector);
     }
     if(Ribbon) Ribbon->ClearAllMeshSections(); if(Flash) Flash->SetVisibility(false);
-    bActive=false; Trail.Empty(); Hold=0;
+    bActive=false; bLive=false;Live=FTVLiveCombat(); Trail.Empty(); Hold=0;
 }
 bool UTVCombatPresentationComponent::Present(float Dt) {
     auto* C=Cast<ATVCharacter>(GetOwner()); if(!C) return false;
@@ -45,14 +91,15 @@ bool UTVCombatPresentationComponent::Present(float Dt) {
         const FString Path=Current.Plan.Motion.AssetPath;
         if(!Animations.Contains(Path)) Animations.Add(Path,LoadObject<UAnimSequence>(nullptr,*Path));
         if (!Idle || !Animations.FindRef(Path)) { ++Dropped; bActive=false; return false; }
-        C->GetMesh()->SetAnimInstanceClass(UTVCombatAnimInstance::StaticClass());
+        if(!Cast<UTVCombatAnimInstance>(C->GetMesh()->GetAnimInstance()))C->GetMesh()->SetAnimInstanceClass(UTVCombatAnimInstance::StaticClass());
         auto* Anim=Cast<UTVCombatAnimInstance>(C->GetMesh()->GetAnimInstance());
         if(!Anim) { ++Dropped; bActive=false; return false; }
         Anim->Base=Idle; Anim->Motion=Animations.FindRef(Path);
+        FlowDuration=Live.IsAttack()?FMath::Clamp(Current.Plan.Anticipation-static_cast<float>(LiveAge)-.035f,0.f,Live.MoveId==TEXT("round_kick")?.18f:.14f):.10f;
         PlayedSequences.Add(Current.Request.Event.Seq); if(PlayedSequences.Num()>64) PlayedSequences.RemoveAt(0);
-        if(!Current.Request.bReaction) ++PlayedAttacks;
+        if(!Current.Request.bReaction&&(!bLive||Live.IsAttack())) ++PlayedAttacks;
     }
-    if(!bActive) return false;
+    if(!bActive){if(auto* A=Cast<UTVCombatAnimInstance>(C->GetMesh()->GetAnimInstance()))A->bFlow=false;return false;}
     const auto& P=Current.Plan;
     // Evaluate contact telemetry on the next tick, after the mesh evaluated the contact
     // sample. Measuring during the crossing would read the previous anticipation pose.
@@ -63,7 +110,8 @@ bool UTVCombatPresentationComponent::Present(float Dt) {
         const FVector Target=C->GetActorLocation()+FVector(Delta.X,Delta.Z,0)*100;
         MeasuredContactError=FVector::Dist2D(Hand,Target);
     }
-    if(Hold>0) Hold=FMath::Max(0.f,Hold-Dt);
+    if(bLive) {LiveAge+=Dt;Age=LiveAge;Hold=0;}
+    else if(Hold>0) Hold=FMath::Max(0.f,Hold-Dt);
     else {
         const float Next=Age+Dt;
         if(!bContact && Next>=P.ContactAt) {
@@ -74,7 +122,7 @@ bool UTVCombatPresentationComponent::Present(float Dt) {
     if(Age>=P.Duration) {
         C->GetMesh()->SetRelativeLocation(BaseLocation); C->GetMesh()->SetRelativeRotation(BaseRotation);
         C->Camera->SetRelativeLocation(FVector::ZeroVector); if(Ribbon) Ribbon->ClearAllMeshSections(); if(Flash) Flash->SetVisibility(false);
-        bActive=false; return false;
+        bActive=false;if(auto* A=Cast<UTVCombatAnimInstance>(C->GetMesh()->GetAnimInstance()))A->bFlow=false;return false;
     }
     const FVector Offset=P.Offset(Age).GetClampedToMaxSize(P.OffsetLimitCm);
     MaxOffset=FMath::Max(MaxOffset,static_cast<float>(Offset.Size()));
@@ -84,7 +132,20 @@ bool UTVCombatPresentationComponent::Present(float Dt) {
     C->GetMesh()->SetRelativeRotation(Rotation);
     if(auto* Anim=Cast<UTVCombatAnimInstance>(C->GetMesh()->GetAnimInstance())) {
         Anim->Time=P.SampleTime(Age); Anim->Weight=P.Weight(Age);
-        Anim->FootLock=P.LOD==0 && !P.bReaction?P.Weight(Age):0;
+        Anim->bLocomotion=false;Anim->Snapshot=TransitionSnapshot;Anim->bSnapshot=false;Anim->bFlow=bLive;Anim->FlowSerial=FlowSerial;Anim->FlowDuration=FlowDuration;
+        Anim->Base=Idle;
+        Anim->BaseTime=0;
+        // Authored full-body motion supplies strikes and posture. Ordinary foot IK
+        // is capped at 3 cm; compatible chains carry one support point within 25 cm.
+        // Canonical displacement is never extracted from the clip.
+        Anim->Duck=0;Anim->HandWeight=0;Anim->bLowStrike=false;
+        Anim->FootLock=P.LOD==0&&!P.bReaction?(!bLive?.25f:Live.IsAttack()&&Age<FlowDuration?.25f*(1-Age/FMath::Max(.001f,FlowDuration)):0):0;
+        Anim->bCarrySupport=bLive&&bChain&&Live.IsAttack();
+        if(Anim->bCarrySupport&&P.LOD==0){
+            const float Release=FMath::Max(static_cast<float>(Live.TransitionAge(TEXT("attack"))),P.Duration-.10f);
+            Anim->FootLock=1-FMath::SmoothStep(Release,P.Duration,Age);
+        }
+        Anim->bReleaseRightFoot=bLive; // authored rear heel/striking foot may pivot; never pin both feet
         // Lock the planted foot against mesh warp. A capable fighter can step into an angle
         // and recover; the actor/capsule still follows the canonical transform unchanged.
         FVector Step=FVector::ZeroVector;
@@ -113,7 +174,7 @@ void UTVCombatPresentationComponent::Effects(float Dt) {
     }
     if(EffectMaterial) EffectMaterial->SetVectorParameterValue(TEXT("Colour"),P.FX.Colour);
     const FVector Hand=C->GetMesh()->GetSocketLocation(*P.Motion.Effector);
-    const bool bTrail=!P.bReaction && Age>P.Anticipation && Age<P.ContactAt+.09f;
+    const bool bTrail=(!bLive||Live.IsAttack()) && !P.bReaction && Age>P.Anticipation && Age<P.ContactAt+.09f;
     if(bTrail) { Trail.Add(Hand); if(Trail.Num()>8) Trail.RemoveAt(0); }
     else if(Trail.Num()) Trail.RemoveAt(0);
     TArray<FVector> Vertices; TArray<int32> Triangles; TArray<FLinearColor> Colours;
@@ -139,15 +200,31 @@ void UTVCombatPresentationComponent::Effects(float Dt) {
     }
     Ribbon->CreateMeshSection_LinearColor(0,Vertices,Triangles,TArray<FVector>(),TArray<FVector2D>(),Colours,TArray<FProcMeshTangent>(),false);
     const float ImpactAge=Age-P.ContactAt;
-    const bool bFlash=!P.bReaction && P.FX.Impact>0 && ImpactAge>=0 && ImpactAge<.09f;
+    const bool bFlash=bLive?LiveContactReceivedAt>=0&&GetWorld()->GetTimeSeconds()-LiveContactReceivedAt<.09f:!P.bReaction && P.FX.Impact>0 && ImpactAge>=0 && ImpactAge<.09f;
     Flash->SetVisibility(bFlash);
-    if(bFlash) { Flash->SetWorldLocation(Hand); Flash->SetWorldScale3D(FVector(.025f+P.FX.Impact*.065f)*(1-ImpactAge/.09f)); }
+    if(bFlash) { const auto* Bridge=GetWorld()->GetSubsystem<UTVBridgeSubsystem>();
+        Flash->SetWorldLocation(bLive&&Bridge?Bridge->ToUnreal(Live.ContactPosition)-FVector(0,0,90):Hand); Flash->SetWorldScale3D(FVector(bLive?.07f:(.025f+P.FX.Impact*.065f)*(1-ImpactAge/.09f))); }
     if(C->IsPlayerControlled() && P.FX.Camera>0 && bContact) {
         const float Cue=FMath::Max(0.f,1-ImpactAge/.15f);
         C->Camera->SetRelativeLocation(FVector(-1.4f*P.FX.Camera*Cue,0,.5f*Cue));
     }
 }
 void UTVCombatPresentationComponent::WriteDiagnostics(const TSharedPtr<FJsonObject>& J) const {
+    J->SetBoolField(TEXT("chainVariant"),bChain);J->SetNumberField(TEXT("flowDuration"),FlowDuration);
+    J->SetNumberField(TEXT("requestedSampleTime"),Current.Plan.SampleTime(Age));
+    if(const auto* C=Cast<ATVCharacter>(GetOwner()))if(const auto* A=Cast<UTVCombatAnimInstance>(C->GetMesh()->GetAnimInstance())){
+        J->SetNumberField(TEXT("flowSerial"),A->FlowSerial);J->SetNumberField(TEXT("rawHandoffAngularDegrees"),A->FlowRawAngularDegrees);J->SetNumberField(TEXT("effectiveHandoffAngularDegrees"),A->FlowFirstAngularDegrees);
+        J->SetNumberField(TEXT("handoffPelvisJumpCm"),A->FlowPelvisJumpCm);J->SetNumberField(TEXT("handoffRootJumpCm"),A->FlowRootJumpCm);J->SetNumberField(TEXT("handoffSupportFootJumpCm"),A->FlowFootJumpCm);
+        J->SetBoolField(TEXT("usingLocomotion"),A->bLocomotion);J->SetBoolField(TEXT("usingSnapshot"),A->bSnapshot);J->SetBoolField(TEXT("snapshotValid"),A->Snapshot.bIsValid);J->SetNumberField(TEXT("poseWeight"),A->Weight);
+        J->SetStringField(TEXT("poseAsset"),A->Motion?A->Motion->GetPathName():TEXT(""));J->SetNumberField(TEXT("poseTime"),A->Time);
+    }
+    J->SetBoolField(TEXT("liveCombat"),bLive);J->SetStringField(TEXT("liveActionId"),Live.Id);J->SetStringField(TEXT("liveCommandId"),Live.CommandId);
+    J->SetStringField(TEXT("livePhase"),Live.Phase);
+    if(bLive&&Live.IsAttack()&&Age>=Live.ActiveAt-Live.StartedAt&&Age<=Live.RecoveryAt-Live.StartedAt)if(const auto* C=Cast<ATVCharacter>(GetOwner())) {
+        const FVector P=Live.StrikePoint(Age),Goal=C->GetActorLocation()+FVector(P.X,P.Z,P.Y)*100-FVector(0,0,90);
+        J->SetNumberField(TEXT("strikeEffectorErrorCm"),FVector::Dist(C->GetMesh()->GetSocketLocation(*Current.Plan.Motion.Effector),Goal));
+    }
+    J->SetStringField(TEXT("liveKind"),Live.Kind);J->SetStringField(TEXT("liveOutcome"),Live.Outcome);J->SetNumberField(TEXT("duck"),Live.Duck(Age));
     J->SetBoolField(TEXT("choreographyActive"),bActive); J->SetNumberField(TEXT("choreographySeq"),Current.Request.Event.Seq);
     J->SetNumberField(TEXT("choreographyPending"),Queue.Num()); J->SetNumberField(TEXT("choreographyDropped"),Dropped);
     J->SetNumberField(TEXT("presentationOffsetCm"),bActive?Current.Plan.Offset(Age).Size():0); J->SetNumberField(TEXT("maxPresentationOffsetCm"),MaxOffset);

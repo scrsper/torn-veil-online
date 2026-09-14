@@ -1,0 +1,787 @@
+{
+  "baseline": "31051ecbfc3dc50e2e0e331c804028342566e75d",
+  "scope": "One bounded ordinary-input probe with capture; one uncaptured timing probe. No full regression or rendered PvP.",
+  "timingMethod": "PC.InputKey dispatch -> first frame sample observing startup includes the game input/frame schedule. Callback metrics measure software only. Buffered wait is intentional commitment, separate from immediate startup. Frame request timestamps pace the normal-speed video. Not physical input-to-photon.",
+  "timing": {
+    "source": ".debug/combat-repair-timing/probe.json",
+    "sourceSha256": "f120b36678dda972296e0a626e8568767a5bf5f7295c8cfb74f102facecf0a4d",
+    "status": "complete",
+    "frameCount": 1171,
+    "frameIntervalMs": {
+      "count": 1170,
+      "p50": 16.6539,
+      "p95": 17.2745,
+      "p99": 17.5616
+    },
+    "inputs": [
+      {
+        "at": 0.8890911005437374,
+        "commandId": "local:3:180",
+        "kind": "attack",
+        "clip": "Jab",
+        "observedAge": 0.016666803508996964,
+        "selection": "",
+        "selectedDistanceCm": null,
+        "input": "free_punch",
+        "inputAt": 0.8626516982913017,
+        "dispatchToObservedStartupMs": 26.439402252435684
+      },
+      {
+        "at": 1.7297844998538494,
+        "commandId": "local:3:232",
+        "kind": "attack",
+        "clip": "Cross",
+        "observedAge": 0.016666799783706665,
+        "selection": "b_2",
+        "selectedDistanceCm": 217.64517333333373,
+        "input": "distant_selected_punch",
+        "inputAt": 1.7130616009235382,
+        "dispatchToObservedStartupMs": 16.722898930311203
+      },
+      {
+        "at": 3.246544998139143,
+        "commandId": "local:3:325",
+        "kind": "sidestep",
+        "clip": "StepForward",
+        "observedAge": 0.016666699200868607,
+        "selection": "b_2",
+        "selectedDistanceCm": 105.20280104890783,
+        "input": "right_step_1",
+        "inputAt": 3.2293175980448723,
+        "dispatchToObservedStartupMs": 17.227400094270706
+      },
+      {
+        "at": 3.496304500848055,
+        "commandId": "local:3:336",
+        "kind": "sidestep",
+        "clip": "StepForward",
+        "observedAge": 0.016666702926158905,
+        "selection": "b_2",
+        "selectedDistanceCm": 127.04886601935648,
+        "input": "right_step_2_buffer",
+        "inputAt": 3.396221198141575,
+        "dispatchToObservedStartupMs": 100.08330270648003
+      },
+      {
+        "at": 3.7463583014905453,
+        "commandId": "local:3:350",
+        "kind": "sidestep",
+        "clip": "StepBack",
+        "observedAge": 0.016666803508996964,
+        "selection": "b_2",
+        "selectedDistanceCm": 170.81752990002002,
+        "input": "left_step_buffer",
+        "inputAt": 3.61319649964571,
+        "dispatchToObservedStartupMs": 133.16180184483528
+      },
+      {
+        "at": 3.996398199349642,
+        "commandId": "local:3:366",
+        "kind": "attack",
+        "clip": "Jab",
+        "observedAge": 0.016666699200868607,
+        "selection": "b_2",
+        "selectedDistanceCm": 126.5461021302315,
+        "input": "step_to_punch",
+        "inputAt": 3.8628247007727623,
+        "dispatchToObservedStartupMs": 133.5734985768795
+      },
+      {
+        "at": 4.480092998594046,
+        "commandId": "local:3:394",
+        "kind": "attack",
+        "clip": "Cross",
+        "observedAge": 0.016666799783706665,
+        "selection": "b_2",
+        "selectedDistanceCm": 126.5461021302315,
+        "input": "punch_to_punch",
+        "inputAt": 4.312890600413084,
+        "dispatchToObservedStartupMs": 167.2023981809616
+      },
+      {
+        "at": 4.9965496994555,
+        "commandId": "local:3:427",
+        "kind": "backstep",
+        "clip": "StepBack",
+        "observedAge": 0.016666799783706665,
+        "selection": "b_2",
+        "selectedDistanceCm": 126.49637907525256,
+        "input": "attack_to_backstep",
+        "inputAt": 4.84658170118928,
+        "dispatchToObservedStartupMs": 149.9679982662201
+      },
+      {
+        "at": 6.530088100582361,
+        "commandId": "local:3:529",
+        "kind": "attack",
+        "clip": "Jab",
+        "observedAge": 0.016666803508996964,
+        "selection": "b_2",
+        "selectedDistanceCm": 104.99999999999972,
+        "input": "light_1",
+        "inputAt": 6.512789599597454,
+        "dispatchToObservedStartupMs": 17.29850098490715
+      },
+      {
+        "at": 7.013082500547171,
+        "commandId": "local:3:548",
+        "kind": "attack",
+        "clip": "Cross",
+        "observedAge": 0.016666799783706665,
+        "selection": "b_2",
+        "selectedDistanceCm": 104.99999999999972,
+        "input": "light_2_buffer",
+        "inputAt": 6.812779299914837,
+        "dispatchToObservedStartupMs": 200.30320063233376
+      },
+      {
+        "at": 7.4963956996798515,
+        "commandId": "local:3:579",
+        "kind": "attack",
+        "clip": "Kick",
+        "observedAge": 0.016666799783706665,
+        "selection": "b_2",
+        "selectedDistanceCm": 104.99999999999972,
+        "input": "heavy_buffer",
+        "inputAt": 7.312907699495554,
+        "dispatchToObservedStartupMs": 183.48800018429756
+      },
+      {
+        "at": 10.330168798565865,
+        "commandId": "local:3:761",
+        "kind": "duck",
+        "clip": "Duck",
+        "observedAge": 0.016666799783706665,
+        "selection": "b_2",
+        "selectedDistanceCm": 104.99999999999972,
+        "input": "duck_after_observed_preparation",
+        "inputAt": 10.313497800379992,
+        "dispatchToObservedStartupMs": 16.67099818587303
+      },
+      {
+        "at": 13.329766098409891,
+        "commandId": "local:3:944",
+        "kind": "attack",
+        "clip": "Kick",
+        "observedAge": 0.016666799783706665,
+        "selection": "b_2",
+        "selectedDistanceCm": 104.99999999999972,
+        "input": "kick_target_reaction",
+        "inputAt": 13.312786400318146,
+        "dispatchToObservedStartupMs": 16.979698091745377
+      },
+      {
+        "at": 17.529878299683332,
+        "commandId": "local:3:1198",
+        "kind": "duck",
+        "clip": "Duck",
+        "observedAge": 0.016666799783706665,
+        "selection": "b_2",
+        "selectedDistanceCm": 104.99999999999974,
+        "input": "duck_performance",
+        "inputAt": 17.51274900138378,
+        "dispatchToObservedStartupMs": 17.12929829955101
+      }
+    ],
+    "chains": [
+      {
+        "from": "right_step_1",
+        "to": "right_step_2_buffer",
+        "startGapMs": 249.7595027089119,
+        "idleFramesBetween": 0
+      },
+      {
+        "from": "right_step_2_buffer",
+        "to": "left_step_buffer",
+        "startGapMs": 250.0538006424904,
+        "idleFramesBetween": 0
+      },
+      {
+        "from": "left_step_buffer",
+        "to": "step_to_punch",
+        "startGapMs": 250.03989785909653,
+        "idleFramesBetween": 0
+      },
+      {
+        "from": "step_to_punch",
+        "to": "punch_to_punch",
+        "startGapMs": 483.69479924440384,
+        "idleFramesBetween": 0
+      },
+      {
+        "from": "punch_to_punch",
+        "to": "attack_to_backstep",
+        "startGapMs": 516.456700861454,
+        "idleFramesBetween": 0
+      },
+      {
+        "from": "light_1",
+        "to": "light_2_buffer",
+        "startGapMs": 482.9943999648094,
+        "idleFramesBetween": 0
+      },
+      {
+        "from": "light_2_buffer",
+        "to": "heavy_buffer",
+        "startGapMs": 483.3131991326809,
+        "idleFramesBetween": 0
+      }
+    ],
+    "opponentOutcomes": [
+      {
+        "at": 10.246510099619627,
+        "bodyId": "b_2",
+        "id": "action_44",
+        "outcome": "pending"
+      },
+      {
+        "at": 10.713079698383808,
+        "bodyId": "b_2",
+        "id": "action_44",
+        "outcome": "miss"
+      },
+      {
+        "at": 11.562765799462795,
+        "bodyId": "b_2",
+        "id": "action_46",
+        "outcome": "pending"
+      },
+      {
+        "at": 11.946503698825836,
+        "bodyId": "b_2",
+        "id": "action_46",
+        "outcome": "hit"
+      }
+    ],
+    "diagnostics": {
+      "interActionStartGapMs": {
+        "count": 9,
+        "p50": 483.3698980510235,
+        "p95": 2833.151400089264,
+        "p99": 2833.151400089264
+      },
+      "inputToBufferedStateMs": {
+        "count": 7,
+        "p50": 0.03629922866821289,
+        "p95": 0.046797096729278564,
+        "p99": 0.046797096729278564
+      },
+      "bufferedCombatInputs": 0,
+      "bufferedInputToStartupMs": {
+        "count": 7,
+        "p50": 133.65690037608147,
+        "p95": 183.57549980282784,
+        "p99": 183.57549980282784
+      },
+      "bufferedTransitionLatenessMs": {
+        "count": 7,
+        "p50": 6.66666666628013,
+        "p95": 9.999999999778685,
+        "p99": 9.999999999778685
+      },
+      "combatInputToAnimationSetupMs": {
+        "count": 14,
+        "p50": 0.07110089063644409,
+        "p95": 8.358597755432129,
+        "p99": 8.358597755432129
+      },
+      "contactDecisionToPresentationMs": {
+        "count": 5,
+        "p50": 0.8566477660788223,
+        "p95": 5.186448898282833,
+        "p99": 5.186448898282833
+      },
+      "clockUncertaintyMs": 0.3509502410888672,
+      "inputToPredictedAttackMs": {
+        "count": 4,
+        "p50": 0.0393986701965332,
+        "p95": 0.041797757148742676,
+        "p99": 0.041797757148742676
+      },
+      "inputToPredictedDefenseMs": {
+        "count": 3,
+        "p50": 0.04139915108680725,
+        "p95": 0.04639849066734314,
+        "p99": 0.04639849066734314
+      },
+      "combatCorrectionCm": {
+        "count": 1138,
+        "p50": 0,
+        "p95": 0,
+        "p99": 5.6843418860808015e-12
+      },
+      "combatCorrectionCpuMs": {
+        "count": 1138,
+        "p50": 0.010699033737182617,
+        "p95": 0.019397586584091187,
+        "p99": 0.03559887409210205
+      },
+      "combatCorrectionSettleMs": {
+        "count": 1,
+        "p50": 15.505596995353699,
+        "p95": 15.505596995353699,
+        "p99": 15.505596995353699
+      },
+      "remoteActionAgeMs": {
+        "count": 565,
+        "p50": 0.6407518432242796,
+        "p95": 4.69714902038686,
+        "p99": 5.601648541283794
+      },
+      "contactReceiveToPresentationMs": {
+        "count": 5,
+        "p50": 0.2465991973876953,
+        "p95": 0.6389026641845703,
+        "p99": 0.6389026641845703
+      },
+      "combatAppliedRoundTripMs": {
+        "count": 7,
+        "p50": 1.8803998827934265,
+        "p95": 18.020298331975937,
+        "p99": 18.020298331975937
+      },
+      "commandSendToServerArrivalMs": {
+        "count": 1310,
+        "p50": 0.4033503356622532,
+        "p95": 0.7833494354272261,
+        "p99": 2.0050016692839563
+      },
+      "serverArrivalToApplicationMs": {
+        "count": 1311,
+        "p50": 16.773199999937788,
+        "p95": 83.45429999998305,
+        "p99": 83.62280000001192
+      },
+      "applicationToClientReceiveMs": {
+        "count": 1310,
+        "p50": 0.6215514709474519,
+        "p95": 4.792649356066249,
+        "p99": 5.466050503542647
+      },
+      "predictionCpuMs": {
+        "count": 1292,
+        "p50": 0.040199607610702515,
+        "p95": 0.07130205631256104,
+        "p99": 0.08039921522140503
+      },
+      "inputCallbackToEngineStateMs": {
+        "count": 9,
+        "p50": 0.28280168771743774,
+        "p95": 0.31379982829093933,
+        "p99": 0.31379982829093933
+      },
+      "appliedRoundTripMs": {
+        "count": 1311,
+        "p50": 17.79710128903389,
+        "p95": 84.44090187549591,
+        "p99": 84.65049788355827
+      },
+      "correctionCm": {
+        "count": 1297,
+        "p50": 0,
+        "p95": 0,
+        "p99": 5.6843418860808015e-12
+      },
+      "pendingMovement": 1,
+      "predictionCount": 1297,
+      "predictionReady": true,
+      "presentationTiming": "unmeasured; engine-state samples are not display presentation or physical input-to-photon",
+      "specRevision": "tv-interaction-3",
+      "specHash": "4925736e4fdde3a83a27f5ba73c8f0afd344b56bcf8cec093985c57492b9293c"
+    },
+    "maxChoreographyActorDriftCm": 0,
+    "sprintObserved": true,
+    "finalQueuedInputs": 0
+  },
+  "video": {
+    "source": ".debug/combat-repair-final/probe.json",
+    "sourceSha256": "e14c67e844f9725797c9b7c4c9f05c29ff50e2dcd3325fd49fe0872279f00e4a",
+    "status": "complete",
+    "frameCount": 265,
+    "frameIntervalMs": {
+      "count": 264,
+      "p50": 92.6144,
+      "p95": 102.5156,
+      "p99": 107.2121
+    },
+    "inputs": [
+      {
+        "at": 1.057695496827364,
+        "commandId": "local:4:159",
+        "kind": "attack",
+        "clip": "Jab",
+        "observedAge": 0.10247249901294708,
+        "selection": "",
+        "selectedDistanceCm": null,
+        "input": "free_punch",
+        "inputAt": 0.9504833966493607,
+        "dispatchToObservedStartupMs": 107.21210017800331
+      },
+      {
+        "at": 1.8273488990962505,
+        "commandId": "local:4:207",
+        "kind": "attack",
+        "clip": "Cross",
+        "observedAge": 0.09499059617519379,
+        "selection": "b_2",
+        "selectedDistanceCm": 200.74839733333363,
+        "input": "distant_selected_punch",
+        "inputAt": 1.7279966995120049,
+        "dispatchToObservedStartupMs": 99.35219958424568
+      },
+      {
+        "at": 3.3436455987393856,
+        "commandId": "local:4:300",
+        "kind": "sidestep",
+        "clip": "StepRight",
+        "observedAge": 0.09001030027866364,
+        "selection": "b_2",
+        "selectedDistanceCm": 106.54315294662386,
+        "input": "right_step_1",
+        "inputAt": 3.243716899305582,
+        "dispatchToObservedStartupMs": 99.92869943380356
+      },
+      {
+        "at": 3.5379230976104736,
+        "commandId": "local:4:312",
+        "kind": "sidestep",
+        "clip": "StepRight",
+        "observedAge": 0.10271909832954407,
+        "selection": "b_2",
+        "selectedDistanceCm": 125.32109521049627,
+        "input": "right_step_2_buffer",
+        "inputAt": 3.4463135972619057,
+        "dispatchToObservedStartupMs": 91.60950034856796
+      },
+      {
+        "at": 3.825858198106289,
+        "commandId": "local:4:325",
+        "kind": "sidestep",
+        "clip": "StepLeft",
+        "observedAge": 0.09591440111398697,
+        "selection": "b_2",
+        "selectedDistanceCm": 157.75842456337028,
+        "input": "left_step_buffer",
+        "inputAt": 3.6327987983822823,
+        "dispatchToObservedStartupMs": 193.05939972400665
+      },
+      {
+        "at": 4.013689696788788,
+        "commandId": "local:4:343",
+        "kind": "attack",
+        "clip": "Jab",
+        "observedAge": 0.09495969861745834,
+        "selection": "b_2",
+        "selectedDistanceCm": 123.49089035228512,
+        "input": "step_to_punch",
+        "inputAt": 3.9208016991615295,
+        "dispatchToObservedStartupMs": 92.8879976272583
+      },
+      {
+        "at": 4.5165141969919205,
+        "commandId": "local:4:367",
+        "kind": "attack",
+        "clip": "Cross",
+        "observedAge": 0.09792040288448334,
+        "selection": "b_2",
+        "selectedDistanceCm": 123.49089035228512,
+        "input": "punch_to_punch",
+        "inputAt": 4.318899899721146,
+        "dispatchToObservedStartupMs": 197.61429727077484
+      },
+      {
+        "at": 5.105192396789789,
+        "commandId": "local:4:403",
+        "kind": "backstep",
+        "clip": "StepBack",
+        "observedAge": 0.09849420189857483,
+        "selection": "b_2",
+        "selectedDistanceCm": 144.17119297090653,
+        "input": "attack_to_backstep",
+        "inputAt": 4.909098297357559,
+        "dispatchToObservedStartupMs": 196.09409943223
+      },
+      {
+        "at": 6.65455499663949,
+        "commandId": "local:4:504",
+        "kind": "attack",
+        "clip": "Jab",
+        "observedAge": 0.10029469430446625,
+        "selection": "b_2",
+        "selectedDistanceCm": 104.99999999999972,
+        "input": "light_1",
+        "inputAt": 6.556917499750853,
+        "dispatchToObservedStartupMs": 97.63749688863754
+      },
+      {
+        "at": 7.051008999347687,
+        "commandId": "local:4:523",
+        "kind": "attack",
+        "clip": "Cross",
+        "observedAge": 0.10154090076684952,
+        "selection": "b_2",
+        "selectedDistanceCm": 104.99999999999972,
+        "input": "light_2_buffer",
+        "inputAt": 6.854322597384453,
+        "dispatchToObservedStartupMs": 196.68640196323395
+      },
+      {
+        "at": 7.5557034984230995,
+        "commandId": "local:4:553",
+        "kind": "attack",
+        "clip": "Kick",
+        "observedAge": 0.10283990204334259,
+        "selection": "b_2",
+        "selectedDistanceCm": 104.99999999999972,
+        "input": "heavy_buffer",
+        "inputAt": 7.355323098599911,
+        "dispatchToObservedStartupMs": 200.38039982318878
+      },
+      {
+        "at": 10.428171299397945,
+        "commandId": "local:4:740",
+        "kind": "duck",
+        "clip": "Duck",
+        "observedAge": 0.016666699200868607,
+        "selection": "b_2",
+        "selectedDistanceCm": 104.99999999999972,
+        "input": "duck_after_observed_preparation",
+        "inputAt": 10.3607032969594,
+        "dispatchToObservedStartupMs": 67.46800243854523
+      },
+      {
+        "at": 13.433977697044611,
+        "commandId": "local:4:916",
+        "kind": "attack",
+        "clip": "Kick",
+        "observedAge": 0.09017570316791534,
+        "selection": "b_2",
+        "selectedDistanceCm": 104.99999999999972,
+        "input": "kick_target_reaction",
+        "inputAt": 13.334610898047686,
+        "dispatchToObservedStartupMs": 99.36679899692535
+      },
+      {
+        "at": 17.61694199964404,
+        "commandId": "local:4:1167",
+        "kind": "duck",
+        "clip": "Duck",
+        "observedAge": 0.1000593975186348,
+        "selection": "b_2",
+        "selectedDistanceCm": 104.99999999999974,
+        "input": "duck_performance",
+        "inputAt": 17.520579297095537,
+        "dispatchToObservedStartupMs": 96.36270254850388
+      }
+    ],
+    "chains": [
+      {
+        "from": "right_step_1",
+        "to": "right_step_2_buffer",
+        "startGapMs": 194.27749887108803,
+        "idleFramesBetween": 0
+      },
+      {
+        "from": "right_step_2_buffer",
+        "to": "left_step_buffer",
+        "startGapMs": 287.9351004958153,
+        "idleFramesBetween": 0
+      },
+      {
+        "from": "left_step_buffer",
+        "to": "step_to_punch",
+        "startGapMs": 187.83149868249893,
+        "idleFramesBetween": 0
+      },
+      {
+        "from": "step_to_punch",
+        "to": "punch_to_punch",
+        "startGapMs": 502.82450020313263,
+        "idleFramesBetween": 0
+      },
+      {
+        "from": "punch_to_punch",
+        "to": "attack_to_backstep",
+        "startGapMs": 588.6781997978687,
+        "idleFramesBetween": 0
+      },
+      {
+        "from": "light_1",
+        "to": "light_2_buffer",
+        "startGapMs": 396.45400270819664,
+        "idleFramesBetween": 0
+      },
+      {
+        "from": "light_2_buffer",
+        "to": "heavy_buffer",
+        "startGapMs": 504.69449907541275,
+        "idleFramesBetween": 0
+      }
+    ],
+    "opponentOutcomes": [
+      {
+        "at": 10.295203696936369,
+        "bodyId": "b_2",
+        "id": "action_60",
+        "outcome": "pending"
+      },
+      {
+        "at": 10.72129749879241,
+        "bodyId": "b_2",
+        "id": "action_60",
+        "outcome": "miss"
+      },
+      {
+        "at": 11.567186698317528,
+        "bodyId": "b_2",
+        "id": "action_62",
+        "outcome": "pending"
+      },
+      {
+        "at": 11.959367796778679,
+        "bodyId": "b_2",
+        "id": "action_62",
+        "outcome": "hit"
+      }
+    ],
+    "diagnostics": {
+      "interActionStartGapMs": {
+        "count": 9,
+        "p50": 495.9848001599312,
+        "p95": 2916.396301239729,
+        "p99": 2916.396301239729
+      },
+      "inputToBufferedStateMs": {
+        "count": 7,
+        "p50": 0.03289803862571716,
+        "p95": 0.045999884605407715,
+        "p99": 0.045999884605407715
+      },
+      "bufferedCombatInputs": 0,
+      "bufferedInputToStartupMs": {
+        "count": 7,
+        "p50": 98.34880009293556,
+        "p95": 103.27089950442314,
+        "p99": 103.27089950442314
+      },
+      "bufferedTransitionLatenessMs": {
+        "count": 7,
+        "p50": 6.66666666628013,
+        "p95": 9.99999999985446,
+        "p99": 9.99999999985446
+      },
+      "combatInputToAnimationSetupMs": {
+        "count": 14,
+        "p50": 0.05700066685676575,
+        "p95": 8.54790210723877,
+        "p99": 8.54790210723877
+      },
+      "contactDecisionToPresentationMs": {
+        "count": 5,
+        "p50": 20.97110069275368,
+        "p95": 83.8154998779064,
+        "p99": 83.8154998779064
+      },
+      "clockUncertaintyMs": 0.43579959869384766,
+      "inputToPredictedAttackMs": {
+        "count": 4,
+        "p50": 0.03349781036376953,
+        "p95": 0.043798238039016724,
+        "p99": 0.043798238039016724
+      },
+      "inputToPredictedDefenseMs": {
+        "count": 3,
+        "p50": 0.04480034112930298,
+        "p95": 0.0456981360912323,
+        "p99": 0.0456981360912323
+      },
+      "combatCorrectionCm": {
+        "count": 1153,
+        "p50": 0,
+        "p95": 0,
+        "p99": 5.329070518200751e-12
+      },
+      "combatCorrectionCpuMs": {
+        "count": 1153,
+        "p50": 0.007499009370803833,
+        "p95": 0.021498650312423706,
+        "p99": 0.035900622606277466
+      },
+      "combatCorrectionSettleMs": {
+        "count": 2,
+        "p50": 1.574300229549408,
+        "p95": 2.129998058080673,
+        "p99": 2.129998058080673
+      },
+      "remoteActionAgeMs": {
+        "count": 561,
+        "p50": 41.12900092464406,
+        "p95": 95.24220082699321,
+        "p99": 100.15209908143152
+      },
+      "contactReceiveToPresentationMs": {
+        "count": 5,
+        "p50": 0.31909942626953125,
+        "p95": 0.7652015686035156,
+        "p99": 0.7652015686035156
+      },
+      "combatAppliedRoundTripMs": {
+        "count": 9,
+        "p50": 96.02020308375359,
+        "p95": 105.53660243749619,
+        "p99": 105.53660243749619
+      },
+      "commandSendToServerArrivalMs": {
+        "count": 1273,
+        "p50": 0.610698135336861,
+        "p95": 1.0828013580758125,
+        "p99": 2.0146491730120033
+      },
+      "serverArrivalToApplicationMs": {
+        "count": 1273,
+        "p50": 69.3139000000665,
+        "p95": 102.87199999997392,
+        "p99": 112.142300000065
+      },
+      "applicationToClientReceiveMs": {
+        "count": 1273,
+        "p50": 36.56840220640879,
+        "p95": 95.4945022064494,
+        "p99": 100.77879877923988
+      },
+      "predictionCpuMs": {
+        "count": 386,
+        "p50": 0.06869807839393616,
+        "p95": 0.13209879398345947,
+        "p99": 0.18109753727912903
+      },
+      "inputCallbackToEngineStateMs": {
+        "count": 8,
+        "p50": 0.42540207505226135,
+        "p95": 0.6099008023738861,
+        "p99": 0.6099008023738861
+      },
+      "appliedRoundTripMs": {
+        "count": 1273,
+        "p50": 98.92009943723679,
+        "p95": 188.59269842505455,
+        "p99": 200.95030218362808
+      },
+      "correctionCm": {
+        "count": 1301,
+        "p50": 0,
+        "p95": 0,
+        "p99": 5.329070518200751e-12
+      },
+      "pendingMovement": 1,
+      "predictionCount": 1270,
+      "predictionReady": true,
+      "presentationTiming": "unmeasured; engine-state samples are not display presentation or physical input-to-photon",
+      "specRevision": "tv-interaction-3",
+      "specHash": "4925736e4fdde3a83a27f5ba73c8f0afd344b56bcf8cec093985c57492b9293c"
+    },
+    "maxChoreographyActorDriftCm": 0,
+    "sprintObserved": true,
+    "finalQueuedInputs": 0
+  }
+}

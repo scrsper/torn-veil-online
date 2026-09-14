@@ -1,0 +1,11 @@
+{
+  "revision": "tv-interaction-1",
+  "units": "metres",
+  "cases": [
+    {"name":"diagonal-normalized","state":{"position":{"x":0,"y":0,"z":0},"yaw":0,"speed":2,"eligible":true},"input":{"x":1,"z":1,"sprint":false},"dt":0.016666666666666666,"frames":30,"expect":{"distance":1,"x":0.70710678,"y":0,"z":0.70710678,"yaw":-2.35619449}},
+    {"name":"sprint","state":{"position":{"x":0,"y":0,"z":0},"yaw":0,"speed":2,"eligible":true},"input":{"x":1,"z":0,"sprint":true},"dt":0.016666666666666666,"frames":30,"expect":{"x":1.55,"y":0,"z":0,"yaw":-1.57079633}},
+    {"name":"wall-block","state":{"position":{"x":1.2,"y":0,"z":1.5},"yaw":0,"speed":2,"eligible":true},"input":{"x":1,"z":0,"sprint":false},"dt":0.016666666666666666,"frames":60,"columns":{"2,1":{"floor":0,"walkable":true,"solids":[1]}},"expect":{"x":1.66666667,"y":0,"z":1.5,"yaw":-1.57079633}},
+    {"name":"stair-step","state":{"position":{"x":1.2,"y":0,"z":1.5},"yaw":0,"speed":2,"eligible":true},"input":{"x":1,"z":0,"sprint":false},"dt":0.016666666666666666,"frames":30,"columns":{"2,1":{"floor":1,"walkable":true,"solids":[]}},"expect":{"x":2.2,"y":1,"z":1.5,"yaw":-1.57079633}},
+    {"name":"frame-partition","state":{"position":{"x":0,"y":0,"z":0},"yaw":0,"speed":2,"eligible":true},"input":{"x":1,"z":1,"sprint":false},"dt":0.016666666666666666,"frames":60,"expect":{"partition":"2x30","x":1.41421356,"y":0,"z":1.41421356,"yaw":-2.35619449}}
+  ]
+}

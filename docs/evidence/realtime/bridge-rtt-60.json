@@ -1,0 +1,87 @@
+{
+  "protocol": 2,
+  "authoritativeApplicationMeasured": true,
+  "serverMemory": {
+    "rss": 120463360,
+    "heapTotal": 60473344,
+    "heapUsed": 28968712,
+    "external": 9065025,
+    "arrayBuffers": 5005560
+  },
+  "eventLoopMs": {
+    "p50": 15.540223,
+    "p95": 17.956863,
+    "p99": 22.396927
+  },
+  "harness": "realtime-loopback",
+  "transport": "WebSocket loopback",
+  "applicationMessageDelayProxyMs": 60,
+  "applicationMessageJitterMs": 8,
+  "delaySemantics": "client-side application-message delay; includes proxy delay in observed ages",
+  "counts": {
+    "sent": 240,
+    "results": 240,
+    "snapshots": 55,
+    "correlatedResults": 240,
+    "correlatedSnapshots": 240,
+    "sequenceViolations": 0,
+    "applied": 240,
+    "rejected": 0
+  },
+  "roundTripMs": {
+    "count": 240,
+    "p50": 93.929,
+    "p95": 109.921,
+    "p99": 123.308,
+    "min": 87.671,
+    "max": 125.93
+  },
+  "receivedRoundTripMs": {
+    "count": 240,
+    "p50": 77.602,
+    "p95": 79.524,
+    "p99": 93.072,
+    "min": 67.74,
+    "max": 110.089
+  },
+  "appliedRoundTripMs": {
+    "count": 240,
+    "p50": 93.929,
+    "p95": 109.921,
+    "p99": 123.308,
+    "min": 87.671,
+    "max": 125.93
+  },
+  "snapshotAckAgeMs": {
+    "count": 240,
+    "p50": 93.94,
+    "p95": 110.166,
+    "p99": 123.764,
+    "min": 91.033,
+    "max": 125.946
+  },
+  "queueMs": {
+    "count": 240,
+    "p50": 15.62,
+    "p95": 31.498,
+    "p99": 39.121,
+    "min": 10.779,
+    "max": 46.263
+  },
+  "clock": {
+    "offsetMs": -205.234,
+    "uncertaintyMs": 39.143,
+    "probes": 8
+  },
+  "load": {
+    "durationMs": 5945.731,
+    "intentsPerSecond": 59.88,
+    "snapshotsPerSecond": 9.25,
+    "heapUsedBytes": 14006104
+  },
+  "scheduler": {
+    "steps": 331,
+    "overruns": 4,
+    "maxDebtMs": 43.20963333333043
+  }
+}

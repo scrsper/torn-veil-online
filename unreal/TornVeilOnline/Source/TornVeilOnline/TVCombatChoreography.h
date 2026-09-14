@@ -5,6 +5,7 @@
 struct FTVCombatEvent {
     int64 Seq = 0, AttackSeq = 0, HitSeq = 0;
     FString EventId, ActorBodyId, TargetBodyId, WeaponType, WeaponId, Outcome;
+    FString ActionId;
     FVector ActorPosition = FVector::ZeroVector, TargetPosition = FVector::ZeroVector, TargetVelocity = FVector::ZeroVector;
     float ActorYaw = 0, PhysicalTime = 0, Strength = .5f, Dexterity = .5f, Exertion = 1;
     // Extension inputs below are only accepted on explicitly labeled presentation fixtures.
@@ -50,10 +51,12 @@ struct FTVChoreographyPlan {
     FTVPresentationFXCue FX;
     FString WeaponFamily;
     float Anticipation = .2f, Strike = .14f, Recovery = .35f, ContactAt = .34f, Duration = .8f;
+    float SampleStart=0;
+    float SamplePreparation=-1,SampleActive=0,SampleRecovery=0;
     float AlignmentYaw = 0, PivotYaw = 0, LeanDegrees = 0, LeanYaw = 0, OffsetLimitCm = 22, ContactErrorCm = 0;
     FVector ContactOffset = FVector::ZeroVector;
     int32 LOD = 0;
-    bool bReaction = false;
+    bool bReaction = false, bTimeline = false;
     float SampleTime(float Age) const;
     float Weight(float Age) const;
     FVector Offset(float Age) const;

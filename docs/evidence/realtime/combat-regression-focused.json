@@ -1,0 +1,102 @@
+{
+  "scope": "realtime combat contact/defense focused regression",
+  "generatedAt": "2026-09-11",
+  "verification": [
+    {
+      "command": "npx vitest run tests/realtime-combat-action.test.ts --reporter=dot",
+      "status": "passed",
+      "tests": "19/19",
+      "durationSeconds": 2.13
+    },
+    {
+      "command": "npx vitest run tests/robbery.test.ts --reporter=dot",
+      "status": "passed",
+      "tests": "12/12",
+      "durationSeconds": 1.84,
+      "note": "Sustained visible backup fixture uses external idle control for villager and both guards; bandit remains autonomous."
+    },
+    {
+      "command": "npx tsx .debug/favor-trace.ts",
+      "status": "passed",
+      "checks": "all checks passed",
+      "durationSeconds": 167,
+      "note": "Full-budget sequential trace; no failed checks."
+    },
+    {
+      "command": "npm run typecheck --silent",
+      "status": "passed"
+    },
+    {
+      "command": "npx vitest run tests/stress-benchmarks.test.ts -t 'losing stored food|food abundance keeps' --reporter=verbose",
+      "status": "timeout",
+      "tests": "0 assertion results",
+      "durationSeconds": 126.56,
+      "cases": [
+        {
+          "name": "losing stored food and standing crops creates real shortage pressure without collapse",
+          "timeoutSeconds": 60,
+          "observedSeconds": 64.7
+        },
+        {
+          "name": "food abundance keeps bread price low and physiological urgency modest",
+          "timeoutSeconds": 60,
+          "observedSeconds": 60.2
+        }
+      ],
+      "note": "Not counted as green; no assertions were weakened and timeout was not widened."
+    },
+    {
+      "command": "npx vitest run tests/stress-benchmarks.test.ts --reporter=dot",
+      "status": "passed",
+      "tests": "7/7",
+      "durationSeconds": 153.55,
+      "testExecutionSeconds": 151.99,
+      "note": "Full file passed at unchanged 60s per-test limits; no per-case timing emitted by dot reporter."
+    },
+    {
+      "command": "npx vitest run tests/bridgeCombat.test.ts --reporter=json --outputFile=.debug/combat-bridge-final.json",
+      "status": "passed",
+      "tests": "11/11",
+      "note": "After migrating observation timing: contact near .41s follows the .4s perception sample. Wait next ordinary sample and require the actual hit event provenance. No production change."
+    }
+  ],
+  "review": {
+    "areas": [
+      "cognition combat cue provenance",
+      "combat social memory boundary",
+      "regional resumable streaming",
+      "command queue ordering barriers",
+      "genealogy allocation memoization",
+      "combat hurt-volume allocation"
+    ],
+    "findings": []
+  },
+  "priorFullRun": {
+    "revision": "7f2f418",
+    "status": "failed; stopped after all but final long trace file reported",
+    "failure": "Bridge test checked hit knowledge before first post-contact perception; corrected in3bc3acc. This run is not acceptance."
+  },
+  "lastFullRun": {
+    "revision": "3bc3acc419ce49d334334386565e3e7776b66b87",
+    "status": "failed",
+    "passed": 851,
+    "failed": 1,
+    "total": 852,
+    "files": 84,
+    "durationSeconds": 1622.62,
+    "failure": "Family motivated-life purpose adopted no serving goals; no multi-step arc.",
+    "rawReport": ".debug/combat-full-final.json"
+  },
+  "pausedFocusedFollowup": {
+    "status": "failed; paused at user request before another full regression",
+    "pendingChange": "Harness participant eligibility only: physical availability, awake caregiver, no current emergency response goal. Deterministic distance ordering and all assertions retained.",
+    "command": "npm test -- tests/motivated-lives-trace.test.ts -t family: --reporter=default --reporter=json --outputFile.json=.debug/combat-family-focused.json",
+    "failed": 1,
+    "skipped": 3,
+    "durationSeconds": 68.79,
+    "failure": "Same two purpose-serving action/multi-step checks. Eligibility change is an unresolved experiment, not an accepted fix.",
+    "typecheck": "passed",
+    "workerAReview": "No defect in scope or assertion preservation; no production priority changes.",
+    "rawReport": ".debug/combat-family-focused.json"
+  }
+}

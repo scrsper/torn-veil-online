@@ -1,0 +1,43 @@
+{
+  "succeeded": 9,
+  "failed": 0,
+  "notRun": 0,
+  "tests": [
+    {
+      "name": "TornVeil.Realtime.LiveCombat.BlockedReconciliation",
+      "state": "Success"
+    },
+    {
+      "name": "TornVeil.Realtime.LiveCombat.DefenseSweep",
+      "state": "Success"
+    },
+    {
+      "name": "TornVeil.Realtime.LiveCombat.Parse",
+      "state": "Success"
+    },
+    {
+      "name": "TornVeil.Realtime.LiveCombat.PlanAndBinding",
+      "state": "Success"
+    },
+    {
+      "name": "TornVeil.Realtime.LiveCombat.PostureGeometry",
+      "state": "Success"
+    },
+    {
+      "name": "TornVeil.Realtime.LiveCombat.Prediction",
+      "state": "Success"
+    },
+    {
+      "name": "TornVeil.Realtime.Refinement.FacingPostureRepertoire",
+      "state": "Success"
+    },
+    {
+      "name": "TornVeil.Realtime.Repair.Transitions",
+      "state": "Success"
+    },
+    {
+      "name": "TornVeil.Realtime.MovementPrediction",
+      "state": "Success"
+    }
+  ]
+}

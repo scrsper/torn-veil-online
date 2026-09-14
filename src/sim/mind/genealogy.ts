@@ -64,10 +64,14 @@ export function inferSurnameKin(world: World, p: Person, other: Person): void {
 export function genealogyGoals(world: World, p: Person): Partial<Goal>[] {
   inferGenealogy(world, p);
   const goals: Partial<Goal>[] = [];
+  // No beliefs change while offering these goals. Derive once per deliberation instead
+  // of allocating/scanning the whole knowledge collection for every nearby person.
+  const known = genealogicalBeliefs(p);
+  if (!known.length) return goals;
   for (const percept of p.mind.percepts) {
     const other = world.person(percept.entityId);
     if (!other?.alive || other.age < 3 || percept.how !== 'saw' || percept.distance > 3 || !peopleTogether(world, p, other)) continue;
-    for (const k of genealogicalBeliefs(p)) {
+    for (const k of known) {
       const g = k.claim.genealogy as GenealogyClaim;
       if (k.sharedWith.includes(other.id) || ![p.id, other.id].includes(g.subjectId)) continue;
       const rel = p.relationships[other.id];

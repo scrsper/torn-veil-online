@@ -16,6 +16,7 @@ float Unit(float V) { return FMath::Clamp(V,0.f,1.f); }
 }
 bool FTVCombatEvent::Parse(const TSharedPtr<FJsonObject>& J, FTVCombatEvent& E) {
     E=FTVCombatEvent(); double N; FString Action;
+    if(J)J->TryGetStringField(TEXT("actionId"),E.ActionId);
     if (!Number(J,TEXT("seq"),N) || N<1 || N>9007199254740991.0 || FMath::FloorToDouble(N)!=N) return false;
     E.Seq=static_cast<int64>(N);
     if (!J->TryGetStringField(TEXT("eventId"),E.EventId) || E.EventId.IsEmpty() || E.EventId.Len()>128 ||
@@ -155,6 +156,12 @@ FTVChoreographyPlan FTVCombatChoreographer::Plan(const FTVChoreographyRequest& R
     return P;
 }
 float FTVChoreographyPlan::SampleTime(float Age) const {
+    if(bTimeline){
+        if(SamplePreparation<0)return FMath::Clamp(Age,0.f,Motion.Length);
+        if(Age<Anticipation)return SampleStart+(SamplePreparation-SampleStart)*Age/FMath::Max(.001f,Anticipation);
+        if(Age<ContactAt)return SamplePreparation+SampleActive*(Age-Anticipation)/FMath::Max(.001f,Strike);
+        return SamplePreparation+SampleActive+SampleRecovery*FMath::Clamp((Age-ContactAt)/FMath::Max(.001f,Recovery),0.f,1.f);
+    }
     if (bReaction) return FMath::Clamp((Age-ContactAt)*1.6f,0.f,Motion.Length);
     const float Windup=Motion.ContactTime*.65f;
     if (Age<Anticipation) return Windup*Smooth(Age/Anticipation);
@@ -162,8 +169,10 @@ float FTVChoreographyPlan::SampleTime(float Age) const {
     return FMath::Lerp(Motion.ContactTime,Motion.Length,Unit((Age-ContactAt)/Recovery));
 }
 float FTVChoreographyPlan::Weight(float Age) const {
+    if(bTimeline)return 1; // Recover through the authored pose; locomotion owns the single exit handoff.
     const float Start=bReaction?ContactAt:0;
-    return Smooth((Age-Start)/.09f)*(1-Smooth((Age-(Duration-.12f))/.12f));
+    const float Fade=bTimeline?.09f:.12f;
+    return Smooth((Age-Start)/(bTimeline?.04f:.09f))*(1-Smooth((Age-(Duration-Fade))/Fade));
 }
 FVector FTVChoreographyPlan::Offset(float Age) const {
     if (bReaction) return FVector::ZeroVector;

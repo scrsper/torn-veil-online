@@ -22,11 +22,13 @@ public:
     void RebasePresentation(const FVector& Delta);
     ATVCharacter();
     virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type Reason) override;
     virtual void Tick(float DeltaSeconds) override;
     virtual void SetupPlayerInputComponent(UInputComponent* Input) override;
     UPROPERTY(VisibleAnywhere) TObjectPtr<class UTVCombatPresentationComponent> CombatPresentation;
     bool bSemanticCombat = false;
     void Project(const TSharedPtr<class FJsonObject>& Data, bool bFirst);
+    void ProjectCombatMotion(const TSharedPtr<class FJsonObject>& Data);
     FString BodyId, EntityId, DisplayName, Activity, CanonicalPose, Occupation, DebugText, AttackTargetEntity;
     /** The class the simulation recognises in this life, and what it read to get there.
      * Empty for most people. Derived canonically; this client only shows it. */
@@ -68,6 +70,15 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input") void CloseDialogue();
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
     void Attack();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void LowAttack();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void SidestepLeft();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void SidestepRight();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void Backstep();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void Duck();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void Dodge();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void PracticePassive();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void PracticeRepeat();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void PracticeReset();
     /** The F6 handler. Reflected for the same reason: a developer mode that cannot be entered
      *  from a test is a developer mode nobody checks still works. */
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
@@ -89,12 +100,14 @@ private:
     UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> HairMaterial;
     UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> PropMaterial;
     UPROPERTY() TObjectPtr<UAnimationAsset> Locomotion;
+    UPROPERTY() TObjectPtr<UAnimationAsset> SprintAnimation;
     UPROPERTY() TObjectPtr<UAnimationAsset> AttackAnimation;
     UPROPERTY() TObjectPtr<UAnimationAsset> HitAnimation;
     UPROPERTY() TObjectPtr<UAnimationAsset> DownAnimation;
     UPROPERTY() TObjectPtr<UAnimationAsset> CurrentAnimation;
     FVector TargetPosition = FVector::ZeroVector, PreviousPosition = FVector::ZeroVector, CanonicalVelocity = FVector::ZeroVector;
     float TargetYaw = 0, SnapshotAge = 0, ZoomTarget = 340, ForwardAxis = 0, RightAxis = 0;
+    double CombatMotionUntil=0;
     /** Presentation speed derived from the canonical horizontal velocity (Unreal units/s). */
     float CanonicalSpeed = 0;
     /** Canonical timestamps retained for recency/debugging; sequence counters drive replay. */
@@ -112,6 +125,11 @@ private:
     void Turn(float Value); void Look(float Value); void Zoom(float Value);
     void SprintOn(); void SprintOff();
     void Animate(float Speed);
+    void AnimateCrouch(float Amount,float Dt);
+    void ReleaseCrouch(); void LoseFocus(); void HeavyTrigger(float Value); void PracticePhysiology();
+    bool bHeavyTrigger=false; double CanonicalCrouch=0,PreviousCrouch=0;float CrouchTime=0;
+    bool bWasChoreography=false;float PoseBlendAge=1,LocomotionTime=0;
+    UPROPERTY() TMap<FString,TObjectPtr<UAnimationAsset>> CrouchAnimations;
     void ApplyAppearance(const FTVAppearanceVisualState& Appearance);
     /** A recognised class is a reading of someone's life, not a badge they wear. A passer-by cannot
      *  see it, so it belongs to the developer inspector rather than to every nameplate in the vale.

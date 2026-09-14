@@ -1,0 +1,68 @@
+{
+  "sourceRevision": "b9ba86a18050571794fd5af50a723e606f306ada",
+  "mergeRevision": "ee93cff15d98f1a7448d165380f4579e335c1365",
+  "main": "5877a720ba1e53dc0dcc9c03eb3a77c1fc6f191c",
+  "combatBase": "b5693adeceb9750e9e7cbe1056015c1aeb318462",
+  "initialFocused": {
+    "files": 25,
+    "failed": 0,
+    "tests": 242
+  },
+  "fullLocal": {
+    "seconds": 1438.78,
+    "familyPassed": true,
+    "sourceRevision": "dbee8b47c282d7c15277e9ae5144abdac6ef69f9",
+    "files": 92,
+    "passed": 916,
+    "tests": 919,
+    "failed": 3
+  },
+  "baselineReproduction": {
+    "seconds": 43.34,
+    "revision": "b5693adeceb9750e9e7cbe1056015c1aeb318462",
+    "failed": 3,
+    "skipped": 60
+  },
+  "corrections": [
+    "Bound interruption timestamps by action start without altering swept contact time or relaxing save validation",
+    "Use canonical passage walls and seeded RNG for the resisted-robbery subdual fixture; preserve outcome assertions",
+    "Require an existing physical onlooker for the assault-only social comparison fixture"
+  ],
+  "finalAffected": {
+    "robbery": 12,
+    "socialTraces": 4,
+    "files": 15,
+    "overlap": 109,
+    "economySave": 1,
+    "tests": 126,
+    "failed": 0
+  },
+  "typecheck": "passed",
+  "build": "passed",
+  "interactionSpecHash": "3d10f63ea1c309a06a02ec18011f74df23e1d4fe758ac92189624ca72cd68795",
+  "native": {
+    "automationPassed": 10,
+    "sourceUnchangedAfterValidation": true,
+    "mode": "NullRHI",
+    "automationFailed": 0,
+    "warnings": 0,
+    "build": "succeeded, target up to date"
+  },
+  "persistence": {
+    "saveVersion": 24,
+    "ecologyVersion": 1,
+    "executionVersion": 1,
+    "newSchemaVersion": false
+  },
+  "preservation": {
+    "trackedAssetSHA256Matches": true,
+    "familyStash": "8ae8995ef4758bcd1437be05703b202fb8e78a40",
+    "rawFiles": 20,
+    "familyExperimentGitContentMatches": true,
+    "trackedCombatAssets": 37,
+    "concurrentPresentationPlanningPreserved": true,
+    "rawSHA256Matches": true
+  },
+  "fullLocalRuns": 1,
+  "nextFullRegression": "unchanged GitHub PR gate"
+}

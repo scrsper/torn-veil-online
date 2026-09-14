@@ -1,6 +1,155 @@
+# Realtime combat consolidated with wildlife main — 2026-09-13
+
+Branch `codex/realtime-interaction-v0-1`; normal merge `ee93cff` joins combat `b5693ad`
+and wildlife-containing main `5877a72`. Final source checkpoint `b9ba86a`.
+Report: `docs/REALTIME_WILDLIFE_MAIN_INTEGRATION.md`; compact evidence:
+`docs/evidence/realtime/wildlife-main-integration.json`.
+
+- Both canonical systems are retained. Wildlife advances once through the slow scheduler;
+  combat retains its 60 Hz contact authority. Schema 24 keeps ecology and execution remainders,
+  RNG, bodies, resource depletion and combat history. Playable load does not reseed wildlife.
+- Initial focused checks: 242/242 in 25 files. One full local run: 916/919 in 92 files,
+  1438.78 seconds; historical motivated-life family trace passed. All three other failures
+  reproduced on pre-merge combat. A pre-start combat interruption timestamp was corrected;
+  robbery and assault fixtures now establish physical passage/witness preconditions.
+- Final affected checks: 126/126 in 15 files. Typecheck, production build and generated spec
+  pass. One native Editor build and all 10 Realtime automation tests pass. Native assets/code
+  and contact geometry were not retuned. The PR CI gate supplies final full regression.
+- The family experiment is restored uncommitted; original raw evidence/assets and concurrent
+  presentation-planning work remain outside integration commits. No family-priority changes.
+- User subsequently authorized merging the PR when verification and PR checks permit it.
+  No final combat-polish, rendered PvP or human animation approval is claimed.
+
+# Continuous combat flow v0.3 � human playtest checkpoint, 2026-09-13
+
+Branch `codex/realtime-interaction-v0-1`, base `53901d5`, implementation `7fd8f10`.
+Report: `docs/CONTINUOUS_COMBAT_FLOW.md`; normal-speed BEFORE/AFTER continuous video,
+side-by-side jab/cross and front/round comparisons, and all pose diagnostics are under
+`docs/evidence/combat-flow/`. Evaluated pose/velocity residuals, owned chain trims,
+carried support footing and nonuniform round-kick timing remove the observed reset paths.
+Approved standalone cross/front kick and locomotion/sprint/dodge/hit assets remain unchanged.
+TypeScript still owns contact and commitment; revision 1 saves retain their old meaning.
+One executed strike may carry through one dodge. The shoulder camera follows body facing.
+72 unique focused TS tests across affected runs, typecheck/web build, generated-spec check,
+native Editor build and 10 native Realtime tests pass. No full regression was run.
+Human arena: `pwsh -File unreal/scripts/Start-CombatArena.ps1 -Port 59414`.
+Stop for human playtest; approval is not claimed. Existing unrelated local work is preserved.
+The older full-suite 851/852 family failure remains unresolved and outside this pass.
+
+# Camera-facing combat refinement — human playtest checkpoint, 2026-09-12
+
+Feature branch `codex/realtime-interaction-v0-1`, base `947761b`.
+Report: `docs/COMBAT_CAMERA_REFINEMENT.md`; videos/curated measurements:
+`docs/evidence/combat-refinement/`. Independent canonical/native facing, held crouch,
+repaired jab derivative, one right-foot body round kick, explicit replant/transition gates,
+evaluated-pose blending and arena-only Practice Recovery extend the existing architecture.
+The approved cross/front kick and walking/sprint/step/reaction assets are preserved.
+116 focused TS tests across latest affected runs, typecheck/web build, native build and
+nine targeted native tests pass. No full regression, family investigation, merge or PR.
+Human launch: `pwsh -File unreal/scripts/Start-CombatArena.ps1 -Port 53636`.
+WASD strafe/back/forward; mouse desired facing; Shift forward sprint; LMB Light; RMB Heavy;
+Space + direction dodge; hold Ctrl crouch; F1 passive, F2 incoming, F3 reset with mode retained,
+F4 Practice Recovery/Normal Physiology. Controller equivalents are in the report.
+Three normal-speed 24-second front-oblique/side/rear videos are about 9 captured fps.
+An uncaptured 60-fps run measured callback-to-evaluated-pose around 18.5 ms, not input-to-photon.
+Stop for human playtest. Approval of the new/refined content and full acceptance are not claimed.
+Unrelated caregiver experiment and prior local raw evidence remain uncommitted and preserved.
+
+# Responsive combat repair — previous playtest checkpoint, 2026-09-12
+
+Branch `codex/realtime-interaction-v0-1`, repair base `31051ec`.
+Report: `docs/RESPONSIVE_COMBAT_REPAIR.md`; curated evidence and normal-speed video:
+`docs/evidence/responsive-combat/`. Free light punches/heavy kicks, semantic directional
+dodge/duck input, one bounded follow-up, explicit recovery transitions, owned full-body
+animations and in-game scripted practice controls extend the existing architecture.
+85 focused TypeScript tests pass across latest relevant runs; typecheck/build, native build
+and eight targeted native tests pass. No full regression, family investigation, PR or merge.
+The family experiment and earlier local raw evidence remain uncommitted and unmodified.
+
+Human launch: `pwsh -File unreal/scripts/Start-CombatArena.ps1 -Port 8791`.
+LMB punch; RMB kick; Space + direction dodge (neutral backstep); Ctrl duck; WASD/Shift
+move/sprint; F1 passive, F2 repeated incoming, F3 reset/recover. Full controller mappings
+and remaining animation/network acceptance limits are in the report. Stop for human playtest.
+Human animation approval and full milestone completion are not claimed.
+
+# Real-time combat contact and defense v0.1 — earlier checkpoint, acceptance incomplete
+
+Branch: `codex/realtime-interaction-v0-1`, accepted movement base `6e3af83`.
+Canonical checkout: `C:/Users/green/Desktop/projects/torn-veil-online`.
+Delivery report: `docs/REALTIME_COMBAT_CONTACT_DEFENSE_V0_1.md`.
+
+User requested checkpoint and stop, with no further investigation or tests (2026-09-11).
+Production commit `7f2f418` and test commit `3bc3acc` were pushed normally to the feature branch.
+The documentation checkpoint preserves the unsuccessful `src/headless/motive/trace.ts`
+experiment locally and uncommitted. Raw measurement streams/logs also remain local; curated
+summaries and three existing native videos/screenshots accompany the report.
+Last full run: 851/852 tests passed, 84 files, 1622.62 seconds. The family motivated-life
+trace alone failed: its care purpose adopted no serving goals and performed no multi-step arc.
+Injury knowledge arrives, but no care plan reaches execution. The original caregiver repeatedly
+reported assaults/fled while the victim healed. No production fix has been justified.
+A pending harness-only change selects physically available participants and an awake caregiver
+without an active emergency goal, retaining distance ordering and every assertion. Worker A
+reviewed this scope with no findings, but the focused family rerun STILL FAILED the same two
+checks (68.79 seconds, 1 failed / 3 skipped). Typecheck passes. This is an unresolved experiment,
+not an accepted fix. No further full run is active. Resume diagnosis only after user direction.
+Raw results: `.debug/combat-full-final.json`, `.debug/combat-family-focused.json`.
+
+Budget-limited family follow-up (2026-09-11): one agent, one read-only reproduction of the
+current fixture, no further source changes. Evidence: `docs/evidence/realtime/family-causal-followup.json`.
+For Mara/Tomas, 494/502 observed purpose decisions have threat candidates and no care candidate;
+three provision offers tie reporting at 1.0 and lose stable ordering; one care offer loses to
+critical thirst. Four remaining decisions offer no care. No care plan is adopted. The purpose
+resolves at 72.148/80 partner health, above the seen-well threshold. Initial caregiver availability
+does not guarantee a multi-step care opportunity. The 17-hour delay before purpose formation is
+still unexplained: this observer starts decision capture only once a purpose exists.
+Exact family test rerun: 1 failed / 3 skipped, 69.36 seconds; same two care-action assertions.
+No fix made. Next discriminating experiment, only if authorized: pair-specific welfare concern,
+fear, percept and belief gates at upkeep from report receipt through first purpose formation.
+That investigation stopped without full regression, source edits, Unreal work or additional
+benchmarks. The subsequent checkpoint only publishes existing commits, documentation and
+curated evidence; no acceptance completion is claimed.
+
+- Persistent canonical attack phases and bounded tracking; acceptance leaves contact undecided.
+  Relative swept six-volume geometry determines contact and injury region at 60 Hz, with
+  segments bounded to 1/120 second. Active actions survive deterministic save/load.
+- Canonical collision-constrained sidestep/backstep and geometry-changing duck; shared NPC/player
+  requests and witnessed preparation cues. Internal phases do not flood social memory.
+- Existing movement prediction/reconciliation extended to immediate attack/defense startup;
+  authoritative binding does not replay animation. Live native choreography follows the action.
+- Ten counterfactual arena cases, browser attack regression, twelve native tests, TypeScript build
+  and shared generated-spec check pass. Final full regression acceptance is pending; no completion claim yet.
+- Native input-to-predicted attack/duck p95 0.0165/0.0180 ms, combat receipt p95 18.686 ms,
+  contact-to-presentation p95 11.789 ms. Cooperative regional projection reduces measured bulk
+  combat receipt p95/p99 from 30.655/205.697 to 21.560/83.178 ms. World-work stalls remain.
+- Human arena: `pwsh -File unreal/scripts/Start-CombatArena.ps1`. High strike LMB/X; low R;
+  sidestep Z/V; backstep Space; duck Left Ctrl. Three native videos and reproduction scripts
+  accompany evidence. No human approval or two-client rendered PvP is claimed.
+- No PCG/vendor/binary game assets changed. Next: two-controller rendered combat and prediction
+  hardening v0.2 before weapon content, mastery or progression.
+
+# Accepted movement checkpoint (historical)
+
+Branch: `codex/realtime-interaction-v0-1`, starting at `3c1c876` (stacked choreography/humanoid work).
+Canonical checkout remains the Desktop projects checkout. Detailed delivery and remaining criteria:
+`docs/REALTIME_INTERACTION_PREDICTION_V0_1.md`.
+
+- Implemented: bounded command identities/epochs, received vs applied receipts, pure movement
+  prediction/native reconciliation, shared collision/spec data, 60 Hz interaction scheduling with
+  persisted 20 Hz slow cadence, immediate hand-attempt feedback and once-only canonical pickup.
+- Not implemented: live contact phases, physical sidestep/backstep/duck, cue-driven defense,
+  new combat arena, live choreography migration, two independently controlled bodies.
+  Existing combat is still retrospective. This is not the full milestone outcome.
+- Native local prediction is now sanctioned; obsolete blanket bans on root prediction do not
+  apply. Mesh-only choreography still has no authority. PCG/vendor assets remain unchanged.
+- Final canonical regression: 821/821 tests in 82 files (1,372 seconds), typecheck/build,
+  generated spec check, six native automation tests and automated PIE/standalone movement
+  checks passed. Loopback applied RTT p95 32.578 ms, PIE 54.825 ms, standalone startup
+  119.634 ms all miss the 30 ms target. Native input-to-engine-state p95 <0.24 ms;
+  display/physical latency and human approval remain unmeasured. Detailed evidence is in the report.
+
 # Embodied Wildlife & Ecology v0.1
 
-Current branch: `codex/embodied-wildlife-ecology-v0-1`, based on current remote main `d9e758c`. Dedicated local branch; no PR or merge. Report: `docs/EMBODIED_WILDLIFE_ECOLOGY.md`; reproducible evidence: `docs/ecology-acceptance.json`.
+Original checkpoint: `codex/embodied-wildlife-ecology-v0-1`, based on `d9e758c`, subsequently merged to main as `5877a72` (PR #39). Report: `docs/EMBODIED_WILDLIFE_ECOLOGY.md`; reproducible evidence: `docs/ecology-acceptance.json`.
 
 - Compositional species foundation and three reactive profiles: field hare, roe deer, woodland boar. Existing Creature identities and Body authority; per-manifestation reserves, finite feeding/drinking, physical travel, rest, paid gestation/birth, local nursing, growth and natural mortality. Sapience is not tied to humanity.
 - Shared physiology kernel, existing spatial/nav/time/RNG/resource upkeep, additive schema-24 ecology state and deterministic partial-cadence continuation. Chronicle gets notable tracked-population changes, not routine meals. No extinction repair spawning.

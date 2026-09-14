@@ -41,7 +41,7 @@ export function combatPresentation(w: World, visible: ReadonlySet<string>, obser
     if (observerId && e.actor !== observerId && e.target !== observerId
       && !e.perceivedBy.some(p => p.who === observerId && p.how === 'saw')) continue;
     // Copy individual fields so additions to canonical facts do not silently broaden the wire.
-    events.push({ eventId: e.id, seq: f.seq, physicalTime: f.physicalTime,
+    events.push({ eventId: e.id, actionId:f.actionId, seq: f.seq, physicalTime: f.physicalTime,
       actorBodyId: f.actorBodyId, targetBodyId: f.targetBodyId,
       actorPosition: { ...f.actorPosition }, targetPosition: f.targetPosition ? { ...f.targetPosition } : null,
       targetVelocity: f.targetVelocity ? { ...f.targetVelocity } : null, actorYaw: f.actorYaw,

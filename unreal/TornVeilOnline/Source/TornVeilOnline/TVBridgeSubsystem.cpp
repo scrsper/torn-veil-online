@@ -1,7 +1,10 @@
+#include "Components/InstancedStaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "TVCombatPresentationComponent.h"
 #include "TVWorldProjection.h"
 #include "TVBridgeSubsystem.h"
+#include "TVCombatRepertoire.generated.h"
 #include "TVCharacter.h"
 #include "TVHumanoidVisualState.h"
 #include "WebSocketsModule.h"
@@ -12,9 +15,11 @@
 #include "GameFramework/PlayerController.h"
 #include "Async/Async.h"
 #include "Misc/Base64.h"
+#include "TVInteractionSpec.generated.h"
 
 // Connect on the very first tick rather than after a retry interval, so pressing Play does not
 // begin with three seconds of an empty village.
+static void TVSample(TArray<double>& Samples,double Value);
 void UTVBridgeSubsystem::Initialize(FSubsystemCollectionBase& Collection) { Super::Initialize(Collection); RetryClock = 1000; }
 void UTVBridgeSubsystem::Deinitialize() {
     UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE PIE ending; releasing controller"));
@@ -28,11 +33,15 @@ void UTVBridgeSubsystem::Connect() {
     // proof, because libwebsockets sends `Origin: http://127.0.0.1` on our behalf whether we want
     // it or not -- which is what used to get every one of these connections refused.
     bTransportConnected=false; bCanonicalReady=false; bWasLive=false; SnapshotCount=0; SinceSnapshot=100;
+    bPredictionReady=false;InteractionEpoch.Empty();PendingMovement.Empty();CommandSentAt.Empty();PredictionColumns.Empty();PredictionAccumulator=0;LastConfirmedTick=-1;
     Assembly.Empty(); PendingPresentation.Reset(); WantedRegions.Empty(); ProjectedRegions=0;
     if(WorldProjection) WorldProjection->ResetRegions();
     UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE connecting; regional protocol=2 text_limit=262144"));
-    const TMap<FString, FString> UpgradeHeaders = { { TEXT("X-Torn-Veil-Client"), TEXT("unreal") }, { TEXT("X-Torn-Veil-Region-Protocol"), TEXT("2") } };
-    Socket = FWebSocketsModule::Get().CreateWebSocket(TEXT("ws://127.0.0.1:8787"), FString(), UpgradeHeaders);
+    const TMap<FString, FString> UpgradeHeaders = { { TEXT("X-Torn-Veil-Client"), TEXT("unreal") }, { TEXT("X-Torn-Veil-Region-Protocol"), TEXT("2") }, {TEXT("X-Torn-Veil-Interaction-Protocol"),TEXT("2")} };
+    FString BridgeUrl=TEXT("ws://127.0.0.1:8787");
+    const FString ArenaPort=FPlatformMisc::GetEnvironmentVariable(TEXT("TORN_VEIL_PORT"));
+    if(ArenaPort.IsNumeric())BridgeUrl=FString::Printf(TEXT("ws://127.0.0.1:%s"),*ArenaPort);
+    Socket = FWebSocketsModule::Get().CreateWebSocket(BridgeUrl, FString(), UpgradeHeaders);
     // Wire chunks are <=128 KiB; assembly is separately bounded to 4 MiB.
     Socket->SetTextMessageMemoryLimit(256 * 1024);
     Socket->OnConnected().AddWeakLambda(this, [this]() { bTransportConnected=true; Status = TEXT("Connected - waiting for canonical state"); Sequence = 0; UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE connected")); });
@@ -42,13 +51,15 @@ void UTVBridgeSubsystem::Connect() {
     Socket->Connect();
 }
 void UTVBridgeSubsystem::Tick(float Dt) {
+    if(CombatCorrectionStartedAt>=0&&RenderCorrection.Size()<.1){TVSample(CombatCorrectionSettleSamples,(FPlatformTime::Seconds()-CombatCorrectionStartedAt)*1000);CombatCorrectionStartedAt=-1;}
     SinceSnapshot = bCanonicalReady ? FPlatformTime::Seconds()-LastSnapshotReceived : 100; RetryClock += Dt;
     ResultClock += Dt; if (ResultClock > 2.5f && !LastResult.IsEmpty()) LastResult.Empty();
     if ((!Socket || !Socket->IsConnected()) && RetryClock > 3) { RetryClock = 0; Connect(); }
     SendClock += Dt;
+    if(Socket&&Socket->IsConnected()&&bControls&&!InteractionEpoch.IsEmpty()&&FPlatformTime::Seconds()-ClockProbeAt>1){ClockProbeAt=FPlatformTime::Seconds();auto Probe=MakeShared<FJsonObject>();Probe->SetStringField(TEXT("type"),TEXT("clock_probe"));Probe->SetNumberField(TEXT("clientTimeMs"),ClockProbeAt*1000);FString Wire;FJsonSerializer::Serialize(Probe,TJsonWriterFactory<>::Create(&Wire));Socket->Send(Wire);}
     const bool Live=IsLive();
     if(Live!=bWasLive) { UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE canonical %s snapshot_age=%.3f transport=%d"),Live?TEXT("LIVE"):TEXT("stalled"),SinceSnapshot,bTransportConnected); bWasLive=Live; }
-    if (bControls && Live && SendClock >= 0.05f) {
+    if (InteractionEpoch.IsEmpty() && bControls && Live && SendClock >= 0.05f) {
         SendClock = 0;
         if (auto* P = Cast<ATVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))) {
             auto M = MakeShared<FJsonObject>(); const FVector D = P->IntentDirection();
@@ -96,12 +107,222 @@ void UTVBridgeSubsystem::ReceivePresentation(const TSharedPtr<FJsonObject>& M) {
 }
 void UTVBridgeSubsystem::Send(const TSharedRef<FJsonObject>& M) {
     if (!Socket || !Socket->IsConnected() || !bControls) return;
+    const FString Type=M->GetStringField(TEXT("type"));
+    if(!InteractionEpoch.IsEmpty()&&(Type==TEXT("attack")||Type==TEXT("interact")||Type==TEXT("defend")||Type==TEXT("cancel"))) {
+        LastResult=TEXT("Attempting...");ResultClock=0;PendingFeedbackSequence=SendCommand(M);return;
+    }
     M->SetNumberField(TEXT("version"), 1); M->SetNumberField(TEXT("sequence"), ++Sequence);
     FString Out; auto Writer = TJsonWriterFactory<>::Create(&Out); FJsonSerializer::Serialize(M, Writer); Socket->Send(Out);
 }
 void UTVBridgeSubsystem::SendIntent(const FString& Type, const FString& TargetBody) {
+    if(Type==TEXT("attack")){SendCombat(TEXT("attack"));return;}
     auto M = MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"), Type);
-    M->SetStringField(TEXT("targetBodyId"), TargetBody.IsEmpty() ? SelectedBody : TargetBody); Send(M);
+    const FString Target=TargetBody.IsEmpty()?SelectedBody:TargetBody;
+    if(!Target.IsEmpty())M->SetStringField(TEXT("targetBodyId"),Target);Send(M);
+}
+static void TVSample(TArray<double>& Samples,double Value);
+void UTVBridgeSubsystem::SendCombat(const FString& Kind,int32 Side,const FString& Trajectory,double CallbackAt,const FVector& Direction) {
+    const double Begin=CallbackAt>0?CallbackAt:FPlatformTime::Seconds();
+    if(!HasPrediction()||bDialogueOpen||bMechanismsOpen)return;
+    CombatInputCallbackAt=Begin;
+    BufferedCombat.Reset(); // newest press replaces the one pending follow-up
+    auto M=MakeShared<FJsonObject>();M->SetStringField(TEXT("type"),Kind==TEXT("attack")?TEXT("attack"):TEXT("defend"));
+    if(Kind==TEXT("attack")){M->SetStringField(TEXT("trajectory"),Trajectory);if(!SelectedBody.IsEmpty())M->SetStringField(TEXT("targetBodyId"),SelectedBody);}
+    else {M->SetStringField(TEXT("kind"),Kind);M->SetNumberField(TEXT("side"),Side);}
+    if(!Direction.IsNearlyZero()) {auto D=MakeShared<FJsonObject>();D->SetNumberField(TEXT("x"),Direction.X);D->SetNumberField(TEXT("z"),Direction.Z);M->SetObjectField(TEXT("direction"),D);}
+    FBufferedCombat Input;Input.Kind=Kind;Input.Side=Side;Input.Trajectory=Trajectory;Input.Direction=Direction;
+    Input.InputAt=Begin;Input.ExpiresAt=Begin+TVInteractionSpec::combatBufferSeconds;
+    Input.CommandId=FString::Printf(TEXT("%s:%d"),*InteractionController,Sequence+1);
+    Input.Sequence=SendCommand(M);PendingFeedbackSequence=Input.Sequence;if(Input.Sequence<0)return;
+    const double Wait=PredictedCombat.TransitionAge(Kind)-CombatAge;
+    if(Wait>1e-9) {
+        if(Wait<=TVInteractionSpec::combatBufferSeconds&&PredictedCombat.Running(CombatAge)){Input.bBuffered=true;BufferedCombat=Input;LastResult=TEXT("Follow-up buffered");}
+        else LastResult=TEXT("Committed - press closer to recovery");
+        TVSample(CombatBufferSamples,(FPlatformTime::Seconds()-Begin)*1000);return;
+    }
+    StartPredictedCombat(Input);
+}
+void UTVBridgeSubsystem::StartPredictedCombat(const FBufferedCombat& Input) {
+    if(Input.Kind==TEXT("crouch")){PredictedCombat=FTVLiveCombat();CombatAge=0;return;}
+    if(Predicted.Crouch>.001){
+        if(!FTVInteractionPrediction::PostureFits(Predicted,0,[this](int X,int Z){return PredictionColumn(X,Z);})){LastResult=TEXT("Standing blocked");return;}
+        bCrouchHeld=false;PredictedCombat=FTVLiveCombat::Predict(TEXT("duck"),Predicted.Yaw,1,TEXT("posture-exit"));
+        PredictedCombat.Definition=TEXT("crouch_exit");PredictedCombat.ActiveAt=0;PredictedCombat.RecoveryAt=PredictedCombat.CompleteAt=TVInteractionSpec::crouchExitSeconds;
+        CombatAge=0;auto Queued=Input;Queued.bBuffered=true;BufferedCombat=Queued;return;
+    }
+    const FString Previous=PredictedCombat.Variant;
+    const bool PriorAttack=PredictedCombat.IsAttack();
+    const FString PreviousMove=PriorAttack?PredictedCombat.MoveId:PredictedCombat.PriorStrike;
+    const bool Chain=(PriorAttack||!PreviousMove.IsEmpty())&&PredictedCombat.Outcome!=TEXT("interrupted")&&PredictedCombat.Outcome!=TEXT("cancelled")&&CombatAge<=PredictedCombat.CompleteAt-PredictedCombat.StartedAt+.3;
+    PredictedCombat=FTVLiveCombat::Predict(Input.Kind,Predicted.Yaw,Input.Side,Input.CommandId);
+    PredictedCombat.ActorBodyId=InteractionBody;PredictedCombat.Trajectory=Input.Trajectory;
+    PredictedCombat.Variant=Input.Trajectory==TEXT("low")?TEXT("kick"):Chain&&Previous==TEXT("direct")?TEXT("hook"):TEXT("direct");
+    if(Input.Kind==TEXT("attack")){
+        PredictedCombat.MoveId=Input.Trajectory==TEXT("low")?(bArena&&Chain&&PreviousMove==TEXT("front_kick")?TEXT("round_kick"):TEXT("front_kick")):(Chain&&(PreviousMove==TEXT("jab")||PreviousMove.IsEmpty()&&Previous==TEXT("direct"))?TEXT("cross"):TEXT("jab"));
+        const auto& M=TVCombatRepertoire::Move(PredictedCombat.MoveId);PredictedCombat.Variant=M.Variant;PredictedCombat.ActiveAt=M.preparation;PredictedCombat.RecoveryAt=M.preparation+M.active;PredictedCombat.CompleteAt=PredictedCombat.RecoveryAt+M.recovery;
+    }
+    if(Input.Kind!=TEXT("attack")&&Input.Kind!=TEXT("duck")&&PriorAttack&&Chain)PredictedCombat.PriorStrike=PreviousMove;
+    if(!Input.Direction.IsNearlyZero())PredictedCombat.Direction=Input.Direction;
+    CombatAge=0;CombatCommandSequence=Input.Sequence;
+    const double Now=FPlatformTime::Seconds(),Delay=(Now-Input.InputAt)*1000;
+    if(Input.bBuffered)TVSample(CombatBufferedWaitSamples,Delay);
+    else if(Input.Kind==TEXT("attack"))TVSample(AttackInputSamples,Delay);else TVSample(DefenseInputSamples,Delay);
+    if(LastCombatStartAt>0)TVSample(CombatStartGapSamples,(Now-LastCombatStartAt)*1000);LastCombatStartAt=Now;
+    if(auto* C=Bodies.FindRef(InteractionBody).Get())C->CombatPresentation->ObserveAction(PredictedCombat,0);
+    TVSample(CombatAnimationSetupSamples,(FPlatformTime::Seconds()-Now)*1000);LastResult=TEXT("");
+}
+void UTVBridgeSubsystem::AdvanceCombatBuffer() {
+    if(!BufferedCombat.IsSet())return;
+    const auto Input=BufferedCombat.GetValue();
+    if(FPlatformTime::Seconds()>Input.ExpiresAt||!Predicted.bEligible||PredictedCombat.Outcome==TEXT("interrupted")||PredictedCombat.Outcome==TEXT("cancelled")){BufferedCombat.Reset();return;}
+    if(CombatAge+1e-9>=PredictedCombat.TransitionAge(Input.Kind)){
+        TVSample(CombatTransitionLateSamples,FMath::Max(0.,CombatAge-PredictedCombat.TransitionAge(Input.Kind))*1000);
+        BufferedCombat.Reset();StartPredictedCombat(Input);
+    }
+}
+void UTVBridgeSubsystem::NoteInput() {InputCallbackAt=FPlatformTime::Seconds();}
+static void TVSample(TArray<double>& Samples,double Value){if(Samples.Num()>=2048)Samples.RemoveAt(0);Samples.Add(Value);}
+FString UTVBridgeSubsystem::RealtimeDiagnostics() const {
+    auto Out=MakeShared<FJsonObject>();
+    const auto Add=[&](const TCHAR* Name,TArray<double> Values){Values.Sort();auto S=MakeShared<FJsonObject>();S->SetNumberField(TEXT("count"),Values.Num());for(const auto& P:TArray<TPair<FString,double>>{{TEXT("p50"),.5},{TEXT("p95"),.95},{TEXT("p99"),.99}})S->SetNumberField(P.Key,Values.Num()?Values[FMath::Clamp(FMath::CeilToInt(Values.Num()*P.Value)-1,0,Values.Num()-1)]:0);Out->SetObjectField(Name,S);};
+    Add(TEXT("interActionStartGapMs"),CombatStartGapSamples);Add(TEXT("inputToBufferedStateMs"),CombatBufferSamples);Out->SetNumberField(TEXT("bufferedCombatInputs"),BufferedCombat.IsSet()?1:0);
+    Add(TEXT("bufferedInputToStartupMs"),CombatBufferedWaitSamples);Add(TEXT("bufferedTransitionLatenessMs"),CombatTransitionLateSamples);
+    Add(TEXT("combatInputToAnimationSetupMs"),CombatAnimationSetupSamples);Add(TEXT("contactDecisionToPresentationMs"),ContactDecisionSamples);Out->SetNumberField(TEXT("clockUncertaintyMs"),ClockUncertaintyMs);
+    Add(TEXT("inputToPredictedAttackMs"),AttackInputSamples);Add(TEXT("inputToPredictedDefenseMs"),DefenseInputSamples);Add(TEXT("combatCorrectionCm"),CombatCorrectionSamples);Add(TEXT("combatCorrectionCpuMs"),CombatCorrectionTimeSamples);Add(TEXT("combatCorrectionSettleMs"),CombatCorrectionSettleSamples);Add(TEXT("remoteActionAgeMs"),RemoteActionAgeSamples);Add(TEXT("contactReceiveToPresentationMs"),ContactReceiveSamples);
+    Add(TEXT("combatAppliedRoundTripMs"),CombatAppliedRttSamples);
+    Add(TEXT("commandSendToServerArrivalMs"),CommandOutboundSamples);Add(TEXT("serverArrivalToApplicationMs"),CommandApplicationSamples);Add(TEXT("applicationToClientReceiveMs"),CommandInboundSamples);
+    Add(TEXT("predictionCpuMs"),PredictionSamples);Add(TEXT("inputCallbackToEngineStateMs"),InputToStateSamples);Add(TEXT("appliedRoundTripMs"),AppliedRttSamples);Add(TEXT("correctionCm"),CorrectionSamples);
+    Out->SetNumberField(TEXT("pendingMovement"),PendingMovement.Num());Out->SetNumberField(TEXT("predictionCount"),PredictionCount);Out->SetBoolField(TEXT("predictionReady"),HasPrediction());
+    Out->SetStringField(TEXT("presentationTiming"),TEXT("unmeasured; engine-state samples are not display presentation or physical input-to-photon"));
+    Out->SetStringField(TEXT("specRevision"),TVInteractionSpec::revision);Out->SetStringField(TEXT("specHash"),TVInteractionSpec::hash);
+    FString Json;FJsonSerializer::Serialize(Out,TJsonWriterFactory<>::Create(&Json));return Json;
+}
+int32 UTVBridgeSubsystem::SendCommand(const TSharedRef<FJsonObject>& Command) {
+    if(!Socket||!Socket->IsConnected()||!bControls||InteractionEpoch.IsEmpty()) return -1;
+    const int32 Seq=++Sequence;const double Now=FPlatformTime::Seconds();
+    auto M=MakeShared<FJsonObject>();M->SetNumberField(TEXT("version"),2);M->SetStringField(TEXT("type"),TEXT("command"));
+    M->SetStringField(TEXT("epoch"),InteractionEpoch);M->SetStringField(TEXT("controllerId"),InteractionController);M->SetStringField(TEXT("bodyId"),InteractionBody);
+    M->SetNumberField(TEXT("sequence"),Seq);M->SetStringField(TEXT("commandId"),FString::Printf(TEXT("%s:%d"),*InteractionController,Seq));
+    M->SetStringField(TEXT("specRevision"),TVInteractionSpec::revision);M->SetNumberField(TEXT("clientTimeMs"),Now*1000);M->SetObjectField(TEXT("command"),Command);
+    FString Out;FJsonSerializer::Serialize(M,TJsonWriterFactory<>::Create(&Out));Socket->Send(Out);
+    CommandSentAt.Add(Seq,Now);return Seq;
+}
+void UTVBridgeSubsystem::RefreshArenaBlocks() {
+    if(!ArenaBlocks){auto* Owner=GetWorld()->SpawnActor<AActor>();ArenaBlocks=NewObject<UInstancedStaticMeshComponent>(Owner);Owner->SetRootComponent(ArenaBlocks);ArenaBlocks->SetStaticMesh(LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Cube")));ArenaBlocks->SetCollisionEnabled(ECollisionEnabled::NoCollision);ArenaBlocks->RegisterComponent();}
+    ArenaBlocks->ClearInstances();
+    // Projection of the arena's canonical 48x48 stone substrate, top at one metre.
+    ArenaBlocks->AddInstance(FTransform(FRotator::ZeroRotator,ToUnreal(FVector(24,.5,24))-FVector(0,0,90),FVector(48,48,1)),true);
+    for(int32 X=GeometryX;X<GeometryX+GeometrySize;X++)for(int32 Z=GeometryZ;Z<GeometryZ+GeometrySize;Z++){const auto C=PredictionColumn(X,Z);if(!C.IsSet())continue;for(int32 Y:C->Solids)if(Y>0)ArenaBlocks->AddInstance(FTransform(FRotator::ZeroRotator,ToUnreal(FVector(X+.5,Y+.5,Z+.5))-FVector(0,0,90),FVector::OneVector),true);}
+}
+TOptional<FTVPredictionColumn> UTVBridgeSubsystem::PredictionColumn(int32 X,int32 Z) const {
+    if(X<GeometryX||Z<GeometryZ||X>=GeometryX+GeometrySize||Z>=GeometryZ+GeometrySize)return {};
+    const int32 Index=(X-GeometryX)*GeometrySize+Z-GeometryZ;
+    return PredictionColumns.IsValidIndex(Index)?TOptional<FTVPredictionColumn>(PredictionColumns[Index]):TOptional<FTVPredictionColumn>();
+}
+void UTVBridgeSubsystem::PredictMovement(float Dt,const FVector& Direction,bool bSprint,TOptional<double> Facing) {
+    const double Begin=FPlatformTime::Seconds();
+    if(!HasPrediction()||Begin-LastLocalStateAt>TVInteractionSpec::inputHorizonSeconds) {PredictionAccumulator=0;PredictionVelocity=FVector::ZeroVector;return;}
+    PredictionAccumulator+=FMath::Min(static_cast<double>(Dt),.1);
+    const FVector Before=Predicted.Position;const FTVMovementInput Input{Direction.X,Direction.Y,bSprint,Facing,bCrouchHeld};
+    int32 Count=0;
+    while(PredictionAccumulator+1e-9>=TVInteractionSpec::stepSeconds&&Count++<6&&PendingMovement.Num()<15) {
+        PredictionAccumulator-=TVInteractionSpec::stepSeconds;
+        AdvanceCombatBuffer();
+        const double SampleAge=CombatAge;
+        if(FMath::Abs(Input.X)+FMath::Abs(Input.Z)>.01&&PredictedCombat.Locked(CombatAge)&&CombatAge>=PredictedCombat.TransitionAge(TEXT("move"))){
+            PredictedCombat.CompleteAt=PredictedCombat.StartedAt+CombatAge;
+            if(auto* C=Bodies.FindRef(InteractionBody).Get())C->CombatPresentation->ObserveAction(PredictedCombat,CombatAge);
+        }
+        if(PredictedCombat.Locked(CombatAge)){Predicted=PredictedCombat.Step(Predicted,CombatAge,TVInteractionSpec::stepSeconds,[this](int32 X,int32 Z){return PredictionColumn(X,Z);});CombatAge+=TVInteractionSpec::stepSeconds;}
+        else Predicted=FTVInteractionPrediction::Step(Predicted,Input,TVInteractionSpec::stepSeconds,[this](int32 X,int32 Z){return PredictionColumn(X,Z);});
+        Predicted=FTVInteractionPrediction::Posture(Predicted,bCrouchHeld&&!BufferedCombat.IsSet(),TVInteractionSpec::stepSeconds,[this](int32 X,int32 Z){return PredictionColumn(X,Z);});
+        auto C=MakeShared<FJsonObject>();C->SetStringField(TEXT("type"),TEXT("move"));C->SetNumberField(TEXT("x"),Input.X);C->SetNumberField(TEXT("z"),Input.Z);C->SetBoolField(TEXT("sprint"),Input.bSprint);if(Input.Facing.IsSet())C->SetNumberField(TEXT("facing"),Input.Facing.GetValue());C->SetBoolField(TEXT("crouch"),Input.bCrouch);
+        const int32 Seq=SendCommand(C);if(Seq>=0)PendingMovement.Add({Seq,Input,PredictedCombat,SampleAge});
+        ++PredictionCount;
+    }
+    if(PendingMovement.Num()>=15) PredictionAccumulator=0;
+    const FVector Delta=Predicted.Position-Before;
+    PredictionVelocity=FVector(Delta.X,Delta.Z,Delta.Y)*100/FMath::Max(.001f,Dt);
+    LastPredictionMs=(FPlatformTime::Seconds()-Begin)*1000;MaxPredictionMs=FMath::Max(MaxPredictionMs,LastPredictionMs);
+    TVSample(PredictionSamples,LastPredictionMs);
+    if(InputCallbackAt>0&&Count>0) {LastInputToStateMs=(FPlatformTime::Seconds()-InputCallbackAt)*1000;TVSample(InputToStateSamples,LastInputToStateMs);InputCallbackAt=0;}
+}
+void UTVBridgeSubsystem::ReceiveLocalState(const TSharedPtr<FJsonObject>& M) {
+    if(M->GetStringField(TEXT("epoch"))!=InteractionEpoch||M->GetStringField(TEXT("bodyId"))!=InteractionBody) return;
+    const double Tick=M->GetNumberField(TEXT("tick"));if(Tick<LastConfirmedTick)return;
+    LastConfirmedTick=Tick;LastLocalStateAt=FPlatformTime::Seconds();
+    const TSharedPtr<FJsonObject>* Geometry;
+    if(M->TryGetObjectField(TEXT("geometry"),Geometry)) {
+        GeometryX=(*Geometry)->GetIntegerField(TEXT("x"));GeometryZ=(*Geometry)->GetIntegerField(TEXT("z"));GeometrySize=(*Geometry)->GetIntegerField(TEXT("size"));PredictionColumns.Empty();
+        for(const auto& V:(*Geometry)->GetArrayField(TEXT("columns"))) {const auto C=V->AsObject();FTVPredictionColumn P;P.Floor=C->GetNumberField(TEXT("floor"));P.bWalkable=C->GetBoolField(TEXT("walkable"));for(const auto& Y:C->GetArrayField(TEXT("solids")))P.Solids.Add(static_cast<int32>(Y->AsNumber()));PredictionColumns.Add(P);}
+    }
+    if(bArena&&M->HasTypedField<EJson::Object>(TEXT("geometry")))RefreshArenaBlocks();
+    const auto State=M->GetObjectField(TEXT("state")),Pos=State->GetObjectField(TEXT("pos"));
+    Confirmed.Position=FVector(Pos->GetNumberField(TEXT("x")),Pos->GetNumberField(TEXT("y")),Pos->GetNumberField(TEXT("z")));
+    Confirmed.Yaw=State->GetNumberField(TEXT("yaw"));Confirmed.Speed=State->GetNumberField(TEXT("speed"));Confirmed.bEligible=State->GetBoolField(TEXT("eligible"));State->TryGetNumberField(TEXT("crouch"),Confirmed.Crouch);if(!Confirmed.bEligible)bCrouchHeld=false;
+    const TSharedPtr<FJsonObject>* Practice;
+    if(M->TryGetObjectField(TEXT("practice"),Practice)){
+        const FString Profile=(*Practice)->GetStringField(TEXT("profile"));bPracticeRecovery=Profile==TEXT("Practice Recovery");
+        PracticeStatus=FString::Printf(TEXT("SCRIPTED PRACTICE: %s | %s | %s"),*(*Practice)->GetStringField(TEXT("mode")),*(*Practice)->GetStringField(TEXT("status")),*Profile);
+        PracticeLast=FString::Printf(TEXT("%s | fatigue you %.0f%% / target %.0f%% | quiet recovery %.1f%%/s | ARENA TEST REPERTOIRE"),*(*Practice)->GetStringField(TEXT("lastOutcome")),(*Practice)->GetNumberField(TEXT("fatigue"))*100,(*Practice)->GetNumberField(TEXT("opponentFatigue"))*100,(*Practice)->GetNumberField(TEXT("recoveryPerSecond"))*100);
+    }
+    const int32 Ack=M->GetIntegerField(TEXT("ack"));PendingMovement.RemoveAll([Ack](const auto& P){return P.Sequence<=Ack;});
+    bool AuthorityHeld=false;if(M->TryGetBoolField(TEXT("crouchHeld"),AuthorityHeld)&&Ack>=CrouchSequence&&!AuthorityHeld)bCrouchHeld=false;
+    const double CorrectionBegin=FPlatformTime::Seconds();
+    const bool CombatCorrection=PredictedCombat.IsValid()||CombatCommandSequence>Ack;
+    const TSharedPtr<FJsonObject>* ActionJson;FTVLiveCombat Authority;
+    const bool HasAuthority=M->TryGetObjectField(TEXT("combatAction"),ActionJson)&&FTVLiveCombat::Parse(*ActionJson,Authority);
+    const bool Bound=HasAuthority&&!PredictedCombat.CommandId.IsEmpty()&&PredictedCombat.CommandId==Authority.CommandId;
+    FString QueuedAuthority;M->TryGetStringField(TEXT("bufferedCombatCommandId"),QueuedAuthority);
+    const bool Waiting=(CombatCommandSequence>Ack||QueuedAuthority==PredictedCombat.CommandId&&!QueuedAuthority.IsEmpty())&&!Bound;
+    if(HasAuthority&&BufferedCombat.IsSet()&&
+       (Authority.CommandId==BufferedCombat->CommandId||Authority.Outcome==TEXT("interrupted")||Authority.Outcome==TEXT("cancelled")))BufferedCombat.Reset();
+    if(!Waiting) {
+        PredictedCombat=HasAuthority?Authority:FTVLiveCombat();CombatAge=HasAuthority?FMath::Max(0.,Tick-Authority.StartedAt):0;
+        if(HasAuthority)if(auto* C=Bodies.FindRef(InteractionBody).Get())C->CombatPresentation->ObserveAction(Authority,CombatAge);
+    }
+    const FVector Before=Predicted.Position;Predicted=Confirmed;
+    double AuthorityAge=HasAuthority?FMath::Max(0.,Tick-Authority.StartedAt):0;
+    for(const auto& P:PendingMovement) {
+        if(Waiting) {
+            // Replay the ledger's original startup age. Older authority cannot age or
+            // restart a newer unacknowledged action every time a state arrives.
+            const bool AfterInput=P.Sequence>CombatCommandSequence&&P.Action.CommandId==PredictedCombat.CommandId;
+            const FTVLiveCombat& Replay=AfterInput?P.Action:Authority;
+            const double ReplayAge=AfterInput?P.ActionAge:AuthorityAge;
+            Predicted=Replay.Locked(ReplayAge)?Replay.Step(Predicted,ReplayAge,TVInteractionSpec::stepSeconds,[this](int32 X,int32 Z){return PredictionColumn(X,Z);}):FTVInteractionPrediction::Step(Predicted,P.Input,TVInteractionSpec::stepSeconds,[this](int32 X,int32 Z){return PredictionColumn(X,Z);});
+            AuthorityAge+=TVInteractionSpec::stepSeconds;
+        } else {
+            if(PredictedCombat.Locked(CombatAge)){Predicted=PredictedCombat.Step(Predicted,CombatAge,TVInteractionSpec::stepSeconds,[this](int32 X,int32 Z){return PredictionColumn(X,Z);});CombatAge+=TVInteractionSpec::stepSeconds;}
+            else Predicted=FTVInteractionPrediction::Step(Predicted,P.Input,TVInteractionSpec::stepSeconds,[this](int32 X,int32 Z){return PredictionColumn(X,Z);});
+        }
+        Predicted=FTVInteractionPrediction::Posture(Predicted,P.Input.bCrouch&&(AuthorityHeld||CrouchSequence>Ack)&&!BufferedCombat.IsSet(),TVInteractionSpec::stepSeconds,[this](int32 X,int32 Z){return PredictionColumn(X,Z);});
+    }
+    if(bPredictionReady) {
+        const FVector Error=Before-Predicted.Position;CorrectionCm=Error.Size()*100;MaxCorrectionCm=FMath::Max(MaxCorrectionCm,CorrectionCm);
+        TVSample(CorrectionSamples,CorrectionCm);if(CombatCorrection){TVSample(CombatCorrectionSamples,CorrectionCm);TVSample(CombatCorrectionTimeSamples,(FPlatformTime::Seconds()-CorrectionBegin)*1000);}
+        if(CorrectionCm>.1)++CorrectionCount;
+        RenderCorrection=CorrectionCm<30?RenderCorrection+FVector(Error.X,Error.Z,Error.Y)*100:FVector::ZeroVector;
+        RenderCorrection=RenderCorrection.GetClampedToMaxSize(25);
+        if(CombatCorrection&&CorrectionCm>.1&&CombatCorrectionStartedAt<0)CombatCorrectionStartedAt=FPlatformTime::Seconds();
+    }
+    bPredictionReady=GeometrySize>0;
+}
+void UTVBridgeSubsystem::ObserveCombat(const TSharedPtr<FJsonObject>& J,double Tick,double ReceivedAtMs,bool Motion) {
+    FTVLiveCombat A;if(!FTVLiveCombat::Parse(J,A))return;
+    if(auto* C=Bodies.FindRef(A.ActorBodyId).Get()) {
+        if(Motion)C->ProjectCombatMotion(J);
+        if(A.ActorBodyId!=InteractionBody||!HasPrediction())C->CombatPresentation->ObserveAction(A,FMath::Max(0.,Tick-A.StartedAt));
+    }
+    const TSharedPtr<FJsonObject>* Contact;
+    if(A.ContactAt>=0&&Tick-A.ContactAt<.25&&J->TryGetObjectField(TEXT("contact"),Contact)) {
+        FString EventId;if(!(*Contact)->TryGetStringField(TEXT("eventId"),EventId)||PresentedContacts.Contains(EventId))return;
+        PresentedContacts.Add(EventId);PresentedContactOrder.Add(EventId);if(PresentedContactOrder.Num()>256){PresentedContacts.Remove(PresentedContactOrder[0]);PresentedContactOrder.RemoveAt(0);}
+        FString Body;(*Contact)->TryGetStringField(TEXT("bodyId"),Body);if(auto* C=Bodies.FindRef(Body).Get())C->CombatPresentation->ContactReaction();
+        const double PresentedAtMs=FPlatformTime::Seconds()*1000;TVSample(ContactReceiveSamples,PresentedAtMs-ReceivedAtMs);
+        double Decision=0;if(ClockUncertaintyMs<1e8&&(*Contact)->TryGetNumberField(TEXT("decidedAtMs"),Decision))TVSample(ContactDecisionSamples,PresentedAtMs+ClockOffsetMs-Decision);
+        UE_LOG(LogTemp,Display,TEXT("TV_CONTACT_CLOCK receive=%.6f present=%.6f decision=%.6f offset=%.6f uncertainty=%.6f"),ReceivedAtMs,PresentedAtMs,Decision,ClockOffsetMs,ClockUncertaintyMs);
+    }
 }
 void UTVBridgeSubsystem::SendHandIntent(bool bConsume) {
     if (!IsLive()) return;
@@ -131,10 +352,36 @@ void UTVBridgeSubsystem::ChooseDialogueOption(int32 Index) {
     M->SetStringField(TEXT("optionId"), DialogueOptionIds[Index]); Send(M);
 }
 void UTVBridgeSubsystem::Receive(const FString& Message) {
+    const double ReceivedAtMs=FPlatformTime::Seconds()*1000;
     TSharedPtr<FJsonObject> M;
     if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Message), M) || !M.IsValid()) {ProtocolError(TEXT("Invalid bridge JSON"));return;}
     double Version = 0; if (!M->TryGetNumberField(TEXT("version"), Version) || Version != 1) { Status = TEXT("Incompatible bridge protocol"); bControls = false; return; }
     FString Type; if (!M->TryGetStringField(TEXT("type"), Type)) return;
+    if(Type==TEXT("clock_probe")){const double Rtt=ReceivedAtMs-M->GetNumberField(TEXT("clientTimeMs"));if(Rtt/2<ClockUncertaintyMs){ClockUncertaintyMs=Rtt/2;ClockOffsetMs=M->GetNumberField(TEXT("serverTimeMs"))-(ReceivedAtMs+M->GetNumberField(TEXT("clientTimeMs")))/2;}return;}
+    if(Type==TEXT("combat_frame")){for(const auto& V:M->GetArrayField(TEXT("actions")))ObserveCombat(V->AsObject(),M->GetNumberField(TEXT("tick")),ReceivedAtMs,true);if(ClockUncertaintyMs<1e8)TVSample(RemoteActionAgeSamples,ReceivedAtMs+ClockOffsetMs-M->GetNumberField(TEXT("serverTimeMs")));return;}
+    if(Type==TEXT("local_state")){ReceiveLocalState(M);return;}
+    if(Type==TEXT("command_receipt")) {
+        const int32 Seq=M->GetIntegerField(TEXT("sequence"));const FString ReceiptStatus=M->GetStringField(TEXT("status"));
+        if(M->GetStringField(TEXT("epoch"))!=InteractionEpoch)return;
+        if(ReceiptStatus!=TEXT("received")) {
+            if(const double* At=CommandSentAt.Find(Seq)) {const double Rtt=(FPlatformTime::Seconds()-*At)*1000;TVSample(AppliedRttSamples,Rtt);if(Seq==CombatCommandSequence)TVSample(CombatAppliedRttSamples,Rtt);double Arrival=0,Applied=0;if(M->TryGetNumberField(TEXT("receivedAtMs"),Arrival)&&M->TryGetNumberField(TEXT("appliedAtMs"),Applied)){TVSample(CommandApplicationSamples,Applied-Arrival);if(ClockUncertaintyMs<1e8){TVSample(CommandOutboundSamples,Arrival-(*At*1000+ClockOffsetMs));TVSample(CommandInboundSamples,ReceivedAtMs+ClockOffsetMs-Applied);}}UE_LOG(LogTemp,VeryVerbose,TEXT("TV_COMMAND seq=%d status=%s roundtrip_ms=%.3f"),Seq,*ReceiptStatus,Rtt);}
+            CommandSentAt.Remove(Seq);
+            if(ReceiptStatus==TEXT("rejected")||ReceiptStatus==TEXT("cancelled")) {PendingMovement.RemoveAll([Seq](const auto& P){return P.Sequence==Seq;});
+                if(BufferedCombat.IsSet()&&BufferedCombat->Sequence==Seq)BufferedCombat.Reset();if(Seq==PendingFeedbackSequence)bCrouchHeld=false;
+                if(Seq==CombatCommandSequence){if(auto* C=Bodies.FindRef(InteractionBody).Get())C->CombatPresentation->RejectAction(PredictedCombat.CommandId);PredictedCombat=FTVLiveCombat();}
+                LastResult=M->GetStringField(TEXT("result"));ResultClock=0;}
+            else if(Seq==PendingFeedbackSequence){LastResult=TEXT("Confirmed");ResultClock=0;PendingFeedbackSequence=-1;}
+        }
+        return;
+    }
+    if(Type==TEXT("hello")) {
+        const TSharedPtr<FJsonObject>* Binding;
+        if(M->TryGetObjectField(TEXT("interaction"),Binding)) {
+            if((*Binding)->GetStringField(TEXT("specRevision"))!=TVInteractionSpec::revision||(*Binding)->GetStringField(TEXT("specHash"))!=TVInteractionSpec::hash){ProtocolError(TEXT("Interaction specification mismatch"));return;}
+            InteractionEpoch=(*Binding)->GetStringField(TEXT("epoch"));InteractionController=(*Binding)->GetStringField(TEXT("controllerId"));InteractionBody=(*Binding)->GetStringField(TEXT("bodyId"));
+            PendingMovement.Empty();CommandSentAt.Empty();BufferedCombat.Reset();bCrouchHeld=false;LastCombatStartAt=0;PredictedCombat=FTVLiveCombat();CombatAge=0;CombatCommandSequence=-1;bPredictionReady=false;PredictionAccumulator=0;LastConfirmedTick=-1;
+        }
+    }
     if (Type == TEXT("hello")) { CombatCursor=FTVCombatReplayCursor(); for(const auto& Pair:Bodies) if(IsValid(Pair.Value)) Pair.Value->CombatPresentation->Cancel(); M->TryGetBoolField(TEXT("controls"), bControls); M->TryGetStringField(TEXT("playerId"), PlayerId); UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE received hello controls=%d player=%s"),bControls,*PlayerId); return; }
     if (Type == TEXT("scene")) {
         UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE received scene chars=%d"),Message.Len());
@@ -144,6 +391,7 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
         const TSharedPtr<FJsonObject>* Origin;
         if (M->TryGetObjectField(TEXT("origin"), Origin)) CanonicalOrigin = FVector((*Origin)->GetNumberField(TEXT("x")), (*Origin)->GetNumberField(TEXT("y")), (*Origin)->GetNumberField(TEXT("z")));
         double Units = 0; if (M->TryGetNumberField(TEXT("unitsPerMetre"), Units) && Units > 0) UnitsPerMetre = static_cast<float>(Units);
+        M->TryGetBoolField(TEXT("arena"),bArena);if(bArena)RefreshArenaBlocks();
         return;
     }
     if (Type == TEXT("presentation_chunk")) { ReceivePresentation(M);return; }
@@ -267,6 +515,7 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
     const TSharedPtr<FJsonObject>* CombatStream;
     if (M->TryGetObjectField(TEXT("combatPresentation"),CombatStream)) {
         for (const auto& Event:CombatCursor.Read(*CombatStream)) {
+            if(!Event.ActionId.IsEmpty())continue;
             auto* A=Bodies.FindRef(Event.ActorBodyId).Get();
             auto* T=Bodies.FindRef(Event.TargetBodyId).Get();
             if (!IsValid(A) || A->bIncapacitated) continue;
@@ -282,6 +531,8 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
             }
         }
     }
+    const TArray<TSharedPtr<FJsonValue>>* Actions;
+    if(M->TryGetArrayField(TEXT("combatActions"),Actions))for(const auto& V:*Actions)ObserveCombat(V->AsObject(),ServerTick,ReceivedAtMs,false);
     TArray<FString> Removed;
     // bodyId is manifestation identity. A withdrawn body removes exactly its presentation actor,
     // including the possessed manifestation; another body of the same entity remains untouched.
@@ -313,3 +564,22 @@ void UTVBridgeSubsystem::ToggleMechanisms() { bMechanismsOpen=!bMechanismsOpen; 
 void UTVBridgeSubsystem::ChooseMechanism(int32 Index) { if(!IsLive() || !MechanismIntents.IsValidIndex(Index)) return; auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("person_action")); M->SetObjectField(TEXT("intent"),MechanismIntents[Index]); Send(M); }
 void UTVBridgeSubsystem::SaveWorld() { auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("save")); Send(M); }
 void UTVBridgeSubsystem::RequestDeveloperInspection() { if(auto* T=Selected()) { auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("debug_inspect")); M->SetStringField(TEXT("personId"),T->EntityId); Send(M); } }
+
+void UTVBridgeSubsystem::SetPractice(const FString& Mode) {
+    if(!bArena||!IsLive())return;
+    BufferedCombat.Reset();if(Mode==TEXT("reset")){bCrouchHeld=false;PredictedCombat=FTVLiveCombat();CombatAge=0;LastCombatStartAt=0;PendingMovement.Empty();}
+    auto M=MakeShared<FJsonObject>();M->SetStringField(TEXT("type"),TEXT("practice"));M->SetStringField(TEXT("mode"),Mode);PendingFeedbackSequence=SendCommand(M);
+}
+
+void UTVBridgeSubsystem::SetCrouch(bool Held){
+ if(!HasPrediction())return;
+ if(Held)CombatInputCallbackAt=FPlatformTime::Seconds();
+ bCrouchHeld=Held;
+ if(!Held&&BufferedCombat.IsSet()&&BufferedCombat->Kind==TEXT("crouch"))BufferedCombat.Reset();
+ auto M=MakeShared<FJsonObject>();M->SetStringField(TEXT("type"),TEXT("crouch"));M->SetBoolField(TEXT("held"),Held);
+ const int Seq=SendCommand(M);CrouchSequence=Seq;PendingFeedbackSequence=Seq;if(!Held)return;
+ const double Wait=PredictedCombat.TransitionAge(TEXT("duck"))-CombatAge;
+ if(Wait>TVInteractionSpec::combatBufferSeconds){bCrouchHeld=false;LastResult=TEXT("Committed - crouch closer to recovery");return;}
+ if(Wait>0){FBufferedCombat I;I.Kind=TEXT("crouch");I.Sequence=Seq;I.CommandId=FString::Printf(TEXT("%s:%d"),*InteractionController,Seq);I.InputAt=FPlatformTime::Seconds();I.ExpiresAt=I.InputAt+TVInteractionSpec::combatBufferSeconds;I.bBuffered=true;BufferedCombat=I;}
+ else {PredictedCombat=FTVLiveCombat();CombatAge=0;}
+}

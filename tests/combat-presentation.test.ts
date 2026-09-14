@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { combatPresentation } from '../src/bridge/combatPresentation';
 import { deserialize, newWorld, serialize } from '../src/sim/persist/save';
-import { meleeStrike, MELEE_COOLDOWN } from '../src/sim/physical/melee';
+import { meleeStrike } from '../src/sim/physical/melee';
 import { makeBody } from '../src/sim/world/factory';
 import { Simulation } from '../src/sim/mind/agent';
 import { BridgeSession } from '../src/bridge/session';
@@ -11,14 +11,17 @@ describe('combat presentation stream', () => {
   it('replays three direct canonical attacks between publications and preserves order', () => {
     const tw = createTestWorld();
     const a = addPerson(tw, 'A', 'traveler', v(10, 1, 10), { controlled: true });
-    const b = addPerson(tw, 'B', 'farmer', v(11, 1, 10));
+    const b = addPerson(tw, 'B', 'farmer', v(11, 1, 10), { controlled: true });
     const ab = tw.world.primaryBody(a.id)!; const bb = tw.world.primaryBody(b.id)!;
+    ab.yaw = -Math.PI / 2;
     const visible = new Set([ab.id, bb.id]);
     expect(tw.sim.attack(a, ab, bb).attempted).toBe(true);
+    expect(combatPresentation(tw.world, visible, a.id).events).toEqual([]);
+    step(tw, .8);
     const first = combatPresentation(tw.world, visible, a.id);
     for (let i = 0; i < 2; i++) {
-      tw.world.physicalTime += 1;
       expect(tw.sim.attack(a, ab, bb).attempted).toBe(true);
+      step(tw, .8);
     }
     const replay = combatPresentation(tw.world, visible, a.id);
     expect(replay.events.map(e => e.seq)).toEqual([1, 2, 3]);
@@ -29,7 +32,7 @@ describe('combat presentation stream', () => {
   it('normal snapshots expose only the combat facts allowlist', () => {
     const s = new BridgeSession();
     const stream = s.snapshot().combatPresentation;
-    const allowed = new Set(['eventId', 'seq', 'physicalTime', 'actorBodyId', 'targetBodyId', 'actorPosition', 'targetPosition', 'targetVelocity', 'actorYaw', 'weaponType', 'weaponId', 'action', 'outcome', 'attackSeq', 'hitSeq', 'capability']);
+    const allowed = new Set(['eventId', 'actionId', 'seq', 'physicalTime', 'actorBodyId', 'targetBodyId', 'actorPosition', 'targetPosition', 'targetVelocity', 'actorYaw', 'weaponType', 'weaponId', 'action', 'outcome', 'attackSeq', 'hitSeq', 'capability']);
     for (const event of stream.events) {
       expect(Object.keys(event).every(key => allowed.has(key))).toBe(true);
       expect(event).not.toHaveProperty('intent');
@@ -40,7 +43,7 @@ describe('combat presentation stream', () => {
   it('does not fabricate a replay stream from legacy attack events', () => {
     const tw = createTestWorld();
     const a = addPerson(tw, 'A', 'traveler', v(10, 1, 10), { controlled: true });
-    const b = addPerson(tw, 'B', 'farmer', v(11, 1, 10));
+    const b = addPerson(tw, 'B', 'farmer', v(11, 1, 10), { controlled: true });
     const ab = tw.world.primaryBody(a.id)!; const bb = tw.world.primaryBody(b.id)!;
     tw.world.emit('attack', { actor: a.id, target: b.id, pos: { ...bb.pos } });
     const stream = combatPresentation(tw.world, new Set([ab.id, bb.id]), a.id);
@@ -52,12 +55,14 @@ describe('combat presentation stream', () => {
   it('orders accepted hits and misses with monotonic independent action counters', () => {
     const tw = createTestWorld();
     const a = addPerson(tw, 'A', 'traveler', v(10, 1, 10), { controlled: true });
-    const b = addPerson(tw, 'B', 'farmer', v(11, 1, 10));
+    const b = addPerson(tw, 'B', 'farmer', v(11, 1, 10), { controlled: true });
     const ab = tw.world.primaryBody(a.id)!; const bb = tw.world.primaryBody(b.id)!;
+    ab.yaw = -Math.PI / 2;
     expect(meleeStrike(tw.sim, a, ab, bb.id)).toBe('accepted');
-    step(tw, MELEE_COOLDOWN + 0.01);
+    step(tw, .8);
     ab.yaw = Math.PI;
-    expect(meleeStrike(tw.sim, a, ab, null)).toBe('no_target');
+    expect(meleeStrike(tw.sim, a, ab, null)).toBe('accepted');
+    step(tw, .5);
     const stream = combatPresentation(tw.world, new Set([ab.id, bb.id]), a.id);
     expect(stream.events.map(e => e.outcome)).toEqual(['hit', 'miss']);
     expect(stream.events.map(e => e.seq)).toEqual([1, 2]);
@@ -68,7 +73,7 @@ describe('combat presentation stream', () => {
   it('detaches snapshots and does not consume RNG', () => {
     const tw = createTestWorld();
     const a = addPerson(tw, 'A', 'traveler', v(10, 1, 10), { controlled: true });
-    const b = addPerson(tw, 'B', 'farmer', v(11, 1, 10));
+    const b = addPerson(tw, 'B', 'farmer', v(11, 1, 10), { controlled: true });
     const ab = tw.world.primaryBody(a.id)!; const bb = tw.world.primaryBody(b.id)!;
     tw.sim.applyHit(a, ab, bb, 1);
     const before = tw.world.rng.state();
@@ -101,15 +106,14 @@ describe('combat presentation stream', () => {
     const tw = createTestWorld();
     const a = addPerson(tw, 'A', 'traveler', v(10, 1, 10), { controlled: true });
     const ab = tw.world.primaryBody(a.id)!; ab.yaw = Math.PI;
-    for (let i = 0; i < 130; i++) {
-      ab.lastAttackAt = -999;
-      expect(meleeStrike(tw.sim, a, ab, null)).toBe('no_target');
-    }
-    const full = combatPresentation(tw.world, new Set([ab.id]), a.id);
+    const b = addPerson(tw, 'Retention fixture', 'farmer', v(11, 1, 10), { controlled: true });
+    const bb = tw.world.primaryBody(b.id)!;
+    for (let i = 0; i < 130; i++) tw.sim.applyHit(a, ab, bb, 0);
+    const full = combatPresentation(tw.world, new Set([ab.id, bb.id]), a.id);
     expect(full.events).toHaveLength(128);
     expect(full.firstAvailableSeq).toBe(3);
     tw.world.physicalTime += 9;
-    const expired = combatPresentation(tw.world, new Set([ab.id]), a.id);
+    const expired = combatPresentation(tw.world, new Set([ab.id, bb.id]), a.id);
     expect(expired.events).toHaveLength(0);
     expect(expired.firstAvailableSeq).toBe(expired.latestSeq + 1);
   });
@@ -117,7 +121,7 @@ describe('combat presentation stream', () => {
   it('isolates manifestations and requires sight for uninvolved observers', () => {
     const tw = createTestWorld();
     const a = addPerson(tw, 'A', 'traveler', v(10, 1, 10), { controlled: true });
-    const b = addPerson(tw, 'B', 'farmer', v(11, 1, 10));
+    const b = addPerson(tw, 'B', 'farmer', v(11, 1, 10), { controlled: true });
     const observer = addPerson(tw, 'Observer', 'farmer', v(20, 1, 20));
     const ab = tw.world.primaryBody(a.id)!; const bb = tw.world.primaryBody(b.id)!;
     const second = makeBody(tw.world, a.id, v(30, 1, 30)); a.bodies.push(second.id);

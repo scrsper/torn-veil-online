@@ -1,0 +1,283 @@
+{
+  "status": "complete",
+  "medianGameFps": 60.079919014729946,
+  "observedStartup": [
+    {
+      "input": "held_left_step",
+      "inputAt": 1.2631863988935947,
+      "callbackToObservedStateMs": 11.403199285268784,
+      "callbackToEvaluatedPoseMs": 18.37410032749176,
+      "effector": "foot_l",
+      "includesCommitment": false
+    },
+    {
+      "input": "step_light_buffer",
+      "inputAt": 1.4300312995910645,
+      "callbackToObservedStateMs": 102.75689885020256,
+      "callbackToEvaluatedPoseMs": 102.75689885020256,
+      "effector": "middle_01_l",
+      "includesCommitment": true
+    },
+    {
+      "input": "light_light_buffer",
+      "inputAt": 1.7631473988294601,
+      "callbackToObservedStateMs": 185.54219976067543,
+      "callbackToEvaluatedPoseMs": 185.54219976067543,
+      "effector": "middle_01_r",
+      "includesCommitment": true
+    },
+    {
+      "input": "cross_front_kick_buffer",
+      "inputAt": 2.2638207003474236,
+      "callbackToObservedStateMs": 185.20169705152512,
+      "callbackToEvaluatedPoseMs": 185.20169705152512,
+      "effector": "foot_r",
+      "includesCommitment": true
+    },
+    {
+      "input": "front_kick",
+      "inputAt": 5.013452101498842,
+      "callbackToObservedStateMs": 2.120397984981537,
+      "callbackToEvaluatedPoseMs": 18.66229996085167,
+      "effector": "foot_r",
+      "includesCommitment": false
+    },
+    {
+      "input": "round_kick_buffer",
+      "inputAt": 5.464282900094986,
+      "callbackToObservedStateMs": 185.18229946494102,
+      "callbackToEvaluatedPoseMs": 185.18229946494102,
+      "effector": "foot_r",
+      "includesCommitment": true
+    },
+    {
+      "input": "round_light_buffer",
+      "inputAt": 6.163765899837017,
+      "callbackToObservedStateMs": 185.9073005616665,
+      "callbackToEvaluatedPoseMs": 185.9073005616665,
+      "effector": "middle_01_l",
+      "includesCommitment": true
+    },
+    {
+      "input": "punch_backstep_buffer",
+      "inputAt": 6.663828499615192,
+      "callbackToObservedStateMs": 168.89819875359535,
+      "callbackToEvaluatedPoseMs": 168.89819875359535,
+      "effector": "foot_l",
+      "includesCommitment": true
+    },
+    {
+      "input": "hold_crouch",
+      "inputAt": 7.513634100556374,
+      "callbackToObservedStateMs": 1.985900104045868,
+      "callbackToEvaluatedPoseMs": 18.511001020669937,
+      "effector": "head",
+      "includesCommitment": false
+    },
+    {
+      "input": "jab",
+      "inputAt": 10.613284800201654,
+      "callbackToObservedStateMs": 1.8441006541252136,
+      "callbackToEvaluatedPoseMs": 18.47270131111145,
+      "effector": "middle_01_l",
+      "includesCommitment": false
+    },
+    {
+      "input": "committed_punch",
+      "inputAt": 19.01355680078268,
+      "callbackToObservedStateMs": 1.8301978707313538,
+      "callbackToEvaluatedPoseMs": 18.503200262784958,
+      "effector": "middle_01_l",
+      "includesCommitment": false
+    },
+    {
+      "input": "frozen_dodge",
+      "inputAt": 20.81416280195117,
+      "callbackToObservedStateMs": 2.2974982857704163,
+      "callbackToEvaluatedPoseMs": 18.593598157167435,
+      "effector": "foot_l",
+      "includesCommitment": false
+    }
+  ],
+  "immediateEvaluatedPoseMs": {
+    "count": 6,
+    "p50": 18.503200262784958,
+    "p95": 18.593598157167435,
+    "max": 18.66229996085167
+  },
+  "diagnostics": {
+    "interActionStartGapMs": {
+      "count": 7,
+      "p50": 700.0267989933491,
+      "p95": 3783.237002789974,
+      "p99": 3783.237002789974
+    },
+    "inputToBufferedStateMs": {
+      "count": 6,
+      "p50": 0.06029754877090454,
+      "p95": 0.07360056042671204,
+      "p99": 0.07360056042671204
+    },
+    "bufferedCombatInputs": 0,
+    "bufferedInputToStartupMs": {
+      "count": 5,
+      "p50": 183.42870101332664,
+      "p95": 183.5440993309021,
+      "p99": 183.5440993309021
+    },
+    "bufferedTransitionLatenessMs": {
+      "count": 5,
+      "p50": 9.999999999778685,
+      "p95": 13.333333332908925,
+      "p99": 13.333333332908925
+    },
+    "combatInputToAnimationSetupMs": {
+      "count": 10,
+      "p50": 0.08030235767364502,
+      "p95": 8.420698344707489,
+      "p99": 8.420698344707489
+    },
+    "contactDecisionToPresentationMs": {
+      "count": 3,
+      "p50": 1.0588495269767009,
+      "p95": 1.1233501586830243,
+      "p99": 1.1233501586830243
+    },
+    "clockUncertaintyMs": 0.479949951171875,
+    "inputToPredictedAttackMs": {
+      "count": 3,
+      "p50": 0.05079805850982666,
+      "p95": 0.06029754877090454,
+      "p99": 0.06029754877090454
+    },
+    "inputToPredictedDefenseMs": {
+      "count": 2,
+      "p50": 0.0729002058506012,
+      "p95": 0.0988990068435669,
+      "p99": 0.0988990068435669
+    },
+    "combatCorrectionCm": {
+      "count": 1128,
+      "p50": 0,
+      "p95": 0,
+      "p99": 5.434606912323529e-12
+    },
+    "combatCorrectionCpuMs": {
+      "count": 1128,
+      "p50": 0.012699514627456665,
+      "p95": 0.024300068616867065,
+      "p99": 0.03610178828239441
+    },
+    "combatCorrectionSettleMs": {
+      "count": 2,
+      "p50": 14.878399670124054,
+      "p95": 123.13200160861015,
+      "p99": 123.13200160861015
+    },
+    "remoteActionAgeMs": {
+      "count": 483,
+      "p50": 0.84964861755725,
+      "p95": 9.439452865626663,
+      "p99": 14.229651019268204
+    },
+    "contactReceiveToPresentationMs": {
+      "count": 3,
+      "p50": 0.12080001831054688,
+      "p95": 0.13849830627441406,
+      "p99": 0.13849830627441406
+    },
+    "combatAppliedRoundTripMs": {
+      "count": 5,
+      "p50": 1.9074976444244385,
+      "p95": 10.723099112510681,
+      "p99": 10.723099112510681
+    },
+    "commandSendToServerArrivalMs": {
+      "count": 1585,
+      "p50": 0.5406018096837215,
+      "p95": 0.885747036722023,
+      "p99": 2.127848672505934
+    },
+    "serverArrivalToApplicationMs": {
+      "count": 1585,
+      "p50": 16.838399999949615,
+      "p95": 90.90220000001136,
+      "p99": 98.02679999999236
+    },
+    "applicationToClientReceiveMs": {
+      "count": 1585,
+      "p50": 0.7775511321960948,
+      "p95": 11.095550024416298,
+      "p99": 14.728252474975307
+    },
+    "predictionCpuMs": {
+      "count": 1562,
+      "p50": 0.0640973448753357,
+      "p95": 0.08480250835418701,
+      "p99": 0.1162998378276825
+    },
+    "inputCallbackToEngineStateMs": {
+      "count": 13,
+      "p50": 0.2226009964942932,
+      "p95": 0.6273984909057617,
+      "p99": 0.6273984909057617
+    },
+    "appliedRoundTripMs": {
+      "count": 1585,
+      "p50": 18.075399100780487,
+      "p95": 101.33790224790573,
+      "p99": 101.64900124073029
+    },
+    "correctionCm": {
+      "count": 1567,
+      "p50": 0,
+      "p95": 0,
+      "p99": 5.329070518200751e-12
+    },
+    "pendingMovement": 1,
+    "predictionCount": 1567,
+    "predictionReady": true,
+    "presentationTiming": "unmeasured; engine-state samples are not display presentation or physical input-to-photon",
+    "specRevision": "tv-interaction-4",
+    "specHash": "19a85ee30c33b89a18747e8cb18963ba30acc6026abb954460f8d3186138f1d4"
+  },
+  "activeEffectorErrorCm": {
+    "jab": {
+      "count": 36,
+      "p50": 3.665342215772908,
+      "p95": 4.929241788782154,
+      "max": 4.929522378785991
+    },
+    "cross": {
+      "count": 9,
+      "p50": 13.30295785985517,
+      "p95": 13.927361038145918,
+      "max": 20.740631414913334
+    },
+    "front_kick": {
+      "count": 18,
+      "p50": 10.473536893367406,
+      "p95": 12.826227618770254,
+      "max": 12.828062272571465
+    },
+    "round_kick": {
+      "count": 12,
+      "p50": 19.757252175064846,
+      "p95": 35.12301291580018,
+      "max": 38.494139896272614
+    }
+  },
+  "limits": [
+    "Evaluated mesh sampled by runtime ticker; not hardware input-to-photon.",
+    "Buffered pose-change samples include prior recovery motion; timeline identity and gate lateness are reported separately.",
+    "Small ordinary-input sample; evidence encoding overlapped part of the run, median game FPS is reported."
+  ],
+  "roundFootComparison": {
+    "samples": 12,
+    "sameFrameAgeMeanCm": 21.703054,
+    "sameFrameAgeMaxCm": 38.49414,
+    "precedingRequestedPoseMeanCm": 3.019793,
+    "precedingRequestedPoseMaxCm": 8.093714,
+    "explanation": "Runtime reads the previously evaluated mesh while reporting the newly requested action age; preceding-frame comparison accounts for this phase delay."
+  }
+}

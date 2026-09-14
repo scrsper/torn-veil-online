@@ -1,0 +1,105 @@
+{
+  "base": "53901d59403750b611ca6b0dbcb8301edc98f83f",
+  "implementation": "7fd8f1087bc19e59bedc59c3245616ce154fd98b",
+  "focusedTS": {
+    "uniquePassingTests": 72,
+    "files": 7,
+    "lastFlowFilePassingTests": 5
+  },
+  "typecheck": "pass",
+  "webBuild": "pass",
+  "generatedSpecCheck": "pass",
+  "nativeEditorBuild": "pass",
+  "nativeTests": {
+    "passed": 10,
+    "failed": 0,
+    "names": [
+      "TornVeil.Realtime.Flow.PoseAndTiming",
+      "TornVeil.Realtime.LiveCombat.BlockedReconciliation",
+      "TornVeil.Realtime.LiveCombat.DefenseSweep",
+      "TornVeil.Realtime.LiveCombat.Parse",
+      "TornVeil.Realtime.LiveCombat.PlanAndBinding",
+      "TornVeil.Realtime.LiveCombat.PostureGeometry",
+      "TornVeil.Realtime.LiveCombat.Prediction",
+      "TornVeil.Realtime.Refinement.FacingPostureRepertoire",
+      "TornVeil.Realtime.Repair.Transitions",
+      "TornVeil.Realtime.MovementPrediction"
+    ]
+  },
+  "fullSuite": "not run; historical 851/852 unresolved family trace",
+  "capture": {
+    "baseline": ".debug/flow-before",
+    "final": ".debug/flow-planted",
+    "rawCapturedFpsApproximately": 23,
+    "videoCadenceFps": 30,
+    "timing": "recorded wall timestamps; frame repeats retained",
+    "humanApproval": false
+  },
+  "assetProvenance": {
+    "roundSource": "/Game/TornVeil/Combat/Refinement/Retargeted/RT_roundhouse_kick_left_Anim.RT_roundhouse_kick_left_Anim",
+    "actualFoot": "foot_r",
+    "heading": 36.09651152967114,
+    "roundKnots": [
+      [
+        0,
+        0.95
+      ],
+      [
+        0.18,
+        1.18
+      ],
+      [
+        0.42,
+        1.45
+      ],
+      [
+        0.7,
+        1.9
+      ],
+      [
+        0.92,
+        2.2
+      ],
+      [
+        1.2,
+        2.9
+      ]
+    ],
+    "jabChainKnots": [
+      [
+        0,
+        0.14
+      ],
+      [
+        0.3,
+        0.3
+      ],
+      [
+        0.45,
+        0.45
+      ],
+      [
+        0.75,
+        0.68
+      ]
+    ],
+    "crossChainKnots": [
+      [
+        0,
+        0.12
+      ],
+      [
+        0.3,
+        0.3
+      ],
+      [
+        0.45,
+        0.45
+      ],
+      [
+        0.75,
+        0.68
+      ]
+    ]
+  }
+}

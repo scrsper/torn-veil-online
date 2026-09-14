@@ -36,6 +36,10 @@ export class GameSim {
     p.bodies.push(makeBody(w, p.id, pos).id); this.attach(connection, p.id); return p.id;
   }
   private person(connection: string): Person | undefined { return this.simulation.world.person(this.connections.get(connection)); }
+  controlsBody(connection: string, bodyId: string): boolean {
+    const p=this.person(connection),b=this.simulation.world.body(bodyId);
+    return !!p&&!!b&&b.ownerId===p.id&&p.bodies.includes(bodyId)&&b.present&&!b.dead;
+  }
   perceive(connection: string) { const p = this.person(connection); return p ? knowledgeView(this.simulation.world, p) : null; }
   beliefs(connection: string, subject: string) { const p = this.person(connection); return p ? personKnowledgeView(p, subject) : null; }
   intend(connection: string, intent: PersonIntent): boolean {

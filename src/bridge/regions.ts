@@ -20,6 +20,12 @@ export function regionBounds(w: World, rx: number, rz: number) {
 }
 /** Geometry facts only. This is not an identity, ownership, inventory, goal or mind API. */
 export function projectRegion(w: World, rx: number, rz: number) {
+  const steps=projectRegionSteps(w,rx,rz);
+  for(;;){const result=steps.next();if(result.done)return result.value;}
+}
+/** Same projection, yielded by small spatial batches so interaction ticks can run between them.
+ * The transport discards an unfinished projection when its canonical region revision changes. */
+export function* projectRegionSteps(w: World, rx: number, rz: number) {
   if (!w.geography || !Number.isInteger(rx) || !Number.isInteger(rz) || rx < 0 || rz < 0 || rx * 256 >= w.grid.W || rz * 256 >= w.grid.D) throw new Error('Region outside world');
   const bounds = regionBounds(w, rx, rz), columns: number[][] = [], stride = (w.grid as RegionalGrid).patches.some(p=>p.x<bounds.x1&&p.x+p.grid.W>bounds.x0&&p.z<bounds.z1&&p.z+p.grid.D>bounds.z0)?2:8, openings: number[][] = [], fences: number[][] = [], paths: number[][] = [];
   for (let x = bounds.x0; x <= bounds.x1; x += stride) for (let z = bounds.z0; z <= bounds.z1; z += stride) {
@@ -30,6 +36,7 @@ export function projectRegion(w: World, rx: number, rz: number) {
       c.height=surface(w,alongZ?x:lo,alongZ?lo:z).height*(1-t)+surface(w,alongZ?x:hi,alongZ?hi:z).height*t;
     }
     columns.push([x, z, c.height + 1, c.block, c.water === null ? -1 : c.water + .9, c.forest]);
+    if(columns.length%64===0)yield;
   }
   const places = w.places().filter(p => inBounds(bounds, p.inside)).map(p => ({ id: p.id, type: p.type, bounds: p.bounds, inside: p.inside, door: p.door, indoor: p.indoor,
     visualSeed: settlementSeed(w.seed, { id: p.id, x: rx, z: rz }), culture: 'regional-prototype',
@@ -38,12 +45,12 @@ export function projectRegion(w: World, rx: number, rz: number) {
   // Dense geometry exists only in inhabited patches. Never sweep a whole world volume.
   for (const patch of (w.grid as import('../sim/physical/regionalGrid').RegionalGrid).patches) {
     const x0 = Math.max(bounds.x0, patch.x), x1 = Math.min(bounds.x1, patch.x + patch.grid.W), z0 = Math.max(bounds.z0, patch.z), z1 = Math.min(bounds.z1, patch.z + patch.grid.D);
-    for (let x = x0; x < x1; x++) for (let z = z0; z < z1; z++) for (let y = 1; y < patch.grid.H; y++) {
+    for (let x = x0; x < x1; x++) for (let z = z0; z < z1; z++) { for (let y = 1; y < patch.grid.H; y++) {
       const b = w.grid.get(x, y, z);
       if (b === B.Door) openings.push([x, y, z, +w.grid.isDoorOpen(x, y, z)]);
       if (b === B.Fence) fences.push([x, y, z, w.grid.get(x-1,y,z)===B.Fence||w.grid.get(x+1,y,z)===B.Fence ? 0 : 90]);
       if (b === B.Path) paths.push([x,y+1,z]);
-    }
+    } if((z-z0)%16===15)yield; }
   }
   return { id: `${rx},${rz}`, seed: w.geography.regionSeed(rx, rz), bounds, terrain: { stride, columns }, openings, fences, paths, places,
     roads: w.geography.roads.filter(r => r.points.some(p => inBounds(bounds, p))).map(r => ({ id: r.id, points: r.points.filter(p => p.x >= bounds.x0 - 128 && p.x < bounds.x1 + 128 && p.z >= bounds.z0 - 128 && p.z < bounds.z1 + 128).map(p=>({...p,y:surface(w,Math.floor(p.x),Math.floor(p.z)).height+1})) })),

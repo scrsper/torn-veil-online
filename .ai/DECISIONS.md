@@ -1,5 +1,39 @@
 # Durable design decisions
 
+## Canonical live combat contact and defense
+
+- An accepted attack starts a persistent body action; it does not establish a hit. Preparation,
+  active contact and recovery run on the 60 Hz physical timeline. Relative sphere sweeps in
+  bounded 1/120-second segments determine contact and region before existing injury effects.
+- Sidestep/backstep share the canonical collision predictor; duck changes hurt geometry.
+  There are no invulnerability frames. Initial tracking stops before active contact.
+- Phase history remains canonical; a bounded provenance-bearing preparation cue is working
+  memory rather than a separate social belief for every phase. Contact/miss consequences retain
+  normal memory paths. NPC defense consumes this cue through the existing action plan. It uses
+  the same action admission and geometry as controllers and never reads a future outcome.
+- Native attack/defense startup is disposable prediction. Command identity binds confirmation
+  without replaying startup; causal consequences remain exclusively in TypeScript. Live paths
+  bypass completed-result choreography queues and never align the actor to force contact.
+- Combat commands may pass pending movement at the next tick while movement order and the
+  contiguous acknowledgment frontier remain intact. Pickup retains FIFO and exactly-once rules.
+- Regional presentation generation yields cooperatively after urgent action/state traffic;
+  partial work is disposable and invalidated by canonical revision/residency changes.
+- See `docs/REALTIME_COMBAT_CONTACT_DEFENSE_V0_1.md` for the phase model, evidence and limits.
+
+## Disposable local prediction and applied acknowledgment
+
+- TypeScript remains sole authority. Native confirmed, predicted and rendered state are distinct.
+  The shared movement specification and equivalent pure evaluators permit local actor movement;
+  CharacterMovement stays disabled because its stock replication has no TypeScript adapter.
+- Protocol 2 receipt is not application. Reconcile from explicit owning-controller local state
+  and its resolved frontier, replaying only pure movement. Command epochs/IDs bound replay and
+  duplicate effects; separate world combat ordering is never used as input acknowledgment.
+- Canonical collision windows exclude decorative PCG. Unknown geometry blocks prediction;
+  door opening happens through the existing authoritative mechanic before passage is confirmed.
+- This supersedes blanket statements below that all local root movement must stay off.
+  Choreography itself still must not move canonical/predicted roots. The live contact extension
+  above supersedes the prior pending status; no renderer may determine injury or manufacture a hit.
+- See `docs/REALTIME_INTERACTION_PREDICTION_V0_1.md` for the partial checkpoint and limits.
 ## Embodied creatures and wildlife ecology
 
 - General species composition is independent of human identity: body plan, locomotion, cognition and senses are distinct components. Reactive wildlife biology refines that model rather than defining all future creatures. Sapient nonhumans belong on appropriate Person cognition/mechanics; unsupported controllers are never silently reduced to animal behavior.
