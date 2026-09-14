@@ -1,11 +1,12 @@
+#include "TVBridgeSubsystem.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "TVCombatPresentationComponent.h"
 #include "TVWorldProjection.h"
-#include "TVBridgeSubsystem.h"
 #include "TVCombatRepertoire.generated.h"
 #include "TVCharacter.h"
+#include "TVWildlifePresentation.h"
 #include "TVHumanoidVisualState.h"
 #include "WebSocketsModule.h"
 #include "IWebSocket.h"
@@ -24,7 +25,7 @@ void UTVBridgeSubsystem::Initialize(FSubsystemCollectionBase& Collection) { Supe
 void UTVBridgeSubsystem::Deinitialize() {
     UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE PIE ending; releasing controller"));
     if (Socket) { Socket->OnConnected().Clear(); Socket->OnConnectionError().Clear(); Socket->OnClosed().Clear(); Socket->OnMessage().Clear(); Socket->Close(); Socket.Reset(); }
-    Bodies.Empty(); Super::Deinitialize();
+    Bodies.Empty();WildlifeBodies.Empty(); Super::Deinitialize();
 }
 void UTVBridgeSubsystem::Connect() {
     if (Socket) { Socket->OnMessage().Clear(); Socket->OnConnected().Clear(); Socket->OnConnectionError().Clear(); Socket->OnClosed().Clear(); Socket->Close(); }
@@ -35,6 +36,7 @@ void UTVBridgeSubsystem::Connect() {
     bTransportConnected=false; bCanonicalReady=false; bWasLive=false; SnapshotCount=0; SinceSnapshot=100;
     bPredictionReady=false;InteractionEpoch.Empty();PendingMovement.Empty();CommandSentAt.Empty();PredictionColumns.Empty();PredictionAccumulator=0;LastConfirmedTick=-1;
     Assembly.Empty(); PendingPresentation.Reset(); WantedRegions.Empty(); ProjectedRegions=0;
+    for(auto& Pair:WildlifeBodies)if(IsValid(Pair.Value))Pair.Value->Destroy();WildlifeBodies.Empty();
     if(WorldProjection) WorldProjection->ResetRegions();
     UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE connecting; regional protocol=2 text_limit=262144"));
     const TMap<FString, FString> UpgradeHeaders = { { TEXT("X-Torn-Veil-Client"), TEXT("unreal") }, { TEXT("X-Torn-Veil-Region-Protocol"), TEXT("2") }, {TEXT("X-Torn-Veil-Interaction-Protocol"),TEXT("2")} };
@@ -108,7 +110,7 @@ void UTVBridgeSubsystem::ReceivePresentation(const TSharedPtr<FJsonObject>& M) {
 void UTVBridgeSubsystem::Send(const TSharedRef<FJsonObject>& M) {
     if (!Socket || !Socket->IsConnected() || !bControls) return;
     const FString Type=M->GetStringField(TEXT("type"));
-    if(!InteractionEpoch.IsEmpty()&&(Type==TEXT("attack")||Type==TEXT("interact")||Type==TEXT("defend")||Type==TEXT("cancel"))) {
+    if(!InteractionEpoch.IsEmpty()&&(Type==TEXT("attack")||Type==TEXT("interact")||Type==TEXT("container_transfer")||Type==TEXT("defend")||Type==TEXT("cancel"))) {
         LastResult=TEXT("Attempting...");ResultClock=0;PendingFeedbackSequence=SendCommand(M);return;
     }
     M->SetNumberField(TEXT("version"), 1); M->SetNumberField(TEXT("sequence"), ++Sequence);
@@ -123,7 +125,7 @@ void UTVBridgeSubsystem::SendIntent(const FString& Type, const FString& TargetBo
 static void TVSample(TArray<double>& Samples,double Value);
 void UTVBridgeSubsystem::SendCombat(const FString& Kind,int32 Side,const FString& Trajectory,double CallbackAt,const FVector& Direction) {
     const double Begin=CallbackAt>0?CallbackAt:FPlatformTime::Seconds();
-    if(!HasPrediction()||bDialogueOpen||bMechanismsOpen)return;
+    if(!HasPrediction()||HasModalScreen())return;
     CombatInputCallbackAt=Begin;
     BufferedCombat.Reset(); // newest press replaces the one pending follow-up
     auto M=MakeShared<FJsonObject>();M->SetStringField(TEXT("type"),Kind==TEXT("attack")?TEXT("attack"):TEXT("defend"));
@@ -337,9 +339,38 @@ void UTVBridgeSubsystem::SendDropIntent() {
     M->SetStringField(TEXT("interactionId"), DropInteraction); Send(M);
 }
 void UTVBridgeSubsystem::Interact() {
+    if (bPauseOpen || bInventoryOpen) return;
     if (bDialogueOpen) { ChooseDialogueOption(0); return; }
     if (!TalkTargetBody.IsEmpty()) { SendIntent(TEXT("talk"), TalkTargetBody); return; }
     SendHandIntent(false);
+}
+void UTVBridgeSubsystem::ToggleInventory() {
+    if(!IsLive()||bArena)return;
+    bInventoryOpen=!bInventoryOpen;bPauseOpen=false;
+    if(bInventoryOpen){bDialogueOpen=false;bMechanismsOpen=false;UISelection=0;}
+}
+void UTVBridgeSubsystem::TogglePause() {
+    bPauseOpen=!bPauseOpen;
+    if(bPauseOpen){bInventoryOpen=false;bDialogueOpen=false;bMechanismsOpen=false;}
+}
+void UTVBridgeSubsystem::UIBack() {
+    if(bPauseOpen){bPauseOpen=false;return;}
+    if(bInventoryOpen){bInventoryOpen=false;return;}
+    if(bMechanismsOpen){bMechanismsOpen=false;return;}
+    if(bDialogueOpen){CloseDialogue();return;}
+    bPauseOpen=true;
+}
+void UTVBridgeSubsystem::UIMove(int32 Delta) {
+    if(!bInventoryOpen)return;const int32 Count=InventoryItemIds.Num()+ContainerItemIds.Num();
+    if(Count>0)UISelection=(UISelection+Delta%Count+Count)%Count;
+}
+void UTVBridgeSubsystem::UIConfirm() {
+    if(!bInventoryOpen||OpenContainerId.IsEmpty())return;
+    FString Item,Direction;
+    if(InventoryItemIds.IsValidIndex(UISelection)){Item=InventoryItemIds[UISelection];Direction=TEXT("into");}
+    else {const int32 Index=UISelection-InventoryItemIds.Num();if(ContainerItemIds.IsValidIndex(Index)){Item=ContainerItemIds[Index];Direction=TEXT("out");}}
+    if(Item.IsEmpty())return;
+    auto M=MakeShared<FJsonObject>();M->SetStringField(TEXT("type"),TEXT("container_transfer"));M->SetStringField(TEXT("containerId"),OpenContainerId);M->SetStringField(TEXT("itemId"),Item);M->SetStringField(TEXT("direction"),Direction);Send(M);
 }
 void UTVBridgeSubsystem::CloseDialogue() {
     if (!bDialogueOpen) return;
@@ -401,7 +432,7 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
         for(const auto& V:M->GetArrayField(TEXT("resident"))) WantedRegions.Add(V->AsString());
         const auto O=M->GetObjectField(TEXT("origin")); const FVector Next(O->GetNumberField(TEXT("x")),O->GetNumberField(TEXT("y")),O->GetNumberField(TEXT("z")));
         const FVector Delta((CanonicalOrigin.X-Next.X)*100,(CanonicalOrigin.Z-Next.Z)*100,(CanonicalOrigin.Y-Next.Y)*100);
-        if(!Delta.IsNearlyZero()) for(auto& Pair:Bodies) Pair.Value->RebasePresentation(Delta);
+        if(!Delta.IsNearlyZero()) {for(auto& Pair:Bodies) Pair.Value->RebasePresentation(Delta);for(auto& Pair:WildlifeBodies)Pair.Value->RebasePresentation(Delta);}
         CanonicalOrigin=Next;
         if(!WorldProjection) WorldProjection=GetWorld()->SpawnActor<ATVWorldProjection>();
         WorldProjection->Apply(M,CanonicalOrigin); ProjectedRegions=WorldProjection->RegionCount(); ProjectionMetrics=WorldProjection->Metrics();
@@ -432,6 +463,15 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
     if(ControlledId.IsEmpty() || !Rows->ContainsByPredicate([&](const auto& V){return V->AsObject()->GetStringField(TEXT("bodyId"))==ControlledId && V->AsObject()->GetStringField(TEXT("entityId"))==M->GetStringField(TEXT("playerId"));})) { ProtocolError(TEXT("Canonical player body missing from snapshot"));return; }
     ServerTick = M->GetNumberField(TEXT("tick")); SinceSnapshot = 0; LastSnapshotReceived=FPlatformTime::Seconds(); ++SnapshotCount; M->TryGetStringField(TEXT("playerId"), PlayerId);
     NearbyInteraction.Empty(); ConsumeInteraction.Empty(); DropInteraction.Empty(); NearbyPrompt.Empty(); ConsumePrompt.Empty(); DropPrompt.Empty(); TalkTargetBody.Empty();
+    InventoryItemIds.Empty();InventoryItemLabels.Empty();ContainerItemIds.Empty();ContainerItemLabels.Empty();
+    const bool HadContainer=!OpenContainerId.IsEmpty();OpenContainerId.Empty();OpenContainerName.Empty();
+    const TSharedPtr<FJsonObject>* Container;
+    if(M->TryGetObjectField(TEXT("container"),Container)&&Container&&Container->IsValid()) {
+        (*Container)->TryGetStringField(TEXT("id"),OpenContainerId);(*Container)->TryGetStringField(TEXT("name"),OpenContainerName);
+        const TArray<TSharedPtr<FJsonValue>>* Contents;
+        if((*Container)->TryGetArrayField(TEXT("items"),Contents))for(const auto& Value:*Contents){const auto I=Value->AsObject();if(!I)continue;ContainerItemIds.Add(I->GetStringField(TEXT("id")));ContainerItemLabels.Add(FString::Printf(TEXT("%s  x%.0f"),*I->GetStringField(TEXT("name")),I->GetNumberField(TEXT("quantity"))));}
+        if(!HadContainer&&!bDialogueOpen&&!bPauseOpen){bInventoryOpen=true;UISelection=0;}
+    } else if(HadContainer) bInventoryOpen=false;
     const TArray<TSharedPtr<FJsonValue>>* Interactions;
     if (M->TryGetArrayField(TEXT("interactions"), Interactions)) for (const auto& V : *Interactions) {
         const auto A = V->AsObject(); if (!A) continue;
@@ -507,11 +547,27 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
             TArray<FString> Items;
             for (const auto& Item : D->GetArrayField(TEXT("inventory"))) {
                 const auto I = Item->AsObject(); const double Qty = I->GetNumberField(TEXT("quantity"));
-                if (Qty > 0) Items.Add(FString::Printf(TEXT("%s x%.0f"), *I->GetStringField(TEXT("name")), Qty));
+                if (Qty > 0) {const FString Label=FString::Printf(TEXT("%s  x%.0f"), *I->GetStringField(TEXT("name")), Qty);Items.Add(Label);InventoryItemIds.Add(I->GetStringField(TEXT("id")));InventoryItemLabels.Add(Label);}
             }
             CarriedSummary = Items.IsEmpty() ? TEXT("Empty hands") : FString::Join(Items, TEXT("  |  "));
         }
     }
+    const int32 UIItems=InventoryItemIds.Num()+ContainerItemIds.Num();UISelection=UIItems?FMath::Clamp(UISelection,0,UIItems-1):0;
+    TSet<FString> PresentWildlife;
+    const TSharedPtr<FJsonObject>* WildlifeFrame=nullptr;
+    const TArray<TSharedPtr<FJsonValue>>* WildlifeRows=nullptr;
+    if(M->TryGetObjectField(TEXT("wildlife"),WildlifeFrame)&&(*WildlifeFrame)->TryGetArrayField(TEXT("bodies"),WildlifeRows)) {
+        for(const auto& Value:*WildlifeRows) {
+            const auto D=Value->AsObject();if(!D)continue;FString Id;if(!D->TryGetStringField(TEXT("bodyId"),Id)||Id.IsEmpty())continue;
+            ATVWildlifePresentation* Animal=WildlifeBodies.Contains(Id)?WildlifeBodies[Id].Get():nullptr;const bool First=!IsValid(Animal);
+            if(First){FActorSpawnParameters P;P.SpawnCollisionHandlingOverride=ESpawnActorCollisionHandlingMethod::AlwaysSpawn;Animal=GetWorld()->SpawnActor<ATVWildlifePresentation>(FVector::ZeroVector,FRotator::ZeroRotator,P);}
+            if(!Animal||!Animal->Project(D,CanonicalOrigin,UnitsPerMetre,First)){if(First&&IsValid(Animal))Animal->Destroy();continue;}
+            PresentWildlife.Add(Id);if(First)WildlifeBodies.Add(Id,Animal);
+        }
+    }
+    TArray<FString> RemovedWildlife;
+    for(const auto& Pair:WildlifeBodies)if(!PresentWildlife.Contains(Pair.Key)){if(IsValid(Pair.Value))Pair.Value->Destroy();RemovedWildlife.Add(Pair.Key);}
+    for(const auto& Id:RemovedWildlife)WildlifeBodies.Remove(Id);
     const TSharedPtr<FJsonObject>* CombatStream;
     if (M->TryGetObjectField(TEXT("combatPresentation"),CombatStream)) {
         for (const auto& Event:CombatCursor.Read(*CombatStream)) {
@@ -547,7 +603,7 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
     if (!Present.Contains(ControlledId)) bCanonicalReady = false;
     const TArray<TSharedPtr<FJsonValue>>* Events;
     if (M->TryGetArrayField(TEXT("events"), Events) && Events->Num()) LastEvent = Events->Last()->AsObject()->GetStringField(TEXT("summary"));
-    Status = FString::Printf(TEXT("LIVE  |  %d visible people  |  t %.1fs%s"), FMath::Max(0, Bodies.Num() - 1), ServerTick, bControls ? TEXT("") : TEXT("  |  observer connection"));
+    Status = FString::Printf(TEXT("LIVE  |  %d visible people  |  %d wildlife  |  t %.1fs%s"), FMath::Max(0, Bodies.Num() - 1),WildlifeBodies.Num(), ServerTick, bControls ? TEXT("") : TEXT("  |  observer connection"));
 }
 ATVCharacter* UTVBridgeSubsystem::Selected() const { const auto* C = Bodies.Find(SelectedBody); return C ? C->Get() : nullptr; }
 void UTVBridgeSubsystem::CycleTarget() {
@@ -560,7 +616,7 @@ void UTVBridgeSubsystem::CycleTarget() {
     SelectedBody = Candidates[(Index + 1) % Candidates.Num()]->BodyId;
 }
 
-void UTVBridgeSubsystem::ToggleMechanisms() { bMechanismsOpen=!bMechanismsOpen; if(bMechanismsOpen) CloseDialogue(); }
+void UTVBridgeSubsystem::ToggleMechanisms() { bMechanismsOpen=!bMechanismsOpen; if(bMechanismsOpen) {CloseDialogue();bInventoryOpen=false;bPauseOpen=false;} }
 void UTVBridgeSubsystem::ChooseMechanism(int32 Index) { if(!IsLive() || !MechanismIntents.IsValidIndex(Index)) return; auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("person_action")); M->SetObjectField(TEXT("intent"),MechanismIntents[Index]); Send(M); }
 void UTVBridgeSubsystem::SaveWorld() { auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("save")); Send(M); }
 void UTVBridgeSubsystem::RequestDeveloperInspection() { if(auto* T=Selected()) { auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("debug_inspect")); M->SetStringField(TEXT("personId"),T->EntityId); Send(M); } }

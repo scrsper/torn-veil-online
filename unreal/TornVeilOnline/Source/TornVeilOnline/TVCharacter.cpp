@@ -1,7 +1,7 @@
+#include "TVCharacter.h"
 #include "TVCombatPresentationComponent.h"
 #include "TVCombatAnimInstance.h"
 #include "Misc/CoreDelegates.h"
-#include "TVCharacter.h"
 #include "GameFramework/InputSettings.h"
 #include "GameFramework/PlayerController.h"
 #include "TVInteractionSpec.generated.h"
@@ -90,7 +90,7 @@ void ATVCharacter::BeginPlay() {
 }
 FVector ATVCharacter::IntentDirection() const {
     const auto* Bridge = GetWorld() ? GetWorld()->GetSubsystem<UTVBridgeSubsystem>() : nullptr;
-    if (!Controller || bIncapacitated || (Bridge && Bridge->bDialogueOpen)) return FVector::ZeroVector;
+    if (!Controller || bIncapacitated || (Bridge && Bridge->HasModalScreen())) return FVector::ZeroVector;
     const FRotationMatrix Basis(FRotator(0, GetActorRotation().Yaw, 0));
     return (Basis.GetUnitAxis(EAxis::X) * ForwardAxis + Basis.GetUnitAxis(EAxis::Y) * RightAxis).GetClampedToMaxSize(1);
 }
@@ -99,8 +99,6 @@ void ATVCharacter::Tick(float Dt) {
     auto* Bridge = GetWorld()->GetSubsystem<UTVBridgeSubsystem>();
     const bool Live = Bridge && Bridge->IsLive();
     if (bCanonicalPlayer) {
-        CameraBoom->TargetArmLength = FMath::FInterpTo(CameraBoom->TargetArmLength, ZoomTarget, Dt, 8);
-        CameraBoom->SocketOffset.Y = FMath::GetMappedRangeValueClamped(FVector2D(160, 700), FVector2D(55, 0), ZoomTarget);
         GetCharacterMovement()->MaxWalkSpeed = CanonicalSpeed;
         // Physical movement is entirely canonical. Local gravity/collision must not compete with reconciliation.
         if (bProjected && Bridge->HasPrediction()) {
@@ -132,6 +130,26 @@ void ATVCharacter::Tick(float Dt) {
     const FVector BeforeChoreography=GetActorLocation();
     const bool bChoreography=CombatPresentation->Present(Dt);
     MaxChoreographyActorDriftCm=FMath::Max(MaxChoreographyActorDriftCm,static_cast<float>(FVector::Dist(BeforeChoreography,GetActorLocation())));
+    FTVLocomotionCameraSample PresentationSample;
+    PresentationSample.Velocity=CanonicalVelocity;PresentationSample.PreviousVelocity=PreviousPresentationVelocity;
+    PresentationSample.BodyYawDegrees=GetActorRotation().Yaw;PresentationSample.PreviousBodyYawDegrees=PreviousPresentationYaw;
+    PresentationSample.DeltaSeconds=Dt;PresentationSample.bGrounded=true;PresentationSample.bCrouched=CanonicalCrouch>.001;
+    PresentationSample.bDead=bDead;PresentationSample.bDowned=bIncapacitated;
+    PresentationSample.CombatPhase=bChoreography?ETVPresentationCombatPhase::Active:ETVPresentationCombatPhase::None;
+    LocomotionCameraSignal=FTVLocomotionCameraPresentation::Derive(PresentationSample);
+    PreviousPresentationVelocity=CanonicalVelocity;PreviousPresentationYaw=GetActorRotation().Yaw;
+    bPresentationTransitionPending|=LocomotionCameraSignal.Transition!=ETVPresentationTransition::None;
+    if(LocomotionCameraSignal.Transition==ETVPresentationTransition::Stop)PresentationFootPlant=1;
+    else if(LocomotionCameraSignal.Transition==ETVPresentationTransition::Pivot)PresentationFootPlant=FMath::Max(PresentationFootPlant,.45f);
+    else PresentationFootPlant=FMath::Max(0.f,PresentationFootPlant-Dt*5);
+    if(bCanonicalPlayer) {
+        if(LocomotionCameraSignal.Transition==ETVPresentationTransition::Pivot)CameraShoulderSign=LocomotionCameraSignal.CameraShoulderSign;
+        const float ArmTarget=LocomotionCameraSignal.CameraMode==ETVPresentationCameraMode::Combat?FMath::Min(ZoomTarget,300.f)
+            :LocomotionCameraSignal.CameraMode==ETVPresentationCameraMode::Incapacitated?FMath::Max(ZoomTarget,390.f):ZoomTarget;
+        CameraBoom->TargetArmLength=FMath::FInterpTo(CameraBoom->TargetArmLength,ArmTarget,Dt,8);
+        const float Shoulder=FMath::GetMappedRangeValueClamped(FVector2D(160,700),FVector2D(55,0),ArmTarget)*CameraShoulderSign;
+        CameraBoom->SocketOffset.Y=FMath::FInterpTo(CameraBoom->SocketOffset.Y,Shoulder,Dt,7);
+    }
     if (!bChoreography) {
         // Returning from the native choreography instance must restore the ordinary pose player.
         if (bWasChoreography) CurrentAnimation=nullptr;
@@ -281,19 +299,19 @@ void ATVCharacter::Animate(float Speed) {
     // bridge snapshots; the bounded queues keep a burst from monopolizing presentation.
     const bool Restart = bReplayAttack || bReplayHit;
     if(Wanted==Locomotion||Wanted==SprintAnimation){
-        FPoseSnapshot From;const bool Changed=CurrentAnimation!=Wanted;
+        FPoseSnapshot From;const bool Changed=CurrentAnimation!=Wanted||bPresentationTransitionPending;
         if(Changed){GetMesh()->SnapshotPose(From);PoseBlendAge=0;}
         if(!Cast<UTVCombatAnimInstance>(GetMesh()->GetAnimInstance()))GetMesh()->SetAnimInstanceClass(UTVCombatAnimInstance::StaticClass());
         auto* Anim=Cast<UTVCombatAnimInstance>(GetMesh()->GetAnimInstance());if(!Anim)return;
         if(Changed)Anim->Snapshot=From;
         const float Dt=GetWorld()->GetDeltaSeconds();PoseBlendAge+=Dt;LocomotionTime+=Dt*Speed/700.f;
-        Anim->bSnapshot=PoseBlendAge<.1f;Anim->Weight=FMath::Clamp(PoseBlendAge/.1f,0.f,1.f);Anim->FootLock=0;
+        Anim->bSnapshot=PoseBlendAge<.1f;Anim->Weight=FMath::Clamp(PoseBlendAge/.1f,0.f,1.f);Anim->FootLock=PresentationFootPlant;
         Anim->Base=Cast<UAnimSequence>(SprintAnimation);Anim->bLocomotion=Wanted==Locomotion;
         Anim->Locomotion=Cast<UBlendSpace>(Locomotion);
         const FVector Local=GetActorRotation().UnrotateVector(CanonicalVelocity);
         Anim->LocomotionPosition=FVector(FMath::RadiansToDegrees(FMath::Atan2(Local.Y,Local.X)),Speed,0);
         Anim->Motion=Cast<UAnimSequence>(SprintAnimation);Anim->Time=FMath::Fmod(LocomotionTime,FMath::Max(.001f,Anim->Motion->GetPlayLength()));
-        CurrentAnimation=Wanted;return;
+        CurrentAnimation=Wanted;bPresentationTransitionPending=false;return;
     }
     if (CurrentAnimation != Wanted || Restart) {
         CurrentAnimation = Wanted; GetMesh()->PlayAnimation(Wanted, Wanted == Locomotion || Wanted==SprintAnimation || ActivityLoop);
@@ -333,6 +351,12 @@ FString ATVCharacter::PresentationDiagnostics() const {
     J->SetNumberField(TEXT("skippedAttacks"), SkippedAttackEvents); J->SetNumberField(TEXT("skippedHits"), SkippedHitEvents);
     J->SetNumberField(TEXT("heldCrouch"),CanonicalCrouch);J->SetNumberField(TEXT("facingDegrees"),GetActorRotation().Yaw);J->SetNumberField(TEXT("desiredYaw"),Controller?Controller->GetControlRotation().Yaw:0);J->SetNumberField(TEXT("cameraYaw"),CameraBoom->GetComponentRotation().Yaw);
     J->SetNumberField(TEXT("speedCmPerSecond"), CanonicalVelocity.Size2D());
+    J->SetNumberField(TEXT("presentationGait"),static_cast<int32>(LocomotionCameraSignal.Gait));
+    J->SetNumberField(TEXT("presentationTransition"),static_cast<int32>(LocomotionCameraSignal.Transition));
+    J->SetNumberField(TEXT("presentationCameraMode"),static_cast<int32>(LocomotionCameraSignal.CameraMode));
+    J->SetNumberField(TEXT("presentationAcceleration"),LocomotionCameraSignal.AccelerationCentimetersPerSecondSquared);
+    J->SetBoolField(TEXT("rootMotionAllowed"),LocomotionCameraSignal.bRootMotionAllowed);
+    J->SetBoolField(TEXT("actorTranslationAuthority"),LocomotionCameraSignal.bActorTranslationAuthority);
     J->SetNumberField(TEXT("movementMode"), static_cast<int32>(GetCharacterMovement()->MovementMode));
     if (const auto* HumanoidMesh = GetMesh()->GetSkeletalMeshAsset()) J->SetStringField(TEXT("mesh"), HumanoidMesh->GetPathName());
     if (const auto* Anim = GetMesh()->GetSingleNodeInstance()) J->SetNumberField(TEXT("animationTime"), Anim->GetCurrentTime());
@@ -349,6 +373,8 @@ void ATVCharacter::SetupPlayerInputComponent(UInputComponent* I) {
     I->BindAction(TEXT("Interact"), IE_Pressed, this, &ATVCharacter::Interact); I->BindAction(TEXT("Inspector"), IE_Pressed, this, &ATVCharacter::Inspector);
     I->BindAction(TEXT("Consume"), IE_Pressed, this, &ATVCharacter::Consume);
     I->BindAction(TEXT("Drop"), IE_Pressed, this, &ATVCharacter::Drop);
+    I->BindAction(TEXT("Inventory"),IE_Pressed,this,&ATVCharacter::Inventory);I->BindAction(TEXT("PauseMenu"),IE_Pressed,this,&ATVCharacter::PauseMenu);
+    I->BindAction(TEXT("UIBack"),IE_Pressed,this,&ATVCharacter::UIBack);I->BindAction(TEXT("UIUp"),IE_Pressed,this,&ATVCharacter::UIUp);I->BindAction(TEXT("UIDown"),IE_Pressed,this,&ATVCharacter::UIDown);I->BindAction(TEXT("UIConfirm"),IE_Pressed,this,&ATVCharacter::UIConfirm);
     I->BindAction(TEXT("Dialogue1"), IE_Pressed, this, &ATVCharacter::Dialogue1); I->BindAction(TEXT("Dialogue2"), IE_Pressed, this, &ATVCharacter::Dialogue2);
     I->BindAction(TEXT("Dialogue3"), IE_Pressed, this, &ATVCharacter::Dialogue3); I->BindAction(TEXT("Dialogue4"), IE_Pressed, this, &ATVCharacter::Dialogue4);
     I->BindAction(TEXT("Dialogue5"), IE_Pressed, this, &ATVCharacter::Dialogue5); I->BindAction(TEXT("CloseDialogue"), IE_Pressed, this, &ATVCharacter::CloseDialogue);
@@ -374,6 +400,12 @@ void ATVCharacter::SelectTarget() { if (auto* B = GetWorld()->GetSubsystem<UTVBr
 void ATVCharacter::Consume() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->SendHandIntent(true); }
 void ATVCharacter::Drop() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->SendDropIntent(); }
 void ATVCharacter::Interact() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->Interact(); }
+void ATVCharacter::Inventory(){if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->ToggleInventory();}
+void ATVCharacter::PauseMenu(){if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->TogglePause();}
+void ATVCharacter::UIBack(){if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->UIBack();}
+void ATVCharacter::UIUp(){if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->UIMove(-1);}
+void ATVCharacter::UIDown(){if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->UIMove(1);}
+void ATVCharacter::UIConfirm(){if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->UIConfirm();}
 void ATVCharacter::Inspector() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) { B->bInspector = !B->bInspector; if(B->bInspector) B->RequestDeveloperInspection(); } }
 void ATVCharacter::Dialogue1() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->ChooseDialogueOption(0); }
 void ATVCharacter::Dialogue2() { if (auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->ChooseDialogueOption(1); }
@@ -401,7 +433,7 @@ void ATVCharacter::SaveWorld() { if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSu
 
 void ATVCharacter::Dodge() {
     const double At=FPlatformTime::Seconds();auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>();auto* PC=Cast<APlayerController>(Controller);
-    if(!B||!PC||B->bDialogueOpen||B->bMechanismsOpen)return;
+    if(!B||!PC||B->HasModalScreen())return;
     // Read the remapped keys at this callback, before the next axis tick. Freeze the resulting
     // world direction for this action; later camera or stick changes cannot steer the dodge.
     const auto Axis=[PC](const TCHAR* Name){TArray<FInputAxisKeyMapping> Keys;GetDefault<UInputSettings>()->GetAxisMappingByName(Name,Keys);float Value=0;

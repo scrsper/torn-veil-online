@@ -9,6 +9,7 @@
 class IWebSocket;
 class ATVCharacter;
 class ATVWorldProjection;
+class ATVWildlifePresentation;
 UCLASS()
 class TORNVEILONLINE_API UTVBridgeSubsystem : public UTickableWorldSubsystem {
     GENERATED_BODY()
@@ -30,12 +31,22 @@ public:
     void Interact();
     void CloseDialogue();
     void ChooseDialogueOption(int32 Index);
+    void ToggleInventory();
+    void TogglePause();
+    void UIBack();
+    void UIMove(int32 Delta);
+    void UIConfirm();
+    bool HasModalScreen() const { return bInventoryOpen || bPauseOpen || bDialogueOpen || bMechanismsOpen; }
     UPROPERTY(BlueprintReadOnly) FString PlayerVitals;
     UPROPERTY(BlueprintReadOnly) FString CarriedSummary;
     UPROPERTY(BlueprintReadOnly) FString NearbyPrompt;
     UPROPERTY(BlueprintReadOnly) FString ConsumePrompt;
     UPROPERTY(BlueprintReadOnly) FString DropPrompt;
     FString NearbyInteraction, ConsumeInteraction, DropInteraction;
+    bool bInventoryOpen=false,bPauseOpen=false;
+    int32 UISelection=0;
+    FString OpenContainerId,OpenContainerName;
+    TArray<FString> InventoryItemIds,InventoryItemLabels,ContainerItemIds,ContainerItemLabels;
     FString TalkTargetBody;
     bool bDialogueOpen = false;
     FString DialogueSpeaker, DialogueOccupation;
@@ -91,6 +102,8 @@ public:
         return FVector((Metres.X - CanonicalOrigin.X) * UnitsPerMetre, (Metres.Z - CanonicalOrigin.Z) * UnitsPerMetre, (Metres.Y - CanonicalOrigin.Y) * UnitsPerMetre + 90);
     }
     UPROPERTY() TMap<FString, TObjectPtr<ATVCharacter>> Bodies;
+    /** Complete current observed set. Missing rows withdraw presentation; only dead=true is death. */
+    UPROPERTY() TMap<FString, TObjectPtr<ATVWildlifePresentation>> WildlifeBodies;
 private:
     TSharedPtr<IWebSocket> Socket;
     FString SelectedBody;

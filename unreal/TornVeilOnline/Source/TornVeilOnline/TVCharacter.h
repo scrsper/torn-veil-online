@@ -2,6 +2,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "TVHumanoidVisualState.h"
+#include "TVLocomotionCameraPresentation.h"
 #include "TVCharacter.generated.h"
 
 class USpringArmComponent;
@@ -58,6 +59,12 @@ public:
     void Consume();
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
     void Drop();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void Inventory();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void PauseMenu();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void UIBack();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void UIUp();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void UIDown();
+    UFUNCTION(BlueprintCallable,Category="Torn Veil|Input") void UIConfirm();
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input") void Dialogue1();
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input") void Dialogue2();
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input") void Dialogue3();
@@ -106,6 +113,7 @@ private:
     UPROPERTY() TObjectPtr<UAnimationAsset> DownAnimation;
     UPROPERTY() TObjectPtr<UAnimationAsset> CurrentAnimation;
     FVector TargetPosition = FVector::ZeroVector, PreviousPosition = FVector::ZeroVector, CanonicalVelocity = FVector::ZeroVector;
+    FVector PreviousPresentationVelocity = FVector::ZeroVector;
     float TargetYaw = 0, SnapshotAge = 0, ZoomTarget = 340, ForwardAxis = 0, RightAxis = 0;
     double CombatMotionUntil=0;
     /** Presentation speed derived from the canonical horizontal velocity (Unreal units/s). */
@@ -128,7 +136,8 @@ private:
     void AnimateCrouch(float Amount,float Dt);
     void ReleaseCrouch(); void LoseFocus(); void HeavyTrigger(float Value); void PracticePhysiology();
     bool bHeavyTrigger=false; double CanonicalCrouch=0,PreviousCrouch=0;float CrouchTime=0;
-    bool bWasChoreography=false;float PoseBlendAge=1,LocomotionTime=0;
+    bool bWasChoreography=false,bPresentationTransitionPending=false;float PoseBlendAge=1,LocomotionTime=0,PreviousPresentationYaw=0,PresentationFootPlant=0,CameraShoulderSign=1;
+    FTVLocomotionCameraSignal LocomotionCameraSignal;
     UPROPERTY() TMap<FString,TObjectPtr<UAnimationAsset>> CrouchAnimations;
     void ApplyAppearance(const FTVAppearanceVisualState& Appearance);
     /** A recognised class is a reading of someone's life, not a badge they wear. A passer-by cannot

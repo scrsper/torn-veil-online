@@ -16,6 +16,7 @@
 #include "Engine/ExponentialHeightFog.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Components/ExponentialHeightFogComponent.h"
+#include "TVItemPresentationCatalog.h"
 
 static const FString Kit = TEXT("/Game/ThirdParty/Quaternius/Meshes/");
 static const FString Mat = TEXT("/Game/TornVeil/Materials/");
@@ -129,7 +130,7 @@ void ATVRegionProjection::PCGFinished(UPCGComponent* Component) { PCGMillisecond
 void ATVRegionProjection::UpdateDynamic(const TSharedPtr<FJsonObject>& Data) {
     const auto InRegion=[this](const FVector& P) { return P.X>=CanonicalBase.X && P.X<CanonicalBase.X+256 && P.Y>=CanonicalBase.Y && P.Y<CanonicalBase.Y+256; };
     auto Filtered=MakeShared<FJsonObject>();
-    for(const auto Key:{TEXT("resources"),TEXT("items"),TEXT("crops"),TEXT("mechanisms"),TEXT("doors"),TEXT("fires"),TEXT("construction")}) { TArray<TSharedPtr<FJsonValue>> A; for(const auto& V:Rows(Data,Key)) if(InRegion(Position(V->AsObject()->GetObjectField(TEXT("pos"))))) A.Add(V); Filtered->SetArrayField(Key,A); }
+    for(const auto Key:{TEXT("resources"),TEXT("items"),TEXT("containers"),TEXT("crops"),TEXT("mechanisms"),TEXT("doors"),TEXT("fires"),TEXT("construction")}) { TArray<TSharedPtr<FJsonValue>> A; for(const auto& V:Rows(Data,Key)) if(InRegion(Position(V->AsObject()->GetObjectField(TEXT("pos"))))) A.Add(V); Filtered->SetArrayField(Key,A); }
     FString Signature; FJsonSerializer::Serialize(Filtered,TJsonWriterFactory<>::Create(&Signature)); if(Signature==DynamicSignature) return; DynamicSignature=Signature;
     for(auto& Pair:Batches) if(Pair.Key.StartsWith(TEXT("dynamic:"))) Pair.Value->ClearInstances();
     for(auto It=CanonicalVisuals.CreateIterator();It;++It) if(It.Value().Num() && It.Value()[0].StartsWith(TEXT("dynamic:"))) It.RemoveCurrent();
@@ -140,7 +141,8 @@ void ATVRegionProjection::UpdateDynamic(const TSharedPtr<FJsonObject>& Data) {
     }
     for(const auto& V:Rows(Filtered,TEXT("crops"))) { const auto P=V->AsObject(); const FString State=S(P,TEXT("state")); if(State==TEXT("fallow")) continue; const float H=State==TEXT("mature")?85:State==TEXT("harvested")?12:20+N(P,TEXT("growth"))*60;
         Piece(S(P,TEXT("id")),TEXT("/Engine/BasicShapes/Cone"),Position(P->GetObjectField(TEXT("pos")))*100+FVector(50,50,H/2),FVector(24,24,H),0,Mat+(State==TEXT("mature")?TEXT("M_TV_RipeCrop"):TEXT("M_TV_ValleyFoliage")),true); }
-    for(const auto& V:Rows(Filtered,TEXT("items"))) { const auto P=V->AsObject(); Piece(S(P,TEXT("id")),Kit+TEXT("Floor_WoodDark"),Position(P->GetObjectField(TEXT("pos")))*100+FVector(0,0,12),FVector(30,25,24),0,TEXT(""),true); }
+    for(const auto& V:Rows(Filtered,TEXT("items"))) { const auto P=V->AsObject();const auto D=FTVItemPresentationCatalog::Describe(S(P,TEXT("type")));Piece(S(P,TEXT("id")),D.MeshPath,Position(P->GetObjectField(TEXT("pos")))*100+FVector(0,0,D.HeightOffset),D.Size,D.Yaw,TEXT(""),true); }
+    for(const auto& V:Rows(Filtered,TEXT("containers"))) { const auto P=V->AsObject();bool Open=false;P->TryGetBoolField(TEXT("open"),Open);Piece(S(P,TEXT("id")),TEXT("/Engine/BasicShapes/Cube"),Position(P->GetObjectField(TEXT("pos")))*100+FVector(0,0,34),FVector(75,45,Open?20:55),0,Mat+TEXT("M_TV_CharacterCloth"),true); }
     for(const auto& V:Rows(Filtered,TEXT("mechanisms"))) { const auto P=V->AsObject(); const FVector Pos=Position(P->GetObjectField(TEXT("pos")))*100; for(int I=0;I<N(P,TEXT("parts"));I++) Piece(S(P,TEXT("id")),Kit+TEXT("Roof_Support2"),Pos+FVector(I*25,0,60),FVector(20,50,120),N(P,TEXT("condition"),1)<.5?20:FMath::Fmod(N(P,TEXT("operatedSeconds"))*90,360),TEXT(""),true); }
     for(const auto& V:Rows(Filtered,TEXT("construction"))) { const auto P=V->AsObject(); if(S(P,TEXT("state"))==TEXT("complete")) continue; const auto B=P->GetObjectField(TEXT("bounds")); const float H=50+200*N(P,TEXT("progress")); for(int I=0;I<4;I++) Piece(S(P,TEXT("id")),Kit+TEXT("Roof_Support2"),FVector(N(B,I%2?TEXT("x1"):TEXT("x0"))*100,N(B,I<2?TEXT("z0"):TEXT("z1"))*100,N(B,TEXT("y0"))*100+H/2),FVector(25,25,H),0,TEXT(""),true); }
     for(const auto& V:Rows(Filtered,TEXT("doors"))) { const auto P=V->AsObject(); bool Open=false; P->TryGetBoolField(TEXT("open"),Open); Piece(S(P,TEXT("id")),Kit+TEXT("Door_1_Flat"),Position(P->GetObjectField(TEXT("pos")))*100+FVector(50,50,100),FVector(100,12,200),N(P,TEXT("yaw"))+(Open?90:0),TEXT(""),true); }
