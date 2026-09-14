@@ -337,6 +337,22 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
         || e.pendingWorldSeconds < 0 || e.pendingPhysicalSeconds < 0) return null;
       for (const spec of Object.values(e.species)) validateWildlifeSpec(spec);
       for (const animal of world.creatures()) if (animal.wildlife && !e.species[animal.species]) return null;
+      if (e.interaction && (!Number.isFinite(e.interaction.senseRemainingSeconds)
+        || e.interaction.senseRemainingSeconds < 0 || e.interaction.senseRemainingSeconds > 0.2 + 1e-8)) return null;
+      for (const animal of world.creatures()) for (const [bodyId, state] of Object.entries(animal.wildlife?.embodiments ?? {})) {
+        const c = state.encounter; if (!c) continue;
+        const body = world.body(bodyId);
+        if (!e.interaction || !body || body.ownerId !== animal.id || !animal.bodies.includes(bodyId) || typeof c.active !== 'boolean'
+          || ![c.nextRouteAt, c.accountedWorldSeconds, c.accountedPhysicalSeconds, c.walkingWorldSeconds, c.sleepingWorldSeconds].every(Number.isFinite)
+          || c.accountedWorldSeconds < 0 || c.accountedWorldSeconds > e.pendingWorldSeconds + 1e-7
+          || c.accountedPhysicalSeconds < 0 || c.accountedPhysicalSeconds > e.pendingPhysicalSeconds + 1e-7
+          || c.walkingWorldSeconds < 0 || c.walkingWorldSeconds > c.accountedWorldSeconds + 1e-7
+          || c.sleepingWorldSeconds < 0 || c.walkingWorldSeconds + c.sleepingWorldSeconds > c.accountedWorldSeconds + 1e-7
+          || (c.intake && (typeof c.intake.nodeId !== 'string' || !['eat', 'drink'].includes(c.intake.activity)
+            || !Number.isFinite(c.intake.worldSeconds) || c.intake.worldSeconds < 0
+            || c.intake.worldSeconds + c.walkingWorldSeconds + c.sleepingWorldSeconds > c.accountedWorldSeconds + 1e-7))
+          || (c.threat && (typeof c.threat.bodyId !== 'string' || ![c.threat.pos?.x, c.threat.pos?.y, c.threat.pos?.z, c.threat.seenAt].every(Number.isFinite)))) return null;
+      }
     }
     world.pendingStimuli = (data.pendingStimuli ?? []).flatMap((id: string) => { const e = world.event(id); return e ? [e] : []; });
     if (data.runTally) world.runTally = { ...data.runTally };

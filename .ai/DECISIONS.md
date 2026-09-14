@@ -1,5 +1,25 @@
 # Durable design decisions
 
+## Wildlife on the realtime foundation
+
+- Live interaction schedules active wildlife physical motion once per interval; the 20 Hz
+  slow pass must not schedule it a second time. Biological/resource/lifecycle work stays on
+  900 world seconds. Per-manifestation ledgers persist accounted motion, sleep and local intake
+  attempts, preventing elapsed-time duplication across activation, deactivation and loading.
+- Scheduling relevance is independent of animal knowledge. All living Person manifestations
+  can be a nearby disturbance; only species-bounded sight establishes a threat. Active bodies
+  without a sensed threat continue their ordinary ecological needs and physical targets.
+- `World.nearbyPhysicalBodies` uses the existing watched body index for Person and Creature
+  presence, optionally including corpses. It does not attach Person cognition or admit animal
+  combat. Wildlife mate/density sensing uses this query; broad human planner migration is deferred.
+- Wildlife projection is a detached, current observation. An omitted body leaves presentation
+  residency; an observed `dead:true` establishes death. Neither region requests nor rendering
+  spawn, remove, replenish or move canonical wildlife/resources. Normal projection excludes
+  internal reserves, reproductive state, routes, targets and threat memories.
+- Save version 24 / ecology version 1 gain optional interaction countdown and per-body activity
+  ledgers. The existing realtime execution cadence remains independent and persistent. See
+  `docs/WILDLIFE_REALTIME_INTEGRATION_V0_1.md` for scope and conservative intake settlement.
+
 ## Canonical live combat contact and defense
 
 - An accepted attack starts a persistent body action; it does not establish a hit. Preparation,

@@ -143,6 +143,16 @@ export class World {
   private itemSpace = new SpatialIndex<Item>();
   private placeSpace = new SpatialIndex<Place>();
   nearbyBodies(pos: Vec3, radius: number): Body[] { return this.bodySpace.query(pos, radius).filter(b => this.livingBodiesSet.has(b.id) && Math.hypot(b.pos.x - pos.x, b.pos.z - pos.z) <= radius); }
+  /** Shared physical broad phase, independent of Person cognition/living-person upkeep.
+   * Death and withdrawal are separate: a corpse remains present until explicitly removed.
+   * Callers still owe their own sight/reach checks. Uses the existing watched body index. */
+  nearbyPhysicalBodies(pos: Vec3, radius: number, includeDead = false): Body[] {
+    return this.bodySpace.query(pos, radius).filter(b => {
+      const owner = this.get<Person | Creature>(b.ownerId);
+      return b.present && (includeDead || !b.dead) && (owner?.kind === 'person' || owner?.kind === 'creature')
+        && owner.bodies.includes(b.id) && Math.hypot(b.pos.x - pos.x, b.pos.y - pos.y, b.pos.z - pos.z) <= radius;
+    });
+  }
   nearbyItems(pos: Vec3, radius: number): Item[] { return this.itemSpace.query(pos, radius).filter(i => !i.holderId && i.pos && Math.hypot(i.pos.x - pos.x, i.pos.z - pos.z) <= radius); }
   nearbyPlaces(pos: Vec3, radius: number): Place[] { return this.placeSpace.query(pos, radius).filter(p => Math.hypot(p.inside.x - pos.x, p.inside.z - pos.z) <= radius); }
   spatialStats() { return { bodyCandidates: this.bodySpace.candidates, itemCandidates: this.itemSpace.candidates, placeCandidates: this.placeSpace.candidates }; }

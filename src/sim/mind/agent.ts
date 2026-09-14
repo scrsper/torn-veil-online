@@ -35,6 +35,7 @@ import { pickHaulTask, claimHaulTask, loadHaulCargo, depositHaulCargo, failHaulT
 import { generateProductionNeeds, claimedProductionRequest, fulfillProductionRequest } from '../world/production';
 import { nearestAvailableNode, extractFromNode, maintainResourceNodes } from '../world/resources';
 import { stepWildlife } from '../ecology/simulation';
+import { stepWildlifeInteraction } from '../ecology/interaction';
 import { stepConstruction, activeBuildProjects, performBuildLabor, MAX_BUILDERS } from '../world/construction';
 import { stepFire, igniteFire, feedFire, fireIntensityAt, fireAt } from '../world/fire';
 import { willingnessFor, unitPriceFor, tradeOffersFrom, refusalsFrom, purchaseUnits, type TradeOffer, type Refusal, type PurchaseResult } from '../world/commerce';
@@ -153,6 +154,7 @@ export class Simulation {
   /** The external interaction clock advances world time once. Accumulate unchanged slow
    * systems here; persist fractional cadence so save/load cannot discard elapsed upkeep. */
   stepScheduled(physical: number, world: number, before=captureCombatTransforms(this.world)): void {
+    stepWildlifeInteraction(this.world, physical, world);
     this.interactionPhysical+=physical;this.interactionWorld+=world;
     if(this.interactionPhysical>=.05-1e-9) {
       const pd=this.interactionPhysical,wd=this.interactionWorld;
@@ -266,7 +268,13 @@ export class Simulation {
       if (!isExternallyControlled(p) || hasExternalIntention(p)) { const t0 = this.mark(); this.act(p, body, physDt, worldDt); this.accum('act', t0); if(isExternallyControlled(p) && !p.mind.plan.some(a => a.status === 'active' || a.status === 'pending')) finishExternalIntention(p); }
       if (p.speech && p.speech.until < w.physicalTime) p.speech = null;
     }
-    { const t0 = this.mark(); stepWildlife(w, physDt, worldDt); for (const c of w.creatures()) if (!c.wildlife && c.species === 'chicken') this.creatureStep(c, physDt); this.accum('creatures', t0); }
+    { const t0 = this.mark();
+      // A restored live encounter retains its interaction clock even through a headless
+      // caller. Background-only ecology scenarios keep their original coarse entry point.
+      if (!scheduled) (w.ecology?.interaction ? stepWildlifeInteraction : stepWildlife)(w, physDt, worldDt);
+      for (const c of w.creatures()) if (!c.wildlife && c.species === 'chicken') this.creatureStep(c, physDt);
+      this.accum('creatures', t0);
+    }
     // 4. body physics for all non-player bodies
     { const t0 = this.mark(); for (const b of w.activeBodies()) { const owner = w.get(b.ownerId) as Person | undefined; if (isExternallyControlled(owner)) continue; this.bodyPhysics(b, physDt); } this.accum('bodyPhysics', t0); }
     if(combatBefore)this.stepCombat(physDt,combatBefore);
