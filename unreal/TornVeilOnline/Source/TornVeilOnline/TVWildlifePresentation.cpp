@@ -48,6 +48,7 @@ bool ATVWildlifePresentation::Project(const TSharedPtr<FJsonObject>& D,const FVe
 }
 
 void ATVWildlifePresentation::Tick(float Dt) {
+    const double TickStarted=FPlatformTime::Seconds();
     Super::Tick(Dt);SnapshotAge+=Dt;VisualAge+=Dt;
     const FVector Error=TargetPosition-GetActorLocation();
     if(Error.Size()>500)SetActorLocation(TargetPosition);else SetActorLocation(FMath::Lerp(PreviousPosition,TargetPosition,FMath::Clamp(SnapshotAge/.10f,0.f,1.f)));
@@ -64,6 +65,7 @@ void ATVWildlifePresentation::Tick(float Dt) {
     else VisualRoot->SetRelativeRotation(FRotator::ZeroRotator);
     Torso->SetRelativeLocation(FVector(0,0,TorsoZ));Torso->SetRelativeRotation(FRotator(TorsoPitch,0,0));
     Head->SetRelativeLocation(FVector(58,0,HeadZ));Head->SetRelativeRotation(FRotator(HeadPitch,0,0));
+    const double TickMs=(FPlatformTime::Seconds()-TickStarted)*1000.;TickTotalMs+=TickMs;TickMaxMs=FMath::Max(TickMaxMs,TickMs);TickSamples++;
 }
 
 void ATVWildlifePresentation::RebasePresentation(const FVector& Delta){PreviousPosition+=Delta;TargetPosition+=Delta;SetActorLocation(GetActorLocation()+Delta);}
@@ -72,6 +74,7 @@ FString ATVWildlifePresentation::PresentationDiagnostics() const {
     auto J=MakeShared<FJsonObject>();J->SetStringField(TEXT("bodyId"),BodyId);J->SetStringField(TEXT("creatureId"),CreatureId);
     J->SetStringField(TEXT("speciesId"),SpeciesId);J->SetStringField(TEXT("activity"),Activity);J->SetBoolField(TEXT("dead"),bDead);
     J->SetNumberField(TEXT("condition"),Condition);J->SetNumberField(TEXT("speedCmPerSecond"),CanonicalVelocity.Size2D());
+    J->SetNumberField(TEXT("tickSamples"),TickSamples);J->SetNumberField(TEXT("tickMeanMs"),TickSamples?TickTotalMs/TickSamples:0);J->SetNumberField(TEXT("tickMaxMs"),TickMaxMs);
     J->SetBoolField(TEXT("canonicalAuthority"),false);J->SetStringField(TEXT("asset"),TEXT("Engine basic-shape temporary proxy"));
     FString Out;FJsonSerializer::Serialize(J,TJsonWriterFactory<>::Create(&Out));return Out;
 }

@@ -28,5 +28,7 @@ private:
     UPROPERTY() TArray<TObjectPtr<UStaticMeshComponent>> Legs;
     FVector PreviousPosition=FVector::ZeroVector,TargetPosition=FVector::ZeroVector,CanonicalVelocity=FVector::ZeroVector;
     float TargetYaw=0,SnapshotAge=0,VisualAge=0,VisualScale=1,Condition=1;
+    double TickTotalMs=0,TickMaxMs=0;
+    int64 TickSamples=0;
     FVector ProjectedPosition(const TSharedPtr<class FJsonObject>& Position,const FVector& Origin,float Units) const;
 };
