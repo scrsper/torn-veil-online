@@ -50,7 +50,7 @@ export function makePerson(world: World, s: PersonSpec): Person {
 export function makeItem(world: World, type: ItemType, name: string, o: { owner?: EntityId | null; holder?: EntityId | null; pos?: Vec3 | null; placeId?: EntityId | null; value?: number; damage?: number; quantity?: number; description?: string; named?: boolean; tags?: string[]; condition?: number } = {}): Item {
   const it: Item = {
     id: world.nextId('i'), kind: 'item', name, createdAt: world.now, tags: o.tags ?? [], type, ownerId: o.owner ?? null, holderId: o.holder ?? null,
-    pos: o.pos ? { ...o.pos } : null, placeId: o.placeId ?? null, provenance: [], value: o.value ?? ITEM_VALUE[type], damage: o.damage ?? ITEM_DAMAGE[type] ?? 0, quantity: o.quantity ?? 1,
+    pos: o.pos ? { ...o.pos } : null, placeId: o.placeId ?? null, containerId: null, provenance: [], value: o.value ?? ITEM_VALUE[type], damage: o.damage ?? ITEM_DAMAGE[type] ?? 0, quantity: o.quantity ?? 1,
     description: o.description ?? '', named: !!o.named,
     condition: o.condition ?? (TOOL_TYPES.has(type) ? 1 : undefined),
   };

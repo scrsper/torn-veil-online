@@ -1,6 +1,6 @@
 import { SpatialIndex, watchGeometry, watchValue } from './spatial';
 import { emptyKernel } from '../kernel/types';
-import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Faction, Creature, WeatherState, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation, WorkStint, Household, ChronicleEra, Settlement } from './types';
+import type { Entity, EntityId, WorldEvent, EventId, EventType, EventCategory, Vec3, Person, Body, Item, Place, Container, Faction, Creature, WeatherState, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation, WorkStint, Household, ChronicleEra, Settlement } from './types';
 import { WorldClock } from './time';
 import { RNG } from './rng';
 import { VoxelGrid } from '../physical/grid';
@@ -207,6 +207,7 @@ export class World {
   body(id: EntityId | null | undefined): Body | undefined { const e = this.get(id); return e && e.kind === 'body' ? (e as Body) : undefined; }
   item(id: EntityId | null | undefined): Item | undefined { const e = this.get(id); return e && e.kind === 'item' ? (e as Item) : undefined; }
   place(id: EntityId | null | undefined): Place | undefined { const e = this.get(id); return e && e.kind === 'place' ? (e as Place) : undefined; }
+  container(id: EntityId | null | undefined): Container | undefined { const e = this.get(id); return e && e.kind === 'container' ? (e as Container) : undefined; }
   faction(id: EntityId | null | undefined): Faction | undefined { const e = this.get(id); return e && e.kind === 'faction' ? (e as Faction) : undefined; }
   /** Backed by the per-kind index (see `byKind` above) — O(matching entities), not O(all
    * entities). Kept as a generator for existing callers/signature compatibility. */
@@ -218,6 +219,7 @@ export class World {
   bodies(): Body[] { return (this.byKind.get('body') as Body[] | undefined) ?? []; }
   items(): Item[] { return (this.byKind.get('item') as Item[] | undefined) ?? []; }
   places(): Place[] { return (this.byKind.get('place') as Place[] | undefined) ?? []; }
+  containers(): Container[] { return (this.byKind.get('container') as Container[] | undefined) ?? []; }
   creatures(): Creature[] { return (this.byKind.get('creature') as Creature[] | undefined) ?? []; }
   settlements(): Settlement[] { return (this.byKind.get('settlement') as Settlement[] | undefined) ?? []; }
   settlementOf(person: Person): Settlement | undefined { const e = this.get<Settlement>(this.place(person.homeId)?.settlementId); return e?.kind === 'settlement' ? e : undefined; }
