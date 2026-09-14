@@ -36,6 +36,7 @@ import { generateProductionNeeds, claimedProductionRequest, fulfillProductionReq
 import { nearestAvailableNode, extractFromNode, maintainResourceNodes } from '../world/resources';
 import { stepWildlife } from '../ecology/simulation';
 import { stepWildlifeInteraction } from '../ecology/interaction';
+import { observeTechnique } from './martialKnowledge';
 import { stepConstruction, activeBuildProjects, performBuildLabor, MAX_BUILDERS } from '../world/construction';
 import { stepFire, igniteFire, feedFire, fireIntensityAt, fireAt } from '../world/fire';
 import { willingnessFor, unitPriceFor, tradeOffersFrom, refusalsFrom, purchaseUnits, type TradeOffer, type Refusal, type PurchaseResult } from '../world/commerce';
@@ -358,7 +359,12 @@ export class Simulation {
     // Execution phases remain canonical history. Visible preparation is consumed through
     // the provenance-bearing combat cue, shared by controlled and autonomous minds.
     // Learning each phase as an independent social fact made memory a protocol transcript.
-    if(e.type==='combat_action')return;
+    if(e.type==='combat_action'){
+      if(how==='saw'&&e.data.martialDemonstration&&!e.perceivedBy.some(x=>x.who===p.id)){
+        e.perceivedBy.push({who:p.id,how,tick:w.now});observeTechnique(w,p,e.id);
+      }
+      return;
+    }
     if (e.perceivedBy.some(x => x.who === p.id)) return;
     e.perceivedBy.push({ who: p.id, how, tick: w.now });
     if (e.type === 'told') { if (e.target !== p.id) return; return; } // handled directly in tell()

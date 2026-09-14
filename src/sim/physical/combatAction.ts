@@ -13,6 +13,7 @@ import { advancePostures,beginCrouch,crouchHeld,setCrouchHeld } from './posture'
 import { postureFits } from './prediction';
 import { COMBAT_REPERTOIRE,nextUnarmedMove,precedingStrike } from './combatRepertoire';
 import { arenaRepertoire,combatEffortScale } from './combatPracticeProfile';
+import { bindMartialLabel,settleCombatLearning } from './martialCombat';
 
 export const combatBusy=(b:Body,at:number)=>!!b.combatAction&&b.combatAction.completeAt>at;
 export const combatPosture=(a:CombatAction|undefined,at:number):number=> !a||a.kind!=='duck'||a.outcome==='cancelled'||a.outcome==='interrupted'?0:
@@ -21,9 +22,11 @@ const angle=(x:number)=>Math.atan2(Math.sin(x),Math.cos(x));
 function phase(w:World,a:CombatAction,p:CombatPhase,at:number):WorldEvent {
   a.phase=p;
   const b=w.body(a.actorBodyId)!;
-  return w.emit('combat_action',{actor:b.ownerId,target:a.targetBodyId?w.body(a.targetBodyId)?.ownerId:undefined,
-    pos:{...b.pos},visibility:p==='preparation'?26:0,loudness:p==='preparation'?4:0,causes:a.eventId?[a.eventId]:[],
-    data:{actionId:a.id,actorBodyId:b.id,phase:p,physicalTime:at,kind:a.kind},summary:`${w.nameOf(b.ownerId)} ${a.kind}: ${p}`});
+  const event=w.emit('combat_action',{actor:b.ownerId,target:a.targetBodyId?w.body(a.targetBodyId)?.ownerId:undefined,
+    pos:{...b.pos},visibility:p==='preparation'?26:p==='complete'&&a.martialDemonstration&&a.stoppedAt===undefined?8:0,loudness:p==='preparation'?4:0,causes:a.eventId?[a.eventId]:[],
+    data:{actionId:a.id,actorBodyId:b.id,phase:p,physicalTime:at,kind:a.kind,techniqueId:a.techniqueId},summary:`${w.nameOf(b.ownerId)} ${a.kind}: ${p}`});
+  if(p==='complete'||p==='interrupted')settleCombatLearning(w,a,event,at);
+  return event;
 }
 function base(w:World,b:Body,kind:CombatAction['kind'],commandId?:string):CombatAction {
   const t=w.physicalTime;
@@ -54,6 +57,7 @@ export function requestCombatAction(w:World,intent:CombatAttackIntent,commandId?
     a.moveId=nextUnarmedMove(b.combatAction,w.physicalTime,a.trajectory==='low',arenaRepertoire(w,b.id));a.repertoireRevision=2;
     const move=COMBAT_REPERTOIRE.moves[a.moveId];a.variant=move.variant as typeof a.variant;
     a.activeAt=a.startedAt+move.preparation;a.recoveryAt=a.activeAt+move.active;a.completeAt=a.recoveryAt+move.recovery;a.trackingUntil=a.activeAt-.1;
+    bindMartialLabel(w,p,b,a);
   }
   b.lastAttackAt=w.physicalTime;b.attackSeq++;b.pose='attack';b.poseUntil=a.completeAt;b.attackTarget=r.targetId;
   accept(w,p,b,a);r.actionId=a.id;return r;
@@ -67,6 +71,7 @@ export function requestDefense(w:World,bodyId:string,kind:DefenseKind,side=1,com
   if(!['sidestep','backstep','duck'].includes(kind)||![-1,1].includes(side))return 'invalid_command';
   const a=base(w,b,kind,commandId);a.repertoireRevision=2;
   if(kind!=='duck'&&b.combatAction?.kind==='attack')a.priorStrike=precedingStrike(b.combatAction,w.physicalTime);
+  bindMartialLabel(w,p,b,a);
   if(kind==='duck'){a.recoveryAt=a.startedAt+S.duckRecoveryAt;a.completeAt=a.startedAt+S.duckSeconds;}
   a.exertionCost=S.defenseEffort;
   a.distance=kind==='sidestep'?S.sidestepMetres:kind==='backstep'?S.backstepMetres:0;

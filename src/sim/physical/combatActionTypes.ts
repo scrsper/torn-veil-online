@@ -20,6 +20,11 @@ export interface CombatAction {
   moveId?:import('./combatRepertoire').CombatMoveId; repertoireRevision?:1|2;
   /** Last executed unarmed strike carried through one step for deterministic follow-up selection. */
   priorStrike?:import('./combatRepertoire').CombatMoveId;
+  /** Mechanical technique identity labeling the moveId/kind the existing repertoire/defense
+   * system already chose, preferring an actually learned technique over the shared innate
+   * motor primitive. Never influences which moveId/variant/timing/geometry executes. */
+  techniqueId?:string; transitionTechniqueId?:string; previousTechniqueId?:string;
+  martialDemonstration?:Record<string,unknown>; learningEventId?:string;
   queuedInput?: CombatInput & { expiresAt:number };
   contact?:{bodyId:string;region:ContactRegion;position:Vec3;at:number;eventId?:string};
   stoppedAt?:number; stopReason?:string;

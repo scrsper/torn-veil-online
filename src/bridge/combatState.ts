@@ -2,11 +2,13 @@ import type { Body } from '../sim/core/types';
 import type { World } from '../sim/core/world';
 import { combatPosture } from '../sim/physical/combatAction';
 import { getPhysicalCapability } from '../sim/core/attributes';
+import { techniqueDefinition } from '../sim/core/martialDefinitions';
 /** Physical execution allowlist. Never project force, intent, hidden target, or cognition. */
 export function combatState(w:World,b:Body,decidedAtMs?:number) {
   const a=b.combatAction;if(!a)return null;
   const p=w.person(b.ownerId),cap=p?getPhysicalCapability(p,w,{body:b}):null;
   return {id:a.id,commandId:a.commandId,actorBodyId:b.id,kind:a.kind,definition:a.definition,
+    techniqueId:a.techniqueId,techniqueName:a.techniqueId?techniqueDefinition(w,a.techniqueId)?.name:undefined,
     trajectory:a.trajectory,variant:a.variant,moveId:a.moveId,priorStrike:a.priorStrike,repertoireRevision:a.repertoireRevision,startedAt:a.startedAt,activeAt:a.activeAt,recoveryAt:a.recoveryAt,completeAt:a.completeAt,
     phase:a.phase,outcome:a.outcome,facing:a.facing,direction:{...a.direction},distance:a.distance,
     reach:a.reach,radius:a.radius,duck:combatPosture(a,w.physicalTime),
