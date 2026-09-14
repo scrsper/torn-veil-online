@@ -1,3 +1,25 @@
+# Realtime combat consolidated with wildlife main — 2026-09-13
+
+Branch `codex/realtime-interaction-v0-1`; normal merge `ee93cff` joins combat `b5693ad`
+and wildlife-containing main `5877a72`. Final source checkpoint `b9ba86a`.
+Report: `docs/REALTIME_WILDLIFE_MAIN_INTEGRATION.md`; compact evidence:
+`docs/evidence/realtime/wildlife-main-integration.json`.
+
+- Both canonical systems are retained. Wildlife advances once through the slow scheduler;
+  combat retains its 60 Hz contact authority. Schema 24 keeps ecology and execution remainders,
+  RNG, bodies, resource depletion and combat history. Playable load does not reseed wildlife.
+- Initial focused checks: 242/242 in 25 files. One full local run: 916/919 in 92 files,
+  1438.78 seconds; historical motivated-life family trace passed. All three other failures
+  reproduced on pre-merge combat. A pre-start combat interruption timestamp was corrected;
+  robbery and assault fixtures now establish physical passage/witness preconditions.
+- Final affected checks: 126/126 in 15 files. Typecheck, production build and generated spec
+  pass. One native Editor build and all 10 Realtime automation tests pass. Native assets/code
+  and contact geometry were not retuned. The PR CI gate supplies final full regression.
+- The family experiment is restored uncommitted; original raw evidence/assets and concurrent
+  presentation-planning work remain outside integration commits. No family-priority changes.
+- User subsequently authorized merging the PR when verification and PR checks permit it.
+  No final combat-polish, rendered PvP or human animation approval is claimed.
+
 # Continuous combat flow v0.3 � human playtest checkpoint, 2026-09-13
 
 Branch `codex/realtime-interaction-v0-1`, base `53901d5`, implementation `7fd8f10`.
