@@ -1,10 +1,19 @@
 #include "TVGameMode.h"
 #include "TVCharacter.h"
 #include "TVBridgeSubsystem.h"
+#include "TVPlayableLighting.h"
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Kismet/GameplayStatics.h"
 ATVGameMode::ATVGameMode() { DefaultPawnClass = ATVCharacter::StaticClass(); HUDClass = ATVHUD::StaticClass(); }
+void ATVGameMode::StartPlay() {
+    if (GetWorld()->GetMapName().EndsWith(TEXT("TornVeilWorld"))) {
+        const FString Error = UTVPlayableLighting::EnsureDaylight(GetWorld());
+        if (!Error.IsEmpty()) { UE_LOG(LogTemp, Error, TEXT("TV_DAYLIGHT_INVALID: %s"), *Error); }
+        else { UE_LOG(LogTemp, Display, TEXT("TV_DAYLIGHT_READY: movable sun 12000 lux; sky capture; EV100 12; Lumen")); }
+    }
+    Super::StartPlay();
+}
 void ATVHUD::DrawHUD() {
     Super::DrawHUD(); auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>(); if (!B || !Canvas) return;
     DrawRect(FLinearColor(0.015f, 0.02f, 0.035f, 0.85f), 20, 20, B->bArena?960:660, B->bArena?145:100);

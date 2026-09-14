@@ -4,5 +4,6 @@ public class TornVeilOnline : ModuleRules {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "WebSockets", "Json", "JsonUtilities", "UMG", "PCG", "ProceduralMeshComponent", "AnimGraphRuntime", "AnimationCore" });
         if (Target.bBuildEditor) PrivateDependencyModuleNames.Add("ApplicationCore"); // native keyboard acceptance
+        PrivateDependencyModuleNames.Add("ImageCore"); // completed Lit-frame acceptance readback
     }
 }
