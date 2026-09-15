@@ -20,6 +20,7 @@ enum class ETVUICommand : uint8
     EatItem,
     Back,
     Pause,
+    SaveWorld,
 };
 
 USTRUCT(BlueprintType)
@@ -74,6 +75,7 @@ class TORNVEILONLINE_API UTVUICommandButton : public UButton
 public:
     void Configure(FTVUICommandRequested* InSink, ETVUICommand InCommand, const FString& InPrimary, const FString& InSecondary, int32 InIndex);
     void SetLabel(const FString& Label);
+    void SetCommandSink(FTVUICommandRequested* InSink) { Sink = InSink; }
 protected:
     virtual TSharedRef<SWidget> RebuildWidget() override;
     virtual void SynchronizeProperties() override;
@@ -96,7 +98,7 @@ public:
     virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
     virtual UWidget* NativeGetDesiredFocusTarget() const override;
     virtual TOptional<FUIInputConfig> GetDesiredInputConfig() const override;
-    void SetCommandDelegate(FTVUICommandRequested* InDelegate) { CommandDelegate = InDelegate; }
+    void SetCommandDelegate(FTVUICommandRequested* InDelegate);
     void SetBackAction(UInputAction* InAction) { BackAction = InAction; }
 protected:
     FTVUICommandRequested* CommandDelegate = nullptr;
@@ -188,8 +190,6 @@ UCLASS(Blueprintable)
 class TORNVEILONLINE_API UTVMenuWidget : public UTVCommonActivatableWidget
 {
     GENERATED_BODY()
-public:
-    void SetCommandDelegate(FTVUICommandRequested* InDelegate) { CommandDelegate = InDelegate; }
 protected:
     virtual TSharedRef<SWidget> RebuildWidget() override;
     virtual void NativeConstruct() override;

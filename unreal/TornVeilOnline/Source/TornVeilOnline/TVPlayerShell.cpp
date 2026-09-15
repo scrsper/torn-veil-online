@@ -70,6 +70,7 @@ void UTVBridgeSubsystem::UICommand(ETVUICommand Command,const FString& Primary,c
     if(Command==ETVUICommand::Back){if(bDialogueOpen)CloseDialogue();if(PlayerShell&&PlayerShell->HasModalScreen())PlayerShell->CloseTop();return;}
     if(Command==ETVUICommand::Pause){TogglePause();return;}
     if(!IsLive())return;
+    if(Command==ETVUICommand::SaveWorld){SaveWorld();return;}
     if(Command==ETVUICommand::Interact){if(Primary==FocusedTargetId&&Secondary==FocusedActionId)Interact();return;}
     auto M=MakeShared<FJsonObject>();
     if(Command==ETVUICommand::DialogueChoice){if(!DialogueOptionIds.Contains(Primary))return;M->SetStringField(TEXT("type"),TEXT("dialogue_option"));M->SetStringField(TEXT("optionId"),Primary);}
