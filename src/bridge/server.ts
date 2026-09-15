@@ -10,6 +10,8 @@ import { RegionalTransport, REGION_PROTOCOL, MAX_PRESENTATION_MESSAGE_BYTES } fr
 import { FixedScheduler } from './scheduler';
 import { ControllerLease } from './controllerLease';
 import { monitorEventLoopDelay } from 'node:perf_hooks';
+import { FixedRateWindow } from './rateWindow';
+import { CoalescedInteractionWake } from './interactionWake';
 const loopDelay=monitorEventLoopDelay({resolution:10});loopDelay.enable();
 
 const port = Number(process.env.TORN_VEIL_PORT ?? 8787);
@@ -75,22 +77,23 @@ wss.on('connection', (socket, request) => {
   greeting(snapshot);
   log({event:'binding',playerId:snapshot.playerId,controlledBodyId:snapshot.controlledBodyId,bodyPresent:snapshot.bodies.some(b=>b.bodyId===snapshot.controlledBodyId)});
   const stream = new RegionalTransport(log); streams.set(socket, stream);
-  let messages = 0, presentationMessages=0;
-  let windowAt=performance.now();
+  const controlWindow = new FixedRateWindow(realtime?160:80, performance.now());
+  const presentationWindow = new FixedRateWindow(80, performance.now());
   let messageKinds:Record<string,number>={};
   const recentInputs:unknown[]=[];
   let moving=false;
-  const limit = setInterval(() => { messages = 0;presentationMessages=0;messageKinds={};windowAt=performance.now(); }, 1000);
   socket.on('message', bytes => {
     try {
       const message = JSON.parse(bytes.toString());
-      if(message.type==='presentation_ack') {if(++presentationMessages>80){socket.close(1008,'Presentation rate limit');return;}stream.acknowledge(message.transferId,message.index);return;}
+      if(message.type==='presentation_ack') {if(!presentationWindow.consume(performance.now()).allowed){socket.close(1008,'Presentation rate limit');return;}stream.acknowledge(message.transferId,message.index);return;}
+      const controlRate = controlWindow.consume(performance.now());
+      if(controlRate.reset) messageKinds={};
       const kind=message.type==='command'?String(message.command?.type):String(message.type);
       messageKinds[kind]=(messageKinds[kind]??0)+1;
       recentInputs.push({kind,sequence:message.sequence,x:message.command?.x,z:message.command?.z,sprint:message.command?.sprint});
       if(recentInputs.length>16)recentInputs.shift();
-      if (++messages > (realtime?160:80)) {
-        log({event:'control_rate_limit',messages,windowMs:performance.now()-windowAt,messageKinds,recentInputs,controller:controllerLease.current===socket});
+      if (!controlRate.allowed) {
+        log({event:'control_rate_limit',messages:controlRate.count,windowMs:controlRate.windowMs,messageKinds,recentInputs,controller:controllerLease.current===socket});
         controllerLease.release(socket); socket.close(1008, 'Rate limit'); return;
       }
       if (controllerLease.current !== socket) return;
@@ -104,7 +107,7 @@ wss.on('connection', (socket, request) => {
     catch { socket.send(JSON.stringify({ version: 1, type: 'result', sequence: -1, result: 'invalid_json' })); }
   });
   socket.on('error', error => {log({event:'error',message:error.message});socket.close();});
-  socket.on('close', (code,reason) => { clearInterval(limit); streams.delete(socket); const released=controllerLease.release(socket); log({event:'closed',code,reason:reason.toString(),controllerReleased:released}); });
+  socket.on('close', (code,reason) => { streams.delete(socket); const released=controllerLease.release(socket); log({event:'closed',code,reason:reason.toString(),controllerReleased:released}); });
 });
 let ticks = 0;
 const scheduler=new FixedScheduler(1000/60,performance.now());
@@ -140,11 +143,15 @@ const update = () => {
 let timer:ReturnType<typeof setTimeout>;
 let stopped=false;
 const pump=()=>{if(stopped)return;scheduler.run(performance.now(),update);timer=setTimeout(pump,Math.max(1,Math.min(16,scheduler.remaining(performance.now()))));};
+const urgentWake = new CoalescedInteractionWake(
+  () => scheduler.remaining(performance.now()) <= 0,
+  () => { clearTimeout(timer); pump(); },
+);
 // An arriving urgent command can wake an already-due step instead of waiting for a
 // quantized host timer. This never advances the canonical deadline or backdates input.
-function wakeInteraction():void {if(scheduler.remaining(performance.now())<=0){clearTimeout(timer);pump();}}
+function wakeInteraction():void { urgentWake.request(); }
 timer=setTimeout(pump,1);
 http.listen(port, '127.0.0.1', () => console.log(`Torn Veil canonical bridge ws://127.0.0.1:${port} | seed ${session.world.seed} | ${session.world.settlements().length} settlements | ${session.world.persons().filter(p=>p.id!==session.world.playerId).length} world residents | ${session.snapshot().bodies.filter(b=>b.entityId!==session.world.playerId).length} avatar-visible NPCs | player ${session.world.playerId} / ${session.world.primaryBody(session.world.playerId!)?.id} | regional protocol ${REGION_PROTOCOL} | ${process.cwd()}`));
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.on(signal, () => {
-  stopped=true;clearTimeout(timer);loopDelay.disable(); saveWorld(); for (const socket of wss.clients) socket.close(); wss.close(); http.close();
+  stopped=true;urgentWake.stop();clearTimeout(timer);loopDelay.disable(); saveWorld(); for (const socket of wss.clients) socket.close(); wss.close(); http.close();
 });

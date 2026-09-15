@@ -1,0 +1,12 @@
+{
+  "source": ".debug/repair-test-bridge.log, ordinary PIE connection 8",
+  "utc": "2026-09-15T04:09:57Z",
+  "event": "control_rate_limit",
+  "messages": 161,
+  "windowMs": 23972.75410000002,
+  "messageKinds": {"move": 135, "clock_probe": 24, "talk": 1, "crouch": 1},
+  "nativeResult": "1008 Rate limit; reconnect controls=1; streamed regions reset to zero",
+  "cause": "Timer-based one-second reset was delayed; ordinary traffic across almost 24 seconds counted as a one-second burst.",
+  "repair": "Receive-time monotonic fixed rate windows; limits unchanged.",
+  "additionalRisk": "Synchronous per-message scheduler wake can amplify I/O starvation while scheduler retains debt. Total accumulated debt is not attributed solely to this hook."
+}
