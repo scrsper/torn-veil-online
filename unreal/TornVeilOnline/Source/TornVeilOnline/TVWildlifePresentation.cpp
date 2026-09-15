@@ -50,10 +50,12 @@ void ATVWildlifePresentation::BeginPlay() {
 }
 
 void ATVWildlifePresentation::Tick(float DeltaSeconds) {
+    const double TickStarted=FPlatformTime::Seconds();
     Super::Tick(DeltaSeconds);
     SnapshotAge += DeltaSeconds;
     if (!bPresent) {
         SetActorHiddenInGame(true);
+        const double TickMs=(FPlatformTime::Seconds()-TickStarted)*1000.; TickTotalMs+=TickMs; TickMaxMs=FMath::Max(TickMaxMs,TickMs); ++TickSamples;
         return;
     }
     SetActorHiddenInGame(false);
@@ -69,6 +71,7 @@ void ATVWildlifePresentation::Tick(float DeltaSeconds) {
         const float Length=FMath::Max(.001f,Clip->GetPlayLength());Anim->Time=bDead?FMath::Min(Length,ClipTime):FMath::Fmod(ClipTime,Length);
         Anim->Weight=FMath::Clamp(BlendAge/.14f,0.f,1.f);Anim->bSnapshot=BlendAge<.14f;
     }
+    const double TickMs=(FPlatformTime::Seconds()-TickStarted)*1000.; TickTotalMs+=TickMs; TickMaxMs=FMath::Max(TickMaxMs,TickMs); ++TickSamples;
 }
 
 void ATVWildlifePresentation::EnsureAssets() {
@@ -158,6 +161,7 @@ FString ATVWildlifePresentation::PresentationDiagnostics() const {
     J->SetNumberField(TEXT("condition"), Condition); J->SetNumberField(TEXT("speedCmPerSecond"), TargetVelocity.Size2D());
     J->SetNumberField(TEXT("snapshotAge"), SnapshotAge); J->SetNumberField(TEXT("scale"), VisualScale);
     J->SetNumberField(TEXT("referenceScale"),ReferenceScale);J->SetNumberField(TEXT("animationTime"),ClipTime);
+    J->SetNumberField(TEXT("tickSamples"),TickSamples);J->SetNumberField(TEXT("tickMeanMs"),TickSamples?TickTotalMs/TickSamples:0);J->SetNumberField(TEXT("tickMaxMs"),TickMaxMs);
     J->SetStringField(TEXT("clip"),CurrentClip?CurrentClip->GetPathName():TEXT("MISSING REQUIRED DEER ASSET"));
     J->SetStringField(TEXT("positionCm"),GetActorLocation().ToString());J->SetStringField(TEXT("renderBounds"),Mesh->Bounds.GetBox().ToString());
     if(auto* Asset=Mesh->GetSkeletalMeshAsset())J->SetStringField(TEXT("importedBounds"),Asset->GetImportedBounds().GetBox().ToString());

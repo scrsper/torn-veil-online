@@ -49,6 +49,8 @@ private:
     float ClipTime=0,BlendAge=1,ReferenceScale=1,BodyHeightCm=150;
     bool bSettleCorpse=false;
     float SnapshotAge = 999.f;
+    double TickTotalMs=0,TickMaxMs=0;
+    int64 TickSamples=0;
     FString LastAnimationKey;
     UPROPERTY() TMap<FString, TObjectPtr<UAnimationAsset>> Clips;
     UPROPERTY() TObjectPtr<UAnimationAsset> CurrentClip;

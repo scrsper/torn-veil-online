@@ -14,4 +14,5 @@ struct FTVItemPresentationDescriptor {
 class FTVItemPresentationCatalog {
 public:
     static FTVItemPresentationDescriptor Describe(const FString& CanonicalType);
+    static FTVItemPresentationDescriptor DescribeContainer(bool bOpen);
 };
