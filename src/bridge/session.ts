@@ -29,6 +29,8 @@ import { DialogueSystem, type DialogueState } from '../sim/mind/dialogue';
 import { actionsForPerson } from '../sim/core/interaction';
 import { B } from '../sim/physical/blocks';
 import type { Item, Person } from '../sim/core/types';
+import { RESOURCE_MASS_KG } from '../sim/world/factory';
+import { getPhysicalCapability } from '../sim/core/attributes';
 
 export const BRIDGE_VERSION = 1;
 /** Physical execution is visible; queued intentions and private goals are not. */
@@ -224,9 +226,19 @@ export class BridgeSession {
     const knowledge = this.game.perceive('local')!;
     const controlledBodyId=w.primaryBody(p.id)?.id;
     const visible = new Set(knowledge.people.map(p => p.bodyId)); if(controlledBodyId) visible.add(controlledBodyId);
+    const interactions=handInteractions(this.sim,p),talkTargets=this.talkTargets(p,visible);
+    const ownBody=w.body(controlledBodyId),carried=p.inventory.flatMap(id=>{const item=w.item(id);return item&&item.holderId===p.id?[item]:[];});
+    const mobility=ownBody?{eligible:movementState(w,p,ownBody).eligible,fatigue:p.physiology.fatigue,
+      speedMultiplier:getPhysicalCapability(p,w,{body:ownBody}).movementMultiplier,
+      knownLoadKg:carried.reduce((sum,i)=>sum+(RESOURCE_MASS_KG[i.type]??0)*i.quantity,0),
+      unweighedStacks:carried.filter(i=>RESOURCE_MASS_KG[i.type]===undefined).length,
+      safeCarryKg:getPhysicalCapability(p,w,{body:ownBody}).safeCarryMassKg,
+      restriction:!p.alive||ownBody.dead?'Dead':ownBody.pose==='sleep'?'Sleeping':ownBody.pose==='downed'||ownBody.subduedUntil>w.physicalTime?'Recovering':p.custody?.active||p.surrender?'Restrained':''}:null;
     return { version: BRIDGE_VERSION, type: 'snapshot', tick: w.physicalTime, worldTime: w.now, ack: this.appliedSequence, playerId: p.id, controlledBodyId,
       wildlife: wildlifeProjection(w, w.body(controlledBodyId)),
-      knowledge, mechanisms: mechanismPanel(w, p), interactions: handInteractions(this.sim, p), container: openContainerProjection(this.sim,p), dialogue: this.dialogueProjection(), talkTargets: this.talkTargets(p),
+      knowledge, mechanisms: mechanismPanel(w, p), interactions, mobility, container: openContainerProjection(this.sim,p), dialogue: this.dialogueProjection(), talkTargets,
+      interactionTargets:[...interactions.flatMap(a=>a.target?[{actionId:a.id,targetId:a.target.id,kind:a.target.kind,label:a.label,pos:a.target.pos}]:[]),
+        ...talkTargets.map(t=>({actionId:`talk:${t.bodyId}`,targetId:t.bodyId,kind:'person',label:`Talk — ${t.name||'Unknown person'}`,pos:{...w.body(t.bodyId)!.pos}}))],
       bodies: w.activeBodies().filter(b => b.present && b.shape === 'humanoid' && visible.has(b.id)).map(b => ({
         ...humanoidVisualState(b, knownName(p, b.ownerId), visibleActivity(w.person(b.ownerId), b.pose), w.person(b.ownerId)?.appearance),
         combatAction:combatState(w,b),
@@ -308,11 +320,11 @@ export class BridgeSession {
     this.dialogueRevision++;
   }
 
-  private talkTargets(player: Person) {
+  private talkTargets(player: Person, visible=new Set(this.game.perceive('local')?.people.map(p=>p.bodyId))) {
     const w = this.world, source = w.primaryBody(player.id);
     if (!source || source.dead || !player.alive) return [];
     return w.bodies().flatMap(body => {
-      if (!body.present || body.ownerId === player.id || body.dead || body.shape !== 'humanoid') return [];
+      if (!visible.has(body.id)||!body.present || body.ownerId === player.id || body.dead || body.shape !== 'humanoid') return [];
       const person = w.person(body.ownerId);
       if (!person || !person.alive || body.pose === 'sleep') return [];
       const carrying = player.inventory.map(id => w.item(id)).filter((item): item is Item => !!item);

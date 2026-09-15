@@ -64,6 +64,10 @@ void ATVRegionProjection::Structure(const TSharedPtr<FJsonObject>& P) {
     bool Indoor=false; P->TryGetBoolField(TEXT("indoor"),Indoor);
     if (!Indoor && S(P,TEXT("type"))!=TEXT("stall") && S(P,TEXT("type"))!=TEXT("sawpit")) return;
     const float H=N(P,TEXT("wallHeight"),4)*100;
+    // Keep the canonical footprint and y0 untouched, but give streamed dwellings the same
+    // grounded assembly language as the audited 6x8 PCG recipe: a shallow brick plinth under
+    // the floor absorbs pivot/bounds variation without inventing collision or terrain.
+    if (Indoor) Piece(Id,Kit+TEXT("Floor_Brick"),FVector(X+W/2,Y+D/2,Z-28),FVector(W+20,D+20,32));
     Piece(Id,Kit+TEXT("Floor_WoodDark"),FVector(X+W/2,Y+D/2,Z-12),FVector(W,D,24));
     const TSharedPtr<FJsonObject>* Door; FVector DoorPos(-1e9); if(P->TryGetObjectField(TEXT("door"),Door)) DoorPos=Position(*Door)*100;
     FRandomStream Random(static_cast<int32>(N(P,TEXT("visualSeed"))));
@@ -79,14 +83,19 @@ void ATVRegionProjection::Structure(const TSharedPtr<FJsonObject>& P) {
         else Spans.Add({0,Length});
         for(const auto Span:Spans) { const int Count=FMath::Max(1,FMath::CeilToInt((Span.Value-Span.Key)/300)); const double Segment=(Span.Value-Span.Key)/Count;
             for(int I=0;I<Count;I++) { const double Offset=Span.Key+(I+.5)*Segment; const FVector C=AlongX?FVector(X+Offset,Fixed,Z+H/2):FVector(Fixed,Y+Offset,Z+H/2);
-                const FString Wall=Random.RandRange(0,3)==0?TEXT("Wall_Plaster_Window_Wide_Flat"):Family==TEXT("workshop")?TEXT("Wall_Plaster_WoodGrid"):TEXT("Wall_Plaster_Straight");
+                // Window modules are presentation-only openings selected per deterministic
+                // visual seed; the canonical door/opening facts remain the authority.
+                const FString Wall=Random.RandRange(0,2)==0?TEXT("Wall_Plaster_Window_Wide_Flat"):Family==TEXT("workshop")?TEXT("Wall_Plaster_WoodGrid"):TEXT("Wall_Plaster_Straight");
                 Piece(Id,Kit+Wall,C,FVector(Segment,25,H),AlongX?0:90); }
         }
     }
-    if(!Indoor) for(int Corner=0;Corner<4;Corner++) Piece(Id,Kit+TEXT("Roof_Support2"),FVector(X+(Corner%2?W:0),Y+(Corner<2?0:D),Z+H/2),FVector(25,25,H));
+    // The target box is grounded at canonical y0; Piece() compensates the source pivot from
+    // measured mesh bounds, so these supports meet the plinth/floor rather than floating.
+    for(int Corner=0;Corner<4;Corner++)
+        Piece(Id,Kit+TEXT("Roof_Support2"),FVector(X+(Corner%2?W:0),Y+(Corner<2?0:D),Z+H/2),FVector(25,25,H));
     // Repeated modular roof strips, fitted to the canonical footprint (never a premade house).
     const int Strips=FMath::Max(1,FMath::CeilToInt(D/200));
-    for(int I=0;I<Strips;I++) Piece(Id,Kit+(Family==TEXT("agricultural")?TEXT("Roof_Wooden_2x1"):TEXT("Roof_Modular_RoundTiles")),FVector(X+W/2,Y+(I+.5)*D/Strips,Z+H+90),FVector(W+100,D/Strips+8,180));
+    for(int I=0;I<Strips;I++) Piece(Id,Kit+(Family==TEXT("agricultural")?TEXT("Roof_Wooden_2x1"):TEXT("Roof_Modular_RoundTiles")),FVector(X+W/2,Y+(I+.5)*D/Strips,Z+H+90),FVector(W+100,D/Strips+20,180));
     // Equipment comes from assemblies, never from a decorative building family.
 }
 void ATVRegionProjection::Build(const TSharedPtr<FJsonObject>& R) {
@@ -95,6 +104,16 @@ void ATVRegionProjection::Build(const TSharedPtr<FJsonObject>& R) {
     const auto& Columns=Rows(R->GetObjectField(TEXT("terrain")),TEXT("columns")); const int Side=FMath::RoundToInt(FMath::Sqrt(static_cast<double>(Columns.Num())));
     for(const auto& V:Columns) { const auto& C=V->AsArray(); Vertices.Add(FVector(C[0]->AsNumber()-CanonicalBase.X,C[1]->AsNumber()-CanonicalBase.Y,C[2]->AsNumber())*100); Normals.Add(FVector::UpVector); UV.Add(FVector2D((C[0]->AsNumber()-CanonicalBase.X)/8,(C[1]->AsNumber()-CanonicalBase.Y)/8)); Colors.Add(FLinearColor::White); }
     for(int X=0;X<Side-1;X++) for(int Y=0;Y<Side-1;Y++) { int A=X*Side+Y, Next=A+Side; Triangles.Append({A,A+1,Next,A+1,Next+1,Next}); }
+    // Reconstruct smooth support normals from the canonical sampled surface. The mesh remains
+    // presentation-only, but its lighting must communicate the same relief that navigation sees.
+    Normals.SetNumZeroed(Vertices.Num());
+    for (int32 I = 0; I + 2 < Triangles.Num(); I += 3) {
+        const int32 IA = Triangles[I], IB = Triangles[I + 1], IC = Triangles[I + 2];
+        FVector Face = FVector::CrossProduct(Vertices[IB] - Vertices[IA], Vertices[IC] - Vertices[IA]);
+        if (Face.Z < 0.f) Face *= -1.f;
+        Normals[IA] += Face; Normals[IB] += Face; Normals[IC] += Face;
+    }
+    for (FVector& Normal : Normals) Normal = Normal.IsNearlyZero() ? FVector::UpVector : Normal.GetSafeNormal();
     Terrain->CreateMeshSection_LinearColor(0,Vertices,Triangles,Normals,UV,Colors,Tangents,false);
     Terrain->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,*(Mat+TEXT("M_TV_PH_Soil"))));
     for(const auto& P:Rows(R,TEXT("places"))) Structure(P->AsObject());
@@ -114,8 +133,11 @@ void ATVRegionProjection::Dress(const TSharedPtr<FJsonObject>& R) {
         bool Occupied=false; for(const auto& P:Rows(R,TEXT("places"))) { const auto B=P->AsObject()->GetObjectField(TEXT("bounds")); if(X>=N(B,TEXT("x0"))-8 && X<=N(B,TEXT("x1"))+8 && Y>=N(B,TEXT("z0"))-8 && Y<=N(B,TEXT("z1"))+8) { Occupied=true; break; } }
         if(Occupied) continue;
         if(Random.FRand()>.35+C[5]->AsNumber()*.4) continue;
-        const FVector Location=GetActorLocation()+FVector((X-CanonicalBase.X)*100,(Y-CanonicalBase.Y)*100,C[2]->AsNumber()*100+8);
-        Source->Points.Add(FTransform(FRotator(0,Random.FRand()*360,0),Location,FVector(.5+Random.FRand()*.5)));
+        // The sampled column is already the canonical walkable support plane. Do not add the
+        // former 8 cm visual lift: decorative mesh bounds/pivots must be corrected in the
+        // presentation asset adapter, not by manufacturing a second ground height.
+        const FVector SupportLocation=GetActorLocation()+FVector((X-CanonicalBase.X)*100,(Y-CanonicalBase.Y)*100,C[2]->AsNumber()*100);
+        Source->Points.Add(FTransform(FRotator(0,Random.FRand()*360,0),SupportLocation,FVector(.5+Random.FRand()*.5)));
     }
     DecorativeCount=Source->Points.Num(); UPCGStaticMeshSpawnerSettings* Spawner=nullptr; auto* SpawnNode=Graph->AddNodeOfType(Spawner);
     Spawner->SetMeshSelectorType(UPCGMeshSelectorWeighted::StaticClass()); auto* Selector=Cast<UPCGMeshSelectorWeighted>(Spawner->MeshSelectorParameters);
@@ -165,3 +187,27 @@ void ATVWorldProjection::Apply(const TSharedPtr<FJsonObject>& Frame,const FVecto
     UE_LOG(LogTemp,Display,TEXT("TV_STREAM %s"),*Metrics());
 }
 FString ATVWorldProjection::Metrics() const { int32 Total=0,Decorative=0; for(const auto& Pair:Regions) { Total+=Pair.Value->InstanceCount(); Decorative+=Pair.Value->DecorativeCount; } return FString::Printf(TEXT("regions=%d instances=%d pcg_points=%d frame_ms=%.2f process_MB=%.0f"),Regions.Num(),Total,Decorative,LastFrameMilliseconds,FPlatformMemory::GetStats().UsedPhysical/1048576.); }
+bool ATVRegionProjection::FindVisualBounds(const FString& CanonicalId, FBox& OutBounds) const {
+    OutBounds = FBox(EForceInit::ForceInit);
+    bool bFound = false;
+    const TArray<FString>* Keys = CanonicalVisuals.Find(CanonicalId); if (!Keys) return false;
+    for (const FString& Key : *Keys) {
+            FString BatchKey, IndexText;
+            if (!Key.Split(TEXT("#"), &BatchKey, &IndexText)) continue;
+            const int32 Index = FCString::Atoi(*IndexText);
+            const TObjectPtr<UHierarchicalInstancedStaticMeshComponent>* Found = Batches.Find(BatchKey); if (!Found || !Found->Get()) continue;
+            FTransform Transform; if (!(*Found)->GetInstanceTransform(Index, Transform, true)) continue;
+            OutBounds += (*Found)->GetStaticMesh()->GetBoundingBox().TransformBy(Transform);
+            bFound = true;
+    }
+    return bFound;
+}
+bool ATVWorldProjection::FindVisualBounds(const FString& CanonicalId, FBox& OutBounds) const {
+    OutBounds = FBox(EForceInit::ForceInit);
+    bool bFound = false;
+    for (const auto& Pair : Regions) {
+        FBox RegionBounds(EForceInit::ForceInit);
+        if (Pair.Value && Pair.Value->FindVisualBounds(CanonicalId, RegionBounds)) { OutBounds += RegionBounds; bFound = true; }
+    }
+    return bFound;
+}

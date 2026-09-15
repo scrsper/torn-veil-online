@@ -11,6 +11,7 @@
 		}
 	],
 	"Plugins": [
+		{"Name":"CommonUI","Enabled":true},
 		{
 			"Name": "PythonScriptPlugin",
 			"Enabled": true

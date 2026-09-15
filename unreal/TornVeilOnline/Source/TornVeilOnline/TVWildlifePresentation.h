@@ -4,31 +4,56 @@
 #include "GameFramework/Actor.h"
 #include "TVWildlifePresentation.generated.h"
 
-class USceneComponent;
-class UStaticMeshComponent;
+class UAnimationAsset;
+class USkeletalMeshComponent;
 
-/** Disposable rendering of one canonical creature manifestation. It never runs AI, collision,
- * damage, navigation, spawning, or inventory logic. Omission removes it; dead is a rendered state. */
+/**
+ * Disposable manifestation of one canonical wildlife body.
+ *
+ * This actor has no AI, collision authority, navigation, damage or movement authority. The
+ * bridge supplies a canonical bodyId/creatureId and the actor only interpolates the supplied
+ * transform and selects an animation. Missing drink/rest clips intentionally use documented
+ * idle fallbacks until an owned adapter exists.
+ */
 UCLASS()
 class TORNVEILONLINE_API ATVWildlifePresentation : public AActor {
     GENERATED_BODY()
 public:
     ATVWildlifePresentation();
+    virtual void BeginPlay() override;
     virtual void Tick(float DeltaSeconds) override;
-    bool Project(const TSharedPtr<class FJsonObject>& Data,const FVector& CanonicalOrigin,float UnitsPerMetre,bool bFirst);
+
+    /** Apply one renderer-neutral canonical wildlife row from the bridge. */
+    bool Project(const TSharedPtr<class FJsonObject>& Data, const FVector& CanonicalOrigin, float UnitsPerMetre, bool bFirst);
     void RebasePresentation(const FVector& Delta);
-    FString BodyId,CreatureId,SpeciesId,RegionId,Activity;
-    bool bDead=false;
-    UFUNCTION(BlueprintPure,Category="Torn Veil|Presentation") FString PresentationDiagnostics() const;
+    void SetCanonicalTransform(const FVector& PositionCm, float YawDegrees, const FVector& VelocityCmPerSecond);
+
+    UPROPERTY(BlueprintReadOnly, Category="Torn Veil|Wildlife") FString BodyId;
+    UPROPERTY(BlueprintReadOnly, Category="Torn Veil|Wildlife") FString CreatureId;
+    UPROPERTY(BlueprintReadOnly, Category="Torn Veil|Wildlife") FString SpeciesId;
+    UPROPERTY(BlueprintReadOnly, Category="Torn Veil|Wildlife") FString RegionId;
+    UPROPERTY(BlueprintReadOnly, Category="Torn Veil|Wildlife") FString Activity;
+    UPROPERTY(BlueprintReadOnly, Category="Torn Veil|Wildlife") float Condition = 1.f;
+    UPROPERTY(BlueprintReadOnly, Category="Torn Veil|Wildlife") bool bAlive = true;
+    UPROPERTY(BlueprintReadOnly, Category="Torn Veil|Wildlife") bool bDead = false;
+    UPROPERTY(BlueprintReadOnly, Category="Torn Veil|Wildlife") bool bPresent = true;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Torn Veil|Wildlife") TObjectPtr<USkeletalMeshComponent> Mesh;
+
+    UFUNCTION(BlueprintPure, Category="Torn Veil|Wildlife") FString PresentationDiagnostics() const;
+
 private:
-    UPROPERTY() TObjectPtr<USceneComponent> VisualRoot;
-    UPROPERTY() TObjectPtr<UStaticMeshComponent> Torso;
-    UPROPERTY() TObjectPtr<UStaticMeshComponent> Neck;
-    UPROPERTY() TObjectPtr<UStaticMeshComponent> Head;
-    UPROPERTY() TArray<TObjectPtr<UStaticMeshComponent>> Legs;
-    FVector PreviousPosition=FVector::ZeroVector,TargetPosition=FVector::ZeroVector,CanonicalVelocity=FVector::ZeroVector;
-    float TargetYaw=0,SnapshotAge=0,VisualAge=0,VisualScale=1,Condition=1;
-    double TickTotalMs=0,TickMaxMs=0;
-    int64 TickSamples=0;
-    FVector ProjectedPosition(const TSharedPtr<class FJsonObject>& Position,const FVector& Origin,float Units) const;
+    FVector TargetPosition = FVector::ZeroVector;
+    FVector TargetVelocity = FVector::ZeroVector;
+    float TargetYaw = 0.f;
+    float VisualScale = 1.f;
+    float ClipTime=0,BlendAge=1,ReferenceScale=1,BodyHeightCm=150;
+    bool bSettleCorpse=false;
+    float SnapshotAge = 999.f;
+    FString LastAnimationKey;
+    UPROPERTY() TMap<FString, TObjectPtr<UAnimationAsset>> Clips;
+    UPROPERTY() TObjectPtr<UAnimationAsset> CurrentClip;
+
+    void EnsureAssets();
+    void SelectAnimation(bool bForce = false);
+    UAnimationAsset* ClipForActivity(const FString& CanonicalActivity) const;
 };

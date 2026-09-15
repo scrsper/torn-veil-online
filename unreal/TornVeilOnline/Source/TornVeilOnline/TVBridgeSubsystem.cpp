@@ -23,6 +23,7 @@
 static void TVSample(TArray<double>& Samples,double Value);
 void UTVBridgeSubsystem::Initialize(FSubsystemCollectionBase& Collection) { Super::Initialize(Collection); RetryClock = 1000; }
 void UTVBridgeSubsystem::Deinitialize() {
+    if(PlayerShell){PlayerShell->RemoveFromParent();PlayerShell=nullptr;}
     UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE PIE ending; releasing controller"));
     if (Socket) { Socket->OnConnected().Clear(); Socket->OnConnectionError().Clear(); Socket->OnClosed().Clear(); Socket->OnMessage().Clear(); Socket->Close(); Socket.Reset(); }
     Bodies.Empty();WildlifeBodies.Empty(); Super::Deinitialize();
@@ -53,6 +54,8 @@ void UTVBridgeSubsystem::Connect() {
     Socket->Connect();
 }
 void UTVBridgeSubsystem::Tick(float Dt) {
+    UpdateInteractionFocus();UpdatePlayerShell();
+    if(FPlatformTime::Seconds()-ControlTraceAt>=.1){ControlTraceAt=FPlatformTime::Seconds();if(ControlTrace.Num()>=120)ControlTrace.RemoveAt(0);ControlTrace.Add(MakeShared<FJsonValueObject>(ControlState()));}
     if(CombatCorrectionStartedAt>=0&&RenderCorrection.Size()<.1){TVSample(CombatCorrectionSettleSamples,(FPlatformTime::Seconds()-CombatCorrectionStartedAt)*1000);CombatCorrectionStartedAt=-1;}
     SinceSnapshot = bCanonicalReady ? FPlatformTime::Seconds()-LastSnapshotReceived : 100; RetryClock += Dt;
     ResultClock += Dt; if (ResultClock > 2.5f && !LastResult.IsEmpty()) LastResult.Empty();
@@ -186,6 +189,7 @@ void UTVBridgeSubsystem::NoteInput() {InputCallbackAt=FPlatformTime::Seconds();}
 static void TVSample(TArray<double>& Samples,double Value){if(Samples.Num()>=2048)Samples.RemoveAt(0);Samples.Add(Value);}
 FString UTVBridgeSubsystem::RealtimeDiagnostics() const {
     auto Out=MakeShared<FJsonObject>();
+    Out->SetObjectField(TEXT("control"),ControlState());Out->SetArrayField(TEXT("controlTrace"),ControlTrace);
     const auto Add=[&](const TCHAR* Name,TArray<double> Values){Values.Sort();auto S=MakeShared<FJsonObject>();S->SetNumberField(TEXT("count"),Values.Num());for(const auto& P:TArray<TPair<FString,double>>{{TEXT("p50"),.5},{TEXT("p95"),.95},{TEXT("p99"),.99}})S->SetNumberField(P.Key,Values.Num()?Values[FMath::Clamp(FMath::CeilToInt(Values.Num()*P.Value)-1,0,Values.Num()-1)]:0);Out->SetObjectField(Name,S);};
     Add(TEXT("interActionStartGapMs"),CombatStartGapSamples);Add(TEXT("inputToBufferedStateMs"),CombatBufferSamples);Out->SetNumberField(TEXT("bufferedCombatInputs"),BufferedCombat.IsSet()?1:0);
     Add(TEXT("bufferedInputToStartupMs"),CombatBufferedWaitSamples);Add(TEXT("bufferedTransitionLatenessMs"),CombatTransitionLateSamples);
@@ -268,7 +272,7 @@ void UTVBridgeSubsystem::ReceiveLocalState(const TSharedPtr<FJsonObject>& M) {
         PracticeStatus=FString::Printf(TEXT("SCRIPTED PRACTICE: %s | %s | %s"),*(*Practice)->GetStringField(TEXT("mode")),*(*Practice)->GetStringField(TEXT("status")),*Profile);
         PracticeLast=FString::Printf(TEXT("%s | fatigue you %.0f%% / target %.0f%% | quiet recovery %.1f%%/s | ARENA TEST REPERTOIRE"),*(*Practice)->GetStringField(TEXT("lastOutcome")),(*Practice)->GetNumberField(TEXT("fatigue"))*100,(*Practice)->GetNumberField(TEXT("opponentFatigue"))*100,(*Practice)->GetNumberField(TEXT("recoveryPerSecond"))*100);
     }
-    const int32 Ack=M->GetIntegerField(TEXT("ack"));PendingMovement.RemoveAll([Ack](const auto& P){return P.Sequence<=Ack;});
+    const int32 Ack=M->GetIntegerField(TEXT("ack"));LastMovementAck=Ack;PendingMovement.RemoveAll([Ack](const auto& P){return P.Sequence<=Ack;});
     bool AuthorityHeld=false;if(M->TryGetBoolField(TEXT("crouchHeld"),AuthorityHeld)&&Ack>=CrouchSequence&&!AuthorityHeld)bCrouchHeld=false;
     const double CorrectionBegin=FPlatformTime::Seconds();
     const bool CombatCorrection=PredictedCombat.IsValid()||CombatCommandSequence>Ack;
@@ -339,26 +343,24 @@ void UTVBridgeSubsystem::SendDropIntent() {
     M->SetStringField(TEXT("interactionId"), DropInteraction); Send(M);
 }
 void UTVBridgeSubsystem::Interact() {
-    if (bPauseOpen || bInventoryOpen) return;
-    if (bDialogueOpen) { ChooseDialogueOption(0); return; }
-    if (!NearbyInteraction.IsEmpty()) { SendHandIntent(false); return; }
-    if (!TalkTargetBody.IsEmpty()) SendIntent(TEXT("talk"), TalkTargetBody);
+    if(HasModalScreen()||!IsLive()||FocusedActionId.IsEmpty())return;
+    // Prompt, exact highlighted bounds and submitted ID share this one immutable selection.
+    if(FocusedKind==TEXT("person"))SendIntent(TEXT("talk"),FocusedTargetId);
+    else {if(FocusedKind==TEXT("container")&&FocusedActionId.StartsWith(TEXT("open:")))PendingOpenContainer=FocusedTargetId;
+        auto M=MakeShared<FJsonObject>();M->SetStringField(TEXT("type"),TEXT("interact"));M->SetStringField(TEXT("interactionId"),FocusedActionId);Send(M);}
 }
 void UTVBridgeSubsystem::ToggleInventory() {
-    if(!IsLive()||bArena)return;
-    bInventoryOpen=!bInventoryOpen;bPauseOpen=false;
-    if(bInventoryOpen){bDialogueOpen=false;bMechanismsOpen=false;UISelection=0;}
+    if(!IsLive()||!PlayerShell)return;
+    if(HasModalScreen()){UIBack();return;}
+    if(OpenContainerId.IsEmpty())PlayerShell->OpenInventory();else PlayerShell->OpenContainer();
 }
 void UTVBridgeSubsystem::TogglePause() {
-    bPauseOpen=!bPauseOpen;
-    if(bPauseOpen){bInventoryOpen=false;bDialogueOpen=false;bMechanismsOpen=false;}
+    if(!PlayerShell)return;if(HasModalScreen())UIBack();else PlayerShell->OpenMenu();
 }
 void UTVBridgeSubsystem::UIBack() {
-    if(bPauseOpen){bPauseOpen=false;return;}
-    if(bInventoryOpen){bInventoryOpen=false;return;}
     if(bMechanismsOpen){bMechanismsOpen=false;return;}
-    if(bDialogueOpen){CloseDialogue();return;}
-    bPauseOpen=true;
+    if(PlayerShell&&PlayerShell->HasModalScreen()){if(bDialogueOpen)CloseDialogue();PlayerShell->CloseTop();return;}
+    if(PlayerShell)PlayerShell->OpenMenu();
 }
 void UTVBridgeSubsystem::UIMove(int32 Delta) {
     if(!bInventoryOpen)return;const int32 Count=InventoryItemIds.Num()+ContainerItemIds.Num();
@@ -470,7 +472,6 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
         (*Container)->TryGetStringField(TEXT("id"),OpenContainerId);(*Container)->TryGetStringField(TEXT("name"),OpenContainerName);
         const TArray<TSharedPtr<FJsonValue>>* Contents;
         if((*Container)->TryGetArrayField(TEXT("items"),Contents))for(const auto& Value:*Contents){const auto I=Value->AsObject();if(!I)continue;ContainerItemIds.Add(I->GetStringField(TEXT("id")));ContainerItemLabels.Add(FString::Printf(TEXT("%s  x%.0f"),*I->GetStringField(TEXT("name")),I->GetNumberField(TEXT("quantity"))));}
-        if(!HadContainer&&!bDialogueOpen&&!bPauseOpen){bInventoryOpen=true;UISelection=0;}
     } else if(HadContainer) bInventoryOpen=false;
     const TArray<TSharedPtr<FJsonValue>>* Interactions;
     if (M->TryGetArrayField(TEXT("interactions"), Interactions)) for (const auto& V : *Interactions) {
@@ -480,14 +481,12 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
         FString& Prompt = Slot == TEXT("consume") ? ConsumePrompt : Slot == TEXT("drop") ? DropPrompt : NearbyPrompt;
         if (Id.IsEmpty()) { Id = A->GetStringField(TEXT("id")); Prompt = A->GetStringField(TEXT("label")); }
     }
-    const TArray<TSharedPtr<FJsonValue>>* TalkTargets;
-    if (M->TryGetArrayField(TEXT("talkTargets"), TalkTargets) && TalkTargets->Num()) {
-        const auto Talk = (*TalkTargets)[0]->AsObject();
-        if (Talk) {
-            TalkTargetBody = Talk->GetStringField(TEXT("bodyId"));
-            if(NearbyInteraction.IsEmpty())NearbyPrompt = FString::Printf(TEXT("Talk to %s"), *Talk->GetStringField(TEXT("name")));
-        }
-    }
+    FocusTargets.Reset();const TArray<TSharedPtr<FJsonValue>>* Targets;
+    if(M->TryGetArrayField(TEXT("interactionTargets"),Targets))for(const auto& V:*Targets){const auto T=V->AsObject();if(!T)continue;const auto P=T->GetObjectField(TEXT("pos"));
+        FocusTargets.Add({T->GetStringField(TEXT("targetId")),T->GetStringField(TEXT("actionId")),T->GetStringField(TEXT("kind")),T->GetStringField(TEXT("label")),FVector(P->GetNumberField(TEXT("x")),P->GetNumberField(TEXT("y")),P->GetNumberField(TEXT("z")))});}
+    const TSharedPtr<FJsonObject>* Mobility;
+    if(M->TryGetObjectField(TEXT("mobility"),Mobility)) {CanonicalRestriction=(*Mobility)->GetStringField(TEXT("restriction"));
+        MobilitySummary=FString::Printf(TEXT("Fatigue %.0f%% | movement %.0f%% | weighed load %.1f / safe carry %.1f kg%s"),(*Mobility)->GetNumberField(TEXT("fatigue"))*100,(*Mobility)->GetNumberField(TEXT("speedMultiplier"))*100,(*Mobility)->GetNumberField(TEXT("knownLoadKg")),(*Mobility)->GetNumberField(TEXT("safeCarryKg")),(*Mobility)->GetNumberField(TEXT("unweighedStacks"))>0?TEXT(" (+ unweighed items)"):TEXT(""));}
     const TSharedPtr<FJsonObject>* Dialogue;
     if (M->TryGetObjectField(TEXT("dialogue"), Dialogue) && Dialogue && Dialogue->IsValid()) {
         bDialogueOpen = true;

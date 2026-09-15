@@ -16,6 +16,7 @@ void ATVGameMode::StartPlay() {
 }
 void ATVHUD::DrawHUD() {
     Super::DrawHUD(); auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>(); if (!B || !Canvas) return;
+    if(!B->bInspector&&!B->bArena)return; // Player-facing UI is CommonUI/UMG; this is optional diagnostics.
     DrawRect(FLinearColor(0.015f, 0.02f, 0.035f, 0.85f), 20, 20, B->bArena?960:660, B->bArena?145:100);
     DrawText(TEXT("TORN VEIL  /  LIVING WORLD"), FLinearColor(0.9f, 0.72f, 0.4f), 36, 30, nullptr, 1.5f);
     DrawText(B->ConnectionStatus(), FLinearColor::White, 36, 65);

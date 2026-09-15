@@ -1,0 +1,24 @@
+{
+  "source": "Quaternius Ultimate Animated Animal Pack / Deer.fbx",
+  "sourceUrl": "https://drive.google.com/drive/folders/1uJ3N5HfB7jKTseJUNQr3N4YaN0UuEtHk",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "sourceSha256": "B79F07AC3FD702AB98F5D1B606168618A318F10F57028AAAEFD420C468BE2618",
+  "licenseSha256": "83D8959F9FC56353ED571FBE2DC52E4BCD64508E2399501CD45AC2CE3DF0BF8C",
+  "importedObjectPaths": [
+    "/Game/TornVeil/Wildlife/Deer/SKM_Deer.SKM_Deer",
+    "/Game/TornVeil/Wildlife/Deer/AN_Deer_Idle.AN_Deer_Idle",
+    "/Game/TornVeil/Wildlife/Deer/AN_Deer_Idle_2.AN_Deer_Idle_2",
+    "/Game/TornVeil/Wildlife/Deer/AN_Deer_Idle_Headlow.AN_Deer_Idle_Headlow",
+    "/Game/TornVeil/Wildlife/Deer/AN_Deer_Walk.AN_Deer_Walk",
+    "/Game/TornVeil/Wildlife/Deer/AN_Deer_Gallop.AN_Deer_Gallop",
+    "/Game/TornVeil/Wildlife/Deer/AN_Deer_Eating.AN_Deer_Eating",
+    "/Game/TornVeil/Wildlife/Deer/AN_Deer_Death.AN_Deer_Death",
+    "/Game/TornVeil/Wildlife/Deer/AN_Deer_Idle_HitReact1.AN_Deer_Idle_HitReact1"
+  ],
+  "canonicalSpecies": "roe_deer",
+  "speciesFit": "Stylized deer approximation; not zoologically exact roe deer.",
+  "authority": "TypeScript canonical wildlife body; Unreal presentation only.",
+  "vendorAIImported": false,
+  "clipFallbacks": { "drink": "Idle_Headlow", "rest": "Idle_Headlow", "sleep": "Idle_Headlow" }
+}

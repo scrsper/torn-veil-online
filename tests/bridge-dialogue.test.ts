@@ -10,6 +10,9 @@ describe('native dialogue bridge projection', () => {
     // Placement is only test setup.  The actual endpoint must still derive range, passage and
     // whether talk is possible from the canonical world before it opens dialogue.
     playerBody.pos = { ...npcBody.pos };
+    // The UI can address only an observed body. Establish that fixture observation;
+    // endpoint validation still independently checks current reach and passage.
+    player.mind.percepts=[{entityId:npcBody.ownerId,bodyId:npcBody.id,how:'saw',pos:{...npcBody.pos},tick:session.world.now,distance:0}];
 
     const target = session.snapshot().talkTargets.find(candidate => candidate.bodyId === npcBody.id)!;
     expect(target).toBeDefined();

@@ -98,6 +98,7 @@ void ATVCharacter::Tick(float Dt) {
     Super::Tick(Dt); SnapshotAge += Dt;
     auto* Bridge = GetWorld()->GetSubsystem<UTVBridgeSubsystem>();
     const bool Live = Bridge && Bridge->IsLive();
+    if(IsPlayerControlled())RefreshInputContext(Bridge&&Bridge->HasModalScreen());
     if (bCanonicalPlayer) {
         GetCharacterMovement()->MaxWalkSpeed = CanonicalSpeed;
         // Physical movement is entirely canonical. Local gravity/collision must not compete with reconciliation.
@@ -272,6 +273,7 @@ void ATVCharacter::ApplyNameplate(bool bShowClass) {
     Nameplate->SetText(FText::FromString(DisplayName + Suffix + TEXT("\n") + Activity));
 }
 void ATVCharacter::Animate(float Speed) {
+    if(!bDirectionalLocomotion){if(auto* Asset=LoadObject<UAnimationAsset>(nullptr,TEXT("/Game/Characters/TornVeilLocomotion/BS_TV_Directional"))){Locomotion=Asset;bDirectionalLocomotion=true;}}
     PresentationAnimationAge += GetWorld() ? GetWorld()->GetDeltaSeconds() : 0.f;
     const auto ClipDuration = [](UAnimationAsset* Asset, float Fallback) {
         const auto* Sequence = Cast<UAnimSequence>(Asset);
@@ -287,7 +289,22 @@ void ATVCharacter::Animate(float Speed) {
     // Sprint can be slower after exertion/injury. Select the gait from intent/pose,
     // then time-scale the clip to actual canonical speed; preserve walk/jog mapping.
     const bool Sprinting=(bCanonicalPlayer?bSprint:CanonicalPose==TEXT("run"))&&GetActorRotation().UnrotateVector(CanonicalVelocity).X/FMath::Max(1.f,Speed)>.7f;
-    if(Wanted==Locomotion&&Sprinting&&CanonicalCrouch<.01&&Speed>30&&SprintAnimation)Wanted=SprintAnimation;
+    if(!bDirectionalLocomotion&&Wanted==Locomotion&&Sprinting&&CanonicalCrouch<.01&&Speed>30&&SprintAnimation)Wanted=SprintAnimation;
+    const FVector LocalTravel=GetActorRotation().UnrotateVector(CanonicalVelocity);
+    const float Direction=Speed>5?FMath::RadiansToDegrees(FMath::Atan2(LocalTravel.Y,LocalTravel.X)):LastTravelDirection;
+    if(bDirectionalLocomotion&&Wanted==Locomotion&&CanonicalCrouch<.01){
+        const auto Transition=LocomotionCameraSignal.Transition;
+        if(Transition!=ETVPresentationTransition::None){
+            const FString D=FMath::Abs(Direction)<45?TEXT("F"):FMath::Abs(Direction)>135?TEXT("B"):Direction<0?TEXT("LL"):TEXT("RL");
+            const FString Name=Transition==ETVPresentationTransition::Pivot?FString(TEXT("Walk/M_Relaxed_Walk_Turn_180_"))+(LocomotionCameraSignal.SignedYawDeltaDegrees<0?TEXT("L"):TEXT("R"))+TEXT("_Lfoot")
+                :FString(TEXT("Walk/M_Relaxed_Walk_"))+(Transition==ETVPresentationTransition::Start?TEXT("Start_"):TEXT("Stop_"))+D+TEXT("_Lfoot");
+            FString Short=Name.RightChop(Name.Find(TEXT("/"))+1);
+            LocomotionTransition=LoadObject<UAnimSequence>(nullptr,*(TEXT("/Game/Characters/TornVeilLocomotion/RT_")+Short));LocomotionTransitionAge=0;
+        }
+        LocomotionTransitionAge+=GetWorld()->GetDeltaSeconds();
+        if(LocomotionTransition&&LocomotionTransitionAge<.24f)Wanted=LocomotionTransition;
+    }
+    if(Speed>5)LastTravelDirection=Direction;
     const bool ActivityLoop = Wanted == Locomotion && !bIncapacitated && Speed<30 && CanonicalPose!=TEXT("attack") && CanonicalPose!=TEXT("hit");
     if(ActivityLoop) {
         FString Key=Activity;
@@ -298,7 +315,7 @@ void ATVCharacter::Animate(float Speed) {
     // Sequence deltas preserve multiple swings/flinches even when pose stayed unchanged between
     // bridge snapshots; the bounded queues keep a burst from monopolizing presentation.
     const bool Restart = bReplayAttack || bReplayHit;
-    if(Wanted==Locomotion||Wanted==SprintAnimation){
+    if(Wanted==Locomotion||Wanted==SprintAnimation||Wanted==LocomotionTransition){
         FPoseSnapshot From;const bool Changed=CurrentAnimation!=Wanted||bPresentationTransitionPending;
         if(Changed){GetMesh()->SnapshotPose(From);PoseBlendAge=0;}
         if(!Cast<UTVCombatAnimInstance>(GetMesh()->GetAnimInstance()))GetMesh()->SetAnimInstanceClass(UTVCombatAnimInstance::StaticClass());
@@ -311,6 +328,11 @@ void ATVCharacter::Animate(float Speed) {
         const FVector Local=GetActorRotation().UnrotateVector(CanonicalVelocity);
         Anim->LocomotionPosition=FVector(FMath::RadiansToDegrees(FMath::Atan2(Local.Y,Local.X)),Speed,0);
         Anim->Motion=Cast<UAnimSequence>(SprintAnimation);Anim->Time=FMath::Fmod(LocomotionTime,FMath::Max(.001f,Anim->Motion->GetPlayLength()));
+        if(Wanted==LocomotionTransition){Anim->bLocomotion=false;Anim->Motion=LocomotionTransition;
+            const float Length=LocomotionTransition->GetPlayLength();
+            Anim->Time=FMath::Min(Length,LocomotionTransitionAge+(Speed<5?FMath::Max(0.f,Length-.24f):0));}
+        // Combat's sequence/pose handoff and engine BlendSpace remain one maintained AnimGraph.
+        // IgnoreRootMotion extracts/discards sample displacement; only the body/predictor moves.
         CurrentAnimation=Wanted;bPresentationTransitionPending=false;return;
     }
     if (CurrentAnimation != Wanted || Restart) {
@@ -323,8 +345,8 @@ void ATVCharacter::Animate(float Speed) {
     // BS_Idle_Walk_Run is two-dimensional: X = direction, Y = speed (cm/s).
     if(Wanted==SprintAnimation)if(auto* Anim=GetMesh()->GetSingleNodeInstance())Anim->SetPlayRate(Speed/700.f);
     if (Wanted == Locomotion) if (auto* Anim = GetMesh()->GetSingleNodeInstance()) {
-        const FVector Local=GetActorRotation().UnrotateVector(CanonicalVelocity);const float Direction=FMath::RadiansToDegrees(FMath::Atan2(Local.Y,Local.X));
-        Anim->SetBlendSpacePosition(FVector(Direction,Speed,0));
+        const FVector Local=GetActorRotation().UnrotateVector(CanonicalVelocity);const float FallbackDirection=FMath::RadiansToDegrees(FMath::Atan2(Local.Y,Local.X));
+        Anim->SetBlendSpacePosition(FVector(FallbackDirection,Speed,0));
     }
 }
 FString ATVCharacter::PresentationAnimation() const { if (!CombatPresentation->AnimationPath().IsEmpty()) return CombatPresentation->AnimationPath(); return CurrentAnimation ? CurrentAnimation->GetPathName() : FString(); }
@@ -351,6 +373,8 @@ FString ATVCharacter::PresentationDiagnostics() const {
     J->SetNumberField(TEXT("skippedAttacks"), SkippedAttackEvents); J->SetNumberField(TEXT("skippedHits"), SkippedHitEvents);
     J->SetNumberField(TEXT("heldCrouch"),CanonicalCrouch);J->SetNumberField(TEXT("facingDegrees"),GetActorRotation().Yaw);J->SetNumberField(TEXT("desiredYaw"),Controller?Controller->GetControlRotation().Yaw:0);J->SetNumberField(TEXT("cameraYaw"),CameraBoom->GetComponentRotation().Yaw);
     J->SetNumberField(TEXT("speedCmPerSecond"), CanonicalVelocity.Size2D());
+    J->SetBoolField(TEXT("directionalLocomotion"),bDirectionalLocomotion);
+    if(auto* Anim=Cast<UTVCombatAnimInstance>(GetMesh()->GetAnimInstance())){J->SetNumberField(TEXT("blendDirection"),Anim->LocomotionPosition.X);J->SetNumberField(TEXT("blendSpeed"),Anim->LocomotionPosition.Y);}
     J->SetNumberField(TEXT("presentationGait"),static_cast<int32>(LocomotionCameraSignal.Gait));
     J->SetNumberField(TEXT("presentationTransition"),static_cast<int32>(LocomotionCameraSignal.Transition));
     J->SetNumberField(TEXT("presentationCameraMode"),static_cast<int32>(LocomotionCameraSignal.CameraMode));
@@ -366,31 +390,7 @@ FString ATVCharacter::PresentationDiagnostics() const {
 }
 void ATVCharacter::SetupPlayerInputComponent(UInputComponent* I) {
     Super::SetupPlayerInputComponent(I);
-    I->BindAxis(TEXT("Forward"), this, &ATVCharacter::Forward); I->BindAxis(TEXT("Right"), this, &ATVCharacter::Right);
-    I->BindAxis(TEXT("Turn"), this, &ATVCharacter::Turn); I->BindAxis(TEXT("Look"), this, &ATVCharacter::Look); I->BindAxis(TEXT("Zoom"), this, &ATVCharacter::Zoom);
-    I->BindAction(TEXT("Sprint"), IE_Pressed, this, &ATVCharacter::SprintOn); I->BindAction(TEXT("Sprint"), IE_Released, this, &ATVCharacter::SprintOff);
-    I->BindAction(TEXT("Target"), IE_Pressed, this, &ATVCharacter::SelectTarget);
-    I->BindAction(TEXT("Interact"), IE_Pressed, this, &ATVCharacter::Interact); I->BindAction(TEXT("Inspector"), IE_Pressed, this, &ATVCharacter::Inspector);
-    I->BindAction(TEXT("Consume"), IE_Pressed, this, &ATVCharacter::Consume);
-    I->BindAction(TEXT("Drop"), IE_Pressed, this, &ATVCharacter::Drop);
-    I->BindAction(TEXT("Inventory"),IE_Pressed,this,&ATVCharacter::Inventory);I->BindAction(TEXT("PauseMenu"),IE_Pressed,this,&ATVCharacter::PauseMenu);
-    I->BindAction(TEXT("UIBack"),IE_Pressed,this,&ATVCharacter::UIBack);I->BindAction(TEXT("UIUp"),IE_Pressed,this,&ATVCharacter::UIUp);I->BindAction(TEXT("UIDown"),IE_Pressed,this,&ATVCharacter::UIDown);I->BindAction(TEXT("UIConfirm"),IE_Pressed,this,&ATVCharacter::UIConfirm);
-    I->BindAction(TEXT("Dialogue1"), IE_Pressed, this, &ATVCharacter::Dialogue1); I->BindAction(TEXT("Dialogue2"), IE_Pressed, this, &ATVCharacter::Dialogue2);
-    I->BindAction(TEXT("Dialogue3"), IE_Pressed, this, &ATVCharacter::Dialogue3); I->BindAction(TEXT("Dialogue4"), IE_Pressed, this, &ATVCharacter::Dialogue4);
-    I->BindAction(TEXT("Dialogue5"), IE_Pressed, this, &ATVCharacter::Dialogue5); I->BindAction(TEXT("CloseDialogue"), IE_Pressed, this, &ATVCharacter::CloseDialogue);
-    I->BindAction(TEXT("Dialogue6"), IE_Pressed, this, &ATVCharacter::Dialogue6); I->BindAction(TEXT("Dialogue7"), IE_Pressed, this, &ATVCharacter::Dialogue7);
-    I->BindAction(TEXT("Dialogue8"), IE_Pressed, this, &ATVCharacter::Dialogue8); I->BindAction(TEXT("Dialogue9"), IE_Pressed, this, &ATVCharacter::Dialogue9);
-    I->BindKey(EKeys::M,IE_Pressed,this,&ATVCharacter::Mechanisms);
-    I->BindKey(EKeys::F5,IE_Pressed,this,&ATVCharacter::SaveWorld);
-    I->BindAction(TEXT("LightAttack"), IE_Pressed, this, &ATVCharacter::Attack);
-    I->BindAction(TEXT("HeavyAttack"),IE_Pressed,this,&ATVCharacter::LowAttack);
-    I->BindAction(TEXT("Dodge"),IE_Pressed,this,&ATVCharacter::Dodge);
-    I->BindAction(TEXT("Crouch"),IE_Pressed,this,&ATVCharacter::Duck);I->BindAction(TEXT("Crouch"),IE_Released,this,&ATVCharacter::ReleaseCrouch);
-    I->BindAxis(TEXT("HeavyAttackAxis"),this,&ATVCharacter::HeavyTrigger);
-    I->BindAction(TEXT("PracticePhysiology"),IE_Pressed,this,&ATVCharacter::PracticePhysiology);
-    I->BindAction(TEXT("PracticePassive"),IE_Pressed,this,&ATVCharacter::PracticePassive);
-    I->BindAction(TEXT("PracticeRepeat"),IE_Pressed,this,&ATVCharacter::PracticeRepeat);
-    I->BindAction(TEXT("PracticeReset"),IE_Pressed,this,&ATVCharacter::PracticeReset);
+    SetupEnhancedInput(I);
 }
 void ATVCharacter::Forward(float V) { if(V!=ForwardAxis)if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->NoteInput();ForwardAxis = V; } void ATVCharacter::Right(float V) { if(V!=RightAxis)if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->NoteInput();RightAxis = V; }
 void ATVCharacter::Turn(float V) { AddControllerYawInput(V); } void ATVCharacter::Look(float V) { AddControllerPitchInput(V); }
@@ -438,7 +438,7 @@ void ATVCharacter::Dodge() {
     // world direction for this action; later camera or stick changes cannot steer the dodge.
     const auto Axis=[PC](const TCHAR* Name){TArray<FInputAxisKeyMapping> Keys;GetDefault<UInputSettings>()->GetAxisMappingByName(Name,Keys);float Value=0;
         for(const auto& K:Keys)Value+=K.Scale*(K.Key.IsAnalog()?PC->GetInputAnalogKeyState(K.Key):(PC->IsInputKeyDown(K.Key)?1.f:0.f));return Value;};
-    FVector D(Axis(TEXT("Forward")),Axis(TEXT("Right")),0);
+    FVector D(ForwardAxis,RightAxis,0);
     if(D.Size()<TVInteractionSpec::dodgeDeadZone){B->SendCombat(TEXT("backstep"),1,TEXT("high"),At);return;}
     D.Normalize();D=FRotationMatrix(FRotator(0,GetActorRotation().Yaw,0)).TransformVector(D);
     B->SendCombat(TEXT("sidestep"),1,TEXT("high"),At,FVector(D.X,0,D.Y));

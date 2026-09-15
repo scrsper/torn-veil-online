@@ -30,6 +30,7 @@ public:
     ATVRegionProjection();
     void Build(const TSharedPtr<FJsonObject>& Region);
     void UpdateDynamic(const TSharedPtr<FJsonObject>& Data);
+    bool FindVisualBounds(const FString& CanonicalId, FBox& OutBounds) const;
     UPROPERTY(BlueprintReadOnly) FString RegionId;
     UPROPERTY(BlueprintReadOnly) FVector CanonicalBase;
     int32 InstanceCount() const;
@@ -58,6 +59,8 @@ public:
     FString Metrics() const;
     void ResetRegions();
     int32 RegionCount() const { return Regions.Num(); }
+    /** Returns only the measured instances mapped to one canonical id; never a whole HISM batch. */
+    bool FindVisualBounds(const FString& CanonicalId, FBox& OutBounds) const;
 private:
     UPROPERTY() TMap<FString, TObjectPtr<ATVRegionProjection>> Regions;
     double LastFrameMilliseconds = 0;

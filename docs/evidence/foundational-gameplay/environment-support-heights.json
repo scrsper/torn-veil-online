@@ -1,0 +1,13 @@
+{
+  "source": "WorldGeography.surface + bridge region column contract",
+  "seed": 424242,
+  "units": "canonical metres; Unreal projection multiplies by 100",
+  "columnContract": "projectRegion emits c.height + 1 as the walkable support height; decorative PCG points use that same value without an added lift",
+  "regions": [
+    { "id": "0,0", "minSurfaceHeight": 15, "maxSurfaceHeight": 16, "range": 1, "samples": 1089 },
+    { "id": "1,1", "minSurfaceHeight": 16, "maxSurfaceHeight": 17, "range": 1, "samples": 1089 },
+    { "id": "2,2", "minSurfaceHeight": 16, "maxSurfaceHeight": 17, "range": 1, "samples": 1089 },
+    { "id": "5,5", "minSurfaceHeight": 20, "maxSurfaceHeight": 20, "range": 0, "samples": 1089 }
+  ],
+  "decision": "No canonical terrain variation was added. Presentation support remains derived from the existing canonical column height; flat regions are genuine source data, not a projection artifact."
+}

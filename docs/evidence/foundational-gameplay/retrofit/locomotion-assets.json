@@ -1,0 +1,231 @@
+{
+  "source": "Epic Game Animation Sample",
+  "publicRawAssets": false,
+  "blendSpace": "/Game/Characters/TornVeilLocomotion/BS_TV_Directional",
+  "clips": [
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Neutral_Walk_Loop_F.RT_M_Neutral_Walk_Loop_F",
+      "length": 4.0,
+      "rootSpeedCmPerSecond": 205.96766662597656,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Neutral_Walk_Loop_FR.RT_M_Neutral_Walk_Loop_FR",
+      "length": 4.0,
+      "rootSpeedCmPerSecond": 205.9766145830181,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Neutral_Walk_Loop_RR.RT_M_Neutral_Walk_Loop_RR",
+      "length": 3.700000047683716,
+      "rootSpeedCmPerSecond": 185.36465792572616,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Neutral_Walk_Loop_BR.RT_M_Neutral_Walk_Loop_BR",
+      "length": 4.0333333015441895,
+      "rootSpeedCmPerSecond": 154.47987907269442,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Neutral_Walk_Loop_B.RT_M_Neutral_Walk_Loop_B",
+      "length": 4.0333333015441895,
+      "rootSpeedCmPerSecond": 154.47470231364557,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Neutral_Walk_Loop_BL.RT_M_Neutral_Walk_Loop_BL",
+      "length": 4.0333333015441895,
+      "rootSpeedCmPerSecond": 154.47987907269442,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Neutral_Walk_Loop_LL.RT_M_Neutral_Walk_Loop_LL",
+      "length": 3.700000047683716,
+      "rootSpeedCmPerSecond": 185.36465792572616,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Neutral_Walk_Loop_FL.RT_M_Neutral_Walk_Loop_FL",
+      "length": 4.0,
+      "rootSpeedCmPerSecond": 205.96731395366348,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Relaxed_Walk_Start_F_Lfoot.RT_M_Relaxed_Walk_Start_F_Lfoot",
+      "length": 3.5,
+      "rootSpeedCmPerSecond": 157.54633440290178,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Relaxed_Walk_Start_B_Lfoot.RT_M_Relaxed_Walk_Start_B_Lfoot",
+      "length": 3.799999952316284,
+      "rootSpeedCmPerSecond": 158.52039736848627,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Relaxed_Walk_Start_LL_Lfoot.RT_M_Relaxed_Walk_Start_LL_Lfoot",
+      "length": 4.199999809265137,
+      "rootSpeedCmPerSecond": 159.62500040041328,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Relaxed_Walk_Start_RL_Lfoot.RT_M_Relaxed_Walk_Start_RL_Lfoot",
+      "length": 4.866666793823242,
+      "rootSpeedCmPerSecond": 161.01735151585223,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Relaxed_Walk_Stop_F_Lfoot.RT_M_Relaxed_Walk_Stop_F_Lfoot",
+      "length": 3.700000047683716,
+      "rootSpeedCmPerSecond": 68.11959668598179,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Relaxed_Walk_Stop_B_Lfoot.RT_M_Relaxed_Walk_Stop_B_Lfoot",
+      "length": 3.633333444595337,
+      "rootSpeedCmPerSecond": 66.25166803866712,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Relaxed_Walk_Stop_LL_Lfoot.RT_M_Relaxed_Walk_Stop_LL_Lfoot",
+      "length": 3.633333444595337,
+      "rootSpeedCmPerSecond": 66.25166803866712,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Relaxed_Walk_Stop_RL_Lfoot.RT_M_Relaxed_Walk_Stop_RL_Lfoot",
+      "length": 3.8333332538604736,
+      "rootSpeedCmPerSecond": 71.6605478299296,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Neutral_Run_Loop_F.RT_M_Neutral_Run_Loop_F",
+      "length": 2.5,
+      "rootSpeedCmPerSecond": 514.914501953125,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Neutral_Run_Loop_FR.RT_M_Neutral_Run_Loop_FR",
+      "length": 2.5,
+      "rootSpeedCmPerSecond": 514.9145020527762,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Neutral_Run_Loop_RR.RT_M_Neutral_Run_Loop_RR",
+      "length": 2.366666555404663,
+      "rootSpeedCmPerSecond": 360.44016638662555,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Neutral_Run_Loop_BR.RT_M_Neutral_Run_Loop_BR",
+      "length": 2.566666603088379,
+      "rootSpeedCmPerSecond": 308.948827530854,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Neutral_Run_Loop_B.RT_M_Neutral_Run_Loop_B",
+      "length": 2.566666603088379,
+      "rootSpeedCmPerSecond": 308.94870482974125,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Neutral_Run_Loop_BL.RT_M_Neutral_Run_Loop_BL",
+      "length": 2.566666603088379,
+      "rootSpeedCmPerSecond": 308.94865938134507,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Neutral_Run_Loop_LL.RT_M_Neutral_Run_Loop_LL",
+      "length": 2.366666555404663,
+      "rootSpeedCmPerSecond": 360.44016638662555,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Neutral_Run_Loop_FL.RT_M_Neutral_Run_Loop_FL",
+      "length": 2.5,
+      "rootSpeedCmPerSecond": 514.9145020527762,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Relaxed_Run_Start_F_Lfoot.RT_M_Relaxed_Run_Start_F_Lfoot",
+      "length": 3.0,
+      "rootSpeedCmPerSecond": 342.9163004557292,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Relaxed_Run_Start_B_Lfoot.RT_M_Relaxed_Run_Start_B_Lfoot",
+      "length": 2.5999999046325684,
+      "rootSpeedCmPerSecond": 306.9216092521084,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Relaxed_Run_Start_LL_Lfoot.RT_M_Relaxed_Run_Start_LL_Lfoot",
+      "length": 2.933333396911621,
+      "rootSpeedCmPerSecond": 341.8810614264865,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Relaxed_Run_Start_RL_Lfoot.RT_M_Relaxed_Run_Start_RL_Lfoot",
+      "length": 3.200000047683716,
+      "rootSpeedCmPerSecond": 345.57296237985844,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Relaxed_Run_Stop_F_Lfoot.RT_M_Relaxed_Run_Stop_F_Lfoot",
+      "length": 3.8333332538604736,
+      "rootSpeedCmPerSecond": 109.52887720706956,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Relaxed_Run_Stop_B_Lfoot.RT_M_Relaxed_Run_Stop_B_Lfoot",
+      "length": 3.299999952316284,
+      "rootSpeedCmPerSecond": 121.3792113301137,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Relaxed_Run_Stop_LL_Lfoot.RT_M_Relaxed_Run_Stop_LL_Lfoot",
+      "length": 2.566666603088379,
+      "rootSpeedCmPerSecond": 148.53588521724305,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Relaxed_Run_Stop_RL_Lfoot.RT_M_Relaxed_Run_Stop_RL_Lfoot",
+      "length": 2.5333333015441895,
+      "rootSpeedCmPerSecond": 170.81587754821658,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Neutral_Sprint_Loop_F.RT_M_Neutral_Sprint_Loop_F",
+      "length": 2.0,
+      "rootSpeedCmPerSecond": 720.8803100585938,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Neutral_Sprint_Loop_FL.RT_M_Neutral_Sprint_Loop_FL",
+      "length": 2.0,
+      "rootSpeedCmPerSecond": 720.8803443059246,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Neutral_Sprint_Loop_FR.RT_M_Neutral_Sprint_Loop_FR",
+      "length": 2.0,
+      "rootSpeedCmPerSecond": 720.8803443059246,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Relaxed_Walk_Turn_180_L_Lfoot.RT_M_Relaxed_Walk_Turn_180_L_Lfoot",
+      "length": 5.4666666984558105,
+      "rootSpeedCmPerSecond": 72.91321409671356,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    },
+    {
+      "asset": "/Game/Characters/TornVeilLocomotion/RT_M_Relaxed_Walk_Turn_180_R_Lfoot.RT_M_Relaxed_Walk_Turn_180_R_Lfoot",
+      "length": 5.5333333015441895,
+      "rootSpeedCmPerSecond": 73.05065794479795,
+      "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin.SK_Mannequin"
+    }
+  ],
+  "sampleCount": 36,
+  "rootAuthority": "discarded; canonical body/prediction only"
+}

@@ -26,6 +26,10 @@ public:
     virtual void EndPlay(const EEndPlayReason::Type Reason) override;
     virtual void Tick(float DeltaSeconds) override;
     virtual void SetupPlayerInputComponent(UInputComponent* Input) override;
+    void SetupEnhancedInput(UInputComponent* Input);
+    void RefreshInputContext(bool bModal);
+    UPROPERTY() TObjectPtr<class UInputMappingContext> GameplayContext;
+    UPROPERTY() TMap<FName,TObjectPtr<class UInputAction>> SemanticActions;
     UPROPERTY(VisibleAnywhere) TObjectPtr<class UTVCombatPresentationComponent> CombatPresentation;
     bool bSemanticCombat = false;
     void Project(const TSharedPtr<class FJsonObject>& Data, bool bFirst);
@@ -108,6 +112,9 @@ private:
     UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> PropMaterial;
     UPROPERTY() TObjectPtr<UAnimationAsset> Locomotion;
     UPROPERTY() TObjectPtr<UAnimationAsset> SprintAnimation;
+    UPROPERTY() TObjectPtr<class UAnimSequence> LocomotionTransition;
+    float LocomotionTransitionAge=99,LastTravelDirection=0;
+    bool bDirectionalLocomotion=false;
     UPROPERTY() TObjectPtr<UAnimationAsset> AttackAnimation;
     UPROPERTY() TObjectPtr<UAnimationAsset> HitAnimation;
     UPROPERTY() TObjectPtr<UAnimationAsset> DownAnimation;
@@ -124,6 +131,7 @@ private:
     int32 PendingAttackEvents = 0, PendingHitEvents = 0;
     float PresentationAnimationAge = 99.f;
     bool bSprint = false, bProjected = false;
+    bool bInputModal=false;
 public:
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Input")
     void Forward(float Value);

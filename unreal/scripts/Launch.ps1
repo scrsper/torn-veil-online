@@ -10,6 +10,10 @@ Write-Host "Torn Veil project: $repo"
 # Incremental UBT checks actual source/dependency freshness. A git pull does not rebuild a DLL.
 # Always complete this before launch; a stale native client must never silently run.
 & "$PSScriptRoot/Build.ps1" -Engine $Engine
+if ($Scenario -eq 'Playable' -and !(Test-Path "$repo/unreal/TornVeilOnline/Content/Characters/TornVeilLocomotion/BS_TV_Directional.uasset")) {
+    & "$PSScriptRoot/Install-LocomotionReference.ps1" -Engine $Engine
+}
+if ($Scenario -eq 'Playable' -and !(Test-Path "$repo/unreal/TornVeilOnline/Content/TornVeil/Wildlife/Deer/SKM_Deer.uasset")) { throw 'Required CC0 deer content missing. Run git lfs pull; see unreal/WILDLIFE_ASSET_PROVENANCE.md.' }
 try {
     $health=Invoke-RestMethod 'http://127.0.0.1:8787/health' -TimeoutSec 3
     if ($Scenario -eq 'Playable' -and $health.regionProtocol -ne 2) { throw 'The bridge is stale. Restart npm run bridge:playable from this checkout.' }

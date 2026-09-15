@@ -4,6 +4,7 @@
 #include "TVCombatChoreography.h"
 #include "TVInteractionPrediction.h"
 #include "TVLiveCombat.h"
+#include "TVCommonUIWidgets.h"
 #include "TVBridgeSubsystem.generated.h"
 
 class IWebSocket;
@@ -36,7 +37,14 @@ public:
     void UIBack();
     void UIMove(int32 Delta);
     void UIConfirm();
-    bool HasModalScreen() const { return bInventoryOpen || bPauseOpen || bDialogueOpen || bMechanismsOpen; }
+    bool HasModalScreen() const { return (PlayerShell&&PlayerShell->HasModalScreen()) || (bInspector&&bMechanismsOpen); }
+    UPROPERTY() TObjectPtr<UTVPlayerShellWidget> PlayerShell;
+    FString FocusedTargetId,FocusedActionId,FocusedKind,MovementRestriction,MobilitySummary;
+    FBox2D FocusedBounds;
+    void UpdatePlayerShell();
+    void UpdateInteractionFocus();
+    void UICommand(ETVUICommand Command,const FString& Primary,const FString& Secondary,int32 Index);
+    TSharedRef<FJsonObject> ControlState() const;
     UPROPERTY(BlueprintReadOnly) FString PlayerVitals;
     UPROPERTY(BlueprintReadOnly) FString CarriedSummary;
     UPROPERTY(BlueprintReadOnly) FString NearbyPrompt;
@@ -105,6 +113,13 @@ public:
     /** Complete current observed set. Missing rows withdraw presentation; only dead=true is death. */
     UPROPERTY() TMap<FString, TObjectPtr<ATVWildlifePresentation>> WildlifeBodies;
 private:
+    struct FFocusTarget {FString Id,Action,Kind,Label;FVector Position;};
+    TArray<FFocusTarget> FocusTargets;
+    TArray<TSharedPtr<FJsonValue>> ControlTrace;
+    double ControlTraceAt=0;
+    int32 LastMovementAck=-1;
+    FString CanonicalRestriction,PendingOpenContainer;
+    bool bShellDialogue=false;
     TSharedPtr<IWebSocket> Socket;
     FString SelectedBody;
     int32 Sequence = 0;
