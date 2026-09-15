@@ -2,6 +2,15 @@
 
 This matrix records inspected evidence separately from design targets. Commercial games are presentation references only; no proprietary implementation or asset was inspected or copied.
 
+Resume update, 2026-09-15: the original matrix below is the initial v0.1 baseline, not a claim
+that deferred work remains untouched. Actual CommonUI activatable screens/stacks and Enhanced
+Input are now integrated. Local GASP derivatives provide a 36-sample directional blendspace
+and start/stop/pivot clips. CC0 Quaternius skeletal deer replaces the basic-shape proxy, with
+head-low fallback for drink/rest/sleep. Save is available in P → Save world; F5 conflicts with
+the embedded Editor view-mode shortcut. Settings/rebinding, equipment slots and device-specific
+glyph art remain deferred. Ordinary walkthrough is incomplete under profiled NPC cognition
+backlog; see `docs/evidence/foundational-gameplay/retrofit/REPAIR_VALIDATION.md` for current status.
+
 | System | Torn Veil need | Primary reference | Secondary reference | Pattern learned | What not to copy | Canonical owner | Unreal responsibility | Current repo support | Implementation gap | MVP priority |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Camera | One readable exploration/combat language | Game Animation Sample camera rigs (inspected) | Witcher/Ghost design language | Composable framing, collision and smooth mode changes | Sample gameplay authority/free-orbit default | TypeScript facing/outcome | Spring arm, framing, collision, zoom, interpolation | Exploration/combat/incapacitated policy derives from canonical state | Human tuning remains | Implemented v0.1 |

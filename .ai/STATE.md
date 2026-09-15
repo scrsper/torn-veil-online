@@ -1,4 +1,22 @@
-# Foundational gameplay presentation v0.1 — human playtest checkpoint, 2026-09-14
+# Foundational gameplay presentation v0.1 — resumed repair, 2026-09-15
+
+PR #43 remains unmerged and NOT human-approved. Real CommonUI activatable screens/stacks,
+Enhanced Input, GASP-derived local directional blendspace and CC0 skeletal deer are integrated.
+Repaired controller lease handoff, stale input clearing, timer-starved rate windows and inline
+urgent-wake amplification; ownership limits, command expiry and canonical scheduler are unchanged.
+Also fixed unreadable fonts/prompts, modal Back routing, missing dialogue exit, and item/chest
+support-plane offsets. Ordinary Lit PIE passes the lighting/geometry/pixel check.
+
+Ordinary test-world walkthrough is INCOMPLETE: talk/close, inventory, store/retrieve, menus and
+save/reload/control recovery were observed. Drop expired under growing simulation debt; full
+food/pickup/combat/region/deer journey remains unverified. A read-only loaded-save profile measured
+7.91 s per 120 interaction ticks, 7.47 s in NPC thinking. Further canonical cognition/scheduling
+work is outside this presentation repair. Do not replace the failed ordinary walkthrough with
+the passing fixture acceptance. Evidence and capture limitations:
+`docs/evidence/foundational-gameplay/retrofit/REPAIR_VALIDATION.md` and `BRIDGE_SAVE_PROFILE.md`.
+Normal user save was preserved; verification used `.debug/playable-repair-test.save.json`.
+
+## Earlier milestone checkpoints (historical, superseded by repair status above)
 
 PR #43 human playtest rejected near-black PIE. Fixed the proven 100-lux saved-time sun / EV100-12
 mismatch with a shared neutral-daylight setup/startup contract (`TVPlayableLighting`). Launch

@@ -136,3 +136,36 @@ Human re-test: from `C:\Users\green\Desktop\projects\torn-veil-online-foundation
 For a machine-checked capture after 9/9 regions load, run
 `pwsh -File unreal/scripts/Verify-PlayablePIE.ps1 -CaptureLabel playable-lit`.
 Use this checkout's save, not the incompatible main-checkout save. Human re-approval remains pending.
+
+## Resumed human-playtest repair — 2026-09-15
+
+Current implementation includes real CommonUI activatable screens/stacks, Enhanced Input,
+local GASP directional blendspace/start-stop-pivot clips and CC0 skeletal deer. Repaired lease
+handoff/input clearing, timer-starved rate windows, per-message synchronous wake amplification,
+UI text/prompt/Back/visible dialogue exit and item/chest grounding. No canonical inventory,
+combat, cognition or scheduler rewrite; no relaxed expiry or disconnected prediction.
+
+Actual ordinary Lit startup, talk/close near an item, inventory/menu return, bread store/retrieve,
+save/reload identity and same-PIE reconnect passed. Remaining walkthrough is NOT accepted:
+later drops expired and full pickup/eat/combat/region/deer steps did not complete. A read-only
+profile attributes 7.47 of 7.91 seconds per 120 interaction ticks to NPC thinking in the loaded
+test save. This needs a separately scoped canonical performance investigation, not another
+presentation workaround. All detailed pass/fail results, build hashes, controls and capture
+limitations are in `docs/evidence/foundational-gameplay/retrofit/REPAIR_VALIDATION.md` and
+`repair-validation-summary.json`. Final Lit evidence is `repair-final-lit.png/.json`.
+
+The test used `.debug/playable-repair-test.save.json`; normal user save remained unchanged.
+Test bridge and Editor were stopped at handoff. From the foundational folder, start the normal
+world with `npm run bridge:playable` (no TORN_VEIL_SAVE override), then in another PowerShell:
+
+```powershell
+$env:UE_SDKS_ROOT='C:\Users\green\Desktop\projects\torn-veil-online\.debug\AutoSDK'
+pwsh -File unreal/scripts/Launch.ps1
+```
+
+Press Play. WASD move, Shift sprint, Space dodge, X/LMB basic attack, E focused interaction,
+I inventory/container, P menu, on-screen Back/Resume, P → Save world. Q drops and C consumes
+eligible held items, but late/expired requests remain a loaded-save defect in this run. Embedded
+Editor F5 may invoke Shader Complexity; use the Save menu. No in-game reload screen exists;
+bridge restart loads its canonical save. For the isolated slow-world repro only, set
+`$env:TORN_VEIL_SAVE='.debug/playable-repair-test.save.json'` before starting the bridge.

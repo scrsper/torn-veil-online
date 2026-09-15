@@ -33,3 +33,16 @@ The PR #43 lighting correction regenerates the project's own `Content/TornVeil/M
 using `create_playable_world.py` and `UTVPlayableLighting`. Only built-in Unreal light/atmosphere/fog/
 post-process actor configuration is authored; no third-party asset is imported or modified. The map,
 owned source, and self-captured Lit/diagnostic Unlit PNGs/JSON are committed. No new art license applies.
+
+## Resumed presentation retrofit (2026-09-15)
+
+The earlier proxy-only statements above describe historical checkpoints. The current deer uses
+committed CC0 Unreal derivatives; exact source/license hashes and paths are in
+`WILDLIFE_ASSET_PROVENANCE.md` and `Content/TornVeil/Wildlife/DeerProvenance.json`.
+
+Directional locomotion uses the installed Game Animation Sample, read-only at
+`C:/Users/green/Desktop/projects/GameAnimationSample`. `Install-LocomotionReference.ps1`,
+`migrate_locomotion_reference.py` and `create_directional_locomotion.py` prepare local
+`Content/Characters/TornVeilLocomotion` derivatives (37 clips, 36 blendspace samples).
+Epic source/mannequin/animation binaries remain ignored local prerequisites, not public Git assets.
+No Mover, sample movement authority, vendor AI or commercial-game content is imported.
