@@ -25,7 +25,9 @@ void ATVCharacter::SetupEnhancedInput(UInputComponent* Input) {
         TArray<FInputAxisKeyMapping> Keys;Settings->GetAxisMappingByName(Name,Keys);
         for(const auto& Key:Keys){auto& M=GameplayContext->MapKey(A,Key.Key);auto* Scale=NewObject<UInputModifierScalar>(GameplayContext);Scale->Scalar=FVector(Key.Scale);M.Modifiers.Add(Scale);
             if(Key.Key.IsGamepadKey()){auto* Dead=NewObject<UInputModifierDeadZone>(GameplayContext);Dead->LowerThreshold=.18;M.Modifiers.Add(Dead);}}
-        const auto Read=[this,Callback](const FInputActionValue& V){(this->*Callback)(FMath::Clamp(V.Get<float>(),-1.f,1.f));};
+        // Mouse deltas are not normalized stick values; clamping them silently changes
+        // the established sensitivity. Movement already clamps its combined intent.
+        const auto Read=[this,Callback](const FInputActionValue& V){(this->*Callback)(V.Get<float>());};
         Enhanced->BindActionValueLambda(A,ETriggerEvent::Triggered,Read);
         Enhanced->BindActionValueLambda(A,ETriggerEvent::Completed,Read);
         Enhanced->BindActionValueLambda(A,ETriggerEvent::Canceled,Read);

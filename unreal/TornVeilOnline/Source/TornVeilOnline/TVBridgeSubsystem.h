@@ -16,6 +16,7 @@ class TORNVEILONLINE_API UTVBridgeSubsystem : public UTickableWorldSubsystem {
     GENERATED_BODY()
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FTVLiveCombatReconciliation;
+    friend class FTVInputBoundaryReset;
 #endif
 public:
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -66,6 +67,8 @@ public:
     void SaveWorld();
     void PredictMovement(float Dt,const FVector& Direction,bool bSprint,TOptional<double> Facing={});
     void SetCrouch(bool Held);
+    // Forget only disposable, not-yet-presented input; never cancel canonical outcomes.
+    void ClearBufferedInput();
     bool bCrouchHeld=false,bPracticeRecovery=true;
     double PredictedCrouch() const {return Predicted.Crouch;}
     double CombatInputCallbackAt=0;

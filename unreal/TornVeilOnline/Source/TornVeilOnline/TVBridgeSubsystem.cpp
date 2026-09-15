@@ -34,7 +34,9 @@ void UTVBridgeSubsystem::Connect() {
     // header on a WebSocket handshake; this client can. Absence of an Origin header cannot be the
     // proof, because libwebsockets sends `Origin: http://127.0.0.1` on our behalf whether we want
     // it or not -- which is what used to get every one of these connections refused.
-    bTransportConnected=false; bCanonicalReady=false; bWasLive=false; SnapshotCount=0; SinceSnapshot=100;
+    bControls=false; bTransportConnected=false; bCanonicalReady=false; bWasLive=false; SnapshotCount=0; SinceSnapshot=100;
+    ClearBufferedInput();
+    if(auto* P=Cast<ATVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0)))P->RefreshInputContext(true);
     bPredictionReady=false;InteractionEpoch.Empty();PendingMovement.Empty();CommandSentAt.Empty();PredictionColumns.Empty();PredictionAccumulator=0;LastConfirmedTick=-1;
     Assembly.Empty(); PendingPresentation.Reset(); WantedRegions.Empty(); ProjectedRegions=0;
     for(auto& Pair:WildlifeBodies)if(IsValid(Pair.Value))Pair.Value->Destroy();WildlifeBodies.Empty();
@@ -348,6 +350,10 @@ void UTVBridgeSubsystem::Interact() {
     if(FocusedKind==TEXT("person"))SendIntent(TEXT("talk"),FocusedTargetId);
     else {if(FocusedKind==TEXT("container")&&FocusedActionId.StartsWith(TEXT("open:")))PendingOpenContainer=FocusedTargetId;
         auto M=MakeShared<FJsonObject>();M->SetStringField(TEXT("type"),TEXT("interact"));M->SetStringField(TEXT("interactionId"),FocusedActionId);Send(M);}
+}
+void UTVBridgeSubsystem::ClearBufferedInput() {
+    BufferedCombat.Reset();
+    bCrouchHeld=false;
 }
 void UTVBridgeSubsystem::ToggleInventory() {
     if(!IsLive()||!PlayerShell)return;

@@ -98,7 +98,7 @@ void ATVCharacter::Tick(float Dt) {
     Super::Tick(Dt); SnapshotAge += Dt;
     auto* Bridge = GetWorld()->GetSubsystem<UTVBridgeSubsystem>();
     const bool Live = Bridge && Bridge->IsLive();
-    if(IsPlayerControlled())RefreshInputContext(Bridge&&Bridge->HasModalScreen());
+    if(IsPlayerControlled())RefreshInputContext(!Bridge||!Bridge->HasPrediction()||Bridge->HasModalScreen());
     if (bCanonicalPlayer) {
         GetCharacterMovement()->MaxWalkSpeed = CanonicalSpeed;
         // Physical movement is entirely canonical. Local gravity/collision must not compete with reconciliation.
@@ -434,10 +434,7 @@ void ATVCharacter::SaveWorld() { if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSu
 void ATVCharacter::Dodge() {
     const double At=FPlatformTime::Seconds();auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>();auto* PC=Cast<APlayerController>(Controller);
     if(!B||!PC||B->HasModalScreen())return;
-    // Read the remapped keys at this callback, before the next axis tick. Freeze the resulting
-    // world direction for this action; later camera or stick changes cannot steer the dodge.
-    const auto Axis=[PC](const TCHAR* Name){TArray<FInputAxisKeyMapping> Keys;GetDefault<UInputSettings>()->GetAxisMappingByName(Name,Keys);float Value=0;
-        for(const auto& K:Keys)Value+=K.Scale*(K.Key.IsAnalog()?PC->GetInputAnalogKeyState(K.Key):(PC->IsInputKeyDown(K.Key)?1.f:0.f));return Value;};
+    // Freeze the Enhanced Input axes; later camera/stick changes cannot steer the dodge.
     FVector D(ForwardAxis,RightAxis,0);
     if(D.Size()<TVInteractionSpec::dodgeDeadZone){B->SendCombat(TEXT("backstep"),1,TEXT("high"),At);return;}
     D.Normalize();D=FRotationMatrix(FRotator(0,GetActorRotation().Yaw,0)).TransformVector(D);
@@ -452,7 +449,7 @@ void ATVCharacter::PracticeReset(){if(auto* B=GetWorld()->GetSubsystem<UTVBridge
 
 void ATVCharacter::EndPlay(const EEndPlayReason::Type Reason){FCoreDelegates::ApplicationWillDeactivateDelegate.RemoveAll(this);Super::EndPlay(Reason);}
 void ATVCharacter::ReleaseCrouch(){if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->SetCrouch(false);}
-void ATVCharacter::LoseFocus(){if(!bCanonicalPlayer)return;ForwardAxis=RightAxis=0;bSprint=bHeavyTrigger=false;ReleaseCrouch();if(auto* PC=Cast<APlayerController>(Controller))PC->FlushPressedKeys();}
+void ATVCharacter::LoseFocus(){if(!bCanonicalPlayer)return;ForwardAxis=RightAxis=0;bSprint=bHeavyTrigger=false;ReleaseCrouch();if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->ClearBufferedInput();if(auto* PC=Cast<APlayerController>(Controller))PC->FlushPressedKeys();}
 void ATVCharacter::HeavyTrigger(float V){if(V>=.65f&&!bHeavyTrigger){bHeavyTrigger=true;LowAttack();}else if(V<=.25f)bHeavyTrigger=false;}
 void ATVCharacter::PracticePhysiology(){if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>())B->SetPractice(B->bPracticeRecovery?TEXT("normal"):TEXT("recovery"));}
 void ATVCharacter::AnimateCrouch(float Amount,float Dt){
