@@ -46,6 +46,12 @@ bool FTVCommonUIProjection::RunTest(const FString&) {
     auto Resume=Buttons(Menu);TestEqual(TEXT("menu has Resume and canonical Save"),Resume.Num(),2);
     if(Resume.Num())Resume[0]->OnClicked.Broadcast();
     TestEqual(TEXT("Resume also receives late command sink"),BackCount,2);
+    auto* Dialogue=BuildWidget<UTVDialogueWidget>(PC);Dialogue->SetCommandDelegate(&BackSink);
+    FTVUISnapshot DialogueState;for(int32 I=0;I<9;++I){DialogueState.DialogueOptionLabels.Add(TEXT("Canonical option"));DialogueState.DialogueOptionIds.Add(FString::FromInt(I));}
+    Dialogue->SetSnapshot(DialogueState);auto DialogueButtons=Buttons(Dialogue);
+    TestEqual(TEXT("nine dialogue choices cannot displace visible Back"),DialogueButtons.Num(),10);
+    if(DialogueButtons.Num()==10)DialogueButtons.Last()->OnClicked.Broadcast();
+    TestEqual(TEXT("visible dialogue Back routes semantic close"),BackCount,3);
     TestNotNull(TEXT("empty inventory has a desired focus target"),static_cast<UTVCommonActivatableWidget*>(Inventory)->NativeGetDesiredFocusTarget());
     Inventory->WidgetTree->ForEachWidget([&](UWidget* W){if(auto* Text=Cast<UTextBlock>(W))TestTrue(TEXT("text has a real font/composite font"),Text->GetFont().FontObject!=nullptr||Text->GetFont().CompositeFont.IsValid());});
     auto* Container=BuildWidget<UTVContainerWidget>(PC);

@@ -38,7 +38,7 @@ struct TORNVEILONLINE_API FTVUIFocusBounds
 {
     GENERATED_BODY()
     UPROPERTY(BlueprintReadOnly) bool bHasFocusBounds = false;
-    UPROPERTY(BlueprintReadOnly) FBox2D BoundsPixels;
+    UPROPERTY(BlueprintReadOnly) FBox2D BoundsPixels = FBox2D(ForceInit);
 };
 
 USTRUCT(BlueprintType)
