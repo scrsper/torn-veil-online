@@ -46,15 +46,18 @@ export function* projectRegionSteps(w: World, rx: number, rz: number) {
     family: p.type === 'house' ? 'dwelling' : p.type === 'chapel' ? 'community' : p.type === 'mill' ? 'production' : p.type === 'stall' || p.type === 'tavern' ? 'shop' : p.type === 'farm' || p.type === 'store' ? 'agricultural' : 'workshop' }));
   // Dense geometry exists only in inhabited patches. Never sweep a whole world volume.
   for (const patch of (w.grid as import('../sim/physical/regionalGrid').RegionalGrid).patches) {
-    const x0 = Math.max(bounds.x0, patch.x), x1 = Math.min(bounds.x1, patch.x + patch.grid.W), z0 = Math.max(bounds.z0, patch.z), z1 = Math.min(bounds.z1, patch.z + patch.grid.D);
+    // A small read-only path halo lets both neighbouring terrain materials agree at the seam.
+    // Doors/fences remain owned by their original region and are never duplicated.
+    const x0 = Math.max(bounds.x0 - 3, patch.x), x1 = Math.min(bounds.x1 + 3, patch.x + patch.grid.W), z0 = Math.max(bounds.z0 - 3, patch.z), z1 = Math.min(bounds.z1 + 3, patch.z + patch.grid.D);
     for (let x = x0; x < x1; x++) for (let z = z0; z < z1; z++) { for (let y = 1; y < patch.grid.H; y++) {
       const b = w.grid.get(x, y, z);
-      if (b === B.Door) openings.push([x, y, z, +w.grid.isDoorOpen(x, y, z)]);
-      if (b === B.Fence) fences.push([x, y, z, w.grid.get(x-1,y,z)===B.Fence||w.grid.get(x+1,y,z)===B.Fence ? 0 : 90]);
+      if (b === B.Door && inBounds(bounds, {x,z})) openings.push([x, y, z, +w.grid.isDoorOpen(x, y, z)]);
+      if (b === B.Fence && inBounds(bounds, {x,z})) fences.push([x, y, z, w.grid.get(x-1,y,z)===B.Fence||w.grid.get(x+1,y,z)===B.Fence ? 0 : 90]);
       if (b === B.Path) paths.push([x,y+1,z]);
     } if((z-z0)%16===15)yield; }
   }
   return { id: `${rx},${rz}`, seed: w.geography.regionSeed(rx, rz), bounds, terrain: { stride, columns }, openings, fences, paths, places,
+    dressingExclusions: w.places().filter(p => p.bounds.x0 < bounds.x1 + 4 && p.bounds.x1 >= bounds.x0 - 4 && p.bounds.z0 < bounds.z1 + 4 && p.bounds.z1 >= bounds.z0 - 4).map(p => ({bounds:p.bounds})),
     roads: w.geography.roads.filter(r => r.points.some(p => inBounds(bounds, p))).map(r => ({ id: r.id, points: r.points.filter(p => p.x >= bounds.x0 - 128 && p.x < bounds.x1 + 128 && p.z >= bounds.z0 - 128 && p.z < bounds.z1 + 128).map(p=>({...p,y:surface(w,Math.floor(p.x),Math.floor(p.z)).height+1})) })),
     settlements: w.settlements().filter(s => s.bounds.x0 < bounds.x1 && s.bounds.x1 >= bounds.x0 && s.bounds.z0 < bounds.z1 && s.bounds.z1 >= bounds.z0).map(s => ({ id: s.id, bounds: s.bounds })),
     classification: 'canonical', decoration: { classification: 'decorative', seed: w.geography.regionSeed(rx, rz, 'dressing'), collision: false, gameplay: false } };

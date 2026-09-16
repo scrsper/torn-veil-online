@@ -40,6 +40,17 @@ describe('continuous seeded world', () => {
     expect(JSON.stringify(a)).not.toMatch(/knowledge|honesty|goal|wealth/);
     expect(a.decoration).toMatchObject({ classification:'decorative', collision:false, gameplay:false });
   });
+  test('path shoulders and building exclusions have shared seam context without duplicate structures', () => {
+    const p=w.positionOf(w.playerId!)!, rx=Math.floor(p.x/256),rz=Math.floor(p.z/256), x=rx*256,z=Math.floor(p.z),y=w.grid.groundHeight(x,z);
+    const old=w.grid.get(x,y,z); w.grid.set(x,y,z,B.Path);
+    try {
+      const before=digest(w),a=projectRegion(w,rx-1,rz),b=projectRegion(w,rx,rz);
+      expect(a.paths).toContainEqual([x,y+1,z]); expect(b.paths).toContainEqual([x,y+1,z]);
+      expect(a.places.some(pa=>b.places.some(pb=>pb.id===pa.id))).toBe(false);
+      expect(b.dressingExclusions.length).toBeGreaterThanOrEqual(b.places.length);
+      expect(digest(w)).toBe(before);
+    } finally { w.grid.set(x,y,z,old); }
+  });
   test('presentation eviction cannot mutate resources, dropped items, history or knowledge', () => {
     const stream = new RegionStream(), p = w.person(w.playerId)!, body = w.primaryBody(p.id)!;
     const pos = { ...body.pos }; stream.frame(w);

@@ -6,5 +6,6 @@ public class TornVeilOnline : ModuleRules {
         PublicDependencyModuleNames.AddRange(new string[] { "EnhancedInput", "CommonUI", "CommonInput", "Slate", "SlateCore" });
         if (Target.bBuildEditor) PrivateDependencyModuleNames.Add("ApplicationCore"); // native keyboard acceptance
         PrivateDependencyModuleNames.Add("ImageCore"); // completed Lit-frame acceptance readback
+        RuntimeDependencies.Add("$(ProjectDir)/Content/TornVeil/Presentation/EnvironmentPalette.json", StagedFileType.NonUFS);
     }
 }

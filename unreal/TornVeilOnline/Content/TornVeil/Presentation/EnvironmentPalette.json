@@ -1,0 +1,8 @@
+{
+  "Architecture.RoofSlope": "/Game/ThirdParty/Quaternius/Meshes/Roof_Wooden_2x1",
+  "Architecture.Wall": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Straight",
+  "Architecture.Window": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_Window_Wide_Flat",
+  "Workshop.Wall": "/Game/ThirdParty/Quaternius/Meshes/Wall_Plaster_WoodGrid",
+  "Vegetation.Grass": "/Game/ThirdParty/PolyHaven/Meshes/grass_medium_01_1k.grass_medium_01_1k",
+  "Ground.Settlement": "/Game/TornVeil/Materials/M_TV_SettlementGround"
+}

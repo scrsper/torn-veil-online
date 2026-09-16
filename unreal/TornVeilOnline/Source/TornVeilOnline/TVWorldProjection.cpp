@@ -15,6 +15,7 @@
 #include "Engine/ExponentialHeightFog.h"
 #include "Components/ExponentialHeightFogComponent.h"
 #include "TVItemPresentationCatalog.h"
+#include "TVEnvironmentGrammar.h"
 
 static const FString Kit = TEXT("/Game/ThirdParty/Quaternius/Meshes/");
 static const FString Mat = TEXT("/Game/TornVeil/Materials/");
@@ -85,25 +86,49 @@ void ATVRegionProjection::Structure(const TSharedPtr<FJsonObject>& P) {
             for(int I=0;I<Count;I++) { const double Offset=Span.Key+(I+.5)*Segment; const FVector C=AlongX?FVector(X+Offset,Fixed,Z+H/2):FVector(Fixed,Y+Offset,Z+H/2);
                 // Window modules are presentation-only openings selected per deterministic
                 // visual seed; the canonical door/opening facts remain the authority.
-                const FString Wall=Random.RandRange(0,2)==0?TEXT("Wall_Plaster_Window_Wide_Flat"):Family==TEXT("workshop")?TEXT("Wall_Plaster_WoodGrid"):TEXT("Wall_Plaster_Straight");
-                Piece(Id,Kit+Wall,C,FVector(Segment,25,H),AlongX?0:90); }
+                const bool Window=Random.RandRange(0,2)==0;
+                const FString Wall=FTVEnvironmentGrammar::Asset(Window?TEXT("Architecture.Window"):Family==TEXT("workshop")?TEXT("Workshop.Wall"):TEXT("Architecture.Wall"),
+                    *(Kit+(Window?TEXT("Wall_Plaster_Window_Wide_Flat"):Family==TEXT("workshop")?TEXT("Wall_Plaster_WoodGrid"):TEXT("Wall_Plaster_Straight"))));
+                Piece(Id,Wall,C,FVector(Segment,25,H),AlongX?0:90); }
         }
     }
     // The target box is grounded at canonical y0; Piece() compensates the source pivot from
     // measured mesh bounds, so these supports meet the plinth/floor rather than floating.
     for(int Corner=0;Corner<4;Corner++)
         Piece(Id,Kit+TEXT("Roof_Support2"),FVector(X+(Corner%2?W:0),Y+(Corner<2?0:D),Z+H/2),FVector(25,25,H));
-    // Repeated modular roof strips, fitted to the canonical footprint (never a premade house).
-    const int Strips=FMath::Max(1,FMath::CeilToInt(D/200));
-    for(int I=0;I<Strips;I++) Piece(Id,Kit+(Family==TEXT("agricultural")?TEXT("Roof_Wooden_2x1"):TEXT("Roof_Modular_RoundTiles")),FVector(X+W/2,Y+(I+.5)*D/Strips,Z+H+90),FVector(W+100,D/Strips+20,180));
+    const FString Roof=FTVEnvironmentGrammar::Asset(TEXT("Architecture.RoofSlope"),*(Kit+TEXT("Roof_Wooden_2x1")));
+    for(const auto& Panel:FTVEnvironmentGrammar::Roof(FVector(X,Y,Z),FVector2D(W,D),H))
+        Piece(Id,Roof,Panel.Center,Panel.Size,Panel.Yaw);
+    // A boarded ceiling closes the visible roof underside without changing walkable space.
+    if(Indoor) Piece(Id,Kit+TEXT("Floor_WoodDark"),FVector(X+W/2,Y+D/2,Z+H-8),FVector(W,D,12));
     // Equipment comes from assemblies, never from a decorative building family.
 }
 void ATVRegionProjection::Build(const TSharedPtr<FJsonObject>& R) {
     const double Start=FPlatformTime::Seconds(); RegionId=S(R,TEXT("id")); const auto B=R->GetObjectField(TEXT("bounds")); CanonicalBase=FVector(N(B,TEXT("x0")),N(B,TEXT("z0")),0);
     TArray<FVector> Vertices,Normals; TArray<int32> Triangles; TArray<FVector2D> UV; TArray<FLinearColor> Colors; TArray<FProcMeshTangent> Tangents;
     const auto& Columns=Rows(R->GetObjectField(TEXT("terrain")),TEXT("columns")); const int Side=FMath::RoundToInt(FMath::Sqrt(static_cast<double>(Columns.Num())));
-    for(const auto& V:Columns) { const auto& C=V->AsArray(); Vertices.Add(FVector(C[0]->AsNumber()-CanonicalBase.X,C[1]->AsNumber()-CanonicalBase.Y,C[2]->AsNumber())*100); Normals.Add(FVector::UpVector); UV.Add(FVector2D((C[0]->AsNumber()-CanonicalBase.X)/8,(C[1]->AsNumber()-CanonicalBase.Y)/8)); Colors.Add(FLinearColor::White); }
-    for(int X=0;X<Side-1;X++) for(int Y=0;Y<Side-1;Y++) { int A=X*Side+Y, Next=A+Side; Triangles.Append({A,A+1,Next,A+1,Next+1,Next}); }
+    TSet<FIntPoint> PathCells;
+    for(const auto& V:Rows(R,TEXT("paths"))) { const auto& C=V->AsArray(); PathCells.Add(FIntPoint(C[0]->AsNumber(),C[2]->AsNumber())); }
+    TArray<FTVSurfaceRoute> Routes;
+    for(const auto& Road:Rows(R,TEXT("roads"))) { const auto& Points=Rows(Road->AsObject(),TEXT("points")); for(int I=1;I<Points.Num();I++) {
+        const FVector A=Position(Points[I-1]->AsObject()), Bp=Position(Points[I]->AsObject()); Routes.Add({FVector2D(A.X,A.Y),FVector2D(Bp.X,Bp.Y),1.6f}); } }
+    // Subdivide only the existing surface triangles. This resolves narrow footpaths in the
+    // material without creating new elevation, changing collision or lifting road slabs.
+    const double SourceStride=N(R->GetObjectField(TEXT("terrain")),TEXT("stride"),8);
+    const int RenderStride=Side>33?1:2, RenderSide=256/RenderStride+1;
+    for(int X=0;X<RenderSide;X++) for(int Y=0;Y<RenderSide;Y++) {
+        const double LX=X*RenderStride,LY=Y*RenderStride;
+        const int IX=FMath::Min(FMath::FloorToInt(LX/SourceStride),Side-2),IY=FMath::Min(FMath::FloorToInt(LY/SourceStride),Side-2);
+        const auto& C=Columns[IX*Side+IY]->AsArray(); const auto& CX=Columns[(IX+1)*Side+IY]->AsArray();
+        const auto& CY=Columns[IX*Side+IY+1]->AsArray(); const auto& CXY=Columns[(IX+1)*Side+IY+1]->AsArray();
+        const double U=LX/SourceStride-IX,V=LY/SourceStride-IY;
+        const double A=C[2]->AsNumber(),BX=CX[2]->AsNumber(),CH=CY[2]->AsNumber(),D=CXY[2]->AsNumber();
+        const double Height=U+V<=1?A+(BX-A)*U+(CH-A)*V:D+(CH-D)*(1-U)+(BX-D)*(1-V);
+        const FVector2D XY(CanonicalBase.X+LX,CanonicalBase.Y+LY);
+        Vertices.Add(FVector(LX,LY,Height)*100); Normals.Add(FVector::UpVector);
+        UV.Add(XY/4.); // World anchored texture phase across region boundaries.
+        Colors.Add(FLinearColor(FTVEnvironmentGrammar::WornGround(XY,PathCells,Routes),C[3]->AsNumber()==16?1:0,C[5]->AsNumber(),1)); }
+    for(int X=0;X<RenderSide-1;X++) for(int Y=0;Y<RenderSide-1;Y++) { int A=X*RenderSide+Y, Next=A+RenderSide; Triangles.Append({A,A+1,Next,A+1,Next+1,Next}); }
     // Reconstruct smooth support normals from the canonical sampled surface. The mesh remains
     // presentation-only, but its lighting must communicate the same relief that navigation sees.
     Normals.SetNumZeroed(Vertices.Num());
@@ -115,11 +140,10 @@ void ATVRegionProjection::Build(const TSharedPtr<FJsonObject>& R) {
     }
     for (FVector& Normal : Normals) Normal = Normal.IsNearlyZero() ? FVector::UpVector : Normal.GetSafeNormal();
     Terrain->CreateMeshSection_LinearColor(0,Vertices,Triangles,Normals,UV,Colors,Tangents,false);
-    Terrain->SetMaterial(0,LoadObject<UMaterialInterface>(nullptr,*(Mat+TEXT("M_TV_PH_Soil"))));
+    auto* Ground=LoadObject<UMaterialInterface>(nullptr,*FTVEnvironmentGrammar::Asset(TEXT("Ground.Settlement"),*(Mat+TEXT("M_TV_PH_Soil"))));
+    Terrain->SetMaterial(0,Ground?Ground:LoadObject<UMaterialInterface>(nullptr,*(Mat+TEXT("M_TV_PH_Soil"))));
     for(const auto& P:Rows(R,TEXT("places"))) Structure(P->AsObject());
-    for(const auto& Road:Rows(R,TEXT("roads"))) { const auto& Points=Rows(Road->AsObject(),TEXT("points")); for(int I=1;I<Points.Num();I++) { const FVector A=Position(Points[I-1]->AsObject())*100, Bp=Position(Points[I]->AsObject())*100, Delta=Bp-A; const FVector Mid=(A+Bp)/200; if(Mid.X<CanonicalBase.X||Mid.X>=CanonicalBase.X+256||Mid.Y<CanonicalBase.Y||Mid.Y>=CanonicalBase.Y+256) continue; Piece(S(Road->AsObject(),TEXT("id")),TEXT("/Engine/BasicShapes/Cube"),(A+Bp)/2+FVector(0,0,3),FVector(Delta.Size2D()+5,320,6),Delta.Rotation().Yaw,Mat+TEXT("M_TV_ValleyPath")); } }
     for(const auto& F:Rows(R,TEXT("fences"))) { const auto& C=F->AsArray(); Piece(TEXT("fence"),Kit+TEXT("Balcony_Simple_Straight"),FVector(C[0]->AsNumber()+.5,C[2]->AsNumber()+.5,C[1]->AsNumber()+.5)*100,FVector(100,18,100),C.Num()>3?C[3]->AsNumber():0); }
-    for(const auto& Path:Rows(R,TEXT("paths"))) { const auto& C=Path->AsArray(); Piece(TEXT("path"),TEXT("/Engine/BasicShapes/Cube"),FVector(C[0]->AsNumber()+.5,C[2]->AsNumber()+.5,C[1]->AsNumber()-.5)*100,FVector(100,100,100),0,Mat+TEXT("M_TV_ValleyPath")); }
     for(const auto& V:Columns) { const auto& C=V->AsArray(); if(C[4]->AsNumber()>=0) Piece(TEXT("water"),TEXT("/Engine/BasicShapes/Cube"),FVector(C[0]->AsNumber(),C[1]->AsNumber(),C[4]->AsNumber())*100,FVector(N(R->GetObjectField(TEXT("terrain")),TEXT("stride"),8)*100,N(R->GetObjectField(TEXT("terrain")),TEXT("stride"),8)*100,5),0,Mat+TEXT("M_TV_RiverWater"));
     }
     Dress(R); BuildMilliseconds=(FPlatformTime::Seconds()-Start)*1000;
@@ -128,20 +152,41 @@ void ATVRegionProjection::Build(const TSharedPtr<FJsonObject>& R) {
 void ATVRegionProjection::Dress(const TSharedPtr<FJsonObject>& R) {
     auto* Graph=NewObject<UPCGGraph>(this); UTVPCGSubstrateSettings* Source=nullptr; auto* SourceNode=Graph->AddNodeOfType(Source);
     FRandomStream Random(static_cast<int32>(N(R->GetObjectField(TEXT("decoration")),TEXT("seed"))));
-    for(const auto& V:Rows(R->GetObjectField(TEXT("terrain")),TEXT("columns"))) { const auto& C=V->AsArray(); const double X=C[0]->AsNumber(), Y=C[1]->AsNumber();
-        if(FMath::Fmod(X,8.)!=0 || FMath::Fmod(Y,8.)!=0 || C[4]->AsNumber()>=0 || C[3]->AsNumber()==26) continue;
-        bool Occupied=false; for(const auto& P:Rows(R,TEXT("places"))) { const auto B=P->AsObject()->GetObjectField(TEXT("bounds")); if(X>=N(B,TEXT("x0"))-8 && X<=N(B,TEXT("x1"))+8 && Y>=N(B,TEXT("z0"))-8 && Y<=N(B,TEXT("z1"))+8) { Occupied=true; break; } }
-        if(Occupied) continue;
-        if(Random.FRand()>.35+C[5]->AsNumber()*.4) continue;
-        // The sampled column is already the canonical walkable support plane. Do not add the
-        // former 8 cm visual lift: decorative mesh bounds/pivots must be corrected in the
-        // presentation asset adapter, not by manufacturing a second ground height.
-        const FVector SupportLocation=GetActorLocation()+FVector((X-CanonicalBase.X)*100,(Y-CanonicalBase.Y)*100,C[2]->AsNumber()*100);
-        Source->Points.Add(FTransform(FRotator(0,Random.FRand()*360,0),SupportLocation,FVector(.5+Random.FRand()*.5)));
+    const FString GrassPath=FTVEnvironmentGrammar::Asset(TEXT("Vegetation.Grass"),TEXT("/Game/ThirdParty/PolyHaven/Meshes/grass_medium_01_1k.grass_medium_01_1k"));
+    const auto* Grass=LoadObject<UStaticMesh>(nullptr,*GrassPath);
+    const float PivotZ=Grass?Grass->GetBoundingBox().Min.Z:0;
+    const auto T=R->GetObjectField(TEXT("terrain")); const auto& Columns=Rows(T,TEXT("columns"));
+    const int Side=FMath::RoundToInt(FMath::Sqrt(static_cast<double>(Columns.Num()))); const double Stride=N(T,TEXT("stride"),8);
+    TSet<FIntPoint> PathCells; TArray<FTVSurfaceRoute> Routes;
+    for(const auto& V:Rows(R,TEXT("paths"))) { const auto& C=V->AsArray(); PathCells.Add(FIntPoint(C[0]->AsNumber(),C[2]->AsNumber())); }
+    for(const auto& V:Rows(R,TEXT("roads"))) { const auto& Points=Rows(V->AsObject(),TEXT("points")); for(int I=1;I<Points.Num();I++) {
+        const FVector A=Position(Points[I-1]->AsObject()), B=Position(Points[I]->AsObject()); Routes.Add({FVector2D(A.X,A.Y),FVector2D(B.X,B.Y),2.2f}); } }
+    const auto& Exclusions=R->HasField(TEXT("dressingExclusions"))?Rows(R,TEXT("dressingExclusions")):Rows(R,TEXT("places"));
+    // Small grass clusters, sampled against the same terrain triangles as the ground mesh.
+    // Four-metre candidate cells are jittered; no visible eight-metre rows of identical bushes.
+    for(int X=0;X<256;X+=4) for(int Y=0;Y<256;Y+=4) for(int Candidate=0;Candidate<3;Candidate++) {
+        const double LX=X+Random.FRand()*4, LY=Y+Random.FRand()*4;
+        const FVector2D XY(CanonicalBase.X+LX,CanonicalBase.Y+LY);
+        const int IX=FMath::Min(FMath::FloorToInt(LX/Stride),Side-2), IY=FMath::Min(FMath::FloorToInt(LY/Stride),Side-2);
+        const auto& C=Columns[IX*Side+IY]->AsArray(); const auto& CX=Columns[(IX+1)*Side+IY]->AsArray();
+        const auto& CY=Columns[IX*Side+IY+1]->AsArray(); const auto& CXY=Columns[(IX+1)*Side+IY+1]->AsArray();
+        const double Block=C[3]->AsNumber();
+        if(C[4]->AsNumber()>=0 || CX[4]->AsNumber()>=0 || CY[4]->AsNumber()>=0 || CXY[4]->AsNumber()>=0 || (Block!=1 && Block!=2 && Block!=36)) continue;
+        if(FTVEnvironmentGrammar::WornGround(XY,PathCells,Routes)>.03f) continue;
+        bool Occupied=false; for(const auto& P:Exclusions) { const auto B=P->AsObject()->GetObjectField(TEXT("bounds"));
+            if(XY.X>=N(B,TEXT("x0"))-2 && XY.X<=N(B,TEXT("x1"))+3 && XY.Y>=N(B,TEXT("z0"))-2 && XY.Y<=N(B,TEXT("z1"))+3) {Occupied=true;break;} }
+        if(Occupied || Random.FRand()>FMath::Clamp((FTVEnvironmentGrammar::Cluster(XY,0)-.28f)*2.f,.02f,.85f)) continue;
+        const double A=C[2]->AsNumber(), B=CX[2]->AsNumber(), CHeight=CY[2]->AsNumber(), D=CXY[2]->AsNumber();
+        if(FMath::Max(FMath::Max(A,B),FMath::Max(CHeight,D))-FMath::Min(FMath::Min(A,B),FMath::Min(CHeight,D))>2.) continue;
+        const double U=LX/Stride-IX,V=LY/Stride-IY;
+        const double Height=U+V<=1?A+(B-A)*U+(CHeight-A)*V:D+(CHeight-D)*(1-U)+(B-D)*(1-V);
+        const float Scale=.22f+Random.FRand()*.28f;
+        const FVector Support=GetActorLocation()+FVector(LX*100,LY*100,Height*100-PivotZ*Scale);
+        Source->Points.Add(FTransform(FRotator(0,Random.FRand()*360,0),Support,FVector(Scale)));
     }
     DecorativeCount=Source->Points.Num(); UPCGStaticMeshSpawnerSettings* Spawner=nullptr; auto* SpawnNode=Graph->AddNodeOfType(Spawner);
     Spawner->SetMeshSelectorType(UPCGMeshSelectorWeighted::StaticClass()); auto* Selector=Cast<UPCGMeshSelectorWeighted>(Spawner->MeshSelectorParameters);
-    FPCGMeshSelectorWeightedEntry Entry; Entry.Descriptor.StaticMesh=TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/ThirdParty/PolyHaven/Meshes/grass_medium_01_1k.grass_medium_01_1k"))); Entry.Descriptor.bUseDefaultCollision=false; Entry.Descriptor.BodyInstance.SetCollisionProfileName(TEXT("NoCollision")); Entry.Weight=8; Selector->MeshEntries.Add(Entry); FPCGMeshSelectorWeightedEntry Bush=Entry; Bush.Weight=2; Bush.Descriptor.StaticMesh=TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/ThirdParty/Quaternius/Nature/Bush_1.Bush_1"))); Selector->MeshEntries.Add(Bush);
+    FPCGMeshSelectorWeightedEntry Entry; Entry.Descriptor.StaticMesh=TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(GrassPath)); Entry.Descriptor.bUseDefaultCollision=false; Entry.Descriptor.BodyInstance.SetCollisionProfileName(TEXT("NoCollision")); Entry.Descriptor.InstanceStartCullDistance=4500; Entry.Descriptor.InstanceEndCullDistance=9000; Entry.Weight=1; Selector->MeshEntries.Add(Entry);
     Graph->AddEdge(SourceNode,PCGPinConstants::DefaultOutputLabel,SpawnNode,PCGPinConstants::DefaultInputLabel);
     Graph->AddEdge(SpawnNode,PCGPinConstants::DefaultOutputLabel,Graph->GetOutputNode(),PCGPinConstants::DefaultOutputLabel);
     Dressing->ComponentTags.Add(TEXT("TV.Decorative.NoGameplay")); Dressing->SetGraph(Graph); PCGStarted=FPlatformTime::Seconds(); Dressing->GenerateLocal(true);

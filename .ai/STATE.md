@@ -1,3 +1,14 @@
+# Slice 2 — environment WIP checkpoint, 2026-09-16
+
+Branch `codex/playable-world-slice-2`, based on protected `4fd5114`, foundational
+Desktop worktree. Paired roof slopes/bounded eaves, terrain-blended canonical paths,
+clustered grass with approach exclusions, and a semantic presentation palette are
+implemented. No canonical movement/identity/persistence changes; existing Fenwick save.
+Typecheck, 13 region/stream tests, 30 bridge tests, UE build and two native environment
+tests pass. Visual acceptance is incomplete after GUI automation interruptions.
+No Slice 3, merge or quality-complete claim. The pre-existing dirty map stays excluded.
+Evidence, asset limits and human playtest: `docs/evidence/playable-world-slice2/README.md`.
+
 # Playable life Slice 1 — restoration checkpoint, 2026-09-16
 
 Branch `codex/playable-life-slice-1`, base `b4dc26e`, in the foundational Desktop
