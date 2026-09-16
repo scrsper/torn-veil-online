@@ -1,0 +1,50 @@
+{
+  "profile": {
+    "ticks": 120,
+    "beforeMs": 7990.955399999998,
+    "afterMs": 1038.3867,
+    "beforeP95Ms": 308.28410000000076,
+    "afterP95Ms": 41.09160000000065,
+    "canonicalOutputsIdenticalExceptSavedAt": true,
+    "scope": "isolated recent-self-care lookup change, before later behavior repairs"
+  },
+  "motion": {
+    "videoSeconds": 22,
+    "videoFrames": 983,
+    "videoMeanFps": 44.68181818181818,
+    "samples": 1356,
+    "steadyIntervalSeconds": [
+      0.8,
+      4.6
+    ],
+    "steadySamples": 256,
+    "zeroSpeedSamples": 0,
+    "nonLocomotionSamples": 0,
+    "footYcm": [
+      -67.29992365041153,
+      35.968178762479965
+    ]
+  },
+  "crowd": {
+    "videoSeconds": 25,
+    "videoFrames": 1125,
+    "videoMeanFps": 45,
+    "samples": 1584,
+    "settledBodies": [
+      "b_5",
+      "b_11",
+      "b_12",
+      "b_13",
+      "b_16",
+      "b_1",
+      "b_9"
+    ],
+    "minimumSeparationCm": 81.40361609459713
+  },
+  "limitations": [
+    "No 60fps sustained-performance claim",
+    "Activity poses and settlement visual quality remain rough",
+    "No full economy/wildlife/combat journey acceptance",
+    "No merge or human approval"
+  ]
+}

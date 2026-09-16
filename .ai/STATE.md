@@ -1,3 +1,22 @@
+# Playable life Slice 1 — restoration checkpoint, 2026-09-16
+
+Branch `codex/playable-life-slice-1`, base `b4dc26e`, in the foundational Desktop
+checkout used by the running editor. No merge or human approval. Continued the
+existing seven-settlement save (Fenwick, player p_128/b_141); no fresh-world bypass.
+Restored nearby canonical human projection, repaired fixed-step locomotion signals,
+made dialogue replies/shortcuts usable, and strengthened provenance-bearing name
+retention. Shared recent-self-care history lookup reduced the measured 120-tick
+profile from 7.99 s to 1.04 s with identical resulting canonical state.
+
+Ordinary PIE includes 13 nearby canonical NPC bodies, recorded skeletal walking,
+dialogue and persistent identity checks. Arrival/anchor repair lets the saved resting
+crowd walk apart (seven settled residents, minimum 81.4 cm body-centre clearance).
+Targeted TS/native tests and builds pass. Overall playable quality is NOT accepted:
+weak visuals/activity poses, history growth and sustained scheduling debt remain.
+Do not merge on the strength of these restoration checks. Evidence, exact claim limits
+and local capture paths: `docs/evidence/playable-life-slice1/README.md`.
+The pre-existing dirty `TornVeilWorld.umap` remains outside this change.
+
 # Foundational gameplay presentation v0.1 — resumed repair, 2026-09-15
 
 PR #43 remains unmerged and NOT human-approved. Real CommonUI activatable screens/stacks,

@@ -102,7 +102,7 @@ void ATVCharacter::Tick(float Dt) {
     if (bCanonicalPlayer) {
         GetCharacterMovement()->MaxWalkSpeed = CanonicalSpeed;
         // Physical movement is entirely canonical. Local gravity/collision must not compete with reconciliation.
-        if (bProjected && Bridge->HasPrediction()) {
+        if (bProjected && Controller && Bridge && Bridge->HasPrediction()) {
             const double CameraYaw=FMath::DegreesToRadians(Controller->GetControlRotation().Yaw);
             Bridge->PredictMovement(Dt,IntentDirection(),bSprint,FMath::Atan2(-FMath::Cos(CameraYaw),-FMath::Sin(CameraYaw)));
             CanonicalCrouch=Bridge->PredictedCrouch();
@@ -374,7 +374,10 @@ FString ATVCharacter::PresentationDiagnostics() const {
     J->SetNumberField(TEXT("heldCrouch"),CanonicalCrouch);J->SetNumberField(TEXT("facingDegrees"),GetActorRotation().Yaw);J->SetNumberField(TEXT("desiredYaw"),Controller?Controller->GetControlRotation().Yaw:0);J->SetNumberField(TEXT("cameraYaw"),CameraBoom->GetComponentRotation().Yaw);
     J->SetNumberField(TEXT("speedCmPerSecond"), CanonicalVelocity.Size2D());
     J->SetBoolField(TEXT("directionalLocomotion"),bDirectionalLocomotion);
-    if(auto* Anim=Cast<UTVCombatAnimInstance>(GetMesh()->GetAnimInstance())){J->SetNumberField(TEXT("blendDirection"),Anim->LocomotionPosition.X);J->SetNumberField(TEXT("blendSpeed"),Anim->LocomotionPosition.Y);}
+    if(auto* Anim=Cast<UTVCombatAnimInstance>(GetMesh()->GetAnimInstance())){
+        J->SetNumberField(TEXT("blendDirection"),Anim->LocomotionPosition.X);J->SetNumberField(TEXT("blendSpeed"),Anim->LocomotionPosition.Y);
+        J->SetNumberField(TEXT("animationTime"),Anim->bLocomotion?Anim->EvaluatedLocomotionTime:Anim->Time);
+    }
     J->SetNumberField(TEXT("presentationGait"),static_cast<int32>(LocomotionCameraSignal.Gait));
     J->SetNumberField(TEXT("presentationTransition"),static_cast<int32>(LocomotionCameraSignal.Transition));
     J->SetNumberField(TEXT("presentationCameraMode"),static_cast<int32>(LocomotionCameraSignal.CameraMode));

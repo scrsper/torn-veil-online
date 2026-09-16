@@ -85,4 +85,40 @@ bool FTVRealtimeMovementPrediction::RunTest(const FString&) {
     TestNearlyEqual(TEXT("frame partition preserves Z"), Half.Position.Z, Whole.Position.Z, .0001);
     return true;
 }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTVRealtimePredictionVelocitySampling,
+    "TornVeil.Realtime.PredictionVelocitySampling", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FTVRealtimePredictionVelocitySampling::RunTest(const FString&) {
+    const auto CheckCadence = [this](const TCHAR* Name, double RenderDt, int32 Frames) {
+        FVector Position=FVector::ZeroVector, Velocity=FVector::ZeroVector, Before=FVector::ZeroVector;
+        double Accumulator=0;
+        bool HaveVelocity=false;
+        for(int32 Frame=0;Frame<Frames;++Frame) {
+            Accumulator+=RenderDt;
+            int32 Steps=0;
+            while(Accumulator+1e-9>=1.0/60.0) { Accumulator-=1.0/60.0; Position.X+=2.0/60.0; ++Steps; }
+            if(Steps>0) { FTVPredictionVelocitySample::Resolve(Before,Position,Steps/60.0,Velocity); Before=Position; HaveVelocity=true; }
+            else if(HaveVelocity) TestNearlyEqual(FString::Printf(TEXT("%s preserves render-only velocity"),Name),Velocity.X,200.0,.001);
+        }
+        TestNearlyEqual(FString::Printf(TEXT("%s fixed-step speed"),Name),Velocity.X,200.0,.001);
+    };
+    CheckCadence(TEXT("120Hz"),1.0/120.0,120);
+    CheckCadence(TEXT("144Hz"),1.0/144.0,144);
+
+    FVector Position=FVector(12000,0,20000),Velocity=FVector::ZeroVector;
+    for(int32 Step=0;Step<30;++Step) FTVPredictionVelocitySample::Resolve(Position,Position,1.0/60.0,Velocity);
+    TestNearlyEqual(TEXT("blocked wall resolves zero speed"),Velocity.Size(),0.0,.001);
+    const FVector BeforeCorrection=Position; Position.X+=1.f; FTVPredictionVelocitySample::Resolve(BeforeCorrection,Position,1.0/60.0,Velocity);
+    TestNearlyEqual(TEXT("large-coordinate movement uses physical dt"),Velocity.X,6000.0,.001);
+    TestFalse(TEXT("render-only frame has no new velocity sample"),FTVPredictionVelocitySample::Resolve(Position,Position,0,Velocity));
+    TestNearlyEqual(TEXT("render-only frame preserves motion"),Velocity.X,6000.0,.001);
+    for(int32 Frame=0;Frame<6;++Frame) FTVPredictionVelocitySample::Resolve(Position,Position,0,Velocity);
+    TestNearlyEqual(TEXT("backpressure without an executed step is not a physical stop"),Velocity.X,6000.0,.001);
+    FTVPredictionVelocitySample::Resolve(Position,Position,1.0/60.0,Velocity);
+    TestNearlyEqual(TEXT("executed stop clears motion"),Velocity.Size(),0.0,.001);
+    const FVector Corrected(9000,0,17000); const FVector AfterCorrection=Corrected+FVector(2.0/60.0,0,0);
+    FTVPredictionVelocitySample::Resolve(Corrected,AfterCorrection,1.0/60.0,Velocity);
+    TestNearlyEqual(TEXT("reconciliation jump is excluded"),Velocity.X,200.0,.001);
+    return true;
+}
 #endif

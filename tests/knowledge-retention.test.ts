@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { learn, learnPlace, noteFoodShortage, knownFoodPlace, MAX_KNOWLEDGE, PRUNE_MARGIN } from '../src/sim/mind/knowledge';
 import { noteWorkBlocked } from '../src/sim/world/shortfall';
 import { getRel } from '../src/sim/mind/relationships';
+import { identityKey, introduce, knownName, learnIdentity } from '../src/sim/mind/people';
 import { addPerson, createTestWorld, v } from './helpers/world';
 
 /**
@@ -25,6 +26,36 @@ function fillWithRoutineRumors(tw: ReturnType<typeof createTestWorld>, thinker: 
 }
 
 describe('knowledge retention policy (v0.2.2 Phase 1: semantic soundness of the bound)', () => {
+  it('retains a directly introduced claimed name through routine pressure without verifying it or making friendship', () => {
+    const tw = createTestWorld(709, 16), { world } = tw;
+    const listener = addPerson(tw, 'Listener', 'farmer', v(3.5, 1, 3.5));
+    const speaker = addPerson(tw, 'True name', 'traveler', v(4.5, 1, 3.5));
+    const stranger = addPerson(tw, 'Stranger', 'traveler', v(5.5, 1, 3.5));
+    expect(introduce(world, speaker, listener, 'Claimed name')).toBe(true);
+    expect(introduce(world, speaker, listener, 'Another claim')).toBe(true);
+    const learned = structuredClone(listener.knowledge[identityKey(speaker.id)]);
+    expect(learned.source).toMatchObject({ type: 'told', from: speaker.id });
+    expect(world.events.find(e => e.id === learned.source.viaEvent)?.type).toBe('introduction');
+    expect(learned.claim.evidence).toHaveLength(2);
+    expect(listener.relationships[speaker.id]).toMatchObject({ familiarity: 0.05, trust: 0, affection: 0 });
+    expect(speaker.relationships[listener.id]?.familiarity ?? 0).toBe(0);
+    learnIdentity(world, listener, stranger.id, 'Overheard name', { type: 'heard' });
+    world.clock.worldSeconds += 400 * 86400;
+    fillWithRoutineRumors(tw, listener, 1000);
+    // The loaded playable world also contains hundreds of witnessed episodes
+    // involving much closer acquaintances. Reusable identity must outlast those.
+    getRel(listener, stranger.id).familiarity = 1;
+    for (let i = 0; i < 1000; i++) learn(world, listener, {
+      key: `ev:familiar${i}`, kind: 'event',
+      claim: { type: 'introduction', actor: stranger.id, significance: 0.25 },
+      confidence: 1, source: { type: 'witnessed' },
+    }, true);
+    expect(listener.knowledge[identityKey(speaker.id)]).toEqual(learned);
+    expect(knownName(listener, speaker.id)).toBe('Another claim');
+    expect(knownName(listener, stranger.id)).toBe('an unfamiliar person');
+    expect(Object.keys(listener.knowledge).length).toBeLessThanOrEqual(MAX_KNOWLEDGE + PRUNE_MARGIN);
+  });
+
   it('retains learned services and recent food/work failures amid routine events about familiar people', () => {
     const tw=createTestWorld(), {world}=tw;
     const thinker=addPerson(tw,'Shopper','cook',v(20,1,20));

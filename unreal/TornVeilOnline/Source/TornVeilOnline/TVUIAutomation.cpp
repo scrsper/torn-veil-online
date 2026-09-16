@@ -52,6 +52,16 @@ bool FTVCommonUIProjection::RunTest(const FString&) {
     TestEqual(TEXT("nine dialogue choices cannot displace visible Back"),DialogueButtons.Num(),10);
     if(DialogueButtons.Num()==10)DialogueButtons.Last()->OnClicked.Broadcast();
     TestEqual(TEXT("visible dialogue Back routes semantic close"),BackCount,3);
+    FTVUICommandRequested ChoiceSink;FString ChoiceId;int32 ChoiceCount=0;
+    ChoiceSink.AddLambda([&](ETVUICommand C,const FString& P,const FString&,int32){if(C==ETVUICommand::DialogueChoice){ChoiceId=P;++ChoiceCount;}});
+    Dialogue->SetCommandDelegate(&ChoiceSink);
+    Dialogue->NativeOnKeyDown(FGeometry(),FKeyEvent(EKeys::Two,FModifierKeysState(),0,false,0,0));
+    TestEqual(TEXT("number shortcut submits the current opaque option"),ChoiceId,FString(TEXT("1")));
+    DialogueState.DialogueOptionIds[1]=TEXT("new-revision-option");Dialogue->SetSnapshot(DialogueState);
+    Dialogue->NativeOnKeyDown(FGeometry(),FKeyEvent(EKeys::Two,FModifierKeysState(),0,false,0,0));
+    TestEqual(TEXT("shortcut follows refreshed dialogue revision"),ChoiceId,FString(TEXT("new-revision-option")));
+    Dialogue->NativeOnKeyDown(FGeometry(),FKeyEvent(EKeys::Two,FModifierKeysState(),0,true,0,0));
+    TestEqual(TEXT("holding a number cannot select through successive replies"),ChoiceCount,2);
     TestNotNull(TEXT("empty inventory has a desired focus target"),static_cast<UTVCommonActivatableWidget*>(Inventory)->NativeGetDesiredFocusTarget());
     Inventory->WidgetTree->ForEachWidget([&](UWidget* W){if(auto* Text=Cast<UTextBlock>(W))TestTrue(TEXT("text has a real font/composite font"),Text->GetFont().FontObject!=nullptr||Text->GetFont().CompositeFont.IsValid());});
     auto* Container=BuildWidget<UTVContainerWidget>(PC);

@@ -141,4 +141,5 @@ void UTVCombatAnimInstance::DestroyAnimInstanceProxy(FAnimInstanceProxy* Proxy) 
 void UTVCombatAnimInstance::NativePostEvaluateAnimation(){
     Super::NativePostEvaluateAnimation();const auto& P=GetProxyOnGameThread<FTVCombatAnimProxy>();
     FlowRawAngularDegrees=P.RawAngular;FlowFirstAngularDegrees=P.FirstAngular;FlowPelvisJumpCm=P.PelvisJump;FlowRootJumpCm=P.RootJump;FlowFootJumpCm=P.FootJump;
+    EvaluatedLocomotionTime=P.Locomotion.GetCurrentAssetTime();
 }

@@ -37,7 +37,7 @@ void UTVBridgeSubsystem::Connect() {
     bControls=false; bTransportConnected=false; bCanonicalReady=false; bWasLive=false; SnapshotCount=0; SinceSnapshot=100;
     ClearBufferedInput();
     if(auto* P=Cast<ATVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0)))P->RefreshInputContext(true);
-    bPredictionReady=false;InteractionEpoch.Empty();PendingMovement.Empty();CommandSentAt.Empty();PredictionColumns.Empty();PredictionAccumulator=0;LastConfirmedTick=-1;
+    bPredictionReady=false;InteractionEpoch.Empty();PendingMovement.Empty();CommandSentAt.Empty();PredictionColumns.Empty();PredictionAccumulator=0;PredictionVelocity=FVector::ZeroVector;LastConfirmedTick=-1;
     Assembly.Empty(); PendingPresentation.Reset(); WantedRegions.Empty(); ProjectedRegions=0;
     for(auto& Pair:WildlifeBodies)if(IsValid(Pair.Value))Pair.Value->Destroy();WildlifeBodies.Empty();
     if(WorldProjection) WorldProjection->ResetRegions();
@@ -229,11 +229,13 @@ TOptional<FTVPredictionColumn> UTVBridgeSubsystem::PredictionColumn(int32 X,int3
 }
 void UTVBridgeSubsystem::PredictMovement(float Dt,const FVector& Direction,bool bSprint,TOptional<double> Facing) {
     const double Begin=FPlatformTime::Seconds();
-    if(!HasPrediction()||Begin-LastLocalStateAt>TVInteractionSpec::inputHorizonSeconds) {PredictionAccumulator=0;PredictionVelocity=FVector::ZeroVector;return;}
+    if(!HasPrediction()||!Confirmed.bEligible||Begin-LastLocalStateAt>TVInteractionSpec::inputHorizonSeconds) {PredictionAccumulator=0;PredictionVelocity=FVector::ZeroVector;return;}
     PredictionAccumulator+=FMath::Min(static_cast<double>(Dt),.1);
-    const FVector Before=Predicted.Position;const FTVMovementInput Input{Direction.X,Direction.Y,bSprint,Facing,bCrouchHeld};
+    const FVector Before=Predicted.Position;
+    const FTVMovementInput Input{Direction.X,Direction.Y,bSprint,Facing,bCrouchHeld};
     int32 Count=0;
-    while(PredictionAccumulator+1e-9>=TVInteractionSpec::stepSeconds&&Count++<6&&PendingMovement.Num()<15) {
+    while(PredictionAccumulator+1e-9>=TVInteractionSpec::stepSeconds&&Count<6&&PendingMovement.Num()<15) {
+        ++Count;
         PredictionAccumulator-=TVInteractionSpec::stepSeconds;
         AdvanceCombatBuffer();
         const double SampleAge=CombatAge;
@@ -248,9 +250,12 @@ void UTVBridgeSubsystem::PredictMovement(float Dt,const FVector& Direction,bool 
         const int32 Seq=SendCommand(C);if(Seq>=0)PendingMovement.Add({Seq,Input,PredictedCombat,SampleAge});
         ++PredictionCount;
     }
+    if(FTVPredictionVelocitySample::Resolve(Before,Predicted.Position,Count*TVInteractionSpec::stepSeconds,PredictionVelocity))
+        PredictionVelocity=FVector(PredictionVelocity.X,PredictionVelocity.Z,PredictionVelocity.Y);
+    // Backpressure is not a physical stop. Keep the last executed motion sample
+    // until another step resolves a stop/collision or authority becomes stale.
+    // In particular, filling the queue must not erase this frame's displacement.
     if(PendingMovement.Num()>=15) PredictionAccumulator=0;
-    const FVector Delta=Predicted.Position-Before;
-    PredictionVelocity=FVector(Delta.X,Delta.Z,Delta.Y)*100/FMath::Max(.001f,Dt);
     LastPredictionMs=(FPlatformTime::Seconds()-Begin)*1000;MaxPredictionMs=FMath::Max(MaxPredictionMs,LastPredictionMs);
     TVSample(PredictionSamples,LastPredictionMs);
     if(InputCallbackAt>0&&Count>0) {LastInputToStateMs=(FPlatformTime::Seconds()-InputCallbackAt)*1000;TVSample(InputToStateSamples,LastInputToStateMs);InputCallbackAt=0;}
@@ -418,7 +423,7 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
         if(M->TryGetObjectField(TEXT("interaction"),Binding)) {
             if((*Binding)->GetStringField(TEXT("specRevision"))!=TVInteractionSpec::revision||(*Binding)->GetStringField(TEXT("specHash"))!=TVInteractionSpec::hash){ProtocolError(TEXT("Interaction specification mismatch"));return;}
             InteractionEpoch=(*Binding)->GetStringField(TEXT("epoch"));InteractionController=(*Binding)->GetStringField(TEXT("controllerId"));InteractionBody=(*Binding)->GetStringField(TEXT("bodyId"));
-            PendingMovement.Empty();CommandSentAt.Empty();BufferedCombat.Reset();bCrouchHeld=false;LastCombatStartAt=0;PredictedCombat=FTVLiveCombat();CombatAge=0;CombatCommandSequence=-1;bPredictionReady=false;PredictionAccumulator=0;LastConfirmedTick=-1;
+            PendingMovement.Empty();CommandSentAt.Empty();BufferedCombat.Reset();bCrouchHeld=false;LastCombatStartAt=0;PredictedCombat=FTVLiveCombat();CombatAge=0;CombatCommandSequence=-1;bPredictionReady=false;PredictionAccumulator=0;PredictionVelocity=FVector::ZeroVector;LastConfirmedTick=-1;
         }
     }
     if (Type == TEXT("hello")) { CombatCursor=FTVCombatReplayCursor(); for(const auto& Pair:Bodies) if(IsValid(Pair.Value)) Pair.Value->CombatPresentation->Cancel(); M->TryGetBoolField(TEXT("controls"), bControls); M->TryGetStringField(TEXT("playerId"), PlayerId); UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE received hello controls=%d player=%s"),bControls,*PlayerId); return; }

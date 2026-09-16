@@ -17,6 +17,7 @@ import { deserialize, serialize } from '../sim/persist/save';
 import { GameSim, type PersonIntent } from '../sim/runtime/gameSim';
 import { knownName } from '../sim/mind/people';
 import { humanoidVisualState } from './visualState';
+import { humanoidPresence } from './humanoidPresence';
 import { combatReach } from '../sim/physical/combat';
 import { World } from '../sim/core/world';
 import { Simulation } from '../sim/mind/agent';
@@ -226,6 +227,9 @@ export class BridgeSession {
     const knowledge = this.game.perceive('local')!;
     const controlledBodyId=w.primaryBody(p.id)?.id;
     const visible = new Set(knowledge.people.map(p => p.bodyId)); if(controlledBodyId) visible.add(controlledBodyId);
+    const residents = humanoidPresence(w, w.body(controlledBodyId));
+    const controlledBody = w.body(controlledBodyId);
+    if (controlledBody?.present) residents.push(controlledBody);
     const interactions=handInteractions(this.sim,p),talkTargets=this.talkTargets(p,visible);
     const ownBody=w.body(controlledBodyId),carried=p.inventory.flatMap(id=>{const item=w.item(id);return item&&item.holderId===p.id?[item]:[];});
     const mobility=ownBody?{eligible:movementState(w,p,ownBody).eligible,fatigue:p.physiology.fatigue,
@@ -239,12 +243,12 @@ export class BridgeSession {
       knowledge, mechanisms: mechanismPanel(w, p), interactions, mobility, container: openContainerProjection(this.sim,p), dialogue: this.dialogueProjection(), talkTargets,
       interactionTargets:[...interactions.flatMap(a=>a.target?[{actionId:a.id,targetId:a.target.id,kind:a.target.kind,label:a.label,pos:a.target.pos}]:[]),
         ...talkTargets.map(t=>({actionId:`talk:${t.bodyId}`,targetId:t.bodyId,kind:'person',label:`Talk — ${t.name||'Unknown person'}`,pos:{...w.body(t.bodyId)!.pos}}))],
-      bodies: w.activeBodies().filter(b => b.present && b.shape === 'humanoid' && visible.has(b.id)).map(b => ({
-        ...humanoidVisualState(b, knownName(p, b.ownerId), visibleActivity(w.person(b.ownerId), b.pose), w.person(b.ownerId)?.appearance),
-        combatAction:combatState(w,b),
-        incapacitated: b.pose === 'downed' || b.subduedUntil > w.physicalTime || !!w.person(b.ownerId)?.surrender || !!w.person(b.ownerId)?.custody?.active,
+      bodies: residents.map(b => ({
+        ...humanoidVisualState(b, visible.has(b.id) ? knownName(p, b.ownerId) : 'an unfamiliar person', visibleActivity(w.person(b.ownerId), b.pose), w.person(b.ownerId)?.appearance),
+        combatAction:visible.has(b.id) ? combatState(w,b) : null,
+        incapacitated: b.pose === 'downed' || (visible.has(b.id) && (b.subduedUntil > w.physicalTime || !!w.person(b.ownerId)?.surrender || !!w.person(b.ownerId)?.custody?.active)),
         alive: !b.dead,
-        speech: w.person(b.ownerId)?.speech?.text ?? '',
+        speech: visible.has(b.id) ? w.person(b.ownerId)?.speech?.text ?? '' : '',
         ...(b.ownerId === p.id ? { inventory: p.inventory.flatMap(id => { const i=w.item(id); return i ? [{ id:i.id,name:i.type,type:i.type,quantity:i.quantity }] : []; }), health: b.health, maxHealth: b.maxHealth, needs: { ...p.needs }, wealth: p.wealth } : {}),
       })), combatActions:w.activeBodies().filter(b=>visible.has(b.id)).flatMap(b=>{const a=combatState(w,b);return a?[a]:[];}), combatPresentation: combatPresentation(w, visible, p.id), events: [] };
   }

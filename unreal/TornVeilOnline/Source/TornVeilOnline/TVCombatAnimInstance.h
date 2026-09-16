@@ -22,6 +22,8 @@ public:
     float FlowRawAngularDegrees=0,FlowFirstAngularDegrees=0,FlowPelvisJumpCm=0,FlowRootJumpCm=0,FlowFootJumpCm=0;
     virtual void NativePostEvaluateAnimation() override;
     FVector LocomotionPosition=FVector::ZeroVector;
+    // Evaluated graph time, not the requested pose time or a single-node fallback.
+    float EvaluatedLocomotionTime=0;
     float Time = 0, BaseTime = 0, Weight = 0;
     FVector LeftFoot = FVector::ZeroVector, RightFoot = FVector::ZeroVector;
     float FootLock = 0;

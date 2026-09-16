@@ -1,4 +1,5 @@
 import { combatActionFacts } from '../physical/combatFacts';
+import { recentSelfCare } from './recentSelfCare';
 import { finishExternalIntention } from '../runtime/controllers';
 import { indexWilderness } from '../world/playable';
 import { actOnMechanicalTask, maintenanceGoals } from './mechanicalReasoning';
@@ -848,11 +849,7 @@ export class Simulation {
     // ---- needs
     const n = p.needs; const night = hour >= 22 || hour < 5;
     G('sleep', clamp(n.energy * 0.9 + (sched?.activity === 'sleep' ? 0.35 : 0) + (night ? 0.15 : -0.1)), [`energy need ${n.energy.toFixed(2)}`, sched?.activity === 'sleep' ? 'it is my time to sleep' : ''], { targetPlace: p.homeId ?? undefined });
-    let ateRecently = false;
-    for (let i = w.events.length - 1; i >= 0; i--) {
-      const event = w.events[i]; if (now - event.tick >= 45 * 60) break;
-      if (event.type === 'meal' && event.actor === p.id) { ateRecently = true; break; }
-    }
+    const { ate: ateRecently, drank: drankRecently } = recentSelfCare(w, p.id);
     const mealTime = sched?.activity === 'eat' && !ateRecently;
     const satiatedPenalty = ateRecently && n.hunger < 0.2 ? 0.35 : 0;
     // v0.2.4: eat where the food actually is — carried food or the household larder (free),
@@ -898,8 +895,6 @@ export class Simulation {
     }
     // v0.2.4: thirst — seek a canonical water source (well / river). Rises faster than hunger,
     // so this is a common everyday goal, kept low-drama (no death spiral).
-    let drankRecently = false;
-    for (let i = w.events.length - 1; i >= 0; i--) { const ev = w.events[i]; if (now - ev.tick >= 30 * 60) break; if (ev.type === 'water_consumed' && ev.actor === p.id) { drankRecently = true; break; } }
     if (n.thirst > 0.38 && !drankRecently && !threat && sched?.activity !== 'sleep') {
       const src = nearestWaterSource(w, pos);
       if (src) G('drink_water', clamp(0.2 + n.thirst * 0.8 - (night ? 0.25 : 0)), [`thirst ${n.thirst.toFixed(2)}`], { targetPos: src.pos, targetPlace: src.placeId, data: { water: true } });
@@ -1697,7 +1692,9 @@ export class Simulation {
         let dest = a.pos ?? null;
         if (a.targetEntity) { const tb = w.primaryBody(a.targetEntity); if (!tb) { failGoto('target has no body'); break; } dest = tb.pos; if (dist2(body.pos, dest) < 1.8) { body.path = null; a.status = 'done'; body.pose = 'stand'; body.yaw = Math.atan2(-(dest.x - body.pos.x), -(dest.z - body.pos.z)); break; } if (!body.path || !body.pathGoal || dist2(body.pathGoal, dest) > 2.5) this.pathTo(body, dest, a); }
         if (!dest) { failGoto('no destination'); break; }
-        if (!body.path) { if (dist2(body.pos, dest) < 1.2) { a.status = 'done'; break; } this.pathTo(body, dest, a); if (!body.path) { failGoto('no path found'); break; } }
+        const withinArrival = !a.targetEntity && dist2(body.pos, dest) < 1.2
+          && Math.abs(body.pos.y - dest.y) <= 1 && w.nav.clearWalk(body.pos, dest);
+        if (!body.path && !withinArrival) { this.pathTo(body, dest, a); if (!body.path) { failGoto('no path found'); break; } }
         body.speed = a.run ? 5.6 : (p.occupation === 'child' ? 3.6 : 3.2 + (p.age > 60 ? -0.8 : 0));
         // v0.8 "The Legible World" §B: a hauler physically carrying real cargo (a claimed,
         // in-transit HaulTask with units actually loaded) is visually distinct from an ordinary
@@ -1706,10 +1703,11 @@ export class Simulation {
         const hauling = w.haulTasks.some(t => t.claimantId === p.id && t.status === 'in_transit' && t.carried > 0);
         body.pose = hauling ? 'haul' : (a.run ? 'run' : 'walk');
         const beforeMove = { ...body.pos };
-        const arrived = this.followPath(body, physDt);
+        const arrived = withinArrival || this.followPath(body, physDt);
         noteHaulMovement(w,p,beforeMove,body.pos);
         if (arrived) {
           body.path = null;
+          body.vel.x = 0; body.vel.z = 0; body.pose = 'stand';
           if (!a.targetEntity && dist2(body.pos, dest) > 3) { failGoto('destination is out of reach'); break; }
           a.status = 'done';
           if (a.data?.flee) w.emit('fled', { actor: p.id, pos: body.pos, significance: 0.3, summary: `${p.name} fled to ${w.placeAt(body.pos)?.name ?? 'safety'}` });
@@ -1731,7 +1729,8 @@ export class Simulation {
       // Simulation.strategic()'s once-per-minute physiology step (it reads `body.pose ===
       // 'sleep'` — see core/physiology.ts's `activityLevelFor`/`stepPhysiology`), not here.
       case 'sleep': {
-        body.pose = 'sleep'; this.settleRestPosition(body, a.pos);
+        if (!this.settleRestPosition(body, a.pos, physDt)) break;
+        body.pose = 'sleep';
         const wellRested = p.needs.energy <= 0.02 && w.now - (a.startedAt ?? 0) > (a.duration ?? 0) * 0.5;
         const overslept = w.now - (a.startedAt ?? 0) > 9 * SECONDS_PER_HOUR;
         if (wellRested || overslept) {
@@ -1741,7 +1740,7 @@ export class Simulation {
         }
         break;
       }
-      case 'sit': body.pose = 'sit'; this.settleRestPosition(body, a.pos); p.needs.social = clamp(p.needs.social - worldDt / (3 * SECONDS_PER_HOUR)); this.maybeChat(p, body); if (this.elapsed(a)) a.status = 'done'; break;
+      case 'sit': if (!this.settleRestPosition(body, a.pos, physDt)) break; body.pose = 'sit'; p.needs.social = clamp(p.needs.social - worldDt / (3 * SECONDS_PER_HOUR)); this.maybeChat(p, body); if (this.elapsed(a)) a.status = 'done'; break;
       case 'eat': {
         body.pose = 'eat'; body.sitAnchor = a.pos ?? null;
         // v0.2.4: a meal consumes a real food item. Resolve once, when the sit-down settles in.
@@ -2032,6 +2031,7 @@ export class Simulation {
         // knock-down before bodyPhysics releases it, including while custody holds it.
         const heldDown = body.pose === 'downed' && (body.poseUntil > w.physicalTime
           || body.subduedUntil > w.physicalTime || !!p.surrender || !!p.custody?.active);
+        if (!heldDown && a.data?.social && !this.settleRestPosition(body, a.pos, physDt)) break;
         if (!heldDown) body.pose = 'stand';
         if (a.data?.social) this.maybeChat(p, body);
         if (this.elapsed(a)) a.status = 'done';
@@ -2278,15 +2278,45 @@ export class Simulation {
     }
   }
   private elapsed(a: Action): boolean { return this.world.now - (a.startedAt ?? 0) >= (a.duration ?? 0); }
-  /** Rest at the reached position if the anchor itself cannot be occupied. Approaching
-   * furniture is not permission to snap through a wall or onto an inaccessible roof. */
-  private settleRestPosition(body: Body, anchor: Vec3 | undefined): void {
-    body.sitAnchor = null;
-    if (!anchor) return;
-    const target = { x: Math.floor(anchor.x) + 0.5, y: anchor.y, z: Math.floor(anchor.z) + 0.5 };
-    const nav = this.world.nav;
-    if (dist2(body.pos, target) > 3 || !nav.canStepTo(body.pos, target.x, target.z) || !nav.clearWalk(body.pos, target)) return;
-    body.pos.x = target.x; body.pos.z = target.z; body.sitAnchor = anchor;
+  /** Resolve a shared rest destination through physical occupancy, then walk there.
+   * The action's anchor remains its destination; sitAnchor/path hold the already
+   * existing embodiment reservation. No presentation offsets or position snaps. */
+  private settleRestPosition(body: Body, anchor: Vec3 | undefined, dt: number): boolean {
+    if (!anchor || dist2(body.pos, anchor) > 3) { body.sitAnchor = null; return true; }
+    const w = this.world, nav = w.nav;
+    const others = w.nearbyPhysicalBodies(anchor, 7, true).filter(b => b.id !== body.id);
+    const clear = (point: Vec3) => others.every(b =>
+      Math.hypot(b.pos.x - point.x, b.pos.y - point.y, b.pos.z - point.z) >= 0.7
+      && (!b.sitAnchor || Math.hypot(b.sitAnchor.x - point.x, b.sitAnchor.y - point.y, b.sitAnchor.z - point.z) >= 0.7));
+    const reachable = (point: Vec3) => dist2(point, anchor) <= 3 && Math.abs(point.y - body.pos.y) <= 1
+      && nav.canStepTo(body.pos, point.x, point.z) && nav.clearWalk(body.pos, point);
+    let target = body.sitAnchor && clear(body.sitAnchor) && reachable(body.sitAnchor) ? body.sitAnchor : null;
+    if (!target) {
+      const center = { x: Math.floor(anchor.x) + 0.5, y: anchor.y, z: Math.floor(anchor.z) + 0.5 };
+      const candidates = [center, { ...body.pos }];
+      // Navigation resolves destinations to walkable cell centres. Sample those
+      // same positions so two distinct offsets cannot resolve to one occupied cell.
+      for (let radius = 1; radius <= 2; radius++) for (let dx = -radius; dx <= radius; dx++) for (let dz = -radius; dz <= radius; dz++) {
+        if (Math.max(Math.abs(dx), Math.abs(dz)) !== radius) continue;
+        const x = center.x + dx, z = center.z + dz;
+        candidates.push({ x, y: nav.floorY(Math.floor(x), Math.floor(z)), z });
+      }
+      target = candidates.find(point => clear(point) && reachable(point)) ?? null;
+    }
+    if (!target) { body.sitAnchor = null; return true; }
+    body.sitAnchor = { ...target };
+    if (dist2(body.pos, target) < 0.25 && clear(body.pos)) {
+      body.path = null; body.vel.x = 0; body.vel.z = 0;
+      // Reserve the actual resting position, not an offset point within reach.
+      body.sitAnchor = { ...body.pos }; return true;
+    }
+    if (!body.path || !body.pathGoal || dist2(body.pathGoal, target) > 0.05) {
+      body.path = nav.findPath(body.pos, target); body.pathIndex = 0; body.pathGoal = { ...target };
+    }
+    if (!body.path) { body.sitAnchor = null; return true; }
+    body.pose = 'walk'; body.speed = 3.2;
+    this.followPath(body, dt);
+    return false;
   }
   private losePursuit(p: Person, targetId: EntityId): void {
     const w = this.world, conflict = conflictBetween(w, p.id, targetId);

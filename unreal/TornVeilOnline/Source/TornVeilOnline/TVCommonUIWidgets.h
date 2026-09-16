@@ -132,6 +132,7 @@ class TORNVEILONLINE_API UTVDialogueWidget : public UTVCommonActivatableWidget
     GENERATED_BODY()
 public:
     void SetSnapshot(const FTVUISnapshot& InSnapshot);
+    virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
 protected:
     virtual TSharedRef<SWidget> RebuildWidget() override;
     virtual void NativeConstruct() override;
