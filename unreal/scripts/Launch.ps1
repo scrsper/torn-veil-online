@@ -29,4 +29,4 @@ if ($Scenario -eq 'Playable') {
     & "$PSScriptRoot/Run-EditorPython.ps1" -Engine $Engine -Script "$PSScriptRoot/create_playable_world.py"
 }
 if (!(Test-Path "$repo/unreal/TornVeilOnline/Content/TornVeil/Maps/$(if($Scenario -eq 'Playable'){'TornVeilWorld'}else{'Ashford'}).umap")) { throw 'The required presentation map is missing. Restore the tracked Content files.' }
-Start-Process -FilePath "$Engine/Engine/Binaries/Win64/UnrealEditor.exe" -ArgumentList @("`"$repo/unreal/TornVeilOnline/TornVeilOnline.uproject`"", $map, '-RCWebControlEnable', '-RCWebInterfaceEnable') -WindowStyle Hidden
+Start-Process -FilePath "$Engine/Engine/Binaries/Win64/UnrealEditor.exe" -ArgumentList @("`"$repo/unreal/TornVeilOnline/TornVeilOnline.uproject`"", $map, '-RCWebControlEnable', '-RCWebInterfaceEnable')

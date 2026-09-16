@@ -4,6 +4,38 @@
 checkpoint `4fd5114`. **WIP: visual acceptance is incomplete. Nothing is merged.**
 The source/build checkpoint is not a claim that Slice 2's complete quality target passes.
 
+## Recovery handoff
+
+Implementation checkpoint: `b17f876` (`WIP: checkpoint Slice 2 environment grammar
+before visual acceptance`). An independent read-only review covered those changes
+and reported no actionable defects. The subsequent launch-script change removes
+`-WindowStyle Hidden`, so normal interactive launches are visible. PowerShell parsing
+and `git diff --check` passed; the reviewer also checked this one-line change.
+
+At recovery, no `UnrealEditor.exe` or playable bridge listener on 8787 remained.
+Two older Node server process trees belonged to the separate main checkout; they
+were left untouched. One matching playable bridge was started (PID 10236), and its
+health response confirms the foundational checkout, protocol 2, seven settlements,
+127 NPC residents, and player `p_128` / `b_141`. No duplicate target process was started.
+
+The attempted visible editor launch was rejected by automatic approval review with
+`blocked by policy`, without a more specific reason. Unreal did not start. No retry,
+computer-use reconnect, alternative launch workaround or fresh world was attempted.
+The editor is therefore **not open** at handoff; the bridge is ready. The previous
+session's automation interruption remains unexplained by the game logs, which show
+no inspected fatal game stack. Neither interruption establishes a game defect.
+
+To open the already-built project visibly, run this exact PowerShell command locally:
+
+```powershell
+& 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor.exe' 'C:/Users/green/Desktop/projects/torn-veil-online-foundational/unreal/TornVeilOnline/TornVeilOnline.uproject' /Game/TornVeil/Maps/TornVeilWorld -RCWebControlEnable -RCWebInterfaceEnable
+```
+
+Do not start another bridge while 8787 is listening. This command uses the normal
+editor/project/map configuration and deliberately avoids rerunning map setup or an
+unchanged build. The complete visual playtest is below. Visual acceptance remains
+awaiting human confirmation; no AFTER image or post-change motion claim is supplied.
+
 ## Preserved state
 
 The active project is `C:/Users/green/Desktop/projects/torn-veil-online-foundational`,
@@ -107,6 +139,12 @@ fatal game stack was observed in the inspected logs.
 6. Use the pause-menu Save, stop PIE, start normal Play again, and confirm identities,
    learned names and control. A bridge restart from the same save checks disk reload.
 7. Walk for several minutes and report stutters, grass popping or simulation stalls.
+
+For a full disk reload after Save and stopping PIE, stop only the bridge owning port
+8787, then run `npm run bridge:playable` from the foundational checkout and use Play
+again. Do not stop the unrelated main-checkout servers. Compare people/body bindings,
+learned names and possessions with the state immediately before Save. Restarting PIE
+alone checks client reconnection but does not prove a disk reload.
 
 Macro spacing/terrain, functional props/interiors, professional vegetation palette,
 workplace legibility and regional approach composition still need further Slice 2
