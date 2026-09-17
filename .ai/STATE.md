@@ -1,3 +1,37 @@
+# Character Foundry — slice 2, 2026-09-17
+
+Branch `claude/determined-meitner-w9c23l`, continuing the appearance pipeline (`8f00928`) and its
+physiology fix (`422f495`). Nothing merged; PR #46 stays draft.
+
+HARD BLOCKER, stated up front: this environment has NO character assets. `.uasset` files are
+unfetched Git LFS pointers and `Content/Characters/` (Mannequins, MetaHuman, modular packs) is
+gitignored and absent. No Unreal Engine, no Windows machine. Stage A therefore could not be RUN
+here, and no Unreal acceptance claim is made.
+
+Delivered: the Foundry itself, proven against synthesised catalogues. `src/foundry/` holds the
+catalogue schema + fail-soft parser, the committed asset-path-free part manifest (requirements,
+preferences, and two disqualifying station prohibitions), and the resolver with relaxation and
+diagnostics. `unreal/scripts/audit_character_assets.py` is the read-only Stage A inventory that
+produces the machine-local, gitignored catalogue. `npm run foundry:report` reports coverage,
+population diversity and the unmet-request shopping list.
+
+Real finding from the committed tree: the animation target is UE5 Manny — RTG_TV_CombatRepair
+retargets IK_TV_RepairSource -> IK_TV_RepairManny, every RT_* clip lands there, and ATVCharacter
+loads SKM_Manny_Simple. HeroTPP and the per-clip Motifect skeletons are sources. Any Foundry body
+mesh must reach that skeleton or a character cannot move; `animatableSkeletons()` gates on it.
+
+Two design bugs were found by tests and fixed: a shared selection stream meant uninstalling one
+hair pack re-rolled a person's whole outfit (now per-slot streams keyed by the request), and
+nothing stopped a well-off person being handed rags (now disqualifying quality bounds).
+
+Verified: typecheck; 30 tests in `tests/character-foundry.test.ts`. Against a synthesised pack,
+Ashford seed 1337 realizes 33/33 residents complete, 33 distinct configurations/outfits, 8 bodies,
+9 heads, 0 unmet, 9 relaxations (the fixture has only noble-tagged jewellery — the diagnostic
+working). NOT verified: anything involving real assets, UE build, PIE, locomotion/combat.
+No Unreal C++ was written this slice, deliberately: an apply layer would be written against a data
+shape no machine has produced yet, on top of slice 1's still-unbuilt C++.
+Full report and next steps: `docs/CHARACTER_FOUNDRY.md`.
+
 # Character appearance pipeline — slice 1, 2026-09-17
 
 Branch `claude/determined-meitner-w9c23l`, based on merged `main` plus the already-merged
