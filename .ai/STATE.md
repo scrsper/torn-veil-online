@@ -1,3 +1,37 @@
+# Verification record — appearance + Foundry branch, 2026-09-17
+
+Branch `claude/determined-meitner-w9c23l` @ `f1f1c60`. Full-suite attribution, done properly after
+an earlier report of mine quoted a summary line without reading the failures.
+
+Full suite on this branch, machine idle, nothing else running: 20 failed / 1035 passed (108 files).
+Attribution, by running the 11 affected files on base `1f36ba5` under the same conditions:
+
+  17 identical on both trees  -> PRE-EXISTING, not this branch.
+                                 14 are timeouts; 3 are genuine assertion failures in
+                                 tests/living-universe.test.ts (flourDelivered 0 !> 0,
+                                 control.baked 5 !< 0, methods.length 1 !> 1). Those are red on
+                                 main today. With WorldLab's `recover-item`, four pre-existing
+                                 failures the PR gate does not fail on (its CLI exits 0 on FAIL).
+   1 agency-frontier           -> MINE. Privacy guard vs `appearance.traits` naming. Fixed in
+                                 f1f1c60 by renaming the field to `description`, not by weakening
+                                 the assertion.
+   2 human-physiology-economy,
+     living-world-logistics    -> NOT a tree difference. They appeared to differ only because a
+                                 full-suite run (warm JIT, 100+ files ahead of them) was compared
+                                 against an 11-file run. Run like-for-like, 2 files isolated on
+                                 each tree, BOTH trees fail BOTH tests:
+                                   human-physiology-economy  base 201712ms / head 202894ms
+                                   living-world-logistics    base  20668ms / head  20730ms
+                                 0.6% and 0.3% apart. Both are wall-clock budgets (180s, and
+                                 vitest's default 5s over a `step(tw, 1800)`) that this container
+                                 is too slow to meet cold.
+
+World generation benchmark, 12 iterations, idle machine, seed 4102, 37 people:
+  head 619.23 ms/gen, base 670.67 ms/gen. Appearance generation costs nothing measurable.
+
+Lesson worth keeping: do not compare a full-suite result against a partial-suite result on this
+repo. JIT warm-up moves tight-budget tests across the line on its own.
+
 # Character Foundry — slice 2, 2026-09-17
 
 Branch `claude/determined-meitner-w9c23l`, continuing the appearance pipeline (`8f00928`) and its
