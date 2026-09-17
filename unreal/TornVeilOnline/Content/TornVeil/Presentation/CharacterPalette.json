@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "purpose": "Semantic appearance/activity token -> local asset path. The ONLY place in the project that knows both vocabularies. Canonical simulation (src/sim/) and the bridge (src/bridge/) contain no asset path at all.",
+  "howToFill": [
+    "1. In the editor, run unreal/scripts/audit_human_assets.py (read-only asset-registry inventory of human meshes and activity animations, with the skeleton each belongs to).",
+    "2. Run unreal/scripts/build_character_palette.py to rewrite this file from that inventory. It selects only assets that can actually be driven, and lists everything it could not resolve.",
+    "3. For a visible character on a skeleton other than the driver, run unreal/scripts/build_character_retarget.py first and pass its --retarget argument to the palette builder."
+  ],
+  "note": "This checked-in copy resolves nothing. The repository carries no licensed human character library, so any entry here would be a path to an asset that does not exist on a clean checkout. With an empty palette UTVCharacterPalette resolves no visible character, ATVCharacter keeps drawing the Manny driver, and PresentationDiagnostics reports visibleCharacter:false — an honest 'content not installed here' rather than a silent failure.",
+  "driverSkeletons": [
+    "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+  ],
+  "authored": {},
+  "bodies": {},
+  "parts": {},
+  "activities": {},
+  "retargets": {}
+}

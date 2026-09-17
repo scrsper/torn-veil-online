@@ -1,3 +1,32 @@
+# Slice 3 — embodied people & visible daily life, implementation checkpoint, 2026-09-17
+
+Branch `claude/embodied-people-visible-life-slice3` from merged main `1f36ba5` (PR #44), created
+in a Linux cloud container. No merge, no human approval, no visual acceptance.
+
+Implemented and tested (TypeScript): presentation-side appearance profiles (authored + modular,
+semantic tokens only, stable across save/reload from `Person.id`), a general activity-presentation
+layer (travel/work/eat/drink/rest/socialize/trade/carry/flee/injured/combat/idle derived from
+canonical pose, action, goal, velocity and canonical injury capability), and physical occupancy
+(stations from `Place.anchors` + voxel geometry, presentation-only reservations, conversation
+F-formation, approach slots, bounded `MAX_SETTLE_METRES` = 1.25 m settle offset). Wired into
+`BridgeSession.snapshot()` as a per-body `embodiment` block; appearance profiles are delta-sent by
+signature. 21 new tests + 40 existing bridge/playable-world tests + typecheck pass.
+
+Written but NOT compiled and NOT run: `TVEmbodiment.h/.cpp`, `TVEmbodimentTests.cpp`, the
+`ATVCharacter` hidden-driver/visible-presentation wiring, and four editor scripts
+(`audit_human_assets.py`, `build_character_palette.py`, `build_character_retarget.py`,
+`capture_life_slice3.py`). This container has no Unreal Engine and none of the licensed human
+character library, so THE MANNEQUINS ARE NOT YET REPLACED IN ANY RUNNING BUILD and there is no PIE
+screenshot or video for this slice. The checked-in `CharacterPalette.json` deliberately resolves
+nothing, so an unprovisioned machine keeps the Manny driver and reports `visibleCharacter:false`.
+
+Next session must run on the foundational Desktop worktree: build the editor, run the human asset
+audit, generate the palette, then do the work order's initial acceptance (player p_128/b_141 and
+one existing canonical resident as real humans through locomotion, dodge, combat, dialogue and
+save/reload) before extending to several residents and the life loops. Do not treat this branch's
+passing TypeScript tests as visual acceptance. Full limits:
+`docs/evidence/embodied-people/README.md`.
+
 # Slice 2 — visual finish (Claude continuation), 2026-09-17
 
 Branch `claude/playable-world-slice-2-visual-finish` from Codex `ff36e25`, foundational Desktop
