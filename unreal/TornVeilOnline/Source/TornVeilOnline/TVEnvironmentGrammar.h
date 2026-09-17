@@ -15,5 +15,6 @@ struct FTVEnvironmentGrammar {
     static float RouteDistance(const FVector2D& Point, const FTVSurfaceRoute& Route);
     static float WornGround(const FVector2D& Point, const TSet<FIntPoint>& Paths, const TArray<FTVSurfaceRoute>& Routes);
     static float Cluster(const FVector2D& Point, int32 Seed);
+    static void ReloadPalette();
     static FString Asset(const TCHAR* Role, const TCHAR* Fallback);
 };

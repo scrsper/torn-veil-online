@@ -16,6 +16,7 @@
 #include "Components/ExponentialHeightFogComponent.h"
 #include "TVItemPresentationCatalog.h"
 #include "TVEnvironmentGrammar.h"
+#include "TVFixturePresentation.h"
 
 static const FString Kit = TEXT("/Game/ThirdParty/Quaternius/Meshes/");
 static const FString Mat = TEXT("/Game/TornVeil/Materials/");
@@ -62,6 +63,11 @@ void ATVRegionProjection::Piece(const FString& Id, const FString& MeshPath, cons
 void ATVRegionProjection::Structure(const TSharedPtr<FJsonObject>& P) {
     const FString Id=S(P,TEXT("id")), Family=S(P,TEXT("family")); const auto B=P->GetObjectField(TEXT("bounds"));
     const double X=N(B,TEXT("x0"))*100, Y=N(B,TEXT("z0"))*100, W=(N(B,TEXT("x1"))-N(B,TEXT("x0"))+1)*100, D=(N(B,TEXT("z1"))-N(B,TEXT("z0"))+1)*100, Z=N(B,TEXT("y0"))*100;
+    if(S(P,TEXT("type"))==TEXT("well")) {
+        const FString Well=FTVEnvironmentGrammar::Asset(TEXT("Community.Well"),TEXT(""));
+        if(!Well.IsEmpty()) Piece(Id,Well,FVector(X+W/2,Y+D/2,Z+160),FVector(350,350,320));
+        return;
+    }
     bool Indoor=false; P->TryGetBoolField(TEXT("indoor"),Indoor);
     if (!Indoor && S(P,TEXT("type"))!=TEXT("stall") && S(P,TEXT("type"))!=TEXT("sawpit")) return;
     const float H=N(P,TEXT("wallHeight"),4)*100;
@@ -76,6 +82,9 @@ void ATVRegionProjection::Structure(const TSharedPtr<FJsonObject>& P) {
         const bool AlongX=Side<2; const double Length=AlongX?W:D, Fixed=Side==0?Y:Side==1?Y+D:Side==2?X:X+W;
         const bool DoorSide=AlongX?FMath::Abs(DoorPos.Y-Fixed)<160:FMath::Abs(DoorPos.X-Fixed)<160;
         const double DoorCenter=AlongX?DoorPos.X+50-X:DoorPos.Y+50-Y;
+        // Canonical smithies have an open work frontage. Enclosing it with a stock
+        // dwelling wall would conceal the workplace and intersect its approach cells.
+        if(DoorSide && S(P,TEXT("type"))==TEXT("smithy")) continue;
         // Segment around the canonical opening; never hide a reachable door inside a stock wall.
         TArray<TPair<double,double>> Spans;
         if(DoorSide && DoorCenter>0 && DoorCenter<Length) { Spans.Add({0,FMath::Max(0.,DoorCenter-65)}); Spans.Add({FMath::Min(Length,DoorCenter+65),Length});
@@ -96,9 +105,16 @@ void ATVRegionProjection::Structure(const TSharedPtr<FJsonObject>& P) {
     // measured mesh bounds, so these supports meet the plinth/floor rather than floating.
     for(int Corner=0;Corner<4;Corner++)
         Piece(Id,Kit+TEXT("Roof_Support2"),FVector(X+(Corner%2?W:0),Y+(Corner<2?0:D),Z+H/2),FVector(25,25,H));
-    const FString Roof=FTVEnvironmentGrammar::Asset(TEXT("Architecture.RoofSlope"),*(Kit+TEXT("Roof_Wooden_2x1")));
-    for(const auto& Panel:FTVEnvironmentGrammar::Roof(FVector(X,Y,Z),FVector2D(W,D),H))
-        Piece(Id,Roof,Panel.Center,Panel.Size,Panel.Yaw);
+    const FString Envelope=FTVEnvironmentGrammar::Asset(TEXT("Architecture.RoofEnvelope"),TEXT(""));
+    if(!Envelope.IsEmpty()) {
+        const float Rise=FMath::Min(W,D)*.40f;
+        // Source has a Y-aligned ridge; normalize its bounds to a modest overhang.
+        Piece(Id,Envelope,FVector(X+W/2,Y+D/2,Z+H+Rise/2-5),
+            FVector(FMath::Min(W,D)+50,FMath::Max(W,D)+50,Rise),W>=D?90:0);
+    } else {
+        const FString Roof=FTVEnvironmentGrammar::Asset(TEXT("Architecture.RoofSlope"),*(Kit+TEXT("Roof_Wooden_2x1")));
+        for(const auto& Panel:FTVEnvironmentGrammar::Roof(FVector(X,Y,Z),FVector2D(W,D),H)) Piece(Id,Roof,Panel.Center,Panel.Size,Panel.Yaw);
+    }
     // A boarded ceiling closes the visible roof underside without changing walkable space.
     if(Indoor) Piece(Id,Kit+TEXT("Floor_WoodDark"),FVector(X+W/2,Y+D/2,Z+H-8),FVector(W,D,12));
     // Equipment comes from assemblies, never from a decorative building family.
@@ -126,7 +142,9 @@ void ATVRegionProjection::Build(const TSharedPtr<FJsonObject>& R) {
         const double Height=U+V<=1?A+(BX-A)*U+(CH-A)*V:D+(CH-D)*(1-U)+(BX-D)*(1-V);
         const FVector2D XY(CanonicalBase.X+LX,CanonicalBase.Y+LY);
         Vertices.Add(FVector(LX,LY,Height)*100); Normals.Add(FVector::UpVector);
-        UV.Add(XY/4.); // World anchored texture phase across region boundaries.
+        // Preserve the world tile phase without huge UV values: material interpolators
+        // can use half precision, which quantizes absolute kilometre coordinates.
+        UV.Add(FVector2D(LX+FMath::Fmod(CanonicalBase.X,4.),LY+FMath::Fmod(CanonicalBase.Y,4.))/4.);
         Colors.Add(FLinearColor(FTVEnvironmentGrammar::WornGround(XY,PathCells,Routes),C[3]->AsNumber()==16?1:0,C[5]->AsNumber(),1)); }
     for(int X=0;X<RenderSide-1;X++) for(int Y=0;Y<RenderSide-1;Y++) { int A=X*RenderSide+Y, Next=A+RenderSide; Triangles.Append({A,A+1,Next,A+1,Next+1,Next}); }
     // Reconstruct smooth support normals from the canonical sampled surface. The mesh remains
@@ -143,7 +161,15 @@ void ATVRegionProjection::Build(const TSharedPtr<FJsonObject>& R) {
     auto* Ground=LoadObject<UMaterialInterface>(nullptr,*FTVEnvironmentGrammar::Asset(TEXT("Ground.Settlement"),*(Mat+TEXT("M_TV_PH_Soil"))));
     Terrain->SetMaterial(0,Ground?Ground:LoadObject<UMaterialInterface>(nullptr,*(Mat+TEXT("M_TV_PH_Soil"))));
     for(const auto& P:Rows(R,TEXT("places"))) Structure(P->AsObject());
-    for(const auto& F:Rows(R,TEXT("fences"))) { const auto& C=F->AsArray(); Piece(TEXT("fence"),Kit+TEXT("Balcony_Simple_Straight"),FVector(C[0]->AsNumber()+.5,C[2]->AsNumber()+.5,C[1]->AsNumber()+.5)*100,FVector(100,18,100),C.Num()>3?C[3]->AsNumber():0); }
+    for(const auto& V:Rows(R,TEXT("furnishings"))) {
+        const auto F=V->AsObject(); const FVector Base=Position(F->GetObjectField(TEXT("pos")))*100+FVector(50,50,0);
+        const float Yaw=N(F,TEXT("yaw")); const FQuat Rotation=FRotator(0,Yaw,0).Quaternion();
+        const FString Id=FString::Printf(TEXT("fixture:%.0f:%.0f:%.0f"),Base.X,Base.Y,Base.Z);
+        for(const auto& Part:FTVFixturePresentation::Describe(S(F,TEXT("role"))))
+            Piece(Id,FTVEnvironmentGrammar::Asset(*Part.MeshRole,*Part.FallbackMesh),Base+Rotation.RotateVector(Part.CenterOffsetCm),Part.SizeCm,Yaw+Part.Yaw,
+                FTVEnvironmentGrammar::Asset(*Part.MaterialRole,TEXT("")));
+    }
+    for(const auto& F:Rows(R,TEXT("fences"))) { const auto& C=F->AsArray(); Piece(TEXT("fence"),FTVEnvironmentGrammar::Asset(TEXT("Boundary.Fence"),*(Kit+TEXT("Balcony_Simple_Straight"))),FVector(C[0]->AsNumber()+.5,C[2]->AsNumber()+.5,C[1]->AsNumber()+.5)*100,FVector(100,18,100),C.Num()>3?C[3]->AsNumber():0,FTVEnvironmentGrammar::Asset(TEXT("Boundary.Fence.Material"),TEXT(""))); }
     for(const auto& V:Columns) { const auto& C=V->AsArray(); if(C[4]->AsNumber()>=0) Piece(TEXT("water"),TEXT("/Engine/BasicShapes/Cube"),FVector(C[0]->AsNumber(),C[1]->AsNumber(),C[4]->AsNumber())*100,FVector(N(R->GetObjectField(TEXT("terrain")),TEXT("stride"),8)*100,N(R->GetObjectField(TEXT("terrain")),TEXT("stride"),8)*100,5),0,Mat+TEXT("M_TV_RiverWater"));
     }
     Dress(R); BuildMilliseconds=(FPlatformTime::Seconds()-Start)*1000;
@@ -180,7 +206,9 @@ void ATVRegionProjection::Dress(const TSharedPtr<FJsonObject>& R) {
         if(FMath::Max(FMath::Max(A,B),FMath::Max(CHeight,D))-FMath::Min(FMath::Min(A,B),FMath::Min(CHeight,D))>2.) continue;
         const double U=LX/Stride-IX,V=LY/Stride-IY;
         const double Height=U+V<=1?A+(B-A)*U+(CHeight-A)*V:D+(CHeight-D)*(1-U)+(B-D)*(1-V);
-        const float Scale=.22f+Random.FRand()*.28f;
+        // Normalize by actual mesh bounds: imported grass units vary by an order
+        // of magnitude. Keep ground cover at 20–45cm without altering support.
+        const float Scale=(20.f+Random.FRand()*25.f)/FMath::Max(Grass?Grass->GetBoundingBox().GetSize().Z:100.,1.);
         const FVector Support=GetActorLocation()+FVector(LX*100,LY*100,Height*100-PivotZ*Scale);
         Source->Points.Add(FTransform(FRotator(0,Random.FRand()*360,0),Support,FVector(Scale)));
     }
@@ -200,21 +228,26 @@ void ATVRegionProjection::UpdateDynamic(const TSharedPtr<FJsonObject>& Data) {
     for(auto& Pair:Batches) if(Pair.Key.StartsWith(TEXT("dynamic:"))) Pair.Value->ClearInstances();
     for(auto It=CanonicalVisuals.CreateIterator();It;++It) if(It.Value().Num() && It.Value()[0].StartsWith(TEXT("dynamic:"))) It.RemoveCurrent();
     for(const auto& V:Rows(Filtered,TEXT("resources"))) { const auto P=V->AsObject(); const FVector Pos=Position(P->GetObjectField(TEXT("pos")))*100; const FString Id=S(P,TEXT("id")); const bool Tree=S(P,TEXT("kind"))==TEXT("tree"), Available=S(P,TEXT("state"))==TEXT("available");
-        if(Tree && Available) Piece(Id,TEXT("/Game/ThirdParty/Quaternius/Nature/CommonTree_1"),Pos+FVector(50,50,250),FVector(320,320,500),GetTypeHash(Id)%360,TEXT(""),true);
+        if(Tree && Available) {
+            const bool Variant=GetTypeHash(Id)%2;
+            const float Height=650.f+(GetTypeHash(Id)%250);
+            Piece(Id,FTVEnvironmentGrammar::Asset(Variant?TEXT("Vegetation.Tree.A"):TEXT("Vegetation.Tree.B"),TEXT("/Game/ThirdParty/Quaternius/Nature/CommonTree_1")),Pos+FVector(50,50,Height/2),FVector(Height*.62,Height*.62,Height),GetTypeHash(Id)%360,TEXT(""),true);
+        }
         else if(Tree) Piece(Id,Kit+TEXT("Roof_Support2"),Pos+FVector(50,50,20),FVector(65,65,40),0,TEXT(""),true);
-        else if(Available) Piece(Id,TEXT("/Game/ThirdParty/Quaternius/Nature/Rock_1"),Pos+FVector(50,50,50),FVector(100,100,100),0,TEXT(""),true);
+        else if(Available) Piece(Id,FTVEnvironmentGrammar::Asset(TEXT("Environment.Rock"),TEXT("/Game/ThirdParty/Quaternius/Nature/Rock_1")),Pos+FVector(50,50,50),FVector(100,100,100),GetTypeHash(Id)%360,TEXT(""),true);
     }
     for(const auto& V:Rows(Filtered,TEXT("crops"))) { const auto P=V->AsObject(); const FString State=S(P,TEXT("state")); if(State==TEXT("fallow")) continue; const float H=State==TEXT("mature")?85:State==TEXT("harvested")?12:20+N(P,TEXT("growth"))*60;
         Piece(S(P,TEXT("id")),TEXT("/Engine/BasicShapes/Cone"),Position(P->GetObjectField(TEXT("pos")))*100+FVector(50,50,H/2),FVector(24,24,H),0,Mat+(State==TEXT("mature")?TEXT("M_TV_RipeCrop"):TEXT("M_TV_ValleyFoliage")),true); }
     for(const auto& V:Rows(Filtered,TEXT("items"))) { const auto P=V->AsObject();const auto D=FTVItemPresentationCatalog::Describe(S(P,TEXT("type")));Piece(S(P,TEXT("id")),D.MeshPath,Position(P->GetObjectField(TEXT("pos")))*100+FVector(0,0,D.HeightOffset),D.Size,D.Yaw,TEXT(""),true); }
-    for(const auto& V:Rows(Filtered,TEXT("containers"))) { const auto P=V->AsObject();bool Open=false;P->TryGetBoolField(TEXT("open"),Open);const auto D=FTVItemPresentationCatalog::DescribeContainer(Open);Piece(S(P,TEXT("id")),D.MeshPath,Position(P->GetObjectField(TEXT("pos")))*100+FVector(0,0,D.HeightOffset),D.Size,0,Mat+TEXT("M_TV_CharacterCloth"),true); }
+    for(const auto& V:Rows(Filtered,TEXT("containers"))) { const auto P=V->AsObject();bool Open=false;P->TryGetBoolField(TEXT("open"),Open);const auto D=FTVItemPresentationCatalog::DescribeContainer(Open);
+        Piece(S(P,TEXT("id")),FTVEnvironmentGrammar::Asset(Open?TEXT("Storage.Open"):TEXT("Storage.Closed"),*D.MeshPath),Position(P->GetObjectField(TEXT("pos")))*100+FVector(0,0,D.HeightOffset),D.Size,0,TEXT(""),true); }
     for(const auto& V:Rows(Filtered,TEXT("mechanisms"))) { const auto P=V->AsObject(); const FVector Pos=Position(P->GetObjectField(TEXT("pos")))*100; for(int I=0;I<N(P,TEXT("parts"));I++) Piece(S(P,TEXT("id")),Kit+TEXT("Roof_Support2"),Pos+FVector(I*25,0,60),FVector(20,50,120),N(P,TEXT("condition"),1)<.5?20:FMath::Fmod(N(P,TEXT("operatedSeconds"))*90,360),TEXT(""),true); }
     for(const auto& V:Rows(Filtered,TEXT("construction"))) { const auto P=V->AsObject(); if(S(P,TEXT("state"))==TEXT("complete")) continue; const auto B=P->GetObjectField(TEXT("bounds")); const float H=50+200*N(P,TEXT("progress")); for(int I=0;I<4;I++) Piece(S(P,TEXT("id")),Kit+TEXT("Roof_Support2"),FVector(N(B,I%2?TEXT("x1"):TEXT("x0"))*100,N(B,I<2?TEXT("z0"):TEXT("z1"))*100,N(B,TEXT("y0"))*100+H/2),FVector(25,25,H),0,TEXT(""),true); }
     for(const auto& V:Rows(Filtered,TEXT("doors"))) { const auto P=V->AsObject(); bool Open=false; P->TryGetBoolField(TEXT("open"),Open); Piece(S(P,TEXT("id")),Kit+TEXT("Door_1_Flat"),Position(P->GetObjectField(TEXT("pos")))*100+FVector(50,50,100),FVector(100,12,200),N(P,TEXT("yaw"))+(Open?90:0),TEXT(""),true); }
     for(const auto& V:Rows(Filtered,TEXT("fires"))) { const auto P=V->AsObject(); bool Lit=false; P->TryGetBoolField(TEXT("lit"),Lit); if(Lit) Piece(S(P,TEXT("id")),TEXT("/Engine/BasicShapes/Cone"),Position(P->GetObjectField(TEXT("pos")))*100+FVector(0,0,40),FVector(60,60,80),0,Mat+TEXT("M_TV_LanternPaper"),true); }
 }
 int32 ATVRegionProjection::InstanceCount() const { int32 Total=0; for(const auto& Pair:Batches) Total+=Pair.Value->GetInstanceCount(); return Total; }
-ATVWorldProjection::ATVWorldProjection() { PrimaryActorTick.bCanEverTick=false; }
+ATVWorldProjection::ATVWorldProjection() { PrimaryActorTick.bCanEverTick=false; FTVEnvironmentGrammar::ReloadPalette(); }
 void ATVWorldProjection::ResetRegions() { for(auto& Pair:Regions) if(Pair.Value) Pair.Value->Destroy(); Regions.Empty(); }
 void ATVWorldProjection::Apply(const TSharedPtr<FJsonObject>& Frame,const FVector& Origin) {
     const double Start=FPlatformTime::Seconds();

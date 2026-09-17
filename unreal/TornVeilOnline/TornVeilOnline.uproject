@@ -11,6 +11,8 @@
 		}
 	],
 	"Plugins": [
+		{"Name":"ConvAI","Enabled":false},
+		{"Name":"ProceduralVegetationEditor","Enabled":true},
 		{"Name":"CommonUI","Enabled":true},
 		{
 			"Name": "PythonScriptPlugin",

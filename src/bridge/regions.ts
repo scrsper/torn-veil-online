@@ -29,7 +29,9 @@ export function projectRegion(w: World, rx: number, rz: number) {
  * The transport discards an unfinished projection when its canonical region revision changes. */
 export function* projectRegionSteps(w: World, rx: number, rz: number) {
   if (!w.geography || !Number.isInteger(rx) || !Number.isInteger(rz) || rx < 0 || rz < 0 || rx * 256 >= w.grid.W || rz * 256 >= w.grid.D) throw new Error('Region outside world');
-  const bounds = regionBounds(w, rx, rz), columns: number[][] = [], stride = (w.grid as RegionalGrid).patches.some(p=>p.x<bounds.x1&&p.x+p.grid.W>bounds.x0&&p.z<bounds.z1&&p.z+p.grid.D>bounds.z0)?2:8, openings: number[][] = [], fences: number[][] = [], paths: number[][] = [];
+  const bounds = regionBounds(w, rx, rz), columns: number[][] = [], stride = (w.grid as RegionalGrid).patches.some(p=>p.x<bounds.x1&&p.x+p.grid.W>bounds.x0&&p.z<bounds.z1&&p.z+p.grid.D>bounds.z0)?2:8, openings: number[][] = [], fences: number[][] = [], paths: number[][] = [], furnishings: { role: string; pos: { x: number; y: number; z: number }; yaw: number; support: number }[] = [];
+  const furnishingRoles = new Map<number, string>([[B.Bed, 'bed'], [B.Chair, 'chair'], [B.Table, 'table'], [B.Counter, 'counter'], [B.Bench, 'bench'], [B.Anvil, 'anvil'], [B.Furnace, 'forge'], [B.Altar, 'altar'], [B.Bookshelf, 'shelf'], [B.Barrel, 'barrel'], [B.Crate, 'crate'], [B.Lantern, 'lantern'], [B.Sign, 'sign']]);
+  const furnishingSeen = new Set<string>();
   for (let x = bounds.x0; x <= bounds.x1; x += stride) for (let z = bounds.z0; z <= bounds.z1; z += stride) {
     const c = surface(w,x,z);
     // Stitch 2m settlement meshes to the shared 8m wilderness boundary exactly.
@@ -54,9 +56,25 @@ export function* projectRegionSteps(w: World, rx: number, rz: number) {
       if (b === B.Door && inBounds(bounds, {x,z})) openings.push([x, y, z, +w.grid.isDoorOpen(x, y, z)]);
       if (b === B.Fence && inBounds(bounds, {x,z})) fences.push([x, y, z, w.grid.get(x-1,y,z)===B.Fence||w.grid.get(x+1,y,z)===B.Fence ? 0 : 90]);
       if (b === B.Path) paths.push([x,y+1,z]);
+      const role = furnishingRoles.get(b);
+      if (role && inBounds(bounds, { x, z })) {
+        const key = `${x}:${y}:${z}`;
+        if (!furnishingSeen.has(key)) {
+          furnishingSeen.add(key);
+          const alongX = w.grid.get(x - 1, y, z) === b || w.grid.get(x + 1, y, z) === b;
+          const alongZ = w.grid.get(x, y, z - 1) === b || w.grid.get(x, y, z + 1) === b;
+          let yaw = alongZ && !alongX ? 90 : 0;
+          if (role === 'chair') {
+            // Face the actual adjacent table, not another chair or the world origin.
+            const table = [[1, 0], [-1, 0], [0, 1], [0, -1]].find(([dx, dz]) => w.grid.get(x + dx, y, z + dz) === B.Table);
+            if (table) yaw = Math.atan2(table[1], table[0]) * 180 / Math.PI;
+          }
+          furnishings.push({ role, pos: { x, y, z }, yaw, support: w.grid.get(x, y - 1, z) });
+        }
+      }
     } if((z-z0)%16===15)yield; }
   }
-  return { id: `${rx},${rz}`, seed: w.geography.regionSeed(rx, rz), bounds, terrain: { stride, columns }, openings, fences, paths, places,
+  return { id: `${rx},${rz}`, seed: w.geography.regionSeed(rx, rz), bounds, terrain: { stride, columns }, openings, fences, paths, furnishings, places,
     dressingExclusions: w.places().filter(p => p.bounds.x0 < bounds.x1 + 4 && p.bounds.x1 >= bounds.x0 - 4 && p.bounds.z0 < bounds.z1 + 4 && p.bounds.z1 >= bounds.z0 - 4).map(p => ({bounds:p.bounds})),
     roads: w.geography.roads.filter(r => r.points.some(p => inBounds(bounds, p))).map(r => ({ id: r.id, points: r.points.filter(p => p.x >= bounds.x0 - 128 && p.x < bounds.x1 + 128 && p.z >= bounds.z0 - 128 && p.z < bounds.z1 + 128).map(p=>({...p,y:surface(w,Math.floor(p.x),Math.floor(p.z)).height+1})) })),
     settlements: w.settlements().filter(s => s.bounds.x0 < bounds.x1 && s.bounds.x1 >= bounds.x0 && s.bounds.z0 < bounds.z1 && s.bounds.z1 >= bounds.z0).map(s => ({ id: s.id, bounds: s.bounds })),

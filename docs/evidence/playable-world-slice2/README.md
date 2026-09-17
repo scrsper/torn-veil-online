@@ -4,7 +4,94 @@
 checkpoint `4fd5114`. **WIP: visual acceptance is incomplete. Nothing is merged.**
 The source/build checkpoint is not a claim that Slice 2's complete quality target passes.
 
-## Recovery handoff
+## Latest integration: expanded local library, September 16 evening
+
+**Source/build checkpoint only. Final ordinary PIE acceptance remains pending.**
+The work continued in the foundational Desktop checkout, preserving the same save.
+The actual Unreal registry contained 3,714 assets in 39 local groups; this audit used
+local package/dependency metadata and bounded native previews, with no Fab account access.
+See [local asset selection and provenance](../../playable-world-slice2-local-assets.md).
+
+Changes since `6893ef5`:
+
+- Fixed disconnected component-mask, desaturation and UV material inputs in
+  `create_environment_materials.py`; failed connections now raise errors. Rebuilt
+  the owned CC0-backed terrain material. Ordinary PIE confirmed the checkerboard
+  disappeared, then exposed large-coordinate UV stripes. The subsequent native
+  fix uses local UV coordinates with the same world texture phase; visual recheck pending.
+- Expanded `EnvironmentPalette.json` with optional local roof, trees, grass, well,
+  rock, fences, whole furniture and open/closed storage. Missing packages fall back;
+  each PIE loads the palette anew. No marketplace paths enter `src/sim`.
+- Added `TVFixturePresentation` and read-only furnishing DTOs in `regions.ts`.
+  Existing world cells provide location/support; chairs face their adjacent tables.
+  Region revision invalidation remains authoritative. These are fixtures, not new items.
+- `TVWorldProjection` fits a roof-only derived asset to canonical footprints with
+  25 cm eaves, keeps existing entrances, leaves canonical smithy frontage open,
+  projects fixtures/wells, uses textured storage/fences, varies existing resource-tree
+  silhouettes and normalizes clustered grass height by measured asset bounds.
+- Added local registry audit, bounded preview, PBR-wrapper and roof-extraction scripts.
+  Vendor packages are unchanged. Derived licensed binaries are ignored/local; only
+  recipes and semantic mappings are committed. Publisher/license facts not available
+  locally remain unresolved rather than inferred from folder names.
+- Disabled the imported ConvAI plugin: closing its unsolicited login panel called
+  `StopAllListeners()` and stopped Unreal's native Remote Control server. Enabled
+  ProceduralVegetationEditor for imported plant material parents (also provides the
+  GeometryScripting dependency used by editor-only roof extraction). No credentials used.
+- Isolated native Python script globals so deferred preview callbacks cannot consume
+  another script's variables; guarded reentrant callbacks and cleaned temporary actors.
+
+Verified at this checkpoint:
+
+- `npx vitest run tests/playable-world.test.ts --reporter=dot`: 9 passed, including
+  non-mutation, region ownership and chairs facing actual tables.
+- `npx tsc --noEmit`: passed after the final chair-facing change.
+- UE 5.8 Development Editor build: passed in 28.19 seconds. Native source did not
+  change afterward. Existing environment tests predate the new palette integration.
+- Independent read-only review found a chair-facing defect; it was fixed and the
+  regression assertion passes. No container duplication or invalidation defect found.
+- Normal bridge `save` request acknowledged `saved`; player `p_128` / `b_141`,
+  seven settlements and 127 NPC residents remain. This is NOT final disk-reload proof.
+- Excluded map hash remains `F195BAFD7566018EC0534DECA8A4A015F05404304E0D63E5F7B6AB7FBD1B5B87`.
+
+Evidence under `.debug/playable-world-slice2/local-assets/`:
+
+| Evidence | What it supports |
+|---|---|
+| `registry.json`, `materials.json` | Local inventory; imported prop materials referenced default textures despite matching PBR textures being present |
+| `current-before00000.png` | Ordinary persistent PIE before terrain material repair |
+| `material-repaired00000.png` | Material graph repair visible; remaining stripes diagnosed, not final quality acceptance |
+| `previews/props-group-repaired.png` | Authored props render with owned PBR wrappers; isolated asset preview only |
+| `previews/advanced-grass-patch.png` | Grass candidate's actual appearance; isolated asset preview only |
+| `architecture-extraction.json` | Roof bounds Z=310–678 cm and assigned source material slot |
+| `integration-build.log`, `furnishing-tests.log` | Latest build and focused test results |
+
+The roof preview file still has its earlier untextured capture timestamp; it is NOT
+proof of the later material assignment. Recapture it and inspect the in-game roof.
+No final AFTER settlement image, new walking/NPC video, dialogue or save/reload
+acceptance is claimed. The earlier 43.73 fps baseline video remains available below.
+
+The editor exited cleanly for the completed rebuild. Automatic approval review then
+rejected the combined bridge restart and visible editor launch with only `blocked
+by policy`. Nothing in that rejected command executed; no alternate relaunch was tried.
+**At handoff: no editor; old-source bridge PID 10236 remains on 8787.** It must be
+saved and restarted from this exact checkout before the new furnishing DTO is available.
+Use ordinary Play after the restart, then the playtest below. Do not regenerate the map.
+
+Remaining visual deficiencies: macro spacing/flatness, building scale, coherent
+regional approaches, usable/illuminated interiors, primitive fallback work fixtures,
+and crop representation. No claim yet that the selected palette solves these.
+Performance: roof instance count falls to one envelope per building; grass remains
+culled at 45–90 m. No sustained performance measurement of this final palette exists.
+Slice 3 should begin only after approval, with canonical work/approach slots made
+readable in the accepted environment. Nothing has been merged.
+
+Reference principles applied from the user's brief: Kingdom Come → bounded physical
+architecture and retained entrances; Manor Lords → existing roads/workplaces determine
+presentation; RDR2 → canonical furniture makes interiors legible; Witcher 3 → clustered
+edge vegetation; Skyrim → continuous visible routes. These are design intentions,
+not claims of comparable quality or copied content.
+
+## Earlier recovery handoff (superseded by the integration status above)
 
 Implementation checkpoint: `b17f876` (`WIP: checkpoint Slice 2 environment grammar
 before visual acceptance`). An independent read-only review covered those changes

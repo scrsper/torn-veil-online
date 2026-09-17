@@ -2,7 +2,10 @@
 #include "Dom/JsonObject.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "Misc/PackageName.h"
 #include "Serialization/JsonSerializer.h"
+
+namespace { TSharedPtr<FJsonObject> EnvironmentPalette; TMap<FString,FString> ResolvedAssets; }
 
 TArray<FTVRoofPanel> FTVEnvironmentGrammar::Roof(const FVector& Base, const FVector2D& Footprint, float WallHeight) {
     TArray<FTVRoofPanel> Result;
@@ -53,14 +56,21 @@ float FTVEnvironmentGrammar::Cluster(const FVector2D& P, int32 Seed) {
     return FMath::Clamp(.5f + .5f * FMath::PerlinNoise2D(P / 19. + Offset), 0.f, 1.f);
 }
 
+void FTVEnvironmentGrammar::ReloadPalette() {
+    EnvironmentPalette.Reset(); ResolvedAssets.Empty(); FString Text;
+    if (FFileHelper::LoadFileToString(Text, *(FPaths::ProjectContentDir() / TEXT("TornVeil/Presentation/EnvironmentPalette.json"))))
+        FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text), EnvironmentPalette);
+    if (!EnvironmentPalette) UE_LOG(LogTemp, Warning, TEXT("EnvironmentPalette missing; using documented local defaults"));
+}
 FString FTVEnvironmentGrammar::Asset(const TCHAR* Role, const TCHAR* Fallback) {
-    static TSharedPtr<FJsonObject> Palette = [] {
-        FString Text; TSharedPtr<FJsonObject> Json;
-        if (FFileHelper::LoadFileToString(Text, *(FPaths::ProjectContentDir() / TEXT("TornVeil/Presentation/EnvironmentPalette.json"))))
-            FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text), Json);
-        if (!Json) UE_LOG(LogTemp, Warning, TEXT("EnvironmentPalette missing; using documented local CC0 defaults"));
-        return Json;
-    }();
+    const FString Key=FString(Role)+TEXT("|")+Fallback;
+    if(const FString* Cached=ResolvedAssets.Find(Key)) return *Cached;
     FString Path;
-    return Palette && Palette->TryGetStringField(Role, Path) && Path.StartsWith(TEXT("/Game/")) ? Path : FString(Fallback);
+    if(EnvironmentPalette && EnvironmentPalette->TryGetStringField(Role,Path) && Path.StartsWith(TEXT("/Game/"))) {
+        // Local licensed packs are optional prerequisites. A missing package must never
+        // silently remove a roof or fixture on a checkout that only has the base palette.
+        if(FPackageName::DoesPackageExist(FPackageName::ObjectPathToPackageName(Path))) { ResolvedAssets.Add(Key,Path); return Path; }
+        UE_LOG(LogTemp,Warning,TEXT("Palette role %s unavailable (%s); using fallback"),Role,*Path);
+    }
+    ResolvedAssets.Add(Key,Fallback); return FString(Fallback);
 }

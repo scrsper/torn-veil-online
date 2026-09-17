@@ -9,6 +9,10 @@ unreal/**/DerivedDataCache/
 unreal/**/.vs/
 unreal/**/*.sln
 unreal/TornVeilOnline/Content/Characters/
+# Derived local palette content depends on licensed user library packages. Rebuild with
+# create_local_architecture.py / create_local_prop_materials.py; do not redistribute.
+unreal/TornVeilOnline/Content/TornVeil/LocalPalette/
+unreal/TornVeilOnline/Content/TornVeil/Materials/LocalPalette/
 unreal/scripts/__pycache__/
 .unrealmcp.json
 

@@ -12,6 +12,11 @@ MATERIAL_PATH = "/Game/TornVeil/Materials/M_TV_SettlementGround"
 TEXTURE_ROOT = "/Game/ThirdParty/PolyHaven/Textures/"
 
 
+def connect(source, output, target, input_name):
+    if not unreal.MaterialEditingLibrary.connect_material_expressions(source, output, target, input_name):
+        raise RuntimeError(f"Material pin connection failed: {source.get_name()}.{output} -> {target.get_name()}.{input_name}")
+
+
 def expression(material, expression_type, x, y):
     node = unreal.MaterialEditingLibrary.create_material_expression(
         material, expression_type, x, y
@@ -37,15 +42,15 @@ def mask(material, source, channel, x, y):
     node.set_editor_property("g", channel == "G")
     node.set_editor_property("b", channel == "B")
     node.set_editor_property("a", False)
-    unreal.MaterialEditingLibrary.connect_material_expressions(source, "", node, "Input")
+    connect(source, "", node, "")
     return node
 
 
 def lerp(material, a, b, alpha, x, y):
     node = expression(material, unreal.MaterialExpressionLinearInterpolate, x, y)
-    unreal.MaterialEditingLibrary.connect_material_expressions(a, "", node, "A")
-    unreal.MaterialEditingLibrary.connect_material_expressions(b, "", node, "B")
-    unreal.MaterialEditingLibrary.connect_material_expressions(alpha, "", node, "Alpha")
+    connect(a, "", node, "A")
+    connect(b, "", node, "B")
+    connect(alpha, "", node, "Alpha")
     return node
 
 
@@ -73,7 +78,7 @@ def build():
     uv = expression(material, unreal.MaterialExpressionTextureCoordinate, -1100, 0)
     diffuse = expression(material, unreal.MaterialExpressionTextureSample, -900, -120)
     diffuse.texture = library.load_asset(TEXTURE_ROOT + "brown_mud_leaves_01_diff_1k")
-    unreal.MaterialEditingLibrary.connect_material_expressions(uv, "", diffuse, "Coordinates")
+    connect(uv, "", diffuse, "")
 
     normal = expression(material, unreal.MaterialExpressionTextureSample, -900, 220)
     normal.texture = library.load_asset(TEXTURE_ROOT + "brown_mud_leaves_01_nor_dx_1k")
@@ -82,7 +87,7 @@ def build():
     except AttributeError:
         # Older editor Python bindings infer the sampler from the normal asset.
         pass
-    unreal.MaterialEditingLibrary.connect_material_expressions(uv, "", normal, "Coordinates")
+    connect(uv, "", normal, "")
 
     vertex = expression(material, unreal.MaterialExpressionVertexColor, -1100, 500)
     worn = mask(material, vertex, "R", -900, 500)
@@ -102,7 +107,7 @@ def build():
     # Preserve the scanned texture's fine detail while keeping its leaf/brown
     # contrast restrained. Worn paths use its grayscale form specifically.
     desaturated = expression(material, unreal.MaterialExpressionDesaturation, -650, -40)
-    unreal.MaterialEditingLibrary.connect_material_expressions(diffuse, "RGB", desaturated, "Input")
+    connect(diffuse, "RGB", desaturated, "")
     detail = lerp(material, diffuse, desaturated, worn, -400, -60)
     detail_mix = constant(material, 0.32, -180, 80)
     base_color = lerp(material, ground, detail, detail_mix, 280, 520)

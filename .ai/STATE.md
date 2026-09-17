@@ -1,4 +1,26 @@
-# Slice 2 — environment WIP checkpoint, 2026-09-16
+# Slice 2 — local palette integration WIP, 2026-09-16 evening
+
+Branch `codex/playable-world-slice-2`, actual worktree
+`C:/Users/green/Desktop/projects/torn-veil-online-foundational`. Keep protected `4fd5114`.
+Local AssetRegistry audit: 3,714 assets / 39 groups. Selected AdvancedVillage roof,
+grass/trees/well/storage, Free Medieval fixtures with owned PBR wrappers, WaterPlane
+rock. Derived licensed assets stay local; originals/imports and dirty map excluded.
+Fixed terrain material graph wiring and implemented local-phase UVs. Bridge now
+projects canonical furnishing cells with table-facing chairs; native projection uses
+semantic whole fixtures, optional roof envelope, bounded grass and varied resource trees.
+Latest native build (28.19s), nine playable-world tests, and typecheck pass.
+Independent review's chair-facing finding repaired and tested. No sim mechanics changed.
+Current final palette is NOT visually accepted. Editor quit cleanly for rebuild;
+automatic approval review rejected the combined bridge restart/editor relaunch
+(`blocked by policy`, no more specific reason). No retry loop. Editor is closed;
+old-source bridge PID 10236 still owns 8787 and needs a normal save/restart for new DTO.
+The terrain-material repair was seen in ordinary PIE before the final integration;
+its UV repair and final asset palette still require AFTER screenshots/video, NPC
+movement/dialogue and disk-save reload checks. Nothing merged. Do not start Slice 3.
+Full state and evidence limits: `docs/evidence/playable-world-slice2/README.md`.
+Local asset provenance: `docs/playable-world-slice2-local-assets.md`.
+
+# Earlier Slice 2 environment checkpoint, 2026-09-16
 
 Branch `codex/playable-world-slice-2`, based on protected `4fd5114`, foundational
 Desktop worktree. Paired roof slopes/bounded eaves, terrain-blended canonical paths,
