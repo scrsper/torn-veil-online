@@ -7,7 +7,7 @@
 #include "Editor.h"
 #include "IAssetViewport.h"
 #include "Slate/SceneViewport.h"
-#include "FrameGrabber.h"
+#include "Widgets/SViewport.h"
 #include "IImageWrapperModule.h"
 #include "IImageWrapper.h"
 #include "Misc/FileHelper.h"
@@ -35,14 +35,14 @@
 #include "Engine/StaticMeshActor.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Framework/Application/SlateApplication.h"
+#include "GenericPlatform/GenericApplication.h"
 
 namespace
 {
-    struct FTVFramePayload : IFramePayload { double Seconds = 0; };
-
     struct FTVRecorder
     {
-        TUniquePtr<FFrameGrabber> Grabber;
+        TSharedPtr<FSceneViewport> Viewport;
         FString Folder;
         double Started = 0, Duration = 0;
         int32 Written = 0;
@@ -50,6 +50,7 @@ namespace
         FTSTicker::FDelegateHandle Ticker;
         TAtomic<int32> Pending{0};
         bool bThrottleWas = true;
+        bool bPng = false;
     };
     FTVRecorder Recorder;
     // The JPEG encoder corrupts macroblocks when frames compress concurrently; keep one at a time.
@@ -73,77 +74,68 @@ namespace
         return nullptr;
     }
 
-    void Drain(bool bFinal)
+    void Write(TArray<FColor>&& Colors, FIntVector Size)
     {
-        if (!Recorder.Grabber) return;
-        for (FCapturedFrameData& Frame : Recorder.Grabber->GetCapturedFrames()) {
-            const int32 Index = Recorder.Written++;
-            Recorder.Times.Add(Frame.GetPayload<FTVFramePayload>()->Seconds);
-            const FString Path = FString::Printf(TEXT("%s/frame-%05d.jpg"), *Recorder.Folder, Index);
-            ++Recorder.Pending;
-            Async(EAsyncExecution::ThreadPool, [Colors = MoveTemp(Frame.ColorBuffer), Size = Frame.BufferSize, Path]() mutable {
-                FScopeLock Lock(&JpegLock);
-                IImageWrapperModule& Module = FModuleManager::LoadModuleChecked<IImageWrapperModule>(TEXT("ImageWrapper"));
-                TSharedPtr<IImageWrapper> Jpeg = Module.CreateImageWrapper(EImageFormat::JPEG);
-                for (FColor& C : Colors) C.A = 255;
-                if (Jpeg && Jpeg->SetRaw(Colors.GetData(), Colors.Num() * sizeof(FColor), Size.X, Size.Y, ERGBFormat::BGRA, 8))
-                    FFileHelper::SaveArrayToFile(Jpeg->GetCompressed(90), *Path);
-                --Recorder.Pending;
-            });
-        }
-        if (!bFinal) return;
-        while (Recorder.Pending > 0) FPlatformProcess::Sleep(0.01f);
-        FString Manifest = TEXT("ffconcat version 1.0\n");
-        for (int32 I = 0; I < Recorder.Times.Num(); ++I) {
-            const double Next = Recorder.Times.IsValidIndex(I + 1) ? Recorder.Times[I + 1] : Recorder.Times[I] + 1.0 / 60.0;
-            Manifest += FString::Printf(TEXT("file 'frame-%05d.jpg'\nduration %.5f\n"), I, FMath::Max(0.001, Next - Recorder.Times[I]));
-        }
-        FFileHelper::SaveStringToFile(Manifest, *(Recorder.Folder / TEXT("frames.ffconcat")));
-        const double Seconds = Recorder.Times.Num() > 1 ? Recorder.Times.Last() - Recorder.Times[0] : 0;
-        UE_LOG(LogTemp, Display, TEXT("TV_RECORD_DONE folder=%s frames=%d seconds=%.2f fps=%.2f"), *Recorder.Folder, Recorder.Times.Num(), Seconds, Seconds > 0 ? (Recorder.Times.Num() - 1) / Seconds : 0);
+        const FString Path = FString::Printf(TEXT("%s/frame-%05d.%s"), *Recorder.Folder, Recorder.Written++, Recorder.bPng ? TEXT("png") : TEXT("jpg"));
+        ++Recorder.Pending;
+        Async(EAsyncExecution::ThreadPool, [Colors = MoveTemp(Colors), Size, Path, bPng = Recorder.bPng]() mutable {
+            FScopeLock Lock(&JpegLock);
+            IImageWrapperModule& Module = FModuleManager::LoadModuleChecked<IImageWrapperModule>(TEXT("ImageWrapper"));
+            TSharedPtr<IImageWrapper> Writer = Module.CreateImageWrapper(bPng ? EImageFormat::PNG : EImageFormat::JPEG);
+            for (FColor& C : Colors) C.A = 255;
+            if (Writer && Writer->SetRaw(Colors.GetData(), Colors.Num() * sizeof(FColor), Size.X, Size.Y, ERGBFormat::BGRA, 8))
+                FFileHelper::SaveArrayToFile(Writer->GetCompressed(bPng ? 0 : 90), *Path);
+            --Recorder.Pending;
+        });
     }
 
     void StopRecording()
     {
-        if (!Recorder.Grabber) return;
+        if (!Recorder.Viewport) return;
         FTSTicker::GetCoreTicker().RemoveTicker(Recorder.Ticker);
-        Recorder.Grabber->StopCapturingFrames();
-        // Allow in-flight surfaces to resolve before the grabber is destroyed.
-        for (int32 Attempt = 0; Attempt < 20 && Recorder.Grabber->HasOutstandingFrames(); ++Attempt) { FlushRenderingCommands(); Drain(false); }
-        Drain(true);
-        Recorder.Grabber->Shutdown();
-        Recorder.Grabber.Reset();
+        while (Recorder.Pending > 0) FPlatformProcess::Sleep(0.01f);
+        FString Manifest = TEXT("ffconcat version 1.0\n");
+        for (int32 I = 0; I < Recorder.Times.Num(); ++I) {
+            const double Next = Recorder.Times.IsValidIndex(I + 1) ? Recorder.Times[I + 1] : Recorder.Times[I] + 1.0 / 30.0;
+            Manifest += FString::Printf(TEXT("file 'frame-%05d.%s'\nduration %.5f\n"), I, Recorder.bPng ? TEXT("png") : TEXT("jpg"), FMath::Max(0.001, Next - Recorder.Times[I]));
+        }
+        FFileHelper::SaveStringToFile(Manifest, *(Recorder.Folder / TEXT("frames.ffconcat")));
+        const double Seconds = Recorder.Times.Num() > 1 ? Recorder.Times.Last() - Recorder.Times[0] : 0;
+        UE_LOG(LogTemp, Display, TEXT("TV_RECORD_DONE folder=%s frames=%d seconds=%.2f fps=%.2f"), *Recorder.Folder, Recorder.Times.Num(), Seconds, Seconds > 0 ? (Recorder.Times.Num() - 1) / Seconds : 0);
+        Recorder.Viewport.Reset();
         GetMutableDefault<UEditorPerformanceSettings>()->bThrottleCPUWhenNotForeground = Recorder.bThrottleWas;
     }
 
+    /** Records the PIE viewport widget, including its HUD and modal UI, through Slate's own screenshot
+     * readback (the ordinary "Shot showui" path). A back-buffer FrameGrabber produced corrupt pixels. */
     void StartRecording(const TArray<FString>& Args)
     {
         if (Args.Num() && Args[0] == TEXT("stop")) { StopRecording(); return; }
-        if (Recorder.Grabber || Args.Num() < 1) return;
+        if (Recorder.Viewport || Args.Num() < 1) return;
         TSharedPtr<FSceneViewport> Viewport = PIEViewport();
-        if (!Viewport) { UE_LOG(LogTemp, Error, TEXT("TV_RECORD requires a PIE viewport")); return; }
+        if (!Viewport || !Viewport->GetViewportWidget().IsValid()) { UE_LOG(LogTemp, Error, TEXT("TV_RECORD requires a PIE viewport")); return; }
+        Recorder.Viewport = Viewport;
         Recorder.Folder = FPaths::ConvertRelativePathToFull(Args[0]);
         IFileManager::Get().MakeDirectory(*Recorder.Folder, true);
         Recorder.Duration = Args.Num() > 1 ? FMath::Clamp(FCString::Atod(*Args[1]), 1.0, 180.0) : 30.0;
-        Recorder.Written = 0; Recorder.Times.Reset();
+        Recorder.Written = 0; Recorder.Times.Reset(); Recorder.bPng = Args.Num() > 2 && Args[2] == TEXT("png");
         // An occluded or unfocused editor must keep rendering at its ordinary rate while recording.
         Recorder.bThrottleWas = GetDefault<UEditorPerformanceSettings>()->bThrottleCPUWhenNotForeground;
         GetMutableDefault<UEditorPerformanceSettings>()->bThrottleCPUWhenNotForeground = false;
-        // Capture at the resolved viewport size; resampling is left to the offline encoder.
-        const FIntPoint Size = Viewport->GetSize();
-        Recorder.Grabber = MakeUnique<FFrameGrabber>(Viewport.ToSharedRef(), Size, PF_B8G8R8A8, 3);
-        Recorder.Grabber->StartCapturingFrames();
         Recorder.Started = FPlatformTime::Seconds();
         Recorder.Ticker = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([](float) {
-            if (!Recorder.Grabber) return false;
+            if (!Recorder.Viewport) return false;
             const double Age = FPlatformTime::Seconds() - Recorder.Started;
-            if (Age >= Recorder.Duration || !PIEWorld()) { AsyncTask(ENamedThreads::GameThread, [] { StopRecording(); }); return false; }
-            auto Payload = MakeShared<FTVFramePayload, ESPMode::ThreadSafe>(); Payload->Seconds = Age;
-            Recorder.Grabber->CaptureThisFrame(Payload);
-            Drain(false);
+            TSharedPtr<SViewport> Widget = Recorder.Viewport->GetViewportWidget().Pin();
+            if (Age >= Recorder.Duration || !PIEWorld() || !Widget) { AsyncTask(ENamedThreads::GameThread, [] { StopRecording(); }); return false; }
+            TArray<FColor> Colors; FIntVector Size;
+            if (FSlateApplication::Get().TakeScreenshot(Widget.ToSharedRef(), Colors, Size) && Colors.Num() == Size.X * Size.Y) {
+                Recorder.Times.Add(Age);
+                Write(MoveTemp(Colors), Size);
+            }
             return true;
         }));
-        UE_LOG(LogTemp, Display, TEXT("TV_RECORD_START folder=%s size=%dx%d seconds=%.1f"), *Recorder.Folder, Size.X, Size.Y, Recorder.Duration);
+        UE_LOG(LogTemp, Display, TEXT("TV_RECORD_START folder=%s seconds=%.1f"), *Recorder.Folder, Recorder.Duration);
     }
 
     /** Canonical metres (x, height, z) to the streamed presentation frame. */
@@ -361,6 +353,52 @@ namespace
 
     FAutoConsoleCommand FlattenCommand(TEXT("TV.FlattenVegetation"), TEXT("Editor asset tooling: TV.FlattenVegetation <skeletal> <static> [dry]."), FConsoleCommandWithArgsDelegate::CreateStatic(&FlattenVegetation));
     FAutoConsoleCommand BakeCommand(TEXT("TV.BakeNaniteAssembly"), TEXT("Editor asset tooling: TV.BakeNaniteAssembly <skeletal> <static>."), FConsoleCommandWithArgsDelegate::CreateStatic(&BakeNaniteAssembly));
+    /** TV.TestWalkTo <x> <z> [run 0|1] [timeout seconds]: holds ordinary W (and Shift) and steers with
+     * ordinary MouseX axis input toward canonical metres. The bridge still adjudicates every step;
+     * this is input automation for evidence capture, never relocation. */
+    FTSTicker::FDelegateHandle WalkTicker;
+    void TestWalkTo(const TArray<FString>& Args)
+    {
+        UWorld* World = PIEWorld(); if (Args.Num() < 2 || !World || !World->GetFirstPlayerController()) return;
+        TWeakObjectPtr<APlayerController> PC = World->GetFirstPlayerController();
+        FVector Target; if (!CanonicalToWorld(World, FCString::Atod(*Args[0]), 0, FCString::Atod(*Args[1]), Target)) return;
+        const bool bRun = Args.Num() > 2 && Args[2] == TEXT("1");
+        const double End = FPlatformTime::Seconds() + (Args.Num() > 3 ? FCString::Atod(*Args[3]) : 30.);
+        if (WalkTicker.IsValid()) FTSTicker::GetCoreTicker().RemoveTicker(WalkTicker);
+        SendKey(PC.Get(), EKeys::W, IE_Pressed, 1); if (bRun) SendKey(PC.Get(), EKeys::LeftShift, IE_Pressed, 1);
+        const FVector Canonical(FCString::Atod(*Args[0]), FCString::Atod(*Args[1]), 0);
+        UE_LOG(LogTemp, Display, TEXT("TV_WALK_TO start x=%.1f z=%.1f run=%d"), Canonical.X, Canonical.Y, bRun ? 1 : 0);
+        WalkTicker = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([PC, Canonical, bRun, End](float) {
+            UWorld* Current = PIEWorld(); APawn* Pawn = PC.IsValid() ? PC->GetPawn() : nullptr; FVector Goal;
+            const bool bValid = Current && Pawn && CanonicalToWorld(Current, Canonical.X, 0, Canonical.Y, Goal);
+            const double Distance = bValid ? FVector::Dist2D(Pawn->GetActorLocation(), Goal) : 0;
+            if (!bValid || Distance < 180 || FPlatformTime::Seconds() > End) {
+                if (PC.IsValid()) { SendKey(PC.Get(), EKeys::W, IE_Released, 0); if (bRun) SendKey(PC.Get(), EKeys::LeftShift, IE_Released, 0); }
+                UE_LOG(LogTemp, Display, TEXT("TV_WALK_TO done remaining_cm=%.0f"), Distance);
+                WalkTicker.Reset(); return false;
+            }
+            const float Desired = (Goal - Pawn->GetActorLocation()).Rotation().Yaw;
+            const float Error = FMath::FindDeltaAngleDegrees(PC->GetControlRotation().Yaw, Desired);
+            if (FMath::Abs(Error) > 1.5f) SendKey(PC.Get(), EKeys::MouseX, IE_Axis, FMath::Clamp(Error * .12f, -3.f, 3.f));
+            return true;
+        }));
+    }
+
+    /** TV.TestSlateKey <key>: a real Slate key down/up to the focused widget, e.g. dialogue reply 1. */
+    void TestSlateKey(const TArray<FString>& Args)
+    {
+        if (Args.Num() < 1 || !FSlateApplication::IsInitialized()) return;
+        const FKey Key(*Args[0]); if (!Key.IsValid()) return;
+        const uint32* KeyCode = nullptr, *CharCode = nullptr;
+        FInputKeyManager::Get().GetCodesFromKey(Key, KeyCode, CharCode);
+        const FKeyEvent Down(Key, FModifierKeysState(), 0, false, CharCode ? *CharCode : 0, KeyCode ? *KeyCode : 0);
+        const bool bHandled = FSlateApplication::Get().ProcessKeyDownEvent(Down);
+        FSlateApplication::Get().ProcessKeyUpEvent(FKeyEvent(Key, FModifierKeysState(), 0, false, CharCode ? *CharCode : 0, KeyCode ? *KeyCode : 0));
+        UE_LOG(LogTemp, Display, TEXT("TV_SLATE_KEY %s handled=%d"), *Key.ToString(), bHandled ? 1 : 0);
+    }
+
+    FAutoConsoleCommand WalkToCommand(TEXT("TV.TestWalkTo"), TEXT("Editor acceptance: TV.TestWalkTo <x> <z> [run 0|1] [timeout]. Ordinary W/Shift and MouseX input."), FConsoleCommandWithArgsDelegate::CreateStatic(&TestWalkTo));
+    FAutoConsoleCommand SlateKeyCommand(TEXT("TV.TestSlateKey"), TEXT("Editor acceptance: TV.TestSlateKey <key>. Ordinary Slate key event to the focused widget."), FConsoleCommandWithArgsDelegate::CreateStatic(&TestSlateKey));
     FAutoConsoleCommand RecordCommand(TEXT("TV.Record"), TEXT("Editor evidence: TV.Record <folder> [seconds] | TV.Record stop. Reads the PIE back buffer only."), FConsoleCommandWithArgsDelegate::CreateStatic(&StartRecording));
     FAutoConsoleCommand DebugViewCommand(TEXT("TV.DebugView"), TEXT("Editor diagnostics: TV.DebugView eyeX eyeH eyeZ targetX targetH targetZ [fov] in canonical metres; no args restores the pawn view."), FConsoleCommandWithArgsDelegate::CreateStatic(&DebugView));
     FAutoConsoleCommand TestKeyCommand(TEXT("TV.TestKey"), TEXT("Editor acceptance: TV.TestKey <key> [seconds]. Ordinary PlayerController input only."), FConsoleCommandWithArgsDelegate::CreateStatic(&TestKey));
