@@ -1,0 +1,4 @@
+{
+  "status": "failed",
+  "error": "PIE lighting validation: Directional light is not the 12000-lux movable daylight baseline"
+}

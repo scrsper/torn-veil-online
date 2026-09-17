@@ -1,0 +1,129 @@
+{
+  "label": "repair-validation-summary",
+  "checkout": "C:\\Users\\green\\Desktop\\projects\\torn-veil-online-foundational",
+  "head": "8190ebaf0320a328ea9a123f6d5b25f0d183ebc4",
+  "buildDllSha256": "8f10b194355946c3a4163ebf6c70cfa1c8926f84b739018b9b720190208e259d",
+  "evidenceMode": "final source/build checkpoint; older traces retain their original per-capture build identity",
+  "overallAcceptance": "incomplete: loaded-save canonical cognition backlog blocks reliable ordinary play",
+  "ordinaryInput": {
+    "mode": "ordinary Lit PIE; OS taps/clicks and existing bounded native held-key/yaw/pitch hooks; not exclusively physical input",
+    "controllerIdentity": "b_141",
+    "controllerConnected": true,
+    "transportConnected": true,
+    "captureRateHz": 4,
+    "captureRateCaveat": "Screenshot/readback capture is approximately 4 Hz and is not evidence of smoothness or 60 FPS.",
+    "traces": {
+      "ordinary-backward-movement": {
+        "seconds": 24,
+        "samples": 98,
+        "movingSamples": 20,
+        "sprintSamples": 0,
+        "totalDistanceCm": 1106.26,
+        "correctionMaxCm": 0,
+        "correctionP95Cm": 0,
+        "frameDtSeconds": { "min": 0.0051, "mean": 0.0232, "p95": 0.125, "max": 0.125 },
+        "finalInput": [0, 0],
+        "finalSprint": false,
+        "source": "ordinary-backward-movement.json"
+      },
+      "ordinary-sprint-diagonal": {
+        "seconds": 24,
+        "samples": 124,
+        "movingSamples": 34,
+        "sprintSamples": 20,
+        "totalDistanceCm": 1903.29,
+        "correctionMaxCm": 0,
+        "correctionP95Cm": 0,
+        "frameDtSeconds": { "min": 0.006, "mean": 0.0204, "p95": 0.125, "max": 0.125 },
+        "finalInput": [0, 0],
+        "finalSprint": false,
+        "source": "ordinary-sprint-diagonal.json"
+      },
+      "settlement-diagonal-and-stop": {
+        "seconds": 24,
+        "samples": 97,
+        "movingSamples": 20,
+        "sprintSamples": 20,
+        "totalDistanceCm": 1853.6,
+        "correctionMaxCm": 0,
+        "correctionP95Cm": 0,
+        "frameDtSeconds": { "min": 0.0056, "mean": 0.0197, "p95": 0.125, "max": 0.125 },
+        "finalInput": [0, 0],
+        "finalSprint": false,
+        "source": "settlement-diagonal-and-stop.json"
+      },
+      "focus-loss-recovery": {
+        "seconds": 24.078,
+        "samples": 91,
+        "movingSamples": 22,
+        "sprintSamples": 0,
+        "totalDistanceCm": 1175.44,
+        "correctionMaxCm": 0,
+        "correctionP95Cm": 0,
+        "frameDtSeconds": { "min": 0.0057, "mean": 0.0245, "p95": 0.125, "max": 0.125 },
+        "recoveryObserved": true,
+        "finalInput": [0, 0],
+        "finalSprint": false,
+        "source": "focus-loss-recovery.json"
+      }
+    }
+  },
+  "controlContracts": {
+    "currentBuildControl": "current-build-control.json",
+    "heldFocusCleared": "focus-held-cleared.json",
+    "activeOwnerProtected": "active-owner-protected.json",
+    "activeControllerBefore": true,
+    "secondClientControls": false,
+    "activeControllerAfter": true,
+    "noGameplayCommandsSentBySecondClient": true
+  },
+  "verification": {
+    "focusedTypeScript": { "files": 5, "tests": 16, "result": "passed", "log": ".debug/repair-focused-tests.log" },
+    "nativePresentation": { "tests": 12, "accounting": "initial 10 passing native presentation tests plus CommonUIProjection and ItemGrounding", "result": "passed", "log": ".debug/repair-native-tests.log" },
+    "nativeBuild": { "result": "succeeded", "log": ".debug/repair-final-native-build.log" },
+    "productionBuild": { "result": "succeeded", "log": ".debug/repair-final-production-build.log" },
+    "controlFinal": { "result": "passed", "tests": 7, "uniqueNewRateWakeTests": 4, "log": ".debug/repair-final-control-tests.log" },
+    "finalCommonUI": { "result": "passed", "tests": 1, "report": ".debug/repair-final-ui-tests/index.json" },
+    "litPIE": { "passed": true, "report": "../repair-final-lit.json", "meanLuma": 0.39986571041943525, "readableFraction": 0.9547966951850732 },
+    "promptRepair": { "initial": "UI-focused run had a PlayerController focus failure", "corrected": "CommonUIProjection succeeded", "log": ".debug/repair-prompt-tests.log" },
+    "dialogueBack": { "result": "CommonUIProjection succeeded", "testReport": ".debug/repair-dialogue-back-tests/index.json", "buildLog": ".debug/repair-dialogue-back-build.log" },
+    "grounding": { "result": "ItemGrounding succeeded", "buildLog": ".debug/repair-grounding-build.log", "testLog": ".debug/repair-grounding-tests.log" },
+    "foundationalAcceptance": { "passed": true, "log": ".debug/repair-foundational-accept.log" }
+  },
+  "samePIEReconnect": {
+    "beforeEpoch": "ce8a8cc3-4496-43cb-9150-cf9d3a09dd4f",
+    "afterEpoch": "631994be-259f-4c8e-bfa6-5b1ed2db1dce",
+    "bodyId": "b_141",
+    "controlUnavailableDuringOutage": true,
+    "clearUnavailableStatus": true,
+    "controlRestored": true,
+    "disconnectedAttackTapReplayed": false,
+    "attackSeqBeforeAndAfter": 28,
+    "positionUnchanged": true,
+    "evidence": ["same-pie-pre-reconnect.json", "disconnected-attack-ignored.json", "same-pie-reconnected.json"]
+  },
+  "ordinaryJourney": {
+    "launchLitSettlement": "passed",
+    "directionalMovement": "observed partial; worsening canonical backlog prevents smoothness claim",
+    "talkFocusedPersonBesideItem": "passed",
+    "closeDialogueAndMove": "passed",
+    "inventoryAndMenuReturn": "passed",
+    "storeAndRetrieveBread_i_2414": "passed through UI",
+    "saveReloadIdentityAndBread": "passed",
+    "drop": "failed: expired requests under backlog",
+    "completePickupEatLoop": "not completed",
+    "finalDodgeCombatReturn": "not completed",
+    "regionBoundary": "attempted, not completed",
+    "ordinaryAnimatedDeerObservation": "not completed; native clip/lifecycle tests passed"
+  },
+  "blockingProfile": { "steps": 120, "totalMs": 7906.5, "thinkingMs": 7471.3, "tickP95Ms": 301, "wildlifeTotalMs": 0.18, "report": "BRIDGE_SAVE_PROFILE.md", "canonicalFixImplemented": false },
+  "normalSaveSha256Unchanged": "815E2D0926D58A69AF600198930C5617C0F00B5DBAFE9376FBBA678A63BC4587",
+  "testSave": ".debug/playable-repair-test.save.json",
+  "handoff": "test bridge and Editor stopped; no merge; no human approval",
+  "limitations": [
+    "These traces verify native functional control/transport hooks and ordinary OS-input observations, not a complete player walkthrough.",
+    "Capture cadence and 125 ms readback intervals prevent any smoothness or frame-rate claim.",
+    "No claim is made here that the full settlement/inventory/wilderness/deer/save-reload acceptance story is complete.",
+    "No claim is made that a deer was observed in these artifacts."
+  ]
+}

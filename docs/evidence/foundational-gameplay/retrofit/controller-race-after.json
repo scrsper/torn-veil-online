@@ -1,0 +1,39 @@
+{
+  "healthBefore": {
+    "ok": true,
+    "version": 1,
+    "regionProtocol": 2,
+    "tick": 8202.833333298115,
+    "settlements": 7,
+    "residents": 127,
+    "visibleNPCs": 0,
+    "playerId": "p_128",
+    "controlledBodyId": "b_141",
+    "controllerConnected": false,
+    "projectRoot": "C:\\Users\\green\\Desktop\\projects\\torn-veil-online-foundational"
+  },
+  "trigger": {
+    "type": "clock_probe",
+    "count": 161,
+    "closingHandshakeDelayed": true
+  },
+  "firstControls": true,
+  "reconnectControls": true,
+  "firstBinding": {
+    "epoch": "20ebc938-dc84-4db3-b1e7-e7d2f770875a",
+    "controllerId": "local:1",
+    "bodyId": "b_141",
+    "specRevision": "tv-interaction-5",
+    "specHash": "3d10f63ea1c309a06a02ec18011f74df23e1d4fe758ac92189624ca72cd68795",
+    "stepSeconds": 0.016666666666666666
+  },
+  "reconnectBinding": {
+    "epoch": "1e1651d1-3e02-4996-9fee-98580fd8d08f",
+    "controllerId": "local:2",
+    "bodyId": "b_141",
+    "specRevision": "tv-interaction-5",
+    "specHash": "3d10f63ea1c309a06a02ec18011f74df23e1d4fe758ac92189624ca72cd68795",
+    "stepSeconds": 0.016666666666666666
+  },
+  "permanentObserverReproduced": false
+}

@@ -71,7 +71,7 @@ export class DialogueSystem {
     if (npc.occupation === 'priest') return `Peace on you, traveler. The Lantern-Bearer lights the road for all who walk it.`;
     if (npc.occupation === 'guard' || npc.occupation === 'captain') return `Stranger. Keep to the roads and keep your blade sheathed and we'll get along.`;
     if (g === 'work') return t.sociability > 0.5 ? `Don't get many strangers. What brings you to the Vale?` : `I'm working. Say what you want.`;
-    return t.sociability > 0.5 ? `Hello there. You're the one who came in on the west road, aren't you?` : `Hm. Stranger.`;
+    return t.sociability > 0.5 ? `Hello there. I don't think we've met.` : `Hm. Stranger.`;
   }
   private familiarGreeting(npc: Person): string {
     const g = npc.mind.goal; const w = this.world;

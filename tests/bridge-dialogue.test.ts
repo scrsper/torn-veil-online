@@ -7,9 +7,14 @@ describe('native dialogue bridge projection', () => {
     const player = session.world.person(session.world.playerId)!;
     const playerBody = session.world.primaryBody(player.id)!;
     const npcBody = session.world.bodies().find(body => body.ownerId !== player.id && body.present && !body.dead && body.shape === 'humanoid')!;
+    const npc = session.world.person(npcBody.ownerId)!;
+    npc.occupation = 'farmer'; npc.traits.sociability = 1;
     // Placement is only test setup.  The actual endpoint must still derive range, passage and
     // whether talk is possible from the canonical world before it opens dialogue.
     playerBody.pos = { ...npcBody.pos };
+    // The UI can address only an observed body. Establish that fixture observation;
+    // endpoint validation still independently checks current reach and passage.
+    player.mind.percepts=[{entityId:npcBody.ownerId,bodyId:npcBody.id,how:'saw',pos:{...npcBody.pos},tick:session.world.now,distance:0}];
 
     const target = session.snapshot().talkTargets.find(candidate => candidate.bodyId === npcBody.id)!;
     expect(target).toBeDefined();
@@ -19,6 +24,7 @@ describe('native dialogue bridge projection', () => {
     expect(opened).not.toBeNull();
     expect(opened!.speakerId).toBe(npcBody.ownerId);
     expect(opened!.lines.length).toBeGreaterThan(0);
+    expect(opened!.lines[0]).toBe("Hello there. I don't think we've met.");
     expect(opened!.options.some(option => option.label === 'Who are you?')).toBe(true);
 
     const identity = opened!.options.find(option => option.label === 'Who are you?')!;

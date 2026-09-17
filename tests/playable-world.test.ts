@@ -19,6 +19,9 @@ describe('continuous seeded world', () => {
     expect(new Set(w.settlements().map(s => s.formerInhabitantIds.length)).size).toBeGreaterThan(1);
     expect(w.geography!.roads.some(r => r.length > 1000)).toBe(true);
     expect(session.sim.world).toBe(w); expect(session.scene()).toHaveProperty('regional', true);
+    const player=w.positionOf(w.playerId!)!;
+    const nearbyDeer=w.creatures().filter(c=>c.species==='roe_deer'&&c.bodies.some(id=>{const b=w.body(id);return !!b&&Math.hypot(b.pos.x-player.x,b.pos.z-player.z)<80;}));
+    expect(nearbyDeer).toHaveLength(2);
   });
   test('local seeds reproduce untouched regions in either visitation order and diverge across world seeds', () => {
     const a = new WorldGeography(918271), b = new WorldGeography(918271), other = new WorldGeography(7239);
@@ -36,6 +39,17 @@ describe('continuous seeded world', () => {
     expect(digest(w)).toBe(before);
     expect(JSON.stringify(a)).not.toMatch(/knowledge|honesty|goal|wealth/);
     expect(a.decoration).toMatchObject({ classification:'decorative', collision:false, gameplay:false });
+  });
+  test('path shoulders and building exclusions have shared seam context without duplicate structures', () => {
+    const p=w.positionOf(w.playerId!)!, rx=Math.floor(p.x/256),rz=Math.floor(p.z/256), x=rx*256,z=Math.floor(p.z),y=w.grid.groundHeight(x,z);
+    const old=w.grid.get(x,y,z); w.grid.set(x,y,z,B.Path);
+    try {
+      const before=digest(w),a=projectRegion(w,rx-1,rz),b=projectRegion(w,rx,rz);
+      expect(a.paths).toContainEqual([x,y+1,z]); expect(b.paths).toContainEqual([x,y+1,z]);
+      expect(a.places.some(pa=>b.places.some(pb=>pb.id===pa.id))).toBe(false);
+      expect(b.dressingExclusions.length).toBeGreaterThanOrEqual(b.places.length);
+      expect(digest(w)).toBe(before);
+    } finally { w.grid.set(x,y,z,old); }
   });
   test('presentation eviction cannot mutate resources, dropped items, history or knowledge', () => {
     const stream = new RegionStream(), p = w.person(w.playerId)!, body = w.primaryBody(p.id)!;
@@ -66,6 +80,25 @@ describe('continuous seeded world', () => {
     expect(frame.regions.find(r=>r.id===`${rx},${rz}`)!.terrain.columns.find(c=>c[0]===x&&c[1]===z)![3]).toBe(B.Gravel);
     expect(stream.frame(w)!.regions).toHaveLength(0); w.grid.set(x,y,z,old);
   });
+  test('projects canonical furnishing cells once within their owning region', () => {
+    const place = w.places().find(p => ['house', 'tavern', 'stall', 'chapel', 'mill', 'store'].includes(p.type));
+    expect(place).toBeTruthy();
+    const rx = Math.floor(place!.inside.x / 256), rz = Math.floor(place!.inside.z / 256), before = digest(w), region = projectRegion(w, rx, rz);
+    expect(region.furnishings.length).toBeGreaterThan(0);
+    expect(region.furnishings.every(f => ['bed', 'chair', 'table', 'counter', 'bench', 'anvil', 'forge', 'altar', 'shelf', 'barrel', 'crate', 'lantern', 'sign'].includes(f.role))).toBe(true);
+    for (const f of region.furnishings) {
+      expect(f.pos.x).toBeGreaterThanOrEqual(region.bounds.x0); expect(f.pos.x).toBeLessThan(region.bounds.x1);
+      expect(f.pos.z).toBeGreaterThanOrEqual(region.bounds.z0); expect(f.pos.z).toBeLessThan(region.bounds.z1);
+      expect([0, 90, 180, -90]).toContain(f.yaw); expect(Number.isInteger(f.support)).toBe(true);
+      if (f.role === 'chair') {
+        const dx = Math.round(Math.cos(f.yaw * Math.PI / 180)), dz = Math.round(Math.sin(f.yaw * Math.PI / 180));
+        expect(w.grid.get(f.pos.x + dx, f.pos.y, f.pos.z + dz)).toBe(B.Table);
+      }
+    }
+    const adjacent = projectRegion(w, rx + 1, rz), keys = new Set(region.furnishings.map(f => `${f.pos.x}:${f.pos.y}:${f.pos.z}`));
+    expect(adjacent.furnishings.some(f => keys.has(`${f.pos.x}:${f.pos.y}:${f.pos.z}`))).toBe(false);
+    expect(digest(w)).toBe(before);
+  }, 30000);
   test('ordinary movement changes canonical position, time and physiology without teaching distant identity', () => {
     const p = w.person(w.playerId)!, body = w.primaryBody(p.id)!, start = { ...body.pos }, physiology = { ...p.physiology }, now = w.now;
     let seq = 0;

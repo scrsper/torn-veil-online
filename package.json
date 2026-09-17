@@ -37,7 +37,8 @@
     "individual:demo": "tsx src/headless/individual/cli.ts",
     "agency:demo": "tsx src/headless/agency/cli.ts",
     "bridge:playable": "tsx src/bridge/playableServer.ts",
-    "bridge:playable:verify": "tsx src/headless/bridge/playableStartup.ts"
+    "bridge:playable:verify": "tsx src/headless/bridge/playableStartup.ts",
+    "foundational:accept": "tsx src/headless/bridge/foundationalGameplayAcceptance.ts"
   },
   "dependencies": {
     "three": "^0.170.0",

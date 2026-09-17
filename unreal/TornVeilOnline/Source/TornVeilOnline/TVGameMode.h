@@ -12,4 +12,5 @@ UCLASS()
 class TORNVEILONLINE_API ATVGameMode : public AGameModeBase {
     GENERATED_BODY()
 public: ATVGameMode();
+    virtual void StartPlay() override;
 };

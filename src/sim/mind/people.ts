@@ -2,6 +2,7 @@ import type { KnowledgeItem, Person, Source } from '../core/types';
 import type { World } from '../core/world';
 import { learn } from './knowledge';
 import { remember } from './memory';
+import { adjustRel } from './relationships';
 
 export type SocialFamily = 'disposition' | 'capability' | 'standing' | 'intent';
 export interface SocialBelief {
@@ -45,6 +46,10 @@ export function introduce(world: World, speaker: Person, listener: Person, claim
   if (!canConverse) return false;
   const ev = world.emit('introduction', { actor: speaker.id, target: listener.id, pos: world.positionOf(speaker.id),
     visibility: 5, loudness: 4, significance: 0.25, data: { claimedName }, summary: `${speaker.name} introduced themself as ${claimedName}` });
+  // Meeting someone establishes familiarity, not trust in the name they claim. Repeating
+  // an introduction cannot manufacture a close relationship through this minimum alone.
+  adjustRel(world, listener, speaker.id, { familiarity: Math.max(0, 0.05 - (listener.relationships[speaker.id]?.familiarity ?? 0)) },
+    'introduced themself', ev.id, true);
   learnIdentity(world, listener, speaker.id, claimedName, { type: 'told', from: speaker.id, viaEvent: ev.id });
   remember(world, speaker, { type: 'introduction', summary: 'I introduced myself to this person', entities: [listener.id],
     significance: 0.3, valence: 0, eventId: ev.id, source: { type: 'self', viaEvent: ev.id } });

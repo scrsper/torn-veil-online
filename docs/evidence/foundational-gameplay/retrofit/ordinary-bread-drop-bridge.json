@@ -1,0 +1,496 @@
+{
+  "label": "ordinary-bread-drop",
+  "utc": "2026-09-15T04:18:03.076Z",
+  "checkout": "C:\\Users\\green\\Desktop\\projects\\torn-veil-online-foundational",
+  "health": {
+    "ok": true,
+    "version": 1,
+    "regionProtocol": 2,
+    "tick": 14602.266666538324,
+    "settlements": 7,
+    "residents": 127,
+    "visibleNPCs": 1,
+    "playerId": "p_128",
+    "controlledBodyId": "b_141",
+    "controllerConnected": true,
+    "projectRoot": "C:\\Users\\green\\Desktop\\projects\\torn-veil-online-foundational"
+  },
+  "snapshot": {
+    "version": 1,
+    "type": "snapshot",
+    "tick": 14602.33333320499,
+    "worldTime": 8754013.999673612,
+    "ack": -1,
+    "playerId": "p_128",
+    "controlledBodyId": "b_141",
+    "wildlife": {
+      "version": 1,
+      "scope": "observed",
+      "complete": true,
+      "bodies": []
+    },
+    "knowledge": {
+      "avatarId": "p_128",
+      "visibleMechanisms": [],
+      "visibleComponents": [],
+      "people": [
+        {
+          "entityId": "p_1",
+          "name": "an unfamiliar person",
+          "knownName": false,
+          "identity": null,
+          "beliefs": [],
+          "observations": [
+            {
+              "key": "ev:e_733230",
+              "action": "introduction",
+              "at": 8752652.399678685,
+              "confidence": 1,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_733260"
+              }
+            },
+            {
+              "key": "ev:e_735232",
+              "action": "introduction",
+              "at": 8752732.799678385,
+              "confidence": 1,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_735268"
+              }
+            },
+            {
+              "key": "ev:e_736399",
+              "action": "introduction",
+              "at": 8752779.59967821,
+              "confidence": 1,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_736437"
+              }
+            },
+            {
+              "key": "ev:e_737750",
+              "action": "introduction",
+              "at": 8752831.199678019,
+              "confidence": 1,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_737777"
+              }
+            },
+            {
+              "key": "ev:e_739045",
+              "action": "introduction",
+              "at": 8752883.999677822,
+              "confidence": 1,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_739088"
+              }
+            },
+            {
+              "key": "ev:e_747496",
+              "action": "introduction",
+              "at": 8753008.799677357,
+              "confidence": 1,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_747576"
+              }
+            },
+            {
+              "key": "ev:e_749225",
+              "action": "introduction",
+              "at": 8753033.999677263,
+              "confidence": 1,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_749305"
+              }
+            },
+            {
+              "key": "ev:e_751950",
+              "action": "introduction",
+              "at": 8753074.799677111,
+              "confidence": 1,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_752123"
+              }
+            },
+            {
+              "key": "ev:e_759578",
+              "action": "introduction",
+              "at": 8753185.1996767,
+              "confidence": 1,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_759672"
+              }
+            },
+            {
+              "key": "ev:e_759613",
+              "action": "introduction",
+              "at": 8753186.399676695,
+              "confidence": 1,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_759759"
+              }
+            },
+            {
+              "key": "ev:e_770113",
+              "action": "introduction",
+              "at": 8753336.399676137,
+              "confidence": 1,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_770258"
+              }
+            },
+            {
+              "key": "ev:e_772101",
+              "action": "introduction",
+              "at": 8753365.19967603,
+              "confidence": 1,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_772294"
+              }
+            },
+            {
+              "key": "ev:e_780656",
+              "action": "introduction",
+              "at": 8753487.599675573,
+              "confidence": 1,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_780744"
+              }
+            },
+            {
+              "key": "ev:e_784664",
+              "action": "introduction",
+              "at": 8753546.399675354,
+              "confidence": 1,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_784753"
+              }
+            },
+            {
+              "key": "ev:e_790900",
+              "action": "introduction",
+              "at": 8753637.599675015,
+              "confidence": 1,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_790970"
+              }
+            },
+            {
+              "key": "ev:e_801300",
+              "action": "introduction",
+              "at": 8753789.999674447,
+              "confidence": 1,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_801452"
+              }
+            }
+          ],
+          "bodyId": "b_1",
+          "pos": {
+            "x": 12035.5,
+            "y": 24,
+            "z": 20008.5
+          },
+          "appearance": {
+            "skin": 14264712,
+            "hair": 4861722,
+            "shirt": 9372564,
+            "pants": 4864554,
+            "height": 1,
+            "build": 1,
+            "hatStyle": "none"
+          },
+          "ageBand": "adult",
+          "visibleAction": "sit",
+          "speech": ""
+        }
+      ],
+      "mechanisms": []
+    },
+    "mechanisms": [],
+    "interactions": [
+      {
+        "id": "take:i_222",
+        "kind": "take",
+        "label": "Take Weathered lantern",
+        "slot": "nearby",
+        "target": {
+          "id": "i_222",
+          "kind": "item",
+          "pos": {
+            "x": 12033.5,
+            "y": 24,
+            "z": 20008.5
+          }
+        }
+      },
+      {
+        "id": "drop:i_2414",
+        "kind": "drop",
+        "label": "Drop bread",
+        "slot": "drop"
+      },
+      {
+        "id": "consume:i_2414",
+        "kind": "eat",
+        "label": "Eat bread",
+        "slot": "consume"
+      }
+    ],
+    "mobility": {
+      "eligible": true,
+      "fatigue": 0,
+      "speedMultiplier": 0.986,
+      "knownLoadKg": 0.5,
+      "unweighedStacks": 0,
+      "safeCarryKg": 26.587500000000002,
+      "restriction": ""
+    },
+    "container": null,
+    "dialogue": null,
+    "talkTargets": [
+      {
+        "bodyId": "b_1",
+        "entityId": "p_1",
+        "name": "an unfamiliar person",
+        "distance": 1.8636139361349848
+      }
+    ],
+    "interactionTargets": [
+      {
+        "actionId": "take:i_222",
+        "targetId": "i_222",
+        "kind": "item",
+        "label": "Take Weathered lantern",
+        "pos": {
+          "x": 12033.5,
+          "y": 24,
+          "z": 20008.5
+        }
+      },
+      {
+        "actionId": "talk:b_1",
+        "targetId": "b_1",
+        "kind": "person",
+        "label": "Talk — an unfamiliar person",
+        "pos": {
+          "x": 12035.5,
+          "y": 24,
+          "z": 20008.5
+        }
+      }
+    ],
+    "bodies": [
+      {
+        "bodyId": "b_1",
+        "entityId": "p_1",
+        "name": "an unfamiliar person",
+        "pos": {
+          "x": 12035.5,
+          "y": 24,
+          "z": 20008.5
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "yaw": 1.5812634241596,
+        "crouch": 0,
+        "pose": "sit",
+        "activity": "sit",
+        "speed": 0,
+        "attackSeq": 0,
+        "hitSeq": 0,
+        "lastAttackAt": -99,
+        "lastHitAt": -99,
+        "dead": false,
+        "incapacitated": false,
+        "appearance": {
+          "skin": 14264712,
+          "hair": 4861722,
+          "shirt": 9372564,
+          "pants": 4864554,
+          "height": 1,
+          "build": 1,
+          "hatStyle": "none"
+        },
+        "combatAction": null,
+        "alive": true,
+        "speech": ""
+      },
+      {
+        "bodyId": "b_141",
+        "entityId": "p_128",
+        "name": "Traveler",
+        "pos": {
+          "x": 12033.795041156554,
+          "y": 24,
+          "z": 20009.25244418073
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "yaw": -1.5707963267948966,
+        "crouch": 0,
+        "pose": "stand",
+        "activity": "stand",
+        "speed": 0,
+        "attackSeq": 28,
+        "hitSeq": 0,
+        "lastAttackAt": 14368.283333208396,
+        "lastHitAt": -99,
+        "dead": false,
+        "incapacitated": false,
+        "appearance": {
+          "skin": 14264712,
+          "hair": 4861722,
+          "shirt": 9071178,
+          "pants": 4864554,
+          "height": 1,
+          "build": 1,
+          "hatStyle": "none"
+        },
+        "combatAction": {
+          "id": "action_29",
+          "commandId": "local:9:59",
+          "actorBodyId": "b_141",
+          "kind": "attack",
+          "definition": "unarmed_high",
+          "techniqueId": "motor:basic-punch",
+          "techniqueName": "Basic punch",
+          "trajectory": "high",
+          "variant": "direct",
+          "moveId": "jab",
+          "repertoireRevision": 2,
+          "startedAt": 14368.283333208396,
+          "activeAt": 14368.543333208396,
+          "recoveryAt": 14368.693333208395,
+          "completeAt": 14368.963333208396,
+          "phase": "complete",
+          "outcome": "miss",
+          "facing": -1.5707963267948966,
+          "direction": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "distance": 0,
+          "reach": 0.9,
+          "radius": 0.12,
+          "duck": 0,
+          "contact": null,
+          "capability": {
+            "strength": 0.24062500000000003,
+            "dexterity": 0.284375,
+            "exertion": 0.21500000000000002
+          }
+        },
+        "alive": true,
+        "speech": "",
+        "inventory": [
+          {
+            "id": "i_2414",
+            "name": "bread",
+            "type": "bread",
+            "quantity": 1
+          }
+        ],
+        "health": 80,
+        "maxHealth": 80,
+        "needs": {
+          "hunger": 1,
+          "energy": 0.55,
+          "social": 0.799166666666668,
+          "comfort": 0.6199999999999997,
+          "thirst": 1
+        },
+        "wealth": 22
+      }
+    ],
+    "combatActions": [
+      {
+        "id": "action_29",
+        "commandId": "local:9:59",
+        "actorBodyId": "b_141",
+        "kind": "attack",
+        "definition": "unarmed_high",
+        "techniqueId": "motor:basic-punch",
+        "techniqueName": "Basic punch",
+        "trajectory": "high",
+        "variant": "direct",
+        "moveId": "jab",
+        "repertoireRevision": 2,
+        "startedAt": 14368.283333208396,
+        "activeAt": 14368.543333208396,
+        "recoveryAt": 14368.693333208395,
+        "completeAt": 14368.963333208396,
+        "phase": "complete",
+        "outcome": "miss",
+        "facing": -1.5707963267948966,
+        "direction": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "distance": 0,
+        "reach": 0.9,
+        "radius": 0.12,
+        "duck": 0,
+        "contact": null,
+        "capability": {
+          "strength": 0.24062500000000003,
+          "dexterity": 0.284375,
+          "exertion": 0.21500000000000002
+        }
+      }
+    ],
+    "combatPresentation": {
+      "version": 1,
+      "firstAvailableSeq": 29,
+      "latestSeq": 28,
+      "events": []
+    },
+    "events": []
+  },
+  "diagnostics": {
+    "requestWallMs": 534.5664,
+    "snapshotBytes": 6318,
+    "scheduler": {
+      "steps": 5712,
+      "overruns": 1441,
+      "maxDebtMs": 72545.78909999407
+    },
+    "eventLoopMs": {
+      "p50": 90.439679,
+      "p95": 283.115519,
+      "p99": 412.614655
+    },
+    "memory": {
+      "rss": 385290240,
+      "heapTotal": 244428800,
+      "heapUsed": 195583448,
+      "external": 26414423,
+      "arrayBuffers": 22366916
+    }
+  }
+}

@@ -10,6 +10,28 @@ Read only the section relevant to the current task.
 
 # Core simulation
 
+Foundational presentation shell: `src/sim/core/container.ts` and `physical/hand.ts` own validated
+physical container state/actions; `bridge/session.ts`, `commands.ts`, `regions.ts` expose only
+observable DTOs and semantic intent. Native adapters are `TVLocomotionCameraPresentation`,
+`TVWildlifePresentation`, `TVItemPresentationCatalog`, `TVBridgeSubsystem`, `TVCharacter`,
+`TVGameMode`, and `TVWorldProjection`. Status and controls:
+`docs/FOUNDATIONAL_GAMEPLAY_PRESENTATION_V0_1.md`.
+
+Repair adapters: `TVCommonUIWidgets` contains actual CommonUI activatable screens/stacks;
+`TVEnhancedInput` owns input contexts; `TVPlayerShell` projects UI/focus/ownership status.
+`TVLocomotionAuthoring` and `create_directional_locomotion.py` author ignored local GASP derivatives.
+`TVWildlifePresentation` uses CC0 skeletal clips (provenance: `unreal/WILDLIFE_ASSET_PROVENANCE.md`).
+Bridge `controllerLease.ts`, `rateWindow.ts`, and `interactionWake.ts` bound transport ownership,
+rate admission and coalesced wake dispatch without changing `FixedScheduler` or world authority.
+Repair evidence tools: `capture_repair_observation.py`, `capture_repair_bridge.mjs`,
+`record_repair_motion.py`, `encode_repair_motion.mjs`; their recordings are 4 Hz, not smoothness proof.
+
+Playable daylight: native `TVPlayableLighting` is shared by `TVGameMode::StartPlay` and
+`unreal/scripts/create_playable_world.py`; `Launch.ps1` rebuilds/validates that infrastructure.
+`Verify-PlayablePIE.ps1` / `verify_playable_pie.py` require runtime Lit lighting, regional geometry
+and `TVRenderedFrameCheck` completed-image readability; `verify_lighting_regression.py` checks
+the captured black-frame regression. These own no canonical clock or weather state.
+
 Wildlife/realtime integration: `src/sim/ecology/interaction.ts` schedules nearby canonical
 animal bodies through `Simulation.stepScheduled`, retaining coarse 900-world-second biology
 and persisted activity accounting. `World.nearbyPhysicalBodies` is the common Person/Creature

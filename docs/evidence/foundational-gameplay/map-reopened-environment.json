@@ -1,0 +1,68 @@
+{
+  "world": "/Game/TornVeil/Maps/TornVeilWorld.TornVeilWorld",
+  "actors": [
+    {
+      "class": "DirectionalLight",
+      "name": "DirectionalLight_2",
+      "rotation": "<Struct 'Rotator' (0x00000177915B1EB0) {pitch: -45.000000, yaw: -35.000000, roll: -0.000000}>",
+      "location": "<Struct 'Vector' (0x00000177915B1EB0) {x: 0.000000, y: 0.000000, z: 1000.000000}>",
+      "intensity": "12000.0",
+      "mobility": "<ComponentMobility.MOVABLE: 2>",
+      "visible": "True",
+      "affects_world": "True",
+      "atmosphere_sun_light": "True"
+    },
+    {
+      "class": "SkyLight",
+      "name": "SkyLight_2",
+      "rotation": "<Struct 'Rotator' (0x00000177915B1F00) {pitch: 0.000000, yaw: 0.000000, roll: 0.000000}>",
+      "location": "<Struct 'Vector' (0x00000177915B1F00) {x: 0.000000, y: 0.000000, z: 1000.000000}>",
+      "intensity": "1.0",
+      "mobility": "<ComponentMobility.MOVABLE: 2>",
+      "visible": "True",
+      "affects_world": "True",
+      "real_time_capture": "True",
+      "source_type": "<SkyLightSourceType.SLS_CAPTURED_SCENE: 0>"
+    },
+    {
+      "class": "SkyAtmosphere",
+      "name": "SkyAtmosphere_2",
+      "rotation": "<Struct 'Rotator' (0x00000177915B1F50) {pitch: 0.000000, yaw: 0.000000, roll: 0.000000}>",
+      "location": "<Struct 'Vector' (0x00000177915B1F50) {x: 0.000000, y: 0.000000, z: 0.000000}>"
+    },
+    {
+      "class": "ExponentialHeightFog",
+      "name": "ExponentialHeightFog_2",
+      "rotation": "<Struct 'Rotator' (0x00000177915B1FF0) {pitch: 0.000000, yaw: 0.000000, roll: 0.000000}>",
+      "location": "<Struct 'Vector' (0x00000177915B1FF0) {x: 0.000000, y: 0.000000, z: -1000.000000}>",
+      "fog_density": "0.00800000037997961"
+    },
+    {
+      "class": "PostProcessVolume",
+      "name": "PostProcessVolume_2",
+      "rotation": "<Struct 'Rotator' (0x00000177915B20E0) {pitch: 0.000000, yaw: 0.000000, roll: 0.000000}>",
+      "location": "<Struct 'Vector' (0x00000177915B20E0) {x: 0.000000, y: 0.000000, z: 0.000000}>",
+      "unbound": true,
+      "enabled": true,
+      "priority": 0.0,
+      "blend_weight": 1.0,
+      "exposure": {
+        "override_auto_exposure_min_brightness": "True",
+        "override_auto_exposure_max_brightness": "True",
+        "auto_exposure_min_brightness": "12.0",
+        "auto_exposure_max_brightness": "12.0",
+        "auto_exposure_method": "<AutoExposureMethod.AEM_HISTOGRAM: 0>",
+        "auto_exposure_bias": "1.0"
+      }
+    }
+  ],
+  "cvars": {
+    "r.DefaultFeature.AutoExposure.ExtendDefaultLuminanceRange": 1.0,
+    "r.DynamicGlobalIlluminationMethod": 1.0,
+    "r.ReflectionMethod": 1.0,
+    "r.Lumen.DiffuseIndirect.Allow": 1.0,
+    "r.EyeAdaptationQuality": 2.0,
+    "r.ExposureOffset": 0.0,
+    "r.DefaultFeature.AutoExposure": 1.0
+  }
+}

@@ -14,7 +14,7 @@ export type Tick = number; // world seconds
 export interface Vec3 { x: number; y: number; z: number; }
 
 // ---------------------------------------------------------------- Entities
-export type EntityKind = 'person' | 'item' | 'place' | 'faction' | 'body' | 'creature' | 'household' | 'settlement';
+export type EntityKind = 'person' | 'item' | 'place' | 'container' | 'faction' | 'body' | 'creature' | 'household' | 'settlement';
 
 /** Historical geographic identity, independent of continued habitation. IDs are World-scoped.
  * Population history is an observational ledger, never an input to growth or survival. */
@@ -1321,6 +1321,8 @@ export interface Item extends Entity {
   holderId: EntityId | null;        // person carrying it
   pos: Vec3 | null;                 // when lying in the world
   placeId: EntityId | null;
+  /** Physical containment. Mutually exclusive with holderId and pos when present. */
+  containerId?: EntityId | null;
   provenance: ProvenanceEntry[];
   value: number;
   damage: number;
@@ -1352,6 +1354,17 @@ export interface Item extends Entity {
     knowledge: Pick<KnowledgeItem, 'key' | 'kind' | 'claim' | 'confidence' | 'source' | 'hops'>;
     substrateKg: number;
   };
+}
+
+/** A persistent physical holder for items. Contents remain ordinary canonical Items. */
+export interface Container extends Entity {
+  kind: 'container';
+  itemIds: EntityId[];
+  capacity: number;
+  open: boolean;
+  ownerId: EntityId | null;
+  pos: Vec3 | null;
+  placeId: EntityId | null;
 }
 
 // ---------------------------------------------------------------- Places
@@ -1412,6 +1425,7 @@ export type EventType = 'animal_born' | 'animal_conceived' | 'animal_pregnancy_l
   | 'meal' | 'sleep' | 'work_shift' | 'service' | 'rumor' | 'weather' | 'birth' | 'death' | 'marriage'
   | 'debt' | 'dispute' | 'gift' | 'heal' | 'recovered' | 'apology' | 'player_spawn' | 'player_death'
   | 'block_changed' | 'item_missing' | 'threat_spotted' | 'returned_item' | 'debt_paid' | 'greeting' | 'prayer' | 'mourning'
+  | 'container_opened' | 'container_closed' | 'container_transfer'
   // v0.2 world-engine additions: purely observational/institutional, never gameplay-load-bearing
   // in the sense that removing them changes no canonical outcome by itself.
   | 'path_failure' | 'leadership_changed' | 'institutional_report' | 'cognitive_lod_changed'

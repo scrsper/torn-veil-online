@@ -1,16 +1,26 @@
 #include "TVGameMode.h"
 #include "TVCharacter.h"
 #include "TVBridgeSubsystem.h"
+#include "TVPlayableLighting.h"
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Kismet/GameplayStatics.h"
 ATVGameMode::ATVGameMode() { DefaultPawnClass = ATVCharacter::StaticClass(); HUDClass = ATVHUD::StaticClass(); }
+void ATVGameMode::StartPlay() {
+    if (GetWorld()->GetMapName().EndsWith(TEXT("TornVeilWorld"))) {
+        const FString Error = UTVPlayableLighting::EnsureDaylight(GetWorld());
+        if (!Error.IsEmpty()) { UE_LOG(LogTemp, Error, TEXT("TV_DAYLIGHT_INVALID: %s"), *Error); }
+        else { UE_LOG(LogTemp, Display, TEXT("TV_DAYLIGHT_READY: movable sun 12000 lux; sky capture; EV100 12; Lumen")); }
+    }
+    Super::StartPlay();
+}
 void ATVHUD::DrawHUD() {
     Super::DrawHUD(); auto* B = GetWorld()->GetSubsystem<UTVBridgeSubsystem>(); if (!B || !Canvas) return;
+    if(!B->bInspector&&!B->bArena)return; // Player-facing UI is CommonUI/UMG; this is optional diagnostics.
     DrawRect(FLinearColor(0.015f, 0.02f, 0.035f, 0.85f), 20, 20, B->bArena?960:660, B->bArena?145:100);
     DrawText(TEXT("TORN VEIL  /  LIVING WORLD"), FLinearColor(0.9f, 0.72f, 0.4f), 36, 30, nullptr, 1.5f);
     DrawText(B->ConnectionStatus(), FLinearColor::White, 36, 65);
-    DrawText(TEXT("WASD move/strafe  |  Shift run  |  Mouse face/look  |  Wheel zoom  |  Tab target  |  LMB punch / RMB kick  |  E interact  |  C eat  |  Q drop  |  M mechanisms  |  F5 save  |  F6 debug"), FLinearColor(0.7f, 0.75f, 0.8f), 36, 90);
+    DrawText(TEXT("WASD move  |  Shift run  |  Mouse look  |  E / A interact  |  I / View inventory  |  P menu  |  F5 save  |  F6 debug"), FLinearColor(0.7f, 0.75f, 0.8f), 36, 90);
     if(B->bArena) {
         DrawText(TEXT("Space + direction dodge | hold Ctrl crouch | F1 passive | F2 incoming | F3 reset | F4 physiology"),FLinearColor(1,.85f,.5f),36,112);
         DrawText(B->PracticeStatus,FLinearColor(1,.85f,.5f),36,134);
@@ -45,6 +55,32 @@ void ATVHUD::DrawHUD() {
         if (B->bInspector) { DrawText(TEXT("DEVELOPER DATA - not character knowledge"), FLinearColor::Yellow, 36, 235); DrawText(T->EntityId + TEXT(" / ") + T->BodyId, FLinearColor::White, 36, 260); DrawText(T->DebugText.Left(240), FLinearColor::White, 36, 285); }
     }
     if(B->bInspector) DrawText(B->ProjectionMetrics,FLinearColor::Yellow,36,420);
+    if(B->bPauseOpen) {
+        const float X=Canvas->SizeX*.31f,Y=Canvas->SizeY*.2f,W=Canvas->SizeX*.38f,H=330;
+        DrawRect(FLinearColor(.012f,.016f,.024f,.97f),X,Y,W,H);
+        DrawText(TEXT("TORN VEIL"),FLinearColor(1,.78f,.42f),X+36,Y+32,nullptr,1.6f);
+        DrawText(TEXT("PAUSE MENU  /  persistent world remains canonical"),FLinearColor::White,X+36,Y+88);
+        DrawText(TEXT("P  Resume"),FLinearColor(.75f,.84f,.95f),X+36,Y+140);
+        DrawText(TEXT("I  Inventory"),FLinearColor(.75f,.84f,.95f),X+36,Y+174);
+        DrawText(TEXT("Settings architecture"),FLinearColor(.9f,.85f,.7f),X+36,Y+222);
+        DrawText(TEXT("Mouse / right stick look  |  Wheel zoom"),FLinearColor(.58f,.64f,.72f),X+36,Y+254);
+        DrawText(TEXT("Esc / B  Back"),FLinearColor(.58f,.64f,.72f),X+36,Y+292);
+    }
+    if(B->bInventoryOpen) {
+        const float X=Canvas->SizeX*.12f,Y=Canvas->SizeY*.13f,W=Canvas->SizeX*.76f,H=Canvas->SizeY*.7f,Mid=X+W*.5f;
+        DrawRect(FLinearColor(.012f,.016f,.024f,.97f),X,Y,W,H);
+        DrawText(TEXT("INVENTORY"),FLinearColor(1,.78f,.42f),X+28,Y+22,nullptr,1.45f);
+        DrawText(TEXT("Equipment  /  ordinary carried state"),FLinearColor(.62f,.7f,.8f),X+28,Y+58);
+        DrawText(B->OpenContainerId.IsEmpty()?TEXT("No open physical container"):B->OpenContainerName,FLinearColor(1,.78f,.42f),Mid+20,Y+22,nullptr,1.25f);
+        DrawRect(FLinearColor(.35f,.38f,.43f,.7f),Mid,Y+82,1,H-142);
+        float Cursor=Y+100;
+        if(B->InventoryItemLabels.IsEmpty())DrawText(TEXT("Empty"),FLinearColor(.6f,.64f,.7f),X+30,Cursor);
+        for(int32 Index=0;Index<B->InventoryItemLabels.Num();++Index){const bool Selected=B->UISelection==Index;if(Selected)DrawRect(FLinearColor(.18f,.28f,.38f,.8f),X+18,Cursor-4,W*.46f,25);DrawText((Selected?TEXT(">  "):TEXT("   "))+B->InventoryItemLabels[Index],Selected?FLinearColor::White:FLinearColor(.76f,.79f,.83f),X+28,Cursor);Cursor+=30;}
+        Cursor=Y+100;
+        if(B->ContainerItemLabels.IsEmpty())DrawText(TEXT("Empty"),FLinearColor(.6f,.64f,.7f),Mid+28,Cursor);
+        for(int32 Index=0;Index<B->ContainerItemLabels.Num();++Index){const int32 Combined=Index+B->InventoryItemLabels.Num();const bool Selected=B->UISelection==Combined;if(Selected)DrawRect(FLinearColor(.18f,.28f,.38f,.8f),Mid+12,Cursor-4,W*.46f,25);DrawText((Selected?TEXT(">  "):TEXT("   "))+B->ContainerItemLabels[Index],Selected?FLinearColor::White:FLinearColor(.76f,.79f,.83f),Mid+22,Cursor);Cursor+=30;}
+        DrawText(B->OpenContainerId.IsEmpty()?TEXT("Open a nearby container to transfer items."):TEXT("Up/Down or D-pad select  |  Enter/A transfers  |  I/Esc/B closes"),FLinearColor(.58f,.64f,.72f),X+28,Y+H-38);
+    }
     if(B->bMechanismsOpen) {
         const float X=Canvas->SizeX*.45f, Y=150; DrawRect(FLinearColor(.02f,.02f,.03f,.92f),X,Y,520,310);
         DrawText(TEXT("Mechanisms - observed evidence / attempts"),FLinearColor(1,.8f,.45f),X+20,Y+16);

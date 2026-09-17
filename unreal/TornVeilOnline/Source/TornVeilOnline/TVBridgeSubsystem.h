@@ -4,16 +4,19 @@
 #include "TVCombatChoreography.h"
 #include "TVInteractionPrediction.h"
 #include "TVLiveCombat.h"
+#include "TVCommonUIWidgets.h"
 #include "TVBridgeSubsystem.generated.h"
 
 class IWebSocket;
 class ATVCharacter;
 class ATVWorldProjection;
+class ATVWildlifePresentation;
 UCLASS()
 class TORNVEILONLINE_API UTVBridgeSubsystem : public UTickableWorldSubsystem {
     GENERATED_BODY()
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FTVLiveCombatReconciliation;
+    friend class FTVInputBoundaryReset;
 #endif
 public:
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -30,12 +33,29 @@ public:
     void Interact();
     void CloseDialogue();
     void ChooseDialogueOption(int32 Index);
+    void ToggleInventory();
+    void TogglePause();
+    void UIBack();
+    void UIMove(int32 Delta);
+    void UIConfirm();
+    bool HasModalScreen() const { return (PlayerShell&&PlayerShell->HasModalScreen()) || (bInspector&&bMechanismsOpen); }
+    UPROPERTY() TObjectPtr<UTVPlayerShellWidget> PlayerShell;
+    FString FocusedTargetId,FocusedActionId,FocusedKind,MovementRestriction,MobilitySummary;
+    FBox2D FocusedBounds;
+    void UpdatePlayerShell();
+    void UpdateInteractionFocus();
+    void UICommand(ETVUICommand Command,const FString& Primary,const FString& Secondary,int32 Index);
+    TSharedRef<FJsonObject> ControlState() const;
     UPROPERTY(BlueprintReadOnly) FString PlayerVitals;
     UPROPERTY(BlueprintReadOnly) FString CarriedSummary;
     UPROPERTY(BlueprintReadOnly) FString NearbyPrompt;
     UPROPERTY(BlueprintReadOnly) FString ConsumePrompt;
     UPROPERTY(BlueprintReadOnly) FString DropPrompt;
     FString NearbyInteraction, ConsumeInteraction, DropInteraction;
+    bool bInventoryOpen=false,bPauseOpen=false;
+    int32 UISelection=0;
+    FString OpenContainerId,OpenContainerName;
+    TArray<FString> InventoryItemIds,InventoryItemLabels,ContainerItemIds,ContainerItemLabels;
     FString TalkTargetBody;
     bool bDialogueOpen = false;
     FString DialogueSpeaker, DialogueOccupation;
@@ -47,6 +67,8 @@ public:
     void SaveWorld();
     void PredictMovement(float Dt,const FVector& Direction,bool bSprint,TOptional<double> Facing={});
     void SetCrouch(bool Held);
+    // Forget only disposable, not-yet-presented input; never cancel canonical outcomes.
+    void ClearBufferedInput();
     bool bCrouchHeld=false,bPracticeRecovery=true;
     double PredictedCrouch() const {return Predicted.Crouch;}
     double CombatInputCallbackAt=0;
@@ -91,7 +113,16 @@ public:
         return FVector((Metres.X - CanonicalOrigin.X) * UnitsPerMetre, (Metres.Z - CanonicalOrigin.Z) * UnitsPerMetre, (Metres.Y - CanonicalOrigin.Y) * UnitsPerMetre + 90);
     }
     UPROPERTY() TMap<FString, TObjectPtr<ATVCharacter>> Bodies;
+    /** Complete current observed set. Missing rows withdraw presentation; only dead=true is death. */
+    UPROPERTY() TMap<FString, TObjectPtr<ATVWildlifePresentation>> WildlifeBodies;
 private:
+    struct FFocusTarget {FString Id,Action,Kind,Label;FVector Position;};
+    TArray<FFocusTarget> FocusTargets;
+    TArray<TSharedPtr<FJsonValue>> ControlTrace;
+    double ControlTraceAt=0;
+    int32 LastMovementAck=-1;
+    FString CanonicalRestriction,PendingOpenContainer;
+    bool bShellDialogue=false;
     TSharedPtr<IWebSocket> Socket;
     FString SelectedBody;
     int32 Sequence = 0;

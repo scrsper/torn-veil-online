@@ -29,7 +29,9 @@ export function projectRegion(w: World, rx: number, rz: number) {
  * The transport discards an unfinished projection when its canonical region revision changes. */
 export function* projectRegionSteps(w: World, rx: number, rz: number) {
   if (!w.geography || !Number.isInteger(rx) || !Number.isInteger(rz) || rx < 0 || rz < 0 || rx * 256 >= w.grid.W || rz * 256 >= w.grid.D) throw new Error('Region outside world');
-  const bounds = regionBounds(w, rx, rz), columns: number[][] = [], stride = (w.grid as RegionalGrid).patches.some(p=>p.x<bounds.x1&&p.x+p.grid.W>bounds.x0&&p.z<bounds.z1&&p.z+p.grid.D>bounds.z0)?2:8, openings: number[][] = [], fences: number[][] = [], paths: number[][] = [];
+  const bounds = regionBounds(w, rx, rz), columns: number[][] = [], stride = (w.grid as RegionalGrid).patches.some(p=>p.x<bounds.x1&&p.x+p.grid.W>bounds.x0&&p.z<bounds.z1&&p.z+p.grid.D>bounds.z0)?2:8, openings: number[][] = [], fences: number[][] = [], paths: number[][] = [], furnishings: { role: string; pos: { x: number; y: number; z: number }; yaw: number; support: number }[] = [];
+  const furnishingRoles = new Map<number, string>([[B.Bed, 'bed'], [B.Chair, 'chair'], [B.Table, 'table'], [B.Counter, 'counter'], [B.Bench, 'bench'], [B.Anvil, 'anvil'], [B.Furnace, 'forge'], [B.Altar, 'altar'], [B.Bookshelf, 'shelf'], [B.Barrel, 'barrel'], [B.Crate, 'crate'], [B.Lantern, 'lantern'], [B.Sign, 'sign']]);
+  const furnishingSeen = new Set<string>();
   for (let x = bounds.x0; x <= bounds.x1; x += stride) for (let z = bounds.z0; z <= bounds.z1; z += stride) {
     const c = surface(w,x,z);
     // Stitch 2m settlement meshes to the shared 8m wilderness boundary exactly.
@@ -46,18 +48,58 @@ export function* projectRegionSteps(w: World, rx: number, rz: number) {
     family: p.type === 'house' ? 'dwelling' : p.type === 'chapel' ? 'community' : p.type === 'mill' ? 'production' : p.type === 'stall' || p.type === 'tavern' ? 'shop' : p.type === 'farm' || p.type === 'store' ? 'agricultural' : 'workshop' }));
   // Dense geometry exists only in inhabited patches. Never sweep a whole world volume.
   for (const patch of (w.grid as import('../sim/physical/regionalGrid').RegionalGrid).patches) {
-    const x0 = Math.max(bounds.x0, patch.x), x1 = Math.min(bounds.x1, patch.x + patch.grid.W), z0 = Math.max(bounds.z0, patch.z), z1 = Math.min(bounds.z1, patch.z + patch.grid.D);
+    // A small read-only path halo lets both neighbouring terrain materials agree at the seam.
+    // Doors/fences remain owned by their original region and are never duplicated.
+    const x0 = Math.max(bounds.x0 - 3, patch.x), x1 = Math.min(bounds.x1 + 3, patch.x + patch.grid.W), z0 = Math.max(bounds.z0 - 3, patch.z), z1 = Math.min(bounds.z1 + 3, patch.z + patch.grid.D);
     for (let x = x0; x < x1; x++) for (let z = z0; z < z1; z++) { for (let y = 1; y < patch.grid.H; y++) {
       const b = w.grid.get(x, y, z);
-      if (b === B.Door) openings.push([x, y, z, +w.grid.isDoorOpen(x, y, z)]);
-      if (b === B.Fence) fences.push([x, y, z, w.grid.get(x-1,y,z)===B.Fence||w.grid.get(x+1,y,z)===B.Fence ? 0 : 90]);
+      if (b === B.Door && inBounds(bounds, {x,z})) openings.push([x, y, z, +w.grid.isDoorOpen(x, y, z)]);
+      if (b === B.Fence && inBounds(bounds, {x,z})) fences.push([x, y, z, w.grid.get(x-1,y,z)===B.Fence||w.grid.get(x+1,y,z)===B.Fence ? 0 : 90]);
       if (b === B.Path) paths.push([x,y+1,z]);
+      const role = furnishingRoles.get(b);
+      if (role && inBounds(bounds, { x, z })) {
+        const key = `${x}:${y}:${z}`;
+        if (!furnishingSeen.has(key)) {
+          furnishingSeen.add(key);
+          const alongX = w.grid.get(x - 1, y, z) === b || w.grid.get(x + 1, y, z) === b;
+          const alongZ = w.grid.get(x, y, z - 1) === b || w.grid.get(x, y, z + 1) === b;
+          let yaw = alongZ && !alongX ? 90 : 0;
+          if (role === 'chair') {
+            // Face the actual adjacent table, not another chair or the world origin.
+            const table = [[1, 0], [-1, 0], [0, 1], [0, -1]].find(([dx, dz]) => w.grid.get(x + dx, y, z + dz) === B.Table);
+            if (table) yaw = Math.atan2(table[1], table[0]) * 180 / Math.PI;
+          }
+          furnishings.push({ role, pos: { x, y, z }, yaw, support: w.grid.get(x, y - 1, z) });
+        }
+      }
     } if((z-z0)%16===15)yield; }
   }
-  return { id: `${rx},${rz}`, seed: w.geography.regionSeed(rx, rz), bounds, terrain: { stride, columns }, openings, fences, paths, places,
+  return { id: `${rx},${rz}`, seed: w.geography.regionSeed(rx, rz), bounds, terrain: { stride, columns }, openings, fences, paths, furnishings, places,
+    dressingExclusions: w.places().filter(p => p.bounds.x0 < bounds.x1 + 4 && p.bounds.x1 >= bounds.x0 - 4 && p.bounds.z0 < bounds.z1 + 4 && p.bounds.z1 >= bounds.z0 - 4).map(p => ({bounds:p.bounds})),
     roads: w.geography.roads.filter(r => r.points.some(p => inBounds(bounds, p))).map(r => ({ id: r.id, points: r.points.filter(p => p.x >= bounds.x0 - 128 && p.x < bounds.x1 + 128 && p.z >= bounds.z0 - 128 && p.z < bounds.z1 + 128).map(p=>({...p,y:surface(w,Math.floor(p.x),Math.floor(p.z)).height+1})) })),
     settlements: w.settlements().filter(s => s.bounds.x0 < bounds.x1 && s.bounds.x1 >= bounds.x0 && s.bounds.z0 < bounds.z1 && s.bounds.z1 >= bounds.z0).map(s => ({ id: s.id, bounds: s.bounds })),
     classification: 'canonical', decoration: { classification: 'decorative', seed: w.geography.regionSeed(rx, rz, 'dressing'), collision: false, gameplay: false } };
+}
+
+/** Coarse read-only landform around a streamed centre region, for the far horizon only.
+ * Sampled from the versioned geographic baseline (never the voxel grid), so it cannot reveal
+ * or mutate settlement contents. Strings keep the payload small: one character per sample. */
+export const VISTA_STRIDE = 32, VISTA_RADIUS = 160;
+export function projectVista(w: World, rx: number, rz: number) {
+  const g = w.geography!, size = g.spec.regionSize, side = VISTA_RADIUS * 2 + 1;
+  const x0 = Math.round(((rx + .5) * size) / VISTA_STRIDE) * VISTA_STRIDE - VISTA_RADIUS * VISTA_STRIDE;
+  const z0 = Math.round(((rz + .5) * size) / VISTA_STRIDE) * VISTA_STRIDE - VISTA_RADIUS * VISTA_STRIDE;
+  let heights = '', forest = '', surface = '';
+  for (let i = 0; i < side; i++) for (let j = 0; j < side; j++) {
+    const x = Math.min(Math.max(x0 + i * VISTA_STRIDE, 0), g.spec.size - 1), z = Math.min(Math.max(z0 + j * VISTA_STRIDE, 0), g.spec.size - 1), c = g.surface(x, z);
+    heights += String.fromCharCode(48 + Math.max(0, Math.min(70, Math.round(c.water !== null ? c.water + 1 : c.height + 1))));
+    forest += String.fromCharCode(48 + Math.round(Math.max(0, Math.min(1, c.forest)) * 9));
+    surface += c.water !== null ? 'w' : c.block === B.Path ? 'p' : c.block === B.Sand ? 's' : c.block === B.Stone ? 'r' : 'g';
+  }
+  const inside = (b: { x0: number; z0: number; x1: number; z1: number }) => b.x1 >= x0 && b.x0 <= x0 + side * VISTA_STRIDE && b.z1 >= z0 && b.z0 <= z0 + side * VISTA_STRIDE;
+  return { center: `${rx},${rz}`, origin: { x: x0, z: z0 }, stride: VISTA_STRIDE, side, heights, forest, surface,
+    settlements: w.settlements().filter(s => inside(s.bounds)).map(s => ({ id: s.id, bounds: s.bounds })),
+    classification: 'decorative', collision: false, gameplay: false };
 }
 
 export function regionDynamics(w: World, ids: Set<string>) {
@@ -69,6 +111,7 @@ export function regionDynamics(w: World, ids: Set<string>) {
       ...(n.kind === 'forage' || n.kind === 'surface_water' ? { capacity: n.capacity, unit: n.kind === 'forage' ? 'kg' : 'litres', forage: n.forage, physicallyAvailable: ecologicalResourceAvailable(w, n) } : {}) })),
     wildlife: wildlifeProjection(w, w.primaryBody(w.playerId!), ids),
     items: w.items().filter(i => i.pos && !i.holderId && i.quantity > 0 && inside(i.pos)).map(i => ({ id: i.id, type: i.type, pos: i.pos, quantity: i.quantity })),
+    containers: w.containers().filter(c=>c.pos&&inside(c.pos)).map(c=>({id:c.id,name:c.name,pos:c.pos,open:c.open,capacity:c.capacity,used:c.itemIds.reduce((sum,id)=>sum+Math.max(0,w.item(id)?.quantity??0),0)})),
     crops: w.fields.flatMap(f => f.plots.filter(inside).map(p => ({ id: `${f.id}:${p.x}:${p.z}`, pos: { x: p.x, y: p.y, z: p.z }, state: p.state, growth: p.growth }))),
     mechanisms: w.kernel.assemblies.filter(a => inside(a.pos)).map(a => ({ id: a.id, pos: a.pos, parts: a.parts.length, condition: Math.min(1,...a.parts.map(id=>w.kernel.components.find(c=>c.id===id)?.condition??0)), state: w.persons().some(p=>p.mind.plan.some(t=>t.status==='active' && ['operate_mechanism','mechanism_task'].includes(t.type) && t.data?.assemblyId===a.id)) ? 'working' : 'idle', operatedSeconds:a.operatedSeconds })),
     construction: w.constructionProjects.filter(p => inside({ x: p.siteBounds.x0, z: p.siteBounds.z0 })).map(p => ({ id: p.id, bounds: p.siteBounds, pos:{x:p.siteBounds.x0,y:p.siteBounds.y0,z:p.siteBounds.z0}, state: p.status, progress: p.laborDone/Math.max(1,p.laborRequired) })),

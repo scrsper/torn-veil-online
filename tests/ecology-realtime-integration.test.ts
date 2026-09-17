@@ -33,10 +33,12 @@ it('a live attack and both partial scheduler clocks survive a wildlife session c
   initializeWildlife(session.world);
   const w = session.world, animalIds = w.creatures().filter(c => c.wildlife).map(c => c.id);
   expect(animalIds.length).toBeGreaterThan(0);
-  // Retain a nearly complete ecology quantum, then checkpoint between 20 Hz updates.
+  // Retain a nearly complete ecology quantum. The next interaction step crosses the
+  // boundary, executes that quantum once, and checkpoints its small remainder.
   const physical = 899.7 / w.clock.timeScale;
   const wd = w.clock.advance(physical); w.physicalTime += physical;
   session.sim.stepScheduled(physical, wd);
+  const processedBeforeInteraction = w.ecology!.processedAt;
   const body = w.primaryBody(w.playerId!)!;
   expect(submitCombatInput(w, body.id, {
     kind: 'attack', commandId: 'ecology-checkpoint-strike',
@@ -45,14 +47,17 @@ it('a live attack and both partial scheduler clocks survive a wildlife session c
   const saved = session.save(), data = JSON.parse(saved);
   expect(data.version).toBe(24);
   expect(data.execution.interactionCadence.physical).toBeCloseTo(1 / 60);
-  expect(data.ecology.pendingWorldSeconds).toBeCloseTo(899.7);
+  expect(data.ecology.processedAt).toBe(processedBeforeInteraction + 900);
+  expect(data.ecology.pendingWorldSeconds).toBeCloseTo(0.7);
   const resumed = new BridgeSession(832, { save: saved });
   expect(resumed.world.ecology).toEqual(w.ecology);
   expect(resumed.world.body(body.id)!.combatAction).toEqual(body.combatAction);
   for (let i = 0; i < 90; i++) {
     session.stepInteraction(10 + i); resumed.stepInteraction(10 + i);
   }
-  expect(w.ecology!.processedAt).toBe(data.ecology.processedAt + 900);
+  // The resumed interaction steps remain below the next 900-second boundary: neither
+  // session may execute the already-accounted quantum a second time.
+  expect(w.ecology!.processedAt).toBe(data.ecology.processedAt);
   expect(resumed.world.ecology).toEqual(w.ecology);
   expect(resumed.world.creatures()).toEqual(w.creatures());
   expect(resumed.world.creatures().filter(c => c.wildlife).map(c => c.id)).toEqual(animalIds);

@@ -8,7 +8,7 @@ import { restoreKernel } from '../kernel/definitions';
 import { World } from '../core/world';
 import { WorldClock } from '../core/time';
 import { generateVillage } from '../world/village';
-import type { Person, Body, Item, Place, Faction, WorldEvent, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation, WorkStint, Household, ChronicleEra } from '../core/types';
+import type { Person, Body, Item, Place, Container, Faction, WorldEvent, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation, WorkStint, Household, ChronicleEra } from '../core/types';
 import { syncFieldBlocks } from '../world/metabolism';
 import { syncResourceNodeBlocks } from '../world/resources';
 import { materializeStructure } from '../world/construction';
@@ -164,6 +164,7 @@ export function serialize(world: World): string {
   // physical-time timestamp; a downed pose is reconstructed from it on load.
   const bodies = world.bodies().map(b => ({ ...b, tags: [...b.tags], pos: { ...b.pos }, vel: { ...b.vel }, path: b.path?.map(v => ({ ...v })) ?? null, pathGoal: b.pathGoal ? { ...b.pathGoal } : null, sitAnchor: b.sitAnchor ? { ...b.sitAnchor } : null, pose: execution || world.get<import('../core/types').Creature>(b.ownerId)?.wildlife ? b.pose : b.pose === 'dead' ? 'dead' : (b.subduedUntil > world.physicalTime ? 'downed' : 'stand') }));
   const items = world.items().map(i => ({ ...i, tags: [...i.tags], pos: i.pos ? { ...i.pos } : null, provenance: i.provenance.map(entry => ({ ...entry })) }));
+  const containers = world.containers().map(c => ({ ...c, tags: [...c.tags], itemIds: [...c.itemIds], pos: c.pos ? { ...c.pos } : null }));
   const places = world.places().map(p => ({ id: p.id, ownerId: p.ownerId, anchors: p.anchors.map(a => a.ownerId ?? null) }));
   // v0.2.1 Priority 8: leaderId (leadership succession) and knowledge (institutional memory,
   // see history/factions.ts) both change during play and cannot be re-derived from present
@@ -200,7 +201,7 @@ export function serialize(world: World): string {
   // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
   // falls back to today's behavior (rewind to post-generation position) when absent.
   const rng = world.rng.state(); const weatherRng = world.weatherRng.state(); const demographicRng = world.demographicRng.state();
-  return JSON.stringify({ version: SAVE_VERSION, ecology: world.ecology, martialLearning: martialPersistenceState(world), creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
+  return JSON.stringify({ version: SAVE_VERSION, ecology: world.ecology, martialLearning: martialPersistenceState(world), creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, containers, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -315,6 +316,32 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     else world.rebuildHistoricalSignificance();
 
     for (const s of data.items) { const i = world.item(s.id); if (i) Object.assign(i, s); else world.add({ ...s, tags: [...s.tags], pos: s.pos ? { ...s.pos } : null, provenance: s.provenance.map((entry: Item['provenance'][number]) => ({ ...entry })) } as Item); }
+    for (const s of data.containers ?? []) {
+      const restored = { ...s, tags: [...(s.tags ?? [])], itemIds: [...(s.itemIds ?? [])], pos: s.pos ? { ...s.pos } : null } as Container;
+      const existing = world.container(s.id); if (existing) Object.assign(existing, restored); else world.add(restored);
+    }
+    // Containment is one canonical location, represented bidirectionally for efficient queries.
+    // Refuse a contradictory save instead of guessing which copy was meant to be authoritative.
+    const containedBy = new Map<string, string>();
+    for (const container of world.containers()) {
+      if (!Number.isInteger(container.capacity) || container.capacity < 0 || new Set(container.itemIds).size !== container.itemIds.length) return null;
+      let used = 0;
+      for (const itemId of container.itemIds) {
+        const item = world.item(itemId);
+        if (!item || item.containerId !== container.id || containedBy.has(itemId)) return null;
+        containedBy.set(itemId, container.id); used += Math.max(0, item.quantity);
+      }
+      if (used > container.capacity) return null;
+    }
+    // Generated reconstruction may contain placeholder residents not present in compact test or
+    // authored saves. Validate against the saved inventories that are actually authoritative.
+    const carriedItems = new Set<string>((data.persons ?? []).flatMap((person: Person) => person.inventory ?? []));
+    for (const item of world.items()) {
+      const listedIn = containedBy.get(item.id);
+      if (item.containerId) {
+        if (listedIn !== item.containerId || item.holderId || item.pos || carriedItems.has(item.id)) return null;
+      } else if (listedIn) return null;
+    }
     for (const s of data.places) { const p = world.place(s.id); if (!p) continue; p.ownerId = s.ownerId; s.anchors.forEach((o: string | null, i: number) => { if (p.anchors[i]) p.anchors[i].ownerId = o ?? undefined; }); }
     for (const s of data.factions ?? []) { const f = world.faction(s.id); if (!f) continue; f.leaderId = s.leaderId; f.knowledge = s.knowledge; }
     if (data.diffs?.length) { world.grid.recording = false; world.grid.applyDiffs(data.diffs); world.grid.initCaches(); world.nav.rebuildAll(); world.grid.dirtyChunks.clear(); }

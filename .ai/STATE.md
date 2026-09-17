@@ -1,3 +1,121 @@
+# Slice 2 — visual finish (Claude continuation), 2026-09-17
+
+Branch `claude/playable-world-slice-2-visual-finish` from Codex `ff36e25`, foundational Desktop
+worktree. Nothing merged or pushed; Slice 3 not started. Same save (p_128/b_141, 127 residents).
+Fenwick now presents zoned Megaplant woodland and a far horizon from canonical forest/geography,
+a two-tier timber-frame architecture grammar, functional place dressing, layered scanned ground,
+lit interiors (EV100 7–12) and fixed pack materials. Evidence: `after.png`, `before-after.jpg`,
+`.debug/playable-world-slice2/after-walk.mp4` (two joined ordinary-PIE takes: woodland → square →
+house interior; tavern dialogue → return to walking). Native presentation 14/14, 45 focused TS
+tests, typecheck, UE build pass; F5 save → disk reload keeps identities and learned names.
+Requires `r.Nanite.AllowAssemblies/AllowVoxels` and local derived assets (recipes in
+`unreal/scripts`). Remaining: flat canonical terrain, mannequin people, parkland-like woods, no
+prop collision. Human visual acceptance required.
+Full report: `docs/evidence/playable-world-slice2/README.md`.
+
+# Slice 2 — local palette integration WIP, 2026-09-16 evening
+
+Branch `codex/playable-world-slice-2`, actual worktree
+`C:/Users/green/Desktop/projects/torn-veil-online-foundational`. Keep protected `4fd5114`.
+Local AssetRegistry audit: 3,714 assets / 39 groups. Selected AdvancedVillage roof,
+grass/trees/well/storage, Free Medieval fixtures with owned PBR wrappers, WaterPlane
+rock. Derived licensed assets stay local; originals/imports and dirty map excluded.
+Fixed terrain material graph wiring and implemented local-phase UVs. Bridge now
+projects canonical furnishing cells with table-facing chairs; native projection uses
+semantic whole fixtures, optional roof envelope, bounded grass and varied resource trees.
+Latest native build (28.19s), nine playable-world tests, and typecheck pass.
+Independent review's chair-facing finding repaired and tested. No sim mechanics changed.
+Current final palette is NOT visually accepted. Editor quit cleanly for rebuild;
+automatic approval review rejected the combined bridge restart/editor relaunch
+(`blocked by policy`, no more specific reason). No retry loop. Editor is closed;
+old-source bridge PID 10236 still owns 8787 and needs a normal save/restart for new DTO.
+The terrain-material repair was seen in ordinary PIE before the final integration;
+its UV repair and final asset palette still require AFTER screenshots/video, NPC
+movement/dialogue and disk-save reload checks. Nothing merged. Do not start Slice 3.
+Full state and evidence limits: `docs/evidence/playable-world-slice2/README.md`.
+Local asset provenance: `docs/playable-world-slice2-local-assets.md`.
+
+# Earlier Slice 2 environment checkpoint, 2026-09-16
+
+Branch `codex/playable-world-slice-2`, based on protected `4fd5114`, foundational
+Desktop worktree. Paired roof slopes/bounded eaves, terrain-blended canonical paths,
+clustered grass with approach exclusions, and a semantic presentation palette are
+implemented. No canonical movement/identity/persistence changes; existing Fenwick save.
+Typecheck, 13 region/stream tests, 30 bridge tests, UE build and two native environment
+tests pass. Visual acceptance is incomplete after GUI automation interruptions.
+No Slice 3, merge or quality-complete claim. The pre-existing dirty map stays excluded.
+Implementation checkpoint `b17f876` passed independent review. Recovery found no
+remaining target editor/bridge. One matching bridge is ready; automatic approval
+review blocked the visible editor launch before it started. No relaunch/reconnect
+loop was attempted. Editor is not open; exact manual launch/playtest is in the report.
+Evidence, asset limits and human playtest: `docs/evidence/playable-world-slice2/README.md`.
+
+# Playable life Slice 1 — restoration checkpoint, 2026-09-16
+
+Branch `codex/playable-life-slice-1`, base `b4dc26e`, in the foundational Desktop
+checkout used by the running editor. No merge or human approval. Continued the
+existing seven-settlement save (Fenwick, player p_128/b_141); no fresh-world bypass.
+Restored nearby canonical human projection, repaired fixed-step locomotion signals,
+made dialogue replies/shortcuts usable, and strengthened provenance-bearing name
+retention. Shared recent-self-care history lookup reduced the measured 120-tick
+profile from 7.99 s to 1.04 s with identical resulting canonical state.
+
+Ordinary PIE includes 13 nearby canonical NPC bodies, recorded skeletal walking,
+dialogue and persistent identity checks. Arrival/anchor repair lets the saved resting
+crowd walk apart (seven settled residents, minimum 81.4 cm body-centre clearance).
+Targeted TS/native tests and builds pass. Overall playable quality is NOT accepted:
+weak visuals/activity poses, history growth and sustained scheduling debt remain.
+Do not merge on the strength of these restoration checks. Evidence, exact claim limits
+and local capture paths: `docs/evidence/playable-life-slice1/README.md`.
+The pre-existing dirty `TornVeilWorld.umap` remains outside this change.
+
+# Foundational gameplay presentation v0.1 — resumed repair, 2026-09-15
+
+PR #43 remains unmerged and NOT human-approved. Real CommonUI activatable screens/stacks,
+Enhanced Input, GASP-derived local directional blendspace and CC0 skeletal deer are integrated.
+Repaired controller lease handoff, stale input clearing, timer-starved rate windows and inline
+urgent-wake amplification; ownership limits, command expiry and canonical scheduler are unchanged.
+Also fixed unreadable fonts/prompts, modal Back routing, missing dialogue exit, and item/chest
+support-plane offsets. Ordinary Lit PIE passes the lighting/geometry/pixel check.
+
+Ordinary test-world walkthrough is INCOMPLETE: talk/close, inventory, store/retrieve, menus and
+save/reload/control recovery were observed. Drop expired under growing simulation debt; full
+food/pickup/combat/region/deer journey remains unverified. A read-only loaded-save profile measured
+7.91 s per 120 interaction ticks, 7.47 s in NPC thinking. Further canonical cognition/scheduling
+work is outside this presentation repair. Do not replace the failed ordinary walkthrough with
+the passing fixture acceptance. Evidence and capture limitations:
+`docs/evidence/foundational-gameplay/retrofit/REPAIR_VALIDATION.md` and `BRIDGE_SAVE_PROFILE.md`.
+Normal user save was preserved; verification used `.debug/playable-repair-test.save.json`.
+
+## Earlier milestone checkpoints (historical, superseded by repair status above)
+
+PR #43 human playtest rejected near-black PIE. Fixed the proven 100-lux saved-time sun / EV100-12
+mismatch with a shared neutral-daylight setup/startup contract (`TVPlayableLighting`). Launch
+rebuilds/validates level infrastructure and rejects a mismatched bridge checkout. Lit PIE capture
+now requires complete regional geometry, runtime lighting validation and completed-image luma/
+readability checks; the recorded dark frame fails. Native presentation 5/5, focused TS 14/14,
+foundational acceptance, typecheck, production and UE builds pass. See the milestone's lighting
+correction section and `docs/evidence/foundational-gameplay/lighting-verification-summary.json`.
+Canonical clock/weather/save semantics are unchanged; human re-test is still required.
+
+Branch `codex/foundational-gameplay-presentation-v0-1`, base `333665e`. Canonical containers,
+semantic container transfers, settlement pickup/chest seeding, body-keyed wildlife projection,
+temporary engine-shape deer presentation, locomotion/camera signals, central item visuals and a
+controller-capable layered native HUD now form one playable shell. TypeScript retains movement,
+interaction, inventory, container, wildlife, combat and persistence authority. Focused TS 81/81,
+production build, generated specs, native Editor build, three native Presentation tests and the
+61-check playable startup smoke pass. Report: `docs/FOUNDATIONAL_GAMEPLAY_PRESENTATION_V0_1.md`.
+Final deer art/rig, explicit equipment slots, true CommonUI widgets and human quality approval are
+not claimed. Human launch: `pwsh -File unreal/scripts/Launch.ps1`.
+
+Remote hardening adds no gameplay system: `npm run foundational:accept` objectively traverses the
+pickup/container/wilderness/deer/save-reload path, verifies identity/location/topology and duplicate
+absence, and writes `docs/evidence/foundational-gameplay/automated-journey.json`. Four labeled PIE
+captures cover settlement, container, wildlife and post-reload. Profiles found no optimization
+trigger: direct snapshots 1.2–1.8 KB, container projection 0.0031 ms mean, steady region frame 0.95
+ms mean, one nearby wildlife actor, and native proxy Tick about 0.025 ms mean. Focused TS 81/81,
+build/typecheck, UE build, native Presentation 3/3 and playable startup 61/61 passed.
+
 # Realtime wildlife integration v0.2 — porting in progress, 2026-09-14
 
 Branch `codex/wildlife-realtime-integration-v0-2`, created fresh from consolidated

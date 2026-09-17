@@ -3,6 +3,9 @@ import { WorldGeography, PLAYABLE_WORLD, type PlayableWorldSpec } from './geogra
 import { generateProceduralWorld } from './settlement';
 import { B } from '../physical/blocks';
 import { initializeWildlife } from '../ecology/generation';
+import { makeContainer } from '../core/container';
+import { makeItem } from './factory';
+import { createAnimal } from '../ecology/animals';
 
 export function generatePlayableWorld(world: World, spec: PlayableWorldSpec = PLAYABLE_WORLD, withWildlife = true) {
   const geography = new WorldGeography(world.seed, spec);
@@ -26,7 +29,32 @@ export function generatePlayableWorld(world: World, spec: PlayableWorldSpec = PL
     }
   }
   world.initNav(); world.grid.recording = true;
-  if (withWildlife) initializeWildlife(world);
+  // A small general-purpose acceptance fixture in the first generated public square. It uses
+  // ordinary canonical item/container state; Unreal only projects these identities.
+  const first = settlements.slice().sort((a,b)=>a.spec.site.id.localeCompare(b.spec.site.id))[0];
+  if (first) {
+    const center = first.places.square.inside;
+    const containerPos = { x:center.x + 1.5, y:world.nav.floorY(center.x+1,center.z), z:center.z + .5 };
+    const loosePos = { x:center.x - 1.5, y:world.nav.floorY(center.x-2,center.z), z:center.z + .5 };
+    const chest = makeContainer(world,{name:'Traveler chest',capacity:24,pos:containerPos,placeId:first.places.square.id,tags:['physical','storage']});
+    makeItem(world,'bread','Travel bread',{container:chest.id,quantity:2,description:'A plain loaf kept for the road.'});
+    makeItem(world,'lantern','Weathered lantern',{pos:loosePos,placeId:first.places.square.id,description:'A serviceable lantern left in the square.'});
+  }
+  if (withWildlife) {
+    initializeWildlife(world);
+    // The broad geography has only three bounded founder-registration corridors. Give this
+    // specific playable scenario a small canonical founder cohort in the settlement forest so
+    // the ordinary settlement-to-wilderness route demonstrates wildlife without relocation.
+    // These are normal persistent Creature/Body entities; no presentation-only animal exists.
+    if (first) {
+      const center=first.places.square.inside,forest=first.places.forest.inside;
+      const approach=world.nav.findPath(center,forest)?.filter(p=>Math.hypot(p.x-center.x,p.z-center.z)<=72);
+      const founders=approach?.slice(-2) ?? [forest];
+      for(const [index,pos] of founders.entries()) {
+        createAnimal(world,'roe_deer',pos,{sex:index===0?'female':'male'});
+      }
+    }
+  }
   return settlements;
 }
 

@@ -1,0 +1,196 @@
+{
+  "passed": true,
+  "seed": 918271,
+  "player": {
+    "personId": "p_128",
+    "bodyId": "b_141"
+  },
+  "itemId": "i_222",
+  "containerId": "ct_1",
+  "wildlife": {
+    "observedBodyId": "b_139",
+    "observedCreatureId": "wild_12",
+    "persistedIds": [
+      {
+        "id": "wild_12",
+        "bodies": [
+          "b_139"
+        ]
+      },
+      {
+        "id": "wild_13",
+        "bodies": [
+          "b_140"
+        ]
+      },
+      {
+        "id": "wild_4",
+        "bodies": [
+          "b_131"
+        ]
+      },
+      {
+        "id": "wild_5",
+        "bodies": [
+          "b_132"
+        ]
+      },
+      {
+        "id": "wild_6",
+        "bodies": [
+          "b_133"
+        ]
+      },
+      {
+        "id": "wild_7",
+        "bodies": [
+          "b_134"
+        ]
+      }
+    ],
+    "corpseBodyId": "b_139",
+    "corpseCreatureId": "wild_12"
+  },
+  "stages": [
+    {
+      "stage": "settlement_spawn",
+      "tick": 0,
+      "player": {
+        "x": 12035,
+        "y": 24,
+        "z": 20008
+      },
+      "inventory": [],
+      "wildlife": []
+    },
+    {
+      "stage": "canonical_pickup",
+      "tick": 0,
+      "player": {
+        "x": 12035,
+        "y": 24,
+        "z": 20008
+      },
+      "inventory": [
+        "i_222"
+      ],
+      "wildlife": []
+    },
+    {
+      "stage": "container_transfer_in",
+      "tick": 0,
+      "player": {
+        "x": 12035,
+        "y": 24,
+        "z": 20008
+      },
+      "inventory": [],
+      "wildlife": []
+    },
+    {
+      "stage": "container_transfer_out",
+      "tick": 0,
+      "player": {
+        "x": 12035,
+        "y": 24,
+        "z": 20008
+      },
+      "inventory": [
+        "i_222"
+      ],
+      "wildlife": []
+    },
+    {
+      "stage": "wilderness_deer",
+      "player": {
+        "x": 12060.12350393574,
+        "y": 24,
+        "z": 20033.123503935745
+      },
+      "bodyId": "b_139",
+      "creatureId": "wild_12",
+      "canonicalActivityBefore": "idle",
+      "canonicalActivityAfter": "flee",
+      "projectedActivity": "flee"
+    },
+    {
+      "stage": "wildlife_death_absence",
+      "bodyId": "b_139",
+      "creatureId": "wild_12",
+      "deadProjected": true,
+      "absentProjected": true,
+      "canonicalIdentityRetained": true
+    },
+    {
+      "stage": "post_reload",
+      "playerId": "p_128",
+      "bodyId": "b_141",
+      "item": {
+        "id": "i_222",
+        "ownerId": "p_128",
+        "holderId": "p_128",
+        "containerId": null,
+        "pos": null
+      },
+      "container": {
+        "id": "ct_1",
+        "open": true,
+        "itemIds": [
+          "i_221"
+        ]
+      },
+      "wildlifeBodyId": "b_139",
+      "wildlifeCreatureId": "wild_12",
+      "dead": true,
+      "canonicalStateEqual": true
+    }
+  ],
+  "persistence": {
+    "saveBytes": 4152493,
+    "saveMs": 53.54939999999988,
+    "loadMs": 3153.4844000000003,
+    "canonicalStateEqual": true,
+    "uniqueItemCount": 226,
+    "uniqueResourceCount": 2596
+  },
+  "profile": {
+    "snapshot": {
+      "samples": 104,
+      "meanMs": 0.34063365384613814,
+      "p95Ms": 0.6085999999995693,
+      "maxMs": 3.0064000000002125,
+      "minBytes": 1697,
+      "maxBytes": 1964
+    },
+    "containerProjection": {
+      "samples": 250,
+      "meanMs": 0.00300719999998546,
+      "p95Ms": 0.0037000000002080924,
+      "maxMs": 0.06280000000060681
+    },
+    "regionFrame": {
+      "initialMaterializationMs": 429.27549999999974,
+      "steady": {
+        "samples": 104,
+        "meanMs": 1.231072115384581,
+        "p95Ms": 1.8544999999994616,
+        "maxMs": 2.2770000000000437
+      }
+    },
+    "regionUpdates": {
+      "sampledFrames": 105,
+      "dynamicFrames": 5,
+      "simulatedSeconds": 10.450000000000014,
+      "sampledFramesPerSecond": 10.04784688995214,
+      "dynamicUpdatesPerSecond": 0.4784688995215305
+    },
+    "wildlifeActorsNearPlayer": 1,
+    "nativePresentationTick": "measured by PIE actor diagnostics evidence, not this headless process"
+  },
+  "pathologicalBehavior": [],
+  "observations": [
+    "Headless first-region materialization is synchronous; the native transport applies the same regions progressively."
+  ],
+  "elapsedWallMs": 10524.1602,
+  "acceptanceSave": ".debug/foundational-gameplay-acceptance.save.json"
+}

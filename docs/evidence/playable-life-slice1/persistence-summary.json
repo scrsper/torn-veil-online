@@ -1,0 +1,173 @@
+{
+  "scenario": "Existing procedural Fenwick world, ordinary PIE",
+  "savedAt": "2026-09-16T05:32:24.866Z",
+  "playerId": "p_128",
+  "bodyIds": [
+    "b_141"
+  ],
+  "personCount": 128,
+  "originalPeopleAndBodyBindingsRetained": true,
+  "savedIdentityClaim": {
+    "key": "identity:p_11",
+    "kind": "fact",
+    "claim": {
+      "identity": {
+        "subject": "p_11",
+        "name": "Rhea Ives"
+      },
+      "evidence": [
+        {
+          "name": "Rhea Ives",
+          "source": {
+            "type": "told",
+            "from": "p_11",
+            "viaEvent": "e_1917700"
+          },
+          "at": 8766584.399626784
+        },
+        {
+          "name": "Rhea Ives",
+          "source": {
+            "type": "heard",
+            "from": "p_11",
+            "viaEvent": "e_1917840"
+          },
+          "at": 8766585.59962678
+        }
+      ]
+    },
+    "confidence": 0.65,
+    "learnedAt": 8766585.59962678,
+    "source": {
+      "type": "heard",
+      "from": "p_11",
+      "viaEvent": "e_1917840"
+    },
+    "hops": 0,
+    "sharedWith": []
+  },
+  "savedFamiliarity": 0.05,
+  "reloadedPlayerId": "p_128",
+  "reloadedBodyId": "b_141",
+  "reloadedResidentNames": [
+    {
+      "bodyId": "b_1",
+      "entityId": "p_1",
+      "name": "an unfamiliar person"
+    },
+    {
+      "bodyId": "b_4",
+      "entityId": "p_4",
+      "name": "an unfamiliar person"
+    },
+    {
+      "bodyId": "b_5",
+      "entityId": "p_5",
+      "name": "an unfamiliar person"
+    },
+    {
+      "bodyId": "b_6",
+      "entityId": "p_6",
+      "name": "an unfamiliar person"
+    },
+    {
+      "bodyId": "b_7",
+      "entityId": "p_7",
+      "name": "an unfamiliar person"
+    },
+    {
+      "bodyId": "b_9",
+      "entityId": "p_9",
+      "name": "an unfamiliar person"
+    },
+    {
+      "bodyId": "b_10",
+      "entityId": "p_10",
+      "name": "Rhea Alder 2"
+    },
+    {
+      "bodyId": "b_11",
+      "entityId": "p_11",
+      "name": "Rhea Ives"
+    },
+    {
+      "bodyId": "b_12",
+      "entityId": "p_12",
+      "name": "an unfamiliar person"
+    },
+    {
+      "bodyId": "b_13",
+      "entityId": "p_13",
+      "name": "Rhea Ives 2"
+    },
+    {
+      "bodyId": "b_14",
+      "entityId": "p_14",
+      "name": "Galen Ives"
+    },
+    {
+      "bodyId": "b_15",
+      "entityId": "p_15",
+      "name": "Yara Ives"
+    },
+    {
+      "bodyId": "b_16",
+      "entityId": "p_16",
+      "name": "an unfamiliar person"
+    },
+    {
+      "bodyId": "b_141",
+      "entityId": "p_128",
+      "name": "Traveler"
+    }
+  ],
+  "reloadedDialogue": {
+    "revision": 3,
+    "speakerId": "p_11",
+    "speakerBodyId": "b_11",
+    "name": "Rhea Ives",
+    "lines": [
+      "Traveler. What can I do for you?"
+    ],
+    "options": [
+      {
+        "id": "dialogue:3:0",
+        "label": "What's the news?"
+      },
+      {
+        "id": "dialogue:3:1",
+        "label": "Who are you?"
+      },
+      {
+        "id": "dialogue:3:2",
+        "label": "Introduce yourself"
+      },
+      {
+        "id": "dialogue:3:3",
+        "label": "What do you think of me?"
+      },
+      {
+        "id": "dialogue:3:4",
+        "label": "Ask about someone…"
+      },
+      {
+        "id": "dialogue:3:5",
+        "label": "Trade"
+      },
+      {
+        "id": "dialogue:3:6",
+        "label": "Buy a meal — bread (2s)"
+      },
+      {
+        "id": "dialogue:3:7",
+        "label": "Tell them something…"
+      },
+      {
+        "id": "dialogue:3:8",
+        "label": "Goodbye"
+      }
+    ]
+  },
+  "playerInventoryAtSave": [],
+  "note": "World continued naturally; population bindings compared, not evolving needs, goals or NPC positions. This slice does not claim an item-transfer journey."
+}

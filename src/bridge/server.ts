@@ -8,7 +8,10 @@ import { dirname, resolve } from 'node:path';
 import { projectRegion } from './regions';
 import { RegionalTransport, REGION_PROTOCOL, MAX_PRESENTATION_MESSAGE_BYTES } from './streaming';
 import { FixedScheduler } from './scheduler';
+import { ControllerLease } from './controllerLease';
 import { monitorEventLoopDelay } from 'node:perf_hooks';
+import { FixedRateWindow } from './rateWindow';
+import { CoalescedInteractionWake } from './interactionWake';
 const loopDelay=monitorEventLoopDelay({resolution:10});loopDelay.enable();
 
 const port = Number(process.env.TORN_VEIL_PORT ?? 8787);
@@ -22,7 +25,7 @@ function saveWorld(): void {
 }
 const http = createServer((req, res) => {
   res.setHeader('Content-Type', 'application/json');
-  if (req.url === '/health') res.end(JSON.stringify({ ok: true, version: 1, regionProtocol:REGION_PROTOCOL, tick: session.world.physicalTime, settlements:session.world.settlements().length, residents:session.world.persons().filter(p=>p.id!==session.world.playerId).length, visibleNPCs:session.snapshot().bodies.filter(b=>b.entityId!==session.world.playerId).length, playerId:session.world.playerId, controlledBodyId:session.world.primaryBody(session.world.playerId!)?.id, controllerConnected:!!controller, projectRoot:process.cwd() }));
+  if (req.url === '/health') res.end(JSON.stringify({ ok: true, version: 1, regionProtocol:REGION_PROTOCOL, tick: session.world.physicalTime, settlements:session.world.settlements().length, residents:session.world.persons().filter(p=>p.id!==session.world.playerId).length, visibleNPCs:session.snapshot().bodies.filter(b=>b.entityId!==session.world.playerId).length, playerId:session.world.playerId, controlledBodyId:session.world.primaryBody(session.world.playerId!)?.id, controllerConnected:controllerLease.current?.readyState===WebSocket.OPEN, projectRoot:process.cwd() }));
   else if (req.url === '/metrics') res.end(JSON.stringify({scheduler:{steps:scheduler.steps,overruns:scheduler.overruns,maxDebtMs:scheduler.maxDebtMs},eventLoopMs:{p50:loopDelay.percentile(50)/1e6,p95:loopDelay.percentile(95)/1e6,p99:loopDelay.percentile(99)/1e6},transportTimings,memory:process.memoryUsage()}));
   else if (process.env.TORN_VEIL_WORLD==='arena'&&req.method==='POST'&&req.url?.startsWith('/arena/')) {try {res.end(JSON.stringify(arrangeCombatArena(session,req.url.slice(7))));}catch(error){res.statusCode=400;res.end(JSON.stringify({error:String(error)}));}}
   else if (req.url === '/scene') res.end(JSON.stringify(session.scene()));
@@ -37,7 +40,7 @@ const http = createServer((req, res) => {
 });
 const wss = new WebSocketServer({ server: http, maxPayload: 4096 });
 const streams = new Map<WebSocket, RegionalTransport>();
-let controller: WebSocket | null = null;
+const controllerLease = new ControllerLease<WebSocket>(() => session.resetInput());
 let connectionSerial=0;
 // Loopback developer bridge. What must not happen is a web page driving the Traveler.
 //
@@ -62,9 +65,9 @@ wss.on('connection', (socket, request) => {
   }
   const connection=++connectionSerial;
   const log=(event:Record<string,unknown>)=>console.log(JSON.stringify({bridge:connection,...event}));
-  const controls = !controller;
+  const controls = controllerLease.claim(socket);
   log({event:'connected',role:controls?'controller':'observer',origin:request.headers.origin??'none'});
-  if (controls) { controller = socket; session.resetInput(); }
+  if (controls) session.resetInput();
   const greeting=(message:object)=>{const payload=JSON.stringify(message);socket.send(payload);log({event:'startup_send',type:(message as {type:string}).type,bytes:Buffer.byteLength(payload),bufferedAmount:socket.bufferedAmount});};
   const realtime=controls&&request.headers['x-torn-veil-interaction-protocol']==='2';
   const interaction=realtime?session.bindInteraction(`local:${connection}`):undefined;
@@ -74,15 +77,26 @@ wss.on('connection', (socket, request) => {
   greeting(snapshot);
   log({event:'binding',playerId:snapshot.playerId,controlledBodyId:snapshot.controlledBodyId,bodyPresent:snapshot.bodies.some(b=>b.bodyId===snapshot.controlledBodyId)});
   const stream = new RegionalTransport(log); streams.set(socket, stream);
-  let messages = 0, presentationMessages=0;
+  const controlWindow = new FixedRateWindow(realtime?160:80, performance.now());
+  const presentationWindow = new FixedRateWindow(80, performance.now());
+  let messageKinds:Record<string,number>={};
+  const recentInputs:unknown[]=[];
   let moving=false;
-  const limit = setInterval(() => { messages = 0;presentationMessages=0; }, 1000);
   socket.on('message', bytes => {
     try {
       const message = JSON.parse(bytes.toString());
-      if(message.type==='presentation_ack') {if(++presentationMessages>80){socket.close(1008,'Presentation rate limit');return;}stream.acknowledge(message.transferId,message.index);return;}
-      if (++messages > (realtime?160:80)) { socket.close(1008, 'Rate limit'); return; }
-      if (controller !== socket) return;
+      if(message.type==='presentation_ack') {if(!presentationWindow.consume(performance.now()).allowed){socket.close(1008,'Presentation rate limit');return;}stream.acknowledge(message.transferId,message.index);return;}
+      const controlRate = controlWindow.consume(performance.now());
+      if(controlRate.reset) messageKinds={};
+      const kind=message.type==='command'?String(message.command?.type):String(message.type);
+      messageKinds[kind]=(messageKinds[kind]??0)+1;
+      recentInputs.push({kind,sequence:message.sequence,x:message.command?.x,z:message.command?.z,sprint:message.command?.sprint});
+      if(recentInputs.length>16)recentInputs.shift();
+      if (!controlRate.allowed) {
+        log({event:'control_rate_limit',messages:controlRate.count,windowMs:controlRate.windowMs,messageKinds,recentInputs,controller:controllerLease.current===socket});
+        controllerLease.release(socket); socket.close(1008, 'Rate limit'); return;
+      }
+      if (controllerLease.current !== socket) return;
       if(message.type==='clock_probe') {socket.send(JSON.stringify({version:1,type:'clock_probe',clientTimeMs:message.clientTimeMs,serverTimeMs:performance.now()}));return;}
       if(message.type==='command') {const receipt=session.receiveCommand(message);if(receipt)timedSend(socket,receipt);wakeInteraction();return;}
       if(message.type==='move') {const active=!!(message.x||message.z);if(active!==moving){moving=active;log({event:active?'movement_started':'movement_stopped',sequence:message.sequence,playerId:session.world.playerId,pos:session.world.positionOf(session.world.playerId!)});}}
@@ -93,12 +107,13 @@ wss.on('connection', (socket, request) => {
     catch { socket.send(JSON.stringify({ version: 1, type: 'result', sequence: -1, result: 'invalid_json' })); }
   });
   socket.on('error', error => {log({event:'error',message:error.message});socket.close();});
-  socket.on('close', (code,reason) => { clearInterval(limit); streams.delete(socket); if (controller === socket) { controller = null; session.resetInput(); } log({event:'closed',code,reason:reason.toString(),controllerReleased:controls}); });
+  socket.on('close', (code,reason) => { streams.delete(socket); const released=controllerLease.release(socket); log({event:'closed',code,reason:reason.toString(),controllerReleased:released}); });
 });
 let ticks = 0;
 const scheduler=new FixedScheduler(1000/60,performance.now());
 const update = () => {
   const receipts=session.stepInteraction();
+  const controller=controllerLease.current;
   if(controller?.readyState===WebSocket.OPEN) {
     if(controller.bufferedAmount>256_000) {controller.close(1013,'Action backpressure');session.resetInput();}
     else {for(const receipt of receipts)timedSend(controller,receipt);const state=session.localState();if(state)controller.send(JSON.stringify(state));}
@@ -128,11 +143,15 @@ const update = () => {
 let timer:ReturnType<typeof setTimeout>;
 let stopped=false;
 const pump=()=>{if(stopped)return;scheduler.run(performance.now(),update);timer=setTimeout(pump,Math.max(1,Math.min(16,scheduler.remaining(performance.now()))));};
+const urgentWake = new CoalescedInteractionWake(
+  () => scheduler.remaining(performance.now()) <= 0,
+  () => { clearTimeout(timer); pump(); },
+);
 // An arriving urgent command can wake an already-due step instead of waiting for a
 // quantized host timer. This never advances the canonical deadline or backdates input.
-function wakeInteraction():void {if(scheduler.remaining(performance.now())<=0){clearTimeout(timer);pump();}}
+function wakeInteraction():void { urgentWake.request(); }
 timer=setTimeout(pump,1);
 http.listen(port, '127.0.0.1', () => console.log(`Torn Veil canonical bridge ws://127.0.0.1:${port} | seed ${session.world.seed} | ${session.world.settlements().length} settlements | ${session.world.persons().filter(p=>p.id!==session.world.playerId).length} world residents | ${session.snapshot().bodies.filter(b=>b.entityId!==session.world.playerId).length} avatar-visible NPCs | player ${session.world.playerId} / ${session.world.primaryBody(session.world.playerId!)?.id} | regional protocol ${REGION_PROTOCOL} | ${process.cwd()}`));
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.on(signal, () => {
-  stopped=true;clearTimeout(timer);loopDelay.disable(); saveWorld(); for (const socket of wss.clients) socket.close(); wss.close(); http.close();
+  stopped=true;urgentWake.stop();clearTimeout(timer);loopDelay.disable(); saveWorld(); for (const socket of wss.clients) socket.close(); wss.close(); http.close();
 });

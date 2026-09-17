@@ -1,0 +1,225 @@
+{
+  "label": "same-pie-pre-reconnect",
+  "utc": "2026-09-15T04:21:03.544Z",
+  "checkout": "C:\\Users\\green\\Desktop\\projects\\torn-veil-online-foundational",
+  "health": {
+    "ok": true,
+    "version": 1,
+    "regionProtocol": 2,
+    "tick": 14653.199999870916,
+    "settlements": 7,
+    "residents": 127,
+    "visibleNPCs": 0,
+    "playerId": "p_128",
+    "controlledBodyId": "b_141",
+    "controllerConnected": true,
+    "projectRoot": "C:\\Users\\green\\Desktop\\projects\\torn-veil-online-foundational"
+  },
+  "snapshot": {
+    "version": 1,
+    "type": "snapshot",
+    "tick": 14653.266666537582,
+    "worldTime": 8754319.599672474,
+    "ack": -1,
+    "playerId": "p_128",
+    "controlledBodyId": "b_141",
+    "wildlife": {
+      "version": 1,
+      "scope": "observed",
+      "complete": true,
+      "bodies": []
+    },
+    "knowledge": {
+      "avatarId": "p_128",
+      "visibleMechanisms": [],
+      "visibleComponents": [],
+      "people": [],
+      "mechanisms": []
+    },
+    "mechanisms": [],
+    "interactions": [
+      {
+        "id": "drop:i_2414",
+        "kind": "drop",
+        "label": "Drop bread",
+        "slot": "drop"
+      },
+      {
+        "id": "consume:i_2414",
+        "kind": "eat",
+        "label": "Eat bread",
+        "slot": "consume"
+      }
+    ],
+    "mobility": {
+      "eligible": true,
+      "fatigue": 0,
+      "speedMultiplier": 0.986,
+      "knownLoadKg": 0.5,
+      "unweighedStacks": 0,
+      "safeCarryKg": 26.587500000000002,
+      "restriction": ""
+    },
+    "container": null,
+    "dialogue": null,
+    "talkTargets": [],
+    "interactionTargets": [],
+    "bodies": [
+      {
+        "bodyId": "b_141",
+        "entityId": "p_128",
+        "name": "Traveler",
+        "pos": {
+          "x": 12037.714275817409,
+          "y": 24,
+          "z": 20017.675069358138
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "yaw": 2.356194490192345,
+        "crouch": 0,
+        "pose": "stand",
+        "activity": "stand",
+        "speed": 0,
+        "attackSeq": 28,
+        "hitSeq": 0,
+        "lastAttackAt": 14368.283333208396,
+        "lastHitAt": -99,
+        "dead": false,
+        "incapacitated": false,
+        "appearance": {
+          "skin": 14264712,
+          "hair": 4861722,
+          "shirt": 9071178,
+          "pants": 4864554,
+          "height": 1,
+          "build": 1,
+          "hatStyle": "none"
+        },
+        "combatAction": {
+          "id": "action_29",
+          "commandId": "local:9:59",
+          "actorBodyId": "b_141",
+          "kind": "attack",
+          "definition": "unarmed_high",
+          "techniqueId": "motor:basic-punch",
+          "techniqueName": "Basic punch",
+          "trajectory": "high",
+          "variant": "direct",
+          "moveId": "jab",
+          "repertoireRevision": 2,
+          "startedAt": 14368.283333208396,
+          "activeAt": 14368.543333208396,
+          "recoveryAt": 14368.693333208395,
+          "completeAt": 14368.963333208396,
+          "phase": "complete",
+          "outcome": "miss",
+          "facing": -1.5707963267948966,
+          "direction": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "distance": 0,
+          "reach": 0.9,
+          "radius": 0.12,
+          "duck": 0,
+          "contact": null,
+          "capability": {
+            "strength": 0.24062500000000003,
+            "dexterity": 0.284375,
+            "exertion": 0.21500000000000002
+          }
+        },
+        "alive": true,
+        "speech": "",
+        "inventory": [
+          {
+            "id": "i_2414",
+            "name": "bread",
+            "type": "bread",
+            "quantity": 1
+          }
+        ],
+        "health": 80,
+        "maxHealth": 80,
+        "needs": {
+          "hunger": 1,
+          "energy": 0.55,
+          "social": 0.8033333333333348,
+          "comfort": 0.6099999999999997,
+          "thirst": 1
+        },
+        "wealth": 22
+      }
+    ],
+    "combatActions": [
+      {
+        "id": "action_29",
+        "commandId": "local:9:59",
+        "actorBodyId": "b_141",
+        "kind": "attack",
+        "definition": "unarmed_high",
+        "techniqueId": "motor:basic-punch",
+        "techniqueName": "Basic punch",
+        "trajectory": "high",
+        "variant": "direct",
+        "moveId": "jab",
+        "repertoireRevision": 2,
+        "startedAt": 14368.283333208396,
+        "activeAt": 14368.543333208396,
+        "recoveryAt": 14368.693333208395,
+        "completeAt": 14368.963333208396,
+        "phase": "complete",
+        "outcome": "miss",
+        "facing": -1.5707963267948966,
+        "direction": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "distance": 0,
+        "reach": 0.9,
+        "radius": 0.12,
+        "duck": 0,
+        "contact": null,
+        "capability": {
+          "strength": 0.24062500000000003,
+          "dexterity": 0.284375,
+          "exertion": 0.21500000000000002
+        }
+      }
+    ],
+    "combatPresentation": {
+      "version": 1,
+      "firstAvailableSeq": 29,
+      "latestSeq": 28,
+      "events": []
+    },
+    "events": []
+  },
+  "diagnostics": {
+    "requestWallMs": 853.5806,
+    "snapshotBytes": 2829,
+    "scheduler": {
+      "steps": 8768,
+      "overruns": 2205,
+      "maxDebtMs": 202141.50946666236
+    },
+    "eventLoopMs": {
+      "p50": 123.666431,
+      "p95": 392.953855,
+      "p99": 553.123839
+    },
+    "memory": {
+      "rss": 493740032,
+      "heapTotal": 383991808,
+      "heapUsed": 357807064,
+      "external": 27910139,
+      "arrayBuffers": 23864037
+    }
+  }
+}

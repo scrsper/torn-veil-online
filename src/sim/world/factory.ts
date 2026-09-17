@@ -47,15 +47,18 @@ export function makePerson(world: World, s: PersonSpec): Person {
   world.add(p); return p;
 }
 
-export function makeItem(world: World, type: ItemType, name: string, o: { owner?: EntityId | null; holder?: EntityId | null; pos?: Vec3 | null; placeId?: EntityId | null; value?: number; damage?: number; quantity?: number; description?: string; named?: boolean; tags?: string[]; condition?: number } = {}): Item {
+export function makeItem(world: World, type: ItemType, name: string, o: { owner?: EntityId | null; holder?: EntityId | null; container?: EntityId | null; pos?: Vec3 | null; placeId?: EntityId | null; value?: number; damage?: number; quantity?: number; description?: string; named?: boolean; tags?: string[]; condition?: number } = {}): Item {
+  if (o.holder && o.container) throw new Error('An item cannot be created in both an inventory and a container');
+  const container = o.container ? world.container(o.container) : undefined;
+  if (o.container && !container) throw new Error(`Unknown container ${o.container}`);
   const it: Item = {
     id: world.nextId('i'), kind: 'item', name, createdAt: world.now, tags: o.tags ?? [], type, ownerId: o.owner ?? null, holderId: o.holder ?? null,
-    pos: o.pos ? { ...o.pos } : null, placeId: o.placeId ?? null, provenance: [], value: o.value ?? ITEM_VALUE[type], damage: o.damage ?? ITEM_DAMAGE[type] ?? 0, quantity: o.quantity ?? 1,
+    pos: o.container ? null : o.pos ? { ...o.pos } : null, placeId: o.placeId ?? container?.placeId ?? null, containerId: o.container ?? null, provenance: [], value: o.value ?? ITEM_VALUE[type], damage: o.damage ?? ITEM_DAMAGE[type] ?? 0, quantity: o.quantity ?? 1,
     description: o.description ?? '', named: !!o.named,
     condition: o.condition ?? (TOOL_TYPES.has(type) ? 1 : undefined),
   };
   if (it.holderId) { const h = world.person(it.holderId); if (h) h.inventory.push(it.id); }
-  world.add(it); return it;
+  world.add(it); if (container) container.itemIds.push(it.id); return it;
 }
 const TOOL_TYPES = new Set<ItemType>(['axe', 'pickaxe', 'saw', 'hammer', 'stoneaxe']);
 export const ITEM_VALUE: Record<ItemType, number> = { sword: 60, dagger: 15, hammer: 25, axe: 20, bread: 2, ale: 3, coins: 1, ring: 80, book: 30, herbs: 6, flowers: 1, meat: 5, cheese: 4, lantern: 12, key: 5, pie: 6, wheat: 1, grain: 1, flour: 2, log: 2, plank: 3, stone: 2, pickaxe: 28, saw: 22, stick: 1, stew: 6, stoneaxe: 12 };

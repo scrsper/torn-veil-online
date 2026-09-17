@@ -7,6 +7,53 @@ import { makePlace } from '../src/sim/world/factory';
 import { createFields } from '../src/sim/world/metabolism';
 
 describe('Navigator.findPath', () => {
+  it.each([3, 12])('walks %i overlapping resting bodies to clear positions without changing their shared destination', count => {
+    const tw = createTestWorld(67, 18), { world } = tw, anchor = v(8.5, 1, 8.5);
+    const people = Array.from({ length: count }, (_, i) => i % 3 === 2 ? 'wait' : 'sit').map((type, i) => {
+      const p = addPerson(tw, `Gathering ${i}`, 'villager', { ...anchor });
+      p.mind.thinkInterval = 1000; p.mind.thinkBudget = 0;
+      p.mind.goal = { type: 'socialize', key: 'socialize', targetPlace: tw.places.square, utility: 0.5, reasons: [], createdAt: world.now };
+      p.mind.plan = [{ type: type as 'sit' | 'wait', status: 'active', pos: { ...anchor }, duration: 3600, startedAt: world.now, data: { social: true } }];
+      return p;
+    });
+    step(tw, 0.05);
+    for (const p of people) {
+      const b = world.primaryBody(p.id)!;
+      expect(Math.hypot(b.pos.x - anchor.x, b.pos.z - anchor.z)).toBeLessThan(0.25);
+    }
+    step(tw, 3);
+    const bodies = people.map(p => world.primaryBody(p.id)!);
+    for (const [i, b] of bodies.entries()) {
+      expect(b.pose).toBe(i % 3 === 2 ? 'stand' : 'sit');
+      expect(people[i].mind.plan[0].pos).toEqual(anchor);
+      expect(people[i].mind.goal?.targetPlace).toBe(tw.places.square);
+      for (const other of bodies.slice(i + 1)) expect(Math.hypot(b.pos.x - other.pos.x, b.pos.z - other.pos.z)).toBeGreaterThanOrEqual(0.69);
+    }
+  });
+
+  it('finishes an existing path within arrival tolerance instead of walking forever against crowd separation', () => {
+    const tw = createTestWorld(66, 14), { world } = tw, destination = v(7.5, 1, 7.5);
+    addPerson(tw, 'At destination', 'villager', destination, { controlled: true });
+    const walkers = [v(6.6, 1, 7.5), v(7.5, 1, 6.6)].map((pos, i) => {
+      const p = addPerson(tw, `Arriving ${i}`, 'villager', pos);
+      p.mind.thinkInterval = 1000; p.mind.thinkBudget = 0;
+      p.mind.goal = { type: 'play', key: 'play', utility: 0.5, reasons: [], createdAt: world.now };
+      p.mind.plan = [{ type: 'goto', status: 'active', pos: destination, placeId: tw.places.square },
+        { type: 'wait', status: 'pending', duration: 3600 }];
+      const b = world.primaryBody(p.id)!;
+      b.path = [destination]; b.pathIndex = 0; b.pathGoal = destination; b.pose = 'walk';
+      return p;
+    });
+    step(tw, 0.15);
+    for (const p of walkers) {
+      expect(p.mind.plan[0].status).toBe('done');
+      expect(p.mind.plan[1].status).toBe('active');
+      expect(world.primaryBody(p.id)!.pose).toBe('stand');
+      expect(world.primaryBody(p.id)!.path).toBeNull();
+      expect(world.events.some(e => e.type === 'arrived' && e.actor === p.id)).toBe(true);
+    }
+  });
+
   it('refreshes navigation when field initialization clears an obstructed crop cell', () => {
     const {world}=createTestWorld(65,14);
     const farm=makePlace(world,'farm','Farm',{x0:3,z0:3,x1:8,z1:8,y0:1,y1:4},{inside:v(4,1,4)});
