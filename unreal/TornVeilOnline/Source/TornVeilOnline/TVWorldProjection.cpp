@@ -172,7 +172,7 @@ void ATVRegionProjection::Build(const TSharedPtr<FJsonObject>& R) {
     for(const auto& F:Rows(R,TEXT("fences"))) { const auto& C=F->AsArray(); Piece(TEXT("fence"),FTVEnvironmentGrammar::Asset(TEXT("Boundary.Fence"),*(Kit+TEXT("Balcony_Simple_Straight"))),FVector(C[0]->AsNumber()+.5,C[2]->AsNumber()+.5,C[1]->AsNumber()+.5)*100,FVector(100,18,100),C.Num()>3?C[3]->AsNumber():0,FTVEnvironmentGrammar::Asset(TEXT("Boundary.Fence.Material"),TEXT(""))); }
     for(const auto& V:Columns) { const auto& C=V->AsArray(); if(C[4]->AsNumber()>=0) Piece(TEXT("water"),TEXT("/Engine/BasicShapes/Cube"),FVector(C[0]->AsNumber(),C[1]->AsNumber(),C[4]->AsNumber())*100,FVector(N(R->GetObjectField(TEXT("terrain")),TEXT("stride"),8)*100,N(R->GetObjectField(TEXT("terrain")),TEXT("stride"),8)*100,5),0,Mat+TEXT("M_TV_RiverWater"));
     }
-    Dress(R); BuildMilliseconds=(FPlatformTime::Seconds()-Start)*1000;
+    Dress(R); Woodland(R); BuildMilliseconds=(FPlatformTime::Seconds()-Start)*1000;
     UE_LOG(LogTemp,Display,TEXT("TV_REGION %s build_ms=%.2f instances=%d pcg_points=%d"),*RegionId,BuildMilliseconds,InstanceCount(),DecorativeCount);
 }
 void ATVRegionProjection::Dress(const TSharedPtr<FJsonObject>& R) {
@@ -230,8 +230,12 @@ void ATVRegionProjection::UpdateDynamic(const TSharedPtr<FJsonObject>& Data) {
     for(const auto& V:Rows(Filtered,TEXT("resources"))) { const auto P=V->AsObject(); const FVector Pos=Position(P->GetObjectField(TEXT("pos")))*100; const FString Id=S(P,TEXT("id")); const bool Tree=S(P,TEXT("kind"))==TEXT("tree"), Available=S(P,TEXT("state"))==TEXT("available");
         if(Tree && Available) {
             const bool Variant=GetTypeHash(Id)%2;
-            const float Height=650.f+(GetTypeHash(Id)%250);
-            Piece(Id,FTVEnvironmentGrammar::Asset(Variant?TEXT("Vegetation.Tree.A"):TEXT("Vegetation.Tree.B"),TEXT("/Game/ThirdParty/Quaternius/Nature/CommonTree_1")),Pos+FVector(50,50,Height/2),FVector(Height*.62,Height*.62,Height),GetTypeHash(Id)%360,TEXT(""),true);
+            const FString TreeMesh=FTVEnvironmentGrammar::Asset(Variant?TEXT("Vegetation.Tree.A"):TEXT("Vegetation.Tree.B"),TEXT("/Game/ThirdParty/Quaternius/Nature/CommonTree_1"));
+            // Uniform scale by measured height: a squashed canopy reads as a placeholder.
+            const auto* Mesh=LoadObject<UStaticMesh>(nullptr,*TreeMesh); const FVector Ext=Mesh?Mesh->GetBoundingBox().GetSize():FVector(100);
+            // Natural-size local trees match the surrounding woodland; small legacy meshes keep 6.5-9 m.
+            const float Height=Ext.Z>600?Ext.Z*(.75f+(GetTypeHash(Id)%30)/100.f):650.f+(GetTypeHash(Id)%250), Scale=Height/FMath::Max(Ext.Z,1.);
+            Piece(Id,TreeMesh,Pos+FVector(50,50,Height/2-15),Ext*Scale,GetTypeHash(Id)%360,TEXT(""),true);
         }
         else if(Tree) Piece(Id,Kit+TEXT("Roof_Support2"),Pos+FVector(50,50,20),FVector(65,65,40),0,TEXT(""),true);
         else if(Available) Piece(Id,FTVEnvironmentGrammar::Asset(TEXT("Environment.Rock"),TEXT("/Game/ThirdParty/Quaternius/Nature/Rock_1")),Pos+FVector(50,50,50),FVector(100,100,100),GetTypeHash(Id)%360,TEXT(""),true);
@@ -248,13 +252,16 @@ void ATVRegionProjection::UpdateDynamic(const TSharedPtr<FJsonObject>& Data) {
 }
 int32 ATVRegionProjection::InstanceCount() const { int32 Total=0; for(const auto& Pair:Batches) Total+=Pair.Value->GetInstanceCount(); return Total; }
 ATVWorldProjection::ATVWorldProjection() { PrimaryActorTick.bCanEverTick=false; FTVEnvironmentGrammar::ReloadPalette(); }
-void ATVWorldProjection::ResetRegions() { for(auto& Pair:Regions) if(Pair.Value) Pair.Value->Destroy(); Regions.Empty(); }
+void ATVWorldProjection::ResetRegions() { for(auto& Pair:Regions) if(Pair.Value) Pair.Value->Destroy(); Regions.Empty(); if(Vista) Vista->Destroy(); Vista=nullptr; }
 void ATVWorldProjection::Apply(const TSharedPtr<FJsonObject>& Frame,const FVector& Origin) {
     const double Start=FPlatformTime::Seconds();
     for(const auto& V:Rows(Frame,TEXT("unload"))) { const FString Id=V->AsString(); if(auto* P=Regions.FindRef(Id).Get()) P->Destroy(); Regions.Remove(Id); }
     for(auto& Pair:Regions) Pair.Value->SetActorLocation(FVector(Pair.Value->CanonicalBase.X-Origin.X,Pair.Value->CanonicalBase.Y-Origin.Z,-Origin.Y)*100);
     for(const auto& V:Rows(Frame,TEXT("regions"))) { const auto R=V->AsObject(); const FString Id=S(R,TEXT("id")); if(auto* Old=Regions.FindRef(Id).Get()) Old->Destroy();
         const auto B=R->GetObjectField(TEXT("bounds")); auto* P=GetWorld()->SpawnActor<ATVRegionProjection>(FVector(N(B,TEXT("x0"))-Origin.X,N(B,TEXT("z0"))-Origin.Z,-Origin.Y)*100,FRotator::ZeroRotator); P->Build(R); Regions.Add(Id,P); }
+    const TSharedPtr<FJsonObject>* VistaData=nullptr;
+    if(Frame->TryGetObjectField(TEXT("vista"),VistaData)) { if(!Vista) Vista=GetWorld()->SpawnActor<ATVVistaProjection>(); Vista->Build(*VistaData); }
+    if(Vista) Vista->SetActorLocation(FVector(Vista->CanonicalBase.X-Origin.X,Vista->CanonicalBase.Y-Origin.Z,-Origin.Y)*100);
     const FString DynamicRegion=S(Frame,TEXT("dynamicRegion"));
     const TSharedPtr<FJsonObject>* Dynamic=nullptr; if(Frame->TryGetObjectField(TEXT("dynamic"),Dynamic)) for(auto& Pair:Regions) if(DynamicRegion.IsEmpty() || Pair.Key==DynamicRegion) Pair.Value->UpdateDynamic(*Dynamic);
     // v0.1 deliberately uses neutral daylight at every saved clock value. The previous

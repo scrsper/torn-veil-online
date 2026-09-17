@@ -48,6 +48,26 @@ private:
     void Piece(const FString& Id, const FString& Mesh, const FVector& Center, const FVector& Size, float Yaw = 0, const FString& Material = TEXT(""), bool bDynamic = false);
     void Structure(const TSharedPtr<FJsonObject>& Place);
     void Dress(const TSharedPtr<FJsonObject>& Region);
+    /** Decorative, non-colliding instance placed by the mesh pivot; never a canonical visual. */
+    void Decor(const FString& MeshPath, const FTransform& Local, float CullEnd = 0, bool bShadow = true, const FString& Material = TEXT(""));
+    void Woodland(const TSharedPtr<FJsonObject>& Region);
+};
+
+/** Far horizon only: coarse canonical landform and forest density beyond the streamed regions.
+ * Rebuilt when the resident centre changes. No collision, identities or gameplay facts. */
+UCLASS()
+class TORNVEILONLINE_API ATVVistaProjection : public AActor {
+    GENERATED_BODY()
+public:
+    ATVVistaProjection();
+    void Build(const TSharedPtr<FJsonObject>& Vista);
+    FVector CanonicalBase;
+    FString Center;
+    int32 TreeCount = 0;
+    double BuildMilliseconds = 0;
+private:
+    UPROPERTY() TObjectPtr<UProceduralMeshComponent> Ground;
+    UPROPERTY() TMap<FString, TObjectPtr<UHierarchicalInstancedStaticMeshComponent>> Trees;
 };
 
 UCLASS()
@@ -63,5 +83,6 @@ public:
     bool FindVisualBounds(const FString& CanonicalId, FBox& OutBounds) const;
 private:
     UPROPERTY() TMap<FString, TObjectPtr<ATVRegionProjection>> Regions;
+    UPROPERTY() TObjectPtr<ATVVistaProjection> Vista;
     double LastFrameMilliseconds = 0;
 };

@@ -1,5 +1,5 @@
 import type { World } from '../sim/core/world';
-import { projectRegionSteps, regionDynamics, RegionStream } from './regions';
+import { projectRegionSteps, projectVista, regionDynamics, RegionStream } from './regions';
 
 export const REGION_PROTOCOL = 2;
 export const MAX_PRESENTATION_MESSAGE_BYTES = 128 * 1024;
@@ -15,6 +15,7 @@ export class RegionalTransport {
   private pending = new Set<string>();
   private wanted: string[] = [];
   private center = '';
+  private vistaCenter = '';
   private transfer?: Transfer;
   private awaitingAck = false;
   private serial = 0;
@@ -52,7 +53,11 @@ export class RegionalTransport {
         const job=this.building;
         do {
           const result=job.steps.next();
-          if(result.done){payload={regions:[result.value],dynamicRegion:id,dynamic:regionDynamics(w,new Set([id]))};break;}
+          if(result.done){
+            // The horizon follows the resident centre; it rides on the next region transfer.
+            const [cx,cz]=this.center.split(',').map(Number), vista=this.vistaCenter!==this.center&&this.center?projectVista(w,cx,cz):undefined;
+            if(vista)this.vistaCenter=this.center;
+            payload={regions:[result.value],dynamicRegion:id,dynamic:regionDynamics(w,new Set([id])),...(vista?{vista}:{})};break;}
         } while(performance.now()-start<budgetMs);
         if(!payload){const elapsed=performance.now()-start;job.cpuMs+=elapsed;job.slices++;job.maxSliceMs=Math.max(job.maxSliceMs,elapsed);return;}
       } else {

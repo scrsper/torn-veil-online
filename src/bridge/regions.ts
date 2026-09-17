@@ -81,6 +81,27 @@ export function* projectRegionSteps(w: World, rx: number, rz: number) {
     classification: 'canonical', decoration: { classification: 'decorative', seed: w.geography.regionSeed(rx, rz, 'dressing'), collision: false, gameplay: false } };
 }
 
+/** Coarse read-only landform around a streamed centre region, for the far horizon only.
+ * Sampled from the versioned geographic baseline (never the voxel grid), so it cannot reveal
+ * or mutate settlement contents. Strings keep the payload small: one character per sample. */
+export const VISTA_STRIDE = 32, VISTA_RADIUS = 96;
+export function projectVista(w: World, rx: number, rz: number) {
+  const g = w.geography!, size = g.spec.regionSize, side = VISTA_RADIUS * 2 + 1;
+  const x0 = Math.round(((rx + .5) * size) / VISTA_STRIDE) * VISTA_STRIDE - VISTA_RADIUS * VISTA_STRIDE;
+  const z0 = Math.round(((rz + .5) * size) / VISTA_STRIDE) * VISTA_STRIDE - VISTA_RADIUS * VISTA_STRIDE;
+  let heights = '', forest = '', surface = '';
+  for (let i = 0; i < side; i++) for (let j = 0; j < side; j++) {
+    const x = Math.min(Math.max(x0 + i * VISTA_STRIDE, 0), g.spec.size - 1), z = Math.min(Math.max(z0 + j * VISTA_STRIDE, 0), g.spec.size - 1), c = g.surface(x, z);
+    heights += String.fromCharCode(48 + Math.max(0, Math.min(70, Math.round(c.water !== null ? c.water + 1 : c.height + 1))));
+    forest += String.fromCharCode(48 + Math.round(Math.max(0, Math.min(1, c.forest)) * 9));
+    surface += c.water !== null ? 'w' : c.block === B.Path ? 'p' : c.block === B.Sand ? 's' : c.block === B.Stone ? 'r' : 'g';
+  }
+  const inside = (b: { x0: number; z0: number; x1: number; z1: number }) => b.x1 >= x0 && b.x0 <= x0 + side * VISTA_STRIDE && b.z1 >= z0 && b.z0 <= z0 + side * VISTA_STRIDE;
+  return { center: `${rx},${rz}`, origin: { x: x0, z: z0 }, stride: VISTA_STRIDE, side, heights, forest, surface,
+    settlements: w.settlements().filter(s => inside(s.bounds)).map(s => ({ id: s.id, bounds: s.bounds })),
+    classification: 'decorative', collision: false, gameplay: false };
+}
+
 export function regionDynamics(w: World, ids: Set<string>) {
   const geo = w.geography!, inside = (p: { x: number; z: number }) => ids.has(geo.regionId(p.x, p.z));
   const nodes = new Map<string, import('../sim/core/types').ResourceNode>();
