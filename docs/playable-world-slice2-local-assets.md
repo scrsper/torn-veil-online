@@ -2,7 +2,24 @@
 
 Verified from the local Unreal project on 2026-09-16. This is an inventory and provenance boundary, not visual acceptance evidence. Slice 2 visual acceptance is still pending.
 
-## Current runtime palette
+## Visual finish palette (2026-09-17)
+
+This supersedes the table below where they differ. The chosen families are coherent in realism level: realistic Megaplant vegetation, AdvancedVillage buildings, props and landscape, Free Medieval furniture and work props, and scanned ground layers. Stylized Quaternius nature, the AdvancedVillage bonsai-like trees and grass patch, Gothic/Medieval house singles, animal packs and sword packs are not used.
+
+| Semantic role(s) | Local source | Treatment |
+|---|---|---|
+| `Vegetation.Oak.A–D`, `Vegetation.Tree.A/B`, `Vegetation.Pine.A/B` | Megaplant `Tree_English_Oak_Forest_01_A–D` | Derived static Nanite assemblies under `/Game/TornVeil/LocalPalette/Vegetation` (`create_local_vegetation.py`, `TV.BakeNaniteAssembly`); pine roles use young oaks because the local Baltic Pine bark textures are missing |
+| `Vegetation.Orchard.A/B` | Megaplant `Tree_Japanese_Medlar_01_A/B` | As above |
+| `Vegetation.Shrub.A–C` | Megaplant `Shrub_European_Spindle_01_A–C` | As above |
+| `Vegetation.Grass` | Poly Haven `grass_medium_01` (CC0) | Existing import; object path now fully qualified |
+| `Ground.Settlement` layers | AdvancedVillage `T_Landscape_Grass/Soil`, Iceland `T_Iceland_Dirt`, `T_ForestGround`, SM_Roads_05 `MT00133-Cobblestone_01`, Iceland `T_Voronoi_Perturbed_4k` | Owned material built by `create_environment_materials.py`; textures referenced, not copied |
+| Building roofs, wells, carts, sacks, produce, haystacks, logs, stones, street lights, flowers, pumpkins, pots, tools | AdvancedVillage meshes | Pack material instances copied and reparented to flagged base copies (`create_local_village_materials.py`, `/Game/TornVeil/Materials/LocalPalette/Village`) |
+| Furniture, barrels, keg rack, log piles, wall lanterns, buckets, troughs, stone blocks (also chimneys), hay bales, sign boards, planks, poles | Free Medieval Environment Props | Local PBR wrappers (`create_local_prop_materials.py`), routed automatically by mesh name |
+| Walls, windows, door frames, plinths, beams, gables | Quaternius Medieval Village MegaKit (CC0) | Existing imports, new two-tier grammar |
+
+Provenance is unchanged: Megaplant, Iceland Environment, SM_Roads_05 and the AdvancedVillage/Free Medieval packs are local library prerequisites with no license statement in the repository. Their derived assets stay local and git-ignored; nothing from them is redistributed. A checkout without them falls back to the documented engine and CC0 defaults per semantic role.
+
+## Earlier runtime palette (2026-09-16)
 
 The existing palette keeps the world coherent and small:
 

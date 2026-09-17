@@ -1,3 +1,18 @@
+# Slice 2 — visual finish (Claude continuation), 2026-09-17
+
+Branch `claude/playable-world-slice-2-visual-finish` from Codex `ff36e25`, foundational Desktop
+worktree. Nothing merged or pushed; Slice 3 not started. Same save (p_128/b_141, 127 residents).
+Fenwick now presents zoned Megaplant woodland and a far horizon from canonical forest/geography,
+a two-tier timber-frame architecture grammar, functional place dressing, layered scanned ground,
+lit interiors (EV100 7–12) and fixed pack materials. Evidence: `after.png`, `before-after.jpg`,
+`.debug/playable-world-slice2/after-walk.mp4` (two joined ordinary-PIE takes: woodland → square →
+house interior; tavern dialogue → return to walking). Native presentation 14/14, 45 focused TS
+tests, typecheck, UE build pass; F5 save → disk reload keeps identities and learned names.
+Requires `r.Nanite.AllowAssemblies/AllowVoxels` and local derived assets (recipes in
+`unreal/scripts`). Remaining: flat canonical terrain, mannequin people, parkland-like woods, no
+prop collision. Human visual acceptance required.
+Full report: `docs/evidence/playable-world-slice2/README.md`.
+
 # Slice 2 — local palette integration WIP, 2026-09-16 evening
 
 Branch `codex/playable-world-slice-2`, actual worktree

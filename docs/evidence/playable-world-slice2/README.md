@@ -1,4 +1,131 @@
-# Slice 2 — environment presentation checkpoint
+# Slice 2 — environment presentation
+
+## Visual finish continuation (Claude), 2026-09-17
+
+Branch `claude/playable-world-slice-2-visual-finish`, created from the Codex checkpoint
+`ff36e25` (itself on protected `4fd5114`). **Nothing is merged or pushed.** Same persistent
+save (seed 918271, player `p_128`/`b_141`, 7 settlements, 127 residents); no fresh world, no
+spawned people, no teleportation. The pre-existing dirty map and imported packs stay excluded.
+
+Commits: `adb6cda` evidence tooling · `c9c5508` woodland and horizon · `cf834fd` places,
+architecture, interiors, ground · `d7a7d4b` recorder fix and input tools · `7e5d5a1` doors,
+fixtures, tool hardening.
+
+### Evidence
+
+| File | What it shows |
+|---|---|
+| [before.png](before.png) / `.debug/playable-world-slice2/before-walk.mp4` | Original baseline (Codex capture). |
+| [after-ff36e25.jpg](after-ff36e25.jpg), [ff36e25-diagnostic-views.jpg](ff36e25-diagnostic-views.jpg) | The ff36e25 checkpoint in ordinary PIE, before any change here. |
+| `.debug/playable-world-slice2/after-ff36e25-walk.mp4` | 40 s ff36e25 walk at 72 fps. Its coloured pixel blocks are a defect of the FrameGrabber recorder used then (see below), not the game. |
+| [after.png](after.png), [before-after.jpg](before-after.jpg) | After: approaching the square at walking height. |
+| [after-settlement-aerial.jpg](after-settlement-aerial.jpg), [after-diagnostic-views.jpg](after-diagnostic-views.jpg) | Diagnostic camera views (not the player camera). |
+| [after-interior.jpg](after-interior.jpg), [after-house-interior.jpg](after-house-interior.jpg) | Lit tavern interior (diagnostic view); house interior from the player walk. |
+| [after-dialogue.jpg](after-dialogue.jpg) | Yara Hart's dialogue at the tavern door during the recorded walk. |
+| `.debug/playable-world-slice2/after-walk.mp4` | **150 s, 1280×720, recorded at 28–29 fps** (encoded at 30). Two continuous ordinary-PIE takes joined: **A (0–100 s)** woodland → settlement edge past working residents → paved square among residents → house entry, interior and exit; **B (100–150 s)** tavern approach, E to talk, reply "Who are you?", close, return to walking. Timelines: `after-walk-final-timeline.txt`, `after-walk-dialogue-timeline.txt`. |
+
+How the walk was driven: editor-only `TV.TestWalkTo` holds the ordinary W/Shift keys and steers
+with ordinary MouseX axis input; the bridge adjudicates every step. E is an ordinary
+PlayerController key. The dialogue reply and Close use `TV.TestUIChoice`, which issues the same UI
+command a button click sends, because an unfocused editor cannot give the modal widget keyboard
+focus. Screen control of the editor was not available. The takes were joined because long
+unattended takes kept failing on steering (a doorway occupied by two keepers, a building corner),
+not because any shown section was staged.
+
+### Visual problems found at ff36e25 (ordinary PIE)
+
+A flat open plane ending in a blue band at the horizon; no woodland despite canonical forest 0.85
+around Fenwick; invisible grass (the pack grass wrote invalid pixels); stretched single-storey
+plaster boxes with black window holes and grey untextured roofs (AdvancedVillage materials lack the
+instanced-mesh usage flag, so PIE fell back to the default material); open gable triangles;
+pitch-black interiors (fixed EV100 12 exposure, no interior light); pastel untextured ground; cone
+crops; checkerboard fixtures.
+
+### What changed
+
+- **Woodland and horizon** (`TVWoodland.cpp`, `regions.ts` vista): canonical forest density drives
+  zoned vegetation in 5 m world cells: an open village core, medlar orchards beside houses, a
+  thickening edge with spindle scrub, then oak woods with clearings. Paths, roads, buildings,
+  fields, water and steep cells stay clear. The bridge sends a read-only `vista` of the versioned
+  geographic baseline (±5.1 km at 32 m); the client builds a horizon ring with ~33k far oaks.
+  Megaplant English oak, Japanese medlar and European spindle are derived locally into static
+  Nanite assemblies (`create_local_vegetation.py` + `TV.BakeNaniteAssembly`, with parts remapped to
+  static twins). This requires `r.Nanite.AllowAssemblies=1` and `r.Nanite.AllowVoxels=1`.
+- **Buildings** (`TVWorldProjection.cpp`): a two-tier timber-frame grammar on the canonical footprint
+  (brick plinth, door frame and lintel, storey beam, timber-grid upper storey with plaster infill,
+  32 cm corner posts, stone chimneys on homes/tavern/bakery, gable fills, textured shingle roofs).
+  Canonical doors and openings are unchanged; open door leaves hinge at the jamb.
+- **Functional places** (`TVPlaceDressing.cpp`): clusters derived from place type, footprint, door and
+  path cells. Households get firewood, a chopping block, water butt, bench, pumpkin garden, flowers
+  and wall lanterns; the tavern outdoor tables, a keg rack and barrels; the bakery flour sacks and
+  fuel; the mill a cart and sacks; the square lamp posts, a notice post, benches and a cart; the well
+  buckets and a trough; the stall produce under its roof; the sawpit logs, a stump and axe; the
+  quarry boulders, stone blocks and a cart; the farm haystacks, a cart, sacks and a pitchfork. All
+  props are decorative and non-colliding, placed clear of path cells, door approaches and other places.
+- **Ground** (`create_environment_materials.py`): scanned layers selected by vertex channels: grass
+  (AdvancedVillage landscape), worn yards, paths and door aprons (Iceland dirt), cultivated soil,
+  woodland floor beyond the settlement, and a cobbled square (SM_Roads_05 cobblestone). Crops render
+  as plants sized by canonical growth.
+- **Interiors and lighting** (`TVPlayableLighting.cpp`): room fill plus canonical lantern/forge lights,
+  bounded exposure adaptation EV100 7–12, a lower afternoon sun (−36°), aerial fog for depth.
+- **Materials:** AdvancedVillage instances are copied and reparented to flagged base copies
+  (`create_local_village_materials.py`); Free Medieval props route to their local PBR wrappers.
+  Derived assets are git-ignored local content; only recipes and semantic roles are committed.
+  No asset path enters `src/sim`.
+
+### Verification
+
+- UE 5.8 Development Editor build passes on the final source (Live Coding used between restarts).
+- Native `TornVeil.Presentation`: **14/14 pass**, including DaylightInfrastructure against the new
+  exposure contract, EnvironmentRoof, EnvironmentRoutes and RenderedReadability.
+- `tsc --noEmit` clean. Vitest: 9 focused files / **45 tests pass** (dialogue, humanoid presence,
+  life, visual state, streaming, playable world, the new vista test, movement, controller lease).
+- Playable life in PIE: animated player walk/run; residents visible, working, walking and gathered
+  on the square; dialogue opens, answers in character, closes, and control returns.
+- Persistence: in-game F5 save → bridge stopped → restarted from disk → PIE reconnected. Same
+  `p_128`/`b_141`, 127 residents and 7 settlements; names learned this session (Yara Hart, Aster
+  Alder) persist; an unmet resident stays "an unfamiliar person"; movement works after reload.
+
+### Performance observations
+
+Unthrottled ordinary PIE with the full village, woods and horizon: **78 fps median** (12.7 ms p50,
+13.9 ms p95, 49 ms worst over 5 s). Region builds take 5–83 ms each; the vista build takes 20–55 ms
+once per region crossing (bridge-side projection ~15 ms). Recording costs frames (capture at ~29 fps).
+The bridge's canonical scheduler still shows overruns, with event-loop p95 of 28–109 ms under load:
+the pre-existing cognition-performance frontier, not introduced here. An unfocused editor throttles
+PIE to ~3 fps, which starves movement input; unattended runs use `TV.EditorThrottle 0`.
+
+### Tooling defects found and fixed
+
+The FrameGrabber back-buffer recorder produced corrupt pixel blocks (in JPEG and PNG alike, absent
+from Slate screenshots) and hung the editor on shutdown with non-zero frame latency; the recorder
+now uses Slate screenshot readback. A strong viewport reference crashed the editor on PIE stop
+(engine assertion); it is now weak. Escape in an unfocused editor stops PIE.
+
+### Remaining visible deficiencies
+
+- Canonical terrain is nearly flat (1 m voxel steps across the settlement). No presentation grading
+  was added, because character support uses canonical heights.
+- The settlement layout is canonical: sparse hub-and-spoke paths with wide gaps between places.
+  Presentation fills them with yards and vegetation but does not invent buildings.
+- Vegetation and props have no collision; the player and camera can pass through shrubs.
+- Woodland still reads partly as evenly spaced parkland at mid distance; beyond ~5 km the horizon
+  is fog and sky.
+- Ground reads bright and even in daylight; roads have no stone edging or ruts.
+- The player and residents are untextured mannequins; residents sometimes stack on one cell.
+- Some house interiors are sparse (canonical furnishings only); windows have no glazing or shutters.
+- Megaplant pine materials have missing local dependencies, so pines are replaced by young oaks.
+- Stall roofs and some prop scales are approximate; signs are simple boards.
+
+**Acceptance judgement:** the before/after difference is immediately obvious. Fenwick now reads as
+a woodland village with real architecture, functional places, a lit interior and living residents:
+the beginning of an RPG world rather than an integration plane. It does not yet meet the full
+reference bar (flat canonical terrain, mannequin people, parkland woods). Human visual acceptance is
+still required. Slice 3 has not been started.
+
+---
+
+## Earlier Codex checkpoint notes
 
 2026-09-16. Branch `codex/playable-world-slice-2`, based on the preserved playable
 checkpoint `4fd5114`. **WIP: visual acceptance is incomplete. Nothing is merged.**
