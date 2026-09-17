@@ -1,3 +1,34 @@
+# Character appearance pipeline — slice 1, 2026-09-17
+
+Branch `claude/determined-meitner-w9c23l`, based on merged `main` plus the already-merged
+Slice 2 history at `1f36ba5`. Nothing merged; no Unreal build or PIE run was possible (no engine
+in this environment).
+
+The five committed reference sheets in `art/reference/cultures/ashford/characters/` now drive the
+population. `-ren-ayami-shiro.png` is four labelled NPC panels, not one, so five files yield eight
+stylistic families (`hana`, `yuki`, `kaito`, `shogun`, `ren`, `ayami`, `shiro`, `ascetic`).
+`Person.appearance.traits` is a new canonical, persisted, structured description (archetype,
+phenotype, costume family, silhouette, accessories, station, wear); the realized colour/scale
+channels every renderer already read are derived from it, and authored cast pins still win with
+their tokens snapped to match. Generation runs on each person's own `individualRng` stream, so it
+consumes no world RNG. Age presentation and role cues are derived at projection time, never stored.
+`SAVE_VERSION` deliberately NOT bumped — the field is additive and optional, so existing saves
+(including the Fenwick one) stay playable and their people keep the look they had.
+
+Unreal: `FTVAppearanceTraits` parses the trait block fail-soft;
+`AshfordAppearanceProfiles.json` is schema 2 (silhouette/hair proportions, accessory and role-cue
+props, archetype provenance, `proxyVisibility`); `ATVCharacter::ApplyAppearance` applies the
+grammar. The primitive hair/garment/prop stand-ins stay hidden behind `proxyVisibility` so the
+accepted Slice 2 look does not regress — what changed visibly is that garment/skin/hair colour is
+now costume-family and wear driven instead of one random shirt per resident, and height/build vary.
+
+Verified: `npm run typecheck`; 15 new tests in `tests/character-appearance.test.ts`; full
+`npm test`. Evidence: `docs/evidence/character-appearance/ashford-contact-sheet.{svg,png}`
+(`npm run appearance:sheet`) — seed 1337, 33 residents, all 8 families present, 29/33 distinct
+garment colours, 33/33 distinct trait signatures.
+NOT verified: UE build, native automation tests, PIE. Human visual acceptance still required.
+Full report: `docs/CHARACTER_APPEARANCE_PIPELINE.md`.
+
 # Slice 2 — visual finish (Claude continuation), 2026-09-17
 
 Branch `claude/playable-world-slice-2-visual-finish` from Codex `ff36e25`, foundational Desktop

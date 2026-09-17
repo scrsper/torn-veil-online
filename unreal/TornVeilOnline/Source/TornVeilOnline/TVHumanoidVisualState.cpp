@@ -12,6 +12,20 @@ bool RequiredString(const TSharedPtr<FJsonObject>& J, const TCHAR* Key, FString&
     }
     return true;
 }
+void OptionalString(const TSharedPtr<FJsonObject>& J, const TCHAR* Key, FString& Out) {
+    FString Value;
+    if (J.IsValid() && J->TryGetStringField(Key, Value)) Out = MoveTemp(Value);
+}
+/** Bounded, string-only token list. Anything longer or non-textual is simply not presented. */
+void OptionalTokens(const TSharedPtr<FJsonObject>& J, const TCHAR* Key, TArray<FString>& Out) {
+    const TArray<TSharedPtr<FJsonValue>>* Values = nullptr;
+    if (!J.IsValid() || !J->TryGetArrayField(Key, Values) || !Values) return;
+    for (const TSharedPtr<FJsonValue>& Value : *Values) {
+        if (Out.Num() >= 16) break;
+        FString Token;
+        if (Value.IsValid() && Value->TryGetString(Token) && !Token.IsEmpty() && Token.Len() <= 48) Out.AddUnique(Token);
+    }
+}
 bool RequiredVector(const TSharedPtr<FJsonObject>& J, const TCHAR* Key, FVector& Out, FString& Error) {
     const TSharedPtr<FJsonObject>* O = nullptr;
     double X = 0, Y = 0, Z = 0;
@@ -60,6 +74,30 @@ bool FTVHumanoidVisualState::Parse(const TSharedPtr<FJsonObject>& J, FTVHumanoid
         if (Number(*A, TEXT("height"), C)) Out.Appearance.Height = FMath::Clamp(static_cast<float>(C), .82f, 1.16f);
         if (Number(*A, TEXT("build"), C)) Out.Appearance.Build = FMath::Clamp(static_cast<float>(C), .82f, 1.18f);
         (*A)->TryGetStringField(TEXT("hatStyle"), Out.Appearance.HatStyle);
+        const TSharedPtr<FJsonObject>* T = nullptr;
+        if ((*A)->TryGetObjectField(TEXT("traits"), T) && T && T->IsValid()) {
+            FTVAppearanceTraits& Traits = Out.Appearance.Traits;
+            Traits.bHasTraits = true;
+            OptionalString(*T, TEXT("archetype"), Traits.Archetype);
+            OptionalString(*T, TEXT("culture"), Traits.Culture);
+            OptionalString(*T, TEXT("presentation"), Traits.Presentation);
+            OptionalString(*T, TEXT("skinTone"), Traits.SkinTone);
+            OptionalString(*T, TEXT("faceShape"), Traits.FaceShape);
+            OptionalString(*T, TEXT("hairStyle"), Traits.HairStyle);
+            OptionalString(*T, TEXT("hairColor"), Traits.HairColor);
+            OptionalString(*T, TEXT("eyeColor"), Traits.EyeColor);
+            OptionalString(*T, TEXT("frame"), Traits.Frame);
+            OptionalString(*T, TEXT("stature"), Traits.Stature);
+            OptionalString(*T, TEXT("garmentSilhouette"), Traits.GarmentSilhouette);
+            OptionalString(*T, TEXT("garmentPalette"), Traits.GarmentPalette);
+            OptionalString(*T, TEXT("status"), Traits.Status);
+            OptionalString(*T, TEXT("agePresentation"), Traits.AgePresentation);
+            OptionalTokens(*T, TEXT("accessories"), Traits.Accessories);
+            OptionalTokens(*T, TEXT("culturalTags"), Traits.CulturalTags);
+            OptionalTokens(*T, TEXT("roleCues"), Traits.RoleCues);
+            if (Number(*T, TEXT("grooming"), C)) Traits.Grooming = FMath::Clamp(static_cast<float>(C), 0.f, 1.f);
+            if (Number(*T, TEXT("wear"), C)) Traits.Wear = FMath::Clamp(static_cast<float>(C), 0.f, 1.f);
+        }
     }
     return true;
 }

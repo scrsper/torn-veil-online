@@ -3,6 +3,7 @@ import { World } from '../core/world';
 import { ATTRIBUTE_IDS, attributeProfile, defaultDevelopment, generatedHuman, physicalAttribute } from '../core/human';
 import { defaultPhysiology } from '../core/physiology';
 import { defaultPhysiologyTraitsFor, lifeStageFor } from '../core/species';
+import { resolveAppearance } from './characterAppearance';
 
 export function makeBody(world: World, ownerId: EntityId, pos: Vec3, shape: Body['shape'] = 'humanoid', maxHealth = 80): Body {
   const b: Body = {
@@ -16,6 +17,14 @@ export function makeBody(world: World, ownerId: EntityId, pos: Vec3, shape: Body
 export interface PersonSpec {
   name: string; gender: 'm' | 'f'; age: number; occupation: Occupation; title?: string;
   home?: EntityId | null; work?: EntityId | null; traits: Partial<Traits>; appearance: Partial<Appearance>; bio: string; wealth?: number; timeRate?: number; hostile?: boolean; tags?: string[];
+  /** Stylistic region this person's look is drawn from. Defaults to the world's own culture. */
+  culture?: string;
+  /** Force a reference archetype (world/characterArchetypes.ts) instead of a weighted draw. */
+  archetype?: string;
+  /** Caller-supplied variation entropy; see `AppearanceResolution.salt`. */
+  appearanceSalt?: number;
+  /** Household means this person is dressed out of when their own purse is not it (a child). */
+  appearanceMeans?: number;
   /** Stable authored identity, e.g. cast.ts's `key` ('rowan'). See Entity.slug. */
   slug?: string;
   /** Optional developed foundations for explicit starting biographies. Occupation labels
@@ -25,8 +34,15 @@ export interface PersonSpec {
 }
 export function makePerson(world: World, s: PersonSpec): Person {
   const traits: Traits = { courage: 0.5, sociability: 0.5, honesty: 0.6, aggression: 0.3, greed: 0.4, piety: 0.4, curiosity: 0.5, loyalty: 0.5, ...s.traits };
-  const appearance: Appearance = { skin: 0xd9a988, hair: 0x4a2f1a, shirt: 0x8a6a4a, pants: 0x4a3a2a, height: 1, build: 1, hatStyle: 'none', ...s.appearance };
   const id = world.nextId('p');
+  // Appearance is generated from the reference archetypes (world/characterAppearance.ts) on a
+  // stream keyed to this person alone, so it consumes no world RNG and cannot perturb behaviour.
+  // Whatever the caller pinned still wins — an authored cast keeps its exact authored look.
+  const appearance = resolveAppearance({
+    seed: world.seed, identity: s.slug ?? id, age: s.age, gender: s.gender, occupation: s.occupation,
+    wealth: s.wealth ?? 20, means: s.appearanceMeans, culture: s.culture, archetype: s.archetype,
+    salt: s.appearanceSalt, authored: s.appearance,
+  });
   const generated = generatedHuman(world.seed, id, s.age);
   const attributes: Attributes = { ...generated.attributes, ...s.attributes };
   const attributePotential = { ...generated.potential, ...s.attributePotential };

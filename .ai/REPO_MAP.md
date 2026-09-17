@@ -236,6 +236,19 @@ Historically contains authored population/cast data for Ashford.
 
 Procedural population systems should not require every world seed to reproduce the same social graph.
 
+### Character appearance
+
+Canonical persistent appearance traits and the traits -> realized colour/scale derivation:
+`src/sim/core/appearance.ts`. Reference-derived stylistic families read off the committed sheets in
+`art/reference/cultures/ashford/characters/`: `src/sim/world/characterArchetypes.ts`. Per-person
+archetype selection, procedural variation and authored-pin resolution:
+`src/sim/world/characterAppearance.ts`, called from `makePerson`. Bridge projection (which fills in
+the canonically derived age presentation and role cues): `projectAppearance` in
+`src/bridge/visualState.ts`. Renderer grammar:
+`unreal/.../Content/TornVeil/Presentation/AshfordAppearanceProfiles.json` consumed by
+`ATVCharacter::ApplyAppearance`. Reviewable contact sheet: `npm run appearance:sheet`
+(`src/headless/appearance/`). Full contract: `docs/CHARACTER_APPEARANCE_PIPELINE.md`.
+
 ---
 
 # Economy and supply

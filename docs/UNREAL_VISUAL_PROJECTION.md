@@ -36,3 +36,11 @@ Native NPC appearance consumes canonical age/body appearance/occupation data. Th
 the chosen material treatment, hair/garment proxy and occupation cue. Its profile data lives in
 `Content/TornVeil/Presentation/AshfordAppearanceProfiles.json`; named overrides are optional and
 remain empty until an approved reference actually matches a canonical individual.
+
+As of the character appearance pipeline, that projection also carries a structured description of
+each person — archetype, phenotype, costume family, silhouette, accessories, station and wear —
+generated canonically from the committed reference sheets and persisted with the person. The
+profile JSON is schema 2 and maps those tokens onto garment/hair proportions and props; its
+`proxyVisibility` block is the one switch that turns the primitive stand-ins on once fitted modular
+assets exist. Trait data is optional at the wire, so an older bridge or an older save still
+projects exactly as before. Full contract: `docs/CHARACTER_APPEARANCE_PIPELINE.md`.

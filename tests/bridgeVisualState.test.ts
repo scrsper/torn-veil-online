@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BridgeSession } from '../src/bridge/session';
-import { humanoidVisualState } from '../src/bridge/visualState';
+import { humanoidVisualState, projectAppearance } from '../src/bridge/visualState';
 import { deserialize, serialize } from '../src/sim/persist/save';
 import { MELEE_COOLDOWN, meleeStrike } from '../src/sim/physical/melee';
 import { makeBody } from '../src/sim/world/factory';
@@ -125,7 +125,7 @@ describe('humanoid visual event counts', () => {
     const p = addPerson(tw, 'Traveler', 'traveler', v(10, 1, 10));
     const b = tw.world.primaryBody(p.id)!;
     b.vel = { x: 3, y: 9, z: 4 };
-    const visual = humanoidVisualState(b, p.name, b.pose, p.appearance);
+    const visual = humanoidVisualState(b, p.name, b.pose, projectAppearance(p));
     expect(visual.speed).toBe(5);
     expect(visual).not.toHaveProperty('sprintMultiplier');
     b.pos.x++; b.vel.x = 0;
