@@ -139,6 +139,9 @@ reads as `elder` with no regeneration and no migration.
    costume family still read as different people with no renderer change at all.
 8. **Authored pins last.** Whatever the caller supplied wins, and the tokens are snapped to it.
 
+Realized height and build vary with stature and frame, so people differ in size on screen — but
+they are presentation scale only, and do not reach physiology. See §8.
+
 Measured on the authored Ashford village (seed 1337, 33 residents): all 8 reference families
 present, 8 distinct palettes, 8 distinct silhouettes, 29 distinct garment colours, 33 distinct trait
 signatures. Over an 800-person synthetic population every family appears; over 300 people, 280+
@@ -212,6 +215,16 @@ shows that PIE does not is a projection bug. Committed output:
 
 Temporary:
 
+- **Generated stature and frame are presentation scale, not canonical body size.** `makePerson`
+  passes the *authored* build/height to `defaultPhysiologyTraitsFor`, not the generated ones. This
+  was not the original design and it is not a tidy boundary: body size ought to be one fact. It is
+  deliberate because the measurement said so. Coupling them handed 34 of Ashford's 37 residents a
+  new metabolic body size, and v0.5 physiology is calibrated against `AVERAGE_HUMAN_ADULT`
+  (`bodySizeFactor` 1.0) — `npm run world:smoke` moved `baseline-village`, `food-chain` and
+  `conflict-resolution` from PASS to FAIL, with mills and bakeries sitting idle on 956 grain.
+  Narrowing the variation until those went green again would have hidden the coupling rather than
+  decided about it. Promoting stature/frame to canonical body size is a physiology slice with its
+  own calibration and WorldLab re-acceptance, and it is the second thing this pipeline needs.
 - The Unreal hair/garment/prop stand-ins are primitives and stay hidden behind `proxyVisibility`
   until fitted modular assets exist. Trait → asset mapping is real; the assets are not yet.
 - `Appearance.beard` / `hat` / `apron` remain the old flat channels. They are derived from traits
@@ -238,7 +251,6 @@ Future-facing, and why the shape is what it is:
 - No Unreal build or PIE run: no engine is available in the environment this was implemented in.
   The C++ and JSON changes are unverified by compiler or editor and need a build before merge.
 - No new modular character assets.
-- No change to locomotion, dialogue, combat, persistence format, bridge protocol version, or any
-  canonical mechanic. The one behavioural change is that procedurally generated residents now vary
-  in build and height, which feeds `defaultPhysiologyTraitsFor` exactly as the authored cast's
-  variation already did.
+- **No behavioural change at all.** Locomotion, dialogue, combat, persistence format, bridge
+  protocol version and every canonical mechanic are untouched, and so is physiology — see below.
+  `npm run world:smoke` is verdict-identical to the base commit.

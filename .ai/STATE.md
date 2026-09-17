@@ -22,8 +22,18 @@ grammar. The primitive hair/garment/prop stand-ins stay hidden behind `proxyVisi
 accepted Slice 2 look does not regress — what changed visibly is that garment/skin/hair colour is
 now costume-family and wear driven instead of one random shirt per resident, and height/build vary.
 
-Verified: `npm run typecheck`; 15 new tests in `tests/character-appearance.test.ts`; full
-`npm test`. Evidence: `docs/evidence/character-appearance/ashford-contact-sheet.{svg,png}`
+Measured regression and fix: coupling generated stature/frame into `defaultPhysiologyTraitsFor`
+gave 34 of Ashford's 37 residents a new `bodySizeFactor` (v0.5 physiology is calibrated against
+`AVERAGE_HUMAN_ADULT` at 1.0) and moved `baseline-village`, `food-chain` and `conflict-resolution`
+from PASS to FAIL in `npm run world:smoke`. `makePerson` now passes the AUTHORED build/height to
+physiology, restoring base values exactly; generated stature/frame stay presentation scale until a
+physiology slice promotes them with its own calibration. `recover-item` FAILs on base too
+(`WL-CONFLICT-STUCK`) — pre-existing, not this branch. Note the WorldLab CLI exits 0 on a FAIL
+verdict, so the PR gate does not catch either.
+
+Verified: `npm run typecheck`; `npm run build:bundle`; 15 new tests in
+`tests/character-appearance.test.ts`; `npm run world:smoke` verdict-identical to base.
+Evidence: `docs/evidence/character-appearance/ashford-contact-sheet.{svg,png}`
 (`npm run appearance:sheet`) — seed 1337, 33 residents, all 8 families present, 29/33 distinct
 garment colours, 33/33 distinct trait signatures.
 NOT verified: UE build, native automation tests, PIE. Human visual acceptance still required.

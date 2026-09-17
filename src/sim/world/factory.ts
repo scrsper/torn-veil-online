@@ -53,7 +53,16 @@ export function makePerson(world: World, s: PersonSpec): Person {
     id, kind: 'person', name: s.name, createdAt: world.now - s.age * 365 * 86400, tags: s.tags ?? [], slug: s.slug,
     gender: s.gender, age: s.age, birthTick: world.now - s.age * 365 * 86400, parentIds: [], lifeStage: lifeStageFor('human', s.age), reproductiveRole: s.gender === 'f' ? 'gestational' : 'fertilizing', occupation: s.occupation, title: s.title, homeId: s.home ?? null, workId: s.work ?? null, factionId: null, householdId: null,
     traits, attributes, attributePotential, development: defaultDevelopment(), lineage: { imprints: [], expressed: attributeProfile(0), expressions: [] }, ontology: { stage: 'Normal' }, physiology: defaultPhysiology(world.now),
-    species: 'human', physiologyTraits: defaultPhysiologyTraitsFor(s.age, appearance.build, appearance.height, physicalAttribute(attributes.endurance)),
+    species: 'human',
+    // Deliberately the AUTHORED body size, not the generated one. v0.5 physiology is calibrated
+    // against AVERAGE_HUMAN_ADULT (bodySizeFactor 1.0, docs/V0_5_...md), and an authored record is
+    // the only place a person's body size is currently stated canonically. Letting appearance
+    // generation hand 34 of Ashford's 37 residents a new metabolic body size is a simulation
+    // change, not an appearance one — measured, it moved `baseline-village`, `food-chain` and
+    // `conflict-resolution` from PASS to FAIL in `npm run world:smoke`. Generated stature/frame
+    // therefore stay presentation scale until a slice that owns physiology promotes them, with its
+    // own calibration and WorldLab re-acceptance. See docs/CHARACTER_APPEARANCE_PIPELINE.md.
+    physiologyTraits: defaultPhysiologyTraitsFor(s.age, s.appearance.build ?? 1, s.appearance.height ?? 1, physicalAttribute(attributes.endurance)),
     skills: {},
     needs: { hunger: 0.3, energy: 0.2, social: 0.3, comfort: 0.2, thirst: 0.25 }, emotions: { fear: 0, anger: 0, joy: 0.3, sadness: 0, stress: 0 },
     appearance, bodies: [], timeRate: s.timeRate ?? 1, relationships: {}, memories: [], knowledge: {}, inventory: [], wealth: s.wealth ?? 20,
