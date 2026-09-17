@@ -40,5 +40,12 @@
   "Vegetation.Shrub.B": "/Game/TornVeil/LocalPalette/Vegetation/SM_TV_Spindle_B",
   "Vegetation.Shrub.C": "/Game/TornVeil/LocalPalette/Vegetation/SM_TV_Spindle_C",
   "Vegetation.Orchard.A": "/Game/TornVeil/LocalPalette/Vegetation/SM_TV_Medlar_A",
-  "Vegetation.Orchard.B": "/Game/TornVeil/LocalPalette/Vegetation/SM_TV_Medlar_B"
+  "Vegetation.Orchard.B": "/Game/TornVeil/LocalPalette/Vegetation/SM_TV_Medlar_B",
+  "Fixture.Sign": "/Game/Fab/Free_Medieval_Environment_Props_Collection/Medieval1_fbx_PlankMid",
+  "Fixture.Sign.Material": "/Game/TornVeil/Materials/LocalPalette/M_TV_Local_PlankMid",
+  "Fixture.Anvil": "/Game/AdvancedVillagePack/Meshes/SM_Stone_Medium_Var02",
+  "Fixture.Forge": "/Game/Fab/Free_Medieval_Environment_Props_Collection/Medieval1_fbx_Campfire",
+  "Fixture.Forge.Material": "/Game/TornVeil/Materials/LocalPalette/M_TV_Local_Campfire",
+  "Fixture.Shelf": "/Game/Fab/Free_Medieval_Environment_Props_Collection/Medieval1_fbx_WoodenStorageBox",
+  "Fixture.Shelf.Material": "/Game/TornVeil/Materials/LocalPalette/M_TV_Local_WoodenStorageBox"
 }

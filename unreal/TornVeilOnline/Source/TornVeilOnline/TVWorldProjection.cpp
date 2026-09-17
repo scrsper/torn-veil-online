@@ -314,7 +314,11 @@ void ATVRegionProjection::UpdateDynamic(const TSharedPtr<FJsonObject>& Data) {
         Piece(S(P,TEXT("id")),FTVEnvironmentGrammar::Asset(Open?TEXT("Storage.Open"):TEXT("Storage.Closed"),*D.MeshPath),Position(P->GetObjectField(TEXT("pos")))*100+FVector(0,0,D.HeightOffset),D.Size,0,TEXT(""),true); }
     for(const auto& V:Rows(Filtered,TEXT("mechanisms"))) { const auto P=V->AsObject(); const FVector Pos=Position(P->GetObjectField(TEXT("pos")))*100; for(int I=0;I<N(P,TEXT("parts"));I++) Piece(S(P,TEXT("id")),Kit+TEXT("Roof_Support2"),Pos+FVector(I*25,0,60),FVector(20,50,120),N(P,TEXT("condition"),1)<.5?20:FMath::Fmod(N(P,TEXT("operatedSeconds"))*90,360),TEXT(""),true); }
     for(const auto& V:Rows(Filtered,TEXT("construction"))) { const auto P=V->AsObject(); if(S(P,TEXT("state"))==TEXT("complete")) continue; const auto B=P->GetObjectField(TEXT("bounds")); const float H=50+200*N(P,TEXT("progress")); for(int I=0;I<4;I++) Piece(S(P,TEXT("id")),Kit+TEXT("Roof_Support2"),FVector(N(B,I%2?TEXT("x1"):TEXT("x0"))*100,N(B,I<2?TEXT("z0"):TEXT("z1"))*100,N(B,TEXT("y0"))*100+H/2),FVector(25,25,H),0,TEXT(""),true); }
-    for(const auto& V:Rows(Filtered,TEXT("doors"))) { const auto P=V->AsObject(); bool Open=false; P->TryGetBoolField(TEXT("open"),Open); Piece(S(P,TEXT("id")),Kit+TEXT("Door_1_Flat"),Position(P->GetObjectField(TEXT("pos")))*100+FVector(50,50,100),FVector(100,12,200),N(P,TEXT("yaw"))+(Open?90:0),TEXT(""),true); }
+    for(const auto& V:Rows(Filtered,TEXT("doors"))) { const auto P=V->AsObject(); bool Open=false; P->TryGetBoolField(TEXT("open"),Open);
+        // An open leaf swings about its hinge to the jamb instead of standing across the doorway.
+        const float Yaw=N(P,TEXT("yaw")); const FVector Along=FRotator(0,Yaw,0).Vector(), Across=FRotator(0,Yaw+90,0).Vector();
+        const FVector Center=Position(P->GetObjectField(TEXT("pos")))*100+FVector(50,50,100)+(Open?-Along*44+Across*44:FVector::ZeroVector);
+        Piece(S(P,TEXT("id")),Kit+TEXT("Door_1_Flat"),Center,FVector(100,12,200),Yaw+(Open?90:0),TEXT(""),true); }
     for(const auto& V:Rows(Filtered,TEXT("fires"))) { const auto P=V->AsObject(); bool Lit=false; P->TryGetBoolField(TEXT("lit"),Lit); if(Lit) Piece(S(P,TEXT("id")),TEXT("/Engine/BasicShapes/Cone"),Position(P->GetObjectField(TEXT("pos")))*100+FVector(0,0,40),FVector(60,60,80),0,Mat+TEXT("M_TV_LanternPaper"),true); }
 }
 int32 ATVRegionProjection::InstanceCount() const { int32 Total=0; for(const auto& Pair:Batches) Total+=Pair.Value->GetInstanceCount(); return Total; }

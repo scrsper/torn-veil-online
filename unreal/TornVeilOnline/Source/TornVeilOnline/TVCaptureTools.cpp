@@ -37,12 +37,16 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Framework/Application/SlateApplication.h"
 #include "GenericPlatform/GenericApplication.h"
+#include "TVBridgeSubsystem.h"
+#include "TVCommonUIWidgets.h"
 
 namespace
 {
     struct FTVRecorder
     {
-        TSharedPtr<FSceneViewport> Viewport;
+        // Weak: PIE teardown asserts the game viewport is uniquely owned.
+        TWeakPtr<FSceneViewport> Viewport;
+        bool bActive = false;
         FString Folder;
         double Started = 0, Duration = 0;
         int32 Written = 0;
@@ -91,7 +95,8 @@ namespace
 
     void StopRecording()
     {
-        if (!Recorder.Viewport) return;
+        if (!Recorder.bActive) return;
+        Recorder.bActive = false;
         FTSTicker::GetCoreTicker().RemoveTicker(Recorder.Ticker);
         while (Recorder.Pending > 0) FPlatformProcess::Sleep(0.01f);
         FString Manifest = TEXT("ffconcat version 1.0\n");
@@ -111,10 +116,10 @@ namespace
     void StartRecording(const TArray<FString>& Args)
     {
         if (Args.Num() && Args[0] == TEXT("stop")) { StopRecording(); return; }
-        if (Recorder.Viewport || Args.Num() < 1) return;
+        if (Recorder.bActive || Args.Num() < 1) return;
         TSharedPtr<FSceneViewport> Viewport = PIEViewport();
         if (!Viewport || !Viewport->GetViewportWidget().IsValid()) { UE_LOG(LogTemp, Error, TEXT("TV_RECORD requires a PIE viewport")); return; }
-        Recorder.Viewport = Viewport;
+        Recorder.Viewport = Viewport; Recorder.bActive = true;
         Recorder.Folder = FPaths::ConvertRelativePathToFull(Args[0]);
         IFileManager::Get().MakeDirectory(*Recorder.Folder, true);
         Recorder.Duration = Args.Num() > 1 ? FMath::Clamp(FCString::Atod(*Args[1]), 1.0, 180.0) : 30.0;
@@ -124,9 +129,10 @@ namespace
         GetMutableDefault<UEditorPerformanceSettings>()->bThrottleCPUWhenNotForeground = false;
         Recorder.Started = FPlatformTime::Seconds();
         Recorder.Ticker = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([](float) {
-            if (!Recorder.Viewport) return false;
+            if (!Recorder.bActive) return false;
+            const TSharedPtr<FSceneViewport> Viewport = Recorder.Viewport.Pin();
             const double Age = FPlatformTime::Seconds() - Recorder.Started;
-            TSharedPtr<SViewport> Widget = Recorder.Viewport->GetViewportWidget().Pin();
+            TSharedPtr<SViewport> Widget = Viewport ? Viewport->GetViewportWidget().Pin() : nullptr;
             if (Age >= Recorder.Duration || !PIEWorld() || !Widget) { AsyncTask(ENamedThreads::GameThread, [] { StopRecording(); }); return false; }
             TArray<FColor> Colors; FIntVector Size;
             if (FSlateApplication::Get().TakeScreenshot(Widget.ToSharedRef(), Colors, Size) && Colors.Num() == Size.X * Size.Y) {
@@ -364,22 +370,24 @@ namespace
         FVector Target; if (!CanonicalToWorld(World, FCString::Atod(*Args[0]), 0, FCString::Atod(*Args[1]), Target)) return;
         const bool bRun = Args.Num() > 2 && Args[2] == TEXT("1");
         const double End = FPlatformTime::Seconds() + (Args.Num() > 3 ? FCString::Atod(*Args[3]) : 30.);
+        const double Arrive = Args.Num() > 4 ? FCString::Atod(*Args[4]) * 100 : 180;
         if (WalkTicker.IsValid()) FTSTicker::GetCoreTicker().RemoveTicker(WalkTicker);
         SendKey(PC.Get(), EKeys::W, IE_Pressed, 1); if (bRun) SendKey(PC.Get(), EKeys::LeftShift, IE_Pressed, 1);
         const FVector Canonical(FCString::Atod(*Args[0]), FCString::Atod(*Args[1]), 0);
         UE_LOG(LogTemp, Display, TEXT("TV_WALK_TO start x=%.1f z=%.1f run=%d"), Canonical.X, Canonical.Y, bRun ? 1 : 0);
-        WalkTicker = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([PC, Canonical, bRun, End](float) {
+        WalkTicker = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([PC, Canonical, bRun, End, Arrive](float) {
             UWorld* Current = PIEWorld(); APawn* Pawn = PC.IsValid() ? PC->GetPawn() : nullptr; FVector Goal;
             const bool bValid = Current && Pawn && CanonicalToWorld(Current, Canonical.X, 0, Canonical.Y, Goal);
             const double Distance = bValid ? FVector::Dist2D(Pawn->GetActorLocation(), Goal) : 0;
-            if (!bValid || Distance < 180 || FPlatformTime::Seconds() > End) {
+            if (!bValid || Distance < Arrive || FPlatformTime::Seconds() > End) {
                 if (PC.IsValid()) { SendKey(PC.Get(), EKeys::W, IE_Released, 0); if (bRun) SendKey(PC.Get(), EKeys::LeftShift, IE_Released, 0); }
                 UE_LOG(LogTemp, Display, TEXT("TV_WALK_TO done remaining_cm=%.0f"), Distance);
                 WalkTicker.Reset(); return false;
             }
             const float Desired = (Goal - Pawn->GetActorLocation()).Rotation().Yaw;
             const float Error = FMath::FindDeltaAngleDegrees(PC->GetControlRotation().Yaw, Desired);
-            if (FMath::Abs(Error) > 1.5f) SendKey(PC.Get(), EKeys::MouseX, IE_Axis, FMath::Clamp(Error * .12f, -3.f, 3.f));
+            // MouseX sensitivity is 0.07 degrees per unit; clamp to roughly 4 degrees per frame.
+            if (FMath::Abs(Error) > 1.5f) SendKey(PC.Get(), EKeys::MouseX, IE_Axis, FMath::Clamp(Error * 2.f, -60.f, 60.f));
             return true;
         }));
     }
@@ -397,6 +405,29 @@ namespace
         UE_LOG(LogTemp, Display, TEXT("TV_SLATE_KEY %s handled=%d"), *Key.ToString(), bHandled ? 1 : 0);
     }
 
+    /** TV.EditorThrottle 0|1: an unfocused editor otherwise drops PIE to a few frames per second,
+     * which starves the controller's local-state horizon during unattended acceptance runs. */
+    void EditorThrottle(const TArray<FString>& Args)
+    {
+        const bool bThrottle = Args.Num() > 0 && Args[0] == TEXT("1");
+        GetMutableDefault<UEditorPerformanceSettings>()->bThrottleCPUWhenNotForeground = bThrottle;
+        Recorder.bThrottleWas = bThrottle;
+        UE_LOG(LogTemp, Display, TEXT("TV_EDITOR_THROTTLE %d"), bThrottle ? 1 : 0);
+    }
+    /** TV.TestUIChoice <n>|back: the same UI command a dialogue reply or Close button click sends.
+     * An unfocused editor cannot give the modal widget keyboard focus for key-based replies. */
+    void TestUIChoice(const TArray<FString>& Args)
+    {
+        UWorld* World = PIEWorld(); if (Args.Num() < 1 || !World) return;
+        auto* Bridge = World->GetSubsystem<UTVBridgeSubsystem>(); if (!Bridge) return;
+        if (Args[0] == TEXT("back")) { Bridge->UICommand(ETVUICommand::Back, FString(), FString(), INDEX_NONE); UE_LOG(LogTemp, Display, TEXT("TV_UI_CHOICE back")); return; }
+        const int32 Index = FCString::Atoi(*Args[0]) - 1;
+        if (!Bridge->DialogueOptionIds.IsValidIndex(Index)) { UE_LOG(LogTemp, Warning, TEXT("TV_UI_CHOICE %d unavailable"), Index + 1); return; }
+        Bridge->UICommand(ETVUICommand::DialogueChoice, Bridge->DialogueOptionIds[Index], FString(), Index);
+        UE_LOG(LogTemp, Display, TEXT("TV_UI_CHOICE %d %s"), Index + 1, *Bridge->DialogueOptionLabels[Index]);
+    }
+    FAutoConsoleCommand UIChoiceCommand(TEXT("TV.TestUIChoice"), TEXT("Editor acceptance: TV.TestUIChoice <n>|back."), FConsoleCommandWithArgsDelegate::CreateStatic(&TestUIChoice));
+    FAutoConsoleCommand ThrottleCommand(TEXT("TV.EditorThrottle"), TEXT("Editor acceptance: TV.EditorThrottle 0|1."), FConsoleCommandWithArgsDelegate::CreateStatic(&EditorThrottle));
     FAutoConsoleCommand WalkToCommand(TEXT("TV.TestWalkTo"), TEXT("Editor acceptance: TV.TestWalkTo <x> <z> [run 0|1] [timeout]. Ordinary W/Shift and MouseX input."), FConsoleCommandWithArgsDelegate::CreateStatic(&TestWalkTo));
     FAutoConsoleCommand SlateKeyCommand(TEXT("TV.TestSlateKey"), TEXT("Editor acceptance: TV.TestSlateKey <key>. Ordinary Slate key event to the focused widget."), FConsoleCommandWithArgsDelegate::CreateStatic(&TestSlateKey));
     FAutoConsoleCommand RecordCommand(TEXT("TV.Record"), TEXT("Editor evidence: TV.Record <folder> [seconds] | TV.Record stop. Reads the PIE back buffer only."), FConsoleCommandWithArgsDelegate::CreateStatic(&StartRecording));
