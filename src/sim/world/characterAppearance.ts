@@ -4,7 +4,7 @@ import {
   statusForMeans, wearableSilhouettes,
 } from '../core/appearance';
 import type {
-  AppearanceTraits, BodyFrameId, GarmentStatusId, HairStyleId, PresentationId, StatureId,
+  AppearanceDescription, BodyFrameId, GarmentStatusId, HairStyleId, PresentationId, StatureId,
 } from '../core/appearance';
 import { individualRng } from '../core/human';
 import type { RNG } from '../core/rng';
@@ -122,7 +122,7 @@ function pickLoadout(rng: RNG, options: readonly string[], count: number): strin
  * The structured description of one person, before any authored pin is applied. Pure in its
  * inputs: the rng is the person's own stream, so nothing here depends on generation order.
  */
-export function generateAppearanceTraits(rng: RNG, o: AppearanceResolution & { culture: string }): AppearanceTraits {
+export function generateAppearanceDescription(rng: RNG, o: AppearanceResolution & { culture: string }): AppearanceDescription {
   const archetype = selectArchetype(rng, { culture: o.culture, gender: o.gender, age: o.age, occupation: o.occupation, archetype: o.archetype });
   const child = o.age < 16;
   const presentation: PresentationId = archetype.presentation.length > 1 && rng.chance(0.15)
@@ -198,9 +198,9 @@ function nearestBand<T extends string>(order: T[], table: Record<T, number>, val
 export function resolveAppearance(o: AppearanceResolution): Appearance {
   const culture = o.culture ?? DEFAULT_CULTURE;
   const rng = individualRng(o.seed ^ ((o.salt ?? 0) >>> 0), `appearance:${o.identity}`);
-  const traits = generateAppearanceTraits(rng, { ...o, culture });
+  const description = generateAppearanceDescription(rng, { ...o, culture });
   const roleCues = OCCUPATION_CUES[o.occupation] ?? [];
-  const realized = appearanceFromTraits(traits, roleCues);
+  const realized = appearanceFromTraits(description, roleCues);
   const growth = growthScaleFor(o.age);
   realized.height *= growth.height;
   realized.build *= growth.build;
@@ -214,7 +214,7 @@ export function resolveAppearance(o: AppearanceResolution): Appearance {
     height: authored.height ?? realized.height,
     build: authored.build ?? realized.build,
     hatStyle: authored.hatStyle ?? realized.hatStyle,
-    traits,
+    description,
   };
   // A pinned style with no pinned colour still needs something on the head: fall back to the
   // costume family's under-layer, or to the watch's steel for a helm.
@@ -227,18 +227,18 @@ export function resolveAppearance(o: AppearanceResolution): Appearance {
   // Make the description agree with whatever the author actually pinned. Only pinned channels are
   // snapped: re-deriving an unpinned token from its own weathered output would quietly undo the
   // wear that produced it.
-  if (authored.skin !== undefined) traits.skinTone = nearestSkinTone(authored.skin);
-  if (authored.hair !== undefined) traits.hairColor = nearestHairColor(authored.hair);
-  if (authored.shirt !== undefined) traits.garmentPalette = nearestGarmentPalette(authored.shirt);
-  if (authored.height !== undefined) traits.stature = nearestBand(STATURE_ORDER, STATURE_HEIGHT, authored.height / growth.height);
-  if (authored.build !== undefined) traits.frame = nearestBand(FRAME_ORDER, FRAME_BUILD, authored.build / growth.build);
-  if (appearance.beard !== undefined) traits.accessories = [...new Set([...traits.accessories, 'beard'])];
-  else traits.accessories = traits.accessories.filter(a => a !== 'beard');
-  if (appearance.apron !== undefined && !roleCues.includes('apron')) traits.accessories = [...new Set([...traits.accessories, 'apron'])];
+  if (authored.skin !== undefined) description.skinTone = nearestSkinTone(authored.skin);
+  if (authored.hair !== undefined) description.hairColor = nearestHairColor(authored.hair);
+  if (authored.shirt !== undefined) description.garmentPalette = nearestGarmentPalette(authored.shirt);
+  if (authored.height !== undefined) description.stature = nearestBand(STATURE_ORDER, STATURE_HEIGHT, authored.height / growth.height);
+  if (authored.build !== undefined) description.frame = nearestBand(FRAME_ORDER, FRAME_BUILD, authored.build / growth.build);
+  if (appearance.beard !== undefined) description.accessories = [...new Set([...description.accessories, 'beard'])];
+  else description.accessories = description.accessories.filter(a => a !== 'beard');
+  if (appearance.apron !== undefined && !roleCues.includes('apron')) description.accessories = [...new Set([...description.accessories, 'apron'])];
   if (authored.hatStyle !== undefined) {
     const worn = { helm: 'helm', hood: 'hood', cap: 'cap', wide: 'wide_hat', none: null }[authored.hatStyle];
-    traits.accessories = traits.accessories.filter(a => !['helm', 'hood', 'cap', 'wide_hat', 'straw_hat', 'travel_hood'].includes(a));
-    if (worn && !roleCues.includes(worn)) traits.accessories.push(worn);
+    description.accessories = description.accessories.filter(a => !['helm', 'hood', 'cap', 'wide_hat', 'straw_hat', 'travel_hood'].includes(a));
+    if (worn && !roleCues.includes(worn)) description.accessories.push(worn);
   }
   return appearance;
 }

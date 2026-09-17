@@ -8,7 +8,7 @@
  * re-dress them for a new station, or recognise two people as belonging to the same stylistic
  * family.
  *
- * `AppearanceTraits` is that missing layer: the structured, human-readable description of a
+ * `AppearanceDescription` is that missing layer: the structured, human-readable description of a
  * person's persistent look. It is canonical simulation data (it lives on the Person, it is
  * persisted, it survives reload), and it is deliberately renderer-neutral — tokens like
  * `'layered_kimono'` or `'warrior_bun'`, never mesh paths, material names or blueprint handles.
@@ -24,7 +24,7 @@
  *   to whatever the realized colour actually is, so the two can never quietly disagree.
  * - Anything derivable from other canonical state is NOT stored here. Age presentation comes from
  *   `Person.age` and role cues come from `Person.occupation`, both computed at projection time by
- *   `projectAppearanceTraits` — storing them would be a second representation of a fact that is
+ *   `projectAppearanceDescription` — storing them would be a second representation of a fact that is
  *   already canonical, and it would leave a person visually frozen at the age they were generated.
  */
 
@@ -50,7 +50,7 @@ export type GarmentStatusId = 'destitute' | 'poor' | 'modest' | 'comfortable' | 
  * The persistent description of one person's look. Every field is stable across a save/load cycle
  * and across a PIE restart; only an in-world cause should ever change one.
  */
-export interface AppearanceTraits {
+export interface AppearanceDescription {
   /** Which reference archetype this person's look descends from (world/characterArchetypes.ts). */
   archetype: string;
   /** Broad stylistic region this look belongs to, e.g. `'ashford'`. */
@@ -78,10 +78,10 @@ export interface AppearanceTraits {
 }
 
 /**
- * `AppearanceTraits` plus the fields derived from other canonical state at projection time. This
+ * `AppearanceDescription` plus the fields derived from other canonical state at projection time. This
  * is what crosses the bridge to a renderer; it is never stored on the Person.
  */
-export interface ProjectedAppearanceTraits extends AppearanceTraits {
+export interface ProjectedAppearanceDescription extends AppearanceDescription {
   agePresentation: AgePresentationId;
   /** Occupation markers the renderer may dress or prop the character with. */
   roleCues: string[];
@@ -265,7 +265,7 @@ export function wearableSilhouettes(
 }
 
 /** Everything a renderer needs that the sim can state without knowing a single asset name. */
-export function projectAppearanceTraits(traits: AppearanceTraits, age: number, occupation: string): ProjectedAppearanceTraits {
+export function projectAppearanceDescription(traits: AppearanceDescription, age: number, occupation: string): ProjectedAppearanceDescription {
   const cues = OCCUPATION_CUES[occupation] ?? [];
   return { ...traits, accessories: [...traits.accessories], culturalTags: [...traits.culturalTags],
     agePresentation: agePresentationFor(age), roleCues: [...cues] };
@@ -283,7 +283,7 @@ export interface RealizedAppearance {
  * "what this person is" becomes "what a renderer draws", and it is pure: same traits in, same
  * colours out, on every machine and every reload.
  */
-export function appearanceFromTraits(traits: AppearanceTraits, roleCues: readonly string[] = []): RealizedAppearance {
+export function appearanceFromTraits(traits: AppearanceDescription, roleCues: readonly string[] = []): RealizedAppearance {
   const palette = GARMENT_PALETTES[traits.garmentPalette] ?? GARMENT_PALETTES.earth_work;
   const hairColour = HAIR_COLORS[traits.hairColor] ?? HAIR_COLORS.brown;
   // A trade's own kit counts as worn without being stored twice: `roleCues` comes from

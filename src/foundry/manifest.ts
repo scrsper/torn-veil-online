@@ -1,4 +1,4 @@
-import type { ProjectedAppearanceTraits } from '../sim/core/appearance';
+import type { ProjectedAppearanceDescription } from '../sim/core/appearance';
 import type { FoundrySlot } from './catalogue';
 
 /**
@@ -119,7 +119,7 @@ const compact = (values: (string | undefined)[]): string[] => values.filter((v):
  * Turn one person's canonical description into a part request per slot. Pure, and deliberately
  * ignorant of what is installed — that is `resolve.ts`'s problem.
  */
-export function slotRules(traits: ProjectedAppearanceTraits): SlotRule[] {
+export function slotRules(traits: ProjectedAppearanceDescription): SlotRule[] {
   const cut = PRESENTATION_TAG[traits.presentation] ?? 'unisex';
   const age = AGE_TAG[traits.agePresentation] ?? 'adult';
   const frame = FRAME_TAG[traits.frame] ?? 'average';
@@ -177,7 +177,7 @@ export function slotRules(traits: ProjectedAppearanceTraits): SlotRule[] {
  * resolver only emits the ones a chosen mesh actually has, so a pack without morphs simply gets
  * the discrete mesh choice and the uniform scale, with no missing-parameter warnings.
  */
-export function morphIntents(traits: ProjectedAppearanceTraits): Record<string, number> {
+export function morphIntents(traits: ProjectedAppearanceDescription): Record<string, number> {
   const heavy = { slight: 0, lean: 0.15, average: 0.35, sturdy: 0.55, powerful: 0.6, heavy: 0.85 }[traits.frame] ?? 0.35;
   const muscular = { slight: 0.05, lean: 0.25, average: 0.35, sturdy: 0.7, powerful: 0.9, heavy: 0.5 }[traits.frame] ?? 0.35;
   const tall = { short: 0, below_average: 0.25, average: 0.5, above_average: 0.75, tall: 1 }[traits.stature] ?? 0.5;

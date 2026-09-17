@@ -1,5 +1,5 @@
-import { projectAppearanceTraits } from '../../sim/core/appearance';
-import type { ProjectedAppearanceTraits } from '../../sim/core/appearance';
+import { projectAppearanceDescription } from '../../sim/core/appearance';
+import type { ProjectedAppearanceDescription } from '../../sim/core/appearance';
 import type { Person } from '../../sim/core/types';
 import type { World } from '../../sim/core/world';
 
@@ -21,11 +21,11 @@ export interface AppearanceRow {
   colours: { skin: number; hair: number; shirt: number; pants: number; apron?: number; hat?: number };
   height: number;
   build: number;
-  traits: ProjectedAppearanceTraits;
+  traits: ProjectedAppearanceDescription;
 }
 
 export function appearanceRows(world: World, limit = 48): AppearanceRow[] {
-  return world.persons().filter((p: Person) => p.alive && p.appearance.traits).slice(0, limit).map((p: Person) => ({
+  return world.persons().filter((p: Person) => p.alive && p.appearance.description).slice(0, limit).map((p: Person) => ({
     name: p.name, slug: p.slug ?? null, age: p.age, gender: p.gender, occupation: p.occupation,
     colours: {
       skin: p.appearance.skin, hair: p.appearance.hair, shirt: p.appearance.shirt, pants: p.appearance.pants,
@@ -33,7 +33,7 @@ export function appearanceRows(world: World, limit = 48): AppearanceRow[] {
       ...(p.appearance.hat !== undefined ? { hat: p.appearance.hat } : {}),
     },
     height: p.appearance.height, build: p.appearance.build,
-    traits: projectAppearanceTraits(p.appearance.traits!, p.age, p.occupation),
+    traits: projectAppearanceDescription(p.appearance.description!, p.age, p.occupation),
   }));
 }
 

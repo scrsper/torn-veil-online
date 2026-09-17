@@ -12,7 +12,7 @@ renderers as tokens rather than as asset paths.
 art/reference/cultures/ashford/characters/*.png      authored reference sheets
         -> src/sim/world/characterArchetypes.ts      hand-written interpretation (8 families)
         -> src/sim/world/characterAppearance.ts      per-person selection + variation
-        -> Person.appearance.traits                  canonical, persisted, save/load stable
+        -> Person.appearance.description                  canonical, persisted, save/load stable
         -> src/sim/core/appearance.ts                traits -> realized colours/scale
         -> bridge projectAppearance()                traits + canonically derived age/role cues
         -> Three.js src/game/actors, Unreal ATVCharacter::ApplyAppearance
@@ -75,7 +75,7 @@ Adding a culture means adding archetypes with a new `culture` id and, if needed,
 
 ## 3. The appearance schema
 
-`src/sim/core/appearance.ts` defines `AppearanceTraits`, stored at `Person.appearance.traits`.
+`src/sim/core/appearance.ts` defines `AppearanceDescription`, stored at `Person.appearance.description`.
 
 | Field | Meaning |
 | --- | --- |
@@ -93,6 +93,16 @@ Adding a culture means adding archetypes with a new `culture` id and, if needed,
 | `grooming`, `wear` | 0..1. How kempt, and how worn the cloth is |
 | `status` | The clothing register their means put them in |
 
+### Why `description` and not `traits`
+
+`Person.traits` is personality — courage, honesty, greed — and it is *private*: an observer must
+never learn it by looking at somebody. This field is the opposite: it is exactly what looking at
+somebody tells you. Calling both "traits" was a genuine ambiguity, and it was not a theoretical
+one — the first full-suite run caught it. `tests/agency-frontier.test.ts` asserts that an
+observer's projected snapshot contains no `'traits'` substring, guarding personality leakage, and
+the appearance field tripped that guard. Weakening a privacy assertion to accommodate a field name
+would have been the wrong repair, so the field was renamed instead.
+
 Two boundaries are load-bearing:
 
 **Traits describe; the numeric channels realize.** `appearanceFromTraits` derives skin/hair/shirt/
@@ -102,7 +112,7 @@ source. An authored character (`world/cast.ts`) may still pin any exact colour; 
 was pinned, so the description can never quietly describe a person who isn't there.
 
 **Anything derivable is not stored.** `agePresentation` comes from `Person.age` and `roleCues` come
-from `Person.occupation`, both computed by `projectAppearanceTraits` at projection time. Storing
+from `Person.occupation`, both computed by `projectAppearanceDescription` at projection time. Storing
 them would be a second representation of a canonical fact (AGENTS.md §7) *and* would freeze a
 person at the age they were generated. Because they are derived, a smith who ages twenty-five years
 reads as `elder` with no regeneration and no migration.
@@ -151,8 +161,8 @@ distinct signatures.
 
 ## 5. How Unreal maps traits into visible characters
 
-The bridge sends `appearance.traits` inside each body's visual state.
-`FTVHumanoidVisualState::Parse` reads it into `FTVAppearanceTraits` — fully optional and fail-soft,
+The bridge sends `appearance.description` inside each body's visual state.
+`FTVHumanoidVisualState::Parse` reads it into `FTVAppearanceDescription` — fully optional and fail-soft,
 so a body projected by an older bridge, or a person from a save written before this pipeline
 existed, arrives with `bHasTraits == false` and is presented exactly as before.
 

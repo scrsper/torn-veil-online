@@ -85,7 +85,7 @@ void ATVCharacter::BeginPlay() {
     // limbs, so they start hidden; `ApplyAppearance` then re-reads that decision from
     // Content/TornVeil/Presentation/AshfordAppearanceProfiles.json (`proxyVisibility`), which is
     // the one switch to flip once fitted modular garment/hair assets exist. Canonical appearance
-    // traits drive their proportions either way.
+    // the description drives their proportions either way.
     HairProxy->SetHiddenInGame(true); GarmentProxy->SetHiddenInGame(true); OccupationProp->SetHiddenInGame(true);
     GetCharacterMovement()->DisableMovement(); GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     if (IsPlayerControlled()) { bCanonicalPlayer = true; Controller->SetControlRotation(FRotator(-18, 0, 0)); Nameplate->SetVisibility(false); }
@@ -235,7 +235,7 @@ static FLinearColor TVHexColour(double Raw, const FLinearColor& Fallback) {
 }
 /**
  * The renderer's own grammar, read once from Content/TornVeil/Presentation/AshfordAppearanceProfiles.json.
- * Canonical appearance traits arrive as tokens; this table is where a token becomes something this
+ * The canonical appearance description arrives as tokens; this table is where a token becomes
  * client can actually draw. Keeping it in data rather than in a switch is deliberate: a culture pack
  * changes clothing, hair and props without touching canonical character code, and the mapping stays
  * reviewable by eye.
@@ -330,11 +330,11 @@ const FTVAppearanceProfile& TVAppearanceProfile() {
  * than a waist cord does — and their own persistent accessories supply the rest. Returns an empty
  * prop when nothing named maps to something drawable.
  */
-static FTVPropCue TVSelectProp(const FTVAppearanceTraits& Traits, const FString& Occupation) {
+static FTVPropCue TVSelectProp(const FTVAppearanceDescription& Description, const FString& Occupation) {
     const FTVAppearanceProfile& Profile = TVAppearanceProfile();
-    if (Traits.bHasTraits) {
-        for (const FString& Cue : Traits.RoleCues) if (const FTVPropCue* Found = Profile.RoleCues.Find(Cue)) { if (!Found->Prop.IsEmpty()) return *Found; }
-        for (const FString& Item : Traits.Accessories) if (const FTVPropCue* Found = Profile.Accessories.Find(Item)) { if (!Found->Prop.IsEmpty()) return *Found; }
+    if (Description.bHasDescription) {
+        for (const FString& Cue : Description.RoleCues) if (const FTVPropCue* Found = Profile.RoleCues.Find(Cue)) { if (!Found->Prop.IsEmpty()) return *Found; }
+        for (const FString& Item : Description.Accessories) if (const FTVPropCue* Found = Profile.Accessories.Find(Item)) { if (!Found->Prop.IsEmpty()) return *Found; }
         return FTVPropCue();
     }
     // Schema-1 fallback: a body from a bridge or a save that predates the character pipeline.
@@ -346,35 +346,35 @@ static FTVPropCue TVSelectProp(const FTVAppearanceTraits& Traits, const FString&
 void ATVCharacter::ApplyAppearance(const FTVAppearanceVisualState& A) {
     if (!A.bPresent) return;
     const FTVAppearanceProfile& Profile = TVAppearanceProfile();
-    const FTVAppearanceTraits& Traits = A.Traits;
+    const FTVAppearanceDescription& Description = A.Description;
     if (SkinMaterial) SkinMaterial->SetVectorParameterValue(TEXT("Tint"), TVHexColour(A.Skin, FLinearColor(.72f, .48f, .32f)));
     // The realized colours already carry the costume family and how worn it is (the simulation
-    // weathers them); the traits below only add the proportions this client can also express.
+    // weathers them); the description below only adds the proportions this client can also express.
     if (ClothMaterial) {
         ClothMaterial->SetVectorParameterValue(TEXT("Tint"), TVHexColour(A.Shirt, FLinearColor(.08f, .12f, .26f)));
         // Optional on the material — a graph without these parameters simply ignores them.
-        ClothMaterial->SetScalarParameterValue(TEXT("Wear"), Traits.bHasTraits ? Traits.Wear : .3f);
-        ClothMaterial->SetScalarParameterValue(TEXT("Grooming"), Traits.bHasTraits ? Traits.Grooming : .5f);
+        ClothMaterial->SetScalarParameterValue(TEXT("Wear"), Description.bHasDescription ? Description.Wear : .3f);
+        ClothMaterial->SetScalarParameterValue(TEXT("Grooming"), Description.bHasDescription ? Description.Grooming : .5f);
     }
     if (HairMaterial) HairMaterial->SetVectorParameterValue(TEXT("Tint"), TVHexColour(A.Hair, FLinearColor(.04f, .025f, .016f)));
     const float Height = A.Height, Build = A.Build;
     GetMesh()->SetRelativeScale3D(FVector(Build, Build, Height));
 
     // A long garment reads long because it hangs lower, not only because it is taller.
-    const FTVSilhouetteCue Silhouette = Traits.bHasTraits ? Profile.Silhouettes.FindRef(Traits.GarmentSilhouette) : FTVSilhouetteCue();
+    const FTVSilhouetteCue Silhouette = Description.bHasDescription ? Profile.Silhouettes.FindRef(Description.GarmentSilhouette) : FTVSilhouetteCue();
     GarmentProxy->SetRelativeScale3D(FVector(.44f * Build * Silhouette.Scale.X, .30f * Build * Silhouette.Scale.Y, .55f * Height * Silhouette.Scale.Z));
     GarmentProxy->SetRelativeLocation(FVector(2.f, 0.f, -8.f - 10.f * Silhouette.Skirt * Height));
     GarmentProxy->SetHiddenInGame(!Profile.bShowGarment);
 
     // Bound hair stays on the crown; loose hair falls behind the head.
-    const bool bShaved = Traits.bHasTraits && Traits.HairStyle == TEXT("shaved");
-    const FTVHairCue HairCue = Traits.bHasTraits ? Profile.Hair.FindRef(Traits.HairStyle) : FTVHairCue();
+    const bool bShaved = Description.bHasDescription && Description.HairStyle == TEXT("shaved");
+    const FTVHairCue HairCue = Description.bHasDescription ? Profile.Hair.FindRef(Description.HairStyle) : FTVHairCue();
     HairProxy->SetRelativeScale3D(FVector(.48f * Build * HairCue.Scale.X, .48f * Build * HairCue.Scale.Y, .22f * Height * HairCue.Scale.Z));
     HairProxy->SetRelativeLocation(HairCue.bBound ? FVector(0.f, 0.f, 5.f) : FVector(-2.f, 0.f, 1.f));
     HairProxy->SetHiddenInGame(!Profile.bShowHair);
     HairProxy->SetVisibility(!bShaved && !A.HatStyle.Equals(TEXT("hood"), ESearchCase::IgnoreCase));
 
-    const FTVPropCue Prop = TVSelectProp(Traits, Occupation);
+    const FTVPropCue Prop = TVSelectProp(Description, Occupation);
     OccupationProp->SetHiddenInGame(!Profile.bShowProp);
     OccupationProp->SetVisibility(!Prop.Prop.IsEmpty());
     OccupationProp->SetRelativeScale3D(Prop.bLong ? FVector(.075f, .075f, 1.2f) : FVector(.16f, .16f, .16f));

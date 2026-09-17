@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { projectAppearanceTraits } from '../src/sim/core/appearance';
-import type { ProjectedAppearanceTraits } from '../src/sim/core/appearance';
+import { projectAppearanceDescription } from '../src/sim/core/appearance';
+import type { ProjectedAppearanceDescription } from '../src/sim/core/appearance';
 import type { Occupation, Person } from '../src/sim/core/types';
 import { RNG } from '../src/sim/core/rng';
 import { newWorld } from '../src/sim/persist/save';
@@ -19,7 +19,7 @@ function inputFor(person: Person): RealizationInput {
     entityId: person.id,
     identity: person.slug ?? person.id,
     seed: SEED,
-    traits: projectAppearanceTraits(person.appearance.traits!, person.age, person.occupation),
+    traits: projectAppearanceDescription(person.appearance.description!, person.age, person.occupation),
     appearance: {
       skin: person.appearance.skin, hair: person.appearance.hair,
       shirt: person.appearance.shirt, pants: person.appearance.pants,
@@ -34,7 +34,7 @@ function syntheticInput(o: { identity: string; age: number; gender: 'm' | 'f'; o
   const appearance = resolveAppearance({ seed: SEED, identity: o.identity, age: o.age, gender: o.gender, occupation: o.occupation, wealth: o.wealth, archetype: o.archetype });
   return {
     entityId: o.identity, identity: o.identity, seed: SEED,
-    traits: projectAppearanceTraits(appearance.traits!, o.age, o.occupation),
+    traits: projectAppearanceDescription(appearance.description!, o.age, o.occupation),
     appearance: {
       skin: appearance.skin, hair: appearance.hair, shirt: appearance.shirt, pants: appearance.pants,
       ...(appearance.apron !== undefined ? { apron: appearance.apron } : {}),
@@ -85,23 +85,23 @@ describe('catalogue parsing', () => {
 
 describe('the manifest asks for parts, not assets', () => {
   it('never names an asset path', () => {
-    const traits = projectAppearanceTraits(resolveAppearance({ seed: 1, identity: 'x', age: 40, gender: 'f', occupation: 'baker', wealth: 40 }).traits!, 40, 'baker');
+    const traits = projectAppearanceDescription(resolveAppearance({ seed: 1, identity: 'x', age: 40, gender: 'f', occupation: 'baker', wealth: 40 }).description!, 40, 'baker');
     for (const rule of slotRules(traits)) {
       for (const tag of [...rule.required, ...rule.preferred]) expect(tag).not.toContain('/Game/');
     }
   });
 
   it('always requires a body and a head, and never makes them optional', () => {
-    const traits = projectAppearanceTraits(resolveAppearance({ seed: 1, identity: 'x', age: 9, gender: 'm', occupation: 'child', wealth: 0 }).traits!, 9, 'child');
+    const traits = projectAppearanceDescription(resolveAppearance({ seed: 1, identity: 'x', age: 9, gender: 'm', occupation: 'child', wealth: 0 }).description!, 9, 'child');
     const rules = slotRules(traits);
     expect(rules.find(r => r.slot === 'body')?.optional).toBe(false);
     expect(rules.find(r => r.slot === 'head')?.optional).toBe(false);
   });
 
   it('asks for a robe as one piece and a tunic as two', () => {
-    const base = resolveAppearance({ seed: 1, identity: 'priest', age: 60, gender: 'm', occupation: 'priest', wealth: 200 }).traits!;
-    const robed: ProjectedAppearanceTraits = { ...projectAppearanceTraits(base, 60, 'priest'), garmentSilhouette: 'ceremonial_robe' };
-    const tunicked: ProjectedAppearanceTraits = { ...robed, garmentSilhouette: 'tunic_trousers' };
+    const base = resolveAppearance({ seed: 1, identity: 'priest', age: 60, gender: 'm', occupation: 'priest', wealth: 200 }).description!;
+    const robed: ProjectedAppearanceDescription = { ...projectAppearanceDescription(base, 60, 'priest'), garmentSilhouette: 'ceremonial_robe' };
+    const tunicked: ProjectedAppearanceDescription = { ...robed, garmentSilhouette: 'tunic_trousers' };
     expect(slotRules(robed).some(r => r.slot === 'robe')).toBe(true);
     expect(slotRules(tunicked).some(r => r.slot === 'robe')).toBe(false);
   });
@@ -208,7 +208,7 @@ describe('stage C — ten visibly different residents', () => {
 
 describe('stage D — an Ashford settlement sample', () => {
   const { world } = newWorld(1337);
-  const people = world.persons().filter(p => p.alive && p.appearance.traits);
+  const people = world.persons().filter(p => p.alive && p.appearance.description);
   const realizations = people.map(person => realizeCharacter(inputFor(person), richCatalogue()));
 
   it('realizes every resident completely', () => {
@@ -234,7 +234,7 @@ describe('stage D — an Ashford settlement sample', () => {
       const names = realization.slots.map(s => s.name).join(' ');
       if (person.occupation === 'farmer') expect(names, person.name).not.toContain('Armor');
       if (realization.slots.some(s => s.name.includes('Rags'))) {
-        expect(['destitute', 'poor']).toContain(person.appearance.traits!.status);
+        expect(['destitute', 'poor']).toContain(person.appearance.description!.status);
       }
     }
   });

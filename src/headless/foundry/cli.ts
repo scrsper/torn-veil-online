@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { projectAppearanceTraits } from '../../sim/core/appearance';
+import { projectAppearanceDescription } from '../../sim/core/appearance';
 import type { Person } from '../../sim/core/types';
 import { newWorld } from '../../sim/persist/save';
 import { catalogueCoverage } from '../../foundry/catalogue';
@@ -24,13 +24,13 @@ const outDir = process.argv[4] ?? '.debug/character-foundry';
 
 const loaded = loadCatalogue(cataloguePath);
 const { world } = newWorld(seed);
-const people = world.persons().filter((p: Person) => p.alive && p.appearance.traits);
+const people = world.persons().filter((p: Person) => p.alive && p.appearance.description);
 
 const inputs: RealizationInput[] = people.map((person: Person) => ({
   entityId: person.id,
   identity: person.slug ?? person.id,
   seed: world.seed,
-  traits: projectAppearanceTraits(person.appearance.traits!, person.age, person.occupation),
+  traits: projectAppearanceDescription(person.appearance.description!, person.age, person.occupation),
   appearance: {
     skin: person.appearance.skin, hair: person.appearance.hair,
     shirt: person.appearance.shirt, pants: person.appearance.pants,

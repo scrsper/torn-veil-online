@@ -1,5 +1,5 @@
 import type { OntologicalStage } from './stages';
-import type { AppearanceTraits } from './appearance';
+import type { AppearanceDescription } from './appearance';
 /**
  * The ontology of Torn Veil Online.
  *
@@ -266,7 +266,7 @@ export interface Appearance {
   height: number; // 0.85 .. 1.1 scale (times a growth factor while a body is still growing)
   build: number;  // 0.85 .. 1.15 width
   beard?: number; apron?: number;
-  traits?: AppearanceTraits;
+  description?: AppearanceDescription;
 }
 
 export interface Relationship {

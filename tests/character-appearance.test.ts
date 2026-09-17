@@ -2,16 +2,16 @@ import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   GARMENT_PALETTES, HAIR_COLORS, SILHOUETTE_REQUIRES, SKIN_TONES, agePresentationFor,
-  appearanceFromTraits, projectAppearanceTraits, statusForMeans, weatheredColour,
+  appearanceFromTraits, projectAppearanceDescription, statusForMeans, weatheredColour,
 } from '../src/sim/core/appearance';
-import type { AppearanceTraits } from '../src/sim/core/appearance';
+import type { AppearanceDescription } from '../src/sim/core/appearance';
 import { RNG } from '../src/sim/core/rng';
 import type { Occupation } from '../src/sim/core/types';
 import { deserialize, newWorld, serialize } from '../src/sim/persist/save';
 import { CHARACTER_ARCHETYPES } from '../src/sim/world/characterArchetypes';
 import { resolveAppearance } from '../src/sim/world/characterAppearance';
 
-const signature = (t: AppearanceTraits) => [
+const signature = (t: AppearanceDescription) => [
   t.archetype, t.presentation, t.skinTone, t.faceShape, t.hairStyle, t.hairColor, t.eyeColor,
   t.frame, t.stature, t.garmentSilhouette, t.garmentPalette, t.status, [...t.accessories].sort().join('+'),
 ].join('|');
@@ -57,7 +57,7 @@ describe('reference archetypes', () => {
   });
 
   it('every reference family reaches a large population', () => {
-    const seen = new Set(samplePopulation(800).map(p => p.appearance.traits!.archetype));
+    const seen = new Set(samplePopulation(800).map(p => p.appearance.description!.archetype));
     for (const archetype of CHARACTER_ARCHETYPES) expect(seen.has(archetype.id), archetype.id).toBe(true);
   });
 });
@@ -65,20 +65,20 @@ describe('reference archetypes', () => {
 describe('procedural variation', () => {
   it('produces individually distinct people inside recognisable families', () => {
     const population = samplePopulation(300);
-    const signatures = new Set(population.map(p => signature(p.appearance.traits!)));
+    const signatures = new Set(population.map(p => signature(p.appearance.description!)));
     // Distinct individuals...
     expect(signatures.size).toBeGreaterThan(280);
     // ...but drawn from a bounded set of authored families, not from noise.
-    const families = new Set(population.map(p => p.appearance.traits!.archetype));
+    const families = new Set(population.map(p => p.appearance.description!.archetype));
     expect(families.size).toBeLessThanOrEqual(CHARACTER_ARCHETYPES.length);
-    const palettes = new Set(population.map(p => p.appearance.traits!.garmentPalette));
+    const palettes = new Set(population.map(p => p.appearance.description!.garmentPalette));
     for (const palette of palettes) expect(GARMENT_PALETTES[palette]).toBeDefined();
   });
 
   it('dresses a trade in something that trade could be wearing', () => {
     for (const person of samplePopulation(400)) {
-      const required = SILHOUETTE_REQUIRES[person.appearance.traits!.garmentSilhouette];
-      if (required) expect(required, `${person.occupation}: ${person.appearance.traits!.garmentSilhouette}`).toContain(person.occupation);
+      const required = SILHOUETTE_REQUIRES[person.appearance.description!.garmentSilhouette];
+      if (required) expect(required, `${person.occupation}: ${person.appearance.description!.garmentSilhouette}`).toContain(person.occupation);
     }
   });
 
@@ -86,7 +86,7 @@ describe('procedural variation', () => {
     const children = samplePopulation(400).filter(p => p.age < 13);
     expect(children.length).toBeGreaterThan(10);
     for (const child of children) {
-      const traits = child.appearance.traits!;
+      const traits = child.appearance.description!;
       expect(traits.accessories).not.toContain('beard');
       expect(traits.accessories).not.toContain('scabbard');
       expect(traits.hairStyle).not.toBe('shaved');
@@ -99,9 +99,9 @@ describe('procedural variation', () => {
   it('wears clothes out by station and by trade', () => {
     const rich = resolveAppearance({ seed: 5, identity: 'rich', age: 40, gender: 'm', occupation: 'merchant', wealth: 600 });
     const poor = resolveAppearance({ seed: 5, identity: 'poor', age: 40, gender: 'm', occupation: 'vagrant', wealth: 1 });
-    expect(rich.traits!.status).toBe('noble');
-    expect(poor.traits!.status).toBe('destitute');
-    expect(poor.traits!.wear).toBeGreaterThan(rich.traits!.wear + 0.4);
+    expect(rich.description!.status).toBe('noble');
+    expect(poor.description!.status).toBe('destitute');
+    expect(poor.description!.wear).toBeGreaterThan(rich.description!.wear + 0.4);
     // Wear is visible without a renderer change: it dulls the realized colour.
     expect(weatheredColour(0x7a1a24, 0)).toBe(0x7a1a24);
     expect(weatheredColour(0x7a1a24, 1)).not.toBe(0x7a1a24);
@@ -112,8 +112,8 @@ describe('determinism and persistence', () => {
   it('is a pure function of world seed and person identity', () => {
     const args = { seed: 12345, identity: 'ashford:rowan', age: 38, gender: 'm' as const, occupation: 'captain' as Occupation, wealth: 90 };
     expect(resolveAppearance(args)).toEqual(resolveAppearance(args));
-    expect(signature(resolveAppearance({ ...args, identity: 'ashford:hale' }).traits!)).not.toBe(signature(resolveAppearance(args).traits!));
-    expect(signature(resolveAppearance({ ...args, seed: 999 }).traits!)).not.toBe(signature(resolveAppearance(args).traits!));
+    expect(signature(resolveAppearance({ ...args, identity: 'ashford:hale' }).description!)).not.toBe(signature(resolveAppearance(args).description!));
+    expect(signature(resolveAppearance({ ...args, seed: 999 }).description!)).not.toBe(signature(resolveAppearance(args).description!));
   });
 
   it('never draws from the world behaviour streams', () => {
@@ -129,7 +129,7 @@ describe('determinism and persistence', () => {
     const { world } = newWorld(24680);
     const before = new Map(world.persons().map(p => [p.id, p.appearance]));
     expect(before.size).toBeGreaterThan(20);
-    for (const appearance of before.values()) expect(appearance.traits).toBeDefined();
+    for (const appearance of before.values()) expect(appearance.description).toBeDefined();
 
     const restored = deserialize(serialize(world));
     expect(restored).not.toBeNull();
@@ -142,8 +142,8 @@ describe('determinism and persistence', () => {
   });
 
   it('regenerating the same world reproduces the same faces', () => {
-    const first = newWorld(555).world.persons().map(p => `${p.slug ?? p.id}:${signature(p.appearance.traits!)}`);
-    const second = newWorld(555).world.persons().map(p => `${p.slug ?? p.id}:${signature(p.appearance.traits!)}`);
+    const first = newWorld(555).world.persons().map(p => `${p.slug ?? p.id}:${signature(p.appearance.description!)}`);
+    const second = newWorld(555).world.persons().map(p => `${p.slug ?? p.id}:${signature(p.appearance.description!)}`);
     expect(second).toEqual(first);
   });
 });
@@ -156,34 +156,34 @@ describe('authored characters and canonical derivation', () => {
     expect(resolved.hair).toBe(authored.hair);
     expect(resolved.shirt).toBe(authored.shirt);
     expect(resolved.hatStyle).toBe('helm');
-    expect(resolved.traits!.skinTone).toBe('deep');
-    expect(resolved.traits!.hairColor).toBe('white');
-    expect(GARMENT_PALETTES[resolved.traits!.garmentPalette].primary).toBe(0x8a2a2a);
+    expect(resolved.description!.skinTone).toBe('deep');
+    expect(resolved.description!.hairColor).toBe('white');
+    expect(GARMENT_PALETTES[resolved.description!.garmentPalette].primary).toBe(0x8a2a2a);
   });
 
   it('honours a forced archetype so a named character can be placed in a family', () => {
     for (const archetype of CHARACTER_ARCHETYPES) {
       const resolved = resolveAppearance({ seed: 3, identity: `named_${archetype.id}`, age: 34, gender: archetype.fits.gender?.[0] ?? 'f', occupation: 'traveler', wealth: 40, archetype: archetype.id });
-      expect(resolved.traits!.archetype).toBe(archetype.id);
-      expect(resolved.traits!.culturalTags).toEqual(archetype.culturalTags);
+      expect(resolved.description!.archetype).toBe(archetype.id);
+      expect(resolved.description!.culturalTags).toEqual(archetype.culturalTags);
     }
   });
 
   it('derives age presentation and role cues at projection time rather than storing them', () => {
-    const traits = resolveAppearance({ seed: 1, identity: 'smith', age: 46, gender: 'm', occupation: 'smith', wealth: 80 }).traits!;
+    const traits = resolveAppearance({ seed: 1, identity: 'smith', age: 46, gender: 'm', occupation: 'smith', wealth: 80 }).description!;
     expect(traits).not.toHaveProperty('agePresentation');
     expect(traits).not.toHaveProperty('roleCues');
-    const projected = projectAppearanceTraits(traits, 46, 'smith');
+    const projected = projectAppearanceDescription(traits, 46, 'smith');
     expect(projected.agePresentation).toBe('middle_aged');
     expect(projected.roleCues).toContain('hammer');
     // The same person a quarter-century later needs no regeneration to read as older.
-    expect(projectAppearanceTraits(traits, 71, 'smith').agePresentation).toBe('elder');
+    expect(projectAppearanceDescription(traits, 71, 'smith').agePresentation).toBe('elder');
     expect(agePresentationFor(9)).toBe('child');
     expect(statusForMeans(0)).toBe('destitute');
   });
 
   it('realizes a trade\'s own kit without storing the trade twice', () => {
-    const traits = resolveAppearance({ seed: 2, identity: 'baker', age: 30, gender: 'f', occupation: 'baker', wealth: 40 }).traits!;
+    const traits = resolveAppearance({ seed: 2, identity: 'baker', age: 30, gender: 'f', occupation: 'baker', wealth: 40 }).description!;
     expect(traits.accessories).not.toContain('apron');
     expect(appearanceFromTraits(traits, ['apron']).apron).toBeDefined();
     expect(appearanceFromTraits(traits, []).apron).toBeUndefined();

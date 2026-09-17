@@ -12,7 +12,7 @@ The Foundry is the layer that turns that description into a **configuration of r
 
 ```text
 Person (canonical)
-  -> AppearanceTraits              canonical, persisted, renderer-neutral
+  -> AppearanceDescription              canonical, persisted, renderer-neutral
   -> slotRules()                   "this person needs a long bound feminine hair asset"
   -> realizeCharacter()            matched against what THIS machine actually installed
   -> CharacterRealization          body/head/hair/garments/footwear/accessories + materials
@@ -132,9 +132,9 @@ npm run foundry:report -- 1337 <path>   # or an explicit catalogue
 
 ---
 
-## 5. How AppearanceTraits map to assets
+## 5. How the appearance description maps to assets
 
-| Canonical trait | Becomes |
+| Canonical field | Becomes |
 | --- | --- |
 | `presentation` | `female` / `male` / `unisex` cut preference |
 | `agePresentation` (derived from `Person.age`) | `child` / `adult` / `elder` body and head **requirement** |

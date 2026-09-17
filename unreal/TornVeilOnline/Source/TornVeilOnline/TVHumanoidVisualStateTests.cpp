@@ -25,9 +25,9 @@ bool FTVHumanoidVisualStateParser::RunTest(const FString&) {
     return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTVHumanoidAppearanceTraits,
-    "TornVeil.Humanoid.VisualState.AppearanceTraits", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-bool FTVHumanoidAppearanceTraits::RunTest(const FString&) {
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTVHumanoidAppearanceDescription,
+    "TornVeil.Humanoid.VisualState.AppearanceDescription", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FTVHumanoidAppearanceDescription::RunTest(const FString&) {
     auto J = MakeShared<FJsonObject>();
     J->SetStringField(TEXT("bodyId"), TEXT("body-a")); J->SetStringField(TEXT("entityId"), TEXT("person-a"));
     J->SetStringField(TEXT("name"), TEXT("Ari")); J->SetStringField(TEXT("activity"), TEXT("walk")); J->SetStringField(TEXT("pose"), TEXT("stand"));
@@ -38,27 +38,27 @@ bool FTVHumanoidAppearanceTraits::RunTest(const FString&) {
     auto Appearance = MakeShared<FJsonObject>(); Appearance->SetNumberField(TEXT("shirt"), 0x7a1a24); J->SetObjectField(TEXT("appearance"), Appearance);
     FTVHumanoidVisualState State; FString Error;
     TestTrue(TEXT("appearance without traits still parses"), FTVHumanoidVisualState::Parse(J, State, Error));
-    TestFalse(TEXT("absent traits are reported absent"), State.Appearance.Traits.bHasTraits);
+    TestFalse(TEXT("absent traits are reported absent"), State.Appearance.Description.bHasDescription);
 
-    auto Traits = MakeShared<FJsonObject>();
-    Traits->SetStringField(TEXT("archetype"), TEXT("shogun"));
-    Traits->SetStringField(TEXT("garmentSilhouette"), TEXT("hakama_set"));
-    Traits->SetStringField(TEXT("hairStyle"), TEXT("topknot"));
-    Traits->SetStringField(TEXT("agePresentation"), TEXT("middle_aged"));
-    Traits->SetNumberField(TEXT("wear"), 4.2);       // out of range
-    Traits->SetNumberField(TEXT("grooming"), 0.42);
+    auto Description = MakeShared<FJsonObject>();
+    Description->SetStringField(TEXT("archetype"), TEXT("shogun"));
+    Description->SetStringField(TEXT("garmentSilhouette"), TEXT("hakama_set"));
+    Description->SetStringField(TEXT("hairStyle"), TEXT("topknot"));
+    Description->SetStringField(TEXT("agePresentation"), TEXT("middle_aged"));
+    Description->SetNumberField(TEXT("wear"), 4.2);       // out of range
+    Description->SetNumberField(TEXT("grooming"), 0.42);
     TArray<TSharedPtr<FJsonValue>> Accessories;
     Accessories.Add(MakeShared<FJsonValueString>(TEXT("beard")));
     Accessories.Add(MakeShared<FJsonValueString>(TEXT("scabbard")));
     Accessories.Add(MakeShared<FJsonValueNumber>(7)); // not a token; must be dropped, not fatal
-    Traits->SetArrayField(TEXT("accessories"), Accessories);
+    Description->SetArrayField(TEXT("accessories"), Accessories);
     TArray<TSharedPtr<FJsonValue>> RoleCues; RoleCues.Add(MakeShared<FJsonValueString>(TEXT("hammer")));
-    Traits->SetArrayField(TEXT("roleCues"), RoleCues);
-    Appearance->SetObjectField(TEXT("traits"), Traits);
+    Description->SetArrayField(TEXT("roleCues"), RoleCues);
+    Appearance->SetObjectField(TEXT("description"), Description);
 
     TestTrue(TEXT("traits parse"), FTVHumanoidVisualState::Parse(J, State, Error));
-    const FTVAppearanceTraits& Parsed = State.Appearance.Traits;
-    TestTrue(TEXT("traits are reported present"), Parsed.bHasTraits);
+    const FTVAppearanceDescription& Parsed = State.Appearance.Description;
+    TestTrue(TEXT("traits are reported present"), Parsed.bHasDescription);
     TestEqual(TEXT("archetype survives"), Parsed.Archetype, FString(TEXT("shogun")));
     TestEqual(TEXT("silhouette survives"), Parsed.GarmentSilhouette, FString(TEXT("hakama_set")));
     TestEqual(TEXT("derived age presentation survives"), Parsed.AgePresentation, FString(TEXT("middle_aged")));
@@ -68,9 +68,9 @@ bool FTVHumanoidAppearanceTraits::RunTest(const FString&) {
     TestTrue(TEXT("role cues arrive separately from worn accessories"), Parsed.RoleCues.Contains(TEXT("hammer")) && !Parsed.HasAccessory(TEXT("hammer")));
 
     // A malformed trait block must never cost the body its transform.
-    Appearance->SetStringField(TEXT("traits"), TEXT("not-an-object"));
+    Appearance->SetStringField(TEXT("description"), TEXT("not-an-object"));
     TestTrue(TEXT("malformed traits degrade to no traits"), FTVHumanoidVisualState::Parse(J, State, Error));
-    TestFalse(TEXT("malformed traits are not presented"), State.Appearance.Traits.bHasTraits);
+    TestFalse(TEXT("malformed traits are not presented"), State.Appearance.Description.bHasDescription);
     return true;
 }
 

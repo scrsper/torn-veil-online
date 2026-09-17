@@ -1,5 +1,5 @@
 import { GARMENT_PALETTES, HAIR_COLORS, SKIN_TONES } from '../sim/core/appearance';
-import type { ProjectedAppearanceTraits } from '../sim/core/appearance';
+import type { ProjectedAppearanceDescription } from '../sim/core/appearance';
 import { individualRng } from '../sim/core/human';
 import type { RNG } from '../sim/core/rng';
 import { SKELETAL_SLOTS, animatableSkeletons } from './catalogue';
@@ -11,7 +11,7 @@ import type { SlotRule } from './manifest';
  * The Character Foundry: canonical semantics in, a concrete physical configuration out.
  *
  * ```text
- * Person (canonical)  ->  AppearanceTraits  ->  slotRules()  ->  [ this ]  ->  CharacterRealization
+ * Person (canonical)  ->  AppearanceDescription  ->  slotRules()  ->  [ this ]  ->  CharacterRealization
  *                                                                   ^
  *                                             machine-local CharacterCatalogue
  * ```
@@ -77,7 +77,7 @@ export interface RealizationInput {
   /** Stable identity for the selection stream: a slug where one exists, else the entity id. */
   identity: string;
   seed: number;
-  traits: ProjectedAppearanceTraits;
+  traits: ProjectedAppearanceDescription;
   /** Realized canonical colours and scale, as the bridge already projects them. */
   appearance: { skin: number; hair: number; shirt: number; pants: number; apron?: number; height: number; build: number };
 }

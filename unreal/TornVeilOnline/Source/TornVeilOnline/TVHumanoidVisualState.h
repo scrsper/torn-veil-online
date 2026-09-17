@@ -6,14 +6,14 @@ class FJsonObject;
 
 /**
  * The structured description the simulation sends alongside the realized colours
- * (src/sim/core/appearance.ts `ProjectedAppearanceTraits`). Every field is optional at the wire:
+ * (src/sim/core/appearance.ts `ProjectedAppearanceDescription`). Every field is optional at the wire:
  * a body projected by an older bridge, or a person saved before the character pipeline existed,
- * arrives with `bHasTraits == false` and is presented exactly as it was before — colours, scale
+ * arrives with `bHasDescription == false` and is presented exactly as it was before — colours, scale
  * and the occupation grammar. Nothing here is authority; it is a description this client is free
  * to map onto whatever assets it actually has.
  */
-struct FTVAppearanceTraits {
-    bool bHasTraits = false;
+struct FTVAppearanceDescription {
+    bool bHasDescription = false;
     FString Archetype, Culture, Presentation, SkinTone, FaceShape, HairStyle, HairColor, EyeColor;
     FString Frame, Stature, GarmentSilhouette, GarmentPalette, Status, AgePresentation;
     /** Persistent worn items and markings. */
@@ -31,7 +31,7 @@ struct FTVAppearanceVisualState {
     uint32 Skin = 0xd9a988, Shirt = 0x8a6a4a, Hair = 0x4a2f1a;
     float Height = 1.f, Build = 1.f;
     FString HatStyle;
-    FTVAppearanceTraits Traits;
+    FTVAppearanceDescription Description;
 };
 
 /** Validated, presentation-only projection of one canonical body. */

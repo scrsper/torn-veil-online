@@ -75,28 +75,28 @@ bool FTVHumanoidVisualState::Parse(const TSharedPtr<FJsonObject>& J, FTVHumanoid
         if (Number(*A, TEXT("build"), C)) Out.Appearance.Build = FMath::Clamp(static_cast<float>(C), .82f, 1.18f);
         (*A)->TryGetStringField(TEXT("hatStyle"), Out.Appearance.HatStyle);
         const TSharedPtr<FJsonObject>* T = nullptr;
-        if ((*A)->TryGetObjectField(TEXT("traits"), T) && T && T->IsValid()) {
-            FTVAppearanceTraits& Traits = Out.Appearance.Traits;
-            Traits.bHasTraits = true;
-            OptionalString(*T, TEXT("archetype"), Traits.Archetype);
-            OptionalString(*T, TEXT("culture"), Traits.Culture);
-            OptionalString(*T, TEXT("presentation"), Traits.Presentation);
-            OptionalString(*T, TEXT("skinTone"), Traits.SkinTone);
-            OptionalString(*T, TEXT("faceShape"), Traits.FaceShape);
-            OptionalString(*T, TEXT("hairStyle"), Traits.HairStyle);
-            OptionalString(*T, TEXT("hairColor"), Traits.HairColor);
-            OptionalString(*T, TEXT("eyeColor"), Traits.EyeColor);
-            OptionalString(*T, TEXT("frame"), Traits.Frame);
-            OptionalString(*T, TEXT("stature"), Traits.Stature);
-            OptionalString(*T, TEXT("garmentSilhouette"), Traits.GarmentSilhouette);
-            OptionalString(*T, TEXT("garmentPalette"), Traits.GarmentPalette);
-            OptionalString(*T, TEXT("status"), Traits.Status);
-            OptionalString(*T, TEXT("agePresentation"), Traits.AgePresentation);
-            OptionalTokens(*T, TEXT("accessories"), Traits.Accessories);
-            OptionalTokens(*T, TEXT("culturalTags"), Traits.CulturalTags);
-            OptionalTokens(*T, TEXT("roleCues"), Traits.RoleCues);
-            if (Number(*T, TEXT("grooming"), C)) Traits.Grooming = FMath::Clamp(static_cast<float>(C), 0.f, 1.f);
-            if (Number(*T, TEXT("wear"), C)) Traits.Wear = FMath::Clamp(static_cast<float>(C), 0.f, 1.f);
+        if ((*A)->TryGetObjectField(TEXT("description"), T) && T && T->IsValid()) {
+            FTVAppearanceDescription& Description = Out.Appearance.Description;
+            Description.bHasDescription = true;
+            OptionalString(*T, TEXT("archetype"), Description.Archetype);
+            OptionalString(*T, TEXT("culture"), Description.Culture);
+            OptionalString(*T, TEXT("presentation"), Description.Presentation);
+            OptionalString(*T, TEXT("skinTone"), Description.SkinTone);
+            OptionalString(*T, TEXT("faceShape"), Description.FaceShape);
+            OptionalString(*T, TEXT("hairStyle"), Description.HairStyle);
+            OptionalString(*T, TEXT("hairColor"), Description.HairColor);
+            OptionalString(*T, TEXT("eyeColor"), Description.EyeColor);
+            OptionalString(*T, TEXT("frame"), Description.Frame);
+            OptionalString(*T, TEXT("stature"), Description.Stature);
+            OptionalString(*T, TEXT("garmentSilhouette"), Description.GarmentSilhouette);
+            OptionalString(*T, TEXT("garmentPalette"), Description.GarmentPalette);
+            OptionalString(*T, TEXT("status"), Description.Status);
+            OptionalString(*T, TEXT("agePresentation"), Description.AgePresentation);
+            OptionalTokens(*T, TEXT("accessories"), Description.Accessories);
+            OptionalTokens(*T, TEXT("culturalTags"), Description.CulturalTags);
+            OptionalTokens(*T, TEXT("roleCues"), Description.RoleCues);
+            if (Number(*T, TEXT("grooming"), C)) Description.Grooming = FMath::Clamp(static_cast<float>(C), 0.f, 1.f);
+            if (Number(*T, TEXT("wear"), C)) Description.Wear = FMath::Clamp(static_cast<float>(C), 0.f, 1.f);
         }
     }
     return true;
