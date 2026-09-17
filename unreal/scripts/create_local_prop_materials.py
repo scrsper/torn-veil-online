@@ -32,7 +32,34 @@ ROLES = [
     ("LanternRound", "LanternRound"),
     ("CookingPot", "CookingPot"),
     ("Sack", "Sack"),
+    ("SackTied", "SackTied"),
+    ("SackFallen", "SackFallen"),
+    ("LogLong", "LogLong"),
+    ("LogShort", "LogShort"),
+    ("HeyStackCylinder", "HeyStackCylinder"),
+    ("HeyStackSquare", "HeyStackSquare"),
+    ("Container1", "Container1"),
+    ("Container2", "Container2"),
+    ("Bucket", "Bucket"),
+    ("WallLantern", "WallLantern"),
+    ("Carrage", "Carrage"),
+    ("StoneWall", "StoneWall"),
+    ("StoneWallBlock", "StoneWallBlock"),
+    ("ArrowSignLR", "ArrowSignLR"),
+    ("BarrleStand", "BarrleStand"),
+    ("Barrle2", "Barrle2"),
+    ("HalfBarrle", "HalfBarrle"),
+    ("Ladder", "Ladder"),
+    ("Campfire", "Campfire"),
+    ("Cloth2", "Cloth2"),
+    ("Cloth3", "Cloth3"),
+    ("WoodenPack", "WoodenPack"),
+    ("WoodenTableRound", "WoodenTableRound"),
+    ("WoodenChair2", "WoodenChair2"),
 ]
+# Meshes whose texture set carries a shared name in the source pack.
+TEXTURE_ALIASES = {"PlankTall": "Planks", "PlankMid": "Planks", "PoleLong": "Pole", "PoleMid": "Pole"}
+ROLES += [("PlankTall", "PlankTall"), ("PlankMid", "PlankMid"), ("PoleLong", "PoleLong"), ("PoleMid", "PoleMid")]
 
 
 def require_connection(ok, description):
@@ -85,10 +112,11 @@ def main():
     report = {"registry": REGISTRY, "output": OUT_DIR, "created": [], "skipped": []}
     for role, source_name in ROLES:
         mesh_path = SOURCE_ROOT + "Medieval1_fbx_" + source_name
+        texture_name = TEXTURE_ALIASES.get(source_name, source_name)
         texture_paths = {
-            "baseColor": TEXTURE_ROOT + source_name + "_BaseColor",
-            "normal": TEXTURE_ROOT + source_name + "_Normal",
-            "roughness": TEXTURE_ROOT + source_name + "_Roughness",
+            "baseColor": TEXTURE_ROOT + texture_name + "_BaseColor",
+            "normal": TEXTURE_ROOT + texture_name + "_Normal",
+            "roughness": TEXTURE_ROOT + texture_name + "_Roughness",
         }
         missing_registry = [p for p in [mesh_path, *texture_paths.values()] if p not in registry]
         if missing_registry:

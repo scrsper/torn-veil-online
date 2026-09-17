@@ -17,6 +17,10 @@
 namespace {
 constexpr float SunLux = 12000.f;
 constexpr float DaylightEV100 = 12.f;
+// Interiors adapt down to EV100 7 so a lantern-lit room reads; daylight exteriors still meter at 12.
+constexpr float InteriorEV100 = 7.f;
+// A lower afternoon sun models facades and terrain; overhead light flattens them.
+const FRotator SunRotation(-36,-35,0);
 template<class T> TArray<T*> Find(UWorld* World) {
     TArray<T*> Result;
     for (TActorIterator<T> It(World); It; ++It) Result.Add(*It);
@@ -62,7 +66,7 @@ FString UTVPlayableLighting::EnsureDaylight(UWorld* World) {
     Light->SetIntensity(SunLux);
     Light->SetAtmosphereSunLight(true);
     Sun->SetActorHiddenInGame(false);
-    Sun->SetActorRotation(FRotator(-45,-35,0));
+    Sun->SetActorRotation(SunRotation);
     auto* SkyLight = Sky->GetLightComponent();
     SkyLight->SetMobility(EComponentMobility::Movable);
     SkyLight->bAffectsWorld = true;
@@ -76,7 +80,10 @@ FString UTVPlayableLighting::EnsureDaylight(UWorld* World) {
     Atmosphere->SetActorHiddenInGame(false);
     Atmosphere->GetRootComponent()->SetVisibility(true);
     Fog->SetActorLocation(FVector(0,0,-1000));
-    Fog->GetComponent()->SetFogDensity(.008f);
+    Fog->GetComponent()->SetFogDensity(.014f);
+    // Aerial depth: distant woods soften into the sky instead of ending at a hard horizon.
+    Fog->GetComponent()->SetFogHeightFalloff(.05f);
+    Fog->GetComponent()->SetStartDistance(4000.f);
     Post->bEnabled = true;
     Post->bUnbound = true;
     Post->BlendWeight = 1.f;
@@ -88,7 +95,7 @@ FString UTVPlayableLighting::EnsureDaylight(UWorld* World) {
     Settings.AutoExposureMethod = AEM_Histogram;
     Settings.bOverride_AutoExposureMinBrightness = true;
     Settings.bOverride_AutoExposureMaxBrightness = true;
-    Settings.AutoExposureMinBrightness = DaylightEV100;
+    Settings.AutoExposureMinBrightness = InteriorEV100;
     Settings.AutoExposureMaxBrightness = DaylightEV100;
     Settings.bOverride_AutoExposureBias = true;
     Settings.AutoExposureBias = 1.f;
@@ -106,7 +113,7 @@ FString UTVPlayableLighting::ValidateDaylight(UWorld* World, bool RequireLitView
     const auto* Sun=CastChecked<UDirectionalLightComponent>(Suns[0]->GetLightComponent());
     if (Sun->Mobility!=EComponentMobility::Movable || !Sun->bAffectsWorld || !Sun->IsVisible() ||
         Suns[0]->IsHidden() || !Sun->bAtmosphereSunLight || !FMath::IsNearlyEqual(Sun->Intensity,SunLux) ||
-        !Suns[0]->GetActorRotation().Equals(FRotator(-45,-35,0),.1f))
+        !Suns[0]->GetActorRotation().Equals(SunRotation,.1f))
         return TEXT("Directional light is not the 12000-lux movable daylight baseline");
     const auto* Sky=Skies[0]->GetLightComponent();
     if (Sky->Mobility!=EComponentMobility::Movable || !Sky->bAffectsWorld || !Sky->IsVisible() ||
@@ -120,10 +127,10 @@ FString UTVPlayableLighting::ValidateDaylight(UWorld* World, bool RequireLitView
     if (!Post->bEnabled || !Post->bUnbound || !FMath::IsNearlyEqual(Post->BlendWeight,1.f) ||
         !S.bOverride_AutoExposureMethod || S.AutoExposureMethod!=AEM_Histogram ||
         !S.bOverride_AutoExposureMinBrightness || !S.bOverride_AutoExposureMaxBrightness ||
-        !FMath::IsNearlyEqual(S.AutoExposureMinBrightness,DaylightEV100) ||
+        !FMath::IsNearlyEqual(S.AutoExposureMinBrightness,InteriorEV100) ||
         !FMath::IsNearlyEqual(S.AutoExposureMaxBrightness,DaylightEV100) ||
         !S.bOverride_AutoExposureBias || !FMath::IsNearlyEqual(S.AutoExposureBias,1.f))
-        return TEXT("Post-process exposure must be unbound, enabled, EV100 12 with compensation +1");
+        return TEXT("Post-process exposure must be unbound, enabled, EV100 7-12 with compensation +1");
     if (!CVarIs(TEXT("r.DefaultFeature.AutoExposure.ExtendDefaultLuminanceRange"),1) ||
         !CVarIs(TEXT("r.DynamicGlobalIlluminationMethod"),1) ||
         !CVarIs(TEXT("r.ReflectionMethod"),1) || !CVarIs(TEXT("r.Lumen.DiffuseIndirect.Allow"),1))

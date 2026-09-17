@@ -94,7 +94,9 @@ void ATVRegionProjection::Decor(const FString& MeshPath, const FTransform& Local
         Batch->SetCollisionEnabled(ECollisionEnabled::NoCollision); Batch->SetCanEverAffectNavigation(false);
         Batch->SetCastShadow(bShadow); Batch->bAffectDistanceFieldLighting = false;
         if (CullEnd > 0) Batch->SetCullDistances(FMath::RoundToInt(CullEnd * .8f), FMath::RoundToInt(CullEnd));
-        if (!Material.IsEmpty()) if (auto* M = LoadObject<UMaterialInterface>(nullptr, *Material)) for (int32 I = 0; I < Mesh->GetStaticMaterials().Num(); ++I) Batch->SetMaterial(I, M);
+        if (!Material.IsEmpty()) { if (auto* M = LoadObject<UMaterialInterface>(nullptr, *Material)) for (int32 I = 0; I < Mesh->GetStaticMaterials().Num(); ++I) Batch->SetMaterial(I, M); }
+        else if (auto* Wrapper = FTVEnvironmentGrammar::WrapperMaterial(MeshPath)) { for (int32 I = 0; I < Mesh->GetStaticMaterials().Num(); ++I) Batch->SetMaterial(I, Wrapper); }
+        else for (int32 I = 0; I < Mesh->GetStaticMaterials().Num(); ++I) if (auto* Safe = FTVEnvironmentGrammar::InstancingMaterial(Mesh->GetMaterial(I))) Batch->SetMaterial(I, Safe);
         Batch->ComponentTags.Add(TEXT("TV.Decorative.NoGameplay"));
         Batch->RegisterComponent(); Batches.Add(Key, Batch);
     }
@@ -143,7 +145,7 @@ void ATVRegionProjection::Woodland(const TSharedPtr<FJsonObject>& R)
     // structure: open village core, orchards beside dwellings, a thickening edge, then woods with
     // clearings. Routes, buildings, fields, water and steep cells stay clear.
     const double X0 = CanonicalBase.X, Y0 = CanonicalBase.Y;
-    const int32 Grid = 6;
+    const int32 Grid = 5;
     for (int32 GX = FMath::FloorToInt(X0 / Grid); GX * Grid < X0 + 256; ++GX) for (int32 GY = FMath::FloorToInt(Y0 / Grid); GY * Grid < Y0 + 256; ++GY) {
         const double WX = GX * Grid + Hash01(GX, GY, 11) * Grid, WY = GY * Grid + Hash01(GX, GY, 12) * Grid;
         if (WX < X0 || WX >= X0 + 256 || WY < Y0 || WY >= Y0 + 256) continue;
@@ -161,11 +163,11 @@ void ATVRegionProjection::Woodland(const TSharedPtr<FJsonObject>& R)
         if (Edge < 0) {
             // Inside the settlement: mostly open, trees gathering toward its boundary.
             const double TowardEdge = FMath::SmoothStep(-70., -6., Edge);
-            Density = Forest * FMath::Lerp(.015, .42, TowardEdge);
+            Density = Forest * FMath::Lerp(.02, .62, TowardEdge);
             if (Place > 5 && Place < 16 && Clear > 6) { bOrchard = Hash01(GX, GY, 14) < .22f; if (bOrchard) Density = FMath::Max(Density, .30); }
         } else {
             const double Clearing = FMath::SmoothStep(.30, .52, static_cast<double>(FTVEnvironmentGrammar::Cluster(FVector2D(WX, WY) / 3.3, 5)));
-            Density = FMath::Pow(Forest, 1.2) * FMath::Lerp(.45, .92, FMath::SmoothStep(0., 45., Edge)) * FMath::Lerp(.35, 1., Clearing);
+            Density = FMath::Min(1., FMath::Pow(Forest, 1.1) * FMath::Lerp(.55, 1.15, FMath::SmoothStep(0., 45., Edge)) * FMath::Lerp(.45, 1., Clearing));
             if (Clear < 9) Density *= .35;
         }
         if (Roll > Density) continue;
@@ -231,7 +233,7 @@ void ATVVistaProjection::Build(const TSharedPtr<FJsonObject>& V)
         Vertices.Add(FVector(I * Stride * 100, J * Stride * 100, H(I, J) * 100 - 45));
         UV.Add(FVector2D(I * Stride + FMath::Fmod(OX, 4.), J * Stride + FMath::Fmod(OZ, 4.)) / 4.);
         const TCHAR Kind = Surface[I * Side + J];
-        Colors.Add(FLinearColor(Kind == 'p' ? .9f : Kind == 's' || Kind == 'r' ? .6f : 0, 0, (Forest[I * Side + J] - 48) / 9.f, 1));
+        Colors.Add(FLinearColor(Kind == 'p' ? .9f : Kind == 's' || Kind == 'r' ? .6f : 0, 0, (Forest[I * Side + J] - 48) / 9.f, 0));
     }
     for (int32 I = 0; I + 1 < Side; ++I) for (int32 J = 0; J + 1 < Side; ++J) {
         const double CX0 = OX + I * Stride, CZ0 = OZ + J * Stride;
@@ -265,12 +267,12 @@ void ATVVistaProjection::Build(const TSharedPtr<FJsonObject>& V)
     for (int32 I = 0; I + 1 < Side; ++I) for (int32 J = 0; J + 1 < Side; ++J) {
         const double CX0 = OX + I * Stride, CZ0 = OZ + J * Stride;
         const double Distance = FVector2D::Distance(FVector2D(CX0 + Stride / 2, CZ0 + Stride / 2), FVector2D(CX, CZ));
-        if (Distance > 2200 || (CX0 + Stride > InX0 - 16 && CX0 < InX1 + 16 && CZ0 + Stride > InZ0 - 16 && CZ0 < InZ1 + 16)) continue;
+        if (Distance > 2700 || (CX0 + Stride > InX0 - 16 && CX0 < InX1 + 16 && CZ0 + Stride > InZ0 - 16 && CZ0 < InZ1 + 16)) continue;
         const TCHAR Kind = Surface[I * Side + J];
         if (Kind != 'g') continue;
         const double F = (Forest[I * Side + J] - 48) / 9.;
         const int32 GX = FMath::FloorToInt(CX0 / Stride), GY = FMath::FloorToInt(CZ0 / Stride);
-        const int32 Count = FMath::FloorToInt(FMath::Pow(F, 1.3) * 3.2 + Hash01(GX, GY, 31));
+        const int32 Count = FMath::FloorToInt(FMath::Pow(F, 1.2) * (Distance < 1400 ? 5.2 : 3.6) + Hash01(GX, GY, 31));
         for (int32 K = 0; K < Count; ++K) {
             const double U = Hash01(GX, GY, 40 + K), W = Hash01(GX, GY, 60 + K);
             const double WX = CX0 + U * Stride, WZ = CZ0 + W * Stride;

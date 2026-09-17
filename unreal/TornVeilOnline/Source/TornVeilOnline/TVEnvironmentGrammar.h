@@ -17,4 +17,8 @@ struct FTVEnvironmentGrammar {
     static float Cluster(const FVector2D& Point, int32 Seed);
     static void ReloadPalette();
     static FString Asset(const TCHAR* Role, const TCHAR* Fallback);
+    /** Local instancing-capable copy of a pack material lacking the ISM usage flag, or null. */
+    static class UMaterialInterface* InstancingMaterial(const class UMaterialInterface* Source);
+    /** Local PBR wrapper for a Free Medieval prop mesh, or null. */
+    static class UMaterialInterface* WrapperMaterial(const FString& MeshPath);
 };

@@ -4,6 +4,7 @@
 #include "Misc/Paths.h"
 #include "Misc/PackageName.h"
 #include "Serialization/JsonSerializer.h"
+#include "Materials/MaterialInterface.h"
 
 namespace { TSharedPtr<FJsonObject> EnvironmentPalette; TMap<FString,FString> ResolvedAssets; }
 
@@ -73,4 +74,30 @@ FString FTVEnvironmentGrammar::Asset(const TCHAR* Role, const TCHAR* Fallback) {
         UE_LOG(LogTemp,Warning,TEXT("Palette role %s unavailable (%s); using fallback"),Role,*Path);
     }
     ResolvedAssets.Add(Key,Fallback); return FString(Fallback);
+}
+
+UMaterialInterface* FTVEnvironmentGrammar::InstancingMaterial(const UMaterialInterface* Source) {
+    // AdvancedVillage base materials were authored without the InstancedStaticMeshes usage flag.
+    // create_local_village_materials.py derives flagged copies; unknown sources keep their material.
+    static TMap<FString,TWeakObjectPtr<UMaterialInterface>> Cache;
+    if(!Source) return nullptr;
+    const FString Path=Source->GetPathName();
+    static const FString Prefix=TEXT("/Game/AdvancedVillagePack/Materials/M_Inst_");
+    if(!Path.StartsWith(Prefix)) return nullptr;
+    if(const auto* Found=Cache.Find(Path)) return Found->Get();
+    const FString Name=Path.Mid(Prefix.Len()).Left(Path.Mid(Prefix.Len()).Find(TEXT(".")));
+    const FString Local=FString::Printf(TEXT("/Game/TornVeil/Materials/LocalPalette/Village/M_TV_Village_%s.M_TV_Village_%s"),*Name,*Name);
+    UMaterialInterface* Copy=FPackageName::DoesPackageExist(FPackageName::ObjectPathToPackageName(Local))?LoadObject<UMaterialInterface>(nullptr,*Local):nullptr;
+    Cache.Add(Path,Copy);
+    return Copy;
+}
+
+UMaterialInterface* FTVEnvironmentGrammar::WrapperMaterial(const FString& MeshPath) {
+    // Free Medieval props ship materials pointing at default textures; local PBR wrappers bind the
+    // pack's own texture sets (create_local_prop_materials.py). Missing wrappers keep the source.
+    static const FString Marker=TEXT("/Medieval1_fbx_");
+    const int32 At=MeshPath.Find(Marker); if(At==INDEX_NONE) return nullptr;
+    FString Name=MeshPath.Mid(At+Marker.Len()); Name=Name.Left(Name.Find(TEXT(".")) == INDEX_NONE ? Name.Len() : Name.Find(TEXT(".")));
+    const FString Local=FString::Printf(TEXT("/Game/TornVeil/Materials/LocalPalette/M_TV_Local_%s.M_TV_Local_%s"),*Name,*Name);
+    return FPackageName::DoesPackageExist(FPackageName::ObjectPathToPackageName(Local))?LoadObject<UMaterialInterface>(nullptr,*Local):nullptr;
 }

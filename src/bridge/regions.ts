@@ -84,7 +84,7 @@ export function* projectRegionSteps(w: World, rx: number, rz: number) {
 /** Coarse read-only landform around a streamed centre region, for the far horizon only.
  * Sampled from the versioned geographic baseline (never the voxel grid), so it cannot reveal
  * or mutate settlement contents. Strings keep the payload small: one character per sample. */
-export const VISTA_STRIDE = 32, VISTA_RADIUS = 96;
+export const VISTA_STRIDE = 32, VISTA_RADIUS = 160;
 export function projectVista(w: World, rx: number, rz: number) {
   const g = w.geography!, size = g.spec.regionSize, side = VISTA_RADIUS * 2 + 1;
   const x0 = Math.round(((rx + .5) * size) / VISTA_STRIDE) * VISTA_STRIDE - VISTA_RADIUS * VISTA_STRIDE;

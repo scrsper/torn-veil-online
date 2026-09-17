@@ -51,6 +51,12 @@ private:
     /** Decorative, non-colliding instance placed by the mesh pivot; never a canonical visual. */
     void Decor(const FString& MeshPath, const FTransform& Local, float CullEnd = 0, bool bShadow = true, const FString& Material = TEXT(""));
     void Woodland(const TSharedPtr<FJsonObject>& Region);
+    /** Functional exterior dressing derived from canonical place type, footprint, door and paths. */
+    void DressPlaces(const TSharedPtr<FJsonObject>& Region);
+    /** Uniformly scaled, ground-seated decorative prop at canonical centimetres. */
+    void Prop(const TCHAR* Role, const TCHAR* Fallback, const FVector& CanonicalCm, float Yaw, float Height, float CullEnd = 0);
+    void Lamp(const FVector& CanonicalCm, float Candela, float Radius, const FLinearColor& Color = FLinearColor(1., .72, .45));
+    UPROPERTY() TArray<TObjectPtr<class UPointLightComponent>> Lamps;
 };
 
 /** Far horizon only: coarse canonical landform and forest density beyond the streamed regions.
