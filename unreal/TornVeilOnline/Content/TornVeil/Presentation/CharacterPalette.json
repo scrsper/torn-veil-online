@@ -1,15 +1,58 @@
 {
-  "schema": 2,
-  "purpose": "Unreal-only activity animation and retarget execution mappings. Character meshes and modular parts are selected by the shared Character Foundry resolver.",
+  "activities": {
+    "carry": "/Game/Characters/TornVeilActivities/A_TV_haul.A_TV_haul",
+    "carry/haul": "/Game/Characters/TornVeilActivities/A_TV_haul.A_TV_haul",
+    "drink": "/Game/Characters/TornVeilActivities/A_TV_drink.A_TV_drink",
+    "drink/drink_from_source": "/Game/Characters/TornVeilActivities/A_TV_drink.A_TV_drink",
+    "drink/drink_vessel": "/Game/Characters/TornVeilActivities/A_TV_drink.A_TV_drink",
+    "injured": "/Game/TornVeil/Characters/Animations/A_TV_Downed.A_TV_Downed",
+    "injured/downed": "/Game/TornVeil/Characters/Animations/A_TV_Downed.A_TV_Downed",
+    "rest": "/Game/Characters/TornVeilActivities/A_TV_rest.A_TV_rest",
+    "socialize": "/Game/Characters/TornVeilActivities/A_TV_talk.A_TV_talk",
+    "socialize/sit_and_talk": "/Game/Characters/TornVeilActivities/A_TV_talk.A_TV_talk",
+    "travel": "/Game/TornVeil/Combat/Repair/Animations/A_TV_Sprint.A_TV_Sprint",
+    "work": "/Game/Characters/TornVeilActivities/A_TV_work.A_TV_work",
+    "work/chop": "/Game/Characters/TornVeilActivities/A_TV_chop.A_TV_chop"
+  },
+  "coverage": {
+    "activities": "13/36"
+  },
+  "driverSkeletons": [
+    "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+  ],
   "howToFill": [
     "1. In the editor, run unreal/scripts/audit_character_assets.py to write the one machine-local Foundry catalogue for meshes, parts, skeletons, retargeters and activity animations.",
     "2. Run unreal/scripts/build_character_palette.py to rewrite this file from that catalogue. Appearance assets are already selected by the Foundry; this file maps activity clips only.",
     "3. For a visible character on a skeleton other than the driver, run unreal/scripts/build_character_retarget.py first and pass its --retarget argument to the palette builder."
   ],
-  "note": "This checked-in copy resolves no optional activity clips. An absent Foundry catalogue or missing body keeps the Manny driver visible and reports visibleCharacter:false.",
-  "driverSkeletons": [
-    "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
-  ],
-  "activities": {},
-  "retargets": {}
+  "purpose": "Unreal-only activity and retarget execution mappings. Character meshes and parts are selected by the shared Character Foundry resolver.",
+  "retargets": {},
+  "schema": 2,
+  "unresolved": {
+    "activities": [
+      "work/forge",
+      "work/bake",
+      "work/mill",
+      "work/tend",
+      "work/craft",
+      "work/serve",
+      "work/gather",
+      "work/repair",
+      "work/inspect",
+      "work/operate",
+      "work/record",
+      "eat",
+      "eat/sit_and_eat",
+      "eat/eat_standing",
+      "rest/sleep",
+      "rest/seated",
+      "rest/pray",
+      "socialize/converse",
+      "trade",
+      "trade/barter",
+      "carry/carry_travel",
+      "flee",
+      "idle"
+    ]
+  }
 }

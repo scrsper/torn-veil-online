@@ -10,11 +10,14 @@ deliberately never committed and never enters canonical simulation state — it 
 presentation layer only. See docs/CHARACTER_FOUNDRY.md and src/foundry/catalogue.ts, which defines
 the schema this emits.
 
-Like audit_local_environment.py, this only reads the AssetRegistry: no asset is loaded, saved,
-moved, or modified, and no external account is touched.
+Like audit_local_environment.py, nothing is saved, moved, or modified, and no external account is
+touched. Unlike it, this script does *load* skeletons and skeletal meshes read-only, because the
+one question that matters most — "is this actually a person?" — has no AssetRegistry tag. Reading a
+bone hierarchy is the only honest way to answer it; see `humanoid_bones`.
 """
 import collections
 import datetime
+import hashlib
 import json
 import os
 import re
@@ -34,12 +37,42 @@ SLOT_PATTERNS = [
     ('footwear', r'boot|shoe|sandal|geta|footwear|greave'),
     ('armor', r'armou?r|lamellar|cuirass|breastplate|pauldron|chainmail|plate_'),
     ('robe', r'robe|kimono|cassock|habit|gown'),
-    ('upperGarment', r'shirt|tunic|jacket|coat|vest|top_|torso|upperbody|blouse|doublet|haori'),
+    ('upperGarment', r'shirt|tunic|jacket|\bcoat\b|\bvest\b|\btop_|torso|upperbody|blouse|doublet|haori'),
     ('lowerGarment', r'pants|trouser|skirt|hakama|legs?_|lowerbody|breeches|kilt'),
-    ('accessory', r'hat|hood|helm|cap|belt|scarf|bag|pack|pouch|jewel|necklace|earring|beads|mask|cloak|glove|bracer'),
+    # Word boundaries matter more here than anywhere else: without them `pack` matched every asset
+    # in a pack whose folder is called `..._Motion_Pack`, and `cap` matches "capture", "escape" and
+    # "capacity". The same lesson applies to `top_` under upperGarment.
+    ('accessory', r'\bhat\b|hood|helm|\bcap\b|\bbelt\b|scarf|\bbag\b|\bpack\b|pouch|jewel|necklace|earring|beads|mask|cloak|glove|bracer'),
     ('head', r'\bhead\b|face|skull|_hd\b'),
+    # `sk_`/`skm_` is the catch-all of last resort: in practice every skeletal mesh in a project
+    # matches it, including pickaxes, lockers, flashlights and deer. That is only safe because
+    # `body` and `head` are additionally gated on a humanoid bone hierarchy below — the naming
+    # convention proposes, the skeleton decides.
     ('body', r'body|torso_full|fullbody|base_?mesh|skm_|sk_'),
 ]
+
+# Slots whose asset has to be an actual person. Anything else a naming convention sweeps up here is
+# rejected on evidence rather than on a blocklist that would need a new line per content pack.
+HUMANOID_SLOTS = {'body', 'head'}
+
+# Two rig vocabularies cover every humanoid pack seen so far: Epic's UE4/UE5 mannequin convention
+# and the Mixamo/Maya convention that most motion-capture packs ship. A rig is humanoid when it has
+# a spine, a head, and a left/right pair of both arms and legs in ONE of these vocabularies. Bone
+# counts and mesh sizes are deliberately not used: a 90-bone prop and a 90-bone person look
+# identical by that measure.
+HUMANOID_SIGNATURES = [
+    ('ue', [('pelvis',), ('spine_01', 'spine_02', 'spine_03'), ('head',),
+            ('upperarm_l',), ('upperarm_r',), ('thigh_l',), ('thigh_r',)]),
+    ('mixamo', [('Hips',), ('Spine', 'Spine1', 'Spine2', 'Chest'), ('Head',),
+                ('LeftArm', 'LeftShoulder'), ('RightArm', 'RightShoulder'),
+                ('LeftUpLeg', 'LeftLeg'), ('RightUpLeg', 'RightLeg')]),
+]
+
+# Bones that mean the mesh carries its own head and face. A pack of separate head meshes is the
+# modular case the Foundry prefers, but a monolithic character (Epic's Manny, most Fab characters)
+# is a complete person in one mesh, and reporting a permanently unmet `head` requirement for it
+# would make the completeness metric meaningless rather than informative.
+HEAD_BONES = {'head', 'neck_01', 'Head', 'Neck', 'HeadEnd', 'Jaw'}
 
 # Descriptive tags the resolver matches on. Same idea: keyword -> tag, evaluated over path + name.
 TAG_PATTERNS = [
@@ -127,7 +160,187 @@ CANDIDATE_CLASSES = SKELETAL_CLASSES | GROOM_CLASSES | STATIC_CLASSES
 # filling the accessory slot with tablecloths and chairs.
 EXCLUDE_PATH = re.compile(
     r'/AdvancedVillagePack/|/Free_Medieval_Environment_Props|/RPGEnvironmentVFX/|/Megaplant|'
-    r'/ThirdParty/Quaternius/|/WaterPlane/|/TornVeil/LocalPalette/|/Environment/|/Landscape', re.I)
+    r'/ThirdParty/Quaternius/|/WaterPlane/|/TornVeil/LocalPalette/|/Environment/|/Landscape|'
+    # Motion packs. A pack shipped as one FBX per clip imports a rig preview mesh alongside every
+    # clip, and those meshes are whole bodies in a T-pose -- never wearable content. Their
+    # animations and skeletons are collected further up, before this check, so excluding the path
+    # costs no motion; it only stops 100+ identical rig meshes entering the accessory slot.
+    r'/Motifect_[A-Za-z_]*Motion_Pack/|/AnimStarterPack/|'
+    # Demo prop meshes that ship beside a sample animation set: ladders, lockers, pickaxes.
+    r'/FreeSampleAnimationSet/Demo/Meshes/', re.I)
+
+
+# Epic's own mannequins are the one place where a hand-written interpretation beats any regex:
+# `Manny` and `Quinn` carry no descriptive token at all, so without this table the Foundry cannot
+# honour `presentation` even though the two meshes plainly differ. This is the same kind of
+# deliberate, checkable reading as src/sim/world/characterArchetypes.ts — an author's statement
+# about known content, not a guess derived from a filename.
+KNOWN_BODY_TAGS = [
+    (r'/SKM_Manny(_Simple)?$', ['male', 'adult', 'average']),
+    (r'/SKM_Quinn(_Simple)?$', ['female', 'adult', 'slim']),
+    (r'/SKM_UEFN_Mannequin$', ['unisex', 'adult', 'average']),
+    (r'/HeroTPP$', ['male', 'adult', 'muscular']),
+]
+
+_BONE_CACHE = {}
+bone_probe_method = 'none'
+
+
+def bone_names(mesh):
+    """Bone names of a skeletal mesh's reference skeleton.
+
+    UE's Python surface for this has moved between versions, so each known route is tried in turn
+    and the one that worked is reported in the catalogue. A failure here returns an empty set, which
+    makes the humanoid gate fail *closed* -- an unclassifiable mesh is left out of the catalogue
+    rather than being offered to the resolver as a possible human body.
+    """
+    global bone_probe_method
+    key = str(mesh.get_path_name())
+    if key in _BONE_CACHE:
+        return _BONE_CACHE[key]
+    names = set()
+    try:
+        component = unreal.SkeletalMeshComponent()
+        if hasattr(component, 'set_skeletal_mesh_asset'):
+            component.set_skeletal_mesh_asset(mesh)
+        else:
+            component.set_skeletal_mesh(mesh)
+        count = component.get_num_bones()
+        names = {str(component.get_bone_name(index)) for index in range(count)}
+        if names:
+            bone_probe_method = 'SkeletalMeshComponent.get_bone_name'
+    except Exception:
+        names = set()
+    if not names:
+        try:
+            skeleton = mesh.get_editor_property('skeleton')
+            names = {str(n) for n in unreal.Skeleton.get_reference_pose_bone_names(skeleton)}
+            if names:
+                bone_probe_method = 'Skeleton.get_reference_pose_bone_names'
+        except Exception:
+            names = set()
+    _BONE_CACHE[key] = names
+    return names
+
+
+def package_of(path):
+    """Normalise an Unreal path to its package form.
+
+    The AssetRegistry gives a skeleton two different ways: `asset.package_name` is
+    `/Game/X/SK_Y`, while a `Skeleton` tag on a mesh or animation is the object path
+    `/Game/X/SK_Y.SK_Y`. Mixing the two silently doubles the skeleton count and makes every
+    comparison between a mesh's skeleton and the animation target a coin toss, so everything is
+    reduced to the package form on the way in.
+    """
+    if not path:
+        return ''
+    text = str(path)
+    if "'" in text:                       # SkeletonName'/Game/X/SK_Y.SK_Y'
+        text = text.split("'")[-2]
+    head, _, tail = text.rpartition('.')
+    return head if head and '/' not in tail else text
+
+
+def retargeter_row(package, name):
+    """Which two rigs an IK Retargeter bridges.
+
+    `SourceSkeleton`/`TargetSkeleton` are not AssetRegistry tags on an IKRetargeter, so reading them
+    that way silently yields null and the whole retarget graph collapses to nothing. The real answer
+    is on the asset: each side references an IK Rig, and an IK Rig's preview mesh names the skeleton.
+    """
+    row = dict(package=package, sourceSkeleton=None, targetSkeleton=None)
+    try:
+        asset = unreal.load_asset(package + '.' + name)
+        if not asset:
+            return row
+        for field, side in (('sourceSkeleton', 'source'), ('targetSkeleton', 'target')):
+            rig = None
+            for prop in ('%s_ik_rig' % side, '%s_ik_rig_asset' % side):
+                try:
+                    rig = asset.get_editor_property(prop)
+                except Exception:
+                    rig = None
+                if rig:
+                    break
+            if not rig:
+                continue
+            mesh = None
+            for prop in ('preview_mesh', 'preview_skeletal_mesh'):
+                try:
+                    mesh = rig.get_editor_property(prop)
+                except Exception:
+                    mesh = None
+                if mesh:
+                    break
+            if not mesh:
+                continue
+            skeleton = mesh.get_editor_property('skeleton')
+            if skeleton:
+                row[field] = package_of(skeleton.get_path_name())
+    except Exception:
+        pass
+    return row
+
+
+def skeleton_bone_names(package, probe_mesh=None):
+    """Bone names of a Skeleton asset, for grouping rig-identical skeletons.
+
+    Motion packs that ship one FBX per clip produce one Skeleton asset per clip -- dozens of
+    separate assets describing the *same* rig. Grouping them by bone set turns "109 incompatible
+    skeletons" into "one rig, imported 109 times", which is the difference between needing 109 IK
+    Retargeters and needing one.
+    """
+    # A mesh bound to this skeleton is the one route that is known to work (see `bone_names`), so
+    # try it first and only fall back to poking at the Skeleton asset itself.
+    if probe_mesh:
+        try:
+            mesh = unreal.load_asset(probe_mesh)
+            if mesh:
+                names = bone_names(mesh)
+                if names:
+                    return names
+        except Exception:
+            pass
+    for candidate in (package, package + '.' + package.rsplit('/', 1)[-1]):
+        try:
+            skeleton = unreal.load_asset(candidate)
+            if not skeleton:
+                continue
+            if hasattr(unreal.Skeleton, 'get_reference_pose_bone_names'):
+                names = {str(n) for n in unreal.Skeleton.get_reference_pose_bone_names(skeleton)}
+                if names:
+                    return names
+            # Every skeleton has at least one mesh-free route to its bones: its own preview mesh
+            # when it has one, else the bone tree property.
+            preview = skeleton.get_editor_property('preview_mesh') if hasattr(skeleton, 'get_editor_property') else None
+            if preview:
+                names = bone_names(preview)
+                if names:
+                    return names
+            tree = skeleton.get_editor_property('bone_tree')
+            if tree:
+                names = {str(node.get_editor_property('name')) for node in tree}
+                if names:
+                    return names
+        except Exception:
+            continue
+    return set()
+
+
+def rig_signature(names):
+    """Stable id for a bone set, so identical rigs collapse to one group regardless of asset name."""
+    if not names:
+        return None
+    digest = hashlib.sha1('\n'.join(sorted(names)).encode('utf-8')).hexdigest()[:12]
+    return 'rig_' + digest
+
+
+def humanoid_bones(names):
+    """Which rig vocabulary this bone set speaks, or None when it is not a person."""
+    for convention, groups in HUMANOID_SIGNATURES:
+        if all(any(bone in names for bone in group) for group in groups):
+            return convention
+    return None
 
 
 def classify_slot(haystack):
@@ -157,6 +370,8 @@ def main():
     skeleton_anims = collections.Counter()
     skeleton_names = {}
     entries, animations, retargeters, skipped = [], [], [], collections.Counter()
+    rejected_humanoid, rig_convention = [], {}
+    skeleton_bones, skeleton_probe_mesh = {}, {}
 
     for asset in assets:
         package = str(asset.package_name)
@@ -168,15 +383,10 @@ def main():
             skeleton_names[package] = name
             continue
         if kind in ('IKRetargeter',):
-            retargeters.append(dict(
-                package=package,
-                sourceSkeleton=str(asset.get_tag_value('SourceSkeleton') or '') or None,
-                targetSkeleton=str(asset.get_tag_value('TargetSkeleton') or '') or None))
+            retargeters.append(retargeter_row(package, name))
             continue
         if kind in ('AnimSequence', 'AnimMontage', 'BlendSpace', 'BlendSpace1D', 'AnimBlueprint'):
-            skeleton = str(asset.get_tag_value('Skeleton') or '')
-            if skeleton and '\'' in skeleton:
-                skeleton = skeleton.split('\'')[-2]
+            skeleton = package_of(asset.get_tag_value('Skeleton'))
             if skeleton:
                 skeleton_anims[skeleton] += 1
             if kind != 'AnimBlueprint':
@@ -186,6 +396,14 @@ def main():
             continue
         if kind not in CANDIDATE_CLASSES:
             continue
+        # Remember one mesh per skeleton before anything is filtered out. A Skeleton asset has no
+        # reliable Python route to its own bones, but a mesh bound to it does, and motion-pack
+        # skeletons only ever have their excluded rig mesh -- so this has to be recorded here,
+        # before the exclusion, or the rig graph loses exactly the skeletons it exists to explain.
+        if kind in SKELETAL_CLASSES:
+            bound = package_of(asset.get_tag_value('Skeleton'))
+            if bound and bound not in skeleton_probe_mesh:
+                skeleton_probe_mesh[bound] = package + '.' + name
         if EXCLUDE_PATH.search(package):
             skipped['excluded-pack'] += 1
             continue
@@ -195,15 +413,42 @@ def main():
             skipped['unclassified'] += 1
             continue
 
-        skeleton = str(asset.get_tag_value('Skeleton') or '')
-        if skeleton and '\'' in skeleton:
-            skeleton = skeleton.split('\'')[-2]
+        skeleton = package_of(asset.get_tag_value('Skeleton'))
         if kind in SKELETAL_CLASSES and skeleton:
             skeleton_meshes[skeleton] += 1
 
-        row = dict(package=package, name=name, assetClass=kind, slot=slot, tags=classify_tags(haystack))
+        tags = classify_tags(haystack)
+
+        # A body or a head has to be a person. The naming convention only proposed it; the bone
+        # hierarchy decides, and an unreadable hierarchy is treated as "not a person" so that a
+        # prop can never reach the resolver as a candidate human body.
+        convention, bones = None, set()
+        if slot in HUMANOID_SLOTS:
+            if kind not in SKELETAL_CLASSES:
+                skipped['non-skeletal-' + slot] += 1
+                continue
+            mesh = unreal.load_asset(package + '.' + name)
+            bones = bone_names(mesh) if mesh else set()
+            convention = humanoid_bones(bones)
+            if not convention:
+                skipped['not-humanoid'] += 1
+                rejected_humanoid.append(dict(package=package, bones=len(bones)))
+                continue
+            rig_convention[skeleton or package] = convention
+            for pattern, known in KNOWN_BODY_TAGS:
+                if re.search(pattern, package, re.I):
+                    tags = sorted(set(tags) | set(known))
+                    break
+            # A monolithic character carries its own head, so the Foundry must not keep asking for
+            # a separate one it will never find.
+            if slot == 'body' and bones & HEAD_BONES:
+                tags = sorted(set(tags) | {'wholeBody'})
+
+        row = dict(package=package, name=name, assetClass=kind, slot=slot, tags=tags)
         if skeleton:
             row['skeleton'] = skeleton
+        if convention:
+            row['rigConvention'] = convention
         materials = asset.get_tag_value('Materials')
         if materials:
             row['materialSlots'] = [m for m in re.split(r'[,\s]+', str(materials)) if m][:16]
@@ -218,10 +463,41 @@ def main():
     if skeleton_anims:
         target = max(skeleton_anims.items(), key=lambda kv: (kv[1], skeleton_meshes[kv[0]]))[0]
 
-    skeletons = [dict(package=pkg, name=skeleton_names.get(pkg, pkg.rsplit('/', 1)[-1]),
-                      family=re.sub(r'(_Skeleton|SK_|SKM_)', '', skeleton_names.get(pkg, pkg.rsplit('/', 1)[-1])).lower(),
-                      meshCount=skeleton_meshes.get(pkg, 0), animCount=skeleton_anims.get(pkg, 0))
-                 for pkg in sorted(set(list(skeleton_names) + list(skeleton_meshes) + list(skeleton_anims)))]
+    skeletons = []
+    for pkg in sorted(set(list(skeleton_names) + list(skeleton_meshes) + list(skeleton_anims))):
+        label = skeleton_names.get(pkg, pkg.rsplit('/', 1)[-1])
+        bones = skeleton_bone_names(pkg, skeleton_probe_mesh.get(pkg))
+        skeleton_bones[pkg] = bones
+        row = dict(package=pkg, name=label,
+                   family=re.sub(r'(_Skeleton|SK_|SKM_)', '', label).lower(),
+                   meshCount=skeleton_meshes.get(pkg, 0), animCount=skeleton_anims.get(pkg, 0))
+        signature = rig_signature(bones)
+        if signature:
+            row['rigGroup'] = signature
+            row['boneCount'] = len(bones)
+            convention = humanoid_bones(bones)
+            if convention:
+                row['rigConvention'] = convention
+        skeletons.append(row)
+
+    # One rig imported many times is the common shape of a motion pack, and it is the single most
+    # useful thing to say about this machine's animation graph: every skeleton in a group is
+    # pose-identical, so one IK Retargeter per GROUP reaches all of them.
+    rig_groups = collections.defaultdict(list)
+    for row in skeletons:
+        if row.get('rigGroup'):
+            rig_groups[row['rigGroup']].append(row)
+    rigs = sorted(
+        (dict(rigGroup=group,
+              boneCount=members[0].get('boneCount', 0),
+              rigConvention=members[0].get('rigConvention'),
+              skeletons=len(members),
+              meshes=sum(m['meshCount'] for m in members),
+              animations=sum(m['animCount'] for m in members),
+              representative=members[0]['package'],
+              isAnimationTarget=any(m['package'] == target for m in members))
+         for group, members in rig_groups.items()),
+        key=lambda r: (-r['animations'], r['representative']))
 
     catalogue = dict(
         schema=1,
@@ -229,9 +505,16 @@ def main():
         machine=socket.gethostname(),
         animationTarget=target,
         skeletons=skeletons,
+        rigs=rigs,
         retargeters=retargeters,
         entries=entries,
-        animations=animations)
+        animations=animations,
+        # How the humanoid gate was answered, and what it turned away. Without this a reader cannot
+        # tell "this machine has no character packs" from "the bone probe silently failed", and
+        # those two need completely different responses.
+        audit=dict(boneProbe=bone_probe_method,
+                   rejectedNonHumanoid=rejected_humanoid,
+                   skipped=dict(skipped)))
 
     root = os.path.abspath(os.path.join(unreal.Paths.project_dir(), '../..'))
     folder = os.path.join(root, '.debug', 'character-foundry')
@@ -247,6 +530,16 @@ def main():
         print('  slot', slot, count)
     for reason, count in sorted(skipped.items()):
         print('  skipped', reason, count)
+    print('  bone probe:', bone_probe_method)
+    for rig in rigs:
+        print('  rig %s %s bones=%d skeletons=%d meshes=%d anims=%d%s' % (
+            rig['rigGroup'], rig['rigConvention'] or 'non-humanoid', rig['boneCount'],
+            rig['skeletons'], rig['meshes'], rig['animations'],
+            ' TARGET' if rig['isAnimationTarget'] else ''))
+    if bone_probe_method == 'none' and any(r['slot'] in HUMANOID_SLOTS for r in entries) is False:
+        print('  WARNING: no bone probe worked, so every candidate body/head was rejected as '
+              'unverifiable. This is a tooling failure, NOT a statement that the machine has no '
+              'character content -- fix bone_names() before trusting the slot counts above.')
     if not entries:
         print('  NOTE: no character assets classified. Install human/clothing/hair packs, or widen '
               'SLOT_PATTERNS above if this machine names them differently.')

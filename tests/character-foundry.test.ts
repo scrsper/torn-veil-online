@@ -10,7 +10,7 @@ import { EMPTY_CATALOGUE, animatableSkeletons, catalogueCoverage, parseCatalogue
 import { slotRules } from '../src/foundry/manifest';
 import { realizeCharacter, reportPopulation } from '../src/foundry/resolve';
 import type { CharacterRealization, RealizationInput } from '../src/foundry/resolve';
-import { FIXTURE_FOREIGN_SKELETON, foreignSkeletonCatalogue, richCatalogue, sparseCatalogue } from './fixtures/characterCatalogue';
+import { FIXTURE_FOREIGN_SKELETON, FIXTURE_MOTION_RIG, foreignSkeletonCatalogue, mannequinOnlyCatalogue, richCatalogue, sparseCatalogue } from './fixtures/characterCatalogue';
 
 const SEED = 4242;
 
@@ -80,6 +80,27 @@ describe('catalogue parsing', () => {
     expect(animatableSkeletons(rich).has(FIXTURE_FOREIGN_SKELETON)).toBe(false);
     const retargeted = { ...rich, retargeters: [{ package: '/Game/RTG', sourceSkeleton: FIXTURE_FOREIGN_SKELETON, targetSkeleton: rich.animationTarget }] };
     expect(animatableSkeletons(retargeted).has(FIXTURE_FOREIGN_SKELETON)).toBe(true);
+  });
+
+  it('accepts a retarget bridge authored in either direction', () => {
+    const rich = richCatalogue();
+    // Posing a foreign BODY from the driver is authored target-as-source; retargeting a motion
+    // pack's CLIPS onto the driver is authored the other way round. Both are the same bone-chain
+    // mapping, so either one makes that rig reachable.
+    const driverToBody = { ...rich, retargeters: [{ package: '/Game/RTG', sourceSkeleton: rich.animationTarget, targetSkeleton: FIXTURE_FOREIGN_SKELETON }] };
+    expect(animatableSkeletons(driverToBody).has(FIXTURE_FOREIGN_SKELETON)).toBe(true);
+  });
+
+  it('ignores a retargeter that does not involve the animation target', () => {
+    const rich = richCatalogue();
+    const unrelated = { ...rich, retargeters: [{ package: '/Game/RTG', sourceSkeleton: '/Game/A/SK_A', targetSkeleton: '/Game/B/SK_B' }] };
+    const usable = animatableSkeletons(unrelated);
+    expect(usable.has('/Game/A/SK_A')).toBe(false);
+    expect(usable.has('/Game/B/SK_B')).toBe(false);
+  });
+
+  it('reaches a motion pack rig through the one retargeter the project owns', () => {
+    expect(animatableSkeletons(mannequinOnlyCatalogue()).has(FIXTURE_MOTION_RIG)).toBe(true);
   });
 });
 
@@ -278,6 +299,28 @@ describe('fallback — the simulation never depends on an asset existing', () =>
     const missing = realization.problems.filter(p => p.kind === 'slot-empty').map(p => p.slot);
     expect(missing).toContain('footwear');
     expect(missing).toContain('hair');
+  });
+
+  it('treats a monolithic whole-body character as a finished person, not a headless one', () => {
+    const realization = realizeCharacter(person, mannequinOnlyCatalogue());
+    // A single-mesh character carries its own head, so completeness must not hinge on a separate
+    // head asset that no pack could supply for this body.
+    expect(realization.complete).toBe(true);
+    expect(slotOf(realization, 'body')).toBeDefined();
+    expect(slotOf(realization, 'head')).toBeUndefined();
+    expect(realization.problems.some(p => p.slot === 'head')).toBe(false);
+    // The genuine content gaps are still reported, because they are real and fillable.
+    const missing = realization.problems.filter(p => p.kind === 'slot-empty').map(p => p.slot);
+    expect(missing).toContain('hair');
+    expect(missing).toContain('upperGarment');
+  });
+
+  it('still honours presentation when the only bodies are the two engine mannequins', () => {
+    const catalogue = mannequinOnlyCatalogue();
+    const woman = realizeCharacter(syntheticInput({ identity: 'w', age: 34, gender: 'f', occupation: 'baker', wealth: 40 }), catalogue);
+    const man = realizeCharacter(syntheticInput({ identity: 'm', age: 34, gender: 'm', occupation: 'smith', wealth: 40 }), catalogue);
+    expect(slotOf(woman, 'body')!.name).toBe('SKM_Quinn_Simple');
+    expect(slotOf(man, 'body')!.name).toBe('SKM_Manny_Simple');
   });
 
   it('refuses assets on a skeleton this project cannot animate, and says so', () => {

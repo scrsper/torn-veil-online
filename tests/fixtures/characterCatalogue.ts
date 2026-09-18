@@ -13,6 +13,8 @@ import type { CatalogueEntry, CharacterCatalogue, FoundrySlot } from '../../src/
 
 const MANNY = '/Game/Characters/Mannequins/Meshes/SK_Mannequin';
 const OTHER = '/Game/SomePack/SK_ForeignRig';
+/** A motion pack's own rig: clips but no meshes, reachable only through a retargeter. */
+const MOTION_RIG = '/Game/Fab/MotionPack/clip_Skeleton';
 
 let counter = 0;
 function entry(slot: FoundrySlot, name: string, tags: string[], options: Partial<CatalogueEntry> = {}): CatalogueEntry {
@@ -150,5 +152,32 @@ export function foreignSkeletonCatalogue(): CharacterCatalogue {
   };
 }
 
+/**
+ * What a machine with the engine mannequins and motion packs but no character packs actually has.
+ *
+ * This is not a hypothetical thin pack like `sparseCatalogue` — it is the shape of the real audited
+ * catalogue on the development machine: two monolithic whole-body characters, no separate heads, no
+ * hair, no garments, and a motion pack whose clips live on their own rig behind a retargeter. It
+ * exists so the honest floor of this project's presentation is a tested state rather than something
+ * only ever observed by eye in a PIE session.
+ */
+export function mannequinOnlyCatalogue(): CharacterCatalogue {
+  counter = 0;
+  return {
+    schema: 1, generatedAt: new Date(0).toISOString(), machine: 'fixture-mannequin-only',
+    animationTarget: MANNY,
+    skeletons: [
+      { package: MANNY, name: 'SK_Mannequin', family: 'manny', meshCount: 2, animCount: 150 },
+      { package: MOTION_RIG, name: 'clip_Skeleton', family: 'motion', meshCount: 0, animCount: 109 },
+    ],
+    retargeters: [{ package: '/Game/TornVeil/Combat/Repair/RTG_TV_CombatRepair', sourceSkeleton: MOTION_RIG, targetSkeleton: MANNY }],
+    entries: [
+      entry('body', 'SKM_Manny_Simple', ['male', 'adult', 'average', 'wholeBody'], { materialSlots: ['M_Mannequin'] }),
+      entry('body', 'SKM_Quinn_Simple', ['female', 'adult', 'slim', 'wholeBody'], { materialSlots: ['M_Mannequin'] }),
+    ],
+  };
+}
+
 export const FIXTURE_ANIMATION_TARGET = MANNY;
 export const FIXTURE_FOREIGN_SKELETON = OTHER;
+export const FIXTURE_MOTION_RIG = MOTION_RIG;
