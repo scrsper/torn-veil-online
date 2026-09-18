@@ -92,7 +92,17 @@ export class BridgeSession {
    * mannequins with no way to recover. `/health` calls `snapshot()`, and `Launch.ps1` health-checks
    * before starting the editor, so this fired on an ordinary launch every time.
    */
-  resetAppearanceDelta() { this.appearanceSent.clear(); }
+  resetAppearanceDelta() { this.appearanceSent.clear(); this.bodiesLastDelivered.clear(); }
+  /**
+   * Which bodies the previous delivered snapshot carried.
+   *
+   * The renderer builds one actor per body in the snapshot's body list and caches that body's
+   * appearance on the actor. So the profile has to be in the *first* snapshot a body appears in:
+   * deliver it a frame earlier and the actor does not exist yet to receive it, and the delta then
+   * says "already sent" forever. A body absent from the previous snapshot therefore has its delta
+   * dropped, so entering view — or re-entering it after the actor was recycled — always resends.
+   */
+  private readonly bodiesLastDelivered = new Set<string>();
   private readonly reservations = new SlotReservations();
   private readonly characterCatalogue: CharacterCatalogue;
   readonly regions = new RegionStream();
@@ -290,6 +300,13 @@ export class BridgeSession {
     const controlledBody = w.body(controlledBodyId);
     if (controlledBody?.present) residents.push(controlledBody);
     this.reservations.expire(w.physicalTime);
+    if (deliver) {
+      // Anything newly in the body list gets its appearance again, because the actor that will
+      // hold it is only created now.
+      for (const body of residents) if (!this.bodiesLastDelivered.has(body.id)) this.appearanceSent.delete(body.id);
+      this.bodiesLastDelivered.clear();
+      for (const body of residents) this.bodiesLastDelivered.add(body.id);
+    }
     // One conversation ring per cluster of people the simulation actually has talking, so the
     // spacing follows canonical conversation rather than proximity alone.
     const talking = residents.filter(b => b.pose === 'talk' || w.person(b.ownerId)?.mind.goal?.type === 'socialize');

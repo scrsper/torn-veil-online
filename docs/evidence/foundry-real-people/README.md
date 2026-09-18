@@ -174,6 +174,95 @@ already flagged `bUsedWithSkeletalMesh`; nothing was applying them. The presenta
 This matters more than it looks: with no garment, hair or head content, **colour is the only
 remaining channel for individuality**, so without it a settlement is one mannequin repeated.
 
+## Fab library (§4)
+
+Checked directly, and the answer is a hard blocker rather than a gap:
+
+- **The Epic Games Launcher is not installed on this machine.**
+- **No `VaultCache` exists** anywhere on C: or D:, so no Fab or Marketplace item has ever been
+  downloaded here.
+- The Fab plugin *is* installed into UE 5.8 (`FabPlugin_5.8`), so the in-editor browser works — but
+  enumerating an owned library requires an authenticated Epic sign-in.
+
+I did not sign in, and did not install or purchase anything. Listing what you own, and installing
+an owned character pack, is a step only you can take. That is the single highest-value next action
+in this whole slice: everything below is limited by it and by nothing else.
+
+## A third delivery fault: bodies that arrive later
+
+After the two fixes above, a fresh probe still found **1 of 12** bodies embodied. Every body carried
+an `appearanceSignature` from the bridge while the *applied* signature was empty — for all except
+the player's own body, whose actor is never recycled.
+
+The cause is a lifetime mismatch. Unreal creates one `TVCharacter` actor per body in the snapshot's
+body list and caches the appearance on that actor, so the profile has to be in the **first** snapshot
+a body appears in. Deliver it earlier and no actor exists yet to receive it, and the delta then says
+"already sent" forever. A body absent from the previous delivered snapshot now has its delta
+dropped, so entering view — or re-entering after an actor is recycled — always resends.
+
+| | visible characters |
+|---|---|
+| before any fix | 0 / 8 |
+| connect-reset only | 5 / 9 |
+| `/health` fix as well | 8 / 8 |
+| after a long-running session, before this fix | 1 / 12 |
+| with the re-entry fix | **11 / 11** |
+
+## Stage C — eleven residents (§12)
+
+Measured live in PIE by `unreal/scripts/probe_foundry_population.py`:
+
+| metric | value |
+|---|---|
+| actors | 11 |
+| visible | **11** |
+| unembodied | 0 |
+| distinct meshes | 2 (the content ceiling) |
+| distinct scales | **11** |
+| distinct skin tints | 5 |
+| **distinct visible configurations** | **11** |
+| Foundry-incomplete | 0 |
+| retargeted | 0 — all Leader Pose |
+
+So with only two meshes installed, **all eleven residents are still visually distinct**, because
+scale and tint carry the individuality the missing garment/hair slots cannot. That is the honest
+ceiling of this machine, and it is measured rather than asserted.
+
+## Save/reload identity (§11)
+
+Against the **real** catalogue, not a fixture: all **33/33** people re-resolve to a byte-identical
+description, realization and signature after `serialize` → `deserialize`. Zero drift.
+
+## Missing-asset fallback (§16)
+
+`npm run foundry:fallback` breaks the most-used body in memory — the installed content on disk is
+never touched — and measures what moved:
+
+| | |
+|---|---|
+| broken asset | `SKM_Manny_Simple` |
+| people using it | 18 of 33 |
+| slots changed | 18 |
+| **unrelated slots changed** | **0** |
+| still complete afterwards | 33 / 33 |
+| verdict | **PASS** |
+
+The number that matters is the zero. A resolver drawing every slot from one sequential stream would
+hand those 18 people different clothes, builds and props too, so a settlement would silently become
+a different settlement whenever content changed. Each slot drawing from its own stream is what
+prevents that, and this is the measurement that proves it against real assets.
+
+## Performance sanity (§19)
+
+Per visible resident: **2 skeletal mesh components** (hidden driver + visible presentation), **2
+dynamic material instances**, **0 attached part components**, **0 retargeted** (Leader Pose is free).
+For 11 residents: 22 dynamic material instances total. No grooms, no MetaHuman facial rigs, no
+per-character Blueprint tick. Nothing here blocks scaling to a settlement.
+
+The cost that *will* appear is one attached skeletal mesh component per modular garment slot once
+clothing content exists — 7 slots would mean up to 9 components per resident. That is the number to
+watch when a pack is installed, not anything in the current architecture.
+
 ## Population measurement (§7, §8)
 
 `npm run foundry:report` over the generated world, against the real catalogue:
@@ -216,7 +305,10 @@ Motifect packs but sit behind the retarget boundary described above.
 | One canonical person, Foundry-resolved and visible | `foundry-one-person.png` |
 | Nearest cluster, canonical skin tints applied | `foundry-cluster.png` |
 | The same cluster before the material fix — every person identical white | `foundry-cluster-untinted-before.png` |
+| Stage C — eleven residents, all embodied | `stage-c-eleven-residents.png` |
 | Settlement scale | `foundry-settlement.png` |
+| PIE clip, 13 s (403 frames via `TV.Record`) | `foundry-population.mp4` |
+| Fallback measurement | `fallback-report.json` |
 | Machine-local catalogue | `.debug/character-foundry/catalogue.json` (gitignored) |
 | Population report | `.debug/character-foundry/foundry-report.json` (gitignored) |
 | Live PIE probe | `.debug/foundry-real-people/probe.json` (gitignored) |
@@ -227,13 +319,15 @@ Licensed asset content and machine-local paths are deliberately not committed.
 
 Stated plainly, because a gap recorded is worth more than a gap implied:
 
-- **No 10-person diversity shot.** Only 8 bodies were in view, and with 2 usable meshes a
-  "diversity" claim would be dishonest regardless.
-- **No combat capture**, no dodge/jab/cross/kick/hit-reaction verification on a *visible* character.
-- **No PIE video.**
-- **No fail-soft capture in PIE.** The fail-soft path is covered by tests, not by a screenshot.
-- **Nothing on reference-family realization (§5) or named-character likeness (§11).** Both need
-  character content that does not exist here; guessing would be inventing coverage.
+- **No combat capture**, and no dodge/jab/cross/kick/hit-reaction verification on a *visible*
+  character. The clips exist but are behind the Motifect retarget boundary.
+- **Nothing on reference-family realization (§5, §6) or named-character likeness (§17).** Both need
+  character content that does not exist here. With two mannequin bodies, no heads and no garments,
+  a "Hana looks like Hana" comparison could only be theatre, so none is offered.
+- **No Fab library listing.** Blocked on an Epic sign-in, above.
+- **Ethnicity/skin presentation, face shape, hair, facial hair and garment silhouette are
+  unrealizable.** They are correctly carried in canonical data and correctly requested by the
+  resolver; nothing on this machine can express them.
 
 ## Tests
 
