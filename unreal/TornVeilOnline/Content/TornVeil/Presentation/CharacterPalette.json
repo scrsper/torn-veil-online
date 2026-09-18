@@ -1,0 +1,15 @@
+{
+  "schema": 2,
+  "purpose": "Unreal-only activity animation and retarget execution mappings. Character meshes and modular parts are selected by the shared Character Foundry resolver.",
+  "howToFill": [
+    "1. In the editor, run unreal/scripts/audit_character_assets.py to write the one machine-local Foundry catalogue for meshes, parts, skeletons, retargeters and activity animations.",
+    "2. Run unreal/scripts/build_character_palette.py to rewrite this file from that catalogue. Appearance assets are already selected by the Foundry; this file maps activity clips only.",
+    "3. For a visible character on a skeleton other than the driver, run unreal/scripts/build_character_retarget.py first and pass its --retarget argument to the palette builder."
+  ],
+  "note": "This checked-in copy resolves no optional activity clips. An absent Foundry catalogue or missing body keeps the Manny driver visible and reports visibleCharacter:false.",
+  "driverSkeletons": [
+    "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
+  ],
+  "activities": {},
+  "retargets": {}
+}

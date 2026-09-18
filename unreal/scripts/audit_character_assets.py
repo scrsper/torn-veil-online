@@ -103,6 +103,21 @@ TAG_PATTERNS = [
     ('fan', r'\bfan\b'),
 ]
 
+# Activity clips share the same inventory because appearance realization and animation compatibility
+# must agree on the machine's skeleton graph. They are presentation execution assets, not appearance.
+ACTIVITY_PATTERNS = [
+    ('work', r'work|craft|forge|hammer|smith|saw|mine|chop|axe|dig|bake|knead'),
+    ('eat', r'\beat\b|eating|meal|food'),
+    ('drink', r'drink|mug|tankard|sip'),
+    ('rest', r'\bsit\b|sitting|chair|sleep|\blie\b|lying|rest|idle_relax|kneel|pray'),
+    ('socialize', r'talk|speak|converse|gesture|wave|greet|\bbow\b|laugh|shrug|explain|clap|point'),
+    ('trade', r'trade|barter|give|offer|hand'),
+    ('carry', r'carry|haul|lift|pickup|crate|sack'),
+    ('travel', r'walk|jog|run|sprint|stride'),
+    ('flee', r'flee|panic|scared|afraid|shrink'),
+    ('injured', r'injur|limp|wound|hurt|death|die|downed|slump'),
+]
+
 SKELETAL_CLASSES = {'SkeletalMesh'}
 GROOM_CLASSES = {'GroomAsset'}
 STATIC_CLASSES = {'StaticMesh'}
@@ -126,6 +141,13 @@ def classify_tags(haystack):
     return [tag for tag, pattern in TAG_PATTERNS if re.search(pattern, haystack, re.I)]
 
 
+def classify_activity(haystack):
+    for family, pattern in ACTIVITY_PATTERNS:
+        if re.search(pattern, haystack, re.I):
+            return family
+    return None
+
+
 def main():
     registry = unreal.AssetRegistryHelpers.get_asset_registry()
     registry.scan_paths_synchronous(['/Game'], False)
@@ -134,7 +156,7 @@ def main():
     skeleton_meshes = collections.Counter()
     skeleton_anims = collections.Counter()
     skeleton_names = {}
-    entries, retargeters, skipped = [], [], collections.Counter()
+    entries, animations, retargeters, skipped = [], [], [], collections.Counter()
 
     for asset in assets:
         package = str(asset.package_name)
@@ -153,8 +175,14 @@ def main():
             continue
         if kind in ('AnimSequence', 'AnimMontage', 'BlendSpace', 'BlendSpace1D', 'AnimBlueprint'):
             skeleton = str(asset.get_tag_value('Skeleton') or '')
+            if skeleton and '\'' in skeleton:
+                skeleton = skeleton.split('\'')[-2]
             if skeleton:
-                skeleton_anims[skeleton.split('\'')[-2] if '\'' in skeleton else skeleton] += 1
+                skeleton_anims[skeleton] += 1
+            if kind != 'AnimBlueprint':
+                family = classify_activity(haystack)
+                animations.append(dict(package=package, name=name, assetClass=kind,
+                                       skeleton=skeleton or None, proposedFamily=family))
             continue
         if kind not in CANDIDATE_CLASSES:
             continue
@@ -202,7 +230,8 @@ def main():
         animationTarget=target,
         skeletons=skeletons,
         retargeters=retargeters,
-        entries=entries)
+        entries=entries,
+        animations=animations)
 
     root = os.path.abspath(os.path.join(unreal.Paths.project_dir(), '../..'))
     folder = os.path.join(root, '.debug', 'character-foundry')
@@ -212,7 +241,7 @@ def main():
 
     by_slot = collections.Counter(row['slot'] for row in entries)
     print('TV_CHARACTER_AUDIT', len(entries), 'character assets;',
-          len(skeletons), 'skeletons;', len(retargeters), 'retargeters;',
+          len(animations), 'animation assets;', len(skeletons), 'skeletons;', len(retargeters), 'retargeters;',
           'target=' + str(target))
     for slot, count in sorted(by_slot.items()):
         print('  slot', slot, count)

@@ -2,6 +2,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "TVHumanoidVisualState.h"
+#include "TVEmbodiment.h"
 #include "TVLocomotionCameraPresentation.h"
 #include "TVCharacter.generated.h"
 
@@ -97,6 +98,13 @@ public:
     UPROPERTY(VisibleAnywhere) TObjectPtr<USpringArmComponent> CameraBoom;
     UPROPERTY(VisibleAnywhere) TObjectPtr<UCameraComponent> Camera;
     UPROPERTY(VisibleAnywhere) TObjectPtr<UTextRenderComponent> Nameplate;
+    /** Slice 3: the visible human. GetMesh() stays as the hidden animation driver, keeping every
+     * existing locomotion/sprint/directional/crouch/combat path intact; this component displays
+     * whatever character the palette resolves, sharing the driver pose or retargeting from it. */
+    UPROPERTY(VisibleAnywhere) TObjectPtr<UTVCharacterPresentation> VisibleCharacter;
+    /** Latest embodiment projection. Presentation-only; nothing here reaches the simulation. */
+    FTVEmbodimentState Embodiment;
+    bool bHasEmbodiment = false;
 private:
     int64 PlayedAttackEvents = 0, PlayedHitEvents = 0;
     int64 SkippedAttackEvents = 0, SkippedHitEvents = 0;
@@ -148,6 +156,12 @@ private:
     FTVLocomotionCameraSignal LocomotionCameraSignal;
     UPROPERTY() TMap<FString,TObjectPtr<UAnimationAsset>> CrouchAnimations;
     void ApplyAppearance(const FTVAppearanceVisualState& Appearance);
+    /** Applies the bridge's chosen station / conversation ring / separation as a BOUNDED offset on
+     * the visible mesh only. The capsule, the camera and every canonical transform stay exactly
+     * where the simulation put them, and the player's own body is never offset. */
+    void ApplyOccupancyOffset(float Dt);
+    FVector OccupancyOffsetCm = FVector::ZeroVector, VisibleMeshBaseLocation = FVector::ZeroVector;
+    float OccupancyYawOffsetDegrees = 0.f;
     /** A recognised class is a reading of someone's life, not a badge they wear. A passer-by cannot
      *  see it, so it belongs to the developer inspector rather than to every nameplate in the vale.
      *  -1 means "never applied", so the first call always writes. */

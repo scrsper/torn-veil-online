@@ -17,6 +17,9 @@ import { deserialize, serialize } from '../sim/persist/save';
 import { GameSim, type PersonIntent } from '../sim/runtime/gameSim';
 import { knownName } from '../sim/mind/people';
 import { humanoidVisualState, projectAppearance } from './visualState';
+import { appearanceProfile, type AppearanceProfile } from './appearanceProfile';
+import { activityPresentation } from './activityPresentation';
+import { SlotReservations, chooseStation, conversationStations, separationOffset } from './occupancy';
 import { humanoidPresence } from './humanoidPresence';
 import { combatReach } from '../sim/physical/combat';
 import { World } from '../sim/core/world';
@@ -29,9 +32,11 @@ import { handInteractions, openContainerProjection, performContainerTransfer, pe
 import { DialogueSystem, type DialogueState } from '../sim/mind/dialogue';
 import { actionsForPerson } from '../sim/core/interaction';
 import { B } from '../sim/physical/blocks';
-import type { Item, Person } from '../sim/core/types';
+import type { Body, Item, Person } from '../sim/core/types';
 import { RESOURCE_MASS_KG } from '../sim/world/factory';
 import { getPhysicalCapability } from '../sim/core/attributes';
+import { EMPTY_CATALOGUE } from '../foundry/catalogue';
+import type { CharacterCatalogue } from '../foundry/catalogue';
 
 export const BRIDGE_VERSION = 1;
 /** Physical execution is visible; queued intentions and private goals are not. */
@@ -73,9 +78,17 @@ export class BridgeSession {
    * on a slow cadence so the projection stays cheap — the derivation itself stays canonical. */
   private classes = new Map<string, RecognisedClass | null>();
   private classesAt = -Infinity;
+  /** Slice 3 embodiment. An appearance profile is static for a person, so the full profile is
+   * sent only when its signature differs from the last one this session sent for that body; the
+   * renderer caches its built character against the signature. Reservations are presentation-only
+   * occupancy courtesy — never canonical, never saved (see bridge/occupancy.ts). */
+  private readonly appearanceSent = new Map<string, string>();
+  private readonly reservations = new SlotReservations();
+  private readonly characterCatalogue: CharacterCatalogue;
   readonly regions = new RegionStream();
-  constructor(seed = 918271, options: { playable?: boolean; arena?:boolean; save?: string } = {}) {
+  constructor(seed = 918271, options: { playable?: boolean; arena?:boolean; save?: string; characterCatalogue?: CharacterCatalogue } = {}) {
     this.arena=options.arena===true;
+    this.characterCatalogue = options.characterCatalogue ?? EMPTY_CATALOGUE;
     const loaded = options.save ? deserialize(options.save) : null;
     if (options.save && !loaded) throw new Error('Cannot resume incompatible or invalid world save');
     this.world = loaded?.world ?? new World(seed);
@@ -222,6 +235,39 @@ export class BridgeSession {
     if (!this.classes.has(id)) { const p = w.person(id); this.classes.set(id, p ? recogniseClass(w, p) : null); }
     return this.classes.get(id) ?? null;
   }
+  /**
+   * Slice 3 embodiment projection for one visible canonical body.
+   *
+   * Appearance, activity family and physical station are all *derived* here from canonical state
+   * the snapshot already carries; none of them is stored, and none is fed back into simulation.
+   * `appearance` rides along only when its signature changed, so a static profile costs one short
+   * string per body per snapshot rather than a full slot list.
+   */
+  private embodimentFor(b: Body, conversation: Map<string, { stand: { x: number; y: number; z: number }; yaw: number }>, crowd: Body[]) {
+    const w = this.world, person = w.person(b.ownerId);
+    if (!person) return null;
+    const multiplier = getPhysicalCapability(person, w, { body: b }).movementMultiplier;
+    const activity = activityPresentation(w, b, person, multiplier);
+    const profile: AppearanceProfile | null = appearanceProfile(person, b.id, this.characterCatalogue, w.seed);
+    const signature = profile?.signature ?? '';
+    const fresh = !!profile && this.appearanceSent.get(b.id) !== signature;
+    if (fresh) this.appearanceSent.set(b.id, signature);
+    const station = activity.station
+      ? chooseStation(w, b, activity.station, activity.placeId, this.reservations, 4)
+      : null;
+    // Conversation spacing outranks a seat only when the person is standing: two people talking
+    // across a tavern table are already correctly placed by their canonical seats.
+    const ring = activity.family === 'socialize' && activity.posture !== 'sit' ? conversation.get(b.id) ?? null : null;
+    const separation = station || ring ? { x: 0, z: 0 } : separationOffset(b, crowd);
+    return {
+      appearanceSignature: signature,
+      ...(fresh && profile ? { appearance: profile } : {}),
+      activity,
+      station: station ? { slotId: station.slot.id, kind: station.slot.kind, stand: station.slot.stand, yaw: station.slot.yaw, posture: station.slot.posture, settleMetres: station.settleMetres } : null,
+      conversation: ring,
+      separation,
+    };
+  }
   snapshot() {
     const w = this.world, p = w.person(w.playerId)!;
     const knowledge = this.game.perceive('local')!;
@@ -230,6 +276,11 @@ export class BridgeSession {
     const residents = humanoidPresence(w, w.body(controlledBodyId));
     const controlledBody = w.body(controlledBodyId);
     if (controlledBody?.present) residents.push(controlledBody);
+    this.reservations.expire(w.physicalTime);
+    // One conversation ring per cluster of people the simulation actually has talking, so the
+    // spacing follows canonical conversation rather than proximity alone.
+    const talking = residents.filter(b => b.pose === 'talk' || w.person(b.ownerId)?.mind.goal?.type === 'socialize');
+    const conversation = conversationStations(talking);
     const interactions=handInteractions(this.sim,p),talkTargets=this.talkTargets(p,visible);
     const ownBody=w.body(controlledBodyId),carried=p.inventory.flatMap(id=>{const item=w.item(id);return item&&item.holderId===p.id?[item]:[];});
     const mobility=ownBody?{eligible:movementState(w,p,ownBody).eligible,fatigue:p.physiology.fatigue,
@@ -246,11 +297,16 @@ export class BridgeSession {
       bodies: residents.map(b => ({
         ...humanoidVisualState(b, visible.has(b.id) ? knownName(p, b.ownerId) : 'an unfamiliar person', visibleActivity(w.person(b.ownerId), b.pose), projectAppearance(w.person(b.ownerId))),
         combatAction:visible.has(b.id) ? combatState(w,b) : null,
+        embodiment: this.embodimentFor(b, conversation, residents),
         incapacitated: b.pose === 'downed' || (visible.has(b.id) && (b.subduedUntil > w.physicalTime || !!w.person(b.ownerId)?.surrender || !!w.person(b.ownerId)?.custody?.active)),
         alive: !b.dead,
         speech: visible.has(b.id) ? w.person(b.ownerId)?.speech?.text ?? '' : '',
         ...(b.ownerId === p.id ? { inventory: p.inventory.flatMap(id => { const i=w.item(id); return i ? [{ id:i.id,name:i.type,type:i.type,quantity:i.quantity }] : []; }), health: b.health, maxHealth: b.maxHealth, needs: { ...p.needs }, wealth: p.wealth } : {}),
       })), combatActions:w.activeBodies().filter(b=>visible.has(b.id)).flatMap(b=>{const a=combatState(w,b);return a?[a]:[];}), combatPresentation: combatPresentation(w, visible, p.id), events: [] };
+  }
+  /** Whole-world humanoid set for the developer path only; never a presentation residency. */
+  private developerBodies(): Body[] {
+    return this.world.bodies().filter(b => b.shape === 'humanoid' && b.present);
   }
   /** Whole-world observability is available only through this explicitly named debug path. */
   developerSnapshot() {
@@ -263,10 +319,11 @@ export class BridgeSession {
       // hidden memories/knowledge; the actual greeting and all option availability remain in
       // DialogueSystem on a validated talk intent.
       talkTargets: this.talkTargets(w.person(w.playerId)!),
-      bodies: w.bodies().filter(b => b.shape === 'humanoid' && b.present).flatMap(b => {
+      bodies: this.developerBodies().flatMap(b => {
         const p = w.person(b.ownerId); if (!p) return [];
         return [{ ...humanoidVisualState(b, p.name, visibleActivity(p, b.pose), projectAppearance(p)),
           combatAction:combatState(w,b),
+          embodiment: this.embodimentFor(b, new Map(), this.developerBodies()),
           reach: w.person(b.ownerId) ? combatReach(w, w.person(b.ownerId)!) : MELEE_REACH, cooldown: MELEE_COOLDOWN,
           attackTarget: b.attackTarget,
           health: b.health, maxHealth: b.maxHealth, alive: p.alive,

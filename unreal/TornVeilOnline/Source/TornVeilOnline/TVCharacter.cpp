@@ -77,6 +77,14 @@ ATVCharacter::ATVCharacter() {
     static ConstructorHelpers::FObjectFinder<UAnimationAsset> Down(TEXT("/Game/TornVeil/Characters/Animations/A_TV_Downed")); DownAnimation = Down.Object;
     // Canonically visible bodies must finish their presentation even while camera-culled.
     GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+    // Slice 3. The visible character sits alongside the driver on the capsule with the driver's
+    // own relative transform, so a resolved human occupies exactly the space the mannequin did.
+    VisibleCharacter = CreateDefaultSubobject<UTVCharacterPresentation>(TEXT("VisibleCharacter"));
+    VisibleCharacter->SetupAttachment(GetCapsuleComponent());
+    VisibleCharacter->SetRelativeLocation(FVector(0, 0, -90));
+    VisibleCharacter->SetRelativeRotation(FRotator(0, -90, 0));
+    VisibleCharacter->SetVisibility(false);
+    VisibleMeshBaseLocation = FVector(0, 0, -90);
 }
 void ATVCharacter::BeginPlay() {
     Super::BeginPlay();
@@ -87,6 +95,7 @@ void ATVCharacter::BeginPlay() {
     // the one switch to flip once fitted modular garment/hair assets exist. Canonical appearance
     // the description drives their proportions either way.
     HairProxy->SetHiddenInGame(true); GarmentProxy->SetHiddenInGame(true); OccupationProp->SetHiddenInGame(true);
+    if (VisibleCharacter) VisibleCharacter->BindDriver(GetMesh());
     GetCharacterMovement()->DisableMovement(); GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     if (IsPlayerControlled()) { bCanonicalPlayer = true; Controller->SetControlRotation(FRotator(-18, 0, 0)); Nameplate->SetVisibility(false); }
     else { GetCharacterMovement()->DisableMovement(); GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision); }
@@ -127,6 +136,7 @@ void ATVCharacter::Tick(float Dt) {
         if (auto* PC = GetWorld()->GetFirstPlayerController()) { const auto R = (PC->PlayerCameraManager->GetCameraLocation() - Nameplate->GetComponentLocation()).Rotation(); Nameplate->SetWorldRotation(R); }
         Nameplate->SetVisibility(Bridge && Bridge->Selected()==this && !Bridge->bArena);
         ApplyNameplate(Bridge && Bridge->bInspector); // no-op unless F6 was toggled since the last snapshot
+        ApplyOccupancyOffset(Dt);
     }
     // Desired yaw still goes through canonical facing limits. The camera follows the
     // resulting body yaw, including commitment, while pitch is view-only.
@@ -180,6 +190,29 @@ void ATVCharacter::Project(const TSharedPtr<FJsonObject>& D, bool First) {
     D->TryGetNumberField(TEXT("crouch"),CanonicalCrouch);
     Activity = State.Activity; Occupation.Empty(); D->TryGetStringField(TEXT("occupation"), Occupation); CanonicalPose = State.Pose;
     ApplyAppearance(State.Appearance);
+    // Slice 3 embodiment. The canonical description has already passed through the one shared
+    // Character Foundry resolver. A malformed block is logged and dropped; the character keeps
+    // the previous realization rather than inventing a second local answer.
+    const TSharedPtr<FJsonObject>* EmbodimentJson = nullptr;
+    if (D->TryGetObjectField(TEXT("embodiment"), EmbodimentJson) && EmbodimentJson) {
+        FTVEmbodimentState Parsed; FString EmbodimentError;
+        if (FTVEmbodimentState::Parse(*EmbodimentJson, Parsed, EmbodimentError)) {
+            Embodiment = MoveTemp(Parsed); bHasEmbodiment = true;
+            if (VisibleCharacter && Embodiment.bHasAppearance) {
+                VisibleCharacter->ApplyProfile(Embodiment.Appearance);
+            }
+            // The schema-2 primitive grammar remains the fail-soft path for old saves or an
+            // empty/broken catalogue. Once the Foundry produced a real body, do not draw its
+            // proxy hair/garment/prop on top of the modular character, including delta snapshots.
+            if (VisibleCharacter && VisibleCharacter->HasVisibleCharacter()) {
+                HairProxy->SetHiddenInGame(true);
+                GarmentProxy->SetHiddenInGame(true);
+                OccupationProp->SetHiddenInGame(true);
+            }
+        } else {
+            UE_LOG(LogTemp, Warning, TEXT("TV_CHARACTER rejected malformed embodiment for %s: %s"), *State.BodyId, *EmbodimentError);
+        }
+    }
     double H=0, MaxH=0; D->TryGetNumberField(TEXT("health"),H); D->TryGetNumberField(TEXT("maxHealth"),MaxH); Health=H; MaxHealth=MaxH;
     bDead = State.bDead; bIncapacitated = State.bIncapacitated || bDead;
     AttackTargetEntity.Empty(); D->TryGetStringField(TEXT("attackTarget"), AttackTargetEntity); // null when not swinging
@@ -247,7 +280,7 @@ struct FTVPropCue { FString Prop; bool bLong = false; };
 struct FTVSilhouetteCue { FVector Scale = FVector::OneVector; float Skirt = 0.f; };
 struct FTVHairCue { FVector Scale = FVector::OneVector; bool bBound = true; };
 
-struct FTVAppearanceProfile {
+struct FTVAshfordAppearanceGrammar {
     bool bLoaded = false;
     bool bShowHair = false, bShowGarment = false, bShowProp = false;
     TMap<FString, FTVSilhouetteCue> Silhouettes;
@@ -280,8 +313,8 @@ void TVReadProps(const TSharedPtr<FJsonObject>& Root, const TCHAR* Field, TMap<F
     }
 }
 
-const FTVAppearanceProfile& TVAppearanceProfile() {
-    static FTVAppearanceProfile Profile;
+const FTVAshfordAppearanceGrammar& TVAppearanceGrammar() {
+    static FTVAshfordAppearanceGrammar Profile;
     if (Profile.bLoaded) return Profile;
     Profile.bLoaded = true;
     FString Text;
@@ -331,7 +364,7 @@ const FTVAppearanceProfile& TVAppearanceProfile() {
  * prop when nothing named maps to something drawable.
  */
 static FTVPropCue TVSelectProp(const FTVAppearanceDescription& Description, const FString& Occupation) {
-    const FTVAppearanceProfile& Profile = TVAppearanceProfile();
+    const FTVAshfordAppearanceGrammar& Profile = TVAppearanceGrammar();
     if (Description.bHasDescription) {
         for (const FString& Cue : Description.RoleCues) if (const FTVPropCue* Found = Profile.RoleCues.Find(Cue)) { if (!Found->Prop.IsEmpty()) return *Found; }
         for (const FString& Item : Description.Accessories) if (const FTVPropCue* Found = Profile.Accessories.Find(Item)) { if (!Found->Prop.IsEmpty()) return *Found; }
@@ -345,7 +378,7 @@ static FTVPropCue TVSelectProp(const FTVAppearanceDescription& Description, cons
 
 void ATVCharacter::ApplyAppearance(const FTVAppearanceVisualState& A) {
     if (!A.bPresent) return;
-    const FTVAppearanceProfile& Profile = TVAppearanceProfile();
+    const FTVAshfordAppearanceGrammar& Profile = TVAppearanceGrammar();
     const FTVAppearanceDescription& Description = A.Description;
     if (SkinMaterial) SkinMaterial->SetVectorParameterValue(TEXT("Tint"), TVHexColour(A.Skin, FLinearColor(.72f, .48f, .32f)));
     // The realized colours already carry the costume family and how worn it is (the simulation
@@ -379,6 +412,36 @@ void ATVCharacter::ApplyAppearance(const FTVAppearanceVisualState& A) {
     OccupationProp->SetVisibility(!Prop.Prop.IsEmpty());
     OccupationProp->SetRelativeScale3D(Prop.bLong ? FVector(.075f, .075f, 1.2f) : FVector(.16f, .16f, .16f));
     if (PropMaterial) PropMaterial->SetVectorParameterValue(TEXT("Tint"), Prop.bLong ? FLinearColor(.20f, .13f, .06f) : FLinearColor(.35f, .24f, .09f));
+}
+void ATVCharacter::ApplyOccupancyOffset(float Dt) {
+    if (!VisibleCharacter || bCanonicalPlayer || !bHasEmbodiment) return;
+    auto* Bridge = GetWorld() ? GetWorld()->GetSubsystem<UTVBridgeSubsystem>() : nullptr;
+    if (!Bridge) return;
+    // The bridge has already bounded every one of these to MAX_SETTLE_METRES against canonical
+    // geometry (src/bridge/occupancy.ts); this clamp is a second, local guarantee that a bad
+    // projection can never move a character out of the space the simulation put it in.
+    const float LimitCm = 125.f;
+    FVector WantedCm = FVector::ZeroVector;
+    float WantedYaw = 0.f;
+    const FVector Canonical = GetActorLocation();
+    if (Embodiment.Station.bValid) {
+        WantedCm = Bridge->ToUnreal(Embodiment.Station.StandMetres) - Canonical;
+        WantedYaw = FMath::RadiansToDegrees(Embodiment.Station.Yaw);
+    } else if (Embodiment.bHasConversation) {
+        WantedCm = Bridge->ToUnreal(Embodiment.ConversationStandMetres) - Canonical;
+        WantedYaw = FMath::RadiansToDegrees(Embodiment.ConversationYaw);
+    } else {
+        WantedCm = FVector(Embodiment.Separation.X, Embodiment.Separation.Y, 0.f) * 100.f;
+    }
+    WantedCm.Z = 0.f;
+    if (WantedCm.SizeSquared() > LimitCm * LimitCm) WantedCm = WantedCm.GetSafeNormal() * LimitCm;
+    // Ease rather than snap: a character that teleports a metre sideways when it stops walking
+    // reads worse than one standing slightly off its station for half a second.
+    OccupancyOffsetCm = FMath::VInterpTo(OccupancyOffsetCm, WantedCm, Dt, 6.f);
+    OccupancyYawOffsetDegrees = FMath::FInterpTo(OccupancyYawOffsetDegrees, WantedYaw, Dt, 6.f);
+    const FVector LocalOffset = GetActorRotation().UnrotateVector(OccupancyOffsetCm);
+    VisibleCharacter->SetRelativeLocation(VisibleMeshBaseLocation + FVector(LocalOffset.X, LocalOffset.Y, 0.f));
+    GetMesh()->SetRelativeLocation(VisibleMeshBaseLocation + FVector(LocalOffset.X, LocalOffset.Y, 0.f));
 }
 void ATVCharacter::ApplyNameplate(bool bShowClass) {
     if (NameplateClassShown == static_cast<int8>(bShowClass)) return;
@@ -421,9 +484,15 @@ void ATVCharacter::Animate(float Speed) {
     if(Speed>5)LastTravelDirection=Direction;
     const bool ActivityLoop = Wanted == Locomotion && !bIncapacitated && Speed<30 && CanonicalPose!=TEXT("attack") && CanonicalPose!=TEXT("hit");
     if(ActivityLoop) {
-        FString Key=Activity;
-        if(Key==TEXT("sit") || Key==TEXT("sleep") || Key==TEXT("pray")) Key=TEXT("rest");
-        if(!Key.IsEmpty() && Key!=TEXT("stand")) { if(!ActivityAnimations.Contains(Key)) ActivityAnimations.Add(Key,LoadObject<UAnimationAsset>(nullptr,*(TEXT("/Game/Characters/TornVeilActivities/A_TV_")+Key))); if(auto* A=ActivityAnimations.FindRef(Key).Get()) Wanted=A; }
+        // Prefer the evidence-backed activity family/detail projected by Slice 3. The local
+        // palette maps only animation execution assets; it has no say in appearance or activity.
+        if (bHasEmbodiment) {
+            if (UAnimationAsset* Presented = UTVCharacterPalette::Get()->ActivityAnimation(Embodiment.Activity.Family, Embodiment.Activity.Detail)) Wanted = Presented;
+        } else {
+            FString Key=Activity;
+            if(Key==TEXT("sit") || Key==TEXT("sleep") || Key==TEXT("pray")) Key=TEXT("rest");
+            if(!Key.IsEmpty() && Key!=TEXT("stand")) { if(!ActivityAnimations.Contains(Key)) ActivityAnimations.Add(Key,LoadObject<UAnimationAsset>(nullptr,*(TEXT("/Game/Characters/TornVeilActivities/A_TV_")+Key))); if(auto* A=ActivityAnimations.FindRef(Key).Get()) Wanted=A; }
+        }
     }
     if (!Wanted) return;
     // Sequence deltas preserve multiple swings/flinches even when pose stayed unchanged between
@@ -485,6 +554,16 @@ FString ATVCharacter::PresentationDiagnostics() const {
     J->SetNumberField(TEXT("headHeightCm"), GetMesh()->GetSocketTransform(TEXT("head"), RTS_Component).GetLocation().Z);
     J->SetNumberField(TEXT("pelvisHeightCm"), GetMesh()->GetSocketTransform(TEXT("pelvis"), RTS_Component).GetLocation().Z);
     J->SetNumberField(TEXT("skippedAttacks"), SkippedAttackEvents); J->SetNumberField(TEXT("skippedHits"), SkippedHitEvents);
+    // Slice 3 evidence. `visibleCharacter` false means the Foundry/apply layer resolved nothing
+    // usable and the driver silhouette is on screen — never reported as successful embodiment.
+    J->SetStringField(TEXT("activityFamily"), bHasEmbodiment ? Embodiment.Activity.Family : FString());
+    J->SetStringField(TEXT("activityDetail"), bHasEmbodiment ? Embodiment.Activity.Detail : FString());
+    J->SetStringField(TEXT("activityPosture"), bHasEmbodiment ? Embodiment.Activity.Posture : FString());
+    J->SetStringField(TEXT("stationKind"), bHasEmbodiment && Embodiment.Station.bValid ? Embodiment.Station.Kind : FString());
+    J->SetStringField(TEXT("appearanceSignature"), bHasEmbodiment ? Embodiment.AppearanceSignature : FString());
+    J->SetBoolField(TEXT("visibleCharacter"), VisibleCharacter && VisibleCharacter->HasVisibleCharacter());
+    J->SetStringField(TEXT("embodiment"), VisibleCharacter ? VisibleCharacter->EmbodimentDiagnostics() : FString());
+    J->SetNumberField(TEXT("occupancyOffsetCm"), OccupancyOffsetCm.Size2D());
     J->SetNumberField(TEXT("heldCrouch"),CanonicalCrouch);J->SetNumberField(TEXT("facingDegrees"),GetActorRotation().Yaw);J->SetNumberField(TEXT("desiredYaw"),Controller?Controller->GetControlRotation().Yaw:0);J->SetNumberField(TEXT("cameraYaw"),CameraBoom->GetComponentRotation().Yaw);
     J->SetNumberField(TEXT("speedCmPerSecond"), CanonicalVelocity.Size2D());
     J->SetBoolField(TEXT("directionalLocomotion"),bDirectionalLocomotion);

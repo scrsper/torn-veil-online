@@ -159,6 +159,19 @@ describe('stage B — one complete person', () => {
     const reversed = { ...forward, entries: [...forward.entries].reverse() };
     expect(realizeCharacter(person, reversed).slots).toEqual(realizeCharacter(person, forward).slots);
   });
+
+  it('never combines leader-posed parts from different skeletons', () => {
+    const catalogue = richCatalogue();
+    catalogue.retargeters.push({ package: '/Game/RTG_Foreign', sourceSkeleton: FIXTURE_FOREIGN_SKELETON, targetSkeleton: catalogue.animationTarget });
+    catalogue.entries = catalogue.entries.map(entry => entry.slot === 'head'
+      ? { ...entry, skeleton: FIXTURE_FOREIGN_SKELETON }
+      : entry);
+    const realization = realizeCharacter(person, catalogue);
+    expect(realization.slots.find(slot => slot.slot === 'body')).toBeDefined();
+    expect(realization.slots.find(slot => slot.slot === 'head')).toBeUndefined();
+    expect(realization.complete).toBe(false);
+    expect(realization.problems.map(problem => problem.kind)).toContain('required-slot-unresolved');
+  });
 });
 
 describe('stage C — ten visibly different residents', () => {

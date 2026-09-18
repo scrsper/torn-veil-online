@@ -417,6 +417,23 @@ Reach, ownership, combat resolution, knowledge effects, and other canonical cons
 
 # Unreal
 
+Embodied people / visible daily life (Slice 3): `src/bridge/appearanceProfile.ts` projects the
+canonical `Person.appearance.description` and calls the shared `src/foundry/resolve.ts` resolver
+against an injected machine-local catalogue; it contains no second hair/clothing/wealth grammar.
+`activityPresentation.ts` derives the activity family/posture/station
+from canonical pose, active action, goal, velocity and injury; `occupancy.ts` derives physically
+valid stations from `Place.anchors` plus the voxel grid, with presentation-only reservations,
+conversation spacing and a bounded `MAX_SETTLE_METRES` settle offset. `session.ts` projects all
+three per body as `embodiment`, sending a full appearance profile only when its signature changes.
+Native side: `TVEmbodiment.h/.cpp` (`UTVCharacterPresentation` applies concrete Foundry slots and is
+driven from hidden `GetMesh()` by leader pose or IK retarget; `UTVCharacterPalette` holds only
+activity/retarget execution mappings) and additive `ATVCharacter` members. Tooling:
+`unreal/scripts/audit_character_assets.py`,
+`build_character_palette.py`, `build_character_retarget.py`, `capture_life_slice3.py`. Design:
+`docs/EMBODIED_PEOPLE_VISIBLE_LIFE.md`. The native layer and scripts are UNCOMPILED and UNRUN, and
+there is no PIE evidence: `docs/evidence/embodied-people/README.md`.
+
+
 Real-time command/movement checkpoint: `src/bridge/commands.ts`, `scheduler.ts`,
 `src/sim/physical/interactionSpec.json`, `prediction.ts`, `interactionMovement.ts`,
 and native `TVInteractionPrediction`/`TVBridgeSubsystem`. Protocol 2 uses an applied

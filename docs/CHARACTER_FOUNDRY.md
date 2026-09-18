@@ -196,13 +196,15 @@ cannot prove is whether a real pack gets *classified* well, and that needs the W
 
 ---
 
-## 8. Not done, and why
+## 8. Reconciled presentation layer and remaining limits
 
-- **No Unreal C++ was written for this slice.** The chain deliberately stops at
-  `CharacterRealization`. Writing an apply layer now would mean writing it against a data shape no
-  machine has produced yet, on top of the previous slice's C++ that is itself still unbuilt. The
-  wire format and the C++ are the next slice, gated on the audit having run once for real.
-- No bridge protocol change, for the same reason.
+- PR #45 now projects the canonical description through this resolver and carries
+  `CharacterRealization` to `UTVCharacterPresentation`. Unreal loads the resolved body and skeletal
+  modular parts, applies scale/morph/material inputs, preserves the hidden Manny animation driver,
+  and fails soft to that driver when a body or pose source is unavailable.
+- The apply layer has not yet been compiled or exercised against a real Stage A catalogue. Groom
+  and static attachment binding remains deliberately unresolved until the audit establishes the
+  installed packs' component/socket requirements.
 - No named-character bespoke likenesses. The priority order in the brief puts scalable modular
   realization first, and that is what exists; `resolveAppearance({ archetype })` already pins a
   named character to a family, which is the hook a bespoke pass would build on.
@@ -226,6 +228,6 @@ off the sheet and what was deliberately not taken.
    `unmet` list; that is the shopping list.
 2. Check the finding in §3 against reality: are the installed human packs on Manny, or do they
    need a retargeter?
-3. Only then: the wire format and `ATVCharacter` apply layer, Stage B in PIE, and the acceptance
-   list in the brief — build, PIE, one character, ten characters, locomotion, sprint, dodge,
+3. Build and verify the reconciled wire format and `ATVCharacter` apply layer, then Stage B in PIE
+   and the acceptance list — one character, ten characters, locomotion, sprint, dodge,
    combat, hit reaction, save/reload, the deliberate-breakage fallback test, screenshots, video.

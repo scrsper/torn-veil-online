@@ -34,6 +34,8 @@ export interface ResolvedSlot {
   /** Machine-local Unreal package path. */
   package: string;
   name: string;
+  /** Unreal asset class, retained so the apply layer never guesses how to instantiate a part. */
+  assetClass: string;
   /** Which required tag the match was made on, for diagnostics. */
   matchedOn: string;
   /** How many preference tags this candidate satisfied. */
@@ -122,7 +124,8 @@ function resolveSlot(rng: RNG, rule: SlotRule, pool: CatalogueEntry[], problems:
       if (relaxed.length) {
         problems.push({ kind: 'relaxed', slot: rule.slot, wanted: rule.required, detail: `dropped [${relaxed.join(', ')}] to match ${entry.name}` });
       }
-      return { slot: rule.slot, package: entry.package, name: entry.name, matchedOn: required.join('+') || 'any', score, relaxed: [...relaxed], materialSlots: entry.materialSlots ?? [] };
+      return { slot: rule.slot, package: entry.package, name: entry.name, assetClass: entry.assetClass,
+        matchedOn: required.join('+') || 'any', score, relaxed: [...relaxed], materialSlots: entry.materialSlots ?? [] };
     }
     const next = rule.relax[attempt];
     if (next === undefined) {
@@ -182,16 +185,26 @@ export function realizeCharacter(input: RealizationInput, catalogue: CharacterCa
   }
 
   const rules = slotRules(traits);
+  let bodySkeleton: string | undefined;
   for (const rule of rules) {
     // Each slot draws from its OWN stream, keyed by what it is asking for. A shared sequential
     // stream would make every later slot depend on whether an earlier one found anything, so
     // uninstalling one hair pack would silently re-roll a person's clothes and props. Fail-soft
     // has to mean "lose that part", not "become a different person".
     const rng = individualRng(input.seed, `foundry:${input.identity}:${rule.slot}:${rule.required.join('+')}`);
-    const resolved = resolveSlot(rng, rule, pool, realization.problems);
+    // Leader-pose modular parts must bind to the selected body's skeleton. A retargeter can make a
+    // complete foreign body animatable, but it cannot make a Manny shirt fit that foreign body's
+    // bone hierarchy (or vice versa). Unbound static/groom attachments remain eligible.
+    const compatiblePool = bodySkeleton && skeletal.has(rule.slot)
+      ? pool.filter(entry => !entry.skeleton || entry.skeleton === bodySkeleton)
+      : pool;
+    const resolved = resolveSlot(rng, rule, compatiblePool, realization.problems);
     if (resolved) realization.slots.push(resolved);
     else if (!rule.optional) {
       realization.problems.push({ kind: 'required-slot-unresolved', slot: rule.slot, wanted: rule.required, detail: `${rule.slot} is required; falling back to the base mannequin` });
+    }
+    if (resolved?.slot === 'body') {
+      bodySkeleton = catalogue.entries.find(candidate => candidate.package === resolved.package)?.skeleton;
     }
   }
 

@@ -1,3 +1,51 @@
+# Slice 3 + Character Foundry reconciliation, 2026-09-17
+
+Branch `claude/embodied-people-visible-life-slice3` is stacked on current PR #46 head `7abb2b6`
+without merging either PR to `main`. `Person.appearance.description` is the only semantic source of
+appearance. `src/bridge/appearanceProfile.ts` projects that description and calls the shared
+`src/foundry/resolve.ts` resolver against an injected machine-local catalogue; it no longer derives
+hair, heads or clothing independently from wealth, occupation or `Person.id`.
+
+Slice 3 still owns activity presentation, physical occupancy, delta transport, the visible Unreal
+component and animation/retarget execution. The one Foundry audit now inventories both character
+parts and activity animations. Unreal consumes concrete Foundry slots; its small local palette is
+limited to activity clips and generated retarget AnimBlueprint classes. Missing/unsupported assets
+fall back to the Manny driver without mutating canonical state.
+
+Verified after reconciliation: 77 focused appearance/Foundry/embodiment/visual-state tests; 63
+bridge/playable-world/embodiment tests; TypeScript typecheck and production build. Python tools
+parse under Unreal's bundled Python. Native compilation is blocked before C++ compilation because
+Windows SDK 10.0.19041.0 is not installed on this PC; no PIE/visual acceptance claim is made.
+
+# Slice 3 — embodied people & visible daily life, implementation checkpoint, 2026-09-17
+
+Branch `claude/embodied-people-visible-life-slice3` from merged main `1f36ba5` (PR #44), created
+in a Linux cloud container. No merge, no human approval, no visual acceptance.
+
+The original #45 checkpoint implemented presentation-side appearance profiles with its own
+semantic-token derivation. That appearance path is superseded by the reconciliation record above.
+Preserved from the checkpoint: a general activity-presentation
+layer (travel/work/eat/drink/rest/socialize/trade/carry/flee/injured/combat/idle derived from
+canonical pose, action, goal, velocity and canonical injury capability), and physical occupancy
+(stations from `Place.anchors` + voxel geometry, presentation-only reservations, conversation
+F-formation, approach slots, bounded `MAX_SETTLE_METRES` = 1.25 m settle offset). Wired into
+`BridgeSession.snapshot()` as a per-body `embodiment` block; appearance profiles are delta-sent by
+signature. 21 new tests + 40 existing bridge/playable-world tests + typecheck pass.
+
+Written but NOT compiled and NOT run: `TVEmbodiment.h/.cpp`, `TVEmbodimentTests.cpp`, the
+`ATVCharacter` hidden-driver/visible-presentation wiring, and four editor scripts
+(`audit_character_assets.py`, `build_character_palette.py`, `build_character_retarget.py`,
+`capture_life_slice3.py`). This container has no Unreal Engine and none of the licensed human
+character library, so THE MANNEQUINS ARE NOT YET REPLACED IN ANY RUNNING BUILD and there is no PIE
+screenshot or video for this slice. The checked-in `CharacterPalette.json` resolves no optional
+activity clips; an unprovisioned machine keeps the Manny driver and reports `visibleCharacter:false`.
+
+Next session must run on the foundational Desktop worktree: build the editor, run the human asset
+audit, generate the palette, then do the work order's initial acceptance (player p_128/b_141 and
+one existing canonical resident as real humans through locomotion, dodge, combat, dialogue and
+save/reload) before extending to several residents and the life loops. Do not treat this branch's
+passing TypeScript tests as visual acceptance. Full limits:
+`docs/evidence/embodied-people/README.md`.
 # Verification record — appearance + Foundry branch, 2026-09-17
 
 Branch `claude/determined-meitner-w9c23l` @ `f1f1c60`. Full-suite attribution, done properly after
@@ -75,7 +123,7 @@ in this environment).
 The five committed reference sheets in `art/reference/cultures/ashford/characters/` now drive the
 population. `-ren-ayami-shiro.png` is four labelled NPC panels, not one, so five files yield eight
 stylistic families (`hana`, `yuki`, `kaito`, `shogun`, `ren`, `ayami`, `shiro`, `ascetic`).
-`Person.appearance.traits` is a new canonical, persisted, structured description (archetype,
+`Person.appearance.description` is a new canonical, persisted, structured description (archetype,
 phenotype, costume family, silhouette, accessories, station, wear); the realized colour/scale
 channels every renderer already read are derived from it, and authored cast pins still win with
 their tokens snapped to match. Generation runs on each person's own `individualRng` stream, so it
@@ -83,7 +131,7 @@ consumes no world RNG. Age presentation and role cues are derived at projection 
 `SAVE_VERSION` deliberately NOT bumped — the field is additive and optional, so existing saves
 (including the Fenwick one) stay playable and their people keep the look they had.
 
-Unreal: `FTVAppearanceTraits` parses the trait block fail-soft;
+Unreal: `FTVAppearanceDescription` parses the description block fail-soft;
 `AshfordAppearanceProfiles.json` is schema 2 (silhouette/hair proportions, accessory and role-cue
 props, archetype provenance, `proxyVisibility`); `ATVCharacter::ApplyAppearance` applies the
 grammar. The primitive hair/garment/prop stand-ins stay hidden behind `proxyVisibility` so the
@@ -106,7 +154,6 @@ Evidence: `docs/evidence/character-appearance/ashford-contact-sheet.{svg,png}`
 garment colours, 33/33 distinct trait signatures.
 NOT verified: UE build, native automation tests, PIE. Human visual acceptance still required.
 Full report: `docs/CHARACTER_APPEARANCE_PIPELINE.md`.
-
 # Slice 2 — visual finish (Claude continuation), 2026-09-17
 
 Branch `claude/playable-world-slice-2-visual-finish` from Codex `ff36e25`, foundational Desktop
