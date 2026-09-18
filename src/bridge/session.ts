@@ -83,6 +83,16 @@ export class BridgeSession {
    * renderer caches its built character against the signature. Reservations are presentation-only
    * occupancy courtesy — never canonical, never saved (see bridge/occupancy.ts). */
   private readonly appearanceSent = new Map<string, string>();
+  /**
+   * Forget which appearance profiles have been delivered, so the next snapshot carries them again.
+   *
+   * The dedupe is keyed by body, not by client, because a snapshot is broadcast to every client at
+   * once. That makes a renderer joining an already-running bridge a real failure case: the profiles
+   * were "already sent" to nobody, and the newcomer would spend the whole session showing driver
+   * mannequins with no way to recover. `/health` calls `snapshot()`, and `Launch.ps1` health-checks
+   * before starting the editor, so this fired on an ordinary launch every time.
+   */
+  resetAppearanceDelta() { this.appearanceSent.clear(); }
   private readonly reservations = new SlotReservations();
   private readonly characterCatalogue: CharacterCatalogue;
   readonly regions = new RegionStream();
@@ -243,7 +253,7 @@ export class BridgeSession {
    * `appearance` rides along only when its signature changed, so a static profile costs one short
    * string per body per snapshot rather than a full slot list.
    */
-  private embodimentFor(b: Body, conversation: Map<string, { stand: { x: number; y: number; z: number }; yaw: number }>, crowd: Body[]) {
+  private embodimentFor(b: Body, conversation: Map<string, { stand: { x: number; y: number; z: number }; yaw: number }>, crowd: Body[], deliver = true) {
     const w = this.world, person = w.person(b.ownerId);
     if (!person) return null;
     const multiplier = getPhysicalCapability(person, w, { body: b }).movementMultiplier;
@@ -251,7 +261,10 @@ export class BridgeSession {
     const profile: AppearanceProfile | null = appearanceProfile(person, b.id, this.characterCatalogue, w.seed);
     const signature = profile?.signature ?? '';
     const fresh = !!profile && this.appearanceSent.get(b.id) !== signature;
-    if (fresh) this.appearanceSent.set(b.id, signature);
+    // Only a snapshot that actually reaches a renderer may consume the delta. `/health` builds a
+    // snapshot purely to count visible NPCs and throws it away; letting that record the profile as
+    // delivered is what left bodies permanently unembodied once they came into view.
+    if (fresh && deliver) this.appearanceSent.set(b.id, signature);
     const station = activity.station
       ? chooseStation(w, b, activity.station, activity.placeId, this.reservations, 4)
       : null;
@@ -268,7 +281,7 @@ export class BridgeSession {
       separation,
     };
   }
-  snapshot() {
+  snapshot(deliver = true) {
     const w = this.world, p = w.person(w.playerId)!;
     const knowledge = this.game.perceive('local')!;
     const controlledBodyId=w.primaryBody(p.id)?.id;
@@ -297,7 +310,7 @@ export class BridgeSession {
       bodies: residents.map(b => ({
         ...humanoidVisualState(b, visible.has(b.id) ? knownName(p, b.ownerId) : 'an unfamiliar person', visibleActivity(w.person(b.ownerId), b.pose), projectAppearance(w.person(b.ownerId))),
         combatAction:visible.has(b.id) ? combatState(w,b) : null,
-        embodiment: this.embodimentFor(b, conversation, residents),
+        embodiment: this.embodimentFor(b, conversation, residents, deliver),
         incapacitated: b.pose === 'downed' || (visible.has(b.id) && (b.subduedUntil > w.physicalTime || !!w.person(b.ownerId)?.surrender || !!w.person(b.ownerId)?.custody?.active)),
         alive: !b.dead,
         speech: visible.has(b.id) ? w.person(b.ownerId)?.speech?.text ?? '' : '',
