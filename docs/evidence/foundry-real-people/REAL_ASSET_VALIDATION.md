@@ -100,6 +100,23 @@ Live bridge (`npm run bridge:playable`), editor PIE, morning in the settlement.
 | Persistence | Every body present before and after a bridge save/reload carried an **identical appearance signature**. | `.debug/character-foundry/sig-before.txt`, `sig-after.txt` |
 | Fallback | Removing the most-used body: 33/33 still complete, 0 re-rolls, only fit-dependent slots moved, diagnostics named the gap. Mapping restored afterwards (the catalogue is filtered in memory; nothing on disk was touched). | `.debug/character-foundry/fallback-report.json` |
 
+### Scope of each figure, stated plainly
+
+The **Ashford 33** row is a headless measurement over `newWorld(1337)` — the same population the
+Foundry tests and `foundry:report` use. It is a resolver result, not a photograph; no screenshot of
+33 residents standing together exists, and none is claimed.
+
+Every **screenshot and the video** come from the live playable world (seed 918271, 127 residents),
+where the bridge streams only the residents within 96 m and line of sight of the player. That is why
+the group shots show six to ten people rather than thirty-three: it is the streaming radius, not a
+Foundry limit. The world was started fresh into morning because the existing save sat at night with
+nine of eleven nearby residents asleep indoors. **The user's own save was not touched** — the
+daylight run uses `.debug/foundry-daylight.save.json`.
+
+The **combat video and frames** come from the standalone `-game` arena probe, not from editor PIE,
+because the editor and a second renderer together exhaust this machine's VRAM. That is also where
+the missing-face defect below appears.
+
 ### Visual defects still open
 
 - **The detailed face does not attach in the standalone `-game` arena session.** Combat frames show
