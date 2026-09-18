@@ -37,9 +37,12 @@ SLOT_PATTERNS = [
     ('footwear', r'boot|shoe|sandal|geta|footwear|greave'),
     ('armor', r'armou?r|lamellar|cuirass|breastplate|pauldron|chainmail|plate_'),
     ('robe', r'robe|kimono|cassock|habit|gown'),
-    ('upperGarment', r'shirt|tunic|jacket|coat|vest|top_|torso|upperbody|blouse|doublet|haori'),
+    ('upperGarment', r'shirt|tunic|jacket|\bcoat\b|\bvest\b|\btop_|torso|upperbody|blouse|doublet|haori'),
     ('lowerGarment', r'pants|trouser|skirt|hakama|legs?_|lowerbody|breeches|kilt'),
-    ('accessory', r'hat|hood|helm|cap|belt|scarf|bag|pack|pouch|jewel|necklace|earring|beads|mask|cloak|glove|bracer'),
+    # Word boundaries matter more here than anywhere else: without them `pack` matched every asset
+    # in a pack whose folder is called `..._Motion_Pack`, and `cap` matches "capture", "escape" and
+    # "capacity". The same lesson applies to `top_` under upperGarment.
+    ('accessory', r'\bhat\b|hood|helm|\bcap\b|\bbelt\b|scarf|\bbag\b|\bpack\b|pouch|jewel|necklace|earring|beads|mask|cloak|glove|bracer'),
     ('head', r'\bhead\b|face|skull|_hd\b'),
     # `sk_`/`skm_` is the catch-all of last resort: in practice every skeletal mesh in a project
     # matches it, including pickaxes, lockers, flashlights and deer. That is only safe because
@@ -157,7 +160,14 @@ CANDIDATE_CLASSES = SKELETAL_CLASSES | GROOM_CLASSES | STATIC_CLASSES
 # filling the accessory slot with tablecloths and chairs.
 EXCLUDE_PATH = re.compile(
     r'/AdvancedVillagePack/|/Free_Medieval_Environment_Props|/RPGEnvironmentVFX/|/Megaplant|'
-    r'/ThirdParty/Quaternius/|/WaterPlane/|/TornVeil/LocalPalette/|/Environment/|/Landscape', re.I)
+    r'/ThirdParty/Quaternius/|/WaterPlane/|/TornVeil/LocalPalette/|/Environment/|/Landscape|'
+    # Motion packs. A pack shipped as one FBX per clip imports a rig preview mesh alongside every
+    # clip, and those meshes are whole bodies in a T-pose -- never wearable content. Their
+    # animations and skeletons are collected further up, before this check, so excluding the path
+    # costs no motion; it only stops 100+ identical rig meshes entering the accessory slot.
+    r'/Motifect_[A-Za-z_]*Motion_Pack/|/AnimStarterPack/|'
+    # Demo prop meshes that ship beside a sample animation set: ladders, lockers, pickaxes.
+    r'/FreeSampleAnimationSet/Demo/Meshes/', re.I)
 
 
 # Epic's own mannequins are the one place where a hand-written interpretation beats any regex:
@@ -213,7 +223,66 @@ def bone_names(mesh):
     return names
 
 
-def skeleton_bone_names(package):
+def package_of(path):
+    """Normalise an Unreal path to its package form.
+
+    The AssetRegistry gives a skeleton two different ways: `asset.package_name` is
+    `/Game/X/SK_Y`, while a `Skeleton` tag on a mesh or animation is the object path
+    `/Game/X/SK_Y.SK_Y`. Mixing the two silently doubles the skeleton count and makes every
+    comparison between a mesh's skeleton and the animation target a coin toss, so everything is
+    reduced to the package form on the way in.
+    """
+    if not path:
+        return ''
+    text = str(path)
+    if "'" in text:                       # SkeletonName'/Game/X/SK_Y.SK_Y'
+        text = text.split("'")[-2]
+    head, _, tail = text.rpartition('.')
+    return head if head and '/' not in tail else text
+
+
+def retargeter_row(package, name):
+    """Which two rigs an IK Retargeter bridges.
+
+    `SourceSkeleton`/`TargetSkeleton` are not AssetRegistry tags on an IKRetargeter, so reading them
+    that way silently yields null and the whole retarget graph collapses to nothing. The real answer
+    is on the asset: each side references an IK Rig, and an IK Rig's preview mesh names the skeleton.
+    """
+    row = dict(package=package, sourceSkeleton=None, targetSkeleton=None)
+    try:
+        asset = unreal.load_asset(package + '.' + name)
+        if not asset:
+            return row
+        for field, side in (('sourceSkeleton', 'source'), ('targetSkeleton', 'target')):
+            rig = None
+            for prop in ('%s_ik_rig' % side, '%s_ik_rig_asset' % side):
+                try:
+                    rig = asset.get_editor_property(prop)
+                except Exception:
+                    rig = None
+                if rig:
+                    break
+            if not rig:
+                continue
+            mesh = None
+            for prop in ('preview_mesh', 'preview_skeletal_mesh'):
+                try:
+                    mesh = rig.get_editor_property(prop)
+                except Exception:
+                    mesh = None
+                if mesh:
+                    break
+            if not mesh:
+                continue
+            skeleton = mesh.get_editor_property('skeleton')
+            if skeleton:
+                row[field] = package_of(skeleton.get_path_name())
+    except Exception:
+        pass
+    return row
+
+
+def skeleton_bone_names(package, probe_mesh=None):
     """Bone names of a Skeleton asset, for grouping rig-identical skeletons.
 
     Motion packs that ship one FBX per clip produce one Skeleton asset per clip -- dozens of
@@ -221,16 +290,41 @@ def skeleton_bone_names(package):
     skeletons" into "one rig, imported 109 times", which is the difference between needing 109 IK
     Retargeters and needing one.
     """
-    try:
-        skeleton = unreal.load_asset(package)
-        if not skeleton:
-            return set()
-        if hasattr(unreal.Skeleton, 'get_reference_pose_bone_names'):
-            return {str(n) for n in unreal.Skeleton.get_reference_pose_bone_names(skeleton)}
-        tree = skeleton.get_editor_property('bone_tree')
-        return {str(node.get_editor_property('name')) for node in tree} if tree else set()
-    except Exception:
-        return set()
+    # A mesh bound to this skeleton is the one route that is known to work (see `bone_names`), so
+    # try it first and only fall back to poking at the Skeleton asset itself.
+    if probe_mesh:
+        try:
+            mesh = unreal.load_asset(probe_mesh)
+            if mesh:
+                names = bone_names(mesh)
+                if names:
+                    return names
+        except Exception:
+            pass
+    for candidate in (package, package + '.' + package.rsplit('/', 1)[-1]):
+        try:
+            skeleton = unreal.load_asset(candidate)
+            if not skeleton:
+                continue
+            if hasattr(unreal.Skeleton, 'get_reference_pose_bone_names'):
+                names = {str(n) for n in unreal.Skeleton.get_reference_pose_bone_names(skeleton)}
+                if names:
+                    return names
+            # Every skeleton has at least one mesh-free route to its bones: its own preview mesh
+            # when it has one, else the bone tree property.
+            preview = skeleton.get_editor_property('preview_mesh') if hasattr(skeleton, 'get_editor_property') else None
+            if preview:
+                names = bone_names(preview)
+                if names:
+                    return names
+            tree = skeleton.get_editor_property('bone_tree')
+            if tree:
+                names = {str(node.get_editor_property('name')) for node in tree}
+                if names:
+                    return names
+        except Exception:
+            continue
+    return set()
 
 
 def rig_signature(names):
@@ -277,7 +371,7 @@ def main():
     skeleton_names = {}
     entries, animations, retargeters, skipped = [], [], [], collections.Counter()
     rejected_humanoid, rig_convention = [], {}
-    skeleton_bones = {}
+    skeleton_bones, skeleton_probe_mesh = {}, {}
 
     for asset in assets:
         package = str(asset.package_name)
@@ -289,15 +383,10 @@ def main():
             skeleton_names[package] = name
             continue
         if kind in ('IKRetargeter',):
-            retargeters.append(dict(
-                package=package,
-                sourceSkeleton=str(asset.get_tag_value('SourceSkeleton') or '') or None,
-                targetSkeleton=str(asset.get_tag_value('TargetSkeleton') or '') or None))
+            retargeters.append(retargeter_row(package, name))
             continue
         if kind in ('AnimSequence', 'AnimMontage', 'BlendSpace', 'BlendSpace1D', 'AnimBlueprint'):
-            skeleton = str(asset.get_tag_value('Skeleton') or '')
-            if skeleton and '\'' in skeleton:
-                skeleton = skeleton.split('\'')[-2]
+            skeleton = package_of(asset.get_tag_value('Skeleton'))
             if skeleton:
                 skeleton_anims[skeleton] += 1
             if kind != 'AnimBlueprint':
@@ -307,6 +396,14 @@ def main():
             continue
         if kind not in CANDIDATE_CLASSES:
             continue
+        # Remember one mesh per skeleton before anything is filtered out. A Skeleton asset has no
+        # reliable Python route to its own bones, but a mesh bound to it does, and motion-pack
+        # skeletons only ever have their excluded rig mesh -- so this has to be recorded here,
+        # before the exclusion, or the rig graph loses exactly the skeletons it exists to explain.
+        if kind in SKELETAL_CLASSES:
+            bound = package_of(asset.get_tag_value('Skeleton'))
+            if bound and bound not in skeleton_probe_mesh:
+                skeleton_probe_mesh[bound] = package + '.' + name
         if EXCLUDE_PATH.search(package):
             skipped['excluded-pack'] += 1
             continue
@@ -316,9 +413,7 @@ def main():
             skipped['unclassified'] += 1
             continue
 
-        skeleton = str(asset.get_tag_value('Skeleton') or '')
-        if skeleton and '\'' in skeleton:
-            skeleton = skeleton.split('\'')[-2]
+        skeleton = package_of(asset.get_tag_value('Skeleton'))
         if kind in SKELETAL_CLASSES and skeleton:
             skeleton_meshes[skeleton] += 1
 
@@ -371,7 +466,7 @@ def main():
     skeletons = []
     for pkg in sorted(set(list(skeleton_names) + list(skeleton_meshes) + list(skeleton_anims))):
         label = skeleton_names.get(pkg, pkg.rsplit('/', 1)[-1])
-        bones = skeleton_bone_names(pkg + '.' + label)
+        bones = skeleton_bone_names(pkg, skeleton_probe_mesh.get(pkg))
         skeleton_bones[pkg] = bones
         row = dict(package=pkg, name=label,
                    family=re.sub(r'(_Skeleton|SK_|SKM_)', '', label).lower(),

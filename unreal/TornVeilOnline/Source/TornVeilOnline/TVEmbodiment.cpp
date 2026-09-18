@@ -7,6 +7,7 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/Skeleton.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Materials/MaterialInterface.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "UObject/StrongObjectPtr.h"
@@ -39,14 +40,40 @@ namespace {
             static_cast<uint8>(Hex & 0xff)));
     }
 
-    void TintComponent(USkeletalMeshComponent* Component, int64 Hex, float Wear, float Grooming) {
+    /**
+     * The project's own character master materials, which are the only ones that declare `Tint`.
+     *
+     * Tinting whatever material a mesh happened to ship with does not work and does not complain:
+     * `SetVectorParameterValue` on a parameter the material does not declare is a silent no-op, so
+     * a vendor mannequin stays exactly as white as it came while the canonical colour is computed,
+     * sent across the bridge and dropped on the floor. Swapping in a material that declares the
+     * parameter is what makes canonical appearance actually reach a pixel.
+     */
+    UMaterialInterface* CharacterMaterial(const TCHAR* Name) {
+        static TMap<FString, TWeakObjectPtr<UMaterialInterface>> Cache;
+        if (TWeakObjectPtr<UMaterialInterface>* Found = Cache.Find(Name)) {
+            if (Found->IsValid()) return Found->Get();
+        }
+        UMaterialInterface* Loaded = LoadObject<UMaterialInterface>(
+            nullptr, *FString::Printf(TEXT("/Game/TornVeil/Materials/%s.%s"), Name, Name));
+        Cache.Add(Name, Loaded);
+        return Loaded;
+    }
+
+    void TintComponent(USkeletalMeshComponent* Component, const TCHAR* MaterialName, int64 Hex, float Wear, float Grooming) {
         if (!Component) return;
+        UMaterialInterface* Base = CharacterMaterial(MaterialName);
         for (int32 Index = 0; Index < Component->GetNumMaterials(); ++Index) {
-            if (UMaterialInstanceDynamic* Dynamic = Component->CreateAndSetMaterialInstanceDynamic(Index)) {
-                Dynamic->SetVectorParameterValue(TEXT("Tint"), Colour(Hex));
-                Dynamic->SetScalarParameterValue(TEXT("Wear"), Wear);
-                Dynamic->SetScalarParameterValue(TEXT("Grooming"), Grooming);
-            }
+            // Fall back to tinting the mesh's own material when the project material is missing:
+            // an untinted character is a far better outcome than an invisible one.
+            UMaterialInstanceDynamic* Dynamic = Base
+                ? UMaterialInstanceDynamic::Create(Base, Component)
+                : Component->CreateAndSetMaterialInstanceDynamic(Index);
+            if (!Dynamic) continue;
+            if (Base) Component->SetMaterial(Index, Dynamic);
+            Dynamic->SetVectorParameterValue(TEXT("Tint"), Colour(Hex));
+            Dynamic->SetScalarParameterValue(TEXT("Wear"), Wear);
+            Dynamic->SetScalarParameterValue(TEXT("Grooming"), Grooming);
         }
     }
 }
@@ -366,15 +393,16 @@ bool UTVCharacterPresentation::ApplyProfile(const FTVAppearanceProfile& Profile)
 }
 
 void UTVCharacterPresentation::ApplyTints(const FTVAppearanceProfile& Profile) {
-    TintComponent(this, Profile.Materials.Skin, Profile.Materials.Wear, Profile.Materials.Grooming);
+    TintComponent(this, TEXT("M_TV_CharacterSkin"), Profile.Materials.Skin, Profile.Materials.Wear, Profile.Materials.Grooming);
     for (int32 Index = 0; Index < Parts.Num(); ++Index) {
         const FString& Slot = PartSlotKinds[Index];
         int64 Tint = Profile.Materials.GarmentAccent;
-        if (Slot == TEXT("head")) Tint = Profile.Materials.Skin;
-        else if (Slot == TEXT("hair") || Slot == TEXT("facialHair")) Tint = Profile.Materials.Hair;
-        else if (Slot == TEXT("upperGarment") || Slot == TEXT("robe") || Slot == TEXT("armor")) Tint = Profile.Materials.GarmentPrimary;
-        else if (Slot == TEXT("lowerGarment") || Slot == TEXT("footwear")) Tint = Profile.Materials.GarmentSecondary;
-        TintComponent(Parts[Index], Tint, Profile.Materials.Wear, Profile.Materials.Grooming);
+        const TCHAR* Material = TEXT("M_TV_CharacterProp");
+        if (Slot == TEXT("head")) { Tint = Profile.Materials.Skin; Material = TEXT("M_TV_CharacterSkin"); }
+        else if (Slot == TEXT("hair") || Slot == TEXT("facialHair")) { Tint = Profile.Materials.Hair; Material = TEXT("M_TV_CharacterHair"); }
+        else if (Slot == TEXT("upperGarment") || Slot == TEXT("robe") || Slot == TEXT("armor")) { Tint = Profile.Materials.GarmentPrimary; Material = TEXT("M_TV_CharacterCloth"); }
+        else if (Slot == TEXT("lowerGarment") || Slot == TEXT("footwear")) { Tint = Profile.Materials.GarmentSecondary; Material = TEXT("M_TV_CharacterCloth"); }
+        TintComponent(Parts[Index], Material, Tint, Profile.Materials.Wear, Profile.Materials.Grooming);
     }
 }
 

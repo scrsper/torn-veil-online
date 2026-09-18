@@ -75,6 +75,20 @@ def main():
         'schema': 2,
         'purpose': ('Unreal-only activity and retarget execution mappings. Character meshes and '
                     'parts are selected by the shared Character Foundry resolver.'),
+        # Regenerating this file must not cost it the instructions for regenerating it. Emitting
+        # them here rather than hand-keeping them in the checked-in copy is what stops the next
+        # rebuild silently deleting the only note that says how the file is produced.
+        'howToFill': [
+            '1. In the editor, run unreal/scripts/audit_character_assets.py to write the one '
+            'machine-local Foundry catalogue for meshes, parts, skeletons, retargeters and '
+            'activity animations.',
+            '2. Run unreal/scripts/build_character_palette.py to rewrite this file from that '
+            'catalogue. Appearance assets are already selected by the Foundry; this file maps '
+            'activity clips only.',
+            '3. For a visible character on a skeleton other than the driver, run '
+            'unreal/scripts/build_character_retarget.py first and pass its --retarget argument '
+            'to the palette builder.',
+        ],
         'driverSkeletons': [target] if target else [],
         'activities': {},
         'retargets': retargets,
@@ -92,6 +106,7 @@ def main():
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     with open(args.out, 'w', encoding='utf-8') as handle:
         json.dump(palette, handle, indent=2, sort_keys=True)
+        handle.write('\n')
     print('CHARACTER_PRESENTATION_PALETTE', json.dumps(palette['coverage']))
 
 
