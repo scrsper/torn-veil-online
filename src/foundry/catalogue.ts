@@ -170,7 +170,21 @@ export function animatableSkeletons(catalogue: CharacterCatalogue): Set<string> 
   const usable = new Set<string>();
   if (target) usable.add(target);
   for (const retargeter of catalogue.retargeters) {
-    if (retargeter.sourceSkeleton && (!target || retargeter.targetSkeleton === target)) usable.add(retargeter.sourceSkeleton);
+    const { sourceSkeleton, targetSkeleton } = retargeter;
+    if (!sourceSkeleton && !targetSkeleton) continue;
+    // A retargeter is a bone-chain mapping between two rigs, and a mapping is usable in whichever
+    // direction the runtime needs. Which end an author happened to call "source" depends on what
+    // they were building: a motion pack's clips are retargeted ONTO the animation target, while a
+    // foreign body is posed FROM it. Both cases mean the same thing for body eligibility — this
+    // project can put a pose on that rig — so both are accepted, and a retargeter that does not
+    // involve the animation target at all is ignored rather than silently widening the pool.
+    if (!target) {
+      if (sourceSkeleton) usable.add(sourceSkeleton);
+      if (targetSkeleton) usable.add(targetSkeleton);
+      continue;
+    }
+    if (targetSkeleton === target && sourceSkeleton) usable.add(sourceSkeleton);
+    if (sourceSkeleton === target && targetSkeleton) usable.add(targetSkeleton);
   }
   return usable;
 }

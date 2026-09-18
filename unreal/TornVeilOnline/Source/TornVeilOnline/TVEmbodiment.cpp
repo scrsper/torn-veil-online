@@ -95,7 +95,7 @@ bool FTVAppearanceProfile::Parse(const TSharedPtr<FJsonObject>& Json, FTVAppeara
     if ((*Realization)->TryGetObjectField(TEXT("morphs"), Morphs) && Morphs) {
         for (const auto& Pair : (*Morphs)->Values) {
             double Morph = 0.0;
-            if (Pair.Value.IsValid() && Pair.Value->TryGetNumber(Morph)) Out.Morphs.Add(Pair.Key, static_cast<float>(Morph));
+            if (Pair.Value.IsValid() && Pair.Value->TryGetNumber(Morph)) Out.Morphs.Add(FString(Pair.Key.ToView()), static_cast<float>(Morph));
         }
     }
 
@@ -227,7 +227,7 @@ void UTVCharacterPalette::Ingest(const TSharedPtr<FJsonObject>& Root) {
         if (!Root->TryGetObjectField(Field, Section) || !Section) return;
         for (const auto& Pair : (*Section)->Values) {
             FString Path;
-            if (Pair.Value.IsValid() && Pair.Value->TryGetString(Path) && !Path.IsEmpty()) Into.Add(Lower(Pair.Key), Path);
+            if (Pair.Value.IsValid() && Pair.Value->TryGetString(Path) && !Path.IsEmpty()) Into.Add(Lower(FString(Pair.Key.ToView())), Path);
         }
     };
     ReadMap(TEXT("activities"), ActivityPaths);
