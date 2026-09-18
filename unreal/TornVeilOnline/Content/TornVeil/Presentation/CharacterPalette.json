@@ -1,18 +1,15 @@
 {
-  "schema": 1,
-  "purpose": "Semantic appearance/activity token -> local asset path. The ONLY place in the project that knows both vocabularies. Canonical simulation (src/sim/) and the bridge (src/bridge/) contain no asset path at all.",
+  "schema": 2,
+  "purpose": "Unreal-only activity animation and retarget execution mappings. Character meshes and modular parts are selected by the shared Character Foundry resolver.",
   "howToFill": [
-    "1. In the editor, run unreal/scripts/audit_human_assets.py (read-only asset-registry inventory of human meshes and activity animations, with the skeleton each belongs to).",
-    "2. Run unreal/scripts/build_character_palette.py to rewrite this file from that inventory. It selects only assets that can actually be driven, and lists everything it could not resolve.",
+    "1. In the editor, run unreal/scripts/audit_character_assets.py to write the one machine-local Foundry catalogue for meshes, parts, skeletons, retargeters and activity animations.",
+    "2. Run unreal/scripts/build_character_palette.py to rewrite this file from that catalogue. Appearance assets are already selected by the Foundry; this file maps activity clips only.",
     "3. For a visible character on a skeleton other than the driver, run unreal/scripts/build_character_retarget.py first and pass its --retarget argument to the palette builder."
   ],
-  "note": "This checked-in copy resolves nothing. The repository carries no licensed human character library, so any entry here would be a path to an asset that does not exist on a clean checkout. With an empty palette UTVCharacterPalette resolves no visible character, ATVCharacter keeps drawing the Manny driver, and PresentationDiagnostics reports visibleCharacter:false — an honest 'content not installed here' rather than a silent failure.",
+  "note": "This checked-in copy resolves no optional activity clips. An absent Foundry catalogue or missing body keeps the Manny driver visible and reports visibleCharacter:false.",
   "driverSkeletons": [
     "/Game/Characters/Mannequins/Meshes/SK_Mannequin"
   ],
-  "authored": {},
-  "bodies": {},
-  "parts": {},
   "activities": {},
   "retargets": {}
 }

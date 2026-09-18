@@ -1,4 +1,25 @@
-import type { Appearance, Body, Pose, Vec3 } from '../sim/core/types';
+import { projectAppearanceDescription } from '../sim/core/appearance';
+import type { ProjectedAppearanceDescription } from '../sim/core/appearance';
+import type { Appearance, Body, Person, Pose, Vec3 } from '../sim/core/types';
+
+/**
+ * A person's look as a renderer receives it: the realized colour/scale channels, plus the
+ * structured description with the canonically derived fields (age presentation, role cues) filled
+ * in. The renderer is free to key off the tokens or to ignore them and use the colours alone —
+ * neither path teaches it anything about the simulation beyond how this body looks.
+ */
+export interface ProjectedAppearance extends Omit<Appearance, 'description'> {
+  description?: ProjectedAppearanceDescription;
+}
+
+/** Project one person's appearance. Age and occupation are canonical, so they are read, not stored. */
+export function projectAppearance(person: Pick<Person, 'appearance' | 'age' | 'occupation'> | undefined): ProjectedAppearance | undefined {
+  if (!person) return undefined;
+  const { description, ...realized } = person.appearance;
+  return description
+    ? { ...realized, description: projectAppearanceDescription(description, person.age, person.occupation) }
+    : { ...realized };
+}
 
 /** Renderer-neutral physical projection. No asset paths, cognition or movement tuning. */
 export interface HumanoidVisualState {
@@ -19,10 +40,10 @@ export interface HumanoidVisualState {
   lastHitAt: number;
   dead: boolean;
   incapacitated: boolean;
-  appearance?: Appearance;
+  appearance?: ProjectedAppearance;
 }
 
-export function humanoidVisualState(body: Body, name: string, activity: string, appearance?: Appearance): HumanoidVisualState {
+export function humanoidVisualState(body: Body, name: string, activity: string, appearance?: ProjectedAppearance): HumanoidVisualState {
   return {
     bodyId: body.id, entityId: body.ownerId, name,
     pos: { ...body.pos }, velocity: { ...body.vel }, yaw: body.yaw,crouch:body.crouch??0,
@@ -30,6 +51,6 @@ export function humanoidVisualState(body: Body, name: string, activity: string, 
     attackSeq: body.attackSeq, hitSeq: body.hitSeq,
     lastAttackAt: body.lastAttackAt, lastHitAt: body.lastHitAt,
     dead: body.dead, incapacitated: body.pose === 'downed',
-    ...(appearance ? { appearance: { ...appearance } } : {}),
+    ...(appearance ? { appearance: { ...appearance, ...(appearance.description ? { description: { ...appearance.description } } : {}) } } : {}),
   };
 }

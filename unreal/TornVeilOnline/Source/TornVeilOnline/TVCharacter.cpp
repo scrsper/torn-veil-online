@@ -89,8 +89,11 @@ ATVCharacter::ATVCharacter() {
 void ATVCharacter::BeginPlay() {
     Super::BeginPlay();
     FCoreDelegates::ApplicationWillDeactivateDelegate.AddUObject(this,&ATVCharacter::LoseFocus);
-    // Manny supplies the humanoid silhouette. The old cube/cylinder placeholders
-    // obscure articulated limbs and are deferred until fitted clothing exists.
+    // Manny supplies the humanoid silhouette. The cube/cylinder stand-ins obscure articulated
+    // limbs, so they start hidden; `ApplyAppearance` then re-reads that decision from
+    // Content/TornVeil/Presentation/AshfordAppearanceProfiles.json (`proxyVisibility`), which is
+    // the one switch to flip once fitted modular garment/hair assets exist. Canonical appearance
+    // the description drives their proportions either way.
     HairProxy->SetHiddenInGame(true); GarmentProxy->SetHiddenInGame(true); OccupationProp->SetHiddenInGame(true);
     if (VisibleCharacter) VisibleCharacter->BindDriver(GetMesh());
     GetCharacterMovement()->DisableMovement(); GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -187,14 +190,25 @@ void ATVCharacter::Project(const TSharedPtr<FJsonObject>& D, bool First) {
     D->TryGetNumberField(TEXT("crouch"),CanonicalCrouch);
     Activity = State.Activity; Occupation.Empty(); D->TryGetStringField(TEXT("occupation"), Occupation); CanonicalPose = State.Pose;
     ApplyAppearance(State.Appearance);
-    // Slice 3 embodiment. A malformed block is logged and dropped: the character then keeps its
-    // previous appearance and activity rather than silently resolving to a default person.
+    // Slice 3 embodiment. The canonical description has already passed through the one shared
+    // Character Foundry resolver. A malformed block is logged and dropped; the character keeps
+    // the previous realization rather than inventing a second local answer.
     const TSharedPtr<FJsonObject>* EmbodimentJson = nullptr;
     if (D->TryGetObjectField(TEXT("embodiment"), EmbodimentJson) && EmbodimentJson) {
         FTVEmbodimentState Parsed; FString EmbodimentError;
         if (FTVEmbodimentState::Parse(*EmbodimentJson, Parsed, EmbodimentError)) {
             Embodiment = MoveTemp(Parsed); bHasEmbodiment = true;
-            if (VisibleCharacter && Embodiment.bHasAppearance) VisibleCharacter->ApplyProfile(Embodiment.Appearance);
+            if (VisibleCharacter && Embodiment.bHasAppearance) {
+                VisibleCharacter->ApplyProfile(Embodiment.Appearance);
+            }
+            // The schema-2 primitive grammar remains the fail-soft path for old saves or an
+            // empty/broken catalogue. Once the Foundry produced a real body, do not draw its
+            // proxy hair/garment/prop on top of the modular character, including delta snapshots.
+            if (VisibleCharacter && VisibleCharacter->HasVisibleCharacter()) {
+                HairProxy->SetHiddenInGame(true);
+                GarmentProxy->SetHiddenInGame(true);
+                OccupationProp->SetHiddenInGame(true);
+            }
         } else {
             UE_LOG(LogTemp, Warning, TEXT("TV_CHARACTER rejected malformed embodiment for %s: %s"), *State.BodyId, *EmbodimentError);
         }
@@ -252,41 +266,152 @@ static FLinearColor TVHexColour(double Raw, const FLinearColor& Fallback) {
     const uint32 Value = static_cast<uint32>(Raw);
     return FLinearColor(((Value >> 16) & 255) / 255.f, ((Value >> 8) & 255) / 255.f, (Value & 255) / 255.f, 1.f);
 }
-static FString TVOccupationCue(const FString& Occupation) {
-    // Data, rather than a cast-name switch: current profile data is deliberately external so a
-    // culture pack may change clothing/props without changing canonical character code.
-    static bool bRead = false; static TMap<FString, FString> Cues;
-    if (!bRead) {
-        bRead = true; FString Text;
-        const FString Path = FPaths::ProjectContentDir() / TEXT("TornVeil/Presentation/AshfordAppearanceProfiles.json");
-        if (FFileHelper::LoadFileToString(Text, *Path)) {
-            TSharedPtr<FJsonObject> Root;
-            if (FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text), Root) && Root.IsValid()) {
-                const TSharedPtr<FJsonObject>* Occupations;
-                if (Root->TryGetObjectField(TEXT("occupations"), Occupations) && Occupations && Occupations->IsValid()) for (const auto& Pair : (*Occupations)->Values) {
-                    const auto Row = Pair.Value->AsObject(); FString Cue;
-                    if (Row && Row->TryGetStringField(TEXT("prop"), Cue)) Cues.Add(FString(Pair.Key.ToView()), Cue);
-                }
-            }
+/**
+ * The renderer's own grammar, read once from Content/TornVeil/Presentation/AshfordAppearanceProfiles.json.
+ * The canonical appearance description arrives as tokens; this table is where a token becomes
+ * client can actually draw. Keeping it in data rather than in a switch is deliberate: a culture pack
+ * changes clothing, hair and props without touching canonical character code, and the mapping stays
+ * reviewable by eye.
+ */
+namespace {
+struct FTVPropCue { FString Prop; bool bLong = false; };
+// The defaults ARE the pre-pipeline presentation: an unknown token, or a body with no trait data,
+// falls back to exactly the proportions and offsets the constructor set.
+struct FTVSilhouetteCue { FVector Scale = FVector::OneVector; float Skirt = 0.f; };
+struct FTVHairCue { FVector Scale = FVector::OneVector; bool bBound = true; };
+
+struct FTVAshfordAppearanceGrammar {
+    bool bLoaded = false;
+    bool bShowHair = false, bShowGarment = false, bShowProp = false;
+    TMap<FString, FTVSilhouetteCue> Silhouettes;
+    TMap<FString, FTVHairCue> Hair;
+    TMap<FString, FTVPropCue> Accessories;
+    TMap<FString, FTVPropCue> RoleCues;
+    /** Schema-1 fallback for a body that arrives without trait data at all. */
+    TMap<FString, FString> OccupationProps;
+};
+
+FVector TVScaleField(const TSharedPtr<FJsonObject>& Row, const FVector& Fallback) {
+    const TArray<TSharedPtr<FJsonValue>>* Values = nullptr;
+    if (!Row.IsValid() || !Row->TryGetArrayField(TEXT("scale"), Values) || !Values || Values->Num() < 3) return Fallback;
+    double Axis[3] = { Fallback.X, Fallback.Y, Fallback.Z };
+    for (int32 Index = 0; Index < 3; ++Index) {
+        double Value = 0;
+        if ((*Values)[Index].IsValid() && (*Values)[Index]->TryGetNumber(Value) && FMath::IsFinite(Value) && Value >= 0 && Value <= 8)
+            Axis[Index] = Value;
+    }
+    return FVector(Axis[0], Axis[1], Axis[2]);
+}
+void TVReadProps(const TSharedPtr<FJsonObject>& Root, const TCHAR* Field, TMap<FString, FTVPropCue>& Out) {
+    const TSharedPtr<FJsonObject>* Section = nullptr;
+    if (!Root->TryGetObjectField(Field, Section) || !Section || !Section->IsValid()) return;
+    for (const auto& Pair : (*Section)->Values) {
+        const TSharedPtr<FJsonObject> Row = Pair.Value->AsObject();
+        if (!Row.IsValid()) continue; // the "comment" key is a plain string and is skipped here
+        FTVPropCue Cue; Row->TryGetStringField(TEXT("prop"), Cue.Prop); Row->TryGetBoolField(TEXT("long"), Cue.bLong);
+        Out.Add(FString(Pair.Key.ToView()), Cue);
+    }
+}
+
+const FTVAshfordAppearanceGrammar& TVAppearanceGrammar() {
+    static FTVAshfordAppearanceGrammar Profile;
+    if (Profile.bLoaded) return Profile;
+    Profile.bLoaded = true;
+    FString Text;
+    const FString Path = FPaths::ProjectContentDir() / TEXT("TornVeil/Presentation/AshfordAppearanceProfiles.json");
+    if (!FFileHelper::LoadFileToString(Text, *Path)) return Profile;
+    TSharedPtr<FJsonObject> Root;
+    if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text), Root) || !Root.IsValid()) return Profile;
+
+    const TSharedPtr<FJsonObject>* Section = nullptr;
+    if (Root->TryGetObjectField(TEXT("proxyVisibility"), Section) && Section && Section->IsValid()) {
+        (*Section)->TryGetBoolField(TEXT("hair"), Profile.bShowHair);
+        (*Section)->TryGetBoolField(TEXT("garment"), Profile.bShowGarment);
+        (*Section)->TryGetBoolField(TEXT("prop"), Profile.bShowProp);
+    }
+    if (Root->TryGetObjectField(TEXT("silhouettes"), Section) && Section && Section->IsValid()) {
+        for (const auto& Pair : (*Section)->Values) {
+            const TSharedPtr<FJsonObject> Row = Pair.Value->AsObject();
+            if (!Row.IsValid()) continue;
+            FTVSilhouetteCue Cue; Cue.Scale = TVScaleField(Row, FVector::OneVector);
+            double Skirt = Cue.Skirt; if (Row->TryGetNumberField(TEXT("skirt"), Skirt) && FMath::IsFinite(Skirt)) Cue.Skirt = FMath::Clamp(static_cast<float>(Skirt), 0.f, 2.f);
+            Profile.Silhouettes.Add(FString(Pair.Key.ToView()), Cue);
         }
     }
-    return Cues.FindRef(Occupation);
+    if (Root->TryGetObjectField(TEXT("hair"), Section) && Section && Section->IsValid()) {
+        for (const auto& Pair : (*Section)->Values) {
+            const TSharedPtr<FJsonObject> Row = Pair.Value->AsObject();
+            if (!Row.IsValid()) continue;
+            FTVHairCue Cue; Cue.Scale = TVScaleField(Row, FVector::OneVector); Row->TryGetBoolField(TEXT("bound"), Cue.bBound);
+            Profile.Hair.Add(FString(Pair.Key.ToView()), Cue);
+        }
+    }
+    TVReadProps(Root, TEXT("accessories"), Profile.Accessories);
+    TVReadProps(Root, TEXT("roleCues"), Profile.RoleCues);
+    if (Root->TryGetObjectField(TEXT("occupations"), Section) && Section && Section->IsValid()) {
+        for (const auto& Pair : (*Section)->Values) {
+            const TSharedPtr<FJsonObject> Row = Pair.Value->AsObject(); FString Cue;
+            if (Row.IsValid() && Row->TryGetStringField(TEXT("prop"), Cue)) Profile.OccupationProps.Add(FString(Pair.Key.ToView()), Cue);
+        }
+    }
+    return Profile;
 }
+}
+
+/**
+ * Which single prop this person carries. Role comes first — a smith's hammer says more about them
+ * than a waist cord does — and their own persistent accessories supply the rest. Returns an empty
+ * prop when nothing named maps to something drawable.
+ */
+static FTVPropCue TVSelectProp(const FTVAppearanceDescription& Description, const FString& Occupation) {
+    const FTVAshfordAppearanceGrammar& Profile = TVAppearanceGrammar();
+    if (Description.bHasDescription) {
+        for (const FString& Cue : Description.RoleCues) if (const FTVPropCue* Found = Profile.RoleCues.Find(Cue)) { if (!Found->Prop.IsEmpty()) return *Found; }
+        for (const FString& Item : Description.Accessories) if (const FTVPropCue* Found = Profile.Accessories.Find(Item)) { if (!Found->Prop.IsEmpty()) return *Found; }
+        return FTVPropCue();
+    }
+    // Schema-1 fallback: a body from a bridge or a save that predates the character pipeline.
+    FTVPropCue Cue; Cue.Prop = Profile.OccupationProps.FindRef(Occupation);
+    Cue.bLong = Cue.Prop == TEXT("spear") || Cue.Prop == TEXT("bow") || Cue.Prop == TEXT("hoe") || Cue.Prop == TEXT("axe") || Cue.Prop == TEXT("sword");
+    return Cue;
+}
+
 void ATVCharacter::ApplyAppearance(const FTVAppearanceVisualState& A) {
     if (!A.bPresent) return;
+    const FTVAshfordAppearanceGrammar& Profile = TVAppearanceGrammar();
+    const FTVAppearanceDescription& Description = A.Description;
     if (SkinMaterial) SkinMaterial->SetVectorParameterValue(TEXT("Tint"), TVHexColour(A.Skin, FLinearColor(.72f, .48f, .32f)));
-    if (ClothMaterial) ClothMaterial->SetVectorParameterValue(TEXT("Tint"), TVHexColour(A.Shirt, FLinearColor(.08f, .12f, .26f)));
+    // The realized colours already carry the costume family and how worn it is (the simulation
+    // weathers them); the description below only adds the proportions this client can also express.
+    if (ClothMaterial) {
+        ClothMaterial->SetVectorParameterValue(TEXT("Tint"), TVHexColour(A.Shirt, FLinearColor(.08f, .12f, .26f)));
+        // Optional on the material — a graph without these parameters simply ignores them.
+        ClothMaterial->SetScalarParameterValue(TEXT("Wear"), Description.bHasDescription ? Description.Wear : .3f);
+        ClothMaterial->SetScalarParameterValue(TEXT("Grooming"), Description.bHasDescription ? Description.Grooming : .5f);
+    }
     if (HairMaterial) HairMaterial->SetVectorParameterValue(TEXT("Tint"), TVHexColour(A.Hair, FLinearColor(.04f, .025f, .016f)));
     const float Height = A.Height, Build = A.Build;
     GetMesh()->SetRelativeScale3D(FVector(Build, Build, Height));
-    GarmentProxy->SetRelativeScale3D(FVector(.44f * Build, .30f * Build, .55f * Height));
-    HairProxy->SetRelativeScale3D(FVector(.48f * Build, .48f * Build, .22f * Height));
-    HairProxy->SetVisibility(!A.HatStyle.Equals(TEXT("hood"), ESearchCase::IgnoreCase));
-    const FString Cue = TVOccupationCue(Occupation);
-    const bool LongCue = Cue == TEXT("spear") || Cue == TEXT("bow") || Cue == TEXT("hoe") || Cue == TEXT("axe") || Cue == TEXT("sword");
-    OccupationProp->SetVisibility(!Cue.IsEmpty());
-    OccupationProp->SetRelativeScale3D(LongCue ? FVector(.075f, .075f, 1.2f) : FVector(.16f, .16f, .16f));
-    if (PropMaterial) PropMaterial->SetVectorParameterValue(TEXT("Tint"), LongCue ? FLinearColor(.20f, .13f, .06f) : FLinearColor(.35f, .24f, .09f));
+
+    // A long garment reads long because it hangs lower, not only because it is taller.
+    const FTVSilhouetteCue Silhouette = Description.bHasDescription ? Profile.Silhouettes.FindRef(Description.GarmentSilhouette) : FTVSilhouetteCue();
+    GarmentProxy->SetRelativeScale3D(FVector(.44f * Build * Silhouette.Scale.X, .30f * Build * Silhouette.Scale.Y, .55f * Height * Silhouette.Scale.Z));
+    GarmentProxy->SetRelativeLocation(FVector(2.f, 0.f, -8.f - 10.f * Silhouette.Skirt * Height));
+    GarmentProxy->SetHiddenInGame(!Profile.bShowGarment);
+
+    // Bound hair stays on the crown; loose hair falls behind the head.
+    const bool bShaved = Description.bHasDescription && Description.HairStyle == TEXT("shaved");
+    const FTVHairCue HairCue = Description.bHasDescription ? Profile.Hair.FindRef(Description.HairStyle) : FTVHairCue();
+    HairProxy->SetRelativeScale3D(FVector(.48f * Build * HairCue.Scale.X, .48f * Build * HairCue.Scale.Y, .22f * Height * HairCue.Scale.Z));
+    HairProxy->SetRelativeLocation(HairCue.bBound ? FVector(0.f, 0.f, 5.f) : FVector(-2.f, 0.f, 1.f));
+    HairProxy->SetHiddenInGame(!Profile.bShowHair);
+    HairProxy->SetVisibility(!bShaved && !A.HatStyle.Equals(TEXT("hood"), ESearchCase::IgnoreCase));
+
+    const FTVPropCue Prop = TVSelectProp(Description, Occupation);
+    OccupationProp->SetHiddenInGame(!Profile.bShowProp);
+    OccupationProp->SetVisibility(!Prop.Prop.IsEmpty());
+    OccupationProp->SetRelativeScale3D(Prop.bLong ? FVector(.075f, .075f, 1.2f) : FVector(.16f, .16f, .16f));
+    if (PropMaterial) PropMaterial->SetVectorParameterValue(TEXT("Tint"), Prop.bLong ? FLinearColor(.20f, .13f, .06f) : FLinearColor(.35f, .24f, .09f));
 }
 void ATVCharacter::ApplyOccupancyOffset(float Dt) {
     if (!VisibleCharacter || bCanonicalPlayer || !bHasEmbodiment) return;
@@ -359,9 +484,15 @@ void ATVCharacter::Animate(float Speed) {
     if(Speed>5)LastTravelDirection=Direction;
     const bool ActivityLoop = Wanted == Locomotion && !bIncapacitated && Speed<30 && CanonicalPose!=TEXT("attack") && CanonicalPose!=TEXT("hit");
     if(ActivityLoop) {
-        FString Key=Activity;
-        if(Key==TEXT("sit") || Key==TEXT("sleep") || Key==TEXT("pray")) Key=TEXT("rest");
-        if(!Key.IsEmpty() && Key!=TEXT("stand")) { if(!ActivityAnimations.Contains(Key)) ActivityAnimations.Add(Key,LoadObject<UAnimationAsset>(nullptr,*(TEXT("/Game/Characters/TornVeilActivities/A_TV_")+Key))); if(auto* A=ActivityAnimations.FindRef(Key).Get()) Wanted=A; }
+        // Prefer the evidence-backed activity family/detail projected by Slice 3. The local
+        // palette maps only animation execution assets; it has no say in appearance or activity.
+        if (bHasEmbodiment) {
+            if (UAnimationAsset* Presented = UTVCharacterPalette::Get()->ActivityAnimation(Embodiment.Activity.Family, Embodiment.Activity.Detail)) Wanted = Presented;
+        } else {
+            FString Key=Activity;
+            if(Key==TEXT("sit") || Key==TEXT("sleep") || Key==TEXT("pray")) Key=TEXT("rest");
+            if(!Key.IsEmpty() && Key!=TEXT("stand")) { if(!ActivityAnimations.Contains(Key)) ActivityAnimations.Add(Key,LoadObject<UAnimationAsset>(nullptr,*(TEXT("/Game/Characters/TornVeilActivities/A_TV_")+Key))); if(auto* A=ActivityAnimations.FindRef(Key).Get()) Wanted=A; }
+        }
     }
     if (!Wanted) return;
     // Sequence deltas preserve multiple swings/flinches even when pose stayed unchanged between
@@ -423,8 +554,8 @@ FString ATVCharacter::PresentationDiagnostics() const {
     J->SetNumberField(TEXT("headHeightCm"), GetMesh()->GetSocketTransform(TEXT("head"), RTS_Component).GetLocation().Z);
     J->SetNumberField(TEXT("pelvisHeightCm"), GetMesh()->GetSocketTransform(TEXT("pelvis"), RTS_Component).GetLocation().Z);
     J->SetNumberField(TEXT("skippedAttacks"), SkippedAttackEvents); J->SetNumberField(TEXT("skippedHits"), SkippedHitEvents);
-    // Slice 3 evidence. `visibleCharacter` false means the palette resolved nothing and the driver
-    // silhouette is what is on screen — never reported as a successful embodiment.
+    // Slice 3 evidence. `visibleCharacter` false means the Foundry/apply layer resolved nothing
+    // usable and the driver silhouette is on screen — never reported as successful embodiment.
     J->SetStringField(TEXT("activityFamily"), bHasEmbodiment ? Embodiment.Activity.Family : FString());
     J->SetStringField(TEXT("activityDetail"), bHasEmbodiment ? Embodiment.Activity.Detail : FString());
     J->SetStringField(TEXT("activityPosture"), bHasEmbodiment ? Embodiment.Activity.Posture : FString());

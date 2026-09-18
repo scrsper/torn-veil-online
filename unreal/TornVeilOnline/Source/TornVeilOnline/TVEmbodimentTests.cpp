@@ -4,31 +4,52 @@
 #include "Dom/JsonObject.h"
 
 namespace {
-    TSharedPtr<FJsonObject> MakeSlot(const TCHAR* Kind, const TCHAR* Token, bool bTint = false, int32 Tint = 0) {
+    TSharedPtr<FJsonObject> MakeSlot(const TCHAR* SlotName, const TCHAR* Package, const TCHAR* Name) {
         auto Slot = MakeShared<FJsonObject>();
-        Slot->SetStringField(TEXT("kind"), Kind);
-        Slot->SetStringField(TEXT("token"), Token);
-        if (bTint) Slot->SetNumberField(TEXT("tint"), Tint);
+        Slot->SetStringField(TEXT("slot"), SlotName);
+        Slot->SetStringField(TEXT("package"), Package);
+        Slot->SetStringField(TEXT("name"), Name);
+        Slot->SetStringField(TEXT("assetClass"), TEXT("SkeletalMesh"));
+        Slot->SetArrayField(TEXT("materialSlots"), TArray<TSharedPtr<FJsonValue>>());
         return Slot;
     }
+
     TSharedPtr<FJsonObject> MakeProfile() {
         auto Profile = MakeShared<FJsonObject>();
         Profile->SetStringField(TEXT("personId"), TEXT("p_128"));
         Profile->SetStringField(TEXT("bodyId"), TEXT("b_141"));
         Profile->SetStringField(TEXT("signature"), TEXT("k3f9z"));
-        Profile->SetStringField(TEXT("species"), TEXT("human"));
-        Profile->SetStringField(TEXT("sex"), TEXT("male"));
-        Profile->SetStringField(TEXT("lifeStage"), TEXT("adult"));
-        Profile->SetNumberField(TEXT("height"), 1.02);
-        Profile->SetNumberField(TEXT("build"), 0.97);
-        Profile->SetBoolField(TEXT("authored"), false);
+        auto Description = MakeShared<FJsonObject>();
+        Description->SetStringField(TEXT("archetype"), TEXT("kaito"));
+        Description->SetStringField(TEXT("culture"), TEXT("ashford"));
+        Profile->SetObjectField(TEXT("description"), Description);
+
+        auto Realization = MakeShared<FJsonObject>();
+        Realization->SetStringField(TEXT("entityId"), TEXT("p_128"));
+        Realization->SetStringField(TEXT("skeleton"), TEXT("/Game/Characters/Mannequins/Meshes/SK_Mannequin"));
+        Realization->SetBoolField(TEXT("complete"), true);
+        auto Scale = MakeShared<FJsonObject>();
+        Scale->SetNumberField(TEXT("height"), 1.02); Scale->SetNumberField(TEXT("build"), .97);
+        Realization->SetObjectField(TEXT("scale"), Scale);
+        auto Materials = MakeShared<FJsonObject>();
+        Materials->SetNumberField(TEXT("skin"), 0xd9a988);
+        Materials->SetNumberField(TEXT("hair"), 0x1a1512);
+        Materials->SetNumberField(TEXT("garmentPrimary"), 0x8a6a4a);
+        Materials->SetNumberField(TEXT("garmentSecondary"), 0x3a3a38);
+        Materials->SetNumberField(TEXT("garmentAccent"), 0x7a6a4a);
+        Materials->SetNumberField(TEXT("wear"), .3); Materials->SetNumberField(TEXT("grooming"), .8);
+        Realization->SetObjectField(TEXT("materials"), Materials);
+        auto Morphs = MakeShared<FJsonObject>(); Morphs->SetNumberField(TEXT("muscular"), .6);
+        Realization->SetObjectField(TEXT("morphs"), Morphs);
         TArray<TSharedPtr<FJsonValue>> Slots;
-        Slots.Add(MakeShared<FJsonValueObject>(MakeSlot(TEXT("body"), TEXT("body_human_adult_m"))));
-        Slots.Add(MakeShared<FJsonValueObject>(MakeSlot(TEXT("torso"), TEXT("apron_smith"), true, 0x8a6a4a)));
-        Slots.Add(MakeShared<FJsonValueObject>(MakeSlot(TEXT("feet"), TEXT("boots_work"))));
-        Profile->SetArrayField(TEXT("slots"), Slots);
+        Slots.Add(MakeShared<FJsonValueObject>(MakeSlot(TEXT("body"), TEXT("/Game/Fixture/Body"), TEXT("Body"))));
+        Slots.Add(MakeShared<FJsonValueObject>(MakeSlot(TEXT("upperGarment"), TEXT("/Game/Fixture/Tunic"), TEXT("Tunic"))));
+        Realization->SetArrayField(TEXT("slots"), Slots);
+        Realization->SetArrayField(TEXT("problems"), TArray<TSharedPtr<FJsonValue>>());
+        Profile->SetObjectField(TEXT("realization"), Realization);
         return Profile;
     }
+
     TSharedPtr<FJsonObject> MakeActivity() {
         auto Activity = MakeShared<FJsonObject>();
         Activity->SetStringField(TEXT("family"), TEXT("work"));
@@ -51,26 +72,32 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTVAppearanceProfileParser,
     "TornVeil.Embodiment.AppearanceProfile", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FTVAppearanceProfileParser::RunTest(const FString&) {
     FTVAppearanceProfile Profile; FString Error;
-    TestTrue(TEXT("a complete profile parses"), FTVAppearanceProfile::Parse(MakeProfile(), Profile, Error));
-    TestEqual(TEXT("canonical person id survives the projection"), Profile.PersonId, FString(TEXT("p_128")));
-    TestEqual(TEXT("canonical body id survives the projection"), Profile.BodyId, FString(TEXT("b_141")));
-    TestEqual(TEXT("every well-formed slot is kept"), Profile.Slots.Num(), 3);
-    TestTrue(TEXT("a tinted slot keeps its canonical colour"),
-        Profile.FindSlot(TEXT("torso")) && Profile.FindSlot(TEXT("torso"))->bHasTint && Profile.FindSlot(TEXT("torso"))->Tint == 0x8a6a4a);
-    TestFalse(TEXT("an untinted slot does not invent a colour"), Profile.FindSlot(TEXT("feet"))->bHasTint);
+    TestTrue(TEXT("a canonical-description Foundry profile parses"), FTVAppearanceProfile::Parse(MakeProfile(), Profile, Error));
+    TestEqual(TEXT("canonical person id survives"), Profile.PersonId, FString(TEXT("p_128")));
+    TestEqual(TEXT("canonical body id survives"), Profile.BodyId, FString(TEXT("b_141")));
+    TestEqual(TEXT("resolved Foundry slots survive"), Profile.Slots.Num(), 2);
+    TestEqual(TEXT("the resolved body package survives"), Profile.FindSlot(TEXT("body"))->Package, FString(TEXT("/Game/Fixture/Body")));
+    TestTrue(TEXT("Foundry completeness survives"), Profile.bComplete);
+    TestTrue(TEXT("canonical scale survives"), FMath::IsNearlyEqual(Profile.Height, 1.02f) && FMath::IsNearlyEqual(Profile.Build, .97f));
+    TestTrue(TEXT("canonical materials survive"), Profile.Materials.Skin == 0xd9a988 && FMath::IsNearlyEqual(Profile.Materials.Wear, .3f));
+    TestTrue(TEXT("Foundry morphs survive"), Profile.Morphs.Contains(TEXT("muscular")));
 
-    // Identity and the signature are what make an appearance stable across a reload. A profile
-    // missing either is rejected outright rather than resolved to a default person.
     for (const TCHAR* Field : {TEXT("personId"), TEXT("bodyId"), TEXT("signature")}) {
         TSharedPtr<FJsonObject> Broken = MakeProfile();
         Broken->SetStringField(Field, TEXT(""));
         FTVAppearanceProfile Rejected;
         TestFalse(FString::Printf(TEXT("empty %s is rejected"), Field), FTVAppearanceProfile::Parse(Broken, Rejected, Error));
     }
-    TSharedPtr<FJsonObject> Slotless = MakeProfile();
-    Slotless->SetArrayField(TEXT("slots"), TArray<TSharedPtr<FJsonValue>>());
-    FTVAppearanceProfile Rejected;
-    TestFalse(TEXT("a profile with no slots is rejected"), FTVAppearanceProfile::Parse(Slotless, Rejected, Error));
+    TSharedPtr<FJsonObject> Descriptionless = MakeProfile();
+    Descriptionless->RemoveField(TEXT("description"));
+    FTVAppearanceProfile RejectedDescription;
+    TestFalse(TEXT("a profile without canonical description is rejected"), FTVAppearanceProfile::Parse(Descriptionless, RejectedDescription, Error));
+    TSharedPtr<FJsonObject> Mismatched = MakeProfile();
+    const TSharedPtr<FJsonObject>* Realization = nullptr;
+    Mismatched->TryGetObjectField(TEXT("realization"), Realization);
+    (*Realization)->SetStringField(TEXT("entityId"), TEXT("p_other"));
+    FTVAppearanceProfile RejectedIdentity;
+    TestFalse(TEXT("a mismatched Foundry identity is rejected"), FTVAppearanceProfile::Parse(Mismatched, RejectedIdentity, Error));
     return true;
 }
 
@@ -85,7 +112,6 @@ bool FTVActivityPresentationParser::RunTest(const FString&) {
     TestTrue(TEXT("canonical injury consequence is exposed, not recomputed"),
         Activity.bImpaired && FMath::IsNearlyEqual(Activity.InjurySeverity, .6f) && FMath::IsNearlyEqual(Activity.MovementMultiplier, .55f));
 
-    // A body with no wound must not arrive claiming one.
     TSharedPtr<FJsonObject> Healthy = MakeActivity();
     Healthy->RemoveField(TEXT("injury"));
     FTVActivityPresentation Sound;
@@ -127,7 +153,6 @@ bool FTVEmbodimentStateParser::RunTest(const FString&) {
     TestTrue(TEXT("the chosen station is valid"), State.Station.bValid);
     TestEqual(TEXT("the station keeps its canonical stand position"), State.Station.StandMetres, FVector(9.5, 1.0, 8.5));
 
-    // The steady state: signature only, no profile. The renderer must keep the character it built.
     auto Steady = MakeShared<FJsonObject>();
     Steady->SetStringField(TEXT("appearanceSignature"), TEXT("k3f9z"));
     Steady->SetObjectField(TEXT("activity"), MakeActivity());

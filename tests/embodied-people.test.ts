@@ -1,42 +1,38 @@
 import { describe, expect, it } from 'vitest';
-import { appearanceProfile, clearAuthoredCharacters, registerAuthoredCharacter } from '../src/bridge/appearanceProfile';
+import { appearanceProfile } from '../src/bridge/appearanceProfile';
 import { activityPresentation } from '../src/bridge/activityPresentation';
 import { MAX_SETTLE_METRES, SlotReservations, approachSlot, chooseStation, conversationStations, occupancySlots, separationOffset } from '../src/bridge/occupancy';
 import { BridgeSession } from '../src/bridge/session';
 import { deserialize, serialize } from '../src/sim/persist/save';
 import { B } from '../src/sim/physical/blocks';
 import { makePlace } from '../src/sim/world/factory';
+import { projectAppearanceDescription } from '../src/sim/core/appearance';
+import { richCatalogue } from './fixtures/characterCatalogue';
 import { addPerson, createTestWorld, v } from './helpers/world';
 
 /** The slice's architectural rule: canonical simulation never learns an engine exists. */
 const ENGINE_PATH = /\/Game\/|\.uasset|SKM_|SK_|ABP_|BS_/;
 
-describe('appearance profiles expose canonical identity, not asset paths', () => {
-  it('resolves a modular profile whose every slot is semantic vocabulary', () => {
+describe('appearance profiles consume the canonical description through the Character Foundry', () => {
+  it('projects the canonical description and resolves it through the shared catalogue', () => {
     const tw = createTestWorld();
     const smith = addPerson(tw, 'Hedda', 'smith', v(10, 1, 10));
-    smith.wealth = 40;
-    const profile = appearanceProfile(smith, tw.world.primaryBody(smith.id)!.id);
-    expect(profile.authored).toBe(false);
-    expect(profile.characterKey).toBeNull();
-    expect(profile.species).toBe('human');
-    expect(profile.sex).toBe('female');
-    const kinds = profile.slots.map(s => s.kind);
-    for (const required of ['body', 'head', 'skin', 'hair', 'torso', 'legs', 'feet']) {
-      expect(kinds).toContain(required);
-    }
-    // The occupation is exposed through a garment token, which is what makes a smith read as a
-    // smith without the simulation ever being told what a mesh is.
-    expect(profile.slots.find(s => s.kind === 'torso')!.token).toBe('apron_smith');
-    for (const slot of profile.slots) expect(slot.token).not.toMatch(ENGINE_PATH);
-    expect(JSON.stringify(profile)).not.toMatch(ENGINE_PATH);
+    const profile = appearanceProfile(smith, tw.world.primaryBody(smith.id)!.id, richCatalogue(), tw.world.seed)!;
+    expect(profile).not.toBeNull();
+    expect(profile.description).toEqual(projectAppearanceDescription(smith.appearance.description!, smith.age, smith.occupation));
+    expect(profile.description.roleCues).toContain('apron');
+    expect(profile.realization.complete).toBe(true);
+    expect(profile.realization.entityId).toBe(smith.id);
+    expect(profile.realization.slots.find(s => s.slot === 'body')?.package).toMatch(/^\/Game\//);
+    expect(profile.realization.slots.filter(s => s.slot === 'accessory').map(s => s.name)).toContain('SM_Hammer');
   });
 
-  it('keeps person id, body id and appearance identical across a save and reload', () => {
+  it('keeps the description and realization identical across a save and reload', () => {
     const session = new BridgeSession();
     const world = session.world, player = world.person(world.playerId)!;
     const body = world.primaryBody(player.id)!;
-    const before = appearanceProfile(player, body.id);
+    const catalogue = richCatalogue();
+    const before = appearanceProfile(player, body.id, catalogue, world.seed)!;
 
     const reloaded = deserialize(serialize(world))!.world;
     const samePlayer = reloaded.person(player.id)!;
@@ -44,49 +40,36 @@ describe('appearance profiles expose canonical identity, not asset paths', () =>
     expect(samePlayer.id).toBe(player.id);
     expect(sameBody.id).toBe(body.id);
 
-    const after = appearanceProfile(samePlayer, sameBody.id);
+    const after = appearanceProfile(samePlayer, sameBody.id, catalogue, reloaded.seed)!;
     expect(after.signature).toBe(before.signature);
-    expect(after.slots).toEqual(before.slots);
+    expect(after.description).toEqual(before.description);
+    expect(after.realization).toEqual(before.realization);
   });
 
-  it('gives different residents visibly different appearances from the same canonical world', () => {
-    const session = new BridgeSession();
-    const world = session.world;
-    const residents = world.persons().filter(p => p.alive).slice(0, 24);
-    expect(residents.length).toBeGreaterThan(8);
-    const signatures = new Set(residents.map(p => appearanceProfile(p, world.primaryBody(p.id)?.id ?? p.id).signature));
-    // Not a uniqueness guarantee — a modular cast legitimately repeats combinations — but a
-    // crowd that resolved to one or two silhouettes would be the mannequin problem again.
-    expect(signatures.size).toBeGreaterThan(residents.length / 2);
-  });
-
-  it('resolves an authored character to a single key while keeping canonical ids unchanged', () => {
+  it('does not re-derive clothes when current wealth changes', () => {
     const tw = createTestWorld();
-    const person = addPerson(tw, 'Named', 'innkeeper', v(10, 1, 10));
-    person.slug = 'fenwick:named';
+    const person = addPerson(tw, 'Hedda', 'smith', v(10, 1, 10));
     const bodyId = tw.world.primaryBody(person.id)!.id;
-    clearAuthoredCharacters();
-    expect(appearanceProfile(person, bodyId).authored).toBe(false);
-    registerAuthoredCharacter('fenwick:named', 'authored_named');
-    const authored = appearanceProfile(person, bodyId);
-    expect(authored.authored).toBe(true);
-    expect(authored.characterKey).toBe('authored_named');
-    expect(authored.personId).toBe(person.id);
-    expect(authored.bodyId).toBe(bodyId);
-    // An authored character still carries modular slots, so it degrades to parts rather than to
-    // nothing when the bespoke asset is not installed.
-    expect(authored.slots.length).toBeGreaterThan(4);
-    clearAuthoredCharacters();
+    const before = appearanceProfile(person, bodyId, richCatalogue(), tw.world.seed)!;
+    person.wealth += 10_000;
+    const after = appearanceProfile(person, bodyId, richCatalogue(), tw.world.seed)!;
+    expect(after.description).toEqual(before.description);
+    expect(after.realization).toEqual(before.realization);
   });
 
-  it('never invents a beard for a child and never contradicts canonical bare-headedness', () => {
+  it('fails soft for an older person with no canonical description instead of inventing one', () => {
     const tw = createTestWorld();
-    const child = addPerson(tw, 'Young', 'traveler', v(9, 1, 9));
-    child.age = 7; child.lifeStage = 'child'; child.appearance.hatStyle = 'none';
-    const profile = appearanceProfile(child, tw.world.primaryBody(child.id)!.id);
-    expect(profile.slots.find(s => s.kind === 'facialHair')).toBeUndefined();
-    expect(profile.slots.find(s => s.kind === 'headwear')).toBeUndefined();
-    expect(profile.slots.find(s => s.kind === 'body')!.token).toBe('body_human_child');
+    const person = addPerson(tw, 'Legacy', 'innkeeper', v(10, 1, 10));
+    const bodyId = tw.world.primaryBody(person.id)!.id;
+    delete person.appearance.description;
+    expect(appearanceProfile(person, bodyId, richCatalogue(), tw.world.seed)).toBeNull();
+  });
+
+  it('keeps Unreal paths out of canonical state even when presentation resolves local assets', () => {
+    const session = new BridgeSession(918271, { characterCatalogue: richCatalogue() });
+    const snapshot = session.snapshot();
+    expect(JSON.stringify(snapshot.bodies.map(b => b.embodiment))).toMatch(ENGINE_PATH);
+    expect(JSON.stringify(session.world.persons())).not.toMatch(ENGINE_PATH);
   });
 });
 
@@ -320,8 +303,15 @@ describe('the bridge projects embodiment without touching canonical state', () =
     }
   });
 
-  it('carries no engine asset path anywhere in the projected snapshot', () => {
+  it('carries no engine asset path when the machine-local catalogue is absent', () => {
     const session = new BridgeSession();
     expect(JSON.stringify(session.snapshot())).not.toMatch(ENGINE_PATH);
+  });
+
+  it('sends Foundry realization paths only in presentation when a local catalogue is supplied', () => {
+    const session = new BridgeSession(918271, { characterCatalogue: richCatalogue() });
+    const snapshot = session.snapshot();
+    expect(JSON.stringify(snapshot.bodies.map(b => b.embodiment))).toMatch(ENGINE_PATH);
+    expect(JSON.stringify(session.world.persons())).not.toMatch(ENGINE_PATH);
   });
 });

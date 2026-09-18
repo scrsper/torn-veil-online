@@ -89,7 +89,7 @@ function materialize(world: World, spec: SettlementSpec, regional: RegionalGrid)
   let farmer = 0;
   for (const c of spec.residents) {
     const home = places[`home_${c.household}`], work = c.occupation === 'farmer' ? places[`farm_${farmer++ % spec.resources.fields}`] : places[WORK[c.occupation] ?? ''];
-    const p = makePerson(world, { name: c.name, gender: c.gender, age: c.age, occupation: c.occupation, home: home.id, work: work?.id, wealth: c.wealth, traits: { sociability: rng.range(0.2, 0.9), honesty: rng.range(0.3, 0.9), courage: rng.range(0.2, 0.8), piety: rng.range(0.1, 0.8) }, appearance: { shirt: rng.int(0x303030, 0xc0c0c0) }, bio: `A member of ${spec.name}, supported by its ${spec.biome} economy.`, slug: `${spec.site.id}:${c.key}` });
+    const p = makePerson(world, { name: c.name, gender: c.gender, age: c.age, occupation: c.occupation, home: home.id, work: work?.id, wealth: c.wealth, traits: { sociability: rng.range(0.2, 0.9), honesty: rng.range(0.3, 0.9), courage: rng.range(0.2, 0.8), piety: rng.range(0.1, 0.8) }, appearance: {}, appearanceSalt: rng.int(0, 0xffffff), bio: `A member of ${spec.name}, supported by its ${spec.biome} economy.`, slug: `${spec.site.id}:${c.key}` });
     people[c.key] = p; p.factionId = faction.id; faction.members.push(p.id);
     joinHousehold(world, p, households.get(c.household)!); home.residents.push(p.id);
     const bed = home.anchors.find(a => a.kind === 'bed' && !a.ownerId); if (bed) bed.ownerId = p.id;

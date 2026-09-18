@@ -12,12 +12,18 @@ import { ControllerLease } from './controllerLease';
 import { monitorEventLoopDelay } from 'node:perf_hooks';
 import { FixedRateWindow } from './rateWindow';
 import { CoalescedInteractionWake } from './interactionWake';
+import { loadCatalogue } from '../foundry/load';
 const loopDelay=monitorEventLoopDelay({resolution:10});loopDelay.enable();
 
 const port = Number(process.env.TORN_VEIL_PORT ?? 8787);
 const playable = process.env.TORN_VEIL_WORLD === 'playable';
 const savePath = process.env.TORN_VEIL_SAVE ? resolve(process.env.TORN_VEIL_SAVE) : null;
-const session = new BridgeSession(Number(process.env.TORN_VEIL_SEED ?? 918271), { playable, arena:process.env.TORN_VEIL_WORLD==='arena', ...(savePath && existsSync(savePath) ? { save: readFileSync(savePath, 'utf8') } : {}) });
+const foundry = loadCatalogue(process.env.TORN_VEIL_CHARACTER_CATALOGUE);
+const session = new BridgeSession(Number(process.env.TORN_VEIL_SEED ?? 918271), {
+  playable, arena:process.env.TORN_VEIL_WORLD==='arena', characterCatalogue: foundry.catalogue,
+  ...(savePath && existsSync(savePath) ? { save: readFileSync(savePath, 'utf8') } : {}),
+});
+if (!foundry.present) console.warn(`bridge: Character Foundry catalogue unavailable: ${foundry.problems.map(p => p.detail).join('; ')}`);
 function saveWorld(): void {
   if (!savePath) return;
   mkdirSync(dirname(savePath), { recursive: true });

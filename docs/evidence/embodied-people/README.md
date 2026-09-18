@@ -25,14 +25,15 @@ Run in this container, on this branch:
 
 | Check | Result |
 |---|---|
-| `npx tsc --noEmit` | passes |
-| `npx vitest run tests/embodied-people.test.ts` | 21/21 pass |
-| `npx vitest run tests/bridge.test.ts tests/bridgeVisualState.test.ts tests/bridgeLife.test.ts tests/bridge-humanoid-presence.test.ts tests/bridge-streaming.test.ts tests/playable-world.test.ts` | 40/40 pass |
+| `npm run typecheck` | passes |
+| focused appearance/Foundry/embodiment/visual-state run | 77/77 pass |
+| bridge + playable-world + embodiment run | 63/63 pass |
+| `npm run build` | passes |
+| `TornVeilOnlineEditor` build | blocked before compilation: Windows SDK 10.0.19041.0 not installed |
 
-Those 21 tests cover the claims this branch is entitled to make: appearance survives a real
-`serialize`/`deserialize` round trip with the same person id, body id and signature; a 127-resident
-cast resolves to many distinct appearances rather than two; authored and modular paths both work
-and neither loses canonical ids; no engine asset path appears anywhere in the projected snapshot;
+Those tests cover the claims this branch is entitled to make: canonical description and Foundry
+realization survive a real `serialize`/`deserialize` round trip with the same person and body ids;
+wealth changes do not re-derive clothing; local asset paths remain outside canonical state;
 activity families are derived from canonical pose/action/goal and an idle person stays idle;
 canonical injury severity and movement multiplier are exposed rather than restated; occupancy
 stations are physically valid, exclusive, refused when the simulation has not actually brought the
@@ -41,16 +42,17 @@ snapshots leave every canonical body position, pose, yaw and the physical clock 
 
 ## What is written but unverified
 
-- `unreal/.../TVEmbodiment.h`, `TVEmbodiment.cpp`, `TVEmbodimentTests.cpp` — **not compiled.**
+- `unreal/.../TVEmbodiment.h`, `TVEmbodiment.cpp`, `TVEmbodimentTests.cpp` — **not compiled;**
+  UnrealBuildTool reports the required Windows SDK 10.0.19041.0 is not installed.
 - The `ATVCharacter` changes (visible presentation component, embodiment parsing, bounded
   occupancy offset, extended diagnostics) — **not compiled.**
-- `unreal/scripts/audit_human_assets.py`, `build_character_palette.py`,
+- `unreal/scripts/audit_character_assets.py`, `build_character_palette.py`,
   `build_character_retarget.py`, `capture_life_slice3.py` — syntax-checked only; **never executed
   against a real asset registry or a real PIE session.** `build_character_retarget.py` in
   particular reports `INCOMPLETE` by design, because Python cannot author the Retarget Pose From
   Mesh node and pretending otherwise would be a false claim.
 
-Expect the first editor build to need fixes. UE API details (component registration order,
+After installing the required SDK, expect the first editor build may still need fixes. UE API details (component registration order,
 `SetLeaderPoseComponent` timing against `RegisterComponent`, the exact `IKRigController` /
 `IKRetargeterController` method names in 5.8) are the likely failure points.
 
@@ -60,8 +62,8 @@ Expect the first editor build to need fixes. UE API details (component registrat
    state** — no `git clean`, no `reset --hard`, no touching `Content/Characters/` or the local
    palette content.
 2. Build `TornVeilOnlineEditor`; fix whatever the native layer gets wrong.
-3. Run `audit_human_assets.py`, choose a coherent Torn Veil human palette from what it finds, and
-   generate `CharacterPalette.json`. Retarget anything not on the driver skeleton.
+3. Run `audit_character_assets.py`, inspect the Foundry coverage/unmet report, and generate the
+   activity/retarget-only `CharacterPalette.json`. Retarget anything not on the driver skeleton.
 4. Confirm first, on the existing Fenwick save, the initial acceptance the work order specifies:
    the player at the same canonical `p_128`/`b_141` binding as a real visible human through idle,
    walk, run, sprint, strafe, backward, turning, dodge, a combat action, a dialogue transition and

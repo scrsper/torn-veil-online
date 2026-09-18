@@ -16,7 +16,7 @@ import { initializeWildlife } from '../sim/ecology/generation';
 import { deserialize, serialize } from '../sim/persist/save';
 import { GameSim, type PersonIntent } from '../sim/runtime/gameSim';
 import { knownName } from '../sim/mind/people';
-import { humanoidVisualState } from './visualState';
+import { humanoidVisualState, projectAppearance } from './visualState';
 import { appearanceProfile, type AppearanceProfile } from './appearanceProfile';
 import { activityPresentation } from './activityPresentation';
 import { SlotReservations, chooseStation, conversationStations, separationOffset } from './occupancy';
@@ -35,6 +35,8 @@ import { B } from '../sim/physical/blocks';
 import type { Body, Item, Person } from '../sim/core/types';
 import { RESOURCE_MASS_KG } from '../sim/world/factory';
 import { getPhysicalCapability } from '../sim/core/attributes';
+import { EMPTY_CATALOGUE } from '../foundry/catalogue';
+import type { CharacterCatalogue } from '../foundry/catalogue';
 
 export const BRIDGE_VERSION = 1;
 /** Physical execution is visible; queued intentions and private goals are not. */
@@ -82,9 +84,11 @@ export class BridgeSession {
    * occupancy courtesy — never canonical, never saved (see bridge/occupancy.ts). */
   private readonly appearanceSent = new Map<string, string>();
   private readonly reservations = new SlotReservations();
+  private readonly characterCatalogue: CharacterCatalogue;
   readonly regions = new RegionStream();
-  constructor(seed = 918271, options: { playable?: boolean; arena?:boolean; save?: string } = {}) {
+  constructor(seed = 918271, options: { playable?: boolean; arena?:boolean; save?: string; characterCatalogue?: CharacterCatalogue } = {}) {
     this.arena=options.arena===true;
+    this.characterCatalogue = options.characterCatalogue ?? EMPTY_CATALOGUE;
     const loaded = options.save ? deserialize(options.save) : null;
     if (options.save && !loaded) throw new Error('Cannot resume incompatible or invalid world save');
     this.world = loaded?.world ?? new World(seed);
@@ -244,9 +248,10 @@ export class BridgeSession {
     if (!person) return null;
     const multiplier = getPhysicalCapability(person, w, { body: b }).movementMultiplier;
     const activity = activityPresentation(w, b, person, multiplier);
-    const profile: AppearanceProfile = appearanceProfile(person, b.id);
-    const fresh = this.appearanceSent.get(b.id) !== profile.signature;
-    if (fresh) this.appearanceSent.set(b.id, profile.signature);
+    const profile: AppearanceProfile | null = appearanceProfile(person, b.id, this.characterCatalogue, w.seed);
+    const signature = profile?.signature ?? '';
+    const fresh = !!profile && this.appearanceSent.get(b.id) !== signature;
+    if (fresh) this.appearanceSent.set(b.id, signature);
     const station = activity.station
       ? chooseStation(w, b, activity.station, activity.placeId, this.reservations, 4)
       : null;
@@ -255,8 +260,8 @@ export class BridgeSession {
     const ring = activity.family === 'socialize' && activity.posture !== 'sit' ? conversation.get(b.id) ?? null : null;
     const separation = station || ring ? { x: 0, z: 0 } : separationOffset(b, crowd);
     return {
-      appearanceSignature: profile.signature,
-      ...(fresh ? { appearance: profile } : {}),
+      appearanceSignature: signature,
+      ...(fresh && profile ? { appearance: profile } : {}),
       activity,
       station: station ? { slotId: station.slot.id, kind: station.slot.kind, stand: station.slot.stand, yaw: station.slot.yaw, posture: station.slot.posture, settleMetres: station.settleMetres } : null,
       conversation: ring,
@@ -290,7 +295,7 @@ export class BridgeSession {
       interactionTargets:[...interactions.flatMap(a=>a.target?[{actionId:a.id,targetId:a.target.id,kind:a.target.kind,label:a.label,pos:a.target.pos}]:[]),
         ...talkTargets.map(t=>({actionId:`talk:${t.bodyId}`,targetId:t.bodyId,kind:'person',label:`Talk — ${t.name||'Unknown person'}`,pos:{...w.body(t.bodyId)!.pos}}))],
       bodies: residents.map(b => ({
-        ...humanoidVisualState(b, visible.has(b.id) ? knownName(p, b.ownerId) : 'an unfamiliar person', visibleActivity(w.person(b.ownerId), b.pose), w.person(b.ownerId)?.appearance),
+        ...humanoidVisualState(b, visible.has(b.id) ? knownName(p, b.ownerId) : 'an unfamiliar person', visibleActivity(w.person(b.ownerId), b.pose), projectAppearance(w.person(b.ownerId))),
         combatAction:visible.has(b.id) ? combatState(w,b) : null,
         embodiment: this.embodimentFor(b, conversation, residents),
         incapacitated: b.pose === 'downed' || (visible.has(b.id) && (b.subduedUntil > w.physicalTime || !!w.person(b.ownerId)?.surrender || !!w.person(b.ownerId)?.custody?.active)),
@@ -316,14 +321,14 @@ export class BridgeSession {
       talkTargets: this.talkTargets(w.person(w.playerId)!),
       bodies: this.developerBodies().flatMap(b => {
         const p = w.person(b.ownerId); if (!p) return [];
-        return [{ ...humanoidVisualState(b, p.name, visibleActivity(p, b.pose), p.appearance),
+        return [{ ...humanoidVisualState(b, p.name, visibleActivity(p, b.pose), projectAppearance(p)),
           combatAction:combatState(w,b),
           embodiment: this.embodimentFor(b, new Map(), this.developerBodies()),
           reach: w.person(b.ownerId) ? combatReach(w, w.person(b.ownerId)!) : MELEE_REACH, cooldown: MELEE_COOLDOWN,
           attackTarget: b.attackTarget,
           health: b.health, maxHealth: b.maxHealth, alive: p.alive,
           incapacitated: b.pose === 'downed' || b.subduedUntil > w.physicalTime || !!p.surrender || !!p.custody?.active,
-          occupation: p.occupation, age: p.age, gender: p.gender, slug: p.slug ?? null, appearance: p.appearance,
+          occupation: p.occupation, age: p.age, gender: p.gender, slug: p.slug ?? null,
           // Capability before class (Constitution §12): derived, never assigned, and carrying the
           // canonical evidence it was read from. Null for most people, which is the ordinary case.
           recognisedClass: this.classOf(p.id),

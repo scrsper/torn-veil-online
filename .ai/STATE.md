@@ -1,10 +1,30 @@
+# Slice 3 + Character Foundry reconciliation, 2026-09-17
+
+Branch `claude/embodied-people-visible-life-slice3` is stacked on current PR #46 head `7abb2b6`
+without merging either PR to `main`. `Person.appearance.description` is the only semantic source of
+appearance. `src/bridge/appearanceProfile.ts` projects that description and calls the shared
+`src/foundry/resolve.ts` resolver against an injected machine-local catalogue; it no longer derives
+hair, heads or clothing independently from wealth, occupation or `Person.id`.
+
+Slice 3 still owns activity presentation, physical occupancy, delta transport, the visible Unreal
+component and animation/retarget execution. The one Foundry audit now inventories both character
+parts and activity animations. Unreal consumes concrete Foundry slots; its small local palette is
+limited to activity clips and generated retarget AnimBlueprint classes. Missing/unsupported assets
+fall back to the Manny driver without mutating canonical state.
+
+Verified after reconciliation: 77 focused appearance/Foundry/embodiment/visual-state tests; 63
+bridge/playable-world/embodiment tests; TypeScript typecheck and production build. Python tools
+parse under Unreal's bundled Python. Native compilation is blocked before C++ compilation because
+Windows SDK 10.0.19041.0 is not installed on this PC; no PIE/visual acceptance claim is made.
+
 # Slice 3 — embodied people & visible daily life, implementation checkpoint, 2026-09-17
 
 Branch `claude/embodied-people-visible-life-slice3` from merged main `1f36ba5` (PR #44), created
 in a Linux cloud container. No merge, no human approval, no visual acceptance.
 
-Implemented and tested (TypeScript): presentation-side appearance profiles (authored + modular,
-semantic tokens only, stable across save/reload from `Person.id`), a general activity-presentation
+The original #45 checkpoint implemented presentation-side appearance profiles with its own
+semantic-token derivation. That appearance path is superseded by the reconciliation record above.
+Preserved from the checkpoint: a general activity-presentation
 layer (travel/work/eat/drink/rest/socialize/trade/carry/flee/injured/combat/idle derived from
 canonical pose, action, goal, velocity and canonical injury capability), and physical occupancy
 (stations from `Place.anchors` + voxel geometry, presentation-only reservations, conversation
@@ -14,11 +34,11 @@ signature. 21 new tests + 40 existing bridge/playable-world tests + typecheck pa
 
 Written but NOT compiled and NOT run: `TVEmbodiment.h/.cpp`, `TVEmbodimentTests.cpp`, the
 `ATVCharacter` hidden-driver/visible-presentation wiring, and four editor scripts
-(`audit_human_assets.py`, `build_character_palette.py`, `build_character_retarget.py`,
+(`audit_character_assets.py`, `build_character_palette.py`, `build_character_retarget.py`,
 `capture_life_slice3.py`). This container has no Unreal Engine and none of the licensed human
 character library, so THE MANNEQUINS ARE NOT YET REPLACED IN ANY RUNNING BUILD and there is no PIE
-screenshot or video for this slice. The checked-in `CharacterPalette.json` deliberately resolves
-nothing, so an unprovisioned machine keeps the Manny driver and reports `visibleCharacter:false`.
+screenshot or video for this slice. The checked-in `CharacterPalette.json` resolves no optional
+activity clips; an unprovisioned machine keeps the Manny driver and reports `visibleCharacter:false`.
 
 Next session must run on the foundational Desktop worktree: build the editor, run the human asset
 audit, generate the palette, then do the work order's initial acceptance (player p_128/b_141 and
@@ -26,7 +46,114 @@ one existing canonical resident as real humans through locomotion, dodge, combat
 save/reload) before extending to several residents and the life loops. Do not treat this branch's
 passing TypeScript tests as visual acceptance. Full limits:
 `docs/evidence/embodied-people/README.md`.
+# Verification record — appearance + Foundry branch, 2026-09-17
 
+Branch `claude/determined-meitner-w9c23l` @ `f1f1c60`. Full-suite attribution, done properly after
+an earlier report of mine quoted a summary line without reading the failures.
+
+Full suite on this branch, machine idle, nothing else running: 20 failed / 1035 passed (108 files).
+Attribution, by running the 11 affected files on base `1f36ba5` under the same conditions:
+
+  17 identical on both trees  -> PRE-EXISTING, not this branch.
+                                 14 are timeouts; 3 are genuine assertion failures in
+                                 tests/living-universe.test.ts (flourDelivered 0 !> 0,
+                                 control.baked 5 !< 0, methods.length 1 !> 1). Those are red on
+                                 main today. With WorldLab's `recover-item`, four pre-existing
+                                 failures the PR gate does not fail on (its CLI exits 0 on FAIL).
+   1 agency-frontier           -> MINE. Privacy guard vs `appearance.traits` naming. Fixed in
+                                 f1f1c60 by renaming the field to `description`, not by weakening
+                                 the assertion.
+   2 human-physiology-economy,
+     living-world-logistics    -> NOT a tree difference. They appeared to differ only because a
+                                 full-suite run (warm JIT, 100+ files ahead of them) was compared
+                                 against an 11-file run. Run like-for-like, 2 files isolated on
+                                 each tree, BOTH trees fail BOTH tests:
+                                   human-physiology-economy  base 201712ms / head 202894ms
+                                   living-world-logistics    base  20668ms / head  20730ms
+                                 0.6% and 0.3% apart. Both are wall-clock budgets (180s, and
+                                 vitest's default 5s over a `step(tw, 1800)`) that this container
+                                 is too slow to meet cold.
+
+World generation benchmark, 12 iterations, idle machine, seed 4102, 37 people:
+  head 619.23 ms/gen, base 670.67 ms/gen. Appearance generation costs nothing measurable.
+
+Lesson worth keeping: do not compare a full-suite result against a partial-suite result on this
+repo. JIT warm-up moves tight-budget tests across the line on its own.
+
+# Character Foundry — slice 2, 2026-09-17
+
+Branch `claude/determined-meitner-w9c23l`, continuing the appearance pipeline (`8f00928`) and its
+physiology fix (`422f495`). Nothing merged; PR #46 stays draft.
+
+HARD BLOCKER, stated up front: this environment has NO character assets. `.uasset` files are
+unfetched Git LFS pointers and `Content/Characters/` (Mannequins, MetaHuman, modular packs) is
+gitignored and absent. No Unreal Engine, no Windows machine. Stage A therefore could not be RUN
+here, and no Unreal acceptance claim is made.
+
+Delivered: the Foundry itself, proven against synthesised catalogues. `src/foundry/` holds the
+catalogue schema + fail-soft parser, the committed asset-path-free part manifest (requirements,
+preferences, and two disqualifying station prohibitions), and the resolver with relaxation and
+diagnostics. `unreal/scripts/audit_character_assets.py` is the read-only Stage A inventory that
+produces the machine-local, gitignored catalogue. `npm run foundry:report` reports coverage,
+population diversity and the unmet-request shopping list.
+
+Real finding from the committed tree: the animation target is UE5 Manny — RTG_TV_CombatRepair
+retargets IK_TV_RepairSource -> IK_TV_RepairManny, every RT_* clip lands there, and ATVCharacter
+loads SKM_Manny_Simple. HeroTPP and the per-clip Motifect skeletons are sources. Any Foundry body
+mesh must reach that skeleton or a character cannot move; `animatableSkeletons()` gates on it.
+
+Two design bugs were found by tests and fixed: a shared selection stream meant uninstalling one
+hair pack re-rolled a person's whole outfit (now per-slot streams keyed by the request), and
+nothing stopped a well-off person being handed rags (now disqualifying quality bounds).
+
+Verified: typecheck; 30 tests in `tests/character-foundry.test.ts`. Against a synthesised pack,
+Ashford seed 1337 realizes 33/33 residents complete, 33 distinct configurations/outfits, 8 bodies,
+9 heads, 0 unmet, 9 relaxations (the fixture has only noble-tagged jewellery — the diagnostic
+working). NOT verified: anything involving real assets, UE build, PIE, locomotion/combat.
+No Unreal C++ was written this slice, deliberately: an apply layer would be written against a data
+shape no machine has produced yet, on top of slice 1's still-unbuilt C++.
+Full report and next steps: `docs/CHARACTER_FOUNDRY.md`.
+
+# Character appearance pipeline — slice 1, 2026-09-17
+
+Branch `claude/determined-meitner-w9c23l`, based on merged `main` plus the already-merged
+Slice 2 history at `1f36ba5`. Nothing merged; no Unreal build or PIE run was possible (no engine
+in this environment).
+
+The five committed reference sheets in `art/reference/cultures/ashford/characters/` now drive the
+population. `-ren-ayami-shiro.png` is four labelled NPC panels, not one, so five files yield eight
+stylistic families (`hana`, `yuki`, `kaito`, `shogun`, `ren`, `ayami`, `shiro`, `ascetic`).
+`Person.appearance.description` is a new canonical, persisted, structured description (archetype,
+phenotype, costume family, silhouette, accessories, station, wear); the realized colour/scale
+channels every renderer already read are derived from it, and authored cast pins still win with
+their tokens snapped to match. Generation runs on each person's own `individualRng` stream, so it
+consumes no world RNG. Age presentation and role cues are derived at projection time, never stored.
+`SAVE_VERSION` deliberately NOT bumped — the field is additive and optional, so existing saves
+(including the Fenwick one) stay playable and their people keep the look they had.
+
+Unreal: `FTVAppearanceDescription` parses the description block fail-soft;
+`AshfordAppearanceProfiles.json` is schema 2 (silhouette/hair proportions, accessory and role-cue
+props, archetype provenance, `proxyVisibility`); `ATVCharacter::ApplyAppearance` applies the
+grammar. The primitive hair/garment/prop stand-ins stay hidden behind `proxyVisibility` so the
+accepted Slice 2 look does not regress — what changed visibly is that garment/skin/hair colour is
+now costume-family and wear driven instead of one random shirt per resident, and height/build vary.
+
+Measured regression and fix: coupling generated stature/frame into `defaultPhysiologyTraitsFor`
+gave 34 of Ashford's 37 residents a new `bodySizeFactor` (v0.5 physiology is calibrated against
+`AVERAGE_HUMAN_ADULT` at 1.0) and moved `baseline-village`, `food-chain` and `conflict-resolution`
+from PASS to FAIL in `npm run world:smoke`. `makePerson` now passes the AUTHORED build/height to
+physiology, restoring base values exactly; generated stature/frame stay presentation scale until a
+physiology slice promotes them with its own calibration. `recover-item` FAILs on base too
+(`WL-CONFLICT-STUCK`) — pre-existing, not this branch. Note the WorldLab CLI exits 0 on a FAIL
+verdict, so the PR gate does not catch either.
+
+Verified: `npm run typecheck`; `npm run build:bundle`; 15 new tests in
+`tests/character-appearance.test.ts`; `npm run world:smoke` verdict-identical to base.
+Evidence: `docs/evidence/character-appearance/ashford-contact-sheet.{svg,png}`
+(`npm run appearance:sheet`) — seed 1337, 33 residents, all 8 families present, 29/33 distinct
+garment colours, 33/33 distinct trait signatures.
+NOT verified: UE build, native automation tests, PIE. Human visual acceptance still required.
+Full report: `docs/CHARACTER_APPEARANCE_PIPELINE.md`.
 # Slice 2 — visual finish (Claude continuation), 2026-09-17
 
 Branch `claude/playable-world-slice-2-visual-finish` from Codex `ff36e25`, foundational Desktop

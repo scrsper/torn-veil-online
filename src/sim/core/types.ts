@@ -1,4 +1,5 @@
 import type { OntologicalStage } from './stages';
+import type { AppearanceDescription } from './appearance';
 /**
  * The ontology of Torn Veil Online.
  *
@@ -248,11 +249,24 @@ export interface Pregnancy {
   causeEventId?: EventId;
 }
 
+/**
+ * The realized presentation channels a renderer consumes directly, plus the structured
+ * description they were derived from.
+ *
+ * `traits` (core/appearance.ts) is the canonical persistent account of what this person looks
+ * like — archetype, phenotype, costume family, station, wear. The numeric fields below are its
+ * realization, produced by `world/characterAppearance.ts` at generation; an authored character may
+ * pin any of them, in which case the matching token in `traits` is snapped to the pinned value so
+ * the two can never disagree. `traits` is optional only so that a save written before the
+ * character-appearance pipeline existed still loads: such a person keeps the exact look they had,
+ * and simply carries no description of it.
+ */
 export interface Appearance {
   skin: number; hair: number; shirt: number; pants: number; hat?: number; hatStyle?: 'none' | 'helm' | 'hood' | 'cap' | 'wide';
-  height: number; // 0.85 .. 1.1 scale
+  height: number; // 0.85 .. 1.1 scale (times a growth factor while a body is still growing)
   build: number;  // 0.85 .. 1.15 width
   beard?: number; apron?: number;
+  description?: AppearanceDescription;
 }
 
 export interface Relationship {

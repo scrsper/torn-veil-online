@@ -236,6 +236,31 @@ Historically contains authored population/cast data for Ashford.
 
 Procedural population systems should not require every world seed to reproduce the same social graph.
 
+### Character appearance
+
+Canonical persistent appearance traits and the traits -> realized colour/scale derivation:
+`src/sim/core/appearance.ts`. Reference-derived stylistic families read off the committed sheets in
+`art/reference/cultures/ashford/characters/`: `src/sim/world/characterArchetypes.ts`. Per-person
+archetype selection, procedural variation and authored-pin resolution:
+`src/sim/world/characterAppearance.ts`, called from `makePerson`. Bridge projection (which fills in
+the canonically derived age presentation and role cues): `projectAppearance` in
+`src/bridge/visualState.ts`. Renderer grammar:
+`unreal/.../Content/TornVeil/Presentation/AshfordAppearanceProfiles.json` consumed by
+`ATVCharacter::ApplyAppearance`. Reviewable contact sheet: `npm run appearance:sheet`
+(`src/headless/appearance/`). Full contract: `docs/CHARACTER_APPEARANCE_PIPELINE.md`.
+
+### Character Foundry
+
+Turns canonical appearance into a configuration of real Unreal parts. Presentation-side only —
+nothing here is imported by `src/sim/`. Slot/tag schema and catalogue parsing:
+`src/foundry/catalogue.ts`. The committed, asset-path-free part grammar: `src/foundry/manifest.ts`.
+Matching, relaxation, prohibition and fail-soft diagnostics: `src/foundry/resolve.ts`. Machine-local
+catalogue loading: `src/foundry/load.ts`. Stage A inventory (runs in the Unreal Editor, read-only,
+writes the gitignored `.debug/character-foundry/catalogue.json`):
+`unreal/scripts/audit_character_assets.py`. Report CLI: `npm run foundry:report`
+(`src/headless/foundry/`). Full contract, the UE5-Manny skeleton finding and the honest limits:
+`docs/CHARACTER_FOUNDRY.md`.
+
 ---
 
 # Economy and supply
@@ -392,16 +417,18 @@ Reach, ownership, combat resolution, knowledge effects, and other canonical cons
 
 # Unreal
 
-Embodied people / visible daily life (Slice 3): `src/bridge/appearanceProfile.ts` resolves canonical
-identity into semantic appearance slots (authored `characterKey` or modular tokens, stable from
-`Person.id`, no asset paths); `activityPresentation.ts` derives the activity family/posture/station
+Embodied people / visible daily life (Slice 3): `src/bridge/appearanceProfile.ts` projects the
+canonical `Person.appearance.description` and calls the shared `src/foundry/resolve.ts` resolver
+against an injected machine-local catalogue; it contains no second hair/clothing/wealth grammar.
+`activityPresentation.ts` derives the activity family/posture/station
 from canonical pose, active action, goal, velocity and injury; `occupancy.ts` derives physically
 valid stations from `Place.anchors` plus the voxel grid, with presentation-only reservations,
 conversation spacing and a bounded `MAX_SETTLE_METRES` settle offset. `session.ts` projects all
 three per body as `embodiment`, sending a full appearance profile only when its signature changes.
-Native side: `TVEmbodiment.h/.cpp` (`UTVCharacterPalette` token→asset catalogue,
-`UTVCharacterPresentation` visible mesh driven from the hidden `GetMesh()` driver by leader pose or
-IK retarget) and additive `ATVCharacter` members. Tooling: `unreal/scripts/audit_human_assets.py`,
+Native side: `TVEmbodiment.h/.cpp` (`UTVCharacterPresentation` applies concrete Foundry slots and is
+driven from hidden `GetMesh()` by leader pose or IK retarget; `UTVCharacterPalette` holds only
+activity/retarget execution mappings) and additive `ATVCharacter` members. Tooling:
+`unreal/scripts/audit_character_assets.py`,
 `build_character_palette.py`, `build_character_retarget.py`, `capture_life_slice3.py`. Design:
 `docs/EMBODIED_PEOPLE_VISIBLE_LIFE.md`. The native layer and scripts are UNCOMPILED and UNRUN, and
 there is no PIE evidence: `docs/evidence/embodied-people/README.md`.
