@@ -16,7 +16,7 @@ import { initializeWildlife } from '../sim/ecology/generation';
 import { deserialize, serialize } from '../sim/persist/save';
 import { GameSim, type PersonIntent } from '../sim/runtime/gameSim';
 import { knownName } from '../sim/mind/people';
-import { humanoidVisualState } from './visualState';
+import { humanoidVisualState, projectAppearance } from './visualState';
 import { humanoidPresence } from './humanoidPresence';
 import { combatReach } from '../sim/physical/combat';
 import { World } from '../sim/core/world';
@@ -244,7 +244,7 @@ export class BridgeSession {
       interactionTargets:[...interactions.flatMap(a=>a.target?[{actionId:a.id,targetId:a.target.id,kind:a.target.kind,label:a.label,pos:a.target.pos}]:[]),
         ...talkTargets.map(t=>({actionId:`talk:${t.bodyId}`,targetId:t.bodyId,kind:'person',label:`Talk — ${t.name||'Unknown person'}`,pos:{...w.body(t.bodyId)!.pos}}))],
       bodies: residents.map(b => ({
-        ...humanoidVisualState(b, visible.has(b.id) ? knownName(p, b.ownerId) : 'an unfamiliar person', visibleActivity(w.person(b.ownerId), b.pose), w.person(b.ownerId)?.appearance),
+        ...humanoidVisualState(b, visible.has(b.id) ? knownName(p, b.ownerId) : 'an unfamiliar person', visibleActivity(w.person(b.ownerId), b.pose), projectAppearance(w.person(b.ownerId))),
         combatAction:visible.has(b.id) ? combatState(w,b) : null,
         incapacitated: b.pose === 'downed' || (visible.has(b.id) && (b.subduedUntil > w.physicalTime || !!w.person(b.ownerId)?.surrender || !!w.person(b.ownerId)?.custody?.active)),
         alive: !b.dead,
@@ -265,13 +265,13 @@ export class BridgeSession {
       talkTargets: this.talkTargets(w.person(w.playerId)!),
       bodies: w.bodies().filter(b => b.shape === 'humanoid' && b.present).flatMap(b => {
         const p = w.person(b.ownerId); if (!p) return [];
-        return [{ ...humanoidVisualState(b, p.name, visibleActivity(p, b.pose), p.appearance),
+        return [{ ...humanoidVisualState(b, p.name, visibleActivity(p, b.pose), projectAppearance(p)),
           combatAction:combatState(w,b),
           reach: w.person(b.ownerId) ? combatReach(w, w.person(b.ownerId)!) : MELEE_REACH, cooldown: MELEE_COOLDOWN,
           attackTarget: b.attackTarget,
           health: b.health, maxHealth: b.maxHealth, alive: p.alive,
           incapacitated: b.pose === 'downed' || b.subduedUntil > w.physicalTime || !!p.surrender || !!p.custody?.active,
-          occupation: p.occupation, age: p.age, gender: p.gender, slug: p.slug ?? null, appearance: p.appearance,
+          occupation: p.occupation, age: p.age, gender: p.gender, slug: p.slug ?? null,
           // Capability before class (Constitution §12): derived, never assigned, and carrying the
           // canonical evidence it was read from. Null for most people, which is the ordinary case.
           recognisedClass: this.classOf(p.id),

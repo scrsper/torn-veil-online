@@ -142,6 +142,14 @@ const KEY = 'infinite-rpg-save-v1';
 // Seven integer foundations replace two fractional attributes. Reject old saves explicitly.
 // Whole-person snapshots carry potential, development, carriers, expression and ontology exactly.
 // Regional baseline and footprint-aware navigation change generation. Reject older baselines explicitly.
+// Character appearance pipeline: NOT bumped. `Appearance.traits` (core/appearance.ts) is a new
+// OPTIONAL nested field on `Person.appearance`, which is already whole-object-persisted at both
+// ends — exactly the class of additive optional addition this header documents as needing no bump
+// (`KnowledgeItem.lastConfirmedAt?`, `HaulTask.materialSellerId?`). A pre-pipeline save loads
+// unchanged and its people keep the exact look they had; they simply carry no structured
+// description of it, and both renderers fall back to the realized colours as they always did.
+// Bumping would have invalidated existing worlds for a field whose absence is harmless, which is
+// the opposite of what every bump above exists to prevent. See docs/CHARACTER_APPEARANCE_PIPELINE.md.
 export const SAVE_VERSION = 24;
 
 /**

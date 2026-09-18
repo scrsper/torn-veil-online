@@ -130,7 +130,7 @@ export function giveBirth(world: World, parent: Person): Person | null {
     courage: (parent.traits.courage + other.traits.courage) / 2,
     sociability: (parent.traits.sociability + other.traits.sociability) / 2,
     honesty: (parent.traits.honesty + other.traits.honesty) / 2,
-  }, appearance: { height: 0.35, build: 0.6 }, bio: `Born in ${world.nameOf(parent.homeId)} to ${parent.name} and ${other.name}.`, wealth: 0 });
+  }, appearance: { height: 0.35, build: 0.6 }, appearanceMeans: Math.max(parent.wealth, other.wealth), bio: `Born in ${world.nameOf(parent.homeId)} to ${parent.name} and ${other.name}.`, wealth: 0 });
   child.birthTick = world.now; child.createdAt = world.now; child.parentIds = [parent.id, other.id]; child.lifeStage = 'infant'; child.species = parent.species;
   child.factionId = parent.factionId;
   const faction = world.faction(child.factionId); if (faction && !faction.members.includes(child.id)) faction.members.push(child.id);
