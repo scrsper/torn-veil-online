@@ -10,7 +10,7 @@ import { EMPTY_CATALOGUE, animatableSkeletons, catalogueCoverage, parseCatalogue
 import { slotRules } from '../src/foundry/manifest';
 import { realizeCharacter, reportPopulation } from '../src/foundry/resolve';
 import type { CharacterRealization, RealizationInput } from '../src/foundry/resolve';
-import { FIXTURE_FOREIGN_SKELETON, FIXTURE_MOTION_RIG, foreignSkeletonCatalogue, mannequinOnlyCatalogue, richCatalogue, sparseCatalogue } from './fixtures/characterCatalogue';
+import { FIXTURE_FOREIGN_SKELETON, FIXTURE_MOTION_RIG, foreignSkeletonCatalogue, mannequinOnlyCatalogue, placeholderAndRealCatalogue, richCatalogue, sparseCatalogue } from './fixtures/characterCatalogue';
 
 const SEED = 4242;
 
@@ -326,6 +326,46 @@ describe('stage D — an Ashford settlement sample', () => {
   it('keeps every resident on the one animation skeleton', () => {
     const target = richCatalogue().animationTarget;
     for (const realization of realizations) expect(realization.skeleton).toBe(target);
+  });
+});
+
+describe('the grey template body is a floor, not a competitor', () => {
+  /**
+   * Found by looking at a PIE settlement rather than at a report: ten of thirty-three residents
+   * were rendering as Epic's untextured mannequin while real character content sat unused in the
+   * catalogue. Nothing had failed — Quinn genuinely carries `female`, `adult` and `slim`, so she
+   * tied with a vendor's modular torso on every ranked preference and won the coin flip.
+   */
+  it('never picks a placeholder while a real body with the same tags exists', () => {
+    const catalogue = placeholderAndRealCatalogue();
+    // Across many identities, not one: the old behaviour was a tie-break, so a single person
+    // proves nothing. Which real body a person gets is the rules' business and varies with their
+    // generated frame and presentation; the claim under test is only that it is a real one.
+    const chosen = new Set<string>();
+    for (let index = 0; index < 40; index++) {
+      for (const gender of ['f', 'm'] as const) {
+        const person = syntheticInput({ identity: `villager-${gender}-${index}`, age: 34, gender, occupation: gender === 'f' ? 'baker' : 'smith', wealth: 40 });
+        const body = slotOf(realizeCharacter(person, catalogue), 'body')!;
+        expect(body.name.startsWith('SKM_')).toBe(false);
+        expect(body.relaxed).not.toContain('!placeholder');
+        chosen.add(body.name);
+      }
+    }
+    // Both real bodies are still reachable, so this is a preference change, not a hard filter
+    // that would have collapsed everyone onto one mesh.
+    expect(chosen).toEqual(new Set(['SK_Villager_F', 'SK_Villager_M']));
+  });
+
+  it('still uses a placeholder when it is the only body installed', () => {
+    // Forbidding is not removing: `resolveSlot` gives up forbidden tags only after every
+    // relaxation step, so a machine with no character packs still puts a person on screen.
+    const realization = realizeCharacter(
+      syntheticInput({ identity: 'bare-machine', age: 34, gender: 'f', occupation: 'baker', wealth: 40 }),
+      mannequinOnlyCatalogue());
+    expect(slotOf(realization, 'body')!.name).toBe('SKM_Quinn_Simple');
+    expect(realization.complete).toBe(true);
+    // And it says out loud that it had to, so "everyone is a mannequin" stays measurable.
+    expect(slotOf(realization, 'body')!.relaxed).toContain('!placeholder');
   });
 });
 

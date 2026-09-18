@@ -85,6 +85,42 @@ namespace {
             Dynamic->SetScalarParameterValue(TEXT("Grooming"), Grooming);
         }
     }
+
+    /** Give the body the complexion of the face that was put on it.
+     *
+     * MetaHuman-derived crowd content does not ship a skin texture per character: every head and
+     * body material instance points `Color_MAIN` at the same shared `DefaultTexture_VT` and picks
+     * a row out of an atlas with an `AtlasSelector` scalar. The head instances carry their
+     * identity's index (0-5 per sex); the shipped body instances sit at 0 because the vendor's own
+     * crowd Blueprint assigns them at spawn. Assembling a body and a head straight from the
+     * catalogue therefore gives everyone but identity 0 a different complexion from their own neck
+     * and hands -- which is what PIE showed, and it is the first thing the eye catches.
+     *
+     * The index is read back off the vendor head material rather than tabulated in the audit, so a
+     * pack that ships more identities needs no new catalogue data, and a head with no such
+     * parameter at all (Polytope, Quantum) leaves the body untouched.
+     */
+    void MatchBodyComplexionToFace(USkeletalMeshComponent* Body, USkeletalMeshComponent* Face) {
+        if (!Body || !Face) return;
+        const UMaterialInterface* FaceMaterial = Face->GetMaterial(0);
+        float Atlas = 0.f;
+        if (!FaceMaterial || !FaceMaterial->GetScalarParameterValue(
+                FHashedMaterialParameterInfo(TEXT("AtlasSelector")), Atlas)) {
+            return;
+        }
+        for (int32 Index = 0; Index < Body->GetNumMaterials(); ++Index) {
+            const UMaterialInterface* Current = Body->GetMaterial(Index);
+            float Existing = 0.f;
+            // Only a slot that actually exposes the parameter is worth a dynamic instance.
+            if (!Current || !Current->GetScalarParameterValue(
+                    FHashedMaterialParameterInfo(TEXT("AtlasSelector")), Existing)) {
+                continue;
+            }
+            if (UMaterialInstanceDynamic* Dynamic = Body->CreateAndSetMaterialInstanceDynamic(Index)) {
+                Dynamic->SetScalarParameterValue(TEXT("AtlasSelector"), Atlas);
+            }
+        }
+    }
 }
 
 // ---------------------------------------------------------------- bridge parsing
@@ -458,6 +494,9 @@ bool UTVCharacterPresentation::ApplyProfile(const FTVAppearanceProfile& Profile)
     SetRelativeScale3D(FVector(FMath::Clamp(Profile.Build, .7f, 1.4f), FMath::Clamp(Profile.Build, .7f, 1.4f), FMath::Clamp(Profile.Height, .3f, 1.4f)));
     for (const auto& Morph : Profile.Morphs) SetMorphTarget(FName(*Morph.Key), FMath::Clamp(Morph.Value, 0.f, 1.f));
     ApplyTints(Profile);
+    // After tinting, not before: ApplyTints creates the body's dynamic instances, and the atlas
+    // index has to be written into the instance that ends up rendering.
+    MatchBodyComplexionToFace(this, FaceComponent);
     return true;
 }
 

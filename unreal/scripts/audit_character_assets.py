@@ -169,11 +169,20 @@ EXCLUDE_PATH = re.compile(
 # honour `presentation` even though the two meshes plainly differ. This is the same kind of
 # deliberate, checkable reading as src/sim/world/characterArchetypes.ts — an author's statement
 # about known content, not a guess derived from a filename.
+# `placeholder` marks the engine/template silhouettes. They are complete, animatable bodies and
+# must stay in the catalogue -- on a machine with no character packs they are the only thing
+# standing between a person and no mesh at all. But they are untextured grey dummies, so they must
+# never win a slot a real character asset could have filled. They tie with real modular bodies on
+# every tag a rule ranks by (`female`+`slim` is as true of Quinn as of a City Sample body), and a
+# tie is broken by the person's own stream -- which is why, before this tag existed, roughly a
+# third of a settlement rendered as mannequins. `slotRules` forbids the tag, and `resolveSlot`
+# drops forbidden tags only after every relaxation step, so the fallback still works and is still
+# last.
 KNOWN_BODY_TAGS = [
-    (r'/SKM_Manny(_Simple)?$', ['male', 'adult', 'average']),
-    (r'/SKM_Quinn(_Simple)?$', ['female', 'adult', 'slim']),
-    (r'/SKM_UEFN_Mannequin$', ['unisex', 'adult', 'average']),
-    (r'/HeroTPP$', ['male', 'adult', 'muscular']),
+    (r'/SKM_Manny(_Simple)?$', ['male', 'adult', 'average', 'placeholder']),
+    (r'/SKM_Quinn(_Simple)?$', ['female', 'adult', 'slim', 'placeholder']),
+    (r'/SKM_UEFN_Mannequin$', ['unisex', 'adult', 'average', 'placeholder']),
+    (r'/HeroTPP$', ['male', 'adult', 'muscular', 'placeholder']),
 ]
 
 _BONE_CACHE = {}

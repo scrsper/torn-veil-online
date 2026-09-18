@@ -1,0 +1,2638 @@
+{
+  "atInput": {
+    "version": 1,
+    "type": "snapshot",
+    "tick": 353.46666666667386,
+    "worldTime": 8666753.466685101,
+    "ack": -1,
+    "playerId": "p_1",
+    "interactions": [],
+    "dialogue": null,
+    "talkTargets": [
+      {
+        "bodyId": "b_2",
+        "entityId": "p_2",
+        "name": "an unfamiliar person",
+        "distance": 1.0499999999999972
+      }
+    ],
+    "bodies": [
+      {
+        "bodyId": "b_1",
+        "entityId": "p_1",
+        "name": "Arena traveler",
+        "pos": {
+          "x": 20.35,
+          "y": 1,
+          "z": 20
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "yaw": -1.5707963267948966,
+        "crouch": 0,
+        "pose": "attack",
+        "activity": "attack",
+        "speed": 0,
+        "attackSeq": 1,
+        "hitSeq": 0,
+        "lastAttackAt": 353.2500000000074,
+        "lastHitAt": -99,
+        "dead": false,
+        "incapacitated": false,
+        "appearance": {
+          "skin": 7028522,
+          "hair": 4861722,
+          "shirt": 3365790,
+          "pants": 6970442,
+          "height": 1.04,
+          "build": 0.87,
+          "hatStyle": "none",
+          "description": {
+            "archetype": "ayami",
+            "culture": "ashford",
+            "presentation": "feminine",
+            "skinTone": "deep",
+            "faceShape": "oval",
+            "hairStyle": "braided",
+            "hairColor": "brown",
+            "eyeColor": "hazel",
+            "frame": "slight",
+            "stature": "above_average",
+            "garmentSilhouette": "dancer_wrap",
+            "garmentPalette": "blossom_violet",
+            "accessories": [
+              "gold_filigree",
+              "ear_drops"
+            ],
+            "culturalTags": [
+              "ashford",
+              "travelling_troupe",
+              "gold_ornament"
+            ],
+            "grooming": 0.618159816134721,
+            "wear": 0.36402444604784245,
+            "status": "modest",
+            "agePresentation": "young_adult",
+            "roleCues": [
+              "travel_pack"
+            ]
+          }
+        },
+        "combatAction": {
+          "id": "action_1",
+          "commandId": "local:3:8",
+          "actorBodyId": "b_1",
+          "kind": "attack",
+          "definition": "unarmed_low",
+          "techniqueId": "motor:crude-kick",
+          "techniqueName": "Crude kick",
+          "trajectory": "low",
+          "variant": "kick",
+          "moveId": "front_kick",
+          "repertoireRevision": 2,
+          "startedAt": 353.2500000000074,
+          "activeAt": 353.5500000000074,
+          "recoveryAt": 353.7000000000074,
+          "completeAt": 354.0000000000074,
+          "phase": "preparation",
+          "outcome": "pending",
+          "facing": -1.5707963267948966,
+          "direction": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "distance": 0,
+          "reach": 0.9,
+          "radius": 0.12,
+          "duck": 0,
+          "contact": null,
+          "capability": {
+            "strength": 0.4968,
+            "dexterity": 0.4968,
+            "exertion": 0.9904
+          }
+        },
+        "embodiment": {
+          "appearanceSignature": "gzkslb",
+          "activity": {
+            "speed": 0,
+            "placeId": null,
+            "facingEntityId": null,
+            "targetPos": null,
+            "carried": null,
+            "injury": {
+              "impaired": false,
+              "severity": 0,
+              "movementMultiplier": 1.004454784
+            },
+            "evidence": {
+              "pose": "attack",
+              "action": null,
+              "goal": null
+            },
+            "family": "combat",
+            "detail": "strike",
+            "posture": "stand",
+            "locomotion": "idle",
+            "station": null
+          },
+          "station": null,
+          "conversation": null,
+          "separation": {
+            "x": -0.025000000000001465,
+            "z": 0
+          }
+        },
+        "reach": 1.2,
+        "cooldown": 0.55,
+        "attackTarget": null,
+        "health": 80,
+        "maxHealth": 80,
+        "alive": true,
+        "occupation": "traveler",
+        "age": 25,
+        "gender": "f",
+        "slug": null,
+        "recognisedClass": null,
+        "inventory": [],
+        "weapon": "fists",
+        "needs": {
+          "hunger": 0.19999999999999996,
+          "energy": 0.007040000000000001,
+          "social": 0.30416666666666675,
+          "comfort": 0,
+          "thirst": 0.19999999999999996
+        },
+        "wealth": 20,
+        "speech": "",
+        "debug": {
+          "goal": null
+        }
+      },
+      {
+        "bodyId": "b_2",
+        "entityId": "p_2",
+        "name": "Reaction partner",
+        "pos": {
+          "x": 21.4,
+          "y": 1,
+          "z": 20
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "yaw": 1.5707963267948966,
+        "crouch": 0,
+        "pose": "stand",
+        "activity": "stand",
+        "speed": 0,
+        "attackSeq": 0,
+        "hitSeq": 0,
+        "lastAttackAt": -99,
+        "lastHitAt": -99,
+        "dead": false,
+        "incapacitated": false,
+        "appearance": {
+          "skin": 16179922,
+          "hair": 15132390,
+          "shirt": 10505270,
+          "pants": 3815486,
+          "height": 0.96,
+          "build": 0.93,
+          "hatStyle": "none",
+          "description": {
+            "archetype": "shiro",
+            "culture": "ashford",
+            "presentation": "feminine",
+            "skinTone": "porcelain",
+            "faceShape": "oval",
+            "hairStyle": "updo_ornamented",
+            "hairColor": "white",
+            "eyeColor": "grey",
+            "frame": "lean",
+            "stature": "below_average",
+            "garmentSilhouette": "layered_kimono",
+            "garmentPalette": "watch_vermilion",
+            "accessories": [
+              "hair_ornament",
+              "waist_cord"
+            ],
+            "culturalTags": [
+              "ashford",
+              "snow_moon",
+              "winter_silk"
+            ],
+            "grooming": 0.883458448224701,
+            "wear": 0.45012187033891676,
+            "status": "modest",
+            "agePresentation": "young_adult",
+            "roleCues": [
+              "travel_pack"
+            ]
+          }
+        },
+        "combatAction": null,
+        "embodiment": {
+          "appearanceSignature": "yy80a0",
+          "activity": {
+            "speed": 0,
+            "placeId": null,
+            "facingEntityId": null,
+            "targetPos": null,
+            "carried": null,
+            "injury": {
+              "impaired": false,
+              "severity": 0,
+              "movementMultiplier": 0.996
+            },
+            "evidence": {
+              "pose": "stand",
+              "action": null,
+              "goal": null
+            },
+            "family": "idle",
+            "detail": "idle",
+            "posture": "stand",
+            "locomotion": "idle",
+            "station": null
+          },
+          "station": null,
+          "conversation": null,
+          "separation": {
+            "x": 0.025000000000001465,
+            "z": 0
+          }
+        },
+        "reach": 1.2,
+        "cooldown": 0.55,
+        "attackTarget": null,
+        "health": 80,
+        "maxHealth": 80,
+        "alive": true,
+        "occupation": "traveler",
+        "age": 25,
+        "gender": "f",
+        "slug": null,
+        "recognisedClass": null,
+        "inventory": [],
+        "weapon": "fists",
+        "needs": {
+          "hunger": 0.19999999999999996,
+          "energy": 0,
+          "social": 0.30416666666666675,
+          "comfort": 0,
+          "thirst": 0.19999999999999996
+        },
+        "wealth": 20,
+        "speech": "",
+        "debug": {
+          "goal": null
+        }
+      },
+      {
+        "bodyId": "b_3",
+        "entityId": "p_3",
+        "name": "Second partner",
+        "pos": {
+          "x": 22.1,
+          "y": 1,
+          "z": 24
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "yaw": 1.5707963267948966,
+        "crouch": 0,
+        "pose": "stand",
+        "activity": "stand",
+        "speed": 0,
+        "attackSeq": 0,
+        "hitSeq": 0,
+        "lastAttackAt": -99,
+        "lastHitAt": -99,
+        "dead": false,
+        "incapacitated": false,
+        "appearance": {
+          "skin": 15254696,
+          "hair": 7028514,
+          "shirt": 10505270,
+          "pants": 5259827,
+          "height": 0.96,
+          "build": 0.93,
+          "hatStyle": "none",
+          "description": {
+            "archetype": "yuki",
+            "culture": "ashford",
+            "presentation": "feminine",
+            "skinTone": "fair",
+            "faceShape": "heart",
+            "hairStyle": "twin_braid",
+            "hairColor": "chestnut",
+            "eyeColor": "black",
+            "frame": "lean",
+            "stature": "below_average",
+            "garmentSilhouette": "apron_over_tunic",
+            "garmentPalette": "watch_vermilion",
+            "accessories": [
+              "hair_ornament",
+              "ear_drops",
+              "gold_filigree"
+            ],
+            "culturalTags": [
+              "ashford",
+              "court_silk",
+              "blossom_motif"
+            ],
+            "grooming": 0.6301156662288122,
+            "wear": 0.4431217810884118,
+            "status": "modest",
+            "agePresentation": "young_adult",
+            "roleCues": [
+              "travel_pack"
+            ]
+          }
+        },
+        "combatAction": null,
+        "embodiment": {
+          "appearanceSignature": "1to2gwr",
+          "activity": {
+            "speed": 0,
+            "placeId": null,
+            "facingEntityId": null,
+            "targetPos": null,
+            "carried": null,
+            "injury": {
+              "impaired": false,
+              "severity": 0,
+              "movementMultiplier": 1.001832
+            },
+            "evidence": {
+              "pose": "stand",
+              "action": null,
+              "goal": null
+            },
+            "family": "idle",
+            "detail": "idle",
+            "posture": "stand",
+            "locomotion": "idle",
+            "station": null
+          },
+          "station": null,
+          "conversation": null,
+          "separation": {
+            "x": 0,
+            "z": 0
+          }
+        },
+        "reach": 1.2,
+        "cooldown": 0.55,
+        "attackTarget": null,
+        "health": 80,
+        "maxHealth": 80,
+        "alive": true,
+        "occupation": "traveler",
+        "age": 25,
+        "gender": "f",
+        "slug": null,
+        "recognisedClass": null,
+        "inventory": [],
+        "weapon": "fists",
+        "needs": {
+          "hunger": 0.19999999999999996,
+          "energy": 0.05500000000000001,
+          "social": 0.30416666666666675,
+          "comfort": 0,
+          "thirst": 0.19999999999999996
+        },
+        "wealth": 20,
+        "speech": "",
+        "debug": {
+          "goal": null
+        }
+      }
+    ],
+    "combatPresentation": {
+      "version": 1,
+      "firstAvailableSeq": 1,
+      "latestSeq": 0,
+      "events": []
+    },
+    "events": []
+  },
+  "after": {
+    "version": 1,
+    "type": "snapshot",
+    "tick": 396.0999999999684,
+    "worldTime": 8666796.100020658,
+    "ack": -1,
+    "playerId": "p_1",
+    "interactions": [],
+    "dialogue": null,
+    "talkTargets": [
+      {
+        "bodyId": "b_2",
+        "entityId": "p_2",
+        "name": "an unfamiliar person",
+        "distance": 1.0499999999999972
+      }
+    ],
+    "bodies": [
+      {
+        "bodyId": "b_1",
+        "entityId": "p_1",
+        "name": "Arena traveler",
+        "pos": {
+          "x": 20.35,
+          "y": 1,
+          "z": 20
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "yaw": -1.5707963267948966,
+        "crouch": 0,
+        "pose": "stand",
+        "activity": "stand",
+        "speed": 0,
+        "attackSeq": 20,
+        "hitSeq": 0,
+        "lastAttackAt": 391.049999999973,
+        "lastHitAt": -99,
+        "dead": false,
+        "incapacitated": false,
+        "appearance": {
+          "skin": 7028522,
+          "hair": 4861722,
+          "shirt": 3365790,
+          "pants": 6970442,
+          "height": 1.04,
+          "build": 0.87,
+          "hatStyle": "none",
+          "description": {
+            "archetype": "ayami",
+            "culture": "ashford",
+            "presentation": "feminine",
+            "skinTone": "deep",
+            "faceShape": "oval",
+            "hairStyle": "braided",
+            "hairColor": "brown",
+            "eyeColor": "hazel",
+            "frame": "slight",
+            "stature": "above_average",
+            "garmentSilhouette": "dancer_wrap",
+            "garmentPalette": "blossom_violet",
+            "accessories": [
+              "gold_filigree",
+              "ear_drops"
+            ],
+            "culturalTags": [
+              "ashford",
+              "travelling_troupe",
+              "gold_ornament"
+            ],
+            "grooming": 0.618159816134721,
+            "wear": 0.36402444604784245,
+            "status": "modest",
+            "agePresentation": "young_adult",
+            "roleCues": [
+              "travel_pack"
+            ]
+          }
+        },
+        "combatAction": {
+          "id": "action_20",
+          "commandId": "local:3:2300",
+          "actorBodyId": "b_1",
+          "kind": "attack",
+          "definition": "unarmed_low",
+          "techniqueId": "motor:crude-kick",
+          "techniqueName": "Crude kick",
+          "trajectory": "low",
+          "variant": "round",
+          "moveId": "round_kick",
+          "repertoireRevision": 2,
+          "startedAt": 391.049999999973,
+          "activeAt": 391.469999999973,
+          "recoveryAt": 391.749999999973,
+          "completeAt": 392.249999999973,
+          "phase": "complete",
+          "outcome": "hit",
+          "facing": -1.5707963267948966,
+          "direction": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "distance": 0,
+          "reach": 0.9,
+          "radius": 0.12,
+          "duck": 0,
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.426905243244974,
+              "y": 1.8718436428756846,
+              "z": 20.31256124248652
+            },
+            "at": 391.54717191668857,
+            "eventId": "e_314"
+          },
+          "capability": {
+            "strength": 0.5,
+            "dexterity": 0.49981941731770835,
+            "exertion": 1
+          }
+        },
+        "embodiment": {
+          "appearanceSignature": "gzkslb",
+          "activity": {
+            "speed": 0,
+            "placeId": null,
+            "facingEntityId": null,
+            "targetPos": null,
+            "carried": null,
+            "injury": {
+              "impaired": false,
+              "severity": 0,
+              "movementMultiplier": 1.006
+            },
+            "evidence": {
+              "pose": "stand",
+              "action": null,
+              "goal": null
+            },
+            "family": "combat",
+            "detail": "strike",
+            "posture": "stand",
+            "locomotion": "idle",
+            "station": null
+          },
+          "station": null,
+          "conversation": null,
+          "separation": {
+            "x": -0.025000000000001465,
+            "z": 0
+          }
+        },
+        "reach": 1.2,
+        "cooldown": 0.55,
+        "attackTarget": null,
+        "health": 80,
+        "maxHealth": 80,
+        "alive": true,
+        "occupation": "traveler",
+        "age": 25,
+        "gender": "f",
+        "slug": null,
+        "recognisedClass": {
+          "id": "armsman",
+          "name": "Armsman",
+          "confidence": 0.5201250000000001,
+          "evidence": [
+            "20 exchanged blows across 1 conflict",
+            "strength 8.00",
+            "carries no weapon"
+          ]
+        },
+        "inventory": [],
+        "weapon": "fists",
+        "needs": {
+          "hunger": 0.20079365079365075,
+          "energy": 0.0010089699074074074,
+          "social": 0.3050000000000001,
+          "comfort": 0,
+          "thirst": 0.20151515151515142
+        },
+        "wealth": 20,
+        "speech": "",
+        "debug": {
+          "goal": null
+        }
+      },
+      {
+        "bodyId": "b_2",
+        "entityId": "p_2",
+        "name": "Reaction partner",
+        "pos": {
+          "x": 21.4,
+          "y": 1,
+          "z": 20
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "yaw": 1.5707963267948966,
+        "crouch": 0,
+        "pose": "downed",
+        "activity": "downed",
+        "speed": 0,
+        "attackSeq": 0,
+        "hitSeq": 20,
+        "lastAttackAt": -99,
+        "lastHitAt": 391.54999999997256,
+        "dead": false,
+        "incapacitated": true,
+        "appearance": {
+          "skin": 16179922,
+          "hair": 15132390,
+          "shirt": 10505270,
+          "pants": 3815486,
+          "height": 0.96,
+          "build": 0.93,
+          "hatStyle": "none",
+          "description": {
+            "archetype": "shiro",
+            "culture": "ashford",
+            "presentation": "feminine",
+            "skinTone": "porcelain",
+            "faceShape": "oval",
+            "hairStyle": "updo_ornamented",
+            "hairColor": "white",
+            "eyeColor": "grey",
+            "frame": "lean",
+            "stature": "below_average",
+            "garmentSilhouette": "layered_kimono",
+            "garmentPalette": "watch_vermilion",
+            "accessories": [
+              "hair_ornament",
+              "waist_cord"
+            ],
+            "culturalTags": [
+              "ashford",
+              "snow_moon",
+              "winter_silk"
+            ],
+            "grooming": 0.883458448224701,
+            "wear": 0.45012187033891676,
+            "status": "modest",
+            "agePresentation": "young_adult",
+            "roleCues": [
+              "travel_pack"
+            ]
+          }
+        },
+        "combatAction": null,
+        "embodiment": {
+          "appearanceSignature": "yy80a0",
+          "activity": {
+            "speed": 0,
+            "placeId": null,
+            "facingEntityId": null,
+            "targetPos": null,
+            "carried": null,
+            "injury": {
+              "impaired": false,
+              "severity": 0.08771007876160854,
+              "movementMultiplier": 0.996
+            },
+            "evidence": {
+              "pose": "downed",
+              "action": null,
+              "goal": null
+            },
+            "family": "injured",
+            "detail": "downed",
+            "posture": "lie",
+            "locomotion": "idle",
+            "station": null
+          },
+          "station": null,
+          "conversation": null,
+          "separation": {
+            "x": 0.025000000000001465,
+            "z": 0
+          }
+        },
+        "reach": 1.2,
+        "cooldown": 0.55,
+        "attackTarget": null,
+        "health": 1,
+        "maxHealth": 80,
+        "alive": true,
+        "occupation": "traveler",
+        "age": 25,
+        "gender": "f",
+        "slug": null,
+        "recognisedClass": {
+          "id": "armsman",
+          "name": "Armsman",
+          "confidence": 0.49637500000000007,
+          "evidence": [
+            "20 exchanged blows across 1 conflict",
+            "strength 7.00",
+            "carries no weapon"
+          ]
+        },
+        "inventory": [],
+        "weapon": "fists",
+        "needs": {
+          "hunger": 0.20079365079365075,
+          "energy": 0.0010280671296296296,
+          "social": 0.3050000000000001,
+          "comfort": 0,
+          "thirst": 0.20151515151515142
+        },
+        "wealth": 20,
+        "speech": "",
+        "debug": {
+          "goal": null
+        }
+      },
+      {
+        "bodyId": "b_3",
+        "entityId": "p_3",
+        "name": "Second partner",
+        "pos": {
+          "x": 22.1,
+          "y": 1,
+          "z": 24
+        },
+        "velocity": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "yaw": 1.5707963267948966,
+        "crouch": 0,
+        "pose": "stand",
+        "activity": "stand",
+        "speed": 0,
+        "attackSeq": 0,
+        "hitSeq": 0,
+        "lastAttackAt": -99,
+        "lastHitAt": -99,
+        "dead": false,
+        "incapacitated": false,
+        "appearance": {
+          "skin": 15254696,
+          "hair": 7028514,
+          "shirt": 10505270,
+          "pants": 5259827,
+          "height": 0.96,
+          "build": 0.93,
+          "hatStyle": "none",
+          "description": {
+            "archetype": "yuki",
+            "culture": "ashford",
+            "presentation": "feminine",
+            "skinTone": "fair",
+            "faceShape": "heart",
+            "hairStyle": "twin_braid",
+            "hairColor": "chestnut",
+            "eyeColor": "black",
+            "frame": "lean",
+            "stature": "below_average",
+            "garmentSilhouette": "apron_over_tunic",
+            "garmentPalette": "watch_vermilion",
+            "accessories": [
+              "hair_ornament",
+              "ear_drops",
+              "gold_filigree"
+            ],
+            "culturalTags": [
+              "ashford",
+              "court_silk",
+              "blossom_motif"
+            ],
+            "grooming": 0.6301156662288122,
+            "wear": 0.4431217810884118,
+            "status": "modest",
+            "agePresentation": "young_adult",
+            "roleCues": [
+              "travel_pack"
+            ]
+          }
+        },
+        "combatAction": null,
+        "embodiment": {
+          "appearanceSignature": "1to2gwr",
+          "activity": {
+            "speed": 0,
+            "placeId": null,
+            "facingEntityId": null,
+            "targetPos": null,
+            "carried": null,
+            "injury": {
+              "impaired": false,
+              "severity": 0,
+              "movementMultiplier": 1.002078402
+            },
+            "evidence": {
+              "pose": "stand",
+              "action": null,
+              "goal": null
+            },
+            "family": "idle",
+            "detail": "idle",
+            "posture": "stand",
+            "locomotion": "idle",
+            "station": null
+          },
+          "station": null,
+          "conversation": null,
+          "separation": {
+            "x": 0,
+            "z": 0
+          }
+        },
+        "reach": 1.2,
+        "cooldown": 0.55,
+        "attackTarget": null,
+        "health": 80,
+        "maxHealth": 80,
+        "alive": true,
+        "occupation": "traveler",
+        "age": 25,
+        "gender": "f",
+        "slug": null,
+        "recognisedClass": null,
+        "inventory": [],
+        "weapon": "fists",
+        "needs": {
+          "hunger": 0.20079365079365075,
+          "energy": 0.054895219907407415,
+          "social": 0.3050000000000001,
+          "comfort": 0,
+          "thirst": 0.20151515151515142
+        },
+        "wealth": 20,
+        "speech": "",
+        "debug": {
+          "goal": null
+        }
+      }
+    ],
+    "combatPresentation": {
+      "version": 1,
+      "firstAvailableSeq": 19,
+      "latestSeq": 20,
+      "events": [
+        {
+          "eventId": "e_301",
+          "actionId": "action_19",
+          "seq": 19,
+          "physicalTime": 389.41666666664116,
+          "actorBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "actorPosition": {
+            "x": 20.35,
+            "y": 1,
+            "z": 20
+          },
+          "targetPosition": {
+            "x": 21.4,
+            "y": 1,
+            "z": 20
+          },
+          "targetVelocity": {
+            "x": 4,
+            "y": 0,
+            "z": 0
+          },
+          "actorYaw": -1.5707963267948966,
+          "weaponType": "unarmed",
+          "weaponId": null,
+          "action": "strike",
+          "outcome": "hit",
+          "attackSeq": 19,
+          "hitSeq": 19,
+          "capability": {
+            "strength": 0.4968,
+            "dexterity": 0.496620573046875,
+            "exertion": 0.9904
+          }
+        },
+        {
+          "eventId": "e_314",
+          "actionId": "action_20",
+          "seq": 20,
+          "physicalTime": 391.54999999997256,
+          "actorBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "actorPosition": {
+            "x": 20.35,
+            "y": 1,
+            "z": 20
+          },
+          "targetPosition": {
+            "x": 21.4,
+            "y": 1,
+            "z": 20
+          },
+          "targetVelocity": {
+            "x": 4,
+            "y": 0,
+            "z": 0
+          },
+          "actorYaw": -1.5707963267948966,
+          "weaponType": "unarmed",
+          "weaponId": null,
+          "action": "strike",
+          "outcome": "hit",
+          "attackSeq": 20,
+          "hitSeq": 20,
+          "capability": {
+            "strength": 0.496775,
+            "dexterity": 0.4965955820760091,
+            "exertion": 0.990325
+          }
+        }
+      ]
+    },
+    "events": [
+      {
+        "id": "e_7",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (6 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_1",
+            "seq": 1,
+            "physicalTime": 353.6333333333404,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 1,
+            "hitSeq": 1,
+            "capability": {
+              "strength": 0.4968,
+              "dexterity": 0.4968,
+              "exertion": 0.9904
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_1",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 5.750512424004265,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.07188140530005331
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 1,
+          "hitSeq": 1,
+          "damage": 6,
+          "weapon": "fists",
+          "health": 74,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.121246965543097,
+              "y": 1.9150362832852168,
+              "z": 19.799284727508017
+            },
+            "at": 353.6239024206228,
+            "eventId": "e_7"
+          }
+        }
+      },
+      {
+        "id": "e_29",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (6 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_2",
+            "seq": 2,
+            "physicalTime": 355.516666666672,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 2,
+            "hitSeq": 2,
+            "capability": {
+              "strength": 0.4945875,
+              "dexterity": 0.4945875,
+              "exertion": 0.9837625
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_2",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 6.000388117695356,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.07500485147119194
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 2,
+          "hitSeq": 2,
+          "damage": 6,
+          "weapon": "fists",
+          "health": 68,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.426905243244974,
+              "y": 1.8718436428756846,
+              "z": 20.31256124248652
+            },
+            "at": 355.513838583388,
+            "eventId": "e_29"
+          }
+        }
+      },
+      {
+        "id": "e_49",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (6 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_3",
+            "seq": 3,
+            "physicalTime": 357.4833333333369,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 3,
+            "hitSeq": 3,
+            "capability": {
+              "strength": 0.4963458333333333,
+              "dexterity": 0.4963458333333333,
+              "exertion": 0.9890375
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_3",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 5.997004205143493,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.07496255256429366
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 3,
+          "hitSeq": 3,
+          "damage": 6,
+          "weapon": "fists",
+          "health": 62,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.121246965543097,
+              "y": 1.9150362832852168,
+              "z": 19.799284727508017
+            },
+            "at": 357.4739024206193,
+            "eventId": "e_49"
+          }
+        }
+      },
+      {
+        "id": "e_69",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (5 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_4",
+            "seq": 4,
+            "physicalTime": 359.533333333335,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 4,
+            "hitSeq": 4,
+            "capability": {
+              "strength": 0.49559166666666665,
+              "dexterity": 0.49559166666666665,
+              "exertion": 0.9867750000000001
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_4",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 4.871511051165287,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.06089388813956609
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 4,
+          "hitSeq": 4,
+          "damage": 5,
+          "weapon": "fists",
+          "health": 57,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.426905243244974,
+              "y": 1.8718436428756846,
+              "z": 20.31256124248652
+            },
+            "at": 359.530505250051,
+            "eventId": "e_69"
+          }
+        }
+      },
+      {
+        "id": "e_89",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (5 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_5",
+            "seq": 5,
+            "physicalTime": 361.41666666666663,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 5,
+            "hitSeq": 5,
+            "capability": {
+              "strength": 0.4968,
+              "dexterity": 0.496620573046875,
+              "exertion": 0.9904
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_5",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 4.857921336500505,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.06072401670625631
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 5,
+          "hitSeq": 5,
+          "damage": 5,
+          "weapon": "fists",
+          "health": 53,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.121246965543097,
+              "y": 1.9150362832852168,
+              "z": 19.799284727508017
+            },
+            "at": 361.40723575394907,
+            "eventId": "e_89"
+          }
+        }
+      },
+      {
+        "id": "e_109",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (5 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_6",
+            "seq": 6,
+            "physicalTime": 363.5666666666647,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 6,
+            "hitSeq": 6,
+            "capability": {
+              "strength": 0.4968,
+              "dexterity": 0.496620573046875,
+              "exertion": 0.9904
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_6",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 5.038135771216707,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.06297669714020884
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 6,
+          "hitSeq": 6,
+          "damage": 5,
+          "weapon": "fists",
+          "health": 48,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.426905243244974,
+              "y": 1.8718436428756846,
+              "z": 20.31256124248652
+            },
+            "at": 363.5638385833807,
+            "eventId": "e_109"
+          }
+        }
+      },
+      {
+        "id": "e_125",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (5 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_7",
+            "seq": 7,
+            "physicalTime": 365.4833333333296,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 7,
+            "hitSeq": 7,
+            "capability": {
+              "strength": 0.4968,
+              "dexterity": 0.496620573046875,
+              "exertion": 0.9904
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_7",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 4.8472747682472255,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.06059093460309032
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 7,
+          "hitSeq": 7,
+          "damage": 5,
+          "weapon": "fists",
+          "health": 43,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.121246965543097,
+              "y": 1.9150362832852168,
+              "z": 19.799284727508017
+            },
+            "at": 365.47390242061203,
+            "eventId": "e_125"
+          }
+        }
+      },
+      {
+        "id": "e_141",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (7 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_8",
+            "seq": 8,
+            "physicalTime": 367.5833333333277,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 8,
+            "hitSeq": 8,
+            "capability": {
+              "strength": 0.49648333333333333,
+              "dexterity": 0.49630402074924046,
+              "exertion": 0.98945
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_8",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 6.901247770193226,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.08626559712741533
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 8,
+          "hitSeq": 8,
+          "damage": 7,
+          "weapon": "fists",
+          "health": 36,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.426905243244974,
+              "y": 1.8718436428756846,
+              "z": 20.31256124248652
+            },
+            "at": 367.5805052500437,
+            "eventId": "e_141"
+          }
+        }
+      },
+      {
+        "id": "e_157",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (5 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_9",
+            "seq": 9,
+            "physicalTime": 369.433333333326,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 9,
+            "hitSeq": 9,
+            "capability": {
+              "strength": 0.4968,
+              "dexterity": 0.496620573046875,
+              "exertion": 0.9904
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_9",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 5.489018491509609,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.0686127311438701
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 9,
+          "hitSeq": 9,
+          "damage": 5,
+          "weapon": "fists",
+          "health": 30,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.121246965543097,
+              "y": 1.9150362832852168,
+              "z": 19.799284727508017
+            },
+            "at": 369.42390242060844,
+            "eventId": "e_157"
+          }
+        }
+      },
+      {
+        "id": "e_173",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (7 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_10",
+            "seq": 10,
+            "physicalTime": 371.58333333332405,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 10,
+            "hitSeq": 10,
+            "capability": {
+              "strength": 0.4968,
+              "dexterity": 0.496620573046875,
+              "exertion": 0.9904
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_10",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 6.759000458677587,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.08448750573346983
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 10,
+          "hitSeq": 10,
+          "damage": 7,
+          "weapon": "fists",
+          "health": 24,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.426905243244974,
+              "y": 1.8718436428756846,
+              "z": 20.31256124248652
+            },
+            "at": 371.58050525004006,
+            "eventId": "e_173"
+          }
+        }
+      },
+      {
+        "id": "e_189",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (7 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_11",
+            "seq": 11,
+            "physicalTime": 373.4833333333223,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 11,
+            "hitSeq": 11,
+            "capability": {
+              "strength": 0.4968,
+              "dexterity": 0.496620573046875,
+              "exertion": 0.9904
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_11",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 7.016806300928683,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.08771007876160854
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 11,
+          "hitSeq": 11,
+          "damage": 7,
+          "weapon": "fists",
+          "health": 17,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.121246965543097,
+              "y": 1.9150362832852168,
+              "z": 19.799284727508017
+            },
+            "at": 373.47390242060476,
+            "eventId": "e_189"
+          }
+        }
+      },
+      {
+        "id": "e_205",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (5 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_12",
+            "seq": 12,
+            "physicalTime": 375.5833333333204,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 12,
+            "hitSeq": 12,
+            "capability": {
+              "strength": 0.49648333333333333,
+              "dexterity": 0.49630402074924046,
+              "exertion": 0.98945
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_12",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 5.232401326768603,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.06540501658460754
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 12,
+          "hitSeq": 12,
+          "damage": 5,
+          "weapon": "fists",
+          "health": 11,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.426905243244974,
+              "y": 1.8718436428756846,
+              "z": 20.31256124248652
+            },
+            "at": 375.5805052500364,
+            "eventId": "e_205"
+          }
+        }
+      },
+      {
+        "id": "e_221",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (5 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_13",
+            "seq": 13,
+            "physicalTime": 377.4166666666521,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 13,
+            "hitSeq": 13,
+            "capability": {
+              "strength": 0.4968,
+              "dexterity": 0.496620573046875,
+              "exertion": 0.9904
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_13",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 5.047833302484806,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.06309791628106007
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 13,
+          "hitSeq": 13,
+          "damage": 5,
+          "weapon": "fists",
+          "health": 6,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.121246965543097,
+              "y": 1.9150362832852168,
+              "z": 19.799284727508017
+            },
+            "at": 377.4072357539345,
+            "eventId": "e_221"
+          }
+        }
+      },
+      {
+        "id": "e_235",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (6 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_14",
+            "seq": 14,
+            "physicalTime": 379.54999999998347,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 14,
+            "hitSeq": 14,
+            "capability": {
+              "strength": 0.496775,
+              "dexterity": 0.4965955820760091,
+              "exertion": 0.990325
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_14",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 5.87341582048124,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.0734176977560155
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 14,
+          "hitSeq": 14,
+          "damage": 6,
+          "weapon": "fists",
+          "health": 0,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.426905243244974,
+              "y": 1.8718436428756846,
+              "z": 20.31256124248652
+            },
+            "at": 379.5471719166995,
+            "eventId": "e_235"
+          }
+        }
+      },
+      {
+        "id": "e_249",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (7 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_15",
+            "seq": 15,
+            "physicalTime": 381.41666666664844,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 15,
+            "hitSeq": 15,
+            "capability": {
+              "strength": 0.4968,
+              "dexterity": 0.496620573046875,
+              "exertion": 0.9904
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_15",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 6.788891074613201,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.08486113843266502
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 15,
+          "hitSeq": 15,
+          "damage": 7,
+          "weapon": "fists",
+          "health": -6,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.121246965543097,
+              "y": 1.9150362832852168,
+              "z": 19.799284727508017
+            },
+            "at": 381.4072357539309,
+            "eventId": "e_249"
+          }
+        }
+      },
+      {
+        "id": "e_262",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (5 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_16",
+            "seq": 16,
+            "physicalTime": 383.58333333331313,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 16,
+            "hitSeq": 16,
+            "capability": {
+              "strength": 0.4968,
+              "dexterity": 0.496620573046875,
+              "exertion": 0.9904
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_16",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 4.829450366024622,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.06036812957530777
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 16,
+          "hitSeq": 16,
+          "damage": 5,
+          "weapon": "fists",
+          "health": -4,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.426905243244974,
+              "y": 1.8718436428756846,
+              "z": 20.31256124248652
+            },
+            "at": 383.58050525002915,
+            "eventId": "e_262"
+          }
+        }
+      },
+      {
+        "id": "e_275",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (5 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_17",
+            "seq": 17,
+            "physicalTime": 385.4833333333114,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 17,
+            "hitSeq": 17,
+            "capability": {
+              "strength": 0.4968,
+              "dexterity": 0.496620573046875,
+              "exertion": 0.9904
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_17",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 5.0571415624083675,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.06321426953010459
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 17,
+          "hitSeq": 17,
+          "damage": 5,
+          "weapon": "fists",
+          "health": -4,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.121246965543097,
+              "y": 1.9150362832852168,
+              "z": 19.799284727508017
+            },
+            "at": 385.47390242059384,
+            "eventId": "e_275"
+          }
+        }
+      },
+      {
+        "id": "e_288",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (6 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_18",
+            "seq": 18,
+            "physicalTime": 387.56666666664285,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 18,
+            "hitSeq": 18,
+            "capability": {
+              "strength": 0.4963375,
+              "dexterity": 0.49615824008585613,
+              "exertion": 0.9890125
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_18",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 6.421008686780001,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.08026260858475001
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 18,
+          "hitSeq": 18,
+          "damage": 6,
+          "weapon": "fists",
+          "health": -5,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.426905243244974,
+              "y": 1.8718436428756846,
+              "z": 20.31256124248652
+            },
+            "at": 387.56383858335886,
+            "eventId": "e_288"
+          }
+        }
+      },
+      {
+        "id": "e_301",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (7 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_19",
+            "seq": 19,
+            "physicalTime": 389.41666666664116,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 19,
+            "hitSeq": 19,
+            "capability": {
+              "strength": 0.4968,
+              "dexterity": 0.496620573046875,
+              "exertion": 0.9904
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_19",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 6.798534047374086,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.08498167559217608
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 19,
+          "hitSeq": 19,
+          "damage": 7,
+          "weapon": "fists",
+          "health": -6,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.121246965543097,
+              "y": 1.9150362832852168,
+              "z": 19.799284727508017
+            },
+            "at": 389.4072357539236,
+            "eventId": "e_301"
+          }
+        }
+      },
+      {
+        "id": "e_314",
+        "type": "attack",
+        "actor": "p_1",
+        "target": "p_2",
+        "summary": "Arena traveler attacked Reaction partner at Contact arena (6 dmg)",
+        "data": {
+          "combatFacts": {
+            "actionId": "action_20",
+            "seq": 20,
+            "physicalTime": 391.54999999997256,
+            "actorBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "actorPosition": {
+              "x": 20.35,
+              "y": 1,
+              "z": 20
+            },
+            "targetPosition": {
+              "x": 21.4,
+              "y": 1,
+              "z": 20
+            },
+            "targetVelocity": {
+              "x": 4,
+              "y": 0,
+              "z": 0
+            },
+            "actorYaw": -1.5707963267948966,
+            "weaponType": "unarmed",
+            "weaponId": null,
+            "action": "strike",
+            "outcome": "hit",
+            "attackSeq": 20,
+            "hitSeq": 20,
+            "capability": {
+              "strength": 0.496775,
+              "dexterity": 0.4965955820760091,
+              "exertion": 0.990325
+            }
+          },
+          "combat": {
+            "attackerId": "p_1",
+            "attackerBodyId": "b_1",
+            "targetBodyId": "b_2",
+            "targetId": "p_2",
+            "attackMode": "strike",
+            "actionId": "action_20",
+            "weaponId": null,
+            "distance": 1.0499999999999972,
+            "reach": 0.9,
+            "attempted": true,
+            "rejection": null,
+            "hit": true,
+            "impact": 6.3915609334310455,
+            "exertionCost": 0.0128,
+            "contactRegion": "torso",
+            "injury": {
+              "region": "torso",
+              "severity": 0.07989451166788807
+            }
+          },
+          "attackerBodyId": "b_1",
+          "targetBodyId": "b_2",
+          "attackSeq": 20,
+          "hitSeq": 20,
+          "damage": 6,
+          "weapon": "fists",
+          "health": -5,
+          "intent": "injure",
+          "conflictId": "cf_1",
+          "contact": {
+            "bodyId": "b_2",
+            "region": "torso",
+            "position": {
+              "x": 21.426905243244974,
+              "y": 1.8718436428756846,
+              "z": 20.31256124248652
+            },
+            "at": 391.54717191668857,
+            "eventId": "e_314"
+          }
+        }
+      }
+    ]
+  }
+}

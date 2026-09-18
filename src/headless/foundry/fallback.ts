@@ -65,7 +65,23 @@ const damagedCatalogue: CharacterCatalogue = {
 };
 const damaged = resolveAll(damagedCatalogue);
 
+/**
+ * Which slots a change of body is *entitled* to move.
+ *
+ * With monolithic bodies every slot was independent, so "only the removed slot may move" was the
+ * whole contract. Real modular content broke that premise rather than the resolver: a City Sample
+ * torso, a Polytope set and a Quantum character each carry a `fitFamily`, and any part audited with
+ * an explicit `fits` list is only wearable on the families it names. Losing somebody's body
+ * therefore *must* re-pick their top, trousers, shoes and face — a shirt cut for one body is not a
+ * garment that fits another, and keeping it would be the actual defect.
+ *
+ * So the re-roll this file exists to catch is stated exactly: a person whose body survived must be
+ * bit-identical, and a person whose body was replaced may move only fit-constrained slots.
+ */
+const fitConstrained = new Set(
+  loaded.catalogue.entries.filter(entry => entry.fits?.length).map(entry => entry.slot));
 let changedSlotTotal = 0, unrelatedChanges = 0, lostBody = 0, stillComplete = 0;
+let survivorsChanged = 0, dependentChanges = 0;
 const diagnostics = new Set<string>();
 const examples: unknown[] = [];
 for (let index = 0; index < baseline.length; index++) {
@@ -73,9 +89,14 @@ for (let index = 0; index < baseline.length; index++) {
   const slots = new Set([...Object.keys(before), ...Object.keys(after)]);
   const changed = [...slots].filter(slot => before[slot] !== after[slot]);
   changedSlotTotal += changed.length;
-  // Only the slot the removed asset filled may move. Anything else is a re-roll.
-  unrelatedChanges += changed.filter(slot => before[slot] !== broken).length;
-  if (before.body === broken) lostBody++;
+  const replacedBody = before.body === broken;
+  if (replacedBody) lostBody++;
+  for (const slot of changed) {
+    if (before[slot] === broken) continue;          // the slot the removed asset itself filled
+    if (replacedBody && fitConstrained.has(slot as never)) { dependentChanges++; continue; }
+    unrelatedChanges++;                              // a genuine re-roll
+  }
+  if (!replacedBody && changed.length) survivorsChanged++;
   if (damaged[index].complete) stillComplete++;
   for (const problem of damaged[index].problems) diagnostics.add(`${problem.kind}:${problem.slot}`);
   if (changed.length && examples.length < 5) {
@@ -92,13 +113,18 @@ const summary = {
   people: people.length,
   peopleUsingBrokenAsset: lostBody,
   changedSlotTotal,
+  /** Slots that moved because the body they were fitted to was replaced. Expected, not a defect. */
+  fitDependentSlotChanges: dependentChanges,
+  /** People who kept their body. Any change at all for one of them is a re-roll. */
+  peopleWhoKeptTheirBodyAndChanged: survivorsChanged,
   /** The number that matters: a re-roll would make this non-zero. */
   unrelatedSlotChanges: unrelatedChanges,
   stillCompleteAfterBreak: stillComplete,
   diagnosticsRaised: [...diagnostics].sort(),
   examples,
   verdict: unrelatedChanges === 0
-    ? 'PASS — removing one asset moved only the slot it filled'
+    ? `PASS — ${lostBody} person(s) lost their body and re-fitted ${dependentChanges} dependent slot(s); `
+      + 'every other person was untouched'
     : `FAIL — ${unrelatedChanges} unrelated slot(s) changed; selection is not slot-independent`,
 };
 

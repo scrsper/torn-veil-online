@@ -172,8 +172,34 @@ export function mannequinOnlyCatalogue(): CharacterCatalogue {
     ],
     retargeters: [{ package: '/Game/TornVeil/Combat/Repair/RTG_TV_CombatRepair', sourceSkeleton: MOTION_RIG, targetSkeleton: MANNY }],
     entries: [
-      entry('body', 'SKM_Manny_Simple', ['male', 'adult', 'average', 'wholeBody'], { materialSlots: ['M_Mannequin'] }),
-      entry('body', 'SKM_Quinn_Simple', ['female', 'adult', 'slim', 'wholeBody'], { materialSlots: ['M_Mannequin'] }),
+      // `placeholder` is what the audit tags Epic's template silhouettes with. The rules forbid it,
+      // and this catalogue is the case proving that forbidding is not the same as removing.
+      entry('body', 'SKM_Manny_Simple', ['male', 'adult', 'average', 'wholeBody', 'placeholder'], { materialSlots: ['M_Mannequin'] }),
+      entry('body', 'SKM_Quinn_Simple', ['female', 'adult', 'slim', 'wholeBody', 'placeholder'], { materialSlots: ['M_Mannequin'] }),
+    ],
+  };
+}
+
+/**
+ * One grey template body and one real body carrying exactly the same descriptive tags.
+ *
+ * This is what a machine looks like once a character pack is installed beside the engine content,
+ * and it is the case that put visible mannequins in a PIE settlement: Quinn is as honestly
+ * `female`+`adult`+`slim` as a vendor's modular torso, the two tie on every ranked preference, and
+ * the tie-break is the person's own stream — so about a third of a village drew the dummy.
+ */
+export function placeholderAndRealCatalogue(): CharacterCatalogue {
+  counter = 0;
+  return {
+    schema: 1, generatedAt: new Date(0).toISOString(), machine: 'fixture-placeholder-contest',
+    animationTarget: MANNY,
+    skeletons: [{ package: MANNY, name: 'SK_Mannequin', family: 'manny', meshCount: 4, animCount: 150 }],
+    retargeters: [],
+    entries: [
+      entry('body', 'SKM_Quinn_Simple', ['female', 'adult', 'slim', 'wholeBody', 'placeholder'], { materialSlots: ['M_Mannequin'] }),
+      entry('body', 'SKM_Manny_Simple', ['male', 'adult', 'average', 'wholeBody', 'placeholder'], { materialSlots: ['M_Mannequin'] }),
+      entry('body', 'SK_Villager_F', ['female', 'adult', 'slim', 'wholeBody'], { materialSlots: ['Skin'] }),
+      entry('body', 'SK_Villager_M', ['male', 'adult', 'average', 'wholeBody'], { materialSlots: ['Skin'] }),
     ],
   };
 }
