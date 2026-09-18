@@ -11,9 +11,13 @@
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "UObject/StrongObjectPtr.h"
+#include "GroomComponent.h"
+#include "GroomAsset.h"
+#include "GroomBindingAsset.h"
 
 namespace {
     FString Lower(const FString& Value) { return Value.ToLower(); }
+    FString PackageKey(const FString& Value) { return Value.Left(Value.Find(TEXT(".")) == INDEX_NONE ? Value.Len() : Value.Find(TEXT("."))).ToLower(); }
 
     template <typename T>
     T* LoadMappedAsset(const TMap<FString, FString>& Paths, const FString& Key) {
@@ -62,7 +66,12 @@ namespace {
 
     void TintComponent(USkeletalMeshComponent* Component, const TCHAR* MaterialName, int64 Hex, float Wear, float Grooming) {
         if (!Component) return;
-        UMaterialInterface* Base = CharacterMaterial(MaterialName);
+        // Plain project shaders belong only on placeholder mannequins. Replacing a vendor's
+        // skin/cloth shader discards its textures, normals, masks and subsurface response.
+        const USkeletalMesh* Mesh = Component->GetSkeletalMeshAsset();
+        const bool bPlaceholder = Mesh && (Mesh->GetName().StartsWith(TEXT("SKM_Manny"))
+            || Mesh->GetName().StartsWith(TEXT("SKM_Quinn")) || Mesh->GetName() == TEXT("SKM_UEFN_Mannequin"));
+        UMaterialInterface* Base = bPlaceholder ? CharacterMaterial(MaterialName) : nullptr;
         for (int32 Index = 0; Index < Component->GetNumMaterials(); ++Index) {
             // Fall back to tinting the mesh's own material when the project material is missing:
             // an untinted character is a far better outcome than an invisible one.
@@ -230,8 +239,11 @@ UTVCharacterPalette* UTVCharacterPalette::Get() {
 
 bool UTVCharacterPalette::Reload() {
     ActivityPaths.Reset(); RetargetClassPaths.Reset(); DriverSkeletons.Reset();
+    GroomBindingPaths.Reset(); BodyMaterialPaths.Reset();
     UnresolvedTokens.Reset(); bLoaded = false;
     SourceFile = FPaths::ProjectContentDir() / TEXT("TornVeil/Presentation/CharacterPalette.json");
+    const FString LocalFile = FPaths::ProjectContentDir() / TEXT("TornVeil/Presentation/CharacterPalette.local.json");
+    if (FPaths::FileExists(LocalFile)) SourceFile = LocalFile;
     FString Text;
     if (!FFileHelper::LoadFileToString(Text, *SourceFile)) {
         UE_LOG(LogTemp, Warning, TEXT("TV_EMBODIMENT no activity/retarget palette at %s"), *SourceFile);
@@ -259,6 +271,8 @@ void UTVCharacterPalette::Ingest(const TSharedPtr<FJsonObject>& Root) {
     };
     ReadMap(TEXT("activities"), ActivityPaths);
     ReadMap(TEXT("retargets"), RetargetClassPaths);
+    ReadMap(TEXT("groomBindings"), GroomBindingPaths);
+    ReadMap(TEXT("bodyMaterials"), BodyMaterialPaths);
     const TArray<TSharedPtr<FJsonValue>>* Shared = nullptr;
     if (Root->TryGetArrayField(TEXT("driverSkeletons"), Shared)) {
         for (const TSharedPtr<FJsonValue>& Entry : *Shared) {
@@ -279,7 +293,19 @@ UAnimationAsset* UTVCharacterPalette::ActivityAnimation(const FString& Family, c
 }
 
 UClass* UTVCharacterPalette::RetargetAnimClass(const FString& SkeletonKey) const {
-    return LoadMappedAsset<UClass>(RetargetClassPaths, SkeletonKey);
+    if (UClass* Exact = LoadMappedAsset<UClass>(RetargetClassPaths, SkeletonKey)) return Exact;
+    return LoadMappedAsset<UClass>(RetargetClassPaths, PackageKey(SkeletonKey));
+}
+
+UGroomBindingAsset* UTVCharacterPalette::GroomBinding(UGroomAsset* Groom, USkeletalMesh* Face) const {
+    if (!Groom || !Face) return nullptr;
+    UGroomBindingAsset* Binding = LoadMappedAsset<UGroomBindingAsset>(GroomBindingPaths,
+        PackageKey(Groom->GetPathName()) + TEXT("|") + PackageKey(Face->GetPathName()));
+    return Binding && Binding->GetGroom() == Groom && Binding->GetTargetSkeletalMesh() == Face ? Binding : nullptr;
+}
+
+UMaterialInterface* UTVCharacterPalette::BodyMaterial(const FString& HeadPackage) const {
+    return LoadMappedAsset<UMaterialInterface>(BodyMaterialPaths, PackageKey(HeadPackage));
 }
 
 bool UTVCharacterPalette::SharesDriverSkeleton(const FString& SkeletonKey) const {
@@ -301,7 +327,7 @@ FString UTVCharacterPalette::PaletteDiagnostics() const {
 // ---------------------------------------------------------------- visible presentation
 
 UTVCharacterPresentation::UTVCharacterPresentation() {
-    PrimaryComponentTick.bCanEverTick = false;
+    PrimaryComponentTick.bCanEverTick = true;
     SetCollisionEnabled(ECollisionEnabled::NoCollision);
     SetGenerateOverlapEvents(false);
     VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
@@ -310,11 +336,15 @@ UTVCharacterPresentation::UTVCharacterPresentation() {
 void UTVCharacterPresentation::BindDriver(USkeletalMeshComponent* Driver) {
     if (!Driver || DriverMesh == Driver) return;
     DriverMesh = Driver;
+    AttachToComponent(Driver, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
     SetRelativeTransform(FTransform::Identity);
+    AddTickPrerequisiteComponent(Driver);
     Driver->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 }
 
 void UTVCharacterPresentation::ClearParts() {
+    for (TObjectPtr<UGroomComponent>& Groom : Grooms) if (Groom) Groom->DestroyComponent();
+    Grooms.Reset();
     for (TObjectPtr<USkeletalMeshComponent>& Part : Parts) if (Part) Part->DestroyComponent();
     Parts.Reset();
     PartSlotKinds.Reset();
@@ -341,6 +371,8 @@ bool UTVCharacterPresentation::ApplyProfile(const FTVAppearanceProfile& Profile)
         return true;
     }
 
+    EmptyOverrideMaterials();
+    ClearMorphTargets();
     SetSkeletalMesh(Visible);
     SetVisibility(true);
     if (DriverMesh) DriverMesh->SetVisibility(false);
@@ -352,9 +384,11 @@ bool UTVCharacterPresentation::ApplyProfile(const FTVAppearanceProfile& Profile)
     const FString SkeletonKey = !Profile.Skeleton.IsEmpty() ? Profile.Skeleton : (VisibleSkeleton ? VisibleSkeleton->GetPathName() : FString());
     bRetargeted = false;
     if ((VisibleSkeleton && DriverSkeleton && VisibleSkeleton == DriverSkeleton) || Palette->SharesDriverSkeleton(SkeletonKey)) {
+        SetComponentTickEnabled(false);
         SetAnimInstanceClass(nullptr);
         SetLeaderPoseComponent(DriverMesh);
     } else if (UClass* Retarget = Palette->RetargetAnimClass(SkeletonKey)) {
+        SetComponentTickEnabled(true);
         SetLeaderPoseComponent(nullptr);
         SetAnimInstanceClass(Retarget);
         bRetargeted = true;
@@ -367,22 +401,57 @@ bool UTVCharacterPresentation::ApplyProfile(const FTVAppearanceProfile& Profile)
         return true;
     }
 
+    USkeletalMeshComponent* FaceComponent = nullptr;
     for (const FTVFoundrySlot& Slot : Profile.Slots) {
         if (Slot.Slot == TEXT("body")) continue;
-        // Groom/static attachment support is deliberately fail-soft until the real audited packs
-        // establish binding/socket requirements. Skeletal modular parts are fully realized now.
+        if (Slot.AssetClass == TEXT("GroomAsset")) continue; // bind after the face exists
         if (!Slot.AssetClass.Contains(TEXT("SkeletalMesh"), ESearchCase::IgnoreCase)) { ++UnresolvedSlotCount; continue; }
         USkeletalMesh* PartMesh = LoadFoundryAsset<USkeletalMesh>(Slot);
         if (!PartMesh) { ++UnresolvedSlotCount; continue; }
+        // MetaHuman faces can bind to a separate facial skeleton with additional bones. Such a
+        // part needs its own inspected adapter; Leader Pose would leave those bones unmapped.
+        const bool bSharedSkeleton = PartMesh->GetSkeleton() == VisibleSkeleton;
+        UClass* PartAdapter = !bSharedSkeleton && PartMesh->GetSkeleton()
+            ? Palette->RetargetAnimClass(PartMesh->GetSkeleton()->GetPathName()) : nullptr;
+        if (!bSharedSkeleton && !PartAdapter) { ++UnresolvedSlotCount; continue; }
         USkeletalMeshComponent* Part = NewObject<USkeletalMeshComponent>(GetOwner());
         Part->SetupAttachment(this);
         Part->RegisterComponent();
         Part->SetSkeletalMesh(PartMesh);
         Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
         Part->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
-        Part->SetLeaderPoseComponent(this);
+        Part->AddTickPrerequisiteComponent(this);
+        if (bSharedSkeleton) {
+            Part->SetLeaderPoseComponent(this);
+            Part->SetComponentTickEnabled(false);
+        } else {
+            Part->SetAnimInstanceClass(PartAdapter);
+            Part->SetComponentTickEnabled(true);
+        }
         Parts.Add(Part);
         PartSlotKinds.Add(Slot.Slot);
+        if (Slot.Slot == TEXT("head")) {
+            FaceComponent = Part;
+            if (UMaterialInterface* Skin = Palette->BodyMaterial(Slot.Package)) SetMaterial(0, Skin);
+        }
+        ++ResolvedPartCount;
+    }
+
+    for (const FTVFoundrySlot& Slot : Profile.Slots) {
+        if (Slot.AssetClass != TEXT("GroomAsset")) continue;
+        UGroomAsset* Asset = LoadFoundryAsset<UGroomAsset>(Slot);
+        UGroomBindingAsset* Binding = FaceComponent ? Palette->GroomBinding(Asset, FaceComponent->GetSkeletalMeshAsset()) : nullptr;
+        if (!Binding) { ++UnresolvedSlotCount; continue; }
+        UGroomComponent* Groom = NewObject<UGroomComponent>(GetOwner());
+        Groom->SetupAttachment(FaceComponent);
+        Groom->SetGroomAsset(Asset, Binding, false);
+        Groom->SetUseCards(true);
+        Groom->SetForcedLOD(2);
+        Groom->SetEnableSimulation(false);
+        Groom->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        Groom->RegisterComponent();
+        Groom->AddTickPrerequisiteComponent(FaceComponent);
+        Grooms.Add(Groom);
         ++ResolvedPartCount;
     }
 

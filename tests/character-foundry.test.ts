@@ -45,6 +45,56 @@ function syntheticInput(o: { identity: string; age: number; gender: 'm' | 'f'; o
 
 const slotOf = (realization: CharacterRealization, slot: string) => realization.slots.find(s => s.slot === slot);
 
+describe('audited modular geometry', () => {
+  const input = () => syntheticInput({ identity: 'fit-check', age: 29, gender: 'f', occupation: 'baker', wealth: 40 });
+
+  it('keeps clothing on its audited body build even when skeleton assets are shared', () => {
+    const catalogue = richCatalogue();
+    catalogue.entries = catalogue.entries.filter(e => e.slot !== 'body' || e.name === 'SKM_Body_F_Adult');
+    catalogue.entries.find(e => e.slot === 'body')!.fitFamily = 'female-average';
+    for (const entry of catalogue.entries.filter(e => e.slot === 'upperGarment')) entry.fits = ['male-heavy'];
+    const shirt = catalogue.entries.find(e => e.slot === 'upperGarment')!;
+    const fitting = { ...shirt, package: '/Game/Fixture/FittingShirt', fits: ['female-average'] };
+    catalogue.entries.push(fitting);
+    expect(slotOf(realizeCharacter(input(), catalogue), 'upperGarment')?.package).toBe(fitting.package);
+    catalogue.entries = catalogue.entries.filter(e => e !== fitting);
+    expect(slotOf(realizeCharacter(input(), catalogue), 'upperGarment')).toBeUndefined();
+  });
+
+  it('does not layer geometry over slots already included in a complete outfit', () => {
+    const catalogue = mannequinOnlyCatalogue();
+    const body = catalogue.entries.find(e => e.slot === 'body')!;
+    body.covers = ['head', 'upperGarment', 'lowerGarment', 'footwear'];
+    catalogue.entries = [body, ...richCatalogue().entries.filter(e => e.slot !== 'body')];
+    const result = realizeCharacter(input(), catalogue);
+    expect(result.complete).toBe(true);
+    for (const slot of body.covers) expect(slotOf(result, slot)).toBeUndefined();
+  });
+
+  it('does not choose a fragment as a standalone body', () => {
+    const catalogue = richCatalogue();
+    for (const entry of catalogue.entries) if (entry.slot === 'body') entry.assemblyOnly = true;
+    expect(realizeCharacter(input(), catalogue).complete).toBe(false);
+  });
+
+  it('requires an active adapter when the audit provides runtime compatibility', () => {
+    const catalogue = foreignSkeletonCatalogue();
+    catalogue.runtimeSkeletons = [];
+    expect(animatableSkeletons(catalogue).has(FIXTURE_FOREIGN_SKELETON)).toBe(false);
+    catalogue.runtimeSkeletons = [FIXTURE_FOREIGN_SKELETON];
+    expect(animatableSkeletons(catalogue).has(FIXTURE_FOREIGN_SKELETON)).toBe(true);
+  });
+
+  it('retains fit and coverage metadata through catalogue parsing', () => {
+    const catalogue = richCatalogue();
+    Object.assign(catalogue.entries[0], { fitFamily: 'average', fits: ['average'], covers: ['head'], assemblyOnly: true });
+    catalogue.runtimeSkeletons = [catalogue.animationTarget!];
+    const parsed = parseCatalogue(catalogue).catalogue;
+    expect(parsed.entries[0]).toMatchObject({ fitFamily: 'average', fits: ['average'], covers: ['head'], assemblyOnly: true });
+    expect(parsed.runtimeSkeletons).toEqual(catalogue.runtimeSkeletons);
+  });
+});
+
 describe('catalogue parsing', () => {
   it('drops malformed entries instead of throwing, and says which', () => {
     const { catalogue, problems } = parseCatalogue({

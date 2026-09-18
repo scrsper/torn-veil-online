@@ -6,7 +6,7 @@ only Unreal execution details that the TypeScript Foundry cannot create: activit
 and generated retarget AnimBlueprint class paths.
 
 Input:  .debug/character-foundry/catalogue.json (audit_character_assets.py)
-Output: Content/TornVeil/Presentation/CharacterPalette.json
+Output: Content/TornVeil/Presentation/CharacterPalette.local.json (machine-local)
 """
 import argparse
 import json
@@ -60,7 +60,7 @@ def choose(candidates, key, animation_target, retarget_skeletons):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--catalogue', default='.debug/character-foundry/catalogue.json')
-    parser.add_argument('--out', default='unreal/TornVeilOnline/Content/TornVeil/Presentation/CharacterPalette.json')
+    parser.add_argument('--out', default='unreal/TornVeilOnline/Content/TornVeil/Presentation/CharacterPalette.local.json')
     parser.add_argument('--retarget', action='append', default=[],
                         help='SKELETON_PACKAGE=ANIM_BP_GENERATED_CLASS_PATH')
     args = parser.parse_args()
@@ -92,6 +92,10 @@ def main():
         'driverSkeletons': [target] if target else [],
         'activities': {},
         'retargets': retargets,
+        'groomBindings': {row['groom'] + '|' + row['targetMesh']: row['package']
+                          for row in catalogue.get('groomBindings', [])},
+        'bodyMaterials': {row['package']: row['bodyMaterial'] for row in catalogue.get('entries', [])
+                          if row.get('bodyMaterial')},
         'unresolved': {'activities': []},
     }
 

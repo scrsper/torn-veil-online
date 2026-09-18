@@ -185,6 +185,7 @@ export function realizeCharacter(input: RealizationInput, catalogue: CharacterCa
   const animatable = animatableSkeletons(catalogue);
   const skeletal = new Set<string>(SKELETAL_SLOTS);
   const pool = catalogue.entries.filter(entry => {
+    if (entry.assemblyOnly) return false;
     if (!skeletal.has(entry.slot)) return true;
     if (!entry.skeleton) return true; // unbound (static/groom) parts are attached, not skinned
     if (!animatable.size || animatable.has(entry.skeleton)) return true;
@@ -197,13 +198,16 @@ export function realizeCharacter(input: RealizationInput, catalogue: CharacterCa
 
   const rules = slotRules(traits);
   let bodySkeleton: string | undefined;
+  let fitFamily: string | undefined;
+  const coveredSlots = new Set<FoundrySlot>();
   // A monolithic character mesh already contains its own head and face (Epic's Manny, and most
-  // single-mesh Fab characters). The audit marks those `wholeBody` from the mesh's own bone set, so
+  // single-mesh Fab characters). The audit marks inspected complete geometry `wholeBody`, so
   // the head slot is satisfied by the body rather than left permanently unmet. Skipping the request
   // is not a concession: continuing to ask would report a content gap that no pack could ever fill
   // for this body, and would hold `complete` at false for a person who is visually finished.
   let wholeBody = false;
   for (const rule of rules) {
+    if (coveredSlots.has(rule.slot)) continue;
     if (rule.slot === 'head' && wholeBody) continue;
     // Each slot draws from its OWN stream, keyed by what it is asking for. A shared sequential
     // stream would make every later slot depend on whether an earlier one found anything, so
@@ -214,7 +218,9 @@ export function realizeCharacter(input: RealizationInput, catalogue: CharacterCa
     // complete foreign body animatable, but it cannot make a Manny shirt fit that foreign body's
     // bone hierarchy (or vice versa). Unbound static/groom attachments remain eligible.
     const compatiblePool = bodySkeleton && skeletal.has(rule.slot)
-      ? pool.filter(entry => !entry.skeleton || entry.skeleton === bodySkeleton)
+      ? pool.filter(entry => entry.fits
+        ? !!fitFamily && entry.fits.includes(fitFamily)
+        : !entry.skeleton || entry.skeleton === bodySkeleton)
       : pool;
     const resolved = resolveSlot(rng, rule, compatiblePool, realization.problems);
     if (resolved) realization.slots.push(resolved);
@@ -224,7 +230,9 @@ export function realizeCharacter(input: RealizationInput, catalogue: CharacterCa
     if (resolved?.slot === 'body') {
       const entry = catalogue.entries.find(candidate => candidate.package === resolved.package);
       bodySkeleton = entry?.skeleton;
-      wholeBody = entry?.tags.includes('wholeBody') ?? false;
+      fitFamily = entry?.fitFamily;
+      for (const slot of entry?.covers ?? []) coveredSlots.add(slot);
+      wholeBody = (entry?.tags.includes('wholeBody') ?? false) || coveredSlots.has('head');
     }
   }
 
@@ -233,6 +241,13 @@ export function realizeCharacter(input: RealizationInput, catalogue: CharacterCa
   realization.complete = !!body && (!!head || wholeBody);
   if (body) {
     const entry = catalogue.entries.find(candidate => candidate.package === body.package);
+    for (const required of entry?.requires ?? []) {
+      if (!coveredSlots.has(required) && !realization.slots.some(s => s.slot === required)) {
+        realization.complete = false;
+        realization.problems.push({ kind: 'required-slot-unresolved', slot: required, wanted: [],
+          detail: `${body.name} requires ${required} geometry; falling back to the base mannequin` });
+      }
+    }
     if (entry?.skeleton) realization.skeleton = entry.skeleton;
     // Only ask for morphs the mesh actually has, so a pack without them produces no noise.
     const available = new Set(entry?.morphTargets ?? []);

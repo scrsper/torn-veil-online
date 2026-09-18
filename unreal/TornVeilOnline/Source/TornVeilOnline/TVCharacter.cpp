@@ -77,12 +77,10 @@ ATVCharacter::ATVCharacter() {
     static ConstructorHelpers::FObjectFinder<UAnimationAsset> Down(TEXT("/Game/TornVeil/Characters/Animations/A_TV_Downed")); DownAnimation = Down.Object;
     // Canonically visible bodies must finish their presentation even while camera-culled.
     GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
-    // Slice 3. The visible character sits alongside the driver on the capsule with the driver's
-    // own relative transform, so a resolved human occupies exactly the space the mannequin did.
+    // Visible geometry inherits the driver's placement. Retarget animation nodes read that
+    // attached skeletal parent; modular parts then follow the visible body's pose.
     VisibleCharacter = CreateDefaultSubobject<UTVCharacterPresentation>(TEXT("VisibleCharacter"));
-    VisibleCharacter->SetupAttachment(GetCapsuleComponent());
-    VisibleCharacter->SetRelativeLocation(FVector(0, 0, -90));
-    VisibleCharacter->SetRelativeRotation(FRotator(0, -90, 0));
+    VisibleCharacter->SetupAttachment(GetMesh());
     VisibleCharacter->SetVisibility(false);
     VisibleMeshBaseLocation = FVector(0, 0, -90);
 }
@@ -440,7 +438,6 @@ void ATVCharacter::ApplyOccupancyOffset(float Dt) {
     OccupancyOffsetCm = FMath::VInterpTo(OccupancyOffsetCm, WantedCm, Dt, 6.f);
     OccupancyYawOffsetDegrees = FMath::FInterpTo(OccupancyYawOffsetDegrees, WantedYaw, Dt, 6.f);
     const FVector LocalOffset = GetActorRotation().UnrotateVector(OccupancyOffsetCm);
-    VisibleCharacter->SetRelativeLocation(VisibleMeshBaseLocation + FVector(LocalOffset.X, LocalOffset.Y, 0.f));
     GetMesh()->SetRelativeLocation(VisibleMeshBaseLocation + FVector(LocalOffset.X, LocalOffset.Y, 0.f));
 }
 void ATVCharacter::ApplyNameplate(bool bShowClass) {

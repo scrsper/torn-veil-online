@@ -29,7 +29,7 @@ export const FOUNDRY_SLOTS: readonly FoundrySlot[] = [
 ];
 
 /** Slots whose asset must share the animation target skeleton, or be retargetable onto it. */
-export const SKELETAL_SLOTS: readonly FoundrySlot[] = ['body', 'head', 'upperGarment', 'lowerGarment', 'robe', 'armor', 'footwear'];
+export const SKELETAL_SLOTS: readonly FoundrySlot[] = FOUNDRY_SLOTS;
 
 export interface CatalogueEntry {
   /** Unreal package path. Machine-local; never persisted canonically. */
@@ -50,6 +50,16 @@ export interface CatalogueEntry {
   materialSlots?: string[];
   /** Morph target names, used for continuous build/stature/age shaping where a mesh supports it. */
   morphTargets?: string[];
+  /** Audited geometry fit, independent of the skeleton asset shared by several body builds. */
+  fitFamily?: string;
+  /** Explicit body fits for modular parts, including faces on a separate facial skeleton. */
+  fits?: string[];
+  /** Slots whose geometry is already included in this mesh. Prevents doubled clothing/heads. */
+  covers?: FoundrySlot[];
+  /** Geometry dependencies for a body anchor whose remaining surfaces live in other parts. */
+  requires?: FoundrySlot[];
+  /** Inventory-only fragment: not a complete selectable part in the current assembly pipeline. */
+  assemblyOnly?: boolean;
 }
 
 export interface CatalogueSkeleton {
@@ -81,6 +91,8 @@ export interface CharacterCatalogue {
    * most retargeters pointing at it.
    */
   animationTarget?: string;
+  /** Skeletons with an installed, compiled pose adapter in the local runtime palette. */
+  runtimeSkeletons?: string[];
   skeletons: CatalogueSkeleton[];
   retargeters: CatalogueRetargeter[];
   entries: CatalogueEntry[];
@@ -123,6 +135,11 @@ export function parseCatalogue(raw: unknown): { catalogue: CharacterCatalogue; p
       tags: stringList(candidate.tags),
       ...(Array.isArray(candidate.materialSlots) ? { materialSlots: stringList(candidate.materialSlots) } : {}),
       ...(Array.isArray(candidate.morphTargets) ? { morphTargets: stringList(candidate.morphTargets, 64) } : {}),
+      ...(typeof candidate.fitFamily === 'string' ? { fitFamily: candidate.fitFamily } : {}),
+      ...(Array.isArray(candidate.fits) ? { fits: stringList(candidate.fits) } : {}),
+      ...(Array.isArray(candidate.covers) ? { covers: stringList(candidate.covers).filter(s => slots.has(s)) as FoundrySlot[] } : {}),
+      ...(Array.isArray(candidate.requires) ? { requires: stringList(candidate.requires).filter(s => slots.has(s)) as FoundrySlot[] } : {}),
+      ...(candidate.assemblyOnly === true ? { assemblyOnly: true } : {}),
     });
   }
 
@@ -154,6 +171,7 @@ export function parseCatalogue(raw: unknown): { catalogue: CharacterCatalogue; p
       generatedAt: typeof raw.generatedAt === 'string' ? raw.generatedAt : EMPTY_CATALOGUE.generatedAt,
       ...(typeof raw.machine === 'string' ? { machine: raw.machine } : {}),
       ...(typeof raw.animationTarget === 'string' ? { animationTarget: raw.animationTarget } : {}),
+      ...(Array.isArray(raw.runtimeSkeletons) ? { runtimeSkeletons: stringList(raw.runtimeSkeletons, 128) } : {}),
       skeletons, retargeters, entries,
     },
     problems,
@@ -169,6 +187,10 @@ export function animatableSkeletons(catalogue: CharacterCatalogue): Set<string> 
   const target = catalogue.animationTarget;
   const usable = new Set<string>();
   if (target) usable.add(target);
+  if (catalogue.runtimeSkeletons) {
+    for (const skeleton of catalogue.runtimeSkeletons) usable.add(skeleton);
+    return usable;
+  }
   for (const retargeter of catalogue.retargeters) {
     const { sourceSkeleton, targetSkeleton } = retargeter;
     if (!sourceSkeleton && !targetSkeleton) continue;
