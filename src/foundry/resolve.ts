@@ -38,7 +38,7 @@ export interface ResolvedSlot {
   assetClass: string;
   /** Which required tag the match was made on, for diagnostics. */
   matchedOn: string;
-  /** How many preference tags this candidate satisfied. */
+  /** Weighted preference score (see `chooseCandidate`) — comparable within a slot, not a tag count. */
   score: number;
   /** Requirement tags that had to be dropped to find anything at all. */
   relaxed: string[];
@@ -84,13 +84,24 @@ export interface RealizationInput {
   appearance: { skin: number; hair: number; shirt: number; pants: number; apron?: number; height: number; build: number };
 }
 
-/** Rank candidates by satisfied preferences; ties are broken by the person's own stream, not by order. */
+/**
+ * Rank candidates by satisfied preferences; ties are broken by the person's own stream, not by order.
+ *
+ * Preferences are weighted by their position in the rule, because they are not equally important and
+ * counting them equally produces visibly wrong people. `slotRules` lists the strongest signal first
+ * — presentation, then frame; presentation, then face shape, then skin tone — so an earlier
+ * preference outranks every later one combined. Without that, a thin catalogue lets "average build"
+ * outvote "feminine" and dresses a woman in a man's body because the two tied at one point each.
+ */
 function chooseCandidate(rng: RNG, candidates: CatalogueEntry[], preferred: string[]): { entry: CatalogueEntry; score: number } {
   let best: CatalogueEntry[] = [], bestScore = -1;
+  // Weight w(i) = 2^(n-1-i) makes each preference worth more than all the weaker ones together, so
+  // ranking follows the rule's stated priority order rather than a raw count.
+  const weights = preferred.map((_, index) => 2 ** (preferred.length - 1 - index));
   for (const entry of candidates) {
     const tags = new Set(entry.tags);
     let score = 0;
-    for (const tag of preferred) if (tags.has(tag)) score++;
+    for (let index = 0; index < preferred.length; index++) if (tags.has(preferred[index])) score += weights[index];
     if (score > bestScore) { bestScore = score; best = [entry]; }
     else if (score === bestScore) best.push(entry);
   }
@@ -186,7 +197,14 @@ export function realizeCharacter(input: RealizationInput, catalogue: CharacterCa
 
   const rules = slotRules(traits);
   let bodySkeleton: string | undefined;
+  // A monolithic character mesh already contains its own head and face (Epic's Manny, and most
+  // single-mesh Fab characters). The audit marks those `wholeBody` from the mesh's own bone set, so
+  // the head slot is satisfied by the body rather than left permanently unmet. Skipping the request
+  // is not a concession: continuing to ask would report a content gap that no pack could ever fill
+  // for this body, and would hold `complete` at false for a person who is visually finished.
+  let wholeBody = false;
   for (const rule of rules) {
+    if (rule.slot === 'head' && wholeBody) continue;
     // Each slot draws from its OWN stream, keyed by what it is asking for. A shared sequential
     // stream would make every later slot depend on whether an earlier one found anything, so
     // uninstalling one hair pack would silently re-roll a person's clothes and props. Fail-soft
@@ -204,13 +222,15 @@ export function realizeCharacter(input: RealizationInput, catalogue: CharacterCa
       realization.problems.push({ kind: 'required-slot-unresolved', slot: rule.slot, wanted: rule.required, detail: `${rule.slot} is required; falling back to the base mannequin` });
     }
     if (resolved?.slot === 'body') {
-      bodySkeleton = catalogue.entries.find(candidate => candidate.package === resolved.package)?.skeleton;
+      const entry = catalogue.entries.find(candidate => candidate.package === resolved.package);
+      bodySkeleton = entry?.skeleton;
+      wholeBody = entry?.tags.includes('wholeBody') ?? false;
     }
   }
 
   const body = realization.slots.find(slot => slot.slot === 'body');
   const head = realization.slots.find(slot => slot.slot === 'head');
-  realization.complete = !!body && !!head;
+  realization.complete = !!body && (!!head || wholeBody);
   if (body) {
     const entry = catalogue.entries.find(candidate => candidate.package === body.package);
     if (entry?.skeleton) realization.skeleton = entry.skeleton;
