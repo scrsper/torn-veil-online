@@ -1,0 +1,68 @@
+{
+  "seed": 1337,
+  "catalogue": {
+    "path": ".debug/character-foundry/catalogue.json",
+    "present": true,
+    "entries": 6
+  },
+  "brokenAsset": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+  "people": 33,
+  "peopleUsingBrokenAsset": 18,
+  "changedSlotTotal": 18,
+  "unrelatedSlotChanges": 0,
+  "stillCompleteAfterBreak": 33,
+  "diagnosticsRaised": [
+    "relaxed:body",
+    "skeleton-incompatible:body",
+    "slot-empty:accessory",
+    "slot-empty:facialHair",
+    "slot-empty:footwear",
+    "slot-empty:hair",
+    "slot-empty:lowerGarment",
+    "slot-empty:robe",
+    "slot-empty:upperGarment"
+  ],
+  "examples": [
+    {
+      "person": "Garrick Ironhand",
+      "changed": [
+        "body"
+      ],
+      "before": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "after": "/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple"
+    },
+    {
+      "person": "Tomas Reed",
+      "changed": [
+        "body"
+      ],
+      "before": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "after": "/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple"
+    },
+    {
+      "person": "Osric Bramble",
+      "changed": [
+        "body"
+      ],
+      "before": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "after": "/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple"
+    },
+    {
+      "person": "Bram Vance",
+      "changed": [
+        "body"
+      ],
+      "before": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "after": "/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple"
+    },
+    {
+      "person": "Wendel Crane",
+      "changed": [
+        "body"
+      ],
+      "before": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+      "after": "/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple"
+    }
+  ],
+  "verdict": "PASS — removing one asset moved only the slot it filled"
+}

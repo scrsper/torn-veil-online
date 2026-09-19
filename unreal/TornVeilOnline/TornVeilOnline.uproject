@@ -11,6 +11,9 @@
 		}
 	],
 	"Plugins": [
+		{"Name":"MetaHumanCharacter","Enabled":true},
+		{"Name":"HairStrands","Enabled":true},
+		{"Name":"IKRig","Enabled":true},
 		{"Name":"ConvAI","Enabled":false},
 		{"Name":"ProceduralVegetationEditor","Enabled":true},
 		{"Name":"CommonUI","Enabled":true},
