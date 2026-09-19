@@ -170,7 +170,40 @@ asks for exactly that vocabulary — and every one of those requests goes unmet 
 What the comparison settles: the pipeline is not the limiting factor. **Wardrobe is.** The gap is
 not "these assets need tuning", it is "this culture's clothes do not exist in any installed pack".
 
-## 7. Verdict
+## 7. Verification
+
+Passing, and covering everything this slice changed:
+
+| Check | Command | Result |
+| --- | --- | --- |
+| Unreal editor C++ | `unreal/scripts/Build.ps1` | Succeeded (full compile+link of `TVEmbodiment.cpp`, not just Live Coding) |
+| TypeScript | `npm run typecheck` | clean |
+| Foundry + appearance + determinism + persistence + bridge + playable world | `npx vitest run tests/character-foundry tests/character-appearance tests/determinism tests/persistence tests/bridge tests/bridgeVisualState tests/bridge-humanoid-presence tests/bridge-streaming tests/playable-world` | **9 files, 92 tests passed** |
+| Audit classifier | `python unreal/scripts/test_character_asset_audit.py` | 5/5 |
+| Population resolution | `npm run foundry:report` | 33/33 complete, 0 fallbacks |
+| Fail-soft contract | `npm run foundry:fallback` | PASS (0 re-rolls) |
+| PIE | live bridge + editor PIE | 10 visible, 10 retargeted, 0 unresolved |
+| Combat | `unreal/scripts/Run-CombatProbe.ps1 -Mode repeat -Capture` | complete; 20 attacks, 20 dodges, 428 frames |
+
+### Failing, and not caused by this work
+
+`npm test` was run and **does not pass on this branch**. Four failures were observed before the run
+was stopped, all in the economy/manufacture kernel:
+
+- `tests/living-universe.test.ts` — 3 failures (reproduced in isolation on an idle machine, so they
+  are deterministic assertion failures, not load or flake).
+- `tests/stress-benchmarks.test.ts` — 1 failure (`food abundance keeps bread price low`).
+- `npm run world:smoke` — `Recover Item (authorization + reward)` FAIL.
+
+These are pre-existing and unrelated, which is demonstrable rather than asserted:
+
+1. `git log main..HEAD -- src/sim/ src/headless/kernel/ src/headless/worldlab/ tests/living-universe.test.ts tests/stress-benchmarks.test.ts` is **empty** — that code and those tests are byte-identical to `main` on this branch.
+2. The Character Foundry is imported only by `src/bridge/*` and `src/headless/foundry/*`. None of the failing tests import either, so they cannot reach `src/foundry/manifest.ts` or `src/headless/foundry/fallback.ts` — the only two source files this slice changed.
+
+They need fixing; they are not this slice's to fix, and nothing here should be read as claiming a
+green full suite.
+
+## 8. Verdict
 
 **GOOD FOUNDATION, MORE CONTENT NEEDED.**
 
