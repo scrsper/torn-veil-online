@@ -194,8 +194,11 @@ function pruneKnowledge(world: World, p: Person): void {
   if (keys.length <= MAX_KNOWLEDGE + PRUNE_MARGIN) return;
   const now = world.now;
   const obligationBases = new Set((p.mind.obligations ?? []).flatMap(o => o.basisKey ? [o.basisKey] : []));
-  keys.sort((a, b) => knowledgeScore(p, p.knowledge[b], now, obligationBases) - knowledgeScore(p, p.knowledge[a], now, obligationBases));
-  for (const key of keys.slice(MAX_KNOWLEDGE)) {
+  // Scores are pure and fixed for this synchronous prune. Evaluate each once rather than
+  // rebuilding relationship/evidence weights for every comparison in the sort.
+  const ranked = keys.map(key => ({ key, score: knowledgeScore(p, p.knowledge[key], now, obligationBases) }));
+  ranked.sort((a, b) => b.score - a.score);
+  for (const { key } of ranked.slice(MAX_KNOWLEDGE)) {
     const k = p.knowledge[key];
     if (k.claim.method || isActivelyRelevant(p, key, k, now)) {
       world.emit('knowledge_forgotten', {

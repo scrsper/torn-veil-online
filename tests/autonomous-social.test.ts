@@ -10,7 +10,7 @@ import { knowledgeView } from '../src/sim/runtime/knowledgeView';
 import { inspectAgency } from '../src/sim/runtime/agencyInspection';
 import { serialize, deserialize } from '../src/sim/persist/save';
 import { selectTopic } from '../src/sim/mind/conversation';
-import { makeBody } from '../src/sim/world/factory';
+import { makeBody, makeItem } from '../src/sim/world/factory';
 import { setExternalControl } from '../src/sim/runtime/controllers';
 
 function scene() {
@@ -26,6 +26,20 @@ function observe(tw: ReturnType<typeof scene>) {
 }
 
 describe('autonomous social frontier invariants', () => {
+  it('does not turn receiving property while asleep into eyewitness knowledge of the giver', () => {
+    for (const asleep of [true, false]) {
+      const tw = scene();
+      tw.world.primaryBody(tw.a.id)!.pose = asleep ? 'sleep' : 'stand';
+      const item = makeItem(tw.world, 'bread', 'gift', { owner: tw.b.id, holder: tw.b.id, value: 20 });
+      const event = tw.sim.giveItem(tw.b, tw.a, item);
+      step(tw, 0.3);
+      expect(item.ownerId).toBe(tw.a.id);
+      const knowledge = tw.a.knowledge[`ev:${event.id}`];
+      expect(knowledge.source.type).toBe(asleep ? 'heard' : 'witnessed');
+      expect(knowledge.claim.actor).toBe(asleep ? undefined : tw.b.id);
+      expect(tw.a.mind.obligations?.some(o => o.kind === 'was_given' && o.towardId === tw.b.id) ?? false).toBe(!asleep);
+    }
+  });
   it('retains the evidence supporting a bounded obligation under episodic pressure', () => {
     const tw = scene(), key = 'ev:gift-evidence';
     learn(tw.world, tw.a, { key, kind: 'event', claim: { eventId: 'gift-evidence', type: 'gift', actor: tw.b.id, target: tw.a.id }, confidence: 1, source: { type: 'witnessed' } }, true);

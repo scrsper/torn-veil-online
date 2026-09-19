@@ -401,7 +401,13 @@ function favorTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveTrac
   // Place's owner, or failing that its first worker. This village generation leaves places
   // unowned, so in practice it is the worker — and that is exactly who a haul task will name.
   const hasBusiness = (q: Person): boolean => world.places().some(pl => SERVED_BY_LOGISTICS.has(pl.type) && (pl.ownerId === q.id || pl.workers[0] === q.id));
-  const givers = villagers.slice().sort((a, b) => (Number(hasBusiness(b)) - Number(hasBusiness(a))) || a.id.localeCompare(b.id));
+  // This fixture stages a first-hand handover at the primary manifestation. Someone asleep
+  // can receive property without witnessing who left it; that is a different scenario.
+  const awakeForHandover = (q: Person): boolean => {
+    const body = world.primaryBody(q.id);
+    return !!body?.present && !body.dead && body.health > 0 && !['sleep', 'downed'].includes(body.pose);
+  };
+  const givers = villagers.filter(awakeForHandover).sort((a, b) => (Number(hasBusiness(b)) - Number(hasBusiness(a))) || a.id.localeCompare(b.id));
   let giver: Person | undefined; let recipient: Person | undefined; let gift: ReturnType<World['item']>;
   const worthOf = (i: NonNullable<ReturnType<World['item']>>) => Math.max(0, i.value) * Math.max(1, i.quantity);
   for (const g of givers) {
@@ -417,7 +423,7 @@ function favorTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveTrac
     // it is actually visible, since kin help is (correctly) damped — and who is physically able
     // to carry a load, so an ordinary opportunity to return the favour is one they could take.
     const r = villagers.find(q => q.id !== g.id && !isFamily(g, q.id) && !isClose(g, q.id)
-      && getRel(q, g.id).fear < 0.2 && canHaul(q));
+      && getRel(q, g.id).fear < 0.2 && canHaul(q) && awakeForHandover(q));
     if (!r) continue;
     giver = g; recipient = r; gift = owned; break;
   }
