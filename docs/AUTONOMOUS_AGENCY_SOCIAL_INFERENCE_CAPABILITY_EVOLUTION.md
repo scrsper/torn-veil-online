@@ -4,11 +4,11 @@ This slice extends the already merged agency frontier. It does not replace KMSI,
 
 ## Repository and stacked dependency
 
-The branch is `codex/autonomous-agency-social-inference-v0-1`, temporarily stacked on PR #48, `codex/character-foundry-real-assets-v0-1`, at `7eb6b6666459c4d92ecb16b23be3fca57a18469c`. Remote main was `fba11534c3c6cd7e6eec300df2b726a2ff2f916d` after `git fetch origin --prune`.
+The branch is `codex/autonomous-agency-social-inference-v0-1`, temporarily stacked on PR #48, `codex/character-foundry-real-assets-v0-1`. It was created from remote HEAD `7eb6b6666459c4d92ecb16b23be3fca57a18469c`. A final fetch found its documentation-only update `709e6b5dd8698bc097f8e1dae67349a4cec4751a`; that updated base was integrated into the feature branch without rewriting published history. Remote main remained `fba11534c3c6cd7e6eec300df2b726a2ff2f916d`.
 
 PR #47's two commits, `29dd44b` and `d72913c`, are patch-equivalent to commits already in #48 (`ecd2ec9` and `cda5d61`). `git cherry` marked both `-`; nothing from #47 was independently merged or cherry-picked. The remote branch inventory and open PR list contained no newer relevant foundation than #48. Other older integration/WIP branches were not combined speculatively.
 
-Implementation uses the separate `TornVeilOnline-agency` worktree. The original checkout's edits to `src/bridge/regions.ts` and `tests/playable-world.test.ts`, its licensed Fab content, ignored Unreal assets, and the existing Foundry worktree remain untouched. This branch changes no Unreal assets. Neither this branch nor #48 is merged. Rebase this branch onto the resulting main when #48 merges; no force push is authorized.
+Implementation uses the separate `TornVeilOnline-agency` worktree. The original checkout's edits to `src/bridge/regions.ts` and `tests/playable-world.test.ts`, its licensed Fab content, ignored Unreal assets, and the existing Foundry worktree remain untouched. This branch changes no Unreal assets. Both pull requests remain unmerged. Rebase this branch onto the resulting main when #48 merges; no force push is authorized.
 
 ## Existing systems extended
 
@@ -109,7 +109,7 @@ The finite ledger/knowledge bounds are established in code; this slice makes no 
 
 Remaining cognition work: sensory acuity/attention modelling, cross-person mistaken recognition, retention of competing identity hypotheses, and remaining legacy canonical lookups. Social work: explicit occupation/household disclosures and replacing those legacy role heuristics. Progression work: additional real-action adapters, mentorship/conditioning paths and concrete post-Iron mechanics. Player control: connection/account authority and ownership across multiple GameSim facades remain separate future work. Presentation: the detached debug contract exists; no native inspector panel or visual acceptance is claimed.
 
-The smallest next slice is evidence-backed occupation/workplace disclosure in conversation and reporting selection, replacing the remaining public-role shortcuts without adding another planner.
+The smallest next slice is a focused profile of the existing deterministic food-abundance/scarcity workload. Those two final checks exceeded their unchanged runtime budgets despite reporting no assertion failures. Remove the measured bottleneck while preserving simulation duration, assertions, cognition and replay semantics before adding further features.
 
 ## Verification
 

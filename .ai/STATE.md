@@ -1,7 +1,8 @@
 # Autonomous agency, social inference and capability evolution v0.1, 2026-09-19
 
 Branch `codex/autonomous-agency-social-inference-v0-1` is temporarily stacked on PR #48's
-remote head `7eb6b6666459c4d92ecb16b23be3fca57a18469c`. Main was `fba1153` at synchronization.
+remote head (initially `7eb6b66`, updated documentation-only base `709e6b5`). Main remained
+`fba1153` at the final fetch. PR #49 is the unmerged draft for this work.
 Both PR #47 commits are patch-equivalent to changes already in #48; neither PR was merged
 or modified. Work uses a separate `TornVeilOnline-agency` worktree, preserving the original
 checkout's local changes and all licensed/ignored Unreal content.
@@ -11,6 +12,10 @@ and schema-24 snapshots with bounded encounter recognition, embodied structured 
 belief-driven caution/cooperation, a paid-fitting experience ledger and a gated Normal→Iron
 reference path. Higher ranks remain blocked. Detached agency inspection is exposed in bridge
 developer snapshots. No native UI or asset changes.
+
+Final focused regression: 81 passed; build and deterministic WorldLab passed; full 72-hour favor
+trace passed. Broad checkpoint failures were investigated and rechecked; two final food-stress
+timeouts remain (76.770 s and 64.238 s against 60 s). PR #49 stays a draft, not merge-ready.
 
 Design, deliberate limits and schema notes:
 `docs/AUTONOMOUS_AGENCY_SOCIAL_INFERENCE_CAPABILITY_EVOLUTION.md`.

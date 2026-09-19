@@ -463,7 +463,7 @@
                 "y": 1,
                 "z": 10.991611224114854
               },
-              "at": 8666561.399999399,
+              "at": 8666562.999999393,
               "ageBand": "adult"
             },
             "observations": [
@@ -473,25 +473,26 @@
                 "event": "e_34"
               },
               {
-                "at": 8666462.599999767,
+                "at": 8666460.399999775,
                 "signature": "[\"olive\",\"blond\",\"updo_ornamented\",\"round\",\"average\",\"above_average\"]",
-                "event": "e_487"
+                "event": "e_480"
               },
               {
-                "at": 8666524.999999534,
+                "at": 8666520.99999955,
                 "signature": "[\"olive\",\"blond\",\"updo_ornamented\",\"round\",\"average\",\"above_average\"]",
-                "event": "e_790"
+                "event": "e_776"
               }
             ],
             "lastSeenAt": 8666563.199999392,
-            "lastSampleAt": 8666561.399999399,
+            "lastSampleAt": 8666562.999999393,
+            "lastPhysicalSampleAt": 162.99999999999503,
             "significance": 0.18
           },
           "confidence": 0.8,
-          "learnedAt": 8666524.999999534,
+          "learnedAt": 8666520.99999955,
           "source": {
             "type": "witnessed",
-            "viaEvent": "e_790"
+            "viaEvent": "e_776"
           },
           "hops": 0,
           "sharedWith": []
@@ -539,7 +540,7 @@
                 "y": 1,
                 "z": 11.81411596056128
               },
-              "at": 8666558.19999941,
+              "at": 8666562.999999393,
               "ageBand": "young_adult"
             },
             "observations": [
@@ -549,25 +550,26 @@
                 "event": "e_35"
               },
               {
-                "at": 8666462.599999767,
+                "at": 8666460.399999775,
                 "signature": "[\"deep\",\"black\",\"ponytail\",\"angular\",\"lean\",\"average\"]",
-                "event": "e_488"
+                "event": "e_481"
               },
               {
-                "at": 8666542.599999469,
+                "at": 8666520.99999955,
                 "signature": "[\"deep\",\"black\",\"ponytail\",\"angular\",\"lean\",\"average\"]",
-                "event": "e_856"
+                "event": "e_777"
               }
             ],
             "lastSeenAt": 8666563.199999392,
-            "lastSampleAt": 8666558.19999941,
+            "lastSampleAt": 8666562.999999393,
+            "lastPhysicalSampleAt": 162.99999999999503,
             "significance": 0.18
           },
           "confidence": 0.8,
-          "learnedAt": 8666542.599999469,
+          "learnedAt": 8666520.99999955,
           "source": {
             "type": "witnessed",
-            "viaEvent": "e_856"
+            "viaEvent": "e_777"
           },
           "hops": 0,
           "sharedWith": []
@@ -791,7 +793,7 @@
                 "y": 1,
                 "z": 9.501028903992758
               },
-              "at": 8666558.799999408,
+              "at": 8666562.199999396,
               "ageBand": "young_adult"
             },
             "observations": [
@@ -801,25 +803,26 @@
                 "event": "e_195"
               },
               {
-                "at": 8666465.199999757,
+                "at": 8666463.799999762,
                 "signature": "[\"brown\",\"blue_black\",\"ponytail\",\"angular\",\"average\",\"above_average\"]",
-                "event": "e_507"
+                "event": "e_502"
               },
               {
-                "at": 8666527.599999525,
+                "at": 8666524.999999534,
                 "signature": "[\"brown\",\"blue_black\",\"ponytail\",\"angular\",\"average\",\"above_average\"]",
-                "event": "e_801"
+                "event": "e_797"
               }
             ],
             "lastSeenAt": 8666563.199999392,
-            "lastSampleAt": 8666558.799999408,
+            "lastSampleAt": 8666562.199999396,
+            "lastPhysicalSampleAt": 162.19999999999507,
             "significance": 0.18
           },
           "confidence": 0.8,
-          "learnedAt": 8666527.599999525,
+          "learnedAt": 8666524.999999534,
           "source": {
             "type": "witnessed",
-            "viaEvent": "e_801"
+            "viaEvent": "e_797"
           },
           "hops": 0,
           "sharedWith": []
@@ -1058,28 +1061,11 @@
           "recalled": 0
         },
         {
-          "id": "m_289",
-          "tick": 8666542.599999469,
+          "id": "m_290",
+          "tick": 8666524.999999534,
           "type": "encounter",
           "summary": "I recognized a person I had been introduced to",
-          "eventId": "e_856",
-          "entities": [
-            "p_41"
-          ],
-          "significance": 0.3,
-          "valence": 0,
-          "source": {
-            "type": "witnessed",
-            "viaEvent": "e_856"
-          },
-          "recalled": 0
-        },
-        {
-          "id": "m_285",
-          "tick": 8666527.599999525,
-          "type": "encounter",
-          "summary": "I recognized a person I had been introduced to",
-          "eventId": "e_801",
+          "eventId": "e_797",
           "entities": [
             "p_39"
           ],
@@ -1087,16 +1073,33 @@
           "valence": 0,
           "source": {
             "type": "witnessed",
-            "viaEvent": "e_801"
+            "viaEvent": "e_797"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_282",
+          "tick": 8666520.99999955,
+          "type": "encounter",
+          "summary": "I recognized a person I had been introduced to",
+          "eventId": "e_777",
+          "entities": [
+            "p_41"
+          ],
+          "significance": 0.3,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_777"
           },
           "recalled": 0
         },
         {
           "id": "m_263",
-          "tick": 8666465.199999757,
+          "tick": 8666463.799999762,
           "type": "encounter",
           "summary": "I recognized a person I had been introduced to",
-          "eventId": "e_507",
+          "eventId": "e_502",
           "entities": [
             "p_39"
           ],
@@ -1104,16 +1107,16 @@
           "valence": 0,
           "source": {
             "type": "witnessed",
-            "viaEvent": "e_507"
+            "viaEvent": "e_502"
           },
           "recalled": 0
         },
         {
           "id": "m_254",
-          "tick": 8666462.599999767,
+          "tick": 8666460.399999775,
           "type": "encounter",
           "summary": "I recognized a person I had been introduced to",
-          "eventId": "e_488",
+          "eventId": "e_481",
           "entities": [
             "p_41"
           ],
@@ -1121,7 +1124,7 @@
           "valence": 0,
           "source": {
             "type": "witnessed",
-            "viaEvent": "e_488"
+            "viaEvent": "e_481"
           },
           "recalled": 0
         },
@@ -1211,7 +1214,7 @@
           "recalled": 0
         },
         {
-          "id": "m_281",
+          "id": "m_286",
           "tick": 8666523.29999954,
           "type": "told",
           "summary": "an unfamiliar person told me how to connect 4 components to perform transfer:liquid",
@@ -1223,7 +1226,7 @@
           "source": {
             "type": "told",
             "from": "p_40",
-            "viaEvent": "e_779"
+            "viaEvent": "e_784"
           },
           "recalled": 0
         },
@@ -1378,10 +1381,10 @@
             },
             {
               "id": "m_254",
-              "tick": 8666462.599999767,
+              "tick": 8666460.399999775,
               "type": "encounter",
               "summary": "I recognized a person I had been introduced to",
-              "eventId": "e_488",
+              "eventId": "e_481",
               "entities": [
                 "p_41"
               ],
@@ -1389,16 +1392,16 @@
               "valence": 0,
               "source": {
                 "type": "witnessed",
-                "viaEvent": "e_488"
+                "viaEvent": "e_481"
               },
               "recalled": 0
             },
             {
-              "id": "m_289",
-              "tick": 8666542.599999469,
+              "id": "m_282",
+              "tick": 8666520.99999955,
               "type": "encounter",
               "summary": "I recognized a person I had been introduced to",
-              "eventId": "e_856",
+              "eventId": "e_777",
               "entities": [
                 "p_41"
               ],
@@ -1406,7 +1409,7 @@
               "valence": 0,
               "source": {
                 "type": "witnessed",
-                "viaEvent": "e_856"
+                "viaEvent": "e_777"
               },
               "recalled": 0
             }
@@ -1733,7 +1736,7 @@
                 "y": 1,
                 "z": 10.991611224114854
               },
-              "at": 8666559.999999404,
+              "at": 8666563.199999392,
               "ageBand": "adult"
             },
             "observations": [
@@ -1743,25 +1746,26 @@
                 "event": "e_191"
               },
               {
-                "at": 8666464.999999758,
+                "at": 8666463.599999763,
                 "signature": "[\"olive\",\"blond\",\"updo_ornamented\",\"round\",\"average\",\"above_average\"]",
-                "event": "e_503"
+                "event": "e_497"
               },
               {
-                "at": 8666528.79999952,
+                "at": 8666524.799999535,
                 "signature": "[\"olive\",\"blond\",\"updo_ornamented\",\"round\",\"average\",\"above_average\"]",
-                "event": "e_808"
+                "event": "e_796"
               }
             ],
             "lastSeenAt": 8666563.199999392,
-            "lastSampleAt": 8666559.999999404,
+            "lastSampleAt": 8666563.199999392,
+            "lastPhysicalSampleAt": 163.19999999999501,
             "significance": 0.18
           },
           "confidence": 0.8,
-          "learnedAt": 8666528.79999952,
+          "learnedAt": 8666524.799999535,
           "source": {
             "type": "witnessed",
-            "viaEvent": "e_808"
+            "viaEvent": "e_796"
           },
           "hops": 0,
           "sharedWith": []
@@ -1808,7 +1812,7 @@
                 "y": 1,
                 "z": 10.5
               },
-              "at": 8666558.799999408,
+              "at": 8666562.199999396,
               "ageBand": "young_adult"
             },
             "observations": [
@@ -1818,25 +1822,26 @@
                 "event": "e_196"
               },
               {
-                "at": 8666465.199999757,
+                "at": 8666463.799999762,
                 "signature": "[\"bronze\",\"honey\",\"braided\",\"oval\",\"average\",\"average\"]",
-                "event": "e_508"
+                "event": "e_503"
               },
               {
-                "at": 8666527.599999525,
+                "at": 8666524.999999534,
                 "signature": "[\"bronze\",\"honey\",\"braided\",\"oval\",\"average\",\"average\"]",
-                "event": "e_802"
+                "event": "e_798"
               }
             ],
             "lastSeenAt": 8666563.199999392,
-            "lastSampleAt": 8666558.799999408,
+            "lastSampleAt": 8666562.199999396,
+            "lastPhysicalSampleAt": 162.19999999999507,
             "significance": 0.18
           },
           "confidence": 0.8,
-          "learnedAt": 8666527.599999525,
+          "learnedAt": 8666524.999999534,
           "source": {
             "type": "witnessed",
-            "viaEvent": "e_802"
+            "viaEvent": "e_798"
           },
           "hops": 0,
           "sharedWith": []
@@ -1884,7 +1889,7 @@
                 "y": 1,
                 "z": 11
               },
-              "at": 8666517.199999563,
+              "at": 8666520.199999552,
               "ageBand": "young_adult"
             },
             "observations": [
@@ -1894,20 +1899,21 @@
                 "event": "e_197"
               },
               {
-                "at": 8666465.199999757,
+                "at": 8666463.799999762,
                 "signature": "[\"deep\",\"black\",\"ponytail\",\"angular\",\"lean\",\"average\"]",
-                "event": "e_509"
+                "event": "e_504"
               }
             ],
             "lastSeenAt": 8666520.99999955,
-            "lastSampleAt": 8666517.199999563,
+            "lastSampleAt": 8666520.199999552,
+            "lastPhysicalSampleAt": 120.19999999999744,
             "significance": 0.18
           },
           "confidence": 0.7,
-          "learnedAt": 8666465.199999757,
+          "learnedAt": 8666463.799999762,
           "source": {
             "type": "witnessed",
-            "viaEvent": "e_509"
+            "viaEvent": "e_504"
           },
           "hops": 0,
           "sharedWith": []
@@ -2465,11 +2471,11 @@
           "recalled": 0
         },
         {
-          "id": "m_286",
-          "tick": 8666527.599999525,
+          "id": "m_291",
+          "tick": 8666524.999999534,
           "type": "encounter",
           "summary": "I recognized a person I had been introduced to",
-          "eventId": "e_802",
+          "eventId": "e_798",
           "entities": [
             "p_38"
           ],
@@ -2477,16 +2483,16 @@
           "valence": 0,
           "source": {
             "type": "witnessed",
-            "viaEvent": "e_802"
+            "viaEvent": "e_798"
           },
           "recalled": 0
         },
         {
           "id": "m_264",
-          "tick": 8666465.199999757,
+          "tick": 8666463.799999762,
           "type": "encounter",
           "summary": "I recognized a person I had been introduced to",
-          "eventId": "e_508",
+          "eventId": "e_503",
           "entities": [
             "p_38"
           ],
@@ -2494,16 +2500,16 @@
           "valence": 0,
           "source": {
             "type": "witnessed",
-            "viaEvent": "e_508"
+            "viaEvent": "e_503"
           },
           "recalled": 0
         },
         {
           "id": "m_265",
-          "tick": 8666465.199999757,
+          "tick": 8666463.799999762,
           "type": "encounter",
           "summary": "I recognized a person I had been introduced to",
-          "eventId": "e_509",
+          "eventId": "e_504",
           "entities": [
             "p_41"
           ],
@@ -2511,7 +2517,7 @@
           "valence": 0,
           "source": {
             "type": "witnessed",
-            "viaEvent": "e_509"
+            "viaEvent": "e_504"
           },
           "recalled": 0
         },
@@ -2585,7 +2591,7 @@
           "recalled": 0
         },
         {
-          "id": "m_282",
+          "id": "m_287",
           "tick": 8666523.999999538,
           "type": "told",
           "summary": "an unfamiliar person told me how to connect 4 components to perform transfer:liquid",
@@ -2597,7 +2603,7 @@
           "source": {
             "type": "told",
             "from": "p_40",
-            "viaEvent": "e_783"
+            "viaEvent": "e_788"
           },
           "recalled": 0
         },
@@ -2751,10 +2757,10 @@
             },
             {
               "id": "m_265",
-              "tick": 8666465.199999757,
+              "tick": 8666463.799999762,
               "type": "encounter",
               "summary": "I recognized a person I had been introduced to",
-              "eventId": "e_509",
+              "eventId": "e_504",
               "entities": [
                 "p_41"
               ],
@@ -2762,7 +2768,7 @@
               "valence": 0,
               "source": {
                 "type": "witnessed",
-                "viaEvent": "e_509"
+                "viaEvent": "e_504"
               },
               "recalled": 0
             }
@@ -2976,7 +2982,7 @@
                 "y": 1,
                 "z": 10.5
               },
-              "at": 8666561.399999399,
+              "at": 8666562.999999393,
               "ageBand": "young_adult"
             },
             "observations": [
@@ -2986,25 +2992,26 @@
                 "event": "e_36"
               },
               {
-                "at": 8666462.599999767,
+                "at": 8666460.399999775,
                 "signature": "[\"bronze\",\"honey\",\"braided\",\"oval\",\"average\",\"average\"]",
-                "event": "e_489"
+                "event": "e_482"
               },
               {
-                "at": 8666524.999999534,
+                "at": 8666520.99999955,
                 "signature": "[\"bronze\",\"honey\",\"braided\",\"oval\",\"average\",\"average\"]",
-                "event": "e_791"
+                "event": "e_778"
               }
             ],
             "lastSeenAt": 8666563.199999392,
-            "lastSampleAt": 8666561.399999399,
+            "lastSampleAt": 8666562.999999393,
+            "lastPhysicalSampleAt": 162.99999999999503,
             "significance": 0.18
           },
           "confidence": 0.8,
-          "learnedAt": 8666524.999999534,
+          "learnedAt": 8666520.99999955,
           "source": {
             "type": "witnessed",
-            "viaEvent": "e_791"
+            "viaEvent": "e_778"
           },
           "hops": 0,
           "sharedWith": []
@@ -3052,7 +3059,7 @@
                 "y": 1,
                 "z": 11.81411596056128
               },
-              "at": 8666559.799999405,
+              "at": 8666562.199999396,
               "ageBand": "young_adult"
             },
             "observations": [
@@ -3062,25 +3069,26 @@
                 "event": "e_37"
               },
               {
-                "at": 8666462.599999767,
+                "at": 8666460.399999775,
                 "signature": "[\"deep\",\"black\",\"ponytail\",\"angular\",\"lean\",\"average\"]",
-                "event": "e_490"
+                "event": "e_483"
               },
               {
-                "at": 8666544.199999463,
+                "at": 8666520.99999955,
                 "signature": "[\"deep\",\"black\",\"ponytail\",\"angular\",\"lean\",\"average\"]",
-                "event": "e_869"
+                "event": "e_779"
               }
             ],
             "lastSeenAt": 8666563.199999392,
-            "lastSampleAt": 8666559.799999405,
+            "lastSampleAt": 8666562.199999396,
+            "lastPhysicalSampleAt": 162.19999999999507,
             "significance": 0.18
           },
           "confidence": 0.8,
-          "learnedAt": 8666544.199999463,
+          "learnedAt": 8666520.99999955,
           "source": {
             "type": "witnessed",
-            "viaEvent": "e_869"
+            "viaEvent": "e_779"
           },
           "hops": 0,
           "sharedWith": []
@@ -3680,7 +3688,7 @@
                 "y": 1,
                 "z": 9.501028903992758
               },
-              "at": 8666559.799999405,
+              "at": 8666562.999999393,
               "ageBand": "young_adult"
             },
             "observations": [
@@ -3690,25 +3698,26 @@
                 "event": "e_192"
               },
               {
-                "at": 8666464.999999758,
+                "at": 8666463.599999763,
                 "signature": "[\"brown\",\"blue_black\",\"ponytail\",\"angular\",\"average\",\"above_average\"]",
-                "event": "e_504"
+                "event": "e_498"
               },
               {
-                "at": 8666528.59999952,
+                "at": 8666524.599999536,
                 "signature": "[\"brown\",\"blue_black\",\"ponytail\",\"angular\",\"average\",\"above_average\"]",
-                "event": "e_806"
+                "event": "e_794"
               }
             ],
             "lastSeenAt": 8666563.199999392,
-            "lastSampleAt": 8666559.799999405,
+            "lastSampleAt": 8666562.999999393,
+            "lastPhysicalSampleAt": 162.99999999999503,
             "significance": 0.18
           },
           "confidence": 0.8,
-          "learnedAt": 8666528.59999952,
+          "learnedAt": 8666524.599999536,
           "source": {
             "type": "witnessed",
-            "viaEvent": "e_806"
+            "viaEvent": "e_794"
           },
           "hops": 0,
           "sharedWith": []
@@ -4578,10 +4587,10 @@
             },
             {
               "id": "m_256",
-              "tick": 8666462.599999767,
+              "tick": 8666460.399999775,
               "type": "encounter",
               "summary": "I recognized a person I had been introduced to",
-              "eventId": "e_490",
+              "eventId": "e_483",
               "entities": [
                 "p_41"
               ],
@@ -4589,7 +4598,7 @@
               "valence": 0,
               "source": {
                 "type": "witnessed",
-                "viaEvent": "e_490"
+                "viaEvent": "e_483"
               },
               "recalled": 0
             },
@@ -4614,11 +4623,11 @@
               "recalled": 0
             },
             {
-              "id": "m_294",
-              "tick": 8666544.199999463,
+              "id": "m_284",
+              "tick": 8666520.99999955,
               "type": "encounter",
               "summary": "I recognized a person I had been introduced to",
-              "eventId": "e_869",
+              "eventId": "e_779",
               "entities": [
                 "p_41"
               ],
@@ -4626,7 +4635,7 @@
               "valence": 0,
               "source": {
                 "type": "witnessed",
-                "viaEvent": "e_869"
+                "viaEvent": "e_779"
               },
               "recalled": 0
             }
@@ -4749,5 +4758,5 @@
     }
   },
   "invariantErrors": [],
-  "digest": "1d47d0999f5cdbc721f6ebd738cc24d5030542c55814487345083c08700010f3"
+  "digest": "3d17fd7994903493386801a03c7c2f778333d51c0208d24f832f7acba29aca10"
 }
