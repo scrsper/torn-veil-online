@@ -586,6 +586,11 @@ Let the task determine the search surface.
 - `src/headless/agency/showcase.ts`, `tests/agency-frontier.test.ts` — integrated workshop and focused invariants.
 - `src/game/ui/knowledge.ts` — normal avatar-belief inspection, distinct from F3 developer inspection.
 - `docs/AUTONOMOUS_AGENCY_SOCIAL_INFERENCE_CAPABILITY.md` — architecture, test surface and remaining legacy selection paths.
+- `src/sim/mind/encounter.ts`, `socialEvidence.ts` — bounded visible encounter evidence, recognition, local communication reach and shared social decision inputs.
+- `src/sim/core/capability.ts`, `advancement.ts` — causal paid-fitting experience and gated Normal→Iron reference path; later stages blocked.
+- `src/sim/runtime/agencyInspection.ts` — detached developer identity/belief/memory/agency/progression inspection.
+- `src/headless/worldlab/agency.ts`, `capability.ts`, `agencyCli.ts` — deterministic social and capability evidence (`npm run agency:worldlab`).
+- `docs/AUTONOMOUS_AGENCY_SOCIAL_INFERENCE_CAPABILITY_EVOLUTION.md` — stacked v0.1 additions, bounds, schema notes and remaining gaps; captured evidence under `docs/evidence/autonomous-agency/`.
 
 ## Continuous seeded world and native regions
 

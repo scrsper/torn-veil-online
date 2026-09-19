@@ -91,6 +91,8 @@ describe('crime information flow', () => {
     expect(heardMemory?.summary).not.toContain(player.name);
     expect(getRel(listener, player.id)).toEqual(listenerRelBefore);
 
+    // The later conversations happen locally, after the original sensory exposure.
+    tw.world.primaryBody(guard.id)!.pos = v(13.5, 1, 6.5);
     tw.sim.tell(listener, guard, heard!);
     const guardUnknown = guard.knowledge[`ev:${attack.id}`];
     expect(guardUnknown?.source.type).toBe('told');
@@ -101,6 +103,7 @@ describe('crime information flow', () => {
 
     const witnessed = witness.knowledge[`ev:${attack.id}`];
     expect(witnessed?.claim.actor).toBe(player.id);
+    tw.world.primaryBody(witness.id)!.pos = v(12.5, 1, 7.5);
     tw.sim.tell(witness, listener, witnessed!);
     expect(listener.knowledge[`ev:${attack.id}`].claim.actor).toBe(player.id);
     expect(listener.knowledge[`ev:${attack.id}`].claim.actorUnknown).not.toBe(true);

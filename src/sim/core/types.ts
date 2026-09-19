@@ -197,6 +197,27 @@ export type SkillId = 'woodcutting' | 'quarrying' | 'hauling' | 'sawing' | 'cons
   // helpers and world/labor.ts.
   | 'milling';
 
+/** Bounded evidence ledger for action-grounded capability progression. This is deliberately
+ * optional so old generated people and saves remain valid. It records credited activity rather
+ * than an XP currency: every entry points at a canonical event that actually happened. */
+export interface CapabilityPracticeRecord {
+  effectiveSeconds: number;
+  actions: number;
+  lastTick: Tick;
+  lastEventId: EventId;
+  sourceEventIds: EventId[];
+}
+export interface CapabilityLedger {
+  bySkill: Record<string, CapabilityPracticeRecord>;
+  creditedEventIds: EventId[];
+  repetitionCounts: Record<string, number>;
+  /** Recent action fingerprints only; bounded to keep saves and repetition checks finite. */
+  recent: { fingerprint: string; tick: Tick; eventId: EventId }[];
+  dailySeconds: number;
+  dailyRawSeconds?: number;
+  day: number;
+}
+
 /** v0.5 §I.2: individual physiological variation layered on top of a species profile (see
  * core/species.ts). Kept here (not in species.ts) alongside `Physiology`/`Attributes` since it
  * is per-person canonical state, exactly like them. */
@@ -387,7 +408,7 @@ export type GoalType =
   // purpose could only ever walk over and look, which is one action, not a life.
   | 'provide'
   // Demographic continuity: an ordinary relationship-motivated social goal.
-  | 'maintain_mechanism' | 'court' | 'provision_home' | 'compose' | 'teach_method' | 'share_family' | 'study_record' | 'record_method';
+  | 'maintain_mechanism' | 'court' | 'provision_home' | 'compose' | 'teach_method' | 'share_family' | 'study_record' | 'record_method' | 'advance';
 
 export interface Goal {
   type: GoalType;
@@ -414,7 +435,7 @@ export type ActionType = 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 't
   // v0.8 §P0-G/H: hand a carried item to another person in person — the 'help_recover_item'
   // plan's delivery step (see GoalType). Distinct from the existing NPC-to-player trade/`bought`
   // path; this always uses `Simulation.giveItem` (mind/agent.ts), which pays any owed reward.
-  | 'ask_mechanism' | 'mechanism_task' | 'introduce' | 'give' | 'propose' | 'buy_food' | 'manage_household' | 'construct_mechanism' | 'operate_mechanism' | 'procure_material' | 'read_record' | 'write_record' | 'copy_record';
+  | 'ask_mechanism' | 'mechanism_task' | 'introduce' | 'give' | 'propose' | 'buy_food' | 'manage_household' | 'construct_mechanism' | 'operate_mechanism' | 'procure_material' | 'read_record' | 'write_record' | 'copy_record' | 'attempt_breakthrough';
 export interface Action {
   type: ActionType;
   pos?: Vec3;
@@ -866,7 +887,7 @@ export interface Person extends Entity {
   development: AttributeDevelopment;
   lineage: { imprints: LineageImprint[]; expressed: Attributes; birthEventId?: EventId;
     expressions: { imprintId: string; didExpress: boolean; strength: number; attenuation: number; contribution: number }[] };
-  /** Eligibility is derived, never a second stored truth. No breakthrough action exists yet. */
+  /** Readiness is derived; a canonical advancement action records the transition event. */
   ontology: { stage: OntologicalStage; breakthroughEventId?: EventId };
   /** v0.4: the physiology reserves `needs.hunger/.thirst/.energy` are now derived from. */
   physiology: Physiology;
@@ -881,6 +902,8 @@ export interface Person extends Entity {
    * professions at village generation (world/village.ts); otherwise improves only through actual
    * successful practice (`practiceSkill`). */
   skills: Partial<Record<SkillId, number>>;
+  /** Optional action-grounded experience ledger; proficiency remains in `skills`. */
+  capability?: CapabilityLedger;
   needs: Needs;
   emotions: Emotions;
   appearance: Appearance;
@@ -1530,7 +1553,9 @@ export type EventType = 'animal_born' | 'animal_conceived' | 'animal_pregnancy_l
   | 'livelihood_taken_up'
   // Demographic continuity — semantic transitions only, never per-tick heartbeats.
   | 'courtship' | 'pregnancy_started' | 'pregnancy_lost' | 'coming_of_age' | 'inheritance'
-  | 'attribute_developed' | 'lineage_imprint' | 'lineage_transmitted' | 'genealogy_inferred' | 'mechanism_observed';
+  | 'attribute_developed' | 'lineage_imprint' | 'lineage_transmitted' | 'genealogy_inferred' | 'mechanism_observed'
+  // Explicit advancement is a rare state transition, never an XP heartbeat or automatic reward.
+  | 'ontological_advancement';
 
 export type EventCategory = 'world' | 'social' | 'cognition' | 'history';
 

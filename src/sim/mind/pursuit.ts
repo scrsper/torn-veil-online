@@ -1,4 +1,5 @@
 import { knownPlaceForPerson } from '../world/locality';
+import { socialMotivation } from './socialEvidence';
 import type { Concern, EntityId, EventId, Goal, GoalType, Item, Obligation, Person, Pursuit, PursuitKind, PursuitStatus, Vec3 } from '../core/types';
 import type { World } from '../core/world';
 import { concernsOf, concernGoalBoost } from './concern';
@@ -832,17 +833,19 @@ export function pursuitGoalBoost(p: Person, goalType: GoalType, targetId?: Entit
  */
 export const MAX_MOTIVATION_BONUS = 0.34;
 export interface MotivationBoost { bonus: number; reasons: string[]; pursuitId?: string; }
-export function motivationBoost(p: Person, goalType: GoalType, targetId?: EntityId, beneficiaryId?: EntityId, resource?: import('../core/types').ItemType): MotivationBoost {
+export function motivationBoost(p: Person, goalType: GoalType, targetId?: EntityId, beneficiaryId?: EntityId, resource?: import('../core/types').ItemType, now = 0): MotivationBoost {
   const concern = concernGoalBoost(p, goalType, targetId, resource);
   const obligation = obligationGoalBoost(p, goalType, targetId, beneficiaryId);
   const purpose = pursuitGoalBoost(p, goalType, targetId, beneficiaryId);
-  const raw = concern.bonus + obligation.bonus + purpose.bonus;
+  const social = socialMotivation(p, goalType, beneficiaryId ?? targetId, now);
+  const raw = concern.bonus + obligation.bonus + purpose.bonus + social.bonus;
   if (raw <= 0) return { bonus: 0, reasons: [] };
   const bonus = Math.min(MAX_MOTIVATION_BONUS, raw);
   const reasons: string[] = [];
   if (purpose.bonus) reasons.push(...purpose.reasons);
   if (concern.bonus) reasons.push(...concern.reasons);
   if (obligation.bonus) reasons.push(...obligation.reasons);
+  if (social.bonus) reasons.push(...social.reasons);
   return { bonus, reasons: reasons.slice(0, 4), pursuitId: purpose.pursuitId };
 }
 

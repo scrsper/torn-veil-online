@@ -26,7 +26,7 @@ export function developmentRate(current: number, potential: number): number {
  * The per-day physiological exposure budget prevents concurrent bodies/work hooks multiplying time.
  * Neither job labels, injuries, birthdays nor stored stress call this function. */
 export function develop(world: World, p: Person, s: DevelopmentStimulus): void {
-  if (!p.alive || p.ontology.stage !== 'Normal' || !Number.isFinite(s.seconds) || s.seconds <= 0 || !Number.isFinite(s.intensity) || s.intensity <= 0) return;
+  if (!p.alive || !['Normal', 'Iron'].includes(p.ontology.stage) || !Number.isFinite(s.seconds) || s.seconds <= 0 || !Number.isFinite(s.intensity) || s.intensity <= 0) return;
   if (!ATTRIBUTE_IDS.some(id => Number.isFinite(s.weights[id]) && s.weights[id]! > 0)) return;
   const bodies = p.bodies.map(id => world.body(id)).filter(b => b && !b.dead && b.present);
   if (!bodies.length) return;

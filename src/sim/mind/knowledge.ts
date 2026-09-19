@@ -137,7 +137,7 @@ function practicalKnowledge(k: KnowledgeItem, now: number): boolean {
  * relationship (positive OR negative — a rival or a feared threat is just as worth remembering
  * as a friend) raises this; a stranger contributes 0. Never keyed by name/id. */
 function relationalWeight(p: Person, k: KnowledgeItem): number {
-  const about = (k.claim.entityId ?? k.claim.actor ?? k.claim.target ?? k.claim.identity?.subject) as EntityId | undefined;
+  const about = (k.claim.entityId ?? k.claim.actor ?? k.claim.target ?? k.claim.identity?.subject ?? k.claim.subjectId) as EntityId | undefined;
   if (!about) return 0;
   const r = p.relationships[about];
   if (!r) return 0;
@@ -156,7 +156,7 @@ function knowledgeScore(p: Person, k: KnowledgeItem, now: number): number {
   // above individual episodes about even closer acquaintances; otherwise a busy
   // conversation can retain hundreds of introductions while forgetting the name.
   // This protects the claim, not its truth, and remains subject to the same bound.
-  if (k.claim.identity && relWeight > 0) return PRACTICAL_BASE + k.confidence - ageDays * 0.002;
+  if ((k.claim.identity || k.claim.encounter) && relWeight > 0) return PRACTICAL_BASE + k.confidence - ageDays * 0.002;
 
   // Durable relational / institutional-core: any real relationship (nonzero relWeight) or an
   // unresolved crime gets a floor added BEFORE decay, scaled by how much it matters (relationship
@@ -288,6 +288,7 @@ export function describeClaim(world: World, k: KnowledgeItem, observer?: Person)
       const where = c.placeId ? ` at ${perceivedName(world, observer, c.placeId)}` : '';
       switch (c.type) {
         case 'attack': return `${who(c.actor, c.actorUnknown)} attacked ${who(c.target)}${where}`;
+        case 'attack_missed': return `${who(c.actor, c.actorUnknown)} attempted a strike${where}`;
         case 'kill': return `${who(c.actor, c.actorUnknown)} killed ${who(c.target)}${where}`;
         case 'theft': return `${who(c.actor, c.actorUnknown)} stole ${c.item ? perceivedName(world, observer, c.item) : 'something'} from ${who(c.target)}${where}`;
         case 'item_missing': return `${c.item ? perceivedName(world, observer, c.item) : 'an item'} has gone missing from ${where || 'its place'}`;

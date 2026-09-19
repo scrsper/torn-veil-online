@@ -5,7 +5,7 @@ import { Simulation } from '../mind/agent';
 import { setExternalControl } from './controllers';
 import { knowledgeView, personKnowledgeView } from './knowledgeView';
 
-export type PersonIntent = { kind: 'yield' }
+export type PersonIntent = { kind: 'yield' } | { kind: 'advance' }
   | { kind: 'ask'; target: string; assemblyId: string }
   | { kind: 'introduce'; target: string; name?: string }
   | { kind: 'inspect' | 'diagnose' | 'reverse_engineer' | 'test' | 'dismantle' | 'abandon'; assemblyId: string }
@@ -44,10 +44,10 @@ export class GameSim {
   beliefs(connection: string, subject: string) { const p = this.person(connection); return p ? personKnowledgeView(p, subject) : null; }
   intend(connection: string, intent: PersonIntent): boolean {
     const p = this.person(connection); if (!p?.alive || !intent || typeof intent !== 'object') return false;
-    const kinds = ['ask', 'yield', 'introduce', 'inspect', 'diagnose', 'reverse_engineer', 'test', 'dismantle', 'abandon', 'replace', 'connect', 'disconnect', 'read', 'teach', 'manufacture', 'reconstruct'];
+    const kinds = ['ask', 'yield', 'advance', 'introduce', 'inspect', 'diagnose', 'reverse_engineer', 'test', 'dismantle', 'abandon', 'replace', 'connect', 'disconnect', 'read', 'teach', 'manufacture', 'reconstruct'];
     if (!kinds.includes(intent.kind)) return false;
     const input = intent as unknown as Record<string, unknown>;
-    const fields = intent.kind === 'yield' ? [] : intent.kind === 'introduce' ? ['target'] : intent.kind === 'ask' ? ['target', 'assemblyId'] : intent.kind === 'teach' ? ['target', 'key']
+    const fields = intent.kind === 'yield' || intent.kind === 'advance' ? [] : intent.kind === 'introduce' ? ['target'] : intent.kind === 'ask' ? ['target', 'assemblyId'] : intent.kind === 'teach' ? ['target', 'key']
       : intent.kind === 'read' ? ['itemId'] : intent.kind === 'reconstruct' ? ['methodKey', 'sourceAssemblyId']
       : ['assemblyId', ...(intent.kind === 'replace' ? ['componentId'] : intent.kind === 'manufacture' ? ['definition'] : [])];
     if (fields.some(field => typeof input[field] !== 'string' || !(input[field] as string).length || (input[field] as string).length > 200)) return false;
@@ -65,7 +65,7 @@ export class GameSim {
       this.simulation.submitIntention(p, { type: 'construct_mechanism', status: 'pending', data: { method: structuredClone(method), bindings: { ...bindings }, pos: { ...source.pos }, evidenceEvent: p.knowledge[intent.methodKey].source.viaEvent } });
       return true;
     }
-    const action: Action = intent.kind === 'ask' ? { type: 'ask_mechanism', targetEntity: intent.target, data: { assemblyId: intent.assemblyId }, status: 'pending' } : intent.kind === 'yield' ? { type: 'yield', status: 'pending' } : intent.kind === 'introduce' ? { type: 'introduce', targetEntity: intent.target, text: intent.name, status: 'pending' }
+    const action: Action = intent.kind === 'advance' ? { type: 'attempt_breakthrough', duration: 60, status: 'pending' } : intent.kind === 'ask' ? { type: 'ask_mechanism', targetEntity: intent.target, data: { assemblyId: intent.assemblyId }, status: 'pending' } : intent.kind === 'yield' ? { type: 'yield', status: 'pending' } : intent.kind === 'introduce' ? { type: 'introduce', targetEntity: intent.target, text: intent.name, status: 'pending' }
       : intent.kind === 'read' ? { type: 'read_record', targetEntity: intent.itemId, data: { recordId: intent.itemId }, status: 'pending' }
       : intent.kind === 'teach' ? { type: 'tell', targetEntity: intent.target, data: { key: intent.key }, status: 'pending' }
       : { type: 'mechanism_task', data: Object.fromEntries(['kind', 'assemblyId', 'part', 'componentId', 'from', 'to', 'definition'].filter(key => input[key] !== undefined).map(key => [key, input[key]])), status: 'pending' };
