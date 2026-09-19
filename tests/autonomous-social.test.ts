@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { addPerson, createTestWorld, face, step, v, wall } from './helpers/world';
-import { learn, eventClaim } from '../src/sim/mind/knowledge';
+import { learn, eventClaim, MAX_KNOWLEDGE, PRUNE_MARGIN } from '../src/sim/mind/knowledge';
 import { introduce, interpretSocial, knownName } from '../src/sim/mind/people';
 import { appearanceSignature, readRecognition, recognizeEncounter, visibleCues } from '../src/sim/mind/encounter';
 import { shareIdentityObservation } from '../src/sim/mind/encounter';
@@ -26,6 +26,17 @@ function observe(tw: ReturnType<typeof scene>) {
 }
 
 describe('autonomous social frontier invariants', () => {
+  it('retains the evidence supporting a bounded obligation under episodic pressure', () => {
+    const tw = scene(), key = 'ev:gift-evidence';
+    learn(tw.world, tw.a, { key, kind: 'event', claim: { eventId: 'gift-evidence', type: 'gift', actor: tw.b.id, target: tw.a.id }, confidence: 1, source: { type: 'witnessed' } }, true);
+    tw.a.mind.obligations = [{ id: 'test-obligation', kind: 'was_given', towardId: tw.b.id, causeEventId: 'gift-evidence', basisKey: key, magnitude: 0.5, createdAt: tw.world.now, lastReinforcedAt: tw.world.now, status: 'live', reasons: ['a valuable gift'] }];
+    for (let i = 0; i < 600; i++) learn(tw.world, tw.a, { key: `episode:${i}`, kind: 'event', claim: { significance: 1 }, confidence: 1, source: { type: 'witnessed' } }, true);
+    expect(tw.a.knowledge[key].source.type).toBe('witnessed');
+    expect(Object.keys(tw.a.knowledge).length).toBeLessThanOrEqual(MAX_KNOWLEDGE + PRUNE_MARGIN);
+    tw.a.mind.obligations = [];
+    for (let i = 600; i < 1200; i++) learn(tw.world, tw.a, { key: `episode:${i}`, kind: 'event', claim: { significance: 1 }, confidence: 1, source: { type: 'witnessed' } }, true);
+    expect(tw.a.knowledge[key]).toBeUndefined();
+  });
   it('receives eyewitness evidence, propagates hearsay with its actual chain and preserves event time', () => {
     const tw = scene(); tw.world.primaryBody(tw.b.id)!.pos = v(26, 1, 26);
     const event = observe(tw), key = `ev:${event.id}`, witnessed = tw.a.knowledge[key];

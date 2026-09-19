@@ -16,8 +16,11 @@ import { buildChronicle } from '../src/sim/history/chronicle';
 import { RESOURCE_MASS_KG } from '../src/sim/world/factory';
 import { energyBalanceError } from '../src/sim/kernel/environment';
 
-// Explicit steady wind isolates productive power from procedural weather timing.
-const run = (conditions = {}, seconds = 1800) => { const lab = createLivingPressure(17, undefined, { steadyWind: 0.6, ...conditions }); advanceLiving(lab.world, lab.sim, seconds); return lab; };
+// Explicit steady wind isolates productive power from procedural weather timing. Observe a
+// fixed 40 minutes: autonomous social/need choices can postpone the baker's next work period
+// beyond the former 30-minute cutoff even after real mechanical flour has been delivered.
+const OBSERVATION_SECONDS = 2400;
+const run = (conditions = {}, seconds = OBSERVATION_SECONDS) => { const lab = createLivingPressure(17, undefined, { steadyWind: 0.6, ...conditions }); advanceLiving(lab.world, lab.sim, seconds); return lab; };
 let ordinary: ReturnType<typeof run>, calm: ReturnType<typeof run>, manual: ReturnType<typeof run>;
 describe('living universe integration', () => {
   beforeAll(() => { ordinary = run(); calm = run({ calm: true }); manual = run({ manualSkill: 0.95 }); }, 60000);
@@ -99,7 +102,7 @@ describe('living universe integration', () => {
     expect(a.kernel).toEqual(kernel); expect(a.resourceNodes).toEqual(lab.world.resourceNodes);
     const original = lab.world.person(lab.settlements[0].places.mill.ownerId)!;
     expect(a.person(original.id)!.knowledge).toEqual(original.knowledge);
-    advanceLiving(a, new Simulation(a), 1710); advanceLiving(b, new Simulation(b), 1710);
+    advanceLiving(a, new Simulation(a), OBSERVATION_SECONDS - 90); advanceLiving(b, new Simulation(b), OBSERVATION_SECONDS - 90);
     expect(livingSnapshot(a)).toEqual(livingSnapshot(b));
     expect(livingSnapshot(a)).toEqual(livingSnapshot(ordinary.world));
     expect(a.kernel).toEqual(ordinary.world.kernel);

@@ -484,9 +484,9 @@ function favorTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveTrac
 function favorChecks(world: World, recipient: Person, giver: Person, giveEvent: WorldEvent, report: PersonReport, peakCredit: number, peakBonus: number, controlBonus: number, peakTotal: number, observed: WorldEvent[]): MotiveCheck[] {
   const checks: MotiveCheck[] = [];
   const add = (name: string, pass: boolean, detail: string) => checks.push({ name, pass, detail });
-  const ob = obligationsOf(recipient).find(o => o.towardId === giver.id);
+  const ob = obligationsOf(recipient).find(o => o.towardId === giver.id && o.kind === 'was_given');
   add('the recipient came to know of it first-hand',
-    Object.values(recipient.knowledge).some(k => k.claim.eventId === giveEvent.id),
+    Object.values(recipient.knowledge).some(k => k.claim.eventId === giveEvent.id && ['self', 'witnessed'].includes(k.source.type)),
     `${recipient.name} holds ev:${giveEvent.id}`);
   // Provenance is answerable through EITHER surviving link: the canonical event itself, or the
   // belief the obligation rests on (`basisKey`), which is the thing this person actually knows.

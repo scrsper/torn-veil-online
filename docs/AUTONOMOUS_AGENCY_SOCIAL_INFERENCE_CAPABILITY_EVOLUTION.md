@@ -39,7 +39,7 @@ Knowledge remains `KnowledgeItem`: structured `claim`, `confidence`, `source { t
 
 Social impressions retain at most twelve weighted premise references. Existing generosity, honesty, reliability, restraint, observed intent and qualitative capability impressions remain fallible. Paid mechanism work additionally supports a weak **possible craftsperson** interpretation; it does not expose the worker's canonical occupation. A missed strike can support caution without fabricating a successful hit. Inference uses held observations, not hidden target skills or motives.
 
-Memory retention stays at 60 entries, scored by significance, age and recall. Knowledge uses the existing 400-entry pruning target plus its batching margin. There is no new full-world fact copy or independent memory store.
+Memory retention stays at 60 entries, scored by significance, age and recall. Knowledge uses the existing 400-entry pruning target plus its batching margin. Evidence referenced by the existing eight-entry obligation ledger receives reusable-evidence priority while that reference survives, including recent resolutions. Once the obligation leaves the ledger, its episode competes under ordinary retention again. This changes eviction priority, not the finite budget. There is no new full-world fact copy or independent memory store.
 
 ## Communication and relationships
 

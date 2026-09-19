@@ -67,10 +67,8 @@ export function learn(world: World, p: Person, k: { key: string; kind: Knowledge
  * not gradually forget where their spouse lives at a fixed daily rate just because the world got
  * eventful; forgetting must be selective, not uniform.
  *
- * This scoring instead recognizes categories WITHOUT naming any entity (Constitution: identity
- * and family/relationship facts are never stored as knowledge at all — see the module-level note
- * below — so they cannot be evicted by construction; this only has to handle what genuinely
- * lives in `Person.knowledge`):
+ * This scoring recognizes categories without naming any particular entity. Identity evidence
+ * is retained here; the relationship and obligation ledgers remain separate bounded state:
  *  - **foundational** (`source.type === 'prior'`): backstory the mind has always held. Given a
  *    score far above anything ordinary play can produce, so it is displaced only if the cap is
  *    somehow filled entirely with other foundational/near-foundational facts — never by routine
@@ -144,8 +142,12 @@ function relationalWeight(p: Person, k: KnowledgeItem): number {
   return Math.min(1.7, r.familiarity + Math.abs(r.affection) * 0.4 + Math.abs(r.respect) * 0.3 + r.fear * 0.5 + r.grudge * 0.4);
 }
 
-function knowledgeScore(p: Person, k: KnowledgeItem, now: number): number {
+function knowledgeScore(p: Person, k: KnowledgeItem, now: number, obligationBases: ReadonlySet<string>): number {
   if (k.source.type === 'prior') return FOUNDATIONAL_SCORE + k.confidence;
+  // The bounded obligation ledger still relies on this experience to explain a debt
+  // or its recent resolution. Retain its evidence above routine episodes, without
+  // expanding the knowledge budget or manufacturing a replacement when forgotten.
+  if (obligationBases.has(k.key)) return PRACTICAL_BASE + k.confidence;
   if (practicalKnowledge(k, now)) return PRACTICAL_BASE + k.confidence - (now - (k.lastConfirmedAt ?? k.learnedAt)) / 86400 * 0.002;
   const significance = k.claim.significance ?? 0.2;
   const unresolvedCrime = k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled;
@@ -181,6 +183,7 @@ function knowledgeScore(p: Person, k: KnowledgeItem, now: number): number {
  * `knowledge_forgotten` emission below). */
 function isActivelyRelevant(p: Person, key: string, k: KnowledgeItem, now: number): boolean {
   if (practicalKnowledge(k, now)) return true;
+  if (p.mind.obligations?.some(o => o.status === 'live' && o.basisKey === key)) return true;
   if (k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled) return true;
   if (p.mind.goal?.data?.crime === key) return true;
   return p.mind.plan.some(a => a.data?.crime === key || a.data?.key === key);
@@ -190,7 +193,8 @@ function pruneKnowledge(world: World, p: Person): void {
   const keys = Object.keys(p.knowledge);
   if (keys.length <= MAX_KNOWLEDGE + PRUNE_MARGIN) return;
   const now = world.now;
-  keys.sort((a, b) => knowledgeScore(p, p.knowledge[b], now) - knowledgeScore(p, p.knowledge[a], now));
+  const obligationBases = new Set((p.mind.obligations ?? []).flatMap(o => o.basisKey ? [o.basisKey] : []));
+  keys.sort((a, b) => knowledgeScore(p, p.knowledge[b], now, obligationBases) - knowledgeScore(p, p.knowledge[a], now, obligationBases));
   for (const key of keys.slice(MAX_KNOWLEDGE)) {
     const k = p.knowledge[key];
     if (k.claim.method || isActivelyRelevant(p, key, k, now)) {
