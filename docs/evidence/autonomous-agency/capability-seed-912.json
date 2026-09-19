@@ -1,0 +1,137 @@
+{
+  "seed": 912,
+  "disclosedConditions": "Existing workshop, spare parts and tools; four real paid repair attempts. Separate explicitly synthetic near-Iron history for transition test.",
+  "natural": {
+    "before": {
+      "crafting": 0.95
+    },
+    "after": {
+      "crafting": 0.9501816918735619
+    },
+    "experience": {
+      "bySkill": {
+        "crafting": {
+          "effectiveSeconds": 14.55518323064868,
+          "actions": 4,
+          "lastTick": 8666400,
+          "lastEventId": "e_38",
+          "sourceEventIds": [
+            "e_34",
+            "e_36",
+            "e_37",
+            "e_38"
+          ]
+        }
+      },
+      "creditedEventIds": [
+        "e_34",
+        "e_36",
+        "e_37",
+        "e_38"
+      ],
+      "repetitionCounts": {
+        "crafting:replace": 4
+      },
+      "recent": [
+        {
+          "fingerprint": "crafting:replace",
+          "tick": 8666400,
+          "eventId": "e_34"
+        },
+        {
+          "fingerprint": "crafting:replace",
+          "tick": 8666400,
+          "eventId": "e_36"
+        },
+        {
+          "fingerprint": "crafting:replace",
+          "tick": 8666400,
+          "eventId": "e_37"
+        },
+        {
+          "fingerprint": "crafting:replace",
+          "tick": 8666400,
+          "eventId": "e_38"
+        }
+      ],
+      "dailySeconds": 14.55518323064868,
+      "dailyRawSeconds": 17.388712241653415,
+      "day": 100
+    },
+    "events": [
+      {
+        "event": "e_34",
+        "outcome": "fitted",
+        "seconds": 4.347178060413354,
+        "effectiveSeconds": 3.8882342613519785
+      },
+      {
+        "event": "e_36",
+        "outcome": "fitted",
+        "seconds": 4.347178060413354,
+        "effectiveSeconds": 3.7072859064220802
+      },
+      {
+        "event": "e_37",
+        "outcome": "fitted",
+        "seconds": 4.347178060413354,
+        "effectiveSeconds": 3.549456023011527
+      },
+      {
+        "event": "e_38",
+        "outcome": "fitted",
+        "seconds": 4.347178060413354,
+        "effectiveSeconds": 3.410207039863096
+      }
+    ],
+    "stage": "Normal"
+  },
+  "persistenceMatches": true,
+  "breakthroughFixture": {
+    "initiallyReady": false,
+    "readiness": {
+      "stage": "Normal",
+      "eligible": true,
+      "reasons": [],
+      "evidenceEventIds": [
+        "e_39",
+        "e_40",
+        "e_41",
+        "e_43"
+      ]
+    },
+    "advanced": true,
+    "beforeCost": {
+      "energy": 0.95,
+      "hydration": 0.95,
+      "fatigue": 0,
+      "conditioning": 1.01875
+    },
+    "chronicle": [
+      {
+        "eventId": "e_45",
+        "day": 100,
+        "tick": 8666400,
+        "text": "Day 100 — Orla Reed advanced from Normal to Iron",
+        "significance": 1,
+        "causes": [
+          "e_39",
+          "e_40",
+          "e_41",
+          "e_43",
+          "e_42"
+        ],
+        "sourceEventIds": [
+          "e_45"
+        ]
+      }
+    ],
+    "afterCost": {
+      "energy": 0.75,
+      "hydration": 0.75,
+      "fatigue": 0.35,
+      "conditioning": 1.06875
+    },
+    "stage": "Iron"
+  }
+}

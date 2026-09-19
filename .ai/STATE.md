@@ -1,3 +1,23 @@
+# Autonomous agency, social inference and capability evolution v0.1, 2026-09-19
+
+Branch `codex/autonomous-agency-social-inference-v0-1` is temporarily stacked on PR #48's
+remote head `7eb6b6666459c4d92ecb16b23be3fca57a18469c`. Main was `fba1153` at synchronization.
+Both PR #47 commits are patch-equivalent to changes already in #48; neither PR was merged
+or modified. Work uses a separate `TornVeilOnline-agency` worktree, preserving the original
+checkout's local changes and all licensed/ignored Unreal content.
+
+Extends existing KMSI, utility goals, relationships, external control leases, skills, physiology,
+and schema-24 snapshots with bounded encounter recognition, embodied structured testimony,
+belief-driven caution/cooperation, a paid-fitting experience ledger and a gated Normal→Iron
+reference path. Higher ranks remain blocked. Detached agency inspection is exposed in bridge
+developer snapshots. No native UI or asset changes.
+
+Design, deliberate limits and schema notes:
+`docs/AUTONOMOUS_AGENCY_SOCIAL_INFERENCE_CAPABILITY_EVOLUTION.md`.
+Reproducible scenarios: `npm run agency:worldlab -- 741`.
+Exact final validation and captured scenario evidence:
+`docs/evidence/autonomous-agency/VERIFICATION.md`.
+
 # Slice 3 + Character Foundry reconciliation, 2026-09-17
 
 Branch `claude/embodied-people-visible-life-slice3` is stacked on current PR #46 head `7abb2b6`
