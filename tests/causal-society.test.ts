@@ -206,6 +206,8 @@ describe('Causal Society — a stoppage becomes something minds can hold', () =>
     const miller = addPerson(tw, 'Miller', 'miller', pl.millPos, { workId: pl.mill });
 
     const belief = noteWorkBlocked(tw.world, baker, pl.bakery, 'flour', 'bread')!;
+    // Later local conversation; observation happened at the original workplace.
+    tw.world.primaryBody(baker.id)!.pos = { ...tw.world.primaryBody(miller.id)!.pos, x: tw.world.primaryBody(miller.id)!.pos.x + 1 };
     tw.sim.tell(baker, miller, belief);
 
     expect(concernGoalBoost(baker, 'haul', undefined, 'flour').bonus).toBeGreaterThan(0);
@@ -254,7 +256,10 @@ describe('Causal Society — a stoppage becomes something minds can hold', () =>
     const priest = addPerson(tw, 'Priest', 'priest', v(20.5, 1, 20.5), { workId: tw.places.chapel });
 
     const belief = noteWorkBlocked(tw.world, baker, pl.bakery, 'flour', 'bread')!;
+    // Later local conversation; observation happened at the original workplace.
+    tw.world.primaryBody(baker.id)!.pos = { ...tw.world.primaryBody(miller.id)!.pos, x: tw.world.primaryBody(miller.id)!.pos.x + 1 };
     tw.sim.tell(baker, miller, belief);
+    tw.world.primaryBody(priest.id)!.pos = { ...tw.world.primaryBody(baker.id)!.pos, z: tw.world.primaryBody(baker.id)!.pos.z + 1 };
     tw.sim.tell(baker, priest, belief);
 
     expect(activeConcerns(miller).some(c => c.kind === 'supply')).toBe(true);
@@ -496,6 +501,7 @@ describe('Causal Society — working out why', () => {
 
     noteWorkBlocked(tw.world, baker, pl.bakery, 'flour', 'bread');
     const upstream = noteWorkBlocked(tw.world, miller, pl.mill, 'grain', 'flour')!;
+    tw.world.primaryBody(miller.id)!.pos = { ...tw.world.primaryBody(baker.id)!.pos, x: tw.world.primaryBody(baker.id)!.pos.x + 1 };
     tw.sim.tell(miller, baker, upstream);
 
     drawInferences(tw.world, baker);

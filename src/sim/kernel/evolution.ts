@@ -4,7 +4,8 @@ import type { World } from '../core/world';
 import type { Assembly, Bindings, Component, Connection, Method } from './types';
 import { connect, disconnect, dismantle, mayUseProperty, reachable, owns } from './mechanics';
 import { cognitiveCapability, clamp } from '../core/human';
-import { skillOf, practiceSkill } from '../core/skills';
+import { skillOf } from '../core/skills';
+import { recordCapabilityPractice } from '../core/capability';
 import { getPhysicalCapability } from '../core/attributes';
 import { bestToolFor, toolWorkMultiplier, wearTool } from '../core/tools';
 
@@ -63,6 +64,7 @@ export function fittingCompetence(p: Person): number {
 export function workOnAssembly(world: World, p: Person, a: Assembly, task: MechanicalWork, progress: { labor?: number; work?: number }, seconds: number, cause?: string): 'working' | 'fitted' | 'damaged' | 'unavailable' {
   if (!Number.isFinite(seconds) || seconds <= 0 || seconds > 60 || !reachable(world, p, a.pos) || !mayUseProperty(world, p, a.ownerId, a.bindings.placeId)) return 'unavailable';
   const capability = getPhysicalCapability(p, world); if (capability.currentExertionCapacity <= 0.15) return 'unavailable';
+  if (task.kind === 'dismantle' && !a.parts.length) return 'unavailable';
   const old = task.kind === 'replace' ? world.kernel.components.find(c => c.id === a.parts[task.part]) : undefined;
   const replacement = task.kind === 'replace' ? world.kernel.components.find(c => c.id === task.componentId) : undefined;
   if (task.kind === 'replace' && (!old || !replacement || old.id === replacement.id || replacement.assemblyId || replacement.holderId && replacement.holderId !== p.id
@@ -78,6 +80,7 @@ export function workOnAssembly(world: World, p: Person, a: Assembly, task: Mecha
   wearTool(world, tool, spent * world.clock.timeScale / 3600);
   if (progress.work < required - 1e-9) return 'working';
   let result: 'fitted' | 'damaged' = 'fitted';
+  let practiced = true;
   const before = a.lastEvent;
   if (task.kind === 'replace') {
     const precision = fittingCompetence(p) * (tool ? 1 : 0.75);
@@ -91,22 +94,25 @@ export function workOnAssembly(world: World, p: Person, a: Assembly, task: Mecha
       a.connections = a.connections.filter(edge => portsMatch(definitions[edge.from].output, definitions[edge.to].input));
       // Fitting is not proof that a substitute works. Incompatible material/ports/power limits
       // remain real and are tested by operateAssembly.
-      practiceSkill(p, 'crafting', 0.3, world);
     }
   } else {
     // Existing graph validators remain authoritative. Employee permission is checked above;
     // helpers now use the same property permission for these operations.
     if (task.kind === 'connect') {
       a.progress[`join:${task.from}:${task.to}`] = 0.5;
-      if (!connect(world, p, a, task.from, task.to)) result = 'damaged';
-    } else if (task.kind === 'disconnect') { if (!disconnect(world, p, a, task.from, task.to)) result = 'damaged'; }
-    else if (!dismantle(world, p, a)) result = 'damaged';
+      if (!connect(world, p, a, task.from, task.to)) { result = 'damaged'; practiced = false; }
+    } else if (task.kind === 'disconnect') { if (!disconnect(world, p, a, task.from, task.to)) { result = 'damaged'; practiced = false; } }
+    else if (!dismantle(world, p, a)) { result = 'damaged'; practiced = false; }
   }
   const ev = world.emit('mechanism_worked', { actor: p.id, pos: a.pos, visibility: 8, loudness: 4, significance: 0.4,
     causes: [before, cause, replacement?.madeEvent].filter((x): x is string => !!x), data: { assemblyId: a.id, operation: task.kind, outcome: result,
-      laborSeconds: progress.labor, oldComponent: old?.id, replacement: replacement?.id, toolId: tool?.id }, summary: `${p.name} attempted ${task.kind}: ${result}` });
+      laborSeconds: progress.labor, practiced, oldComponent: old?.id, replacement: replacement?.id, toolId: tool?.id }, summary: `${p.name} attempted ${task.kind}: ${result}` });
   a.lastEvent = ev.id; a.tested = false;
+  recordCapabilityPractice(world, p, { skill: 'crafting', sourceEventId: ev.id });
   recordTechnology(world, a, ev.id, task.kind, before ? [before] : []);
+  // Completed attempts consume their paid work even when fitting failed. Reusing an action's
+  // progress object must require fresh labor instead of replaying one payment until success.
+  progress.work = 0; progress.labor = 0;
   return result;
 }
 

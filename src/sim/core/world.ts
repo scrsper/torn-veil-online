@@ -376,7 +376,8 @@ export class World {
       for (const v of Object.values(value)) visit(v, seen);
     };
     for (const p of this.livingPersons()) visit({ memories: p.memories, knowledge: p.knowledge, mind: p.mind, desires: p.desires,
-      lineage: p.lineage, exceptionalDevelopment: p.development.exceptional, ontology: p.ontology });
+      lineage: p.lineage, exceptionalDevelopment: p.development.exceptional, ontology: p.ontology,
+      capabilityEvidence: Object.values(p.capability?.bySkill ?? {}).map(record => record.sourceEventIds) });
     // Martial execution/provenance remains in saved people after death or forgetting.
     // Discovered definitions also outlive their discoverer and any surviving manual.
     for (const p of this.persons()) visit(p.martial);

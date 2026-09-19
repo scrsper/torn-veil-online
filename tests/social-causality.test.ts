@@ -177,6 +177,8 @@ describe('v0.9 §B — knowledge produces concerns, and concerns change behaviou
     expect(witness.knowledge[`ev:${attack.id}`]).toBeDefined();
     // The spouse was never present — the only route is being told.
     expect(spouse.knowledge[`ev:${attack.id}`]).toBeUndefined();
+    // Now the witness reaches the spouse; no remote telepathic delivery.
+    tw.world.primaryBody(witness.id)!.pos = { ...tw.world.primaryBody(spouse.id)!.pos, x: 35.5 };
     tw.sim.tell(witness, spouse, witness.knowledge[`ev:${attack.id}`]);
     expect(spouse.knowledge[`ev:${attack.id}`]?.source.type).toBe('told');
     expect(activeConcerns(spouse).some(c => c.subjectId === victim.id || c.aboutId === attacker.id)).toBe(true);

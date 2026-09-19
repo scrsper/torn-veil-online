@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { addPerson, createTestWorld, v, wall } from './helpers/world';
 import { requestCombatAction, requestDefense, cancelCombatAction } from '../src/sim/physical/combatAction';
 import { captureCombatTransforms } from '../src/sim/physical/combatAction';
-import { deserialize, serialize } from '../src/sim/persist/save';
+import { deserialize, serialize, newWorld } from '../src/sim/persist/save';
 import { observeCombatPreparation } from '../src/sim/mind/combatReaction';
 import { setExternalControl } from '../src/sim/runtime/controllers';
 import { Simulation } from '../src/sim/mind/agent';
@@ -14,8 +14,15 @@ import { applyInteractionMovement, movementState } from '../src/sim/physical/int
 import { stepProgress } from '../src/sim/physical/combatTransitions';
 import type { CombatAttackIntent } from '../src/sim/physical/combat';
 
-function setup() {
+function setup(persistable = false) {
   const tw = createTestWorld(123);
+  if (persistable) {
+    // The production loader reconstructs generated worlds, not scratch test grids. Keep
+    // the saved population complete so reloading cannot introduce placeholder villagers.
+    tw.world = newWorld(123).world; tw.sim = new Simulation(tw.world);
+    for (const body of tw.world.bodies()) body.present = false;
+    for (const person of tw.world.persons()) setExternalControl(person, true);
+  }
   const attacker = addPerson(tw, 'Attacker', 'farmer', v(10, 1, 10), { controlled: true });
   const target = addPerson(tw, 'Target', 'farmer', v(11.05, 1, 10), { controlled: true });
   const attackerBody = tw.world.primaryBody(attacker.id)!;
@@ -263,7 +270,7 @@ describe('canonical realtime combat action requests', () => {
   });
 
   it('continues identically from a mid-active save', () => {
-    const x = setup(); x.attackerBody.yaw = -Math.PI / 2;
+    const x = setup(true); x.attackerBody.yaw = -Math.PI / 2;
     expect(requestCombatAction(x.world, x.intent, 'active-save-1')).toMatchObject({ attempted: true });
     advance(x, 0.35);
     expect(x.attackerBody.combatAction?.phase).toBe('active');

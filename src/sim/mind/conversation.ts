@@ -1,4 +1,5 @@
 import { knownName } from './people';
+import { socialEvidence } from './socialEvidence';
 import type { Concern, EntityId, ItemType, KnowledgeItem, Person, Situation } from '../core/types';
 import type { World } from '../core/world';
 import { appraiseClaim, type Appraisal } from '../social/appraisal';
@@ -212,6 +213,9 @@ export function scoreTopic(world: World, speaker: Person, listener: Person, k: K
 
   // 6. a sociable person volunteers more; a taciturn one keeps it to themselves
   score += (speaker.traits.sociability - 0.5) * 0.12;
+  if (k.claim.actor && ['attack', 'attack_missed', 'theft'].includes(k.claim.type) && socialEvidence(speaker, k.claim.actor, world.now).caution > 0.15) {
+    score += 0.25; reasons.push('my evidence suggests a nearby safety concern');
+  }
 
   return { k, score: clamp(score, -1, 2), reasons: reasons.filter(Boolean).slice(0, 4), appraisal, concern, situation: situation ?? undefined, resolvedForSpeaker, supporting: [] };
 }
@@ -243,7 +247,9 @@ export function selectTopic(world: World, speaker: Person, listener: Person, opt
   for (const k of Object.values(speaker.knowledge)) {
     if (k.kind !== 'event') continue;
     if (k.sharedWith.includes(listener.id)) continue;
-    if (!opts.ignoreListenerKnowledge && listener.knowledge[k.key]) continue;
+    // A speaker knows whom they already told, not the contents of another mind.
+    // Hearing the same news independently is possible and does not make it eyewitness evidence.
+    if (k.hops >= 8) continue;
     if (k.claim.actor === listener.id) continue; // do not narrate someone's own deeds at them
     if (k.source.from === listener.id) continue; // they told me this
     if (!worthScoring(world, k)) continue;

@@ -288,6 +288,7 @@ export function describeClaim(world: World, k: KnowledgeItem, observer?: Person)
       const where = c.placeId ? ` at ${perceivedName(world, observer, c.placeId)}` : '';
       switch (c.type) {
         case 'attack': return `${who(c.actor, c.actorUnknown)} attacked ${who(c.target)}${where}`;
+        case 'attack_missed': return `${who(c.actor, c.actorUnknown)} attempted a strike${where}`;
         case 'kill': return `${who(c.actor, c.actorUnknown)} killed ${who(c.target)}${where}`;
         case 'theft': return `${who(c.actor, c.actorUnknown)} stole ${c.item ? perceivedName(world, observer, c.item) : 'something'} from ${who(c.target)}${where}`;
         case 'item_missing': return `${c.item ? perceivedName(world, observer, c.item) : 'an item'} has gone missing from ${where || 'its place'}`;

@@ -3,6 +3,7 @@ import type { World } from '../core/world';
 import { knownName, socialBeliefs, type SocialBelief } from '../mind/people';
 import { reachable } from '../kernel/mechanics';
 import { apparentWear } from '../kernel/evolution';
+import { appearanceSignature, readRecognition, visibleCues } from '../mind/encounter';
 
 /** Explicit allowlist. Never serialize a Person, canonical event, private goal or raw claim
  * into normal gameplay. These copies cannot mutate canonical state. */
@@ -31,9 +32,12 @@ export function knowledgeView(world: World, observer: Person) {
     people: seen.flatMap(percept => {
       const p = world.person(percept.entityId), b = world.body(percept.bodyId);
       if (!p || !b) return [];
-      return [{ ...personKnowledgeView(observer, p.id), bodyId: b.id, pos: { ...percept.pos },
-        appearance: { ...p.appearance }, ageBand: p.lifeStage, visibleAction: b.pose,
-        speech: p.speech && p.speech.until > world.physicalTime ? p.speech.text : '' }];
+      const cues = visibleCues(world, b);
+      const recognition = readRecognition(observer, p.id, b.id, appearanceSignature(cues));
+      const remembered = personKnowledgeView(observer, p.id);
+      return [{ ...remembered, ...(recognition !== 'identified' ? { identity: null, knownName: false } : {}), ...(recognition === 'unknown' && remembered.identity ? { beliefs: [], observations: [] } : {}), recognition, name: recognition === 'identified' ? knownName(observer, p.id) : recognition === 'recognized' ? 'a recognized person' : recognition === 'familiar' ? 'a familiar-looking person' : 'an unfamiliar person', bodyId: b.id, pos: { ...percept.pos },
+        appearance: structuredClone(cues.appearance), ageBand: p.lifeStage, visibleAction: b.pose,
+        speech: percept.distance <= 4 && p.speech && p.speech.until > world.physicalTime ? p.speech.text : '' }];
     }),
     mechanisms: Object.values(observer.knowledge).filter(k => k.claim.mechanicalEvidence || k.claim.mechanicalHypothesis || k.claim.inferredMethod)
       .map(k => ({ key: k.key, claim: structuredClone(k.claim), confidence: k.confidence, source: { ...k.source }, at: k.learnedAt })),
