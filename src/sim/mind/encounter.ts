@@ -47,7 +47,7 @@ export function recognizeEncounter(world: World, observer: Person, observed: Obs
   const retained = observer.knowledge[keyFor(target.id, tb.id)];
   // Physical sensing already established visibility. Attention to appearance need not rebuild
   // a description at 5 Hz; keep presence fresh and sample it at the cognitive cadence.
-  if (sensed && retained && world.now - (retained.claim.lastSampleAt ?? -Infinity) < (observer.cognitiveLOD === 'lightweight' ? 15 : 5)) {
+  if (sensed && retained && world.physicalTime - (retained.claim.lastPhysicalSampleAt ?? -Infinity) < (observer.cognitiveLOD === 'lightweight' ? 3 : 1)) {
     retained.claim.lastSeenAt = world.now;
     return null;
   }
@@ -70,7 +70,7 @@ export function recognizeEncounter(world: World, observer: Person, observed: Obs
     const event = world.emit('perceived', { actor: observer.id, target: target.id, category: 'cognition', significance: 0.18,
       data: { how: 'saw', observation: structuredClone(cues), encounter: true }, summary: 'A person retained an encounter' });
     const observations = [...old, { at: world.now, signature, event: event.id }].slice(-8);
-    const claim = { encounter: true, subjectId: target.id, bodyId: tb.id, cues, observations, lastSeenAt: world.now, lastSampleAt: world.now, significance: 0.18 };
+    const claim = { encounter: true, subjectId: target.id, bodyId: tb.id, cues, observations, lastSeenAt: world.now, lastSampleAt: world.now, lastPhysicalSampleAt: world.physicalTime, significance: 0.18 };
     const confidence = Math.min(0.85, 0.5 + observations.filter((o: { signature: string }) => o.signature === signature).length * 0.1);
     const source = { type: 'witnessed' as const, viaEvent: event.id };
     const learned = learn(world, observer, { key: keyFor(target.id, tb.id), kind: 'fact', claim, confidence, source }, true) ?? item;
@@ -80,6 +80,7 @@ export function recognizeEncounter(world: World, observer: Person, observed: Obs
   } else if (item) {
     item.claim.lastSeenAt = world.now;
     item.claim.lastSampleAt = world.now;
+    item.claim.lastPhysicalSampleAt = world.physicalTime;
     item.claim.cues = cues;
   }
   return { subjectId: target.id, bodyId: tb.id, level: identityMatched ? 'identified' : readRecognition(observer, target.id, tb.id, signature), cues, identityMatched };

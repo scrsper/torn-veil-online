@@ -23,6 +23,7 @@ Date: 2026-09-19. Windows, repository Node/npm runtime, Vitest 4.1.11; the norma
 | `npm run agency:worldlab -- 741` | Zero invariant errors; exact save continuation; capability persisted; explicit near-threshold fixture reached Iron |
 | `git diff --check` | Passed |
 | `npx vitest run tests/encounter-recognition.test.ts tests/autonomous-social.test.ts tests/agency-worldlab.test.ts` after retention correction | 3 files, 14 tests passed, 6.99 s |
+| `npx vitest run tests/encounter-recognition.test.ts tests/autonomous-social.test.ts tests/agency-worldlab.test.ts tests/capability-advancement.test.ts` after physical attention cadence correction | 4 files, 24 tests passed, 10.96 s |
 
 Earlier focused social/crime/frontier checkpoint: 57 tests passed across four files. These counts overlap and must not be summed as distinct coverage.
 
@@ -70,11 +71,13 @@ Parent integration additionally fixed no-op dismantling/graph-operation credit, 
 
 ## Performance and scope limits
 
-No all-pairs social scan or broadcast was added. Existing spatial neighborhoods feed perception. Social goal inputs look up eight belief keys; appearance is sampled at five/fifteen world-second cadence, and retained encounter history at sixty/three-hundred seconds with continuous-observation gating. KMSI's knowledge target and 60-memory cap remain authoritative. New per-skill causal samples are capped at sixteen; recent experience is capped at 96 records and 256 consumed IDs. Source markers prevent duplicate credit after recent-record eviction.
+No all-pairs social scan or broadcast was added. Existing spatial neighborhoods feed perception. Social goal inputs look up eight belief keys; appearance attention uses one/three physical seconds, while initial retained encounter history uses sixty/three-hundred world seconds with continuous-observation gating. KMSI's knowledge target and 60-memory cap remain authoritative. New per-skill causal samples are capped at sixteen; recent experience is capped at 96 records and 256 consumed IDs. Source markers prevent duplicate credit after recent-record eviction.
 
 Developer inspection may scan history and is explicitly outside the simulation tick. Existing causal ancestry can retain more than the direct sample count. No thousand-person/century-scale benchmark or native Unreal visual acceptance is claimed.
 
 A bounded seed-918271 six-hour profile found 4,592 retained encounter events before the routine re-encounter gate, versus 3,220 afterward (about 30% fewer). Elapsed times were 7.93 s and 7.62 s while the broad test process was also active; these timings do not establish an isolated speedup. Once familiar, unchanged re-encounters now allocate at most hourly, and established acquaintances receive the existing reusable-identity retention priority. A new pressure test fills the knowledge budget with 600 routine episodes and verifies retained recognition and the unchanged cap.
+
+The appearance attention interval was subsequently moved to the existing physical perception clock; a world-time interval shorter than one accelerated step did not actually rate-limit reconstruction. The same six-hour probe then retained 3,212 encounters (8,200 total retained events), taking 7.56 s with 2.97 s in perception. These are bounded diagnostic measurements, not a population-scale guarantee. A regression exercises the clock distinction explicitly.
 
 Remaining cognition gaps: sensory acuity/attention, mistaken cross-person matching, competing identity hypotheses and legacy canonical selectors. Social gaps: explicit role/workplace disclosure and broader institution exchanges. Progression gaps: more paid-action adapters, mentorship paths and concrete post-Iron mechanics. Control gaps: multiplayer connection/account ownership beyond the existing independent leases. Presentation gap: a native inspector UI; the detached debug contract is available.
 

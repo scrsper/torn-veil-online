@@ -5,6 +5,19 @@ import { recognizeEncounter } from '../src/sim/mind/encounter';
 import { addPerson, createTestWorld, face, v, wall } from './helpers/world';
 
 describe('bounded encounter recognition', () => {
+  it('uses physical attention cadence when calendar time is accelerated', () => {
+    const tw = createTestWorld(806, 24), observer = addPerson(tw, 'Observer', 'traveler', v(8, 1, 8));
+    const target = addPerson(tw, 'Target', 'farmer', v(8, 1, 10));
+    const seen = { subjectId: target.id, bodyId: tw.world.primaryBody(target.id)!.id, how: 'saw' as const };
+    recognizeEncounter(tw.world, observer, seen, true);
+    const item = observer.knowledge[`encounter:${target.id}:${seen.bodyId}`], cues = item.claim.cues;
+    tw.world.clock.worldSeconds += 60; tw.world.physicalTime += 0.2;
+    recognizeEncounter(tw.world, observer, seen, true);
+    expect(item.claim.cues).toBe(cues); expect(item.claim.lastSeenAt).toBe(tw.world.now);
+    tw.world.physicalTime += 1;
+    recognizeEncounter(tw.world, observer, seen, true);
+    expect(item.claim.cues).not.toBe(cues);
+  });
   it('retains known-person recognition under episodic pressure and compacts routine re-encounters', () => {
     const tw = createTestWorld(805, 24), observer = addPerson(tw, 'Observer', 'traveler', v(8, 1, 8));
     const target = addPerson(tw, 'Target', 'farmer', v(8, 1, 10));
