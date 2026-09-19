@@ -22,6 +22,7 @@ Date: 2026-09-19. Windows, repository Node/npm runtime, Vitest 4.1.11; the norma
 | `npx vitest run tests/causal-society.test.ts` after local-conversation fixture correction | 1 file, 29 tests passed |
 | `npm run agency:worldlab -- 741` | Zero invariant errors; exact save continuation; capability persisted; explicit near-threshold fixture reached Iron |
 | `git diff --check` | Passed |
+| `npx vitest run tests/encounter-recognition.test.ts tests/autonomous-social.test.ts tests/agency-worldlab.test.ts` after retention correction | 3 files, 14 tests passed, 6.99 s |
 
 Earlier focused social/crime/frontier checkpoint: 57 tests passed across four files. These counts overlap and must not be summed as distinct coverage.
 
@@ -72,6 +73,8 @@ Parent integration additionally fixed no-op dismantling/graph-operation credit, 
 No all-pairs social scan or broadcast was added. Existing spatial neighborhoods feed perception. Social goal inputs look up eight belief keys; appearance is sampled at five/fifteen world-second cadence, and retained encounter history at sixty/three-hundred seconds with continuous-observation gating. KMSI's knowledge target and 60-memory cap remain authoritative. New per-skill causal samples are capped at sixteen; recent experience is capped at 96 records and 256 consumed IDs. Source markers prevent duplicate credit after recent-record eviction.
 
 Developer inspection may scan history and is explicitly outside the simulation tick. Existing causal ancestry can retain more than the direct sample count. No thousand-person/century-scale benchmark or native Unreal visual acceptance is claimed.
+
+A bounded seed-918271 six-hour profile found 4,592 retained encounter events before the routine re-encounter gate, versus 3,220 afterward (about 30% fewer). Elapsed times were 7.93 s and 7.62 s while the broad test process was also active; these timings do not establish an isolated speedup. Once familiar, unchanged re-encounters now allocate at most hourly, and established acquaintances receive the existing reusable-identity retention priority. A new pressure test fills the knowledge budget with 600 routine episodes and verifies retained recognition and the unchanged cap.
 
 Remaining cognition gaps: sensory acuity/attention, mistaken cross-person matching, competing identity hypotheses and legacy canonical selectors. Social gaps: explicit role/workplace disclosure and broader institution exchanges. Progression gaps: more paid-action adapters, mentorship paths and concrete post-Iron mechanics. Control gaps: multiplayer connection/account ownership beyond the existing independent leases. Presentation gap: a native inspector UI; the detached debug contract is available.
 

@@ -1,9 +1,25 @@
 import { describe, expect, it } from 'vitest';
 import { introduce } from '../src/sim/mind/people';
+import { learn, MAX_KNOWLEDGE, PRUNE_MARGIN } from '../src/sim/mind/knowledge';
 import { recognizeEncounter } from '../src/sim/mind/encounter';
 import { addPerson, createTestWorld, face, v, wall } from './helpers/world';
 
 describe('bounded encounter recognition', () => {
+  it('retains known-person recognition under episodic pressure and compacts routine re-encounters', () => {
+    const tw = createTestWorld(805, 24), observer = addPerson(tw, 'Observer', 'traveler', v(8, 1, 8));
+    const target = addPerson(tw, 'Target', 'farmer', v(8, 1, 10));
+    introduce(tw.world, target, observer);
+    const seen = { subjectId: target.id, bodyId: tw.world.primaryBody(target.id)!.id, how: 'saw' as const };
+    for (let i = 0; i < 3; i++) { recognizeEncounter(tw.world, observer, seen); tw.world.clock.worldSeconds += 61; }
+    const key = `encounter:${target.id}:${seen.bodyId}`;
+    const before = observer.knowledge[key].claim.observations.length;
+    recognizeEncounter(tw.world, observer, seen);
+    expect(observer.knowledge[key].claim.observations).toHaveLength(before);
+    for (let i = 0; i < 600; i++) learn(tw.world, observer, { key: `routine:${i}`, kind: 'event', claim: { actor: target.id, type: 'work_shift' }, confidence: 1, source: { type: 'witnessed' } }, true);
+    expect(Object.keys(observer.knowledge).length).toBeLessThanOrEqual(MAX_KNOWLEDGE + PRUNE_MARGIN);
+    expect(observer.knowledge[key].claim.observations).toHaveLength(before);
+    expect(recognizeEncounter(tw.world, observer, seen)?.level).toBe('identified');
+  });
   it('moves from familiar to recognized from repeated visible cues', () => {
     const tw = createTestWorld(801, 24);
     const observer = addPerson(tw, 'Observer', 'traveler', v(8, 1, 8));

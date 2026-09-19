@@ -61,7 +61,9 @@ export function recognizeEncounter(world: World, observer: Person, observed: Obs
   const cues = visibleCues(world, tb), signature = appearanceSignature(cues), item = observer.knowledge[keyFor(target.id, tb.id)];
   Object.assign(cues, { pos: { ...tb.pos }, at: world.now, ageBand: agePresentationFor(target.age) });
   const old = item?.claim.observations ?? [], last = old.at(-1);
-  const interval = observer.cognitiveLOD === 'lightweight' ? 300 : MIN_REENCOUNTER_SECONDS;
+  // Once a face is familiar, routine departures from the view cone are not fresh episodes.
+  // Keep live cues current, but retain unchanged re-encounters at most once per world hour.
+  const interval = old.length >= 3 ? 3600 : observer.cognitiveLOD === 'lightweight' ? 300 : MIN_REENCOUNTER_SECONDS;
   const gated = !last || signature !== last.signature || world.now - last.at >= interval && (old.length < 3 || world.now - (item?.claim.lastSeenAt ?? 0) >= 30);
   const identity = observer.knowledge[`identity:${target.id}`]?.claim.identity, identityMatched = !!identity?.signatures?.includes(signature);
   if (gated) {
