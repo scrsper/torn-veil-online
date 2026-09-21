@@ -37,7 +37,7 @@ PIECES = [
     ('Haori',        lambda fit: g.haori(fit),                     ['turtleneck']),
     ('Hakama',       lambda fit: g.hakama(fit),                    ['slacks']),
     ('Hakama_Short', lambda fit: g.hakama(fit, short=True),        ['slacks']),
-    ('Mo',           lambda fit: g.wrapped_skirt(fit),             ['slacks']),
+    ('MoSkirt',      lambda fit: g.wrapped_skirt(fit),             ['slacks']),
     ('Obi',          lambda fit: g.obi(fit),                       ['turtleneck', 'slacks']),
     ('Maekake',      lambda fit: g.maekake(fit),                   ['slacks']),
     ('Geta',         lambda fit: g.geta(fit),                      ['oxfords', 'slacks']),

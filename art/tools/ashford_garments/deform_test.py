@@ -174,7 +174,7 @@ def main():
         proxy = lib.bind_pose_object(build, '%s_proxy' % piece)
         sources = {'Kosode_Work': ['turtleneck'], 'Kosode_Wide': ['turtleneck'],
                    'Haori': ['turtleneck'], 'Hakama': ['slacks'], 'Hakama_Short': ['slacks'],
-                   'Mo': ['slacks'], 'Obi': ['turtleneck', 'slacks'], 'Maekake': ['slacks'],
+                   'MoSkirt': ['slacks'], 'Obi': ['turtleneck', 'slacks'], 'Maekake': ['slacks'],
                    'Geta': ['oxfords', 'slacks'], 'Waraji': ['oxfords', 'slacks'],
                    'TabiBoot': ['oxfords', 'slacks']}[piece]
         lib.transfer_weights(obj, proxy, [m for r in sources for m in vendor[r]])

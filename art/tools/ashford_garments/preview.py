@@ -29,7 +29,7 @@ MAKERS = {
     'Haori': lambda fit: g.haori(fit),
     'Hakama': lambda fit: g.hakama(fit),
     'Hakama_Short': lambda fit: g.hakama(fit, short=True),
-    'Mo': lambda fit: g.wrapped_skirt(fit),
+    'MoSkirt': lambda fit: g.wrapped_skirt(fit),
     'Obi': lambda fit: g.obi(fit),
     'Maekake': lambda fit: g.maekake(fit),
     'Geta': lambda fit: g.geta(fit),
@@ -41,7 +41,7 @@ MAKERS = {
 SHADE = {
     'Kosode_Work': (0.16, 0.19, 0.30), 'Kosode_Wide': (0.16, 0.19, 0.30),
     'Haori': (0.10, 0.10, 0.13), 'Hakama': (0.12, 0.12, 0.14),
-    'Hakama_Short': (0.12, 0.12, 0.14), 'Mo': (0.13, 0.11, 0.16),
+    'Hakama_Short': (0.12, 0.12, 0.14), 'MoSkirt': (0.13, 0.11, 0.16),
     'Obi': (0.55, 0.13, 0.12), 'Maekake': (0.40, 0.33, 0.20),
     'Geta': (0.30, 0.20, 0.11), 'Waraji': (0.45, 0.38, 0.24), 'TabiBoot': (0.15, 0.14, 0.13),
 }
