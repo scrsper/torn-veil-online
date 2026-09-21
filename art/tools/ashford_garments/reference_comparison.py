@@ -207,4 +207,8 @@ def main():
     print('TV_REFERENCE_DONE %d' % len(FAMILIES))
 
 
-main()
+
+# Guarded so `role_lineup.py` can reuse the palette conversion and the region-material
+# mapping without re-rendering three comparisons.
+if __name__ == '__main__':
+    main()

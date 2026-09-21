@@ -110,6 +110,8 @@ export function richCatalogue(): CharacterCatalogue {
     // accessory turns up, so a pack without one leaves every kimono in the settlement untied.
     ['SM_Obi_Work', ['obi', 'belt', 'peasant', 'worn']], ['SM_Obi', ['obi', 'belt', 'common']],
     ['SM_Obi_Fine', ['obi', 'belt', 'noble', 'silk']],
+    // Worn over a kosode, never instead of one -- see the haori rule in the manifest.
+    ['SM_Haori', ['haori', 'common']], ['SM_Haori_Fur', ['haori', 'fur', 'worn']],
   ];
   for (const [name, tags] of accessories) entries.push(entry('accessory', name, tags, { assetClass: 'StaticMesh', skeleton: undefined }));
 

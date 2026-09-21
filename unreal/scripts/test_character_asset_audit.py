@@ -33,7 +33,7 @@ class AssetClassificationTests(unittest.TestCase):
         root = '/Game/TornVeil/Characters/Ashford/'
         for name, slot in [('SKM_TV_Kosode_Work_female_nrw', 'upperGarment'),
                            ('SKM_TV_Kosode_Wide_male_ovw', 'upperGarment'),
-                           ('SKM_TV_Haori_female_unw', 'upperGarment'),
+                           ('SKM_TV_Haori_female_unw', 'accessory'),
                            ('SKM_TV_Hakama_male_nrw', 'lowerGarment'),
                            ('SKM_TV_MoSkirt_female_nrw', 'lowerGarment'),
                            ('SKM_TV_Obi_female_nrw', 'accessory'),
@@ -51,7 +51,9 @@ class AssetClassificationTests(unittest.TestCase):
         for name, expected in [
             # A kosode answers a kimono request and a plain `tunic` one, which is what stops an
             # ordinary resident falling through to City Sample business wear.
-            ('SKM_TV_Kosode_Work_female_nrw', {'kimono', 'tunic', 'female', 'peasant', 'work'}),
+            # 'coat' too: this culture's travelling wear is a kosode with a haori over it,
+            # not a coat worn against the skin.
+            ('SKM_TV_Kosode_Work_female_nrw', {'kimono', 'tunic', 'coat', 'female', 'peasant', 'work'}),
             # The wide-sleeved cut is also this culture's formal and ceremonial upper layer.
             ('SKM_TV_Kosode_Wide_male_nrw', {'kimono', 'tunic', 'robe', 'wrap', 'formal', 'male'}),
             ('SKM_TV_Hakama_male_nrw', {'hakama', 'trousers', 'male'}),
@@ -62,7 +64,11 @@ class AssetClassificationTests(unittest.TestCase):
             ('SKM_TV_Geta_female_nrw', {'sandals', 'shoes', 'female'}),
             ('SKM_TV_Waraji_male_unw', {'sandals', 'shoes', 'male'}),
             ('SKM_TV_TabiBoot_male_nrw', {'boots', 'male'}),
-            ('SKM_TV_Haori_female_unw', {'coat', 'kimono', 'female'}),
+            # A haori answers only 'haori'. It is an open-fronted over-layer, and City
+            # Sample bodies are hands only, so one resolving as somebody's *only* upper
+            # garment is a hole in the chest -- caught in the Ashford 33 on a miller, a
+            # woodcutter and a bandit.
+            ('SKM_TV_Haori_female_unw', {'haori', 'female'}),
         ]:
             tags = set(audit.classify_tags(root + name))
             self.assertTrue(expected.issubset(tags), '%s got %s, missing %s'

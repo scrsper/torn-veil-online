@@ -31,6 +31,10 @@ const cataloguePath = process.argv[4] ?? DEFAULT_CATALOGUE_PATH;
 const outDir = process.argv[5] ?? '.debug/character-foundry';
 
 const ASHFORD = '/Game/TornVeil/Characters/Ashford/';
+// The roles a settlement has to be able to show at a glance. Named by the brief, in its order:
+// if this wardrobe cannot tell a farmer from a merchant from a guard, it is one costume with
+// eleven pieces rather than a grammar.
+const ROLE_LINEUP = ['farmer', 'baker', 'smith', 'merchant', 'traveler', 'guard', 'elder'];
 const GARMENT_SLOTS = ['upperGarment', 'lowerGarment', 'footwear', 'robe', 'armor'];
 
 const loaded = loadCatalogue(cataloguePath);
@@ -76,6 +80,7 @@ const rows = people.map((person: Person) => {
     silhouette: traits.garmentSilhouette,
     palette: traits.garmentPalette,
     presentation: traits.presentation,
+    wear: traits.wear,
     fitFamily: entry?.fitFamily,
     // A body whose clothing is part of the body mesh declares it, and no garment is ever requested
     // for such a person -- so they are not dressed in modern clothes, they are simply not dressable
@@ -129,6 +134,22 @@ const summary = {
   // same thing is the clone problem wearing a kimono.
   occupationsWithOwnOutfit: [...byOccupation].filter(([, set]) => set.size > 0).length,
   occupations: Object.fromEntries([...byOccupation].map(([k, v]) => [k, [...v]])),
+  // Everything a renderer needs to stand these roles side by side without re-deriving any of it:
+  // the pieces the resolver chose, the fit they were cut for, and the exact palette and wear the
+  // presentation layer will push. `art/tools/ashford_garments/role_lineup.py` consumes this, so a
+  // role lineup is a picture of the resolver's actual output and not a hand-dressed mock-up.
+  roleLineup: ROLE_LINEUP.map(role => {
+    const row = dressable.find(r => r.occupation === role) ?? null;
+    if (!row) return { role, present: false };
+    const palette = GARMENT_PALETTES[row.palette] ?? GARMENT_PALETTES.earth_work;
+    return {
+      role, present: true, identity: row.identity, station: row.station,
+      silhouette: row.silhouette, presentation: row.presentation,
+      fit: row.fitFamily, pieces: row.pieces, palette: row.palette,
+      primary: palette.primary, secondary: palette.secondary, accent: palette.accent,
+      wear: row.wear,
+    };
+  }),
   people_: rows,
 };
 

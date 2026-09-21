@@ -72,7 +72,10 @@ const GARMENT_SHAPE: Record<string, GarmentShape> = {
   // a festival in a warrior's trousers.
   layered_kimono: { upper: ['kimono', 'layered'], lower: ['skirt', 'layered'] },
   formal_kimono: { upper: ['kimono', 'formal'], lower: ['skirt', 'formal'] },
-  hakama_set: { upper: ['kimono'], lower: ['hakama'] },
+  // A bare kimono-and-hakama is this culture's *working* set -- what a miller or a swordsman
+  // puts on to do something. Without the preference the working and the wide-sleeved cuts tie on
+  // a plain `kimono` request and a coin flip put a miller at a millstone in hanging sleeves.
+  hakama_set: { upper: ['kimono', 'work'], lower: ['hakama'] },
   dancer_wrap: { upper: ['wrap', 'light'], lower: ['skirt', 'light'] },
   travel_coat: { upper: ['coat'], lower: ['trousers'] },
   lamellar_armour: { upper: ['tunic'], lower: ['trousers'], armor: ['armor', 'lamellar'] },
@@ -199,6 +202,14 @@ export function slotRules(traits: ProjectedAppearanceDescription): SlotRule[] {
   // not relax: an obi or nothing, never a random belt standing in for one.
   if (wrapped) {
     rules.push({ slot: 'accessory', required: ['obi'], preferred: compact([station, worn]), forbidden: quality, relax: [], optional: true });
+  }
+  // The over-layer, requested by the silhouettes that are named after needing one — and requested
+  // as an *accessory*, because that is what it is. A haori is open at the front and goes over a
+  // kosode. Letting one answer the `coat` and `kimono` requests directly put a miller, a
+  // woodcutter and a bandit in an open coat with nothing underneath, and on a City Sample body —
+  // which is hands only — that is a hole where the chest should be, not merely an odd outfit.
+  if (garment.upper.includes('coat') || garment.upper.includes('fur')) {
+    rules.push({ slot: 'accessory', required: ['haori'], preferred: compact([station, worn]), forbidden: quality, relax: [], optional: true });
   }
 
   // Accessories resolve independently, so a missing hat never costs somebody their beads.

@@ -37,12 +37,12 @@ SLOT_PATTERNS = [
     ('footwear', r'boot|shoe|sandal|geta|waraji|zori|tabi|footwear|greave|oxford|loafer|dressflats'),
     ('head', r'\bhead\b|face|skull|_hd\b'),
     ('robe', r'robe|kimono|cassock|habit|gown'),
-    ('upperGarment', r'shirt|tunic|kosode|jacket|\bcoat\b|\bvest\b|\btop\b|torso|upperbody|blouse|doublet|haori|turtleneck|scoopneck|crewneck|buttonopen|buttondown'),
+    ('upperGarment', r'shirt|tunic|kosode|jacket|\bcoat\b|\bvest\b|\btop\b|torso|upperbody|blouse|doublet|turtleneck|scoopneck|crewneck|buttonopen|buttondown'),
     ('lowerGarment', r'pants|jeans|trouser|slacks|skirt|hakama|\blegs?\b|lowerbody|breeches|kilt'),
     # Word boundaries matter more here than anywhere else: without them `pack` matched every asset
     # in a pack whose folder is called `..._Motion_Pack`, and `cap` matches "capture", "escape" and
     # "capacity". The same lesson applies to `top_` under upperGarment.
-    ('accessory', r'\bhat\b|\bobi\b|maekake|apron|hood|helm|\bcap\b|\bbelt\b|scarf|\bbag\b|\bpack\b|pouch|jewel|necklace|earring|beads|mask|cloak|cape|glove|gauntlet|bracer|holster|patch|drops'),
+    ('accessory', r'\bhat\b|\bobi\b|haori|maekake|apron|hood|helm|\bcap\b|\bbelt\b|scarf|\bbag\b|\bpack\b|pouch|jewel|necklace|earring|beads|mask|cloak|cape|glove|gauntlet|bracer|holster|patch|drops'),
     ('armor', r'armou?r|lamellar|cuirass|breastplate|pauldron|chainmail|plate_|bulletproof'),
     # `sk_`/`skm_` is the catch-all of last resort: in practice every skeletal mesh in a project
     # matches it, including pickaxes, lockers, flashlights and deer. That is only safe because
@@ -80,12 +80,13 @@ TAG_PATTERNS = [
     ('heavy', r'heavy|fat|large|bulk'),
     ('muscular', r'muscul|strong|athletic|buff'),
     ('average', r'average|medium|normal|standard'),
-    ('kimono', r'kimono|kosode|haori|yukata'),
+    ('kimono', r'kimono|kosode|yukata'),
     ('hakama', r'hakama'),
     ('obi', r'(?<![a-z])obi(?![a-z])'),
     ('robe', r'robe|gown|cassock|habit|kosode_wide|moskirt'),
     ('tunic', r'tunic|shirt|blouse|doublet|kosode'),
-    ('coat', r'coat|jacket|cloak|haori'),
+    ('coat', r'coat|jacket|cloak|kosode'),
+    ('haori', r'haori'),
     ('trousers', r'trouser|pants|breeches|legs?_|hakama'),
     ('skirt', r'skirt|dress'),
     ('wrap', r'wrap|sash|drape|kosode_wide|(?<![a-z])obi(?![a-z])'),

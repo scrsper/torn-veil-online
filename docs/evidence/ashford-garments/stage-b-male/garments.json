@@ -5,223 +5,51 @@
  "visibleCharacters": 10,
  "retargeted": 10,
  "unresolvedSlots": 2,
- "wearingAshford": 9,
+ "wearingAshford": 8,
  "stillWearingModern": 0,
  "modernGarmentsByPerson": {},
- "distinctAshfordOutfits": 6,
+ "distinctAshfordOutfits": 7,
  "outfitCounts": {
-  "Hakama+Kosode_Work+Waraji": 2,
-  "Hakama+Kosode_Work+Obi+Waraji": 2,
   "Geta+Hakama+Kosode_Work": 2,
-  "Geta+Hakama_Short+Kosode_Work": 1,
+  "Hakama+Kosode_Work+Obi+Waraji": 1,
+  "Geta+Hakama_Short+Kosode_Work+Obi": 1,
   "Geta+Hakama+Kosode_Work+Obi": 1,
-  "Hakama_Short+Haori+TabiBoot": 1
+  "Geta+Hakama_Short+Kosode_Work": 1,
+  "Hakama+Kosode_Work+Waraji": 1,
+  "Hakama_Short+Haori+Kosode_Work+TabiBoot": 1
  },
  "largestIdenticalGroup": 2,
  "fitsUsed": {
-  "male_nrw": 3,
-  "female_nrw": 2,
   "female_unw": 3,
-  "male_unw": 1
+  "male_unw": 2,
+  "female_nrw": 1,
+  "male_nrw": 2
  },
  "pieceUsage": {
-  "Hakama": 7,
+  "Hakama": 5,
   "Kosode_Work": 8,
-  "Waraji": 4,
   "Obi": 3,
-  "Geta": 4,
-  "Hakama_Short": 2,
+  "Waraji": 2,
+  "Geta": 5,
+  "Hakama_Short": 3,
   "Haori": 1,
   "TabiBoot": 1
  },
  "people": [
   {
-   "bodyId": "b_4",
-   "name": "Aster Hart",
-   "occupation": null,
-   "location": [
-    2050.0,
-    2103.503802038904,
-    2490.0
-   ],
-   "yaw": 17.655857086181644,
-   "posture": "stand",
-   "activity": "work",
-   "embodiment": {
-    "signature": "u6go00",
-    "foundryComplete": true,
-    "foundryProblems": 4,
-    "visibleCharacter": true,
-    "retargeted": true,
-    "parts": 6,
-    "unresolvedSlots": 0
-   },
-   "meshes": [
-    {
-     "slot": "body",
-     "mesh": "/Game/CitySampleCrowd/Character/Male/NormalWeight/Meshes/m_tal_nrw_body"
-    },
-    {
-     "slot": "part",
-     "mesh": "/Game/CitySampleCrowd/Character/Male/m_005/Face/m_005_nrw_FaceMesh"
-    },
-    {
-     "slot": "part",
-     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Kosode_Work_male_nrw"
-    },
-    {
-     "slot": "part",
-     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Hakama_male_nrw"
-    },
-    {
-     "slot": "part",
-     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Waraji_male_nrw"
-    },
-    {
-     "slot": "groom",
-     "mesh": "/Game/CitySampleCrowd/Character/Male/m_001/Hair/Hair/Hair_S_AfroFade"
-    },
-    {
-     "slot": "groom",
-     "mesh": "/Game/CitySampleCrowd/Character/Male/m_003/Hair/Hair/Goatee_S_ChinStrap"
-    }
-   ],
-   "ashfordPieces": [
-    "Hakama",
-    "Kosode_Work",
-    "Waraji"
-   ],
-   "ashfordParts": 3,
-   "modernGarments": [],
-   "fit": "male_nrw"
-  },
-  {
-   "bodyId": "b_16",
-   "name": "Dain Juniper",
-   "occupation": null,
-   "location": [
-    349.9999988463969,
-    3900.6409016339603,
-    2490.0
-   ],
-   "yaw": 89.9999923706055,
-   "posture": "sit",
-   "activity": "socialize",
-   "embodiment": {
-    "signature": "1dwauee",
-    "foundryComplete": true,
-    "foundryProblems": 5,
-    "visibleCharacter": true,
-    "retargeted": true,
-    "parts": 6,
-    "unresolvedSlots": 0
-   },
-   "meshes": [
-    {
-     "slot": "body",
-     "mesh": "/Game/CitySampleCrowd/Character/Female/NormalWeight/Meshes/f_tal_nrw_body"
-    },
-    {
-     "slot": "part",
-     "mesh": "/Game/CitySampleCrowd/Character/Female/f_005/Face/f_005_nrw_FaceMesh"
-    },
-    {
-     "slot": "part",
-     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Kosode_Work_female_nrw"
-    },
-    {
-     "slot": "part",
-     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Hakama_female_nrw"
-    },
-    {
-     "slot": "part",
-     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Waraji_female_nrw"
-    },
-    {
-     "slot": "part",
-     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Obi_female_nrw"
-    },
-    {
-     "slot": "groom",
-     "mesh": "/Game/CitySampleCrowd/Character/Female/f_004/Hair/Hair/Hair_S_Updo"
-    }
-   ],
-   "ashfordPieces": [
-    "Hakama",
-    "Kosode_Work",
-    "Obi",
-    "Waraji"
-   ],
-   "ashfordParts": 4,
-   "modernGarments": [],
-   "fit": "female_nrw"
-  },
-  {
-   "bodyId": "b_1",
-   "name": "Galen Fen",
-   "occupation": null,
-   "location": [
-    1166.4216378305355,
-    5533.578362152548,
-    2490.0
-   ],
-   "yaw": 134.99999999999997,
-   "posture": "move",
-   "activity": "travel",
-   "embodiment": {
-    "signature": "1e5ldwc",
-    "foundryComplete": true,
-    "foundryProblems": 5,
-    "visibleCharacter": true,
-    "retargeted": true,
-    "parts": 4,
-    "unresolvedSlots": 1
-   },
-   "meshes": [
-    {
-     "slot": "body",
-     "mesh": "/Game/CitySampleCrowd/Character/Female/UnderWeight/Meshes/f_tal_unw_body"
-    },
-    {
-     "slot": "part",
-     "mesh": "/Game/CitySampleCrowd/Character/Female/f_006/Face/f_006_nrw_FaceMesh"
-    },
-    {
-     "slot": "part",
-     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Kosode_Work_female_unw"
-    },
-    {
-     "slot": "part",
-     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Hakama_Short_female_unw"
-    },
-    {
-     "slot": "part",
-     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Geta_female_unw"
-    }
-   ],
-   "ashfordPieces": [
-    "Geta",
-    "Hakama_Short",
-    "Kosode_Work"
-   ],
-   "ashfordParts": 3,
-   "modernGarments": [],
-   "fit": "female_unw"
-  },
-  {
    "bodyId": "b_14",
    "name": "Galen Ives",
    "occupation": null,
    "location": [
-    261.8163607556198,
-    4052.5224112967408,
+    191.65621345164254,
+    4049.447317281738,
     2490.0
    ],
-   "yaw": -176.19137573242188,
+   "yaw": 0.33303567767143644,
    "posture": "stand",
    "activity": "idle",
    "embodiment": {
-    "signature": "1efqw8",
+    "signature": "o22cst",
     "foundryComplete": true,
     "foundryProblems": 4,
     "visibleCharacter": true,
@@ -266,36 +94,121 @@
    "fit": "female_unw"
   },
   {
-   "bodyId": "b_12",
-   "name": "Lark Ives",
+   "bodyId": "b_13",
+   "name": "Rhea Ives 2",
    "occupation": null,
    "location": [
-    273.3330091168682,
-    3958.556475768637,
+    438.5995504038874,
+    3961.5004996991047,
     2490.0
    ],
-   "yaw": -149.34942626953128,
-   "posture": "sit",
-   "activity": "socialize",
+   "yaw": -45.107452392578125,
+   "posture": "stand",
+   "activity": "idle",
    "embodiment": {
-    "signature": "1js3n05",
+    "signature": "kbmw7t",
     "foundryComplete": true,
-    "foundryProblems": 2,
+    "foundryProblems": 4,
     "visibleCharacter": true,
     "retargeted": true,
-    "parts": 0,
+    "parts": 5,
     "unresolvedSlots": 0
    },
    "meshes": [
     {
      "slot": "body",
-     "mesh": "/Game/QuantumCharacter/Mesh/SKM_QuantumCharacter"
+     "mesh": "/Game/CitySampleCrowd/Character/Male/UnderWeight/Meshes/m_tal_unw_body"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/CitySampleCrowd/Character/Male/m_004/Face/m_004_nrw_FaceMesh"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Kosode_Work_male_unw"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Hakama_male_unw"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Geta_male_unw"
+    },
+    {
+     "slot": "groom",
+     "mesh": "/Game/CitySampleCrowd/Character/Male/m_006/Hair/Hair/Hair_S_HairLoss"
     }
    ],
-   "ashfordPieces": [],
-   "ashfordParts": 0,
+   "ashfordPieces": [
+    "Geta",
+    "Hakama",
+    "Kosode_Work"
+   ],
+   "ashfordParts": 3,
    "modernGarments": [],
-   "fit": null
+   "fit": "male_unw"
+  },
+  {
+   "bodyId": "b_9",
+   "name": "Thora Alder",
+   "occupation": null,
+   "location": [
+    349.4780601638922,
+    4072.2521075200348,
+    2490.0
+   ],
+   "yaw": -78.07785034179686,
+   "posture": "stand",
+   "activity": "idle",
+   "embodiment": {
+    "signature": "5yfbss",
+    "foundryComplete": true,
+    "foundryProblems": 3,
+    "visibleCharacter": true,
+    "retargeted": true,
+    "parts": 6,
+    "unresolvedSlots": 0
+   },
+   "meshes": [
+    {
+     "slot": "body",
+     "mesh": "/Game/CitySampleCrowd/Character/Male/UnderWeight/Meshes/m_tal_unw_body"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/CitySampleCrowd/Character/Male/m_006/Face/m_006_nrw_FaceMesh"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Kosode_Work_male_unw"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Hakama_Short_male_unw"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Geta_male_unw"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Obi_male_unw"
+    },
+    {
+     "slot": "groom",
+     "mesh": "/Game/CitySampleCrowd/Character/Male/m_002/Hair/Hair/Hair_S_CurlyFade"
+    }
+   ],
+   "ashfordPieces": [
+    "Geta",
+    "Hakama_Short",
+    "Kosode_Work",
+    "Obi"
+   ],
+   "ashfordParts": 4,
+   "modernGarments": [],
+   "fit": "male_unw"
   },
   {
    "bodyId": "b_141",
@@ -310,7 +223,7 @@
    "posture": "stand",
    "activity": "idle",
    "embodiment": {
-    "signature": "oewzgr",
+    "signature": "zb8zm3",
     "foundryComplete": true,
     "foundryProblems": 3,
     "visibleCharacter": true,
@@ -358,15 +271,15 @@
    "name": "Yara Ives",
    "occupation": null,
    "location": [
-    267.9923288475038,
-    4147.268428152893,
+    248.7957790675864,
+    4130.365842208994,
     2490.0
    ],
-   "yaw": 170.59593200683594,
+   "yaw": 83.34541320800778,
    "posture": "stand",
    "activity": "idle",
    "embodiment": {
-    "signature": "1sqt9x2",
+    "signature": "8ree0b",
     "foundryComplete": true,
     "foundryProblems": 5,
     "visibleCharacter": true,
@@ -415,77 +328,73 @@
    "fit": "female_nrw"
   },
   {
-   "bodyId": "b_2",
+   "bodyId": "b_1",
    "name": "an unfamiliar person",
    "occupation": null,
    "location": [
-    6750.0,
-    997.5054001588433,
-    2490.0
+    -1850.0,
+    12850.0,
+    2590.0
    ],
-   "yaw": 65.95613098144531,
+   "yaw": 112.56919860839845,
    "posture": "stand",
    "activity": "work",
    "embodiment": {
-    "signature": "l8ijgs",
+    "signature": "1wkhgfg",
     "foundryComplete": true,
-    "foundryProblems": 4,
+    "foundryProblems": 5,
     "visibleCharacter": true,
     "retargeted": true,
-    "parts": 5,
-    "unresolvedSlots": 0
+    "parts": 4,
+    "unresolvedSlots": 1
    },
    "meshes": [
     {
      "slot": "body",
-     "mesh": "/Game/CitySampleCrowd/Character/Male/NormalWeight/Meshes/m_tal_nrw_body"
+     "mesh": "/Game/CitySampleCrowd/Character/Female/UnderWeight/Meshes/f_tal_unw_body"
     },
     {
      "slot": "part",
-     "mesh": "/Game/CitySampleCrowd/Character/Male/m_001/Face/m_001_nrw_FaceMesh"
+     "mesh": "/Game/CitySampleCrowd/Character/Female/f_006/Face/f_006_nrw_FaceMesh"
     },
     {
      "slot": "part",
-     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Haori_male_nrw"
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Kosode_Work_female_unw"
     },
     {
      "slot": "part",
-     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Hakama_Short_male_nrw"
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Hakama_Short_female_unw"
     },
     {
      "slot": "part",
-     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_TabiBoot_male_nrw"
-    },
-    {
-     "slot": "groom",
-     "mesh": "/Game/CitySampleCrowd/Character/Male/m_001/Hair/Hair/Hair_S_AfroFade"
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Geta_female_unw"
     }
    ],
    "ashfordPieces": [
+    "Geta",
     "Hakama_Short",
-    "Haori",
-    "TabiBoot"
+    "Kosode_Work"
    ],
    "ashfordParts": 3,
    "modernGarments": [],
-   "fit": "male_nrw"
+   "fit": "female_unw"
   },
   {
-   "bodyId": "b_7",
+   "bodyId": "b_4",
    "name": "an unfamiliar person",
    "occupation": null,
    "location": [
-    1905.2637803786638,
-    2250.000037216887,
+    2849.999999440479,
+    -1632.2343457297393,
     2490.0
    ],
-   "yaw": 3.5177116394043164,
+   "yaw": -89.9999771118164,
    "posture": "stand",
-   "activity": "work",
+   "activity": "idle",
    "embodiment": {
-    "signature": "su2jbh",
+    "signature": "1qkmbi5",
     "foundryComplete": true,
-    "foundryProblems": 3,
+    "foundryProblems": 4,
     "visibleCharacter": true,
     "retargeted": true,
     "parts": 6,
@@ -498,7 +407,7 @@
     },
     {
      "slot": "part",
-     "mesh": "/Game/CitySampleCrowd/Character/Male/m_002/Face/m_002_nrw_FaceMesh"
+     "mesh": "/Game/CitySampleCrowd/Character/Male/m_005/Face/m_005_nrw_FaceMesh"
     },
     {
      "slot": "part",
@@ -514,11 +423,11 @@
     },
     {
      "slot": "groom",
-     "mesh": "/Game/CitySampleCrowd/Character/Male/m_003/Hair/Hair/Hair_M_SideSweptFringe"
+     "mesh": "/Game/CitySampleCrowd/Character/Male/m_001/Hair/Hair/Hair_S_AfroFade"
     },
     {
      "slot": "groom",
-     "mesh": "/Game/CitySampleCrowd/Character/Male/m_001/Hair/Hair/Beard_S_Stubble"
+     "mesh": "/Game/CitySampleCrowd/Character/Male/m_003/Hair/Hair/Goatee_S_ChinStrap"
     }
    ],
    "ashfordPieces": [
@@ -531,21 +440,57 @@
    "fit": "male_nrw"
   },
   {
-   "bodyId": "b_6",
+   "bodyId": "b_10",
    "name": "an unfamiliar person",
    "occupation": null,
    "location": [
-    7050.278497450927,
-    8127.54918970204,
+    332.5553852100711,
+    3947.9853447672212,
     2490.0
    ],
-   "yaw": 90.71073913574219,
-   "posture": "lie",
-   "activity": "rest",
+   "yaw": -2.2346715927124023,
+   "posture": "stand",
+   "activity": "idle",
    "embodiment": {
-    "signature": "olf48p",
+    "signature": "xyca35",
     "foundryComplete": true,
-    "foundryProblems": 5,
+    "foundryProblems": 3,
+    "visibleCharacter": true,
+    "retargeted": true,
+    "parts": 1,
+    "unresolvedSlots": 0
+   },
+   "meshes": [
+    {
+     "slot": "body",
+     "mesh": "/Game/Polytope_Studio/Modular_Armors/Meshes/Sets/SK_Male_Armor_cloth_00"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/Polytope_Studio/Modular_Armors/Meshes/Separate_Parts/SK_Male_Armor_hair_20"
+    }
+   ],
+   "ashfordPieces": [],
+   "ashfordParts": 0,
+   "modernGarments": [],
+   "fit": null
+  },
+  {
+   "bodyId": "b_2",
+   "name": "an unfamiliar person",
+   "occupation": null,
+   "location": [
+    -1688.2961009472638,
+    11891.622588878454,
+    2590.0
+   ],
+   "yaw": 136.59196472167966,
+   "posture": "stand",
+   "activity": "carry",
+   "embodiment": {
+    "signature": "y5t5z5",
+    "foundryComplete": true,
+    "foundryProblems": 4,
     "visibleCharacter": true,
     "retargeted": true,
     "parts": 6,
@@ -554,80 +499,114 @@
    "meshes": [
     {
      "slot": "body",
-     "mesh": "/Game/CitySampleCrowd/Character/Male/UnderWeight/Meshes/m_tal_unw_body"
+     "mesh": "/Game/CitySampleCrowd/Character/Male/NormalWeight/Meshes/m_tal_nrw_body"
     },
     {
      "slot": "part",
-     "mesh": "/Game/CitySampleCrowd/Character/Male/m_006/Face/m_006_nrw_FaceMesh"
+     "mesh": "/Game/CitySampleCrowd/Character/Male/m_001/Face/m_001_nrw_FaceMesh"
     },
     {
      "slot": "part",
-     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Kosode_Work_male_unw"
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Kosode_Work_male_nrw"
     },
     {
      "slot": "part",
-     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Hakama_male_unw"
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Hakama_Short_male_nrw"
     },
     {
      "slot": "part",
-     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Geta_male_unw"
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_TabiBoot_male_nrw"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Haori_male_nrw"
     },
     {
      "slot": "groom",
-     "mesh": "/Game/CitySampleCrowd/Character/Male/m_006/Hair/Hair/Hair_S_HairLoss"
-    },
-    {
-     "slot": "groom",
-     "mesh": "/Game/CitySampleCrowd/Character/Male/m_002/Hair/Hair/Beard_S_Full"
+     "mesh": "/Game/CitySampleCrowd/Character/Male/m_001/Hair/Hair/Hair_S_AfroFade"
     }
    ],
    "ashfordPieces": [
-    "Geta",
-    "Hakama",
-    "Kosode_Work"
+    "Hakama_Short",
+    "Haori",
+    "Kosode_Work",
+    "TabiBoot"
    ],
-   "ashfordParts": 3,
+   "ashfordParts": 4,
    "modernGarments": [],
-   "fit": "male_unw"
+   "fit": "male_nrw"
+  },
+  {
+   "bodyId": "b_12",
+   "name": "an unfamiliar person",
+   "occupation": null,
+   "location": [
+    6750.000000198634,
+    2811.1338470818737,
+    2490.0
+   ],
+   "yaw": -90.00003051757814,
+   "posture": "move",
+   "activity": "carry",
+   "embodiment": {
+    "signature": "1js3n05",
+    "foundryComplete": true,
+    "foundryProblems": 2,
+    "visibleCharacter": true,
+    "retargeted": true,
+    "parts": 0,
+    "unresolvedSlots": 0
+   },
+   "meshes": [
+    {
+     "slot": "body",
+     "mesh": "/Game/QuantumCharacter/Mesh/SKM_QuantumCharacter"
+    }
+   ],
+   "ashfordPieces": [],
+   "ashfordParts": 0,
+   "modernGarments": [],
+   "fit": null
   }
  ],
  "subject": {
-  "name": "Aster Hart",
+  "name": "Thora Alder",
   "occupation": null,
   "pieces": [
-   "Hakama",
+   "Geta",
+   "Hakama_Short",
    "Kosode_Work",
-   "Waraji"
+   "Obi"
   ],
-  "fit": "male_nrw",
+  "fit": "male_unw",
   "meshes": [
    {
     "slot": "body",
-    "mesh": "/Game/CitySampleCrowd/Character/Male/NormalWeight/Meshes/m_tal_nrw_body"
+    "mesh": "/Game/CitySampleCrowd/Character/Male/UnderWeight/Meshes/m_tal_unw_body"
    },
    {
     "slot": "part",
-    "mesh": "/Game/CitySampleCrowd/Character/Male/m_005/Face/m_005_nrw_FaceMesh"
+    "mesh": "/Game/CitySampleCrowd/Character/Male/m_006/Face/m_006_nrw_FaceMesh"
    },
    {
     "slot": "part",
-    "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Kosode_Work_male_nrw"
+    "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Kosode_Work_male_unw"
    },
    {
     "slot": "part",
-    "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Hakama_male_nrw"
+    "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Hakama_Short_male_unw"
    },
    {
     "slot": "part",
-    "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Waraji_male_nrw"
+    "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Geta_male_unw"
+   },
+   {
+    "slot": "part",
+    "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Obi_male_unw"
    },
    {
     "slot": "groom",
-    "mesh": "/Game/CitySampleCrowd/Character/Male/m_001/Hair/Hair/Hair_S_AfroFade"
-   },
-   {
-    "slot": "groom",
-    "mesh": "/Game/CitySampleCrowd/Character/Male/m_003/Hair/Hair/Goatee_S_ChinStrap"
+    "mesh": "/Game/CitySampleCrowd/Character/Male/m_002/Hair/Hair/Hair_S_CurlyFade"
    }
   ]
  },

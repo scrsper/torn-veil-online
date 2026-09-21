@@ -169,6 +169,27 @@ describe('the manifest asks for parts, not assets', () => {
     expect(rules.find(r => r.slot === 'head')?.optional).toBe(false);
   });
 
+  it('never lets an open over-layer be somebody\'s only upper garment', () => {
+    // A haori is open at the front, and a City Sample body is hands only -- there is no torso
+    // under it. One resolving as the upper garment is therefore a hole in the chest, which is
+    // what the Ashford 33 had on a miller, a woodcutter and a bandit: it was answering `coat`
+    // and `kimono` because those were honest tags for it. It is an accessory now, and the
+    // travelling silhouettes take a kosode underneath.
+    const base = resolveAppearance({ seed: 3, identity: 'woodcutter', age: 34, gender: 'm', occupation: 'woodcutter', wealth: 60 }).description!;
+    const travelling: ProjectedAppearanceDescription = { ...projectAppearanceDescription(base, 34, 'woodcutter'), garmentSilhouette: 'travel_coat' };
+    const rules = slotRules(travelling);
+    const upper = rules.find(r => r.slot === 'upperGarment');
+    expect(upper).toBeDefined();
+    expect(upper!.required).not.toContain('haori');
+    expect(rules.some(r => r.slot === 'accessory' && r.required.includes('haori'))).toBe(true);
+
+    const input = syntheticInput({ identity: 'foundry:woodcutter', age: 34, gender: 'm', occupation: 'woodcutter', wealth: 60 });
+    const realization = realizeCharacter({ ...input, traits: travelling }, richCatalogue());
+    const upperMesh = realization.slots.find(s => s.slot === 'upperGarment');
+    expect(upperMesh).toBeDefined();
+    expect(upperMesh!.name.toLowerCase()).not.toContain('haori');
+  });
+
   it('dresses even ceremonial wear as two pieces, and ties every wrapped silhouette', () => {
     // Ashford has no one-piece robe. All eight reference sheets show an upper layer over a
     // separate lower one, so no silhouette populates `GarmentShape.robe` and the `robe` slot is

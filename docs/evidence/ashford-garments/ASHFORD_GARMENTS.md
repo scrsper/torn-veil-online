@@ -228,19 +228,64 @@ its own fit — the two were checked as photographs, not as "the same mesh loade
 | | |
 | --- | --- |
 | residents streamed and visible | **10 / 10** |
-| wearing Ashford | **9** |
+| wearing Ashford | **8** |
 | still wearing modern clothing | **0** |
 | distinct Ashford outfits | 6 |
-| largest identical group | 2 |
-| pieces on screen at once | Kosode_Work 8, Hakama 7, Waraji 4, Geta 4, Obi 3, Hakama_Short 2, Haori 1, TabiBoot 1 |
+| largest identical group | 3 |
+| pieces on screen at once | Kosode_Work 8, Hakama 5, Geta 5, Hakama_Short 3, Obi 3, Waraji 2, Haori 1, TabiBoot 1 |
 
-The tenth is the Quantum-bodied resident from §7 — the one in the group shot wearing a modern
-tactical vest is the *player avatar*, not a resident.
+The two not in Ashford dress are the Polytope- and Quantum-bodied residents from §7, whose
+clothing is part of their body mesh. Stage B reached 10 visible / 8 Ashford / **7 distinct
+outfits** in the same session.
 
 Ten is what the bridge streams, not what the Foundry can dress: only residents within the
 streaming radius and line of sight of the player are embodied at all, which is why no screenshot
 of thirty-three people standing together exists here and none is claimed. The 33-resident result
 is the headless measurement below, exactly as PR #48 reported its own Ashford 33.
+
+### Role coverage
+
+`roles/role-lineup.jpg`. Seven trades side by side, orthographic so no figure is favoured by
+perspective. **Nothing in it is dressed by hand**: every figure’s pieces, fit family, palette
+and wear are read out of `roleLineup` in `.debug/character-foundry/ashford-wardrobe-33.json`,
+which is the resolver’s own output for the canonical population.
+
+| role | fit | palette | wear | outfit |
+| --- | --- | --- | --- | --- |
+| farmer | male unw | temple_slate | .49 | kosode + hakama + waraji |
+| baker | male nrw | ascetic_bone | .51 | kosode + short hakama + apron + obi + geta |
+| smith | male ovw | earth_work | .38 | wide kosode + wrapped skirt + apron + obi + waraji |
+| merchant | female unw | earth_work | .46 | kosode + hakama + obi + waraji |
+| traveler | male nrw | temple_slate | .41 | kosode + hakama + obi + geta |
+| guard | female nrw | watch_vermilion | .50 | kosode + short hakama + obi + waraji |
+| elder | male unw | blossom_violet | .22 | wide kosode + wrapped skirt + obi + geta |
+
+Seven trades, seven silhouettes, six palettes, five fit families, out of eleven pieces. The
+trades that work with their hands get an apron and a short hakama; the two who do not get wide
+sleeves and a wrapped skirt; the guard is the only vermilion figure in the settlement.
+
+One combination is odd and is the simulation’s own call rather than the wardrobe’s: the smith
+is `comfortable` and canonically wears a `layered_kimono`, so he gets wide sleeves and a wrapped
+skirt at a forge. The mapping from that silhouette is faithful to the sheets it came from; if a
+master smith should not dress that way, the fix belongs in the appearance layer, not here.
+
+#### The defect this pass found: a haori worn with nothing under it
+
+Checking role appropriateness across all twenty occupations turned up a miller, a woodcutter and
+a bandit whose *only* upper garment was a **haori** — an open-fronted over-layer. It carried
+`coat` and `kimono` honestly, so it answered those requests and won the tie-break.
+
+On this body that is not a styling error. City Sample bodies are **hands only**, so there is no
+torso under an open coat: rendered alone the haori is a shell with a void where the chest should
+be, and only the face mesh’s neck and upper chest keep it from being obvious head-on. It was in
+every PIE frame this slice first captured, on one resident — which is why those frames were
+re-shot rather than kept.
+
+The haori is an **accessory** now, so it can only ever be worn over something, and the travelling
+silhouettes take a kosode underneath: in this culture a kosode is what you travel in and the
+haori goes over it. A second tie-break went the same way — a plain `kimono` request for the
+`hakama_set` silhouette now prefers the *working* cut, which had been putting a miller at a
+millstone in hanging sleeves. Both are pinned by tests.
 
 ### Motion and combat
 
@@ -313,7 +358,7 @@ replaces. Two honest costs against that:
 
 ## 9. Reference fidelity
 
-`reference/hana-vs-result.png`, `kaito-vs-result.png`, `ascetic-vs-result.png`. Rendered in
+`reference/hana-vs-result.jpg`, `kaito-vs-result.jpg`, `ascetic-vs-result.jpg`. Rendered in
 Blender on the same City Sample bind pose the engine uses, in each family's canonical palette —
 not PIE screenshots, because the sheets are front-on studio figures and a resident is neither on
 demand. No reconstruction is claimed.
@@ -366,10 +411,11 @@ them, so expect them to show as modified after an import.
 | --- | --- | --- |
 | Unreal editor C++ | `unreal/scripts/Build.ps1` | Succeeded |
 | TypeScript | `npm run typecheck` | clean |
-| Foundry, appearance, determinism, persistence, bridge, playable world | `npx vitest run tests/character-foundry tests/character-appearance tests/determinism tests/persistence tests/bridge tests/bridgeVisualState tests/bridge-humanoid-presence tests/bridge-streaming tests/playable-world` | **16 files, 126 tests passed** |
+| Foundry, appearance, determinism, persistence, bridge, playable world | `npx vitest run tests/character-foundry tests/character-appearance tests/determinism tests/persistence tests/bridge tests/bridgeVisualState tests/bridge-humanoid-presence tests/bridge-streaming tests/playable-world` | **16 files, 127 tests passed** |
 | Audit classifier | `python unreal/scripts/test_character_asset_audit.py` | 9/9 (4 new) |
 | Population resolution | `npm run foundry:report` | 33/33 complete, 0 mannequin fallbacks |
 | Wardrobe coverage | `npm run ashford:wardrobe -- 1337 [10\|0]` | 9/9 and 25/25 Ashford, 0 foreign |
+| Role coverage | `blender --background --python art/tools/ashford_garments/role_lineup.py` | 7/7 roles present, 7 distinct outfits |
 | Fail-soft contract | `npm run foundry:fallback` | PASS — 10 lost a body, 49 fit-dependent slots re-fitted, everyone else untouched |
 | PIE | live bridge + editor PIE | 10 visible, 9 Ashford, 0 modern |
 | Combat | `Run-CombatProbe.ps1 -Mode repeat -Capture` | complete; 24 inputs, 12 attacks played, 272 frames |
@@ -400,9 +446,10 @@ Observed, not speculative.
 5. **`city:female:ovw` is unexercised.** Built and imported; no resident in the Ashford sample
    resolves to it.
 6. **The shoulder reads slightly padded** where the sleeve root meets the body tube.
-7. **`robe` and `armor` are never requested any more** — the first by design (§6), the second
-   still unmet, so a lamellar-armoured resident resolves to a kosode and hakama with no armour
-   over them.
+7. **`armor` is still never met.** A lamellar-armoured resident resolves to a kosode and hakama
+   with no armour over them. (`robe` is never requested, by design — §6.)
+9. **The smith reads oddly** (§7, role coverage): wide sleeves and a wrapped skirt at a forge.
+   That silhouette is canonical, so the fix belongs in the appearance layer rather than here.
 8. **Group photography is limited by the bridge's streaming radius**, not by the wardrobe.
 
 ---
