@@ -15,7 +15,11 @@ either succeeded or it did not.
 #>
 param(
     [Parameter(Mandatory = $true)][string]$Script,
-    [string]$Engine = 'C:\Program Files\Epic Games\UE_5.8'
+    [string]$Engine = 'C:\Program Files\Epic Games\UE_5.8',
+    # Commandlets run on the null RHI, so anything that touches a skinned component's render
+    # MeshObject dies on an assertion rather than failing (`SkinnedMeshComponent.cpp:4987` --
+    # which is what FBX skeletal-mesh export does). Pass -Render for those scripts.
+    [switch]$Render
 )
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path "$PSScriptRoot/../..").Path
@@ -24,5 +28,8 @@ $scriptPath = (Resolve-Path $Script).Path
 $project = "$repo/unreal/TornVeilOnline/TornVeilOnline.uproject"
 $cmd = "$Engine/Engine/Binaries/Win64/UnrealEditor-Cmd.exe"
 if (!(Test-Path $cmd)) { throw "UnrealEditor-Cmd.exe not found at $cmd - pass -Engine <path to UE_5.8>." }
-& $cmd "$project" -run=pythonscript -script="$scriptPath" -unattended -nosplash -nosound -stdout -FullStdOutLogOutput
+# [string[]] is load-bearing: an `if` returning a one-element array yields a bare string, and
+# splatting a string passes it one character at a time.
+[string[]]$extra = if ($Render) { '-AllowCommandletRendering' } else { @() }
+& $cmd "$project" -run=pythonscript -script="$scriptPath" -unattended -nosplash -nosound -stdout -FullStdOutLogOutput @extra
 if ($LASTEXITCODE -ne 0) { throw "Editor python script failed ($LASTEXITCODE): $Script" }
