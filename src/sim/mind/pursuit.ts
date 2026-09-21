@@ -1,3 +1,4 @@
+import { knowledgeItems } from './knowledgeView';
 import { knownPlaceForPerson } from '../world/locality';
 import { socialMotivation } from './socialEvidence';
 import type { Concern, EntityId, EventId, Goal, GoalType, Item, Obligation, Person, Pursuit, PursuitKind, PursuitStatus, Vec3 } from '../core/types';
@@ -192,7 +193,7 @@ export function formPursuits(world: World, p: Person): Pursuit[] {
   }
   // Someone else asked me to find something and I said I would (the `wanted:` belief is the
   // record of that). Same purpose, different owner.
-  for (const k of Object.values(p.knowledge)) {
+  for (const k of knowledgeItems(p)) {
     if (k.kind !== 'fact' || !k.claim.wantedItem || !k.claim.itemId) continue;
     const requesterId = k.claim.requesterId as EntityId | undefined;
     if (!requesterId || requesterId === p.id) continue;
@@ -353,7 +354,7 @@ export function believedHarm(world: World, p: Person, subjectId: EntityId): numb
     if (state === 'unharmed') return 0;
   }
   let worst = 0;
-  for (const k of Object.values(p.knowledge)) {
+  for (const k of knowledgeItems(p)) {
     if (k.kind !== 'event' || k.claim.target !== subjectId) continue;
     const type = k.claim.type as string;
     if (type !== 'attack' && type !== 'kill') continue;
@@ -565,7 +566,7 @@ function reciprocateSteps(world: World, p: Person, pu: Pursuit): PursuitStep[] {
     });
   }
   // They have lost something and I happen to know where it is.
-  for (const k of Object.values(p.knowledge)) {
+  for (const k of knowledgeItems(p)) {
     if (k.kind !== 'fact' || !k.claim.wantedItem || k.claim.requesterId !== towardId) continue;
     const itemId = k.claim.itemId as EntityId;
     const it = world.item(itemId); const loc = p.knowledge[`loc:${itemId}`];

@@ -6,6 +6,10 @@ export class SpatialIndex<T extends { id: string }> {
   private cells = new Map<T, string[]>();
   private order = new Map<T, number>();
   private oversized = new Set<T>();
+  /** Candidate sets depend only on the queried cell rectangle. Callers still perform their
+   * exact distance/geometry test, so reusing this broad-phase result cannot change semantics. */
+  private queryCache = new Map<string, T[]>();
+  private readonly queryCacheLimit = 256;
   private next = 0;
   candidates = 0;
   constructor(private size = 64) {}
@@ -21,6 +25,7 @@ export class SpatialIndex<T extends { id: string }> {
     }
     const old = this.cells.get(e) ?? [];
     if (large === this.oversized.has(e) && old.length === keys.length && old.every((k, i) => k === keys[i])) return;
+    this.queryCache.clear();
     for (const k of old) { const b = this.buckets.get(k)!; b.delete(e); if (!b.size) this.buckets.delete(k); }
     if (large) this.oversized.add(e); else this.oversized.delete(e);
     this.cells.set(e, keys);
@@ -28,14 +33,21 @@ export class SpatialIndex<T extends { id: string }> {
   }
   point(e: T, pos: Vec3 | null): void { this.update(e, pos ? { x0: pos.x, x1: pos.x, z0: pos.z, z1: pos.z } : null); }
   query(pos: Vec3, radius: number): T[] {
-    const found = new Set(this.oversized);
     const x0 = Math.floor((pos.x - radius) / this.size), x1 = Math.floor((pos.x + radius) / this.size);
     const z0 = Math.floor((pos.z - radius) / this.size), z1 = Math.floor((pos.z + radius) / this.size);
+    const wide = (x1 - x0 + 1) * (z1 - z0 + 1) > 4096;
+    const cacheKey = `${x0},${x1},${z0},${z1},${wide ? 1 : 0}`;
+    const cached = this.queryCache.get(cacheKey);
+    if (cached) { this.candidates += cached.length; return cached.slice(); }
+    const found = new Set(this.oversized);
     // Large legitimate queries may inspect the complete index, never trillions of empty cells.
-    if ((x1 - x0 + 1) * (z1 - z0 + 1) > 4096) for (const [e, keys] of this.cells) { if (keys.length) found.add(e); }
+    if (wide) for (const [e, keys] of this.cells) { if (keys.length) found.add(e); }
     else for (let x = x0; x <= x1; x++) for (let z = z0; z <= z1; z++) for (const e of this.buckets.get(`${x},${z}`) ?? []) found.add(e);
     this.candidates += found.size;
-    return [...found].sort((a, b) => this.order.get(a)! - this.order.get(b)!);
+    const result = [...found].sort((a, b) => this.order.get(a)! - this.order.get(b)!);
+    if (this.queryCache.size >= this.queryCacheLimit) this.queryCache.delete(this.queryCache.keys().next().value!);
+    this.queryCache.set(cacheKey, result);
+    return result.slice();
   }
 }
 

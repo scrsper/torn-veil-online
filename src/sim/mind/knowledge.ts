@@ -1,3 +1,4 @@
+import { knowledgeItems } from './knowledgeView';
 import { perceivedName } from './people';
 import { localPlaces, near } from '../world/locality';
 import type { Person, KnowledgeItem, Source, EntityId, WorldEvent, Vec3, Place, PlaceType } from '../core/types';
@@ -47,7 +48,7 @@ export function learn(world: World, p: Person, k: { key: string; kind: Knowledge
  * `Person.knowledge` had no bound at all — every witnessed event, every heard rumor, every
  * learned location added a permanent entry, unlike `Person.memories` (mind/memory.ts's own
  * MAX_MEMORIES=60, same "computational pragmatism" reasoning). Several hot-path scans read a
- * mind's ENTIRE knowledge map every think() tick (`Object.values(p.knowledge).filter(...)` in
+ * mind's ENTIRE knowledge map every think() tick (`knowledgeItems(p).filter(...)` in
  * mind/agent.ts's think(), knownCrimesBy(), and the gossip-sharing candidate scan in
  * maybeChat()), so as knowledge accumulated across a long run this cost grew with it — measured
  * directly as the dominant driver behind a 30-day headless benchmark (seed 918271) becoming
@@ -404,7 +405,7 @@ export function expectsAffordableFood(world: World, p: Person, placeId: EntityId
 const FOOD_DISTANCE_SCALE = 120;
 export function knownFoodPlace(world: World, p: Person): EntityId | undefined {
   const now = world.now;
-  const candidates = Object.values(p.knowledge).filter(k => k.kind === 'service' && (k.claim.offers as string[])?.includes('food'));
+  const candidates = knowledgeItems(p).filter(k => k.kind === 'service' && (k.claim.offers as string[])?.includes('food'));
   if (!candidates.length) return undefined;
   // v0.8 §P0-D fix (independent audit §3.2/§8): this used to score purely by confidence/recency,
   // with no notion of physical distance — an isolated resident (Old Wyn, living alone at the

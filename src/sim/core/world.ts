@@ -142,6 +142,9 @@ export class World {
   }
   private itemSpace = new SpatialIndex<Item>();
   private placeSpace = new SpatialIndex<Place>();
+  /** Exact point answers, derived from mutable bounds. Coordinate checks handle movement;
+   * watched bounds (including height) and new places invalidate all answers. Never saved. */
+  private placeLookupCache = new Map<Vec3, { x: number; y: number; z: number; place?: Place; candidates: number }>();
   nearbyBodies(pos: Vec3, radius: number): Body[] { return this.bodySpace.query(pos, radius).filter(b => this.livingBodiesSet.has(b.id) && Math.hypot(b.pos.x - pos.x, b.pos.z - pos.z) <= radius); }
   /** Shared physical broad phase, independent of Person cognition/living-person upkeep.
    * Death and withdrawal are separate: a corpse remains present until explicitly removed.
@@ -192,7 +195,10 @@ export class World {
         if (next) { let bucket = this.itemPlaces.get(next); if (!bucket) this.itemPlaces.set(next, bucket = new Set()); bucket.add(i); }
       });
     }
-    if (e.kind === 'place') { const p = e as unknown as Place; watchGeometry(p, 'bounds', ['x0', 'x1', 'z0', 'z1'], () => this.placeSpace.update(p, { ...p.bounds, x1: p.bounds.x1 + 1, z1: p.bounds.z1 + 1 })); }
+    if (e.kind === 'place') { const p = e as unknown as Place; watchGeometry(p, 'bounds', ['x0', 'x1', 'y0', 'y1', 'z0', 'z1'], () => {
+      this.placeLookupCache.clear();
+      this.placeSpace.update(p, { ...p.bounds, x1: p.bounds.x1 + 1, z1: p.bounds.z1 + 1 });
+    }); }
     return e;
   }
   /** Look up an authored entity by its stable slug (e.g. 'rowan', 'ashford-vale', 'watch').
@@ -290,13 +296,22 @@ export class World {
   toggleDoor(pos: Vec3, actor?: EntityId): WorldEvent | null { return this.setDoorOpen(pos, !this.isDoorOpen(pos), actor); }
 
   placeAt(pos: Vec3): Place | undefined {
+    const cached = this.placeLookupCache.get(pos);
+    if (cached && pos.x === cached.x && pos.y === cached.y && pos.z === cached.z) {
+      // Keep the existing logical broad-phase candidate diagnostic comparable on cache hits.
+      this.placeSpace.candidates += cached.candidates;
+      return cached.place;
+    }
     let best: Place | undefined; let bestArea = Infinity;
-    for (const p of this.placeSpace.query(pos, 0)) {
+    const candidates = this.placeSpace.query(pos, 0);
+    for (const p of candidates) {
       const b = p.bounds;
       if (pos.x >= b.x0 && pos.x <= b.x1 + 1 && pos.z >= b.z0 && pos.z <= b.z1 + 1 && pos.y >= b.y0 - 1 && pos.y <= b.y1 + 2) {
         const area = (b.x1 - b.x0) * (b.z1 - b.z0); if (area < bestArea) { best = p; bestArea = area; }
       }
     }
+    if (this.placeLookupCache.size >= 512 && !cached) this.placeLookupCache.delete(this.placeLookupCache.keys().next().value!);
+    this.placeLookupCache.set(pos, { x: pos.x, y: pos.y, z: pos.z, place: best, candidates: candidates.length });
     return best;
   }
   isIndoors(pos: Vec3): boolean { const p = this.placeAt(pos); return !!p && p.indoor; }

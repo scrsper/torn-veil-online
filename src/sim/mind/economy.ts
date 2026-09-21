@@ -1,3 +1,4 @@
+import { knowledgeItems } from './knowledgeView';
 import type { Person } from '../core/types';
 import { World } from '../core/world';
 
@@ -39,7 +40,7 @@ export function laborIncentive(p: Person, world?: World): number {
   // Own witnessed meal quotes let the same incentive express a concrete livelihood need.
   // Two meals of cash is a short planning reserve, not a guaranteed living wage. No remote
   // price or relative's wallet is consulted, and an old quote ceases to be evidence.
-  const quotes = world ? Object.values(p.knowledge).filter(k => k.key.startsWith('food-access:')
+  const quotes = world ? knowledgeItems(p).filter(k => k.key.startsWith('food-access:')
     && world.now - k.learnedAt < 12 * 3600 && Number(k.claim.price) > 0).map(k => Number(k.claim.price)) : [];
   const mealBudget = quotes.length ? Math.min(...quotes) * 2 : 0;
   const foodPressure = mealBudget ? clamp01(1 - p.wealth / mealBudget) * hungerPressure : 0;

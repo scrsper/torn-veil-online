@@ -1,3 +1,4 @@
+import { knowledgeItems } from './knowledgeView';
 import { combatActionFacts } from '../physical/combatFacts';
 import { recentSelfCare } from './recentSelfCare';
 import { finishExternalIntention } from '../runtime/controllers';
@@ -450,7 +451,7 @@ export class Simulation {
       let grievance = 0;
       if (claim.type === 'kill' && (isVictim || victimClose)) grievance = victimClose && isFamily(p, claim.target) ? 0.9 : 0.7;
       else if (claim.type === 'attack' && isVictim && actor) {
-        const priorAssaults = Object.values(p.knowledge).filter(kk => kk.kind === 'event' && kk.claim.type === 'attack' && kk.claim.actor === actor && kk.claim.target === p.id).length;
+        const priorAssaults = knowledgeItems(p).filter(kk => kk.kind === 'event' && kk.claim.type === 'attack' && kk.claim.actor === actor && kk.claim.target === p.id).length;
         if (priorAssaults >= 3) grievance = Math.min(0.55, 0.15 + priorAssaults * 0.08);
       }
       // v0.10 §II "forgive a minor offence": someone I genuinely owe gets more benefit of the
@@ -725,7 +726,7 @@ export class Simulation {
         { targetEntity: percept.entityId, causeEvent: evidence.inputs.find(i => i.event)?.event,
           data: { avoidance: true, beliefInputs: evidence.inputs.map(i => i.key) } });
     }
-    const crimes = Object.values(p.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled && now - k.learnedAt < 86400 * 3);
+    const crimes = knowledgeItems(p).filter(k => k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled && now - k.learnedAt < 86400 * 3);
     // Resolved once for the whole loop rather than per belief: this is a scan of everyone alive,
     // and a person who remembers five crimes was otherwise paying for it five times a tick.
     // Watchmen this person could plausibly reach. `nearestKnownGuard` narrows it further to the
@@ -773,7 +774,7 @@ export class Simulation {
     // about an item" dialogue menu (`askAboutItemMenu`). No new knowledge is invented here: both
     // `wanted:` and `loc:` must already be present through their own real, provenance-carrying
     // channels.
-    for (const k of Object.values(p.knowledge)) {
+    for (const k of knowledgeItems(p)) {
       if (k.kind !== 'fact' || !k.claim.wantedItem || !k.claim.itemId) continue;
       const itemId = k.claim.itemId as string; const requesterId = k.claim.requesterId as string;
       if (!requesterId || requesterId === p.id) continue;
@@ -971,7 +972,7 @@ export class Simulation {
     // routine shift. Input failure is still learned at the workplace, never remotely.
     const foodTrade = processFor(w.place(p.workId)?.type);
     const seekingMealWork = !foodHome && !rememberedHomeFood && n.hunger > 0.4 && foodTrade && isFood(foodTrade.output)
-      && skillOf(p, foodTrade.skill) > 0 && Object.values(p.knowledge).some(k => k.key.startsWith('food-access:')
+      && skillOf(p, foodTrade.skill) > 0 && knowledgeItems(p).some(k => k.key.startsWith('food-access:')
         && k.claim.reason === 'unavailable' && now - k.learnedAt < 12 * 3600);
     const inputShortage = foodTrade && p.workId ? p.knowledge[`short:${p.workId}:${foodTrade.input}`] : undefined;
     const inputKnownMissing = inputShortage && !inputShortage.handled && now - (inputShortage.lastConfirmedAt ?? inputShortage.learnedAt) < 2 * 3600;
@@ -1005,11 +1006,13 @@ export class Simulation {
       const incentive = laborIncentive(p, w);
       // A hunting ground is a known workplace, or something personally discovered there.
       // Poverty can make subsistence hunting attractive, but never reveals unknown resources.
-      for (const node of w.resourceNodes) {
-        if (node.kind !== 'game' || !near(pos, node.pos) || node.state !== 'available' || !laborOk) continue;
+      // These person-level prerequisites are unchanged throughout proposal construction.
+      // Check them before scanning the resource ledger, rather than once per resource node.
+      if (laborOk && p.wealth < 3 && n.hunger > 0.4) for (const node of w.resourceNodes) {
+        if (node.kind !== 'game' || !near(pos, node.pos) || node.state !== 'available') continue;
         const known = p.workId === node.placeId || p.schedule.some(e => e.placeId === node.placeId) || !!p.knowledge[`game:${node.id}`];
         if (!known) continue;
-        if (p.wealth < 3 && n.hunger > 0.4) G('gather', clamp((0.4 + n.hunger * 0.5) * laborCapacity),
+        G('gather', clamp((0.4 + n.hunger * 0.5) * laborCapacity),
           ['I need food and know a hunting ground'], { targetPlace: node.placeId, targetPos: node.pos, data: { nodeId: node.id, resource: node.yield } });
       }
       // Haul: physically move a needed resource between two Places.
@@ -1433,7 +1436,7 @@ export class Simulation {
       summary: `${p.name} intends to ${type === 'obtain_food' ? 'obtain food' : 'find food'}${g.targetPlace ? ` at ${w.nameOf(g.targetPlace)}` : ''} (${reason})`,
     });
   }
-  private knownCrimesBy(p: Person, actor: EntityId): KnowledgeItem[] { return Object.values(p.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && k.claim.actor === actor && !k.handled).sort((a, b) => crimeSeverity(b.claim.type) - crimeSeverity(a.claim.type)); }
+  private knownCrimesBy(p: Person, actor: EntityId): KnowledgeItem[] { return knowledgeItems(p).filter(k => k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && k.claim.actor === actor && !k.handled).sort((a, b) => crimeSeverity(b.claim.type) - crimeSeverity(a.claim.type)); }
   /**
    * v0.2.3 re-engagement gate (Priority 7): true when a conflict with `otherId` has already
    * ended (resolved / suspended / disengaging) and nothing NEW has happened since to justify
@@ -2492,7 +2495,7 @@ export class Simulation {
     // real gossip works ("I saw Anna's ring at the well"). Ranked well below ordinary news UNLESS
     // it directly answers an active `recover_item` desire the LISTENER holds — that is the one
     // case genuinely worth interrupting small talk for.
-    const locationCands = Object.values(p.knowledge).filter(k => k.kind === 'location' && w.get(k.claim.entityId as string)?.kind === 'item' && !k.sharedWith.includes(other.id));
+    const locationCands = knowledgeItems(p).filter(k => k.kind === 'location' && w.get(k.claim.entityId as string)?.kind === 'item' && !k.sharedWith.includes(other.id));
     const locationValue = (k: KnowledgeItem) => p.knowledge[`wanted:${k.claim.entityId}`]?.claim.requesterId === other.id ? 0.9 : 0.12;
     const best = locationCands.map(k => ({ k, v: locationValue(k) })).sort((a, b) => b.v - a.v)[0];
     if (!best) return null;
@@ -3082,7 +3085,7 @@ export class Simulation {
         // merely suppressing the emitted event) is what makes this a real custody/transport
         // distinction rather than a name-based patch.
         for (const it of w.items()) if (it.ownerId === p.id && it.holderId && it.holderId !== p.id && !it.haulTaskId && !p.knowledge[`missing:${it.id}`]) {
-          const knownTheft = Object.values(p.knowledge).find(k => k.kind === 'event' && k.claim.type === 'theft' && k.claim.item === it.id);
+          const knownTheft = knowledgeItems(p).find(k => k.kind === 'event' && k.claim.type === 'theft' && k.claim.item === it.id);
           if (knownTheft) continue;
           const ev = w.emit('item_missing', { actor: p.id, item: it.id, pos: b.pos, placeId: p.workId, significance: 0.45, summary: `${p.name} noticed ${it.name} is missing` });
           const missing = learn(w, p, { key: `missing:${it.id}`, kind: 'event', claim: { eventId: ev.id, type: 'item_missing', item: it.id, placeId: p.workId, tick: w.now, actorUnknown: true, significance: 0.45 }, confidence: 0.9, source: { type: 'inferred', viaEvent: ev.id }, cause: ev.id, summary: `${it.name} is missing` });
@@ -3130,7 +3133,7 @@ export class Simulation {
       if (drawNow) this.inferenceAccum = 0;
       for (const p of w.livingPersons()) {
         const unresolvedHarm = new Set<string>();
-        for (const k of Object.values(p.knowledge)) {
+        for (const k of knowledgeItems(p)) {
           if (k.kind === 'event' && !k.handled && k.claim.actor && (k.claim.type === 'attack' || k.claim.type === 'kill' || k.claim.type === 'theft')) unresolvedHarm.add(k.claim.actor);
         }
         evolveRelationships(p, sh, { activeThreatIds: threatsByPerson.get(p.id) ?? EMPTY, unresolvedHarmIds: unresolvedHarm });

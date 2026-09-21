@@ -109,6 +109,21 @@ describe('bounded canonical inheritance and fallible known ancestry', () => {
     tw.world.primaryBody(child.id)!.pos = v(2, 1, 2);
     expect(genealogyGoals(tw.world, a)).toHaveLength(0);
   });
+  it('offers a newly inferred ancestry fact in the same deliberation, then reflects later forgetting', () => {
+    const { tw, a, b } = family();
+    const parent = { subjectId: a.id, relativeId: 'remembered-parent', relationship: 'parent' as const };
+    const grandparent = { subjectId: parent.relativeId, relativeId: 'remembered-grandparent', relationship: 'parent' as const };
+    for (const genealogy of [parent, grandparent]) learn(tw.world, a, { key: genealogyKey(genealogy), kind: 'fact',
+      claim: { genealogy }, confidence: 0.8, source: { type: 'prior' } }, true);
+    a.knowledge[genealogyKey(parent)].sharedWith.push(b.id);
+    a.mind.percepts = [{ entityId: b.id, bodyId: b.bodies[0], pos: tw.world.positionOf(b.id)!, distance: 1, how: 'saw', tick: tw.world.now }];
+    const key = genealogyKey({ subjectId: a.id, relativeId: grandparent.relativeId, relationship: 'ancestor' });
+    expect(a.knowledge[key]).toBeUndefined();
+    expect(genealogyGoals(tw.world, a).some(goal => goal.data?.key === key)).toBe(true);
+    expect(a.knowledge[key].source.type).toBe('inferred');
+    delete a.knowledge[key]; delete a.knowledge[genealogyKey(grandparent)];
+    expect(genealogyGoals(tw.world, a).some(goal => goal.data?.key === key)).toBe(false);
+  });
   it('exactly continues development, inheritance RNG, beliefs and provenance after save/load', () => {
     const { world, gen } = newWorld(1907), a = gen.people.greta, b = gen.people.alwin;
     a.physiology.energy = a.physiology.hydration = 1;
