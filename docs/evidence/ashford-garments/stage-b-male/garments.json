@@ -1,0 +1,248 @@
+{
+ "label": "stage-b-male",
+ "shot": "closeup",
+ "actors": 3,
+ "visibleCharacters": 3,
+ "retargeted": 3,
+ "unresolvedSlots": 0,
+ "wearingAshford": 3,
+ "stillWearingModern": 0,
+ "modernGarmentsByPerson": {},
+ "distinctAshfordOutfits": 2,
+ "outfitCounts": {
+  "Geta+Hakama+Kosode_Work": 2,
+  "Hakama+Kosode_Work+Waraji": 1
+ },
+ "largestIdenticalGroup": 2,
+ "fitsUsed": {
+  "male_nrw": 1,
+  "female_unw": 1,
+  "male_unw": 1
+ },
+ "pieceUsage": {
+  "Hakama": 3,
+  "Kosode_Work": 3,
+  "Waraji": 1,
+  "Geta": 2
+ },
+ "people": [
+  {
+   "bodyId": "b_7",
+   "name": "Rhea Alder",
+   "occupation": null,
+   "location": [
+    2049.999999611282,
+    2300.2671031492355,
+    2490.0
+   ],
+   "yaw": -94.46446228027344,
+   "posture": "stand",
+   "activity": "work",
+   "embodiment": {
+    "signature": "su2jbh",
+    "foundryComplete": true,
+    "foundryProblems": 3,
+    "visibleCharacter": true,
+    "retargeted": true,
+    "parts": 6,
+    "unresolvedSlots": 0
+   },
+   "meshes": [
+    {
+     "slot": "body",
+     "mesh": "/Game/CitySampleCrowd/Character/Male/NormalWeight/Meshes/m_tal_nrw_body"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/CitySampleCrowd/Character/Male/m_002/Face/m_002_nrw_FaceMesh"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Kosode_Work_male_nrw"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Hakama_male_nrw"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Waraji_male_nrw"
+    },
+    {
+     "slot": "groom",
+     "mesh": "/Game/CitySampleCrowd/Character/Male/m_003/Hair/Hair/Hair_M_SideSweptFringe"
+    },
+    {
+     "slot": "groom",
+     "mesh": "/Game/CitySampleCrowd/Character/Male/m_001/Hair/Hair/Beard_S_Stubble"
+    }
+   ],
+   "ashfordPieces": [
+    "Hakama",
+    "Kosode_Work",
+    "Waraji"
+   ],
+   "ashfordParts": 3,
+   "modernGarments": [],
+   "fit": "male_nrw"
+  },
+  {
+   "bodyId": "b_141",
+   "name": "Traveler",
+   "occupation": null,
+   "location": [
+    300.0,
+    4000.0,
+    2490.0
+   ],
+   "yaw": 0.0,
+   "posture": "stand",
+   "activity": "idle",
+   "embodiment": {
+    "signature": "oewzgr",
+    "foundryComplete": true,
+    "foundryProblems": 3,
+    "visibleCharacter": true,
+    "retargeted": true,
+    "parts": 5,
+    "unresolvedSlots": 0
+   },
+   "meshes": [
+    {
+     "slot": "body",
+     "mesh": "/Game/CitySampleCrowd/Character/Female/UnderWeight/Meshes/f_tal_unw_body"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/CitySampleCrowd/Character/Female/f_004/Face/f_004_nrw_FaceMesh"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Kosode_Work_female_unw"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Hakama_female_unw"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Geta_female_unw"
+    },
+    {
+     "slot": "groom",
+     "mesh": "/Game/CitySampleCrowd/Character/Female/f_003/Hair/Hair/Hair_S_LowPonytail"
+    }
+   ],
+   "ashfordPieces": [
+    "Geta",
+    "Hakama",
+    "Kosode_Work"
+   ],
+   "ashfordParts": 3,
+   "modernGarments": [],
+   "fit": "female_unw"
+  },
+  {
+   "bodyId": "b_6",
+   "name": "an unfamiliar person",
+   "occupation": null,
+   "location": [
+    7209.301622597377,
+    7590.538464795463,
+    2490.0
+   ],
+   "yaw": 134.79461669921875,
+   "posture": "stand",
+   "activity": "idle",
+   "embodiment": {
+    "signature": "olf48p",
+    "foundryComplete": true,
+    "foundryProblems": 5,
+    "visibleCharacter": true,
+    "retargeted": true,
+    "parts": 6,
+    "unresolvedSlots": 0
+   },
+   "meshes": [
+    {
+     "slot": "body",
+     "mesh": "/Game/CitySampleCrowd/Character/Male/UnderWeight/Meshes/m_tal_unw_body"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/CitySampleCrowd/Character/Male/m_006/Face/m_006_nrw_FaceMesh"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Kosode_Work_male_unw"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Hakama_male_unw"
+    },
+    {
+     "slot": "part",
+     "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Geta_male_unw"
+    },
+    {
+     "slot": "groom",
+     "mesh": "/Game/CitySampleCrowd/Character/Male/m_006/Hair/Hair/Hair_S_HairLoss"
+    },
+    {
+     "slot": "groom",
+     "mesh": "/Game/CitySampleCrowd/Character/Male/m_002/Hair/Hair/Beard_S_Full"
+    }
+   ],
+   "ashfordPieces": [
+    "Geta",
+    "Hakama",
+    "Kosode_Work"
+   ],
+   "ashfordParts": 3,
+   "modernGarments": [],
+   "fit": "male_unw"
+  }
+ ],
+ "subject": {
+  "name": "Rhea Alder",
+  "occupation": null,
+  "pieces": [
+   "Hakama",
+   "Kosode_Work",
+   "Waraji"
+  ],
+  "fit": "male_nrw",
+  "meshes": [
+   {
+    "slot": "body",
+    "mesh": "/Game/CitySampleCrowd/Character/Male/NormalWeight/Meshes/m_tal_nrw_body"
+   },
+   {
+    "slot": "part",
+    "mesh": "/Game/CitySampleCrowd/Character/Male/m_002/Face/m_002_nrw_FaceMesh"
+   },
+   {
+    "slot": "part",
+    "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Kosode_Work_male_nrw"
+   },
+   {
+    "slot": "part",
+    "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Hakama_male_nrw"
+   },
+   {
+    "slot": "part",
+    "mesh": "/Game/TornVeil/Characters/Ashford/SKM_TV_Waraji_male_nrw"
+   },
+   {
+    "slot": "groom",
+    "mesh": "/Game/CitySampleCrowd/Character/Male/m_003/Hair/Hair/Hair_M_SideSweptFringe"
+   },
+   {
+    "slot": "groom",
+    "mesh": "/Game/CitySampleCrowd/Character/Male/m_001/Hair/Hair/Beard_S_Stubble"
+   }
+  ]
+ },
+ "framed": true,
+ "screenshot": "C:\\Users\\green\\Desktop\\projects\\torn-veil-online\\docs/evidence/ashford-garments\\stage-b-male\\stage-b-male.png"
+}

@@ -143,7 +143,12 @@ export function slotRules(traits: ProjectedAppearanceDescription): SlotRule[] {
   // nonsense role/status combinations.
   const destitute = traits.status === 'destitute' || traits.status === 'poor';
   const wellOff = traits.status === 'affluent' || traits.status === 'noble';
-  const quality = compact([destitute ? undefined : 'rags', wellOff ? undefined : 'noble']);
+  // `modern` joins them. Ashford is pre-industrial in every reference sheet it has, so a blazer
+  // is not a worse match for a farmer than a kosode is -- it is the wrong world. Left as a
+  // preference it lost a coin flip and put one resident in a business skirt under her own apron.
+  // Disqualifying tags are dropped only after every relaxation step, so a machine whose only
+  // installed clothing is modern still dresses the whole settlement, and says that it did.
+  const quality = compact([destitute ? undefined : 'rags', wellOff ? undefined : 'noble', 'modern']);
   // A trade's own kit and the person's own accessories both hang off the same slot.
   const carried = [...traits.roleCues, ...traits.accessories]
     .map(token => ACCESSORY_TAG[token]).filter((tag): tag is string => !!tag);

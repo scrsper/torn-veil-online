@@ -522,6 +522,13 @@ def main():
                 tags.append('heavy')
             elif '/NormalWeight/' in package:
                 tags.append('average')
+            # City Sample dresses a contemporary city: suits, blazers, slacks, oxfords. That is a
+            # true descriptive fact about the asset, not a statement about the pack, and it is the
+            # one the manifest needs -- a pre-industrial culture's silhouettes forbid it, so these
+            # stop tying with cultural clothing on a coin flip. Bodies, faces and hair are not
+            # tagged: a face is not modern or otherwise.
+            if slot in ('upperGarment', 'lowerGarment', 'footwear', 'robe', 'armor'):
+                tags.append('modern')
             if name.startswith('Hair_S_'):
                 tags.append('short')
             elif name.startswith('Hair_M_'):

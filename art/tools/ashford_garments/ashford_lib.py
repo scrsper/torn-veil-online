@@ -327,6 +327,28 @@ def ribbon(build, path, width_of, lift_of, normal_of, region, across_of=None, v_
 # Turning a Build into a skinned Blender object
 # --------------------------------------------------------------------------------------------
 
+# The garment's regions, as material slots. In slot order, because Unreal keys on the index.
+#
+# These started life as vertex colours, which is the cheaper and more flexible encoding, and it
+# does not survive the trip. UE 5.8 imports FBX through Interchange, and Interchange ignores the
+# legacy `FbxImportUI.skeletal_mesh_import_data.vertex_color_import_option` entirely -- so the
+# colours were written correctly by the generator, verified present in the exported FBX, and then
+# silently dropped on import with nothing in the log to say so. A material slot cannot be dropped
+# without the mesh visibly losing a section, so the failure mode is one you can see.
+REGION_SLOTS = ['Cloth', 'Hem', 'Accent', 'Under']
+
+
+def region_slot(region):
+    """(accent, under, wear) -> slot index. Wear is a matter of degree, so it only decides
+    between the two cloth slots; accent and under are different cloth and get their own."""
+    accent, under, wear = region
+    if accent > 0.5:
+        return REGION_SLOTS.index('Accent')
+    if under > 0.5:
+        return REGION_SLOTS.index('Under')
+    return REGION_SLOTS.index('Hem') if wear >= 0.7 else REGION_SLOTS.index('Cloth')
+
+
 def to_object(build, name, collection=None):
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata([tuple(v) for v in build.verts], [], [tuple(f) for f in build.faces])
@@ -341,6 +363,24 @@ def to_object(build, name, collection=None):
                 uv.data[loop].uv = coords[k] if k < len(coords) else (0.0, 0.0)
             loop += 1
 
+    # Every slot is created on every mesh, even when a piece has no accent region, so the slot
+    # index means the same thing on all twenty-eight garments and the importer can assign by
+    # position without inspecting the geometry.
+    for slot in REGION_SLOTS:
+        material = bpy.data.materials.get('TV_%s' % slot) or bpy.data.materials.new('TV_%s' % slot)
+        mesh.materials.append(material)
+    if len(mesh.polygons) != len(build.faces):
+        # `validate()` drops degenerate faces, which would desync the two lists and silently
+        # paint the wrong regions. Better to lose the region detail than to lie about it.
+        print('TV_GARMENT_WARN %s: %d faces became %d after validate; regions not assigned'
+              % (name, len(build.faces), len(mesh.polygons)))
+    else:
+        for index, face in enumerate(build.faces):
+            # A face takes the region of its first vertex; every face this generator emits is
+            # built from one region at a time, so there is nothing to average.
+            mesh.polygons[index].material_index = region_slot(build.regions[face[0]])
+
+    # Kept as well, for anyone whose importer does honour them, and because it costs nothing.
     colour = mesh.color_attributes.new(name='Region', type='BYTE_COLOR', domain='CORNER')
     loop = 0
     for face in build.faces:

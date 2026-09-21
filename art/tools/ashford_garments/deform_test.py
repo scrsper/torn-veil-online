@@ -181,7 +181,11 @@ def main():
         lib.normalise_weights(obj)
         lib.smooth_and_finish(obj)
         lib.attach(obj, armature)
-        obj.data.materials.append(preview.material(piece, preview.SHADE.get(piece, (.3, .3, .3))))
+        base = preview.SHADE.get(piece, (.3, .3, .3))
+        for index, shade in enumerate((base, tuple(v * 0.72 for v in base),
+                                       (0.52, 0.13, 0.12), (0.78, 0.75, 0.67))):
+            if index < len(obj.data.materials):
+                obj.data.materials[index] = preview.material('%s_%d' % (piece, index), shade)
         built.append(obj)
 
     for ms in vendor.values():

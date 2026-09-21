@@ -51,10 +51,16 @@ from mathutils import Vector
 
 from ashford_lib import (TAU, Build, frames_along, loft, ribbon, ring_points, tube_along)
 
-# Region channels baked into vertex colour, read by `M_TV_AshfordCloth`:
-#   R = accent   -- takes the palette's accent colour (collar band, obi, trim)
-#   G = under    -- the pale under-layer, barely tinted, never the garment colour
-#   B = wear     -- how much the wear parameter is allowed to dirty this area
+# Which cloth each part of a garment is made of, as (accent, under, wear). `ashford_lib.region_slot`
+# turns these into one of four material slots -- Cloth, Hem, Accent, Under -- which is how the
+# engine finally receives them. They are written as vertex colours too, and that encoding is the
+# one that reads best here: a hem is not a different cloth from a body panel, it is the same cloth
+# with more dirt on it, and `wear` says so as a matter of degree.
+#
+#   accent  the palette's accent colour: collar band, obi, sandal thong
+#   under   the pale under-layer showing inside the collar; never the garment colour
+#   wear    how far wear is allowed to dirty this area -- high at a hem and a knee, low at a
+#           shoulder, because that is where dirt actually collects
 CLOTH = (0.0, 0.0, 0.25)
 ACCENT = (1.0, 0.0, 0.15)
 UNDER = (0.0, 1.0, 0.1)
@@ -155,8 +161,8 @@ def kosode(fit, wide_sleeve=False, segments=24):
         hakama waist authored on its own.
         """
         above = max(0.0, min(1.0, (z - fit.tuck_z + 0.06) / 0.10))
-        loose_x = _lerp(0.040, 0.016, max(0.0, min(1.0, (z - fit.tuck_z) / (collar_z - fit.tuck_z))))
-        loose_y = _lerp(0.036, 0.014, max(0.0, min(1.0, (z - fit.tuck_z) / (collar_z - fit.tuck_z))))
+        loose_x = _lerp(0.030, 0.011, max(0.0, min(1.0, (z - fit.tuck_z) / (collar_z - fit.tuck_z))))
+        loose_y = _lerp(0.027, 0.010, max(0.0, min(1.0, (z - fit.tuck_z) / (collar_z - fit.tuck_z))))
         return _lerp(0.007, loose_x, above), _lerp(0.006, loose_y, above)
 
     def surface_at(z, lift=0.0):
@@ -324,8 +330,8 @@ def _sleeve(fit, build, side, wide):
         # Narrow at the root so the cap clears the body tube, opening out within the first tenth.
         root = _lerp(0.042, 1.0, min(1.0, s / 0.10))
         if wide:
-            return _lerp(0.108, 0.098, s) * root if s < 0.10 else _lerp(0.108, 0.098, s)
-        return (_lerp(0.098, 0.050, min(1.0, s / reach))
+            return _lerp(0.088, 0.080, s) * root if s < 0.10 else _lerp(0.088, 0.080, s)
+        return (_lerp(0.078, 0.044, min(1.0, s / reach))
                 * (root if s < 0.10 else 1.0))
 
     def hang(s):
@@ -727,7 +733,10 @@ def maekake(fit, segments=16):
     for i in range(steps):
         t = i / (steps - 1)
         z = _lerp(top_z, hem_z, t)
-        rx, ry = fit.torso(max(z, fit.pelvis_z - 0.05), 0.085, 0.080)
+        # Enough ease to clear a kosode and an obi, and no more. At 85 mm it cleared everything on
+        # a slim build and stood off a heavy one like a hooped skirt -- the ease is a constant but
+        # the body under it is not, so the widest build wore the error.
+        rx, ry = fit.torso(max(z, fit.pelvis_z - 0.05), 0.034, 0.030)
         ring, bound = [], []
         for k in range(segments):
             angle = _lerp(-arc, arc, k / (segments - 1))
@@ -743,7 +752,7 @@ def maekake(fit, segments=16):
     path, normals = [], []
     for i in range(13):
         angle = _lerp(-math.pi * 0.92, math.pi * 0.92, i / 12)
-        rx, ry = fit.torso(top_z, 0.072, 0.068)
+        rx, ry = fit.torso(top_z, 0.040, 0.036)
         point, normal = _on_surface(rx, ry, angle, top_z + 0.012)
         path.append(point)
         normals.append(normal)
@@ -783,18 +792,44 @@ def haori(fit, segments=20):
     return build
 
 
-def _loft_open(build, rings, binds, regions):
-    """Loft without closing the ring, and give the result a back face so an open garment does not
-    vanish when seen from inside."""
-    index = []
+def _loft_open(build, rings, binds, regions, thickness=0.006):
+    """Loft a panel that does not close into a tube -- an open-fronted coat, a hung apron.
+
+    Built as a shell with an inner face offset inward, not as one surface with a second face on
+    the same four vertices. The duplicate-face version rendered as z-fighting shards, and
+    Blender's `validate()` then deleted exactly those duplicates, which desynchronised the face
+    list from the region list and lost the material regions on every haori and apron in the set.
+    """
+    centre = Vector((0.0, -0.02, 0.0))
+
+    def inward(point):
+        radial = Vector((point.x - centre.x, point.y - centre.y, 0.0))
+        if radial.length < 1e-5:
+            return point.copy()
+        return point - radial.normalized() * thickness
+
+    outer, inner = [], []
     for real, bound, region in zip(rings, binds, regions):
-        index.append([build.add(p, b, region) for p, b in zip(real, bound)])
+        outer.append([build.add(p, b, region) for p, b in zip(real, bound)])
+        inner.append([build.add(inward(p), b, region) for p, b in zip(real, bound)])
     cols = len(rings[0])
     for r in range(len(rings) - 1):
         for s in range(cols - 1):
-            a, b = index[r][s], index[r][s + 1]
-            c, d = index[r + 1][s + 1], index[r + 1][s]
             u0, u1 = s / (cols - 1), (s + 1) / (cols - 1)
             v0, v1 = r / (len(rings) - 1), (r + 1) / (len(rings) - 1)
-            build.quad(a, b, c, d, uv=[(u0, v0), (u1, v0), (u1, v1), (u0, v1)])
-            build.quad(d, c, b, a, uv=[(u0, v1), (u1, v1), (u1, v0), (u0, v0)])
+            uv = [(u0, v0), (u1, v0), (u1, v1), (u0, v1)]
+            build.quad(outer[r][s], outer[r][s + 1], outer[r + 1][s + 1], outer[r + 1][s], uv=uv)
+            build.quad(inner[r + 1][s], inner[r + 1][s + 1], inner[r][s + 1], inner[r][s], uv=uv)
+        # Close the two vertical edges, so the open front reads as cloth with a thickness.
+        for s in (0, cols - 1):
+            a, b = outer[r][s], outer[r + 1][s]
+            c, d = inner[r + 1][s], inner[r][s]
+            uv = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)]
+            build.quad(*((a, b, c, d) if s == 0 else (d, c, b, a)), uv=uv)
+    # And the hem and the collar edge.
+    for row, flip in ((0, False), (len(rings) - 1, True)):
+        for s in range(cols - 1):
+            a, b = outer[row][s], outer[row][s + 1]
+            c, d = inner[row][s + 1], inner[row][s]
+            uv = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)]
+            build.quad(*((d, c, b, a) if flip else (a, b, c, d)), uv=uv)

@@ -97,7 +97,14 @@ def main():
         obj = lib.to_object(MAKERS[piece](fit), piece)
         if not raw:
             lib.smooth_and_finish(obj)
-        obj.data.materials.append(material(piece, SHADE.get(piece, (0.3, 0.3, 0.3))))
+        # The generator now emits four region slots (cloth / hem / accent / under). Appending
+        # a fifth material would leave every face pointing at one of the first four, and the
+        # preview rendering in Blender's default grey.
+        base = SHADE.get(piece, (0.3, 0.3, 0.3))
+        for index, shade in enumerate((base, tuple(c * 0.72 for c in base),
+                                       (0.52, 0.13, 0.12), (0.78, 0.75, 0.67))):
+            if index < len(obj.data.materials):
+                obj.data.materials[index] = material('%s_%d' % (piece, index), shade)
         built.append(obj)
 
     scene = bpy.context.scene

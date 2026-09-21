@@ -33,3 +33,6 @@ unreal/scripts/__pycache__/
 # v0.10: browser-harness screenshots are regenerated evidence, not source. The few kept as
 # milestone evidence live in docs/v0_10/.
 tests/browser/artifacts/
+
+# Python bytecode from the Blender-side garment tools.
+art/tools/**/__pycache__/
