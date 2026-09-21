@@ -159,23 +159,33 @@ targets.sort(key=lambda r: (0 if (r['posture'] or 'stand') == 'stand' else 1,
 
 if targets:
     if SHOT == 'group':
-        RADIUS = 900.0
+        # Two radii, and they do different jobs. Finding the busiest part of a settlement needs a
+        # wide one -- residents work at separate stations, and at 9 m the anchor found a person
+        # standing alone. Framing needs a narrow one: with a single 25 m radius the shot had to
+        # cover an 18.8 m spread, so the camera went to its distance limit and photographed seven
+        # small figures behind a building.
+        FIND_RADIUS, FRAME_RADIUS = 2500.0, 850.0
 
-        def near(anchor, pool):
+        def near(anchor, pool, radius):
             return [r for r in pool
                     if math.hypot(r['location'][0] - anchor['location'][0],
-                                  r['location'][1] - anchor['location'][1]) <= RADIUS]
+                                  r['location'][1] - anchor['location'][1]) <= radius]
 
-        anchor = max(targets, key=lambda r: len(near(r, targets)))
-        targets = near(anchor, targets)
+        anchor = max(targets, key=lambda r: len(near(r, targets, FIND_RADIUS)))
+        targets = near(anchor, targets, FRAME_RADIUS) or [anchor]
         cx = sum(r['location'][0] for r in targets) / len(targets)
         cy = sum(r['location'][1] for r in targets) / len(targets)
         cz = sum(r['location'][2] for r in targets) / len(targets)
         reach = max(math.hypot(r['location'][0] - cx, r['location'][1] - cy) for r in targets)
-        distance = max(330.0, min(1.5 * reach + 260.0, 1300.0))
-        centre = unreal.Vector(cx, cy, cz + 10)
-        eye = unreal.Vector(cx - distance * .93, cy - distance * .36, cz + distance * .22 + 70)
-        print('TV_ASHFORD_GROUP members=%d distance=%.0f' % (len(targets), distance))
+        # Further back and higher than a portrait. Residents cluster at workbenches and stalls,
+        # which are under roofs, and a close low camera ends up *inside* the building looking at
+        # one torso. A raised three-quarter view clears the eaves and shows the group as a group.
+        distance = max(420.0, min(2.0 * reach + 320.0, 1300.0))
+        centre = unreal.Vector(cx, cy, cz + 55)
+        eye = unreal.Vector(cx - distance * .88, cy - distance * .34,
+                            cz + distance * .30 + 120)
+        print('TV_ASHFORD_GROUP members=%d reach=%.0f distance=%.0f'
+              % (len(targets), reach, distance))
     else:
         target = targets[0]
         base = unreal.Vector(*target['location'])

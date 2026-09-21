@@ -197,7 +197,8 @@ def compose(sheet_path, crop, render_path, out_path):
 def main():
     os.makedirs(OUT, exist_ok=True)
     for family, sheet, crop, fit_name, pieces, palette_id, palette in FAMILIES:
-        render_path = os.path.join(OUT, '%s-result.png' % family)
+        # An intermediate, not evidence: only the composed comparison beside the sheet is.
+        render_path = os.path.join(OUT, '.%s-render.png' % family)
         render_outfit(fit_name, pieces, palette, render_path)
         out_path = os.path.join(OUT, '%s-vs-result.png' % family)
         compose(os.path.join(SHEETS, sheet), crop, render_path, out_path)

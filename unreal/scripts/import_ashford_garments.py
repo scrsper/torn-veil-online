@@ -119,15 +119,19 @@ def add(material, a, b, x, y):
 
 
 def build_material():
-    # Deleted and rebuilt, never edited in place. The editor loads and compiles every material in
-    # the project at startup, so a previous broken version reports its failure in the log before
-    # this script runs at all -- and that made it impossible to tell from the log whether the
-    # graph written *by this run* compiles. Starting from nothing makes the log mean something.
-    if unreal.EditorAssetLibrary.does_asset_exist(MATERIAL_PATH):
-        unreal.EditorAssetLibrary.delete_asset(MATERIAL_PATH)
+    # Rebuilt in place, never deleted and recreated. Deleting it breaks every reference to it --
+    # the four region instances point at this material, and sixty-six meshes point at those. A
+    # standalone material rebuild therefore left every garment in the settlement drawing UE's
+    # `WorldGridMaterial`, which is a grey checkerboard, on residents who had been correctly
+    # coloured ten minutes earlier. Clearing the expressions gets the same fresh graph without
+    # invalidating anything that refers to it.
     package, name = MATERIAL_PATH.rsplit('/', 1)
-    material = unreal.AssetToolsHelpers.get_asset_tools().create_asset(
-        name, package, unreal.Material, unreal.MaterialFactoryNew())
+    material = unreal.EditorAssetLibrary.load_asset(MATERIAL_PATH)
+    if material is None:
+        material = unreal.AssetToolsHelpers.get_asset_tools().create_asset(
+            name, package, unreal.Material, unreal.MaterialFactoryNew())
+    else:
+        unreal.MaterialEditingLibrary.delete_all_material_expressions(material)
     material.set_editor_property('two_sided', False)
     # Without this the material compiles, is assigned, reports no error at import, and then
     # renders as Epic's grey default the moment it is put on a skinned mesh -- the only notice
@@ -203,11 +207,13 @@ def build_region_instances(parent):
     out = []
     for name, scalars in REGION_INSTANCES:
         path = '%s/MI_TV_Ashford%s' % (package, name)
-        if unreal.EditorAssetLibrary.does_asset_exist(path):
-            unreal.EditorAssetLibrary.delete_asset(path)
-        instance = tools.create_asset('MI_TV_Ashford%s' % name, package,
-                                      unreal.MaterialInstanceConstant,
-                                      unreal.MaterialInstanceConstantFactoryNew())
+        # Same reason as the parent: sixty-six meshes reference these by path, and deleting one
+        # nulls the reference rather than repointing it.
+        instance = unreal.EditorAssetLibrary.load_asset(path)
+        if instance is None:
+            instance = tools.create_asset('MI_TV_Ashford%s' % name, package,
+                                          unreal.MaterialInstanceConstant,
+                                          unreal.MaterialInstanceConstantFactoryNew())
         unreal.MaterialEditingLibrary.set_material_instance_parent(instance, parent)
         for key, value in scalars.items():
             unreal.MaterialEditingLibrary.set_material_instance_scalar_parameter_value(
