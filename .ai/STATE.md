@@ -13,9 +13,21 @@ belief-driven caution/cooperation, a paid-fitting experience ledger and a gated 
 reference path. Higher ranks remain blocked. Detached agency inspection is exposed in bridge
 developer snapshots. No native UI or asset changes.
 
-Final focused regression: 81 passed; build and deterministic WorldLab passed; full 72-hour favor
-trace passed. Broad checkpoint failures were investigated and rechecked; two final food-stress
-timeouts remain (76.770 s and 64.238 s against 60 s). PR #49 stays a draft, not merge-ready.
+Food-stress hardening, 2026-09-20: measured PR #49's regression against frozen PR #48,
+then preserved semantics with knowledge traversal and bounded spatial/place lookup reuse,
+within-call genealogy reuse and an unchanged prerequisite hoist. Final abundance/scarcity
+medians are 50.421/45.141 s; 6/6 samples pass unchanged 60-second budgets. Full saved state,
+RNG and both separate continuation trajectories match pre-fix PR #49. A conversation-cache
+alias discrepancy on original-versus-reloaded food worlds already exists on both bases.
+
+Final build/typecheck, 110 focused tests and deterministic WorldLab pass. The single full
+run reports 1,121 passed / 1 failed across 116 files, with no timeouts or skipped tests.
+Food tests pass again at 46.879/40.365 s. The sole failure is the theft social-causality
+trace: zero living knowers at its observation endpoint. The exact unchanged test passes
+on PR #48 and fails identically on pre-fix PR #49, so it is an existing feature regression,
+not a baseline failure or a new performance-fix regression. PR #49 stays a draft and is
+not merge-ready until this behavioral blocker is resolved. No new gameplay was added.
+Measurements, attribution and reproducible profiling: `docs/evidence/autonomous-agency/PERFORMANCE.md`.
 
 Design, deliberate limits and schema notes:
 `docs/AUTONOMOUS_AGENCY_SOCIAL_INFERENCE_CAPABILITY_EVOLUTION.md`.

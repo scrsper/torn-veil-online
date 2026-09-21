@@ -1,5 +1,38 @@
 # Autonomous agency v0.1 — verification and evidence
 
+## Food-stress hardening, 2026-09-20
+
+This follow-up preserves gameplay, all stress fixtures, seeds, assertions and timeouts.
+Three controlled samples per revision/workload establish that PR #49 added a measurable
+regression on the already marginal PR #48 baseline. Five measured traversal/lookup
+optimizations reduce feature medians to **50.421 s abundance / 45.141 s scarcity**;
+all six final samples pass, and full saved state, ordered JSON, four RNG streams and
+both separate continuation trajectories match pre-fix PR #49 exactly.
+
+Final build/typecheck passes. The focused pass is **110 tests / 15 files, 35.24 s**:
+`agency-frontier`, `capability-advancement`, `autonomous-social`, `encounter-recognition`,
+`agency-worldlab`, `knowledge-retention`, `realtime-combat-action`, `knowledge-view`,
+`spatial-index`, `place-lookup`, `individual-lineage`, `locality`, `determinism`,
+`persistence`, and `knowledge`. WorldLab seed 741 again passes all reported invariants
+and exact save continuation with its unchanged digest. The one final broad run completed
+in **1,670.39 s: 1,121 passed / 1 failed, 115 files passed / 1 failed (116 total)**,
+with no skipped tests or timeouts. Its food checks pass at 46.879 s / 40.365 s.
+
+The sole failure is the theft social-causality trace: zero living knowers at the endpoint
+fail its propagation, differing-significance and grounded-lines checks. The unchanged
+isolated test **passes on PR #48** (83.303 s) and **fails identically on pre-fix PR #49**
+(112.906 s); optimized full-suite duration is 75.634 s. It is a PR #49 regression that
+predates this optimization, not a baseline failure. **Food performance is resolved;
+PR #49 remains a draft and is not merge-ready until that behavioral blocker is resolved.**
+
+The food probe separately exposes an original-versus-reloaded conversation-cache alias
+discrepancy on **both** PR #48 and pre-fix PR #49. The optimization preserves both
+trajectories; this is not reported as complete food-world reload equality.
+
+Full timings, CPU/RSS, profiles, counters, reproducible harness, deterministic evidence
+and final readiness disposition: [PERFORMANCE.md](PERFORMANCE.md).
+The original milestone record below is retained as history, not the latest status.
+
 Date: 2026-09-19. Windows, repository Node/npm runtime, Vitest 4.1.11; the normal suite uses the existing single-worker configuration. No network or LLM is involved in canonical tests.
 
 ## Repository
