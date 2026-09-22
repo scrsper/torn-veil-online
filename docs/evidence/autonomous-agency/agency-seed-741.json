@@ -1,0 +1,4762 @@
+{
+  "seed": 741,
+  "initialConditions": {
+    "residents": [
+      "p_38",
+      "p_39",
+      "p_40"
+    ],
+    "controlledStranger": "p_41",
+    "workplace": "pl_43",
+    "initialGoals": [
+      null,
+      null,
+      null
+    ],
+    "separation": "stone partition with open route around its north end",
+    "favorableNeeds": true,
+    "witnessCourage": 1,
+    "witnessSociability": 0.9
+  },
+  "actions": {
+    "introduction": true,
+    "attack": {
+      "attempted": true,
+      "rejection": null
+    },
+    "departurePosition": {
+      "x": 17.31359905330581,
+      "y": 1,
+      "z": 10.918158554274523
+    },
+    "visibleAtDeparture": false,
+    "returnPosition": {
+      "x": 10.748234940618051,
+      "y": 1,
+      "z": 11.81411596056128
+    }
+  },
+  "outcomes": {
+    "saveReplayMatches": true,
+    "firstLabel": "an unfamiliar person",
+    "indirectKnowledge": [
+      {
+        "key": "ev:e_145",
+        "claim": {
+          "eventId": "e_145",
+          "type": "attack",
+          "tick": 8666400.699999997,
+          "placeId": "pl_43",
+          "pos": {
+            "x": 10,
+            "y": 1,
+            "z": 12
+          },
+          "significance": 0.7,
+          "target": "p_40",
+          "actor": "p_41"
+        },
+        "source": {
+          "type": "told",
+          "from": "p_38",
+          "viaEvent": "e_234"
+        },
+        "confidence": 0.6162500000000001,
+        "hops": 1
+      },
+      {
+        "key": "ev:e_130",
+        "claim": {
+          "eventId": "e_130",
+          "type": "introduction",
+          "tick": 8666400.299999999,
+          "placeId": "pl_43",
+          "pos": {
+            "x": 10,
+            "y": 1,
+            "z": 11
+          },
+          "significance": 0.25,
+          "claimedName": "Elin Brook",
+          "actor": "p_41",
+          "target": "p_38"
+        },
+        "source": {
+          "type": "told",
+          "from": "p_38",
+          "viaEvent": "e_375"
+        },
+        "confidence": 0.6162500000000001,
+        "hops": 1
+      }
+    ],
+    "attackEvents": [
+      {
+        "id": "e_145",
+        "type": "attack",
+        "at": 8666400.699999997,
+        "perceivedBy": [
+          {
+            "who": "p_40",
+            "how": "saw",
+            "tick": 8666400.699999997
+          },
+          {
+            "who": "p_38",
+            "how": "saw",
+            "tick": 8666400.799999997
+          },
+          {
+            "who": "p_39",
+            "how": "heard",
+            "tick": 8666400.799999997
+          }
+        ]
+      }
+    ],
+    "autonomousNpcGoals": [
+      {
+        "id": "p_38",
+        "goal": "socialize",
+        "decisions": [
+          {
+            "event": "e_125",
+            "to": "maintain_mechanism",
+            "reasons": [
+              "I noticed a mechanical difficulty",
+              "curiosity, practical stake, fatigue and remembered setbacks"
+            ],
+            "causes": [
+              "e_124"
+            ]
+          },
+          {
+            "event": "e_178",
+            "to": "socialize",
+            "reasons": [
+              "social need 0.80",
+              "my appetite for company",
+              ""
+            ],
+            "causes": []
+          },
+          {
+            "event": "e_659",
+            "to": "maintain_mechanism",
+            "reasons": [
+              "I noticed a mechanical difficulty",
+              "curiosity, practical stake, fatigue and remembered setbacks"
+            ],
+            "causes": [
+              "e_174"
+            ]
+          },
+          {
+            "event": "e_677",
+            "to": "maintain_mechanism",
+            "reasons": [
+              "I noticed a mechanical difficulty",
+              "curiosity, practical stake, fatigue and remembered setbacks"
+            ],
+            "causes": [
+              "e_674"
+            ]
+          },
+          {
+            "event": "e_696",
+            "to": "maintain_mechanism",
+            "reasons": [
+              "I noticed a mechanical difficulty",
+              "curiosity, practical stake, fatigue and remembered setbacks"
+            ],
+            "causes": [
+              "e_674"
+            ]
+          },
+          {
+            "event": "e_720",
+            "to": "teach_method",
+            "reasons": [
+              "a nearby person may have use for this method",
+              "willingness from shared work/home and relationship"
+            ],
+            "causes": [
+              "e_675"
+            ]
+          },
+          {
+            "event": "e_741",
+            "to": "teach_method",
+            "reasons": [
+              "a nearby person may have use for this method",
+              "willingness from shared work/home and relationship"
+            ],
+            "causes": [
+              "e_675"
+            ]
+          },
+          {
+            "event": "e_751",
+            "to": "socialize",
+            "reasons": [
+              "social need 0.68",
+              "my appetite for company",
+              ""
+            ],
+            "causes": []
+          }
+        ]
+      },
+      {
+        "id": "p_39",
+        "goal": "socialize",
+        "decisions": [
+          {
+            "event": "e_126",
+            "to": "socialize",
+            "reasons": [
+              "social need 0.80",
+              "my appetite for company",
+              ""
+            ],
+            "causes": []
+          },
+          {
+            "event": "e_742",
+            "to": "teach_method",
+            "reasons": [
+              "a nearby person may have use for this method",
+              "willingness from shared work/home and relationship"
+            ],
+            "causes": [
+              "e_736"
+            ]
+          },
+          {
+            "event": "e_753",
+            "to": "teach_method",
+            "reasons": [
+              "a nearby person may have use for this method",
+              "willingness from shared work/home and relationship"
+            ],
+            "causes": [
+              "e_736"
+            ]
+          },
+          {
+            "event": "e_758",
+            "to": "teach_method",
+            "reasons": [
+              "a nearby person may have use for this method",
+              "willingness from shared work/home and relationship"
+            ],
+            "causes": [
+              "e_736"
+            ]
+          },
+          {
+            "event": "e_764",
+            "to": "socialize",
+            "reasons": [
+              "social need 0.61",
+              "my appetite for company",
+              ""
+            ],
+            "causes": []
+          }
+        ]
+      },
+      {
+        "id": "p_40",
+        "goal": "flee",
+        "decisions": [
+          {
+            "event": "e_128",
+            "to": "chop",
+            "reasons": [
+              "the village storage shed still needs planks, and there is no wood for them"
+            ],
+            "causes": []
+          },
+          {
+            "event": "e_142",
+            "to": "flee",
+            "reasons": [
+              "Elin Brook is a threat (fear 0.80, dist 1.0)",
+              "my tolerance for danger, unarmed"
+            ],
+            "causes": [
+              "e_140"
+            ]
+          }
+        ]
+      }
+    ],
+    "hearsayBefore": 1,
+    "hearsayAfter": 2,
+    "recognition": {
+      "level": "identified"
+    },
+    "residentLabelAfterReturn": "Elin Brook",
+    "retainedSignature": "[\"deep\",\"black\",\"ponytail\",\"angular\",\"lean\",\"average\"]",
+    "readBack": "identified"
+  },
+  "observerViews": {
+    "residentA": {
+      "truth": {
+        "id": "p_38",
+        "name": "Orla Reed",
+        "bodyIds": [
+          "b_54"
+        ],
+        "skills": {
+          "crafting": 0.9500470528565551
+        },
+        "ontology": {
+          "stage": "Normal"
+        }
+      },
+      "understoodIdentity": {
+        "entityId": "p_41",
+        "name": "Elin Brook",
+        "knownName": true,
+        "identity": {
+          "name": "Elin Brook",
+          "confidence": 0.75,
+          "source": {
+            "type": "told",
+            "from": "p_41",
+            "viaEvent": "e_130"
+          },
+          "learnedAt": 8666400.299999999
+        },
+        "beliefs": [
+          {
+            "family": "disposition",
+            "interpretation": "may not be restrained",
+            "confidence": 0.37499999999999994,
+            "learnedAt": 8666400.799999997,
+            "source": {
+              "type": "inferred",
+              "viaEvent": "e_155"
+            },
+            "evidence": [
+              {
+                "key": "ev:e_145",
+                "event": "e_153",
+                "at": 8666400.799999997,
+                "weight": -0.6
+              }
+            ]
+          },
+          {
+            "family": "intent",
+            "interpretation": "may be attacking",
+            "confidence": 0.393939393939394,
+            "learnedAt": 8666400.799999997,
+            "source": {
+              "type": "inferred",
+              "viaEvent": "e_156"
+            },
+            "evidence": [
+              {
+                "key": "ev:e_145",
+                "event": "e_153",
+                "at": 8666400.799999997,
+                "weight": 0.65
+              }
+            ]
+          },
+          {
+            "family": "capability",
+            "interpretation": "may be competent fighter",
+            "confidence": 0.13043478260869565,
+            "learnedAt": 8666400.799999997,
+            "source": {
+              "type": "inferred",
+              "viaEvent": "e_157"
+            },
+            "evidence": [
+              {
+                "key": "ev:e_145",
+                "event": "e_153",
+                "at": 8666400.799999997,
+                "weight": 0.15
+              }
+            ]
+          }
+        ],
+        "observations": [
+          {
+            "key": "ev:e_130",
+            "action": "introduction",
+            "at": 8666400.399999999,
+            "confidence": 1,
+            "source": {
+              "type": "witnessed",
+              "viaEvent": "e_136"
+            }
+          },
+          {
+            "key": "ev:e_145",
+            "action": "attack",
+            "at": 8666400.799999997,
+            "confidence": 1,
+            "source": {
+              "type": "witnessed",
+              "viaEvent": "e_153"
+            }
+          },
+          {
+            "key": "ev:e_213",
+            "action": "introduction",
+            "at": 8666406.999999974,
+            "confidence": 1,
+            "source": {
+              "type": "witnessed",
+              "viaEvent": "e_220"
+            }
+          }
+        ]
+      },
+      "knowledge": [
+        {
+          "key": "encounter:p_40:b_56",
+          "kind": "fact",
+          "claim": {
+            "encounter": true,
+            "subjectId": "p_40",
+            "bodyId": "b_56",
+            "cues": {
+              "bodyId": "b_56",
+              "shape": "humanoid",
+              "appearance": {
+                "skin": 13212274,
+                "hair": 14202218,
+                "shirt": 6970431,
+                "pants": 5259570,
+                "hatStyle": "none",
+                "height": 1.04,
+                "build": 1,
+                "description": {
+                  "presentation": "feminine",
+                  "skinTone": "olive",
+                  "faceShape": "round",
+                  "hairStyle": "updo_ornamented",
+                  "hairColor": "blond",
+                  "eyeColor": "hazel",
+                  "frame": "average",
+                  "stature": "above_average",
+                  "garmentSilhouette": "work_kimono",
+                  "garmentPalette": "earth_work",
+                  "accessories": [
+                    "hair_ornament",
+                    "anklets",
+                    "gold_filigree"
+                  ]
+                }
+              },
+              "activity": "stand",
+              "placeId": "pl_43",
+              "pos": {
+                "x": 9.568471703170491,
+                "y": 1,
+                "z": 10.991611224114854
+              },
+              "at": 8666562.999999393,
+              "ageBand": "adult"
+            },
+            "observations": [
+              {
+                "at": 8666400.2,
+                "signature": "[\"olive\",\"blond\",\"updo_ornamented\",\"round\",\"average\",\"above_average\"]",
+                "event": "e_34"
+              },
+              {
+                "at": 8666460.399999775,
+                "signature": "[\"olive\",\"blond\",\"updo_ornamented\",\"round\",\"average\",\"above_average\"]",
+                "event": "e_480"
+              },
+              {
+                "at": 8666520.99999955,
+                "signature": "[\"olive\",\"blond\",\"updo_ornamented\",\"round\",\"average\",\"above_average\"]",
+                "event": "e_776"
+              }
+            ],
+            "lastSeenAt": 8666563.199999392,
+            "lastSampleAt": 8666562.999999393,
+            "lastPhysicalSampleAt": 162.99999999999503,
+            "significance": 0.18
+          },
+          "confidence": 0.8,
+          "learnedAt": 8666520.99999955,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_776"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "encounter:p_41:b_57",
+          "kind": "fact",
+          "claim": {
+            "encounter": true,
+            "subjectId": "p_41",
+            "bodyId": "b_57",
+            "cues": {
+              "bodyId": "b_57",
+              "shape": "humanoid",
+              "appearance": {
+                "skin": 7028522,
+                "hair": 1709330,
+                "shirt": 12629404,
+                "pants": 6970442,
+                "hatStyle": "none",
+                "height": 1,
+                "build": 0.93,
+                "description": {
+                  "presentation": "feminine",
+                  "skinTone": "deep",
+                  "faceShape": "angular",
+                  "hairStyle": "ponytail",
+                  "hairColor": "black",
+                  "eyeColor": "hazel",
+                  "frame": "lean",
+                  "stature": "average",
+                  "garmentSilhouette": "dancer_wrap",
+                  "garmentPalette": "undyed_hemp",
+                  "accessories": [
+                    "gold_filigree",
+                    "waist_cord",
+                    "anklets"
+                  ]
+                }
+              },
+              "activity": "stand",
+              "placeId": "pl_43",
+              "pos": {
+                "x": 10.748234940618051,
+                "y": 1,
+                "z": 11.81411596056128
+              },
+              "at": 8666562.999999393,
+              "ageBand": "young_adult"
+            },
+            "observations": [
+              {
+                "at": 8666400.2,
+                "signature": "[\"deep\",\"black\",\"ponytail\",\"angular\",\"lean\",\"average\"]",
+                "event": "e_35"
+              },
+              {
+                "at": 8666460.399999775,
+                "signature": "[\"deep\",\"black\",\"ponytail\",\"angular\",\"lean\",\"average\"]",
+                "event": "e_481"
+              },
+              {
+                "at": 8666520.99999955,
+                "signature": "[\"deep\",\"black\",\"ponytail\",\"angular\",\"lean\",\"average\"]",
+                "event": "e_777"
+              }
+            ],
+            "lastSeenAt": 8666563.199999392,
+            "lastSampleAt": 8666562.999999393,
+            "lastPhysicalSampleAt": 162.99999999999503,
+            "significance": 0.18
+          },
+          "confidence": 0.8,
+          "learnedAt": 8666520.99999955,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_777"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "identity:p_41",
+          "kind": "fact",
+          "claim": {
+            "identity": {
+              "subject": "p_41",
+              "name": "Elin Brook",
+              "signatures": [
+                "[\"deep\",\"black\",\"ponytail\",\"angular\",\"lean\",\"average\"]"
+              ]
+            },
+            "evidence": [
+              {
+                "name": "Elin Brook",
+                "source": {
+                  "type": "told",
+                  "from": "p_41",
+                  "viaEvent": "e_130"
+                },
+                "at": 8666400.299999999
+              }
+            ]
+          },
+          "confidence": 0.75,
+          "learnedAt": 8666400.299999999,
+          "source": {
+            "type": "told",
+            "from": "p_41",
+            "viaEvent": "e_130"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_130",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_130",
+            "type": "introduction",
+            "tick": 8666400.299999999,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10,
+              "y": 1,
+              "z": 11
+            },
+            "significance": 0.25,
+            "claimedName": "Elin Brook",
+            "actor": "p_41",
+            "target": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666400.399999999,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_136"
+          },
+          "hops": 0,
+          "sharedWith": [
+            "p_40",
+            "p_39"
+          ]
+        },
+        {
+          "key": "ev:e_145",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_145",
+            "type": "attack",
+            "tick": 8666400.699999997,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10,
+              "y": 1,
+              "z": 12
+            },
+            "significance": 0.7,
+            "actor": "p_41",
+            "target": "p_40"
+          },
+          "confidence": 1,
+          "learnedAt": 8666400.799999997,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_153"
+          },
+          "hops": 0,
+          "sharedWith": [
+            "p_39",
+            "p_40"
+          ]
+        },
+        {
+          "key": "social:p_41:disposition:restrained",
+          "kind": "fact",
+          "claim": {
+            "social": {
+              "subject": "p_41",
+              "family": "disposition",
+              "characteristic": "restrained",
+              "support": -0.6,
+              "evidence": [
+                {
+                  "key": "ev:e_145",
+                  "event": "e_153",
+                  "at": 8666400.799999997,
+                  "weight": -0.6
+                }
+              ]
+            }
+          },
+          "confidence": 0.37499999999999994,
+          "learnedAt": 8666400.799999997,
+          "source": {
+            "type": "inferred",
+            "viaEvent": "e_155"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "social:p_41:intent:attacking",
+          "kind": "fact",
+          "claim": {
+            "social": {
+              "subject": "p_41",
+              "family": "intent",
+              "characteristic": "attacking",
+              "support": 0.65,
+              "evidence": [
+                {
+                  "key": "ev:e_145",
+                  "event": "e_153",
+                  "at": 8666400.799999997,
+                  "weight": 0.65
+                }
+              ]
+            }
+          },
+          "confidence": 0.393939393939394,
+          "learnedAt": 8666400.799999997,
+          "source": {
+            "type": "inferred",
+            "viaEvent": "e_156"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "social:p_41:capability:competent fighter",
+          "kind": "fact",
+          "claim": {
+            "social": {
+              "subject": "p_41",
+              "family": "capability",
+              "characteristic": "competent fighter",
+              "support": 0.15,
+              "evidence": [
+                {
+                  "key": "ev:e_145",
+                  "event": "e_153",
+                  "at": 8666400.799999997,
+                  "weight": 0.15
+                }
+              ]
+            }
+          },
+          "confidence": 0.13043478260869565,
+          "learnedAt": 8666400.799999997,
+          "source": {
+            "type": "inferred",
+            "viaEvent": "e_157"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "encounter:p_39:b_55",
+          "kind": "fact",
+          "claim": {
+            "encounter": true,
+            "subjectId": "p_39",
+            "bodyId": "b_55",
+            "cues": {
+              "bodyId": "b_55",
+              "shape": "humanoid",
+              "appearance": {
+                "skin": 10512965,
+                "hair": 1317412,
+                "shirt": 12037525,
+                "pants": 6970700,
+                "hatStyle": "none",
+                "height": 1.04,
+                "build": 1,
+                "description": {
+                  "presentation": "feminine",
+                  "skinTone": "brown",
+                  "faceShape": "angular",
+                  "hairStyle": "ponytail",
+                  "hairColor": "blue_black",
+                  "eyeColor": "amber",
+                  "frame": "average",
+                  "stature": "above_average",
+                  "garmentSilhouette": "work_kimono",
+                  "garmentPalette": "undyed_hemp",
+                  "accessories": [
+                    "gold_filigree",
+                    "tassel",
+                    "anklets"
+                  ]
+                }
+              },
+              "activity": "sit",
+              "placeId": "pl_43",
+              "pos": {
+                "x": 9.501164158542776,
+                "y": 1,
+                "z": 9.501028903992758
+              },
+              "at": 8666562.199999396,
+              "ageBand": "young_adult"
+            },
+            "observations": [
+              {
+                "at": 8666402.79999999,
+                "signature": "[\"brown\",\"blue_black\",\"ponytail\",\"angular\",\"average\",\"above_average\"]",
+                "event": "e_195"
+              },
+              {
+                "at": 8666463.799999762,
+                "signature": "[\"brown\",\"blue_black\",\"ponytail\",\"angular\",\"average\",\"above_average\"]",
+                "event": "e_502"
+              },
+              {
+                "at": 8666524.999999534,
+                "signature": "[\"brown\",\"blue_black\",\"ponytail\",\"angular\",\"average\",\"above_average\"]",
+                "event": "e_797"
+              }
+            ],
+            "lastSeenAt": 8666563.199999392,
+            "lastSampleAt": 8666562.199999396,
+            "lastPhysicalSampleAt": 162.19999999999507,
+            "significance": 0.18
+          },
+          "confidence": 0.8,
+          "learnedAt": 8666524.999999534,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_797"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_213",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_213",
+            "type": "introduction",
+            "tick": 8666406.799999975,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 11.103436268549038,
+              "y": 1,
+              "z": 11.47117014219868
+            },
+            "significance": 0.25,
+            "claimedName": "Bren Vale",
+            "actor": "p_39",
+            "target": "p_41"
+          },
+          "confidence": 1,
+          "learnedAt": 8666406.999999974,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_220"
+          },
+          "hops": 0,
+          "sharedWith": [
+            "p_40"
+          ]
+        },
+        {
+          "key": "identity:p_39",
+          "kind": "fact",
+          "claim": {
+            "identity": {
+              "subject": "p_39",
+              "name": "Bren Vale",
+              "signatures": [
+                "[\"brown\",\"blue_black\",\"ponytail\",\"angular\",\"average\",\"above_average\"]"
+              ]
+            },
+            "evidence": [
+              {
+                "name": "Bren Vale",
+                "source": {
+                  "type": "heard",
+                  "from": "p_39",
+                  "viaEvent": "e_220"
+                },
+                "at": 8666406.999999974
+              },
+              {
+                "name": "Bren Vale",
+                "source": {
+                  "type": "heard",
+                  "from": "p_39",
+                  "viaEvent": "e_276"
+                },
+                "at": 8666413.799999949
+              },
+              {
+                "name": "Bren Vale",
+                "source": {
+                  "type": "told",
+                  "from": "p_39",
+                  "viaEvent": "e_321"
+                },
+                "at": 8666420.499999924
+              }
+            ]
+          },
+          "confidence": 0.75,
+          "learnedAt": 8666420.499999924,
+          "source": {
+            "type": "told",
+            "from": "p_39",
+            "viaEvent": "e_321"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_270",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_270",
+            "type": "introduction",
+            "tick": 8666413.59999995,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 11.103436268549038,
+              "y": 1,
+              "z": 11.47117014219868
+            },
+            "significance": 0.25,
+            "claimedName": "Bren Vale",
+            "actor": "p_39",
+            "target": "p_40"
+          },
+          "confidence": 1,
+          "learnedAt": 8666413.799999949,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_276"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_321",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_321",
+            "type": "introduction",
+            "tick": 8666420.499999924,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 11.103436268549038,
+              "y": 1,
+              "z": 11.47117014219868
+            },
+            "significance": 0.25,
+            "claimedName": "Bren Vale",
+            "actor": "p_39",
+            "target": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666420.599999923,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_326"
+          },
+          "hops": 0,
+          "sharedWith": [
+            "p_40"
+          ]
+        }
+      ],
+      "memories": [
+        {
+          "id": "m_245",
+          "tick": 8666420.599999923,
+          "type": "introduction",
+          "summary": "I saw: introduction at workshop",
+          "eventId": "e_321",
+          "entities": [
+            "p_39",
+            "p_38"
+          ],
+          "significance": 0.7393750000000001,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_326"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_204",
+          "tick": 8666400.399999999,
+          "type": "introduction",
+          "summary": "I saw: introduction at workshop",
+          "eventId": "e_130",
+          "entities": [
+            "p_41",
+            "p_38"
+          ],
+          "significance": 0.7393750000000001,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_136"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_207",
+          "tick": 8666400.799999997,
+          "type": "attack",
+          "summary": "I saw: Elin Brook attacked an unfamiliar person at workshop",
+          "eventId": "e_145",
+          "entities": [
+            "p_41",
+            "p_40"
+          ],
+          "significance": 0.5972,
+          "valence": -0.8,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_153"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_221",
+          "tick": 8666406.999999974,
+          "type": "introduction",
+          "summary": "I saw: introduction at workshop",
+          "eventId": "e_213",
+          "entities": [
+            "p_39",
+            "p_41"
+          ],
+          "significance": 0.5268750000000001,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_220"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_233",
+          "tick": 8666413.799999949,
+          "type": "introduction",
+          "summary": "I saw: introduction at workshop",
+          "eventId": "e_270",
+          "entities": [
+            "p_39",
+            "p_40"
+          ],
+          "significance": 0.314375,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_276"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_290",
+          "tick": 8666524.999999534,
+          "type": "encounter",
+          "summary": "I recognized a person I had been introduced to",
+          "eventId": "e_797",
+          "entities": [
+            "p_39"
+          ],
+          "significance": 0.3,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_797"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_282",
+          "tick": 8666520.99999955,
+          "type": "encounter",
+          "summary": "I recognized a person I had been introduced to",
+          "eventId": "e_777",
+          "entities": [
+            "p_41"
+          ],
+          "significance": 0.3,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_777"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_263",
+          "tick": 8666463.799999762,
+          "type": "encounter",
+          "summary": "I recognized a person I had been introduced to",
+          "eventId": "e_502",
+          "entities": [
+            "p_39"
+          ],
+          "significance": 0.3,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_502"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_254",
+          "tick": 8666460.399999775,
+          "type": "encounter",
+          "summary": "I recognized a person I had been introduced to",
+          "eventId": "e_481",
+          "entities": [
+            "p_41"
+          ],
+          "significance": 0.3,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_481"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_243",
+          "tick": 8666420.499999924,
+          "type": "introduction",
+          "summary": "This person introduced themself as Bren Vale",
+          "eventId": "e_321",
+          "entities": [
+            "p_39"
+          ],
+          "significance": 0.3,
+          "valence": 0,
+          "source": {
+            "type": "told",
+            "from": "p_39",
+            "viaEvent": "e_321"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_236",
+          "tick": 8666415.399999943,
+          "type": "introduction",
+          "summary": "I introduced myself to this person",
+          "eventId": "e_290",
+          "entities": [
+            "p_40"
+          ],
+          "significance": 0.3,
+          "valence": 0,
+          "source": {
+            "type": "self",
+            "viaEvent": "e_290"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_224",
+          "tick": 8666407.499999972,
+          "type": "introduction",
+          "summary": "I introduced myself to this person",
+          "eventId": "e_231",
+          "entities": [
+            "p_39"
+          ],
+          "significance": 0.3,
+          "valence": 0,
+          "source": {
+            "type": "self",
+            "viaEvent": "e_231"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_203",
+          "tick": 8666400.299999999,
+          "type": "introduction",
+          "summary": "This person introduced themself as Elin Brook",
+          "eventId": "e_130",
+          "entities": [
+            "p_41"
+          ],
+          "significance": 0.3,
+          "valence": 0,
+          "source": {
+            "type": "told",
+            "from": "p_41",
+            "viaEvent": "e_130"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_209",
+          "tick": 8666402.199999992,
+          "type": "inspection",
+          "summary": "I examined the visible parts of a mechanism",
+          "eventId": "e_174",
+          "entities": [],
+          "significance": 0.25,
+          "valence": 0,
+          "source": {
+            "type": "self",
+            "viaEvent": "e_174"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_286",
+          "tick": 8666523.29999954,
+          "type": "told",
+          "summary": "an unfamiliar person told me how to connect 4 components to perform transfer:liquid",
+          "entities": [
+            "p_40"
+          ],
+          "significance": 0.21,
+          "valence": 0,
+          "source": {
+            "type": "told",
+            "from": "p_40",
+            "viaEvent": "e_784"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_278",
+          "tick": 8666517.699999562,
+          "type": "told",
+          "summary": "Bren Vale told me how to connect 4 components to perform transfer:liquid",
+          "entities": [
+            "p_39"
+          ],
+          "significance": 0.21,
+          "valence": 0,
+          "source": {
+            "type": "told",
+            "from": "p_39",
+            "viaEvent": "e_747"
+          },
+          "recalled": 0
+        }
+      ],
+      "relationships": [
+        {
+          "subjectId": "p_41",
+          "relation": {
+            "trust": -0.293472,
+            "affection": -0.195648,
+            "fear": 0.06847679999999999,
+            "respect": -0.146736,
+            "familiarity": 0.05,
+            "grudge": 0.1027152,
+            "tags": [],
+            "lastUpdated": 8666400.799999997
+          },
+          "evidence": {
+            "caution": 0.3749764908990591,
+            "cooperation": 0,
+            "esteem": 0.13042660553010754,
+            "inputs": [
+              {
+                "key": "social:p_41:disposition:restrained",
+                "event": "e_155",
+                "confidence": 0.37499999999999994,
+                "learnedAt": 8666400.799999997
+              },
+              {
+                "key": "social:p_41:intent:attacking",
+                "event": "e_156",
+                "confidence": 0.393939393939394,
+                "learnedAt": 8666400.799999997
+              },
+              {
+                "key": "social:p_41:capability:competent fighter",
+                "event": "e_157",
+                "confidence": 0.13043478260869565,
+                "learnedAt": 8666400.799999997
+              }
+            ]
+          },
+          "experiences": [
+            {
+              "id": "m_173",
+              "tick": 8666400.2,
+              "type": "encounter",
+              "summary": "I encountered a person",
+              "eventId": "e_35",
+              "entities": [
+                "p_41"
+              ],
+              "significance": 0.18,
+              "valence": 0,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_35"
+              },
+              "recalled": 0
+            },
+            {
+              "id": "m_203",
+              "tick": 8666400.299999999,
+              "type": "introduction",
+              "summary": "This person introduced themself as Elin Brook",
+              "eventId": "e_130",
+              "entities": [
+                "p_41"
+              ],
+              "significance": 0.3,
+              "valence": 0,
+              "source": {
+                "type": "told",
+                "from": "p_41",
+                "viaEvent": "e_130"
+              },
+              "recalled": 0
+            },
+            {
+              "id": "m_204",
+              "tick": 8666400.399999999,
+              "type": "introduction",
+              "summary": "I saw: introduction at workshop",
+              "eventId": "e_130",
+              "entities": [
+                "p_41",
+                "p_38"
+              ],
+              "significance": 0.7393750000000001,
+              "valence": 0,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_136"
+              },
+              "placeId": "pl_43",
+              "recalled": 0
+            },
+            {
+              "id": "m_207",
+              "tick": 8666400.799999997,
+              "type": "attack",
+              "summary": "I saw: Elin Brook attacked an unfamiliar person at workshop",
+              "eventId": "e_145",
+              "entities": [
+                "p_41",
+                "p_40"
+              ],
+              "significance": 0.5972,
+              "valence": -0.8,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_153"
+              },
+              "placeId": "pl_43",
+              "recalled": 0
+            },
+            {
+              "id": "m_221",
+              "tick": 8666406.999999974,
+              "type": "introduction",
+              "summary": "I saw: introduction at workshop",
+              "eventId": "e_213",
+              "entities": [
+                "p_39",
+                "p_41"
+              ],
+              "significance": 0.5268750000000001,
+              "valence": 0,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_220"
+              },
+              "placeId": "pl_43",
+              "recalled": 0
+            },
+            {
+              "id": "m_254",
+              "tick": 8666460.399999775,
+              "type": "encounter",
+              "summary": "I recognized a person I had been introduced to",
+              "eventId": "e_481",
+              "entities": [
+                "p_41"
+              ],
+              "significance": 0.3,
+              "valence": 0,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_481"
+              },
+              "recalled": 0
+            },
+            {
+              "id": "m_282",
+              "tick": 8666520.99999955,
+              "type": "encounter",
+              "summary": "I recognized a person I had been introduced to",
+              "eventId": "e_777",
+              "entities": [
+                "p_41"
+              ],
+              "significance": 0.3,
+              "valence": 0,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_777"
+              },
+              "recalled": 0
+            }
+          ],
+          "changes": [
+            {
+              "event": "e_161",
+              "causes": [
+                "e_153"
+              ],
+              "at": 8666400.799999997,
+              "reason": "witnessed attack on Cora Moss (at_my_place, personal significance 0.33)",
+              "delta": {
+                "fear": 0.06847679999999999,
+                "trust": -0.293472,
+                "affection": -0.195648,
+                "grudge": 0.1027152,
+                "grievance": 0,
+                "respect": -0.146736
+              }
+            }
+          ]
+        }
+      ],
+      "agency": {
+        "selected": {
+          "type": "socialize",
+          "utility": 0.5822145000000453,
+          "reasons": [
+            "social need 0.68",
+            "my appetite for company",
+            ""
+          ],
+          "createdAt": 8666517.799999561,
+          "key": "socialize:pl_43",
+          "targetPlace": "pl_43"
+        },
+        "considered": {
+          "tick": 8666563.099999392,
+          "candidates": [
+            {
+              "type": "socialize",
+              "key": "socialize:pl_43",
+              "utility": 0.5116487962963606,
+              "reasons": [
+                "social need 0.60",
+                "my appetite for company"
+              ]
+            },
+            {
+              "type": "chop",
+              "key": "chop:",
+              "utility": 0.493428700297619,
+              "reasons": [
+                "the village storage shed still needs planks, and there is no wood for them"
+              ]
+            },
+            {
+              "type": "gather",
+              "key": "gather:",
+              "utility": 0.493428700297619,
+              "reasons": [
+                "the village storage shed still needs stone"
+              ]
+            },
+            {
+              "type": "flee",
+              "key": "flee:p_41",
+              "utility": 0.4746060028627434,
+              "reasons": [
+                "my retained evidence suggests caution",
+                "social:p_41:disposition:restrained",
+                "social:p_41:intent:attacking",
+                "social:p_41:capability:competent fighter",
+                "concern: wary of them (0.30)",
+                "it happened at workshop"
+              ]
+            },
+            {
+              "type": "idle",
+              "key": "idle:",
+              "utility": 0.1,
+              "reasons": [
+                "nothing better to do"
+              ]
+            },
+            {
+              "type": "sleep",
+              "key": "sleep:pl_43",
+              "utility": 0,
+              "reasons": [
+                "energy need 0.05"
+              ]
+            }
+          ],
+          "chosen": "socialize:pl_43",
+          "switched": false,
+          "note": "continuing socialize"
+        },
+        "attention": "p_41"
+      },
+      "capability": {
+        "experience": {
+          "bySkill": {
+            "crafting": {
+              "effectiveSeconds": 3.7642285244114877,
+              "actions": 1,
+              "lastTick": 8666516.299999567,
+              "lastEventId": "e_692",
+              "sourceEventIds": [
+                "e_692"
+              ]
+            }
+          },
+          "creditedEventIds": [
+            "e_692"
+          ],
+          "repetitionCounts": {
+            "crafting:replace": 1
+          },
+          "recent": [
+            {
+              "fingerprint": "crafting:replace",
+              "tick": 8666516.299999567,
+              "eventId": "e_692"
+            }
+          ],
+          "dailySeconds": 3.7642285244114877,
+          "dailyRawSeconds": 4.208535431713907,
+          "day": 100
+        },
+        "advancement": {
+          "stage": "Normal",
+          "eligible": false,
+          "reasons": [
+            "all seven attributes must reach 15",
+            "a relevant capability needs sustained successful practice",
+            "provenance-bearing technique knowledge is required",
+            "evidence must span at least three days"
+          ],
+          "evidenceEventIds": []
+        }
+      }
+    },
+    "residentB": {
+      "truth": {
+        "id": "p_39",
+        "name": "Bren Vale",
+        "bodyIds": [
+          "b_55"
+        ],
+        "skills": {
+          "crafting": 0.05
+        },
+        "ontology": {
+          "stage": "Normal"
+        }
+      },
+      "understoodIdentity": {
+        "entityId": "p_41",
+        "name": "Elin Brook",
+        "knownName": true,
+        "identity": {
+          "name": "Elin Brook",
+          "confidence": 0.6162500000000001,
+          "source": {
+            "type": "told",
+            "from": "p_38",
+            "viaEvent": "e_375"
+          },
+          "learnedAt": 8666432.499999879
+        },
+        "beliefs": [
+          {
+            "family": "disposition",
+            "interpretation": "may not be restrained",
+            "confidence": 0.2699397700310276,
+            "learnedAt": 8666407.499999972,
+            "source": {
+              "type": "inferred",
+              "viaEvent": "e_237"
+            },
+            "evidence": [
+              {
+                "key": "ev:e_145",
+                "event": "e_234",
+                "at": 8666407.499999972,
+                "weight": -0.36975
+              }
+            ]
+          },
+          {
+            "family": "intent",
+            "interpretation": "may be attacking",
+            "confidence": 0.2860011602481146,
+            "learnedAt": 8666407.499999972,
+            "source": {
+              "type": "inferred",
+              "viaEvent": "e_238"
+            },
+            "evidence": [
+              {
+                "key": "ev:e_145",
+                "event": "e_234",
+                "at": 8666407.499999972,
+                "weight": 0.40056250000000004
+              }
+            ]
+          },
+          {
+            "family": "capability",
+            "interpretation": "may be competent fighter",
+            "confidence": 0.08461582470393043,
+            "learnedAt": 8666407.499999972,
+            "source": {
+              "type": "inferred",
+              "viaEvent": "e_239"
+            },
+            "evidence": [
+              {
+                "key": "ev:e_145",
+                "event": "e_234",
+                "at": 8666407.499999972,
+                "weight": 0.0924375
+              }
+            ]
+          }
+        ],
+        "observations": [
+          {
+            "key": "ev:e_145",
+            "action": "attack",
+            "at": 8666407.499999972,
+            "confidence": 0.6162500000000001,
+            "source": {
+              "type": "told",
+              "from": "p_38",
+              "viaEvent": "e_234"
+            }
+          },
+          {
+            "key": "ev:e_130",
+            "action": "introduction",
+            "at": 8666432.499999879,
+            "confidence": 0.6162500000000001,
+            "source": {
+              "type": "told",
+              "from": "p_38",
+              "viaEvent": "e_375"
+            }
+          }
+        ]
+      },
+      "knowledge": [
+        {
+          "key": "ev:e_145",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_145",
+            "type": "attack",
+            "tick": 8666400.699999997,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10,
+              "y": 1,
+              "z": 12
+            },
+            "significance": 0.7,
+            "target": "p_40",
+            "actor": "p_41"
+          },
+          "confidence": 0.6162500000000001,
+          "learnedAt": 8666407.499999972,
+          "source": {
+            "type": "told",
+            "from": "p_38",
+            "viaEvent": "e_234"
+          },
+          "hops": 1,
+          "sharedWith": [
+            "p_40"
+          ]
+        },
+        {
+          "key": "encounter:p_40:b_56",
+          "kind": "fact",
+          "claim": {
+            "encounter": true,
+            "subjectId": "p_40",
+            "bodyId": "b_56",
+            "cues": {
+              "bodyId": "b_56",
+              "shape": "humanoid",
+              "appearance": {
+                "skin": 13212274,
+                "hair": 14202218,
+                "shirt": 6970431,
+                "pants": 5259570,
+                "hatStyle": "none",
+                "height": 1.04,
+                "build": 1,
+                "description": {
+                  "presentation": "feminine",
+                  "skinTone": "olive",
+                  "faceShape": "round",
+                  "hairStyle": "updo_ornamented",
+                  "hairColor": "blond",
+                  "eyeColor": "hazel",
+                  "frame": "average",
+                  "stature": "above_average",
+                  "garmentSilhouette": "work_kimono",
+                  "garmentPalette": "earth_work",
+                  "accessories": [
+                    "hair_ornament",
+                    "anklets",
+                    "gold_filigree"
+                  ]
+                }
+              },
+              "activity": "stand",
+              "placeId": "pl_43",
+              "pos": {
+                "x": 9.568471703170491,
+                "y": 1,
+                "z": 10.991611224114854
+              },
+              "at": 8666563.199999392,
+              "ageBand": "adult"
+            },
+            "observations": [
+              {
+                "at": 8666402.59999999,
+                "signature": "[\"olive\",\"blond\",\"updo_ornamented\",\"round\",\"average\",\"above_average\"]",
+                "event": "e_191"
+              },
+              {
+                "at": 8666463.599999763,
+                "signature": "[\"olive\",\"blond\",\"updo_ornamented\",\"round\",\"average\",\"above_average\"]",
+                "event": "e_497"
+              },
+              {
+                "at": 8666524.799999535,
+                "signature": "[\"olive\",\"blond\",\"updo_ornamented\",\"round\",\"average\",\"above_average\"]",
+                "event": "e_796"
+              }
+            ],
+            "lastSeenAt": 8666563.199999392,
+            "lastSampleAt": 8666563.199999392,
+            "lastPhysicalSampleAt": 163.19999999999501,
+            "significance": 0.18
+          },
+          "confidence": 0.8,
+          "learnedAt": 8666524.799999535,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_796"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "encounter:p_38:b_54",
+          "kind": "fact",
+          "claim": {
+            "encounter": true,
+            "subjectId": "p_38",
+            "bodyId": "b_54",
+            "cues": {
+              "bodyId": "b_54",
+              "shape": "humanoid",
+              "appearance": {
+                "skin": 12157013,
+                "hair": 13081170,
+                "shirt": 12037269,
+                "pants": 6970700,
+                "hatStyle": "none",
+                "height": 1,
+                "build": 1,
+                "description": {
+                  "presentation": "feminine",
+                  "skinTone": "bronze",
+                  "faceShape": "oval",
+                  "hairStyle": "braided",
+                  "hairColor": "honey",
+                  "eyeColor": "amber",
+                  "frame": "average",
+                  "stature": "average",
+                  "garmentSilhouette": "apron_over_tunic",
+                  "garmentPalette": "undyed_hemp",
+                  "accessories": [
+                    "hair_ornament",
+                    "gold_filigree"
+                  ]
+                }
+              },
+              "activity": "sit",
+              "placeId": "pl_43",
+              "pos": {
+                "x": 10.5,
+                "y": 1,
+                "z": 10.5
+              },
+              "at": 8666562.199999396,
+              "ageBand": "young_adult"
+            },
+            "observations": [
+              {
+                "at": 8666402.79999999,
+                "signature": "[\"bronze\",\"honey\",\"braided\",\"oval\",\"average\",\"average\"]",
+                "event": "e_196"
+              },
+              {
+                "at": 8666463.799999762,
+                "signature": "[\"bronze\",\"honey\",\"braided\",\"oval\",\"average\",\"average\"]",
+                "event": "e_503"
+              },
+              {
+                "at": 8666524.999999534,
+                "signature": "[\"bronze\",\"honey\",\"braided\",\"oval\",\"average\",\"average\"]",
+                "event": "e_798"
+              }
+            ],
+            "lastSeenAt": 8666563.199999392,
+            "lastSampleAt": 8666562.199999396,
+            "lastPhysicalSampleAt": 162.19999999999507,
+            "significance": 0.18
+          },
+          "confidence": 0.8,
+          "learnedAt": 8666524.999999534,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_798"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "encounter:p_41:b_57",
+          "kind": "fact",
+          "claim": {
+            "encounter": true,
+            "subjectId": "p_41",
+            "bodyId": "b_57",
+            "cues": {
+              "bodyId": "b_57",
+              "shape": "humanoid",
+              "appearance": {
+                "skin": 7028522,
+                "hair": 1709330,
+                "shirt": 12629404,
+                "pants": 6970442,
+                "hatStyle": "none",
+                "height": 1,
+                "build": 0.93,
+                "description": {
+                  "presentation": "feminine",
+                  "skinTone": "deep",
+                  "faceShape": "angular",
+                  "hairStyle": "ponytail",
+                  "hairColor": "black",
+                  "eyeColor": "hazel",
+                  "frame": "lean",
+                  "stature": "average",
+                  "garmentSilhouette": "dancer_wrap",
+                  "garmentPalette": "undyed_hemp",
+                  "accessories": [
+                    "gold_filigree",
+                    "waist_cord",
+                    "anklets"
+                  ]
+                }
+              },
+              "activity": "stand",
+              "placeId": "pl_43",
+              "pos": {
+                "x": 10,
+                "y": 1,
+                "z": 11
+              },
+              "at": 8666520.199999552,
+              "ageBand": "young_adult"
+            },
+            "observations": [
+              {
+                "at": 8666402.79999999,
+                "signature": "[\"deep\",\"black\",\"ponytail\",\"angular\",\"lean\",\"average\"]",
+                "event": "e_197"
+              },
+              {
+                "at": 8666463.799999762,
+                "signature": "[\"deep\",\"black\",\"ponytail\",\"angular\",\"lean\",\"average\"]",
+                "event": "e_504"
+              }
+            ],
+            "lastSeenAt": 8666520.99999955,
+            "lastSampleAt": 8666520.199999552,
+            "lastPhysicalSampleAt": 120.19999999999744,
+            "significance": 0.18
+          },
+          "confidence": 0.7,
+          "learnedAt": 8666463.799999762,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_504"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "identity:p_38",
+          "kind": "fact",
+          "claim": {
+            "identity": {
+              "subject": "p_38",
+              "name": "Orla Reed",
+              "signatures": [
+                "[\"bronze\",\"honey\",\"braided\",\"oval\",\"average\",\"average\"]"
+              ]
+            },
+            "evidence": [
+              {
+                "name": "Orla Reed",
+                "source": {
+                  "type": "told",
+                  "from": "p_38",
+                  "viaEvent": "e_231"
+                },
+                "at": 8666407.499999972
+              },
+              {
+                "name": "Orla Reed",
+                "source": {
+                  "type": "heard",
+                  "from": "p_38",
+                  "viaEvent": "e_296"
+                },
+                "at": 8666415.599999942
+              }
+            ]
+          },
+          "confidence": 0.65,
+          "learnedAt": 8666415.599999942,
+          "source": {
+            "type": "heard",
+            "from": "p_38",
+            "viaEvent": "e_296"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "social:p_41:disposition:restrained",
+          "kind": "fact",
+          "claim": {
+            "social": {
+              "subject": "p_41",
+              "family": "disposition",
+              "characteristic": "restrained",
+              "support": -0.36975,
+              "evidence": [
+                {
+                  "key": "ev:e_145",
+                  "event": "e_234",
+                  "at": 8666407.499999972,
+                  "weight": -0.36975
+                }
+              ]
+            }
+          },
+          "confidence": 0.2699397700310276,
+          "learnedAt": 8666407.499999972,
+          "source": {
+            "type": "inferred",
+            "viaEvent": "e_237"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "social:p_41:intent:attacking",
+          "kind": "fact",
+          "claim": {
+            "social": {
+              "subject": "p_41",
+              "family": "intent",
+              "characteristic": "attacking",
+              "support": 0.40056250000000004,
+              "evidence": [
+                {
+                  "key": "ev:e_145",
+                  "event": "e_234",
+                  "at": 8666407.499999972,
+                  "weight": 0.40056250000000004
+                }
+              ]
+            }
+          },
+          "confidence": 0.2860011602481146,
+          "learnedAt": 8666407.499999972,
+          "source": {
+            "type": "inferred",
+            "viaEvent": "e_238"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "social:p_41:capability:competent fighter",
+          "kind": "fact",
+          "claim": {
+            "social": {
+              "subject": "p_41",
+              "family": "capability",
+              "characteristic": "competent fighter",
+              "support": 0.0924375,
+              "evidence": [
+                {
+                  "key": "ev:e_145",
+                  "event": "e_234",
+                  "at": 8666407.499999972,
+                  "weight": 0.0924375
+                }
+              ]
+            }
+          },
+          "confidence": 0.08461582470393043,
+          "learnedAt": 8666407.499999972,
+          "source": {
+            "type": "inferred",
+            "viaEvent": "e_239"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_231",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_231",
+            "type": "introduction",
+            "tick": 8666407.499999972,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.47841600307147,
+              "y": 1,
+              "z": 10.47841600307147
+            },
+            "significance": 0.25,
+            "claimedName": "Orla Reed",
+            "actor": "p_38",
+            "target": "p_39"
+          },
+          "confidence": 1,
+          "learnedAt": 8666407.599999972,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_241"
+          },
+          "hops": 0,
+          "sharedWith": [
+            "p_40"
+          ]
+        },
+        {
+          "key": "ev:e_290",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_290",
+            "type": "introduction",
+            "tick": 8666415.399999943,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.47841600307147,
+              "y": 1,
+              "z": 10.47841600307147
+            },
+            "significance": 0.25,
+            "claimedName": "Orla Reed",
+            "actor": "p_38",
+            "target": "p_40"
+          },
+          "confidence": 1,
+          "learnedAt": 8666415.599999942,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_296"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_130",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_130",
+            "type": "introduction",
+            "tick": 8666400.299999999,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10,
+              "y": 1,
+              "z": 11
+            },
+            "significance": 0.25,
+            "claimedName": "Elin Brook",
+            "actor": "p_41",
+            "target": "p_38"
+          },
+          "confidence": 0.6162500000000001,
+          "learnedAt": 8666432.499999879,
+          "source": {
+            "type": "told",
+            "from": "p_38",
+            "viaEvent": "e_375"
+          },
+          "hops": 1,
+          "sharedWith": []
+        },
+        {
+          "key": "identity:p_41",
+          "kind": "fact",
+          "claim": {
+            "identity": {
+              "subject": "p_41",
+              "name": "Elin Brook",
+              "signatures": [
+                "[\"deep\",\"black\",\"ponytail\",\"angular\",\"lean\",\"average\"]"
+              ]
+            },
+            "evidence": [
+              {
+                "name": "Elin Brook",
+                "source": {
+                  "type": "told",
+                  "from": "p_38",
+                  "viaEvent": "e_375"
+                },
+                "at": 8666432.499999879
+              }
+            ]
+          },
+          "confidence": 0.6162500000000001,
+          "learnedAt": 8666432.499999879,
+          "source": {
+            "type": "told",
+            "from": "p_38",
+            "viaEvent": "e_375"
+          },
+          "hops": 1,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_692",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_692",
+            "type": "mechanism_worked",
+            "tick": 8666516.299999567,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.5,
+              "y": 1,
+              "z": 10.5
+            },
+            "significance": 0.4,
+            "assemblyId": "assembly_1",
+            "outcome": "fitted",
+            "operation": "replace",
+            "actor": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666516.399999566,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_697"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "social:p_38:occupation:craftsperson",
+          "kind": "fact",
+          "claim": {
+            "social": {
+              "subject": "p_38",
+              "family": "occupation",
+              "characteristic": "craftsperson",
+              "support": 0.3,
+              "evidence": [
+                {
+                  "key": "ev:e_692",
+                  "event": "e_697",
+                  "at": 8666516.399999566,
+                  "weight": 0.3
+                }
+              ]
+            }
+          },
+          "confidence": 0.23076923076923075,
+          "learnedAt": 8666516.399999566,
+          "source": {
+            "type": "inferred",
+            "viaEvent": "e_699"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "social:p_38:intent:repairing the mechanism",
+          "kind": "fact",
+          "claim": {
+            "social": {
+              "subject": "p_38",
+              "family": "intent",
+              "characteristic": "repairing the mechanism",
+              "support": 0.65,
+              "evidence": [
+                {
+                  "key": "ev:e_692",
+                  "event": "e_697",
+                  "at": 8666516.399999566,
+                  "weight": 0.65
+                }
+              ]
+            }
+          },
+          "confidence": 0.393939393939394,
+          "learnedAt": 8666516.399999566,
+          "source": {
+            "type": "inferred",
+            "viaEvent": "e_700"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "social:p_38:capability:dexterous",
+          "kind": "fact",
+          "claim": {
+            "social": {
+              "subject": "p_38",
+              "family": "capability",
+              "characteristic": "dexterous",
+              "support": 0.45,
+              "evidence": [
+                {
+                  "key": "ev:e_692",
+                  "event": "e_697",
+                  "at": 8666516.399999566,
+                  "weight": 0.45
+                }
+              ]
+            }
+          },
+          "confidence": 0.3103448275862069,
+          "learnedAt": 8666516.399999566,
+          "source": {
+            "type": "inferred",
+            "viaEvent": "e_701"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_718",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_718",
+            "type": "mechanism_trial",
+            "tick": 8666517.299999563,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.5,
+              "y": 1,
+              "z": 10.5
+            },
+            "significance": 0.4,
+            "assemblyId": "assembly_1",
+            "output": 2.4097500000000003,
+            "actor": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666517.399999563,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_721"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "social:p_38:capability:skilled craftsperson",
+          "kind": "fact",
+          "claim": {
+            "social": {
+              "subject": "p_38",
+              "family": "capability",
+              "characteristic": "skilled craftsperson",
+              "support": 0.7,
+              "evidence": [
+                {
+                  "key": "ev:e_718",
+                  "event": "e_721",
+                  "at": 8666517.399999563,
+                  "weight": 0.7
+                }
+              ]
+            }
+          },
+          "confidence": 0.4117647058823529,
+          "learnedAt": 8666517.399999563,
+          "source": {
+            "type": "inferred",
+            "viaEvent": "e_723"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "social:p_38:disposition:reliable",
+          "kind": "fact",
+          "claim": {
+            "social": {
+              "subject": "p_38",
+              "family": "disposition",
+              "characteristic": "reliable",
+              "support": 0.35,
+              "evidence": [
+                {
+                  "key": "ev:e_718",
+                  "event": "e_721",
+                  "at": 8666517.399999563,
+                  "weight": 0.35
+                }
+              ]
+            }
+          },
+          "confidence": 0.25925925925925924,
+          "learnedAt": 8666517.399999563,
+          "source": {
+            "type": "inferred",
+            "viaEvent": "e_724"
+          },
+          "hops": 0,
+          "sharedWith": []
+        }
+      ],
+      "memories": [
+        {
+          "id": "m_227",
+          "tick": 8666407.599999972,
+          "type": "introduction",
+          "summary": "I saw: introduction at workshop",
+          "eventId": "e_231",
+          "entities": [
+            "p_38",
+            "p_39"
+          ],
+          "significance": 0.7393750000000001,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_241"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_226",
+          "tick": 8666407.499999972,
+          "type": "told",
+          "summary": "Orla Reed told me an unfamiliar person attacked an unfamiliar person at workshop",
+          "eventId": "e_145",
+          "entities": [
+            "p_38",
+            "p_41",
+            "p_40"
+          ],
+          "significance": 0.48999999999999994,
+          "valence": -0.4,
+          "source": {
+            "type": "told",
+            "from": "p_38",
+            "viaEvent": "e_234"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_273",
+          "tick": 8666517.399999563,
+          "type": "mechanism_trial",
+          "summary": "I saw: mechanism_trial at workshop",
+          "eventId": "e_718",
+          "entities": [
+            "p_38"
+          ],
+          "significance": 0.4265,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_721"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_270",
+          "tick": 8666516.399999566,
+          "type": "mechanism_worked",
+          "summary": "I saw: mechanism_worked at workshop",
+          "eventId": "e_692",
+          "entities": [
+            "p_38"
+          ],
+          "significance": 0.4265,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_697"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_208",
+          "tick": 8666400.799999997,
+          "type": "attack",
+          "summary": "I heard: someone attacked an unfamiliar person at workshop",
+          "eventId": "e_145",
+          "entities": [
+            "p_40"
+          ],
+          "significance": 0.4048227,
+          "valence": -0.8,
+          "source": {
+            "type": "heard",
+            "viaEvent": "e_163"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_239",
+          "tick": 8666415.599999942,
+          "type": "introduction",
+          "summary": "I saw: introduction at workshop",
+          "eventId": "e_290",
+          "entities": [
+            "p_38",
+            "p_40"
+          ],
+          "significance": 0.314375,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_296"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_291",
+          "tick": 8666524.999999534,
+          "type": "encounter",
+          "summary": "I recognized a person I had been introduced to",
+          "eventId": "e_798",
+          "entities": [
+            "p_38"
+          ],
+          "significance": 0.3,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_798"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_264",
+          "tick": 8666463.799999762,
+          "type": "encounter",
+          "summary": "I recognized a person I had been introduced to",
+          "eventId": "e_503",
+          "entities": [
+            "p_38"
+          ],
+          "significance": 0.3,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_503"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_265",
+          "tick": 8666463.799999762,
+          "type": "encounter",
+          "summary": "I recognized a person I had been introduced to",
+          "eventId": "e_504",
+          "entities": [
+            "p_41"
+          ],
+          "significance": 0.3,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_504"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_242",
+          "tick": 8666420.499999924,
+          "type": "introduction",
+          "summary": "I introduced myself to this person",
+          "eventId": "e_321",
+          "entities": [
+            "p_38"
+          ],
+          "significance": 0.3,
+          "valence": 0,
+          "source": {
+            "type": "self",
+            "viaEvent": "e_321"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_230",
+          "tick": 8666413.59999995,
+          "type": "introduction",
+          "summary": "I introduced myself to this person",
+          "eventId": "e_270",
+          "entities": [
+            "p_40"
+          ],
+          "significance": 0.3,
+          "valence": 0,
+          "source": {
+            "type": "self",
+            "viaEvent": "e_270"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_225",
+          "tick": 8666407.499999972,
+          "type": "introduction",
+          "summary": "This person introduced themself as Orla Reed",
+          "eventId": "e_231",
+          "entities": [
+            "p_38"
+          ],
+          "significance": 0.3,
+          "valence": 0,
+          "source": {
+            "type": "told",
+            "from": "p_38",
+            "viaEvent": "e_231"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_218",
+          "tick": 8666406.799999975,
+          "type": "introduction",
+          "summary": "I introduced myself to this person",
+          "eventId": "e_213",
+          "entities": [
+            "p_41"
+          ],
+          "significance": 0.3,
+          "valence": 0,
+          "source": {
+            "type": "self",
+            "viaEvent": "e_213"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_287",
+          "tick": 8666523.999999538,
+          "type": "told",
+          "summary": "an unfamiliar person told me how to connect 4 components to perform transfer:liquid",
+          "entities": [
+            "p_40"
+          ],
+          "significance": 0.21,
+          "valence": 0,
+          "source": {
+            "type": "told",
+            "from": "p_40",
+            "viaEvent": "e_788"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_276",
+          "tick": 8666517.499999562,
+          "type": "told",
+          "summary": "Orla Reed told me how to connect 4 components to perform transfer:liquid",
+          "entities": [
+            "p_38"
+          ],
+          "significance": 0.21,
+          "valence": 0,
+          "source": {
+            "type": "told",
+            "from": "p_38",
+            "viaEvent": "e_736"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_267",
+          "tick": 8666482.599999692,
+          "type": "told",
+          "summary": "Orla Reed told me sack of grain is at workshop",
+          "entities": [
+            "p_38"
+          ],
+          "significance": 0.21,
+          "valence": 0,
+          "source": {
+            "type": "told",
+            "from": "p_38",
+            "viaEvent": "e_569"
+          },
+          "recalled": 0
+        }
+      ],
+      "relationships": [
+        {
+          "subjectId": "p_41",
+          "relation": {
+            "trust": -0.0928112918112,
+            "affection": -0.06960846885840001,
+            "fear": 0.04872592820088,
+            "respect": 0,
+            "familiarity": 0,
+            "grudge": 0.0464056459056,
+            "tags": [],
+            "lastUpdated": 8666407.499999972
+          },
+          "evidence": {
+            "caution": 0.2699235449723588,
+            "cooperation": 0,
+            "esteem": 0.08461073876672315,
+            "inputs": [
+              {
+                "key": "social:p_41:disposition:restrained",
+                "event": "e_237",
+                "confidence": 0.2699397700310276,
+                "learnedAt": 8666407.499999972
+              },
+              {
+                "key": "social:p_41:intent:attacking",
+                "event": "e_238",
+                "confidence": 0.2860011602481146,
+                "learnedAt": 8666407.499999972
+              },
+              {
+                "key": "social:p_41:capability:competent fighter",
+                "event": "e_239",
+                "confidence": 0.08461582470393043,
+                "learnedAt": 8666407.499999972
+              }
+            ]
+          },
+          "experiences": [
+            {
+              "id": "m_217",
+              "tick": 8666402.79999999,
+              "type": "encounter",
+              "summary": "I encountered a person",
+              "eventId": "e_197",
+              "entities": [
+                "p_41"
+              ],
+              "significance": 0.18,
+              "valence": 0,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_197"
+              },
+              "recalled": 0
+            },
+            {
+              "id": "m_218",
+              "tick": 8666406.799999975,
+              "type": "introduction",
+              "summary": "I introduced myself to this person",
+              "eventId": "e_213",
+              "entities": [
+                "p_41"
+              ],
+              "significance": 0.3,
+              "valence": 0,
+              "source": {
+                "type": "self",
+                "viaEvent": "e_213"
+              },
+              "recalled": 0
+            },
+            {
+              "id": "m_226",
+              "tick": 8666407.499999972,
+              "type": "told",
+              "summary": "Orla Reed told me an unfamiliar person attacked an unfamiliar person at workshop",
+              "eventId": "e_145",
+              "entities": [
+                "p_38",
+                "p_41",
+                "p_40"
+              ],
+              "significance": 0.48999999999999994,
+              "valence": -0.4,
+              "source": {
+                "type": "told",
+                "from": "p_38",
+                "viaEvent": "e_234"
+              },
+              "recalled": 0
+            },
+            {
+              "id": "m_248",
+              "tick": 8666432.499999879,
+              "type": "told",
+              "summary": "Orla Reed told me introduction at workshop",
+              "eventId": "e_130",
+              "entities": [
+                "p_38",
+                "p_41",
+                "p_38"
+              ],
+              "significance": 0.175,
+              "valence": 0,
+              "source": {
+                "type": "told",
+                "from": "p_38",
+                "viaEvent": "e_375"
+              },
+              "recalled": 0
+            },
+            {
+              "id": "m_265",
+              "tick": 8666463.799999762,
+              "type": "encounter",
+              "summary": "I recognized a person I had been introduced to",
+              "eventId": "e_504",
+              "entities": [
+                "p_41"
+              ],
+              "significance": 0.3,
+              "valence": 0,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_504"
+              },
+              "recalled": 0
+            }
+          ],
+          "changes": [
+            {
+              "event": "e_240",
+              "causes": [
+                "e_234"
+              ],
+              "at": 8666407.499999972,
+              "reason": "was told by Orla Reed",
+              "delta": {
+                "fear": 0.04872592820088,
+                "trust": -0.0928112918112,
+                "grudge": 0.0464056459056,
+                "affection": -0.06960846885840001
+              }
+            }
+          ]
+        }
+      ],
+      "agency": {
+        "selected": {
+          "type": "socialize",
+          "utility": 0.5390081666667168,
+          "reasons": [
+            "social need 0.61",
+            "my appetite for company",
+            ""
+          ],
+          "createdAt": 8666518.19999956,
+          "key": "socialize:pl_43",
+          "targetPlace": "pl_43"
+        },
+        "considered": {
+          "tick": 8666563.199999392,
+          "candidates": [
+            {
+              "type": "chop",
+              "key": "chop:",
+              "utility": 0.49340876190476185,
+              "reasons": [
+                "the village storage shed still needs planks, and there is no wood for them"
+              ]
+            },
+            {
+              "type": "gather",
+              "key": "gather:",
+              "utility": 0.49340876190476185,
+              "reasons": [
+                "the village storage shed still needs stone"
+              ]
+            },
+            {
+              "type": "socialize",
+              "key": "socialize:pl_43",
+              "utility": 0.46625133333340296,
+              "reasons": [
+                "social need 0.53",
+                "my appetite for company"
+              ]
+            },
+            {
+              "type": "maintain_mechanism",
+              "key": "maintain_mechanism:assembly_1:inspect",
+              "utility": 0.35245182071338893,
+              "reasons": [
+                "I noticed a mechanical difficulty",
+                "curiosity, practical stake, fatigue and remembered setbacks"
+              ]
+            },
+            {
+              "type": "idle",
+              "key": "idle:",
+              "utility": 0.1,
+              "reasons": [
+                "nothing better to do"
+              ]
+            },
+            {
+              "type": "sleep",
+              "key": "sleep:pl_43",
+              "utility": 0,
+              "reasons": [
+                "energy need 0.05"
+              ]
+            }
+          ],
+          "chosen": "socialize:pl_43",
+          "switched": false,
+          "note": "kept socialize (hysteresis)"
+        },
+        "attention": null
+      },
+      "capability": {
+        "experience": null,
+        "advancement": {
+          "stage": "Normal",
+          "eligible": false,
+          "reasons": [
+            "all seven attributes must reach 15",
+            "a relevant capability needs sustained successful practice",
+            "provenance-bearing technique knowledge is required",
+            "evidence must span at least three days"
+          ],
+          "evidenceEventIds": []
+        }
+      }
+    },
+    "visitor": {
+      "truth": {
+        "id": "p_40",
+        "name": "Cora Moss",
+        "bodyIds": [
+          "b_56"
+        ],
+        "skills": {},
+        "ontology": {
+          "stage": "Normal"
+        }
+      },
+      "understoodIdentity": {
+        "entityId": "p_41",
+        "name": "Elin Brook",
+        "knownName": true,
+        "identity": {
+          "name": "Elin Brook",
+          "confidence": 0.6162500000000001,
+          "source": {
+            "type": "told",
+            "from": "p_38",
+            "viaEvent": "e_293"
+          },
+          "learnedAt": 8666415.399999943
+        },
+        "beliefs": [],
+        "observations": [
+          {
+            "key": "ev:e_130",
+            "action": "introduction",
+            "at": 8666400.399999999,
+            "confidence": 1,
+            "source": {
+              "type": "witnessed",
+              "viaEvent": "e_139"
+            }
+          },
+          {
+            "key": "ev:e_145",
+            "action": "attack",
+            "at": 8666400.699999997,
+            "confidence": 1,
+            "source": {
+              "type": "witnessed",
+              "viaEvent": "e_148"
+            }
+          },
+          {
+            "key": "ev:e_213",
+            "action": "introduction",
+            "at": 8666406.999999974,
+            "confidence": 1,
+            "source": {
+              "type": "witnessed",
+              "viaEvent": "e_223"
+            }
+          }
+        ]
+      },
+      "knowledge": [
+        {
+          "key": "encounter:p_38:b_54",
+          "kind": "fact",
+          "claim": {
+            "encounter": true,
+            "subjectId": "p_38",
+            "bodyId": "b_54",
+            "cues": {
+              "bodyId": "b_54",
+              "shape": "humanoid",
+              "appearance": {
+                "skin": 12157013,
+                "hair": 13081170,
+                "shirt": 12037269,
+                "pants": 6970700,
+                "hatStyle": "none",
+                "height": 1,
+                "build": 1,
+                "description": {
+                  "presentation": "feminine",
+                  "skinTone": "bronze",
+                  "faceShape": "oval",
+                  "hairStyle": "braided",
+                  "hairColor": "honey",
+                  "eyeColor": "amber",
+                  "frame": "average",
+                  "stature": "average",
+                  "garmentSilhouette": "apron_over_tunic",
+                  "garmentPalette": "undyed_hemp",
+                  "accessories": [
+                    "hair_ornament",
+                    "gold_filigree"
+                  ]
+                }
+              },
+              "activity": "sit",
+              "placeId": "pl_43",
+              "pos": {
+                "x": 10.5,
+                "y": 1,
+                "z": 10.5
+              },
+              "at": 8666562.999999393,
+              "ageBand": "young_adult"
+            },
+            "observations": [
+              {
+                "at": 8666400.2,
+                "signature": "[\"bronze\",\"honey\",\"braided\",\"oval\",\"average\",\"average\"]",
+                "event": "e_36"
+              },
+              {
+                "at": 8666460.399999775,
+                "signature": "[\"bronze\",\"honey\",\"braided\",\"oval\",\"average\",\"average\"]",
+                "event": "e_482"
+              },
+              {
+                "at": 8666520.99999955,
+                "signature": "[\"bronze\",\"honey\",\"braided\",\"oval\",\"average\",\"average\"]",
+                "event": "e_778"
+              }
+            ],
+            "lastSeenAt": 8666563.199999392,
+            "lastSampleAt": 8666562.999999393,
+            "lastPhysicalSampleAt": 162.99999999999503,
+            "significance": 0.18
+          },
+          "confidence": 0.8,
+          "learnedAt": 8666520.99999955,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_778"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "encounter:p_41:b_57",
+          "kind": "fact",
+          "claim": {
+            "encounter": true,
+            "subjectId": "p_41",
+            "bodyId": "b_57",
+            "cues": {
+              "bodyId": "b_57",
+              "shape": "humanoid",
+              "appearance": {
+                "skin": 7028522,
+                "hair": 1709330,
+                "shirt": 12629404,
+                "pants": 6970442,
+                "hatStyle": "none",
+                "height": 1,
+                "build": 0.93,
+                "description": {
+                  "presentation": "feminine",
+                  "skinTone": "deep",
+                  "faceShape": "angular",
+                  "hairStyle": "ponytail",
+                  "hairColor": "black",
+                  "eyeColor": "hazel",
+                  "frame": "lean",
+                  "stature": "average",
+                  "garmentSilhouette": "dancer_wrap",
+                  "garmentPalette": "undyed_hemp",
+                  "accessories": [
+                    "gold_filigree",
+                    "waist_cord",
+                    "anklets"
+                  ]
+                }
+              },
+              "activity": "stand",
+              "placeId": "pl_43",
+              "pos": {
+                "x": 10.748234940618051,
+                "y": 1,
+                "z": 11.81411596056128
+              },
+              "at": 8666562.199999396,
+              "ageBand": "young_adult"
+            },
+            "observations": [
+              {
+                "at": 8666400.2,
+                "signature": "[\"deep\",\"black\",\"ponytail\",\"angular\",\"lean\",\"average\"]",
+                "event": "e_37"
+              },
+              {
+                "at": 8666460.399999775,
+                "signature": "[\"deep\",\"black\",\"ponytail\",\"angular\",\"lean\",\"average\"]",
+                "event": "e_483"
+              },
+              {
+                "at": 8666520.99999955,
+                "signature": "[\"deep\",\"black\",\"ponytail\",\"angular\",\"lean\",\"average\"]",
+                "event": "e_779"
+              }
+            ],
+            "lastSeenAt": 8666563.199999392,
+            "lastSampleAt": 8666562.199999396,
+            "lastPhysicalSampleAt": 162.19999999999507,
+            "significance": 0.18
+          },
+          "confidence": 0.8,
+          "learnedAt": 8666520.99999955,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_779"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_22",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_22",
+            "type": "assembly_changed",
+            "tick": 8666400,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.5,
+              "y": 1,
+              "z": 10.5
+            },
+            "significance": 0.3,
+            "assemblyId": "assembly_1",
+            "operation": "started",
+            "actor": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666400.2,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_38"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "social:p_38:intent:altering the mechanism",
+          "kind": "fact",
+          "claim": {
+            "social": {
+              "subject": "p_38",
+              "family": "intent",
+              "characteristic": "altering the mechanism",
+              "support": 3,
+              "evidence": [
+                {
+                  "key": "ev:e_22",
+                  "event": "e_38",
+                  "at": 8666400.2,
+                  "weight": 0.55
+                },
+                {
+                  "key": "ev:e_24",
+                  "event": "e_45",
+                  "at": 8666400.2,
+                  "weight": 0.55
+                },
+                {
+                  "key": "ev:e_26",
+                  "event": "e_52",
+                  "at": 8666400.2,
+                  "weight": 0.55
+                },
+                {
+                  "key": "ev:e_28",
+                  "event": "e_59",
+                  "at": 8666400.2,
+                  "weight": 0.55
+                },
+                {
+                  "key": "ev:e_30",
+                  "event": "e_66",
+                  "at": 8666400.2,
+                  "weight": 0.55
+                },
+                {
+                  "key": "ev:e_31",
+                  "event": "e_70",
+                  "at": 8666400.2,
+                  "weight": 0.55
+                }
+              ]
+            }
+          },
+          "confidence": 0.75,
+          "learnedAt": 8666400.2,
+          "source": {
+            "type": "inferred",
+            "viaEvent": "e_72"
+          },
+          "hops": 0,
+          "sharedWith": [],
+          "lastConfirmedAt": 8666400.2
+        },
+        {
+          "key": "ev:e_23",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_23",
+            "type": "component_acquired",
+            "tick": 8666400,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.5,
+              "y": 1,
+              "z": 10.5
+            },
+            "significance": 0.2,
+            "actor": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666400.2,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_42"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_24",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_24",
+            "type": "assembly_changed",
+            "tick": 8666400,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.5,
+              "y": 1,
+              "z": 10.5
+            },
+            "significance": 0.3,
+            "assemblyId": "assembly_1",
+            "operation": "installed a component in",
+            "actor": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666400.2,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_45"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_25",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_25",
+            "type": "component_acquired",
+            "tick": 8666400,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.5,
+              "y": 1,
+              "z": 10.5
+            },
+            "significance": 0.2,
+            "actor": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666400.2,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_49"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_26",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_26",
+            "type": "assembly_changed",
+            "tick": 8666400,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.5,
+              "y": 1,
+              "z": 10.5
+            },
+            "significance": 0.3,
+            "assemblyId": "assembly_1",
+            "operation": "installed a component in",
+            "actor": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666400.2,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_52"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_27",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_27",
+            "type": "component_acquired",
+            "tick": 8666400,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.5,
+              "y": 1,
+              "z": 10.5
+            },
+            "significance": 0.2,
+            "actor": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666400.2,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_56"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_28",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_28",
+            "type": "assembly_changed",
+            "tick": 8666400,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.5,
+              "y": 1,
+              "z": 10.5
+            },
+            "significance": 0.3,
+            "assemblyId": "assembly_1",
+            "operation": "installed a component in",
+            "actor": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666400.2,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_59"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_29",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_29",
+            "type": "component_acquired",
+            "tick": 8666400,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.5,
+              "y": 1,
+              "z": 10.5
+            },
+            "significance": 0.2,
+            "actor": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666400.2,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_63"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_30",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_30",
+            "type": "assembly_changed",
+            "tick": 8666400,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.5,
+              "y": 1,
+              "z": 10.5
+            },
+            "significance": 0.3,
+            "assemblyId": "assembly_1",
+            "operation": "installed a component in",
+            "actor": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666400.2,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_66"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_31",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_31",
+            "type": "assembly_changed",
+            "tick": 8666400,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.5,
+              "y": 1,
+              "z": 10.5
+            },
+            "significance": 0.3,
+            "assemblyId": "assembly_1",
+            "operation": "connected",
+            "actor": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666400.2,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_70"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_32",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_32",
+            "type": "assembly_changed",
+            "tick": 8666400,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.5,
+              "y": 1,
+              "z": 10.5
+            },
+            "significance": 0.3,
+            "assemblyId": "assembly_1",
+            "operation": "connected",
+            "actor": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666400.2,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_74"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_33",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_33",
+            "type": "assembly_changed",
+            "tick": 8666400,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.5,
+              "y": 1,
+              "z": 10.5
+            },
+            "significance": 0.3,
+            "assemblyId": "assembly_1",
+            "operation": "connected",
+            "actor": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666400.2,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_77"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_130",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_130",
+            "type": "introduction",
+            "tick": 8666400.299999999,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10,
+              "y": 1,
+              "z": 11
+            },
+            "significance": 0.25,
+            "claimedName": "Elin Brook",
+            "actor": "p_41",
+            "target": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666400.399999999,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_139"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "identity:p_41",
+          "kind": "fact",
+          "claim": {
+            "identity": {
+              "subject": "p_41",
+              "name": "Elin Brook",
+              "signatures": [
+                "[\"deep\",\"black\",\"ponytail\",\"angular\",\"lean\",\"average\"]"
+              ]
+            },
+            "evidence": [
+              {
+                "name": "Elin Brook",
+                "source": {
+                  "type": "heard",
+                  "from": "p_41",
+                  "viaEvent": "e_139"
+                },
+                "at": 8666400.399999999
+              },
+              {
+                "name": "Elin Brook",
+                "source": {
+                  "type": "told",
+                  "from": "p_38",
+                  "viaEvent": "e_293"
+                },
+                "at": 8666415.399999943
+              }
+            ]
+          },
+          "confidence": 0.6162500000000001,
+          "learnedAt": 8666415.399999943,
+          "source": {
+            "type": "told",
+            "from": "p_38",
+            "viaEvent": "e_293"
+          },
+          "hops": 1,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_145",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_145",
+            "type": "attack",
+            "tick": 8666400.699999997,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10,
+              "y": 1,
+              "z": 12
+            },
+            "significance": 0.7,
+            "actor": "p_41",
+            "target": "p_40"
+          },
+          "confidence": 1,
+          "learnedAt": 8666400.699999997,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_148"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_174",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_174",
+            "type": "mechanism_inspected",
+            "tick": 8666402.199999992,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.5,
+              "y": 1,
+              "z": 10.5
+            },
+            "significance": 0.25,
+            "assemblyId": "assembly_1",
+            "actor": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666402.399999991,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_181"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "social:p_38:intent:examining the mechanism",
+          "kind": "fact",
+          "claim": {
+            "social": {
+              "subject": "p_38",
+              "family": "intent",
+              "characteristic": "examining the mechanism",
+              "support": 0.7,
+              "evidence": [
+                {
+                  "key": "ev:e_174",
+                  "event": "e_181",
+                  "at": 8666402.399999991,
+                  "weight": 0.7
+                }
+              ]
+            }
+          },
+          "confidence": 0.4117647058823529,
+          "learnedAt": 8666402.399999991,
+          "source": {
+            "type": "inferred",
+            "viaEvent": "e_183"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "social:p_38:disposition:curious",
+          "kind": "fact",
+          "claim": {
+            "social": {
+              "subject": "p_38",
+              "family": "disposition",
+              "characteristic": "curious",
+              "support": 0.4,
+              "evidence": [
+                {
+                  "key": "ev:e_174",
+                  "event": "e_181",
+                  "at": 8666402.399999991,
+                  "weight": 0.4
+                }
+              ]
+            }
+          },
+          "confidence": 0.28571428571428575,
+          "learnedAt": 8666402.399999991,
+          "source": {
+            "type": "inferred",
+            "viaEvent": "e_184"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "encounter:p_39:b_55",
+          "kind": "fact",
+          "claim": {
+            "encounter": true,
+            "subjectId": "p_39",
+            "bodyId": "b_55",
+            "cues": {
+              "bodyId": "b_55",
+              "shape": "humanoid",
+              "appearance": {
+                "skin": 10512965,
+                "hair": 1317412,
+                "shirt": 12037525,
+                "pants": 6970700,
+                "hatStyle": "none",
+                "height": 1.04,
+                "build": 1,
+                "description": {
+                  "presentation": "feminine",
+                  "skinTone": "brown",
+                  "faceShape": "angular",
+                  "hairStyle": "ponytail",
+                  "hairColor": "blue_black",
+                  "eyeColor": "amber",
+                  "frame": "average",
+                  "stature": "above_average",
+                  "garmentSilhouette": "work_kimono",
+                  "garmentPalette": "undyed_hemp",
+                  "accessories": [
+                    "gold_filigree",
+                    "tassel",
+                    "anklets"
+                  ]
+                }
+              },
+              "activity": "sit",
+              "placeId": "pl_43",
+              "pos": {
+                "x": 9.501164158542776,
+                "y": 1,
+                "z": 9.501028903992758
+              },
+              "at": 8666562.999999393,
+              "ageBand": "young_adult"
+            },
+            "observations": [
+              {
+                "at": 8666402.59999999,
+                "signature": "[\"brown\",\"blue_black\",\"ponytail\",\"angular\",\"average\",\"above_average\"]",
+                "event": "e_192"
+              },
+              {
+                "at": 8666463.599999763,
+                "signature": "[\"brown\",\"blue_black\",\"ponytail\",\"angular\",\"average\",\"above_average\"]",
+                "event": "e_498"
+              },
+              {
+                "at": 8666524.599999536,
+                "signature": "[\"brown\",\"blue_black\",\"ponytail\",\"angular\",\"average\",\"above_average\"]",
+                "event": "e_794"
+              }
+            ],
+            "lastSeenAt": 8666563.199999392,
+            "lastSampleAt": 8666562.999999393,
+            "lastPhysicalSampleAt": 162.99999999999503,
+            "significance": 0.18
+          },
+          "confidence": 0.8,
+          "learnedAt": 8666524.599999536,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_794"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_213",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_213",
+            "type": "introduction",
+            "tick": 8666406.799999975,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 11.103436268549038,
+              "y": 1,
+              "z": 11.47117014219868
+            },
+            "significance": 0.25,
+            "claimedName": "Bren Vale",
+            "actor": "p_39",
+            "target": "p_41"
+          },
+          "confidence": 1,
+          "learnedAt": 8666406.999999974,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_223"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "identity:p_39",
+          "kind": "fact",
+          "claim": {
+            "identity": {
+              "subject": "p_39",
+              "name": "Bren Vale",
+              "signatures": [
+                "[\"brown\",\"blue_black\",\"ponytail\",\"angular\",\"average\",\"above_average\"]"
+              ]
+            },
+            "evidence": [
+              {
+                "name": "Bren Vale",
+                "source": {
+                  "type": "heard",
+                  "from": "p_39",
+                  "viaEvent": "e_223"
+                },
+                "at": 8666406.999999974
+              },
+              {
+                "name": "Bren Vale",
+                "source": {
+                  "type": "told",
+                  "from": "p_39",
+                  "viaEvent": "e_270"
+                },
+                "at": 8666413.59999995
+              },
+              {
+                "name": "Bren Vale",
+                "source": {
+                  "type": "heard",
+                  "from": "p_39",
+                  "viaEvent": "e_329"
+                },
+                "at": 8666420.599999923
+              },
+              {
+                "name": "Bren Vale",
+                "source": {
+                  "type": "told",
+                  "from": "p_38",
+                  "viaEvent": "e_410"
+                },
+                "at": 8666441.599999845
+              },
+              {
+                "name": "Bren Vale",
+                "source": {
+                  "type": "told",
+                  "from": "p_38",
+                  "viaEvent": "e_604"
+                },
+                "at": 8666491.799999658
+              }
+            ]
+          },
+          "confidence": 0.6162500000000001,
+          "learnedAt": 8666491.799999658,
+          "source": {
+            "type": "told",
+            "from": "p_38",
+            "viaEvent": "e_604"
+          },
+          "hops": 1,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_231",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_231",
+            "type": "introduction",
+            "tick": 8666407.499999972,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.47841600307147,
+              "y": 1,
+              "z": 10.47841600307147
+            },
+            "significance": 0.25,
+            "claimedName": "Orla Reed",
+            "actor": "p_38",
+            "target": "p_39"
+          },
+          "confidence": 1,
+          "learnedAt": 8666407.599999972,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_244"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "identity:p_38",
+          "kind": "fact",
+          "claim": {
+            "identity": {
+              "subject": "p_38",
+              "name": "Orla Reed",
+              "signatures": [
+                "[\"bronze\",\"honey\",\"braided\",\"oval\",\"average\",\"average\"]"
+              ]
+            },
+            "evidence": [
+              {
+                "name": "Orla Reed",
+                "source": {
+                  "type": "heard",
+                  "from": "p_38",
+                  "viaEvent": "e_244"
+                },
+                "at": 8666407.599999972
+              },
+              {
+                "name": "Orla Reed",
+                "source": {
+                  "type": "told",
+                  "from": "p_39",
+                  "viaEvent": "e_273"
+                },
+                "at": 8666413.59999995
+              },
+              {
+                "name": "Orla Reed",
+                "source": {
+                  "type": "told",
+                  "from": "p_38",
+                  "viaEvent": "e_290"
+                },
+                "at": 8666415.399999943
+              }
+            ]
+          },
+          "confidence": 0.75,
+          "learnedAt": 8666415.399999943,
+          "source": {
+            "type": "told",
+            "from": "p_38",
+            "viaEvent": "e_290"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_270",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_270",
+            "type": "introduction",
+            "tick": 8666413.59999995,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 11.103436268549038,
+              "y": 1,
+              "z": 11.47117014219868
+            },
+            "significance": 0.25,
+            "claimedName": "Bren Vale",
+            "actor": "p_39",
+            "target": "p_40"
+          },
+          "confidence": 1,
+          "learnedAt": 8666413.799999949,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_279"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_290",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_290",
+            "type": "introduction",
+            "tick": 8666415.399999943,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.47841600307147,
+              "y": 1,
+              "z": 10.47841600307147
+            },
+            "significance": 0.25,
+            "claimedName": "Orla Reed",
+            "actor": "p_38",
+            "target": "p_40"
+          },
+          "confidence": 1,
+          "learnedAt": 8666415.599999942,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_299"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_321",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_321",
+            "type": "introduction",
+            "tick": 8666420.499999924,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 11.103436268549038,
+              "y": 1,
+              "z": 11.47117014219868
+            },
+            "significance": 0.25,
+            "claimedName": "Bren Vale",
+            "actor": "p_39",
+            "target": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666420.599999923,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_329"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_692",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_692",
+            "type": "mechanism_worked",
+            "tick": 8666516.299999567,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.5,
+              "y": 1,
+              "z": 10.5
+            },
+            "significance": 0.4,
+            "assemblyId": "assembly_1",
+            "outcome": "fitted",
+            "operation": "replace",
+            "actor": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666516.399999566,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_703"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "social:p_38:occupation:craftsperson",
+          "kind": "fact",
+          "claim": {
+            "social": {
+              "subject": "p_38",
+              "family": "occupation",
+              "characteristic": "craftsperson",
+              "support": 0.3,
+              "evidence": [
+                {
+                  "key": "ev:e_692",
+                  "event": "e_703",
+                  "at": 8666516.399999566,
+                  "weight": 0.3
+                }
+              ]
+            }
+          },
+          "confidence": 0.23076923076923075,
+          "learnedAt": 8666516.399999566,
+          "source": {
+            "type": "inferred",
+            "viaEvent": "e_705"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "social:p_38:intent:repairing the mechanism",
+          "kind": "fact",
+          "claim": {
+            "social": {
+              "subject": "p_38",
+              "family": "intent",
+              "characteristic": "repairing the mechanism",
+              "support": 0.65,
+              "evidence": [
+                {
+                  "key": "ev:e_692",
+                  "event": "e_703",
+                  "at": 8666516.399999566,
+                  "weight": 0.65
+                }
+              ]
+            }
+          },
+          "confidence": 0.393939393939394,
+          "learnedAt": 8666516.399999566,
+          "source": {
+            "type": "inferred",
+            "viaEvent": "e_706"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "social:p_38:capability:dexterous",
+          "kind": "fact",
+          "claim": {
+            "social": {
+              "subject": "p_38",
+              "family": "capability",
+              "characteristic": "dexterous",
+              "support": 0.45,
+              "evidence": [
+                {
+                  "key": "ev:e_692",
+                  "event": "e_703",
+                  "at": 8666516.399999566,
+                  "weight": 0.45
+                }
+              ]
+            }
+          },
+          "confidence": 0.3103448275862069,
+          "learnedAt": 8666516.399999566,
+          "source": {
+            "type": "inferred",
+            "viaEvent": "e_707"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "ev:e_718",
+          "kind": "event",
+          "claim": {
+            "eventId": "e_718",
+            "type": "mechanism_trial",
+            "tick": 8666517.299999563,
+            "placeId": "pl_43",
+            "pos": {
+              "x": 10.5,
+              "y": 1,
+              "z": 10.5
+            },
+            "significance": 0.4,
+            "assemblyId": "assembly_1",
+            "output": 2.4097500000000003,
+            "actor": "p_38"
+          },
+          "confidence": 1,
+          "learnedAt": 8666517.399999563,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_726"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "social:p_38:capability:skilled craftsperson",
+          "kind": "fact",
+          "claim": {
+            "social": {
+              "subject": "p_38",
+              "family": "capability",
+              "characteristic": "skilled craftsperson",
+              "support": 0.7,
+              "evidence": [
+                {
+                  "key": "ev:e_718",
+                  "event": "e_726",
+                  "at": 8666517.399999563,
+                  "weight": 0.7
+                }
+              ]
+            }
+          },
+          "confidence": 0.4117647058823529,
+          "learnedAt": 8666517.399999563,
+          "source": {
+            "type": "inferred",
+            "viaEvent": "e_728"
+          },
+          "hops": 0,
+          "sharedWith": []
+        },
+        {
+          "key": "social:p_38:disposition:reliable",
+          "kind": "fact",
+          "claim": {
+            "social": {
+              "subject": "p_38",
+              "family": "disposition",
+              "characteristic": "reliable",
+              "support": 0.35,
+              "evidence": [
+                {
+                  "key": "ev:e_718",
+                  "event": "e_726",
+                  "at": 8666517.399999563,
+                  "weight": 0.35
+                }
+              ]
+            }
+          },
+          "confidence": 0.25925925925925924,
+          "learnedAt": 8666517.399999563,
+          "source": {
+            "type": "inferred",
+            "viaEvent": "e_729"
+          },
+          "hops": 0,
+          "sharedWith": []
+        }
+      ],
+      "memories": [
+        {
+          "id": "m_206",
+          "tick": 8666400.699999997,
+          "type": "attack",
+          "summary": "Elin Brook attacked me at workshop",
+          "eventId": "e_145",
+          "entities": [
+            "p_41"
+          ],
+          "significance": 0.9,
+          "valence": -0.9,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_148"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_240",
+          "tick": 8666415.599999942,
+          "type": "introduction",
+          "summary": "I saw: introduction at workshop",
+          "eventId": "e_290",
+          "entities": [
+            "p_38",
+            "p_40"
+          ],
+          "significance": 0.7393750000000001,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_299"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_234",
+          "tick": 8666413.799999949,
+          "type": "introduction",
+          "summary": "I saw: introduction at workshop",
+          "eventId": "e_270",
+          "entities": [
+            "p_39",
+            "p_40"
+          ],
+          "significance": 0.7393750000000001,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_279"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_249",
+          "tick": 8666438.599999856,
+          "type": "told",
+          "summary": "Bren Vale told me Elin Brook attacked Cora Moss at workshop",
+          "eventId": "e_145",
+          "entities": [
+            "p_39",
+            "p_41",
+            "p_40"
+          ],
+          "significance": 0.48999999999999994,
+          "valence": -0.4,
+          "source": {
+            "type": "told",
+            "from": "p_39",
+            "viaEvent": "e_398"
+          },
+          "recalled": 0
+        },
+        {
+          "id": "m_274",
+          "tick": 8666517.399999563,
+          "type": "mechanism_trial",
+          "summary": "I saw: mechanism_trial at workshop",
+          "eventId": "e_718",
+          "entities": [
+            "p_38"
+          ],
+          "significance": 0.4265,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_726"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_271",
+          "tick": 8666516.399999566,
+          "type": "mechanism_worked",
+          "summary": "I saw: mechanism_worked at workshop",
+          "eventId": "e_692",
+          "entities": [
+            "p_38"
+          ],
+          "significance": 0.4265,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_703"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_176",
+          "tick": 8666400.2,
+          "type": "assembly_changed",
+          "summary": "I saw: assembly_changed at workshop",
+          "eventId": "e_22",
+          "entities": [
+            "p_38"
+          ],
+          "significance": 0.35175,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_38"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_178",
+          "tick": 8666400.2,
+          "type": "assembly_changed",
+          "summary": "I saw: assembly_changed at workshop",
+          "eventId": "e_24",
+          "entities": [
+            "p_38"
+          ],
+          "significance": 0.35175,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_45"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_180",
+          "tick": 8666400.2,
+          "type": "assembly_changed",
+          "summary": "I saw: assembly_changed at workshop",
+          "eventId": "e_26",
+          "entities": [
+            "p_38"
+          ],
+          "significance": 0.35175,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_52"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_182",
+          "tick": 8666400.2,
+          "type": "assembly_changed",
+          "summary": "I saw: assembly_changed at workshop",
+          "eventId": "e_28",
+          "entities": [
+            "p_38"
+          ],
+          "significance": 0.35175,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_59"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_184",
+          "tick": 8666400.2,
+          "type": "assembly_changed",
+          "summary": "I saw: assembly_changed at workshop",
+          "eventId": "e_30",
+          "entities": [
+            "p_38"
+          ],
+          "significance": 0.35175,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_66"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_185",
+          "tick": 8666400.2,
+          "type": "assembly_changed",
+          "summary": "I saw: assembly_changed at workshop",
+          "eventId": "e_31",
+          "entities": [
+            "p_38"
+          ],
+          "significance": 0.35175,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_70"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_186",
+          "tick": 8666400.2,
+          "type": "assembly_changed",
+          "summary": "I saw: assembly_changed at workshop",
+          "eventId": "e_32",
+          "entities": [
+            "p_38"
+          ],
+          "significance": 0.35175,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_74"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_187",
+          "tick": 8666400.2,
+          "type": "assembly_changed",
+          "summary": "I saw: assembly_changed at workshop",
+          "eventId": "e_33",
+          "entities": [
+            "p_38"
+          ],
+          "significance": 0.35175,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_77"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_246",
+          "tick": 8666420.599999923,
+          "type": "introduction",
+          "summary": "I saw: introduction at workshop",
+          "eventId": "e_321",
+          "entities": [
+            "p_39",
+            "p_38"
+          ],
+          "significance": 0.32585,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_329"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        },
+        {
+          "id": "m_228",
+          "tick": 8666407.599999972,
+          "type": "introduction",
+          "summary": "I saw: introduction at workshop",
+          "eventId": "e_231",
+          "entities": [
+            "p_38",
+            "p_39"
+          ],
+          "significance": 0.314375,
+          "valence": 0,
+          "source": {
+            "type": "witnessed",
+            "viaEvent": "e_244"
+          },
+          "placeId": "pl_43",
+          "recalled": 0
+        }
+      ],
+      "relationships": [
+        {
+          "subjectId": "p_41",
+          "relation": {
+            "trust": -0.54,
+            "affection": -0.42,
+            "fear": 0.6929999999999998,
+            "respect": -0.18,
+            "familiarity": 0,
+            "grudge": 0.432,
+            "tags": [],
+            "lastUpdated": 8666400.699999997
+          },
+          "evidence": {
+            "caution": 0,
+            "cooperation": 0,
+            "esteem": 0,
+            "inputs": []
+          },
+          "experiences": [
+            {
+              "id": "m_205",
+              "tick": 8666400.399999999,
+              "type": "introduction",
+              "summary": "I saw: introduction at workshop",
+              "eventId": "e_130",
+              "entities": [
+                "p_41",
+                "p_38"
+              ],
+              "significance": 0.314375,
+              "valence": 0,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_139"
+              },
+              "placeId": "pl_43",
+              "recalled": 0
+            },
+            {
+              "id": "m_206",
+              "tick": 8666400.699999997,
+              "type": "attack",
+              "summary": "Elin Brook attacked me at workshop",
+              "eventId": "e_145",
+              "entities": [
+                "p_41"
+              ],
+              "significance": 0.9,
+              "valence": -0.9,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_148"
+              },
+              "placeId": "pl_43",
+              "recalled": 0
+            },
+            {
+              "id": "m_222",
+              "tick": 8666406.999999974,
+              "type": "introduction",
+              "summary": "I saw: introduction at workshop",
+              "eventId": "e_213",
+              "entities": [
+                "p_39",
+                "p_41"
+              ],
+              "significance": 0.314375,
+              "valence": 0,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_223"
+              },
+              "placeId": "pl_43",
+              "recalled": 0
+            },
+            {
+              "id": "m_238",
+              "tick": 8666415.399999943,
+              "type": "told",
+              "summary": "Orla Reed told me introduction at workshop",
+              "eventId": "e_130",
+              "entities": [
+                "p_38",
+                "p_41",
+                "p_38"
+              ],
+              "significance": 0.175,
+              "valence": 0,
+              "source": {
+                "type": "told",
+                "from": "p_38",
+                "viaEvent": "e_293"
+              },
+              "recalled": 0
+            },
+            {
+              "id": "m_249",
+              "tick": 8666438.599999856,
+              "type": "told",
+              "summary": "Bren Vale told me Elin Brook attacked Cora Moss at workshop",
+              "eventId": "e_145",
+              "entities": [
+                "p_39",
+                "p_41",
+                "p_40"
+              ],
+              "significance": 0.48999999999999994,
+              "valence": -0.4,
+              "source": {
+                "type": "told",
+                "from": "p_39",
+                "viaEvent": "e_398"
+              },
+              "recalled": 0
+            },
+            {
+              "id": "m_256",
+              "tick": 8666460.399999775,
+              "type": "encounter",
+              "summary": "I recognized a person I had been introduced to",
+              "eventId": "e_483",
+              "entities": [
+                "p_41"
+              ],
+              "significance": 0.3,
+              "valence": 0,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_483"
+              },
+              "recalled": 0
+            },
+            {
+              "id": "m_269",
+              "tick": 8666491.799999658,
+              "type": "told",
+              "summary": "Orla Reed told me introduction at workshop",
+              "eventId": "e_213",
+              "entities": [
+                "p_38",
+                "p_39",
+                "p_41"
+              ],
+              "significance": 0.175,
+              "valence": 0,
+              "source": {
+                "type": "told",
+                "from": "p_38",
+                "viaEvent": "e_604"
+              },
+              "recalled": 0
+            },
+            {
+              "id": "m_284",
+              "tick": 8666520.99999955,
+              "type": "encounter",
+              "summary": "I recognized a person I had been introduced to",
+              "eventId": "e_779",
+              "entities": [
+                "p_41"
+              ],
+              "significance": 0.3,
+              "valence": 0,
+              "source": {
+                "type": "witnessed",
+                "viaEvent": "e_779"
+              },
+              "recalled": 0
+            }
+          ],
+          "changes": [
+            {
+              "event": "e_151",
+              "causes": [
+                "e_148"
+              ],
+              "at": 8666400.699999997,
+              "reason": "witnessed attack on me",
+              "delta": {
+                "fear": 0.6929999999999998,
+                "trust": -0.54,
+                "affection": -0.42,
+                "grudge": 0.432,
+                "grievance": 0,
+                "respect": -0.18
+              }
+            }
+          ]
+        }
+      ],
+      "agency": {
+        "selected": {
+          "type": "flee",
+          "utility": 0.763423001260731,
+          "reasons": [
+            "Elin Brook is a threat (fear 0.69, dist 5.8)",
+            "my tolerance for danger, unarmed"
+          ],
+          "createdAt": 8666542.999999467,
+          "key": "flee:p_41",
+          "targetEntity": "p_41"
+        },
+        "considered": {
+          "tick": 8666563.099999392,
+          "candidates": [
+            {
+              "type": "flee",
+              "key": "flee:p_41",
+              "utility": 0.6485182221616743,
+              "reasons": [
+                "Elin Brook is about — best keep clear",
+                "old grudge 0.43, fear 0.69"
+              ]
+            },
+            {
+              "type": "chop",
+              "key": "chop:",
+              "utility": 0.44393597683154595,
+              "reasons": [
+                "the village storage shed still needs planks, and there is no wood for them"
+              ]
+            },
+            {
+              "type": "gather",
+              "key": "gather:",
+              "utility": 0.44393597683154595,
+              "reasons": [
+                "the village storage shed still needs stone"
+              ]
+            },
+            {
+              "type": "socialize",
+              "key": "socialize:pl_43",
+              "utility": 0.20207133333333333,
+              "reasons": [
+                "social need 0.27",
+                "my appetite for company"
+              ]
+            },
+            {
+              "type": "maintain_mechanism",
+              "key": "maintain_mechanism:assembly_1:inspect",
+              "utility": 0.19041404363481104,
+              "reasons": [
+                "I noticed a mechanical difficulty",
+                "curiosity, practical stake, fatigue and remembered setbacks"
+              ]
+            },
+            {
+              "type": "idle",
+              "key": "idle:",
+              "utility": 0.1,
+              "reasons": [
+                "nothing better to do"
+              ]
+            },
+            {
+              "type": "sleep",
+              "key": "sleep:pl_43",
+              "utility": 0,
+              "reasons": [
+                "energy need 0.05"
+              ]
+            }
+          ],
+          "chosen": "flee:p_41",
+          "switched": false,
+          "note": "continuing flee"
+        },
+        "attention": "p_41"
+      },
+      "capability": {
+        "experience": null,
+        "advancement": {
+          "stage": "Normal",
+          "eligible": false,
+          "reasons": [
+            "all seven attributes must reach 15",
+            "a relevant capability needs sustained successful practice",
+            "provenance-bearing technique knowledge is required",
+            "evidence must span at least three days"
+          ],
+          "evidenceEventIds": []
+        }
+      }
+    }
+  },
+  "invariantErrors": [],
+  "digest": "3d17fd7994903493386801a03c7c2f778333d51c0208d24f832f7acba29aca10"
+}

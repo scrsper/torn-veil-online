@@ -3,8 +3,10 @@ import type { World } from '../core/world';
 import { learn } from './knowledge';
 import { remember } from './memory';
 import { adjustRel } from './relationships';
+import { conversationBodies } from './socialEvidence';
+import { anchorIdentityToObservation, observableSignature } from './encounter';
 
-export type SocialFamily = 'disposition' | 'capability' | 'standing' | 'intent';
+export type SocialFamily = 'disposition' | 'capability' | 'standing' | 'intent' | 'occupation';
 export interface SocialBelief {
   subject: string; family: SocialFamily; characteristic: string;
   /** Signed support for a qualitative interpretation, never a canonical personality/stat. */
@@ -36,21 +38,17 @@ export function learnIdentity(world: World, observer: Person, subject: string, n
 }
 export function introduce(world: World, speaker: Person, listener: Person, claimedName = speaker.name): boolean {
   if (!speaker.alive || !listener.alive || !claimedName.trim() || claimedName.length > 100) return false;
-  const canConverse = speaker.bodies.some(id => {
-    const a = world.body(id); if (!a?.present || a.dead || ['sleep', 'downed'].includes(a.pose)) return false;
-    return listener.bodies.some(other => {
-      const b = world.body(other); return b?.present && !b.dead && !['sleep', 'downed'].includes(b.pose)
-        && Math.hypot(a.pos.x - b.pos.x, a.pos.y - b.pos.y, a.pos.z - b.pos.z) <= 4;
-    });
-  });
-  if (!canConverse) return false;
-  const ev = world.emit('introduction', { actor: speaker.id, target: listener.id, pos: world.positionOf(speaker.id),
-    visibility: 5, loudness: 4, significance: 0.25, data: { claimedName }, summary: `${speaker.name} introduced themself as ${claimedName}` });
+  const bodies = conversationBodies(world, speaker, listener); if (!bodies) return false;
+  const ev = world.emit('introduction', { actor: speaker.id, target: listener.id, pos: { ...bodies.speaker.pos },
+    visibility: 5, loudness: 4, significance: 0.25, data: { claimedName, speakerBodyId: bodies.speaker.id, listenerBodyId: bodies.listener.id }, summary: `${speaker.name} introduced themself as ${claimedName}` });
   // Meeting someone establishes familiarity, not trust in the name they claim. Repeating
   // an introduction cannot manufacture a close relationship through this minimum alone.
   adjustRel(world, listener, speaker.id, { familiarity: Math.max(0, 0.05 - (listener.relationships[speaker.id]?.familiarity ?? 0)) },
     'introduced themself', ev.id, true);
   learnIdentity(world, listener, speaker.id, claimedName, { type: 'told', from: speaker.id, viaEvent: ev.id });
+  // An introduction anchors the claimed name to the appearance actually present in the
+  // reachable conversation. Future recognition still requires a matching visible signature.
+  anchorIdentityToObservation(listener, speaker.id, observableSignature(world, bodies.speaker));
   remember(world, speaker, { type: 'introduction', summary: 'I introduced myself to this person', entities: [listener.id],
     significance: 0.3, valence: 0, eventId: ev.id, source: { type: 'self', viaEvent: ev.id } });
   remember(world, listener, { type: 'introduction', summary: `This person introduced themself as ${claimedName}`, entities: [speaker.id],
@@ -77,6 +75,7 @@ export function interpretSocial(world: World, observer: Person, evidence: Knowle
       else { signals.push(['capability', 'skilled craftsperson', -0.45 + sympathy]); signals.push(['disposition', 'curious', exploratory + sympathy]); signals.push(['disposition', 'restrained', -0.45 + exploratory + sympathy]); }
       break;
     case 'mechanism_worked':
+      signals.push(['occupation', 'craftsperson', 0.3]);
       signals.push(['intent', 'repairing the mechanism', 0.65]);
       if (c.outcome === 'fitted') signals.push(['capability', 'dexterous', 0.45]);
       if (c.outcome === 'damaged') signals.push(['capability', 'skilled craftsperson', -0.6], ['disposition', 'restrained', -0.55 + sympathy]);
@@ -84,7 +83,7 @@ export function interpretSocial(world: World, observer: Person, evidence: Knowle
     case 'mechanism_inspected': signals.push(['intent', 'examining the mechanism', 0.7], ['disposition', 'curious', 0.4]); break;
     case 'gift': case 'returned_item': case 'heal': signals.push(['disposition', 'generous', 0.6], ['disposition', 'reliable', 0.45], ['standing', 'valued by others', 0.3]); break;
     case 'theft': signals.push(['disposition', 'honest', -0.65], ['disposition', 'generous', -0.55]); break;
-    case 'attack': signals.push(['disposition', 'restrained', -0.6 + sympathy], ['intent', 'attacking', 0.65], ['capability', 'competent fighter', c.hit ? 0.45 : 0.15]); break;
+    case 'attack': case 'attack_missed': signals.push(['disposition', 'restrained', -0.6 + sympathy], ['intent', 'attacking', 0.65], ['capability', 'competent fighter', c.hit ? 0.45 : 0.15]); break;
     case 'yield': signals.push(['disposition', 'restrained', 0.5], ['disposition', 'courageous', -0.3 + sympathy]); break;
     case 'assembly_changed': signals.push(['intent', 'altering the mechanism', 0.55]); break;
     default: return;

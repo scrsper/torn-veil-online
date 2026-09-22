@@ -1,3 +1,49 @@
+# Autonomous agency, social inference and capability evolution v0.1, 2026-09-19
+
+Branch `codex/autonomous-agency-social-inference-v0-1` is temporarily stacked on PR #48's
+remote head (initially `7eb6b66`, updated documentation-only base `709e6b5`). Main remained
+`fba1153` at the final fetch. PR #49 is the unmerged draft for this work.
+Both PR #47 commits are patch-equivalent to changes already in #48; neither PR was merged
+or modified. Work uses a separate `TornVeilOnline-agency` worktree, preserving the original
+checkout's local changes and all licensed/ignored Unreal content.
+
+Extends existing KMSI, utility goals, relationships, external control leases, skills, physiology,
+and schema-24 snapshots with bounded encounter recognition, embodied structured testimony,
+belief-driven caution/cooperation, a paid-fitting experience ledger and a gated Normal→Iron
+reference path. Higher ranks remain blocked. Detached agency inspection is exposed in bridge
+developer snapshots. No native UI or asset changes.
+
+Food-stress hardening, 2026-09-20: measured PR #49's regression against frozen PR #48,
+then preserved semantics with knowledge traversal and bounded spatial/place lookup reuse,
+within-call genealogy reuse and an unchanged prerequisite hoist. Final abundance/scarcity
+medians are 50.421/45.141 s; 6/6 samples pass unchanged 60-second budgets. Full saved state,
+RNG and both separate continuation trajectories match pre-fix PR #49. A conversation-cache
+alias discrepancy on original-versus-reloaded food worlds already exists on both bases.
+
+Final build/typecheck, 110 focused tests and deterministic WorldLab pass. The single full
+run reports 1,121 passed / 1 failed across 116 files, with no timeouts or skipped tests.
+Food tests pass again at 46.879/40.365 s. The sole failure is the theft social-causality
+trace: zero living knowers at its observation endpoint. The exact unchanged test passes
+on PR #48 and fails identically on pre-fix PR #49, so it is an existing feature regression,
+not a baseline failure or a new performance-fix regression. No new gameplay was added.
+
+Theft repair, 2026-09-22: merged onto `main` `5ab3177` (#48 + #50). Nobody ever held the
+theft, on either branch. The harness staged it unwatched against an owner arrested during
+its six-hour wait. #48 passed only through unrelated arrests attached to the property
+situation. The harness now chooses a subject at liberty with a watched workplace.
+Speech bends round a post but not through a wall. A refused report is a failed attempt. A
+reporter keeps heading to the guard they chose. A second crime for the same guard replaces
+the first instead of re-telling it: on `main` that loop re-told one crime more than a
+thousand times, and removing it brings the food benchmarks back under 60 s even on a slow
+machine. The witness now tells the watch. See `docs/evidence/autonomous-agency/VERIFICATION.md`.
+Measurements, attribution and reproducible profiling: `docs/evidence/autonomous-agency/PERFORMANCE.md`.
+
+Design, deliberate limits and schema notes:
+`docs/AUTONOMOUS_AGENCY_SOCIAL_INFERENCE_CAPABILITY_EVOLUTION.md`.
+Reproducible scenarios: `npm run agency:worldlab -- 741`.
+Exact final validation and captured scenario evidence:
+`docs/evidence/autonomous-agency/VERIFICATION.md`.
+
 # Slice 3 + Character Foundry reconciliation, 2026-09-17
 
 Branch `claude/embodied-people-visible-life-slice3` is stacked on current PR #46 head `7abb2b6`

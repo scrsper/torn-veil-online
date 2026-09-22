@@ -155,6 +155,20 @@
 - Mechanical reasoning consumes a lossy observation, not a canonical method graph. Paid fitting changes actual components/connections; the shared kernel adjudicates behavior. Method and assembly ancestry follows causal events rather than a global technology version.
 - Future ranks are ordered extension names only; Normal ceiling 20 and all-seven-15 Iron readiness remain unchanged. No post-Iron mechanics are implied.
 
+## Agency evolution v0.1 follow-through
+
+- Stable entity/body handles route observations; visual recognition additionally requires retained
+  coarse appearance evidence. Identity testimony is a fallible claim, not canonical renaming.
+- Structured communication requires a reachable awake body pair and speaker-held knowledge.
+  Transmission history belongs to the speaker; topic selection cannot inspect the recipient's mind.
+- Capability evidence extends existing skill curves. Paid fitting is the first adapter; source
+  events determine credit, not renderer calls or caller-supplied XP. Recent ledgers and causal
+  sample roots are bounded, with duplicate consumption retained on the source event.
+- The all-seven-15 foundation alone does not grant Iron. Sustained relevant practice, technique,
+  recovered embodiment and a paid shared action establish the reference breakthrough path.
+  Bronze through Gold remain explicit blocked extensions; no rank combat multiplier is added.
+- Additive schema-24 fields preserve older people's skills without inventing historical practice.
+
 ## Playable seeded world
 
 - A versioned world geography composes with existing settlement-local seeds. All settlements inhabit one registry, clock and physical coordinate space; the billion-metre locality reference is retained separately.

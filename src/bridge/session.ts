@@ -16,6 +16,7 @@ import { initializeWildlife } from '../sim/ecology/generation';
 import { deserialize, serialize } from '../sim/persist/save';
 import { GameSim, type PersonIntent } from '../sim/runtime/gameSim';
 import { knownName } from '../sim/mind/people';
+import { inspectAgency } from '../sim/runtime/agencyInspection';
 import { humanoidVisualState, projectAppearance } from './visualState';
 import { appearanceProfile, type AppearanceProfile } from './appearanceProfile';
 import { activityPresentation } from './activityPresentation';
@@ -367,7 +368,7 @@ export class BridgeSession {
           weapon: this.sim.weaponName(p), needs: p.needs, wealth: p.wealth,
           speech: p.speech && p.speech.until > w.physicalTime ? p.speech.text : '',
           // Explicitly developer-only. These fields are never fed into a character's knowledge.
-          debug: { goal: p.mind.goal, pursuits: p.mind.pursuits, concerns: p.mind.concerns },
+          debug: { goal: p.mind.goal, pursuits: p.mind.pursuits, concerns: p.mind.concerns, agency: inspectAgency(w, p.id, w.playerId ?? undefined) },
         }];
       }),
       combatPresentation: combatPresentation(w, new Set(w.activeBodies().filter(b => b.present).map(b => b.id))),

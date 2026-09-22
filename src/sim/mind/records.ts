@@ -1,3 +1,4 @@
+import { knowledgeItems } from './knowledgeView';
 import { learnIdentity, interpretSocial } from './people';
 import type { Action, Goal, Item, KnowledgeItem, Person } from '../core/types';
 import type { World } from '../core/world';
@@ -15,7 +16,7 @@ export function teachNotation(world: World, p: Person): void {
   learn(world, p, { key: `notation:${MECHANICAL_NOTATION}`, kind: 'technique', claim: { notation: MECHANICAL_NOTATION }, confidence: 0.9, source: { type: 'prior' } }, true);
 }
 export function knowsNotation(p: Person, notation: string): boolean {
-  return Object.values(p.knowledge).some(k => k.claim.notation === notation && k.confidence > 0.2);
+  return knowledgeItems(p).some(k => k.claim.notation === notation && k.confidence > 0.2);
 }
 export const intactRecord = (i: Item) => !!i.record && i.quantity > 0 && (i.condition ?? 1) > 0.2;
 
@@ -114,7 +115,7 @@ export function recordGoals(world: World, p: Person): Partial<Goal>[] {
   }
   const place = [world.place(p.workId), world.place(p.homeId)].find(pl => pl && hasSubstrate(world, p, pl.id));
   if (!place) return goals;
-  for (const k of Object.values(p.knowledge).filter(k => (k.claim.method || k.claim.genealogy || k.claim.martialTechnique) && k.confidence > 0.4)) {
+  for (const k of knowledgeItems(p).filter(k => (k.claim.method || k.claim.genealogy || k.claim.martialTechnique) && k.confidence > 0.4)) {
     const copies = records.filter(i => i.record!.knowledge.key === k.key && i.placeId === place.id);
     if (copies.length >= 2 || copies.some(i => i.ownerId === p.id)) continue;
     const source = copies[0];

@@ -98,14 +98,21 @@ function ordinaryVillagers(world: World): Person[] {
 
 /** A victim with the richest surrounding social structure — someone with a spouse AND a
  * workmate — so one event can demonstrate family, work and institutional consequences at once. */
+/** Free to act on their own behalf right now: present, not seriously hurt, not yielding, not
+ * subdued, not detained. */
+function atLiberty(world: World, p: Person): boolean {
+  const body = world.primaryBody(p.id);
+  return !!body?.present && !body.dead && woundSeverity(body) < 0.6 && !p.surrender && !p.custody?.active
+    && !(body.subduedUntil > world.physicalTime);
+}
+
 function pickSubject(world: World, requireSpouse: boolean, requireCoworker: boolean, requireOnlooker = false): Person | undefined {
   const candidates = ordinaryVillagers(world).filter(p => {
     // The trigger must be able to cause a NEW serious wound. Warmup can already leave the
     // most-connected spouse badly injured; selecting them makes the <0.6 loop do nothing.
     // Select an eligible participant instead of healing someone or weakening protection.
-    const body = world.primaryBody(p.id);
-    if (!body?.present || body.dead || woundSeverity(body) >= 0.6 || p.surrender || p.custody?.active
-      || body.subduedUntil > world.physicalTime) return false;
+    if (!atLiberty(world, p)) return false;
+    const body = world.primaryBody(p.id)!;
     // The assault comparison needs an event that can acquire distinct witness perspectives.
     // Select existing physical opportunity; do not give absent minds knowledge of the harm.
     if (requireOnlooker && !onlookerAt(world, body.pos, [p.id, pickAggressor(world, p.id)?.id ?? ''])) return false;
@@ -129,23 +136,55 @@ function pickAggressor(world: World, notId: EntityId): Person | undefined {
  * that the trace still observes the aftermath it was asked to observe. */
 const ONLOOKER_WAIT_SECONDS = 6 * SECONDS_PER_HOUR;
 const ONLOOKER_STEP_SECONDS = 15 * 60;
-/** Somebody who is neither party, close enough to `spot` and with a clear line to it. Uses the
- * same `grid.lineOfSight` the simulation's own perception does, so "could see it" here means
- * what it means everywhere else. */
+/** Somebody who is neither party, close enough to `spot`, awake, facing it and with a clear
+ * line to it. These are the conditions `Simulation.perceiveFromBody` applies to a visible event:
+ * the same `grid.lineOfSight`, and the same forward cone (`dot > -0.2`, or within 3 m). Without
+ * the cone, a bystander with their back to the spot counted as an onlooker and the harness went
+ * ahead with a theft nobody could see. */
 function onlookerAt(world: World, spot: Vec3, exclude: EntityId[]): Person | undefined {
   const eye = { x: spot.x, y: spot.y + 1, z: spot.z };
   for (const p of world.persons()) {
     if (!p.alive || isExternallyControlled(p) || exclude.includes(p.id)) continue;
     const b = world.primaryBody(p.id);
-    if (!b || !b.present || b.pose === 'sleep') continue;
-    if (Math.hypot(b.pos.x - spot.x, b.pos.z - spot.z) > 14) continue;
+    if (!b || !b.present || b.dead || b.pose === 'sleep' || b.pose === 'downed') continue;
+    const d = Math.hypot(b.pos.x - spot.x, b.pos.z - spot.z);
+    if (d > 14) continue;
+    const dot = ((spot.x - b.pos.x) * -Math.sin(b.yaw) + (spot.z - b.pos.z) * -Math.cos(b.yaw)) / (d + 1e-5);
+    if (d >= 3 && dot <= -0.2) continue;
     if (world.grid.lineOfSight(eye, { x: b.pos.x, y: b.pos.y + 1.2, z: b.pos.z }, 32)) return p;
   }
   return undefined;
 }
-function waitForOnlooker(world: World, sim: Simulation, spot: Vec3, exclude: EntityId[]): void {
+
+/** Where the subject keeps their things: their workplace's work/counter anchor. */
+function theftSpot(world: World, subject: Person): { spot: Vec3; workPlace?: ReturnType<World['place']> } {
+  const workPlace = world.place(subject.workId) ?? world.placeAt(world.primaryBody(subject.id)!.pos);
+  const spot = workPlace?.anchors.find(a => a.kind === 'work' || a.kind === 'counter')?.pos ?? workPlace?.inside ?? world.primaryBody(subject.id)!.pos;
+  return { spot, workPlace };
+}
+
+/**
+ * The theft's subject, chosen when the theft can actually happen rather than hours before it.
+ *
+ * Mirrors the assault subject (`pickSubject`, `requireOnlooker`). The candidate must be at
+ * liberty, and preferably someone whose workplace a third party can see into right now. Both are
+ * re-evaluated after every step of the bounded wait. Choosing once and then waiting let the
+ * subject be arrested during the wait (custody for an attack lasts three days). The theft then
+ * happened at a workplace nobody was watching and its owner could not return to inside the
+ * observation window. No legitimate route could carry it into anyone's mind, so asserting that it
+ * spread would demand omniscience.
+ *
+ * If no workplace has an onlooker before the window closes, the theft happens anyway, unwitnessed,
+ * against the first working villager at liberty. Their own "my property is gone" inference is
+ * still the honest path it always was. Deterministic and structural: id order, never names.
+ */
+function awaitTheftOpportunity(world: World, sim: Simulation): Person | undefined {
   const until = world.now + ONLOOKER_WAIT_SECONDS;
-  while (world.now < until && !onlookerAt(world, spot, exclude)) {
+  for (;;) {
+    const candidates = ordinaryVillagers(world).filter(p => !!p.workId && atLiberty(world, p))
+      .sort((a, b) => a.id.localeCompare(b.id));
+    const watched = candidates.find(p => onlookerAt(world, theftSpot(world, p).spot, [p.id, pickAggressor(world, p.id)?.id ?? '']));
+    if (watched || world.now >= until) return watched ?? candidates[0];
     advance(world, sim, ONLOOKER_STEP_SECONDS);
   }
 }
@@ -176,7 +215,7 @@ export function runSocialTrace(spec: TraceSpec): SocialTrace {
   const needsCoworker = spec.trigger === 'work_disruption' || spec.trigger === 'assault';
   const needsOnlooker = spec.trigger === 'assault';
   const subject = (spec.trigger === 'theft'
-    ? ordinaryVillagers(world).filter(p => !!p.workId).sort((a, b) => a.id.localeCompare(b.id))[0]
+    ? awaitTheftOpportunity(world, sim)
     : pickSubject(world, needsSpouse, needsCoworker, needsOnlooker)) ?? pickSubject(world, false, false, needsOnlooker)!;
   const actor = pickAggressor(world, subject.id)!;
 
@@ -223,8 +262,7 @@ export function runSocialTrace(spec: TraceSpec): SocialTrace {
     // "my property is gone from its place" inference (Simulation.strategic) only fires for an
     // owner standing where they keep their things. Without it the scenario silently reduced to a
     // coin flip on whether anyone was looking, and demonstrated nothing when they were not.
-    const workPlace = world.place(subject.workId) ?? world.placeAt(subjectBody.pos);
-    const spot = workPlace?.anchors.find(a => a.kind === 'work' || a.kind === 'counter')?.pos ?? workPlace?.inside ?? subjectBody.pos;
+    const { spot, workPlace } = theftSpot(world, subject);
     const owned = world.items().find(i => i.ownerId === subject.id && !i.holderId && i.pos)
       ?? makeItem(world, 'ring', `${subject.name}'s ring`, { owner: subject.id, pos: { ...spot }, placeId: workPlace?.id });
     owned.pos = { ...spot }; owned.placeId = workPlace?.id ?? null;
@@ -237,13 +275,14 @@ export function runSocialTrace(spec: TraceSpec): SocialTrace {
     // "different people describe it differently" check failing not because anything was broken
     // but because nobody had been looking.
     //
-    // So this waits, bounded, for somebody who is neither party to be within sight of the spot.
-    // It is a PRECONDITION in exactly the sense the item placement above is: it establishes that
-    // the information CAN exist, and scripts nothing whatever about who ends up believing what,
-    // how confidently, or what any of them do about it. If nobody turns up inside the window the
-    // theft happens anyway, unwitnessed, and the owner's own "my property is gone" inference is
-    // still the honest path it always was.
-    waitForOnlooker(world, sim, spot, [actor.id, subject.id]);
+    // So `awaitTheftOpportunity` waits, bounded, for somebody who is neither party to be within
+    // sight of the spot. That happens before the trace starts, so nothing from the wait counts
+    // as a consequence of the theft. It is a PRECONDITION in exactly the sense the item placement
+    // above is: it establishes that the information CAN exist, and scripts nothing whatever about
+    // who ends up believing what, how confidently, or what any of them do about it. If nobody
+    // turns up inside the window the theft happens anyway, unwitnessed, and the owner's own "my
+    // property is gone" inference is still the honest path it always was, because the owner is
+    // at liberty to go back to their workplace.
     placeBeside(world, actor, subject);
     triggerEvent = sim.takeItem(actor, owned, 'theft', subject.id);
     triggerText = `${actor.name} stole ${owned.name} from ${subject.name} at ${workPlace?.name ?? 'their place'}`;

@@ -1,3 +1,4 @@
+import { knowledgeItems } from './knowledgeView';
 import { combatActionFacts } from '../physical/combatFacts';
 import { recentSelfCare } from './recentSelfCare';
 import { finishExternalIntention } from '../runtime/controllers';
@@ -5,6 +6,9 @@ import { indexWilderness } from '../world/playable';
 import { actOnMechanicalTask, maintenanceGoals } from './mechanicalReasoning';
 import { routineWeight, observeFields } from './routine';
 import { interpretSocial, introduce, learnIdentity, knownName, perceivedName } from './people';
+import { conversationBodies, conversationReachable, socialChoice, socialEvidence } from './socialEvidence';
+import { anchorIdentityToObservation, observableSignature, recognizeEncounter, shareIdentityObservation } from './encounter';
+import { advanceToIron, assessAdvancement } from '../core/advancement';
 import { isExternallyControlled, hasExternalIntention, authorizeExternalIntention } from '../runtime/controllers';
 import { recoveryMultiplier } from '../core/human';
 import { genealogyGoals, inferSurnameKin } from './genealogy';
@@ -278,7 +282,7 @@ export class Simulation {
       this.accum('creatures', t0);
     }
     // 4. body physics for all non-player bodies
-    { const t0 = this.mark(); for (const b of w.activeBodies()) { const owner = w.get(b.ownerId) as Person | undefined; if (isExternallyControlled(owner)) continue; this.bodyPhysics(b, physDt); } this.accum('bodyPhysics', t0); }
+    { const t0 = this.mark(); for (const b of w.activeBodies()) { const owner = w.get(b.ownerId) as Person | undefined; if (isExternallyControlled(owner) && !owner?.mind.plan.some(a => a.type === 'goto' && a.status === 'active')) continue; this.bodyPhysics(b, physDt); } this.accum('bodyPhysics', t0); }
     if(combatBefore)this.stepCombat(physDt,combatBefore);
     // 5. strategic upkeep once per world minute
     this.strategicAccum += worldDt;
@@ -301,14 +305,22 @@ export class Simulation {
 
   // ------------------------------------------------------------------ perception
   private perceive(p: Person, stimuli: WorldEvent[]): void {
-    const w = this.world; const body = w.primaryBody(p.id); if (!body) return;
+    p.mind.percepts = [];
+    for (const id of p.bodies) {
+      const body = this.world.body(id);
+      if (body?.present && !body.dead && body.health > 0) this.perceiveFromBody(p, body, stimuli);
+    }
+    if (p.bodies.length > 1) p.mind.percepts = [...new Map(p.mind.percepts.sort((a, b) => (a.how === 'saw' ? 1 : 0) - (b.how === 'saw' ? 1 : 0)).map(pc => [pc.bodyId, pc])).values()];
+  }
+  private perceiveFromBody(p: Person, body: Body, stimuli: WorldEvent[]): void {
+    const w = this.world;
     const eye = { x: body.pos.x, y: body.pos.y + 1.5, z: body.pos.z };
-    const asleep = body.pose === 'sleep';
+    const asleep = body.pose === 'sleep' || body.pose === 'downed';
     const facing = { x: -Math.sin(body.yaw), z: -Math.cos(body.yaw) };
     const percepts: Percept[] = [];
     const seeRange = asleep ? 0 : (w.weather.kind === 'fog' ? 14 : 28) * (this.lightAt() * 0.5 + 0.5);
     for (const other of w.nearbyBodies(eye, 30)) {
-      if (other.id === body.id || !other.present) continue;
+      if (other.ownerId === p.id || !other.present) continue;
       const d = Math.hypot(other.pos.x - eye.x, other.pos.z - eye.z); if (d > 30) continue;
       let how: 'saw' | 'heard' | null = null;
       if (d <= seeRange) {
@@ -316,9 +328,15 @@ export class Simulation {
         if (d < 2.5 || dot > -0.1) { if (w.grid.lineOfSight(eye, { x: other.pos.x, y: other.pos.y + 1.2, z: other.pos.z }, 32)) how = 'saw'; }
       }
       if (!how && !asleep && d < 6 && Math.hypot(other.vel.x, other.vel.z) > 1) how = 'heard';
-      if (how) { percepts.push({ entityId: other.ownerId, bodyId: other.id, how, tick: w.now, pos: { ...other.pos }, distance: d }); if (how === 'saw') locationKnowledge(w, p, other.ownerId, other.pos, { type: 'witnessed' }); }
+      if (how) {
+        percepts.push({ entityId: other.ownerId, bodyId: other.id, how, tick: w.now, pos: { ...other.pos }, distance: d });
+        if (how === 'saw') {
+          locationKnowledge(w, p, other.ownerId, other.pos, { type: 'witnessed' });
+          recognizeEncounter(w, p, { subjectId: other.ownerId, bodyId: other.id, observerBodyId: body.id, how, distance: d }, true);
+        }
+      }
     }
-    p.mind.percepts = percepts;
+    p.mind.percepts.push(...percepts);
     if (!asleep) observeFields(w, p);
     // v0.8 §P0-G (independent audit §4.6): an unheld item in view is exactly as observable as a
     // body — `locationKnowledge` already existed and had exactly one call site (bodies, above).
@@ -348,7 +366,6 @@ export class Simulation {
       if (!asleep && e.visibility && d <= Math.min(e.visibility, seeRange + 4)) { const dx = (e.pos.x - eye.x) / (d + 1e-5), dz = (e.pos.z - eye.z) / (d + 1e-5); const dot = dx * facing.x + dz * facing.z; if ((d < 3 || dot > -0.2) && w.grid.lineOfSight(eye, { x: e.pos.x, y: e.pos.y + 1, z: e.pos.z }, 40)) how = 'saw'; }
       if (!how && e.loudness && d <= e.loudness * (asleep ? 0.35 : 1)) { how = 'heard'; }
       if (!how) continue;
-      if (e.target === p.id && e.type !== 'told') how = 'saw';
       this.onPerceived(p, body, e, how);
     }
   }
@@ -366,14 +383,16 @@ export class Simulation {
       }
       return;
     }
-    if (e.perceivedBy.some(x => x.who === p.id)) return;
-    e.perceivedBy.push({ who: p.id, how, tick: w.now });
+    const previous = e.perceivedBy.find(x => x.who === p.id);
+    if (previous && !(previous.how === 'heard' && how === 'saw')) return;
+    if (previous) previous.how = how; else e.perceivedBy.push({ who: p.id, how, tick: w.now });
     if (e.type === 'told') { if (e.target !== p.id) return; return; } // handled directly in tell()
     const saw = how === 'saw';
     if (saw && e.type === 'resource_delivered' && e.placeId && e.data.quantity > 0) {
       clearShortfall(w, p, e.placeId, e.data.resource as ItemType);
     }
     const claim = eventClaim(w, e, saw);
+    if (e.type === 'introduction' && (!e.pos || dist2(body.pos, e.pos) > (e.loudness ?? 0))) delete claim.claimedName;
     const claimSummary = describeClaim(w, { kind: 'event', claim } as KnowledgeItem, p);
     const perc = w.emit('perceived', { actor: p.id, target: saw ? claim.actor : undefined, causes: [e.id], significance: e.significance * 0.5, data: { how, eventType: e.type, eventId: e.id, actorKnown: !!claim.actor }, summary: `${p.name} ${how} ${claimSummary}` });
     // Causal Society: most events are keyed by the event, because each one is a separate thing
@@ -388,7 +407,11 @@ export class Simulation {
       : `ev:${e.id}`;
     const k = learn(w, p, { key, kind: 'event', claim, confidence: saw ? 1 : 0.6, source: { type: saw ? 'witnessed' : 'heard', viaEvent: perc.id }, cause: perc.id, summary: claimSummary });
     if (k) interpretSocial(w, p, k);
-    if (e.type === 'introduction' && saw && typeof claim.claimedName === 'string' && claim.actor) learnIdentity(w, p, claim.actor, claim.claimedName, { type: 'heard', from: claim.actor, viaEvent: perc.id }, 0.65);
+    if (e.type === 'introduction' && saw && e.target !== p.id && typeof claim.claimedName === 'string' && claim.actor) {
+      learnIdentity(w, p, claim.actor, claim.claimedName, { type: 'heard', from: claim.actor, viaEvent: perc.id }, 0.65);
+      const pc = p.mind.percepts.find(pc => pc.entityId === claim.actor && pc.how === 'saw');
+      if (pc) anchorIdentityToObservation(p, claim.actor, observableSignature(w, w.body(pc.bodyId)!));
+    }
     const isVictim = claim.target === p.id;
     const victimClose = claim.target ? isClose(p, claim.target) : false;
     // v0.9 §A: how much this event matters to THIS person is now a real appraisal over their own
@@ -402,7 +425,6 @@ export class Simulation {
       : e.significance * (isVictim ? 1.4 : victimClose ? 1.2 : 1) * (saw ? 1 : 0.7);
     const valence = isCrime(claim.type, claim.intent) ? -0.8 : e.type === 'gift' || e.type === 'returned_item' || e.type === 'heal' ? 0.6 : 0;
     remember(w, p, { type: e.type, summary: saw ? `I saw: ${claimSummary}` : `I heard: ${claimSummary}`, eventId: e.id, entities: [claim.actor, claim.target, claim.item].filter(Boolean) as string[], significance: clamp(sig), valence, source: { type: saw ? 'witnessed' : 'heard', viaEvent: perc.id }, placeId: claim.placeId });
-    if (isExternallyControlled(p)) return;
     if (k && appraisal) formConcerns(w, p, k, appraisal);
     // v0.10 §II: an obligation forms from a belief with real provenance, exactly like a concern —
     // being helped is something you have to NOTICE, not something the world tells you.
@@ -429,7 +451,7 @@ export class Simulation {
       let grievance = 0;
       if (claim.type === 'kill' && (isVictim || victimClose)) grievance = victimClose && isFamily(p, claim.target) ? 0.9 : 0.7;
       else if (claim.type === 'attack' && isVictim && actor) {
-        const priorAssaults = Object.values(p.knowledge).filter(kk => kk.kind === 'event' && kk.claim.type === 'attack' && kk.claim.actor === actor && kk.claim.target === p.id).length;
+        const priorAssaults = knowledgeItems(p).filter(kk => kk.kind === 'event' && kk.claim.type === 'attack' && kk.claim.actor === actor && kk.claim.target === p.id).length;
         if (priorAssaults >= 3) grievance = Math.min(0.55, 0.15 + priorAssaults * 0.08);
       }
       // v0.10 §II "forgive a minor offence": someone I genuinely owe gets more benefit of the
@@ -443,8 +465,10 @@ export class Simulation {
       emo.fear = clamp(emo.fear + fear * 0.6); emo.stress = clamp(emo.stress + sev * 0.5); emo.anger = clamp(emo.anger + grudge * 0.5 * (p.traits.aggression + 0.3));
       if (Math.abs(emo.fear - before.fear) + Math.abs(emo.anger - before.anger) > 0.1) w.emit('emotion_changed', { actor: p.id, causes: [cause], significance: 0.25, data: { fear: emo.fear, anger: emo.anger, stress: emo.stress }, summary: `${p.name} feels ${emo.fear > emo.anger ? `afraid (fear ${emo.fear.toFixed(2)})` : `angry (anger ${emo.anger.toFixed(2)})`}` });
       p.mind.alarm = 1; p.mind.attention = actor ?? null;
-      const line = this.reactionLine(p, claim.type, actorP, claim.target, isVictim, victimClose);
-      if (line) this.say(p, line);
+      if (!isExternallyControlled(p)) {
+        const line = this.reactionLine(p, claim.type, actorP, claim.target, isVictim, victimClose);
+        if (line) this.say(p, line);
+      }
     } else if (e.type === 'gift' || e.type === 'returned_item' || e.type === 'apology' || e.type === 'debt_paid' || e.type === 'heal') {
       // Causal Society. Kindness was the half of the ledger v0.9's appraisal never reached: harm
       // moved a relationship in proportion to what the event MEANT to this person, help moved it
@@ -496,7 +520,7 @@ export class Simulation {
     // carry his flour, he stood by me" expressible without a special case.
     const G = (type: GoalType, utility: number, reasons: string[], o: Partial<Goal> = {}) => {
       const key = `${type}:${o.targetEntity ?? o.targetPlace ?? ''}`;
-      const boost = motivationBoost(p, type, o.targetEntity ?? o.targetPlace, o.data?.beneficiary as EntityId | undefined, o.data?.resource as ItemType | undefined);
+      const boost = motivationBoost(p, type, o.targetEntity ?? o.targetPlace, o.data?.beneficiary as EntityId | undefined, o.data?.resource as ItemType | undefined, now);
       const data = boost.pursuitId && !o.data?.pursuitId ? { ...(o.data ?? {}), pursuitId: boost.pursuitId } : o.data;
       cands.push({ type, utility: boost.bonus ? clamp(utility + boost.bonus) : utility, reasons: boost.bonus ? [...reasons, ...boost.reasons] : reasons, createdAt: now, key, ...o, data });
     };
@@ -686,7 +710,23 @@ export class Simulation {
       G('flee', clamp(0.25 + ar.fear * 0.5 + ar.grudge * 0.2 - p.traits.courage * 0.2 - avoid.d * 0.01), [`${perceivedName(w, p, avoid.id)} is about — best keep clear`, `old grudge ${ar.grudge.toFixed(2)}, fear ${ar.fear.toFixed(2)}`], { targetEntity: avoid.id, data: { avoidance: true } });
     }
     // ---- knowledge-driven goals: report crimes, investigate, recover items
-    const crimes = Object.values(p.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled && now - k.learnedAt < 86400 * 3);
+    if (p.ontology.stage === 'Normal' && (p.capability?.bySkill.crafting?.effectiveSeconds ?? 0) >= 8 * 3600) {
+      const advancement = assessAdvancement(w, p);
+      if (advancement.eligible) G('advance', 0.35 + p.traits.curiosity * 0.15,
+        ['sustained practice, understood technique and recovered foundations permit adaptation'], { causeEvent: advancement.evidenceEventIds.at(-1) });
+    }
+    // A remembered impression can motivate caution even without a current attack or a
+    // relationship fear flag. It proposes an ordinary goal, never dictates its selection.
+    if (!threat && !avoid) for (const percept of m.percepts) {
+      if (percept.how !== 'saw' || percept.distance > 12 || percept.entityId === p.id) continue;
+      const evidence = socialEvidence(p, percept.entityId, now);
+      if (evidence.caution < 0.15) continue;
+      G('flee', clamp(0.3 + evidence.caution * 0.7 - p.traits.courage * 0.2 - percept.distance * 0.01),
+        ['my retained evidence suggests caution', ...evidence.inputs.map(i => i.key)],
+        { targetEntity: percept.entityId, causeEvent: evidence.inputs.find(i => i.event)?.event,
+          data: { avoidance: true, beliefInputs: evidence.inputs.map(i => i.key) } });
+    }
+    const crimes = knowledgeItems(p).filter(k => k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && !k.handled && now - k.learnedAt < 86400 * 3);
     // Resolved once for the whole loop rather than per belief: this is a scan of everyone alive,
     // and a person who remembers five crimes was otherwise paying for it five times a tick.
     // Watchmen this person could plausibly reach. `nearestKnownGuard` narrows it further to the
@@ -713,7 +753,14 @@ export class Simulation {
         const untold = authorities.filter(g => !k.sharedWith.includes(g.id));
         const eligible = p.occupation !== 'child' || victimClose;
         if (eligible && untold.length && shouldSeekAuthority(w, progress)) {
-          const g = this.nearestKnownGuard(p, pos, untold);
+          // Someone already on their way to tell a particular guard keeps going to that guard
+          // while they are still untold. Re-picking the nearest every tick flipped the target as
+          // the watch moved, and `setGoal` rightly counts each switch as an errand that did not
+          // land. At seed 918271 an eyewitness to a theft switched guards twice in ten minutes,
+          // went into back-off and went home without telling anyone.
+          const heading = m.goal?.type === 'report' && m.goal.data?.key === k.key
+            ? untold.find(u => u.id === m.goal!.targetEntity) : undefined;
+          const g = heading ?? this.nearestKnownGuard(p, pos, untold);
           if (g) {
             const base = clamp(0.45 + sev * 0.5 + p.traits.honesty * 0.2 + (victimClose ? 0.15 : 0) + (victimIsMe ? 0.1 : 0) - (threat ? 0.15 : 0));
             const reasons = [`I know ${describeClaim(w, k)} (${k.source.type})`, `the watch should hear of it`, 'my sense of honesty'];
@@ -734,7 +781,7 @@ export class Simulation {
     // about an item" dialogue menu (`askAboutItemMenu`). No new knowledge is invented here: both
     // `wanted:` and `loc:` must already be present through their own real, provenance-carrying
     // channels.
-    for (const k of Object.values(p.knowledge)) {
+    for (const k of knowledgeItems(p)) {
       if (k.kind !== 'fact' || !k.claim.wantedItem || !k.claim.itemId) continue;
       const itemId = k.claim.itemId as string; const requesterId = k.claim.requesterId as string;
       if (!requesterId || requesterId === p.id) continue;
@@ -932,7 +979,7 @@ export class Simulation {
     // routine shift. Input failure is still learned at the workplace, never remotely.
     const foodTrade = processFor(w.place(p.workId)?.type);
     const seekingMealWork = !foodHome && !rememberedHomeFood && n.hunger > 0.4 && foodTrade && isFood(foodTrade.output)
-      && skillOf(p, foodTrade.skill) > 0 && Object.values(p.knowledge).some(k => k.key.startsWith('food-access:')
+      && skillOf(p, foodTrade.skill) > 0 && knowledgeItems(p).some(k => k.key.startsWith('food-access:')
         && k.claim.reason === 'unavailable' && now - k.learnedAt < 12 * 3600);
     const inputShortage = foodTrade && p.workId ? p.knowledge[`short:${p.workId}:${foodTrade.input}`] : undefined;
     const inputKnownMissing = inputShortage && !inputShortage.handled && now - (inputShortage.lastConfirmedAt ?? inputShortage.learnedAt) < 2 * 3600;
@@ -966,11 +1013,13 @@ export class Simulation {
       const incentive = laborIncentive(p, w);
       // A hunting ground is a known workplace, or something personally discovered there.
       // Poverty can make subsistence hunting attractive, but never reveals unknown resources.
-      for (const node of w.resourceNodes) {
-        if (node.kind !== 'game' || !near(pos, node.pos) || node.state !== 'available' || !laborOk) continue;
+      // These person-level prerequisites are unchanged throughout proposal construction.
+      // Check them before scanning the resource ledger, rather than once per resource node.
+      if (laborOk && p.wealth < 3 && n.hunger > 0.4) for (const node of w.resourceNodes) {
+        if (node.kind !== 'game' || !near(pos, node.pos) || node.state !== 'available') continue;
         const known = p.workId === node.placeId || p.schedule.some(e => e.placeId === node.placeId) || !!p.knowledge[`game:${node.id}`];
         if (!known) continue;
-        if (p.wealth < 3 && n.hunger > 0.4) G('gather', clamp((0.4 + n.hunger * 0.5) * laborCapacity),
+        G('gather', clamp((0.4 + n.hunger * 0.5) * laborCapacity),
           ['I need food and know a hunting ground'], { targetPlace: node.placeId, targetPos: node.pos, data: { nodeId: node.id, resource: node.yield } });
       }
       // Haul: physically move a needed resource between two Places.
@@ -1292,6 +1341,13 @@ export class Simulation {
       if (!done && best.utility < curU + 0.12 && !(best.type === 'flee' || best.type === 'attack' || best.type === 'confront' || best.type === 'rob')) { chosen = { ...cur, utility: curU }; note = `kept ${cur.type} (hysteresis)`; }
       else { switched = true; note = best === best0 ? `switched from ${cur.type} to ${best.type}` : `resumed ${best.type} (committed)`; }
     } else if (!cur) { switched = true; note = `adopted ${best.type}`; }
+    else if (cur.type === 'report' && cur.data?.key !== best.data?.key) {
+      // The same guard, a different crime. `Goal.key` is type + target, so without this the old
+      // goal was kept and its finished plan rebuilt. The crime already told was told again every
+      // few seconds, for hours, and the new one never reached the watch. On main and PR #49 alike
+      // this pinned some residents at a guard's side, re-telling one crime over a thousand times.
+      switched = true; note = `now reporting ${best.data?.key}`;
+    }
     else { chosen = cur; note = best === best0 ? `continuing ${cur.type}` : `continuing ${cur.type} (committed)`; }
     m.decision = { tick: now, candidates: cands.slice(0, 8).map(c => ({ type: c.type, key: c.key, utility: c.utility, reasons: c.reasons.filter(Boolean) })), chosen: chosen.key, switched, note };
     if (switched) {
@@ -1359,7 +1415,7 @@ export class Simulation {
     const adopted = w.emit('goal_changed', { actor: p.id, target: g.targetEntity, placeId: g.targetPlace, causes, significance: g.type === 'flee' || g.type === 'attack' || g.type === 'report' || g.type === 'investigate' || g.type === 'confront' || g.type === 'surrender' ? 0.45 : 0.12, // v0.10.1 §XI: `fromUtility` makes "was this task dropped for something meaningfully better,
       // or for noise?" answerable from the event log alone — the difference between a person
       // changing their mind and a person flickering.
-      data: { from: prev?.type, fromUtility: prev?.utility, to: g.type, utility: g.utility, reasons: g.reasons, key: g.key, pursuitId: g.data?.pursuitId }, summary: `${p.name}: goal ${prev ? prev.type + ' → ' : ''}${g.type}${target} (u=${g.utility.toFixed(2)})` });
+      data: { from: prev?.type, fromUtility: prev?.utility, to: g.type, utility: g.utility, reasons: g.reasons, key: g.key, pursuitId: g.data?.pursuitId, beliefInputs: g.data?.beliefInputs }, summary: `${p.name}: goal ${prev ? prev.type + ' → ' : ''}${g.type}${target} (u=${g.utility.toFixed(2)})` });
     for (const action of plan) if (action.type === 'mechanism_task') action.data = { ...action.data, intentionEvent: adopted.id };
     // v0.2.3: choosing to flee an opponent we have a live conflict with IS breaking off that
     // conflict (Constitution §11 disengagement) — mark it so `maintainConflicts` settles it.
@@ -1394,7 +1450,7 @@ export class Simulation {
       summary: `${p.name} intends to ${type === 'obtain_food' ? 'obtain food' : 'find food'}${g.targetPlace ? ` at ${w.nameOf(g.targetPlace)}` : ''} (${reason})`,
     });
   }
-  private knownCrimesBy(p: Person, actor: EntityId): KnowledgeItem[] { return Object.values(p.knowledge).filter(k => k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && k.claim.actor === actor && !k.handled).sort((a, b) => crimeSeverity(b.claim.type) - crimeSeverity(a.claim.type)); }
+  private knownCrimesBy(p: Person, actor: EntityId): KnowledgeItem[] { return knowledgeItems(p).filter(k => k.kind === 'event' && isCrime(k.claim.type, k.claim.intent) && k.claim.actor === actor && !k.handled).sort((a, b) => crimeSeverity(b.claim.type) - crimeSeverity(a.claim.type)); }
   /**
    * v0.2.3 re-engagement gate (Priority 7): true when a conflict with `otherId` has already
    * ended (resolved / suspended / disengaging) and nothing NEW has happened since to justify
@@ -1441,6 +1497,7 @@ export class Simulation {
       return null;
     };
     switch (g.type) {
+      case 'advance': return [A({ type: 'attempt_breakthrough', duration: 60 })];
       case 'maintain_mechanism': return [{ type: 'mechanism_task', data: { ...g.data }, status: 'pending' }];
       case 'compose': return inventionPlan(w, p, g);
       case 'study_record': case 'record_method': return recordPlan(w, g);
@@ -1660,6 +1717,12 @@ export class Simulation {
         a.status = 'done'; break;
       }
       case 'mechanism_task': actOnMechanicalTask(w, p, a, physDt); break;
+      case 'attempt_breakthrough': {
+        if (!assessAdvancement(w, p).eligible) { a.status = 'failed'; break; }
+        body.pose = 'sit';
+        if (this.elapsed(a)) a.status = advanceToIron(w, p) ? 'done' : 'failed';
+        break;
+      }
       case 'introduce': {
         const other = w.person(a.targetEntity);
         a.status = other && introduce(w, p, other, a.text ?? p.name) ? 'done' : 'failed';
@@ -2078,7 +2141,14 @@ export class Simulation {
           a.status = 'failed'; break;
         }
         const k = key ? p.knowledge[key] : undefined;
-        if (k) { this.tell(p, t, k); if ((t.occupation === 'guard' || t.occupation === 'captain') && key) noteReportDelivered(w, p, key, t.id); }
+        // Only a report that was actually heard is delivered. A refused one is a failed attempt,
+        // so the reporting record backs off instead of claiming the watch was told.
+        if (k) {
+          const heard = this.tell(p, t, k);
+          if ((t.occupation === 'guard' || t.occupation === 'captain') && key) {
+            if (heard) noteReportDelivered(w, p, key, t.id); else noteReportFailed(w, p, key, t.id, `could not make ${t.name} hear it`);
+          }
+        }
         body.pose = 'talk'; body.poseUntil = w.physicalTime + 2; a.status = 'done'; break;
       }
       case 'propose': {
@@ -2390,7 +2460,12 @@ export class Simulation {
     const w = this.world; if (w.physicalTime - p.mind.lastSpokeAt < 6 + (1 - p.traits.sociability) * 14) return;
     const near = p.mind.percepts.filter(pc => pc.distance < 4 && pc.how === 'saw').map(pc => w.person(pc.entityId)).filter((q): q is Person => !!q && q.alive  && (w.primaryBody(q.id)?.pose !== 'sleep'));
     if (!near.length) return;
-    const other = near[Math.floor(w.rng.next() * near.length)];
+    const ranked = near.map(person => { const evidence = socialEvidence(p, person.id, w.now); return { person, value: evidence.cooperation - evidence.caution }; });
+    const bestValue = Math.max(...ranked.map(entry => entry.value));
+    if (bestValue < -0.3) return;
+    const preferred = ranked.filter(entry => entry.value >= bestValue - 0.05);
+    const other = preferred[socialChoice(w, p, 'conversation-partner', preferred.length)].person;
+    if (!conversationReachable(w, p, other)) return;
     if (w.physicalTime - (p.mind.lastToldAt[other.id] ?? -99) < 25) return;
     p.mind.lastSpokeAt = w.physicalTime; p.mind.lastToldAt[other.id] = w.physicalTime;
     // v0.8 §P0-G/H (independent audit §4.6): before falling back to ordinary gossip, an NPC who
@@ -2411,10 +2486,11 @@ export class Simulation {
    * voice and the listener didn't already know about it. */
   private maybeAskForHelp(p: Person, other: Person): boolean {
     const w = this.world;
-    const desire = p.desires.find(d => d.type === 'recover_item' && !d.fulfilled && d.targetId && !other.knowledge[`wanted:${d.targetId}`]);
+    const desire = p.desires.find(d => d.type === 'recover_item' && !d.fulfilled && d.targetId && !(p.mind.lastToldAt[`wanted:${d.targetId}:${other.id}`] >= 0));
     if (!desire || !desire.targetId) return false;
     const line = desire.note + ` I'd pay ${desire.reward} silver to whoever brings it.`;
     learn(w, other, { key: `wanted:${desire.targetId}`, kind: 'fact', claim: { text: line, wantedItem: true, itemId: desire.targetId, requesterId: p.id, reward: desire.reward }, confidence: 1, source: { type: 'told', from: p.id } }, true);
+    p.mind.lastToldAt[`wanted:${desire.targetId}:${other.id}`] = w.physicalTime;
     this.say(p, line);
     adjustRel(w, other, p.id, { affection: 0.02 }, 'asked for help', undefined, true);
     return true;
@@ -2440,8 +2516,8 @@ export class Simulation {
     // real gossip works ("I saw Anna's ring at the well"). Ranked well below ordinary news UNLESS
     // it directly answers an active `recover_item` desire the LISTENER holds — that is the one
     // case genuinely worth interrupting small talk for.
-    const locationCands = Object.values(p.knowledge).filter(k => k.kind === 'location' && w.get(k.claim.entityId as string)?.kind === 'item' && !k.sharedWith.includes(other.id) && !other.knowledge[k.key]);
-    const locationValue = (k: KnowledgeItem) => other.desires.some(d => d.type === 'recover_item' && !d.fulfilled && d.targetId === k.claim.entityId) ? 0.9 : 0.12;
+    const locationCands = knowledgeItems(p).filter(k => k.kind === 'location' && w.get(k.claim.entityId as string)?.kind === 'item' && !k.sharedWith.includes(other.id));
+    const locationValue = (k: KnowledgeItem) => p.knowledge[`wanted:${k.claim.entityId}`]?.claim.requesterId === other.id ? 0.9 : 0.12;
     const best = locationCands.map(k => ({ k, v: locationValue(k) })).sort((a, b) => b.v - a.v)[0];
     if (!best) return null;
     if (best.v < 0.2 && p.traits.sociability < 0.6) return null;
@@ -2476,20 +2552,24 @@ export class Simulation {
     // Sadness is a real, canonical emotion — expressing it is not a factual claim. Naming a
     // specific loss would be; that is what was removed.
     if (p.emotions.sadness > 0.4) pool.push(`...`, `I've not much to say today.`);
-    return pool[Math.floor(w.rng.next() * pool.length)];
+    return pool[socialChoice(w, p, 'small-talk', pool.length)];
   }
-  /** One mind tells another something it knows. Knowledge travels with provenance. */
-  tell(speaker: Person, listener: Person, k: KnowledgeItem): void {
-    const w = this.world; const sb = w.primaryBody(speaker.id);
+  /** One mind tells another something it knows. Knowledge travels with provenance. Returns
+   * whether it was actually said to them: an unreachable listener, a claim the speaker does not
+   * hold, or an exhausted rumour are refused and change nothing. */
+  tell(speaker: Person, listener: Person, k: KnowledgeItem): boolean {
+    if (!k || speaker.knowledge[k.key] !== k || k.hops >= 8) return false;
+    const bodies = conversationBodies(this.world, speaker, listener); if (!bodies) return false;
+    const w = this.world; const sb = bodies.speaker;
     const text = this.tellLine(speaker, listener, k);
     // Prefer the original canonical event (`claim.eventId`) as the cause over the speaker's own
     // ephemeral perception of it (`source.viaEvent`) — for a retained event (a killing, an
     // arrest) the canonical event outlives compaction where the perception does not, so gossip
     // about it days later still resolves to a real cause instead of dangling. Fall back to the
     // perception, then to nothing, and drop any id that no longer resolves.
-    const toldCauses = (k.claim.method || k.claim.notation ? [k.source.viaEvent, k.claim.eventId as string | undefined] : [k.claim.eventId as string | undefined, k.source.viaEvent]).filter((id): id is string => !!id && !!w.event(id));
-    const ev = w.emit('told', { actor: speaker.id, target: listener.id, pos: sb?.pos, causes: toldCauses.slice(0, 1), significance: 0.3 + (k.claim.significance ?? 0.3) * 0.4, data: { key: k.key, text, hops: k.hops + 1 }, summary: `${speaker.name} told ${listener.name}: "${describeClaim(w, k)}"`, loudness: 4 });
-    k.sharedWith.push(listener.id);
+    const toldCauses = [...new Set([k.source.viaEvent, k.claim.eventId as string | undefined].filter((id): id is string => !!id && !!w.event(id)))];
+    const ev = w.emit('told', { actor: speaker.id, target: listener.id, pos: sb?.pos, causes: toldCauses, significance: 0.3 + (k.claim.significance ?? 0.3) * 0.4, data: { key: k.key, text, hops: k.hops + 1, receivedFrom: { ...k.source }, confidence: k.confidence, learnedAt: k.learnedAt, eventAt: k.claim.tick }, summary: `${speaker.name} told ${listener.name}: "${describeClaim(w, k, speaker)}"`, loudness: 4 });
+    if (!k.sharedWith.includes(listener.id)) k.sharedWith.push(listener.id);
     this.say(speaker, text); speaker.mind.lastSpokeAt = w.physicalTime; speaker.mind.lastToldAt[listener.id] = w.physicalTime;
     if (sb) { sb.pose = 'talk'; sb.poseUntil = w.physicalTime + 2.5; }
 
@@ -2497,14 +2577,23 @@ export class Simulation {
     const learned = learn(w, listener, { key: k.key, kind: k.kind, claim: structuredClone(k.claim), confidence: conf, source: { type: 'told', from: speaker.id, viaEvent: ev.id }, hops: k.hops + 1, cause: ev.id, summary: describeClaim(w, k) });
     remember(w, listener, { type: 'told', summary: `${knownName(listener, speaker.id)} told me ${describeClaim(w, k, listener)}`, eventId: k.claim.eventId, entities: [speaker.id, k.claim.actor, k.claim.target].filter(Boolean) as string[], significance: clamp((k.claim.significance ?? 0.3) * 0.7), valence: isCrime(k.claim.type, k.claim.intent) ? -0.4 : 0, source: { type: 'told', from: speaker.id, viaEvent: ev.id } });
     ev.perceivedBy.push({ who: listener.id, how: 'heard', tick: w.now });
-    adjustRel(w, listener, speaker.id, { familiarity: 0.03, affection: 0.02 }, 'talked', undefined, true);
+    adjustRel(w, listener, speaker.id, { familiarity: 0.03, affection: 0.02 }, 'talked', ev.id, true);
     // v0.9 §A/§B/§C: hearsay is appraised and can form real concerns exactly like perception —
     // this is the step that makes "knowledge can cause behaviour" true for information that
     // TRAVELLED, not only for what a person saw with their own eyes. Provenance and confidence
     // are already folded into the appraisal (a third-hand rumour lands lighter than an eyewitness
     // account), so nothing here needs a separate hearsay discount.
     if (learned) interpretSocial(w, listener, learned);
-    if (k.claim.identity) learnIdentity(w, listener, k.claim.identity.subject, k.claim.identity.name, { type: 'told', from: speaker.id, viaEvent: ev.id }, conf);
+    if (k.claim.identity) {
+      learnIdentity(w, listener, k.claim.identity.subject, k.claim.identity.name, { type: 'told', from: speaker.id, viaEvent: ev.id }, conf);
+      shareIdentityObservation(speaker, listener, k.claim.identity.subject);
+      listener.knowledge[k.key].hops = k.hops + 1;
+    }
+    if (k.claim.type === 'introduction' && k.claim.actor && typeof k.claim.claimedName === 'string') {
+      const identity = learnIdentity(w, listener, k.claim.actor, k.claim.claimedName, { type: 'told', from: speaker.id, viaEvent: ev.id }, conf);
+      if (identity) identity.hops = k.hops + 1;
+      shareIdentityObservation(speaker, listener, k.claim.actor);
+    }
     const listenerAppraisal = learned ? appraiseClaim(w, listener, learned) : null;
     if (learned && listenerAppraisal) formConcerns(w, listener, learned, listenerAppraisal);
     // v0.10 §II: hearing about a debt you owe (the seeded `debt` beliefs travel this way) is a
@@ -2513,15 +2602,16 @@ export class Simulation {
     // so third-party gossip about other people's favours creates nothing.
     if (learned) formObligations(w, listener, learned);
     const toldPersonal = listenerAppraisal ? clamp(0.45 + listenerAppraisal.weight * 1.1, 0.35, 1.6) : 1;
-    if (isExternallyControlled(listener)) return; // response-controller dispatch; receiving evidence above is universal
     if (learned && isCrime(k.claim.type, k.claim.intent) && k.claim.actor) {
       const sev = crimeSeverity(k.claim.type); const victimClose = k.claim.target ? isClose(listener, k.claim.target) : false;
       adjustRel(w, listener, k.claim.actor, { fear: sev * 0.3 * conf * (1.2 - listener.traits.courage) * toldPersonal, trust: -sev * 0.4 * conf * toldPersonal, grudge: sev * conf * (victimClose ? 0.6 : 0.2) * toldPersonal, affection: -sev * 0.3 * conf * toldPersonal }, `was told by ${knownName(listener, speaker.id)}`, ev.id);
       listener.mind.alarm = 1;
-      const lb = w.primaryBody(listener.id); if (lb) { lb.pose = 'talk'; lb.poseUntil = w.physicalTime + 1.5; }
+      if (isExternallyControlled(listener)) return true; // Only response dispatch is controller-specific.
+      const lb = bodies.listener; lb.pose = 'talk'; lb.poseUntil = w.physicalTime + 1.5;
       const isGuard = listener.occupation === 'guard' || listener.occupation === 'captain';
       this.sayLater(listener, isGuard ? `${k.claim.type === 'kill' ? 'Murder?!' : 'An assault?'} Where? I'll see to it.` : listener.traits.courage > 0.6 ? `That so? Someone should do something.` : `Gods. I'll keep my door barred.`, 1.2);
-    } else if (learned) { this.sayLater(listener, ['Is that so.', 'I hadn\'t heard.', 'Well, well.', 'Hm.', 'Really?'][Math.floor(w.rng.next() * 5)], 1.5); }
+    } else if (learned && !isExternallyControlled(listener)) { this.sayLater(listener, ['Is that so.', 'I hadn\'t heard.', 'Well, well.', 'Hm.', 'Really?'][socialChoice(w, listener, 'heard-response', 5)], 1.5); }
+    return true;
   }
   /**
    * v0.8 "The Legible World" §A: ambient NPC-to-NPC gossip is exactly the same grounded
@@ -2535,7 +2625,7 @@ export class Simulation {
    * could drift out of sync with each other or with what's actually grounded.
    */
   private tellLine(sp: Person, li: Person, k: KnowledgeItem): string {
-    const c = k.claim; const first = li.name.split(' ')[0];
+    const c = k.claim; const first = knownName(sp, li.id).split(' ')[0];
     // v0.9 §E: when this line came from a chosen topic, realize the whole SITUATION — the fact,
     // one supporting fact the speaker also believes, and (only if the speaker personally knows
     // it) whether the matter has since been settled. Falls back to the single-claim realization
@@ -3019,7 +3109,7 @@ export class Simulation {
         // merely suppressing the emitted event) is what makes this a real custody/transport
         // distinction rather than a name-based patch.
         for (const it of w.items()) if (it.ownerId === p.id && it.holderId && it.holderId !== p.id && !it.haulTaskId && !p.knowledge[`missing:${it.id}`]) {
-          const knownTheft = Object.values(p.knowledge).find(k => k.kind === 'event' && k.claim.type === 'theft' && k.claim.item === it.id);
+          const knownTheft = knowledgeItems(p).find(k => k.kind === 'event' && k.claim.type === 'theft' && k.claim.item === it.id);
           if (knownTheft) continue;
           const ev = w.emit('item_missing', { actor: p.id, item: it.id, pos: b.pos, placeId: p.workId, significance: 0.45, summary: `${p.name} noticed ${it.name} is missing` });
           const missing = learn(w, p, { key: `missing:${it.id}`, kind: 'event', claim: { eventId: ev.id, type: 'item_missing', item: it.id, placeId: p.workId, tick: w.now, actorUnknown: true, significance: 0.45 }, confidence: 0.9, source: { type: 'inferred', viaEvent: ev.id }, cause: ev.id, summary: `${it.name} is missing` });
@@ -3067,7 +3157,7 @@ export class Simulation {
       if (drawNow) this.inferenceAccum = 0;
       for (const p of w.livingPersons()) {
         const unresolvedHarm = new Set<string>();
-        for (const k of Object.values(p.knowledge)) {
+        for (const k of knowledgeItems(p)) {
           if (k.kind === 'event' && !k.handled && k.claim.actor && (k.claim.type === 'attack' || k.claim.type === 'kill' || k.claim.type === 'theft')) unresolvedHarm.add(k.claim.actor);
         }
         evolveRelationships(p, sh, { activeThreatIds: threatsByPerson.get(p.id) ?? EMPTY, unresolvedHarmIds: unresolvedHarm });
