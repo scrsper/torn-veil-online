@@ -31,7 +31,7 @@ function saveWorld(): void {
 }
 const http = createServer((req, res) => {
   res.setHeader('Content-Type', 'application/json');
-  if (req.url === '/health') res.end(JSON.stringify({ ok: true, version: 1, regionProtocol:REGION_PROTOCOL, tick: session.world.physicalTime, settlements:session.world.settlements().length, residents:session.world.persons().filter(p=>p.id!==session.world.playerId).length, visibleNPCs:session.snapshot().bodies.filter(b=>b.entityId!==session.world.playerId).length, playerId:session.world.playerId, controlledBodyId:session.world.primaryBody(session.world.playerId!)?.id, controllerConnected:controllerLease.current?.readyState===WebSocket.OPEN, projectRoot:process.cwd() }));
+  if (req.url === '/health') res.end(JSON.stringify({ ok: true, version: 1, regionProtocol:REGION_PROTOCOL, tick: session.world.physicalTime, settlements:session.world.settlements().length, residents:session.world.persons().filter(p=>p.id!==session.world.playerId).length, visibleNPCs:session.snapshot(false).bodies.filter(b=>b.entityId!==session.world.playerId).length, playerId:session.world.playerId, controlledBodyId:session.world.primaryBody(session.world.playerId!)?.id, controllerConnected:controllerLease.current?.readyState===WebSocket.OPEN, projectRoot:process.cwd() }));
   else if (req.url === '/metrics') res.end(JSON.stringify({scheduler:{steps:scheduler.steps,overruns:scheduler.overruns,maxDebtMs:scheduler.maxDebtMs},eventLoopMs:{p50:loopDelay.percentile(50)/1e6,p95:loopDelay.percentile(95)/1e6,p99:loopDelay.percentile(99)/1e6},transportTimings,memory:process.memoryUsage()}));
   else if (process.env.TORN_VEIL_WORLD==='arena'&&req.method==='POST'&&req.url?.startsWith('/arena/')) {try {res.end(JSON.stringify(arrangeCombatArena(session,req.url.slice(7))));}catch(error){res.statusCode=400;res.end(JSON.stringify({error:String(error)}));}}
   else if (req.url === '/scene') res.end(JSON.stringify(session.scene()));
@@ -74,6 +74,8 @@ wss.on('connection', (socket, request) => {
   const controls = controllerLease.claim(socket);
   log({event:'connected',role:controls?'controller':'observer',origin:request.headers.origin??'none'});
   if (controls) session.resetInput();
+  // A joining renderer has cached no appearance yet, so the delta has to start over for it.
+  session.resetAppearanceDelta();
   const greeting=(message:object)=>{const payload=JSON.stringify(message);socket.send(payload);log({event:'startup_send',type:(message as {type:string}).type,bytes:Buffer.byteLength(payload),bufferedAmount:socket.bufferedAmount});};
   const realtime=controls&&request.headers['x-torn-veil-interaction-protocol']==='2';
   const interaction=realtime?session.bindInteraction(`local:${connection}`):undefined;

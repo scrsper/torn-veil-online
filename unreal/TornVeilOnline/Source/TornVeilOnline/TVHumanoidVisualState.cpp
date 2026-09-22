@@ -23,7 +23,11 @@ void OptionalTokens(const TSharedPtr<FJsonObject>& J, const TCHAR* Key, TArray<F
     for (const TSharedPtr<FJsonValue>& Value : *Values) {
         if (Out.Num() >= 16) break;
         FString Token;
-        if (Value.IsValid() && Value->TryGetString(Token) && !Token.IsEmpty() && Token.Len() <= 48) Out.AddUnique(Token);
+        // The type check is the whole point: TryGetString SUCCEEDS on a number, stringifying 7 into
+        // "7", so a numeric entry would otherwise enter the list as a token that means nothing and
+        // still consumes one of the 16 slots a real token needed.
+        if (Value.IsValid() && Value->Type == EJson::String && Value->TryGetString(Token)
+            && !Token.IsEmpty() && Token.Len() <= 48) Out.AddUnique(Token);
     }
 }
 bool RequiredVector(const TSharedPtr<FJsonObject>& J, const TCHAR* Key, FVector& Out, FString& Error) {

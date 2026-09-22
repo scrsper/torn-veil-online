@@ -40,7 +40,8 @@
     "bridge:playable:verify": "tsx src/headless/bridge/playableStartup.ts",
     "foundational:accept": "tsx src/headless/bridge/foundationalGameplayAcceptance.ts",
     "appearance:sheet": "tsx src/headless/appearance/cli.ts",
-    "foundry:report": "tsx src/headless/foundry/cli.ts"
+    "foundry:report": "tsx src/headless/foundry/cli.ts",
+    "foundry:fallback": "tsx src/headless/foundry/fallback.ts"
   },
   "dependencies": {
     "three": "^0.170.0",

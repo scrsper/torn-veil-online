@@ -141,8 +141,14 @@ export function slotRules(traits: ProjectedAppearanceDescription): SlotRule[] {
   const rules: SlotRule[] = [
     // The body and head are the two parts a person cannot be missing; both relax all the way down
     // to "any body at all" rather than ever resolving to nothing.
-    { slot: 'body', required: [age], preferred: compact([cut, frame]), forbidden: [], relax: [age], optional: false },
-    { slot: 'head', required: [age], preferred: compact([cut, traits.faceShape, traits.skinTone]), forbidden: [], relax: [age], optional: false },
+    //
+    // `placeholder` is the engine's grey template mannequin. Forbidding it is not the same as
+    // removing it: `resolveSlot` gives up forbidden tags only after every relaxation step, so a
+    // machine whose only installed body is a mannequin still gets one. What it stops is a coin
+    // flip against real content — Quinn is as honestly `female`+`slim` as a City Sample body is,
+    // the two tie, and the tie-break sent about a third of a settlement to a grey dummy.
+    { slot: 'body', required: [age], preferred: compact([cut, frame]), forbidden: ['placeholder'], relax: [age], optional: false },
+    { slot: 'head', required: [age], preferred: compact([cut, traits.faceShape, traits.skinTone]), forbidden: ['placeholder'], relax: [age], optional: false },
     ...(hair.length
       ? [{ slot: 'hair' as const, required: [hair[0]], preferred: compact([...hair.slice(1), cut, traits.hairColor]), forbidden: [], relax: [hair[0]], optional: true }]
       : []),

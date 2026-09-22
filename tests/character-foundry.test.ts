@@ -10,7 +10,7 @@ import { EMPTY_CATALOGUE, animatableSkeletons, catalogueCoverage, parseCatalogue
 import { slotRules } from '../src/foundry/manifest';
 import { realizeCharacter, reportPopulation } from '../src/foundry/resolve';
 import type { CharacterRealization, RealizationInput } from '../src/foundry/resolve';
-import { FIXTURE_FOREIGN_SKELETON, foreignSkeletonCatalogue, richCatalogue, sparseCatalogue } from './fixtures/characterCatalogue';
+import { FIXTURE_FOREIGN_SKELETON, FIXTURE_MOTION_RIG, foreignSkeletonCatalogue, mannequinOnlyCatalogue, placeholderAndRealCatalogue, richCatalogue, sparseCatalogue } from './fixtures/characterCatalogue';
 
 const SEED = 4242;
 
@@ -44,6 +44,56 @@ function syntheticInput(o: { identity: string; age: number; gender: 'm' | 'f'; o
 }
 
 const slotOf = (realization: CharacterRealization, slot: string) => realization.slots.find(s => s.slot === slot);
+
+describe('audited modular geometry', () => {
+  const input = () => syntheticInput({ identity: 'fit-check', age: 29, gender: 'f', occupation: 'baker', wealth: 40 });
+
+  it('keeps clothing on its audited body build even when skeleton assets are shared', () => {
+    const catalogue = richCatalogue();
+    catalogue.entries = catalogue.entries.filter(e => e.slot !== 'body' || e.name === 'SKM_Body_F_Adult');
+    catalogue.entries.find(e => e.slot === 'body')!.fitFamily = 'female-average';
+    for (const entry of catalogue.entries.filter(e => e.slot === 'upperGarment')) entry.fits = ['male-heavy'];
+    const shirt = catalogue.entries.find(e => e.slot === 'upperGarment')!;
+    const fitting = { ...shirt, package: '/Game/Fixture/FittingShirt', fits: ['female-average'] };
+    catalogue.entries.push(fitting);
+    expect(slotOf(realizeCharacter(input(), catalogue), 'upperGarment')?.package).toBe(fitting.package);
+    catalogue.entries = catalogue.entries.filter(e => e !== fitting);
+    expect(slotOf(realizeCharacter(input(), catalogue), 'upperGarment')).toBeUndefined();
+  });
+
+  it('does not layer geometry over slots already included in a complete outfit', () => {
+    const catalogue = mannequinOnlyCatalogue();
+    const body = catalogue.entries.find(e => e.slot === 'body')!;
+    body.covers = ['head', 'upperGarment', 'lowerGarment', 'footwear'];
+    catalogue.entries = [body, ...richCatalogue().entries.filter(e => e.slot !== 'body')];
+    const result = realizeCharacter(input(), catalogue);
+    expect(result.complete).toBe(true);
+    for (const slot of body.covers) expect(slotOf(result, slot)).toBeUndefined();
+  });
+
+  it('does not choose a fragment as a standalone body', () => {
+    const catalogue = richCatalogue();
+    for (const entry of catalogue.entries) if (entry.slot === 'body') entry.assemblyOnly = true;
+    expect(realizeCharacter(input(), catalogue).complete).toBe(false);
+  });
+
+  it('requires an active adapter when the audit provides runtime compatibility', () => {
+    const catalogue = foreignSkeletonCatalogue();
+    catalogue.runtimeSkeletons = [];
+    expect(animatableSkeletons(catalogue).has(FIXTURE_FOREIGN_SKELETON)).toBe(false);
+    catalogue.runtimeSkeletons = [FIXTURE_FOREIGN_SKELETON];
+    expect(animatableSkeletons(catalogue).has(FIXTURE_FOREIGN_SKELETON)).toBe(true);
+  });
+
+  it('retains fit and coverage metadata through catalogue parsing', () => {
+    const catalogue = richCatalogue();
+    Object.assign(catalogue.entries[0], { fitFamily: 'average', fits: ['average'], covers: ['head'], assemblyOnly: true });
+    catalogue.runtimeSkeletons = [catalogue.animationTarget!];
+    const parsed = parseCatalogue(catalogue).catalogue;
+    expect(parsed.entries[0]).toMatchObject({ fitFamily: 'average', fits: ['average'], covers: ['head'], assemblyOnly: true });
+    expect(parsed.runtimeSkeletons).toEqual(catalogue.runtimeSkeletons);
+  });
+});
 
 describe('catalogue parsing', () => {
   it('drops malformed entries instead of throwing, and says which', () => {
@@ -80,6 +130,27 @@ describe('catalogue parsing', () => {
     expect(animatableSkeletons(rich).has(FIXTURE_FOREIGN_SKELETON)).toBe(false);
     const retargeted = { ...rich, retargeters: [{ package: '/Game/RTG', sourceSkeleton: FIXTURE_FOREIGN_SKELETON, targetSkeleton: rich.animationTarget }] };
     expect(animatableSkeletons(retargeted).has(FIXTURE_FOREIGN_SKELETON)).toBe(true);
+  });
+
+  it('accepts a retarget bridge authored in either direction', () => {
+    const rich = richCatalogue();
+    // Posing a foreign BODY from the driver is authored target-as-source; retargeting a motion
+    // pack's CLIPS onto the driver is authored the other way round. Both are the same bone-chain
+    // mapping, so either one makes that rig reachable.
+    const driverToBody = { ...rich, retargeters: [{ package: '/Game/RTG', sourceSkeleton: rich.animationTarget, targetSkeleton: FIXTURE_FOREIGN_SKELETON }] };
+    expect(animatableSkeletons(driverToBody).has(FIXTURE_FOREIGN_SKELETON)).toBe(true);
+  });
+
+  it('ignores a retargeter that does not involve the animation target', () => {
+    const rich = richCatalogue();
+    const unrelated = { ...rich, retargeters: [{ package: '/Game/RTG', sourceSkeleton: '/Game/A/SK_A', targetSkeleton: '/Game/B/SK_B' }] };
+    const usable = animatableSkeletons(unrelated);
+    expect(usable.has('/Game/A/SK_A')).toBe(false);
+    expect(usable.has('/Game/B/SK_B')).toBe(false);
+  });
+
+  it('reaches a motion pack rig through the one retargeter the project owns', () => {
+    expect(animatableSkeletons(mannequinOnlyCatalogue()).has(FIXTURE_MOTION_RIG)).toBe(true);
   });
 });
 
@@ -258,6 +329,46 @@ describe('stage D — an Ashford settlement sample', () => {
   });
 });
 
+describe('the grey template body is a floor, not a competitor', () => {
+  /**
+   * Found by looking at a PIE settlement rather than at a report: ten of thirty-three residents
+   * were rendering as Epic's untextured mannequin while real character content sat unused in the
+   * catalogue. Nothing had failed — Quinn genuinely carries `female`, `adult` and `slim`, so she
+   * tied with a vendor's modular torso on every ranked preference and won the coin flip.
+   */
+  it('never picks a placeholder while a real body with the same tags exists', () => {
+    const catalogue = placeholderAndRealCatalogue();
+    // Across many identities, not one: the old behaviour was a tie-break, so a single person
+    // proves nothing. Which real body a person gets is the rules' business and varies with their
+    // generated frame and presentation; the claim under test is only that it is a real one.
+    const chosen = new Set<string>();
+    for (let index = 0; index < 40; index++) {
+      for (const gender of ['f', 'm'] as const) {
+        const person = syntheticInput({ identity: `villager-${gender}-${index}`, age: 34, gender, occupation: gender === 'f' ? 'baker' : 'smith', wealth: 40 });
+        const body = slotOf(realizeCharacter(person, catalogue), 'body')!;
+        expect(body.name.startsWith('SKM_')).toBe(false);
+        expect(body.relaxed).not.toContain('!placeholder');
+        chosen.add(body.name);
+      }
+    }
+    // Both real bodies are still reachable, so this is a preference change, not a hard filter
+    // that would have collapsed everyone onto one mesh.
+    expect(chosen).toEqual(new Set(['SK_Villager_F', 'SK_Villager_M']));
+  });
+
+  it('still uses a placeholder when it is the only body installed', () => {
+    // Forbidding is not removing: `resolveSlot` gives up forbidden tags only after every
+    // relaxation step, so a machine with no character packs still puts a person on screen.
+    const realization = realizeCharacter(
+      syntheticInput({ identity: 'bare-machine', age: 34, gender: 'f', occupation: 'baker', wealth: 40 }),
+      mannequinOnlyCatalogue());
+    expect(slotOf(realization, 'body')!.name).toBe('SKM_Quinn_Simple');
+    expect(realization.complete).toBe(true);
+    // And it says out loud that it had to, so "everyone is a mannequin" stays measurable.
+    expect(slotOf(realization, 'body')!.relaxed).toContain('!placeholder');
+  });
+});
+
 describe('fallback — the simulation never depends on an asset existing', () => {
   const person = syntheticInput({ identity: 'fallback', age: 40, gender: 'f', occupation: 'baker', wealth: 45 });
 
@@ -278,6 +389,28 @@ describe('fallback — the simulation never depends on an asset existing', () =>
     const missing = realization.problems.filter(p => p.kind === 'slot-empty').map(p => p.slot);
     expect(missing).toContain('footwear');
     expect(missing).toContain('hair');
+  });
+
+  it('treats a monolithic whole-body character as a finished person, not a headless one', () => {
+    const realization = realizeCharacter(person, mannequinOnlyCatalogue());
+    // A single-mesh character carries its own head, so completeness must not hinge on a separate
+    // head asset that no pack could supply for this body.
+    expect(realization.complete).toBe(true);
+    expect(slotOf(realization, 'body')).toBeDefined();
+    expect(slotOf(realization, 'head')).toBeUndefined();
+    expect(realization.problems.some(p => p.slot === 'head')).toBe(false);
+    // The genuine content gaps are still reported, because they are real and fillable.
+    const missing = realization.problems.filter(p => p.kind === 'slot-empty').map(p => p.slot);
+    expect(missing).toContain('hair');
+    expect(missing).toContain('upperGarment');
+  });
+
+  it('still honours presentation when the only bodies are the two engine mannequins', () => {
+    const catalogue = mannequinOnlyCatalogue();
+    const woman = realizeCharacter(syntheticInput({ identity: 'w', age: 34, gender: 'f', occupation: 'baker', wealth: 40 }), catalogue);
+    const man = realizeCharacter(syntheticInput({ identity: 'm', age: 34, gender: 'm', occupation: 'smith', wealth: 40 }), catalogue);
+    expect(slotOf(woman, 'body')!.name).toBe('SKM_Quinn_Simple');
+    expect(slotOf(man, 'body')!.name).toBe('SKM_Manny_Simple');
   });
 
   it('refuses assets on a skeleton this project cannot animate, and says so', () => {

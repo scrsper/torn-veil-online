@@ -7,6 +7,9 @@
 class FJsonObject;
 class UAnimationAsset;
 class USkeletalMesh;
+class UGroomAsset;
+class UGroomBindingAsset;
+class UGroomComponent;
 
 /**
  * Renderer-side embodiment for canonical people.
@@ -127,6 +130,8 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Torn Veil|Embodiment") bool Reload();
     UAnimationAsset* ActivityAnimation(const FString& Family, const FString& Detail) const;
     UClass* RetargetAnimClass(const FString& SkeletonKey) const;
+    UGroomBindingAsset* GroomBinding(UGroomAsset* Groom, USkeletalMesh* Face) const;
+    UMaterialInterface* BodyMaterial(const FString& HeadPackage) const;
     bool SharesDriverSkeleton(const FString& SkeletonKey) const;
     UFUNCTION(BlueprintPure, Category = "Torn Veil|Embodiment") FString PaletteDiagnostics() const;
 
@@ -134,6 +139,8 @@ private:
     void Ingest(const TSharedPtr<FJsonObject>& Root);
     UPROPERTY() TMap<FString, FString> ActivityPaths;
     UPROPERTY() TMap<FString, FString> RetargetClassPaths;
+    UPROPERTY() TMap<FString, FString> GroomBindingPaths;
+    UPROPERTY() TMap<FString, FString> BodyMaterialPaths;
     UPROPERTY() TSet<FString> DriverSkeletons;
     FString SourceFile;
     bool bLoaded = false;
@@ -160,6 +167,7 @@ private:
     void ClearParts();
     UPROPERTY() TObjectPtr<USkeletalMeshComponent> DriverMesh;
     UPROPERTY() TArray<TObjectPtr<USkeletalMeshComponent>> Parts;
+    UPROPERTY() TArray<TObjectPtr<UGroomComponent>> Grooms;
     UPROPERTY() TArray<FString> PartSlotKinds;
     FString AppliedSignature;
     bool bVisibleCharacter = false;
