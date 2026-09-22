@@ -13,6 +13,16 @@ unreal/TornVeilOnline/Content/Characters/
 # create_local_architecture.py / create_local_prop_materials.py; do not redistribute.
 unreal/TornVeilOnline/Content/TornVeil/LocalPalette/
 unreal/TornVeilOnline/Content/TornVeil/Materials/LocalPalette/
+# The Ashford garment meshes are project-owned geometry, but each one embeds the City Sample
+# clothing skeleton's reference pose and binds to `SK_Base`, so on a machine without that
+# licensed pack they are 19 MB of assets that cannot load. Same call as LocalPalette above: the
+# generator is the source of truth. Rebuild with
+#   blender --background --python art/tools/ashford_garments/build_garments.py
+#   unreal/scripts/Run-EditorPython.ps1 -Script unreal/scripts/import_ashford_garments.py -Render
+# `M_TV_AshfordCloth` is deliberately NOT ignored: it contains no vendor data, it is 12 KB, and
+# the shader that decides what this culture looks like should be reviewable. Re-running the
+# importer rebuilds it, so expect it to show as modified after an import.
+unreal/TornVeilOnline/Content/TornVeil/Characters/Ashford/
 unreal/scripts/__pycache__/
 .unrealmcp.json
 
@@ -23,3 +33,6 @@ unreal/scripts/__pycache__/
 # v0.10: browser-harness screenshots are regenerated evidence, not source. The few kept as
 # milestone evidence live in docs/v0_10/.
 tests/browser/artifacts/
+
+# Python bytecode from the Blender-side garment tools.
+art/tools/**/__pycache__/

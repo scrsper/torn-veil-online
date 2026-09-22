@@ -64,7 +64,19 @@ namespace {
         return Loaded;
     }
 
-    void TintComponent(USkeletalMeshComponent* Component, const TCHAR* MaterialName, int64 Hex, float Wear, float Grooming) {
+    /** @param Accent The costume family's accent colour, pushed alongside the slot's own tint.
+     *
+     * A garment is not one colour. Every Ashford reference figure wears a dark ground with one
+     * saturated accent at the collar and the waist, and the canonical palette already carries
+     * both (`GarmentPrimary` and `GarmentAccent`) -- the presentation layer was simply throwing
+     * the second one away for every slot that was not an accessory. The Ashford cloth shader
+     * masks the two apart with vertex colour, so one mesh and one material instance give a muted
+     * indigo kosode with a vermilion collar without authoring that combination as an asset.
+     *
+     * Inert for every other material in the project: a shader with no `Accent` parameter ignores
+     * the write, exactly as vendor shaders already ignore `Tint`.
+     */
+    void TintComponent(USkeletalMeshComponent* Component, const TCHAR* MaterialName, int64 Hex, int64 Accent, float Wear, float Grooming) {
         if (!Component) return;
         // Plain project shaders belong only on placeholder mannequins. Replacing a vendor's
         // skin/cloth shader discards its textures, normals, masks and subsurface response.
@@ -81,6 +93,7 @@ namespace {
             if (!Dynamic) continue;
             if (Base) Component->SetMaterial(Index, Dynamic);
             Dynamic->SetVectorParameterValue(TEXT("Tint"), Colour(Hex));
+            Dynamic->SetVectorParameterValue(TEXT("Accent"), Colour(Accent));
             Dynamic->SetScalarParameterValue(TEXT("Wear"), Wear);
             Dynamic->SetScalarParameterValue(TEXT("Grooming"), Grooming);
         }
@@ -501,7 +514,8 @@ bool UTVCharacterPresentation::ApplyProfile(const FTVAppearanceProfile& Profile)
 }
 
 void UTVCharacterPresentation::ApplyTints(const FTVAppearanceProfile& Profile) {
-    TintComponent(this, TEXT("M_TV_CharacterSkin"), Profile.Materials.Skin, Profile.Materials.Wear, Profile.Materials.Grooming);
+    TintComponent(this, TEXT("M_TV_CharacterSkin"), Profile.Materials.Skin,
+        Profile.Materials.GarmentAccent, Profile.Materials.Wear, Profile.Materials.Grooming);
     for (int32 Index = 0; Index < Parts.Num(); ++Index) {
         const FString& Slot = PartSlotKinds[Index];
         int64 Tint = Profile.Materials.GarmentAccent;
@@ -510,7 +524,8 @@ void UTVCharacterPresentation::ApplyTints(const FTVAppearanceProfile& Profile) {
         else if (Slot == TEXT("hair") || Slot == TEXT("facialHair")) { Tint = Profile.Materials.Hair; Material = TEXT("M_TV_CharacterHair"); }
         else if (Slot == TEXT("upperGarment") || Slot == TEXT("robe") || Slot == TEXT("armor")) { Tint = Profile.Materials.GarmentPrimary; Material = TEXT("M_TV_CharacterCloth"); }
         else if (Slot == TEXT("lowerGarment") || Slot == TEXT("footwear")) { Tint = Profile.Materials.GarmentSecondary; Material = TEXT("M_TV_CharacterCloth"); }
-        TintComponent(Parts[Index], Material, Tint, Profile.Materials.Wear, Profile.Materials.Grooming);
+        TintComponent(Parts[Index], Material, Tint,
+            Profile.Materials.GarmentAccent, Profile.Materials.Wear, Profile.Materials.Grooming);
     }
 }
 

@@ -106,6 +106,12 @@ export function richCatalogue(): CharacterCatalogue {
     ['SM_Hammer', ['hammer']], ['SM_Hoe', ['hoe']], ['SM_Spear', ['spear']], ['SM_Bow', ['bow']],
     ['SM_Axe', ['axe']], ['SM_Satchel', ['satchel']], ['SM_Book', ['book']], ['SM_Tray', ['tray']],
     ['SM_Basket', ['basket']], ['SM_Sack', ['sack']], ['SM_Apron', ['apron']],
+    // The sash. A wrapped silhouette now asks for one by name rather than hoping a `waist_cord`
+    // accessory turns up, so a pack without one leaves every kimono in the settlement untied.
+    ['SM_Obi_Work', ['obi', 'belt', 'peasant', 'worn']], ['SM_Obi', ['obi', 'belt', 'common']],
+    ['SM_Obi_Fine', ['obi', 'belt', 'noble', 'silk']],
+    // Worn over a kosode, never instead of one -- see the haori rule in the manifest.
+    ['SM_Haori', ['haori', 'common']], ['SM_Haori_Fur', ['haori', 'fur', 'worn']],
   ];
   for (const [name, tags] of accessories) entries.push(entry('accessory', name, tags, { assetClass: 'StaticMesh', skeleton: undefined }));
 

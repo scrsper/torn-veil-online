@@ -169,12 +169,46 @@ describe('the manifest asks for parts, not assets', () => {
     expect(rules.find(r => r.slot === 'head')?.optional).toBe(false);
   });
 
-  it('asks for a robe as one piece and a tunic as two', () => {
+  it('never lets an open over-layer be somebody\'s only upper garment', () => {
+    // A haori is open at the front, and a City Sample body is hands only -- there is no torso
+    // under it. One resolving as the upper garment is therefore a hole in the chest, which is
+    // what the Ashford 33 had on a miller, a woodcutter and a bandit: it was answering `coat`
+    // and `kimono` because those were honest tags for it. It is an accessory now, and the
+    // travelling silhouettes take a kosode underneath.
+    const base = resolveAppearance({ seed: 3, identity: 'woodcutter', age: 34, gender: 'm', occupation: 'woodcutter', wealth: 60 }).description!;
+    const travelling: ProjectedAppearanceDescription = { ...projectAppearanceDescription(base, 34, 'woodcutter'), garmentSilhouette: 'travel_coat' };
+    const rules = slotRules(travelling);
+    const upper = rules.find(r => r.slot === 'upperGarment');
+    expect(upper).toBeDefined();
+    expect(upper!.required).not.toContain('haori');
+    expect(rules.some(r => r.slot === 'accessory' && r.required.includes('haori'))).toBe(true);
+
+    const input = syntheticInput({ identity: 'foundry:woodcutter', age: 34, gender: 'm', occupation: 'woodcutter', wealth: 60 });
+    const realization = realizeCharacter({ ...input, traits: travelling }, richCatalogue());
+    const upperMesh = realization.slots.find(s => s.slot === 'upperGarment');
+    expect(upperMesh).toBeDefined();
+    expect(upperMesh!.name.toLowerCase()).not.toContain('haori');
+  });
+
+  it('dresses even ceremonial wear as two pieces, and ties every wrapped silhouette', () => {
+    // Ashford has no one-piece robe. All eight reference sheets show an upper layer over a
+    // separate lower one, so no silhouette populates `GarmentShape.robe` and the `robe` slot is
+    // never requested -- which also keeps a robe from resolving *alongside* an upper and a lower
+    // and stacking two garments on one torso, since `covers` is honoured only from the body.
     const base = resolveAppearance({ seed: 1, identity: 'priest', age: 60, gender: 'm', occupation: 'priest', wealth: 200 }).description!;
     const robed: ProjectedAppearanceDescription = { ...projectAppearanceDescription(base, 60, 'priest'), garmentSilhouette: 'ceremonial_robe' };
     const tunicked: ProjectedAppearanceDescription = { ...robed, garmentSilhouette: 'tunic_trousers' };
-    expect(slotRules(robed).some(r => r.slot === 'robe')).toBe(true);
-    expect(slotRules(tunicked).some(r => r.slot === 'robe')).toBe(false);
+    for (const traits of [robed, tunicked]) {
+      expect(slotRules(traits).some(r => r.slot === 'robe')).toBe(false);
+      expect(slotRules(traits).some(r => r.slot === 'upperGarment')).toBe(true);
+      expect(slotRules(traits).some(r => r.slot === 'lowerGarment')).toBe(true);
+    }
+    // The sash is part of how a wrapped garment is fastened, not an ornament somebody might own.
+    const obi = (traits: ProjectedAppearanceDescription) =>
+      slotRules(traits).some(r => r.slot === 'accessory' && r.required.includes('obi'));
+    expect(obi(robed)).toBe(true);
+    expect(obi({ ...robed, garmentSilhouette: 'work_kimono' })).toBe(true);
+    expect(obi(tunicked)).toBe(false);
   });
 });
 

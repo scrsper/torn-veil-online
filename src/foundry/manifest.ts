@@ -65,13 +65,26 @@ const FRAME_TAG: Record<string, string> = {
 interface GarmentShape { upper: string[]; lower: string[]; robe?: string[]; armor?: string[] }
 const GARMENT_SHAPE: Record<string, GarmentShape> = {
   work_kimono: { upper: ['kimono', 'work'], lower: ['hakama', 'work'] },
-  layered_kimono: { upper: ['kimono', 'layered'], lower: ['hakama'] },
-  formal_kimono: { upper: ['kimono', 'formal'], lower: ['hakama', 'formal'], robe: ['robe', 'formal'] },
-  hakama_set: { upper: ['kimono'], lower: ['hakama'] },
+  // Layered and formal dress asks for a *wrapped* lower layer, not a divided one. This is read
+  // straight off the reference sheets: the fighting and working figures (kaito, the ronin, the
+  // monk) wear pleated hakama, and the layered and ceremonial ones (hana, yuki, the kitsune) wear
+  // a single length that falls unbroken to the ankle. Asking both for `hakama` put every woman at
+  // a festival in a warrior's trousers.
+  layered_kimono: { upper: ['kimono', 'layered'], lower: ['skirt', 'layered'] },
+  formal_kimono: { upper: ['kimono', 'formal'], lower: ['skirt', 'formal'] },
+  // A bare kimono-and-hakama is this culture's *working* set -- what a miller or a swordsman
+  // puts on to do something. Without the preference the working and the wide-sleeved cuts tie on
+  // a plain `kimono` request and a coin flip put a miller at a millstone in hanging sleeves.
+  hakama_set: { upper: ['kimono', 'work'], lower: ['hakama'] },
   dancer_wrap: { upper: ['wrap', 'light'], lower: ['skirt', 'light'] },
   travel_coat: { upper: ['coat'], lower: ['trousers'] },
   lamellar_armour: { upper: ['tunic'], lower: ['trousers'], armor: ['armor', 'lamellar'] },
-  ceremonial_robe: { upper: ['robe'], lower: ['robe'], robe: ['robe', 'ceremonial'] },
+  // No `robe` entry on any Ashford silhouette. A one-piece robe is a shape this culture does not
+  // wear -- all eight reference figures are dressed in an upper layer over a separate lower one --
+  // and requesting one alongside an upper and a lower would resolve all three and stack two
+  // garments on the same torso, because `covers` is only honoured from the body entry. The field
+  // stays in `GarmentShape` for a culture that does wear one.
+  ceremonial_robe: { upper: ['robe', 'formal'], lower: ['robe', 'skirt'] },
   apron_over_tunic: { upper: ['tunic'], lower: ['trousers'] },
   tunic_trousers: { upper: ['tunic'], lower: ['trousers'] },
   // Note: no `rags` tag here. Shape is this table's business and quality is the station's — a
@@ -79,7 +92,7 @@ const GARMENT_SHAPE: Record<string, GarmentShape> = {
   // already contributes `rags` for anyone actually destitute.
   ragged_layers: { upper: ['tunic', 'worn'], lower: ['trousers', 'worn'] },
   fur_mantle: { upper: ['coat', 'fur'], lower: ['trousers'] },
-  ascetic_wrap: { upper: ['robe', 'wrap'], lower: ['robe'], robe: ['robe', 'ascetic'] },
+  ascetic_wrap: { upper: ['robe', 'wrap'], lower: ['robe', 'skirt'] },
 };
 const DEFAULT_GARMENT: GarmentShape = { upper: ['tunic'], lower: ['trousers'] };
 
@@ -133,10 +146,21 @@ export function slotRules(traits: ProjectedAppearanceDescription): SlotRule[] {
   // nonsense role/status combinations.
   const destitute = traits.status === 'destitute' || traits.status === 'poor';
   const wellOff = traits.status === 'affluent' || traits.status === 'noble';
-  const quality = compact([destitute ? undefined : 'rags', wellOff ? undefined : 'noble']);
+  // `modern` joins them. Ashford is pre-industrial in every reference sheet it has, so a blazer
+  // is not a worse match for a farmer than a kosode is -- it is the wrong world. Left as a
+  // preference it lost a coin flip and put one resident in a business skirt under her own apron.
+  // Disqualifying tags are dropped only after every relaxation step, so a machine whose only
+  // installed clothing is modern still dresses the whole settlement, and says that it did.
+  const quality = compact([destitute ? undefined : 'rags', wellOff ? undefined : 'noble', 'modern']);
   // A trade's own kit and the person's own accessories both hang off the same slot.
   const carried = [...traits.roleCues, ...traits.accessories]
     .map(token => ACCESSORY_TAG[token]).filter((tag): tag is string => !!tag);
+  // In a wrapped costume the sash *is* the belt, and it is requested below whether or not the
+  // person's description happens to mention a waist cord. Leaving `belt` in as well resolved the
+  // same obi twice and hung two of them on five of the thirty-three residents in the sample.
+  const wrapped = garment.upper.includes('kimono') || garment.upper.includes('robe')
+    || garment.upper.includes('wrap');
+  const accessories = wrapped ? carried.filter(tag => tag !== 'belt') : carried;
 
   const rules: SlotRule[] = [
     // The body and head are the two parts a person cannot be missing; both relax all the way down
@@ -171,8 +195,25 @@ export function slotRules(traits: ProjectedAppearanceDescription): SlotRule[] {
   const footwear = FOOTWEAR_TAG[traits.garmentSilhouette];
   if (footwear) rules.push({ slot: 'footwear', required: [footwear], preferred: compact([station, worn]), forbidden: quality, relax: [footwear], optional: true });
 
+  // The sash is not an ornament somebody might happen to own. Every one of the eight reference
+  // figures wears a broad one, and on every one of them it is the brightest thing they have on --
+  // it is how this costume is *fastened*. So a wrapped silhouette asks for one directly rather
+  // than waiting for a `waist_cord` accessory to turn up in the person's description, and it does
+  // not relax: an obi or nothing, never a random belt standing in for one.
+  if (wrapped) {
+    rules.push({ slot: 'accessory', required: ['obi'], preferred: compact([station, worn]), forbidden: quality, relax: [], optional: true });
+  }
+  // The over-layer, requested by the silhouettes that are named after needing one — and requested
+  // as an *accessory*, because that is what it is. A haori is open at the front and goes over a
+  // kosode. Letting one answer the `coat` and `kimono` requests directly put a miller, a
+  // woodcutter and a bandit in an open coat with nothing underneath, and on a City Sample body —
+  // which is hands only — that is a hole where the chest should be, not merely an odd outfit.
+  if (garment.upper.includes('coat') || garment.upper.includes('fur')) {
+    rules.push({ slot: 'accessory', required: ['haori'], preferred: compact([station, worn]), forbidden: quality, relax: [], optional: true });
+  }
+
   // Accessories resolve independently, so a missing hat never costs somebody their beads.
-  for (const tag of [...new Set(carried)]) {
+  for (const tag of [...new Set(accessories)]) {
     rules.push({ slot: 'accessory', required: [tag], preferred: compact([station]), forbidden: quality, relax: [], optional: true });
   }
   return rules;
