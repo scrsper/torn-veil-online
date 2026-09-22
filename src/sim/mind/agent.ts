@@ -753,7 +753,14 @@ export class Simulation {
         const untold = authorities.filter(g => !k.sharedWith.includes(g.id));
         const eligible = p.occupation !== 'child' || victimClose;
         if (eligible && untold.length && shouldSeekAuthority(w, progress)) {
-          const g = this.nearestKnownGuard(p, pos, untold);
+          // Someone already on their way to tell a particular guard keeps going to that guard
+          // while they are still untold. Re-picking the nearest every tick flipped the target as
+          // the watch moved, and `setGoal` rightly counts each switch as an errand that did not
+          // land. At seed 918271 an eyewitness to a theft switched guards twice in ten minutes,
+          // went into back-off and went home without telling anyone.
+          const heading = m.goal?.type === 'report' && m.goal.data?.key === k.key
+            ? untold.find(u => u.id === m.goal!.targetEntity) : undefined;
+          const g = heading ?? this.nearestKnownGuard(p, pos, untold);
           if (g) {
             const base = clamp(0.45 + sev * 0.5 + p.traits.honesty * 0.2 + (victimClose ? 0.15 : 0) + (victimIsMe ? 0.1 : 0) - (threat ? 0.15 : 0));
             const reasons = [`I know ${describeClaim(w, k)} (${k.source.type})`, `the watch should hear of it`, 'my sense of honesty'];
@@ -1334,6 +1341,13 @@ export class Simulation {
       if (!done && best.utility < curU + 0.12 && !(best.type === 'flee' || best.type === 'attack' || best.type === 'confront' || best.type === 'rob')) { chosen = { ...cur, utility: curU }; note = `kept ${cur.type} (hysteresis)`; }
       else { switched = true; note = best === best0 ? `switched from ${cur.type} to ${best.type}` : `resumed ${best.type} (committed)`; }
     } else if (!cur) { switched = true; note = `adopted ${best.type}`; }
+    else if (cur.type === 'report' && cur.data?.key !== best.data?.key) {
+      // The same guard, a different crime. `Goal.key` is type + target, so without this the old
+      // goal was kept and its finished plan rebuilt. The crime already told was told again every
+      // few seconds, for hours, and the new one never reached the watch. On main and PR #49 alike
+      // this pinned some residents at a guard's side, re-telling one crime over a thousand times.
+      switched = true; note = `now reporting ${best.data?.key}`;
+    }
     else { chosen = cur; note = best === best0 ? `continuing ${cur.type}` : `continuing ${cur.type} (committed)`; }
     m.decision = { tick: now, candidates: cands.slice(0, 8).map(c => ({ type: c.type, key: c.key, utility: c.utility, reasons: c.reasons.filter(Boolean) })), chosen: chosen.key, switched, note };
     if (switched) {
@@ -1370,11 +1384,7 @@ export class Simulation {
     // this records every other way the errand ends — a failed path, an interruption, something
     // more urgent — which is most of them. Without it the record sits at zero attempts for
     // anyone who keeps getting distracted, and they re-adopt at full urgency indefinitely.
-    // Turning towards a different guard with the same crime is the same errand, not an abandoned
-    // one. Counting it as a failure put the report into back-off mid-journey, so a witness who
-    // retargeted twice went home without telling anyone.
-    const sameReport = g.type === 'report' && g.data?.key === prev?.data?.key;
-    if (prev && prev.type === 'report' && prev.key !== g.key && !sameReport) {
+    if (prev && prev.type === 'report' && prev.key !== g.key) {
       const key = prev.data?.key as string | undefined;
       const record = key ? reportFor(p, key) : undefined;
       if (key && record && record.status !== 'delivered' && record.status !== 'moot') {

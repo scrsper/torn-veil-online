@@ -204,19 +204,45 @@ describe('theft social knowledge — witness, testimony and survival', () => {
     }
   });
 
-  it('keeps a report going when the witness turns towards a nearer guard, and counts real abandonment', () => {
-    const s = scene();
-    const { key } = stealInView(s);
-    const first = addPerson(s, 'First Guard', 'guard', v(20, 1, 20), { controlled: true, workId: s.places.guardhouse });
-    const second = addPerson(s, 'Second Guard', 'guard', v(5, 1, 20), { controlled: true, workId: s.places.guardhouse });
-    refreshReport(s.world, s.witness, s.witness.knowledge[key], [first, second]);
-    const setGoal = (s.sim as unknown as { setGoal(p: Person, g: object, plan: object[], note: string): void }).setGoal.bind(s.sim);
-    const report = (guard: Person) => ({ type: 'report', utility: 0.8, reasons: [], createdAt: s.world.now, key: `report:${guard.id}`, targetEntity: guard.id, data: { key } });
-    setGoal(s.witness, report(first), [], 'test');
-    setGoal(s.witness, report(second), [], 'test');
-    expect(s.witness.mind.reports![key]).toMatchObject({ status: 'seeking', attempts: 0 });
-    // Going to bed instead is a report that did not land.
-    setGoal(s.witness, { type: 'sleep', utility: 0.5, reasons: [], createdAt: s.world.now, key: 'sleep:' }, [], 'test');
-    expect(s.witness.mind.reports![key]).toMatchObject({ status: 'unavailable', attempts: 1 });
+  it('keeps heading to the guard it set out for, rather than switching errands as the watch moves', () => {
+    const tw = createTestWorld(4418, 40); tw.world.clock.timeScale = 1;
+    const witness = addPerson(tw, 'Witness', 'farmer', v(20, 1, 20));
+    const thief = addPerson(tw, 'Thief', 'vagrant', v(21, 1, 21), { controlled: true });
+    const first = addPerson(tw, 'First Guard', 'guard', v(30, 1, 20), { controlled: true, workId: tw.places.guardhouse });
+    const second = addPerson(tw, 'Second Guard', 'guard', v(10, 1, 20), { controlled: true, workId: tw.places.guardhouse });
+    const ev = tw.world.emit('theft', { actor: thief.id, target: witness.id, pos: v(21, 1, 21), significance: 0.6, summary: 'Thief stole from Witness' });
+    const key = `ev:${ev.id}`;
+    learn(tw.world, witness, { key, kind: 'event', claim: { type: 'theft', actor: thief.id, target: witness.id, eventId: ev.id, significance: 0.6, tick: tw.world.now }, confidence: 1, source: { type: 'witnessed' } }, true);
+    for (const guard of [first, second]) learn(tw.world, witness, { key: `loc:${guard.id}`, kind: 'location', claim: { entityId: guard.id, pos: { ...tw.world.primaryBody(guard.id)!.pos } }, confidence: 1, source: { type: 'witnessed' } }, true);
+    step(tw, 0.5);
+    const goal = witness.mind.goal;
+    expect(goal?.type).toBe('report');
+    const chosen = goal!.targetEntity!;
+    // The other guard is now believed to be the nearer one. The witness does not turn round.
+    const other = chosen === first.id ? second : first;
+    witness.knowledge[`loc:${other.id}`].claim.pos = v(20, 1, 21);
+    step(tw, 1);
+    expect(witness.mind.goal?.type).toBe('report');
+    expect(witness.mind.goal?.targetEntity).toBe(chosen);
+    expect(witness.mind.reports![key]).toMatchObject({ status: 'seeking', attempts: 0 });
+  });
+
+  it('tells the same guard about a second crime instead of repeating the first', () => {
+    const tw = createTestWorld(4419, 40); tw.world.clock.timeScale = 1;
+    const witness = addPerson(tw, 'Witness', 'farmer', v(20, 1, 20));
+    const thief = addPerson(tw, 'Thief', 'vagrant', v(30, 1, 30), { controlled: true });
+    const guard = addPerson(tw, 'Guard', 'guard', v(22, 1, 20), { controlled: true, workId: tw.places.guardhouse });
+    learn(tw.world, witness, { key: `loc:${guard.id}`, kind: 'location', claim: { entityId: guard.id, pos: { ...tw.world.primaryBody(guard.id)!.pos } }, confidence: 1, source: { type: 'witnessed' } }, true);
+    const keys = ['first', 'second'].map(name => {
+      const ev = tw.world.emit('theft', { actor: thief.id, target: witness.id, pos: v(30, 1, 30), significance: 0.6, summary: `the ${name} theft` });
+      learn(tw.world, witness, { key: `ev:${ev.id}`, kind: 'event', claim: { type: 'theft', actor: thief.id, target: witness.id, eventId: ev.id, significance: 0.6, tick: tw.world.now }, confidence: 1, source: { type: 'witnessed' } }, true);
+      return `ev:${ev.id}`;
+    });
+    const told: string[] = [];
+    tw.world.onEvent(e => { if (e.type === 'told' && e.actor === witness.id && e.target === guard.id) told.push(e.data.key); });
+    step(tw, 60);
+    for (const key of keys) expect(guard.knowledge[key]?.source).toMatchObject({ type: 'told', from: witness.id });
+    expect(told.filter(key => key === keys[0])).toHaveLength(1);
+    expect(told.filter(key => key === keys[1])).toHaveLength(1);
   });
 });
