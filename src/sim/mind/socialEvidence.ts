@@ -60,9 +60,42 @@ export function conversationBodies(world: World, speaker: Person, listener: Pers
     for (const other of listener.bodies) {
       const b = world.body(other);
       if (!!b?.present && !b.dead && b.health > 0 && !['sleep', 'downed'].includes(b.pose)
-        && Math.hypot(a.pos.x - b.pos.x, a.pos.y - b.pos.y, a.pos.z - b.pos.z) <= 4
-        && world.grid.lineOfSight({ ...a.pos, y: a.pos.y + 1.2 }, { ...b.pos, y: b.pos.y + 1.2 }, 16)) return { speaker: a, listener: b };
+        && Math.hypot(a.pos.x - b.pos.x, a.pos.y - b.pos.y, a.pos.z - b.pos.z) <= SPEECH_RANGE
+        && speechCarries(world, a, b)) return { speaker: a, listener: b };
     }
   }
   return null;
+}
+
+/** Conversational range, and the longest path speech may take to get round something. */
+const SPEECH_RANGE = 4;
+const SPEECH_PATH = SPEECH_RANGE * 1.25;
+/** Where a voice can bend round an obstacle: points beside the midpoint, either side of it. */
+const DETOUR_OFFSETS = [0.5, -0.5, 1, -1, 1.5, -1.5];
+/**
+ * Whether a voice gets from one head to the other. The straight line is enough when nothing
+ * opaque is on it. Otherwise speech bends round small obstacles, such as a doorframe or a
+ * building's corner post, but only along a two-leg path no longer than `SPEECH_PATH`, both legs
+ * clear. A wall between the two people leaves no path that short, so it still silences them.
+ *
+ * The straight line alone was too strict. At seed 918271 residents came to report to a guard
+ * standing 0.3 m from the guardhouse's corner post. From 1.3 to 1.7 m away round that corner,
+ * every straight line clipped the post, so each report was refused hundreds of times.
+ */
+function speechCarries(world: World, a: Body, b: Body): boolean {
+  const from = { x: a.pos.x, y: a.pos.y + 1.2, z: a.pos.z }, to = { x: b.pos.x, y: b.pos.y + 1.2, z: b.pos.z };
+  if (world.grid.lineOfSight(from, to, 16)) return true;
+  const length = Math.hypot(to.x - from.x, to.z - from.z);
+  if (length < 1e-6) return false;
+  const px = -(to.z - from.z) / length, pz = (to.x - from.x) / length;
+  const mid = { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2, z: (from.z + to.z) / 2 };
+  for (const offset of DETOUR_OFFSETS) {
+    const via = { x: mid.x + px * offset, y: mid.y, z: mid.z + pz * offset };
+    const path = Math.hypot(via.x - from.x, via.y - from.y, via.z - from.z) + Math.hypot(to.x - via.x, to.y - via.y, to.z - via.z);
+    // The cast does not test the cell it starts in, so a bend point on a wall's face would let
+    // the second leg begin inside the wall. A voice cannot turn a corner inside a block.
+    if (path > SPEECH_PATH || world.grid.isOpaqueAt(via.x, via.y, via.z)) continue;
+    if (world.grid.lineOfSight(from, via, 16) && world.grid.lineOfSight(via, to, 16)) return true;
+  }
+  return false;
 }

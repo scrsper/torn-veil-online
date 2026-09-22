@@ -1370,7 +1370,11 @@ export class Simulation {
     // this records every other way the errand ends — a failed path, an interruption, something
     // more urgent — which is most of them. Without it the record sits at zero attempts for
     // anyone who keeps getting distracted, and they re-adopt at full urgency indefinitely.
-    if (prev && prev.type === 'report' && prev.key !== g.key) {
+    // Turning towards a different guard with the same crime is the same errand, not an abandoned
+    // one. Counting it as a failure put the report into back-off mid-journey, so a witness who
+    // retargeted twice went home without telling anyone.
+    const sameReport = g.type === 'report' && g.data?.key === prev?.data?.key;
+    if (prev && prev.type === 'report' && prev.key !== g.key && !sameReport) {
       const key = prev.data?.key as string | undefined;
       const record = key ? reportFor(p, key) : undefined;
       if (key && record && record.status !== 'delivered' && record.status !== 'moot') {
@@ -2127,7 +2131,14 @@ export class Simulation {
           a.status = 'failed'; break;
         }
         const k = key ? p.knowledge[key] : undefined;
-        if (k) { this.tell(p, t, k); if ((t.occupation === 'guard' || t.occupation === 'captain') && key) noteReportDelivered(w, p, key, t.id); }
+        // Only a report that was actually heard is delivered. A refused one is a failed attempt,
+        // so the reporting record backs off instead of claiming the watch was told.
+        if (k) {
+          const heard = this.tell(p, t, k);
+          if ((t.occupation === 'guard' || t.occupation === 'captain') && key) {
+            if (heard) noteReportDelivered(w, p, key, t.id); else noteReportFailed(w, p, key, t.id, `could not make ${t.name} hear it`);
+          }
+        }
         body.pose = 'talk'; body.poseUntil = w.physicalTime + 2; a.status = 'done'; break;
       }
       case 'propose': {
@@ -2533,10 +2544,12 @@ export class Simulation {
     if (p.emotions.sadness > 0.4) pool.push(`...`, `I've not much to say today.`);
     return pool[socialChoice(w, p, 'small-talk', pool.length)];
   }
-  /** One mind tells another something it knows. Knowledge travels with provenance. */
-  tell(speaker: Person, listener: Person, k: KnowledgeItem): void {
-    if (!k || speaker.knowledge[k.key] !== k || k.hops >= 8) return;
-    const bodies = conversationBodies(this.world, speaker, listener); if (!bodies) return;
+  /** One mind tells another something it knows. Knowledge travels with provenance. Returns
+   * whether it was actually said to them: an unreachable listener, a claim the speaker does not
+   * hold, or an exhausted rumour are refused and change nothing. */
+  tell(speaker: Person, listener: Person, k: KnowledgeItem): boolean {
+    if (!k || speaker.knowledge[k.key] !== k || k.hops >= 8) return false;
+    const bodies = conversationBodies(this.world, speaker, listener); if (!bodies) return false;
     const w = this.world; const sb = bodies.speaker;
     const text = this.tellLine(speaker, listener, k);
     // Prefer the original canonical event (`claim.eventId`) as the cause over the speaker's own
@@ -2583,11 +2596,12 @@ export class Simulation {
       const sev = crimeSeverity(k.claim.type); const victimClose = k.claim.target ? isClose(listener, k.claim.target) : false;
       adjustRel(w, listener, k.claim.actor, { fear: sev * 0.3 * conf * (1.2 - listener.traits.courage) * toldPersonal, trust: -sev * 0.4 * conf * toldPersonal, grudge: sev * conf * (victimClose ? 0.6 : 0.2) * toldPersonal, affection: -sev * 0.3 * conf * toldPersonal }, `was told by ${knownName(listener, speaker.id)}`, ev.id);
       listener.mind.alarm = 1;
-      if (isExternallyControlled(listener)) return; // Only response dispatch is controller-specific.
+      if (isExternallyControlled(listener)) return true; // Only response dispatch is controller-specific.
       const lb = bodies.listener; lb.pose = 'talk'; lb.poseUntil = w.physicalTime + 1.5;
       const isGuard = listener.occupation === 'guard' || listener.occupation === 'captain';
       this.sayLater(listener, isGuard ? `${k.claim.type === 'kill' ? 'Murder?!' : 'An assault?'} Where? I'll see to it.` : listener.traits.courage > 0.6 ? `That so? Someone should do something.` : `Gods. I'll keep my door barred.`, 1.2);
     } else if (learned && !isExternallyControlled(listener)) { this.sayLater(listener, ['Is that so.', 'I hadn\'t heard.', 'Well, well.', 'Hm.', 'Really?'][socialChoice(w, listener, 'heard-response', 5)], 1.5); }
+    return true;
   }
   /**
    * v0.8 "The Legible World" §A: ambient NPC-to-NPC gossip is exactly the same grounded
