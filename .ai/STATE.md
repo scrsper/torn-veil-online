@@ -25,8 +25,17 @@ run reports 1,121 passed / 1 failed across 116 files, with no timeouts or skippe
 Food tests pass again at 46.879/40.365 s. The sole failure is the theft social-causality
 trace: zero living knowers at its observation endpoint. The exact unchanged test passes
 on PR #48 and fails identically on pre-fix PR #49, so it is an existing feature regression,
-not a baseline failure or a new performance-fix regression. PR #49 stays a draft and is
-not merge-ready until this behavioral blocker is resolved. No new gameplay was added.
+not a baseline failure or a new performance-fix regression. No new gameplay was added.
+
+Theft repair, 2026-09-22: merged onto `main` `5ab3177` (#48 + #50). Nobody ever held the
+theft, on either branch. The harness staged it unwatched against an owner arrested during
+its six-hour wait. #48 passed only through unrelated arrests attached to the property
+situation. The harness now chooses a subject at liberty with a watched workplace.
+Speech bends round a post but not through a wall. A refused report is a failed attempt. A
+reporter keeps heading to the guard they chose. A second crime for the same guard replaces
+the first instead of re-telling it: on `main` that loop re-told one crime more than a
+thousand times, and removing it brings the food benchmarks back under 60 s even on a slow
+machine. The witness now tells the watch. See `docs/evidence/autonomous-agency/VERIFICATION.md`.
 Measurements, attribution and reproducible profiling: `docs/evidence/autonomous-agency/PERFORMANCE.md`.
 
 Design, deliberate limits and schema notes:

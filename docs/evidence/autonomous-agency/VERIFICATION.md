@@ -1,5 +1,71 @@
 # Autonomous agency v0.1 — verification and evidence
 
+## Theft social-causality repair and integration onto main, 2026-09-22
+
+The branch is now merged with `main` (`5ab3177`: PR #48 Character Foundry and PR #50 Ashford
+garments). The only overlap was `package.json`, where each side adds one script. It merged
+without conflict.
+
+### What "zero living knowers" actually was
+
+Traced over world time at seed 918271, tracking every holder of the theft key, the
+owner's `missing:` inference and each situation event, plus every deletion. **No mind ever
+held the theft, on either branch. Nothing was learned and then lost.** Pruning,
+compaction, confidence and death played no part.
+
+1. The harness chose its subject (the smith) and then waited up to six hours for an
+   onlooker. On this branch the smith was robbed by a bandit during the wait, fought back,
+   and was arrested for it. Custody for an attack lasts three days. The theft was then
+   staged at a workplace nobody watched, against an owner who could not return inside the
+   40-hour window. Its only other route is the owner's own "my property is gone" inference,
+   which needs the owner at his workplace, so no legitimate route could carry it.
+2. On PR #48 the same robbery, fight and arrest came after the trigger. `applyContributors`
+   attaches any `arrest_attempt` that touches a situation's subject or actor, so guards
+   confronting the smith and later the thief about separate attacks joined the theft's
+   property matter. The "26 knowers" were witnesses of those arrests. None held the theft.
+3. The onlooker test ignored facing. On #48 a bystander counted as an onlooker with their
+   back to the spot and never perceived the theft.
+
+The harness now chooses the theft subject the way it already chose the assault subject:
+at liberty, and with a watched workplace. That choice is re-evaluated at every step of the
+same bounded wait. The trace starts at the theft, and the onlooker test uses perception's
+forward cone. No assertion changed. With a real eyewitness, four defects stopped the theft
+from travelling. Each has a regression test in `tests/theft-social-knowledge.test.ts`,
+and each of those tests fails on the unfixed branch:
+
+| Defect | Evidence | Fix |
+| --- | --- | --- |
+| `conversationBodies` required one clear centre-to-centre line between heads (#49) | People 1.3–1.7 m from a guard round the guardhouse corner post were refused 345–474 times per trace. #48 refused 0. | Speech bends round small obstacles on a two-leg path of at most 5 m. A wall still blocks every short path, and a bend point inside a block is rejected. |
+| The report action recorded "delivered" even when `tell()` refused (#49) | Record said "told the watch"; the watch knew nothing. | `tell()` returns whether it was heard. A refused report is a failed attempt. |
+| The report target was re-picked on every think (pre-existing) | The eyewitness flipped from Dunstan to Brigid in ten minutes. `setGoal` counts each switch as an errand that did not land, so back-off sent him home untold. #48 survived only because its third guard happened to be in sight. | Someone on their way to tell a guard keeps going to that guard while they are still untold. |
+| `Goal.key` (type + target) ignored which crime a report carries (pre-existing) | After one crime was delivered, a second crime for the same guard kept the old goal and rebuilt its plan. The first crime was re-told every few seconds, e.g. ×1,218 on `main` and ×1,333 here, pinning residents at the guard's side. | A report carrying a different crime replaces the old goal. |
+
+An intermediate attempt treated every retarget as "the same errand". It removed the only
+limit on chasing guards, and the motivated-lives family trace failed because a spouse
+spent 5.5 hours on one report. A bisect found it, and the target hysteresis above replaced it.
+
+After the repair, the theft trace's three living knowers are exactly those who hold the
+theft itself: the eyewitness (1.0), the guard he told in person (1 hop, 0.67) and the
+owner by inference (0.9). No unrelated arrest events are needed. No pair re-tells a report
+more than five times.
+
+### Verification in this environment
+
+Linux container with 4 cores. On it, `main`'s own food tests take about 2× their Windows
+times. Unreal checks do not apply to this simulation-only change.
+
+| Scope | Result |
+| --- | --- |
+| `npm run typecheck` | Clean |
+| `tests/theft-social-knowledge.test.ts` (new) | 12/12. The 4 defect tests fail on unfixed #49; the other 8 pass on both. |
+| `tests/social-causality-trace.test.ts` and `tests/motivated-lives-trace.test.ts` | 4/4 and 4/4 |
+| Focused agency set (21 files: autonomous-social, encounter-recognition, knowledge-retention, knowledge, knowledge-view, crime-flow, causal-society, agency-worldlab 741, agency-frontier, capability-advancement, capability-continuity, persistence, determinism, interaction-coherence, social-causality, place-lookup, spatial-index, individual-lineage, realtime-combat-action, locality, theft-social-knowledge) | 220/220, 44.5 s |
+| Food harness, 2 samples each, one at a time | Abundance **55.7 / 55.8 s**, scarcity **54.9 / 55.7 s**, all passing the unchanged 60 s budgets. Same box: unfixed #49 96.0 / 85.5 s; `main` 114.3 / 88.4 s. The earlier optimisation survives, and removing the re-tell loop saves roughly another third. |
+| Food determinism | Two samples per workload give identical full-state digests, four RNG streams and food outcomes (abundance 205 bread at price 1, scarcity 5 at price 4). RNG matches after reload. Continuation differs only in the known `execution.lastTopic[*].concern.intensity` alias. |
+| 2-day same-seed determinism (`knowledge-memory-skills-intent`) | Equality holds (identical `avgHunger` and cognition). Its 180 s timeout is environmental here: it also times out on `main` (221.6 s) and unfixed #49 (199.8 s). |
+| `npm run build` | Passed; 166 modules |
+| Full suite, `npx vitest run` | **1,133 passed / 2 failed**, 117 files, 1,989 s. The unfixed branch took 3,032 s here, with 9 timeouts. Both remaining failures are environmental timeouts that also time out on `main`, run alone in the same container. `living-universe` "three settlements diverge": `main` 34.3 s, unfixed #49 34.6 s, final 31.3 s, limit 30 s. `playable-vista`: `main` 5.25 s, final 5.40 s, limit 5 s. It passed once on unfixed #49 under 5 s, and neither branch touches it. No failure is caused by this PR. |
+
 ## Food-stress hardening, 2026-09-20
 
 This follow-up preserves gameplay, all stress fixtures, seeds, assertions and timeouts.
