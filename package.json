@@ -42,7 +42,8 @@
     "foundational:accept": "tsx src/headless/bridge/foundationalGameplayAcceptance.ts",
     "appearance:sheet": "tsx src/headless/appearance/cli.ts",
     "foundry:report": "tsx src/headless/foundry/cli.ts",
-    "foundry:fallback": "tsx src/headless/foundry/fallback.ts"
+    "foundry:fallback": "tsx src/headless/foundry/fallback.ts",
+    "ashford:wardrobe": "tsx src/headless/foundry/ashfordWardrobe.ts"
   },
   "dependencies": {
     "three": "^0.170.0",

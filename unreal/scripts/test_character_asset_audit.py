@@ -29,6 +29,72 @@ class AssetClassificationTests(unittest.TestCase):
                            ('f_001_nrw_FaceMesh', 'head')]:
             self.assertEqual(audit.classify_slot('/Game/CitySampleCrowd/' + name), slot, name)
 
+    def test_ashford_garments_land_in_the_slot_their_name_claims(self):
+        root = '/Game/TornVeil/Characters/Ashford/'
+        for name, slot in [('SKM_TV_Kosode_Work_female_nrw', 'upperGarment'),
+                           ('SKM_TV_Kosode_Wide_male_ovw', 'upperGarment'),
+                           ('SKM_TV_Haori_female_unw', 'accessory'),
+                           ('SKM_TV_Hakama_male_nrw', 'lowerGarment'),
+                           ('SKM_TV_MoSkirt_female_nrw', 'lowerGarment'),
+                           ('SKM_TV_Obi_female_nrw', 'accessory'),
+                           ('SKM_TV_Maekake_male_nrw', 'accessory'),
+                           ('SKM_TV_Geta_female_nrw', 'footwear'),
+                           ('SKM_TV_Waraji_male_unw', 'footwear'),
+                           ('SKM_TV_TabiBoot_male_nrw', 'footwear')]:
+            self.assertEqual(audit.classify_slot(root + name), slot, name)
+
+    def test_ashford_garments_carry_the_tags_the_manifest_asks_for_by_name(self):
+        """The manifest already requests `kimono`, `hakama`, `sandals` and the rest. This is the
+        join between what the simulation asks for and what the audit is able to say about a mesh,
+        and it is the whole reason the wardrobe dresses anybody."""
+        root = '/Game/TornVeil/Characters/Ashford/'
+        for name, expected in [
+            # A kosode answers a kimono request and a plain `tunic` one, which is what stops an
+            # ordinary resident falling through to City Sample business wear.
+            # 'coat' too: this culture's travelling wear is a kosode with a haori over it,
+            # not a coat worn against the skin.
+            ('SKM_TV_Kosode_Work_female_nrw', {'kimono', 'tunic', 'coat', 'female', 'peasant', 'work'}),
+            # The wide-sleeved cut is also this culture's formal and ceremonial upper layer.
+            ('SKM_TV_Kosode_Wide_male_nrw', {'kimono', 'tunic', 'robe', 'wrap', 'formal', 'male'}),
+            ('SKM_TV_Hakama_male_nrw', {'hakama', 'trousers', 'male'}),
+            ('SKM_TV_MoSkirt_female_nrw', {'skirt', 'robe', 'female'}),
+            ('SKM_TV_Obi_female_nrw', {'obi', 'belt', 'female'}),
+            ('SKM_TV_Maekake_male_nrw', {'apron', 'male'}),
+            # Sandals answer `shoes` too: Ashford has no closed shoe.
+            ('SKM_TV_Geta_female_nrw', {'sandals', 'shoes', 'female'}),
+            ('SKM_TV_Waraji_male_unw', {'sandals', 'shoes', 'male'}),
+            ('SKM_TV_TabiBoot_male_nrw', {'boots', 'male'}),
+            # A haori answers only 'haori'. It is an open-fronted over-layer, and City
+            # Sample bodies are hands only, so one resolving as somebody's *only* upper
+            # garment is a hole in the chest -- caught in the Ashford 33 on a miller, a
+            # woodcutter and a bandit.
+            ('SKM_TV_Haori_female_unw', {'haori', 'female'}),
+        ]:
+            tags = set(audit.classify_tags(root + name))
+            self.assertTrue(expected.issubset(tags), '%s got %s, missing %s'
+                            % (name, sorted(tags), sorted(expected - tags)))
+
+    def test_the_projects_own_name_does_not_dress_everyone_in_tatters(self):
+        """`torn` used to match `TornVeil`, so every asset the project itself owns was tagged
+        `rags` -- and `rags` is one of only two disqualifying tags in the manifest. The first
+        character content this project ever shipped would have been refused for every resident
+        above `poor`, with no error anywhere. Caught by the Ashford tag test above."""
+        for name in ('SKM_TV_Kosode_Work_female_nrw', 'SKM_TV_Obi_male_nrw', 'SKM_TV_Geta_female_unw'):
+            tags = audit.classify_tags('/Game/TornVeil/Characters/Ashford/' + name)
+            self.assertNotIn('rags', tags, name)
+        # Content that really is ragged still says so.
+        self.assertIn('rags', audit.classify_tags('/Game/SomePack/SK_Torn_Cloak'))
+        self.assertIn('rags', audit.classify_tags('/Game/SomePack/SK_Tattered_Robe'))
+
+    def test_ashford_garments_declare_the_build_they_were_cut_for(self):
+        root = '/Game/TornVeil/Characters/Ashford/'
+        self.assertEqual(audit.geometry_metadata(root + 'SKM_TV_Hakama_male_ovw', 'lowerGarment'),
+                         {'fits': ['city:male:ovw']})
+        self.assertEqual(audit.geometry_metadata(root + 'SKM_TV_Obi_female_unw', 'accessory'),
+                         {'fits': ['city:female:unw']})
+        # A name that does not follow the convention gets no fit claim rather than a wrong one.
+        self.assertEqual(audit.geometry_metadata(root + 'SKM_TV_Something', 'accessory'), {})
+
     def test_human_requires_head_spine_and_bilateral_limbs(self):
         human = {'pelvis', 'spine_01', 'head', 'upperarm_l', 'upperarm_r', 'thigh_l', 'thigh_r'}
         self.assertEqual(audit.humanoid_bones(human), 'ue')

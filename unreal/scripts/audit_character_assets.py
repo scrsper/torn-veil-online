@@ -34,15 +34,15 @@ import unreal
 SLOT_PATTERNS = [
     ('facialHair', r'beard|moustache|mustache|stubble|goatee|facialhair'),
     ('hair', r'\bhair\b|hairstyle|groom|_hair|hair_'),
-    ('footwear', r'boot|shoe|sandal|geta|footwear|greave|oxford|loafer|dressflats'),
+    ('footwear', r'boot|shoe|sandal|geta|waraji|zori|tabi|footwear|greave|oxford|loafer|dressflats'),
     ('head', r'\bhead\b|face|skull|_hd\b'),
     ('robe', r'robe|kimono|cassock|habit|gown'),
-    ('upperGarment', r'shirt|tunic|jacket|\bcoat\b|\bvest\b|\btop\b|torso|upperbody|blouse|doublet|haori|turtleneck|scoopneck|crewneck|buttonopen|buttondown'),
+    ('upperGarment', r'shirt|tunic|kosode|jacket|\bcoat\b|\bvest\b|\btop\b|torso|upperbody|blouse|doublet|turtleneck|scoopneck|crewneck|buttonopen|buttondown'),
     ('lowerGarment', r'pants|jeans|trouser|slacks|skirt|hakama|\blegs?\b|lowerbody|breeches|kilt'),
     # Word boundaries matter more here than anywhere else: without them `pack` matched every asset
     # in a pack whose folder is called `..._Motion_Pack`, and `cap` matches "capture", "escape" and
     # "capacity". The same lesson applies to `top_` under upperGarment.
-    ('accessory', r'\bhat\b|hood|helm|\bcap\b|\bbelt\b|scarf|\bbag\b|\bpack\b|pouch|jewel|necklace|earring|beads|mask|cloak|cape|glove|gauntlet|bracer|holster|patch|drops'),
+    ('accessory', r'\bhat\b|\bobi\b|haori|maekake|apron|hood|helm|\bcap\b|\bbelt\b|scarf|\bbag\b|\bpack\b|pouch|jewel|necklace|earring|beads|mask|cloak|cape|glove|gauntlet|bracer|holster|patch|drops'),
     ('armor', r'armou?r|lamellar|cuirass|breastplate|pauldron|chainmail|plate_|bulletproof'),
     # `sk_`/`skm_` is the catch-all of last resort: in practice every skeletal mesh in a project
     # matches it, including pickaxes, lockers, flashlights and deer. That is only safe because
@@ -80,21 +80,30 @@ TAG_PATTERNS = [
     ('heavy', r'heavy|fat|large|bulk'),
     ('muscular', r'muscul|strong|athletic|buff'),
     ('average', r'average|medium|normal|standard'),
-    ('kimono', r'kimono|haori|yukata'),
+    ('kimono', r'kimono|kosode|yukata'),
     ('hakama', r'hakama'),
-    ('robe', r'robe|gown|cassock|habit'),
-    ('tunic', r'tunic|shirt|blouse|doublet'),
-    ('coat', r'coat|jacket|cloak'),
-    ('trousers', r'trouser|pants|breeches|legs?_'),
+    ('obi', r'(?<![a-z])obi(?![a-z])'),
+    ('robe', r'robe|gown|cassock|habit|kosode_wide|moskirt'),
+    ('tunic', r'tunic|shirt|blouse|doublet|kosode'),
+    ('coat', r'coat|jacket|cloak|kosode'),
+    ('haori', r'haori'),
+    ('trousers', r'trouser|pants|breeches|legs?_|hakama'),
     ('skirt', r'skirt|dress'),
-    ('wrap', r'wrap|sash|drape'),
+    ('wrap', r'wrap|sash|drape|kosode_wide|(?<![a-z])obi(?![a-z])'),
     ('armor', r'armou?r|lamellar|cuirass|plate_|mail'),
     ('lamellar', r'lamellar|scale_?armou?r'),
-    ('rags', r'rag|tatter|torn|beggar'),
+    # Letter lookarounds, not \b. Every asset name in this project is underscore-separated,
+    # and \b does not fire between an underscore and a letter -- so \btorn\b missed
+    # SK_Torn_Cloak, while a bare torn matched the project's own name and tagged every
+    # asset under /Game/TornVeil/ as rags. Both are disqualifying for anyone above poor.
+    ('rags', r'(?<![a-z])rags?(?![a-z])|tatter|(?<![a-z])torn(?![a-z])|beggar'),
     ('worn', r'worn|dirty|weather|used|damaged'),
     ('noble', r'noble|royal|rich|lord|fine|ornate'),
     ('peasant', r'peasant|common|poor|farmer|villager|work'),
-    ('formal', r'formal|ceremon|ritual'),
+    # Distinct from 'peasant': the manifest ranks a working cut above a formal one for the
+    # work_kimono silhouette, and without a tag of its own that preference matched nothing.
+    ('work', r'(?<![a-z])work(?![a-z])'),
+    ('formal', r'formal|ceremon|ritual|kosode_wide'),
     ('light', r'light|thin_'),
     ('fur', r'fur|pelt'),
     ('leather', r'leather|hide'),
@@ -111,8 +120,11 @@ TAG_PATTERNS = [
     ('updo', r'updo|upstyle'),
     ('beard', r'beard|goatee|moustache|mustache'),
     ('boots', r'boot|greave'),
-    ('sandals', r'sandal|geta|zori'),
-    ('shoes', r'shoe'),
+    # Ashford has no closed shoe: its sandals answer a request for 'shoes' because that is what
+    # this culture's ordinary footwear is. Without this an ordinary resident in a tunic/trousers
+    # silhouette resolves to City Sample oxfords and the whole settlement reverts to modern.
+    ('sandals', r'sandal|geta|zori|waraji'),
+    ('shoes', r'shoe|geta|waraji|zori'),
     ('hat', r'hat|cap\b|straw'),
     ('hood', r'hood'),
     ('helm', r'helm'),
@@ -125,7 +137,7 @@ TAG_PATTERNS = [
     ('belt', r'belt|cord|obi'),
     ('pack', r'backpack|rucksack|\bpack\b'),
     ('satchel', r'satchel|pouch|bag'),
-    ('apron', r'apron'),
+    ('apron', r'apron|maekake'),
     ('stole', r'stole|mantle'),
     ('fan', r'\bfan\b'),
 ]
@@ -377,6 +389,16 @@ def human_face_bones(names):
 def geometry_metadata(package, slot):
     """Inspected pack geometry conventions. Unknown content keeps the conservative default."""
     name = package.rsplit('/', 1)[-1]
+    if '/TornVeil/Characters/Ashford/' in package:
+        # Project-owned cultural clothing, generated by art/tools/ashford_garments/ and skinned to
+        # the City Sample clothing rig. One mesh per bind pose per build, named
+        # `SKM_TV_<Piece>_<sex>_<build>`, exactly the convention the vendor garments follow --
+        # because the six builds share `SK_Base` but not a reference pose, so a garment cut for
+        # one of them does not fit another.
+        parts = name.rsplit('_', 2)
+        if len(parts) == 3 and parts[1] in ('female', 'male') and parts[2] in ('nrw', 'ovw', 'unw'):
+            return {'fits': ['city:%s:%s' % (parts[1], parts[2])]}
+        return {}
     if '/Polytope_Studio/Modular_Armors/' in package:
         sex = 'female' if 'Female' in name else 'male'
         family = 'polytope:' + sex
@@ -501,6 +523,13 @@ def main():
                 tags.append('heavy')
             elif '/NormalWeight/' in package:
                 tags.append('average')
+            # City Sample dresses a contemporary city: suits, blazers, slacks, oxfords. That is a
+            # true descriptive fact about the asset, not a statement about the pack, and it is the
+            # one the manifest needs -- a pre-industrial culture's silhouettes forbid it, so these
+            # stop tying with cultural clothing on a coin flip. Bodies, faces and hair are not
+            # tagged: a face is not modern or otherwise.
+            if slot in ('upperGarment', 'lowerGarment', 'footwear', 'robe', 'armor'):
+                tags.append('modern')
             if name.startswith('Hair_S_'):
                 tags.append('short')
             elif name.startswith('Hair_M_'):
