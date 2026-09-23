@@ -102,14 +102,14 @@ export function projectVista(w: World, rx: number, rz: number) {
     classification: 'decorative', collision: false, gameplay: false };
 }
 
-export function regionDynamics(w: World, ids: Set<string>) {
+export function regionDynamics(w: World, ids: Set<string>, observerId: string | null = w.playerId) {
   const geo = w.geography!, inside = (p: { x: number; z: number }) => ids.has(geo.regionId(p.x, p.z));
   const nodes = new Map<string, import('../sim/core/types').ResourceNode>();
   for (const id of ids) { const [rx, rz] = id.split(',').map(Number); for (const n of geo.resources(rx, rz)) nodes.set(n.id, n); }
   for (const n of w.resourceNodes) if (inside(n.pos)) nodes.set(n.id, n);
   return { resources: [...nodes.values()].map(n => ({ id: n.id, kind: n.kind, pos: n.blocks[0] ? { x: n.blocks[0].x, y: n.blocks[0].y, z: n.blocks[0].z } : n.pos, state: n.state, remaining: n.remaining, growthStage: n.growthStage,
       ...(n.kind === 'forage' || n.kind === 'surface_water' ? { capacity: n.capacity, unit: n.kind === 'forage' ? 'kg' : 'litres', forage: n.forage, physicallyAvailable: ecologicalResourceAvailable(w, n) } : {}) })),
-    wildlife: wildlifeProjection(w, w.primaryBody(w.playerId!), ids),
+    wildlife: wildlifeProjection(w, observerId ? w.primaryBody(observerId) : undefined, ids),
     items: w.items().filter(i => i.pos && !i.holderId && i.quantity > 0 && inside(i.pos)).map(i => ({ id: i.id, type: i.type, pos: i.pos, quantity: i.quantity })),
     containers: w.containers().filter(c=>c.pos&&inside(c.pos)).map(c=>({id:c.id,name:c.name,pos:c.pos,open:c.open,capacity:c.capacity,used:c.itemIds.reduce((sum,id)=>sum+Math.max(0,w.item(id)?.quantity??0),0)})),
     crops: w.fields.flatMap(f => f.plots.filter(inside).map(p => ({ id: `${f.id}:${p.x}:${p.z}`, pos: { x: p.x, y: p.y, z: p.z }, state: p.state, growth: p.growth }))),
@@ -122,13 +122,15 @@ export function regionDynamics(w: World, ids: Set<string>) {
 
 /** Per-connection presentation residency. Deleting this object changes no World field. */
 export class RegionStream {
+  /** `observer` names the Person whose body anchors residency; null falls back to the legacy single player. */
+  constructor(private readonly observer: () => string | null = () => null) {}
   private resident = new Set<string>();
   private dynamics = '';
   private revisions = new Map<string,string>();
   reset(): void { this.resident.clear(); this.dynamics = ''; this.revisions.clear(); }
   /** Cheap residency/revision planning. Callers can materialize regions progressively. */
   plan(w: World) {
-    const g = w.geography, p = w.playerId ? w.positionOf(w.playerId) : null; if (!g || !p) return null;
+    const g = w.geography, who = this.observer() ?? w.playerId, p = who ? w.positionOf(who) : null; if (!g || !p) return null;
     const size=g.spec.regionSize, rx = Math.floor(p.x / size), rz = Math.floor(p.z / size), wanted = new Set<string>();
     for (let x = rx - 1; x <= rx + 1; x++) for (let z = rz - 1; z <= rz + 1; z++) if (x >= 0 && z >= 0 && x * size < w.grid.W && z * size < w.grid.D) wanted.add(`${x},${z}`);
     const ordered = [...wanted].sort((a,b) => { const distance=(id:string)=>{const [x,z]=id.split(',').map(Number);return (x-rx)**2+(z-rz)**2;}; return distance(a)-distance(b)||a.localeCompare(b); });
@@ -141,7 +143,7 @@ export class RegionStream {
   frame(w: World) {
     const plan=this.plan(w); if(!plan) return null;
     const regions=plan.changed.map(id=>{const [x,z]=id.split(',').map(Number);return projectRegion(w,x,z);});
-    const dynamic = regionDynamics(w, new Set(plan.wanted)), fingerprint = JSON.stringify({ ...dynamic, worldTime: 0 });
+    const dynamic = regionDynamics(w, new Set(plan.wanted), this.observer() ?? w.playerId), fingerprint = JSON.stringify({ ...dynamic, worldTime: 0 });
     const changed = this.dynamics !== fingerprint || regions.length>0; this.dynamics = fingerprint;
     return { version: 1, type: 'regions', origin: plan.origin, regions, unload:plan.unload, ...(changed ? { dynamic } : {}) };
   }

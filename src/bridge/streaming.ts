@@ -11,7 +11,7 @@ type Transfer = { id: number; regionId: string; bytes: Buffer; index: number; co
  * the final acknowledgement follows application. A slow renderer cannot queue a world
  * ahead of snapshots. Residency and all queued data are disposable presentation state. */
 export class RegionalTransport {
-  private readonly planner = new RegionStream();
+  private readonly planner: RegionStream;
   private pending = new Set<string>();
   private wanted: string[] = [];
   private center = '';
@@ -22,7 +22,10 @@ export class RegionalTransport {
   private lastDynamicAt = -Infinity;
   private dynamicSignature = '';
   private building?:{id:string;steps:ReturnType<typeof projectRegionSteps>;started:number;cpuMs:number;slices:number;maxSliceMs:number};
-  constructor(private log: (event: Record<string, unknown>) => void = () => {}) {}
+  /** `observer` names the Person whose body anchors this connection's residency (null: legacy single player). */
+  constructor(private log: (event: Record<string, unknown>) => void = () => {}, private readonly observer: () => string | null = () => null) {
+    this.planner = new RegionStream(observer);
+  }
 
   acknowledge(id: unknown, index: unknown): boolean {
     const t=this.transfer;
@@ -57,13 +60,13 @@ export class RegionalTransport {
             // The horizon follows the resident centre; it rides on the next region transfer.
             const [cx,cz]=this.center.split(',').map(Number), vista=this.vistaCenter!==this.center&&this.center?projectVista(w,cx,cz):undefined;
             if(vista)this.vistaCenter=this.center;
-            payload={regions:[result.value],dynamicRegion:id,dynamic:regionDynamics(w,new Set([id])),...(vista?{vista}:{})};break;}
+            payload={regions:[result.value],dynamicRegion:id,dynamic:regionDynamics(w,new Set([id]),this.observer()??w.playerId),...(vista?{vista}:{})};break;}
         } while(performance.now()-start<budgetMs);
         if(!payload){const elapsed=performance.now()-start;job.cpuMs+=elapsed;job.slices++;job.maxSliceMs=Math.max(job.maxSliceMs,elapsed);return;}
       } else {
         if(now-this.lastDynamicAt<1000) return;
         this.lastDynamicAt=now;
-        const dynamic=regionDynamics(w,new Set(this.wanted));
+        const dynamic=regionDynamics(w,new Set(this.wanted),this.observer()??w.playerId);
         // Quantize only presentation time notifications; canonical time is untouched.
         const signature=JSON.stringify({...dynamic,worldTime:Math.floor(dynamic.worldTime/60)});
         if(signature===this.dynamicSignature) return;

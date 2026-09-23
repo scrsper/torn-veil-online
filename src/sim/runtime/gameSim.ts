@@ -16,6 +16,8 @@ export type PersonIntent = { kind: 'yield' } | { kind: 'advance' }
   | { kind: 'read'; itemId: string }
   | { kind: 'teach'; target: string; key: string };
 
+export interface SpawnOptions { gender?: 'f' | 'm'; age?: number }
+
 /** Connection routing is outside the world-facing Person. No account, human personality,
  * player flag or control origin enters a simulated mind. One facade can host many controls. */
 export class GameSim {
@@ -30,9 +32,12 @@ export class GameSim {
   detach(connection: string): void {
     const p = this.person(connection); if (p) setExternalControl(p, false); this.connections.delete(connection);
   }
-  spawn(connection: string, name: string, pos: Vec3): string {
+  /** A newly arriving ordinary traveler. Only presentation-level choices (name, sex, adult age)
+   * are accepted; attributes, skills, wealth and knowledge follow the ordinary person factory. */
+  spawn(connection: string, name: string, pos: Vec3, options: SpawnOptions = {}): string {
     const w = this.simulation.world;
-    const p = makePerson(w, { name, age: 25, gender: 'f', occupation: 'traveler', traits: {}, appearance: {}, bio: '' });
+    const age = Number.isInteger(options.age) && options.age! >= 18 && options.age! <= 60 ? options.age! : 25;
+    const p = makePerson(w, { name, age, gender: options.gender === 'm' ? 'm' : 'f', occupation: 'traveler', traits: {}, appearance: {}, bio: '' });
     p.bodies.push(makeBody(w, p.id, pos).id); this.attach(connection, p.id); return p.id;
   }
   private person(connection: string): Person | undefined { return this.simulation.world.person(this.connections.get(connection)); }

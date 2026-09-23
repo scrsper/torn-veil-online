@@ -5,6 +5,8 @@ export class FixedScheduler {
   overruns=0; maxDebtMs=0; steps=0;
   constructor(readonly intervalMs:number,now:number,readonly catchUpLimit=4) {this.due=now+intervalMs;}
   remaining(now:number):number {return Math.max(0,this.due-now);}
+  /** Current unpaid backlog: how far canonical stepping trails the wall clock right now. */
+  debt(now:number):number {return Math.max(0,now-this.due);}
   run(now:number,step:()=>void):number {
     const debt=Math.max(0,now-this.due);this.maxDebtMs=Math.max(this.maxDebtMs,debt);if(debt>=this.intervalMs)this.overruns++;
     let count=0;
