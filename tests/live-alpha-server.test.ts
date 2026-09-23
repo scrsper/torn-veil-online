@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { LiveServer } from '../src/server/live';
 import { loadConfig, type ReleaseIdentity } from '../src/server/config';
 import { AccountRegistry } from '../src/server/accounts';
-import { WorldStore, WriterFenceError, RefuseToStartError } from '../src/server/store';
+import { WorldStore, WriterFenceError, RefuseToStartError, BackupSet, WriterLock } from '../src/server/store';
 import { ProbeClient } from '../src/server/probeClient';
 import { CLOSE } from '../src/server/protocol';
 import { makeItem } from '../src/sim/world/factory';
@@ -160,5 +160,22 @@ describe.sequential('Living Alpha authoritative service', () => {
     identity.generator.fingerprint = original; writeFileSync(identityPath, JSON.stringify(identity));
     rmSync(join(root, 'state', 'writer.lock'), { force: true });
     server = await boot();
+  }, 180_000);
+
+  it('restores a verified backup as the newest generation without deleting later history', async () => {
+    const backed = await server.checkpoint('before backup'); const dir = await server.backup();
+    expect(dir).toBeTruthy();
+    const clockAtBackup = backed.physicalTime;
+    await server.checkpoint('after backup');
+    await server.stopInProcess('restore test');
+    const state = join(root, 'state'), store = new WorldStore(state), newestBefore = store.current()!;
+    const backup = new BackupSet(join(root, 'backups')).list()[0];
+    expect(backup.meta.generation).toBe(backed.generation);
+    const lock = new WriterLock(state, { release: 'test-restore', env: 'dev' }); lock.acquire();
+    const restored = store.installFrom(backup.dir, lock, 'test restore'); lock.release();
+    expect(restored.generation).toBe(newestBefore + 1);
+    expect(store.generations()).toContain(newestBefore);
+    server = await boot();
+    expect(server.session.world.physicalTime).toBeCloseTo(clockAtBackup, 5);
   }, 180_000);
 });

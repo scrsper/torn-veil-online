@@ -204,7 +204,8 @@ export class BackupSet {
     if (sha256(world) !== meta.worldSha256) { await rm(tmp, { recursive: true, force: true }); throw new Error(`generation ${generation} failed verification; not backed up`); }
     await writeDurable(join(tmp, 'world.json'), world.toString('utf8'));
     await writeDurable(join(tmp, 'meta.json'), JSON.stringify(meta, null, 2));
-    const identity = store.identity(); if (identity) await writeDurable(join(tmp, 'WORLD.json'), JSON.stringify(identity, null, 2));
+    const identity = store.identity(); // Not 'WORLD.json': on a case-insensitive filesystem that would overwrite world.json.
+    if (identity) await writeDurable(join(tmp, 'identity.json'), JSON.stringify(identity, null, 2));
     await rename(tmp, dir);
     await this.prune();
     return dir;
