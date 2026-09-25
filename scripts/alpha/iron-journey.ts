@@ -215,6 +215,19 @@ function spar(): boolean {
   }
   return false;
 }
+/** Healthy conditioning requires sleep as well as food. Use the ordinary rest/wake controls,
+ * paying world time and ongoing needs instead of attempting to train through sleep debt. */
+function recoverForTraining(): void {
+  const before=w.physicalTime, debt=p.physiology.sleepDebt, fatigue=p.physiology.fatigue;
+  const result=say({type:'person_action',intent:{kind:'rest'}});
+  if(result!=='accepted')return;
+  wait(10);
+  while(p.alive&&body.pose==='sleep'&&w.physicalTime-before<1800
+    &&(p.physiology.sleepDebt>1.5||p.physiology.fatigue>0.15))wait(30);
+  if(body.pose==='sleep')say({type:'person_action',intent:{kind:'wake'}});
+  note('training_recovery',{physicalSeconds:w.physicalTime-before,sleepDebtBefore:debt,sleepDebtAfter:p.physiology.sleepDebt,
+    fatigueBefore:fatigue,fatigueAfter:p.physiology.fatigue,energy:p.physiology.energy,hydration:p.physiology.hydration});
+}
 function practiceSession(physicalSeconds: number) {
   const end = w.physicalTime + physicalSeconds;
   while (w.physicalTime < end && !advanced) {
@@ -228,7 +241,7 @@ function practiceSession(physicalSeconds: number) {
       if (p.wealth < 4 && p.physiology.energy > 0.35 && p.physiology.hydration > 0.4) earnProvisions();
       if (!provision()) return;
     }
-    if (p.physiology.fatigue > 0.5) return;
+    if (p.physiology.sleepDebt > 3 || p.physiology.fatigue > 0.35) { recoverForTraining(); wait(5); continue; }
     const strain = veilStrain(w, p);
     // A balanced day: the veil in the morning, the body in the afternoon. Iron asks every other
     // foundation to be sound, and the veil alone never exercises strength, dexterity or endurance.
