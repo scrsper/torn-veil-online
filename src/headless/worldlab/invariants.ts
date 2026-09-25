@@ -209,12 +209,14 @@ export const INVARIANTS: InvariantCheck[] = [
      *    (`DAILY_LOCAL_RANGE`). A post on the far side of a continent is walkable in principle
      *    and is still not somebody's work.
      *
-     * Judged against where the person LIVES rather than where they happen to be standing: that is
-     * what locality means, and judging a haul by the hauler's current position would pass every
-     * journey once it was already under way.
+     * Work and haul commitments are judged from HOME, never a moving body. Immediate water
+     * errands are selected by nearestWaterSource from the decision position, which may be a
+     * workplace: check their recorded, fixed origin instead. Otherwise a resident drinking at
+     * their own village well can fail solely because home is on the other edge of the village.
+     * Missing origin in older saves conservatively retains the home check.
      */
     id: 'locality-of-commitments', category: 'logistics',
-    description: "Every place and person an agent's goal, plan, work post or haul task resolves to is reachable from where they live, and within an ordinary day's reach of it.",
+    description: "Commitments remain reachable and local to home; immediate water errands remain local to their fixed decision origin.",
     check: (world) => {
       const out: Finding[] = [];
       // WHICH WALKABLE REGION, not "is this exact cell pathable".
@@ -233,7 +235,11 @@ export const INVARIANTS: InvariantCheck[] = [
       // second settlement across a river or a mountain would make load-bearing, it cannot be
       // defeated by an A* iteration budget the way a per-pair path query can, and it costs one
       // pass over the heightfield per probe rather than a search per commitment.
-      const region = walkableRegions(world);
+      // Dense village flood fill is exact, but a regional 24 km map has 604 million
+      // columns. Query only the actual commitments there; exhaustion is reported as
+      // inconclusive, never converted into either a reachable or unreachable result.
+      const region = world.grid.W * world.grid.D <= 1_000_000 ? walkableRegions(world) : null;
+      const reachCache = new Map<string, boolean>();
       /**
        * Can somebody standing on `from`'s ground get to where `to` is?
        *
@@ -254,7 +260,7 @@ export const INVARIANTS: InvariantCheck[] = [
         const cx = Math.floor(pos.x), cz = Math.floor(pos.z);
         for (let dx = -REACH_MARGIN; dx <= REACH_MARGIN; dx++) {
           for (let dz = -REACH_MARGIN; dz <= REACH_MARGIN; dz++) {
-            const id = region.at(cx + dx, cz + dz);
+            const id = region!.at(cx + dx, cz + dz);
             if (id >= 0) out.add(id);
           }
         }
@@ -266,6 +272,11 @@ export const INVARIANTS: InvariantCheck[] = [
       // walk to her own square. Two positions are in one locality when the ground around them
       // shares a region.
       const reachable = (from: Vec3, to: Vec3): boolean => {
+        if (!region) {
+          const key = [Math.floor(from.x), Math.floor(from.z), Math.floor(to.x), Math.floor(to.z)].join(',');
+          if (!reachCache.has(key)) reachCache.set(key, localGroundConnected(world, from, to, REACH_MARGIN));
+          return reachCache.get(key)!;
+        }
         const here = regionsAround(from);
         if (!here.size) return true; // nothing navigable near the asker at all: unplaceable, not a violation
         for (const id of regionsAround(to)) if (here.has(id)) return true;
@@ -279,7 +290,7 @@ export const INVARIANTS: InvariantCheck[] = [
         if (!home) continue;
         // Everything this person's life currently points at, each with a plain-words name, so a
         // failure says WHICH commitment reached out of the locality rather than only that one did.
-        const commitments: { what: string; pos: Vec3 | undefined; alternates?: Vec3[] }[] = [];
+        const commitments: { what: string; pos: Vec3 | undefined; alternates?: Vec3[]; origin?: Vec3 }[] = [];
         const placePos = (id: string | null | undefined) => (id ? world.place(id)?.inside : undefined);
         // Where somebody actually STANDS at a place. A market stall's own `inside` cell is the
         // stall itself and is not walkable — nobody stands in the counter — so a bare path query
@@ -289,8 +300,9 @@ export const INVARIANTS: InvariantCheck[] = [
         const approaches = (id: string | null | undefined): Vec3[] => (id ? world.place(id)?.anchors.map(a => a.pos) ?? [] : []);
         commitments.push({ what: 'their work post', pos: placePos(person.workId), alternates: approaches(person.workId) });
         const goal = person.mind.goal;
+        const waterOrigin = goal?.type === 'drink_water' ? goal.origin : undefined;
         if (goal) {
-          commitments.push({ what: `their goal (${goal.type})`, pos: goal.targetPos ?? placePos(goal.targetPlace), alternates: goal.targetPos ? [] : approaches(goal.targetPlace) });
+          commitments.push({ what: `their goal (${goal.type})`, pos: goal.targetPos ?? placePos(goal.targetPlace), alternates: goal.targetPos ? [] : approaches(goal.targetPlace), origin: waterOrigin });
           if (goal.targetEntity) {
             const target = world.person(goal.targetEntity);
             commitments.push({
@@ -301,7 +313,7 @@ export const INVARIANTS: InvariantCheck[] = [
         }
         for (const step of person.mind.plan) {
           if (step.status === 'done' || step.status === 'failed') continue;
-          commitments.push({ what: `a ${step.type} step in their plan`, pos: step.pos ?? placePos(step.placeId), alternates: step.pos ? [] : approaches(step.placeId) });
+          commitments.push({ what: `a ${step.type} step in their plan`, pos: step.pos ?? placePos(step.placeId), alternates: step.pos ? [] : approaches(step.placeId), origin: waterOrigin });
         }
         for (const task of world.haulTasks) {
           if (task.claimantId !== person.id) continue;
@@ -309,15 +321,16 @@ export const INVARIANTS: InvariantCheck[] = [
           commitments.push({ what: `the haul they took on, from ${world.nameOf(task.sourcePlaceId)}`, pos: placePos(task.sourcePlaceId), alternates: approaches(task.sourcePlaceId) });
           commitments.push({ what: `the haul they took on, to ${world.nameOf(task.destPlaceId)}`, pos: placePos(task.destPlaceId), alternates: approaches(task.destPlaceId) });
         }
-        for (const { what, pos, alternates } of commitments) {
+        for (const { what, pos, alternates, origin } of commitments) {
           if (!pos) continue;
-          if (![pos, ...(alternates ?? [])].some(candidate => reachable(home, candidate))) {
+          const anchor = origin ?? home, anchorName = origin ? 'their recorded decision location' : world.nameOf(person.homeId);
+          if (![pos, ...(alternates ?? [])].some(candidate => reachable(anchor, candidate))) {
             out.push(finding('WL-LOCALITY-UNREACHABLE', 'logistics', 'failure',
-              `${person.name} has committed to something they cannot walk to: ${what} is at (${pos.x.toFixed(0)}, ${pos.z.toFixed(0)}) and no path exists from ${world.nameOf(person.homeId)}.`,
+              `${person.name} has committed to something they cannot walk to: ${what} is at (${pos.x.toFixed(0)}, ${pos.z.toFixed(0)}) and no path exists from ${anchorName}.`,
               buildPersonTrace(world, world.now, person.id, 'WL-LOCALITY-UNREACHABLE', 'unreachable commitment')));
-          } else if (!near(home, pos)) {
+          } else if (!near(anchor, pos)) {
             out.push(finding('WL-LOCALITY-DISTANT', 'logistics', 'failure',
-              `${person.name}'s locality does not extend to ${what}: ${Math.hypot(pos.x - home.x, pos.z - home.z).toFixed(0)}m from ${world.nameOf(person.homeId)}, past the ${DAILY_LOCAL_RANGE}m an ordinary day reaches — a commitment resolved outside their own settlement.`,
+              `${person.name}'s locality does not extend to ${what}: ${Math.hypot(pos.x - anchor.x, pos.z - anchor.z).toFixed(0)}m from ${anchorName}, past the ${DAILY_LOCAL_RANGE}m limit.`,
               buildPersonTrace(world, world.now, person.id, 'WL-LOCALITY-DISTANT', 'commitment outside locality')));
           }
         }
@@ -326,6 +339,59 @@ export const INVARIANTS: InvariantCheck[] = [
     },
   },
 ];
+
+/** Exact positive reachability for regional probes without materialising the whole map.
+ * A completed disconnected search is a negative proof. A bounded unfinished search fails
+ * the probe explicitly, so the budget cannot manufacture a locality violation or a pass. */
+export function localGroundConnected(world: World, from: Vec3, to: Vec3, margin = 16, budget = 200_000): boolean {
+  const { nav, grid } = world, D = grid.D;
+  const walkable = (x: number, z: number) => x >= 0 && z >= 0 && x < grid.W && z < D && nav.isWalkable(x, z);
+  const sx = Math.floor(from.x), sz = Math.floor(from.z), tx = Math.floor(to.x), tz = Math.floor(to.z);
+  const queue: number[] = [], seen = new Set<number>();
+  // Nearest-to-target exploration proves connectivity without expanding a huge circle
+  // around the source. This changes search order only; no non-walkable edge is admitted.
+  const score = (key: number) => Math.max(Math.abs(Math.floor(key / D) - tx), Math.abs(key % D - tz));
+  const push = (key: number) => {
+    let at = queue.length; queue.push(key);
+    while (at > 0) {
+      const parent = (at - 1) >> 1;
+      if (score(queue[parent]) <= score(key)) break;
+      queue[at] = queue[parent]; at = parent;
+    }
+    queue[at] = key;
+  };
+  const pop = () => {
+    const first = queue[0], last = queue.pop()!;
+    if (queue.length) {
+      let at = 0;
+      while (at * 2 + 1 < queue.length) {
+        let child = at * 2 + 1;
+        if (child + 1 < queue.length && score(queue[child + 1]) < score(queue[child])) child++;
+        if (score(last) <= score(queue[child])) break;
+        queue[at] = queue[child]; at = child;
+      }
+      queue[at] = last;
+    }
+    return first;
+  };
+  for (let x = sx - margin; x <= sx + margin; ++x) for (let z = sz - margin; z <= sz + margin; ++z) {
+    if (walkable(x, z)) { const key = x * D + z; seen.add(key); push(key); }
+  }
+  if (!queue.length) return true; // Same unplaceable-source semantics as the village checker.
+  while (queue.length) {
+    const key = pop(), x = Math.floor(key / D), z = key % D;
+    if (Math.abs(x - tx) <= margin && Math.abs(z - tz) <= margin) return true;
+    if (seen.size > budget) throw new Error(`Regional locality probe inconclusive after ${budget} cells: (${sx},${sz}) → (${tx},${tz})`);
+    const y = nav.floorY(x, z);
+    for (let dx = -1; dx <= 1; ++dx) for (let dz = -1; dz <= 1; ++dz) {
+      if (!dx && !dz) continue;
+      const nx = x + dx, nz = z + dz, next = nx * D + nz;
+      if (seen.has(next) || !walkable(nx, nz) || Math.abs(nav.floorY(nx, nz) - y) > 1) continue;
+      seen.add(next); push(next);
+    }
+  }
+  return false;
+}
 
 /**
  * The connected regions of walkable ground, labelled in one pass.

@@ -212,11 +212,12 @@ export function syncResourceNodeBlocks(world: World): void {
   }
 }
 
-export function nearestAvailableNode(world: World, kind: ResourceNode['kind'], pos: Vec3, maxDist: number, areaPlaceId?: EntityId): ResourceNode | null {
+export function nearestAvailableNode(world: World, kind: ResourceNode['kind'], pos: Vec3, maxDist: number, areaPlaceId?: EntityId, eligible?: (node: ResourceNode) => boolean): ResourceNode | null {
   let best: ResourceNode | null = null; let bd = maxDist;
   for (const n of world.resourceNodes) {
     if (n.kind !== kind || n.state !== 'available' || n.remaining <= 0) continue;
     if (areaPlaceId && n.placeId !== areaPlaceId) continue;
+    if (eligible && !eligible(n)) continue;
     const d = dist2(pos, n.pos);
     if (d < bd) { bd = d; best = n; }
     else if (d === bd && best && n.id < best.id) best = n;

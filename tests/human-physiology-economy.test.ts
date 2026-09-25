@@ -4,7 +4,7 @@ import { newWorld, deserialize, serialize } from '../src/sim/persist/save';
 import { createTestWorld, addPerson, step, v } from './helpers/world';
 import { makeItem, makePlace } from '../src/sim/world/factory';
 import { addPlaceStock, stockAt, takePlaceStock } from '../src/sim/world/stock';
-import { createHaulTask, personalCarryUnits, failHaulTask } from '../src/sim/logistics/haul';
+import { createHaulTask, claimHaulTask, personalCarryUnits, failHaulTask } from '../src/sim/logistics/haul';
 import {
   HUMAN_PHYSIOLOGY_PROFILE, physiologyProfileFor, defaultPhysiologyTraitsFor, AVERAGE_HUMAN_ADULT,
 } from '../src/sim/core/species';
@@ -369,13 +369,27 @@ describe('v0.4 disclosed hysteresis pathology — regression (v0.5 §III.13)', (
     makeItem(world, 'plank', 'plank', { placeId: mill.id, pos: { ...mill.inside }, quantity: 40 });
     const perTrip = personalCarryUnits(world, hauler, 'plank');
     const task = createHaulTask(world, { resource: 'plank', quantity: 10, sourcePlaceId: mill.id, destPlaceId: bakery.id, reason: 'x', requesterId: null, priority: 0.95 });
+    // Explicit acceptance is the fixture: another villager can legitimately claim
+    // an open order first. This regression must exercise the weak worker's actual
+    // trips, not credit that worker for somebody else's delivered cargo.
+    claimHaulTask(world, task, hauler);
+    // Observe emission: low-significance commitment records may be compacted by
+    // the time a multi-trip order finishes, without undoing its real commitment.
+    const commitEvents: string[] = [], deliveries: number[] = [];
+    world.onEvent(e => {
+      if (e.actor !== hauler.id) return;
+      if (e.type === 'goal_committed') commitEvents.push(e.id);
+      if (e.type === 'resource_delivered' && e.data.haulId === task.id) deliveries.push(Number(e.data.quantity));
+    });
     let seconds = 0; const maxSeconds = 10 * SECONDS_PER_HOUR;
     while (task.status !== 'delivered' && seconds < maxSeconds) {
       const dt = 0.15; const wdt = world.clock.advance(dt); world.physicalTime += dt; sim.step(dt, wdt); sim.flushSpeech(); seconds += dt;
     }
     expect(task.delivered).toBeGreaterThan(perTrip);
-    const commitEvents = world.events.filter(e => e.type === 'goal_committed' && e.actor === hauler.id);
     expect(commitEvents.length).toBeGreaterThan(0);
+    expect(task.claimantId).toBe(hauler.id);
+    expect(deliveries.length).toBeGreaterThan(1);
+    expect(deliveries.reduce((a, b) => a + b, 0)).toBe(task.delivered);
   }, 30000);
 });
 

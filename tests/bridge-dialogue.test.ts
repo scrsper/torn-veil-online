@@ -1,7 +1,34 @@
 import { describe, expect, it } from 'vitest';
 import { BridgeSession, BRIDGE_VERSION } from '../src/bridge/session';
+import { makeItem } from '../src/sim/world/factory';
+import { getRel } from '../src/sim/mind/relationships';
+import { DialogueSystem } from '../src/sim/mind/dialogue';
 
 describe('native dialogue bridge projection', () => {
+  it('keeps late grounded options reachable beyond the nine numeric shortcuts', () => {
+    const s = new BridgeSession(918271), w = s.world, player = w.person(w.playerId)!;
+    const npc = w.persons().find(p => p.id !== player.id && !p.hostile && p.age > 20)!;
+    const pb = w.primaryBody(player.id)!, nb = w.primaryBody(npc.id)!;
+    pb.pos = { ...nb.pos }; nb.pose = 'stand';
+    player.mind.percepts = [{ entityId: npc.id, bodyId: nb.id, how: 'saw', pos: { ...nb.pos }, tick: w.now, distance: 0 }];
+    // Disclosed menu preconditions: real surplus stock, a carried gift, a grudge
+    // and a recoverable possession. All choices still come from DialogueSystem.
+    makeItem(w, 'bread', 'loaves', { holder: npc.id, owner: npc.id, quantity: 20 });
+    makeItem(w, 'flowers', 'flowers', { holder: player.id, owner: player.id });
+    getRel(npc, player.id).grudge = .3;
+    const missing = makeItem(w, 'hammer', 'lost hammer', { owner: npc.id, pos: { ...nb.pos } });
+    npc.desires = [{ type: 'recover_item', targetId: missing.id, reward: 2, fulfilled: false, note: 'Please recover my hammer.' }];
+    const expected = new DialogueSystem(w, s.sim).start(npc, player).options;
+    expect(expected.length).toBeGreaterThan(9);
+    expect(s.intent({ version: 1, sequence: 1, type: 'talk', targetBodyId: nb.id }).result).toBe('accepted');
+    const menu = s.snapshot(false).dialogue!;
+    expect(menu.options.map(o => o.label)).toEqual(expected.map(o => o.label));
+    const index = menu.options.findIndex(o => o.label === 'Is there anything you need?');
+    expect(index).toBeGreaterThanOrEqual(9);
+    expect(s.intent({ version: 1, sequence: 2, type: 'dialogue_option', optionId: menu.options[index].id }).result).toBe('accepted');
+    expect(player.knowledge[`wanted:${missing.id}`]?.claim.itemId).toBe(missing.id);
+    expect(s.intent({ version: 1, sequence: 3, type: 'dialogue_option', optionId: menu.options[index].id }).result).toBe('invalid_dialogue_option');
+  });
   it('opens a grounded canonical dialogue and advances only through opaque options', () => {
     const session = new BridgeSession(918271);
     const player = session.world.person(session.world.playerId)!;

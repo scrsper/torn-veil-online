@@ -9,6 +9,7 @@ import { obligationCredit } from '../social/obligation';
 import { shortfallBeliefs } from '../world/shortfall';
 import { openStintFor, unfitReason, type TradePost } from '../world/labor';
 import { instructionOf } from './apprenticeship';
+import { near } from '../world/locality';
 
 /**
  * WHO STEPS IN (Adaptive Society v0.5).
@@ -136,22 +137,26 @@ export function standInCandidacy(world: World, p: Person, post: TradePost): Stan
   // Note the missing second argument, and it matters: `unfitReason` without a place asks only
   // whether this person can work AT ALL — alive, on their feet, not badly hurt, not held, not
   // spent. It deliberately does NOT ask whether they are standing at the mill, because a
-  // candidate's whole decision is whether to WALK there. Distance belongs in the score below,
-  // where it can be outweighed by a strong enough reason, not in a gate that would silently
-  // limit adaptation to whoever happened to already be in the room.
+  // candidate's whole decision is whether to WALK there. Within daily locality, distance
+  // belongs in the score below; willingness cannot supply a missing long-journey planner.
   if (unfitReason(world, p)) return null;
   // A child's body is the reason, not a child's label: ordinary work needs a grown frame, and
   // `getPhysicalCapability` already knows how much of one this person has.
   if (p.age < 14) return null;
   if (post.staff.some(s => s.id === p.id)) return null;
+  const body = world.primaryBody(p.id);
+  if (!body) return null;
+  // The vacancy cache spans the region. A strong local shortage must not turn every
+  // idle mill in that cache into an ordinary commute. Anchor settled work to home;
+  // people without a home use their existing work, then their current position.
+  const dailyAnchor = world.place(p.homeId)?.inside ?? world.place(p.workId)?.inside ?? body.pos;
+  if (!near(dailyAnchor, post.place.inside)) return null;
 
   const aware = awareness(world, p, post);
   if (aware.weight <= 0) return null;
 
   const readiness = tradeReadiness(p, post.process.skill);
   const cap = getPhysicalCapability(p, world);
-  const body = world.primaryBody(p.id);
-  if (!body) return null;
 
   // Proximity: how far the work is from where this person's life already is — their own work,
   // then their home, then wherever they happen to be standing. Real distance over the real map.

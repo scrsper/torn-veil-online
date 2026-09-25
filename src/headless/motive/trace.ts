@@ -264,14 +264,24 @@ function familyTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveTra
   // spouse. This is selection, not staging — the pair is picked for the information gap that
   // already exists between them, because a purpose that can be discharged by turning round and
   // looking at someone demonstrates nothing. Deterministic (distance, then id).
-  const candidates = ordinaryVillagers(world).filter(p => !!spouseOf(world, p));
+  // Warmup can put a spouse in custody or end a fight before this scenario starts.
+  // Nonlethal applyHit correctly refuses protected victims; do not erase that state
+  // or pretend an assault occurred. Select a free pair with a still-injurable subject.
+  const available = (p: Person): boolean => {
+    const b = world.primaryBody(p.id);
+    return !!b && !b.dead && !p.surrender && !p.custody?.active && b.subduedUntil <= world.physicalTime;
+  };
+  const candidates = ordinaryVillagers(world).filter(p => {
+    const spouse = spouseOf(world, p);
+    return !!spouse && available(p) && available(spouse) && woundSeverity(world.primaryBody(p.id)!) < .8;
+  });
   const separation = (p: Person): number => {
     const sp = spouseOf(world, p); const a = world.primaryBody(p.id); const b = sp ? world.primaryBody(sp.id) : undefined;
     return a && b ? Math.hypot(a.pos.x - b.pos.x, a.pos.z - b.pos.z) : 0;
   };
   const subject = candidates.sort((a, b) => (separation(b) - separation(a)) || a.id.localeCompare(b.id))[0];
   const partner = subject ? spouseOf(world, subject)! : undefined;
-  if (!subject || !partner) return emptyTrace(spec, 'no married villager in this generation');
+  if (!subject || !partner) return emptyTrace(spec, 'no free, injurable married pair after warmup');
   const aggressor = ordinaryVillagers(world).filter(p => p.id !== subject.id && p.id !== partner.id)
     .sort((a, b) => (b.traits.aggression - a.traits.aggression) || a.id.localeCompare(b.id))[0];
 

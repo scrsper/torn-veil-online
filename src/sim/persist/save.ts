@@ -164,8 +164,12 @@ export function serialize(world: World): string {
   // no native Set, so it round-trips as a plain array here and is rebuilt into a Set on load.
   const persons = world.persons().map(p => ({
     ...p, tags: [...p.tags], parentIds: [...p.parentIds], bodies: [...p.bodies], inventory: [...p.inventory],
-    relationships: structuredClone(p.relationships), memories: p.memories.map(m => ({ ...m, entities: [...m.entities], source: { ...m.source } })),
-    knowledge: structuredClone(p.knowledge), desires: p.desires.map(d => ({ ...d })), schedule: p.schedule.map(s => ({ ...s })),
+    // serialize() completes synchronously before the next simulation tick. These plain
+    // records need no deep clone before JSON.stringify: the returned string owns the
+    // snapshot, and no mutable reference escapes. Cloning cognition twice dominated
+    // checkpoint preparation on the regional realtime soak.
+    relationships: p.relationships, memories: p.memories,
+    knowledge: p.knowledge, desires: p.desires, schedule: p.schedule,
     mind: { ...p.mind, investigated: [...p.mind.investigated], plan: p.mind.plan.map(a => ({ ...a, data: a.data ? { ...a.data } : undefined })) },
   }));
   // v0.2.3: a subdued body must reload still subdued (unlike `pose`, which is reset). Persist the

@@ -17,6 +17,7 @@ import { learn, learnPlace, learnAffordance } from '../mind/knowledge';
 import { remember } from '../mind/memory';
 import { scheduleFor } from '../mind/schedule';
 import { seedStartingSkills } from '../core/skills';
+import { near, DAILY_LOCAL_RANGE } from './locality';
 import { STARTING_AFFORDANCE_KNOWLEDGE } from '../core/affordance';
 import { createFire } from './fire';
 import { generateSettlementSpec, ISOLATED_SITES, SETTLEMENT_SIZE, settlementHeight, type SettlementSite, type SettlementSpec } from './settlementSpec';
@@ -38,7 +39,7 @@ function materialize(world: World, spec: SettlementSpec, regional: RegionalGrid)
   // Search seeded candidate rectangles; reject collisions and steep foundations. A reserved
   // margin preserves door approaches. No Ashford coordinates or authored plot order are used.
   const plots: { x0: number; z0: number; x1: number; z1: number }[] = [];
-  const place = (key: string, type: PlaceType, width: number, depth: number, beds = 0): Place => {
+  const place = (key: string, type: PlaceType, width: number, depth: number, beds = 0, dailyPlaces: Place[] = []): Place => {
     let plot: typeof plots[number] | undefined;
     for (let attempt = 0; attempt < 8000; attempt++) {
       const x0 = key === 'square' ? rng.int(95, 125) : rng.int(12, size - width - 12), z0 = key === 'square' ? rng.int(95, 125) : rng.int(12, size - depth - 12);
@@ -46,6 +47,11 @@ function materialize(world: World, spec: SettlementSpec, regional: RegionalGrid)
       if (plots.some(q => p.x0 - 6 <= q.x1 && p.x1 + 6 >= q.x0 && p.z0 - 6 <= q.z1 && p.z1 + 6 >= q.z0)) continue;
       const hs = [height(p.x0, p.z0), height(p.x1, p.z1)];
       if (Math.max(...hs) - Math.min(...hs) > 1) continue;
+      // Keep the whole home footprint within ordinary daily reach of its settlement's civic
+      // and work sites. The margin covers the eventual door/inside anchor and floor variation.
+      const center = shift({ x: (p.x0 + p.x1) / 2, y: Math.max(...hs) + 1, z: (p.z0 + p.z1) / 2 });
+      const anchorMargin = Math.hypot(width, depth) / 2 + 2;
+      if (dailyPlaces.some(site => !near(center, site.inside, DAILY_LOCAL_RANGE - anchorMargin))) continue;
       plot = p; break;
     }
     if (!plot) throw new Error(`No fitting plot for ${spec.name}:${key}`);
@@ -77,10 +83,11 @@ function materialize(world: World, spec: SettlementSpec, regional: RegionalGrid)
   place('clearing', 'wilderness', 25, 25); place('forest', 'wilderness', 18, 18); place('herbs', 'wilderness', 14, 14); place('quarry', 'quarry', 18, 18);
   for (let i = 0; i < spec.resources.fields; i++) place(`farm_${i}`, 'farm', rng.int(18, 25), rng.int(18, 25));
   const householdIds = [...new Set(spec.residents.map(p => p.household))];
+  const dailyPlaces = regional.geography?.spec.householdLocalityVersion === 1 ? Object.values(places) : [];
   for (const id of householdIds) {
     const members = spec.residents.filter(p => p.household === id).length;
     const side = Math.max(12, members * 2 + 3);
-    place(`home_${id}`, 'house', side, side, members);
+    place(`home_${id}`, 'house', side, side, members, dailyPlaces);
   }
   grid.initCaches(); regional.addPatch(spec.site.x, spec.site.z, grid);
   world.initNav();
