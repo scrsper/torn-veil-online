@@ -574,8 +574,21 @@ turns up the request: "A woodland boar is menacing people north-east of Pikewick
   in a stranger (0.03) is below what a word needs (0.35) — "I'll believe it when I see it. Bring
   me proof it's done". Silver conserved (0 moved). The request stays open until they learn
   otherwise or it expires.
-- *Hunt approach*: see the hunt report (`.debug/adventure-hunt-918273/report.json`). An earlier run
-  without a blade fought the boar bare-handed, was downed repeatedly and could not kill it.
+- *Hunt approach* (`paid_shown_meat`; this run's world history differed slightly, so the request
+  came from the villager the boar had gone for, 5 silver): bought the skinning knife at the bar for
+  14 silver, found the named boar, killed it (3 dodges, 9 strikes, player at 80 health, uninjured),
+  butchered two cuts and showed the meat: "That's boar, sure enough. Here — 5 silver." Conserved
+  (+5 / −5), trust 0 → 0.2, one nearby person knows of the kill, and save/reload keeps request,
+  wealth, trust and carcass. An earlier run without a blade fought bare-handed, was downed
+  repeatedly and could not kill it.
+
+Both runs act only through client intents (walking, dialogue, buying, hush, realtime combat,
+butchering), with ordinary autonomy while the player is offline; no teleport, grant or state edit.
+
+**A broke player starves offline.** The Iron journey's player spent their silver on the veil
+lesson. With no household and no money, ordinary autonomy found no food it could reach or buy,
+did not take the paid carrying work a human can ask for, and sat at energy 0 from day 3; the
+journey stalled on "recovery state is insufficient". Live players who go broke will meet this.
 
 **Iron.** Under the current curve an ordinary adult needs ~140 (potential 13) to ~280 (potential
 11) world days of deliberate daily practice. Support foundations reach 11 in ~20–40 days; the long
