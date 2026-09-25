@@ -4,6 +4,8 @@ import { noteWorkBlocked } from '../src/sim/world/shortfall';
 import { getRel } from '../src/sim/mind/relationships';
 import { identityKey, introduce, knownName, learnIdentity } from '../src/sim/mind/people';
 import { addPerson, createTestWorld, v } from './helpers/world';
+import { teach } from '../src/sim/mind/apprenticeship';
+import { knowsVeil } from '../src/sim/physical/veil';
 
 /**
  * v0.2.2 scale-readiness audit, Phase 1. `Person.knowledge` is bounded (mind/knowledge.ts's
@@ -54,6 +56,25 @@ describe('knowledge retention policy (v0.2.2 Phase 1: semantic soundness of the 
     expect(knownName(listener, speaker.id)).toBe('Another claim');
     expect(knownName(listener, stranger.id)).toBe('an unfamiliar person');
     expect(Object.keys(listener.knowledge).length).toBeLessThanOrEqual(MAX_KNOWLEDGE + PRUNE_MARGIN);
+  });
+
+  it('keeps a taught technique through weeks of routine episodes (a paid lesson is not rumor)', () => {
+    const tw = createTestWorld(711, 16), { world } = tw;
+    const keeper = addPerson(tw, 'Keeper', 'villager', v(3.5, 1, 3.5)), student = addPerson(tw, 'Student', 'villager', v(4.5, 1, 3.5));
+    const familiar = addPerson(tw, 'Neighbour', 'farmer', v(8, 1, 8));
+    expect(teach(world, keeper, student, 'veilcraft')).toBeTruthy();
+    expect(knowsVeil(student)).toBe(true);
+    // Before the fix, the lesson aged in the generic tier and was silently evicted within days
+    // by an ordinary player's perceptions (seed 918271 Iron journey, world day 2.8).
+    getRel(student, familiar.id).familiarity = 1;
+    for (let day = 0; day < 30; day++) {
+      world.clock.worldSeconds += 86400;
+      fillWithRoutineRumors(tw, student, 60);
+      for (let i = 0; i < 60; i++) learn(world, student, { key: `ev:d${day}-${i}`, kind: 'event',
+        claim: { type: 'arrived', actor: familiar.id, significance: 0.25 }, confidence: 1, source: { type: 'witnessed' } }, true);
+    }
+    expect(knowsVeil(student)).toBe(true);
+    expect(Object.keys(student.knowledge).length).toBeLessThanOrEqual(MAX_KNOWLEDGE + PRUNE_MARGIN);
   });
 
   it('retains learned services and recent food/work failures amid routine events about familiar people', () => {

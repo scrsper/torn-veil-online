@@ -125,7 +125,9 @@ const DURABLE_BASE = 10;
 const PRACTICAL_BASE = DURABLE_BASE * 10;
 
 function practicalKnowledge(k: KnowledgeItem, now: number): boolean {
-  if (k.kind === 'service' || (k.kind === 'fact' && k.key.startsWith('place:'))) return true;
+  // Knowing how to do something (a trade, a technique, the veil) is what a lesson paid for and what
+  // practice relies on; a busy day's episodes must not crowd it out of a bounded mind.
+  if (k.kind === 'service' || k.kind === 'technique' || (k.kind === 'fact' && k.key.startsWith('place:'))) return true;
   const age = now - (k.lastConfirmedAt ?? k.learnedAt);
   if (k.key.startsWith('food-access:')) return age < FOOD_PREFERENCE_WINDOW_SECONDS;
   if (k.key.startsWith('pantry:')) return age < 24 * 3600;
