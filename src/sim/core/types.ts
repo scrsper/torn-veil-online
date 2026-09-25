@@ -814,6 +814,9 @@ export interface Mind {
    * conflict where the parties can see but not reach each other). Transient tactical state,
    * not persisted (like `robCooldowns`). */
   pursuitCooldowns?: Record<EntityId, number>;
+  /** When each person turned down this one's proposal (world time, keyed by the person who declined).
+   * A refusal is remembered: without it a suitor asked again on every decision cycle. */
+  courtshipDeclined?: Record<EntityId, number>;
   /** v0.5 §III: the currently active/suspended/finished goal commitment, if any — see
    * `GoalCommitment` above and mind/commitment.ts. Null for the overwhelming majority of ticks
    * (most goals are 'free' and never get a commitment record at all). */
