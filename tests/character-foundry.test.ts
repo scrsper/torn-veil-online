@@ -10,7 +10,7 @@ import { EMPTY_CATALOGUE, animatableSkeletons, catalogueCoverage, parseCatalogue
 import { slotRules } from '../src/foundry/manifest';
 import { realizeCharacter, reportPopulation } from '../src/foundry/resolve';
 import type { CharacterRealization, RealizationInput } from '../src/foundry/resolve';
-import { FIXTURE_FOREIGN_SKELETON, FIXTURE_MOTION_RIG, foreignSkeletonCatalogue, mannequinOnlyCatalogue, placeholderAndRealCatalogue, richCatalogue, sparseCatalogue } from './fixtures/characterCatalogue';
+import { FIXTURE_FOREIGN_SKELETON, FIXTURE_MOTION_RIG, foreignSkeletonCatalogue, mannequinOnlyCatalogue, modernBodyCatalogue, placeholderAndRealCatalogue, richCatalogue, sparseCatalogue } from './fixtures/characterCatalogue';
 
 const SEED = 4242;
 
@@ -388,6 +388,17 @@ describe('the grey template body is a floor, not a competitor', () => {
     // Both real bodies are still reachable, so this is a preference change, not a hard filter
     // that would have collapsed everyone onto one mesh.
     expect(chosen).toEqual(new Set(['SK_Villager_F', 'SK_Villager_M']));
+  });
+
+  it('never dresses an Ashford villager in a body with baked-in modern clothing while another body fits', () => {
+    for (let index = 0; index < 12; index++) {
+      const person = syntheticInput({ identity: `modern-${index}`, age: 30 + index, gender: 'm', occupation: index % 2 ? 'farmer' : 'smith', wealth: 10 + index * 5 });
+      const body = slotOf(realizeCharacter(person, modernBodyCatalogue()), 'body')!;
+      expect(body.name).toBe('SK_Villager_M');
+    }
+    // When it is the only body of that sex installed, it is used, and the relaxation is reported.
+    const only = slotOf(realizeCharacter(syntheticInput({ identity: 'modern-only', age: 34, gender: 'm', occupation: 'smith', wealth: 40 }), modernBodyCatalogue(true)), 'body')!;
+    expect(only.relaxed).toContain('!modern');
   });
 
   it('still uses a placeholder when it is the only body installed', () => {

@@ -23,6 +23,8 @@ unreal/TornVeilOnline/Content/TornVeil/Materials/LocalPalette/
 # the shader that decides what this culture looks like should be reviewable. Re-running the
 # importer rebuilds it, so expect it to show as modified after an import.
 unreal/TornVeilOnline/Content/TornVeil/Characters/Ashford/
+# Machine-generated bindings embed licensed groom/face data; retain the generator only.
+unreal/TornVeilOnline/Content/TornVeil/Characters/GroomBindings/
 unreal/scripts/__pycache__/
 .unrealmcp.json
 

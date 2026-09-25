@@ -46,6 +46,9 @@ SOURCE = os.path.join(REPO, '.debug', 'ashford-garments', 'out')
 CONTENT = '/Game/TornVeil/Characters/Ashford'
 MATERIAL_PATH = '/Game/TornVeil/Materials/M_TV_AshfordCloth'
 SKELETON = '/Game/CitySampleCrowd/Character/Shared/Rig/SK_Base'
+SELECTED_PIECES = set(filter(None, os.environ.get('TV_GARMENT_PIECES', '').split(',')))
+KNOWN_PIECES = {'Kosode_Work', 'Kosode_Wide', 'Haori', 'Hakama', 'Hakama_Short',
+                'MoSkirt', 'Obi', 'Maekake', 'Geta', 'Waraji', 'TabiBoot'}
 
 # The cloth this culture actually weaves, before any per-person tint. Hemp and plant-dyed
 # cotton: never pure white, never pure black, and warm rather than neutral.
@@ -232,7 +235,8 @@ def import_garments(materials):
     # Wiped, not merged. This folder is generated output, and renaming a piece in the generator
     # would otherwise leave the old asset behind for the audit to find and classify -- a stale
     # `SKM_TV_Mo_*` has no slot keyword in its name at all and falls through to `body`.
-    if unreal.EditorAssetLibrary.does_directory_exist(CONTENT):
+    # A focused repair replaces only named meshes, preserving the installed wardrobe.
+    if not SELECTED_PIECES and unreal.EditorAssetLibrary.does_directory_exist(CONTENT):
         unreal.EditorAssetLibrary.delete_directory(CONTENT)
 
     tasks, expected = [], []
@@ -244,6 +248,9 @@ def import_garments(materials):
             if not filename.endswith('.fbx'):
                 continue
             name = filename[:-4]
+            if SELECTED_PIECES and name not in {
+                    'SKM_TV_%s_%s' % (piece, fit) for piece in SELECTED_PIECES}:
+                continue
             options = unreal.FbxImportUI()
             options.set_editor_property('import_mesh', True)
             options.set_editor_property('import_as_skeletal', True)
@@ -281,6 +288,8 @@ def import_garments(materials):
             tasks.append(task)
             expected.append('%s/%s' % (CONTENT, name))
 
+    if not tasks:
+        raise RuntimeError('No generated FBX matched the requested garment pieces')
     unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks(tasks)
 
     imported, missing, report, unresolved_slots = 0, [], {}, []
@@ -354,8 +363,19 @@ def import_garments(materials):
 def main():
     if not os.path.isdir(SOURCE):
         raise RuntimeError('no generated garments at %s -- run the Blender generator first' % SOURCE)
-    parent = build_material()
-    import_garments(build_region_instances(parent))
+    unknown = SELECTED_PIECES - KNOWN_PIECES
+    if unknown:
+        raise RuntimeError('Unknown garment pieces: ' + ', '.join(sorted(unknown)))
+    if SELECTED_PIECES:
+        package = MATERIAL_PATH.rsplit('/', 1)[0]
+        materials = [unreal.EditorAssetLibrary.load_asset('%s/MI_TV_Ashford%s' % (package, name))
+                     for name, _ in REGION_INSTANCES]
+        if not all(materials):
+            raise RuntimeError('Focused import requires the existing Ashford region materials')
+        import_garments(materials)
+    else:
+        parent = build_material()
+        import_garments(build_region_instances(parent))
 
 
 

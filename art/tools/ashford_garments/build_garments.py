@@ -47,6 +47,14 @@ PIECES = [
 
 REGIONS = ['turtleneck', 'slacks', 'oxfords']
 
+# Focused repairs can regenerate an existing subset without rewriting the whole wardrobe.
+selected_pieces = set(filter(None, os.environ.get('TV_GARMENT_PIECES', '').split(',')))
+if selected_pieces:
+    unknown = selected_pieces - {piece[0] for piece in PIECES}
+    if unknown:
+        raise RuntimeError('Unknown garment pieces: ' + ', '.join(sorted(unknown)))
+    PIECES = [piece for piece in PIECES if piece[0] in selected_pieces]
+
 
 def build_fit(name):
     lib.reset()

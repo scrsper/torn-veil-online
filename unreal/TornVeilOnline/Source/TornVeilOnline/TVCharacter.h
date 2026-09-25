@@ -20,6 +20,10 @@ class TORNVEILONLINE_API ATVCharacter : public ACharacter {
 public:
     void Mechanisms();
     void SaveWorld();
+    void RestToggle();
+    void Hush();
+    void Meditate();
+    void Breakthrough();
     UPROPERTY() TMap<FString, TObjectPtr<UAnimationAsset>> ActivityAnimations;
     void RebasePresentation(const FVector& Delta);
     ATVCharacter();
@@ -44,6 +48,9 @@ public:
     float Health = 100, MaxHealth = 100;
     bool bIncapacitated = false;
     bool bCanonicalPlayer = false;
+    /** Hidden because the local camera is inside this body (presentation only). */
+    bool bCameraIntrusionHidden = false;
+    void HideCameraIntruders();
     UPROPERTY(BlueprintReadOnly, Category="Torn Veil|Presentation") int64 PresentationAttackSeq = 0;
     UPROPERTY(BlueprintReadOnly, Category="Torn Veil|Presentation") int64 PresentationHitSeq = 0;
     UPROPERTY(BlueprintReadOnly, Category="Torn Veil|Presentation") int32 PendingAttackPresentation = 0;

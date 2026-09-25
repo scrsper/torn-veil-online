@@ -605,6 +605,10 @@ def _tabi(fit, build, side, height=0.055, region=UNDER):
     """
     foot = fit.bone['foot_%s' % side]
     ball = fit.bone['ball_%s' % side]
+    # The installed City body is a fragment: it supplies hands, not a lower leg.
+    # Every footwear variant needs a calf wrap overlapping the short hakama's hem
+    # (ankle + .22 m), or sandals and trousers visibly float apart by ~16 cm.
+    height = max(height, fit.ankle_z + 0.25 - foot.z)
     toe = ball + (ball - foot).normalized() * 0.055
     toe.z = max(0.012, ball.z)
     heel = Vector((foot.x, foot.y + 0.055, foot.z * 0.35))

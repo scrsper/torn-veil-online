@@ -67,13 +67,17 @@ def sampler_for(texture, want_normal):
 
 LAYERS = {
     # name: (basecolor, normal, uv scale relative to the terrain's metres/4 coordinates)
+    # Living Alpha: every layer uses content that is installed with the project (Advanced Village
+    # Pack landscape set, Poly Haven CC0 1K scans tracked in git). The previous Iceland/SM_Roads
+    # references were never installed on the build machine, so the material failed to compile and
+    # the packaged game fell back to the engine's default checker.
     "grass": ("/Game/AdvancedVillagePack/Textures/Landscape/T_Landscape_Grass_DH", "/Game/AdvancedVillagePack/Textures/Landscape/T_Landscape_Grass_N", 0.9),
-    "dirt": ("/Game/Iceland_Environment/Textures/T_Iceland_Dirt/T_Iceland_Dirt_BaseColor", "/Game/Iceland_Environment/Textures/T_Iceland_Dirt/T_Iceland_Dirt_Normal", 1.2),
-    "forest": ("/Game/Iceland_Environment/Textures/T_ForestGround/T_ForestGround_A", "/Game/Iceland_Environment/Textures/T_ForestGround/T_ForestGround_N", 1.0),
+    "dirt": ("/Game/AdvancedVillagePack/Textures/Landscape/T_Landscape_Pebbles_DH", "/Game/AdvancedVillagePack/Textures/Landscape/T_Landscape_Pebbles_N", 1.2),
+    "forest": (TEXTURE_ROOT + "brown_mud_leaves_01_diff_1k", TEXTURE_ROOT + "brown_mud_leaves_01_nor_dx_1k", 1.0),
     "soil": ("/Game/AdvancedVillagePack/Textures/Landscape/T_Landscape_Soil_DH", "/Game/AdvancedVillagePack/Textures/Landscape/T_Landscape_Soil_N", 2.0),
-    "cobble": ("/Game/SM_Roads_05/Materials/Roads_05/MT00133-Cobblestone_01/T_MT00133-Cobblestone_01_basecolor", "/Game/SM_Roads_05/Materials/Roads_05/MT00133-Cobblestone_01/T_MT00133-Cobblestone_01_normal", 2.4),
+    "cobble": (TEXTURE_ROOT + "rock_boulder_dry_diff_1k", TEXTURE_ROOT + "rock_boulder_dry_nor_dx_1k", 1.6),
 }
-VARIATION = "/Game/Iceland_Environment/Textures/T_Voronoi_Perturbed_4k"
+VARIATION = TEXTURE_ROOT + "rock_boulder_dry_rough_1k"
 
 
 def build():

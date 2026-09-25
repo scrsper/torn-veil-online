@@ -17,11 +17,43 @@
 #include "Async/Async.h"
 #include "Misc/Base64.h"
 #include "TVInteractionSpec.generated.h"
+#include "TVSignInWidget.h"
+#include "Framework/Application/SlateApplication.h"
 
 // Connect on the very first tick rather than after a retry interval, so pressing Play does not
 // begin with three seconds of an empty village.
 static void TVSample(TArray<double>& Samples,double Value);
-void UTVBridgeSubsystem::Initialize(FSubsystemCollectionBase& Collection) { Super::Initialize(Collection); RetryClock = 1000; }
+void UTVBridgeSubsystem::Initialize(FSubsystemCollectionBase& Collection) {
+    Super::Initialize(Collection); RetryClock = 1000;
+    ClientConfig = FTVClientConfig::Load();
+    // A packaged client always plays the alpha: without saved credentials it starts at sign-in.
+    // The editor keeps the legacy local developer bridge unless an account is configured.
+#if !WITH_EDITOR
+    if (!ClientConfig.IsComplete()) RequireSignIn(TEXT("Welcome. Sign in to join the world."));
+#else
+    if (ClientConfig.IsAlpha() && !ClientConfig.IsComplete()) RequireSignIn(TEXT("Complete the sign-in details."));
+#endif
+}
+void UTVBridgeSubsystem::RequireSignIn(const FString& Message,bool bNewOnly) {
+    bSignInRequired=true; bSignInNewOnly=bNewOnly; SignInMessage=Message;
+    if(SignIn) SignIn->Prepare(ClientConfig,Message,bNewOnly);
+}
+void UTVBridgeSubsystem::SubmitSignIn(const FTVClientConfig& Config) {
+    ClientConfig=Config; ClientConfig.Save(); bSignInRequired=false; SignInMessage.Empty(); RetryDelay=3; DeadSince=-1;
+    RetryClock=1000; // connect on the next tick
+}
+void UTVBridgeSubsystem::UpdateSignIn() {
+    auto* PC=GetWorld()->GetFirstPlayerController(); if(!PC||!PC->IsLocalController()) return;
+    if(bSignInRequired&&!SignIn) {
+        SignIn=CreateWidget<UTVSignInWidget>(PC); SignIn->Prepare(ClientConfig,SignInMessage,bSignInNewOnly);
+        SignIn->OnSubmitted.BindUObject(this,&UTVBridgeSubsystem::SubmitSignIn);
+        SignIn->AddToViewport(100);
+        FInputModeUIOnly Mode; Mode.SetWidgetToFocus(SignIn->TakeWidget()); PC->SetInputMode(Mode); PC->SetShowMouseCursor(true);
+    } else if(!bSignInRequired&&SignIn) {
+        SignIn->RemoveFromParent(); SignIn=nullptr;
+        PC->SetInputMode(FInputModeGameOnly()); PC->SetShowMouseCursor(false);
+    } else if(SignIn) SignIn->SetMessage(SignInMessage);
+}
 void UTVBridgeSubsystem::Deinitialize() {
     if(PlayerShell){PlayerShell->RemoveFromParent();PlayerShell=nullptr;}
     UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE PIE ending; releasing controller"));
@@ -41,17 +73,22 @@ void UTVBridgeSubsystem::Connect() {
     Assembly.Empty(); PendingPresentation.Reset(); WantedRegions.Empty(); ProjectedRegions=0;
     for(auto& Pair:WildlifeBodies)if(IsValid(Pair.Value))Pair.Value->Destroy();WildlifeBodies.Empty();
     if(WorldProjection) WorldProjection->ResetRegions();
-    UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE connecting; regional protocol=2 text_limit=262144"));
-    const TMap<FString, FString> UpgradeHeaders = { { TEXT("X-Torn-Veil-Client"), TEXT("unreal") }, { TEXT("X-Torn-Veil-Region-Protocol"), TEXT("2") }, {TEXT("X-Torn-Veil-Interaction-Protocol"),TEXT("2")} };
-    FString BridgeUrl=TEXT("ws://127.0.0.1:8787");
-    const FString ArenaPort=FPlatformMisc::GetEnvironmentVariable(TEXT("TORN_VEIL_PORT"));
-    if(ArenaPort.IsNumeric())BridgeUrl=FString::Printf(TEXT("ws://127.0.0.1:%s"),*ArenaPort);
-    Socket = FWebSocketsModule::Get().CreateWebSocket(BridgeUrl, FString(), UpgradeHeaders);
+    const FString BridgeUrl=ClientConfig.Url();
+    UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE connecting to %s as %s; regional protocol=2 alpha protocol=%d text_limit=262144"),*BridgeUrl,ClientConfig.IsAlpha()?*ClientConfig.Account:TEXT("(local developer bridge)"),FTVClientConfig::AlphaProtocol);
+    Status=FString::Printf(TEXT("Connecting to %s..."),*BridgeUrl);
+    Socket = FWebSocketsModule::Get().CreateWebSocket(BridgeUrl, FString(), ClientConfig.Headers());
     // Wire chunks are <=128 KiB; assembly is separately bounded to 4 MiB.
     Socket->SetTextMessageMemoryLimit(256 * 1024);
     Socket->OnConnected().AddWeakLambda(this, [this]() { bTransportConnected=true; Status = TEXT("Connected - waiting for canonical state"); Sequence = 0; UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE connected")); });
-    Socket->OnConnectionError().AddWeakLambda(this, [this](const FString& Error) { Status = TEXT("Simulation offline - run npm run bridge:playable"); bControls = false; bTransportConnected=false; UE_LOG(LogTemp,Warning,TEXT("TV_BRIDGE connection error: %s"),*Error); });
-    Socket->OnClosed().AddWeakLambda(this, [this](int32 Code, const FString& Reason, bool Clean) { Status = TEXT("Disconnected - reconnecting"); bControls = false; bTransportConnected=false; UE_LOG(LogTemp,Warning,TEXT("TV_BRIDGE closed code=%d clean=%d reason=%s"),Code,Clean,*Reason); });
+    Socket->OnConnectionError().AddWeakLambda(this, [this](const FString& Error) { Status = ClientConfig.IsAlpha() ? FString::Printf(TEXT("Cannot reach the server at %s - retrying"),*ClientConfig.Server) : FString(TEXT("Simulation offline - run npm run bridge:playable")); bControls = false; bTransportConnected=false; UE_LOG(LogTemp,Warning,TEXT("TV_BRIDGE connection error: %s"),*Error); });
+    Socket->OnClosed().AddWeakLambda(this, [this](int32 Code, const FString& Reason, bool Clean) {
+        // Application close codes from src/server/protocol.ts. Refusals that retrying cannot fix
+        // return to the sign-in screen with the server's own explanation.
+        if(Code==4001||Code==4003||Code==4009||Code==4010||Code==4404) RequireSignIn(Reason, Code==4404);
+        else if(Code==4000) RequireSignIn(TEXT("This account signed in from another client. Continue here to take over."));
+        else if(Code==4503) { Status=Reason; RetryDelay=15; }
+        else if(Code==4029) { Status=Reason; RetryDelay=30; }
+        else { Status = TEXT("Disconnected - reconnecting"); RetryDelay=3; } bControls = false; bTransportConnected=false; UE_LOG(LogTemp,Warning,TEXT("TV_BRIDGE closed code=%d clean=%d reason=%s"),Code,Clean,*Reason); });
     Socket->OnMessage().AddWeakLambda(this, [this](const FString& Message) { Receive(Message); });
     Socket->Connect();
 }
@@ -61,7 +98,10 @@ void UTVBridgeSubsystem::Tick(float Dt) {
     if(CombatCorrectionStartedAt>=0&&RenderCorrection.Size()<.1){TVSample(CombatCorrectionSettleSamples,(FPlatformTime::Seconds()-CombatCorrectionStartedAt)*1000);CombatCorrectionStartedAt=-1;}
     SinceSnapshot = bCanonicalReady ? FPlatformTime::Seconds()-LastSnapshotReceived : 100; RetryClock += Dt;
     ResultClock += Dt; if (ResultClock > 2.5f && !LastResult.IsEmpty()) LastResult.Empty();
-    if ((!Socket || !Socket->IsConnected()) && RetryClock > 3) { RetryClock = 0; Connect(); }
+    UpdateSignIn();
+    if ((!Socket || !Socket->IsConnected()) && RetryClock > RetryDelay && !bSignInRequired) { RetryClock = 0; Connect(); }
+    // Death is permanent. After a moment to see it, offer a new character (the old one stays dead).
+    if(ClientConfig.IsAlpha()&&CanonicalRestriction==TEXT("Dead")) { if(DeadSince<0) DeadSince=FPlatformTime::Seconds(); else if(FPlatformTime::Seconds()-DeadSince>6&&!bSignInRequired) { RequireSignIn(FString::Printf(TEXT("%s has died. Death is permanent in this world; you may begin a new life."),*CharacterName),true); if(Socket) Socket->Close(1000,TEXT("character died")); } } else DeadSince=-1;
     SendClock += Dt;
     if(Socket&&Socket->IsConnected()&&bControls&&!InteractionEpoch.IsEmpty()&&FPlatformTime::Seconds()-ClockProbeAt>1){ClockProbeAt=FPlatformTime::Seconds();auto Probe=MakeShared<FJsonObject>();Probe->SetStringField(TEXT("type"),TEXT("clock_probe"));Probe->SetNumberField(TEXT("clientTimeMs"),ClockProbeAt*1000);FString Wire;FJsonSerializer::Serialize(Probe,TJsonWriterFactory<>::Create(&Wire));Socket->Send(Wire);}
     const bool Live=IsLive();
@@ -413,7 +453,7 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
             if(ReceiptStatus==TEXT("rejected")||ReceiptStatus==TEXT("cancelled")) {PendingMovement.RemoveAll([Seq](const auto& P){return P.Sequence==Seq;});
                 if(BufferedCombat.IsSet()&&BufferedCombat->Sequence==Seq)BufferedCombat.Reset();if(Seq==PendingFeedbackSequence)bCrouchHeld=false;
                 if(Seq==CombatCommandSequence){if(auto* C=Bodies.FindRef(InteractionBody).Get())C->CombatPresentation->RejectAction(PredictedCombat.CommandId);PredictedCombat=FTVLiveCombat();}
-                LastResult=M->GetStringField(TEXT("result"));ResultClock=0;}
+                LastResult=ResultText(M->GetStringField(TEXT("result")));ResultClock=0;}
             else if(Seq==PendingFeedbackSequence){LastResult=TEXT("Confirmed");ResultClock=0;PendingFeedbackSequence=-1;}
         }
         return;
@@ -426,6 +466,13 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
             PendingMovement.Empty();CommandSentAt.Empty();BufferedCombat.Reset();bCrouchHeld=false;LastCombatStartAt=0;PredictedCombat=FTVLiveCombat();CombatAge=0;CombatCommandSequence=-1;bPredictionReady=false;PredictionAccumulator=0;PredictionVelocity=FVector::ZeroVector;LastConfirmedTick=-1;
         }
     }
+    if (Type == TEXT("hello")) {
+        const TSharedPtr<FJsonObject>* Character; if(M->TryGetObjectField(TEXT("character"),Character)) { (*Character)->TryGetStringField(TEXT("name"),CharacterName); bool bCreated=false; (*Character)->TryGetBoolField(TEXT("created"),bCreated); if(ClientConfig.IsAlpha()) { if(bCreated) ClientConfig.Character=TEXT("auto"); ClientConfig.Save(); } }
+        M->TryGetStringField(TEXT("worldId"),WorldId); M->TryGetStringField(TEXT("release"),ServerRelease); RetryDelay=3;
+        const TSharedPtr<FJsonObject>* Maint; MaintenanceMessage.Empty(); if(M->TryGetObjectField(TEXT("maintenance"),Maint)&&Maint&&Maint->IsValid()) (*Maint)->TryGetStringField(TEXT("message"),MaintenanceMessage);
+        if(!CharacterName.IsEmpty()) Status=FString::Printf(TEXT("%s - %s"),*CharacterName,*ServerRelease);
+    }
+    if (Type == TEXT("maintenance")) { FString Msg; M->TryGetStringField(TEXT("message"),Msg); const double InMs=M->GetNumberField(TEXT("inMs")); MaintenanceMessage=FString::Printf(TEXT("Maintenance in %.0f s: %s"),InMs/1000,*Msg); return; }
     if (Type == TEXT("hello")) { CombatCursor=FTVCombatReplayCursor(); for(const auto& Pair:Bodies) if(IsValid(Pair.Value)) Pair.Value->CombatPresentation->Cancel(); M->TryGetBoolField(TEXT("controls"), bControls); M->TryGetStringField(TEXT("playerId"), PlayerId); UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE received hello controls=%d player=%s"),bControls,*PlayerId); return; }
     if (Type == TEXT("scene")) {
         UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE received scene chars=%d"),Message.Len());
@@ -460,12 +507,7 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
         if (Result == TEXT("accepted")) return;
         // The simulation's refusals, said plainly. The codes themselves are the canonical answer;
         // this only chooses the wording shown to the player.
-        LastResult = Result == TEXT("out_of_reach") ? FString(TEXT("Too far to reach."))
-            : Result == TEXT("no_target") ? TEXT("Nothing in reach.")
-            : Result == TEXT("cooldown") ? TEXT("Still recovering.")
-            : Result == TEXT("incapacitated") ? TEXT("You cannot act.")
-            : Result == TEXT("no_resource") || Result == TEXT("unavailable_resource") ? TEXT("Nothing here to gather.")
-            : Result;
+        LastResult = ResultText(Result);
         ResultClock = 0;
         return;
     }
@@ -495,6 +537,31 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
     FocusTargets.Reset();const TArray<TSharedPtr<FJsonValue>>* Targets;
     if(M->TryGetArrayField(TEXT("interactionTargets"),Targets))for(const auto& V:*Targets){const auto T=V->AsObject();if(!T)continue;const auto P=T->GetObjectField(TEXT("pos"));
         FocusTargets.Add({T->GetStringField(TEXT("targetId")),T->GetStringField(TEXT("actionId")),T->GetStringField(TEXT("kind")),T->GetStringField(TEXT("label")),FVector(P->GetNumberField(TEXT("x")),P->GetNumberField(TEXT("y")),P->GetNumberField(TEXT("z")))});}
+    const TSharedPtr<FJsonObject>* Journal;
+    if(M->TryGetObjectField(TEXT("journal"),Journal)&&Journal&&Journal->IsValid()) {
+        // The person's own commitments, wounds and standing - never anyone else's private state.
+        TArray<FString> Parts; Parts.Add(FString::Printf(TEXT("Stage: %s"),*(*Journal)->GetStringField(TEXT("stage"))));
+        for(const auto& V:(*Journal)->GetArrayField(TEXT("commitments"))){const auto J=V->AsObject();FString Who;J->TryGetStringField(TEXT("requester"),Who);Parts.Add(FString::Printf(TEXT("Promised: %s for %s (%.0f silver)"),*J->GetStringField(TEXT("kind")),Who.IsEmpty()?TEXT("no one in particular"):*Who,J->GetNumberField(TEXT("reward"))));}
+        for(const auto& V:(*Journal)->GetArrayField(TEXT("injuries"))){const auto J=V->AsObject();Parts.Add(FString::Printf(TEXT("Wound: %s %s"),*J->GetStringField(TEXT("severity")),*J->GetStringField(TEXT("region"))));}
+        // Living Alpha progression: one's own foundations with progress toward the next point,
+        // veil strain, and what still stands between this person and Iron.
+        const TArray<TSharedPtr<FJsonValue>>* Foundations=nullptr; TArray<FString> F;
+        if((*Journal)->TryGetArrayField(TEXT("foundations"),Foundations)) for(const auto& V:*Foundations){const auto J=V->AsObject();if(!J)continue;
+            F.Add(FString::Printf(TEXT("%s %d (%d%%)"),*J->GetStringField(TEXT("id")).Left(3).ToUpper(),static_cast<int32>(J->GetNumberField(TEXT("value"))),FMath::RoundToInt(J->GetNumberField(TEXT("progress"))*100)));}
+        FString Progression=F.IsEmpty()?FString():FString::Join(F,TEXT("  "));
+        const TSharedPtr<FJsonObject>* Veil=nullptr;
+        if((*Journal)->TryGetObjectField(TEXT("veil"),Veil)&&Veil&&Veil->IsValid()) Progression+=FString::Printf(TEXT("   |   Veil strain %.0f%%"),(*Veil)->GetNumberField(TEXT("strain"))*100);
+        const TSharedPtr<FJsonObject>* Advancement=nullptr;
+        if((*Journal)->TryGetObjectField(TEXT("advancement"),Advancement)&&Advancement&&Advancement->IsValid()){
+            const TSharedPtr<FJsonObject>* Path=nullptr; FString PathSkill;
+            if((*Advancement)->TryGetObjectField(TEXT("path"),Path)&&Path&&Path->IsValid()) PathSkill=(*Path)->GetStringField(TEXT("skill"));
+            if((*Advancement)->GetBoolField(TEXT("eligible"))) Progression+=FString::Printf(TEXT("   |   Iron breakthrough possible through %s (B)"),*PathSkill);
+            else { const TArray<TSharedPtr<FJsonValue>>* Remaining=nullptr; TArray<FString> R;
+                if((*Advancement)->TryGetArrayField(TEXT("remaining"),Remaining)) for(int32 i=0;i<Remaining->Num()&&i<2;++i) R.Add((*Remaining)[i]->AsString());
+                if(!R.IsEmpty()) Progression+=FString::Printf(TEXT("   |   Toward Iron%s: %s"),PathSkill.IsEmpty()?TEXT(""):*(TEXT(" (")+PathSkill+TEXT(")")),*FString::Join(R,TEXT("; "))); }
+        }
+        JournalSummary=FString::Join(Parts,TEXT("   |   "))+(Progression.IsEmpty()?FString():TEXT("\n")+Progression);
+    }
     const TSharedPtr<FJsonObject>* Mobility;
     if(M->TryGetObjectField(TEXT("mobility"),Mobility)) {CanonicalRestriction=(*Mobility)->GetStringField(TEXT("restriction"));
         MobilitySummary=FString::Printf(TEXT("Fatigue %.0f%% | movement %.0f%% | weighed load %.1f / safe carry %.1f kg%s"),(*Mobility)->GetNumberField(TEXT("fatigue"))*100,(*Mobility)->GetNumberField(TEXT("speedMultiplier"))*100,(*Mobility)->GetNumberField(TEXT("knownLoadKg")),(*Mobility)->GetNumberField(TEXT("safeCarryKg")),(*Mobility)->GetNumberField(TEXT("unweighedStacks"))>0?TEXT(" (+ unweighed items)"):TEXT(""));}
@@ -553,7 +620,7 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
             if(!bCanonicalReady) UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE received snapshot; bound player=%s body=%s pawn=%s pos=%s"),*Entity,*Id,*C->GetName(),*C->GetActorLocation().ToString());
             bCanonicalReady=true;
             const auto Needs = D->GetObjectField(TEXT("needs"));
-            PlayerVitals = FString::Printf(TEXT("Hunger %.0f%%   Thirst %.0f%%   %.0f silver"), Needs->GetNumberField(TEXT("hunger")) * 100, Needs->GetNumberField(TEXT("thirst")) * 100, D->GetNumberField(TEXT("wealth")));
+            PlayerVitals = FString::Printf(TEXT("%s%s%sHunger %.0f%%   Thirst %.0f%%   %.0f silver"), *(DangerCue.IsEmpty()?FString():DangerCue+TEXT("\n")), *(MaintenanceMessage.IsEmpty()?FString():MaintenanceMessage+TEXT("\n")), *(JournalSummary.IsEmpty()?FString():JournalSummary+TEXT("\n")), Needs->GetNumberField(TEXT("hunger")) * 100, Needs->GetNumberField(TEXT("thirst")) * 100, D->GetNumberField(TEXT("wealth")));
             TArray<FString> Items;
             for (const auto& Item : D->GetArrayField(TEXT("inventory"))) {
                 const auto I = Item->AsObject(); const double Qty = I->GetNumberField(TEXT("quantity"));
@@ -566,9 +633,17 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
     TSet<FString> PresentWildlife;
     const TSharedPtr<FJsonObject>* WildlifeFrame=nullptr;
     const TArray<TSharedPtr<FJsonValue>>* WildlifeRows=nullptr;
+    DangerCue.Empty();
     if(M->TryGetObjectField(TEXT("wildlife"),WildlifeFrame)&&(*WildlifeFrame)->TryGetArrayField(TEXT("bodies"),WildlifeRows)) {
         for(const auto& Value:*WildlifeRows) {
             const auto D=Value->AsObject();if(!D)continue;FString Id;if(!D->TryGetStringField(TEXT("bodyId"),Id)||Id.IsEmpty())continue;
+            // A readable cue for behaviour aimed at you: what it is doing, and what that asks of you.
+            bool AtMe=false;FString Defense;D->TryGetBoolField(TEXT("defenseAtViewer"),AtMe);D->TryGetStringField(TEXT("defense"),Defense);
+            if(AtMe&&DangerCue.IsEmpty()){FString Species;D->TryGetStringField(TEXT("speciesId"),Species);Species=Species.Replace(TEXT("_"),TEXT(" "));
+                DangerCue=Defense==TEXT("warn")?FString::Printf(TEXT("A %s is bristling at you - back away, or hush it (H)."),*Species)
+                    :Defense==TEXT("charge")?FString::Printf(TEXT("The %s is charging!"),*Species)
+                    :Defense==TEXT("strike")?FString::Printf(TEXT("The %s lunges - step aside now (dodge)!"),*Species)
+                    :Defense==TEXT("recover")?FString::Printf(TEXT("The %s is recovering - strike low now."),*Species):FString();}
             ATVWildlifePresentation* Animal=WildlifeBodies.Contains(Id)?WildlifeBodies[Id].Get():nullptr;const bool First=!IsValid(Animal);
             if(First){FActorSpawnParameters P;P.SpawnCollisionHandlingOverride=ESpawnActorCollisionHandlingMethod::AlwaysSpawn;Animal=GetWorld()->SpawnActor<ATVWildlifePresentation>(FVector::ZeroVector,FRotator::ZeroRotator,P);}
             if(!Animal||!Animal->Project(D,CanonicalOrigin,UnitsPerMetre,First)){if(First&&IsValid(Animal))Animal->Destroy();continue;}
@@ -628,6 +703,42 @@ void UTVBridgeSubsystem::CycleTarget() {
 
 void UTVBridgeSubsystem::ToggleMechanisms() { bMechanismsOpen=!bMechanismsOpen; if(bMechanismsOpen) {CloseDialogue();bInventoryOpen=false;bPauseOpen=false;} }
 void UTVBridgeSubsystem::ChooseMechanism(int32 Index) { if(!IsLive() || !MechanismIntents.IsValidIndex(Index)) return; auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("person_action")); M->SetObjectField(TEXT("intent"),MechanismIntents[Index]); Send(M); }
+void UTVBridgeSubsystem::ToggleRest() {
+    if(!IsLive()) return;
+    auto Intent=MakeShared<FJsonObject>(); Intent->SetStringField(TEXT("kind"),CanonicalRestriction==TEXT("Sleeping")?TEXT("wake"):TEXT("rest"));
+    auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("person_action")); M->SetObjectField(TEXT("intent"),Intent); Send(M);
+    LastResult=CanonicalRestriction==TEXT("Sleeping")?TEXT("Getting up..."):TEXT("Lying down to sleep (Z to get up)."); ResultClock=0;
+}
+void UTVBridgeSubsystem::Hush() {
+    if(!IsLive()) return;
+    // Nearest animal within 10 m in front of you; otherwise the person you selected or are facing.
+    FString Target; auto* P=Cast<ATVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0)); double Best=1000*1000;
+    if(P) for(const auto& Pair:WildlifeBodies) { if(!IsValid(Pair.Value)) continue; const FVector D=Pair.Value->GetActorLocation()-P->GetActorLocation();
+        const double D2=D.SizeSquared2D(); if(D2<Best && FVector::DotProduct(D.GetSafeNormal2D(),P->GetActorForwardVector().GetSafeNormal2D())>0.2) { Best=D2; Target=Pair.Key; } }
+    if(Target.IsEmpty()) Target=!SelectedBody.IsEmpty()?SelectedBody:TalkTargetBody;
+    if(Target.IsEmpty()) { LastResult=TEXT("No one and nothing close enough to hush."); ResultClock=0; return; }
+    auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("hush")); M->SetStringField(TEXT("targetBodyId"),Target); Send(M);
+}
+void UTVBridgeSubsystem::PersonAction(const FString& Kind, const FString& Pending) {
+    if(!IsLive()) return;
+    auto Intent=MakeShared<FJsonObject>(); Intent->SetStringField(TEXT("kind"),Kind);
+    auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("person_action")); M->SetObjectField(TEXT("intent"),Intent); Send(M);
+    LastResult=Pending; ResultClock=0;
+}
+FString UTVBridgeSubsystem::ResultText(const FString& Code) {
+    static const TMap<FString,FString> Text={
+        {TEXT("out_of_reach"),TEXT("Too far to reach.")},{TEXT("no_target"),TEXT("Nothing in reach.")},{TEXT("cooldown"),TEXT("Still recovering.")},
+        {TEXT("incapacitated"),TEXT("You cannot act right now.")},{TEXT("no_resource"),TEXT("Nothing here to gather.")},{TEXT("unavailable_resource"),TEXT("Nothing here to gather.")},
+        {TEXT("missing_tool"),TEXT("You need a blade for that.")},{TEXT("too_tired"),TEXT("You are too tired.")},{TEXT("exhausted"),TEXT("You are exhausted.")},
+        {TEXT("too_strained"),TEXT("Your veil strain is too high; rest first.")},{TEXT("unknown_technique"),TEXT("You do not know how to hush. Someone would have to teach you.")},
+        {TEXT("resisted"),TEXT("It did not take - the hush failed.")},{TEXT("calmed"),TEXT("It went still.")},{TEXT("invalid_target"),TEXT("Nothing to hush there.")},
+        {TEXT("insufficient_funds"),TEXT("You cannot afford it.")},{TEXT("unavailable_stock"),TEXT("None left.")},{TEXT("interaction_unavailable"),TEXT("You can't do that from here.")},
+        {TEXT("not_carried"),TEXT("You are not carrying that.")},{TEXT("expired"),TEXT("Input arrived too late and was dropped.")},{TEXT("dead"),TEXT("You are dead.")},
+        {TEXT("invalid_intent"),TEXT("You can't do that now.")},{TEXT("saved"),TEXT("Progress saved on the server.")},{TEXT("forbidden"),TEXT("Not permitted.")},
+        {TEXT("use_command_protocol"),TEXT("Client out of date.")},{TEXT("weapon_unavailable"),TEXT("You no longer hold that weapon.")},{TEXT("standing_blocked"),TEXT("No room to stand.")},
+    };
+    const FString* T=Text.Find(Code); return T?*T:Code.Replace(TEXT("_"),TEXT(" "));
+}
 void UTVBridgeSubsystem::SaveWorld() { auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("save")); Send(M); }
 void UTVBridgeSubsystem::RequestDeveloperInspection() { if(auto* T=Selected()) { auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("debug_inspect")); M->SetStringField(TEXT("personId"),T->EntityId); Send(M); } }
 

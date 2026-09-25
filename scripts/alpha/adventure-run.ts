@@ -49,7 +49,12 @@ while (!request && (w.now - worldStart) / DAY < days) {
     bot.say({ type: 'dialogue_close' });
     if (request) break;
   }
-  if (!request) bot.offline(1800); // back to ordinary life for a while; the world keeps happening
+  if (!request) {
+    // Diagnostic only (never read by the player's choices): whether any opportunity exists yet.
+    note('round', { asked: people.length, diagnosticOpenProtection: w.requests.filter(x => x.type === 'protection' && x.status === 'open').length,
+      diagnosticBoarAttacks: w.events.filter(e => e.type === 'attack' && w.get(e.actor!)?.kind === 'creature').length });
+    bot.offline(1800); // back to ordinary life for a while; the world keeps happening
+  }
 }
 if (!request || !requester) finish('no_opportunity_found', { worldDays: (w.now - worldStart) / DAY });
 const r = request!, asker = requester!;

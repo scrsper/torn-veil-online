@@ -5,6 +5,7 @@
 #include "TVInteractionPrediction.h"
 #include "TVLiveCombat.h"
 #include "TVCommonUIWidgets.h"
+#include "TVClientConfig.h"
 #include "TVBridgeSubsystem.generated.h"
 
 class IWebSocket;
@@ -38,6 +39,14 @@ public:
     void UIBack();
     void UIMove(int32 Delta);
     void UIConfirm();
+    /** Living Alpha connection: who/where, and the sign-in screen shown when the server refuses us. */
+    FTVClientConfig ClientConfig;
+    bool bSignInRequired=false,bSignInNewOnly=false;
+    FString SignInMessage,CharacterName,WorldId,ServerRelease,MaintenanceMessage,JournalSummary,DangerCue;
+    UPROPERTY() TObjectPtr<class UTVSignInWidget> SignIn;
+    void RequireSignIn(const FString& Message,bool bNewOnly=false);
+    void SubmitSignIn(const FTVClientConfig& Config);
+    void UpdateSignIn();
     bool HasModalScreen() const { return (PlayerShell&&PlayerShell->HasModalScreen()) || (bInspector&&bMechanismsOpen); }
     UPROPERTY() TObjectPtr<UTVPlayerShellWidget> PlayerShell;
     FString FocusedTargetId,FocusedActionId,FocusedKind,MovementRestriction,MobilitySummary;
@@ -65,6 +74,11 @@ public:
     void ChooseMechanism(int32 Index);
     void RequestDeveloperInspection();
     void SaveWorld();
+    void ToggleRest();
+    void Hush();
+    /** Send a canonical person_action intent of this kind (meditate, advance). */
+    void PersonAction(const FString& Kind, const FString& Pending);
+    static FString ResultText(const FString& Code);
     void PredictMovement(float Dt,const FVector& Direction,bool bSprint,TOptional<double> Facing={});
     void SetCrouch(bool Held);
     // Forget only disposable, not-yet-presented input; never cancel canonical outcomes.
@@ -126,7 +140,8 @@ private:
     TSharedPtr<IWebSocket> Socket;
     FString SelectedBody;
     int32 Sequence = 0;
-    float SendClock = 0, RetryClock = 0, ResultClock = 0;
+    float SendClock = 0, RetryClock = 0, ResultClock = 0, RetryDelay = 3;
+    double DeadSince = -1;
     double LastSnapshotReceived = 0;
     bool bWasLive = false, bMovingInput = false;
     TSet<FString> WantedRegions;

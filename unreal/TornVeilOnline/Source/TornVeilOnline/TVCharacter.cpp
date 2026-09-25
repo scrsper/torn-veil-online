@@ -1,4 +1,6 @@
 #include "TVCharacter.h"
+#include "EngineUtils.h"
+#include "Components/CapsuleComponent.h"
 #include "TVCombatPresentationComponent.h"
 #include "TVCombatAnimInstance.h"
 #include "Misc/CoreDelegates.h"
@@ -161,6 +163,7 @@ void ATVCharacter::Tick(float Dt) {
         CameraBoom->TargetArmLength=FMath::FInterpTo(CameraBoom->TargetArmLength,ArmTarget,Dt,8);
         const float Shoulder=FMath::GetMappedRangeValueClamped(FVector2D(160,700),FVector2D(55,0),ArmTarget)*CameraShoulderSign;
         CameraBoom->SocketOffset.Y=FMath::FInterpTo(CameraBoom->SocketOffset.Y,Shoulder,Dt,7);
+        HideCameraIntruders();
     }
     if (!bChoreography) {
         // Returning from the native choreography instance must restore the ordinary pose player.
@@ -211,6 +214,11 @@ void ATVCharacter::Project(const TSharedPtr<FJsonObject>& D, bool First) {
             UE_LOG(LogTemp, Warning, TEXT("TV_CHARACTER rejected malformed embodiment for %s: %s"), *State.BodyId, *EmbodimentError);
         }
     }
+    // Foundry owns the realized body's scale. Its component is attached to the animation
+    // driver, so scaling both multiplies the same proportions twice (including every part).
+    // Decide after profile application, including failure and signature-only snapshots.
+    if (VisibleCharacter && VisibleCharacter->HasVisibleCharacter()) GetMesh()->SetRelativeScale3D(FVector::OneVector);
+    else if (State.Appearance.bPresent) GetMesh()->SetRelativeScale3D(TVPresentationScale(State.Appearance.Build, State.Appearance.Height));
     double H=0, MaxH=0; D->TryGetNumberField(TEXT("health"),H); D->TryGetNumberField(TEXT("maxHealth"),MaxH); Health=H; MaxHealth=MaxH;
     bDead = State.bDead; bIncapacitated = State.bIncapacitated || bDead;
     AttackTargetEntity.Empty(); D->TryGetStringField(TEXT("attackTarget"), AttackTargetEntity); // null when not swinging
@@ -304,7 +312,7 @@ void TVReadProps(const TSharedPtr<FJsonObject>& Root, const TCHAR* Field, TMap<F
     const TSharedPtr<FJsonObject>* Section = nullptr;
     if (!Root->TryGetObjectField(Field, Section) || !Section || !Section->IsValid()) return;
     for (const auto& Pair : (*Section)->Values) {
-        const TSharedPtr<FJsonObject> Row = Pair.Value->AsObject();
+        const TSharedPtr<FJsonObject> Row = Pair.Value.IsValid() && Pair.Value->Type == EJson::Object ? Pair.Value->AsObject() : nullptr;
         if (!Row.IsValid()) continue; // the "comment" key is a plain string and is skipped here
         FTVPropCue Cue; Row->TryGetStringField(TEXT("prop"), Cue.Prop); Row->TryGetBoolField(TEXT("long"), Cue.bLong);
         Out.Add(FString(Pair.Key.ToView()), Cue);
@@ -329,7 +337,7 @@ const FTVAshfordAppearanceGrammar& TVAppearanceGrammar() {
     }
     if (Root->TryGetObjectField(TEXT("silhouettes"), Section) && Section && Section->IsValid()) {
         for (const auto& Pair : (*Section)->Values) {
-            const TSharedPtr<FJsonObject> Row = Pair.Value->AsObject();
+            const TSharedPtr<FJsonObject> Row = Pair.Value.IsValid() && Pair.Value->Type == EJson::Object ? Pair.Value->AsObject() : nullptr;
             if (!Row.IsValid()) continue;
             FTVSilhouetteCue Cue; Cue.Scale = TVScaleField(Row, FVector::OneVector);
             double Skirt = Cue.Skirt; if (Row->TryGetNumberField(TEXT("skirt"), Skirt) && FMath::IsFinite(Skirt)) Cue.Skirt = FMath::Clamp(static_cast<float>(Skirt), 0.f, 2.f);
@@ -338,7 +346,7 @@ const FTVAshfordAppearanceGrammar& TVAppearanceGrammar() {
     }
     if (Root->TryGetObjectField(TEXT("hair"), Section) && Section && Section->IsValid()) {
         for (const auto& Pair : (*Section)->Values) {
-            const TSharedPtr<FJsonObject> Row = Pair.Value->AsObject();
+            const TSharedPtr<FJsonObject> Row = Pair.Value.IsValid() && Pair.Value->Type == EJson::Object ? Pair.Value->AsObject() : nullptr;
             if (!Row.IsValid()) continue;
             FTVHairCue Cue; Cue.Scale = TVScaleField(Row, FVector::OneVector); Row->TryGetBoolField(TEXT("bound"), Cue.bBound);
             Profile.Hair.Add(FString(Pair.Key.ToView()), Cue);
@@ -348,7 +356,7 @@ const FTVAshfordAppearanceGrammar& TVAppearanceGrammar() {
     TVReadProps(Root, TEXT("roleCues"), Profile.RoleCues);
     if (Root->TryGetObjectField(TEXT("occupations"), Section) && Section && Section->IsValid()) {
         for (const auto& Pair : (*Section)->Values) {
-            const TSharedPtr<FJsonObject> Row = Pair.Value->AsObject(); FString Cue;
+            const TSharedPtr<FJsonObject> Row = Pair.Value.IsValid() && Pair.Value->Type == EJson::Object ? Pair.Value->AsObject() : nullptr; FString Cue;
             if (Row.IsValid() && Row->TryGetStringField(TEXT("prop"), Cue)) Profile.OccupationProps.Add(FString(Pair.Key.ToView()), Cue);
         }
     }
@@ -388,19 +396,16 @@ void ATVCharacter::ApplyAppearance(const FTVAppearanceVisualState& A) {
         ClothMaterial->SetScalarParameterValue(TEXT("Grooming"), Description.bHasDescription ? Description.Grooming : .5f);
     }
     if (HairMaterial) HairMaterial->SetVectorParameterValue(TEXT("Tint"), TVHexColour(A.Hair, FLinearColor(.04f, .025f, .016f)));
-    const float Height = A.Height, Build = A.Build;
-    GetMesh()->SetRelativeScale3D(FVector(Build, Build, Height));
-
     // A long garment reads long because it hangs lower, not only because it is taller.
     const FTVSilhouetteCue Silhouette = Description.bHasDescription ? Profile.Silhouettes.FindRef(Description.GarmentSilhouette) : FTVSilhouetteCue();
-    GarmentProxy->SetRelativeScale3D(FVector(.44f * Build * Silhouette.Scale.X, .30f * Build * Silhouette.Scale.Y, .55f * Height * Silhouette.Scale.Z));
-    GarmentProxy->SetRelativeLocation(FVector(2.f, 0.f, -8.f - 10.f * Silhouette.Skirt * Height));
+    GarmentProxy->SetRelativeScale3D(FVector(.44f * Silhouette.Scale.X, .30f * Silhouette.Scale.Y, .55f * Silhouette.Scale.Z));
+    GarmentProxy->SetRelativeLocation(FVector(2.f, 0.f, -8.f - 10.f * Silhouette.Skirt));
     GarmentProxy->SetHiddenInGame(!Profile.bShowGarment);
 
     // Bound hair stays on the crown; loose hair falls behind the head.
     const bool bShaved = Description.bHasDescription && Description.HairStyle == TEXT("shaved");
     const FTVHairCue HairCue = Description.bHasDescription ? Profile.Hair.FindRef(Description.HairStyle) : FTVHairCue();
-    HairProxy->SetRelativeScale3D(FVector(.48f * Build * HairCue.Scale.X, .48f * Build * HairCue.Scale.Y, .22f * Height * HairCue.Scale.Z));
+    HairProxy->SetRelativeScale3D(FVector(.48f * HairCue.Scale.X, .48f * HairCue.Scale.Y, .22f * HairCue.Scale.Z));
     HairProxy->SetRelativeLocation(HairCue.bBound ? FVector(0.f, 0.f, 5.f) : FVector(-2.f, 0.f, 1.f));
     HairProxy->SetHiddenInGame(!Profile.bShowHair);
     HairProxy->SetVisibility(!bShaved && !A.HatStyle.Equals(TEXT("hood"), ESearchCase::IgnoreCase));
@@ -530,6 +535,24 @@ void ATVCharacter::Animate(float Speed) {
     }
 }
 FString ATVCharacter::PresentationAnimation() const { if (!CombatPresentation->AnimationPath().IsEmpty()) return CombatPresentation->AnimationPath(); return CurrentAnimation ? CurrentAnimation->GetPathName() : FString(); }
+/**
+ * Presentation-only: another person whose body the local camera is inside (or almost touching) is
+ * hidden until the camera leaves them, so a bystander standing behind the player never fills the
+ * screen with the inside of a torso. Nobody else's view, targeting authority or canonical state is
+ * affected; the actor reappears the frame the camera is clear.
+ */
+void ATVCharacter::HideCameraIntruders() {
+    const FVector Eye = Camera->GetComponentLocation();
+    for (TActorIterator<ATVCharacter> It(GetWorld()); It; ++It) {
+        ATVCharacter* Other = *It; if (Other == this) continue;
+        const UCapsuleComponent* Capsule = Other->GetCapsuleComponent();
+        const FVector Center = Capsule->GetComponentLocation(), Up = Capsule->GetUpVector();
+        const float Half = Capsule->GetScaledCapsuleHalfHeight(), Radius = Capsule->GetScaledCapsuleRadius();
+        const float Along = FMath::Clamp(FVector::DotProduct(Eye - Center, Up), -Half, Half);
+        const bool bIntrudes = FVector::Dist(Eye, Center + Up * Along) < Radius + 30.f;
+        if (Other->bCameraIntrusionHidden != bIntrudes) { Other->bCameraIntrusionHidden = bIntrudes; Other->SetActorHiddenInGame(bIntrudes); }
+    }
+}
 FString ATVCharacter::PresentationDiagnostics() const {
     auto J = MakeShared<FJsonObject>();
     J->SetStringField(TEXT("bodyId"), BodyId); J->SetStringField(TEXT("entityId"), EntityId);
@@ -563,6 +586,11 @@ FString ATVCharacter::PresentationDiagnostics() const {
     J->SetNumberField(TEXT("occupancyOffsetCm"), OccupancyOffsetCm.Size2D());
     J->SetNumberField(TEXT("heldCrouch"),CanonicalCrouch);J->SetNumberField(TEXT("facingDegrees"),GetActorRotation().Yaw);J->SetNumberField(TEXT("desiredYaw"),Controller?Controller->GetControlRotation().Yaw:0);J->SetNumberField(TEXT("cameraYaw"),CameraBoom->GetComponentRotation().Yaw);
     J->SetNumberField(TEXT("speedCmPerSecond"), CanonicalVelocity.Size2D());
+    J->SetStringField(TEXT("cameraPosition"),Camera->GetComponentLocation().ToString());
+    J->SetStringField(TEXT("cameraRotation"),Camera->GetComponentRotation().ToString());
+    J->SetStringField(TEXT("cameraBoomPosition"),CameraBoom->GetComponentLocation().ToString());
+    J->SetBoolField(TEXT("cameraCollisionFixed"),CameraBoom->IsCollisionFixApplied());
+    J->SetBoolField(TEXT("cameraCollisionEnabled"),CameraBoom->bDoCollisionTest);
     J->SetBoolField(TEXT("directionalLocomotion"),bDirectionalLocomotion);
     if(auto* Anim=Cast<UTVCombatAnimInstance>(GetMesh()->GetAnimInstance())){
         J->SetNumberField(TEXT("blendDirection"),Anim->LocomotionPosition.X);J->SetNumberField(TEXT("blendSpeed"),Anim->LocomotionPosition.Y);
@@ -623,6 +651,10 @@ void ATVCharacter::RebasePresentation(const FVector& Delta) { TargetPosition+=De
 
 void ATVCharacter::Mechanisms() { if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->ToggleMechanisms(); }
 void ATVCharacter::SaveWorld() { if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->SaveWorld(); }
+void ATVCharacter::RestToggle() { if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->ToggleRest(); }
+void ATVCharacter::Hush() { if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->Hush(); }
+void ATVCharacter::Meditate() { if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->PersonAction(TEXT("meditate"),TEXT("Sitting still to practise the veil (half an hour)...")); }
+void ATVCharacter::Breakthrough() { if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->PersonAction(TEXT("advance"),TEXT("Reaching for the breakthrough...")); }
 
 void ATVCharacter::Dodge() {
     const double At=FPlatformTime::Seconds();auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>();auto* PC=Cast<APlayerController>(Controller);

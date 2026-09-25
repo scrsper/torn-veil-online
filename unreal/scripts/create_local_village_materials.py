@@ -37,7 +37,9 @@ def main():
         material = library.load_asset(target)
         if isinstance(material, unreal.MaterialInstanceConstant):
             # The pack's instances share base materials; flag a local copy of the base and reparent.
-            parent = material.get_editor_property("parent")
+            # Always derive from the vendor source, not a previous generated copy. Reruns
+            # must repair missing parents and retain stable paths rather than copy a copy.
+            parent = library.load_asset(source).get_editor_property("parent")
             base = parent.get_base_material() if parent else None
             if not base:
                 report[name] = "instance without base material"
@@ -50,13 +52,17 @@ def main():
             if not base_copy.get_editor_property("used_with_instanced_static_meshes"):
                 base_copy.set_editor_property("used_with_instanced_static_meshes", True)
                 unreal.MaterialEditingLibrary.recompile_material(base_copy)
-                library.save_loaded_asset(base_copy)
+            # duplicate_asset creates an in-memory package even if the source already has
+            # the flag. Persist it before saving an instance which references that package.
+            if not library.save_loaded_asset(base_copy, only_if_is_dirty=False):
+                raise RuntimeError("Could not save " + base_target)
             if parent != base:
                 report[name] = "nested instance parent unsupported: " + parent.get_path_name()
                 continue
             unreal.MaterialEditingLibrary.set_material_instance_parent(material, base_copy)
             unreal.MaterialEditingLibrary.update_material_instance(material)
-            library.save_loaded_asset(material)
+            if not library.save_loaded_asset(material, only_if_is_dirty=False):
+                raise RuntimeError("Could not save " + target)
             report[name] = {"instance": target, "base": base_target}
             continue
         material.set_editor_property("used_with_instanced_static_meshes", True)

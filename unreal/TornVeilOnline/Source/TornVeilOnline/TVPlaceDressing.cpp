@@ -23,6 +23,7 @@ namespace
     struct FPlace
     {
         FString Type, Family; double X0, Y0, X1, Y1, Floor; int32 DoorSide = -1; FVector2D Door = FVector2D(-1e9); bool bIndoor = false; int32 Seed = 0;
+        FVector2D Inside = FVector2D(-1e9);
         double Length(int32 Side) const { return Side < 2 ? X1 - X0 : Y1 - Y0; }
         /** Point `Along` metres down a side, `Out` metres beyond the wall face. */
         FVector2D OnSide(int32 Side, double Along, double Out) const
@@ -78,6 +79,8 @@ void ATVRegionProjection::DressPlaces(const TSharedPtr<FJsonObject>& R)
         FPlace Place{Str(P, TEXT("type")), Str(P, TEXT("family")), Num(B, TEXT("x0")), Num(B, TEXT("z0")), Num(B, TEXT("x1")) + 1, Num(B, TEXT("z1")) + 1, Num(B, TEXT("y0"))};
         P->TryGetBoolField(TEXT("indoor"), Place.bIndoor);
         Place.Seed = static_cast<int32>(Num(P, TEXT("visualSeed")));
+        const TSharedPtr<FJsonObject>* Inside;
+        if (P->TryGetObjectField(TEXT("inside"), Inside)) Place.Inside = FVector2D(Num(*Inside,TEXT("x")),Num(*Inside,TEXT("z")));
         const TSharedPtr<FJsonObject>* Door;
         if (P->TryGetObjectField(TEXT("door"), Door)) {
             const double DX = Num(*Door, TEXT("x")), DZ = Num(*Door, TEXT("z"));
@@ -87,10 +90,14 @@ void ATVRegionProjection::DressPlaces(const TSharedPtr<FJsonObject>& R)
         Places.Add(Place);
     }
     const auto Clear = [&](const FVector2D& P, const FPlace& Host, double Radius) {
-        const FIntPoint Cell(FMath::FloorToInt(P.X), FMath::FloorToInt(P.Y)); const int32 Reach = FMath::CeilToInt(Radius);
+        // Path cells have area, and the canonical inside point is used for arrival and
+        // ordinary activities. Decorative meshes cannot occupy those clear spaces.
+        const double PathRadius=Radius+.71;
+        const FIntPoint Cell(FMath::FloorToInt(P.X), FMath::FloorToInt(P.Y)); const int32 Reach = FMath::CeilToInt(PathRadius);
         for (int32 DX = -Reach; DX <= Reach; ++DX) for (int32 DY = -Reach; DY <= Reach; ++DY)
-            if (PathCells.Contains(Cell + FIntPoint(DX, DY)) && FVector2D::Distance(P, FVector2D(Cell.X + DX + .5, Cell.Y + DY + .5)) < Radius) return false;
-        if (FVector2D::Distance(P, Host.Door) < 3.2) return false;
+            if (PathCells.Contains(Cell + FIntPoint(DX, DY)) && FVector2D::Distance(P, FVector2D(Cell.X + DX + .5, Cell.Y + DY + .5)) < PathRadius) return false;
+        if (FVector2D::Distance(P, Host.Door) < Radius+1.5) return false;
+        if (FVector2D::Distance(P, Host.Inside) < Radius+(Host.Type==TEXT("square")?3.2:1.5)) return false;
         for (const auto& Other : Places) if (&Other != &Host && P.X > Other.X0 - .5 && P.X < Other.X1 + .5 && P.Y > Other.Y0 - .5 && P.Y < Other.Y1 + .5) return false;
         return true;
     };
@@ -99,7 +106,13 @@ void ATVRegionProjection::DressPlaces(const TSharedPtr<FJsonObject>& R)
         FRandomStream Random(Place.Seed ^ 0x5eed);
         const double Z = Place.Floor * 100;
         const auto Put = [&](const FVector2D& P, const TCHAR* AssetRole, const FString& Fallback, float Yaw, float Height, double Radius = 1.1, float Cull = 0) {
-            if (!Clear(P, Place, Radius)) return false;
+            // Match Prop's uniform height scaling. A table/cart's long footprint must
+            // clear the route too; a guessed radius around its pivot is insufficient.
+            const auto* Mesh=LoadObject<UStaticMesh>(nullptr,*FTVEnvironmentGrammar::Asset(AssetRole,*Fallback));
+            if(!Mesh) return false;
+            const FVector Size=Mesh->GetBoundingBox().GetSize();
+            const double Footprint=Size.Size2D()*.5*Height/FMath::Max(Size.Z,1.)/100.;
+            if (!Clear(P, Place, FMath::Max(Radius,Footprint+.4))) return false;
             Prop(AssetRole, *Fallback, FVector(P.X * 100, P.Y * 100, Z), Yaw, Height, Cull);
             return true;
         };

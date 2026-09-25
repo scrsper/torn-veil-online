@@ -1,5 +1,6 @@
 #include "TVWorldProjection.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
+#include "Components/BoxComponent.h"
 #include "ProceduralMeshComponent.h"
 #include "PCGComponent.h"
 #include "PCGContext.h"
@@ -62,6 +63,22 @@ void ATVRegionProjection::Piece(const FString& Id, const FString& MeshPath, cons
     const int32 Index=Batch->AddInstance(FTransform(Rotation,Local,Scale));
     CanonicalVisuals.FindOrAdd(Id).Add(Key+TEXT("#")+FString::FromInt(Index));
 }
+void ATVRegionProjection::CameraBlock(const FVector& Center, const FVector& Size, float Yaw, float Roll) {
+    if(Size.GetMin()<=0) return;
+    auto* Block=NewObject<UBoxComponent>(this);
+    Block->SetupAttachment(RootComponent);
+    Block->SetRelativeLocation(Center-CanonicalBase*100);
+    Block->SetRelativeRotation(FRotator(0,Yaw,Roll));
+    Block->SetBoxExtent(Size/2);
+    Block->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    Block->SetCollisionResponseToAllChannels(ECR_Ignore);
+    Block->SetCollisionResponseToChannel(ECC_Camera,ECR_Block);
+    Block->SetGenerateOverlapEvents(false);
+    Block->SetCanEverAffectNavigation(false);
+    Block->ComponentTags.Add(TEXT("TV.Presentation.CameraOnly"));
+    Block->RegisterComponent();
+    CameraBlocks.Add(Block);
+}
 void ATVRegionProjection::Structure(const TSharedPtr<FJsonObject>& P) {
     const FString Id=S(P,TEXT("id")), Family=S(P,TEXT("family")); const auto B=P->GetObjectField(TEXT("bounds"));
     const double X=N(B,TEXT("x0"))*100, Y=N(B,TEXT("z0"))*100, W=(N(B,TEXT("x1"))-N(B,TEXT("x0"))+1)*100, D=(N(B,TEXT("z1"))-N(B,TEXT("z0"))+1)*100, Z=N(B,TEXT("y0"))*100;
@@ -78,6 +95,7 @@ void ATVRegionProjection::Structure(const TSharedPtr<FJsonObject>& P) {
     // the floor absorbs pivot/bounds variation without inventing collision or terrain.
     if (Indoor) Piece(Id,Kit+TEXT("Floor_Brick"),FVector(X+W/2,Y+D/2,Z-28),FVector(W+20,D+20,32));
     Piece(Id,Kit+TEXT("Floor_WoodDark"),FVector(X+W/2,Y+D/2,Z-12),FVector(W,D,24));
+    if(Indoor) CameraBlock(FVector(X+W/2,Y+D/2,Z-12),FVector(W,D,24));
     const TSharedPtr<FJsonObject>* Door; FVector DoorPos(-1e9); if(P->TryGetObjectField(TEXT("door"),Door)) DoorPos=Position(*Door)*100;
     FRandomStream Random(static_cast<int32>(N(P,TEXT("visualSeed"))));
     const FString Type=S(P,TEXT("type"));
@@ -97,9 +115,12 @@ void ATVRegionProjection::Structure(const TSharedPtr<FJsonObject>& P) {
             Spans.Add({0,FMath::Max(0.,DoorCenter-65)}); Spans.Add({FMath::Min(Length,DoorCenter+65),Length});
             Piece(Id,Kit+TEXT("DoorFrame_Flat_WoodDark"),At(DoorCenter,118,4),FVector(150,30,236),AlongX?0:90);
             Piece(Id,FTVEnvironmentGrammar::Asset(TEXT("Architecture.Wall"),*(Kit+TEXT("Wall_Plaster_Straight"))),At(DoorCenter,236+(Storey-236)/2),FVector(130,25,Storey-236),AlongX?0:90);
+            CameraBlock(At(DoorCenter,236+(H-236)/2),FVector(130,25,H-236),AlongX?0:90);
         } else Spans.Add({0,Length});
         for(const auto& Span:Spans) {
             const double SpanLength=Span.Value-Span.Key; if(SpanLength<10) continue;
+            // Window panes also stop the orbit camera; the canonical door opening stays clear.
+            CameraBlock(At(Span.Key+SpanLength/2,H/2),FVector(SpanLength,25,H),AlongX?0:90);
             const int Count=FMath::Max(1,FMath::CeilToInt(SpanLength/260)); const double Segment=SpanLength/Count;
             for(int I=0;I<Count;I++) {
                 const double Offset=Span.Key+(I+.5)*Segment;
@@ -137,6 +158,11 @@ void ATVRegionProjection::Structure(const TSharedPtr<FJsonObject>& P) {
         // Source has a Y-aligned ridge; normalize its bounds to a modest overhang.
         Piece(Id,Envelope,FVector(X+W/2,Y+D/2,Z+H+Rise/2-5),
             FVector(FMath::Min(W,D)+70,FMath::Max(W,D)+60,Rise),W>=D?90:0,FTVEnvironmentGrammar::Asset(TEXT("Architecture.RoofEnvelope.Material"),TEXT("")));
+        const double Run=(FMath::Min(W,D)+70)/2;
+        for(int Sign:{-1,1}) {
+            const FVector Center=W>=D?FVector(X+W/2,Y+D/2+Sign*Run/2,Z+H+Rise/2-5):FVector(X+W/2+Sign*Run/2,Y+D/2,Z+H+Rise/2-5);
+            CameraBlock(Center,FVector(FMath::Max(W,D)+60,FMath::Sqrt(Run*Run+Rise*Rise),24),W>=D?(Sign>0?0:180):(Sign>0?270:90),FMath::RadiansToDegrees(FMath::Atan2(Rise,Run)));
+        }
         if(Indoor) {
             // Close both gable triangles behind the roof boards; an open gable reads as a hollow shell.
             const bool RidgeX=W>=D; const double Span=RidgeX?D:W;
@@ -156,10 +182,19 @@ void ATVRegionProjection::Structure(const TSharedPtr<FJsonObject>& P) {
         }
     } else {
         const FString Roof=FTVEnvironmentGrammar::Asset(TEXT("Architecture.RoofSlope"),*(Kit+TEXT("Roof_Wooden_2x1")));
-        for(const auto& Panel:FTVEnvironmentGrammar::Roof(FVector(X,Y,Z),FVector2D(W,D),H)) Piece(Id,Roof,Panel.Center,Panel.Size,Panel.Yaw);
+        // This kit's roof panels are closed wedges, including their lower/end faces. A camera
+        // under an open stall must stay below those faces as well as outside the pitched top.
+        CameraBlock(FVector(X+W/2,Y+D/2,Z+H-3),FVector(W+50,D+50,24));
+        for(const auto& Panel:FTVEnvironmentGrammar::Roof(FVector(X,Y,Z),FVector2D(W,D),H)) {
+            Piece(Id,Roof,Panel.Center,Panel.Size,Panel.Yaw);
+            // Open stalls have low roofs too. Sloped query slabs retain the open volume below
+            // the ridge instead of using a solid bounding box around the entire roof.
+            CameraBlock(Panel.Center,FVector(Panel.Size.X,FMath::Sqrt(FMath::Square(Panel.Size.Y)+FMath::Square(Panel.Size.Z)),24),Panel.Yaw,FMath::RadiansToDegrees(FMath::Atan2(Panel.Size.Z,Panel.Size.Y)));
+        }
     }
     // A boarded ceiling closes the visible roof underside without changing walkable space.
     if(Indoor) Piece(Id,Kit+TEXT("Floor_WoodDark"),FVector(X+W/2,Y+D/2,Z+H-8),FVector(W,D,12));
+    if(Indoor) CameraBlock(FVector(X+W/2,Y+D/2,Z+H-8),FVector(W,D,12));
     // Equipment comes from assemblies, never from a decorative building family.
 }
 void ATVRegionProjection::Build(const TSharedPtr<FJsonObject>& R) {
