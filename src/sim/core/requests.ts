@@ -20,7 +20,7 @@ export interface RequestSpec {
 
 /** Human-readable label for a request type, used only in event summaries. */
 export function requestTypeLabel(type: RequestType): string {
-  return type === 'haul' ? 'hauling' : type === 'production' ? 'production' : 'construction labour';
+  return type === 'haul' ? 'hauling' : type === 'production' ? 'production' : type === 'protection' ? 'dealing with a dangerous animal' : 'construction labour';
 }
 
 export function createRequest(world: World, s: RequestSpec): Request {

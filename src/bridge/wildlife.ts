@@ -11,6 +11,11 @@ export interface WildlifeBodyProjection {
   condition: number;
   alive: boolean; dead: boolean; present: boolean;
   activity: 'idle' | 'walk' | 'forage' | 'eat' | 'drink' | 'rest' | 'sleep' | 'flee' | 'dead';
+  /** Visible defensive behaviour (ecology/defense.ts): bristling display, charge, committed strike
+   * with its wind-up, recovery. Plainly observable; lets a player read and time an encounter. */
+  defense: 'warn' | 'charge' | 'strike' | 'recover' | 'retreat' | null;
+  /** Whether that behaviour is aimed at the viewer's own body. */
+  defenseAtViewer: boolean;
 }
 
 /** Complete current observation, not a lifecycle roster. Absence means leave presentation
@@ -41,7 +46,8 @@ export function wildlifeProjection(world: World, viewer: Body | undefined, regio
       bodyPlan: { id: spec.bodyPlan.id, shape: body.shape, heightM: spec.bodyPlan.heightM, radiusM: spec.bodyPlan.radiusM },
       pos: { ...body.pos }, yaw: body.yaw, vel: { ...body.vel }, scale: Math.round(size * 20) / 20,
       ageClass: size < 1 ? 'juvenile' : 'adult', condition: body.dead ? 0 : Math.max(0, Math.min(1, body.health / Math.max(1e-9, body.maxHealth))),
-      alive: !body.dead, dead: body.dead, present: body.present, activity });
+      alive: !body.dead, dead: body.dead, present: body.present, activity,
+      defense: body.dead ? null : state.defense?.mode ?? null, defenseAtViewer: !!state.defense && state.defense.targetBodyId === viewer.id });
   }
   return frame;
 }

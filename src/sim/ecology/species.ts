@@ -48,5 +48,10 @@ export const WILDLIFE_SPECIES: Record<string, SpeciesSpec> = {
     litter: [3, 6], birthMassFraction: 0.035, breedingIntervalDays: 240, conceptionChancePerDay: 0.045, minCondition: 0.7,
     mateRadiusM: 10 },
     spacing: { densityRadiusM: 20, comfortableNeighbours: 7 },
+    // Boars usually slip away, but one surprised at close quarters, struck, or guarding young
+    // bristles, then charges low with its tusks. Leg-height strikes cannot be ducked; step aside.
+    defense: { warnRadiusM: 7, chargeRadiusM: 3.5, warnSeconds: 3, chargeSpeedMps: 5.2, reachM: 1.05, impact: 20,
+      windupSeconds: 0.55, activeSeconds: 0.22, recoverySeconds: 1.1, retreatBelowHealth: 0.35, retreatSeconds: 12,
+      provokedSeconds: 25, protectiveRadiusFactor: 1.7 },
   },
 };

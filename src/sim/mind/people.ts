@@ -2,7 +2,7 @@ import type { KnowledgeItem, Person, Source } from '../core/types';
 import type { World } from '../core/world';
 import { learn } from './knowledge';
 import { remember } from './memory';
-import { adjustRel } from './relationships';
+import { adjustRel, getRel } from './relationships';
 import { conversationBodies } from './socialEvidence';
 import { anchorIdentityToObservation, observableSignature } from './encounter';
 
@@ -49,6 +49,9 @@ export function introduce(world: World, speaker: Person, listener: Person, claim
   // An introduction anchors the claimed name to the appearance actually present in the
   // reachable conversation. Future recognition still requires a matching visible signature.
   anchorIdentityToObservation(listener, speaker.id, observableSignature(world, bodies.speaker));
+  // The speaker's own durable fact that they have introduced themselves. Memories are bounded and
+  // forget; relying on them re-introduced the same pair every few minutes for days (27k events).
+  const told = getRel(speaker, listener.id); if (!told.tags.includes('introduced')) told.tags.push('introduced');
   remember(world, speaker, { type: 'introduction', summary: 'I introduced myself to this person', entities: [listener.id],
     significance: 0.3, valence: 0, eventId: ev.id, source: { type: 'self', viaEvent: ev.id } });
   remember(world, listener, { type: 'introduction', summary: `This person introduced themself as ${claimedName}`, entities: [speaker.id],

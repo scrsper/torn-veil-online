@@ -85,6 +85,8 @@ const KIND_BY_TYPE: Record<string, SituationKind> = {
   // is arrested for it — but genuinely an unsettled matter between two people, which is exactly
   // what the pre-existing 'obligation' kind already means.
   obligation_failed: 'obligation',
+  // Living Alpha: an animal bristling at someone is a threatened harm; its actor is the creature.
+  animal_threat_display: 'harm',
 };
 
 /** Occupations whose ROLE gives them an institutional stake in wrongdoing. Not a name list —
@@ -232,6 +234,13 @@ export function proposeConcerns(world: World, p: Person, ap: Appraisal): Concern
   if (ap.crime && ap.kind === 'harm' && ap.actorId && ap.actorId !== p.id
     && has('victim', 'afraid_of_actor', 'kin_of_subject', 'close_to_subject', 'neighbour', 'at_my_place')) {
     out.push({ kind: 'safety', aboutId: ap.actorId, subjectId: ap.subjectId, intensity: w * 0.9, reasons: ap.reasons.slice(0, 2) });
+  }
+  // DANGER — a wild animal hurt or menaced me, someone close to me, or someone where I work. Not
+  // a crime and nobody to blame, but the place it roams is unsafe while it is about. The concern
+  // names the animal and the place, and is discharged like any other when I learn it is settled.
+  if (ap.kind === 'harm' && !ap.crime && ap.actorId && world.get(ap.actorId)?.kind === 'creature'
+    && has('victim', 'kin_of_subject', 'close_to_subject', 'coworker', 'at_my_place')) {
+    out.push({ kind: 'safety', aboutId: ap.actorId, subjectId: ap.subjectId, placeId: ap.placeId, intensity: w, reasons: ap.reasons.slice(0, 2) });
   }
   // JUSTICE — this ought to be answered for. Gated on the belief actually describing a CRIME:
   // `KIND_BY_TYPE` maps every attack to 'harm' (a guard's lawful subdual really does hurt the

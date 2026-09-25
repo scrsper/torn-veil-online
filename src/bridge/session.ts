@@ -39,6 +39,7 @@ import { getPhysicalCapability } from '../sim/core/attributes';
 import { EMPTY_CATALOGUE } from '../foundry/catalogue';
 import type { CharacterCatalogue } from '../foundry/catalogue';
 import { playerJournal } from './journal';
+import { attemptHush } from '../sim/physical/veil';
 
 export const BRIDGE_VERSION = 1;
 /** The routing key of the single-player developer bridge. Multiplayer servers use one key per account. */
@@ -301,6 +302,9 @@ export class BridgeSession {
       result = performHandInteraction(this.sim, p, m.interactionId);
     } else if (m.type === 'container_transfer') {
       result = performContainerTransfer(this.sim, p, m.containerId, m.itemId, m.direction);
+    } else if (m.type === 'hush') {
+      // The veil art: result codes are the canonical answer (calmed, resisted, too_strained, ...).
+      result = typeof m.targetBodyId === 'string' ? attemptHush(this.world, p, m.targetBodyId) : 'invalid_target';
     } else if (m.type === 'talk') {
       result = this.beginDialogue(ch, p, typeof m.targetBodyId === 'string' ? m.targetBodyId : '');
     } else if (m.type === 'dialogue_option') {

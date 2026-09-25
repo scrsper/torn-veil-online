@@ -1,4 +1,7 @@
-import type { Body, Container, Person, ResourceNode, Vec3 } from '../core/types';
+import type { Body, Container, Creature, Person, ResourceNode, Vec3 } from '../core/types';
+import type { World } from '../core/world';
+import { makeItem } from '../world/factory';
+import { recordCapabilityPractice } from '../core/capability';
 import type { Simulation } from '../mind/agent';
 import { actionsForCarriedItem, actionsForWorldItem, SELLER_REACH } from '../core/interaction';
 import { B } from './blocks';
@@ -95,6 +98,7 @@ export function handInteractions(sim: Simulation, p: Person): HandInteraction[] 
   const water = waterSourceAtHand(w, b.pos);
   if (water) out.push({ id: `drink:${water.id}`, kind: 'drink', label: `Drink — ${water.name}`, slot: 'nearby' });
   if (!water && naturalWaterAtHand(w, b.pos)) out.push({ id: 'drink:natural-water', kind: 'drink', label: 'Drink — water', slot: 'nearby' });
+  for (const carcass of carcassesAtHand(w, b)) out.push({ id: `butcher:${carcass.id}`, kind: 'butcher', label: `Butcher the ${w.nameOf(carcass.ownerId)} carcass${bladeOf(w, p) ? '' : ' (needs a blade)'}`, slot: 'nearby', target: { id: carcass.id, kind: 'carcass', pos: { ...carcass.pos } } });
   const resource = resourceAtHand(sim, p);
   if (resource) out.push({ id: `gather:${resource.id}`, kind: 'gather', label: resource.kind==='game'?'Gather meat (abstract game resource)':`Gather ${resource.yield}`, slot: 'nearby' });
   for (const id of p.inventory) {
@@ -114,10 +118,37 @@ export function handInteractions(sim: Simulation, p: Person): HandInteraction[] 
   }
   return out;
 }
+/** Dead wild-animal bodies within arm's reach (the carcass stays until someone dresses it). */
+function carcassesAtHand(w: World, b: Body): Body[] {
+  return w.nearbyPhysicalBodies(b.pos, 2.4, true).filter(c => c.dead && c.present && c.ownerId !== b.ownerId && !!w.get<Creature>(c.ownerId)?.wildlife && Math.hypot(c.pos.x - b.pos.x, c.pos.z - b.pos.z) <= 2.4);
+}
+const BLADES = new Set(['dagger', 'sword', 'axe', 'stoneaxe']);
+function bladeOf(w: World, p: Person) { return p.inventory.map(id => w.item(id)).find(i => i && i.holderId === p.id && i.quantity > 0 && BLADES.has(i.type) && i.condition !== 0); }
+/** Dress a carcass: needs a blade, takes about twenty minutes of work, yields cuts of meat in
+ * proportion to the animal's body mass (tagged with species and origin), and removes the carcass. */
+function butcher(sim: Simulation, p: Person, bodyId: string): string {
+  const w = sim.world, b = w.primaryBody(p.id)!, carcass = carcassesAtHand(w, b).find(c => c.id === bodyId);
+  if (!carcass) return 'out_of_reach';
+  if (!bladeOf(w, p)) return 'missing_tool';
+  if (p.physiology.fatigue > 0.9) return 'too_tired';
+  const animal = w.get<Creature>(carcass.ownerId)!, spec = w.ecology?.species[animal.species];
+  const massKg = spec?.bodyPlan.massKg ?? 10;
+  const units = Math.max(1, Math.round(massKg / 10));
+  const meat = makeItem(w, 'meat', `${animal.name} meat`, { owner: p.id, holder: p.id, quantity: units, tags: ['butchered', `species:${animal.species}`, `from:${animal.id}`] });
+  p.inventory.push(meat.id);
+  carcass.present = false;
+  p.physiology.fatigue = Math.min(1, p.physiology.fatigue + 0.06);
+  const killedBySelf = w.events.some(e => e.type === 'kill' && e.actor === p.id && e.target === animal.id);
+  const ev = w.emit('butchered', { actor: p.id, target: animal.id, pos: { ...carcass.pos }, category: 'world', significance: 0.15, visibility: 16, loudness: 4,
+    data: { species: animal.species, units, itemId: meat.id, laborSeconds: 1200, killedBySelf }, summary: `${p.name} butchered a ${animal.name}` });
+  recordCapabilityPractice(w, p, { skill: 'hunting', sourceEventId: ev.id });
+  return 'accepted';
+}
 export function performHandInteraction(sim: Simulation, p: Person, id: unknown): string {
-  if (typeof id !== 'string' || !/^(buy|take|steal|recover|consume|drink|gather|drop|open|close):.+$/.test(id)) return 'invalid_interaction';
+  if (typeof id !== 'string' || !/^(buy|take|steal|recover|consume|drink|gather|drop|open|close|butcher):.+$/.test(id)) return 'invalid_interaction';
   if (!canAct(sim, p)) return 'incapacitated';
   const split = id.indexOf(':'), kind = id.slice(0, split), target = id.slice(split + 1);
+  if (kind === 'butcher') return butcher(sim, p, target);
   if (kind === 'open' || kind === 'close') {
     if(target.startsWith('door:')) {
       const action=handInteractions(sim,p).find(a=>a.id===id&&a.target?.kind==='door');

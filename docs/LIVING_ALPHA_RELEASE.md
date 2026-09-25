@@ -489,6 +489,40 @@ observations do not substitute for ordinary UI/input acceptance.
   than bypassing them. Resumed runs disclose their source report/save hashes and are not uninterrupted
   service-soak evidence. Inherited service 7441 remains untouched.
 
+## 50/100 continuation (2026-09-25)
+
+Recovery. The authoritative checkout was verified (branch, HEAD `0346386`, 96 dirty paths, mixed
+staging) and pinned without touching index or worktree: `refs/checkpoints/living-alpha-resume-20260924`
+(stash-commit object) plus staged/unstaged binary patches and an untracked archive in
+`%USERPROFILE%\TornVeilAlpha\source-checkpoints`. `%LOCALAPPDATA%\TornVeilAlpha` does not exist for
+ordinary processes: every earlier alpha root, package, world and client profile was written inside
+the MSIX Codex app's private store (`...\Packages\OpenAI.Codex_2p2nqsd0c76g0\LocalCache\Local`).
+That also explains the scheduled-task "cannot see the alpha root" failure. All earlier services
+had stopped at 17:57 CDT with durable saves; none was restarted or unlocked. Operator state now
+defaults to `%USERPROFILE%\TornVeilAlpha`.
+
+Slice 1 (PR #51, commit `0dd7827`): capture fencing, honest readiness, operator home, stop repair,
+and the continuity repairs. Isolated tree of exactly that commit: typecheck clean, 366 files /
+1188 tests pass, production build passes, WorldLab smoke DEGRADED without failures (`main` FAIL).
+The six hosted-gate timeouts reproduce with equal durations on `main`
+(`docs/evidence/living-alpha/PR-GATE-DISPOSITION.md`).
+
+Findings fixed in this session (each with a regression that fails on the unfixed code):
+- Critical thirst never overrode perceived threat, so a frightened villager dehydrated for six hours.
+- Introductions repeated every ~150 world seconds for days, because the check read bounded
+  memories: 27,055 introduction events among 131 people, 17 MB of knowledge, much of the
+  128 MB, 745 ms checkpoint of the candidate-08 world.
+- Combat could never touch an animal: humanoid-only hurt volumes, and animals were not contact
+  candidates. The earlier hunt test only passed through injected `applyHit`.
+- 30-day-old piglets charged and gored at adult force.
+- Ordinary life produced seconds of development per day. Iron needed ~30,000 effective hours and
+  all seven foundations; martial practice was never wired into the running world; see
+  `docs/LIVING_ALPHA_PROGRESSION.md`.
+- An Ashford villager in a body with baked-in modern clothing (resolver forbade `modern` only on garments).
+- Boars and hares rendered with the deer mesh; the client never received an animal's display,
+  charge or strike wind-up, so dodges could not be timed.
+- The regional world had no purchasable blade (the old village did), so a hunt could not be prepared.
+
 ## Local player review and operator commands
 
 The candidate remains **INCOMPLETE**. These instructions make the current build reviewable; they

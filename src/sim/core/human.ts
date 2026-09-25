@@ -5,6 +5,8 @@ export const ATTRIBUTE_IDS: readonly AttributeId[] = ['strength', 'dexterity', '
 export const HUMAN_BASELINE = 8;
 export const NORMAL_CEILING = 20;
 export const IRON_FOUNDATION = 15;
+/** Every foundation outside an Iron path's core must at least be sound. */
+export const IRON_SUPPORT = 11;
 export const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 export function attributeProfile(value: number): Attributes {
   return Object.fromEntries(ATTRIBUTE_IDS.map(id => [id, value])) as Attributes;
@@ -18,8 +20,10 @@ export function cognitiveCapability(p: Person): { reasoning: number; observation
     observation: clamp(0.5 + p.attributes.perception / 16, 0.5, 1.8) * condition,
     persistence: clamp(0.5 + p.attributes.will / 16, 0.5, 1.8) * condition };
 }
-export function ironEligible(p: Person): boolean {
-  return p.ontology.stage === 'Normal' && ATTRIBUTE_IDS.every(id => p.attributes[id] >= IRON_FOUNDATION);
+/** Foundations for Iron: `core` at IRON_FOUNDATION, all others at IRON_SUPPORT. With every foundation
+ * as core (the default) this is the strict all-round reading. */
+export function ironEligible(p: Person, core: readonly AttributeId[] = ATTRIBUTE_IDS): boolean {
+  return p.ontology.stage === 'Normal' && ATTRIBUTE_IDS.every(id => p.attributes[id] >= (core.includes(id) ? IRON_FOUNDATION : IRON_SUPPORT));
 }
 /** Stable identity-local stream; new variation never consumes the world's behavior RNG. */
 export function individualRng(seed: number, identity: string): RNG {

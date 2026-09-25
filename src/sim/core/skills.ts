@@ -34,13 +34,17 @@ const BASE_GAIN = 0.015;
  * haul cycle) — never for standing at a workplace or a failed/no-op attempt, so neither can
  * train a skill (Constitution v0.6 §V.9). `amount` is in the same "one unit" terms as the base
  * gain above (a fractional amount for a partial slice, e.g. minutes of build labour / 1 minute). */
-export function practiceSkill(p: Person, id: PracticedSkillId, amount = 1, world?: World): void {
+/** Skills that are slower to learn than a trade per minute of practice. The veil art takes many
+ * real attempts (~60 to become reliable), however intensely each one is practised. */
+const SKILL_LEARNING_RATE: Partial<Record<PracticedSkillId, number>> = { veilcraft: 0.3 };
+/** `challenge`: the foundation level this particular practice demanded, when the caller knows it. */
+export function practiceSkill(p: Person, id: PracticedSkillId, amount = 1, world?: World, challenge?: number): void {
   if (!Number.isFinite(amount) || amount <= 0) return;
-  if (world) developThroughPractice(world, p, id, amount, instructionFactor(p, id));
+  if (world) developThroughPractice(world, p, id, amount, instructionFactor(p, id), challenge);
   const cur = skillOf(p, id);
   if (cur >= 1) return;
   p.skills = p.skills ?? {};
-  (p.skills as Partial<Record<PracticedSkillId, number>>)[id] = clamp01(cur + BASE_GAIN * amount * instructionFactor(p, id) * (1 - cur));
+  (p.skills as Partial<Record<PracticedSkillId, number>>)[id] = clamp01(cur + BASE_GAIN * (SKILL_LEARNING_RATE[id] ?? 1) * amount * instructionFactor(p, id) * (1 - cur));
 }
 
 // ---------------------------------------------------------------- Adaptive Society (v0.5)

@@ -24,6 +24,14 @@ export interface SpeciesSpec extends CreatureSpeciesSpec {
   mateRadiusM: number;
   };
   spacing: { densityRadiusM: number; comfortableNeighbours: number };
+  /** Optional defensive behaviour (see ecology/defense.ts). Absent: the species only flees. */
+  defense?: {
+    warnRadiusM: number; chargeRadiusM: number; warnSeconds: number; chargeSpeedMps: number;
+    reachM: number; impact: number; windupSeconds: number; activeSeconds: number; recoverySeconds: number;
+    retreatBelowHealth: number; retreatSeconds: number; provokedSeconds: number;
+    /** Radius multiplier while the animal's own dependent young are close. */
+    protectiveRadiusFactor: number;
+  };
 }
 export type AnimalActivity = 'seek_food' | 'eat' | 'seek_water' | 'drink' | 'sleep' | 'rest' | 'seek_habitat' | 'roam' | 'idle' | 'nurse' | 'flee' | 'dead';
 export interface AnimalEmbodiment {
@@ -43,7 +51,13 @@ export interface AnimalEmbodiment {
   blockedSources?: { id: EntityId; until: Tick }[];
   starvationHours: number; dehydrationHours: number;
   distanceM: number; foodKg: number; waterLitres: number;
-  diedAt?: Tick; deathCause?: 'starvation' | 'dehydration' | 'old_age';
+  diedAt?: Tick; deathCause?: 'starvation' | 'dehydration' | 'old_age' | 'killed';
+  /** Defensive behaviour state (ecology/defense.ts); physical-time stamps. */
+  defense?: import('./defense').DefenseState;
+  provokedBy?: { bodyId: EntityId; until: number };
+  lastWarnAt?: number;
+  /** Displaced by a calming influence: keep away from this point until the given physical time. */
+  avoid?: { pos: Vec3; radiusM: number; until: number };
 }
 export interface AnimalState {
   bornAt: Tick; sex: 'female' | 'male'; parentIds: EntityId[];

@@ -7,6 +7,7 @@ import { getPhysicalCapability } from '../core/attributes';
 import { instructionFactor, practiceSkill, skillOf } from '../core/skills';
 import { stepPhysiology } from '../core/physiology';
 import { developThroughUnderstanding } from '../core/development';
+import { recordCapabilityPractice } from '../core/capability';
 import { instructionPairAvailable, TEACH_MIN_SKILL } from './apprenticeship';
 import { remember } from './memory';
 import { learn } from './knowledge';
@@ -36,6 +37,21 @@ function reservation(world: World, id: string): MartialSession | undefined {
     if (s && (p.id === id || s.partnerId === id) && p.mind.plan.some(a => a.status !== 'done' && a.status !== 'failed' && a.data?.martialSessionId === s.id)) return s;
   }
   return undefined;
+}
+/** The live session this person is the consenting partner in (someone else is driving it). */
+export function martialPartnerSession(world: World, id: string): MartialSession | undefined {
+  const s = reservation(world, id);
+  return s && s.partnerId === id ? s : undefined;
+}
+/** A partner holds still for the session: an ordinary wait facing the one they agreed to train with. */
+export function martialPartnerHold(world: World, p: Person): boolean {
+  const s = martialPartnerSession(world, p.id); if (!s) return false;
+  const initiator = world.persons().find(q => q.martial?.session?.id === s.id);
+  if (!initiator) return false;
+  const active = p.mind.plan.find(a => a.status === 'pending' || a.status === 'active');
+  if (!(active?.data?.martial && active.targetEntity === initiator.id))
+    p.mind.plan = [{ type: 'wait', status: 'pending', targetEntity: initiator.id, duration: 7 * MARTIAL_SESSION_SECONDS, data: { martial: s.mode } }];
+  return true;
 }
 function partnerConsents(world: World, p: Person, actor: Person, bodyId: string): boolean {
   if (!availableForMartial(world, p, bodyId)) return false;
@@ -189,7 +205,7 @@ function finish(world: World, p: Person, s: MartialSession, q?: Person) {
   const ev = world.emit(teacher ? 'work_taught' : 'work_shift', { actor: teacher?.id ?? p.id,
     target: teacher ? (teacher.id === p.id ? q!.id : p.id) : q?.id, category: 'social', pos: world.body(s.bodyId)!.pos,
     visibility: 5, loudness: 2, significance: 0.45, causes: [s.originEventId, ...(teacher ? [techniqueKnowledge(teacher, id)?.source.viaEvent].filter((x): x is string => !!x) : [])],
-    data: { martial: s.mode, phase: 'completed', techniqueId: id, seconds: s.seconds, effort,
+    data: { martial: s.mode, phase: 'completed', techniqueId: id, family: d.family, seconds: s.seconds, effort,
       feedback: s.mode === 'practice' ? 0.6 : 0.9, martialDemonstration: demonstratedClaim(teacher ?? p, id) }, summary: `${p.name} completed martial ${s.mode}` });
   if (teacher) {
     const student = teacher.id === p.id ? q! : p, source = { type: 'told' as const, from: teacher.id, viaEvent: ev.id };
@@ -210,6 +226,11 @@ function finish(world: World, p: Person, s: MartialSession, q?: Person) {
     credit(world, p, id, s.seconds, effort, 0.9, clamp(0.4 + qm - pm, 0.15, 1), Math.min(0.95, Math.max(0.35, qm + 0.2)), ev.id);
     credit(world, q, id, s.seconds, effort, 0.9, clamp(0.4 + pm - qm, 0.15, 1), Math.min(0.95, Math.max(0.35, pm + 0.2)), ev.id);
   } else credit(world, p, id, s.seconds, effort, 0.6, 0.35, SOLO_MASTERY_CEILING, ev.id);
+  // The completed session is also bodily practice with its own evidence (core/capability.ts).
+  if (!teacher && (s.mode === 'spar' || s.mode === 'practice')) {
+    recordCapabilityPractice(world, p, { skill: d.family, sourceEventId: ev.id });
+    if (s.mode === 'spar' && q) recordCapabilityPractice(world, q, { skill: d.family, sourceEventId: ev.id });
+  }
 }
 
 function variantId(world: World, p: Person, d: TechniqueDefinition): string {

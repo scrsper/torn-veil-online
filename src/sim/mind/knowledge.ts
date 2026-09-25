@@ -277,6 +277,8 @@ export function eventClaim(world: World, e: WorldEvent, saw: boolean): Record<st
     for (const key of ['assemblyId', 'output', 'outcome', 'operation']) if (e.data[key] !== undefined) claim[key] = e.data[key];
   }
   if (e.type === 'introduction') claim.claimedName = e.data.claimedName;
+  // Whether a hushed animal or person went quiet is plainly visible; hearing a gesture is not.
+  if (saw && e.type === 'veil_hush') claim.success = e.data.success === true;
   // Causal Society: a stoppage is ABOUT a material, and the material is the whole content of the
   // belief — "he was standing at the mill" says nothing without "and there was no grain". Both
   // are plainly visible to anyone who is there, so both travel with the claim.
@@ -297,6 +299,7 @@ export function describeClaim(world: World, k: KnowledgeItem, observer?: Person)
       switch (c.type) {
         case 'attack': return `${who(c.actor, c.actorUnknown)} attacked ${who(c.target)}${where}`;
         case 'attack_missed': return `${who(c.actor, c.actorUnknown)} attempted a strike${where}`;
+        case 'veil_hush': return c.success === true ? `${who(c.actor, c.actorUnknown)} stilled ${who(c.target)} with a slow gesture${where}` : `${who(c.actor, c.actorUnknown)} made a strange gesture toward ${who(c.target)}${where}`;
         case 'kill': return `${who(c.actor, c.actorUnknown)} killed ${who(c.target)}${where}`;
         case 'theft': return `${who(c.actor, c.actorUnknown)} stole ${c.item ? perceivedName(world, observer, c.item) : 'something'} from ${who(c.target)}${where}`;
         case 'item_missing': return `${c.item ? perceivedName(world, observer, c.item) : 'an item'} has gone missing from ${where || 'its place'}`;
