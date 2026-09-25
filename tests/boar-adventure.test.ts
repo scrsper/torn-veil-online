@@ -169,6 +169,11 @@ describe('boar encounter and protection loop — separate hard checks', () => {
     const r = w.requests.find(q => q.type === 'protection' && q.requesterId === victim.id)!;
     expect(r.status).toBe('open');
     expect(r.payload.creatureId).toBe(sow.id);
+    // Where to look is what the requester saw, not where the animal is now: out in the open there
+    // is no place to name, so the request says where it was seen, relative to a settlement.
+    const perceived = w.events.filter(e => e.actor === sow.id && e.perceivedBy.some(x => x.who === victim.id) && e.pos);
+    expect(perceived.some(e => Math.hypot(r.payload.seenAt!.x - e.pos!.x, r.payload.seenAt!.z - e.pos!.z) < 0.01)).toBe(true);
+    if (!r.payload.placeId) expect(r.cause).toMatch(/(by|of) \w+/);
     expect(r.reward).toBe(Math.max(4, Math.min(30, Math.round(wealth * 0.3))));
     expect(victim.wealth).toBe(wealth); // offered, not yet paid
   }, 180_000);

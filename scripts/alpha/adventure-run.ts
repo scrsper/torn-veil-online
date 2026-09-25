@@ -83,7 +83,8 @@ if (approach === 'hunt') {
 const seen = () => (s.snapshot(false).wildlife?.bodies ?? []).filter(b => b.speciesId === 'woodland_boar' && !b.dead && b.ageClass === 'adult');
 let target = seen()[0];
 for (let sweep = 0; sweep < 40 && !target; sweep++) {
-  const centre: Vec3 = place?.inside ?? home.location;
+  // Where the requester said it was seen (a named place, or out in the open relative to a settlement).
+  const centre: Vec3 = place?.inside ?? r.payload.seenAt ?? home.location;
   const a = sweep * 2.4, radius = 10 + (sweep % 5) * 8;
   bot.go({ x: centre.x + Math.cos(a) * radius, y: centre.y, z: centre.z + Math.sin(a) * radius }, 2, 200);
   bot.wait(2); target = seen()[0];

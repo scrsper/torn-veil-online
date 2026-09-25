@@ -113,8 +113,15 @@ function practiceSession(physicalSeconds: number) {
     const a = assessAdvancement(w, p);
     if (a.eligible) { const r = say({ type: 'person_action', intent: { kind: 'advance' } }); note('advance_intent', { result: r, path: a.path }); wait(120); if (p.ontology.stage === 'Iron') { advanced = true; return; } continue; }
     // Recovery: too tired or parched to practise — hand back to ordinary life for a while.
-    if (p.physiology.fatigue > 0.7 || p.physiology.energy < 0.2 || p.physiology.hydration < 0.2) return;
+    // Practice itself refuses a body below 0.3 energy or water, so hand back before that point.
+    if (p.physiology.fatigue > 0.7 || p.physiology.energy < 0.35 || p.physiology.hydration < 0.35) return;
     const strain = veilStrain(w, p);
+    // A balanced day: the veil in the morning, the body in the afternoon. Iron asks every other
+    // foundation to be sound, and the veil alone never exercises strength, dexterity or endurance.
+    if (w.clock.hourF >= 13) {
+      if (spar()) continue;
+      if (say({ type: 'person_action', intent: { kind: 'train' } }) === 'accepted') { drills++; wait(330); continue; }
+    }
     const target = strain < 0.7 ? hushTarget() : undefined;
     if (target) {
       const r = say({ type: 'hush', targetBodyId: target.id });

@@ -1166,6 +1166,8 @@ export interface RequestPayload {
   /** protection: the animal the requester fears (as they know it) and its species. */
   creatureId?: EntityId;
   species?: string;
+  /** protection: where the requester last knew the animal to be (their own witnessed or told claim). */
+  seenAt?: Vec3;
   /** protection: how the requester came to believe it was settled. */
   settledBy?: 'knew_of_death' | 'knew_it_stilled' | 'shown_meat' | 'took_word';
   /** protection: a word-only settlement later shown false by a repeat attack. */
