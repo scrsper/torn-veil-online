@@ -93,3 +93,32 @@ every NPC, so it is recorded here rather than retuned to produce a demonstration
 levers: a higher rate only for challenge above routine (NPC routine labour, which stops at about
 11–12, would be unchanged), lower Iron thresholds, or more credited stimulus per real high-
 challenge session (a spar round is credited as one minute).
+
+## Deliberate-stimulus calibration under validation (2026-09-25)
+
+The 50/100 handoff explicitly authorizes retuning first-rank pace. The candidate
+keeps core/support thresholds at 15/11, potential resistance, challenge plateaus,
+physiological gates and per-foundation eight-hour daily exposure limits.
+It multiplies adaptation only above challenge 12:
+`1 + 3 * clamp(challenge - 12, 0, 11/3)` (at most 12).
+Ordinary labor and unspecified legacy hooks retain their previous response.
+Recorded activity and capability hours are not multiplied or granted.
+
+This addresses the measured 140–280-day deliberate-training tail without promoting
+ordinary labor into elite development. NPCs and players use the same operator.
+Synthetic estimates are calibration tools, not acceptance: the generated-person
+journey must still reach Iron through ordinary intents.
+
+The harness now buys food, drinks at wells, leaves mornings/nights for work and
+recovery, and compares the full person/body/clock at each daily save/reload.
+It no longer clears the mind's plan on connection. Play is 13:00–19:00; lack of
+money, fatigue or unavailable necessities returns control to ordinary life.
+No attributes, practice credits, wealth or advancement are injected.
+
+Preliminary evidence: .debug/finish50/iron-calibrated, seed 918271.
+Starting foundations 7/7/8/7/7/7/9; potentials 9/9/10/12/10/11/12
+(str/dex/end/vit/int/per/will). Day 2: 9/10/11/9/11/12/13; wealth 12,
+energy .92, hydration .77, zero veil strain. Daily reload equality passed.
+127 NPCs remained Normal; highest NPC foundation was 11. Ordinary strength
+and intellect means were nearly unchanged. This is **not yet an Iron pass**.
+

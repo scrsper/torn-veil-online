@@ -656,3 +656,44 @@ Autostart at logon needs no administrator rights, but you must register it yours
 
 Boot-time start (`-Trigger Boot`) needs an elevated shell and a real reboot to prove. Off-host
 backup needs a destination you choose; `D:` protects only against losing `C:`.
+
+## Active 50/100 completion — reconciled 2026-09-25
+
+Authoritative checkout:
+C:/Users/green/Documents/Codex/2026-09-23/please-wake-up-the-claude-desktop/torn-veil-online.
+Branch codex/living-alpha-50-gates starts at 5c8b3319b4fa4ddd2948139e3c523f12d9c3b102.
+A fresh fetch after the user's live handoff confirmed the remote client branch is
+identical. PRs #51 → #52 → #53 remain open. No merge, reset or clean occurred.
+
+Source preservation: C:/Users/green/TornVeilAlpha/source-checkpoints/finish50-20260925T115539,
+including unrelated dirty Desktop/Documents checkouts, and git recovery ref
+refs/checkpoints/finish50-20260925T115539. Current edits additionally preserved
+under source-checkpoints/finish50-reconciled-20260925T1745.
+
+Live remains alpha.12 (1c8b317f6075), world
+tvo-live-6bcacf14-e6d5-46f9-9914-8c9c0eda5017, seed 918271. Normal service backups:
+D:/TornVeilAlpha/backups/live/20260925T165540Z-gen-00000572 and
+20260925T174046Z-gen-00000619. Staging was stopped; no second live writer started.
+Existing packaged client remains clients/client-1c8b317.
+
+The three seven-day worlds, hunt/hush outcomes, packaged multiplayer, 14-check recovery
+drill and alpha.12 update continuity above are retained. New behavior needs proportional
+bounded regression. The genuine Iron journey is still running; see the progression doc.
+
+Persistence: in 45.1 real minutes the live save changed from 71,036,006 to 71,555,715
+bytes; events decreased 59,640 → 59,168; knowledge increased 49,776 → 50,312.
+Living knowledge pins most detail. The existing 400+40 per-person limit is approaching
+saturation; this interval alone is not a convergence pass. No causal evidence was removed.
+A lossless segmented JSON encoder preserves the existing schema and byte representation.
+Profiling the newer preserved save with portable Node 26.10.0 gave
+206.7/204.1/220.9 ms serialization; Node 22.23.2 gave 399.1/371.5/483.3 ms.
+These are offline measurements during other work, not final service evidence.
+Node 26.10.0 is in the private alpha runtime directory and was verified against
+nodejs.org SHASUMS256.txt; global Node and live runtime remain unchanged.
+The final release/runtime still needs an isolated soak.
+
+Controls are under integration. Windows detects USB DualSense VID_054C/PID_0CE6.
+No physical controller pass or human session is claimed. Native presentation slice:
+15 passed, two warnings, zero failures (17 tests). Rendered/packaged checks remain.
+Canonical slice: 61 integration tests plus 11 guard/wildlife contact tests passed.
+
