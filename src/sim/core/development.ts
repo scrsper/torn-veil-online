@@ -40,6 +40,13 @@ export function challengeFactor(current: number, challenge = Infinity): number {
   return 1 / (1 + Math.exp((current + 0.5 - challenge) * 4));
 }
 
+/** Deliberate challenge above ordinary trade demand causes deeper adaptation per paid
+ * stimulus. Routine work (<=12) and unspecified legacy hooks keep their exact curve.
+ * Exposure, recovery, daily budgets, potential and challenge plateaus still apply. */
+export function deliberateResponse(challenge?: number): number {
+  return challenge !== undefined && Number.isFinite(challenge) ? 1 + 3 * clamp(challenge - 12, 0, 11 / 3) : 1;
+}
+
 /** A canonical activity hook, not an autonomous progression controller. Bounded per-person cost.
  * The per-day physiological exposure budget prevents concurrent bodies/work hooks multiplying time.
  * Neither job labels, injuries, birthdays nor stored stress call this function. */
@@ -70,7 +77,7 @@ export function develop(world: World, p: Person, s: DevelopmentStimulus): void {
     let remaining = exposure * physiology * instruction;
     // Integrate exactly at integer boundaries; a large dose cannot leap over diminishing returns.
     while (remaining > 0 && p.attributes[id] < NORMAL_CEILING) {
-      const rate = developmentRate(p.attributes[id], p.attributePotential[id]) * challengeFactor(p.attributes[id], s.challenge);
+      const rate = developmentRate(p.attributes[id], p.attributePotential[id]) * challengeFactor(p.attributes[id], s.challenge) * deliberateResponse(s.challenge);
       const needed = (1 - d.progress[id]) / rate;
       if (remaining < needed) { d.progress[id] += remaining * rate; break; }
       remaining -= needed; d.progress[id] = 0; p.attributes[id]++;

@@ -4,20 +4,24 @@
 // hush, person_action meditate/advance) while online, and is released to ordinary autonomy while
 // offline — the same policy the live server applies after a disconnect. No teleport, no state edits,
 // no synthetic history: every foundation point comes from the canonical development hooks.
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { BridgeSession } from '../../src/bridge/session';
 import type { Body, Person, Vec3 } from '../../src/sim/core/types';
 import { knowsVeil, veilStrain, HUSH_RANGE_M } from '../../src/sim/physical/veil';
 import { assessAdvancement } from '../../src/sim/core/advancement';
 import { ATTRIBUTE_IDS } from '../../src/sim/core/human';
+import { handInteractions } from '../../src/sim/physical/hand';
+import { foodForSaleBy } from '../../src/sim/logistics/participation';
 
 const arg = (n: string, d: string) => { const i = process.argv.indexOf(`--${n}`); return i > 0 ? process.argv[i + 1] : d; };
 const seed = Number(arg('seed', '918271')), days = Number(arg('days', '30')), path = arg('path', 'veil');
 const out = arg('out', `.debug/iron-journey-${path}-${seed}`);
+assert(!existsSync(out), 'Evidence directory must be new');
 mkdirSync(out, { recursive: true });
 const DT = 0.1, started = performance.now();
-const s = new BridgeSession(seed, { playable: true }), w = s.world, p = w.person(w.playerId!)!, body = w.primaryBody(p.id)!;
+let s = new BridgeSession(seed, { playable: true }), w = s.world, p = w.person(w.playerId!)!, body = w.primaryBody(p.id)!;
 const worldStart = w.now, DAY = 86400;
 let seq = 0;
 const say = (m: Record<string, unknown>) => s.intent({ version: 1, sequence: ++seq, ...m }).result;
@@ -29,7 +33,10 @@ let online = true;
 /** Connect/disconnect the local controller exactly as a client session would (GameSim attach/detach). */
 function setOnline(on: boolean) {
   if (on === online) return; online = on;
-  if (on) { s.game.attach('local', p.id); p.mind.plan = []; p.mind.goal = null; } else s.game.detach('local');
+  if (on) {
+    s.game.attach('local', p.id);
+    if (body.pose === 'sleep') say({ type: 'person_action', intent: { kind: 'wake' } });
+  } else s.game.detach('local');
 }
 function tick(x = 0, z = 0, sprint = false) {
   if (online && (x || z)) say({ type: 'move', x, z, sprint });
@@ -37,7 +44,7 @@ function tick(x = 0, z = 0, sprint = false) {
 }
 /** Walk along a canonical path using move intents. Gives up (returns false) rather than inventing movement. */
 function go(target: Vec3, within = 1.2, budgetSeconds = 900): boolean {
-  let pts = w.nav.findPath(body.pos, target, 400);
+  let pts = w.nav.findPath(body.pos, target, 4000);
   if (!pts) return false;
   const t0 = w.physicalTime;
   for (const pt of pts) {
@@ -53,6 +60,33 @@ function go(target: Vec3, within = 1.2, budgetSeconds = 900): boolean {
   return dist(body.pos, target) <= within + 1;
 }
 function wait(seconds: number) { for (let t = 0; t < seconds; t += DT) tick(); }
+/** Food and water through the same dialogue/hand surfaces used by a normal player. */
+function provision(): boolean {
+  if (p.physiology.hydration < 0.75) {
+    const wells = w.places().filter(pl => pl.type === 'well').sort((a, b) => dist(a.inside, body.pos) - dist(b.inside, body.pos));
+    for (const well of wells.slice(0, 2)) {
+      if (!go(well.inside, 1.5)) continue;
+      const drink = handInteractions(s.sim, p).find(i => i.kind === 'drink');
+      if (drink) { say({ type: 'interact', interactionId: drink.id }); break; }
+    }
+  }
+  for (let meals = 0; meals < 4 && p.physiology.energy < 0.85; meals++) {
+    let food = handInteractions(s.sim, p).find(i => i.kind === 'eat');
+    if (!food) {
+      const sellers = w.livingPersons().filter(q => q.id !== p.id && foodForSaleBy(w, q, p).length)
+        .sort((a, b) => dist(w.positionOf(a.id)!, body.pos) - dist(w.positionOf(b.id)!, body.pos));
+      for (const seller of sellers.slice(0, 3)) {
+        if (dist(w.positionOf(seller.id)!, body.pos) > 250 || !go(w.positionOf(seller.id)!, 1.4)) continue;
+        talkChoose(seller, label => label.startsWith('Buy a meal'));
+        food = handInteractions(s.sim, p).find(i => i.kind === 'eat');
+        if (food) break;
+      }
+    }
+    if (!food) break;
+    say({ type: 'interact', interactionId: food.id }); wait(1);
+  }
+  return p.physiology.energy >= 0.65 && p.physiology.hydration >= 0.65;
+}
 function talkChoose(npc: Person, pick: (label: string) => boolean): string[] | null {
   const nb = w.primaryBody(npc.id)!;
   if (say({ type: 'talk', targetBodyId: nb.id }) !== 'accepted') return null;
@@ -114,11 +148,12 @@ function practiceSession(physicalSeconds: number) {
     if (a.eligible) { const r = say({ type: 'person_action', intent: { kind: 'advance' } }); note('advance_intent', { result: r, path: a.path }); wait(120); if (p.ontology.stage === 'Iron') { advanced = true; return; } continue; }
     // Recovery: too tired or parched to practise — hand back to ordinary life for a while.
     // Practice itself refuses a body below 0.3 energy or water, so hand back before that point.
-    if (p.physiology.fatigue > 0.7 || p.physiology.energy < 0.35 || p.physiology.hydration < 0.35) return;
+    if (p.physiology.energy < 0.65 || p.physiology.hydration < 0.65) { if (!provision()) return; }
+    if (p.physiology.fatigue > 0.5 || p.wealth < 6) return;
     const strain = veilStrain(w, p);
     // A balanced day: the veil in the morning, the body in the afternoon. Iron asks every other
     // foundation to be sound, and the veil alone never exercises strength, dexterity or endurance.
-    if (w.clock.hourF >= 13) {
+    if (path === 'martial' || w.clock.hourF >= 16) {
       if (spar()) continue;
       if (say({ type: 'person_action', intent: { kind: 'train' } }) === 'accepted') { drills++; wait(330); continue; }
     }
@@ -147,13 +182,13 @@ function practiceSession(physicalSeconds: number) {
   }
 }
 
-note('start', { seed, path, person: p.id, wealth: p.wealth, attributes: { ...p.attributes }, potential: { ...p.attributePotential } });
+note('start', { seed, path, person: p.id, wealth: p.wealth, attributes: { ...p.attributes }, potential: { ...p.attributePotential }, skills: { ...p.skills }, physiology: { ...p.physiology } });
 if (!learnVeil()) { note('failed', { reason: 'could not learn the veil' }); }
 let lastDay = -1, loops = 0;
 while ((w.now - worldStart) / DAY < days && p.alive && !advanced && knowsVeil(p)) {
   const hour = w.clock.hourF;
-  // Online for a daytime play window (08:00–18:00 world time), offline otherwise.
-  const wantOnline = hour >= 8 && hour < 18;
+  // Online for a daytime play window (13:00–19:00 world time), offline otherwise.
+  const wantOnline = hour >= 13 && hour < 19 && p.wealth >= 6;
   setOnline(wantOnline);
   const before = w.physicalTime;
   if (wantOnline) practiceSession(300);
@@ -172,6 +207,13 @@ while ((w.now - worldStart) / DAY < days && p.alive && !advanced && knowsVeil(p)
       hushes, calmed, meditations, spars, drills, strain: +veilStrain(w, p).toFixed(2), wealth: p.wealth, energy: +p.physiology.energy.toFixed(2), hydration: +p.physiology.hydration.toFixed(2),
       blockers: a.reasons, physicalHours: +((w.physicalTime) / 3600).toFixed(1), elapsedMinutes: +((performance.now() - started) / 60000).toFixed(1) };
     daily.push(row); console.log(JSON.stringify({ daily: row }));
+    const saved = s.save();
+    writeFileSync(join(out, `day-${day}.save.json`), saved);
+    const continuity = JSON.stringify({ person: p, body, clock: w.clock.state() });
+    s = new BridgeSession(seed, { playable: true, save: saved }); w = s.world;
+    p = w.person(p.id)!; body = w.body(body.id)!;
+    assert.equal(JSON.stringify({ person: p, body, clock: w.clock.state() }), continuity, 'Daily reload preserves the trainee, body and clock');
+    if (!online) s.game.detach('local');
     writeFileSync(join(out, 'report.json'), JSON.stringify({ seed, path, days, person: p.id, advanced, daily, log }, null, 2));
   }
 }
