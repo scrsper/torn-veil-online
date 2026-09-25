@@ -523,74 +523,120 @@ Findings fixed in this session (each with a regression that fails on the unfixed
   charge or strike wind-up, so dodges could not be timed.
 - The regional world had no purchasable blade (the old village did), so a hunt could not be prepared.
 
+- A paid lesson could be forgotten within days. Technique knowledge sat in the generic retention
+  tier, so a busy mind evicted it silently: the seed-918271 Iron journey lost the veil on world
+  day 2.8 while hushing daily. Techniques now share the practical tier (`80c9317`).
+- The martial Iron path could never pass. The assessment read a trade `skill` field that martial
+  knowledge doesn't have; its test had hand-built the wrong shape of claim (`3a90e20`).
+- A protection request out in the open said nothing about where to look. It now says where the
+  requester saw the animal, from their own claims: "north-east of Pikewick" (`bbcc2cb`).
+- The tavern's skinning knife lay off the display, so a stranger could only take it (`27bde48`).
+- A refused suitor proposed again on every decision cycle: 1,426 courtship events in six days on
+  seed 918271 (`5cab848`).
+- Livelihood prospects scanned every workplace in the region. An elder on seed 918272 set off
+  for a mill 11 km away (WorldLab `WL-LOCALITY-DISTANT`) (`e71a654`).
+- Kosode collar: a plank across the nape, then an X across the chest; now a wrap that tucks under
+  (`d89b35e`, `6c7ba90`).
+
+### Acceptance record (2026-09-25)
+
+Full suite at `e71a654`: **1216/1216**. Typecheck clean. Each fix above has a regression test that
+fails on the unfixed code.
+
+| Area | Result | Evidence |
+|---|---|---|
+| Server release | `0.1.0-alpha.12+1c8b317f6075` built clean | `%USERPROFILE%\TornVeilAlpha\releases` |
+| Live update | PASS. alpha.10 → alpha.12, rehearsed on a live capture first; drain, clean stop at generation 348, pre-update backup `D:\TornVeilAlpha\backups\live\20260925T131125Z-gen-00000348`, same world, clock continues (20516.87 → 20517.23 s) | ops output |
+| Reconnect after update | PASS. The packaged client at `1c8b317` rejoined live as its existing person | `.debug/unreal/1c8b317-village` |
+| Recovery drill (alpha.12) | PASS, 14/14 in 53 s: writer crash, restart, corrupt-newest fallback, interrupted write, backup restore, same-person reconnect | `%USERPROFILE%\TornVeilAlpha\drill-recovery-alpha12\recovery-report.json` |
+| Two packaged clients | PASS on staging (the pair script refuses live by design): one world, separate people and bodies, overlapping connections, each sees the other | `.debug/unreal/pair-1c8b317-b/pair.json` |
+| 2 h soak, zero-player period | **FAIL** on one check. Pass: full duration, same world, uninterrupted, clock advancing, RSS peak 541 MB, scheduler debt clears, event-loop p99 32.6 ms, zero-client period observed. Fail: checkpoint serialization peaked at 311 ms (limit 250 ms) | `.debug/soak-live-alpha10/report.json` |
+| Emergent adventure | See below | `.debug/adventure-*-918273` |
+| Normal → Iron | **Not demonstrated.** Measured: see below | `.debug/iron-estimate.ts`, `.debug/iron-journey-veil-918271` |
+| 7-day continuations | See below | `.debug/alpha-continuation-1c8b317-*` |
+| Autostart | Prepared; **needs you**. Registering the logon task was refused to this agent as persistence | `Install-Autostart.ps1 -CheckOnly` |
+
+**Soak finding.** With nobody connected, the checkpoint grew from 8 MB to 34.5 MB in two hours of
+a fresh world (about half a world day). Serialization grew with it, stalling the loop for 0.3 s
+once a minute. Compaction keeps the latest 4,000 events plus every event that living
+cognition references. Knowledge and memories pin routine `perceived`/`told` events: 13.5k of
+35.9k retained. Encounter observations (about 600 B) are stored in the event and again in the
+knowledge claim. Growth levels off only when every mind's 400-item knowledge cap is full:
+estimated ~55 MB and ~450 ms. That needs a persistence change (incremental or off-thread
+serialization, or leaner provenance pins). It has not been made.
+
+**The emergent adventure** (seed 918273; seed 918271 raised no animal threat in seven days). A
+boar menaces villagers north-east of Pikewick in the world's first hours. Asking around for work
+turns up the request: "A woodland boar is menacing people north-east of Pikewick … 8 silver".
+- *Hush approach* (`stilled_unpaid`): the player learned the hush from the keeper for a fee, found
+  the same boar, was resisted six times across two strain cycles, rested, and calmed it on the next
+  session; it now avoids people. The requester would not pay: nobody saw the hush, and their trust
+  in a stranger (0.03) is below what a word needs (0.35) — "I'll believe it when I see it. Bring
+  me proof it's done". Silver conserved (0 moved). The request stays open until they learn
+  otherwise or it expires.
+- *Hunt approach*: see the hunt report (`.debug/adventure-hunt-918273/report.json`). An earlier run
+  without a blade fought the boar bare-handed, was downed repeatedly and could not kill it.
+
+**Iron.** Under the current curve an ordinary adult needs ~140 (potential 13) to ~280 (potential
+11) world days of deliberate daily practice. Support foundations reach 11 in ~20–40 days; the long
+pole is two core foundations at 15, which beyond 13 develop only through strain-limited hush
+attempts or equivalent real challenge. The live time scale is 6, so a world day is 4 real hours;
+that is hundreds of hours of play for the first rank. The balanced 10-day journey matches the
+estimator (day 3: strength 8, dexterity 9, endurance 9, vitality 8, will 11). This is a pacing
+decision about the canonical curve, which also governs every NPC. It is left for you, not retuned
+to fit a demonstration. Options: a higher rate for challenge above routine (NPC routine work would
+be unchanged), lower Iron cores (for example 13 core / 10 support), or both.
+
+**Known presentation defects** (packaged client, `1c8b317`): new arrivals spawn almost on top of
+one another; the sash knot reads as a lump on the back; a villager can stand inside a crate block
+(crates are solid but walkable at cost 20, and the body stays at ground height); the player body is
+still the plain mannequin.
+
 ## Local player review and operator commands
 
-The candidate remains **INCOMPLETE**. These instructions make the current build reviewable; they
-do not waive G2, G3, G4, G5 or G8. The inherited service on 7441 is separate and remains untouched.
+State lives in `%USERPROFILE%\TornVeilAlpha` (not `%LOCALAPPDATA%`, which MSIX apps virtualize).
+Live runs `0.1.0-alpha.12+1c8b317f6075` on port 7400 (loopback and the Tailscale address), with
+backups on `D:\TornVeilAlpha\backups\live`.
 
-From this checkout in PowerShell 7, launch the packaged game for ordinary human play:
+Play from the packaged client (profiles `green` and `green-second` target live):
 
 ```powershell
-& ./unreal/scripts/Start-AlphaClient.ps1 `
-  -Package "$env:LOCALAPPDATA/TornVeilAlpha/clients/candidate-20260924-06" `
-  -Profile alpha-human-candidate05
+& ./unreal/scripts/Start-AlphaClient.ps1 -Package "$env:USERPROFILE/TornVeilAlpha/clients/client-1c8b317" -Profile green
 ```
-
-The `human-review` account has ordinary player permissions, and its secret is only in the local
-profile. It has no character yet: the normal sign-in/create-person screen should appear with
-connection fields filled. Choose a name/sex and create a person. Do not use an existing capture
-profile during automation. No editor or console commands are needed. Logs go to
-`%LOCALAPPDATA%/TornVeil/Client/logs/alpha-human-candidate05/`. The earlier `alpha-human-current`
-profile targets the stopped candidate-04 on 7456; `alpha-human-review` targets the stopped baseline on 7451.
-They are retained, but neither is the current-source review target.
 
 | Control | Action |
 |---|---|
 | WASD, mouse, wheel | Move, look, zoom |
 | Shift | Sprint |
-| E | Focused interaction/talk |
+| E | Talk / interact (ask "Any work going?") |
 | I | Inventory |
-| P / Escape | Menu / close the top screen |
-| Left mouse / X | Light attack |
-| Z | Rest/wake |
-| H | Request veil hush (canonical requirements still apply) |
-| F5 | Request a durable server save |
+| P / Escape | Menu / close |
+| Left mouse / X | Light attack; dodge and duck keys for evasion |
+| Z | Rest / wake |
+| H | Hush (requires learning it from a keeper) |
+| V | Meditate on the veil |
+| G | Train alone (drills) |
+| B | Attempt the Iron breakthrough |
+| F5 | Request a durable save |
 
-For G2, record start/end times and play continuously for 45–60 minutes. Use the normal screens
-to create/reconnect, move through the village and wilderness, talk/trade, take and return an item,
-eat/rest, pursue visible opportunities and attempt a danger/supernatural interaction when the
-world permits it. Record failures and unavailable actions honestly; no developer grants, teleports,
-direct state edits or console practice fixtures. A failed attempt is evidence, not a completed gate.
-
-Inspect the candidate service or request a backup without touching the inherited environment:
+Operator commands (use the ops of the installed release):
 
 ```powershell
-$env:TORN_VEIL_ALPHA_HOME = "$env:LOCALAPPDATA/TornVeilAlpha/update-20260924-06"
-$alphaOps = "$env:LOCALAPPDATA/TornVeilAlpha/candidate-20260923/releases/candidate-08/ops.mjs"
-node $alphaOps status --env live
-node $alphaOps backup --env live
-# Orderly stop/start, when maintenance is intended:
-node $alphaOps stop --env live
-node $alphaOps start --env live
+$ops = "$env:USERPROFILE/TornVeilAlpha/releases/0.1.0-alpha.12+1c8b317f6075/ops.mjs"
+node $ops status --env live
+node $ops backup --env live
+node $ops rehearse --release <new-release-dir>   # capture live → staging, run, probe, stop
+node $ops update --release <new-release-dir> --seconds 60
 ```
 
-`current-release.json` selects the actual running bundle. This isolated review world's `live`
-environment runs candidate-08; the separate baseline dev service is stopped. Never run `init` against existing state.
-For live promotion use the tested `rehearse --release <bundle>` then `update --release <bundle>`
-flow: the update captures final live state after rehearsal, not the staging copy. Restore requires
-the service stopped; inspect `backups`, then `restore <backup-name>`, then `start`. Keep the
-reported pre-update backup and never reverse-copy staging into live.
+Never run `init` against existing state. Restore needs the service stopped (`backups`, `restore
+<name>`, `start`). Never copy staging back into live.
 
-`scripts/alpha/Install-Autostart.ps1 -AlphaRoot <root> -Environment live -Trigger Logon -CheckOnly`
-inspects the proposed task without installing it. Omit `-CheckOnly` only for the selected deployment.
-`-Trigger Boot` uses a delayed S4U task and requires administrator registration; it must be tested
-through an actual reboot before claiming boot continuity. No deployment task remains registered;
-temporary isolated task execution failed as recorded above, despite successful direct invocation.
-The generated runner resolves the environment's current installed release at each start, so it
-does not pin a retired server version or depend on a checkout. Task name and runner path are reported.
+Autostart at logon needs no administrator rights, but you must register it yourself:
 
-Latest source recovery checkpoint: `%LOCALAPPDATA%/TornVeilAlpha/handoff-checkpoints/20260924-073430`:
-full tracked diff from HEAD, staged diff, status/HEAD manifests and all then-untracked source files.
-The initial Git bundle remains in `20260923-213033`. No commits, resets, force-pushes or merges made.
-It includes dialogue, multiplayer, fixture and locality repairs, native arrival clearance, candidate-08
-unsettled-person/stop fixes, the continuation resume harness, and their regression source.
+```powershell
+& ./scripts/alpha/Install-Autostart.ps1 -AlphaRoot "$env:USERPROFILE/TornVeilAlpha" -Environment live -Trigger Logon
+```
+
+Boot-time start (`-Trigger Boot`) needs an elevated shell and a real reboot to prove. Off-host
+backup needs a destination you choose; `D:` protects only against losing `C:`.
