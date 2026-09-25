@@ -24,6 +24,7 @@ public:
     void Hush();
     void Meditate();
     void Breakthrough();
+    void Train();
     UPROPERTY() TMap<FString, TObjectPtr<UAnimationAsset>> ActivityAnimations;
     void RebasePresentation(const FVector& Delta);
     ATVCharacter();

@@ -3,10 +3,12 @@ import { makePerson, makeBody } from '../world/factory';
 import { reachable } from '../kernel/mechanics';
 import { Simulation } from '../mind/agent';
 import { knowsVeil, MEDITATION_SECONDS } from '../physical/veil';
+import { availableForMartial } from '../mind/martialPractice';
+import { canExecuteTechnique } from '../mind/martialKnowledge';
 import { setExternalControl } from './controllers';
 import { knowledgeView, personKnowledgeView } from './knowledgeView';
 
-export type PersonIntent = { kind: 'yield' } | { kind: 'advance' } | { kind: 'rest' } | { kind: 'wake' } | { kind: 'meditate' }
+export type PersonIntent = { kind: 'yield' } | { kind: 'advance' } | { kind: 'rest' } | { kind: 'wake' } | { kind: 'meditate' } | { kind: 'train' }
   | { kind: 'ask'; target: string; assemblyId: string }
   | { kind: 'introduce'; target: string; name?: string }
   | { kind: 'inspect' | 'diagnose' | 'reverse_engineer' | 'test' | 'dismantle' | 'abandon'; assemblyId: string }
@@ -52,6 +54,7 @@ export class GameSim {
     const p = this.person(connection); if (!p?.alive || !intent || typeof intent !== 'object') return false;
     if (intent.kind === 'rest' || intent.kind === 'wake') return this.restOrWake(p, intent.kind);
     if (intent.kind === 'meditate') return this.meditate(p);
+    if (intent.kind === 'train') return this.train(p);
     const kinds = ['ask', 'yield', 'advance', 'introduce', 'inspect', 'diagnose', 'reverse_engineer', 'test', 'dismantle', 'abandon', 'replace', 'connect', 'disconnect', 'read', 'teach', 'manufacture', 'reconstruct'];
     if (!kinds.includes(intent.kind)) return false;
     const input = intent as unknown as Record<string, unknown>;
@@ -78,6 +81,19 @@ export class GameSim {
       : intent.kind === 'teach' ? { type: 'tell', targetEntity: intent.target, data: { key: intent.key }, status: 'pending' }
       : { type: 'mechanism_task', data: Object.fromEntries(['kind', 'assemblyId', 'part', 'componentId', 'from', 'to', 'definition'].filter(key => input[key] !== undefined).map(key => [key, input[key]])), status: 'pending' };
     this.simulation.submitIntention(p, action); return true;
+  }
+  /** Drill bodily technique alone for a few rounds: the same solo martial session an NPC runs.
+   * Solitary drilling develops the body only as far as it demands (unlike sparring). */
+  private train(p: Person): boolean {
+    const w = this.simulation.world, body = w.primaryBody(p.id);
+    if (!body || p.custody?.active || !availableForMartial(w, p, body.id)) return false;
+    const drills = ['motor:basic-punch', 'motor:second-punch', 'motor:crude-kick', 'motor:shove'].filter(id => canExecuteTechnique(w, p, id, body.id));
+    if (!drills.length) return false;
+    const done = Object.values(p.capability?.repetitionCounts ?? {}).reduce((a, b) => a + b, 0);
+    const round = (i: number): Action => ({ type: 'work', status: 'pending', data: { martial: 'practice', techniqueId: drills[(done + i) % drills.length], bodyId: body.id } });
+    this.simulation.submitIntention(p, round(0));
+    for (let i = 1; i < 5; i++) p.mind.plan.push(round(i));
+    return true;
   }
   /** Sit and practise the veil where one stands: the same `meditate` action anyone taught can plan. */
   private meditate(p: Person): boolean {

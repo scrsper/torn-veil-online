@@ -654,6 +654,7 @@ void ATVCharacter::SaveWorld() { if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSu
 void ATVCharacter::RestToggle() { if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->ToggleRest(); }
 void ATVCharacter::Hush() { if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->Hush(); }
 void ATVCharacter::Meditate() { if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->PersonAction(TEXT("meditate"),TEXT("Sitting still to practise the veil (half an hour)...")); }
+void ATVCharacter::Train() { if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->PersonAction(TEXT("train"),TEXT("Drilling strikes and footwork alone for a few rounds...")); }
 void ATVCharacter::Breakthrough() { if(auto* B=GetWorld()->GetSubsystem<UTVBridgeSubsystem>()) B->PersonAction(TEXT("advance"),TEXT("Reaching for the breakthrough...")); }
 
 void ATVCharacter::Dodge() {

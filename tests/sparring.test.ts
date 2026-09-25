@@ -14,6 +14,19 @@ function standBeside(s: BridgeSession, body: Body, target: { x: number; y: numbe
   return false;
 }
 
+it('solo training runs real practice sessions that develop the body only as far as drilling demands', () => {
+  const s = new BridgeSession(918271, { playable: true }), w = s.world, player = w.person(w.playerId!)!;
+  let seq = 0;
+  const dex = player.development.exposure.dexterity;
+  expect(s.intent({ version: 1, sequence: ++seq, type: 'person_action', intent: { kind: 'train' } }).result).toBe('accepted');
+  stepFor(s, 330);
+  const rounds = w.events.filter(e => e.type === 'work_shift' && e.actor === player.id && e.data.martial === 'practice' && e.data.phase === 'completed');
+  expect(rounds.length).toBeGreaterThanOrEqual(3);
+  expect(new Set(rounds.map(e => e.data.techniqueId)).size).toBeGreaterThan(1); // rotating drills
+  expect(player.capability?.bySkill.unarmed?.effectiveSeconds ?? 0).toBeGreaterThan(0);
+  expect(player.development.exposure.dexterity).toBeGreaterThan(dex);
+}, 300_000);
+
 it('sparring through dialogue runs real martial sessions that develop and credit both partners', () => {
   const s = new BridgeSession(918271, { playable: true }), w = s.world, player = w.person(w.playerId!)!, pb = w.primaryBody(player.id)!;
   let seq = 0; const say = (m: Record<string, unknown>) => s.intent({ version: 1, sequence: ++seq, ...m });

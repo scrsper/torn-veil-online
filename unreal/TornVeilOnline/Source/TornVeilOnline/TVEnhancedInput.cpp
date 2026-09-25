@@ -59,6 +59,7 @@ void ATVCharacter::SetupEnhancedInput(UInputComponent* Input) {
     // requirements the server decides; refusals come back as ordinary results.
     GameplayContext->MapKey(Button(TEXT("Meditate"),&ATVCharacter::Meditate),EKeys::V);
     GameplayContext->MapKey(Button(TEXT("Breakthrough"),&ATVCharacter::Breakthrough),EKeys::B);
+    GameplayContext->MapKey(Button(TEXT("Train"),&ATVCharacter::Train),EKeys::G);
     bInputModal=true;RefreshInputContext(false);
 }
 void ATVCharacter::RefreshInputContext(bool Modal) {

@@ -93,7 +93,7 @@ function gatheringPlace(): Vec3 {
   return squares[0]?.inside ?? body.pos;
 }
 
-let hushes = 0, calmed = 0, meditations = 0, refusals = 0, restCycles = 0, spars = 0, advanced = false;
+let hushes = 0, calmed = 0, meditations = 0, refusals = 0, restCycles = 0, spars = 0, drills = 0, advanced = false;
 /** Ask a nearby, awake adult to spar through ordinary dialogue; runs the agreed rounds. */
 function spar(): boolean {
   const partner = w.livingPersons().filter(q => q.id !== p.id && q.age >= 16 && q.age < 55 && !q.hostile && w.primaryBody(q.id)?.pose !== 'sleep'
@@ -123,7 +123,11 @@ function practiceSession(physicalSeconds: number) {
       continue;
     }
     // Round out the body: while the veil is strained, spar with a willing villager every other time.
-    if (strain >= 0.5 && ++restCycles % 2 === 0 && spar()) continue;
+    if (strain >= 0.5 && ++restCycles % 2 === 0) {
+      if (spar()) continue;
+      // No willing partner about: drill alone (the same session mechanic, a lower ceiling).
+      if (say({ type: 'person_action', intent: { kind: 'train' } }) === 'accepted') { drills++; wait(330); continue; }
+    }
     if (strain >= 0.5 || !hushTarget()) {
       // Meditate while strained, or while no one is about; move toward people afterwards.
       const r = say({ type: 'person_action', intent: { kind: 'meditate' } });
@@ -158,7 +162,7 @@ while ((w.now - worldStart) / DAY < days && p.alive && !advanced && knowsVeil(p)
     lastDay = day;
     const a = assessAdvancement(w, p);
     const row = { day, attributes: { ...p.attributes }, veilcraft: +(p.skills.veilcraft ?? 0).toFixed(3), capabilityHours: +((p.capability?.bySkill.veilcraft?.effectiveSeconds ?? 0) / 3600).toFixed(2),
-      hushes, calmed, meditations, spars, strain: +veilStrain(w, p).toFixed(2), wealth: p.wealth, energy: +p.physiology.energy.toFixed(2), hydration: +p.physiology.hydration.toFixed(2),
+      hushes, calmed, meditations, spars, drills, strain: +veilStrain(w, p).toFixed(2), wealth: p.wealth, energy: +p.physiology.energy.toFixed(2), hydration: +p.physiology.hydration.toFixed(2),
       blockers: a.reasons, physicalHours: +((w.physicalTime) / 3600).toFixed(1), elapsedMinutes: +((performance.now() - started) / 60000).toFixed(1) };
     daily.push(row); console.log(JSON.stringify({ daily: row }));
     writeFileSync(join(out, 'report.json'), JSON.stringify({ seed, path, days, person: p.id, advanced, daily, log }, null, 2));
