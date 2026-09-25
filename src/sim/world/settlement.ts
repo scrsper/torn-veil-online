@@ -173,7 +173,11 @@ function materialize(world: World, spec: SettlementSpec, regional: RegionalGrid)
   // A hunter's own knife, and one for sale where travellers stop: someone new can equip themselves
   // for field work (dressing game needs a blade) by ordinary purchase, as in Ashford's store.
   for (const p of Object.values(people)) if (p.occupation === 'hunter') makeItem(world, 'dagger', `${p.name}'s hunting knife`, { owner: p.id, holder: p.id });
-  if (places.tavern) makeItem(world, 'dagger', 'a skinning knife', { owner: places.tavern.ownerId, placeId: places.tavern.id, pos: places.tavern.inside, quantity: 1 });
+  // Set out on the bar, where goods are offered: lying in the room, a stranger could only take it.
+  if (places.tavern) {
+    const bar = places.tavern.anchors.find(a => a.kind === 'display')?.pos ?? places.tavern.inside;
+    makeItem(world, 'dagger', 'a skinning knife', { owner: places.tavern.ownerId, placeId: places.tavern.id, pos: { ...bar }, quantity: 1 });
+  }
   plantGrove(world, places.clearing.bounds, places.clearing.id, places.clearing.id, spec.resources.timber);
   registerGameGround(world, places.forest.id, Math.round(20 + spec.resources.timber * 3 * spec.moisture));
   registerStoneNodes(world, places.quarry.id, Array.from({ length: spec.resources.stone }, (_, i) => ({ x: places.quarry.bounds.x0 + 3 + (i % 3) * 4, y: 0, z: places.quarry.bounds.z0 + 3 + Math.floor(i / 3) * 4 })));
