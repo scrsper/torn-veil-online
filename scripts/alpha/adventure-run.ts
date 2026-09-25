@@ -64,7 +64,10 @@ const place = r.payload.placeId ? w.place(r.payload.placeId) : undefined;
 if (approach === 'hunt') {
   const tavern = placeOf('tavern');
   for (let attempt = 0; attempt < 12 && !p.inventory.some(id => w.item(id)?.type === 'dagger'); attempt++) {
-    bot.go(tavern.inside, 2, 400); bot.wait(1);
+    // Walk up to the blade one can see set out on the bar; goods are bought within arm's reach.
+    const onShow = w.items().find(i => i.type === 'dagger' && i.placeId === tavern.id && i.pos && !i.holderId);
+    if (onShow) bot.goNear(onShow.pos!); else bot.go(tavern.inside, 2, 400);
+    bot.wait(1);
     const buy = bot.interactions().find(a => a.kind === 'buy' && a.id.includes(':') && w.item(a.id.split(':')[1])?.type === 'dagger');
     if (buy) { const res = bot.interact(buy.id); note('buy_blade', { result: res, label: buy.label, wealth: p.wealth }); }
     else bot.offline(1200);
