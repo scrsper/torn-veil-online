@@ -294,7 +294,7 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     for (const s of data.bodies) {
       if (!validSavedCombatAction(s.combatAction, s.id)) return null;
       if (!validSavedGuard(s.guard, data.physicalTime ?? 0)) return null;
-      if (s.guard && s.guard.until > (data.physicalTime ?? 0) && !data.events.some((e: WorldEvent) => e.id === s.guard.eventId && e.type === 'combat_action' && e.actor === s.ownerId && e.data.kind === 'guard')) return null;
+      if (s.guard && s.guard.until > (data.physicalTime ?? 0) && !data.events.some((e: WorldEvent) => e.id === s.guard.eventId && e.type === 'combat_action' && e.actor === s.ownerId && e.data.kind === 'guard' && e.data.phase === 'accepted' && e.data.actorBodyId === s.id)) return null;
       if(s.crouch!==undefined&&(!Number.isFinite(s.crouch)||s.crouch<0||s.crouch>1))return null;
       // Additive presentation counters: old v24 saves establish a zero baseline. Do not
       // infer lost counts from compacted history or aggregate entity ids (many bodies).

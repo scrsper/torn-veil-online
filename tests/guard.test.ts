@@ -59,6 +59,11 @@ describe('canonical guard and committed heavy strikes', () => {
     expect(restored.world.body(b.id)!.guard).toEqual(b.guard);
     const corrupt = JSON.parse(saved); corrupt.bodies.find((x: {id: string}) => x.id === b.id).guard.eventId = 'invented';
     expect(deserialize(JSON.stringify(corrupt))).toBeNull();
+    for (const invalid of [{actorBodyId:'another-manifestation'}, {phase:'contact'}]) {
+      const mismatched=JSON.parse(saved);
+      Object.assign(mismatched.events.find((e:{id:string})=>e.id===b.guard!.eventId).data,invalid);
+      expect(deserialize(JSON.stringify(mismatched))).toBeNull();
+    }
   });
   it('heavy attacks buy force with longer commitment and more fatigue, without increasing reach', () => {
     const light = setup(), heavy = setup();
