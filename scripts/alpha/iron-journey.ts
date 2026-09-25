@@ -119,6 +119,58 @@ function talkChoose(npc: Person, pick: (label: string) => boolean): string[] | n
   return lines;
 }
 
+/** Earn provision money through visible resource interactions and ordinary trade. No wages or
+ * items are injected. Small, spaced batches avoid treating the legacy gather button as a spam loop. */
+function earnProvisions(): boolean {
+  const before = p.wealth;
+  const sellOwnGoods = () => {
+    const traders = w.livingPersons().filter(q => q.id !== p.id && q.wealth > 0 && w.primaryBody(q.id)?.pose !== 'sleep'
+      && dist(w.positionOf(q.id)!, body.pos) < 250 && s.sim.tradeOffers(q, p).length)
+      .sort((a,b) => dist(w.positionOf(a.id)!,body.pos)-dist(w.positionOf(b.id)!,body.pos));
+    for(const trader of traders.slice(0,3)) {
+      if(!go(w.positionOf(trader.id)!,1.4,180))continue;
+      for(let sale=0;sale<4&&p.wealth<8;sale++) {
+        if(say({type:'talk',targetBodyId:w.primaryBody(trader.id)!.id})!=='accepted')break;
+        const trade=s.snapshot(false).dialogue?.options.find(o=>o.label==='Trade');
+        if(trade)say({type:'dialogue_option',optionId:trade.id});
+        const offer=s.snapshot(false).dialogue?.options.find(o=>o.label.startsWith('Sell ')&&/log|stone|stick/.test(o.label));
+        const buyerBefore=trader.wealth, sellerBefore=p.wealth;
+        if(offer)say({type:'dialogue_option',optionId:offer.id});
+        say({type:'dialogue_close'});
+        if(!offer||p.wealth<=sellerBefore)break;
+        assert.equal(p.wealth-sellerBefore,buyerBefore-trader.wealth,'Trade conserves provision money');
+        note('earned_provisions',{buyer:trader.id,offer:offer.label,paid:p.wealth-sellerBefore,wealth:p.wealth});
+        wait(10);
+      }
+      if(p.wealth>=8)return;
+    }
+  };
+  sellOwnGoods();
+  if(p.wealth>=8)return true;
+  const nodes=w.resourceNodes.filter(n=>(n.kind==='tree'||n.kind==='stone')&&n.state==='available'&&n.remaining>0&&dist(n.pos,body.pos)<250)
+    .sort((a,b)=>dist(a.pos,body.pos)-dist(b.pos,body.pos)).slice(0,3);
+  for(const node of nodes) {
+    if(!go(node.pos,1.2,180))continue;
+    for(let batch=0;batch<3;batch++) {
+      const action=handInteractions(s.sim,p).find(a=>a.kind==='gather'&&a.id==='gather:'+node.id);
+      if(!action)break;
+      const result=say({type:'interact',interactionId:action.id});
+      note('resource_work',{node:node.id,result,yield:node.yield});
+      wait(60);
+      const goods=w.items().filter(i=>i.ownerId===p.id&&!i.holderId&&i.pos&&i.quantity>0&&['log','stone','stick'].includes(i.type)&&dist(i.pos,body.pos)<250);
+      for(const good of goods.slice(0,4)) {
+        if(!go(good.pos!,1.2,180))continue;
+        const take=handInteractions(s.sim,p).find(a=>a.kind==='take'&&a.id==='take:'+good.id);
+        if(take)say({type:'interact',interactionId:take.id});
+      }
+      if(!go(node.pos,1.2,180))break;
+    }
+    sellOwnGoods();
+    if(p.wealth>=8)break;
+  }
+  return p.wealth>before;
+}
+
 // 1. Learn the veil from someone who keeps it, paying their fee.
 function learnVeil(): boolean {
   const keepers = w.livingPersons().filter(q => q.id !== p.id && knowsVeil(q)).sort((a, b) => dist(w.positionOf(a.id)!, body.pos) - dist(w.positionOf(b.id)!, body.pos));
@@ -172,7 +224,10 @@ function practiceSession(physicalSeconds: number) {
     if (a.eligible) { eligibilityBeforeBreakthrough = { assessment: a, foundations: {...p.attributes}, physiology: {...p.physiology}, capability: structuredClone(p.capability), at: w.now }; const r = say({ type: 'person_action', intent: { kind: 'advance' } }); note('advance_intent', { result: r, path: a.path }); wait(120); if (p.ontology.stage === 'Iron') { advanced = true; return; } continue; }
     // Recovery: too tired or parched to practise — hand back to ordinary life for a while.
     // Practice itself refuses a body below 0.3 energy or water, so hand back before that point.
-    if (p.physiology.energy < 0.65 || p.physiology.hydration < 0.65) { if (!provision()) return; }
+    if (p.physiology.energy < 0.65 || p.physiology.hydration < 0.65) {
+      if (p.wealth < 4 && p.physiology.energy > 0.35 && p.physiology.hydration > 0.4) earnProvisions();
+      if (!provision()) return;
+    }
     if (p.physiology.fatigue > 0.5) return;
     const strain = veilStrain(w, p);
     // A balanced day: the veil in the morning, the body in the afternoon. Iron asks every other
