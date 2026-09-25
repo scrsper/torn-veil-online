@@ -121,9 +121,12 @@ if (approach === 'hunt') {
 } else {
   let result = '';
   for (let attempt = 0; attempt < 40 && result !== 'calmed'; attempt++) {
-    if (bot.dist(tb.pos, bot.body.pos) > 8) bot.go(tb.pos, 7, 120);
+    // Close in whenever the last try could not reach it: distance alone is not enough in the
+    // woods, where a trunk between the two of you blocks the hush as surely as range does.
+    const before = bot.dist(tb.pos, bot.body.pos);
+    const walked = before > 8 || result === 'out_of_reach' ? bot.go(tb.pos, 4, 120) : true;
     result = bot.say({ type: 'hush', targetBodyId: tb.id });
-    if (attempt < 6 || result === 'calmed') note('hush', { result, strain: p.veil?.strain });
+    if (attempt < 8 || result === 'calmed') note('hush', { result, strain: p.veil?.strain, before: +before.toFixed(1), walked, after: +bot.dist(tb.pos, bot.body.pos).toFixed(1) });
     if (result === 'too_strained') bot.offline(1200); else bot.wait(7);
     if (bot.body.pose === 'downed') { note('downed', {}); bot.offline(600); }
   }

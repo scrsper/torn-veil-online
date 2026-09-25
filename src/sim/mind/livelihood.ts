@@ -141,7 +141,9 @@ export function livelihoodProspects(world: World, p: Person): LivelihoodProspect
   const stints = stintsOf(world, p.id);
   const out: LivelihoodProspect[] = [];
 
-  for (const place of world.places()) {
+  // Work one could go to daily from home. Every mill in the region was a candidate before, so a
+  // retired elder shown milling set off for one in another settlement 11 km away (seed 918272).
+  for (const place of localPlaces(world, world.place(p.homeId)?.inside ?? world.positionOf(p.id))) {
     const process = processFor(place.type);
     if (!process) continue;
     const room = roomAtTheWork(world, place);
