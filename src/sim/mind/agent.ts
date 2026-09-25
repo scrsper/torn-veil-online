@@ -1,3 +1,7 @@
+import { provokeAnimal, menacingAnimals } from '../ecology/defense';
+import { maintainProtectionRequests } from '../social/protection';
+import { attemptHush, knowsVeil, meditateOnVeil, MEDITATION_SECONDS, veilStrain, HUSH_RANGE_M } from '../physical/veil';
+import { naturalDeath } from '../ecology/animals';
 import { knowledgeItems } from './knowledgeView';
 import { combatActionFacts } from '../physical/combatFacts';
 import { recentSelfCare } from './recentSelfCare';
@@ -9,6 +13,8 @@ import { interpretSocial, introduce, learnIdentity, knownName, perceivedName } f
 import { conversationBodies, conversationReachable, socialChoice, socialEvidence } from './socialEvidence';
 import { anchorIdentityToObservation, observableSignature, recognizeEncounter, shareIdentityObservation } from './encounter';
 import { advanceToIron, assessAdvancement } from '../core/advancement';
+import { developThroughExertion } from '../core/development';
+import { recordCapabilityPractice } from '../core/capability';
 import { isExternallyControlled, hasExternalIntention, authorizeExternalIntention } from '../runtime/controllers';
 import { recoveryMultiplier } from '../core/human';
 import { genealogyGoals, inferSurnameKin } from './genealogy';
@@ -42,6 +48,7 @@ import { nearestAvailableNode, extractFromNode, maintainResourceNodes } from '..
 import { stepWildlife } from '../ecology/simulation';
 import { stepWildlifeInteraction } from '../ecology/interaction';
 import { observeTechnique } from './martialKnowledge';
+import { actOnMartial, martialActivityLevel, martialPartnerHold } from './martialPractice';
 import { stepConstruction, activeBuildProjects, performBuildLabor, MAX_BUILDERS } from '../world/construction';
 import { stepFire, igniteFire, feedFire, fireIntensityAt, fireAt } from '../world/fire';
 import { willingnessFor, unitPriceFor, tradeOffersFrom, refusalsFrom, purchaseUnits, type TradeOffer, type Refusal, type PurchaseResult } from '../world/commerce';
@@ -504,6 +511,8 @@ export class Simulation {
   // ------------------------------------------------------------------ decision
   private think(p: Person, body: Body): void {
     const w = this.world; const m = p.mind; const now = w.now; const hour = w.clock.hourF;
+    // Someone who agreed to spar or be taught holds still for the session unless alarmed.
+    if (m.alarm <= 0.5 && martialPartnerHold(w, p)) return;
     const cands: Goal[] = [];
     // v0.9 §B: every candidate goal, whatever proposed it, is offered up to the concerns this
     // person is carrying (mind/concern.ts's `concernGoalBoost`). This is the one place knowledge
@@ -713,10 +722,19 @@ export class Simulation {
       G('flee', clamp(0.25 + ar.fear * 0.5 + ar.grudge * 0.2 - p.traits.courage * 0.2 - avoid.d * 0.01), [`${perceivedName(w, p, avoid.id)} is about — best keep clear`, `old grudge ${ar.grudge.toFixed(2)}, fear ${ar.fear.toFixed(2)}`], { targetEntity: avoid.id, data: { avoidance: true } });
     }
     // ---- knowledge-driven goals: report crimes, investigate, recover items
-    if (p.ontology.stage === 'Normal' && (p.capability?.bySkill.crafting?.effectiveSeconds ?? 0) >= 8 * 3600) {
+    if (p.ontology.stage === 'Normal' && Object.values(p.capability?.bySkill ?? {}).some(c => c.effectiveSeconds >= 8 * 3600)) {
       const advancement = assessAdvancement(w, p);
       if (advancement.eligible) G('advance', 0.35 + p.traits.curiosity * 0.15,
         ['sustained practice, understood technique and recovered foundations permit adaptation'], { causeEvent: advancement.evidenceEventIds.at(-1) });
+    }
+    // An animal visibly bristling or charging at me: keep clear, or — if I know the veil art and
+    // have the strength left — still it. The same choice is open to anyone; a player makes it by hand.
+    const menace = menacingAnimals(w, p)[0];
+    if (menace) {
+      const charging = menace.mode === 'charge' || menace.mode === 'strike';
+      if (knowsVeil(p) && veilStrain(w, p) < 0.7 && menace.distance <= HUSH_RANGE_M)
+        G('hush', clamp(0.75 + (charging ? 0.2 : 0)), [`a ${menace.animal.name} is ${charging ? 'charging' : 'bristling'} at me`, 'I know how to still it'], { targetEntity: menace.animal.id, data: { bodyId: menace.body.id } });
+      G('flee', clamp(0.62 + (charging ? 0.3 : 0.1) - p.traits.courage * 0.1), [`a ${menace.animal.name} is ${charging ? 'charging' : 'bristling'} at me`, `${menace.distance.toFixed(1)} m away`], { targetEntity: menace.animal.id });
     }
     // A remembered impression can motivate caution even without a current attack or a
     // relationship fear flag. It proposes an ordinary goal, never dictates its selection.
@@ -1574,6 +1592,7 @@ export class Simulation {
       case 'go_home': case 'shelter': case 'return_home_safe': { const pl = place ?? w.place(p.homeId); return [A({ type: 'goto', pos: anchorIn(pl, ['seat', 'fire', 'inside']) ?? pl?.inside ?? body.pos, placeId: pl?.id }), A({ type: 'wait', duration: 30 * 60 })]; }
       case 'patrol': { const pts = p.patrol ?? []; const start = Math.floor(w.rng.next() * pts.length); const acts: Action[] = []; for (let i = 0; i < pts.length; i++) { const pt = pts[(start + i) % pts.length]; acts.push(A({ type: 'goto', pos: pt }), A({ type: 'look', duration: 40, pos: pt })); } return acts.length ? acts : [A({ type: 'wait', duration: 60 })]; }
       case 'guard_post': { const pl = place ?? w.place(p.workId); const post = p.occupation === 'guard' ? (localPlaces(w, body.pos).find(x => x.type === 'gate' && x.name.includes('east'))?.anchors[0].pos ?? pl?.inside) : anchorIn(pl, ['post', 'work', 'inside']); return [A({ type: 'goto', pos: post ?? body.pos }), A({ type: 'look', duration: 20 * 60, pos: post ?? body.pos })]; }
+      case 'hush': return [A({ type: 'hush', targetEntity: g.targetEntity, data: { ...g.data } })];
       case 'flee': { const threatPos = w.primaryBody(g.targetEntity!)?.pos ?? body.pos; const guards = w.livingPersons().filter(q => (q.occupation === 'guard' || q.occupation === 'captain') && q.id !== g.targetEntity); const gd = p.traits.sociability > 0.3 && !p.hostile ? this.nearestKnownGuard(p, body.pos, guards) : null; let dest: Vec3; if (gd) { dest = p.knowledge[`loc:${gd.id}`]?.claim.pos ?? w.place(gd.workId)?.inside ?? w.primaryBody(gd.id)!.pos; } else { const home = w.place(p.homeId); dest = home?.inside ?? this.awayFrom(body.pos, threatPos, 18); } if (dist2(dest, threatPos) < 8) dest = this.awayFrom(body.pos, threatPos, 20); return [A({ type: 'goto', pos: dest, run: true, data: { flee: true } }), A({ type: 'wait', duration: 3 * 60, data: { hide: true } })]; }
       case 'report': { const g2 = w.person(g.targetEntity!)!; return [A({ type: 'goto', targetEntity: g2.id, run: true }), A({ type: 'tell', targetEntity: g2.id, data: { key: g.data?.key } })]; }
       case 'investigate': { return [A({ type: 'goto', pos: g.targetPos!, run: p.occupation === 'captain' }), A({ type: 'look', duration: 3 * 60, pos: g.targetPos!, data: { key: g.data?.key, investigate: true } })]; }
@@ -1815,6 +1834,8 @@ export class Simulation {
         }
         break;
       }
+      case 'hush': { const r = attemptHush(w, p, a.data?.bodyId ?? ''); a.data = { ...a.data, result: r }; a.status = r === 'calmed' || r === 'resisted' ? 'done' : 'failed'; break; }
+      case 'meditate': { if (!knowsVeil(p) || body.pose === 'downed') { a.status = 'failed'; break; } body.pose = 'sit'; body.vel = { x: 0, y: 0, z: 0 }; if (this.elapsed(a)) a.status = meditateOnVeil(w, p, a.duration ?? MEDITATION_SECONDS) ? 'done' : 'failed'; break; }
       case 'sit': if (!this.settleRestPosition(body, a.pos, physDt)) break; body.pose = 'sit'; p.needs.social = clamp(p.needs.social - worldDt / (3 * SECONDS_PER_HOUR)); this.maybeChat(p, body); if (this.elapsed(a)) a.status = 'done'; break;
       case 'eat': {
         body.pose = 'eat'; body.sitAnchor = a.pos ?? null;
@@ -1868,6 +1889,9 @@ export class Simulation {
         break;
       }
       case 'work': {
+        // Martial practice, sparring and lessons (mind/martialPractice.ts); physiology is charged
+        // by the per-minute pass through martialActivityLevel.
+        if (a.data?.martial) { body.pose = 'work'; actOnMartial(w, p, a, physDt, { physiology: 'scheduler' }); break; }
         body.pose = 'work'; body.sitAnchor = a.pos ?? null; this.maybeChat(p, body);
         if (a.pos && w.rng.next() < physDt * 0.15) { body.yaw += (w.rng.next() - 0.5) * 0.6; }
         // v0.2.4: a miller / baker at their workplace runs a production batch every ~12 world-min
@@ -2489,7 +2513,7 @@ export class Simulation {
     // ASK for help, exactly like `DialogueSystem.hearDesire` lets a player ask an NPC "is there
     // anything you need?" — without this, `isAuthorizedRecovery` could only ever be satisfied by
     // a player being asked directly, meaning no NPC-to-NPC recovery chain could ever complete.
-    if (p.traits.sociability > 0.4 && !p.memories.some(m => m.type === 'introduction' && m.source?.type === 'self' && m.entities.includes(other.id))) introduce(w, p, other);
+    if (p.traits.sociability > 0.4 && !p.relationships[other.id]?.tags?.includes('introduced') && !p.memories.some(m => m.type === 'introduction' && m.source?.type === 'self' && m.entities.includes(other.id))) introduce(w, p, other);
     if (this.maybeAskForHelp(p, other)) return;
     // share the most significant thing I know that they don't seem to know
     const share = this.pickGossip(p, other);
@@ -2708,6 +2732,7 @@ export class Simulation {
       if (vp.surrender || vp.custody?.active || tb.subduedUntil > w.physicalTime) return null;
     }
     tb.health -= dmg; tb.lastHitAt = w.physicalTime; tb.hitSeq++;
+    if (victim.kind === 'creature') provokeAnimal(w, victim as Creature, tb, ab.id);
     const dx = tb.pos.x - ab.pos.x, dz = tb.pos.z - ab.pos.z; const d = Math.hypot(dx, dz) || 1; tb.vel.x += dx / d * 4; tb.vel.z += dz / d * 4;
     this.onHit?.(tb, { x: tb.pos.x, y: tb.pos.y + 1.2, z: tb.pos.z });
     const place = w.placeAt(tb.pos);
@@ -2731,7 +2756,17 @@ export class Simulation {
       if (lethal) {
         const de = w.emit('kill', { actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, causes: [ev.id], significance: 1, visibility: 26, loudness: 14, summary: `${attacker.name} killed ${victim.name}${place ? ' at ' + place.name : ''}` });
         if (victim.kind === 'person') diePerson(w, victim, de.id, `injuries inflicted by ${attacker.name}`);
-        else { tb.dead = true; tb.pose = 'dead'; tb.health = 0; tb.present = false; }
+        else {
+          // A killed wild animal leaves a carcass exactly as a natural death does; other creatures keep the legacy removal.
+          const wild = (victim as Creature).wildlife?.embodiments[tb.id];
+          if (wild) {
+            naturalDeath(w, victim as Creature, tb, wild, 'killed', w.now);
+            // Bringing down wild game is hunting practice, proven by this kill.
+            de.data.species = (victim as Creature).species;
+            recordCapabilityPractice(w, attacker, { skill: 'hunting', sourceEventId: de.id });
+          }
+          else { tb.dead = true; tb.pose = 'dead'; tb.health = 0; tb.present = false; }
+        }
       }
       else {
         tb.pose = 'downed'; tb.poseUntil = w.physicalTime + 45; tb.health = 1; if (victim.kind === 'person') { victim.mind.plan = []; victim.mind.goal = null; }
@@ -3058,7 +3093,12 @@ export class Simulation {
       // consequence of the fire's own intensity, not a separate "warm" status effect.
       const firePlace = b ? w.placeAt(b.pos) : undefined;
       const nearFire = firePlace ? fireIntensityAt(w, firePlace.id) : 0;
-      if (b) stepPhysiology(w, p, h, activityLevelFor(p, b, w), { indoor: w.isIndoors(b.pos), daylight: this.lightAt(), nearFire });
+      if (b) {
+        const activity = martialActivityLevel(w, p) ?? activityLevelFor(p, b, w);
+        stepPhysiology(w, p, h, activity, { indoor: w.isIndoors(b.pos), daylight: this.lightAt(), nearFire });
+        // The same classified load conditions the body (bounded by what that work demands).
+        developThroughExertion(w, p, activity, h);
+      }
       // v0.8 §P0-D fix: a detainee has no agency to seek their own food/water — `custody?.active`
       // already suspends their autonomous goal system entirely (this file's think(), the
       // `idle:custody` hold) — so an institution holding someone has a basic duty of care, the
@@ -3229,6 +3269,8 @@ export class Simulation {
       this.awareOfShortage = this.vacantPosts.length ? peopleAwareOfShortage(w) : EMPTY_AWARENESS;
       stepConstruction(w);
       maintainHauls(w);
+      // Living Alpha: danger concerns about wild animals become paid requests for help (social/protection.ts).
+      maintainProtectionRequests(w);
       maintainResourceNodes(w);
       stepSpoilage(w, sh);
       // v0.8 §C: fire as a real world process — fuel consumption, rain suppression for an

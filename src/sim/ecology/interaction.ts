@@ -2,6 +2,7 @@ import type { Body, Creature } from '../core/types';
 import type { World } from '../core/world';
 import { ageDays, bodyScale } from './animals';
 import { distance, visible } from './sensing';
+import { senseDefense, stepDefense } from './defense';
 import { travelPath } from '../physical/travel';
 import { ECOLOGY_QUANTUM_SECONDS, stepWildlife } from './simulation';
 import type { AnimalEmbodiment, EcologyState, SpeciesSpec } from './types';
@@ -67,6 +68,7 @@ function senseEncounters(world: World, active: Map<string, Active>, physicalAt: 
   }
   for (const [id, entry] of active) if (!nearby.has(id)) {
     if (entry.state.encounter) { entry.state.encounter.active = false; entry.state.encounter.threat = null; }
+    entry.state.defense = undefined;
     if (entry.state.activity === 'flee') stop(entry.body, entry.state);
     else entry.body.vel = { x: 0, y: 0, z: 0 };
     active.delete(id);
@@ -94,6 +96,12 @@ function senseEncounters(world: World, active: Map<string, Active>, physicalAt: 
       encounter.threat = { bodyId: threat.id, pos: { ...threat.pos }, seenAt: physicalAt };
     }
     else if (encounter.threat && physicalAt - encounter.threat.seenAt >= THREAT_MEMORY_SECONDS) encounter.threat = null;
+    // A defending species may stand, display or charge instead of fleeing (ecology/defense.ts).
+    if (senseDefense(world, entry.animal, body, state, spec, threat ?? null, physicalAt)) continue;
+    // A calmed animal keeps away from where it was calmed rather than circling back.
+    if (!encounter.threat && state.avoid && state.avoid.until > physicalAt && distance(body.pos, state.avoid.pos) < state.avoid.radiusM) {
+      encounter.threat = { bodyId: '', pos: { ...state.avoid.pos }, seenAt: physicalAt };
+    }
     if (!encounter.threat) { if (state.activity === 'flee') stop(body, state); continue; }
     state.activity = 'flee';
     if (physicalAt + 1e-9 >= encounter.nextRouteAt) {
@@ -144,6 +152,15 @@ export function stepWildlifeInteraction(world: World, physicalSeconds: number, w
       }
       const { animal, body, state, spec } = entry, encounter = state.encounter!;
       const scale = bodyScale(spec, ageDays(animal, ecology.processedAt + ecology.pendingWorldSeconds));
+      const defended = stepDefense(world, animal, body, state, spec, physicalAt + dt, dt);
+      if (defended.owned) {
+        let walked = 0;
+        if (defended.speed > 0 && body.path) walked = travelPath(world, body, dt, defended.speed * Math.max(0.3, 1 - state.physiology.fatigue * 0.5), spec.bodyPlan.radiusM * Math.cbrt(scale), spec.bodyPlan.heightM * Math.cbrt(scale));
+        state.distanceM += walked;
+        encounter.accountedPhysicalSeconds += dt; encounter.accountedWorldSeconds += wd;
+        if (walked > 0) { encounter.walkingWorldSeconds += wd; body.pose = 'run'; }
+        continue;
+      }
       const speed = spec.locomotion.walk.speedMps * Math.max(0.2, Math.cbrt(scale)) * Math.max(0.2, 1 - state.physiology.fatigue * 0.65);
       const target = state.target;
       let walked = 0;

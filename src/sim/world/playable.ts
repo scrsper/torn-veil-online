@@ -6,6 +6,8 @@ import { initializeWildlife } from '../ecology/generation';
 import { makeContainer } from '../core/container';
 import { makeItem } from './factory';
 import { createAnimal } from '../ecology/animals';
+import { learn } from '../mind/knowledge';
+import { techniqueKey } from '../core/skills';
 
 export function generatePlayableWorld(world: World, spec: PlayableWorldSpec = PLAYABLE_WORLD, withWildlife = true) {
   const geography = new WorldGeography(world.seed, spec);
@@ -53,9 +55,41 @@ export function generatePlayableWorld(world: World, spec: PlayableWorldSpec = PL
       for(const [index,pos] of founders.entries()) {
         createAnimal(world,'roe_deer',pos,{sex:index===0?'female':'male'});
       }
+      // Living Alpha authored starting circumstance: the forest people work in holds a boar sow
+      // with a young litter and a lone boar. What they do from here (forage, breed, defend their
+      // young against woodcutters, get hunted or driven off) is ordinary simulation.
+      const woods=walkableNear(world,forest,6,10);
+      if(woods.length>=5) {
+        const sow=createAnimal(world,'woodland_boar',woods[0],{sex:'female'});
+        for(const [i,pos] of woods.slice(1,4).entries()) createAnimal(world,'woodland_boar',pos,{sex:i%2?'male':'female',ageDays:30,parentIds:[sow.id]});
+        createAnimal(world,'woodland_boar',woods[4],{sex:'male'});
+      }
     }
   }
+  seedVeilLore(world, settlements);
   return settlements;
+}
+
+/** Walkable, distinct cells around a point (deterministic ring scan). */
+function walkableNear(world: World, at: { x: number; z: number }, min: number, count: number) {
+  const out: { x: number; y: number; z: number }[] = [];
+  for (let r = min; r < min + 24 && out.length < count; r += 3) for (let k = 0; k < 8 && out.length < count; k++) {
+    const a = k * Math.PI / 4 + r, x = Math.floor(at.x + Math.cos(a) * r), z = Math.floor(at.z + Math.sin(a) * r), y = world.nav.floorY(x, z);
+    if (y >= 0 && world.nav.walkCost(x, z) < 3 && !out.some(p => Math.hypot(p.x - x - .5, p.z - z - .5) < 2)) out.push({ x: x + .5, y, z: z + .5 });
+  }
+  return out;
+}
+
+/** Living Alpha authored initial condition: in each settlement, the adult with the strongest will
+ * holds the hedge veil-lore (the `veilcraft` technique, physical/veil.ts) as prior knowledge with
+ * modest practice. Everyone else can only learn it from such a person. */
+function seedVeilLore(world: World, settlements: ReturnType<typeof generateProceduralWorld>): void {
+  for (const s of settlements) {
+    const adults = Object.values(s.people).filter(p => p.alive && p.age >= 30).sort((a, b) => (b.attributes.will - a.attributes.will) || a.id.localeCompare(b.id));
+    const keeper = adults[0]; if (!keeper) continue;
+    learn(world, keeper, { key: techniqueKey('veilcraft'), kind: 'technique', claim: { type: 'technique', skill: 'veilcraft', tradition: 'hedge veil-lore' }, confidence: 0.85, source: { type: 'prior' } }, true);
+    keeper.skills.veilcraft = Math.max(keeper.skills.veilcraft ?? 0, 0.3);
+  }
 }
 
 /** Canonical relevance follows bodies, not renderer requests. Untouched substrate has no

@@ -3,6 +3,8 @@ import type { World } from '../sim/core/world';
 import { assessAdvancement } from '../sim/core/advancement';
 import { knownName } from '../sim/mind/people';
 import { requestTypeLabel } from '../sim/core/requests';
+import { ATTRIBUTE_IDS } from '../sim/core/human';
+import { knowsVeil, veilStrain } from '../sim/physical/veil';
 
 /** Qualitative reading of a 0..1 proficiency; a person knows roughly how good they are, not a number. */
 function band(v: number): string {
@@ -28,10 +30,14 @@ export function playerJournal(world: World, p: Person) {
   const skills = Object.entries(p.skills).filter(([, v]) => (v ?? 0) >= 0.1).map(([skill, v]) => ({ skill, level: band(v ?? 0) }))
     .sort((a, b) => a.skill.localeCompare(b.skill));
   const advancement = assessAdvancement(world, p);
+  // One's own body is self-knowledge: foundations and how far along the next point is.
+  const foundations = ATTRIBUTE_IDS.map(id => ({ id, value: p.attributes[id], progress: Math.round((p.development?.progress[id] ?? 0) * 100) / 100 }));
+  const techniques = Object.values(p.knowledge).filter(k => k.kind === 'technique' && typeof k.claim.skill === 'string').map(k => k.claim.skill as string).sort();
   return {
     commitments, obligations: owed, injuries, skills,
     condition: { fatigue: p.physiology.fatigue, energy: p.physiology.energy, hydration: p.physiology.hydration, sleepDebt: p.physiology.sleepDebt },
-    stage: p.ontology.stage,
-    advancement: { eligible: advancement.eligible, remaining: advancement.reasons.slice(0, 6) },
+    stage: p.ontology.stage, foundations, techniques,
+    veil: knowsVeil(p) ? { strain: Math.round(veilStrain(world, p) * 100) / 100 } : null,
+    advancement: { eligible: advancement.eligible, path: advancement.path ?? null, remaining: advancement.reasons.slice(0, 8) },
   };
 }

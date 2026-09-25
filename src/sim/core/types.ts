@@ -170,7 +170,10 @@ export interface AttributeDevelopment {
   /** Work-equivalent exposure, in seconds, accumulated only at actual activity hooks. */
   exposure: Attributes;
   day: number;
+  /** Legacy single daily budget, kept for old saves: the largest per-foundation use today. */
   dailyExposure: number;
+  /** Stimulus seconds each foundation has absorbed this world day (recovery bounds each separately). */
+  dailyByFoundation?: Partial<Attributes>;
   exceptional: Partial<Record<AttributeId, { firstAt: Tick; lastAt: Tick; seconds: number; days: number; lastDay: number; qualificationEventId: EventId; assessed?: boolean }>>;
   /** Bounded novelty memory, distinct from knowledge: forgetting a fact does not reset practice. */
   studied: string[];
@@ -195,7 +198,9 @@ export type SkillId = 'woodcutting' | 'quarrying' | 'hauling' | 'sawing' | 'cons
   // anybody the occupation gate let through — which is exactly why a lost miller could never be
   // replaced by a worse one: there was no "worse" to be. See core/skills.ts's trade-proficiency
   // helpers and world/labor.ts.
-  | 'milling';
+  | 'milling'
+  // Living Alpha: the learned veil art of hushing a creature's or person's alarm (physical/veil.ts).
+  | 'veilcraft';
 
 /** Bounded evidence ledger for action-grounded capability progression. This is deliberately
  * optional so old generated people and saves remain valid. It records credited activity rather
@@ -374,7 +379,7 @@ export interface Percept {
 }
 
 export type GoalType =
-  | 'sleep' | 'eat' | 'work' | 'socialize' | 'wander' | 'go_home' | 'flee' | 'report' | 'investigate'
+  | 'hush' | 'sleep' | 'eat' | 'work' | 'socialize' | 'wander' | 'go_home' | 'flee' | 'report' | 'investigate'
   | 'confront' | 'attack' | 'rob' | 'help' | 'shelter' | 'worship' | 'patrol' | 'drink' | 'shop' | 'mourn' | 'play'
   | 'idle' | 'talk' | 'recover_item' | 'guard_post' | 'follow' | 'return_home_safe'
   // v0.2.3: yield in a losing/hopeless fight rather than fight-to-death or flee-forever; a guard
@@ -425,7 +430,7 @@ export interface Goal {
   key: string;             // identity for hysteresis (type + target)
 }
 
-export type ActionType = 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 'talk' | 'tell' | 'attack' | 'look' | 'pickup' | 'face' | 'bark' | 'pray' | 'eat' | 'demand' | 'rob'
+export type ActionType = 'hush' | 'meditate' | 'goto' | 'wait' | 'use' | 'sit' | 'sleep' | 'work' | 'talk' | 'tell' | 'attack' | 'look' | 'pickup' | 'face' | 'bark' | 'pray' | 'eat' | 'demand' | 'rob'
   // v0.2.3: yield (drop out of a fight, hands up); take_custody (a guard escorts a
   // surrendered/subdued suspect into detention).
   | 'yield' | 'take_custody' | 'defend'
@@ -906,6 +911,8 @@ export interface Person extends Entity {
   skills: Partial<Record<SkillId, number>>;
   /** Optional action-grounded experience ledger; proficiency remains in `skills`. */
   capability?: CapabilityLedger;
+  /** Living Alpha veil art: accumulated strain (0..1, recovers with time/rest) and last use, physical seconds. */
+  veil?: { strain: number; strainAt: number; lastAt: number };
   needs: Needs;
   emotions: Emotions;
   appearance: Appearance;
@@ -1145,7 +1152,7 @@ export interface ConstructionProject {
 // right capability/workplace accepts and fulfills by actually performing the production
 // transform (see world/production.ts). Mirrors haul/construction_labor's "world demand → shared
 // Request → real work → wage" shape rather than inventing a fourth ad hoc mechanism.
-export type RequestType = 'haul' | 'construction_labor' | 'production';
+export type RequestType = 'haul' | 'construction_labor' | 'production' | 'protection';
 export type RequestStatus = 'open' | 'accepted' | 'completed' | 'failed' | 'cancelled';
 export interface RequestPayload {
   haulTaskId?: EntityId;
@@ -1156,6 +1163,13 @@ export interface RequestPayload {
   seconds?: number;
   /** production: the Place where the production batch happens (a bakery, ...). */
   placeId?: EntityId;
+  /** protection: the animal the requester fears (as they know it) and its species. */
+  creatureId?: EntityId;
+  species?: string;
+  /** protection: how the requester came to believe it was settled. */
+  settledBy?: 'knew_of_death' | 'knew_it_stilled' | 'shown_meat' | 'took_word';
+  /** protection: a word-only settlement later shown false by a repeat attack. */
+  exposed?: boolean;
 }
 export interface Request {
   id: EntityId;
@@ -1454,7 +1468,7 @@ export interface Faction extends Entity {
 }
 
 // ---------------------------------------------------------------- Events
-export type EventType = 'animal_born' | 'animal_conceived' | 'animal_pregnancy_lost' | 'animal_died' | 'ecology_changed'
+export type EventType = 'animal_threat_display' | 'downed' | 'veil_hush' | 'veil_meditation' | 'butchered' | 'woke' | 'animal_born' | 'animal_conceived' | 'animal_pregnancy_lost' | 'animal_died' | 'ecology_changed'
   | 'introduction' | 'social_inferred' | 'mechanism_inspected' | 'mechanism_hypothesized' | 'mechanism_worked' | 'mechanism_intended' | 'mechanism_abandoned'
   | 'record_written' | 'record_copied' | 'record_read' | 'record_destroyed' | 'environment_energy_changed' | 'method_reproduced' | 'method_discovered'
   | 'component_acquired' | 'assembly_changed' | 'mechanism_trial' | 'production_observed' | 'component_manufactured' | 'component_supply_failed'

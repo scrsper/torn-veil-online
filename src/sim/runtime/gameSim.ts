@@ -2,10 +2,11 @@ import type { Action, Person, Vec3 } from '../core/types';
 import { makePerson, makeBody } from '../world/factory';
 import { reachable } from '../kernel/mechanics';
 import { Simulation } from '../mind/agent';
+import { knowsVeil, MEDITATION_SECONDS } from '../physical/veil';
 import { setExternalControl } from './controllers';
 import { knowledgeView, personKnowledgeView } from './knowledgeView';
 
-export type PersonIntent = { kind: 'yield' } | { kind: 'advance' }
+export type PersonIntent = { kind: 'yield' } | { kind: 'advance' } | { kind: 'rest' } | { kind: 'wake' } | { kind: 'meditate' }
   | { kind: 'ask'; target: string; assemblyId: string }
   | { kind: 'introduce'; target: string; name?: string }
   | { kind: 'inspect' | 'diagnose' | 'reverse_engineer' | 'test' | 'dismantle' | 'abandon'; assemblyId: string }
@@ -49,6 +50,8 @@ export class GameSim {
   beliefs(connection: string, subject: string) { const p = this.person(connection); return p ? personKnowledgeView(p, subject) : null; }
   intend(connection: string, intent: PersonIntent): boolean {
     const p = this.person(connection); if (!p?.alive || !intent || typeof intent !== 'object') return false;
+    if (intent.kind === 'rest' || intent.kind === 'wake') return this.restOrWake(p, intent.kind);
+    if (intent.kind === 'meditate') return this.meditate(p);
     const kinds = ['ask', 'yield', 'advance', 'introduce', 'inspect', 'diagnose', 'reverse_engineer', 'test', 'dismantle', 'abandon', 'replace', 'connect', 'disconnect', 'read', 'teach', 'manufacture', 'reconstruct'];
     if (!kinds.includes(intent.kind)) return false;
     const input = intent as unknown as Record<string, unknown>;
@@ -75,6 +78,27 @@ export class GameSim {
       : intent.kind === 'teach' ? { type: 'tell', targetEntity: intent.target, data: { key: intent.key }, status: 'pending' }
       : { type: 'mechanism_task', data: Object.fromEntries(['kind', 'assemblyId', 'part', 'componentId', 'from', 'to', 'definition'].filter(key => input[key] !== undefined).map(key => [key, input[key]])), status: 'pending' };
     this.simulation.submitIntention(p, action); return true;
+  }
+  /** Sit and practise the veil where one stands: the same `meditate` action anyone taught can plan. */
+  private meditate(p: Person): boolean {
+    const w = this.simulation.world, body = w.primaryBody(p.id);
+    if (!body || body.dead || !body.present || ['downed', 'sleep'].includes(body.pose) || p.custody?.active || !knowsVeil(p)) return false;
+    this.simulation.submitIntention(p, { type: 'meditate', pos: { ...body.pos }, duration: MEDITATION_SECONDS, status: 'pending' });
+    return true;
+  }
+  /** Sleep where one stands (the same `sleep` action a mind plans), or wake by choice. */
+  private restOrWake(p: Person, kind: 'rest' | 'wake'): boolean {
+    const w = this.simulation.world, body = w.primaryBody(p.id);
+    if (!body || body.dead || !body.present || body.pose === 'downed' || p.custody?.active) return false;
+    if (kind === 'wake') {
+      if (body.pose !== 'sleep') return false;
+      p.mind.plan = []; p.mind.goal = null; body.pose = 'stand';
+      w.emit('woke', { actor: p.id, significance: 0.02, summary: `${p.name} got up` });
+      return true;
+    }
+    if (body.pose === 'sleep') return false;
+    this.simulation.submitIntention(p, { type: 'sleep', pos: { ...body.pos }, duration: 8 * 3600, status: 'pending' });
+    return true;
   }
   /** Explicit developer entry point. Never embedded in perceive()/beliefs() responses. */
   debugTruth(personId: string) {

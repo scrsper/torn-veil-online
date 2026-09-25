@@ -197,7 +197,8 @@ it('projection is detached, observation-gated and excludes internal needs, repro
   const x = encounter(); x.viewer.yaw = -Math.PI / 2;
   const row = wildlifeProjection(x.world, x.viewer).bodies.find(b => b.bodyId === x.body.id)!;
   expect(row).toBeDefined(); expect(row.speciesId).toBe('roe_deer');
-  expect(Object.keys(row).sort()).toEqual(['activity', 'ageClass', 'alive', 'bodyId', 'bodyPlan', 'condition', 'creatureId', 'dead', 'pos', 'present', 'regionId', 'scale', 'speciesId', 'vel', 'yaw'].sort());
+  // `defense`/`defenseAtViewer`: the visible display/charge/strike an observer can read and time.
+  expect(Object.keys(row).sort()).toEqual(['activity', 'ageClass', 'alive', 'bodyId', 'bodyPlan', 'condition', 'creatureId', 'dead', 'defense', 'defenseAtViewer', 'pos', 'present', 'regionId', 'scale', 'speciesId', 'vel', 'yaw'].sort());
   row.pos.x = -99; row.bodyPlan.heightM = 999;
   expect(x.body.pos.x).toBe(15.5); expect(x.world.ecology!.species.roe_deer.bodyPlan.heightM).toBe(1.5);
   x.viewer.yaw = Math.PI / 2;

@@ -7,11 +7,21 @@ export interface CombatTransform { pos: Vec3; yaw: number; duck: number }
 export const lerpPoint = (a: Vec3, b: Vec3, t: number): Vec3 => ({ x:a.x+(b.x-a.x)*t, y:a.y+(b.y-a.y)*t, z:a.z+(b.z-a.z)*t });
 /** Shape dispatch is the extension point for creature anatomy. Metres, feet origin, Y up.
  * Limb sides remain physical contact facts; existing coarse injury effects group arm/leg. */
-export function hurtVolumes(body: Pick<Body,'shape'|'pos'|'yaw'>, duck = 0): HurtVolume[] {
+export function hurtVolumes(body: Pick<Body,'shape'|'pos'|'yaw'>, duck = 0, plan?: { heightM: number; radiusM: number }): HurtVolume[] {
   const d=Math.max(0,Math.min(1,duck));
   const sphere=(region:ContactRegion,side:number,height:number,radius:number):HurtVolume=>({region,radius,
     center:{x:body.pos.x+Math.cos(body.yaw)*side,y:body.pos.y+height,z:body.pos.z-Math.sin(body.yaw)*side}});
   if(body.shape==='chicken') return [sphere('torso',0,.28,.25)];
+  if(body.shape==='quadruped'&&plan) {
+    // A horizontal trunk from the species body plan: the head leads along facing (yaw 0 faces -Z),
+    // legs are low. A standing adult's high blow passes over a boar's back; strike low.
+    const h=Math.max(.2,plan.heightM),r=Math.max(.08,plan.radiusM),len=Math.max(.4,r*3.4);
+    const along=(region:ContactRegion,forward:number,side:number,height:number,radius:number):HurtVolume=>({region,radius,
+      center:{x:body.pos.x-Math.sin(body.yaw)*forward+Math.cos(body.yaw)*side,y:body.pos.y+height,z:body.pos.z-Math.cos(body.yaw)*forward-Math.sin(body.yaw)*side}});
+    return [along('head',len*.5,0,h*.62,r*.7),along('torso',len*.12,0,h*.55,r),along('torso',-len*.28,0,h*.55,r),
+      along('leftLeg',len*.3,-r*.5,h*.18,r*.45),along('rightLeg',len*.3,r*.5,h*.18,r*.45),
+      along('leftLeg',-len*.38,-r*.5,h*.18,r*.45),along('rightLeg',-len*.38,r*.5,h*.18,r*.45)];
+  }
   if(body.shape!=='humanoid') return [];
   return [sphere('head',0,1.65-.50*d,.18),sphere('torso',0,1.12-.50*d,.28),
     sphere('leftArm',-.38,1.18-.52*d,.14),sphere('rightArm',.38,1.18-.52*d,.14),

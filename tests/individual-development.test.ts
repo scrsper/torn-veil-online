@@ -74,7 +74,8 @@ describe('ordinary human foundations', () => {
     const { tw, p: low } = person(), high = person(tw).p, idle = person(tw).p;
     high.attributePotential.strength = idle.attributePotential.strength = 18;
     idle.occupation = 'smith';
-    for (let day = 0; day < 5000; day++) {
+    // A horizon at which neither reaches the Normal ceiling (the calibrated rate saturates both in months).
+    for (let day = 0; day < 20; day++) {
       tw.world.clock.worldSeconds += 86400;
       for (const p of [low, high]) develop(tw.world, p, { weights: { strength: 1 }, seconds: 8 * 3600, intensity: 1 });
     }

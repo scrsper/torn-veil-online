@@ -214,6 +214,34 @@
   Live, the source itself, overlapping roots/state, state configured outside its own root and
   every other environment's state are refused before any file is touched. The replaced
   destination world is moved aside and restored if installation fails.
+## Living Alpha progression, danger and the veil
+
+- Development is anchored in what a body actually does. The per-minute physiology activity also
+  conditions the body (`developThroughExertion`); every stimulus names the foundation level it
+  demands and adaptation falls off steeply beyond it (`challengeFactor`). Routine labour is slow
+  (weeks per point) and plateaus near 11; exceptional foundations need high-challenge practice
+  (sparring, dangerous game, real hush attempts). `DEVELOPMENT_HOURS` 500 → 0.6. Each foundation
+  has its own daily adaptation budget. See docs/LIVING_ALPHA_PROGRESSION.md.
+- Iron is anchored on one practiced capability: its practice profile's core foundations (weight
+  ≥ 0.5, at least two) at 15, every other foundation at 11. The threshold value is unchanged; the
+  all-seven reading remains available as `ironEligible(p)` with no core argument.
+- Martial practice is wired into the live simulation. Sparring credits both partners through the
+  source event's participants; a consenting partner holds (an ordinary wait) for the session.
+- The veil: meditation develops will/perception/intellect to challenge 13 and eases strain but is
+  not capability evidence; strain recovers on world time and eases with skill; the art is learned
+  at 0.3× the ordinary per-minute rate. A witness who *saw* a hush knows whether it took; a
+  protection request settles as `knew_it_stilled` on that belief. The animal lives and may return.
+- Combat reaches animals: quadruped hurt volumes come from the species body plan, and creature
+  bodies near an attacker are contact candidates. A standing person's high blow passes over a
+  boar's back; strike low. Juvenile animals do not defend, and a strike's force scales with size.
+- Visible defensive behaviour (display, charge, strike wind-up, recovery) is part of the wildlife
+  projection so a player can read and time an encounter. Boar and hare have no installed asset;
+  they are rendered by a project-built primitive body until licensed animal content is chosen.
+- A speaker's "I have introduced myself" is a durable fact on their own relationship record, not a
+  bounded memory; forgetting the moment re-introduced pairs every few minutes for days.
+- A critical need may override avoidance of a feared person who is not close; ordinary need
+  still yields to fear. Critical thirst at night is not yet an override (it knife-edged a
+  production showcase); recorded as a follow-up.
 ## Native startup and regional transport
 
 - Exterior dressing reserves canonical arrival/activity points and door/path space using the

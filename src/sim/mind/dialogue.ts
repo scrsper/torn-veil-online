@@ -1,3 +1,10 @@
+import { knowsVeil } from '../physical/veil';
+import { availableForMartial } from './martialPractice';
+import { canExecuteTechnique } from './martialKnowledge';
+import { INNATE_TECHNIQUE_IDS } from '../core/martialDefinitions';
+import { teach } from './apprenticeship';
+const VEIL_LESSON_FEE = 10;
+import { acceptProtection, claimProtection, protectionCommitments, protectionOffersFrom } from '../social/protection';
 import { introduce, knownName, perceivedName } from './people';
 import type { Person, KnowledgeItem, Item, Desire } from '../core/types';
 import { World } from '../core/world';
@@ -121,7 +128,13 @@ export class DialogueSystem {
     // Player embodiment: a meal bought the way a hungry NPC buys one (`buyFoodPortion` — scarcity
     // priced, one unit), and honest work offered by the person who actually raised the request
     // (logistics/participation.ts's `haulOffersFrom`) — the same Request an NPC hauler would take.
-    if (this.sim.haulOffersFrom(npc).length || this.sim.activeHaulFor(player)) opts.push({ label: 'Any work going?', next: () => this.workMenu(npc, player) });
+    if (this.sim.haulOffersFrom(npc).length || this.sim.activeHaulFor(player) || protectionOffersFrom(w, npc).length) opts.push({ label: 'Any work going?', next: () => this.workMenu(npc, player) });
+    // The veil hush is learned only from someone who holds it, and only if they are willing.
+    if (knowsVeil(npc) && !knowsVeil(player)) opts.push({ label: `Teach me the hush — how you still a frightened beast (${VEIL_LESSON_FEE}s)`, next: () => this.teachVeil(npc, player) });
+    for (const r of protectionCommitments(w, npc, player).slice(0, 1)) opts.push({ label: `About the ${w.nameOf(r.payload.creatureId!)}…`, next: () => this.claimProtection(npc, player, r) });
+    // Sparring: the same martial session anyone can run (mind/martialPractice.ts), if both are fit for it.
+    const spar = this.sparTechnique(npc, player);
+    if (spar) opts.push({ label: 'Spar with me a few rounds', next: () => this.beginSpar(npc, player, spar) });
     const meal = foodForSaleBy(w, npc)[0];
     if (meal) { const price = effectivePrice(meal.type, meal.value ?? 2, meal.placeId ? stockAtPlace(w, meal.type, meal.placeId) : meal.quantity); opts.push({ label: `Buy a meal — ${meal.type} (${price}s)`, next: () => this.buyMeal(npc, player) }); }
     // v0.9 §F / Constitution §66: this option used to name one hardcoded debtor and one
@@ -370,7 +383,60 @@ export class DialogueSystem {
   /** Honest work: open haul Requests this person speaks for. Accepting is `claimHaulTask` via
    * participation.ts — the identical claim an NPC hauler makes; loading, carrying, depositing
    * and the wage all then happen through the same functions and the same conservation rules. */
+  private teachVeil(npc: Person, player: Person): DialogueState {
+    const w = this.world, r = getRel(npc, player.id);
+    if (r.fear > 0.4 || r.grudge > 0.3) return { speaker: npc, lines: [`Not to you. That is not a thing I give to someone I don't trust.`], options: this.options(npc, player) };
+    if (player.wealth < VEIL_LESSON_FEE) return { speaker: npc, lines: [`It takes an afternoon to show, and I'm owed for it — ${VEIL_LESSON_FEE} silver. You haven't it.`], options: this.options(npc, player) };
+    const lesson = teach(w, npc, player, 'veilcraft');
+    if (!lesson) return { speaker: npc, lines: [`Come closer, and I'll show you.`], options: this.options(npc, player) };
+    player.wealth -= VEIL_LESSON_FEE; npc.wealth += VEIL_LESSON_FEE;
+    adjustRel(w, npc, player.id, { trust: 0.05, respect: 0.05 }, 'paid for a lesson');
+    return { speaker: npc, lines: [`Breathe out slow. Hold your own quiet like a lamp, and reach — not with your hand. It costs you: you'll feel it in your legs and your head, and it won't take on a beast already mid-charge.`, `Practise it. It will not come easy the first times.`], options: this.options(npc, player) };
+  }
+  /** A bodily technique both people can perform, rotating so rounds are not one repeated drill. */
+  private sparTechnique(npc: Person, player: Person): string | undefined {
+    const w = this.world, pb = w.primaryBody(player.id), nb = w.primaryBody(npc.id);
+    if (!pb || !nb || npc.hostile || npc.age < 14 || !availableForMartial(w, npc, nb.id) || !availableForMartial(w, player, pb.id)) return undefined;
+    if (getRel(npc, player.id).grudge > 0.3 || getRel(npc, player.id).fear > 0.4) return undefined;
+    const usable = INNATE_TECHNIQUE_IDS.filter(id => ['motor:basic-punch', 'motor:second-punch', 'motor:crude-kick', 'motor:shove'].includes(id)
+      && canExecuteTechnique(w, player, id, pb.id) && canExecuteTechnique(w, npc, id, nb.id));
+    if (!usable.length) return undefined;
+    const rounds = Object.values(player.capability?.bySkill.unarmed ? player.capability.repetitionCounts : {}).reduce((a, b) => a + b, 0);
+    return usable[rounds % usable.length];
+  }
+  private beginSpar(npc: Person, player: Person, techniqueId: string): DialogueState {
+    const w = this.world, pb = w.primaryBody(player.id)!, nb = w.primaryBody(npc.id)!;
+    const round = { type: 'work' as const, status: 'pending' as const, targetEntity: npc.id, data: { martial: 'spar', techniqueId, bodyId: pb.id, partnerBodyId: nb.id } };
+    this.sim.submitIntention(player, round);
+    for (let i = 1; i < 5; i++) player.mind.plan.push(structuredClone(round));
+    // The partner's ordinary consent rule: an idle or talking peer holds for the rounds.
+    npc.mind.plan = [{ type: 'wait', status: 'pending', targetEntity: player.id, duration: 7 * 60, data: { martial: 'spar' } }];
+    return { speaker: npc, lines: ['Hah. Alright — guard up, and don\'t take it personal.'], options: [{ label: 'Go on (close)', next: () => null }] };
+  }
+  /** Tell the requester the animal has been dealt with; their own beliefs decide whether they pay. */
+  private claimProtection(npc: Person, player: Person, r: import('../core/types').Request): DialogueState {
+    const outcome = claimProtection(this.world, npc, player, r);
+    return { speaker: npc, lines: [`It's been dealt with.`, outcome.line], options: this.options(npc, player) };
+  }
   private workMenu(npc: Person, player: Person): DialogueState {
+    const w = this.world;
+    // Danger first: a person who was attacked asks for the animal to be dealt with, with their own silver.
+    const protection = protectionOffersFrom(w, npc);
+    if (protection.length) {
+      const opts: DialogueOption[] = protection.slice(0, 3).map(r => ({
+        label: `Deal with the ${w.nameOf(r.payload.creatureId!)}${r.payload.placeId ? ` near ${perceivedName(w, npc, r.payload.placeId)}` : ''} (${r.reward}s)`,
+        next: () => {
+          if (!acceptProtection(w, r, player)) return { speaker: npc, lines: ['Someone already said they would.'], options: this.options(npc, player) };
+          return { speaker: npc, lines: [`${r.cause.charAt(0).toUpperCase() + r.cause.slice(1)}. Kill it or drive it off — show me proof, or give me your word if I've reason to trust it. ${r.reward} silver when it's done.`], options: this.options(npc, player) };
+        },
+      }));
+      if (this.sim.haulOffersFrom(npc).length) opts.push({ label: 'Anything else? (carrying work)', next: () => this.haulMenu(npc, player) });
+      opts.push({ label: 'Not today', next: () => ({ speaker: npc, lines: ['Watch yourself out there.'], options: this.options(npc, player) }) });
+      return { speaker: npc, lines: [`There's a beast about that needs dealing with, if you've the nerve.`], options: opts };
+    }
+    return this.haulMenu(npc, player);
+  }
+  private haulMenu(npc: Person, player: Person): DialogueState {
     const w = this.world; const mine = this.sim.activeHaulFor(player);
     if (mine) {
       const carrying = mine.carried > 0;

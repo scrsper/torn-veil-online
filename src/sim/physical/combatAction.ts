@@ -201,19 +201,22 @@ export function advanceCombat(w:World,dt:number,before:Map<string,CombatTransfor
     if(a.kind!=='attack'||a.outcome!=='pending')continue;
     const from=Math.max(start,a.activeAt),to=Math.min(now,a.recoveryAt);if(to<=from)continue;
     let best:typeof contacts[number]|undefined;
+    // activeBodies() indexes living people; animals within striking distance are bodies too.
+    const candidates=[...bodies,...w.nearbyPhysicalBodies(ab.pos,a.reach+3).filter(b=>!b.dead&&b.present&&w.get(b.ownerId)?.kind==='creature')];
     const n=Math.max(1,Math.ceil((to-from)*120));
     for(let i=0;i<n&&!best;i++) {
       const t0=from+(to-from)*i/n,t1=from+(to-from)*(i+1)/n;
       const aa0=transform(ab,t0),aa1=transform(ab,t1);
       const v0=strikePoint(aa0.pos,aa0.yaw,a.reach,(t0-a.activeAt)/(a.recoveryAt-a.activeAt),a.trajectory,a.weaponId?undefined:a.variant,a.repertoireRevision);
       const v1=strikePoint(aa1.pos,aa1.yaw,a.reach,(t1-a.activeAt)/(a.recoveryAt-a.activeAt),a.trajectory,a.weaponId?undefined:a.variant,a.repertoireRevision);
-      for(const tb of bodies) {
+      for(const tb of candidates) {
         if(tb.ownerId===ab.ownerId||tb.dead||!tb.present)continue;
         const owner=w.get(tb.ownerId),tp=w.person(tb.ownerId);
         if(!owner||(owner.kind!=='person'&&owner.kind!=='creature')||(tp&&!tp.alive))continue;
         if(tp&&a.intent!=='kill'&&(tp.surrender||tp.custody?.active||tb.subduedUntil>t0))continue;
         const tt0=transform(tb,t0),tt1=transform(tb,t1);
-        const h0=hurtVolumes({shape:tb.shape,...tt0},tt0.duck),h1=hurtVolumes({shape:tb.shape,...tt1},tt1.duck);
+        const plan=owner.kind==='creature'?w.ecology?.species[(owner as import('../core/types').Creature).species]?.bodyPlan:undefined;
+        const h0=hurtVolumes({shape:tb.shape,...tt0},tt0.duck,plan),h1=hurtVolumes({shape:tb.shape,...tt1},tt1.duck,plan);
         for(let j=0;j<h0.length;j++) {
           const fraction=sweepSphereContact(v0,v1,a.radius,h0[j].center,h1[j].center,h0[j].radius);
           if(fraction===null)continue;const at=t0+(t1-t0)*fraction,position=lerpPoint(v0,v1,fraction);
