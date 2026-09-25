@@ -293,12 +293,16 @@ def _back_neck_band(build, collar_z, surface_at, lift, width, region, inset):
 
 def _front_bands(fit, build, collar_z, start_z, bottom_z, surface_at, lift, width, region, inset):
     if True:
-        # The front V: from the front of each shoulder, down and across the chest.
+        # The front V: from the front of each shoulder, down and across the chest. Left over right:
+        # the outer collar (+1, ending on the side _front_overlap's seam runs down) crosses all the
+        # way to the sash; the inner one goes under it where they meet, so it stops just past the
+        # centre line. Carrying both past the crossing drew an X on the chest.
         for direction in (1.0, -1.0):
             path, normals, angles = [], [], []
             steps = 14
+            t_end = 1.0 if direction > 0 else (0.82 + 0.03) / (0.82 + 0.26)
             for i in range(steps):
-                t = i / (steps - 1)
+                t = t_end * i / (steps - 1)
                 angle = direction * _lerp(0.82, -0.26, t)
                 z = _lerp(start_z, bottom_z, t ** 1.05) - inset * 0.5
                 rx, ry = surface_at(z, lift)
