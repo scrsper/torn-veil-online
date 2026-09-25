@@ -210,6 +210,23 @@ export function placeholderAndRealCatalogue(): CharacterCatalogue {
   };
 }
 
+/** A whole-body mesh with baked-in modern clothing competing with culture-neutral bodies. With
+ * `modernOnly`, the modern body is the only body installed. */
+export function modernBodyCatalogue(modernOnly = false): CharacterCatalogue {
+  counter = 0;
+  return {
+    schema: 1, generatedAt: new Date(0).toISOString(), machine: 'fixture-modern-body',
+    animationTarget: MANNY,
+    skeletons: [{ package: MANNY, name: 'SK_Mannequin', family: 'manny', meshCount: 3, animCount: 150 }],
+    retargeters: [],
+    entries: [
+      entry('body', 'SKM_QuantumCharacter', ['male', 'adult', 'average', 'wholeBody', 'modern'], { materialSlots: ['Vest'] }),
+      ...(modernOnly ? [] : [entry('body', 'SK_Villager_M', ['male', 'adult', 'average', 'wholeBody'], { materialSlots: ['Skin'] })]),
+      ...(modernOnly ? [] : [entry('body', 'SK_Villager_F', ['female', 'adult', 'slim', 'wholeBody'], { materialSlots: ['Skin'] })]),
+    ],
+  };
+}
+
 export const FIXTURE_ANIMATION_TARGET = MANNY;
 export const FIXTURE_FOREIGN_SKELETON = OTHER;
 export const FIXTURE_MOTION_RIG = MOTION_RIG;

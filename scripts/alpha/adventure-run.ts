@@ -49,7 +49,12 @@ while (!request && (w.now - worldStart) / DAY < days) {
     bot.say({ type: 'dialogue_close' });
     if (request) break;
   }
-  if (!request) bot.offline(1800); // back to ordinary life for a while; the world keeps happening
+  if (!request) {
+    // Diagnostic only (never read by the player's choices): whether any opportunity exists yet.
+    note('round', { asked: people.length, diagnosticOpenProtection: w.requests.filter(x => x.type === 'protection' && x.status === 'open').length,
+      diagnosticBoarAttacks: w.events.filter(e => e.type === 'attack' && w.get(e.actor!)?.kind === 'creature').length });
+    bot.offline(1800); // back to ordinary life for a while; the world keeps happening
+  }
 }
 if (!request || !requester) finish('no_opportunity_found', { worldDays: (w.now - worldStart) / DAY });
 const r = request!, asker = requester!;
@@ -59,7 +64,10 @@ const place = r.payload.placeId ? w.place(r.payload.placeId) : undefined;
 if (approach === 'hunt') {
   const tavern = placeOf('tavern');
   for (let attempt = 0; attempt < 12 && !p.inventory.some(id => w.item(id)?.type === 'dagger'); attempt++) {
-    bot.go(tavern.inside, 2, 400); bot.wait(1);
+    // Walk up to the blade one can see set out on the bar; goods are bought within arm's reach.
+    const onShow = w.items().find(i => i.type === 'dagger' && i.placeId === tavern.id && i.pos && !i.holderId);
+    if (onShow) bot.goNear(onShow.pos!); else bot.go(tavern.inside, 2, 400);
+    bot.wait(1);
     const buy = bot.interactions().find(a => a.kind === 'buy' && a.id.includes(':') && w.item(a.id.split(':')[1])?.type === 'dagger');
     if (buy) { const res = bot.interact(buy.id); note('buy_blade', { result: res, label: buy.label, wealth: p.wealth }); }
     else bot.offline(1200);
@@ -78,7 +86,8 @@ if (approach === 'hunt') {
 const seen = () => (s.snapshot(false).wildlife?.bodies ?? []).filter(b => b.speciesId === 'woodland_boar' && !b.dead && b.ageClass === 'adult');
 let target = seen()[0];
 for (let sweep = 0; sweep < 40 && !target; sweep++) {
-  const centre: Vec3 = place?.inside ?? home.location;
+  // Where the requester said it was seen (a named place, or out in the open relative to a settlement).
+  const centre: Vec3 = place?.inside ?? r.payload.seenAt ?? home.location;
   const a = sweep * 2.4, radius = 10 + (sweep % 5) * 8;
   bot.go({ x: centre.x + Math.cos(a) * radius, y: centre.y, z: centre.z + Math.sin(a) * radius }, 2, 200);
   bot.wait(2); target = seen()[0];
@@ -115,9 +124,12 @@ if (approach === 'hunt') {
 } else {
   let result = '';
   for (let attempt = 0; attempt < 40 && result !== 'calmed'; attempt++) {
-    if (bot.dist(tb.pos, bot.body.pos) > 8) bot.go(tb.pos, 7, 120);
+    // Close in whenever the last try could not reach it: distance alone is not enough in the
+    // woods, where a trunk between the two of you blocks the hush as surely as range does.
+    const before = bot.dist(tb.pos, bot.body.pos);
+    const walked = before > 8 || result === 'out_of_reach' ? bot.go(tb.pos, 4, 120) : true;
     result = bot.say({ type: 'hush', targetBodyId: tb.id });
-    if (attempt < 6 || result === 'calmed') note('hush', { result, strain: p.veil?.strain });
+    if (attempt < 8 || result === 'calmed') note('hush', { result, strain: p.veil?.strain, before: +before.toFixed(1), walked, after: +bot.dist(tb.pos, bot.body.pos).toFixed(1) });
     if (result === 'too_strained') bot.offline(1200); else bot.wait(7);
     if (bot.body.pose === 'downed') { note('downed', {}); bot.offline(600); }
   }

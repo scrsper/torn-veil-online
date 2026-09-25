@@ -171,7 +171,12 @@ export function slotRules(traits: ProjectedAppearanceDescription): SlotRule[] {
     // machine whose only installed body is a mannequin still gets one. What it stops is a coin
     // flip against real content — Quinn is as honestly `female`+`slim` as a City Sample body is,
     // the two tie, and the tie-break sent about a third of a settlement to a grey dummy.
-    { slot: 'body', required: [age], preferred: compact([cut, frame]), forbidden: ['placeholder'], relax: [age], optional: false },
+    // No installed pack has a child body, so a child's `child` requirement relaxes to an adult
+    // body. It must at least be a bare body that takes the culture's garments: an armoured or
+    // vendor-clothed whole body (Polytope armour/cloth sets) on a child is simply wrong.
+    // `modern` too: a whole-body mesh with baked-in modern clothing (Quantum's tactical vest and
+    // cap) dressed an Ashford villager even though every garment slot already refused modern kit.
+    { slot: 'body', required: [age], preferred: compact([cut, frame]), forbidden: age === 'child' ? ['placeholder', 'modern', 'armor', 'wholeBody'] : ['placeholder', 'modern'], relax: [age], optional: false },
     { slot: 'head', required: [age], preferred: compact([cut, traits.faceShape, traits.skinTone]), forbidden: ['placeholder'], relax: [age], optional: false },
     ...(hair.length
       ? [{ slot: 'hair' as const, required: [hair[0]], preferred: compact([...hair.slice(1), cut, traits.hairColor]), forbidden: [], relax: [hair[0]], optional: true }]

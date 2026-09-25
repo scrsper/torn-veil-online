@@ -55,6 +55,18 @@ private:
     UPROPERTY() TMap<FString, TObjectPtr<UAnimationAsset>> Clips;
     UPROPERTY() TObjectPtr<UAnimationAsset> CurrentClip;
 
+    // Project-built stylized body for species with no installed animal asset (boar, hare): engine
+    // primitives on pivots, animated procedurally from canonical activity and visible defense.
+    FString Defense; bool bDefenseAtViewer=false; float BodyRadiusCm=38.f;
+    bool bPrimitive=false; float GaitPhase=0.f, DefenseAge=0.f, StompPhase=0.f;
+    UPROPERTY() TObjectPtr<class USceneComponent> PrimitiveRoot;
+    UPROPERTY() TObjectPtr<class USceneComponent> HeadPivot;
+    UPROPERTY() TArray<TObjectPtr<class USceneComponent>> Hips;
+    UPROPERTY() TArray<TObjectPtr<class UStaticMeshComponent>> PrimitiveParts;
+    void BuildPrimitive();
+    void AnimatePrimitive(float DeltaSeconds);
+    class UStaticMeshComponent* AddPart(class USceneComponent* Parent, const TCHAR* Shape, const FVector& Location, const FVector& ScaleCm, const FRotator& Rotation, const FLinearColor& Colour);
+
     void EnsureAssets();
     void SelectAnimation(bool bForce = false);
     UAnimationAsset* ClipForActivity(const FString& CanonicalActivity) const;

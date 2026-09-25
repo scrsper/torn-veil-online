@@ -52,6 +52,14 @@ void ATVCharacter::SetupEnhancedInput(UInputComponent* Input) {
     Button(TEXT("PracticeReset"),&ATVCharacter::PracticeReset);Button(TEXT("PracticePhysiology"),&ATVCharacter::PracticePhysiology);
     GameplayContext->MapKey(Button(TEXT("SaveWorld"),&ATVCharacter::SaveWorld),EKeys::F5);
     GameplayContext->MapKey(Button(TEXT("Mechanisms"),&ATVCharacter::Mechanisms),EKeys::M);
+    // Living Alpha: sleep/wake where you stand (Z) and the veil hush (H), both canonical person actions.
+    GameplayContext->MapKey(Button(TEXT("RestToggle"),&ATVCharacter::RestToggle),EKeys::Z);
+    GameplayContext->MapKey(Button(TEXT("Hush"),&ATVCharacter::Hush),EKeys::H);
+    // Veil meditation (V) and an Iron breakthrough attempt (B): canonical person actions whose
+    // requirements the server decides; refusals come back as ordinary results.
+    GameplayContext->MapKey(Button(TEXT("Meditate"),&ATVCharacter::Meditate),EKeys::V);
+    GameplayContext->MapKey(Button(TEXT("Breakthrough"),&ATVCharacter::Breakthrough),EKeys::B);
+    GameplayContext->MapKey(Button(TEXT("Train"),&ATVCharacter::Train),EKeys::G);
     bInputModal=true;RefreshInputContext(false);
 }
 void ATVCharacter::RefreshInputContext(bool Modal) {

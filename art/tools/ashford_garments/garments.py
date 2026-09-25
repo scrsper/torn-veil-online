@@ -112,6 +112,17 @@ class Fit:
         # the last real reading instead of from a guess.
         self.torso_lo, self.torso_hi = lo + 0.01, hi - 0.02
         self._sections = {}
+        # The neck itself, not the vendor top's neckline. The vendor section is clamped at that
+        # top's upper edge, which on these rigs is a wide collar: a kosode read from it stood
+        # 5-8 cm off the neck and its collar band rendered as a stiff brace. Half-axes are an
+        # ordinary adult neck; the depth is measured from the rings' shared centre (y = -0.02)
+        # to the rig's actual neck bone, which sits further back than the chest.
+        half_width, half_depth = (0.050, 0.055) if sex == 'female' else (0.058, 0.062)
+        self.neck_half = (half_width, half_depth + abs(self.bone['neck_01'].y - (-0.02)))
+
+    def neck(self, ease):
+        """Half-axes of a ring around the neck at the rings' shared centre, plus `ease`."""
+        return self.neck_half[0] + ease, self.neck_half[1] + ease
 
     def torso(self, z, ease_x, ease_y, cy=-0.02):
         """Half-axes for a torso ring at height z: the vendor surface plus the ease a wrapped
@@ -167,7 +178,15 @@ def kosode(fit, wide_sleeve=False, segments=24):
 
     def surface_at(z, lift=0.0):
         ex, ey = ease_at(z)
-        return fit.torso(z, ex + lift, ey + lift)
+        rx, ry = fit.torso(z, ex + lift, ey + lift)
+        # Over the last 6 cm the cloth closes in on the neck itself (smoothstep), so the neckline
+        # and the collar band on it lie against the throat instead of the vendor's wide collar.
+        t = max(0.0, min(1.0, (z - (collar_z - 0.06)) / 0.06))
+        t = t * t * (3.0 - 2.0 * t)
+        if t > 0.0:
+            nx, ny = fit.neck(0.014 + lift)
+            rx, ry = max(nx, _lerp(rx, nx, t)), max(ny, _lerp(ry, ny, t))
+        return rx, ry
 
     heights, rings, binds, regions, profile = [], [], [], [], []
     steps = 17
@@ -210,7 +229,7 @@ def kosode(fit, wide_sleeve=False, segments=24):
     loft(build, [rings[0], inner], [binds[0], binds[0]], [HEM, HEM], v_scale=1.0, flip=True)
     # Closed at the neck, against the collar: the top ring pinches in to the neck rather than
     # leaving an open cylinder for the camera to look down.
-    nx, ny = fit.torso(collar_z, 0.010, 0.009)
+    nx, ny = fit.neck(0.008)
     neck = ring_points(0.0, -0.02, collar_z + 0.012, nx, ny, segments)
     loft(build, [rings[-1], neck], [binds[-1], binds[-1]], [CLOTH, UNDER], v_scale=1.0)
 
@@ -244,9 +263,22 @@ def _collar(fit, build, collar_z, surface_at):
     # it lets each half be right, and the 2 cm of kosode between them reads as the collar
     # disappearing under itself, which is what it does on a real garment.
     for lift, width, region, inset in ((0.026, 0.021, ACCENT, 0.0), (0.015, 0.015, UNDER, 0.013)):
+        # No separate band round the back of the neck. Laid on a neckline that closes onto the
+        # neck, it rendered as a flat plank across the nape -- the view a third-person camera
+        # shows most. The closure ring (UNDER) already reads as the collar at the back.
+        if BACK_NECK_BAND:
+            _back_neck_band(build, collar_z, surface_at, lift, width, region, inset)
+        _front_bands(fit, build, collar_z, start_z, bottom_z, surface_at, lift, width, region, inset)
+
+
+BACK_NECK_BAND = False
+
+
+def _back_neck_band(build, collar_z, surface_at, lift, width, region, inset):
+    if True:
         # The band round the back of the neck: width measured up the neck, so it lies flat.
         neck_path, neck_normals = [], []
-        steps = 11
+        steps = 21
         for i in range(steps):
             angle = _lerp(0.70, TAU - 0.70, i / (steps - 1))
             z = collar_z - 0.012 - inset * 0.5
@@ -258,12 +290,19 @@ def _collar(fit, build, collar_z, surface_at):
                across_of=lambda i: Vector((0.0, 0.0, 1.0)),
                normal_of=lambda i: neck_normals[i], region=region, v_scale=2.0)
 
-        # The front V: from the front of each shoulder, down and across the chest.
+
+def _front_bands(fit, build, collar_z, start_z, bottom_z, surface_at, lift, width, region, inset):
+    if True:
+        # The front V: from the front of each shoulder, down and across the chest. Left over right:
+        # the outer collar (+1, ending on the side _front_overlap's seam runs down) crosses all the
+        # way to the sash; the inner one goes under it where they meet, so it stops just past the
+        # centre line. Carrying both past the crossing drew an X on the chest.
         for direction in (1.0, -1.0):
             path, normals, angles = [], [], []
             steps = 14
+            t_end = 1.0 if direction > 0 else (0.82 + 0.03) / (0.82 + 0.26)
             for i in range(steps):
-                t = i / (steps - 1)
+                t = t_end * i / (steps - 1)
                 angle = direction * _lerp(0.82, -0.26, t)
                 z = _lerp(start_z, bottom_z, t ** 1.05) - inset * 0.5
                 rx, ry = surface_at(z, lift)
@@ -605,6 +644,10 @@ def _tabi(fit, build, side, height=0.055, region=UNDER):
     """
     foot = fit.bone['foot_%s' % side]
     ball = fit.bone['ball_%s' % side]
+    # The installed City body is a fragment: it supplies hands, not a lower leg.
+    # Every footwear variant needs a calf wrap overlapping the short hakama's hem
+    # (ankle + .22 m), or sandals and trousers visibly float apart by ~16 cm.
+    height = max(height, fit.ankle_z + 0.25 - foot.z)
     toe = ball + (ball - foot).normalized() * 0.055
     toe.z = max(0.012, ball.z)
     heel = Vector((foot.x, foot.y + 0.055, foot.z * 0.35))

@@ -39,6 +39,11 @@ public:
     UPROPERTY(BlueprintReadOnly) double PCGMilliseconds = 0;
     TMap<FString, TArray<FString>> CanonicalVisuals;
 private:
+    friend class FTVRegionalCameraCollisionTest;
+    friend class FTVRegionalDressingClearanceTest;
+    /** Presentation query only: never participates in canonical movement or navigation. */
+    void CameraBlock(const FVector& Center, const FVector& Size, float Yaw = 0, float Roll = 0);
+    UPROPERTY() TArray<TObjectPtr<class UBoxComponent>> CameraBlocks;
     UPROPERTY() TMap<FString, TObjectPtr<UHierarchicalInstancedStaticMeshComponent>> Batches;
     UPROPERTY() TObjectPtr<UProceduralMeshComponent> Terrain;
     UPROPERTY() TObjectPtr<UPCGComponent> Dressing;

@@ -93,7 +93,18 @@ function gatheringPlace(): Vec3 {
   return squares[0]?.inside ?? body.pos;
 }
 
-let hushes = 0, calmed = 0, meditations = 0, refusals = 0, advanced = false;
+let hushes = 0, calmed = 0, meditations = 0, refusals = 0, restCycles = 0, spars = 0, drills = 0, advanced = false;
+/** Ask a nearby, awake adult to spar through ordinary dialogue; runs the agreed rounds. */
+function spar(): boolean {
+  const partner = w.livingPersons().filter(q => q.id !== p.id && q.age >= 16 && q.age < 55 && !q.hostile && w.primaryBody(q.id)?.pose !== 'sleep'
+    && dist(w.positionOf(q.id)!, body.pos) < 40).sort((a, b) => dist(w.positionOf(a.id)!, body.pos) - dist(w.positionOf(b.id)!, body.pos))[0];
+  if (!partner || !go(w.positionOf(partner.id)!, 1.4, 120)) return false;
+  wait(0.6);
+  const lines = talkChoose(partner, l => l === 'Spar with me a few rounds');
+  if (!lines?.length) return false;
+  spars++; wait(330);
+  return true;
+}
 function practiceSession(physicalSeconds: number) {
   const end = w.physicalTime + physicalSeconds;
   while (w.physicalTime < end && !advanced) {
@@ -102,14 +113,27 @@ function practiceSession(physicalSeconds: number) {
     const a = assessAdvancement(w, p);
     if (a.eligible) { const r = say({ type: 'person_action', intent: { kind: 'advance' } }); note('advance_intent', { result: r, path: a.path }); wait(120); if (p.ontology.stage === 'Iron') { advanced = true; return; } continue; }
     // Recovery: too tired or parched to practise — hand back to ordinary life for a while.
-    if (p.physiology.fatigue > 0.7 || p.physiology.energy < 0.2 || p.physiology.hydration < 0.2) return;
+    // Practice itself refuses a body below 0.3 energy or water, so hand back before that point.
+    if (p.physiology.fatigue > 0.7 || p.physiology.energy < 0.35 || p.physiology.hydration < 0.35) return;
     const strain = veilStrain(w, p);
+    // A balanced day: the veil in the morning, the body in the afternoon. Iron asks every other
+    // foundation to be sound, and the veil alone never exercises strength, dexterity or endurance.
+    if (w.clock.hourF >= 13) {
+      if (spar()) continue;
+      if (say({ type: 'person_action', intent: { kind: 'train' } }) === 'accepted') { drills++; wait(330); continue; }
+    }
     const target = strain < 0.7 ? hushTarget() : undefined;
     if (target) {
       const r = say({ type: 'hush', targetBodyId: target.id });
       if (r === 'calmed' || r === 'resisted') { hushes++; if (r === 'calmed') calmed++; }
       wait(r === 'cooldown' ? 6 : 7);
       continue;
+    }
+    // Round out the body: while the veil is strained, spar with a willing villager every other time.
+    if (strain >= 0.5 && ++restCycles % 2 === 0) {
+      if (spar()) continue;
+      // No willing partner about: drill alone (the same session mechanic, a lower ceiling).
+      if (say({ type: 'person_action', intent: { kind: 'train' } }) === 'accepted') { drills++; wait(330); continue; }
     }
     if (strain >= 0.5 || !hushTarget()) {
       // Meditate while strained, or while no one is about; move toward people afterwards.
@@ -145,7 +169,7 @@ while ((w.now - worldStart) / DAY < days && p.alive && !advanced && knowsVeil(p)
     lastDay = day;
     const a = assessAdvancement(w, p);
     const row = { day, attributes: { ...p.attributes }, veilcraft: +(p.skills.veilcraft ?? 0).toFixed(3), capabilityHours: +((p.capability?.bySkill.veilcraft?.effectiveSeconds ?? 0) / 3600).toFixed(2),
-      hushes, calmed, meditations, strain: +veilStrain(w, p).toFixed(2), wealth: p.wealth, energy: +p.physiology.energy.toFixed(2), hydration: +p.physiology.hydration.toFixed(2),
+      hushes, calmed, meditations, spars, drills, strain: +veilStrain(w, p).toFixed(2), wealth: p.wealth, energy: +p.physiology.energy.toFixed(2), hydration: +p.physiology.hydration.toFixed(2),
       blockers: a.reasons, physicalHours: +((w.physicalTime) / 3600).toFixed(1), elapsedMinutes: +((performance.now() - started) / 60000).toFixed(1) };
     daily.push(row); console.log(JSON.stringify({ daily: row }));
     writeFileSync(join(out, 'report.json'), JSON.stringify({ seed, path, days, person: p.id, advanced, daily, log }, null, 2));

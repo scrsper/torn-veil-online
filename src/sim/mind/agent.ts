@@ -124,6 +124,7 @@ const MELEE_SWING_SECONDS = 1.1;
  * reach. Long enough that the two are likely no longer in perception range of each other; short
  * enough that a genuinely renewed threat still gets answered. */
 const PURSUIT_COOLDOWN_SECONDS = 45 * 60;
+const COURTSHIP_RETRY_SECONDS = 30 * 86400;
 /** v0.6 §II: how long a failed food-seeking attempt suppresses re-adopting `eat`. Measured
  * directly (seed 918271) that shortening this alone (30 -> 15 min) did not help — for the
  * specific people who fail repeatedly (a schedule that rarely brings them near a food source
@@ -1185,6 +1186,8 @@ export class Simulation {
       let bestCourt: { person: Person; score: number } | null = null;
       for (const percept of m.percepts) {
         const other = w.person(percept.entityId); if (!other) continue;
+        // Turned down: not asked again until the relationship has had a season to change.
+        if (w.now - (m.courtshipDeclined?.[other.id] ?? -Infinity) < COURTSHIP_RETRY_SECONDS) continue;
         const score = courtshipCompatibility(w, p, other);
         if (score >= 0.35 && (!bestCourt || score > bestCourt.score)) bestCourt = { person: other, score };
       }
@@ -2195,7 +2198,10 @@ export class Simulation {
         // event on every decision cycle. Revalidate proximity throughout the conversation.
         if (!this.elapsed(a)) break;
         const court = w.emit('courtship', { actor: p.id, target: target.id, pos: { ...body.pos }, significance: 0.4, visibility: 9, summary: `${p.name} asked ${target.name} to build a household together` });
-        if (!isExternallyControlled(target) && marry(w, p, target, court.id)) this.say(p, `${knownName(p, target.id).split(' ')[0]}, let us make a life together.`);
+        const accepted = !isExternallyControlled(target) && marry(w, p, target, court.id);
+        court.data.accepted = accepted;
+        if (accepted) this.say(p, `${knownName(p, target.id).split(' ')[0]}, let us make a life together.`);
+        else (m.courtshipDeclined ??= {})[target.id] = w.now;
         a.status = 'done'; break;
       }
       case 'talk': {

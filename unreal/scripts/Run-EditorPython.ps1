@@ -19,7 +19,9 @@ param(
     # Commandlets run on the null RHI, so anything that touches a skinned component's render
     # MeshObject dies on an assertion rather than failing (`SkinnedMeshComponent.cpp:4987` --
     # which is what FBX skeletal-mesh export does). Pass -Render for those scripts.
-    [switch]$Render
+    [switch]$Render,
+    [ValidateRange(1,7200)][int]$TimeoutSeconds = 300,
+    [string]$LogPath = ''
 )
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path "$PSScriptRoot/../..").Path
@@ -30,6 +32,17 @@ $cmd = "$Engine/Engine/Binaries/Win64/UnrealEditor-Cmd.exe"
 if (!(Test-Path $cmd)) { throw "UnrealEditor-Cmd.exe not found at $cmd - pass -Engine <path to UE_5.8>." }
 # [string[]] is load-bearing: an `if` returning a one-element array yields a bare string, and
 # splatting a string passes it one character at a time.
-[string[]]$extra = if ($Render) { '-AllowCommandletRendering' } else { @() }
-& $cmd "$project" -run=pythonscript -script="$scriptPath" -unattended -nosplash -nosound -stdout -FullStdOutLogOutput @extra
-if ($LASTEXITCODE -ne 0) { throw "Editor python script failed ($LASTEXITCODE): $Script" }
+if (!$LogPath) { $LogPath = Join-Path $repo ('.debug/unreal/' + [IO.Path]::GetFileNameWithoutExtension($scriptPath) + '-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '.log') }
+$LogPath = [IO.Path]::GetFullPath($LogPath)
+New-Item -ItemType Directory -Force ([IO.Path]::GetDirectoryName($LogPath)) | Out-Null
+[string[]]$arguments = @('"'+$project+'"', '-run=pythonscript', '-script="'+$scriptPath+'"',
+    '-unattended', '-nosplash', '-nosound', '-abslog="'+$LogPath+'"')
+if ($Render) { $arguments += '-AllowCommandletRendering' }
+$job = Start-Process -FilePath $cmd -ArgumentList $arguments -WindowStyle Hidden -PassThru
+Write-Output "Editor Python PID=$($job.Id) log=$LogPath timeout=${TimeoutSeconds}s"
+if (!$job.WaitForExit($TimeoutSeconds * 1000)) {
+    Stop-Process -Id $job.Id -ErrorAction SilentlyContinue
+    throw "Editor Python timed out after ${TimeoutSeconds}s: $Script; inspect $LogPath"
+}
+if ($job.ExitCode -ne 0) { throw "Editor Python failed ($($job.ExitCode)): $Script; inspect $LogPath" }
+Write-Output "Editor Python succeeded: $Script; log=$LogPath"

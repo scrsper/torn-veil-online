@@ -1,4 +1,4 @@
-import type { Concern, Creature, Person, Request } from '../core/types';
+import type { Concern, Creature, Person, Request, Vec3 } from '../core/types';
 import type { World } from '../core/world';
 import { acceptRequest, cancelRequest, completeRequest, createRequest } from '../core/requests';
 import { activeConcerns, concernsOf, resolveConcern } from '../mind/concern';
@@ -23,6 +23,20 @@ const TRUST_FOR_WORD = 0.35;
 
 function creatureOf(world: World, id: string | undefined): Creature | undefined {
   const c = id ? world.get<Creature>(id) : undefined; return c?.kind === 'creature' ? c : undefined;
+}
+const flat = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
+/** The newest position among the claims this concern rests on — what the requester saw or was told. */
+function lastKnownPosition(p: Person, c: Concern): Vec3 | undefined {
+  const claims = c.basisKeys.map(key => p.knowledge[key]?.claim).filter(claim => claim?.pos && Number.isFinite(claim.pos.x));
+  const newest = claims.sort((a, b) => (b.tick ?? 0) - (a.tick ?? 0))[0];
+  return newest ? { x: newest.pos.x, y: newest.pos.y, z: newest.pos.z } : undefined;
+}
+/** "north of Pikewick", or "by Pikewick" when it was close in. */
+function direction(from: Vec3, to: Vec3): string {
+  const dx = to.x - from.x, dz = to.z - from.z;
+  if (Math.hypot(dx, dz) < 60) return 'by';
+  const angle = Math.atan2(dx, -dz) * 180 / Math.PI, i = Math.round(((angle + 360) % 360) / 45) % 8;
+  return `${['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'][i]} of`;
 }
 function dangerConcern(p: Person, creatureId: string): Concern | undefined {
   return activeConcerns(p).find(c => c.kind === 'safety' && c.aboutId === creatureId);
@@ -67,9 +81,12 @@ export function maintainProtectionRequests(world: World): void {
       if (recent.length) continue;
       const reward = Math.max(4, Math.min(30, Math.round(p.wealth * 0.3)));
       const place = c.placeId ? world.place(c.placeId) : undefined;
+      // Out in the open there is no place to name; say where it was seen, as the requester knows it.
+      const seenAt = lastKnownPosition(p, c);
+      const near = !place && seenAt ? world.settlements().sort((a, b) => flat(a.location, seenAt) - flat(b.location, seenAt))[0] : undefined;
       createRequest(world, { type: 'protection', requesterId: p.id, requesterPlaceId: c.placeId, reward,
-        cause: `a ${animal.name} ${c.subjectId === p.id ? 'went for me' : 'is menacing people'}${place ? ` near ${place.name}` : ''}`,
-        payload: { creatureId: animal.id, species: animal.species, placeId: c.placeId } });
+        cause: `a ${animal.name} ${c.subjectId === p.id ? 'went for me' : 'is menacing people'}${place ? ` near ${place.name}` : near && seenAt ? ` ${direction(near.location, seenAt)} ${near.name}` : ''}`,
+        payload: { creatureId: animal.id, species: animal.species, placeId: c.placeId, seenAt } });
     }
   }
 }

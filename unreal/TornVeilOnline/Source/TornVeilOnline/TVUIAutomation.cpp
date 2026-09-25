@@ -62,6 +62,16 @@ bool FTVCommonUIProjection::RunTest(const FString&) {
     TestEqual(TEXT("shortcut follows refreshed dialogue revision"),ChoiceId,FString(TEXT("new-revision-option")));
     Dialogue->NativeOnKeyDown(FGeometry(),FKeyEvent(EKeys::Two,FModifierKeysState(),0,true,0,0));
     TestEqual(TEXT("holding a number cannot select through successive replies"),ChoiceCount,2);
+    DialogueState.DialogueOptionLabels.Add(TEXT("Late grounded request"));DialogueState.DialogueOptionIds.Add(TEXT("late-request"));
+    DialogueState.DialogueOptionLabels.Add(TEXT("Goodbye"));DialogueState.DialogueOptionIds.Add(TEXT("late-goodbye"));
+    Dialogue->SetSnapshot(DialogueState);DialogueButtons=Buttons(Dialogue);
+    TestEqual(TEXT("all eleven choices remain present with a separate Back"),DialogueButtons.Num(),12);
+    if(DialogueButtons.Num()==12){
+        auto* LateLabel=Cast<UTextBlock>(DialogueButtons[9]->GetContent());
+        TestTrue(TEXT("late choice has no unsupported numeric shortcut"),LateLabel&&LateLabel->GetText().ToString()==TEXT("Late grounded request"));
+        DialogueButtons[9]->OnClicked.Broadcast();
+        TestEqual(TEXT("late choice routes its current opaque identity"),ChoiceId,FString(TEXT("late-request")));
+    }
     TestNotNull(TEXT("empty inventory has a desired focus target"),static_cast<UTVCommonActivatableWidget*>(Inventory)->NativeGetDesiredFocusTarget());
     Inventory->WidgetTree->ForEachWidget([&](UWidget* W){if(auto* Text=Cast<UTextBlock>(W))TestTrue(TEXT("text has a real font/composite font"),Text->GetFont().FontObject!=nullptr||Text->GetFont().CompositeFont.IsValid());});
     auto* Container=BuildWidget<UTVContainerWidget>(PC);

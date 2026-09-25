@@ -454,15 +454,24 @@ bool UTVCharacterPresentation::ApplyProfile(const FTVAppearanceProfile& Profile)
     for (const FTVFoundrySlot& Slot : Profile.Slots) {
         if (Slot.Slot == TEXT("body")) continue;
         if (Slot.AssetClass == TEXT("GroomAsset")) continue; // bind after the face exists
-        if (!Slot.AssetClass.Contains(TEXT("SkeletalMesh"), ESearchCase::IgnoreCase)) { ++UnresolvedSlotCount; continue; }
+        if (!Slot.AssetClass.Contains(TEXT("SkeletalMesh"), ESearchCase::IgnoreCase)) {
+            UE_LOG(LogTemp, Display, TEXT("TV_EMBODIMENT unresolved slot=%s package=%s reason=unsupported-class"), *Slot.Slot, *Slot.Package);
+            ++UnresolvedSlotCount; continue;
+        }
         USkeletalMesh* PartMesh = LoadFoundryAsset<USkeletalMesh>(Slot);
-        if (!PartMesh) { ++UnresolvedSlotCount; continue; }
+        if (!PartMesh) {
+            UE_LOG(LogTemp, Display, TEXT("TV_EMBODIMENT unresolved slot=%s package=%s reason=missing-mesh"), *Slot.Slot, *Slot.Package);
+            ++UnresolvedSlotCount; continue;
+        }
         // MetaHuman faces can bind to a separate facial skeleton with additional bones. Such a
         // part needs its own inspected adapter; Leader Pose would leave those bones unmapped.
         const bool bSharedSkeleton = PartMesh->GetSkeleton() == VisibleSkeleton;
         UClass* PartAdapter = !bSharedSkeleton && PartMesh->GetSkeleton()
             ? Palette->RetargetAnimClass(PartMesh->GetSkeleton()->GetPathName()) : nullptr;
-        if (!bSharedSkeleton && !PartAdapter) { ++UnresolvedSlotCount; continue; }
+        if (!bSharedSkeleton && !PartAdapter) {
+            UE_LOG(LogTemp, Display, TEXT("TV_EMBODIMENT unresolved slot=%s package=%s reason=missing-pose-adapter"), *Slot.Slot, *Slot.Package);
+            ++UnresolvedSlotCount; continue;
+        }
         USkeletalMeshComponent* Part = NewObject<USkeletalMeshComponent>(GetOwner());
         Part->SetupAttachment(this);
         Part->RegisterComponent();
@@ -490,13 +499,20 @@ bool UTVCharacterPresentation::ApplyProfile(const FTVAppearanceProfile& Profile)
         if (Slot.AssetClass != TEXT("GroomAsset")) continue;
         UGroomAsset* Asset = LoadFoundryAsset<UGroomAsset>(Slot);
         UGroomBindingAsset* Binding = FaceComponent ? Palette->GroomBinding(Asset, FaceComponent->GetSkeletalMeshAsset()) : nullptr;
-        if (!Binding) { ++UnresolvedSlotCount; continue; }
+        if (!Binding) {
+            UE_LOG(LogTemp, Display, TEXT("TV_EMBODIMENT unresolved slot=%s package=%s reason=missing-groom-binding face=%s"),
+                *Slot.Slot, *Slot.Package, *GetPathNameSafe(FaceComponent ? FaceComponent->GetSkeletalMeshAsset() : nullptr));
+            ++UnresolvedSlotCount; continue;
+        }
         UGroomComponent* Groom = NewObject<UGroomComponent>(GetOwner());
         Groom->SetupAttachment(FaceComponent);
+        // Configure before binding/registering: SetEnableSimulation is ignored without this
+        // override, leaving the expensive authored simulation active on each projected person.
+        Groom->SimulationSettings.bOverrideSettings = true;
+        Groom->SimulationSettings.SolverSettings.bEnableSimulation = false;
         Groom->SetGroomAsset(Asset, Binding, false);
         Groom->SetUseCards(true);
         Groom->SetForcedLOD(2);
-        Groom->SetEnableSimulation(false);
         Groom->SetCollisionEnabled(ECollisionEnabled::NoCollision);
         Groom->RegisterComponent();
         Groom->AddTickPrerequisiteComponent(FaceComponent);
@@ -504,13 +520,20 @@ bool UTVCharacterPresentation::ApplyProfile(const FTVAppearanceProfile& Profile)
         ++ResolvedPartCount;
     }
 
-    SetRelativeScale3D(FVector(FMath::Clamp(Profile.Build, .7f, 1.4f), FMath::Clamp(Profile.Build, .7f, 1.4f), FMath::Clamp(Profile.Height, .3f, 1.4f)));
+    SetRelativeScale3D(TVPresentationScale(Profile.Build, Profile.Height));
     for (const auto& Morph : Profile.Morphs) SetMorphTarget(FName(*Morph.Key), FMath::Clamp(Morph.Value, 0.f, 1.f));
     ApplyTints(Profile);
     // After tinting, not before: ApplyTints creates the body's dynamic instances, and the atlas
     // index has to be written into the instance that ends up rendering.
     MatchBodyComplexionToFace(this, FaceComponent);
     return true;
+}
+
+FVector TVPresentationScale(float Build, float Height) {
+    const float Stature = FMath::Clamp(FMath::IsFinite(Height) && Height > 0 ? Height : 1.f, .3f, 1.4f);
+    const float Width = FMath::IsFinite(Build) && Build > 0 ? Build : Stature;
+    const float Lateral = Stature * FMath::Clamp(Width / Stature, .9f, 1.08f);
+    return FVector(Lateral, Lateral, Stature);
 }
 
 void UTVCharacterPresentation::ApplyTints(const FTVAppearanceProfile& Profile) {

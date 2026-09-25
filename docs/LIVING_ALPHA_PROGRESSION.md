@@ -62,9 +62,11 @@ game-relevant timescale — without awarding Iron from experience points or fabr
 | Hunter | `hunting` (kills, butchering) | perception, endurance, dexterity | as above | kills, butchering, sparring |
 | Craft | `crafting` (mechanism fitting) | dexterity, perception | as above | fitting, making |
 
-They do not have identical speed. Known gap: the martial path needs provenance-bearing `unarmed`
-technique knowledge for Iron, which the live world does not yet seed; its foundations develop
-fully, but the Iron assessment reports that blocker until a teacher or discovery supplies it.
+They do not have identical speed. Each path needs provenance-bearing technique knowledge of its
+skill. A trade lesson records the `skill`; martial knowledge records the technique's `family`
+and reaches a person through a martial lesson, by observing a technique performed, or by
+discovering a variation in practice. The assessment reads either. (It once read only `skill`, so
+the martial path could never pass. Its test had hand-built a trade-shaped claim and hid that.)
 
 ## Evidence
 
@@ -74,3 +76,20 @@ fully, but the Iron assessment reports that blocker until a teacher or discovery
 * `scripts/alpha/iron-journey.ts`: an accelerated journey in the regional world through ordinary
   intents only (walking, dialogue, hush, meditation, advance), with ordinary autonomy between
   play sessions. Results are recorded in `docs/LIVING_ALPHA_RELEASE.md`.
+
+## Measured pace (2026-09-25): Iron is not yet reachable in play time
+
+The real `develop` calls, driven by a deliberate daily regimen (three meditations, 30 hush attempts,
+4 spars, 6 solo drills, walking and optional hauling; `.debug/iron-estimate.ts`), reach veil-path
+Iron for an ordinary adult in about 277 world days (potentials 11), 195 (12) or 138 (13). Support
+foundations reach 11 in about 20–40 days. The long pole is the two core foundations at 15: past 13
+they develop only through hush attempts, which strain limits to a few dozen short efforts a day. A
+10-day accelerated journey in the regional world follows the estimate (day 3: strength 8,
+dexterity 9, endurance 9, vitality 8, will 11).
+
+At the live time scale (6), a world day is four real hours, so the first rank currently costs
+hundreds of hours of play. This is a pacing decision for the canonical curve, which also governs
+every NPC, so it is recorded here rather than retuned to produce a demonstration. Candidate
+levers: a higher rate only for challenge above routine (NPC routine labour, which stops at about
+11–12, would be unchanged), lower Iron thresholds, or more credited stimulus per real high-
+challenge session (a spar round is credited as one minute).

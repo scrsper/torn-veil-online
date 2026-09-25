@@ -47,9 +47,7 @@ export function assessAdvancement(world: World, p: Person, path: AdvancementStag
   for (const [skill, value] of candidates) {
     const reasons = [...general], core = ironFoundationsFor(skill as PracticedSkillId);
     reasons.push(...foundationReasons(p, core));
-    const hasTechnique = Object.values(p.knowledge).some(k => k.kind === 'technique' && typeof k.source.viaEvent === 'string'
-      && !!world.event(k.source.viaEvent) && (k.confidence ?? 0) >= 0.4 && k.claim.skill === skill);
-    if (!hasTechnique) reasons.push(`provenance-bearing ${skill} technique knowledge is required`);
+    if (!pathTechnique(world, p, skill)) reasons.push(`provenance-bearing ${skill} technique knowledge is required`);
     const evidence = [...new Set(value.sourceEventIds)];
     const refs = evidence.map(id => world.event(id));
     // Credit on the source event proves this person's part in it (a sparring partner included).
@@ -61,6 +59,13 @@ export function assessAdvancement(world: World, p: Person, path: AdvancementStag
     first ??= assessment;
   }
   return first!;
+}
+
+/** Technique knowledge for a path that is still backed by the event it came from. A trade lesson
+ * names its `skill`; martial knowledge (lesson, observation, experiment) names its `family`. */
+function pathTechnique(world: World, p: Person, skill: SkillId) {
+  return Object.values(p.knowledge).find(k => k.kind === 'technique' && (k.claim.skill ?? k.claim.family) === skill
+    && (k.confidence ?? 0) >= 0.4 && typeof k.source.viaEvent === 'string' && !!world.event(k.source.viaEvent));
 }
 
 function foundationReasons(p: Person, core: AttributeId[]): string[] {
@@ -79,7 +84,7 @@ export function advanceToIron(world: World, p: Person, evidenceEventIds?: EventI
   const ids = assessment.evidenceEventIds;
   if (evidenceEventIds?.some(id => !ids.includes(id))) return false;
   const skill = assessment.path.skill;
-  const technique = Object.values(p.knowledge).find(k => k.kind === 'technique' && k.claim.skill === skill && k.confidence >= 0.4 && k.source.viaEvent && world.event(k.source.viaEvent));
+  const technique = pathTechnique(world, p, skill);
   const causes = technique?.source.viaEvent ? [...ids, technique.source.viaEvent] : [...ids];
   const event = world.emit('ontological_advancement', { actor: p.id, category: 'history', significance: 1, causes,
     data: { from: 'Normal', to: 'Iron', adaptation: 'embodied capability', path: skill, core: assessment.path.core }, summary: `${p.name} advanced from Normal to Iron` });

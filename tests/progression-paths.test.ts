@@ -7,6 +7,8 @@ import { attributeProfile, ironEligible } from '../src/sim/core/human';
 import { learn } from '../src/sim/mind/knowledge';
 import { meditateOnVeil, veilStrain } from '../src/sim/physical/veil';
 import { techniqueKey } from '../src/sim/core/skills';
+import { definitionClaim, learnTechnique } from '../src/sim/mind/martialKnowledge';
+import { techniqueDefinition } from '../src/sim/core/martialDefinitions';
 
 const DAY = 86400;
 function person(seed = 951) {
@@ -68,7 +70,8 @@ describe('Living Alpha progression calibration', () => {
     const { tw, w, p } = person(953), partner = addPerson(tw, 'Partner', 'villager', v(13, 1, 12));
     p.attributes = { ...attributeProfile(11), dexterity: 15, endurance: 15 };
     const teacher = w.emit('work_taught', { actor: partner.id, target: p.id, data: { martial: 'lesson', phase: 'completed' } });
-    learn(w, p, { key: techniqueKey('unarmed'), kind: 'technique', claim: { skill: 'unarmed' }, confidence: 0.8, source: { type: 'told', from: partner.id, viaEvent: teacher.id } }, true);
+    // The shape a real martial lesson leaves (it names the technique's family, not a trade skill).
+    expect(learnTechnique(w, p, definitionClaim(techniqueDefinition(w, 'unarmed:straight-punch')!, 0.7), 0.7, { type: 'told', from: partner.id, viaEvent: teacher.id })).toBeTruthy();
     (p.skills as Record<string, number>).unarmed = 0.6;
     let n = 0;
     for (let day = 0; day < 4; day++) {

@@ -4,6 +4,15 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "TVEmbodiment.generated.h"
 
+/**
+ * Presentation scale for a realized body from canonical stature (height) and build (width).
+ * Stature sets the size; width may differ from it by at most -10%/+8%. Every installed body is an
+ * adult mesh, so an unclamped build/height pair (a toddler at 0.41 tall x 0.56 wide) turns a
+ * scaled-down adult into a squat, distorted figure; frame differences come from choosing a slim,
+ * average or heavy body instead. Applied once, to exactly one component (driver or visible body).
+ */
+TORNVEILONLINE_API FVector TVPresentationScale(float Build, float Height);
+
 class FJsonObject;
 class UAnimationAsset;
 class USkeletalMesh;

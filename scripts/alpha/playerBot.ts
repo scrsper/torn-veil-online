@@ -16,14 +16,26 @@ export class PlayerBot {
   dist(a: Vec3, b: Vec3) { return Math.hypot(a.x - b.x, a.z - b.z); }
   setOnline(on: boolean) {
     if (on === this.online) return; this.online = on;
-    if (on) { this.s.game.attach('local', this.p.id); this.p.mind.plan = []; this.p.mind.goal = null; this.binding = undefined; } else this.s.game.detach('local');
+    if (on) {
+      this.s.game.attach('local', this.p.id); this.p.mind.plan = []; this.p.mind.goal = null; this.binding = undefined;
+      // A body left to ordinary life may be asleep when its player returns; they wake it (Z) first.
+      if (this.body.pose === 'sleep') this.say({ type: 'person_action', intent: { kind: 'wake' } });
+    } else this.s.game.detach('local');
   }
   tick(x = 0, z = 0, sprint = false) { if (this.online && (x || z)) this.say({ type: 'move', x, z, sprint }); this.s.step(this.DT); }
   wait(seconds: number) { for (let t = 0; t < seconds; t += this.DT) this.tick(); }
   offline(seconds: number) { this.setOnline(false); for (let t = 0; t < seconds; t += this.DT) this.s.step(this.DT); this.setOnline(true); }
+  /** Walk to somewhere one can stand beside `target` (goods on a counter, a thing against a wall). */
+  goNear(target: Vec3, budgetSeconds = 400): boolean {
+    for (const r of [1, 1.6]) for (let k = 0; k < 8; k++) {
+      const a = k * Math.PI / 4, spot = { x: target.x + Math.cos(a) * r, y: target.y, z: target.z + Math.sin(a) * r };
+      if (this.w.nav.findPath(this.body.pos, spot, 4000) && this.go(spot, 0.4, budgetSeconds)) return true;
+    }
+    return false;
+  }
   /** Walk along a path planned over the same geometry the client receives. */
   go(target: Vec3, within = 1.2, budgetSeconds = 900): boolean {
-    const pts = this.w.nav.findPath(this.body.pos, target, 400); if (!pts) return false;
+    const pts = this.w.nav.findPath(this.body.pos, target, 4000); if (!pts) return false;
     const t0 = this.w.physicalTime;
     for (const pt of pts) {
       let stuck = 0;

@@ -73,7 +73,7 @@ def node(material, kind, x, y):
 
 def make_material(role, mesh_path, textures):
     path = OUT_DIR + "/M_TV_Local_" + role
-    material = unreal.EditorAssetLibrary.load_asset(path)
+    material = unreal.EditorAssetLibrary.load_asset(path) if unreal.EditorAssetLibrary.does_asset_exist(path) else None
     if not material:
         material = unreal.AssetToolsHelpers.get_asset_tools().create_asset(
             "M_TV_Local_" + role, OUT_DIR, unreal.Material, unreal.MaterialFactoryNew()
