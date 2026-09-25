@@ -62,9 +62,11 @@ game-relevant timescale — without awarding Iron from experience points or fabr
 | Hunter | `hunting` (kills, butchering) | perception, endurance, dexterity | as above | kills, butchering, sparring |
 | Craft | `crafting` (mechanism fitting) | dexterity, perception | as above | fitting, making |
 
-They do not have identical speed. Known gap: the martial path needs provenance-bearing `unarmed`
-technique knowledge for Iron, which the live world does not yet seed; its foundations develop
-fully, but the Iron assessment reports that blocker until a teacher or discovery supplies it.
+They do not have identical speed. Each path needs provenance-bearing technique knowledge of its
+skill. A trade lesson records the `skill`; martial knowledge records the technique's `family`
+and reaches a person through a martial lesson, by observing a technique performed, or by
+discovering a variation in practice. The assessment reads either. (It once read only `skill`, so
+the martial path could never pass. Its test had hand-built a trade-shaped claim and hid that.)
 
 ## Evidence
 
