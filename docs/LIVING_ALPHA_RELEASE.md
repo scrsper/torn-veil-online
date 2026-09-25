@@ -553,7 +553,7 @@ fails on the unfixed code.
 | 2 h soak, zero-player period | **FAIL** on one check. Pass: full duration, same world, uninterrupted, clock advancing, RSS peak 541 MB, scheduler debt clears, event-loop p99 32.6 ms, zero-client period observed. Fail: checkpoint serialization peaked at 311 ms (limit 250 ms) | `.debug/soak-live-alpha10/report.json` |
 | Emergent adventure | See below | `.debug/adventure-*-918273` |
 | Normal → Iron | **Not demonstrated.** Measured: see below | `.debug/iron-estimate.ts`, `.debug/iron-journey-veil-918271` |
-| 7-day continuations | See below | `.debug/alpha-continuation-1c8b317-*` |
+| 7-day continuations | PASS on 918271, 918272 and 918273 at `1c8b317`: 7.00 world days each, no findings, unchanged 60 Hz session path. Courtship events 17 / 18 / 8 (were 1,426 / 859 before the refusal fix), marriages 5 / 5 / 3; RSS 756–848 MB | `.debug/alpha-continuation-1c8b317-*` |
 | Autostart | Prepared; **needs you**. Registering the logon task was refused to this agent as persistence | `Install-Autostart.ps1 -CheckOnly` |
 
 **Soak finding.** With nobody connected, the checkpoint grew from 8 MB to 34.5 MB in two hours of
