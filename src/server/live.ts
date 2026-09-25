@@ -17,6 +17,7 @@ import { AccountRegistry, type AccountRecord } from './accounts';
 import type { AlphaConfig, ReleaseIdentity } from './config';
 import { GENERATOR_VERSION, playableBaselineFingerprint } from './fingerprint';
 import { ALPHA_PROTOCOL, CLOSE, H, parseCharacterRequest } from './protocol';
+import type { Lifecycle } from './readiness';
 import { BackupSet, RefuseToStartError, WorldStore, WriterLock, type CheckpointMeta } from './store';
 
 type Log = (level: 'info' | 'warn' | 'error', event: string, data?: Record<string, unknown>) => void;
@@ -65,7 +66,9 @@ export class LiveServer {
   private readonly loopDelay = monitorEventLoopDelay({ resolution: 10 });
   private admissions = true;
   private stopping = false;
+  private shuttingDown = false;
   private ready = false;
+  private failed = false;
   private maintenance: { message: string; at: number } | null = null;
   private inFlight: Promise<CheckpointMeta> | null = null;
   private lastCheckpoint: CheckpointMeta | null = null;
@@ -93,7 +96,7 @@ export class LiveServer {
     const catalogue = loadCatalogue(this.config.characterCatalogue ?? undefined);
     if (!catalogue.present) this.log('warn', 'character_catalogue_unavailable', { problems: catalogue.problems.map(p => p.detail) });
     const identity = this.store.identity();
-    const t0 = performance.now(), fingerprint = playableBaselineFingerprint(identity?.generator.seed ?? this.config.seed);
+    const t0 = performance.now(), fingerprint = playableBaselineFingerprint(identity?.generator.seed ?? this.config.seed, identity?.generator.version);
     this.log('info', 'generator_fingerprint', { fingerprint, ms: Math.round(performance.now() - t0) });
     if (!identity) {
       if (this.store.generations().length) throw new RefuseToStartError('Checkpoints exist without a world identity; refusing to guess. Restore WORLD.json from a backup.');
@@ -175,7 +178,7 @@ export class LiveServer {
   private fatal(event: string, error: unknown): void {
     this.log('error', event, { error: String((error as Error)?.stack ?? error) });
     // A lost fence or failed durable write must stop the writer rather than keep diverging.
-    this.ready = false; this.admissions = false;
+    this.failed = true; this.ready = false; this.admissions = false;
     setTimeout(() => process.exit(70), 50);
   }
 
@@ -223,10 +226,17 @@ export class LiveServer {
     const given = Buffer.from(String(req.headers['x-torn-veil-admin'] ?? '')), expected = Buffer.from(this.adminToken);
     return given.length === expected.length && timingSafeEqual(given, expected);
   }
+  /** Process alive → world loaded → accepting players; or deliberately not (maintenance/stopping/failed). */
+  lifecycle(): Lifecycle {
+    if (this.failed) return 'failed';
+    if (this.stopping || this.shuttingDown) return 'stopping';
+    if (!this.ready) return 'starting';
+    return this.admissions ? 'ready' : 'maintenance';
+  }
   status() {
     const w = this.session.world;
     return {
-      env: this.config.env, worldId: this.worldId, release: this.release, protocol: ALPHA_PROTOCOL, ready: this.ready, admissions: this.admissions,
+      env: this.config.env, worldId: this.worldId, release: this.release, protocol: ALPHA_PROTOCOL, state: this.lifecycle(), ready: this.ready, admissions: this.admissions,
       maintenance: this.maintenance, uptimeSeconds: Math.round((Date.now() - this.startedAt) / 1000),
       world: { physicalTime: w.physicalTime, worldNow: w.now, day: Math.floor(w.now / 86400), livingPersons: w.livingPersons().length, events: w.events.length, creatures: w.creatures().length },
       connections: [...this.connections.values()].map(c => ({ account: c.account.id, personId: c.personId, remote: c.remote, since: new Date(c.connectedAt).toISOString() })),
@@ -241,8 +251,9 @@ export class LiveServer {
   private handleHttp(req: IncomingMessage, res: ServerResponse, host: string): void {
     res.setHeader('Content-Type', 'application/json');
     const url = new URL(req.url ?? '/', 'http://x'), send = (code: number, body: unknown) => { res.statusCode = code; res.end(JSON.stringify(body)); };
-    if (url.pathname === '/health') return send(200, { ok: true, env: this.config.env, release: this.release.version, protocol: ALPHA_PROTOCOL, regionProtocol: REGION_PROTOCOL });
-    if (url.pathname === '/ready') return send(this.ready && this.admissions ? 200 : 503, { ready: this.ready, admissions: this.admissions, maintenance: this.maintenance });
+    // /health is liveness only (the process answers). /ready is 200 only while players can be admitted.
+    if (url.pathname === '/health') return send(200, { ok: true, state: this.lifecycle(), env: this.config.env, release: this.release.version, protocol: ALPHA_PROTOCOL, regionProtocol: REGION_PROTOCOL });
+    if (url.pathname === '/ready') { const state = this.lifecycle(); return send(state === 'ready' ? 200 : 503, { state, ready: this.ready, admissions: this.admissions, maintenance: this.maintenance }); }
     if (!url.pathname.startsWith('/admin/')) return send(404, {});
     if (!LOOPBACK.has(host) || !this.isAdmin(req)) return send(403, { error: 'forbidden' });
     const op = url.pathname.slice(7);
@@ -269,7 +280,8 @@ export class LiveServer {
     return meta;
   }
   async shutdown(reason: string, exitCode = 0): Promise<void> {
-    if (this.stopping) return;
+    if (this.stopping || this.shuttingDown) return;
+    this.shuttingDown = true;
     this.log('info', 'shutdown_started', { reason });
     this.admissions = false; this.ready = false;
     for (const c of [...this.connections.values()]) this.close(c, CLOSE.maintenance, 'Server shutting down');

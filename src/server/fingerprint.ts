@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { World } from '../sim/core/world';
 import { generatePlayableWorld } from '../sim/world/playable';
+import { LEGACY_PLAYABLE_WORLD, PLAYABLE_WORLD } from '../sim/world/geography';
 import { SAVE_VERSION } from '../sim/persist/save';
 
 /**
@@ -14,11 +15,12 @@ import { SAVE_VERSION } from '../sim/persist/save';
  * digests settlement sites, roads, the initial population's identities, places, resource nodes in
  * the settlement regions, and a coarse terrain lattice across the whole map.
  */
-export const GENERATOR_VERSION = 'playable-1';
+export const GENERATOR_VERSION = 'playable-2';
 
-export function playableBaselineFingerprint(seed: number): string {
+export function playableBaselineFingerprint(seed: number, version: string = GENERATOR_VERSION): string {
+  if (version !== 'playable-1' && version !== GENERATOR_VERSION) throw new Error(`Unsupported playable generator ${version}`);
   const w = new World(seed);
-  generatePlayableWorld(w);
+  generatePlayableWorld(w, version === 'playable-1' ? LEGACY_PLAYABLE_WORLD : PLAYABLE_WORLD);
   const h = createHash('sha256');
   const put = (label: string, value: unknown) => { h.update(label); h.update('\u0000'); h.update(JSON.stringify(value)); h.update('\u0001'); };
   const g = w.geography!;
@@ -32,5 +34,5 @@ export function playableBaselineFingerprint(seed: number): string {
   const step = 768, heights: number[] = [];
   for (let x = 0; x < g.spec.size; x += step) for (let z = 0; z < g.spec.size; z += step) heights.push(w.grid.groundHeight(x, z));
   put('terrain', heights);
-  return createHash('sha256').update(`${GENERATOR_VERSION}|save${SAVE_VERSION}|`).update(h.digest()).digest('hex');
+  return createHash('sha256').update(`${version}|save${SAVE_VERSION}|`).update(h.digest()).digest('hex');
 }

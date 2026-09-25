@@ -519,7 +519,10 @@ export class Simulation {
     // whom it is actually for (a haul serves whoever requested it), which is what makes "I'll
     // carry his flour, he stood by me" expressible without a special case.
     const G = (type: GoalType, utility: number, reasons: string[], o: Partial<Goal> = {}) => {
-      const key = `${type}:${o.targetEntity ?? o.targetPlace ?? ''}`;
+      // Extraction is a commitment to one finite source. Reusing just "chop:" kept a
+      // depleted tree's finished plan even after the chooser found a different live tree.
+      const source = type === 'chop' || type === 'gather' ? o.data?.nodeId : undefined;
+      const key = `${type}:${source ?? o.targetEntity ?? o.targetPlace ?? ''}`;
       const boost = motivationBoost(p, type, o.targetEntity ?? o.targetPlace, o.data?.beneficiary as EntityId | undefined, o.data?.resource as ItemType | undefined, now);
       const data = boost.pursuitId && !o.data?.pursuitId ? { ...(o.data ?? {}), pursuitId: boost.pursuitId } : o.data;
       cands.push({ type, utility: boost.bonus ? clamp(utility + boost.bonus) : utility, reasons: boost.bonus ? [...reasons, ...boost.reasons] : reasons, createdAt: now, key, ...o, data });
@@ -942,9 +945,12 @@ export class Simulation {
     }
     // v0.2.4: thirst — seek a canonical water source (well / river). Rises faster than hunger,
     // so this is a common everyday goal, kept low-drama (no death spiral).
-    if (n.thirst > 0.38 && !drankRecently && !threat && sched?.activity !== 'sleep') {
+    // A critical need overrides ordinary avoidance (core/physiology.ts severity bands): someone
+    // parched still goes for water past a feared person who is not close.
+    const criticalThirst = severityAtLeast(thirstBand(p), 'critical');
+    if (n.thirst > 0.38 && !drankRecently && (!threat || (criticalThirst && threat.d > 6)) && sched?.activity !== 'sleep') {
       const src = nearestWaterSource(w, pos);
-      if (src) G('drink_water', clamp(0.2 + n.thirst * 0.8 - (night ? 0.25 : 0)), [`thirst ${n.thirst.toFixed(2)}`], { targetPos: src.pos, targetPlace: src.placeId, data: { water: true } });
+      if (src) G('drink_water', clamp(0.2 + n.thirst * 0.8 - (night ? 0.25 : 0)), [`thirst ${n.thirst.toFixed(2)}`], { targetPos: src.pos, targetPlace: src.placeId, origin: { ...pos }, data: { water: true } });
     }
     // Field evidence supports personal work candidates; an occupation is not a command.
     for (const field of w.fields) {
@@ -1005,6 +1011,9 @@ export class Simulation {
       else w.runTally.work_stopped_fatigue = (w.runTally.work_stopped_fatigue ?? 0) + 1;
     }
     if (!threat && !p.hostile && canHaul(p) && (laborOk || committedHaulOrBuild)) {
+      // Repeated short extraction trips must not drift into an unplanned long journey.
+      const workOrigin = w.place(p.homeId)?.inside ?? pos;
+      const localResource = (node: import('../core/types').ResourceNode) => near(workOrigin, node.pos);
       // v0.5 §V.19: paid work's own utility is weighted by how much this person NEEDS the wage
       // right now (mind/economy.ts's `laborIncentive` — poor and hungry values it more, wealthy
       // and fed values it less). A genuinely critical physiological need still overrides it
@@ -1016,7 +1025,7 @@ export class Simulation {
       // These person-level prerequisites are unchanged throughout proposal construction.
       // Check them before scanning the resource ledger, rather than once per resource node.
       if (laborOk && p.wealth < 3 && n.hunger > 0.4) for (const node of w.resourceNodes) {
-        if (node.kind !== 'game' || !near(pos, node.pos) || node.state !== 'available') continue;
+        if (node.kind !== 'game' || !near(pos, node.pos) || !localResource(node) || node.state !== 'available') continue;
         const known = p.workId === node.placeId || p.schedule.some(e => e.placeId === node.placeId) || !!p.knowledge[`game:${node.id}`];
         if (!known) continue;
         G('gather', clamp((0.4 + n.hunger * 0.5) * laborCapacity),
@@ -1039,7 +1048,7 @@ export class Simulation {
       }
       // Chop: a woodcutter at the clearing fells a standing tree.
       if (laborOk && p.occupation === 'woodcutter' && sched?.activity === 'work' && sched.placeId && w.place(sched.placeId)?.type === 'wilderness') {
-        const node = nearestAvailableNode(w, 'tree', pos, 90);
+        const node = nearestAvailableNode(w, 'tree', pos, 90, undefined, localResource);
         if (node) G('chop', clamp(0.66 * laborCapacity), [`there are trees to fell near ${perceivedName(w, p, node.placeId)}`], { targetPos: node.pos, data: { nodeId: node.id, resource: node.yield } });
       }
       // Build: contribute labour to a project whose materials are on site (cap concurrent builders).
@@ -1090,7 +1099,7 @@ export class Simulation {
         const chopping = p.mind.goal?.type === 'chop';
         const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter', 'villager'].includes(p.occupation);
         if (!chopping && (already >= 2 || !roleOk)) continue;
-        const node = nearestAvailableNode(w, 'tree', pos, 220);
+        const node = nearestAvailableNode(w, 'tree', pos, 220, undefined, localResource);
         if (node) G('chop', clamp(0.5 * laborCapacity * incentive), [`${gp.name} still needs planks, and there is no wood for them`], { targetPos: node.pos, data: { nodeId: node.id, resource: node.yield } });
       }
       // Gather stone: a gathering project short of stone, with none in the pipeline yet.
@@ -1105,7 +1114,7 @@ export class Simulation {
         const gathering = p.mind.goal?.type === 'gather';
         const roleOk = ['woodcutter', 'farmer', 'vagrant', 'apprentice', 'hunter', 'villager'].includes(p.occupation);
         if (!gathering && (already >= 2 || !roleOk)) continue;
-        const node = nearestAvailableNode(w, 'stone', pos, 220);
+        const node = nearestAvailableNode(w, 'stone', pos, 220, undefined, localResource);
         if (node) G('gather', clamp(0.5 * laborCapacity * incentive), [`${gp.name} still needs stone`], { targetPos: node.pos, data: { nodeId: node.id, resource: node.yield } });
       }
     }
@@ -1537,7 +1546,7 @@ export class Simulation {
         const spot = processFor(pl?.type) ? pl!.inside : anchorIn(pl, ['work']) ?? pl?.inside ?? body.pos;
         return [A({ type: 'goto', pos: spot, placeId: pl?.id }), A({ type: 'work', pos: spot, duration: 40 * 60 + w.rng.next() * 30 * 60, placeId: pl?.id })];
       }
-      case 'worship': { const pl = place ?? w.place(this.chapelId(p)); const spot = (p.occupation === 'priest' || p.occupation === 'acolyte') ? anchorIn(pl, ['altar']) : anchorIn(pl, ['seat']); return [A({ type: 'goto', pos: spot ?? pl!.inside, placeId: pl?.id }), A({ type: 'pray', pos: spot ?? pl!.inside, duration: 40 * 60 })]; }
+      case 'worship': { const pl = place ?? w.place(this.chapelId(p)); const spot = ((p.occupation === 'priest' || p.occupation === 'acolyte') ? anchorIn(pl, ['altar']) : anchorIn(pl, ['seat'])) ?? pl?.inside ?? body.pos; return [A({ type: 'goto', pos: spot, placeId: pl?.id }), A({ type: 'pray', pos: spot, duration: 40 * 60 })]; }
       case 'socialize': case 'drink': case 'play': case 'idle': { const pl = place ?? w.place(this.squareId(p)); const spot = anchorIn(pl, g.type === 'drink' ? ['seat', 'inside'] : ['seat', 'inside', 'work']) ?? pl?.inside ?? body.pos; return [A({ type: 'goto', pos: spot, placeId: pl?.id }), A({ type: g.type === 'play' ? 'wait' : 'sit', pos: spot, duration: (g.type === 'play' ? 8 : 25) * 60 + w.rng.next() * 15 * 60, data: { social: true } })]; }
       case 'wander': {
         // v0.6 §VI/§VII: a hunger-driven search (no known food source) targets a nearby place
@@ -1557,7 +1566,10 @@ export class Simulation {
           if (target) return [A({ type: 'goto', pos: target.inside, placeId: target.id }),
             A({ type: 'eat', pos: target.inside, placeId: target.id, duration: 25 * 60 })];
         }
-        const pl = w.place(this.squareId(p))!; return [A({ type: 'goto', pos: { x: pl.inside.x + (w.rng.next() - 0.5) * 16, y: pl.inside.y, z: pl.inside.z + (w.rng.next() - 0.5) * 16 } }), A({ type: 'wait', duration: 5 * 60 })];
+        // An unsettled traveler may know no local civic place and have no home.
+        // Explore around the current body without inventing a place or knowledge.
+        const origin = w.place(this.squareId(p))?.inside ?? body.pos;
+        return [A({ type: 'goto', pos: { x: origin.x + (w.rng.next() - 0.5) * 16, y: origin.y, z: origin.z + (w.rng.next() - 0.5) * 16 } }), A({ type: 'wait', duration: 5 * 60 })];
       }
       case 'go_home': case 'shelter': case 'return_home_safe': { const pl = place ?? w.place(p.homeId); return [A({ type: 'goto', pos: anchorIn(pl, ['seat', 'fire', 'inside']) ?? pl?.inside ?? body.pos, placeId: pl?.id }), A({ type: 'wait', duration: 30 * 60 })]; }
       case 'patrol': { const pts = p.patrol ?? []; const start = Math.floor(w.rng.next() * pts.length); const acts: Action[] = []; for (let i = 0; i < pts.length; i++) { const pt = pts[(start + i) % pts.length]; acts.push(A({ type: 'goto', pos: pt }), A({ type: 'look', duration: 40, pos: pt })); } return acts.length ? acts : [A({ type: 'wait', duration: 60 })]; }
@@ -2154,6 +2166,10 @@ export class Simulation {
       case 'propose': {
         const target = w.person(a.targetEntity!); const targetBody = w.primaryBody(a.targetEntity!);
         if (!target || !targetBody || dist2(body.pos, targetBody.pos) > 3.5) { a.status = 'failed'; break; }
+        body.pose = 'talk';
+        // A proposal is the timed conversation authored by plan(), not an instantaneous
+        // event on every decision cycle. Revalidate proximity throughout the conversation.
+        if (!this.elapsed(a)) break;
         const court = w.emit('courtship', { actor: p.id, target: target.id, pos: { ...body.pos }, significance: 0.4, visibility: 9, summary: `${p.name} asked ${target.name} to build a household together` });
         if (!isExternallyControlled(target) && marry(w, p, target, court.id)) this.say(p, `${knownName(p, target.id).split(' ')[0]}, let us make a life together.`);
         a.status = 'done'; break;

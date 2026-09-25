@@ -34,6 +34,20 @@ describe.sequential('Living Alpha authoritative service', () => {
   }, 120_000);
   afterAll(async () => { await server?.stopInProcess('test end').catch(() => {}); rmSync(root, { recursive: true, force: true }); });
 
+  it('distinguishes a live process, a ready world and maintenance; only ready answers 200', async () => {
+    const get = async (path: string) => { const r = await fetch(`http://127.0.0.1:${port}${path}`); return { status: r.status, body: await r.json() as any }; };
+    expect(await get('/ready')).toMatchObject({ status: 200, body: { state: 'ready' } });
+    await server.drain(0, 'readiness test');
+    const drained = await get('/ready');
+    expect(drained).toMatchObject({ status: 503, body: { state: 'maintenance', admissions: false } });
+    expect(await get('/health')).toMatchObject({ status: 200, body: { ok: true, state: 'maintenance' } });
+    const refused = await join_('alice');
+    expect(refused.closed?.code).toBe(CLOSE.maintenance);
+    const reopened = await fetch(`http://127.0.0.1:${port}/admin/open`, { method: 'POST', headers: { 'x-torn-veil-admin': 'test-admin-token-0123456789abcdef' } });
+    expect(reopened.status).toBe(200);
+    expect(await get('/ready')).toMatchObject({ status: 200, body: { state: 'ready' } });
+  }, 60_000);
+
   it('refuses wrong tokens, disabled accounts, old protocols and missing characters with explicit reasons', async () => {
     const bad = await ProbeClient.connect({ port, account: 'alice', token: 'x'.repeat(43) });
     expect(bad.closed?.code).toBe(CLOSE.authFailed);

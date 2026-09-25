@@ -1,22 +1,28 @@
 import { spawn, execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { AccountRegistry } from './accounts';
 import { loadConfig, loadRelease, type AlphaConfig, type AlphaEnv, type ReleaseIdentity } from './config';
 import { LiveServer } from './live';
 import { BackupSet, WorldStore, WriterLock, sha256, type CheckpointMeta, type LoadedCheckpoint } from './store';
 import { migrationPath } from './migrations';
+import { captureState, CaptureRefused } from './capture';
+import { startupOutcome } from './readiness';
+import { releaseStoppedWriter } from './stoppedWriter';
 
 /**
  * Operator tool for Living Alpha environments. Every command names an environment root
- * (`--root`, default %LOCALAPPDATA%\TornVeilAlpha\<env>). Run `ops.mjs help` for usage.
+ * (`--root`, default %USERPROFILE%\TornVeilAlpha\<env> or $TORN_VEIL_ALPHA_HOME). Run `ops.mjs help` for usage.
  */
 const argv = process.argv.slice(2);
 const flag = (name: string) => { const i = argv.indexOf(`--${name}`); return i >= 0 ? argv[i + 1] : undefined; };
 const has = (name: string) => argv.includes(`--${name}`);
 const positional = argv.filter((a, i) => !a.startsWith('--') && !(i > 0 && argv[i - 1].startsWith('--') && !['--developer', '--force', '--no-start'].includes(argv[i - 1])));
-const base = process.env.TORN_VEIL_ALPHA_HOME ?? join(process.env.LOCALAPPDATA ?? join(process.env.HOME ?? '.', '.local', 'share'), 'TornVeilAlpha');
+// Not %LOCALAPPDATA%: Windows silently redirects AppData writes made by processes launched from a
+// packaged (MSIX) app into that app's private store, invisible to scheduled tasks and other sessions.
+const base = process.env.TORN_VEIL_ALPHA_HOME ?? join(homedir(), 'TornVeilAlpha');
 const rootOf = (env: string) => resolve(flag('root') ?? join(base, env));
 const envArg = () => (flag('env') ?? 'live') as AlphaEnv;
 const out = (value: unknown) => process.stdout.write((typeof value === 'string' ? value : JSON.stringify(value, null, 2)) + '\n');
@@ -28,6 +34,10 @@ function adminToken(c: AlphaConfig): string { return readFileSync(join(c.credent
 async function admin(c: AlphaConfig, method: 'GET' | 'POST', op: string, timeoutMs = 120_000): Promise<any> {
   const r = await fetch(`http://127.0.0.1:${c.port}/admin/${op}`, { method, headers: { 'x-torn-veil-admin': adminToken(c) }, signal: AbortSignal.timeout(timeoutMs) });
   const body = await r.json(); if (!r.ok) throw new Error(`${op}: HTTP ${r.status} ${JSON.stringify(body)}`); return body;
+}
+async function readiness(c: AlphaConfig): Promise<{ status: number; state: string }> {
+  try { const r = await fetch(`http://127.0.0.1:${c.port}/ready`, { signal: AbortSignal.timeout(3000) }); const body = await r.json().catch(() => ({})) as { state?: string }; return { status: r.status, state: body.state ?? 'unknown' }; }
+  catch { return { status: 0, state: 'unreachable' }; }
 }
 async function running(c: AlphaConfig): Promise<boolean> { try { return (await fetch(`http://127.0.0.1:${c.port}/health`, { signal: AbortSignal.timeout(3000) })).ok; } catch { return false; } }
 function supervisorState(c: AlphaConfig): { pid: number; state: string } | null { try { return JSON.parse(readFileSync(join(c.root, 'supervisor.json'), 'utf8')); } catch { return null; } }
@@ -44,17 +54,37 @@ async function start(c: AlphaConfig): Promise<void> {
   const node = process.execPath, sup = join(rel!.dir, 'supervisor.mjs');
   const child = spawn(node, [sup, '--config', join(c.root, 'config.json')], { detached: true, stdio: 'ignore', windowsHide: true, cwd: rel!.dir });
   child.unref();
-  await waitFor(async () => { const s = supervisorState(c); if (s?.state === 'halted') fail(`service halted: ${JSON.stringify(s)} — see ${join(c.logDir, 'server.log')}`); return await running(c) && (await fetch(`http://127.0.0.1:${c.port}/ready`).then(r => r.status === 200 || r.status === 503).catch(() => false)); }, `${c.env} to become ready`, 180_000);
+  // Ready means the world is loaded and players can be admitted (HTTP 200). A 503 from a failed,
+  // stopping or still-loading writer is not success; a failed writer or halted supervisor fails fast.
+  await waitFor(async () => {
+    const s = supervisorState(c); if (s?.state === 'halted') fail(`service halted: ${JSON.stringify(s)} — see ${join(c.logDir, 'server.log')}`);
+    const outcome = startupOutcome(await readiness(c));
+    if (outcome === 'failed') fail(`service failed during startup — see ${join(c.logDir, 'server.log')}`);
+    return outcome === 'ready';
+  }, `${c.env} to become ready`, 180_000);
   out(`${c.env} running release ${rel!.version} on port ${c.port}`);
 }
 /** Orderly stop: drain (optional), final checkpoint, supervisor exit, writer fence released. */
 async function stop(c: AlphaConfig): Promise<void> {
   if (!(await running(c)) && !supervisorState(c)) { out(`${c.env} not running`); return; }
+  const requestedAt = Date.now();
+  let recoveredStaleWriter = false;
   writeFileSync(join(c.root, 'supervisor.stop'), new Date().toISOString());
-  await waitFor(() => !existsSync(join(c.root, 'supervisor.lock')) && !existsSync(join(c.stateDir, 'writer.lock')), `${c.env} to stop`, 150_000);
-  const last = JSON.parse(readFileSync(join(c.stateDir, 'last-shutdown.json'), 'utf8'));
-  if (!last.ok) fail(`final checkpoint failed during stop: ${JSON.stringify(last)}`);
-  out({ stopped: c.env, finalGeneration: last.generation });
+  await waitFor(() => {
+    if (existsSync(join(c.root, 'supervisor.lock'))) return false;
+    const supervisor = supervisorState(c);
+    if (supervisor && WriterLock.alive(supervisor.pid)) return false;
+    const fence = releaseStoppedWriter(c.stateDir, c.env);
+    recoveredStaleWriter ||= fence === 'released';
+    return fence !== 'alive';
+  }, `${c.env} to stop`, 150_000);
+  const lastPath = join(c.stateDir, 'last-shutdown.json');
+  const last = existsSync(lastPath) ? JSON.parse(readFileSync(lastPath, 'utf8')) : null;
+  const cleanShutdown = !!last && Date.parse(last.atIso) >= requestedAt && last.ok === true;
+  if (last && Date.parse(last.atIso) >= requestedAt && !last.ok) fail(`final checkpoint failed during stop: ${JSON.stringify(last)}`);
+  // After a crash there is no new final checkpoint. Report the latest verified durable generation.
+  const durable = new WorldStore(c.stateDir).candidates().next().value as LoadedCheckpoint | undefined;
+  out({ stopped: c.env, finalGeneration: durable?.meta.generation ?? null, cleanShutdown, recoveredStaleWriter });
 }
 
 function writeConfig(root: string, env: AlphaEnv, extra: Record<string, unknown>): void {
@@ -148,18 +178,17 @@ const commands: Record<string, () => Promise<void>> = {
     finally { lock.release(); }
   },
   async capture() {
-    const from = config((flag('from') ?? 'live') as AlphaEnv), to = config((flag('to') ?? 'staging') as AlphaEnv);
-    if (to.env === 'live') fail('capture never writes to live (a stale copy must never replace newer live progress)');
-    if (await running(to)) fail(`stop ${to.env} before capturing into it`);
+    const fromEnv = (flag('from') ?? 'live') as AlphaEnv, toEnv = (flag('to') ?? 'staging') as AlphaEnv;
+    if (toEnv === 'live') fail('capture never writes to live (a stale copy must never replace newer live progress)');
+    if (fromEnv === toEnv) fail('capture source and destination are the same environment');
+    const from = config(fromEnv), to = config(toEnv);
+    // Every other environment's state is protected from this write, live above all.
+    const protectedRoots = (['live', 'staging', 'dev'] as AlphaEnv[]).filter(e => e !== toEnv && existsSync(join(rootOf(e), 'config.json'))).map(e => config(e).stateDir);
     if (await running(from)) await admin(from, 'POST', 'checkpoint?reason=captured-for-staging');
-    const source = new WorldStore(from.stateDir);
-    const latest = source.candidates().next().value ?? fail(`no verified checkpoint in ${from.env}`);
-    rmSync(join(to.stateDir, 'world'), { recursive: true, force: true });
-    const target = new WorldStore(to.stateDir);
-    writeFileSync(join(target.worldDir, 'WORLD.json'), JSON.stringify(source.identity(), null, 2));
-    const lock = new WriterLock(to.stateDir, { release: 'ops-capture', env: to.env }); lock.acquire();
-    try { const meta = target.installFrom(latest.dir, lock, `captured from ${from.env}`); out({ captured: from.env, into: to.env, sourceGeneration: latest.meta.generation, savedAtIso: latest.meta.savedAtIso, physicalTime: meta.physicalTime }); }
-    finally { lock.release(); }
+    try {
+      const r = await captureState(from, to, { isServing: running, protectedRoots });
+      out({ captured: from.env, into: to.env, sourceGeneration: r.sourceGeneration, savedAtIso: r.savedAtIso, physicalTime: r.physicalTime, replacedWorld: r.replacedWorld });
+    } catch (e) { if (e instanceof CaptureRefused) fail(e.message); throw e; }
   },
   async rehearse() {
     const dir = resolve(flag('release') ?? fail('--release required')), rel = releaseAt(dir), live = config('live'), staging = config('staging');

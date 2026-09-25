@@ -247,10 +247,33 @@ export class DialogueSystem {
     return { speaker: npc, lines, options: this.options(npc, player) };
   }
   private askAboutMenu(npc: Person, player: Person): DialogueState {
-    const w = this.world; const known = Object.entries(npc.relationships).filter(([id, r]) => r.familiarity > 0.1 && id !== player.id && w.person(id)).sort((a, b) => Math.abs(disposition(npc, b[0])) - Math.abs(disposition(npc, a[0]))).slice(0, 12);
+    const w = this.world;
+    const known = Object.entries(npc.relationships).filter(([id, r]) => r.familiarity > 0.1 && id !== player.id && w.person(id)
+      && (player.knowledge[`identity:${id}`]?.claim.identity || npc.knowledge[`identity:${id}`]?.claim.identity))
+      .sort((a, b) => Math.abs(disposition(npc, b[0])) - Math.abs(disposition(npc, a[0]))).slice(0, 12);
+    // The speaker supplies names the listener has not heard. A list of twelve
+    // identical "unfamiliar person" buttons is neither a usable question nor a
+    // reason to consult canonical names. Transmit the speaker's actual claims,
+    // including aliases and uncertainty, through an ordinary told event.
+    const newlyNamed = known.flatMap(([id]) => {
+      const item = npc.knowledge[`identity:${id}`];
+      return !player.knowledge[`identity:${id}`]?.claim.identity && item?.claim.identity ? [item] : [];
+    });
+    if (newlyNamed.length) {
+      const ev = w.emit('told', { actor: npc.id, target: player.id, pos: w.primaryBody(npc.id)?.pos,
+        visibility: 5, loudness: 4, significance: 0.2,
+        causes: [...new Set(newlyNamed.flatMap(k => k.source.viaEvent ? [k.source.viaEvent] : []))],
+        data: { keys: newlyNamed.map(k => k.key), identities: newlyNamed.map(k => ({ ...k.claim.identity })) },
+        summary: `${npc.name} named some people they know` });
+      for (const k of newlyNamed) learn(w, player, { key: k.key, kind: k.kind, claim: structuredClone(k.claim),
+        confidence: k.confidence * 0.8, source: { type: 'told', from: npc.id, viaEvent: ev.id },
+        hops: k.hops + 1, cause: ev.id }, true);
+    }
     const opts: DialogueOption[] = known.map(([id]) => ({ label: knownName(player, id), next: () => ({ speaker: npc, lines: [this.about(npc, id)], options: this.options(npc, player) }) }));
     opts.push({ label: 'Never mind', next: () => ({ speaker: npc, lines: ['Ask away.'], options: this.options(npc, player) }) });
-    return { speaker: npc, lines: ['Who do you want to know about?'], options: opts };
+    const lines = newlyNamed.length ? [`I know ${newlyNamed.map(k => k.claim.identity.name).join(', ')}. Who do you want to know about?`]
+      : [known.length ? 'Who do you want to know about?' : 'We have not spoken of anyone I can identify.'];
+    return { speaker: npc, lines, options: opts };
   }
   private about(npc: Person, id: string): string {
     const w = this.world; const o = w.person(id)!; const r = getRel(npc, id); const facts = Object.values(npc.knowledge).filter(k => k.kind === 'event' && (k.claim.actor === id || k.claim.target === id)).sort((a, b) => (b.claim.significance ?? 0) - (a.claim.significance ?? 0)).slice(0, 2);

@@ -23,5 +23,6 @@ export default defineConfig({
   // The agency frontier keeps controlled Persons perceiving too. Profiling and the full
   // checkpoint showed competing long simulations exceeding existing budgets; one worker
   // avoids that contention without widening timeouts or weakening assertions.
-  test: { maxWorkers: 1, exclude: [...configDefaults.exclude, 'tests/browser/**', 'tests/causal-society-longrun.test.ts', 'tests/adaptive-society-longrun.test.ts', 'tests/epoch-continuity-longrun.test.ts', 'tests/settlement-worldlab-longrun.test.ts', 'tests/capability-continuity-longrun.test.ts'] },
+  // Local scratch reproductions are evidence, not checked-in regression suites.
+  test: { maxWorkers: 1, exclude: [...configDefaults.exclude, '.debug/**', 'tests/browser/**', 'tests/causal-society-longrun.test.ts', 'tests/adaptive-society-longrun.test.ts', 'tests/epoch-continuity-longrun.test.ts', 'tests/settlement-worldlab-longrun.test.ts', 'tests/capability-continuity-longrun.test.ts'] },
 });

@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { addPerson, createTestWorld, v } from './helpers/world';
+import { addPerson, createTestWorld, step, v } from './helpers/world';
+import { serialize } from '../src/sim/persist/save';
 import { makePlace } from '../src/sim/world/factory';
 import { DAILY_LOCAL_RANGE, localPlaces, near, placeForPerson } from '../src/sim/world/locality';
-import { INVARIANTS } from '../src/headless/worldlab/invariants';
+import { INVARIANTS, localGroundConnected } from '../src/headless/worldlab/invariants';
+import type { World } from '../src/sim/core/world';
 import type { Finding } from '../src/headless/worldlab/types';
 import type { Place } from '../src/sim/core/types';
 
@@ -18,6 +20,23 @@ import type { Place } from '../src/sim/core/types';
 const localityCheck = INVARIANTS.find(i => i.id === 'locality-of-commitments')!;
 const findings = (world: Parameters<typeof localityCheck.check>[0]): Finding[] =>
   localityCheck.check(world, null, null as never);
+
+describe('regional locality observation', () => {
+  const regional = (walkable: (x: number, z: number) => boolean) => ({
+    grid: { W: 24576, D: 24576 }, nav: { isWalkable: walkable, floorY: () => 0 },
+  } as unknown as World);
+  it('finds a local path without scanning the regional heightfield', () => {
+    let calls = 0;
+    const w = regional(() => { ++calls; return true; });
+    expect(localGroundConnected(w, v(12000, 0, 12000), v(12040, 0, 12000))).toBe(true);
+    expect(calls).toBeLessThan(100_000);
+  });
+  it('distinguishes proven disconnection from a bounded inconclusive search', () => {
+    const islands = regional((x, z) => (x === 10 || x === 20) && z === 10);
+    expect(localGroundConnected(islands, v(10, 0, 10), v(20, 0, 10), 0)).toBe(false);
+    expect(() => localGroundConnected(regional(() => true), v(10, 0, 10), v(20000, 0, 20000), 0, 100)).toThrow(/inconclusive/);
+  });
+});
 
 describe('resolving a place from somewhere', () => {
   it('answers with a place in the asker\'s own locality, not the first one registered', () => {
@@ -94,6 +113,38 @@ describe('the locality invariant is not vacuous', () => {
     } as never);
     const found = findings(tw.world);
     expect(found.some(f => f.id === 'WL-LOCALITY-DISTANT' && f.message.includes('the haul they took on'))).toBe(true);
+  });
+
+  it('checks a water errand against its fixed choice location, not a moving body or distant home', () => {
+    const { tw, here, yonder } = twoSettlements();
+    const p = addPerson(tw, 'Thirsty traveller', 'villager', v(490, 1, 502), { homeId: here.id });
+    p.mind.goal = { type: 'drink_water', utility: .8, reasons: [], targetPos: yonder.inside,
+      origin: v(490, 1, 502), createdAt: 0, key: 'drink:test' };
+    p.mind.plan = [{ type: 'drink', status: 'active', pos: yonder.inside }];
+    expect(findings(tw.world)).toEqual([]);
+    // Moving to the destination cannot excuse a trip originally selected too far away.
+    p.mind.goal.origin = { ...here.inside };
+    tw.world.primaryBody(p.id)!.pos = { ...yonder.inside };
+    expect(findings(tw.world).filter(f => f.id === 'WL-LOCALITY-DISTANT')).toHaveLength(2);
+    delete p.mind.goal.origin; // older goals with no provenance retain conservative home check
+    expect(findings(tw.world).filter(f => f.id === 'WL-LOCALITY-DISTANT')).toHaveLength(2);
+  });
+
+  it('records and persists the actual water-choice origin without refreshing it during travel', () => {
+    const { tw, here } = twoSettlements();
+    makePlace(tw.world, 'well', 'nearby water', { x0: 500, z0: 500, x1: 504, z1: 504, y0: 1, y1: 4 }, { inside: v(502, 1, 502) });
+    const start = v(490, 1, 502);
+    const p = addPerson(tw, 'Thirsty traveller', 'villager', { ...start }, { homeId: here.id });
+    p.physiology.hydration = .1; p.needs.thirst = .9;
+    step(tw, .3); // allow the fixture's .25 physical-second cognition interval to elapse
+    expect(p.mind.goal?.type).toBe('drink_water');
+    expect(p.mind.goal?.origin).toEqual(start);
+    step(tw, .2);
+    expect(p.mind.goal?.origin).toEqual(start);
+    expect(tw.world.primaryBody(p.id)!.pos).not.toEqual(start);
+    const saved = JSON.parse(serialize(tw.world));
+    expect(saved.persons.find((person: { id: string }) => person.id === p.id).mind.goal.origin).toEqual(start);
+    expect(findings(tw.world)).toEqual([]);
   });
 
   it('does not mistake a market stall for an unreachable place', () => {

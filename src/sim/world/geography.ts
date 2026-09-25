@@ -4,8 +4,10 @@ import type { ResourceNode } from '../core/types';
 import { settlementSeed, SETTLEMENT_SIZE, type SettlementSite } from './settlementSpec';
 
 /** Versioned generator inputs. A save must never reinterpret an older baseline. Metres. */
-export interface PlayableWorldSpec { version: 1; size: number; regionSize: number; settlements: number; timeScale: number; }
-export const PLAYABLE_WORLD: PlayableWorldSpec = { version: 1, size: 24576, regionSize: 256, settlements: 7, timeScale: 6 };
+export interface PlayableWorldSpec { version: 1; size: number; regionSize: number; settlements: number; timeScale: number; householdLocalityVersion?: 1; }
+// Saved specifications without the household revision retain their exact original layout.
+export const LEGACY_PLAYABLE_WORLD: PlayableWorldSpec = { version: 1, size: 24576, regionSize: 256, settlements: 7, timeScale: 6 };
+export const PLAYABLE_WORLD: PlayableWorldSpec = { ...LEGACY_PLAYABLE_WORLD, householdLocalityVersion: 1 };
 export interface Surface { height: number; water: number | null; moisture: number; fertility: number; stone: number; forest: number; block: number; }
 export interface WorldRoad { id: string; from: string; to: string; points: { x: number; z: number }[]; length: number; }
 export interface GeographySite extends SettlementSite { suitability: number; conditions: Surface; }
@@ -23,6 +25,7 @@ export class WorldGeography {
   private roadCells = new Map<string, { a: { x: number; z: number }; b: { x: number; z: number } }[]>();
   private nodes = new Map<string, ResourceNode[]>();
   constructor(readonly seed: number, readonly spec: PlayableWorldSpec = { ...PLAYABLE_WORLD }) {
+    if (spec.householdLocalityVersion !== undefined && spec.householdLocalityVersion !== 1) throw new Error('Unsupported household locality version');
     if (spec.version !== 1 || !Number.isInteger(spec.size) || spec.size < 4096 || spec.size > 49152 || spec.regionSize !== 256 || !Number.isInteger(spec.settlements) || spec.settlements < 2 || spec.settlements > 15 || !Number.isFinite(spec.timeScale) || spec.timeScale <= 0) throw new Error('Unsupported playable geography specification');
     this.spec = { ...spec };
     const candidates: GeographySite[] = [];

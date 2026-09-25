@@ -416,6 +416,8 @@ export interface Goal {
   targetEntity?: EntityId;
   targetPlace?: EntityId;
   targetPos?: Vec3;
+  /** Where a position-local errand was chosen. Fixed for that attempt, never a moving anchor. */
+  origin?: Vec3;
   data?: Record<string, any>;
   reasons: string[];
   createdAt: Tick;

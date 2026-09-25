@@ -511,6 +511,13 @@ export class BridgeSession {
     if (!optionId.startsWith(prefix)) return 'invalid_dialogue_option';
     const index = Number(optionId.slice(prefix.length));
     if (!Number.isSafeInteger(index) || index < 0 || index >= ch.dialogueState.options.length) return 'invalid_dialogue_option';
+    // A menu remembers an offer, not permission to speak across distance or to a
+    // sleeping person. Reuse the same current-body boundary as opening dialogue.
+    const player = this.personOf(ch);
+    if (!player || !this.talkTargets(ch, player).some(target => target.bodyId === ch.dialogueSpeakerBodyId)) {
+      this.closeDialogue(ch);
+      return 'interaction_unavailable';
+    }
     const next = ch.dialogueState.options[index].next();
     if (next) ch.dialogueState = next;
     else { ch.dialogueState = null; ch.dialogueSpeakerBodyId = null; }
@@ -528,7 +535,9 @@ export class BridgeSession {
       name: knownName(this.world.person(ch.personId)!, state.speaker.id),
       lines: state.lines,
       // Option ids resolve only against the current DialogueSystem state of this controller.
-      options: state.options.slice(0, 9).map((option, index) => ({ id: `dialogue:${ch.dialogueRevision}:${index}`, label: option.label })),
+      // Nine keyboard shortcuts do not limit the canonical conversation. Clients
+      // can scroll/focus the remaining choices; every id keeps revision fencing.
+      options: state.options.map((option, index) => ({ id: `dialogue:${ch.dialogueRevision}:${index}`, label: option.label })),
     };
   }
 }

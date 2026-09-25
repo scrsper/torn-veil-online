@@ -96,6 +96,8 @@
   recovery/recency semantics. Visual speed is actual velocity; sprint tuning is not sent.
 - Unreal represents possessed and NPC bodies through the same ATVCharacter, keyed by
   bodyId. Animation queues are presentation history; local movement/combat authority stays off.
+- Regional building shells carry camera-only query slabs around walls, floors and ceilings.
+  Door openings stay clear. These never block pawns, simulate physics or affect navigation.
 - Single-node combat playback uses owned full-pose clips. The additive vendor hit is baked
   onto idle; the short death lead-in gains a keyframed prone settle without local physics.
 - The isolated 6 × 8 m dwelling permits at most 20 cm presentation excursion per side.
@@ -177,10 +179,52 @@
 - Runtime geometry is an allowlist distinct from avatar knowledge and explicit developer truth. Visibility is body-specific, not inferred for all bodies from seeing their owner once.
 - Quaternius/Poly Haven are replaceable prototype presentation assets. PCG grass/bush output is collision-free decoration and cannot create resources, stock, ownership or routes.
 - Playable clock rate is explicitly 6×. Save schema 24 rejects older baselines rather than silently reinterpreting them. No offline elapsed-time simulation is claimed.
+- A water errand records its fixed choice origin in Goal; its locality observer measures from
+  that origin, matching the existing current-position chooser. Work/haul locality remains home
+  anchored. Older goals without an origin retain the conservative home check; no range is widened.
+- Extraction goal identity includes its finite resource node. Finding a new available tree or
+  quarry cannot reuse an exhausted source's completed plan. Source depletion/history is retained.
+- Ordinary resource work also applies the existing home-locality bound when choosing the next
+  source; a sequence of individually short trips must not drift beyond that bound.
+- Replacement work also applies the daily locality bound before scoring a cached regional vacancy.
+  Strong shortage/skill/relationship motives cannot turn a remote post into an ordinary commute.
+  Home is the anchor; without a home, existing work then current position provide the fallback.
+  Distance still influences willingness among eligible local posts; no successor is assigned.
+- An unsettled person can lack a home and known local civic places, including after disconnect.
+  Wander/prayer planning falls back to the current body position without inventing a place,
+  acquiring knowledge, or relocating the person. Existing known-place behavior is preserved.
+- New playable worlds use generator `playable-2`, with household sites inside the existing
+  locality of their settlement's work and civic places. The geography persists this layout revision.
+  Existing `playable-1` worlds retain their exact seeded layout, people, positions and history;
+  fingerprint validation selects the stored generator version and rejects unknown versions.
+  This is versioned generation, not relocation or a widened travel limit.
 - Regional generation retains the existing primitive-education model. It does not seed a guaranteed successful mechanism merely to make a showcase pass; this remains an explicit acceptance gap.
 
+## Living Alpha service operation
+
+- Operator state lives outside AppData by default (`%USERPROFILE%\TornVeilAlpha` or
+  `TORN_VEIL_ALPHA_HOME`). Packaged (MSIX) agent apps silently redirect AppData writes into a
+  private store that scheduled tasks and ordinary user launches cannot see.
+- `/health` is liveness only (the process answers) and reports a lifecycle state. `/ready` is
+  HTTP 200 only in `ready` (world loaded, admissions open); `starting`, `maintenance`,
+  `stopping` and `failed` answer 503. An operator start succeeds only on 200 `ready` and fails
+  fast on `failed` or a halted supervisor.
+- A capture (live → staging) takes the destination's exclusive writer fence before any
+  destructive step, then refuses if a supervisor or server still serves the destination.
+  Live, the source itself, overlapping roots/state, state configured outside its own root and
+  every other environment's state are refused before any file is touched. The replaced
+  destination world is moved aside and restored if installation fails.
 ## Native startup and regional transport
 
+- Exterior dressing reserves canonical arrival/activity points and door/path space using the
+  installed mesh's footprint at its actual uniform scale. A decorative overlap is repaired in
+  placement; it never relocates a saved person or introduces independent pawn collision.
+- Dialogue choice IDs fence menu revisions, but do not authorize a stale conversation. Each
+  submitted choice revalidates the selected speaker body's current talk affordance, visibility
+  and reach. Lost access closes the menu before any dialogue effect runs.
+- A contact menu may introduce names only from the speaker's own identity claims. The spoken
+  list creates told evidence with causal sources, attenuated confidence and incremented hops;
+  aliases remain claims, and learning a name does not manufacture visual recognition.
 - Canonical liveness cannot depend on completing presentation. Hello/metadata/snapshot precede progressive center-first geometry. Regional protocol 2 bounds wire messages and assembly separately, with one acknowledged presentation chunk in flight per connection.
 - Presentation application and transport/snapshot health are distinct. Canonical motion remains in TypeScript; Unreal input expires/pauses on stale canonical state, never falls back to local physics.
 - Launch performs an incremental native build. Current source in a checkout does not prove its untracked DLL is current. A stale executable or incompatible bridge must fail visibly rather than silently entering an empty world.

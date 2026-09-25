@@ -226,6 +226,18 @@ The running game exposes canonical simulation objects for deterministic advancem
 
 # Unreal verification
 
+For this Windows project, use shell/native automation first: `unreal/scripts/Run-EditorPython.ps1`
+runs asset/metadata operations in a bounded commandlet with an explicit log and exit status.
+Use `-Render` for operations needing commandlet rendering; it does not create PIE or a viewport.
+Inspect capture scripts for PIE prerequisites. Visual verification requires a graphics-enabled
+editor/game session, ready streaming/assets/poses, fresh engine-native captures, and image review;
+`-nullrhi` cannot prove visuals. Test offscreen support with one bounded capture before relying on
+it. Keep capture measurements beside the images. Packaged games use native runtime automation,
+not Editor Python. Automated intentions/rendering are separate evidence from physical-input and
+UI acceptance. Use interactive desktop testing only when required and authorized. Never replace
+an interrupted desktop action with OS input injection. Use isolated profiles/state/ports, one build
+or asset writer at a time, and bounded jobs that only clean up their own processes.
+
 When a task changes the Unreal projection/presentation layer, verify the projection using the available Unreal-specific tooling and acceptance workflow for that milestone.
 
 Do not substitute screenshots alone for canonical simulation verification.

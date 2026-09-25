@@ -5,6 +5,7 @@
 import { build } from 'esbuild';
 import { execSync } from 'node:child_process';
 import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 const arg = n => { const i = process.argv.indexOf(`--${n}`); return i > 0 ? process.argv[i + 1] : undefined; };
@@ -14,7 +15,8 @@ const dirty = sh('git status --porcelain -- src scripts package.json package-loc
 if (dirty && !process.argv.includes('--allow-dirty')) { console.error('Refusing to build a release from uncommitted changes (use --allow-dirty for a dev build).'); process.exit(1); }
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
 const version = `${arg('version') ?? pkg.version}+${revision}${dirty ? '.dirty' : ''}`;
-const home = process.env.TORN_VEIL_ALPHA_HOME ?? join(process.env.LOCALAPPDATA ?? '.', 'TornVeilAlpha');
+// Not %LOCALAPPDATA%: packaged (MSIX) agent apps silently redirect AppData writes to a private store.
+const home = process.env.TORN_VEIL_ALPHA_HOME ?? join(homedir(), 'TornVeilAlpha');
 const out = resolve(arg('out') ?? join(home, 'releases', version));
 if (existsSync(out) && readdirSync(out).length) { console.error(`${out} already exists; releases are immutable`); process.exit(1); }
 mkdirSync(out, { recursive: true });
