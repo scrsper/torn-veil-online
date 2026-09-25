@@ -263,6 +263,19 @@ def _collar(fit, build, collar_z, surface_at):
     # it lets each half be right, and the 2 cm of kosode between them reads as the collar
     # disappearing under itself, which is what it does on a real garment.
     for lift, width, region, inset in ((0.026, 0.021, ACCENT, 0.0), (0.015, 0.015, UNDER, 0.013)):
+        # No separate band round the back of the neck. Laid on a neckline that closes onto the
+        # neck, it rendered as a flat plank across the nape -- the view a third-person camera
+        # shows most. The closure ring (UNDER) already reads as the collar at the back.
+        if BACK_NECK_BAND:
+            _back_neck_band(build, collar_z, surface_at, lift, width, region, inset)
+        _front_bands(fit, build, collar_z, start_z, bottom_z, surface_at, lift, width, region, inset)
+
+
+BACK_NECK_BAND = False
+
+
+def _back_neck_band(build, collar_z, surface_at, lift, width, region, inset):
+    if True:
         # The band round the back of the neck: width measured up the neck, so it lies flat.
         neck_path, neck_normals = [], []
         steps = 21
@@ -277,6 +290,9 @@ def _collar(fit, build, collar_z, surface_at):
                across_of=lambda i: Vector((0.0, 0.0, 1.0)),
                normal_of=lambda i: neck_normals[i], region=region, v_scale=2.0)
 
+
+def _front_bands(fit, build, collar_z, start_z, bottom_z, surface_at, lift, width, region, inset):
+    if True:
         # The front V: from the front of each shoulder, down and across the chest.
         for direction in (1.0, -1.0):
             path, normals, angles = [], [], []
