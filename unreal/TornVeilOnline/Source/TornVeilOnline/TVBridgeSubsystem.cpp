@@ -48,7 +48,7 @@ void UTVBridgeSubsystem::UpdateSignIn() {
         SignIn=CreateWidget<UTVSignInWidget>(PC); SignIn->Prepare(ClientConfig,SignInMessage,bSignInNewOnly);
         SignIn->OnSubmitted.BindUObject(this,&UTVBridgeSubsystem::SubmitSignIn);
         SignIn->AddToViewport(100);
-        FInputModeUIOnly Mode; Mode.SetWidgetToFocus(SignIn->TakeWidget()); PC->SetInputMode(Mode); PC->SetShowMouseCursor(true);
+        FInputModeUIOnly Mode; Mode.SetWidgetToFocus(SignIn->TakeWidget()); PC->SetInputMode(Mode); PC->SetShowMouseCursor(true);SignIn->FocusFirstControl();
     } else if(!bSignInRequired&&SignIn) {
         SignIn->RemoveFromParent(); SignIn=nullptr;
         PC->SetInputMode(FInputModeGameOnly()); PC->SetShowMouseCursor(false);
@@ -168,16 +168,17 @@ void UTVBridgeSubsystem::SendIntent(const FString& Type, const FString& TargetBo
     if(!Target.IsEmpty())M->SetStringField(TEXT("targetBodyId"),Target);Send(M);
 }
 static void TVSample(TArray<double>& Samples,double Value);
-void UTVBridgeSubsystem::SendCombat(const FString& Kind,int32 Side,const FString& Trajectory,double CallbackAt,const FVector& Direction) {
+void UTVBridgeSubsystem::SetGuard(bool Held){auto M=MakeShared<FJsonObject>();M->SetStringField(TEXT("type"),TEXT("guard"));M->SetBoolField(TEXT("held"),Held);SendCommand(M);}
+void UTVBridgeSubsystem::SendCombat(const FString& Kind,int32 Side,const FString& Trajectory,double CallbackAt,const FVector& Direction,bool bHeavy) {
     const double Begin=CallbackAt>0?CallbackAt:FPlatformTime::Seconds();
     if(!HasPrediction()||HasModalScreen())return;
     CombatInputCallbackAt=Begin;
     BufferedCombat.Reset(); // newest press replaces the one pending follow-up
     auto M=MakeShared<FJsonObject>();M->SetStringField(TEXT("type"),Kind==TEXT("attack")?TEXT("attack"):TEXT("defend"));
-    if(Kind==TEXT("attack")){M->SetStringField(TEXT("trajectory"),Trajectory);if(!SelectedBody.IsEmpty())M->SetStringField(TEXT("targetBodyId"),SelectedBody);}
+    if(Kind==TEXT("attack")){M->SetStringField(TEXT("trajectory"),Trajectory);M->SetStringField(TEXT("weight"),bHeavy?TEXT("heavy"):TEXT("light"));if(!SelectedBody.IsEmpty())M->SetStringField(TEXT("targetBodyId"),SelectedBody);}
     else {M->SetStringField(TEXT("kind"),Kind);M->SetNumberField(TEXT("side"),Side);}
     if(!Direction.IsNearlyZero()) {auto D=MakeShared<FJsonObject>();D->SetNumberField(TEXT("x"),Direction.X);D->SetNumberField(TEXT("z"),Direction.Z);M->SetObjectField(TEXT("direction"),D);}
-    FBufferedCombat Input;Input.Kind=Kind;Input.Side=Side;Input.Trajectory=Trajectory;Input.Direction=Direction;
+    FBufferedCombat Input;Input.Kind=Kind;Input.Side=Side;Input.Trajectory=Trajectory;Input.Direction=Direction;Input.bHeavy=bHeavy;
     Input.InputAt=Begin;Input.ExpiresAt=Begin+TVInteractionSpec::combatBufferSeconds;
     Input.CommandId=FString::Printf(TEXT("%s:%d"),*InteractionController,Sequence+1);
     Input.Sequence=SendCommand(M);PendingFeedbackSequence=Input.Sequence;if(Input.Sequence<0)return;
@@ -207,6 +208,10 @@ void UTVBridgeSubsystem::StartPredictedCombat(const FBufferedCombat& Input) {
     if(Input.Kind==TEXT("attack")){
         PredictedCombat.MoveId=Input.Trajectory==TEXT("low")?(bArena&&Chain&&PreviousMove==TEXT("front_kick")?TEXT("round_kick"):TEXT("front_kick")):(Chain&&(PreviousMove==TEXT("jab")||PreviousMove.IsEmpty()&&Previous==TEXT("direct"))?TEXT("cross"):TEXT("jab"));
         const auto& M=TVCombatRepertoire::Move(PredictedCombat.MoveId);PredictedCombat.Variant=M.Variant;PredictedCombat.ActiveAt=M.preparation;PredictedCombat.RecoveryAt=M.preparation+M.active;PredictedCombat.CompleteAt=PredictedCombat.RecoveryAt+M.recovery;
+    }
+    if(Input.bHeavy&&Input.Kind==TEXT("attack")){
+        const double Prep=PredictedCombat.ActiveAt*TVInteractionSpec::heavyPreparationMultiplier,Active=PredictedCombat.RecoveryAt-PredictedCombat.ActiveAt,Recovery=(PredictedCombat.CompleteAt-PredictedCombat.RecoveryAt)*TVInteractionSpec::heavyRecoveryMultiplier;
+        PredictedCombat.ActiveAt=Prep;PredictedCombat.RecoveryAt=Prep+Active;PredictedCombat.CompleteAt=Prep+Active+Recovery;PredictedCombat.Definition+=TEXT(":heavy");
     }
     if(Input.Kind!=TEXT("attack")&&Input.Kind!=TEXT("duck")&&PriorAttack&&Chain)PredictedCombat.PriorStrike=PreviousMove;
     if(!Input.Direction.IsNearlyZero())PredictedCombat.Direction=Input.Direction;
@@ -555,11 +560,15 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
         if((*Journal)->TryGetObjectField(TEXT("advancement"),Advancement)&&Advancement&&Advancement->IsValid()){
             const TSharedPtr<FJsonObject>* Path=nullptr; FString PathSkill;
             if((*Advancement)->TryGetObjectField(TEXT("path"),Path)&&Path&&Path->IsValid()) PathSkill=(*Path)->GetStringField(TEXT("skill"));
-            if((*Advancement)->GetBoolField(TEXT("eligible"))) Progression+=FString::Printf(TEXT("   |   Iron breakthrough possible through %s (B)"),*PathSkill);
+            if((*Advancement)->GetBoolField(TEXT("eligible"))) Progression+=FString::Printf(TEXT("   |   Iron breakthrough possible through %s — open Journal"),*PathSkill);
             else { const TArray<TSharedPtr<FJsonValue>>* Remaining=nullptr; TArray<FString> R;
-                if((*Advancement)->TryGetArrayField(TEXT("remaining"),Remaining)) for(int32 i=0;i<Remaining->Num()&&i<2;++i) R.Add((*Remaining)[i]->AsString());
+                if((*Advancement)->TryGetArrayField(TEXT("remaining"),Remaining)) for(int32 i=0;i<Remaining->Num();++i) R.Add((*Remaining)[i]->AsString());
                 if(!R.IsEmpty()) Progression+=FString::Printf(TEXT("   |   Toward Iron%s: %s"),PathSkill.IsEmpty()?TEXT(""):*(TEXT(" (")+PathSkill+TEXT(")")),*FString::Join(R,TEXT("; "))); }
         }
+        const TArray<TSharedPtr<FJsonValue>>* Practice=nullptr;double Required=0;
+        if((*Journal)->TryGetNumberField(TEXT("practiceHoursRequired"),Required)&&(*Journal)->TryGetArrayField(TEXT("practice"),Practice))for(const auto& V:*Practice){const auto J=V->AsObject();if(J)Parts.Add(FString::Printf(TEXT("%s: %.2f / %.0f meaningful practice hours, %s, evidence across %.0f days"),*J->GetStringField(TEXT("skill")),J->GetNumberField(TEXT("hours")),Required,*J->GetStringField(TEXT("level")),J->GetNumberField(TEXT("days"))));}
+        const TArray<TSharedPtr<FJsonValue>>* Techniques=nullptr;
+        if((*Journal)->TryGetArrayField(TEXT("techniqueHistory"),Techniques))for(const auto& V:*Techniques){const auto J=V->AsObject();if(!J)continue;FString Teacher;J->TryGetStringField(TEXT("teacher"),Teacher);Parts.Add(FString::Printf(TEXT("Technique: %s — %s%s"),*J->GetStringField(TEXT("name")),*J->GetStringField(TEXT("method")),Teacher.IsEmpty()?TEXT(""):*(TEXT(" by ")+Teacher)));}
         JournalSummary=FString::Join(Parts,TEXT("   |   "))+(Progression.IsEmpty()?FString():TEXT("\n")+Progression);
     }
     const TSharedPtr<FJsonObject>* Mobility;
@@ -620,7 +629,7 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
             if(!bCanonicalReady) UE_LOG(LogTemp,Display,TEXT("TV_BRIDGE received snapshot; bound player=%s body=%s pawn=%s pos=%s"),*Entity,*Id,*C->GetName(),*C->GetActorLocation().ToString());
             bCanonicalReady=true;
             const auto Needs = D->GetObjectField(TEXT("needs"));
-            PlayerVitals = FString::Printf(TEXT("%s%s%sHunger %.0f%%   Thirst %.0f%%   %.0f silver"), *(DangerCue.IsEmpty()?FString():DangerCue+TEXT("\n")), *(MaintenanceMessage.IsEmpty()?FString():MaintenanceMessage+TEXT("\n")), *(JournalSummary.IsEmpty()?FString():JournalSummary+TEXT("\n")), Needs->GetNumberField(TEXT("hunger")) * 100, Needs->GetNumberField(TEXT("thirst")) * 100, D->GetNumberField(TEXT("wealth")));
+            PlayerVitals = FString::Printf(TEXT("%s%sHunger %.0f%%   Thirst %.0f%%   %.0f silver"), *(DangerCue.IsEmpty()?FString():DangerCue+TEXT("\n")), *(MaintenanceMessage.IsEmpty()?FString():MaintenanceMessage+TEXT("\n")), Needs->GetNumberField(TEXT("hunger")) * 100, Needs->GetNumberField(TEXT("thirst")) * 100, D->GetNumberField(TEXT("wealth")));
             TArray<FString> Items;
             for (const auto& Item : D->GetArrayField(TEXT("inventory"))) {
                 const auto I = Item->AsObject(); const double Qty = I->GetNumberField(TEXT("quantity"));
@@ -691,14 +700,28 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
     Status = FString::Printf(TEXT("LIVE  |  %d visible people  |  %d wildlife  |  t %.1fs%s"), FMath::Max(0, Bodies.Num() - 1),WildlifeBodies.Num(), ServerTick, bControls ? TEXT("") : TEXT("  |  observer connection"));
 }
 ATVCharacter* UTVBridgeSubsystem::Selected() const { const auto* C = Bodies.Find(SelectedBody); return C ? C->Get() : nullptr; }
+bool UTVBridgeSubsystem::SelectedTargetPosition(FVector& Position) const {
+    AActor* Target=Bodies.FindRef(SelectedBody).Get();
+    if(auto* Human=Cast<ATVCharacter>(Target);Human&&Human->bIncapacitated)return false;
+    if(!Target){auto* Animal=WildlifeBodies.FindRef(SelectedBody).Get();if(Animal&&Animal->bAlive)Target=Animal;}
+    const auto* Player=UGameplayStatics::GetPlayerCharacter(GetWorld(),0);
+    if(!IsValid(Target)||!Player||FVector::DistSquared(Player->GetActorLocation(),Target->GetActorLocation())>FMath::Square(1800.f))return false;
+    Position=Target->GetActorLocation();return true;
+}
 void UTVBridgeSubsystem::CycleTarget() {
-    auto* P = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0); if (!P) return;
-    TArray<ATVCharacter*> Candidates;
-    for (auto& Pair : Bodies) if (IsValid(Pair.Value) && !Pair.Value->bCanonicalPlayer && FVector::DistSquared(P->GetActorLocation(), Pair.Value->GetActorLocation()) < FMath::Square(1800.f)) Candidates.Add(Pair.Value);
-    Candidates.Sort([P](const ATVCharacter& A, const ATVCharacter& B) { return FVector::DistSquared(P->GetActorLocation(), A.GetActorLocation()) < FVector::DistSquared(P->GetActorLocation(), B.GetActorLocation()); });
-    if (Candidates.IsEmpty()) { SelectedBody.Empty(); return; }
-    const int32 Index = Candidates.IndexOfByPredicate([this](const ATVCharacter* C) { return C->BodyId == SelectedBody; });
-    SelectedBody = Candidates[(Index + 1) % Candidates.Num()]->BodyId;
+    auto* P=UGameplayStatics::GetPlayerCharacter(GetWorld(),0);if(!P)return;
+    TArray<TPair<FString,AActor*>> Candidates;
+    const auto Add=[&](const FString& Id,AActor* Actor){
+        if(!IsValid(Actor)||FVector::DistSquared(P->GetActorLocation(),Actor->GetActorLocation())>FMath::Square(1800.f))return;
+        FHitResult Hit;FCollisionQueryParams Params;Params.AddIgnoredActor(P);Params.AddIgnoredActor(Actor);
+        if(!GetWorld()->LineTraceSingleByChannel(Hit,P->GetActorLocation()+FVector(0,0,50),Actor->GetActorLocation()+FVector(0,0,40),ECC_Visibility,Params))Candidates.Emplace(Id,Actor);
+    };
+    for(const auto& Pair:Bodies)if(IsValid(Pair.Value)&&!Pair.Value->bCanonicalPlayer&&!Pair.Value->bIncapacitated)Add(Pair.Key,Pair.Value);
+    for(const auto& Pair:WildlifeBodies)if(IsValid(Pair.Value)&&Pair.Value->bAlive)Add(Pair.Key,Pair.Value);
+    Candidates.Sort([P](const auto& A,const auto& B){const float DA=FVector::DistSquared(P->GetActorLocation(),A.Value->GetActorLocation()),DB=FVector::DistSquared(P->GetActorLocation(),B.Value->GetActorLocation());return DA==DB?A.Key<B.Key:DA<DB;});
+    if(Candidates.IsEmpty()){SelectedBody.Empty();return;}
+    const int32 Index=Candidates.IndexOfByPredicate([this](const auto& C){return C.Key==SelectedBody;});
+    SelectedBody=Candidates[(Index+1)%Candidates.Num()].Key;
 }
 
 void UTVBridgeSubsystem::ToggleMechanisms() { bMechanismsOpen=!bMechanismsOpen; if(bMechanismsOpen) {CloseDialogue();bInventoryOpen=false;bPauseOpen=false;} }

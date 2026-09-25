@@ -21,6 +21,12 @@ enum class ETVUICommand : uint8
     Back,
     Pause,
     SaveWorld,
+    OpenPanel,
+    PersonAction,
+    Setting,
+    Rebind,
+    SignOut,
+    Quit,
 };
 
 USTRUCT(BlueprintType)
@@ -53,6 +59,7 @@ struct TORNVEILONLINE_API FTVUISnapshot
     UPROPERTY(BlueprintReadOnly) FTVUIFocusBounds FocusedBounds;
     UPROPERTY(BlueprintReadOnly) FString Vitals;
     UPROPERTY(BlueprintReadOnly) FString Restriction;
+    UPROPERTY(BlueprintReadOnly) FString Journal;
     UPROPERTY(BlueprintReadOnly) TArray<FTVUIItemRow> Inventory;
     UPROPERTY(BlueprintReadOnly) FString ContainerId;
     UPROPERTY(BlueprintReadOnly) FString ContainerName;
@@ -95,10 +102,12 @@ class TORNVEILONLINE_API UTVCommonActivatableWidget : public UCommonActivatableW
 public:
     UTVCommonActivatableWidget(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
     virtual bool NativeOnHandleBackAction() override;
+    virtual FReply NativeOnAnalogValueChanged(const FGeometry&,const FAnalogInputEvent&) override;
     virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
     virtual UWidget* NativeGetDesiredFocusTarget() const override;
     virtual TOptional<FUIInputConfig> GetDesiredInputConfig() const override;
     void SetCommandDelegate(FTVUICommandRequested* InDelegate);
+    virtual void NativeTick(const FGeometry&,float) override;
     void SetBackAction(UInputAction* InAction) { BackAction = InAction; }
 protected:
     FTVUICommandRequested* CommandDelegate = nullptr;
@@ -199,6 +208,26 @@ protected:
     UFUNCTION() void Resume();
 };
 
+UCLASS()
+class TORNVEILONLINE_API UTVActionPanelWidget : public UTVCommonActivatableWidget {
+    GENERATED_BODY()
+public:
+    void Configure(const FString& InKind,const FString& InText);
+    virtual FReply NativeOnPreviewKeyDown(const FGeometry&,const FKeyEvent&) override;
+    virtual FReply NativeOnPreviewMouseButtonDown(const FGeometry&,const FPointerEvent&) override;
+    void BeginRebind(const FString& Action) { AwaitingBinding=Action; }
+    void UpdateJournal(const FString& Value);
+protected:
+    virtual TSharedRef<SWidget> RebuildWidget() override;
+    virtual UWidget* NativeGetDesiredFocusTarget() const override;
+    virtual void NativeTick(const FGeometry&,float) override;
+    void BuildPanel();
+    FString Kind,Text,AwaitingBinding;
+    UPROPERTY() class UVerticalBox* Body=nullptr;
+    UPROPERTY() class UTextBlock* Description=nullptr;
+    UPROPERTY() UTVUICommandButton* FirstButton=nullptr;
+};
+
 UCLASS(Blueprintable)
 class TORNVEILONLINE_API UTVPlayerShellWidget : public UCommonActivatableWidget
 {
@@ -213,6 +242,8 @@ public:
     void OpenDialogue();
     void OpenContainer();
     void OpenMenu();
+    void OpenActionPanel(const FString& Kind);
+    void BeginRebind(const FString& Action);
     void CloseTop();
     bool HasModalScreen() const;
     void SetCommandDelegate(FTVUICommandRequested* InDelegate);

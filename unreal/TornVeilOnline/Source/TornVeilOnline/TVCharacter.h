@@ -25,6 +25,12 @@ public:
     void Meditate();
     void Breakthrough();
     void Train();
+    void Journal(); void AbilityWheel(); void GuardOn(); void GuardOff(); void FocusOn(); void FocusOff();
+    void SwitchTarget(); void RebuildInputMappings();
+    bool bCanonicalGuard=false;
+    bool bGuardHeld=false,bFocusHeld=false,bTargetLocked=false;
+    double LastManualLook=-100;
+    float GuardRefresh=0;
     UPROPERTY() TMap<FString, TObjectPtr<UAnimationAsset>> ActivityAnimations;
     void RebasePresentation(const FVector& Delta);
     ATVCharacter();

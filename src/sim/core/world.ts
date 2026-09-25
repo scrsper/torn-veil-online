@@ -396,6 +396,7 @@ export class World {
     // Martial execution/provenance remains in saved people after death or forgetting.
     // Discovered definitions also outlive their discoverer and any surviving manual.
     for (const p of this.persons()) visit(p.martial);
+    for (const b of this.bodies()) if (b.guard && b.guard.until > this.physicalTime) visit(b.guard.eventId);
     visit(this.martialDefinitions);
     for (const item of this.items()) { visit(item.provenance); visit(item.record); }
     for (const creature of this.creatures()) visit(creature.wildlife?.pregnancy);

@@ -122,3 +122,23 @@ energy .92, hydration .77, zero veil strain. Daily reload equality passed.
 127 NPCs remained Normal; highest NPC foundation was 11. Ordinary strength
 and intellect means were nearly unchanged. This is **not yet an Iron pass**.
 
+
+## First-rank evidence calibration (2026-09-25)
+
+The real three-day trainee had only 0.60 effective hours of veil practice despite 17 attempts,
+12 meditation sessions and real recovery. Novelty reduction means even an ideal, all-success
+series of repeated person hushes needs 438 casts to accumulate eight effective hours. Retuning
+foundations alone therefore leaves a separate, long repetition gate.
+
+Normal→Iron now requires two effective practice hours instead of eight. This is a readiness
+threshold, not a multiplier or award: every recorded second still comes from the same canonical
+act, with unchanged quality, repetition penalties, provenance and daily caps. Skilled proficiency
+(.55), evidence spanning three days, actual technique knowledge, core foundations 15, support 11
+and recovery remain required. Meditation alone still cannot supply capability evidence or push
+core foundations beyond its ceiling. An ideal repeated hush series needs at least 52 successes;
+real failures and needs lengthen it. The generated journey remains the acceptance proof.
+
+The journal now exposes meaningful-practice hours, proficiency, dated evidence, all current
+blockers, and both trade-shaped and martial-family technique provenance. The journey policy
+allows free training while fed even without a cash reserve, and asks other nearby willing
+partners before falling back to solo drills. Necessities, fatigue and ordinary work remain real.

@@ -2,6 +2,7 @@ import { setCrouchHeld,refreshCrouchHeld,crouchHeld } from '../sim/physical/post
 import { setPracticeMode, practiceStatus, tickPractice, initializePractice } from './combatArena';
 import { combatPresentation } from './combatPresentation';
 import { combatState } from './combatState';
+import { requestGuard, guardHeld } from '../sim/physical/guard';
 import { generateCombatArena } from '../sim/world/combatArena';
 import { submitCombatInput, cancelCombatAction, captureCombatTransforms } from '../sim/physical/combatAction';
 import { randomUUID, createHash } from 'node:crypto';
@@ -225,8 +226,9 @@ export class BridgeSession {
     if(c.type==='crouch'&&!c.held){setCrouchHeld(w,b,false);return 'accepted';}
     if(!movementState(w,p,b).eligible) return 'incapacitated';
     if(c.type==='move') {refreshCrouchHeld(w,b,c.crouch===true);applyInteractionMovement(w,p,b,c,INTERACTION_SPEC.stepSeconds);return 'accepted';}
+    if(c.type==='guard')return requestGuard(w,b.id,c.held);
     if(c.type==='crouch')return submitCombatInput(w,b.id,{kind:'duck',held:c.held,commandId});
-    if(c.type==='attack') return submitCombatInput(w,b.id,{kind:'attack',trajectory:c.trajectory,targetBodyId:c.targetBodyId,commandId});
+    if(c.type==='attack') return submitCombatInput(w,b.id,{kind:'attack',trajectory:c.trajectory,targetBodyId:c.targetBodyId,weight:c.weight,commandId});
     if(c.type==='defend') return submitCombatInput(w,b.id,{kind:c.kind,side:c.side,direction:c.direction,commandId});
     if(c.type==='cancel') return cancelCombatAction(w,b.id);
     if(c.type==='interact') return performHandInteraction(this.sim,p,c.interactionId);
@@ -400,7 +402,7 @@ export class BridgeSession {
         ...talkTargets.map(t=>({actionId:`talk:${t.bodyId}`,targetId:t.bodyId,kind:'person',label:`Talk — ${t.name||'Unknown person'}`,pos:{...w.body(t.bodyId)!.pos}}))],
       bodies: residents.map(b => ({
         ...humanoidVisualState(b, visible.has(b.id) ? knownName(p, b.ownerId) : 'an unfamiliar person', visibleActivity(w.person(b.ownerId), b.pose), projectAppearance(w.person(b.ownerId))),
-        combatAction:visible.has(b.id) ? combatState(w,b) : null,
+        combatAction:visible.has(b.id) ? combatState(w,b) : null,guarding:visible.has(b.id)&&guardHeld(w,b),
         embodiment: this.embodimentFor(b, conversation, residents, ch.appearanceSent, deliver),
         incapacitated: b.pose === 'downed' || (visible.has(b.id) && (b.subduedUntil > w.physicalTime || !!w.person(b.ownerId)?.surrender || !!w.person(b.ownerId)?.custody?.active)),
         alive: !b.dead,
@@ -424,7 +426,7 @@ export class BridgeSession {
       bodies: this.developerBodies().flatMap(b => {
         const p = w.person(b.ownerId); if (!p) return [];
         return [{ ...humanoidVisualState(b, p.name, visibleActivity(p, b.pose), projectAppearance(p)),
-          combatAction:combatState(w,b),
+          combatAction:combatState(w,b),guarding:guardHeld(w,b),
           embodiment: this.embodimentFor(b, new Map(), this.developerBodies(), null),
           reach: w.person(b.ownerId) ? combatReach(w, w.person(b.ownerId)!) : MELEE_REACH, cooldown: MELEE_COOLDOWN,
           attackTarget: b.attackTarget,

@@ -3,6 +3,7 @@ import type { World } from '../core/world';
 import { hurtVolumes, strikePoint, sweepSphereContact } from '../physical/combatGeometry';
 import { applyInjury, injuryFromImpact } from '../physical/injury';
 import { stopCombatAction } from '../physical/combatAction';
+import { guardContact } from '../physical/guard';
 import { isExternallyControlled } from '../runtime/controllers';
 import { distance, visible } from './sensing';
 import { ageDays, bodyScale } from './animals';
@@ -152,6 +153,7 @@ export function stepDefense(world: World, animal: Creature, body: Body, state: A
 export function creatureBlow(world: World, animal: Creature, ab: Body, tb: Body, impact: number, region: string): void {
   const victim = world.person(tb.ownerId);
   if (!victim?.alive || tb.dead) return;
+  const defense = guardContact(world, ab, tb, impact); impact = defense.impact;
   const injury = injuryFromImpact(tb, impact, world.rng.next());
   if (injury) applyInjury(tb, injury);
   tb.health -= impact; tb.lastHitAt = world.physicalTime; tb.hitSeq++;
@@ -159,7 +161,7 @@ export function creatureBlow(world: World, animal: Creature, ab: Body, tb: Body,
   tb.vel.x += dx / len * 5; tb.vel.z += dz / len * 5;
   if (tb.combatAction) stopCombatAction(world, tb, 'contact');
   const place = world.placeAt(tb.pos);
-  const ev = world.emit('attack', { actor: animal.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, category: 'world', significance: 0.6, visibility: 26, loudness: 14,
+  const ev = world.emit('attack', { causes: defense.event ? [defense.event.id] : [], actor: animal.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, category: 'world', significance: 0.6, visibility: 26, loudness: 14,
     data: { creature: true, species: animal.species, attackerBodyId: ab.id, targetBodyId: tb.id, region, injury: injury ?? null, intent: 'drive_off', impact },
     summary: `A ${animal.name} gored ${victim.name}${place ? ' at ' + place.name : ''}` });
   // The victim always knows what hit them.

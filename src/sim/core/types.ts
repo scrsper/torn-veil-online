@@ -70,6 +70,7 @@ export interface LocalizedInjury { region: BodyRegion; severity: number; }
 export interface Body extends Entity {
   kind: 'body';
   combatAction?: import('../physical/combatActionTypes').CombatAction;
+  guard?: import('../physical/guard').GuardState;
   /** Canonical posture amount; held controller leases are disposable and never saved. */
   crouch?: number;
   /** Peak functional injury severity per region, 0..1. No treatment model yet. */

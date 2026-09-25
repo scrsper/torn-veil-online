@@ -36,7 +36,22 @@ const checks = {
   debtClears: !!last && last.scheduler.debtMs === 0,
   zeroClientPeriodObserved: samples.some(s => s.connections.length === 0),
 };
-const report = { kind: 'server-only realtime soak; client FPS/UI separate', root, requestedSeconds: seconds, elapsedSeconds: (Date.now() - began) / 1000,
+const growth = (range) => {
+  if (range.length < 2) return null;
+  const first = range[0], last = range.at(-1), hours = (last.elapsedSeconds - first.elapsedSeconds) / 3600;
+  return { hours, checkpointBytesPerHour: hours > 0 ? (last.metrics.lastBytes - first.metrics.lastBytes) / hours : null,
+    eventsPerHour: hours > 0 ? (last.world.events - first.world.events) / hours : null,
+    knowledgePerHour: hours > 0 ? (last.world.knowledge - first.world.knowledge) / hours : null };
+};
+const cpuSamples = samples.slice(1).flatMap((s, i) => {
+  const p = samples[i]; if (!s.cpuMicroseconds || !p.cpuMicroseconds) return [];
+  return [(s.cpuMicroseconds.user + s.cpuMicroseconds.system - p.cpuMicroseconds.user - p.cpuMicroseconds.system) / ((s.elapsedSeconds - p.elapsedSeconds) * 1e6)];
+});
+const report = { runtime: last?.runtime, connectedClientPeriodObserved: samples.some(s => s.connections.length > 0),
+  growth: { whole: growth(samples), firstHalf: growth(samples.filter(s => s.elapsedSeconds <= seconds / 2)), lastHalf: growth(samples.filter(s => s.elapsedSeconds > seconds / 2)) },
+  cpuCores: { mean: cpuSamples.length ? cpuSamples.reduce((a, b) => a + b, 0) / cpuSamples.length : null, peak: Math.max(0, ...cpuSamples) },
+  peakCheckpointCommitMs: peak(s => s.metrics.lastCommitMs),
+  kind: 'server-only realtime soak; client FPS/UI separate', root, requestedSeconds: seconds, elapsedSeconds: (Date.now() - began) / 1000,
   sampleCount: samples.length, checks, passed: Object.values(checks).every(Boolean), errors,
   peakRssBytes: peak(s => s.memory.rss), peakSerializeMs: peak(s => s.metrics.maxSerializeMs), peakDebtMs: peak(s => s.scheduler.debtMs),
   snapshotEventLoopP99ms: peak(s => s.eventLoopMs.p99), first: first?.world, last: last?.world,

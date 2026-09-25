@@ -1,6 +1,6 @@
 import type { Person } from '../sim/core/types';
 import type { World } from '../sim/core/world';
-import { assessAdvancement } from '../sim/core/advancement';
+import { assessAdvancement, IRON_PRACTICE_SECONDS } from '../sim/core/advancement';
 import { knownName } from '../sim/mind/people';
 import { requestTypeLabel } from '../sim/core/requests';
 import { ATTRIBUTE_IDS } from '../sim/core/human';
@@ -32,11 +32,18 @@ export function playerJournal(world: World, p: Person) {
   const advancement = assessAdvancement(world, p);
   // One's own body is self-knowledge: foundations and how far along the next point is.
   const foundations = ATTRIBUTE_IDS.map(id => ({ id, value: p.attributes[id], progress: Math.round((p.development?.progress[id] ?? 0) * 100) / 100 }));
-  const techniques = Object.values(p.knowledge).filter(k => k.kind === 'technique' && typeof k.claim.skill === 'string').map(k => k.claim.skill as string).sort();
+  const knownTechniques = Object.values(p.knowledge).filter(k => k.kind === 'technique' && typeof (k.claim.skill ?? k.claim.family) === 'string');
+  const techniques = [...new Set(knownTechniques.map(k => (k.claim.skill ?? k.claim.family) as string))].sort();
+  const techniqueHistory = knownTechniques.map(k => ({ name: typeof k.claim.name === 'string' ? k.claim.name : (k.claim.skill ?? k.claim.family) as string,
+    method: k.source.type, teacher: k.source.from ? knownName(p, k.source.from) : null }));
+  const practice = Object.entries(p.capability?.bySkill ?? {}).map(([skill, record]) => ({ skill,
+    hours: Math.round(record.effectiveSeconds / 36) / 100, level: band(p.skills[skill as keyof typeof p.skills] ?? 0),
+    days: new Set(record.sourceEventIds.flatMap(id => { const e = world.event(id); return e ? [Math.floor(e.tick / 86400)] : []; })).size,
+  })).sort((a, b) => a.skill.localeCompare(b.skill));
   return {
     commitments, obligations: owed, injuries, skills,
     condition: { fatigue: p.physiology.fatigue, energy: p.physiology.energy, hydration: p.physiology.hydration, sleepDebt: p.physiology.sleepDebt },
-    stage: p.ontology.stage, foundations, techniques,
+    stage: p.ontology.stage, foundations, techniques, techniqueHistory, practice, practiceHoursRequired: IRON_PRACTICE_SECONDS / 3600,
     veil: knowsVeil(p) ? { strain: Math.round(veilStrain(world, p) * 100) / 100 } : null,
     advancement: { eligible: advancement.eligible, path: advancement.path ?? null, remaining: advancement.reasons.slice(0, 8) },
   };

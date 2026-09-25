@@ -14,7 +14,8 @@ struct FTVCombatAnimProxy : FAnimInstanceProxy {
     FAnimNode_PoseSnapshot Snapshot;
     FAnimNode_BlendSpacePlayer_Standalone Locomotion;
     FVector LeftGoal, RightGoal;
-    float IKWeight=0,HandWeight=0,Duck=0;
+    float IKWeight=0,HandWeight=0,Duck=0,Guard=0;
+    FVector GuardLeftGoal,GuardRightGoal;
     FVector HandGoal;
     bool bLowStrike=false,bReleaseRightFoot=false;
     TArray<FTransform> History, Older;
@@ -48,7 +49,7 @@ struct FTVCombatAnimProxy : FAnimInstanceProxy {
         Blend.Alpha=FMath::Clamp(A->Weight,0.f,1.f);
         LeftGoal=A->LeftFoot; RightGoal=A->RightFoot; IKWeight=A->FootLock;
         bCarrySupport=A->bCarrySupport&&bFlow;
-        HandWeight=A->HandWeight;HandGoal=A->HandGoal;Duck=A->Duck;bLowStrike=A->bLowStrike;bReleaseRightFoot=A->bReleaseRightFoot;
+        Guard=A->Guard;GuardLeftGoal=A->GuardLeftGoal;GuardRightGoal=A->GuardRightGoal;HandWeight=A->HandWeight;HandGoal=A->HandGoal;Duck=A->Duck;bLowStrike=A->bLowStrike;bReleaseRightFoot=A->bReleaseRightFoot;
     }
     virtual bool Evaluate(FPoseContext& Output) override {
         Blend.Evaluate_AnyThread(Output);
@@ -86,7 +87,7 @@ struct FTVCombatAnimProxy : FAnimInstanceProxy {
             T.SetRotation((FQuat::MakeFromRotationVector(TVCombatPoseFlow::Residual(RotationOffset[I],RotationVelocity[I],FlowAge,FlowDuration))*T.GetRotation()).GetNormalized());
             if(I>0)T.AddToTranslation(TVCombatPoseFlow::Residual(PositionOffset[I],PositionVelocity[I],FlowAge,FlowDuration));
         }
-        if(IKWeight>0||HandWeight>0||Duck>0) {
+        if(IKWeight>0||HandWeight>0||Duck>0||Guard>0) {
         FCSPose<FCompactPose> CS; CS.InitPose(Output.Pose);
         const auto& Bones=Output.Pose.GetBoneContainer();
         for(int32 Side=0;Side<2;++Side) {
@@ -108,6 +109,17 @@ struct FTVCombatAnimProxy : FAnimInstanceProxy {
             AnimationCore::SolveTwoBoneIK(A,B,C,B.GetLocation(),Goal,false,1.0,1.0);
             TArray<FBoneTransform> Changes; Changes.Emplace(Thigh,A);Changes.Emplace(Shin,B);Changes.Emplace(Foot,C);
             CS.SafeSetCSBoneTransforms(Changes);
+        }
+        if(Guard>0)for(int32 Side=0;Side<2;++Side){
+            const int32 MeshIndex=Bones.GetPoseBoneIndexForBoneName(Side==0?TEXT("hand_l"):TEXT("hand_r"));
+            if(MeshIndex==INDEX_NONE)continue;
+            const auto Hand=Bones.MakeCompactPoseIndex(FMeshPoseBoneIndex(MeshIndex));if(Hand==INDEX_NONE)continue;
+            const auto Elbow=Bones.GetParentBoneIndex(Hand);if(Elbow==INDEX_NONE)continue;
+            const auto Shoulder=Bones.GetParentBoneIndex(Elbow);if(Shoulder==INDEX_NONE)continue;
+            FTransform A=CS.GetComponentSpaceTransform(Shoulder),B=CS.GetComponentSpaceTransform(Elbow),C=CS.GetComponentSpaceTransform(Hand);
+            const FVector Goal=FMath::Lerp(C.GetLocation(),Side==0?GuardLeftGoal:GuardRightGoal,Guard);
+            AnimationCore::SolveTwoBoneIK(A,B,C,B.GetLocation(),Goal,false,1,1);
+            TArray<FBoneTransform> Changes;Changes.Emplace(Shoulder,A);Changes.Emplace(Elbow,B);Changes.Emplace(Hand,C);CS.SafeSetCSBoneTransforms(Changes);
         }
         FCSPose<FCompactPose>::ConvertComponentPosesToLocalPoses(MoveTemp(CS),Output.Pose);
         }

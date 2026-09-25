@@ -1,10 +1,12 @@
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 // Accelerated Normal→Iron journey through ordinary mechanics (Living Alpha acceptance D).
 //   node --import tsx scripts/alpha/iron-journey.ts --seed 918271 --path veil --days 30 --out .debug/iron-journey-veil-918271
 // A "player" person acts only through the intents a client sends (move, talk, dialogue choices,
 // hush, person_action meditate/advance) while online, and is released to ordinary autonomy while
 // offline — the same policy the live server applies after a disconnect. No teleport, no state edits,
 // no synthetic history: every foundation point comes from the canonical development hooks.
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { BridgeSession } from '../../src/bridge/session';
@@ -20,13 +22,31 @@ const seed = Number(arg('seed', '918271')), days = Number(arg('days', '30')), pa
 const out = arg('out', `.debug/iron-journey-${path}-${seed}`);
 assert(!existsSync(out), 'Evidence directory must be new');
 mkdirSync(out, { recursive: true });
-const DT = 0.1, started = performance.now();
-let s = new BridgeSession(seed, { playable: true }), w = s.world, p = w.person(w.playerId!)!, body = w.primaryBody(p.id)!;
-const worldStart = w.now, DAY = 86400;
+const resumeFrom = arg('resume', '');
+const prior = resumeFrom ? JSON.parse(readFileSync(join(resumeFrom, 'report.json'), 'utf8')) : null;
+if (prior) assert(prior.seed === seed && prior.path === path && !prior.advanced, 'Resume identity/path must match an unfinished journey');
+const priorDay = prior?.daily.at(-1), priorTotals = prior?.final ? prior : priorDay;
+const resumeSave = prior ? readFileSync(join(resumeFrom, prior.finalSaveSha256 ? 'final.save.json' : 'day-' + priorDay.day + '.save.json'), 'utf8') : undefined;
+if (prior?.finalSaveSha256) assert(createHash('sha256').update(resumeSave!).digest('hex') === prior.finalSaveSha256, 'Final checkpoint hash mismatch');
+const DT = 0.1, started = performance.now(), startedAtIso = new Date().toISOString();
+const git = (...args: string[]) => execFileSync('git', args, { encoding: 'utf8' }).trim();
+const sourceFiles = [...new Set((git('ls-files', '--', 'src', 'scripts/alpha/iron-journey.ts') + '\n' + git('ls-files', '--others', '--exclude-standard', '--', 'src')).split('\n').filter(Boolean))].sort();
+const sourceHash = createHash('sha256');for (const f of sourceFiles) sourceHash.update(f).update(readFileSync(f));
+const provenance = { revision: git('rev-parse', 'HEAD'), sourceSha256: sourceHash.digest('hex'), runtime: process.version, startedAtIso,
+  resumedFrom: resumeFrom || null, checkpointSha256: resumeSave ? createHash('sha256').update(resumeSave).digest('hex') : null };
+const priorElapsed = prior?.elapsedSeconds ?? (priorDay?.elapsedMinutes ?? 0) * 60;
+const elapsedPrecisionSeconds = prior?.elapsedPrecisionSeconds ?? (prior && prior.elapsedSeconds === undefined ? 6 : 0.001);
+let steps = 0, lastHeartbeat = started;
+const elapsedSeconds = () => priorElapsed + (performance.now() - started) / 1000;
+
+let s = new BridgeSession(seed, { playable: true, ...(resumeSave ? { save: resumeSave } : {}) }), w = s.world, p = w.person(w.playerId!)!, body = w.primaryBody(p.id)!;
+const worldStart = prior?.worldStart ?? (resumeSave ? w.now - w.physicalTime * w.clock.state().timeScale : w.now), DAY = 86400;
+if(prior)assert(p.id === prior.person, 'The original generated trainee must continue');
 let seq = 0;
 const say = (m: Record<string, unknown>) => s.intent({ version: 1, sequence: ++seq, ...m }).result;
 const dist = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.z - b.z);
-const log: Record<string, unknown>[] = [], daily: Record<string, unknown>[] = [];
+const log: Record<string, unknown>[] = prior?.log ?? [], daily: Record<string, unknown>[] = prior?.daily ?? [];
+let eligibilityBeforeBreakthrough: unknown = null;
 const note = (event: string, data: Record<string, unknown> = {}) => { const r = { event, day: +((w.now - worldStart) / DAY).toFixed(3), ...data }; log.push(r); console.log(JSON.stringify(r)); };
 
 let online = true;
@@ -41,6 +61,7 @@ function setOnline(on: boolean) {
 function tick(x = 0, z = 0, sprint = false) {
   if (online && (x || z)) say({ type: 'move', x, z, sprint });
   s.step(DT);
+  if(++steps % 600 === 0 && performance.now()-lastHeartbeat > 60_000){lastHeartbeat=performance.now();console.log(JSON.stringify({heartbeat:true,worldDays:(w.now-worldStart)/DAY,elapsedSeconds:elapsedSeconds(),pose:body.pose,wealth:p.wealth,attributes:p.attributes}));}
 }
 /** Walk along a canonical path using move intents. Gives up (returns false) rather than inventing movement. */
 function go(target: Vec3, within = 1.2, budgetSeconds = 900): boolean {
@@ -127,17 +148,20 @@ function gatheringPlace(): Vec3 {
   return squares[0]?.inside ?? body.pos;
 }
 
-let hushes = 0, calmed = 0, meditations = 0, refusals = 0, restCycles = 0, spars = 0, drills = 0, advanced = false;
+let hushes = priorTotals?.hushes ?? 0, calmed = priorTotals?.calmed ?? 0, meditations = priorTotals?.meditations ?? 0, refusals = 0, restCycles = 0, spars = priorTotals?.spars ?? 0, drills = priorTotals?.drills ?? 0, advanced = false;
 /** Ask a nearby, awake adult to spar through ordinary dialogue; runs the agreed rounds. */
 function spar(): boolean {
-  const partner = w.livingPersons().filter(q => q.id !== p.id && q.age >= 16 && q.age < 55 && !q.hostile && w.primaryBody(q.id)?.pose !== 'sleep'
-    && dist(w.positionOf(q.id)!, body.pos) < 40).sort((a, b) => dist(w.positionOf(a.id)!, body.pos) - dist(w.positionOf(b.id)!, body.pos))[0];
-  if (!partner || !go(w.positionOf(partner.id)!, 1.4, 120)) return false;
+  const partners = w.livingPersons().filter(q => q.id !== p.id && q.age >= 16 && q.age < 55 && !q.hostile && w.primaryBody(q.id)?.pose !== 'sleep'
+    && dist(w.positionOf(q.id)!, body.pos) < 40).sort((a, b) => dist(w.positionOf(a.id)!, body.pos) - dist(w.positionOf(b.id)!, body.pos)).slice(0, 3);
+  for (const partner of partners) {
+  if (!go(w.positionOf(partner.id)!, 1.4, 120)) continue;
   wait(0.6);
   const lines = talkChoose(partner, l => l === 'Spar with me a few rounds');
-  if (!lines?.length) return false;
+  if (!lines?.length) continue;
   spars++; wait(330);
   return true;
+  }
+  return false;
 }
 function practiceSession(physicalSeconds: number) {
   const end = w.physicalTime + physicalSeconds;
@@ -145,11 +169,11 @@ function practiceSession(physicalSeconds: number) {
     if (!p.alive) return;
     if (body.pose === 'downed' || body.pose === 'sleep') { wait(10); continue; }
     const a = assessAdvancement(w, p);
-    if (a.eligible) { const r = say({ type: 'person_action', intent: { kind: 'advance' } }); note('advance_intent', { result: r, path: a.path }); wait(120); if (p.ontology.stage === 'Iron') { advanced = true; return; } continue; }
+    if (a.eligible) { eligibilityBeforeBreakthrough = { assessment: a, foundations: {...p.attributes}, physiology: {...p.physiology}, capability: structuredClone(p.capability), at: w.now }; const r = say({ type: 'person_action', intent: { kind: 'advance' } }); note('advance_intent', { result: r, path: a.path }); wait(120); if (p.ontology.stage === 'Iron') { advanced = true; return; } continue; }
     // Recovery: too tired or parched to practise — hand back to ordinary life for a while.
     // Practice itself refuses a body below 0.3 energy or water, so hand back before that point.
     if (p.physiology.energy < 0.65 || p.physiology.hydration < 0.65) { if (!provision()) return; }
-    if (p.physiology.fatigue > 0.5 || p.wealth < 6) return;
+    if (p.physiology.fatigue > 0.5) return;
     const strain = veilStrain(w, p);
     // A balanced day: the veil in the morning, the body in the afternoon. Iron asks every other
     // foundation to be sound, and the veil alone never exercises strength, dexterity or endurance.
@@ -183,12 +207,13 @@ function practiceSession(physicalSeconds: number) {
 }
 
 note('start', { seed, path, person: p.id, wealth: p.wealth, attributes: { ...p.attributes }, potential: { ...p.attributePotential }, skills: { ...p.skills }, physiology: { ...p.physiology } });
-if (!learnVeil()) { note('failed', { reason: 'could not learn the veil' }); }
-let lastDay = -1, loops = 0;
+if (!knowsVeil(p) && !learnVeil()) { note('failed', { reason: 'could not learn the veil' }); }
+let lastDay = priorDay?.day ?? -1, loops = 0;
 while ((w.now - worldStart) / DAY < days && p.alive && !advanced && knowsVeil(p)) {
+  if (existsSync(join(out, 'STOP'))) break;
   const hour = w.clock.hourF;
   // Online for a daytime play window (13:00–19:00 world time), offline otherwise.
-  const wantOnline = hour >= 13 && hour < 19 && p.wealth >= 6;
+  const wantOnline = hour >= 13 && hour < 19;
   setOnline(wantOnline);
   const before = w.physicalTime;
   if (wantOnline) practiceSession(300);
@@ -196,7 +221,7 @@ while ((w.now - worldStart) / DAY < days && p.alive && !advanced && knowsVeil(p)
     // Offline, or too tired/hungry/thirsty to practise: ordinary autonomous life looks after the
     // body (eating, drinking, sleeping) for half an hour of play time before trying again.
     setOnline(false);
-    for (let i = 0; i < (wantOnline ? 18000 : 600); i++) s.step(DT);
+    for (let i = 0; i < (wantOnline ? 18000 : 600); i++) tick();
   }
   if (++loops % 60 === 0) console.log(JSON.stringify({ progress: +((w.now - worldStart) / DAY).toFixed(3), hushes, meditations, hour: +w.clock.hourF.toFixed(2), online, pose: body.pose, strain: +veilStrain(w, p).toFixed(2), will: p.attributes.will, elapsedMin: +((performance.now() - started) / 60000).toFixed(1) }));
   const day = Math.floor((w.now - worldStart) / DAY);
@@ -205,7 +230,7 @@ while ((w.now - worldStart) / DAY < days && p.alive && !advanced && knowsVeil(p)
     const a = assessAdvancement(w, p);
     const row = { day, attributes: { ...p.attributes }, veilcraft: +(p.skills.veilcraft ?? 0).toFixed(3), capabilityHours: +((p.capability?.bySkill.veilcraft?.effectiveSeconds ?? 0) / 3600).toFixed(2),
       hushes, calmed, meditations, spars, drills, strain: +veilStrain(w, p).toFixed(2), wealth: p.wealth, energy: +p.physiology.energy.toFixed(2), hydration: +p.physiology.hydration.toFixed(2),
-      blockers: a.reasons, physicalHours: +((w.physicalTime) / 3600).toFixed(1), elapsedMinutes: +((performance.now() - started) / 60000).toFixed(1) };
+      blockers: a.reasons, needs: {...p.needs}, physiology: {...p.physiology}, injuries: structuredClone(body.injuries), skills: {...p.skills}, development: structuredClone(p.development), capability: structuredClone(p.capability), physicalHours: +((w.physicalTime) / 3600).toFixed(1), elapsedMinutes: +((performance.now() - started) / 60000).toFixed(1) };
     daily.push(row); console.log(JSON.stringify({ daily: row }));
     const saved = s.save();
     writeFileSync(join(out, `day-${day}.save.json`), saved);
@@ -214,16 +239,19 @@ while ((w.now - worldStart) / DAY < days && p.alive && !advanced && knowsVeil(p)
     p = w.person(p.id)!; body = w.body(body.id)!;
     assert.equal(JSON.stringify({ person: p, body, clock: w.clock.state() }), continuity, 'Daily reload preserves the trainee, body and clock');
     if (!online) s.game.detach('local');
-    writeFileSync(join(out, 'report.json'), JSON.stringify({ seed, path, days, person: p.id, advanced, daily, log }, null, 2));
+    writeFileSync(join(out, 'report.json'), JSON.stringify({ provenance, seed, path, days, worldStart, elapsedPrecisionSeconds, elapsedSeconds: elapsedSeconds(), person: p.id, advanced, daily, log }, null, 2));
   }
 }
 setOnline(true);
 const iron = w.events.find(e => e.type === 'ontological_advancement' && e.actor === p.id);
-const result = { seed, path, person: p.id, advanced: p.ontology.stage === 'Iron', ironEvent: iron && { id: iron.id, tick: iron.tick, causes: iron.causes, data: iron.data },
-  worldDays: +((w.now - worldStart) / DAY).toFixed(3), physicalHours: +(w.physicalTime / 3600).toFixed(2), hushes, calmed, meditations,
-  final: { attributes: { ...p.attributes }, potential: { ...p.attributePotential }, skills: { ...p.skills }, wealth: p.wealth, alive: p.alive },
+const result = { provenance, worldStart, elapsedPrecisionSeconds, elapsedSeconds: elapsedSeconds(), eligibilityBeforeBreakthrough, seed, path, person: p.id, advanced: p.ontology.stage === 'Iron', ironEvent: iron && { id: iron.id, tick: iron.tick, causes: iron.causes, data: iron.data },
+  status: advanced ? 'advanced' : existsSync(join(out, 'STOP')) ? 'paused' : 'limit-reached',
+  worldSecondsElapsed: w.now - worldStart, worldDays: +((w.now - worldStart) / DAY).toFixed(3), physicalHours: +(w.physicalTime / 3600).toFixed(2), hushes, calmed, meditations, spars, drills,
+  final: { attributes: { ...p.attributes }, potential: { ...p.attributePotential }, skills: { ...p.skills }, wealth: p.wealth, alive: p.alive, needs: p.needs, physiology: p.physiology, injuries: body.injuries, development: p.development, capability: p.capability, techniques: Object.values(p.knowledge).filter(k => k.kind === 'technique') },
   socialConsequences: w.livingPersons().filter(q => q.relationships[p.id]).map(q => ({ id: q.id, fear: +q.relationships[p.id].fear.toFixed(2), trust: +q.relationships[p.id].trust.toFixed(2) })).sort((a, b) => b.fear - a.fear).slice(0, 10),
   attributeIds: ATTRIBUTE_IDS, elapsedMinutes: +((performance.now() - started) / 60000).toFixed(1) };
-writeFileSync(join(out, 'report.json'), JSON.stringify({ ...result, daily, log }, null, 2));
-writeFileSync(join(out, 'final.save.json'), s.save());
+const finalSave = s.save();
+writeFileSync(join(out, 'final.save.json'), finalSave);
+writeFileSync(join(out, 'report.json'), JSON.stringify({ ...result, finalSaveSha256: createHash('sha256').update(finalSave).digest('hex'), daily, log }, null, 2));
+if (!advanced && result.status !== 'paused') process.exitCode = 1;
 console.log(JSON.stringify(result));

@@ -19,10 +19,18 @@ public:
     void Prepare(const FTVClientConfig& Current, const FString& Message, bool bOfferNewOnly);
     void SetMessage(const FString& Message) { Message_ = Message; }
     FTVSignInSubmitted OnSubmitted;
+    void FocusFirstControl();
 protected:
     virtual TSharedRef<SWidget> RebuildWidget() override;
+    virtual void NativeConstruct() override;
+    virtual FReply NativeOnPreviewKeyDown(const FGeometry&,const FKeyEvent&) override;
 private:
     void Submit(bool bNewCharacter);
+    void OpenKeyboard(TSharedPtr<class SEditableTextBox> Field);
+    void CloseKeyboard();
+    TSharedPtr<SWidget> FirstFieldButton,FirstKeyboardButton;
+    TSharedPtr<class SEditableTextBox> KeyboardTarget;
+    bool bKeyboardOpen=false,bUpperCase=false;
     FTVClientConfig Config;
     FString Message_;
     bool bNewOnly = false;

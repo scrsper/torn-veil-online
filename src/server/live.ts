@@ -237,8 +237,9 @@ export class LiveServer {
     const w = this.session.world;
     return {
       env: this.config.env, worldId: this.worldId, release: this.release, protocol: ALPHA_PROTOCOL, state: this.lifecycle(), ready: this.ready, admissions: this.admissions,
+      runtime: { node: process.version, v8: process.versions.v8, pid: process.pid }, cpuMicroseconds: process.cpuUsage(),
       maintenance: this.maintenance, uptimeSeconds: Math.round((Date.now() - this.startedAt) / 1000),
-      world: { physicalTime: w.physicalTime, worldNow: w.now, day: Math.floor(w.now / 86400), livingPersons: w.livingPersons().length, events: w.events.length, creatures: w.creatures().length },
+      world: { physicalTime: w.physicalTime, worldNow: w.now, day: Math.floor(w.now / 86400), livingPersons: w.livingPersons().length, events: w.events.length, knowledge: w.persons().reduce((n, p) => n + Object.keys(p.knowledge).length, 0), creatures: w.creatures().length },
       connections: [...this.connections.values()].map(c => ({ account: c.account.id, personId: c.personId, remote: c.remote, since: new Date(c.connectedAt).toISOString() })),
       graceRunning: [...this.graceTimers.keys()],
       characters: this.ownership,

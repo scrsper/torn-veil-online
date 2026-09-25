@@ -5,6 +5,7 @@ export type DefenseKind = 'sidestep'|'backstep'|'duck';
 export interface CombatInput {
   kind:'attack'|DefenseKind; trajectory?:'high'|'mid'|'low'; targetBodyId?:string;
   held?:boolean; side?:number; direction?:{x:number;z:number}; commandId?:string;
+  weight?:'light'|'heavy';
 }
 /** One latest action per manifestation; terminal state is replaced on the next request.
  * Timing/definition are frozen at acceptance, so saves never reinterpret a live strike. */

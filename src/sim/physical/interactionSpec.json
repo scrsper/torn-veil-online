@@ -1,5 +1,5 @@
 {
-  "revision": "tv-interaction-5",
+  "revision": "tv-interaction-6",
   "unarmedPathReach": 0.9,
   "stepSeconds": 0.016666666666666666,
   "sprintMultiplier": 1.55,
@@ -28,5 +28,14 @@
   "crouchExitSeconds": 0.22,
   "crouchSpeedMultiplier": 0.45,
   "crouchEffort": 0.012,
-  "heldInputSeconds": 0.25
+  "heldInputSeconds": 0.25,
+  "heavyPreparationMultiplier": 1.65,
+  "heavyRecoveryMultiplier": 1.45,
+  "heavyImpactMultiplier": 1.6,
+  "heavyEffortMultiplier": 1.8,
+  "heavyTrackingFraction": 0.5,
+  "guardLeaseSeconds": 0.35,
+  "guardRefreshSeconds": 0.1,
+  "parrySeconds": 0.16,
+  "guardRearmSeconds": 0.6
 }

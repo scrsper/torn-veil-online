@@ -2,7 +2,10 @@ param(
     [string]$Engine = 'C:\Program Files\Epic Games\UE_5.8',
     [int]$Port = 8791,
     [string]$Output = '.debug/combat-repair-probe',
+    [ValidateSet('keyboard','gamepad','switch')][string]$Device = 'keyboard',
     [switch]$Capture,
+    [switch]$GuardCapture,
+    [switch]$EnableHardware,
     [switch]$Refinement,
     [switch]$Flow
 )
@@ -14,14 +17,17 @@ $outputPath = [IO.Path]::GetFullPath((Join-Path $repo $Output))
 New-Item -ItemType Directory -Path $outputPath -Force | Out-Null
 $env:TORN_VEIL_PORT = "$Port"
 $env:TV_REPAIR_OUTPUT = $outputPath
-$env:TV_REPAIR_CAPTURE = if ($Capture) { '1' } else { '0' }
+$env:TV_REPAIR_DEVICE = $Device
+$env:TV_REPAIR_CAPTURE = if ($Capture) { '1' } elseif ($GuardCapture) { 'guard' } else { '0' }
 $probe = if ($Flow) { 'TV.CombatFlowProbe' } elseif ($Refinement) { 'TV.CombatRefinementProbe' } else { 'TV.CombatRepairProbe' }
-$game = Start-Process "$Engine/Engine/Binaries/Win64/UnrealEditor.exe" -WindowStyle Hidden -PassThru -ArgumentList @(
+$runArguments = @(
     ('"' + "$repo/unreal/TornVeilOnline/TornVeilOnline.uproject" + '"'),
-    '/Game/TornVeil/Maps/TornVeilWorld', '-game', '-unattended', '-windowed', '-ResX=1280', '-ResY=720', '-NoSound',
+    '/Game/TornVeil/Maps/TornVeilWorld', '-game', '-windowed', '-ResX=1280', '-ResY=720', '-NoSound',
     ('-ExecCmds="t.MaxFPS 60,t.IdleWhenNotForeground 0,' + $probe + '"'),
     ('-abslog="' + "$outputPath/unreal.log" + '"')
 )
+if (!$EnableHardware) { $runArguments += '-unattended' }
+$game = Start-Process "$Engine/Engine/Binaries/Win64/UnrealEditor.exe" -WindowStyle Hidden -PassThru -ArgumentList $runArguments
 $game.WaitForExit()
 if ($game.ExitCode -ne 0) { throw "Probe process failed: $($game.ExitCode)" }
 $result = Get-Content -LiteralPath "$outputPath/probe.json" -Raw | ConvertFrom-Json

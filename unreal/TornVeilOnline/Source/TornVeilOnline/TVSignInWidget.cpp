@@ -7,6 +7,9 @@
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/SBoxPanel.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Widgets/SOverlay.h"
+#include "Widgets/Layout/SUniformGridPanel.h"
+#include "Framework/Application/SlateApplication.h"
 
 void UTVSignInWidget::Prepare(const FTVClientConfig& Current, const FString& Message, bool bOfferNewOnly)
 {
@@ -33,9 +36,12 @@ TSharedRef<SWidget> UTVSignInWidget::RebuildWidget()
     const FSlateFontInfo Title = FCoreStyle::GetDefaultFontStyle("Bold", 22), Body = FCoreStyle::GetDefaultFontStyle("Regular", 13);
     auto Label = [&](const TCHAR* Text) { return SNew(STextBlock).Text(FText::FromString(Text)).Font(Body).ColorAndOpacity(FLinearColor(0.85f, 0.82f, 0.74f)); };
     auto Field = [&](TSharedPtr<SEditableTextBox>& Out, const FString& Value, const TCHAR* Hint, bool bPassword) {
-        return SAssignNew(Out, SEditableTextBox).Text(FText::FromString(Value)).HintText(FText::FromString(Hint)).IsPassword(bPassword).Font(Body);
+        SAssignNew(Out, SEditableTextBox).Text(FText::FromString(Value)).HintText(FText::FromString(Hint)).IsPassword(bPassword).Font(Body);
+        auto EditButton=SNew(SButton).ContentPadding(FMargin(8,4)).OnClicked_Lambda([this,Field=Out]{OpenKeyboard(Field);return FReply::Handled();})[SNew(STextBlock).Text(FText::FromString(TEXT("Enter")))];
+        if(!FirstFieldButton.IsValid())FirstFieldButton=EditButton;
+        return SNew(SHorizontalBox)+SHorizontalBox::Slot().FillWidth(1)[Out.ToSharedRef()]+SHorizontalBox::Slot().AutoWidth()[EditButton];
     };
-    return SNew(SBorder).BorderBackgroundColor(FLinearColor(0, 0, 0, 0.72f)).HAlign(HAlign_Center).VAlign(VAlign_Center)
+    auto Form=SNew(SBorder).IsEnabled_Lambda([this]{return !bKeyboardOpen;}).BorderBackgroundColor(FLinearColor(0, 0, 0, 0.72f)).HAlign(HAlign_Center).VAlign(VAlign_Center)
     [
         SNew(SBox).WidthOverride(560)
         [
@@ -79,4 +85,42 @@ TSharedRef<SWidget> UTVSignInWidget::RebuildWidget()
             ]
         ]
     ];
+    auto Keys=SNew(SUniformGridPanel).SlotPadding(FMargin(3));
+    const FString Characters=TEXT("1234567890abcdefghijklmnopqrstuvwxyz-_.:/@+=!?");
+    for(int32 I=0;I<Characters.Len();++I){
+        const TCHAR Character=Characters[I];
+        auto Button=SNew(SButton).ContentPadding(FMargin(12,8)).OnClicked_Lambda([this,Character]{
+            if(KeyboardTarget){const TCHAR C=bUpperCase?FChar::ToUpper(Character):Character;KeyboardTarget->SetText(FText::FromString(KeyboardTarget->GetText().ToString()+FString::Chr(C)));}
+            return FReply::Handled();
+        })[SNew(STextBlock).Text_Lambda([this,Character]{return FText::FromString(FString::Chr(bUpperCase?FChar::ToUpper(Character):Character));})];
+        Keys->AddSlot(I%10,I/10)[Button];if(I==0)FirstKeyboardButton=Button;
+    }
+    auto KeyButton=[&](const TCHAR* Label,TFunction<void()> Action){return SNew(SButton).ContentPadding(FMargin(10,8)).OnClicked_Lambda([Action]{Action();return FReply::Handled();})[SNew(STextBlock).Text(FText::FromString(Label))];};
+    return SNew(SOverlay)
+    +SOverlay::Slot()[Form]
+    +SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center)
+    [SNew(SBorder).Padding(24).BorderBackgroundColor(FLinearColor(.04f,.05f,.07f,1))
+      .Visibility_Lambda([this]{return bKeyboardOpen?EVisibility::Visible:EVisibility::Collapsed;})
+      [SNew(SVerticalBox)
+       +SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).Text(FText::FromString(TEXT("Enter text — D-pad / stick to choose, bottom face button to enter")))]
+       +SVerticalBox::Slot().AutoHeight().Padding(0,12)[SNew(STextBlock).Text_Lambda([this]{const FString Value=KeyboardTarget?KeyboardTarget->GetText().ToString():FString();return FText::FromString(KeyboardTarget==TokenBox?FString::ChrN(Value.Len(),TEXT('*')):Value);})]
+       +SVerticalBox::Slot().AutoHeight()[Keys]
+       +SVerticalBox::Slot().AutoHeight()[SNew(SHorizontalBox)
+         +SHorizontalBox::Slot().AutoWidth()[KeyButton(TEXT("Case"),[this]{bUpperCase=!bUpperCase;})]
+         +SHorizontalBox::Slot().AutoWidth()[KeyButton(TEXT("Space"),[this]{if(KeyboardTarget)KeyboardTarget->SetText(FText::FromString(KeyboardTarget->GetText().ToString()+TEXT(" ")));})]
+         +SHorizontalBox::Slot().AutoWidth()[KeyButton(TEXT("Delete"),[this]{if(KeyboardTarget)KeyboardTarget->SetText(FText::FromString(KeyboardTarget->GetText().ToString().LeftChop(1)));})]
+         +SHorizontalBox::Slot().AutoWidth()[KeyButton(TEXT("Done"),[this]{CloseKeyboard();})]
+       ]
+      ]
+    ];
+
+}
+
+void UTVSignInWidget::NativeConstruct(){Super::NativeConstruct();FocusFirstControl();}
+void UTVSignInWidget::FocusFirstControl(){if(FirstFieldButton)FSlateApplication::Get().SetUserFocus(0,FirstFieldButton,EFocusCause::SetDirectly);}
+void UTVSignInWidget::OpenKeyboard(TSharedPtr<SEditableTextBox> Field){KeyboardTarget=Field;bKeyboardOpen=true;if(FirstKeyboardButton)FSlateApplication::Get().SetUserFocus(0,FirstKeyboardButton,EFocusCause::SetDirectly);}
+void UTVSignInWidget::CloseKeyboard(){bKeyboardOpen=false;if(FirstFieldButton)FSlateApplication::Get().SetUserFocus(0,FirstFieldButton,EFocusCause::SetDirectly);}
+FReply UTVSignInWidget::NativeOnPreviewKeyDown(const FGeometry& G,const FKeyEvent& E){
+    if(bKeyboardOpen&&(E.GetKey()==EKeys::Escape||E.GetKey()==EKeys::Gamepad_FaceButton_Right)){CloseKeyboard();return FReply::Handled();}
+    return Super::NativeOnPreviewKeyDown(G,E);
 }

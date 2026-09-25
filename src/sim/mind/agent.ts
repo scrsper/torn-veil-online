@@ -27,6 +27,7 @@ import { observeProduction, productionWorkGoals, localProductionChoice } from '.
 import { applyInjury } from '../physical/injury';
 import { combatReach, type CombatAttackIntent, type CombatAttackResult } from '../physical/combat';
 import { advanceCombat, captureCombatTransforms, combatBusy, requestCombatAction, requestDefense } from '../physical/combatAction';
+import { requestGuard } from '../physical/guard';
 import { observeCombatPreparation, offerCombatDefense } from './combatReaction';
 import type { CombatTransform } from '../physical/combatGeometry';
 import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, ItemType, KnowledgeItem, Creature, Place, Anchor, ConflictIntent, Conflict, ConflictCause } from '../core/types';
@@ -1739,7 +1740,7 @@ export class Simulation {
     if (a.status === 'pending') { a.status = 'active'; a.startedAt = w.now; this.beginAction(p, body, a); }
     switch (a.type) {
       case 'defend': {
-        const result=requestDefense(w,body.id,a.data?.kind??'sidestep',a.data?.side??1);
+        const result=a.data?.kind==='guard'?requestGuard(w,body.id,true):requestDefense(w,body.id,a.data?.kind??'sidestep',a.data?.side??1);
         a.status=result==='accepted'?'done':'failed';break;
       }
       case 'ask_mechanism': {
@@ -2742,7 +2743,7 @@ export class Simulation {
     const dx = tb.pos.x - ab.pos.x, dz = tb.pos.z - ab.pos.z; const d = Math.hypot(dx, dz) || 1; tb.vel.x += dx / d * 4; tb.vel.z += dz / d * 4;
     this.onHit?.(tb, { x: tb.pos.x, y: tb.pos.y + 1.2, z: tb.pos.z });
     const place = w.placeAt(tb.pos);
-    const ev = w.emit('attack', { causes:combat?.actionId&&ab.combatAction?.eventId?[ab.combatAction.eventId]:[], actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, significance: 0.7, visibility: 26, loudness: 14, data: { combatFacts: combatActionFacts(w, attacker, ab, tb, 'hit', combat), combat, attackerBodyId: ab.id, targetBodyId: tb.id, attackSeq: ab.attackSeq, hitSeq: tb.hitSeq, damage: Math.round(dmg), weapon: combat ? (combat.weaponId ? w.nameOf(combat.weaponId) : 'fists') : this.weaponName(attacker), health: Math.round(tb.health), intent }, summary: `${attacker.name} attacked ${victim.name}${place ? ' at ' + place.name : ''} (${Math.round(dmg)} dmg)` });
+    const ev = w.emit('attack', { causes:[...(combat?.actionId&&ab.combatAction?.eventId?[ab.combatAction.eventId]:[]),...(combat?.guardEventId?[combat.guardEventId]:[])], actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, significance: 0.7, visibility: 26, loudness: 14, data: { combatFacts: combatActionFacts(w, attacker, ab, tb, 'hit', combat), combat, attackerBodyId: ab.id, targetBodyId: tb.id, attackSeq: ab.attackSeq, hitSeq: tb.hitSeq, damage: Math.round(dmg), weapon: combat ? (combat.weaponId ? w.nameOf(combat.weaponId) : 'fists') : this.weaponName(attacker), health: Math.round(tb.health), intent }, summary: `${attacker.name} attacked ${victim.name}${place ? ' at ' + place.name : ''} (${Math.round(dmg)} dmg)` });
     // v0.2.3: track this as part of a canonical Conflict (Constitution §11). Idempotent per pair.
     let conflict: Conflict | null = null;
     if (victim.kind === 'person') {

@@ -11,12 +11,15 @@ export interface AdvancementAssessment {
   path?: { skill: SkillId; core: AttributeId[] };
 }
 
-const MIN_CAPABILITY_SECONDS = 8 * 3600, MIN_SKILL = 0.55;
+// First-rank history is quality/repetition weighted; foundations and demonstrated skill
+// remain independent readiness gates. No credits are granted by this calibration.
+export const IRON_PRACTICE_SECONDS = 2 * 3600;
+const MIN_SKILL = 0.55;
 
 /** Capabilities with sustained, successful, proven practice, strongest first. */
 function qualifyingCapabilities(p: Person): [SkillId, { effectiveSeconds: number; sourceEventIds: EventId[] }][] {
   return (Object.entries(p.capability?.bySkill ?? {}) as [SkillId, { effectiveSeconds: number; sourceEventIds: EventId[] }][])
-    .filter(([skill, value]) => value.effectiveSeconds >= MIN_CAPABILITY_SECONDS && (p.skills[skill] ?? 0) >= MIN_SKILL)
+    .filter(([skill, value]) => value.effectiveSeconds >= IRON_PRACTICE_SECONDS && (p.skills[skill] ?? 0) >= MIN_SKILL)
     .sort((a, b) => b[1].effectiveSeconds - a[1].effectiveSeconds || a[0].localeCompare(b[0]));
 }
 
@@ -41,7 +44,7 @@ export function assessAdvancement(world: World, p: Person, path: AdvancementStag
   const candidates = qualifyingCapabilities(p);
   if (!candidates.length) {
     return { stage: p.ontology.stage as AdvancementStage, eligible: false, evidenceEventIds: [],
-      reasons: [...general, 'a relevant capability needs sustained successful practice', ...foundationReasons(p, [])] };
+      reasons: [...general, `a relevant capability needs ${IRON_PRACTICE_SECONDS / 3600} hours of meaningful practice and skilled proficiency`, ...foundationReasons(p, [])] };
   }
   let first: AdvancementAssessment | undefined;
   for (const [skill, value] of candidates) {

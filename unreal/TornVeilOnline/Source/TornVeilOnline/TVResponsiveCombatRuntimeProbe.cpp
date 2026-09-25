@@ -21,25 +21,41 @@ namespace TVCombatRepairProbe {
 struct FPress {double At;FKey Key;bool Down;const TCHAR* Label;};
 static const TArray<FPress> Script={
  {.20,EKeys::F3,true,TEXT("reset")},{.35,EKeys::S,true,TEXT("walk_away")},{.68,EKeys::S,false,TEXT("stop_walk")},
- {.85,EKeys::LeftMouseButton,true,TEXT("free_punch")},{1.50,EKeys::Tab,true,TEXT("select_distant")},{1.70,EKeys::LeftMouseButton,true,TEXT("distant_selected_punch")},
- {2.70,EKeys::F3,true,TEXT("reset_sequence")},{3.20,EKeys::D,true,TEXT("right_held")},{3.22,EKeys::SpaceBar,true,TEXT("right_step_1")},
- {3.39,EKeys::SpaceBar,true,TEXT("right_step_2_buffer")},{3.47,EKeys::D,false,TEXT("release_right")},{3.53,EKeys::A,true,TEXT("left_held")},
- {3.61,EKeys::SpaceBar,true,TEXT("left_step_buffer")},{3.70,EKeys::A,false,TEXT("release_left")},{3.86,EKeys::LeftMouseButton,true,TEXT("step_to_punch")},
- {4.31,EKeys::LeftMouseButton,true,TEXT("punch_to_punch")},{4.83,EKeys::SpaceBar,true,TEXT("attack_to_backstep")},
+ {.85,EKeys::LeftMouseButton,true,TEXT("free_punch")},{1.50,EKeys::F,true,TEXT("select_distant")},{1.70,EKeys::LeftMouseButton,true,TEXT("distant_selected_punch")},
+ {2.70,EKeys::F3,true,TEXT("reset_sequence")},{3.20,EKeys::D,true,TEXT("right_held")},{3.22,EKeys::LeftAlt,true,TEXT("right_step_1")},
+ {3.39,EKeys::LeftAlt,true,TEXT("right_step_2_buffer")},{3.47,EKeys::D,false,TEXT("release_right")},{3.53,EKeys::A,true,TEXT("left_held")},
+ {3.61,EKeys::LeftAlt,true,TEXT("left_step_buffer")},{3.70,EKeys::A,false,TEXT("release_left")},{3.86,EKeys::LeftMouseButton,true,TEXT("step_to_punch")},
+ {4.31,EKeys::LeftMouseButton,true,TEXT("punch_to_punch")},{4.83,EKeys::LeftAlt,true,TEXT("attack_to_backstep")},
  {6.0,EKeys::F3,true,TEXT("reset_combo")},{6.50,EKeys::LeftMouseButton,true,TEXT("light_1")},{6.80,EKeys::LeftMouseButton,true,TEXT("light_2_buffer")},
- {7.30,EKeys::RightMouseButton,true,TEXT("heavy_buffer")},{9.20,EKeys::F2,true,TEXT("repeat_opponent")},
- {12.50,EKeys::F1,true,TEXT("passive_opponent")},{12.80,EKeys::F3,true,TEXT("recover")},{13.30,EKeys::RightMouseButton,true,TEXT("kick_target_reaction")},
- {14.50,EKeys::W,true,TEXT("walk")},{15.30,EKeys::LeftShift,true,TEXT("sprint")},{16.30,EKeys::W,false,TEXT("stop_walk")},{16.30,EKeys::LeftShift,false,TEXT("stop_sprint")},
- {17.0,EKeys::F3,true,TEXT("reset_duck")},{17.5,EKeys::LeftControl,true,TEXT("duck_performance")}
+ {7.30,EKeys::ThumbMouseButton,true,TEXT("heavy_buffer")},{9.20,EKeys::F2,true,TEXT("repeat_opponent")},
+ {12.50,EKeys::F1,true,TEXT("passive_opponent")},{12.80,EKeys::F3,true,TEXT("recover")},{13.30,EKeys::ThumbMouseButton,true,TEXT("kick_target_reaction")},
+ {14.20,EKeys::F,true,TEXT("release_lock_for_travel")},{14.50,EKeys::W,true,TEXT("analog_walk")},{15.30,EKeys::LeftShift,true,TEXT("sprint")},{16.30,EKeys::W,false,TEXT("stop_walk")},{16.30,EKeys::LeftShift,false,TEXT("stop_sprint")},
+ {17.0,EKeys::F3,true,TEXT("reset_duck")},{17.5,EKeys::LeftControl,true,TEXT("duck_performance")},
+ {18.0,EKeys::RightMouseButton,true,TEXT("held_guard")},{18.7,EKeys::RightMouseButton,false,TEXT("release_guard")}
 };
-static bool Running=false,Capture=false,Reacted=false;static double Begin=0,LiveAt=-1,LastShot=-1,PrepAt=-1;static int Index=0,Shot=0;
-static FString Directory;static TArray<TSharedPtr<FJsonValue>> Samples;static TArray<FKey> Release;
+static bool Running=false,Capture=false,GuardCapture=false,Reacted=false;static double Begin=0,LiveAt=-1,LastShot=-1,PrepAt=-1;static int Index=0,Shot=0;
+static FString Directory,DeviceMode;static bool Pad=false;static float PadX=0,PadY=0;static TArray<TSharedPtr<FJsonValue>> Samples;static TArray<FKey> Release;
 static TWeakObjectPtr<UWorld> World;static TWeakObjectPtr<ATVCharacter> Player;
 static TSharedPtr<FJsonObject> Parse(const FString& S){TSharedPtr<FJsonObject> J;FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(S),J);return J?J:MakeShared<FJsonObject>();}
-static void Key(APlayerController* PC,const FKey& K,bool Down){PC->InputKey(FInputKeyEventArgs(nullptr,IPlatformInputDeviceMapper::Get().GetDefaultInputDevice(),K,Down?IE_Pressed:IE_Released,Down?1.f:0.f,false,FPlatformTime::Cycles64()));}
+static void Key(APlayerController* PC,const FKey& Original,bool Down){
+ FKey K=Original;
+ if(Pad){
+  if(K==EKeys::W||K==EKeys::S){PadY=Down?(K==EKeys::W?.55f:-1.f):0;return;}
+  if(K==EKeys::A||K==EKeys::D){PadX=Down?(K==EKeys::D?1.f:-1.f):0;return;}
+  if(K==EKeys::LeftMouseButton)K=EKeys::Gamepad_FaceButton_Left;
+  else if(K==EKeys::ThumbMouseButton)K=EKeys::Gamepad_FaceButton_Top;
+  else if(K==EKeys::LeftAlt)K=EKeys::Gamepad_FaceButton_Right;
+  else if(K==EKeys::RightMouseButton)K=EKeys::Gamepad_LeftShoulder;
+  else if(K==EKeys::F)K=EKeys::Gamepad_RightThumbstick;
+  else if(K==EKeys::LeftShift){K=EKeys::Gamepad_LeftThumbstick;if(Down&&PadY>0)PadY=1.f;}
+  // Crouching is contextual in the controller action menu; do not invent a pad shortcut.
+  else if(K==EKeys::LeftControl)return;
+ }
+ PC->InputKey(FInputKeyEventArgs(nullptr,IPlatformInputDeviceMapper::Get().GetDefaultInputDevice(),K,Down?IE_Pressed:IE_Released,Down?1.f:0.f,false,FPlatformTime::Cycles64()));
+}
 static void Event(const TCHAR* Label,double At){auto J=MakeShared<FJsonObject>();J->SetStringField(TEXT("event"),Label);J->SetNumberField(TEXT("at"),At);Samples.Add(MakeShared<FJsonValueObject>(J));}
-static void Finish(const FString& Status){auto J=MakeShared<FJsonObject>();J->SetStringField(TEXT("status"),Status);J->SetArrayField(TEXT("samples"),Samples);if(World.IsValid())if(auto* B=World->GetSubsystem<UTVBridgeSubsystem>())J->SetObjectField(TEXT("diagnostics"),Parse(B->RealtimeDiagnostics()));FString S;FJsonSerializer::Serialize(J,TJsonWriterFactory<>::Create(&S));FFileHelper::SaveStringToFile(S,*(Directory/TEXT("probe.json")));Running=false;FPlatformMisc::RequestExit(false);}
-static bool Tick(float){
+static void Finish(const FString& Status){auto J=MakeShared<FJsonObject>();J->SetStringField(TEXT("status"),Status);J->SetStringField(TEXT("inputMode"),DeviceMode);J->SetStringField(TEXT("scope"),TEXT("Engine input architecture on isolated arena; not physical hardware or human play"));J->SetArrayField(TEXT("samples"),Samples);if(World.IsValid())if(auto* B=World->GetSubsystem<UTVBridgeSubsystem>())J->SetObjectField(TEXT("diagnostics"),Parse(B->RealtimeDiagnostics()));FString S;FJsonSerializer::Serialize(J,TJsonWriterFactory<>::Create(&S));FFileHelper::SaveStringToFile(S,*(Directory/TEXT("probe.json")));Running=false;FPlatformMisc::RequestExit(false);}
+static bool Tick(float Dt){
  if(!Running)return false;const double Now=FPlatformTime::Seconds();
  if(!World.IsValid())for(const auto& C:GEngine->GetWorldContexts())if(C.WorldType==EWorldType::Game){World=C.World();Player=Cast<ATVCharacter>(World->GetFirstPlayerController()?World->GetFirstPlayerController()->GetPawn():nullptr);}
  auto* B=World.IsValid()?World->GetSubsystem<UTVBridgeSubsystem>():nullptr;
@@ -47,9 +63,11 @@ static bool Tick(float){
  auto* PC=World->GetFirstPlayerController();if(LiveAt<0){LiveAt=Now+2;Player->CameraBoom->TargetArmLength=480;Event(TEXT("live"),Now-Begin);}
  const double At=Now-LiveAt;if(At<0)return true;
  for(const FKey& K:Release)Key(PC,K,false);Release.Empty();
+ if(DeviceMode==TEXT("switch")&&At>12.7)Pad=true;
  while(Index<Script.Num()&&At>=Script[Index].At){const auto& P=Script[Index++];Key(PC,P.Key,P.Down);Event(P.Label,At);
-  if(P.Down&&P.Key!=EKeys::W&&P.Key!=EKeys::S&&P.Key!=EKeys::A&&P.Key!=EKeys::D&&P.Key!=EKeys::LeftShift)Release.Add(P.Key);
+  if(P.Down&&P.Key!=EKeys::W&&P.Key!=EKeys::S&&P.Key!=EKeys::A&&P.Key!=EKeys::D&&P.Key!=EKeys::LeftShift&&P.Key!=EKeys::RightMouseButton)Release.Add(P.Key);
  }
+ if(Pad){for(const auto& Axis:TArray<TPair<FKey,float>>{{EKeys::Gamepad_LeftX,PadX},{EKeys::Gamepad_LeftY,PadY}})PC->InputKey(FInputKeyEventArgs(nullptr,IPlatformInputDeviceMapper::Get().GetDefaultInputDevice(),Axis.Key,Axis.Value,Dt,1,FPlatformTime::Cycles64()));}
  if(At>9.2&&At<12&&!Reacted){
   for(TActorIterator<ATVCharacter> It(World.Get());It;++It)if(!It->IsPlayerControlled()){
    auto J=Parse(It->PresentationDiagnostics());FString Phase;if(J->TryGetStringField(TEXT("livePhase"),Phase)&&Phase==TEXT("preparation")){if(PrepAt<0){PrepAt=At;Event(TEXT("opponent_preparation"),At);}break;}
@@ -61,10 +79,10 @@ static bool Tick(float){
  auto Selected=B->Selected();Frame->SetStringField(TEXT("selection"),Selected?Selected->BodyId:TEXT(""));
  if(Selected)Frame->SetNumberField(TEXT("selectedDistanceCm"),FVector::Dist(Player->GetActorLocation(),Selected->GetActorLocation()));
  TArray<TSharedPtr<FJsonValue>> Others;for(TActorIterator<ATVCharacter> It(World.Get());It;++It)if(!It->IsPlayerControlled())Others.Add(MakeShared<FJsonValueObject>(Parse(It->PresentationDiagnostics())));Frame->SetArrayField(TEXT("others"),Others);Samples.Add(MakeShared<FJsonValueObject>(Frame));
- if(Capture&&At-LastShot>=.05){const FString Name=FString::Printf(TEXT("frame-%04d.png"),Shot++);FScreenshotRequest::RequestScreenshot(Directory/Name,true,false);Frame->SetStringField(TEXT("screenshot"),Name);LastShot=At;}
+ if((Capture&&At-LastShot>=.05)||(GuardCapture&&At>=18.35&&At<=18.65&&Shot<2&&At-LastShot>.2)){const FString Name=FString::Printf(TEXT("frame-%04d.png"),Shot++);FScreenshotRequest::RequestScreenshot(Directory/Name,true,false);Frame->SetStringField(TEXT("screenshot"),Name);LastShot=At;}
  if(At>=19.5){Finish(TEXT("complete"));return false;}return true;
 }
-static void Start(const TArray<FString>&){if(Running)return;Running=true;Begin=FPlatformTime::Seconds();LiveAt=-1;Index=Shot=0;PrepAt=LastShot=-1;Reacted=false;Samples.Empty();Release.Empty();World.Reset();Player.Reset();Directory=FPlatformMisc::GetEnvironmentVariable(TEXT("TV_REPAIR_OUTPUT"));if(Directory.IsEmpty())Directory=FPaths::ProjectDir()/TEXT("../../.debug/combat-repair-live");IFileManager::Get().MakeDirectory(*Directory,true);Capture=FPlatformMisc::GetEnvironmentVariable(TEXT("TV_REPAIR_CAPTURE"))==TEXT("1");FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateStatic(Tick));}
+static void Start(const TArray<FString>&){if(Running)return;Running=true;Begin=FPlatformTime::Seconds();LiveAt=-1;Index=Shot=0;PrepAt=LastShot=-1;Reacted=false;DeviceMode=FPlatformMisc::GetEnvironmentVariable(TEXT("TV_REPAIR_DEVICE"));Pad=DeviceMode==TEXT("gamepad");PadX=PadY=0;Samples.Empty();Release.Empty();World.Reset();Player.Reset();Directory=FPlatformMisc::GetEnvironmentVariable(TEXT("TV_REPAIR_OUTPUT"));if(Directory.IsEmpty())Directory=FPaths::ProjectDir()/TEXT("../../.debug/combat-repair-live");IFileManager::Get().MakeDirectory(*Directory,true);Capture=FPlatformMisc::GetEnvironmentVariable(TEXT("TV_REPAIR_CAPTURE"))==TEXT("1");GuardCapture=FPlatformMisc::GetEnvironmentVariable(TEXT("TV_REPAIR_CAPTURE"))==TEXT("guard");FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateStatic(Tick));}
 static FAutoConsoleCommand Command(TEXT("TV.CombatRepairProbe"),TEXT("Bounded ordinary-key combat repair sequence, then exit"),FConsoleCommandWithArgsDelegate::CreateStatic(Start));
 }
 #endif
