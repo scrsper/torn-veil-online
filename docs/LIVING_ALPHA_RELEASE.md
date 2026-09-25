@@ -585,10 +585,13 @@ turns up the request: "A woodland boar is menacing people north-east of Pikewick
 Both runs act only through client intents (walking, dialogue, buying, hush, realtime combat,
 butchering), with ordinary autonomy while the player is offline; no teleport, grant or state edit.
 
-**A broke player starves offline.** The Iron journey's player spent their silver on the veil
-lesson. With no household and no money, ordinary autonomy found no food it could reach or buy,
-did not take the paid carrying work a human can ask for, and sat at energy 0 from day 3; the
-journey stalled on "recovery state is insufficient". Live players who go broke will meet this.
+**The Iron journey starved its player (harness policy, not a simulation defect).** It spent the
+player's silver on the veil lesson, then practised through every 08:00–18:00 online window
+without eating or working, leaving only the nights to ordinary autonomy. With no household or
+money there was no food to reach or buy overnight, and once energy reached 0 no paid work was
+possible either (hauling needs working capacity). Energy sat at 0 from day 3 and development
+stopped on "recovery state is insufficient". A human who never ate would meet the same thing;
+the journey needs an eat/earn policy before it can run longer.
 
 **Iron.** Under the current curve an ordinary adult needs ~140 (potential 13) to ~280 (potential
 11) world days of deliberate daily practice. Support foundations reach 11 in ~20–40 days; the long
