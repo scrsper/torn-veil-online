@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { CheckpointEncoder } from '../src/server/checkpointEncoder';
 import { decodeEventTable } from '../src/sim/persist/eventTable';
-import { newWorld, serialize } from '../src/sim/persist/save';
+import { newWorld, serializeParts } from '../src/sim/persist/save';
 
 describe('checkpoint storage worker', () => {
   it('packs only the captured snapshot while subsequent canonical mutations remain independent', async () => {
     const encoder = new CheckpointEncoder();
     try {
-      const { world } = newWorld(731), original = JSON.parse(serialize(world));
-      const captured = encoder.encode(JSON.stringify(original));
+      const { world } = newWorld(731), parts = serializeParts(world), original = JSON.parse(parts.join(''));
+      const captured = encoder.encode(parts);
       world.persons()[0].wealth += 7;
       world.emit('perceived', { summary: 'After snapshot — 林', data: { encounter: true } });
       const result = await captured, stored = JSON.parse(result.bytes.toString());
@@ -16,7 +16,7 @@ describe('checkpoint storage worker', () => {
       stored.events = decodeEventTable({ ...stored.eventEncoding, rows: stored.events });
       delete stored.eventEncoding;
       expect(stored).toEqual(original);
-      const next = JSON.parse((await encoder.encode(serialize(world))).bytes.toString());
+      const next = JSON.parse((await encoder.encode(serializeParts(world))).bytes.toString());
       expect(next.persons[0].wealth).toBe(original.persons[0].wealth + 7);
       expect(next.events.length).toBe(original.events.length + 1);
     } finally { await encoder.close(); }
@@ -29,6 +29,7 @@ describe('checkpoint storage worker', () => {
       expect(() => encoder.encode('{"events":[]}')).toThrow('already in flight');
       await expect(job).rejects.toThrow();
       await expect(encoder.encode('{"events":[],"eventEncoding":{}}')).rejects.toThrow('unpacked');
+      await expect(encoder.encode(['{"events":', '['])).rejects.toThrow();
       expect(JSON.parse((await encoder.encode('{"events":[]}')).bytes.toString()).events).toEqual([]);
     } finally { await encoder.close(); }
   });

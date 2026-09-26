@@ -95,6 +95,14 @@ and `lastCheckpointMs` reports the whole operation. Background time is not a sta
 still be reported rather than hidden. A new final soak is required; this design is not itself
 a performance pass.
 
+The synchronous capture is emitted as bounded JSON parts (eight people or 512 ordinary
+array entries per part), then copied directly into one dedicated transferable UTF-8 buffer.
+It avoids flattening a world-sized UTF-16 string and avoids transferring hundreds of separate
+allocations. Concatenated parts are byte-identical to ordinary JSON, including omissions and
+Unicode escaping. A cold mature-world diagnostic measured 157.23 ms JSON capture plus
+15.43 ms transfer preparation (172.65 ms blocking total), with 523.46 ms of background encoding.
+This measurement was taken with the Iron runner paused; it is not a realtime soak result.
+
 Validation of this slice: 27 focused worker/server/persistence tests pass; the final shutdown
 check passes with all 14 server integration checks. Seven event-table/JSON tests verify exact
 streamed bytes, mutable witnesses, historical appearances and malformed input. A mature

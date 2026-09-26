@@ -1,4 +1,4 @@
-import { stringifySnapshot } from './json';
+import { snapshotParts, stringifySnapshot } from './json';
 import { stringifyEventTable, decodeEventTable } from './eventTable';
 import { initializeWildlife } from '../ecology/generation';
 import { validateWildlifeSpec } from '../ecology/animals';
@@ -164,6 +164,17 @@ export const readableSaveVersion = (version: number): boolean => version === 24 
  * and voxel modifications. Consequences survive the renderer restarting.
  */
 export function serialize(world: World, compactEvents = false): string {
+  const { snapshot, encodedFields } = checkpointData(world, compactEvents);
+  return stringifySnapshot(snapshot, encodedFields);
+}
+
+/** Complete immutable JSON at one canonical instant; no live references escape this call. */
+export function serializeParts(world: World): string[] {
+  const { snapshot } = checkpointData(world, false);
+  return [...snapshotParts(snapshot)];
+}
+
+function checkpointData(world: World, compactEvents: boolean): { snapshot: Record<string, unknown>; encodedFields: Readonly<Record<string, string>> } {
   const execution = world.executionSnapshot?.() ?? world.restoredExecution;
   // investigated is a Set in memory (v0.2.2 Phase 3: O(1) membership instead of an
   // ever-growing array's O(length) .includes() on every guard's every think() tick) — JSON has
@@ -220,7 +231,7 @@ export function serialize(world: World, compactEvents = false): string {
   // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
   // falls back to today's behavior (rewind to post-generation position) when absent.
   const rng = world.rng.state(); const weatherRng = world.weatherRng.state(); const demographicRng = world.demographicRng.state();
-  return stringifySnapshot({ version: SAVE_VERSION, ecology: world.ecology, martialLearning: martialPersistenceState(world), creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, containers, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events: events, eventEncoding: eventTable ? { format: eventTable.format, appearances: eventTable.appearances } : undefined, rng, weatherRng, demographicRng, savedAt: Date.now() }, eventTable ? { events: eventTable.rows } : {});
+  return { snapshot: { version: SAVE_VERSION, ecology: world.ecology, martialLearning: martialPersistenceState(world), creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, containers, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events: events, eventEncoding: eventTable ? { format: eventTable.format, appearances: eventTable.appearances } : undefined, rng, weatherRng, demographicRng, savedAt: Date.now() }, encodedFields: eventTable ? { events: eventTable.rows } : {} };
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */

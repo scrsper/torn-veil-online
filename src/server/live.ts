@@ -11,7 +11,7 @@ import { FixedScheduler } from '../bridge/scheduler';
 import { FixedRateWindow } from '../bridge/rateWindow';
 import { CoalescedInteractionWake } from '../bridge/interactionWake';
 import { loadCatalogue } from '../foundry/load';
-import { SAVE_VERSION, readableSaveVersion } from '../sim/persist/save';
+import { SAVE_VERSION, readableSaveVersion, serializeParts } from '../sim/persist/save';
 import { isExternallyControlled, setExternalControl } from '../sim/runtime/controllers';
 import { AccountRegistry, type AccountRecord } from './accounts';
 import { CheckpointEncoder } from './checkpointEncoder';
@@ -140,7 +140,7 @@ export class LiveServer {
   checkpoint(reason: string): Promise<CheckpointMeta> {
     if (this.inFlight) return this.inFlight.then(() => this.checkpoint(reason));
     const w = this.session.world, t0 = performance.now();
-    const world = this.session.save();
+    const world = serializeParts(w);
     const metadata = {
       worldId: this.worldId, savedAtIso: new Date().toISOString(), reason, physicalTime: w.physicalTime, worldNow: w.now, saveSchema: SAVE_VERSION,
       generator: this.store.identity()!.generator, release: { version: this.release.version, revision: this.release.revision }, ownership: structuredClone(this.ownership),
