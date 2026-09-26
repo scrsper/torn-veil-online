@@ -11,7 +11,7 @@ import { FixedScheduler } from '../bridge/scheduler';
 import { FixedRateWindow } from '../bridge/rateWindow';
 import { CoalescedInteractionWake } from '../bridge/interactionWake';
 import { loadCatalogue } from '../foundry/load';
-import { SAVE_VERSION } from '../sim/persist/save';
+import { SAVE_VERSION, readableSaveVersion } from '../sim/persist/save';
 import { isExternallyControlled, setExternalControl } from '../sim/runtime/controllers';
 import { AccountRegistry, type AccountRecord } from './accounts';
 import type { AlphaConfig, ReleaseIdentity } from './config';
@@ -112,7 +112,7 @@ export class LiveServer {
       this.worldId = identity.worldId;
       let loaded = false;
       for (const candidate of this.store.candidates((generation, why) => { this.metrics.recoveredFrom.push({ generation, why }); this.log('error', 'checkpoint_rejected', { generation, why }); })) {
-        if (candidate.meta.saveSchema !== SAVE_VERSION) { this.metrics.recoveredFrom.push({ generation: candidate.meta.generation, why: `save schema ${candidate.meta.saveSchema} ≠ ${SAVE_VERSION}` }); this.log('error', 'checkpoint_rejected', { generation: candidate.meta.generation, why: 'schema' }); continue; }
+        if (!readableSaveVersion(candidate.meta.saveSchema)) { this.metrics.recoveredFrom.push({ generation: candidate.meta.generation, why: `save schema ${candidate.meta.saveSchema} ≠ ${SAVE_VERSION}` }); this.log('error', 'checkpoint_rejected', { generation: candidate.meta.generation, why: 'schema' }); continue; }
         try {
           const t1 = performance.now();
           this.session = new BridgeSession(identity.generator.seed, { playable: true, defaultPlayer: false, save: candidate.world, characterCatalogue: catalogue.catalogue });
@@ -136,7 +136,7 @@ export class LiveServer {
   checkpoint(reason: string): Promise<CheckpointMeta> {
     if (this.inFlight) return this.inFlight.then(() => this.checkpoint(reason));
     const w = this.session.world, t0 = performance.now();
-    const world = this.session.save();
+    const world = this.session.save(true);
     const serializeMs = performance.now() - t0;
     this.metrics.lastSerializeMs = serializeMs; this.metrics.maxSerializeMs = Math.max(this.metrics.maxSerializeMs, serializeMs);
     const t1 = performance.now();

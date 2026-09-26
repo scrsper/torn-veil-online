@@ -144,7 +144,7 @@ export class BridgeSession {
     const x = base.x + (index % 4) - 1.5, z = base.z + Math.floor(index / 4) + 1;
     return { x, y: w.nav.floorY(Math.floor(x), Math.floor(z)), z };
   }
-  save(): string { return serialize(this.world); }
+  save(compactEvents = false): string { return serialize(this.world, compactEvents); }
 
   // ── channel lifecycle ─────────────────────────────────────────────────────────────────────
   channel(id = LOCAL_CHANNEL): ControllerChannel | undefined { return this.channels.get(id); }

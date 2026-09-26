@@ -2,7 +2,9 @@ import { createHash } from 'node:crypto';
 import { World } from '../sim/core/world';
 import { generatePlayableWorld } from '../sim/world/playable';
 import { LEGACY_PLAYABLE_WORLD, PLAYABLE_WORLD } from '../sim/world/geography';
-import { SAVE_VERSION } from '../sim/persist/save';
+// Baseline semantics remain those of schema 24. Schema 25 only packs event JSON;
+// changing its storage version must not manufacture a different generated world.
+const BASELINE_SAVE_SEMANTICS = 24;
 
 /**
  * A digest of the deterministic *baseline* a save is overlaid on. Saves store only the historical
@@ -34,5 +36,5 @@ export function playableBaselineFingerprint(seed: number, version: string = GENE
   const step = 768, heights: number[] = [];
   for (let x = 0; x < g.spec.size; x += step) for (let z = 0; z < g.spec.size; z += step) heights.push(w.grid.groundHeight(x, z));
   put('terrain', heights);
-  return createHash('sha256').update(`${version}|save${SAVE_VERSION}|`).update(h.digest()).digest('hex');
+  return createHash('sha256').update(`${version}|save${BASELINE_SAVE_SEMANTICS}|`).update(h.digest()).digest('hex');
 }

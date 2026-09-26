@@ -165,6 +165,26 @@ describe.sequential('Living Alpha authoritative service', () => {
     expect(server['lastCheckpoint']!.generation).toBe(newest - 1);
   }, 180_000);
 
+  it('falls back from structurally corrupt packed evidence to a verified schema-24 checkpoint', async () => {
+    await server.stopInProcess('legacy fallback test');
+    const store = new WorldStore(join(root, 'state')), last = store.candidates().next().value!;
+    const legacy = JSON.parse(server.session.save()); legacy.version = 24;
+    const packed = JSON.parse(server.session.save(true)); packed.events[0][1] = 999999;
+    const fence = new WriterLock(join(root, 'state'), { release: release.version, env: 'dev' });
+    fence.acquire();
+    let oldGeneration = 0, badGeneration = 0;
+    try {
+      oldGeneration = (await store.commit(JSON.stringify(legacy), { ...last.meta, saveSchema: 24, reason: 'legacy compatible evidence' }, fence)).generation;
+      badGeneration = (await store.commit(JSON.stringify(packed), { ...last.meta, saveSchema: SAVE_VERSION, reason: 'test structural corruption with valid file hash' }, fence)).generation;
+    } finally { fence.release(); }
+    server = await boot();
+    expect(server.metrics.recoveredFrom.some(r => r.generation === badGeneration)).toBe(true);
+    expect(server['lastCheckpoint']!.generation).toBe(oldGeneration);
+    expect(server.session.world.events.map(e => e.id)).toEqual(legacy.events.map((e: { id: string }) => e.id));
+    expect(server['ownership']).toEqual(last.meta.ownership);
+    expect(server.session.world.physicalTime).toBeGreaterThanOrEqual(legacy.physicalTime);
+  }, 180_000);
+
   it('refuses to start when the generator would rebuild a different seeded base', async () => {
     await server.stopInProcess('fingerprint test');
     const identityPath = join(root, 'state', 'world', 'WORLD.json');

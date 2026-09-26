@@ -14,7 +14,7 @@ function advance(world: ReturnType<typeof newWorld>['world'], sim: Simulation, s
 describe('save round trips', () => {
   it('rejects checkpoint-era and malformed save overlays cleanly', () => {
     const { world } = newWorld(1337);
-    const stale = JSON.parse(serialize(world)); stale.version -= 1;
+    const stale = JSON.parse(serialize(world)); stale.version = 23;
     expect(deserialize(JSON.stringify(stale))).toBeNull();
     const malformed = JSON.parse(serialize(world)); malformed.playerId = 'missing-player';
     expect(deserialize(JSON.stringify(malformed))).toBeNull();
@@ -67,7 +67,7 @@ describe('save round trips', () => {
     // Pinned to the literal on purpose: a bump has to be a deliberate edit here as well as in
     // save.ts, so nobody changes what a saved field means without noticing that old saves stop
     // being resumable.
-    expect(JSON.parse(save).version).toBe(24);
+    expect(JSON.parse(save).version).toBe(25);
     const loaded = deserialize(save);
     expect(loaded).not.toBeNull();
     const restored = loaded!.world;

@@ -32,3 +32,36 @@ and separately report whether a connected-client period occurred.
 
 The final two-hour soak is still required. Offline profiles do not prove service latency,
 convergence, backup behavior or stability with a connected client.
+
+## Overnight finding and lossless storage correction — September 26
+
+The alpha.13 staging service ran for 19.9 hours with zero restarts and 19 normal backups.
+At inspection its RSS was 711,913,472 bytes, event count 71,786, knowledge count 54,048,
+and checkpoint size 83,657,739 bytes. The latest serialization was 312.57 ms, maximum
+465.38 ms, so the earlier runtime/encoder correction did **not** close the gate.
+Growth did slow: the first two hours added 4.49 MB, whereas the last four added about
+0.32 MB. This is evidence of convergence of bounded living cognition, not a claim that
+historical world storage can never grow with population or consequential history.
+
+Schema 25 adds optional event column rows, flat witness triples, and a table of identical
+historical appearance descriptions. It removes repeated JSON keys and duplicate descriptions;
+it removes no events, knowledge, witnesses, memories, causes, effects, or other canonical data.
+Appearance equality uses the actual historical JSON, never present-day character appearance.
+Decoding creates independent appearance records so later changes cannot alias other evidence.
+Plain event records remain supported. Developer exports default to the plain representation;
+the live service requests the compact representation. `inspect-checkpoint.ts` reports either
+representation and can expand a compact checkpoint into a new file for ordinary inspection.
+
+The schema-24 migration changes only the version marker; its existing plain records remain
+valid. Normal checkpoints subsequently pack them. The baseline fingerprint retains its
+schema-24 semantics because generation is unchanged. A schema-25 server can also recover an
+older verified schema-24 generation. Rolling back the executable requires the preserved
+pre-update backup, as the existing operator migration procedure states.
+
+Focused validation covers full evidence round trips, independent decoded appearances,
+malformed/truncated columns and witnesses, explicit migration, deterministic continued
+execution, and fallback from a structurally corrupt but correctly hashed compact generation
+to a schema-24 generation. Existing server checkpoint/restart/fence/backup tests also passed.
+The 84,855,524-byte archived world becomes 66,153,614 bytes while retaining exactly all
+events, people and clock state. Offline timings remain variable (235–322 ms in a mixed-load
+profile); only a reasonably isolated service soak can establish the latency gate.

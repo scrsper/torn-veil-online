@@ -1,4 +1,5 @@
 import { stringifySnapshot } from './json';
+import { encodeEventTable, decodeEventTable } from './eventTable';
 import { initializeWildlife } from '../ecology/generation';
 import { validateWildlifeSpec } from '../ecology/animals';
 import { martialPersistenceState, validMartialSave, restoreMartialPersistence } from './martial';
@@ -152,14 +153,17 @@ const KEY = 'infinite-rpg-save-v1';
 // description of it, and both renderers fall back to the realized colours as they always did.
 // Bumping would have invalidated existing worlds for a field whose absence is harmless, which is
 // the opposite of what every bump above exists to prevent. See docs/CHARACTER_APPEARANCE_PIPELINE.md.
-export const SAVE_VERSION = 24;
+// 25 changes storage only. Legacy 24 records load without changing canonical state;
+// compact event columns are expanded before any knowledge/provenance validation.
+export const SAVE_VERSION = 25;
+export const readableSaveVersion = (version: number): boolean => version === 24 || version === SAVE_VERSION;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
  * entity ids match), then the saved *state* is overlaid: minds, bodies, items, events, clock, weather,
  * and voxel modifications. Consequences survive the renderer restarting.
  */
-export function serialize(world: World): string {
+export function serialize(world: World, compactEvents = false): string {
   const execution = world.executionSnapshot?.() ?? world.restoredExecution;
   // investigated is a Set in memory (v0.2.2 Phase 3: O(1) membership instead of an
   // ever-growing array's O(length) .includes() on every guard's every think() tick) — JSON has
@@ -188,6 +192,7 @@ export function serialize(world: World): string {
   const diffs = [...world.grid.diffs.entries()];
   const doors = [...world.grid.doorStates.entries()];
   const events = execution ? world.events : eventsForPersistence(world);
+  const eventTable = compactEvents ? encodeEventTable(events) : undefined;
   // v0.2.3: conflicts are plain serializable records (ids, ticks, strings, numbers). The whole
   // list is kept — a resolved conflict is history and its outcome feeds re-engagement gating.
   const conflicts = world.conflicts.map(c => ({ ...c }));
@@ -215,7 +220,7 @@ export function serialize(world: World): string {
   // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
   // falls back to today's behavior (rewind to post-generation position) when absent.
   const rng = world.rng.state(); const weatherRng = world.weatherRng.state(); const demographicRng = world.demographicRng.state();
-  return stringifySnapshot({ version: SAVE_VERSION, ecology: world.ecology, martialLearning: martialPersistenceState(world), creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, containers, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events, rng, weatherRng, demographicRng, savedAt: Date.now() });
+  return stringifySnapshot({ version: SAVE_VERSION, ecology: world.ecology, martialLearning: martialPersistenceState(world), creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, containers, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events: eventTable?.rows ?? events, eventEncoding: eventTable ? { format: eventTable.format, appearances: eventTable.appearances } : undefined, rng, weatherRng, demographicRng, savedAt: Date.now() });
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -243,7 +248,7 @@ export function save(world: World): boolean { try { localStorage.setItem(KEY, se
 export function hasSave(): boolean {
   try {
     const raw = localStorage.getItem(KEY); if (!raw) return false;
-    return JSON.parse(raw).version === SAVE_VERSION;
+    return readableSaveVersion(JSON.parse(raw).version);
   } catch { return false; }
 }
 export function clearSave(): void { try { localStorage.removeItem(KEY); } catch { /* ignore */ } }
@@ -257,7 +262,11 @@ export function load(): { world: World; gen: ReturnType<typeof generateVillage> 
 /** Parse a save independently of browser storage so persistence can be regression-tested. */
 export function deserialize(raw: string): { world: World; gen: ReturnType<typeof generateVillage> } | null {
   try {
-    const data = JSON.parse(raw); if (data.version !== SAVE_VERSION) return null;
+    const data = JSON.parse(raw); if (!readableSaveVersion(data.version)) return null;
+    if (data.eventEncoding !== undefined) {
+      if (data.version !== SAVE_VERSION) return null;
+      data.events = decodeEventTable({ ...data.eventEncoding, rows: data.events });
+    }
     if (!validMartialSave(data)) return null;
     const world = new World(data.seed);
     const savedKernel = restoreKernel(data.kernel);
