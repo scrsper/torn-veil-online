@@ -108,3 +108,27 @@ check passes with all 14 server integration checks. Seven event-table/JSON tests
 streamed bytes, mutable witnesses, historical appearances and malformed input. A mature
 84,855,524-byte checkpoint round-trips every snapshot field exactly into 66,153,614 stored
 bytes. Its mixed-load capture measurement is diagnostic only; the final soak is still required.
+
+## Bounding transient routine history between maintenance passes
+
+Alpha.19 passed its connected ten-minute preflight and all 1,240 regression tests, but its
+longer isolated soak failed after about 29 minutes: blocking capture reached 258.495 ms against
+the unchanged 250 ms budget. Knowledge stayed around 53,250 records while event count rose
+during a busy settlement period. Before the first Chronicle era, maintenance still ran only
+once per world hour, allowing disposable detail to accumulate between passes.
+
+On a preserved checkpoint copy, the existing compactor removed 27,432 events, including 13,032
+completed goals, 12,409 arrivals and 1,572 path failures. Stored size fell from 69,905,562 to
+64,230,025 bytes. The complete people, bodies, clock and scheduler state remained identical.
+This is a reproduction of transient retention pressure, not a new performance acceptance pass.
+
+Pre-era maintenance now runs every five world minutes. Its retention decisions, protected
+knowledge/practice/causal references, recent-detail window and small-batch guard are unchanged.
+The weekly cadence for established Chronicle eras is unchanged. The existing persisted
+maintenance accumulator continues across reloads; no new state representation or schema is
+introduced. More frequent maintenance also needs observation for CPU and tick-debt cost.
+
+The focused suite passes 60 checks, including bounded routine-detail retirement, causal
+traversability, knowledge/practice retention and the maintenance phase across save/reload;
+typecheck is clean. Bounded continuations from the three accepted seven-day checkpoints,
+stable full regression and a new isolated soak remain required for this cadence change.

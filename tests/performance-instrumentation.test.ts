@@ -30,16 +30,19 @@ describe('performance instrumentation (v0.2.1 Priority 3)', () => {
     for (const v of Object.values(tw.sim.profile!)) expect(v).toBeGreaterThanOrEqual(0);
   });
 
-  it('event-log compaction preserves the hourly short-run cadence before Chronicle eras exist', () => {
+  it('bounds disposable pre-era history at five world minutes without scanning each world minute', () => {
     const tw = createTestWorld(702);
     addPerson(tw, 'A', 'farmer', v(5, 1, 5));
     let compactCalls = 0;
     const original = tw.world.compactEvents.bind(tw.world);
     tw.world.compactEvents = ((...args: Parameters<typeof original>) => { compactCalls++; return original(...args); }) as typeof original;
-    step(tw, 30);
+    for (let i = 0; i < 12000; i++) tw.world.emit('goal_completed', { significance: 0.01, summary: `routine ${i}` });
+    step(tw, 4); // four world minutes at the fixture's ordinary timescale
     expect(compactCalls).toBe(0);
-    step(tw, 35);
+    expect(tw.world.events.length).toBeGreaterThan(12000);
+    step(tw, 2);
     expect(compactCalls).toBe(1);
+    expect(tw.world.events.length).toBeLessThan(6000);
   });
 
   it('the compaction cadence change does not alter which events survive compaction for a given seed/duration (determinism preserved)', () => {
@@ -52,7 +55,7 @@ describe('performance instrumentation (v0.2.1 Priority 3)', () => {
       const physicalDt = 2 * 3600 / tw.world.clock.timeScale;
       const worldDt = tw.world.clock.advance(physicalDt);
       tw.world.physicalTime += physicalDt;
-      tw.sim.step(physicalDt, worldDt); // crosses the pre-era hourly maintenance cadence
+      tw.sim.step(physicalDt, worldDt); // crosses the pre-era maintenance cadence
       return tw.world.events.map(e => e.id);
     };
     expect(run()).toEqual(run());

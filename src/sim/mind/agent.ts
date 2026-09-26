@@ -144,6 +144,10 @@ const PROVISION_UNITS = 2;
  * centuries-long permanent-history prefix get re-filtered thousands of times without changing
  * the result. A weekly cadence keeps recent detail generous and amortizes the canonical pass. */
 export const EVENT_COMPACTION_INTERVAL_SECONDS = 7 * SECONDS_PER_DAY;
+/** Before eras exist, an hourly pass leaves tens of thousands of disposable arrival/goal
+ * events between passes during busy settlement hours. Bound that transient checkpoint cost;
+ * compactEvents still skips small batches and keeps the same live evidence and causal roots. */
+export const SHORT_HISTORY_COMPACTION_INTERVAL_SECONDS = 5 * 60;
 /** Shared empty list, so the common "no crimes to report" case allocates nothing. */
 const EMPTY_PERSONS: readonly Person[] = [];
 
@@ -305,10 +309,10 @@ export class Simulation {
     // event, so a minute-granular cadence meant re-filtering and re-walking the causal ancestry
     // of that same, ever-growing "already kept" set on almost every call —
     // measured as the single largest cost in a 2-day headless run (~35% of total wall time).
-    // Once eras exist, a weekly pass produces the same retained facts and causal ancestry; before
-    // the first era, hourly upkeep preserves the established short-horizon memory behavior.
+    // Once eras exist, retain the amortized weekly pass. Before the first era, five-minute
+    // upkeep bounds disposable detail during activity bursts without changing retention rules.
     this.compactAccum += worldDt;
-    const compactionInterval = w.chronicleEras.length ? EVENT_COMPACTION_INTERVAL_SECONDS : SECONDS_PER_HOUR;
+    const compactionInterval = w.chronicleEras.length ? EVENT_COMPACTION_INTERVAL_SECONDS : SHORT_HISTORY_COMPACTION_INTERVAL_SECONDS;
     if (this.compactAccum >= compactionInterval) { this.compactAccum %= compactionInterval; const t0 = this.mark(); w.compactEvents(); this.accum('compact', t0); }
   }
 
