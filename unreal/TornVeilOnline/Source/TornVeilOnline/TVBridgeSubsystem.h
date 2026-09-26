@@ -18,6 +18,7 @@ class TORNVEILONLINE_API UTVBridgeSubsystem : public UTickableWorldSubsystem {
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FTVLiveCombatReconciliation;
     friend class FTVInputBoundaryReset;
+    friend class FTVSemanticTargeting;
 #endif
 public:
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -108,6 +109,8 @@ public:
     void RefreshArenaBlocks();
     ATVCharacter* Selected() const;
     bool SelectedTargetPosition(FVector& Position) const;
+    FString LockedTargetBody(const ATVCharacter* Player) const;
+    FString AbilityTargetBody(const ATVCharacter* Player) const;
     FTVCombatReplayCursor CombatCursor;
     FString Status = TEXT("Connecting to simulation..."), LastResult, LastEvent, PlayerId;
     float ServerTick = 0;

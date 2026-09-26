@@ -34,12 +34,19 @@ a 160 ms parry window against a human strike; holding or rapidly re-raising cann
 renew it. A boar charge can be braced but not parried. Heavy strikes increase commitment and
 force; they do not increase reach. Guard ends when a committed attack/defense begins.
 
+Releasing target lock also releases explicit attack targeting; ordinary aiming then uses the
+canonical soft-target path. Hush honors a live locked human or animal before considering nearer
+forward targets. Dead/incapacitated targets cannot retain combat lock, and carcasses do not
+steal the ability selection. Native semantic-targeting coverage includes these mixed threats.
+
 ## Evidence and limits
 
 - Native semantic-input tests cover analog response, Xbox/PlayStation labels, rebind conflicts,
   preservation of the other device's binding, and reserved menu inputs.
 - Rendered arena probes exercise the input layer with keyboard, gamepad and switching sequences.
   These use an isolated test arena; their resets are not ordinary packaged-play evidence.
+- `Run-ResponsiveCombatProbe.ps1 -Executable <packaged exe>` runs the same bounded probe
+  outside the editor, with an explicit arena endpoint and an independent profile.
 - Native presentation integration: 15 passed, 2 existing content warnings, zero failures.
 - Rendered analog travel: half-stick walking averaged 185.3 cm/s; full-stick sprint
   averaged 522.3 cm/s, with exploration facing and lock released through input.

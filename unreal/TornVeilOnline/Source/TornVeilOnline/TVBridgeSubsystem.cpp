@@ -175,7 +175,7 @@ void UTVBridgeSubsystem::SendCombat(const FString& Kind,int32 Side,const FString
     CombatInputCallbackAt=Begin;
     BufferedCombat.Reset(); // newest press replaces the one pending follow-up
     auto M=MakeShared<FJsonObject>();M->SetStringField(TEXT("type"),Kind==TEXT("attack")?TEXT("attack"):TEXT("defend"));
-    if(Kind==TEXT("attack")){M->SetStringField(TEXT("trajectory"),Trajectory);M->SetStringField(TEXT("weight"),bHeavy?TEXT("heavy"):TEXT("light"));if(!SelectedBody.IsEmpty())M->SetStringField(TEXT("targetBodyId"),SelectedBody);}
+    if(Kind==TEXT("attack")){M->SetStringField(TEXT("trajectory"),Trajectory);M->SetStringField(TEXT("weight"),bHeavy?TEXT("heavy"):TEXT("light"));const FString Target=LockedTargetBody(Cast<ATVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0)));if(!Target.IsEmpty())M->SetStringField(TEXT("targetBodyId"),Target);}
     else {M->SetStringField(TEXT("kind"),Kind);M->SetNumberField(TEXT("side"),Side);}
     if(!Direction.IsNearlyZero()) {auto D=MakeShared<FJsonObject>();D->SetNumberField(TEXT("x"),Direction.X);D->SetNumberField(TEXT("z"),Direction.Z);M->SetObjectField(TEXT("direction"),D);}
     FBufferedCombat Input;Input.Kind=Kind;Input.Side=Side;Input.Trajectory=Trajectory;Input.Direction=Direction;Input.bHeavy=bHeavy;
@@ -702,11 +702,34 @@ void UTVBridgeSubsystem::Receive(const FString& Message) {
 ATVCharacter* UTVBridgeSubsystem::Selected() const { const auto* C = Bodies.Find(SelectedBody); return C ? C->Get() : nullptr; }
 bool UTVBridgeSubsystem::SelectedTargetPosition(FVector& Position) const {
     AActor* Target=Bodies.FindRef(SelectedBody).Get();
-    if(auto* Human=Cast<ATVCharacter>(Target);Human&&Human->bIncapacitated)return false;
+    if(auto* Human=Cast<ATVCharacter>(Target);Human&&(Human->bIncapacitated||Human->bDead))return false;
     if(!Target){auto* Animal=WildlifeBodies.FindRef(SelectedBody).Get();if(Animal&&Animal->bAlive)Target=Animal;}
     const auto* Player=UGameplayStatics::GetPlayerCharacter(GetWorld(),0);
     if(!IsValid(Target)||!Player||FVector::DistSquared(Player->GetActorLocation(),Target->GetActorLocation())>FMath::Square(1800.f))return false;
     Position=Target->GetActorLocation();return true;
+}
+FString UTVBridgeSubsystem::LockedTargetBody(const ATVCharacter* Player) const {
+    if(!Player||!Player->bTargetLocked)return {};
+    AActor* Target=Bodies.FindRef(SelectedBody).Get();
+    if(auto* Human=Cast<ATVCharacter>(Target);Human&&(Human->bIncapacitated||Human->bDead))return {};
+    if(!Target){auto* Animal=WildlifeBodies.FindRef(SelectedBody).Get();if(Animal&&Animal->bAlive)Target=Animal;}
+    return IsValid(Target)&&FVector::DistSquared(Player->GetActorLocation(),Target->GetActorLocation())<=FMath::Square(1800.f)?SelectedBody:FString();
+}
+FString UTVBridgeSubsystem::AbilityTargetBody(const ATVCharacter* Player) const {
+    if(!Player)return {};
+    const FString Locked=LockedTargetBody(Player);if(!Locked.IsEmpty())return Locked;
+    FString Target;double Best=FMath::Square(1000.0);
+    const auto Consider=[&](const FString& Id,AActor* Actor){
+        if(!IsValid(Actor)||Actor==Player)return;
+        const FVector D=Actor->GetActorLocation()-Player->GetActorLocation();const double D2=D.SizeSquared2D();
+        if(D2>=Best||FVector::DotProduct(D.GetSafeNormal2D(),Player->GetActorForwardVector().GetSafeNormal2D())<=.2)return;
+        FHitResult Hit;FCollisionQueryParams Params;Params.AddIgnoredActor(Player);Params.AddIgnoredActor(Actor);
+        if(GetWorld()->LineTraceSingleByChannel(Hit,Player->GetActorLocation()+FVector(0,0,50),Actor->GetActorLocation()+FVector(0,0,40),ECC_Visibility,Params))return;
+        Best=D2;Target=Id;
+    };
+    for(const auto& Pair:Bodies)if(IsValid(Pair.Value)&&!Pair.Value->bIncapacitated&&!Pair.Value->bDead)Consider(Pair.Key,Pair.Value);
+    for(const auto& Pair:WildlifeBodies)if(IsValid(Pair.Value)&&Pair.Value->bAlive)Consider(Pair.Key,Pair.Value);
+    return Target;
 }
 void UTVBridgeSubsystem::CycleTarget() {
     auto* P=UGameplayStatics::GetPlayerCharacter(GetWorld(),0);if(!P)return;
@@ -730,15 +753,11 @@ void UTVBridgeSubsystem::ToggleRest() {
     if(!IsLive()) return;
     auto Intent=MakeShared<FJsonObject>(); Intent->SetStringField(TEXT("kind"),CanonicalRestriction==TEXT("Sleeping")?TEXT("wake"):TEXT("rest"));
     auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("person_action")); M->SetObjectField(TEXT("intent"),Intent); Send(M);
-    LastResult=CanonicalRestriction==TEXT("Sleeping")?TEXT("Getting up..."):TEXT("Lying down to sleep (Z to get up)."); ResultClock=0;
+    LastResult=CanonicalRestriction==TEXT("Sleeping")?TEXT("Getting up..."):TEXT("Resting. Use Rest in Abilities to get up."); ResultClock=0;
 }
 void UTVBridgeSubsystem::Hush() {
     if(!IsLive()) return;
-    // Nearest animal within 10 m in front of you; otherwise the person you selected or are facing.
-    FString Target; auto* P=Cast<ATVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0)); double Best=1000*1000;
-    if(P) for(const auto& Pair:WildlifeBodies) { if(!IsValid(Pair.Value)) continue; const FVector D=Pair.Value->GetActorLocation()-P->GetActorLocation();
-        const double D2=D.SizeSquared2D(); if(D2<Best && FVector::DotProduct(D.GetSafeNormal2D(),P->GetActorForwardVector().GetSafeNormal2D())>0.2) { Best=D2; Target=Pair.Key; } }
-    if(Target.IsEmpty()) Target=!SelectedBody.IsEmpty()?SelectedBody:TalkTargetBody;
+    const FString Target=AbilityTargetBody(Cast<ATVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0)));
     if(Target.IsEmpty()) { LastResult=TEXT("No one and nothing close enough to hush."); ResultClock=0; return; }
     auto M=MakeShared<FJsonObject>(); M->SetStringField(TEXT("type"),TEXT("hush")); M->SetStringField(TEXT("targetBodyId"),Target); Send(M);
 }
