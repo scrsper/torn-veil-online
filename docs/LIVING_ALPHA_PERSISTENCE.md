@@ -202,3 +202,20 @@ delivered all twelve grain within the next world hour without editing their plan
 The 25 logistics checks, 92 navigation/economy integration checks and typecheck pass.
 Historical failed-route events remain evidence; bounded verification distinguishes those
 from newly generated failures rather than deleting the old history.
+
+## Resumption priority must not create goal churn
+
+Semantic review of seed 918273 found a farmer alternating planting and pantry shopping every
+nine world seconds. The suspended errand received a 0.4 resumption bonus, won selection, lost
+that bonus when active, and immediately lost against the same unchanged competing motivation.
+Structural-reference checks alone did not flag this as a failure; semantic churn must also be
+inspected before accepting a world continuation.
+
+The resumption bonus now uses the same 0.12 margin as ordinary switch hysteresis. Remembering
+an unfinished errand still favors returning, but cannot by itself reverse the next decision.
+This adds no absolute protection or new state and leaves physiological/emergency rules intact.
+The focused fixture reproduced 120 suspensions in one world hour before the change. It now
+allows ordinary social recovery, then completes a real purchase and conserved food delivery
+within three world hours without the alternating routes. The 107 economy/logistics integration
+checks, 46 physiological/commitment checks and typecheck pass. Fresh bounded continuations also
+record semantic anomalies, rather than treating structural checks alone as complete acceptance.

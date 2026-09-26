@@ -1283,9 +1283,14 @@ export class Simulation {
     // below) — a large fixed haul/build task should not indefinitely starve a person's own
     // occupational schedule once they have already stepped away from it for good reason; the
     // max-suspension abandonment above is the backstop that keeps this bounded either way.
+    // A resumption bonus larger than the switch hysteresis in both directions can
+    // create its own oscillation: win while suspended, lose the bonus when active,
+    // immediately suspend again. One shared margin favors returning without making
+    // the act of resuming reverse the next decision under unchanged motivations.
+    const GOAL_HYSTERESIS = 0.12;
     if (m.commitment && m.commitment.status === 'suspended') {
       const resumeCand = cands.find(c => c.key === m.commitment!.goalKey);
-      if (resumeCand) resumeCand.utility = clamp(resumeCand.utility + 0.4);
+      if (resumeCand) resumeCand.utility = clamp(resumeCand.utility + GOAL_HYSTERESIS);
     }
     const productionOpportunities = !threat ? observeProduction(w, p) : [];
     for (const goal of [...productionWorkGoals(w, p, productionOpportunities), ...(!threat ? [...inventionGoals(w, p, productionOpportunities), ...maintenanceGoals(w, p), ...recordGoals(w, p), ...genealogyGoals(w, p)] : [])])
@@ -1376,7 +1381,7 @@ export class Simulation {
       // docs/V0_5_HUMAN_PHYSIOLOGY_AUTONOMOUS_ECONOMY.md).
       const committedNotDone = !!m.commitment && m.commitment.status === 'active' && cur.key === m.commitment.goalKey;
       const done = (m.plan.length === 0 || m.plan.every(a => a.status === 'done' || a.status === 'failed')) && !committedNotDone;
-      if (!done && best.utility < curU + 0.12 && !(best.type === 'flee' || best.type === 'attack' || best.type === 'confront' || best.type === 'rob')) { chosen = { ...cur, utility: curU }; note = `kept ${cur.type} (hysteresis)`; }
+      if (!done && best.utility < curU + GOAL_HYSTERESIS && !(best.type === 'flee' || best.type === 'attack' || best.type === 'confront' || best.type === 'rob')) { chosen = { ...cur, utility: curU }; note = `kept ${cur.type} (hysteresis)`; }
       else { switched = true; note = best === best0 ? `switched from ${cur.type} to ${best.type}` : `resumed ${best.type} (committed)`; }
     } else if (!cur) { switched = true; note = `adopted ${best.type}`; }
     else if (cur.type === 'report' && cur.data?.key !== best.data?.key) {
