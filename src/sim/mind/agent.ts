@@ -2385,11 +2385,22 @@ export class Simulation {
         // tick — which may well be a different goal entirely, because the world has changed.
         const pu = pursuitById(p, g.data?.pursuitId as string | undefined);
         if (pu && (pu.status === 'active' || pu.status === 'deferred')) notePursuitProgress(w, pu);
+        // A pantry delivery is one errand, unlike a multi-trip haul. Its old carried-food
+        // pointer must not remain protected after the food was deposited. A still-low
+        // pantry can motivate a fresh purchase/collection through ordinary deliberation.
+        if (g.type === 'provision_home') {
+          if (m.commitment?.goalKey === g.key) finishCommitment(w, p, 'completed');
+          m.goal = null;
+        }
       }
       m.thinkBudget = m.thinkInterval; body.sitAnchor = null;
     }
     if (a.status === 'failed') {
       body.sitAnchor = null; body.path = null;
+      if (m.goal?.type === 'provision_home') {
+        if (m.commitment?.goalKey === m.goal.key) finishCommitment(w, p, 'abandoned', 'the provisioning errand could not be completed');
+        m.goal = null; m.plan = [];
+      }
       // v0.2.1 Priority 7 fix: every OTHER action failure forces an immediate rethink next
       // step (someone worth reacting to quickly moved out of range, etc.), but a 'goto'
       // failure is a navigational dead end — the world hasn't changed, so an immediate retry

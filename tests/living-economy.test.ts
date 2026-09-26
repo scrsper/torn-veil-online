@@ -32,6 +32,17 @@ function family() {
 }
 
 describe('household provisioning',()=>{
+  it('finishes a pantry delivery instead of replaying the protected errand with its retained meal',()=>{
+    const tw=family(), {world,parent}=tw;
+    setExternalControl(parent,false); parent.schedule=[]; parent.mind.thinkInterval=0.25; parent.wealth=0;
+    makeItem(world,'bread','carried meals',{owner:parent.id,holder:parent.id,quantity:3});
+    observeHome(world,parent); step(tw,3);
+    const completed=world.events.filter(e=>e.type==='goal_completed'&&e.actor===parent.id&&e.data.goalType==='provision_home');
+    expect(completed).toHaveLength(1);
+    expect(parent.mind.commitment?.goalType).not.toBe('provision_home');
+    expect(homeFood(world,parent).reduce((n,i)=>n+i.quantity,0)).toBe(2);
+    expect(world.items().filter(i=>i.type==='bread').reduce((n,i)=>n+i.quantity,0)).toBe(3);
+  });
   it('brings owned surplus food home from work without needing a purchase or money',()=>{
     const tw=family(), {world,parent}=tw;
     const work=makePlace(world,'wilderness','Gathering ground',{x0:12,z0:12,x1:17,z1:17,y0:1,y1:4},{inside:v(14,1,14)});

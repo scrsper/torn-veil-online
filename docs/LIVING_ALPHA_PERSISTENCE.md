@@ -152,3 +152,19 @@ The focused reproduction now produces no false completion; ordinary renewable-re
 allows a later return and actual extraction. More frequent compaction is no longer the proposed
 solution: hourly maintenance and existing retention/provenance rules remain in place. Economy,
 knowledge, logistics, persistence, bounded-world and final soak validation must cover this change.
+
+## Pantry-delivery commitment completion
+
+The mature staging continuation exposed a second empty-plan loop: one farmer recorded 217
+`provision_home` completions in 129.6 world seconds after depositing their surplus. The pantry
+errand had acquired commitment protection but never released it, so its original carried-food
+reference kept rebuilding a finished delivery. A replay from the preserved staging checkpoint
+reproduced the repeated completions without editing a person or the pantry.
+
+A finished pantry errand now ends its matching commitment and clears that completed goal;
+ordinary deliberation can select another shopping trip if the pantry is still low. A failed
+provisioning action abandons the failed errand rather than preserving its old plan. Multi-trip
+hauls and other commitments retain their existing lifecycle. No inventory or wealth is granted.
+The same checkpoint replay now records one completion across 1,800 world seconds. The targeted
+34-test economy suite passes, including the new stale-commitment regression and existing
+conserved food/money, purchases, deliveries, needs and household knowledge checks.
