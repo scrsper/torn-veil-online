@@ -39,8 +39,9 @@ The alpha.13 staging service ran for 19.9 hours with zero restarts and 19 normal
 At inspection its RSS was 711,913,472 bytes, event count 71,786, knowledge count 54,048,
 and checkpoint size 83,657,739 bytes. The latest serialization was 312.57 ms, maximum
 465.38 ms, so the earlier runtime/encoder correction did **not** close the gate.
-Growth did slow: the first two hours added 4.49 MB, whereas the last four added about
-0.32 MB. This is evidence of convergence of bounded living cognition, not a claim that
+Growth did slow: the first two hours added 4.49 MB. From September 26 11:25 UTC to
+15:22 UTC the checkpoint grew from 83.063394 to 83.704542 MB (0.641148 MB in 3h57m).
+This is evidence of convergence of bounded living cognition, not a claim that
 historical world storage can never grow with population or consequential history.
 
 Schema 25 adds optional event column rows, flat witness triples, and a table of identical

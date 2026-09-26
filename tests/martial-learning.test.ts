@@ -49,6 +49,17 @@ function combatReport(world: World, p: Person, options: Record<string, any> = {}
 }
 
 describe('martial learning: separate knowledge, skill, mastery and capacity', () => {
+  it('conditions a skilled body through completed solo practice without exceeding the solo skill ceiling', () => {
+    const { world, a } = fixture();
+    const skill = skillOf(a, 'unarmed'), mastery = masteryOf(a, PUNCH), before = a.development.exposure.vitality;
+    const practice = action(world, a, 'practice'); perform(world, a, practice);
+    expect(practice.status).toBe('done');
+    expect(skillOf(a, 'unarmed')).toBe(skill); expect(masteryOf(a, PUNCH)).toBe(mastery);
+    expect(a.development.exposure.vitality).toBeGreaterThan(before);
+    expect(a.development.progress.vitality).toBeGreaterThan(0);
+    expect(world.events.some(e => e.actor === a.id && e.type === 'work_shift' && e.data.phase === 'completed')).toBe(true);
+  });
+
   it('teaches with named causal provenance, then pays time/effort for gradual mastery and family skill', () => {
     const { world, a, b } = fixture();
     expect(knowsTechnique(b, PUNCH)).toBe(false); expect(masteryOf(b, PUNCH)).toBe(0);

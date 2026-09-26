@@ -142,3 +142,25 @@ The journal now exposes meaningful-practice hours, proficiency, dated evidence, 
 blockers, and both trade-shaped and martial-family technique provenance. The journey policy
 allows free training while fed even without a cash reserve, and asks other nearby willing
 partners before falling back to solo drills. Necessities, fatigue and ordinary work remain real.
+
+## Martial practice correction (2026-09-26)
+
+Tracing the first trainee exposed a second family-proficiency award in the capability adapter,
+after martial practice had already applied its mastery and solo-family ceilings. A completed
+solo session raised a test subject's .65 family skill to .6672256 despite the .35 solo ceiling.
+The martial learning operator now owns proficiency and mastery alone. The completed-session
+adapter owns the associated foundation conditioning and provenance ledger, without duplicating
+either proficiency or conditioning. Solo practice cannot raise existing skill above its ceiling;
+skilled bodies still receive conditioning from real completed sessions.
+
+Deliberate solo form practice now demands foundation level 13 (previously 11.5 in the adapter),
+above incidental labor but below Iron's core level 15. Sparring retains demand 15.5. Effective
+practice time, repetition penalties, daily limits, physiological gates and potential resistance
+are unchanged. This permits healthy balanced conditioning of supporting foundations without
+making solo drills a complete martial Iron path. NPCs use the same rules; routine work is unchanged.
+
+The earlier generated trainee is preserved through day 6.642 as diagnostic history. Its skill
+was affected by the duplicate award, so final acceptance begins with a newly generated person
+on the corrected rules rather than editing that person's skill or retroactively claiming a pass.
+The focused martial/development/capability integration passed 38 tests, including the reproduced
+solo-ceiling defect, and typecheck passed. The genuine completed journey remains required.
