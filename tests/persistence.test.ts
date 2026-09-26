@@ -15,7 +15,7 @@ describe('save round trips', () => {
   it('continues the same bounded event-maintenance phase across a save and reload', () => {
     const { world } = newWorld(1337), sim = new Simulation(world);
     world.clock.timeScale = 60;
-    advance(world, sim, 2); // save two world minutes into the five-minute maintenance period
+    advance(world, sim, 30); // save halfway through the ordinary hourly maintenance period
     const restored = deserialize(serialize(world))!.world, resumed = new Simulation(restored);
     expect(resumed.compactAccum).toBe(sim.compactAccum);
     const calls = [0, 0];
@@ -23,7 +23,7 @@ describe('save round trips', () => {
       const compact = current.compactEvents.bind(current);
       current.compactEvents = (...args) => { calls[index]++; compact(...args); };
     }
-    advance(world, sim, 4); advance(restored, resumed, 4);
+    advance(world, sim, 35); advance(restored, resumed, 35);
     expect(calls).toEqual([1, 1]);
     expect(resumed.compactAccum).toBe(sim.compactAccum);
     expect(restored.clock.state()).toEqual(world.clock.state());

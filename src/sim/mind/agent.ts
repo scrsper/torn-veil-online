@@ -144,10 +144,6 @@ const PROVISION_UNITS = 2;
  * centuries-long permanent-history prefix get re-filtered thousands of times without changing
  * the result. A weekly cadence keeps recent detail generous and amortizes the canonical pass. */
 export const EVENT_COMPACTION_INTERVAL_SECONDS = 7 * SECONDS_PER_DAY;
-/** Before eras exist, an hourly pass leaves tens of thousands of disposable arrival/goal
- * events between passes during busy settlement hours. Bound that transient checkpoint cost;
- * compactEvents still skips small batches and keeps the same live evidence and causal roots. */
-export const SHORT_HISTORY_COMPACTION_INTERVAL_SECONDS = 5 * 60;
 /** Shared empty list, so the common "no crimes to report" case allocates nothing. */
 const EMPTY_PERSONS: readonly Person[] = [];
 
@@ -309,10 +305,10 @@ export class Simulation {
     // event, so a minute-granular cadence meant re-filtering and re-walking the causal ancestry
     // of that same, ever-growing "already kept" set on almost every call —
     // measured as the single largest cost in a 2-day headless run (~35% of total wall time).
-    // Once eras exist, retain the amortized weekly pass. Before the first era, five-minute
-    // upkeep bounds disposable detail during activity bursts without changing retention rules.
+    // Once eras exist, a weekly pass produces the same retained facts and causal ancestry; before
+    // the first era, hourly upkeep preserves the established short-horizon memory behavior.
     this.compactAccum += worldDt;
-    const compactionInterval = w.chronicleEras.length ? EVENT_COMPACTION_INTERVAL_SECONDS : SHORT_HISTORY_COMPACTION_INTERVAL_SECONDS;
+    const compactionInterval = w.chronicleEras.length ? EVENT_COMPACTION_INTERVAL_SECONDS : SECONDS_PER_HOUR;
     if (this.compactAccum >= compactionInterval) { this.compactAccum %= compactionInterval; const t0 = this.mark(); w.compactEvents(); this.accum('compact', t0); }
   }
 
@@ -1208,7 +1204,14 @@ export class Simulation {
     const fieldEvidence = scheduledField && p.knowledge['field-observation:' + scheduledField.id];
     // Stale observations cannot prevent a person returning to their familiar workplace.
     const fieldShift = !!fieldEvidence && w.now - (fieldEvidence.lastConfirmedAt ?? fieldEvidence.learnedAt) < 3600;
-    if (sched && !['sleep', 'eat'].includes(sched.activity) && !fieldShift && !(sched.activity === 'work' && localProductionChoice(w, p, sched.placeId))) {
+    // A familiar workplace is not omniscient stock knowledge. After personally finding no
+    // game, reconsider other goals for one ordinary hunt interval before checking again.
+    const observedGame = p.occupation === 'hunter' && sched?.activity === 'work'
+      ? knowledgeItems(p).filter(k => k.key.startsWith('game:') && k.claim.placeId === sched.placeId
+        && now - (k.lastConfirmedAt ?? k.learnedAt) < 30 * 60) : [];
+    const unavailableHuntShift = p.occupation === 'hunter' && sched?.activity === 'work'
+      && (!laborOk || (observedGame.length > 0 && observedGame.every(k => k.claim.available === false)));
+    if (sched && !['sleep', 'eat'].includes(sched.activity) && !fieldShift && !unavailableHuntShift && !(sched.activity === 'work' && localProductionChoice(w, p, sched.placeId))) {
       const rainingNow = w.weather.kind === 'rain' || w.weather.kind === 'storm';
       const outdoorTask = !sched.placeId || !(w.place(sched.placeId)?.indoor);
       const rainPenalty = rainingNow && outdoorTask && !isGuard && !p.hostile ? 0.2 + w.weather.intensity * 0.15 : 0;
@@ -1821,7 +1824,7 @@ export class Simulation {
             // types with nothing service-relevant to learn (see mind/knowledge.ts's SERVICE_OFFERS).
             const arrivedPlace = w.place(a.placeId); if (arrivedPlace) learnPlace(w, p, arrivedPlace, { type: 'witnessed' });
             for (const node of w.resourceNodes) if (node.kind === 'game' && node.placeId === a.placeId && dist2(body.pos, node.pos) < 12) {
-              learn(w, p, { key: `game:${node.id}`, kind: 'affordance', claim: { placeId: node.placeId, resource: 'meat' }, confidence: 1, source: { type: 'witnessed' } }, true);
+              this.observeGameGround(p, node);
             }
           }
         }
@@ -2103,14 +2106,21 @@ export class Simulation {
         // finer chop-vs-quarry distinction resolved by the renderer's `workStyleFor` from this
         // Action's own `nodeId`/type — see game/presentation/activityCues.ts and actors.ts).
         body.pose = 'work'; body.sitAnchor = null;
-        if (!node || node.state !== 'available' || node.remaining <= 0) { a.status = 'done'; break; } // depleted — stop, don't retry
+        if (!node) { a.status = 'failed'; break; }
         if (a.pos && dist2(body.pos, a.pos) > 2.6) { a.status = 'pending'; m.plan.unshift({ type: 'goto', pos: a.pos, status: 'pending' }); break; }
+        if (node.state !== 'available' || node.remaining <= 0) {
+          if (node.kind === 'game') this.observeGameGround(p, node);
+          a.status = 'failed'; break; // an empty attempt did not complete productive work
+        }
         body.yaw = Math.atan2(-(node.pos.x - body.pos.x), -(node.pos.z - body.pos.z));
         a.data = a.data ?? {}; const swing = node.kind === 'game' ? 30 * 60 : 5 * 60;
         if ((node.kind === 'game' || a.data.paidFirstSwing) && a.data.swingAt === undefined) a.data.swingAt = a.startedAt ?? w.now;
         if (a.data.swingAt === undefined || w.now - a.data.swingAt >= swing) {
           a.data.swingAt = w.now;
-          if (extractFromNode(w, node, p, a.data.paidFirstSwing ? { laborSeconds: swing / w.clock.timeScale, causes: a.data.causeEvent ? [a.data.causeEvent] : [] } : undefined) <= 0) { a.status = 'done'; break; }
+          const got = extractFromNode(w, node, p, a.data.paidFirstSwing ? { laborSeconds: swing / w.clock.timeScale, causes: a.data.causeEvent ? [a.data.causeEvent] : [] } : undefined);
+          if (node.kind === 'game') this.observeGameGround(p, node);
+          if (got <= 0) { a.status = 'failed'; break; }
+          if (node.state !== 'available' || node.remaining <= 0) { a.status = 'done'; break; }
         }
         if (this.elapsed(a)) a.status = 'done';
         break;
@@ -2399,6 +2409,18 @@ export class Simulation {
     }
   }
   private elapsed(a: Action): boolean { return this.world.now - (a.startedAt ?? 0) >= (a.duration ?? 0); }
+  /** Called only at an actual nearby arrival or extraction attempt. This is a fallible,
+   * dated observation, not remote access to the current resource ledger. */
+  private observeGameGround(p: Person, node: import('../core/types').ResourceNode): void {
+    const w = this.world, key = `game:${node.id}`, available = node.state === 'available' && node.remaining >= 1;
+    if (!p.bodies.some(id => { const b = w.body(id); return b?.present && !b.dead && dist2(b.pos, node.pos) < 12; })) return;
+    const old = p.knowledge[key];
+    const evidence = old?.claim.available === available ? old.source.viaEvent : undefined;
+    const event = evidence ?? w.emit('resource_observed', { actor: p.id, placeId: node.placeId, pos: { ...node.pos }, category: 'cognition', significance: 0.05,
+      data: { nodeId: node.id, available }, summary: `${p.name} found ${available ? 'game' : 'no game'} at ${w.nameOf(node.placeId)}` }).id;
+    learn(w, p, { key, kind: 'affordance', claim: { nodeId: node.id, placeId: node.placeId, resource: 'meat', available }, confidence: 1,
+      source: { type: 'witnessed', viaEvent: event }, cause: event }, true);
+  }
   /** Resolve a shared rest destination through physical occupancy, then walk there.
    * The action's anchor remains its destination; sitAnchor/path hold the already
    * existing embodiment reservation. No presentation offsets or position snaps. */

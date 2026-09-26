@@ -122,13 +122,33 @@ completed goals, 12,409 arrivals and 1,572 path failures. Stored size fell from 
 64,230,025 bytes. The complete people, bodies, clock and scheduler state remained identical.
 This is a reproduction of transient retention pressure, not a new performance acceptance pass.
 
-Pre-era maintenance now runs every five world minutes. Its retention decisions, protected
+The intermediate alpha.20 candidate ran pre-era maintenance every five world minutes. Its retention decisions, protected
 knowledge/practice/causal references, recent-detail window and small-batch guard are unchanged.
 The weekly cadence for established Chronicle eras is unchanged. The existing persisted
 maintenance accumulator continues across reloads; no new state representation or schema is
 introduced. More frequent maintenance also needs observation for CPU and tick-debt cost.
 
-The focused suite passes 60 checks, including bounded routine-detail retirement, causal
+That experiment passed 60 focused checks, including bounded routine-detail retirement, causal
 traversability, knowledge/practice retention and the maintenance phase across save/reload;
-typecheck is clean. Bounded continuations from the three accepted seven-day checkpoints,
-stable full regression and a new isolated soak remain required for this cadence change.
+typecheck was clean. Three additional one-hour continuations were coherent and reloaded exactly,
+but changed later trajectories compared with the old cadence. Their foundation means/maxima,
+Normal populations and conserved currency remained the same. The experiment is preserved in
+history; the final correction below restores the established hourly cadence.
+
+## Exhausted hunting-ground retry loop
+
+Tracing the burst found hunters finishing an unsuccessful gathering action as if work had
+completed, then immediately accepting the same scheduled shift at the same exhausted ground.
+A focused reproduction produced 98 false work completions in ten world minutes.
+
+Nearby arrival or extraction now records a dated, provenance-bearing game-ground observation
+in the existing knowledge ledger. A hunter who personally found no game can choose other goals
+for one ordinary hunt interval (30 world minutes), then check again. A distant worker is not told
+the ground's current state. Empty attempts fail; successful extraction that exhausts stock can
+finish normally. The same action mechanics serve players and NPCs. No wages, output, skill or
+progress are awarded for the failed attempt.
+
+The focused reproduction now produces no false completion; ordinary renewable-resource upkeep
+allows a later return and actual extraction. More frequent compaction is no longer the proposed
+solution: hourly maintenance and existing retention/provenance rules remain in place. Economy,
+knowledge, logistics, persistence, bounded-world and final soak validation must cover this change.
