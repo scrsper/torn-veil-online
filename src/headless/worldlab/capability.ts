@@ -2,7 +2,7 @@ import { agencyWorkshop } from '../agency/showcase';
 import { createComponent } from '../../sim/kernel/mechanics';
 import { workOnAssembly } from '../../sim/kernel/evolution';
 import { serialize, deserialize } from '../../sim/persist/save';
-import { assessAdvancement, advanceToIron } from '../../sim/core/advancement';
+import { assessAdvancement, advanceToIron, IRON_PRACTICE_SECONDS } from '../../sim/core/advancement';
 import { attributeProfile } from '../../sim/core/human';
 import { learn } from '../../sim/mind/knowledge';
 import { buildChronicle } from '../../sim/history/chronicle';
@@ -24,7 +24,7 @@ export function initializeNearIronFixture(world: World, person: Person) {
     events.push(e.id);
   }
   world.clock.worldSeconds = now;
-  person.capability = { bySkill: { crafting: { effectiveSeconds: 8 * 3600 - 0.1, actions: 100, lastTick: now, lastEventId: events.at(-1)!, sourceEventIds: events } },
+  person.capability = { bySkill: { crafting: { effectiveSeconds: IRON_PRACTICE_SECONDS - 0.1, actions: 100, lastTick: now, lastEventId: events.at(-1)!, sourceEventIds: events } },
     creditedEventIds: [...events], repetitionCounts: {}, recent: [], dailySeconds: 0, dailyRawSeconds: 0, day: Math.floor(now / 86400) };
   const lesson = world.emit('told', { actor: person.id, target: person.id, significance: 0, data: { fixture: true, skill: 'crafting' }, summary: 'Synthetic fixture: prior instruction in fitting' });
   learn(world, person, { key: 'technique:crafting', kind: 'technique', claim: { skill: 'crafting' }, confidence: 0.8, source: { type: 'prior', viaEvent: lesson.id } }, true);

@@ -70,6 +70,7 @@ export interface LocalizedInjury { region: BodyRegion; severity: number; }
 export interface Body extends Entity {
   kind: 'body';
   combatAction?: import('../physical/combatActionTypes').CombatAction;
+  guard?: import('../physical/guard').GuardState;
   /** Canonical posture amount; held controller leases are disposable and never saved. */
   crouch?: number;
   /** Peak functional injury severity per region, 0..1. No treatment model yet. */
@@ -1502,7 +1503,7 @@ export type EventType = 'animal_threat_display' | 'downed' | 'veil_hush' | 'veil
   // v0.3 Living World I — logistics, extraction, construction, spoilage. Semantic milestones
   // only: never a per-step "walking with cargo" event.
   | 'haul_requested' | 'haul_started' | 'resource_picked_up' | 'resource_delivered' | 'haul_failed'
-  | 'resource_extracted' | 'resource_depleted' | 'resource_regrew'
+  | 'resource_extracted' | 'resource_depleted' | 'resource_regrew' | 'resource_observed'
   | 'construction_started' | 'construction_material_delivered' | 'construction_progress'
   | 'construction_completed' | 'construction_cancelled' | 'resource_spoiled'
   // v0.4 Embodied Economy — physiology, requests, wages, tools. Semantic milestones only (no

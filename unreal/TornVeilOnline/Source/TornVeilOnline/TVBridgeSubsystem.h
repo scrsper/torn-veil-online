@@ -18,6 +18,7 @@ class TORNVEILONLINE_API UTVBridgeSubsystem : public UTickableWorldSubsystem {
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FTVLiveCombatReconciliation;
     friend class FTVInputBoundaryReset;
+    friend class FTVSemanticTargeting;
 #endif
 public:
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -26,7 +27,8 @@ public:
     virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UTVBridgeSubsystem, STATGROUP_Tickables); }
     virtual bool DoesSupportWorldType(EWorldType::Type Type) const override { return Type == EWorldType::Game || Type == EWorldType::PIE; }
     void SendIntent(const FString& Type, const FString& TargetBody = TEXT(""));
-    void SendCombat(const FString& Kind,int32 Side=1,const FString& Trajectory=TEXT("high"),double CallbackAt=0,const FVector& Direction=FVector::ZeroVector);
+    void SendCombat(const FString& Kind,int32 Side=1,const FString& Trajectory=TEXT("high"),double CallbackAt=0,const FVector& Direction=FVector::ZeroVector,bool bHeavy=false);
+    void SetGuard(bool Held); void OpenActionPanel(const FString& Kind);
     void SendHandIntent(bool bConsume);
     void SendDropIntent();
     /** Opens/advances a TypeScript-owned dialogue session.  Native code receives rendered
@@ -106,6 +108,9 @@ public:
     void SetPractice(const FString& Mode);
     void RefreshArenaBlocks();
     ATVCharacter* Selected() const;
+    bool SelectedTargetPosition(FVector& Position) const;
+    FString LockedTargetBody(const ATVCharacter* Player) const;
+    FString AbilityTargetBody(const ATVCharacter* Player) const;
     FTVCombatReplayCursor CombatCursor;
     FString Status = TEXT("Connecting to simulation..."), LastResult, LastEvent, PlayerId;
     float ServerTick = 0;
@@ -173,7 +178,7 @@ private:
     FTVLiveCombat PredictedCombat;
     double CombatAge=0;
     int32 CombatCommandSequence=-1;
-    struct FBufferedCombat {FString Kind,Trajectory,CommandId;FVector Direction=FVector::ZeroVector;int32 Side=1,Sequence=-1;double InputAt=0,ExpiresAt=0;bool bBuffered=false;};
+    struct FBufferedCombat {FString Kind,Trajectory,CommandId;FVector Direction=FVector::ZeroVector;int32 Side=1,Sequence=-1;double InputAt=0,ExpiresAt=0;bool bBuffered=false,bHeavy=false;};
     TOptional<FBufferedCombat> BufferedCombat;
     void StartPredictedCombat(const FBufferedCombat& Input);
     void AdvanceCombatBuffer();

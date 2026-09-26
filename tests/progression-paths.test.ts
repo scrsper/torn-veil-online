@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { addPerson, createTestWorld, v } from './helpers/world';
-import { challengeFactor, develop, developThroughExertion, ironFoundationsFor, MAX_DAILY_EXPOSURE } from '../src/sim/core/development';
+import { challengeFactor, deliberateResponse, develop, developThroughExertion, ironFoundationsFor, MAX_DAILY_EXPOSURE } from '../src/sim/core/development';
 import { recordCapabilityPractice } from '../src/sim/core/capability';
 import { assessAdvancement, advanceToIron } from '../src/sim/core/advancement';
 import { attributeProfile, ironEligible } from '../src/sim/core/human';
@@ -19,6 +19,12 @@ function person(seed = 951) {
 const nextDay = (w: ReturnType<typeof person>['w']) => { w.clock.worldSeconds += DAY; };
 
 describe('Living Alpha progression calibration', () => {
+  it('keeps every routine demand unchanged and bounds the deliberate response', () => {
+    for (const demand of [undefined, Infinity, 0, 9.5, 10, 10.5, 11, 11.5, 12]) expect(deliberateResponse(demand)).toBe(1);
+    expect(deliberateResponse(13)).toBe(4);
+    expect(deliberateResponse(15.5)).toBe(11.5);
+    expect(deliberateResponse(100)).toBe(12);
+  });
   it('a body adapts to what challenges it: routine labour plateaus near its demand, harder practice goes on', () => {
     const { w, p } = person(), trained = person(952).p;
     for (let day = 0; day < 120; day++) {

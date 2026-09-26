@@ -112,7 +112,7 @@ export function learningValue(seconds: number, effort: number, feedback: number,
     || effort < 0.1 || effort > 1 || feedback <= 0 || feedback > 1 || challenge <= 0 || challenge > 1) return 0;
   return seconds / 60 * effort * feedback * Math.sqrt(challenge);
 }
-function credit(world: World, p: Person, id: string, seconds: number, effort: number, feedback: number, challenge: number, ceiling: number, eventId: string, awardFamily = true): number {
+function credit(world: World, p: Person, id: string, seconds: number, effort: number, feedback: number, challenge: number, ceiling: number, eventId: string, awardFamily = true, awardFoundations = true): number {
   const d = techniqueDefinition(world, id); if (!d || !canExecuteTechnique(world, p, id)) return 0;
   const value = learningValue(seconds, effort, feedback, challenge);
   if (!value) return 0;
@@ -126,7 +126,7 @@ function credit(world: World, p: Person, id: string, seconds: number, effort: nu
   if (awardFamily && familyBefore < familyCeiling) {
     // Cap the credited amount before calling the shared curve, not by undoing earned skill.
     const amount = Math.min(value * instruction, (familyCeiling - familyBefore) / (0.015 * instructionFactor(p, d.family) * (1 - familyBefore)));
-    practiceSkill(p, d.family, amount, world);
+    practiceSkill(p, d.family, amount, awardFoundations ? world : undefined);
   }
   return m.value - before;
 }
@@ -223,9 +223,9 @@ function finish(world: World, p: Person, s: MartialSession, q?: Person) {
   } else if (s.mode === 'experiment') discover(world, p, d, s, ev);
   else if (s.mode === 'spar' && q) {
     const pm = masteryOf(p, id), qm = masteryOf(q, id);
-    credit(world, p, id, s.seconds, effort, 0.9, clamp(0.4 + qm - pm, 0.15, 1), Math.min(0.95, Math.max(0.35, qm + 0.2)), ev.id);
-    credit(world, q, id, s.seconds, effort, 0.9, clamp(0.4 + pm - qm, 0.15, 1), Math.min(0.95, Math.max(0.35, pm + 0.2)), ev.id);
-  } else credit(world, p, id, s.seconds, effort, 0.6, 0.35, SOLO_MASTERY_CEILING, ev.id);
+    credit(world, p, id, s.seconds, effort, 0.9, clamp(0.4 + qm - pm, 0.15, 1), Math.min(0.95, Math.max(0.35, qm + 0.2)), ev.id, true, false);
+    credit(world, q, id, s.seconds, effort, 0.9, clamp(0.4 + pm - qm, 0.15, 1), Math.min(0.95, Math.max(0.35, pm + 0.2)), ev.id, true, false);
+  } else credit(world, p, id, s.seconds, effort, 0.6, 0.35, SOLO_MASTERY_CEILING, ev.id, true, false);
   // The completed session is also bodily practice with its own evidence (core/capability.ts).
   if (!teacher && (s.mode === 'spar' || s.mode === 'practice')) {
     recordCapabilityPractice(world, p, { skill: d.family, sourceEventId: ev.id });

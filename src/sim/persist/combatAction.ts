@@ -14,6 +14,7 @@ export function validSavedCombatAction(value: unknown, bodyId: string): boolean 
     ||(queued.commandId!==undefined&&typeof queued.commandId!=='string')
     ||(queued.targetBodyId!==undefined&&typeof queued.targetBodyId!=='string')
     ||(queued.held!==undefined&&typeof queued.held!=='boolean')
+    ||(queued.weight!==undefined&&!['light','heavy'].includes(queued.weight))
     ||(queued.side!==undefined&&![-1,1].includes(queued.side))
     ||(queued.trajectory!==undefined&&!['high','mid','low'].includes(queued.trajectory))
     ||(queued.direction&&(!Number.isFinite(queued.direction.x)||!Number.isFinite(queued.direction.z)))))return false;

@@ -5,7 +5,7 @@ import type { World } from '../core/world';
 import { appraiseClaim, type Appraisal } from '../social/appraisal';
 import { personalSituationView, situationForEvent } from '../social/situation';
 import { activeConcerns } from './concern';
-import { isCrime } from './knowledge';
+import { isCrime, MAX_TESTIMONY_HOPS } from './knowledge';
 import { getRel } from './relationships';
 import { tradeMakes, tradeNeeds } from '../world/supply';
 
@@ -249,7 +249,7 @@ export function selectTopic(world: World, speaker: Person, listener: Person, opt
     if (k.sharedWith.includes(listener.id)) continue;
     // A speaker knows whom they already told, not the contents of another mind.
     // Hearing the same news independently is possible and does not make it eyewitness evidence.
-    if (k.hops >= 8) continue;
+    if (k.hops >= MAX_TESTIMONY_HOPS) continue;
     if (k.claim.actor === listener.id) continue; // do not narrate someone's own deeds at them
     if (k.source.from === listener.id) continue; // they told me this
     if (!worthScoring(world, k)) continue;

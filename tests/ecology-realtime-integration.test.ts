@@ -45,7 +45,7 @@ it('a live attack and both partial scheduler clocks survive a wildlife session c
   })).toBe('accepted');
   session.stepInteraction(1);
   const saved = session.save(), data = JSON.parse(saved);
-  expect(data.version).toBe(24);
+  expect(data.version).toBe(25);
   expect(data.execution.interactionCadence.physical).toBeCloseTo(1 / 60);
   expect(data.ecology.processedAt).toBe(processedBeforeInteraction + 900);
   expect(data.ecology.pendingWorldSeconds).toBeCloseTo(0.7);

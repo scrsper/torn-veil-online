@@ -17,6 +17,7 @@
 		{"Name":"ConvAI","Enabled":false},
 		{"Name":"ProceduralVegetationEditor","Enabled":true},
 		{"Name":"CommonUI","Enabled":true},
+		{"Name":"GameInputWindows","Enabled":true,"SupportedTargetPlatforms":["Win64"]},
 		{
 			"Name": "PythonScriptPlugin",
 			"Enabled": true

@@ -32,6 +32,37 @@ function family() {
 }
 
 describe('household provisioning',()=>{
+  it('finishes a resumed pantry errand instead of losing its resumption priority every think',()=>{
+    const tw=family(), {world,parent,h,home}=tw, tavern=world.place(tw.places.tavern)!;
+    setExternalControl(parent,false); parent.schedule=[]; parent.mind.thinkInterval=0.25;
+    parent.needs.social=0.75; parent.wealth=30;
+    makeItem(world,'bread','pantry meals',{owner:h.id,placeId:home.id,pos:home.inside,quantity:3});
+    const seller=addPerson(tw,'Seller','innkeeper',tavern.inside,{controlled:true,workId:tavern.id});
+    addPlaceStock(world,'bread',20,tavern.id,seller.id,undefined,'seeded');
+    learnPlace(world,parent,tavern,{type:'prior'}); observeHome(world,parent);
+    parent.mind.commitment={goalKey:`provision_home:${tavern.id}`,goalType:'provision_home',startedAt:world.now,
+      commitmentStrength:0.7,interruptibility:'committed',status:'suspended',suspendedBy:'socialize',suspendedAt:world.now,
+      targetPlace:tavern.id,data:{quantity:3}};
+    // The low-priority pantry errand can wait for ordinary social recovery; it
+    // must then complete, rather than repeatedly restarting both walks.
+    const before=cash(world); step(tw,180);
+    expect(world.events.some(e=>e.actor===parent.id&&e.type==='goal_resumed'&&e.data.goalType==='provision_home')).toBe(true);
+    expect(world.events.filter(e=>e.actor===parent.id&&e.type==='goal_suspended'&&e.data.goalType==='provision_home').length).toBeLessThan(3);
+    expect(world.events.some(e=>e.actor===parent.id&&e.type==='goal_completed'&&e.data.goalType==='provision_home')).toBe(true);
+    expect(world.runTally.household_food_deposited??0).toBeGreaterThan(0);
+    expect(cash(world)).toBeCloseTo(before);
+  });
+  it('finishes a pantry delivery instead of replaying the protected errand with its retained meal',()=>{
+    const tw=family(), {world,parent}=tw;
+    setExternalControl(parent,false); parent.schedule=[]; parent.mind.thinkInterval=0.25; parent.wealth=0;
+    makeItem(world,'bread','carried meals',{owner:parent.id,holder:parent.id,quantity:3});
+    observeHome(world,parent); step(tw,3);
+    const completed=world.events.filter(e=>e.type==='goal_completed'&&e.actor===parent.id&&e.data.goalType==='provision_home');
+    expect(completed).toHaveLength(1);
+    expect(parent.mind.commitment?.goalType).not.toBe('provision_home');
+    expect(homeFood(world,parent).reduce((n,i)=>n+i.quantity,0)).toBe(2);
+    expect(world.items().filter(i=>i.type==='bread').reduce((n,i)=>n+i.quantity,0)).toBe(3);
+  });
   it('brings owned surplus food home from work without needing a purchase or money',()=>{
     const tw=family(), {world,parent}=tw;
     const work=makePlace(world,'wilderness','Gathering ground',{x0:12,z0:12,x1:17,z1:17,y0:1,y1:4},{inside:v(14,1,14)});

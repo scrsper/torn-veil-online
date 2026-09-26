@@ -1,4 +1,5 @@
-import { spawn, execFileSync } from 'node:child_process';
+import { spawn, execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { randomBytes } from 'node:crypto';
 import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -208,7 +209,9 @@ const commands: Record<string, () => Promise<void>> = {
     if (existsSync(probeScript)) {
       const registry = new AccountRegistry(join(staging.credentialsDir, 'accounts.json'));
       const token = registry.get('rehearsal') ? registry.rotate('rehearsal') : registry.add('rehearsal', 'Rehearsal probe');
-      try { probe = JSON.parse(execFileSync(process.execPath, [probeScript, '--port', String(staging.port), '--account', 'rehearsal', '--token', token], { encoding: 'utf8', timeout: 240_000 })); }
+      // Keep the operator event loop alive while the probe runs, including HTTP pool
+      // close notifications. A synchronous wait left stale sockets after the long probe.
+      try { const child = await promisify(execFile)(process.execPath, [probeScript, '--port', String(staging.port), '--account', 'rehearsal', '--token', token], { encoding: 'utf8', timeout: 240_000, windowsHide: true }); probe = JSON.parse(child.stdout); }
       catch (e) { probe = { passed: false, error: String((e as { stdout?: string }).stdout ?? e) }; }
     }
     const cp = await admin(staging, 'POST', 'checkpoint?reason=rehearsal-persistence');

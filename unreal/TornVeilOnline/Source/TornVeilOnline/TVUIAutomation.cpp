@@ -1,4 +1,5 @@
 #include "TVCommonUIWidgets.h"
+#include "Components/ScrollBox.h"
 #if WITH_DEV_AUTOMATION_TESTS
 #include "Misc/AutomationTest.h"
 #include "Blueprint/WidgetTree.h"
@@ -43,7 +44,12 @@ bool FTVCommonUIProjection::RunTest(const FString&) {
     if(Buttons(Inventory).Num())Buttons(Inventory)[0]->OnClicked.Broadcast();
     TestEqual(TEXT("Back constructed before delegate attachment still routes once"),BackCount,1);
     auto* Menu=BuildWidget<UTVMenuWidget>(PC);Menu->SetCommandDelegate(&BackSink);
-    auto Resume=Buttons(Menu);TestEqual(TEXT("menu has Resume and canonical Save"),Resume.Num(),2);
+    auto Resume=Buttons(Menu);TestEqual(TEXT("menu exposes progression, settings, saving and session exit"),Resume.Num(),7);
+    TArray<FString> Panels;TArray<ETVUICommand> ExitRoutes;FTVUICommandRequested MenuSink;MenuSink.AddLambda([&](ETVUICommand C,const FString& P,const FString&,int32){if(C==ETVUICommand::SignOut||C==ETVUICommand::Quit)ExitRoutes.Add(C);if(C==ETVUICommand::OpenPanel)Panels.Add(P);if(C==ETVUICommand::Back)++BackCount;});Menu->SetCommandDelegate(&MenuSink);
+    if(Resume.Num()==7){for(int32 I=1;I<=3;++I)Resume[I]->OnClicked.Broadcast();}
+    TestTrue(TEXT("normal progression and settings routes"),Panels==TArray<FString>{TEXT("Journal"),TEXT("Abilities"),TEXT("Settings")});
+    if(Resume.Num()==7){Resume[5]->OnClicked.Broadcast();Resume[6]->OnClicked.Broadcast();}
+    TestTrue(TEXT("controller focus can reach sign-out and quit"),ExitRoutes==TArray<ETVUICommand>{ETVUICommand::SignOut,ETVUICommand::Quit});
     if(Resume.Num())Resume[0]->OnClicked.Broadcast();
     TestEqual(TEXT("Resume also receives late command sink"),BackCount,2);
     auto* Dialogue=BuildWidget<UTVDialogueWidget>(PC);Dialogue->SetCommandDelegate(&BackSink);
@@ -85,6 +91,13 @@ bool FTVCommonUIProjection::RunTest(const FString&) {
     auto After=Buttons(Container);TestEqual(TEXT("constant total row count rebuilds correct partition"),After.Num(),2);if(After.Num())After[0]->OnClicked.Broadcast();
     TestEqual(TEXT("container partition now sends Take"),Last,ETVUICommand::TransferItemFromContainer);TestEqual(TEXT("opaque item identity preserved"),Id,Row.Id);
     Container->NativeOnHandleBackAction();TestEqual(TEXT("Back routes through single semantic handler"),Last,ETVUICommand::Back);
+    auto* Journal=BuildWidget<UTVActionPanelWidget>(PC);Journal->Configure(TEXT("Journal"),FString::ChrN(1200,TEXT('x')));
+    const auto JournalSlate=Journal->TakeWidget(); // Keep the native scroll widget alive for this input test.
+    auto* Scroll=Cast<UScrollBox>(Journal->WidgetTree->FindWidget(TEXT("ContentScroll")));TestNotNull(TEXT("journal owns a reading scroll surface"),Scroll);
+    Journal->NativeOnAnalogValueChanged(FGeometry(),FAnalogInputEvent(EKeys::Gamepad_RightY,FModifierKeysState(),0,false,0,0,-.8f));
+    if(Scroll)TestTrue(TEXT("right stick scrolls long journal text independently of button focus"),Scroll->GetScrollOffset()>0);
+    Journal->NativeOnKeyDown(FGeometry(),FKeyEvent(EKeys::PageUp,FModifierKeysState(),0,false,0,0));
+    if(Scroll)TestEqual(TEXT("page-up can return to the journal heading"),Scroll->GetScrollOffset(),0.f);
     World->DestroyWorld(false);return true;
 }
 #endif

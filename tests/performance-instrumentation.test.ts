@@ -52,7 +52,7 @@ describe('performance instrumentation (v0.2.1 Priority 3)', () => {
       const physicalDt = 2 * 3600 / tw.world.clock.timeScale;
       const worldDt = tw.world.clock.advance(physicalDt);
       tw.world.physicalTime += physicalDt;
-      tw.sim.step(physicalDt, worldDt); // crosses the pre-era hourly maintenance cadence
+      tw.sim.step(physicalDt, worldDt); // crosses the pre-era maintenance cadence
       return tw.world.events.map(e => e.id);
     };
     expect(run()).toEqual(run());

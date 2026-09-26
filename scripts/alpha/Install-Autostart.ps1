@@ -2,6 +2,7 @@ param(
     [Parameter(Mandatory=$true)][string]$AlphaRoot,
     [ValidateSet('dev','staging','live')][string]$Environment = 'live',
     [ValidateSet('Logon','Boot')][string]$Trigger = 'Logon',
+    [string]$NodeRuntime = '',
     [switch]$CheckOnly
 )
 # Register only after choosing the deployment environment. CheckOnly performs no writes.
@@ -15,7 +16,9 @@ $config = Get-Content -LiteralPath $configFile -Raw | ConvertFrom-Json
 if ($config.env -ne $Environment) { throw 'Environment config does not match the requested environment.' }
 $release = Get-Content -LiteralPath $releaseFile -Raw | ConvertFrom-Json
 if (!(Test-Path -LiteralPath (Join-Path $release.dir 'ops.mjs'))) { throw 'Installed release has no operator entry point.' }
-$sourceNode = (Get-Command node -CommandType Application | Select-Object -First 1).Source
+$sourceNode = if ($NodeRuntime) { (Resolve-Path -LiteralPath $NodeRuntime).Path } else { (Get-Command node -CommandType Application | Select-Object -First 1).Source }
+& $sourceNode --version | Out-Null
+if ($LASTEXITCODE -ne 0) { throw 'Chosen Node runtime cannot execute.' }
 $nodeHash = (Get-FileHash -LiteralPath $sourceNode -Algorithm SHA256).Hash
 $nodeExe = Join-Path $alphaPath ('runtime/node-' + $nodeHash.Substring(0,12) + '.exe')
 # The installed task must survive replacement of an agent's bundled shell/runtime.

@@ -1,7 +1,8 @@
 import type { EventId, Person, SkillId } from './types';
 import type { PracticedSkillId } from './martialTypes';
 import type { World } from './world';
-import { practiceSkill } from './skills';
+import { instructionFactor, practiceSkill } from './skills';
+import { developThroughPractice } from './development';
 
 const DAY = 86400;
 const MAX_DAILY_SECONDS = 8 * 3600;
@@ -106,7 +107,14 @@ export function recordCapabilityPractice(world: World, p: Person, input: Capabil
   // Keep the existing shared skill and attribute curves authoritative. The ledger is evidence,
   // not a second proficiency or an XP-only advancement system.
   // The practice's own challenge sets how far it can develop foundations (0..1 → 8..18).
-  practiceSkill(p, input.skill, effective / 60, world, 8 + 10 * challenge);
+  if (MARTIAL_FAMILIES.has(input.skill)) {
+    // Martial mastery/family proficiency belongs to martialPractice, including its solo
+    // ceiling. This adapter records evidence and conditions the body, never awards that
+    // proficiency a second time. Deliberate solo form practice demands more than incidental
+    // labor but plateaus below Iron's core foundations; live sparring demands 15.5.
+    const foundationChallenge = source.data.martial === 'practice' ? 13 : 15.5;
+    developThroughPractice(world, p, input.skill, effective / 60, instructionFactor(p, input.skill), foundationChallenge);
+  } else practiceSkill(p, input.skill, effective / 60, world, 8 + 10 * challenge);
   return { credited: true, effectiveSeconds: effective };
 }
 

@@ -14,6 +14,7 @@ import { postureFits } from './prediction';
 import { COMBAT_REPERTOIRE,precedingStrike } from './combatRepertoire';
 import { arenaRepertoire,combatEffortScale } from './combatPracticeProfile';
 import { resolveAttackMove,bindDefenseLabel,settleCombatLearning } from './martialCombat';
+import { guardContact } from './guard';
 
 export const combatBusy=(b:Body,at:number)=>!!b.combatAction&&b.combatAction.completeAt>at;
 export const combatPosture=(a:CombatAction|undefined,at:number):number=> !a||a.kind!=='duck'||a.outcome==='cancelled'||a.outcome==='interrupted'?0:
@@ -40,6 +41,7 @@ function accept(w:World,p:Person,b:Body,a:CombatAction):void {
   const old=b.combatAction;
   if(old&&old.phase!=='complete'){old.queuedInput=undefined;old.completeAt=w.physicalTime;phase(w,old,'complete',w.physicalTime);}
   b.combatAction=a;b.path=null;b.vel={x:0,y:0,z:0};
+  if(b.guard)b.guard.until=w.physicalTime;
   a.eventId=phase(w,a,'requested',a.startedAt).id;a.eventId=phase(w,a,'accepted',a.startedAt).id;
   a.eventId=phase(w,a,'preparation',a.startedAt).id;
   a.exertionCost*=combatEffortScale(w,b.id);
@@ -66,6 +68,13 @@ export function requestCombatAction(w:World,intent:CombatAttackIntent,commandId?
     a.techniqueId=resolved.techniqueId;a.transitionTechniqueId=resolved.transitionTechniqueId;
     a.previousTechniqueId=resolved.previousTechniqueId;a.martialDemonstration=resolved.martialDemonstration;
   }
+  if(intent.weight==='heavy'){
+    const preparation=(a.activeAt-a.startedAt)*S.heavyPreparationMultiplier,active=a.recoveryAt-a.activeAt,recovery=(a.completeAt-a.recoveryAt)*S.heavyRecoveryMultiplier;
+    a.activeAt=a.startedAt+preparation;a.recoveryAt=a.activeAt+active;a.completeAt=a.recoveryAt+recovery;
+    a.trackingUntil=a.startedAt+preparation*S.heavyTrackingFraction;a.impact*=S.heavyImpactMultiplier;a.exertionCost*=S.heavyEffortMultiplier;
+    a.definition+=':heavy';r.impact=a.impact;r.exertionCost=a.exertionCost;
+  }
+  if(intent.weight==='heavy'&&p.physiology.fatigue+a.exertionCost*combatEffortScale(w,b.id)>1)return {...r,attempted:false,rejection:'exhausted'};
   b.lastAttackAt=w.physicalTime;b.attackSeq++;b.pose='attack';b.poseUntil=a.completeAt;b.attackTarget=r.targetId;
   accept(w,p,b,a);r.actionId=a.id;return r;
 }
@@ -121,7 +130,7 @@ export function submitCombatInput(w:World,bodyId:string,input:CombatInput):strin
     accept(w,p,b,exit);exit.queuedInput={...input,expiresAt:at+S.combatBufferSeconds};return 'accepted';
   }
   if(input.kind==='attack'){
-    const result=requestCombatAction(w,{attackerId:p.id,attackerBodyId:b.id,targetBodyId:input.targetBodyId??'',attackMode:'strike',trajectory:input.trajectory},input.commandId);
+    const result=requestCombatAction(w,{attackerId:p.id,attackerBodyId:b.id,targetBodyId:input.targetBodyId??'',attackMode:'strike',trajectory:input.trajectory,weight:input.weight},input.commandId);
     return result.attempted?'accepted':result.rejection??'invalid_command';
   }
   return requestDefense(w,b.id,input.kind,input.side??1,input.commandId,input.direction);
@@ -238,6 +247,11 @@ export function advanceCombat(w:World,dt:number,before:Map<string,CombatTransfor
       actionId:a.id,weaponId:a.weaponId,distance:Math.hypot(ab.pos.x-tb.pos.x,ab.pos.z-tb.pos.z),reach:a.reach,attempted:true,
       rejection:null,hit:true,impact:a.impact,exertionCost:a.exertionCost,contactRegion:region,
       injury:tb.shape==='humanoid'?{region:injuryRegion,severity:Math.min(1,a.impact/tb.maxHealth)}:null};
+    const defense=guardContact(w,ab,tb,r.impact,at,a.eventId);
+    r.guardEventId=defense.event?.id;
+    r.impact=defense.impact;
+    if(r.injury)r.injury.severity=Math.min(1,r.impact/tb.maxHealth);
+    if(defense.parried){a.contact.eventId=defense.event?.id;stopCombatAction(w,ab,'parried',false,at);continue;}
     const ev=hit(w.person(ab.ownerId)!,ab,tb,r,a);if(ev)a.contact.eventId=ev.id;
     stopCombatAction(w,tb,'contact',false,at);
   }

@@ -29,7 +29,8 @@ public:
     float FootLock = 0;
     bool bCarrySupport=false;
     FVector HandGoal=FVector::ZeroVector;
-    float HandWeight=0,Duck=0;
+    float HandWeight=0,Duck=0,Guard=0;
+    FVector GuardLeftGoal,GuardRightGoal;
     bool bLowStrike=false,bReleaseRightFoot=false;
 protected:
     virtual FAnimInstanceProxy* CreateAnimInstanceProxy() override;

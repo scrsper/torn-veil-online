@@ -1,5 +1,7 @@
 #include "TVBridgeSubsystem.h"
 #include "TVCharacter.h"
+#include "TVControlSettings.h"
+#include "GameFramework/InputSettings.h"
 #include "TVWorldProjection.h"
 #include "TVInteractionFocus.h"
 #include "TVInteractionSpec.generated.h"
@@ -8,6 +10,8 @@
 #include "Camera/PlayerCameraManager.h"
 #include "Dom/JsonObject.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "IWebSocket.h"
 
 TSharedRef<FJsonObject> UTVBridgeSubsystem::ControlState() const {
     auto J=MakeShared<FJsonObject>();const double Now=FPlatformTime::Seconds();
@@ -44,6 +48,7 @@ void UTVBridgeSubsystem::UpdateInteractionFocus() {
     if(FocusedKind==TEXT("person"))TalkTargetBody=FocusedTargetId;else NearbyInteraction=FocusedActionId;
 }
 void UTVBridgeSubsystem::UpdatePlayerShell() {
+    if(bSignInRequired)return;
     auto* PC=GetWorld()->GetFirstPlayerController();auto* P=PC?Cast<ATVCharacter>(PC->GetPawn()):nullptr;if(!PC||!P||!PC->IsLocalController())return;
     if(!PlayerShell){PlayerShell=CreateWidget<UTVPlayerShellWidget>(PC);PlayerShell->OnCommand().AddUObject(this,&UTVBridgeSubsystem::UICommand);
         PlayerShell->OnModalChanged().AddWeakLambda(this,[this](bool Modal){if(auto* C=Cast<ATVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0)))C->RefreshInputContext(Modal);});
@@ -57,7 +62,7 @@ void UTVBridgeSubsystem::UpdatePlayerShell() {
     else if(!HasModalScreen()&&Confirmed.bEligible&&!P->IntentDirection().IsNearlyZero()&&PredictionVelocity.Size2D()<1)MovementRestriction=TEXT("Blocked");
     FTVUISnapshot S;S.Revision=SnapshotCount;S.FocusedLabel=NearbyPrompt;S.FocusedTargetId=FocusedTargetId;S.FocusedActionId=FocusedActionId;
     S.FocusedBounds.bHasFocusBounds=FocusedBounds.bIsValid;S.FocusedBounds.BoundsPixels=FocusedBounds;
-    S.Vitals=PlayerVitals+TEXT("\n")+MobilitySummary;S.Restriction=MovementRestriction+(LastResult.IsEmpty()?TEXT(""):TEXT("   ")+LastResult);
+    S.Vitals=PlayerVitals+TEXT("\n")+MobilitySummary;S.Journal=JournalSummary+TEXT("\n")+KnowledgeSummary;S.Restriction=MovementRestriction+(LastResult.IsEmpty()?TEXT(""):TEXT("   ")+LastResult);
     for(int32 I=0;I<InventoryItemIds.Num();++I){FTVUIItemRow Row;Row.Id=InventoryItemIds[I];Row.Label=InventoryItemLabels[I];S.Inventory.Add(Row);}
     for(int32 I=0;I<ContainerItemIds.Num();++I){FTVUIItemRow Row;Row.Id=ContainerItemIds[I];Row.Label=ContainerItemLabels[I];S.Container.Add(Row);}
     S.ContainerId=OpenContainerId;S.ContainerName=OpenContainerName;S.bDialogueOpen=bDialogueOpen;S.DialogueSpeaker=DialogueSpeaker;S.DialogueOccupation=DialogueOccupation;S.DialogueLines=DialogueLines;S.DialogueOptionIds=DialogueOptionIds;S.DialogueOptionLabels=DialogueOptionLabels;
@@ -67,6 +72,28 @@ void UTVBridgeSubsystem::UpdatePlayerShell() {
     if(!PendingOpenContainer.IsEmpty()&&PendingOpenContainer==OpenContainerId){PendingOpenContainer.Empty();PlayerShell->OpenContainer();}
 }
 void UTVBridgeSubsystem::UICommand(ETVUICommand Command,const FString& Primary,const FString& Secondary,int32 Index) {
+    if(Command==ETVUICommand::Quit){SaveWorld();UKismetSystemLibrary::QuitGame(this,GetWorld()->GetFirstPlayerController(),EQuitPreference::Quit,false);return;}
+    if(Command==ETVUICommand::SignOut){
+        SaveWorld();if(auto* C=Cast<ATVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0)))C->RefreshInputContext(true);
+        ClearBufferedInput();bControls=bTransportConnected=bCanonicalReady=bPredictionReady=false;
+        if(Socket){Socket->OnMessage().Clear();Socket->OnConnected().Clear();Socket->OnConnectionError().Clear();Socket->OnClosed().Clear();Socket->Close(1000,TEXT("signed out"));Socket.Reset();}
+        if(PlayerShell){PlayerShell->RemoveFromParent();PlayerShell=nullptr;}
+        bDialogueOpen=bShellDialogue=false;RequireSignIn(TEXT("Signed out. Continue your character whenever you are ready."));return;
+    }
+    if(Command==ETVUICommand::OpenPanel){OpenActionPanel(Primary);return;}
+    if(Command==ETVUICommand::Setting){GetMutableDefault<UTVControlSettings>()->Adjust(Primary);return;}
+    if(Command==ETVUICommand::Rebind){
+        if(Secondary.IsEmpty()){if(PlayerShell)PlayerShell->BeginRebind(Primary);return;}
+        if(!UTVControlSettings::Rebind(GetMutableDefault<UInputSettings>(),FName(*Primary),FKey(FName(*Secondary)))){
+            LastResult=TEXT("That input is reserved or has no safe binding to swap.");return;
+        }
+        if(auto* C=Cast<ATVCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0)))C->RebuildInputMappings();return;
+    }
+
+    if(Command==ETVUICommand::PersonAction){
+        if(PlayerShell)PlayerShell->CloseTop();
+        if(Primary==TEXT("rest"))ToggleRest();else if(Primary==TEXT("crouch"))SetCrouch(!bCrouchHeld);else if(Primary==TEXT("hush"))Hush();else PersonAction(Primary,Primary+TEXT(" requested"));return;
+    }
     if(Command==ETVUICommand::Back){if(bDialogueOpen)CloseDialogue();if(PlayerShell&&PlayerShell->HasModalScreen())PlayerShell->CloseTop();return;}
     if(Command==ETVUICommand::Pause){TogglePause();return;}
     if(!IsLive())return;
@@ -78,3 +105,4 @@ void UTVBridgeSubsystem::UICommand(ETVUICommand Command,const FString& Primary,c
     else {M->SetStringField(TEXT("type"),TEXT("container_transfer"));M->SetStringField(TEXT("containerId"),OpenContainerId);M->SetStringField(TEXT("itemId"),Primary);M->SetStringField(TEXT("direction"),Command==ETVUICommand::TransferItemToContainer?TEXT("into"):TEXT("out"));}
     Send(M);
 }
+void UTVBridgeSubsystem::OpenActionPanel(const FString& Kind){if(PlayerShell)PlayerShell->OpenActionPanel(Kind);}

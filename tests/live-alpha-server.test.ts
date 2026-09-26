@@ -139,6 +139,9 @@ describe.sequential('Living Alpha authoritative service', () => {
     await a.close();
     await server.stopInProcess('restart test');
     expect(JSON.parse(readFileSync(join(root, 'state', 'last-shutdown.json'), 'utf8')).ok).toBe(true);
+    const stopped = server.store.candidates().next().value!;
+    expect(stopped.meta.physicalTime).toBe(w.physicalTime);
+    expect(JSON.parse(stopped.world).physicalTime).toBe(w.physicalTime);
     server = await boot();
     const w2 = server.session.world;
     expect(server['ownership']).toEqual(before.ownership);
@@ -153,6 +156,18 @@ describe.sequential('Living Alpha authoritative service', () => {
     await expect(second.open()).rejects.toBeInstanceOf(WriterFenceError);
   }, 60_000);
 
+  it('keeps checkpoint metadata at the captured epoch while asynchronous packing permits world progress', async () => {
+    const w = server.session.world, at = w.physicalTime;
+    const pending = server.checkpoint('snapshot epoch');
+    server.session.step(0.1);
+    expect(w.physicalTime).toBeGreaterThan(at);
+    const meta = await pending;
+    const payload = JSON.parse(readFileSync(join(server.store.checkpointDir(meta.generation), 'world.json'), 'utf8'));
+    expect(meta.physicalTime).toBe(at);
+    expect(payload.physicalTime).toBe(at);
+    expect(meta.worldNow).toBe(payload.clock.worldSeconds);
+  });
+
   it('recovers from an interrupted write and a corrupted newest checkpoint using the previous generation', async () => {
     await server.checkpoint('gen A');
     await server.stopInProcess('corruption test');
@@ -163,6 +178,26 @@ describe.sequential('Living Alpha authoritative service', () => {
     expect(server.metrics.recoveredFrom.some(r => r.generation === newest)).toBe(true);
     expect(existsSync(join(store.worldDir, `.tmp-gen-99999999-1234`))).toBe(false);
     expect(server['lastCheckpoint']!.generation).toBe(newest - 1);
+  }, 180_000);
+
+  it('falls back from structurally corrupt packed evidence to a verified schema-24 checkpoint', async () => {
+    await server.stopInProcess('legacy fallback test');
+    const store = new WorldStore(join(root, 'state')), last = store.candidates().next().value!;
+    const legacy = JSON.parse(server.session.save()); legacy.version = 24;
+    const packed = JSON.parse(server.session.save(true)); packed.events[0][1] = 999999;
+    const fence = new WriterLock(join(root, 'state'), { release: release.version, env: 'dev' });
+    fence.acquire();
+    let oldGeneration = 0, badGeneration = 0;
+    try {
+      oldGeneration = (await store.commit(JSON.stringify(legacy), { ...last.meta, saveSchema: 24, reason: 'legacy compatible evidence' }, fence)).generation;
+      badGeneration = (await store.commit(JSON.stringify(packed), { ...last.meta, saveSchema: SAVE_VERSION, reason: 'test structural corruption with valid file hash' }, fence)).generation;
+    } finally { fence.release(); }
+    server = await boot();
+    expect(server.metrics.recoveredFrom.some(r => r.generation === badGeneration)).toBe(true);
+    expect(server['lastCheckpoint']!.generation).toBe(oldGeneration);
+    expect(server.session.world.events.map(e => e.id)).toEqual(legacy.events.map((e: { id: string }) => e.id));
+    expect(server['ownership']).toEqual(last.meta.ownership);
+    expect(server.session.world.physicalTime).toBeGreaterThanOrEqual(legacy.physicalTime);
   }, 180_000);
 
   it('refuses to start when the generator would rebuild a different seeded base', async () => {

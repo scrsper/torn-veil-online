@@ -1,3 +1,4 @@
+import { requestGuard } from '../src/sim/physical/guard';
 import { describe, expect, it } from 'vitest';
 import { BridgeSession } from '../src/bridge/session';
 import type { Body, Creature } from '../src/sim/core/types';
@@ -36,6 +37,22 @@ describe('defensive wildlife', () => {
     expect(pb.health).toBeLessThan(health);
     expect(Object.keys(pb.injuries ?? {}).length).toBeGreaterThan(0);
     expect(player.alive).toBe(true); // drive-off intent never kills
+  }, 60_000);
+
+
+  it('holding a frontal guard braces a real boar impact without making it harmless', () => {
+    const { s, w, player, pb, boar, bb } = encounter(5);
+    const health = pb.health; let seq = 0;
+    run(s, 8, () => {
+      const dx = bb.pos.x - pb.pos.x, dz = bb.pos.z - pb.pos.z, distance = Math.hypot(dx, dz) || 1;
+      if (distance > 1.6) s.intent({ version: 1, type: 'move', sequence: ++seq, x: dx / distance, z: dz / distance, sprint: false });
+      requestGuard(w, pb.id, true);
+    });
+    const brace = w.events.find(e => e.data.kind === 'guard' && e.target === boar.id && e.data.phase === 'contact');
+    expect(brace?.data.outcome).toBe('blocked');
+    expect(brace?.data.impact).toBeCloseTo(brace!.data.incomingImpact * .65);
+    expect(w.events.some(e => e.type === 'attack' && e.actor === boar.id && e.causes.includes(brace!.id))).toBe(true);
+    expect(pb.health).toBeLessThan(health); expect(player.alive).toBe(true);
   }, 60_000);
 
   it('backing away out of range ends the display without a fight', () => {

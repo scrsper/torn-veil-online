@@ -42,10 +42,12 @@ export interface CombatAttackIntent {
   weaponId?: EntityId | null;
   intent?: ConflictIntent;
   trajectory?: 'high' | 'mid' | 'low';
+  weight?: 'light' | 'heavy';
 }
 export type AttackRejection = 'invalid_attacker' | 'invalid_target' | 'self_target' | 'incapacitated' | 'unsupported' | 'cooldown' | 'invalid_weapon' | 'invalid_mode' | 'out_of_reach' | 'obstructed' | 'protected_target' | 'exhausted';
 export interface CombatAttackResult extends CombatAttackIntent {
   actionId?: string;
+  guardEventId?: string;
   contactRegion?: import('./combatGeometry').ContactRegion;
   targetId: EntityId | null;
   weaponId: EntityId | null;

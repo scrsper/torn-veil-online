@@ -34,6 +34,6 @@ Start-Process -FilePath $exe -ArgumentList @(
     ('"' + $project + '"'), '/Game/TornVeil/Maps/TornVeilWorld', '-game', '-windowed',
     '-ResX=1280', '-ResY=720', '-ExecCmds="t.MaxFPS 60,t.IdleWhenNotForeground 0"'
 ) | Out-Null
-Write-Output "Arena: $url. WASD move/strafe; Shift forward sprint; mouse facing/camera; LMB punch; RMB kick; Space + direction dodge (neutral backstep); hold Left Ctrl crouch. F1 passive, F2 incoming, F3 reset (mode retained), F4 physiology."
-Write-Output "Controller: left stick move, right stick facing/camera, RB punch, RT or Y kick, B dodge, hold LB crouch, L-stick click sprint; D-pad left/right passive/repeat, up physiology; Menu reset."
+Write-Output "Arena: $url. WASD move/strafe; Shift forward sprint; mouse facing/camera; LMB light strike; Mouse4 heavy strike; RMB guard/parry; Alt + direction dodge (neutral backstep); Ctrl crouch; F lock. F1 passive, F2 incoming, F3 reset (mode retained), F4 physiology."
+Write-Output "Controller: left stick move, right stick camera, X/Square light, Y/Triangle heavy, B/Circle dodge, LB/L1 guard, L3 sprint, R3 lock, RT/R2 ability; D-pad down abilities; Menu/Options pause. Arena reset controls F1-F4 are optional developer commands."
 Write-Output "Other reset scenarios: idle, incoming_low, blocked, npc_defense. Return focus to the game before reacting."

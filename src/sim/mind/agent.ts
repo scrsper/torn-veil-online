@@ -27,6 +27,7 @@ import { observeProduction, productionWorkGoals, localProductionChoice } from '.
 import { applyInjury } from '../physical/injury';
 import { combatReach, type CombatAttackIntent, type CombatAttackResult } from '../physical/combat';
 import { advanceCombat, captureCombatTransforms, combatBusy, requestCombatAction, requestDefense } from '../physical/combatAction';
+import { requestGuard } from '../physical/guard';
 import { observeCombatPreparation, offerCombatDefense } from './combatReaction';
 import type { CombatTransform } from '../physical/combatGeometry';
 import type { Person, Body, Vec3, Goal, GoalType, Action, Percept, WorldEvent, EntityId, ItemType, KnowledgeItem, Creature, Place, Anchor, ConflictIntent, Conflict, ConflictCause } from '../core/types';
@@ -53,7 +54,7 @@ import { stepConstruction, activeBuildProjects, performBuildLabor, MAX_BUILDERS 
 import { stepFire, igniteFire, feedFire, fireIntensityAt, fireAt } from '../world/fire';
 import { willingnessFor, unitPriceFor, tradeOffersFrom, refusalsFrom, purchaseUnits, type TradeOffer, type Refusal, type PurchaseResult } from '../world/commerce';
 import { remember } from './memory';
-import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge, learnPlace, knownFoodPlace, noteFoodShortage, expectsAffordableFood, foodSearchPlaces } from './knowledge';
+import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge, learnPlace, knownFoodPlace, noteFoodShortage, expectsAffordableFood, foodSearchPlaces, MAX_TESTIMONY_HOPS } from './knowledge';
 import { realizeClaim, realizeTopic } from './realize';
 import { currentScheduleEntry } from './schedule';
 import { SECONDS_PER_DAY, SECONDS_PER_HOUR } from '../core/time';
@@ -1203,7 +1204,14 @@ export class Simulation {
     const fieldEvidence = scheduledField && p.knowledge['field-observation:' + scheduledField.id];
     // Stale observations cannot prevent a person returning to their familiar workplace.
     const fieldShift = !!fieldEvidence && w.now - (fieldEvidence.lastConfirmedAt ?? fieldEvidence.learnedAt) < 3600;
-    if (sched && !['sleep', 'eat'].includes(sched.activity) && !fieldShift && !(sched.activity === 'work' && localProductionChoice(w, p, sched.placeId))) {
+    // A familiar workplace is not omniscient stock knowledge. After personally finding no
+    // game, reconsider other goals for one ordinary hunt interval before checking again.
+    const observedGame = p.occupation === 'hunter' && sched?.activity === 'work'
+      ? knowledgeItems(p).filter(k => k.key.startsWith('game:') && k.claim.placeId === sched.placeId
+        && now - (k.lastConfirmedAt ?? k.learnedAt) < 30 * 60) : [];
+    const unavailableHuntShift = p.occupation === 'hunter' && sched?.activity === 'work'
+      && (!laborOk || (observedGame.length > 0 && observedGame.every(k => k.claim.available === false)));
+    if (sched && !['sleep', 'eat'].includes(sched.activity) && !fieldShift && !unavailableHuntShift && !(sched.activity === 'work' && localProductionChoice(w, p, sched.placeId))) {
       const rainingNow = w.weather.kind === 'rain' || w.weather.kind === 'storm';
       const outdoorTask = !sched.placeId || !(w.place(sched.placeId)?.indoor);
       const rainPenalty = rainingNow && outdoorTask && !isGuard && !p.hostile ? 0.2 + w.weather.intensity * 0.15 : 0;
@@ -1275,9 +1283,14 @@ export class Simulation {
     // below) — a large fixed haul/build task should not indefinitely starve a person's own
     // occupational schedule once they have already stepped away from it for good reason; the
     // max-suspension abandonment above is the backstop that keeps this bounded either way.
+    // A resumption bonus larger than the switch hysteresis in both directions can
+    // create its own oscillation: win while suspended, lose the bonus when active,
+    // immediately suspend again. One shared margin favors returning without making
+    // the act of resuming reverse the next decision under unchanged motivations.
+    const GOAL_HYSTERESIS = 0.12;
     if (m.commitment && m.commitment.status === 'suspended') {
       const resumeCand = cands.find(c => c.key === m.commitment!.goalKey);
-      if (resumeCand) resumeCand.utility = clamp(resumeCand.utility + 0.4);
+      if (resumeCand) resumeCand.utility = clamp(resumeCand.utility + GOAL_HYSTERESIS);
     }
     const productionOpportunities = !threat ? observeProduction(w, p) : [];
     for (const goal of [...productionWorkGoals(w, p, productionOpportunities), ...(!threat ? [...inventionGoals(w, p, productionOpportunities), ...maintenanceGoals(w, p), ...recordGoals(w, p), ...genealogyGoals(w, p)] : [])])
@@ -1368,7 +1381,7 @@ export class Simulation {
       // docs/V0_5_HUMAN_PHYSIOLOGY_AUTONOMOUS_ECONOMY.md).
       const committedNotDone = !!m.commitment && m.commitment.status === 'active' && cur.key === m.commitment.goalKey;
       const done = (m.plan.length === 0 || m.plan.every(a => a.status === 'done' || a.status === 'failed')) && !committedNotDone;
-      if (!done && best.utility < curU + 0.12 && !(best.type === 'flee' || best.type === 'attack' || best.type === 'confront' || best.type === 'rob')) { chosen = { ...cur, utility: curU }; note = `kept ${cur.type} (hysteresis)`; }
+      if (!done && best.utility < curU + GOAL_HYSTERESIS && !(best.type === 'flee' || best.type === 'attack' || best.type === 'confront' || best.type === 'rob')) { chosen = { ...cur, utility: curU }; note = `kept ${cur.type} (hysteresis)`; }
       else { switched = true; note = best === best0 ? `switched from ${cur.type} to ${best.type}` : `resumed ${best.type} (committed)`; }
     } else if (!cur) { switched = true; note = `adopted ${best.type}`; }
     else if (cur.type === 'report' && cur.data?.key !== best.data?.key) {
@@ -1640,8 +1653,10 @@ export class Simulation {
         if (!task || task.status === 'delivered' || task.status === 'failed' || task.status === 'cancelled') return [A({ type: 'wait', duration: 30 })];
         claimHaulTask(w, task, p); // idempotent — only claims a still-`needed` task
         const src = w.place(task.sourcePlaceId); const dst = w.place(task.destPlaceId);
-        const srcSpot = src?.anchors.find(a => a.kind === 'work')?.pos ?? src?.inside ?? body.pos;
-        const dstSpot = dst?.anchors.find(a => a.kind === 'work' || a.kind === 'inside')?.pos ?? dst?.inside ?? body.pos;
+        // Hauling transfers place stock, not a particular production fixture. Work
+        // anchors may be embedded in furniture; use the place's normal access point.
+        const srcSpot = src?.inside ?? body.pos;
+        const dstSpot = dst?.inside ?? body.pos;
         return [
           ...(task.status === 'in_transit' && task.carried > 0 ? [] : [
             A({ type: 'goto', pos: srcSpot, placeId: task.sourcePlaceId, run: false }),
@@ -1739,7 +1754,7 @@ export class Simulation {
     if (a.status === 'pending') { a.status = 'active'; a.startedAt = w.now; this.beginAction(p, body, a); }
     switch (a.type) {
       case 'defend': {
-        const result=requestDefense(w,body.id,a.data?.kind??'sidestep',a.data?.side??1);
+        const result=a.data?.kind==='guard'?requestGuard(w,body.id,true):requestDefense(w,body.id,a.data?.kind??'sidestep',a.data?.side??1);
         a.status=result==='accepted'?'done':'failed';break;
       }
       case 'ask_mechanism': {
@@ -1816,7 +1831,7 @@ export class Simulation {
             // types with nothing service-relevant to learn (see mind/knowledge.ts's SERVICE_OFFERS).
             const arrivedPlace = w.place(a.placeId); if (arrivedPlace) learnPlace(w, p, arrivedPlace, { type: 'witnessed' });
             for (const node of w.resourceNodes) if (node.kind === 'game' && node.placeId === a.placeId && dist2(body.pos, node.pos) < 12) {
-              learn(w, p, { key: `game:${node.id}`, kind: 'affordance', claim: { placeId: node.placeId, resource: 'meat' }, confidence: 1, source: { type: 'witnessed' } }, true);
+              this.observeGameGround(p, node);
             }
           }
         }
@@ -2098,14 +2113,21 @@ export class Simulation {
         // finer chop-vs-quarry distinction resolved by the renderer's `workStyleFor` from this
         // Action's own `nodeId`/type — see game/presentation/activityCues.ts and actors.ts).
         body.pose = 'work'; body.sitAnchor = null;
-        if (!node || node.state !== 'available' || node.remaining <= 0) { a.status = 'done'; break; } // depleted — stop, don't retry
+        if (!node) { a.status = 'failed'; break; }
         if (a.pos && dist2(body.pos, a.pos) > 2.6) { a.status = 'pending'; m.plan.unshift({ type: 'goto', pos: a.pos, status: 'pending' }); break; }
+        if (node.state !== 'available' || node.remaining <= 0) {
+          if (node.kind === 'game') this.observeGameGround(p, node);
+          a.status = 'failed'; break; // an empty attempt did not complete productive work
+        }
         body.yaw = Math.atan2(-(node.pos.x - body.pos.x), -(node.pos.z - body.pos.z));
         a.data = a.data ?? {}; const swing = node.kind === 'game' ? 30 * 60 : 5 * 60;
         if ((node.kind === 'game' || a.data.paidFirstSwing) && a.data.swingAt === undefined) a.data.swingAt = a.startedAt ?? w.now;
         if (a.data.swingAt === undefined || w.now - a.data.swingAt >= swing) {
           a.data.swingAt = w.now;
-          if (extractFromNode(w, node, p, a.data.paidFirstSwing ? { laborSeconds: swing / w.clock.timeScale, causes: a.data.causeEvent ? [a.data.causeEvent] : [] } : undefined) <= 0) { a.status = 'done'; break; }
+          const got = extractFromNode(w, node, p, a.data.paidFirstSwing ? { laborSeconds: swing / w.clock.timeScale, causes: a.data.causeEvent ? [a.data.causeEvent] : [] } : undefined);
+          if (node.kind === 'game') this.observeGameGround(p, node);
+          if (got <= 0) { a.status = 'failed'; break; }
+          if (node.state !== 'available' || node.remaining <= 0) { a.status = 'done'; break; }
         }
         if (this.elapsed(a)) a.status = 'done';
         break;
@@ -2187,7 +2209,8 @@ export class Simulation {
           if ((t.occupation === 'guard' || t.occupation === 'captain') && key) {
             if (heard) noteReportDelivered(w, p, key, t.id); else noteReportFailed(w, p, key, t.id, `could not make ${t.name} hear it`);
           }
-        }
+          if (!heard) { a.status = 'failed'; break; }
+        } else if (key) { a.status = 'failed'; break; }
         body.pose = 'talk'; body.poseUntil = w.physicalTime + 2; a.status = 'done'; break;
       }
       case 'propose': {
@@ -2370,11 +2393,22 @@ export class Simulation {
         // tick — which may well be a different goal entirely, because the world has changed.
         const pu = pursuitById(p, g.data?.pursuitId as string | undefined);
         if (pu && (pu.status === 'active' || pu.status === 'deferred')) notePursuitProgress(w, pu);
+        // A pantry delivery is one errand, unlike a multi-trip haul. Its old carried-food
+        // pointer must not remain protected after the food was deposited. A still-low
+        // pantry can motivate a fresh purchase/collection through ordinary deliberation.
+        if (g.type === 'provision_home') {
+          if (m.commitment?.goalKey === g.key) finishCommitment(w, p, 'completed');
+          m.goal = null;
+        }
       }
       m.thinkBudget = m.thinkInterval; body.sitAnchor = null;
     }
     if (a.status === 'failed') {
       body.sitAnchor = null; body.path = null;
+      if (m.goal?.type === 'provision_home') {
+        if (m.commitment?.goalKey === m.goal.key) finishCommitment(w, p, 'abandoned', 'the provisioning errand could not be completed');
+        m.goal = null; m.plan = [];
+      }
       // v0.2.1 Priority 7 fix: every OTHER action failure forces an immediate rethink next
       // step (someone worth reacting to quickly moved out of range, etc.), but a 'goto'
       // failure is a navigational dead end — the world hasn't changed, so an immediate retry
@@ -2394,6 +2428,26 @@ export class Simulation {
     }
   }
   private elapsed(a: Action): boolean { return this.world.now - (a.startedAt ?? 0) >= (a.duration ?? 0); }
+  /** Called only at an actual nearby arrival or extraction attempt. This is a fallible,
+   * dated observation, not remote access to the current resource ledger. */
+  private observeGameGround(p: Person, node: import('../core/types').ResourceNode): void {
+    const w = this.world, key = `game:${node.id}`, available = node.state === 'available' && node.remaining >= 1;
+    if (!p.bodies.some(id => { const b = w.body(id); return b?.present && !b.dead && dist2(b.pos, node.pos) < 12; })) return;
+    const old = p.knowledge[key];
+    const evidence = old?.claim.available === available && old.source.type === 'witnessed' && w.event(old.source.viaEvent ?? '') ? old.source.viaEvent : undefined;
+    const event = evidence ?? w.emit('resource_observed', { actor: p.id, placeId: node.placeId, pos: { ...node.pos }, category: 'cognition', significance: 0.05,
+      data: { nodeId: node.id, available }, summary: `${p.name} found ${available ? 'game' : 'no game'} at ${w.nameOf(node.placeId)}` }).id;
+    const claim = { nodeId: node.id, placeId: node.placeId, resource: 'meat', available };
+    if (old) {
+      // Rechecking unchanged stock is confirmation, not a newly learned fact. General learn()
+      // correctly ignores such duplicates, so explicitly date this local observation, as with
+      // pantry observations. A witnessed availability change replaces its own older claim.
+      if (old.claim.available !== available) { old.sharedWith = []; old.learnedAt = w.now; }
+      old.claim = claim; old.lastConfirmedAt = w.now; old.confidence = 1; old.hops = 0;
+      old.source = { type: 'witnessed', viaEvent: event };
+    } else learn(w, p, { key, kind: 'affordance', claim, confidence: 1,
+      source: { type: 'witnessed', viaEvent: event }, cause: event }, true);
+  }
   /** Resolve a shared rest destination through physical occupancy, then walk there.
    * The action's anchor remains its destination; sitAnchor/path hold the already
    * existing embodiment reservation. No presentation offsets or position snaps. */
@@ -2604,7 +2658,7 @@ export class Simulation {
    * whether it was actually said to them: an unreachable listener, a claim the speaker does not
    * hold, or an exhausted rumour are refused and change nothing. */
   tell(speaker: Person, listener: Person, k: KnowledgeItem): boolean {
-    if (!k || speaker.knowledge[k.key] !== k || k.hops >= 8) return false;
+    if (!k || speaker.knowledge[k.key] !== k || k.hops >= MAX_TESTIMONY_HOPS) return false;
     const bodies = conversationBodies(this.world, speaker, listener); if (!bodies) return false;
     const w = this.world; const sb = bodies.speaker;
     const text = this.tellLine(speaker, listener, k);
@@ -2742,7 +2796,7 @@ export class Simulation {
     const dx = tb.pos.x - ab.pos.x, dz = tb.pos.z - ab.pos.z; const d = Math.hypot(dx, dz) || 1; tb.vel.x += dx / d * 4; tb.vel.z += dz / d * 4;
     this.onHit?.(tb, { x: tb.pos.x, y: tb.pos.y + 1.2, z: tb.pos.z });
     const place = w.placeAt(tb.pos);
-    const ev = w.emit('attack', { causes:combat?.actionId&&ab.combatAction?.eventId?[ab.combatAction.eventId]:[], actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, significance: 0.7, visibility: 26, loudness: 14, data: { combatFacts: combatActionFacts(w, attacker, ab, tb, 'hit', combat), combat, attackerBodyId: ab.id, targetBodyId: tb.id, attackSeq: ab.attackSeq, hitSeq: tb.hitSeq, damage: Math.round(dmg), weapon: combat ? (combat.weaponId ? w.nameOf(combat.weaponId) : 'fists') : this.weaponName(attacker), health: Math.round(tb.health), intent }, summary: `${attacker.name} attacked ${victim.name}${place ? ' at ' + place.name : ''} (${Math.round(dmg)} dmg)` });
+    const ev = w.emit('attack', { causes:[...(combat?.actionId&&ab.combatAction?.eventId?[ab.combatAction.eventId]:[]),...(combat?.guardEventId?[combat.guardEventId]:[])], actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, significance: 0.7, visibility: 26, loudness: 14, data: { combatFacts: combatActionFacts(w, attacker, ab, tb, 'hit', combat), combat, attackerBodyId: ab.id, targetBodyId: tb.id, attackSeq: ab.attackSeq, hitSeq: tb.hitSeq, damage: Math.round(dmg), weapon: combat ? (combat.weaponId ? w.nameOf(combat.weaponId) : 'fists') : this.weaponName(attacker), health: Math.round(tb.health), intent }, summary: `${attacker.name} attacked ${victim.name}${place ? ' at ' + place.name : ''} (${Math.round(dmg)} dmg)` });
     // v0.2.3: track this as part of a canonical Conflict (Constitution §11). Idempotent per pair.
     let conflict: Conflict | null = null;
     if (victim.kind === 'person') {

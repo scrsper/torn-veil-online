@@ -21,7 +21,7 @@ const out = resolve(arg('out') ?? join(home, 'releases', version));
 if (existsSync(out) && readdirSync(out).length) { console.error(`${out} already exists; releases are immutable`); process.exit(1); }
 mkdirSync(out, { recursive: true });
 
-const entries = { server: 'src/server/main.ts', supervisor: 'src/server/supervisor.ts', ops: 'src/server/ops.ts', probe: 'src/server/probe.ts' };
+const entries = { server: 'src/server/main.ts', supervisor: 'src/server/supervisor.ts', ops: 'src/server/ops.ts', probe: 'src/server/probe.ts', checkpointWorker: 'src/server/checkpointWorker.ts' };
 await build({
   entryPoints: entries, outdir: out, bundle: true, platform: 'node', format: 'esm', target: 'node22', outExtension: { '.js': '.mjs' },
   external: ['bufferutil', 'utf-8-validate'], sourcemap: 'linked', legalComments: 'none',
