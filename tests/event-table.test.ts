@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { encodeEventTable, decodeEventTable } from '../src/sim/persist/eventTable';
+import { encodeEventTable, stringifyEventTable, decodeEventTable } from '../src/sim/persist/eventTable';
 import { deserialize, serialize, newWorld } from '../src/sim/persist/save';
 import { migrationPath } from '../src/server/migrations';
 import { BridgeSession } from '../src/bridge/session';
@@ -18,6 +18,24 @@ function fixture() {
 }
 
 describe('lossless event storage', () => {
+  it('streams multiple batches with exact bytes and never reuses stale witnesses or evidence', () => {
+    const world = fixture();
+    const data = world.events.find(e => e.data.observation)!.data;
+    for (let i = 0; i < 1100; i++) world.emit('perceived', { data: structuredClone(data), summary: `batch ${i} — 林` });
+    for (const events of [[], world.events]) {
+      const streamed = stringifyEventTable(events), table = encodeEventTable(events);
+      expect(streamed.rows).toBe(JSON.stringify(table.rows));
+      expect(streamed.appearances).toEqual(table.appearances);
+    }
+    const before = stringifyEventTable(world.events).rows;
+    world.events[700].perceivedBy.push({ who: 'p_1', how: 'saw', tick: world.now });
+    world.events[700].data.observation.appearance.skin = 0.2;
+    const after = stringifyEventTable(world.events);
+    expect(after.rows).not.toBe(before);
+    expect(after.rows).toBe(JSON.stringify(encodeEventTable(world.events).rows));
+    expect(json(decodeEventTable({ ...after, rows: JSON.parse(after.rows) }))).toEqual(json(world.events));
+  });
+
   it('deduplicates only identical appearance bytes and preserves complete independent evidence', () => {
     const world = fixture(), before = json(world.events), packed = json(encodeEventTable(world.events));
     expect(packed.appearances).toHaveLength(1);

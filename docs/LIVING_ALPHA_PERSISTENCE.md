@@ -66,3 +66,37 @@ to a schema-24 generation. Existing server checkpoint/restart/fence/backup tests
 The 84,855,524-byte archived world becomes 66,153,614 bytes while retaining exactly all
 events, people and clock state. Offline timings remain variable (235–322 ms in a mixed-load
 profile); only a reasonably isolated service soak can establish the latency gate.
+# Connected-client checkpoint correction (September 26)
+
+Alpha.17's isolated final attempt **failed**: zero-player checkpoints took 216–235 ms,
+but an ordinary packaged connection produced 290–334 ms checkpoints (326 ms on character
+creation). The save compacted from 66.1 MB to 63.9 MB during the observation; that does not
+excuse the blocking latency. Raw samples and the explicit early failure are retained privately
+under `.debug/finish50/soak-alpha17-31411be`.
+
+The next implementation keeps a synchronous, complete canonical JSON snapshot, including
+its clock and ownership at that exact boundary. UTF-8 bytes are copied into an owned,
+transferable allocation. One background worker then performs the lossless schema-25 event
+packing. No mutable world references cross that boundary, and simulation can continue while
+packing runs. Packing consumes temporary rows in batches to avoid retaining a second full
+event graph. The store accepts the resulting bytes directly, avoiding a second UTF-8 conversion.
+
+The file format, migration path, checksums, writer fence, generation rename, CURRENT pointer,
+backup and recovery contracts stay the same. There is one in-flight checkpoint per service;
+an encoding error, worker exit or 60-second timeout rejects the checkpoint. Shutdown awaits
+the final commit before terminating the worker. A crash during encoding leaves the previous
+committed generation recoverable. This changes storage work scheduling, not canonical history,
+knowledge, retention or NPC behavior.
+
+`lastSerializeMs`/`maxSerializeMs` include synchronous snapshot capture, metadata capture,
+UTF-8 copying and transfer submission: the work that stalls the simulation. `lastEncodeMs` /
+`maxEncodeMs` report background parse/packing/encoding, `lastCommitMs` reports durable commit,
+and `lastCheckpointMs` reports the whole operation. Background time is not a stall and must
+still be reported rather than hidden. A new final soak is required; this design is not itself
+a performance pass.
+
+Validation of this slice: 27 focused worker/server/persistence tests pass; the final shutdown
+check passes with all 14 server integration checks. Seven event-table/JSON tests verify exact
+streamed bytes, mutable witnesses, historical appearances and malformed input. A mature
+84,855,524-byte checkpoint round-trips every snapshot field exactly into 66,153,614 stored
+bytes. Its mixed-load capture measurement is diagnostic only; the final soak is still required.

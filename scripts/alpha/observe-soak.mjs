@@ -51,6 +51,8 @@ const report = { runtime: last?.runtime, connectedClientPeriodObserved: samples.
   growth: { whole: growth(samples), firstHalf: growth(samples.filter(s => s.elapsedSeconds <= seconds / 2)), lastHalf: growth(samples.filter(s => s.elapsedSeconds > seconds / 2)) },
   cpuCores: { mean: cpuSamples.length ? cpuSamples.reduce((a, b) => a + b, 0) / cpuSamples.length : null, peak: Math.max(0, ...cpuSamples) },
   peakCheckpointCommitMs: peak(s => s.metrics.lastCommitMs),
+  peakBackgroundEncodeMs: peak(s => s.metrics.maxEncodeMs ?? 0),
+  peakCheckpointEndToEndMs: peak(s => s.metrics.lastCheckpointMs ?? 0),
   kind: 'server-only realtime soak; client FPS/UI separate', root, requestedSeconds: seconds, elapsedSeconds: (Date.now() - began) / 1000,
   sampleCount: samples.length, checks, passed: Object.values(checks).every(Boolean), errors,
   peakRssBytes: peak(s => s.memory.rss), peakSerializeMs: peak(s => s.metrics.maxSerializeMs), peakDebtMs: peak(s => s.scheduler.debtMs),

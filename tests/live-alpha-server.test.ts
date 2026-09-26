@@ -139,6 +139,9 @@ describe.sequential('Living Alpha authoritative service', () => {
     await a.close();
     await server.stopInProcess('restart test');
     expect(JSON.parse(readFileSync(join(root, 'state', 'last-shutdown.json'), 'utf8')).ok).toBe(true);
+    const stopped = server.store.candidates().next().value!;
+    expect(stopped.meta.physicalTime).toBe(w.physicalTime);
+    expect(JSON.parse(stopped.world).physicalTime).toBe(w.physicalTime);
     server = await boot();
     const w2 = server.session.world;
     expect(server['ownership']).toEqual(before.ownership);
@@ -152,6 +155,18 @@ describe.sequential('Living Alpha authoritative service', () => {
     const second = new LiveServer(loadConfig(configPath()), release, quiet);
     await expect(second.open()).rejects.toBeInstanceOf(WriterFenceError);
   }, 60_000);
+
+  it('keeps checkpoint metadata at the captured epoch while asynchronous packing permits world progress', async () => {
+    const w = server.session.world, at = w.physicalTime;
+    const pending = server.checkpoint('snapshot epoch');
+    server.session.step(0.1);
+    expect(w.physicalTime).toBeGreaterThan(at);
+    const meta = await pending;
+    const payload = JSON.parse(readFileSync(join(server.store.checkpointDir(meta.generation), 'world.json'), 'utf8'));
+    expect(meta.physicalTime).toBe(at);
+    expect(payload.physicalTime).toBe(at);
+    expect(meta.worldNow).toBe(payload.clock.worldSeconds);
+  });
 
   it('recovers from an interrupted write and a corrupted newest checkpoint using the previous generation', async () => {
     await server.checkpoint('gen A');

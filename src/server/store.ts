@@ -42,7 +42,7 @@ function writeDurableSync(path: string, data: string): void {
   const fd = openSync(path, 'w');
   try { writeSync(fd, data); fsyncSync(fd); } finally { closeSync(fd); }
 }
-async function writeDurable(path: string, data: string): Promise<void> {
+async function writeDurable(path: string, data: string | Buffer): Promise<void> {
   const fh = await open(path, 'w');
   try { await fh.writeFile(data); await fh.sync(); } finally { await fh.close(); }
 }
@@ -141,7 +141,7 @@ export class WorldStore {
     }
   }
   /** Commit a checkpoint. `world` must already be a complete serialized snapshot. */
-  async commit(world: string, meta: Omit<CheckpointMeta, 'generation' | 'worldSha256' | 'worldBytes' | 'format'>, fence?: WriterLock): Promise<CheckpointMeta> {
+  async commit(world: string | Buffer, meta: Omit<CheckpointMeta, 'generation' | 'worldSha256' | 'worldBytes' | 'format'>, fence?: WriterLock): Promise<CheckpointMeta> {
     fence?.verify();
     const generation = Math.max(0, ...this.generations()) + 1;
     const full: CheckpointMeta = { format: 1, ...meta, generation, worldSha256: sha256(world), worldBytes: Buffer.byteLength(world) };

@@ -1,5 +1,5 @@
 import { stringifySnapshot } from './json';
-import { encodeEventTable, decodeEventTable } from './eventTable';
+import { stringifyEventTable, decodeEventTable } from './eventTable';
 import { initializeWildlife } from '../ecology/generation';
 import { validateWildlifeSpec } from '../ecology/animals';
 import { martialPersistenceState, validMartialSave, restoreMartialPersistence } from './martial';
@@ -192,7 +192,7 @@ export function serialize(world: World, compactEvents = false): string {
   const diffs = [...world.grid.diffs.entries()];
   const doors = [...world.grid.doorStates.entries()];
   const events = execution ? world.events : eventsForPersistence(world);
-  const eventTable = compactEvents ? encodeEventTable(events) : undefined;
+  const eventTable = compactEvents ? stringifyEventTable(events) : undefined;
   // v0.2.3: conflicts are plain serializable records (ids, ticks, strings, numbers). The whole
   // list is kept — a resolved conflict is history and its outcome feeds re-engagement gating.
   const conflicts = world.conflicts.map(c => ({ ...c }));
@@ -220,7 +220,7 @@ export function serialize(world: World, compactEvents = false): string {
   // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
   // falls back to today's behavior (rewind to post-generation position) when absent.
   const rng = world.rng.state(); const weatherRng = world.weatherRng.state(); const demographicRng = world.demographicRng.state();
-  return stringifySnapshot({ version: SAVE_VERSION, ecology: world.ecology, martialLearning: martialPersistenceState(world), creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, containers, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events: eventTable?.rows ?? events, eventEncoding: eventTable ? { format: eventTable.format, appearances: eventTable.appearances } : undefined, rng, weatherRng, demographicRng, savedAt: Date.now() });
+  return stringifySnapshot({ version: SAVE_VERSION, ecology: world.ecology, martialLearning: martialPersistenceState(world), creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, containers, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, diffs, doors, events: events, eventEncoding: eventTable ? { format: eventTable.format, appearances: eventTable.appearances } : undefined, rng, weatherRng, demographicRng, savedAt: Date.now() }, eventTable ? { events: eventTable.rows } : {});
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */

@@ -14,6 +14,7 @@ import { loadCatalogue } from '../foundry/load';
 import { SAVE_VERSION, readableSaveVersion } from '../sim/persist/save';
 import { isExternallyControlled, setExternalControl } from '../sim/runtime/controllers';
 import { AccountRegistry, type AccountRecord } from './accounts';
+import { CheckpointEncoder } from './checkpointEncoder';
 import type { AlphaConfig, ReleaseIdentity } from './config';
 import { GENERATOR_VERSION, playableBaselineFingerprint } from './fingerprint';
 import { ALPHA_PROTOCOL, CLOSE, H, parseCharacterRequest } from './protocol';
@@ -71,9 +72,10 @@ export class LiveServer {
   private failed = false;
   private maintenance: { message: string; at: number } | null = null;
   private inFlight: Promise<CheckpointMeta> | null = null;
+  private readonly checkpointEncoder = new CheckpointEncoder();
   private lastCheckpoint: CheckpointMeta | null = null;
   private readonly startedAt = Date.now();
-  readonly metrics = { checkpoints: 0, lastSerializeMs: 0, maxSerializeMs: 0, lastCommitMs: 0, lastBytes: 0, backups: 0, lastBackupIso: '', authFailures: 0, rejectedConnections: 0, connectionsServed: 0, recoveredFrom: [] as { generation: number; why: string }[] };
+  readonly metrics = { checkpoints: 0, lastSerializeMs: 0, maxSerializeMs: 0, lastEncodeMs: 0, maxEncodeMs: 0, lastCheckpointMs: 0, lastCommitMs: 0, lastBytes: 0, backups: 0, lastBackupIso: '', authFailures: 0, rejectedConnections: 0, connectionsServed: 0, recoveredFrom: [] as { generation: number; why: string }[] };
   private adminToken = '';
 
   constructor(readonly config: AlphaConfig, readonly release: ReleaseIdentity, private readonly log: Log) {
@@ -132,20 +134,27 @@ export class LiveServer {
     }
   }
 
-  /** Serialize synchronously (a consistent snapshot) then commit durably off the tick path. */
+  /** Capture canonical JSON and transfer owned bytes synchronously. Storage packing and commit
+   * operate on that fixed snapshot while the world continues. Clocks and ownership must be
+   * captured before yielding, so metadata can never describe a later world than the payload. */
   checkpoint(reason: string): Promise<CheckpointMeta> {
     if (this.inFlight) return this.inFlight.then(() => this.checkpoint(reason));
     const w = this.session.world, t0 = performance.now();
-    const world = this.session.save(true);
-    const serializeMs = performance.now() - t0;
-    this.metrics.lastSerializeMs = serializeMs; this.metrics.maxSerializeMs = Math.max(this.metrics.maxSerializeMs, serializeMs);
-    const t1 = performance.now();
-    this.inFlight = this.store.commit(world, {
+    const world = this.session.save();
+    const metadata = {
       worldId: this.worldId, savedAtIso: new Date().toISOString(), reason, physicalTime: w.physicalTime, worldNow: w.now, saveSchema: SAVE_VERSION,
       generator: this.store.identity()!.generator, release: { version: this.release.version, revision: this.release.revision }, ownership: structuredClone(this.ownership),
-    }, this.lock).then(meta => {
+    };
+    const encoding = this.checkpointEncoder.encode(world);
+    const serializeMs = performance.now() - t0;
+    this.metrics.lastSerializeMs = serializeMs; this.metrics.maxSerializeMs = Math.max(this.metrics.maxSerializeMs, serializeMs);
+    this.inFlight = encoding.then(async ({ bytes, encodeMs }) => {
+      this.metrics.lastEncodeMs = encodeMs; this.metrics.maxEncodeMs = Math.max(this.metrics.maxEncodeMs, encodeMs);
+      const t1 = performance.now();
+      const meta = await this.store.commit(bytes, metadata, this.lock);
       this.lastCheckpoint = meta; this.metrics.checkpoints++; this.metrics.lastCommitMs = performance.now() - t1; this.metrics.lastBytes = meta.worldBytes;
-      this.log('info', 'checkpoint', { generation: meta.generation, reason, serializeMs: Math.round(serializeMs), commitMs: Math.round(this.metrics.lastCommitMs), bytes: meta.worldBytes, physicalTime: meta.physicalTime });
+      this.metrics.lastCheckpointMs = performance.now() - t0;
+      this.log('info', 'checkpoint', { generation: meta.generation, reason, serializeMs: Math.round(serializeMs), encodeMs: Math.round(encodeMs), checkpointMs: Math.round(this.metrics.lastCheckpointMs), commitMs: Math.round(this.metrics.lastCommitMs), bytes: meta.worldBytes, physicalTime: meta.physicalTime });
       return meta;
     }).finally(() => { this.inFlight = null; });
     return this.inFlight;
@@ -286,12 +295,15 @@ export class LiveServer {
     this.log('info', 'shutdown_started', { reason });
     this.admissions = false; this.ready = false;
     for (const c of [...this.connections.values()]) this.close(c, CLOSE.maintenance, 'Server shutting down');
-    let ok = true;
-    try { if (this.session) await this.checkpoint(`shutdown: ${reason}`); } catch (e) { ok = false; this.log('error', 'final_checkpoint_failed', { error: String(e) }); }
+    // The final snapshot is the stopped world's state. Do not generate unsaved NPC history
+    // while its immutable bytes are being packed and committed in the background.
     this.stopping = true;
     clearTimeout(this.timer); clearInterval(this.checkpointTimer); clearInterval(this.backupTimer); this.wake?.stop(); this.loopDelay.disable();
+    let ok = true;
+    try { if (this.session) await this.checkpoint(`shutdown: ${reason}`); } catch (e) { ok = false; this.log('error', 'final_checkpoint_failed', { error: String(e) }); }
     for (const t of this.graceTimers.values()) clearTimeout(t);
     this.wss.close(); for (const s of this.http) s.close();
+    await this.checkpointEncoder.close();
     this.lock.release();
     writeFileSync(join(this.config.stateDir, 'last-shutdown.json'), JSON.stringify({ reason, atIso: new Date().toISOString(), ok, generation: this.lastCheckpoint?.generation ?? null, release: this.release.version }));
     this.log('info', 'shutdown_complete', { ok, generation: this.lastCheckpoint?.generation });

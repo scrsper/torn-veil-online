@@ -10,9 +10,9 @@ const record = (v: unknown): v is Record<string, any> => !!v && typeof v === 'ob
 const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 const strings = (v: unknown): v is string[] => Array.isArray(v) && v.every(x => typeof x === 'string');
 
-export function encodeEventTable(events: WorldEvent[]): EventTable {
-  const appearances: Record<string, unknown>[] = [], indices = new Map<string, number>();
-  const rows = events.map(event => {
+function rowEncoder(appearances: Record<string, unknown>[]) {
+  const indices = new Map<string, number>();
+  return (event: WorldEvent): unknown[] => {
     if (Object.keys(event).some(key => !KEYS.has(key))) throw new Error('Unrecognized event field in checkpoint');
     let mask = (1 << COLUMNS.length) - 1, appearance = -1;
     if (event.actor === undefined) mask &= ~(1 << 4);
@@ -37,8 +37,26 @@ export function encodeEventTable(events: WorldEvent[]): EventTable {
       event.actor ?? null, event.target ?? null, event.item ?? null, event.placeId ?? null,
       event.pos ?? null, data, event.causes, event.effects, witnesses, event.significance,
       event.summary, event.visibility ?? null, event.loudness ?? null];
-  });
+  };
+}
+
+export function encodeEventTable(events: WorldEvent[]): EventTable {
+  const appearances: Record<string, unknown>[] = [];
+  const rows = events.map(rowEncoder(appearances));
   return { format: 1, appearances, rows };
+}
+
+/** Consume each temporary batch before packing the next. Keeping every allocated row and
+ * witness list alive until the whole world is encoded needlessly promotes them through GC.
+ * The snapshot still completes synchronously and has exactly the same format and bytes. */
+export function stringifyEventTable(events: WorldEvent[]): { format: 1; appearances: Record<string, unknown>[]; rows: string } {
+  const appearances: Record<string, unknown>[] = [], encode = rowEncoder(appearances), chunks: string[] = [];
+  for (let start = 0; start < events.length; start += 512) {
+    const rows: unknown[][] = [];
+    for (let i = start; i < Math.min(start + 512, events.length); i++) rows.push(encode(events[i]));
+    chunks.push(JSON.stringify(rows).slice(1, -1));
+  }
+  return { format: 1, appearances, rows: '[' + chunks.join(',') + ']' };
 }
 
 /** Reject malformed tables; never silently substitute missing historical evidence. */
