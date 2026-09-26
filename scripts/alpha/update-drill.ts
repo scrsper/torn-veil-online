@@ -35,7 +35,7 @@ function checkpoint(env: string, bodyId?: string) {
   const worldDir = join(home, env, 'state', 'world');
   const name = readFileSync(join(worldDir, 'CURRENT'), 'utf8').trim();
   const file = join(worldDir, name, 'world.json');
-  return { meta: JSON.parse(readFileSync(join(worldDir, name, 'meta.json'), 'utf8')), hash: hash(file),
+  return { file, meta: JSON.parse(readFileSync(join(worldDir, name, 'meta.json'), 'utf8')), hash: hash(file),
     bodyPosition: bodyId ? JSON.parse(readFileSync(file, 'utf8')).bodies.find((b: any) => b.id === bodyId)?.pos : undefined };
 }
 try {
@@ -80,7 +80,18 @@ try {
   assert(updateBackupMatch, 'Update must name its final-live backup');
   const finalBackup = JSON.parse(updateBackupMatch[1]);
   const afterCheckpoint = checkpoint('live', bodyId);
-  check('loadedFinalLivePayloadNotStaging', afterCheckpoint.hash === hash(join(finalBackup, 'world.json')));
+  let expectedPayload = readFileSync(join(finalBackup, 'world.json'), 'utf8');
+  const backupData = JSON.parse(expectedPayload), afterData = JSON.parse(readFileSync(afterCheckpoint.file, 'utf8'));
+  // A schema migration necessarily changes the payload hash. The only declared 24→25
+  // transformation changes its version marker; independently assert every remaining byte.
+  // Do not call the migration implementation to manufacture its own expected result.
+  if (backupData.version !== afterData.version) {
+    check('declaredStorageMigrationOnly', backupData.version === 24 && afterData.version === 25
+      && newRelease.saveSchema === 25 && afterData.eventEncoding === undefined);
+    evidence.migration = { from: backupData.version, to: afterData.version, allowedChange: 'version marker only' };
+    backupData.version = 25; expectedPayload = JSON.stringify(backupData);
+  }
+  check('loadedFinalLivePayloadNotStaging', afterCheckpoint.hash === createHash('sha256').update(expectedPayload).digest('hex'));
   check('laterPlayerPositionPreservedInSave', Math.hypot(afterCheckpoint.bodyPosition.x - latest.bodyPosition.x, afterCheckpoint.bodyPosition.z - latest.bodyPosition.z) < .05);
   check('newExecutableRunning', updated.release.version === newRelease.version);
   check('currentLiveClockAndOwnershipPreserved', updated.worldId === latest.meta.worldId && updated.world.physicalTime >= latest.meta.physicalTime && JSON.stringify(updated.characters) === JSON.stringify(latest.meta.ownership));
