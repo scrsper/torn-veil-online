@@ -238,8 +238,12 @@ function practiceSession(physicalSeconds: number) {
     // Recovery: too tired or parched to practise — hand back to ordinary life for a while.
     // Practice itself refuses a body below 0.3 energy or water, so hand back before that point.
     if (p.physiology.energy < 0.65 || p.physiology.hydration < 0.65) {
-      if (p.wealth < 4 && p.physiology.energy > 0.35 && p.physiology.hydration > 0.4) earnProvisions();
-      if (!provision()) return;
+      // Drink free water and use carried/affordable food before taking a work shift.
+      // Thirst alone previously sent a well-fed but poor traveler gathering for hours.
+      if (!provision()) {
+        if (p.physiology.energy < 0.65 && p.wealth < 4 && p.physiology.energy > 0.35 && p.physiology.hydration > 0.4) earnProvisions();
+        if (!provision()) return;
+      }
     }
     if (p.physiology.sleepDebt > 3 || p.physiology.fatigue > 0.35) { recoverForTraining(); wait(5); continue; }
     const strain = veilStrain(w, p);
