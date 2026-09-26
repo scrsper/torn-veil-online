@@ -6,6 +6,8 @@ import { World } from '../core/world';
 import { memoriesAtPlace, remember } from './memory';
 import { affordancesOf } from '../core/affordance';
 
+export const MAX_TESTIMONY_HOPS = 8;
+
 /**
  * Knowledge is what a mind believes about the world, always tagged with how it was learned.
  * Objective reality lives in the World; knowledge may be incomplete, second-hand, or wrong.

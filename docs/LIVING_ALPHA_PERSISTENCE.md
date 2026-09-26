@@ -168,3 +168,22 @@ hauls and other commitments retain their existing lifecycle. No inventory or wea
 The same checkpoint replay now records one completion across 1,800 world seconds. The targeted
 34-test economy suite passes, including the new stale-commitment regression and existing
 conserved food/money, purchases, deliveries, needs and household knowledge checks.
+
+## Revisited observations and refused family testimony
+
+The longer mature-world observation found two further retry cases. An unchanged game-ground
+claim was passed to general learning, which correctly ignores duplicate facts; its observation
+date therefore never refreshed. Once the first thirty-minute window expired, hunters revisited
+every 0.6 world seconds. Extending the fixture across two revisit intervals reproduced 399
+arrivals in seventy world minutes. Local observation now refreshes `lastConfirmedAt`, preserves
+unchanged evidence, and replaces availability/source only when personally observed stock changes.
+The extended test bounds revisits and verifies renewed stock is both harvested and believed.
+
+Family-sharing goals also offered testimony to sleeping/unreachable listeners, although the
+communication operator correctly refused it. The action still claimed completion, producing
+thousands of empty plans. Goal selection now uses the existing embodied conversation predicate
+and the same eight-hop testimony limit as communication. A refused or forgotten keyed testimony
+fails instead of reporting success; no listener gains knowledge or a fabricated delivery marker.
+The focused before-fix tests reproduced both cases; afterward all 84 checks across resource,
+lineage, knowledge, retention and social-causality integration pass, with clean typecheck.
+A mature saved-world continuation and final performance acceptance remain required.

@@ -13,17 +13,19 @@ it('does not repeatedly complete a scheduled hunt at a personally observed exhau
   node.remaining = 0; node.state = 'depleted'; node.renewable = false;
   const p = addPerson(tw, 'Hunter', 'hunter', { ...node.pos }, { workId: forest.id });
   p.schedule = [{ start: 0, end: 24, activity: 'work', placeId: forest.id, label: 'hunt' }];
-  step(tw, 10);
+  step(tw, 70); // crosses two revisit intervals while the observation remains unchanged
   expect(world.events.filter(e => e.type === 'goal_completed' && e.actor === p.id && e.data.goalType === 'work')).toHaveLength(0);
-  expect(world.events.filter(e => e.type === 'arrived' && e.actor === p.id && e.placeId === forest.id).length).toBeLessThan(3);
+  expect(world.events.filter(e => e.type === 'arrived' && e.actor === p.id && e.placeId === forest.id).length).toBeLessThan(5);
   expect(p.knowledge[`game:${node.id}`]?.claim.available).toBe(false);
   const evidence = p.knowledge[`game:${node.id}`].source.viaEvent!;
   expect(world.event(evidence)?.data).toMatchObject({ nodeId: node.id, available: false });
+  expect(p.knowledge[`game:${node.id}`].lastConfirmedAt).toBeGreaterThan(p.knowledge[`game:${node.id}`].learnedAt);
   // A renewable ground recovers through its ordinary upkeep. The dated observation must
   // eventually permit a new visit and real extraction, rather than permanently disabling work.
   node.renewable = true; node.regrowHours = 0.25; node.renewedAt = world.now;
   step(tw, 80);
   expect(world.events.some(e => e.type === 'resource_extracted' && e.actor === p.id && e.data.nodeId === node.id)).toBe(true);
+  expect(p.knowledge[`game:${node.id}`].claim.available).toBe(true);
 });
 
 it('does not reveal a scheduled hunting ground’s current depletion from a distance', () => {

@@ -54,7 +54,7 @@ import { stepConstruction, activeBuildProjects, performBuildLabor, MAX_BUILDERS 
 import { stepFire, igniteFire, feedFire, fireIntensityAt, fireAt } from '../world/fire';
 import { willingnessFor, unitPriceFor, tradeOffersFrom, refusalsFrom, purchaseUnits, type TradeOffer, type Refusal, type PurchaseResult } from '../world/commerce';
 import { remember } from './memory';
-import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge, learnPlace, knownFoodPlace, noteFoodShortage, expectsAffordableFood, foodSearchPlaces } from './knowledge';
+import { learn, eventClaim, describeClaim, isCrime, crimeSeverity, locationKnowledge, learnPlace, knownFoodPlace, noteFoodShortage, expectsAffordableFood, foodSearchPlaces, MAX_TESTIMONY_HOPS } from './knowledge';
 import { realizeClaim, realizeTopic } from './realize';
 import { currentScheduleEntry } from './schedule';
 import { SECONDS_PER_DAY, SECONDS_PER_HOUR } from '../core/time';
@@ -2202,7 +2202,8 @@ export class Simulation {
           if ((t.occupation === 'guard' || t.occupation === 'captain') && key) {
             if (heard) noteReportDelivered(w, p, key, t.id); else noteReportFailed(w, p, key, t.id, `could not make ${t.name} hear it`);
           }
-        }
+          if (!heard) { a.status = 'failed'; break; }
+        } else if (key) { a.status = 'failed'; break; }
         body.pose = 'talk'; body.poseUntil = w.physicalTime + 2; a.status = 'done'; break;
       }
       case 'propose': {
@@ -2426,10 +2427,18 @@ export class Simulation {
     const w = this.world, key = `game:${node.id}`, available = node.state === 'available' && node.remaining >= 1;
     if (!p.bodies.some(id => { const b = w.body(id); return b?.present && !b.dead && dist2(b.pos, node.pos) < 12; })) return;
     const old = p.knowledge[key];
-    const evidence = old?.claim.available === available ? old.source.viaEvent : undefined;
+    const evidence = old?.claim.available === available && old.source.type === 'witnessed' && w.event(old.source.viaEvent ?? '') ? old.source.viaEvent : undefined;
     const event = evidence ?? w.emit('resource_observed', { actor: p.id, placeId: node.placeId, pos: { ...node.pos }, category: 'cognition', significance: 0.05,
       data: { nodeId: node.id, available }, summary: `${p.name} found ${available ? 'game' : 'no game'} at ${w.nameOf(node.placeId)}` }).id;
-    learn(w, p, { key, kind: 'affordance', claim: { nodeId: node.id, placeId: node.placeId, resource: 'meat', available }, confidence: 1,
+    const claim = { nodeId: node.id, placeId: node.placeId, resource: 'meat', available };
+    if (old) {
+      // Rechecking unchanged stock is confirmation, not a newly learned fact. General learn()
+      // correctly ignores such duplicates, so explicitly date this local observation, as with
+      // pantry observations. A witnessed availability change replaces its own older claim.
+      if (old.claim.available !== available) { old.sharedWith = []; old.learnedAt = w.now; }
+      old.claim = claim; old.lastConfirmedAt = w.now; old.confidence = 1; old.hops = 0;
+      old.source = { type: 'witnessed', viaEvent: event };
+    } else learn(w, p, { key, kind: 'affordance', claim, confidence: 1,
       source: { type: 'witnessed', viaEvent: event }, cause: event }, true);
   }
   /** Resolve a shared rest destination through physical occupancy, then walk there.
@@ -2642,7 +2651,7 @@ export class Simulation {
    * whether it was actually said to them: an unreachable listener, a claim the speaker does not
    * hold, or an exhausted rumour are refused and change nothing. */
   tell(speaker: Person, listener: Person, k: KnowledgeItem): boolean {
-    if (!k || speaker.knowledge[k.key] !== k || k.hops >= 8) return false;
+    if (!k || speaker.knowledge[k.key] !== k || k.hops >= MAX_TESTIMONY_HOPS) return false;
     const bodies = conversationBodies(this.world, speaker, listener); if (!bodies) return false;
     const w = this.world; const sb = bodies.speaker;
     const text = this.tellLine(speaker, listener, k);

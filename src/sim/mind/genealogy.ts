@@ -3,7 +3,8 @@ import { knownName } from './people';
 import type { Goal, KnowledgeItem, Person } from '../core/types';
 import type { World } from '../core/world';
 import { peopleTogether } from '../world/locality';
-import { learn } from './knowledge';
+import { learn, MAX_TESTIMONY_HOPS } from './knowledge';
+import { conversationReachable } from './socialEvidence';
 
 export interface GenealogyClaim { subjectId: string; relativeId: string; relationship: 'parent' | 'ancestor' | 'possible_kin'; distance?: number }
 export const genealogyKey = (g: GenealogyClaim) => `genealogy:${g.subjectId}:${g.relationship}:${g.relativeId}`;
@@ -80,10 +81,10 @@ export function genealogyGoals(world: World, p: Person): Partial<Goal>[] {
   if (!known.length) return goals;
   for (const percept of p.mind.percepts) {
     const other = world.person(percept.entityId);
-    if (!other?.alive || other.age < 3 || percept.how !== 'saw' || percept.distance > 3 || !peopleTogether(world, p, other)) continue;
+    if (!other?.alive || other.age < 3 || percept.how !== 'saw' || percept.distance > 3 || !conversationReachable(world, p, other)) continue;
     for (const k of known) {
       const g = k.claim.genealogy as GenealogyClaim;
-      if (k.sharedWith.includes(other.id) || ![p.id, other.id].includes(g.subjectId)) continue;
+      if (k.hops >= MAX_TESTIMONY_HOPS || k.sharedWith.includes(other.id) || ![p.id, other.id].includes(g.subjectId)) continue;
       const rel = p.relationships[other.id];
       const utility = 0.1 + p.traits.sociability * 0.2 + Math.max(0, rel?.affection ?? 0) * 0.25;
       goals.push({ type: 'share_family', utility, targetEntity: other.id, data: { key: k.key }, causeEvent: k.source.viaEvent,

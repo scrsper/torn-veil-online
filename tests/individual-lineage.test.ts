@@ -96,6 +96,23 @@ describe('bounded canonical inheritance and fallible known ancestry', () => {
     expect(child.knowledge[k.key].source).toMatchObject({ type: 'told', from: a.id });
     expect(child.parentIds).toEqual([a.id, b.id]);
   });
+  it('waits for a listener who can hear family testimony and does not propose exhausted hearsay', () => {
+    const { tw, a, b } = family();
+    const genealogy = { subjectId: a.id, relativeId: b.id, relationship: 'possible_kin' as const };
+    const key = genealogyKey(genealogy);
+    learn(tw.world, a, { key, kind: 'fact', claim: { genealogy }, confidence: 0.3, source: { type: 'prior' } }, true);
+    a.mind.percepts = [{ entityId: b.id, bodyId: b.bodies[0], pos: tw.world.positionOf(b.id)!, distance: 1, how: 'saw', tick: tw.world.now }];
+    const body = tw.world.body(b.bodies[0])!;
+    body.pose = 'sleep';
+    expect(genealogyGoals(tw.world, a).some(g => g.data?.key === key)).toBe(false);
+    expect(tw.sim.tell(a, b, a.knowledge[key])).toBe(false);
+    expect(a.knowledge[key].sharedWith).toEqual([]);
+    body.pose = 'stand';
+    expect(genealogyGoals(tw.world, a).some(g => g.data?.key === key)).toBe(true);
+    a.knowledge[key].hops = 8;
+    expect(genealogyGoals(tw.world, a).some(g => g.data?.key === key)).toBe(false);
+    expect(tw.sim.tell(a, b, a.knowledge[key])).toBe(false);
+  });
   it('preserves uncertain and mistaken testimony, while surname inference never certifies ancestry', () => {
     const { tw, a } = family(); const child = addPerson(tw, 'Another Vale', 'villager', tw.world.positionOf(a.id)!);
     child.relationships[a.id] = { affection: 0.2, trust: 0.2, respect: 0, fear: 0, grudge: 0, familiarity: 0.5, tags: [], lastUpdated: tw.world.now };
