@@ -164,3 +164,10 @@ was affected by the duplicate award, so final acceptance begins with a newly gen
 on the corrected rules rather than editing that person's skill or retroactively claiming a pass.
 The focused martial/development/capability integration passed 38 tests, including the reproduced
 solo-ceiling defect, and typecheck passed. The genuine completed journey remains required.
+
+The clean journey's first day used the original six-hour daytime play window. Its continued
+exceptional-training policy uses 08:00–20:00 world time, shifting to physical training at 14:00.
+This is two hours of active player control per world day at the live time scale. Food, drinking,
+sleep and earning provisions consume that window, and ordinary autonomy runs overnight. These
+are recorded harness policy options, not extra development awards. The original generated
+person and its exact checkpoint continue across the policy change.

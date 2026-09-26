@@ -45,6 +45,6 @@ export function playerJournal(world: World, p: Person) {
     condition: { fatigue: p.physiology.fatigue, energy: p.physiology.energy, hydration: p.physiology.hydration, sleepDebt: p.physiology.sleepDebt },
     stage: p.ontology.stage, foundations, techniques, techniqueHistory, practice, practiceHoursRequired: IRON_PRACTICE_SECONDS / 3600,
     veil: knowsVeil(p) ? { strain: Math.round(veilStrain(world, p) * 100) / 100 } : null,
-    advancement: { eligible: advancement.eligible, path: advancement.path ?? null, remaining: advancement.reasons.slice(0, 8) },
+    advancement: { eligible: advancement.eligible, path: advancement.path ?? null, remaining: advancement.reasons },
   };
 }

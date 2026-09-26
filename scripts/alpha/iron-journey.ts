@@ -19,6 +19,10 @@ import { foodForSaleBy } from '../../src/sim/logistics/participation';
 
 const arg = (n: string, d: string) => { const i = process.argv.indexOf(`--${n}`); return i > 0 ? process.argv[i + 1] : d; };
 const seed = Number(arg('seed', '918271')), days = Number(arg('days', '30')), path = arg('path', 'veil');
+const onlineStart = Number(arg('online-start', '13')), onlineEnd = Number(arg('online-end', '19'));
+const physicalStart = Number(arg('physical-start', '16'));
+assert(onlineStart >= 0 && onlineStart < physicalStart && physicalStart < onlineEnd && onlineEnd <= 24, 'Ordered daytime practice window required');
+const policy = { onlineStart, onlineEnd, physicalStart };
 const out = arg('out', `.debug/iron-journey-${path}-${seed}`);
 assert(!existsSync(out), 'Evidence directory must be new');
 mkdirSync(out, { recursive: true });
@@ -33,7 +37,7 @@ const git = (...args: string[]) => execFileSync('git', args, { encoding: 'utf8' 
 const sourceFiles = [...new Set((git('ls-files', '--', 'src', 'scripts/alpha/iron-journey.ts') + '\n' + git('ls-files', '--others', '--exclude-standard', '--', 'src')).split('\n').filter(Boolean))].sort();
 const sourceHash = createHash('sha256');for (const f of sourceFiles) sourceHash.update(f).update(readFileSync(f));
 const provenance = { revision: git('rev-parse', 'HEAD'), sourceSha256: sourceHash.digest('hex'), runtime: process.version, startedAtIso,
-  resumedFrom: resumeFrom || null, checkpointSha256: resumeSave ? createHash('sha256').update(resumeSave).digest('hex') : null };
+  policy, resumedFrom: resumeFrom || null, checkpointSha256: resumeSave ? createHash('sha256').update(resumeSave).digest('hex') : null };
 const priorElapsed = prior?.elapsedSeconds ?? (priorDay?.elapsedMinutes ?? 0) * 60;
 const elapsedPrecisionSeconds = prior?.elapsedPrecisionSeconds ?? (prior && prior.elapsedSeconds === undefined ? 6 : 0.001);
 let steps = 0, lastHeartbeat = started;
@@ -249,7 +253,7 @@ function practiceSession(physicalSeconds: number) {
     const strain = veilStrain(w, p);
     // A balanced day: the veil in the morning, the body in the afternoon. Iron asks every other
     // foundation to be sound, and the veil alone never exercises strength, dexterity or endurance.
-    if (path === 'martial' || w.clock.hourF >= 16) {
+    if (path === 'martial' || w.clock.hourF >= physicalStart) {
       if (spar()) continue;
       if (say({ type: 'person_action', intent: { kind: 'train' } }) === 'accepted') { drills++; wait(330); continue; }
     }
@@ -278,14 +282,14 @@ function practiceSession(physicalSeconds: number) {
   }
 }
 
-note('start', { seed, path, person: p.id, wealth: p.wealth, attributes: { ...p.attributes }, potential: { ...p.attributePotential }, skills: { ...p.skills }, physiology: { ...p.physiology } });
+note('start', { seed, path, policy, person: p.id, wealth: p.wealth, attributes: { ...p.attributes }, potential: { ...p.attributePotential }, skills: { ...p.skills }, physiology: { ...p.physiology } });
 if (!knowsVeil(p) && !learnVeil()) { note('failed', { reason: 'could not learn the veil' }); }
 let lastDay = priorDay?.day ?? -1, loops = 0;
 while ((w.now - worldStart) / DAY < days && p.alive && !advanced && knowsVeil(p)) {
   if (existsSync(join(out, 'STOP'))) break;
   const hour = w.clock.hourF;
-  // Online for a daytime play window (13:00–19:00 world time), offline otherwise.
-  const wantOnline = hour >= 13 && hour < 19;
+  // Explicit daytime play window; meals, paid work, rest and travel consume this same time.
+  const wantOnline = hour >= onlineStart && hour < onlineEnd;
   setOnline(wantOnline);
   const before = w.physicalTime;
   if (wantOnline) practiceSession(300);
