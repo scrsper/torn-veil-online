@@ -1648,8 +1648,10 @@ export class Simulation {
         if (!task || task.status === 'delivered' || task.status === 'failed' || task.status === 'cancelled') return [A({ type: 'wait', duration: 30 })];
         claimHaulTask(w, task, p); // idempotent — only claims a still-`needed` task
         const src = w.place(task.sourcePlaceId); const dst = w.place(task.destPlaceId);
-        const srcSpot = src?.anchors.find(a => a.kind === 'work')?.pos ?? src?.inside ?? body.pos;
-        const dstSpot = dst?.anchors.find(a => a.kind === 'work' || a.kind === 'inside')?.pos ?? dst?.inside ?? body.pos;
+        // Hauling transfers place stock, not a particular production fixture. Work
+        // anchors may be embedded in furniture; use the place's normal access point.
+        const srcSpot = src?.inside ?? body.pos;
+        const dstSpot = dst?.inside ?? body.pos;
         return [
           ...(task.status === 'in_transit' && task.carried > 0 ? [] : [
             A({ type: 'goto', pos: srcSpot, placeId: task.sourcePlaceId, run: false }),

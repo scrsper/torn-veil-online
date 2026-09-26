@@ -187,3 +187,18 @@ fails instead of reporting success; no listener gains knowledge or a fabricated 
 The focused before-fix tests reproduced both cases; afterward all 84 checks across resource,
 lineage, knowledge, retention and social-causality integration pass, with clean typecheck.
 A mature saved-world continuation and final performance acceptance remain required.
+
+## Haul access and saved-world recovery
+
+The final bounded continuation found one resident with 955 repeated path failures while
+carrying twelve grain to a tavern. The normal interior was reachable; the selected work
+fixture was not. Hauling transfers place stock, so its load and deposit plans now use the
+place's ordinary interior access point instead of a production fixture. This changes no
+inventory, ownership, navigation or delivery rules.
+
+The regression failed before the correction and passes afterward, including conserved
+cargo and physical travel. The same affected saved resident resumed ordinary autonomy and
+delivered all twelve grain within the next world hour without editing their plan or body.
+The 25 logistics checks, 92 navigation/economy integration checks and typecheck pass.
+Historical failed-route events remain evidence; bounded verification distinguishes those
+from newly generated failures rather than deleting the old history.

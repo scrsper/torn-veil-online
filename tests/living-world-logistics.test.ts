@@ -66,6 +66,25 @@ describe('place stock (v0.3 Priority 1)', () => {
 });
 
 describe('generalized haul (v0.3 Priority 2)', () => {
+  it('delivers place stock through the reachable interior when a work fixture is inaccessible', () => {
+    const { tw, src, dst, hauler } = haulWorld(714), { world } = tw;
+    dst.inside = v(37, 1, 37);
+    dst.anchors.push({ kind: 'work', pos: v(43, 1, 43) });
+    for (let x = 39; x < 48; x++) for (let z = 39; z < 48; z++) for (let y = 1; y < 4; y++) world.grid.set(x, y, z, B.Stone);
+    world.nav.rebuildAll();
+    expect(world.nav.findPath(world.primaryBody(hauler.id)!.pos, dst.anchors[0].pos)).toBeNull();
+    expect(world.nav.findPath(world.primaryBody(hauler.id)!.pos, dst.inside)).not.toBeNull();
+    makeItem(world, 'grain', 'grain', { owner: hauler.id, placeId: src.id, pos: src.inside, quantity: 12 });
+    const task = createHaulTask(world, { resource: 'grain', quantity: 12, sourcePlaceId: src.id, destPlaceId: dst.id, reason: 'mill needs grain', requesterId: null, priority: 0.95 });
+    claimHaulTask(world, task, hauler); loadHaulCargo(world, task, hauler);
+    hauler.schedule = [];
+    const before = worldStock(world, 'grain');
+    step(tw, 60);
+    expect(task.status).toBe('delivered');
+    expect(stockAt(world, 'grain', dst.id)).toBe(12);
+    expect(worldStock(world, 'grain')).toBe(before);
+    expect(world.events.filter(e => e.type === 'path_failure' && e.actor === hauler.id)).toHaveLength(0);
+  });
   it('pickup → carry → deposit conserves the resource exactly through a physical journey', () => {
     const { tw, src, dst, hauler } = haulWorld(710);
     makeItem(tw.world, 'grain', 'grain', { owner: hauler.id, placeId: src.id, pos: v(6, 1, 6), quantity: 30 });
