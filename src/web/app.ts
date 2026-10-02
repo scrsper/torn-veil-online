@@ -241,7 +241,7 @@ export class App {
     l.on('scene', s => { this.regions.regionSize = s.geography?.regionSize ?? 256; this.regions.setOrigin(s.origin); });
     l.on('regions_state', s => { this.wantedRegions = s.resident; this.regions.setOrigin(s.origin); for (const id of s.unload) this.regions.unload(id); });
     l.on('presentation', p => this.regions.applyPresentation(p.payload, () => requestAnimationFrame(() => requestAnimationFrame(() => p.applied()))));
-    l.on('local_state', s => { this.predictor.applyLocalState(s); if (s.bodyId) this.ownBodyId = s.bodyId; this.physTick = s.tick; this.physAt = performance.now(); });
+    l.on('local_state', s => { this.predictor.applyLocalState(s); this.actors.applyLocalCombat(s.bodyId, s.combatAction, s.bufferedCombatCommandId); if (s.bodyId) this.ownBodyId = s.bodyId; this.physTick = s.tick; this.physAt = performance.now(); });
     l.on('receipt', r => { this.predictor.applyReceipt(r); if (r.status === 'rejected' || r.status === 'cancelled') this.actors.cancelPredicted(this.ownBodyId, r.commandId); });
     l.on('combat_frame', f => { void f; });
     l.on('snapshot', s => this.onSnapshot(s));
@@ -505,7 +505,7 @@ export class App {
       this.pivotInPlant = this.regions.plantAt(vis.pos.x, vis.pos.y + 0.5, vis.pos.z) || this.regions.plantAt(vis.pos.x, vis.pos.y + eye, vis.pos.z);
       this.rig.update(dt, { x: vis.pos.x - this.regions.origin.x, y: vis.pos.y - this.regions.origin.y + eye, z: vis.pos.z - this.regions.origin.z }, vis.yaw);
     }
-    this.regions.updateCutaway(this.rig.cutaway ? vis?.pos ?? null : null, this.camera.position);
+    this.regions.updateCutaway(this.rig.cutaway ? vis?.pos ?? null : null, this.camera.position, this.rig.cutaway ? lock?.pos ?? null : null);
     // World.
     const hour = this.params.get('hour') ? Number(this.params.get('hour')) : ((this.regions.worldTime / 3600) % 24 + 24) % 24;
     this.atmosphere.update(hour, this.regions.weather, dt); this.atmosphere.follow(this.camera.position);

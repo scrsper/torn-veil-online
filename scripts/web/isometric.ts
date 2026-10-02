@@ -183,6 +183,18 @@ try {
   const combatRendering=await actorRendering();
   note('interior combat actor unobscured',visible(combatRendering),combatRendering);
   await page.screenshot({path:join(out,'05-interior-combat.png')});
+  if (orbit) {
+    await page.keyboard.press('f'); await page.waitForTimeout(100);
+    const released=await page.evaluate(()=>(window as any).__tv.controller.lockedBodyId===null);
+    await page.keyboard.press('f'); await page.waitForTimeout(100);
+    const acquired=await page.evaluate(()=>(window as any).__tv.controller.lockedBodyId!==null);
+    note('lock release and reacquisition through ordinary input',released&&acquired,{released,acquired});
+    await page.keyboard.down('d'); await page.waitForTimeout(100); await page.keyboard.press('Space'); await page.waitForTimeout(100); await page.keyboard.up('d');
+    const dodge=await page.evaluate(()=>{const c=(window as any).__tv.controller;return {intent:c.lastCombat,move:{...c.lastMoveWorld}};});
+    const direction=dodge.intent?.direction, length=direction?Math.hypot(direction.x,direction.z):0;
+    const movement=Math.hypot(dodge.move.x,dodge.move.z);
+    note('directional dodge follows camera-relative input',dodge.intent?.defend==='sidestep'&&Math.abs(length-1)<.01&&movement>.5&&direction.x*dodge.move.x+direction.z*dodge.move.z>.95,{...dodge,length});
+  }
   body.pos=original; setExternalControl(npc,false);
   note('combat controls emit canonical commands', !!await page.evaluate(()=>(window as any).__tv.controller.lastCombat), await page.evaluate(()=>{const tv=(window as any).__tv;return {lastCombat:tv.controller.lastCombat,bodyAction:tv.own()?.combatAction}}));
   await page.screenshot({path:join(out,'05-isometric-action.png')});

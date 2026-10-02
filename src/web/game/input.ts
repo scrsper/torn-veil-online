@@ -13,6 +13,8 @@ export interface MoveVector { x: number; y: number }
 export class InputManager {
   device: Device = 'keyboard';
   pointerLocked = false;
+  /** Lost focus cancels latched gameplay state as well as physical held keys. */
+  releaseSerial = 0;
   /** Set true when a menu is open: gameplay reads should be ignored by callers; UI actions still work. */
   readonly move: MoveVector = { x: 0, y: 0 };
   autoWalking = false;
@@ -59,7 +61,7 @@ export class InputManager {
       else if (this.pointerLocked || this.settings().viewMode === 'isometric' || this.settings().viewMode === 'orbit') this.down(`Mouse${e.button}`);
       else if (e.button === 0 || e.button === 2) this.orbitDrag = { x: e.clientX, y: e.clientY };
     });
-    window.addEventListener('pointerup', e => { this.orbitDrag = null; if (e.button >= 3) e.preventDefault(); this.up(`Mouse${e.button}`); });
+    window.addEventListener('pointerup', e => { if (this.settings().viewMode !== 'orbit' || e.button === 1) this.orbitDrag = null; if (e.button >= 3) e.preventDefault(); this.up(`Mouse${e.button}`); });
     window.addEventListener('pointercancel', () => this.releaseAll());
     window.addEventListener('auxclick', e => { if (e.button >= 1) e.preventDefault(); });
     canvas.addEventListener('contextmenu', e => e.preventDefault());
@@ -79,7 +81,7 @@ export class InputManager {
       if (locked !== this.pointerLocked) { this.pointerLocked = locked; if (!locked) this.releaseAll(); this.onLockChange?.(locked); }
     });
     window.addEventListener('gamepadconnected', e => { this.padConnected = true; this.padName = (e as GamepadEvent).gamepad.id; this.device = this.family(this.padName); this.onDeviceChange?.(this.device); });
-    window.addEventListener('gamepaddisconnected', () => { this.padConnected = !!this.activePad(); if (!this.padConnected) { this.device = 'keyboard'; this.padPrev = []; this.onDeviceChange?.('keyboard'); } });
+    window.addEventListener('gamepaddisconnected', () => { this.padConnected = !!this.activePad(); if (!this.padConnected) { this.device = 'keyboard'; for (const code of [...this.held]) if (code.startsWith('Pad')) this.up(code); this.padPrev = []; this.onDeviceChange?.('keyboard'); } });
   }
 
   private family(id: string): Device { return /054c|dualsense|dualshock|playstation|wireless controller/i.test(id) ? 'playstation' : 'xbox'; }
@@ -87,12 +89,14 @@ export class InputManager {
   private down(code: string): void { if (!this.held.has(code)) { this.held.add(code); this.pendingPressed.add(code); } }
   private up(code: string): void { if (this.held.delete(code)) this.pendingReleased.add(code); }
   releaseAll(): void {
+    this.releaseSerial++;
     this.autoWalking = false; this.orbitDrag = null;
     for (const c of [...this.held]) { this.held.delete(c); this.pendingReleased.add(c); }
     // Pointer-lock exit can open Pause before the Escape key reaches beginFrame. That same
     // edge must not immediately close the newly opened menu or activate its focused button.
     this.pendingPressed.clear(); this.framePressed.clear();
-    this.move.x = this.move.y = this.lookAccum.x = this.lookAccum.y = 0;
+    this.move.x = this.move.y = this.lookAccum.x = this.lookAccum.y = this.look.x = this.look.y = 0;
+    this.wheelAccum = this.wheel = 0;
   }
 
   requestLock(): void {

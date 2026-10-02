@@ -1,0 +1,21 @@
+{
+  "base": "50c8b0db1629be68348a5876deff8f382d1b0db8",
+  "branch": "codex/orbit-combat-feel",
+  "tests": "46 focused headless regressions PASS",
+  "typecheck": "PASS final source",
+  "build": "PASS 3346 modules, generated existing assets copied into isolated worktree",
+  "browser": "24/24 PASS, no errors or inference requests",
+  "gpu": "Browser closed, inference may resume",
+  "humanAcceptance": "not performed",
+  "files": {
+    "src/web/game/controller.ts": "82D3398FF766B66CEA61096400501D7F2657E74501AB196598B0CF0AB4FABE8C",
+    "scripts/web/isometric.ts": "82E01C0453AD03E64E5C468DACC6E2DDF7D19CDE8DFF40B4BF8E43266B31FF04",
+    "tests/web-input.test.ts": "DCE44823161688162D59F559590C23C5B8060F03441970D1BE42D087E469F527",
+    "src/web/world/regionManager.ts": "AA4EC23CBD3B43041A17515C81C3518FA01AB8870B5BA70301A39A7C30A77E24",
+    "src/web/game/cameraRig.ts": "2CCA0BFA7147ED0F00BD00D07EE2EEEF8F9C98B4AC713BE129F559D1392F062F",
+    "src/web/game/input.ts": "804A8C6991FBCF5587CBBD86E8D0CEF4AC0AC6836E1591C11386D0917F1563AC",
+    "tests/web-combat-feel.test.ts": "8D9BF100847FB7A90443F896FD48F61154BF9E2615B0C8950FDFC29D37D6805B",
+    "src/web/app.ts": "D4DA918CCA6B901B49A82F917FB709C2C33853C231F2F93EB82B71461E6270AD",
+    "src/web/actors/actorManager.ts": "C2A63A5F64DF6CB251F889377CD2386ECA92B9835412775133B4E5E8CC91394C"
+  }
+}

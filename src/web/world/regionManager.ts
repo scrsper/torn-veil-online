@@ -241,11 +241,15 @@ export class RegionManager {
     this.vegClock = 0; l.x = cam.x; l.z = cam.z; l.fx = fx; l.fz = fz;
     for (const r of this.regions.values()) r.instances.refresh(r.root.position.x, r.root.position.z, cam.x, cam.z, fx, fz, this.ctx.quality.vegetationNear, this.ctx.quality.vegetationFar);
   }
-  updateCutaway(player: Vec3 | null, camera: Vector3): void {
+  updateCutaway(player: Vec3 | null, camera: Vector3, target: Vec3 | null = null): void {
     const worldCamera = { x: camera.x + this.origin.x, y: camera.y + this.origin.y, z: camera.z + this.origin.z };
     for (const region of this.regions.values()) for (const mesh of region.meshes) {
       const bounds = mesh.metadata?.cutawayBounds, plane = mesh.material?.clipPlane;
-      if (bounds && plane) plane.d = player && needsCutaway(bounds, player, worldCamera) ? -(player.y - this.origin.y + .8) : -1e8;
+      if (bounds && plane) {
+        const focus = player && needsCutaway(bounds, player, worldCamera) ? player
+          : player && target && needsCutaway(bounds, target, worldCamera) ? target : null;
+        plane.d = focus ? -(focus.y - this.origin.y + .8) : -1e8;
+      }
     }
   }
   update(dt: number, cameraPos: Vector3, cameraForward: Vector3, night: number): void {

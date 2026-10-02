@@ -36,6 +36,7 @@ export class CameraRig {
   get isometric(): boolean { return this.settings().viewMode === 'isometric'; }
   private desiredDistance = 4.6;
   private currentDistance = 4.6;
+  private obstructionDistance: number | null = null;
   private shoulder = 0.35;          // metres to the right of the pivot
   private shoulderNow = 0.35;
   private fov = 1.08;
@@ -123,6 +124,11 @@ export class CameraRig {
       safe = d;
     }
     if (safe < dist) dist = Math.max(0.55, safe - 0.25);
+    // Pull in immediately; clearing a wall eases out from the actual collision distance.
+    if (this.obstructionDistance !== null && dist > this.obstructionDistance) {
+      dist = this.obstructionDistance + (dist - this.obstructionDistance) * damp(4, t);
+    }
+    this.obstructionDistance = dist;
     // Never dip under the ground.
     let cx = wantX(dist), cyv = wantY(dist), cz = wantZ(dist);
     const g = this.world.ground(cx, cz); if (g !== null && cyv < g + 0.35) cyv = g + 0.35;

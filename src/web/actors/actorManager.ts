@@ -142,15 +142,21 @@ export class ActorManager {
 
   /** Start local anticipation for the controlled body the instant a combat command is sent. */
   predict(bodyId: string, p: PredictedCombat): void { const a = this.actors.get(bodyId); if (a) a.predicted = p; }
+  /** Use high-rate canonical feedback so queued input cannot replace a live strike pose. */
+  applyLocalCombat(bodyId: string, action: CombatActionState | null, bufferedCommandId: string | null): void {
+    const a = this.actors.get(bodyId); if (!a) return;
+    if (a.body) a.body.combatAction = action;
+    if (a.predicted && (a.predicted.commandId === action?.commandId || a.predicted.commandId === bufferedCommandId)) a.predicted = null;
+  }
   cancelPredicted(bodyId: string, commandId: string): void { const a = this.actors.get(bodyId); if (a?.predicted?.commandId === commandId) a.predicted = null; }
 
   private combatFor(a: Actor, nowMs: number, physNow: number): CombatContext | null {
     const act = a.body?.combatAction;
-    if (a.predicted) {
+    if (a.predicted && !(act && act.commandId !== a.predicted.commandId && !['complete', 'cancelled', 'interrupted'].includes(act.phase) && physNow < act.completeAt)) {
       const p = a.predicted, age = (nowMs - p.startedAtMs) / 1000, total = p.prep + p.active + p.recovery;
       if (age > total + 0.05) { a.predicted = null; } else return { moveId: p.moveId, weight: p.weight, age, prep: p.prep, active: p.active, recovery: p.recovery, dirLocal: p.dirLocal, side: p.side, predicted: true };
     }
-    if (act && !['complete', 'cancelled', 'missed'].includes(act.phase)) {
+    if (act && !['complete', 'cancelled', 'missed', 'interrupted'].includes(act.phase)) {
       const age = physNow - act.startedAt, total = act.completeAt - act.startedAt;
       if (age >= -0.05 && age <= total + 0.1) {
         const yaw = act.yaw ?? a.yaw, fx = -Math.sin(yaw), fz = -Math.cos(yaw), lx = -Math.cos(yaw), lz = Math.sin(yaw);
