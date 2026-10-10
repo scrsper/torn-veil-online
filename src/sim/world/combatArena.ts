@@ -12,7 +12,7 @@ export function generateCombatArena(w:World):void {
   makePlace(w,'square','Contact arena',{x0:1,z0:1,x1:46,z1:46,y0:1,y1:4},{inside:{x:20,y:1,z:20},indoor:false});
   for(let i=0;i<3;i++) {
     const p=makePerson(w,{name:['Arena traveler','Reaction partner','Second partner'][i],gender:'f',age:25,occupation:'traveler',traits:{},appearance:{shirt:i===0?0x335b9e:0xa04c36},bio:'Isolated contact test participant.'});
-    p.bodies.push(makeBody(w,p.id,{x:20+i*1.05,y:1,z:i===2?24:20}).id);
+    w.attachBody(p, makeBody(w,p.id,{x:20+i*1.05,y:1,z:i===2?24:20}));
     p.mind.thinkInterval=1e12;p.mind.plan=[{type:'wait',duration:1e12,status:'pending'}];
     setExternalControl(p,true);if(i===0)w.playerId=p.id;
     w.primaryBody(p.id)!.yaw=i===0?-Math.PI/2:Math.PI/2;

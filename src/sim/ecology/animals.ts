@@ -44,7 +44,7 @@ export function isMature(animal: Creature, spec: SpeciesSpec, tick: number): boo
 
 export function attachAnimalBody(world: World, animal: Creature, body: Body, tick = world.now): AnimalEmbodiment {
   if (!animal.wildlife || body.ownerId !== animal.id) throw new Error('Animal body owner mismatch');
-  if (!animal.bodies.includes(body.id)) animal.bodies.push(body.id);
+  world.attachBody(animal, body);
   return animal.wildlife.embodiments[body.id] ??= {
     physiology: defaultPhysiology(tick), activity: 'idle', target: null, starvationHours: 0, dehydrationHours: 0,
     distanceM: 0, foodKg: 0, waterLitres: 0,

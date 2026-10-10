@@ -1278,8 +1278,11 @@ export class ArenaWorld {
       if (!thigh || !calf || !foot) continue;
       foot.computeWorldMatrix(true);
       const animPos = foot.getAbsolutePosition().clone();
-      // Planted when the animated ankle is within ~3 cm (scaled) of its standing height (live pose: works for any clip or blend).
-      const planted = animPos.y - f.y < f.ankleY + .035 * scale;
+      // Retargeted people carry a small, rig-dependent ankle offset (the
+      // imported foot pivot is above the visual sole). Use a broad enough
+      // presentation band to acquire contact while still requiring the ankle
+      // to be near its standing height; the lock itself prevents skating.
+      const planted = animPos.y - f.y < f.ankleY + .12 * scale;
       const L = f.feet[k];
       if (planted) {
         // Plant at once (a running stance lasts ~150 ms); re-plant only if the body has carried far past it.

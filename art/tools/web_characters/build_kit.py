@@ -18,7 +18,6 @@ import garments_web as G
 import accessories as A
 import export as X
 import couture as C
-import vroid_head
 
 # The component builders keep the established mesh tags and skeleton contract.
 Hd.face_position = C.face_position
@@ -66,7 +65,24 @@ if want('body'):
     body['tv_part'] = 'body'
     parts.append(body)
 if want('head'):
-    parts.append(vroid_head.build(d, arm))
+    # Keep the head on the same analytic surface as hair, eyes and garments.  The
+    # VRoid beta face was useful as a reference, but its baked eye regions were
+    # part of the imported Face mesh; they occluded the canonical EyeL/EyeR
+    # meshes and made the browser characters read as blank-eyed mannequins.
+    head = Hd.build_head(d, arm)
+    Hd.weight_all(head)
+    Hd.bind(head, arm)
+    # The analytic head has no imported material slots.  Give it the same
+    # canonical slot as the body so CharacterMaterials can paint the procedural
+    # complexion, brows, lips, and age detail at runtime.
+    head.data.materials.clear()
+    head.data.materials.append(bpy.data.materials['TV_SkinHead'])
+    parts.append(head)
+    for eye in Hd.eye_meshes(d, arm):
+        Hd.weight_all(eye)
+        Hd.bind(eye, arm)
+        eye['tv_part'] = 'eye'
+        parts.append(eye)
 fit = G.Fit(d)
 if want('garments'):
     for kind in G.REGISTRY:

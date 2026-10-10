@@ -212,6 +212,27 @@ export class World {
   get<T extends Entity = Entity>(id: EntityId | null | undefined): T | undefined { if (!id) return undefined; return this.entities.get(id) as T | undefined; }
   person(id: EntityId | null | undefined): Person | undefined { const e = this.get(id); return e && e.kind === 'person' ? (e as Person) : undefined; }
   body(id: EntityId | null | undefined): Body | undefined { const e = this.get(id); return e && e.kind === 'body' ? (e as Body) : undefined; }
+  /** Attach a manifestation to its canonical identity exactly once.
+   *
+   * Bodies are entities in their own right, so registration and ownership are two
+   * separate writes. Keeping the relationship behind this idempotent helper prevents
+   * zero-or-many embodiment state from depending on every caller remembering the
+   * second write, while still allowing a body to be withdrawn without destroying its
+   * historical identity.
+   */
+  attachBody(ownerOrId: Person | Creature | EntityId, bodyOrId: Body | EntityId): Body {
+    const owner = typeof ownerOrId === 'string' ? this.get<Person | Creature>(ownerOrId) : ownerOrId;
+    const body = typeof bodyOrId === 'string' ? this.body(bodyOrId) : bodyOrId;
+    const ownerId = typeof ownerOrId === 'string' ? ownerOrId : ownerOrId?.id;
+    const bodyId = typeof bodyOrId === 'string' ? bodyOrId : bodyOrId?.id;
+    // Object arguments must be the exact registry objects. Accepting a clone or an
+    // equal-id object from another World would mutate state that canonical queries
+    // never read, recreating the two-sided drift this helper is meant to prevent.
+    if (!owner || this.get(owner.id) !== owner || (owner.kind !== 'person' && owner.kind !== 'creature')) throw new Error(`Cannot attach non-canonical owner ${ownerId ?? '?'}`);
+    if (!body || this.get(body.id) !== body || body.kind !== 'body' || body.ownerId !== owner.id) throw new Error(`Body ${bodyId ?? '?'} is not a canonical body owned by ${owner.id}`);
+    if (!owner.bodies.includes(body.id)) owner.bodies.push(body.id);
+    return body;
+  }
   item(id: EntityId | null | undefined): Item | undefined { const e = this.get(id); return e && e.kind === 'item' ? (e as Item) : undefined; }
   place(id: EntityId | null | undefined): Place | undefined { const e = this.get(id); return e && e.kind === 'place' ? (e as Place) : undefined; }
   container(id: EntityId | null | undefined): Container | undefined { const e = this.get(id); return e && e.kind === 'container' ? (e as Container) : undefined; }
@@ -252,6 +273,11 @@ export class World {
   }
   livingIndexErrors(): string[] {
     const errors: string[] = [];
+    for (const b of this.bodies()) {
+      const owner = this.get<Person | Creature>(b.ownerId);
+      if (!owner || (owner.kind !== 'person' && owner.kind !== 'creature')) errors.push(`body ${b.id} has unknown owner ${b.ownerId}`);
+      else if (!owner.bodies.includes(b.id)) errors.push(`body ${b.id} is missing from owner ${owner.id} manifestations`);
+    }
     const expectedPeople = this.persons().filter(p => p.alive).map(p => p.id).sort();
     const indexedPeople = this.livingPeople.map(p => p.id).sort();
     if (JSON.stringify(expectedPeople) !== JSON.stringify(indexedPeople)) errors.push(`living people index differs: expected ${expectedPeople.join(',')} got ${indexedPeople.join(',')}`);
@@ -280,10 +306,22 @@ export class World {
   }
   nameOf(id: EntityId | null | undefined): string { if (!id) return '?'; return this.get(id)?.name ?? id; }
 
-  /** Primary body of an entity (ordinary beings have exactly one). */
+  /** Primary usable manifestation of an entity.
+   *
+   * A dead body may remain present as a canonical carcass/scene witness, so presence
+   * alone cannot select it for an identity that still has another living body. Keep a
+   * dead manifestation as the fallback when no living one exists; this preserves
+   * carcass inspection and historical observation for single-body creatures.
+   */
   primaryBody(id: EntityId | null | undefined): Body | undefined {
     const e = this.get(id) as any; if (!e || !e.bodies) return undefined;
-    for (const bid of e.bodies as EntityId[]) { const b = this.body(bid); if (b && b.present) return b; }
+    let presentDead: Body | undefined;
+    for (const bid of e.bodies as EntityId[]) {
+      const b = this.body(bid); if (!b || !b.present) continue;
+      if (!b.dead) return b;
+      presentDead ??= b;
+    }
+    if (presentDead) return presentDead;
     return undefined;
   }
   positionOf(id: EntityId): Vec3 | undefined { return this.primaryBody(id)?.pos; }

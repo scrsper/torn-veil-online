@@ -103,7 +103,7 @@ function materialize(world: World, spec: SettlementSpec, regional: RegionalGrid)
     if (work) { work.workers.push(p.id); work.ownerId ??= p.id; }
     if (c.occupation === 'hunter') { places.stall_game.workers.push(p.id); places.stall_game.ownerId ??= p.id; }
     home.ownerId ??= p.id;
-    const b = makeBody(world, p.id, home.inside); p.bodies.push(b.id);
+    const b = makeBody(world, p.id, home.inside); world.attachBody(p, b);
     p.schedule = scheduleFor(p, { home: home.id, work: work?.id ?? null, tavern: places.tavern.id, square: places.square.id, chapel: places.chapel.id, field: c.occupation === 'farmer' ? work?.id : null, saw: places.sawpit.id, stall: c.occupation === 'hunter' ? places.stall_game.id : null });
     seedStartingSkills(p);
     for (const t of STARTING_AFFORDANCE_KNOWLEDGE[p.occupation] ?? []) learnAffordance(world, p, t, { type: 'prior' });

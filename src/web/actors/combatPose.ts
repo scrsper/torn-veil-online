@@ -49,6 +49,12 @@ export function combatPose(L: Pose, c: CombatContext, S: number): { weight: numb
   const heavy = c.weight === 'heavy' ? 1 : 0;
   let weight = sstep(0, 0.06, c.age) * (1 - sstep(total - 0.12, total, c.age));
   const P = new Vector3();
+  // The hand has two knuckle joints. Curling only the first leaves the fingers visibly
+  // straight during punches; both joints and the opposing thumb make a readable fist.
+  for (const side of ['l', 'r']) {
+    L.set(`fingers_01_${side}`, Q.x(-1.15)); L.set(`fingers_02_${side}`, Q.x(-1.25));
+    L.set(`thumb_01_${side}`, Q.x(-.65)); L.set(`thumb_02_${side}`, Q.x(-.5));
+  }
   const stance = (k: number) => {
     // Left-lead fighting stance: knees soft, weight low, hips turned toward the rear.
     L.set('pelvis', chain(turn(-0.32 * k), lean(0.05 * k)), 1); P.y -= 0.07 * S * k;

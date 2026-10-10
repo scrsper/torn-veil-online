@@ -3,6 +3,8 @@ import type { ActorState } from './actorManager';
 import { CharacterRig, Q } from './characterRig';
 import type { Realization } from './appearanceMap';
 import { combatPose, type CombatContext } from './combatPose';
+import { gaitForSpeed, localTravel } from './locomotion';
+import { FootPlacement } from './footPlacement';
 
 /**
  * Procedural body animation for the people of the world.
@@ -39,7 +41,7 @@ const BONES = [
   'pelvis', 'spine_01', 'spine_02', 'spine_03', 'neck_01', 'head',
   'clavicle_l', 'upperarm_l', 'lowerarm_l', 'hand_l', 'clavicle_r', 'upperarm_r', 'lowerarm_r', 'hand_r',
   'thigh_l', 'calf_l', 'foot_l', 'ball_l', 'thigh_r', 'calf_r', 'foot_r', 'ball_r',
-  'fingers_01_l', 'fingers_01_r', 'thumb_01_l', 'thumb_01_r',
+  'fingers_01_l', 'fingers_01_r', 'fingers_02_l', 'fingers_02_r', 'thumb_01_l', 'thumb_01_r', 'thumb_02_l', 'thumb_02_r',
 ];
 
 export interface ActorPoseState extends ActorState { lookAt?: Vector3 | null; speaking?: boolean; gesture?: number; combat?: CombatContext | null; hit?: number; guard?: boolean }
@@ -52,16 +54,17 @@ class PoseBuffer {
   clear(): void { for (const b of BONES) { this.q.get(b)!.copyFromFloats(0, 0, 0, 1); this.w.set(b, 0); } this.pelvis.set(0, 0, 0); }
   set(bone: string, q: Quaternion, w = 1): void { const t = this.q.get(bone); if (!t) return; t.copyFrom(q); this.w.set(bone, w); }
   /** Blend `other` over this pose by weight `k` per bone it touches. */
-  over(other: PoseBuffer, k: number): void {
+  over(other: PoseBuffer, k: number, legs = 1): void {
     for (const b of BONES) {
-      const ow = (other.w.get(b) ?? 0) * k; if (ow <= 0) continue;
+      const lower = b === 'pelvis' || /^(thigh|calf|foot|ball)_/.test(b);
+      const ow = (other.w.get(b) ?? 0) * k * (lower ? legs : 1); if (ow <= 0) continue;
       const cur = this.q.get(b)!;
       Quaternion.SlerpToRef(cur, other.q.get(b)!, ow, cur);
       this.w.set(b, Math.max(this.w.get(b) ?? 0, ow));
     }
-    this.pelvis.x = lerp(this.pelvis.x, other.pelvis.x, k * (other.w.get('pelvis') ?? 0));
-    this.pelvis.y = lerp(this.pelvis.y, other.pelvis.y, k * (other.w.get('pelvis') ?? 0));
-    this.pelvis.z = lerp(this.pelvis.z, other.pelvis.z, k * (other.w.get('pelvis') ?? 0));
+    this.pelvis.x = lerp(this.pelvis.x, other.pelvis.x, k * legs * (other.w.get('pelvis') ?? 0));
+    this.pelvis.y = lerp(this.pelvis.y, other.pelvis.y, k * legs * (other.w.get('pelvis') ?? 0));
+    this.pelvis.z = lerp(this.pelvis.z, other.pelvis.z, k * legs * (other.w.get('pelvis') ?? 0));
   }
 }
 
@@ -86,18 +89,21 @@ export class Animator {
   private lookYaw = 0; private lookPitch = 0;
   private readonly springs = new Map<string, Spring>();
   private readonly S: number;
+  private readonly feet: FootPlacement;
+  private travel = { x: 0, z: 1 };
   private hitK = 0;
-  private lastYaw = 0; private yawRate = 0;
+  private lastYaw: number | null = null; private yawRate = 0;
   private readonly hasBone: (n: string) => boolean;
   constructor(private readonly rig: CharacterRig, readonly r: Realization) {
     this.S = r.heightScale;
+    this.feet = new FootPlacement(rig);
     this.hasBone = n => rig.has(n);
     this.prev.clear();
     for (const b of BONES) this.prev.w.set(b, 1);
   }
 
   update(dt: number, s: ActorPoseState): void {
-    dt = Math.min(dt, 0.1); this.t += dt;
+    dt = clamp(dt, 0, 0.1); this.t += dt;
     const rig = this.rig, S = this.S;
     const speed = s.speed, posture = s.body?.embodiment?.activity.posture ?? 'stand';
     let family = s.body?.embodiment?.activity.family ?? 'idle', detail = s.body?.embodiment?.activity.detail ?? '';
@@ -112,17 +118,21 @@ export class Animator {
     const k = (rate: number) => 1 - Math.exp(-rate * dt);
     const moving = speed > 0.12 && posture !== 'lie';
     this.moveW += ((moving ? 1 : 0) - this.moveW) * k(9);
-    this.runW += ((speed > 2.4 ? 1 : 0) - this.runW) * k(6);
+    const gait = gaitForSpeed(speed, this.feet.stature);
+    this.runW += (gait.run - this.runW) * k(6);
     this.sitW += ((posture === 'sit' ? 1 : 0) - this.sitW) * k(7);
     this.kneelW += ((posture === 'kneel' ? 1 : 0) - this.kneelW) * k(7);
     this.lieW += (((posture === 'lie' || dead || downed) ? 1 : 0) - this.lieW) * k(dead ? 3 : 6);
     this.crouchW += ((s.crouch > 0.05 ? s.crouch : 0) - this.crouchW) * k(14);
     this.accel.copyFromFloats((s.velocity.x - this.lastVel.x) / Math.max(dt, 1e-3), 0, (s.velocity.z - this.lastVel.z) / Math.max(dt, 1e-3)); this.lastVel.copyFromFloats(s.velocity.x, 0, s.velocity.z);
-    this.yawRate += (wrapPi(s.yaw - this.lastYaw) / Math.max(dt, 1e-3) - this.yawRate) * k(8); this.lastYaw = s.yaw;
+    this.yawRate += (clamp(wrapPi(s.yaw - (this.lastYaw ?? s.yaw)) / Math.max(dt, 1e-3), -6, 6) - this.yawRate) * k(8); this.lastYaw = s.yaw;
 
     // ── gait ─────────────────────────────────────────────────────────────────────────────────
-    const step = lerp(0.62, 1.35, sstep(1.4, 5.5, speed)) * S;                  // metres per step
-    if (moving) this.phase = (this.phase + (speed / step) * Math.PI * dt) % TAU;
+    if (moving) {
+      this.phase = (this.phase + speed / gait.cycleDistance * TAU * dt) % TAU;
+      const dir = localTravel(s.velocity, s.yaw);
+      this.travel.x += (dir.x - this.travel.x) * k(14); this.travel.z += (dir.z - this.travel.z) * k(14);
+    }
     const B = this.base; B.clear();
     const sp = sstep(0.2, 1.6, speed), sr = sstep(2.2, 5.6, speed);
     const walkAmp = this.moveW * (1 - this.runW * 0.35);
@@ -140,10 +150,10 @@ export class Animator {
     B.set('ball_l', Q.x(Math.max(0, -sinP) * 0.35 * walkAmp)); B.set('ball_r', Q.x(Math.max(0, sinP) * 0.35 * walkAmp));
     // pelvis: bob, sway and counter-rotation
     const bob = Math.abs(sinP) * 0.030 * S * (0.4 + sp + sr) * walkAmp - crouch * 0.30 * S;
-    B.pelvis.set(Math.sin(ph) * 0.012 * S * walkAmp, -bob * 0.0 + (Math.cos(2 * ph) * 0.012 * S * (0.3 + sp) * walkAmp) - crouch * 0.30 * S, crouch * -0.03 * S);
+    B.pelvis.set(Math.sin(ph) * 0.012 * S * walkAmp, (Math.cos(2 * ph) * 0.012 * S * (0.3 + sp) - .035) * this.moveW - crouch * 0.30 * S, crouch * -0.03 * S);
     B.set('pelvis', chain(R.turn(-sinP * 0.16 * walkAmp * (0.6 + sr)), R.tilt(sinP * 0.05 * walkAmp), R.lean(0.05 * this.runW + crouch * 0.28 + sr * 0.05)));
     // spine counter-rotation and lean into the run
-    const leanRun = 0.06 * sp + 0.16 * sr;
+    const leanRun = (0.06 * sp + 0.16 * sr) * this.travel.z;
     B.set('spine_01', chain(R.turn(sinP * 0.06 * walkAmp), R.lean(leanRun * 0.4 + crouch * 0.18)));
     B.set('spine_02', chain(R.turn(sinP * 0.10 * walkAmp * (0.7 + sr)), R.lean(leanRun * 0.35 + crouch * 0.16), R.tilt(-this.yawRate * 0.02 * this.moveW)));
     B.set('spine_03', chain(R.turn(sinP * 0.06 * walkAmp), R.lean(leanRun * 0.25 + crouch * 0.1)));
@@ -153,7 +163,7 @@ export class Animator {
     B.set('spine_03', chain(R.lean(breath * idleW + leanRun * 0.25 + crouch * 0.1), R.turn(sinP * 0.06 * walkAmp)));
     B.pelvis.x += shift * 0.008 * S; B.set('pelvis', chain(R.turn(-sinP * 0.16 * walkAmp * (0.6 + sr)), R.tilt(sinP * 0.05 * walkAmp + shift * 0.02), R.lean(0.05 * this.runW + crouch * 0.28 + sr * 0.05)));
     // arms
-    const armA = (0.14 + 0.22 * sp + 0.42 * sr) * walkAmp, armOut = 0.10 + 0.05 * (1 - this.moveW);
+    const armA = (0.14 + 0.22 * sp + 0.42 * sr) * walkAmp * this.travel.z, armOut = 0.10 + 0.05 * (1 - this.moveW);
     const elbowBase = 0.20 + 0.22 * sp + 0.55 * sr;
     B.set('clavicle_l', R.out(0.03 * (1 - this.runW), 1)); B.set('clavicle_r', R.out(0.03 * (1 - this.runW), -1));
     B.set('upperarm_l', chain(R.fwd(-sinP * armA + 0.04), R.out(-armOut + 0.0, 1)));
@@ -161,7 +171,10 @@ export class Animator {
     B.set('lowerarm_l', Q.x(-(elbowBase + Math.max(0, -sinP) * 0.3 * walkAmp) - breath * 2));
     B.set('lowerarm_r', Q.x(-(elbowBase + Math.max(0, sinP) * 0.3 * walkAmp) - breath * 2));
     B.set('hand_l', chain(R.fwd(0.0), R.out(0.05, 1))); B.set('hand_r', chain(R.fwd(0.0), R.out(0.05, -1)));
-    for (const sd of ['l', 'r'] as const) { B.set(`fingers_01_${sd}`, Q.x(-0.35 - 0.3 * this.runW)); B.set(`thumb_01_${sd}`, Q.x(-0.2)); }
+    for (const sd of ['l', 'r'] as const) {
+      B.set(`fingers_01_${sd}`, Q.x(-0.35 - 0.3 * this.runW)); B.set(`fingers_02_${sd}`, Q.x(-.24 - .24 * this.runW));
+      B.set(`thumb_01_${sd}`, Q.x(-0.2)); B.set(`thumb_02_${sd}`, Q.x(-.12));
+    }
 
     // ── layers: posture, activity, combat ────────────────────────────────────────────────────
     const L = this.layer;
@@ -198,7 +211,9 @@ export class Animator {
     // Combat (from the projected action's own phase timing).
     if (s.combat) {
       const w = combatPose(L, s.combat, S);
-      B.over(L, w.weight); B.pelvis.x += w.pelvis.x; B.pelvis.y += w.pelvis.y; B.pelvis.z += w.pelvis.z;
+      // Guard keeps the arms up while the same locomotion moves the legs. Other actions own their stance.
+      const legs = s.combat.moveId === 'guard' ? 1 - this.moveW : 1;
+      B.over(L, w.weight, legs); B.pelvis.addInPlace(w.pelvis.scale(w.weight * legs));
     }
     // Being struck.
     if (s.hit) this.hitK = Math.max(this.hitK, s.hit);
@@ -217,7 +232,9 @@ export class Animator {
     }
 
     // ── apply with light smoothing ───────────────────────────────────────────────────────────
-    const F = this.final; const sm = 1 - Math.exp(-26 * dt);
+    const F = this.final;
+    const activeStrike = s.combat && s.combat.age >= s.combat.prep && s.combat.age < s.combat.prep + s.combat.active;
+    const sm = 1 - Math.exp(-(activeStrike ? 48 : 26) * dt);
     for (const b of BONES) {
       const tq = B.q.get(b)!, pq = this.prev.q.get(b)!;
       Quaternion.SlerpToRef(pq, tq, sm, pq);
@@ -229,6 +246,9 @@ export class Animator {
     // Lying: the whole model rotates onto its back and rests on the ground (or the bed under it).
     this.applyLie();
     this.secondary(dt, s);
+    const actionOwnsFeet = s.combat && s.combat.moveId !== 'guard';
+    const footWeight = this.moveW * (1 - this.sitW) * (1 - this.lieW) * (1 - this.kneelW) * (1 - this.crouchW);
+    if (!actionOwnsFeet && !dead && !downed) this.feet.apply(this.phase / TAU, gait, this.travel, footWeight);
   }
 
   private applyLie(): void {

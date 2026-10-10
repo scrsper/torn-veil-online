@@ -74,6 +74,13 @@ class Fit:
     def torso(self, z):
         cy, rx, ry = self._torso(z)
         H = self.H
+        # The child body is intentionally rounder through the hips than the
+        # adult torso rings.  Give every child garment a small, continuous
+        # side clearance so the lower kosode cannot reveal bare wedges while
+        # still following the same canonical body measurements.
+        if self.c:
+            rx += 0.012 * H
+            ry += 0.010 * H
         if self.d.sex == 'f':
             # The body's bust and glute bumps stand proud of the base rings; give the cloth the same room, front and back.
             front = 0.028 * H * math.exp(-((z - 0.706 * H) ** 2) / (2 * (0.032 * H) ** 2))
@@ -171,7 +178,9 @@ def sleeve(fit, b, side, wide=0.0, length=1.0, ease=0.012, hang_k=0.0, cuff=Fals
     def bind_radius(s):
         return min(0.055 * fit.H, fit.arm_radius(min(1.0, s)) * 0.95)
     regions = lambda s: region
-    return tube_along(b, frames, radius, regions_of=regions, hang=hang, bind_radius_of=bind_radius, segments=segs, close_start=False, close_end=False)
+    # Cap the shoulder start so the sleeve cannot expose a dark triangular hole
+    # where it meets the torso shell during posed motion.
+    return tube_along(b, frames, radius, regions_of=regions, hang=hang, bind_radius_of=bind_radius, segments=segs, close_start=True, close_end=False)
 
 
 def collar(fit, b, z_neck, z_waist, ease, region=ACCENT, under=True, width=0.030, lift=0.006):
