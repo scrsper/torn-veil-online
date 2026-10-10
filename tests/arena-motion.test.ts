@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { Animator, effectiveAnimationSpeed } from '../src/web/arena/anim';
+import { footContact } from '../src/web/arena/footPlant';
 
 describe('arena human motion clocks', () => {
+  it('uses retargeted ankle contact hysteresis without locking a high swing', () => {
+    expect(footContact(.18, .086, 1.22, false)).toBe(false);
+    expect(footContact(.16, .086, 1.22, false)).toBe(true);
+    expect(footContact(.21, .086, 1.22, true)).toBe(true);
+    expect(footContact(.23, .086, 1.22, true)).toBe(false);
+  });
+
   it('scales authored clip speed by the body clock and clamps frozen bodies', () => {
     expect(effectiveAnimationSpeed(1.4, 0)).toBe(0);
     expect(effectiveAnimationSpeed(1.4, .5)).toBeCloseTo(.7);

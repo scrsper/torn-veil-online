@@ -28,6 +28,13 @@ export class Animator {
   has(name: string): boolean { return this.groups.has(name); }
   length(name: string): number { const g = this.groups.get(name); return g ? clipLength(g) : 1; }
 
+  /** Sample an observed canonical phase without a second free-running action clock. */
+  sample(name: string, progress: number, fade = .08): void {
+    this.play(name, { speed: 0, fade });
+    const g = this.groups.get(name);
+    g?.goToFrame(g.from + Math.max(0, Math.min(1, progress)) * (g.to - g.from));
+  }
+
   play(name: string, o: { loop?: boolean; speed?: number; fade?: number; restart?: boolean; from?: number } = {}): void {
     const g = this.groups.get(name); if (!g) { console.warn('[arena] missing clip', name); return; }
     const fade = o.fade ?? 0.12, speed = o.speed ?? 1;

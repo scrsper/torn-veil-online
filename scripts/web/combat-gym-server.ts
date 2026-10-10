@@ -12,7 +12,7 @@ const worlds = { town, gym };
 let fixtureDigest = canonicalDigest(gym.world);
 let current: keyof typeof worlds = 'gym';
 for (const r of Object.values(worlds)) r.startLoop();
-const root = resolve('dist-web'), port = Number(process.env.TV_GYM_PORT ?? 7505);
+const root = resolve(process.env.TV_GYM_STATIC ?? 'dist-web'), port = Number(process.env.TV_GYM_PORT ?? 7505);
 const server = createServer(async (req, res) => {
   const url = new URL(req.url ?? '/', `http://127.0.0.1:${port}`);
   try {

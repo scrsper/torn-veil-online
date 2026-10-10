@@ -58,4 +58,20 @@ describe('identity and embodiment ontology', () => {
     expect(() => world.attachBody(person, otherBody)).toThrow(/canonical body/);
     expect(person.bodies).toEqual([]);
   });
+
+  it('diagnoses duplicate, dangling, and wrong-owner manifestation links', () => {
+    const world = new World(4420);
+    const person = makePerson(world, { name: 'A', gender: 'f', age: 30, occupation: 'traveler', traits: {}, appearance: {}, bio: '' });
+    const other = makePerson(world, { name: 'B', gender: 'm', age: 30, occupation: 'traveler', traits: {}, appearance: {}, bio: '' });
+    const body = makeBody(world, person.id, { x: 2, y: 1, z: 2 });
+    const otherBody = makeBody(world, other.id, { x: 4, y: 1, z: 2 });
+    person.bodies.push(body.id, body.id, 'missing_body', otherBody.id);
+    const errors = world.livingIndexErrors();
+    expect(errors).toContain(`person ${person.id} has duplicate manifestation ${body.id}`);
+    expect(errors).toContain(`person ${person.id} has dangling manifestation missing_body`);
+    expect(errors).toContain(`person ${person.id} lists body ${otherBody.id} owned by ${other.id}`);
+    expect(world.primaryBody(person.id)?.id).toBe(body.id);
+    person.bodies = [otherBody.id];
+    expect(world.primaryBody(person.id)).toBeUndefined();
+  });
 });

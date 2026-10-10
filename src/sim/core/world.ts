@@ -273,6 +273,18 @@ export class World {
   }
   livingIndexErrors(): string[] {
     const errors: string[] = [];
+    const checkManifestations = (owner: Person | Creature): void => {
+      const seen = new Set<EntityId>();
+      for (const bodyId of owner.bodies) {
+        if (seen.has(bodyId)) errors.push(`${owner.kind} ${owner.id} has duplicate manifestation ${bodyId}`);
+        seen.add(bodyId);
+        const body = this.body(bodyId);
+        if (!body) { errors.push(`${owner.kind} ${owner.id} has dangling manifestation ${bodyId}`); continue; }
+        if (body.ownerId !== owner.id) errors.push(`${owner.kind} ${owner.id} lists body ${body.id} owned by ${body.ownerId}`);
+      }
+    };
+    for (const person of this.persons()) checkManifestations(person);
+    for (const creature of this.creatures()) checkManifestations(creature);
     for (const b of this.bodies()) {
       const owner = this.get<Person | Creature>(b.ownerId);
       if (!owner || (owner.kind !== 'person' && owner.kind !== 'creature')) errors.push(`body ${b.id} has unknown owner ${b.ownerId}`);
@@ -317,7 +329,7 @@ export class World {
     const e = this.get(id) as any; if (!e || !e.bodies) return undefined;
     let presentDead: Body | undefined;
     for (const bid of e.bodies as EntityId[]) {
-      const b = this.body(bid); if (!b || !b.present) continue;
+      const b = this.body(bid); if (!b || b.ownerId !== e.id || !b.present) continue;
       if (!b.dead) return b;
       presentDead ??= b;
     }

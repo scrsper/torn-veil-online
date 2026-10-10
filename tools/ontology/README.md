@@ -7,12 +7,12 @@ A local appearance and asset-authoring companion for Torn Veil Online. Canonical
 ## Launch
 
 ```powershell
-Set-Location (Join-Path $env:USERPROFILE 'Desktop/projects/ontology')
+Set-Location (Join-Path $env:USERPROFILE 'Desktop/projects/torn-veil-online/tools/ontology')
 npm ci
 npm run catalog
 ```
 
-Open **http://127.0.0.1:5173**. This bootstrap workspace already has dependencies and downloaded assets. `npm ci` is only needed after a fresh checkout or dependency change. Use `?webgl` to explicitly request WebGL; WebGPU is preferred when supported.
+Open **http://127.0.0.1:5173**. This package is integrated under the Torn Veil checkout; run `npm ci` after a fresh checkout or dependency change. Use `?webgl` to explicitly request WebGL; WebGPU is preferred when supported.
 
 Browse twelve validation identities, search/filter, inspect ontology/resolution/provenance, orbit/zoom/reset, toggle wireframe/skeleton, and browse actual source files. Animation selection is available on the UAL demonstration rig. Missing geometry remains visibly unresolved. Seed changes update deterministic requests; detailed appearance variants need authoring.
 
@@ -50,4 +50,4 @@ Download free official Standard archives with `node scripts/download-quaternius.
 
 [Architecture](docs/ARCHITECTURE.md) · [Ontology](docs/VISUAL_ONTOLOGY.md) · [Art pipeline](docs/ART_PIPELINE.md) · [Licenses](docs/ASSET_LICENSES.md) · [Environment](docs/ENVIRONMENT.md) · [Torn Veil integration](docs/INTEGRATION_WITH_TORN_VEIL.md) · [Roadmap](docs/ROADMAP.md) · [Validation](docs/VALIDATION.md).
 
-This is a functioning foundation, **not production character art**. No public remote or push is configured. The sibling Torn Veil repository is unchanged.
+This is a functioning foundation, **not production character art**. The package is integrated with Torn Veil Observatory as a presentation and authoring tool; canonical simulation remains authoritative for world identity and state.

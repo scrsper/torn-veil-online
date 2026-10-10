@@ -283,6 +283,12 @@ const GRIP_ALONG = .55, GRIP_PALM = .028;
 export function kaykitFallback(n: string): string {
   if (!n.includes('/')) return n;
   const k = n.toLowerCase();
+  if (/jab|cross|hook|uppercut/.test(k)) return 'Unarmed_Melee_Attack_Punch_A';
+  if (k.includes('roundhouse')) return 'Unarmed_Melee_Attack_Kick';
+  if (k.includes('slip')) return k.includes('right') ? 'Dodge_Right' : 'Dodge_Left';
+  if (k.includes('walk_backward')) return 'Walking_Backwards';
+  if (k.includes('walk_strafe')) return k.includes('left') ? 'Running_Strafe_Left' : 'Running_Strafe_Right';
+  if (k === 'locomotion/idle' || k === 'unarmed/idle_neutral') return 'Idle';
   if (k.includes('dodge')) return k.includes('back') ? 'Dodge_Backward' : k.includes('left') ? 'Dodge_Left' : k.includes('right') ? 'Dodge_Right' : 'Dodge_Forward';
   if (k.includes('death')) return k.includes('(2)') || k.includes('forward') ? 'Death_B' : 'Death_A';
   if (k.includes('impact') || k.includes('react')) return k.includes('(3)') ? 'Hit_B' : 'Hit_A';
