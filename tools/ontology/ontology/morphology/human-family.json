@@ -1,0 +1,75 @@
+{
+  "id": "human-reference-family-v1",
+  "version": 2,
+  "status": "PROTOTYPE",
+  "artDirectionProfile": "torn-veil-reference-draft-v1",
+  "sourceTopology": "MakeHuman hm08",
+  "rigFamily": "humanoid_standard",
+  "rigImplementation": "mpfb-game_engine",
+  "note": "Visual authoring baselines only. Neither sex nor these measurements impose canonical simulation mechanics. Numeric values are engineering starting points, not image measurements.",
+  "variants": [
+    {
+      "id": "adult-male-athletic",
+      "sex": "male",
+      "heightM": 1.8,
+      "headsTallTarget": 7.75,
+      "shoulderWidthToHeightTarget": 0.25,
+      "handLengthToHeightTarget": 0.108,
+      "assetId": "tv-human-male-v2",
+      "references": [
+        "omni",
+        "omni-armor"
+      ]
+    },
+    {
+      "id": "adult-female-athletic",
+      "sex": "female",
+      "heightM": 1.73,
+      "headsTallTarget": 7.5,
+      "shoulderWidthToHeightTarget": 0.225,
+      "handLengthToHeightTarget": 0.105,
+      "assetId": "tv-human-female-v1",
+      "references": [
+        "kestrel",
+        "kestrel-character-sheet"
+      ]
+    }
+  ],
+  "derivations": [
+    {
+      "species": "elf",
+      "baseFamily": "human-reference-family-v1",
+      "status": "MISSING",
+      "requirements": [
+        "User Elf silhouette and face reference",
+        "Authored ear morph and reviewed proportion deltas",
+        "Refit same wardrobe and rig; no independent body sculpt"
+      ]
+    },
+    {
+      "species": "orc",
+      "baseFamily": "human-reference-family-v1",
+      "status": "MISSING",
+      "references": [
+        "orc2",
+        "female-orc",
+        "orcish-dimorphism"
+      ],
+      "requirements": [
+        "Authored jaw/brow/nose/ear and tusk components",
+        "Review shoulder/torso/limb deltas against dimorphism sheet",
+        "Refit clothing on shared topology and revalidate skinning"
+      ]
+    },
+    {
+      "species": "dwarf",
+      "baseFamily": "human-reference-family-v1",
+      "status": "MISSING",
+      "requirements": [
+        "User Dwarf proportions and face reference",
+        "Authored limb/torso deltas; do not uniformly squash a Human",
+        "Refit rig bone locations and shared clothes"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5419 @@
+{
+  "count": 360,
+  "ids_unique": true,
+  "names_unique": true,
+  "all_glbs": [
+    {
+      "id": "TV-001",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 54880
+    },
+    {
+      "id": "TV-002",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 70136
+    },
+    {
+      "id": "TV-003",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 56616
+    },
+    {
+      "id": "TV-004",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 55112
+    },
+    {
+      "id": "TV-005",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 75100
+    },
+    {
+      "id": "TV-006",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 61916
+    },
+    {
+      "id": "TV-007",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 64828
+    },
+    {
+      "id": "TV-008",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 89876
+    },
+    {
+      "id": "TV-009",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 73140
+    },
+    {
+      "id": "TV-010",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 81708
+    },
+    {
+      "id": "TV-011",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 39640
+    },
+    {
+      "id": "TV-012",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 34124
+    },
+    {
+      "id": "TV-013",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 34012
+    },
+    {
+      "id": "TV-014",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 39860
+    },
+    {
+      "id": "TV-015",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 53784
+    },
+    {
+      "id": "TV-016",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 53016
+    },
+    {
+      "id": "TV-017",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 86192
+    },
+    {
+      "id": "TV-018",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 90028
+    },
+    {
+      "id": "TV-019",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 85728
+    },
+    {
+      "id": "TV-020",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 99992
+    },
+    {
+      "id": "TV-021",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 28528
+    },
+    {
+      "id": "TV-022",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 28516
+    },
+    {
+      "id": "TV-023",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 28520
+    },
+    {
+      "id": "TV-024",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 28524
+    },
+    {
+      "id": "TV-025",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 37880
+    },
+    {
+      "id": "TV-026",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 44784
+    },
+    {
+      "id": "TV-027",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 37876
+    },
+    {
+      "id": "TV-028",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 40236
+    },
+    {
+      "id": "TV-029",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 40456
+    },
+    {
+      "id": "TV-030",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 40680
+    },
+    {
+      "id": "TV-031",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 42384
+    },
+    {
+      "id": "TV-032",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 35436
+    },
+    {
+      "id": "TV-033",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 42372
+    },
+    {
+      "id": "TV-034",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 35444
+    },
+    {
+      "id": "TV-035",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 110412
+    },
+    {
+      "id": "TV-036",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 126176
+    },
+    {
+      "id": "TV-037",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 133096
+    },
+    {
+      "id": "TV-038",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 141188
+    },
+    {
+      "id": "TV-039",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 148336
+    },
+    {
+      "id": "TV-040",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 141632
+    },
+    {
+      "id": "TV-041",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 21304
+    },
+    {
+      "id": "TV-042",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 22012
+    },
+    {
+      "id": "TV-043",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 29788
+    },
+    {
+      "id": "TV-044",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 23068
+    },
+    {
+      "id": "TV-045",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 39548
+    },
+    {
+      "id": "TV-046",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 43520
+    },
+    {
+      "id": "TV-047",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 45836
+    },
+    {
+      "id": "TV-048",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 46432
+    },
+    {
+      "id": "TV-049",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 39920
+    },
+    {
+      "id": "TV-050",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 42140
+    },
+    {
+      "id": "TV-051",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 20608
+    },
+    {
+      "id": "TV-052",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 20628
+    },
+    {
+      "id": "TV-053",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 25740
+    },
+    {
+      "id": "TV-054",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 20612
+    },
+    {
+      "id": "TV-055",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 49892
+    },
+    {
+      "id": "TV-056",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 51608
+    },
+    {
+      "id": "TV-057",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 51636
+    },
+    {
+      "id": "TV-058",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 71744
+    },
+    {
+      "id": "TV-059",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 71936
+    },
+    {
+      "id": "TV-060",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 84712
+    },
+    {
+      "id": "TV-061",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 41540
+    },
+    {
+      "id": "TV-062",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 68808
+    },
+    {
+      "id": "TV-063",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 69168
+    },
+    {
+      "id": "TV-064",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 38936
+    },
+    {
+      "id": "TV-065",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 50040
+    },
+    {
+      "id": "TV-066",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 95520
+    },
+    {
+      "id": "TV-067",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 117384
+    },
+    {
+      "id": "TV-068",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 96516
+    },
+    {
+      "id": "TV-069",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 101912
+    },
+    {
+      "id": "TV-070",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 127508
+    },
+    {
+      "id": "TV-071",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 2,
+      "bytes": 61340
+    },
+    {
+      "id": "TV-072",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 2,
+      "bytes": 88224
+    },
+    {
+      "id": "TV-073",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 2,
+      "bytes": 115112
+    },
+    {
+      "id": "TV-074",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 2,
+      "bytes": 141988
+    },
+    {
+      "id": "TV-075",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 98508
+    },
+    {
+      "id": "TV-076",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 127436
+    },
+    {
+      "id": "TV-077",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 150240
+    },
+    {
+      "id": "TV-078",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 207444
+    },
+    {
+      "id": "TV-079",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 129020
+    },
+    {
+      "id": "TV-080",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 163292
+    },
+    {
+      "id": "TV-081",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 25844
+    },
+    {
+      "id": "TV-082",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 39060
+    },
+    {
+      "id": "TV-083",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 11820
+    },
+    {
+      "id": "TV-084",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 15636
+    },
+    {
+      "id": "TV-085",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 50768
+    },
+    {
+      "id": "TV-086",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 34940
+    },
+    {
+      "id": "TV-087",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 27216
+    },
+    {
+      "id": "TV-088",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 61780
+    },
+    {
+      "id": "TV-089",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 35696
+    },
+    {
+      "id": "TV-090",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 10,
+      "bytes": 45872
+    },
+    {
+      "id": "TV-091",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 1,
+      "bytes": 94732
+    },
+    {
+      "id": "TV-092",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 98780
+    },
+    {
+      "id": "TV-093",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 127748
+    },
+    {
+      "id": "TV-094",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 166072
+    },
+    {
+      "id": "TV-095",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 157256
+    },
+    {
+      "id": "TV-096",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 202684
+    },
+    {
+      "id": "TV-097",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 199764
+    },
+    {
+      "id": "TV-098",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 203848
+    },
+    {
+      "id": "TV-099",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 241028
+    },
+    {
+      "id": "TV-100",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 11,
+      "bytes": 254508
+    },
+    {
+      "id": "TV-101",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 137616
+    },
+    {
+      "id": "TV-102",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 183476
+    },
+    {
+      "id": "TV-103",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 179960
+    },
+    {
+      "id": "TV-104",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 204152
+    },
+    {
+      "id": "TV-105",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 192924
+    },
+    {
+      "id": "TV-106",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 189412
+    },
+    {
+      "id": "TV-107",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 213616
+    },
+    {
+      "id": "TV-108",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 262284
+    },
+    {
+      "id": "TV-109",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 170276
+    },
+    {
+      "id": "TV-110",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 196592
+    },
+    {
+      "id": "TV-111",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 43192
+    },
+    {
+      "id": "TV-112",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 60384
+    },
+    {
+      "id": "TV-113",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 77760
+    },
+    {
+      "id": "TV-114",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 95332
+    },
+    {
+      "id": "TV-115",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 103956
+    },
+    {
+      "id": "TV-116",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 126760
+    },
+    {
+      "id": "TV-117",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 149204
+    },
+    {
+      "id": "TV-118",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 177840
+    },
+    {
+      "id": "TV-119",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 111492
+    },
+    {
+      "id": "TV-120",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 136960
+    },
+    {
+      "id": "TV-121",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 42804
+    },
+    {
+      "id": "TV-122",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 60192
+    },
+    {
+      "id": "TV-123",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 77572
+    },
+    {
+      "id": "TV-124",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 94948
+    },
+    {
+      "id": "TV-125",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 116912
+    },
+    {
+      "id": "TV-126",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 139100
+    },
+    {
+      "id": "TV-127",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 162900
+    },
+    {
+      "id": "TV-128",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 187280
+    },
+    {
+      "id": "TV-129",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 120940
+    },
+    {
+      "id": "TV-130",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 145196
+    },
+    {
+      "id": "TV-131",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 40720
+    },
+    {
+      "id": "TV-132",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 65244
+    },
+    {
+      "id": "TV-133",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 40400
+    },
+    {
+      "id": "TV-134",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 43256
+    },
+    {
+      "id": "TV-135",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 115684
+    },
+    {
+      "id": "TV-136",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 92952
+    },
+    {
+      "id": "TV-137",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 95816
+    },
+    {
+      "id": "TV-138",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 127192
+    },
+    {
+      "id": "TV-139",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 99184
+    },
+    {
+      "id": "TV-140",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 104112
+    },
+    {
+      "id": "TV-141",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 86300
+    },
+    {
+      "id": "TV-142",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 118480
+    },
+    {
+      "id": "TV-143",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 99400
+    },
+    {
+      "id": "TV-144",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 108992
+    },
+    {
+      "id": "TV-145",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 118000
+    },
+    {
+      "id": "TV-146",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 106480
+    },
+    {
+      "id": "TV-147",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 116080
+    },
+    {
+      "id": "TV-148",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 10,
+      "bytes": 166708
+    },
+    {
+      "id": "TV-149",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 117564
+    },
+    {
+      "id": "TV-150",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 11,
+      "bytes": 135956
+    },
+    {
+      "id": "TV-151",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 76388
+    },
+    {
+      "id": "TV-152",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 88768
+    },
+    {
+      "id": "TV-153",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 84128
+    },
+    {
+      "id": "TV-154",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 96484
+    },
+    {
+      "id": "TV-155",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 158264
+    },
+    {
+      "id": "TV-156",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 170656
+    },
+    {
+      "id": "TV-157",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 165980
+    },
+    {
+      "id": "TV-158",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 202276
+    },
+    {
+      "id": "TV-159",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 182384
+    },
+    {
+      "id": "TV-160",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 197404
+    },
+    {
+      "id": "TV-161",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 40356
+    },
+    {
+      "id": "TV-162",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 47912
+    },
+    {
+      "id": "TV-163",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 55484
+    },
+    {
+      "id": "TV-164",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 63036
+    },
+    {
+      "id": "TV-165",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 52544
+    },
+    {
+      "id": "TV-166",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 60728
+    },
+    {
+      "id": "TV-167",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 68292
+    },
+    {
+      "id": "TV-168",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 81096
+    },
+    {
+      "id": "TV-169",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 58616
+    },
+    {
+      "id": "TV-170",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 73972
+    },
+    {
+      "id": "TV-171",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 48664
+    },
+    {
+      "id": "TV-172",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 43336
+    },
+    {
+      "id": "TV-173",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 22128
+    },
+    {
+      "id": "TV-174",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 75560
+    },
+    {
+      "id": "TV-175",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 97864
+    },
+    {
+      "id": "TV-176",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 77096
+    },
+    {
+      "id": "TV-177",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 131488
+    },
+    {
+      "id": "TV-178",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 143252
+    },
+    {
+      "id": "TV-179",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 122340
+    },
+    {
+      "id": "TV-180",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 10,
+      "bytes": 174548
+    },
+    {
+      "id": "TV-181",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 58800
+    },
+    {
+      "id": "TV-182",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 58816
+    },
+    {
+      "id": "TV-183",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 58820
+    },
+    {
+      "id": "TV-184",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 58832
+    },
+    {
+      "id": "TV-185",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 98788
+    },
+    {
+      "id": "TV-186",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 103196
+    },
+    {
+      "id": "TV-187",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 105220
+    },
+    {
+      "id": "TV-188",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 145080
+    },
+    {
+      "id": "TV-189",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 118628
+    },
+    {
+      "id": "TV-190",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 158956
+    },
+    {
+      "id": "TV-191",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 41344
+    },
+    {
+      "id": "TV-192",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 46152
+    },
+    {
+      "id": "TV-193",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 44044
+    },
+    {
+      "id": "TV-194",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 48840
+    },
+    {
+      "id": "TV-195",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 91228
+    },
+    {
+      "id": "TV-196",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 96024
+    },
+    {
+      "id": "TV-197",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 120800
+    },
+    {
+      "id": "TV-198",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 127052
+    },
+    {
+      "id": "TV-199",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 119768
+    },
+    {
+      "id": "TV-200",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 133340
+    },
+    {
+      "id": "TV-201",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 102836
+    },
+    {
+      "id": "TV-202",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 129728
+    },
+    {
+      "id": "TV-203",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 156612
+    },
+    {
+      "id": "TV-204",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 183492
+    },
+    {
+      "id": "TV-205",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 181676
+    },
+    {
+      "id": "TV-206",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 205536
+    },
+    {
+      "id": "TV-207",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 235888
+    },
+    {
+      "id": "TV-208",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 265752
+    },
+    {
+      "id": "TV-209",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 195940
+    },
+    {
+      "id": "TV-210",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 305584
+    },
+    {
+      "id": "TV-211",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 20900
+    },
+    {
+      "id": "TV-212",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 23876
+    },
+    {
+      "id": "TV-213",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 28460
+    },
+    {
+      "id": "TV-214",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 23464
+    },
+    {
+      "id": "TV-215",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 41064
+    },
+    {
+      "id": "TV-216",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 41076
+    },
+    {
+      "id": "TV-217",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 41064
+    },
+    {
+      "id": "TV-218",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 52392
+    },
+    {
+      "id": "TV-219",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 52600
+    },
+    {
+      "id": "TV-220",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 55412
+    },
+    {
+      "id": "TV-221",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 28048
+    },
+    {
+      "id": "TV-222",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 28048
+    },
+    {
+      "id": "TV-223",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 28044
+    },
+    {
+      "id": "TV-224",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 28052
+    },
+    {
+      "id": "TV-225",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 32132
+    },
+    {
+      "id": "TV-226",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 36536
+    },
+    {
+      "id": "TV-227",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 38548
+    },
+    {
+      "id": "TV-228",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 64208
+    },
+    {
+      "id": "TV-229",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 38732
+    },
+    {
+      "id": "TV-230",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 48552
+    },
+    {
+      "id": "TV-231",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 50076
+    },
+    {
+      "id": "TV-232",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 75968
+    },
+    {
+      "id": "TV-233",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 50604
+    },
+    {
+      "id": "TV-234",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 53896
+    },
+    {
+      "id": "TV-235",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 93836
+    },
+    {
+      "id": "TV-236",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 69092
+    },
+    {
+      "id": "TV-237",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 64748
+    },
+    {
+      "id": "TV-238",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 10,
+      "bytes": 102344
+    },
+    {
+      "id": "TV-239",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 77192
+    },
+    {
+      "id": "TV-240",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 11,
+      "bytes": 89248
+    },
+    {
+      "id": "TV-241",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 101444
+    },
+    {
+      "id": "TV-242",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 101448
+    },
+    {
+      "id": "TV-243",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 101448
+    },
+    {
+      "id": "TV-244",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 101448
+    },
+    {
+      "id": "TV-245",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 184748
+    },
+    {
+      "id": "TV-246",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 184748
+    },
+    {
+      "id": "TV-247",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 184748
+    },
+    {
+      "id": "TV-248",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 187564
+    },
+    {
+      "id": "TV-249",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 187776
+    },
+    {
+      "id": "TV-250",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 196540
+    },
+    {
+      "id": "TV-251",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 20992
+    },
+    {
+      "id": "TV-252",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 28556
+    },
+    {
+      "id": "TV-253",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 20980
+    },
+    {
+      "id": "TV-254",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 28552
+    },
+    {
+      "id": "TV-255",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 47780
+    },
+    {
+      "id": "TV-256",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 55356
+    },
+    {
+      "id": "TV-257",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 47788
+    },
+    {
+      "id": "TV-258",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 58148
+    },
+    {
+      "id": "TV-259",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 50808
+    },
+    {
+      "id": "TV-260",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 58592
+    },
+    {
+      "id": "TV-261",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 47656
+    },
+    {
+      "id": "TV-262",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 47644
+    },
+    {
+      "id": "TV-263",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 47664
+    },
+    {
+      "id": "TV-264",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 47660
+    },
+    {
+      "id": "TV-265",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 64084
+    },
+    {
+      "id": "TV-266",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 64056
+    },
+    {
+      "id": "TV-267",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 64080
+    },
+    {
+      "id": "TV-268",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 72040
+    },
+    {
+      "id": "TV-269",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 72244
+    },
+    {
+      "id": "TV-270",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 72448
+    },
+    {
+      "id": "TV-271",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 2,
+      "bytes": 113456
+    },
+    {
+      "id": "TV-272",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 2,
+      "bytes": 63708
+    },
+    {
+      "id": "TV-273",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 63204
+    },
+    {
+      "id": "TV-274",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 2,
+      "bytes": 113468
+    },
+    {
+      "id": "TV-275",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 172472
+    },
+    {
+      "id": "TV-276",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 179692
+    },
+    {
+      "id": "TV-277",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 229936
+    },
+    {
+      "id": "TV-278",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 191036
+    },
+    {
+      "id": "TV-279",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 190756
+    },
+    {
+      "id": "TV-280",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 269100
+    },
+    {
+      "id": "TV-281",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 2,
+      "bytes": 86580
+    },
+    {
+      "id": "TV-282",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 2,
+      "bytes": 64844
+    },
+    {
+      "id": "TV-283",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 2,
+      "bytes": 64844
+    },
+    {
+      "id": "TV-284",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 2,
+      "bytes": 86580
+    },
+    {
+      "id": "TV-285",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 173604
+    },
+    {
+      "id": "TV-286",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 3,
+      "bytes": 173608
+    },
+    {
+      "id": "TV-287",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 201768
+    },
+    {
+      "id": "TV-288",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 215504
+    },
+    {
+      "id": "TV-289",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 189084
+    },
+    {
+      "id": "TV-290",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 240948
+    },
+    {
+      "id": "TV-291",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 28180
+    },
+    {
+      "id": "TV-292",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 31624
+    },
+    {
+      "id": "TV-293",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 35060
+    },
+    {
+      "id": "TV-294",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 4,
+      "bytes": 38496
+    },
+    {
+      "id": "TV-295",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 83164
+    },
+    {
+      "id": "TV-296",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 5,
+      "bytes": 86616
+    },
+    {
+      "id": "TV-297",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 96444
+    },
+    {
+      "id": "TV-298",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 139460
+    },
+    {
+      "id": "TV-299",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 102720
+    },
+    {
+      "id": "TV-300",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 110408
+    },
+    {
+      "id": "TV-301",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 151508
+    },
+    {
+      "id": "TV-302",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 229136
+    },
+    {
+      "id": "TV-303",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 10,
+      "bytes": 216180
+    },
+    {
+      "id": "TV-304",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 6,
+      "bytes": 174484
+    },
+    {
+      "id": "TV-305",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 193320
+    },
+    {
+      "id": "TV-306",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 241324
+    },
+    {
+      "id": "TV-307",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 176204
+    },
+    {
+      "id": "TV-308",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 150572
+    },
+    {
+      "id": "TV-309",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 226104
+    },
+    {
+      "id": "TV-310",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 239068
+    },
+    {
+      "id": "TV-311",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 10,
+      "bytes": 125924
+    },
+    {
+      "id": "TV-312",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 206428
+    },
+    {
+      "id": "TV-313",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 11,
+      "bytes": 112840
+    },
+    {
+      "id": "TV-314",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 187196
+    },
+    {
+      "id": "TV-315",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 10,
+      "bytes": 179040
+    },
+    {
+      "id": "TV-316",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 211120
+    },
+    {
+      "id": "TV-317",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 122596
+    },
+    {
+      "id": "TV-318",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 158100
+    },
+    {
+      "id": "TV-319",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 212884
+    },
+    {
+      "id": "TV-320",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 214932
+    },
+    {
+      "id": "TV-321",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 169020
+    },
+    {
+      "id": "TV-322",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 238376
+    },
+    {
+      "id": "TV-323",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 11,
+      "bytes": 142388
+    },
+    {
+      "id": "TV-324",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 175140
+    },
+    {
+      "id": "TV-325",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 206868
+    },
+    {
+      "id": "TV-326",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 241008
+    },
+    {
+      "id": "TV-327",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 144976
+    },
+    {
+      "id": "TV-328",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 149264
+    },
+    {
+      "id": "TV-329",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 230452
+    },
+    {
+      "id": "TV-330",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 238360
+    },
+    {
+      "id": "TV-331",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 183020
+    },
+    {
+      "id": "TV-332",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 253260
+    },
+    {
+      "id": "TV-333",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 10,
+      "bytes": 240052
+    },
+    {
+      "id": "TV-334",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 235460
+    },
+    {
+      "id": "TV-335",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 217572
+    },
+    {
+      "id": "TV-336",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 258716
+    },
+    {
+      "id": "TV-337",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 201116
+    },
+    {
+      "id": "TV-338",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 7,
+      "bytes": 206372
+    },
+    {
+      "id": "TV-339",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 252488
+    },
+    {
+      "id": "TV-340",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 263200
+    },
+    {
+      "id": "TV-341",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 10,
+      "bytes": 209680
+    },
+    {
+      "id": "TV-342",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 277468
+    },
+    {
+      "id": "TV-343",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 11,
+      "bytes": 174716
+    },
+    {
+      "id": "TV-344",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 213816
+    },
+    {
+      "id": "TV-345",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 10,
+      "bytes": 237552
+    },
+    {
+      "id": "TV-346",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 279052
+    },
+    {
+      "id": "TV-347",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 183680
+    },
+    {
+      "id": "TV-348",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 188288
+    },
+    {
+      "id": "TV-349",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 10,
+      "bytes": 285224
+    },
+    {
+      "id": "TV-350",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 277452
+    },
+    {
+      "id": "TV-351",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 10,
+      "bytes": 220216
+    },
+    {
+      "id": "TV-352",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 288008
+    },
+    {
+      "id": "TV-353",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 12,
+      "bytes": 200536
+    },
+    {
+      "id": "TV-354",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 268768
+    },
+    {
+      "id": "TV-355",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 10,
+      "bytes": 250580
+    },
+    {
+      "id": "TV-356",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 291736
+    },
+    {
+      "id": "TV-357",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 203212
+    },
+    {
+      "id": "TV-358",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 8,
+      "bytes": 238720
+    },
+    {
+      "id": "TV-359",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 10,
+      "bytes": 295784
+    },
+    {
+      "id": "TV-360",
+      "valid_glb": true,
+      "meshes": 1,
+      "materials": 9,
+      "bytes": 295544
+    }
+  ],
+  "rigged_glbs": [
+    {
+      "id": "TV-091",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-092",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-093",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-094",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-095",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-096",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-097",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-098",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-099",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-100",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-101",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-102",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-103",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-104",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-105",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-106",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-107",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-108",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-109",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-110",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-111",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-112",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-113",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-114",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-115",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-116",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-117",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-118",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-119",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-120",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-121",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-122",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-123",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-124",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-125",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-126",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-127",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-128",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-129",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-130",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-131",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-132",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-133",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-134",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-135",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-136",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-137",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-138",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-139",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-140",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-305",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-306",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-307",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-308",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-309",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-315",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-316",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-317",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-318",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-319",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-325",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-326",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-327",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-328",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-329",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-335",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-336",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-337",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-338",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-339",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-345",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-346",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-347",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-348",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-349",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-355",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-356",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-357",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-358",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-359",
+      "sex": "male",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-091",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-092",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-093",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-094",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-095",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-096",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-097",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-098",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-099",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-100",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-101",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-102",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-103",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-104",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-105",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-106",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-107",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-108",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-109",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-110",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-111",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-112",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-113",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-114",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-115",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-116",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-117",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-118",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-119",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-120",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-121",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-122",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-123",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-124",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-125",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-126",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-127",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-128",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-129",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-130",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-131",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-132",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-133",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-134",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-135",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-136",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-137",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-138",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-139",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-140",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-305",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-306",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-307",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-308",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-309",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-315",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-316",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-317",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-318",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-319",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-325",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-326",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-327",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-328",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-329",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-335",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-336",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-337",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-338",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-339",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-345",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-346",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-347",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-348",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-349",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-355",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-356",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-357",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-358",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    },
+    {
+      "id": "TV-359",
+      "sex": "female",
+      "skin_joint_count": 18,
+      "weight_attributes": true,
+      "animations": 4,
+      "animation_names": [
+        "Neutral",
+        "Stride",
+        "Raised arms",
+        "Crouch"
+      ]
+    }
+  ],
+  "static_reimports": [
+    {
+      "id": "TV-010",
+      "dimensions_m": [
+        0.2703999876976013,
+        0.10639999806880951,
+        1.3649998903274536
+      ],
+      "max_error_m": 1.0967254637783697e-07
+    },
+    {
+      "id": "TV-020",
+      "dimensions_m": [
+        0.1972000002861023,
+        0.11180000007152557,
+        0.5289999842643738
+      ],
+      "max_error_m": 1.57356262464603e-08
+    },
+    {
+      "id": "TV-030",
+      "dimensions_m": [
+        0.5389999747276306,
+        0.09099999815225601,
+        1.149999976158142
+      ],
+      "max_error_m": 2.5272369419404583e-08
+    },
+    {
+      "id": "TV-040",
+      "dimensions_m": [
+        0.4708999991416931,
+        0.19600000977516174,
+        1.0399999618530273
+      ],
+      "max_error_m": 3.814697269177714e-08
+    },
+    {
+      "id": "TV-050",
+      "dimensions_m": [
+        0.32999998331069946,
+        0.09099999815225601,
+        2.3000001907348633
+      ],
+      "max_error_m": 1.9073486345888568e-07
+    },
+    {
+      "id": "TV-060",
+      "dimensions_m": [
+        0.40297484397888184,
+        0.07199999690055847,
+        1.6799999475479126
+      ],
+      "max_error_m": 4.843978881841071e-06
+    },
+    {
+      "id": "TV-070",
+      "dimensions_m": [
+        0.30000001192092896,
+        0.10948562622070312,
+        1.0549999475479126
+      ],
+      "max_error_m": 4.373779296878988e-06
+    },
+    {
+      "id": "TV-080",
+      "dimensions_m": [
+        0.31037798523902893,
+        0.3103199899196625,
+        0.3103199899196625
+      ],
+      "max_error_m": 2.0147609710585712e-06
+    },
+    {
+      "id": "TV-090",
+      "dimensions_m": [
+        0.5218759775161743,
+        0.22757786512374878,
+        0.8340000510215759
+      ],
+      "max_error_m": 4.022483825694145e-06
+    },
+    {
+      "id": "TV-100",
+      "dimensions_m": [
+        0.2419803887605667,
+        0.35962754487991333,
+        0.35500001907348633
+      ],
+      "max_error_m": 2.4551200866751444e-06
+    },
+    {
+      "id": "TV-110",
+      "dimensions_m": [
+        0.3744860887527466,
+        0.4619449973106384,
+        0.3100000023841858
+      ],
+      "max_error_m": 4.997310638410468e-06
+    },
+    {
+      "id": "TV-120",
+      "dimensions_m": [
+        0.1378108710050583,
+        0.17809568345546722,
+        0.3199999928474426
+      ],
+      "max_error_m": 4.316544532784183e-06
+    },
+    {
+      "id": "TV-130",
+      "dimensions_m": [
+        0.17575879395008087,
+        0.21573349833488464,
+        0.5
+      ],
+      "max_error_m": 3.4983348846384654e-06
+    },
+    {
+      "id": "TV-140",
+      "dimensions_m": [
+        0.49212464690208435,
+        0.3406209945678711,
+        0.47999998927116394
+      ],
+      "max_error_m": 4.646902084348703e-06
+    },
+    {
+      "id": "TV-150",
+      "dimensions_m": [
+        0.27114999294281006,
+        0.14719456434249878,
+        0.3050000071525574
+      ],
+      "max_error_m": 4.564342498791785e-06
+    },
+    {
+      "id": "TV-160",
+      "dimensions_m": [
+        0.19499999284744263,
+        0.2239999920129776,
+        0.4959999918937683
+      ],
+      "max_error_m": 8.106231685900411e-09
+    },
+    {
+      "id": "TV-170",
+      "dimensions_m": [
+        0.09799999743700027,
+        0.060499999672174454,
+        0.3479999899864197
+      ],
+      "max_error_m": 1.0013580298284808e-08
+    },
+    {
+      "id": "TV-180",
+      "dimensions_m": [
+        0.11400003731250763,
+        0.1289592683315277,
+        0.16779999434947968
+      ],
+      "max_error_m": 7.316684722813438e-07
+    },
+    {
+      "id": "TV-190",
+      "dimensions_m": [
+        0.33500000834465027,
+        0.3139113783836365,
+        0.2195500135421753
+      ],
+      "max_error_m": 1.3783836364522628e-06
+    },
+    {
+      "id": "TV-200",
+      "dimensions_m": [
+        0.1907999962568283,
+        0.18670150637626648,
+        0.22806772589683533
+      ],
+      "max_error_m": 2.2741031646678067e-06
+    },
+    {
+      "id": "TV-210",
+      "dimensions_m": [
+        0.23919999599456787,
+        0.20093980431556702,
+        0.31279999017715454
+      ],
+      "max_error_m": 1.9568443299089466e-07
+    },
+    {
+      "id": "TV-220",
+      "dimensions_m": [
+        0.23437289893627167,
+        0.19641751050949097,
+        0.6672719120979309
+      ],
+      "max_error_m": 2.898936271672481e-06
+    },
+    {
+      "id": "TV-230",
+      "dimensions_m": [
+        0.36778905987739563,
+        0.12299999594688416,
+        0.3819515109062195
+      ],
+      "max_error_m": 1.510906219470698e-06
+    },
+    {
+      "id": "TV-240",
+      "dimensions_m": [
+        0.49999672174453735,
+        0.12405280023813248,
+        0.38499999046325684
+      ],
+      "max_error_m": 3.2782554626464844e-06
+    },
+    {
+      "id": "TV-250",
+      "dimensions_m": [
+        0.2844678461551666,
+        0.11999999731779099,
+        0.5393669605255127
+      ],
+      "max_error_m": 3.0394744873207813e-06
+    },
+    {
+      "id": "TV-260",
+      "dimensions_m": [
+        0.7239999771118164,
+        0.1599999964237213,
+        1.0099999904632568
+      ],
+      "max_error_m": 2.288818357065736e-08
+    },
+    {
+      "id": "TV-270",
+      "dimensions_m": [
+        0.25,
+        0.11999999731779099,
+        1.037000060081482
+      ],
+      "max_error_m": 6.008148201175345e-08
+    },
+    {
+      "id": "TV-280",
+      "dimensions_m": [
+        0.30400002002716064,
+        0.26899999380111694,
+        0.17093919217586517
+      ],
+      "max_error_m": 8.078241348352666e-07
+    },
+    {
+      "id": "TV-290",
+      "dimensions_m": [
+        0.14358000457286835,
+        0.14377139508724213,
+        0.11139999330043793
+      ],
+      "max_error_m": 1.3950872421175653e-06
+    },
+    {
+      "id": "TV-300",
+      "dimensions_m": [
+        0.18963617086410522,
+        0.2161756455898285,
+        0.32499998807907104
+      ],
+      "max_error_m": 4.354410171519829e-06
+    },
+    {
+      "id": "TV-301",
+      "dimensions_m": [
+        0.30217310786247253,
+        0.18325001001358032,
+        1.0600000619888306
+      ],
+      "max_error_m": 3.107862472540024e-06
+    },
+    {
+      "id": "TV-302",
+      "dimensions_m": [
+        0.3258686363697052,
+        0.2174999862909317,
+        1.0209321975708008
+      ],
+      "max_error_m": 2.1975708008881156e-06
+    },
+    {
+      "id": "TV-303",
+      "dimensions_m": [
+        0.15694668889045715,
+        0.10525000840425491,
+        0.8852810859680176
+      ],
+      "max_error_m": 3.3111095428528525e-06
+    },
+    {
+      "id": "TV-304",
+      "dimensions_m": [
+        0.2500000596046448,
+        0.2865833044052124,
+        0.2896293103694916
+      ],
+      "max_error_m": 3.3044052124009404e-06
+    },
+    {
+      "id": "TV-305",
+      "dimensions_m": [
+        0.28999999165534973,
+        0.3456000089645386,
+        0.3190000057220459
+      ],
+      "max_error_m": 8.964538555922275e-09
+    },
+    {
+      "id": "TV-306",
+      "dimensions_m": [
+        0.36000001430511475,
+        0.4300000071525574,
+        0.2524999976158142
+      ],
+      "max_error_m": 1.4305114759416426e-08
+    },
+    {
+      "id": "TV-307",
+      "dimensions_m": [
+        0.15199999511241913,
+        0.1985933929681778,
+        0.28999999165534973
+      ],
+      "max_error_m": 3.3929681778066545e-06
+    },
+    {
+      "id": "TV-308",
+      "dimensions_m": [
+        0.20800000429153442,
+        0.226500004529953,
+        0.5109999775886536
+      ],
+      "max_error_m": 2.2411346445316838e-08
+    },
+    {
+      "id": "TV-309",
+      "dimensions_m": [
+        0.5069043636322021,
+        0.4003879129886627,
+        0.5199999809265137
+      ],
+      "max_error_m": 4.363632202131207e-06
+    },
+    {
+      "id": "TV-310",
+      "dimensions_m": [
+        0.6579999923706055,
+        0.5580000281333923,
+        0.3360000252723694
+      ],
+      "max_error_m": 2.8133392282470027e-08
+    },
+    {
+      "id": "TV-320",
+      "dimensions_m": [
+        0.6579999923706055,
+        0.5580000281333923,
+        0.343500018119812
+      ],
+      "max_error_m": 2.8133392282470027e-08
+    },
+    {
+      "id": "TV-330",
+      "dimensions_m": [
+        0.6579999923706055,
+        0.5580000281333923,
+        0.35100001096725464
+      ],
+      "max_error_m": 2.8133392282470027e-08
+    },
+    {
+      "id": "TV-340",
+      "dimensions_m": [
+        0.6579999923706055,
+        0.5580000281333923,
+        0.35850000381469727
+      ],
+      "max_error_m": 2.8133392282470027e-08
+    },
+    {
+      "id": "TV-350",
+      "dimensions_m": [
+        0.6579999923706055,
+        0.5580000281333923,
+        0.3659999966621399
+      ],
+      "max_error_m": 2.8133392282470027e-08
+    },
+    {
+      "id": "TV-360",
+      "dimensions_m": [
+        0.6579999923706055,
+        0.5580000281333923,
+        0.3734999895095825
+      ],
+      "max_error_m": 2.8133392282470027e-08
+    }
+  ],
+  "rig_reimports": [
+    {
+      "id": "TV-100",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-100",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-101",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-101",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-102",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-102",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-103",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-103",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-104",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-104",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-105",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-105",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-106",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-106",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-107",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-107",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-108",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-108",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-109",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-109",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-110",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-110",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-120",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-120",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-130",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-130",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-140",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-140",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-305",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-305",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-306",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-306",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-307",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-307",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-308",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-308",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-309",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-309",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-316",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-316",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-326",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-326",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-336",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-336",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-346",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-346",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-356",
+      "sex": "male",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    },
+    {
+      "id": "TV-356",
+      "sex": "female",
+      "bone_count": 18,
+      "unweighted_vertices": 0,
+      "actions": 4
+    }
+  ],
+  "pack_reopens": [
+    {
+      "pack": 1,
+      "unique_ids": 30
+    },
+    {
+      "pack": 2,
+      "unique_ids": 30
+    },
+    {
+      "pack": 3,
+      "unique_ids": 30
+    },
+    {
+      "pack": 4,
+      "unique_ids": 30
+    },
+    {
+      "pack": 5,
+      "unique_ids": 30
+    },
+    {
+      "pack": 6,
+      "unique_ids": 30
+    },
+    {
+      "pack": 7,
+      "unique_ids": 30
+    },
+    {
+      "pack": 8,
+      "unique_ids": 30
+    },
+    {
+      "pack": 9,
+      "unique_ids": 30
+    },
+    {
+      "pack": 10,
+      "unique_ids": 30
+    },
+    {
+      "pack": 11,
+      "unique_ids": 30
+    },
+    {
+      "pack": 12,
+      "unique_ids": 30
+    }
+  ],
+  "geometry_fingerprints_unique": true,
+  "all_geometry_finite": true,
+  "rig_pose_tests_pass": true,
+  "visual_clearance_findings": [
+    {
+      "test": "Nine generic shoulder contact poses including full raised arms",
+      "status": "passed for all 32 paired male/female shoulder variants",
+      "finding": "Zero intersecting triangle pairs against matching helmet, cuirass, bracers and generic head/chest/upper-arm envelopes. Final skin and arbitrary animation clearance is not certified."
+    }
+  ],
+  "notes": [
+    "Numerical pose verification does not certify skin clearance or final wearability",
+    "Normal v1 forms intentionally retained; no claim that all 360 are hand-sculpted",
+    "No game character, target skeleton, UV art, LODs or gameplay implementation supplied"
+  ]
+}

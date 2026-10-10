@@ -56,7 +56,11 @@
     "web:journey": "tsx scripts/web/journey.ts",
     "web:scenario": "tsx scripts/web/scenario.ts",
     "web:pad": "tsx scripts/web/pad.ts",
-    "web:ui": "tsx scripts/web/uicheck.ts"
+    "web:ui": "tsx scripts/web/uicheck.ts",
+    "ontology:install": "npm ci --prefix tools/ontology",
+    "ontology:check": "npm run typecheck --prefix tools/ontology && npm test --prefix tools/ontology",
+    "ontology:build": "npm run build --prefix tools/ontology",
+    "tooling": "tsx scripts/tooling/start.ts"
   },
   "dependencies": {
     "@babylonjs/core": "9.28.0",

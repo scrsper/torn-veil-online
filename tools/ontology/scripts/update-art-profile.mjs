@@ -1,0 +1,14 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+const p=JSON.parse(readFileSync('ontology/art-direction.json','utf8'));
+Object.assign(p,{id:'torn-veil-reference-draft-v1',version:2,status:'DRAFT',referenceIds:['omni','kestrel','kestrel-character-sheet','orc2','female-orc','orcish-dimorphism'],stylization:'Grounded detailed heroic fantasy; credible Human anatomy and material response. Evidence: docs/REFERENCE_ANALYSIS.md; numeric budgets are provisional engineering targets.'});
+p.humanoidProportions={headsTall:7.75,shoulderToHeight:.25};
+p.polygonBudget={hero:60000,crowd:15000,lodRatios:[1,.5,.25,.1]};p.textureDensity={pixelsPerMeter:1024,maxResolution:2048};
+p.materialRules={roughnessRange:[.5,.9],metallicPolicy:'Skin, cloth and leather metallic=0. Metal only on actual metal parts. Roughness range is a provisional nonmetal tuning range, not a measurement or a clamp on metal.'};
+p.silhouetteRules=['Adult male/female baselines and source caveats: ontology/morphology/human-family.json','Natural head and hand scale; no superhero exaggeration in Human baseline','Plain clothing silhouette must read at 8m gameplay camera'];
+p.colorRules={palette:['#d9cfb8','#44382d','#6a4931'],saturationRange:null};
+p.faceRules={anatomy:'Seated eyes, eyelids, believable jaw/nose/lips/ears',skin:'Subtle diffuse variation; no baked sunlight',evidence:'Omni and Kestrel; individual faces are not all Humans'};
+p.handRules={scale:1};p.clothingRules=['Plain linen shirt/blouse first','Dark woven trousers, leather belt and boots','Seams, folds and plausible thickness; no armor to conceal clipping'];
+p.armorRules=['Later milestone: articulated plate over cloth/leather; motifs are not canonical factions'];
+p.monsterLanguage=['Keep iguana and perentie hydra proposals distinct','Creature anatomy exaggeration does not transfer to Humans'];
+p.presentation={gameCameraDistanceM:8,lightingReference:'Neutral studio for material review; warm key/cool fill in illustration context. Canonical camera preset: ontology/game-camera.json'};
+writeFileSync('ontology/art-direction.json',JSON.stringify(p,null,2)+'\n');

@@ -1,0 +1,20 @@
+import {readFileSync,writeFileSync,readdirSync,statSync,existsSync} from 'node:fs';
+import {join} from 'node:path';
+import {createHash} from 'node:crypto';
+const hash=p=>createHash('sha256').update(readFileSync(p)).digest('hex');
+const read=p=>JSON.parse(readFileSync(p,'utf8'));const save=(p,x)=>writeFileSync(p,JSON.stringify(x,null,2)+'\n');
+const provenance=read('assets/provenance/registry.json'),assets=read('assets/registry.json');
+function upsert(a,v){const i=a.findIndex(x=>x.id===v.id);if(i<0)a.push(v);else a[i]=v;}
+const source={id:'makehuman-system-cc0',name:'MakeHuman system assets CC0',creator:'MakeHuman Community / Data Collection AB / Joel Palmius / Jonas Hauquier',source:'Official MakeHuman Community',sourceUrl:'https://static.makehumancommunity.org/assets/assetpacks/makehuman_system_assets.html',license:'CC0-1.0',licenseUrl:'https://creativecommons.org/publicdomain/zero/1.0/',downloadDate:'2026-10-04T00:00:00.000Z',originalFilename:'makehuman_system_assets_cc0.zip',localPath:'assets/source/makehuman_system_assets_cc0.zip',modificationStatus:'Original archive; CRC verified before extraction',redistributionRestrictions:'None under CC0; provenance retained',sha256:hash('assets/source/makehuman_system_assets_cc0.zip'),notes:'Official primary files.makehumancommunity.org download. Asset license differs from GPL MPFB application. Includes authored skin, eyes, hair and clothing.'};
+upsert(provenance,source);
+const basePath=join(process.env.APPDATA,'Blender Foundation/Blender/5.2/extensions/blender_org/mpfb/data/3dobjs/base.obj');
+upsert(provenance,{...source,id:'makehuman-hm08',name:'MakeHuman hm08 basemesh bundled with MPFB 2.0.17',sourceUrl:'https://static.makehumancommunity.org/makehuman/faq/are_makehuman_files_free.html',originalFilename:'base.obj',localPath:'$MPFB/data/3dobjs/base.obj',sha256:hash(basePath),modificationStatus:'Installed source unchanged',notes:'CC0 graphical core data; MPFB executable code remains GPL. Morph targets and rig weights are graphical core data.'});
+const files=[];function walk(root){for(const name of readdirSync(root)){const p=join(root,name);if(statSync(p).isDirectory())walk(p);else files.push({path:p.replaceAll('\\','/'),sha256:hash(p),provenanceId:source.id,license:source.license});}}walk('assets/imported/makehuman/system');save('assets/provenance/makehuman-files.json',files);
+for(const sex of ['male','female']){
+ const id=`tv-human-${sex}-v1`,path=`public/assets/entities/${id}.glb`;if(!existsSync(path))continue;
+ const report=read(`generated/validation/humanoid-v1/${sex}-report.json`);
+ upsert(provenance,{...source,id:id+'-provenance',name:`Torn Veil Human ${sex} material/fit study`,parentId:source.id,sourceIds:[source.id,'makehuman-hm08'],originalFilename:id+'.glb',localPath:path,sha256:hash(path),modificationStatus:'MPFB macro morphology, authored asset fitting and weights, helper deletion, neutral cloth materials, meter normalization, GLB export',notes:`Reproducible with node scripts/humanoid.mjs ${sex}. Reference-only user images are not texture inputs. Recipe: blender/scripts/humanoid_family.py. Visual review remains PROTOTYPE; shirt is modern source, not the final reference outfit.`});
+ upsert(assets,{id,provider:'mpfb',kind:'body',url:'/assets/entities/'+id+'.glb',sourcePath:path,provenanceId:id+'-provenance',status:'PROTOTYPE',rigFamily:'humanoid_standard',nativeHeightM:sex==='male'?1.8:1.73,tags:['human',sex,'reference-guided','plain-clothing','mpfb-game_engine'],limitations:['Reference-match incomplete: modern shirt collar and trouser cut','Source hair silhouette differs from Omni/Kestrel','Shared locomotion retarget pending; rig implementation mpfb-game_engine is not Quaternius-compatible','Clothing fitted with MHCLO interpolation; motion deformation review pending','Face identity and population variations not yet authored','Numeric proportion targets not yet measured against mesh'],lods:[]});
+}
+save('assets/registry.json',assets);save('assets/provenance/registry.json',provenance);
+console.log('Registered authored Human source and available build outputs with hashes; quality remains PROTOTYPE');

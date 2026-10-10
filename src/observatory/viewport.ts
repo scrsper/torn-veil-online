@@ -25,14 +25,14 @@ export class ObservatoryViewport {
     this.enabled = false; this.generation = this.runtime.revision;
   }
   expire() {
-    if (this.lease && performance.now() - this.touched > 5000) {
+    if (this.lease && performance.now() - this.touched > 30000) {
       this.bridge?.releaseChannel(LOCAL_CHANNEL); this.lease = ''; this.receipts = [];
     }
   }
   release() { this.bridge?.releaseChannel(LOCAL_CHANNEL); this.lease = ''; this.receipts = []; }
   connect(personId: string) {
     this.runtime.requireIdle(); this.current();
-    if (this.lease && performance.now() - this.touched < 5000) throw new Error('A viewport already controls this world. Close it first.');
+    if (this.lease && performance.now() - this.touched < 30000) throw new Error('A viewport already controls this world. Close it first.');
     const p = this.runtime.world.person(personId), body = p && this.runtime.world.primaryBody(p.id);
     if (!p?.alive || !body?.present || body.dead) throw new Error('Select a living, embodied person first.');
     this.bridge?.releaseChannel(LOCAL_CHANNEL);

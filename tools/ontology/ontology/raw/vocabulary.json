@@ -1,0 +1,2263 @@
+[
+  {
+    "index": 1,
+    "term": "Humans",
+    "categories": [
+      "species",
+      "biological_archetypes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 2,
+    "term": "Elves",
+    "categories": [
+      "species",
+      "biological_archetypes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 3,
+    "term": "Dark Elves / Drow",
+    "categories": [
+      "subspecies",
+      "biological_archetypes",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 4,
+    "term": "High Elves",
+    "categories": [
+      "subspecies",
+      "biological_archetypes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 5,
+    "term": "Wood Elves",
+    "categories": [
+      "subspecies",
+      "biological_archetypes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 6,
+    "term": "Dwarves",
+    "categories": [
+      "species",
+      "biological_archetypes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 7,
+    "term": "Gnomes",
+    "categories": [
+      "species",
+      "biological_archetypes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 8,
+    "term": "Halflings",
+    "categories": [
+      "species",
+      "biological_archetypes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 9,
+    "term": "Orcs",
+    "categories": [
+      "species",
+      "biological_archetypes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 10,
+    "term": "Half-Orcs",
+    "categories": [
+      "species",
+      "subspecies",
+      "biological_archetypes",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 11,
+    "term": "Goblins",
+    "categories": [
+      "species",
+      "biological_archetypes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 12,
+    "term": "Hobgoblins",
+    "categories": [
+      "species",
+      "subspecies",
+      "biological_archetypes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 13,
+    "term": "Bugbears",
+    "categories": [
+      "species",
+      "biological_archetypes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 14,
+    "term": "Trolls",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 15,
+    "term": "Ogres",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 16,
+    "term": "Giants",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 17,
+    "term": "Cyclopes",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 18,
+    "term": "Beastkin",
+    "categories": [
+      "species",
+      "biological_archetypes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 19,
+    "term": "Catfolk",
+    "categories": [
+      "species",
+      "biological_archetypes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 20,
+    "term": "Wolfkin",
+    "categories": [
+      "species",
+      "biological_archetypes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 21,
+    "term": "Foxfolk / Kitsune",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 22,
+    "term": "Lizardfolk",
+    "categories": [
+      "species",
+      "biological_archetypes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 23,
+    "term": "Dragonborn / Draconians",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 24,
+    "term": "Merfolk",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 25,
+    "term": "Naga",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 26,
+    "term": "Centaurs",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 27,
+    "term": "Minotaurs",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 28,
+    "term": "Satyrs / Fauns",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 29,
+    "term": "Fairies / Fae",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 30,
+    "term": "Pixies",
+    "categories": [
+      "species",
+      "subspecies",
+      "biological_archetypes",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 31,
+    "term": "Dryads",
+    "categories": [
+      "species",
+      "biological_archetypes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 32,
+    "term": "Elementals",
+    "categories": [
+      "monster_families",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 33,
+    "term": "Spirits",
+    "categories": [
+      "supernatural_states",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 34,
+    "term": "Ghosts",
+    "categories": [
+      "supernatural_states",
+      "transformations",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 35,
+    "term": "Wraiths",
+    "categories": [
+      "supernatural_states",
+      "transformations",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 36,
+    "term": "Specters",
+    "categories": [
+      "supernatural_states",
+      "transformations",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 37,
+    "term": "Skeletons",
+    "categories": [
+      "supernatural_states",
+      "transformations",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 38,
+    "term": "Zombies",
+    "categories": [
+      "monster_families",
+      "supernatural_states",
+      "transformations",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 39,
+    "term": "Ghouls",
+    "categories": [
+      "monster_families",
+      "supernatural_states",
+      "transformations",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 40,
+    "term": "Vampires",
+    "categories": [
+      "supernatural_states",
+      "transformations",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 41,
+    "term": "Liches",
+    "categories": [
+      "supernatural_states",
+      "transformations",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 42,
+    "term": "Death Knights",
+    "categories": [
+      "supernatural_states",
+      "transformations",
+      "classes",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 43,
+    "term": "Revenants",
+    "categories": [
+      "supernatural_states",
+      "transformations",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 44,
+    "term": "Necromancers",
+    "categories": [
+      "transformations",
+      "professions",
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 45,
+    "term": "Werewolves",
+    "categories": [
+      "supernatural_states",
+      "transformations",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 46,
+    "term": "Shapeshifters",
+    "categories": [
+      "supernatural_states",
+      "transformations",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 47,
+    "term": "Demons",
+    "categories": [
+      "species",
+      "monster_families",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 48,
+    "term": "Devils",
+    "categories": [
+      "species",
+      "subspecies",
+      "monster_families",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 49,
+    "term": "Imps",
+    "categories": [
+      "species",
+      "subspecies",
+      "monster_families",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 50,
+    "term": "Succubi / Incubi",
+    "categories": [
+      "species",
+      "subspecies",
+      "monster_families",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 51,
+    "term": "Demon Lords",
+    "categories": [
+      "social_roles",
+      "progression_rank",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 52,
+    "term": "Angels",
+    "categories": [
+      "species",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 53,
+    "term": "Archangels",
+    "categories": [
+      "social_roles",
+      "progression_rank",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 54,
+    "term": "Fallen Angels",
+    "categories": [
+      "supernatural_states",
+      "transformations",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 55,
+    "term": "Gods",
+    "categories": [
+      "social_roles",
+      "progression_rank",
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 56,
+    "term": "Demigods",
+    "categories": [
+      "social_roles",
+      "progression_rank",
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 57,
+    "term": "Avatars",
+    "categories": [
+      "social_roles",
+      "cosmic_classifications",
+      "entity_relationships",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 58,
+    "term": "Titans",
+    "categories": [
+      "species",
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 59,
+    "term": "Primordials",
+    "categories": [
+      "progression_rank",
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 60,
+    "term": "Dragons",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 61,
+    "term": "Wyverns",
+    "categories": [
+      "species",
+      "subspecies",
+      "biological_archetypes",
+      "monster_families"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 62,
+    "term": "Drakes",
+    "categories": [
+      "species",
+      "subspecies",
+      "biological_archetypes",
+      "monster_families"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 63,
+    "term": "Hydras",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 64,
+    "term": "Basilisks",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 65,
+    "term": "Cockatrices",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 66,
+    "term": "Griffins",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 67,
+    "term": "Hippogriffs",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 68,
+    "term": "Pegasi",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 69,
+    "term": "Unicorns",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 70,
+    "term": "Phoenixes",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 71,
+    "term": "Chimeras",
+    "categories": [
+      "biological_archetypes",
+      "monster_families",
+      "transformations",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 72,
+    "term": "Manticores",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 73,
+    "term": "Gargoyles",
+    "categories": [
+      "artificial_archetypes",
+      "monster_families",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 74,
+    "term": "Golems",
+    "categories": [
+      "artificial_archetypes",
+      "monster_families",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 75,
+    "term": "Animated Armor",
+    "categories": [
+      "artificial_archetypes",
+      "monster_families",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 76,
+    "term": "Living Weapons",
+    "categories": [
+      "artificial_archetypes",
+      "monster_families",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 77,
+    "term": "Mimics",
+    "categories": [
+      "monster_families",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 78,
+    "term": "Slimes",
+    "categories": [
+      "biological_archetypes",
+      "monster_families",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 79,
+    "term": "Oozes",
+    "categories": [
+      "biological_archetypes",
+      "monster_families",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 80,
+    "term": "Giant Spiders",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 81,
+    "term": "Giant Insects",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 82,
+    "term": "Insectoids",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 83,
+    "term": "Ratfolk",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 84,
+    "term": "Kobolds",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 85,
+    "term": "Gnolls",
+    "categories": [
+      "species",
+      "biological_archetypes",
+      "monster_families"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 86,
+    "term": "Treants",
+    "categories": [
+      "biological_archetypes",
+      "monster_families",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 87,
+    "term": "Fungal Creatures",
+    "categories": [
+      "biological_archetypes",
+      "monster_families",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 88,
+    "term": "Plant Monsters",
+    "categories": [
+      "biological_archetypes",
+      "monster_families",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 89,
+    "term": "Swarm Entities",
+    "categories": [
+      "biological_archetypes",
+      "entity_relationships",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 90,
+    "term": "Hive Minds",
+    "categories": [
+      "biological_archetypes",
+      "ai_classifications",
+      "entity_relationships",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 91,
+    "term": "Parasites",
+    "categories": [
+      "biological_archetypes",
+      "monster_families",
+      "entity_relationships"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 92,
+    "term": "Mutants",
+    "categories": [
+      "supernatural_states",
+      "transformations",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 93,
+    "term": "Aberrations",
+    "categories": [
+      "monster_families"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 94,
+    "term": "Eldritch Beings",
+    "categories": [
+      "monster_families",
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 95,
+    "term": "Cosmic Horrors",
+    "categories": [
+      "monster_families",
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 96,
+    "term": "Void Creatures",
+    "categories": [
+      "monster_families",
+      "cosmic_classifications",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 97,
+    "term": "Shadow Creatures",
+    "categories": [
+      "supernatural_states",
+      "cosmic_classifications",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 98,
+    "term": "Dream Entities",
+    "categories": [
+      "cosmic_classifications",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 99,
+    "term": "Doppelgängers",
+    "categories": [
+      "biological_archetypes",
+      "transformations",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 100,
+    "term": "Possessors",
+    "categories": [
+      "supernatural_states",
+      "transformations",
+      "entity_relationships",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 101,
+    "term": "Aliens",
+    "categories": [
+      "species"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 102,
+    "term": "Ancient Aliens",
+    "categories": [
+      "subspecies"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 103,
+    "term": "Precursors",
+    "categories": [
+      "social_roles"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 104,
+    "term": "Synthetic Lifeforms",
+    "categories": [
+      "artificial_archetypes",
+      "ai_classifications",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 105,
+    "term": "Androids",
+    "categories": [
+      "artificial_archetypes",
+      "ai_classifications",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 106,
+    "term": "Robots",
+    "categories": [
+      "artificial_archetypes",
+      "ai_classifications",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 107,
+    "term": "Drones",
+    "categories": [
+      "artificial_archetypes",
+      "ai_classifications",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 108,
+    "term": "War Machines",
+    "categories": [
+      "artificial_archetypes",
+      "social_roles",
+      "ai_classifications",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 109,
+    "term": "Mechs",
+    "categories": [
+      "artificial_archetypes",
+      "ai_classifications",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 110,
+    "term": "Cyborgs",
+    "categories": [
+      "supernatural_states",
+      "transformations",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 111,
+    "term": "Augmented Humans",
+    "categories": [
+      "supernatural_states",
+      "transformations",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 112,
+    "term": "Clones",
+    "categories": [
+      "biological_archetypes",
+      "transformations",
+      "entity_relationships"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 113,
+    "term": "Gene-Warriors",
+    "categories": [
+      "biological_archetypes",
+      "transformations"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 114,
+    "term": "AI",
+    "categories": [
+      "artificial_archetypes",
+      "ai_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 115,
+    "term": "Sentient AI",
+    "categories": [
+      "artificial_archetypes",
+      "ai_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 116,
+    "term": "Rogue AI",
+    "categories": [
+      "artificial_archetypes",
+      "ai_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 117,
+    "term": "Machine Minds",
+    "categories": [
+      "artificial_archetypes",
+      "ai_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 118,
+    "term": "Digital Entities",
+    "categories": [
+      "artificial_archetypes",
+      "ai_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 119,
+    "term": "Uploaded Humans",
+    "categories": [
+      "artificial_archetypes",
+      "supernatural_states",
+      "transformations",
+      "ai_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 120,
+    "term": "Holographic Beings",
+    "categories": [
+      "artificial_archetypes",
+      "supernatural_states",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 121,
+    "term": "Nanite Swarms",
+    "categories": [
+      "artificial_archetypes",
+      "ai_classifications",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 122,
+    "term": "Grey Goo",
+    "categories": [
+      "artificial_archetypes",
+      "ai_classifications",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 123,
+    "term": "Biomechanical Creatures",
+    "categories": [
+      "biological_archetypes",
+      "artificial_archetypes",
+      "monster_families",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 124,
+    "term": "Living Ships",
+    "categories": [
+      "artificial_archetypes",
+      "social_roles"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 125,
+    "term": "Space Beasts",
+    "categories": [
+      "biological_archetypes",
+      "monster_families",
+      "cosmic_classifications"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 126,
+    "term": "Energy Beings",
+    "categories": [
+      "supernatural_states",
+      "cosmic_classifications",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 127,
+    "term": "Plasma Entities",
+    "categories": [
+      "supernatural_states",
+      "cosmic_classifications",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 128,
+    "term": "Psionic Beings",
+    "categories": [
+      "supernatural_states",
+      "classes",
+      "cosmic_classifications",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 129,
+    "term": "Telepaths",
+    "categories": [
+      "classes",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 130,
+    "term": "Psychics",
+    "categories": [
+      "classes",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 131,
+    "term": "Empaths",
+    "categories": [
+      "classes",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 132,
+    "term": "Time Travelers",
+    "categories": [
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 133,
+    "term": "Temporal Entities",
+    "categories": [
+      "supernatural_states",
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 134,
+    "term": "Dimensional Travelers",
+    "categories": [
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 135,
+    "term": "Extradimensional Beings",
+    "categories": [
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 136,
+    "term": "Reality Warpers",
+    "categories": [
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 137,
+    "term": "Ascended Beings",
+    "categories": [
+      "supernatural_states",
+      "transformations",
+      "progression_rank",
+      "cosmic_classifications",
+      "visual_modifiers",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 138,
+    "term": "Immortals",
+    "categories": [
+      "supernatural_states",
+      "progression_rank",
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 139,
+    "term": "Cultivators",
+    "categories": [
+      "professions",
+      "classes",
+      "progression_rank",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 140,
+    "term": "Mana Beasts",
+    "categories": [
+      "biological_archetypes",
+      "monster_families",
+      "supernatural_states",
+      "system_litrpg",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 141,
+    "term": "Spirit Beasts",
+    "categories": [
+      "biological_archetypes",
+      "monster_families",
+      "supernatural_states",
+      "system_litrpg",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 142,
+    "term": "Divine Beasts",
+    "categories": [
+      "biological_archetypes",
+      "monster_families",
+      "supernatural_states",
+      "system_litrpg",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 143,
+    "term": "Dungeon Monsters",
+    "categories": [
+      "monster_families",
+      "encounter_classifications",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 144,
+    "term": "Dungeon Bosses",
+    "categories": [
+      "encounter_classifications",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 145,
+    "term": "World Bosses",
+    "categories": [
+      "encounter_classifications",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 146,
+    "term": "Raid Bosses",
+    "categories": [
+      "encounter_classifications",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 147,
+    "term": "Elite Monsters",
+    "categories": [
+      "progression_rank",
+      "encounter_classifications",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 148,
+    "term": "Named Monsters",
+    "categories": [
+      "progression_rank",
+      "encounter_classifications",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 149,
+    "term": "Legendary Creatures",
+    "categories": [
+      "progression_rank",
+      "encounter_classifications",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 150,
+    "term": "Evolving Monsters",
+    "categories": [
+      "transformations",
+      "progression_rank",
+      "encounter_classifications",
+      "system_litrpg",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 151,
+    "term": "Familiars",
+    "categories": [
+      "entity_relationships",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 152,
+    "term": "Summons",
+    "categories": [
+      "entity_relationships",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 153,
+    "term": "Contracted Beasts",
+    "categories": [
+      "entity_relationships",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 154,
+    "term": "Tamed Monsters",
+    "categories": [
+      "entity_relationships",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 155,
+    "term": "Mounts",
+    "categories": [
+      "entity_relationships",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 156,
+    "term": "Constructs",
+    "categories": [
+      "artificial_archetypes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 157,
+    "term": "Homunculi",
+    "categories": [
+      "biological_archetypes",
+      "artificial_archetypes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 158,
+    "term": "Chimeric Experiments",
+    "categories": [
+      "biological_archetypes",
+      "artificial_archetypes",
+      "transformations",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 159,
+    "term": "Artificial Souls",
+    "categories": [
+      "artificial_archetypes",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 160,
+    "term": "Soul-Bound Entities",
+    "categories": [
+      "supernatural_states",
+      "entity_relationships",
+      "system_litrpg",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 161,
+    "term": "Avatars of the System",
+    "categories": [
+      "entity_relationships",
+      "system_litrpg",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 162,
+    "term": "System Administrators",
+    "categories": [
+      "professions",
+      "social_roles",
+      "ai_classifications",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 163,
+    "term": "Guides",
+    "categories": [
+      "professions",
+      "social_roles",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 164,
+    "term": "Quest Givers",
+    "categories": [
+      "professions",
+      "social_roles",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 165,
+    "term": "Merchants",
+    "categories": [
+      "professions",
+      "social_roles",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 166,
+    "term": "Trainers",
+    "categories": [
+      "professions",
+      "social_roles",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 167,
+    "term": "Companions",
+    "categories": [
+      "social_roles",
+      "entity_relationships",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 168,
+    "term": "Followers",
+    "categories": [
+      "social_roles",
+      "entity_relationships",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 169,
+    "term": "Minions",
+    "categories": [
+      "social_roles",
+      "entity_relationships",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 170,
+    "term": "NPCs",
+    "categories": [
+      "social_roles",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 171,
+    "term": "Awakened NPCs",
+    "categories": [
+      "supernatural_states",
+      "social_roles",
+      "progression_rank",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 172,
+    "term": "Players",
+    "categories": [
+      "social_roles",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 173,
+    "term": "Reincarnators",
+    "categories": [
+      "transformations",
+      "system_litrpg",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 174,
+    "term": "Transmigrators",
+    "categories": [
+      "transformations",
+      "system_litrpg",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 175,
+    "term": "Returners",
+    "categories": [
+      "transformations",
+      "system_litrpg",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 176,
+    "term": "Regressors",
+    "categories": [
+      "transformations",
+      "system_litrpg",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 177,
+    "term": "Chosen Ones",
+    "categories": [
+      "social_roles",
+      "progression_rank",
+      "entity_relationships",
+      "system_litrpg",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 178,
+    "term": "Heroes",
+    "categories": [
+      "classes",
+      "social_roles",
+      "progression_rank",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 179,
+    "term": "Dark Lords",
+    "categories": [
+      "social_roles",
+      "progression_rank"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 180,
+    "term": "Demon Kings",
+    "categories": [
+      "social_roles",
+      "progression_rank"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 181,
+    "term": "Overlords",
+    "categories": [
+      "social_roles",
+      "progression_rank"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 182,
+    "term": "Warlords",
+    "categories": [
+      "social_roles"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 183,
+    "term": "Kings and Queens",
+    "categories": [
+      "social_roles"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 184,
+    "term": "Emperors",
+    "categories": [
+      "social_roles"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 185,
+    "term": "Guild Masters",
+    "categories": [
+      "professions",
+      "social_roles"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 186,
+    "term": "Adventurers",
+    "categories": [
+      "professions",
+      "classes",
+      "social_roles",
+      "system_litrpg"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 187,
+    "term": "Mercenaries",
+    "categories": [
+      "professions",
+      "classes",
+      "social_roles"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 188,
+    "term": "Knights",
+    "categories": [
+      "professions",
+      "classes",
+      "social_roles"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 189,
+    "term": "Paladins",
+    "categories": [
+      "classes",
+      "social_roles"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 190,
+    "term": "Warriors",
+    "categories": [
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 191,
+    "term": "Barbarians",
+    "categories": [
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 192,
+    "term": "Rogues",
+    "categories": [
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 193,
+    "term": "Assassins",
+    "categories": [
+      "professions",
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 194,
+    "term": "Rangers",
+    "categories": [
+      "professions",
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 195,
+    "term": "Hunters",
+    "categories": [
+      "professions",
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 196,
+    "term": "Monks",
+    "categories": [
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 197,
+    "term": "Mages",
+    "categories": [
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 198,
+    "term": "Wizards",
+    "categories": [
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 199,
+    "term": "Sorcerers",
+    "categories": [
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 200,
+    "term": "Warlocks",
+    "categories": [
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 201,
+    "term": "Clerics",
+    "categories": [
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 202,
+    "term": "Druids",
+    "categories": [
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 203,
+    "term": "Summoners",
+    "categories": [
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 204,
+    "term": "Enchanters",
+    "categories": [
+      "professions",
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 205,
+    "term": "Illusionists",
+    "categories": [
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 206,
+    "term": "Alchemists",
+    "categories": [
+      "professions",
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 207,
+    "term": "Artificers",
+    "categories": [
+      "professions",
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 208,
+    "term": "Psions",
+    "categories": [
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 209,
+    "term": "Technomancers",
+    "categories": [
+      "professions",
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 210,
+    "term": "Spellswords",
+    "categories": [
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 211,
+    "term": "Battlemages",
+    "categories": [
+      "classes"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 212,
+    "term": "Necro-Tech Entities",
+    "categories": [
+      "artificial_archetypes",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 213,
+    "term": "Magitech Constructs",
+    "categories": [
+      "artificial_archetypes",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 214,
+    "term": "Arcane AI",
+    "categories": [
+      "artificial_archetypes",
+      "ai_classifications",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 215,
+    "term": "Cybernetic Mages",
+    "categories": [
+      "classes",
+      "visual_modifiers"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 216,
+    "term": "Star Gods",
+    "categories": [
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 217,
+    "term": "Planetary Minds",
+    "categories": [
+      "ai_classifications",
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 218,
+    "term": "World Spirits",
+    "categories": [
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 219,
+    "term": "World Trees",
+    "categories": [
+      "biological_archetypes",
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 220,
+    "term": "Dungeon Cores",
+    "categories": [
+      "artificial_archetypes",
+      "cosmic_classifications",
+      "system_litrpg",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 221,
+    "term": "World Cores",
+    "categories": [
+      "artificial_archetypes",
+      "cosmic_classifications",
+      "system_litrpg",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 222,
+    "term": "System Cores",
+    "categories": [
+      "artificial_archetypes",
+      "ai_classifications",
+      "cosmic_classifications",
+      "system_litrpg",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 223,
+    "term": "Conceptual Entities",
+    "categories": [
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 224,
+    "term": "Personifications",
+    "categories": [
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 225,
+    "term": "Embodiments",
+    "categories": [
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 226,
+    "term": "Outer Gods",
+    "categories": [
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 227,
+    "term": "Multiversal Entities",
+    "categories": [
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 228,
+    "term": "Creators",
+    "categories": [
+      "social_roles",
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 229,
+    "term": "Destroyers",
+    "categories": [
+      "social_roles",
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  },
+  {
+    "index": 230,
+    "term": "Transcendent Entities",
+    "categories": [
+      "progression_rank",
+      "cosmic_classifications",
+      "metaphysical_concepts"
+    ],
+    "interpretation": "Provisional multi-label classification; canonical world rules decide meaning."
+  }
+]

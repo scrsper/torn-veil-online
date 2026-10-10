@@ -1,3 +1,4 @@
+import { itemDesign } from '../content/itemCollection';
 import type { Person, Body, Item, Place, Faction, Creature, Occupation, Traits, Appearance, Vec3, PlaceType, Anchor, ItemType, EntityId, Attributes } from '../core/types';
 import { World } from '../core/world';
 import { ATTRIBUTE_IDS, attributeProfile, defaultDevelopment, generatedHuman, physicalAttribute } from '../core/human';
@@ -72,7 +73,11 @@ export function makePerson(world: World, s: PersonSpec): Person {
   world.add(p); return p;
 }
 
-export function makeItem(world: World, type: ItemType, name: string, o: { owner?: EntityId | null; holder?: EntityId | null; container?: EntityId | null; pos?: Vec3 | null; placeId?: EntityId | null; value?: number; damage?: number; quantity?: number; description?: string; named?: boolean; tags?: string[]; condition?: number } = {}): Item {
+export function makeItem(world: World, type: ItemType, name: string, o: { owner?: EntityId | null; holder?: EntityId | null; container?: EntityId | null; pos?: Vec3 | null; placeId?: EntityId | null; value?: number; damage?: number; quantity?: number; description?: string; named?: boolean; tags?: string[]; condition?: number; catalogId?: string } = {}): Item {
+  if (o.catalogId) {
+    const design = itemDesign(o.catalogId);
+    if (!design || design.mechanicalType !== type && !(type==='armor'&&design.category==='Armor')) throw new Error(`Unsupported or mismatched item design ${o.catalogId} for ${type}`);
+  }
   if (o.holder && o.container) throw new Error('An item cannot be created in both an inventory and a container');
   const container = o.container ? world.container(o.container) : undefined;
   if (o.container && !container) throw new Error(`Unknown container ${o.container}`);
@@ -80,17 +85,19 @@ export function makeItem(world: World, type: ItemType, name: string, o: { owner?
     id: world.nextId('i'), kind: 'item', name, createdAt: world.now, tags: o.tags ?? [], type, ownerId: o.owner ?? null, holderId: o.holder ?? null,
     pos: o.container ? null : o.pos ? { ...o.pos } : null, placeId: o.placeId ?? container?.placeId ?? null, containerId: o.container ?? null, provenance: [], value: o.value ?? ITEM_VALUE[type], damage: o.damage ?? ITEM_DAMAGE[type] ?? 0, quantity: o.quantity ?? 1,
     description: o.description ?? '', named: !!o.named,
+    ...(o.catalogId ? { catalogId: o.catalogId } : {}),
     condition: o.condition ?? (TOOL_TYPES.has(type) ? 1 : undefined),
   };
   if (it.holderId) { const h = world.person(it.holderId); if (h) h.inventory.push(it.id); }
   world.add(it); if (container) container.itemIds.push(it.id); return it;
 }
 const TOOL_TYPES = new Set<ItemType>(['axe', 'pickaxe', 'saw', 'hammer', 'stoneaxe']);
-export const ITEM_VALUE: Record<ItemType, number> = { sword: 60, dagger: 15, hammer: 25, axe: 20, bread: 2, ale: 3, coins: 1, ring: 80, book: 30, herbs: 6, flowers: 1, meat: 5, cheese: 4, lantern: 12, key: 5, pie: 6, wheat: 1, grain: 1, flour: 2, log: 2, plank: 3, stone: 2, pickaxe: 28, saw: 22, stick: 1, stew: 6, stoneaxe: 12 };
+export const ITEM_VALUE: Record<ItemType, number> = { armor: 0, sword: 60, dagger: 15, hammer: 25, axe: 20, bread: 2, ale: 3, coins: 1, ring: 80, book: 30, herbs: 6, flowers: 1, meat: 5, cheese: 4, lantern: 12, key: 5, pie: 6, wheat: 1, grain: 1, flour: 2, log: 2, plank: 3, stone: 2, pickaxe: 28, saw: 22, stick: 1, stew: 6, stoneaxe: 12 };
 export const ITEM_DAMAGE: Partial<Record<ItemType, number>> = { sword: 26, dagger: 14, hammer: 20, axe: 22, stoneaxe: 14 };
-export const ITEM_LABEL: Record<ItemType, string> = { sword: 'sword', dagger: 'dagger', hammer: 'hammer', axe: 'axe', bread: 'loaf of bread', ale: 'mug of ale', coins: 'silver coins', ring: 'ring', book: 'book', herbs: 'bundle of herbs', flowers: 'flowers', meat: 'cut of venison', cheese: 'wedge of cheese', lantern: 'lantern', key: 'iron key', pie: 'meat pie', wheat: 'sheaf of wheat', grain: 'sack of grain', flour: 'sack of flour', log: 'log', plank: 'plank', stone: 'block of stone', pickaxe: 'pickaxe', saw: 'two-man saw', stick: 'stick', stew: 'bowl of stew', stoneaxe: 'stone axe' };
+export const ITEM_LABEL: Record<ItemType, string> = { armor: 'armor', sword: 'sword', dagger: 'dagger', hammer: 'hammer', axe: 'axe', bread: 'loaf of bread', ale: 'mug of ale', coins: 'silver coins', ring: 'ring', book: 'book', herbs: 'bundle of herbs', flowers: 'flowers', meat: 'cut of venison', cheese: 'wedge of cheese', lantern: 'lantern', key: 'iron key', pie: 'meat pie', wheat: 'sheaf of wheat', grain: 'sack of grain', flour: 'sack of flour', log: 'log', plank: 'plank', stone: 'block of stone', pickaxe: 'pickaxe', saw: 'two-man saw', stick: 'stick', stew: 'bowl of stew', stoneaxe: 'stone axe' };
 /** v0.2.4: coarse resource category (see types.ts ResourceCategory). */
 export const RESOURCE_CATEGORY: Record<ItemType, import('../core/types').ResourceCategory> = {
+  armor: 'misc',
   bread: 'food', pie: 'food', cheese: 'food', meat: 'food', ale: 'food', herbs: 'food', stew: 'food',
   grain: 'crop_yield', wheat: 'crop_yield', flour: 'material',
   sword: 'tool', dagger: 'tool', hammer: 'tool', axe: 'tool', lantern: 'tool', key: 'tool', book: 'tool', pickaxe: 'tool', saw: 'tool', stoneaxe: 'tool',
@@ -141,4 +148,18 @@ export function makeFaction(world: World, name: string, description: string, o: 
 export function makeCreature(world: World, species: Creature['species'], name: string, homeId: EntityId | null, ownerId: EntityId | null): Creature {
   const c: Creature = { id: world.nextId('c'), kind: 'creature', name, createdAt: world.now, tags: [], species, bodies: [], homeId, wanderTimer: 0, ownerId };
   world.add(c); return c;
+}
+
+/** Create only designs matching an existing canonical ItemType. Existing damage/value/tool
+ * behavior applies equally to NPCs and players; abilities and set bonuses remain design text. */
+export function makeCatalogItem(world: World, catalogId: string, options: Omit<NonNullable<Parameters<typeof makeItem>[3]>, 'catalogId'> = {}): Item {
+  const design = itemDesign(catalogId);
+  if (!design?.mechanicalType) throw new Error(`No canonical mechanics for item design ${catalogId}`);
+  return makeItem(world, design.mechanicalType, design.name, { ...options, description: options.description ?? design.description, catalogId });
+}
+
+/** Physical wearable instance; design abilities remain unimplemented descriptions. */
+export function makeCatalogArmor(world: World, catalogId: string, options: Omit<NonNullable<Parameters<typeof makeItem>[3]>, 'catalogId'> = {}): Item {
+ const design=itemDesign(catalogId);if(design?.category!=='Armor')throw Error('Not an armor design: '+catalogId);
+ return makeItem(world,'armor',design.name,{...options,description:design.description,catalogId});
 }

@@ -64,7 +64,7 @@ export function transferItemToContainer(world: World, actor: Person | null, item
   const used = container.itemIds.reduce((sum, id) => sum + Math.max(0, world.item(id)?.quantity ?? 0), 0);
   if (used + item.quantity > container.capacity) return { ok: false, reason: 'capacity_exceeded' };
   actor!.inventory = actor!.inventory.filter(id => id !== item.id);
-  item.holderId = null; item.pos = null; item.placeId = container.placeId; item.containerId = container.id;
+  item.holderId = null; delete item.equipped; item.pos = null; item.placeId = container.placeId; item.containerId = container.id;
   container.itemIds.push(item.id);
   const event = world.emit('container_transfer', { actor: actor!.id, target: container.id, item: item.id, placeId: container.placeId ?? undefined, pos: container.pos ?? undefined, significance: 0.12, data: { direction: 'into' }, summary: `${actor!.name} stored ${item.name} in ${container.name}` });
   return { ok: true, eventId: event.id };

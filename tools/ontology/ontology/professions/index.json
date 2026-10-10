@@ -1,0 +1,32 @@
+[
+  {
+    "id": "farmer",
+    "visualRequirements": [
+      "Author farmer visual rules"
+    ]
+  },
+  {
+    "id": "blacksmith",
+    "visualRequirements": [
+      "Author blacksmith visual rules"
+    ]
+  },
+  {
+    "id": "merchant",
+    "visualRequirements": [
+      "Author merchant visual rules"
+    ]
+  },
+  {
+    "id": "artificer",
+    "visualRequirements": [
+      "Author artificer visual rules"
+    ]
+  },
+  {
+    "id": "wanderer",
+    "visualRequirements": [
+      "Author wanderer visual rules"
+    ]
+  }
+]

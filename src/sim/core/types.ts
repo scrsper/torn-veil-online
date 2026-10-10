@@ -69,6 +69,8 @@ export interface LocalizedInjury { region: BodyRegion; severity: number; }
 
 export interface Body extends Entity {
   kind: 'body';
+  /** Explicit hand selection after an equipment action; legacy saves retain carried-weapon selection. */
+  equipmentMode?: 'explicit';
   combatAction?: import('../physical/combatActionTypes').CombatAction;
   guard?: import('../physical/guard').GuardState;
   /** Canonical posture amount; held controller leases are disposable and never saved. */
@@ -1376,7 +1378,7 @@ export type ItemType = 'sword' | 'dagger' | 'hammer' | 'axe' | 'bread' | 'ale' |
   // `stoneaxe` is the practical-crafting vertical slice's result (world/crafting.ts) — a real,
   // weaker-than-forged tool built from stick + suitable stone + herbs (binding), not spawned
   // from a recipe match alone.
-  | 'stick' | 'stew' | 'stoneaxe';
+  | 'stick' | 'stew' | 'stoneaxe' | 'armor';
 
 /**
  * v0.2.4: a coarse category for an item type, so production/consumption logic can reason about
@@ -1387,6 +1389,10 @@ export type ResourceCategory = 'food' | 'material' | 'crop_yield' | 'tool' | 'va
 export interface ProvenanceEntry { tick: Tick; eventId?: EventId; from: EntityId | null; to: EntityId | null; how: string; }
 export interface Item extends Entity {
   kind: 'item';
+  /** Optional authored physical design identity; no new mechanics or rarity-derived power. */
+  catalogId?: string;
+  /** Canonical physical placement; no catalog powers or protection inferred. */
+  equipped?: {bodyId: EntityId; slot: import('../physical/equipment').EquipmentSlot};
   type: ItemType;
   ownerId: EntityId | null;         // rightful owner (as the world has it)
   holderId: EntityId | null;        // person carrying it
@@ -1486,7 +1492,7 @@ export interface Faction extends Entity {
 }
 
 // ---------------------------------------------------------------- Events
-export type EventType = 'animal_threat_display' | 'downed' | 'veil_hush' | 'veil_meditation' | 'butchered' | 'woke' | 'animal_born' | 'animal_conceived' | 'animal_pregnancy_lost' | 'animal_died' | 'ecology_changed'
+export type EventType = 'item_equipped' | 'item_unequipped' | 'animal_threat_display' | 'downed' | 'veil_hush' | 'veil_meditation' | 'butchered' | 'woke' | 'animal_born' | 'animal_conceived' | 'animal_pregnancy_lost' | 'animal_died' | 'ecology_changed'
   | 'introduction' | 'social_inferred' | 'mechanism_inspected' | 'mechanism_hypothesized' | 'mechanism_worked' | 'mechanism_intended' | 'mechanism_abandoned'
   | 'record_written' | 'record_copied' | 'record_read' | 'record_destroyed' | 'environment_energy_changed' | 'method_reproduced' | 'method_discovered'
   | 'component_acquired' | 'assembly_changed' | 'mechanism_trial' | 'production_observed' | 'component_manufactured' | 'component_supply_failed'

@@ -295,11 +295,11 @@ export function purchaseUnits(world: World, buyer: Person, seller: Person, sourc
   // buyer both HOLDS and OWNS what they paid for — this is the transition that makes a purchase
   // different from a pickup.
   const how = opts.how ?? 'bought';
-  const carried = buyer.inventory.map(id => world.item(id)).find(i => !!i && i.type === source.type && i.holderId === buyer.id
+  const carried = buyer.inventory.map(id => world.item(id)).find(i => !!i && i.type === source.type && i.catalogId === source.catalogId && i.holderId === buyer.id
     && i.ownerId === buyer.id && !i.haulTaskId && i.quantity > 0 && (!isPerishable(i.type) || i.createdAt === source.createdAt));
   let stack: Item;
   if (carried) { carried.quantity += take; stack = carried; }
-  else { stack = makeItem(world, source.type, source.name, { owner: buyer.id, holder: buyer.id, quantity: take, value: source.value }); stack.createdAt = source.createdAt; }
+  else { stack = makeItem(world, source.type, source.name, { owner: buyer.id, holder: buyer.id, quantity: take, value: source.value, catalogId: source.catalogId }); stack.createdAt = source.createdAt; }
   stack.spoilAccum = (stack.spoilAccum ?? 0) + spoilShare;
   stack.ownerId = buyer.id;
   stack.provenance.push({ tick: world.now, eventId: ev.id, from: seller.id, to: buyer.id, how });

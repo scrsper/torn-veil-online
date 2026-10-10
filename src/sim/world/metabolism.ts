@@ -577,10 +577,10 @@ export function takePortionInHand(world: World, taker: Person, stack: Item, n: n
     significance: 0.08, visibility: 8, data: { qty: take, how },
     summary: `${taker.name} took ${take} ${stack.type} ${how}`,
   });
-  const carried = taker.inventory.map(id => world.item(id)).find(i => !!i && i.type === stack.type && i.holderId === taker.id && i.ownerId === taker.id && !i.haulTaskId
+  const carried = taker.inventory.map(id => world.item(id)).find(i => !!i && i.type === stack.type && i.catalogId === stack.catalogId && i.holderId === taker.id && i.ownerId === taker.id && !i.haulTaskId
     && (!isPerishable(i.type) || i.createdAt === stack.createdAt));
   if (carried) { carried.quantity += take; carried.spoilAccum = (carried.spoilAccum ?? 0) + spoilShare; carried.provenance.push({ tick: world.now, eventId: ev.id, from: stack.ownerId, to: taker.id, how }); return carried; }
-  const fresh = makeItem(world, stack.type, stack.name, { owner: taker.id, holder: taker.id, quantity: take, value: stack.value });
+  const fresh = makeItem(world, stack.type, stack.name, { owner: taker.id, holder: taker.id, quantity: take, value: stack.value, catalogId: stack.catalogId });
   fresh.createdAt = stack.createdAt; fresh.spoilAccum = spoilShare;
   fresh.provenance.push({ tick: world.now, eventId: ev.id, from: stack.ownerId, to: taker.id, how });
   return fresh;

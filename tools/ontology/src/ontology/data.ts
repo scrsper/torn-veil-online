@@ -1,0 +1,15 @@
+import entityData from '../../ontology/definitions/validation-entities.json';
+import speciesData from '../../ontology/species/index.json';
+import assetData from '../../assets/registry.json';
+import provenanceData from '../../assets/provenance/registry.json';
+import stateData from '../../ontology/states/index.json';
+import styleData from '../../ontology/art-direction.json';
+import {EntitySchema,SpeciesSchema,AssetSchema,ProvenanceSchema,ArtDirectionSchema} from './schema';
+import {ProviderRegistry,QuaterniusProvider,MPFBProvider,LocalAssetProvider,GeneratedAssetProvider} from '../assets/providers';
+export const entities=entityData.map(e=>EntitySchema.parse(e));
+export const species=speciesData.map(s=>SpeciesSchema.parse(s));
+export const assets=assetData.map(a=>AssetSchema.parse(a));
+export const provenance=provenanceData.map(p=>ProvenanceSchema.parse(p));
+export const states=stateData;
+export const artDirection=ArtDirectionSchema.parse(styleData);
+export const providers=new ProviderRegistry([new QuaterniusProvider(assets),new MPFBProvider(assets),new LocalAssetProvider(assets),new GeneratedAssetProvider(assets)]);

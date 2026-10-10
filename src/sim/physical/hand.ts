@@ -1,3 +1,4 @@
+import {changeEquipment,equipmentSlot} from './equipment';
 import type { Body, Container, Creature, Person, ResourceNode, Vec3 } from '../core/types';
 import type { World } from '../core/world';
 import { makeItem } from '../world/factory';
@@ -10,7 +11,7 @@ import { containerAccessAllowed, setContainerOpen, takeItemFromContainer, transf
 
 /** Reach for an external hand, in canonical metres (the browser's item ray has this range). */
 export const ITEM_REACH = 2.4;
-export interface HandInteraction { id: string; kind: string; label: string; slot: 'nearby' | 'consume' | 'drop'; target?: { id: string; kind: string; pos: Vec3 }; }
+export interface HandInteraction { id: string; kind: string; label: string; slot: 'nearby' | 'consume' | 'drop' | 'equipment'; target?: { id: string; kind: string; pos: Vec3 }; }
 export interface OpenContainerProjection { id: string; name: string; capacity: number; used: number; items: { id: string; name: string; type: string; quantity: number }[]; }
 function canAct(sim: Simulation, p: Person): boolean {
   const b = sim.world.primaryBody(p.id);
@@ -105,6 +106,7 @@ export function handInteractions(sim: Simulation, p: Person): HandInteraction[] 
   for (const id of p.inventory) {
     const it = w.item(id);
     if (!it || it.holderId !== p.id || it.quantity <= 0) continue;
+    if(equipmentSlot(it))out.push({id:`${it.equipped?'unequip':'equip'}:${it.id}`,kind:it.equipped?'unequip':'equip',label:`${it.equipped?'Unequip':'Equip'} ${it.name}`,slot:'equipment'});
     const drop=actionsForCarriedItem(w,p,it).find(a=>a.kind==='drop');
     if(drop&&dropPositionAtHand(sim,p))out.push({id:`drop:${it.id}`,kind:'drop',label:drop.label,slot:'drop'});
     const action = actionsForCarriedItem(w, p, it).find(a => a.kind === 'eat' || a.kind === 'drink');
@@ -173,9 +175,10 @@ function canActBody(w: World, p: Person, b: Body): boolean {
   return b.present && !b.dead && p.alive && b.pose !== 'downed' && b.subduedUntil <= w.physicalTime && !p.surrender && !p.custody?.active;
 }
 export function performHandInteraction(sim: Simulation, p: Person, id: unknown): string {
-  if (typeof id !== 'string' || !/^(buy|take|steal|recover|consume|drink|gather|drop|open|close|butcher):.+$/.test(id)) return 'invalid_interaction';
+  if (typeof id !== 'string' || !/^(buy|take|steal|recover|consume|drink|gather|drop|open|close|butcher|equip|unequip):.+$/.test(id)) return 'invalid_interaction';
   if (!canAct(sim, p)) return 'incapacitated';
   const split = id.indexOf(':'), kind = id.slice(0, split), target = id.slice(split + 1);
+  if(kind==='equip'||kind==='unequip')return changeEquipment(sim.world,p,target,kind==='equip');
   if (kind === 'butcher') return butcher(sim, p, target);
   if (kind === 'open' || kind === 'close') {
     if(target.startsWith('door:')) {

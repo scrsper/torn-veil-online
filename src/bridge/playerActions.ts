@@ -51,6 +51,9 @@ export function carriedItemRows(sim: Simulation, p: Person, interactions: HandIn
         reason: available ? undefined : unable ?? (a.kind === 'drop' ? 'There is no clear ground at your feet to set it down.' : 'You cannot do that right now.'),
         request: { type: 'interact', interactionId } });
     }
+    for(const kind of ['equip','unequip'] as const){const interactionId=`${kind}:${it.id}`;if(offered.has(interactionId))actions.push({id:interactionId,kind,label:`${kind==='equip'?'Equip':'Unequip'} ${it.name}`,available:!unable,reason:unable,request:{type:'interact',interactionId}});}
+    if(it.equipped)description.push('Equipped: '+it.equipped.slot);
+    if(it.type==='armor')description.push('Physical fitting prototype; protection and catalog abilities are descriptive.');
     if (it.record) actions.push(readRow(sim, p, it, unable));
     rows.push({ id: it.id, name: it.name || it.type, type: it.type, quantity: it.quantity, description, actions });
   }

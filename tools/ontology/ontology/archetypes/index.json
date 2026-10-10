@@ -1,0 +1,130 @@
+[
+  {
+    "id": "humanoid_standard",
+    "status": "MISSING",
+    "requirements": [
+      "Reference-approved geometry",
+      "Rig profile and deformation review"
+    ]
+  },
+  {
+    "id": "humanoid_heavy",
+    "status": "MISSING",
+    "requirements": [
+      "Reference-approved geometry",
+      "Rig profile and deformation review"
+    ]
+  },
+  {
+    "id": "humanoid_small",
+    "status": "MISSING",
+    "requirements": [
+      "Reference-approved geometry",
+      "Rig profile and deformation review"
+    ]
+  },
+  {
+    "id": "dwarf_humanoid",
+    "status": "MISSING",
+    "requirements": [
+      "Reference-approved geometry",
+      "Rig profile and deformation review"
+    ]
+  },
+  {
+    "id": "beast_humanoid",
+    "status": "MISSING",
+    "requirements": [
+      "Reference-approved geometry",
+      "Rig profile and deformation review"
+    ]
+  },
+  {
+    "id": "giant_humanoid",
+    "status": "MISSING",
+    "requirements": [
+      "Reference-approved geometry",
+      "Rig profile and deformation review"
+    ]
+  },
+  {
+    "id": "quadruped",
+    "status": "MISSING",
+    "requirements": [
+      "Reference-approved geometry",
+      "Rig profile and deformation review"
+    ]
+  },
+  {
+    "id": "dragon",
+    "status": "MISSING",
+    "requirements": [
+      "Reference-approved geometry",
+      "Rig profile and deformation review"
+    ]
+  },
+  {
+    "id": "winged_creature",
+    "status": "MISSING",
+    "requirements": [
+      "Reference-approved geometry",
+      "Rig profile and deformation review"
+    ]
+  },
+  {
+    "id": "insectoid",
+    "status": "MISSING",
+    "requirements": [
+      "Reference-approved geometry",
+      "Rig profile and deformation review"
+    ]
+  },
+  {
+    "id": "serpentine",
+    "status": "MISSING",
+    "requirements": [
+      "Reference-approved geometry",
+      "Rig profile and deformation review"
+    ]
+  },
+  {
+    "id": "amorphous",
+    "status": "MISSING",
+    "requirements": [
+      "Reference-approved geometry",
+      "Rig profile and deformation review"
+    ]
+  },
+  {
+    "id": "construct",
+    "status": "MISSING",
+    "requirements": [
+      "Reference-approved geometry",
+      "Rig profile and deformation review"
+    ]
+  },
+  {
+    "id": "skeletal",
+    "status": "MISSING",
+    "requirements": [
+      "Reference-approved geometry",
+      "Rig profile and deformation review"
+    ]
+  },
+  {
+    "id": "ethereal",
+    "status": "MISSING",
+    "requirements": [
+      "Reference-approved geometry",
+      "Rig profile and deformation review"
+    ]
+  },
+  {
+    "id": "cosmic_abstract",
+    "status": "MISSING",
+    "requirements": [
+      "Reference-approved geometry",
+      "Rig profile and deformation review"
+    ]
+  }
+]

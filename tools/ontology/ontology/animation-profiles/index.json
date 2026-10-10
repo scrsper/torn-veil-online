@@ -1,0 +1,222 @@
+[
+  {
+    "id": "humanoid_standard:base",
+    "rigFamily": "humanoid_standard",
+    "vocabulary": [
+      "idle",
+      "walk",
+      "run",
+      "turn",
+      "interact",
+      "attack",
+      "hit",
+      "death"
+    ],
+    "mappingStatus": "UNMAPPED",
+    "socketNames": [
+      "head",
+      "hand_r",
+      "hand_l",
+      "back"
+    ],
+    "rootMotionPolicy": "simulation_driven"
+  },
+  {
+    "id": "humanoid_small:base",
+    "rigFamily": "humanoid_small",
+    "vocabulary": [
+      "idle",
+      "walk",
+      "run",
+      "turn",
+      "interact",
+      "attack",
+      "hit",
+      "death"
+    ],
+    "mappingStatus": "UNMAPPED",
+    "socketNames": [
+      "head",
+      "hand_r",
+      "hand_l",
+      "back"
+    ],
+    "rootMotionPolicy": "simulation_driven"
+  },
+  {
+    "id": "humanoid_large:base",
+    "rigFamily": "humanoid_large",
+    "vocabulary": [
+      "idle",
+      "walk",
+      "run",
+      "turn",
+      "interact",
+      "attack",
+      "hit",
+      "death"
+    ],
+    "mappingStatus": "UNMAPPED",
+    "socketNames": [
+      "head",
+      "hand_r",
+      "hand_l",
+      "back"
+    ],
+    "rootMotionPolicy": "simulation_driven"
+  },
+  {
+    "id": "quadruped:base",
+    "rigFamily": "quadruped",
+    "vocabulary": [
+      "idle",
+      "walk",
+      "run",
+      "turn",
+      "interact",
+      "attack",
+      "hit",
+      "death"
+    ],
+    "mappingStatus": "UNMAPPED",
+    "socketNames": [
+      "head",
+      "hand_r",
+      "hand_l",
+      "back"
+    ],
+    "rootMotionPolicy": "simulation_driven"
+  },
+  {
+    "id": "winged_quadruped:base",
+    "rigFamily": "winged_quadruped",
+    "vocabulary": [
+      "idle",
+      "walk",
+      "run",
+      "turn",
+      "interact",
+      "attack",
+      "hit",
+      "death"
+    ],
+    "mappingStatus": "UNMAPPED",
+    "socketNames": [
+      "head",
+      "hand_r",
+      "hand_l",
+      "back"
+    ],
+    "rootMotionPolicy": "simulation_driven"
+  },
+  {
+    "id": "dragon:base",
+    "rigFamily": "dragon",
+    "vocabulary": [
+      "idle",
+      "walk",
+      "run",
+      "turn",
+      "interact",
+      "attack",
+      "hit",
+      "death"
+    ],
+    "mappingStatus": "UNMAPPED",
+    "socketNames": [
+      "head",
+      "hand_r",
+      "hand_l",
+      "back"
+    ],
+    "rootMotionPolicy": "simulation_driven"
+  },
+  {
+    "id": "serpentine:base",
+    "rigFamily": "serpentine",
+    "vocabulary": [
+      "idle",
+      "walk",
+      "run",
+      "turn",
+      "interact",
+      "attack",
+      "hit",
+      "death"
+    ],
+    "mappingStatus": "UNMAPPED",
+    "socketNames": [
+      "head",
+      "hand_r",
+      "hand_l",
+      "back"
+    ],
+    "rootMotionPolicy": "simulation_driven"
+  },
+  {
+    "id": "insectoid:base",
+    "rigFamily": "insectoid",
+    "vocabulary": [
+      "idle",
+      "walk",
+      "run",
+      "turn",
+      "interact",
+      "attack",
+      "hit",
+      "death"
+    ],
+    "mappingStatus": "UNMAPPED",
+    "socketNames": [
+      "head",
+      "hand_r",
+      "hand_l",
+      "back"
+    ],
+    "rootMotionPolicy": "simulation_driven"
+  },
+  {
+    "id": "construct:base",
+    "rigFamily": "construct",
+    "vocabulary": [
+      "idle",
+      "walk",
+      "run",
+      "turn",
+      "interact",
+      "attack",
+      "hit",
+      "death"
+    ],
+    "mappingStatus": "UNMAPPED",
+    "socketNames": [
+      "head",
+      "hand_r",
+      "hand_l",
+      "back"
+    ],
+    "rootMotionPolicy": "simulation_driven"
+  },
+  {
+    "id": "amorphous:base",
+    "rigFamily": "amorphous",
+    "vocabulary": [
+      "idle",
+      "walk",
+      "run",
+      "turn",
+      "interact",
+      "attack",
+      "hit",
+      "death"
+    ],
+    "mappingStatus": "UNMAPPED",
+    "socketNames": [
+      "head",
+      "hand_r",
+      "hand_l",
+      "back"
+    ],
+    "rootMotionPolicy": "simulation_driven"
+  }
+]

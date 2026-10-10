@@ -1,0 +1,10 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+const read=p=>JSON.parse(readFileSync(p,'utf8')),save=(p,x)=>writeFileSync(p,JSON.stringify(x,null,2)+'\n');
+const registry=read('assets/registry.json'),provenance=read('assets/provenance/registry.json');
+const asset=registry.find(a=>a.id==='tv-human-male-v2'),record=provenance.find(p=>p.id==='tv-human-male-v2-provenance');
+if(!asset||!record)throw Error('Omni v2 metadata must be registered before build');
+record.sha256=createHash('sha256').update(readFileSync('public/assets/entities/tv-human-male-v2.glb')).digest('hex');
+record.modificationStatus='Mature macro/jaw targets, swept source hair, fitted belt/buckle/calf shafts/rolled cuffs, linen weave and exported jaw morph';
+save('assets/provenance/registry.json',provenance);
+await import('./public-provenance.mjs');

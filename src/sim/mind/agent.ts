@@ -3274,12 +3274,12 @@ export class Simulation {
     return ev;
   }
   dropItem(p: Person, it: import('../core/types').Item, pos: Vec3): void {
-    const w = this.world; p.inventory = p.inventory.filter(x => x !== it.id); it.holderId = null; it.pos = { ...pos }; it.placeId = w.placeAt(pos)?.id ?? null;
+    const w = this.world; p.inventory = p.inventory.filter(x => x !== it.id); it.holderId = null; delete it.equipped; it.pos = { ...pos }; it.placeId = w.placeAt(pos)?.id ?? null;
     const ev = w.emit('drop', { actor: p.id, item: it.id, pos, significance: 0.1, visibility: 8, summary: `${p.name} dropped ${it.name}` });
     it.provenance.push({ tick: w.now, eventId: ev.id, from: p.id, to: null, how: 'dropped' });
   }
   giveItem(from: Person, to: Person, it: import('../core/types').Item, at?: Vec3): WorldEvent {
-    const w = this.world; from.inventory = from.inventory.filter(x => x !== it.id); to.inventory.push(it.id); it.holderId = to.id;
+    const w = this.world; from.inventory = from.inventory.filter(x => x !== it.id); to.inventory.push(it.id); it.holderId = to.id; delete it.equipped;
     const returned = it.ownerId === to.id; if (!returned) it.ownerId = to.id;
     it.provenance.push({ tick: w.now, from: from.id, to: to.id, how: returned ? 'returned' : 'gift' });
     const pos = at ?? w.primaryBody(to.id)?.pos;

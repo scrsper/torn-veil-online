@@ -1,0 +1,2528 @@
+[
+  {
+    "path": "assets/imported/makehuman/system/clothes/fedora01/fedora.mhmat",
+    "sha256": "8d51b0a5d6d6e813d2af195261ad0a53e99bf4a52f91987b74b32941308820c5",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/fedora01/fedora.obj",
+    "sha256": "09653260c082e2039f11b41615d6b59a7609d134aae3e2bfcf95da3ed555303c",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/fedora01/fedora01.mhclo",
+    "sha256": "c3af725d316d7003d2d00fc3d79750edc431f71af9ef539051217a3d308d3b15",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/fedora01/fedora01.thumb",
+    "sha256": "7ef63f274160042c7ab081358e674b0a8fe415f4654d8113debaebffad35c062",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/fedora01/fedora_diffuse.png",
+    "sha256": "5bd5e7dbf74f630327f8b3d45cd3e475e85088a8f9cf7f9719872a9fc0b0ae7f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/fedora01/fedora_normal.png",
+    "sha256": "b0566987c8a0739e04ee15838d07660570c6d73623b4555fe5adcafb86e655f7",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/fedora_cocked/fedora.mhmat",
+    "sha256": "8d51b0a5d6d6e813d2af195261ad0a53e99bf4a52f91987b74b32941308820c5",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/fedora_cocked/fedora_cocked.mhclo",
+    "sha256": "368fcc2013e1f61286958c0e6f65768f1ef7181f39cecc9fc6d24ccb32a2fb41",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/fedora_cocked/fedora_cocked.obj",
+    "sha256": "d58e30747086c30d623fc59bcabf58d4c5ce0b6fd8c08554afb4048dfb9c1400",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/fedora_cocked/fedora_cocked.thumb",
+    "sha256": "66a390f3868bcf54de9c26a4b0f0c04ca268277099741edb6961e58ded484b08",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/fedora_cocked/fedora_diffuse.png",
+    "sha256": "5bd5e7dbf74f630327f8b3d45cd3e475e85088a8f9cf7f9719872a9fc0b0ae7f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/fedora_cocked/fedora_normal.png",
+    "sha256": "b0566987c8a0739e04ee15838d07660570c6d73623b4555fe5adcafb86e655f7",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_casualsuit01/female_casualsuit01.mhclo",
+    "sha256": "8a17e4edceeb22ef30ce102ed05fb3463ca0eeb61addc7811f4867fde5963fa4",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_casualsuit01/female_casualsuit01.mhmat",
+    "sha256": "7bef35aade88daf9f4597f3b3c9a45be51cc51caf44012d12ac4e005c8087689",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_casualsuit01/female_casualsuit01.obj",
+    "sha256": "b6cfaf08b291fe10ea312d37e98d5e328eced5828bdb6f96ecac6bf4ababe652",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_casualsuit01/female_casualsuit01.thumb",
+    "sha256": "138a4bfb756f0cdfc8116d3f0ebcc14e1e20472bb225ead986b0cc3a8b291212",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_casualsuit01/female_casualsuit01_ao.png",
+    "sha256": "f97a31fb02b5f36802a08bfe22bffb1961240d4ecb20059540eec6516d753424",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_casualsuit01/female_casualsuit01_diffuse.png",
+    "sha256": "414d46afa55fba09ad0913484d57df2ba6b597dc8193595a13a12436137dc21b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_casualsuit01/female_casualsuit01_normal.png",
+    "sha256": "7bff7afbbc3f068e06f69abcddc8c2c9ce667ec181e0f2a918f8af78eba12610",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_casualsuit02/female_casualsuit02.mhclo",
+    "sha256": "dbbce782dcb95f2dc9d9b70fe66629c9a177fe0a8d14fd546961ed01eeb556c8",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_casualsuit02/female_casualsuit02.mhmat",
+    "sha256": "d44cdca8e96ce4f78b79b5a92e15d6c607820ea5c5e8c30fe0104188635cfc9a",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_casualsuit02/female_casualsuit02.obj",
+    "sha256": "569ce1a79f61c1a213fd813d14da656863e6832badaa41225543fcba93bbe1ce",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_casualsuit02/female_casualsuit02.thumb",
+    "sha256": "2a1e6d7c47961d3e8a3471ae7322d920f0265d91a54c2d43d518392414f1ad4c",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_casualsuit02/female_casualsuit02_ao.png",
+    "sha256": "8605b461e6179447908906352f7678bef914d7c48bbdbe2cf92af1791416ada4",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_casualsuit02/female_casualsuit02_diffuse.png",
+    "sha256": "23bd3c8e4df3993fe3bdb849daba7a4dd0476f3a28fd8402cd28abbb26666f49",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_casualsuit02/female_casualsuit02_normal.png",
+    "sha256": "37143dabd78647ca37689f0b65d969c958a962d728dffd94e60c9beacf76a3df",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_elegantsuit01/female_elegantsuit01.mhclo",
+    "sha256": "8ed657dbc49466e6a485993cfdcfd7b6ac30a0f44408dfd38de7a649477d8928",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_elegantsuit01/female_elegantsuit01.mhmat",
+    "sha256": "a0b1708efbff3c4ad96f8e7d8cc27fb1652719549455ce94b89bcf6294cfbed0",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_elegantsuit01/female_elegantsuit01.obj",
+    "sha256": "3b46cef6d63968954dc00c39ede649d76c05e5d36fe9f9c677349c88fd424de9",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_elegantsuit01/female_elegantsuit01.thumb",
+    "sha256": "ea5a3491d544888a7187ace16da98f093b498a19220b19a8c317f78fbf2697c6",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_elegantsuit01/female_elegantsuit01_ao.png",
+    "sha256": "0f89546c63ab16e2c1ba0556da7e07264b98b58e6200b043491f92f796b87673",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_elegantsuit01/female_elegantsuit01_diffuse.png",
+    "sha256": "ebe6f2afcbaadbe56d5cee6e00bab45e97ce482f0be0e34491d16ca5f98b38ac",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_elegantsuit01/female_elegantsuit01_normal.png",
+    "sha256": "ae3650bce6678cd67d025ab70e68b22683176aeaabc06d8e5b2129af99c762e9",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_sportsuit01/female_sportsuit01.mhclo",
+    "sha256": "6df057d3116db93afbbbb6d692f92cce84aa16db699f47dd14e825d07c6fd42f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_sportsuit01/female_sportsuit01.mhmat",
+    "sha256": "1153d5ad8a074f0f02c7102375d6d3ae0b82302b6f3909b5b64609a2d5cfdd6b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_sportsuit01/female_sportsuit01.obj",
+    "sha256": "fd529bb8dd6a994c1e9a3fb2fd8b236f52c0cc7cebb1f6fd9328953d9df6d6ff",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_sportsuit01/female_sportsuit01.thumb",
+    "sha256": "79169157b274530aae1fa0a6bc61c5a60bc92a96ba9070df062923f3857e3d12",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_sportsuit01/female_sportsuit01_ao.png",
+    "sha256": "6faffbb99e3d20faeaf87cdddece43fee7d6b7262de3e55817545809f0368524",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_sportsuit01/female_sportsuit01_diffuse.png",
+    "sha256": "00910e3e85b3dcf48d1aa827b4c075cdc77689989423ff4f75bc67f2e86cc588",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/female_sportsuit01/female_sportsuit01_normal.png",
+    "sha256": "2bc78509fc4e74b2346dbb54f7f627644125a41573ee458d624246e337f1d28f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit01/male_casualsuit01.mhclo",
+    "sha256": "78503ed7f56c149843d85e06e1164bc6871ce7319b2ef689237046352cc90de4",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit01/male_casualsuit01.mhmat",
+    "sha256": "043b25cefd398261b893d3dae58c81fc3e9633a25a01eafe66963591f5ad6eb6",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit01/male_casualsuit01.obj",
+    "sha256": "001921d237e408c35103720d046aa37f9c5512db1a179a5ede6a065cd504ba89",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit01/male_casualsuit01.thumb",
+    "sha256": "cd8a8c9461b164542d8660b9beaae17636040c9199020b65755a03559809cfc1",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit01/male_casualsuit01_ao.png",
+    "sha256": "9402d75d71318ef3ad90ee59f8b8688effefd13b3ec56423330e005bed5cd6c0",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit01/male_casualsuit01_diffuse.png",
+    "sha256": "3fd0bba5dcbdea0ac427f644a6c7c298938f7369b8f96626621ce1e88989394e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit01/male_casualsuit01_normal.png",
+    "sha256": "ff029fc5a3350ebc72813cdf050afcffd23064c7701d99e664572713cfa98a5f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit02/male_casualsuit02.mhclo",
+    "sha256": "f9e6821704a1508a02d5e416b2360785b705cfe5a130c359021a4b4570dcc43a",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit02/male_casualsuit02.mhmat",
+    "sha256": "20ab695fd8f6986e243427e03f8f9ec5a1c394ce8736eb6359f135a129ffb36a",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit02/male_casualsuit02.obj",
+    "sha256": "e07cbd1a43d21bd700e6598f01f74341a9dd66eac4e035c8be8de2650eac380f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit02/male_casualsuit02.thumb",
+    "sha256": "e994394780be666443e70349b7f9e55704895e699054a45b4113037fdbab8e68",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit02/male_casualsuit02_ao.png",
+    "sha256": "ef7f75de0868fdbe01c05e3c8ac3ec2a59a35247b501473b3aba79e7901dfbd9",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit02/male_casualsuit02_diffuse.png",
+    "sha256": "8e1e63c471a8eb6ea8be48f2d540c15c81d2e7744ff80c8fdac86a6e6fde3179",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit02/male_casualsuit02_normal.png",
+    "sha256": "1c31a7a5fbbef1ee40176114295038703f370d163a3cf040f55b60c85369d12c",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit03/male_casualsuit03.mhclo",
+    "sha256": "ce796e4cc6ac312e0426d793ccc874d0d94c085e1c06764fe096ec8d59ae94c5",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit03/male_casualsuit03.mhmat",
+    "sha256": "5fbf673d1db072aecb850ced389201ae729794deee851c0668e810e6ad082e5b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit03/male_casualsuit03.obj",
+    "sha256": "c55e02caa1f04126606eee5ac704637e9d3461bd527f26ade65e01973dc7aabb",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit03/male_casualsuit03.thumb",
+    "sha256": "ea180cea474eeba10ed73b13920adee4e87ea12c84f96a7d58b02caef90caf72",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit03/male_casualsuit03_ao.png",
+    "sha256": "b29aebd42545b874599be527c4ec8f89b851ba76613347b0475fac5188de7aea",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit03/male_casualsuit03_diffuse.png",
+    "sha256": "d9079ed2e52d23e1ccce53ddc3d4397e48883729f9324c97c2737f4f79af5153",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit03/male_casualsuit03_normal.png",
+    "sha256": "412c4610d3b2ea1cb04aa3c0715e747a7c9f61d865133b7d69f70eaa738cf99b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit04/male_casualsuit04.mhclo",
+    "sha256": "8c1a2d3272cd51ba03f0840d593eddc6325d3d2c4c8529f8203d2c2cad3d0cef",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit04/male_casualsuit04.mhmat",
+    "sha256": "0408dea995c10e078ab79a3b68fa3092bdf18d3241b74fa35d48fe5397b42430",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit04/male_casualsuit04.obj",
+    "sha256": "9a56b7b1cb27589233dc048e8ccf1fd93d03f3a5c01a668f0e8a189ebdea7a34",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit04/male_casualsuit04.thumb",
+    "sha256": "1424bac2dc95c2d6906bc0435b8de77ce71c25a35c97eece9c6c589944a2c683",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit04/male_casualsuit04_ao.png",
+    "sha256": "0776e137bc8f37647c949b12384067d311df5fc7504d15af736e0647713c2754",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit04/male_casualsuit04_diffuse.png",
+    "sha256": "eb33337f43b006159773ab2fdff1293f51f72c3d0d24c132c2272b4deff9bcbe",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit04/male_casualsuit04_normal.png",
+    "sha256": "006c0c0dfecaeda1a749f737ac15bfc228ebb76dbbcbf9871993e267a545ca69",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit05/male_casualsuit05.mhclo",
+    "sha256": "df41c9fba3da054e35b964706ad2f8d189e65cc00a45f4a34f65235946f647f0",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit05/male_casualsuit05.mhmat",
+    "sha256": "e29fdf895bfc03ebf49f1fcb784cd41cfd8cf95beba4a0a54bc95c084b9b9528",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit05/male_casualsuit05.obj",
+    "sha256": "6069dd8b828591c16f74678c235387954775b815b5b77640d24fb7c9541b85c2",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit05/male_casualsuit05.thumb",
+    "sha256": "ad39df902cbf63ce390e00bf3ceec495a6f94c3827875f57f669746cccf51ffb",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit05/male_casualsuit05_ao.png",
+    "sha256": "cf22b778ce3d2c92cf0c5e7eef2bcc2a0d9812e578d4c08a4bb428eb33eacc66",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit05/male_casualsuit05_diffuse.png",
+    "sha256": "d4345efe9332c23e9302f5a3bca8c895004be841b5ebea593c96189870e3852a",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit05/male_casualsuit05_normal.png",
+    "sha256": "aec19a8fa1988aa178e7ead9f9c0b290fc441ed62ce47d5c4dd611a0037a796c",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit06/male_casualsuit06.mhclo",
+    "sha256": "9cebda22a0fa57fc556a1a77723f59b176724dc7e987c01214283677444ddcc5",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit06/male_casualsuit06.mhmat",
+    "sha256": "2210d331d0e319147280363e281a4e98d24b71e678dac243d1250f5d27e9169f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit06/male_casualsuit06.obj",
+    "sha256": "9a86386435d7557a520320b8db4cd0ffe4755040044d1925c2b5730b864a603e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit06/male_casualsuit06.thumb",
+    "sha256": "df34cd082fd23e39f25f78d64fb49c27ad5ed054077b4ea3b101c7a59a93e459",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit06/male_casualsuit06_ao.png",
+    "sha256": "dc27b02602060a8df4c1117f55bde7dea952342d847003afe2c6e12145301147",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit06/male_casualsuit06_diffuse.png",
+    "sha256": "e9a581e0d4eb64c7a031886f2faf109a4703a3046a5fcc97ea9ce9112e99a344",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_casualsuit06/male_casualsuit06_normal.png",
+    "sha256": "ccdbf48a86eb922f5ccf38a7d3dc9de8828a6460c687eb84dacf8315d079a343",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_elegantsuit01/male_elegantsuit01.mhclo",
+    "sha256": "6e725b0adac1a07173a14e15207d0b0125d5510455ef6dee756b5fa1c51cccef",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_elegantsuit01/male_elegantsuit01.mhmat",
+    "sha256": "787bc0744174301c9ac0e33da4669bf37df9ac572ce950989f1bc6e71e938adf",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_elegantsuit01/male_elegantsuit01.obj",
+    "sha256": "3f6dfc8c10de6160b1e23aad6b4b201b7651914bf3ea5bc8a8aba03e0c0298ea",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_elegantsuit01/male_elegantsuit01.thumb",
+    "sha256": "8e3d5053b45c8bf55a8d452ce944ef7128c41bf4318e3f4de6752f25aaf972a3",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_elegantsuit01/male_elegantsuit01_diffuse.png",
+    "sha256": "eba3c9b662a35f145f28c8932fe96c01db258080daf1a1c09807def5497e3420",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_worksuit01/male_worksuit01.mhclo",
+    "sha256": "77561689f0e9eb13537f67e0582ce4e8b93fc7291ea87f57fd86b38b9114d4e1",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_worksuit01/male_worksuit01.mhmat",
+    "sha256": "9af03afa0f8cf2d24b4fceb0bd0e3c400ae0975b402e0ea491a33fa32c3b560b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_worksuit01/male_worksuit01.obj",
+    "sha256": "d8ef4bf71aa6bd386958921c17e0eed263ef63abc8b50a2c8be6d482f6e1d3f7",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_worksuit01/male_worksuit01.thumb",
+    "sha256": "fad50094363c841033ae160982bd5570f40140b6381a5a69562a9cbdf0898e7a",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_worksuit01/male_worksuit01_ao.png",
+    "sha256": "1ed5f23c5efab316b98a295e1be7905009e61603657577eb922b4d1c99c46810",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_worksuit01/male_worksuit01_diffuse.png",
+    "sha256": "4b59b50f7a8a0325c33e86e29f160f59b2385a6f413fccc88287a1c951c39901",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/male_worksuit01/male_worksuit01_normal.png",
+    "sha256": "53f51fd31ec6760c26d377b250bfcdde84be46953f4c72821892b76d13055073",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes01/shoes01.mhclo",
+    "sha256": "7994e38f7cdcee0bd5f55101660badcce0162fcdfc7f432218dd1eb301626252",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes01/shoes01.mhmat",
+    "sha256": "db1711e2dfea4dd8c24459643603a190d9a9da603fd26da5542002a73d740be8",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes01/shoes01.mhw",
+    "sha256": "b377d91e6d0264521f672c3990c366b2631103accba4921fc3965c2ed5ce395b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes01/shoes01.obj",
+    "sha256": "eac355a842a8eb8ae2f09fac8dd18a877a24ef2521ed2d6bf38559b42ce4b49a",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes01/shoes01.thumb",
+    "sha256": "a118291fe3e83e3c616febf52fdb480186c816e7cd4d77d331adffd457421cbb",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes01/shoes01_diffuse.png",
+    "sha256": "50c9a406a7f1cb6aa7b42912348e78f09d0252aa3963c8229cf18dfe8353cdbf",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes01/shoes01_normal.png",
+    "sha256": "a9bfd7223e98b8f93100e89596135e3a94e6044f9db11b4d23cec625c37a4599",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes02/shoes02.mhclo",
+    "sha256": "0d447fd6b7415d6b2603e91697336ee51ac2f00ef85878d6667e9acfb45a20fe",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes02/shoes02.mhmat",
+    "sha256": "7f2cb19506784fbe22ba3f766f94bb13d1eee1712dd29ed10b926c5905bab924",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes02/shoes02.mhw",
+    "sha256": "dba34894b93f102ea64d7ad21968894a9788c7a0770c066584a66a536a3e92b6",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes02/shoes02.obj",
+    "sha256": "5726aabac42ff489998d0a769545dea013961bbb71b9c6024d75170181a98818",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes02/shoes02.thumb",
+    "sha256": "0e41c095f5ff5a13c0d2b12a6c96d65d907137e1ae3fb120ff14300fc818015d",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes02/shoes02_diffuse.png",
+    "sha256": "efef94ea34b0e0c2283095cb47a9e0389b55449c61a4f4972d0ad4d2bf06b4f0",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes03/shoes03.mhclo",
+    "sha256": "5a388e18e6759db99bcc8c7d062a2b3bed02eecd32705731ba90063a6e35265b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes03/shoes03.mhmat",
+    "sha256": "0104a8ecf68aa81bca878c12f909aca45a59e265f8b49cf4e4d5e2667773776e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes03/shoes03.mhw",
+    "sha256": "5ea7e817c2db05da540a0d4a71c3fadb422b3560857b8b73873df39ad3e49b5f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes03/shoes03.obj",
+    "sha256": "b03f46c0b5cdc38e4472e4747ba267f101e1e8ae88656180b1334986646108b2",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes03/shoes03.thumb",
+    "sha256": "ac461bf40bb9e125526198c6c827c0f5cfa5538ac86f25dd3efbff7d5aaf5a3c",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes03/shoes03_diffuse.png",
+    "sha256": "fe8216fbd0c34ecd3ac0e1a01970a4ccf844417be5fd1d72c527c9209256db93",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes04/shoes04.mhclo",
+    "sha256": "88223bf0c6168e85fd118015e4ca61612c6b35f42a79d7ce5df1864f1a6f715e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes04/shoes04.mhmat",
+    "sha256": "dafb73d722453798f4d501f2bf2d668ba41c34fc252cd76d0716ea23baef8753",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes04/shoes04.mhw",
+    "sha256": "02ef7fcd42d6063f3a8b4d22a79bceb02ab9a67e23ee9f2252a63ec3e53e0f27",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes04/shoes04.obj",
+    "sha256": "eac355a842a8eb8ae2f09fac8dd18a877a24ef2521ed2d6bf38559b42ce4b49a",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes04/shoes04.thumb",
+    "sha256": "f6f6f0d30733ac1491072a453a82d105619c2af99228ec51d251cbf4776b8b7c",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes04/shoes04_diffuse.png",
+    "sha256": "dc3d3c294ba5bf4a47a7840172154ce7ab587ff0737ace0712c4cc310089c232",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes04/shoes04_normal.png",
+    "sha256": "a9bfd7223e98b8f93100e89596135e3a94e6044f9db11b4d23cec625c37a4599",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes05/shoes05.mhclo",
+    "sha256": "75fc467264b085d7a05ce0c9b5628bb364b246392c59524c556fa09f92b6cb16",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes05/shoes05.mhmat",
+    "sha256": "e59a9cc4d4c9a56cf9025beb26ca549986c97065cdb675d4f59bd9c5a27dbe8d",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes05/shoes05.mhw",
+    "sha256": "7963030c66988b4164003b3b02e4ef42a83069fa32fe09362e0c14ae2b730e25",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes05/shoes05.obj",
+    "sha256": "5726aabac42ff489998d0a769545dea013961bbb71b9c6024d75170181a98818",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes05/shoes05.thumb",
+    "sha256": "f5d86e0427638e592c787f91a0427ae09df51f0a4d34665a069cfa3fcbc451b8",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes05/shoes05_diffuse.png",
+    "sha256": "7fe5ea2600f6578cdf017da3392ae13aedabea8e8cc1dd6302a8f57e8fb7e5af",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes06/shoes06.mhclo",
+    "sha256": "c39144d8d9073474fb00a098954e6c4d8cc68c95ff6404eb3a984dd7870be3fd",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes06/shoes06.mhmat",
+    "sha256": "964f6279aa28cbb4da83d84e71328f31cf50c2831eaffa11c6c2077f96278611",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes06/shoes06.mhw",
+    "sha256": "4dddd303436b344bc2ee8142cde9b2f40d4086ea373e2330092a3af055368c5f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes06/shoes06.obj",
+    "sha256": "5726aabac42ff489998d0a769545dea013961bbb71b9c6024d75170181a98818",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes06/shoes06.thumb",
+    "sha256": "31b24009786e31ccb0620adff6859fb23b907ffb98209b60f5121aececa8b5b2",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/clothes/shoes06/shoes06_diffuse.png",
+    "sha256": "0be0432efcd3be47c8e6f0015acd7f685735190be6bb8533ceca60b56cc269d1",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow001/eyebrow001.mhclo",
+    "sha256": "54c8892c2ba577f4152d779ce1f20f7cd323beb8cbd9cb701796165c221b4f5b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow001/eyebrow001.mhmat",
+    "sha256": "976e5f4f1d3922d7a11c6e2db233f8b4584b068d00619d5749687e81c92d61fc",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow001/eyebrow001.obj",
+    "sha256": "88b13146395133f3901715e11706cdfd293e5d6087ad7c5e01efe1485a26b513",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow001/eyebrow001.png",
+    "sha256": "9940f7d0b1b223709a19b05156ba6f6e9e4dbdbced02d7574f4d51d72c58967b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow001/eyebrow001.thumb",
+    "sha256": "98b68eccf50977ff00242a33eb1dc6e3eaf4cc262e1f6c4ceca5c1c564f6c745",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow002/eyebrow002.mhclo",
+    "sha256": "550781113f5c3971e7e200450d7d94e2290d43e9449a42667d2bf972c1eb0593",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow002/eyebrow002.mhmat",
+    "sha256": "57fc4d1f089be90b2ab4774bdc7c077b5a519f33a293e57ee74762c7714a3b34",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow002/eyebrow002.obj",
+    "sha256": "7fe4e036311c41802bd6889acb02d1b06184a0dd759ac72e1d9fba1037243667",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow002/eyebrow002.png",
+    "sha256": "1de4e4cb69b3f4324390219ffbeb17a0b2555104d3211d1ac667655b69b64038",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow002/eyebrow002.thumb",
+    "sha256": "4acd972e24cb3dec29a72391d08fb0a88afc1b8ad7ec1dd903e017558c9a1e20",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow003/eyebrow003.mhclo",
+    "sha256": "43028df55838152be8568eaa9a736746a2581ca327129a443d8d214554448632",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow003/eyebrow003.mhmat",
+    "sha256": "91d53fb4fad2927ae412b38aaa8785bb26c6e886be049d5889a276ad3a875ea2",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow003/eyebrow003.obj",
+    "sha256": "dda3828f484f877f011fb8c52b75be0d7870561111739ff4cc5c83fb5ac6acd7",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow003/eyebrow003.png",
+    "sha256": "e98837d77247f2c11a8259f8b265243b9053ba55683bd70223c668110e7dfb62",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow003/eyebrow003.thumb",
+    "sha256": "f084be4df91306df1b646cfb02cac2feceaa3a0c70caf68af388385c506b8bbe",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow004/eyebrow004.mhclo",
+    "sha256": "c0d0c3a0e457ecf6a6a969bb57d1ddd42909845ad612d7ca3b129d265dd6c157",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow004/eyebrow004.mhmat",
+    "sha256": "e84a531d1a5cf4229e5c1985c97be0e515c7d5119ed98438a8850f05002d3e00",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow004/eyebrow004.obj",
+    "sha256": "f46d623621f28bbad757465721bcc7bbe816f0958d7a4b0f925b0e27733944e1",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow004/eyebrow004.png",
+    "sha256": "899b2ae3d6d46bef093b8da0fa2e2c21f07f7565b5e13c57139d1288a3a8e27e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow004/eyebrow004.thumb",
+    "sha256": "87b1903a5d55759e06956090a1620b236d4da553f61a20b4e30205b4efdf43cc",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow005/eyebrow005.mhclo",
+    "sha256": "84e8aa146f1c7a2985d024bb741f43323c65c2970b4bb86491d8e6a7b0daaeef",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow005/eyebrow005.mhmat",
+    "sha256": "28ecdda0aefc150974d30867e7ef3cfc8e720d2daaf52c33493138af5df4322a",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow005/eyebrow005.obj",
+    "sha256": "c89d4d0b6f89a6bdf5a33c5e3ed22414046d2465e37ba9ecd2d75613dcb74e63",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow005/eyebrow005.png",
+    "sha256": "7258dd3cf12413289ac814f81ab6b6afa00827f7cbd5deda80743308dd8c0389",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow005/eyebrow005.thumb",
+    "sha256": "dd1e5f13e75743000bfd86913ce44d85f1dcb9971dcd9f117757429f245903dc",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow006/eyebrow006.mhclo",
+    "sha256": "3f14073a558605d78deb25b195c6db8c4ef1310ec5f3f230094b01f8cabd01ad",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow006/eyebrow006.mhmat",
+    "sha256": "0df50e6595ffdfcd485ba1f3d00f26b341dddb2c8e0df2c31fb72dd141b0df40",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow006/eyebrow006.obj",
+    "sha256": "7e3963bde6bc23a629eb78a9f83d050e247a5b1d370885afa0a92dede192cdb1",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow006/eyebrow006.png",
+    "sha256": "1f6d34d722ef18e73494e62f2c7f1a933ff58ce75d01fd34de21d178d5afe4d8",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow006/eyebrow006.thumb",
+    "sha256": "8683104da77c3088a40879f9f5304e7d22e3c9d5d7b11fdfe8024d38bd2b299e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow007/eyebrow007.mhclo",
+    "sha256": "1c70518b0b4ed9cce46b5728e8b2ea1012466b54718f6ee82c03896546adb4ab",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow007/eyebrow007.mhmat",
+    "sha256": "f025cb04f2fc8e7443ff8aaede885042ef36659e2ad8eba75a576d865174a34d",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow007/eyebrow007.obj",
+    "sha256": "63326994bc56e0b0a29822d813daf96d48ba638e19523d9e21e9184e2f70e71f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow007/eyebrow007.png",
+    "sha256": "1827b24aaa1c928353027c5a86b8db59c1c22f06258b18faa2117d81f5ff9b05",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow007/eyebrow007.thumb",
+    "sha256": "f162260f75eb55eca372a23250d99681257538844edacc9c5b6067834951fb1d",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow008/eyebrow008.mhclo",
+    "sha256": "2b9de3129344240abbbf19fbcb88c5f29f34ce1b9883229516c7e60f51bed226",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow008/eyebrow008.mhmat",
+    "sha256": "02ce64d7fd998268e3b0632d80c455551752a3eef09eba1fca99104eb89e6bdf",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow008/eyebrow008.obj",
+    "sha256": "096453e23c6a626ec79045e3c157fc726b678d7d7d957ddc56673aa59c6d34ea",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow008/eyebrow008.png",
+    "sha256": "b2243e030ca6e74d402f2ec421262f67773b13e1b9f1930fcca626b5cd8e7d84",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow008/eyebrow008.thumb",
+    "sha256": "e042642e862f0e189abe1ab393e14ee853a8565b1c16785ad7bc872ea670abb7",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow009/eyebrow009.mhclo",
+    "sha256": "14819547ba73a98baac1f6eb445e19c22010d2ea30b8a15ee0ca8767c0f3e509",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow009/eyebrow009.mhmat",
+    "sha256": "53eca588d5de9378b60f22153d212485e1c76ea907ffc8f5f97b6ca824fe55b0",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow009/eyebrow009.obj",
+    "sha256": "037a2edb3252e1fe4a57e63dcb1598916609fd0339f2b453b2f71e9c4cbd481c",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow009/eyebrow009.png",
+    "sha256": "4d33c85718ca5accf44625652daf0ae6e8cc007ed8138280e4d95601717910c3",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow009/eyebrow009.thumb",
+    "sha256": "509a9969749e3433e00caf83c63ab6cc2656f332795cd275d0bc93db88be4389",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow010/eyebrow010.mhclo",
+    "sha256": "f007d2739463323d1398f20e6c77afd683da997956527ce5bc7cf9e56160e81e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow010/eyebrow010.mhmat",
+    "sha256": "5af8c410d415fc33bbb726245350cfd0ac7d6baec4a16ab07a2696c90539bfbb",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow010/eyebrow010.obj",
+    "sha256": "db7a9747ffdc534b10de584f2d140f2006cc528ffffb6eff5071fef2ed94dce9",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow010/eyebrow010.png",
+    "sha256": "d0aca671c7d51008177a2a607dc8eba3d3e84935375c6fcac2f85841563e44f3",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow010/eyebrow010.thumb",
+    "sha256": "d0b9381ff6666c6772d824a111b65be853e01daa94cee6dc6212ccdc8232944b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow011/eyebrow011.mhclo",
+    "sha256": "7491fb45352a747bd702fe35f28246bc81bc3ef78e6224e9dcc839ef9d2c52c0",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow011/eyebrow011.mhmat",
+    "sha256": "be87ebee9b48d39ded7b3163b2d4b7b4b5f6da65c1e8884f425f5ff2e9c01a01",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow011/eyebrow011.obj",
+    "sha256": "cc1154d366466f402e30df8a0e54b679701b3b77850eab72a61727feba86394f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow011/eyebrow011.png",
+    "sha256": "df767b406c6b04388e3bd4dd3ed627307948f5df3dff4e92d860e6b800a1ad07",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow011/eyebrow011.thumb",
+    "sha256": "0bb0d81ff31e6396f3f023d348f7e82627fcc7b4a6faa8109294e17a191b99e5",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow012/eyebrow012.mhclo",
+    "sha256": "780fa7314eb3775f09b0f804dbc9fa5be7ee5bc8960f5e27d0211b7827c3d8fa",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow012/eyebrow012.mhmat",
+    "sha256": "8c5c7d8893d0a23606525b767c427647ded3b8d2ccd849f782b6c8cfdcedf711",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow012/eyebrow012.obj",
+    "sha256": "0a8d119c47f2d037e0ace7d2121f756084d9c614a5aec24459b4aa3385c0811a",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow012/eyebrow012.png",
+    "sha256": "d352e9b3d6ccb9499be5e6cb5c0d462e8d7341539e1e28a003a29c83e5ca1b0f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyebrows/eyebrow012/eyebrow012.thumb",
+    "sha256": "c920b4f8c394bf658fb9d33c6581b5020afbfb6b46ec79a5b79134e81bc6b3f2",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes01/eyelashes01.mhclo",
+    "sha256": "5a86b29c15649273d723084954b7fa7bf199112571d4f58539b46734d397ee6b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes01/eyelashes01.mhmat",
+    "sha256": "8029c99d94f3d87a1e81825fad6b90eec773ae6955a5b2592222ef237377e190",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes01/eyelashes01.obj",
+    "sha256": "f78f5b93fea1946fcae103d32c4f082dd9612a1ec2e7e2f90b03ebe59b0baf20",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes01/eyelashes01.png",
+    "sha256": "4b69c0fff2648874460e9caf80c31413c444218a5c50afebc425aeaa65484a35",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes01/eyelashes01.thumb",
+    "sha256": "34ab06601745c2b74fcfa6f63a374fcea58cb4501e728a3c6935a3a1ed794aa3",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes02/eyelashes02.mhclo",
+    "sha256": "51b858de6005bf9476035a739a695726b2227b853daf60cbf0f6b5eb9f70628e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes02/eyelashes02.mhmat",
+    "sha256": "b4866317918a984e4a20a1ce67b56e7186da6dc5d5436fe0c36f1f058d7dcc6f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes02/eyelashes02.obj",
+    "sha256": "331595b4e19a179be1fe603edc58ba6d088ab7898007b7e8321428efcbaf2eba",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes02/eyelashes02.png",
+    "sha256": "6375eb8934d86d49eb2a37589e179614fb557dd92a772ced11e269ad6d72d79d",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes02/eyelashes02.thumb",
+    "sha256": "48dae6fa3b3df136e16b52e1e277c0ca4424ecc821553750e5c04ef3341fbd2f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes03/eyelashes03.mhclo",
+    "sha256": "d98e0c9b8c7df400fe850952fd7c8471eceeb5814ded4fece8bcceac8e55b2ec",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes03/eyelashes03.mhmat",
+    "sha256": "43a571e0a7587c3af38947164f668ff5a43a1396abbeb2da4af4e5262fceeaf6",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes03/eyelashes03.obj",
+    "sha256": "d1073c69e962e3b2524158d4b5e7026c85e4d181206d4d331dfbe2d2d16ac160",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes03/eyelashes03.png",
+    "sha256": "3bae1d182039b695d5012b0d463bdc6a7c6e6669c7e0cf2eadef35aec4023ec5",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes03/eyelashes03.thumb",
+    "sha256": "5d1cf28861f111770173e7204bea988579d31a17633c5ba76bc36002a311fbb7",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes04/eyelashes04.mhclo",
+    "sha256": "d63a2449072ce96a5d074ed8490970cd1476d4f4773b47c4523ae0c6a00a4aeb",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes04/eyelashes04.mhmat",
+    "sha256": "5948de950f129d79891a20f579fa6d2ec31b0278566cf0e63b49b0383a63d3f3",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes04/eyelashes04.obj",
+    "sha256": "2a9737362e993cf027be88fffbbf531dab42699682c571cda3e7e6f914be17da",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes04/eyelashes04.png",
+    "sha256": "e08c934091e227b38239f993427062f9006c7cf8f2f62cbef10076bd345dcb4a",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyelashes/eyelashes04/eyelashes04.thumb",
+    "sha256": "50eaa038e01c24849d17ff9b2d4e7011101c0cf23a4fc5a64763f9414ff06796",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/high-poly/high-poly.mhclo",
+    "sha256": "b183cfe37120ab726f9b3f2ea6cd3a64c44ce7b4bd91a77c841cf70c04f83a0d",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/high-poly/high-poly.obj",
+    "sha256": "da2493215b708a344c33dc72f2a9a5b8fa985dcc5a70ad3b208995cf871da8e1",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/high-poly/high-poly.thumb",
+    "sha256": "97730eb579e1a81a63f38f53125ad8d375556f222882704fbec7dd83d4f24916",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/low-poly/low-poly.mhclo",
+    "sha256": "68582e28e9176cba7cfcf35208f671b6201b8d1bc95c32decff61a3160ec34d8",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/low-poly/low-poly.obj",
+    "sha256": "783fe1e6331162c876520b4c2bed7a8ca06354ca15497e8ebd68bb1b59f4d3de",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/low-poly/low-poly.thumb",
+    "sha256": "27b09c5a2bd792671c99a00016ec836855278f199bc4753c3018f1ac73068c72",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/blue.mhmat",
+    "sha256": "bd9cab4d2f6ca54df6253c1adfbb1c82e0ee61057361d95449ade06a1b5669c4",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/blue.thumb",
+    "sha256": "5d7474af291a83b4b122ccd276b5ad10f9a4554efa940aad1d515363e22d7b6b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/bluegreen.mhmat",
+    "sha256": "2dfb910b48da0e0739b44a8fa4728b3b351bf9b408034c6402a1b9c07915b884",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/bluegreen.thumb",
+    "sha256": "d6fcfe5b57d7b05f2f9453e11cefb7cb68352746a36613b030e069442e2eadcc",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/bluegreen_eye.png",
+    "sha256": "653b3154e67f67e118c22acd19c472aa7543e0c229209f687c3f7f669f191fd9",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/blue_eye.png",
+    "sha256": "572ddc93ab3e177100619ec7c00b2574540cfb382805afc2e450788117f6140c",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/brown.mhmat",
+    "sha256": "4abad93ce50541c08127721e77bce035640c9f16bed16cd0f5524b1cd5908465",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/brown.thumb",
+    "sha256": "5bd2de12f0c04d423ab00fa13f691a1879b944e63947e228117ddcce31f9cff9",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/brownlight.mhmat",
+    "sha256": "75ae6903fe51134ee6f10147dadad3cb1b355aecf8218213431fb6ddbb3ba71d",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/brownlight.thumb",
+    "sha256": "32722c2f00ea29b7cee7bc2b140db165ec724cd20d10d073e906b21b278bde26",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/brownlight_eye.png",
+    "sha256": "3f43a4de70e446186dac1760cfa01dfe36d530ed7564208455395b0ebcdf788a",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/brown_eye.png",
+    "sha256": "4659691c7295ad6206c78b003e5fd0e5f91dcd53032fa914a229bb48cabe424b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/deepblue.mhmat",
+    "sha256": "08f7a30d8cd8d264d21d755afcfdca3d28386e780b9e9fea11a662337e99d3a3",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/deepblue.thumb",
+    "sha256": "10b1fa542476d35dee4ac92b6f1a654ecf391d849231727a591820b895d8d815",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/deepblue_eye.png",
+    "sha256": "55ec9e3d06c8193e74fbbcea32ea474c100feaccef96556d9181e796fe2a7ea6",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/green.mhmat",
+    "sha256": "b3b512120d9f87f91cd34879ac17ad9f26eb6a250d92be52df8b19df5cc90113",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/green.thumb",
+    "sha256": "525ffdef4adb5a82ffe07814b1a46d017014fad571ae206bfeda970531560c10",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/green_eye.png",
+    "sha256": "b9864ac4f4fa484b24e18f6aba030d70dbc8820cbbacfbe63a974c76772c2009",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/grey.mhmat",
+    "sha256": "65c536157ef0550b2f8461a9526c726707533dc7cfe8a65abb9b9db0b4e6b25e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/grey.thumb",
+    "sha256": "add8c7bd15edeccaa7612cb33d8311ae849d884b6ea062e18fa78de54128805d",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/grey_eye.png",
+    "sha256": "ecb05613126036a3d017880fabbd570501c5f14032c186462d8f6e2d719f6c4f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/ice.mhmat",
+    "sha256": "4b2d2d10d9d887dc6f4dd2f66ff252a85b60ca2a30bc2b57672f83b758db776b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/ice.thumb",
+    "sha256": "a8e150fb9fb901051a0dd6e753ec68d501ad5dc20e01adcdf6ac1f81657c5df9",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/ice_eye.png",
+    "sha256": "a5903596fe033371ba7130b5c8b2c09ce2f5d282d77557c21060ab8a778bf03d",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/lightblue.mhmat",
+    "sha256": "3bb470d56dfdf40b16e499578bf6ea2c4e0e7e27db4c5bd2adb47f760f5c5f34",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/lightblue.thumb",
+    "sha256": "4e70a6c6530469ead049980969944cf1c2860700907c9dfee0fbc87af7965c68",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/eyes/materials/lightblue_eye.png",
+    "sha256": "687c8f6d95a8550bcd4a34158f415d6bb376c0bb32e67d127bbb51e5fa469eef",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/afro01/afro01.mhclo",
+    "sha256": "9977bd4507e2dd1408504b7a39a6f585ffa2d3ba3aa40ad4bdc2844884bbebb5",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/afro01/afro01.mhmat",
+    "sha256": "6da1c6778df2450b135009274ed0145dc2dffbc5d8e287fc1d4c69ba539b483c",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/afro01/afro01.obj",
+    "sha256": "8344fffef15120a05a89219f31184ca2958537223fa885c885137ad1e97edcb8",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/afro01/afro01.thumb",
+    "sha256": "d371c511ce6b4c66ada60c5986d022a2f0113400088da20b532fc950fdf2845e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/afro01/afro_diffuse.png",
+    "sha256": "dc0db7dd8a13802f02303ca7e49844b219e09db134471b7061538a8af8f7c7fb",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/bob01/bob01.mhclo",
+    "sha256": "a295b11ab6c7808afa1e01d0c79fb595bbbd7885f65252766486c9fcf6d158c5",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/bob01/bob01.mhmat",
+    "sha256": "9c3015044a832fb9a72a5d2f28218914ebfbdf6725cfd237cc53a3d95f054e3b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/bob01/bob01.obj",
+    "sha256": "d7fb73806f47ee37ba3c37bcfadff40a91ba99635d08c3e02d94b4acbf97c231",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/bob01/bob01.thumb",
+    "sha256": "f354364f4fbd0d83982ba77d1e8e63e15a3f73a04bd43538d076237602965336",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/bob01/bob01_diffuse.png",
+    "sha256": "2b38bc7a028e06e8e633accb7fe2dd1b2bacbb9d32463df73f39f82e63ef9009",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/bob02/bob02.mhclo",
+    "sha256": "a48dcf87c6a618f9c6e90fcb00eed07cd59ab024d8d994606fa1b070da515b96",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/bob02/bob02.mhmat",
+    "sha256": "32c1712308159f4f5b3775a633352070245bf1ea8b6f837ab4f4ba82b5e9fccd",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/bob02/bob02.obj",
+    "sha256": "30d44038836d786364eb4134a9259cf93ca0c707f883861b0135ebfb149caa08",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/bob02/bob02.thumb",
+    "sha256": "88bb4a58e5dc55ebb6809bcf99968f8967ba2424b119c10df83ce1afb34bf4e3",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/bob02/bob02_diffuse.png",
+    "sha256": "38c88e6f71631356591f09b1f17a1bb5a99c3bb095b1a29003f1dc3d3e839b0d",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/braid01/braid01.mhclo",
+    "sha256": "e350614dab32230c47d67e7747079b89859d36e62a890ca47890f068eca4f7a9",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/braid01/braid01.mhmat",
+    "sha256": "c8fdc8452c94715e9bf8fc194c82dc1e53124475b0665058d31b142bf0f3f762",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/braid01/braid01.obj",
+    "sha256": "ad0b449c80244452bc8d437f5d59c25ec2ac17b2eb35e1ae2d9531fc00b73b0a",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/braid01/braid01.thumb",
+    "sha256": "b0fc877ff3c45aa0055ea89fde0fc1fc83c228ac22a27c28aeb8816b9b252e64",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/braid01/braid01_diffuse.png",
+    "sha256": "24c0d2a639f04704734c3e38af97d110777c1b203e5a10c66a5c89563643a018",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/long01/long01.mhclo",
+    "sha256": "94ecbebfd834da2cbee2ce90b730972590eb22a252ecd9592038ea736e063646",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/long01/long01.mhmat",
+    "sha256": "74ec88267e679d316f8037a074511ffc887b27e198ea381d0ae4a3f180f96760",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/long01/long01.obj",
+    "sha256": "7f1d6dadbdf9e96435251955d6657e77ea5433c9bc7c85a5c5f5e4eae0cb9a8c",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/long01/long01.thumb",
+    "sha256": "4cb13248134980fc69fdbe298e2bdde58864aec764243cb3c50cb0da7dc0ed98",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/long01/long01_diffuse.png",
+    "sha256": "e8dc25d90f8f62467e8630420e1240a400d070054fb7c3f1d3f7bf3e457d6c2c",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/ponytail01/ponytail01.mhclo",
+    "sha256": "97fc50b12bcb3b1c7b33edddd8d427a2604ffb06fe79b31132bf47f82d7afbac",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/ponytail01/ponytail01.mhmat",
+    "sha256": "b145f5a7c9606859ad523f5113482a1cf989cf0e26dccc2ea95c377cb1c2557f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/ponytail01/ponytail01.obj",
+    "sha256": "d9f5fe96fbedbc8006220d87aad0e4a33d15286eb6b21f5929661cdc490ebf5a",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/ponytail01/ponytail01.thumb",
+    "sha256": "1dd14d9ce1c7bb7368f49757e3299a961190ea374c8dc140ff964b5f437d3383",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/ponytail01/ponytail01_diffuse.png",
+    "sha256": "dcb364300cac06ce8bef91b2f7c0970baf310898bbdd06b0c6b884ee9306eb97",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short01/short01.mhclo",
+    "sha256": "ae1ffaa98da5753b803b3a173bede4895d2215e6bb94763f3765a71f0e984f35",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short01/short01.mhmat",
+    "sha256": "01e2e12ce3f3d3c859225456660acadcdd27d4f4b4d888bcbd6f11998cadd975",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short01/short01.obj",
+    "sha256": "d998d8416f9b5d5591f1d756f4d292288d000a6951bc0f4d2e8e72727bbc44fa",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short01/short01.thumb",
+    "sha256": "7e942d29322841a07a8a3feaf438fb9efb6b54f5b733909cecc51e79dcaca995",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short01/short01_diffuse.png",
+    "sha256": "f34a0957184e3d1e911ed59245f874f8d4843f61ee44ff49f43edb4be0196949",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short02/short02.mhclo",
+    "sha256": "625736cdb73e6d094df6e5a2df18f371781f1d2cd37b0ae15795c5d7051c3ec2",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short02/short02.mhmat",
+    "sha256": "2ed04c8aad9c1a35d858ca72091525d32b1da3b61b5a031634dd528fd8530f6d",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short02/short02.obj",
+    "sha256": "48f979114adfa712165a69cc55c45a70831af1fb3cba8e2a89120f0c87407b64",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short02/short02.thumb",
+    "sha256": "af21a0e84bfcc294b9840d90a04f1b6655ad909bc09328251886adffbc0727e8",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short02/short02_diffuse.png",
+    "sha256": "47fe33831a3929567c733356dd66243116e05df2ace1f884ddca0080b728229f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short02/short02_normal.png",
+    "sha256": "2cfac7619f8eec77dd90df979d912415058f4f0fc16940cba40a8eb1ae6d74b5",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short03/short03.mhclo",
+    "sha256": "d80bbb8fd9b06721c481756fb3e1d6dce04fcfc9ca8a379edd4ea3c0d81ed17f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short03/short03.mhmat",
+    "sha256": "8dcf42b677301ab6a66f96ff41751ecf88fba6c6cd7c564e6953f9c78e40a8fd",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short03/short03.obj",
+    "sha256": "4a9fc385718f2c46fb328ab99d33e3a946cecdb717987c8b324cf2466b59bd9c",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short03/short03.thumb",
+    "sha256": "aba276c3ddbcb6b2c5dc29eef595bd2e447bfd8ff530731454319ce301b1b782",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short03/short03_diffuse.png",
+    "sha256": "fe6ed0bb14498a48a2e8fc07e80e2a6f62c8b67686fcd0a7a570d345faec97da",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short04/short04.mhclo",
+    "sha256": "d60640aa4c4ffce1aa269647ba436b6ee0bb21bb948f927b84e27a48d2107157",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short04/short04.mhmat",
+    "sha256": "7a3ac74db8478aa0afdb8a596c6fe3997d1a8a09d12211d70e8f1e9f0b7e0e97",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short04/short04.obj",
+    "sha256": "676964a133ee35ffcea1195382bf75542da7a298931e4001bc7b0d7b707225de",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short04/short04.thumb",
+    "sha256": "a7db8f3db6e2a53194993de73b875d000f928b66a8ac4d6efab51bfd8e6664fd",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/hair/short04/short04_diffuse.png",
+    "sha256": "0bef7fc0e403db5a40fabb2111ebfa6f7e8158e204c6e56b8da98e9ef527846e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/packs/makehuman_system_assets.json",
+    "sha256": "e86f1572432cfd062f372adddba4eb7c2e2e31280e96c29291a970320e0a5df0",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/female1605/female1605.obj",
+    "sha256": "0441ef434702e0debebc70a0adc03eb0076a513c00637e621ab68285f8a3e3ec",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/female1605/female1605.proxy",
+    "sha256": "d79c1688779aa1208a54480d239e1bea3e3e97adaa336c6797db39ea72b2120e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/female1605/female1605.thumb",
+    "sha256": "0b7d2aa945e30896394e953362a4315f6a62984335d8d68fd4e0f824570ef277",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/female_generic/female_generic.obj",
+    "sha256": "965b20e2370d900cb028c3890bd183307ab6885b28d1778cfd61ca04e4bec586",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/female_generic/female_generic.proxy",
+    "sha256": "c3d99fde0714c589ef1a432c44ec9064c2ee5a88455b24234cf9a0297ef42a7e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/female_generic/female_generic.thumb",
+    "sha256": "58e1ef2015ecb2243e0d57c6d42df1d107a10192171794118d6105e9cf304585",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/female_muscle_13442/female_muscle_13442.obj",
+    "sha256": "4d91e6f8b8e3b4f7ceeefd5ebcf488e64318f6e51588b7b724df23177c611fb4",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/female_muscle_13442/female_muscle_13442.proxy",
+    "sha256": "920d4f2d11eb2c9f54b2858181a375c8ab0f01015a17d4b53279c47046e7c204",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/female_muscle_13442/female_muscle_13442.thumb",
+    "sha256": "aed227a65ff216c07ddcfffcdd2164e8e1c7bd8d559e764987935b228e487f95",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/male1591/male1591.obj",
+    "sha256": "0e067b133800d26ab34973bccee0a7a4ccd92c1a87e9c25b30f925c4fbf10893",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/male1591/male1591.proxy",
+    "sha256": "6fc9a44fc19dcace1bee1199555af0bc26c9ce76571843ccf47300fd16b647e2",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/male1591/male1591.thumb",
+    "sha256": "ada296da813b907da3239caef7075a1f3b7c4598940d3080ea83909c9375ff09",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/male_generic/male_generic.obj",
+    "sha256": "e9d6fc9364e1285624ac342f3ccdee69ba531400011279a54f3bbcd26c82e044",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/male_generic/male_generic.proxy",
+    "sha256": "5ab7df9b4c844c92827872eaf4ea219606c5e6cd2926e0cabf13e9d0134411b8",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/male_generic/male_generic.thumb",
+    "sha256": "57e663ff2cc355036941449bb523e2ee74e7fb07b3bbe32514e2ca0c5706c95a",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/male_muscle_13290/male_muscle_13290.obj",
+    "sha256": "4f384d7ec5b0a5f370e24117c8f98dfa7ee2a3b357d9275872ae4393135f2b0e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/male_muscle_13290/male_muscle_13290.proxy",
+    "sha256": "d8ad7508561445b1739b375618fef0b57e08d15112104ebed01a87286043ed41",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/male_muscle_13290/male_muscle_13290.thumb",
+    "sha256": "68b7f1aa0a82ba8769a9249b89a462dc4955dc8e68413ac4b1bc9c24489ec32b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/proxy741/proxy741.obj",
+    "sha256": "002a1dac4e912ca6c0a123a5bf4c43d4ce0db5152ea4b3452a0bead5e6ffad4b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/proxy741/proxy741.proxy",
+    "sha256": "1dc925fe62f28b1e55e02528e3b7ad36fa7283f1128b326889f85b86efa5e05e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/proxymeshes/proxy741/proxy741.thumb",
+    "sha256": "3d8655477f1f3b52e7cb02b67e8ebe4eb3c56af52ef4750bc134157522765b5f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/middleage_african_female/middleage_african_female.mhmat",
+    "sha256": "8b7aabedb78afa46031efb6a223b079301990ce2ffe7ae7ba2b516d3363b7297",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/middleage_african_female/middleage_african_female.thumb",
+    "sha256": "c4662fd5c5fd4d307c4cabe5500b0558643a04164a2d4cb1c5d3e1176ed86b5b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/middleage_african_female/middleage_darkskinned_female_diffuse.png",
+    "sha256": "c3c9ab972ad46fbda64cedfd1d0a626c2a8e739fd345c4c349102eaacc947699",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/middleage_african_male/middleage_african_male.mhmat",
+    "sha256": "865b23cde5d2116107f9e8ce3a2ec2315440ed103c301ec8bc0e1d85e29830c9",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/middleage_african_male/middleage_african_male.thumb",
+    "sha256": "f61667a5c6e8a72cb32f663685b4d0111624ee9d755f324a6be8f02cee059633",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/middleage_african_male/middleage_darkskinned_male_diffuse.png",
+    "sha256": "ced478cfdd2b86391f0f92a4408b287ad70adb0dd0e9271ba606d0b028b47c6b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/middleage_asian_female/middleage_asian_female.mhmat",
+    "sha256": "d002c338239d2aeeeec037e21f9dd22cd484ba8a955aee22aa0fe279ad6a3960",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/middleage_asian_female/middleage_asian_female.thumb",
+    "sha256": "2e043a42391e4266b7fe1904d7b2175351e737a1efa0f4e45d6b14b48a39c55a",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/middleage_asian_female/middleage_lightskinned_female_diffuse2.png",
+    "sha256": "39c505ca224387bef0b20cd2bf513c3997c27c7e7434447228c9991b87cb8d01",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/middleage_asian_male/middleage_asian_male.mhmat",
+    "sha256": "341a041eeb9c4bb51133fafb4d61e859a36dbd142c75c7cef4531606143c4e22",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/middleage_asian_male/middleage_asian_male.thumb",
+    "sha256": "1797e3bb9c3d2bf0921eaa5052b9b135ff97607d9801046d04895d95dff8172f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/middleage_asian_male/middleage_lightskinned_male_diffuse2.png",
+    "sha256": "e897c4cc1b6ad5d10a7d2b2be92402feda4e772e6582dfaf0a1e8fc4621d8097",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/middleage_caucasian_female/middleage_caucasian_female.mhmat",
+    "sha256": "c01a42ea64ca4207558f5af8eb0991794934e3aaadebba1613c0a6e90d2afa29",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/middleage_caucasian_female/middleage_caucasian_female.thumb",
+    "sha256": "58ee13e6f9d363ffb29ddf7c1c0dc8d1f74a33f551e8bf2700c9bfa931205616",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/middleage_caucasian_female/middleage_lightskinned_female_diffuse.png",
+    "sha256": "bcb9c2c8ace23880bc4407602a249abbcf4608b6ba0894e423b031913012a363",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/middleage_caucasian_male/middleage_caucasian_male.mhmat",
+    "sha256": "113326b7670cb273610314b91e2597b228711adf5f0666660b16fef269bfbe72",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/middleage_caucasian_male/middleage_caucasian_male.thumb",
+    "sha256": "0edd08641ae1bc1f832fe17a54d519445c73b8ba1024606e4c25ccaaca6d2279",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/middleage_caucasian_male/middleage_lightskinned_male_diffuse.png",
+    "sha256": "3f94f3f6a5cab92dedf5cce392a87332312fc435f1cb44c6e7b897daef9a5fbb",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/old_african_female/old_african_female.mhmat",
+    "sha256": "36a050f1ed9a59738bf3b67642364bf176a8208dec0fafe0fbe278778ac3b929",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/old_african_female/old_african_female.thumb",
+    "sha256": "3ad2ab79b98c103bb906fcea0b8f68670df7117b2c16f554a13b6972dde2e1ed",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/old_african_female/old_darkskinned_female_diffuse.png",
+    "sha256": "816103ffe714803ca577e39eeceaadb9e9c67595dc12ee6df0b602d9cf59d158",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/old_african_male/old_african_male.mhmat",
+    "sha256": "facc3a658e2a445eb1b1022e78c1f8791a5f6b921d6aa3a93392c7f87cd014d8",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/old_african_male/old_african_male.thumb",
+    "sha256": "3f707a41a35aaf900a26ec6b588666f35234f8d15e8dff65a6e822ff40c01ef4",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/old_african_male/old_darkskinned_male_diffuse.png",
+    "sha256": "4bcc74baf88f28a0ac4887f22d3cf395bbcb60810121697dafbf0bf3293d0e72",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/old_asian_female/old_asian_female.mhmat",
+    "sha256": "e38e458d8cb8bed61237776c61b8039aee293387e3d82fda19017a3784a660c3",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/old_asian_female/old_asian_female.thumb",
+    "sha256": "91937cb62efcfa10886912acfdc225496a5907a66393202fa5dd5f6d7d359344",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/old_asian_female/old_lightskinned_female_diffuse2.png",
+    "sha256": "e0c6317c2354ee54c16ad5f871293121e4eee697d16423536bb1db3641d56bc9",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/old_asian_male/old_asian_male.mhmat",
+    "sha256": "2a65f6268555f9cbe0b8824aa2113a60aa706993d45e6ed6d84ac05ab1d54066",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/old_asian_male/old_asian_male.thumb",
+    "sha256": "1a43f5f23ff90c0f8480b605dd911e1c56387e2a7fae71c66762984c2331505d",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/old_asian_male/old_lightskinned_male_diffuse2.png",
+    "sha256": "8b3232676c5b271b4f44ead68845155d93f15de641b6819561781e16701a6c59",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/old_caucasian_female/old_caucasian_female.mhmat",
+    "sha256": "a88440d9f1225d3b4c963259e6f434eb3be7d3a2932e46ea88cfc675ed20c387",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/old_caucasian_female/old_caucasian_female.thumb",
+    "sha256": "acf6ea71b8cf21e689f2baf3a4bbedfe1aafb4b5c71687cc6230061a0066e4ca",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/old_caucasian_female/old_lightskinned_female_diffuse.png",
+    "sha256": "00c45246c145562b917371e92de44a1fe394bc5f4bd91418addf24b6adff5e9d",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/old_caucasian_male/old_caucasian_male.mhmat",
+    "sha256": "001eccec34180d4eb7369933360116a7ea1022c72674c1b012b988af65002600",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/old_caucasian_male/old_caucasian_male.thumb",
+    "sha256": "4c4825b3c88161e38daa38b2619ec508f5192cbbc011280d3f475687ecea32d5",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/old_caucasian_male/old_lightskinned_male_diffuse.png",
+    "sha256": "dfb2310ed3e0ad024ea7a3ad321215e2e9e2994cca64043d9f3d07c6543ec847",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/toon01/toon01.mhmat",
+    "sha256": "51012d19341b70e702e94efed425b77e9306610fe5b91eb7c15939ab869e5c73",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/toon01/toon01.thumb",
+    "sha256": "a49a4224d25c9e521c59de3bbecc0ff0c389546a27e824886d9a4000b51a89b9",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_african_female/young_african_female.mhmat",
+    "sha256": "f7e0726cb1c4f1f3dd23e5143f2d91a7c69ddd782a8b1de153a36e1549028b5c",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_african_female/young_african_female.thumb",
+    "sha256": "87ecc364fbec20d91d99ef89ceb1adebb4f3f6979a535d3704c4bf52b01905eb",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_african_female/young_darkskinned_female_diffuse.png",
+    "sha256": "96aa4a96b247fc90d371587bb88e6ae3bfc77e83f5126f17e6bbb713aa200470",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_african_male/young_african_male.mhmat",
+    "sha256": "11040111c4735028b473f8ce4bb6b0dc0515b7bf26ea815ead85f2c3cbdd7645",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_african_male/young_african_male.thumb",
+    "sha256": "e74c12cd86ffcd59bc496767187f44b149e14f29129357b09aac41b9bcda7461",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_african_male/young_darkskinned_male_diffuse.png",
+    "sha256": "e3f0dbb634e4c68561338f0087f7a122444e84ec56df102212f1222aa12e4d50",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_asian_female/young_asian_female.mhmat",
+    "sha256": "2baeded5fdfd31acc187e83b278f9c4e4cbb59a7ffedf50ebcffcc44e4eab220",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_asian_female/young_asian_female.thumb",
+    "sha256": "736d4ed1967431c989c5629655aa65f162a3e325d5aed7cd75ca3c2cc8f91a8d",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_asian_female/young_lightskinned_female_diffuse3.png",
+    "sha256": "1d82f782b7d2da732229633bd2d14754d873fff53cdb1d088977bcf67ae19dde",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_asian_male/young_asian_male.mhmat",
+    "sha256": "9fdfc9863cd15d1359311435f2da7de3906f81d6eea549fba6bf14cd82ceb6a0",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_asian_male/young_asian_male.thumb",
+    "sha256": "21245c121a4efc96d18cb64a2fc7d95bfcc768f7b333d59b7a471708551ed13d",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_asian_male/young_lightskinned_male_diffuse3.png",
+    "sha256": "f50016a5507fc687dc8df06599c8ea48de950cd185de33a71cafc1319ddab4d5",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_caucasian_female/young_caucasian_female.mhmat",
+    "sha256": "0bdea7786201f0b1132a24088336a97496ccdc54e9984db65d253a6a6d66f24f",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_caucasian_female/young_caucasian_female.thumb",
+    "sha256": "4bacaa13c1f58321221822e6f9ce1b222eb0e328e5015d9518c8a7184fb34b34",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_caucasian_female/young_lightskinned_female_diffuse.png",
+    "sha256": "b2a6ac8cd4f9febdb447368e29c76cd68410bb66e46d9dcfa2d5f75126eea8fc",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_caucasian_female2/young_caucasian_female2.mhmat",
+    "sha256": "8934dd8d8f3beccc1b212c12116a88b3a88d6265e0a5c8fe42eb62e3fb281ab6",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_caucasian_female2/young_caucasian_female2.thumb",
+    "sha256": "a82ac9ec49285dcf7be9755a3a84e3c2d4969826096278e43c715370cc0bb846",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_caucasian_female2/young_lightskinned_female_diffuse2.png",
+    "sha256": "8d1fb3ceedf142fad32a3504eca1feb4539aecca6de66acde1514b9a61fc7ba0",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_caucasian_female_special_suit/young_caucasian_female_special_suit.mhmat",
+    "sha256": "a4f1525dc037ebd7b8b782c8c9cad2c74d5f10b2d3eb479d594766ca37bb624c",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_caucasian_female_special_suit/young_caucasian_female_special_suit.png",
+    "sha256": "5417f61d102a1299f51cba4fb70c3c7dcd74b9ff18652b33b9aafdc9e7888f69",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_caucasian_female_special_suit/young_caucasian_female_special_suit.thumb",
+    "sha256": "b46fd11856392b9ec8843c82e707b9886b530e96aee54db7bf829e223f3268ca",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_caucasian_male/young_caucasian_male.mhmat",
+    "sha256": "6eda60b07ff2afbde078a2535ef3913593d84e9de92b2eb76c30f396a181fe2e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_caucasian_male/young_caucasian_male.thumb",
+    "sha256": "9ea46d1b5c4230bcff248b1262eaf4f5b4b14bbffd8fc09d2c20c6058f02e12d",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_caucasian_male/young_lightskinned_male_diffuse.png",
+    "sha256": "862a26e335e958b70534cb5f0d7c47ef30ab148a56c42b3e9da969cf76f12963",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_caucasian_male2/young_caucasian_male2.mhmat",
+    "sha256": "60022513803f7b68f30c4f91235b827ace9d36757dc07bdac157d58b7cbc226d",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_caucasian_male2/young_caucasian_male2.thumb",
+    "sha256": "ad456a732d953004b6b6857066211c9cb22e151cb1c4f4c9027369654101ed24",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_caucasian_male2/young_lightskinned_male_diffuse2.png",
+    "sha256": "03efe1f6b0ae52429649dcefc9dcaef6058032f874a251169cc3e2ed473c3874",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_caucasian_male_special_suit/young_caucasian_male_special_suit.mhmat",
+    "sha256": "dbc972bccbcaf6f278eba4486a73a9f0bdc53b4f19cfdf77c9409491f9677315",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_caucasian_male_special_suit/young_caucasian_male_special_suit.png",
+    "sha256": "b676945368db0a47410fdce9333a16839d725208917c16a05d83d6cfca3dc07b",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/skins/young_caucasian_male_special_suit/young_caucasian_male_special_suit.thumb",
+    "sha256": "2bd60d2bceef353d54a35492be13bf891db3f488d967bca8b96e28be4fb9a1fe",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_base/teeth.mhmat",
+    "sha256": "3baeff72d9eb06ca16c3cff7ca2ab304216717dee247e0d88f1dc33037c8320e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_base/teeth.png",
+    "sha256": "d0afb57869c6fbb56b98f5efc4aec629ee7593e70d8dd2bfb9de923acfb65f43",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_base/teeth_base.mhclo",
+    "sha256": "9edc3deff3bb97a95c791878064dd069a74a38f95ea6d9707a9ba68d888b3b5c",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_base/teeth_base.obj",
+    "sha256": "f55198069e55d360c4b4cc7ecb1cc292b2c7665753ab8b65eabf46a8783f2875",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_base/teeth_base.thumb",
+    "sha256": "04b97c4fa15c3ba0786e552a4bf5474d47efc1162d9f7f4dbdc2f06d1ae43004",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape01/teeth.mhmat",
+    "sha256": "3baeff72d9eb06ca16c3cff7ca2ab304216717dee247e0d88f1dc33037c8320e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape01/teeth.png",
+    "sha256": "d0afb57869c6fbb56b98f5efc4aec629ee7593e70d8dd2bfb9de923acfb65f43",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape01/teeth_shape01.mhclo",
+    "sha256": "909473db8874dfb42e2656e57771d0d22254012085d58f07feac70a85c5727fd",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape01/teeth_shape01.obj",
+    "sha256": "58f95099d762d67da087d114e4372286c2260ccaa116b48d7763a71b5d38bea5",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape01/teeth_shape01.thumb",
+    "sha256": "953c0f97c0b673fd7e631175f4cc9fa967f8a4dd3df6e731d0de21bc1d865dda",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape02/teeth.mhmat",
+    "sha256": "3baeff72d9eb06ca16c3cff7ca2ab304216717dee247e0d88f1dc33037c8320e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape02/teeth.png",
+    "sha256": "d0afb57869c6fbb56b98f5efc4aec629ee7593e70d8dd2bfb9de923acfb65f43",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape02/teeth_shape02.mhclo",
+    "sha256": "9bee660804794d0310c2e8ecf66d2677f256d49d13c6a663c30325875495fb8d",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape02/teeth_shape02.obj",
+    "sha256": "d41cca8121fcae9e278b88d0b1ebc040a4f40da961476b3902d7a11e838f3e0c",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape02/teeth_shape02.thumb",
+    "sha256": "d9ad7b23c0ee6728d25e6023122f296e380c0c2f43a5b4aad605decada0b54ea",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape03/teeth.mhmat",
+    "sha256": "3baeff72d9eb06ca16c3cff7ca2ab304216717dee247e0d88f1dc33037c8320e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape03/teeth.png",
+    "sha256": "d0afb57869c6fbb56b98f5efc4aec629ee7593e70d8dd2bfb9de923acfb65f43",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape03/teeth_shape03.mhclo",
+    "sha256": "f4a48c62e36f148695b3e8a8cb8365e77286bf16dbfb9d58201c77876829996a",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape03/teeth_shape03.obj",
+    "sha256": "9581983b311ec6f1916f7b0b0e47ac46475fb8da13c8a1a1bfbf3588621cb6c6",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape03/teeth_shape03.thumb",
+    "sha256": "0c611ea054da340c5e7ea6d425596dcd284fa5a26035ae2c2170cbc0c59cc84c",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape04/teeth.mhmat",
+    "sha256": "3baeff72d9eb06ca16c3cff7ca2ab304216717dee247e0d88f1dc33037c8320e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape04/teeth.png",
+    "sha256": "d0afb57869c6fbb56b98f5efc4aec629ee7593e70d8dd2bfb9de923acfb65f43",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape04/teeth_shape04.mhclo",
+    "sha256": "d2a707a3b1354c63dc52e5432f2856e981e70448e65e4274a5b47fdb4ae3949e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape04/teeth_shape04.obj",
+    "sha256": "034ce651092cdd9fa05018283c29090422153f15e42e95f2bd668dd416ed8e86",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape04/teeth_shape04.thumb",
+    "sha256": "3b3886b22a0147d4cf9f73c29d957b25f35d70495e7ae08d23a9671e7f051713",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape05/teeth.mhmat",
+    "sha256": "3baeff72d9eb06ca16c3cff7ca2ab304216717dee247e0d88f1dc33037c8320e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape05/teeth.png",
+    "sha256": "d0afb57869c6fbb56b98f5efc4aec629ee7593e70d8dd2bfb9de923acfb65f43",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape05/teeth_shape05.mhclo",
+    "sha256": "00e318dcf4aa5513f7be37d3eb9143810c36c6917df36bb0bd1784f8aff0012c",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape05/teeth_shape05.obj",
+    "sha256": "f98decfdf6b5dd3850c62fa9e9b97a77ad7960ee3f7b0e2f7c7b0184429ff741",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/teeth/teeth_shape05/teeth_shape05.thumb",
+    "sha256": "c3228eecce2d532af9d73611c050f6c3e8a0dd71c1a12dd5bbb069dbc9e3fe63",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/tongue/tongue01/tongue01.mhclo",
+    "sha256": "61d825899cd78ff3146fa1324118060cb44b095fae1427d408c199ade74e3c9e",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/tongue/tongue01/tongue01.mhmat",
+    "sha256": "7769df66c69b8c09a0ec713d70d8381abbb08ac82207369f5413970495cd4340",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/tongue/tongue01/tongue01.obj",
+    "sha256": "12f4a6a9f85abae2ce3b4aa42d8119e1f679a437e0e89cb928ec68b29a7a1587",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/tongue/tongue01/tongue01.thumb",
+    "sha256": "5c995b9b94fa73a080aa24e398cafb971a4e3667e028c33d8857a15dcc35a770",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  },
+  {
+    "path": "assets/imported/makehuman/system/tongue/tongue01/tongue01_diffuse.png",
+    "sha256": "3150be398e48e8ba1feac164c3143c16c0b2e959d9ffb6155f0171f59cfb4ea9",
+    "provenanceId": "makehuman-system-cc0",
+    "license": "CC0-1.0"
+  }
+]

@@ -1,0 +1,113 @@
+{
+  "snapshot": {
+    "mode": "sources",
+    "entityId": "human_001",
+    "sourceId": "shared-wren",
+    "resolution": {
+      "entityId": "human_001",
+      "seed": 415294,
+      "version": "1.1.0",
+      "fingerprint": "57a0a75c",
+      "archetype": "humanoid_standard",
+      "bodyAssetId": "tv-human-male-v2",
+      "status": "PROTOTYPE",
+      "heightM": 1.75,
+      "morphology": {
+        "faceVariation": 0.8177515007555485
+      },
+      "headFamily": "human:head",
+      "speciesFeatures": [],
+      "materialFamily": "human:surface",
+      "hair": "variation_2",
+      "clothing": [
+        "dunmere:wardrobe",
+        "farmer:outfit"
+      ],
+      "equipment": [],
+      "animationProfile": "humanoid_standard:base",
+      "rig": "humanoid_standard",
+      "effects": [],
+      "unresolved": [
+        "Torn Veil art direction review",
+        "Omni likeness and hair detail remain incomplete",
+        "Prototype collar/cuffs and boot construction need art review",
+        "UAL idle/walk retarget study; foot contact and deformation not approved",
+        "Culture/profession/equipment assembly unresolved",
+        "Clothing component: dunmere:wardrobe",
+        "Clothing component: farmer:outfit",
+        "Age-specific face/body authoring pending"
+      ],
+      "trace": [
+        "Species human → humanoid_standard",
+        "Biological identity copied from simulation description; no mechanical values computed.",
+        "Shared Human family human-reference-family-v1 → adult-male-athletic; authored MPFB topology and fitted plain clothing",
+        "Rig implementation mpfb-game_engine; locomotion retarget is still pending",
+        "Body tv-human-male-v2 from provider mpfb",
+        "Seeded face/hair variation is a reproducible request; geometry support is pending.",
+        "Culture, profession, rank and equipment never redefine species."
+      ]
+    },
+    "applied": [],
+    "pose": "rest",
+    "motionReport": [
+      {
+        "source": "Existing local Mixamo / Motifect",
+        "contract": "Claude ArenaAssets / Retargeter / instantiateClips"
+      }
+    ],
+    "motionError": "",
+    "backend": "WebGL",
+    "meshCount": 9,
+    "dimensions": [
+      0.9201539754867554,
+      1.5324031505733728,
+      0.3953593224287033
+    ],
+    "skeletons": 1,
+    "animations": [
+      "1H_Melee_Attack_Slice_Diagonal",
+      "Blocking",
+      "Death_A",
+      "Death_B",
+      "Hit_A",
+      "Hit_B",
+      "Idle_Combat",
+      "Running_A",
+      "Walking_A",
+      "sword_and_shield/sword and shield block idle",
+      "sword_and_shield/sword and shield death (2)",
+      "sword_and_shield/sword and shield death",
+      "sword_and_shield/sword and shield idle",
+      "sword_and_shield/sword and shield impact (2)",
+      "sword_and_shield/sword and shield impact (3)",
+      "sword_and_shield/sword and shield impact",
+      "sword_and_shield/sword and shield run",
+      "sword_and_shield/sword and shield slash",
+      "sword_and_shield/sword and shield walk",
+      "pro_longbow/standing death backward 01",
+      "pro_longbow/standing death forward 01",
+      "pro_longbow/standing react small from front",
+      "pro_longbow/standing react small from headshot",
+      "unarmed/combat_idle",
+      "unarmed/cross_right",
+      "unarmed/jab_left",
+      "unarmed/run_sprint",
+      "unarmed/walk_forward"
+    ],
+    "animationFrame": 25.355999994277955,
+    "camera": {
+      "view": "three-quarter",
+      "alpha": 2.2207963267948965,
+      "beta": 1.35,
+      "radius": 3.218046616204083,
+      "fov": 0.8,
+      "target": [
+        0,
+        0.7662015752866864,
+        0
+      ]
+    },
+    "loadError": ""
+  },
+  "errors": []
+}

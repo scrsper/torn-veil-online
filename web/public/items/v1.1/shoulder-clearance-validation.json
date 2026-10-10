@@ -1,0 +1,1954 @@
+[
+  {
+    "id": "TV-101",
+    "sex": "male",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-102",
+    "sex": "male",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-103",
+    "sex": "male",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-104",
+    "sex": "male",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-105",
+    "sex": "male",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-106",
+    "sex": "male",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-107",
+    "sex": "male",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-108",
+    "sex": "male",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1784
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1784
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1784
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1784
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1784
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1784
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1784
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1784
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1784
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-109",
+    "sex": "male",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2256
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2256
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2256
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2256
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2256
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2256
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2256
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2256
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2256
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-110",
+    "sex": "male",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2312
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2312
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2312
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2312
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2312
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2312
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2312
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2312
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2312
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-306",
+    "sex": "male",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2616
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2616
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2616
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2616
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2616
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2616
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2616
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2616
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2616
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-316",
+    "sex": "male",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2276
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2276
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2276
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2276
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2276
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2276
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2276
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2276
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2276
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-326",
+    "sex": "male",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2520
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2520
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2520
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2520
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2520
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2520
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2520
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2520
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2520
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-336",
+    "sex": "male",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2904
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2904
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2904
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2904
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2904
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2904
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2904
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2904
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2904
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-346",
+    "sex": "male",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3096
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3096
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3096
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3096
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3096
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3096
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3096
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3096
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3096
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-356",
+    "sex": "male",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3400
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3400
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3400
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3400
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3400
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3400
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3400
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3400
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3400
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-101",
+    "sex": "female",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-102",
+    "sex": "female",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-103",
+    "sex": "female",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-104",
+    "sex": "female",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1608
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-105",
+    "sex": "female",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-106",
+    "sex": "female",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-107",
+    "sex": "female",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1704
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-108",
+    "sex": "female",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1784
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1784
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1784
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1784
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1784
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1784
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1784
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1784
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 1784
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-109",
+    "sex": "female",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2256
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2256
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2256
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2256
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2256
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2256
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2256
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2256
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2256
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-110",
+    "sex": "female",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2312
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2312
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2312
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2312
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2312
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2312
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2312
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2312
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2312
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-306",
+    "sex": "female",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2616
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2616
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2616
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2616
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2616
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2616
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2616
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2616
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2616
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-316",
+    "sex": "female",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2276
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2276
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2276
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2276
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2276
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2276
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2276
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2276
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2276
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-326",
+    "sex": "female",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2520
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2520
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2520
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2520
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2520
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2520
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2520
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2520
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2520
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-336",
+    "sex": "female",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2904
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2904
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2904
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2904
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2904
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2904
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2904
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2904
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 2904
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-346",
+    "sex": "female",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3096
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3096
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3096
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3096
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3096
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3096
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3096
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3096
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3096
+      }
+    ],
+    "clearance_pass": true
+  },
+  {
+    "id": "TV-356",
+    "sex": "female",
+    "tests": [
+      {
+        "pose": "Neutral",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3400
+      },
+      {
+        "pose": "Stride",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3400
+      },
+      {
+        "pose": "Raised arms",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3400
+      },
+      {
+        "pose": "Crouch",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3400
+      },
+      {
+        "pose": "Raise 10 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3400
+      },
+      {
+        "pose": "Raise 20 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3400
+      },
+      {
+        "pose": "Raise 30 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3400
+      },
+      {
+        "pose": "Raise 40 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3400
+      },
+      {
+        "pose": "Raise 50 deg",
+        "finite": true,
+        "intersections": [],
+        "vertex_count": 3400
+      }
+    ],
+    "clearance_pass": true
+  }
+]

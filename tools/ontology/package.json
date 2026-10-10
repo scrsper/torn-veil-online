@@ -1,0 +1,40 @@
+{
+  "name": "torn-veil-visual-ontology",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "catalog": "vite --host 127.0.0.1 --port 5173 --strictPort",
+    "dev": "npm run catalog",
+    "build": "tsc --noEmit && vite build",
+    "test": "vitest run",
+    "test:browser": "node scripts/browser-check.mjs",
+    "assets:polyhaven": "node scripts/polyhaven.mjs",
+    "assets:verify": "node scripts/verify-assets.mjs",
+    "entity:build": "tsx scripts/entity.ts build",
+    "entity:render": "tsx scripts/entity.ts render",
+    "entity:validate": "tsx scripts/entity.ts validate",
+    "blender:probe": "node scripts/blender.mjs probe",
+    "preview": "vite preview --host 127.0.0.1",
+    "references:verify": "node scripts/import-references.mjs",
+    "human:build": "node scripts/humanoid.mjs",
+    "human:register": "node scripts/register-humanoids.mjs && node scripts/public-provenance.mjs",
+    "test:humanoid-browser": "node scripts/humanoid-browser-check.mjs",
+    "typecheck": "tsc --noEmit",
+    "assets:verify:shipped": "node scripts/verify-shipped.mjs"
+  },
+  "dependencies": {
+    "@babylonjs/core": "9.28.0",
+    "@babylonjs/loaders": "9.28.0",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "22.18.12",
+    "typescript": "5.9.3",
+    "vite": "7.1.12",
+    "vitest": "3.2.4",
+    "tsx": "4.20.6",
+    "playwright": "1.62.1",
+    "gltf-validator": "2.0.0-dev.3.10"
+  }
+}

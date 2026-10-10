@@ -1,0 +1,20 @@
+[
+  {
+    "id": "bronze",
+    "visualRequirements": [
+      "Author bronze visual rules"
+    ]
+  },
+  {
+    "id": "silver",
+    "visualRequirements": [
+      "Author silver visual rules"
+    ]
+  },
+  {
+    "id": "gold",
+    "visualRequirements": [
+      "Author gold visual rules"
+    ]
+  }
+]

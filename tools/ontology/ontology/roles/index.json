@@ -1,0 +1,20 @@
+[
+  {
+    "id": "quest_giver",
+    "visualRequirements": [
+      "Author quest_giver visual rules"
+    ]
+  },
+  {
+    "id": "companion",
+    "visualRequirements": [
+      "Author companion visual rules"
+    ]
+  },
+  {
+    "id": "guild_master",
+    "visualRequirements": [
+      "Author guild_master visual rules"
+    ]
+  }
+]

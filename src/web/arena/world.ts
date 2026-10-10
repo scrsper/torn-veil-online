@@ -1,3 +1,4 @@
+import {FootPlant} from './footPlant';
 import { Color3, Color4, Matrix, Mesh, MeshBuilder, Quaternion, StandardMaterial, TransformNode, Vector3, type AbstractMesh, type InstancedMesh, type Scene } from '@babylonjs/core';
 import type { ArenaAssets, CharacterInstance } from './assets';
 import type { LookId } from './looks';
@@ -1267,36 +1268,10 @@ export class ArenaWorld {
    * moves over it; the foot keeps its animated orientation. Locks release as the clip lifts the foot, and
    * re-plant if the body has drifted too far (that becomes a step instead of a skate).
    */
-  private plantFeet(f: Fighter, dt: number): void {
-    const b = f.inst.bones; if (!b) return;
-    if (!f.alive || f.state === 'down' || f.state === 'dodge' || f.y > .05) { for (const l of f.feet) { l.lock = null; l.w = 0; } return; }
-    const scale = f.inst.root.scaling.x;
-    if (f.ankleY < 0) { const fl = b.get('foot_l'); if (!fl) return; fl.computeWorldMatrix(true); f.ankleY = Math.max(.02, fl.getAbsolutePosition().y - f.y); }
-    const legs = [['thigh_l', 'calf_l', 'foot_l'], ['thigh_r', 'calf_r', 'foot_r']];
-    for (let k = 0; k < 2; k++) {
-      const [ta, ca, fa] = legs[k], thigh = b.get(ta), calf = b.get(ca), foot = b.get(fa);
-      if (!thigh || !calf || !foot) continue;
-      foot.computeWorldMatrix(true);
-      const animPos = foot.getAbsolutePosition().clone();
-      // Retargeted people carry a small, rig-dependent ankle offset (the
-      // imported foot pivot is above the visual sole). Use a broad enough
-      // presentation band to acquire contact while still requiring the ankle
-      // to be near its standing height; the lock itself prevents skating.
-      const planted = animPos.y - f.y < f.ankleY + .12 * scale;
-      const L = f.feet[k];
-      if (planted) {
-        // Plant at once (a running stance lasts ~150 ms); re-plant only if the body has carried far past it.
-        if (!L.lock || Vector3.Distance(L.lock, animPos) > .6 * scale || Math.abs(wrap(f.yaw - L.yaw)) > .6) { L.lock = animPos.clone(); L.yaw = f.yaw; }
-        L.w = 1;
-      } else { L.w = Math.max(0, L.w - dt * 16); if (L.w === 0) L.lock = null; }
-      if (!L.lock || L.w <= 0) continue;
-      const target = new Vector3(L.lock.x, animPos.y, L.lock.z);
-      const keep = foot.absoluteRotationQuaternion.clone();
-      reach(thigh, calf, foot, target, L.w);
-      const parent = foot.parent as TransformNode;
-      foot.rotationQuaternion = Quaternion.Inverse(parent.absoluteRotationQuaternion).multiply(keep).normalize();
-      foot.computeWorldMatrix(true);
-    }
+  private plants=new WeakMap<Fighter,FootPlant>();
+  private plantFeet(f:Fighter,dt:number):void {
+    let plant=this.plants.get(f);if(!plant){plant=new FootPlant(f.inst);this.plants.set(f,plant);}
+    plant.update(dt,f.y,f.yaw,f.alive&&f.state!=='down'&&f.state!=='dodge'&&f.y<=.05);
   }
 
   /** Walkable direction around walls toward a point, or null when the straight line is clear. */

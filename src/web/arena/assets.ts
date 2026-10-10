@@ -18,7 +18,7 @@ export const HUMAN_SCALE = 1.22;
  */
 /** KayKit rigs: now only the animation source for the human fighters. */
 export type CharacterKind = 'skeleton_warrior';
-const BASE = './arena/';
+
 
 export interface CharacterInstance {
   root: TransformNode;
@@ -45,10 +45,11 @@ export class ArenaAssets {
   /** Chunk centre relative to its prop's base, in the prop's frame. */
   readonly offsets = new Map<string, Vector3>();
   private serial = 0;
-  constructor(private readonly scene: Scene) {}
+  constructor(private readonly scene: Scene,private options:{base?:string;detailedHumans?:boolean}={}) {}
+  private get base(){return this.options.base??'./arena/';}
 
   async load(kinds: CharacterKind[], progress: (t: string) => void): Promise<void> {
-    const load = (file: string) => SceneLoader.LoadAssetContainerAsync(BASE, file, this.scene);
+    const load = (file: string) => SceneLoader.LoadAssetContainerAsync(this.base, file, this.scene);
     progress('Loading props');
     [this.props, this.weapons] = await Promise.all([load('props.glb'), load('weapons.glb')]);
     for (const c of [this.props, this.weapons]) {
@@ -93,7 +94,7 @@ export class ArenaAssets {
   async loadHumans(looks: LookId[], progress: (t: string) => void): Promise<void> {
     let n = 0;
     await Promise.all(looks.map(async l => {
-      const c = await SceneLoader.LoadAssetContainerAsync(BASE + PEOPLE_DIR, `${l}.glb`, this.scene);
+      const c = await SceneLoader.LoadAssetContainerAsync(this.base + (this.options.detailedHumans!==false&&['ranger','brann','wren','raider','raider_f','soldier','knight','archer','mystic'].includes(l)?'people/':PEOPLE_DIR), `${this.options.detailedHumans!==false&&l==='ranger'?'hero':l}.glb`, this.scene);
       // Hair, brows and lashes export as BLEND; alpha-test them so they sort with the head.
       for (const m of c.materials) if (m instanceof PBRMaterial && m.transparencyMode === PBRMaterial.PBRMATERIAL_ALPHABLEND) {
         m.transparencyMode = PBRMaterial.PBRMATERIAL_ALPHATEST; m.alphaCutOff = .45; m.backFaceCulling = false;
@@ -112,7 +113,7 @@ export class ArenaAssets {
     // Real motion capture: the user's Mixamo packs (art/tools/arena/build_mixamo_clips.py -> mixamo_clips.glb).
     progress('Learning motion capture');
     let mc: AssetContainer | null = null;
-    try { mc = await SceneLoader.LoadAssetContainerAsync(BASE, 'mixamo_clips.glb', this.scene); }
+    try { mc = await SceneLoader.LoadAssetContainerAsync(this.base, 'mixamo_clips.glb', this.scene); }
     catch { console.warn('[arena] mixamo_clips.glb missing: using KayKit stand-in motion (see docs/COMBAT_ARENA.md)'); this.mocap = false; }
     if (mc) {
     const me = mc.instantiateModelsToScene(n => `mx.${n}`, false, { doNotInstantiate: true });
@@ -126,7 +127,7 @@ export class ArenaAssets {
     // Unarmed brawling set (Motifect via the TRELLIS review rig): build_unarmed_clips.py -> unarmed_clips.glb.
     progress('Learning to brawl');
     let uc: AssetContainer | null = null;
-    try { uc = await SceneLoader.LoadAssetContainerAsync(BASE, 'unarmed_clips.glb', this.scene); } catch { console.warn('[arena] unarmed_clips.glb missing: unarmed moves use stand-ins'); }
+    try { uc = await SceneLoader.LoadAssetContainerAsync(this.base, 'unarmed_clips.glb', this.scene); } catch { console.warn('[arena] unarmed_clips.glb missing: unarmed moves use stand-ins'); }
     if (uc) {
       const ue = uc.instantiateModelsToScene(n => `ua.${n}`, false, { doNotInstantiate: true });
       const uh = new TransformNode('ua', this.scene); for (const r of ue.rootNodes) r.parent = uh;
@@ -156,7 +157,7 @@ export class ArenaAssets {
   /** Your arsenal (web/public/arena/arsenal): each multi-part weapon merged into one source mesh W_<key>. */
   async loadArsenal(keys: string[]): Promise<void> {
     await Promise.all(keys.map(async k => {
-      const c = await SceneLoader.LoadAssetContainerAsync(BASE + 'arsenal/', `${k}.glb`, this.scene);
+      const c = await SceneLoader.LoadAssetContainerAsync(this.base + 'arsenal/', `${k}.glb`, this.scene);
       c.addAllToScene();
       const parts: Mesh[] = [];
       for (const m of c.meshes) {
@@ -220,6 +221,9 @@ export class ArenaAssets {
       dispose: () => { for (const g of anims.values()) g.dispose(); p.dispose(); },
     };
   }
+
+  /** Dispose reference containers after baking editor motion; instances own their rig clones. */
+  dispose(){for(const c of [...this.chars.values(),...this.people.values(),this.props,this.weapons])c?.dispose();}
 
   /** Bounding-box-free fragment offset: sources were exported at their position relative to the prop base. */
   fragmentsOf(key: string): Mesh[] {

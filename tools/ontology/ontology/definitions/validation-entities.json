@@ -1,0 +1,282 @@
+[
+  {
+    "schemaVersion": 1,
+    "id": "human_001",
+    "name": "Human",
+    "appearanceSeed": 415294,
+    "biological": {
+      "species": "human",
+      "origin": "biological",
+      "sex": "male",
+      "age": 43,
+      "bodyType": "standard"
+    },
+    "social": {
+      "culture": "dunmere",
+      "profession": "farmer"
+    },
+    "gameplay": {
+      "rank": "bronze",
+      "equipment": []
+    },
+    "states": [],
+    "modifiers": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "elf_001",
+    "name": "Elf",
+    "appearanceSeed": 415295,
+    "biological": {
+      "species": "elf",
+      "origin": "biological",
+      "sex": "unspecified",
+      "age": 42,
+      "bodyType": "standard"
+    },
+    "social": {
+      "culture": "dunmere",
+      "profession": "wanderer"
+    },
+    "gameplay": {
+      "rank": "silver",
+      "equipment": []
+    },
+    "states": [],
+    "modifiers": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "dwarf_001",
+    "name": "Dwarf",
+    "appearanceSeed": 415296,
+    "biological": {
+      "species": "dwarf",
+      "origin": "biological",
+      "sex": "male",
+      "age": 42,
+      "bodyType": "standard"
+    },
+    "social": {
+      "culture": "dunmere",
+      "profession": "artificer"
+    },
+    "gameplay": {
+      "rank": "bronze",
+      "equipment": []
+    },
+    "states": [],
+    "modifiers": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "orc_001",
+    "name": "Orc",
+    "appearanceSeed": 415297,
+    "biological": {
+      "species": "orc",
+      "origin": "biological",
+      "sex": "male",
+      "age": 42,
+      "bodyType": "heavy"
+    },
+    "social": {
+      "culture": "northern",
+      "profession": "blacksmith"
+    },
+    "gameplay": {
+      "rank": "silver",
+      "equipment": []
+    },
+    "states": [],
+    "modifiers": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "goblin_001",
+    "name": "Goblin",
+    "appearanceSeed": 415298,
+    "biological": {
+      "species": "goblin",
+      "origin": "biological",
+      "sex": "unspecified",
+      "age": 42,
+      "bodyType": "standard"
+    },
+    "social": {
+      "culture": "dunmere",
+      "profession": "merchant"
+    },
+    "gameplay": {
+      "rank": "bronze",
+      "equipment": []
+    },
+    "states": [],
+    "modifiers": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "wolfkin_001",
+    "name": "Wolfkin",
+    "appearanceSeed": 415299,
+    "biological": {
+      "species": "wolfkin",
+      "origin": "biological",
+      "sex": "unspecified",
+      "age": 42,
+      "bodyType": "standard"
+    },
+    "social": {
+      "culture": "dunmere",
+      "profession": "wanderer"
+    },
+    "gameplay": {
+      "rank": "silver",
+      "equipment": []
+    },
+    "states": [],
+    "modifiers": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "skeleton_001",
+    "name": "Skeleton",
+    "appearanceSeed": 415300,
+    "biological": {
+      "species": "skeleton",
+      "origin": "biological",
+      "sex": "unspecified",
+      "age": 42,
+      "bodyType": "standard"
+    },
+    "social": {
+      "culture": "dunmere",
+      "profession": "wanderer"
+    },
+    "gameplay": {
+      "rank": "bronze",
+      "equipment": []
+    },
+    "states": [
+      "undead"
+    ],
+    "modifiers": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "vampire_001",
+    "name": "Vampire",
+    "appearanceSeed": 415301,
+    "biological": {
+      "species": "human",
+      "origin": "biological",
+      "sex": "unspecified",
+      "age": 42,
+      "bodyType": "standard"
+    },
+    "social": {
+      "culture": "dunmere",
+      "profession": "wanderer"
+    },
+    "gameplay": {
+      "rank": "silver",
+      "equipment": []
+    },
+    "states": [
+      "vampiric"
+    ],
+    "modifiers": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "golem_001",
+    "name": "Golem",
+    "appearanceSeed": 415302,
+    "biological": {
+      "species": "golem",
+      "origin": "artificial",
+      "sex": "unspecified",
+      "age": 42,
+      "bodyType": "standard"
+    },
+    "social": {
+      "culture": "dunmere",
+      "profession": "wanderer"
+    },
+    "gameplay": {
+      "rank": "bronze",
+      "equipment": []
+    },
+    "states": [],
+    "modifiers": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "slime_001",
+    "name": "Slime",
+    "appearanceSeed": 415303,
+    "biological": {
+      "species": "slime",
+      "origin": "biological",
+      "sex": "unspecified",
+      "age": 42,
+      "bodyType": "standard"
+    },
+    "social": {
+      "culture": "dunmere",
+      "profession": "wanderer"
+    },
+    "gameplay": {
+      "rank": "silver",
+      "equipment": []
+    },
+    "states": [],
+    "modifiers": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "dragon_001",
+    "name": "Dragon",
+    "appearanceSeed": 415304,
+    "biological": {
+      "species": "dragon",
+      "origin": "biological",
+      "sex": "unspecified",
+      "age": 42,
+      "bodyType": "standard"
+    },
+    "social": {
+      "culture": "dunmere",
+      "profession": "wanderer"
+    },
+    "gameplay": {
+      "rank": "bronze",
+      "equipment": []
+    },
+    "states": [],
+    "modifiers": []
+  },
+  {
+    "schemaVersion": 1,
+    "id": "android_001",
+    "name": "Android",
+    "appearanceSeed": 415305,
+    "biological": {
+      "species": "android",
+      "origin": "artificial",
+      "sex": "unspecified",
+      "age": 42,
+      "bodyType": "standard"
+    },
+    "social": {
+      "culture": "dunmere",
+      "profession": "wanderer"
+    },
+    "gameplay": {
+      "rank": "silver",
+      "equipment": []
+    },
+    "states": [],
+    "modifiers": []
+  }
+]

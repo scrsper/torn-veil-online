@@ -1,0 +1,402 @@
+[
+  {
+    "id": "quaternius-human",
+    "provider": "quaternius",
+    "kind": "body",
+    "url": "/assets/library/quaternius-human/model.gltf",
+    "sourcePath": "assets/imported/quaternius/universal-base-characters/Universal Base Characters[Standard]/Base Characters/Godot - UE/Superhero_Male_FullBody.gltf",
+    "provenanceId": "file-7c58c31d5c8875d7",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_standard",
+    "tags": [
+      "human",
+      "base"
+    ],
+    "limitations": [
+      "Source superhero proportions; sex/age/morph variants not applied"
+    ],
+    "lods": []
+  },
+  {
+    "id": "quaternius-human-female",
+    "provider": "quaternius",
+    "kind": "body",
+    "url": "/assets/library/quaternius-human-female/model.gltf",
+    "sourcePath": "assets/imported/quaternius/universal-base-characters/Universal Base Characters[Standard]/Base Characters/Godot - UE/Superhero_Female_FullBody.gltf",
+    "provenanceId": "file-3ecd49abe5b23ceb",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_standard",
+    "tags": [
+      "human",
+      "base",
+      "female"
+    ],
+    "limitations": [
+      "Source superhero proportions; age/morph variants not applied"
+    ],
+    "lods": []
+  },
+  {
+    "id": "quaternius-ranger",
+    "provider": "quaternius",
+    "kind": "component",
+    "url": "/assets/library/quaternius-ranger/model.gltf",
+    "sourcePath": "assets/imported/quaternius/modular-character-outfits-fantasy/Modular Character Outfits - Fantasy[Standard]/Exports/glTF (Godot-Unreal)/Outfits/Male_Ranger.gltf",
+    "provenanceId": "file-d91f7af785e9a2d9",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_standard",
+    "tags": [
+      "outfit",
+      "ranger"
+    ],
+    "limitations": [
+      "Outfit source only; head assembly pending"
+    ],
+    "lods": []
+  },
+  {
+    "id": "quaternius-peasant",
+    "provider": "quaternius",
+    "kind": "component",
+    "url": "/assets/library/quaternius-peasant/model.gltf",
+    "sourcePath": "assets/imported/quaternius/modular-character-outfits-fantasy/Modular Character Outfits - Fantasy[Standard]/Exports/glTF (Godot-Unreal)/Outfits/Female_Peasant.gltf",
+    "provenanceId": "file-3fe3db1e3be05ef1",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_standard",
+    "tags": [
+      "outfit",
+      "peasant"
+    ],
+    "limitations": [
+      "Outfit source only; head assembly pending"
+    ],
+    "lods": []
+  },
+  {
+    "id": "quaternius-imp",
+    "provider": "quaternius",
+    "kind": "body",
+    "url": "/assets/library/quaternius-imp/model.glb",
+    "sourcePath": "assets/imported/quaternius/bestiary-dungeon-monsters-kit/Bestiary - Dungeon Monsters Kit[Standard]/Exports/GLB (Godot-Unreal)/Imp.glb",
+    "provenanceId": "file-cfb77910abcb5c8a",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_small",
+    "tags": [
+      "monster",
+      "imp"
+    ],
+    "limitations": [
+      "Imp source reference; no animation clips in this file"
+    ],
+    "lods": []
+  },
+  {
+    "id": "quaternius-puglin",
+    "provider": "quaternius",
+    "kind": "body",
+    "url": "/assets/library/quaternius-puglin/model.glb",
+    "sourcePath": "assets/imported/quaternius/bestiary-dungeon-monsters-kit/Bestiary - Dungeon Monsters Kit[Standard]/Exports/GLB (Godot-Unreal)/Puglin.glb",
+    "provenanceId": "file-46e3455b02267fd3",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_small",
+    "tags": [
+      "monster",
+      "puglin"
+    ],
+    "limitations": [
+      "Puglin source reference, not an approved Torn Veil goblin"
+    ],
+    "lods": []
+  },
+  {
+    "id": "quaternius-ual",
+    "provider": "quaternius",
+    "kind": "animation",
+    "url": "/assets/library/quaternius-ual/model.glb",
+    "sourcePath": "assets/imported/quaternius/universal-animation-library/Universal Animation Library[Standard]/Unreal-Godot/UAL1_Standard.glb",
+    "provenanceId": "file-43f48976aef0f58f",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_standard",
+    "tags": [
+      "animation",
+      "humanoid"
+    ],
+    "limitations": [
+      "Animation demonstration mannequin; retargeting not yet verified"
+    ],
+    "lods": []
+  },
+  {
+    "id": "processed-human_001-4648fa49",
+    "provider": "generated",
+    "kind": "body",
+    "url": "/assets/entities/human_001-4648fa49.glb",
+    "sourcePath": "public/assets/entities/human_001-4648fa49.glb",
+    "provenanceId": "derived-human_001-4648fa49",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_standard",
+    "tags": [
+      "human",
+      "base",
+      "blender-roundtrip"
+    ],
+    "limitations": [
+      "Source superhero proportions; sex/age/morph variants not applied",
+      "Processed asset; visual approval pending"
+    ],
+    "lods": []
+  },
+  {
+    "id": "tv-human-male-v1",
+    "provider": "mpfb",
+    "kind": "body",
+    "url": "/assets/entities/tv-human-male-v1.glb",
+    "sourcePath": "public/assets/entities/tv-human-male-v1.glb",
+    "provenanceId": "tv-human-male-v1-provenance",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_standard",
+    "nativeHeightM": 1.8,
+    "tags": [
+      "human",
+      "male",
+      "reference-guided",
+      "plain-clothing",
+      "mpfb-game_engine"
+    ],
+    "limitations": [
+      "Reference-match incomplete: modern shirt collar and trouser cut",
+      "Source hair silhouette differs from Omni/Kestrel",
+      "Shared locomotion retarget pending; rig implementation mpfb-game_engine is not Quaternius-compatible",
+      "Clothing fitted with MHCLO interpolation; motion deformation review pending",
+      "Face identity and population variations not yet authored",
+      "Numeric proportion targets not yet measured against mesh"
+    ],
+    "lods": []
+  },
+  {
+    "id": "tv-human-female-v1",
+    "provider": "mpfb",
+    "kind": "body",
+    "url": "/assets/entities/tv-human-female-v1.glb",
+    "sourcePath": "public/assets/entities/tv-human-female-v1.glb",
+    "provenanceId": "tv-human-female-v1-provenance",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_standard",
+    "nativeHeightM": 1.73,
+    "tags": [
+      "human",
+      "female",
+      "reference-guided",
+      "plain-clothing",
+      "mpfb-game_engine"
+    ],
+    "limitations": [
+      "Reference-match incomplete: modern shirt collar and trouser cut",
+      "Source hair silhouette differs from Omni/Kestrel",
+      "Shared locomotion retarget pending; rig implementation mpfb-game_engine is not Quaternius-compatible",
+      "Clothing fitted with MHCLO interpolation; motion deformation review pending",
+      "Face identity and population variations not yet authored",
+      "Numeric proportion targets not yet measured against mesh"
+    ],
+    "lods": []
+  },
+  {
+    "id": "tv-human-male-v2",
+    "provider": "mpfb",
+    "kind": "body",
+    "url": "/assets/entities/tv-human-male-v2.glb",
+    "sourcePath": "public/assets/entities/tv-human-male-v2.glb",
+    "provenanceId": "tv-human-male-v2-provenance",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_standard",
+    "nativeHeightM": 1.8,
+    "tags": [
+      "human",
+      "male",
+      "reference-guided",
+      "plain-clothing",
+      "mpfb-game_engine",
+      "omni-v2",
+      "jaw-morph",
+      "seeded-materials"
+    ],
+    "limitations": [
+      "Omni likeness and hair detail remain incomplete",
+      "Prototype collar/cuffs and boot construction need art review",
+      "UAL idle/walk retarget study; foot contact and deformation not approved",
+      "Culture/profession/equipment assembly unresolved"
+    ],
+    "lods": []
+  },
+  {
+    "id": "shared-ranger",
+    "provider": "mpfb",
+    "kind": "body",
+    "url": "/assets/shared/arena/people/hero.glb",
+    "sourcePath": "web/public/arena/people/hero.glb",
+    "provenanceId": "shared-ranger",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_standard",
+    "tags": [
+      "shared",
+      "claude-cast"
+    ],
+    "limitations": [
+      "Existing authored cast identity; not a new reference-approved Omni likeness",
+      "CC0 base and credited CC-BY clothing; see game web/public/arena/people/CREDITS.md"
+    ],
+    "lods": []
+  },
+  {
+    "id": "shared-brann",
+    "provider": "mpfb",
+    "kind": "body",
+    "url": "/assets/shared/arena/people/brann.glb",
+    "sourcePath": "web/public/arena/people/brann.glb",
+    "provenanceId": "shared-brann",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_standard",
+    "tags": [
+      "shared",
+      "claude-cast"
+    ],
+    "limitations": [
+      "Existing authored cast identity; not a new reference-approved Omni likeness",
+      "CC0 base and credited CC-BY clothing; see game web/public/arena/people/CREDITS.md"
+    ],
+    "lods": []
+  },
+  {
+    "id": "shared-wren",
+    "provider": "mpfb",
+    "kind": "body",
+    "url": "/assets/shared/arena/people/wren.glb",
+    "sourcePath": "web/public/arena/people/wren.glb",
+    "provenanceId": "shared-wren",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_standard",
+    "tags": [
+      "shared",
+      "claude-cast"
+    ],
+    "limitations": [
+      "Existing authored cast identity; not a new reference-approved Omni likeness",
+      "CC0 base and credited CC-BY clothing; see game web/public/arena/people/CREDITS.md"
+    ],
+    "lods": []
+  },
+  {
+    "id": "shared-raider",
+    "provider": "mpfb",
+    "kind": "body",
+    "url": "/assets/shared/arena/people/raider.glb",
+    "sourcePath": "web/public/arena/people/raider.glb",
+    "provenanceId": "shared-raider",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_standard",
+    "tags": [
+      "shared",
+      "claude-cast"
+    ],
+    "limitations": [
+      "Existing authored cast identity; not a new reference-approved Omni likeness",
+      "CC0 base and credited CC-BY clothing; see game web/public/arena/people/CREDITS.md"
+    ],
+    "lods": []
+  },
+  {
+    "id": "shared-raider_f",
+    "provider": "mpfb",
+    "kind": "body",
+    "url": "/assets/shared/arena/people/raider_f.glb",
+    "sourcePath": "web/public/arena/people/raider_f.glb",
+    "provenanceId": "shared-raider_f",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_standard",
+    "tags": [
+      "shared",
+      "claude-cast"
+    ],
+    "limitations": [
+      "Existing authored cast identity; not a new reference-approved Omni likeness",
+      "CC0 base and credited CC-BY clothing; see game web/public/arena/people/CREDITS.md"
+    ],
+    "lods": []
+  },
+  {
+    "id": "shared-soldier",
+    "provider": "mpfb",
+    "kind": "body",
+    "url": "/assets/shared/arena/people/soldier.glb",
+    "sourcePath": "web/public/arena/people/soldier.glb",
+    "provenanceId": "shared-soldier",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_standard",
+    "tags": [
+      "shared",
+      "claude-cast"
+    ],
+    "limitations": [
+      "Existing authored cast identity; not a new reference-approved Omni likeness",
+      "CC0 base and credited CC-BY clothing; see game web/public/arena/people/CREDITS.md"
+    ],
+    "lods": []
+  },
+  {
+    "id": "shared-knight",
+    "provider": "mpfb",
+    "kind": "body",
+    "url": "/assets/shared/arena/people/knight.glb",
+    "sourcePath": "web/public/arena/people/knight.glb",
+    "provenanceId": "shared-knight",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_standard",
+    "tags": [
+      "shared",
+      "claude-cast"
+    ],
+    "limitations": [
+      "Existing authored cast identity; not a new reference-approved Omni likeness",
+      "CC0 base and credited CC-BY clothing; see game web/public/arena/people/CREDITS.md"
+    ],
+    "lods": []
+  },
+  {
+    "id": "shared-archer",
+    "provider": "mpfb",
+    "kind": "body",
+    "url": "/assets/shared/arena/people/archer.glb",
+    "sourcePath": "web/public/arena/people/archer.glb",
+    "provenanceId": "shared-archer",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_standard",
+    "tags": [
+      "shared",
+      "claude-cast"
+    ],
+    "limitations": [
+      "Existing authored cast identity; not a new reference-approved Omni likeness",
+      "CC0 base and credited CC-BY clothing; see game web/public/arena/people/CREDITS.md"
+    ],
+    "lods": []
+  },
+  {
+    "id": "shared-mystic",
+    "provider": "mpfb",
+    "kind": "body",
+    "url": "/assets/shared/arena/people/mystic.glb",
+    "sourcePath": "web/public/arena/people/mystic.glb",
+    "provenanceId": "shared-mystic",
+    "status": "PROTOTYPE",
+    "rigFamily": "humanoid_standard",
+    "tags": [
+      "shared",
+      "claude-cast"
+    ],
+    "limitations": [
+      "Existing authored cast identity; not a new reference-approved Omni likeness",
+      "CC0 base and credited CC-BY clothing; see game web/public/arena/people/CREDITS.md"
+    ],
+    "lods": []
+  }
+]

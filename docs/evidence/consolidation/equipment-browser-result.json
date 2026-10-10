@@ -1,0 +1,881 @@
+{
+  "checks": [
+    "shared human casts retain six canonical identities",
+    "inventory UI equip seven catalog pieces",
+    "seven rendered socket/bone attachments",
+    "UI unequip clears canonical bindings and rendered attachments"
+  ],
+  "initial": {
+    "phase": "playing",
+    "shared": true,
+    "characters": [
+      {
+        "sharedLook": "soldier",
+        "bodyId": "b_2",
+        "sex": "m"
+      },
+      {
+        "sharedLook": "raider_f",
+        "bodyId": "b_3",
+        "sex": "f"
+      },
+      {
+        "sharedLook": "mystic",
+        "bodyId": "b_4",
+        "sex": "m"
+      },
+      {
+        "sharedLook": "raider_f",
+        "bodyId": "b_5",
+        "sex": "f"
+      },
+      {
+        "sharedLook": "brann",
+        "bodyId": "b_6",
+        "sex": "m"
+      },
+      {
+        "sharedLook": "raider_f",
+        "bodyId": "b_1",
+        "sex": "f"
+      }
+    ],
+    "body": {
+      "presentationSex": "f",
+      "equipment": [],
+      "bodyId": "b_1",
+      "entityId": "p_1",
+      "name": "Gym traveler",
+      "pos": {
+        "x": 29,
+        "y": 1,
+        "z": 32
+      },
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "yaw": -1.5707963267948966,
+      "crouch": 0,
+      "pose": "stand",
+      "activity": "stand",
+      "speed": 0,
+      "attackSeq": 0,
+      "hitSeq": 0,
+      "lastAttackAt": -99,
+      "lastHitAt": -99,
+      "dead": false,
+      "incapacitated": false,
+      "appearance": {
+        "skin": 7028522,
+        "hair": 4861722,
+        "shirt": 3429495,
+        "pants": 6970442,
+        "height": 1.04,
+        "build": 0.87,
+        "hatStyle": "none",
+        "description": {
+          "archetype": "ayami",
+          "culture": "ashford",
+          "presentation": "feminine",
+          "skinTone": "deep",
+          "faceShape": "oval",
+          "hairStyle": "braided",
+          "hairColor": "brown",
+          "eyeColor": "hazel",
+          "frame": "slight",
+          "stature": "above_average",
+          "garmentSilhouette": "dancer_wrap",
+          "garmentPalette": "temple_slate",
+          "accessories": [
+            "gold_filigree",
+            "ear_drops"
+          ],
+          "culturalTags": [
+            "ashford",
+            "travelling_troupe",
+            "gold_ornament"
+          ],
+          "grooming": 0.618159816134721,
+          "wear": 0.36402444604784245,
+          "status": "modest",
+          "agePresentation": "young_adult",
+          "roleCues": [
+            "travel_pack"
+          ]
+        }
+      },
+      "combatAction": null,
+      "guarding": false,
+      "embodiment": {
+        "appearanceSignature": "1y2kla8",
+        "appearance": {
+          "personId": "p_1",
+          "bodyId": "b_1",
+          "description": {
+            "archetype": "ayami",
+            "culture": "ashford",
+            "presentation": "feminine",
+            "skinTone": "deep",
+            "faceShape": "oval",
+            "hairStyle": "braided",
+            "hairColor": "brown",
+            "eyeColor": "hazel",
+            "frame": "slight",
+            "stature": "above_average",
+            "garmentSilhouette": "dancer_wrap",
+            "garmentPalette": "temple_slate",
+            "accessories": [
+              "gold_filigree",
+              "ear_drops"
+            ],
+            "culturalTags": [
+              "ashford",
+              "travelling_troupe",
+              "gold_ornament"
+            ],
+            "grooming": 0.618159816134721,
+            "wear": 0.36402444604784245,
+            "status": "modest",
+            "agePresentation": "young_adult",
+            "roleCues": [
+              "travel_pack"
+            ]
+          },
+          "realization": {
+            "entityId": "p_1",
+            "slots": [],
+            "morphs": {},
+            "scale": {
+              "height": 1.04,
+              "build": 0.87
+            },
+            "materials": {
+              "skin": 7028522,
+              "hair": 4861722,
+              "garmentPrimary": 3429495,
+              "garmentSecondary": 6970442,
+              "garmentAccent": 11575408,
+              "wear": 0.36402444604784245,
+              "grooming": 0.618159816134721
+            },
+            "problems": [
+              {
+                "kind": "no-catalogue",
+                "slot": "body",
+                "wanted": [],
+                "detail": "no character catalogue on this machine; presentation falls back to the base mannequin and canonical tints"
+              }
+            ],
+            "complete": false
+          },
+          "signature": "1y2kla8"
+        },
+        "activity": {
+          "speed": 0,
+          "placeId": null,
+          "facingEntityId": null,
+          "targetPos": null,
+          "carried": "sword",
+          "injury": {
+            "impaired": false,
+            "severity": 0,
+            "movementMultiplier": 0.993928
+          },
+          "evidence": {
+            "pose": "stand",
+            "action": null,
+            "goal": null
+          },
+          "family": "idle",
+          "detail": "idle",
+          "posture": "stand",
+          "locomotion": "idle",
+          "station": null
+        },
+        "station": null,
+        "conversation": null,
+        "separation": {
+          "x": 0,
+          "z": 0
+        }
+      },
+      "alive": true,
+      "speech": "",
+      "inventory": [
+        {
+          "id": "i_1",
+          "name": "Avar Thren — Founder Longsword",
+          "type": "sword",
+          "quantity": 1
+        },
+        {
+          "id": "i_2",
+          "name": "Forester Hatchet",
+          "type": "axe",
+          "quantity": 1
+        },
+        {
+          "id": "i_3",
+          "name": "Round Watch",
+          "type": "armor",
+          "quantity": 1
+        },
+        {
+          "id": "i_4",
+          "name": "Road Sallet",
+          "type": "armor",
+          "quantity": 1
+        },
+        {
+          "id": "i_5",
+          "name": "Scout Mantle",
+          "type": "armor",
+          "quantity": 1
+        },
+        {
+          "id": "i_6",
+          "name": "Road Cuff",
+          "type": "armor",
+          "quantity": 1
+        },
+        {
+          "id": "i_7",
+          "name": "Road Shin",
+          "type": "armor",
+          "quantity": 1
+        },
+        {
+          "id": "i_8",
+          "name": "Roadplate",
+          "type": "armor",
+          "quantity": 1
+        }
+      ],
+      "health": 80,
+      "maxHealth": 80,
+      "needs": {
+        "hunger": 0.3,
+        "energy": 0.2,
+        "social": 0.3,
+        "comfort": 0.2,
+        "thirst": 0.25
+      },
+      "wealth": 20
+    }
+  },
+  "equipped": {
+    "presentationSex": "f",
+    "equipment": [
+      {
+        "id": "i_1",
+        "catalogId": "TV-010",
+        "type": "sword",
+        "slot": "right-hand"
+      },
+      {
+        "id": "i_3",
+        "catalogId": "TV-081",
+        "type": "armor",
+        "slot": "left-hand"
+      },
+      {
+        "id": "i_4",
+        "catalogId": "TV-091",
+        "type": "armor",
+        "slot": "head"
+      },
+      {
+        "id": "i_5",
+        "catalogId": "TV-101",
+        "type": "armor",
+        "slot": "left-shoulder"
+      },
+      {
+        "id": "i_6",
+        "catalogId": "TV-111",
+        "type": "armor",
+        "slot": "left-forearm"
+      },
+      {
+        "id": "i_7",
+        "catalogId": "TV-121",
+        "type": "armor",
+        "slot": "left-shin"
+      },
+      {
+        "id": "i_8",
+        "catalogId": "TV-131",
+        "type": "armor",
+        "slot": "torso"
+      }
+    ],
+    "bodyId": "b_1",
+    "entityId": "p_1",
+    "name": "Gym traveler",
+    "pos": {
+      "x": 29,
+      "y": 1,
+      "z": 32
+    },
+    "velocity": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "yaw": -1.5707963267948966,
+    "crouch": 0,
+    "pose": "stand",
+    "activity": "stand",
+    "speed": 0,
+    "attackSeq": 0,
+    "hitSeq": 0,
+    "lastAttackAt": -99,
+    "lastHitAt": -99,
+    "dead": false,
+    "incapacitated": false,
+    "appearance": {
+      "skin": 7028522,
+      "hair": 4861722,
+      "shirt": 3429495,
+      "pants": 6970442,
+      "height": 1.04,
+      "build": 0.87,
+      "hatStyle": "none",
+      "description": {
+        "archetype": "ayami",
+        "culture": "ashford",
+        "presentation": "feminine",
+        "skinTone": "deep",
+        "faceShape": "oval",
+        "hairStyle": "braided",
+        "hairColor": "brown",
+        "eyeColor": "hazel",
+        "frame": "slight",
+        "stature": "above_average",
+        "garmentSilhouette": "dancer_wrap",
+        "garmentPalette": "temple_slate",
+        "accessories": [
+          "gold_filigree",
+          "ear_drops"
+        ],
+        "culturalTags": [
+          "ashford",
+          "travelling_troupe",
+          "gold_ornament"
+        ],
+        "grooming": 0.618159816134721,
+        "wear": 0.36402444604784245,
+        "status": "modest",
+        "agePresentation": "young_adult",
+        "roleCues": [
+          "travel_pack"
+        ]
+      }
+    },
+    "combatAction": null,
+    "guarding": false,
+    "embodiment": {
+      "appearanceSignature": "1y2kla8",
+      "activity": {
+        "speed": 0,
+        "placeId": null,
+        "facingEntityId": null,
+        "targetPos": null,
+        "carried": "sword",
+        "injury": {
+          "impaired": false,
+          "severity": 0,
+          "movementMultiplier": 0.994175476
+        },
+        "evidence": {
+          "pose": "stand",
+          "action": null,
+          "goal": null
+        },
+        "family": "idle",
+        "detail": "idle",
+        "posture": "stand",
+        "locomotion": "idle",
+        "station": null
+      },
+      "station": null,
+      "conversation": null,
+      "separation": {
+        "x": 0,
+        "z": 0
+      }
+    },
+    "alive": true,
+    "speech": "",
+    "inventory": [
+      {
+        "id": "i_1",
+        "name": "Avar Thren — Founder Longsword",
+        "type": "sword",
+        "quantity": 1
+      },
+      {
+        "id": "i_2",
+        "name": "Forester Hatchet",
+        "type": "axe",
+        "quantity": 1
+      },
+      {
+        "id": "i_3",
+        "name": "Round Watch",
+        "type": "armor",
+        "quantity": 1
+      },
+      {
+        "id": "i_4",
+        "name": "Road Sallet",
+        "type": "armor",
+        "quantity": 1
+      },
+      {
+        "id": "i_5",
+        "name": "Scout Mantle",
+        "type": "armor",
+        "quantity": 1
+      },
+      {
+        "id": "i_6",
+        "name": "Road Cuff",
+        "type": "armor",
+        "quantity": 1
+      },
+      {
+        "id": "i_7",
+        "name": "Road Shin",
+        "type": "armor",
+        "quantity": 1
+      },
+      {
+        "id": "i_8",
+        "name": "Roadplate",
+        "type": "armor",
+        "quantity": 1
+      }
+    ],
+    "health": 80,
+    "maxHealth": 80,
+    "needs": {
+      "hunger": 0.20079365079365075,
+      "energy": 0.054881469907407415,
+      "social": 0.30133333333333334,
+      "comfort": 0,
+      "thirst": 0.20151515151515142
+    },
+    "wealth": 20
+  },
+  "geometry": [
+    {
+      "name": "TV-010 Avar Thren — Founder Longsword_primitive0",
+      "parent": "equipment:TV-010",
+      "bone": "h7.slot.hand_r",
+      "min": [
+        28.893492373490528,
+        1.8518542561219402,
+        31.42502219055251
+      ],
+      "max": [
+        29.03569586333161,
+        2.1341839577875037,
+        31.592173614565034
+      ]
+    },
+    {
+      "name": "TV-010 Avar Thren — Founder Longsword_primitive1",
+      "parent": "equipment:TV-010",
+      "bone": "h7.slot.hand_r",
+      "min": [
+        28.615256746067363,
+        1.8170088355858995,
+        31.05559227837989
+      ],
+      "max": [
+        29.04856809767826,
+        2.9429676888082534,
+        31.605830692681288
+      ]
+    },
+    {
+      "name": "TV-010 Avar Thren — Founder Longsword_primitive2",
+      "parent": "equipment:TV-010",
+      "bone": "h7.slot.hand_r",
+      "min": [
+        28.836507325017966,
+        1.7865996590125928,
+        31.347152418763933
+      ],
+      "max": [
+        29.05929974225457,
+        2.1739276762632382,
+        31.611421014092407
+      ]
+    },
+    {
+      "name": "TV-010 Avar Thren — Founder Longsword_primitive3",
+      "parent": "equipment:TV-010",
+      "bone": "h7.slot.hand_r",
+      "min": [
+        28.553327956761933,
+        1.7218290195905466,
+        30.973366857696323
+      ],
+      "max": [
+        29.128059954363458,
+        3.122469800412534,
+        31.70992791288507
+      ]
+    },
+    {
+      "name": "TV-010 Avar Thren — Founder Longsword_primitive4",
+      "parent": "equipment:TV-010",
+      "bone": "h7.slot.hand_r",
+      "min": [
+        28.656935923747703,
+        2.07546020556903,
+        31.04104769059979
+      ],
+      "max": [
+        29.03077416703731,
+        2.9505009919578353,
+        31.5261836280051
+      ]
+    },
+    {
+      "name": "TV-010 Avar Thren — Founder Longsword_primitive5",
+      "parent": "equipment:TV-010",
+      "bone": "h7.slot.hand_r",
+      "min": [
+        28.740935989907882,
+        2.127628970529972,
+        31.186671237360798
+      ],
+      "max": [
+        28.98872602467664,
+        2.501437713464907,
+        31.479518958365198
+      ]
+    },
+    {
+      "name": "TV-010 Avar Thren — Founder Longsword_primitive6",
+      "parent": "equipment:TV-010",
+      "bone": "h7.slot.hand_r",
+      "min": [
+        28.85679310608064,
+        2.1303177808020353,
+        31.274219890151997
+      ],
+      "max": [
+        28.978534669716325,
+        2.322078214876898,
+        31.418492620158098
+      ]
+    },
+    {
+      "name": "TV-010 Avar Thren — Founder Longsword_primitive7",
+      "parent": "equipment:TV-010",
+      "bone": "h7.slot.hand_r",
+      "min": [
+        28.8504273611354,
+        2.2786646633454475,
+        31.24514626015798
+      ],
+      "max": [
+        28.919358276920264,
+        2.440651233206421,
+        31.334822933692415
+      ]
+    },
+    {
+      "name": "TV-081 Round Watch_primitive0",
+      "parent": "equipment:TV-081",
+      "bone": "h7.slot.hand_l",
+      "min": [
+        28.186929069547606,
+        1.7713160832705577,
+        31.39544475198835
+      ],
+      "max": [
+        28.689260060837853,
+        2.537327543375735,
+        31.983376496386757
+      ]
+    },
+    {
+      "name": "TV-081 Round Watch_primitive1",
+      "parent": "equipment:TV-081",
+      "bone": "h7.slot.hand_l",
+      "min": [
+        28.21655634767517,
+        1.7746803927686017,
+        31.37951512863439
+      ],
+      "max": [
+        28.703527449644422,
+        2.55444449117498,
+        31.980389947925396
+      ]
+    },
+    {
+      "name": "TV-081 Round Watch_primitive2",
+      "parent": "equipment:TV-081",
+      "bone": "h7.slot.hand_l",
+      "min": [
+        28.432838415821685,
+        2.149350690044697,
+        31.642607269397974
+      ],
+      "max": [
+        28.499061274883278,
+        2.2295351800495196,
+        31.696126668901705
+      ]
+    },
+    {
+      "name": "TV-081 Round Watch_primitive3",
+      "parent": "equipment:TV-081",
+      "bone": "h7.slot.hand_l",
+      "min": [
+        28.35285979514237,
+        1.9750539660935749,
+        31.635931448506998
+      ],
+      "max": [
+        28.489485392024438,
+        2.0978314117714114,
+        31.837408311346717
+      ]
+    },
+    {
+      "name": "TV-091 female fitted Helmets",
+      "parent": "equipment:TV-091",
+      "bone": "h7.head",
+      "min": [
+        28.624127106403144,
+        2.072111301441751,
+        31.681300441941158
+      ],
+      "max": [
+        28.976858906988138,
+        2.379137703475184,
+        31.951513586561425
+      ]
+    },
+    {
+      "name": "TV-101 female articulated paired Pauldrons_primitive0",
+      "parent": "equipment:TV-101",
+      "bone": "h7.upperarm_l",
+      "min": [
+        28.546369451654442,
+        1.51691824611229,
+        31.473586243482877
+      ],
+      "max": [
+        29.391252399320376,
+        2.417220658089903,
+        32.301494956359576
+      ]
+    },
+    {
+      "name": "TV-101 female articulated paired Pauldrons_primitive1",
+      "parent": "equipment:TV-101",
+      "bone": "h7.upperarm_l",
+      "min": [
+        28.543756583014222,
+        1.520826003074788,
+        31.47157796304054
+      ],
+      "max": [
+        29.392124076138362,
+        2.4234592557680665,
+        32.30324898176042
+      ]
+    },
+    {
+      "name": "TV-101 female articulated paired Pauldrons_primitive2",
+      "parent": "equipment:TV-101",
+      "bone": "h7.upperarm_l",
+      "min": [
+        28.64474858522129,
+        1.7705493478439704,
+        31.603409819690466
+      ],
+      "max": [
+        29.21986694472089,
+        2.368686252655375,
+        32.17469219551288
+      ]
+    },
+    {
+      "name": "TV-101 female articulated paired Pauldrons_primitive3",
+      "parent": "equipment:TV-101",
+      "bone": "h7.upperarm_l",
+      "min": [
+        28.660783190613998,
+        1.829580839468059,
+        31.625391077400256
+      ],
+      "max": [
+        29.187160089434226,
+        2.3707756418893644,
+        32.151885593078184
+      ]
+    },
+    {
+      "name": "TV-111 female fitted Bracers_primitive0",
+      "parent": "equipment:TV-111",
+      "bone": "h7.lowerarm_l",
+      "min": [
+        28.553846243090817,
+        1.4725585846321652,
+        31.39594120724902
+      ],
+      "max": [
+        29.54486141182886,
+        2.7212477660419587,
+        32.52882687741822
+      ]
+    },
+    {
+      "name": "TV-111 female fitted Bracers_primitive1",
+      "parent": "equipment:TV-111",
+      "bone": "h7.lowerarm_l",
+      "min": [
+        28.560236862891053,
+        1.4903110649805233,
+        31.41759714875263
+      ],
+      "max": [
+        29.525196982977064,
+        2.6989269478299587,
+        32.513504306698756
+      ]
+    },
+    {
+      "name": "TV-111 female fitted Bracers_primitive2",
+      "parent": "equipment:TV-111",
+      "bone": "h7.lowerarm_l",
+      "min": [
+        28.634760073337524,
+        1.5345333335839249,
+        31.438898390814035
+      ],
+      "max": [
+        29.48833831434677,
+        2.617340824120168,
+        32.42158025909319
+      ]
+    },
+    {
+      "name": "TV-121 female fitted Greaves_primitive0",
+      "parent": "equipment:TV-121",
+      "bone": "h7.calf_l",
+      "min": [
+        28.492643259290535,
+        1.0529588164264987,
+        31.757158930028258
+      ],
+      "max": [
+        28.755001865885195,
+        1.4967954457836012,
+        32.21879254888277
+      ]
+    },
+    {
+      "name": "TV-121 female fitted Greaves_primitive1",
+      "parent": "equipment:TV-121",
+      "bone": "h7.calf_l",
+      "min": [
+        28.495325249703313,
+        1.06434556644319,
+        31.764817920960066
+      ],
+      "max": [
+        28.64144021460124,
+        1.5166779297065105,
+        32.16531938909312
+      ]
+    },
+    {
+      "name": "TV-121 female fitted Greaves_primitive2",
+      "parent": "equipment:TV-121",
+      "bone": "h7.calf_l",
+      "min": [
+        28.51102551998603,
+        1.0756758265418762,
+        31.82759521129862
+      ],
+      "max": [
+        28.750606924881524,
+        1.169562287111369,
+        32.21025158271007
+      ]
+    },
+    {
+      "name": "TV-131 female fitted Cuirasses_primitive0",
+      "parent": "equipment:TV-131",
+      "bone": "h7.spine_03",
+      "min": [
+        28.673857823663642,
+        1.5889719959508162,
+        31.652401326852956
+      ],
+      "max": [
+        29.215555845793073,
+        2.102748136425303,
+        32.212829501013196
+      ]
+    },
+    {
+      "name": "TV-131 female fitted Cuirasses_primitive1",
+      "parent": "equipment:TV-131",
+      "bone": "h7.spine_03",
+      "min": [
+        28.697492500127368,
+        1.594340334194522,
+        31.676286947393532
+      ],
+      "max": [
+        29.06521545153097,
+        2.0265664170235596,
+        32.07500367443906
+      ]
+    },
+    {
+      "name": "TV-131 female fitted Cuirasses_primitive2",
+      "parent": "equipment:TV-131",
+      "bone": "h7.spine_03",
+      "min": [
+        28.714121690550975,
+        1.6147233748156542,
+        31.69741390919151
+      ],
+      "max": [
+        29.025900363569804,
+        1.9602869619717525,
+        32.03512139311654
+      ]
+    },
+    {
+      "name": "TV-131 female fitted Cuirasses_primitive3",
+      "parent": "equipment:TV-131",
+      "bone": "h7.spine_03",
+      "min": [
+        28.822472325228965,
+        1.828182938480234,
+        31.816844789121227
+      ],
+      "max": [
+        28.863449898248195,
+        1.8819248948826113,
+        31.858853675203246
+      ]
+    }
+  ],
+  "errors": []
+}

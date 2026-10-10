@@ -1,0 +1,26 @@
+[
+  {
+    "id": "warrior",
+    "visualRequirements": [
+      "Author warrior visual rules"
+    ]
+  },
+  {
+    "id": "mage",
+    "visualRequirements": [
+      "Author mage visual rules"
+    ]
+  },
+  {
+    "id": "ranger",
+    "visualRequirements": [
+      "Author ranger visual rules"
+    ]
+  },
+  {
+    "id": "paladin",
+    "visualRequirements": [
+      "Author paladin visual rules"
+    ]
+  }
+]

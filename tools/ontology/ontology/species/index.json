@@ -1,0 +1,170 @@
+[
+  {
+    "id": "human",
+    "name": "Human",
+    "archetype": "humanoid_standard",
+    "rigFamily": "humanoid_standard",
+    "defaultHeightM": 1.75,
+    "headFamily": "human:head",
+    "features": [],
+    "materialFamily": "human:surface",
+    "bodyAssetId": "quaternius-human",
+    "requirements": [
+      "Torn Veil art direction review"
+    ]
+  },
+  {
+    "id": "elf",
+    "name": "Elf",
+    "archetype": "humanoid_standard",
+    "rigFamily": "humanoid_standard",
+    "defaultHeightM": 1.85,
+    "headFamily": "elf:head",
+    "features": [
+      "pointed_ears"
+    ],
+    "materialFamily": "elf:surface",
+    "requirements": [
+      "Torn Veil art direction review",
+      "Species silhouette and components: elf"
+    ]
+  },
+  {
+    "id": "dwarf",
+    "name": "Dwarf",
+    "archetype": "dwarf_humanoid",
+    "rigFamily": "humanoid_small",
+    "defaultHeightM": 1.35,
+    "headFamily": "dwarf:head",
+    "features": [],
+    "materialFamily": "dwarf:surface",
+    "requirements": [
+      "Torn Veil art direction review",
+      "Species silhouette and components: dwarf"
+    ]
+  },
+  {
+    "id": "orc",
+    "name": "Orc",
+    "archetype": "humanoid_heavy",
+    "rigFamily": "humanoid_large",
+    "defaultHeightM": 2.05,
+    "headFamily": "orc:head",
+    "features": [
+      "tusks"
+    ],
+    "materialFamily": "orc:surface",
+    "requirements": [
+      "Torn Veil art direction review",
+      "Species silhouette and components: orc"
+    ]
+  },
+  {
+    "id": "goblin",
+    "name": "Goblin",
+    "archetype": "humanoid_small",
+    "rigFamily": "humanoid_small",
+    "defaultHeightM": 1.15,
+    "headFamily": "goblin:head",
+    "features": [],
+    "materialFamily": "goblin:surface",
+    "requirements": [
+      "Torn Veil art direction review",
+      "Species silhouette and components: goblin"
+    ]
+  },
+  {
+    "id": "wolfkin",
+    "name": "Wolfkin",
+    "archetype": "beast_humanoid",
+    "rigFamily": "humanoid_standard",
+    "defaultHeightM": 1.9,
+    "headFamily": "wolfkin:head",
+    "features": [
+      "muzzle",
+      "fur",
+      "tail"
+    ],
+    "materialFamily": "wolfkin:surface",
+    "requirements": [
+      "Torn Veil art direction review",
+      "Species silhouette and components: wolfkin"
+    ]
+  },
+  {
+    "id": "skeleton",
+    "name": "Skeleton",
+    "archetype": "skeletal",
+    "rigFamily": "humanoid_standard",
+    "defaultHeightM": 1.75,
+    "headFamily": "skeleton:head",
+    "features": [
+      "exposed_bones"
+    ],
+    "materialFamily": "skeleton:surface",
+    "requirements": [
+      "Torn Veil art direction review",
+      "Species silhouette and components: skeleton"
+    ]
+  },
+  {
+    "id": "golem",
+    "name": "Golem",
+    "archetype": "construct",
+    "rigFamily": "construct",
+    "defaultHeightM": 2.7,
+    "headFamily": "golem:head",
+    "features": [],
+    "materialFamily": "golem:surface",
+    "requirements": [
+      "Torn Veil art direction review",
+      "Species silhouette and components: golem"
+    ]
+  },
+  {
+    "id": "slime",
+    "name": "Slime",
+    "archetype": "amorphous",
+    "rigFamily": "amorphous",
+    "defaultHeightM": 0.8,
+    "headFamily": "slime:head",
+    "features": [],
+    "materialFamily": "slime:surface",
+    "requirements": [
+      "Torn Veil art direction review",
+      "Species silhouette and components: slime"
+    ]
+  },
+  {
+    "id": "dragon",
+    "name": "Dragon",
+    "archetype": "dragon",
+    "rigFamily": "dragon",
+    "defaultHeightM": 3.5,
+    "headFamily": "dragon:head",
+    "features": [
+      "wings",
+      "scales",
+      "tail"
+    ],
+    "materialFamily": "dragon:surface",
+    "requirements": [
+      "Torn Veil art direction review",
+      "Species silhouette and components: dragon"
+    ]
+  },
+  {
+    "id": "android",
+    "name": "Android",
+    "archetype": "construct",
+    "rigFamily": "humanoid_standard",
+    "defaultHeightM": 1.8,
+    "headFamily": "android:head",
+    "features": [],
+    "materialFamily": "android:surface",
+    "requirements": [
+      "Torn Veil art direction review",
+      "Species silhouette and components: android"
+    ]
+  }
+]

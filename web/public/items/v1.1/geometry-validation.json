@@ -1,0 +1,4682 @@
+[
+  {
+    "id": "TV-001",
+    "vertices": 458,
+    "faces": 315,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.26,
+      "depth": 0.069,
+      "height": 1.14
+    },
+    "fingerprint": "39f8f0564775c5a9925f1fd1dc46a89b1e9027053ef01008ad24beb0cf678e76"
+  },
+  {
+    "id": "TV-002",
+    "vertices": 562,
+    "faces": 415,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.26,
+      "depth": 0.069,
+      "height": 1.1505
+    },
+    "fingerprint": "375d9e2404db4a86b8314636885985bb5c54233aca29fa208e460a7ceef2f41e"
+  },
+  {
+    "id": "TV-003",
+    "vertices": 474,
+    "faces": 329,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2704,
+      "depth": 0.074,
+      "height": 1.178
+    },
+    "fingerprint": "4c1c81ad54900736ba5608cd7a572c9852644f2c911728fc22cb59251fc78c1e"
+  },
+  {
+    "id": "TV-004",
+    "vertices": 460,
+    "faces": 318,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.26,
+      "depth": 0.069,
+      "height": 1.215
+    },
+    "fingerprint": "71e54d2061f132c0817be1dc929d279a68e7ed77832eaf2e19f654939849ec86"
+  },
+  {
+    "id": "TV-005",
+    "vertices": 612,
+    "faces": 450,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.26,
+      "depth": 0.0789,
+      "height": 1.2255
+    },
+    "fingerprint": "e8249d45b642055283df8cd167309834fed2ac8410be083ef972a172920634d2"
+  },
+  {
+    "id": "TV-006",
+    "vertices": 518,
+    "faces": 355,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.3952,
+      "depth": 0.0839,
+      "height": 1.8205
+    },
+    "fingerprint": "f32bc546c11b47ae0fc7547ca39ec849f37e888a73356685332a04eae5343d3d"
+  },
+  {
+    "id": "TV-007",
+    "vertices": 564,
+    "faces": 388,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.26,
+      "depth": 0.0789,
+      "height": 1.29
+    },
+    "fingerprint": "ef1916eeb0b405ac7dae0c16f486444b9e25ea6cf79dbd9afc6cf9e0416d4a0f"
+  },
+  {
+    "id": "TV-008",
+    "vertices": 786,
+    "faces": 577,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.26,
+      "depth": 0.0824,
+      "height": 1.3005
+    },
+    "fingerprint": "a6d3d18943e4e4893770c4e962f232f1b1f16e0f135df538f5d859157a84b5c2"
+  },
+  {
+    "id": "TV-009",
+    "vertices": 656,
+    "faces": 452,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2704,
+      "depth": 0.0874,
+      "height": 1.328
+    },
+    "fingerprint": "ed15697df259f1a14a0c1bb3b10b08888dc2a2c8bd56fd8ff61e38e2715e1e4a"
+  },
+  {
+    "id": "TV-010",
+    "vertices": 716,
+    "faces": 508,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2704,
+      "depth": 0.1064,
+      "height": 1.365
+    },
+    "fingerprint": "a44d046a76f61bee6349a1304516a9036ab1688da0e0796f0df1ffb9df066576"
+  },
+  {
+    "id": "TV-011",
+    "vertices": 316,
+    "faces": 216,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.11,
+      "depth": 0.0728,
+      "height": 0.43
+    },
+    "fingerprint": "558e5023f1bd4e297dfe064c97ff8df33fde0e964449f064a6736cc5289206a2"
+  },
+  {
+    "id": "TV-012",
+    "vertices": 302,
+    "faces": 197,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.14532,
+      "depth": 0.0728,
+      "height": 0.441
+    },
+    "fingerprint": "53d84fd27216e4dc99e898955702913ee1d9bc05c1268aab583147807c97493d"
+  },
+  {
+    "id": "TV-013",
+    "vertices": 278,
+    "faces": 185,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.1155,
+      "depth": 0.0728,
+      "height": 0.452
+    },
+    "fingerprint": "a32264906d654d2c427a079b64c8e088059d2dacc186f9e62255758a0df3403a"
+  },
+  {
+    "id": "TV-014",
+    "vertices": 318,
+    "faces": 219,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.1286,
+      "depth": 0.0728,
+      "height": 0.463
+    },
+    "fingerprint": "a9a3bf9595c4ae21c67d53c6c5e967458649fe7fa409edb5eb5cbfb5a12a41ba"
+  },
+  {
+    "id": "TV-015",
+    "vertices": 464,
+    "faces": 340,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.14532,
+      "depth": 0.0843,
+      "height": 0.474
+    },
+    "fingerprint": "098ecc2c91f2b2a3c20ae31693772d3784edba307e923927d19617c2d47a518b"
+  },
+  {
+    "id": "TV-016",
+    "vertices": 434,
+    "faces": 319,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.1155,
+      "depth": 0.0843,
+      "height": 0.6925
+    },
+    "fingerprint": "e2f6f890c56e631d145d7fab1a3e4e1502d9207cdcc133d625699180d0e6f395"
+  },
+  {
+    "id": "TV-017",
+    "vertices": 670,
+    "faces": 551,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2011,
+      "depth": 0.0843,
+      "height": 0.496
+    },
+    "fingerprint": "62338c7ead55c29a986a1b9b2a2114f60cec0dbff34a00c81cd03543256fa3dd"
+  },
+  {
+    "id": "TV-018",
+    "vertices": 742,
+    "faces": 605,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.21486,
+      "depth": 0.0878,
+      "height": 0.507
+    },
+    "fingerprint": "748ca95e9d326a22f02d17a8b0212f3e597fc2667f179221a4323599dc4182d3"
+  },
+  {
+    "id": "TV-019",
+    "vertices": 676,
+    "faces": 554,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.19995,
+      "depth": 0.0878,
+      "height": 0.518
+    },
+    "fingerprint": "8c72759b6eacef1caa8606503ba7340d302e7f20368b019e384c823ab8a21ca7"
+  },
+  {
+    "id": "TV-020",
+    "vertices": 784,
+    "faces": 646,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.1972,
+      "depth": 0.1118,
+      "height": 0.529
+    },
+    "fingerprint": "53c28016102ce914866aa6f4ebebe22548086a813b8fd466ec37ac63cd82b092"
+  },
+  {
+    "id": "TV-021",
+    "vertices": 212,
+    "faces": 152,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.34,
+      "depth": 0.08,
+      "height": 0.745
+    },
+    "fingerprint": "b7255e7c573e50307e1037d86ddc6801de5568f7ece473058a91bfda894ee82a"
+  },
+  {
+    "id": "TV-022",
+    "vertices": 212,
+    "faces": 152,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.3895,
+      "depth": 0.08,
+      "height": 0.79
+    },
+    "fingerprint": "60d4904a3577f724fa95e7383b97385ab7cc8984212c6b84d8b501d27242d21f"
+  },
+  {
+    "id": "TV-023",
+    "vertices": 212,
+    "faces": 152,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.439,
+      "depth": 0.08,
+      "height": 0.835
+    },
+    "fingerprint": "164f8c0c3cbcfc042987f0a8715d92e227b4fc0aedecf8e5fc6633ed7807d175"
+  },
+  {
+    "id": "TV-024",
+    "vertices": 212,
+    "faces": 152,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.4885,
+      "depth": 0.08,
+      "height": 0.88
+    },
+    "fingerprint": "a1c98b316ebfa96c7bff5ac279dc803cbb6a0bc8b6d37d8f53751f66ee8e9bca"
+  },
+  {
+    "id": "TV-025",
+    "vertices": 326,
+    "faces": 209,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.44,
+      "depth": 0.091,
+      "height": 0.925
+    },
+    "fingerprint": "f077e351f0c05cd6d96268a705d64eb18652d18b80aeeaf2368b99efdb3b8859"
+  },
+  {
+    "id": "TV-026",
+    "vertices": 372,
+    "faces": 252,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.3895,
+      "depth": 0.091,
+      "height": 0.97
+    },
+    "fingerprint": "1576eb6c385aa6a6c2b6c74a05606f52080a9155e86d7a42492bda73772300e3"
+  },
+  {
+    "id": "TV-027",
+    "vertices": 326,
+    "faces": 209,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.499,
+      "depth": 0.091,
+      "height": 1.015
+    },
+    "fingerprint": "45cc4af0c74a633cdd31e7958936bbc2c1afedd6347e21ae3f3a0b607d6286ca"
+  },
+  {
+    "id": "TV-028",
+    "vertices": 336,
+    "faces": 220,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.5485,
+      "depth": 0.091,
+      "height": 1.06
+    },
+    "fingerprint": "7cf29c9358f44bd13bb951fa3dd399f7f1e7f012708b3c14ec1e2d11713dbb58"
+  },
+  {
+    "id": "TV-029",
+    "vertices": 336,
+    "faces": 220,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.4,
+      "depth": 0.091,
+      "height": 1.105
+    },
+    "fingerprint": "ad94fa673fbe6d1c68e0134c2ee5db69edc30d2a535e4430bc21748a2809b078"
+  },
+  {
+    "id": "TV-030",
+    "vertices": 336,
+    "faces": 220,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.539,
+      "depth": 0.091,
+      "height": 1.15
+    },
+    "fingerprint": "718cf5da022d848ff9f4f580f18c30f97dad2ce2ce2ae38b2054571af09d8810"
+  },
+  {
+    "id": "TV-031",
+    "vertices": 312,
+    "faces": 246,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2425,
+      "depth": 0.135,
+      "height": 0.635
+    },
+    "fingerprint": "880ec01b84ca8ceb7dc57e2dca6e5cbcafb51ca18abcb586acb45307d8544a66"
+  },
+  {
+    "id": "TV-032",
+    "vertices": 262,
+    "faces": 197,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.3141,
+      "depth": 0.135,
+      "height": 0.68
+    },
+    "fingerprint": "c076506ad11284d3b39dbda7855b6c3aecc8a694c30a6a3fcf1d3198019c1f44"
+  },
+  {
+    "id": "TV-033",
+    "vertices": 312,
+    "faces": 246,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2565,
+      "depth": 0.135,
+      "height": 0.725
+    },
+    "fingerprint": "825cf3a0c418ff6e4e9cdf47929cfd1aa5ed246ffa5142a04db9314b5e2719cc"
+  },
+  {
+    "id": "TV-034",
+    "vertices": 262,
+    "faces": 197,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.3533,
+      "depth": 0.135,
+      "height": 0.77
+    },
+    "fingerprint": "5dd8285b69a766c63974e583a8f4184ffdc55af3b3e2776cf65d8c2d15058266"
+  },
+  {
+    "id": "TV-035",
+    "vertices": 816,
+    "faces": 692,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2705,
+      "depth": 0.191,
+      "height": 0.815
+    },
+    "fingerprint": "5123fd754f42cfe90859ab9865285a61fc669178d1f198145ca05c1fe1cf0b48"
+  },
+  {
+    "id": "TV-036",
+    "vertices": 934,
+    "faces": 805,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.3925,
+      "depth": 0.191,
+      "height": 0.86
+    },
+    "fingerprint": "1ff96ea74e275e1b501a3a4035773db8fc4af85e9f8a2b786b4e381deb4b9003"
+  },
+  {
+    "id": "TV-037",
+    "vertices": 984,
+    "faces": 854,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2845,
+      "depth": 0.191,
+      "height": 0.905
+    },
+    "fingerprint": "0bc3c9dec17e42da686fa89e057f4e2733768d35414432e960f4ae57e73f83cd"
+  },
+  {
+    "id": "TV-038",
+    "vertices": 1038,
+    "faces": 887,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.4317,
+      "depth": 0.196,
+      "height": 0.95
+    },
+    "fingerprint": "157c10172c4d35cde9e27d2fe202f96218e2e936d1422b192077090601c6fc42"
+  },
+  {
+    "id": "TV-039",
+    "vertices": 1088,
+    "faces": 936,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.30819,
+      "depth": 0.196,
+      "height": 0.995
+    },
+    "fingerprint": "616c812e3c121ba3ef3823de1c96fa0ca59c337cad9152b929e3de66bd5be988"
+  },
+  {
+    "id": "TV-040",
+    "vertices": 1038,
+    "faces": 887,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.4709,
+      "depth": 0.196,
+      "height": 1.04
+    },
+    "fingerprint": "a1acfac9b8fcbae14a3ff62173813fc57353e6d05ad8ec4695e69b42c183f893"
+  },
+  {
+    "id": "TV-041",
+    "vertices": 164,
+    "faces": 106,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.08,
+      "depth": 0.08,
+      "height": 1.985
+    },
+    "fingerprint": "cc9b6611cdc0b97eba174217e410425ba7d5c486be455d783878cfeb44b77a55"
+  },
+  {
+    "id": "TV-042",
+    "vertices": 166,
+    "faces": 109,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.1122,
+      "depth": 0.08,
+      "height": 2.09
+    },
+    "fingerprint": "9668fd49e666f9af815c3132536f971312234f9c4c78a6b9aa0851132d6f47ba"
+  },
+  {
+    "id": "TV-043",
+    "vertices": 224,
+    "faces": 166,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.28,
+      "depth": 0.08,
+      "height": 2.195
+    },
+    "fingerprint": "5e7d0839004e82649696736ec7f5dbc624f90db66c0c1c792d632f01edd05e4e"
+  },
+  {
+    "id": "TV-044",
+    "vertices": 176,
+    "faces": 120,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.3956,
+      "depth": 0.08,
+      "height": 2.09
+    },
+    "fingerprint": "b272cfd6b3019b0ee6b4a6c0a0afcf067c93478760d22b1908f981e65183f2cf"
+  },
+  {
+    "id": "TV-045",
+    "vertices": 338,
+    "faces": 223,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.33,
+      "depth": 0.091,
+      "height": 2.195
+    },
+    "fingerprint": "9debfca9609889dbbad848baf024c3cc70ed85c69c01a5ed9b548bb7f052dc36"
+  },
+  {
+    "id": "TV-046",
+    "vertices": 398,
+    "faces": 264,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.374,
+      "depth": 0.091,
+      "height": 2.3
+    },
+    "fingerprint": "ef2854063cc4f68a7ea3c17c7ea38cac73d37050fbedb998519ae02acf6831c5"
+  },
+  {
+    "id": "TV-047",
+    "vertices": 382,
+    "faces": 263,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.28,
+      "depth": 0.091,
+      "height": 2.195
+    },
+    "fingerprint": "b0886073e0462c703242564c421f8eb139737de76f63b76d6fa986c396aa154b"
+  },
+  {
+    "id": "TV-048",
+    "vertices": 384,
+    "faces": 266,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.28,
+      "depth": 0.091,
+      "height": 2.3
+    },
+    "fingerprint": "8822458ef63ca3fa83d998579215d5a6b558825e3157c3a4997c13c5180d8aa1"
+  },
+  {
+    "id": "TV-049",
+    "vertices": 336,
+    "faces": 220,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.3428,
+      "depth": 0.091,
+      "height": 2.405
+    },
+    "fingerprint": "28b010c35f4e3b7403a5a531bb049cfa10b43e12bff497b33470afb6452b68ac"
+  },
+  {
+    "id": "TV-050",
+    "vertices": 346,
+    "faces": 231,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.33,
+      "depth": 0.091,
+      "height": 2.3
+    },
+    "fingerprint": "37f70ed32793109fb49fafc09953b705731360675789bf5c7090568ef93b3c31"
+  },
+  {
+    "id": "TV-051",
+    "vertices": 256,
+    "faces": 210,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2,
+      "depth": 0.05,
+      "height": 1.68
+    },
+    "fingerprint": "a357d1ba833f22fe91ec4d25092cbe0c3c433c63d4999ecee947c6a00e3414b8"
+  },
+  {
+    "id": "TV-052",
+    "vertices": 256,
+    "faces": 210,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.206,
+      "depth": 0.05,
+      "height": 1.15
+    },
+    "fingerprint": "0c21229ff8f5332b34a3d94633a9d8d7868a68818082930ae03f650c9aaf85b1"
+  },
+  {
+    "id": "TV-053",
+    "vertices": 304,
+    "faces": 238,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.212,
+      "depth": 0.05,
+      "height": 1.48
+    },
+    "fingerprint": "591b94b6aefad2daf296b63f09b7c3e03d32fefe47709fc8b8805a50dfe35406"
+  },
+  {
+    "id": "TV-054",
+    "vertices": 256,
+    "faces": 210,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.218,
+      "depth": 0.05,
+      "height": 1.68
+    },
+    "fingerprint": "976f0f4cc1a215f1fc4c8b29fc2f1b0e4653f221781494f2f77c7488f91fc2f7"
+  },
+  {
+    "id": "TV-055",
+    "vertices": 480,
+    "faces": 386,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2553,
+      "depth": 0.058,
+      "height": 1.15
+    },
+    "fingerprint": "b8e85d8ad501fea8e9448a4e7554725127bd7489eb09ae7eb04c00eb6108a599"
+  },
+  {
+    "id": "TV-056",
+    "vertices": 600,
+    "faces": 518,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2625,
+      "depth": 0.058,
+      "height": 1.48
+    },
+    "fingerprint": "36b097eb89d464baeee6a571b90c698e2dddb98dd50fbc439508f792cb8f5e7c"
+  },
+  {
+    "id": "TV-057",
+    "vertices": 600,
+    "faces": 518,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2697,
+      "depth": 0.058,
+      "height": 1.68
+    },
+    "fingerprint": "a5a3c0786fee3452d50bad8ac992d24fc86545e3ca3b8b1ab6df515a86dd9919"
+  },
+  {
+    "id": "TV-058",
+    "vertices": 792,
+    "faces": 690,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.317,
+      "depth": 0.062,
+      "height": 1.15
+    },
+    "fingerprint": "eec049a3501dadc35578efdbe3b7ee903af7baeb02b66866701dddb57893ca5b"
+  },
+  {
+    "id": "TV-059",
+    "vertices": 792,
+    "faces": 690,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.326,
+      "depth": 0.062,
+      "height": 1.48
+    },
+    "fingerprint": "4ab9ec49b79d1543933c792d35cc39ffc43b10a32c7e9a516ce264d574c17108"
+  },
+  {
+    "id": "TV-060",
+    "vertices": 912,
+    "faces": 790,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.40297,
+      "depth": 0.072,
+      "height": 1.68
+    },
+    "fingerprint": "766d05dab18567321fa5cf3d40663cabb0a129a181f26fa2cb30d17a6fec2fc2"
+  },
+  {
+    "id": "TV-061",
+    "vertices": 364,
+    "faces": 234,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.18134,
+      "depth": 0.08421,
+      "height": 0.735
+    },
+    "fingerprint": "89e204629d6f43cd72f99565492930796a744135d783ce524cf470c87eb9f30c"
+  },
+  {
+    "id": "TV-062",
+    "vertices": 544,
+    "faces": 404,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2,
+      "depth": 0.0804,
+      "height": 0.895
+    },
+    "fingerprint": "8a953a93b9052455d021f10c9236161caefe9ced0dc54c236e861c68f53273e5"
+  },
+  {
+    "id": "TV-063",
+    "vertices": 540,
+    "faces": 408,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.268,
+      "depth": 0.0728,
+      "height": 0.869
+    },
+    "fingerprint": "70aa61f2af390e8b719d74c11ac0cddbb6b4dc880dbb0c5dfa8dd74c46441caf"
+  },
+  {
+    "id": "TV-064",
+    "vertices": 360,
+    "faces": 222,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.19567,
+      "depth": 0.0728,
+      "height": 0.88643
+    },
+    "fingerprint": "c771c9c3557bc2311f93ce1f9d3ce523ad6c820ecbfd1a5dc77498ec0575e032"
+  },
+  {
+    "id": "TV-065",
+    "vertices": 416,
+    "faces": 276,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.18134,
+      "depth": 0.11321,
+      "height": 0.815
+    },
+    "fingerprint": "8c5d4916db19d077e78c7539a789cacc19f5999e50177a6cf7e465d8dbfc6a55"
+  },
+  {
+    "id": "TV-066",
+    "vertices": 798,
+    "faces": 571,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.26181,
+      "depth": 0.1094,
+      "height": 0.975
+    },
+    "fingerprint": "9f814b117eda5657608066e5b3d1b50728e14846f155ee5413a69c3ded7c5e05"
+  },
+  {
+    "id": "TV-067",
+    "vertices": 904,
+    "faces": 712,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.3,
+      "depth": 0.1018,
+      "height": 0.965
+    },
+    "fingerprint": "c662721ebbe3b27d1b61ef6621eb35f384310ce000e1d8874e9d94534c2472be"
+  },
+  {
+    "id": "TV-068",
+    "vertices": 836,
+    "faces": 602,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.30254,
+      "depth": 0.1018,
+      "height": 0.985
+    },
+    "fingerprint": "53380c317cfef8625037bdf130467b733c9d46a156420962ceec2853c4ad434c"
+  },
+  {
+    "id": "TV-069",
+    "vertices": 864,
+    "faces": 628,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.26181,
+      "depth": 0.11321,
+      "height": 1.005
+    },
+    "fingerprint": "10f0c015ac465a0e2ccf7108d7677504ef9295476999b2c4f91aa876d1fbb304"
+  },
+  {
+    "id": "TV-070",
+    "vertices": 1010,
+    "faces": 793,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.3,
+      "depth": 0.10949,
+      "height": 1.055
+    },
+    "fingerprint": "e61730d7e09a1b0d2164ee96f066f2434aad9ad0e32c1162f1b013598bb43396"
+  },
+  {
+    "id": "TV-071",
+    "vertices": 414,
+    "faces": 432,
+    "materials": 2,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2007,
+      "depth": 0.18,
+      "height": 0.2007
+    },
+    "fingerprint": "fc74380c07d8afb86864d9c588f940b1645269796d029b36eb5f291a2981f74a"
+  },
+  {
+    "id": "TV-072",
+    "vertices": 606,
+    "faces": 624,
+    "materials": 2,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.21288,
+      "depth": 0.21288,
+      "height": 0.21288
+    },
+    "fingerprint": "ffc8b8e88c2006140f98511c9c9f238045cc37e59a0217afb06bc96003157c09"
+  },
+  {
+    "id": "TV-073",
+    "vertices": 798,
+    "faces": 816,
+    "materials": 2,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.22506,
+      "depth": 0.204,
+      "height": 0.22506
+    },
+    "fingerprint": "f095f89e2f28c479a7f4482067cc031789f2beb17a69e803cc88ee5f49ac4474"
+  },
+  {
+    "id": "TV-074",
+    "vertices": 990,
+    "faces": 1008,
+    "materials": 2,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.23724,
+      "depth": 0.23724,
+      "height": 0.23724
+    },
+    "fingerprint": "f5fd00b71c1aca3002a275ae1f52fb16aa81700ace4f7f4b79771f6853201ba9"
+  },
+  {
+    "id": "TV-075",
+    "vertices": 702,
+    "faces": 722,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.24942,
+      "depth": 0.24433,
+      "height": 0.24942
+    },
+    "fingerprint": "ef9bf87a60f2742b559daeaebcb631f7115a6477082b9fe58d5d5994faea770a"
+  },
+  {
+    "id": "TV-076",
+    "vertices": 906,
+    "faces": 934,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2616,
+      "depth": 0.2616,
+      "height": 0.2616
+    },
+    "fingerprint": "ea8c6ea497adea6754850823c0a2416b0105240afaae0024f3d351367bf8fe30"
+  },
+  {
+    "id": "TV-077",
+    "vertices": 1074,
+    "faces": 1086,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.27378,
+      "depth": 0.252,
+      "height": 0.27378
+    },
+    "fingerprint": "4cc44b5aa610c5be1ca043668fcdcba35721bc87d5b46d691185c1d228e8bcd1"
+  },
+  {
+    "id": "TV-078",
+    "vertices": 1470,
+    "faces": 1490,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.28596,
+      "depth": 0.28596,
+      "height": 0.28596
+    },
+    "fingerprint": "29ccb23d75cf05403380735b4d5d2ce5a60ccb58db6d8d15373133d03be547d9"
+  },
+  {
+    "id": "TV-079",
+    "vertices": 906,
+    "faces": 934,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.29814,
+      "depth": 0.28294,
+      "height": 0.29814
+    },
+    "fingerprint": "1642c9a0d4b2bf6017d35fab7fae1f14cd8a7f70e279c93e4762c2080d1ee623"
+  },
+  {
+    "id": "TV-080",
+    "vertices": 1170,
+    "faces": 1142,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.31038,
+      "depth": 0.31032,
+      "height": 0.31032
+    },
+    "fingerprint": "142d6af40e30dc5aab0b558825b60391404441084799c7e944429fbfb52243fc"
+  },
+  {
+    "id": "TV-081",
+    "vertices": 324,
+    "faces": 326,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.484,
+      "depth": 0.17858,
+      "height": 0.6738
+    },
+    "fingerprint": "d44caecafce9ef55ec5231b4fd0b88d57227a7dcc5b7d9af926bdfd016ba4fa6"
+  },
+  {
+    "id": "TV-082",
+    "vertices": 312,
+    "faces": 286,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.56304,
+      "depth": 0.16461,
+      "height": 0.834
+    },
+    "fingerprint": "c2be978a69596c0c71faf5344c9136902d265c7626fbc80cede7318fb161e47b"
+  },
+  {
+    "id": "TV-083",
+    "vertices": 144,
+    "faces": 110,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.64049,
+      "depth": 0.16261,
+      "height": 0.99049
+    },
+    "fingerprint": "ec70aebdbc8c8dc1d362e9ff02da1ab0935296a6d8b8ebb3497f675e4613cc91"
+  },
+  {
+    "id": "TV-084",
+    "vertices": 154,
+    "faces": 139,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.48363,
+      "depth": 0.17858,
+      "height": 1.154
+    },
+    "fingerprint": "01b00afc9cbba4c38987cfb04ec67271052f65d856fdee559597e742a252f7ff"
+  },
+  {
+    "id": "TV-085",
+    "vertices": 406,
+    "faces": 359,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.56268,
+      "depth": 0.19761,
+      "height": 0.674
+    },
+    "fingerprint": "b93bc8eda7d67f6477d2da58e1dc8b5d9157d9bca16427ca3185a23fb55e6d6e"
+  },
+  {
+    "id": "TV-086",
+    "vertices": 428,
+    "faces": 392,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.644,
+      "depth": 0.19561,
+      "height": 0.83383
+    },
+    "fingerprint": "a4f9d5e8895f70e5ec507a72fd8a7627190831690d5f1a49de8eff70a6d0dd9c"
+  },
+  {
+    "id": "TV-087",
+    "vertices": 240,
+    "faces": 184,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.48049,
+      "depth": 0.21158,
+      "height": 0.99049
+    },
+    "fingerprint": "f2e0e76b47e53439264e73e5251b5d3f9543c980715e92ce69c71638548b9975"
+  },
+  {
+    "id": "TV-088",
+    "vertices": 512,
+    "faces": 438,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.60859,
+      "depth": 0.21361,
+      "height": 1.154
+    },
+    "fingerprint": "8b0bc7ed2a75ec72803892330a822d9e0dbaa7185e85b0783b6d38109c2d3e21"
+  },
+  {
+    "id": "TV-089",
+    "vertices": 344,
+    "faces": 262,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.6939,
+      "depth": 0.21161,
+      "height": 0.674
+    },
+    "fingerprint": "756dfefef08fb46323e37bd53a1aba5338fe17cf775f9e0e6f9aedad0563cad8"
+  },
+  {
+    "id": "TV-090",
+    "vertices": 370,
+    "faces": 301,
+    "materials": 10,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.52188,
+      "depth": 0.22758,
+      "height": 0.834
+    },
+    "fingerprint": "8e6766f284c8d401180629ceb68de70b93e106f77b740e1b2dfe4bac22752321"
+  },
+  {
+    "id": "TV-091",
+    "vertices": 954,
+    "faces": 952,
+    "materials": 1,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.24198,
+      "depth": 0.29197,
+      "height": 0.26044
+    },
+    "fingerprint": "27b657a68486bbed557f74f7d8cb5c61361b2a6bb311693659f129b6b31692c2"
+  },
+  {
+    "id": "TV-092",
+    "vertices": 984,
+    "faces": 985,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.24198,
+      "depth": 0.31599,
+      "height": 0.28044
+    },
+    "fingerprint": "46ab93dcf519ad58c114c70e7a990bb40e32ffff9523453ea9b44e1d43868b13"
+  },
+  {
+    "id": "TV-093",
+    "vertices": 988,
+    "faces": 977,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.24198,
+      "depth": 0.29197,
+      "height": 0.26044
+    },
+    "fingerprint": "8b90eb18d01f7d56669c02f32fd47d0ef8ef8fcd4c362769e89e1c46e6b69581"
+  },
+  {
+    "id": "TV-094",
+    "vertices": 1296,
+    "faces": 1279,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.24198,
+      "depth": 0.30863,
+      "height": 0.296
+    },
+    "fingerprint": "a6376ad7f88df9a82b21032bac6de3d806f37f15e3f6f9bf7d3b9772f4f390fb"
+  },
+  {
+    "id": "TV-095",
+    "vertices": 1248,
+    "faces": 1201,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.24198,
+      "depth": 0.34263,
+      "height": 0.296
+    },
+    "fingerprint": "b8bbcc9c5124f150bf1331937d351e9542dedbd5d0bb4c4a5e23feb5bcd65193"
+  },
+  {
+    "id": "TV-096",
+    "vertices": 1584,
+    "faces": 1507,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.24198,
+      "depth": 0.32963,
+      "height": 0.296
+    },
+    "fingerprint": "25420549c75cce88cb02a3d00b333f6252db4729fd60325ba90ab4a98a94c4da"
+  },
+  {
+    "id": "TV-097",
+    "vertices": 1554,
+    "faces": 1488,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.24198,
+      "depth": 0.32963,
+      "height": 0.336
+    },
+    "fingerprint": "d42b4e6405a691c9c01128db468f35e6f08f606d72672c7ab518f31d0e9ae44e"
+  },
+  {
+    "id": "TV-098",
+    "vertices": 1592,
+    "faces": 1533,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.24198,
+      "depth": 0.36063,
+      "height": 0.355
+    },
+    "fingerprint": "6b2389554a3eb70d0585e12e8790917569afa68d04b297ae48221b8edd4fa4e7"
+  },
+  {
+    "id": "TV-099",
+    "vertices": 1864,
+    "faces": 1795,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.24198,
+      "depth": 0.34763,
+      "height": 0.355
+    },
+    "fingerprint": "897e1f9f6f301bbfaf49bf62aed2f9d3e9b8f877d9eb7cc7629eeb7dcec73d14"
+  },
+  {
+    "id": "TV-100",
+    "vertices": 1996,
+    "faces": 1901,
+    "materials": 11,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.24198,
+      "depth": 0.35963,
+      "height": 0.355
+    },
+    "fingerprint": "843a0a265e8c3b7ef73bc066a809dfb0a8834886c39f49d4b9bbb2ae40f15d00"
+  },
+  {
+    "id": "TV-101",
+    "vertices": 1180,
+    "faces": 1194,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.37449,
+      "depth": 0.41094,
+      "height": 0.24177
+    },
+    "fingerprint": "d76a9518a54007a588dd4513aa0ad7addd86b8ba75be0e6363fab3986d21ada7"
+  },
+  {
+    "id": "TV-102",
+    "vertices": 1608,
+    "faces": 1611,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.37449,
+      "depth": 0.41094,
+      "height": 0.24177
+    },
+    "fingerprint": "c85a5092bf181fbfa37cb25999837954a1369fbf44a39d164abcbcbcc2ec8be8"
+  },
+  {
+    "id": "TV-103",
+    "vertices": 1700,
+    "faces": 1694,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.37449,
+      "depth": 0.41094,
+      "height": 0.24177
+    },
+    "fingerprint": "67a00bea55edf941819f9820da0de9c767f742452b731cf3a3f444fda9dfb588"
+  },
+  {
+    "id": "TV-104",
+    "vertices": 1930,
+    "faces": 1938,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.37449,
+      "depth": 0.41094,
+      "height": 0.24177
+    },
+    "fingerprint": "edb892720f243c93c9908044aff2f56c45f3a1864ec0e5dd5e7d072a0fdbbbd6"
+  },
+  {
+    "id": "TV-105",
+    "vertices": 1692,
+    "faces": 1632,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.37449,
+      "depth": 0.45294,
+      "height": 0.31
+    },
+    "fingerprint": "16da0cf74d20d02c29195c764dc676487d5868f4799dc422e2c6ef58fba256e4"
+  },
+  {
+    "id": "TV-106",
+    "vertices": 1784,
+    "faces": 1715,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.37449,
+      "depth": 0.45294,
+      "height": 0.31
+    },
+    "fingerprint": "60f3045ce58757eb4b728a06f6eac3dcabff98313b994222e5cfb553435896fd"
+  },
+  {
+    "id": "TV-107",
+    "vertices": 2014,
+    "faces": 1959,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.37449,
+      "depth": 0.45294,
+      "height": 0.31
+    },
+    "fingerprint": "c079dddccc62c014251c4ee2dfb77cc427a524921bc75158893069c86f3b12cb"
+  },
+  {
+    "id": "TV-108",
+    "vertices": 2456,
+    "faces": 2393,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.37449,
+      "depth": 0.45294,
+      "height": 0.31
+    },
+    "fingerprint": "9ec91765f6a01a2ca3c9c5fc8dcb83cdffcdf36a4dbbc0ca2458bd7d8dcbd89e"
+  },
+  {
+    "id": "TV-109",
+    "vertices": 1548,
+    "faces": 1484,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.37449,
+      "depth": 0.45294,
+      "height": 0.31
+    },
+    "fingerprint": "6e5ef688cee862d76ffa36735f1a71f514654c99d99e055bcb4ee938b03fe7f4"
+  },
+  {
+    "id": "TV-110",
+    "vertices": 1818,
+    "faces": 1760,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.37449,
+      "depth": 0.46194,
+      "height": 0.31
+    },
+    "fingerprint": "9855fd318158cbc805c2c6154cdefc514d0e55f47a9d287e63d21d85918cc024"
+  },
+  {
+    "id": "TV-111",
+    "vertices": 510,
+    "faces": 507,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.13781,
+      "depth": 0.11135,
+      "height": 0.28
+    },
+    "fingerprint": "fd803c9ba2b43c11dd4f31f4a7ab23545dad3641a683494d1d476dfd6cf9b4f2"
+  },
+  {
+    "id": "TV-112",
+    "vertices": 760,
+    "faces": 755,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.13781,
+      "depth": 0.11135,
+      "height": 0.28
+    },
+    "fingerprint": "c0c15aeb8143ca9391141c1f58b0e6441916d24297ea94cf8d43edf5b3116c2a"
+  },
+  {
+    "id": "TV-113",
+    "vertices": 1010,
+    "faces": 1003,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.13781,
+      "depth": 0.11135,
+      "height": 0.28
+    },
+    "fingerprint": "671e0187580cc093de8c14aacc02bebd3c49be4e75359a5c48ce7221c4893ca0"
+  },
+  {
+    "id": "TV-114",
+    "vertices": 1260,
+    "faces": 1251,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.13781,
+      "depth": 0.11135,
+      "height": 0.28
+    },
+    "fingerprint": "66bd294411db5ec1424419ce1ae7f6d1915deef2352d3b3af6a49a5cdbe29845"
+  },
+  {
+    "id": "TV-115",
+    "vertices": 886,
+    "faces": 837,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.13781,
+      "depth": 0.13735,
+      "height": 0.28
+    },
+    "fingerprint": "f8bb3338eb678e06f8177d13b7de954388eeeb990eef79ac1286fd18c62e2edb"
+  },
+  {
+    "id": "TV-116",
+    "vertices": 1142,
+    "faces": 1090,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.13781,
+      "depth": 0.1451,
+      "height": 0.32
+    },
+    "fingerprint": "2c26d417a5f94e0ff76d7d7b64267627a6ea18c2fbbcb78b9d52c07bbb23a5e7"
+  },
+  {
+    "id": "TV-117",
+    "vertices": 1392,
+    "faces": 1338,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.13781,
+      "depth": 0.1451,
+      "height": 0.32
+    },
+    "fingerprint": "612b4b5bbe7061606ca648a6f4d193e04b4df48052f53c1d246eaaa0b1c98d8a"
+  },
+  {
+    "id": "TV-118",
+    "vertices": 1694,
+    "faces": 1628,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.13781,
+      "depth": 0.1781,
+      "height": 0.32
+    },
+    "fingerprint": "f262ab3ac4cc383826c9c6f84447c50606072474c3482bf4cb2220c7d27011d8"
+  },
+  {
+    "id": "TV-119",
+    "vertices": 944,
+    "faces": 884,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.13781,
+      "depth": 0.1781,
+      "height": 0.32
+    },
+    "fingerprint": "6b447192691bfec3da851cc47f58c9d89647f843fc572f8d9bff155f05b3b1ec"
+  },
+  {
+    "id": "TV-120",
+    "vertices": 1234,
+    "faces": 1164,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.13781,
+      "depth": 0.1781,
+      "height": 0.32
+    },
+    "fingerprint": "a429fade42a012e1dc54340996d597a9af082cb1ce63ea7d076c58e015280d00"
+  },
+  {
+    "id": "TV-121",
+    "vertices": 510,
+    "faces": 507,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.17576,
+      "depth": 0.14673,
+      "height": 0.46
+    },
+    "fingerprint": "745b6060d6f9741693d7c010af4bc3f8ad3dee06651b8c688e6a7c358b50a9a9"
+  },
+  {
+    "id": "TV-122",
+    "vertices": 760,
+    "faces": 755,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.17576,
+      "depth": 0.14673,
+      "height": 0.46
+    },
+    "fingerprint": "fdabeae4f8cbd9d74b16052dd9686257e3945533d89fab3c75b673aff70d3030"
+  },
+  {
+    "id": "TV-123",
+    "vertices": 1010,
+    "faces": 1003,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.17576,
+      "depth": 0.14673,
+      "height": 0.46
+    },
+    "fingerprint": "fb9c635cd6a7201bfdf031564bb43faba59b0822ed3f8898bd666d8e97d3f1b9"
+  },
+  {
+    "id": "TV-124",
+    "vertices": 1260,
+    "faces": 1251,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.17576,
+      "depth": 0.14673,
+      "height": 0.46
+    },
+    "fingerprint": "4f54d9efcd559b72874d29d7067f20adcc1d50e09a19039c48f4131098e40289"
+  },
+  {
+    "id": "TV-125",
+    "vertices": 976,
+    "faces": 957,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.17576,
+      "depth": 0.17873,
+      "height": 0.5
+    },
+    "fingerprint": "8f1072ab597e4baba56956bf28bed8a13dc0f5fa8e4c970f8b599a3eea75d3a2"
+  },
+  {
+    "id": "TV-126",
+    "vertices": 1226,
+    "faces": 1205,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.17576,
+      "depth": 0.17873,
+      "height": 0.5
+    },
+    "fingerprint": "539f0b040d0d2dca3a8ab67902640815def0980dc283e1474b0dab9ff3e4d852"
+  },
+  {
+    "id": "TV-127",
+    "vertices": 1492,
+    "faces": 1461,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.17576,
+      "depth": 0.18573,
+      "height": 0.5
+    },
+    "fingerprint": "5c0fe2caaf918d9c7e510541048278105e55366f99bf78e52a6c56470d1fd749"
+  },
+  {
+    "id": "TV-128",
+    "vertices": 1782,
+    "faces": 1741,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.17576,
+      "depth": 0.19373,
+      "height": 0.5
+    },
+    "fingerprint": "d6dbaf4ff211918a6982df21a3fa2b5fdc76c3ec45964cdd750235b14ba84bb0"
+  },
+  {
+    "id": "TV-129",
+    "vertices": 1032,
+    "faces": 997,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.17576,
+      "depth": 0.19373,
+      "height": 0.5
+    },
+    "fingerprint": "9bf6155653fd187495f0486120c659ecdc7ef053ee2e6d2754265c70edf5da95"
+  },
+  {
+    "id": "TV-130",
+    "vertices": 1322,
+    "faces": 1277,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.17576,
+      "depth": 0.21573,
+      "height": 0.5
+    },
+    "fingerprint": "de182db68ae3f75f6e653e6c6249884c1aba9281eaec05c8bfaa08a83b779dd5"
+  },
+  {
+    "id": "TV-131",
+    "vertices": 318,
+    "faces": 318,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.49212,
+      "depth": 0.27662,
+      "height": 0.48
+    },
+    "fingerprint": "95b8b72147c65cd99ecaed93ddc1ff405f57cc7acc1e4da7d139b800985b9b35"
+  },
+  {
+    "id": "TV-132",
+    "vertices": 504,
+    "faces": 495,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.49212,
+      "depth": 0.26546,
+      "height": 0.48
+    },
+    "fingerprint": "eaaca8995e24c1a27b4c9d03d1dfc1696830711cca95f87a11a3d93e0e7130fe"
+  },
+  {
+    "id": "TV-133",
+    "vertices": 354,
+    "faces": 338,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.49212,
+      "depth": 0.26346,
+      "height": 0.48
+    },
+    "fingerprint": "cd025a8c8492a900ebbad8b85e187087bd9a5d9c6384b269d5c1c431519bcebc"
+  },
+  {
+    "id": "TV-134",
+    "vertices": 342,
+    "faces": 342,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.49212,
+      "depth": 0.27662,
+      "height": 0.48
+    },
+    "fingerprint": "d0d4aa091bc240efa2c8248f36b322907d49c2258d5d5bfcd3a817021b6c211b"
+  },
+  {
+    "id": "TV-135",
+    "vertices": 892,
+    "faces": 839,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.49212,
+      "depth": 0.31146,
+      "height": 0.48
+    },
+    "fingerprint": "2e2a29cbf9bbe423d7594e2eb362e315084328d19fb3451ec71b39b3ea778615"
+  },
+  {
+    "id": "TV-136",
+    "vertices": 790,
+    "faces": 714,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.49212,
+      "depth": 0.30946,
+      "height": 0.48
+    },
+    "fingerprint": "c7f8bab4ecb1fc112834dfebe8572459d07a95ddad6f397afca69629dd1d37a5"
+  },
+  {
+    "id": "TV-137",
+    "vertices": 778,
+    "faces": 718,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.49212,
+      "depth": 0.32262,
+      "height": 0.48
+    },
+    "fingerprint": "255034a16b5d92717d952f84b1a40d00291b7e7b4b8d5f42c55084ec939e9a21"
+  },
+  {
+    "id": "TV-138",
+    "vertices": 1016,
+    "faces": 937,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.49212,
+      "depth": 0.32946,
+      "height": 0.48
+    },
+    "fingerprint": "6af4cb0b7b284d336645696da5d41c99db2a3bf347e1ac5afddb186f148591a0"
+  },
+  {
+    "id": "TV-139",
+    "vertices": 834,
+    "faces": 748,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.49212,
+      "depth": 0.32746,
+      "height": 0.48
+    },
+    "fingerprint": "12c13013f6d2fa148ba85c2cd102875a593da15ee186a834c2c536e5c60ba6d6"
+  },
+  {
+    "id": "TV-140",
+    "vertices": 862,
+    "faces": 784,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.49212,
+      "depth": 0.34062,
+      "height": 0.48
+    },
+    "fingerprint": "773a9e62edb05f0bef0812de4b9584feb88ed47f8bc9c95f8f198976b3f1db22"
+  },
+  {
+    "id": "TV-141",
+    "vertices": 604,
+    "faces": 582,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2205,
+      "depth": 0.09875,
+      "height": 0.305
+    },
+    "fingerprint": "76a31d13a711666bf9957bdae3704d1e11d359d1e4addf30cd75b22409da54a0"
+  },
+  {
+    "id": "TV-142",
+    "vertices": 838,
+    "faces": 805,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2425,
+      "depth": 0.1,
+      "height": 0.34
+    },
+    "fingerprint": "2cad449fa360b37c3bda636d846581b1769d5c4d6dc05a63ba157d7383669858"
+  },
+  {
+    "id": "TV-143",
+    "vertices": 736,
+    "faces": 694,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2645,
+      "depth": 0.106,
+      "height": 0.375
+    },
+    "fingerprint": "8ef44372fe016ccdbb0c92b574b946b2e499284827b7f520a67149b0d4589190"
+  },
+  {
+    "id": "TV-144",
+    "vertices": 772,
+    "faces": 744,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2865,
+      "depth": 0.10159,
+      "height": 0.305
+    },
+    "fingerprint": "563aabbb9bc0d1f6c204c8f56336736474d1b51aee9480c4d86afe9bc4b4e56d"
+  },
+  {
+    "id": "TV-145",
+    "vertices": 838,
+    "faces": 793,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2205,
+      "depth": 0.1005,
+      "height": 0.34
+    },
+    "fingerprint": "f98ba15bc7c78c70624617fa9ed0031657fc4aec9688e27dc74db8a9359d906f"
+  },
+  {
+    "id": "TV-146",
+    "vertices": 792,
+    "faces": 736,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.245,
+      "depth": 0.109,
+      "height": 0.375
+    },
+    "fingerprint": "3fd85fdb0e8a8d7d10a8f95507c192addf2f1faa58a5f9999e1d6cdf7ed92687"
+  },
+  {
+    "id": "TV-147",
+    "vertices": 828,
+    "faces": 786,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.267,
+      "depth": 0.10364,
+      "height": 0.305
+    },
+    "fingerprint": "7e5f0824e289d537349363b4d095dfe89a9e4d873ecd183e76061239e58b4d8f"
+  },
+  {
+    "id": "TV-148",
+    "vertices": 1202,
+    "faces": 1121,
+    "materials": 10,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.31072,
+      "depth": 0.1475,
+      "height": 0.34
+    },
+    "fingerprint": "f6533ae06319757bc7518fa771732232760475193844ac845e5fe109c2fe229a"
+  },
+  {
+    "id": "TV-149",
+    "vertices": 876,
+    "faces": 794,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.24604,
+      "depth": 0.1535,
+      "height": 0.375
+    },
+    "fingerprint": "6b2092fdef9df255ff279fd810792558b4174d9f6b7c2db3288e067964259070"
+  },
+  {
+    "id": "TV-150",
+    "vertices": 968,
+    "faces": 898,
+    "materials": 11,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.27115,
+      "depth": 0.14719,
+      "height": 0.305
+    },
+    "fingerprint": "31e74b5a5613d4bdcc7cadfdfa9f0739a40e0ec0e6916b855679fdbb127553df"
+  },
+  {
+    "id": "TV-151",
+    "vertices": 546,
+    "faces": 512,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.16887,
+      "depth": 0.195,
+      "height": 0.461
+    },
+    "fingerprint": "7ba06178596ca8a7e87c5eedf0b58cbb9cb9d2e907c3673774dda9b1ade873ff"
+  },
+  {
+    "id": "TV-152",
+    "vertices": 638,
+    "faces": 586,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2262,
+      "depth": 0.2262,
+      "height": 0.496
+    },
+    "fingerprint": "399bb75846e9d19a2f32c9bf70fd1404bb6a4266a7cfcab87e69c01d2f7c007d"
+  },
+  {
+    "id": "TV-153",
+    "vertices": 618,
+    "faces": 552,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2448,
+      "depth": 0.2574,
+      "height": 0.531
+    },
+    "fingerprint": "ce0e0fa07f65c527aea27dacf6b0437af29df381f7e6971619500a6ea411c792"
+  },
+  {
+    "id": "TV-154",
+    "vertices": 710,
+    "faces": 626,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.195,
+      "depth": 0.195,
+      "height": 0.566
+    },
+    "fingerprint": "7375a43ed6ae139c5ef6d9b12d87fbd30f6e8d8238ec56466ba5534d295455ce"
+  },
+  {
+    "id": "TV-155",
+    "vertices": 1122,
+    "faces": 1088,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.19589,
+      "depth": 0.2262,
+      "height": 0.461
+    },
+    "fingerprint": "34857eee887275cb414b9d7d8a5b7cc0e60fa293cf5580b8798a3fcb6b697eda"
+  },
+  {
+    "id": "TV-156",
+    "vertices": 1214,
+    "faces": 1162,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2574,
+      "depth": 0.2574,
+      "height": 0.496
+    },
+    "fingerprint": "ddb7e53121a123b6f77301b0de890dbc7b67d83fa90ca45751d1b675d64b2bb0"
+  },
+  {
+    "id": "TV-157",
+    "vertices": 1194,
+    "faces": 1128,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.18546,
+      "depth": 0.195,
+      "height": 0.531
+    },
+    "fingerprint": "bbfe81c3ab06d2f54682840665dba095bcdb607eaa40fb2ebbf22c7807287860"
+  },
+  {
+    "id": "TV-158",
+    "vertices": 1450,
+    "faces": 1352,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2262,
+      "depth": 0.2552,
+      "height": 0.566
+    },
+    "fingerprint": "d29cb5ac3183ecfe60f83859f5aabdc5b15d19c3937af280a6a99666dc656fd6"
+  },
+  {
+    "id": "TV-159",
+    "vertices": 1286,
+    "faces": 1238,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.22291,
+      "depth": 0.2864,
+      "height": 0.461
+    },
+    "fingerprint": "33c7b2955e1f99c3feadd52988f14668635e4dd1ebac4f02577fb790aaf1701b"
+  },
+  {
+    "id": "TV-160",
+    "vertices": 1410,
+    "faces": 1336,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.195,
+      "depth": 0.224,
+      "height": 0.496
+    },
+    "fingerprint": "b0bb50d1a456c018ef6051541e73e29df4dd56c42cb0d2a7542e6ce18b628929"
+  },
+  {
+    "id": "TV-161",
+    "vertices": 272,
+    "faces": 260,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.098,
+      "depth": 0.024,
+      "height": 0.209
+    },
+    "fingerprint": "38f1c1f6097787a6f293df76765b7d8338bc7cc77efd885c6c450b2e26d8cabd"
+  },
+  {
+    "id": "TV-162",
+    "vertices": 328,
+    "faces": 314,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.116,
+      "depth": 0.024,
+      "height": 0.23
+    },
+    "fingerprint": "702c4749eddb22b97a7c37227d36d220d4ff8526ba743e11803152e7897cdee5"
+  },
+  {
+    "id": "TV-163",
+    "vertices": 384,
+    "faces": 368,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.134,
+      "depth": 0.024,
+      "height": 0.251
+    },
+    "fingerprint": "955ff3e035a95deb0584e3743c4397ee57fbe2f1784dc608b57197b2cdecbf72"
+  },
+  {
+    "id": "TV-164",
+    "vertices": 440,
+    "faces": 422,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.098,
+      "depth": 0.024,
+      "height": 0.245
+    },
+    "fingerprint": "5522b40e1f5298fa2f17acd41a5a358eda8747ddcd9059b263b3e3eccc4be982"
+  },
+  {
+    "id": "TV-165",
+    "vertices": 360,
+    "faces": 334,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.116,
+      "depth": 0.0395,
+      "height": 0.266
+    },
+    "fingerprint": "2aea6ac34a0f9185f318023ec2e2f08caeeffa053b691efedc38573997445bbb"
+  },
+  {
+    "id": "TV-166",
+    "vertices": 422,
+    "faces": 393,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.134,
+      "depth": 0.0395,
+      "height": 0.3
+    },
+    "fingerprint": "2038aa32ed7ea636a38d2f62d54857f435e11e1eaeaebc1188a168acaa5b2a7b"
+  },
+  {
+    "id": "TV-167",
+    "vertices": 478,
+    "faces": 447,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.098,
+      "depth": 0.0395,
+      "height": 0.312
+    },
+    "fingerprint": "c91ed30ea4b2c86652baeb54b1beb7c233146425d9651a8f1b41eb9d339ead80"
+  },
+  {
+    "id": "TV-168",
+    "vertices": 590,
+    "faces": 541,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.116,
+      "depth": 0.0395,
+      "height": 0.324
+    },
+    "fingerprint": "959022491caf99990e60e9d8cf75622208ff78d7a3f1d9788e4e8c9d144f1208"
+  },
+  {
+    "id": "TV-169",
+    "vertices": 422,
+    "faces": 379,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.134,
+      "depth": 0.0395,
+      "height": 0.336
+    },
+    "fingerprint": "ac46b2958dd977c5ee7d695b7afb965ec2a58d651e1e8ee84d8fe10acc31ffb3"
+  },
+  {
+    "id": "TV-170",
+    "vertices": 534,
+    "faces": 487,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.098,
+      "depth": 0.0605,
+      "height": 0.348
+    },
+    "fingerprint": "b406a44f343fe44cb2333ba825202051173050241841273aeb7880036779e7af"
+  },
+  {
+    "id": "TV-171",
+    "vertices": 330,
+    "faces": 320,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.09,
+      "depth": 0.08468,
+      "height": 0.1678
+    },
+    "fingerprint": "51ca3fb4e72309ae6cde51dd14a20e912ab3042a33159af081148941ea0a4385"
+  },
+  {
+    "id": "TV-172",
+    "vertices": 306,
+    "faces": 261,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.10842,
+      "depth": 0.114,
+      "height": 0.205
+    },
+    "fingerprint": "450efdc09164d28100b78f75c04f05d27aca3e04dc520f6503e1cacf7fff1824"
+  },
+  {
+    "id": "TV-173",
+    "vertices": 184,
+    "faces": 138,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.138,
+      "depth": 0.1174,
+      "height": 0.2439
+    },
+    "fingerprint": "dbebc9d975c25bf6394b98fabf331c0e49033bfb67c4fb2129b129a643cb002e"
+  },
+  {
+    "id": "TV-174",
+    "vertices": 522,
+    "faces": 512,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.19814,
+      "depth": 0.14228,
+      "height": 0.1678
+    },
+    "fingerprint": "e388f6785cd49aa11a283727662633150018c6ad8ffd838eff09adfd0629fe3a"
+  },
+  {
+    "id": "TV-175",
+    "vertices": 686,
+    "faces": 643,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.09,
+      "depth": 0.09,
+      "height": 0.205
+    },
+    "fingerprint": "48bffc1ef2063d3fba673e8ae9578b76cb48adde4a187c143ae3a1eb8bc1de0c"
+  },
+  {
+    "id": "TV-176",
+    "vertices": 568,
+    "faces": 522,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.114,
+      "depth": 0.10804,
+      "height": 0.2439
+    },
+    "fingerprint": "c9cd44357bb773bc268e701d05cc11398e8096ae59eb1edbba0e8af46c642b40"
+  },
+  {
+    "id": "TV-177",
+    "vertices": 906,
+    "faces": 896,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.138,
+      "depth": 0.12868,
+      "height": 0.1678
+    },
+    "fingerprint": "a03f0bc9d8b76fb6e4e9b4ce5630b446d88c77e255d8d3ac04db6dff58fc4467"
+  },
+  {
+    "id": "TV-178",
+    "vertices": 1034,
+    "faces": 957,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.15794,
+      "depth": 0.185,
+      "height": 0.205
+    },
+    "fingerprint": "081c37b79c0e0a9d94f1fc7f62522a86492da4b7d18ffa0f89969fe1ee7feb62"
+  },
+  {
+    "id": "TV-179",
+    "vertices": 904,
+    "faces": 830,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.09,
+      "depth": 0.1062,
+      "height": 0.2439
+    },
+    "fingerprint": "c860f6bf1ae1ce3fbed28bf692851c19368d807763d6cf842d9373262a255268"
+  },
+  {
+    "id": "TV-180",
+    "vertices": 1242,
+    "faces": 1204,
+    "materials": 10,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.114,
+      "depth": 0.12896,
+      "height": 0.1678
+    },
+    "fingerprint": "fb505ae63b7649cba239396755e1d5b65ca339bffe5785f076a6aa554fdff928"
+  },
+  {
+    "id": "TV-181",
+    "vertices": 416,
+    "faces": 392,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.27,
+      "depth": 0.1915,
+      "height": 0.21
+    },
+    "fingerprint": "73718dd250fdd48caa873d1ebde2660d24b5370884a1ac4da0506cfd0c322795"
+  },
+  {
+    "id": "TV-182",
+    "vertices": 416,
+    "faces": 392,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.335,
+      "depth": 0.2318,
+      "height": 0.2625
+    },
+    "fingerprint": "4f20cbcd85f8c02dfb3e5537615fcdb9d593c332514748eb5095c2417e6e49e7"
+  },
+  {
+    "id": "TV-183",
+    "vertices": 416,
+    "faces": 392,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.4,
+      "depth": 0.2721,
+      "height": 0.315
+    },
+    "fingerprint": "140f79ab9e172b5620e5f105336dd61400efb17a1ceef6a9eb38f55e83d68cdb"
+  },
+  {
+    "id": "TV-184",
+    "vertices": 416,
+    "faces": 392,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.465,
+      "depth": 0.3124,
+      "height": 0.21
+    },
+    "fingerprint": "e45f267f2a9b628ac3bc14330d68dff9df79716c1793541ae0fde35e68ea2760"
+  },
+  {
+    "id": "TV-185",
+    "vertices": 696,
+    "faces": 662,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2734,
+      "depth": 0.2095,
+      "height": 0.27231
+    },
+    "fingerprint": "8bd76bb61b3f8d3b52235659f63ffe684e7f8d61721973e1d8f5d944691cb03d"
+  },
+  {
+    "id": "TV-186",
+    "vertices": 760,
+    "faces": 708,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.335,
+      "depth": 0.2648,
+      "height": 0.32508
+    },
+    "fingerprint": "9f64799ad0e9e38c5586e63cd57d24e73d70c4e403900c7d57b36ee479b3d8d8"
+  },
+  {
+    "id": "TV-187",
+    "vertices": 740,
+    "faces": 704,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.4,
+      "depth": 0.31321,
+      "height": 0.21955
+    },
+    "fingerprint": "2a502762f8f9e107bdc71589357312b654e9c7bee745a5c685cb44f2915920cd"
+  },
+  {
+    "id": "TV-188",
+    "vertices": 1026,
+    "faces": 969,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.465,
+      "depth": 0.3804,
+      "height": 0.27231
+    },
+    "fingerprint": "7ebfde3fc949762e72d7ff701471c62dc0ce5a7f24ba677cf5c73ce522f76d9e"
+  },
+  {
+    "id": "TV-189",
+    "vertices": 868,
+    "faces": 804,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2734,
+      "depth": 0.2575,
+      "height": 0.32508
+    },
+    "fingerprint": "e09ba0e74187c23b3830fd800b083979de1bd8c87150f5604ce63f0dd6f334d9"
+  },
+  {
+    "id": "TV-190",
+    "vertices": 1128,
+    "faces": 1070,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.335,
+      "depth": 0.31391,
+      "height": 0.21955
+    },
+    "fingerprint": "991c04bbec4fb89e9695b56f408c22d271ea501c18526c8e7daf0dc72a4ba577"
+  },
+  {
+    "id": "TV-191",
+    "vertices": 326,
+    "faces": 265,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.1585,
+      "depth": 0.054,
+      "height": 0.1585
+    },
+    "fingerprint": "2a833d1ef4577d4e8f9284cda2595c61f3263c3ce9eb3fd42b983a2caa32e8c4"
+  },
+  {
+    "id": "TV-192",
+    "vertices": 390,
+    "faces": 297,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.1908,
+      "depth": 0.054,
+      "height": 0.1908
+    },
+    "fingerprint": "8de2d4de8faa0a97041bb41c1c1aa237ddca44de88f78ccb45d90d1623655d1d"
+  },
+  {
+    "id": "TV-193",
+    "vertices": 390,
+    "faces": 297,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2231,
+      "depth": 0.054,
+      "height": 0.2231
+    },
+    "fingerprint": "683ad1b805e04d5ef12ce6625c53d731f4bf8128e19e11891c6d8dff78f5b648"
+  },
+  {
+    "id": "TV-194",
+    "vertices": 454,
+    "faces": 329,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2554,
+      "depth": 0.054,
+      "height": 0.2554
+    },
+    "fingerprint": "e857c73fa71aaefb0e20535c57a00aa5429885ffd0d90de7c262f05309b811c0"
+  },
+  {
+    "id": "TV-195",
+    "vertices": 766,
+    "faces": 543,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.1585,
+      "depth": 0.0665,
+      "height": 0.18625
+    },
+    "fingerprint": "fd31aace1ad9358b60ce091091666bc5d57aa3320b5b196bbb2e637fedaa171c"
+  },
+  {
+    "id": "TV-196",
+    "vertices": 830,
+    "faces": 575,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.1908,
+      "depth": 0.0665,
+      "height": 0.2194
+    },
+    "fingerprint": "fa243b491e2b7f623a26e34b426de0c4a85a81ed6ca4d26a6450b32b55196048"
+  },
+  {
+    "id": "TV-197",
+    "vertices": 1022,
+    "faces": 767,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2231,
+      "depth": 0.18411,
+      "height": 0.26753
+    },
+    "fingerprint": "6fdc42c1d4589e2f68a350cd79ca5bf9adc9754ec32ac5fd39c0abef01ff7837"
+  },
+  {
+    "id": "TV-198",
+    "vertices": 1110,
+    "faces": 815,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2554,
+      "depth": 0.20916,
+      "height": 0.307
+    },
+    "fingerprint": "df14205bac32683f9f7c18315c5f0cee1fa5e8bc7b995ef3bfc6e665f9d1ecdf"
+  },
+  {
+    "id": "TV-199",
+    "vertices": 982,
+    "faces": 751,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.1585,
+      "depth": 0.16647,
+      "height": 0.1886
+    },
+    "fingerprint": "995670e2792dbc58a46b8d9ac9fea49267fad004aef4eb93db263456040f9741"
+  },
+  {
+    "id": "TV-200",
+    "vertices": 1102,
+    "faces": 837,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.1908,
+      "depth": 0.1867,
+      "height": 0.22807
+    },
+    "fingerprint": "45acc0a7bbf34a0938640f0d155f5dd0f5f00e42f29152525aea8025519d7752"
+  },
+  {
+    "id": "TV-201",
+    "vertices": 710,
+    "faces": 706,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.195,
+      "depth": 0.162,
+      "height": 0.225
+    },
+    "fingerprint": "771686787bc97132e73dbf20f2763fd857a05f6f76103b59c7766cbad781ac5d"
+  },
+  {
+    "id": "TV-202",
+    "vertices": 902,
+    "faces": 898,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2392,
+      "depth": 0.17094,
+      "height": 0.276
+    },
+    "fingerprint": "53f8d37271fe220010e33b99c8846ccd82f4d767be2a73aaa37ced4a93c6859f"
+  },
+  {
+    "id": "TV-203",
+    "vertices": 1094,
+    "faces": 1090,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2834,
+      "depth": 0.23,
+      "height": 0.327
+    },
+    "fingerprint": "26ebdc8a5749aba8d36de3bcf4a5aef20133788a9428b1222caae642f1847d30"
+  },
+  {
+    "id": "TV-204",
+    "vertices": 1286,
+    "faces": 1282,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.3276,
+      "depth": 0.25108,
+      "height": 0.378
+    },
+    "fingerprint": "8282a530b49e978e2b15b30da7e8444e062fd286c6bebc0cc936228ebcac2ca0"
+  },
+  {
+    "id": "TV-205",
+    "vertices": 1358,
+    "faces": 1164,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.195,
+      "depth": 0.162,
+      "height": 0.24375
+    },
+    "fingerprint": "f198c9e1947dfaa1ab266b6a9217e8968f24bd56c45b1a8a32384b73783260b6"
+  },
+  {
+    "id": "TV-206",
+    "vertices": 1550,
+    "faces": 1360,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2392,
+      "depth": 0.17094,
+      "height": 0.2898
+    },
+    "fingerprint": "c3e4e5497a54af2cceddd688a2bd68421997af70978f5e9e88bf0f98f828d14c"
+  },
+  {
+    "id": "TV-207",
+    "vertices": 1730,
+    "faces": 1554,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2834,
+      "depth": 0.23,
+      "height": 0.36297
+    },
+    "fingerprint": "81b435bb74fc9e043290e4eb9135f13cc9d1861287690e4d43d037cdcc783554"
+  },
+  {
+    "id": "TV-208",
+    "vertices": 1972,
+    "faces": 1769,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.3276,
+      "depth": 0.25108,
+      "height": 0.4473
+    },
+    "fingerprint": "9aae4cf19da3927179824d8c4aed5afc357fcfd255a0779761c38d7a8603eac3"
+  },
+  {
+    "id": "TV-209",
+    "vertices": 1486,
+    "faces": 1244,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.23148,
+      "depth": 0.21079,
+      "height": 0.23473
+    },
+    "fingerprint": "4f806bdb55880762b6826983da584c56501093047f64f37b9ed9ca066af96a36"
+  },
+  {
+    "id": "TV-210",
+    "vertices": 2302,
+    "faces": 2008,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2392,
+      "depth": 0.20094,
+      "height": 0.3128
+    },
+    "fingerprint": "60e09e55a9527deb9ee898db616c382efc22690163e2625669249e93848fd648"
+  },
+  {
+    "id": "TV-211",
+    "vertices": 168,
+    "faces": 98,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.0675,
+      "depth": 0.0675,
+      "height": 0.317
+    },
+    "fingerprint": "20f854dd63507f18722b09b2abf48e6de76338c472a6607fc18a32b5ef4fd2e5"
+  },
+  {
+    "id": "TV-212",
+    "vertices": 192,
+    "faces": 112,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.0868,
+      "depth": 0.0868,
+      "height": 0.393
+    },
+    "fingerprint": "505655b2f0e187149cab290212c50882144376f9d9b0f49edf69c0ea5d173ce3"
+  },
+  {
+    "id": "TV-213",
+    "vertices": 224,
+    "faces": 152,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.0999,
+      "depth": 0.0999,
+      "height": 0.383
+    },
+    "fingerprint": "f43590dcc3c27d48f9d041313ac046b18c38f3e3f3cd32af38834f6aa47f9205"
+  },
+  {
+    "id": "TV-214",
+    "vertices": 192,
+    "faces": 112,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.07,
+      "depth": 0.07,
+      "height": 0.416
+    },
+    "fingerprint": "676f03858326105ccaf0c12447f877a269ddc496d6012c4f1e84dada2824d1b4"
+  },
+  {
+    "id": "TV-215",
+    "vertices": 336,
+    "faces": 196,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.23351,
+      "depth": 0.17432,
+      "height": 0.45371
+    },
+    "fingerprint": "1ebb89401aef3c20f2d9ae88dbefe3e1a72fd3a0cef1beecd052940c6417ad40"
+  },
+  {
+    "id": "TV-216",
+    "vertices": 336,
+    "faces": 196,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.23373,
+      "depth": 0.17447,
+      "height": 0.48651
+    },
+    "fingerprint": "adfd5e8c18821dcdf03efc352ae7fd5cb9e52d9b8506a385c6bf166f4034f1f9"
+  },
+  {
+    "id": "TV-217",
+    "vertices": 336,
+    "faces": 196,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.23392,
+      "depth": 0.1746,
+      "height": 0.51933
+    },
+    "fingerprint": "a93476f3b1aa7520e5bd52cb42ed24304928b272cb9709e2ac15dd6d368a9294"
+  },
+  {
+    "id": "TV-218",
+    "vertices": 424,
+    "faces": 274,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.23409,
+      "depth": 0.19622,
+      "height": 0.55216
+    },
+    "fingerprint": "25442faf256f41bd01f5cf70192a3d195d43c606e3ba20c64108847b8950e560"
+  },
+  {
+    "id": "TV-219",
+    "vertices": 424,
+    "faces": 274,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.23424,
+      "depth": 0.19633,
+      "height": 0.585
+    },
+    "fingerprint": "a980e1a14a25f629c727d796cb92e7754ea1c9f178e135d7b04007b52f21bff1"
+  },
+  {
+    "id": "TV-220",
+    "vertices": 448,
+    "faces": 288,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.23437,
+      "depth": 0.19642,
+      "height": 0.66727
+    },
+    "fingerprint": "9323095c949281e5645f1f8d7267519b7c3ed556f014d092ed4c8704cf64879d"
+  },
+  {
+    "id": "TV-221",
+    "vertices": 216,
+    "faces": 146,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.35,
+      "depth": 0.11,
+      "height": 0.249
+    },
+    "fingerprint": "6e306e6efbc19f9061a42ab209438d47b2aca9a316668bf3f6f2c0921819378a"
+  },
+  {
+    "id": "TV-222",
+    "vertices": 216,
+    "faces": 146,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.4,
+      "depth": 0.11,
+      "height": 0.28597
+    },
+    "fingerprint": "cab16dd9162585194fd194a58210842173904ad0eab8a20ec675bfa0f7e50914"
+  },
+  {
+    "id": "TV-223",
+    "vertices": 216,
+    "faces": 146,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.45,
+      "depth": 0.11,
+      "height": 0.273
+    },
+    "fingerprint": "dcbcabf83a3409ec10503d53a02a94838a949bf771beb1972b83e0a22a542439"
+  },
+  {
+    "id": "TV-224",
+    "vertices": 216,
+    "faces": 146,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.35,
+      "depth": 0.11,
+      "height": 0.30995
+    },
+    "fingerprint": "82808144c53179b3a5c3676deaaf1e10c2b0a5df0dabe6f017d724f0a8ad7826"
+  },
+  {
+    "id": "TV-225",
+    "vertices": 280,
+    "faces": 194,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.40986,
+      "depth": 0.11,
+      "height": 0.297
+    },
+    "fingerprint": "7bcd59b8362e0b6c224d46946ebae7c03ca9671aba36442b390b41b31db6b0de"
+  },
+  {
+    "id": "TV-226",
+    "vertices": 344,
+    "faces": 240,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.45182,
+      "depth": 0.11,
+      "height": 0.33398
+    },
+    "fingerprint": "427f0fae3a562133ae48c2e403228d1d733b16c805b3eec8d2b6d699e4117e67"
+  },
+  {
+    "id": "TV-227",
+    "vertices": 324,
+    "faces": 236,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.36783,
+      "depth": 0.11,
+      "height": 0.321
+    },
+    "fingerprint": "d2b4d18c27bfb7b8e36b8166e281a8bfc55a1f8ebb8c43290d42c23ce1965fde"
+  },
+  {
+    "id": "TV-228",
+    "vertices": 508,
+    "faces": 410,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.40981,
+      "depth": 0.123,
+      "height": 0.35797
+    },
+    "fingerprint": "c0b5ac6b1b342c7aec2fb13549c73de7bf4a9300580aae7dcb73a04a2bf6f49d"
+  },
+  {
+    "id": "TV-229",
+    "vertices": 350,
+    "faces": 245,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.45181,
+      "depth": 0.123,
+      "height": 0.345
+    },
+    "fingerprint": "62e17ca6b7046d5d73558c2d6f2f7b8bd75bd591e2ea62138954c8196b08f0df"
+  },
+  {
+    "id": "TV-230",
+    "vertices": 386,
+    "faces": 295,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.36779,
+      "depth": 0.123,
+      "height": 0.38195
+    },
+    "fingerprint": "f58a2a1e45dd7ec08e7d5f2e907d6bdc92c7487fd46cf13700e675b748202c2d"
+  },
+  {
+    "id": "TV-231",
+    "vertices": 362,
+    "faces": 354,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.35598,
+      "depth": 0.08505,
+      "height": 0.29551
+    },
+    "fingerprint": "231ddbf29c2ba94f14238aadf94df66e24266e93ede96a877a915bfa9ec6a6b8"
+  },
+  {
+    "id": "TV-232",
+    "vertices": 552,
+    "faces": 531,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.372,
+      "depth": 0.081,
+      "height": 0.33036
+    },
+    "fingerprint": "bb1490fa50a638076add9b6d1f2cd4d97202ec35dfa30d15493cbbd22bae0e77"
+  },
+  {
+    "id": "TV-233",
+    "vertices": 406,
+    "faces": 374,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.388,
+      "depth": 0.079,
+      "height": 0.36525
+    },
+    "fingerprint": "a9af9470f2fcb6dbb00009581ee114909761363b5d5181c85c53e3e44b3f851e"
+  },
+  {
+    "id": "TV-234",
+    "vertices": 398,
+    "faces": 378,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.404,
+      "depth": 0.08505,
+      "height": 0.40015
+    },
+    "fingerprint": "24e26452cbd086979b2030502fd202a0dd2a185dc3fe16adb9c292d38d4a4a03"
+  },
+  {
+    "id": "TV-235",
+    "vertices": 708,
+    "faces": 625,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.41998,
+      "depth": 0.081,
+      "height": 0.29586
+    },
+    "fingerprint": "06e03e745149f21a83580ca5b6ec279c52c40a6e50ec1e982f6e56a5957824b1"
+  },
+  {
+    "id": "TV-236",
+    "vertices": 568,
+    "faces": 473,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.436,
+      "depth": 0.079,
+      "height": 0.385
+    },
+    "fingerprint": "ea53085276a2668a98803a965d8b34ea89c0178218c54cd0aff7fbf4c1787a41"
+  },
+  {
+    "id": "TV-237",
+    "vertices": 488,
+    "faces": 429,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.452,
+      "depth": 0.08505,
+      "height": 0.42
+    },
+    "fingerprint": "37538e4ef70c0258d032c05028d80b88d34a8990a4269613bd3779ae0ceb9509"
+  },
+  {
+    "id": "TV-238",
+    "vertices": 778,
+    "faces": 680,
+    "materials": 10,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.468,
+      "depth": 0.12,
+      "height": 0.455
+    },
+    "fingerprint": "db64f66d9377e71ee46f9694aede990106646dbca85000490d5f25d6cac1a19a"
+  },
+  {
+    "id": "TV-239",
+    "vertices": 632,
+    "faces": 523,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.48397,
+      "depth": 0.118,
+      "height": 0.35
+    },
+    "fingerprint": "6b97bd2809c44091f00faeaa64b17620a37234925a6dd2ba4a2eb710878f83c6"
+  },
+  {
+    "id": "TV-240",
+    "vertices": 680,
+    "faces": 581,
+    "materials": 11,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.5,
+      "depth": 0.12405,
+      "height": 0.385
+    },
+    "fingerprint": "fbcddb46ff29f0f27771e2a1ec9d2d4fec16e41c0642193ffee076b5bb681805"
+  },
+  {
+    "id": "TV-241",
+    "vertices": 856,
+    "faces": 566,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.17268,
+      "depth": 0.12,
+      "height": 0.32671
+    },
+    "fingerprint": "57329e028e83a4796c7d75ca5906234840aac520db906a5e87c10931abe40c6d"
+  },
+  {
+    "id": "TV-242",
+    "vertices": 856,
+    "faces": 566,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.19634,
+      "depth": 0.12,
+      "height": 0.35501
+    },
+    "fingerprint": "da49aa9d4be7d7af25179c44f003a71cba702ccac896d0b93c650306f916220e"
+  },
+  {
+    "id": "TV-243",
+    "vertices": 856,
+    "faces": 566,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.22001,
+      "depth": 0.12,
+      "height": 0.38219
+    },
+    "fingerprint": "39a59327974abd96d960305e3df2e0c07943688fde83678af246392853cf586b"
+  },
+  {
+    "id": "TV-244",
+    "vertices": 856,
+    "faces": 566,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.17271,
+      "depth": 0.12,
+      "height": 0.39671
+    },
+    "fingerprint": "aef6e17500127f25350ad887ca04ac3480689faba40ef66dbb7cdbf7418ac271"
+  },
+  {
+    "id": "TV-245",
+    "vertices": 1464,
+    "faces": 1166,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.21669,
+      "depth": 0.12,
+      "height": 0.42566
+    },
+    "fingerprint": "57092e66515d3dfe785720da46b66783acbe5c6b83b5249afb670cafcfe41b1b"
+  },
+  {
+    "id": "TV-246",
+    "vertices": 1464,
+    "faces": 1166,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.22007,
+      "depth": 0.12,
+      "height": 0.45345
+    },
+    "fingerprint": "f3f575be4de8dac7a57cae092f6510dfd46ba777d648bcb4eaaca114a0d2bdd2"
+  },
+  {
+    "id": "TV-247",
+    "vertices": 1464,
+    "faces": 1166,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2168,
+      "depth": 0.12,
+      "height": 0.46764
+    },
+    "fingerprint": "1bc1124815212766d6fd3faebf26d2ceb05713d4e5f8578d9c3ec74fc318dbf6"
+  },
+  {
+    "id": "TV-248",
+    "vertices": 1496,
+    "faces": 1190,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.27815,
+      "depth": 0.12,
+      "height": 0.49687
+    },
+    "fingerprint": "d2fc30591b85a56c0b6e9623c926b84f5354b33b9f694693158b204214045744"
+  },
+  {
+    "id": "TV-249",
+    "vertices": 1496,
+    "faces": 1190,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.27984,
+      "depth": 0.12,
+      "height": 0.52502
+    },
+    "fingerprint": "4275a6dadf473cb903b69b39817eaa8f919e2ac3f4185a91837480fab388fe49"
+  },
+  {
+    "id": "TV-250",
+    "vertices": 1552,
+    "faces": 1244,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.28447,
+      "depth": 0.12,
+      "height": 0.53937
+    },
+    "fingerprint": "719a3d78f144c53946586ff273d9a62c07e9c0ce04378e41d0de16a0170504d6"
+  },
+  {
+    "id": "TV-251",
+    "vertices": 160,
+    "faces": 104,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.4,
+      "depth": 0.08,
+      "height": 0.785
+    },
+    "fingerprint": "3e4697fdee6d0120545a8afc0d002729532c741b8783bf1f89383a69dcaa4e05"
+  },
+  {
+    "id": "TV-252",
+    "vertices": 216,
+    "faces": 158,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.436,
+      "depth": 0.16,
+      "height": 0.81
+    },
+    "fingerprint": "abbd930685b1785d04d3e68b65ca5edfb67ad848453037db7adafc7a7e46a705"
+  },
+  {
+    "id": "TV-253",
+    "vertices": 160,
+    "faces": 104,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.472,
+      "depth": 0.08,
+      "height": 0.835
+    },
+    "fingerprint": "33746987e10e91c0732f704080a7fed997483bf6f22250638741ca839d09c3b0"
+  },
+  {
+    "id": "TV-254",
+    "vertices": 216,
+    "faces": 158,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.508,
+      "depth": 0.16,
+      "height": 0.86
+    },
+    "fingerprint": "5bb07ca18cb29d4f0920762a1df66a5d8ef1e885f3db073ce1664167f2f24251"
+  },
+  {
+    "id": "TV-255",
+    "vertices": 376,
+    "faces": 256,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.544,
+      "depth": 0.102,
+      "height": 0.885
+    },
+    "fingerprint": "1a8253c2fbbf0560254e701c430b720656d337acf8db2b007e6732cb499127cf"
+  },
+  {
+    "id": "TV-256",
+    "vertices": 432,
+    "faces": 310,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.58,
+      "depth": 0.16,
+      "height": 0.91
+    },
+    "fingerprint": "da30e05080472bdee759b0ae1fb0f93264f1bb6f6fe5da68e67195e345412f00"
+  },
+  {
+    "id": "TV-257",
+    "vertices": 376,
+    "faces": 256,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.616,
+      "depth": 0.102,
+      "height": 0.935
+    },
+    "fingerprint": "1c322da207e5e975c7b51484cc5cecbe7b9ee7699b0ebaf8322b3cf143fec96d"
+  },
+  {
+    "id": "TV-258",
+    "vertices": 464,
+    "faces": 334,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.652,
+      "depth": 0.16,
+      "height": 0.96
+    },
+    "fingerprint": "34314f9cfe2806633d3019756d8a5be570b7cd60c5d73d1cbfa271b60a7f8d21"
+  },
+  {
+    "id": "TV-259",
+    "vertices": 408,
+    "faces": 280,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.688,
+      "depth": 0.102,
+      "height": 0.985
+    },
+    "fingerprint": "59098ad0e085612b2715b3e53d4fb625adff084a74b21db0a7c834b5c5e8bd84"
+  },
+  {
+    "id": "TV-260",
+    "vertices": 464,
+    "faces": 334,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.724,
+      "depth": 0.16,
+      "height": 1.01
+    },
+    "fingerprint": "ebff1986ee2a20ff3b91b57f652ed2c6d614bca5163fff9bd1bedd8626aff700"
+  },
+  {
+    "id": "TV-261",
+    "vertices": 350,
+    "faces": 293,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2,
+      "depth": 0.08,
+      "height": 0.812
+    },
+    "fingerprint": "4cd4f307ed969f816a4aedc1240a355aa53edf98663e2736ac08862d9083ef08"
+  },
+  {
+    "id": "TV-262",
+    "vertices": 350,
+    "faces": 293,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.25,
+      "depth": 0.08,
+      "height": 0.837
+    },
+    "fingerprint": "5d0edec937ff2dc76d03572182c3b77d4e3a24f858d2a4924485e8c507733982"
+  },
+  {
+    "id": "TV-263",
+    "vertices": 350,
+    "faces": 293,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.3,
+      "depth": 0.08,
+      "height": 0.862
+    },
+    "fingerprint": "1f434dc979c0ee2afeae90c1e8c64a4f40c4384886b94a3bd8bf858851021f77"
+  },
+  {
+    "id": "TV-264",
+    "vertices": 350,
+    "faces": 293,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.35,
+      "depth": 0.08,
+      "height": 0.887
+    },
+    "fingerprint": "60e5be94cae4bf853682aa6de206f7843b18c99b04f0c821157883ecaa4d21ad"
+  },
+  {
+    "id": "TV-265",
+    "vertices": 494,
+    "faces": 377,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2,
+      "depth": 0.097,
+      "height": 0.912
+    },
+    "fingerprint": "f2c6cfe317617ff9b0ad6de3f57501e059ba459ae418515667a3e7d98e5836bd"
+  },
+  {
+    "id": "TV-266",
+    "vertices": 494,
+    "faces": 377,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.25,
+      "depth": 0.097,
+      "height": 0.937
+    },
+    "fingerprint": "544071a550b144710675a8a6079f186e68d88307c57ce437d23d7580384f338f"
+  },
+  {
+    "id": "TV-267",
+    "vertices": 494,
+    "faces": 377,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.3,
+      "depth": 0.097,
+      "height": 0.962
+    },
+    "fingerprint": "9eb7708e6f9d4e62c6c2016756359e7072d5eeb1775e3ba985c0df0fec87e21f"
+  },
+  {
+    "id": "TV-268",
+    "vertices": 550,
+    "faces": 431,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.35,
+      "depth": 0.12,
+      "height": 0.987
+    },
+    "fingerprint": "c6ca77020c77e3997904e5af789161785b64081b99571d559c6c1cb41fca2d75"
+  },
+  {
+    "id": "TV-269",
+    "vertices": 550,
+    "faces": 431,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2,
+      "depth": 0.12,
+      "height": 1.012
+    },
+    "fingerprint": "bd347dee3a3a8e6a275b65d4764b23e918313b1b6cd46610b9f508c82c38f31a"
+  },
+  {
+    "id": "TV-270",
+    "vertices": 550,
+    "faces": 431,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.25,
+      "depth": 0.12,
+      "height": 1.037
+    },
+    "fingerprint": "58dd6b2b467b4a6c93fd652ba36268a8d84970513b7c58d22ce73506972c5135"
+  },
+  {
+    "id": "TV-271",
+    "vertices": 874,
+    "faces": 850,
+    "materials": 2,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2695,
+      "depth": 0.2061,
+      "height": 0.115
+    },
+    "fingerprint": "ab785cd18dd93ee54735d7344a230e3f03cf63a484a43fda3ecbd467e7727594"
+  },
+  {
+    "id": "TV-272",
+    "vertices": 546,
+    "faces": 504,
+    "materials": 2,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.30821,
+      "depth": 0.24,
+      "height": 0.22176
+    },
+    "fingerprint": "4a9828c39eff9db5822259e6e43f4bddcebd876b4d0ca21f47c00e50c57cebd3"
+  },
+  {
+    "id": "TV-273",
+    "vertices": 514,
+    "faces": 480,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.49195,
+      "depth": 0.2739,
+      "height": 0.165
+    },
+    "fingerprint": "4659873575515f44015d11fc98d0380166870d5f48e884c60afba2076912b6e8"
+  },
+  {
+    "id": "TV-274",
+    "vertices": 874,
+    "faces": 850,
+    "materials": 2,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.373,
+      "depth": 0.3078,
+      "height": 0.115
+    },
+    "fingerprint": "df2a600bf344f64b055cbbfcae6424f616ceec76954334730339cfc7a8e9f4a4"
+  },
+  {
+    "id": "TV-275",
+    "vertices": 1314,
+    "faces": 1272,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.26494,
+      "depth": 0.2061,
+      "height": 0.22172
+    },
+    "fingerprint": "d5bc1d609300d06035dd6d9e408fe444380a7a7f387bf9df3cd7aa425e895832"
+  },
+  {
+    "id": "TV-276",
+    "vertices": 1354,
+    "faces": 1290,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.49,
+      "depth": 0.3186,
+      "height": 0.22094
+    },
+    "fingerprint": "fb45e9a27aa7b77512bab28556e81015b12f60a86d4b0295b6c01c9e7c68c513"
+  },
+  {
+    "id": "TV-277",
+    "vertices": 1714,
+    "faces": 1660,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.3385,
+      "depth": 0.2739,
+      "height": 0.17142
+    },
+    "fingerprint": "e568805531d4e35467692dd160159fd93b13998495b86932fc27fa6a1419670a"
+  },
+  {
+    "id": "TV-278",
+    "vertices": 1470,
+    "faces": 1372,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.39492,
+      "depth": 0.3368,
+      "height": 0.27871
+    },
+    "fingerprint": "dfd3bd28f4f0856687fe5e6f9abfdd45afe8835b63cbbac7a242189d6f316ade"
+  },
+  {
+    "id": "TV-279",
+    "vertices": 1438,
+    "faces": 1348,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.48805,
+      "depth": 0.31735,
+      "height": 0.22042
+    },
+    "fingerprint": "26d98462f209517e2e9b89eabcb4538611a62318aa387d421f287b3edf4f58d8"
+  },
+  {
+    "id": "TV-280",
+    "vertices": 1990,
+    "faces": 1910,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.304,
+      "depth": 0.269,
+      "height": 0.17094
+    },
+    "fingerprint": "d5687029f500e39c1aa3a709282dce793a3c54847e4f442ec1f52692f4f42883"
+  },
+  {
+    "id": "TV-281",
+    "vertices": 682,
+    "faces": 658,
+    "materials": 2,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.1255,
+      "depth": 0.0931,
+      "height": 0.1114
+    },
+    "fingerprint": "87db1eda0bf321e234cc433d800e87400ddf1c0568932ed2409082548749b6c5"
+  },
+  {
+    "id": "TV-282",
+    "vertices": 538,
+    "faces": 494,
+    "materials": 2,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.11118,
+      "depth": 0.11118,
+      "height": 0.227
+    },
+    "fingerprint": "e934f35226ce629a8c746e3a853876bc5b1aed344e08a95dd41bb90138142e2a"
+  },
+  {
+    "id": "TV-283",
+    "vertices": 538,
+    "faces": 494,
+    "materials": 2,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.12926,
+      "depth": 0.12926,
+      "height": 0.247
+    },
+    "fingerprint": "ebbf51f328107f14603246ef2c1bd1d7d0f335ef04967ee8fffd928a891b300f"
+  },
+  {
+    "id": "TV-284",
+    "vertices": 682,
+    "faces": 658,
+    "materials": 2,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.17974,
+      "depth": 0.14734,
+      "height": 0.1114
+    },
+    "fingerprint": "ebf10009f550e610ba129682a313c6f1d2bf660f3d207c7192a2ae720010187e"
+  },
+  {
+    "id": "TV-285",
+    "vertices": 1306,
+    "faces": 1262,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.0931,
+      "depth": 0.0931,
+      "height": 0.227
+    },
+    "fingerprint": "4150337e4226b68d649c2581fb19f0fd7dee78422d94b9c88d4e414d8b090392"
+  },
+  {
+    "id": "TV-286",
+    "vertices": 1306,
+    "faces": 1262,
+    "materials": 3,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.11118,
+      "depth": 0.11118,
+      "height": 0.247
+    },
+    "fingerprint": "235508c9558b87fc84a2264fee098476d3ccdd5f6f62cb18bb4a04006c92c9f6"
+  },
+  {
+    "id": "TV-287",
+    "vertices": 1494,
+    "faces": 1468,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.16166,
+      "depth": 0.13181,
+      "height": 0.1114
+    },
+    "fingerprint": "d266721c5dda18f3bdd7620545f101e75fd3ddf895a9764ee250dc93e71241da"
+  },
+  {
+    "id": "TV-288",
+    "vertices": 1612,
+    "faces": 1531,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.14734,
+      "depth": 0.17634,
+      "height": 0.227
+    },
+    "fingerprint": "ff0bfc34157b59ecc8d166fc9c40289d5f056bacc6ccfb9b2a4fbf027dff27bf"
+  },
+  {
+    "id": "TV-289",
+    "vertices": 1454,
+    "faces": 1366,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.0931,
+      "depth": 0.12255,
+      "height": 0.247
+    },
+    "fingerprint": "20205486b9e48c5f31d91f873afcdce547a15c2675d9e58a2610047a6bff748a"
+  },
+  {
+    "id": "TV-290",
+    "vertices": 1770,
+    "faces": 1718,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.14358,
+      "depth": 0.14377,
+      "height": 0.1114
+    },
+    "fingerprint": "35eb859d26af427264fed261066f0e5eed6214414213509c4962995a2f4b4df9"
+  },
+  {
+    "id": "TV-291",
+    "vertices": 217,
+    "faces": 135,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.15588,
+      "depth": 0.18,
+      "height": 0.29
+    },
+    "fingerprint": "27b28947a84c82841a8a8da0ce23b0357f5a2c9ce9097223e1300cabfe84d8c3"
+  },
+  {
+    "id": "TV-292",
+    "vertices": 249,
+    "faces": 153,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2088,
+      "depth": 0.2088,
+      "height": 0.325
+    },
+    "fingerprint": "6912ed25de57e75581f73dbe93ee88b808d37678a35707fec9c8026c771877d2"
+  },
+  {
+    "id": "TV-293",
+    "vertices": 281,
+    "faces": 171,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.22597,
+      "depth": 0.2376,
+      "height": 0.36
+    },
+    "fingerprint": "ee1deee415e4278e899aafcb45c4dca84b05e346dcd21820ea26fa018ec93c11"
+  },
+  {
+    "id": "TV-294",
+    "vertices": 313,
+    "faces": 189,
+    "materials": 4,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.18,
+      "depth": 0.18,
+      "height": 0.395
+    },
+    "fingerprint": "e0df9bd504679fba915c49c0b91cc599e945b760d28c3cabf7ec41b7981c742f"
+  },
+  {
+    "id": "TV-295",
+    "vertices": 601,
+    "faces": 519,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.18083,
+      "depth": 0.2088,
+      "height": 0.29
+    },
+    "fingerprint": "d9076b18b97a07ad558662ce75385d6c109c7b53ba6d77132639f744c8fba30b"
+  },
+  {
+    "id": "TV-296",
+    "vertices": 633,
+    "faces": 537,
+    "materials": 5,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2376,
+      "depth": 0.2376,
+      "height": 0.325
+    },
+    "fingerprint": "c5bcf2638bdee6348e51699171a395428f9021eef92d56618a171a77ca3922e0"
+  },
+  {
+    "id": "TV-297",
+    "vertices": 709,
+    "faces": 597,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.17119,
+      "depth": 0.19318,
+      "height": 0.36
+    },
+    "fingerprint": "d40440045d99b24f12175d25c5ad2fce66d73af64a25420fe59956d91162df7b"
+  },
+  {
+    "id": "TV-298",
+    "vertices": 1023,
+    "faces": 874,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.2088,
+      "depth": 0.2374,
+      "height": 0.395
+    },
+    "fingerprint": "5305aa79bcede1ce13c13944091f681d5d7bec7d4192042985285fc5097f9838"
+  },
+  {
+    "id": "TV-299",
+    "vertices": 769,
+    "faces": 655,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.20577,
+      "depth": 0.2618,
+      "height": 0.29
+    },
+    "fingerprint": "5441274bfb4ad78ffe91677677c8ee52c8e9d43c161e7b77d2e001d1dc8c7bb9"
+  },
+  {
+    "id": "TV-300",
+    "vertices": 805,
+    "faces": 685,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.18964,
+      "depth": 0.21618,
+      "height": 0.325
+    },
+    "fingerprint": "68fbd1aeb5735dd55d89ef6970527f0431653b41980ac74f5523b13f13a594af"
+  },
+  {
+    "id": "TV-301",
+    "vertices": 1184,
+    "faces": 1060,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.30217,
+      "depth": 0.18325,
+      "height": 1.06
+    },
+    "fingerprint": "c1a674ac25917e41574039113e67bcb2b15f4e4b81c438f61f7606723ed171ef"
+  },
+  {
+    "id": "TV-302",
+    "vertices": 1736,
+    "faces": 1606,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.32587,
+      "depth": 0.2175,
+      "height": 1.02093
+    },
+    "fingerprint": "d7bfa648b88b1668efb25ed7d2c432070c47efd90d5d63e66f52a7f5d82edc5f"
+  },
+  {
+    "id": "TV-303",
+    "vertices": 1648,
+    "faces": 1452,
+    "materials": 10,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.15695,
+      "depth": 0.10525,
+      "height": 0.88528
+    },
+    "fingerprint": "0bec4c3c1474baab9f6fbf7375facaf24f95167f97ae0d7dded5c857123f1ae9"
+  },
+  {
+    "id": "TV-304",
+    "vertices": 1326,
+    "faces": 1264,
+    "materials": 6,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.25,
+      "depth": 0.28658,
+      "height": 0.28963
+    },
+    "fingerprint": "cb92d2225d0934b06e13494711db23428687affc80ce4fa28ead1c7a5fd4b682"
+  },
+  {
+    "id": "TV-305",
+    "vertices": 1488,
+    "faces": 1372,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.29,
+      "depth": 0.3456,
+      "height": 0.319
+    },
+    "fingerprint": "3f2f83d7f92d88ce3af6eb4b15d5bf6597913a148bfe1cba9a459fd278fb6440"
+  },
+  {
+    "id": "TV-306",
+    "vertices": 2104,
+    "faces": 1968,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.36,
+      "depth": 0.43,
+      "height": 0.2525
+    },
+    "fingerprint": "89e409354bfd9d8219597d2267bcb3f330828c18acd1f22273474b00cdbd77f6"
+  },
+  {
+    "id": "TV-307",
+    "vertices": 1362,
+    "faces": 1250,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.152,
+      "depth": 0.19859,
+      "height": 0.29
+    },
+    "fingerprint": "95e8c091e9430b68b072cb0a36ce8b17d09ad2ffe70d5385c4a508a6a3dc8ec6"
+  },
+  {
+    "id": "TV-308",
+    "vertices": 1168,
+    "faces": 1076,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.208,
+      "depth": 0.2265,
+      "height": 0.511
+    },
+    "fingerprint": "0353049830b2f4b6cb010ee2e2130ec7368fbe21cef300c6f6aefa65cafcc2a6"
+  },
+  {
+    "id": "TV-309",
+    "vertices": 1774,
+    "faces": 1618,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.5069,
+      "depth": 0.40039,
+      "height": 0.52
+    },
+    "fingerprint": "f543a12d9f49e946b5336fb1664674515aea6c33ddd3b5581455b51847b894a8"
+  },
+  {
+    "id": "TV-310",
+    "vertices": 1800,
+    "faces": 1654,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.658,
+      "depth": 0.558,
+      "height": 0.336
+    },
+    "fingerprint": "77dab00f1c55b6c0208f56fd22d28a3574e21cde74753b9787eb4b616f596338"
+  },
+  {
+    "id": "TV-311",
+    "vertices": 998,
+    "faces": 833,
+    "materials": 10,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.41754,
+      "depth": 0.20525,
+      "height": 1.095
+    },
+    "fingerprint": "45b6462da63bd867b6bf1f00f358772d582bdb323ce110fe6f64a654befaf065"
+  },
+  {
+    "id": "TV-312",
+    "vertices": 1574,
+    "faces": 1421,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.44483,
+      "depth": 0.2395,
+      "height": 1.02125
+    },
+    "fingerprint": "8c804e524d2f7927ec2659808fd44285ada04503a1e876a37c8e95388775ec2c"
+  },
+  {
+    "id": "TV-313",
+    "vertices": 926,
+    "faces": 681,
+    "materials": 11,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.20347,
+      "depth": 0.12725,
+      "height": 0.88528
+    },
+    "fingerprint": "8fd70b4c4cabfd02b77e23d9b2e81a3b8682681c9a713c13149c8b7d01e624ec"
+  },
+  {
+    "id": "TV-314",
+    "vertices": 1436,
+    "faces": 1323,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.3,
+      "depth": 0.326,
+      "height": 0.28963
+    },
+    "fingerprint": "67756238b78733f4017e2d45232f44a97f0ea4f5d57061ba183fb70ca36af4e2"
+  },
+  {
+    "id": "TV-315",
+    "vertices": 1374,
+    "faces": 1213,
+    "materials": 10,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.29,
+      "depth": 0.3811,
+      "height": 0.28655
+    },
+    "fingerprint": "f2453ad4738a7d5a65e2cc22360cff71b72eba56a3dcc6d2877a5c80fda74f5d"
+  },
+  {
+    "id": "TV-316",
+    "vertices": 1892,
+    "faces": 1720,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.38,
+      "depth": 0.452,
+      "height": 0.295
+    },
+    "fingerprint": "b118e8a154146bea674da88b726d1378061978651a16536b50f30b146b1bea44"
+  },
+  {
+    "id": "TV-317",
+    "vertices": 968,
+    "faces": 823,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.196,
+      "depth": 0.21284,
+      "height": 0.29
+    },
+    "fingerprint": "557da2cc48b15419705901848d8c5436a2525fd8deb0fdecbd601980eaa3d54a"
+  },
+  {
+    "id": "TV-318",
+    "vertices": 1230,
+    "faces": 1107,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.208,
+      "depth": 0.2605,
+      "height": 0.511
+    },
+    "fingerprint": "615b3add822d1b074c135c7487bd7a31fe40b87b9f26fb29cfbc21a06cccac5d"
+  },
+  {
+    "id": "TV-319",
+    "vertices": 1652,
+    "faces": 1467,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.508,
+      "depth": 0.39593,
+      "height": 0.52
+    },
+    "fingerprint": "b5ff19485ad93ff95d1d347b78775a426717b8bddd4c3f434a6a5c816ac0066f"
+  },
+  {
+    "id": "TV-320",
+    "vertices": 1630,
+    "faces": 1443,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.658,
+      "depth": 0.558,
+      "height": 0.3435
+    },
+    "fingerprint": "49884e6ae75f4b363272303a4d45818c990cf6a859ea6c5daa41cd181a1c98be"
+  },
+  {
+    "id": "TV-321",
+    "vertices": 1240,
+    "faces": 1142,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.28793,
+      "depth": 0.2105,
+      "height": 1.13
+    },
+    "fingerprint": "230104a18002dd00bb4a30177f76d2b8229cf24b1321e11b4642a4e47c6ae316"
+  },
+  {
+    "id": "TV-322",
+    "vertices": 1752,
+    "faces": 1654,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.37345,
+      "depth": 0.2425,
+      "height": 1.02153
+    },
+    "fingerprint": "aa307fb551063c68b51628307eaecf9d74f6d68d435703c649a6656805c6f1da"
+  },
+  {
+    "id": "TV-323",
+    "vertices": 1080,
+    "faces": 898,
+    "materials": 11,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.15695,
+      "depth": 0.12625,
+      "height": 0.88528
+    },
+    "fingerprint": "21a3643002c811a9ee3cb5e561aa6987d897e492cfa1a6412992a60463575d97"
+  },
+  {
+    "id": "TV-324",
+    "vertices": 1278,
+    "faces": 1232,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.25,
+      "depth": 0.30758,
+      "height": 0.28963
+    },
+    "fingerprint": "66564745781fcd262a7a577f280675f5c743c55987fc8f1eb9e03168e4bbfa67"
+  },
+  {
+    "id": "TV-325",
+    "vertices": 1528,
+    "faces": 1432,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.335,
+      "depth": 0.3666,
+      "height": 0.285
+    },
+    "fingerprint": "41bd63fbe03dfc2e54dca1a89672bdb36e593448b8d98127fe8d9714ed8fefa0"
+  },
+  {
+    "id": "TV-326",
+    "vertices": 2056,
+    "faces": 1936,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.36,
+      "depth": 0.451,
+      "height": 0.2525
+    },
+    "fingerprint": "ddeaf10ec5a2fb31ca368b6499f9343d511a1e03dcf2a4115f8167c8c740015c"
+  },
+  {
+    "id": "TV-327",
+    "vertices": 1090,
+    "faces": 1002,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.152,
+      "depth": 0.226,
+      "height": 0.29
+    },
+    "fingerprint": "04c5fb713e10ad18b7de2bdb809cb1d6ed45983cfae450c1a419bb50f135ae58"
+  },
+  {
+    "id": "TV-328",
+    "vertices": 1120,
+    "faces": 1044,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.208,
+      "depth": 0.2475,
+      "height": 0.511
+    },
+    "fingerprint": "135c8a5764d8b06400df118488833b0bc9938511548abbabf7535d84f7320758"
+  },
+  {
+    "id": "TV-329",
+    "vertices": 1718,
+    "faces": 1592,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.5069,
+      "depth": 0.43025,
+      "height": 0.52
+    },
+    "fingerprint": "ace23d2ebc4d5945ef2530588ca418001e2c6006476d36a2e68d9a3bd0ba7331"
+  },
+  {
+    "id": "TV-330",
+    "vertices": 1752,
+    "faces": 1622,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.658,
+      "depth": 0.558,
+      "height": 0.351
+    },
+    "fingerprint": "f720996906671ee57b35f35ade8c96138c6aa7408c22a74c784e2c955fbf3f99"
+  },
+  {
+    "id": "TV-331",
+    "vertices": 1360,
+    "faces": 1198,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.28793,
+      "depth": 0.20125,
+      "height": 1.165
+    },
+    "fingerprint": "5cd73beba985989b0a2b81b0e8ee52939ba6a7e12143911a93ae2cdaf0b7c920"
+  },
+  {
+    "id": "TV-332",
+    "vertices": 1880,
+    "faces": 1736,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.39726,
+      "depth": 0.2355,
+      "height": 1.02176
+    },
+    "fingerprint": "3443503b4a4584cc1404343f4c0a139a1ed8cceef726de78097aa9554fdfd9c1"
+  },
+  {
+    "id": "TV-333",
+    "vertices": 1792,
+    "faces": 1582,
+    "materials": 10,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.15695,
+      "depth": 0.12325,
+      "height": 0.88528
+    },
+    "fingerprint": "f3839f45ca78a25a4ff100423cdca15b4d4f8f52a9eb7796948eb060f53c99a6"
+  },
+  {
+    "id": "TV-334",
+    "vertices": 1750,
+    "faces": 1664,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.3,
+      "depth": 0.322,
+      "height": 0.28963
+    },
+    "fingerprint": "49b01e0cd0c55367f8a2e4d26db56423e24c839f720783e24338d952c8f0eeac"
+  },
+  {
+    "id": "TV-335",
+    "vertices": 1632,
+    "faces": 1502,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.29,
+      "depth": 0.3636,
+      "height": 0.319
+    },
+    "fingerprint": "edb4b597478d64d53498113913e66dd13f56874852d5ff10138d1d474abfa920"
+  },
+  {
+    "id": "TV-336",
+    "vertices": 2206,
+    "faces": 2061,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.38,
+      "depth": 0.448,
+      "height": 0.295
+    },
+    "fingerprint": "497605e492cdcfc641c0550877fddbf5cff86abb2963d91cce91746465e61c32"
+  },
+  {
+    "id": "TV-337",
+    "vertices": 1506,
+    "faces": 1380,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.152,
+      "depth": 0.21659,
+      "height": 0.29
+    },
+    "fingerprint": "1981ad5310d91b22ba9bc9392c8f9e370a2cce14029fa4bce898c7556156b209"
+  },
+  {
+    "id": "TV-338",
+    "vertices": 1544,
+    "faces": 1448,
+    "materials": 7,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.208,
+      "depth": 0.2565,
+      "height": 0.511
+    },
+    "fingerprint": "97f0019e14a86f28a1d2f024379857dd267555ed05a103409d28b3c6191c3aa4"
+  },
+  {
+    "id": "TV-339",
+    "vertices": 1902,
+    "faces": 1728,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.5069,
+      "depth": 0.4185,
+      "height": 0.52
+    },
+    "fingerprint": "cc8dd12025370566c198efc4d23c5f20cf2c951398d74356b6e32d503778f332"
+  },
+  {
+    "id": "TV-340",
+    "vertices": 1944,
+    "faces": 1784,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.658,
+      "depth": 0.558,
+      "height": 0.3585
+    },
+    "fingerprint": "f388228df5a3d746ddb3b7b7e5f1c08a35851c5c5ca0fdf3d9c07459d432793b"
+  },
+  {
+    "id": "TV-341",
+    "vertices": 1528,
+    "faces": 1410,
+    "materials": 10,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.28793,
+      "depth": 0.24875,
+      "height": 1.2
+    },
+    "fingerprint": "2b708c27dc81ac6f05316c2183c257f804667e4bb61b31312cb5aab1125e41f1"
+  },
+  {
+    "id": "TV-342",
+    "vertices": 2040,
+    "faces": 1922,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.42107,
+      "depth": 0.262,
+      "height": 1.02197
+    },
+    "fingerprint": "d3365188a88e551089d6cdbf8b35155902ee4c0c3b236b0a123d4bc00f5494ef"
+  },
+  {
+    "id": "TV-343",
+    "vertices": 1336,
+    "faces": 1128,
+    "materials": 11,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.20347,
+      "depth": 0.14575,
+      "height": 0.88528
+    },
+    "fingerprint": "edf6ce3122c5710246a8db15464dfaa2f3c4c0ead007c187bc1ce230f962e1b7"
+  },
+  {
+    "id": "TV-344",
+    "vertices": 1566,
+    "faces": 1500,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.25,
+      "depth": 0.32708,
+      "height": 0.28963
+    },
+    "fingerprint": "7d51693b36bc79acc9e69a00fe77804bd15917a1d0737769a3d2e624d7ecb547"
+  },
+  {
+    "id": "TV-345",
+    "vertices": 1760,
+    "faces": 1646,
+    "materials": 10,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.29,
+      "depth": 0.39525,
+      "height": 0.285
+    },
+    "fingerprint": "61370fc7d48c1ce9714d6f52d938fd464fec9f44de02995283bdcda3524a788f"
+  },
+  {
+    "id": "TV-346",
+    "vertices": 2344,
+    "faces": 2204,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.36,
+      "depth": 0.4705,
+      "height": 0.2525
+    },
+    "fingerprint": "60a52ffe7d6b3a7668aaab6e22a678a20935ea2a330c1726d6c64608e8ac79a8"
+  },
+  {
+    "id": "TV-347",
+    "vertices": 1378,
+    "faces": 1270,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.196,
+      "depth": 0.23134,
+      "height": 0.29
+    },
+    "fingerprint": "4411110992c058d7048aae2ce28c6670341a37e7fa70974e6dbe648eacbd6899"
+  },
+  {
+    "id": "TV-348",
+    "vertices": 1408,
+    "faces": 1312,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.208,
+      "depth": 0.267,
+      "height": 0.511
+    },
+    "fingerprint": "e505584fb6d07e728b8d36012bab6d55de22817aae77d7442f2bdf5014a2474e"
+  },
+  {
+    "id": "TV-349",
+    "vertices": 2118,
+    "faces": 1968,
+    "materials": 10,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.5069,
+      "depth": 0.454,
+      "height": 0.52
+    },
+    "fingerprint": "d3ba80e2f089666c24383b88611475e6ee28622303dca3c955d41e0e51736b04"
+  },
+  {
+    "id": "TV-350",
+    "vertices": 2040,
+    "faces": 1890,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.658,
+      "depth": 0.558,
+      "height": 0.366
+    },
+    "fingerprint": "b522a999e6f31beab0b10e16814373ca88d4471b0dbc1550dfbbc7cfded535fe"
+  },
+  {
+    "id": "TV-351",
+    "vertices": 1624,
+    "faces": 1502,
+    "materials": 10,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.28793,
+      "depth": 0.19425,
+      "height": 1.235
+    },
+    "fingerprint": "6ffd29fc65ec974c72f20ec7ee2fdce409b35400f69ac1c3d58fa9a4d7ecfeea"
+  },
+  {
+    "id": "TV-352",
+    "vertices": 2136,
+    "faces": 2014,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.49245,
+      "depth": 0.2285,
+      "height": 1.02216
+    },
+    "fingerprint": "bf148841251d327085009718c8f8ed381e90ecfefb4fc264e3c56c9d19aea713"
+  },
+  {
+    "id": "TV-353",
+    "vertices": 1520,
+    "faces": 1312,
+    "materials": 12,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.15695,
+      "depth": 0.11625,
+      "height": 0.88528
+    },
+    "fingerprint": "f8df75497ce98228f9c63fde108caa8c8788811ca75dd2b2eda93cdf21a3788d"
+  },
+  {
+    "id": "TV-354",
+    "vertices": 1998,
+    "faces": 1916,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.3,
+      "depth": 0.315,
+      "height": 0.28963
+    },
+    "fingerprint": "edc1a8769fa5e729410b38714406fa2b5e0d8984537846b81c7dc13b97ef77d3"
+  },
+  {
+    "id": "TV-355",
+    "vertices": 1880,
+    "faces": 1754,
+    "materials": 10,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.29,
+      "depth": 0.3566,
+      "height": 0.319
+    },
+    "fingerprint": "4ddee6ca920f5c4fd44c3bcde748997ceb392b9fd286139eab9b2840f702c70b"
+  },
+  {
+    "id": "TV-356",
+    "vertices": 2454,
+    "faces": 2313,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.38,
+      "depth": 0.441,
+      "height": 0.295
+    },
+    "fingerprint": "6caba83929cb2ba6affa106bc84420de40cd41f61f2fbbfddc85b76a3cce60c9"
+  },
+  {
+    "id": "TV-357",
+    "vertices": 1530,
+    "faces": 1416,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.152,
+      "depth": 0.216,
+      "height": 0.29
+    },
+    "fingerprint": "013b794090263f19c19782071ec6fbf602864810d84c71ea1b5c711bbfee67c8"
+  },
+  {
+    "id": "TV-358",
+    "vertices": 1792,
+    "faces": 1700,
+    "materials": 8,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.208,
+      "depth": 0.2495,
+      "height": 0.511
+    },
+    "fingerprint": "b8a4381310fddb06f5bd2c27b35eed4add3ae88c0797ae8851724f6950ac3840"
+  },
+  {
+    "id": "TV-359",
+    "vertices": 2214,
+    "faces": 2060,
+    "materials": 10,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.5069,
+      "depth": 0.4145,
+      "height": 0.52
+    },
+    "fingerprint": "00457f485c04e516111b49439e6ebc3d776bcd71f935e4f8012a6d0a27aea361"
+  },
+  {
+    "id": "TV-360",
+    "vertices": 2192,
+    "faces": 2036,
+    "materials": 9,
+    "finite": true,
+    "dimensions_m": {
+      "width": 0.658,
+      "depth": 0.558,
+      "height": 0.3735
+    },
+    "fingerprint": "a8f14818a142a2b0fa9f38c8064f084c8c2be932bfad57a92d274371e2c2422b"
+  }
+]

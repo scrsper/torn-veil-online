@@ -14,7 +14,6 @@ name: PR gate
 
 on:
   pull_request:
-    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-pr-${{ github.event.pull_request.number }}
@@ -50,3 +49,18 @@ jobs:
       - run: npm test
       - run: npm run build:bundle
       - run: npm run world:smoke
+
+  ontology:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tools/ontology/package-lock.json
+      - run: npm ci --prefix tools/ontology
+      - run: npm ci
+      - run: npm run ontology:check
+      - run: npm run assets:verify:shipped --prefix tools/ontology
+      - run: npm run ontology:build

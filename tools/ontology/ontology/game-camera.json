@@ -1,0 +1,13 @@
+{
+  "id": "torn-veil-elevated-exploration-v1",
+  "status": "DRAFT",
+  "projection": "perspective",
+  "distanceM": 8,
+  "pitchRadians": 0.5,
+  "verticalFovDegrees": 62,
+  "targetHeightM": 1.65,
+  "lookTargetOffsetM": 0.05,
+  "referenceYawRadians": 0.45,
+  "source": "torn-veil-online/src/web/game/cameraRig.ts + bindings.ts, inspected 2026-10-04",
+  "notes": "Matches settled elevated orbit exploration defaults. Fixed head pivot 1.65m is a review-stage choice, not a simulation measurement. Includes +0.05m look offset. No world obstruction shortening, smoothing or shake. Same fixed camera across body variants preserves scale comparisons. Reference illustrations are closer framing and cannot calibrate a camera."
+}

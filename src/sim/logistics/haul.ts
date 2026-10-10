@@ -286,7 +286,9 @@ export function loadHaulCargo(world: World, task: HaulTask, person: Person): boo
   const tripCapacity = Math.max(0, personalCarryUnits(world, person, task.resource) - task.carried);
   const want = Math.min(stillNeeded, tripCapacity);
   let n = Math.min(want, avail);
-  const sourceStacks = stockItemsAt(world, task.resource, task.sourcePlaceId).filter(i => !i.ownerId || world.person(i.ownerId)?.alive).sort((a, b) => a.id.localeCompare(b.id));
+  const existingCargo = task.cargoItemId ? world.item(task.cargoItemId) : undefined;
+  // A cargo stack cannot erase or combine different authored physical designs.
+  const sourceStacks = stockItemsAt(world, task.resource, task.sourcePlaceId).filter(i => (!i.ownerId || world.person(i.ownerId)?.alive) && (!existingCargo || i.catalogId === existingCargo.catalogId)).sort((a, b) => a.id.localeCompare(b.id));
   const stack = sourceStacks[0];
   if (!stack) n = 0;
   const operator = task.buyerId ?? wholesaleBuyerFor(world, task.destPlaceId, task.projectId);
@@ -297,7 +299,7 @@ export function loadHaulCargo(world: World, task: HaulTask, person: Person): boo
   // buy fewer units; they cannot drain a supplier's stock in exchange for a partial payment.
   // Fill a real load across batches of this producer. Limiting a trip to one five-loaf
   // baking batch would quietly reduce throughput regardless of the carrier's capacity.
-  const ownedStacks = sourceStacks.filter(s => s.ownerId === sellerId);
+  const ownedStacks = sourceStacks.filter(s => s.ownerId === sellerId && s.catalogId === stack?.catalogId);
   if (stack) n = Math.min(n, ownedStacks.reduce((sum, s) => sum + s.quantity, 0));
   if (stack && sellerId && buyerId !== undefined && sellerId !== buyerId) {
     const buyer = world.person(buyerId), seller = world.person(sellerId);
@@ -330,10 +332,10 @@ export function loadHaulCargo(world: World, task: HaulTask, person: Person): boo
     if (source.quantity <= 0) retireStack(world, source);
     if (remaining <= 0) break;
   }
-  let cargo = task.cargoItemId ? world.item(task.cargoItemId) : undefined;
+  let cargo = existingCargo;
   const owner = buyerId ?? task.requesterId ?? sellerId ?? world.place(task.sourcePlaceId)?.ownerId ?? null;
   if (!cargo) {
-    cargo = makeItem(world, task.resource, ITEM_LABEL[task.resource], { owner, holder: person.id, quantity: n });
+    cargo = makeItem(world, task.resource, stack.catalogId ? stack.name : ITEM_LABEL[task.resource], { owner, holder: person.id, quantity: n, catalogId: stack.catalogId, description: stack.catalogId ? stack.description : undefined });
     cargo.haulTaskId = task.id;
     task.cargoItemId = cargo.id;
   } else {
@@ -376,7 +378,7 @@ export function depositHaulCargo(world: World, task: HaulTask, person: Person): 
     data: { haulId: task.id, resource: task.resource, quantity: n, to: task.destPlaceId, projectId: task.projectId },
     summary: `${person.name} delivered ${n} ${task.resource} to ${world.nameOf(task.destPlaceId)}`,
   });
-  const delivered = addPlaceStock(world, task.resource, n, task.destPlaceId, owner, ev.id, 'delivered');
+  const delivered = addPlaceStock(world, task.resource, n, task.destPlaceId, owner, ev.id, 'delivered', cargo.catalogId);
   delivered.createdAt = Math.min(delivered.createdAt, cargo.createdAt);
   delivered.spoilAccum = (delivered.spoilAccum ?? 0) + (cargo.spoilAccum ?? 0);
   cargo.spoilAccum = 0;

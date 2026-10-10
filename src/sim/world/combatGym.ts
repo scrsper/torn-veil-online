@@ -1,7 +1,7 @@
 import { World } from '../core/world';
 import { Simulation } from '../mind/agent';
 import { B } from '../physical/blocks';
-import { makeBody, makeItem, makePerson, makePlace } from './factory';
+import { makeBody, makeCatalogItem, makeCatalogArmor, makeItem, makePerson, makePlace } from './factory';
 import { makeContainer } from '../core/container';
 import { setExternalControl } from '../runtime/controllers';
 import { introduce } from '../mind/people';
@@ -30,6 +30,9 @@ export function createCombatGym(seed = 918271) {
   }
   introduce(world, world.person(world.playerId!)!, world.persons()[5]);
   for (const [x, z, block] of [[31, 39, B.Table], [32, 39, B.Table], [31, 38, B.Chair], [32, 40, B.Chair], [16, 34, B.Crate], [17, 34, B.Barrel], [16, 35, B.Crate]] as const) world.grid.set(x, 1, z, block);
+  const traveler=world.person(world.playerId!)!;
+  for(const id of ['TV-010','TV-021'])makeCatalogItem(world,id,{owner:traveler.id,holder:traveler.id});
+  for(const id of ['TV-081','TV-091','TV-101','TV-111','TV-121','TV-131'])makeCatalogArmor(world,id,{owner:traveler.id,holder:traveler.id});
   makeContainer(world, { name: 'Interaction chest', pos: { x: 26, y: 1, z: 39 }, open: false });
   makeItem(world, 'bread', 'Test bread', { pos: { x: 26, y: 1, z: 37 }, quantity: 2 });
   makeItem(world, 'stick', 'Test stick', { pos: { x: 27, y: 1, z: 37 } });

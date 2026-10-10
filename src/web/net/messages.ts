@@ -111,6 +111,8 @@ export interface BodyState {
     activity: ActivityPresentation; station: { stand: Vec3; yaw: number; posture: string; kind: string } | null;
     conversation: { stand: Vec3; yaw: number } | null; separation: { x: number; z: number };
   } | null;
+  presentationSex?: 'm'|'f';
+  equipment?: {id:string;catalogId?:string;type:string;slot:import('../../sim/physical/equipment').EquipmentSlot}[];
   inventory?: { id: string; name: string; type: string; quantity: number }[];
   health?: number; maxHealth?: number; needs?: Record<string, number>; wealth?: number;
 }

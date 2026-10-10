@@ -1,0 +1,26 @@
+[
+  {
+    "id": "scarred",
+    "visualRequirements": [
+      "Author scarred visual rules"
+    ]
+  },
+  {
+    "id": "horned",
+    "visualRequirements": [
+      "Author horned visual rules"
+    ]
+  },
+  {
+    "id": "winged",
+    "visualRequirements": [
+      "Author winged visual rules"
+    ]
+  },
+  {
+    "id": "cybernetic",
+    "visualRequirements": [
+      "Author cybernetic visual rules"
+    ]
+  }
+]

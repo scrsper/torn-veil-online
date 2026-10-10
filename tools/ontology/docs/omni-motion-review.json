@@ -1,0 +1,83 @@
+{
+  "status": "PASS_WITH_LIMITS",
+  "clips": {
+    "Idle_Loop": {
+      "beforeLowestSoleM": 0.03644446065176765,
+      "afterLowestSoleM": -0.0001381537477223027,
+      "afterHighestLowerSoleM": 2.29710535304406e-05,
+      "beforeWorstShirtP99Stretch": 3.8790122445585578,
+      "afterWorstShirtP99Stretch": 1.5781789226231093,
+      "maxUpperarmDirectionErrorDegrees": 4.707383025272853e-05,
+      "maxAddedAttachmentSeparationM": 0.0022458124365825685,
+      "cleanup": {
+        "method": "CPU-skinned boot outsole vertices; two-bone stance IK with animated foot rotation preserved; measured walking root travel",
+        "before": {
+          "lowestSoleM": -0.022991929918886544,
+          "highestLowerSoleM": -0.021921044377463783,
+          "maxContactStepM": 9.575561743242769e-05
+        },
+        "after": {
+          "lowestSoleM": -0.0001381537477223027,
+          "highestLowerSoleM": 2.29710535304406e-05,
+          "maxContactStepM": 0.0011540914697162484
+        },
+        "rootCycleM": [
+          0,
+          0,
+          0
+        ],
+        "contactFrames": [
+          151,
+          151
+        ],
+        "status": "IMPROVED_REVIEW_REQUIRED"
+      }
+    },
+    "Walk_Loop": {
+      "beforeLowestSoleM": -0.025506849019934386,
+      "afterLowestSoleM": -0.0009725412086110108,
+      "afterHighestLowerSoleM": 0.0018024798318345692,
+      "beforeWorstShirtP99Stretch": 3.8491196022090337,
+      "afterWorstShirtP99Stretch": 1.619066009285006,
+      "maxUpperarmDirectionErrorDegrees": 5.011149486366776e-05,
+      "maxAddedAttachmentSeparationM": 0.011672582236736229,
+      "cleanup": {
+        "method": "CPU-skinned boot outsole vertices; two-bone stance IK with animated foot rotation preserved; measured walking root travel",
+        "before": {
+          "lowestSoleM": -0.014537714512806499,
+          "highestLowerSoleM": 0.0018591910968333014,
+          "maxContactStepM": 0.021295772587071153
+        },
+        "after": {
+          "lowestSoleM": -0.001337780061064775,
+          "highestLowerSoleM": 0.0019147693175554092,
+          "maxContactStepM": 0.0027230133624029833
+        },
+        "rootCycleM": [
+          0.0003585271828706396,
+          0,
+          1.218517693997665
+        ],
+        "contactFrames": [
+          53,
+          53
+        ],
+        "status": "IMPROVED_REVIEW_REQUIRED"
+      }
+    }
+  },
+  "rootContinuity": {
+    "frames": 159,
+    "wraps": 3,
+    "maxPelvisStepM": 0.03374964019245199,
+    "netTravelM": 3.8647463139671,
+    "lowestSoleM": -0.0011648597891016355
+  },
+  "limits": [
+    "Art likeness remains prototype",
+    "Sole clearance and contact slip are millimetre-tolerance review results, not general terrain locomotion",
+    "Clothing still stretches; masked underlying body is absent",
+    "Source gameplay/treadmill versus target continuous root travel differs by design",
+    "Original rejected walk remains archived and unaccepted"
+  ]
+}

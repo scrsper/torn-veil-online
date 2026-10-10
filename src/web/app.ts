@@ -1,3 +1,4 @@
+import {SharedCharacters} from './actors/sharedCast';
 import { combatGymStage } from './world/combatGymStage';
 import { Color3, FreeCamera, Matrix, Plane, Vector3 } from '@babylonjs/core';
 import { INTERACTION_SPEC } from '../sim/physical/prediction';
@@ -63,8 +64,10 @@ export class App {
   private readyFrames = 0;
   private wantedRegions: string[] = [];
   ready = false;
+  private itemsProjectionKey = '';
   showroom: Showroom | null = null;
   characters = new CharacterFactory();
+  sharedCharacters?: SharedCharacters;
   creatures = new CreatureFactory();
   grass!: GrassField;
   weatherFx!: WeatherFx;
@@ -114,7 +117,7 @@ export class App {
       onContact: (pos, onPlayer) => this.impactFx.burst(this.regions.toRender(pos), onPlayer),
       onHit: (id, own) => { if (own) { this.rig.impact(0.8); this.input.vibrate(0.6, 0.3, 160); this.audio.combat('hurt'); } else this.audio.combat('hit'); },
     };
-    this.actors.factory = (ctx, atmos, a) => (a.kind === 'person' ? this.characters.create(ctx.scene, atmos, a.body?.bodyId ?? 'x', makeRealization(a.body, a.body?.bodyId ?? 'x')) : a.wildlife ? this.creatures.create(ctx.scene, atmos, a.wildlife) : null) ?? placeholderVisual(ctx, atmos, a);
+    this.actors.factory = (ctx, atmos, a) => (a.kind === 'person' ? (a.body?this.sharedCharacters?.create(a.body,atmos):null) ?? this.characters.create(ctx.scene, atmos, a.body?.bodyId ?? 'x', makeRealization(a.body, a.body?.bodyId ?? 'x')) : a.wildlife ? this.creatures.create(ctx.scene, atmos, a.wildlife) : null) ?? placeholderVisual(ctx, atmos, a);
     this.input = new InputManager(canvas, () => this.settings);
     this.nav = new UiNav(this.input);
     this.overlay = h('div', { class: 'tv-layer', style: 'pointer-events:none' }); this.modalLayer = h('div', { class: 'tv-layer', style: 'pointer-events:none' });
@@ -143,6 +146,7 @@ export class App {
     this.ctx.engine.runRenderLoop(() => this.frame());
     const boot = loadingScreen(this.overlay, 'Preparing the people…'); this.screen = boot as { remove(): void };
     await this.characters.load(this.ctx.scene, (d, t) => boot.set(`Preparing the people… ${d}/${t}`));
+    if(!this.params.has('legacy-characters')&&!this.params.has('showroom')){this.sharedCharacters=new SharedCharacters(this.ctx.scene);try{await this.sharedCharacters.load(text=>boot.set(text));}catch(e){console.warn('[shared cast] Legacy fallback',e);}}
     boot.set('Preparing the wildlife…'); await this.creatures.load(this.ctx.scene);
     if (!this.params.has('showroom') && !this.params.has('replay') && !this.params.has('observatory')) { boot.set('Warming the renderer…'); await this.warmUp(); }
     this.clearScreen();
@@ -333,7 +337,12 @@ export class App {
       this.input.releaseAll(); this.afterModal();
     }
     this.computeFocus(s);
-    if (this.modal.isOpen && this.modal.currentTab && ['items', 'abilities', 'journal'].includes(this.modal.currentTab)) this.modal.refresh();
+    if(this.modal.isOpen&&this.modal.currentTab==='items'){
+      // Preserve actual click targets between 10 Hz snapshots. Only relevant projections
+      // rebuild the inventory, rather than replacing its buttons on every world tick.
+      const key=JSON.stringify([s.carried,s.container,s.interactions,s.mobility?.restriction,s.mobility?.knownLoadKg,Math.round((s.mobility?.fatigue??0)*100),Math.round(s.mobility?.safeCarryKg??0),s.bodies.find(b=>b.bodyId===s.controlledBodyId)?.wealth]);
+      if(key!==this.itemsProjectionKey){this.itemsProjectionKey=key;this.modal.refresh();}
+    }else if(this.modal.isOpen&&this.modal.currentTab&&['abilities','journal'].includes(this.modal.currentTab))this.modal.refresh();
     const own = this.own();
     if (own?.dead && this.phase === 'playing' && !this.screen) { this.controller.release(); this.input.exitLock(); this.modal.close(false); this.screen = deathScreen(this.overlay, own.name, { onNew: () => { this.forget(); this.link.disconnect(); this.showCharacter(); }, onQuit: () => { this.link.disconnect(); this.showTitle(); } }); }
   }
@@ -496,8 +505,8 @@ export class App {
     if (this.phase === 'playing') { this.gameFrame(dt, now, wasOpen); this.portrait.update(dt); }
     else this.backdropFrame(dt);
     timed('render', () => this.ctx.scene.render(), 12);
-    if (!this.ready && this.phase === 'playing' && this.regions.regions.size >= (this.params.has('gym') ? 1 : 5) && this.regions.pendingBuilds === 0 && ++this.readyFrames > 30) this.ready = true;
-    if (this.params.get('replay') && !this.ready && this.regions.regions.size >= (this.params.has('gym') ? 1 : 5) && this.snapshot && ++this.readyFrames > 30) this.ready = true;
+    if (!this.ready && this.phase === 'playing' && this.regions.regions.size >= (this.params.has('gym')||this.params.has('observatory') ? 1 : 5) && this.regions.pendingBuilds === 0 && ++this.readyFrames > 30) this.ready = true;
+    if (this.params.get('replay') && !this.ready && this.regions.regions.size >= (this.params.has('gym')||this.params.has('observatory') ? 1 : 5) && this.snapshot && ++this.readyFrames > 30) this.ready = true;
   }
   private backdropFrame(dt: number): void {
     // Title/loading backdrop: a slow orbit over whatever is loaded, at golden hour.

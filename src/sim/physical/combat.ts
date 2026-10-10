@@ -20,7 +20,9 @@ export function weaponProperties(item: Item): WeaponProperties | null {
 }
 /** The prototype has carried items, no equipment slots. Omitted weapon selects the best
  * usable carried weapon; explicit null means fists. Never use an item held by someone else. */
-export function combatWeapon(w: World, p: Person): Item | null {
+export function combatWeapon(w: World, p: Person, bodyId=w.primaryBody(p.id)?.id): Item | null {
+  const body=bodyId?w.body(bodyId):undefined;
+  if(body?.equipmentMode==='explicit')return p.inventory.map(id=>w.item(id)).find(i=>i&&i.holderId===p.id&&i.quantity>0&&i.condition!==0&&i.equipped?.bodyId===body.id&&i.equipped.slot==='right-hand'&&weaponProperties(i))??null;
   let best: Item | null = null;
   for (const id of p.inventory) {
     const item = w.item(id);
@@ -77,7 +79,7 @@ export function resolveCombatAttack(w: World, intent: CombatAttackIntent, rng: {
   if (ab.combatAction ? w.physicalTime + 1e-9 < combatTransitionAt(ab.combatAction,'attack')
     : w.physicalTime - ab.lastAttackAt < ATTACK_COOLDOWN) return reject('cooldown');
   if (!ab.onGround) return reject('unsupported');
-  const item = intent.weaponId === undefined ? combatWeapon(w, p) : intent.weaponId === null ? null : w.item(intent.weaponId);
+  const item = intent.weaponId === undefined ? combatWeapon(w, p, intent.attackerBodyId) : intent.weaponId === null ? null : w.item(intent.weaponId);
   if (intent.weaponId && !item) return reject('invalid_weapon');
   if (item && (!p.inventory.includes(item.id) || item.holderId !== p.id || item.quantity <= 0 || item.condition === 0 || !weaponProperties(item))) return reject('invalid_weapon');
   const weapon = item ? weaponProperties(item)! : UNARMED;

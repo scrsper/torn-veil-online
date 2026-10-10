@@ -1,0 +1,58 @@
+[
+  {
+    "id": "dunmere",
+    "status": "UNSET",
+    "clothing": [],
+    "armor": [],
+    "jewelry": [],
+    "hairstyles": [],
+    "weaponPreferences": [],
+    "materials": [],
+    "colors": [],
+    "adornments": [],
+    "architecture": [],
+    "speciesRestrictions": []
+  },
+  {
+    "id": "northern",
+    "status": "UNSET",
+    "clothing": [],
+    "armor": [],
+    "jewelry": [],
+    "hairstyles": [],
+    "weaponPreferences": [],
+    "materials": [],
+    "colors": [],
+    "adornments": [],
+    "architecture": [],
+    "speciesRestrictions": []
+  },
+  {
+    "id": "imperial",
+    "status": "UNSET",
+    "clothing": [],
+    "armor": [],
+    "jewelry": [],
+    "hairstyles": [],
+    "weaponPreferences": [],
+    "materials": [],
+    "colors": [],
+    "adornments": [],
+    "architecture": [],
+    "speciesRestrictions": []
+  },
+  {
+    "id": "underground",
+    "status": "UNSET",
+    "clothing": [],
+    "armor": [],
+    "jewelry": [],
+    "hairstyles": [],
+    "weaponPreferences": [],
+    "materials": [],
+    "colors": [],
+    "adornments": [],
+    "architecture": [],
+    "speciesRestrictions": []
+  }
+]

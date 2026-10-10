@@ -1,3 +1,4 @@
+import { itemDesign } from '../content/itemCollection';
 import type { Item, ItemType, EntityId, EventId } from '../core/types';
 import type { World } from '../core/world';
 import { makeItem, ITEM_LABEL, isPerishable } from './factory';
@@ -75,17 +76,19 @@ export function worldStock(world: World, type: ItemType): number {
  * merging (no aging to get wrong, and it keeps the item count down). Records provenance.
  * Returns the stack.
  */
-export function addPlaceStock(world: World, type: ItemType, qty: number, placeId: EntityId, ownerId: EntityId | null, eventId: EventId | undefined, how: string): Item {
+export function addPlaceStock(world: World, type: ItemType, qty: number, placeId: EntityId, ownerId: EntityId | null, eventId: EventId | undefined, how: string, catalogId?: string): Item {
+  const design = catalogId ? itemDesign(catalogId) : undefined;
+  if (catalogId && design?.mechanicalType !== type) throw new Error(`Unsupported or mismatched stock design ${catalogId} for ${type}`);
   const place = world.place(placeId);
-  const existing = isPerishable(type) ? undefined : world.itemsAtPlaces([placeId]).find(i => i.type === type && !i.holderId && i.placeId === placeId && i.ownerId === ownerId);
+  const existing = isPerishable(type) ? undefined : world.itemsAtPlaces([placeId]).find(i => i.type === type && i.catalogId === catalogId && !i.holderId && i.placeId === placeId && i.ownerId === ownerId);
   if (existing) {
     existing.quantity += qty;
     if (existing.quantity > 0 && !existing.pos && place) existing.pos = { ...place.inside };
     existing.provenance.push({ tick: world.now, eventId, from: null, to: ownerId, how });
     return existing;
   }
-  const it = makeItem(world, type, ITEM_LABEL[type], {
-    owner: ownerId, pos: place ? { ...place.inside } : undefined, placeId, quantity: qty,
+  const it = makeItem(world, type, design?.name ?? ITEM_LABEL[type], {
+    owner: ownerId, pos: place ? { ...place.inside } : undefined, placeId, quantity: qty, catalogId, description: design?.description,
   });
   it.provenance.push({ tick: world.now, eventId, from: null, to: ownerId, how });
   return it;

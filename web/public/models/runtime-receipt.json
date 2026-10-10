@@ -1,0 +1,50 @@
+[
+  {
+    "file": "kit_c.glb",
+    "bytes": 10263136,
+    "sha256": "cfdd88e5cdf0a82324018a5226a9dc7755eba21076a847901ed465a75f1f1187",
+    "source": "art/tools/web_characters",
+    "license": "Project-authored geometry; character face derives from CC0 VRoid beta base",
+    "licenseEvidence": "art/source/vroid-beta/LICENSE.md"
+  },
+  {
+    "file": "kit_f.glb",
+    "bytes": 17210596,
+    "sha256": "7c71a89676499a5da2a74bcd137bf7ee5befd021823c761eba3b7af25a717cd0",
+    "source": "art/tools/web_characters",
+    "license": "Project-authored geometry; character face derives from CC0 VRoid beta base",
+    "licenseEvidence": "art/source/vroid-beta/LICENSE.md"
+  },
+  {
+    "file": "kit_m.glb",
+    "bytes": 10191220,
+    "sha256": "d345bce47ec36ada9a2c1d5f2f4cca93e15b89271337e3b3b51179b64b1ec3f5",
+    "source": "art/tools/web_characters",
+    "license": "Project-authored geometry; character face derives from CC0 VRoid beta base",
+    "licenseEvidence": "art/source/vroid-beta/LICENSE.md"
+  },
+  {
+    "file": "creature_field_hare.glb",
+    "bytes": 732940,
+    "sha256": "36996535d4b9b4077d9b1506512694b35f861e9896eeea82033a9265c3eebb87",
+    "source": "art/tools/web_characters",
+    "license": "Project-authored geometry; character face derives from CC0 VRoid beta base",
+    "licenseEvidence": "art/source/vroid-beta/LICENSE.md"
+  },
+  {
+    "file": "creature_roe_deer.glb",
+    "bytes": 742964,
+    "sha256": "94a1ba48ef8f8bae8e7fac40728fc570c721833f925d1ca7344151ef4c3bd289",
+    "source": "art/tools/web_characters",
+    "license": "Project-authored geometry; character face derives from CC0 VRoid beta base",
+    "licenseEvidence": "art/source/vroid-beta/LICENSE.md"
+  },
+  {
+    "file": "creature_woodland_boar.glb",
+    "bytes": 2737524,
+    "sha256": "fedc9b49314240c8ed878f497075e32488a9aed532eacf1be8b47fcf7ff065a5",
+    "source": "art/tools/web_characters",
+    "license": "Project-authored geometry; character face derives from CC0 VRoid beta base",
+    "licenseEvidence": "art/source/vroid-beta/LICENSE.md"
+  }
+]

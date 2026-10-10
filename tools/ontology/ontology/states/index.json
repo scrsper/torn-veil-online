@@ -1,0 +1,75 @@
+[
+  {
+    "id": "vampiric",
+    "materialFamily": "vampiric:pale",
+    "effects": [
+      "eye_accent"
+    ],
+    "requirements": [
+      "Vampiric skin/eyes/teeth not yet implemented"
+    ]
+  },
+  {
+    "id": "undead",
+    "effects": [],
+    "requirements": [
+      "Undead visual-state review"
+    ]
+  },
+  {
+    "id": "cybernetic",
+    "effects": [],
+    "requirements": [
+      "State component authoring: cybernetic"
+    ]
+  },
+  {
+    "id": "mutated",
+    "effects": [],
+    "requirements": [
+      "State component authoring: mutated"
+    ]
+  },
+  {
+    "id": "possessed",
+    "effects": [],
+    "requirements": [
+      "State component authoring: possessed"
+    ]
+  },
+  {
+    "id": "divine",
+    "effects": [],
+    "requirements": [
+      "State component authoring: divine"
+    ]
+  },
+  {
+    "id": "demonic",
+    "effects": [],
+    "requirements": [
+      "State component authoring: demonic"
+    ]
+  },
+  {
+    "id": "corrupted",
+    "effects": [],
+    "requirements": [
+      "State component authoring: corrupted"
+    ]
+  },
+  {
+    "id": "ascended",
+    "effects": [],
+    "requirements": [
+      "State component authoring: ascended"
+    ]
+  },
+  {
+    "id": "ethereal",
+    "effects": [],
+    "requirements": [
+      "State component authoring: ethereal"
+    ]
+  }
+]

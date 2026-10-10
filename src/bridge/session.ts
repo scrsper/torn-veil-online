@@ -1,3 +1,4 @@
+import {equipmentProjection} from '../sim/physical/equipment';
 import { setCrouchHeld,refreshCrouchHeld,crouchHeld } from '../sim/physical/posture';
 import { setPracticeMode, practiceStatus, tickPractice, initializePractice } from './combatArena';
 import { combatPresentation } from './combatPresentation';
@@ -426,6 +427,7 @@ export class BridgeSession {
         // People close by who cannot be spoken to right now: shown with the reason, never silently absent.
         ...talkRefusals.map(t=>({actionId:`talk-refused:${t.bodyId}`,targetId:t.bodyId,kind:'person_unavailable',label:`${t.name||'Unknown person'} — ${TALK_REFUSAL_TEXT[t.reason]}`,title:t.name||'Unknown person',reason:TALK_REFUSAL_TEXT[t.reason],pos:{...w.body(t.bodyId)!.pos}}))],
       bodies: residents.map(b => ({
+        ...({presentationSex:w.person(b.ownerId)?.gender,equipment:equipmentProjection(w,b)} as {presentationSex?:'m'|'f';equipment?:ReturnType<typeof equipmentProjection>}),
         ...humanoidVisualState(b, visible.has(b.id) ? knownName(p, b.ownerId) : 'an unfamiliar person', visibleActivity(w.person(b.ownerId), b.pose), projectAppearance(w.person(b.ownerId))),
         combatAction:visible.has(b.id) ? combatState(w,b) : null,guarding:visible.has(b.id)&&guardHeld(w,b),
         embodiment: this.embodimentFor(b, conversation, residents, ch.appearanceSent, deliver),

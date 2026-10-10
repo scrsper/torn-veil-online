@@ -1,0 +1,1762 @@
+[
+  {
+    "id": "TV-001",
+    "staticPath": "items/v1.1/glb/TV-001.glb"
+  },
+  {
+    "id": "TV-002",
+    "staticPath": "items/v1.1/glb/TV-002.glb"
+  },
+  {
+    "id": "TV-003",
+    "staticPath": "items/v1.1/glb/TV-003.glb"
+  },
+  {
+    "id": "TV-004",
+    "staticPath": "items/v1.1/glb/TV-004.glb"
+  },
+  {
+    "id": "TV-005",
+    "staticPath": "items/v1.1/glb/TV-005.glb"
+  },
+  {
+    "id": "TV-006",
+    "staticPath": "items/v1.1/glb/TV-006.glb"
+  },
+  {
+    "id": "TV-007",
+    "staticPath": "items/v1.1/glb/TV-007.glb"
+  },
+  {
+    "id": "TV-008",
+    "staticPath": "items/v1.1/glb/TV-008.glb"
+  },
+  {
+    "id": "TV-009",
+    "staticPath": "items/v1.1/glb/TV-009.glb"
+  },
+  {
+    "id": "TV-010",
+    "staticPath": "items/v1.1/glb/TV-010.glb"
+  },
+  {
+    "id": "TV-011",
+    "staticPath": "items/v1.1/glb/TV-011.glb"
+  },
+  {
+    "id": "TV-012",
+    "staticPath": "items/v1.1/glb/TV-012.glb"
+  },
+  {
+    "id": "TV-013",
+    "staticPath": "items/v1.1/glb/TV-013.glb"
+  },
+  {
+    "id": "TV-014",
+    "staticPath": "items/v1.1/glb/TV-014.glb"
+  },
+  {
+    "id": "TV-015",
+    "staticPath": "items/v1.1/glb/TV-015.glb"
+  },
+  {
+    "id": "TV-016",
+    "staticPath": "items/v1.1/glb/TV-016.glb"
+  },
+  {
+    "id": "TV-017",
+    "staticPath": "items/v1.1/glb/TV-017.glb"
+  },
+  {
+    "id": "TV-018",
+    "staticPath": "items/v1.1/glb/TV-018.glb"
+  },
+  {
+    "id": "TV-019",
+    "staticPath": "items/v1.1/glb/TV-019.glb"
+  },
+  {
+    "id": "TV-020",
+    "staticPath": "items/v1.1/glb/TV-020.glb"
+  },
+  {
+    "id": "TV-021",
+    "staticPath": "items/v1.1/glb/TV-021.glb"
+  },
+  {
+    "id": "TV-022",
+    "staticPath": "items/v1.1/glb/TV-022.glb"
+  },
+  {
+    "id": "TV-023",
+    "staticPath": "items/v1.1/glb/TV-023.glb"
+  },
+  {
+    "id": "TV-024",
+    "staticPath": "items/v1.1/glb/TV-024.glb"
+  },
+  {
+    "id": "TV-025",
+    "staticPath": "items/v1.1/glb/TV-025.glb"
+  },
+  {
+    "id": "TV-026",
+    "staticPath": "items/v1.1/glb/TV-026.glb"
+  },
+  {
+    "id": "TV-027",
+    "staticPath": "items/v1.1/glb/TV-027.glb"
+  },
+  {
+    "id": "TV-028",
+    "staticPath": "items/v1.1/glb/TV-028.glb"
+  },
+  {
+    "id": "TV-029",
+    "staticPath": "items/v1.1/glb/TV-029.glb"
+  },
+  {
+    "id": "TV-030",
+    "staticPath": "items/v1.1/glb/TV-030.glb"
+  },
+  {
+    "id": "TV-031",
+    "staticPath": "items/v1.1/glb/TV-031.glb"
+  },
+  {
+    "id": "TV-032",
+    "staticPath": "items/v1.1/glb/TV-032.glb"
+  },
+  {
+    "id": "TV-033",
+    "staticPath": "items/v1.1/glb/TV-033.glb"
+  },
+  {
+    "id": "TV-034",
+    "staticPath": "items/v1.1/glb/TV-034.glb"
+  },
+  {
+    "id": "TV-035",
+    "staticPath": "items/v1.1/glb/TV-035.glb"
+  },
+  {
+    "id": "TV-036",
+    "staticPath": "items/v1.1/glb/TV-036.glb"
+  },
+  {
+    "id": "TV-037",
+    "staticPath": "items/v1.1/glb/TV-037.glb"
+  },
+  {
+    "id": "TV-038",
+    "staticPath": "items/v1.1/glb/TV-038.glb"
+  },
+  {
+    "id": "TV-039",
+    "staticPath": "items/v1.1/glb/TV-039.glb"
+  },
+  {
+    "id": "TV-040",
+    "staticPath": "items/v1.1/glb/TV-040.glb"
+  },
+  {
+    "id": "TV-041",
+    "staticPath": "items/v1.1/glb/TV-041.glb"
+  },
+  {
+    "id": "TV-042",
+    "staticPath": "items/v1.1/glb/TV-042.glb"
+  },
+  {
+    "id": "TV-043",
+    "staticPath": "items/v1.1/glb/TV-043.glb"
+  },
+  {
+    "id": "TV-044",
+    "staticPath": "items/v1.1/glb/TV-044.glb"
+  },
+  {
+    "id": "TV-045",
+    "staticPath": "items/v1.1/glb/TV-045.glb"
+  },
+  {
+    "id": "TV-046",
+    "staticPath": "items/v1.1/glb/TV-046.glb"
+  },
+  {
+    "id": "TV-047",
+    "staticPath": "items/v1.1/glb/TV-047.glb"
+  },
+  {
+    "id": "TV-048",
+    "staticPath": "items/v1.1/glb/TV-048.glb"
+  },
+  {
+    "id": "TV-049",
+    "staticPath": "items/v1.1/glb/TV-049.glb"
+  },
+  {
+    "id": "TV-050",
+    "staticPath": "items/v1.1/glb/TV-050.glb"
+  },
+  {
+    "id": "TV-051",
+    "staticPath": "items/v1.1/glb/TV-051.glb"
+  },
+  {
+    "id": "TV-052",
+    "staticPath": "items/v1.1/glb/TV-052.glb"
+  },
+  {
+    "id": "TV-053",
+    "staticPath": "items/v1.1/glb/TV-053.glb"
+  },
+  {
+    "id": "TV-054",
+    "staticPath": "items/v1.1/glb/TV-054.glb"
+  },
+  {
+    "id": "TV-055",
+    "staticPath": "items/v1.1/glb/TV-055.glb"
+  },
+  {
+    "id": "TV-056",
+    "staticPath": "items/v1.1/glb/TV-056.glb"
+  },
+  {
+    "id": "TV-057",
+    "staticPath": "items/v1.1/glb/TV-057.glb"
+  },
+  {
+    "id": "TV-058",
+    "staticPath": "items/v1.1/glb/TV-058.glb"
+  },
+  {
+    "id": "TV-059",
+    "staticPath": "items/v1.1/glb/TV-059.glb"
+  },
+  {
+    "id": "TV-060",
+    "staticPath": "items/v1.1/glb/TV-060.glb"
+  },
+  {
+    "id": "TV-061",
+    "staticPath": "items/v1.1/glb/TV-061.glb"
+  },
+  {
+    "id": "TV-062",
+    "staticPath": "items/v1.1/glb/TV-062.glb"
+  },
+  {
+    "id": "TV-063",
+    "staticPath": "items/v1.1/glb/TV-063.glb"
+  },
+  {
+    "id": "TV-064",
+    "staticPath": "items/v1.1/glb/TV-064.glb"
+  },
+  {
+    "id": "TV-065",
+    "staticPath": "items/v1.1/glb/TV-065.glb"
+  },
+  {
+    "id": "TV-066",
+    "staticPath": "items/v1.1/glb/TV-066.glb"
+  },
+  {
+    "id": "TV-067",
+    "staticPath": "items/v1.1/glb/TV-067.glb"
+  },
+  {
+    "id": "TV-068",
+    "staticPath": "items/v1.1/glb/TV-068.glb"
+  },
+  {
+    "id": "TV-069",
+    "staticPath": "items/v1.1/glb/TV-069.glb"
+  },
+  {
+    "id": "TV-070",
+    "staticPath": "items/v1.1/glb/TV-070.glb"
+  },
+  {
+    "id": "TV-071",
+    "staticPath": "items/v1.1/glb/TV-071.glb"
+  },
+  {
+    "id": "TV-072",
+    "staticPath": "items/v1.1/glb/TV-072.glb"
+  },
+  {
+    "id": "TV-073",
+    "staticPath": "items/v1.1/glb/TV-073.glb"
+  },
+  {
+    "id": "TV-074",
+    "staticPath": "items/v1.1/glb/TV-074.glb"
+  },
+  {
+    "id": "TV-075",
+    "staticPath": "items/v1.1/glb/TV-075.glb"
+  },
+  {
+    "id": "TV-076",
+    "staticPath": "items/v1.1/glb/TV-076.glb"
+  },
+  {
+    "id": "TV-077",
+    "staticPath": "items/v1.1/glb/TV-077.glb"
+  },
+  {
+    "id": "TV-078",
+    "staticPath": "items/v1.1/glb/TV-078.glb"
+  },
+  {
+    "id": "TV-079",
+    "staticPath": "items/v1.1/glb/TV-079.glb"
+  },
+  {
+    "id": "TV-080",
+    "staticPath": "items/v1.1/glb/TV-080.glb"
+  },
+  {
+    "id": "TV-081",
+    "staticPath": "items/v1.1/glb/TV-081.glb"
+  },
+  {
+    "id": "TV-082",
+    "staticPath": "items/v1.1/glb/TV-082.glb"
+  },
+  {
+    "id": "TV-083",
+    "staticPath": "items/v1.1/glb/TV-083.glb"
+  },
+  {
+    "id": "TV-084",
+    "staticPath": "items/v1.1/glb/TV-084.glb"
+  },
+  {
+    "id": "TV-085",
+    "staticPath": "items/v1.1/glb/TV-085.glb"
+  },
+  {
+    "id": "TV-086",
+    "staticPath": "items/v1.1/glb/TV-086.glb"
+  },
+  {
+    "id": "TV-087",
+    "staticPath": "items/v1.1/glb/TV-087.glb"
+  },
+  {
+    "id": "TV-088",
+    "staticPath": "items/v1.1/glb/TV-088.glb"
+  },
+  {
+    "id": "TV-089",
+    "staticPath": "items/v1.1/glb/TV-089.glb"
+  },
+  {
+    "id": "TV-090",
+    "staticPath": "items/v1.1/glb/TV-090.glb"
+  },
+  {
+    "id": "TV-091",
+    "staticPath": "items/v1.1/glb/TV-091.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-091-male.glb",
+      "female": "items/v1.1/rigged/TV-091-female.glb"
+    }
+  },
+  {
+    "id": "TV-092",
+    "staticPath": "items/v1.1/glb/TV-092.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-092-male.glb",
+      "female": "items/v1.1/rigged/TV-092-female.glb"
+    }
+  },
+  {
+    "id": "TV-093",
+    "staticPath": "items/v1.1/glb/TV-093.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-093-male.glb",
+      "female": "items/v1.1/rigged/TV-093-female.glb"
+    }
+  },
+  {
+    "id": "TV-094",
+    "staticPath": "items/v1.1/glb/TV-094.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-094-male.glb",
+      "female": "items/v1.1/rigged/TV-094-female.glb"
+    }
+  },
+  {
+    "id": "TV-095",
+    "staticPath": "items/v1.1/glb/TV-095.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-095-male.glb",
+      "female": "items/v1.1/rigged/TV-095-female.glb"
+    }
+  },
+  {
+    "id": "TV-096",
+    "staticPath": "items/v1.1/glb/TV-096.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-096-male.glb",
+      "female": "items/v1.1/rigged/TV-096-female.glb"
+    }
+  },
+  {
+    "id": "TV-097",
+    "staticPath": "items/v1.1/glb/TV-097.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-097-male.glb",
+      "female": "items/v1.1/rigged/TV-097-female.glb"
+    }
+  },
+  {
+    "id": "TV-098",
+    "staticPath": "items/v1.1/glb/TV-098.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-098-male.glb",
+      "female": "items/v1.1/rigged/TV-098-female.glb"
+    }
+  },
+  {
+    "id": "TV-099",
+    "staticPath": "items/v1.1/glb/TV-099.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-099-male.glb",
+      "female": "items/v1.1/rigged/TV-099-female.glb"
+    }
+  },
+  {
+    "id": "TV-100",
+    "staticPath": "items/v1.1/glb/TV-100.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-100-male.glb",
+      "female": "items/v1.1/rigged/TV-100-female.glb"
+    }
+  },
+  {
+    "id": "TV-101",
+    "staticPath": "items/v1.1/glb/TV-101.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-101-male.glb",
+      "female": "items/v1.1/rigged/TV-101-female.glb"
+    }
+  },
+  {
+    "id": "TV-102",
+    "staticPath": "items/v1.1/glb/TV-102.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-102-male.glb",
+      "female": "items/v1.1/rigged/TV-102-female.glb"
+    }
+  },
+  {
+    "id": "TV-103",
+    "staticPath": "items/v1.1/glb/TV-103.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-103-male.glb",
+      "female": "items/v1.1/rigged/TV-103-female.glb"
+    }
+  },
+  {
+    "id": "TV-104",
+    "staticPath": "items/v1.1/glb/TV-104.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-104-male.glb",
+      "female": "items/v1.1/rigged/TV-104-female.glb"
+    }
+  },
+  {
+    "id": "TV-105",
+    "staticPath": "items/v1.1/glb/TV-105.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-105-male.glb",
+      "female": "items/v1.1/rigged/TV-105-female.glb"
+    }
+  },
+  {
+    "id": "TV-106",
+    "staticPath": "items/v1.1/glb/TV-106.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-106-male.glb",
+      "female": "items/v1.1/rigged/TV-106-female.glb"
+    }
+  },
+  {
+    "id": "TV-107",
+    "staticPath": "items/v1.1/glb/TV-107.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-107-male.glb",
+      "female": "items/v1.1/rigged/TV-107-female.glb"
+    }
+  },
+  {
+    "id": "TV-108",
+    "staticPath": "items/v1.1/glb/TV-108.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-108-male.glb",
+      "female": "items/v1.1/rigged/TV-108-female.glb"
+    }
+  },
+  {
+    "id": "TV-109",
+    "staticPath": "items/v1.1/glb/TV-109.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-109-male.glb",
+      "female": "items/v1.1/rigged/TV-109-female.glb"
+    }
+  },
+  {
+    "id": "TV-110",
+    "staticPath": "items/v1.1/glb/TV-110.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-110-male.glb",
+      "female": "items/v1.1/rigged/TV-110-female.glb"
+    }
+  },
+  {
+    "id": "TV-111",
+    "staticPath": "items/v1.1/glb/TV-111.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-111-male.glb",
+      "female": "items/v1.1/rigged/TV-111-female.glb"
+    }
+  },
+  {
+    "id": "TV-112",
+    "staticPath": "items/v1.1/glb/TV-112.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-112-male.glb",
+      "female": "items/v1.1/rigged/TV-112-female.glb"
+    }
+  },
+  {
+    "id": "TV-113",
+    "staticPath": "items/v1.1/glb/TV-113.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-113-male.glb",
+      "female": "items/v1.1/rigged/TV-113-female.glb"
+    }
+  },
+  {
+    "id": "TV-114",
+    "staticPath": "items/v1.1/glb/TV-114.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-114-male.glb",
+      "female": "items/v1.1/rigged/TV-114-female.glb"
+    }
+  },
+  {
+    "id": "TV-115",
+    "staticPath": "items/v1.1/glb/TV-115.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-115-male.glb",
+      "female": "items/v1.1/rigged/TV-115-female.glb"
+    }
+  },
+  {
+    "id": "TV-116",
+    "staticPath": "items/v1.1/glb/TV-116.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-116-male.glb",
+      "female": "items/v1.1/rigged/TV-116-female.glb"
+    }
+  },
+  {
+    "id": "TV-117",
+    "staticPath": "items/v1.1/glb/TV-117.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-117-male.glb",
+      "female": "items/v1.1/rigged/TV-117-female.glb"
+    }
+  },
+  {
+    "id": "TV-118",
+    "staticPath": "items/v1.1/glb/TV-118.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-118-male.glb",
+      "female": "items/v1.1/rigged/TV-118-female.glb"
+    }
+  },
+  {
+    "id": "TV-119",
+    "staticPath": "items/v1.1/glb/TV-119.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-119-male.glb",
+      "female": "items/v1.1/rigged/TV-119-female.glb"
+    }
+  },
+  {
+    "id": "TV-120",
+    "staticPath": "items/v1.1/glb/TV-120.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-120-male.glb",
+      "female": "items/v1.1/rigged/TV-120-female.glb"
+    }
+  },
+  {
+    "id": "TV-121",
+    "staticPath": "items/v1.1/glb/TV-121.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-121-male.glb",
+      "female": "items/v1.1/rigged/TV-121-female.glb"
+    }
+  },
+  {
+    "id": "TV-122",
+    "staticPath": "items/v1.1/glb/TV-122.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-122-male.glb",
+      "female": "items/v1.1/rigged/TV-122-female.glb"
+    }
+  },
+  {
+    "id": "TV-123",
+    "staticPath": "items/v1.1/glb/TV-123.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-123-male.glb",
+      "female": "items/v1.1/rigged/TV-123-female.glb"
+    }
+  },
+  {
+    "id": "TV-124",
+    "staticPath": "items/v1.1/glb/TV-124.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-124-male.glb",
+      "female": "items/v1.1/rigged/TV-124-female.glb"
+    }
+  },
+  {
+    "id": "TV-125",
+    "staticPath": "items/v1.1/glb/TV-125.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-125-male.glb",
+      "female": "items/v1.1/rigged/TV-125-female.glb"
+    }
+  },
+  {
+    "id": "TV-126",
+    "staticPath": "items/v1.1/glb/TV-126.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-126-male.glb",
+      "female": "items/v1.1/rigged/TV-126-female.glb"
+    }
+  },
+  {
+    "id": "TV-127",
+    "staticPath": "items/v1.1/glb/TV-127.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-127-male.glb",
+      "female": "items/v1.1/rigged/TV-127-female.glb"
+    }
+  },
+  {
+    "id": "TV-128",
+    "staticPath": "items/v1.1/glb/TV-128.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-128-male.glb",
+      "female": "items/v1.1/rigged/TV-128-female.glb"
+    }
+  },
+  {
+    "id": "TV-129",
+    "staticPath": "items/v1.1/glb/TV-129.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-129-male.glb",
+      "female": "items/v1.1/rigged/TV-129-female.glb"
+    }
+  },
+  {
+    "id": "TV-130",
+    "staticPath": "items/v1.1/glb/TV-130.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-130-male.glb",
+      "female": "items/v1.1/rigged/TV-130-female.glb"
+    }
+  },
+  {
+    "id": "TV-131",
+    "staticPath": "items/v1.1/glb/TV-131.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-131-male.glb",
+      "female": "items/v1.1/rigged/TV-131-female.glb"
+    }
+  },
+  {
+    "id": "TV-132",
+    "staticPath": "items/v1.1/glb/TV-132.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-132-male.glb",
+      "female": "items/v1.1/rigged/TV-132-female.glb"
+    }
+  },
+  {
+    "id": "TV-133",
+    "staticPath": "items/v1.1/glb/TV-133.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-133-male.glb",
+      "female": "items/v1.1/rigged/TV-133-female.glb"
+    }
+  },
+  {
+    "id": "TV-134",
+    "staticPath": "items/v1.1/glb/TV-134.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-134-male.glb",
+      "female": "items/v1.1/rigged/TV-134-female.glb"
+    }
+  },
+  {
+    "id": "TV-135",
+    "staticPath": "items/v1.1/glb/TV-135.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-135-male.glb",
+      "female": "items/v1.1/rigged/TV-135-female.glb"
+    }
+  },
+  {
+    "id": "TV-136",
+    "staticPath": "items/v1.1/glb/TV-136.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-136-male.glb",
+      "female": "items/v1.1/rigged/TV-136-female.glb"
+    }
+  },
+  {
+    "id": "TV-137",
+    "staticPath": "items/v1.1/glb/TV-137.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-137-male.glb",
+      "female": "items/v1.1/rigged/TV-137-female.glb"
+    }
+  },
+  {
+    "id": "TV-138",
+    "staticPath": "items/v1.1/glb/TV-138.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-138-male.glb",
+      "female": "items/v1.1/rigged/TV-138-female.glb"
+    }
+  },
+  {
+    "id": "TV-139",
+    "staticPath": "items/v1.1/glb/TV-139.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-139-male.glb",
+      "female": "items/v1.1/rigged/TV-139-female.glb"
+    }
+  },
+  {
+    "id": "TV-140",
+    "staticPath": "items/v1.1/glb/TV-140.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-140-male.glb",
+      "female": "items/v1.1/rigged/TV-140-female.glb"
+    }
+  },
+  {
+    "id": "TV-141",
+    "staticPath": "items/v1.1/glb/TV-141.glb"
+  },
+  {
+    "id": "TV-142",
+    "staticPath": "items/v1.1/glb/TV-142.glb"
+  },
+  {
+    "id": "TV-143",
+    "staticPath": "items/v1.1/glb/TV-143.glb"
+  },
+  {
+    "id": "TV-144",
+    "staticPath": "items/v1.1/glb/TV-144.glb"
+  },
+  {
+    "id": "TV-145",
+    "staticPath": "items/v1.1/glb/TV-145.glb"
+  },
+  {
+    "id": "TV-146",
+    "staticPath": "items/v1.1/glb/TV-146.glb"
+  },
+  {
+    "id": "TV-147",
+    "staticPath": "items/v1.1/glb/TV-147.glb"
+  },
+  {
+    "id": "TV-148",
+    "staticPath": "items/v1.1/glb/TV-148.glb"
+  },
+  {
+    "id": "TV-149",
+    "staticPath": "items/v1.1/glb/TV-149.glb"
+  },
+  {
+    "id": "TV-150",
+    "staticPath": "items/v1.1/glb/TV-150.glb"
+  },
+  {
+    "id": "TV-151",
+    "staticPath": "items/v1.1/glb/TV-151.glb"
+  },
+  {
+    "id": "TV-152",
+    "staticPath": "items/v1.1/glb/TV-152.glb"
+  },
+  {
+    "id": "TV-153",
+    "staticPath": "items/v1.1/glb/TV-153.glb"
+  },
+  {
+    "id": "TV-154",
+    "staticPath": "items/v1.1/glb/TV-154.glb"
+  },
+  {
+    "id": "TV-155",
+    "staticPath": "items/v1.1/glb/TV-155.glb"
+  },
+  {
+    "id": "TV-156",
+    "staticPath": "items/v1.1/glb/TV-156.glb"
+  },
+  {
+    "id": "TV-157",
+    "staticPath": "items/v1.1/glb/TV-157.glb"
+  },
+  {
+    "id": "TV-158",
+    "staticPath": "items/v1.1/glb/TV-158.glb"
+  },
+  {
+    "id": "TV-159",
+    "staticPath": "items/v1.1/glb/TV-159.glb"
+  },
+  {
+    "id": "TV-160",
+    "staticPath": "items/v1.1/glb/TV-160.glb"
+  },
+  {
+    "id": "TV-161",
+    "staticPath": "items/v1.1/glb/TV-161.glb"
+  },
+  {
+    "id": "TV-162",
+    "staticPath": "items/v1.1/glb/TV-162.glb"
+  },
+  {
+    "id": "TV-163",
+    "staticPath": "items/v1.1/glb/TV-163.glb"
+  },
+  {
+    "id": "TV-164",
+    "staticPath": "items/v1.1/glb/TV-164.glb"
+  },
+  {
+    "id": "TV-165",
+    "staticPath": "items/v1.1/glb/TV-165.glb"
+  },
+  {
+    "id": "TV-166",
+    "staticPath": "items/v1.1/glb/TV-166.glb"
+  },
+  {
+    "id": "TV-167",
+    "staticPath": "items/v1.1/glb/TV-167.glb"
+  },
+  {
+    "id": "TV-168",
+    "staticPath": "items/v1.1/glb/TV-168.glb"
+  },
+  {
+    "id": "TV-169",
+    "staticPath": "items/v1.1/glb/TV-169.glb"
+  },
+  {
+    "id": "TV-170",
+    "staticPath": "items/v1.1/glb/TV-170.glb"
+  },
+  {
+    "id": "TV-171",
+    "staticPath": "items/v1.1/glb/TV-171.glb"
+  },
+  {
+    "id": "TV-172",
+    "staticPath": "items/v1.1/glb/TV-172.glb"
+  },
+  {
+    "id": "TV-173",
+    "staticPath": "items/v1.1/glb/TV-173.glb"
+  },
+  {
+    "id": "TV-174",
+    "staticPath": "items/v1.1/glb/TV-174.glb"
+  },
+  {
+    "id": "TV-175",
+    "staticPath": "items/v1.1/glb/TV-175.glb"
+  },
+  {
+    "id": "TV-176",
+    "staticPath": "items/v1.1/glb/TV-176.glb"
+  },
+  {
+    "id": "TV-177",
+    "staticPath": "items/v1.1/glb/TV-177.glb"
+  },
+  {
+    "id": "TV-178",
+    "staticPath": "items/v1.1/glb/TV-178.glb"
+  },
+  {
+    "id": "TV-179",
+    "staticPath": "items/v1.1/glb/TV-179.glb"
+  },
+  {
+    "id": "TV-180",
+    "staticPath": "items/v1.1/glb/TV-180.glb"
+  },
+  {
+    "id": "TV-181",
+    "staticPath": "items/v1.1/glb/TV-181.glb"
+  },
+  {
+    "id": "TV-182",
+    "staticPath": "items/v1.1/glb/TV-182.glb"
+  },
+  {
+    "id": "TV-183",
+    "staticPath": "items/v1.1/glb/TV-183.glb"
+  },
+  {
+    "id": "TV-184",
+    "staticPath": "items/v1.1/glb/TV-184.glb"
+  },
+  {
+    "id": "TV-185",
+    "staticPath": "items/v1.1/glb/TV-185.glb"
+  },
+  {
+    "id": "TV-186",
+    "staticPath": "items/v1.1/glb/TV-186.glb"
+  },
+  {
+    "id": "TV-187",
+    "staticPath": "items/v1.1/glb/TV-187.glb"
+  },
+  {
+    "id": "TV-188",
+    "staticPath": "items/v1.1/glb/TV-188.glb"
+  },
+  {
+    "id": "TV-189",
+    "staticPath": "items/v1.1/glb/TV-189.glb"
+  },
+  {
+    "id": "TV-190",
+    "staticPath": "items/v1.1/glb/TV-190.glb"
+  },
+  {
+    "id": "TV-191",
+    "staticPath": "items/v1.1/glb/TV-191.glb"
+  },
+  {
+    "id": "TV-192",
+    "staticPath": "items/v1.1/glb/TV-192.glb"
+  },
+  {
+    "id": "TV-193",
+    "staticPath": "items/v1.1/glb/TV-193.glb"
+  },
+  {
+    "id": "TV-194",
+    "staticPath": "items/v1.1/glb/TV-194.glb"
+  },
+  {
+    "id": "TV-195",
+    "staticPath": "items/v1.1/glb/TV-195.glb"
+  },
+  {
+    "id": "TV-196",
+    "staticPath": "items/v1.1/glb/TV-196.glb"
+  },
+  {
+    "id": "TV-197",
+    "staticPath": "items/v1.1/glb/TV-197.glb"
+  },
+  {
+    "id": "TV-198",
+    "staticPath": "items/v1.1/glb/TV-198.glb"
+  },
+  {
+    "id": "TV-199",
+    "staticPath": "items/v1.1/glb/TV-199.glb"
+  },
+  {
+    "id": "TV-200",
+    "staticPath": "items/v1.1/glb/TV-200.glb"
+  },
+  {
+    "id": "TV-201",
+    "staticPath": "items/v1.1/glb/TV-201.glb"
+  },
+  {
+    "id": "TV-202",
+    "staticPath": "items/v1.1/glb/TV-202.glb"
+  },
+  {
+    "id": "TV-203",
+    "staticPath": "items/v1.1/glb/TV-203.glb"
+  },
+  {
+    "id": "TV-204",
+    "staticPath": "items/v1.1/glb/TV-204.glb"
+  },
+  {
+    "id": "TV-205",
+    "staticPath": "items/v1.1/glb/TV-205.glb"
+  },
+  {
+    "id": "TV-206",
+    "staticPath": "items/v1.1/glb/TV-206.glb"
+  },
+  {
+    "id": "TV-207",
+    "staticPath": "items/v1.1/glb/TV-207.glb"
+  },
+  {
+    "id": "TV-208",
+    "staticPath": "items/v1.1/glb/TV-208.glb"
+  },
+  {
+    "id": "TV-209",
+    "staticPath": "items/v1.1/glb/TV-209.glb"
+  },
+  {
+    "id": "TV-210",
+    "staticPath": "items/v1.1/glb/TV-210.glb"
+  },
+  {
+    "id": "TV-211",
+    "staticPath": "items/v1.1/glb/TV-211.glb"
+  },
+  {
+    "id": "TV-212",
+    "staticPath": "items/v1.1/glb/TV-212.glb"
+  },
+  {
+    "id": "TV-213",
+    "staticPath": "items/v1.1/glb/TV-213.glb"
+  },
+  {
+    "id": "TV-214",
+    "staticPath": "items/v1.1/glb/TV-214.glb"
+  },
+  {
+    "id": "TV-215",
+    "staticPath": "items/v1.1/glb/TV-215.glb"
+  },
+  {
+    "id": "TV-216",
+    "staticPath": "items/v1.1/glb/TV-216.glb"
+  },
+  {
+    "id": "TV-217",
+    "staticPath": "items/v1.1/glb/TV-217.glb"
+  },
+  {
+    "id": "TV-218",
+    "staticPath": "items/v1.1/glb/TV-218.glb"
+  },
+  {
+    "id": "TV-219",
+    "staticPath": "items/v1.1/glb/TV-219.glb"
+  },
+  {
+    "id": "TV-220",
+    "staticPath": "items/v1.1/glb/TV-220.glb"
+  },
+  {
+    "id": "TV-221",
+    "staticPath": "items/v1.1/glb/TV-221.glb"
+  },
+  {
+    "id": "TV-222",
+    "staticPath": "items/v1.1/glb/TV-222.glb"
+  },
+  {
+    "id": "TV-223",
+    "staticPath": "items/v1.1/glb/TV-223.glb"
+  },
+  {
+    "id": "TV-224",
+    "staticPath": "items/v1.1/glb/TV-224.glb"
+  },
+  {
+    "id": "TV-225",
+    "staticPath": "items/v1.1/glb/TV-225.glb"
+  },
+  {
+    "id": "TV-226",
+    "staticPath": "items/v1.1/glb/TV-226.glb"
+  },
+  {
+    "id": "TV-227",
+    "staticPath": "items/v1.1/glb/TV-227.glb"
+  },
+  {
+    "id": "TV-228",
+    "staticPath": "items/v1.1/glb/TV-228.glb"
+  },
+  {
+    "id": "TV-229",
+    "staticPath": "items/v1.1/glb/TV-229.glb"
+  },
+  {
+    "id": "TV-230",
+    "staticPath": "items/v1.1/glb/TV-230.glb"
+  },
+  {
+    "id": "TV-231",
+    "staticPath": "items/v1.1/glb/TV-231.glb"
+  },
+  {
+    "id": "TV-232",
+    "staticPath": "items/v1.1/glb/TV-232.glb"
+  },
+  {
+    "id": "TV-233",
+    "staticPath": "items/v1.1/glb/TV-233.glb"
+  },
+  {
+    "id": "TV-234",
+    "staticPath": "items/v1.1/glb/TV-234.glb"
+  },
+  {
+    "id": "TV-235",
+    "staticPath": "items/v1.1/glb/TV-235.glb"
+  },
+  {
+    "id": "TV-236",
+    "staticPath": "items/v1.1/glb/TV-236.glb"
+  },
+  {
+    "id": "TV-237",
+    "staticPath": "items/v1.1/glb/TV-237.glb"
+  },
+  {
+    "id": "TV-238",
+    "staticPath": "items/v1.1/glb/TV-238.glb"
+  },
+  {
+    "id": "TV-239",
+    "staticPath": "items/v1.1/glb/TV-239.glb"
+  },
+  {
+    "id": "TV-240",
+    "staticPath": "items/v1.1/glb/TV-240.glb"
+  },
+  {
+    "id": "TV-241",
+    "staticPath": "items/v1.1/glb/TV-241.glb"
+  },
+  {
+    "id": "TV-242",
+    "staticPath": "items/v1.1/glb/TV-242.glb"
+  },
+  {
+    "id": "TV-243",
+    "staticPath": "items/v1.1/glb/TV-243.glb"
+  },
+  {
+    "id": "TV-244",
+    "staticPath": "items/v1.1/glb/TV-244.glb"
+  },
+  {
+    "id": "TV-245",
+    "staticPath": "items/v1.1/glb/TV-245.glb"
+  },
+  {
+    "id": "TV-246",
+    "staticPath": "items/v1.1/glb/TV-246.glb"
+  },
+  {
+    "id": "TV-247",
+    "staticPath": "items/v1.1/glb/TV-247.glb"
+  },
+  {
+    "id": "TV-248",
+    "staticPath": "items/v1.1/glb/TV-248.glb"
+  },
+  {
+    "id": "TV-249",
+    "staticPath": "items/v1.1/glb/TV-249.glb"
+  },
+  {
+    "id": "TV-250",
+    "staticPath": "items/v1.1/glb/TV-250.glb"
+  },
+  {
+    "id": "TV-251",
+    "staticPath": "items/v1.1/glb/TV-251.glb"
+  },
+  {
+    "id": "TV-252",
+    "staticPath": "items/v1.1/glb/TV-252.glb"
+  },
+  {
+    "id": "TV-253",
+    "staticPath": "items/v1.1/glb/TV-253.glb"
+  },
+  {
+    "id": "TV-254",
+    "staticPath": "items/v1.1/glb/TV-254.glb"
+  },
+  {
+    "id": "TV-255",
+    "staticPath": "items/v1.1/glb/TV-255.glb"
+  },
+  {
+    "id": "TV-256",
+    "staticPath": "items/v1.1/glb/TV-256.glb"
+  },
+  {
+    "id": "TV-257",
+    "staticPath": "items/v1.1/glb/TV-257.glb"
+  },
+  {
+    "id": "TV-258",
+    "staticPath": "items/v1.1/glb/TV-258.glb"
+  },
+  {
+    "id": "TV-259",
+    "staticPath": "items/v1.1/glb/TV-259.glb"
+  },
+  {
+    "id": "TV-260",
+    "staticPath": "items/v1.1/glb/TV-260.glb"
+  },
+  {
+    "id": "TV-261",
+    "staticPath": "items/v1.1/glb/TV-261.glb"
+  },
+  {
+    "id": "TV-262",
+    "staticPath": "items/v1.1/glb/TV-262.glb"
+  },
+  {
+    "id": "TV-263",
+    "staticPath": "items/v1.1/glb/TV-263.glb"
+  },
+  {
+    "id": "TV-264",
+    "staticPath": "items/v1.1/glb/TV-264.glb"
+  },
+  {
+    "id": "TV-265",
+    "staticPath": "items/v1.1/glb/TV-265.glb"
+  },
+  {
+    "id": "TV-266",
+    "staticPath": "items/v1.1/glb/TV-266.glb"
+  },
+  {
+    "id": "TV-267",
+    "staticPath": "items/v1.1/glb/TV-267.glb"
+  },
+  {
+    "id": "TV-268",
+    "staticPath": "items/v1.1/glb/TV-268.glb"
+  },
+  {
+    "id": "TV-269",
+    "staticPath": "items/v1.1/glb/TV-269.glb"
+  },
+  {
+    "id": "TV-270",
+    "staticPath": "items/v1.1/glb/TV-270.glb"
+  },
+  {
+    "id": "TV-271",
+    "staticPath": "items/v1.1/glb/TV-271.glb"
+  },
+  {
+    "id": "TV-272",
+    "staticPath": "items/v1.1/glb/TV-272.glb"
+  },
+  {
+    "id": "TV-273",
+    "staticPath": "items/v1.1/glb/TV-273.glb"
+  },
+  {
+    "id": "TV-274",
+    "staticPath": "items/v1.1/glb/TV-274.glb"
+  },
+  {
+    "id": "TV-275",
+    "staticPath": "items/v1.1/glb/TV-275.glb"
+  },
+  {
+    "id": "TV-276",
+    "staticPath": "items/v1.1/glb/TV-276.glb"
+  },
+  {
+    "id": "TV-277",
+    "staticPath": "items/v1.1/glb/TV-277.glb"
+  },
+  {
+    "id": "TV-278",
+    "staticPath": "items/v1.1/glb/TV-278.glb"
+  },
+  {
+    "id": "TV-279",
+    "staticPath": "items/v1.1/glb/TV-279.glb"
+  },
+  {
+    "id": "TV-280",
+    "staticPath": "items/v1.1/glb/TV-280.glb"
+  },
+  {
+    "id": "TV-281",
+    "staticPath": "items/v1.1/glb/TV-281.glb"
+  },
+  {
+    "id": "TV-282",
+    "staticPath": "items/v1.1/glb/TV-282.glb"
+  },
+  {
+    "id": "TV-283",
+    "staticPath": "items/v1.1/glb/TV-283.glb"
+  },
+  {
+    "id": "TV-284",
+    "staticPath": "items/v1.1/glb/TV-284.glb"
+  },
+  {
+    "id": "TV-285",
+    "staticPath": "items/v1.1/glb/TV-285.glb"
+  },
+  {
+    "id": "TV-286",
+    "staticPath": "items/v1.1/glb/TV-286.glb"
+  },
+  {
+    "id": "TV-287",
+    "staticPath": "items/v1.1/glb/TV-287.glb"
+  },
+  {
+    "id": "TV-288",
+    "staticPath": "items/v1.1/glb/TV-288.glb"
+  },
+  {
+    "id": "TV-289",
+    "staticPath": "items/v1.1/glb/TV-289.glb"
+  },
+  {
+    "id": "TV-290",
+    "staticPath": "items/v1.1/glb/TV-290.glb"
+  },
+  {
+    "id": "TV-291",
+    "staticPath": "items/v1.1/glb/TV-291.glb"
+  },
+  {
+    "id": "TV-292",
+    "staticPath": "items/v1.1/glb/TV-292.glb"
+  },
+  {
+    "id": "TV-293",
+    "staticPath": "items/v1.1/glb/TV-293.glb"
+  },
+  {
+    "id": "TV-294",
+    "staticPath": "items/v1.1/glb/TV-294.glb"
+  },
+  {
+    "id": "TV-295",
+    "staticPath": "items/v1.1/glb/TV-295.glb"
+  },
+  {
+    "id": "TV-296",
+    "staticPath": "items/v1.1/glb/TV-296.glb"
+  },
+  {
+    "id": "TV-297",
+    "staticPath": "items/v1.1/glb/TV-297.glb"
+  },
+  {
+    "id": "TV-298",
+    "staticPath": "items/v1.1/glb/TV-298.glb"
+  },
+  {
+    "id": "TV-299",
+    "staticPath": "items/v1.1/glb/TV-299.glb"
+  },
+  {
+    "id": "TV-300",
+    "staticPath": "items/v1.1/glb/TV-300.glb"
+  },
+  {
+    "id": "TV-301",
+    "staticPath": "items/v1.1/glb/TV-301.glb"
+  },
+  {
+    "id": "TV-302",
+    "staticPath": "items/v1.1/glb/TV-302.glb"
+  },
+  {
+    "id": "TV-303",
+    "staticPath": "items/v1.1/glb/TV-303.glb"
+  },
+  {
+    "id": "TV-304",
+    "staticPath": "items/v1.1/glb/TV-304.glb"
+  },
+  {
+    "id": "TV-305",
+    "staticPath": "items/v1.1/glb/TV-305.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-305-male.glb",
+      "female": "items/v1.1/rigged/TV-305-female.glb"
+    }
+  },
+  {
+    "id": "TV-306",
+    "staticPath": "items/v1.1/glb/TV-306.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-306-male.glb",
+      "female": "items/v1.1/rigged/TV-306-female.glb"
+    }
+  },
+  {
+    "id": "TV-307",
+    "staticPath": "items/v1.1/glb/TV-307.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-307-male.glb",
+      "female": "items/v1.1/rigged/TV-307-female.glb"
+    }
+  },
+  {
+    "id": "TV-308",
+    "staticPath": "items/v1.1/glb/TV-308.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-308-male.glb",
+      "female": "items/v1.1/rigged/TV-308-female.glb"
+    }
+  },
+  {
+    "id": "TV-309",
+    "staticPath": "items/v1.1/glb/TV-309.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-309-male.glb",
+      "female": "items/v1.1/rigged/TV-309-female.glb"
+    }
+  },
+  {
+    "id": "TV-310",
+    "staticPath": "items/v1.1/glb/TV-310.glb"
+  },
+  {
+    "id": "TV-311",
+    "staticPath": "items/v1.1/glb/TV-311.glb"
+  },
+  {
+    "id": "TV-312",
+    "staticPath": "items/v1.1/glb/TV-312.glb"
+  },
+  {
+    "id": "TV-313",
+    "staticPath": "items/v1.1/glb/TV-313.glb"
+  },
+  {
+    "id": "TV-314",
+    "staticPath": "items/v1.1/glb/TV-314.glb"
+  },
+  {
+    "id": "TV-315",
+    "staticPath": "items/v1.1/glb/TV-315.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-315-male.glb",
+      "female": "items/v1.1/rigged/TV-315-female.glb"
+    }
+  },
+  {
+    "id": "TV-316",
+    "staticPath": "items/v1.1/glb/TV-316.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-316-male.glb",
+      "female": "items/v1.1/rigged/TV-316-female.glb"
+    }
+  },
+  {
+    "id": "TV-317",
+    "staticPath": "items/v1.1/glb/TV-317.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-317-male.glb",
+      "female": "items/v1.1/rigged/TV-317-female.glb"
+    }
+  },
+  {
+    "id": "TV-318",
+    "staticPath": "items/v1.1/glb/TV-318.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-318-male.glb",
+      "female": "items/v1.1/rigged/TV-318-female.glb"
+    }
+  },
+  {
+    "id": "TV-319",
+    "staticPath": "items/v1.1/glb/TV-319.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-319-male.glb",
+      "female": "items/v1.1/rigged/TV-319-female.glb"
+    }
+  },
+  {
+    "id": "TV-320",
+    "staticPath": "items/v1.1/glb/TV-320.glb"
+  },
+  {
+    "id": "TV-321",
+    "staticPath": "items/v1.1/glb/TV-321.glb"
+  },
+  {
+    "id": "TV-322",
+    "staticPath": "items/v1.1/glb/TV-322.glb"
+  },
+  {
+    "id": "TV-323",
+    "staticPath": "items/v1.1/glb/TV-323.glb"
+  },
+  {
+    "id": "TV-324",
+    "staticPath": "items/v1.1/glb/TV-324.glb"
+  },
+  {
+    "id": "TV-325",
+    "staticPath": "items/v1.1/glb/TV-325.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-325-male.glb",
+      "female": "items/v1.1/rigged/TV-325-female.glb"
+    }
+  },
+  {
+    "id": "TV-326",
+    "staticPath": "items/v1.1/glb/TV-326.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-326-male.glb",
+      "female": "items/v1.1/rigged/TV-326-female.glb"
+    }
+  },
+  {
+    "id": "TV-327",
+    "staticPath": "items/v1.1/glb/TV-327.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-327-male.glb",
+      "female": "items/v1.1/rigged/TV-327-female.glb"
+    }
+  },
+  {
+    "id": "TV-328",
+    "staticPath": "items/v1.1/glb/TV-328.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-328-male.glb",
+      "female": "items/v1.1/rigged/TV-328-female.glb"
+    }
+  },
+  {
+    "id": "TV-329",
+    "staticPath": "items/v1.1/glb/TV-329.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-329-male.glb",
+      "female": "items/v1.1/rigged/TV-329-female.glb"
+    }
+  },
+  {
+    "id": "TV-330",
+    "staticPath": "items/v1.1/glb/TV-330.glb"
+  },
+  {
+    "id": "TV-331",
+    "staticPath": "items/v1.1/glb/TV-331.glb"
+  },
+  {
+    "id": "TV-332",
+    "staticPath": "items/v1.1/glb/TV-332.glb"
+  },
+  {
+    "id": "TV-333",
+    "staticPath": "items/v1.1/glb/TV-333.glb"
+  },
+  {
+    "id": "TV-334",
+    "staticPath": "items/v1.1/glb/TV-334.glb"
+  },
+  {
+    "id": "TV-335",
+    "staticPath": "items/v1.1/glb/TV-335.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-335-male.glb",
+      "female": "items/v1.1/rigged/TV-335-female.glb"
+    }
+  },
+  {
+    "id": "TV-336",
+    "staticPath": "items/v1.1/glb/TV-336.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-336-male.glb",
+      "female": "items/v1.1/rigged/TV-336-female.glb"
+    }
+  },
+  {
+    "id": "TV-337",
+    "staticPath": "items/v1.1/glb/TV-337.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-337-male.glb",
+      "female": "items/v1.1/rigged/TV-337-female.glb"
+    }
+  },
+  {
+    "id": "TV-338",
+    "staticPath": "items/v1.1/glb/TV-338.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-338-male.glb",
+      "female": "items/v1.1/rigged/TV-338-female.glb"
+    }
+  },
+  {
+    "id": "TV-339",
+    "staticPath": "items/v1.1/glb/TV-339.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-339-male.glb",
+      "female": "items/v1.1/rigged/TV-339-female.glb"
+    }
+  },
+  {
+    "id": "TV-340",
+    "staticPath": "items/v1.1/glb/TV-340.glb"
+  },
+  {
+    "id": "TV-341",
+    "staticPath": "items/v1.1/glb/TV-341.glb"
+  },
+  {
+    "id": "TV-342",
+    "staticPath": "items/v1.1/glb/TV-342.glb"
+  },
+  {
+    "id": "TV-343",
+    "staticPath": "items/v1.1/glb/TV-343.glb"
+  },
+  {
+    "id": "TV-344",
+    "staticPath": "items/v1.1/glb/TV-344.glb"
+  },
+  {
+    "id": "TV-345",
+    "staticPath": "items/v1.1/glb/TV-345.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-345-male.glb",
+      "female": "items/v1.1/rigged/TV-345-female.glb"
+    }
+  },
+  {
+    "id": "TV-346",
+    "staticPath": "items/v1.1/glb/TV-346.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-346-male.glb",
+      "female": "items/v1.1/rigged/TV-346-female.glb"
+    }
+  },
+  {
+    "id": "TV-347",
+    "staticPath": "items/v1.1/glb/TV-347.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-347-male.glb",
+      "female": "items/v1.1/rigged/TV-347-female.glb"
+    }
+  },
+  {
+    "id": "TV-348",
+    "staticPath": "items/v1.1/glb/TV-348.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-348-male.glb",
+      "female": "items/v1.1/rigged/TV-348-female.glb"
+    }
+  },
+  {
+    "id": "TV-349",
+    "staticPath": "items/v1.1/glb/TV-349.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-349-male.glb",
+      "female": "items/v1.1/rigged/TV-349-female.glb"
+    }
+  },
+  {
+    "id": "TV-350",
+    "staticPath": "items/v1.1/glb/TV-350.glb"
+  },
+  {
+    "id": "TV-351",
+    "staticPath": "items/v1.1/glb/TV-351.glb"
+  },
+  {
+    "id": "TV-352",
+    "staticPath": "items/v1.1/glb/TV-352.glb"
+  },
+  {
+    "id": "TV-353",
+    "staticPath": "items/v1.1/glb/TV-353.glb"
+  },
+  {
+    "id": "TV-354",
+    "staticPath": "items/v1.1/glb/TV-354.glb"
+  },
+  {
+    "id": "TV-355",
+    "staticPath": "items/v1.1/glb/TV-355.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-355-male.glb",
+      "female": "items/v1.1/rigged/TV-355-female.glb"
+    }
+  },
+  {
+    "id": "TV-356",
+    "staticPath": "items/v1.1/glb/TV-356.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-356-male.glb",
+      "female": "items/v1.1/rigged/TV-356-female.glb"
+    }
+  },
+  {
+    "id": "TV-357",
+    "staticPath": "items/v1.1/glb/TV-357.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-357-male.glb",
+      "female": "items/v1.1/rigged/TV-357-female.glb"
+    }
+  },
+  {
+    "id": "TV-358",
+    "staticPath": "items/v1.1/glb/TV-358.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-358-male.glb",
+      "female": "items/v1.1/rigged/TV-358-female.glb"
+    }
+  },
+  {
+    "id": "TV-359",
+    "staticPath": "items/v1.1/glb/TV-359.glb",
+    "fittingPaths": {
+      "male": "items/v1.1/rigged/TV-359-male.glb",
+      "female": "items/v1.1/rigged/TV-359-female.glb"
+    }
+  },
+  {
+    "id": "TV-360",
+    "staticPath": "items/v1.1/glb/TV-360.glb"
+  }
+]
