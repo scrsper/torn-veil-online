@@ -26,19 +26,22 @@ const sample = () => page.evaluate(() => {
     locks: v.plant?.lockCount?.() ?? v.plant?.feet?.filter(f => f.lock).length, actorCount: app.actors.count };
 });
 try {
-  await page.goto(base + '/?gym=1&autoplay=1&view=orbit&renderer=webgl2');
+  await page.goto(base + '/?gym=1&autoplay=1&view=third-person&renderer=webgl2');
   await ready(); await page.waitForTimeout(1500);
   result.initial = await sample();
   assert.ok(result.initial.visual.sharedLook, 'Expected the shared adult rig');
   assert.equal(result.initial.innerYaw, Math.PI, 'Expected the canonical-facing adapter');
   await page.screenshot({ path: out + '/gym-initial.png' });
   await page.keyboard.press('KeyF'); await page.waitForTimeout(200); await page.keyboard.press('KeyH');
-  result.attack = [];
+  result.attack = []; let capturedContact = false;
   for (let i = 0; i < 10; i++) {
     await page.waitForTimeout(65); result.attack.push(await sample());
-    if (i === 3) await page.screenshot({ path: out + '/gym-attack.png' });
+    if (!capturedContact && result.attack.at(-1).phase === 'active') {
+      await page.screenshot({ path: out + '/gym-attack.png' }); capturedContact = true;
+    }
   }
   assert.ok(result.attack.some(a => a.mode === 'action' && a.clip === 'unarmed/jab_left'));
+  assert.ok(capturedContact, 'Expected an active-phase strike capture');
   await page.waitForTimeout(1200); result.recovered = await sample();
   assert.equal(result.recovered.mode, 'idle', 'A retained completed action must not keep animating');
   await page.keyboard.down('KeyB'); await page.keyboard.down('KeyA'); await page.waitForTimeout(550);
@@ -63,7 +66,9 @@ try {
   const after = await fetch(base + '/api/gym/state').then(r => r.json());
   result.contact = { before: before.bodies[1].health, after: after.bodies[1].health, hitSeq: after.bodies[1].hitSeq };
   assert.ok(result.contact.after < result.contact.before && result.contact.hitSeq > 0, 'Keyboard strike must cause a canonical contact');
-  await control({ action: 'switch', scenario: 'town' }); await page.reload(); await ready(); await page.waitForTimeout(2000);
+  await control({ action: 'switch', scenario: 'town' });
+  await page.goto(base + '/?gym=1&scenario=town&autoplay=1&view=third-person&renderer=webgl2');
+  await ready(); await page.waitForTimeout(2000);
   result.town = await sample(); await page.screenshot({ path: out + '/town.png' });
   assert.ok(result.town.visual.sharedLook); assert.deepEqual(errors, []);
   console.log(JSON.stringify({ contact: result.contact, recovered: result.recovered.mode, walkSpeed: speed(result.walk), runSpeed: speed(result.run), townActors: result.town.actorCount, errors }));

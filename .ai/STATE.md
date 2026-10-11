@@ -1,4 +1,28 @@
-# Current: Same-world Observatory workbench (2026-10-03)
+# Current: Ontology ownership and human motion (2026-10-10)
+
+Branch `codex/ontology-human-motion` integrates main `10a648b` with the existing
+controller/Tower branch. Canonical manifestation attachment validates ownership
+and registry identity; living-body selection and graph diagnostics preserve the
+zero-or-many body model. Shared adult animation follows canonical action phases
+and direction, and resumes ordinary movement after completed actions. Procedural
+child/fallback gaits use distance-paced IK; Blender kits have authored faces/eyes
+and repaired garment coverage. The visual ontology editor shares motion loading
+with bounded asset cleanup. Implementation checkpoint `77dc178` is pushed.
+
+Focused tests, TypeScript, Babylon build, ontology tests/build, real keyboard
+combat/movement and 18 measured procedural gait cases passed. Full regression
+passed: 195 files / 1,925 tests. The user's walking reference now guides a closer,
+lower exploration camera and bounded secondary motion on compatible rigs.
+Authored grid-tree canopies now render through shared vegetation instances, with
+exact trunk collision retained and no new resource identities. Final build,
+TypeScript, tree/streaming checks and third-person browser acceptance passed.
+Independent review's outdoor-timber classification finding is fixed; 12 geometry
+tests and TypeScript passed afterward. No other actionable findings were reported.
+Evidence, reproduction and limits: `docs/evidence/ontology-human-motion/README.md`.
+Sharp-turn foot sliding, clip contact calibration and further character-art polish
+remain open; this is not completion of the entire ontology or production art.
+
+# Previous: Same-world Observatory workbench (2026-10-03)
 
 Local branch `codex/observatory-workbench`, based on cleanup `968897f` (PR #57).
 Movable/resizable/collapsible panels retain local layout; embedded Babylon uses the

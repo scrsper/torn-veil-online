@@ -22,15 +22,15 @@ export type CameraMode = 'explore' | 'combat' | 'talk';
 export interface CameraFocus { x: number; y: number; z: number }
 
 export const ORBIT_EXPLORATION_PITCH = .5;
-/** Default third-person pitch (about 20 degrees down). */
-export const THIRD_PERSON_PITCH = .35;
+/** Default third-person pitch (about 12 degrees down). */
+export const THIRD_PERSON_PITCH = 12 * Math.PI / 180;
 const TAU = Math.PI * 2;
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 const lerpAngle = (a: number, b: number, t: number) => a + wrap(b - a) * t;
 const damp = (rate: number, dt: number) => 1 - Math.exp(-rate * dt);
 
 export class CameraRig {
-  yaw = Math.PI; pitch = THIRD_PERSON_PITCH; distance = 6.8;
+  yaw = Math.PI; pitch = THIRD_PERSON_PITCH; distance = 4.6;
   /** The elevated adaptive camera (third-person view); talk, orbit and isometric keep their own framing. */
   readonly adaptive = new AdaptiveCamera();
   /** Situation from the app each frame (threats, large creatures, velocity, aiming); presentation only. */
@@ -44,8 +44,8 @@ export class CameraRig {
   get cutaway(): boolean { return this.isometric || this.orbit; }
   aimYaw: number | null = null;
   get isometric(): boolean { return this.settings().viewMode === 'isometric'; }
-  private desiredDistance = 6.8;
-  private currentDistance = 6.8;
+  private desiredDistance = 4.6;
+  private currentDistance = 4.6;
   private shoulder = 0.35;          // metres to the right of the pivot
   private shoulderNow = 0.35;
   private fov = 1.08;
@@ -99,7 +99,7 @@ export class CameraRig {
     this.camera.mode = Camera.PERSPECTIVE_CAMERA; this.clock += t;
     if (this.orbit !== this.previousOrbit) {
       this.pitch = this.orbit ? ORBIT_EXPLORATION_PITCH : THIRD_PERSON_PITCH;
-      this.desiredDistance = this.orbit ? 8 : 6.8;
+      this.desiredDistance = this.orbit ? 8 : 4.6;
       this.previousOrbit = this.orbit;
     }
     if (this.previousIso) { this.yaw = playerYaw; this.pitch = this.orbit ? ORBIT_EXPLORATION_PITCH : THIRD_PERSON_PITCH; this.previousIso = false; this.aimYaw = null; this.adaptive.snap(); }

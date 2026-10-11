@@ -3,7 +3,7 @@
  *
  * One continuous camera, not a set of modes: an elevated, freely orbitable view aimed at the chest. The player's
  * chosen distance is the anchor; the situation modulates it:
- *   exploration  ~6.8 m, ~20° down, player ~18% of screen height
+ *   exploration  ~4.6 m, ~12° down, player ~30% of screen height
  *   small fight  a little closer
  *   group fight  farther back and higher (attackers, allies, escape paths)
  *   large thing  far enough back that its scale reads
@@ -44,7 +44,7 @@ export const CAMERA_LIMITS = { minDistance: 2.6, maxDistance: 10, maxExceptional
 
 /** Development presets: distance (m), pitch (deg), fov (deg), and a forced situation for tuning. */
 export const CAMERA_PRESETS = {
-  exploration: { distance: 6.8, pitch: 20, fov: 65 },
+  exploration: { distance: 4.6, pitch: 12, fov: 65 },
   close: { distance: 4.2, pitch: 16, fov: 64 },
   wide: { distance: 9.5, pitch: 27, fov: 65 },
   group: { distance: 6.8, pitch: 20, fov: 65, threats: 5, engaged: true },
@@ -60,9 +60,9 @@ const DEG = Math.PI / 180;
 
 export class AdaptiveCamera {
   /** Input-owned orientation (what the mouse/stick set) and the player's preferred distance. */
-  yaw = 0; pitch = 20 * DEG; preferred: number = CAMERA_PRESETS.exploration.distance; baseFov = 65 * DEG;
+  yaw = 0; pitch = 12 * DEG; preferred: number = CAMERA_PRESETS.exploration.distance; baseFov = 65 * DEG;
   /** Smoothed state actually rendered. */
-  private yawS = 0; private pitchS = 20 * DEG; private dist = 6.8; private fovS = 65 * DEG; private shoulderS = 0;
+  private yawS = 0; private pitchS = 12 * DEG; private dist: number = CAMERA_PRESETS.exploration.distance; private fovS = 65 * DEG; private shoulderS = 0;
   private lead = { x: 0, z: 0 }; private target: V3 = { x: 0, y: 0, z: 0 }; private started = false;
   /** Obstruction: the clear limit currently applied and how long the ray has been clear beyond it. */
   private limit = Infinity; private clearFor = 0; private rise = 0;

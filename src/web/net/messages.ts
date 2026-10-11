@@ -47,7 +47,7 @@ export interface RegionProjection {
   settlements: { id: string; bounds: { x0: number; z0: number; x1: number; z1: number } }[];
   dressingExclusions: { bounds: { x0: number; z0: number; x1: number; z1: number } }[];
   decoration: { classification: string; seed: number; collision: boolean; gameplay: boolean };
-  structures?: { runs: number[] };
+  structures?: { runs: number[]; trees?: { x: number; y: number; z: number; height: number; species: 'oak' | 'pine'; variant: number; yaw: number }[] };
 }
 export interface ResourceProjection { id: string; kind: string; pos: Vec3; state: string; remaining: number; growthStage?: 'felled' | 'sapling' | 'young' | 'mature'; capacity?: number; unit?: string; forage?: unknown; physicallyAvailable?: boolean }
 export interface ItemProjection { id: string; type: string; pos: Vec3; quantity: number }

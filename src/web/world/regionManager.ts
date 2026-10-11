@@ -177,10 +177,18 @@ export class RegionManager {
 
     // Trees and rocks: canonical resources come from dynamics, decoration fills between them.
     const instances = new InstanceSet();
+    const naturalTrees = proj.structures?.trees ?? [];
+    for (const t of naturalTrees) {
+      // Reuse distance culling, LOD, shadows and region disposal for canonical grid trees.
+      instances.add(this.vegetation, t.species, t.variant,
+        new Vector3(t.x - proj.bounds.x0 + .5, terrain.heightAt(t.x + .5, t.z + .5) - .1, t.z - proj.bounds.z0 + .5),
+        t.yaw, Math.max(.7, Math.min(1.25, t.height / (t.species === 'pine' ? 8 : 5))));
+    }
     const density = this.ctx.quality.treeDensity;
     const trees = scatterVegetation(this.vegetation, instances, {
       region: proj, terrain, density, canonical: this.lastDynamics?.resources.filter(r => this.regionOf(r.pos.x, r.pos.z) === proj.id) ?? [],
-      exclusions: [...proj.dressingExclusions.map(e => e.bounds), ...proj.places.map(p => p.bounds)],
+      exclusions: [...proj.dressingExclusions.map(e => e.bounds), ...proj.places.map(p => p.bounds),
+        ...naturalTrees.map(t => ({ x0: t.x, x1: t.x, z0: t.z, z1: t.z }))],
     }, proj.decoration.seed);
     stage('scatter'); yield;
     for (const _ of instances.finishSteps(this.vegetation, root, `veg-${proj.id}`, m => this.atmosphere.addCaster(m))) yield;
@@ -198,7 +206,7 @@ export class RegionManager {
     const windows = new WindowLighting(scene, proj, cells, st.panes, this.lights, root);
     const entry: RegionEntry = {
       id: proj.id, projection: proj, root, terrain, meshes, instances, lightIds, doors: sp.doors, dynamics, windows, cells, pathCells: new Set(proj.paths.map(([x, , z]) => x * 100003 + z)), boxes: proj.places.filter(p => p.indoor).map(p => p.bounds),
-      stats: { cells: st.stats.cells, roofs: st.stats.roofsAnalytic, windows: st.stats.windows, trees, props: proj.furnishings.length, buildMs: performance.now() - t0, stageMs },
+      stats: { cells: st.stats.cells, roofs: st.stats.roofsAnalytic, windows: st.stats.windows, trees: trees + naturalTrees.length, props: proj.furnishings.length, buildMs: performance.now() - t0, stageMs },
     };
     this.regions.set(proj.id, entry); this.place(entry);
     for (const m of meshes) { m.freezeWorldMatrix?.(); m.unfreezeWorldMatrix(); }

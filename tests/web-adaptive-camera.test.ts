@@ -13,9 +13,9 @@ const dist = (p: { x: number; y: number; z: number }) => Math.hypot(p.x - pivot.
 describe('adaptive third-person camera', () => {
   it('defaults to an elevated, chest-aimed framing', () => {
     const c = new AdaptiveCamera(), pose = run(c, { pivot }, open, 1);
-    expect(dist(pose.position)).toBeGreaterThan(6.3); expect(dist(pose.position)).toBeLessThan(7.2);
-    expect(pose.position.y).toBeGreaterThan(3.1); expect(pose.position.y).toBeLessThan(4);   // 2.5–3.5 m above the shoulders' origin band
-    expect(c.debug.pitchDeg).toBeGreaterThanOrEqual(18); expect(c.debug.pitchDeg).toBeLessThanOrEqual(25);
+    expect(dist(pose.position)).toBeGreaterThan(4.2); expect(dist(pose.position)).toBeLessThan(5.1);
+    expect(pose.position.y).toBeGreaterThan(2.1); expect(pose.position.y).toBeLessThan(2.8);   // 0.8–1.5 m above the shoulders' origin band
+    expect(c.debug.pitchDeg).toBeGreaterThanOrEqual(10); expect(c.debug.pitchDeg).toBeLessThanOrEqual(15);
     expect(pose.target.y).toBeCloseTo(1.3, 1);
   });
 
@@ -28,7 +28,7 @@ describe('adaptive third-person camera', () => {
     const first = c.update(1 / 60, { pivot }, open);
     expect(dist(first.position)).toBeLessThan(2.8);          // no pop back out
     const later = run(c, { pivot }, open, 3);
-    expect(dist(later.position)).toBeGreaterThan(6.3);
+    expect(dist(later.position)).toBeGreaterThan(4.3);
   });
 
   it('backs out for groups and returns to the player-chosen distance afterwards', () => {
@@ -50,7 +50,7 @@ describe('adaptive third-person camera', () => {
   it('orbits freely and never changes distance just from rotating', () => {
     const c = new AdaptiveCamera(); run(c, { pivot }, open, 1);
     for (let i = 0; i < 40; i++) { c.addLook(.16, 0); c.update(1 / 60, { pivot }, open); }
-    expect(c.debug.dist).toBeCloseTo(6.8, 1);
+    expect(c.debug.dist).toBeCloseTo(4.6, 1);
     c.addLook(0, 5); expect(c.pitch).toBeLessThanOrEqual(CAMERA_LIMITS.maxPitch); c.addLook(0, -9); expect(c.pitch).toBeGreaterThanOrEqual(CAMERA_LIMITS.minPitch);
   });
 
