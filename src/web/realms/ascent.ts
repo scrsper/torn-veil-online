@@ -128,7 +128,7 @@ export async function startCanonicalAscent() {
     if (m.type === 'tower_geometry') drawFloor(m.plan);
     if (m.type === 'tower_returned') void leaveView();
     if (m.type === 'notice') notice(m.message);
-    if (m.type === 'command_receipt' && m.status !== 'received') { receipts.push(m); if (receipts.length > 600) receipts.shift(); if (m.status === 'rejected' && !['cooldown', 'incapacitated', 'expired'].includes(m.result)) notice(m.result); }
+    if (m.type === 'command_receipt' && m.status !== 'received') { receipts.push(m); if (receipts.length > 600) receipts.shift(); if (m.status === 'rejected' && !['cooldown', 'incapacitated', 'expired','committed'].includes(m.result)) notice(String(m.result).replaceAll('_',' ')); }
     if (m.type !== 'tower_frame' || !binding) return;
     const observed = m as Frame; frame = observed; receivedAt = performance.now(); serverTimes.push(m.serverMs); if (serverTimes.length > 2400) serverTimes.shift();
     // Draw only host-observed cast phases. Effects never choose targets, apply hits,

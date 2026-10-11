@@ -11,7 +11,7 @@ import { towerResidency } from '../sim/world/interiors/residency';
 export class TowerController {
   readonly bridge: BridgeSession;
   constructor(readonly session: RealmSession) {
-    this.bridge = new BridgeSession(session.world.seed, { state: { world: session.world, sim: session.sim }, defaultPlayer: false });
+    this.bridge = new BridgeSession(session.world.seed, { state: { world: session.world, sim: session.sim }, defaultPlayer: false, continuousMovement:true });
     if (!this.bridge.openChannel(LOCAL_CHANNEL, session.person.id)) throw Error('Unable to attach the canonical body');
   }
   bind(id: string, epoch?: string) { return this.bridge.bindInteraction(id, LOCAL_CHANNEL, epoch); }

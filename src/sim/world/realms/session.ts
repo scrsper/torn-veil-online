@@ -5,6 +5,7 @@ import {guardHeld} from '../../physical/guard';
 import {equipmentProjection} from '../../physical/equipment';
 import {arcaneProgress} from '../../physical/arcana/growth';
 import {handInteractions} from '../../physical/hand';
+import {recogniseClass} from '../../mind/vocation';
 import type {Body} from '../../core/types';
 import { World } from '../../core/world';
 import { Simulation } from '../../mind/agent';
@@ -25,6 +26,8 @@ export class RealmSession {
   private pending: { id: number; from: RealmId; to: RealmId; expires: number } | null = null;
   private transitionId = 0;
   private lastRegion = '';
+  private classAt=-Infinity;
+  private recognised:ReturnType<typeof recogniseClass>=null;
   constructor(seed = 918271, saved?: string) {
     if (saved) {
       const restored = deserialize(saved);
@@ -141,6 +144,7 @@ export class RealmSession {
   }
   snapshot() {
     const w = this.world, p = this.body.pos, realm = realmAt(p.x, p.z) ?? w.canonicalTower?.realm ?? 'aether';
+    if(w.physicalTime-this.classAt>5){this.recognised=recogniseClass(w,this.person);this.classAt=w.physicalTime;}
     const door = this.nearbyDoor(), portal = w.distance2d(p, portalPoint(realm)) < 4.5;
     const visible=w.persons().filter(n=>n.id===this.person.id||w.primaryBody(n.id)?.present&&realmAt(w.primaryBody(n.id)!.pos.x,w.primaryBody(n.id)!.pos.z)===realm&&w.distance2d(p,w.primaryBody(n.id)!.pos)<80&&w.grid.lineOfSight({...p,y:p.y+1.6},{...w.primaryBody(n.id)!.pos,y:w.primaryBody(n.id)!.pos.y+1.6},80));
     return { realm, realmName: REALMS[realm].name, subtitle: REALMS[realm].subtitle, seed: w.seed, time: w.physicalTime, worldTime: w.now,
@@ -148,6 +152,7 @@ export class RealmSession {
       body: { id: this.body.id, pos: { ...p }, yaw: this.body.yaw, hp: this.body.health, maxHp: this.body.maxHealth },
       avatar:this.visual(this.body),
       growth:arcaneProgress(w,this.person,this.body),
+      development:{recognisedClass:this.recognised,skills:{...this.person.skills},practice:this.person.capability?.bySkill??{}},
       interactions:handInteractions(this.sim,this.person),
       casts:visible.flatMap(n=>{const b=w.primaryBody(n.id),c=b?.arcana?.cast;return b&&c&&c.completeAt+.3>=w.physicalTime?[{...c,origin:{...b.pos}}]:[];}),
       expedition: w.realmExpedition ? { active: w.realmExpedition.active, status: w.realmExpedition.status, runId: w.realmExpedition.runId, revision: w.realmExpedition.revision } : null,

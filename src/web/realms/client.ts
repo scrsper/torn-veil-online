@@ -67,7 +67,7 @@ export async function startRealms(): Promise<void> {
     const m = JSON.parse(e.data);
     if (m.type === 'controller') controllerToken = m.token;
     if (m.type === 'binding') { binding=m.interaction; sequence=0; keys.clear(); }
-    if (m.type === 'command_receipt' && m.status !== 'received') { receipts.push(m); if(receipts.length>300)receipts.shift(); if(m.status==='rejected'&&!['cooldown','incapacitated','expired'].includes(m.result))toast(m.result); }
+    if (m.type === 'command_receipt' && m.status !== 'received') { receipts.push(m); if(receipts.length>300)receipts.shift(); if(m.status==='rejected'&&!['cooldown','incapacitated','expired','committed'].includes(m.result))toast(String(m.result).replaceAll('_',' ')); }
     if (m.type === 'regions') renderer.reconcile(m.wanted, m.chunks);
     if (m.type === 'notice') toast(m.message);
     if (m.type !== 'state') return;
@@ -92,6 +92,8 @@ export async function startRealms(): Promise<void> {
     const contents = el('rv-character'); contents.replaceChildren();
     for (const line of [`${s.person.rank} · ${s.body.hp.toFixed(0)} / ${s.body.maxHp} vitality`, ...s.person.inventory.map(i => `${i.name} × ${i.quantity}`),
       `${s.growth.victories} distinct opposed victories · ${s.growth.forms} demonstrated forms · ${s.growth.essences} learned essences`,
+      s.development.recognisedClass?`Recognised vocation: ${s.development.recognisedClass.name} · ${s.development.recognisedClass.evidence.join('; ')}`:'Your actions and practice shape a recognised vocation.',
+      ...Object.entries(s.development.skills).filter(([,value])=>value>0).map(([id,value])=>`${id}: ${(value*100).toFixed(1)}% proficiency`),
       `${s.growth.next??'Further transformation'}: ${s.growth.eligible?'Ready to integrate':s.growth.reasons.join(' · ')}`,
       `Intrinsic force ${s.growth.intrinsicCapacity.amplitude} / reach ${s.growth.intrinsicCapacity.aperture}; with equipment ${s.growth.capacity.amplitude} / ${s.growth.capacity.aperture}`]) { const p = document.createElement('p'); p.textContent = line; contents.append(p); }
     const actionButton=(label:string,action:InteractionCommand)=>{const b=document.createElement('button');b.textContent=label;b.onclick=()=>command(action);contents.append(b);};

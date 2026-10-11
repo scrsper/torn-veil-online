@@ -132,7 +132,7 @@ export class SharedVisual implements BodyVisual {
     this.animator.loco(walk, run, weight, rate, .14);
    } else this.animator.play(this.clip(idle), { loop: true, fade: .12 });
   }
-  this.root.metadata.motion = { clip: this.animator.current, stance: this.clock < this.combatUntil ? 'combat' : 'travel', armed, action: action?.moveId ?? null, age: action?.age ?? null, hit: this.clock < this.hitUntil, planted: this.plantActive, canonicalFacing: s.yaw, gait: this.animator.gaitState };
+  this.root.metadata.motion = { clip: this.animator.current, dominantClip:this.animator.dominant()?.name??null, stance: this.clock < this.combatUntil ? 'combat' : 'travel', armed, action: action?.moveId ?? null, age: action?.age ?? null, hit: this.clock < this.hitUntil, planted: this.plantActive, canonicalFacing: s.yaw, gait: this.animator.gaitState };
   this.animator.update(dt);
  }
  dispose() {

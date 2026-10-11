@@ -204,9 +204,9 @@ try{
  check('save reload does not manufacture health',loaded.own.health<=beforeReload.own.health+.1);
  await page.keyboard.press('Escape');await page.locator('#as-return').click();await ready();returned=await realm();
  check('Tower return carries learned sources to same world identity and rank',returned.person.id===initial.person.id&&returned.body.id===initial.body.id&&returned.person.rank===initial.person.rank&&returned.person.inventory.some(i=>i.name==='Ember field manual'));await shot('05-current-returned-world');
- await page.waitForTimeout(2600);await page.keyboard.down('KeyW');await page.waitForTimeout(750);
+ await page.waitForTimeout(2600);await page.mouse.wheel(0,-660);await page.waitForTimeout(500);await page.keyboard.down('KeyW');await page.waitForTimeout(750);
  const walking=await page.evaluate(()=>window.tvRealms.inspect().controlledLook?.motion);
- check('equipped street travel uses relaxed gait after combat ends',walking?.armed&&walking.stance==='travel'&&walking.clip.includes('unarmed/walk_forward'),walking);
+ check('equipped street travel uses relaxed gait after combat ends',walking?.armed&&walking.stance==='travel'&&/^unarmed\/(walk|run)/.test(walking.dominantClip),walking);
  await shot('05-upright-equipped-travel');await page.keyboard.up('KeyW');
  await enter();const repeat=await floor();check('repeated Tower entry retains run learning and rank',repeat.tower.id===entered.tower.id&&repeat.own.rank===initial.person.rank&&repeat.own.learned.some(s=>s.id==='book-ember'));
  await page.locator('#as-return').click();await ready();await page.reload();await ready();check('world reload after repeated Tower return retains canonical belongings',JSON.stringify((await realm()).person.inventory)===JSON.stringify(returned.person.inventory));

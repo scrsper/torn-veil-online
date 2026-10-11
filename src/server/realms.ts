@@ -14,6 +14,7 @@ import { createServer as createVite } from 'vite';
 import {launchHome,liveObservatoryScript} from './launchHome';
 import {inspectPerson,eventRow} from '../observatory/readers';
 import {arcaneProgress} from '../sim/physical/arcana/growth';
+import {recogniseClass} from '../sim/mind/vocation';
 
 const port = Number(process.env.TV_REALMS_PORT ?? 7510);
 // A verified portable upgrade can be installed without overwriting the original
@@ -66,7 +67,7 @@ const server = createServer(async (req, res) => {
     res.writeHead(200,{'content-type':'application/json','cache-control':'no-store'});
     res.end(JSON.stringify({ready:!updateError,build:{commit:serverCommit,clientMode:staticRoot?'compiled':'development',client:clientBuild,engine:journal.store.engine},save:{path:savePath,store:journal.store.dir,persistent:true},
       world:{seed:w.seed,personId:session.person.id,bodyId:session.body.id,physicalTime:w.physicalTime,worldTime:w.now,people:w.persons().length,events:w.events.length},
-      people:w.persons().filter(n=>n.id===id||w.primaryBody(n.id)?.present).slice(0,64).map(n=>({id:n.id,name:n.name})),person:inspectPerson(w,id),growth:arcaneProgress(w,p,b),
+      people:w.persons().filter(n=>n.id===id||w.primaryBody(n.id)?.present).slice(0,64).map(n=>({id:n.id,name:n.name})),person:inspectPerson(w,id),recognisedClass:recogniseClass(w,p),growth:arcaneProgress(w,p,b),
       towerTiming:{runId:w.canonicalTower?.id,floor:w.canonicalTower?.floor,status:w.canonicalTower?.status,receipts:w.events.filter(e=>e.type==='tower_floor_cleared'&&e.actor===session.person.id).map(e=>({id:e.id,floor:e.data.floor,seconds:e.data.seconds,causes:e.causes})),measurement:'Canonical elapsed seconds at floor-clear receipts, including time away. Human climb duration and Gold frequency are unmeasured.'},events:w.events.slice(-80).reverse().map(e=>({...eventRow(e),causes:e.causes}))}));return;
   }
   if (url.pathname === '/realms/health') { res.setHeader('content-type', 'application/json'); res.end(JSON.stringify({ kind: 'torn-veil-realms', root: resolve('.'), clientBuild, buildRoot:staticRoot, savePath, ready: !updateError, seed: session.world.seed, saveError, updateError, persistence: journal.metrics, memory: process.memoryUsage() })); return; }

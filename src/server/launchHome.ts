@@ -17,7 +17,7 @@ async function load(){try{
  const view=el('view');if(!view)return;
  const select=el('person');if(!select.options.length){for(const p of s.people){const o=document.createElement('option');o.value=p.id;o.textContent=p.name+' ('+p.id+')';select.append(o);}select.value=s.person.id;}
  view.replaceChildren();function detail(title,value,open=false){const d=document.createElement('details'),summary=document.createElement('summary'),pre=document.createElement('pre');d.open=open;summary.textContent=title;pre.textContent=json(value);d.append(summary,pre);view.append(d);}
- detail('Identity, condition and canonical development',{overview:s.person.truth.overview,physiology:s.person.truth.physiology,progression:s.person.truth.progression,growth:s.growth},true);
+ detail('Identity, condition and canonical development',{overview:s.person.truth.overview,physiology:s.person.truth.physiology,progression:s.person.truth.progression,recognisedClass:s.recognisedClass,growth:s.growth},true);
  detail('Possessions and reversible equipment',s.person.truth.economy);
  detail('Mind, beliefs and remembered evidence',{mind:s.person.truth.mind,beliefs:s.person.beliefs,limits:s.person.beliefLimits,memories:s.person.memories});
  detail('Tower timing receipts',s.towerTiming);

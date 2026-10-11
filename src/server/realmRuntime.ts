@@ -36,8 +36,8 @@ export class RealmRuntime {
       case 'bind': return this.controller.bind(op.id,op.epoch);
       case 'command':{
         const receipt=this.controller.bridge.receiveCommand(op.input,op.now);
-        const command=(op.input as {command?:{type?:string;x?:number;z?:number}})?.command;
-        if(receipt?.status==='received' && command?.type==='move' && (command.x || command.z))s.body.path=null;
+        const command=(op.input as {command?:{type?:string;x?:number;z?:number;facing?:number;crouch?:boolean}})?.command;
+        if(receipt?.status==='received' && command?.type==='move' && (command.x || command.z || command.facing!==undefined || command.crouch))s.body.path=null;
         return receipt;
       }
       case 'step':return s.world.realmExpedition?.active?[]:this.controller.step(op.now);

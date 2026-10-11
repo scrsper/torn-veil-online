@@ -9,7 +9,7 @@ import { generateCombatArena } from '../sim/world/combatArena';
 import { submitCombatInput, cancelCombatAction, captureCombatTransforms } from '../sim/physical/combatAction';
 import { randomUUID, createHash } from 'node:crypto';
 import { CommandQueue, type CommandReceipt, type InteractionCommand } from './commands';
-import { INTERACTION_SPEC } from '../sim/physical/prediction';
+import { INTERACTION_SPEC, type MovementInput } from '../sim/physical/prediction';
 import { applyInteractionMovement, collisionWindow, movementState } from '../sim/physical/interactionMovement';
 import { mechanismPanel } from '../sim/runtime/mechanismPanel';
 import { generatePlayableWorld, indexWilderness } from '../sim/world/playable';
@@ -73,7 +73,7 @@ function visibleActivity(p: Person | undefined, pose: string): string {
  * controlled Person is routed through `GameSim` under the same channel id.
  */
 export class ControllerChannel {
-  move = { x: 0, z: 0, sprint: false, expires: 0 };
+  move:MovementInput & {crouch?:boolean;expires:number} = { x: 0, z: 0, sprint: false, expires: 0 };
   sequence = -1;
   appliedSequence = -1;
   control: CommandQueue | null = null;
@@ -88,6 +88,9 @@ export class ControllerChannel {
 }
 
 export interface BridgeSessionOptions {
+  /** Realm input is held between 20 Hz packets; the host expires it after .25s.
+   * Other bridges retain their existing one-sample/one-step prediction contract. */
+  continuousMovement?:boolean;
   /** Attach presentation/control to an already-owned simulation; never generate a second world. */
   state?: { world: World; sim: Simulation };
   playable?: boolean; arena?: boolean; save?: string; characterCatalogue?: CharacterCatalogue;
@@ -97,6 +100,7 @@ export interface BridgeSessionOptions {
 
 export class BridgeSession {
   readonly arena:boolean;
+  readonly continuousMovement:boolean;
   readonly world: World;
   readonly sim: Simulation;
   readonly game: GameSim;
@@ -120,6 +124,7 @@ export class BridgeSession {
   readonly regions = new RegionStream();
   constructor(seed = 918271, options: BridgeSessionOptions = {}) {
     this.arena=options.arena===true;
+    this.continuousMovement=options.continuousMovement===true;
     this.characterCatalogue = options.characterCatalogue ?? EMPTY_CATALOGUE;
     const loaded = options.save ? deserialize(options.save) : null;
     if (options.save && !loaded) throw new Error('Cannot resume incompatible or invalid world save');
@@ -234,7 +239,7 @@ export class BridgeSession {
     const ch=this.need(channelId),body=this.world.primaryBody(ch.personId);
     if(!body) throw new Error('No controlled manifestation');
     ch.control=new CommandQueue(epoch,controllerId,body.id); ch.controlGeometry='';
-    return {epoch:ch.control.epoch,controllerId,bodyId:body.id,specRevision:INTERACTION_SPEC.revision,specHash:createHash('sha256').update(JSON.stringify(INTERACTION_SPEC)).digest('hex'),stepSeconds:INTERACTION_SPEC.stepSeconds};
+    return {epoch:ch.control.epoch,controllerId,bodyId:body.id,specRevision:INTERACTION_SPEC.revision,specHash:createHash('sha256').update(JSON.stringify(INTERACTION_SPEC)).digest('hex'),stepSeconds:INTERACTION_SPEC.stepSeconds,movementMode:this.continuousMovement?'leased':'stepped'};
   }
   receiveCommand(input: unknown, now=performance.now(), channelId = LOCAL_CHANNEL): CommandReceipt | null {
     return this.channels.get(channelId)?.control?.receive(input,this.world.physicalTime,now)??null;
@@ -252,7 +257,13 @@ export class BridgeSession {
       if(b.combatAction&&b.combatAction.completeAt>w.physicalTime||b.recoil||b.arcana?.cast&&!b.arcana.cast.cancelled&&b.arcana.cast.completeAt>w.physicalTime)return 'busy';
       return this.game.intend(ch.id,{kind:'rest'})?'accepted':'cannot_rest';
     }
-    if(c.type==='move') {refreshCrouchHeld(w,b,c.crouch===true);applyInteractionMovement(w,p,b,c,INTERACTION_SPEC.stepSeconds);return 'accepted';}
+    if(c.type==='move') {
+      refreshCrouchHeld(w,b,c.crouch===true);
+      if(this.continuousMovement)ch.move={x:c.x,z:c.z,sprint:c.sprint,facing:c.facing,crouch:c.crouch,
+        expires:c.x||c.z||c.facing!==undefined||c.crouch?w.physicalTime+INTERACTION_SPEC.heldInputSeconds:0};
+      else applyInteractionMovement(w,p,b,c,INTERACTION_SPEC.stepSeconds);
+      return 'accepted';
+    }
     if(c.type==='guard')return requestGuard(w,b.id,c.held);
     if(c.type==='crouch')return submitCombatInput(w,b.id,{kind:'duck',held:c.held,commandId});
     if(c.type==='attack') return submitCombatInput(w,b.id,{kind:'attack',trajectory:c.trajectory,targetBodyId:c.targetBodyId,weight:c.weight,commandId});
@@ -296,6 +307,12 @@ export class BridgeSession {
     beforeCommands?.(dt);
     const receipts=new Map<string,CommandReceipt[]>();
     for(const ch of order) receipts.set(ch.id,ch.control?.apply(w.physicalTime,now,(c,e)=>this.executeCommand(ch,c,e.commandId))??[]);
+    if(this.continuousMovement)for(const ch of order){
+      const p=this.personOf(ch),b=ch.control&&w.body(ch.control.bodyId);
+      if(p&&b&&this.game.controlsBody(ch.id,b.id)&&ch.move.expires>w.physicalTime){
+        refreshCrouchHeld(w,b,ch.move.crouch===true);applyInteractionMovement(w,p,b,ch.move,dt);
+      }
+    }
     if(this.slowAccum>=.05-1e-9) {
       for(const ch of order) if(!ch.control) {
         const p=this.personOf(ch),b=p&&w.primaryBody(p.id);
