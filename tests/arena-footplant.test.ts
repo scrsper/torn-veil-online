@@ -1,7 +1,8 @@
 import {describe,it,expect} from 'vitest';
 import {NullEngine,Scene,TransformNode,Quaternion,Vector3} from '@babylonjs/core';
-import {FootPlant} from '../src/web/arena/footPlant';
+import {FootPlant,footSurface,type FootGround} from '../src/web/arena/footPlant';
 import type {CharacterInstance} from '../src/web/arena/assets';
+import {ContactFootfalls} from '../src/web/audio/footfalls';
 
 function rig(scale=1){
  const engine=new NullEngine(),scene=new Scene(engine),root=new TransformNode('root',scene);
@@ -20,6 +21,72 @@ function rig(scale=1){
 }
 
 describe('human foot contact correction',()=>{
+ it('supplies observed support for audible mixed gaits without a dominant baked clip',()=>{
+  const r=rig(),audio=new ContactFootfalls();
+  const sample=(lift:number,ground:FootGround=()=>0)=>{
+   r.pose(lift);const contacts=r.plant.update(1/60,0,0,true,undefined,ground);
+   return {contacts,events:audio.update({dt:1/60,contacts,speed:2,active:true,position:r.root.position})};
+  };
+  expect(sample(.3).contacts).toEqual([false,false]);
+  const landed=sample(0);expect(landed.contacts).toEqual([true,true]);expect(landed.events).toEqual([0]);
+  expect(sample(0).events).toEqual([]);
+  // Missing terrain IK does not erase the body's posed support on an upper floor.
+  // The audio material query independently rejects non-resident world regions.
+  expect(sample(0,()=>null).contacts).toEqual([true,true]);r.dispose();
+ });
+ it('samples incline normals but rejects discontinuities, cliffs and incomplete terrain',()=>{
+  const slope=footSurface((x,z)=>.3*x-.2*z,{x:0,z:0},0,1)!;
+  expect(slope.normal.x).toBeLessThan(0);expect(slope.normal.z).toBeGreaterThan(0);
+  expect(Vector3.Distance(slope.normal,new Vector3(-.3,1,.2).normalize())).toBeLessThan(1e-8);
+  expect(footSurface(x=>x<0?0:.15,{x:0,z:0},0,1)).toBeNull();
+  expect(footSurface(()=>1,{x:0,z:0},0,1)).toBeNull();
+  expect(footSurface(x=>x>0?null:0,{x:0,z:0},0,1)).toBeNull();
+  expect(footSurface(()=>NaN,{x:0,z:0},0,1)).toBeNull();
+  expect(footSurface(x=>x,{x:0,z:0},0,1)).toBeNull();
+ });
+ it('preserves flat-floor stance and turn output when a terrain callback is supplied',()=>{
+  const flat=rig(),sampled=rig();
+  for(let frame=0;frame<90;frame++){
+   const yaw=frame<30?0:Math.min(Math.PI/2,(frame-30)*Math.PI/24);
+   for(const r of [flat,sampled]){r.root.position.z+=.003;r.root.rotation.y=yaw;r.pose();}
+   flat.plant.update(1/60,0,yaw,true);
+   sampled.plant.update(1/60,0,yaw,true,undefined,()=>0);
+   expect(sampled.plant.lockState()).toEqual(flat.plant.lockState());
+   for(const side of ['l','r'])expect(Vector3.Distance(flat.bones.get('foot_'+side)!.getAbsolutePosition(),sampled.bones.get('foot_'+side)!.getAbsolutePosition())).toBeLessThan(1e-6);
+  }
+  flat.dispose();sampled.dispose();
+ });
+ it('raises each ankle independently and tilts soles on a supported incline without moving the root',()=>{
+  const r=rig(),ground:FootGround=x=>.15*x;
+  for(let i=0;i<15;i++){r.pose();r.plant.update(1/60,0,0,true,[true,true],ground);}
+  const left=r.bones.get('foot_l')!,right=r.bones.get('foot_r')!;
+  expect(left.getAbsolutePosition().y).toBeCloseTo(.11-.018,3);
+  expect(right.getAbsolutePosition().y).toBeCloseTo(.11+.018,3);
+  const up=Vector3.Up().applyRotationQuaternion(left.absoluteRotationQuaternion);
+  expect(Vector3.Distance(up,new Vector3(-.15,1,0).normalize())).toBeLessThan(.001);
+  expect(r.root.position.equals(Vector3.Zero())).toBe(true);r.dispose();
+ });
+ it('plants fully supported step treads at body and parent scales and preserves flat inputs',()=>{
+  for(const scale of [.6,1.6]){
+   const r=rig(scale),parent=new TransformNode('parent',r.root.getScene());parent.scaling.setAll(1.3);r.root.parent=parent;
+   const absolute=scale*1.3,ground:FootGround=x=>x<0?0:.12*absolute;
+   for(let i=0;i<18;i++){r.pose();r.plant.update(1/60,0,0,true,[true,true],ground);}
+   expect(r.bones.get('foot_l')!.getAbsolutePosition().y).toBeCloseTo(.11*absolute,3);
+   expect(r.bones.get('foot_r')!.getAbsolutePosition().y).toBeCloseTo(.23*absolute,3);
+   expect(r.plant.lockCount()).toBe(2);r.dispose();
+  }
+ });
+ it('bounds terrain acquisition and missing-support release, then clears teleport correction',()=>{
+  const r=rig();let ground:FootGround=()=>.18,prior=new Vector3(-.12,.11,0),maxStep=0;
+  for(let i=0;i<15;i++){r.pose();r.plant.update(1/60,0,0,true,[true,true],ground);const p=r.bones.get('foot_l')!.getAbsolutePosition().clone();maxStep=Math.max(maxStep,Vector3.Distance(p,prior));prior=p;}
+  expect(prior.y).toBeCloseTo(.29,3);
+  ground=()=>null;
+  for(let i=0;i<30;i++){r.pose();r.plant.update(1/60,0,0,true,[true,true],ground);const p=r.bones.get('foot_l')!.getAbsolutePosition().clone();maxStep=Math.max(maxStep,Vector3.Distance(p,prior));prior=p;}
+  expect(maxStep).toBeLessThanOrEqual(2/60+.001);expect(r.plant.lockCount()).toBe(0);expect(prior.y).toBeCloseTo(.11,3);
+  for(let i=0;i<15;i++){r.pose();r.plant.update(1/60,0,0,true,[true,true],()=>.18);}
+  r.root.position.x+=3;r.pose();r.plant.update(1/60,0,0,true,[true,true],()=>.18);
+  expect(r.plant.lockCount()).toBe(0);expect(r.bones.get('foot_l')!.getAbsolutePosition().y).toBeCloseTo(.11,3);r.dispose();
+ });
  it('does not learn a swing apex as ground, and acquires only after landing dwell',()=>{
   const r=rig();for(let i=0;i<15;i++)r.step(.22);
   expect(r.plant.lockCount()).toBe(0);

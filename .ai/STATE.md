@@ -1,4 +1,33 @@
-# Current: Fluid human motion and fitted adult models (2026-10-10)
+# Current: Grounded human attention, sound and light (2026-10-10)
+
+Continuation on `codex/ontology-human-motion` from pushed `679ce9a`. The user's
+Witcher 3 benchmark now has cross-system acceptance gates and a staged sequence
+in `docs/web/QUALITY_TARGET.md`; overall production parity remains open.
+
+Imported adults use bounded per-foot terrain height/normal correction and
+additive neck/head attention from projected targets. NPC attention resolves the
+actual projected entity to nearby visible bodies (including multiple bodies),
+instead of substituting the player. Contact-timed layered surface Foley follows
+the shared pose support, including mixed gait fallback, and nearby NPC stereo
+stays anchored to the player's hearing position. Projected floor/water lookup
+handles raised wood, stone interiors and bridges. Daylight sun/fill balance
+improves shaded clothing/facades without raising sky exposure.
+
+65 focused tests across nine files and TypeScript pass. Imported-rig browser
+checks passed 18 terrain and 16 gaze cases; canonical keyboard combat/movement,
+flat-ground regression, five audio surface renders and six lighting conditions
+passed. A fresh GPT-6.1 Sol reviewer found one floor/water sound lookup defect;
+it is fixed with integration coverage. The final production build and audio
+recheck pass: six walking and seven running contacts, no idle/stopped chatter,
+five valid surface renders and zero page errors. Evidence and reproduction are
+recorded in `docs/evidence/human-world-quality/README.md`.
+
+Limits: terrain fixtures are controlled, not all-cast moving stairs; no pelvis,
+eye/facial/cloth overhaul; audio is synthesized and needs listening review;
+faces/interiors, encounter polish, first-hour play and long-session performance
+remain production gates. Canonical ontology/movement/combat authority is unchanged.
+
+# Previous: Fluid human motion and fitted adult models (2026-10-10)
 
 Continuation on `codex/ontology-human-motion` after pushed checkpoint `a097d62`.
 GPT-6.1 Sol workers improved adult garment fit and imported-rig foot contact.

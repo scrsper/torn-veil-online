@@ -12,6 +12,7 @@ import { needsCutaway } from './cutaway';
 import { noteSlow } from '../game/probe';
 import { InstanceSet, VegetationLibrary, scatterVegetation } from './vegetation';
 import { WindowLighting } from './windowLighting';
+import { B, blockDef } from '../../sim/physical/blocks';
 
 /**
  * Owns every resident region's scene content and the floating origin.
@@ -83,10 +84,29 @@ export class RegionManager {
     return { y, height: 1 - 0.5 * Math.max(0, Math.min(1, (g.forest[k] - 0.5) * 2)) };
   }
 
-  /** The ground block id drawn at a simulation position (for footstep sound), or null. */
+  /** Terrain-only block id; structures and the separate water sheet are excluded. */
   blockAt(x: number, z: number): number | null {
     const reg = this.regions.get(this.regionOf(x, z)); if (!reg) return null; const g = reg.terrain.grid;
     const i = Math.max(0, Math.min(g.n - 1, Math.round((x - g.x0) / g.stride))), j = Math.max(0, Math.min(g.n - 1, Math.round((z - g.z0) / g.stride))); return g.block[i * g.n + j];
+  }
+  /** Projected material at an approximate sole height, for audible foot contact.
+   * A nearby supporting floor outranks its substrate; water at the feet outranks
+   * submerged support. Use the same four-corner water footprint as buildTerrain. */
+  supportBlockAt(x: number, soleY: number, z: number): number | null {
+    const reg = this.regions.get(this.regionOf(x, z)); if (!reg) return null;
+    const g = reg.terrain.grid;
+    const i = Math.max(0, Math.min(g.n - 2, Math.floor((x - g.x0) / g.stride)));
+    const j = Math.max(0, Math.min(g.n - 2, Math.floor((z - g.z0) / g.stride)));
+    const water = Math.max(g.water[i * g.n + j], g.water[(i + 1) * g.n + j], g.water[(i + 1) * g.n + j + 1], g.water[i * g.n + j + 1]);
+    if (water >= 0 && water >= soleY - .08) return B.Water;
+    if (reg.cells) {
+      for (let y = Math.floor(soleY + .05); y >= Math.floor(soleY - .4); y--) {
+        const block = reg.cells.get(Math.floor(x), y, Math.floor(z)), def = blockDef(block);
+        const top = y + (def.height ?? 1);
+        if (def.solid && top <= soleY + .08 && top >= soleY - .35) return block;
+      }
+    }
+    return this.blockAt(x, z);
   }
   /** Number of lit fires within 14 m (crackle level). */
   fireCountNear(x: number, z: number): number {

@@ -1,0 +1,91 @@
+{
+  "rois": {
+    "shadedStone": [
+      390,
+      170,
+      505,
+      330
+    ],
+    "shadedTimber": [
+      525,
+      160,
+      570,
+      320
+    ],
+    "clothing": [
+      618,
+      350,
+      664,
+      390
+    ],
+    "sky": [
+      750,
+      15,
+      1000,
+      80
+    ],
+    "path": [
+      810,
+      490,
+      970,
+      565
+    ]
+  },
+  "note": "8-bit screenshot luma; static same-camera crops. Not physical light measurement or a quality score.",
+  "results": {
+    "before-clear11": {
+      "shadedStone": {
+        "meanLuma": 34.12,
+        "clippedPercent": 0,
+        "darkPercent": 22.6
+      },
+      "shadedTimber": {
+        "meanLuma": 32.38,
+        "clippedPercent": 0,
+        "darkPercent": 8.04
+      },
+      "clothing": {
+        "meanLuma": 30.74,
+        "clippedPercent": 0,
+        "darkPercent": 18.86
+      },
+      "sky": {
+        "meanLuma": 124.3,
+        "clippedPercent": 0,
+        "darkPercent": 0
+      },
+      "path": {
+        "meanLuma": 65.77,
+        "clippedPercent": 0,
+        "darkPercent": 0.02
+      }
+    },
+    "after-clear11": {
+      "shadedStone": {
+        "meanLuma": 39.53,
+        "clippedPercent": 0,
+        "darkPercent": 7.55
+      },
+      "shadedTimber": {
+        "meanLuma": 37.42,
+        "clippedPercent": 0,
+        "darkPercent": 5.31
+      },
+      "clothing": {
+        "meanLuma": 36.07,
+        "clippedPercent": 0,
+        "darkPercent": 7.45
+      },
+      "sky": {
+        "meanLuma": 124.3,
+        "clippedPercent": 0,
+        "darkPercent": 0
+      },
+      "path": {
+        "meanLuma": 66.95,
+        "clippedPercent": 0,
+        "darkPercent": 0.02
+      }
+    }
+  }
+}

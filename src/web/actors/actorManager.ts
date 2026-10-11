@@ -6,6 +6,7 @@ import type { RegionManager } from '../world/regionManager';
 import type { RenderContext } from '../render/engine';
 import type { BodyState, CombatActionState, SnapshotMessage, Vec3, WildlifeBody } from '../net/messages';
 import type { CombatContext } from './combatPose';
+import { facingBody } from './projectedAttention';
 
 /**
  * Every visible body (people, wildlife) as a scene actor. This layer owns motion smoothing,
@@ -17,6 +18,8 @@ import type { CombatContext } from './combatPose';
  */
 export interface BodyVisual {
   root: TransformNode;
+  /** Imported animation support phases provide footfall events. */
+  readonly contactFootfalls?: boolean;
   update(dt: number, state: ActorState): void;
   headHeight: number;
   dispose(): void;
@@ -188,8 +191,14 @@ export class ActorManager {
         if (isOwn) lookAt = env?.playerLook() ?? (speaker ? this.headPoint(speaker, new Vector3()) : null);
         else if (speaker && a.id === speaker) lookAt = playerHead;
         else {
-          const partner = a.body?.embodiment?.conversation, faced = a.body?.embodiment?.activity.facingEntityId;
-          if ((partner || faced) && playerHead && Math.hypot(a.pos.x - (this.actors.get(player)?.pos.x ?? 0), a.pos.z - (this.actors.get(player)?.pos.z ?? 0)) < 8) lookAt = playerHead;
+          const formation = a.body?.embodiment?.conversation;
+          const target = facingBody(a, a.body?.embodiment?.activity.facingEntityId, this.actors.values());
+          if (target) lookAt = this.headPoint(target, new Vector3());
+          else if (formation && Number.isFinite(formation.yaw)) {
+            // A projected conversation ring supplies an inward heading, not a
+            // partner identity. Preserve that direction instead of staring at the player.
+            lookAt = new Vector3(r.position.x - Math.sin(formation.yaw) * 2, r.position.y + a.visual.headHeight * .85, r.position.z - Math.cos(formation.yaw) * 2);
+          }
         }
       }
       a.hitK *= Math.exp(-5 * dt);

@@ -1,0 +1,246 @@
+{
+  "note": "Single paused world and frozen camera/animation/grass. Scene.render(false,true) skips animation evaluation. Before changes only clear11 light channels. Weather overrides affect atmosphere only, not canonical weather, particles or material wetness. Screenshots are not a performance or subjective quality verdict.",
+  "rows": [
+    {
+      "name": "before-clear11",
+      "hour": 11,
+      "kind": "clear",
+      "old": true,
+      "key": 3.596,
+      "fill": 0.7644,
+      "skyFill": [
+        0.5,
+        0.58,
+        0.72
+      ],
+      "groundFill": [
+        0.3,
+        0.26,
+        0.2
+      ],
+      "exposure": 1.1832,
+      "camera": [
+        40.5,
+        16.30639377776169,
+        100.99947896337551
+      ],
+      "rotation": [
+        -0.19320682580748247,
+        0,
+        0
+      ],
+      "origin": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "renderer": "webgl2",
+      "quality": "balanced",
+      "resolution": [
+        1280,
+        720
+      ]
+    },
+    {
+      "name": "after-clear11",
+      "hour": 11,
+      "kind": "clear",
+      "old": false,
+      "key": 3.1,
+      "fill": 0.9211999999999999,
+      "skyFill": [
+        0.64,
+        0.69,
+        0.76
+      ],
+      "groundFill": [
+        0.46,
+        0.42,
+        0.36
+      ],
+      "exposure": 1.1832,
+      "camera": [
+        40.5,
+        16.30639377776169,
+        100.99947896337551
+      ],
+      "rotation": [
+        -0.19320682580748247,
+        0,
+        0
+      ],
+      "origin": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "renderer": "webgl2",
+      "quality": "balanced",
+      "resolution": [
+        1280,
+        720
+      ]
+    },
+    {
+      "name": "dusk",
+      "hour": 18.5,
+      "kind": "clear",
+      "old": false,
+      "key": 0.5207999999999999,
+      "fill": 0.392,
+      "skyFill": [
+        0.22,
+        0.28,
+        0.46
+      ],
+      "groundFill": [
+        0.06,
+        0.07,
+        0.11
+      ],
+      "exposure": 1.6239999999999999,
+      "camera": [
+        40.5,
+        16.30639377776169,
+        100.99947896337551
+      ],
+      "rotation": [
+        -0.19320682580748247,
+        0,
+        0
+      ],
+      "origin": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "renderer": "webgl2",
+      "quality": "balanced",
+      "resolution": [
+        1280,
+        720
+      ]
+    },
+    {
+      "name": "night",
+      "hour": 23,
+      "kind": "clear",
+      "old": false,
+      "key": 0.5207999999999999,
+      "fill": 0.392,
+      "skyFill": [
+        0.22,
+        0.28,
+        0.46
+      ],
+      "groundFill": [
+        0.06,
+        0.07,
+        0.11
+      ],
+      "exposure": 1.6239999999999999,
+      "camera": [
+        40.5,
+        16.30639377776169,
+        100.99947896337551
+      ],
+      "rotation": [
+        -0.19320682580748247,
+        0,
+        0
+      ],
+      "origin": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "renderer": "webgl2",
+      "quality": "balanced",
+      "resolution": [
+        1280,
+        720
+      ]
+    },
+    {
+      "name": "rain",
+      "hour": 11,
+      "kind": "rain",
+      "old": false,
+      "key": 1.5654999999999997,
+      "fill": 1.0206896,
+      "skyFill": [
+        0.6535,
+        0.6944999999999999,
+        0.7555000000000001
+      ],
+      "groundFill": [
+        0.46,
+        0.42,
+        0.36
+      ],
+      "exposure": 1.2470928,
+      "camera": [
+        40.5,
+        16.30639377776169,
+        100.99947896337551
+      ],
+      "rotation": [
+        -0.19320682580748247,
+        0,
+        0
+      ],
+      "origin": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "renderer": "webgl2",
+      "quality": "balanced",
+      "resolution": [
+        1280,
+        720
+      ]
+    },
+    {
+      "name": "night-rain",
+      "hour": 23,
+      "kind": "rain",
+      "old": false,
+      "key": 0.38018399999999997,
+      "fill": 0.392,
+      "skyFill": [
+        0.22,
+        0.28,
+        0.46
+      ],
+      "groundFill": [
+        0.06,
+        0.07,
+        0.11
+      ],
+      "exposure": 1.7116959999999999,
+      "camera": [
+        40.5,
+        16.30639377776169,
+        100.99947896337551
+      ],
+      "rotation": [
+        -0.19320682580748247,
+        0,
+        0
+      ],
+      "origin": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "renderer": "webgl2",
+      "quality": "balanced",
+      "resolution": [
+        1280,
+        720
+      ]
+    }
+  ],
+  "errors": []
+}

@@ -6,6 +6,10 @@ The embedded twenty-second preview was inspected in the browser; X requires a
 login for the expanded view. The reference is a visual benchmark, not an asset
 source or a change to canonical simulation rules.
 
+The subsequent Witcher 3 quality request is tracked in
+[QUALITY_TARGET.md](QUALITY_TARGET.md), with acceptance gates across the whole
+experience and a sequence of implementation passes.
+
 ## What to carry into Torn Veil
 
 - A close rear third-person view with the horizon visible and the clothed body
