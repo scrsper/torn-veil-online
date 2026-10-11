@@ -18,6 +18,14 @@ through the existing canonical bounded-turn evaluator. Idle orbit changes the vi
 not the body. Camera orientation and zoom remain browser preferences, separate from
 canonical saves. Focus loss, pointer cancellation and menus release held movement.
 
+The Tower projects the same cell-centre occupancy as its canonical collision grid.
+Some authored partitions begin at half-metre coordinates; their visible faces and
+camera bounds now align with the occupied voxels. A continuous box sweep reserves
+camera clearance at corners. Render interpolation/extrapolation falls back to the
+received body position if it would cross a wall. These are presentation corrections;
+they do not move canonical walls or grant the body access through them. Foreground
+cutaways consider the feet, hips and head so a clear chest ray cannot hide the legs.
+
 The canonical Tower keeps LMB strike, RMB or G guard, Q-held target facing, Tab target
 selection, MMB orbit, wheel zoom and keyboard actions. Movement and dodges are
 camera-relative; released target facing returns to travel-facing. Striking or guarding
@@ -40,3 +48,11 @@ comparison. Entering the Tower from the primary world opens canonical `/?ascent`
 They are different routes. Their tactile stone, cobbled paving, restrained metals and
 clear circulation inform the visual review; this camera correction does not make the
 current procedural world art accepted or replace it with new generated maps.
+
+Reproduce the ordinary-input acceptance journey against a separate fresh candidate
+host with `node scripts/web/third-person-camera-qa.mjs`; its default target is7555.
+`TV_REALMS_URL` and `TV_REALMS_EVIDENCE` choose another candidate URL/output directory.
+The harness reads projected state and drives keys, mouse and UI controls. It performs
+round trips before engaging wardens: the canonical requirement to break combat contact
+before returning remains enforced. The final receipt distinguishes the earlier full
+suite from checks repeated after the clearance correction and records exact build IDs.

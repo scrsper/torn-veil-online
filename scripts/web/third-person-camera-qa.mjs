@@ -50,8 +50,9 @@ async function walkTo(target,timeout=45000,combat=false,seek=false){
   if(Date.now()>nextRoute){path=route(plan,own.pos,to);nextRoute=Date.now()+500;}
   while(path.length&&Math.hypot(own.pos.x-path[0].x,own.pos.z-path[0].z)<.3)path.shift();
   const cell=path[0]??to,input=[];
-  const camera=await page.evaluate(()=>window.tvAscent.inspect().camera),yaw=camera.movementYaw;
-  cameraSamples.push({view:'tower',position:own.pos,...camera});
+  const view=await page.evaluate(()=>window.tvAscent.inspect()),camera=view.camera,yaw=camera.movementYaw;
+  cameraSamples.push({view:'tower',bodyPosition:own.pos,...camera,
+    bodyVisual:view.controlledBody,blockingSolids: view.cameraSolids.filter(s=>s.kind==='wall'&&camera.position.x>=s.x&&camera.position.x<=s.x+s.w&&camera.position.y>=s.y&&camera.position.y<=s.y+s.h&&camera.position.z>=s.z&&camera.position.z<=s.z+s.d)});
   const dx=cell.x-own.pos.x,dz=cell.z-own.pos.z;
   const right=dx*Math.cos(yaw)-dz*Math.sin(yaw),forward=-dx*Math.sin(yaw)-dz*Math.cos(yaw);
   const length=Math.hypot(right,forward)||1;
@@ -145,6 +146,17 @@ try{
  const guardCam=(await inspect()).camera.yaw;await page.mouse.down({button:'right'});await wait(()=>window.tvAscent.frame.snapshot.bodies.find(b=>b.bodyId===window.tvAscent.frame.own.bodyId).guarding);
  await page.waitForTimeout(900);check('held mouse guard renews its canonical lease', (await floor()).snapshot.bodies.find(b=>b.bodyId===initial.body.id).guarding);
  await page.mouse.up({button:'right'});await wait(()=>!window.tvAscent.frame.snapshot.bodies.find(b=>b.bodyId===window.tvAscent.frame.own.bodyId).guarding);check('mouse guard press and release reach canonical body',true);check('guarding does not rotate camera',angle((await inspect()).camera.yaw,guardCam)<.001);
+ const start=(await floor()).tower.start;await walkTo(start,60000);await page.waitForTimeout(1200);
+ beforeReload=await floor();await page.locator('#as-save').click();await page.waitForTimeout(800);
+ await page.mouse.down({button:'right'});await page.reload();await page.mouse.up({button:'right'});await ascentReady();
+ const loaded=await floor();check('save reload retains run identity learning inventory and rank',loaded.tower.id===entered.tower.id&&loaded.own.id===entered.own.id&&loaded.own.bodyId===entered.own.bodyId&&loaded.own.rank===entered.own.rank&&loaded.own.learned.some(s=>s.id==='book-ember')&&JSON.stringify(loaded.snapshot.carried.map(i=>[i.id,i.quantity]))===JSON.stringify(beforeReload.snapshot.carried.map(i=>[i.id,i.quantity])));
+ check('reload releases stale guard input',!loaded.snapshot.bodies.find(b=>b.bodyId===loaded.own.bodyId).guarding);
+ check('save reload does not manufacture health',loaded.own.health<=beforeReload.own.health+.1);
+ await page.keyboard.press('Escape');await page.locator('#as-return').click();await ready();returned=await realm();
+ check('Tower return carries learned sources to same world identity and rank',returned.person.id===initial.person.id&&returned.body.id===initial.body.id&&returned.person.rank===initial.person.rank&&returned.person.inventory.some(i=>i.name==='Ember field manual'));await shot('05-current-returned-world');
+ await enter();const repeat=await floor();check('repeated Tower entry retains run learning and rank',repeat.tower.id===entered.tower.id&&repeat.own.rank===initial.person.rank&&repeat.own.learned.some(s=>s.id==='book-ember'));
+ await page.locator('#as-return').click();await ready();await page.reload();await ready();check('world reload after repeated Tower return retains canonical belongings',JSON.stringify((await realm()).person.inventory)===JSON.stringify(returned.person.inventory));
+ await enter();check('combat exploration resumes the same learned canonical run',(await floor()).tower.id===entered.tower.id&&(await floor()).own.learned.some(s=>s.id==='book-ember'));
  // Visibility is canonical: physically search the projected rooms before selecting.
  const plan=await page.evaluate(()=>window.tvAscent.plan);
  let visible=(await floor()).snapshot.bodies.some(b=>b.bodyId!==initial.body.id&&!b.dead&&!b.incapacitated);
@@ -179,21 +191,11 @@ try{
   if(hit)observations.push({kind:'canonical-mouse-contact-receipt',action:ownAction});
  }
  await keys([]);check('actual mouse combat causes observed warden contact',hit);observations.push({kind:'tower-play',inspect:await page.evaluate(()=>window.tvAscent.inspect())});await shot('04-current-mouse-combat');
- const start=(await floor()).tower.start;await walkTo(start,60000);await page.waitForTimeout(1200);
- beforeReload=await floor();await page.locator('#as-save').click();await page.waitForTimeout(800);
- await page.mouse.down({button:'right'});await page.reload();await page.mouse.up({button:'right'});await ascentReady();
- const loaded=await floor();check('save reload retains run identity learning inventory and rank',loaded.tower.id===entered.tower.id&&loaded.own.id===entered.own.id&&loaded.own.bodyId===entered.own.bodyId&&loaded.own.rank===entered.own.rank&&loaded.own.learned.some(s=>s.id==='book-ember')&&JSON.stringify(loaded.snapshot.carried.map(i=>[i.id,i.quantity]))===JSON.stringify(beforeReload.snapshot.carried.map(i=>[i.id,i.quantity])));
- check('reload releases stale guard input',!loaded.snapshot.bodies.find(b=>b.bodyId===loaded.own.bodyId).guarding);
- check('save reload does not manufacture health',loaded.own.health<=beforeReload.own.health+.1);
- await page.keyboard.press('Escape');await page.locator('#as-return').click();await ready();returned=await realm();
- check('Tower return carries learned sources to same world identity and rank',returned.person.id===initial.person.id&&returned.body.id===initial.body.id&&returned.person.rank===initial.person.rank&&returned.person.inventory.some(i=>i.name==='Ember field manual'));await shot('05-current-returned-world');
- await enter();const repeat=await floor();check('repeated Tower entry retains run learning and rank',repeat.tower.id===entered.tower.id&&repeat.own.rank===initial.person.rank&&repeat.own.learned.some(s=>s.id==='book-ember'));
- await page.locator('#as-return').click();await ready();await page.reload();await ready();check('world reload after repeated Tower return retains canonical belongings',JSON.stringify((await realm()).person.inventory)===JSON.stringify(returned.person.inventory));
- check('camera remains outside received solid geometry during Tower traversal',cameraSamples.length>10&&cameraSamples.every(c=>!c.blocked),{samples:cameraSamples.length,minDistance:Math.min(...cameraSamples.map(c=>c.dist)),maxDistance:Math.max(...cameraSamples.map(c=>c.dist))});
  observations.push({kind:'camera-obstruction-traversal',samples:cameraSamples});
+ check('camera remains outside received solid geometry during Tower traversal',cameraSamples.length>10&&cameraSamples.every(c=>!c.blocked&&!c.bodyVisual?.blocked),{samples:cameraSamples.length,blocked:cameraSamples.filter(c=>c.blocked),minDistance:Math.min(...cameraSamples.map(c=>c.dist)),maxDistance:Math.max(...cameraSamples.map(c=>c.dist))});
  check('no browser errors',errors.length===0,errors);
 }catch(e){errors.push(String(e));observations.push({kind:'failure-state',state:await page.evaluate(()=>window.tvAscent?.frame??window.tvRealms?.state),inspect:await page.evaluate(()=>window.tvAscent?.inspect()??window.tvRealms?.inspect())});console.error(e);await shot('failure');process.exitCode=1;}
 finally{
- await keys([]);writeFileSync(resolve(out,'result.json'),JSON.stringify({kind:'actual rendered ordinary-input journey; no body/save mutation and no calibrated pacing claim',commit:build.commit,health,checks,errors,observations,initial,entered,beforeReload,returned,completedAt:new Date().toISOString()},null,2));
+ await keys([]);writeFileSync(resolve(out,'result.json'),JSON.stringify({kind:'actual rendered ordinary-input journey; no body/save mutation and no calibrated pacing claim',commit:build.commit,health,checks,errors,observations,cameraSamples,initial,entered,beforeReload,returned,completedAt:new Date().toISOString()},null,2));
  const video=page.video();await context.close();if(video)await video.saveAs(resolve(out,'third-person-traversal.webm'));await browser.close();
 }

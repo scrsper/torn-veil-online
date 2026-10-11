@@ -11,8 +11,8 @@ import type { BodyVisual } from '../actors/actorManager';
 import type { BodyState, InteractionCommand, SnapshotMessage } from '../net/messages';
 import type { InteriorPlan } from '../../sim/world/interiors/layout';
 import type { TowerController } from '../../server/towerController';
-import { marchObstruction } from '../game/adaptiveCamera';
 import { primaryCamera, attachOrbit, cameraRelativeMove, travelFacing, smoothYaw, groundViewYaw } from './thirdPerson';
+import { voxelSolid, insideSolid, boxObstruction } from './cameraSolids';
 
 type Frame = NonNullable<ReturnType<TowerController['frame']>> & { serverMs: number; saveError?: string };
 /** A projection of the shared body and physical floor. Only input and visual smoothing
@@ -27,6 +27,7 @@ export async function startCanonicalAscent() {
   atmosphere.look.fill = 1.1; atmosphere.look.key = 1.05; atmosphere.look.exposure = 1;
   const people = new SharedCharacters(ctx.scene), visuals = new Map<string, { visual: BodyVisual; body: BodyState; hitSeq: number; hit: number }>();
   const geometry: Mesh[] = [], objects = new Map<string, Mesh>(), keys = new Set<string>();
+  let walls: InteriorPlan['solids'] = [];
   const vfx = new Vfx(ctx.scene), seenCasts = new Set<string>();
   let binding: any = null, frame: Frame | null = null, plan: InteriorPlan | null = null, token = '', sequence = 0, targetId = '', receivedAt = 0,
     last = performance.now(), inputAccum = 0, hudAccum = 0, ready = false, movingPage = false, resetView = true, inputWasActive = false;
@@ -48,7 +49,8 @@ export async function startCanonicalAscent() {
   function drawFloor(p: InteriorPlan) {
     for (const mesh of geometry) mesh.dispose(); geometry.length = 0; plan = p;
     geometry.push(box('physical floor', p.origin.x - p.half - 1, 0, p.origin.z - p.half - 1, p.half * 2 + 2, 1, p.half * 2 + 2, floorMat));
-    for (const s of p.solids) { const mesh = box(s.id, s.x, s.y, s.z, s.w, s.h, s.d, s.kind === 'bench' ? brass : stone); mesh.metadata = { wall: s.kind === 'wall' }; geometry.push(mesh); }
+    const solids = p.solids.map(voxelSolid); walls = solids.filter(s => s.kind === 'wall');
+    for (const s of solids) { const mesh = box(s.id, s.x, s.y, s.z, s.w, s.h, s.d, s.kind === 'bench' ? brass : stone); mesh.metadata = { wall: s.kind === 'wall' }; geometry.push(mesh); }
     // Thin inlays and threshold discs decorate existing walkable surfaces; they do not
     // invent doors, new rooms or invisible collision geometry.
     for (const [i, point] of [p.start, p.exit].entries()) {
@@ -180,12 +182,8 @@ export async function startCanonicalAscent() {
   };
   window.addEventListener('pointerup',e=>{if(e.button===2){mouseGuard=false;send({type:'guard',held:keys.has('KeyG')});}});
   window.addEventListener('pointercancel',release);
-  const cameraPointBlocked = (x: number, y: number, z: number) => geometry.some(mesh => {
-    if (!mesh.metadata?.wall) return false;
-    const box = mesh.getBoundingInfo().boundingBox;
-    return x >= box.minimumWorld.x && x <= box.maximumWorld.x && y >= box.minimumWorld.y && y <= box.maximumWorld.y && z >= box.minimumWorld.z && z <= box.maximumWorld.z;
-  });
-  const obstruction = marchObstruction(cameraPointBlocked);
+  const cameraPointBlocked = (x: number, y: number, z: number) => walls.some(s => insideSolid(s, { x, y, z }));
+  const obstruction = boxObstruction(() => walls);
   ctx.engine.runRenderLoop(() => {
     const now = performance.now(), ms = now - last, dt = Math.min(.1, ms / 1000); last = now;
     if (ready && !document.hidden) { frames.push(ms); if (frames.length > 7200) frames.shift(); }
@@ -210,8 +208,13 @@ export async function startCanonicalAscent() {
       for (const v of visuals.values()) {
         const b = v.body, root = v.visual.root;
         const desired = new Vector3(b.pos.x + b.velocity.x * age, b.pos.y, b.pos.z + b.velocity.z * age);
+        if (cameraPointBlocked(desired.x, desired.y + 1.3, desired.z)) desired.set(b.pos.x, b.pos.y, b.pos.z);
         if (resetView && b.bodyId === binding.bodyId) root.position.copyFrom(desired);
-        else root.position.copyFrom(Vector3.Lerp(root.position, desired, 1 - Math.exp(-20 * dt)));
+        else {
+          const next = Vector3.Lerp(root.position, desired, 1 - Math.exp(-20 * dt));
+          // Interpolation must not cut the visible body through a physical corner.
+          root.position.copyFrom(cameraPointBlocked(next.x, next.y + 1.3, next.z) ? new Vector3(b.pos.x, b.pos.y, b.pos.z) : next);
+        }
         root.rotation.y = smoothYaw(root.rotation.y, b.yaw, dt); v.hit *= Math.exp(-dt * 8);
         v.visual.update(dt, { bodyId: b.bodyId, own: b.bodyId === binding.bodyId, kind: 'person', body: b, speed: Math.hypot(b.velocity.x, b.velocity.z), velocity: b.velocity, yaw: root.rotation.y, crouch: b.crouch ?? 0, age, combat: contextFor(b.combatAction, time, b.yaw), hit: v.hit, guard: b.guarding });
       }
@@ -239,6 +242,8 @@ export async function startCanonicalAscent() {
     inspect: () => ({ frames: [...frames], serverMs: [...serverTimes], receipts: [...receipts], meshes: ctx.scene.meshes.length, people: visuals.size, looks: [...visuals.values()].map(v => v.visual.root.metadata),
       camera: { mode: 'third-person', yaw: view.camera.yaw, renderedYaw: view.camera.renderedYaw, movementYaw, pitch: view.camera.pitch, preferred: view.camera.preferred, blocked: cameraPointBlocked(camera.position.x,camera.position.y,camera.position.z), position: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, ...view.camera.debug },
       cutawayWalls: geometry.filter(m => m.metadata?.wall && m.visibility < 1).length,
+      cameraSolids: walls,
+      controlledBody: (() => { const root = binding && visuals.get(binding.bodyId)?.visual.root; return root ? { id: binding.bodyId, enabled: root.isEnabled(), position: { x: root.position.x, y: root.position.y, z: root.position.z }, yaw: root.rotation.y, blocked: cameraPointBlocked(root.position.x, root.position.y + 1.3, root.position.z) } : null; })(),
       facingMode: keys.has('KeyQ') || keys.has('KeyG') || mouseGuard ? 'target' : 'travel', heap: (performance as any).memory?.usedJSHeapSize ?? null }) } });
   window.addEventListener('resize', () => ctx.engine.resize());
 }
