@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import {readFileSync} from 'node:fs';
 import { createTestWorld, addPerson, v, step } from './helpers/world';
 import { makeItem, makeBody } from '../src/sim/world/factory';
 import { drinkAt } from '../src/sim/world/metabolism';
@@ -46,6 +47,17 @@ function victory(x: ReturnType<typeof fixture>, index: number, cast = true) {
   step(x,16); return {t,tb,e};
 }
 describe('earned source transformation',()=>{
+  it('retains a genuine legacy Iron save and applies versioned requirements to new receipts',()=>{
+    const raw=readFileSync(new URL('./fixtures/legacy-source-iron-v31.json',import.meta.url),'utf8');
+    const loaded=deserialize(raw);expect(loaded).not.toBeNull();
+    const w=loaded!.world,p=w.person('p_1')!,b=w.primaryBody(p.id)!;
+    expect(p.ontology.stage).toBe('Iron');expect(Object.keys(p.arcana!.growth!.victories)).toHaveLength(12);
+    expect(arcaneCapacity(p)).toEqual({amplitude:1.6,aperture:1.2,reserve:120});
+    expect(assessArcaneTransformation(w,p,b).next?.victories).toBe(180);
+    expect(integrateArcaneSources(w,p,b)).toBe('not_ready');
+    w.event(p.ontology.breakthroughEventId!)!.data.growthPolicy=2;
+    expect(deserialize(serialize(w))).toBeNull();
+  });
   it('uses distinct opposed evidence and finite materials, without rank from idle casts or labels',()=>{
     const x=fixture(); x.b.injuries={arm:.12}; x.b.health=75;
     const spare=x.source('ess-bone',false), calendar=x.world.now;
@@ -142,6 +154,7 @@ describe('earned source transformation',()=>{
       if(n+1===TRANSFORMATIONS[milestone].victories){
         expect(assessArcaneTransformation(x.world,x.p,x.b).eligible).toBe(true);
         expect(integrateArcaneSources(x.world,x.p,x.b)).toBe('accepted');
+        expect(x.world.event(x.p.ontology.breakthroughEventId!)?.data.growthPolicy).toBe(2);
         expect(x.p.ontology.stage).toBe(TRANSFORMATIONS[milestone].stage);milestone++;
       }
     }

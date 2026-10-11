@@ -1,6 +1,6 @@
 import type { World } from '../../core/world';
 import { ARCANE_DEFINITIONS, KERNEL_GEOMETRY } from './definitions';
-import { TRANSFORMATIONS } from './growth';
+import { TRANSFORMATIONS, LEGACY_TRANSFORMATIONS, SOURCE_GROWTH_POLICY } from './growth';
 import { ONTOLOGICAL_STAGES } from '../../core/stages';
 const bounded = (n: unknown, low: number, high: number) => typeof n === 'number' && Number.isFinite(n) && n >= low && n <= high;
 const record = (o: unknown): o is Record<string, any> => !!o && typeof o === 'object' && !Array.isArray(o);
@@ -51,7 +51,9 @@ export function validArcaneWorld(w: World, saveVersion: number): boolean {
       }
       const t = g.transformation;
       if (t) {
-        const e = w.event(t.eventId), rule = TRANSFORMATIONS.find(r => r.stage === e?.data.to);
+        const e = w.event(t.eventId), policy=e?.data.growthPolicy;
+        if(policy!==undefined&&policy!==SOURCE_GROWTH_POLICY)return false;
+        const rule = (policy===SOURCE_GROWTH_POLICY?TRANSFORMATIONS:LEGACY_TRANSFORMATIONS).find(r => r.stage === e?.data.to);
         if (!rule || e?.type !== 'ontological_advancement' || e.actor !== p.id || e.data.adaptation !== 'source-integrated arcane capacity'
           || p.ontology.stage !== rule.stage || p.ontology.breakthroughEventId !== e.id
           || t.amplitude !== rule.amplitude || t.aperture !== rule.aperture || t.reserve !== rule.reserve

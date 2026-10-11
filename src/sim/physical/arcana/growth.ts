@@ -20,6 +20,15 @@ export const TRANSFORMATIONS = [
   { stage: 'Silver', victories: 600, forms: 3, essences: 3, materials: 3, amplitude: 7, aperture: 5, reserve: 220 },
   { stage: 'Gold', victories: 1280, forms: 6, essences: 6, materials: 4, amplitude: 20, aperture: 12, reserve: 320 },
 ] as const;
+export const SOURCE_GROWTH_POLICY = 2;
+/** Historical receipts remain valid. This table is only for save validation;
+ * current assessment and integration always use TRANSFORMATIONS above. */
+export const LEGACY_TRANSFORMATIONS = [
+  { stage: 'Iron', victories: 12, forms: 1, essences: 1, materials: 1, amplitude: 1.6, aperture: 1.2, reserve: 120 },
+  { stage: 'Bronze', victories: 80, forms: 2, essences: 2, materials: 2, amplitude: 2.8, aperture: 2, reserve: 150 },
+  { stage: 'Silver', victories: 360, forms: 3, essences: 3, materials: 3, amplitude: 7, aperture: 5, reserve: 220 },
+  { stage: 'Gold', victories: 1000, forms: 6, essences: 6, materials: 4, amplitude: 20, aperture: 12, reserve: 320 },
+] as const;
 export function arcaneCapacity(p: Person, w?: World, b?: Body) {
   const own = p.arcana?.growth?.transformation ?? { amplitude: 1, aperture: 1, reserve: 100 };
   const sources = w && b ? equippedItems(w, p, b).flatMap(i => i.arcaneFocus && (i.condition ?? 1) > 0 ? [i.arcaneFocus] : []) : [];
@@ -107,7 +116,7 @@ export function integrateArcaneSources(w: World, p: Person, b: Body): string {
     ...Object.values(g.demonstrations).flatMap(d => Object.values(d)), ...Object.values(p.arcana!.learned).map(l => l.eventId)];
   const event = w.emit('ontological_advancement', { actor: p.id, pos: { ...b.pos }, category: 'history', significance: 1,
     causes: [...new Set(causes)], data: { from: p.ontology.stage, to: next.stage, adaptation: 'source-integrated arcane capacity',
-      bodyId: b.id, amplitude: next.amplitude, aperture: next.aperture, reserve: next.reserve, materialIds: [] as string[], materialAmounts: [] as number[] },
+      bodyId: b.id, growthPolicy: SOURCE_GROWTH_POLICY, amplitude: next.amplitude, aperture: next.aperture, reserve: next.reserve, materialIds: [] as string[], materialAmounts: [] as number[] },
     summary: `${p.name} integrated earned essence sources into ${next.stage} arcane capacity` });
   let remaining = next.materials;
   for (const i of a.materials) {
