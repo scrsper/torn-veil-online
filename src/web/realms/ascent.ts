@@ -1,4 +1,4 @@
-import { FreeCamera, Vector3, Color3, MeshBuilder, StandardMaterial, PBRMaterial, Mesh, Ray, type Material } from '@babylonjs/core';
+import { FreeCamera, Vector3, Matrix, Color3, MeshBuilder, StandardMaterial, PBRMaterial, Mesh, Ray, type Material } from '@babylonjs/core';
 import { createRenderer, attachPipeline } from '../render/engine';
 import { Atmosphere } from '../world/atmosphere';
 import { SharedCharacters } from '../actors/sharedCast';
@@ -13,6 +13,7 @@ import type { InteriorPlan } from '../../sim/world/interiors/layout';
 import type { TowerController } from '../../server/towerController';
 import { primaryCamera, attachOrbit, cameraRelativeMove, travelFacing, smoothYaw, groundViewYaw } from './thirdPerson';
 import { voxelSolid, insideSolid, boxObstruction } from './cameraSolids';
+import { InteriorCameraFraming } from './interiorCamera';
 
 type Frame = NonNullable<ReturnType<TowerController['frame']>> & { serverMs: number; saveError?: string };
 /** A projection of the shared body and physical floor. Only input and visual smoothing
@@ -22,6 +23,7 @@ export async function startCanonicalAscent() {
   const ctx = await createRenderer(canvas, { quality: 'balanced' }), camera = new FreeCamera('ascent-camera', new Vector3(0, 7, 8), ctx.scene);
   camera.minZ = .15; camera.maxZ = 180; camera.fov = .83;
   const view = primaryCamera('tower');
+  const framing = new InteriorCameraFraming();
   let movementYaw = view.camera.yaw;
   const atmosphere = new Atmosphere(ctx); attachPipeline(ctx, camera);
   atmosphere.look.fill = 1.1; atmosphere.look.key = 1.05; atmosphere.look.exposure = 1;
@@ -59,7 +61,7 @@ export async function startCanonicalAscent() {
     }
     for (const room of p.rooms) for (const side of [0, 1]) geometry.push(box(`${room.id}-inlay-${side}`, room.x + .15, 1.012, room.z + (side ? room.d - .2 : .15), room.w - .3, .015, .045, brass));
     for (const mesh of geometry) mesh.computeWorldMatrix(true);
-    view.camera.snap(); resetView = true;
+    view.camera.snap(); framing.reset(); resetView = true;
   }
   ui.innerHTML = `<style>
     .ascent{font:14px system-ui;color:#f0eade;pointer-events:none}.ascent header,.ascent aside,.ascent footer{position:absolute;background:#14171eea;border:1px solid #7d705644;border-radius:8px;padding:15px;pointer-events:auto}
@@ -222,15 +224,16 @@ export async function startCanonicalAscent() {
       if (root) {
         const pivot = root.position.add(new Vector3(0, 1.3, 0));
         const engaged = keys.has('KeyQ') || keys.has('KeyG') || mouseGuard || !!own.combatAction && own.combatAction.completeAt > time;
-        const pose = view.camera.update(dt, { pivot, velocity: own.velocity, engaged,
+        const rawPose = view.camera.update(dt, { pivot, velocity: own.velocity, engaged,
           threats: engaged ? frame.snapshot.bodies.filter(b => b.bodyId !== binding.bodyId && !b.dead && !b.incapacitated && Math.hypot(b.pos.x-own.pos.x,b.pos.z-own.pos.z)<12).length : 0,
           focus: target && (keys.has('KeyQ') || keys.has('KeyG') || mouseGuard) ? { point: { ...target.pos, y: target.pos.y + 1.2 }, weight: .2 } : null }, obstruction, () => 1);
+        const pose = framing.update(rawPose,pivot,walls,{yaw:view.camera.renderedYaw,pitch:view.camera.debug.pitchDeg*Math.PI/180,want:view.camera.debug.want,limit:view.camera.debug.limit},dt);
         movementYaw = groundViewYaw(pose.position, pose.target);
         camera.position.set(pose.position.x, pose.position.y, pose.position.z); camera.setTarget(new Vector3(pose.target.x, pose.target.y, pose.target.z)); camera.fov = pose.fov; resetView = false;
         // Fade a wall obscuring any part of the owned body, including hips and feet.
         // A clear chest ray alone can leave the lower body hidden behind a low wall.
         const rays = [.2, .85, 1.6].map(height => { const point = root.position.add(new Vector3(0, height, 0)), delta = camera.position.subtract(point); return new Ray(point, delta.normalizeToNew(), delta.length()); });
-        for (const mesh of geometry) if (mesh.metadata?.wall) mesh.visibility = rays.some(ray => ray.intersectsBoxMinMax(mesh.getBoundingInfo().boundingBox.minimumWorld, mesh.getBoundingInfo().boundingBox.maximumWorld)) ? .18 : 1;
+        for (const mesh of geometry) if (mesh.metadata?.wall) mesh.visibility = rays.some(ray => ray.intersectsBoxMinMax(mesh.getBoundingInfo().boundingBox.minimumWorld, mesh.getBoundingInfo().boundingBox.maximumWorld)) ? .08 : 1;
       }
       el('as-target').textContent = target ? `Target · ${target.name}` : 'No visible opponent';
       targetRing.setEnabled(!!target);
@@ -240,10 +243,10 @@ export async function startCanonicalAscent() {
   });
   Object.defineProperty(window, 'tvAscent', { value: { get ready() { return ready; }, get frame() { return frame; }, get plan() { return plan; }, get targetId() { return targetId; },
     inspect: () => ({ frames: [...frames], serverMs: [...serverTimes], receipts: [...receipts], meshes: ctx.scene.meshes.length, people: visuals.size, looks: [...visuals.values()].map(v => v.visual.root.metadata),
-      camera: { mode: 'third-person', yaw: view.camera.yaw, renderedYaw: view.camera.renderedYaw, movementYaw, pitch: view.camera.pitch, preferred: view.camera.preferred, blocked: cameraPointBlocked(camera.position.x,camera.position.y,camera.position.z), position: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, ...view.camera.debug },
+      camera: { mode: 'third-person', yaw: view.camera.yaw, renderedYaw: view.camera.renderedYaw, movementYaw, pitch: view.camera.pitch, preferred: view.camera.preferred, blocked: cameraPointBlocked(camera.position.x,camera.position.y,camera.position.z), position: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, ...view.camera.debug, ...framing.debug },
       cutawayWalls: geometry.filter(m => m.metadata?.wall && m.visibility < 1).length,
       cameraSolids: walls,
-      controlledBody: (() => { const root = binding && visuals.get(binding.bodyId)?.visual.root; return root ? { id: binding.bodyId, enabled: root.isEnabled(), position: { x: root.position.x, y: root.position.y, z: root.position.z }, yaw: root.rotation.y, blocked: cameraPointBlocked(root.position.x, root.position.y + 1.3, root.position.z) } : null; })(),
+      controlledBody: (() => { const root = binding && visuals.get(binding.bodyId)?.visual.root; const project = (height:number) => { if(!root)return null; const p=Vector3.Project(root.position.add(new Vector3(0,height,0)),Matrix.Identity(),ctx.scene.getTransformMatrix(),camera.viewport.toGlobal(ctx.engine.getRenderWidth(),ctx.engine.getRenderHeight()));return {x:p.x,y:p.y,z:p.z}; }; return root ? { id: binding.bodyId, enabled: root.isEnabled(), position: { x: root.position.x, y: root.position.y, z: root.position.z }, yaw: root.rotation.y, blocked: cameraPointBlocked(root.position.x, root.position.y + 1.3, root.position.z),screen:{feet:project(.05),head:project(1.7)} } : null; })(),
       facingMode: keys.has('KeyQ') || keys.has('KeyG') || mouseGuard ? 'target' : 'travel', heap: (performance as any).memory?.usedJSHeapSize ?? null }) } });
   window.addEventListener('resize', () => ctx.engine.resize());
 }

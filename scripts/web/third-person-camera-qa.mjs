@@ -4,6 +4,7 @@ import {resolve} from 'node:path';
 import assert from 'node:assert/strict';
 import {route} from './canonical-tower-qa-route.mjs';
 const base=process.env.TV_REALMS_URL??'http://127.0.0.1:7555',out=resolve(process.env.TV_REALMS_EVIDENCE??'.debug/third-person/after');
+const wallOnly=process.env.TV_WALL_FRAMING_ONLY==='1';
 mkdirSync(out,{recursive:true});
 const health=await(await fetch(base+'/realms/health')).json(),build=await(await fetch(base+'/current-build.json')).json();
 assert.equal(health.clientBuild.commit,build.commit);assert.equal(build.progression,'canonical-world');
@@ -118,9 +119,47 @@ async function towerCamera(){
  await shot('04-after-canonical-tower-orbit');
 }
 
+async function wallFraming(){
+ const p=await page.evaluate(()=>window.tvAscent.plan),start=p.start;
+ const solid=(x,z)=>p.solids.some(s=>s.y<2.8&&s.y+s.h>1&&x+.5>=s.x&&x+.5<s.x+s.w&&z+.5>=s.z&&z+.5<s.z+s.d);
+ const candidates=[];
+ for(let x=p.origin.x-p.half;x<p.origin.x+p.half;x++)for(let z=p.origin.z-p.half;z<p.origin.z+p.half;z++){
+  if(solid(x,z)||Math.hypot(x+.5-start.x,z+.5-start.z)>14)continue;
+  const adjacent=[[1,0],[-1,0],[0,1],[0,-1]].filter(([dx,dz])=>solid(x+dx,z+dz));
+  const point={x:x+.5,z:z+.5},path=route(p,start,point);
+  if(adjacent.length&&path.length>1&&path.length<60)candidates.push({...point,adjacent,pathLength:path.length});
+ }
+ candidates.sort((a,b)=>b.adjacent.length-a.adjacent.length||a.pathLength-b.pathLength);
+ const stations=[];
+ for(const c of candidates)if(stations.every(s=>Math.hypot(s.x-c.x,s.z-c.z)>3)){stations.push(c);if(stations.length===4)break;}
+ check('wall journey selects reachable received walls and corners',stations.length===4&&stations.some(s=>s.adjacent.length>1),stations);
+ await page.evaluate(()=>{
+  window.wallCameraQA={active:true,last:0,samples:[]};
+  const tick=now=>{const q=window.wallCameraQA;if(!q.active)return;if(now-q.last>=75&&window.tvAscent?.ready){q.last=now;const v=window.tvAscent.inspect();q.samples.push({view:'tower',...v.camera,bodyVisual:v.controlledBody});}requestAnimationFrame(tick);};requestAnimationFrame(tick);
+ });
+ try{
+  for(let i=0;i<stations.length;i++){
+   const s=stations[i];await walkTo(s,60000);
+   const to={x:s.x+s.adjacent[0][0]*1.2,z:s.z+s.adjacent[0][1]*1.2};
+   for(let n=0;n<9;n++){
+    const f=await floor(),b=f.snapshot.bodies.find(b=>b.bodyId===f.own.bodyId),yaw=(await inspect()).camera.movementYaw,dx=to.x-b.pos.x,dz=to.z-b.pos.z,r=dx*Math.cos(yaw)-dz*Math.sin(yaw),forward=-dx*Math.sin(yaw)-dz*Math.cos(yaw),length=Math.hypot(r,forward)||1,input=[];
+    if(Math.abs(r/length)>.38)input.push(r>0?'KeyD':'KeyA');if(Math.abs(forward/length)>.38)input.push(forward>0?'KeyW':'KeyS');await keys(input);await page.waitForTimeout(80);
+   }
+   await keys([]);await orbit(0,-500);
+   for(let n=0;n<4;n++){await orbit(714);if(n===0||n===2)await shot(`wall-${i+1}-orbit-${n+1}`);}
+   await page.mouse.move(740,650);for(let n=0;n<12;n++)await page.mouse.wheel(0,-600);await page.waitForTimeout(700);await shot(`wall-${i+1}-near`);
+   for(let n=0;n<15;n++)await page.mouse.wheel(0,600);await page.waitForTimeout(800);await shot(`wall-${i+1}-far`);
+   check(`wall ${i+1} retains free orbit and bounded zoom`,(await inspect()).camera.preferred===18);
+  }
+ }finally{await keys([]);const samples=await page.evaluate(()=>{window.wallCameraQA.active=false;return window.wallCameraQA.samples;});cameraSamples.push(...samples);}
+ check('wall journey exercises elevated fallback',cameraSamples.some(c=>c.framing==='wall clearance'),{samples:cameraSamples.length});
+}
+
 let initial,entered,beforeReload,returned;
 try{
  await page.goto(base+'/');await ready();initial=await realm();
+ if(wallOnly){await enter();entered=await floor();await towerCamera();await wallFraming();}
+ else {
  check('primary URL uses canonical world and real rank',typeof initial.person.rank==='string'&&initial.person.rank==='Normal'&&!initial.expedition?.active,initial.person);
  check('historical score Tower is absent from primary UI',!await page.locator('#rv-ascend').isVisible());
  check('canonical avatar body projection retains identity',initial.avatar.bodyId===initial.body.id&&initial.avatar.entityId===initial.person.id);
@@ -191,8 +230,13 @@ try{
   if(hit)observations.push({kind:'canonical-mouse-contact-receipt',action:ownAction});
  }
  await keys([]);check('actual mouse combat causes observed warden contact',hit);observations.push({kind:'tower-play',inspect:await page.evaluate(()=>window.tvAscent.inspect())});await shot('04-current-mouse-combat');
+ }
  observations.push({kind:'camera-obstruction-traversal',samples:cameraSamples});
  check('camera remains outside received solid geometry during Tower traversal',cameraSamples.length>10&&cameraSamples.every(c=>!c.blocked&&!c.bodyVisual?.blocked),{samples:cameraSamples.length,blocked:cameraSamples.filter(c=>c.blocked),minDistance:Math.min(...cameraSamples.map(c=>c.dist)),maxDistance:Math.max(...cameraSamples.map(c=>c.dist))});
+ check('Tower keeps at least three metres of readable camera distance',cameraSamples.every(c=>c.dist>=3),{minimum:Math.min(...cameraSamples.map(c=>c.dist))});
+ check('Tower near plane remains clear of received walls',cameraSamples.every(c=>!c.nearPlaneBlocked));
+ const visible=c=>['feet','head'].every(k=>{const p=c.bodyVisual?.screen?.[k];return p&&p.x>20&&p.x<1420&&p.y>20&&p.y<850&&p.z>0&&p.z<1;});
+ check('owned full body stays within the rendered viewport during sampled Tower traversal',cameraSamples.every(visible),{outside:cameraSamples.filter(c=>!visible(c)).slice(0,10),samples:cameraSamples.length});
  check('no browser errors',errors.length===0,errors);
 }catch(e){errors.push(String(e));observations.push({kind:'failure-state',state:await page.evaluate(()=>window.tvAscent?.frame??window.tvRealms?.state),inspect:await page.evaluate(()=>window.tvAscent?.inspect()??window.tvRealms?.inspect())});console.error(e);await shot('failure');process.exitCode=1;}
 finally{

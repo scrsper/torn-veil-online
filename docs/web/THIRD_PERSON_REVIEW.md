@@ -10,7 +10,7 @@ shared camera settings and had no zoom. This candidate renders that same body wi
 the existing imported character presentation and uses the shared adaptive camera.
 It begins at an elevated 38-degree perspective and 10.5 m preferred distance, with
 free vertical/horizontal orbit and 3–18 m wheel zoom. It never selects fixed isometric.
-Actual occlusion may bring the camera closer; it cannot exceed measured clearance
+Realm occlusion may bring the camera closer; it cannot exceed measured clearance
 to satisfy a preferred distance. Recovery and travel lead use the existing smoother.
 
 WASD follows the rendered camera basis. Ordinary travel faces its movement direction
@@ -25,6 +25,15 @@ camera clearance at corners. Render interpolation/extrapolation falls back to th
 received body position if it would cross a wall. These are presentation corrections;
 they do not move canonical walls or grant the body access through them. Foreground
 cutaways consider the feet, hips and head so a clear chest ray cannot hide the legs.
+
+For the currently received open-top Tower floors, a close wall no longer collapses
+the view into the body. A browser-only framing adapter raises the camera above the
+received walls, retains input-owned orbit and zoom preference, and fades walls that
+obscure the body. Across an obstructed corner it lifts in the previous free column
+before moving above the structure. It checks the camera's near-plane margin and
+keeps at least three metres from the chest. This relies on these floors having open
+tops; a future authored roof needs its own bounded clearance solution. Camera
+diagnostics distinguish raw sight-line distance from actual rendered distance.
 
 The canonical Tower keeps LMB strike, RMB or G guard, Q-held target facing, Tab target
 selection, MMB orbit, wheel zoom and keyboard actions. Movement and dodges are
@@ -56,3 +65,6 @@ The harness reads projected state and drives keys, mouse and UI controls. It per
 round trips before engaging wardens: the canonical requirement to break combat contact
 before returning remains enforced. The final receipt distinguishes the earlier full
 suite from checks repeated after the clearance correction and records exact build IDs.
+Set `TV_WALL_FRAMING_ONLY=1` on a separate fresh QA host for a dedicated ordinary-key
+journey against four received walls/corners, including low-pitch orbit and near/far
+zoom. It samples the actual camera and full-body viewport projection throughout.
