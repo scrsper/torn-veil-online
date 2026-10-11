@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cameraRelativeMove, primaryCamera, travelFacing, smoothYaw } from '../src/web/realms/thirdPerson';
+import { cameraRelativeMove, primaryCamera, travelFacing, smoothYaw, groundViewYaw } from '../src/web/realms/thirdPerson';
 import { AdaptiveCamera, CAMERA_LIMITS } from '../src/web/game/adaptiveCamera';
 import { RealmSession } from '../src/sim/world/realms/session';
 import { INTERACTION_SPEC } from '../src/sim/physical/prediction';
@@ -26,6 +26,12 @@ describe('primary third-person locomotion', () => {
     camera.zoom(100);expect(camera.preferred).toBe(18);camera.zoom(-100);expect(camera.preferred).toBe(3);
     expect(new AdaptiveCamera().limits.maxDistance).toBe(CAMERA_LIMITS.maxDistance);
     expect(camera.limits.maxDistance).toBeGreaterThan(13*Math.hypot(1,.8));
+  });
+  it('follows the actual focused view in a close obstructed combat frame', () => {
+    const eye={x:0,z:1.5},target={x:2,z:-1},move=cameraRelativeMove(0,1,groundViewYaw(eye,target));
+    const dx=target.x-eye.x,dz=target.z-eye.z;
+    expect((move.x*dx+move.z*dz)/Math.hypot(dx,dz)).toBeCloseTo(1);
+    expect(Math.abs(groundViewYaw(eye,target))).toBeGreaterThan(.5);
   });
   it('keeps camera preferences separate from world state and ignores invalid values', () => {
     const store=new Map<string,string>(), storage={getItem:(key:string)=>store.get(key)??null,setItem:(key:string,value:string)=>{store.set(key,value);}};

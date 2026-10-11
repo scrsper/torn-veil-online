@@ -9,7 +9,7 @@ import { realize } from '../actors/appearanceMap';
 import { RealmRenderer } from './render';
 import type { RealmSnapshot } from '../../sim/world/realms/session';
 import { marchObstruction } from '../game/adaptiveCamera';
-import { primaryCamera, attachOrbit, cameraRelativeMove, travelFacing, smoothYaw } from './thirdPerson';
+import { primaryCamera, attachOrbit, cameraRelativeMove, travelFacing, smoothYaw, groundViewYaw } from './thirdPerson';
 import './style.css';
 
 /** Existing Babylon shell, shared renderer/atmosphere/body kits. The browser sends
@@ -21,6 +21,7 @@ export async function startRealms(): Promise<void> {
   const camera = new FreeCamera('realm-camera', new Vector3(48.5, 2.65, 20.5), ctx.scene);
   camera.minZ = .1; camera.maxZ = 2000;
   const view = primaryCamera('realm');
+  let movementYaw = view.camera.yaw;
   const atmosphere = new Atmosphere(ctx); attachPipeline(ctx, camera);
   // City canyons need a readable sky fill. Keep the shared clock/sun direction and
   // restrained exposure; never brighten the walls by changing canonical daylight.
@@ -155,7 +156,7 @@ export async function startRealms(): Promise<void> {
       if (keys.has('ArrowUp')) view.camera.addLook(0, -dt); if (keys.has('ArrowDown')) view.camera.addLook(0, dt);
       if (inputAccumulator >= .05 && !transitioning && !s.expedition?.active) {
         inputAccumulator = 0;
-        const move = cameraRelativeMove(journal ? 0 : right, journal ? 0 : forward, view.camera.renderedYaw);
+        const move = cameraRelativeMove(journal ? 0 : right, journal ? 0 : forward, movementYaw);
         send({ type: 'move', input: { ...move, facing: travelFacing(move), sprint: keys.has('ShiftLeft') || keys.has('ShiftRight') } });
       }
       if (!avatar) {
@@ -170,6 +171,7 @@ export async function startRealms(): Promise<void> {
         avatar.update(dt, { bodyId: s.body.id, body: s.avatar, combat: contextFor(s.avatar.combatAction, s.time + age, s.body.yaw), guard: s.avatar.guarding, own: true, kind: 'person', speed: Math.hypot(velocity.x, velocity.z), velocity, yaw: avatar.root.rotation.y, crouch: s.avatar.crouch ?? 0, age });
         const pivot = avatar.root.position.add(new Vector3(0, 1.3, 0));
         const pose = view.camera.update(dt, { pivot, velocity }, obstruction, () => 1);
+        movementYaw = groundViewYaw(pose.position, pose.target);
         camera.position.set(pose.position.x, pose.position.y, pose.position.z); camera.setTarget(new Vector3(pose.target.x, pose.target.y, pose.target.z)); camera.fov = pose.fov;
       }
       atmosphere.update((s.worldTime / 3600 + (s.realm === 'aether' ? 9.866 : 9.066)) % 24, { kind: 'clear', intensity: 0, wind: .25 }, dt);
@@ -199,7 +201,7 @@ export async function startRealms(): Promise<void> {
       residentLooks:[...residents.values()].map(v=>v.root.metadata), renderer: ctx.kind, staleMs: performance.now() - lastStateAt,
       controlledLook: avatar?.root.metadata, controlledBody: avatar ? { id: state?.body.id, enabled: avatar.root.isEnabled(), position: { x: avatar.root.position.x, y: avatar.root.position.y, z: avatar.root.position.z }, yaw: avatar.root.rotation.y,
         screen: (() => { const p = Vector3.Project(avatar.root.position.add(new Vector3(0, .85, 0)), Matrix.Identity(), ctx.scene.getTransformMatrix(), camera.viewport.toGlobal(ctx.engine.getRenderWidth(), ctx.engine.getRenderHeight())); return { x: p.x, y: p.y, z: p.z }; })() } : null,
-      camera: { mode: 'third-person', yaw: view.camera.yaw, renderedYaw: view.camera.renderedYaw, pitch: view.camera.pitch, preferred: view.camera.preferred, blocked: renderer.cameraBlocked(camera.position.x,camera.position.y,camera.position.z), position: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, ...view.camera.debug },
+      camera: { mode: 'third-person', yaw: view.camera.yaw, renderedYaw: view.camera.renderedYaw, movementYaw, pitch: view.camera.pitch, preferred: view.camera.preferred, blocked: renderer.cameraBlocked(camera.position.x,camera.position.y,camera.position.z), position: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, ...view.camera.debug },
       width: ctx.engine.getRenderWidth(), height: ctx.engine.getRenderHeight(), hardware: ctx.engine instanceof Engine ? ctx.engine.getGlInfo() : null,
       heap: (() => { const m = (performance as Performance & { memory?: { usedJSHeapSize: number; totalJSHeapSize: number } }).memory; return m ? { used: m.usedJSHeapSize, total: m.totalJSHeapSize } : null; })(), state }) } });
 }

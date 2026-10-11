@@ -12,7 +12,7 @@ import type { BodyState, InteractionCommand, SnapshotMessage } from '../net/mess
 import type { InteriorPlan } from '../../sim/world/interiors/layout';
 import type { TowerController } from '../../server/towerController';
 import { marchObstruction } from '../game/adaptiveCamera';
-import { primaryCamera, attachOrbit, cameraRelativeMove, travelFacing, smoothYaw } from './thirdPerson';
+import { primaryCamera, attachOrbit, cameraRelativeMove, travelFacing, smoothYaw, groundViewYaw } from './thirdPerson';
 
 type Frame = NonNullable<ReturnType<TowerController['frame']>> & { serverMs: number; saveError?: string };
 /** A projection of the shared body and physical floor. Only input and visual smoothing
@@ -22,6 +22,7 @@ export async function startCanonicalAscent() {
   const ctx = await createRenderer(canvas, { quality: 'balanced' }), camera = new FreeCamera('ascent-camera', new Vector3(0, 7, 8), ctx.scene);
   camera.minZ = .15; camera.maxZ = 180; camera.fov = .83;
   const view = primaryCamera('tower');
+  let movementYaw = view.camera.yaw;
   const atmosphere = new Atmosphere(ctx); attachPipeline(ctx, camera);
   atmosphere.look.fill = 1.1; atmosphere.look.key = 1.05; atmosphere.look.exposure = 1;
   const people = new SharedCharacters(ctx.scene), visuals = new Map<string, { visual: BodyVisual; body: BodyState; hitSeq: number; hit: number }>();
@@ -162,7 +163,7 @@ export async function startCanonicalAscent() {
     if (['Space', 'Tab', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) e.preventDefault(); keys.add(e.code); if (e.repeat) return;
     if (e.code === 'KeyC') send({ type: 'crouch', held: true });
     if (['KeyJ', 'KeyK', 'KeyL'].includes(e.code)) send({ type: 'attack', targetBodyId: targetId || undefined, weight: e.code === 'KeyK' ? 'heavy' : 'light', trajectory: e.code === 'KeyL' ? 'low' : 'high' });
-    if (e.code === 'Space') { const x = Number(keys.has('KeyD')) - Number(keys.has('KeyA')); send({ type: 'defend', kind: x ? 'sidestep' : 'backstep', direction: cameraRelativeMove(x, x ? 0 : -1, view.camera.renderedYaw) }); }
+    if (e.code === 'Space') { const x = Number(keys.has('KeyD')) - Number(keys.has('KeyA')); send({ type: 'defend', kind: x ? 'sidestep' : 'backstep', direction: cameraRelativeMove(x, x ? 0 : -1, movementYaw) }); }
     if (e.code === 'KeyE') nearestHand();
     if (/^Digit[1-6]$/.test(e.code)) cast(Number(e.code.slice(-1)) - 1);
     if (e.code === 'KeyF' && frame) { const own = frame.snapshot.bodies.find(b => b.bodyId === binding.bodyId)!; void transition(Math.hypot(own.pos.x - frame.tower.start.x, own.pos.z - frame.tower.start.z) < 2.4 ? 'return' : 'ascend'); }
@@ -193,7 +194,7 @@ export async function startCanonicalAscent() {
       inputAccum += dt; hudAccum += dt;
       if (inputAccum >= 1 / 60) {
         inputAccum = 0; const right = Number(keys.has('KeyD')) - Number(keys.has('KeyA')), forward = Number(keys.has('KeyW')) - Number(keys.has('KeyS'));
-        const move = cameraRelativeMove(right, forward, view.camera.renderedYaw);
+        const move = cameraRelativeMove(right, forward, movementYaw);
         const faceTarget = keys.has('KeyG') || mouseGuard || keys.has('KeyQ');
         const active = !!(right || forward || keys.has('KeyC') || faceTarget);
         // Do not fill a stalled connection with idle or obsolete state samples.
@@ -221,9 +222,12 @@ export async function startCanonicalAscent() {
         const pose = view.camera.update(dt, { pivot, velocity: own.velocity, engaged,
           threats: engaged ? frame.snapshot.bodies.filter(b => b.bodyId !== binding.bodyId && !b.dead && !b.incapacitated && Math.hypot(b.pos.x-own.pos.x,b.pos.z-own.pos.z)<12).length : 0,
           focus: target && (keys.has('KeyQ') || keys.has('KeyG') || mouseGuard) ? { point: { ...target.pos, y: target.pos.y + 1.2 }, weight: .2 } : null }, obstruction, () => 1);
+        movementYaw = groundViewYaw(pose.position, pose.target);
         camera.position.set(pose.position.x, pose.position.y, pose.position.z); camera.setTarget(new Vector3(pose.target.x, pose.target.y, pose.target.z)); camera.fov = pose.fov; resetView = false;
-        const delta = camera.position.subtract(pivot), ray = new Ray(pivot, delta.normalizeToNew(), delta.length());
-        for (const mesh of geometry) if (mesh.metadata?.wall) mesh.visibility = ray.intersectsBoxMinMax(mesh.getBoundingInfo().boundingBox.minimumWorld, mesh.getBoundingInfo().boundingBox.maximumWorld) ? .18 : 1;
+        // Fade a wall obscuring any part of the owned body, including hips and feet.
+        // A clear chest ray alone can leave the lower body hidden behind a low wall.
+        const rays = [.2, .85, 1.6].map(height => { const point = root.position.add(new Vector3(0, height, 0)), delta = camera.position.subtract(point); return new Ray(point, delta.normalizeToNew(), delta.length()); });
+        for (const mesh of geometry) if (mesh.metadata?.wall) mesh.visibility = rays.some(ray => ray.intersectsBoxMinMax(mesh.getBoundingInfo().boundingBox.minimumWorld, mesh.getBoundingInfo().boundingBox.maximumWorld)) ? .18 : 1;
       }
       el('as-target').textContent = target ? `Target · ${target.name}` : 'No visible opponent';
       targetRing.setEnabled(!!target);
@@ -233,7 +237,8 @@ export async function startCanonicalAscent() {
   });
   Object.defineProperty(window, 'tvAscent', { value: { get ready() { return ready; }, get frame() { return frame; }, get plan() { return plan; }, get targetId() { return targetId; },
     inspect: () => ({ frames: [...frames], serverMs: [...serverTimes], receipts: [...receipts], meshes: ctx.scene.meshes.length, people: visuals.size, looks: [...visuals.values()].map(v => v.visual.root.metadata),
-      camera: { mode: 'third-person', yaw: view.camera.yaw, renderedYaw: view.camera.renderedYaw, pitch: view.camera.pitch, preferred: view.camera.preferred, blocked: cameraPointBlocked(camera.position.x,camera.position.y,camera.position.z), position: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, ...view.camera.debug },
+      camera: { mode: 'third-person', yaw: view.camera.yaw, renderedYaw: view.camera.renderedYaw, movementYaw, pitch: view.camera.pitch, preferred: view.camera.preferred, blocked: cameraPointBlocked(camera.position.x,camera.position.y,camera.position.z), position: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, ...view.camera.debug },
+      cutawayWalls: geometry.filter(m => m.metadata?.wall && m.visibility < 1).length,
       facingMode: keys.has('KeyQ') || keys.has('KeyG') || mouseGuard ? 'target' : 'travel', heap: (performance as any).memory?.usedJSHeapSize ?? null }) } });
   window.addEventListener('resize', () => ctx.engine.resize());
 }

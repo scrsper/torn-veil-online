@@ -10,6 +10,9 @@ export function cameraRelativeMove(right: number, forward: number, yaw: number) 
 }
 export const travelFacing = (move: { x: number; z: number }): number | undefined =>
   Math.hypot(move.x, move.z) > .001 ? Math.atan2(-move.x, -move.z) : undefined;
+/** Actual ground-plane view after travel lead and combat focus adjust the target. */
+export const groundViewYaw = (eye: { x: number; z: number }, target: { x: number; z: number }) =>
+  Math.atan2(eye.x - target.x, eye.z - target.z);
 export const smoothYaw = (current: number, target: number, dt: number) =>
   current + Math.atan2(Math.sin(target - current), Math.cos(target - current)) * (1 - Math.exp(-24 * dt));
 

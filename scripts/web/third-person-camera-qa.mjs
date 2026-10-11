@@ -50,7 +50,8 @@ async function walkTo(target,timeout=45000,combat=false,seek=false){
   if(Date.now()>nextRoute){path=route(plan,own.pos,to);nextRoute=Date.now()+500;}
   while(path.length&&Math.hypot(own.pos.x-path[0].x,own.pos.z-path[0].z)<.3)path.shift();
   const cell=path[0]??to,input=[];
-  const yaw=(await page.evaluate(()=>window.tvAscent.inspect().camera)).renderedYaw;
+  const camera=await page.evaluate(()=>window.tvAscent.inspect().camera),yaw=camera.movementYaw;
+  cameraSamples.push({view:'tower',position:own.pos,...camera});
   const dx=cell.x-own.pos.x,dz=cell.z-own.pos.z;
   const right=dx*Math.cos(yaw)-dz*Math.sin(yaw),forward=-dx*Math.sin(yaw)-dz*Math.cos(yaw);
   const length=Math.hypot(right,forward)||1;
@@ -61,21 +62,22 @@ async function walkTo(target,timeout=45000,combat=false,seek=false){
 }
 
 const angle=(a,b)=>Math.abs(Math.atan2(Math.sin(a-b),Math.cos(a-b)));
+const cameraSamples=[];
 const inspect=()=>page.evaluate(()=>window.tvAscent?window.tvAscent.inspect():window.tvRealms.inspect());
 async function orbit(dx,dy=0){await page.mouse.move(740,670);await page.mouse.down({button:'middle'});await page.mouse.move(740+dx,670+dy,{steps:20});await page.mouse.up({button:'middle'});await page.waitForTimeout(650);}
 async function worldWalkTo(to,timeout=18000){
  const end=Date.now()+timeout;
  try{while(Date.now()<end){const s=await realm(),dx=to.x-s.body.pos.x,dz=to.z-s.body.pos.z;
   if(Math.hypot(dx,dz)<.5)return;
-  const yaw=(await inspect()).camera.renderedYaw,r=dx*Math.cos(yaw)-dz*Math.sin(yaw),f=-dx*Math.sin(yaw)-dz*Math.cos(yaw),n=Math.hypot(r,f)||1;
+  const yaw=(await inspect()).camera.movementYaw,r=dx*Math.cos(yaw)-dz*Math.sin(yaw),f=-dx*Math.sin(yaw)-dz*Math.cos(yaw),n=Math.hypot(r,f)||1;
   const next=[];if(Math.abs(r/n)>.38)next.push(r>0?'KeyD':'KeyA');if(Math.abs(f/n)>.38)next.push(f>0?'KeyW':'KeyS');
   await keys(next);await page.waitForTimeout(60);
  }throw Error('Street ordinary-key navigation timed out');}finally{await keys([]);}
 }
 async function cameraMovement(name,key,right,forward,ms=700,tower=false){
  const read=tower?floor:realm,a=await read(),bodyA=tower?a.snapshot.bodies.find(b=>b.bodyId===a.own.bodyId):a.body,c=await inspect();
- await hold(key,ms);await page.waitForTimeout(200);const b=await read(),bodyB=tower?b.snapshot.bodies.find(b=>b.bodyId===b.own.bodyId):b.body;
- const yaw=c.camera.renderedYaw,expect={x:right*Math.cos(yaw)-forward*Math.sin(yaw),z:-forward*Math.cos(yaw)-right*Math.sin(yaw)},dx=bodyB.pos.x-bodyA.pos.x,dz=bodyB.pos.z-bodyA.pos.z,n=Math.hypot(dx,dz),cos=(dx*expect.x+dz*expect.z)/(n*Math.hypot(expect.x,expect.z));
+ await hold(key,ms);await page.waitForTimeout(200);const after=await read(),bodyB=tower?after.snapshot.bodies.find(b=>b.bodyId===after.own.bodyId):after.body;
+ const yaw=c.camera.movementYaw,expect={x:right*Math.cos(yaw)-forward*Math.sin(yaw),z:-forward*Math.cos(yaw)-right*Math.sin(yaw)},dx=bodyB.pos.x-bodyA.pos.x,dz=bodyB.pos.z-bodyA.pos.z,n=Math.hypot(dx,dz),cos=(dx*expect.x+dz*expect.z)/(n*Math.hypot(expect.x,expect.z));
  observations.push({kind:'camera-relative-movement',name,bodyA,bodyB,camera:c.camera,displacement:{dx,dz,length:n,cos}});
  check(name,n>.3&&cos>.93,{n,cos});return n;
 }
@@ -89,6 +91,10 @@ async function streetCamera(){
  const old=(await realm()).body.yaw;await orbit(540,65);v=await inspect();
  check('idle orbit changes camera without turning body',angle((await realm()).body.yaw,old)<.02&&angle(v.camera.renderedYaw,Math.PI)>.7,v.camera);
  await shot('01-after-free-orbit');
+ const turns=[];await page.keyboard.down('KeyW');
+ for(let n=0;n<8;n++){const s=await realm();turns.push({time:s.time,yaw:s.body.yaw});await page.waitForTimeout(35);}
+ await page.keyboard.up('KeyW');await page.waitForTimeout(180);
+ check('runtime body turns at bounded canonical rate',turns.every((s,n)=>!n||angle(s.yaw,turns[n-1].yaw)<=12.566371*(s.time-turns[n-1].time)+.03),turns);
  await cameraMovement('orbited world forward follows rendered view','KeyW',0,1);await cameraMovement('orbited world back follows rendered view','KeyS',0,-1);
  await cameraMovement('orbited world right follows rendered view','KeyD',1,0);await cameraMovement('orbited world left follows rendered view','KeyA',-1,0);
  await page.mouse.move(740,650);for(let i=0;i<12;i++)await page.mouse.wheel(0,-600);await page.waitForTimeout(1800);v=await inspect();
@@ -183,6 +189,8 @@ try{
  check('Tower return carries learned sources to same world identity and rank',returned.person.id===initial.person.id&&returned.body.id===initial.body.id&&returned.person.rank===initial.person.rank&&returned.person.inventory.some(i=>i.name==='Ember field manual'));await shot('05-current-returned-world');
  await enter();const repeat=await floor();check('repeated Tower entry retains run learning and rank',repeat.tower.id===entered.tower.id&&repeat.own.rank===initial.person.rank&&repeat.own.learned.some(s=>s.id==='book-ember'));
  await page.locator('#as-return').click();await ready();await page.reload();await ready();check('world reload after repeated Tower return retains canonical belongings',JSON.stringify((await realm()).person.inventory)===JSON.stringify(returned.person.inventory));
+ check('camera remains outside received solid geometry during Tower traversal',cameraSamples.length>10&&cameraSamples.every(c=>!c.blocked),{samples:cameraSamples.length,minDistance:Math.min(...cameraSamples.map(c=>c.dist)),maxDistance:Math.max(...cameraSamples.map(c=>c.dist))});
+ observations.push({kind:'camera-obstruction-traversal',samples:cameraSamples});
  check('no browser errors',errors.length===0,errors);
 }catch(e){errors.push(String(e));observations.push({kind:'failure-state',state:await page.evaluate(()=>window.tvAscent?.frame??window.tvRealms?.state),inspect:await page.evaluate(()=>window.tvAscent?.inspect()??window.tvRealms?.inspect())});console.error(e);await shot('failure');process.exitCode=1;}
 finally{
