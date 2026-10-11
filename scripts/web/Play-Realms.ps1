@@ -1,4 +1,4 @@
-param([int]$Port = 7510, [switch]$CheckOnly)
+param([int]$Port = 7510, [switch]$CheckOnly, [switch]$NoBrowser, [ValidateSet('Home','Play','Observatory','Character','Tower')][string]$View = 'Home')
 $ErrorActionPreference = 'Stop'
 # A PowerShell 7 parent can supply its module path to this Windows PowerShell child.
 # Load this runtime's utility module explicitly; retain the SHA256 build guard below.
@@ -47,4 +47,6 @@ if (-not $running) {
   }
 }
 if (-not $running) { throw 'Connected realms did not start. Inspect .debug/realms/host-error.log.' }
-Start-Process "http://127.0.0.1:$Port/?realms"
+Write-Host "Launch home: http://127.0.0.1:$Port/"
+$viewPath = @{ Home = '/'; Play = '/?realms'; Observatory = '/observatory'; Character = '/?realms&character'; Tower = '/?realms&destination=tower' }[$View]
+if (-not $NoBrowser) { Start-Process "http://127.0.0.1:$Port$viewPath" }

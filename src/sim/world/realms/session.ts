@@ -3,6 +3,8 @@ import {humanoidVisualState,projectAppearance} from '../../../bridge/visualState
 import {combatState} from '../../../bridge/combatState';
 import {guardHeld} from '../../physical/guard';
 import {equipmentProjection} from '../../physical/equipment';
+import {arcaneProgress} from '../../physical/arcana/growth';
+import {handInteractions} from '../../physical/hand';
 import type {Body} from '../../core/types';
 import { World } from '../../core/world';
 import { Simulation } from '../../mind/agent';
@@ -54,18 +56,24 @@ export class RealmSession {
   step(dt: number): void {
     if ((this.world.realmExpedition?.active || this.world.canonicalTower?.active)) return;
     if (!Number.isFinite(dt) || dt <= 0 || dt > .1) return;
-    const w = this.world, b = this.body, old = { ...b.pos }, before = captureCombatTransforms(this.world);
+    const w = this.world, before = captureCombatTransforms(w);
+    this.advanceMovement(dt);
+    w.physicalTime += dt;
+    this.sim.stepScheduled(dt, w.clock.advance(dt), before);
+  }
+  /** Shared controller cadence: move on this World without advancing a second clock. */
+  advanceMovement(dt: number, guidedOnly = false): void {
+    if (this.world.realmExpedition?.active || this.world.canonicalTower?.active || !Number.isFinite(dt) || dt <= 0 || dt > .1) return;
+    const w = this.world, b = this.body, old = { ...b.pos };
     const region = `${realmAt(b.pos.x, b.pos.z)}:${Math.floor(b.pos.x / REALM_CHUNK)},${Math.floor(b.pos.z / REALM_CHUNK)}`;
     if (region !== this.lastRegion) { w.nav.rebuildAll(); this.lastRegion = region; }
-    const input = this.pending || w.physicalTime > this.inputUntil ? { x: 0, z: 0, sprint: false } : this.input;
+    const input = guidedOnly || this.pending || w.physicalTime > this.inputUntil ? { x: 0, z: 0, sprint: false } : this.input;
     b.vel = { x: 0, y: 0, z: 0 };
     applyInteractionMovement(w, this.person, b, input, dt);
     const physical = movementState(w, this.person, b);
     if (b.path && !this.pending && physical.eligible && !combatBusy(b, w.physicalTime)) travelPath(w, b, dt, physical.speed, .3, 1.8);
     b.vel = { x: (b.pos.x - old.x) / dt, y: 0, z: (b.pos.z - old.z) / dt };
     if (b.poseUntil <= w.physicalTime && physical.eligible) b.pose = Math.hypot(b.vel.x, b.vel.z) > .1 ? 'walk' : 'stand';
-    w.physicalTime += dt;
-    this.sim.stepScheduled(dt, w.clock.advance(dt), before);
     if (this.pending && this.pending.expires < w.physicalTime) this.pending = null;
     // Canonical residents use ordinary cognition. Population is deliberately four;
     // no decorative skyline implies an unbounded population running this loop.
@@ -134,10 +142,14 @@ export class RealmSession {
   snapshot() {
     const w = this.world, p = this.body.pos, realm = realmAt(p.x, p.z) ?? w.canonicalTower?.realm ?? 'aether';
     const door = this.nearbyDoor(), portal = w.distance2d(p, portalPoint(realm)) < 4.5;
+    const visible=w.persons().filter(n=>n.id===this.person.id||w.primaryBody(n.id)?.present&&realmAt(w.primaryBody(n.id)!.pos.x,w.primaryBody(n.id)!.pos.z)===realm&&w.distance2d(p,w.primaryBody(n.id)!.pos)<80&&w.grid.lineOfSight({...p,y:p.y+1.6},{...w.primaryBody(n.id)!.pos,y:w.primaryBody(n.id)!.pos.y+1.6},80));
     return { realm, realmName: REALMS[realm].name, subtitle: REALMS[realm].subtitle, seed: w.seed, time: w.physicalTime, worldTime: w.now,
       person: { id: this.person.id, name: this.person.name, rank: this.person.ontology.stage, inventory: this.person.inventory.map(id => { const i = w.item(id)!; return { id, name: i.name, quantity: i.quantity }; }) },
       body: { id: this.body.id, pos: { ...p }, yaw: this.body.yaw, hp: this.body.health, maxHp: this.body.maxHealth },
       avatar:this.visual(this.body),
+      growth:arcaneProgress(w,this.person,this.body),
+      interactions:handInteractions(this.sim,this.person),
+      casts:visible.flatMap(n=>{const b=w.primaryBody(n.id),c=b?.arcana?.cast;return b&&c&&c.completeAt+.3>=w.physicalTime?[{...c,origin:{...b.pos}}]:[];}),
       expedition: w.realmExpedition ? { active: w.realmExpedition.active, status: w.realmExpedition.status, runId: w.realmExpedition.runId, revision: w.realmExpedition.revision } : null,
       canonicalTower: w.canonicalTower ? { active: w.canonicalTower.active, status: w.canonicalTower.status, runId: w.canonicalTower.id, revision: w.canonicalTower.revision, floor: w.canonicalTower.floor } : null,
       tower: this.inTower(), pending: this.pending ? { ...this.pending, destination: REALMS[this.pending.to].name } : null,

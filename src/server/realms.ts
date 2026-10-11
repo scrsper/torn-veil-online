@@ -11,12 +11,19 @@ import { existsSync, createReadStream, statSync,readFileSync } from 'node:fs';
 import { resolve, extname,sep } from 'node:path';
 import { WebSocketServer, WebSocket } from 'ws';
 import { createServer as createVite } from 'vite';
+import {launchHome,liveObservatoryScript} from './launchHome';
+import {inspectPerson,eventRow} from '../observatory/readers';
+import {arcaneProgress} from '../sim/physical/arcana/growth';
 
 const port = Number(process.env.TV_REALMS_PORT ?? 7510);
-const savePath = resolve(process.env.TV_REALMS_SAVE ?? '.debug/realms/world.json');
+// A verified portable upgrade can be installed without overwriting the original
+// import or replaying its old-code journal under different mechanics.
+const currentSave='.debug/realms/world-current.json';
+const savePath = resolve(process.env.TV_REALMS_SAVE ?? (existsSync(currentSave)||existsSync(currentSave+'.store')?currentSave:'.debug/realms/world.json'));
 const assetRoot = process.env.TV_REALMS_ASSETS ? resolve(process.env.TV_REALMS_ASSETS) : null;
 const staticRoot=process.env.TV_REALMS_STATIC?resolve(process.env.TV_REALMS_STATIC):null;
 const clientBuild=staticRoot?JSON.parse(readFileSync(resolve(staticRoot,'current-build.json'),'utf8')):null;
+const serverCommit=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
 if(clientBuild&&clientBuild.commit!==execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim())throw Error('Compiled client belongs to a different commit. Run npm run play:build.');
 const journal = new RealmJournal(savePath, Number(process.env.TV_REALMS_SEED ?? 918271));
 await journal.ready;
@@ -30,7 +37,7 @@ function apply(op: RealmOperation): any {
 apply({ type: 'disconnect' }); await journal.flush();
 function rebindTower() {
   towerController = journal.runtime.tower; towerSignature = '';
-  if (owner && towerController && towerView) owner.send(JSON.stringify({ type: 'binding', interaction: apply({ type: 'bind', id: ownerToken, epoch: randomUUID() }) }));
+  if (owner && !session.world.realmExpedition?.active) owner.send(JSON.stringify({ type: 'binding', interaction: apply({ type: 'bind', id: ownerToken, epoch: randomUUID() }) }));
 }
 function failPersistence(e: unknown) {
   saveError = String(e); updateError = saveError; console.error('Realm persistence failed:', e);
@@ -50,6 +57,17 @@ const vite = staticRoot?null:await createVite({ configFile: resolve('vite.web.co
 const server = createServer(async (req, res) => {
   if (req.headers.host !== `127.0.0.1:${port}` && req.headers.host !== `localhost:${port}`) { res.writeHead(403).end(); return; }
   const url = new URL(req.url ?? '/', `http://127.0.0.1:${port}`);
+  if(req.method==='GET'&&((url.pathname==='/'&&!url.search)||['/observatory','/history'].includes(url.pathname))){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});res.end(launchHome(url.pathname));return;}
+  if(req.method==='GET'&&url.pathname==='/observatory-live.js'){res.writeHead(200,{'content-type':'text/javascript; charset=utf-8','cache-control':'no-store'});res.end(liveObservatoryScript);return;}
+  if(req.method==='GET'&&url.pathname==='/realms/inspection'){
+    const w=session.world,id=url.searchParams.get('person')||session.person.id,p=w.person(id),b=p&&w.primaryBody(p.id);
+    if(!p||!b){res.writeHead(404).end();return;}
+    res.writeHead(200,{'content-type':'application/json','cache-control':'no-store'});
+    res.end(JSON.stringify({ready:!updateError,build:{commit:serverCommit,clientMode:staticRoot?'compiled':'development',client:clientBuild,engine:journal.store.engine},save:{path:savePath,store:journal.store.dir,persistent:true},
+      world:{seed:w.seed,personId:session.person.id,bodyId:session.body.id,physicalTime:w.physicalTime,worldTime:w.now,people:w.persons().length,events:w.events.length},
+      people:w.persons().filter(n=>n.id===id||w.primaryBody(n.id)?.present).slice(0,64).map(n=>({id:n.id,name:n.name})),person:inspectPerson(w,id),growth:arcaneProgress(w,p,b),
+      towerTiming:{runId:w.canonicalTower?.id,floor:w.canonicalTower?.floor,status:w.canonicalTower?.status,receipts:w.events.filter(e=>e.type==='tower_floor_cleared'&&e.actor===session.person.id).map(e=>({id:e.id,floor:e.data.floor,seconds:e.data.seconds,causes:e.causes})),measurement:'Canonical elapsed seconds at floor-clear receipts, including time away. Human climb duration and Gold frequency are unmeasured.'},events:w.events.slice(-80).reverse().map(e=>({...eventRow(e),causes:e.causes}))}));return;
+  }
   if (url.pathname === '/realms/health') { res.setHeader('content-type', 'application/json'); res.end(JSON.stringify({ kind: 'torn-veil-realms', root: resolve('.'), clientBuild, buildRoot:staticRoot, ready: !updateError, seed: session.world.seed, saveError, updateError, persistence: journal.metrics, memory: process.memoryUsage() })); return; }
   if (url.pathname === '/realms/expedition') {
     const respond = (code: number, value: unknown) => { res.writeHead(code, { 'content-type': 'application/json', 'cache-control': 'no-store' }); res.end(JSON.stringify(value)); };
@@ -119,7 +137,7 @@ ws.on('connection', (client, req) => {
     if (++budget > 180) return;
     try {
       const m = JSON.parse(data.toString());
-      if (m.type === 'command' && towerView && session.world.canonicalTower?.active && towerController) {
+      if (m.type === 'command' && !session.world.realmExpedition?.active) {
         const receipt = apply({ type: 'command', input: m, now: performance.now() }); if (receipt) client.send(JSON.stringify(receipt));
       }
       else if (m.type === 'move') apply({ type: 'move', input: m.input });
@@ -141,7 +159,7 @@ const timer = setInterval(() => {
     if (session.world.canonicalTower?.active) {
       if (!towerController) rebindTower();
       for (const receipt of apply({ type: 'step', now: performance.now() })) if (towerView) owner!.send(JSON.stringify(receipt));
-    } else { apply({ type: 'step', now: performance.now() }); } stepMs.push(performance.now() - start); if (stepMs.length > 600) stepMs.shift();
+    } else { for(const receipt of apply({ type: 'step', now: performance.now() })) owner!.send(JSON.stringify(receipt)); } stepMs.push(performance.now() - start); if (stepMs.length > 600) stepMs.shift();
     if (++tick % 6) return;
     if (tick % 300 === 0) void persist(); if (tick % 1800 === 0) void checkpoint();
     if (session.world.canonicalTower?.active && towerView && towerController) {

@@ -16,28 +16,35 @@ export interface RealmContinuation {
   citySteps:number;
   realm:ReturnType<RealmSession['checkpointControl']>;
   tower:ReturnType<TowerController['bridge']['checkpointControl']>|null;
+  controller?:ReturnType<TowerController['bridge']['checkpointControl']>|null;
 }
 export class RealmRuntime {
-  tower:TowerController|null=null;
+  controller:TowerController;
+  get tower():TowerController|null { return this.session.world.canonicalTower?.active ? this.controller : null; }
   private citySteps=0;
   constructor(public session:RealmSession, continuation?:RealmContinuation) {
     validateExpeditionSave(session);
-    if(session.world.canonicalTower?.active)this.tower=new TowerController(session);
+    this.controller=new TowerController(session);
     if(continuation){this.citySteps=continuation.citySteps;session.restoreControl(continuation.realm);
-      if(continuation.tower){if(!this.tower)throw Error('Tower continuation without active Tower');this.tower.bridge.restoreControl(continuation.tower);}}
+      if(continuation.tower){if(!this.tower)throw Error('Tower continuation without active Tower');this.tower.bridge.restoreControl(continuation.tower);}
+      else if(continuation.controller)this.controller.bridge.restoreControl(continuation.controller);}
   }
-  checkpoint():RealmContinuation { return {citySteps:this.citySteps,realm:this.session.checkpointControl(),tower:this.tower?.bridge.checkpointControl()??null}; }
+  checkpoint():RealmContinuation { return {citySteps:this.citySteps,realm:this.session.checkpointControl(),tower:this.tower?.bridge.checkpointControl()??null,controller:this.tower?null:this.controller.bridge.checkpointControl()}; }
   apply(op:RealmOperation):any {
     const s=this.session;
     switch(op.type){
-      case 'bind': return this.tower?.bind(op.id,op.epoch)??null;
-      case 'command':return this.tower?.bridge.receiveCommand(op.input,op.now)??null;
-      case 'step':if(s.world.canonicalTower?.active){if(!this.tower)throw Error('Missing Tower controller');return this.tower.step(op.now);}
-        if(++this.citySteps>=3){this.citySteps=0;s.step(.05);}return [];
+      case 'bind': return this.controller.bind(op.id,op.epoch);
+      case 'command':{
+        const receipt=this.controller.bridge.receiveCommand(op.input,op.now);
+        const command=(op.input as {command?:{type?:string;x?:number;z?:number}})?.command;
+        if(receipt?.status==='received' && command?.type==='move' && (command.x || command.z))s.body.path=null;
+        return receipt;
+      }
+      case 'step':return s.world.realmExpedition?.active?[]:this.controller.step(op.now);
       // Projection currently delivers only transport deltas, but record its ordering
       // too, so future projection changes cannot silently create a replay gap.
       case 'frame':return this.tower?.frame()??s.snapshot();
-      case 'disconnect':this.tower?.bridge.resetInput();s.stop();return;
+      case 'disconnect':this.controller.bridge.resetInput();s.stop();return;
       case 'move':return s.move(op.input);
       case 'interact':return s.interact();
       case 'confirm':return s.confirm(op.id);
@@ -49,10 +56,10 @@ export class RealmRuntime {
         const before=s.save(),control=this.checkpoint();
         try {
           const value=op.type==='tower'?applyTowerCommand(s,op.command):applyExpeditionCommand(s,op.command);
-          this.tower=s.world.canonicalTower?.active?new TowerController(s):null;
+          this.controller=new TowerController(s);
           return {value};
         }catch(e){const restored=new RealmRuntime(new RealmSession(0,before),control);
-          this.session=restored.session;this.tower=restored.tower;this.citySteps=restored.citySteps;
+          this.session=restored.session;this.controller=restored.controller;this.citySteps=restored.citySteps;
           return {error:String(e)};}
       }
     }

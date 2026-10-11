@@ -224,7 +224,7 @@ export class BridgeSession {
   }
   resetInput(channelId = LOCAL_CHANNEL): void {
     const ch = this.channels.get(channelId); if (!ch) return;
-    const b=ch.control&&this.world.body(ch.control.bodyId);if(b){setCrouchHeld(this.world,b,false);if(b.combatAction)b.combatAction.queuedInput=undefined;}
+    const b=ch.control&&this.world.body(ch.control.bodyId);if(b){setCrouchHeld(this.world,b,false);requestGuard(this.world,b.id,false);if(b.combatAction)b.combatAction.queuedInput=undefined;}
     this.regions.reset();
     ch.sequence = -1; ch.appliedSequence=-1; ch.move = { x: 0, z: 0, sprint: false, expires: 0 };
     ch.control?.cancel(this.world.physicalTime,performance.now()); ch.control=null; ch.controlGeometry='';
@@ -239,6 +239,7 @@ export class BridgeSession {
   receiveCommand(input: unknown, now=performance.now(), channelId = LOCAL_CHANNEL): CommandReceipt | null {
     return this.channels.get(channelId)?.control?.receive(input,this.world.physicalTime,now)??null;
   }
+  hasInteractionControl(channelId = LOCAL_CHANNEL): boolean { return !!this.channels.get(channelId)?.control; }
   private executeCommand(ch: ControllerChannel, c: InteractionCommand,commandId?:string): string {
     const w=this.world,q=ch.control,b=q&&w.body(q.bodyId),p=b&&w.person(b.ownerId);
     if(!p||!b) return 'binding_mismatch';
@@ -286,12 +287,13 @@ export class BridgeSession {
     return [...list.slice(k), ...list.slice(0, k)];
   }
   /** Advance fast interaction at 60 Hz for every controller; slow population/cognition keeps elapsed 20 Hz work. */
-  stepAll(now=performance.now()): Map<string, CommandReceipt[]> {
+  stepAll(now=performance.now(), beforeCommands?: (dt: number) => void): Map<string, CommandReceipt[]> {
     const before=captureCombatTransforms(this.world);
     const dt=INTERACTION_SPEC.stepSeconds,w=this.world,wd=w.clock.advance(dt);w.physicalTime+=dt;this.interactionTick++;
     this.slowAccum+=dt;
     const order=this.applicationOrder();
     for(const ch of order){const cb=ch.control&&w.body(ch.control.bodyId);if(cb) cb.vel={x:0,y:0,z:0};}
+    beforeCommands?.(dt);
     const receipts=new Map<string,CommandReceipt[]>();
     for(const ch of order) receipts.set(ch.id,ch.control?.apply(w.physicalTime,now,(c,e)=>this.executeCommand(ch,c,e.commandId))??[]);
     if(this.slowAccum>=.05-1e-9) {
@@ -306,7 +308,7 @@ export class BridgeSession {
     this.sim.stepScheduled(dt,wd,before);
     return receipts;
   }
-  stepInteraction(now=performance.now()): CommandReceipt[] { return this.stepAll(now).get(LOCAL_CHANNEL) ?? []; }
+  stepInteraction(now=performance.now(), beforeCommands?: (dt: number) => void): CommandReceipt[] { return this.stepAll(now,beforeCommands).get(LOCAL_CHANNEL) ?? []; }
   /** The realm host has one local channel and no dialogue transport. Preserve its input
    * frontier and cadence when a replay worker makes a checkpoint between commands. */
   checkpointControl() {

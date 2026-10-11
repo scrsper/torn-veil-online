@@ -12,6 +12,8 @@ private reports remain preserved locally; source branches and historical preview
 
 ## Play
 
+The launcher opens one home for Play, character, Tower, persistent Observatory and historical experiments. See the [local repair checkpoint](docs/TORN_VEIL_REPAIR_OCT11.md).
+
 Double-click **Play Torn Veil.cmd** (or `npm run play`) for the persistent
 Aether Reach / Cinderveil world and **canonical Tower**. The launcher builds
 `dist-web` for this checkout's exact clean commit, shows that commit, and rejects
@@ -34,34 +36,21 @@ Use `Play Torn Veil Web.cmd -CheckOnly` for a read-only preflight.
 
 ## Understand an NPC
 
-Double-click **Torn Veil Observatory.cmd**. This opens a **separate disposable test
-world**. Its embedded Babylon viewport can now play that same test world;
-it does not attach to the separate standalone Babylon preview or live/staging world. Closing its tab leaves its
-server running; stopping the server loses its in-memory world and in-memory checkpoints.
+Double-click **Torn Veil Observatory.cmd** or choose Observatory in the launch home.
+It reads the same persistent world as Play and the Tower: actual identities, needs,
+canonical development, possessions, beliefs and stored event causes.
+The home shows the running build and persistence identity.
 
-For your first session, ignore the validation panels:
-
-1. Select a person in the list or overhead map.
-2. Read their current goal/action and hunger/thirst. A newly paused world may not have decisions yet.
-3. Click **+1 hour**, wait for the advance to finish, and inspect the same person again.
-4. Look at the recorded candidate reasons and history: what did they try, and what actually happened?
-5. Compare **CANONICAL TRUTH** with **WHAT THIS PERSON BELIEVES**. Follow an event/source link if you want the supporting evidence.
-
-An amber indicator means warnings or incomplete evidence; inspect the named finding.
-A passing check is not a claim that the whole simulation is correct or fun.
-To play while inspecting, select a living person and choose **Play selected person**,
-then **Resume** at **1×**. Rearrange panels using their drag handles; widths,
-heights and collapsed state are saved locally. [Workbench guide](docs/OBSERVATORY_WORKBENCH.md)
-
-[Full Observatory guide](docs/OBSERVATORY.md)
+Disposable scenario experiments remain available through `npm run observatory`;
+their older [workbench guide](docs/OBSERVATORY_WORKBENCH.md) describes that separate
+reproduction environment. History in the current home labels those experiments.
 
 ## Current direction
 
 Finish a small, visually convincing Babylon experience and make its NPC behavior
 understandable. Judge it in normal gameplay against the supplied visual references.
 Do not restart the simulation or change engines to address an unmeasured problem.
-The Observatory workbench supports playing and inspecting the same isolated world.
-Attaching its inspectors to an independently running gameplay service remains outside this slice.
+The current Observatory reads the owning persistent gameplay host. The disposable workbench remains available for reproducible scenarios.
 
 ## Development
 
@@ -77,7 +66,7 @@ npm run web:build
 npm run web:dev
 ```
 
-See [AGENTS.md](AGENTS.md), [.ai/REPO_MAP.md](.ai/REPO_MAP.md) and
+See [.ai/REPO_MAP.md](.ai/REPO_MAP.md) and
 [verification policy](.ai/TESTING.md). `npm run dev` and the default `build` scripts
 still target the historical Three.js client; use `web:*` for Babylon.
 

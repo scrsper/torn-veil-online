@@ -10,7 +10,7 @@ export function trialKit(floor: number, index: number) {
   const caster = floor >= 5 && index % 3 === 0;
   const heavy = floor >= 10 && index % 3 === 1;
   return { caster, heavy, weapon: floor < 4 ? null : heavy ? 'axe' as const : 'dagger' as const,
-    armor: floor < 8 ? 0 : Math.min(24, 2 + floor * .2),
+    armor: floor === 1 ? 0 : 2 + floor * .4,
     amplitude: 1 + Math.max(0, floor - 12) * .1, aperture: 1 + Math.max(0, floor - 25) / 50,
     ability: ['book-ember', 'ess-bone', 'book-sigil', 'ess-storm', 'book-thunder', 'ess-gravity'][Math.min(5, Math.floor((floor - 1) / 16))] };
 }

@@ -86,7 +86,7 @@ export class SharedVisual implements BodyVisual {
   const armed = b.equipment?.some(i => i.slot === 'right-hand' && ['sword', 'dagger', 'axe', 'hammer'].includes(i.type)) ?? false;
   const set = armed ? MOVESETS.sword : MOVESETS.fists, falling = b.dead || b.incapacitated || ['downed','sleep','dead'].includes(b.pose);
   const action = s.combat && !['guard', 'stance'].includes(s.combat.moveId) ? s.combat : null;
-  if (action || s.guard || s.hit) this.combatUntil = this.clock + 2;
+  if (action || s.guard || b.guarding || s.hit) this.combatUntil = this.clock + 2;
   this.plantActive = !falling && !action && s.speed < 1.2;
   this.speed=s.speed;this.footfallActive=!falling&&!action&&s.speed>.08;
   if(s.speed>.08)this.travel=sharedTravelClip(s,this.travel);
@@ -113,7 +113,8 @@ export class SharedVisual implements BodyVisual {
    }
   } else if (this.clock >= this.hitUntil) {
    this.fallen = false;
-   const engaged = armed || this.clock < this.combatUntil, idle = armed ? 'ready/sword and shield idle' : engaged ? set.idle : RELAXED.idle;
+   const engaged = this.clock < this.combatUntil, readyWeapon = armed && engaged,
+    idle = readyWeapon ? 'ready/sword and shield idle' : engaged ? set.idle : RELAXED.idle;
    if (s.guard || b.guarding) {
     this.animator.play(this.clip(set.guard), { loop: true, fade: .08 });
     if (s.speed > .1) {
@@ -124,14 +125,14 @@ export class SharedVisual implements BodyVisual {
     const direction = this.clip(this.travel);
     this.animator.play(direction, { loop: true, speed: Math.max(.25, s.speed / this.pace(direction, 1.6)), fade: .14 });
    } else if (s.speed > .08) {
-    const walk = this.clip(armed ? 'ready/sword and shield walk' : RELAXED.walk), run = this.clip(armed ? 'ready/sword and shield run' : RELAXED.run);
+    const walk = this.clip(readyWeapon ? 'ready/sword and shield walk' : RELAXED.walk), run = this.clip(readyWeapon ? 'ready/sword and shield run' : RELAXED.run);
     const wp = this.pace(walk, 1.6), rp = this.pace(run, 5.6);
     const blend = Math.max(0, Math.min(1, (s.speed - wp * 1.15) / Math.max(.5, rp * .7 - wp * 1.15))), weight = blend * blend * (3 - 2 * blend);
     const rate = (1 - weight) * s.speed / (wp * this.animator.length(walk)) + weight * s.speed / (rp * this.animator.length(run));
     this.animator.loco(walk, run, weight, rate, .14);
    } else this.animator.play(this.clip(idle), { loop: true, fade: .12 });
   }
-  this.root.metadata.motion = { clip: this.animator.current, action: action?.moveId ?? null, age: action?.age ?? null, hit: this.clock < this.hitUntil, planted: this.plantActive, canonicalFacing: s.yaw, gait: this.animator.gaitState };
+  this.root.metadata.motion = { clip: this.animator.current, stance: this.clock < this.combatUntil ? 'combat' : 'travel', armed, action: action?.moveId ?? null, age: action?.age ?? null, hit: this.clock < this.hitUntil, planted: this.plantActive, canonicalFacing: s.yaw, gait: this.animator.gaitState };
   this.animator.update(dt);
  }
  dispose() {
