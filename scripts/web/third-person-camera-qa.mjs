@@ -157,12 +157,22 @@ async function wallFraming(){
 
 let initial,entered,beforeReload,returned;
 try{
- await page.goto(base+'/');await ready();initial=await realm();
+ await page.goto(base+'/');await page.waitForFunction(()=>document.querySelector('#identity')?.textContent.includes('Current '));
+ check('launch home identifies the running persistent build',await page.locator('#identity').textContent().then(s=>s.includes(build.commit.slice(0,12))&&s.includes('persistent')));
+ await shot('00-launch-home');await page.getByRole('link',{name:'Play',exact:true}).click();await ready();initial=await realm();
  if(wallOnly){await enter();entered=await floor();await towerCamera();await wallFraming();}
  else {
  check('primary URL uses canonical world and real rank',typeof initial.person.rank==='string'&&initial.person.rank==='Normal'&&!initial.expedition?.active,initial.person);
  check('historical score Tower is absent from primary UI',!await page.locator('#rv-ascend').isVisible());
  check('canonical avatar body projection retains identity',initial.avatar.bodyId===initial.body.id&&initial.avatar.entityId===initial.person.id);
+ const inspector=await context.newPage();await inspector.goto(base+'/observatory');await inspector.waitForFunction(()=>document.querySelector('#view details'));
+ const inspected=await inspector.evaluate(async()=>await(await fetch('/realms/inspection')).json());
+ check('Observatory reads the playing body and same persistent store',inspected.world.personId===initial.person.id&&inspected.world.bodyId===initial.body.id&&inspected.save.path===health.savePath);
+ await inspector.screenshot({path:resolve(out,'00-live-observatory.png')});await inspector.close();
+ await page.keyboard.press('KeyJ');await wait(()=>window.tvRealms.inspect().receipts.some(r=>r.result==='accepted'&&r.status==='applied'));
+ check('street strike reaches shared canonical combat',!!(await realm()).avatar.combatAction);
+ await page.mouse.move(760,680);await page.mouse.down({button:'right'});await wait(()=>window.tvRealms.state.avatar.guarding);await page.mouse.up({button:'right'});await wait(()=>!window.tvRealms.state.avatar.guarding);
+ check('street mouse guard releases on the canonical body',true);await page.waitForTimeout(2400);
  await streetCamera();await page.waitForTimeout(1500);const city=await page.evaluate(()=>window.tvRealms.inspect());
  check('current imported humans render as city residents',city.residentLooks.some(l=>l?.sharedLook&&l.bodyId),city.residentLooks);
  observations.push({kind:'city',hardware:city.hardware,renderer:city.renderer,heap:city.heap,loaded:city.loaded,width:city.width,height:city.height,frames:city.frames,streamingFrames:city.streamingFrames,uploads:city.uploads,serverSamples:city.serverSamples});await shot('01-current-aether');
@@ -178,6 +188,7 @@ try{
  await page.waitForTimeout(1500); // Capture after the imported body has rendered.
  const visuals=await page.evaluate(()=>window.tvAscent.inspect().looks);check('Tower shares current imported human presentation',visuals.some(l=>l?.bodyId===initial.body.id&&l.sharedLook),visuals);await shot('03-current-canonical-tower');await towerCamera();
  await page.getByRole('button',{name:'Take Ember field manual',exact:true}).click();await page.getByRole('button',{name:'Study Ember field manual',exact:true}).click();await wait(()=>window.tvAscent.frame.own.learned.some(s=>s.id==='book-ember'));
+ await page.getByRole('button',{name:'Take Trial steel dagger',exact:true}).click();await page.getByRole('button',{name:'Equip Trial steel dagger',exact:true}).click();
  check('source-backed learning retains canonical rank gate', (await floor()).own.rank===initial.person.rank&&!(await floor()).own.growth.eligible);
  await page.mouse.move(760,680);const seq=(await floor()).snapshot.bodies.find(b=>b.bodyId===initial.body.id).attackSeq;
  const strikeCam=(await inspect()).camera.yaw;await page.mouse.click(760,680);await wait(s=>window.tvAscent.frame.snapshot.bodies.find(b=>b.bodyId===window.tvAscent.frame.own.bodyId).attackSeq>s,seq);
@@ -193,6 +204,10 @@ try{
  check('save reload does not manufacture health',loaded.own.health<=beforeReload.own.health+.1);
  await page.keyboard.press('Escape');await page.locator('#as-return').click();await ready();returned=await realm();
  check('Tower return carries learned sources to same world identity and rank',returned.person.id===initial.person.id&&returned.body.id===initial.body.id&&returned.person.rank===initial.person.rank&&returned.person.inventory.some(i=>i.name==='Ember field manual'));await shot('05-current-returned-world');
+ await page.waitForTimeout(2600);await page.keyboard.down('KeyW');await page.waitForTimeout(750);
+ const walking=await page.evaluate(()=>window.tvRealms.inspect().controlledLook?.motion);
+ check('equipped street travel uses relaxed gait after combat ends',walking?.armed&&walking.stance==='travel'&&walking.clip.includes('unarmed/walk_forward'),walking);
+ await shot('05-upright-equipped-travel');await page.keyboard.up('KeyW');
  await enter();const repeat=await floor();check('repeated Tower entry retains run learning and rank',repeat.tower.id===entered.tower.id&&repeat.own.rank===initial.person.rank&&repeat.own.learned.some(s=>s.id==='book-ember'));
  await page.locator('#as-return').click();await ready();await page.reload();await ready();check('world reload after repeated Tower return retains canonical belongings',JSON.stringify((await realm()).person.inventory)===JSON.stringify(returned.person.inventory));
  await enter();check('combat exploration resumes the same learned canonical run',(await floor()).tower.id===entered.tower.id&&(await floor()).own.learned.some(s=>s.id==='book-ember'));

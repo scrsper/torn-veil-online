@@ -11,6 +11,6 @@ for(const args of [['node_modules/typescript/bin/tsc','--noEmit'],['scripts/web/
 }
 const index=readFileSync(resolve(root,'dist-web/index.html'));
 const motion=JSON.parse(readFileSync(resolve(root,'web/public/arena/runtime-dependencies.json'),'utf8')).files.map(({relative,sha256})=>({relative,sha256}));
-const manifest={kind:'torn-veil-current',commit,indexSha256:createHash('sha256').update(index).digest('hex'),motion,builtAt:new Date().toISOString(),entry:'/?realms',progression:'canonical-world',goldPolicy:'paused'};
+const manifest={kind:'torn-veil-current',commit,indexSha256:createHash('sha256').update(index).digest('hex'),motion,builtAt:new Date().toISOString(),entry:'/',playEntry:'/?realms',progression:'canonical-world',goldPolicy:'earned-sources'};
 writeFileSync(resolve(root,'dist-web/current-build.json'),JSON.stringify(manifest,null,2)+'\n');
 console.log(`Current Torn Veil build: ${commit}\nLaunch with Play Torn Veil.cmd. Historical labs require explicit URLs.`);

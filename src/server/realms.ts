@@ -57,6 +57,7 @@ const vite = staticRoot?null:await createVite({ configFile: resolve('vite.web.co
 const server = createServer(async (req, res) => {
   if (req.headers.host !== `127.0.0.1:${port}` && req.headers.host !== `localhost:${port}`) { res.writeHead(403).end(); return; }
   const url = new URL(req.url ?? '/', `http://127.0.0.1:${port}`);
+  if(req.method==='GET'&&url.pathname==='/favicon.ico'){res.writeHead(204).end();return;}
   if(req.method==='GET'&&((url.pathname==='/'&&!url.search)||['/observatory','/history'].includes(url.pathname))){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});res.end(launchHome(url.pathname));return;}
   if(req.method==='GET'&&url.pathname==='/observatory-live.js'){res.writeHead(200,{'content-type':'text/javascript; charset=utf-8','cache-control':'no-store'});res.end(liveObservatoryScript);return;}
   if(req.method==='GET'&&url.pathname==='/realms/inspection'){
@@ -68,7 +69,7 @@ const server = createServer(async (req, res) => {
       people:w.persons().filter(n=>n.id===id||w.primaryBody(n.id)?.present).slice(0,64).map(n=>({id:n.id,name:n.name})),person:inspectPerson(w,id),growth:arcaneProgress(w,p,b),
       towerTiming:{runId:w.canonicalTower?.id,floor:w.canonicalTower?.floor,status:w.canonicalTower?.status,receipts:w.events.filter(e=>e.type==='tower_floor_cleared'&&e.actor===session.person.id).map(e=>({id:e.id,floor:e.data.floor,seconds:e.data.seconds,causes:e.causes})),measurement:'Canonical elapsed seconds at floor-clear receipts, including time away. Human climb duration and Gold frequency are unmeasured.'},events:w.events.slice(-80).reverse().map(e=>({...eventRow(e),causes:e.causes}))}));return;
   }
-  if (url.pathname === '/realms/health') { res.setHeader('content-type', 'application/json'); res.end(JSON.stringify({ kind: 'torn-veil-realms', root: resolve('.'), clientBuild, buildRoot:staticRoot, ready: !updateError, seed: session.world.seed, saveError, updateError, persistence: journal.metrics, memory: process.memoryUsage() })); return; }
+  if (url.pathname === '/realms/health') { res.setHeader('content-type', 'application/json'); res.end(JSON.stringify({ kind: 'torn-veil-realms', root: resolve('.'), clientBuild, buildRoot:staticRoot, savePath, ready: !updateError, seed: session.world.seed, saveError, updateError, persistence: journal.metrics, memory: process.memoryUsage() })); return; }
   if (url.pathname === '/realms/expedition') {
     const respond = (code: number, value: unknown) => { res.writeHead(code, { 'content-type': 'application/json', 'cache-control': 'no-store' }); res.end(JSON.stringify(value)); };
     if (!owner || req.headers['x-realms-controller'] !== ownerToken || updateError) { respond(409, { error: 'This tab does not hold the world controller. Reload to reconnect.' }); return; }
