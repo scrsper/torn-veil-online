@@ -11,6 +11,16 @@ const run = (c: AdaptiveCamera, s: Parameters<AdaptiveCamera['update']>[1], q: O
 const dist = (p: { x: number; y: number; z: number }) => Math.hypot(p.x - pivot.x, p.y - pivot.y - .1, p.z - pivot.z);
 
 describe('adaptive third-person camera', () => {
+  it('initializes and snaps from getter-based render vectors', () => {
+    class RenderVector { get x() { return 12; } get y() { return 2.3; } get z() { return 24; } }
+    const c = new AdaptiveCamera();
+    for (let n = 0; n < 2; n++) {
+      const pose = c.update(1/60, { pivot: new RenderVector() }, open);
+      expect([pose.position.x,pose.position.y,pose.position.z,pose.target.x,pose.target.y,pose.target.z].every(Number.isFinite)).toBe(true);
+      expect(pose.target.x).toBeCloseTo(12); expect(pose.target.y).toBeCloseTo(2.3);
+      c.snap();
+    }
+  });
   it('never exceeds a very close obstruction to satisfy a preferred minimum', () => {
     const c = new AdaptiveCamera(); run(c, { pivot }, open, 1);
     const pose = c.update(1/60, { pivot }, (_f,_d,max) => Math.min(.35,max));

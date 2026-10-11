@@ -112,7 +112,8 @@ export class AdaptiveCamera {
     const close = clamp((Math.min(want, 4) - Math.min(this.dist, 4)) / 2.6, 0, 1) * (sit.ceiling != null ? .3 : 1);
     pitchBias += this.rise + close * 9 * DEG;
     const wantPitch = clamp(this.pitch + pitchBias, this.limits.minPitch, this.limits.maxPitch);
-    if (!this.started) { this.yawS = this.yaw; this.pitchS = wantPitch; this.dist = want; this.fovS = fov; this.target = { ...sit.pivot }; this.started = true; }
+    // Babylon vectors expose getter coordinates; copying enumerable fields loses x/y/z.
+    if (!this.started) { this.yawS = this.yaw; this.pitchS = wantPitch; this.dist = want; this.fovS = fov; this.target = { x: sit.pivot.x, y: sit.pivot.y, z: sit.pivot.z }; this.started = true; }
     this.yawS += wrap(this.yaw - this.yawS) * damp(26, t);
     this.pitchS += (wantPitch - this.pitchS) * damp(sit.aiming ? 14 : 7, t);
     this.fovS += (fov - this.fovS) * damp(5, t);
