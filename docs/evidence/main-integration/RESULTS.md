@@ -1,12 +1,12 @@
 # October 11 main consolidation verification
 
-This ledger distinguishes the local candidate, actual rendered gameplay,
-controlled pose fixtures and provisional progression rules. **Publication and main
-landing are pending.** Automatic approval review rejected the push/PR for missing
-explicit authorization to publish source and tracked assets to the public repository.
-No push, consolidation PR, independent CI or final-main replay has occurred.
-The local delivery receipt `.debug/main-integration/delivery.json` records the
-verified candidate and outstanding gates.
+This ledger distinguishes the consolidated source, actual rendered gameplay,
+controlled pose fixtures and provisional progression rules. Publication and independent
+CI are tracked in [PR #66](https://github.com/scrsper/torn-veil-online/pull/66).
+That PR supplies the final-head checks and main landing receipt; the local
+`.debug/main-integration/delivery.json` records the exact compiled main replay.
+Earlier recordings remain scoped to their named commits. No simulated timing or
+copied checkpoint is a fresh human-climb benchmark.
 
 ## Source and authority
 
@@ -50,7 +50,10 @@ for `WL-TIMBER-HORIZON`. Report:
 The existing schema-26 default JSON also initializes a realm session with identical
 person/body/rank/belongings and unchanged original bytes (read-only validation).
 The repaired candidate's compiled identity and ordinary-input journey are recorded
-in the local delivery receipt and `playable-schema30-repaired/result.json`.
+in the local delivery receipt and `playable-schema30-repaired/result.json`:
+exact clean `1a4ecdc`, 24 checks and zero browser errors. Later current-state
+documentation edits leave the tested runtime unchanged; independent CI verifies
+the final public head. The landed-main compiled journey is recorded separately.
 
 Tracked reports generalize personal paths and omit private delivery/task IDs.
 Raw originals and private media provenance remain local. Artifact digests for
@@ -60,7 +63,8 @@ canonical gameplay receipts. The full integration history is preserved privately
 `codex/consolidate-main-oct11`. Local release branch
 `codex/consolidate-main-oct11-sanitized` is a tree-identical snapshot parented only
 by the previous main, so its outgoing history omits private intermediate reports.
-No branch was deleted or force-updated, and nothing was published.
+No source branch was deleted or force-updated. The sanitized release is published
+through PR #66; private intermediate reports and raw licensed motions stay local.
 
 ## Predecessor compiled-build journey
 
@@ -144,7 +148,7 @@ or liveness failures. The warning is retained; biology and the gate were not wea
 Raw report: `.debug/worldlab/2026-10-11T04-57-38-847Z-smoke/report.json`.
 Ontology typecheck and all 16 tests pass (16.40 s command elapsed); ontology production
 build passes (90.42 s command elapsed, 87 s Vite). The final candidate/main stamped
-journeys belong in the delivery receipt. Independent PR CI remains pending.
+journeys belong in the delivery receipt. Independent final-head CI is linked in PR #66.
 
 The exact local Mixamo/unarmed motion hashes and licensing prerequisite are in
 `current-build.json` and `scripts/web/stage-current-assets.mjs`. Raw licensed motions

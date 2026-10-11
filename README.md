@@ -3,13 +3,12 @@
 Torn Veil is a persistent simulated world. **Babylon.js is the active game client.**
 `src/sim/` owns the world; `src/web/` displays it and requests canonical actions.
 The simulation is being retained. Unreal is archived; Three.js is historical.
-GitHub `main` remains the previous integration baseline. The October 11 consolidation is a
-local release candidate on `codex/consolidate-main-oct11-sanitized`; publication and independent CI
-are pending explicit approval. Use that checkout's primary launcher and stamped build
-for candidate review. [Current state](docs/CURRENT_STATE.md) records the test scope
-and remaining gates. The full integration history is preserved privately on
-`codex/consolidate-main-oct11`; the release snapshot has the same tracked tree.
-Existing source branches and historical previews are preserved.
+GitHub `main` is the shared source baseline. Use a clean main checkout and its
+primary launcher, which reports the exact compiled commit. [Current state](docs/CURRENT_STATE.md)
+records the implementation, test scope and known limits. The October 11 consolidation
+is tracked in [PR #66](https://github.com/scrsper/torn-veil-online/pull/66), with
+independent CI and its landing receipt. Full integration ancestry and intermediate
+private reports remain preserved locally; source branches and historical previews remain intact.
 
 ## Play
 

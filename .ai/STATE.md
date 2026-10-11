@@ -1,16 +1,16 @@
-# Current: Local Babylon consolidation candidate (2026-10-11)
+# Current: Consolidated Babylon build (2026-10-11)
 
-The local candidate combines current human presentation, connected realms, canonical
+The consolidated build combines current human presentation, connected realms, canonical
 Tower persistence and input/posture repairs. `6423888` passed 2,237 tests and its
 exact compiled 24-check journey. Review then found schema-30 compact-save rejection;
 the compatibility repair passes 32 affected tests and TypeScript. Final aggregate
 passes 2,248 tests in 230 files; production bundle and World smoke pass (two retained
 finite-timber warnings). The exact repaired build/journey is recorded locally in
-the delivery receipt. Full source ancestry remains private on
+the delivery receipt (clean1a4ecdc,24checks,0browser errors). Full source ancestry remains private on
 `codex/consolidate-main-oct11`; the tree-identical release snapshot uses
-`codex/consolidate-main-oct11-sanitized`. Publication was rejected by automatic
-approval review; explicit public-repository authorization, independent CI and main
-landing remain pending. No delivered-main claim is valid yet. See
+`codex/consolidate-main-oct11-sanitized`. Publication is authorized and PR #66
+tracks independent final-head CI and main landing. Use the clean main checkout and
+primary launcher; its manifest/health report the exact served commit. See
 `docs/CURRENT_STATE.md` and `docs/evidence/main-integration/RESULTS.md`. Prior evidence
 below stays scoped to its checkpoint. New Gold source promotions are paused. Source
 branches and rejected private candidate work remain preserved.
