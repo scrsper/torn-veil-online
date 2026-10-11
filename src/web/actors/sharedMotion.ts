@@ -32,8 +32,14 @@ export function sharedMotionMode(s: ActorState): 'down' | 'action' | 'guard' | '
   return s.speed > .08 ? 'move' : 'idle';
 }
 
-export function sharedTravelClip(s: Pick<ActorState, 'velocity' | 'yaw'>): string {
+export function sharedTravelClip(s: Pick<ActorState, 'velocity' | 'yaw'>, previous?: string): string {
   const direction = localTravel(s.velocity, s.yaw);
+  const side = `unarmed/walk_strafe_${direction.x >= 0 ? 'left' : 'right'}`;
+  const longitudinal = direction.z < 0 ? 'unarmed/walk_backward' : 'unarmed/walk_forward';
+  // Hold the existing axis within a narrow diagonal band. Small heading/noise
+  // changes should not repeatedly replace the active gait at exactly 45 degrees.
+  if (previous === side && Math.abs(direction.x) * 1.15 >= Math.abs(direction.z)) return side;
+  if (previous === longitudinal && Math.abs(direction.z) * 1.15 >= Math.abs(direction.x)) return longitudinal;
   return Math.abs(direction.x) > Math.abs(direction.z) ? `unarmed/walk_strafe_${direction.x >= 0 ? 'left' : 'right'}`
     : direction.z < 0 ? 'unarmed/walk_backward' : 'unarmed/walk_forward';
 }

@@ -31,6 +31,8 @@ export interface CharacterInstance {
   gear: Map<string, AbstractMesh>;
   /** Skeleton nodes by bone name (humans only), for IK touch-ups. */
   bones?: Map<string, TransformNode>;
+  /** Ankle heights in the unscaled bind pose, captured before clips can move the rig. */
+  bindAnkleHeights?: [number, number];
   /** Coat-tail and hair secondary motion (stylised people). */
   springs?: SpringBones;
   dispose(): void;
@@ -205,6 +207,11 @@ export class ArenaAssets {
   human(look: LookId, _id: string): CharacterInstance {
     const p = this.person(look);
     p.holder.scaling.setAll(HUMAN_SCALE);
+    const bindAnkleHeights = ['l', 'r'].map(side => {
+      const foot = p.nodes.get(`foot_${side}`);
+      foot?.computeWorldMatrix(true);
+      return foot ? Vector3.TransformCoordinates(foot.getAbsolutePosition(), Matrix.Invert(p.holder.computeWorldMatrix(true))).y : .06;
+    }) as [number, number];
     // Clips are baked on the reference rig; a body with other leg lengths (goblins, orcs, skeletons) gets its pelvis track rescaled.
     const ratio = (p.nodes.get('pelvis')?.position.length() ?? this.refPelvis) / this.refPelvis;
     const anims = instantiateClips(p.tag, this.fitted(look, ratio, this.clips, ''), p.nodes, this.scene);
@@ -216,7 +223,7 @@ export class ArenaAssets {
     };
     // Fingers come from the captured Mixamo grips.
     return {
-      root: p.holder, anims, meshes: p.meshes, gear: new Map(), bones: p.nodes, springs: springsFor(p.nodes), chest: p.nodes.get('spine_03') ?? null,
+      root: p.holder, anims, meshes: p.meshes, gear: new Map(), bones: p.nodes, bindAnkleHeights, springs: springsFor(p.nodes), chest: p.nodes.get('spine_03') ?? null,
       slotR: slot('hand_r', this.gripR), slotL: slot('hand_l', this.gripL),
       dispose: () => { for (const g of anims.values()) g.dispose(); p.dispose(); },
     };

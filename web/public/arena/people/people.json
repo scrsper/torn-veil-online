@@ -54,7 +54,7 @@
   ],
   "bones": 53,
   "height_m": 1.826,
-  "bytes": 8651152,
+  "bytes": 8551128,
   "assets": {
    "phenotype": {
     "gender": 1,
@@ -79,6 +79,19 @@
     "rehmanpolanski_viking_pants",
     "rehmanpolanski_viking_boots"
    ]
+  },
+  "trouser_fit": [
+   {
+    "garment": "Human.rehmanpolanski_viking_pants",
+    "covered_body_vertices": 1498,
+    "clearance_m": 0.003,
+    "waist_margin_m": 0.006,
+    "cuff_margin_m": 0.015
+   }
+  ],
+  "garment_roughness": {
+   "fabric": 0.88,
+   "leather": 0.72
   }
  },
  "wren": {
@@ -95,7 +108,7 @@
   ],
   "bones": 53,
   "height_m": 1.475,
-  "bytes": 11020672,
+  "bytes": 10935832,
   "assets": {
    "phenotype": {
     "gender": 0,
@@ -121,6 +134,19 @@
     "punkduck_medieval_boots",
     "toigo_gloves_short"
    ]
+  },
+  "trouser_fit": [
+   {
+    "garment": "Human.toigo_wool_pants",
+    "covered_body_vertices": 1345,
+    "clearance_m": 0.003,
+    "waist_margin_m": 0.006,
+    "cuff_margin_m": 0.015
+   }
+  ],
+  "garment_roughness": {
+   "fabric": 0.88,
+   "leather": 0.72
   }
  },
  "raider": {

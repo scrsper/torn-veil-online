@@ -1,4 +1,29 @@
-# Current: Ontology ownership and human motion (2026-10-10)
+# Current: Fluid human motion and fitted adult models (2026-10-10)
+
+Continuation on `codex/ontology-human-motion` after pushed checkpoint `a097d62`.
+GPT-6.1 Sol workers improved adult garment fit and imported-rig foot contact.
+Wren/Brann exports retain 53 named bones and garment topology, with fitted
+trouser coverage and less glossy fabric/leather. Contact-aligned travel clips,
+critically damped normalized fades, owned guard-leg crossfades and diagonal
+hysteresis reduce pose interruptions. Baked travel contacts supplement bind
+ankle calibration; continuous reach projection bounds foot correction.
+
+32 focused tests pass across this slice, including affected foot tests rerun
+after the final bounded release adjustment. Controlled 60 Hz imported-rig
+comparison measures approximately 55% less walking slide and 30% less running
+slide; other directions also improve. Maximum all-frame foot displacement is
+no worse than the uncorrected pose in the six controlled scenarios. This is
+bounded evidence for one imported rig, not a universal smoothness claim.
+Blender reimport checks preserve rigs/topology and reduce garment intersections;
+extreme crouch seams still have contacts. Final TypeScript, production build and
+headed canonical browser acceptance pass; independent GPT-6.1 Sol review reports
+no actionable findings. Evidence is in `docs/evidence/fluid-human-models/README.md`.
+
+Canonical ontology and mechanics retain the preceding checkpoint's boundary.
+Further terrain/sole adaptation, clip seam refinement and broader cast wardrobe
+work remain; this is not completion of the full ontology or production art.
+
+# Previous: Ontology ownership and human motion (2026-10-10)
 
 Branch `codex/ontology-human-motion` integrates main `10a648b` with the existing
 controller/Tower branch. Canonical manifestation attachment validates ownership

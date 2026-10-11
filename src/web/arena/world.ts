@@ -3,6 +3,7 @@ import { Color3, Color4, Matrix, Mesh, MeshBuilder, Quaternion, StandardMaterial
 import type { ArenaAssets, CharacterInstance } from './assets';
 import type { LookId } from './looks';
 import { Animator } from './anim';
+import { contactHints, gaitPhases } from './gaitPhase';
 import { ALLIES, DODGES, FOES, MOVESETS, RELAXED, WEAPONS, waveRoster, type AttackDef, type FoeDef, type FoeKind, type Moveset, type WeaponId } from './combat';
 import { Debris } from './debris';
 import { BlobShadows, Fx, SlashTrail } from './fx';
@@ -318,7 +319,7 @@ export class ArenaWorld {
   private makeFighter(look: LookId, role: Role, name: string, hp: number, speed: number, foe?: FoeDef, foeKind?: FoeKind): Fighter {
     const inst = this.assets.human(look, `${role}-${this.serial + 1}`);
     this.shadow.add(2.3, inst.root);
-    const f = new Fighter(++this.serial, role, name, inst, new Animator(inst.anims), hp, hp, speed, foe, foeKind);
+    const f = new Fighter(++this.serial, role, name, inst, new Animator(inst.anims, gaitPhases(this.assets.clips)), hp, hp, speed, foe, foeKind);
     this.fighters.push(f);
     return f;
   }
@@ -1271,7 +1272,7 @@ export class ArenaWorld {
   private plants=new WeakMap<Fighter,FootPlant>();
   private plantFeet(f:Fighter,dt:number):void {
     let plant=this.plants.get(f);if(!plant){plant=new FootPlant(f.inst);this.plants.set(f,plant);}
-    plant.update(dt,f.y,f.yaw,f.alive&&f.state!=='down'&&f.state!=='dodge'&&f.y<=.05);
+    plant.update(dt,f.y,f.yaw,f.alive&&f.state!=='down'&&f.state!=='dodge'&&f.y<=.05,contactHints(f.anim.contactSource(),this.assets.clips));
   }
 
   /** Walkable direction around walls toward a point, or null when the straight line is clear. */

@@ -1,4 +1,5 @@
 import type { AnimationGroup } from '@babylonjs/core';
+import { wrapPhase } from './gaitPhase';
 
 /**
  * Apply the per-body clock to a clip's authored playback rate. Keeping this as
@@ -16,14 +17,30 @@ export const clipLength = (g: AnimationGroup) => {
 
 /**
  * Cross-fading clip player for one character. Every clip is an AnimationGroup on the same rig;
- * blending is done with group weights, so a fade is just two weights ramping in opposite directions.
+ * Contact-aligned cycles and normalized weights preserve support through interrupted fades.
  */
 export class Animator {
   current = '';
-  private active = new Map<string, { g: AnimationGroup; w: number; target: number; rate: number; base: number }>();
+  private active = new Map<string, { g: AnimationGroup; w: number; velocity: number; target: number; rate: number; base: number }>();
   /** Per-body time: time magic slows a body's whole motion, frost freezes it (0), lightning stutters it. */
   timeScale = 1;
-  constructor(private readonly groups: Map<string, AnimationGroup>) {}
+  constructor(private readonly groups: Map<string, AnimationGroup>, private readonly phases: ReadonlyMap<string, number> = new Map()) {}
+
+  private phase(name: string, g: AnimationGroup): number {
+    const frame = g.animatables?.[0]?.masterFrame ?? g.from;
+    return wrapPhase((frame - g.from) / Math.max(1e-3, g.to - g.from) - (this.phases.get(name) ?? 0));
+  }
+  private travelPhase(): number | undefined {
+    if (this.legs && this.legs.w > 0 && this.phases.has(this.legs.name)) return this.phase(this.legs.name, this.legs.g);
+    let weight = -1, phase: number | undefined;
+    for (const [name, a] of this.active) if (this.phases.has(name) && a.g.isPlaying && a.w > weight) {
+      weight = a.w; phase = this.phase(name, a.g);
+    }
+    return phase;
+  }
+  private seekPhase(name: string, g: AnimationGroup, phase: number): void {
+    g.goToFrame(g.from + wrapPhase(phase + (this.phases.get(name) ?? 0)) * (g.to - g.from));
+  }
 
   has(name: string): boolean { return this.groups.has(name); }
   length(name: string): number { const g = this.groups.get(name); return g ? clipLength(g) : 1; }
@@ -38,13 +55,19 @@ export class Animator {
   play(name: string, o: { loop?: boolean; speed?: number; fade?: number; restart?: boolean; from?: number } = {}): void {
     const g = this.groups.get(name); if (!g) { console.warn('[arena] missing clip', name); return; }
     const fade = o.fade ?? 0.12, speed = o.speed ?? 1;
-    if (name === this.current && !o.restart) { const c = this.active.get(name); if (c) c.base = speed; g.speedRatio = effectiveAnimationSpeed(speed, this.timeScale); return; }
+    if (name === this.current && !o.restart && o.from === undefined) { const c = this.active.get(name); if (c) c.base = speed; g.speedRatio = effectiveAnimationSpeed(speed, this.timeScale); return; }
+    const phase = o.loop && this.phases.has(name) ? this.travelPhase() : undefined;
     for (const [n, a] of this.active) if (n !== name) { a.target = 0; a.rate = 1 / Math.max(fade, 1e-3); }
     let a = this.active.get(name);
-    if (!a) { a = { g, w: fade <= 0 ? 1 : 0, target: 1, rate: 1 / Math.max(fade, 1e-3), base: speed }; this.active.set(name, a); }
+    if (!a) { a = { g, w: fade <= 0 ? 1 : 0, velocity: 0, target: 1, rate: 1 / Math.max(fade, 1e-3), base: speed }; this.active.set(name, a); }
     a.target = 1; a.rate = 1 / Math.max(fade, 1e-3); a.base = speed;
-    g.stop();
-    g.start(o.loop ?? false, speed * this.timeScale, g.from + (o.from ?? 0) * (g.to - g.from), g.to);
+    if (!g.isPlaying || o.restart || o.from !== undefined) {
+      g.stop();
+      // Seeking must not shorten the range subsequently looped by Babylon.
+      g.start(o.loop ?? false, effectiveAnimationSpeed(speed, this.timeScale), g.from, g.to);
+      if (o.from !== undefined) g.goToFrame(g.from + Math.max(0, Math.min(1, o.from)) * (g.to - g.from));
+    }
+    if (o.from === undefined && phase !== undefined && !o.restart) this.seekPhase(name, g, phase);
     g.setWeightForAllAnimatables(a.w);
     this.current = name;
   }
@@ -56,17 +79,19 @@ export class Animator {
    */
   loco(walk: string, run: string, blend: number, rate: number, fade = .25): void {
     const gw = this.groups.get(walk), gr = this.groups.get(run); if (!gw || !gr) return;
-    const phaseOf = (g: AnimationGroup) => { const m = g.animatables[0]?.masterFrame; return m === undefined ? 0 : ((m - g.from) / Math.max(1e-3, g.to - g.from)) % 1; };
-    const lead = this.active.get(walk)?.g.isPlaying ? gw : this.active.get(run)?.g.isPlaying ? gr : null;
-    const phase = lead ? phaseOf(lead) : 0;
-    for (const [n, a] of this.active) if (n !== walk && n !== run) { a.target = 0; a.rate = 1 / fade; }
+    const phase = this.travelPhase() ?? (gw.isPlaying ? this.phase(walk, gw) : gr.isPlaying ? this.phase(run, gr) : 0);
+    const fadeRate = 1 / Math.max(fade, 1e-3);
+    for (const [n, a] of this.active) if (n !== walk && n !== run) { a.target = 0; a.rate = fadeRate; }
     for (const [name, g, w] of [[walk, gw, 1 - blend], [run, gr, blend]] as const) {
       let a = this.active.get(name);
+      if (!a && w <= 0) continue;
       if (!a || !g.isPlaying) {
-        if (!a) { a = { g, w: 0, target: w, rate: 1 / fade, base: 1 }; this.active.set(name, a); }
-        g.stop(); g.start(true, 1, g.from, g.to); g.goToFrame(g.from + phase * (g.to - g.from)); g.setWeightForAllAnimatables(a.w);
+        if (!a) { a = { g, w: 0, velocity: 0, target: w, rate: fadeRate, base: 1 }; this.active.set(name, a); }
+        g.stop(); g.start(true, 1, g.from, g.to); this.seekPhase(name, g, phase); g.setWeightForAllAnimatables(a.w);
+      } else if (this.current !== 'loco') {
+        this.seekPhase(name, g, phase);
       }
-      a.target = Math.max(0, Math.min(1, w)); a.rate = 1 / fade;
+      a.target = Math.max(0, Math.min(1, w)); a.rate = fadeRate;
       a.base = Math.max(.05, rate * clipLength(g)); g.speedRatio = effectiveAnimationSpeed(a.base, this.timeScale);
     }
     this.current = 'loco';
@@ -82,28 +107,45 @@ export class Animator {
     return best;
   }
 
-  private legs: { name: string; g: AnimationGroup; w: number; target: number; base: number } | null = null;
+  /** A clear travel leader only; mixed fades fall back to geometric contact detection. */
+  contactSource(): { name: string; frame: number } | null {
+    const legs = [...this.legLayers.values()];
+    const legWeight = legs.reduce((sum, layer) => sum + layer.w, 0);
+    const layers = legWeight > 1 ? legs.map(layer => [layer.name, layer] as const) : [...this.active.entries()];
+    const total = layers.reduce((sum, [, layer]) => sum + layer.w, 0);
+    for (const [name, layer] of layers) {
+      const frame = layer.g.animatables?.[0]?.masterFrame;
+      if (total > 0 && layer.w / total >= .65 && this.phases.has(name) && frame !== undefined) return { name, frame: frame - layer.g.from };
+    }
+    return null;
+  }
+
+  private legs: { name: string; g: AnimationGroup; w: number; velocity: number; target: number; base: number } | null = null;
+  private legLayers = new Map<string, NonNullable<Animator['legs']>>();
   /**
    * A legs-only layer over whatever is playing (strafe/backpedal while guarding or aiming). Its weight is
    * high so it dominates the leg bones; the upper body keeps the main clip. `null` fades it out.
    */
   legLayer(name: string | null, speed = 1): void {
+    for (const layer of this.legLayers.values()) layer.target = 0;
     if (name && this.legs?.name !== name) {
       const g = this.groups.get(`legs:${name}`); if (!g) return;
       // Direction changes should preserve the outgoing gait's normalized phase;
       // restarting at frame 0 is a visible foot pop when strafe/backpedal is
       // requested during an otherwise continuous move.
       const old = this.legs;
-      const oldFrame = old?.g.animatables[0]?.masterFrame;
-      const phase = oldFrame === undefined || !old ? 0 : ((((oldFrame - old.g.from) / Math.max(1e-3, old.g.to - old.g.from)) % 1) + 1) % 1;
-      // Animator owns one leg overlay slot. Stop the outgoing group here
-      // rather than leaving it orphaned when the slot is replaced; the new
-      // layer starts at zero weight and fades in over subsequent updates.
-      if (old) { old.target = 0; old.g.stop(); }
-      g.stop(); g.start(true, effectiveAnimationSpeed(speed, this.timeScale), g.from, g.to);
-      if (phase > 0 && typeof g.goToFrame === 'function') g.goToFrame(g.from + phase * (g.to - g.from));
-      g.setWeightForAllAnimatables(0);
-      this.legs = { name, g, w: 0, target: 6, base: speed };
+      const phase = old ? this.phase(old.name, old.g) : this.travelPhase() ?? 0;
+      // Retain ownership of outgoing layers until their fade finishes. Stopping
+      // immediately would expose the guard's static legs during every turn.
+      let layer = this.legLayers.get(name);
+      if (!layer) {
+        g.stop(); g.start(true, effectiveAnimationSpeed(speed, this.timeScale), g.from, g.to);
+        g.setWeightForAllAnimatables(0);
+        layer = { name, g, w: 0, velocity: 0, target: 6, base: speed };
+        this.legLayers.set(name, layer);
+      }
+      if (typeof g.goToFrame === 'function') this.seekPhase(name, g, phase);
+      layer.target = 6; layer.base = speed; this.legs = layer;
     } else if (name && this.legs) { this.legs.target = 6; this.legs.base = speed; this.legs.g.speedRatio = effectiveAnimationSpeed(speed, this.timeScale); }
     else if (!name && this.legs) this.legs.target = 0;
   }
@@ -111,24 +153,40 @@ export class Animator {
   setSpeed(speed: number): void { const a = this.active.get(this.current); if (a) { a.base = speed; a.g.speedRatio = effectiveAnimationSpeed(speed, this.timeScale); } }
 
   update(dt: number): void {
-    if (this.legs) {
-      const L = this.legs; L.w += Math.sign(L.target - L.w) * Math.min(Math.abs(L.target - L.w), dt * 12);
-      if (L.w <= 0 && L.target === 0) { L.g.stop(); this.legs = null; } else {
+    dt = Math.max(0, dt);
+    for (const [name, L] of this.legLayers) {
+      const omega = 40, delta = L.w - L.target, c = L.velocity + omega * delta, decay = Math.exp(-omega * dt);
+      L.w = Math.max(0, Math.min(6, L.target + (delta + c * dt) * decay));
+      L.velocity = (L.velocity - omega * c * dt) * decay;
+      if (Math.abs(L.w - L.target) < 1e-4 && Math.abs(L.velocity) < 1e-3) { L.w = L.target; L.velocity = 0; }
+      if (L.w <= 0 && L.target === 0) {
+        L.g.stop(); this.legLayers.delete(name); if (this.legs === L) this.legs = null;
+      } else {
         L.g.setWeightForAllAnimatables(L.w);
         L.g.speedRatio = effectiveAnimationSpeed(L.base, this.timeScale);
       }
     }
+    let total = 0;
     for (const [n, a] of this.active) {
-      a.w = a.target > a.w ? Math.min(a.target, a.w + a.rate * dt) : Math.max(a.target, a.w - a.rate * dt);
+      // Exact critically damped response: preserves weight velocity on interruption,
+      // and behaves the same at 30/60/120 Hz for a fixed target.
+      const omega = 6 * a.rate, delta = a.w - a.target, c = a.velocity + omega * delta, decay = Math.exp(-omega * dt);
+      a.w = Math.max(0, Math.min(1, a.target + (delta + c * dt) * decay));
+      a.velocity = (a.velocity - omega * c * dt) * decay;
+      if (Math.abs(a.w - a.target) < 1e-4 && Math.abs(a.velocity) < 1e-3) { a.w = a.target; a.velocity = 0; }
       if (a.w <= 0 && a.target === 0) { a.g.stop(); this.active.delete(n); continue; }
-      a.g.setWeightForAllAnimatables(a.w);
+      total += a.w;
+    }
+    for (const a of this.active.values()) {
+      // Partial interrupted fades otherwise expose the skeleton's bind pose.
+      a.g.setWeightForAllAnimatables(total > 1e-8 ? a.w / total : 0);
       a.g.speedRatio = effectiveAnimationSpeed(a.base, this.timeScale);
     }
   }
 
   stopAll(): void {
     for (const a of this.active.values()) a.g.stop();
-    if (this.legs) this.legs.g.stop();
-    this.active.clear(); this.legs = null; this.current = '';
+    for (const layer of this.legLayers.values()) layer.g.stop();
+    this.active.clear(); this.legLayers.clear(); this.legs = null; this.current = '';
   }
 }

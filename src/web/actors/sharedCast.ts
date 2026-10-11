@@ -3,6 +3,7 @@ import {SHARED_MOTION_NAMES} from '../arena/sharedMotionNames';
 import {TransformNode,type Scene} from '@babylonjs/core';
 import {ArenaAssets,HUMAN_SCALE,type CharacterInstance} from '../arena/assets';
 import {Animator} from '../arena/anim';
+import {contactHints,gaitPhases} from '../arena/gaitPhase';
 import {MOVESETS,RELAXED} from '../arena/combat';
 import {kaykitFallback} from '../arena/assets';
 import type {LookId} from '../arena/looks';
@@ -43,6 +44,7 @@ export class SharedVisual implements BodyVisual {
  private afterAnimation;
  private dt = 0; private yaw = 0; private active = true;
  private previousMode = ''; private hitSeq: number; private reaction = 0;
+ private travel = 'unarmed/walk_forward';
  constructor(private instance: CharacterInstance, body: BodyState, private atmosphere: Atmosphere, private assets: ArenaAssets) {
   // The shared arena meshes face +Z. The canonical body faces -Z at yaw zero.
   // Keep the half turn on a child so ActorManager can position/rotate its own root normally.
@@ -53,9 +55,9 @@ export class SharedVisual implements BodyVisual {
   this.hitSeq = body.hitSeq;
   this.plant = new FootPlant(instance);
   this.afterAnimation = this.root.getScene().onAfterAnimationsObservable.add(() => {
-   this.plant.update(this.dt, this.root.position.y, this.yaw, this.active); instance.springs?.update(this.dt);
+   this.plant.update(this.dt, this.root.position.y, this.yaw, this.active, contactHints(this.animator.contactSource(), assets.clips)); instance.springs?.update(this.dt);
   });
-  this.animator = new Animator(instance.anims);
+  this.animator = new Animator(instance.anims, gaitPhases(assets.clips));
   this.equipment = new EquipmentVisual(instance, body.presentationSex === 'f' ? 'female' : 'male');
   for (const mesh of instance.meshes) { mesh.receiveShadows = true; atmosphere.addCaster(mesh); }
  }
@@ -67,6 +69,7 @@ export class SharedVisual implements BodyVisual {
   const set = armed ? MOVESETS.sword : MOVESETS.fists;
   const clip = (name: string) => this.animator.has(name) ? name : kaykitFallback(name);
   const mode = sharedMotionMode(s);
+  if (s.speed > .08) this.travel = sharedTravelClip(s, this.travel);
   this.active = mode !== 'down' && mode !== 'action';
   if (body.hitSeq > this.hitSeq) this.reaction = .24;
   this.hitSeq = body.hitSeq; this.reaction = Math.max(0, this.reaction - this.dt);
@@ -80,11 +83,11 @@ export class SharedVisual implements BodyVisual {
   } else if (mode === 'guard') {
    this.animator.play(clip(set.guard), { loop: true });
    if (s.speed > .08) {
-    const name = sharedTravelClip(s), pace = this.pace(name, 1.5);
+    const name = this.travel, pace = this.pace(name, 1.5);
     this.animator.legLayer(name, Math.max(.1, s.speed / pace));
    }
   } else if (mode === 'move') {
-   const direction = sharedTravelClip(s);
+   const direction = this.travel;
    if (direction !== 'unarmed/walk_forward') {
     this.animator.play(clip(direction), { loop: true, speed: s.speed / this.pace(direction, 1.5), fade: .18 });
    } else {

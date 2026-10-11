@@ -1,0 +1,38 @@
+[
+  {
+    "name": "locomotion/walking",
+    "leftSupportPhase": 0.46744272916106233,
+    "frames": 65,
+    "fps": 60
+  },
+  {
+    "name": "locomotion/running",
+    "leftSupportPhase": 0.4556329842891933,
+    "frames": 45,
+    "fps": 60
+  },
+  {
+    "name": "unarmed/walk_forward",
+    "leftSupportPhase": 0.5249728647172862,
+    "frames": 71,
+    "fps": 60
+  },
+  {
+    "name": "unarmed/walk_backward",
+    "leftSupportPhase": 0.9039288642481953,
+    "frames": 74,
+    "fps": 60
+  },
+  {
+    "name": "unarmed/walk_strafe_left",
+    "leftSupportPhase": 0.16149896385772045,
+    "frames": 89,
+    "fps": 60
+  },
+  {
+    "name": "unarmed/walk_strafe_right",
+    "leftSupportPhase": 0,
+    "frames": 81,
+    "fps": 60
+  }
+]

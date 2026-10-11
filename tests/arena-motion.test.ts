@@ -71,6 +71,8 @@ describe('arena human motion clocks', () => {
     forward.animatables = [{ masterFrame: 30 }];
     animator.legLayer('strafe');
     expect(frames.at(-1)).toBeCloseTo(30);
-    expect(stops).toEqual([1, 1, 2]); // initial reset, owned outgoing stop, replacement reset
+    expect(stops).toEqual([1, 2]); // outgoing layer stays owned until its fade completes
+    animator.update(1);
+    expect(stops).toEqual([1, 2, 1]);
   });
 });

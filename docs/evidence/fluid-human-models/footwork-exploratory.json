@@ -1,0 +1,102 @@
+[
+  {
+    "on": false,
+    "bind": [
+      0.07441913282383439,
+      0.07441913282383439
+    ],
+    "vertices": 25112,
+    "segments": {
+      "warmup": {
+        "frames": 42,
+        "samples": 41,
+        "slip": 0.1447217291771177,
+        "maxStep": 0.00007906958416873235,
+        "lockFrames": 0,
+        "meanStanceSpeed": 0.0035297982726126267
+      },
+      "forward": {
+        "frames": 151,
+        "samples": 28,
+        "slip": 42.95349269257644,
+        "maxStep": 0.4914581379121355,
+        "lockFrames": 0,
+        "meanStanceSpeed": 1.5340533104491585
+      },
+      "strafe": {
+        "frames": 136,
+        "samples": 0,
+        "slip": 0,
+        "maxStep": 0.37592014317950045,
+        "lockFrames": 0,
+        "meanStanceSpeed": 0
+      },
+      "sharp-turn": {
+        "frames": 148,
+        "samples": 1,
+        "slip": 0.4844951383383119,
+        "maxStep": 0.18607246940893568,
+        "lockFrames": 0,
+        "meanStanceSpeed": 0.4844951383383119
+      },
+      "stop": {
+        "frames": 144,
+        "samples": 134,
+        "slip": 92.74089192203688,
+        "maxStep": 0.22229851054359107,
+        "lockFrames": 0,
+        "meanStanceSpeed": 0.6920962083734096
+      }
+    }
+  },
+  {
+    "on": true,
+    "bind": [
+      0.07441913282383439,
+      0.07441913282383439
+    ],
+    "vertices": 25112,
+    "segments": {
+      "warmup": {
+        "frames": 70,
+        "samples": 69,
+        "slip": 7.959065246865496,
+        "maxStep": 0.023344670268649913,
+        "lockFrames": 59,
+        "meanStanceSpeed": 0.11534877169370283
+      },
+      "forward": {
+        "frames": 148,
+        "samples": 12,
+        "slip": 11.970186532490256,
+        "maxStep": 0.5158038165826418,
+        "lockFrames": 17,
+        "meanStanceSpeed": 0.997515544374188
+      },
+      "strafe": {
+        "frames": 145,
+        "samples": 0,
+        "slip": 0,
+        "maxStep": 0.5019781888657856,
+        "lockFrames": 0,
+        "meanStanceSpeed": 0
+      },
+      "sharp-turn": {
+        "frames": 148,
+        "samples": 0,
+        "slip": 0,
+        "maxStep": 0.4315889845514066,
+        "lockFrames": 0,
+        "meanStanceSpeed": 0
+      },
+      "stop": {
+        "frames": 147,
+        "samples": 105,
+        "slip": 20.867299036088262,
+        "maxStep": 0.054266964446007815,
+        "lockFrames": 107,
+        "meanStanceSpeed": 0.1987361812960787
+      }
+    }
+  }
+]
