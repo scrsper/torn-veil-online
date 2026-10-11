@@ -1,0 +1,392 @@
+{
+  "initial": {
+    "position": [
+      29,
+      1,
+      32
+    ],
+    "velocity": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "yaw": -1.5707963267948966,
+    "innerYaw": 3.141592653589793,
+    "visual": {
+      "sharedLook": "wren",
+      "bodyId": "b_1",
+      "sex": "f"
+    },
+    "clip": "locomotion/idle",
+    "mode": "idle",
+    "locks": 2,
+    "actorCount": 6
+  },
+  "attack": [
+    {
+      "position": [
+        29,
+        1,
+        32
+      ],
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "yaw": -1.5707963267948966,
+      "innerYaw": 3.141592653589793,
+      "visual": {
+        "sharedLook": "wren",
+        "bodyId": "b_1",
+        "sex": "f"
+      },
+      "clip": "unarmed/jab_left",
+      "mode": "action",
+      "phase": "preparation",
+      "locks": 0,
+      "actorCount": 6
+    },
+    {
+      "position": [
+        29,
+        1,
+        32
+      ],
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "yaw": -1.5707963267948966,
+      "innerYaw": 3.141592653589793,
+      "visual": {
+        "sharedLook": "wren",
+        "bodyId": "b_1",
+        "sex": "f"
+      },
+      "clip": "unarmed/jab_left",
+      "mode": "action",
+      "phase": "preparation",
+      "locks": 0,
+      "actorCount": 6
+    },
+    {
+      "position": [
+        29,
+        1,
+        32
+      ],
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "yaw": -1.5707963267948966,
+      "innerYaw": 3.141592653589793,
+      "visual": {
+        "sharedLook": "wren",
+        "bodyId": "b_1",
+        "sex": "f"
+      },
+      "clip": "unarmed/jab_left",
+      "mode": "action",
+      "phase": "preparation",
+      "locks": 0,
+      "actorCount": 6
+    },
+    {
+      "position": [
+        29,
+        1,
+        32
+      ],
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "yaw": -1.5707963267948966,
+      "innerYaw": 3.141592653589793,
+      "visual": {
+        "sharedLook": "wren",
+        "bodyId": "b_1",
+        "sex": "f"
+      },
+      "clip": "unarmed/jab_left",
+      "mode": "action",
+      "phase": "preparation",
+      "locks": 0,
+      "actorCount": 6
+    },
+    {
+      "position": [
+        29,
+        1,
+        32
+      ],
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "yaw": -1.5707963267948966,
+      "innerYaw": 3.141592653589793,
+      "visual": {
+        "sharedLook": "wren",
+        "bodyId": "b_1",
+        "sex": "f"
+      },
+      "clip": "unarmed/jab_left",
+      "mode": "action",
+      "phase": "active",
+      "locks": 0,
+      "actorCount": 6
+    },
+    {
+      "position": [
+        29,
+        1,
+        32
+      ],
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "yaw": -1.5707963267948966,
+      "innerYaw": 3.141592653589793,
+      "visual": {
+        "sharedLook": "wren",
+        "bodyId": "b_1",
+        "sex": "f"
+      },
+      "clip": "unarmed/jab_left",
+      "mode": "action",
+      "phase": "active",
+      "locks": 0,
+      "actorCount": 6
+    },
+    {
+      "position": [
+        29,
+        1,
+        32
+      ],
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "yaw": -1.5707963267948966,
+      "innerYaw": 3.141592653589793,
+      "visual": {
+        "sharedLook": "wren",
+        "bodyId": "b_1",
+        "sex": "f"
+      },
+      "clip": "unarmed/jab_left",
+      "mode": "action",
+      "phase": "recovery",
+      "locks": 0,
+      "actorCount": 6
+    },
+    {
+      "position": [
+        29,
+        1,
+        32
+      ],
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "yaw": -1.5707963267948966,
+      "innerYaw": 3.141592653589793,
+      "visual": {
+        "sharedLook": "wren",
+        "bodyId": "b_1",
+        "sex": "f"
+      },
+      "clip": "unarmed/jab_left",
+      "mode": "action",
+      "phase": "recovery",
+      "locks": 0,
+      "actorCount": 6
+    },
+    {
+      "position": [
+        29,
+        1,
+        32
+      ],
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "yaw": -1.5707963267948966,
+      "innerYaw": 3.141592653589793,
+      "visual": {
+        "sharedLook": "wren",
+        "bodyId": "b_1",
+        "sex": "f"
+      },
+      "clip": "unarmed/jab_left",
+      "mode": "action",
+      "phase": "recovery",
+      "locks": 0,
+      "actorCount": 6
+    },
+    {
+      "position": [
+        29,
+        1,
+        32
+      ],
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "yaw": -1.5707963267948966,
+      "innerYaw": 3.141592653589793,
+      "visual": {
+        "sharedLook": "wren",
+        "bodyId": "b_1",
+        "sex": "f"
+      },
+      "clip": "locomotion/idle",
+      "mode": "idle",
+      "phase": "complete",
+      "locks": 0,
+      "actorCount": 6
+    }
+  ],
+  "recovered": {
+    "position": [
+      29,
+      1,
+      32
+    ],
+    "velocity": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "yaw": -1.5707963267948966,
+    "innerYaw": 3.141592653589793,
+    "visual": {
+      "sharedLook": "wren",
+      "bodyId": "b_1",
+      "sex": "f"
+    },
+    "clip": "locomotion/idle",
+    "mode": "idle",
+    "phase": "complete",
+    "locks": 2,
+    "actorCount": 6
+  },
+  "guard": {
+    "position": [
+      29.303984705063822,
+      1,
+      30.141115412862558
+    ],
+    "velocity": {
+      "x": 1.1916515844481523,
+      "y": 0,
+      "z": -3.1401626399964044
+    },
+    "yaw": -2.716019073885088,
+    "innerYaw": 3.141592653589793,
+    "visual": {
+      "sharedLook": "wren",
+      "bodyId": "b_1",
+      "sex": "f"
+    },
+    "clip": "unarmed/combat_idle",
+    "mode": "guard",
+    "phase": "complete",
+    "locks": 1,
+    "actorCount": 6
+  },
+  "walk": {
+    "position": [
+      28.31887682032137,
+      1,
+      28.85693857937484
+    ],
+    "velocity": {
+      "x": -2.621894439551369,
+      "y": 0,
+      "z": -2.0991246871484748
+    },
+    "yaw": 0.8956812709272072,
+    "innerYaw": 3.141592653589793,
+    "visual": {
+      "sharedLook": "wren",
+      "bodyId": "b_1",
+      "sex": "f"
+    },
+    "clip": "loco",
+    "mode": "move",
+    "phase": "complete",
+    "locks": 0,
+    "actorCount": 6
+  },
+  "run": {
+    "position": [
+      27.674327770598328,
+      1,
+      28.34090376045084
+    ],
+    "velocity": {
+      "x": -4.0639363813046,
+      "y": 0,
+      "z": -3.253643265080157
+    },
+    "yaw": 0.8956812709272072,
+    "innerYaw": 3.141592653589793,
+    "visual": {
+      "sharedLook": "wren",
+      "bodyId": "b_1",
+      "sex": "f"
+    },
+    "clip": "loco",
+    "mode": "move",
+    "phase": "complete",
+    "locks": 1,
+    "actorCount": 6
+  },
+  "contact": {
+    "before": 80,
+    "after": 60.18433339994061,
+    "hitSeq": 1
+  },
+  "town": {
+    "position": [
+      40.5,
+      14,
+      96.5
+    ],
+    "velocity": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "yaw": 0,
+    "innerYaw": 3.141592653589793,
+    "visual": {
+      "sharedLook": "brann",
+      "bodyId": "b_42",
+      "sex": "m"
+    },
+    "clip": "locomotion/idle",
+    "mode": "idle",
+    "locks": 1,
+    "actorCount": 12
+  },
+  "errors": []
+}

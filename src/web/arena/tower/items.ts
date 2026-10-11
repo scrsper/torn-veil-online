@@ -1,6 +1,7 @@
 import type { WeaponId } from '../combat';
 import type { Element, Style } from './capability';
 import { BOOKS, ESSENCES, FOE_ESSENCE, SCROLLS, cloneSkill, type Essence, type SkillDef } from './skills';
+import { ALL_ELEMENTS, ALL_FORMS, ELEMENT_INFO, FORMS, POTIONS, type Form, type PotionKind } from '../magic';
 
 /**
  * Tower loot, Diablo-style: every weapon, armour and charm rolls a rarity, random affixes scaled by the
@@ -33,7 +34,11 @@ export type Item =
   | { kind: 'book'; id: string; name: string; element: Element; skill: SkillDef }
   | { kind: 'scroll'; id: string; name: string; skill: SkillDef }
   | { kind: 'essence'; id: string; name: string; essence: Essence }
-  | { kind: 'potion'; id: string; name: string; heal: number };
+  | { kind: 'potion'; id: string; name: string; heal: number }
+  /** Magic: a treatise teaches a form; a runestone imbues the drawn weapon for good; elixirs go on the belt (V). */
+  | { kind: 'treatise'; id: string; name: string; form: Form }
+  | { kind: 'rune'; id: string; name: string; element: Element }
+  | { kind: 'elixir'; id: string; name: string; potion: PotionKind; element?: Element };
 export type Gear = Extract<Item, { kind: 'weapon' | 'armor' | 'charm' }>;
 
 const W = (id: string, name: string, slot: WeaponId, mesh: string, style: Style, hand: 'r' | 'l' = 'r') => ({ id, name, slot, mesh: `W_${mesh}`, style, hand });
@@ -51,7 +56,7 @@ export const WEAPON_BASES = [
 /** Every arsenal mesh the tower may need loaded. */
 export const ARSENAL_KEYS = [...new Set(WEAPON_BASES.map(w => w.mesh.slice(2))), 'night-thorn', 'elderroot', 'codex-of-the-veil'];
 
-export const ELEMENT_COLOR: Record<Element, string> = { flame: '#ff7a2e', frost: '#8fdcff', storm: '#c9a4ff', swift: '#b8ffcf', iron: '#c0c6cf', shadow: '#8a6aa8', verdance: '#7fd36b' };
+export const ELEMENT_COLOR: Record<Element, string> = { flame: '#ff7a2e', frost: '#8fdcff', storm: '#b9a4ff', swift: '#c8ffe0', iron: '#c9a77a', shadow: '#9a6ad0', verdance: '#7fd36b', water: '#4aa8ff', gravity: '#7a5cff', time: '#ffd76a' };
 const ARMORS = ['Padded Jerkin', 'Leather Brigandine', 'Riveted Hauberk', 'Lamellar Coat', 'Wardplate'];
 const CHARMS = ['Bone Charm', 'Iron Ring', 'Amber Amulet', 'Saint’s Knuckle', 'Veil Locket'];
 
@@ -68,7 +73,7 @@ const AFFIX: Record<string, { lo: number; hi: number; word: [string, string]; fm
   thorns: { lo: .04, hi: .09, word: ['Barbed', 'of Thorns'], fmt: v => `${pct(v)} damage reflected` },
   flask: { lo: 1, hi: 1, word: ['Brewer’s', 'of Plenty'], fmt: () => '+1 flask charge' },
 };
-const ELEMENT_WORD: Record<Element, [string, string]> = { flame: ['Smouldering', 'of Embers'], frost: ['Rimed', 'of Winter'], storm: ['Thundering', 'of Storms'], swift: ['Galeborn', 'of Wind'], iron: ['Ironbound', 'of the Anvil'], shadow: ['Gloaming', 'of Night'], verdance: ['Verdant', 'of Spring'] };
+const ELEMENT_WORD: Record<Element, [string, string]> = { flame: ['Smouldering', 'of Embers'], frost: ['Rimed', 'of Winter'], storm: ['Thundering', 'of Storms'], swift: ['Galeborn', 'of Wind'], iron: ['Ironbound', 'of the Anvil'], shadow: ['Gloaming', 'of Night'], verdance: ['Verdant', 'of Spring'], water: ['Tidal', 'of the Deep'], gravity: ['Heavy', 'of the Abyss'], time: ['Timeless', 'of Ages'] };
 const CAP: Partial<Record<string, number>> = { crit: .5, cdr: .45, armor: .5, leech: .08 };
 const pct = (v: number, d = 0) => `${(v * 100).toFixed(d)}%`;
 
@@ -141,6 +146,26 @@ export function rollScroll(rnd: () => number): Item {
   const s = SCROLLS[Math.floor(rnd() * SCROLLS.length)];
   return { kind: 'scroll', id: `scroll#${++serial}`, name: s.name, skill: cloneSkill(s) };
 }
+export function rollTreatise(rnd: () => number, known: string[] = []): Item {
+  const left = ALL_FORMS.filter(f => !known.includes(f)), pool = left.length ? left : ALL_FORMS;
+  const f = pool[Math.floor(rnd() * pool.length)];
+  return { kind: 'treatise', id: `treatise#${++serial}`, name: FORMS[f].treatise, form: f };
+}
+/** Time is not found lying about the tower: only its god teaches it. */
+const FOUND = ALL_ELEMENTS.filter(e => e !== 'time');
+export function rollElementTome(rnd: () => number): Item {
+  const e = FOUND[Math.floor(rnd() * FOUND.length)];
+  return { kind: 'book', id: `book#${++serial}`, name: BOOKS[e].title, element: e, skill: cloneSkill(BOOKS[e].skill) };
+}
+export function rollRune(rnd: () => number): Item {
+  const e = FOUND[Math.floor(rnd() * FOUND.length)];
+  return { kind: 'rune', id: `rune#${++serial}`, name: `Runestone of ${ELEMENT_INFO[e].name}`, element: e };
+}
+export function rollElixir(rnd: () => number): Item {
+  const ks = Object.keys(POTIONS) as PotionKind[], k = ks[Math.floor(rnd() * ks.length)];
+  if (k === 'elemental') { const e = FOUND[Math.floor(rnd() * FOUND.length)]; return { kind: 'elixir', id: `elixir#${++serial}`, name: `Elixir of ${ELEMENT_INFO[e].name}`, potion: k, element: e }; }
+  return { kind: 'elixir', id: `elixir#${++serial}`, name: POTIONS[k].name, potion: k };
+}
 export function essenceItem(e: Essence): Item { return { kind: 'essence', id: `essence#${++serial}`, name: `${ESSENCES[e].name} Essence`, essence: e }; }
 
 export type Source = 'enemy' | 'elite' | 'chest' | 'boss' | 'box';
@@ -156,9 +181,12 @@ export function rollLoot(floor: number, rnd: () => number, source: Source, foeKi
   for (let i = 0; i < n; i++) {
     if (rnd() > chance) continue;
     const r = rnd();
-    if (r < .55) out.push(rollGear(floor, rnd, bonus));
-    else if (r < .7) out.push(rollBook(rnd));
-    else if (r < .85) out.push(rollScroll(rnd));
+    if (r < .44) out.push(rollGear(floor, rnd, bonus));
+    else if (r < .56) out.push(rollElementTome(rnd));
+    else if (r < .66) out.push(rollTreatise(rnd));
+    else if (r < .74) out.push(rollScroll(rnd));
+    else if (r < .88) out.push(rollElixir(rnd));
+    else if (r < .92) out.push(rollRune(rnd));
     else out.push({ kind: 'potion', id: `potion#${++serial}`, name: 'Draught of Mending', heal: .35 });
   }
   // Essences: rare from the rank and file, likely from bosses; always in the best boxes.

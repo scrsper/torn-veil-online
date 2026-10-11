@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { CommandQueue, type CommandEnvelope } from '../src/bridge/commands';
 import { INTERACTION_SPEC, predictMovement, type CollisionColumn, type MovementState } from '../src/sim/physical/prediction';
 import { requestDefense } from '../src/sim/physical/combatAction';
+import { EXERTION_POLICY } from '../src/sim/physical/exertion';
 import { createTestWorld, addPerson, v } from './helpers/world';
 
 const binding = { epoch: 'e1', controllerId: 'c1', bodyId: 'b1' };
@@ -10,6 +11,27 @@ function command(sequence: number, body: CommandEnvelope['command'] = { type: 'm
 }
 
 describe('realtime command protocol', () => {
+  it('cancels obsolete movement under congestion without crossing an action barrier or multiplying movement',()=>{
+    const q=new CommandQueue(binding.epoch,binding.controllerId,binding.bodyId),executed:string[]=[];
+    q.receive(command(0,{type:'interact',interactionId:'take'}),0,0);
+    for(let i=1;i<40;i++)expect(q.receive(command(i),0,i).status).toBe('received');
+    expect(q.receive(command(40,{type:'attack'}),0,40).status).toBe('received');
+    const receipts=q.apply(1,41,c=>{executed.push(c.type);return 'accepted';});
+    expect(executed[0]).toBe('interact');expect(executed.filter(c=>c==='move')).toHaveLength(1);
+    expect(executed).toContain('attack');expect(receipts.some(r=>r.status==='cancelled'&&r.result==='superseded_movement')).toBe(true);
+    expect(q.receive(command(1),1,42).status).toBe('cancelled');
+    expect(q.size).toBeLessThan(8);
+  });
+  it('round-trips a congested queue with stable ids, barriers and at-most-once actions',()=>{
+    const q=new CommandQueue(binding.epoch,binding.controllerId,binding.bodyId);
+    for(let i=0;i<15;i++)q.receive(command(i),0,i);
+    q.receive(command(15,{type:'container_transfer',containerId:'chest',itemId:'reward',direction:'out'}),0,15);
+    const copy=CommandQueue.restore(q.checkpoint()),actions:string[]=[];
+    while(copy.size)copy.apply(1,20,c=>{actions.push(c.type);return 'accepted';});
+    expect(actions.filter(x=>x==='container_transfer')).toHaveLength(1);
+    expect(copy.receive(command(15,{type:'container_transfer',containerId:'chest',itemId:'reward',direction:'out'}),1,21).status).toBe('applied');
+    expect(copy.apply(2,22,()=>{throw Error('duplicate executed');})).toEqual([]);
+  });
   it('validates facing and deduplicates a held posture press through the ordinary ledger',()=>{
     const q=new CommandQueue(binding.epoch,binding.controllerId,binding.bodyId);
     const held=command(0,{type:'crouch',held:true}),execute=vi.fn(()=>'accepted');
@@ -139,7 +161,8 @@ describe('deterministic interaction movement prediction', () => {
     const beforeFatigue = p.physiology.fatigue, beforeEvents = tw.world.events.filter(e => e.type === 'combat_action').length;
     expect(requestDefense(tw.world, b.id, 'sidestep', 1, 'defense-once')).toBe('accepted');
     expect(requestDefense(tw.world, b.id, 'backstep', 1, 'defense-duplicate')).toBe('cooldown');
-    expect(p.physiology.fatigue - beforeFatigue).toBeCloseTo(INTERACTION_SPEC.defenseEffort);
+    expect(b.exertion!.load).toBeCloseTo(INTERACTION_SPEC.defenseEffort * EXERTION_POLICY.burstScale, 10);
+    expect(p.physiology.fatigue).toBeGreaterThan(beforeFatigue);
     expect(tw.world.events.filter(e => e.type === 'combat_action').length - beforeEvents).toBe(3);
   });
 });

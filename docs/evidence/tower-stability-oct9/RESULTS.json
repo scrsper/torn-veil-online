@@ -1,0 +1,146 @@
+{
+  "runtimeCommit": "89ed176d95bcb0a38e29a42bdd7a5ed0dda2711c",
+  "baseCommit": "53c98b12ca6fa6a81da732ebabcc2d5201a0cac6",
+  "branch": "codex/connected-realms",
+  "node": "v22.23.2",
+  "aggregate": {
+    "status": "passed",
+    "passed": 2120,
+    "failed": 0,
+    "files": 213,
+    "durationSeconds": 1877.6,
+    "exitCode": 0,
+    "path": ".debug/tower-stability/aggregate-guard-final.json"
+  },
+  "focused": {
+    "passed": 50,
+    "failed": 0,
+    "files": 5
+  },
+  "typecheck": "passed",
+  "webBuild": "passed",
+  "rendered": {
+    "checks": [
+      {
+        "name": "loaded earned completed Silver summit",
+        "ok": true
+      },
+      {
+        "name": "idle client emits no movement/guard command traffic",
+        "ok": true
+      },
+      {
+        "name": "six repeated durable saves acknowledged",
+        "ok": true
+      },
+      {
+        "name": "background full checkpoint completes while the host remains live",
+        "ok": true
+      },
+      {
+        "name": "summit reload retained run and body",
+        "ok": true
+      },
+      {
+        "name": "reload cancelled uncommitted portal without moving identity",
+        "ok": true
+      },
+      {
+        "name": "Cinderveil retains completed summit without a new run or reward",
+        "ok": true
+      },
+      {
+        "name": "summit portal round trip preserves exact person inventory rank and body",
+        "ok": true
+      },
+      {
+        "name": "no browser errors",
+        "ok": true
+      }
+    ],
+    "backgroundFrames": {
+      "count": 3685,
+      "p50": 8.700000047683716,
+      "p95": 14.099999904632568,
+      "max": 190.79999995231628
+    },
+    "traversalFrames": {
+      "count": 5934,
+      "p50": 7,
+      "p95": 29.90000009536743,
+      "max": 133
+    },
+    "browserSaveAckMs": {
+      "count": 6,
+      "p50": 45.700000047683716,
+      "p95": 61.89999985694885,
+      "max": 61.89999985694885
+    },
+    "backgroundServerSteps": {
+      "count": 351,
+      "p50": 1.4153000000078464,
+      "p95": 5.6318000000028405,
+      "max": 199.89500000000407
+    },
+    "traversalServerSteps": {
+      "count": 524,
+      "p50": 1.4953000000095926,
+      "p95": 5.774600000004284,
+      "max": 25.36009999999078
+    },
+    "backgroundReceipts": 40,
+    "retainedTraversalReceipts": 600,
+    "hostRSS": 2456940544,
+    "browserHeap": 283450181
+  },
+  "artifacts": [
+    {
+      "path": ".debug/tower-stability/summit-browser-final/01-earned-silver-summit.png",
+      "bytes": 1802823,
+      "sha256": "f45d104bccf8dc1d51dd6bbab10fc4c1afee06088d1090a5f34874ba078ac48f"
+    },
+    {
+      "path": ".debug/tower-stability/summit-browser-final/02-background-checkpoint-live.png",
+      "bytes": 1792079,
+      "sha256": "e0d3c29bfa13792a83ae3ac8ee85832fa84751d1ca61ebc58d555199d00f6195"
+    },
+    {
+      "path": ".debug/tower-stability/summit-browser-final/02-summit-return-to-city.png",
+      "bytes": 929548,
+      "sha256": "08f39e8d2f9c0476f1d612801886449a09b536b954edf98f53092847ba7318af"
+    },
+    {
+      "path": ".debug/tower-stability/summit-browser-final/03-summit-record-in-cinderveil.png",
+      "bytes": 588632,
+      "sha256": "8da172b810da1180e93a278e3db97c6422223bf3288f939ee4321b20fd61aab4"
+    },
+    {
+      "path": ".debug/tower-stability/summit-browser-final/04-silver-returned-to-aether.png",
+      "bytes": 602140,
+      "sha256": "3c87aadf290536c9c8d5b2331a5711a428bfe00e3f26c81a3e4d436e5006003a"
+    },
+    {
+      "path": ".debug/tower-stability/summit-browser-final/actual-persistence-summit-journey.webm",
+      "bytes": 17357384,
+      "sha256": "9c17c8bb6ff446894136ba1d35bc64675e6ad54d0a2bd1421c2ff272022f03e8"
+    },
+    {
+      "path": ".debug/tower-stability/summit-browser-final/actual-persistence-summit-journey.mp4",
+      "bytes": 49076897,
+      "sha256": "59433c074c129a403ed497e498f38bc42638e21d881b611e88424bd9f6977239"
+    }
+  ],
+  "measurementCommit": "7efb13c4eb06ab30aecea99dc41cbe1a3437a39d",
+  "measurementScope": "The follow-up only broadens source/runtime fingerprinting; simulation, renderer, compression and operation execution are unchanged.",
+  "mp4": {
+    "codec": "h264",
+    "width": 1440,
+    "height": 900,
+    "durationSeconds": 122.2,
+    "bytes": 49076897,
+    "source": "actual-persistence-summit-journey.webm",
+    "playbackSpeedChanged": false,
+    "verificationFrameSeconds": 35,
+    "visualInspection": "passed"
+  }
+}

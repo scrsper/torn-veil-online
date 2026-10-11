@@ -6,6 +6,7 @@ import type { RegionManager } from '../world/regionManager';
 import type { RenderContext } from '../render/engine';
 import type { BodyState, CombatActionState, SnapshotMessage, Vec3, WildlifeBody } from '../net/messages';
 import type { CombatContext } from './combatPose';
+import { facingBody } from './projectedAttention';
 
 /**
  * Every visible body (people, wildlife) as a scene actor. This layer owns motion smoothing,
@@ -17,6 +18,8 @@ import type { CombatContext } from './combatPose';
  */
 export interface BodyVisual {
   root: TransformNode;
+  /** Imported animation support phases provide footfall events. */
+  readonly contactFootfalls?: boolean;
   update(dt: number, state: ActorState): void;
   headHeight: number;
   dispose(): void;
@@ -102,7 +105,7 @@ export class ActorManager {
       if (b.speech && b.speech !== a.body?.speech) a.speechAt = nowMs; else if (!b.speech) a.speechAt = 0;
       if (b.guarding && !a.lastGuarding) a.guardSince = nowMs; a.lastGuarding = !!b.guarding;
       const contact = b.combatAction?.contact;
-      if (contact && b.combatAction!.outcome === 'hit' && !this.seenContacts.has(contact.eventId)) {
+      if (contact?.eventId && b.combatAction!.outcome === 'hit' && !this.seenContacts.has(contact.eventId)) {
         this.seenContacts.add(contact.eventId); if (this.seenContacts.size > 256) this.seenContacts.delete(this.seenContacts.values().next().value!);
         // Only a fresh contact draws feedback; a snapshot taken after a reconnect may carry an old one.
         if (Math.abs((this.env?.physicalNow() ?? 0) - contact.at) < 1.2) this.env?.onContact?.(contact.position, contact.bodyId === ownBodyId);
@@ -142,15 +145,21 @@ export class ActorManager {
 
   /** Start local anticipation for the controlled body the instant a combat command is sent. */
   predict(bodyId: string, p: PredictedCombat): void { const a = this.actors.get(bodyId); if (a) a.predicted = p; }
+  /** Use high-rate canonical feedback so queued input cannot replace a live strike pose. */
+  applyLocalCombat(bodyId: string, action: CombatActionState | null, bufferedCommandId: string | null): void {
+    const a = this.actors.get(bodyId); if (!a) return;
+    if (a.body) a.body.combatAction = action;
+    if (a.predicted && (a.predicted.commandId === action?.commandId || a.predicted.commandId === bufferedCommandId)) a.predicted = null;
+  }
   cancelPredicted(bodyId: string, commandId: string): void { const a = this.actors.get(bodyId); if (a?.predicted?.commandId === commandId) a.predicted = null; }
 
   private combatFor(a: Actor, nowMs: number, physNow: number): CombatContext | null {
     const act = a.body?.combatAction;
-    if (a.predicted) {
+    if (a.predicted && !(act && act.commandId !== a.predicted.commandId && !['complete', 'cancelled', 'interrupted'].includes(act.phase) && physNow < act.completeAt)) {
       const p = a.predicted, age = (nowMs - p.startedAtMs) / 1000, total = p.prep + p.active + p.recovery;
       if (age > total + 0.05) { a.predicted = null; } else return { moveId: p.moveId, weight: p.weight, age, prep: p.prep, active: p.active, recovery: p.recovery, dirLocal: p.dirLocal, side: p.side, predicted: true };
     }
-    if (act && !['complete', 'cancelled', 'missed'].includes(act.phase)) {
+    if (act && !['complete', 'cancelled', 'missed', 'interrupted'].includes(act.phase)) {
       const age = physNow - act.startedAt, total = act.completeAt - act.startedAt;
       if (age >= -0.05 && age <= total + 0.1) {
         const yaw = act.yaw ?? a.yaw, fx = -Math.sin(yaw), fz = -Math.cos(yaw), lx = -Math.cos(yaw), lz = Math.sin(yaw);
@@ -188,8 +197,14 @@ export class ActorManager {
         if (isOwn) lookAt = env?.playerLook() ?? (speaker ? this.headPoint(speaker, new Vector3()) : null);
         else if (speaker && a.id === speaker) lookAt = playerHead;
         else {
-          const partner = a.body?.embodiment?.conversation, faced = a.body?.embodiment?.activity.facingEntityId;
-          if ((partner || faced) && playerHead && Math.hypot(a.pos.x - (this.actors.get(player)?.pos.x ?? 0), a.pos.z - (this.actors.get(player)?.pos.z ?? 0)) < 8) lookAt = playerHead;
+          const formation = a.body?.embodiment?.conversation;
+          const target = facingBody(a, a.body?.embodiment?.activity.facingEntityId, this.actors.values());
+          if (target) lookAt = this.headPoint(target, new Vector3());
+          else if (formation && Number.isFinite(formation.yaw)) {
+            // A projected conversation ring supplies an inward heading, not a
+            // partner identity. Preserve that direction instead of staring at the player.
+            lookAt = new Vector3(r.position.x - Math.sin(formation.yaw) * 2, r.position.y + a.visual.headHeight * .85, r.position.z - Math.cos(formation.yaw) * 2);
+          }
         }
       }
       a.hitK *= Math.exp(-5 * dt);

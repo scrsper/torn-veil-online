@@ -1,0 +1,64 @@
+{
+  "records": [
+    {
+      "label": "before-c98207a-r2",
+      "result": "passed",
+      "gpu": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "checks": [
+        "ordinary bound commands were applied",
+        "existing motion-capture assets loaded",
+        "one hero and five canonical partners rendered",
+        "canonical contact was observed"
+      ],
+      "errors": [],
+      "timingMs": {
+        "p50": 6.900000095367432,
+        "p95": 7.1000001430511475,
+        "p99": 7.5,
+        "serverP95": 0.9672000000027765
+      },
+      "heapBytes": 382339299,
+      "meshes": 261,
+      "materials": 95,
+      "textures": 63,
+      "firstCapture": "2026-10-09T05:32:50.704Z",
+      "video": ".debug/motion-oct9/before-c98207a-r2/before-c98207a-r2-gameplay.webm",
+      "videoSha256": "246dd6a8197433b3c9c98a412f6866fbdbbbd926629db9c25106389fc5fb706a",
+      "scenario": "isolated canonical fixture, same command sequence; no ordinary player save",
+      "raw": ".debug/motion-oct9/before-c98207a-r2/result.json"
+    },
+    {
+      "label": "after-contact-r2",
+      "result": "passed",
+      "gpu": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "checks": [
+        "ordinary bound commands were applied",
+        "existing motion-capture assets loaded",
+        "one hero and five canonical partners rendered",
+        "canonical contact was observed"
+      ],
+      "errors": [],
+      "timingMs": {
+        "p50": 6.900000095367432,
+        "p95": 7.1000001430511475,
+        "p99": 7.5,
+        "serverP95": 1.1913999999960652
+      },
+      "heapBytes": 380255472,
+      "meshes": 261,
+      "materials": 95,
+      "textures": 63,
+      "firstCapture": "2026-10-09T05:48:51.760Z",
+      "video": ".debug/motion-oct9/after-contact-r2/after-contact-r2-gameplay.webm",
+      "videoSha256": "3f752b8e973d6c52eb1cba30add5daf377e8c2ce1ce2d9bd54a2b22e4228c496",
+      "scenario": "isolated canonical fixture, same command sequence; no ordinary player save",
+      "raw": ".debug/motion-oct9/after-contact-r2/result.json"
+    }
+  ],
+  "limits": [
+    "Short refresh-limited capture, no controlled GPU benchmark",
+    "Five partners use explicit fixture inputs; production uses perception-backed attack plans",
+    "No Opus candidate installed",
+    "Prototype Tower Fighter remains a separate checkpoint-scoped combat path"
+  ]
+}

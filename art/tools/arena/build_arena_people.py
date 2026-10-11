@@ -11,6 +11,7 @@ Each person gets MPFB's 'game_engine' rig (UE-mannequin bone names), GAMEENGINE 
 downscaled for the web, and is exported as <out_dir>/<id>.glb.
 """
 import bpy, sys, os, json
+from mathutils.bvhtree import BVHTree
 from bl_ext.blender_org.mpfb.services import HumanService
 
 argv = sys.argv[sys.argv.index('--') + 1:]
@@ -47,6 +48,46 @@ PEOPLE = {
 }
 
 report = {}
+
+
+def fit_trousers(basemesh):
+    """Hide covered skin when a community trouser asset omits its delete mask.
+
+    Use the fitted garment surface, not a gender-specific body index list. Keep
+    the open cuffs/waist visible and do not remove skin outside the garment.
+    MPFB's interpolated rig weights remain the source for both surfaces.
+    """
+    repairs = []
+    for garment in [o for o in bpy.data.objects if o.type == 'MESH' and 'pants' in o.name]:
+        garment.data.update()
+        vertices = [v.co.copy() for v in garment.data.vertices]
+        surface = BVHTree.FromPolygons(vertices, [list(p.vertices) for p in garment.data.polygons])
+        lower, upper = min(v.z for v in vertices), max(v.z for v in vertices)
+        body_group = basemesh.vertex_groups.get('body')
+        covered = []
+        for vertex in basemesh.data.vertices:
+            if not body_group or not any(g.group == body_group.index and g.weight > .5 for g in vertex.groups): continue
+            if not lower + .015 < vertex.co.z < upper - .006: continue
+            nearest, normal, _, distance = surface.find_nearest(vertex.co)
+            # Loose crotch/seat panels can sit farther from skin than the legs.
+            # Their nearest normal is not a reliable inside test at concave seams.
+            if nearest is not None and distance < .09:
+                covered.append(vertex.index)
+        # Even authored masks benefit from fitted coverage on changed phenotypes.
+        name = 'Delete.fitted_' + garment.name.rsplit('.', 1)[-1]
+        group = basemesh.vertex_groups.new(name=name)
+        if covered: group.add(covered, 1.0, 'REPLACE')
+        modifier = basemesh.modifiers.new(name=name, type='MASK')
+        modifier.vertex_group = group.name
+        modifier.invert_vertex_group = True
+        # A small outward allowance prevents seam skin from grazing the fabric.
+        for vertex in garment.data.vertices:
+            vertex.co += vertex.normal * .003
+        repairs.append({'garment': garment.name, 'covered_body_vertices': len(covered),
+                        'clearance_m': .003, 'waist_margin_m': .006, 'cuff_margin_m': .015})
+    return repairs
+
+
 for pid, spec in PEOPLE.items():
     if ONLY and pid not in ONLY: continue
     bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -62,6 +103,7 @@ for pid, spec in PEOPLE.items():
     basemesh = HumanService.deserialize_from_dict(info, settings)
     rig = basemesh.parent if basemesh.parent and basemesh.parent.type == 'ARMATURE' else next(o for o in bpy.data.objects if o.type == 'ARMATURE')
     rig.name = 'Armature'
+    trouser_repairs = fit_trousers(basemesh)
     for o in bpy.data.objects:
         if o.type != 'MESH': continue
         for m in o.modifiers:
@@ -74,6 +116,13 @@ for pid, spec in PEOPLE.items():
             if n.type == 'BSDF_PRINCIPLED':
                 for l in list(n.inputs['Alpha'].links): m.node_tree.links.remove(l)
                 n.inputs['Alpha'].default_value = 1.0
+                # MPFB's generic .5 roughness makes wool and tunics read as
+                # shiny plastic in both EEVEE and the web PBR renderer.
+                fabric = any(k in m.name.lower() for k in ('pants', 'tunic', 'lusekofta', 'sweater', 'blouse', 'robe'))
+                leather = any(k in m.name.lower() for k in ('boots', 'gloves'))
+                if fabric or leather:
+                    for link in list(n.inputs['Roughness'].links): m.node_tree.links.remove(link)
+                    n.inputs['Roughness'].default_value = .88 if fabric else .72
         try: m.surface_render_method = 'DITHERED'
         except Exception: pass
     # Web-sized textures.
@@ -89,6 +138,11 @@ for pid, spec in PEOPLE.items():
     bpy.ops.export_scene.gltf(filepath=path, export_format='GLB', use_selection=True, export_apply=True, export_yup=True,
                               export_animations=False, export_influence_nb=4, export_image_format='AUTO')
     meshes = [o.name for o in bpy.data.objects if o.type == 'MESH']
-    report[pid] = {'meshes': meshes, 'bones': len(rig.data.bones), 'height_m': round(basemesh.dimensions.z, 3), 'bytes': os.path.getsize(path), 'assets': spec}
+    report[pid] = {'meshes': meshes, 'bones': len(rig.data.bones), 'height_m': round(basemesh.dimensions.z, 3), 'bytes': os.path.getsize(path), 'assets': spec, 'trouser_fit': trouser_repairs, 'garment_roughness': {'fabric': .88, 'leather': .72}}
     print(f'[people] {pid}: {len(meshes)} meshes, {len(rig.data.bones)} bones, {os.path.getsize(path) / 1e6:.1f} MB')
-json.dump(report, open(os.path.join(OUT, 'people.json'), 'w'), indent=1)
+receipt_path = os.path.join(OUT, 'people.json')
+if ONLY and os.path.exists(receipt_path):
+    with open(receipt_path) as source: previous = json.load(source)
+    previous.update(report)
+    report = previous
+with open(receipt_path, 'w') as receipt: json.dump(report, receipt, indent=1)

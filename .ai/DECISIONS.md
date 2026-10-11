@@ -1,5 +1,66 @@
 # Durable design decisions
 
+## Earned source capacity and bounded Tower residency (2026-10-09)
+
+An authored essence route changes physical amplitude, aperture and reserve only
+after real learned-source demonstrations, distinct opposed victories and finite
+material consumption. It cannot fabricate calendar practice, heal injuries, import
+legacy expedition XP or make a rank label win a fight. Shared player/NPC hit and
+source paths record the receipts; saves validate and pin their causal provenance.
+The existing embodied Iron route and every higher ontology label remain distinct.
+The current source classifications do not yet prove regional/national strategic power.
+
+Summit recognition requires earned Silver rather than granting it. Gold has a
+separate demanding encounter-control gate, whose human rarity is unmeasured. The
+bounded lifetime ledger and weak-opponent contribution are explicit prototype limits;
+production mastery needs further receipt-preserving design and exploit calibration.
+
+Cleared remote floor residents stay alive and canonical. Detailed cognition and
+physics select the current floor; one remote floor receives coarse needs/recovery
+per world minute. Coarse work cannot invent practice or combat. Cache invalidation
+includes canonical index array identity, not only population counts. Other global
+work/history still grows, so this does not establish a populated-megacity budget.
+
+Final evidence separates mechanical fixtures, accelerated retained input histories,
+actual rendered controls and observed host samples. No human pacing, Gold frequency
+or visual-reference equivalence is inferred from test success. See the growth report.
+
+## Shared Tower and recovery policy (2026-10-09)
+
+A canonical Tower run binds existing identity, geometry and causal receipts; it never
+clones a progression sheet. Trial participants consent through a source event and
+retain ordinary perception, motives and bodily limits. Defeats retire participants
+and transfer ownership of finite authored reserves once. Legacy rewards remain scoped.
+
+The approved pacing repair separates saved short exertion from cumulative physiology.
+Players and NPCs share action costs, commitment delays and reserve recovery. Recovery
+never heals injury/HP or creates resources. Authored policy constants and observed
+before/after evidence live in docs/CANONICAL_TOWER_OCT9.md; multi-hour and higher-rank
+claims require new evidence. Remote geometry caching is not remote brain scheduling.
+
+
+## Connected-world shared mechanics (2026-10-09)
+
+The user approved the larger canonical mechanics route. Legacy Tower sheets stay
+checkpoint-scoped until equivalent World evidence exists. They cannot award global
+items or ranks. Existing Normal→Iron readiness is preserved; Silver/Gold require
+actual higher-order capability, not relabeled floor numbers or manufactured days.
+
+Shared body/rig/clip mappings are presentation contracts. Canonical actions own
+contact windows, reach, collision, recoil, injuries, costs and equipment. Retimed
+clips consume those facts. Mesh/cloth/animation replacements must not rewrite saves.
+Unapproved isolated character candidates are not default assets.
+
+Melee spacing is a perception-backed ordinary plan decision. It must not use a
+global attacker slot, hidden intentions, player-only protection or frozen opponents.
+Physical recoil persists its consumed fraction, preserving contact response across
+controller velocity resets and reload. See docs/SHARED_SIMULATION_EXPANSION.md.
+
+The folded-interior namespace is explicit and bounded. It preserves existing grid
+dimensions and realm cell indices; unknown instances remain solid. Descriptor identity,
+allocation and saved edits must be durable before admission. A derived geometry cache
+does not define whether an inhabitant exists or replace canonical activity scheduling.
+
 ## Simulation integrity evidence (2026-09-30)
 
 - Observatory RED means a concrete invariant failure or confirmed pathological loop. Activity
@@ -338,3 +399,27 @@
 - The web client is additive to the region projection (`structures`, web-only) and does not change any native field.
 - New action mechanics (vault/dive) are Lane B and are not implemented; they would need a persisted, versioned world
   capability that is off for every existing world. See `docs/web/EXTENSIONS.md`.
+
+
+## Lossless realm journal and late-floor persistence (2026-10-09)
+
+- Keep the canonical save schema and all its historical evidence. Compression is
+  lossless gzip; this repair does not merge memories, erase NPC histories or alter
+  earned progression. The original JSON import is retained.
+- Commit ordered host operations in checksummed, synced and atomically renamed
+  batches. A bounded replay worker uses the same RealmRuntime and canonical rules
+  to create full checkpoints, preserving private input/cadence/portal continuation.
+  The replica supplies persistence only; player queries and simulation authority
+  remain on the live host. Release old input/portal choices after process restart.
+- Keep one rollback capture for rare structural transitions. Ordinary autosaves
+  never capture the full live world. Pause on storage/replica failure; do not
+  acknowledge an undurable command or silently generate a replacement world.
+- Fingerprint the complete executable source tree, dependency lock and Node/V8/ICU
+  runtime. Normalize Windows line endings and order filenames by code point.
+  Reject an old-code journal tail under a different engine; a complete base can
+  migrate through existing canonical readers before the new engine starts a tail.
+- Under input congestion, cancel only obsolete trailing movement with stable
+  receipts. Preserve action/interaction barriers and at most one movement per tick.
+- Gold's lifetime-quality and proof-cap policy remains unchanged pending design
+  review. Store safety must not be used as a pretext to erase early evidence or
+  redefine fundamental rank meaning. See docs/TOWER_PERSISTENCE_OCT9.md.

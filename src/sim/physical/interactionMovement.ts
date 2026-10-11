@@ -5,6 +5,7 @@ import { movementMultiplier } from '../core/attributes';
 import { noteHaulMovement } from '../logistics/haul';
 import { predictMovement, type CollisionColumn, type CollisionWindow, type MovementInput, type MovementState } from './prediction';
 import { B } from './blocks';
+import { cancelArcaneCast } from './arcana/runtime';
 
 export function movementState(w: World,p: Person,b: Body): MovementState {
   return {pos:{...b.pos},yaw:b.yaw,crouch:b.crouch??0,speed:b.speed*movementMultiplier(b,p),eligible:p.alive&&b.present&&!b.dead&&b.health>0&&b.ownerId===p.id&&p.bodies.includes(b.id)&&!p.surrender&&!p.custody?.active&&b.pose!=='downed'&&b.pose!=='sleep'&&b.subduedUntil<=w.physicalTime};
@@ -25,6 +26,11 @@ export function collisionWindow(w: World,b: Body): CollisionWindow {
 /** Canonical adapter for the same disposable predictor. Ordinary automatic door operation
  * matches moveByIntent/NPC path following. Clients stop at the closed door until confirmed. */
 export function applyInteractionMovement(w: World,p: Person,b: Body,input: MovementInput,dt: number): void {
+  // An idle controller still sends movement samples. Those samples must not replace
+  // sleep/downed poses with stand when their animation timer expires. Wake/recovery
+  // are shared explicit transitions, independent of the input transport heartbeat.
+  if (!movementState(w,p,b).eligible) { b.vel = { x: 0, y: 0, z: 0 }; return; }
+  if (Math.hypot(input.x, input.z) > .01) cancelArcaneCast(w, b);
   if(b.combatAction&&b.combatAction.completeAt>w.physicalTime){
     if(w.physicalTime<combatTransitionAt(b.combatAction,'move')||Math.hypot(input.x,input.z)<.01)return;
     b.combatAction.completeAt=w.physicalTime;b.poseUntil=w.physicalTime;

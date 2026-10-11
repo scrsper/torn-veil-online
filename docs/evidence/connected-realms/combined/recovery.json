@@ -1,0 +1,43 @@
+{
+  "result": "passed",
+  "checks": [
+    {
+      "name": "second tab is rejected without stealing the active run",
+      "ok": true
+    },
+    {
+      "name": "world reload exposes active-expedition recovery controls",
+      "ok": true
+    },
+    {
+      "name": "recovery resumes same checkpoint and run",
+      "ok": true
+    },
+    {
+      "name": "failed return pauses the encounter and retains active disk state",
+      "ok": true
+    },
+    {
+      "name": "same return request retries successfully without a second-return dead end",
+      "ok": true
+    },
+    {
+      "name": "lost acknowledgement retains the durable completed return",
+      "ok": true
+    },
+    {
+      "name": "acknowledged return retry is idempotent in the actual browser",
+      "ok": true
+    },
+    {
+      "name": "reopened world can return directly from the saved expedition binding",
+      "ok": true
+    },
+    {
+      "name": "no unhandled browser exceptions",
+      "ok": true
+    }
+  ],
+  "errors": [],
+  "note": "Actual browser navigation and UI; two explicitly injected HTTP 503 responses: before host receipt and after durable return acknowledgement. It is a fault test, not an observed disk failure or combat benchmark."
+}

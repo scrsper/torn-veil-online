@@ -24,3 +24,10 @@ CC-BY assets (attribution required, Creative Commons Attribution 4.0):
 - **culturalibre**: warrior helmet 02
 
 Animation source: KayKit Character Pack Skeletons by Kay Lousberg (CC0), retargeted at runtime.
+
+Torn Veil modifications to Wren and Brann (2026-10): fitted trouser body-coverage
+masks, 3 mm outward trouser allowance, and fabric/leather PBR roughness adjustment.
+Original garment textures, UVs, interpolated skin weights, rig names, and asset
+attribution are preserved. Build parameters are recorded in `people.json`.
+Reimported walk, run, twisting punch, and deep crouch fit checks are reproducible
+with `art/tools/arena/validate_people_fit.py`.

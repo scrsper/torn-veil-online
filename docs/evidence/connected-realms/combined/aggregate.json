@@ -1,0 +1,1243 @@
+{
+  "sourceRevision": "88d8eba",
+  "command": "node node_modules/vitest/vitest.mjs run --reporter=json --outputFile=.debug/realms/combined-aggregate.json",
+  "exitCode": 0,
+  "success": true,
+  "startedAt": "2026-10-08T18:19:08.975Z",
+  "completedAt": "2026-10-08T18:54:01.307Z",
+  "durationSeconds": 2092.332,
+  "files": 204,
+  "passedFiles": 204,
+  "tests": 2050,
+  "passedTests": 2050,
+  "failedTests": 0,
+  "pendingTests": 0,
+  "vitestNestedSuites": 529,
+  "rawReportSha256": "14e3b3d4885938687d6cab7028bd101f89b3309fd9345169c8316b58d10ec9a2",
+  "results": [
+    {
+      "file": "tests/adaptive-society.test.ts",
+      "status": "passed",
+      "tests": 22,
+      "durationSeconds": 0.266
+    },
+    {
+      "file": "tests/agency-frontier.test.ts",
+      "status": "passed",
+      "tests": 24,
+      "durationSeconds": 2.05
+    },
+    {
+      "file": "tests/agency-worldlab.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 2.566
+    },
+    {
+      "file": "tests/ale-supply-invariant.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.045
+    },
+    {
+      "file": "tests/alpha-capture-fencing.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "durationSeconds": 0.25
+    },
+    {
+      "file": "tests/animal-defense-retreat.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 0.258
+    },
+    {
+      "file": "tests/arena-locomotion.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "durationSeconds": 0.05
+    },
+    {
+      "file": "tests/arrival-spacing.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 3.458
+    },
+    {
+      "file": "tests/autonomous-social.test.ts",
+      "status": "passed",
+      "tests": 10,
+      "durationSeconds": 0.201
+    },
+    {
+      "file": "tests/benchmark-report.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "durationSeconds": 4.024
+    },
+    {
+      "file": "tests/boar-adventure.test.ts",
+      "status": "passed",
+      "tests": 9,
+      "durationSeconds": 288.05
+    },
+    {
+      "file": "tests/bridge-controller-lease.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.258
+    },
+    {
+      "file": "tests/bridge-dialogue.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.615
+    },
+    {
+      "file": "tests/bridge-humanoid-presence.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.348
+    },
+    {
+      "file": "tests/bridge-interaction-wake.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 0.002
+    },
+    {
+      "file": "tests/bridge-rate-window.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 0.002
+    },
+    {
+      "file": "tests/bridge-streaming.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "durationSeconds": 0.97
+    },
+    {
+      "file": "tests/bridge.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.473
+    },
+    {
+      "file": "tests/bridgeCombat.test.ts",
+      "status": "passed",
+      "tests": 11,
+      "durationSeconds": 0.515
+    },
+    {
+      "file": "tests/bridgeLife.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "durationSeconds": 0.476
+    },
+    {
+      "file": "tests/bridgeVisualState.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "durationSeconds": 1.394
+    },
+    {
+      "file": "tests/bridgeWildlifeProjection.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 0.009
+    },
+    {
+      "file": "tests/butchery-work.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "durationSeconds": 35.213
+    },
+    {
+      "file": "tests/capability-advancement.test.ts",
+      "status": "passed",
+      "tests": 9,
+      "durationSeconds": 1.312
+    },
+    {
+      "file": "tests/capability-continuity.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "durationSeconds": 9.733
+    },
+    {
+      "file": "tests/causal-pressure.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "durationSeconds": 10.276
+    },
+    {
+      "file": "tests/causal-society.test.ts",
+      "status": "passed",
+      "tests": 29,
+      "durationSeconds": 0.249
+    },
+    {
+      "file": "tests/character-appearance.test.ts",
+      "status": "passed",
+      "tests": 15,
+      "durationSeconds": 0.959
+    },
+    {
+      "file": "tests/character-foundry.test.ts",
+      "status": "passed",
+      "tests": 45,
+      "durationSeconds": 0.393
+    },
+    {
+      "file": "tests/checkpoint-encoder.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "durationSeconds": 0.742
+    },
+    {
+      "file": "tests/circulation-exposure-affordances.test.ts",
+      "status": "passed",
+      "tests": 13,
+      "durationSeconds": 0.02
+    },
+    {
+      "file": "tests/cognition-lod.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.013
+    },
+    {
+      "file": "tests/combat-flow.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "durationSeconds": 0.27
+    },
+    {
+      "file": "tests/combat-foundation.test.ts",
+      "status": "passed",
+      "tests": 9,
+      "durationSeconds": 0.046
+    },
+    {
+      "file": "tests/combat-gym.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.041
+    },
+    {
+      "file": "tests/combat-practice.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.28
+    },
+    {
+      "file": "tests/combat-presentation.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "durationSeconds": 0.617
+    },
+    {
+      "file": "tests/combat-refinement.test.ts",
+      "status": "passed",
+      "tests": 18,
+      "durationSeconds": 0.307
+    },
+    {
+      "file": "tests/conflict-intent.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "durationSeconds": 0.051
+    },
+    {
+      "file": "tests/conflict-resolution.test.ts",
+      "status": "passed",
+      "tests": 20,
+      "durationSeconds": 0.247
+    },
+    {
+      "file": "tests/construction-projection.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "durationSeconds": 0.012
+    },
+    {
+      "file": "tests/container-bridge.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.756
+    },
+    {
+      "file": "tests/container.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "durationSeconds": 0.282
+    },
+    {
+      "file": "tests/continuation-resume.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 4.197
+    },
+    {
+      "file": "tests/courtship-pacing.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.174
+    },
+    {
+      "file": "tests/cpu-allocation.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "durationSeconds": 0.003
+    },
+    {
+      "file": "tests/creator-appearance.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "durationSeconds": 0.004
+    },
+    {
+      "file": "tests/crime-flow.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.055
+    },
+    {
+      "file": "tests/critical-need-override.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 0.013
+    },
+    {
+      "file": "tests/delivery-progress.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "durationSeconds": 0.015
+    },
+    {
+      "file": "tests/demographic-continuity.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "durationSeconds": 1.003
+    },
+    {
+      "file": "tests/determinism.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 0.021
+    },
+    {
+      "file": "tests/deterministic-dialogue.test.ts",
+      "status": "passed",
+      "tests": 9,
+      "durationSeconds": 0.311
+    },
+    {
+      "file": "tests/dialogue-boundary.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.613
+    },
+    {
+      "file": "tests/dialogue-grounding.test.ts",
+      "status": "passed",
+      "tests": 10,
+      "durationSeconds": 0.011
+    },
+    {
+      "file": "tests/dialogue-live.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 8.285
+    },
+    {
+      "file": "tests/dialogue-parser.test.ts",
+      "status": "passed",
+      "tests": 380,
+      "durationSeconds": 0.033
+    },
+    {
+      "file": "tests/doors.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 0.018
+    },
+    {
+      "file": "tests/ecology-boundaries.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "durationSeconds": 0.065
+    },
+    {
+      "file": "tests/ecology-persistence.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "durationSeconds": 6.238
+    },
+    {
+      "file": "tests/ecology-realtime-integration.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 8.292
+    },
+    {
+      "file": "tests/ecology.test.ts",
+      "status": "passed",
+      "tests": 10,
+      "durationSeconds": 28.971
+    },
+    {
+      "file": "tests/economy-spendable-invariant.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 0.026
+    },
+    {
+      "file": "tests/embodied-economy.test.ts",
+      "status": "passed",
+      "tests": 47,
+      "durationSeconds": 76.349
+    },
+    {
+      "file": "tests/embodied-people.test.ts",
+      "status": "passed",
+      "tests": 23,
+      "durationSeconds": 1.315
+    },
+    {
+      "file": "tests/emergent-item-recovery.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 0.907
+    },
+    {
+      "file": "tests/encounter-recognition.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "durationSeconds": 0.022
+    },
+    {
+      "file": "tests/equipment.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.166
+    },
+    {
+      "file": "tests/event-table.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "durationSeconds": 3.229
+    },
+    {
+      "file": "tests/factions-institutional.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "durationSeconds": 0.011
+    },
+    {
+      "file": "tests/focused-interaction.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.611
+    },
+    {
+      "file": "tests/generated-names.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "durationSeconds": 6.948
+    },
+    {
+      "file": "tests/generational-livelihood.test.ts",
+      "status": "passed",
+      "tests": 16,
+      "durationSeconds": 0.054
+    },
+    {
+      "file": "tests/generative-kernel.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "durationSeconds": 3.606
+    },
+    {
+      "file": "tests/generator-continuity.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "durationSeconds": 47.568
+    },
+    {
+      "file": "tests/geography-route-baseline.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 3.22
+    },
+    {
+      "file": "tests/guard.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "durationSeconds": 0.472
+    },
+    {
+      "file": "tests/haul-cargo-not-theft.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 2.526
+    },
+    {
+      "file": "tests/headless-benchmarks.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "durationSeconds": 3.676
+    },
+    {
+      "file": "tests/human-physiology-economy.test.ts",
+      "status": "passed",
+      "tests": 46,
+      "durationSeconds": 68.82
+    },
+    {
+      "file": "tests/hunting-not-crime.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 9.047
+    },
+    {
+      "file": "tests/identity.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "durationSeconds": 0.547
+    },
+    {
+      "file": "tests/individual-cognition.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "durationSeconds": 0.683
+    },
+    {
+      "file": "tests/individual-development.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "durationSeconds": 0.035
+    },
+    {
+      "file": "tests/individual-lineage.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "durationSeconds": 0.495
+    },
+    {
+      "file": "tests/individual-showcase.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 1.453
+    },
+    {
+      "file": "tests/interaction-coherence.test.ts",
+      "status": "passed",
+      "tests": 31,
+      "durationSeconds": 0.216
+    },
+    {
+      "file": "tests/introduction-once.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 0.923
+    },
+    {
+      "file": "tests/item-collection.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "durationSeconds": 0.411
+    },
+    {
+      "file": "tests/knowledge-memory-skills-intent.test.ts",
+      "status": "passed",
+      "tests": 20,
+      "durationSeconds": 75.527
+    },
+    {
+      "file": "tests/knowledge-retention.test.ts",
+      "status": "passed",
+      "tests": 13,
+      "durationSeconds": 0.272
+    },
+    {
+      "file": "tests/knowledge-view.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 0.033
+    },
+    {
+      "file": "tests/knowledge.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "durationSeconds": 0.019
+    },
+    {
+      "file": "tests/live-alpha-server.test.ts",
+      "status": "passed",
+      "tests": 15,
+      "durationSeconds": 44.751
+    },
+    {
+      "file": "tests/livelihood-locality.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 3.575
+    },
+    {
+      "file": "tests/living-economy.test.ts",
+      "status": "passed",
+      "tests": 35,
+      "durationSeconds": 0.764
+    },
+    {
+      "file": "tests/living-universe.test.ts",
+      "status": "passed",
+      "tests": 11,
+      "durationSeconds": 126.287
+    },
+    {
+      "file": "tests/living-world-logistics.test.ts",
+      "status": "passed",
+      "tests": 25,
+      "durationSeconds": 8.619
+    },
+    {
+      "file": "tests/locality.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "durationSeconds": 0.6
+    },
+    {
+      "file": "tests/lost-item-task.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 0.013
+    },
+    {
+      "file": "tests/martial-combat-integration.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "durationSeconds": 0.347
+    },
+    {
+      "file": "tests/martial-learning.test.ts",
+      "status": "passed",
+      "tests": 21,
+      "durationSeconds": 0.844
+    },
+    {
+      "file": "tests/martial-selection.test.ts",
+      "status": "passed",
+      "tests": 9,
+      "durationSeconds": 0.284
+    },
+    {
+      "file": "tests/materials-fire-crafting.test.ts",
+      "status": "passed",
+      "tests": 15,
+      "durationSeconds": 0.017
+    },
+    {
+      "file": "tests/motivated-lives-trace.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "durationSeconds": 206.709
+    },
+    {
+      "file": "tests/motivated-lives.test.ts",
+      "status": "passed",
+      "tests": 20,
+      "durationSeconds": 1.117
+    },
+    {
+      "file": "tests/nap-and-duty.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 0.122
+    },
+    {
+      "file": "tests/navigation.test.ts",
+      "status": "passed",
+      "tests": 14,
+      "durationSeconds": 0.083
+    },
+    {
+      "file": "tests/observatory-language.test.ts",
+      "status": "passed",
+      "tests": 10,
+      "durationSeconds": 0.334
+    },
+    {
+      "file": "tests/observatory-progress.test.ts",
+      "status": "passed",
+      "tests": 34,
+      "durationSeconds": 0.832
+    },
+    {
+      "file": "tests/observatory-root-causes.test.ts",
+      "status": "passed",
+      "tests": 9,
+      "durationSeconds": 0.777
+    },
+    {
+      "file": "tests/observatory-tooling.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 1.774
+    },
+    {
+      "file": "tests/observatory-workbench.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "durationSeconds": 2.384
+    },
+    {
+      "file": "tests/observatory.test.ts",
+      "status": "passed",
+      "tests": 22,
+      "durationSeconds": 6.315
+    },
+    {
+      "file": "tests/pathfinding-livelock.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 0.017
+    },
+    {
+      "file": "tests/performance-instrumentation.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "durationSeconds": 0.081
+    },
+    {
+      "file": "tests/persistence.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "durationSeconds": 6.886
+    },
+    {
+      "file": "tests/physical-fit.test.ts",
+      "status": "passed",
+      "tests": 11,
+      "durationSeconds": 0.02
+    },
+    {
+      "file": "tests/place-lookup.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 0.004
+    },
+    {
+      "file": "tests/playable-movement.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 0.015
+    },
+    {
+      "file": "tests/playable-panel.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 0.327
+    },
+    {
+      "file": "tests/playable-vista.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 2.55
+    },
+    {
+      "file": "tests/playable-world.test.ts",
+      "status": "passed",
+      "tests": 9,
+      "durationSeconds": 15.444
+    },
+    {
+      "file": "tests/player-actions-projection.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "durationSeconds": 14.827
+    },
+    {
+      "file": "tests/player-affordance-parity.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "durationSeconds": 0.01
+    },
+    {
+      "file": "tests/player-embodiment.test.ts",
+      "status": "passed",
+      "tests": 11,
+      "durationSeconds": 0.419
+    },
+    {
+      "file": "tests/player-language.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "durationSeconds": 1.275
+    },
+    {
+      "file": "tests/procedural-settlement.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "durationSeconds": 6.369
+    },
+    {
+      "file": "tests/progression-journal.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 0.007
+    },
+    {
+      "file": "tests/progression-paths.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "durationSeconds": 0.052
+    },
+    {
+      "file": "tests/protection-opportunity.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 29.258
+    },
+    {
+      "file": "tests/ready-layer.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 0.003
+    },
+    {
+      "file": "tests/realm-expedition.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "durationSeconds": 0.051
+    },
+    {
+      "file": "tests/realms.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "durationSeconds": 0.132
+    },
+    {
+      "file": "tests/realtime-combat-action.test.ts",
+      "status": "passed",
+      "tests": 20,
+      "durationSeconds": 0.799
+    },
+    {
+      "file": "tests/realtime-combat-geometry.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "durationSeconds": 0.003
+    },
+    {
+      "file": "tests/realtime-native-traces.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 0.004
+    },
+    {
+      "file": "tests/realtime-protocol.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "durationSeconds": 0.011
+    },
+    {
+      "file": "tests/realtime-session.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "durationSeconds": 0.956
+    },
+    {
+      "file": "tests/recent-self-care.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 0.01
+    },
+    {
+      "file": "tests/recovery-authorization.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "durationSeconds": 0.012
+    },
+    {
+      "file": "tests/regional-blade-sale.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 3.169
+    },
+    {
+      "file": "tests/relationship-evolution.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "durationSeconds": 0.014
+    },
+    {
+      "file": "tests/resource-extraction-projection.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "durationSeconds": 0.01
+    },
+    {
+      "file": "tests/resource-goal-continuity.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "durationSeconds": 0.116
+    },
+    {
+      "file": "tests/responsive-combat.test.ts",
+      "status": "passed",
+      "tests": 14,
+      "durationSeconds": 0.349
+    },
+    {
+      "file": "tests/retarget-sample.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "durationSeconds": 0.003
+    },
+    {
+      "file": "tests/rng-stream-separation.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.002
+    },
+    {
+      "file": "tests/robbery.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "durationSeconds": 0.146
+    },
+    {
+      "file": "tests/settlement-continuity.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "durationSeconds": 4.447
+    },
+    {
+      "file": "tests/shared-cast.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 0.002
+    },
+    {
+      "file": "tests/significance-chronicle.test.ts",
+      "status": "passed",
+      "tests": 16,
+      "durationSeconds": 0.024
+    },
+    {
+      "file": "tests/simulation-basics.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "durationSeconds": 0.792
+    },
+    {
+      "file": "tests/snapshot-json.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 0.017
+    },
+    {
+      "file": "tests/social-causality-trace.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "durationSeconds": 206.681
+    },
+    {
+      "file": "tests/social-causality.test.ts",
+      "status": "passed",
+      "tests": 27,
+      "durationSeconds": 0.088
+    },
+    {
+      "file": "tests/social-trace-matter.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 0.001
+    },
+    {
+      "file": "tests/sparring.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 37.915
+    },
+    {
+      "file": "tests/spatial-index.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.014
+    },
+    {
+      "file": "tests/stand-in-locality.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.162
+    },
+    {
+      "file": "tests/stopped-writer.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.027
+    },
+    {
+      "file": "tests/stress-benchmarks.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "durationSeconds": 100.368
+    },
+    {
+      "file": "tests/talk-attention.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 12.926
+    },
+    {
+      "file": "tests/telemetry-anomaly.test.ts",
+      "status": "passed",
+      "tests": 13,
+      "durationSeconds": 0.016
+    },
+    {
+      "file": "tests/telemetry-layers.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 0.01
+    },
+    {
+      "file": "tests/theft-social-knowledge.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "durationSeconds": 0.254
+    },
+    {
+      "file": "tests/tower-checkpoint.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "durationSeconds": 0.008
+    },
+    {
+      "file": "tests/tower-cutaway.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.003
+    },
+    {
+      "file": "tests/tower-encounters.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "durationSeconds": 0.293
+    },
+    {
+      "file": "tests/tower-maze.test.ts",
+      "status": "passed",
+      "tests": 53,
+      "durationSeconds": 9.059
+    },
+    {
+      "file": "tests/tower-navigation.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.051
+    },
+    {
+      "file": "tests/tower-progression.test.ts",
+      "status": "passed",
+      "tests": 31,
+      "durationSeconds": 0.278
+    },
+    {
+      "file": "tests/trade-menu-rows.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 3.497
+    },
+    {
+      "file": "tests/trading.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.015
+    },
+    {
+      "file": "tests/unsettled-planning.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.009
+    },
+    {
+      "file": "tests/vocation.test.ts",
+      "status": "passed",
+      "tests": 11,
+      "durationSeconds": 0.259
+    },
+    {
+      "file": "tests/web-adaptive-camera.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "durationSeconds": 0.008
+    },
+    {
+      "file": "tests/web-appearance.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 0.003
+    },
+    {
+      "file": "tests/web-architectural-grammar.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 0.002
+    },
+    {
+      "file": "tests/web-architectural-landmarks.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "durationSeconds": 0.066
+    },
+    {
+      "file": "tests/web-authored-geometry.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "durationSeconds": 0.069
+    },
+    {
+      "file": "tests/web-boundary.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "durationSeconds": 0.019
+    },
+    {
+      "file": "tests/web-building-dressing.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 0.019
+    },
+    {
+      "file": "tests/web-client-logic.test.ts",
+      "status": "passed",
+      "tests": 13,
+      "durationSeconds": 0.008
+    },
+    {
+      "file": "tests/web-differential.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "durationSeconds": 0.002
+    },
+    {
+      "file": "tests/web-field-surface.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 0.012
+    },
+    {
+      "file": "tests/web-gateway.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "durationSeconds": 12.984
+    },
+    {
+      "file": "tests/web-governor.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "durationSeconds": 0.006
+    },
+    {
+      "file": "tests/web-ground-cover.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 0.008
+    },
+    {
+      "file": "tests/web-input.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "durationSeconds": 0.004
+    },
+    {
+      "file": "tests/web-isometric.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "durationSeconds": 0.026
+    },
+    {
+      "file": "tests/web-magic.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.005
+    },
+    {
+      "file": "tests/web-portrait.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "durationSeconds": 0.011
+    },
+    {
+      "file": "tests/web-presentation-geometry.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.027
+    },
+    {
+      "file": "tests/web-structures.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "durationSeconds": 0.535
+    },
+    {
+      "file": "tests/web-surface-weather.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.125
+    },
+    {
+      "file": "tests/web-vegetation.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "durationSeconds": 0.026
+    },
+    {
+      "file": "tests/web-window-lighting.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.017
+    },
+    {
+      "file": "tests/widened-trades.test.ts",
+      "status": "passed",
+      "tests": 35,
+      "durationSeconds": 0.262
+    },
+    {
+      "file": "tests/wildlife-defense.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "durationSeconds": 17.673
+    },
+    {
+      "file": "tests/wildlife-realtime-integration.test.ts",
+      "status": "passed",
+      "tests": 17,
+      "durationSeconds": 9.842
+    },
+    {
+      "file": "tests/world-integrity.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.185
+    },
+    {
+      "file": "tests/world-metabolism.test.ts",
+      "status": "passed",
+      "tests": 19,
+      "durationSeconds": 241.641
+    },
+    {
+      "file": "tests/worldlab-production.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "durationSeconds": 0.254
+    }
+  ]
+}

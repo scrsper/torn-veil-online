@@ -31,15 +31,23 @@ export class NavGrid {
   private field(tx: number, tz: number, now: number): Float32Array {
     const [ti, tj] = this.cell(tx, tz), key = ti * this.n + tj;
     const cached = this.fields.get(key); if (cached && now - cached.at < 1.5) return cached.dist;
-    const n = this.n, dist = new Float32Array(n * n).fill(Infinity), q = new Int32Array(n * n);
-    let h = 0, t = 0; dist[key] = 0; q[t++] = key;
-    while (h < t) {
+    const n = this.n, dist = new Float32Array(n * n).fill(Infinity), q: number[] = [];
+    // Interactables may occupy blocked cells. Approach their nearest open neighbours.
+    for (let radius = 0; !q.length && radius < n; radius++) {
+      for (let a = Math.max(0, ti - radius); a <= Math.min(n - 1, ti + radius); a++) for (let b = Math.max(0, tj - radius); b <= Math.min(n - 1, tj + radius); b++) {
+        if (Math.max(Math.abs(a - ti), Math.abs(b - tj)) !== radius || this.blocked[a * n + b]) continue;
+        const kk = a * n + b; dist[kk] = 0; q.push(kk);
+      }
+    }
+    // Weighted diagonal edges can enqueue a cell more than once; an n*n buffer dropped work.
+    let h = 0;
+    while (h < q.length) {
       const k = q[h++], i = (k / n) | 0, j = k % n, d = dist[k];
       for (const [di, dj, w] of N8) {
         const a = i + di, b = j + dj; if (a < 0 || b < 0 || a >= n || b >= n) continue;
         const kk = a * n + b; if (this.blocked[kk]) continue;
         if (di && dj && (this.blocked[(i + di) * n + j] || this.blocked[i * n + j + dj])) continue;   // no corner cutting
-        if (d + w < dist[kk]) { dist[kk] = d + w; q[t++] = kk; }
+        if (d + w < dist[kk] - .0001) { dist[kk] = d + w; q.push(kk); }
       }
     }
     if (this.fields.size > 24) this.fields.clear();
@@ -52,7 +60,9 @@ export class NavGrid {
     if (this.clear(x, z, tx, tz)) return null;
     const dist = this.field(tx, tz, now), n = this.n, [i, j] = this.cell(x, z);
     let best = dist[i * n + j], bi = i, bj = j;
-    for (const [di, dj] of N8) { const a = i + di, b = j + dj; if (a < 0 || b < 0 || a >= n || b >= n) continue; const d = dist[a * n + b]; if (d < best) { best = d; bi = a; bj = b; } }
+    for (const [di, dj] of N8) { const a = i + di, b = j + dj; if (a < 0 || b < 0 || a >= n || b >= n || this.blocked[a * n + b]) continue;
+      if (di && dj && (this.blocked[a * n + j] || this.blocked[i * n + b])) continue;
+      const d = dist[a * n + b]; if (d < best) { best = d; bi = a; bj = b; } }
     if (bi === i && bj === j) return null;
     const [cx, cz] = this.center(bi, bj), dx = cx - x, dz = cz - z, l = Math.hypot(dx, dz) || 1;
     return { x: dx / l, z: dz / l };

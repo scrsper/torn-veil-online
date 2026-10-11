@@ -20,6 +20,69 @@ The Combat Gym panel has an **Enter the Tower of Chrysanthus** button.
   The Combat Gym sandbox keeps the four Witcher-style signs (Ember, Gust, Ward, Frost Sigil) on 1–4.
 - **Other keys:** Q drinks a flask (heals over a second; refilled each floor; potions add flasks). Health does not regenerate on its own in the tower. Tab cycles drawn weapons (F1–F4 select one directly). E uses a shrine. K opens the Codex.
 
+## PS5 controller (DualSense)
+
+Plug it in over USB or Bluetooth (Chrome and Edge present it as a standard gamepad). The HUD switches to controller glyphs the moment you touch it.
+
+| Input | Action |
+|---|---|
+| Left stick | Move (relative to the camera) |
+| Right stick | Orbit the camera |
+| R3 | Recentre the camera behind you |
+| R1 | Light attack (chain) |
+| R2 | Heavy attack (hold to charge). Bow: hold to aim, release to loose |
+| L1 | Guard (raise it just in time to parry) |
+| ○ | Tap: dodge or roll. Hold: sprint |
+| ✕ | Interact (shrines, revives); confirm in menus |
+| □ | Flask |
+| △ | Next weapon |
+| **Hold L2 +** □ △ ○ ✕ R1 R2 L1 | Skill slots 1–7 |
+| D-pad ↑ / ↓ | Drink from the belt / read a scroll |
+| D-pad ← / → | Previous / next weapon |
+| Touchpad | Spellbook |
+| Create | Codex |
+| Options | Pause and show the controls |
+
+- **Menus:** every card choice, dialogue, Spellbook page and message works with the D-pad (or a flick of the left stick), ✕ to confirm and ○ to back out.
+- **Aiming:** attacks and spells aim at the foe you are facing or moving toward.
+- **Rumble:** on hits taken, blocks and critical hits.
+- **Checking:** `scripts/web/arena-pad.ts` drives a virtual DualSense through every binding (19/19 pass). It hasn't been tried on a physical pad yet.
+
+## Movement at ease
+
+Out of combat (no foe within about 9 m, no recent blows) the hero walks, runs and stands relaxed: arms loose and weapon slung across the back. A foe drawing near, a hit taken, or any attack, guard, aim or cast draws the weapon at once into the combat stance.
+
+## Bodies and held equipment
+
+- **Hero body:** the ontology creator's current Human family (`tools/ontology/ontology/morphology/human-family.json`):
+  `tv-human-male-v2` (default) or `tv-human-female-v1`, chosen in the Codex (K) and used from the next climb.
+  - **Staging:** `npm run web:creator` (run by `web:dev` / `web:build`) copies them byte-for-byte, hash-checked
+    against the provenance registry, into `web/public/arena/creator/` with `creator.json`.
+  - **Status:** both are CC0 MakeHuman/MPFB PROTOTYPE bodies.
+  - **Motion:** the existing Tower clips are baked onto each body's own rig.
+  - **Appearance:** the male body gets the creator's seeded jaw morph and linen/leather palette from the climber's
+    identity (the same seeding as the editor, on the climber id rather than an ontology entity). The female body has
+    no authored variants, and that is reported.
+  - **Fallback:** an unstaged body falls back to the earlier MPFB ranger with a visible notice.
+- **Customization:** the Codex panel's Character section, saved in this browser (`tv.tower.appearance.v1`), separate
+  from expedition checkpoints. Body, height (95–105%, held gear scales with it) and hair on/off work on both bodies;
+  jaw width (`TV_JawWidth`) and re-roll (seeded jaw and cloth colours) on the male body only. The female body has no
+  authored morph or palette, and the panel says so.
+- **Spell visuals:** a missile's end follows its outcome (hit, blocked, wall, out of range). The nova draws one border
+  at its 4.2 damage radius, and fields fade out when they end. Presentation only.
+- **Stances:** calm movement uses the upright unarmed clips. Near foes, the sword-and-shield ready stance keeps the
+  authored weapon arms over an upright body. Guard and attacks are unchanged.
+- **Equipment size:** `src/web/items/physicalFit.ts` sizes held items against the metric item catalog's type ranges,
+  or explicit per-item targets for unit-less KayKit gear. It scales about each item's grip, so reach and damage are
+  unchanged.
+- **Shield:** the sword-and-shield shield is catalog TV-081 *Round Watch*, drawn as a recorded vertical-grip render
+  variant (only its handle bar is turned; the GLB is untouched).
+- **Checks:** `scripts/web/tower-sword-shield.ts`, `scripts/web/tower-creator.ts`.
+
+## Magic and the god
+
+Magic (element × form; 80 spells that emerge from affinity and learned forms), elemental reactions, imbuing, potions, the Proving Hall (floor 0) and Chrysanthus himself (the floor-10 trial and the summit) are described in docs/TOWER_MAGIC.md.
+
 ## Monsters
 
 Each floor belongs to a faction, and about a fifth of its foes come from the others (`floorgen.ts`):

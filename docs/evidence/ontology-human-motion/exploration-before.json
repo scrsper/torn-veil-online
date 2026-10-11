@@ -1,0 +1,24 @@
+{
+  "camera": {
+    "want": 6.8,
+    "dist": 6.8,
+    "limit": 7,
+    "pitchDeg": 20.1,
+    "fovDeg": 65,
+    "reason": "explore"
+  },
+  "position": {
+    "x": 40.5,
+    "y": 14,
+    "z": 96.5
+  },
+  "body": "b_42",
+  "shared": {
+    "sharedLook": "brann",
+    "bodyId": "b_42",
+    "sex": "m"
+  },
+  "hour": 7.5858333333335395,
+  "fog": 0.0035,
+  "errors": []
+}

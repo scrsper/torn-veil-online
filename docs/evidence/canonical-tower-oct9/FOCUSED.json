@@ -1,0 +1,142 @@
+{
+  "passed": 23,
+  "failed": 0,
+  "pending": 0,
+  "files": 3,
+  "success": true,
+  "results": [
+    {
+      "file": "tests/canonical-tower.test.ts",
+      "status": "passed",
+      "assertions": [
+        {
+          "name": "host-owned physical Tower requires the real atrium and preserves identity, injuries, inventory and rank",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "host-owned physical Tower preserves geometry, ordinary edits, injuries, finite items and consent through reload",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "host-owned physical Tower uses finite ordinary pickup and source learning, not an entry stat grant",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "host-owned physical Tower requires fresh perception and clear sight for a normal trial attack goal",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "host-owned physical Tower runs ordinary NPC perception/planning into physical combat on one shared clock",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "host-owned physical Tower releases an expired knockdown on controlled bodies without releasing custody or erasing injury",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "host-owned physical Tower binds sleep/wake to the current body and preserves sleep across reload",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "host-owned physical Tower credits actual individual defeats once across recovery/reload and awards existing stock",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "host-owned physical Tower returns and crosses the realm portal with the same person and resumes the same floor",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "host-owned physical Tower avoids an occupied landing and retains the floor when the whole landing is blocked",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "host-owned physical Tower rejects forged clearance, missing sources, wrong identity and an old-reader overlay",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "host-owned physical Tower persists idempotent commands and rolls back all entry changes on disk failure",
+          "status": "passed",
+          "failure": []
+        }
+      ]
+    },
+    {
+      "file": "tests/exertion.test.ts",
+      "status": "passed",
+      "assertions": [
+        {
+          "name": "shared short exertion and lasting physical work charges a brief burst and real cumulative costs identically for controlled and autonomous bodies",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "shared short exertion and lasting physical work brief disengagement restores effort without erasing fatigue, injury, damage or spent food/water",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "shared short exertion and lasting physical work respects recovery delay and cannot refill from reload or duplicate scheduler visits",
+          "status": "passed",
+          "failure": []
+        }
+      ]
+    },
+    {
+      "file": "tests/guard.test.ts",
+      "status": "passed",
+      "assertions": [
+        {
+          "name": "canonical guard and committed heavy strikes parries an actual frontal contact once, then blocks subsequent contacts at an effort cost",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "canonical guard and committed heavy strikes refreshing or rapidly releasing/re-raising does not reset the parry window",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "canonical guard and committed heavy strikes does not guard the rear or retain a disconnected held input forever",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "canonical guard and committed heavy strikes breaks under pressure and refuses an exhausted body",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "canonical guard and committed heavy strikes accepts additive saved stance but rejects nonfinite and indefinite guard state",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "canonical guard and committed heavy strikes retains a held stance through compaction and reload and rejects invented guard provenance",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "canonical guard and committed heavy strikes heavy attacks buy force with longer commitment and more fatigue, without increasing reach",
+          "status": "passed",
+          "failure": []
+        },
+        {
+          "name": "canonical guard and committed heavy strikes a timed guard intercepts a swept human strike before injury is applied",
+          "status": "passed",
+          "failure": []
+        }
+      ]
+    }
+  ]
+}

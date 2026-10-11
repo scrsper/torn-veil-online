@@ -1,0 +1,57 @@
+{
+  "result": "passed",
+  "checks": [
+    "closed canonical door blocks movement; all leaf decorations visible",
+    "open canonical door and all child panels clear the traversable aperture",
+    "four crossings preserve identity/inventory/rank, 81 resident chunks and four total lights",
+    "warmed meshes, textures, materials and lights remain stable after repeated realm returns"
+  ],
+  "observations": [
+    {
+      "realm": "brass",
+      "meshes": 973,
+      "materials": 190,
+      "textures": 224,
+      "lights": 4,
+      "heap": {
+        "used": 208877212,
+        "total": 278219180
+      }
+    },
+    {
+      "realm": "aether",
+      "meshes": 873,
+      "materials": 190,
+      "textures": 224,
+      "lights": 4,
+      "heap": {
+        "used": 246457372,
+        "total": 306400268
+      }
+    },
+    {
+      "realm": "brass",
+      "meshes": 973,
+      "materials": 190,
+      "textures": 224,
+      "lights": 4,
+      "heap": {
+        "used": 287621072,
+        "total": 335835744
+      }
+    },
+    {
+      "realm": "aether",
+      "meshes": 873,
+      "materials": 190,
+      "textures": 224,
+      "lights": 4,
+      "heap": {
+        "used": 304812899,
+        "total": 363557475
+      }
+    }
+  ],
+  "errors": [],
+  "note": "Actual ordinary-input browser lifecycle check; resource counts are renderer observations, not VRAM measurements."
+}

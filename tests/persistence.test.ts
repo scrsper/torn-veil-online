@@ -12,6 +12,15 @@ function advance(world: ReturnType<typeof newWorld>['world'], sim: Simulation, s
 }
 
 describe('save round trips', () => {
+  it.each([24, 25])('continues pre-realm schema %i worlds without changing their identity or inventory', version => {
+    const { world } = newWorld(1337);
+    const old = JSON.parse(serialize(world, version === 25)); old.version = version;
+    expect(old.realmSpec).toBeUndefined();
+    const restored = deserialize(JSON.stringify(old))!.world;
+    expect(restored.playerId).toBe(world.playerId);
+    expect(restored.person(restored.playerId!)!.inventory).toEqual(world.person(world.playerId!)!.inventory);
+    expect(restored.primaryBody(restored.playerId!)!.pos).toEqual(world.primaryBody(world.playerId!)!.pos);
+  });
   it('continues the same bounded event-maintenance phase across a save and reload', () => {
     const { world } = newWorld(1337), sim = new Simulation(world);
     world.clock.timeScale = 60;
@@ -84,7 +93,7 @@ describe('save round trips', () => {
     // Pinned to the literal on purpose: a bump has to be a deliberate edit here as well as in
     // save.ts, so nobody changes what a saved field means without noticing that old saves stop
     // being resumable.
-    expect(JSON.parse(save).version).toBe(25);
+    expect(JSON.parse(save).version).toBe(31);
     const loaded = deserialize(save);
     expect(loaded).not.toBeNull();
     const restored = loaded!.world;

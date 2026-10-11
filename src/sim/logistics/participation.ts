@@ -155,8 +155,7 @@ export function eatAtHand(world: World, person: Person, atPlaceId: EntityId | nu
 export function drinkHere(world: World, person: Person, pos: Vec3): boolean {
   const source = waterSourceAtHand(world, pos);
   if (!source && !naturalWaterAtHand(world, pos)) return false;
-  drinkAt(world, person, source?.id);
-  return true;
+  return drinkAt(world, person, source?.id);
 }
 
 /** The same reach/occlusion check serves NPC and human intentions at generated river banks. */
@@ -176,6 +175,7 @@ export function waterSourceAtHand(world: World, pos: Vec3): Place | undefined {
   // already possible in Ashford (the village well and the river bank), and with a second
   // settlement "whichever was registered first" is not an answer at all (world/locality.ts).
   return localPlaces(world, pos).find(p => p.type === 'well'
+    && !world.resourceNodes.some(n => n.kind === 'surface_water' && n.placeId === p.id && (n.remaining < .25 || n.state !== 'available'))
     && Math.hypot(p.inside.x - pos.x, p.inside.y - pos.y, p.inside.z - pos.z) <= 4
     && world.grid.lineOfPassage({ ...pos, y: pos.y + 1.2 }, { ...p.inside, y: p.inside.y + 1.2 }, 5.2));
 }

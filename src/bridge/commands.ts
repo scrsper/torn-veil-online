@@ -1,8 +1,11 @@
 import { INTERACTION_SPEC } from '../sim/physical/prediction';
 
 export type InteractionCommand = {type:'move';x:number;z:number;sprint:boolean;facing?:number;crouch?:boolean}
+  | {type:'rest'|'wake'|'integrate_arcana'}
   | {type:'attack';targetBodyId?:string;trajectory?:'high'|'mid'|'low';weight?:'light'|'heavy'} | {type:'interact';interactionId:string}
   | {type:'container_transfer';containerId:string;itemId:string;direction:'into'|'out'}
+  | {type:'learn_arcana';itemId:string}
+  | {type:'cast';abilityId:string;target?:{x:number;y:number;z:number};scrollItemId?:string}
   | {type:'defend';kind:'sidestep'|'backstep'|'duck';side?:number;direction?:{x:number;z:number}}
   | {type:'crouch'|'guard';held:boolean} | {type:'practice';mode:'passive'|'repeat'|'reset'|'recovery'|'normal'} | {type:'cancel'};
 export interface CommandEnvelope {
@@ -25,9 +28,17 @@ export class CommandQueue {
   private sequences=new Map<number,string>();
   private latest=-1;
   private latestClientTime=-1;
+  private superseded:CommandReceipt[]=[];
   constructor(readonly epoch:string,readonly controllerId:string,readonly bodyId:string) {}
   get ack():number { return this.pending.length?Math.min(...this.pending.map(p=>p.envelope.sequence))-1:this.latest; }
   get size():number {return this.pending.length;}
+  /** Private host checkpoint metadata, never exposed to simulated people or clients. */
+  checkpoint() { return structuredClone({ epoch:this.epoch,controllerId:this.controllerId,bodyId:this.bodyId,
+    pending:this.pending,ledger:[...this.ledger],sequences:[...this.sequences],latest:this.latest,latestClientTime:this.latestClientTime,superseded:this.superseded }); }
+  static restore(state: ReturnType<CommandQueue['checkpoint']>): CommandQueue {
+    const s=structuredClone(state),q=new CommandQueue(s.epoch,s.controllerId,s.bodyId);
+    q.pending=s.pending;q.ledger=new Map(s.ledger);q.sequences=new Map(s.sequences);q.latest=s.latest;q.latestClientTime=s.latestClientTime;q.superseded=s.superseded??[];return q;
+  }
   private receipt(m:Partial<CommandEnvelope>,status:CommandReceipt['status'],result:string,tick:number,receivedAtMs:number,now:number):CommandReceipt {
     return {version:1,type:'command_receipt',commandId:typeof m.commandId==='string'?m.commandId.slice(0,128):'',sequence:Number.isSafeInteger(m.sequence)?m.sequence!:-1,epoch:this.epoch,status,result,tick,receivedAtMs,serverTimeMs:now,clientTimeMs:Number.isFinite(m.clientTimeMs)?m.clientTimeMs!:0};
   }
@@ -46,19 +57,34 @@ export class CommandQueue {
     this.latestClientTime=m.clientTimeMs;
     const c=m.command;
     const valid=c&&((c.type==='move'&&Number.isFinite(c.x)&&Number.isFinite(c.z)&&Math.abs(c.x)<=1&&Math.abs(c.z)<=1&&typeof c.sprint==='boolean'&&(c.facing===undefined||(Number.isFinite(c.facing)&&Math.abs(c.facing)<=Math.PI))&&(c.crouch===undefined||typeof c.crouch==='boolean'))
+      || c.type==='rest' || c.type==='wake' || c.type==='integrate_arcana'
       ||(c.type==='guard'&&typeof c.held==='boolean')
       ||(c.type==='attack'&&(c.targetBodyId===undefined||identifier(c.targetBodyId))&&(c.trajectory===undefined||['high','mid','low'].includes(c.trajectory))&&(c.weight===undefined||['light','heavy'].includes(c.weight)))
       ||(c.type==='interact'&&identifier(c.interactionId))
+      ||(c.type==='learn_arcana'&&identifier(c.itemId))
+      ||(c.type==='cast'&&identifier(c.abilityId)&&(c.scrollItemId===undefined||identifier(c.scrollItemId))
+        &&(c.target===undefined||c.target&&[c.target.x,c.target.y,c.target.z].every(n=>Number.isFinite(n)&&Math.abs(n)<1e7)))
       ||(c.type==='container_transfer'&&identifier(c.containerId)&&identifier(c.itemId)&&(c.direction==='into'||c.direction==='out'))
       ||(c.type==='defend'&&['sidestep','backstep','duck'].includes(c.kind)&&(c.side===undefined||c.side===-1||c.side===1)
         &&(c.direction===undefined||(Number.isFinite(c.direction.x)&&Number.isFinite(c.direction.z)&&Math.abs(c.direction.x)<=1&&Math.abs(c.direction.z)<=1&&Math.hypot(c.direction.x,c.direction.z)>=INTERACTION_SPEC.dodgeDeadZone)))||(c.type==='crouch'&&typeof c.held==='boolean')||(c.type==='practice'&&['passive','repeat','reset','recovery','normal'].includes(c.mode))||c.type==='cancel');
     if(!valid) return remember(reject('invalid_command'));
+    // Under congestion, obsolete trailing movement samples may be cancelled, not
+    // executed in a burst. Never cross an action/interaction ordering boundary.
+    // Preserve the latest sample and emit stable cancellation receipts for the rest.
+    if(this.pending.length>=8&&this.superseded.length<240){
+      let start=this.pending.length;while(start>0&&this.pending[start-1].envelope.command.type==='move')start--;
+      const remove=Math.max(0,this.pending.length-start-1);
+      for(const p of this.pending.splice(start,remove)){
+        const r=this.receipt(p.envelope,'cancelled','superseded_movement',tick,p.receivedAtMs,now);
+        this.ledger.set(r.commandId,r);this.superseded.push(r);
+      }
+    }
     if(this.pending.length>=16) return remember(reject('queue_full'));
     this.pending.push({envelope:structuredClone(m as CommandEnvelope),receivedAtMs:now});
     return remember(this.receipt(m,'received','queued',tick,now,now));
   }
   apply(tick:number,now:number,execute:(c:InteractionCommand,envelope:CommandEnvelope)=>string):CommandReceipt[] {
-    const out:CommandReceipt[]=[];let moved=false;
+    const out:CommandReceipt[]=this.superseded.splice(0);let moved=false;
     for(const p of this.pending)p.firstTickAtMs??=now;
     for(let count=0;this.pending.length&&count<8;count++) {
       // Startup can leave movement samples queued for several ticks. Combat must still
@@ -69,7 +95,7 @@ export class CommandQueue {
       if(index<0)break;
       // An interaction is an ordering barrier: pickup may change the weapon used by
       // the following attack. Urgent combat can pass movement, never that dependency.
-      if(index>0&&['interact','container_transfer'].includes(this.pending[index].envelope.command.type))break;
+      if(index>0&&['interact','container_transfer','learn_arcana','integrate_arcana'].includes(this.pending[index].envelope.command.type))break;
       const p=this.pending.splice(index,1)[0],c=p.envelope.command;
       const stale=now-p.receivedAtMs>INTERACTION_SPEC.inputHorizonSeconds*1000;
       const result=stale?'expired':execute(c,p.envelope);
@@ -82,6 +108,6 @@ export class CommandQueue {
     return out;
   }
   cancel(tick:number,now:number):CommandReceipt[] {
-    return this.pending.splice(0).map(p=>{const r=this.receipt(p.envelope,'cancelled','binding_released',tick,p.receivedAtMs,now);this.ledger.set(r.commandId,r);return r;});
+    return [...this.superseded.splice(0),...this.pending.splice(0).map(p=>{const r=this.receipt(p.envelope,'cancelled','binding_released',tick,p.receivedAtMs,now);this.ledger.set(r.commandId,r);return r;})];
   }
 }

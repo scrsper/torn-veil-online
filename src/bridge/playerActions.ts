@@ -53,7 +53,7 @@ export function carriedItemRows(sim: Simulation, p: Person, interactions: HandIn
     }
     for(const kind of ['equip','unequip'] as const){const interactionId=`${kind}:${it.id}`;if(offered.has(interactionId))actions.push({id:interactionId,kind,label:`${kind==='equip'?'Equip':'Unequip'} ${it.name}`,available:!unable,reason:unable,request:{type:'interact',interactionId}});}
     if(it.equipped)description.push('Equipped: '+it.equipped.slot);
-    if(it.type==='armor')description.push('Physical fitting prototype; protection and catalog abilities are descriptive.');
+    if(it.type==='armor')description.push(it.physicalArmor ? `Physical protection: ${it.physicalArmor.coverage.join(', ')}; absorption up to ${it.physicalArmor.absorption} at full condition.` : 'No authored physical protection; catalog abilities are descriptive.');
     if (it.record) actions.push(readRow(sim, p, it, unable));
     rows.push({ id: it.id, name: it.name || it.type, type: it.type, quantity: it.quantity, description, actions });
   }

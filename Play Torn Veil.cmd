@@ -1,3 +1,3 @@
 @echo off
-call "%~dp0Play Torn Veil Web.cmd" %*
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\web\Play-Realms.ps1" %*
 exit /b %ERRORLEVEL%

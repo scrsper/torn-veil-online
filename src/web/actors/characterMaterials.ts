@@ -3,6 +3,44 @@ import { mulberry } from '../render/noise';
 import { paintTexture } from '../render/textures';
 import { paintEye, paintFace, paintPairedIris, type FaceSpec } from './faceTexture';
 
+const humanMicroNormals = new WeakMap<Scene, RawTexture>();
+/** Restrained optical treatment for the existing textured MPFB bodies, shared by Tower and world.
+ * No source geometry, skin colour, UVs, rig, reference pixels or GLB bytes are changed.
+ * The linen is a seamless authored swatch; finer tiling makes its weave read as fibre rather than a large check.
+ */
+export function refineImportedHumanMaterial(m: PBRMaterial, scene: Scene): void {
+  const name = m.name;
+  if (/^TV_Human_(male|female)$/.test(name)) {
+    m.metallic = 0; m.roughness = .53;
+    m.subSurface.isTranslucencyEnabled = true; m.subSurface.translucencyIntensity = .055;
+    m.subSurface.minimumThickness = .005; m.subSurface.maximumThickness = .02;
+    m.subSurface.tintColor = new Color3(1, .63, .48);
+    if (!m.bumpTexture) {
+      let normal = humanMicroNormals.get(scene);
+      if (!normal) {
+        const size = 128, pixels = new Uint8Array(size * size * 3), rnd = mulberry(31729);
+        for (let i = 0; i < size * size; i++) { pixels[i * 3] = 128 + Math.round((rnd() - .5) * 12); pixels[i * 3 + 1] = 128 + Math.round((rnd() - .5) * 12); pixels[i * 3 + 2] = 255; }
+        normal = RawTexture.CreateRGBTexture(pixels, size, size, scene, true, false, Texture.TRILINEAR_SAMPLINGMODE);
+        normal.name = 'shared-human-micro-normal'; normal.gammaSpace = false; normal.uScale = normal.vScale = 24; normal.level = .3;
+        humanMicroNormals.set(scene, normal);
+      }
+      m.bumpTexture = normal;
+    }
+  } else if (/TV_Human_(male|female)\.high-poly/.test(name)) {
+    // This source part is the eye globe. The old cloth-like roughness hid its corneal highlight.
+    m.metallic = 0; m.roughness = .18;
+  } else if (/TV woven linen shirt|Plain linen study/.test(name)) {
+    m.roughness = .93; m.metallic = 0;
+    if (m.albedoTexture instanceof Texture) { m.albedoTexture.uScale = m.albedoTexture.vScale = 4; }
+    if (m.bumpTexture instanceof Texture) { m.bumpTexture.uScale = m.bumpTexture.vScale = 4; m.bumpTexture.level = .2; }
+    if (/Plain linen study/.test(name)) m.albedoColor = new Color3(.76, .7, .57);
+  } else if (/worn brown leather|shoes03/.test(name)) {
+    m.metallic = 0; m.roughness = .78;
+  } else if (/TV_Human_(male|female)\.(short02|braid01|eyebrow|eyelashes)/.test(name)) {
+    m.roughness = .62; m.alphaCutOff = .32; m.backFaceCulling = false;
+  }
+}
+
 /**
  * PBR materials for one character, keyed by the kit's slot names (TV_SkinBody, TV_SkinHead, TV_Eye,
  * TV_Hair, TV_Cloth, TV_Under, TV_Accent, TV_Hem, TV_Metal, TV_Leather, TV_Fur, TV_Straw, TV_Lacquer,

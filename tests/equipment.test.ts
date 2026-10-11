@@ -37,4 +37,18 @@ describe('canonical equipment',()=>{
   expect(armor.damage).toBe(0);expect(armor).not.toHaveProperty('abilities');expect(armor).not.toHaveProperty('protection');
   sim.dropItem(p,armor,{x:27,y:1,z:32});expect(armor.equipped).toBeUndefined();expect(equippedItems(w,p,b)).toEqual([]);
  });
+ it('keeps equipment bound to its manifestation while another body becomes primary',()=>{
+  const {world:w}=createCombatGym(),p=w.person(w.playerId!)!,b=w.primaryBody(p.id)!;
+  const second=makeBody(w,p.id,{x:40,y:1,z:40});w.attachBody(p,second);
+  const sword=w.items().find(i=>i.catalogId==='TV-010')!;
+  expect(changeEquipment(w,p,sword.id,true,b.id)).toBe('accepted');
+  b.present=false;
+  expect(w.primaryBody(p.id)?.id).toBe(second.id);
+  expect(equippedItems(w,p,b).map(i=>i.id)).toEqual([sword.id]);
+  expect(equippedItems(w,p,second)).toEqual([]);
+  expect(changeEquipment(w,p,sword.id,false)).toBe('equipped_elsewhere');
+  w.markPersonDead(p);
+  expect(w.primaryBody(p.id)).toBeUndefined();
+  expect(equippedItems(w,p,b).map(i=>i.id)).toEqual([sword.id]);
+ });
 });

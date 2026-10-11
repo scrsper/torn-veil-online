@@ -10,6 +10,7 @@ import { serialize, deserialize } from '../src/sim/persist/save';
 import { Simulation } from '../src/sim/mind/agent';
 import { skillOf } from '../src/sim/core/skills';
 import { attributeProfile } from '../src/sim/core/human';
+import { EXERTION_POLICY } from '../src/sim/physical/exertion';
 
 const jab = 'unarmed:jab', cross = 'unarmed:cross', kick = 'unarmed:low-kick', edge = 'unarmed:jab-to-cross';
 const hook = 'unarmed:hook', feintCounter = 'unarmed:feint-counter', crossToFeint = 'unarmed:cross-to-feint-counter';
@@ -132,14 +133,16 @@ describe('realtime martial/combat integration (v0.2, selection drives the actual
   it('charges once at admission, learns from resolved execution, and rejects replay without cost or reward', () => {
     const x = fixture(); x.tb.pos.x = 30; const before = x.p.physiology.fatigue;
     expect(submitCombatInput(x.world, x.b.id, { kind: 'attack' })).toBe('accepted');
-    const cost = x.b.combatAction!.exertionCost; expect(x.p.physiology.fatigue - before).toBeCloseTo(cost, 10);
+    const cost = x.b.combatAction!.exertionCost;
+    expect(x.b.exertion!.load).toBeCloseTo(cost * EXERTION_POLICY.burstScale, 10);
+    expect(x.p.physiology.fatigue).toBeGreaterThan(before);
     expect(masteryOf(x.p, 'motor:basic-punch')).toBe(0); tick(x, 47);
     const ev = x.world.event(x.b.combatAction!.learningEventId!)!;
     expect(ev.data.techniqueUse.techniqueId).toBe('motor:basic-punch'); expect(ev.data.phase).toBe('complete');
     expect(masteryOf(x.p, 'motor:basic-punch')).toBeGreaterThan(0); expect(skillOf(x.p, 'unarmed')).toBeGreaterThan(0);
-    const state = structuredClone({ martial: x.p.martial, skills: x.p.skills, physiology: x.p.physiology });
+    const state = structuredClone({ martial: x.p.martial, skills: x.p.skills, physiology: x.p.physiology, exertion: x.b.exertion });
     expect(submitTechniqueUse(x.world, x.p, ev.id)).toBe(0);
-    expect({ martial: x.p.martial, skills: x.p.skills, physiology: x.p.physiology }).toEqual(state);
+    expect({ martial: x.p.martial, skills: x.p.skills, physiology: x.p.physiology, exertion: x.b.exertion }).toEqual(state);
     expect(knowsTechnique(x.p, jab)).toBe(false);
   });
   it('credits a performed learned transition without charging or practicing the family twice', () => {

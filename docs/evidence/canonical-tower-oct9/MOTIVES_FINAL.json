@@ -1,0 +1,31 @@
+{
+  "passed": 4,
+  "failed": 0,
+  "success": true,
+  "tests": [
+    {
+      "name": "v0.10 motivated lives — end-to-end causal traces on the generated village family: Family responsibility: a spouse is badly hurt (primary acceptance case)",
+      "status": "passed",
+      "duration": 49279.1883,
+      "failureMessages": []
+    },
+    {
+      "name": "v0.10 motivated lives — end-to-end causal traces on the generated village favor: Favour and reciprocity: a gift of real value between non-kin",
+      "status": "passed",
+      "duration": 74138.817,
+      "failureMessages": []
+    },
+    {
+      "name": "v0.10 motivated lives — end-to-end causal traces on the generated village responsibility: Accepted responsibility: a funded bulk order across multiple trips",
+      "status": "passed",
+      "duration": 51820.9899,
+      "failureMessages": []
+    },
+    {
+      "name": "v0.10 motivated lives — end-to-end causal traces on the generated village conflict: Conflicting motives: real favors compete with ordinary responsibilities",
+      "status": "passed",
+      "duration": 35367.073000000004,
+      "failureMessages": []
+    }
+  ]
+}

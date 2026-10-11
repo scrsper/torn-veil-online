@@ -4,6 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "play:build": "node scripts/web/build-current.mjs",
+    "play": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/web/Play-Realms.ps1",
+    "realms:play": "node scripts/web/arena/stage-creator.mjs && tsx src/server/realms.ts",
+    "realms:check": "vitest run tests/realms.test.ts tests/realm-expedition.test.ts tests/web-boundary.test.ts",
+    "realms:journey": "node scripts/web/realms-journey.mjs",
     "observatory": "tsx src/observatory/server.ts",
     "observatory:benchmark": "tsx scripts/observatory/benchmark.ts",
     "observatory:check": "vitest run tests/observatory.test.ts tests/observatory-language.test.ts tests/dialogue-parser.test.ts tests/deterministic-dialogue.test.ts tests/player-language.test.ts tests/dialogue-live.test.ts",
@@ -47,8 +52,9 @@
     "foundry:report": "tsx src/headless/foundry/cli.ts",
     "foundry:fallback": "tsx src/headless/foundry/fallback.ts",
     "ashford:wardrobe": "tsx src/headless/foundry/ashfordWardrobe.ts",
-    "web:dev": "vite --config vite.web.config.ts",
-    "web:build": "tsc --noEmit && vite build --config vite.web.config.ts",
+    "web:dev": "node scripts/web/arena/stage-creator.mjs && vite --config vite.web.config.ts",
+    "web:build": "tsc --noEmit && node scripts/web/arena/stage-creator.mjs && vite build --config vite.web.config.ts",
+    "web:creator": "node scripts/web/arena/stage-creator.mjs",
     "web:gateway": "tsx src/webgate/main.ts",
     "web:assets": "node scripts/web/build-assets.mjs",
     "web:play": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/web/Play-Web.ps1",
@@ -60,7 +66,9 @@
     "ontology:install": "npm ci --prefix tools/ontology",
     "ontology:check": "npm run typecheck --prefix tools/ontology && npm test --prefix tools/ontology",
     "ontology:build": "npm run build --prefix tools/ontology",
-    "tooling": "tsx scripts/tooling/start.ts"
+    "tooling": "tsx scripts/tooling/start.ts",
+    "realms:expedition": "node scripts/web/realms-expedition-journey.mjs",
+    "realms:recovery": "node scripts/web/realms-expedition-recovery.mjs"
   },
   "dependencies": {
     "@babylonjs/core": "9.28.0",

@@ -109,7 +109,7 @@ describe('robbery causal loop (Priority 1 stabilization)', () => {
     expect(bandit.wealth).toBeGreaterThan(0);
   });
 
-  it('resisted robbery in a confined passage: a defiant, armed target is subdued before anything is taken', () => {
+  it.each(['open', 'closed'] as const)('resisted robbery in an %s passage preserves escape or subdual before theft', ends => {
     const { tw, bandit, villager } = setupBanditAndVictim(312, { courage: 1, aggression: 1 });
     // Full-health courage/aggression 1 plus a weapon clamps resistance to 1 already.
     // Keep the seeded RNG and establish an actual ambush passage: attempted sidesteps
@@ -117,12 +117,17 @@ describe('robbery causal loop (Priority 1 stabilization)', () => {
     for (let x = 8; x <= 14; x++) for (let y = 1; y <= 3; y++) {
       tw.world.grid.set(x, y, 9, B.Stone); tw.world.grid.set(x, y, 11, B.Stone);
     }
+    // Sidewalls alone leave a reachable escape, which this seed's injured defender uses.
+    // A genuinely bounded passage also needs end walls; retain both causal outcomes.
+    if (ends === 'closed') for (let y = 1; y <= 3; y++) {
+      tw.world.grid.set(8, y, 10, B.Stone); tw.world.grid.set(14, y, 10, B.Stone);
+    }
     tw.world.nav.rebuildArea(8, 9, 14, 11);
     // v0.2.3: the bandit is armed so it can actually overpower a defiant target — a robber that
     // is simply outmatched now (correctly) breaks off or yields rather than looping forever.
     makeItem(tw.world, 'sword', 'a notched sword', { owner: bandit.id, holder: bandit.id, damage: 26 });
     makeItem(tw.world, 'dagger', 'a dagger', { owner: villager.id, holder: villager.id, damage: 14 });
-    makeItem(tw.world, 'coins', 'silver coins', { owner: villager.id, holder: villager.id, quantity: 15 });
+    const coins = makeItem(tw.world, 'coins', 'silver coins', { owner: villager.id, holder: villager.id, quantity: 15 });
     const vb = tw.world.primaryBody(villager.id)!;
     let wasDowned = false;
     let theftEvent = null as null | { actor?: string };
@@ -130,12 +135,19 @@ describe('robbery causal loop (Priority 1 stabilization)', () => {
       step(tw, 0.25);
       if (vb.pose === 'downed') wasDowned = true;
       const t = tw.world.events.find(e => e.type === 'theft' && e.actor === bandit.id);
-      if (t) theftEvent = t;
+      if (t) { expect(wasDowned).toBe(true); theftEvent = t; }
     }
-    expect(wasDowned).toBe(true); // resistance was actually met with force
+    expect(tw.world.events.some(e => e.type === 'attack' && e.actor === bandit.id && e.target === villager.id)).toBe(true);
+    if (ends === 'closed') {
+      expect(wasDowned).toBe(true); // resistance was actually met with force
+      expect(theftEvent).not.toBeNull(); // and the robbery still completed afterward
+    } else {
+      expect(wasDowned).toBe(false); expect(theftEvent).toBeNull();
+      expect(villager.inventory).toContain(coins.id); expect(coins.quantity).toBe(15);
+      expect(vb.pos.x).toBeGreaterThan(14); // Escaped through the physically open end.
+    }
     expect(vb.dead).toBe(false); // Constitution §11: robbery intent must not be automatically lethal
     expect(villager.alive).toBe(true);
-    expect(theftEvent).not.toBeNull(); // and the robbery still completed afterward
   });
 
   it('actually transfers valuables through canonical item APIs, with provenance, and the money stays spendable', () => {

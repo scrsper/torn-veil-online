@@ -3,16 +3,31 @@
 Torn Veil is a persistent simulated world. **Babylon.js is the active game client.**
 `src/sim/` owns the world; `src/web/` displays it and requests canonical actions.
 The simulation is being retained. Unreal is archived; Three.js is historical.
-GitHub `main` remains the integrated baseline; this Babylon cleanup branch has not been merged into `main`.
-
-Authoritative working checkout: `C:\Users\green\Desktop\projects\torn-veil-online`.
+GitHub `main` is the shared source baseline. Use a clean main checkout and its
+primary launcher, which reports the exact compiled commit. [Current state](docs/CURRENT_STATE.md)
+records the implementation, test scope and known limits. The October 11 consolidation
+is tracked in [PR #66](https://github.com/scrsper/torn-veil-online/pull/66), with
+independent CI and its landing receipt. Full integration ancestry and intermediate
+private reports remain preserved locally; source branches and historical previews remain intact.
 
 ## Play
 
-Double-click **Play Torn Veil.cmd** (or **Play Torn Veil Web.cmd**).
-This opens Babylon using the isolated `web-quality` development world, separate
-from live/staging. The launcher prepares/starts that preview when needed and
-retains its existing save. **Play Torn Veil Isometric.cmd** offers the alternate view.
+Double-click **Play Torn Veil.cmd** (or `npm run play`) for the persistent
+Aether Reach / Cinderveil world and **canonical Tower**. The launcher builds
+`dist-web` for this checkout's exact clean commit, shows that commit, and rejects
+an older host on its port. `npm run play:build` builds without launching.
+The local save is `.debug/realms/world.json.store/`; original JSON imports remain intact.
+From another checkout, choose a free port: `Play Torn Veil.cmd -Port 7550`.
+
+[Current state, test scope, known defects and held-back work](docs/CURRENT_STATE.md).
+The atrium's **Enter shared Tower trial** uses the same canonical person, body,
+rank, possessions, injuries and saved world. Historical score-based Tower and
+Town/Gym previews require explicit lab URLs and do not define progression.
+
+**Play Torn Veil Web.cmd** opens the same current build as **Play Torn Veil.cmd**.
+The explicit older `scripts/web/Play-Web.ps1` and **Play Torn Veil Isometric.cmd**
+remain historical living-world comparisons with their original saves.
+Existing live characters/saves are not silently migrated into the new geography.
 
 Use `Play Torn Veil Web.cmd -CheckOnly` for a read-only preflight.
 [Browser controls](docs/web/CONTROLS.md) · [Browser setup](docs/web/README.md)

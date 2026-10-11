@@ -1,0 +1,368 @@
+{
+  "result": "passed",
+  "checks": [
+    {
+      "name": "starts with canonical realm character",
+      "ok": true,
+      "detail": {
+        "id": "p_5",
+        "name": "Veil traveler",
+        "rank": "Normal",
+        "inventory": [
+          {
+            "id": "i_1",
+            "name": "Threshold atlas",
+            "quantity": 1
+          },
+          {
+            "id": "i_2",
+            "name": "Travel provisions",
+            "quantity": 3
+          }
+        ]
+      }
+    },
+    {
+      "name": "Tower uses world person and body identities",
+      "ok": true,
+      "detail": {
+        "floor": 1,
+        "runId": "tower-expedition_1",
+        "climberId": "p_5",
+        "seed": 2559407530,
+        "binding": {
+          "runId": "tower-expedition_1",
+          "personId": "p_5",
+          "bodyId": "b_5",
+          "busy": false,
+          "error": ""
+        },
+        "hp": 1000,
+        "kills": 0,
+        "over": false,
+        "savedLocal": "{\"legacy-sentinel\":true}",
+        "metadata": {
+          "look": "creator_male",
+          "owned": {
+            "materials": {},
+            "morphs": {}
+          },
+          "climberId": "p_5",
+          "runId": "tower-expedition_1",
+          "worldBodyId": "b_5"
+        },
+        "gear": []
+      }
+    },
+    {
+      "name": "world-linked mode retains standalone checkpoint",
+      "ok": true
+    },
+    {
+      "name": "real input advances and durably checkpoints floor two",
+      "ok": true,
+      "detail": {
+        "floor": 2,
+        "runId": "tower-expedition_1",
+        "climberId": "p_5",
+        "seed": 2559407530,
+        "binding": {
+          "runId": "tower-expedition_1",
+          "personId": "p_5",
+          "bodyId": "b_5",
+          "busy": false,
+          "error": ""
+        },
+        "hp": 984,
+        "kills": 3,
+        "over": false,
+        "savedLocal": "{\"legacy-sentinel\":true}",
+        "metadata": {
+          "look": "creator_male",
+          "owned": {
+            "materials": {},
+            "morphs": {}
+          },
+          "climberId": "p_5",
+          "runId": "tower-expedition_1",
+          "worldBodyId": "b_5"
+        },
+        "gear": [
+          "weapon#1"
+        ]
+      }
+    },
+    {
+      "name": "reload restores same expedition and equipment",
+      "ok": true,
+      "detail": {
+        "floor": 2,
+        "runId": "tower-expedition_1",
+        "climberId": "p_5",
+        "seed": 2559407530,
+        "binding": {
+          "runId": "tower-expedition_1",
+          "personId": "p_5",
+          "bodyId": "b_5",
+          "busy": false,
+          "error": ""
+        },
+        "hp": 984,
+        "kills": 3,
+        "over": false,
+        "savedLocal": "{\"legacy-sentinel\":true}",
+        "metadata": {
+          "look": "creator_male",
+          "owned": {
+            "materials": {},
+            "morphs": {}
+          },
+          "climberId": "p_5",
+          "runId": "tower-expedition_1",
+          "worldBodyId": "b_5"
+        },
+        "gear": [
+          "weapon#1"
+        ]
+      }
+    },
+    {
+      "name": "restart key cannot replace bound character",
+      "ok": true
+    },
+    {
+      "name": "actual return retains identity inventory rank and body",
+      "ok": true,
+      "detail": {
+        "realm": "aether",
+        "realmName": "Aether Reach",
+        "subtitle": "THE GLASS MERIDIAN",
+        "seed": 918271,
+        "time": 14.700000000000074,
+        "worldTime": 8666414.700000219,
+        "person": {
+          "id": "p_5",
+          "name": "Veil traveler",
+          "rank": "Normal",
+          "inventory": [
+            {
+              "id": "i_1",
+              "name": "Threshold atlas",
+              "quantity": 1
+            },
+            {
+              "id": "i_2",
+              "name": "Travel provisions",
+              "quantity": 3
+            }
+          ]
+        },
+        "body": {
+          "id": "b_5",
+          "pos": {
+            "x": 3120.5,
+            "y": 1,
+            "z": 3128.8800000000156
+          },
+          "yaw": -3.141592653589793,
+          "hp": 80,
+          "maxHp": 80
+        },
+        "expedition": {
+          "active": false,
+          "status": "open",
+          "runId": "tower-expedition_1",
+          "revision": 4
+        },
+        "tower": true,
+        "pending": null,
+        "prompt": "Tower of Chrysanthus · Atrium",
+        "doors": [
+          {
+            "index": 3374342753,
+            "open": true
+          }
+        ],
+        "residents": [
+          {
+            "id": "p_1",
+            "name": "Iria Vale",
+            "pos": {
+              "x": 3120.6498083120764,
+              "y": 1,
+              "z": 3092.5000151873855
+            },
+            "yaw": 1.5706911005653152,
+            "vel": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "appearance": {
+              "skin": 7028522,
+              "hair": 4861722,
+              "shirt": 12629404,
+              "pants": 6970442,
+              "height": 1.04,
+              "build": 0.87,
+              "hatStyle": "none",
+              "description": {
+                "archetype": "ayami",
+                "culture": "ashford",
+                "presentation": "feminine",
+                "skinTone": "deep",
+                "faceShape": "oval",
+                "hairStyle": "braided",
+                "hairColor": "brown",
+                "eyeColor": "hazel",
+                "frame": "slight",
+                "stature": "above_average",
+                "garmentSilhouette": "dancer_wrap",
+                "garmentPalette": "undyed_hemp",
+                "accessories": [
+                  "gold_filigree",
+                  "ear_drops"
+                ],
+                "culturalTags": [
+                  "ashford",
+                  "travelling_troupe",
+                  "gold_ornament"
+                ],
+                "grooming": 0.618159816134721,
+                "wear": 0.36402444604784245,
+                "status": "modest",
+                "agePresentation": "young_adult",
+                "roleCues": [
+                  "travel_pack"
+                ]
+              }
+            }
+          },
+          {
+            "id": "p_2",
+            "name": "Sen Oris",
+            "pos": {
+              "x": 3121.644092856756,
+              "y": 1,
+              "z": 3092.500033842376
+            },
+            "yaw": 1.5707667466994513,
+            "vel": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "appearance": {
+              "skin": 14264712,
+              "hair": 9268825,
+              "shirt": 12037269,
+              "pants": 6970700,
+              "height": 0.96,
+              "build": 1.06,
+              "hatStyle": "none",
+              "description": {
+                "archetype": "ascetic",
+                "culture": "ashford",
+                "presentation": "masculine",
+                "skinTone": "tan",
+                "faceShape": "square",
+                "hairStyle": "shaved",
+                "hairColor": "black",
+                "eyeColor": "hazel",
+                "frame": "sturdy",
+                "stature": "below_average",
+                "garmentSilhouette": "work_kimono",
+                "garmentPalette": "undyed_hemp",
+                "accessories": [
+                  "prayer_beads",
+                  "tattoo_sleeve",
+                  "walking_staff",
+                  "beard"
+                ],
+                "culturalTags": [
+                  "ashford",
+                  "devotional",
+                  "ascetic"
+                ],
+                "grooming": 0.6597177603282034,
+                "wear": 0.5709037234261632,
+                "status": "modest",
+                "agePresentation": "adult",
+                "roleCues": [
+                  "apron",
+                  "hammer"
+                ]
+              },
+              "beard": 1709330,
+              "apron": 8418142
+            }
+          }
+        ],
+        "stats": {
+          "canonicalPeople": 5,
+          "cachedChunks": 82,
+          "persistedEdits": 0,
+          "doors": 1,
+          "eventCount": 41
+        }
+      }
+    },
+    {
+      "name": "portal cancellation remains in original realm",
+      "ok": true
+    },
+    {
+      "name": "other realm Tower resumes the same run and floor",
+      "ok": true,
+      "detail": {
+        "floor": 2,
+        "runId": "tower-expedition_1",
+        "climberId": "p_5",
+        "seed": 2559407530,
+        "binding": {
+          "runId": "tower-expedition_1",
+          "personId": "p_5",
+          "bodyId": "b_5",
+          "busy": false,
+          "error": ""
+        },
+        "hp": 984,
+        "kills": 3,
+        "over": false,
+        "savedLocal": "{\"legacy-sentinel\":true}",
+        "metadata": {
+          "look": "creator_male",
+          "owned": {
+            "materials": {},
+            "morphs": {}
+          },
+          "climberId": "p_5",
+          "runId": "tower-expedition_1",
+          "worldBodyId": "b_5"
+        },
+        "gear": [
+          "weapon#1"
+        ]
+      }
+    },
+    {
+      "name": "repeated return and reload preserves world progression",
+      "ok": true
+    },
+    {
+      "name": "no browser errors",
+      "ok": true,
+      "detail": []
+    }
+  ],
+  "errors": [],
+  "screenshots": [
+    "01-world-before-ascent",
+    "02-bound-tower-floor-one",
+    "03-real-combat-floor-two",
+    "04-returned-to-world-atrium",
+    "05-other-realm-after-expedition",
+    "06-returned-cinderveil-atrium"
+  ],
+  "note": "Observed headed Chrome journey, ordinary keys/buttons and read-only navigation queries. One isolated legacy-storage sentinel fixture; no teleports, forced kills or generated floor completion. Shared machine, not a controlled performance benchmark."
+}

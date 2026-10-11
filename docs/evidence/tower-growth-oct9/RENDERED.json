@@ -1,0 +1,229 @@
+{
+  "qualification": "Actual local browser captures from identified earned headless checkpoints. Earlier climbs are not depicted. Concurrent regression/calibration load; diagnostic samples, not isolated performance benchmarks.",
+  "runs": [
+    {
+      "kind": "actual rendered controls from earned headless floor-16 save; prior climb is not rendered evidence; concurrent tests, not hardware benchmark",
+      "source": {
+        "path": ".debug/tower-growth/browser-r2/result.json",
+        "bytes": 57136,
+        "sha256": "cd4b3e16bfa1d7b562445fa3a0a81ccacf78453f9f9c9fb7d0058361c5bc6616"
+      },
+      "video": {
+        "path": ".debug/tower-growth/browser-r2/actual-earned-growth.webm",
+        "bytes": 7292025,
+        "sha256": "7d3c5cd47bc7c9cae371155cb55aa9c7f1923a945f8f10cc78dfd283c7600b75",
+        "durationSeconds": 66.28,
+        "width": 1440,
+        "height": 900
+      },
+      "checks": [
+        {
+          "name": "loaded actual earned pre-integration save",
+          "ok": true
+        },
+        {
+          "name": "real control applied paid Bronze capacity",
+          "ok": true
+        },
+        {
+          "name": "integration did not heal or change identity",
+          "ok": true
+        },
+        {
+          "name": "reload retained earned rank capacity and identity",
+          "ok": true
+        },
+        {
+          "name": "ascent kept earned state",
+          "ok": true
+        },
+        {
+          "name": "real water interaction depleted physical stock",
+          "ok": true
+        },
+        {
+          "name": "cancelled crossing retained departure realm",
+          "ok": true
+        },
+        {
+          "name": "other-realm Tower resumed same earned run",
+          "ok": true
+        },
+        {
+          "name": "portal round trip retained exact person inventory and classification",
+          "ok": true
+        },
+        {
+          "name": "no browser errors",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "fightWallTimeMs": null,
+      "metrics": {
+        "meshes": 252,
+        "visiblePeople": 1,
+        "browserHeapBytes": 369476915,
+        "frameSamples": 205,
+        "frameIntervalMs": {
+          "p50": 7,
+          "p95": 11.399999856948853,
+          "max": 110.70000004768372
+        },
+        "serverSamples": 18,
+        "serverStepMs": {
+          "p50": 1.1817000000010012,
+          "p95": 17.366599999993923,
+          "max": 17.366599999993923
+        },
+        "receiptResults": {
+          "accepted": 53,
+          "binding_mismatch": 21
+        }
+      }
+    },
+    {
+      "kind": "actual rendered keyboard/button fight from earned headless Silver save; preceding climb not depicted; concurrent tests, not benchmark",
+      "source": {
+        "path": ".debug/tower-growth/silver-browser-final/result.json",
+        "bytes": 1816789,
+        "sha256": "1f2f61d3cfee91eddae81021dcc36454244535031c3e7c1443965b2eb0210da7"
+      },
+      "video": {
+        "path": ".debug/tower-growth/silver-browser-final/actual-silver-floor-47.webm",
+        "bytes": 10848939,
+        "sha256": "051e9990647bedcf01aab491ac168a22c8069b6b9e11972df27e0c42c5223e25",
+        "durationSeconds": 76.92,
+        "width": 1440,
+        "height": 900
+      },
+      "checks": [
+        {
+          "name": "loaded earned Silver floor-46 save",
+          "ok": true
+        },
+        {
+          "name": "observed physically stronger Silver casts",
+          "ok": true
+        },
+        {
+          "name": "real controls produced canonical later-floor defeats",
+          "ok": true
+        },
+        {
+          "name": "cleared floor 47 through rendered controls",
+          "ok": true
+        },
+        {
+          "name": "Gold was not awarded by the floor counter",
+          "ok": true
+        },
+        {
+          "name": "later-floor reload retained identity and clearance",
+          "ok": true
+        },
+        {
+          "name": "no browser errors",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "fightWallTimeMs": 58176,
+      "metrics": {
+        "meshes": 435,
+        "visiblePeople": 18,
+        "browserHeapBytes": 315951328,
+        "frameSamples": 7200,
+        "frameIntervalMs": {
+          "p50": 7,
+          "p95": 17.90000009536743,
+          "max": 48
+        },
+        "serverSamples": 626,
+        "serverStepMs": {
+          "p50": 3.274600000004284,
+          "p95": 17.28179999999702,
+          "max": 87.76720000000205
+        },
+        "receiptResults": {
+          "accepted": 492,
+          "cooldown": 4,
+          "queue_full": 104
+        }
+      },
+      "observedOwnCastDamage": [
+        112,
+        112,
+        112,
+        112,
+        112,
+        112
+      ],
+      "observedNpcCasts": 0
+    },
+    {
+      "kind": "actual rendered final-runtime summit reload and portal journey from earned headless 100-floor save; preceding climb not depicted; concurrent regression, not benchmark",
+      "source": {
+        "path": ".debug/tower-growth/summit-browser-r2/result.json",
+        "bytes": 65181,
+        "sha256": "78bf29072cea8109ce597345aaf9f1515fc4f95cfe76399089ede55e2cbae5d3"
+      },
+      "video": {
+        "path": ".debug/tower-growth/summit-browser-r2/actual-earned-summit-journey.webm",
+        "bytes": 7114371,
+        "sha256": "8e5ae32ea7e74cd1a9d07369bc75a5ad6f149c5f484eae86a8f44e837b599d59",
+        "durationSeconds": 84.04,
+        "width": 1440,
+        "height": 900
+      },
+      "checks": [
+        {
+          "name": "loaded earned completed Silver summit",
+          "ok": true
+        },
+        {
+          "name": "summit reload retained run and body",
+          "ok": true
+        },
+        {
+          "name": "reload cancelled uncommitted portal without moving identity",
+          "ok": true
+        },
+        {
+          "name": "Cinderveil retains completed summit without a new run or reward",
+          "ok": true
+        },
+        {
+          "name": "summit portal round trip preserves exact person inventory rank and body",
+          "ok": true
+        },
+        {
+          "name": "no browser errors",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "fightWallTimeMs": null,
+      "metrics": {
+        "meshes": 387,
+        "visiblePeople": 2,
+        "browserHeapBytes": 355282987,
+        "frameSamples": 15,
+        "frameIntervalMs": {
+          "p50": 10.400000095367432,
+          "p95": 121,
+          "max": 121
+        },
+        "serverSamples": 4,
+        "serverStepMs": {
+          "p50": 6.238899999996647,
+          "p95": 7.157600000035018,
+          "max": 7.157600000035018
+        },
+        "receiptResults": {
+          "accepted": 8
+        }
+      }
+    }
+  ]
+}

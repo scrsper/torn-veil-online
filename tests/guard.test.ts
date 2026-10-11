@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { serialize, deserialize } from '../src/sim/persist/save';
 import { addPerson, createTestWorld, v } from './helpers/world';
 import { guardContact, requestGuard, validSavedGuard } from '../src/sim/physical/guard';
+import { advanceExertion } from '../src/sim/physical/exertion';
 import { requestCombatAction, advanceCombat, captureCombatTransforms } from '../src/sim/physical/combatAction';
 
 function setup() {
@@ -29,7 +30,9 @@ describe('canonical guard and committed heavy strikes', () => {
     expect(guardContact(w, a, b, 10).parried).toBe(false);
     requestGuard(w, b.id, false); requestGuard(w, b.id, true);
     expect(guardContact(w, a, b, 10).parried).toBe(false);
-    w.physicalTime = 1; requestGuard(w, b.id, true);
+    // Two blocks spend real effort. Allow the ordinary physical recovery step
+    // before checking that a deliberately rearmed guard can parry again.
+    w.physicalTime = 6; advanceExertion(w); requestGuard(w, b.id, true);
     expect(guardContact(w, a, b, 10).parried).toBe(true);
   });
   it('does not guard the rear or retain a disconnected held input forever', () => {

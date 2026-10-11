@@ -2,6 +2,8 @@ import type { LocalizedInjury, ConflictIntent, EntityId, Item, ItemType, Person 
 import type { World } from '../core/world';
 import { getPhysicalCapability } from '../core/attributes';
 import { combatTransitionAt } from './combatTransitions';
+import { embodiedStrikeMultiplier } from './protection';
+import { INTERACTION_SPEC } from './prediction';
 
 export interface WeaponProperties { reach: number; impact: number; handling: number; }
 // Reach is body-origin distance in metres; impact is the base health-scale impulse.
@@ -34,6 +36,13 @@ export function combatWeapon(w: World, p: Person, bodyId=w.primaryBody(p.id)?.id
 export function combatReach(w: World, p: Person): number {
   const item = combatWeapon(w, p);
   return item ? weaponProperties(item)!.reach : UNARMED.reach;
+}
+/** Approach the implemented contact path, not the older broad admission envelope.
+ * This changes where an ordinary attack plan stops walking, never contact geometry.
+ * A small margin avoids repeatedly whiffing at the exact outer path endpoint. */
+export function combatApproachReach(w: World, p: Person): number {
+  const item = combatWeapon(w, p);
+  return item ? Math.min(1.8, weaponProperties(item)!.reach - .45) : INTERACTION_SPEC.unarmedPathReach - .05;
 }
 export const ATTACK_COOLDOWN = 0.55;
 export interface CombatAttackIntent {
@@ -79,6 +88,7 @@ export function resolveCombatAttack(w: World, intent: CombatAttackIntent, rng: {
   if (ab.combatAction ? w.physicalTime + 1e-9 < combatTransitionAt(ab.combatAction,'attack')
     : w.physicalTime - ab.lastAttackAt < ATTACK_COOLDOWN) return reject('cooldown');
   if (!ab.onGround) return reject('unsupported');
+  if (ab.arcana?.cast && !ab.arcana.cast.cancelled && ab.arcana.cast.completeAt > w.physicalTime) return reject('cooldown');
   const item = intent.weaponId === undefined ? combatWeapon(w, p, intent.attackerBodyId) : intent.weaponId === null ? null : w.item(intent.weaponId);
   if (intent.weaponId && !item) return reject('invalid_weapon');
   if (item && (!p.inventory.includes(item.id) || item.holderId !== p.id || item.quantity <= 0 || item.condition === 0 || !weaponProperties(item))) return reject('invalid_weapon');
@@ -90,7 +100,7 @@ export function resolveCombatAttack(w: World, intent: CombatAttackIntent, rng: {
   // Acceptance freezes potential force, never a hit or an anatomical region.
   const roll = rng.next();
   result.impact = weapon.impact * (0.5 + cap.effectiveStrength) * (0.7 + Math.min(1, cap.effectiveDexterity) * 0.3)
-    * (0.8 + weapon.handling * 0.2) * (0.8 + roll * 0.4);
+    * (0.8 + weapon.handling * 0.2) * (0.8 + roll * 0.4) * embodiedStrikeMultiplier(w, p, ab);
   result.exertionCost = Math.min(1 - p.physiology.fatigue, 0.025 * (2 - weapon.handling) * cap.fatigueMultiplier);
   return result;
 }

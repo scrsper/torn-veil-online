@@ -27,6 +27,7 @@ import { add, h } from './ui/dom';
 import { UiNav } from './ui/nav';
 import { PortraitRenderer } from './ui/portrait';
 import { GameAudio } from './audio/audio';
+import { footSurface, footfallSpatial } from './audio/footfalls';
 import { ModalHost } from './ui/modal';
 import { Hud } from './ui/hud';
 import { DialoguePanel } from './ui/dialoguePanel';
@@ -117,7 +118,19 @@ export class App {
       onContact: (pos, onPlayer) => this.impactFx.burst(this.regions.toRender(pos), onPlayer),
       onHit: (id, own) => { if (own) { this.rig.impact(0.8); this.input.vibrate(0.6, 0.3, 160); this.audio.combat('hurt'); } else this.audio.combat('hit'); },
     };
-    this.actors.factory = (ctx, atmos, a) => (a.kind === 'person' ? (a.body?this.sharedCharacters?.create(a.body,atmos):null) ?? this.characters.create(ctx.scene, atmos, a.body?.bodyId ?? 'x', makeRealization(a.body, a.body?.bodyId ?? 'x')) : a.wildlife ? this.creatures.create(ctx.scene, atmos, a.wildlife) : null) ?? placeholderVisual(ctx, atmos, a);
+    this.actors.factory = (ctx, atmos, a) => {
+      if (a.kind === 'person') {
+        const shared = a.body && this.sharedCharacters?.create(a.body, atmos, {
+          ground: (x, z) => {
+            const ground = this.regions.groundAt(x + this.regions.origin.x, z + this.regions.origin.z);
+            return ground === null ? null : ground - this.regions.origin.y;
+          },
+          onFootfall: (point, speed) => this.humanFootfall(a.body!.bodyId, point, speed),
+        });
+        return shared ?? this.characters.create(ctx.scene, atmos, a.body?.bodyId ?? 'x', makeRealization(a.body, a.body?.bodyId ?? 'x')) ?? placeholderVisual(ctx, atmos, a);
+      }
+      return (a.wildlife && this.creatures.create(ctx.scene, atmos, a.wildlife)) ?? placeholderVisual(ctx, atmos, a);
+    };
     this.input = new InputManager(canvas, () => this.settings);
     this.nav = new UiNav(this.input);
     this.overlay = h('div', { class: 'tv-layer', style: 'pointer-events:none' }); this.modalLayer = h('div', { class: 'tv-layer', style: 'pointer-events:none' });
@@ -180,7 +193,8 @@ export class App {
     panel.append(button(gym ? 'Switch to Town' : 'Switch to Combat Gym', () => void control('switch', { scenario: gym ? 'town' : 'gym' })));
     // The local action-combat feel lab (src/web/arena): smashable props, crowds, combos. Not canonical simulation.
     panel.append(button('Open Action Arena', () => { location.search = '?arena=1'; }));
-    panel.append(button('Enter the Tower of Chrysanthus', () => { location.search = '?arena=1&tower=1'; }));
+    panel.append(button('Historical score-based Tower lab', () => { location.search = '?arena=1&tower=1'; }));
+    panel.append(button('Historical all-magic Proving Hall lab', () => { location.search = '?arena=1&tower=1&hall=1'; }));
     if (gym) {
       const seed = h('input', { type: 'number', value: this.params.get('seed') ?? '918271', min: 0, max: 2147483647, style: 'width:90px;color:#26313c;background:white', aria: { label: 'Gym seed' } });
       panel.append(seed, button('Reset seed', () => void control('reset', { seed: Number(seed.value) })));
@@ -188,7 +202,7 @@ export class App {
       panel.append(button('Enable partner AI', () => void control('ai', { enabled: true })));
       panel.append(button('Pause partner AI', () => void control('ai', { enabled: false })));
     }
-    panel.append(h('p', { text: 'WASD move · Shift sprint · Space dodge · LMB strike · RMB guard · E interact · F target · Esc menu. Click arena to play.' }));
+    panel.append(h('p', { text: 'WASD move · Shift sprint · Space dodge · LMB strike · RMB guard · E interact · F target · Esc menu. Middle-drag looks around when the mouse is free.' }));
     panel.append(h('small', { text: 'Dummy is a passive human body: real health and contact. Chest and loose items use canonical interactions. Furniture is static; breakable pottery/debris is unavailable.' }));
     document.body.append(panel);
   }
@@ -280,7 +294,7 @@ export class App {
     l.on('scene', s => { this.regions.regionSize = s.geography?.regionSize ?? 256; this.regions.setOrigin(s.origin); });
     l.on('regions_state', s => { this.wantedRegions = s.resident; this.regions.setOrigin(s.origin); for (const id of s.unload) this.regions.unload(id); });
     l.on('presentation', p => this.regions.applyPresentation(p.payload, () => requestAnimationFrame(() => requestAnimationFrame(() => p.applied()))));
-    l.on('local_state', s => { this.predictor.applyLocalState(s); if (s.bodyId) this.ownBodyId = s.bodyId; this.physTick = s.tick; this.physAt = performance.now(); });
+    l.on('local_state', s => { this.predictor.applyLocalState(s); this.actors.applyLocalCombat(s.bodyId, s.combatAction, s.bufferedCombatCommandId); if (s.bodyId) this.ownBodyId = s.bodyId; this.physTick = s.tick; this.physAt = performance.now(); });
     l.on('receipt', r => { this.predictor.applyReceipt(r); if (r.status === 'rejected' || r.status === 'cancelled') this.actors.cancelPredicted(this.ownBodyId, r.commandId); });
     l.on('combat_frame', f => { void f; });
     l.on('snapshot', s => this.onSnapshot(s));
@@ -484,7 +498,7 @@ export class App {
     if (!this.hintState.moved) lines.push({ key: this.input.device === 'keyboard' ? 'WASD' : 'Left stick', text: 'Move' });
     if (this.rig.orbit) lines.push({ key: 'Middle drag', text: 'Orbit / tilt · Wheel zoom · F target · H strike · Space dodge' });
     if (this.rig.isometric) lines.push({ key: 'Wheel', text: 'Zoom · F target · E interact · H strike · B guard · Space dodge' });
-    if (!this.rig.cutaway && !this.hintState.looked) lines.push({ key: this.input.device === 'keyboard' ? 'Mouse' : 'Right stick', text: 'Look around' });
+    if (!this.rig.cutaway && !this.hintState.looked) lines.push({ key: this.input.device === 'keyboard' ? this.input.pointerLocked ? 'Mouse' : 'Middle drag' : 'Right stick', text: 'Look around' });
     if (this.focus.target && !this.hintState.interacted) lines.push({ key: k('interact'), text: 'Interact' });
     if (this.hintState.moved && this.hintState.looked && this.hintState.interacted && !this.hintState.attacked) lines.push({ key: k('journal'), text: 'Journal' });
     this.hud.setHints(lines.slice(0, 3));
@@ -566,7 +580,7 @@ export class App {
       this.rig.situation = this.cameraSituation(dt, vis.pos);
       this.rig.update(dt, { x: vis.pos.x - this.regions.origin.x, y: vis.pos.y - this.regions.origin.y + eye, z: vis.pos.z - this.regions.origin.z }, vis.yaw);
     }
-    this.regions.updateCutaway(this.rig.cutaway ? vis?.pos ?? null : null, this.camera.position);
+    this.regions.updateCutaway(this.rig.cutaway ? vis?.pos ?? null : null, this.camera.position, this.rig.cutaway ? lock?.pos ?? null : null);
     // World.
     const hour = this.params.get('hour') ? Number(this.params.get('hour')) : ((this.regions.worldTime / 3600) % 24 + 24) % 24;
     this.atmosphere.update(hour, this.regions.weather, dt); this.atmosphere.follow(this.camera.position);
@@ -581,19 +595,37 @@ export class App {
     // HUD (10 Hz).
     if (now - this.lastHudAt > 100 && s) { this.lastHudAt = now; this.updateHud(s, own); }
   }
+  private humanFootfall(bodyId: string, point: Vec3, speed: number): void {
+    if (this.phase !== 'playing') return;
+    const own = bodyId === this.ownBodyId;
+    const player = this.actors.get(this.ownBodyId)?.visual;
+    // Hearing stays with the embodied player when the camera pulls back; stereo
+    // orientation follows the view so nearby movement remains easy to locate.
+    const listener = player ? { x: player.root.position.x, y: player.root.position.y + player.headHeight * .85, z: player.root.position.z } : this.camera.position;
+    const spatial = own ? { gain: 1, pan: 0 } : footfallSpatial(point, listener, this.rig.forward);
+    if (spatial.gain < .005) return;
+    const x = point.x + this.regions.origin.x, z = point.z + this.regions.origin.z;
+    const y = (this.actors.get(bodyId)?.visual.root.position.y ?? point.y) + this.regions.origin.y;
+    const block = this.regions.supportBlockAt(x, y, z); if (block === null) return;
+    const surface = footSurface(block, this.regions.placeAt(x, y + .35, z).kind === 'building');
+    const weather = this.regions.weather, wet = weather.kind === 'rain' || weather.kind === 'storm' ? weather.intensity : 0;
+    this.audio.footstep(surface, Math.min(1.35, .65 + speed * .13) * (own ? 1 : .7), { ...spatial, wet });
+  }
   private audioFrame(dt: number, now: number): void {
     const vis = this.predictor.predicted; if (!vis) return;
     const place = this.regions.placeAt(vis.pos.x, vis.pos.y, vis.pos.z), indoor = place.kind === 'building';
     const fires = (this.regions as unknown as { fireCountNear?: (x: number, z: number) => number }).fireCountNear?.(vis.pos.x, vis.pos.z) ?? 0;
     const hour = ((this.regions.worldTime / 3600) % 24 + 24) % 24, w = this.regions.weather;
-    // Footfalls by distance travelled: one per stride.
+    // Procedural/placeholder bodies retain a distance fallback; imported adults emit
+    // their baked support edges after animation, for both the player and nearby NPCs.
     const cur = { x: vis.pos.x, z: vis.pos.z };
-    if (this.lastStepPos) { const d = Math.hypot(cur.x - this.lastStepPos.x, cur.z - this.lastStepPos.z); if (d < 3) this.stepDist += d; }
+    const contactTimed = this.actors.get(this.ownBodyId)?.visual.contactFootfalls;
+    if (contactTimed) this.stepDist = 0;
+    else if (this.lastStepPos) { const d = Math.hypot(cur.x - this.lastStepPos.x, cur.z - this.lastStepPos.z); if (d < 3 && dt < .15) this.stepDist += d; else this.stepDist = 0; }
     this.lastStepPos = cur;
     const running = this.controller.sprintHeld, stride = running ? 1.5 : 0.85;
-    const g = this.regions.groundAt(cur.x, cur.z) !== null ? this.regions.blockAt?.(cur.x, cur.z) ?? 1 : 1;
-    const near: 'grass' | 'stone' | 'wood' | 'dirt' | 'water' = indoor ? 'wood' : g === 3 || g === 4 ? 'stone' : g === 2 || g === 15 ? 'dirt' : 'grass';
-    if (this.stepDist >= stride) { this.stepDist = 0; this.audio.footstep(near, running ? 1.3 : 0.8); }
+    const near = footSurface(this.regions.supportBlockAt(cur.x, vis.pos.y, cur.z), indoor);
+    if (!contactTimed && this.stepDist >= stride) { this.stepDist %= stride; this.audio.footstep(near, running ? 1.3 : 0.8); }
     this.audio.update(dt, { hour, weather: w.kind, wind: w.wind, indoor, fires, near });
     if (this.dialogue.isOpen && now > this.nextBlip) { this.audio.speechBlip(170 + (this.speakerPos() ? 40 : 0)); this.nextBlip = now + 140 + Math.random() * 120; }
   }

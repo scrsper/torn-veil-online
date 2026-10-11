@@ -22,6 +22,8 @@ export class SpringBones {
   private chains: Chain[] = [];
   private colliders: Capsule[] = [];
   private fresh = true;
+  private accumulator = 0;
+  private static readonly STEP = 1 / 120;
 
   constructor(nodes: Map<string, TransformNode>, private readonly scale: number) {
     const chain = (prefix: string, n: number, stiffness: number, drag: number, gravity: number) => {
@@ -45,11 +47,25 @@ export class SpringBones {
 
   get active(): boolean { return this.chains.length > 0; }
   /** Snap particles to the animated pose (after spawning or teleporting). */
-  reset(): void { this.fresh = true; }
+  reset(): void { this.fresh = true; this.accumulator = 0; }
 
   update(dt: number): void {
     if (!this.chains.length || dt <= 0) return;
-    const h = Math.min(dt, 1 / 30);
+    // Verlet velocity is stored as a displacement, so integrating once with a
+    // variable frame delta makes the result depend on render rate. Accumulate
+    // bounded fixed steps instead; the animated pose is sampled by each step.
+    this.accumulator = Math.min(0.25, this.accumulator + Math.min(dt, 0.25));
+    let steps = 0;
+    while (this.accumulator >= SpringBones.STEP && steps < 8) {
+      this.step(SpringBones.STEP);
+      this.accumulator -= SpringBones.STEP;
+      steps++;
+    }
+    // A paused tab or a hitch must not create a burst of stale spring motion.
+    if (steps === 8 && this.accumulator >= SpringBones.STEP) this.accumulator = 0;
+  }
+
+  private step(h: number): void {
     for (const c of this.chains) {
       const pull = 1 - Math.exp(-c.stiffness * h), keep = Math.exp(-c.drag * h);
       for (const l of c.links) {
@@ -60,7 +76,11 @@ export class SpringBones {
         const head = l.node.getAbsolutePosition().clone();
         const target = Vector3.TransformCoordinates(l.tipLocal, l.node.getWorldMatrix());
         l.len = Vector3.Distance(head, target);
-        if (this.fresh) { l.p.copyFrom(target); l.prev.copyFrom(target); }
+        // Large target jumps are teleports/respawns rather than physical
+        // motion. Snap both Verlet points so the chain cannot explode across
+        // the scene before the next fixed step.
+        const teleported = !this.fresh && Vector3.Distance(l.p, target) > Math.max(.35 * this.scale, l.len * 4);
+        if (this.fresh || teleported) { l.p.copyFrom(target); l.prev.copyFrom(target); }
         else {
           const v = l.p.subtract(l.prev).scaleInPlace(keep);
           l.prev.copyFrom(l.p);

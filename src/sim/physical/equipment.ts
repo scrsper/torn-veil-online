@@ -2,7 +2,8 @@ import type {Body, Item, Person} from '../core/types';
 import type {World} from '../core/world';
 import {itemDesign} from '../content/itemCollection';
 export type EquipmentSlot = 'right-hand'|'left-hand'|'head'|'torso'|'left-shoulder'|'left-forearm'|'left-shin';
-/** Physical placement only. Catalog abilities and armor protection remain descriptive. */
+/** Placement shared by physics and presentation. Optional physicalArmor components provide
+ * protection; unimplemented catalog prose still never grants powers. */
 export function equipmentSlot(item:Pick<Item,'type'|'catalogId'>):EquipmentSlot|undefined {
  const d=item.catalogId?itemDesign(item.catalogId):undefined;
  if(d?.category==='Armor'){
@@ -15,6 +16,7 @@ export function equipmentSlot(item:Pick<Item,'type'|'catalogId'>):EquipmentSlot|
   if(t.includes('cuirass'))return 'torso';
  }
  if(['sword','dagger','axe','hammer','stick','stoneaxe','lantern','book'].includes(item.type))return 'right-hand';
+ if(item.type==='armor')return 'torso';
  return undefined;
 }
 /** One binding lives on the physical item; inventory and body views are derived. */

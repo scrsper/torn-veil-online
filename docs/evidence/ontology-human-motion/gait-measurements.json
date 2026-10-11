@@ -1,0 +1,164 @@
+[
+  {
+    "index": 0,
+    "speed": 1.5,
+    "direction": "forward",
+    "samples": 296,
+    "skate": 0.029765264026845508,
+    "meanAnkleHeight": 0.08844980778726372,
+    "maxAnkleHeight": 0.11027096211910248
+  },
+  {
+    "index": 0,
+    "speed": 1.5,
+    "direction": "backward",
+    "samples": 296,
+    "skate": 0.03155991280798632,
+    "meanAnkleHeight": 0.08757126988289324,
+    "maxAnkleHeight": 0.10170029103755951
+  },
+  {
+    "index": 0,
+    "speed": 1.5,
+    "direction": "left",
+    "samples": 297,
+    "skate": 0.030227251246519704,
+    "meanAnkleHeight": 0.08785019463762289,
+    "maxAnkleHeight": 0.10838719457387924
+  },
+  {
+    "index": 0,
+    "speed": 4.6,
+    "direction": "forward",
+    "samples": 152,
+    "skate": 0.019959860303100988,
+    "meanAnkleHeight": 0.08662272896617651,
+    "maxAnkleHeight": 0.09616076201200485
+  },
+  {
+    "index": 0,
+    "speed": 4.6,
+    "direction": "backward",
+    "samples": 147,
+    "skate": 0.04563587964268043,
+    "meanAnkleHeight": 0.08632203444939893,
+    "maxAnkleHeight": 0.08661294728517532
+  },
+  {
+    "index": 0,
+    "speed": 4.6,
+    "direction": "left",
+    "samples": 151,
+    "skate": 0.02712848008599538,
+    "meanAnkleHeight": 0.08633232008147713,
+    "maxAnkleHeight": 0.08817158639431
+  },
+  {
+    "index": 1,
+    "speed": 1.5,
+    "direction": "forward",
+    "samples": 297,
+    "skate": 0.019367175909704784,
+    "meanAnkleHeight": 0.09401758529421457,
+    "maxAnkleHeight": 0.11123169213533401
+  },
+  {
+    "index": 1,
+    "speed": 1.5,
+    "direction": "backward",
+    "samples": 298,
+    "skate": 0.01971336674620672,
+    "meanAnkleHeight": 0.09317622728795813,
+    "maxAnkleHeight": 0.1038309708237648
+  },
+  {
+    "index": 1,
+    "speed": 1.5,
+    "direction": "left",
+    "samples": 297,
+    "skate": 0.019263734740959278,
+    "meanAnkleHeight": 0.09343638010197616,
+    "maxAnkleHeight": 0.10832162946462631
+  },
+  {
+    "index": 1,
+    "speed": 4.6,
+    "direction": "forward",
+    "samples": 152,
+    "skate": 0.006714867582272562,
+    "meanAnkleHeight": 0.09260289032796495,
+    "maxAnkleHeight": 0.09547892957925797
+  },
+  {
+    "index": 1,
+    "speed": 4.6,
+    "direction": "backward",
+    "samples": 150,
+    "skate": 0.032595504830111706,
+    "meanAnkleHeight": 0.09256009623408318,
+    "maxAnkleHeight": 0.0925607830286026
+  },
+  {
+    "index": 1,
+    "speed": 4.6,
+    "direction": "left",
+    "samples": 151,
+    "skate": 0.015688857856400115,
+    "meanAnkleHeight": 0.09256010551918421,
+    "maxAnkleHeight": 0.09256049990653992
+  },
+  {
+    "index": 8,
+    "speed": 1.5,
+    "direction": "forward",
+    "samples": 289,
+    "skate": 0.013073846988837868,
+    "meanAnkleHeight": 0.06410511106149548,
+    "maxAnkleHeight": 0.07509224861860275
+  },
+  {
+    "index": 8,
+    "speed": 1.5,
+    "direction": "backward",
+    "samples": 290,
+    "skate": 0.01251913108766093,
+    "meanAnkleHeight": 0.06351744917960002,
+    "maxAnkleHeight": 0.06649498641490936
+  },
+  {
+    "index": 8,
+    "speed": 1.5,
+    "direction": "left",
+    "samples": 290,
+    "skate": 0.010846705779623237,
+    "meanAnkleHeight": 0.06372427316061381,
+    "maxAnkleHeight": 0.07298503071069717
+  },
+  {
+    "index": 8,
+    "speed": 4.6,
+    "direction": "forward",
+    "samples": 150,
+    "skate": 0.0021381905060893817,
+    "meanAnkleHeight": 0.06343997865915299,
+    "maxAnkleHeight": 0.06344109028577805
+  },
+  {
+    "index": 8,
+    "speed": 4.6,
+    "direction": "backward",
+    "samples": 132,
+    "skate": 0.0005821765376142566,
+    "meanAnkleHeight": 0.06343997783507362,
+    "maxAnkleHeight": 0.0634407326579094
+  },
+  {
+    "index": 8,
+    "speed": 4.6,
+    "direction": "left",
+    "samples": 149,
+    "skate": 0.012919359732247681,
+    "meanAnkleHeight": 0.06343997189862616,
+    "maxAnkleHeight": 0.06344032287597656
+  }
+]

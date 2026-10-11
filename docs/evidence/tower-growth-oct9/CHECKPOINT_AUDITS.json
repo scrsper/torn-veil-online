@@ -1,0 +1,415 @@
+[
+  {
+    "source": {
+      "path": ".debug/tower-growth/summit-918271-audit.json",
+      "bytes": 4895,
+      "sha256": "6a4278a4229889cdec570a6cbcaa0b99a31441561661ad5db4046d2ba5dbc70a"
+    },
+    "kind": "Observed local load/serialize/reload and receipt audit of an earned input-strategy checkpoint; no world advancement or history fabrication; concurrent load, not a general benchmark",
+    "input": ".debug/tower-growth/ranged-918271-r8-resumed/world.json",
+    "sha256": "049d6e5ff37889e70b2dd6581ac069e9241c279733f3d7fc3de73d5b3bf1f858",
+    "bytes": 314039271,
+    "savedBytes": 314039271,
+    "readMs": 554.3339,
+    "loadMs": 1802.8933000000002,
+    "serializeMs": 1654.0496000000003,
+    "reloadMs": 3147.3286,
+    "afterLoadMemory": {
+      "rss": 1480658944,
+      "heapTotal": 1418731520,
+      "heapUsed": 1385780992,
+      "external": 3502303,
+      "arrayBuffers": 1073647
+    },
+    "afterSerializationMemory": {
+      "rss": 2666364928,
+      "heapTotal": 2602975232,
+      "heapUsed": 2543886024,
+      "external": 3502343,
+      "arrayBuffers": 1073647
+    },
+    "seed": 918271,
+    "personId": "p_5",
+    "bodyId": "b_5",
+    "rank": "Silver",
+    "health": 80,
+    "injuries": {
+      "head": 0.2605360608585954,
+      "torso": 1,
+      "leg": 0.0997855031048667
+    },
+    "inventoryCount": 202,
+    "people": 1774,
+    "events": 186114,
+    "physicalSeconds": 39607.95000100079,
+    "worldSeconds": 8706007.952065716,
+    "run": {
+      "id": "canonical-tower_1",
+      "status": "completed",
+      "active": true,
+      "floor": 100,
+      "clearedFloors": 100
+    },
+    "residency": {
+      "detailedPeople": 37,
+      "detailedBodies": 37,
+      "coarsePeople": 1737,
+      "maximumCoarsePeoplePerMinute": 32
+    },
+    "growth": {
+      "victories": 1523,
+      "meanEncounterControl": 0.8903233749179253,
+      "integrations": [
+        {
+          "eventId": "e_4905",
+          "from": "Normal",
+          "to": "Iron",
+          "floor": 5,
+          "worldTick": 8668114.850089436,
+          "materials": 1
+        },
+        {
+          "eventId": "e_27945",
+          "from": "Iron",
+          "to": "Bronze",
+          "floor": 18,
+          "worldTick": 8672828.900335293,
+          "materials": 2
+        },
+        {
+          "eventId": "e_116175",
+          "from": "Bronze",
+          "to": "Silver",
+          "floor": 44,
+          "worldTick": 8688173.13446889,
+          "materials": 3
+        }
+      ]
+    },
+    "bands": [
+      {
+        "from": 1,
+        "to": 10,
+        "cleared": 10,
+        "fightPhysicalSeconds": {
+          "total": 2727.033333342355,
+          "median": 300.01666667048676,
+          "min": 74.5333333341539,
+          "max": 560.8666666661566
+        }
+      },
+      {
+        "from": 11,
+        "to": 20,
+        "cleared": 10,
+        "fightPhysicalSeconds": {
+          "total": 3927.1833333056784,
+          "median": 429.4666666604171,
+          "min": 97.81666666524325,
+          "max": 597.3999999913067
+        }
+      },
+      {
+        "from": 21,
+        "to": 30,
+        "cleared": 10,
+        "fightPhysicalSeconds": {
+          "total": 5176.46666659134,
+          "median": 435.8666666603249,
+          "min": 204.416666663692,
+          "max": 900.0166666535697
+        }
+      },
+      {
+        "from": 31,
+        "to": 40,
+        "cleared": 10,
+        "fightPhysicalSeconds": {
+          "total": 4707.116666598171,
+          "median": 511.26666665922676,
+          "min": 210.26666666360688,
+          "max": 790.7166666551602
+        }
+      },
+      {
+        "from": 41,
+        "to": 50,
+        "cleared": 10,
+        "fightPhysicalSeconds": {
+          "total": 5171.5666665914105,
+          "median": 564.9666666584453,
+          "min": 82.06666666547244,
+          "max": 1005.0166666520417
+        }
+      },
+      {
+        "from": 51,
+        "to": 60,
+        "cleared": 10,
+        "fightPhysicalSeconds": {
+          "total": 2929.416666624038,
+          "median": 315.3666666620775,
+          "min": 54.56666666587262,
+          "max": 607.666666657824
+        }
+      },
+      {
+        "from": 61,
+        "to": 70,
+        "cleared": 10,
+        "fightPhysicalSeconds": {
+          "total": 2191.716666634773,
+          "median": 218.16666666349192,
+          "min": 49.56666666594538,
+          "max": 446.96666666016245
+        }
+      },
+      {
+        "from": 71,
+        "to": 80,
+        "cleared": 10,
+        "fightPhysicalSeconds": {
+          "total": 2269.5666667408113,
+          "median": 275.36666672276624,
+          "min": 65.7666666800651,
+          "max": 401.26666666082747
+        }
+      },
+      {
+        "from": 81,
+        "to": 90,
+        "cleared": 10,
+        "fightPhysicalSeconds": {
+          "total": 2695.866667215887,
+          "median": 253.81666671837593,
+          "min": 109.26666668892722,
+          "max": 529.5666667745536
+        }
+      },
+      {
+        "from": 91,
+        "to": 100,
+        "cleared": 10,
+        "fightPhysicalSeconds": {
+          "total": 3158.8166673102023,
+          "median": 362.5666667405312,
+          "min": 89.66666668493417,
+          "max": 603.4166667895988
+        }
+      }
+    ],
+    "checks": [
+      "schema and canonical receipt validation on load",
+      "round-trip exact body identity, inventory, rank, injury and growth evidence",
+      "round-trip exact Tower state",
+      "unique finite reward items across floors",
+      "real canonical floor-clear receipts"
+    ]
+  },
+  {
+    "source": {
+      "path": ".debug/tower-growth/floor-95-seed-317-audit.json",
+      "bytes": 4853,
+      "sha256": "6fb3bd34617e501e80522247b24f800d0d9cef6260f9f60466e8ff92511f495d"
+    },
+    "kind": "Observed local load/serialize/reload and receipt audit of an earned input-strategy checkpoint; no world advancement or history fabrication; concurrent load, not a general benchmark",
+    "input": ".debug/tower-growth/ranged-317-r7-resumed-final/world.json",
+    "sha256": "f4cfff9f68268987f4f422010770f9904a6cd222906463d950de9c15aca205a1",
+    "bytes": 281437809,
+    "savedBytes": 281437809,
+    "readMs": 885.6769,
+    "loadMs": 2956.9506,
+    "serializeMs": 2188.9556999999995,
+    "reloadMs": 4422.035599999999,
+    "afterLoadMemory": {
+      "rss": 1345880064,
+      "heapTotal": 1284849664,
+      "heapUsed": 1250233800,
+      "external": 3502303,
+      "arrayBuffers": 1073647
+    },
+    "afterSerializationMemory": {
+      "rss": 2408534016,
+      "heapTotal": 2345902080,
+      "heapUsed": 2287857320,
+      "external": 3502343,
+      "arrayBuffers": 1073647
+    },
+    "seed": 317,
+    "personId": "p_5",
+    "bodyId": "b_5",
+    "rank": "Silver",
+    "health": 80,
+    "injuries": {
+      "head": 0.2509134332192973,
+      "torso": 1
+    },
+    "inventoryCount": 190,
+    "people": 1615,
+    "events": 171991,
+    "physicalSeconds": 40753.1500012341,
+    "worldSeconds": 8707153.152125442,
+    "run": {
+      "id": "canonical-tower_1",
+      "status": "open",
+      "active": true,
+      "floor": 95,
+      "clearedFloors": 94
+    },
+    "residency": {
+      "detailedPeople": 36,
+      "detailedBodies": 36,
+      "coarsePeople": 1579,
+      "maximumCoarsePeoplePerMinute": 32
+    },
+    "growth": {
+      "victories": 1383,
+      "meanEncounterControl": 0.8755332610267538,
+      "integrations": [
+        {
+          "eventId": "e_3231",
+          "from": "Normal",
+          "to": "Iron",
+          "floor": 4,
+          "worldTick": 8667550.816726686,
+          "materials": 1
+        },
+        {
+          "eventId": "e_23046",
+          "from": "Iron",
+          "to": "Bronze",
+          "floor": 16,
+          "worldTick": 8672485.616984056,
+          "materials": 2
+        },
+        {
+          "eventId": "e_115151",
+          "from": "Bronze",
+          "to": "Silver",
+          "floor": 45,
+          "worldTick": 8687475.867765859,
+          "materials": 3
+        }
+      ]
+    },
+    "bands": [
+      {
+        "from": 1,
+        "to": 10,
+        "cleared": 10,
+        "fightPhysicalSeconds": {
+          "total": 3172.7333333472725,
+          "median": 278.499999999773,
+          "min": 93.16666666658193,
+          "max": 900.0166666678829
+        }
+      },
+      {
+        "from": 11,
+        "to": 20,
+        "cleared": 10,
+        "fightPhysicalSeconds": {
+          "total": 4442.099999954511,
+          "median": 452.43333333909413,
+          "min": 234.7166666696553,
+          "max": 709.8166666563375
+        }
+      },
+      {
+        "from": 21,
+        "to": 30,
+        "cleared": 10,
+        "fightPhysicalSeconds": {
+          "total": 3675.716666613179,
+          "median": 363.7166666613739,
+          "min": 165.21666666426245,
+          "max": 742.2666666558653
+        }
+      },
+      {
+        "from": 31,
+        "to": 40,
+        "cleared": 10,
+        "fightPhysicalSeconds": {
+          "total": 4754.966666597475,
+          "median": 466.6166666598765,
+          "min": 268.2666666627629,
+          "max": 776.2666666553705
+        }
+      },
+      {
+        "from": 41,
+        "to": 50,
+        "cleared": 10,
+        "fightPhysicalSeconds": {
+          "total": 3585.016666614498,
+          "median": 278.7166666626108,
+          "min": 55.06666666586534,
+          "max": 665.7166666569792
+        }
+      },
+      {
+        "from": 51,
+        "to": 60,
+        "cleared": 10,
+        "fightPhysicalSeconds": {
+          "total": 3202.7666666200603,
+          "median": 295.86666666236124,
+          "min": 54.86666666586825,
+          "max": 707.9666666563644
+        }
+      },
+      {
+        "from": 61,
+        "to": 70,
+        "cleared": 10,
+        "fightPhysicalSeconds": {
+          "total": 1905.0666666389443,
+          "median": 195.06666666382807,
+          "min": 45.66666666600213,
+          "max": 424.7666666604855
+        }
+      },
+      {
+        "from": 71,
+        "to": 80,
+        "cleared": 10,
+        "fightPhysicalSeconds": {
+          "total": 2739.266666791118,
+          "median": 286.1666667249665,
+          "min": 81.66666668330436,
+          "max": 527.6666666589881
+        }
+      },
+      {
+        "from": 81,
+        "to": 90,
+        "cleared": 10,
+        "fightPhysicalSeconds": {
+          "total": 4827.366667650131,
+          "median": 499.9666667685233,
+          "min": 236.3666667148209,
+          "max": 920.9666668542923
+        }
+      },
+      {
+        "from": 91,
+        "to": 95,
+        "cleared": 4,
+        "fightPhysicalSeconds": {
+          "total": 1203.716666911896,
+          "median": 301.31666672805295,
+          "min": 51.766666677212925,
+          "max": 611.6666667912796
+        }
+      }
+    ],
+    "checks": [
+      "schema and canonical receipt validation on load",
+      "round-trip exact body identity, inventory, rank, injury and growth evidence",
+      "round-trip exact Tower state",
+      "unique finite reward items across floors",
+      "real canonical floor-clear receipts"
+    ]
+  }
+]

@@ -24,7 +24,8 @@ function qualifyingCapabilities(p: Person): [SkillId, { effectiveSeconds: number
 }
 
 /**
- * Only Normal→Iron is implemented. Higher stages remain blocked contracts pending metaphysics.
+ * This embodied-practice path implements Normal to Iron. Source-integrated arcane
+ * transformation is a separate evidenced physical path in physical/arcana/growth.
  *
  * Iron is anchored on one practiced capability (a path): the foundations that practice most
  * demands must reach IRON_FOUNDATION, and every other foundation must be sound (IRON_SUPPORT).

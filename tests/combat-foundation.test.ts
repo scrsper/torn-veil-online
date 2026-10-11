@@ -1,6 +1,7 @@
 import { getPhysicalCapability } from '../src/sim/core/attributes';
 import { injuryFromImpact, applyInjury } from '../src/sim/physical/injury';
 import { moveByIntent } from '../src/sim/physical/input';
+import { applyInteractionMovement, movementState } from '../src/sim/physical/interactionMovement';
 import { describe, expect, it } from 'vitest';
 import { createTestWorld, addPerson, v, wall, step } from './helpers/world';
 import { makeBody, makeItem } from '../src/sim/world/factory';
@@ -41,10 +42,28 @@ describe('canonical combat foundation', () => {
     x.a.attributes.dexterity *= 1.5; const dex = resolve();
     x.a.attributes.dexterity /= 1.5; expect(dex.impact).toBeGreaterThan(resolve().impact);
   });
-  it('repeated strikes consume fatigue, lowering future effectiveness and recording canonical results', () => {
+  it('repeated strikes exhaust short effort, recover with elapsed time, and retain cumulative fatigue', () => {
     const x = setup(); x.tb.health = x.tb.maxHealth = 1000;
+    x.world.clock.timeScale = 1; // Match realtime combat instead of accelerated social-time resting.
     const before = resolveCombatAttack(x.world, x.intent, new RNG(42));
-    for (let i = 0; i < 10; i++) { expect(x.sim.resolveAttack(x.intent).attempted).toBe(true); step(x, .8); }
+    let exhausted = false;
+    for (let i = 0; i < 10; i++) {
+      // Physical contact now moves the receiver. Follow through ordinary movement so
+      // this fatigue test still compares ten landed blows instead of nine distant misses.
+      const gap = x.tb.pos.x - x.ab.pos.x - 1.05;
+      if (gap > 0) applyInteractionMovement(x.world, x.a, x.ab, { x: 1, z: 0, sprint: false }, Math.min(.1, gap / movementState(x.world, x.a, x.ab).speed));
+      let admission = x.sim.resolveAttack(x.intent);
+      if (!admission.attempted) {
+        expect(admission.rejection).toBe('exhausted'); exhausted = true;
+        const resources = structuredClone({ physiology: x.a.physiology, exertion: x.ab.exertion });
+        expect(x.sim.resolveAttack(x.intent).rejection).toBe('exhausted');
+        expect({ physiology: x.a.physiology, exertion: x.ab.exertion }).toEqual(resources);
+        step(x, 4); // Ordinary elapsed recovery, with no reserve refill or fatigue reset.
+        admission = x.sim.resolveAttack(x.intent);
+      }
+      expect(admission.attempted).toBe(true); step(x, .8);
+    }
+    expect(exhausted).toBe(true);
     x.world.physicalTime += 1;
     expect(resolveCombatAttack(x.world, x.intent, new RNG(42)).impact).toBeLessThan(before.impact);
     expect(x.a.physiology.fatigue).toBeGreaterThan(0.1);

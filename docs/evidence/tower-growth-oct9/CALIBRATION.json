@@ -1,0 +1,3534 @@
+{
+  "qualification": "Accelerated ordinary-command bots, not human pacing or Gold-frequency estimates. Resumptions retain earned state and cumulative physical time. Interrupted/failed earlier segments are retained separately; totals are not summed across overlapping saves. Seed 918271 final segment loaded e00e0a1 before the equal-count residency cache repair. Seed 317 final segment and final rendered/focused/aggregate checks use the repaired runtime. Earlier segments crossed development repairs, so these are not controlled fresh final-runtime playthroughs.",
+  "runs": [
+    {
+      "name": "hybrid-918271-final",
+      "source": {
+        "path": ".debug/tower-growth/hybrid-918271-final/result.json",
+        "bytes": 11614,
+        "sha256": "2c59113c2e5c8086c1eeefb16e8240e637c44d8b1e3b22338e73f0d3fab0f160"
+      },
+      "kind": "accelerated body-command strategy; initial atrium fixture only",
+      "seed": 918271,
+      "strategy": "hybrid",
+      "requestedFloors": 10,
+      "elapsedExecutionMs": 36074.0234,
+      "totalSimulatedPhysicalSeconds": 3373.8000000153475,
+      "failed": "",
+      "rank": "Iron",
+      "capacity": {
+        "amplitude": 1.6,
+        "aperture": 1.2,
+        "reserve": 120
+      },
+      "residency": {
+        "detailedPeople": 11,
+        "detailedBodies": 11,
+        "coarsePeople": 36,
+        "maximumCoarsePeoplePerMinute": 32
+      },
+      "segmentFloors": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "segmentClears": 10,
+      "segmentDownings": 13,
+      "finalGrowth": {
+        "eligible": false,
+        "next": "Bronze",
+        "reasons": [
+          "38/80 distinct opposed victories",
+          "Finish the committed action"
+        ],
+        "victories": 38,
+        "forms": 5,
+        "quality": 0.7243421052631577
+      },
+      "peakSampledRssBytes": 354836480,
+      "records": [
+        {
+          "floor": 1,
+          "cleared": true,
+          "physicalSeconds": 315.06666666670696,
+          "initialHp": 80,
+          "hp": 75.95147448495851,
+          "injuries": {
+            "head": 0.05957682073647395
+          },
+          "fatigue": 0.10506497856738779,
+          "downings": 0,
+          "castRequests": 15,
+          "acceptedCasts": 15,
+          "defeated": 3,
+          "opponents": 3,
+          "stage": "Normal",
+          "growth": {
+            "eligible": false,
+            "next": "Iron",
+            "reasons": [
+              "3/12 distinct opposed victories",
+              "0/1 different essences learned from real sources",
+              "1 spare essence sources must be consumed",
+              "Finish the committed action"
+            ],
+            "victories": 3,
+            "forms": 1,
+            "quality": 0.9791666666666666
+          },
+          "residency": {
+            "detailedPeople": 8,
+            "detailedBodies": 8,
+            "coarsePeople": 0,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 316,
+            "p50": 0.04539999999997235,
+            "p95": 0.13279999999997472,
+            "max": 1.2497000000000753
+          },
+          "peakRss": 182509568
+        },
+        {
+          "floor": 2,
+          "cleared": true,
+          "physicalSeconds": 287.2666666664054,
+          "initialHp": 75.95147448495851,
+          "hp": 72.02068205957244,
+          "injuries": {
+            "head": 0.05957682073647395
+          },
+          "fatigue": 0.11452080911906062,
+          "downings": 0,
+          "castRequests": 21,
+          "acceptedCasts": 21,
+          "defeated": 3,
+          "opponents": 3,
+          "stage": "Normal",
+          "growth": {
+            "eligible": false,
+            "next": "Iron",
+            "reasons": [
+              "6/12 distinct opposed victories",
+              "0/1 different essences learned from real sources",
+              "1 spare essence sources must be consumed",
+              "Finish the committed action"
+            ],
+            "victories": 6,
+            "forms": 1,
+            "quality": 0.9791666666666666
+          },
+          "residency": {
+            "detailedPeople": 8,
+            "detailedBodies": 8,
+            "coarsePeople": 3,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 288,
+            "p50": 0.030600000000049477,
+            "p95": 0.083299999999781,
+            "max": 1.1444000000001324
+          },
+          "peakRss": 213041152
+        },
+        {
+          "floor": 3,
+          "cleared": true,
+          "physicalSeconds": 205.89999999981274,
+          "initialHp": 72.02068205957244,
+          "hp": 67.99069152234448,
+          "injuries": {
+            "head": 0.05957682073647395
+          },
+          "fatigue": 0.12061157203010872,
+          "downings": 0,
+          "castRequests": 12,
+          "acceptedCasts": 12,
+          "defeated": 3,
+          "opponents": 3,
+          "stage": "Normal",
+          "growth": {
+            "eligible": false,
+            "next": "Iron",
+            "reasons": [
+              "9/12 distinct opposed victories",
+              "0/1 different essences learned from real sources",
+              "1 spare essence sources must be consumed",
+              "Finish the committed action"
+            ],
+            "victories": 9,
+            "forms": 1,
+            "quality": 0.9805555555555555
+          },
+          "residency": {
+            "detailedPeople": 8,
+            "detailedBodies": 8,
+            "coarsePeople": 6,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 206,
+            "p50": 0.027100000000245927,
+            "p95": 0.06220000000030268,
+            "max": 0.246700000000601
+          },
+          "peakRss": 222609408
+        },
+        {
+          "floor": 4,
+          "cleared": true,
+          "physicalSeconds": 356.5666666663425,
+          "initialHp": 68.12471412815282,
+          "hp": 64.53651030161528,
+          "injuries": {
+            "head": 0.14082054775855998
+          },
+          "fatigue": 0.12839192987457762,
+          "downings": 1,
+          "castRequests": 21,
+          "acceptedCasts": 21,
+          "defeated": 4,
+          "opponents": 4,
+          "stage": "Normal",
+          "growth": {
+            "eligible": false,
+            "next": "Iron",
+            "reasons": [
+              "0/1 different essences learned from real sources",
+              "1 spare essence sources must be consumed",
+              "Finish the committed action"
+            ],
+            "victories": 13,
+            "forms": 2,
+            "quality": 0.9115384615384615
+          },
+          "residency": {
+            "detailedPeople": 9,
+            "detailedBodies": 9,
+            "coarsePeople": 9,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 357,
+            "p50": 0.04659999999967113,
+            "p95": 0.09770000000025902,
+            "max": 0.6902000000009139
+          },
+          "peakRss": 274104320
+        },
+        {
+          "floor": 5,
+          "cleared": true,
+          "physicalSeconds": 114.13333333322953,
+          "initialHp": 64.53651030161528,
+          "hp": 14.469319482948704,
+          "injuries": {
+            "head": 0.14699641942042208,
+            "torso": 0.2
+          },
+          "fatigue": 0.2144228868314568,
+          "downings": 0,
+          "castRequests": 8,
+          "acceptedCasts": 8,
+          "defeated": 4,
+          "opponents": 4,
+          "stage": "Iron",
+          "growth": {
+            "eligible": false,
+            "next": "Bronze",
+            "reasons": [
+              "15/80 distinct opposed victories",
+              "1/2 different essences learned from real sources",
+              "2 spare essence sources must be consumed",
+              "A conscious recovered manifestation is required",
+              "Finish the committed action"
+            ],
+            "victories": 15,
+            "forms": 2,
+            "quality": 0.8841666666666667
+          },
+          "residency": {
+            "detailedPeople": 9,
+            "detailedBodies": 9,
+            "coarsePeople": 13,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 114,
+            "p50": 0.030999999999039574,
+            "p95": 0.09270000000105938,
+            "max": 0.1562999999987369
+          },
+          "peakRss": 279343104
+        },
+        {
+          "floor": 6,
+          "cleared": true,
+          "physicalSeconds": 107.01666666656934,
+          "initialHp": 78.57711620104985,
+          "hp": 24.148082942962645,
+          "injuries": {
+            "head": 0.14699641942042208,
+            "torso": 0.2
+          },
+          "fatigue": 0.21658320279532342,
+          "downings": 1,
+          "castRequests": 6,
+          "acceptedCasts": 6,
+          "defeated": 4,
+          "opponents": 4,
+          "stage": "Iron",
+          "growth": {
+            "eligible": false,
+            "next": "Bronze",
+            "reasons": [
+              "18/80 distinct opposed victories",
+              "2 spare essence sources must be consumed",
+              "A conscious recovered manifestation is required",
+              "Finish the committed action"
+            ],
+            "victories": 18,
+            "forms": 3,
+            "quality": 0.8458333333333333
+          },
+          "residency": {
+            "detailedPeople": 9,
+            "detailedBodies": 9,
+            "coarsePeople": 17,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 107,
+            "p50": 0.023699999999735155,
+            "p95": 0.0830999999998312,
+            "max": 0.14729999999872234
+          },
+          "peakRss": 281022464
+        },
+        {
+          "floor": 7,
+          "cleared": true,
+          "physicalSeconds": 453.01666666625465,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.16181944254113284,
+            "torso": 0.2
+          },
+          "fatigue": 0.21772098054649636,
+          "downings": 3,
+          "castRequests": 26,
+          "acceptedCasts": 19,
+          "defeated": 5,
+          "opponents": 5,
+          "stage": "Iron",
+          "growth": {
+            "eligible": false,
+            "next": "Bronze",
+            "reasons": [
+              "22/80 distinct opposed victories",
+              "Finish the committed action"
+            ],
+            "victories": 22,
+            "forms": 3,
+            "quality": 0.775
+          },
+          "residency": {
+            "detailedPeople": 10,
+            "detailedBodies": 10,
+            "coarsePeople": 21,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 453,
+            "p50": 0.030000000002473826,
+            "p95": 0.0717000000004191,
+            "max": 0.14220000000022992
+          },
+          "peakRss": 315916288
+        },
+        {
+          "floor": 8,
+          "cleared": true,
+          "physicalSeconds": 448.11666667205805,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.16181944254113284,
+            "torso": 0.2
+          },
+          "fatigue": 0.22050475412769296,
+          "downings": 4,
+          "castRequests": 17,
+          "acceptedCasts": 17,
+          "defeated": 5,
+          "opponents": 5,
+          "stage": "Iron",
+          "growth": {
+            "eligible": false,
+            "next": "Bronze",
+            "reasons": [
+              "27/80 distinct opposed victories",
+              "Finish the committed action"
+            ],
+            "victories": 27,
+            "forms": 3,
+            "quality": 0.7324074074074074
+          },
+          "residency": {
+            "detailedPeople": 10,
+            "detailedBodies": 10,
+            "coarsePeople": 26,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 449,
+            "p50": 0.023699999997916166,
+            "p95": 0.0650000000023283,
+            "max": 0.6080000000001746
+          },
+          "peakRss": 303755264
+        },
+        {
+          "floor": 9,
+          "cleared": true,
+          "physicalSeconds": 436.9166666722299,
+          "initialHp": 80,
+          "hp": 77.16113967301688,
+          "injuries": {
+            "head": 0.16181944254113284,
+            "torso": 0.2
+          },
+          "fatigue": 0.22586261381530057,
+          "downings": 2,
+          "castRequests": 22,
+          "acceptedCasts": 22,
+          "defeated": 5,
+          "opponents": 5,
+          "stage": "Iron",
+          "growth": {
+            "eligible": false,
+            "next": "Bronze",
+            "reasons": [
+              "32/80 distinct opposed victories",
+              "Finish the committed action"
+            ],
+            "victories": 32,
+            "forms": 3,
+            "quality": 0.7238281249999998
+          },
+          "residency": {
+            "detailedPeople": 10,
+            "detailedBodies": 10,
+            "coarsePeople": 31,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 437,
+            "p50": 0.03240000000005239,
+            "p95": 0.06309999999939464,
+            "max": 0.7240000000019791
+          },
+          "peakRss": 354836480
+        },
+        {
+          "floor": 10,
+          "cleared": true,
+          "physicalSeconds": 427.2166666721064,
+          "initialHp": 77.16113967301688,
+          "hp": 80,
+          "injuries": {
+            "head": 0.23108754210771915,
+            "torso": 0.2
+          },
+          "fatigue": 0.23670933740826358,
+          "downings": 2,
+          "castRequests": 22,
+          "acceptedCasts": 22,
+          "defeated": 6,
+          "opponents": 6,
+          "stage": "Iron",
+          "growth": {
+            "eligible": false,
+            "next": "Bronze",
+            "reasons": [
+              "38/80 distinct opposed victories",
+              "Finish the committed action"
+            ],
+            "victories": 38,
+            "forms": 5,
+            "quality": 0.7243421052631577
+          },
+          "residency": {
+            "detailedPeople": 11,
+            "detailedBodies": 11,
+            "coarsePeople": 36,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 428,
+            "p50": 0.03680000000167638,
+            "p95": 0.08830000000307336,
+            "max": 0.7318999999988591
+          },
+          "peakRss": 354471936
+        }
+      ]
+    },
+    {
+      "name": "melee-918271-final",
+      "source": {
+        "path": ".debug/tower-growth/melee-918271-final/result.json",
+        "bytes": 1748,
+        "sha256": "e34663eb9550950d590d75ac8309ba0e4bf1a6551b890b7be887fcc6e03e2231"
+      },
+      "kind": "accelerated body-command strategy; initial atrium fixture only",
+      "seed": 918271,
+      "strategy": "melee",
+      "requestedFloors": 10,
+      "elapsedExecutionMs": 4702.1521,
+      "totalSimulatedPhysicalSeconds": 601.9999999997812,
+      "failed": "floor 1 did not clear within 600 simulated seconds",
+      "rank": "Normal",
+      "capacity": {
+        "amplitude": 1,
+        "aperture": 1,
+        "reserve": 100
+      },
+      "residency": {
+        "detailedPeople": 8,
+        "detailedBodies": 8,
+        "coarsePeople": 0,
+        "maximumCoarsePeoplePerMinute": 32
+      },
+      "segmentFloors": [
+        1
+      ],
+      "segmentClears": 0,
+      "segmentDownings": 0,
+      "finalGrowth": {
+        "eligible": false,
+        "next": "Iron",
+        "reasons": [
+          "1/12 distinct opposed victories",
+          "0/1 forms applied against three distinct opponents each",
+          "0/1 different essences learned from real sources",
+          "1 spare essence sources must be consumed",
+          "A conscious recovered manifestation is required"
+        ],
+        "victories": 1,
+        "forms": 0,
+        "quality": 1
+      },
+      "peakSampledRssBytes": 211636224,
+      "records": [
+        {
+          "floor": 1,
+          "cleared": false,
+          "physicalSeconds": 599.9999999997812,
+          "initialHp": 80,
+          "hp": 39.224476422017474,
+          "injuries": {
+            "head": 0.07452058566152817
+          },
+          "fatigue": 0.11183011201114831,
+          "downings": 0,
+          "castRequests": 0,
+          "acceptedCasts": 0,
+          "defeated": 1,
+          "opponents": 3,
+          "stage": "Normal",
+          "growth": {
+            "eligible": false,
+            "next": "Iron",
+            "reasons": [
+              "1/12 distinct opposed victories",
+              "0/1 forms applied against three distinct opponents each",
+              "0/1 different essences learned from real sources",
+              "1 spare essence sources must be consumed",
+              "A conscious recovered manifestation is required"
+            ],
+            "victories": 1,
+            "forms": 0,
+            "quality": 1
+          },
+          "residency": {
+            "detailedPeople": 8,
+            "detailedBodies": 8,
+            "coarsePeople": 0,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 600,
+            "p50": 0.041700000000219006,
+            "p95": 0.10400000000004184,
+            "max": 1.0861999999999625
+          },
+          "peakRss": 211636224
+        }
+      ]
+    },
+    {
+      "name": "ranged-918271-r8-resumed",
+      "source": {
+        "path": ".debug/tower-growth/ranged-918271-r8-resumed/result.json",
+        "bytes": 64691,
+        "sha256": "bd0cee3468f836f3551b881e89b54dee3fc0b8571f98ccc9e1fa90a0b60082b6"
+      },
+      "kind": "accelerated body-command strategy; initial atrium fixture only",
+      "seed": 918271,
+      "strategy": "ranged",
+      "resumedFrom": ".debug/tower-growth/ranged-918271-r7-resumed/world.json",
+      "requestedFloors": 100,
+      "elapsedExecutionMs": 2506670.3754000003,
+      "totalSimulatedPhysicalSeconds": 39607.95000100079,
+      "failed": "",
+      "rank": "Silver",
+      "capacity": {
+        "amplitude": 7,
+        "aperture": 5,
+        "reserve": 220
+      },
+      "residency": {
+        "detailedPeople": 37,
+        "detailedBodies": 37,
+        "coarsePeople": 1737,
+        "maximumCoarsePeoplePerMinute": 32
+      },
+      "segmentFloors": [
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100
+      ],
+      "segmentClears": 57,
+      "segmentDownings": 86,
+      "finalGrowth": {
+        "eligible": false,
+        "next": "Gold",
+        "reasons": [
+          "Sustained bodily control 89% / 97%",
+          "A conscious recovered manifestation is required",
+          "Finish the committed action"
+        ],
+        "victories": 1523,
+        "forms": 6,
+        "quality": 0.8903233749179253
+      },
+      "peakSampledRssBytes": 3016626176,
+      "records": [
+        {
+          "floor": 44,
+          "cleared": true,
+          "physicalSeconds": 105.01666666513847,
+          "initialHp": 3.302546105233705,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2590812184988346,
+            "torso": 0.9,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.36641265683902335,
+          "downings": 0,
+          "castRequests": 8,
+          "acceptedCasts": 7,
+          "defeated": 16,
+          "opponents": 16,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "367/1000 distinct opposed victories",
+              "Sustained bodily control 77% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 367,
+            "forms": 6,
+            "quality": 0.7676089918256132
+          },
+          "residency": {
+            "detailedPeople": 21,
+            "detailedBodies": 21,
+            "coarsePeople": 393,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 106,
+            "p50": 0.2312999999994645,
+            "p95": 0.5618999999999232,
+            "max": 20.624899999999798
+          },
+          "peakRss": 619204608
+        },
+        {
+          "floor": 45,
+          "cleared": true,
+          "physicalSeconds": 371.06666666126694,
+          "initialHp": 80,
+          "hp": 76.08486435890924,
+          "injuries": {
+            "head": 0.2590812184988346,
+            "torso": 0.9,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.3736957588930425,
+          "downings": 1,
+          "castRequests": 16,
+          "acceptedCasts": 16,
+          "defeated": 16,
+          "opponents": 16,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "383/1000 distinct opposed victories",
+              "Sustained bodily control 77% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 383,
+            "forms": 6,
+            "quality": 0.7722584856396868
+          },
+          "residency": {
+            "detailedPeople": 21,
+            "detailedBodies": 21,
+            "coarsePeople": 409,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 371,
+            "p50": 0.12860000000000582,
+            "p95": 0.3448000000007596,
+            "max": 1.2333999999991647
+          },
+          "peakRss": 726712320
+        },
+        {
+          "floor": 46,
+          "cleared": true,
+          "physicalSeconds": 373.2666666612349,
+          "initialHp": 76.08486435890924,
+          "hp": 70.6967287890242,
+          "injuries": {
+            "head": 0.2590812184988346,
+            "torso": 0.9,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.3793163238654013,
+          "downings": 1,
+          "castRequests": 18,
+          "acceptedCasts": 18,
+          "defeated": 16,
+          "opponents": 16,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "396/1000 distinct opposed victories",
+              "Sustained bodily control 78% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 396,
+            "forms": 6,
+            "quality": 0.7757575757575758
+          },
+          "residency": {
+            "detailedPeople": 21,
+            "detailedBodies": 21,
+            "coarsePeople": 425,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 373,
+            "p50": 0.14699999999720603,
+            "p95": 0.34979999999995925,
+            "max": 3.9847000000008848
+          },
+          "peakRss": 1312702464
+        },
+        {
+          "floor": 47,
+          "cleared": true,
+          "physicalSeconds": 82.06666666547244,
+          "initialHp": 70.6967287890242,
+          "hp": 35.3109844282356,
+          "injuries": {
+            "head": 0.2590812184988346,
+            "torso": 0.9,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.38087625098588906,
+          "downings": 0,
+          "castRequests": 12,
+          "acceptedCasts": 12,
+          "defeated": 17,
+          "opponents": 17,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "413/1000 distinct opposed victories",
+              "Sustained bodily control 78% / 97%",
+              "A conscious recovered manifestation is required",
+              "Finish the committed action"
+            ],
+            "victories": 413,
+            "forms": 6,
+            "quality": 0.7839285714285713
+          },
+          "residency": {
+            "detailedPeople": 22,
+            "detailedBodies": 22,
+            "coarsePeople": 441,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 82,
+            "p50": 0.19729999999981374,
+            "p95": 0.4466000000029453,
+            "max": 2.240799999999581
+          },
+          "peakRss": 1794195456
+        },
+        {
+          "floor": 48,
+          "cleared": true,
+          "physicalSeconds": 246.1166666630852,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2590812184988346,
+            "torso": 0.9,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.3858681082552197,
+          "downings": 1,
+          "castRequests": 7,
+          "acceptedCasts": 7,
+          "defeated": 17,
+          "opponents": 17,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "430/1000 distinct opposed victories",
+              "Sustained bodily control 79% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 430,
+            "forms": 6,
+            "quality": 0.788720930232558
+          },
+          "residency": {
+            "detailedPeople": 22,
+            "detailedBodies": 22,
+            "coarsePeople": 458,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 246,
+            "p50": 0.14999999999417923,
+            "p95": 0.3537999999971362,
+            "max": 1.318200000001525
+          },
+          "peakRss": 1453625344
+        },
+        {
+          "floor": 49,
+          "cleared": true,
+          "physicalSeconds": 156.46666666438978,
+          "initialHp": 80,
+          "hp": 24,
+          "injuries": {
+            "head": 0.2590812184988346,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.38605553516926305,
+          "downings": 1,
+          "castRequests": 13,
+          "acceptedCasts": 13,
+          "defeated": 17,
+          "opponents": 17,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "447/1000 distinct opposed victories",
+              "Sustained bodily control 79% / 97%",
+              "A conscious recovered manifestation is required",
+              "Finish the committed action"
+            ],
+            "victories": 447,
+            "forms": 6,
+            "quality": 0.7931208053691273
+          },
+          "residency": {
+            "detailedPeople": 22,
+            "detailedBodies": 22,
+            "coarsePeople": 475,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 157,
+            "p50": 0.14970000000903383,
+            "p95": 0.38560000000870787,
+            "max": 0.5124999999970896
+          },
+          "peakRss": 1316360192
+        },
+        {
+          "floor": 50,
+          "cleared": true,
+          "physicalSeconds": 755.1666666556775,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2590812184988346,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.3975893344093171,
+          "downings": 2,
+          "castRequests": 17,
+          "acceptedCasts": 17,
+          "defeated": 18,
+          "opponents": 18,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "465/1000 distinct opposed victories",
+              "Sustained bodily control 80% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 465,
+            "forms": 6,
+            "quality": 0.7956182795698923
+          },
+          "residency": {
+            "detailedPeople": 23,
+            "detailedBodies": 23,
+            "coarsePeople": 492,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 756,
+            "p50": 0.18210000000544824,
+            "p95": 0.44509999999718275,
+            "max": 1.9897000000055414
+          },
+          "peakRss": 1625874432
+        },
+        {
+          "floor": 51,
+          "cleared": true,
+          "physicalSeconds": 367.3666666613208,
+          "initialHp": 80,
+          "hp": 74.23776310184212,
+          "injuries": {
+            "head": 0.2590812184988346,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.40518483527842225,
+          "downings": 0,
+          "castRequests": 12,
+          "acceptedCasts": 12,
+          "defeated": 18,
+          "opponents": 18,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "483/1000 distinct opposed victories",
+              "Sustained bodily control 80% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 483,
+            "forms": 6,
+            "quality": 0.8030797101449274
+          },
+          "residency": {
+            "detailedPeople": 23,
+            "detailedBodies": 23,
+            "coarsePeople": 510,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 368,
+            "p50": 0.12910000000556465,
+            "p95": 0.3635000000067521,
+            "max": 1.9674999999988358
+          },
+          "peakRss": 2105720832
+        },
+        {
+          "floor": 52,
+          "cleared": true,
+          "physicalSeconds": 58.7666666658115,
+          "initialHp": 74.23776310184212,
+          "hp": 69.4105397561534,
+          "injuries": {
+            "head": 0.2590812184988346,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.40828945110737036,
+          "downings": 0,
+          "castRequests": 10,
+          "acceptedCasts": 10,
+          "defeated": 18,
+          "opponents": 18,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "501/1000 distinct opposed victories",
+              "Sustained bodily control 81% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 501,
+            "forms": 6,
+            "quality": 0.8100299401197604
+          },
+          "residency": {
+            "detailedPeople": 23,
+            "detailedBodies": 23,
+            "coarsePeople": 528,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 59,
+            "p50": 0.26650000002700835,
+            "p95": 0.4303000000072643,
+            "max": 0.47320000000763685
+          },
+          "peakRss": 1673883648
+        },
+        {
+          "floor": 53,
+          "cleared": true,
+          "physicalSeconds": 166.5666666642428,
+          "initialHp": 69.53380178942409,
+          "hp": 24,
+          "injuries": {
+            "head": 0.2590812184988346,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.4111124423108108,
+          "downings": 2,
+          "castRequests": 420,
+          "acceptedCasts": 6,
+          "defeated": 18,
+          "opponents": 18,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "518/1000 distinct opposed victories",
+              "Sustained bodily control 81% / 97%",
+              "A conscious recovered manifestation is required",
+              "Finish the committed action"
+            ],
+            "victories": 518,
+            "forms": 6,
+            "quality": 0.8121138996138996
+          },
+          "residency": {
+            "detailedPeople": 23,
+            "detailedBodies": 23,
+            "coarsePeople": 546,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 167,
+            "p50": 0.22820000001229346,
+            "p95": 0.4106000000028871,
+            "max": 1.5299999999988358
+          },
+          "peakRss": 1538830336
+        },
+        {
+          "floor": 54,
+          "cleared": true,
+          "physicalSeconds": 312.0166666621262,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2590812184988346,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.41395632121846265,
+          "downings": 2,
+          "castRequests": 430,
+          "acceptedCasts": 10,
+          "defeated": 19,
+          "opponents": 19,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "537/1000 distinct opposed victories",
+              "Sustained bodily control 81% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 537,
+            "forms": 6,
+            "quality": 0.8148277467411544
+          },
+          "residency": {
+            "detailedPeople": 24,
+            "detailedBodies": 24,
+            "coarsePeople": 564,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 312,
+            "p50": 0.22740000000339933,
+            "p95": 0.5639000000082888,
+            "max": 2.3396000000066124
+          },
+          "peakRss": 1895116800
+        },
+        {
+          "floor": 55,
+          "cleared": true,
+          "physicalSeconds": 271.76666666271194,
+          "initialHp": 80,
+          "hp": 24,
+          "injuries": {
+            "head": 0.2590812184988346,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.4118991785503457,
+          "downings": 3,
+          "castRequests": 13,
+          "acceptedCasts": 13,
+          "defeated": 19,
+          "opponents": 19,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "551/1000 distinct opposed victories",
+              "Sustained bodily control 81% / 97%",
+              "A conscious recovered manifestation is required",
+              "Finish the committed action"
+            ],
+            "victories": 551,
+            "forms": 6,
+            "quality": 0.813089836660617
+          },
+          "residency": {
+            "detailedPeople": 24,
+            "detailedBodies": 24,
+            "coarsePeople": 583,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 271,
+            "p50": 0.33679999999003485,
+            "p95": 1.3834000000206288,
+            "max": 6.314600000012433
+          },
+          "peakRss": 2275753984
+        },
+        {
+          "floor": 56,
+          "cleared": true,
+          "physicalSeconds": 373.96666666122474,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.4162694566965743,
+          "downings": 2,
+          "castRequests": 41,
+          "acceptedCasts": 6,
+          "defeated": 19,
+          "opponents": 19,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "567/1000 distinct opposed victories",
+              "Sustained bodily control 81% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 567,
+            "forms": 6,
+            "quality": 0.814263668430335
+          },
+          "residency": {
+            "detailedPeople": 24,
+            "detailedBodies": 24,
+            "coarsePeople": 602,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 374,
+            "p50": 0.14289999997708946,
+            "p95": 0.5551000000268687,
+            "max": 6.101299999980256
+          },
+          "peakRss": 1770696704
+        },
+        {
+          "floor": 57,
+          "cleared": true,
+          "physicalSeconds": 54.56666666587262,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.4188791795992906,
+          "downings": 0,
+          "castRequests": 10,
+          "acceptedCasts": 10,
+          "defeated": 20,
+          "opponents": 20,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "587/1000 distinct opposed victories",
+              "Sustained bodily control 82% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 587,
+            "forms": 6,
+            "quality": 0.8205919931856899
+          },
+          "residency": {
+            "detailedPeople": 25,
+            "detailedBodies": 25,
+            "coarsePeople": 621,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 54,
+            "p50": 0.33159999997587875,
+            "p95": 0.5029000000213273,
+            "max": 0.779999999969732
+          },
+          "peakRss": 1599578112
+        },
+        {
+          "floor": 58,
+          "cleared": true,
+          "physicalSeconds": 607.666666657824,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.4238238138742706,
+          "downings": 3,
+          "castRequests": 12,
+          "acceptedCasts": 12,
+          "defeated": 20,
+          "opponents": 20,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "606/1000 distinct opposed victories",
+              "Sustained bodily control 82% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 606,
+            "forms": 6,
+            "quality": 0.8200907590759076
+          },
+          "residency": {
+            "detailedPeople": 25,
+            "detailedBodies": 25,
+            "coarsePeople": 641,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 607,
+            "p50": 0.15500000002793968,
+            "p95": 0.5203000000328757,
+            "max": 2.2277999999932945
+          },
+          "peakRss": 1990086656
+        },
+        {
+          "floor": 59,
+          "cleared": true,
+          "physicalSeconds": 315.3666666620775,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.2461379895955162,
+          "downings": 3,
+          "castRequests": 15,
+          "acceptedCasts": 15,
+          "defeated": 20,
+          "opponents": 20,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "616/1000 distinct opposed victories",
+              "Sustained bodily control 82% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 616,
+            "forms": 6,
+            "quality": 0.8206980519480519
+          },
+          "residency": {
+            "detailedPeople": 25,
+            "detailedBodies": 25,
+            "coarsePeople": 661,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 315,
+            "p50": 0.3814000000129454,
+            "p95": 1.7772000000113621,
+            "max": 6.261300000012852
+          },
+          "peakRss": 2542559232
+        },
+        {
+          "floor": 60,
+          "cleared": true,
+          "physicalSeconds": 401.366666660826,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.2537864479439013,
+          "downings": 4,
+          "castRequests": 17,
+          "acceptedCasts": 16,
+          "defeated": 21,
+          "opponents": 21,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "632/1000 distinct opposed victories",
+              "Sustained bodily control 82% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 632,
+            "forms": 6,
+            "quality": 0.8193235759493671
+          },
+          "residency": {
+            "detailedPeople": 26,
+            "detailedBodies": 26,
+            "coarsePeople": 681,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 401,
+            "p50": 0.25889999995706603,
+            "p95": 0.5922000000136904,
+            "max": 3.6660999999730848
+          },
+          "peakRss": 2001440768
+        },
+        {
+          "floor": 61,
+          "cleared": true,
+          "physicalSeconds": 218.16666666349192,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.25899548387959825,
+          "downings": 1,
+          "castRequests": 10,
+          "acceptedCasts": 10,
+          "defeated": 21,
+          "opponents": 21,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "651/1000 distinct opposed victories",
+              "Sustained bodily control 82% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 651,
+            "forms": 6,
+            "quality": 0.8226382488479264
+          },
+          "residency": {
+            "detailedPeople": 26,
+            "detailedBodies": 26,
+            "coarsePeople": 702,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 218,
+            "p50": 0.3043999999645166,
+            "p95": 0.7123999999603257,
+            "max": 2.1471000000019558
+          },
+          "peakRss": 1850576896
+        },
+        {
+          "floor": 62,
+          "cleared": true,
+          "physicalSeconds": 70.16666666564561,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.25794851292003856,
+          "downings": 0,
+          "castRequests": 6,
+          "acceptedCasts": 6,
+          "defeated": 21,
+          "opponents": 21,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "672/1000 distinct opposed victories",
+              "Sustained bodily control 83% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 672,
+            "forms": 6,
+            "quality": 0.8275855654761906
+          },
+          "residency": {
+            "detailedPeople": 26,
+            "detailedBodies": 26,
+            "coarsePeople": 723,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 70,
+            "p50": 0.4699999999720603,
+            "p95": 0.8567000000039116,
+            "max": 1.414600000018254
+          },
+          "peakRss": 2250604544
+        },
+        {
+          "floor": 63,
+          "cleared": true,
+          "physicalSeconds": 164.86666666426754,
+          "initialHp": 80,
+          "hp": 17.78861353499243,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.25808984687387665,
+          "downings": 2,
+          "castRequests": 389,
+          "acceptedCasts": 6,
+          "defeated": 21,
+          "opponents": 21,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "691/1000 distinct opposed victories",
+              "Sustained bodily control 83% / 97%",
+              "A conscious recovered manifestation is required",
+              "Finish the committed action"
+            ],
+            "victories": 691,
+            "forms": 6,
+            "quality": 0.8303183791606368
+          },
+          "residency": {
+            "detailedPeople": 26,
+            "detailedBodies": 26,
+            "coarsePeople": 744,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 164,
+            "p50": 0.41479999996954575,
+            "p95": 0.7003000000258908,
+            "max": 2.8889000000199303
+          },
+          "peakRss": 2719301632
+        },
+        {
+          "floor": 64,
+          "cleared": true,
+          "physicalSeconds": 321.7166666619851,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.2569308828387274,
+          "downings": 3,
+          "castRequests": 10,
+          "acceptedCasts": 10,
+          "defeated": 22,
+          "opponents": 22,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "712/1000 distinct opposed victories",
+              "Sustained bodily control 83% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 712,
+            "forms": 6,
+            "quality": 0.8318995786516854
+          },
+          "residency": {
+            "detailedPeople": 27,
+            "detailedBodies": 27,
+            "coarsePeople": 765,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 321,
+            "p50": 0.22090000001480803,
+            "p95": 0.6548000000184402,
+            "max": 3.73320000001695
+          },
+          "peakRss": 1860681728
+        },
+        {
+          "floor": 65,
+          "cleared": true,
+          "physicalSeconds": 446.96666666016245,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.2591438830108771,
+          "downings": 3,
+          "castRequests": 64,
+          "acceptedCasts": 12,
+          "defeated": 22,
+          "opponents": 22,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "724/1000 distinct opposed victories",
+              "Sustained bodily control 83% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 724,
+            "forms": 6,
+            "quality": 0.83125
+          },
+          "residency": {
+            "detailedPeople": 27,
+            "detailedBodies": 27,
+            "coarsePeople": 787,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 447,
+            "p50": 0.21170000010170043,
+            "p95": 0.6745000000228174,
+            "max": 2.274299999931827
+          },
+          "peakRss": 2285031424
+        },
+        {
+          "floor": 66,
+          "cleared": true,
+          "physicalSeconds": 306.2666666622099,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.26276472886532765,
+          "downings": 2,
+          "castRequests": 433,
+          "acceptedCasts": 19,
+          "defeated": 22,
+          "opponents": 22,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "745/1000 distinct opposed victories",
+              "Sustained bodily control 83% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 745,
+            "forms": 6,
+            "quality": 0.8341107382550336
+          },
+          "residency": {
+            "detailedPeople": 27,
+            "detailedBodies": 27,
+            "coarsePeople": 809,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 306,
+            "p50": 0.34100000001490116,
+            "p95": 0.8011999999871477,
+            "max": 4.962999999988824
+          },
+          "peakRss": 2765885440
+        },
+        {
+          "floor": 67,
+          "cleared": true,
+          "physicalSeconds": 130.76666666476376,
+          "initialHp": 80,
+          "hp": 24,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.25872770935621714,
+          "downings": 2,
+          "castRequests": 3,
+          "acceptedCasts": 3,
+          "defeated": 23,
+          "opponents": 23,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "747/1000 distinct opposed victories",
+              "Sustained bodily control 83% / 97%",
+              "A conscious recovered manifestation is required",
+              "Finish the committed action"
+            ],
+            "victories": 747,
+            "forms": 6,
+            "quality": 0.8345548862115127
+          },
+          "residency": {
+            "detailedPeople": 28,
+            "detailedBodies": 28,
+            "coarsePeople": 831,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 131,
+            "p50": 0.5478000000584871,
+            "p95": 1.0999000000301749,
+            "max": 2.648600000073202
+          },
+          "peakRss": 2086346752
+        },
+        {
+          "floor": 68,
+          "cleared": true,
+          "physicalSeconds": 334.8666666617937,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.2629145578627371,
+          "downings": 2,
+          "castRequests": 7,
+          "acceptedCasts": 7,
+          "defeated": 23,
+          "opponents": 23,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "751/1000 distinct opposed victories",
+              "Sustained bodily control 83% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 751,
+            "forms": 6,
+            "quality": 0.8341045272969374
+          },
+          "residency": {
+            "detailedPeople": 28,
+            "detailedBodies": 28,
+            "coarsePeople": 854,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 335,
+            "p50": 0.271100000012666,
+            "p95": 0.8826999999582767,
+            "max": 1.398300000000745
+          },
+          "peakRss": 1889775616
+        },
+        {
+          "floor": 69,
+          "cleared": true,
+          "physicalSeconds": 49.56666666594538,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.2655992807654534,
+          "downings": 0,
+          "castRequests": 11,
+          "acceptedCasts": 11,
+          "defeated": 23,
+          "opponents": 23,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "774/1000 distinct opposed victories",
+              "Sustained bodily control 84% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 774,
+            "forms": 6,
+            "quality": 0.8390342377260982
+          },
+          "residency": {
+            "detailedPeople": 28,
+            "detailedBodies": 28,
+            "coarsePeople": 877,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 50,
+            "p50": 0.7545000000391155,
+            "p95": 0.9229000000050291,
+            "max": 0.9960000000428408
+          },
+          "peakRss": 2374356992
+        },
+        {
+          "floor": 70,
+          "cleared": true,
+          "physicalSeconds": 148.36666666450765,
+          "initialHp": 80,
+          "hp": 24.13258051574707,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.2677017424616623,
+          "downings": 1,
+          "castRequests": 8,
+          "acceptedCasts": 8,
+          "defeated": 24,
+          "opponents": 24,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "786/1000 distinct opposed victories",
+              "Sustained bodily control 84% / 97%",
+              "A conscious recovered manifestation is required",
+              "Finish the committed action"
+            ],
+            "victories": 786,
+            "forms": 6,
+            "quality": 0.8399650127226462
+          },
+          "residency": {
+            "detailedPeople": 29,
+            "detailedBodies": 29,
+            "coarsePeople": 900,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 148,
+            "p50": 0.47459999995771796,
+            "p95": 1.1343000000342727,
+            "max": 2.934099999954924
+          },
+          "peakRss": 1898958848
+        },
+        {
+          "floor": 71,
+          "cleared": true,
+          "physicalSeconds": 401.26666666082747,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.2716500784405883,
+          "downings": 2,
+          "castRequests": 15,
+          "acceptedCasts": 15,
+          "defeated": 24,
+          "opponents": 24,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "804/1000 distinct opposed victories",
+              "Sustained bodily control 84% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 804,
+            "forms": 6,
+            "quality": 0.8409825870646765
+          },
+          "residency": {
+            "detailedPeople": 29,
+            "detailedBodies": 29,
+            "coarsePeople": 924,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 401,
+            "p50": 0.3622999999206513,
+            "p95": 0.9836999999824911,
+            "max": 5.8316999999806285
+          },
+          "peakRss": 2421006336
+        },
+        {
+          "floor": 72,
+          "cleared": true,
+          "physicalSeconds": 104.36666666514793,
+          "initialHp": 80,
+          "hp": 24,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.2730409940187921,
+          "downings": 1,
+          "castRequests": 11,
+          "acceptedCasts": 11,
+          "defeated": 24,
+          "opponents": 24,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "815/1000 distinct opposed victories",
+              "Sustained bodily control 84% / 97%",
+              "A conscious recovered manifestation is required",
+              "Finish the committed action"
+            ],
+            "victories": 815,
+            "forms": 6,
+            "quality": 0.8431288343558282
+          },
+          "residency": {
+            "detailedPeople": 29,
+            "detailedBodies": 29,
+            "coarsePeople": 948,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 105,
+            "p50": 0.4449000000022352,
+            "p95": 1.786199999973178,
+            "max": 3.0725000000093132
+          },
+          "peakRss": 1919680512
+        },
+        {
+          "floor": 73,
+          "cleared": true,
+          "physicalSeconds": 171.2666666641744,
+          "initialHp": 80,
+          "hp": 24,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.27177398405105674,
+          "downings": 2,
+          "castRequests": 39,
+          "acceptedCasts": 5,
+          "defeated": 24,
+          "opponents": 24,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "817/1000 distinct opposed victories",
+              "Sustained bodily control 84% / 97%",
+              "A conscious recovered manifestation is required",
+              "Finish the committed action"
+            ],
+            "victories": 817,
+            "forms": 6,
+            "quality": 0.8422888616891064
+          },
+          "residency": {
+            "detailedPeople": 29,
+            "detailedBodies": 29,
+            "coarsePeople": 972,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 171,
+            "p50": 0.7360999999800697,
+            "p95": 2.0847000000067055,
+            "max": 3.2162000000244007
+          },
+          "peakRss": 2480381952
+        },
+        {
+          "floor": 74,
+          "cleared": true,
+          "physicalSeconds": 366.4666666613339,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.2729434774773444,
+          "downings": 3,
+          "castRequests": 434,
+          "acceptedCasts": 14,
+          "defeated": 25,
+          "opponents": 25,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "839/1000 distinct opposed victories",
+              "Sustained bodily control 84% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 839,
+            "forms": 6,
+            "quality": 0.8433849821215732
+          },
+          "residency": {
+            "detailedPeople": 30,
+            "detailedBodies": 30,
+            "coarsePeople": 996,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 367,
+            "p50": 0.5263000000268221,
+            "p95": 1.1966000000247732,
+            "max": 3.918999999994412
+          },
+          "peakRss": 1959321600
+        },
+        {
+          "floor": 75,
+          "cleared": true,
+          "physicalSeconds": 344.3666666616555,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.27147557693449864,
+          "downings": 2,
+          "castRequests": 7,
+          "acceptedCasts": 7,
+          "defeated": 25,
+          "opponents": 25,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "844/1000 distinct opposed victories",
+              "Sustained bodily control 84% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 844,
+            "forms": 6,
+            "quality": 0.8443127962085307
+          },
+          "residency": {
+            "detailedPeople": 30,
+            "detailedBodies": 30,
+            "coarsePeople": 1021,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 345,
+            "p50": 0.30850000004284084,
+            "p95": 0.9060999999055639,
+            "max": 3.427999999956228
+          },
+          "peakRss": 2550439936
+        },
+        {
+          "floor": 76,
+          "cleared": true,
+          "physicalSeconds": 298.56666666232195,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.2758545498867349,
+          "downings": 1,
+          "castRequests": 15,
+          "acceptedCasts": 15,
+          "defeated": 25,
+          "opponents": 25,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "855/1000 distinct opposed victories",
+              "Sustained bodily control 85% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 855,
+            "forms": 6,
+            "quality": 0.8451461988304092
+          },
+          "residency": {
+            "detailedPeople": 30,
+            "detailedBodies": 30,
+            "coarsePeople": 1046,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 298,
+            "p50": 0.3053000000072643,
+            "p95": 1.1502000000327826,
+            "max": 3.1097999999765307
+          },
+          "peakRss": 2215206912
+        },
+        {
+          "floor": 77,
+          "cleared": true,
+          "physicalSeconds": 73.96666666559031,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.27879760612278454,
+          "downings": 0,
+          "castRequests": 12,
+          "acceptedCasts": 12,
+          "defeated": 26,
+          "opponents": 26,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "881/1000 distinct opposed victories",
+              "Sustained bodily control 85% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 881,
+            "forms": 6,
+            "quality": 0.8497162315550509
+          },
+          "residency": {
+            "detailedPeople": 31,
+            "detailedBodies": 31,
+            "coarsePeople": 1071,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 74,
+            "p50": 1.0099000000627711,
+            "p95": 2.6058000000193715,
+            "max": 4.540399999939837
+          },
+          "peakRss": 2793918464
+        },
+        {
+          "floor": 78,
+          "cleared": true,
+          "physicalSeconds": 168.1666666969286,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.2783045368979177,
+          "downings": 2,
+          "castRequests": 5,
+          "acceptedCasts": 5,
+          "defeated": 26,
+          "opponents": 26,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "892/1000 distinct opposed victories",
+              "Sustained bodily control 85% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 892,
+            "forms": 6,
+            "quality": 0.8504484304932735
+          },
+          "residency": {
+            "detailedPeople": 31,
+            "detailedBodies": 31,
+            "coarsePeople": 1097,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 169,
+            "p50": 1.0498000000370666,
+            "p95": 3.2591999999713153,
+            "max": 7.815599999972619
+          },
+          "peakRss": 2164813824
+        },
+        {
+          "floor": 79,
+          "cleared": true,
+          "physicalSeconds": 65.7666666800651,
+          "initialHp": 80,
+          "hp": 60.35929360391871,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.27943416778659785,
+          "downings": 0,
+          "castRequests": 6,
+          "acceptedCasts": 6,
+          "defeated": 26,
+          "opponents": 26,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "918/1000 distinct opposed victories",
+              "Sustained bodily control 85% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 918,
+            "forms": 6,
+            "quality": 0.8544117647058822
+          },
+          "residency": {
+            "detailedPeople": 31,
+            "detailedBodies": 31,
+            "coarsePeople": 1123,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 66,
+            "p50": 2.1498999999603257,
+            "p95": 4.677400000044145,
+            "max": 6.917299999971874
+          },
+          "peakRss": 2779525120
+        },
+        {
+          "floor": 80,
+          "cleared": true,
+          "physicalSeconds": 275.36666672276624,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.2813181676828937,
+          "downings": 1,
+          "castRequests": 12,
+          "acceptedCasts": 12,
+          "defeated": 27,
+          "opponents": 27,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "945/1000 distinct opposed victories",
+              "Sustained bodily control 86% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 945,
+            "forms": 6,
+            "quality": 0.8575132275132273
+          },
+          "residency": {
+            "detailedPeople": 32,
+            "detailedBodies": 32,
+            "coarsePeople": 1149,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 276,
+            "p50": 0.33920000004582107,
+            "p95": 2.3774999999441206,
+            "max": 6.352599999983795
+          },
+          "peakRss": 2175950848
+        },
+        {
+          "floor": 81,
+          "cleared": true,
+          "physicalSeconds": 529.5666667745536,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.28623680475568336,
+          "downings": 2,
+          "castRequests": 31,
+          "acceptedCasts": 31,
+          "defeated": 27,
+          "opponents": 27,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "971/1000 distinct opposed victories",
+              "Sustained bodily control 86% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 971,
+            "forms": 6,
+            "quality": 0.8596549948506692
+          },
+          "residency": {
+            "detailedPeople": 32,
+            "detailedBodies": 32,
+            "coarsePeople": 1176,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 530,
+            "p50": 0.693900000071153,
+            "p95": 1.462400000076741,
+            "max": 5.902899999869987
+          },
+          "peakRss": 2875248640
+        },
+        {
+          "floor": 82,
+          "cleared": true,
+          "physicalSeconds": 226.66666671284474,
+          "initialHp": 80,
+          "hp": 23.54154393124282,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.2909848279189004,
+          "downings": 1,
+          "castRequests": 18,
+          "acceptedCasts": 18,
+          "defeated": 27,
+          "opponents": 27,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "997/1000 distinct opposed victories",
+              "Sustained bodily control 86% / 97%",
+              "A conscious recovered manifestation is required",
+              "Finish the committed action"
+            ],
+            "victories": 997,
+            "forms": 6,
+            "quality": 0.8615972918756267
+          },
+          "residency": {
+            "detailedPeople": 32,
+            "detailedBodies": 32,
+            "coarsePeople": 1203,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 227,
+            "p50": 0.6566999999340624,
+            "p95": 1.2754999999888241,
+            "max": 2.780500000109896
+          },
+          "peakRss": 2514898944
+        },
+        {
+          "floor": 83,
+          "cleared": true,
+          "physicalSeconds": 390.1166667461439,
+          "initialHp": 80,
+          "hp": 71.8677701228066,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.29938033363521893,
+          "downings": 1,
+          "castRequests": 467,
+          "acceptedCasts": 17,
+          "defeated": 27,
+          "opponents": 27,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 86% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1024,
+            "forms": 6,
+            "quality": 0.8641601562499999
+          },
+          "residency": {
+            "detailedPeople": 32,
+            "detailedBodies": 32,
+            "coarsePeople": 1230,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 390,
+            "p50": 0.428200000198558,
+            "p95": 1.4446999998763204,
+            "max": 3.7653000000864267
+          },
+          "peakRss": 2244603904
+        },
+        {
+          "floor": 84,
+          "cleared": true,
+          "physicalSeconds": 253.81666671837593,
+          "initialHp": 71.8677701228066,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.30236783567670156,
+          "downings": 1,
+          "castRequests": 16,
+          "acceptedCasts": 16,
+          "defeated": 28,
+          "opponents": 28,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 87% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1049,
+            "forms": 6,
+            "quality": 0.8662893231649188
+          },
+          "residency": {
+            "detailedPeople": 33,
+            "detailedBodies": 33,
+            "coarsePeople": 1257,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 253,
+            "p50": 0.6067999999504536,
+            "p95": 1.7330000000074506,
+            "max": 3.7491000001318753
+          },
+          "peakRss": 2987085824
+        },
+        {
+          "floor": 85,
+          "cleared": true,
+          "physicalSeconds": 237.8166667151163,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.3034650132575049,
+          "downings": 2,
+          "castRequests": 13,
+          "acceptedCasts": 13,
+          "defeated": 28,
+          "opponents": 28,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 87% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1077,
+            "forms": 6,
+            "quality": 0.8676996285979572
+          },
+          "residency": {
+            "detailedPeople": 33,
+            "detailedBodies": 33,
+            "coarsePeople": 1285,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 237,
+            "p50": 0.7953000001143664,
+            "p95": 1.489500000141561,
+            "max": 76.12229999992996
+          },
+          "peakRss": 2583691264
+        },
+        {
+          "floor": 86,
+          "cleared": true,
+          "physicalSeconds": 109.26666668892722,
+          "initialHp": 80,
+          "hp": 24,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.3036797065625591,
+          "downings": 1,
+          "castRequests": 6,
+          "acceptedCasts": 6,
+          "defeated": 28,
+          "opponents": 28,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 87% / 97%",
+              "A conscious recovered manifestation is required",
+              "Finish the committed action"
+            ],
+            "victories": 1105,
+            "forms": 6,
+            "quality": 0.8700904977375565
+          },
+          "residency": {
+            "detailedPeople": 33,
+            "detailedBodies": 33,
+            "coarsePeople": 1313,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 109,
+            "p50": 0.4524999998975545,
+            "p95": 1.900900000007823,
+            "max": 3.785300000105053
+          },
+          "peakRss": 2605191168
+        },
+        {
+          "floor": 87,
+          "cleared": true,
+          "physicalSeconds": 374.21666674290464,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.3112848035340841,
+          "downings": 2,
+          "castRequests": 19,
+          "acceptedCasts": 19,
+          "defeated": 29,
+          "opponents": 29,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 87% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1134,
+            "forms": 6,
+            "quality": 0.8710537918871252
+          },
+          "residency": {
+            "detailedPeople": 34,
+            "detailedBodies": 34,
+            "coarsePeople": 1341,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 375,
+            "p50": 0.703599999891594,
+            "p95": 2.7554999999701977,
+            "max": 10.012199999997392
+          },
+          "peakRss": 2324094976
+        },
+        {
+          "floor": 88,
+          "cleared": true,
+          "physicalSeconds": 125.36666669220722,
+          "initialHp": 80,
+          "hp": 24,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.3116047942790398,
+          "downings": 1,
+          "castRequests": 7,
+          "acceptedCasts": 7,
+          "defeated": 29,
+          "opponents": 29,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 87% / 97%",
+              "A conscious recovered manifestation is required",
+              "Finish the committed action"
+            ],
+            "victories": 1161,
+            "forms": 6,
+            "quality": 0.8731481481481481
+          },
+          "residency": {
+            "detailedPeople": 34,
+            "detailedBodies": 34,
+            "coarsePeople": 1370,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 125,
+            "p50": 0.711600000038743,
+            "p95": 1.8859000001102686,
+            "max": 3.536599999992177
+          },
+          "peakRss": 2342072320
+        },
+        {
+          "floor": 89,
+          "cleared": true,
+          "physicalSeconds": 333.16666673454165,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.31370508420948606,
+          "downings": 2,
+          "castRequests": 8,
+          "acceptedCasts": 7,
+          "defeated": 29,
+          "opponents": 29,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 87% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1190,
+            "forms": 6,
+            "quality": 0.874516806722689
+          },
+          "residency": {
+            "detailedPeople": 34,
+            "detailedBodies": 34,
+            "coarsePeople": 1399,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 333,
+            "p50": 0.39479999989271164,
+            "p95": 2.0075000000651926,
+            "max": 5.021500000031665
+          },
+          "peakRss": 2383175680
+        },
+        {
+          "floor": 90,
+          "cleared": true,
+          "physicalSeconds": 115.86666669027181,
+          "initialHp": 80,
+          "hp": 8.450644811996304,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.31399750649533803,
+          "downings": 1,
+          "castRequests": 13,
+          "acceptedCasts": 12,
+          "defeated": 30,
+          "opponents": 30,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 88% / 97%",
+              "A conscious recovered manifestation is required",
+              "Finish the committed action"
+            ],
+            "victories": 1220,
+            "forms": 6,
+            "quality": 0.8766290983606557
+          },
+          "residency": {
+            "detailedPeople": 35,
+            "detailedBodies": 35,
+            "coarsePeople": 1428,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 115,
+            "p50": 1.0937999999150634,
+            "p95": 2.013299999991432,
+            "max": 3.034800000023097
+          },
+          "peakRss": 2363056128
+        },
+        {
+          "floor": 91,
+          "cleared": true,
+          "physicalSeconds": 188.0666667049809,
+          "initialHp": 80,
+          "hp": 64.90100056955671,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.3194245382485746,
+          "downings": 0,
+          "castRequests": 11,
+          "acceptedCasts": 11,
+          "defeated": 30,
+          "opponents": 30,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 88% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1250,
+            "forms": 6,
+            "quality": 0.87944
+          },
+          "residency": {
+            "detailedPeople": 35,
+            "detailedBodies": 35,
+            "coarsePeople": 1458,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 188,
+            "p50": 0.6873000001069158,
+            "p95": 2.6089999999385327,
+            "max": 4.301699999952689
+          },
+          "peakRss": 2401681408
+        },
+        {
+          "floor": 92,
+          "cleared": true,
+          "physicalSeconds": 362.5666667405312,
+          "initialHp": 64.90100056955671,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.32098779426319346,
+          "downings": 3,
+          "castRequests": 14,
+          "acceptedCasts": 14,
+          "defeated": 30,
+          "opponents": 30,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 88% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1280,
+            "forms": 6,
+            "quality": 0.8799999999999999
+          },
+          "residency": {
+            "detailedPeople": 35,
+            "detailedBodies": 35,
+            "coarsePeople": 1488,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 362,
+            "p50": 1.0716999999713153,
+            "p95": 2.7242000000551343,
+            "max": 6.996599999954924
+          },
+          "peakRss": 2421690368
+        },
+        {
+          "floor": 93,
+          "cleared": true,
+          "physicalSeconds": 243.2666667162266,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.3252920686741084,
+          "downings": 1,
+          "castRequests": 14,
+          "acceptedCasts": 14,
+          "defeated": 30,
+          "opponents": 30,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 88% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1310,
+            "forms": 6,
+            "quality": 0.8816984732824428
+          },
+          "residency": {
+            "detailedPeople": 35,
+            "detailedBodies": 35,
+            "coarsePeople": 1518,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 243,
+            "p50": 0.42310000001452863,
+            "p95": 2.024699999950826,
+            "max": 4.299899999983609
+          },
+          "peakRss": 2459750400
+        },
+        {
+          "floor": 94,
+          "cleared": true,
+          "physicalSeconds": 518.666666772333,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.33431247232265815,
+          "downings": 3,
+          "castRequests": 431,
+          "acceptedCasts": 26,
+          "defeated": 31,
+          "opponents": 31,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 88% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1340,
+            "forms": 6,
+            "quality": 0.8817910447761195
+          },
+          "residency": {
+            "detailedPeople": 36,
+            "detailedBodies": 36,
+            "coarsePeople": 1548,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 519,
+            "p50": 1.2754999999888241,
+            "p95": 3.0493000000715256,
+            "max": 7.431300000054762
+          },
+          "peakRss": 2560442368
+        },
+        {
+          "floor": 95,
+          "cleared": true,
+          "physicalSeconds": 89.66666668493417,
+          "initialHp": 80,
+          "hp": 76.39456966970445,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.33779761491283605,
+          "downings": 0,
+          "castRequests": 10,
+          "acceptedCasts": 10,
+          "defeated": 31,
+          "opponents": 31,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 88% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1371,
+            "forms": 6,
+            "quality": 0.8844274252370534
+          },
+          "residency": {
+            "detailedPeople": 36,
+            "detailedBodies": 36,
+            "coarsePeople": 1579,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 90,
+            "p50": 1.2557000000961125,
+            "p95": 2.5130000000353903,
+            "max": 4.476400000043213
+          },
+          "peakRss": 2689220608
+        },
+        {
+          "floor": 96,
+          "cleared": true,
+          "physicalSeconds": 441.2666667565645,
+          "initialHp": 76.51881632261859,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.34176496582004384,
+          "downings": 4,
+          "castRequests": 14,
+          "acceptedCasts": 14,
+          "defeated": 31,
+          "opponents": 31,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 88% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1401,
+            "forms": 6,
+            "quality": 0.8849750178443969
+          },
+          "residency": {
+            "detailedPeople": 36,
+            "detailedBodies": 36,
+            "coarsePeople": 1610,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 441,
+            "p50": 1.0609999999869615,
+            "p95": 2.913600000087172,
+            "max": 11.41910000005737
+          },
+          "peakRss": 2706415616
+        },
+        {
+          "floor": 97,
+          "cleared": true,
+          "physicalSeconds": 115.36666669016995,
+          "initialHp": 80,
+          "hp": 75.80827009173062,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.3457381846547075,
+          "downings": 0,
+          "castRequests": 12,
+          "acceptedCasts": 12,
+          "defeated": 32,
+          "opponents": 32,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 89% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1433,
+            "forms": 6,
+            "quality": 0.8875087229588278
+          },
+          "residency": {
+            "detailedPeople": 37,
+            "detailedBodies": 37,
+            "coarsePeople": 1641,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 116,
+            "p50": 1.2540000001899898,
+            "p95": 3.3218999998643994,
+            "max": 5.259099999908358
+          },
+          "peakRss": 2750701568
+        },
+        {
+          "floor": 98,
+          "cleared": true,
+          "physicalSeconds": 603.4166667895988,
+          "initialHp": 75.93152853304925,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.34510473647165296,
+          "downings": 3,
+          "castRequests": 64,
+          "acceptedCasts": 31,
+          "defeated": 32,
+          "opponents": 32,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 89% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1459,
+            "forms": 6,
+            "quality": 0.8875171350239892
+          },
+          "residency": {
+            "detailedPeople": 37,
+            "detailedBodies": 37,
+            "coarsePeople": 1673,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 603,
+            "p50": 1.0744000002741814,
+            "p95": 2.734199999831617,
+            "max": 5.662899999879301
+          },
+          "peakRss": 2857492480
+        },
+        {
+          "floor": 99,
+          "cleared": true,
+          "physicalSeconds": 457.1666667598038,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.34884893855047316,
+          "downings": 2,
+          "castRequests": 20,
+          "acceptedCasts": 20,
+          "defeated": 32,
+          "opponents": 32,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 89% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1491,
+            "forms": 6,
+            "quality": 0.8887659289067742
+          },
+          "residency": {
+            "detailedPeople": 37,
+            "detailedBodies": 37,
+            "coarsePeople": 1705,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 457,
+            "p50": 1.5545000000856817,
+            "p95": 3.868100000079721,
+            "max": 8.903599999845028
+          },
+          "peakRss": 2992242688
+        },
+        {
+          "floor": 100,
+          "cleared": true,
+          "physicalSeconds": 139.3666666950594,
+          "initialHp": 80,
+          "hp": 24,
+          "injuries": {
+            "head": 0.2605360608585954,
+            "torso": 1,
+            "leg": 0.0997855031048667
+          },
+          "fatigue": 0.3508022931910706,
+          "downings": 1,
+          "castRequests": 12,
+          "acceptedCasts": 12,
+          "defeated": 32,
+          "opponents": 32,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 89% / 97%",
+              "A conscious recovered manifestation is required",
+              "Finish the committed action"
+            ],
+            "victories": 1523,
+            "forms": 6,
+            "quality": 0.8903233749179253
+          },
+          "residency": {
+            "detailedPeople": 37,
+            "detailedBodies": 37,
+            "coarsePeople": 1737,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 139,
+            "p50": 1.0858999998308718,
+            "p95": 3.2163999998010695,
+            "max": 4.385899999644607
+          },
+          "peakRss": 3016626176
+        }
+      ]
+    },
+    {
+      "name": "ranged-317-r7-resumed-final",
+      "source": {
+        "path": ".debug/tower-growth/ranged-317-r7-resumed-final/result.json",
+        "bytes": 7862,
+        "sha256": "f2807a4dbd46bc7ad1515d3aa1fb25c4128df9ce6f908ffb63fa426774ae1f80"
+      },
+      "kind": "accelerated body-command strategy; initial atrium fixture only",
+      "seed": 317,
+      "strategy": "ranged",
+      "resumedFrom": ".debug/tower-growth/ranged-317-r6-resumed/world.json",
+      "requestedFloors": 100,
+      "elapsedExecutionMs": 513059.2514,
+      "totalSimulatedPhysicalSeconds": 40753.1500012341,
+      "failed": "floor 95 did not clear within 900 simulated seconds",
+      "rank": "Silver",
+      "capacity": {
+        "amplitude": 7,
+        "aperture": 5,
+        "reserve": 220
+      },
+      "residency": {
+        "detailedPeople": 36,
+        "detailedBodies": 36,
+        "coarsePeople": 1579,
+        "maximumCoarsePeoplePerMinute": 32
+      },
+      "segmentFloors": [
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95
+      ],
+      "segmentClears": 6,
+      "segmentDownings": 16,
+      "finalGrowth": {
+        "eligible": false,
+        "next": "Gold",
+        "reasons": [
+          "Sustained bodily control 88% / 97%"
+        ],
+        "victories": 1383,
+        "forms": 6,
+        "quality": 0.8755332610267538
+      },
+      "peakSampledRssBytes": 3615395840,
+      "records": [
+        {
+          "floor": 89,
+          "cleared": true,
+          "physicalSeconds": 20.96666667093814,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2509134332192973,
+            "torso": 1
+          },
+          "fatigue": 0.29796158514226195,
+          "downings": 0,
+          "castRequests": 2,
+          "acceptedCasts": 2,
+          "defeated": 29,
+          "opponents": 29,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 87% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1220,
+            "forms": 6,
+            "quality": 0.8702459016393447
+          },
+          "residency": {
+            "detailedPeople": 34,
+            "detailedBodies": 34,
+            "coarsePeople": 1399,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 21,
+            "p50": 0.6648999999997613,
+            "p95": 1.7559000000001106,
+            "max": 3.96120000000019
+          },
+          "peakRss": 1278746624
+        },
+        {
+          "floor": 90,
+          "cleared": true,
+          "physicalSeconds": 236.3666667148209,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2509134332192973,
+            "torso": 1
+          },
+          "fatigue": 0.2986442989779847,
+          "downings": 1,
+          "castRequests": 17,
+          "acceptedCasts": 17,
+          "defeated": 30,
+          "opponents": 30,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 87% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1239,
+            "forms": 6,
+            "quality": 0.8710552865213885
+          },
+          "residency": {
+            "detailedPeople": 35,
+            "detailedBodies": 35,
+            "coarsePeople": 1428,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 236,
+            "p50": 0.8118000000031316,
+            "p95": 2.3168000000005122,
+            "max": 7.2040000000015425
+          },
+          "peakRss": 2361950208
+        },
+        {
+          "floor": 91,
+          "cleared": true,
+          "physicalSeconds": 51.766666677212925,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2509134332192973,
+            "torso": 1
+          },
+          "fatigue": 0.2982612636645026,
+          "downings": 0,
+          "castRequests": 6,
+          "acceptedCasts": 6,
+          "defeated": 30,
+          "opponents": 30,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 87% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1269,
+            "forms": 6,
+            "quality": 0.8741036249014975
+          },
+          "residency": {
+            "detailedPeople": 35,
+            "detailedBodies": 35,
+            "coarsePeople": 1458,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 51,
+            "p50": 1.0904000000009546,
+            "p95": 3.5075999999971827,
+            "max": 4.4509000000034575
+          },
+          "peakRss": 2978000896
+        },
+        {
+          "floor": 92,
+          "cleared": true,
+          "physicalSeconds": 301.31666672805295,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2509134332192973,
+            "torso": 1
+          },
+          "fatigue": 0.30411148699680546,
+          "downings": 2,
+          "castRequests": 15,
+          "acceptedCasts": 15,
+          "defeated": 30,
+          "opponents": 30,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 88% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1299,
+            "forms": 6,
+            "quality": 0.8752790608160126
+          },
+          "residency": {
+            "detailedPeople": 35,
+            "detailedBodies": 35,
+            "coarsePeople": 1488,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 302,
+            "p50": 0.6653999999980442,
+            "p95": 3.662799999990966,
+            "max": 316.0243999999948
+          },
+          "peakRss": 3149275136
+        },
+        {
+          "floor": 93,
+          "cleared": true,
+          "physicalSeconds": 238.96666671535058,
+          "initialHp": 80,
+          "hp": 75.92928426505729,
+          "injuries": {
+            "head": 0.2509134332192973,
+            "torso": 1
+          },
+          "fatigue": 0.30818671795173835,
+          "downings": 1,
+          "castRequests": 14,
+          "acceptedCasts": 14,
+          "defeated": 30,
+          "opponents": 30,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 88% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1329,
+            "forms": 6,
+            "quality": 0.877153875094056
+          },
+          "residency": {
+            "detailedPeople": 35,
+            "detailedBodies": 35,
+            "coarsePeople": 1518,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 239,
+            "p50": 0.5798000000067987,
+            "p95": 2.8834999999962747,
+            "max": 10.360699999990175
+          },
+          "peakRss": 3589226496
+        },
+        {
+          "floor": 94,
+          "cleared": true,
+          "physicalSeconds": 611.6666667912796,
+          "initialHp": 75.92928426505729,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2509134332192973,
+            "torso": 1
+          },
+          "fatigue": 0.30690130032750107,
+          "downings": 4,
+          "castRequests": 18,
+          "acceptedCasts": 18,
+          "defeated": 31,
+          "opponents": 31,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 88% / 97%",
+              "Finish the committed action"
+            ],
+            "victories": 1360,
+            "forms": 6,
+            "quality": 0.8770863970588237
+          },
+          "residency": {
+            "detailedPeople": 36,
+            "detailedBodies": 36,
+            "coarsePeople": 1548,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 612,
+            "p50": 0.48490000001038425,
+            "p95": 2.377999999996973,
+            "max": 13.276899999997113
+          },
+          "peakRss": 3615395840
+        },
+        {
+          "floor": 95,
+          "cleared": false,
+          "physicalSeconds": 900.0000001833541,
+          "initialHp": 80,
+          "hp": 80,
+          "injuries": {
+            "head": 0.2509134332192973,
+            "torso": 1
+          },
+          "fatigue": 0.31107943579279823,
+          "downings": 8,
+          "castRequests": 863,
+          "acceptedCasts": 37,
+          "defeated": 28,
+          "opponents": 31,
+          "stage": "Silver",
+          "growth": {
+            "eligible": false,
+            "next": "Gold",
+            "reasons": [
+              "Sustained bodily control 88% / 97%"
+            ],
+            "victories": 1383,
+            "forms": 6,
+            "quality": 0.8755332610267538
+          },
+          "residency": {
+            "detailedPeople": 36,
+            "detailedBodies": 36,
+            "coarsePeople": 1579,
+            "maximumCoarsePeoplePerMinute": 32
+          },
+          "sampledTickMs": {
+            "count": 900,
+            "p50": 1.0601000000024214,
+            "p95": 3.2250000000349246,
+            "max": 49.0910000000149
+          },
+          "peakRss": 3228459008
+        }
+      ]
+    }
+  ]
+}

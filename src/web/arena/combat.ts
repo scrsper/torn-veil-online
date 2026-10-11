@@ -53,7 +53,40 @@ export const MOVESETS: Record<'fists' | 'greatsword' | 'sword' | 'bow' | 'caster
     block: BOW('block'), guard: 'great_sword/spell cast', enter: 'sword_and_shield/sword and shield casting (2)', runPace: 6 },
 };
 /** Evasive rolls/steps for anyone, by direction relative to facing. */
+/** Relaxed, unarmed-looking locomotion for when the hero is out of combat (weapon on the back). */
+// The unarmed (Motifect) set, not the packed Mixamo `locomotion/*` clips: measured on the creator rig, those stand with
+// ~50 deg bent knees and a forward slump even at rest (in the packed source itself, not added by the retarget), while
+// idle_neutral / walk_forward / run_sprint stand and move upright. Combat stances keep their deliberate crouch.
+// No licensed clip is a jog at the default pace: run_jog's measured stride is 1.4 u/s (slower than walk_forward's 1.7) and
+// every run clip is 5.1-6.6 u/s, so the run nearest the jog speed (run_sprint, 5.6) covers jog and sprint.
+export const RELAXED = { idle: U('idle_neutral'), walk: U('walk_forward'), run: U('run_sprint'), walkPace: 1.5 };
 export const DODGES = { forward: BOW('dodge forward'), back: BOW('dodge backward'), left: BOW('dodge left'), right: BOW('dodge right'), roll: U('roll_forward') };
+export type DodgeKind = keyof typeof DODGES;
+/** Bodies for evasion that carry no weapon pose of their own (Motifect unarmed set). */
+export const DODGE_BODY: Record<DodgeKind, string> = { forward: U('dodge_forward'), back: U('dodge_back'), left: U('dodge_left'), right: U('dodge_right'), roll: U('roll_forward') };
+/**
+ * The dodge a weapon set plays. The longbow dodges hold a bow in both hands, so with a sword and shield (or a great sword)
+ * the blade was gripped two-handed in front and the shield left its arm; those sets play the unarmed dodge body with their
+ * own idle arms (READY_CLIPS), fists the unarmed dodge itself, the bow its own.
+ */
+export function dodgeClip(set: keyof typeof MOVESETS, kind: DodgeKind): string {
+  return set === 'sword' ? `ready/sword and shield dodge ${kind}` : set === 'greatsword' ? `ready/great sword dodge ${kind}` : set === 'bow' ? DODGES[kind] : DODGE_BODY[kind];
+}
+/**
+ * Ready-stance clips (hero, sword and shield), composed at load by assets.ts layeredClip: [upright body source, weapon-arm
+ * source]. The packed sword-and-shield idle/walk/run carry a deep crouch and forward spine (measured on the creator rig:
+ * 22-51 deg trunk lean). The body (pelvis, spine, neck, head, legs) comes from the upright unarmed set; clavicles, arms,
+ * hands and fingers keep the authored sword-and-shield grips. Guard and attack clips are untouched.
+ */
+export const READY_CLIPS: Record<string, [string, string]> = {
+  'ready/sword and shield idle': [U('idle_neutral'), SS('idle')],
+  'ready/sword and shield walk': [U('walk_forward'), SS('walk')],
+  'ready/sword and shield run': [U('run_sprint'), SS('run')],
+  ...Object.fromEntries((Object.keys(DODGE_BODY) as DodgeKind[]).flatMap(k => [
+    [`ready/sword and shield dodge ${k}`, [DODGE_BODY[k], SS('idle')]],
+    [`ready/great sword dodge ${k}`, [DODGE_BODY[k], GS('idle')]],
+  ])),
+};
 
 export type WeaponId = 'fists' | 'greatsword' | 'axe' | 'bow';
 export interface WeaponDef {
@@ -68,6 +101,11 @@ export interface WeaponDef {
   /** Heavy attacks (RMB): slower, chargeable by holding, chain into each other and finish light combos. */
   heavy?: AttackDef[];
   attach?: { r?: string; l?: string };
+  /**
+   * Presentation only: carried on the left forearm with a right-hand weapon (the sword-and-shield clips hold one).
+   * A project catalog item (`I_<catalog id>`, or a recorded render variant of one, loaded by ArenaAssets.loadCatalogItems).
+   */
+  offhand?: string;
   trail: number;
 }
 
@@ -104,7 +142,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     spin: { clip: '2H_Melee_Attack_Spinning', speed: 1.25, active: [0, 99], cancel: 0, range: 3.5, arc: 180 * D, damage: 15, knock: 5, lunge: 0, multi: .19, heavy: true, hitstop: .03, shake: .14, move: 4.2, label: 'Whirlwind' },
   },
   axe: {
-    id: 'axe', name: 'Widow Cleaver', key: 'F3', set: 'sword', secondary: 'guard', attach: { r: 'W_widow-cleaver' }, trail: 1.1,
+    id: 'axe', name: 'Widow Cleaver', key: 'F3', set: 'sword', secondary: 'guard', attach: { r: 'W_widow-cleaver' }, offhand: 'I_TV-081v', trail: 1.1,
     combo: [
       { clip: SS('slash'), speed: 1.35, active: [0.48, 0.76], cancel: 0.8, end: 1.05, range: 3, arc: 80 * D, damage: 24, knock: 2.5, lunge: 1, hitstop: .05, shake: .12, label: 'Attacking' },
       { clip: SS('attack (4)'), speed: 1.25, active: [0.36, 0.6], cancel: 0.64, end: 0.9, range: 3, arc: 90 * D, damage: 26, knock: 3, lunge: 1, hitstop: .05, shake: .14, label: 'Attacking' },
@@ -125,7 +163,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
   },
 };
 
-export type FoeKind = 'minion' | 'warrior' | 'rogue' | 'mage' | 'goblin' | 'goblin_archer' | 'orc' | 'skeleton' | 'skeleton_mage' | 'skeleton_brute';
+export type FoeKind = 'minion' | 'warrior' | 'rogue' | 'mage' | 'goblin' | 'goblin_archer' | 'orc' | 'skeleton' | 'skeleton_mage' | 'skeleton_brute' | 'dummy' | 'chrysanthus';
 export interface FoeDef {
   looks: LookId[]; set: keyof typeof MOVESETS; hp: number; speed: number; xp: number; reach: number;
   attacks: AttackDef[]; shield?: string; weapon?: string; hand?: 'l' | 'r'; ranged?: 'bolt' | 'orb';
@@ -168,6 +206,17 @@ export const FOES: Record<FoeKind, FoeDef> = {
       { clip: GS('slash'), speed: 1.05, active: [0.42, 0.84], cancel: 9, end: 1.25, range: 3.6, arc: 90 * D, damage: 90, knock: 7, lunge: 1.2, heavy: true, hitstop: .05, shake: .45 }],
   },
   // Skeletons: the dead in ranks. Brittle (low hp, no poise against heavies), relentless, and they keep coming.
+  // A training dummy (the Proving Hall): stands, takes everything, mends itself.
+  dummy: {
+    looks: ['soldier'], set: 'sword', hp: 4000, speed: 0, xp: 0, reach: 0, tell: 9, cooldown: [99, 99], armor: 0,
+    attacks: [{ clip: SS('slash'), speed: 1, active: [0.5, 0.74], cancel: 9, end: 1.15, range: 0, arc: 0, damage: 0, knock: 0, lunge: 0, hitstop: 0, shake: 0 }],
+  },
+  // Chrysanthus's avatar: driven by its own controller (tower/chrysanthus.ts), these are its sword blows.
+  chrysanthus: {
+    looks: ['chrysanthus'], set: 'sword', hp: 60000, speed: 7.5, xp: 400, reach: 2.8, weapon: 'W_veilguard', tell: .55, cooldown: [.8, 1.6], armor: .9, scale: 1.08,
+    attacks: [{ clip: SS('slash'), speed: 1.35, active: [0.5, 0.74], cancel: 9, end: 1.1, range: 3.2, arc: 80 * D, damage: 70, knock: 6, lunge: 1.4, hitstop: .05, shake: .35 },
+      { clip: SS('attack (4)'), speed: 1.4, active: [0.38, 0.56], cancel: 9, end: 0.95, range: 3.2, arc: 70 * D, damage: 60, knock: 5, lunge: 1.4, hitstop: .05, shake: .3 }],
+  },
   skeleton: {
     looks: ['skeleton'], set: 'sword', hp: 48, speed: 4, xp: 8, reach: 2.4, weapon: 'W_serpent-tooth', tell: .5, cooldown: [1.2, 2.2], armor: .1, tokens: 3, hunch: .12,
     attacks: [{ clip: SS('slash'), speed: 1.05, active: [0.5, 0.74], cancel: 9, end: 1.15, range: 2.7, arc: 60 * D, damage: 40, knock: 3, lunge: .8, hitstop: .04, shake: .2 },
@@ -212,11 +261,12 @@ export const SPELL_CLIPS = ['great_sword/spell cast', 'sword_and_shield/sword an
 
 /** Every clip name referenced by weapons, foes, allies and movesets: only these are baked and instantiated. */
 export function usedClips(): Set<string> {
-  const out = new Set<string>(['Lie_StandUp', ...Object.values(DODGES), 'unarmed/walk_forward', 'unarmed/walk_backward', 'unarmed/walk_strafe_left', 'unarmed/walk_strafe_right']);
+  const out = new Set<string>(['Lie_StandUp', RELAXED.idle, RELAXED.walk, RELAXED.run, 'great_sword/great sword casting', 'great_sword/spell cast', 'sword_and_shield/sword and shield casting (2)', 'sword_and_shield/sword and shield power up', 'sword_and_shield/sword and shield idle', ...Object.values(DODGES), 'unarmed/walk_forward', 'unarmed/walk_backward', 'unarmed/walk_strafe_left', 'unarmed/walk_strafe_right']);
   const add = (a?: AttackDef) => a && out.add(a.clip);
   for (const m of Object.values(MOVESETS)) for (const c of [m.idle, m.walk, m.run, m.block, m.guard, m.enter, ...m.hit, ...m.death]) out.add(c);
   for (const w of Object.values(WEAPONS)) { w.combo.forEach(add); w.heavy?.forEach(add); add(w.spin); add(w.bash); add(w.aimed); add(w.kick); }
   for (const c of SPELL_CLIPS) out.add(c);
+  for (const [body, arms] of Object.values(READY_CLIPS)) { out.add(body); out.add(arms); }
   for (const f of Object.values(FOES)) f.attacks.forEach(add);
   for (const a of Object.values(ALLIES)) a.attacks.forEach(add);
   return out;

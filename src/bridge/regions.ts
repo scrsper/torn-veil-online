@@ -10,6 +10,7 @@ const ground = new Set<number>([B.Grass,B.Dirt,B.Stone,B.Cobble,B.Sand,B.Farmlan
 /** Blocks that are built structure (walls, roofs, glazing, chimneys, cloth, hay). Furnishings, fences, doors,
  * paths and crops are projected by their own fields, so they are not repeated here. */
 const STRUCTURAL = new Set<number>([B.Planks,B.DarkPlanks,B.Log,B.Log2,B.Thatch,B.Brick,B.Glass,B.RoofTile,B.Chimney,B.StoneBrick,B.Plaster,B.Mossy,B.Stone,B.Cobble,B.Cloth,B.ClothRed,B.ClothBlue,B.Wool,B.Hay,B.Well,B.Furnace,B.Torch,B.Gravestone]);
+const LEAVES = new Set<number>([B.Leaves, B.Leaves2]);
 /** Optional projection detail. Off for every native client; a web client asks for it by client kind. */
 export interface RegionProjectionOptions { /** Exact built structure per column as run-length runs: x, z, n, then n triples of (y, length, block). */ structures?: boolean }
 function surface(w: World, x: number, z: number) {
@@ -30,12 +31,45 @@ export function projectRegion(w: World, rx: number, rz: number, options: RegionP
   const steps=projectRegionSteps(w,rx,rz,options);
   for(;;){const result=steps.next();if(result.done)return result.value;}
 }
+
+type ProjectedTree = { x: number; y: number; z: number; height: number; species: 'oak' | 'pine'; variant: number; yaw: number };
+const treeKey = (x: number, y: number, z: number) => `${x},${y},${z}`;
+/** Classify columns already visited by the yielded dense geometry scan. Keep exact log runs
+ * for collision; the optional tree descriptor only replaces their visual representation. */
+function treeProjector(w: World, bounds: ReturnType<typeof regionBounds>): (x: number, z: number, col: number[]) => ProjectedTree | null {
+  const excluded = new Set<string>();
+  const addBlocks = (blocks: { x: number; y: number; z: number; id: number }[]) => blocks.forEach(b => excluded.add(treeKey(b.x, b.y, b.z)));
+  for (const n of w.resourceNodes) if (n.kind === 'tree') addBlocks(n.blocks);
+  for (let rx = Math.floor(bounds.x0 / 256); rx <= Math.floor((bounds.x1 - 1) / 256); rx++)
+    for (let rz = Math.floor(bounds.z0 / 256); rz <= Math.floor((bounds.z1 - 1) / 256); rz++)
+      for (const n of w.geography?.resources(rx, rz) ?? []) if (n.kind === 'tree') addBlocks(n.blocks);
+  // Open-air gates, bridges and worksites own their timbers too. Only wilderness
+  // places permit this natural-tree interpretation of otherwise unowned grid logs.
+  const places = w.places().filter(p => p.indoor || p.type !== 'wilderness').map(p => p.bounds);
+  return (x, z, col) => {
+    if (places.some(p => x >= p.x0 - 1 && x <= p.x1 + 1 && z >= p.z0 - 1 && z <= p.z1 + 1)) return null;
+    let i = 0;
+    while (i < col.length && col[i + 2] !== B.Log && col[i + 2] !== B.Log2) i += 3;
+    if (i >= col.length) return null;
+    const [base, height, b] = col.slice(i, i + 3);
+    if (height < 2 || excluded.has(treeKey(x, base, z))) return null;
+    const species = b === B.Log2 ? 'pine' : 'oak';
+    let canopy = false;
+    for (let yy = Math.max(base, base + height - 3); yy <= Math.min(w.grid.H - 1, base + height + 3) && !canopy; yy++)
+      for (let xx = x - 3; xx <= x + 3 && !canopy; xx++) for (let zz = z - 3; zz <= z + 3; zz++)
+        if (w.grid.inBounds(xx, yy, zz) && LEAVES.has(w.grid.get(xx, yy, zz))) canopy = true;
+    if (!canopy) return null;
+    const h = Math.abs((x * 1103515245 + z * 12345) | 0), variant = h % 4;
+    return { x, y: base, z, height, species, variant, yaw: ((h >>> 8) % 628) / 100 };
+  };
+}
 /** Same projection, yielded by small spatial batches so interaction ticks can run between them.
  * The transport discards an unfinished projection when its canonical region revision changes. */
 export function* projectRegionSteps(w: World, rx: number, rz: number, options: RegionProjectionOptions = {}) {
   if (!Number.isInteger(rx) || !Number.isInteger(rz) || rx < 0 || rz < 0 || rx * 256 >= w.grid.W || rz * 256 >= w.grid.D) throw new Error('Region outside world');
   const patches = w.grid instanceof RegionalGrid ? w.grid.patches : [{ x: 0, z: 0, grid: w.grid }];
   const bounds = regionBounds(w, rx, rz), columns: number[][] = [], stride = patches.some(p=>p.x<bounds.x1&&p.x+p.grid.W>bounds.x0&&p.z<bounds.z1&&p.z+p.grid.D>bounds.z0)?2:8, openings: number[][] = [], fences: number[][] = [], paths: number[][] = [], furnishings: { role: string; pos: { x: number; y: number; z: number }; yaw: number; support: number }[] = [];
+  const projectTree = options.structures ? treeProjector(w, bounds) : null, trees: ProjectedTree[] = [];
   const furnishingRoles = new Map<number, string>([[B.Bed, 'bed'], [B.Chair, 'chair'], [B.Table, 'table'], [B.Counter, 'counter'], [B.Bench, 'bench'], [B.Anvil, 'anvil'], [B.Furnace, 'forge'], [B.Altar, 'altar'], [B.Bookshelf, 'shelf'], [B.Barrel, 'barrel'], [B.Crate, 'crate'], [B.Lantern, 'lantern'], [B.Sign, 'sign']]);
   const furnishingSeen = new Set<string>();
   const structureRuns: number[] = [], structureSeen = new Set<number>();
@@ -88,7 +122,10 @@ export function* projectRegionSteps(w: World, rx: number, rz: number, options: R
         }
       }
     }
-      if (col && col.length) structureRuns.push(x, z, col.length / 3, ...col);
+      if (col && col.length) {
+        structureRuns.push(x, z, col.length / 3, ...col);
+        const tree = projectTree?.(x, z, col); if (tree) trees.push(tree);
+      }
       if((z-z0)%16===15)yield; }
   }
   const regionSeed = w.geography?.regionSeed(rx, rz) ?? settlementSeed(w.seed, { id: 'observatory-region', x: rx, z: rz });
@@ -97,7 +134,7 @@ export function* projectRegionSteps(w: World, rx: number, rz: number, options: R
     roads: (w.geography?.roads ?? []).filter(r => r.points.some(p => inBounds(bounds, p))).map(r => ({ id: r.id, points: r.points.filter(p => p.x >= bounds.x0 - 128 && p.x < bounds.x1 + 128 && p.z >= bounds.z0 - 128 && p.z < bounds.z1 + 128).map(p=>({...p,y:surface(w,Math.floor(p.x),Math.floor(p.z)).height+1})) })),
     settlements: w.settlements().filter(s => s.bounds.x0 < bounds.x1 && s.bounds.x1 >= bounds.x0 && s.bounds.z0 < bounds.z1 && s.bounds.z1 >= bounds.z0).map(s => ({ id: s.id, bounds: s.bounds })),
     classification: 'canonical', decoration: { classification: 'decorative', seed: w.geography?.regionSeed(rx, rz, 'dressing') ?? regionSeed, collision: false, gameplay: false },
-    ...(options.structures ? { structures: { runs: structureRuns } } : {}) };
+    ...(options.structures ? { structures: { runs: structureRuns, ...(trees.length ? { trees } : {}) } } : {}) };
 }
 
 /** Coarse read-only landform around a streamed centre region, for the far horizon only.

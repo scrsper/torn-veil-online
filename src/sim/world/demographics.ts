@@ -136,7 +136,7 @@ export function giveBirth(world: World, parent: Person): Person | null {
   if (household?.kind === 'household') joinHousehold(world, child, household);
   const home = world.place(child.homeId); if (home && !home.residents.includes(child.id)) home.residents.push(child.id);
   const pos = world.positionOf(parent.id) ?? home?.inside ?? { x: 96, y: 20, z: 96 };
-  const body = makeBody(world, child.id, pos, 'humanoid', 35); child.bodies.push(body.id);
+  const body = makeBody(world, child.id, pos, 'humanoid', 35); world.attachBody(child, body);
   // The everyday places a child's day is built around are resolved from where they actually
   // live (`world/locality.ts`), never from whichever tavern is first in the world's place list.
   child.schedule = dailyScheduleFor(world, child, null);

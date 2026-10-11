@@ -69,7 +69,8 @@ describe('canonical realtime combat action requests', () => {
     expect(correction).toBeGreaterThan(INTERACTION_SPEC.backstepMetres-.1); expect(correction).toBeLessThanOrEqual(INTERACTION_SPEC.backstepMetres);
     expect(x.targetBody.pos.x).toBeLessThan(11.71);
     const events = x.world.events.length, fatigue = x.target.physiology.fatigue;
-    expect(fatigue).toBeCloseTo(initialFatigue + INTERACTION_SPEC.defenseEffort, 3);
+    expect(fatigue).toBeGreaterThan(initialFatigue); expect(fatigue - initialFatigue).toBeLessThan(.001);
+    expect(x.targetBody.exertion?.load).toBeCloseTo(INTERACTION_SPEC.defenseEffort * 5, 3);
     expect(q.receive(command, .3, 20).status).toBe('applied');
     expect(q.apply(.3, 21, () => { throw new Error('replayed consequence'); })).toEqual([]);
     expect(x.world.events).toHaveLength(events); expect(x.target.physiology.fatigue).toBe(fatigue);

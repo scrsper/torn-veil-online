@@ -1,0 +1,1347 @@
+{
+  "path": ".debug/canonical-tower-oct9/aggregate-exertion-final.json",
+  "rawSha256": "b53ea89e57dfc2855817ce27e9bf51741788fe8aa74f6cfcfcebb17badb222b4",
+  "passed": 2087,
+  "failed": 10,
+  "pending": 0,
+  "total": 2097,
+  "success": false,
+  "files": 211,
+  "durationSeconds": 2093.1716821289065,
+  "results": [
+    {
+      "file": "tests/adaptive-society.test.ts",
+      "status": "passed",
+      "tests": 22,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/agency-frontier.test.ts",
+      "status": "passed",
+      "tests": 24,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/agency-worldlab.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/ale-supply-invariant.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/alpha-capture-fencing.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/animal-defense-retreat.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/arena-locomotion.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/arrival-spacing.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/autonomous-social.test.ts",
+      "status": "passed",
+      "tests": 10,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/benchmark-report.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/boar-adventure.test.ts",
+      "status": "passed",
+      "tests": 9,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/bridge-controller-lease.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/bridge-dialogue.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/bridge-humanoid-presence.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/bridge-interaction-wake.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/bridge-rate-window.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/bridge-streaming.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/bridge.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/bridgeCombat.test.ts",
+      "status": "passed",
+      "tests": 11,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/bridgeLife.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/bridgeVisualState.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/bridgeWildlifeProjection.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/butchery-work.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/canonical-arcana.test.ts",
+      "status": "passed",
+      "tests": 10,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/canonical-tower.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/capability-advancement.test.ts",
+      "status": "passed",
+      "tests": 9,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/capability-continuity.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/causal-pressure.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/causal-society.test.ts",
+      "status": "passed",
+      "tests": 29,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/character-appearance.test.ts",
+      "status": "passed",
+      "tests": 15,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/character-foundry.test.ts",
+      "status": "passed",
+      "tests": 45,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/checkpoint-encoder.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/circulation-exposure-affordances.test.ts",
+      "status": "passed",
+      "tests": 13,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/cognition-lod.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/combat-flow.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/combat-foundation.test.ts",
+      "status": "failed",
+      "tests": 9,
+      "failedAssertions": [
+        {
+          "name": "canonical combat foundation repeated strikes consume fatigue, lowering future effectiveness and recording canonical results",
+          "failure": [
+            "AssertionError: expected false to be true // Object.is equality\n    at tests/combat-foundation.test.ts:53:55\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "tests/combat-gym.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/combat-practice.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/combat-presentation.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/combat-refinement.test.ts",
+      "status": "failed",
+      "tests": 18,
+      "failedAssertions": [
+        {
+          "name": "camera facing and held posture holds through heartbeats with one cost, moves slowly, then stands on release",
+          "failure": [
+            "AssertionError: expected 0.00004999999999999449 to be close to 0.012, received difference is 0.011950000000000006, but expected 0.0005\n    at tests/combat-refinement.test.ts:42:107\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64"
+          ]
+        },
+        {
+          "name": "camera facing and held posture release cancels a queued posture, interruption cannot retain a new lease, stale heartbeats cannot resurrect it",
+          "failure": [
+            "AssertionError: expected 0.00004999999999999449 to be close to 0.012, received difference is 0.011950000000000006, but expected 5e-9\n    at tests/combat-refinement.test.ts:57:131\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64"
+          ]
+        },
+        {
+          "name": "bounded repertoire and arena resources practice scales each participant once and quietly recovers fatigue without healing or world-time changes",
+          "failure": [
+            "AssertionError: expected 0.00005833333333332691 to be close to 0.014000000000000002, received difference is 0.013941666666666675, but expected 0.005\n    at tests/combat-refinement.test.ts:110:39\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "tests/conflict-intent.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/conflict-resolution.test.ts",
+      "status": "failed",
+      "tests": 20,
+      "failedAssertions": [
+        {
+          "name": "bounded unsuccessful combat approaches stops an exhausted rejected attack instead of standing over its target indefinitely",
+          "failure": [
+            "AssertionError: expected 'pending' to be 'failed' // Object.is equality\n    at tests/conflict-resolution.test.ts:143:64\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "tests/construction-projection.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/contact-spacing.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/container-bridge.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/container.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/continuation-resume.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/courtship-pacing.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/cpu-allocation.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/creator-appearance.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/crime-flow.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/critical-need-override.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/delivery-progress.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/demographic-continuity.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/determinism.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/deterministic-dialogue.test.ts",
+      "status": "passed",
+      "tests": 9,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/dialogue-boundary.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/dialogue-grounding.test.ts",
+      "status": "passed",
+      "tests": 10,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/dialogue-live.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/dialogue-parser.test.ts",
+      "status": "passed",
+      "tests": 380,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/doors.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/ecology-boundaries.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/ecology-persistence.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/ecology-realtime-integration.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/ecology.test.ts",
+      "status": "passed",
+      "tests": 10,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/economy-spendable-invariant.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/embodied-economy.test.ts",
+      "status": "passed",
+      "tests": 47,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/embodied-people.test.ts",
+      "status": "passed",
+      "tests": 23,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/emergent-item-recovery.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/encounter-recognition.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/equipment.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/event-table.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/exertion.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/factions-institutional.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/focused-interaction.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/generated-names.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/generational-livelihood.test.ts",
+      "status": "passed",
+      "tests": 16,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/generative-kernel.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/generator-continuity.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/geography-route-baseline.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/guard.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/haul-cargo-not-theft.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/headless-benchmarks.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/human-physiology-economy.test.ts",
+      "status": "passed",
+      "tests": 46,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/hunting-not-crime.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/identity.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/individual-cognition.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/individual-development.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/individual-lineage.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/individual-showcase.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/interaction-coherence.test.ts",
+      "status": "passed",
+      "tests": 31,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/interior-layout.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/introduction-once.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/item-collection.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/knowledge-memory-skills-intent.test.ts",
+      "status": "passed",
+      "tests": 20,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/knowledge-retention.test.ts",
+      "status": "passed",
+      "tests": 13,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/knowledge-view.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/knowledge.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/live-alpha-server.test.ts",
+      "status": "passed",
+      "tests": 15,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/livelihood-locality.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/living-economy.test.ts",
+      "status": "passed",
+      "tests": 35,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/living-universe.test.ts",
+      "status": "passed",
+      "tests": 11,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/living-world-logistics.test.ts",
+      "status": "passed",
+      "tests": 25,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/locality.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/lost-item-task.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/martial-combat-integration.test.ts",
+      "status": "failed",
+      "tests": 12,
+      "failedAssertions": [
+        {
+          "name": "realtime martial/combat integration (v0.2, selection drives the actual move) charges once at admission, learns from resolved execution, and rejects replay without cost or reward",
+          "failure": [
+            "AssertionError: expected 0.00013888888888888284 to be close to 0.03333333333333333, received difference is 0.03319444444444445, but expected 5e-11\n    at tests/martial-combat-integration.test.ts:135:90\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "tests/martial-learning.test.ts",
+      "status": "passed",
+      "tests": 21,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/martial-selection.test.ts",
+      "status": "passed",
+      "tests": 9,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/materials-fire-crafting.test.ts",
+      "status": "passed",
+      "tests": 15,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/motivated-lives-trace.test.ts",
+      "status": "failed",
+      "tests": 4,
+      "failedAssertions": [
+        {
+          "name": "v0.10 motivated lives \u2014 end-to-end causal traces on the generated village conflict: Conflicting motives: real favors compete with ordinary responsibilities",
+          "failure": [
+            "AssertionError: expected [ …(2) ] to deeply equal []\n    at tests/motivated-lives-trace.test.ts:30:57\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "tests/motivated-lives.test.ts",
+      "status": "passed",
+      "tests": 20,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/nap-and-duty.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/navigation.test.ts",
+      "status": "passed",
+      "tests": 14,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/observatory-language.test.ts",
+      "status": "passed",
+      "tests": 10,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/observatory-progress.test.ts",
+      "status": "failed",
+      "tests": 34,
+      "failedAssertions": [
+        {
+          "name": "progress defects exposed by every-hour 30-day review executes a response to observed fresh aggression instead of completing an old defeat again",
+          "failure": [
+            "AssertionError: expected 'pending' to be 'active' // Object.is equality\n    at tests/observatory-progress.test.ts:571:35\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "tests/observatory-root-causes.test.ts",
+      "status": "passed",
+      "tests": 9,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/observatory-tooling.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/observatory-workbench.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/observatory.test.ts",
+      "status": "passed",
+      "tests": 22,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/pathfinding-livelock.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/performance-instrumentation.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/persistence.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/physical-fit.test.ts",
+      "status": "passed",
+      "tests": 11,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/place-lookup.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/playable-movement.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/playable-panel.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/playable-vista.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/playable-world.test.ts",
+      "status": "passed",
+      "tests": 9,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/player-actions-projection.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/player-affordance-parity.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/player-embodiment.test.ts",
+      "status": "passed",
+      "tests": 11,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/player-language.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/procedural-settlement.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/progression-journal.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/progression-paths.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/protection-opportunity.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/ready-layer.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/realm-expedition.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/realms.test.ts",
+      "status": "passed",
+      "tests": 9,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/realtime-combat-action.test.ts",
+      "status": "passed",
+      "tests": 20,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/realtime-combat-geometry.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/realtime-native-traces.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/realtime-protocol.test.ts",
+      "status": "failed",
+      "tests": 12,
+      "failedAssertions": [
+        {
+          "name": "deterministic interaction movement prediction keeps duplicate defense from duplicating exertion or canonical action events",
+          "failure": [
+            "AssertionError: expected 0.00014583333333333115 to be close to 0.035, received difference is 0.03485416666666667, but expected 0.005\n    at tests/realtime-protocol.test.ts:142:50\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "tests/realtime-session.test.ts",
+      "status": "passed",
+      "tests": 5,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/recent-self-care.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/recoil-source.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/recovery-authorization.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/regional-blade-sale.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/relationship-evolution.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/resource-extraction-projection.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/resource-goal-continuity.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/responsive-combat.test.ts",
+      "status": "passed",
+      "tests": 14,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/retarget-sample.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/rng-stream-separation.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/robbery.test.ts",
+      "status": "failed",
+      "tests": 12,
+      "failedAssertions": [
+        {
+          "name": "robbery causal loop (Priority 1 stabilization) resisted robbery in a confined passage: a defiant, armed target is subdued before anything is taken",
+          "failure": [
+            "AssertionError: expected false to be true // Object.is equality\n    at tests/robbery.test.ts:135:23\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64"
+          ]
+        }
+      ]
+    },
+    {
+      "file": "tests/settlement-continuity.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/shared-cast.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/shared-presentation.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/significance-chronicle.test.ts",
+      "status": "passed",
+      "tests": 16,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/simulation-basics.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/snapshot-json.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/social-causality-trace.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/social-causality.test.ts",
+      "status": "passed",
+      "tests": 27,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/social-trace-matter.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/sparring.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/spatial-index.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/stand-in-locality.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/stopped-writer.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/stress-benchmarks.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/talk-attention.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/telemetry-anomaly.test.ts",
+      "status": "passed",
+      "tests": 13,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/telemetry-layers.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/theft-social-knowledge.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/tower-checkpoint.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/tower-cutaway.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/tower-encounters.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/tower-maze.test.ts",
+      "status": "passed",
+      "tests": 53,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/tower-navigation.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/tower-progression.test.ts",
+      "status": "passed",
+      "tests": 31,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/trade-menu-rows.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/trading.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/unsettled-planning.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/vocation.test.ts",
+      "status": "passed",
+      "tests": 11,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-adaptive-camera.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-appearance.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-architectural-grammar.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-architectural-landmarks.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-authored-geometry.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-boundary.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-building-dressing.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-client-logic.test.ts",
+      "status": "passed",
+      "tests": 13,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-differential.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-field-surface.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-gateway.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-governor.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-ground-cover.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-input.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-isometric.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-magic.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-portrait.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-presentation-geometry.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-structures.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-surface-weather.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-vegetation.test.ts",
+      "status": "passed",
+      "tests": 1,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/web-window-lighting.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/widened-trades.test.ts",
+      "status": "passed",
+      "tests": 35,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/wildlife-defense.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/wildlife-realtime-integration.test.ts",
+      "status": "passed",
+      "tests": 17,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/world-integrity.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/world-metabolism.test.ts",
+      "status": "passed",
+      "tests": 19,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/worldlab-production.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "failedAssertions": []
+    }
+  ]
+}

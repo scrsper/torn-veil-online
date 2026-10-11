@@ -40,5 +40,11 @@
   "bones": 53,
   "faces_pre_decimate": 1449,
   "height_m": 2.288
+ },
+ "chrysanthus": {
+  "bytes": 4275268,
+  "bones": 55,
+  "faces_pre_decimate": 29594,
+  "height_m": 1.695
  }
 }

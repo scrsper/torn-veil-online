@@ -40,7 +40,7 @@ describe('responsive combat repair',()=>{
   expect(submitCombatInput(x.world,x.b.id,{kind:'attack',commandId:'replaced'})).toBe('accepted');
   expect(submitCombatInput(x.world,x.b.id,{kind:'backstep',commandId:'last'})).toBe('accepted');tick(x,8);
   expect(x.b.combatAction?.commandId).toBe('last');expect(x.b.combatAction?.startedAt).toBeCloseTo(.25,8);
-  expect(x.b.attackSeq).toBe(0);expect(x.p.physiology.fatigue-cost).toBeCloseTo(S.defenseEffort*2,3);
+  expect(x.b.attackSeq).toBe(0);expect(x.p.physiology.fatigue-cost).toBeGreaterThan(0);expect(x.p.physiology.fatigue-cost).toBeLessThan(.001);expect(x.b.exertion?.load).toBeCloseTo(S.defenseEffort*2*5,3);
   tick(x,60);expect(x.world.events.filter(e=>e.type==='combat_action'&&e.data.phase==='accepted')).toHaveLength(2);
  });
  it('buffers light/light/heavy without creating a combo from one press',()=>{

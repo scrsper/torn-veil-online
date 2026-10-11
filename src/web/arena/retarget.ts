@@ -1,20 +1,21 @@
-import { Animation, AnimationGroup, Matrix, Quaternion, Vector3, type TransformNode } from '@babylonjs/core';
+import { Animation, AnimationGroup, AnimationKeyInterpolation, Matrix, Quaternion, Vector3, type TransformNode } from '@babylonjs/core';
 
 /**
  * Retarget KayKit combat clips onto the Torn Veil human kit skeleton (UE-mannequin naming).
  *
  * Per sampled frame, each mapped source bone's model-space rotation change from its rest pose is
- * applied to the matching target bone. The target rest is first swung so each bone points where the
- * source bone points at rest (handles T-pose vs A-pose rest differences). Bones the source lacks are
+ * applied to the matching target bone. Limb rest directions are aligned for T-pose vs A-pose,
+ * while the target torso keeps its authored neutral geometry. Bones the source lacks are
  * blended from neighbours (spine_02, neck) or follow their parent (clavicles follow the chest).
  * The hips' travel is rescaled by the ratio of hip heights. Output: shared Animation tracks keyed
  * by target bone name, instantiated per person as AnimationGroups.
  */
 type Rig = { space: TransformNode; nodes: Map<string, TransformNode> };
 
+
 type Pair = [string, string, string | null, string | null];
 /** How one source rig maps onto the UE-named target: [source bone, target bone, source child, target child] (children give rest directions). */
-export interface RigMap { map: Pair[]; blend: [string, string, string][]; follow: [string, string][]; hips: string; handR: string; handL: string; feet?: [string, string] }
+export interface RigMap { map: Pair[]; blend: [string, string, string][]; follow: [string, string][]; hips: string; handR: string; handL: string; feet?: [string, string]; preserveRest?: readonly string[] }
 
 export const KAYKIT: RigMap = {
   hips: 'hips', handR: 'wrist.r', handL: 'wrist.l', feet: ['foot.l', 'foot.r'],
@@ -44,7 +45,10 @@ export const MIXAMO: RigMap = (() => {
     for (const [F, f] of [['Index', 'index'], ['Middle', 'middle'], ['Ring', 'ring'], ['Pinky', 'pinky'], ['Thumb', 'thumb']] as const)
       for (let j = 1; j <= 3; j++) map.push([m(`${S}Hand${F}${j}`), `${f}_0${j}_${s}`, j < 3 ? m(`${S}Hand${F}${j + 1}`) : null, j < 3 ? `${f}_0${j + 1}_${s}` : null]);
   }
-  return { map, blend: [], follow: [], hips: m('Hips'), handR: m('RightHand'), handL: m('LeftHand'), feet: [m('LeftFoot'), m('RightFoot')] };
+  // This capture rig's torso joint spacing has substantial forward bind curvature.
+  // Transfer its motion delta while preserving the target's neutral trunk geometry.
+  return { map, blend: [], follow: [], hips: m('Hips'), handR: m('RightHand'), handL: m('LeftHand'), feet: [m('LeftFoot'), m('RightFoot')],
+    preserveRest: ['pelvis', 'spine_01', 'spine_02', 'spine_03', 'neck_01', 'head'] };
 })();
 
 /** UE-mannequin names (the TRELLIS/Motifect unarmed set): same body names; grouped fingers fan out to all four fingers. */
@@ -93,6 +97,23 @@ function rotFromTo(a: Vector3, b: Vector3): Quaternion {
   return Quaternion.RotationAxis(Vector3.Cross(u, v).normalize(), Math.acos(d));
 }
 
+/**
+ * One source track at a frame. The packed Mixamo clips store constant channels (e.g. the closed fingers of a sword
+ * hand) as a few STEP-interpolated keys; Animation.evaluate does not hold those past the first segment and returns the
+ * rest pose, which opened every such fist in the bakes. STEP tracks are therefore held at the last key at or before the
+ * frame; every other track uses Babylon's own evaluation.
+ *
+ * The result is always a copy: past a clip's last key (run_sprint ends at frame 37.5 but bakes sample frame 38)
+ * evaluate returns the key's own value object, and the bake's rest reset then copied the rest pose into it, which
+ * corrupted that key for every later bake of the clip and pulled the loop's last frames toward the rest pose.
+ */
+export function sampleSource(anim: Animation, frame: number): unknown {
+  const keys = anim.getKeys();
+  if (!keys.length || !keys.every(k => k.interpolation === AnimationKeyInterpolation.STEP)) { const v = anim.evaluate(frame); return typeof v?.clone === 'function' ? v.clone() : v; }
+  let v = keys[0].value; for (const k of keys) { if (k.frame <= frame) v = k.value; else break; }
+  return typeof v?.clone === 'function' ? v.clone() : v;
+}
+
 export class Retargeter {
   private sRest = new Map<string, { q: Quaternion; p: Vector3; local: { r: Quaternion | null; p: Vector3; s: Vector3 } }>();
   private tRest = new Map<string, { q: Quaternion; p: Vector3; localQ: Quaternion }>();
@@ -115,7 +136,7 @@ export class Retargeter {
       this.tRest.set(n, { q: modelRot(tgt, node), p: modelPos(tgt, node), localQ: node.rotationQuaternion.clone() });
     }
     for (const [s, t, sc, tc] of rm.map) {
-      if (!sc || !tc || !src.nodes.has(sc) || !tgt.nodes.has(tc)) { this.corr.set(t, Quaternion.Identity()); continue; }
+      if (rm.preserveRest?.includes(t) || !sc || !tc || !src.nodes.has(sc) || !tgt.nodes.has(tc)) { this.corr.set(t, Quaternion.Identity()); continue; }
       const ds = this.sRest.get(sc)!.p.subtract(this.sRest.get(s)!.p), dt = this.tRest.get(tc)!.p.subtract(this.tRest.get(t)!.p);
       this.corr.set(t, rotFromTo(dt, ds));
     }
@@ -142,7 +163,7 @@ export class Retargeter {
     for (let i = 0; i < frames; i++) {
       this.resetSource();
       const f = g.from + i;
-      for (const ta of g.targetedAnimations) { const t = ta.target as Record<string, unknown>; t[ta.animation.targetProperty] = ta.animation.evaluate(f); }
+      for (const ta of g.targetedAnimations) { const t = ta.target as Record<string, unknown>; t[ta.animation.targetProperty] = sampleSource(ta.animation, f); }
       refresh(this.src);
       const delta = new Map<string, Quaternion>();
       for (const [s, t] of rm.map) {

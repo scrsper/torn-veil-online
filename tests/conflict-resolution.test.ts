@@ -134,7 +134,7 @@ describe('bounded unsuccessful combat approaches', () => {
   it('stops an exhausted rejected attack instead of standing over its target indefinitely', () => {
     const tw = createTestWorld(743, 30);
     const a = addPerson(tw, 'Spent', 'farmer', v(10, 1, 10));
-    const b = addPerson(tw, 'Waiting', 'farmer', v(11, 1, 10));
+    const b = addPerson(tw, 'Waiting', 'farmer', v(10.8, 1, 10)); // Already within unarmed approach range.
     setExternalControl(a, true); setExternalControl(b, true);
     a.physiology.fatigue = 1;
     const c = beginConflict(tw.world, { initiator: a.id, target: b.id, cause: 'dispute', intent: 'injure' });

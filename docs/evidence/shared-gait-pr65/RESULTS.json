@@ -1,0 +1,748 @@
+{
+  "baseline": "3b7af4a9838441d0c64233e6a8ab321a1c3c554b",
+  "implementation": "54dd42959f8a7ad0ced9b48bacac6b36dea9cb3a",
+  "pr65": {
+    "url": "https://github.com/scrsper/torn-veil-online/pull/65",
+    "head": "1a61094fdfcb700dda01fbcc175b66aaea747187"
+  },
+  "gpu": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "matchedLab": {
+    "before": {
+      "source": ".debug/gait-pr65/before-lab/result.json",
+      "checks": [
+        "ordinary bound commands were applied",
+        "existing motion-capture assets loaded",
+        "one hero and five canonical partners rendered",
+        "canonical contact was observed"
+      ],
+      "errors": [],
+      "timing": {
+        "p50": 6.900000002235174,
+        "p95": 7.100000001490116,
+        "p99": 7.300000000745058,
+        "serverP95": 0.8019999999996799
+      },
+      "jsHeapBytesAtCaptureEnd": 361204663,
+      "heapScope": "Single end-of-capture JavaScript heap sample; separate garbage-collection timing prevents a controlled memory comparison."
+    },
+    "after": {
+      "source": ".debug/gait-pr65/after-lab/result.json",
+      "checks": [
+        "ordinary bound commands were applied",
+        "existing motion-capture assets loaded",
+        "one hero and five canonical partners rendered",
+        "canonical contact was observed"
+      ],
+      "errors": [],
+      "timing": {
+        "p50": 6.900000002235174,
+        "p95": 7.100000001490116,
+        "p99": 7.300000000745058,
+        "serverP95": 0.6155999999027699
+      },
+      "jsHeapBytesAtCaptureEnd": 289150598,
+      "heapScope": "Single end-of-capture JavaScript heap sample; separate garbage-collection timing prevents a controlled memory comparison."
+    }
+  },
+  "surfaces": [
+    {
+      "surface": "lab",
+      "source": ".debug/gait-pr65/lab-final/result.json",
+      "checks": [
+        {
+          "name": "slow movement exercises walk curves",
+          "ok": true
+        },
+        {
+          "name": "walk drives shared gait on canonical displacement",
+          "ok": true
+        },
+        {
+          "name": "run uses run curves",
+          "ok": true
+        },
+        {
+          "name": "turn changes canonical facing",
+          "ok": true
+        },
+        {
+          "name": "reverse or guard retains authored directional ownership",
+          "ok": true
+        },
+        {
+          "name": "attack keeps canonical action clock and authored pose",
+          "ok": true
+        },
+        {
+          "name": "dodge owns pose",
+          "ok": true
+        },
+        {
+          "name": "locomotion resumes after attack and dodge",
+          "ok": true
+        },
+        {
+          "name": "collision stops actual displacement and settles gait",
+          "ok": true
+        },
+        {
+          "name": "interrupted input settles without root drift",
+          "ok": true
+        },
+        {
+          "name": "identity and inventory retained",
+          "ok": true
+        },
+        {
+          "name": "no browser errors",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "personId": "p_1",
+      "bodyId": "b_1",
+      "rank": null,
+      "actualReverse": true,
+      "frames": 3461,
+      "renderFrameMs": {
+        "p50": 6.900000002235174,
+        "p95": 7.100000001490116,
+        "p99": 7.200000002980232
+      },
+      "phases": [
+        {
+          "name": "01b-slow-walk",
+          "input": [
+            "KeyS",
+            "KeyC"
+          ],
+          "maxSpeed": 1.5207006049199379,
+          "maxRun": 0,
+          "minRun": 0,
+          "gaitWeightRange": [
+            0.1814347938940829,
+            0.98152620837025
+          ]
+        },
+        {
+          "name": "02-walk",
+          "input": [
+            "KeyS"
+          ],
+          "maxSpeed": 3.3793346776000277,
+          "maxRun": 0.9874016178251229,
+          "minRun": 0.9874016178251229,
+          "gaitWeightRange": [
+            0.18829643407100305,
+            0.9641575043843731
+          ]
+        },
+        {
+          "name": "03-run",
+          "input": [
+            "KeyW",
+            "ShiftLeft"
+          ],
+          "maxSpeed": 5.237968750279904,
+          "maxRun": 1,
+          "minRun": 1,
+          "gaitWeightRange": [
+            0.09669233735144983,
+            0.9733093868523454
+          ]
+        },
+        {
+          "name": "04-turn",
+          "input": [
+            "KeyD"
+          ],
+          "maxSpeed": 3.3793346776000277,
+          "maxRun": 1,
+          "minRun": 0.9874016178251229,
+          "gaitWeightRange": [
+            0.002233821642192229,
+            0.9718519150605005
+          ]
+        },
+        {
+          "name": "05-reverse",
+          "input": [
+            "KeyG",
+            "KeyS"
+          ],
+          "maxSpeed": 3.379314155200035,
+          "maxRun": 0.9874016178251229,
+          "minRun": 0.9874016178251229,
+          "gaitWeightRange": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "08-locomotion-recovery",
+          "input": [
+            "KeyW"
+          ],
+          "maxSpeed": 3.3791995717999868,
+          "maxRun": 0.9874016178251229,
+          "minRun": 0.9873734074422122,
+          "gaitWeightRange": [
+            0,
+            0.9693484529408534
+          ]
+        },
+        {
+          "name": "09-wall-collision",
+          "input": [
+            "KeyA",
+            "ShiftLeft"
+          ],
+          "maxSpeed": 5.237759336290022,
+          "maxRun": 1,
+          "minRun": 0.9873734074422122,
+          "gaitWeightRange": [
+            2.926863435153408e-56,
+            0.9998514127898408
+          ]
+        }
+      ],
+      "jsHeapBytesAtCaptureEnd": 258466309,
+      "heapScope": "Single performance.memory.usedJSHeapSize sample at capture end; not peak process or GPU memory."
+    },
+    {
+      "surface": "tower",
+      "source": ".debug/gait-pr65/tower-r5/result.json",
+      "checks": [
+        {
+          "name": "initial floor route remains navigable",
+          "ok": true
+        },
+        {
+          "name": "slow movement exercises walk curves",
+          "ok": true
+        },
+        {
+          "name": "walk drives shared gait on canonical displacement",
+          "ok": true
+        },
+        {
+          "name": "run uses run curves",
+          "ok": true
+        },
+        {
+          "name": "turn changes canonical facing",
+          "ok": true
+        },
+        {
+          "name": "reverse or guard retains authored directional ownership",
+          "ok": true
+        },
+        {
+          "name": "attack keeps canonical action clock and authored pose",
+          "ok": true
+        },
+        {
+          "name": "dodge owns pose",
+          "ok": true
+        },
+        {
+          "name": "locomotion resumes after attack and dodge",
+          "ok": true
+        },
+        {
+          "name": "navigate back through floor structure",
+          "ok": true
+        },
+        {
+          "name": "collision stops actual displacement and settles gait",
+          "ok": true
+        },
+        {
+          "name": "return route remains navigable",
+          "ok": true
+        },
+        {
+          "name": "interrupted input settles without root drift",
+          "ok": true
+        },
+        {
+          "name": "return threshold reachable",
+          "ok": true
+        },
+        {
+          "name": "reload preserves person, body, rank and inventory",
+          "ok": true
+        },
+        {
+          "name": "Tower return preserves identity and rank",
+          "ok": true
+        },
+        {
+          "name": "no browser errors",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "personId": "p_5",
+      "bodyId": "b_5",
+      "rank": "Normal",
+      "actualReverse": true,
+      "frames": 0,
+      "renderFrameMs": null,
+      "phases": [
+        {
+          "name": "01b-slow-walk",
+          "input": [
+            "KeyD",
+            "KeyC"
+          ],
+          "maxSpeed": 1.5025427852560824,
+          "maxRun": 0,
+          "minRun": 0,
+          "gaitWeightRange": [
+            0.04183867148966888,
+            0.9992458806959585
+          ]
+        },
+        {
+          "name": "02-walk",
+          "input": [
+            "KeyA"
+          ],
+          "maxSpeed": 3.338983967223612,
+          "maxRun": 1,
+          "minRun": 0,
+          "gaitWeightRange": [
+            0.005592804423118696,
+            0.9999773999051174
+          ]
+        },
+        {
+          "name": "03-run",
+          "input": [
+            "KeyD",
+            "ShiftLeft"
+          ],
+          "maxSpeed": 5.175425149136572,
+          "maxRun": 1,
+          "minRun": 1,
+          "gaitWeightRange": [
+            0.0001587763603809347,
+            0.9861560808975558
+          ]
+        },
+        {
+          "name": "04-turn",
+          "input": [
+            "KeyA"
+          ],
+          "maxSpeed": 3.338983967223612,
+          "maxRun": 1,
+          "minRun": 1,
+          "gaitWeightRange": [
+            0.0010973870171796123,
+            0.9202666035210617
+          ]
+        },
+        {
+          "name": "05-reverse",
+          "input": [
+            "KeyQ",
+            "KeyS"
+          ],
+          "maxSpeed": 3.338983967199738,
+          "maxRun": 1,
+          "minRun": 1,
+          "gaitWeightRange": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "08-locomotion-recovery",
+          "input": [
+            "KeyA"
+          ],
+          "maxSpeed": 3.338866048525233,
+          "maxRun": 1,
+          "minRun": 1,
+          "gaitWeightRange": [
+            0,
+            0.9998257117464745
+          ]
+        },
+        {
+          "name": "09-wall-collision",
+          "input": [
+            "KeyS"
+          ],
+          "maxSpeed": 3.338866048547402,
+          "maxRun": 1,
+          "minRun": 1,
+          "gaitWeightRange": [
+            6.944956070034869e-75,
+            0.9991087342890227
+          ]
+        }
+      ]
+    },
+    {
+      "surface": "town",
+      "source": ".debug/gait-pr65/town-verified/result.json",
+      "checks": [
+        {
+          "name": "slow movement exercises walk curves",
+          "ok": true
+        },
+        {
+          "name": "walk drives shared gait on canonical displacement",
+          "ok": true
+        },
+        {
+          "name": "run uses run curves",
+          "ok": true
+        },
+        {
+          "name": "turn changes canonical facing",
+          "ok": true
+        },
+        {
+          "name": "actual reverse travel retains authored directional ownership",
+          "ok": true
+        },
+        {
+          "name": "attack keeps canonical action clock and authored pose",
+          "ok": true
+        },
+        {
+          "name": "dodge owns pose",
+          "ok": true
+        },
+        {
+          "name": "locomotion resumes after attack and dodge",
+          "ok": true
+        },
+        {
+          "name": "mainworld collision stops canonical travel and settles gait",
+          "ok": true
+        },
+        {
+          "name": "interrupted input settles without root drift",
+          "ok": true
+        },
+        {
+          "name": "identity and inventory retained",
+          "ok": true
+        },
+        {
+          "name": "no browser errors",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "personId": "p_37",
+      "bodyId": "b_42",
+      "actualReverse": true,
+      "frames": 2003,
+      "renderFrameMs": {
+        "p50": 11.300000000745058,
+        "p95": 19.600000001490116,
+        "p99": 102.59999999776483
+      },
+      "phases": [
+        {
+          "name": "01b-slow-walk",
+          "input": [
+            "KeyS",
+            "KeyC"
+          ],
+          "maxSpeed": 3.361647999999775,
+          "maxRun": 0.9718739821559716,
+          "minRun": 0,
+          "gaitWeightRange": [
+            0.0005380279735593215,
+            0.9999999950920033
+          ]
+        },
+        {
+          "name": "02-walk",
+          "input": [
+            "KeyW"
+          ],
+          "maxSpeed": 3.363042000000007,
+          "maxRun": 0.9685028479801283,
+          "minRun": 0,
+          "gaitWeightRange": [
+            0,
+            0.9999906300237836
+          ]
+        },
+        {
+          "name": "03-run",
+          "input": [
+            "KeyS",
+            "ShiftLeft"
+          ],
+          "maxSpeed": 5.212346200000013,
+          "maxRun": 1,
+          "minRun": 0,
+          "gaitWeightRange": [
+            0,
+            0.9999654533509201
+          ]
+        },
+        {
+          "name": "04-turn",
+          "input": [
+            "KeyD"
+          ],
+          "maxSpeed": 3.3625659999998447,
+          "maxRun": 0.9033816103249801,
+          "minRun": 0,
+          "gaitWeightRange": [
+            0.5396774803733714,
+            0.9930194523509893
+          ]
+        },
+        {
+          "name": "04b-space-for-backpedal",
+          "input": [
+            "KeyW"
+          ],
+          "maxSpeed": 3.3623279999997635,
+          "maxRun": 1,
+          "minRun": 0,
+          "gaitWeightRange": [
+            0.45976661998812246,
+            0.9999998691421279
+          ]
+        },
+        {
+          "name": "05-reverse",
+          "input": [
+            "KeyS",
+            "KeyZ"
+          ],
+          "maxSpeed": 3.362905999999839,
+          "maxRun": 0.4202771372932172,
+          "minRun": 0,
+          "gaitWeightRange": [
+            0,
+            0
+          ]
+        },
+        {
+          "name": "08-locomotion-recovery",
+          "input": [
+            "KeyW"
+          ],
+          "maxSpeed": 3.3631269999997926,
+          "maxRun": 0.9858559046382752,
+          "minRun": 0,
+          "gaitWeightRange": [
+            0.6121568855214394,
+            0.9983572019539189
+          ]
+        },
+        {
+          "name": "09-visible-fence-collision",
+          "input": [
+            "KeyS"
+          ],
+          "maxSpeed": 3.36265099999963,
+          "maxRun": 0.9499236519740007,
+          "minRun": 0,
+          "gaitWeightRange": [
+            0,
+            0.999998214121309
+          ]
+        }
+      ],
+      "jsHeapBytesAtCaptureEnd": 723615808,
+      "heapScope": "Single performance.memory.usedJSHeapSize sample at capture end; not peak process or GPU memory."
+    }
+  ],
+  "focused": {
+    "files": 4,
+    "tests": 33,
+    "success": true
+  },
+  "media": [
+    {
+      "path": ".debug/gait-pr65/before-lab/before-pr65-gameplay.webm",
+      "bytes": 2800856,
+      "sha256": "17352fa285be34f8a7ff9f791d6a7c12c478ba3c7772a6c7659b5eb0dbf127ff",
+      "kind": "actual browser recording"
+    },
+    {
+      "path": ".debug/gait-pr65/after-lab/after-pr65-gameplay.webm",
+      "bytes": 2766882,
+      "sha256": "a76f9f2d12b82a7103df7238f3f67a19aec7d54976c2e42c82b276c0fa808203",
+      "kind": "actual browser recording"
+    },
+    {
+      "path": ".debug/gait-pr65/lab-final/actual-gameplay.webm",
+      "bytes": 2861952,
+      "sha256": "48d9aab35ba0007ca29420a9c69c37cb8c15cee8dc9c7d2e147b4164f4e09552",
+      "kind": "actual browser recording"
+    },
+    {
+      "path": ".debug/gait-pr65/tower-r5/actual-gameplay.webm",
+      "bytes": 4393548,
+      "sha256": "4e7814201072f1ec2d9d82c792131730d1c165e4df3294f35acd9454968f29c3",
+      "kind": "actual browser recording"
+    },
+    {
+      "path": ".debug/gait-pr65/town-verified/actual-gameplay.webm",
+      "bytes": 3356996,
+      "sha256": "9809cffec60a513587fe004dcbc642cacf47fe6a1042741519080c1cb7c44a78",
+      "kind": "actual browser recording"
+    },
+    {
+      "path": ".debug/gait-pr65/before-lab/04-run-stop.png",
+      "bytes": 285057,
+      "sha256": "ed31b93ff6df90b8a1e48110fc1fe673832896dea285e74c8ce8ca8390a39b47",
+      "kind": "actual browser screenshot"
+    },
+    {
+      "path": ".debug/gait-pr65/after-lab/04-run-stop.png",
+      "bytes": 284096,
+      "sha256": "ca82158e6294d192369131d50cc94bddef44ee7b503194d54e3297f922448197",
+      "kind": "actual browser screenshot"
+    },
+    {
+      "path": ".debug/gait-pr65/lab-final/02-walk.png",
+      "bytes": 274162,
+      "sha256": "c523fd68cb8ff9f037571028c33d1c61058329a8cd7b9a23b64981811cdc0102",
+      "kind": "actual browser screenshot"
+    },
+    {
+      "path": ".debug/gait-pr65/lab-final/03-run.png",
+      "bytes": 279637,
+      "sha256": "ec6f602b78b901d2bb3f3cf9760d01e54cfb4097137b3d17951a53217b78fb7e",
+      "kind": "actual browser screenshot"
+    },
+    {
+      "path": ".debug/gait-pr65/tower-r5/01b-slow-walk.png",
+      "bytes": 1877824,
+      "sha256": "d3484a23d0dba45a551c7f211be5e4cb906d1c4b8e25dc64cabde90cc51d44f3",
+      "kind": "actual browser screenshot"
+    },
+    {
+      "path": ".debug/gait-pr65/tower-r5/05-reverse.png",
+      "bytes": 1862854,
+      "sha256": "844fac0a037948562e35d578b2eca5905be8f00ba2dc22b65be5bea229bd8d1c",
+      "kind": "actual browser screenshot"
+    },
+    {
+      "path": ".debug/gait-pr65/town-verified/03-run.png",
+      "bytes": 1989591,
+      "sha256": "3f92c78e4345441147cb0257d68b39d3146ff76d8f5fd1a963793b4ea50f7970",
+      "kind": "actual browser screenshot"
+    },
+    {
+      "path": ".debug/gait-pr65/town-verified/09-visible-fence-collision.png",
+      "bytes": 2020677,
+      "sha256": "aba222e44abdc0591316e68ab8269c3b74f58d440204d37727ed6664572098e0",
+      "kind": "actual browser screenshot"
+    }
+  ],
+  "limitations": [
+    "Authored approximations from PR65, not measurements or reconstruction from the reference video.",
+    "Synthetic NullEngine ownership tests are distinct from headed Chrome render/input evidence.",
+    "Frame intervals are local QA observations, not a controlled performance comparison or megacity benchmark.",
+    "Standard App town uses an explicitly disposable canonical Observatory world; player saves and the separate Tower-polish worktree were not opened or edited.",
+    "Gold policy implementation remains paused."
+  ],
+  "aggregate": {
+    "source": "docs/evidence/shared-gait-pr65/AGGREGATE.json",
+    "implementation": "54dd42959f8a7ad0ced9b48bacac6b36dea9cb3a",
+    "command": "node node_modules/vitest/vitest.mjs run --reporter=default --reporter=json --outputFile=.debug/gait-pr65/aggregate-54dd429.json",
+    "success": true,
+    "files": 214,
+    "passedTests": 2126,
+    "totalTests": 2126,
+    "failedTests": 0,
+    "pendingTests": 0,
+    "elapsedSeconds": 2078.41,
+    "startTime": "2026-10-10T23:38:43.852Z",
+    "maxWorkers": 1,
+    "scope": "Repository normal Vitest suite; unchanged default exclusions and timeouts.",
+    "separateSuitesExcluded": [
+      "tests/browser/**",
+      "tests/causal-society-longrun.test.ts",
+      "tests/adaptive-society-longrun.test.ts",
+      "tests/epoch-continuity-longrun.test.ts",
+      "tests/settlement-worldlab-longrun.test.ts",
+      "tests/capability-continuity-longrun.test.ts"
+    ]
+  },
+  "compilation": {
+    "typecheckExitCode": 0,
+    "productionWebBuildExitCode": 0,
+    "viteBundleBuildReportedSeconds": 105
+  },
+  "rawEvidence": [
+    {
+      "path": ".debug/gait-pr65/before-lab/result.json",
+      "bytes": 324731,
+      "sha256": "e4b6ebca59d6816d8b144f819d85e34f61c6d26170f720eee318d6c9606ff5b7"
+    },
+    {
+      "path": ".debug/gait-pr65/after-lab/result.json",
+      "bytes": 331395,
+      "sha256": "41be6828cfb66a1d84b2cc5b41115d18eaa96d8068621e595dd5129be76f0246"
+    },
+    {
+      "path": ".debug/gait-pr65/lab-final/result.json",
+      "bytes": 1723375,
+      "sha256": "c15615b8c5d4238b602bb577b35fe983266d4f6198991d8ce71727bba2038e76"
+    },
+    {
+      "path": ".debug/gait-pr65/tower-r5/result.json",
+      "bytes": 1954382,
+      "sha256": "d7905116517ce793bb437ab7992a4cdb7af180e2f7e3103fc9794f680b3366fd"
+    },
+    {
+      "path": ".debug/gait-pr65/town-verified/result.json",
+      "bytes": 1280164,
+      "sha256": "89d0f0738f65ebd35370d716f6884581d9ccb2932eada550569943eadda4f648"
+    },
+    {
+      "path": ".debug/gait-pr65/typecheck-final.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".debug/gait-pr65/build-final.log",
+      "bytes": 6431,
+      "sha256": "31a4f5e6f9e46bb11005e4741fc40b6ef1ddf07910de3c20c8e308667571146a"
+    },
+    {
+      "path": ".debug/gait-pr65/aggregate-54dd429.log",
+      "bytes": 54819,
+      "sha256": "9317b07d4312e28195b3f9482a2aae04af9203186d09a62c638b825f52d8d6b6"
+    },
+    {
+      "path": "docs/evidence/shared-gait-pr65/AGGREGATE.json",
+      "bytes": 774935,
+      "sha256": "7100aa1d706452768335260e5eeb4941a13f5ce0ca10a1d4ff40e8efcdabecc5",
+      "rawSha256": "b50fe85b56c1f58304b2a4dd2ae35c1a341f0b16db97f5957dc1d76df116b105",
+      "rawBytes": 788631,
+      "scope": "Tracked report with local paths/delivery metadata generalized; raw original retained privately."
+    },
+    {
+      "path": "docs/evidence/shared-gait-pr65/FOCUSED.json",
+      "bytes": 11986,
+      "sha256": "a6a9972edf245c39de8cd0b4b1f80d1598a0ceb6ece29778fbfcf479e6c2e742",
+      "rawSha256": "06e998fdbd2f16c7331ea101adb3df75b47a5959775e4e7e606857801e90b529",
+      "rawBytes": 12242,
+      "scope": "Tracked report with local paths/delivery metadata generalized; raw original retained privately."
+    },
+    {
+      "path": "docs/evidence/shared-gait-pr65/HARDWARE.json",
+      "bytes": 210,
+      "sha256": "77e4cd7b8e504588cb70e53cadb27c6dafce124bf8de191d8a9549b6e13e7d55"
+    }
+  ]
+}
