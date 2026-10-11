@@ -11,6 +11,11 @@ const run = (c: AdaptiveCamera, s: Parameters<AdaptiveCamera['update']>[1], q: O
 const dist = (p: { x: number; y: number; z: number }) => Math.hypot(p.x - pivot.x, p.y - pivot.y - .1, p.z - pivot.z);
 
 describe('adaptive third-person camera', () => {
+  it('never exceeds a very close obstruction to satisfy a preferred minimum', () => {
+    const c = new AdaptiveCamera(); run(c, { pivot }, open, 1);
+    const pose = c.update(1/60, { pivot }, (_f,_d,max) => Math.min(.35,max));
+    expect(Math.hypot(pose.position.x-pivot.x,pose.position.y-pivot.y-.1,pose.position.z-pivot.z)).toBeLessThanOrEqual(.350001);
+  });
   it('defaults to an elevated, chest-aimed framing', () => {
     const c = new AdaptiveCamera(), pose = run(c, { pivot }, open, 1);
     expect(dist(pose.position)).toBeGreaterThan(4.2); expect(dist(pose.position)).toBeLessThan(5.1);

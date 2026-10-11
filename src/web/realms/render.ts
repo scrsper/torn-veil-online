@@ -7,7 +7,7 @@ import { MeshBatch } from '../world/meshBatch';
 import type { Building, RealmChunk, RealmId } from '../../sim/world/realms/layout';
 
 interface Batch { material: Material; shape: 'box' | 'cone' | 'cylinder' | 'gable'; transforms: number[] }
-interface ResidentChunk { root: TransformNode; meshes: Mesh[]; signs: DynamicTexture[]; lights: PointLight[]; doors: { mesh: Mesh; index: number }[]; lod: number }
+interface ResidentChunk { root: TransformNode; meshes: Mesh[]; signs: DynamicTexture[]; lights: PointLight[]; doors: { mesh: Mesh; index: number }[]; lod: number; chunk: RealmChunk }
 export interface ChunkMessage { key: string; lod: number; chunk: RealmChunk }
 const PALETTES = {
   aether: { wall: ['#253445', '#354354', '#425666', '#2e3d4c'], metal: '#142536', roof: '#263b46', stone: '#526377', street: '#172638', paving: '#394959', glow: '#64edff', warm: '#ffd69a', sky: '#283a55' },
@@ -21,6 +21,7 @@ export class RealmRenderer {
   private queue: ChunkMessage[] = [];
   private materials = new Map<string, StandardMaterial>();
   private realm: RealmId = 'aether';
+  private openDoors = new Set<number>();
   origin = { x: 3072, z: 3072 };
   uploads: number[] = [];
   private surfaces: MaterialLibrary;
@@ -46,7 +47,26 @@ export class RealmRenderer {
   }
   setDoors(doors: { index: number; open: boolean }[]): void {
     const open = new Set(doors.filter(d => d.open).map(d => d.index));
+    this.openDoors = open;
     for (const c of this.loaded.values()) for (const d of c.doors) d.mesh.setEnabled(!open.has(d.index));
+  }
+  /** Camera-only point query from the received structural projection. No World,
+   * generated territory or pawn collision is created in this presentation layer. */
+  cameraBlocked(x: number, y: number, z: number): boolean {
+    if (y < 1) return true;
+    const gx = x + this.origin.x, gz = z + this.origin.z;
+    const cx = Math.floor((gx - (this.realm === 'aether' ? 0 : 8192)) / 96), cz = Math.floor(gz / 96);
+    const key = `${this.realm}:${cx},${cz}`;
+    const c = this.loaded.get(`${key}:0`) ?? this.loaded.get(`${key}:1`) ?? this.loaded.get(`${key}:2`);
+    if (!c) return true; // do not put the camera inside an unreceived shell
+    for (const b of c.chunk.buildings) {
+      if (gx < b.x || gx >= b.x + b.w || gz < b.z || gz >= b.z + b.d) continue;
+      const width = b.use === 'tower' ? 5 : 3, height = b.use === 'tower' ? 8 : 4;
+      if (gz >= b.door.z && gz < b.door.z + 1 && gx >= b.door.x - Math.floor(width / 2) && gx < b.door.x + Math.ceil(width / 2) && y < height)
+        return !this.openDoors.has((b.door.x * 6144 + b.door.z) * 176 + 1);
+      if (b.solids.some(s => gx >= s.x && gx < s.x + s.w && y >= s.y && y < s.y + s.h && gz >= s.z && gz < s.z + s.d)) return true;
+    }
+    return false;
   }
   private mat(key: string, color: string, glow = false, pattern = false): StandardMaterial {
     const full = `${this.realm}:${key}`; const prior = this.materials.get(full); if (prior) return prior;
@@ -338,7 +358,7 @@ export class RealmRenderer {
       if (lod === 0 && !name.includes('glow') && !name.includes('warm')) this.atmosphere.addCaster(mesh);
       meshes.push(mesh);
     }
-    return { root, meshes, signs, lights, doors, lod };
+    return { root, meshes, signs, lights, doors, lod, chunk };
   }
   private disposeChunk(c: ResidentChunk): void {
     for (const m of c.meshes) { this.atmosphere.removeCaster(m); if (m.name.endsWith(':label') || m.name.endsWith(':threshold')) m.material?.dispose(); }

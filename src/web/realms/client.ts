@@ -1,4 +1,4 @@
-import { Engine, FreeCamera, Vector3 } from '@babylonjs/core';
+import { Engine, FreeCamera, Vector3, Matrix } from '@babylonjs/core';
 import { createRenderer, attachPipeline } from '../render/engine';
 import { Atmosphere } from '../world/atmosphere';
 import { CharacterFactory } from '../actors/characterFactory';
@@ -8,6 +8,8 @@ import {contextFor} from '../actors/canonicalActionContext';
 import { realize } from '../actors/appearanceMap';
 import { RealmRenderer } from './render';
 import type { RealmSnapshot } from '../../sim/world/realms/session';
+import { marchObstruction } from '../game/adaptiveCamera';
+import { primaryCamera, attachOrbit, cameraRelativeMove, travelFacing, smoothYaw } from './thirdPerson';
 import './style.css';
 
 /** Existing Babylon shell, shared renderer/atmosphere/body kits. The browser sends
@@ -17,7 +19,8 @@ export async function startRealms(): Promise<void> {
   const params = new URLSearchParams(location.search);
   const ctx = await createRenderer(canvas, { quality: params.get('quality') === 'low' ? 'low' : 'balanced' });
   const camera = new FreeCamera('realm-camera', new Vector3(48.5, 2.65, 20.5), ctx.scene);
-  camera.minZ = .1; camera.maxZ = 2000; camera.fov = 1.12;
+  camera.minZ = .1; camera.maxZ = 2000;
+  const view = primaryCamera('realm');
   const atmosphere = new Atmosphere(ctx); attachPipeline(ctx, camera);
   // City canyons need a readable sky fill. Keep the shared clock/sun direction and
   // restrained exposure; never brighten the walls by changing canonical daylight.
@@ -27,6 +30,7 @@ export async function startRealms(): Promise<void> {
   // restrained apparent sun/moon size behind the layered building silhouettes.
   for (const name of ['sun-disc', 'moon-disc']) ctx.scene.getMeshByName(name)?.scaling.setAll(.16);
   const renderer = new RealmRenderer(ctx, atmosphere), factory = new CharacterFactory();
+  const obstruction = marchObstruction((x, y, z) => renderer.cameraBlocked(x, y, z));
   const people=new SharedCharacters(ctx.scene);
   const residents = new Map<string, BodyVisual>();
   void factory.load(ctx.scene, undefined, ['f', 'm']);
@@ -35,7 +39,7 @@ export async function startRealms(): Promise<void> {
     <div class="rv-card rv-wayfinder"><small>THRESHOLD SQUARE</small><b id="rv-destination">Aether Reach ↔ Cinderveil</b><p>The Tower anchors both sides of the Veil.</p><button id="rv-portal">Walk to portal</button><button id="rv-tower">Walk to Tower</button><button id="rv-canonical" hidden>Enter shared Tower trial</button><button id="rv-ascend" hidden>Historical score-based Tower lab</button><button id="rv-journal">Character & journey</button></div>
     <div class="rv-reticle">·</div><div class="rv-toast" id="rv-toast" aria-live="polite"></div>
     <div class="rv-prompt" id="rv-prompt">Loading nearby streets…</div>
-    <footer><span>WASD move · drag to look · Shift run · E interact · I journal</span><span id="rv-stream"></span></footer>
+    <footer><span>WASD move · MMB orbit · wheel zoom · Shift run · E interact · I journal</span><span id="rv-stream"></span></footer>
     <section class="rv-modal" id="rv-choice" hidden><small>THE VEIL</small><h2 id="rv-choice-title"></h2><p>Your identity, possessions and development travel with you.</p><button id="rv-cross">Cross threshold</button><button id="rv-cancel">Stay here</button></section>
     <section class="rv-modal rv-journal" id="rv-sheet" hidden><small>YOUR JOURNEY</small><h2 id="rv-name"></h2><div id="rv-character"></div><p class="rv-note">The shared Tower trial carries this body, its injuries and belongings. Historical score-based expeditions are comparison evidence and do not define current progression.</p><button id="rv-save">Save journey</button><button id="rv-close">Return to world</button></section>
     <section class="rv-modal" id="rv-expedition" hidden><small>THE TOWER</small><h2>Your expedition awaits</h2><p>Continue from the last saved floor start, or return to your atrium landing.</p><button id="rv-resume">Continue expedition</button><button id="rv-return">Return to atrium</button></section>
@@ -44,7 +48,7 @@ export async function startRealms(): Promise<void> {
   await people.load(text=>{document.getElementById('rv-loading')!.textContent=text;});
   const el = (id: string) => document.getElementById(id)!;
   const keys = new Set<string>(), frames: number[] = [], streamingFrames: number[] = [], serverSamples: number[] = [], journeys: { realm: string; at: number; readyAt?: number }[] = [];
-  let state: RealmSnapshot | null = null, yaw = 0, pitch = .2, dragging = false, timer = 0, last = performance.now(), lastRealm = '', lastStateAt = 0, journal = false, connected = false;
+  let state: RealmSnapshot | null = null, avatar: BodyVisual | null = null, timer = 0, last = performance.now(), lastRealm = '', lastStateAt = 0, journal = false, connected = false;
   let controllerToken = '', transitioning = false;
   const socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/realms/socket`);
   const send = (value: object) => { if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(value)); };
@@ -60,8 +64,9 @@ export async function startRealms(): Promise<void> {
     state = m.state; const s = state!; lastStateAt = performance.now();
     serverSamples.push(m.serverMs); if (serverSamples.length > 600) serverSamples.shift();
     if (lastRealm !== s.realm) {
-      lastRealm = s.realm; camera.position.set(s.body.pos.x - renderer.origin.x, s.body.pos.y + 1.65, s.body.pos.z - renderer.origin.z);
-      yaw = 0; journeys.push({ realm: s.realm, at: performance.now() });
+      lastRealm = s.realm; view.camera.snap();
+      avatar?.root.position.set(s.body.pos.x - renderer.origin.x, s.body.pos.y, s.body.pos.z - renderer.origin.z);
+      journeys.push({ realm: s.realm, at: performance.now() });
       for (const r of residents.values()) r.root.setEnabled(false);
     }
     el('rv-title').textContent = s.tower ? 'Tower of Chrysanthus' : s.realmName;
@@ -126,11 +131,14 @@ export async function startRealms(): Promise<void> {
     if (e.code === 'Escape') { keys.clear(); send({ type: 'cancel' }); if (journal) toggleJournal(); }
     keys.add(e.code);
   });
-  window.addEventListener('keyup', e => keys.delete(e.code));
-  window.addEventListener('blur', () => { keys.clear(); dragging = false; send({ type: 'move', input: { x: 0, z: 0, sprint: false } }); });
-  canvas.addEventListener('pointerdown', e => { dragging = true; canvas.setPointerCapture(e.pointerId); });
-  canvas.addEventListener('pointerup', () => { dragging = false; });
-  canvas.addEventListener('pointermove', e => { if (dragging) { yaw -= e.movementX * .003; pitch = Math.max(-1.1, Math.min(1.1, pitch - e.movementY * .003)); } });
+  window.addEventListener('keyup', e => { keys.delete(e.code); if (e.code.startsWith('Arrow')) view.persist(); });
+  const release = () => { keys.clear(); send({ type: 'move', input: { x: 0, z: 0, sprint: false } }); };
+  window.addEventListener('blur', release);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) release(); });
+  window.addEventListener('pointercancel', release);
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+  attachOrbit(canvas, view.camera, view.persist);
+  ui.querySelector<HTMLElement>('.rv-reticle')!.hidden = true;
   let inputAccumulator = 0, hudAccumulator = 0;
   ctx.engine.runRenderLoop(() => {
     const now = performance.now(), ms = now - last, dt = Math.min(.1, ms / 1000); last = now;
@@ -143,16 +151,27 @@ export async function startRealms(): Promise<void> {
     if (s) {
       inputAccumulator += dt; hudAccumulator += dt;
       const forward = (keys.has('KeyW') ? 1 : 0) - (keys.has('KeyS') ? 1 : 0), right = (keys.has('KeyD') ? 1 : 0) - (keys.has('KeyA') ? 1 : 0);
-      if (keys.has('ArrowLeft')) yaw += dt * 1.3; if (keys.has('ArrowRight')) yaw -= dt * 1.3;
-      if (keys.has('ArrowUp')) pitch = Math.min(1.1, pitch + dt); if (keys.has('ArrowDown')) pitch = Math.max(-1.1, pitch - dt);
+      if (keys.has('ArrowLeft')) view.camera.addLook(-dt * 1.3, 0); if (keys.has('ArrowRight')) view.camera.addLook(dt * 1.3, 0);
+      if (keys.has('ArrowUp')) view.camera.addLook(0, -dt); if (keys.has('ArrowDown')) view.camera.addLook(0, dt);
       if (inputAccumulator >= .05 && !transitioning && !s.expedition?.active) {
         inputAccumulator = 0;
-        const x = Math.sin(yaw) * forward - Math.cos(yaw) * right, z = Math.cos(yaw) * forward + Math.sin(yaw) * right, magnitude = Math.max(1, Math.hypot(x, z));
-        send({ type: 'move', input: { x: journal ? 0 : x / magnitude, z: journal ? 0 : z / magnitude, sprint: keys.has('ShiftLeft') || keys.has('ShiftRight') } });
+        const move = cameraRelativeMove(journal ? 0 : right, journal ? 0 : forward, view.camera.renderedYaw);
+        send({ type: 'move', input: { ...move, facing: travelFacing(move), sprint: keys.has('ShiftLeft') || keys.has('ShiftRight') } });
       }
-      const target = new Vector3(s.body.pos.x - renderer.origin.x, s.body.pos.y + 1.65, s.body.pos.z - renderer.origin.z);
-      camera.position = Vector3.Lerp(camera.position, target, 1 - Math.exp(-16 * dt));
-      camera.setTarget(camera.position.add(new Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch))));
+      if (!avatar) {
+        avatar = people.create(s.avatar, atmosphere) ?? (factory.ready ? factory.create(ctx.scene, atmosphere, s.body.id, realize(s.person.id, s.avatar.appearance?.description, undefined)) : null);
+        avatar?.root.position.set(s.body.pos.x - renderer.origin.x, s.body.pos.y, s.body.pos.z - renderer.origin.z);
+        if (avatar) avatar.root.rotation.y = s.body.yaw;
+      }
+      if (avatar) {
+        const age = Math.min(.075, Math.max(0, (now - lastStateAt) / 1000)), velocity = s.avatar.velocity;
+        avatar.root.position.copyFrom(Vector3.Lerp(avatar.root.position, new Vector3(s.body.pos.x + velocity.x * age - renderer.origin.x, s.body.pos.y, s.body.pos.z + velocity.z * age - renderer.origin.z), 1 - Math.exp(-20 * dt)));
+        avatar.root.rotation.y = smoothYaw(avatar.root.rotation.y, s.body.yaw, dt);
+        avatar.update(dt, { bodyId: s.body.id, body: s.avatar, combat: contextFor(s.avatar.combatAction, s.time + age, s.body.yaw), guard: s.avatar.guarding, own: true, kind: 'person', speed: Math.hypot(velocity.x, velocity.z), velocity, yaw: avatar.root.rotation.y, crouch: s.avatar.crouch ?? 0, age });
+        const pivot = avatar.root.position.add(new Vector3(0, 1.3, 0));
+        const pose = view.camera.update(dt, { pivot, velocity }, obstruction, () => 1);
+        camera.position.set(pose.position.x, pose.position.y, pose.position.z); camera.setTarget(new Vector3(pose.target.x, pose.target.y, pose.target.z)); camera.fov = pose.fov;
+      }
       atmosphere.update((s.worldTime / 3600 + (s.realm === 'aether' ? 9.866 : 9.066)) % 24, { kind: 'clear', intensity: 0, wind: .25 }, dt);
       ctx.scene.fogDensity = s.realm === 'aether' ? .0026 : .0017;
       if (hudAccumulator > .3) { hudAccumulator = 0; el('rv-stream').textContent = params.has('debug') ? `${renderer.loaded.size} chunks resident · ${renderer.pending} loading` : `${s.person.rank} · ${s.realmName}`; }
@@ -173,11 +192,14 @@ export async function startRealms(): Promise<void> {
     ctx.scene.render();
   });
   // Observations only: the harness drives ordinary keys/buttons, never mutates the world.
-  Object.defineProperty(window, 'tvRealms', { value: { get state() { return state; }, get ready() { return !!state && !renderer.pending; },
+  Object.defineProperty(window, 'tvRealms', { value: { get state() { return state; }, get ready() { return !!state && !!avatar && !renderer.pending; },
     inspect: () => ({ frames: [...frames], streamingFrames: [...streamingFrames], uploads: [...renderer.uploads], serverSamples: [...serverSamples], journeys: [...journeys], loaded: renderer.loaded.size, pending: renderer.pending,
       meshes: ctx.scene.meshes.length, textures: ctx.scene.textures.length, materials: ctx.scene.materials.length, lights: ctx.scene.lights.length,
       towerDoors: [...renderer.loaded.values()].flatMap(c=>c.doors.filter(d=>d.mesh.name.includes(':tower:')).map(d=>({name:d.mesh.name,enabled:d.mesh.isEnabled(),panels:d.mesh.getChildMeshes().map(m=>m.isEnabled())}))),
       residentLooks:[...residents.values()].map(v=>v.root.metadata), renderer: ctx.kind, staleMs: performance.now() - lastStateAt,
+      controlledLook: avatar?.root.metadata, controlledBody: avatar ? { id: state?.body.id, enabled: avatar.root.isEnabled(), position: { x: avatar.root.position.x, y: avatar.root.position.y, z: avatar.root.position.z }, yaw: avatar.root.rotation.y,
+        screen: Vector3.Project(avatar.root.position.add(new Vector3(0, .85, 0)), Matrix.Identity(), ctx.scene.getTransformMatrix(), camera.viewport.toGlobal(ctx.engine.getRenderWidth(), ctx.engine.getRenderHeight())) } : null,
+      camera: { mode: 'third-person', yaw: view.camera.yaw, renderedYaw: view.camera.renderedYaw, pitch: view.camera.pitch, preferred: view.camera.preferred, blocked: renderer.cameraBlocked(camera.position.x,camera.position.y,camera.position.z), position: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, ...view.camera.debug },
       width: ctx.engine.getRenderWidth(), height: ctx.engine.getRenderHeight(), hardware: ctx.engine instanceof Engine ? ctx.engine.getGlInfo() : null,
       heap: (() => { const m = (performance as Performance & { memory?: { usedJSHeapSize: number; totalJSHeapSize: number } }).memory; return m ? { used: m.usedJSHeapSize, total: m.totalJSHeapSize } : null; })(), state }) } });
 }

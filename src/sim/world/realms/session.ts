@@ -37,7 +37,9 @@ export class RealmSession {
   move(input: MovementInput): void {
     if ((this.world.realmExpedition?.active || this.world.canonicalTower?.active)) return;
     if (!input || ![input.x, input.z].every(Number.isFinite) || Math.abs(input.x) > 1 || Math.abs(input.z) > 1 || typeof input.sprint !== 'boolean') return;
-    this.input = { x: input.x, z: input.z, sprint: input.sprint }; this.inputUntil = this.world.physicalTime + .25;
+    if (input.facing !== undefined && (!Number.isFinite(input.facing) || Math.abs(input.facing) > Math.PI)) return;
+    // Use the existing shared bounded turn evaluator; the camera never sets a body yaw.
+    this.input = { x: input.x, z: input.z, sprint: input.sprint, ...(input.facing === undefined ? {} : { facing: input.facing }) }; this.inputUntil = this.world.physicalTime + .25;
     if (input.x || input.z) this.body.path = null;
   }
   stop(): void { this.input = { x: 0, z: 0, sprint: false }; this.pending = null; this.body.path = null; }
