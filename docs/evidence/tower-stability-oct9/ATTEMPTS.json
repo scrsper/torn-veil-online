@@ -1,0 +1,34 @@
+{
+  "firstFocused": {
+    "path": ".debug/tower-stability/focused-first.json",
+    "reportedPassed": 16,
+    "shellExit": 1,
+    "acceptedAsFinal": false
+  },
+  "firstLateFloor": {
+    "path": ".debug/tower-stability/late-floor-first.log",
+    "result": "failed",
+    "cause": "worker ready message matched an absent checkpoint request; null timer dereference",
+    "repair": "require an actual pending checkpoint before matching response id"
+  },
+  "intermediateFocused": {
+    "passed": 46,
+    "path": ".debug/tower-stability/focused-second.json"
+  },
+  "finalFocused": {
+    "passed": 50,
+    "path": ".debug/tower-stability/focused-guard-final.json"
+  },
+  "firstRendered": {
+    "passed": 9,
+    "path": ".debug/tower-stability/summit-browser-first/result.json"
+  },
+  "finalRendered": {
+    "passed": 9,
+    "path": ".debug/tower-stability/summit-browser-final/result.json"
+  },
+  "aggregateBeforeGuard": {
+    "path": ".debug/tower-stability/aggregate-before-guard-interrupted.log",
+    "result": "intentionally stopped for complete source/runtime fingerprint repair; no failed assertion reported before interruption; superseded by fresh full run"
+  }
+}

@@ -1,3 +1,4 @@
+import { detailedBodies } from '../world/interiors/residency';
 import type { World } from '../core/world';
 import type { Body } from '../core/types';
 import { INTERACTION_SPEC as S,predictPosture } from './prediction';
@@ -13,7 +14,7 @@ export function refreshCrouchHeld(w:World,b:Body,held:boolean):void {
  if(held&&crouchHeld(w,b))setCrouchHeld(w,b,true);
 }
 export function advancePostures(w:World,dt:number):void {
- for(const b of w.activeBodies()){
+ for(const b of detailedBodies(w)){
   const held=crouchHeld(w,b);if(!held&&!b.crouch)continue;
   const p=w.person(b.ownerId);if(!p)continue;
   const state=movementState(w,p,b);if(!state.eligible)setCrouchHeld(w,b,false);

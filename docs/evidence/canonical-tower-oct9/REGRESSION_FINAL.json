@@ -1,0 +1,73 @@
+{
+  "path": ".debug/canonical-tower-oct9/regression-repairs-final.json",
+  "rawSha256": "6c7adc43b384d339a5ae320385c801234268c89ef4e91c942dbd03043a6c6899",
+  "passed": 141,
+  "failed": 0,
+  "pending": 0,
+  "total": 141,
+  "success": true,
+  "files": 10,
+  "durationSeconds": 9.923119873046875,
+  "results": [
+    {
+      "file": "tests/canonical-tower.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/combat-foundation.test.ts",
+      "status": "passed",
+      "tests": 9,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/combat-refinement.test.ts",
+      "status": "passed",
+      "tests": 18,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/conflict-resolution.test.ts",
+      "status": "passed",
+      "tests": 20,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/exertion.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/guard.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/martial-combat-integration.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/observatory-progress.test.ts",
+      "status": "passed",
+      "tests": 34,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/realtime-protocol.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "failedAssertions": []
+    },
+    {
+      "file": "tests/robbery.test.ts",
+      "status": "passed",
+      "tests": 13,
+      "failedAssertions": []
+    }
+  ]
+}

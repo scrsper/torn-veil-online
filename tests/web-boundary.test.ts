@@ -57,6 +57,13 @@ describe('browser bundle boundary', () => {
     const allowed = new Set([
       'src/sim/physical/prediction.ts', 'src/sim/physical/blocks.ts', 'src/sim/physical/combatRepertoire.json',
       'src/sim/physical/interactionSpec.json', 'src/sim/core/appearance.ts',
+      // Pure expedition action/evidence reducer; no World stepping or persistence dependency.
+      'src/sim/progression/tower.ts',
+      'src/sim/progression/towerEncounters.ts',
+      // Shared authored definitions only; no canonical cast resolver or World access.
+      'src/sim/physical/arcana/catalogue.ts',
+      // Unchanged seeded room grammar, with no World, grid, entity or persistence imports.
+      'src/sim/world/interiors/maze.ts',
     ]);
     const unexpected = outside.filter(p => !allowed.has(p));
     expect(unexpected, `unexpected modules in the browser graph:\n${unexpected.join('\n')}`).toEqual([]);

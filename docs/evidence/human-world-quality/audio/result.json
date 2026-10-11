@@ -1,0 +1,399 @@
+{
+  "phase": "stopped",
+  "calls": [
+    {
+      "phase": "walk",
+      "at": 7882.20000000298,
+      "surface": "stone",
+      "intensity": 0.8162889916660052,
+      "mix": {
+        "gain": 1,
+        "pan": 0,
+        "wet": 0
+      },
+      "bodyId": "b_1",
+      "own": true,
+      "speed": 1.2791460897385012,
+      "source": null,
+      "support": [
+        true,
+        true
+      ],
+      "point": {
+        "x": 29.01828384399414,
+        "y": 1.0748029947280884,
+        "z": 31.884361267089844
+      }
+    },
+    {
+      "phase": "walk",
+      "at": 8229.10000000149,
+      "surface": "stone",
+      "intensity": 1.0758465535583566,
+      "mix": {
+        "gain": 1,
+        "pan": 0,
+        "wet": 0
+      },
+      "bodyId": "b_1",
+      "own": true,
+      "speed": 3.275742719679666,
+      "source": {
+        "name": "locomotion/running",
+        "frame": 38.1530559957662
+      },
+      "support": [
+        false,
+        true
+      ],
+      "point": {
+        "x": 27.819843292236328,
+        "y": 1.1543983221054077,
+        "z": 33.18881607055664
+      }
+    },
+    {
+      "phase": "walk",
+      "at": 8750.20000000298,
+      "surface": "stone",
+      "intensity": 1.0633078739885742,
+      "mix": {
+        "gain": 1,
+        "pan": 0,
+        "wet": 0
+      },
+      "bodyId": "b_1",
+      "own": true,
+      "speed": 3.179291338373647,
+      "source": {
+        "name": "locomotion/running",
+        "frame": 16.269781903654597
+      },
+      "support": [
+        true,
+        false
+      ],
+      "point": {
+        "x": 26.672210693359375,
+        "y": 1.1363238096237183,
+        "z": 34.4493293762207
+      }
+    },
+    {
+      "phase": "walk",
+      "at": 9263.5,
+      "surface": "stone",
+      "intensity": 1.075982719530362,
+      "mix": {
+        "gain": 1,
+        "pan": 0,
+        "wet": 0
+      },
+      "bodyId": "b_1",
+      "own": true,
+      "speed": 3.276790150233553,
+      "source": {
+        "name": "locomotion/running",
+        "frame": 38.036961536626805
+      },
+      "support": [
+        false,
+        true
+      ],
+      "point": {
+        "x": 25.35322380065918,
+        "y": 1.135789155960083,
+        "z": 35.62984848022461
+      }
+    },
+    {
+      "phase": "walk",
+      "at": 9784.60000000149,
+      "surface": "stone",
+      "intensity": 1.0599009831526687,
+      "mix": {
+        "gain": 1,
+        "pan": 0,
+        "wet": 0
+      },
+      "bodyId": "b_1",
+      "own": true,
+      "speed": 3.1530844857897593,
+      "source": {
+        "name": "locomotion/running",
+        "frame": 16.126051610817782
+      },
+      "support": [
+        true,
+        false
+      ],
+      "point": {
+        "x": 24.20345687866211,
+        "y": 1.13711678981781,
+        "z": 36.924293518066406
+      }
+    },
+    {
+      "phase": "walk",
+      "at": 10305.70000000298,
+      "surface": "stone",
+      "intensity": 1.113240720529662,
+      "mix": {
+        "gain": 1,
+        "pan": 0,
+        "wet": 0
+      },
+      "bodyId": "b_1",
+      "own": true,
+      "speed": 3.563390157920477,
+      "source": {
+        "name": "locomotion/running",
+        "frame": 38.20402441440312
+      },
+      "support": [
+        false,
+        true
+      ],
+      "point": {
+        "x": 22.84954261779785,
+        "y": 1.1335375308990479,
+        "z": 38.13351058959961
+      }
+    },
+    {
+      "phase": "run",
+      "at": 10735.60000000149,
+      "surface": "stone",
+      "intensity": 1.266182017595739,
+      "mix": {
+        "gain": 1,
+        "pan": 0,
+        "wet": 0
+      },
+      "bodyId": "b_1",
+      "own": true,
+      "speed": 4.739861673813377,
+      "source": {
+        "name": "locomotion/running",
+        "frame": 16.193589435552525
+      },
+      "support": [
+        true,
+        false
+      ],
+      "point": {
+        "x": 21.53217124938965,
+        "y": 1.1411267518997192,
+        "z": 39.58953857421875
+      }
+    },
+    {
+      "phase": "run",
+      "at": 11096.80000000447,
+      "surface": "stone",
+      "intensity": 1.3084721375754509,
+      "mix": {
+        "gain": 1,
+        "pan": 0,
+        "wet": 0
+      },
+      "bodyId": "b_1",
+      "own": true,
+      "speed": 5.065170289041929,
+      "source": {
+        "name": "locomotion/running",
+        "frame": 38.215874631851136
+      },
+      "support": [
+        false,
+        true
+      ],
+      "point": {
+        "x": 20.097370147705078,
+        "y": 1.1389836072921753,
+        "z": 40.89274215698242
+      }
+    },
+    {
+      "phase": "run",
+      "at": 11461.20000000298,
+      "surface": "stone",
+      "intensity": 1.35,
+      "mix": {
+        "gain": 1,
+        "pan": 0,
+        "wet": 0
+      },
+      "bodyId": "b_1",
+      "own": true,
+      "speed": 5.396039588539276,
+      "source": {
+        "name": "locomotion/running",
+        "frame": 16.41686573156545
+      },
+      "support": [
+        true,
+        false
+      ],
+      "point": {
+        "x": 18.8155460357666,
+        "y": 1.1393169164657593,
+        "z": 42.29613494873047
+      }
+    },
+    {
+      "phase": "run",
+      "at": 11819.80000000447,
+      "surface": "stone",
+      "intensity": 1.35,
+      "mix": {
+        "gain": 1,
+        "pan": 0,
+        "wet": 0
+      },
+      "bodyId": "b_1",
+      "own": true,
+      "speed": 5.64689021161767,
+      "source": {
+        "name": "locomotion/running",
+        "frame": 38.36891261321739
+      },
+      "support": [
+        false,
+        true
+      ],
+      "point": {
+        "x": 17.38601303100586,
+        "y": 1.1369726657867432,
+        "z": 43.60435485839844
+      }
+    },
+    {
+      "phase": "run",
+      "at": 12180.60000000149,
+      "surface": "stone",
+      "intensity": 1.3069700461452403,
+      "mix": {
+        "gain": 1,
+        "pan": 0,
+        "wet": 0
+      },
+      "bodyId": "b_1",
+      "own": true,
+      "speed": 5.05361573957877,
+      "source": {
+        "name": "locomotion/running",
+        "frame": 16.38168856074708
+      },
+      "support": [
+        true,
+        false
+      ],
+      "point": {
+        "x": 16.161205291748047,
+        "y": 1.1395800113677979,
+        "z": 44.95204544067383
+      }
+    },
+    {
+      "phase": "run",
+      "at": 12541.80000000447,
+      "surface": "stone",
+      "intensity": 1.3462962273506989,
+      "mix": {
+        "gain": 1,
+        "pan": 0,
+        "wet": 0
+      },
+      "bodyId": "b_1",
+      "own": true,
+      "speed": 5.3561248257746055,
+      "source": {
+        "name": "locomotion/running",
+        "frame": 38.45389647668759
+      },
+      "support": [
+        false,
+        true
+      ],
+      "point": {
+        "x": 14.734280586242676,
+        "y": 1.135958194732666,
+        "z": 46.25625991821289
+      }
+    },
+    {
+      "phase": "run",
+      "at": 12916.5,
+      "surface": "stone",
+      "intensity": 0.9270703877872872,
+      "mix": {
+        "gain": 1,
+        "pan": 0,
+        "wet": 0
+      },
+      "bodyId": "b_1",
+      "own": true,
+      "speed": 2.1313106752868247,
+      "source": {
+        "name": "locomotion/running",
+        "frame": 16.219007245969067
+      },
+      "support": [
+        true,
+        false
+      ],
+      "point": {
+        "x": 13.767923355102539,
+        "y": 1.132445216178894,
+        "z": 47.36057662963867
+      }
+    }
+  ],
+  "route": null,
+  "running": true,
+  "imported": true,
+  "renders": [
+    {
+      "surface": "grass",
+      "peak": 0.1313885897397995,
+      "rms": [
+        0.003176243719857006,
+        0.009775473665388997
+      ]
+    },
+    {
+      "surface": "dirt",
+      "peak": 0.13389426469802856,
+      "rms": [
+        0.0032339396587037408,
+        0.00995304344292389
+      ]
+    },
+    {
+      "surface": "stone",
+      "peak": 0.13512904942035675,
+      "rms": [
+        0.003088995649329706,
+        0.009506951654192899
+      ]
+    },
+    {
+      "surface": "wood",
+      "peak": 0.11270857602357864,
+      "rms": [
+        0.00281418922381706,
+        0.008661184405080596
+      ]
+    },
+    {
+      "surface": "water",
+      "peak": 0.14260613918304443,
+      "rms": [
+        0.0035004890275129015,
+        0.010773398144517386
+      ]
+    }
+  ],
+  "errors": []
+}

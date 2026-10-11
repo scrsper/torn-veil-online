@@ -1,9 +1,10 @@
+import { physicalResidents, detailedBodies } from '../world/interiors/residency';
 import type { Body, BodyRegion, Person, Vec3, WorldEvent } from '../core/types';
 import type { World } from '../core/world';
 import { resolveCombatAttack, type CombatAttackIntent, type CombatAttackResult } from './combat';
 import { INTERACTION_SPEC as S, predictMovement } from './prediction';
 import { collisionColumn, movementState } from './interactionMovement';
-import { syncNeeds } from '../core/physiology';
+import { canSpendExertion, spendExertion } from './exertion';
 import { hurtVolumes, lerpPoint, strikePoint, sweepSphereContact, type CombatTransform } from './combatGeometry';
 import type { CombatAction, CombatInput, CombatPhase, DefenseKind } from './combatActionTypes';
 import { combatActionFacts } from './combatFacts';
@@ -45,7 +46,7 @@ function accept(w:World,p:Person,b:Body,a:CombatAction):void {
   a.eventId=phase(w,a,'requested',a.startedAt).id;a.eventId=phase(w,a,'accepted',a.startedAt).id;
   a.eventId=phase(w,a,'preparation',a.startedAt).id;
   a.exertionCost*=combatEffortScale(w,b.id);
-  p.physiology.fatigue=Math.min(1,p.physiology.fatigue+a.exertionCost);syncNeeds(p);
+  w.event(a.eventId)!.data.effort=spendExertion(w,p,b,a.exertionCost);
 }
 export function requestCombatAction(w:World,intent:CombatAttackIntent,commandId?:string):CombatAttackResult {
   const r=resolveCombatAttack(w,intent,w.rng);if(!r.attempted)return r;
@@ -74,7 +75,7 @@ export function requestCombatAction(w:World,intent:CombatAttackIntent,commandId?
     a.trackingUntil=a.startedAt+preparation*S.heavyTrackingFraction;a.impact*=S.heavyImpactMultiplier;a.exertionCost*=S.heavyEffortMultiplier;
     a.definition+=':heavy';r.impact=a.impact;r.exertionCost=a.exertionCost;
   }
-  if(intent.weight==='heavy'&&p.physiology.fatigue+a.exertionCost*combatEffortScale(w,b.id)>1)return {...r,attempted:false,rejection:'exhausted'};
+  if(!canSpendExertion(p,b,a.exertionCost*combatEffortScale(w,b.id)))return {...r,attempted:false,rejection:'exhausted'};
   b.lastAttackAt=w.physicalTime;b.attackSeq++;b.pose='attack';b.poseUntil=a.completeAt;b.attackTarget=r.targetId;
   accept(w,p,b,a);r.actionId=a.id;return r;
 }
@@ -83,7 +84,7 @@ export function requestDefense(w:World,bodyId:string,kind:DefenseKind,side=1,com
   if(!b||!p||!movementState(w,p,b).eligible)return 'incapacitated';
   if(w.physicalTime+1e-9<combatTransitionAt(b.combatAction,kind))return 'cooldown';
   if(!b.onGround)return 'unsupported';
-  if(p.physiology.fatigue+S.defenseEffort*combatEffortScale(w,b.id)>1)return 'exhausted';
+  if(!canSpendExertion(p,b,S.defenseEffort*combatEffortScale(w,b.id)))return 'exhausted';
   if(!['sidestep','backstep','duck'].includes(kind)||![-1,1].includes(side))return 'invalid_command';
   const a=base(w,b,kind,commandId);a.repertoireRevision=2;
   if(kind!=='duck'&&b.combatAction?.kind==='attack')a.priorStrike=precedingStrike(b.combatAction,w.physicalTime);
@@ -118,9 +119,9 @@ export function submitCombatInput(w:World,bodyId:string,input:CombatInput):strin
     return 'accepted';
   }
   if(input.kind==='duck'&&input.held){
-    if(!(b.crouch??0)&&p.physiology.fatigue+S.crouchEffort*combatEffortScale(w,b.id)>1){setCrouchHeld(w,b,false);return 'exhausted';}
+    if(!(b.crouch??0)&&!canSpendExertion(p,b,S.crouchEffort*combatEffortScale(w,b.id))){setCrouchHeld(w,b,false);return 'exhausted';}
     if(a&&a.completeAt>at){a.completeAt=at;phase(w,a,'complete',at);b.poseUntil=at;}
-    if(beginCrouch(w,b)&&!(b.crouch??0)){p.physiology.fatigue=Math.min(1,p.physiology.fatigue+S.crouchEffort*combatEffortScale(w,b.id));syncNeeds(p);}
+    if(beginCrouch(w,b)&&!(b.crouch??0)){spendExertion(w,p,b,S.crouchEffort*combatEffortScale(w,b.id));}
     return 'accepted';
   }
   if((b.crouch??0)>.001){
@@ -152,8 +153,8 @@ export function cancelCombatAction(w:World,bodyId:string):string {
   stopCombatAction(w,b,'requested',true);return 'accepted';
 }
 export function captureCombatTransforms(w:World):Map<string,CombatTransform> {
-  if(!w.bodies().some(b=>b.crouch||b.combatAction&&b.combatAction.phase!=='complete'))return new Map();
-  return new Map(w.activeBodies().map(b=>[b.id,{pos:{...b.pos},yaw:b.yaw,duck:Math.max(b.crouch??0,combatPosture(b.combatAction,w.physicalTime))}]));
+  if(!physicalResidents(w).some(b=>b.crouch||b.combatAction&&b.combatAction.phase!=='complete'))return new Map();
+  return new Map(detailedBodies(w).map(b=>[b.id,{pos:{...b.pos},yaw:b.yaw,duck:Math.max(b.crouch??0,combatPosture(b.combatAction,w.physicalTime))}]));
 }
 type Hit=(p:Person,ab:Body,tb:Body,r:CombatAttackResult,a:CombatAction)=>WorldEvent|null;
 /** Fast physical work only. Input/ordinary locomotion have already supplied their end poses.
@@ -161,9 +162,9 @@ type Hit=(p:Person,ab:Body,tb:Body,r:CombatAttackResult,a:CombatAction)=>WorldEv
 export function advanceCombat(w:World,dt:number,before:Map<string,CombatTransform>,hit:Hit):void {
   const now=w.physicalTime,start=now-dt;
   advancePostures(w,dt);
-  const actions=w.bodies().filter(b=>b.combatAction&&b.combatAction.phase!=='complete');
+  const actions=physicalResidents(w).filter(b=>b.combatAction&&b.combatAction.phase!=='complete');
   if(!actions.length)return;
-  const bodies=w.activeBodies();
+  const bodies=detailedBodies(w);
   for(const b of actions) {
     const a=b.combatAction!,p=w.person(b.ownerId);
     if(!p||!movementState(w,p,b).eligible)stopCombatAction(w,b,'incapacitated',false,Math.max(start,a.startedAt));

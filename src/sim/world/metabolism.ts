@@ -619,13 +619,20 @@ export function nearestWaterSource(world: World, pos: Vec3): { pos: Vec3; placeI
   return best;
 }
 
-export function drinkAt(world: World, p: Person, sourcePlaceId?: EntityId): void {
+export function drinkAt(world: World, p: Person, sourcePlaceId?: EntityId): boolean {
+  const stock = sourcePlaceId && world.resourceNodes.find(n => n.kind === 'surface_water' && n.placeId === sourcePlaceId);
+  if (stock) {
+    if (stock.remaining < .25 || stock.state !== 'available') return false;
+    stock.remaining -= .25;
+    if (stock.remaining < .25) { stock.state = 'depleted'; stock.depletedAt = world.now; }
+  }
   drinkRestoresHydration(p, WATER_THIRST_RESTORE);
   world.emit('water_consumed', {
     actor: p.id, placeId: sourcePlaceId, pos: world.primaryBody(p.id)?.pos, significance: 0.08,
     data: { thirst: Math.round(p.needs.thirst * 100) / 100 },
     summary: `${p.name} drank${sourcePlaceId ? ' at ' + world.nameOf(sourcePlaceId) : ''}`,
   });
+  return true;
 }
 
 // ---------------------------------------------------------------- spoilage (v0.3 Priority 14, recalibrated v0.4 §14)

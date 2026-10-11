@@ -53,9 +53,13 @@ export const ACHIEVEMENTS: Achievement[] = [
 
 // Lifetime record of earned achievements (this browser), kept beside the class codex.
 const KEY = 'tv.tower.achievements.v1';
-export function loadEarned(): Record<string, number> { try { return JSON.parse(localStorage.getItem(KEY) ?? '{}'); } catch { return {}; } }
-export function recordEarned(id: string): boolean {
-  const e = loadEarned(), first = !e[id]; e[id] = (e[id] ?? 0) + 1;
-  try { localStorage.setItem(KEY, JSON.stringify(e)); } catch { /* private mode */ }
+const RECORDS = 'tv.tower.achievements.v2';
+function records(): { counts: Record<string,number>; receipts: string[] } { try { const saved = localStorage.getItem(RECORDS); if (saved) return JSON.parse(saved); } catch { /* recover from legacy */ } return { counts: legacyEarned(), receipts: [] }; }
+function legacyEarned(): Record<string, number> { try { return JSON.parse(localStorage.getItem(KEY) ?? '{}'); } catch { return {}; } }
+export function loadEarned(): Record<string,number> { return records().counts; }
+export function recordEarned(id: string, receipt?: string): boolean {
+  const state = records(), e = state.counts; if (receipt && state.receipts.includes(receipt)) return false;
+  const first = !e[id]; e[id] = (e[id] ?? 0) + 1; if (receipt) state.receipts.push(receipt);
+  try { localStorage.setItem(RECORDS, JSON.stringify(state)); } catch { /* private mode */ }
   return first;
 }

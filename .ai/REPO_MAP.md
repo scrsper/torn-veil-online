@@ -12,6 +12,13 @@ Read only the section relevant to the current task.
 
 # Core simulation
 
+Connected procedural realms: `src/sim/world/realms/` owns seeded geometry, sparse
+collision and canonical portal intentions. `src/server/realms.ts` is the isolated
+loopback host; `src/web/realms/` projects it through the existing Babylon renderer.
+Ordinary World save schema 26 retains older 24/25 reads. Tower atrium is integrated;
+the expedition state handoff remains separate. See `docs/CONNECTED_REALMS.md` and
+`docs/CONNECTED_REALMS_INTEGRATION.md` for scope, evidence and branch boundaries.
+
 Same-world workbench: `src/observatory/viewport.ts` attaches the shared bridge to the existing isolated World/Simulation; `src/web/net/observatory.ts` adapts the Babylon client. Panel layout is in `src/observatory/public/workbench.*`. Workflow and bounds: `docs/OBSERVATORY_WORKBENCH.md`.
 
 Developer Observatory: `src/observatory/` hosts a loopback-only disposable world, read-only

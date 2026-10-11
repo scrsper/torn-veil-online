@@ -1,0 +1,104 @@
+[
+  {
+    "name": "browser",
+    "source": {
+      "path": ".debug/tower-growth/browser/result.json",
+      "bytes": 5186,
+      "sha256": "eafe2780411e9eee13fc599dc1ce700e99fcc57e9995349f377fd60807f72905"
+    },
+    "kind": "actual rendered controls from earned headless floor-16 save; prior climb is not rendered evidence; concurrent tests, not hardware benchmark",
+    "checks": [
+      {
+        "name": "loaded actual earned pre-integration save",
+        "ok": true
+      }
+    ],
+    "errors": [
+      "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Integrate sources - Bronze', exact: true })\u001b[22m\n"
+    ]
+  },
+  {
+    "name": "silver-browser",
+    "source": {
+      "path": ".debug/tower-growth/silver-browser/result.json",
+      "bytes": 1431434,
+      "sha256": "8e09b6b3071e5d221ee1abac7801a9203eb8b444cfac6bd51ee39be08b0ec9bb"
+    },
+    "kind": "actual rendered keyboard/button fight from earned headless Silver save; preceding climb not depicted; concurrent tests, not benchmark",
+    "checks": [
+      {
+        "name": "loaded earned Silver floor-46 save",
+        "ok": true
+      },
+      {
+        "name": "actual later-floor wardens use physical casters",
+        "ok": false
+      }
+    ],
+    "errors": [
+      "AssertionError [ERR_ASSERTION]: actual later-floor wardens use physical casters"
+    ]
+  },
+  {
+    "name": "silver-browser-r2",
+    "source": {
+      "path": ".debug/tower-growth/silver-browser-r2/result.json",
+      "bytes": 1687461,
+      "sha256": "b12824d33bd7e0133f02bd062aa60e8df4147531f00b3ed9af267afb7f60a623"
+    },
+    "kind": "actual rendered keyboard/button fight from earned headless Silver save; preceding climb not depicted; concurrent tests, not benchmark",
+    "checks": [
+      {
+        "name": "loaded earned Silver floor-46 save",
+        "ok": true
+      },
+      {
+        "name": "observed physically stronger Silver casts",
+        "ok": true
+      },
+      {
+        "name": "real controls produced canonical later-floor defeats",
+        "ok": true
+      },
+      {
+        "name": "cleared floor 47 through rendered controls",
+        "ok": true
+      },
+      {
+        "name": "Gold was not awarded by the floor counter",
+        "ok": true
+      },
+      {
+        "name": "later-floor reload retained identity and clearance",
+        "ok": true
+      },
+      {
+        "name": "no browser errors",
+        "ok": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "name": "summit-browser",
+    "source": {
+      "path": ".debug/tower-growth/summit-browser/result.json",
+      "bytes": 15656,
+      "sha256": "413475de40a8a5e2a7e89fa7a1f14467c84d437ac701366d6fb3a1a37f79c34a"
+    },
+    "kind": "actual rendered final-runtime summit reload and portal journey from earned headless 100-floor save; preceding climb not depicted; concurrent regression, not benchmark",
+    "checks": [
+      {
+        "name": "loaded earned completed Silver summit",
+        "ok": true
+      },
+      {
+        "name": "summit reload retained run and body",
+        "ok": true
+      }
+    ],
+    "errors": [
+      "Error: Summit entrance traversal timed out"
+    ]
+  }
+]

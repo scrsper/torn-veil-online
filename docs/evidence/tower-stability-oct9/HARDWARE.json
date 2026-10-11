@@ -1,0 +1,20 @@
+{
+  "CPU": {
+    "Name": "AMD Ryzen 5 9600X 6-Core Processor             ",
+    "NumberOfCores": 6,
+    "NumberOfLogicalProcessors": 12
+  },
+  "System": {
+    "TotalPhysicalMemory": 33436114944
+  },
+  "GPU": [
+    {
+      "Name": "AMD Radeon(TM) Graphics",
+      "DriverVersion": "32.0.21043.5001"
+    },
+    {
+      "Name": "AMD Radeon RX 6650 XT",
+      "DriverVersion": "32.0.21043.5001"
+    }
+  ]
+}

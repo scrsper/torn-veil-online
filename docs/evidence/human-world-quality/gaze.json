@@ -1,0 +1,374 @@
+{
+  "passed": true,
+  "rows": [
+    {
+      "size": 0.65,
+      "yaw": 0,
+      "scenario": "target",
+      "firstAngle": 0.0640584566193327,
+      "settled": {
+        "yaw": 0.46364752292595995,
+        "pitch": 0.2199879699342465,
+        "angle": 0.5123406484276105
+      },
+      "releaseFirst": null,
+      "final": {
+        "yaw": 0.46364752292595995,
+        "pitch": 0.2199879699342465,
+        "angle": 0.5123406484276105
+      },
+      "maxFrameAngle": 0.0640584566193327,
+      "maxRootMove": 0,
+      "maxRootAngle": 0,
+      "maxFootMove": 0
+    },
+    {
+      "size": 0.65,
+      "yaw": 0,
+      "scenario": "capped",
+      "firstAngle": 0.10899279932916886,
+      "settled": {
+        "yaw": 0.7999998616633458,
+        "pitch": 0.3499999579734874,
+        "angle": 0.869415218493415
+      },
+      "releaseFirst": null,
+      "final": {
+        "yaw": 0.7999998616633458,
+        "pitch": 0.3499999579734874,
+        "angle": 0.869415218493415
+      },
+      "maxFrameAngle": 0.10899279932916886,
+      "maxRootMove": 0,
+      "maxRootAngle": 0,
+      "maxFootMove": 0
+    },
+    {
+      "size": 0.65,
+      "yaw": 0,
+      "scenario": "null-release",
+      "firstAngle": 0.0640584566193327,
+      "settled": {
+        "yaw": 0.46364752292595995,
+        "pitch": 0.2199879699342465,
+        "angle": 0.5123406484276105
+      },
+      "releaseFirst": {
+        "yaw": 0.40577194376911324,
+        "pitch": 0.1925276021264221,
+        "angle": 0.44856154887797345
+      },
+      "final": {
+        "yaw": -7.197827284830798e-55,
+        "pitch": -1.0842021710538939e-19,
+        "angle": 0.00010277850578383248
+      },
+      "maxFrameAngle": 0.0640584566193327,
+      "maxRootMove": 0,
+      "maxRootAngle": 0,
+      "maxFootMove": 0
+    },
+    {
+      "size": 0.65,
+      "yaw": 0,
+      "scenario": "action-release",
+      "firstAngle": 0.0640584566193327,
+      "settled": {
+        "yaw": 0.46364752292595995,
+        "pitch": 0.2199879699342465,
+        "angle": 0.5123406484276105
+      },
+      "releaseFirst": {
+        "yaw": 0.40577194376911324,
+        "pitch": 0.1925276021264221,
+        "angle": 0.44856154887797345
+      },
+      "final": {
+        "yaw": -7.197827284830798e-55,
+        "pitch": -1.0842021710538939e-19,
+        "angle": 0.00010277850578383248
+      },
+      "maxFrameAngle": 0.0640584566193327,
+      "maxRootMove": 0,
+      "maxRootAngle": 0,
+      "maxFootMove": 0
+    },
+    {
+      "size": 0.65,
+      "yaw": 1.1,
+      "scenario": "target",
+      "firstAngle": 0.06405704342341285,
+      "settled": {
+        "yaw": 0.4636475347445292,
+        "pitch": 0.21998802716604746,
+        "angle": 0.5123404989653049
+      },
+      "releaseFirst": null,
+      "final": {
+        "yaw": 0.4636475347445292,
+        "pitch": 0.21998802716604746,
+        "angle": 0.5123404989653049
+      },
+      "maxFrameAngle": 0.06405704342341285,
+      "maxRootMove": 0,
+      "maxRootAngle": 0.00037412146965250877,
+      "maxFootMove": 0
+    },
+    {
+      "size": 0.65,
+      "yaw": 1.1,
+      "scenario": "capped",
+      "firstAngle": 0.10899259599650316,
+      "settled": {
+        "yaw": 0.7999999240467189,
+        "pitch": 0.3500000456430059,
+        "angle": 0.8694151525779941
+      },
+      "releaseFirst": null,
+      "final": {
+        "yaw": 0.7999999240467189,
+        "pitch": 0.3500000456430059,
+        "angle": 0.8694151525779941
+      },
+      "maxFrameAngle": 0.10899259599650316,
+      "maxRootMove": 0,
+      "maxRootAngle": 0.00037412146965250877,
+      "maxFootMove": 0
+    },
+    {
+      "size": 0.65,
+      "yaw": 1.1,
+      "scenario": "null-release",
+      "firstAngle": 0.06405704342341285,
+      "settled": {
+        "yaw": 0.4636475347445292,
+        "pitch": 0.21998802716604746,
+        "angle": 0.5123404989653049
+      },
+      "releaseFirst": {
+        "yaw": 0.4057719331957315,
+        "pitch": 0.19252768238793613,
+        "angle": 0.4485613518165396
+      },
+      "final": {
+        "yaw": 0,
+        "pitch": 0,
+        "angle": 0
+      },
+      "maxFrameAngle": 0.06405704342341285,
+      "maxRootMove": 0,
+      "maxRootAngle": 0.00037412146965250877,
+      "maxFootMove": 0
+    },
+    {
+      "size": 0.65,
+      "yaw": 1.1,
+      "scenario": "action-release",
+      "firstAngle": 0.06405704342341285,
+      "settled": {
+        "yaw": 0.4636475347445292,
+        "pitch": 0.21998802716604746,
+        "angle": 0.5123404989653049
+      },
+      "releaseFirst": {
+        "yaw": 0.4057719331957315,
+        "pitch": 0.19252768238793613,
+        "angle": 0.4485613518165396
+      },
+      "final": {
+        "yaw": 0,
+        "pitch": 0,
+        "angle": 0
+      },
+      "maxFrameAngle": 0.06405704342341285,
+      "maxRootMove": 0,
+      "maxRootAngle": 0.00037412146965250877,
+      "maxFootMove": 0
+    },
+    {
+      "size": 1.4,
+      "yaw": 0,
+      "scenario": "target",
+      "firstAngle": 0.06405845121618217,
+      "settled": {
+        "yaw": 0.4636475376596401,
+        "pitch": 0.2199879610893838,
+        "angle": 0.5123407080509551
+      },
+      "releaseFirst": null,
+      "final": {
+        "yaw": 0.4636475376596401,
+        "pitch": 0.2199879610893838,
+        "angle": 0.5123407080509551
+      },
+      "maxFrameAngle": 0.06405845121618217,
+      "maxRootMove": 0,
+      "maxRootAngle": 0,
+      "maxFootMove": 0
+    },
+    {
+      "size": 1.4,
+      "yaw": 0,
+      "scenario": "capped",
+      "firstAngle": 0.10899279112282026,
+      "settled": {
+        "yaw": 0.7999998509836161,
+        "pitch": 0.3499999599379833,
+        "angle": 0.8694151752563744
+      },
+      "releaseFirst": null,
+      "final": {
+        "yaw": 0.7999998509836161,
+        "pitch": 0.3499999599379833,
+        "angle": 0.8694151752563744
+      },
+      "maxFrameAngle": 0.10899279112282026,
+      "maxRootMove": 0,
+      "maxRootAngle": 0,
+      "maxFootMove": 0
+    },
+    {
+      "size": 1.4,
+      "yaw": 0,
+      "scenario": "null-release",
+      "firstAngle": 0.06405845121618217,
+      "settled": {
+        "yaw": 0.4636475376596401,
+        "pitch": 0.2199879610893838,
+        "angle": 0.5123407080509551
+      },
+      "releaseFirst": {
+        "yaw": 0.405771957253442,
+        "pitch": 0.19252760286267656,
+        "angle": 0.44856154628616457
+      },
+      "final": {
+        "yaw": -7.197827284830798e-55,
+        "pitch": -1.0842021709857055e-19,
+        "angle": 0.00010519773181882146
+      },
+      "maxFrameAngle": 0.06405845121618217,
+      "maxRootMove": 0,
+      "maxRootAngle": 0,
+      "maxFootMove": 0
+    },
+    {
+      "size": 1.4,
+      "yaw": 0,
+      "scenario": "action-release",
+      "firstAngle": 0.06405845121618217,
+      "settled": {
+        "yaw": 0.4636475376596401,
+        "pitch": 0.2199879610893838,
+        "angle": 0.5123407080509551
+      },
+      "releaseFirst": {
+        "yaw": 0.405771957253442,
+        "pitch": 0.19252760286267656,
+        "angle": 0.44856154628616457
+      },
+      "final": {
+        "yaw": -7.197827284830798e-55,
+        "pitch": -1.0842021709857055e-19,
+        "angle": 0.00010519773181882146
+      },
+      "maxFrameAngle": 0.06405845121618217,
+      "maxRootMove": 0,
+      "maxRootAngle": 0,
+      "maxFootMove": 0
+    },
+    {
+      "size": 1.4,
+      "yaw": 1.1,
+      "scenario": "target",
+      "firstAngle": 0.06405644738323255,
+      "settled": {
+        "yaw": 0.46364766226445475,
+        "pitch": 0.21998798226050753,
+        "angle": 0.5123406454348336
+      },
+      "releaseFirst": null,
+      "final": {
+        "yaw": 0.46364766226445475,
+        "pitch": 0.21998798226050753,
+        "angle": 0.5123406454348336
+      },
+      "maxFrameAngle": 0.06405644738323255,
+      "maxRootMove": 0,
+      "maxRootAngle": 0.0005812827130267266,
+      "maxFootMove": 0
+    },
+    {
+      "size": 1.4,
+      "yaw": 1.1,
+      "scenario": "capped",
+      "firstAngle": 0.10899202796599168,
+      "settled": {
+        "yaw": 0.7999999466653678,
+        "pitch": 0.34999997270892785,
+        "angle": 0.8694151294284114
+      },
+      "releaseFirst": null,
+      "final": {
+        "yaw": 0.7999999466653678,
+        "pitch": 0.34999997270892785,
+        "angle": 0.8694151294284114
+      },
+      "maxFrameAngle": 0.10899202796599168,
+      "maxRootMove": 0,
+      "maxRootAngle": 0.0005812827130267266,
+      "maxFootMove": 0
+    },
+    {
+      "size": 1.4,
+      "yaw": 1.1,
+      "scenario": "null-release",
+      "firstAngle": 0.06405644738323255,
+      "settled": {
+        "yaw": 0.46364766226445475,
+        "pitch": 0.21998798226050753,
+        "angle": 0.5123406454348336
+      },
+      "releaseFirst": {
+        "yaw": 0.405772016646349,
+        "pitch": 0.19252766675369642,
+        "angle": 0.44856148817261055
+      },
+      "final": {
+        "yaw": 1.110223013525539e-16,
+        "pitch": 0,
+        "angle": 0
+      },
+      "maxFrameAngle": 0.06405644738323255,
+      "maxRootMove": 0,
+      "maxRootAngle": 0.0005812827130267266,
+      "maxFootMove": 0
+    },
+    {
+      "size": 1.4,
+      "yaw": 1.1,
+      "scenario": "action-release",
+      "firstAngle": 0.06405644738323255,
+      "settled": {
+        "yaw": 0.46364766226445475,
+        "pitch": 0.21998798226050753,
+        "angle": 0.5123406454348336
+      },
+      "releaseFirst": {
+        "yaw": 0.405772016646349,
+        "pitch": 0.19252766675369642,
+        "angle": 0.44856148817261055
+      },
+      "final": {
+        "yaw": 1.110223013525539e-16,
+        "pitch": 0,
+        "angle": 0
+      },
+      "maxFrameAngle": 0.06405644738323255,
+      "maxRootMove": 0,
+      "maxRootAngle": 0.0005812827130267266,
+      "maxFootMove": 0
+    }
+  ],
+  "errors": []
+}

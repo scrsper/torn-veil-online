@@ -67,7 +67,7 @@ export class GameSim {
     if (Object.keys(look).length) p.appearance = restyleAppearance(p.appearance, look, p.occupation, p.age);
     const body = makeBody(w, p.id, pos);
     body.speed = PLAYER_RUN_SPEED;
-    p.bodies.push(body.id); this.attach(connection, p.id); return p.id;
+    w.attachBody(p, body); this.attach(connection, p.id); return p.id;
   }
   private person(connection: string): Person | undefined { return this.simulation.world.person(this.connections.get(connection)); }
   controlsBody(connection: string, bodyId: string): boolean {

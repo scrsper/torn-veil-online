@@ -69,6 +69,9 @@ export interface LocalizedInjury { region: BodyRegion; severity: number; }
 
 export interface Body extends Entity {
   kind: 'body';
+  exertion?: import('../physical/exertion').PhysicalExertion;
+  arcana?: import('../physical/arcana/types').ArcaneBody;
+  recoil?: import('../physical/recoil').Recoil;
   /** Explicit hand selection after an equipment action; legacy saves retain carried-weapon selection. */
   equipmentMode?: 'explicit';
   combatAction?: import('../physical/combatActionTypes').CombatAction;
@@ -891,6 +894,8 @@ export interface Intention {
 
 export interface Person extends Entity {
   kind: 'person';
+  arcana?: import('../physical/arcana/types').ArcaneKnowledge;
+  combatTrial?: import('../social/combatTrial').CombatTrialConsent;
   gender: 'm' | 'f';
   age: number;
   /** Exact calendar birth time and durable lineage. `age` is a derived cached year count. */
@@ -914,6 +919,8 @@ export interface Person extends Entity {
     expressions: { imprintId: string; didExpress: boolean; strength: number; attenuation: number; contribution: number }[] };
   /** Readiness is derived; a canonical advancement action records the transition event. */
   ontology: { stage: OntologicalStage; breakthroughEventId?: EventId };
+  /** Last actual needs update for a generated folded-room resident. No practice credit. */
+  towerUpkeepAt?: number;
   /** v0.4: the physiology reserves `needs.hunger/.thirst/.energy` are now derived from. */
   physiology: Physiology;
   /** v0.5 §I: which `SpeciesPhysiologyProfile` (core/species.ts) governs this person's
@@ -1389,6 +1396,10 @@ export type ResourceCategory = 'food' | 'material' | 'crop_yield' | 'tool' | 'va
 export interface ProvenanceEntry { tick: Tick; eventId?: EventId; from: EntityId | null; to: EntityId | null; how: string; }
 export interface Item extends Entity {
   kind: 'item';
+  arcaneSource?: import('../physical/arcana/types').ArcaneSource;
+  physicalArmor?: import('../physical/arcana/types').PhysicalArmor;
+  /** Finite physical focus; usable by any holder when equipped. Does not grant rank. */
+  arcaneFocus?: { version: 1; amplitude: number; aperture: number; reserve: number };
   /** Optional authored physical design identity; no new mechanics or rarity-derived power. */
   catalogId?: string;
   /** Canonical physical placement; no catalog powers or protection inferred. */
@@ -1492,7 +1503,7 @@ export interface Faction extends Entity {
 }
 
 // ---------------------------------------------------------------- Events
-export type EventType = 'item_equipped' | 'item_unequipped' | 'animal_threat_display' | 'downed' | 'veil_hush' | 'veil_meditation' | 'butchered' | 'woke' | 'animal_born' | 'animal_conceived' | 'animal_pregnancy_lost' | 'animal_died' | 'ecology_changed'
+export type EventType = 'combat_trial_agreed' | 'combat_trial_ended' | 'tower_entered' | 'tower_floor_opened' | 'tower_floor_cleared' | 'tower_returned' | 'tower_fallen' | 'arcane_learned' | 'arcane_cast' | 'arcane_resolved' | 'realm_crossed' | 'item_equipped' | 'item_unequipped' | 'animal_threat_display' | 'downed' | 'veil_hush' | 'veil_meditation' | 'butchered' | 'woke' | 'animal_born' | 'animal_conceived' | 'animal_pregnancy_lost' | 'animal_died' | 'ecology_changed'
   | 'introduction' | 'social_inferred' | 'mechanism_inspected' | 'mechanism_hypothesized' | 'mechanism_worked' | 'mechanism_intended' | 'mechanism_abandoned'
   | 'record_written' | 'record_copied' | 'record_read' | 'record_destroyed' | 'environment_energy_changed' | 'method_reproduced' | 'method_discovered'
   | 'component_acquired' | 'assembly_changed' | 'mechanism_trial' | 'production_observed' | 'component_manufactured' | 'component_supply_failed'

@@ -3,7 +3,7 @@ import type { Body, WorldEvent } from '../core/types';
 import type { World } from '../core/world';
 import { movementState } from './interactionMovement';
 import { combatTransitionAt } from './combatTransitions';
-import { syncNeeds } from '../core/physiology';
+import { canSpendExertion, spendExertion } from './exertion';
 
 /** Per-manifestation stance; the short lease must be refreshed by ordinary input/intent.
  * Raising repeatedly cannot reopen the timing window before the recovery interval. */
@@ -24,13 +24,13 @@ export function requestGuard(w: World, bodyId: string, held: boolean): string {
   if (!held) { if (b.guard) b.guard.until = at; return 'accepted'; }
   if (!movementState(w, p, b).eligible || !b.onGround) return 'incapacitated';
   if (at + 1e-9 < combatTransitionAt(b.combatAction, 'move')) return 'committed';
-  if (p.physiology.fatigue >= 0.92) return 'exhausted';
+  if (p.physiology.fatigue >= 0.92 || !canSpendExertion(p, b, .012)) return 'exhausted';
   if (guardHeld(w, b)) { b.guard!.until = at + GUARD_LEASE_SECONDS; return 'accepted'; }
   const ready = !b.guard || at >= b.guard.rearmAt;
   const ev = w.emit('combat_action', { actor: p.id, pos: { ...b.pos }, visibility: 12, loudness: 0,
     data: { kind: 'guard', phase: 'accepted', actorBodyId: b.id, physicalTime: at }, summary: `${p.name} raised a guard` });
   b.guard = { startedAt: ready ? at : -1, until: at + GUARD_LEASE_SECONDS, rearmAt: Math.max(at + S.guardRearmSeconds, b.guard?.rearmAt ?? 0), eventId: ev.id };
-  p.physiology.fatigue = Math.min(1, p.physiology.fatigue + 0.012); syncNeeds(p);
+  ev.data.effort = spendExertion(w, p, b, .012);
   return 'accepted';
 }
 
@@ -44,15 +44,15 @@ export function guardContact(w: World, ab: Body, tb: Body, impact: number, at = 
   if (distance < 0.001 || (-Math.sin(tb.yaw) * dx - Math.cos(tb.yaw) * dz) / distance < 0.35) return unchanged;
   const cost = 0.025 + impact / 180;
   const parried = g.startedAt >= 0 && at - g.startedAt <= PARRY_SECONDS && w.person(ab.ownerId) !== undefined;
-  const broken = p.physiology.fatigue + cost > 0.97;
-  p.physiology.fatigue = Math.min(1, p.physiology.fatigue + cost * (parried && !broken ? 0.5 : 1)); syncNeeds(p);
+  const broken = p.physiology.fatigue + cost > 0.97 || !canSpendExertion(p, tb, cost * (parried ? .5 : 1));
+  const effort = spendExertion(w, p, tb, cost * (parried && !broken ? .5 : 1));
   if (broken) g.until = at;
   // A parry consumes its window, even against simultaneous attackers.
   if (parried) g.startedAt = -1;
   const result = broken ? impact : parried ? 0 : impact * (w.person(ab.ownerId) ? 0.3 : 0.65);
   const event = w.emit('combat_action', { actor: p.id, target: ab.ownerId, pos: { ...tb.pos }, visibility: 18, loudness: 6,
     causes: [g.eventId, ...(cause ? [cause] : [])], significance: 0.35,
-    data: { kind: 'guard', phase: 'contact', outcome: broken ? 'broken' : parried ? 'parried' : 'blocked', actorBodyId: tb.id, targetBodyId: ab.id, physicalTime: at, incomingImpact: impact, impact: result },
+    data: { effort, kind: 'guard', phase: 'contact', outcome: broken ? 'broken' : parried ? 'parried' : 'blocked', actorBodyId: tb.id, targetBodyId: ab.id, physicalTime: at, incomingImpact: impact, impact: result },
     summary: `${p.name}'s guard ${broken ? 'broke' : parried ? 'turned the strike aside' : 'absorbed part of the blow'}` });
   return { impact: result, event, parried: parried && !broken };
 }

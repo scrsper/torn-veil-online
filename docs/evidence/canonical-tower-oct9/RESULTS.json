@@ -1,0 +1,614 @@
+{
+  "recordedAt": "2026-10-09T08:53:10.203789+00:00",
+  "baselineCommit": "94100106c0267c15f962bdbd409c3a35945a6338",
+  "branch": "codex/connected-realms",
+  "schema": 30,
+  "focused": {
+    "passed": 23,
+    "failed": 0,
+    "pending": 0,
+    "files": 3,
+    "success": true,
+    "results": [
+      {
+        "file": "tests/canonical-tower.test.ts",
+        "status": "passed",
+        "assertions": [
+          {
+            "name": "host-owned physical Tower requires the real atrium and preserves identity, injuries, inventory and rank",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "host-owned physical Tower preserves geometry, ordinary edits, injuries, finite items and consent through reload",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "host-owned physical Tower uses finite ordinary pickup and source learning, not an entry stat grant",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "host-owned physical Tower requires fresh perception and clear sight for a normal trial attack goal",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "host-owned physical Tower runs ordinary NPC perception/planning into physical combat on one shared clock",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "host-owned physical Tower releases an expired knockdown on controlled bodies without releasing custody or erasing injury",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "host-owned physical Tower binds sleep/wake to the current body and preserves sleep across reload",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "host-owned physical Tower credits actual individual defeats once across recovery/reload and awards existing stock",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "host-owned physical Tower returns and crosses the realm portal with the same person and resumes the same floor",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "host-owned physical Tower avoids an occupied landing and retains the floor when the whole landing is blocked",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "host-owned physical Tower rejects forged clearance, missing sources, wrong identity and an old-reader overlay",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "host-owned physical Tower persists idempotent commands and rolls back all entry changes on disk failure",
+            "status": "passed",
+            "failure": []
+          }
+        ]
+      },
+      {
+        "file": "tests/exertion.test.ts",
+        "status": "passed",
+        "assertions": [
+          {
+            "name": "shared short exertion and lasting physical work charges a brief burst and real cumulative costs identically for controlled and autonomous bodies",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "shared short exertion and lasting physical work brief disengagement restores effort without erasing fatigue, injury, damage or spent food/water",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "shared short exertion and lasting physical work respects recovery delay and cannot refill from reload or duplicate scheduler visits",
+            "status": "passed",
+            "failure": []
+          }
+        ]
+      },
+      {
+        "file": "tests/guard.test.ts",
+        "status": "passed",
+        "assertions": [
+          {
+            "name": "canonical guard and committed heavy strikes parries an actual frontal contact once, then blocks subsequent contacts at an effort cost",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "canonical guard and committed heavy strikes refreshing or rapidly releasing/re-raising does not reset the parry window",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "canonical guard and committed heavy strikes does not guard the rear or retain a disconnected held input forever",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "canonical guard and committed heavy strikes breaks under pressure and refuses an exhausted body",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "canonical guard and committed heavy strikes accepts additive saved stance but rejects nonfinite and indefinite guard state",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "canonical guard and committed heavy strikes retains a held stance through compaction and reload and rejects invented guard provenance",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "canonical guard and committed heavy strikes heavy attacks buy force with longer commitment and more fatigue, without increasing reach",
+            "status": "passed",
+            "failure": []
+          },
+          {
+            "name": "canonical guard and committed heavy strikes a timed guard intercepts a swept human strike before injury is applied",
+            "status": "passed",
+            "failure": []
+          }
+        ]
+      }
+    ]
+  },
+  "aggregate": {
+    "status": "completed_with_failures_then_affected_reruns_passed",
+    "initialRun": {
+      "path": ".debug/canonical-tower-oct9/aggregate-exertion-final.json",
+      "rawSha256": "b53ea89e57dfc2855817ce27e9bf51741788fe8aa74f6cfcfcebb17badb222b4",
+      "passed": 2087,
+      "failed": 10,
+      "pending": 0,
+      "total": 2097,
+      "success": false,
+      "files": 211,
+      "durationSeconds": 2093.1716821289065
+    },
+    "initialDetails": "AGGREGATE_INITIAL.json",
+    "finalAffectedRun": {
+      "path": ".debug/canonical-tower-oct9/regression-repairs-final.json",
+      "rawSha256": "6c7adc43b384d339a5ae320385c801234268c89ef4e91c942dbd03043a6c6899",
+      "passed": 141,
+      "failed": 0,
+      "pending": 0,
+      "total": 141,
+      "success": true,
+      "files": 10,
+      "durationSeconds": 9.923119873046875
+    },
+    "finalAffectedDetails": "REGRESSION_FINAL.json",
+    "socialTraceRerun": {
+      "path": ".debug/canonical-tower-oct9/motives-final.json",
+      "rawSha256": "0376d656b4a40dec6b456d4878add09ab7252f6c0c3ab0277c4cf3cb6711fe00",
+      "passed": 4,
+      "failed": 0,
+      "pending": 0,
+      "total": 4,
+      "success": true,
+      "files": 1,
+      "durationSeconds": 213.43907299804687
+    },
+    "allInitialFailedFilesRechecked": [
+      "tests/combat-foundation.test.ts",
+      "tests/combat-refinement.test.ts",
+      "tests/conflict-resolution.test.ts",
+      "tests/martial-combat-integration.test.ts",
+      "tests/motivated-lives-trace.test.ts",
+      "tests/observatory-progress.test.ts",
+      "tests/realtime-protocol.test.ts",
+      "tests/robbery.test.ts"
+    ],
+    "fixtureRepair": {
+      "test": "tests/motivated-lives-trace.test.ts / conflict",
+      "cause": "The gift fixture selected a sleeping recipient; it did not establish three witnessed benefits.",
+      "change": "Select existing awake, free participants for the staged handoffs.",
+      "unchanged": [
+        "simulation cognition rules",
+        "seed",
+        "obligation thresholds",
+        "outcome assertions",
+        "test timeout"
+      ],
+      "isolatedResult": "passed",
+      "isolatedPath": ".debug/canonical-tower-oct9/conflict-awake.json",
+      "completeMotiveFile": {
+        "passed": 4,
+        "failed": 0,
+        "success": true,
+        "path": ".debug/canonical-tower-oct9/motives-final.json"
+      }
+    },
+    "otherRepairs": [
+      "Effort integration assertions now check saved short load, positive lasting work and duplicate-charge protection. Foundation recovery uses real elapsed steps at the realtime clock.",
+      "Two immediate-attack fixtures start at 0.8m, inside the canonical unarmed approach range; their rejected-exhaustion and fresh-aggression assertions remain.",
+      "The original open-ended robbery passage now asserts observed escape without theft. An additional physically closed passage asserts real nonlethal subdual before theft."
+    ],
+    "runtimeChangedDuringRepairs": false,
+    "scope": "The complete default suite was not rerun after test/scenario-fixture repairs. Its initial failures and every affected-file rerun are recorded separately; this is not a claim of one uninterrupted all-green aggregate."
+  },
+  "browser": [
+    {
+      "folder": "smoke-exertion",
+      "checks": [
+        {
+          "name": "one canonical person and body entered",
+          "ok": true
+        },
+        {
+          "name": "ordinary pickup and source-backed learning reached host",
+          "ok": true
+        },
+        {
+          "name": "reload retained run, learning, equipment and body",
+          "ok": true
+        },
+        {
+          "name": "returned to real atrium carrying Tower sources",
+          "ok": true
+        },
+        {
+          "name": "no browser errors",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "rawResultSha256": "f8a94da1d61cb769d1967952f9544c0f4cd250f7ae7d72242b6eda955589d395"
+    },
+    {
+      "folder": "combat-exertion",
+      "checks": [
+        {
+          "name": "canonical combat produced an observed bodily consequence",
+          "ok": true
+        },
+        {
+          "name": "accepted body-bound attacks or casts",
+          "ok": true
+        },
+        {
+          "name": "cleared the real first-floor encounter using live controls",
+          "ok": true
+        },
+        {
+          "name": "brief combat did not produce hours of lasting fatigue",
+          "ok": true
+        },
+        {
+          "name": "combat reload retained character/run and earned source",
+          "ok": true
+        },
+        {
+          "name": "combat reload did not grant health",
+          "ok": true
+        },
+        {
+          "name": "no browser errors",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "note": "actual rendered keyboard traversal, concurrent regression load; not a benchmark",
+      "initial": {
+        "id": "p_5",
+        "bodyId": "b_5",
+        "name": "Veil traveler",
+        "health": 80,
+        "maxHealth": 80,
+        "rank": "Normal",
+        "mana": 100,
+        "fatigue": 0.10015217391304349,
+        "breath": 1,
+        "cast": null,
+        "learned": [
+          {
+            "id": "book-ember",
+            "name": "Ember"
+          }
+        ],
+        "sources": [
+          {
+            "id": "i_5",
+            "name": "Ember field manual",
+            "abilityId": "book-ember"
+          }
+        ]
+      },
+      "final": {
+        "id": "p_5",
+        "bodyId": "b_5",
+        "name": "Veil traveler",
+        "health": 59.96298066915446,
+        "maxHealth": 80,
+        "rank": "Normal",
+        "mana": 35.83999999995841,
+        "fatigue": 0.10514758726304,
+        "breath": 0.8023165406826951,
+        "cast": {
+          "id": "e_685",
+          "eventId": "e_685",
+          "bodyId": "b_5",
+          "abilityId": "book-ember",
+          "kernel": "cone",
+          "riders": [
+            "flame"
+          ],
+          "target": {
+            "x": 6208.542074046861,
+            "y": 2,
+            "z": 44.319665733476825
+          },
+          "facing": 0,
+          "intent": "injure",
+          "startedAt": 295.5000000000601,
+          "activeAt": 295.9500000000601,
+          "completeAt": 296.35000000006005,
+          "range": 7,
+          "radius": 3,
+          "power": 1,
+          "damage": 16,
+          "resolved": true,
+          "cancelled": false
+        },
+        "learned": [
+          {
+            "id": "book-ember",
+            "name": "Ember"
+          }
+        ],
+        "sources": [
+          {
+            "id": "i_5",
+            "name": "Ember field manual",
+            "abilityId": "book-ember"
+          }
+        ]
+      },
+      "physicalSeconds": 273.5000000000591,
+      "rawResultSha256": "bc2cef96570da08b22ecb11491def0defa3df3cd8dcec49c1cd9d306a00fdfe9"
+    },
+    {
+      "folder": "reward-portal-exertion",
+      "checks": [
+        {
+          "name": "continues the recorded real first-floor clearance",
+          "ok": true
+        },
+        {
+          "name": "collected and learned the finite reward through real hand controls",
+          "ok": true
+        },
+        {
+          "name": "physical stair preserved injuries body identity and learning",
+          "ok": true
+        },
+        {
+          "name": "starts from the completed canonical fight save",
+          "ok": true
+        },
+        {
+          "name": "resumed floor two with the earned Ward and same body",
+          "ok": true
+        },
+        {
+          "name": "browser reload retained canonical run and learning",
+          "ok": true
+        },
+        {
+          "name": "portal cancellation retained the departure realm",
+          "ok": true
+        },
+        {
+          "name": "Cinderveil Tower resumes the same canonical floor",
+          "ok": true
+        },
+        {
+          "name": "portal round trip retained identity inventory and rank",
+          "ok": true
+        },
+        {
+          "name": "no browser errors",
+          "ok": true
+        }
+      ],
+      "errors": [],
+      "note": "Continues the separately recorded actual keyboard fight save with real reward pickup, learning, ascent, return and two realm crossings. Concurrent tests; not a performance benchmark.",
+      "rawResultSha256": "bbc8fd2c00adfd4287b5d677d42b10c55dc500d204a5ae3dbf0ee22d172c34be"
+    }
+  ],
+  "seeds": [
+    {
+      "seed": 918271,
+      "cleared": true,
+      "simulatedSeconds": 111.03333333332832,
+      "health": 80,
+      "defeats": [
+        {
+          "bodyId": "b_8",
+          "evidenceEventId": "e_620",
+          "endedEventId": "e_627"
+        },
+        {
+          "bodyId": "b_6",
+          "evidenceEventId": "e_770",
+          "endedEventId": "e_782"
+        },
+        {
+          "bodyId": "b_7",
+          "evidenceEventId": "e_847",
+          "endedEventId": "e_853"
+        }
+      ],
+      "attackEvents": 20,
+      "journey": [
+        {
+          "step": "walked to and collected the earned chest through ordinary hand transfers",
+          "ok": true
+        },
+        {
+          "step": "learned the earned Ward source",
+          "ok": true
+        },
+        {
+          "step": "reward, body and learning reload",
+          "ok": true
+        },
+        {
+          "step": "ascended from the physical stair to floor two",
+          "ok": true
+        },
+        {
+          "step": "returned to the real atrium with canonical rewards",
+          "ok": true
+        }
+      ],
+      "note": "simulated-time acceptance; initial atrium fixture",
+      "headlessExecutionMs": 825.6376,
+      "notARenderBenchmark": true,
+      "rawResultSha256": "3e886ae6715fad98958579229657838a99a2fe712920232a52221a19a1b3d76d"
+    },
+    {
+      "seed": 317,
+      "cleared": true,
+      "simulatedSeconds": 297.03333333339185,
+      "health": 80,
+      "defeats": [
+        {
+          "bodyId": "b_6",
+          "evidenceEventId": "e_355",
+          "endedEventId": "e_361"
+        },
+        {
+          "bodyId": "b_7",
+          "evidenceEventId": "e_647",
+          "endedEventId": "e_654"
+        },
+        {
+          "bodyId": "b_8",
+          "evidenceEventId": "e_673",
+          "endedEventId": "e_679"
+        }
+      ],
+      "attackEvents": 19,
+      "journey": [
+        {
+          "step": "walked to and collected the earned chest through ordinary hand transfers",
+          "ok": true
+        },
+        {
+          "step": "learned the earned Ward source",
+          "ok": true
+        },
+        {
+          "step": "reward, body and learning reload",
+          "ok": true
+        },
+        {
+          "step": "ascended from the physical stair to floor two",
+          "ok": true
+        },
+        {
+          "step": "returned to the real atrium with canonical rewards",
+          "ok": true
+        }
+      ],
+      "note": "simulated-time acceptance; initial atrium fixture",
+      "headlessExecutionMs": 1553.2446,
+      "notARenderBenchmark": true,
+      "rawResultSha256": "1da7fade3dd331b8314162a9a50bf96530f32c65b9a0710c69827dfb807f2e8b"
+    }
+  ],
+  "captures": [
+    {
+      "path": ".debug/canonical-tower-oct9/combat-exertion/actual-combat.webm",
+      "bytes": 47705592,
+      "sha256": "25492a315e6cd7489feed3831ed33e125b0c5a50524ee65b1b5a5330ecb90b0f",
+      "durationSeconds": 283.72,
+      "dimensions": [
+        1440,
+        900
+      ],
+      "kind": "actual Babylon render; no generated imagery",
+      "containerFps": 25
+    },
+    {
+      "path": ".debug/canonical-tower-oct9/reward-portal-exertion/actual-portal-round-trip.webm",
+      "bytes": 7699250,
+      "sha256": "e20ac851523e83d85c37669cfd944b7980d607049374a422a15415592858a137",
+      "durationSeconds": 63.4,
+      "dimensions": [
+        1440,
+        900
+      ],
+      "kind": "actual Babylon render; no generated imagery",
+      "containerFps": 25
+    },
+    {
+      "path": ".debug/canonical-tower-oct9/combat-exertion/02-after-combat.png",
+      "bytes": 1847498,
+      "sha256": "e0dbe23855c911a97cc4b6f7b698136b1ceb3b8f0b6094006c4e1361f3905961",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "kind": "actual Babylon render; no generated imagery"
+    },
+    {
+      "path": ".debug/canonical-tower-oct9/reward-portal-exertion/00-earned-ward-at-chest.png",
+      "bytes": 1787250,
+      "sha256": "9d450b8c0afe73ebdb35aefd1c4fb2f78ebdddbc69158524622aa5f7411068a0",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "kind": "actual Babylon render; no generated imagery"
+    },
+    {
+      "path": ".debug/canonical-tower-oct9/reward-portal-exertion/05-round-trip.png",
+      "bytes": 713333,
+      "sha256": "32c41b36b8a1464387a0d42ff8d6deb98414a98e19083c66157d6d030c66f97e",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "kind": "actual Babylon render; no generated imagery"
+    }
+  ],
+  "policy": {
+    "burstScale": 5,
+    "effortSecondsPerUnit": 100,
+    "recoveryDelaySeconds": 0.8,
+    "standingRecoveryPerSecond": 0.12,
+    "movingRecoveryPerSecond": 0.06,
+    "guardedRecoveryPerSecond": 0.03
+  },
+  "limitations": [
+    "Scripted keyboard acceptance is not a human usability or balance study.",
+    "Browser capture and build overlapped regression load; no performance benchmark claim.",
+    "Silver/Gold capability and multi-hour progression remain unfinished.",
+    "Reference-quality art gate is unpassed.",
+    "Geometry cache does not bound old-floor NPC brains."
+  ],
+  "retainedBeforePolicy": {
+    "path": ".debug/canonical-tower-oct9/headless-journey-final/result.json",
+    "simulatedSeconds": 8230.033333333
+  },
+  "implementationCommit": "97f814698a4ba092835b60ad0bd2c100e95d5e57",
+  "build": {
+    "typeScript": "passed",
+    "babylon": "passed",
+    "modules": 3406,
+    "durationSeconds": 108,
+    "log": ".debug/canonical-tower-oct9/build-final-q-face.log",
+    "finalTypecheck": {
+      "status": "passed",
+      "log": ".debug/canonical-tower-oct9/typecheck-regression-final.log"
+    }
+  },
+  "acceptanceDriver": {
+    "rejectsUnclearedRun": {
+      "exitCode": 1,
+      "path": ".debug/canonical-tower-oct9/acceptance-incomplete-check/result.json"
+    },
+    "successfulReplay": {
+      "exitCode": 0,
+      "simulatedSeconds": 111.03333333332832,
+      "checks": 5,
+      "path": ".debug/canonical-tower-oct9/acceptance-final-replay/result.json"
+    },
+    "note": "Only failure signaling changed; no runtime mechanics changes after the rendered acceptance."
+  }
+}

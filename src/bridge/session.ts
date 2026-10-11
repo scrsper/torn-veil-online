@@ -1,3 +1,4 @@
+import { integrateArcaneSources } from '../sim/physical/arcana/growth';
 import {equipmentProjection} from '../sim/physical/equipment';
 import { setCrouchHeld,refreshCrouchHeld,crouchHeld } from '../sim/physical/posture';
 import { setPracticeMode, practiceStatus, tickPractice, initializePractice } from './combatArena';
@@ -43,6 +44,7 @@ import { EMPTY_CATALOGUE } from '../foundry/catalogue';
 import type { CharacterCatalogue } from '../foundry/catalogue';
 import { playerJournal } from './journal';
 import { attemptHush } from '../sim/physical/veil';
+import { requestArcaneCast, learnArcaneSource, cancelArcaneCast } from '../sim/physical/arcana/runtime';
 
 export const BRIDGE_VERSION = 1;
 /** The routing key of the single-player developer bridge. Multiplayer servers use one key per account. */
@@ -228,10 +230,10 @@ export class BridgeSession {
     ch.control?.cancel(this.world.physicalTime,performance.now()); ch.control=null; ch.controlGeometry='';
     this.closeDialogue(ch);
   }
-  bindInteraction(controllerId: string, channelId = LOCAL_CHANNEL) {
+  bindInteraction(controllerId: string, channelId = LOCAL_CHANNEL, epoch: string = randomUUID()) {
     const ch=this.need(channelId),body=this.world.primaryBody(ch.personId);
     if(!body) throw new Error('No controlled manifestation');
-    ch.control=new CommandQueue(randomUUID(),controllerId,body.id); ch.controlGeometry='';
+    ch.control=new CommandQueue(epoch,controllerId,body.id); ch.controlGeometry='';
     return {epoch:ch.control.epoch,controllerId,bodyId:body.id,specRevision:INTERACTION_SPEC.revision,specHash:createHash('sha256').update(JSON.stringify(INTERACTION_SPEC)).digest('hex'),stepSeconds:INTERACTION_SPEC.stepSeconds};
   }
   receiveCommand(input: unknown, now=performance.now(), channelId = LOCAL_CHANNEL): CommandReceipt | null {
@@ -242,14 +244,22 @@ export class BridgeSession {
     if(!p||!b) return 'binding_mismatch';
     if(c.type==='practice'){if(c.mode==='reset'&&this.arena)ch.control?.cancel(w.physicalTime,performance.now());return setPracticeMode(this,c.mode);}
     if(!this.game.controlsBody(ch.id,b.id)) return 'binding_mismatch';
+    if(c.type==='wake') return this.game.intend(ch.id,{kind:'wake'})?'accepted':'cannot_wake';
     if(c.type==='crouch'&&!c.held){setCrouchHeld(w,b,false);return 'accepted';}
     if(!movementState(w,p,b).eligible) return 'incapacitated';
+    if(c.type==='rest') {
+      if(b.combatAction&&b.combatAction.completeAt>w.physicalTime||b.recoil||b.arcana?.cast&&!b.arcana.cast.cancelled&&b.arcana.cast.completeAt>w.physicalTime)return 'busy';
+      return this.game.intend(ch.id,{kind:'rest'})?'accepted':'cannot_rest';
+    }
     if(c.type==='move') {refreshCrouchHeld(w,b,c.crouch===true);applyInteractionMovement(w,p,b,c,INTERACTION_SPEC.stepSeconds);return 'accepted';}
     if(c.type==='guard')return requestGuard(w,b.id,c.held);
     if(c.type==='crouch')return submitCombatInput(w,b.id,{kind:'duck',held:c.held,commandId});
     if(c.type==='attack') return submitCombatInput(w,b.id,{kind:'attack',trajectory:c.trajectory,targetBodyId:c.targetBodyId,weight:c.weight,commandId});
     if(c.type==='defend') return submitCombatInput(w,b.id,{kind:c.kind,side:c.side,direction:c.direction,commandId});
-    if(c.type==='cancel') return cancelCombatAction(w,b.id);
+    if(c.type==='cancel') return cancelArcaneCast(w,b)?'accepted':cancelCombatAction(w,b.id);
+    if(c.type==='cast') return requestArcaneCast(w,p,{bodyId:b.id,abilityId:c.abilityId,target:c.target,scrollItemId:c.scrollItemId});
+    if(c.type==='integrate_arcana') return integrateArcaneSources(w,p,b);
+    if(c.type==='learn_arcana') return learnArcaneSource(w,p,b.id,c.itemId);
     if(c.type==='interact') return performHandInteraction(this.sim,p,c.interactionId);
     if(c.type==='container_transfer') return performContainerTransfer(this.sim,p,c.containerId,c.itemId,c.direction);
     return 'unsupported_command';
@@ -297,6 +307,19 @@ export class BridgeSession {
     return receipts;
   }
   stepInteraction(now=performance.now()): CommandReceipt[] { return this.stepAll(now).get(LOCAL_CHANNEL) ?? []; }
+  /** The realm host has one local channel and no dialogue transport. Preserve its input
+   * frontier and cadence when a replay worker makes a checkpoint between commands. */
+  checkpointControl() {
+    const ch=this.need(LOCAL_CHANNEL);
+    if(ch.dialogueState)throw Error('A realm replay checkpoint cannot contain a bridge dialogue');
+    return structuredClone({slowAccum:this.slowAccum,interactionTick:this.interactionTick,
+      move:ch.move,sequence:ch.sequence,appliedSequence:ch.appliedSequence,control:ch.control?.checkpoint()??null});
+  }
+  restoreControl(s: ReturnType<BridgeSession['checkpointControl']>) {
+    const ch=this.need(LOCAL_CHANNEL);this.slowAccum=s.slowAccum;this.interactionTick=s.interactionTick;
+    ch.move=structuredClone(s.move);ch.sequence=s.sequence;ch.appliedSequence=s.appliedSequence;
+    ch.control=s.control?CommandQueue.restore(s.control):null;
+  }
   intent(input: unknown, channelId = LOCAL_CHANNEL): { sequence: number; result: string } {
     if (!input || typeof input !== 'object') return { sequence: -1, result: 'invalid_message' };
     const ch = this.channels.get(channelId);

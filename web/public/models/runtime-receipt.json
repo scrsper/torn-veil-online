@@ -1,27 +1,27 @@
 [
   {
     "file": "kit_c.glb",
-    "bytes": 10263136,
-    "sha256": "cfdd88e5cdf0a82324018a5226a9dc7755eba21076a847901ed465a75f1f1187",
+    "bytes": 9020580,
+    "sha256": "d5dca4d9a8f9d31897a3763d76cf5963ba9dec194ba2185cbec907cb862b4fdd",
     "source": "art/tools/web_characters",
-    "license": "Project-authored geometry; character face derives from CC0 VRoid beta base",
-    "licenseEvidence": "art/source/vroid-beta/LICENSE.md"
+    "license": "Project-authored analytic head, body, hair, garment, and accessory geometry",
+    "licenseEvidence": "art/tools/web_characters/build_kit.py"
   },
   {
     "file": "kit_f.glb",
-    "bytes": 17210596,
-    "sha256": "7c71a89676499a5da2a74bcd137bf7ee5befd021823c761eba3b7af25a717cd0",
+    "bytes": 15965372,
+    "sha256": "d93340953d87ab3b3aae47bd353d628b3f8d8354de107d690d5800a04776c4ab",
     "source": "art/tools/web_characters",
-    "license": "Project-authored geometry; character face derives from CC0 VRoid beta base",
-    "licenseEvidence": "art/source/vroid-beta/LICENSE.md"
+    "license": "Project-authored analytic head, body, hair, garment, and accessory geometry",
+    "licenseEvidence": "art/tools/web_characters/build_kit.py"
   },
   {
     "file": "kit_m.glb",
-    "bytes": 10191220,
-    "sha256": "d345bce47ec36ada9a2c1d5f2f4cca93e15b89271337e3b3b51179b64b1ec3f5",
+    "bytes": 9010772,
+    "sha256": "49a3bf008f1ac1121a017e7c47e9c0ed75736d4d02f2287be2ddfdffac06d718",
     "source": "art/tools/web_characters",
-    "license": "Project-authored geometry; character face derives from CC0 VRoid beta base",
-    "licenseEvidence": "art/source/vroid-beta/LICENSE.md"
+    "license": "Project-authored analytic head, body, hair, garment, and accessory geometry",
+    "licenseEvidence": "art/tools/web_characters/build_kit.py"
   },
   {
     "file": "creature_field_hare.glb",

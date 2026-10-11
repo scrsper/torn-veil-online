@@ -1,0 +1,506 @@
+[
+  {
+    "scenario": "flat",
+    "size": 0.65,
+    "locks": [
+      true,
+      true
+    ],
+    "maxFrameStep": 4.712160915387242e-8,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "feet": [
+      {
+        "rawY": 0.096002958714962,
+        "actualY": 0.096002958714962,
+        "ground": 0,
+        "correction": 0
+      },
+      {
+        "rawY": 0.08776440471410751,
+        "actualY": 0.08776440471410751,
+        "ground": 0,
+        "correction": 0
+      }
+    ]
+  },
+  {
+    "scenario": "incline",
+    "size": 0.65,
+    "locks": [
+      true,
+      true
+    ],
+    "maxFrameStep": 0.011240243911754431,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "feet": [
+      {
+        "rawY": 0.096002958714962,
+        "actualY": 0.15220391750335693,
+        "ground": 0.05620092594623566,
+        "correction": 0.05620095878839493
+      },
+      {
+        "rawY": 0.08776440471410751,
+        "actualY": 0.11969571560621262,
+        "ground": 0.03193122455477715,
+        "correction": 0.0319313108921051
+      }
+    ]
+  },
+  {
+    "scenario": "tread",
+    "size": 0.65,
+    "locks": [
+      true,
+      true
+    ],
+    "maxFrameStep": 0.015600085258492893,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "feet": [
+      {
+        "rawY": 0.096002958714962,
+        "actualY": 0.1740030199289322,
+        "ground": 0.078,
+        "correction": 0.07800006121397018
+      },
+      {
+        "rawY": 0.08776440471410751,
+        "actualY": 0.08776440471410751,
+        "ground": 0,
+        "correction": 0
+      }
+    ]
+  },
+  {
+    "scenario": "edge",
+    "size": 0.65,
+    "locks": [
+      false,
+      true
+    ],
+    "maxFrameStep": 4.712160915387242e-8,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "feet": [
+      {
+        "rawY": 0.096002958714962,
+        "actualY": 0.096002958714962,
+        "ground": 0.0975,
+        "correction": 0
+      },
+      {
+        "rawY": 0.08776440471410751,
+        "actualY": 0.08776440471410751,
+        "ground": 0,
+        "correction": 0
+      }
+    ]
+  },
+  {
+    "scenario": "missing",
+    "size": 0.65,
+    "locks": [
+      false,
+      false
+    ],
+    "maxFrameStep": 0,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "feet": [
+      {
+        "rawY": 0.096002958714962,
+        "actualY": 0.096002958714962,
+        "ground": null,
+        "correction": 0
+      },
+      {
+        "rawY": 0.08776440471410751,
+        "actualY": 0.08776440471410751,
+        "ground": null,
+        "correction": 0
+      }
+    ]
+  },
+  {
+    "scenario": "cliff",
+    "size": 0.65,
+    "locks": [
+      false,
+      false
+    ],
+    "maxFrameStep": 0,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "feet": [
+      {
+        "rawY": 0.096002958714962,
+        "actualY": 0.096002958714962,
+        "ground": 1.3,
+        "correction": 0
+      },
+      {
+        "rawY": 0.08776440471410751,
+        "actualY": 0.08776440471410751,
+        "ground": 1.3,
+        "correction": 0
+      }
+    ]
+  },
+  {
+    "scenario": "flat",
+    "size": 1,
+    "locks": [
+      true,
+      true
+    ],
+    "maxFrameStep": 8.33000234328132e-8,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "feet": [
+      {
+        "rawY": 0.14769676327705383,
+        "actualY": 0.14769680798053741,
+        "ground": 0,
+        "correction": 4.470348358154297e-8
+      },
+      {
+        "rawY": 0.1350221186876297,
+        "actualY": 0.13502216339111328,
+        "ground": 0,
+        "correction": 4.470348358154297e-8
+      }
+    ]
+  },
+  {
+    "scenario": "incline",
+    "size": 1,
+    "locks": [
+      true,
+      true
+    ],
+    "maxFrameStep": 0.017292663455013072,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "feet": [
+      {
+        "rawY": 0.14769676327705383,
+        "actualY": 0.23415985703468323,
+        "ground": 0.08646296381950377,
+        "correction": 0.0864630937576294
+      },
+      {
+        "rawY": 0.1350221186876297,
+        "actualY": 0.1841471642255783,
+        "ground": 0.04912496209144592,
+        "correction": 0.04912504553794861
+      }
+    ]
+  },
+  {
+    "scenario": "tread",
+    "size": 1,
+    "locks": [
+      true,
+      true
+    ],
+    "maxFrameStep": 0.02400007843971715,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "feet": [
+      {
+        "rawY": 0.14769676327705383,
+        "actualY": 0.26769691705703735,
+        "ground": 0.12,
+        "correction": 0.12000015377998352
+      },
+      {
+        "rawY": 0.1350221186876297,
+        "actualY": 0.13502216339111328,
+        "ground": 0,
+        "correction": 4.470348358154297e-8
+      }
+    ]
+  },
+  {
+    "scenario": "edge",
+    "size": 1,
+    "locks": [
+      false,
+      true
+    ],
+    "maxFrameStep": 8.33000234328132e-8,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "feet": [
+      {
+        "rawY": 0.14769676327705383,
+        "actualY": 0.14769676327705383,
+        "ground": 0.15,
+        "correction": 0
+      },
+      {
+        "rawY": 0.1350221186876297,
+        "actualY": 0.13502216339111328,
+        "ground": 0,
+        "correction": 4.470348358154297e-8
+      }
+    ]
+  },
+  {
+    "scenario": "missing",
+    "size": 1,
+    "locks": [
+      false,
+      false
+    ],
+    "maxFrameStep": 0,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "feet": [
+      {
+        "rawY": 0.14769676327705383,
+        "actualY": 0.14769676327705383,
+        "ground": null,
+        "correction": 0
+      },
+      {
+        "rawY": 0.1350221186876297,
+        "actualY": 0.1350221186876297,
+        "ground": null,
+        "correction": 0
+      }
+    ]
+  },
+  {
+    "scenario": "cliff",
+    "size": 1,
+    "locks": [
+      false,
+      false
+    ],
+    "maxFrameStep": 0,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "feet": [
+      {
+        "rawY": 0.14769676327705383,
+        "actualY": 0.14769676327705383,
+        "ground": 2,
+        "correction": 0
+      },
+      {
+        "rawY": 0.1350221186876297,
+        "actualY": 0.1350221186876297,
+        "ground": 2,
+        "correction": 0
+      }
+    ]
+  },
+  {
+    "scenario": "flat",
+    "size": 1.4,
+    "locks": [
+      true,
+      true
+    ],
+    "maxFrameStep": 1.0745380149674383e-7,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "feet": [
+      {
+        "rawY": 0.2067754864692688,
+        "actualY": 0.20677554607391357,
+        "ground": 0,
+        "correction": 5.960464477539063e-8
+      },
+      {
+        "rawY": 0.1890309900045395,
+        "actualY": 0.18903103470802307,
+        "ground": 0,
+        "correction": 4.470348358154297e-8
+      }
+    ]
+  },
+  {
+    "scenario": "incline",
+    "size": 1.4,
+    "locks": [
+      true,
+      true
+    ],
+    "maxFrameStep": 0.024209678173106458,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "feet": [
+      {
+        "rawY": 0.2067754864692688,
+        "actualY": 0.3278237581253052,
+        "ground": 0.12104815149307249,
+        "correction": 0.12104827165603638
+      },
+      {
+        "rawY": 0.1890309900045395,
+        "actualY": 0.25780606269836426,
+        "ground": 0.06877494657039641,
+        "correction": 0.06877507269382477
+      }
+    ]
+  },
+  {
+    "scenario": "tread",
+    "size": 1.4,
+    "locks": [
+      true,
+      true
+    ],
+    "maxFrameStep": 0.03360006213189183,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "feet": [
+      {
+        "rawY": 0.2067754864692688,
+        "actualY": 0.37477561831474304,
+        "ground": 0.16799999999999998,
+        "correction": 0.16800013184547424
+      },
+      {
+        "rawY": 0.1890309900045395,
+        "actualY": 0.18903103470802307,
+        "ground": 0,
+        "correction": 4.470348358154297e-8
+      }
+    ]
+  },
+  {
+    "scenario": "edge",
+    "size": 1.4,
+    "locks": [
+      false,
+      true
+    ],
+    "maxFrameStep": 9.771344846937061e-8,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "feet": [
+      {
+        "rawY": 0.2067754864692688,
+        "actualY": 0.2067754864692688,
+        "ground": 0.21,
+        "correction": 0
+      },
+      {
+        "rawY": 0.1890309900045395,
+        "actualY": 0.18903103470802307,
+        "ground": 0,
+        "correction": 4.470348358154297e-8
+      }
+    ]
+  },
+  {
+    "scenario": "missing",
+    "size": 1.4,
+    "locks": [
+      false,
+      false
+    ],
+    "maxFrameStep": 0,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "feet": [
+      {
+        "rawY": 0.2067754864692688,
+        "actualY": 0.2067754864692688,
+        "ground": null,
+        "correction": 0
+      },
+      {
+        "rawY": 0.1890309900045395,
+        "actualY": 0.1890309900045395,
+        "ground": null,
+        "correction": 0
+      }
+    ]
+  },
+  {
+    "scenario": "cliff",
+    "size": 1.4,
+    "locks": [
+      false,
+      false
+    ],
+    "maxFrameStep": 0,
+    "root": [
+      0,
+      0,
+      0
+    ],
+    "feet": [
+      {
+        "rawY": 0.2067754864692688,
+        "actualY": 0.2067754864692688,
+        "ground": 2.8,
+        "correction": 0
+      },
+      {
+        "rawY": 0.1890309900045395,
+        "actualY": 0.1890309900045395,
+        "ground": 2.8,
+        "correction": 0
+      }
+    ]
+  }
+]

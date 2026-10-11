@@ -6,6 +6,7 @@ import { CharacterMaterials } from './characterMaterials';
 import { realize, type KitId, type Realization } from './appearanceMap';
 import type { AppearanceDescription, BodyState, ProjectedAppearance } from '../net/messages';
 import { Animator } from './animator';
+import { CHARACTER_KITS } from '../presentation/library';
 
 /**
  * Loads the three body kits once and turns a realised appearance into a posed, lit, shadow-casting
@@ -13,7 +14,7 @@ import { Animator } from './animator';
  * for that person, face morphs are blended, and stature/build scale the model. The visual it returns
  * plugs into ActorManager as a BodyVisual; its Animator poses bones from server state.
  */
-const KIT_FILES: Record<KitId, string> = { f: 'models/kit_f.glb', m: 'models/kit_m.glb', c: 'models/kit_c.glb' };
+const KIT_FILES: Record<KitId, string> = CHARACTER_KITS;
 const TOP_PREFIX = /^(G_|Foot_|Hair_|Hat_|Ornament_|Accessory_|Hero_)/;
 const baseName = (n: string) => n.replace(/_primitive\d+$/, '');
 

@@ -1,0 +1,122 @@
+{
+  "baseRevision": "0ee4660",
+  "scope": "Final patch: contact source/posture fixes, unchanged shared room-grammar extraction, bounded interior grid and explicit pure browser dependency.",
+  "success": true,
+  "exitCode": 0,
+  "startedAt": "2026-10-09T06:31:24.849Z",
+  "completedAt": "2026-10-09T06:31:51.937Z",
+  "durationSeconds": 27.088260009765627,
+  "files": 17,
+  "passedTests": 181,
+  "failedTests": 0,
+  "pendingTests": 0,
+  "raw": ".debug/motion-oct9/final-affected.json",
+  "rawSha256": "26960ac7cbc81c9dd18b1007516ccad25a2187c6bddeeca356a56a0cb86a0f49",
+  "typecheck": "passed",
+  "productionBuild": "passed; Vite Babylon client, 1m42s",
+  "buildLog": ".debug/motion-oct9/final-build.log",
+  "results": [
+    {
+      "file": "tests/canonical-arcana.test.ts",
+      "status": "passed",
+      "tests": 10,
+      "durationSeconds": 0.04875927734375
+    },
+    {
+      "file": "tests/combat-foundation.test.ts",
+      "status": "passed",
+      "tests": 9,
+      "durationSeconds": 0.050878662109375
+    },
+    {
+      "file": "tests/contact-spacing.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "durationSeconds": 0.045077392578125
+    },
+    {
+      "file": "tests/guard.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "durationSeconds": 0.48914208984375
+    },
+    {
+      "file": "tests/interior-layout.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "durationSeconds": 0.132970703125
+    },
+    {
+      "file": "tests/persistence.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "durationSeconds": 6.846628662109375
+    },
+    {
+      "file": "tests/realm-expedition.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "durationSeconds": 0.053186279296875
+    },
+    {
+      "file": "tests/realms.test.ts",
+      "status": "passed",
+      "tests": 9,
+      "durationSeconds": 0.130618408203125
+    },
+    {
+      "file": "tests/recoil-source.test.ts",
+      "status": "passed",
+      "tests": 2,
+      "durationSeconds": 0.012376708984375
+    },
+    {
+      "file": "tests/shared-presentation.test.ts",
+      "status": "passed",
+      "tests": 4,
+      "durationSeconds": 0.010833251953125
+    },
+    {
+      "file": "tests/tower-checkpoint.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "durationSeconds": 0.007967529296875
+    },
+    {
+      "file": "tests/tower-cutaway.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.002260009765625
+    },
+    {
+      "file": "tests/tower-encounters.test.ts",
+      "status": "passed",
+      "tests": 6,
+      "durationSeconds": 0.294630615234375
+    },
+    {
+      "file": "tests/tower-maze.test.ts",
+      "status": "passed",
+      "tests": 53,
+      "durationSeconds": 9.6504052734375
+    },
+    {
+      "file": "tests/tower-navigation.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "durationSeconds": 0.0529150390625
+    },
+    {
+      "file": "tests/tower-progression.test.ts",
+      "status": "passed",
+      "tests": 31,
+      "durationSeconds": 0.278287353515625
+    },
+    {
+      "file": "tests/web-boundary.test.ts",
+      "status": "passed",
+      "tests": 7,
+      "durationSeconds": 0.021143798828125
+    }
+  ]
+}

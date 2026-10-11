@@ -1,0 +1,62 @@
+[
+  {
+    "file": "after-aether-01-gameplay.png",
+    "bytes": 1254131,
+    "sha256": "52e5a54f4296c29d1a4af877df06fdfb7bd01838eb653053ccb5e62fc42f5f37"
+  },
+  {
+    "file": "after-aether-02-entrance-detail.png",
+    "bytes": 1282129,
+    "sha256": "0583584cce77463978994d0d3a2be724ffb96edc6ca406c73cdd78d55cc82659"
+  },
+  {
+    "file": "after-aether-03-atrium.png",
+    "bytes": 1289674,
+    "sha256": "4e14c006ba9cb8dc8b11e7e7f34a17449788765d54a6d272c56ea0a30b097279"
+  },
+  {
+    "file": "after-brass-01-gameplay.png",
+    "bytes": 1302628,
+    "sha256": "9475ac851790e24a3edcc22e4fd0334e5a7fc8a8e1d1b8fd21fc282b45241ace"
+  },
+  {
+    "file": "after-brass-02-entrance-detail.png",
+    "bytes": 1284683,
+    "sha256": "d403c9b85893ea8c615d2ce29e0cd2f3b8cb0e740ac2637a23a876989aefd717"
+  },
+  {
+    "file": "after-brass-03-atrium.png",
+    "bytes": 1300919,
+    "sha256": "bb8e61ba86600014151ad9fd825e6fdd9446b0caaf0957140d4162cc78e69e3d"
+  },
+  {
+    "file": "before-aether-01-gameplay.png",
+    "bytes": 1385389,
+    "sha256": "4f38e47c43836deda1866d3ca81388e379a84e2115ac5b5c9b47e0d687659fc9"
+  },
+  {
+    "file": "before-aether-02-entrance-detail.png",
+    "bytes": 1155880,
+    "sha256": "ebf80ad182b72b9b92c58b7ca40889c882152d2077dfa7b988e95d2cad9aa322"
+  },
+  {
+    "file": "before-aether-03-atrium.png",
+    "bytes": 1711324,
+    "sha256": "abc9ffc883c90a8adf70cc9784e7b1fec198e414c1e7ae57ef3b6a83a8b563e8"
+  },
+  {
+    "file": "before-brass-01-gameplay.png",
+    "bytes": 1412845,
+    "sha256": "25192eb6ac1b720a8da5bdf300e73ab3ab6cc056a20a1f59d4a4455ff44993ee"
+  },
+  {
+    "file": "before-brass-02-entrance-detail.png",
+    "bytes": 1203392,
+    "sha256": "e18f23522618de5daa47c463d54602704bda1f319092c0eccedd6b0c7b7bdf54"
+  },
+  {
+    "file": "before-brass-03-atrium.png",
+    "bytes": 1872513,
+    "sha256": "ae17f8ea94f84f0517e5eb97e4f6f6052e0644f05e4405a534187024453223c4"
+  }
+]

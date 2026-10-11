@@ -1,0 +1,10 @@
+{
+  "memory": {
+    "TotalPhysicalMemory": 33436114944
+  },
+  "cpu": {
+    "Name": "AMD Ryzen 5 9600X 6-Core Processor             ",
+    "NumberOfCores": 6,
+    "NumberOfLogicalProcessors": 12
+  }
+}

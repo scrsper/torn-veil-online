@@ -1,3 +1,9 @@
+import { validCombatTrials } from '../social/combatTrial';
+import { validSavedExertion } from '../physical/exertion';
+import { attachInteriorGrid, validInteriorRegistry } from '../world/interiors/grid';
+import { validCanonicalTower } from '../world/interiors/towerPersistence';
+import { validSavedRecoil } from '../physical/recoil';
+import { validArcaneWorld } from '../physical/arcana/persistence';
 import { snapshotParts, stringifySnapshot } from './json';
 import { stringifyEventTable, decodeEventTable } from './eventTable';
 import { initializeWildlife } from '../ecology/generation';
@@ -10,12 +16,16 @@ import { restoreKernel } from '../kernel/definitions';
 import { World } from '../core/world';
 import { WorldClock } from '../core/time';
 import { generateVillage } from '../world/village';
+import { generateRealms } from '../world/realms/generate';
 import type { Person, Body, Item, Place, Container, Faction, WorldEvent, Conflict, Field, HaulTask, ResourceNode, ConstructionProject, Request, Fire, Situation, WorkStint, Household, ChronicleEra } from '../core/types';
 import { syncFieldBlocks } from '../world/metabolism';
 import { syncResourceNodeBlocks } from '../world/resources';
 import { materializeStructure } from '../world/construction';
 import { validSavedCombatAction } from './combatAction';
 import { validSavedGuard } from '../physical/guard';
+
+import { validRealmExpedition } from '../world/realms/expedition';
+import { realmAt } from '../world/realms/layout';
 
 const KEY = 'infinite-rpg-save-v1';
 // v0.2.1 Priority 8: bumped 2 -> 3 to add faction leaderId/knowledge persistence (see
@@ -155,8 +165,15 @@ const KEY = 'infinite-rpg-save-v1';
 // the opposite of what every bump above exists to prevent. See docs/CHARACTER_APPEARANCE_PIPELINE.md.
 // 25 changes storage only. Legacy 24 records load without changing canonical state;
 // compact event columns are expanded before any knowledge/provenance validation.
-export const SAVE_VERSION = 25;
-export const readableSaveVersion = (version: number): boolean => version === 24 || version === SAVE_VERSION;
+// v26 adds a versioned realm baseline. Older clients must reject this schema rather
+// than regenerate a realm character against the unrelated village geometry.
+// v27 persists the world/Tower travel binding; v26 readers must not lose an active ascent.
+// v28 adds source-backed arcana and physical armor; old readers must not lose consequences.
+// v29 persists consumed contact displacement; older saves have no residual response.
+// v30 retains canonical folded interiors, trial consent and causal Tower receipts.
+// v31 adds source-integrated capability growth and bounded completed-room upkeep.
+export const SAVE_VERSION = 31;
+export const readableSaveVersion = (version: number): boolean => version === 24 || version === 25 || version === 26 || version === 27 || version === 28 || version === 29 || version === 30 || version === SAVE_VERSION;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
@@ -238,7 +255,7 @@ function checkpointData(world: World, compactEvents: boolean): { snapshot: Recor
   // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
   // falls back to today's behavior (rewind to post-generation position) when absent.
   const rng = world.rng.state(); const weatherRng = world.weatherRng.state(); const demographicRng = world.demographicRng.state();
-  return { snapshot: { version: SAVE_VERSION, ecology: world.ecology, martialLearning: martialPersistenceState(world), creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, containers, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, lastCompactionEventCount, diffs, doors, events: events, eventEncoding: eventTable ? { format: eventTable.format, appearances: eventTable.appearances } : undefined, rng, weatherRng, demographicRng, savedAt: Date.now() }, encodedFields: eventTable ? { events: eventTable.rows } : {} };
+  return { snapshot: { version: SAVE_VERSION, ecology: world.ecology, martialLearning: martialPersistenceState(world), creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, realmSpec: world.realmSpec, realmExpedition: world.realmExpedition, interiors: world.interiors, canonicalTower: world.canonicalTower, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, containers, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, lastCompactionEventCount, diffs, doors, events: events, eventEncoding: eventTable ? { format: eventTable.format, appearances: eventTable.appearances } : undefined, rng, weatherRng, demographicRng, savedAt: Date.now() }, encodedFields: eventTable ? { events: eventTable.rows } : {} };
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -282,7 +299,9 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
   try {
     const data = JSON.parse(raw); if (!readableSaveVersion(data.version)) return null;
     if (data.eventEncoding !== undefined) {
-      if (data.version !== SAVE_VERSION) return null;
+      // Compact events began in schema25. The readable-version gate above also
+      // covers historical compact saves; a second list would drift on each bump.
+      if (data.version < 25) return null;
       data.events = decodeEventTable({ ...data.eventEncoding, rows: data.events });
     }
     if (!validMartialSave(data)) return null;
@@ -291,7 +310,11 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     world.wildernessRegions = new Set(data.wildernessRegions ?? []);
     const generated = data.geography ? generatePlayableWorld(world, data.geography, false) : data.settlementSites ? generateProceduralWorld(world, data.settlementSites) : undefined;
     world.kernel = savedKernel;
-    const gen = generated ? { places: Object.fromEntries(generated.flatMap(s => Object.entries(s.places).map(([k, p]) => [s.spec.site.id + ':' + k, p]))), people: Object.fromEntries(generated.flatMap(s => Object.entries(s.people).map(([k, p]) => [s.spec.site.id + ':' + k, p]))) } : generateVillage(world);
+    const gen = data.realmSpec ? generateRealms(world, data.realmSpec) : generated ? { places: Object.fromEntries(generated.flatMap(s => Object.entries(s.places).map(([k, p]) => [s.spec.site.id + ':' + k, p]))), people: Object.fromEntries(generated.flatMap(s => Object.entries(s.people).map(([k, p]) => [s.spec.site.id + ':' + k, p]))) } : generateVillage(world);
+    if (data.interiors !== undefined) {
+      if (data.version < 30 || !world.realmSpec || !validInteriorRegistry(data.interiors)) return null;
+      attachInteriorGrid(world, data.interiors);
+    }
     for (const s of data.settlements ?? []) { const existing = world.get(s.id); if (existing?.kind === 'settlement') Object.assign(existing, s); else world.add(s); }
     for (const p of data.physicalPlaces ?? []) { const existing = world.place(p.id); if (existing) Object.assign(existing, p); else world.add(p); }
     // overlay
@@ -319,7 +342,9 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     for (const p of world.persons()) { const controller = (data.controllers ?? []).find((c: { id: string }) => c.id === p.id); setExternalControl(p, !!controller); if (controller?.acting) authorizeExternalIntention(p); }
     for (const creature of data.creatures ?? []) { const current = world.get(creature.id); if (current) Object.assign(current, creature); else world.add(creature); }
     for (const s of data.bodies) {
+      if (!validSavedExertion(s.exertion, data.physicalTime ?? 0, data.version)) return null;
       if (!validSavedCombatAction(s.combatAction, s.id)) return null;
+      if ((s.recoil && data.version < 29) || !validSavedRecoil(s.recoil, data.physicalTime ?? 0, s.id, data.events)) return null;
       if (!validSavedGuard(s.guard, data.physicalTime ?? 0)) return null;
       if (s.guard && s.guard.until > (data.physicalTime ?? 0) && !data.events.some((e: WorldEvent) => e.id === s.guard.eventId && e.type === 'combat_action' && e.actor === s.ownerId && e.data.kind === 'guard' && e.data.phase === 'accepted' && e.data.actorBodyId === s.id)) return null;
       if(s.crouch!==undefined&&(!Number.isFinite(s.crouch)||s.crouch<0||s.crouch>1))return null;
@@ -442,6 +467,16 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     // Additive: restores world-level technique definitions and the exact owning plan of an
     // unfinished paid martial session. Ordinary person spreading above already preserved
     // skills, knowledge and mastery; absence of martialLearning is a valid legacy save.
+    if (data.realmExpedition !== undefined) {
+      const r = data.realmExpedition;
+      if (data.version < 27 || !world.realmSpec || !validRealmExpedition(r)
+        || r.personId !== world.playerId || world.primaryBody(r.personId)?.id !== r.bodyId
+        || realmAt(r.returnPos.x, r.returnPos.z) !== r.realm || r.returnPos.y !== 1) return null;
+      world.realmExpedition = r;
+    }
+    if (!validCombatTrials(world, data.version) || !validCanonicalTower(world, data.canonicalTower, data.version)) return null;
+    world.canonicalTower = data.canonicalTower;
+    if (!validArcaneWorld(world, data.version)) return null;
     restoreMartialPersistence(world, data);
     return { world, gen };
   } catch (e) { console.warn('load failed', e); return null; }

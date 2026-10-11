@@ -1,0 +1,59 @@
+{
+  "scope": "Synthetic events against the tested branch InputManager; no running preview or user settings accessed.",
+  "rows": [
+    {
+      "viewMode": "third-person",
+      "captureMouse": false,
+      "locked": false,
+      "key": "Mouse0",
+      "lightStrike": false,
+      "guard": false,
+      "lockRequests": 0
+    },
+    {
+      "viewMode": "third-person",
+      "captureMouse": true,
+      "locked": false,
+      "key": "Mouse0",
+      "lightStrike": false,
+      "guard": false,
+      "lockRequests": 1
+    },
+    {
+      "viewMode": "third-person",
+      "captureMouse": true,
+      "locked": true,
+      "key": "Mouse0",
+      "lightStrike": true,
+      "guard": false,
+      "lockRequests": 0
+    },
+    {
+      "viewMode": "orbit",
+      "captureMouse": false,
+      "locked": false,
+      "key": "Mouse0",
+      "lightStrike": true,
+      "guard": false,
+      "lockRequests": 0
+    },
+    {
+      "viewMode": "third-person",
+      "captureMouse": false,
+      "locked": false,
+      "key": "KeyH",
+      "lightStrike": true,
+      "guard": false,
+      "lockRequests": 0
+    },
+    {
+      "viewMode": "third-person",
+      "captureMouse": true,
+      "locked": false,
+      "key": "Mouse2",
+      "lightStrike": false,
+      "guard": false,
+      "lockRequests": 1
+    }
+  ]
+}

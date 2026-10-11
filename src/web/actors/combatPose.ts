@@ -38,7 +38,7 @@ function phases(c: CombatContext) {
   const hold = 0.0;
   const p = sstep(0, prep, age - hold), a = sstep(prep, prep + active, age), r = sstep(prep + active, prep + active + recovery, age);
   // extension: rises through preparation, snaps to full in active, falls in recovery
-  const ext = age < prep ? ease(p) * 0.55 : age < prep + active ? 0.55 + 0.45 * back(a) : (1 - r);
+  const ext = age < prep ? sstep(0.35, 1, p) : age < prep + active ? 1 + 0.08 * Math.sin(Math.PI * a) : (1 - r);
   return { p, a, r, ext, wind: age < prep ? p : 1 - Math.max(0, r) * 0 };
 }
 
@@ -49,6 +49,12 @@ export function combatPose(L: Pose, c: CombatContext, S: number): { weight: numb
   const heavy = c.weight === 'heavy' ? 1 : 0;
   let weight = sstep(0, 0.06, c.age) * (1 - sstep(total - 0.12, total, c.age));
   const P = new Vector3();
+  // The hand has two knuckle joints. Curling only the first leaves the fingers visibly
+  // straight during punches; both joints and the opposing thumb make a readable fist.
+  for (const side of ['l', 'r']) {
+    L.set(`fingers_01_${side}`, Q.x(-1.15)); L.set(`fingers_02_${side}`, Q.x(-1.25));
+    L.set(`thumb_01_${side}`, Q.x(-.65)); L.set(`thumb_02_${side}`, Q.x(-.5));
+  }
   const stance = (k: number) => {
     // Left-lead fighting stance: knees soft, weight low, hips turned toward the rear.
     L.set('pelvis', chain(turn(-0.32 * k), lean(0.05 * k)), 1); P.y -= 0.07 * S * k;
@@ -133,7 +139,8 @@ export function combatPose(L: Pose, c: CombatContext, S: number): { weight: numb
     }
     default: { stance(0.7); weight = Math.min(weight, 0.7); }
   }
-  return { weight: Math.max(0, Math.min(1, weight)), pelvis: P };
+  weight=Math.max(0,Math.min(1,weight));
+  return {weight,pelvis:P.scaleInPlace(weight)};
 }
 
 export function idleStance(L: Pose, S: number): Vector3 {

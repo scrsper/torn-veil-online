@@ -12,6 +12,7 @@ import { needsCutaway } from './cutaway';
 import { noteSlow } from '../game/probe';
 import { InstanceSet, VegetationLibrary, scatterVegetation } from './vegetation';
 import { WindowLighting } from './windowLighting';
+import { B, blockDef } from '../../sim/physical/blocks';
 
 /**
  * Owns every resident region's scene content and the floating origin.
@@ -83,10 +84,29 @@ export class RegionManager {
     return { y, height: 1 - 0.5 * Math.max(0, Math.min(1, (g.forest[k] - 0.5) * 2)) };
   }
 
-  /** The ground block id drawn at a simulation position (for footstep sound), or null. */
+  /** Terrain-only block id; structures and the separate water sheet are excluded. */
   blockAt(x: number, z: number): number | null {
     const reg = this.regions.get(this.regionOf(x, z)); if (!reg) return null; const g = reg.terrain.grid;
     const i = Math.max(0, Math.min(g.n - 1, Math.round((x - g.x0) / g.stride))), j = Math.max(0, Math.min(g.n - 1, Math.round((z - g.z0) / g.stride))); return g.block[i * g.n + j];
+  }
+  /** Projected material at an approximate sole height, for audible foot contact.
+   * A nearby supporting floor outranks its substrate; water at the feet outranks
+   * submerged support. Use the same four-corner water footprint as buildTerrain. */
+  supportBlockAt(x: number, soleY: number, z: number): number | null {
+    const reg = this.regions.get(this.regionOf(x, z)); if (!reg) return null;
+    const g = reg.terrain.grid;
+    const i = Math.max(0, Math.min(g.n - 2, Math.floor((x - g.x0) / g.stride)));
+    const j = Math.max(0, Math.min(g.n - 2, Math.floor((z - g.z0) / g.stride)));
+    const water = Math.max(g.water[i * g.n + j], g.water[(i + 1) * g.n + j], g.water[(i + 1) * g.n + j + 1], g.water[i * g.n + j + 1]);
+    if (water >= 0 && water >= soleY - .08) return B.Water;
+    if (reg.cells) {
+      for (let y = Math.floor(soleY + .05); y >= Math.floor(soleY - .4); y--) {
+        const block = reg.cells.get(Math.floor(x), y, Math.floor(z)), def = blockDef(block);
+        const top = y + (def.height ?? 1);
+        if (def.solid && top <= soleY + .08 && top >= soleY - .35) return block;
+      }
+    }
+    return this.blockAt(x, z);
   }
   /** Number of lit fires within 14 m (crackle level). */
   fireCountNear(x: number, z: number): number {
@@ -177,10 +197,18 @@ export class RegionManager {
 
     // Trees and rocks: canonical resources come from dynamics, decoration fills between them.
     const instances = new InstanceSet();
+    const naturalTrees = proj.structures?.trees ?? [];
+    for (const t of naturalTrees) {
+      // Reuse distance culling, LOD, shadows and region disposal for canonical grid trees.
+      instances.add(this.vegetation, t.species, t.variant,
+        new Vector3(t.x - proj.bounds.x0 + .5, terrain.heightAt(t.x + .5, t.z + .5) - .1, t.z - proj.bounds.z0 + .5),
+        t.yaw, Math.max(.7, Math.min(1.25, t.height / (t.species === 'pine' ? 8 : 5))));
+    }
     const density = this.ctx.quality.treeDensity;
     const trees = scatterVegetation(this.vegetation, instances, {
       region: proj, terrain, density, canonical: this.lastDynamics?.resources.filter(r => this.regionOf(r.pos.x, r.pos.z) === proj.id) ?? [],
-      exclusions: [...proj.dressingExclusions.map(e => e.bounds), ...proj.places.map(p => p.bounds)],
+      exclusions: [...proj.dressingExclusions.map(e => e.bounds), ...proj.places.map(p => p.bounds),
+        ...naturalTrees.map(t => ({ x0: t.x, x1: t.x, z0: t.z, z1: t.z }))],
     }, proj.decoration.seed);
     stage('scatter'); yield;
     for (const _ of instances.finishSteps(this.vegetation, root, `veg-${proj.id}`, m => this.atmosphere.addCaster(m))) yield;
@@ -198,7 +226,7 @@ export class RegionManager {
     const windows = new WindowLighting(scene, proj, cells, st.panes, this.lights, root);
     const entry: RegionEntry = {
       id: proj.id, projection: proj, root, terrain, meshes, instances, lightIds, doors: sp.doors, dynamics, windows, cells, pathCells: new Set(proj.paths.map(([x, , z]) => x * 100003 + z)), boxes: proj.places.filter(p => p.indoor).map(p => p.bounds),
-      stats: { cells: st.stats.cells, roofs: st.stats.roofsAnalytic, windows: st.stats.windows, trees, props: proj.furnishings.length, buildMs: performance.now() - t0, stageMs },
+      stats: { cells: st.stats.cells, roofs: st.stats.roofsAnalytic, windows: st.stats.windows, trees: trees + naturalTrees.length, props: proj.furnishings.length, buildMs: performance.now() - t0, stageMs },
     };
     this.regions.set(proj.id, entry); this.place(entry);
     for (const m of meshes) { m.freezeWorldMatrix?.(); m.unfreezeWorldMatrix(); }
@@ -242,11 +270,15 @@ export class RegionManager {
     this.vegClock = 0; l.x = cam.x; l.z = cam.z; l.fx = fx; l.fz = fz;
     for (const r of this.regions.values()) r.instances.refresh(r.root.position.x, r.root.position.z, cam.x, cam.z, fx, fz, this.ctx.quality.vegetationNear, this.ctx.quality.vegetationFar);
   }
-  updateCutaway(player: Vec3 | null, camera: Vector3): void {
+  updateCutaway(player: Vec3 | null, camera: Vector3, target: Vec3 | null = null): void {
     const worldCamera = { x: camera.x + this.origin.x, y: camera.y + this.origin.y, z: camera.z + this.origin.z };
     for (const region of this.regions.values()) for (const mesh of [...region.meshes,...region.windows.meshes]) {
       const bounds = mesh.metadata?.cutawayBounds, plane = mesh.material?.clipPlane;
-      if (bounds && plane) plane.d = player && needsCutaway(bounds, player, worldCamera) ? -(player.y - this.origin.y + .8) : -1e8;
+      if (bounds && plane) {
+        const focus = player && needsCutaway(bounds, player, worldCamera) ? player
+          : player && target && needsCutaway(bounds, target, worldCamera) ? target : null;
+        plane.d = focus ? -(focus.y - this.origin.y + .8) : -1e8;
+      }
     }
   }
   update(dt: number, cameraPos: Vector3, cameraForward: Vector3, night: number): void {

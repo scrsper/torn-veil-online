@@ -33,6 +33,8 @@ ORC_FACE = [('head-square', 1), ('chin-prognathism-incr', .9), ('chin-width-incr
 GOBLIN_FACE = [('head-triangular', .8), ('chin-triangle', .8), ('chin-prominent-incr', .6), ('nose-scale-vert-incr', 1), ('nose-trans-forward', .9),
                ('nose-point-down', .7), ('nose-hump-incr', .6), ('eyebrows-angle-up', .7), ('mouth-scale-horiz-incr', .5), ('mouth-angles-up', .5),
                ('l-ear-shape-pointed', 1), ('r-ear-shape-pointed', 1), ('l-ear-wing-incr', 1), ('r-ear-wing-incr', 1)]
+# A strong, handsome face: square jaw, defined chin and cheekbones, straight nose.
+GOD_FACE = [('chin-width-incr', .45), ('chin-prominent-incr', .3), ('chin-bones-incr', .4), ('l-cheek-bones-incr', .4), ('r-cheek-bones-incr', .4), ('nose-hump-decr', .5), ('eyebrows-trans-down', .2)]
 # Bone scales: orcs are top-heavy with small heads on huge shoulders, long thick arms and big hands; goblins
 # have big heads, long arms, huge hands and feet on short legs.
 ORC_BODY = {'spine_02': 1.06, 'spine_03': 1.12, 'neck_01': .74, 'head': .92, 'clavicle_l': 1.12, 'clavicle_r': 1.12, 'upperarm_l': 1.1, 'upperarm_r': 1.1, 'hand_l': 1.32, 'hand_r': 1.32, 'thigh_l': .94, 'thigh_r': .94, 'foot_l': 1.12, 'foot_r': 1.12}
@@ -85,6 +87,12 @@ PEOPLE = {
                           clothes={'donitz_monk_robe': C(0x241c30)}),
     'skeleton_brute': dict(phenotype=body(1, .9, .3, .9, .5), gender='male', hair=None, skeleton=dict(bone=C(0xcfc3a4), glow=(1.0, .15, .05), thick=1.55),
                            clothes={}, proportions={'spine_03': 1.12, 'head': 1.15, 'hand_l': 1.25, 'hand_r': 1.25}),
+    # Chrysanthus, god of the tower (his avatar): tall, heroic build, long hair and a full beard, an ivory coat over a
+    # royal-blue tunic, gold pauldrons and gloves. Floats; carries a sword, an orb and a staff on his back (runtime).
+    'chrysanthus': dict(phenotype=body(1, 1, .5, 1, .4, (.15, .1, .75)), gender='male', hair='long01', targets=GOD_FACE,
+                        clothes={'donitz_monk_robe': C(0xefe7d4), 'toigo_gloves_short': C(0xb8902c)},
+                        skin=C(0xd9a27e), hair_color=C(0x4a2c18), hairbones=True, beard=C(0x4a2c18), pauldrons=C(0xc9a23a), sash=C(0x26346a),
+                        proportions={'spine_03': 1.05, 'upperarm_l': 1.03, 'upperarm_r': 1.03}),
     'wren': dict(phenotype=body(0, .55, .45, .52, .4, (.1, .1, .8)), gender='female', hair='elvs_french_braid_variation',
                  clothes={'mindfront_lusekofta': C(0x2a3e5c), 'toigo_wool_pants': C(0x2c2a26), 'punkduck_medieval_boots': C(0x4a2a1a), 'toigo_gloves_short': C(0x3a2418)},
                  skin=C(0xf0c8ae), hair_color=C(0x1a120e)),
@@ -308,6 +316,73 @@ def build_skeleton(rig, H, spec):
     rigid_parts(rig, 'skeleton_eyes', [(ball(c + Vector((side * hh * .17, -hh * .5, 0)), hh * .045, 1, 1, 1, 1), 'head') for side in (1, -1)], m)
 
 
+def add_beard(rig, proxy, color, H):
+    """A full beard shell: the proxy's lower-face and jaw faces, lifted off the skin and drawn down into a beard."""
+    eyes = next((o for o in bpy.data.objects if o.type == 'MESH' and 'low-poly' in o.name.lower()), None)
+    if eyes is None or proxy is None: return
+    S = H / 1.75
+    pts = [eyes.matrix_world @ v.co for v in eyes.data.vertices]
+    c = sum(pts, Vector()) / len(pts); front = min(p.y for p in pts)
+    hg = proxy.vertex_groups.get('head')
+    if hg is None: return
+    M = proxy.matrix_world; me = proxy.data
+    wh = {v.index: next((g.weight for g in v.groups if g.group == hg.index), 0.0) for v in me.vertices}
+    top, bottom = c.z - .068 * S, c.z - .19 * S
+    def inside(p): return bottom < p.z < top and p.y < c.y + .035 * S and abs(p.x - c.x) < .066 * S
+    faces = [f for f in me.polygons if all(inside(M @ me.vertices[i].co) and (wh[i] > .25 or (M @ me.vertices[i].co).z > c.z - .13 * S) for i in f.vertices)]
+    if not faces: return
+    bm = bmesh.new(); vmap = {}
+    for f in faces:
+        vs = []
+        for i in f.vertices:
+            if i not in vmap:
+                v = me.vertices[i]; p = M @ v.co; n = (M.to_3x3() @ v.normal).normalized()
+                p = p + n * .009 * S
+                # Grow downward and forward below the mouth: a beard, not stubble.
+                mouth = c.z - .088 * S
+                if p.z < mouth:
+                    k = (mouth - p.z) / (.1 * S)
+                    p.z -= k * .045 * S; p.y -= k * .018 * S
+                vmap[i] = bm.verts.new(p)
+            vs.append(vmap[i])
+        try: bm.faces.new(vs)
+        except ValueError: pass
+    # Thickness: extrude the shell back toward the face so it reads from the side.
+    geom = bmesh.ops.extrude_face_region(bm, geom=bm.faces[:])
+    for v in [e for e in geom['geom'] if isinstance(e, bmesh.types.BMVert)]: v.co.y += .01 * S
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+    skinned_part(rig, 'beard', bm, color)
+
+
+def add_pauldrons(rig, color, H):
+    """Gold shoulder plates: domed shells over each upper arm, rigid to the arm."""
+    from mathutils import Matrix as Mx
+    S = H / 1.75; W = rig.matrix_world
+    parts = []
+    for side in ('l', 'r'):
+        b = rig.data.bones[f'upperarm_{side}']
+        a = W @ b.head_local; t = W @ b.tail_local; d = (t - a).normalized()
+        bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=10, v_segments=6, radius=.125 * S)
+        bmesh.ops.delete(bm, geom=[v for v in bm.verts if v.co.z < -.01 * S], context='VERTS')
+        rot = Vector((0, 0, 1)).rotation_difference(Vector((d.x * .5, d.y * .5, .85)).normalized()).to_matrix().to_4x4()
+        bmesh.ops.transform(bm, matrix=Mx.Translation(a + d * .07 * S + Vector((0, 0, .07 * S))) @ rot @ Mx.Diagonal((1.1, 1.25, .7, 1)), verts=bm.verts)
+        parts.append((bm, f'upperarm_{side}'))
+    rigid_parts(rig, 'pauldrons', parts, flat_material('gold', color, .35))
+
+
+def add_sash(rig, color, H):
+    """A royal-blue sash at the waist of the robe, and a gold clasp."""
+    from mathutils import Matrix as Mx
+    S = H / 1.75; W = rig.matrix_world
+    p = W @ rig.data.bones['spine_01'].head_local
+    bm = bmesh.new(); bmesh.ops.create_cone(bm, cap_ends=False, segments=14, radius1=.205 * S, radius2=.2 * S, depth=.08 * S)
+    bmesh.ops.transform(bm, matrix=Mx.Translation(p + Vector((0, -.005 * S, .03 * S))) @ Mx.Diagonal((1, .78, 1, 1)), verts=bm.verts)
+    rigid_parts(rig, 'sash', [(bm, 'spine_01')], flat_material('sash', color, .8))
+    cl = bmesh.new(); bmesh.ops.create_icosphere(cl, subdivisions=1, radius=.03 * S)
+    bmesh.ops.transform(cl, matrix=Mx.Translation(p + Vector((0, -.165 * S, .03 * S))) @ Mx.Diagonal((1.3, .5, 1, 1)), verts=cl.verts)
+    rigid_parts(rig, 'clasp', [(cl, 'spine_01')], flat_material('clasp', C(0xd6ae44), .3))
+
+
 def head_frame(rig):
     hb = rig.data.bones['head']
     h0 = rig.matrix_world @ hb.head_local; h1 = rig.matrix_world @ hb.tail_local
@@ -422,6 +497,9 @@ for pid, spec in PEOPLE.items():
     extra = build_coat(rig, base, H, spec['coat']) if spec.get('coat') else []
     if spec.get('ears'): add_ears(rig, spec['ears'] * H / 1.75, spec['skin'])
     if spec.get('tusks'): add_tusks(rig, H)
+    if spec.get('beard'): add_beard(rig, proxy, spec['beard'], H)
+    if spec.get('pauldrons'): add_pauldrons(rig, spec['pauldrons'], H)
+    if spec.get('sash'): add_sash(rig, spec['sash'], H)
     # Export: proxy body (base hidden by MPFB's mask), garments, hair, eyes, coat.
     bpy.ops.object.select_all(action='DESELECT')
     for o in bpy.data.objects:

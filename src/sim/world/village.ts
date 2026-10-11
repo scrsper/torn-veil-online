@@ -212,15 +212,15 @@ export function generateVillage(world: World): GenResult {
     const p = people[key];
     if (!p.alive) continue;
     const b = makeBody(world, p.id, v(96, F, 96), 'humanoid', p.occupation === 'child' ? 40 : p.occupation === 'guard' || p.occupation === 'captain' || p.occupation === 'bandit' ? 110 : 80);
-    b.speed = p.occupation === 'child' ? 3.2 : 3.4; p.bodies.push(b.id);
+    b.speed = p.occupation === 'child' ? 3.2 : 3.4; world.attachBody(p, b);
     const home = world.place(p.homeId); const anchor = home?.anchors.find(a => a.kind === 'bed' && a.ownerId === p.id) ?? home?.anchors.find(a => a.kind === 'bed');
     const pos = anchor ? anchor.pos : home?.inside ?? v(96, F, 96);
     b.pos = { x: pos.x + 0.5, y: world.nav.floorY(pos.x, pos.z) >= 0 ? world.nav.floorY(pos.x, pos.z) : pos.y, z: pos.z + 0.5 };
     b.yaw = world.rng.next() * Math.PI * 2;
   }
   // chickens
-  for (let i = 0; i < 6; i++) { const c = makeCreature(world, 'chicken', 'chicken', places.farm_alwin.id, people.greta.id); const b = makeBody(world, c.id, v(58 + i * 1.5 + 0.5, F, 94.5 + (i % 2)), 'chicken', 6); b.speed = 1.6; c.bodies.push(b.id); }
-  for (let i = 0; i < 3; i++) { const c = makeCreature(world, 'chicken', 'chicken', places.farm_jory.id, people.nell.id); const b = makeBody(world, c.id, v(116.5 + i, F, 140.5 + i), 'chicken', 6); b.speed = 1.6; c.bodies.push(b.id); }
+  for (let i = 0; i < 6; i++) { const c = makeCreature(world, 'chicken', 'chicken', places.farm_alwin.id, people.greta.id); const b = makeBody(world, c.id, v(58 + i * 1.5 + 0.5, F, 94.5 + (i % 2)), 'chicken', 6); b.speed = 1.6; world.attachBody(c, b); }
+  for (let i = 0; i < 3; i++) { const c = makeCreature(world, 'chicken', 'chicken', places.farm_jory.id, people.nell.id); const b = makeBody(world, c.id, v(116.5 + i, F, 140.5 + i), 'chicken', 6); b.speed = 1.6; world.attachBody(c, b); }
 
   // ---- Items with provenance
   const yearsAgo = (y: number) => world.now - y * 365 * SECONDS_PER_DAY; const daysAgo = (d: number) => world.now - d * SECONDS_PER_DAY;
@@ -320,7 +320,7 @@ export function generateVillage(world: World): GenResult {
   // ---- Player
   const player = makePerson(world, { name: 'the Traveler', gender: 'm', age: 28, occupation: 'traveler', traits: { courage: 0.7 }, appearance: { skin: 0xd9a988, hair: 0x2a1a10, shirt: 0x3a5a7a, pants: 0x3a3a3a, hatStyle: 'hood', hat: 0x3a4a5a }, bio: 'A stranger who walked in on the west road.', wealth: 50 });
   setExternalControl(player, true); player.factionId = null; world.playerId = player.id;
-  const pb = makeBody(world, player.id, v(40.5, F, 96.5)); player.bodies.push(pb.id);
+  const pb = makeBody(world, player.id, v(40.5, F, 96.5)); world.attachBody(player, pb);
   item('dagger', 'a travel-worn dagger', { owner: player.id, holder: player.id, description: 'Your own knife. It has been with you a long time.' });
   item('bread', ITEM_LABEL.bread, { owner: player.id, holder: player.id, quantity: 2 });
   // Player embodiment: the Traveler's money is `wealth`, the same single currency every NPC

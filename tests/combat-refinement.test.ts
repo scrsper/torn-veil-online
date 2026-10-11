@@ -10,6 +10,7 @@ import {hurtVolumes,strikePoint} from '../src/sim/physical/combatGeometry';
 import {serialize,deserialize} from '../src/sim/persist/save';
 import {BridgeSession} from '../src/bridge/session';
 import {arrangeCombatArena,setPracticeMode,tickPractice,practiceStatus} from '../src/bridge/combatArena';
+import {EXERTION_POLICY} from '../src/sim/physical/exertion';
 
 const floor=()=>({floor:1,walkable:true,solids:[0]});
 const initial={pos:v(10,1,10),yaw:0,speed:3,eligible:true,crouch:0};
@@ -38,8 +39,10 @@ describe('camera facing and held posture',()=>{
  });
  it('holds through heartbeats with one cost, moves slowly, then stands on release',()=>{
   const x=fixture();x.tb.pos.x=20;const cost=x.p.physiology.fatigue;
-  expect(submitCombatInput(x.world,x.b.id,{kind:'duck',held:true})).toBe('accepted');tick(x,120,true);
-  expect(x.b.crouch).toBe(1);expect(x.b.combatAction).toBeUndefined();expect(x.p.physiology.fatigue-cost).toBeCloseTo(S.crouchEffort,3);
+  expect(submitCombatInput(x.world,x.b.id,{kind:'duck',held:true})).toBe('accepted');
+  expect(x.b.exertion!.load).toBeCloseTo(S.crouchEffort*EXERTION_POLICY.burstScale,10);
+  const paidFatigue=x.p.physiology.fatigue;expect(paidFatigue).toBeGreaterThan(cost);tick(x,120,true);
+  expect(x.b.crouch).toBe(1);expect(x.b.combatAction).toBeUndefined();expect(x.p.physiology.fatigue).toBeCloseTo(paidFatigue,10);
   const state=movementState(x.world,x.p,x.b),next=predictMovement(state,{x:1,z:0,sprint:true,facing:x.b.yaw},S.stepSeconds,floor);
   expect(next.pos.x-state.pos.x).toBeCloseTo(state.speed*S.crouchSpeedMultiplier/60);
   const upright=hurtVolumes({pos:x.b.pos,yaw:x.b.yaw,shape:'humanoid'},0),duck=hurtVolumes({pos:x.b.pos,yaw:x.b.yaw,shape:'humanoid'},1);
@@ -54,7 +57,8 @@ describe('camera facing and held posture',()=>{
   expect(submitCombatInput(x.world,x.b.id,{kind:'duck',held:true})).toBe('interrupted');expect(crouchHeld(x.world,x.b)).toBe(false);
   refreshCrouchHeld(x.world,x.b,true);expect(crouchHeld(x.world,x.b)).toBe(false);
   tick(x,20);submitCombatInput(x.world,x.b.id,{kind:'duck',held:true});tick(x,40);expect(x.b.crouch).toBe(0);
-  const cost=x.p.physiology.fatigue;submitCombatInput(x.world,x.b.id,{kind:'duck',held:true});expect(x.p.physiology.fatigue-cost).toBeCloseTo(S.crouchEffort,8);
+  const cost=x.p.physiology.fatigue,load=x.b.exertion?.load??0;submitCombatInput(x.world,x.b.id,{kind:'duck',held:true});
+  expect(x.b.exertion!.load-load).toBeCloseTo(S.crouchEffort*EXERTION_POLICY.burstScale,10);expect(x.p.physiology.fatigue).toBeGreaterThan(cost);
  });
  it('clearance constrains standing, including partial release; replay is pure',()=>{
   // Fractional support tests the physical kernel; current arena voxels are whole metres.
@@ -107,7 +111,8 @@ describe('bounded repertoire and arena resources',()=>{
  it('practice scales each participant once and quietly recovers fatigue without healing or world-time changes',()=>{
   const s=new BridgeSession(123,{arena:true});arrangeCombatArena(s,'idle');const [p,n]=s.world.persons(),pb=s.world.primaryBody(p.id)!,nb=s.world.primaryBody(n.id)!;
   const before=p.physiology.fatigue;submitCombatInput(s.world,pb.id,{kind:'backstep'});submitCombatInput(s.world,nb.id,{kind:'backstep'});
-  expect(p.physiology.fatigue-before).toBeCloseTo(S.defenseEffort*.4);expect(n.physiology.fatigue-before).toBeCloseTo(S.defenseEffort*.4);
+  expect(pb.exertion!.load).toBeCloseTo(S.defenseEffort*.4*EXERTION_POLICY.burstScale,10);expect(nb.exertion!.load).toBeCloseTo(pb.exertion!.load,10);
+  expect(p.physiology.fatigue).toBeGreaterThan(before);expect(n.physiology.fatigue-before).toBeCloseTo(p.physiology.fatigue-before,10);
   pb.combatAction=nb.combatAction=undefined;pb.lastHitAt=nb.lastHitAt=-99;p.physiology.fatigue=n.physiology.fatigue=.5;pb.health-=5;
   const now=s.world.now,phys={...p.physiology};for(let i=0;i<600;i++){s.world.physicalTime+=1/60;tickPractice(s,1/60);}
   expect(p.physiology.fatigue).toBeCloseTo(.15,6);expect(n.physiology.fatigue).toBeCloseTo(.15,6);expect(pb.health).toBe(pb.maxHealth-5);expect(s.world.now).toBe(now);

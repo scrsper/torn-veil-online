@@ -1,0 +1,41 @@
+{
+  "source": {
+    "path": ".debug/canonical-tower-oct9/growth-focused-final.json",
+    "bytes": 18003,
+    "sha256": "4694226ddec4ff5b2425981178b91204644fb5e50ae6de231af0456dea26fd35"
+  },
+  "success": true,
+  "total": 46,
+  "passed": 46,
+  "failed": 0,
+  "pending": 0,
+  "startedAt": "2026-10-09T10:03:10.498Z",
+  "files": 4,
+  "durationMs": 15975.9716796875,
+  "results": [
+    {
+      "file": "tests/canonical-arcana.test.ts",
+      "status": "passed",
+      "tests": 10,
+      "failures": []
+    },
+    {
+      "file": "tests/canonical-tower.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "failures": []
+    },
+    {
+      "file": "tests/realtime-protocol.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "failures": []
+    },
+    {
+      "file": "tests/tower-growth.test.ts",
+      "status": "passed",
+      "tests": 12,
+      "failures": []
+    }
+  ]
+}

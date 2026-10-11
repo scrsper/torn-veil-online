@@ -3,6 +3,8 @@ import { BridgeSession } from '../src/bridge/session';
 import { projectRegion } from '../src/bridge/regions';
 import { RegionalTransport } from '../src/bridge/streaming';
 import { B } from '../src/sim/physical/blocks';
+import { World } from '../src/sim/core/world';
+import type { Place } from '../src/sim/core/types';
 
 /** Decode `structures.runs`: x, z, n, then n triples (y, length, block). */
 function decode(runs: number[]): Map<string, [number, number, number][]> {
@@ -77,5 +79,62 @@ describe('web region detail: exact built structure, additive and opt-in', () => 
     const structureBytes = JSON.stringify(web.structures!).length, whole = JSON.stringify(web).length;
     expect(structureBytes).toBeLessThan(400_000);
     expect(structureBytes).toBeLessThan(whole);
+  });
+});
+
+describe('authored grid woodland projection', () => {
+  function fixture() {
+    const w = new World(13); w.initPhysical(32, 16, 32);
+    for (let x = 0; x < 32; x++) for (let z = 0; z < 32; z++) w.grid.set(x, 0, z, B.Grass);
+    for (let y = 1; y <= 5; y++) w.grid.set(5, y, 5, B.Log);
+    w.grid.set(6, 5, 5, B.Leaves);
+    return w;
+  }
+  const project = (w: World) => projectRegion(w, 0, 0, { structures: true });
+  const place = (w: World, type: Place['type'], indoor: boolean) => w.add<Place>({
+    id: 'place', kind: 'place', name: 'Place', createdAt: 0, tags: [], type,
+    bounds: { x0: 4, x1: 6, z0: 4, z1: 6, y0: 0, y1: 7 }, inside: { x: 5, y: 1, z: 5 },
+    door: null, anchors: [], ownerId: null, residents: [], workers: [], description: '', indoor,
+    parentId: null, fires: [], chimneys: [], lit: false });
+
+  it('keeps exact trunk collision while deriving stable canopy geometry without identities', () => {
+    const w = fixture(), p = project(w), tree = p.structures!.trees![0];
+    expect(p.structures!.trees).toHaveLength(1);
+    expect(tree).toMatchObject({ x: 5, y: 1, z: 5, height: 5, species: 'oak' });
+    expect(decode(p.structures!.runs).get('5,5')).toContainEqual([1, 5, B.Log]);
+    expect(project(w)).toEqual(p);
+    expect(w.resourceNodes).toHaveLength(0);
+    expect(projectRegion(w, 0, 0).structures).toBeUndefined();
+  });
+
+  it.each(['house', 'gate', 'bridge', 'camp'] as const)('preserves %s timbers beside foliage and bare posts', type => {
+    const w = fixture();
+    place(w, type, type === 'house');
+    for (let y = 1; y <= 5; y++) w.grid.set(20, y, 20, B.Log2);
+    const p = project(w);
+    expect(p.structures!.trees ?? []).toEqual([]);
+    expect(decode(p.structures!.runs).get('5,5')).toContainEqual([1, 5, B.Log]);
+    expect(decode(p.structures!.runs).get('20,20')).toContainEqual([1, 5, B.Log2]);
+  });
+
+  it('retains natural canopies within wilderness place bounds', () => {
+    const w = fixture(); place(w, 'wilderness', false);
+    expect(project(w).structures!.trees).toHaveLength(1);
+  });
+
+  it('leaves registered resource trees to the dynamic renderer', () => {
+    const w = fixture();
+    w.resourceNodes.push({ id: 'tree', kind: 'tree', yield: 'log', pos: { x: 4, y: 1, z: 5 },
+      blocks: [{ x: 5, y: 1, z: 5, id: B.Log }], remaining: 1, capacity: 1, renewable: true,
+      regrowHours: 24, state: 'available' });
+    expect(project(w).structures!.trees ?? []).toEqual([]);
+  });
+
+  it('drops the canopy descriptor when its supporting canonical geometry is removed', () => {
+    const w = fixture(); w.grid.set(6, 5, 5, B.Air);
+    expect(project(w).structures!.trees ?? []).toEqual([]);
+    w.grid.set(6, 5, 5, B.Leaves);
+    for (let y = 1; y <= 5; y++) w.grid.set(5, y, 5, B.Air);
+    expect(project(w).structures!.trees ?? []).toEqual([]);
   });
 });

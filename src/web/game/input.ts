@@ -6,13 +6,15 @@ import { ACTIONS, bindingsFor, type Action, type Device, type Settings } from '.
  * Nothing here knows about the simulation. `beginFrame` snapshots what happened since the last
  * frame (held / pressed / released per action, an analog move vector, a look delta), so game and UI
  * code read one consistent picture. Gamepad sticks stay analog (dead zone rescaled, never snapped),
- * the mouse only turns the camera while the pointer is locked, and every event source can be lost
+ * the mouse turns the camera while locked or middle-dragging, and every event source can be lost
  * at any time (blur, disconnect, lock exit) without leaving a key stuck.
  */
 export interface MoveVector { x: number; y: number }
 export class InputManager {
   device: Device = 'keyboard';
   pointerLocked = false;
+  /** Lost focus cancels latched gameplay state as well as physical held keys. */
+  releaseSerial = 0;
   /** Set true when a menu is open: gameplay reads should be ignored by callers; UI actions still work. */
   readonly move: MoveVector = { x: 0, y: 0 };
   autoWalking = false;
@@ -54,12 +56,12 @@ export class InputManager {
     canvas.addEventListener('pointerdown', e => {
       if (this.capture) { e.preventDefault(); const c = this.capture; this.capture = null; c(`Mouse${e.button}`); return; }
       this.noteDevice('keyboard'); e.preventDefault();
-      // The click that captures the pointer is not an attack: only a locked pointer sends mouse actions.
-      if (this.settings().viewMode === 'orbit' && e.button === 1) this.orbitDrag = { x: e.clientX, y: e.clientY };
-      else if (this.pointerLocked || this.settings().viewMode === 'isometric' || this.settings().viewMode === 'orbit') this.down(`Mouse${e.button}`);
-      else if (e.button === 0 || e.button === 2) this.orbitDrag = { x: e.clientX, y: e.clientY };
+      // Primary/secondary combat works before capture and when capture is disabled or refused.
+      // Reserve middle-drag for the free cursor camera, as in elevated orbit mode.
+      if (!this.pointerLocked && this.settings().viewMode !== 'isometric' && e.button === 1) this.orbitDrag = { x: e.clientX, y: e.clientY };
+      else this.down(`Mouse${e.button}`);
     });
-    window.addEventListener('pointerup', e => { this.orbitDrag = null; if (e.button >= 3) e.preventDefault(); this.up(`Mouse${e.button}`); });
+    window.addEventListener('pointerup', e => { if (e.button === 1) this.orbitDrag = null; if (e.button >= 3) e.preventDefault(); this.up(`Mouse${e.button}`); });
     window.addEventListener('pointercancel', () => this.releaseAll());
     window.addEventListener('auxclick', e => { if (e.button >= 1) e.preventDefault(); });
     canvas.addEventListener('contextmenu', e => e.preventDefault());
@@ -79,7 +81,7 @@ export class InputManager {
       if (locked !== this.pointerLocked) { this.pointerLocked = locked; if (!locked) this.releaseAll(); this.onLockChange?.(locked); }
     });
     window.addEventListener('gamepadconnected', e => { this.padConnected = true; this.padName = (e as GamepadEvent).gamepad.id; this.device = this.family(this.padName); this.onDeviceChange?.(this.device); });
-    window.addEventListener('gamepaddisconnected', () => { this.padConnected = !!this.activePad(); if (!this.padConnected) { this.device = 'keyboard'; this.padPrev = []; this.onDeviceChange?.('keyboard'); } });
+    window.addEventListener('gamepaddisconnected', () => { this.padConnected = !!this.activePad(); if (!this.padConnected) { this.device = 'keyboard'; for (const code of [...this.held]) if (code.startsWith('Pad')) this.up(code); this.padPrev = []; this.onDeviceChange?.('keyboard'); } });
   }
 
   private family(id: string): Device { return /054c|dualsense|dualshock|playstation|wireless controller/i.test(id) ? 'playstation' : 'xbox'; }
@@ -87,12 +89,14 @@ export class InputManager {
   private down(code: string): void { if (!this.held.has(code)) { this.held.add(code); this.pendingPressed.add(code); } }
   private up(code: string): void { if (this.held.delete(code)) this.pendingReleased.add(code); }
   releaseAll(): void {
+    this.releaseSerial++;
     this.autoWalking = false; this.orbitDrag = null;
     for (const c of [...this.held]) { this.held.delete(c); this.pendingReleased.add(c); }
     // Pointer-lock exit can open Pause before the Escape key reaches beginFrame. That same
     // edge must not immediately close the newly opened menu or activate its focused button.
     this.pendingPressed.clear(); this.framePressed.clear();
-    this.move.x = this.move.y = this.lookAccum.x = this.lookAccum.y = 0;
+    this.move.x = this.move.y = this.lookAccum.x = this.lookAccum.y = this.look.x = this.look.y = 0;
+    this.wheelAccum = this.wheel = 0;
   }
 
   requestLock(): void {

@@ -1,5 +1,10 @@
 # Known defects and gaps (web client)
 
+Current quality target: [QUALITY_TARGET.md](QUALITY_TARGET.md). This historical
+list predates the imported-human milestones; see `.ai/STATE.md` and the linked
+milestone evidence for subsequent fixes. Unverified art, feel and performance
+claims remain open until their corresponding acceptance gates are met.
+
 Honest list as of the last commit on `claude/web-rebirth`. "Open" means not fixed; "Mitigated" means
 reduced but present. Severity is my judgement, not a human's.
 

@@ -1,0 +1,31 @@
+{
+  "source": {
+    "path": ".debug/tower-growth/checkpoint-benchmark.json",
+    "bytes": 692,
+    "sha256": "c0483af1ab26274ed0661ed1c1550c849e22b5e5df7f5c5dce78f5b34fa0c118"
+  },
+  "kind": "single observed local checkpoint read/load/serialize under concurrent tests, not a general benchmark",
+  "file": ".debug/tower-growth/ranged-317-r6-resumed/floor-53.json",
+  "bytes": 90396301,
+  "readMs": 166.08840000000004,
+  "loadMs": 608.8976,
+  "serializeMs": 482.07230000000004,
+  "savedBytes": 90396301,
+  "loadedMemory": {
+    "rss": 509100032,
+    "heapTotal": 439463936,
+    "heapUsed": 405157664,
+    "external": 2399331,
+    "arrayBuffers": 25279
+  },
+  "afterSerializationMemory": {
+    "rss": 862736384,
+    "heapTotal": 792104960,
+    "heapUsed": 753260888,
+    "external": 2399371,
+    "arrayBuffers": 25279
+  },
+  "floor": 53,
+  "people": 569,
+  "events": 76544
+}

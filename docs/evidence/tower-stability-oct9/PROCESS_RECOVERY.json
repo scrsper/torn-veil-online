@@ -1,0 +1,19 @@
+{
+  "checks": [
+    {
+      "name": "process restart export retains exact final person inventory rank",
+      "ok": true
+    },
+    {
+      "name": "same completed summit and returned body retained",
+      "ok": true
+    },
+    {
+      "name": "exactly two committed portal crossings and no duplicate rewards",
+      "ok": true
+    }
+  ],
+  "people": 1774,
+  "events": 187217,
+  "exportBytes": 315200733
+}

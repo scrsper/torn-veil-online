@@ -1,5 +1,5 @@
 import { createServer } from 'node:http';
-import { createReadStream, existsSync } from 'node:fs';
+import { createReadStream, existsSync, statSync } from 'node:fs';
 import { resolve, extname, sep } from 'node:path';
 import { Observatory } from '../../src/observatory/runtime';
 import { canonicalDigest } from '../../src/observatory/fingerprint';
@@ -12,10 +12,13 @@ const worlds = { town, gym };
 let fixtureDigest = canonicalDigest(gym.world);
 let current: keyof typeof worlds = 'gym';
 for (const r of Object.values(worlds)) r.startLoop();
-const root = resolve('dist-web'), port = Number(process.env.TV_GYM_PORT ?? 7505);
+const root = resolve(process.env.TV_GYM_STATIC ?? 'dist-web'), port = Number(process.env.TV_GYM_PORT ?? 7505);
+const assetPath = process.env.TV_GYM_ASSETS ?? process.env.TV_REALMS_ASSETS;
+const assetRoot = assetPath ? resolve(assetPath) : null;
 const server = createServer(async (req, res) => {
   const url = new URL(req.url ?? '/', `http://127.0.0.1:${port}`);
   try {
+    if (url.pathname === '/favicon.ico') { res.writeHead(204).end(); return; }
     if (url.pathname.startsWith('/api/')) {
       res.setHeader('Content-Type', 'application/json');
       if (req.method === 'POST' && req.headers.origin && req.headers.origin !== `http://127.0.0.1:${port}`) throw new Error('Same-origin control required');
@@ -23,7 +26,9 @@ const server = createServer(async (req, res) => {
       const body = raw ? JSON.parse(raw) : {};
       let r = worlds[current], result: unknown;
       const path = url.pathname;
-      if (path === '/api/health') result = { ok: true, upstream: { health: { state: 'ready', env: 'dev' } }, isolation: 'Disposable town and gym; no save access', projectRoot: process.cwd(), fixtureDigest };
+      if (path === '/api/health') result = { ok: true, upstream: { health: { state: 'ready', env: 'dev' } }, isolation: 'Disposable town and gym; no save access', projectRoot: process.cwd(), buildRoot: root, assetRoot, fixtureDigest };
+      else if (path === '/api/session') result = { kind: 'isolated-observatory', persistent: false };
+      else if (path === '/api/upstream-health') result = { reachable: true, health: { state: 'ready', env: 'disposable' } };
       else if (path === '/api/gym/state') result = { scenario: current, fixtureDigest, canonicalDigest: canonicalDigest(r.world), bodies: r.world.bodies().map(b => ({ id: b.id, pos: b.pos, health: b.health, hitSeq: b.hitSeq })), events: r.world.events.slice(-20).map(e => ({ type: e.type, data: e.data })), paused: r.paused };
       else if (path === '/api/gym/control' && req.method === 'POST') {
         if (body.action === 'pause') { r.control(!!body.paused, 1); res.end(JSON.stringify({ scenario: current, seed: r.world.seed })); return; }
@@ -45,8 +50,14 @@ const server = createServer(async (req, res) => {
       else { res.statusCode = 404; result = { error: 'Unknown endpoint' }; }
       res.end(JSON.stringify(result)); return;
     }
-    const path = resolve(root, '.' + decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname));
-    if (!path.startsWith(root + sep) || !existsSync(path)) { res.statusCode = 404; res.end(); return; }
+    let path = resolve(root, '.' + decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname));
+    // Isolated QA may read the existing licensed asset kit without copying or
+    // replacing it. Only the same public subtrees as the realm/review hosts.
+    if (assetRoot && /^\/(models|textures|arena)\//.test(url.pathname) && (process.env.TV_GYM_ASSETS || !existsSync(path))) {
+      const existing = resolve(assetRoot, '.' + decodeURIComponent(url.pathname));
+      if (existing.startsWith(assetRoot + sep) && existsSync(existing) && statSync(existing).isFile()) path = existing;
+    }
+    if ((!path.startsWith(root + sep) && !path.startsWith((assetRoot ?? root) + sep)) || !existsSync(path)) { res.statusCode = 404; res.end(); return; }
     res.setHeader('Content-Type', ({ '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.glb': 'model/gltf-binary', '.png': 'image/png' } as Record<string, string>)[extname(path)] ?? 'application/octet-stream');
     createReadStream(path).pipe(res);
   } catch (error) { res.statusCode = 400; res.end(JSON.stringify({ error: String(error) })); }

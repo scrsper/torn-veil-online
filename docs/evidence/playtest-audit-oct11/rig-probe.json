@@ -1,0 +1,2272 @@
+{
+  "scope": "Right-handed NullEngine structural pose audit of the immutable 7517 static build using its actual GLBs and tested Retargeter. No foot IK, gaze, physics, or user-preview commands. Angles are structural observations, not a visual quality verdict.",
+  "source": {
+    "path": ".debug/quality-pass/client/arena/mixamo_clips.glb",
+    "sha256": "91dfc81c73db1be5983119f586550ce6c201389d9b3c24e755ca143367484de7",
+    "bind": {
+      "pelvis": [
+        2.1905060876292737e-8,
+        0.968527615070343,
+        0.030739761888980865
+      ],
+      "chest": [
+        2.7746887454327407e-8,
+        1.4046573638916016,
+        0.039742790162563324
+      ],
+      "neck": [
+        2.7743405794922182e-8,
+        1.7958334684371948,
+        0.15951277315616608
+      ],
+      "head": [
+        2.7739433861029283e-8,
+        1.9413585662841797,
+        0.31615373492240906
+      ],
+      "torsoFromVerticalDegrees": 8.847290967984112,
+      "upperBackFromVerticalDegrees": 27.249296465615718
+    },
+    "poses": [
+      {
+        "clip": "locomotion/idle",
+        "fraction": 0,
+        "pelvis": [
+          0.009146270342171192,
+          0.9401557445526123,
+          0.06346839666366577
+        ],
+        "chest": [
+          0.015452541410923004,
+          1.3757476806640625,
+          0.06587018817663193
+        ],
+        "neck": [
+          -0.008524990640580654,
+          1.7623335123062134,
+          0.1975511610507965
+        ],
+        "head": [
+          -0.025067036971449852,
+          1.885841965675354,
+          0.37129223346710205
+        ],
+        "torsoFromVerticalDegrees": 9.341086356648367,
+        "upperBackFromVerticalDegrees": 31.132074024836932
+      },
+      {
+        "clip": "locomotion/idle",
+        "fraction": 0.25,
+        "pelvis": [
+          0.004246708005666733,
+          0.9391433000564575,
+          0.06812826544046402
+        ],
+        "chest": [
+          0.006595450919121504,
+          1.3746763467788696,
+          0.07128114253282547
+        ],
+        "neck": [
+          -0.019975434988737106,
+          1.7601076364517212,
+          0.2058185338973999
+        ],
+        "head": [
+          -0.03532261773943901,
+          1.8819515705108643,
+          0.38083991408348083
+        ],
+        "torsoFromVerticalDegrees": 9.664367853553191,
+        "upperBackFromVerticalDegrees": 31.625081567099564
+      },
+      {
+        "clip": "locomotion/idle",
+        "fraction": 0.5,
+        "pelvis": [
+          0.004590856842696667,
+          0.9413117170333862,
+          0.06917717307806015
+        ],
+        "chest": [
+          0.005508665461093187,
+          1.377004623413086,
+          0.06408921629190445
+        ],
+        "neck": [
+          -0.02265073172748089,
+          1.766419768333435,
+          0.18626347184181213
+        ],
+        "head": [
+          -0.039812494069337845,
+          1.8954499959945679,
+          0.35588258504867554
+        ],
+        "torsoFromVerticalDegrees": 8.289347597828272,
+        "upperBackFromVerticalDegrees": 29.664632183288063
+      },
+      {
+        "clip": "locomotion/idle",
+        "fraction": 0.75,
+        "pelvis": [
+          0.0022004584316164255,
+          0.9374321699142456,
+          0.07032915949821472
+        ],
+        "chest": [
+          0.002636267337948084,
+          1.37283194065094,
+          0.0733535960316658
+        ],
+        "neck": [
+          -0.026276493445038795,
+          1.7572485208511353,
+          0.2102898359298706
+        ],
+        "head": [
+          -0.041199035942554474,
+          1.8761848211288452,
+          0.38733628392219543
+        ],
+        "torsoFromVerticalDegrees": 9.882871005118947,
+        "upperBackFromVerticalDegrees": 32.20404505410853
+      },
+      {
+        "clip": "locomotion/running",
+        "fraction": 0,
+        "pelvis": [
+          0.03361033275723457,
+          0.7309370040893555,
+          0.034663110971450806
+        ],
+        "chest": [
+          0.03364424407482147,
+          1.1370989084243774,
+          0.18448808789253235
+        ],
+        "neck": [
+          0.011832382529973984,
+          1.4237672090530396,
+          0.47553640604019165
+        ],
+        "head": [
+          0.0025850727688521147,
+          1.4908316135406494,
+          0.6783438324928284
+        ],
+        "torsoFromVerticalDegrees": 32.50172550516688,
+        "upperBackFromVerticalDegrees": 54.44073247748576
+      },
+      {
+        "clip": "locomotion/running",
+        "fraction": 0.25,
+        "pelvis": [
+          -0.003679748624563217,
+          0.8083756566047668,
+          0.728636622428894
+        ],
+        "chest": [
+          -0.007835324853658676,
+          1.2257280349731445,
+          0.8449540138244629
+        ],
+        "neck": [
+          0.0874156579375267,
+          1.55844247341156,
+          1.0631097555160522
+        ],
+        "head": [
+          0.16907638311386108,
+          1.6519896984100342,
+          1.237162709236145
+        ],
+        "torsoFromVerticalDegrees": 24.804837976202084,
+        "upperBackFromVerticalDegrees": 45.26759606357968
+      },
+      {
+        "clip": "locomotion/running",
+        "fraction": 0.5,
+        "pelvis": [
+          -0.036435455083847046,
+          0.7112178802490234,
+          1.5229783058166504
+        ],
+        "chest": [
+          -0.033055514097213745,
+          1.1242985725402832,
+          1.6569230556488037
+        ],
+        "neck": [
+          -0.005998764652758837,
+          1.435549259185791,
+          1.9210338592529297
+        ],
+        "head": [
+          -0.002459377981722355,
+          1.5201880931854248,
+          2.1173441410064697
+        ],
+        "torsoFromVerticalDegrees": 28.86149403007715,
+        "upperBackFromVerticalDegrees": 49.37205491193398
+      },
+      {
+        "clip": "locomotion/running",
+        "fraction": 0.75,
+        "pelvis": [
+          -0.008282575756311417,
+          0.821907103061676,
+          2.31730580329895
+        ],
+        "chest": [
+          -0.014125063084065914,
+          1.2422956228256226,
+          2.4294047355651855
+        ],
+        "neck": [
+          -0.10825935006141663,
+          1.578355073928833,
+          2.6428675651550293
+        ],
+        "head": [
+          -0.20662377774715424,
+          1.6769899129867554,
+          2.805070161819458
+        ],
+        "torsoFromVerticalDegrees": 24.23815748406991,
+        "upperBackFromVerticalDegrees": 44.158804730087105
+      },
+      {
+        "clip": "locomotion/walking",
+        "fraction": 0,
+        "pelvis": [
+          0.010548265650868416,
+          0.8866527080535889,
+          0.06363262236118317
+        ],
+        "chest": [
+          0.0119719747453928,
+          1.3170337677001953,
+          0.12666712701320648
+        ],
+        "neck": [
+          -0.012363995425403118,
+          1.6708837747573853,
+          0.3305337727069855
+        ],
+        "head": [
+          -0.02306453511118889,
+          1.7788872718811035,
+          0.5147474408149719
+        ],
+        "torsoFromVerticalDegrees": 18.85947811756264,
+        "upperBackFromVerticalDegrees": 40.15381005256342
+      },
+      {
+        "clip": "locomotion/walking",
+        "fraction": 0.25,
+        "pelvis": [
+          0.018523918464779854,
+          0.8534774780273438,
+          0.4501296579837799
+        ],
+        "chest": [
+          0.02994002215564251,
+          1.2847238779067993,
+          0.5102221965789795
+        ],
+        "neck": [
+          0.06665244698524475,
+          1.6439213752746582,
+          0.7025576829910278
+        ],
+        "head": [
+          0.08761952817440033,
+          1.7580205202102661,
+          0.882156491279602
+        ],
+        "torsoFromVerticalDegrees": 18.009468729136426,
+        "upperBackFromVerticalDegrees": 38.49281011750725
+      },
+      {
+        "clip": "locomotion/walking",
+        "fraction": 0.5,
+        "pelvis": [
+          0.03211260214447975,
+          0.8463402986526489,
+          0.9081376194953918
+        ],
+        "chest": [
+          0.030339917168021202,
+          1.2802441120147705,
+          0.9434753060340881
+        ],
+        "neck": [
+          0.021309062838554382,
+          1.6506046056747437,
+          1.1170122623443604
+        ],
+        "head": [
+          0.01816640980541706,
+          1.7713381052017212,
+          1.2934421300888062
+        ],
+        "torsoFromVerticalDegrees": 14.577227639584546,
+        "upperBackFromVerticalDegrees": 35.4910712572087
+      },
+      {
+        "clip": "locomotion/walking",
+        "fraction": 0.75,
+        "pelvis": [
+          0.016087548807263374,
+          0.8642410635948181,
+          1.3850594758987427
+        ],
+        "chest": [
+          0.0046632615849375725,
+          1.296303629875183,
+          1.437830924987793
+        ],
+        "neck": [
+          -0.06735972315073013,
+          1.6558711528778076,
+          1.6191800832748413
+        ],
+        "head": [
+          -0.1045333668589592,
+          1.770268440246582,
+          1.7959436178207397
+        ],
+        "torsoFromVerticalDegrees": 17.430690633979715,
+        "upperBackFromVerticalDegrees": 38.30566716088784
+      }
+    ]
+  },
+  "restFrames": [
+    {
+      "look": "hero",
+      "bones": [
+        {
+          "name": "pelvis",
+          "position": [
+            0,
+            -0.0061969514936208725,
+            0.9742808938026428
+          ],
+          "rotation": [
+            0.5738951563835144,
+            0,
+            0,
+            0.8189288377761841
+          ]
+        },
+        {
+          "name": "spine_01",
+          "position": [
+            0,
+            0.09444151818752289,
+            -2.0489096641540527e-8
+          ],
+          "rotation": [
+            0.23793357610702515,
+            0,
+            0,
+            0.9712814092636108
+          ]
+        },
+        {
+          "name": "spine_02",
+          "position": [
+            0,
+            0.07410771399736404,
+            -7.450580596923828e-9
+          ],
+          "rotation": [
+            -0.12112249433994293,
+            0,
+            0,
+            0.992637574672699
+          ]
+        },
+        {
+          "name": "spine_03",
+          "position": [
+            0,
+            0.06563955545425415,
+            1.1175870895385742e-8
+          ],
+          "rotation": [
+            -0.03153426572680473,
+            0,
+            0,
+            0.9995026588439941
+          ]
+        },
+        {
+          "name": "neck_01",
+          "position": [
+            0,
+            0.3390074074268341,
+            0.09744726121425629
+          ],
+          "rotation": [
+            0.24891425669193268,
+            0,
+            0,
+            0.9685255289077759
+          ]
+        },
+        {
+          "name": "head",
+          "position": [
+            0,
+            0.10396155714988708,
+            -3.725290298461914e-9
+          ],
+          "rotation": [
+            -0.1683383584022522,
+            0,
+            0,
+            0.9857292771339417
+          ]
+        }
+      ]
+    },
+    {
+      "look": "wren",
+      "bones": [
+        {
+          "name": "pelvis",
+          "position": [
+            0,
+            -0.02103944681584835,
+            0.7853068113327026
+          ],
+          "rotation": [
+            0.4578670561313629,
+            0,
+            0,
+            0.8890206813812256
+          ]
+        },
+        {
+          "name": "spine_01",
+          "position": [
+            0,
+            0.06844819337129593,
+            1.1175870895385742e-8
+          ],
+          "rotation": [
+            0.44585853815078735,
+            0,
+            0,
+            0.8951034545898438
+          ]
+        },
+        {
+          "name": "spine_02",
+          "position": [
+            0,
+            0.06308066099882126,
+            1.9470462575554848e-8
+          ],
+          "rotation": [
+            -0.08562435209751129,
+            0,
+            0,
+            0.9963275194168091
+          ]
+        },
+        {
+          "name": "spine_03",
+          "position": [
+            0,
+            0.08394785970449448,
+            9.313225746154785e-10
+          ],
+          "rotation": [
+            -0.1025019958615303,
+            0,
+            0,
+            0.9947327971458435
+          ]
+        },
+        {
+          "name": "neck_01",
+          "position": [
+            0,
+            0.27826568484306335,
+            0.008935417979955673
+          ],
+          "rotation": [
+            0.205913245677948,
+            0,
+            0,
+            0.978570282459259
+          ]
+        },
+        {
+          "name": "head",
+          "position": [
+            0,
+            0.10757725685834885,
+            1.1175870895385742e-8
+          ],
+          "rotation": [
+            -0.19298124313354492,
+            0,
+            0,
+            0.9812024831771851
+          ]
+        }
+      ]
+    },
+    {
+      "look": "brann",
+      "bones": [
+        {
+          "name": "pelvis",
+          "position": [
+            0,
+            -0.005268501117825508,
+            0.9892089366912842
+          ],
+          "rotation": [
+            0.571292519569397,
+            0,
+            0,
+            0.8207465410232544
+          ]
+        },
+        {
+          "name": "spine_01",
+          "position": [
+            0,
+            0.09452379494905472,
+            9.313225746154785e-9
+          ],
+          "rotation": [
+            0.2417834997177124,
+            0,
+            0,
+            0.9703302383422852
+          ]
+        },
+        {
+          "name": "spine_02",
+          "position": [
+            0,
+            0.07367613911628723,
+            -1.862645149230957e-9
+          ],
+          "rotation": [
+            -0.14163246750831604,
+            0,
+            0,
+            0.9899193644523621
+          ]
+        },
+        {
+          "name": "spine_03",
+          "position": [
+            0,
+            0.06593029946088791,
+            9.313225746154785e-9
+          ],
+          "rotation": [
+            -0.0017429058207198977,
+            0,
+            0,
+            0.9999984502792358
+          ]
+        },
+        {
+          "name": "neck_01",
+          "position": [
+            0,
+            0.3475341498851776,
+            0.09461478143930435
+          ],
+          "rotation": [
+            0.22933799028396606,
+            0,
+            0,
+            0.9733468890190125
+          ]
+        },
+        {
+          "name": "head",
+          "position": [
+            0,
+            0.10410505533218384,
+            2.9802322387695312e-8
+          ],
+          "rotation": [
+            -0.1563599854707718,
+            0,
+            0,
+            0.9877001643180847
+          ]
+        }
+      ]
+    },
+    {
+      "look": "mystic",
+      "bones": [
+        {
+          "name": "pelvis",
+          "position": [
+            0,
+            -0.02435915730893612,
+            0.8316318392753601
+          ],
+          "rotation": [
+            0.4837568402290344,
+            0,
+            0,
+            0.8752024173736572
+          ]
+        },
+        {
+          "name": "spine_01",
+          "position": [
+            0,
+            0.0849541425704956,
+            9.313225746154785e-9
+          ],
+          "rotation": [
+            0.4340241849422455,
+            0,
+            0,
+            0.900901198387146
+          ]
+        },
+        {
+          "name": "spine_02",
+          "position": [
+            0,
+            0.0670003890991211,
+            1.682201400399208e-8
+          ],
+          "rotation": [
+            -0.10213562846183777,
+            0,
+            0,
+            0.9947705268859863
+          ]
+        },
+        {
+          "name": "spine_03",
+          "position": [
+            0,
+            0.0921398475766182,
+            -1.862645149230957e-9
+          ],
+          "rotation": [
+            -0.06490762531757355,
+            0,
+            0,
+            0.9978913068771362
+          ]
+        },
+        {
+          "name": "neck_01",
+          "position": [
+            0,
+            0.2964608669281006,
+            -0.010482107289135456
+          ],
+          "rotation": [
+            0.17656062543392181,
+            0,
+            0,
+            0.984289824962616
+          ]
+        },
+        {
+          "name": "head",
+          "position": [
+            0,
+            0.11534512788057327,
+            -2.9802322387695312e-8
+          ],
+          "rotation": [
+            -0.2006678581237793,
+            0,
+            0,
+            0.9796593189239502
+          ]
+        }
+      ]
+    }
+  ],
+  "torsoCorrectionDiagnostic": {
+    "scope": "Only the offline retargeter torso correction map was replaced with identity; target bind transforms and source idle are retained. No live/source changes.",
+    "withoutTorsoCorrection": {
+      "pelvis": [
+        0.009203352965414524,
+        0.9460256695747375,
+        0.03921077027916908
+      ],
+      "chest": [
+        0.01710708998143673,
+        1.171217441558838,
+        0.004832565784454346
+      ],
+      "neck": [
+        -0.0005089938058517873,
+        1.5201983451843262,
+        0.05303947255015373
+      ],
+      "head": [
+        -0.007917000912129879,
+        1.61317777633667,
+        0.0989517942070961
+      ],
+      "torsoFromVerticalDegrees": 1.6857978401835165,
+      "upperBackFromVerticalDegrees": 12.426931514088173
+    }
+  },
+  "selectedClips": [
+    "locomotion/idle",
+    "locomotion/running",
+    "locomotion/walking"
+  ],
+  "availableNames": [
+    "great_sword/draw a great sword 1",
+    "great_sword/draw a great sword 2",
+    "great_sword/great sword 180 turn (2)",
+    "great_sword/great sword 180 turn",
+    "great_sword/great sword attack",
+    "great_sword/great sword blocking (2)",
+    "great_sword/great sword blocking (3)",
+    "great_sword/great sword blocking",
+    "great_sword/great sword casting",
+    "great_sword/great sword crouching (2)",
+    "great_sword/great sword crouching (3)",
+    "great_sword/great sword crouching (4)",
+    "great_sword/great sword crouching (5)",
+    "great_sword/great sword crouching (6)",
+    "great_sword/great sword crouching",
+    "great_sword/great sword high spin attack",
+    "great_sword/great sword idle (2)",
+    "great_sword/great sword idle (3)",
+    "great_sword/great sword idle (4)",
+    "great_sword/great sword idle (5)",
+    "great_sword/great sword idle",
+    "great_sword/great sword impact (2)",
+    "great_sword/great sword impact (3)",
+    "great_sword/great sword impact (4)",
+    "great_sword/great sword impact (5)",
+    "great_sword/great sword impact",
+    "great_sword/great sword jump (2)",
+    "great_sword/great sword jump attack",
+    "great_sword/great sword jump",
+    "great_sword/great sword kick (2)",
+    "great_sword/great sword kick",
+    "great_sword/great sword power up",
+    "great_sword/great sword run (2)",
+    "great_sword/great sword run",
+    "great_sword/great sword slash (2)",
+    "great_sword/great sword slash (3)",
+    "great_sword/great sword slash (4)",
+    "great_sword/great sword slash (5)",
+    "great_sword/great sword slash",
+    "great_sword/great sword slide attack",
+    "great_sword/great sword strafe (2)",
+    "great_sword/great sword strafe (3)",
+    "great_sword/great sword strafe (4)",
+    "great_sword/great sword strafe",
+    "great_sword/great sword turn (2)",
+    "great_sword/great sword turn",
+    "great_sword/great sword walk (2)",
+    "great_sword/great sword walk",
+    "great_sword/spell cast",
+    "great_sword/two handed sword death (2)",
+    "great_sword/two handed sword death",
+    "sword_and_shield/sheath sword 1",
+    "sword_and_shield/sheath sword 2",
+    "sword_and_shield/sword and shield 180 turn (2)",
+    "sword_and_shield/sword and shield 180 turn",
+    "sword_and_shield/sword and shield attack (2)",
+    "sword_and_shield/sword and shield attack (3)",
+    "sword_and_shield/sword and shield attack (4)",
+    "sword_and_shield/sword and shield attack",
+    "sword_and_shield/sword and shield block (2)",
+    "sword_and_shield/sword and shield block idle",
+    "sword_and_shield/sword and shield block",
+    "sword_and_shield/sword and shield casting (2)",
+    "sword_and_shield/sword and shield casting",
+    "sword_and_shield/sword and shield crouch block (2)",
+    "sword_and_shield/sword and shield crouch block idle",
+    "sword_and_shield/sword and shield crouch block",
+    "sword_and_shield/sword and shield crouch idle",
+    "sword_and_shield/sword and shield crouch",
+    "sword_and_shield/sword and shield crouching (2)",
+    "sword_and_shield/sword and shield crouching (3)",
+    "sword_and_shield/sword and shield crouching",
+    "sword_and_shield/sword and shield death (2)",
+    "sword_and_shield/sword and shield death",
+    "sword_and_shield/sword and shield idle (2)",
+    "sword_and_shield/sword and shield idle (3)",
+    "sword_and_shield/sword and shield idle (4)",
+    "sword_and_shield/sword and shield idle",
+    "sword_and_shield/sword and shield impact (2)",
+    "sword_and_shield/sword and shield impact (3)",
+    "sword_and_shield/sword and shield impact",
+    "sword_and_shield/sword and shield jump (2)",
+    "sword_and_shield/sword and shield jump",
+    "sword_and_shield/sword and shield kick",
+    "sword_and_shield/sword and shield power up",
+    "sword_and_shield/sword and shield run (2)",
+    "sword_and_shield/sword and shield run",
+    "sword_and_shield/sword and shield slash (2)",
+    "sword_and_shield/sword and shield slash (3)",
+    "sword_and_shield/sword and shield slash (4)",
+    "sword_and_shield/sword and shield slash (5)",
+    "sword_and_shield/sword and shield slash",
+    "sword_and_shield/sword and shield strafe (2)",
+    "sword_and_shield/sword and shield strafe (3)",
+    "sword_and_shield/sword and shield strafe (4)",
+    "sword_and_shield/sword and shield strafe",
+    "sword_and_shield/sword and shield turn (2)",
+    "sword_and_shield/sword and shield turn",
+    "sword_and_shield/sword and shield walk (2)",
+    "sword_and_shield/sword and shield walk",
+    "pro_longbow/fall a land to run forward",
+    "pro_longbow/fall a land to standing idle 01",
+    "pro_longbow/fall a loop",
+    "pro_longbow/standing aim overdraw",
+    "pro_longbow/standing aim recoil",
+    "pro_longbow/standing aim walk back",
+    "pro_longbow/standing aim walk forward",
+    "pro_longbow/standing aim walk left",
+    "pro_longbow/standing aim walk right",
+    "pro_longbow/standing block",
+    "pro_longbow/standing death backward 01",
+    "pro_longbow/standing death forward 01",
+    "pro_longbow/standing disarm bow",
+    "pro_longbow/standing dive forward",
+    "pro_longbow/standing dodge backward",
+    "pro_longbow/standing dodge forward",
+    "pro_longbow/standing dodge left",
+    "pro_longbow/standing dodge right",
+    "pro_longbow/standing draw arrow",
+    "pro_longbow/standing equip bow",
+    "pro_longbow/standing idle 01",
+    "pro_longbow/standing idle 02 looking",
+    "pro_longbow/standing idle 03 examine",
+    "pro_longbow/standing melee kick",
+    "pro_longbow/standing melee punch",
+    "pro_longbow/standing react small from front",
+    "pro_longbow/standing react small from headshot",
+    "pro_longbow/standing run back",
+    "pro_longbow/standing run forward stop",
+    "pro_longbow/standing run forward",
+    "pro_longbow/standing run left",
+    "pro_longbow/standing run right",
+    "pro_longbow/standing turn 90 left",
+    "pro_longbow/standing turn 90 right",
+    "pro_longbow/standing walk back",
+    "pro_longbow/standing walk forward",
+    "pro_longbow/standing walk left",
+    "pro_longbow/standing walk right",
+    "pro_longbow/unarmed idle 01",
+    "locomotion/idle",
+    "locomotion/jump",
+    "locomotion/left strafe walking",
+    "locomotion/left strafe",
+    "locomotion/left turn 90",
+    "locomotion/left turn",
+    "locomotion/right strafe walking",
+    "locomotion/right strafe",
+    "locomotion/right turn 90",
+    "locomotion/right turn",
+    "locomotion/running",
+    "locomotion/walking",
+    "female_locomotion/idle",
+    "female_locomotion/jump",
+    "female_locomotion/left strafe walk",
+    "female_locomotion/left strafe",
+    "female_locomotion/left turn",
+    "female_locomotion/right strafe walk",
+    "female_locomotion/right strafe",
+    "female_locomotion/right turn",
+    "female_locomotion/running",
+    "female_locomotion/walking"
+  ],
+  "rows": [
+    {
+      "look": "hero",
+      "path": ".debug/quality-pass/client/arena/people/hero.glb",
+      "sha256": "8a5d232eef51765dce2ee18b7ce908fc53b871aa125b2fbbe50ae4e12dae2d4d",
+      "bind": {
+        "pelvis": [
+          0,
+          0.974574625492096,
+          0.006277794949710369
+        ],
+        "chest": [
+          0,
+          1.20204496383667,
+          -0.02343480847775936
+        ],
+        "neck": [
+          0,
+          1.5527936220169067,
+          0.013944827020168304
+        ],
+        "head": [
+          0,
+          1.651166319847107,
+          0.04757242277264595
+        ],
+        "torsoFromVerticalDegrees": 0.7596824716098448,
+        "upperBackFromVerticalDegrees": 8.984243385354665
+      },
+      "poses": [
+        {
+          "clip": "locomotion/idle",
+          "fraction": 0,
+          "pelvis": [
+            0.009203352965414524,
+            0.9460256695747375,
+            0.03921077027916908
+          ],
+          "chest": [
+            0.01442684419453144,
+            1.1798137426376343,
+            0.0385286919772625
+          ],
+          "neck": [
+            -0.006247072014957666,
+            1.5131357908248901,
+            0.1520666629076004
+          ],
+          "head": [
+            -0.014290433377027512,
+            1.5731902122497559,
+            0.23654605448246002
+          ],
+          "torsoFromVerticalDegrees": 11.357192788361195,
+          "upperBackFromVerticalDegrees": 26.9599254944559
+        },
+        {
+          "clip": "locomotion/idle",
+          "fraction": 0.25,
+          "pelvis": [
+            0.004273200407624245,
+            0.9450069069862366,
+            0.04389972612261772
+          ],
+          "chest": [
+            0.007459143176674843,
+            1.1787797212600708,
+            0.04342414438724518
+          ],
+          "neck": [
+            -0.015450801700353622,
+            1.5111061334609985,
+            0.15942493081092834
+          ],
+          "head": [
+            -0.022913174703717232,
+            1.5703511238098145,
+            0.24452684819698334
+          ],
+          "torsoFromVerticalDegrees": 11.69644485347699,
+          "upperBackFromVerticalDegrees": 27.447495342429765
+        },
+        {
+          "clip": "locomotion/idle",
+          "fraction": 0.5,
+          "pelvis": [
+            0.0046194978058338165,
+            0.9471888542175293,
+            0.044955190271139145
+          ],
+          "chest": [
+            0.006998928729444742,
+            1.1810282468795776,
+            0.04053652286529541
+          ],
+          "neck": [
+            -0.017280658707022667,
+            1.5167895555496216,
+            0.14587754011154175
+          ],
+          "head": [
+            -0.02562534622848034,
+            1.57952880859375,
+            0.2283526510000229
+          ],
+          "torsoFromVerticalDegrees": 10.276355292310285,
+          "upperBackFromVerticalDegrees": 25.56479968994848
+        },
+        {
+          "clip": "locomotion/idle",
+          "fraction": 0.75,
+          "pelvis": [
+            0.002214175183326006,
+            0.9432850480079651,
+            0.046114370226860046
+          ],
+          "chest": [
+            0.004505074117332697,
+            1.1769883632659912,
+            0.04531832039356232
+          ],
+          "neck": [
+            -0.02042407914996147,
+            1.5084398984909058,
+            0.16338741779327393
+          ],
+          "head": [
+            -0.02767997421324253,
+            1.566271185874939,
+            0.24947397410869598
+          ],
+          "torsoFromVerticalDegrees": 11.933124668470265,
+          "upperBackFromVerticalDegrees": 27.96461469067681
+        },
+        {
+          "clip": "locomotion/running",
+          "fraction": 0,
+          "pelvis": [
+            0.03382015600800514,
+            0.735500693321228,
+            0.01022564060986042
+          ],
+          "chest": [
+            0.03708091750741005,
+            0.9550173282623291,
+            0.08598856627941132
+          ],
+          "neck": [
+            0.01827429048717022,
+            1.2021883726119995,
+            0.3369361460208893
+          ],
+          "head": [
+            0.013777907006442547,
+            1.234797477722168,
+            0.43554866313934326
+          ],
+          "torsoFromVerticalDegrees": 35.024865201335714,
+          "upperBackFromVerticalDegrees": 51.388952039811194
+        },
+        {
+          "clip": "locomotion/running",
+          "fraction": 0.25,
+          "pelvis": [
+            -0.003702642861753702,
+            0.8134228587150574,
+            -0.06938634812831879
+          ],
+          "chest": [
+            -0.01076760794967413,
+            1.0377076864242554,
+            -0.008845693431794643
+          ],
+          "neck": [
+            0.07135967165231705,
+            1.3245806694030762,
+            0.1792524755001068
+          ],
+          "head": [
+            0.11106615513563156,
+            1.37006676197052,
+            0.26388347148895264
+          ],
+          "torsoFromVerticalDegrees": 26.93538250873851,
+          "upperBackFromVerticalDegrees": 41.947357476705875
+        },
+        {
+          "clip": "locomotion/running",
+          "fraction": 0.5,
+          "pelvis": [
+            -0.0366627536714077,
+            0.71565842628479,
+            -0.04800337925553322
+          ],
+          "chest": [
+            -0.03744970262050629,
+            0.9383860230445862,
+            0.0204895231872797
+          ],
+          "neck": [
+            -0.01412083301693201,
+            1.2067525386810303,
+            0.2482110559940338
+          ],
+          "head": [
+            -0.012399856001138687,
+            1.247907042503357,
+            0.34366440773010254
+          ],
+          "torsoFromVerticalDegrees": 31.17043455830933,
+          "upperBackFromVerticalDegrees": 46.321993274145036
+        },
+        {
+          "clip": "locomotion/running",
+          "fraction": 0.75,
+          "pelvis": [
+            -0.008333999663591385,
+            0.8270387053489685,
+            -0.02663475275039673
+          ],
+          "chest": [
+            -0.010610119439661503,
+            1.053406000137329,
+            0.03062300756573677
+          ],
+          "neck": [
+            -0.09177456796169281,
+            1.343163013458252,
+            0.21467486023902893
+          ],
+          "head": [
+            -0.13960306346416473,
+            1.391122817993164,
+            0.29354366660118103
+          ],
+          "torsoFromVerticalDegrees": 26.321765975184093,
+          "upperBackFromVerticalDegrees": 40.93096492356887
+        },
+        {
+          "clip": "locomotion/walking",
+          "fraction": 0,
+          "pelvis": [
+            0.010614101774990559,
+            0.892188549041748,
+            0.03937602415680885
+          ],
+          "chest": [
+            0.012452006340026855,
+            1.1237114667892456,
+            0.06944053620100021
+          ],
+          "neck": [
+            -0.008530940860509872,
+            1.4288078546524048,
+            0.24521827697753906
+          ],
+          "head": [
+            -0.013733942992985249,
+            1.4813232421875,
+            0.33478978276252747
+          ],
+          "torsoFromVerticalDegrees": 21.069000181487265,
+          "upperBackFromVerticalDegrees": 36.70850560749994
+        },
+        {
+          "clip": "locomotion/walking",
+          "fraction": 0.25,
+          "pelvis": [
+            0.018639618530869484,
+            0.8588061928749084,
+            -0.009525522589683533
+          ],
+          "chest": [
+            0.02442564070224762,
+            1.0906716585159302,
+            0.019940951839089394
+          ],
+          "neck": [
+            0.05607981979846954,
+            1.4003788232803345,
+            0.18577638268470764
+          ],
+          "head": [
+            0.06627479940652847,
+            1.4558581113815308,
+            0.2731040120124817
+          ],
+          "torsoFromVerticalDegrees": 20.162561849605712,
+          "upperBackFromVerticalDegrees": 35.093840203430325
+        },
+        {
+          "clip": "locomotion/walking",
+          "fraction": 0.5,
+          "pelvis": [
+            0.032313212752342224,
+            0.8516244292259216,
+            0.013530339114367962
+          ],
+          "chest": [
+            0.03054133802652359,
+            1.0847479104995728,
+            0.02941093221306801
+          ],
+          "neck": [
+            0.022754767909646034,
+            1.4040800333023071,
+            0.179037943482399
+          ],
+          "head": [
+            0.02122669667005539,
+            1.4627851247787476,
+            0.2648247182369232
+          ],
+          "torsoFromVerticalDegrees": 16.703687958059643,
+          "upperBackFromVerticalDegrees": 31.931728085960483
+        },
+        {
+          "clip": "locomotion/walking",
+          "fraction": 0.75,
+          "pelvis": [
+            0.016188187524676323,
+            0.8696370124816895,
+            0.055618274956941605
+          ],
+          "chest": [
+            0.010781720280647278,
+            1.1019213199615479,
+            0.08099286258220673
+          ],
+          "neck": [
+            -0.05131791532039642,
+            1.41194748878479,
+            0.23735563457012177
+          ],
+          "head": [
+            -0.06939312070608139,
+            1.4675716161727905,
+            0.3233046531677246
+          ],
+          "torsoFromVerticalDegrees": 19.67139987812117,
+          "upperBackFromVerticalDegrees": 34.915818240877904
+        }
+      ]
+    },
+    {
+      "look": "wren",
+      "path": ".debug/quality-pass/client/arena/people/wren.glb",
+      "sha256": "cb3a148dccac32e005a638f5d66173a2f4a877f195a4ad78e710b9ac62aba03c",
+      "bind": {
+        "pelvis": [
+          0,
+          0.7888160943984985,
+          0.021099738776683807
+        ],
+        "chest": [
+          0,
+          0.9879201650619507,
+          0.011421888135373592
+        ],
+        "neck": [
+          0,
+          1.2661057710647583,
+          0.0002706611412577331
+        ],
+        "head": [
+          0,
+          1.3674299716949463,
+          0.036412861198186874
+        ],
+        "torsoFromVerticalDegrees": 2.498821050437477,
+        "upperBackFromVerticalDegrees": 3.767525733840752
+      },
+      "poses": [
+        {
+          "clip": "locomotion/idle",
+          "fraction": 0,
+          "pelvis": [
+            0.007420758251100779,
+            0.7660627365112305,
+            0.031611159443855286
+          ],
+          "chest": [
+            0.010665221139788628,
+            0.9812142252922058,
+            0.032731857150793076
+          ],
+          "neck": [
+            -0.0024181415792554617,
+            1.2584168910980225,
+            0.055072903633117676
+          ],
+          "head": [
+            -0.010741246864199638,
+            1.3205599784851074,
+            0.1424904465675354
+          ],
+          "torsoFromVerticalDegrees": 2.9579950943688904,
+          "upperBackFromVerticalDegrees": 18.238903308665453
+        },
+        {
+          "clip": "locomotion/idle",
+          "fraction": 0.25,
+          "pelvis": [
+            0.0034455256536602974,
+            0.7652412056922913,
+            0.0353919118642807
+          ],
+          "chest": [
+            0.004740394186228514,
+            0.9803652167320251,
+            0.03687296435236931
+          ],
+          "neck": [
+            -0.011385433375835419,
+            1.257239580154419,
+            0.061206184327602386
+          ],
+          "head": [
+            -0.01910734362900257,
+            1.3185451030731201,
+            0.14926789700984955
+          ],
+          "torsoFromVerticalDegrees": 3.4628082261264015,
+          "upperBackFromVerticalDegrees": 18.765260667517357
+        },
+        {
+          "clip": "locomotion/idle",
+          "fraction": 0.5,
+          "pelvis": [
+            0.003724748734384775,
+            0.7670005559921265,
+            0.03624294325709343
+          ],
+          "chest": [
+            0.004311299882829189,
+            0.9822022914886475,
+            0.03367900103330612
+          ],
+          "neck": [
+            -0.01255850400775671,
+            1.259666919708252,
+            0.049184203147888184
+          ],
+          "head": [
+            -0.02119341492652893,
+            1.3245882987976074,
+            0.1345277577638626
+          ],
+          "torsoFromVerticalDegrees": 2.417494272868918,
+          "upperBackFromVerticalDegrees": 16.8998516110242
+        },
+        {
+          "clip": "locomotion/idle",
+          "fraction": 0.75,
+          "pelvis": [
+            0.0017853121971711516,
+            0.7638528943061829,
+            0.03717759996652603
+          ],
+          "chest": [
+            0.00214250385761261,
+            0.9789121747016907,
+            0.038582976907491684
+          ],
+          "neck": [
+            -0.01612021028995514,
+            1.2554984092712402,
+            0.06462355703115463
+          ],
+          "head": [
+            -0.023628462105989456,
+            1.3153409957885742,
+            0.1537041813135147
+          ],
+          "torsoFromVerticalDegrees": 3.813363289914261,
+          "upperBackFromVerticalDegrees": 19.32347752831396
+        },
+        {
+          "clip": "locomotion/running",
+          "fraction": 0,
+          "pelvis": [
+            0.02642473205924034,
+            0.5779491662979126,
+            0.007986733689904213
+          ],
+          "chest": [
+            0.026530420407652855,
+            0.7786280512809753,
+            0.08182504773139954
+          ],
+          "neck": [
+            0.011269540525972843,
+            1.0163716077804565,
+            0.22589682042598724
+          ],
+          "head": [
+            0.006616774946451187,
+            1.0501148700714111,
+            0.3279390037059784
+          ],
+          "torsoFromVerticalDegrees": 26.483993163533977,
+          "upperBackFromVerticalDegrees": 42.28663619926097
+        },
+        {
+          "clip": "locomotion/running",
+          "fraction": 0.25,
+          "pelvis": [
+            -0.0028929889667779207,
+            0.638832151889801,
+            -0.05421656742691994
+          ],
+          "chest": [
+            -0.0050655631348490715,
+            0.8449680805206299,
+            0.003241546219214797
+          ],
+          "neck": [
+            0.027508985251188278,
+            1.1038647890090942,
+            0.10031364113092422
+          ],
+          "head": [
+            0.06859643757343292,
+            1.1509329080581665,
+            0.18788808584213257
+          ],
+          "torsoFromVerticalDegrees": 18.709679283056598,
+          "upperBackFromVerticalDegrees": 33.01337884688701
+        },
+        {
+          "clip": "locomotion/running",
+          "fraction": 0.5,
+          "pelvis": [
+            -0.028645740821957588,
+            0.5624458193778992,
+            -0.03750939667224884
+          ],
+          "chest": [
+            -0.027104921638965607,
+            0.7664979100227356,
+            0.028590714558959007
+          ],
+          "neck": [
+            -0.005514559336006641,
+            1.0157719850540161,
+            0.15068863332271576
+          ],
+          "head": [
+            -0.003733727615326643,
+            1.058357834815979,
+            0.2494617998600006
+          ],
+          "torsoFromVerticalDegrees": 22.698254251739833,
+          "upperBackFromVerticalDegrees": 37.270977830588485
+        },
+        {
+          "clip": "locomotion/running",
+          "fraction": 0.75,
+          "pelvis": [
+            -0.006511611398309469,
+            0.6494706869125366,
+            -0.020813429728150368
+          ],
+          "chest": [
+            -0.00937687885016203,
+            0.8571210503578186,
+            0.03451457619667053
+          ],
+          "neck": [
+            -0.029621271416544914,
+            1.115627408027649,
+            0.13588611781597137
+          ],
+          "head": [
+            -0.07911321520805359,
+            1.1652551889419556,
+            0.21749792993068695
+          ],
+          "torsoFromVerticalDegrees": 18.767144347669216,
+          "upperBackFromVerticalDegrees": 32.436258647729524
+        },
+        {
+          "clip": "locomotion/walking",
+          "fraction": 0,
+          "pelvis": [
+            0.00704118050634861,
+            0.5951743721961975,
+            0.02612791769206524
+          ],
+          "chest": [
+            0.007841295562684536,
+            0.8077825903892517,
+            0.05708090960979462
+          ],
+          "neck": [
+            -0.0043017081916332245,
+            1.0754706859588623,
+            0.13262709975242615
+          ],
+          "head": [
+            -0.009685667231678963,
+            1.1298125982284546,
+            0.22531387209892273
+          ],
+          "torsoFromVerticalDegrees": 12.570749715993548,
+          "upperBackFromVerticalDegrees": 27.710315716315808
+        },
+        {
+          "clip": "locomotion/walking",
+          "fraction": 0.25,
+          "pelvis": [
+            0.012365146540105343,
+            0.5730291604995728,
+            -0.0063123819418251514
+          ],
+          "chest": [
+            0.017891038209199905,
+            0.786057710647583,
+            0.023230575025081635
+          ],
+          "neck": [
+            0.03737528994679451,
+            1.0555709600448608,
+            0.09027211368083954
+          ],
+          "head": [
+            0.047924838960170746,
+            1.112979769706726,
+            0.1806369572877884
+          ],
+          "torsoFromVerticalDegrees": 11.68183823667433,
+          "upperBackFromVerticalDegrees": 26.11251997644734
+        },
+        {
+          "clip": "locomotion/walking",
+          "fraction": 0.5,
+          "pelvis": [
+            0.02143593318760395,
+            0.5682649612426758,
+            0.008982410654425621
+          ],
+          "chest": [
+            0.020557520911097527,
+            0.7825957536697388,
+            0.02629615180194378
+          ],
+          "neck": [
+            0.020544061437249184,
+            1.0559238195419312,
+            0.07924278825521469
+          ],
+          "head": [
+            0.018962843343615532,
+            1.1166706085205078,
+            0.16801320016384125
+          ],
+          "torsoFromVerticalDegrees": 8.199231468222012,
+          "upperBackFromVerticalDegrees": 22.988323475112345
+        },
+        {
+          "clip": "locomotion/walking",
+          "fraction": 0.75,
+          "pelvis": [
+            0.010738915763795376,
+            0.5802140831947327,
+            0.03690269589424133
+          ],
+          "chest": [
+            0.005308815743774176,
+            0.7936475276947021,
+            0.06281108409166336
+          ],
+          "neck": [
+            -0.027134744450449944,
+            1.0632472038269043,
+            0.12425225973129272
+          ],
+          "head": [
+            -0.045838598161935806,
+            1.1208059787750244,
+            0.21319055557250977
+          ],
+          "torsoFromVerticalDegrees": 11.150203031286715,
+          "upperBackFromVerticalDegrees": 25.897175487338476
+        }
+      ]
+    },
+    {
+      "look": "brann",
+      "path": ".debug/quality-pass/client/arena/people/brann.glb",
+      "sha256": "3e6ed2917a0504543651a384e991dbc8fca55b71af96c27d3974a74ee9ce5568",
+      "bind": {
+        "pelvis": [
+          0,
+          0.9892853498458862,
+          0.006947151850908995
+        ],
+        "chest": [
+          0,
+          1.2161307334899902,
+          -0.025931738317012787
+        ],
+        "neck": [
+          0,
+          1.574062466621399,
+          0.01427717786282301
+        ],
+        "head": [
+          0,
+          1.673241376876831,
+          0.0459221787750721
+        ],
+        "torsoFromVerticalDegrees": 0.7181497848672167,
+        "upperBackFromVerticalDegrees": 8.933311095353751
+      },
+      "poses": [
+        {
+          "clip": "locomotion/idle",
+          "fraction": 0,
+          "pelvis": [
+            0.0093443114310503,
+            0.9602931141853333,
+            0.04140789434313774
+          ],
+          "chest": [
+            0.014563243836164474,
+            1.1940224170684814,
+            0.04071987047791481
+          ],
+          "neck": [
+            -0.006341678090393543,
+            1.5359963178634644,
+            0.1518448144197464
+          ],
+          "head": [
+            -0.014396142214536667,
+            1.5961335897445679,
+            0.23644083738327026
+          ],
+          "torsoFromVerticalDegrees": 10.965469819666255,
+          "upperBackFromVerticalDegrees": 26.198691563919255
+        },
+        {
+          "clip": "locomotion/idle",
+          "fraction": 0.25,
+          "pelvis": [
+            0.00433864863589406,
+            0.9592587947845459,
+            0.04616866260766983
+          ],
+          "chest": [
+            0.007520515471696854,
+            1.1929725408554077,
+            0.045687008649110794
+          ],
+          "neck": [
+            -0.015766436234116554,
+            1.5339620113372803,
+            0.15933452546596527
+          ],
+          "head": [
+            -0.02323910966515541,
+            1.593288779258728,
+            0.24455392360687256
+          ],
+          "torsoFromVerticalDegrees": 11.309672037873758,
+          "upperBackFromVerticalDegrees": 26.68784745369144
+        },
+        {
+          "clip": "locomotion/idle",
+          "fraction": 0.5,
+          "pelvis": [
+            0.004690249916166067,
+            0.9614741206169128,
+            0.04724029451608658
+          ],
+          "chest": [
+            0.007065722718834877,
+            1.1952546834945679,
+            0.042816806584596634
+          ],
+          "neck": [
+            -0.01759704202413559,
+            1.5395997762680054,
+            0.14553062617778778
+          ],
+          "head": [
+            -0.025953246280550957,
+            1.6024256944656372,
+            0.2281195968389511
+          ],
+          "torsoFromVerticalDegrees": 9.889073922804393,
+          "upperBackFromVerticalDegrees": 24.809530510595742
+        },
+        {
+          "clip": "locomotion/idle",
+          "fraction": 0.75,
+          "pelvis": [
+            0.0022480874322354794,
+            0.9575105309486389,
+            0.04841722548007965
+          ],
+          "chest": [
+            0.004535181447863579,
+            1.1911548376083374,
+            0.04761490598320961
+          ],
+          "neck": [
+            -0.020857421681284904,
+            1.531279444694519,
+            0.16338348388671875
+          ],
+          "head": [
+            -0.02812333218753338,
+            1.5891904830932617,
+            0.24958889186382294
+          ],
+          "torsoFromVerticalDegrees": 11.550860303531557,
+          "upperBackFromVerticalDegrees": 27.203962490245395
+        },
+        {
+          "clip": "locomotion/running",
+          "fraction": 0,
+          "pelvis": [
+            0.03327435255050659,
+            0.7234182357788086,
+            0.01165972463786602
+          ],
+          "chest": [
+            0.03654691204428673,
+            0.9428825974464417,
+            0.08739037066698074
+          ],
+          "neck": [
+            0.017280347645282745,
+            1.1988627910614014,
+            0.3400459885597229
+          ],
+          "head": [
+            0.01277775689959526,
+            1.23151695728302,
+            0.4387946128845215
+          ],
+          "torsoFromVerticalDegrees": 34.66431606362732,
+          "upperBackFromVerticalDegrees": 50.66532721506812
+        },
+        {
+          "clip": "locomotion/running",
+          "fraction": 0.25,
+          "pelvis": [
+            -0.003642888041213155,
+            0.800082802772522,
+            -0.06666745245456696
+          ],
+          "chest": [
+            -0.01072655152529478,
+            1.0243141651153564,
+            -0.0061568934470415115
+          ],
+          "neck": [
+            0.07087584584951401,
+            1.320144534111023,
+            0.18240971863269806
+          ],
+          "head": [
+            0.11063714325428009,
+            1.36569344997406,
+            0.26715755462646484
+          ],
+          "torsoFromVerticalDegrees": 26.561055809560887,
+          "upperBackFromVerticalDegrees": 41.21837186132924
+        },
+        {
+          "clip": "locomotion/running",
+          "fraction": 0.5,
+          "pelvis": [
+            -0.03607107326388359,
+            0.703896164894104,
+            -0.04562956839799881
+          ],
+          "chest": [
+            -0.036860425025224686,
+            0.9265727400779724,
+            0.022828420624136925
+          ],
+          "neck": [
+            -0.012763232924044132,
+            1.2038451433181763,
+            0.25145745277404785
+          ],
+          "head": [
+            -0.01103988103568554,
+            1.2450565099716187,
+            0.3470425605773926
+          ],
+          "torsoFromVerticalDegrees": 30.797506969129074,
+          "upperBackFromVerticalDegrees": 45.60138931865358
+        },
+        {
+          "clip": "locomotion/running",
+          "fraction": 0.75,
+          "pelvis": [
+            -0.008199501782655716,
+            0.8134790062904358,
+            -0.024605797603726387
+          ],
+          "chest": [
+            -0.010471295565366745,
+            1.039793848991394,
+            0.03262116014957428
+          ],
+          "neck": [
+            -0.09022852778434753,
+            1.3383758068084717,
+            0.21760636568069458
+          ],
+          "head": [
+            -0.1381230503320694,
+            1.3864017724990845,
+            0.29658403992652893
+          ],
+          "torsoFromVerticalDegrees": 25.974964838384498,
+          "upperBackFromVerticalDegrees": 40.229144612344264
+        },
+        {
+          "clip": "locomotion/walking",
+          "fraction": 0,
+          "pelvis": [
+            0.008866342715919018,
+            0.7451083660125732,
+            0.034503329545259476
+          ],
+          "chest": [
+            0.010699105449020863,
+            0.9765730500221252,
+            0.06455592066049576
+          ],
+          "neck": [
+            -0.010433830320835114,
+            1.2906266450881958,
+            0.23964354395866394
+          ],
+          "head": [
+            -0.01564401388168335,
+            1.343214511871338,
+            0.3293387293815613
+          ],
+          "torsoFromVerticalDegrees": 20.69190635917759,
+          "upperBackFromVerticalDegrees": 35.97026581958581
+        },
+        {
+          "clip": "locomotion/walking",
+          "fraction": 0.25,
+          "pelvis": [
+            0.01557034719735384,
+            0.7172228693962097,
+            -0.0063459002412855625
+          ],
+          "chest": [
+            0.021367177367210388,
+            0.9490298628807068,
+            0.02311050333082676
+          ],
+          "neck": [
+            0.0533343106508255,
+            1.2676644325256348,
+            0.18798017501831055
+          ],
+          "head": [
+            0.06354335695505142,
+            1.3232202529907227,
+            0.2754283547401428
+          ],
+          "torsoFromVerticalDegrees": 19.780674948343595,
+          "upperBackFromVerticalDegrees": 34.35880673800404
+        },
+        {
+          "clip": "locomotion/walking",
+          "fraction": 0.5,
+          "pelvis": [
+            0.026992393657565117,
+            0.7112237215042114,
+            0.012913494370877743
+          ],
+          "chest": [
+            0.025215186178684235,
+            0.9442886114120483,
+            0.02878545969724655
+          ],
+          "neck": [
+            0.017707036808133125,
+            1.2724864482879639,
+            0.17698024213314056
+          ],
+          "head": [
+            0.016176853328943253,
+            1.3312726020812988,
+            0.2628854811191559
+          ],
+          "torsoFromVerticalDegrees": 16.319237544392514,
+          "upperBackFromVerticalDegrees": 31.190098087107046
+        },
+        {
+          "clip": "locomotion/walking",
+          "fraction": 0.75,
+          "pelvis": [
+            0.013522576540708542,
+            0.7262702584266663,
+            0.04807106778025627
+          ],
+          "chest": [
+            0.008094968274235725,
+            0.9584956765174866,
+            0.07343781739473343
+          ],
+          "neck": [
+            -0.054188746958971024,
+            1.2774442434310913,
+            0.2287583202123642
+          ],
+          "head": [
+            -0.07228890806436539,
+            1.3331451416015625,
+            0.31482601165771484
+          ],
+          "torsoFromVerticalDegrees": 19.294388441868353,
+          "upperBackFromVerticalDegrees": 34.18002004555831
+        }
+      ]
+    },
+    {
+      "look": "mystic",
+      "path": ".debug/quality-pass/client/arena/people/mystic.glb",
+      "sha256": "8e1b6ef548c5aa8d832127eac73f17ef2cb97fd2d3faef5870dc5486e2029ce1",
+      "bind": {
+        "pelvis": [
+          0,
+          0.8320900797843933,
+          0.02381390705704689
+        ],
+        "chest": [
+          0,
+          1.0585850477218628,
+          0.012788270600140095
+        ],
+        "neck": [
+          0,
+          1.3550643920898438,
+          0.0028419741429388523
+        ],
+        "head": [
+          0,
+          1.4631454944610596,
+          0.043128274381160736
+        ],
+        "torsoFromVerticalDegrees": 2.2964029640565267,
+        "upperBackFromVerticalDegrees": 4.288867477375359
+      },
+      "poses": [
+        {
+          "clip": "locomotion/idle",
+          "fraction": 0,
+          "pelvis": [
+            0.007859056815505028,
+            0.8080568909645081,
+            0.03288489580154419
+          ],
+          "chest": [
+            0.011982391588389874,
+            1.0517631769180298,
+            0.03334905579686165
+          ],
+          "neck": [
+            -0.0008624260663054883,
+            1.3481085300445557,
+            0.03701053932309151
+          ],
+          "head": [
+            -0.009786520153284073,
+            1.4148002862930298,
+            0.13069655001163483
+          ],
+          "torsoFromVerticalDegrees": 1.023484949529977,
+          "upperBackFromVerticalDegrees": 15.364011663752834
+        },
+        {
+          "clip": "locomotion/idle",
+          "fraction": 0.25,
+          "pelvis": [
+            0.0036490317434072495,
+            0.8071895241737366,
+            0.03688952326774597
+          ],
+          "chest": [
+            0.00558724207803607,
+            1.0508677959442139,
+            0.037706680595874786
+          ],
+          "neck": [
+            -0.010838787071406841,
+            1.3470025062561035,
+            0.04348247870802879
+          ],
+          "head": [
+            -0.019118275493383408,
+            1.4127967357635498,
+            0.1378597617149353
+          ],
+          "torsoFromVerticalDegrees": 1.688985419900748,
+          "upperBackFromVerticalDegrees": 15.90835514560187
+        },
+        {
+          "clip": "locomotion/idle",
+          "fraction": 0.5,
+          "pelvis": [
+            0.003944746684283018,
+            0.809053361415863,
+            0.03778959810733795
+          ],
+          "chest": [
+            0.005068597383797169,
+            1.0528117418289185,
+            0.034160833805799484
+          ],
+          "neck": [
+            -0.012043006718158722,
+            1.348941445350647,
+            0.03050934709608555
+          ],
+          "head": [
+            -0.021301422268152237,
+            1.4186105728149414,
+            0.12196965515613556
+          ],
+          "torsoFromVerticalDegrees": 1.8636781152572066,
+          "upperBackFromVerticalDegrees": 14.070625472969267
+        },
+        {
+          "clip": "locomotion/idle",
+          "fraction": 0.75,
+          "pelvis": [
+            0.0018907595658674836,
+            0.8057204484939575,
+            0.03878164663910866
+          ],
+          "chest": [
+            0.00280367536470294,
+            1.049323558807373,
+            0.03943943977355957
+          ],
+          "neck": [
+            -0.016033943742513657,
+            1.345273494720459,
+            0.047037072479724884
+          ],
+          "head": [
+            -0.02408434823155403,
+            1.4094997644424438,
+            0.14250785112380981
+          ],
+          "torsoFromVerticalDegrees": 2.094687014786418,
+          "upperBackFromVerticalDegrees": 16.474966654456264
+        },
+        {
+          "clip": "locomotion/running",
+          "fraction": 0,
+          "pelvis": [
+            0.027985479682683945,
+            0.6088162660598755,
+            0.00799576286226511
+          ],
+          "chest": [
+            0.02920994721353054,
+            0.8366523385047913,
+            0.08998344838619232
+          ],
+          "neck": [
+            0.013000758364796638,
+            1.0998440980911255,
+            0.22587428987026215
+          ],
+          "head": [
+            0.00801202841103077,
+            1.136095643043518,
+            0.33526092767715454
+          ],
+          "torsoFromVerticalDegrees": 23.97794264361817,
+          "upperBackFromVerticalDegrees": 39.42584345193385
+        },
+        {
+          "clip": "locomotion/running",
+          "fraction": 0.25,
+          "pelvis": [
+            -0.003063860349357128,
+            0.6732520461082458,
+            -0.057923782616853714
+          ],
+          "chest": [
+            -0.007200276013463736,
+            0.9069176316261292,
+            0.006234392058104277
+          ],
+          "neck": [
+            0.017697110772132874,
+            1.189394474029541,
+            0.09333144873380661
+          ],
+          "head": [
+            0.061751365661621094,
+            1.2399228811264038,
+            0.187196284532547
+          ],
+          "torsoFromVerticalDegrees": 16.47805952417511,
+          "upperBackFromVerticalDegrees": 30.179361355742508
+        },
+        {
+          "clip": "locomotion/running",
+          "fraction": 0.5,
+          "pelvis": [
+            -0.03033766895532608,
+            0.592365562915802,
+            -0.04017677903175354
+          ],
+          "chest": [
+            -0.02934955433011055,
+            0.823914110660553,
+            0.0333101712167263
+          ],
+          "neck": [
+            -0.005660156719386578,
+            1.0977226495742798,
+            0.14496436715126038
+          ],
+          "head": [
+            -0.0037507330998778343,
+            1.1434530019760132,
+            0.2508397102355957
+          ],
+          "torsoFromVerticalDegrees": 20.284169087156666,
+          "upperBackFromVerticalDegrees": 34.42901277925113
+        },
+        {
+          "clip": "locomotion/running",
+          "fraction": 0.75,
+          "pelvis": [
+            -0.0068962122313678265,
+            0.6845421195030212,
+            -0.022555118426680565
+          ],
+          "chest": [
+            -0.00984195340424776,
+            0.9200703501701355,
+            0.03888362646102905
+          ],
+          "neck": [
+            -0.01835436001420021,
+            1.201359510421753,
+            0.13270734250545502
+          ],
+          "head": [
+            -0.07141996920108795,
+            1.254628300666809,
+            0.22017720341682434
+          ],
+          "torsoFromVerticalDegrees": 16.764261560895527,
+          "upperBackFromVerticalDegrees": 29.782305217514157
+        },
+        {
+          "clip": "locomotion/walking",
+          "fraction": 0,
+          "pelvis": [
+            0.007457060273736715,
+            0.6270714402198792,
+            0.027196470648050308
+          ],
+          "chest": [
+            0.008577381260693073,
+            0.868063747882843,
+            0.060992222279310226
+          ],
+          "neck": [
+            -0.0029294651467353106,
+            1.1581536531448364,
+            0.12193795293569565
+          ],
+          "head": [
+            -0.008702185936272144,
+            1.2164846658706665,
+            0.22127914428710938
+          ],
+          "torsoFromVerticalDegrees": 10.174117785265139,
+          "upperBackFromVerticalDegrees": 24.83015331381278
+        },
+        {
+          "clip": "locomotion/walking",
+          "fraction": 0.25,
+          "pelvis": [
+            0.013095480389893055,
+            0.6035957336425781,
+            -0.007144496310502291
+          ],
+          "chest": [
+            0.019471483305096626,
+            0.8450303077697754,
+            0.025351671501994133
+          ],
+          "neck": [
+            0.03840043395757675,
+            1.1365071535110474,
+            0.0771389827132225
+          ],
+          "head": [
+            0.04971173778176308,
+            1.1981247663497925,
+            0.1739884316921234
+          ],
+          "torsoFromVerticalDegrees": 9.376698346174244,
+          "upperBackFromVerticalDegrees": 23.247317687305724
+        },
+        {
+          "clip": "locomotion/walking",
+          "fraction": 0.5,
+          "pelvis": [
+            0.022702021524310112,
+            0.5985607504844666,
+            0.009056974202394485
+          ],
+          "chest": [
+            0.021383222192525864,
+            0.8414168953895569,
+            0.027583986520767212
+          ],
+          "neck": [
+            0.02316434122622013,
+            1.1357978582382202,
+            0.0641302615404129
+          ],
+          "head": [
+            0.02146895043551922,
+            1.200993537902832,
+            0.15926779806613922
+          ],
+          "torsoFromVerticalDegrees": 5.853268084977023,
+          "upperBackFromVerticalDegrees": 20.11369625226365
+        },
+        {
+          "clip": "locomotion/walking",
+          "fraction": 0.75,
+          "pelvis": [
+            0.01137319765985012,
+            0.6112350225448608,
+            0.038618043065071106
+          ],
+          "chest": [
+            0.005035490728914738,
+            0.8531138300895691,
+            0.06697306036949158
+          ],
+          "neck": [
+            -0.024313276633620262,
+            1.1446298360824585,
+            0.11340607702732086
+          ],
+          "head": [
+            -0.04436768218874931,
+            1.2064073085784912,
+            0.20872586965560913
+          ],
+          "torsoFromVerticalDegrees": 8.830642108878731,
+          "upperBackFromVerticalDegrees": 23.020730180164136
+        }
+      ]
+    }
+  ]
+}

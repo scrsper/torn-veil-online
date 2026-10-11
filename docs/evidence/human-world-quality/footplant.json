@@ -1,0 +1,386 @@
+[
+  {
+    "settledStanceSpeed": null,
+    "settledMaxStep": 0,
+    "scenario": "forward",
+    "name": "locomotion/walking",
+    "on": false,
+    "vertices": 25112,
+    "dt": 0.016666666666666666,
+    "frames": 240,
+    "pace": 2.153157714473563,
+    "bind": [
+      0.07441913282383439,
+      0.07441913282383439
+    ],
+    "rawAnkleRange": [
+      0.1815008521080017,
+      0.4123062193393707
+    ],
+    "lowAnkleSamples": 0,
+    "stanceSamples": 0,
+    "meanStanceSpeed": null,
+    "maxFrameStep": 0.11268407471917401,
+    "maxStepAt": {
+      "frame": 70,
+      "side": "l",
+      "phase": 0.09375,
+      "rawStep": 0.11268407471917401
+    },
+    "lockFrames": 0,
+    "clipContactSamples": 217,
+    "clipContactSpeed": 0.6912434802764084
+  },
+  {
+    "settledStanceSpeed": null,
+    "settledMaxStep": 0,
+    "scenario": "forward",
+    "name": "locomotion/walking",
+    "on": true,
+    "vertices": 25112,
+    "dt": 0.016666666666666666,
+    "frames": 240,
+    "pace": 2.153157714473563,
+    "bind": [
+      0.07441913282383439,
+      0.07441913282383439
+    ],
+    "rawAnkleRange": [
+      0.1815008521080017,
+      0.4123062193393707
+    ],
+    "lowAnkleSamples": 0,
+    "stanceSamples": 0,
+    "meanStanceSpeed": null,
+    "maxFrameStep": 0.11268407554449271,
+    "maxStepAt": {
+      "frame": 70,
+      "side": "l",
+      "phase": 0.09375,
+      "rawStep": 0.11268407471917401
+    },
+    "lockFrames": 210,
+    "clipContactSamples": 217,
+    "clipContactSpeed": 0.31030668453703003
+  },
+  {
+    "settledStanceSpeed": null,
+    "settledMaxStep": 0,
+    "scenario": "running",
+    "name": "locomotion/running",
+    "on": false,
+    "vertices": 25112,
+    "dt": 0.016666666666666666,
+    "frames": 240,
+    "pace": 6.0498699667778855,
+    "bind": [
+      0.07441913282383439,
+      0.07441913282383439
+    ],
+    "rawAnkleRange": [
+      0.1796402931213379,
+      0.7733569145202637
+    ],
+    "lowAnkleSamples": 0,
+    "stanceSamples": 0,
+    "meanStanceSpeed": null,
+    "maxFrameStep": 0.1966191593841607,
+    "maxStepAt": {
+      "frame": 195,
+      "side": "r",
+      "phase": 0.43181818181818254,
+      "rawStep": 0.1966191593841607
+    },
+    "lockFrames": 0,
+    "clipContactSamples": 77,
+    "clipContactSpeed": 1.3795151614734553
+  },
+  {
+    "settledStanceSpeed": null,
+    "settledMaxStep": 0,
+    "scenario": "running",
+    "name": "locomotion/running",
+    "on": true,
+    "vertices": 25112,
+    "dt": 0.016666666666666666,
+    "frames": 240,
+    "pace": 6.0498699667778855,
+    "bind": [
+      0.07441913282383439,
+      0.07441913282383439
+    ],
+    "rawAnkleRange": [
+      0.1796402931213379,
+      0.7733569145202637
+    ],
+    "lowAnkleSamples": 0,
+    "stanceSamples": 0,
+    "meanStanceSpeed": null,
+    "maxFrameStep": 0.1966191593841607,
+    "maxStepAt": {
+      "frame": 195,
+      "side": "r",
+      "phase": 0.43181818181818254,
+      "rawStep": 0.1966191593841607
+    },
+    "lockFrames": 73,
+    "clipContactSamples": 77,
+    "clipContactSpeed": 0.9647028701419199
+  },
+  {
+    "settledStanceSpeed": null,
+    "settledMaxStep": 0,
+    "scenario": "backward",
+    "name": "unarmed/walk_backward",
+    "on": false,
+    "vertices": 25112,
+    "dt": 0.016666666666666666,
+    "frames": 240,
+    "pace": 1.0653756477890415,
+    "bind": [
+      0.07441913282383439,
+      0.07441913282383439
+    ],
+    "rawAnkleRange": [
+      0.08476971089839935,
+      0.2614702582359314
+    ],
+    "lowAnkleSamples": 329,
+    "stanceSamples": 253,
+    "meanStanceSpeed": 0.24299980561656553,
+    "maxFrameStep": 0.11456141852937995,
+    "maxStepAt": {
+      "frame": 219,
+      "side": "r",
+      "phase": 0,
+      "rawStep": 0.11456141852937995
+    },
+    "lockFrames": 0,
+    "clipContactSamples": 258,
+    "clipContactSpeed": 0.11338397900848005
+  },
+  {
+    "settledStanceSpeed": null,
+    "settledMaxStep": 0,
+    "scenario": "backward",
+    "name": "unarmed/walk_backward",
+    "on": true,
+    "vertices": 25112,
+    "dt": 0.016666666666666666,
+    "frames": 240,
+    "pace": 1.0653756477890415,
+    "bind": [
+      0.07441913282383439,
+      0.07441913282383439
+    ],
+    "rawAnkleRange": [
+      0.08476971089839935,
+      0.2614702582359314
+    ],
+    "lowAnkleSamples": 329,
+    "stanceSamples": 253,
+    "meanStanceSpeed": 0.19296847150492075,
+    "maxFrameStep": 0.11456141852937995,
+    "maxStepAt": {
+      "frame": 219,
+      "side": "r",
+      "phase": 0,
+      "rawStep": 0.11456141852937995
+    },
+    "lockFrames": 210,
+    "clipContactSamples": 258,
+    "clipContactSpeed": 0.06199442953596838
+  },
+  {
+    "settledStanceSpeed": null,
+    "settledMaxStep": 0,
+    "scenario": "strafe",
+    "name": "unarmed/walk_strafe_left",
+    "on": false,
+    "vertices": 25112,
+    "dt": 0.016666666666666666,
+    "frames": 240,
+    "pace": 0.8547350982960933,
+    "bind": [
+      0.07441913282383439,
+      0.07441913282383439
+    ],
+    "rawAnkleRange": [
+      0.09017514437437057,
+      0.27737167477607727
+    ],
+    "lowAnkleSamples": 318,
+    "stanceSamples": 261,
+    "meanStanceSpeed": 0.2873337332818686,
+    "maxFrameStep": 0.05211890742309466,
+    "maxStepAt": {
+      "frame": 192,
+      "side": "r",
+      "phase": 0.1818181818181821,
+      "rawStep": 0.05211890742309466
+    },
+    "lockFrames": 0,
+    "clipContactSamples": 244,
+    "clipContactSpeed": 0.1263527316035196
+  },
+  {
+    "settledStanceSpeed": null,
+    "settledMaxStep": 0,
+    "scenario": "strafe",
+    "name": "unarmed/walk_strafe_left",
+    "on": true,
+    "vertices": 25112,
+    "dt": 0.016666666666666666,
+    "frames": 240,
+    "pace": 0.8547350982960933,
+    "bind": [
+      0.07441913282383439,
+      0.07441913282383439
+    ],
+    "rawAnkleRange": [
+      0.09017514437437057,
+      0.27737167477607727
+    ],
+    "lowAnkleSamples": 318,
+    "stanceSamples": 261,
+    "meanStanceSpeed": 0.24299753608385943,
+    "maxFrameStep": 0.05211890742309466,
+    "maxStepAt": {
+      "frame": 192,
+      "side": "r",
+      "phase": 0.1818181818181821,
+      "rawStep": 0.05211890742309466
+    },
+    "lockFrames": 208,
+    "clipContactSamples": 244,
+    "clipContactSpeed": 0.08887091671145958
+  },
+  {
+    "settledStanceSpeed": null,
+    "settledMaxStep": 0,
+    "scenario": "sharp-turn",
+    "name": "locomotion/walking",
+    "on": false,
+    "vertices": 25112,
+    "dt": 0.016666666666666666,
+    "frames": 240,
+    "pace": 2.153157714473563,
+    "bind": [
+      0.07441913282383439,
+      0.07441913282383439
+    ],
+    "rawAnkleRange": [
+      0.1815008521080017,
+      0.4123062193393707
+    ],
+    "lowAnkleSamples": 0,
+    "stanceSamples": 0,
+    "meanStanceSpeed": null,
+    "maxFrameStep": 0.11268407471917401,
+    "maxStepAt": {
+      "frame": 70,
+      "side": "l",
+      "phase": 0.09375,
+      "rawStep": 0.11268407471917401
+    },
+    "lockFrames": 0,
+    "clipContactSamples": 217,
+    "clipContactSpeed": 0.7451062603634646
+  },
+  {
+    "settledStanceSpeed": null,
+    "settledMaxStep": 0,
+    "scenario": "sharp-turn",
+    "name": "locomotion/walking",
+    "on": true,
+    "vertices": 25112,
+    "dt": 0.016666666666666666,
+    "frames": 240,
+    "pace": 2.153157714473563,
+    "bind": [
+      0.07441913282383439,
+      0.07441913282383439
+    ],
+    "rawAnkleRange": [
+      0.1815008521080017,
+      0.4123062193393707
+    ],
+    "lowAnkleSamples": 0,
+    "stanceSamples": 0,
+    "meanStanceSpeed": null,
+    "maxFrameStep": 0.11268407554449271,
+    "maxStepAt": {
+      "frame": 70,
+      "side": "l",
+      "phase": 0.09375,
+      "rawStep": 0.11268407471917401
+    },
+    "lockFrames": 207,
+    "clipContactSamples": 217,
+    "clipContactSpeed": 0.39900676890476416
+  },
+  {
+    "settledStanceSpeed": 0.003959744690337793,
+    "settledMaxStep": 0.00016887370997224847,
+    "scenario": "stop",
+    "name": "locomotion/walking",
+    "on": false,
+    "vertices": 25112,
+    "dt": 0.016666666666666666,
+    "frames": 240,
+    "pace": 2.153157714473563,
+    "bind": [
+      0.07441913282383439,
+      0.07441913282383439
+    ],
+    "rawAnkleRange": [
+      0.15502093732357025,
+      0.4123062193393707
+    ],
+    "lowAnkleSamples": 119,
+    "stanceSamples": 117,
+    "meanStanceSpeed": 0.11315121734086193,
+    "maxFrameStep": 0.11268407471917401,
+    "maxStepAt": {
+      "frame": 70,
+      "side": "l",
+      "phase": 0.09375000000000133,
+      "rawStep": 0.11268407471917401
+    },
+    "lockFrames": 0,
+    "clipContactSamples": 93,
+    "clipContactSpeed": 0.6514456248582947
+  },
+  {
+    "settledStanceSpeed": 0.000004216831910433756,
+    "settledMaxStep": 4.805480091749757e-7,
+    "scenario": "stop",
+    "name": "locomotion/walking",
+    "on": true,
+    "vertices": 25112,
+    "dt": 0.016666666666666666,
+    "frames": 240,
+    "pace": 2.153157714473563,
+    "bind": [
+      0.07441913282383439,
+      0.07441913282383439
+    ],
+    "rawAnkleRange": [
+      0.15502093732357025,
+      0.4123062193393707
+    ],
+    "lowAnkleSamples": 119,
+    "stanceSamples": 117,
+    "meanStanceSpeed": 0.000003712138141585119,
+    "maxFrameStep": 0.11268407554449271,
+    "maxStepAt": {
+      "frame": 70,
+      "side": "l",
+      "phase": 0.09375000000001998,
+      "rawStep": 0.11268407471917401
+    },
+    "lockFrames": 210,
+    "clipContactSamples": 93,
+    "clipContactSpeed": 0.28578133382151016
+  }
+]

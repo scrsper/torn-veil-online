@@ -680,7 +680,15 @@ function responsibilityTrace(world: World, sim: Simulation, spec: MotiveSpec): M
 function conflictTrace(world: World, sim: Simulation, spec: MotiveSpec): MotiveTrace {
   const watched = new Set<EntityId>(world.persons().filter(p => p.alive && !isExternallyControlled(p)).map(p => p.id));
   const rec = recordFrom(world, world.now, watched);
-  const villagers = ordinaryVillagers(world);
+  // A staged handoff must be noticed. A sleeping recipient can hear an indistinct
+  // event but cannot witness who gave what, so that setup does not establish this
+  // scenario's three competing reasons for gratitude. Select eligible participants
+  // from the existing world; do not wake them or inject beliefs/obligations.
+  const villagers = ordinaryVillagers(world).filter(p => {
+    const b = world.primaryBody(p.id);
+    return !!b && b.present && !b.dead && !['sleep', 'downed'].includes(b.pose)
+      && !p.surrender && !p.custody?.active && b.subduedUntil <= world.physicalTime;
+  });
   let trigger: string | undefined;
   for (const recipient of villagers.filter(p => canHaul(p))) {
     const gifts = villagers.filter(g => g.id !== recipient.id && !isFamily(recipient, g.id)

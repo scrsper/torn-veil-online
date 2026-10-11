@@ -76,6 +76,8 @@ export function* buildStructuresSteps(scene: Scene, mats: MaterialLibrary, r: Re
   const out: StructureBuild = { meshes: [], lights: [], panes: new Map(), stats: { cells: 0, faces: 0, roofsAnalytic: 0, roofsVoxel: 0, windows: 0 } };
   if (!r.structures?.runs.length) return out;
   const x0 = r.bounds.x0, z0 = r.bounds.z0, cells = decodeStructure(r.structures.runs, x0, z0);
+  const naturalTreeCells = new Set<string>();
+  for (const t of r.structures.trees ?? []) for (let y = t.y; y < t.y + t.height; y++) naturalTreeCells.add(`${t.x},${y},${t.z}`);
   out.stats.cells = cells.size;
   let activePlace: PlaceProjection | undefined;
   const batches = new Map<string, { batch: MeshBatch; material: MatName; place?: PlaceProjection }>();
@@ -111,6 +113,9 @@ export function* buildStructuresSteps(scene: Scene, mats: MaterialLibrary, r: Re
   for (const [x, y, z, b] of cells.entries()) {
     if ((++visited & 127) === 0 && performance.now() - sliceAt > 3) { yield; sliceAt = performance.now(); }
     if (insideFittedRoof(x, y, z, b)) continue;
+    // Grid logs remain in `cells` for collision/occlusion authority, but natural tree trunks
+    // are rendered by the shared vegetation path below so their canopies are preserved.
+    if (naturalTreeCells.has(`${x},${y},${z}`)) continue;
     if (wheelCells.has(`${x},${y},${z}`)) continue;
     const place = placeOf(x, z), variation = 0.95 + hash2(x, z, 11) * 0.05 + hash2(x + y * 7, z, 3) * 0.04;
     activePlace = place;

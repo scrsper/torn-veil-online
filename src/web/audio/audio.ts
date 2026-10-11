@@ -4,7 +4,10 @@
  * The context starts on the first user gesture (autoplay policy). Everything here is presentation: it
  * listens to what the client already knows (weather, time, footfalls, combat phases) and never feeds back.
  */
+import type { FootSurface } from './footfalls';
+
 export interface AudioVolumes { master: number; music: number; effects: number; ambience: number; voice: number }
+export interface FootstepMix { gain?: number; pan?: number; wet?: number }
 export interface AmbienceState { hour: number; weather: string; wind: number; indoor: boolean; fires: number; near: 'grass' | 'stone' | 'wood' | 'dirt' | 'water' }
 
 export class GameAudio {
@@ -75,18 +78,36 @@ export class GameAudio {
     const c = this.ctx!, scale = [0, 2, 3, 5, 7, 9, 10], f = 293.66 * Math.pow(2, scale[Math.floor(Math.random() * 7)] / 12) * (Math.random() < 0.3 ? 2 : 1);
     const o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.value = f; o.connect(g).connect(this.buses.music); this.env(g, 1.2, 0.09, 4.5); o.start(); o.stop(c.currentTime + 6.5);
   }
-  private burst(bus: GainNode, freq: number, q: number, peak: number, dur: number, type: BiquadFilterType = 'bandpass', at = 0): void {
+  private burst(bus: GainNode, freq: number, q: number, peak: number, dur: number, type: BiquadFilterType = 'bandpass', at = 0): AudioBufferSourceNode {
     const c = this.ctx!, s = c.createBufferSource(); s.buffer = this.noise; const f = c.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q; const g = c.createGain();
     s.connect(f).connect(g).connect(bus); const n = c.currentTime + at; g.gain.setValueAtTime(0.0001, n); g.gain.linearRampToValueAtTime(peak, n + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, n + dur); s.start(n, Math.random()); s.stop(n + dur + 0.05);
+    s.onended = () => { s.disconnect(); f.disconnect(); g.disconnect(); };
+    return s;
   }
-  /** One footfall on the given ground, louder and duller when running. */
-  footstep(surface: AmbienceState['near'], intensity: number): void {
-    if (!this.running) return; const f = surface === 'stone' ? 1800 : surface === 'wood' ? 700 : surface === 'water' ? 1200 : surface === 'dirt' ? 500 : 900;
-    this.burst(this.buses.effects, f * (0.85 + Math.random() * 0.3), 1.2, 0.10 * intensity, surface === 'grass' ? 0.16 : 0.1);
-    if (surface === 'wood') this.tone(110, 0.05, 0.06 * intensity);
+  /** Layer weight, sole contact and ground texture at the visible support edge. */
+  footstep(surface: FootSurface, intensity: number, mix: FootstepMix = {}): void {
+    if (!this.running || !Number.isFinite(intensity)) return;
+    const c = this.ctx!, level = Math.max(0, Math.min(1.6, intensity));
+    const gain = Math.max(0, Math.min(1, mix.gain ?? 1)); if (gain < .005 || level === 0) return;
+    const wet = Math.max(0, Math.min(1, mix.wet ?? 0));
+    const output = c.createGain(), pan = c.createStereoPanner();
+    output.gain.value = gain; pan.pan.value = Math.max(-1, Math.min(1, mix.pan ?? 0));
+    output.connect(pan).connect(this.buses.effects);
+    const variation = .92 + Math.random() * .16;
+    this.burst(output, (surface === 'stone' ? 240 : 160) * variation, .7, .12 * level, .09, 'lowpass');
+    this.tone((surface === 'wood' ? 145 : 80) * variation, .075, .045 * level, output);
+    const texture = { grass: [2200, .20, .07], dirt: [850, .14, .09], stone: [2100, .065, .12], wood: [950, .095, .11], water: [1450, .23, .12] }[surface];
+    // This longest layer also owns cleanup of the per-foot stereo route.
+    const tail = this.burst(output, texture[0] * variation, surface === 'stone' ? 2 : .7,
+      texture[2] * level * (1 - wet * .35), .25, surface === 'grass' ? 'highpass' : 'bandpass');
+    this.burst(output, texture[0] * variation, 1, texture[2] * level * .5, texture[1]);
+    if (wet > .05 && surface !== 'water') this.burst(output, 1700 * variation, .6, .07 * level * wet, .18);
+    const cleanup = tail.onended;
+    tail.onended = event => { cleanup?.call(tail, event); output.disconnect(); pan.disconnect(); };
   }
   private tone(f: number, dur: number, peak: number, bus: GainNode | null = null, type: OscillatorType = 'sine'): void {
     const c = this.ctx!, o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.value = f; o.connect(g).connect(bus ?? this.buses.effects); this.env(g, 0.004, peak, dur); o.start(); o.stop(c.currentTime + dur + 0.05);
+    o.onended = () => { o.disconnect(); g.disconnect(); };
   }
   ui(kind: 'move' | 'confirm' | 'back' | 'open' | 'error'): void {
     if (!this.running) return;

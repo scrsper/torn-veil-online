@@ -1,0 +1,35 @@
+{
+  "source": {
+    "path": ".debug/canonical-tower-oct9/growth-schema-regression.json",
+    "bytes": 8040,
+    "sha256": "259a152ec94a5c4a82f97a5671defe4f09c7599eeddf9513d3f8c8a591813cf0"
+  },
+  "success": true,
+  "total": 20,
+  "passed": 20,
+  "failed": 0,
+  "pending": 0,
+  "startedAt": "2026-10-09T10:45:25.313Z",
+  "files": 3,
+  "durationMs": 19419.743408203125,
+  "results": [
+    {
+      "file": "tests/ecology-realtime-integration.test.ts",
+      "status": "passed",
+      "tests": 3,
+      "failures": []
+    },
+    {
+      "file": "tests/persistence.test.ts",
+      "status": "passed",
+      "tests": 8,
+      "failures": []
+    },
+    {
+      "file": "tests/realms.test.ts",
+      "status": "passed",
+      "tests": 9,
+      "failures": []
+    }
+  ]
+}

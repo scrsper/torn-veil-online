@@ -1,4 +1,374 @@
-# Current: Same-world Observatory workbench (2026-10-03)
+# Current: Local Babylon consolidation candidate (2026-10-11)
+
+The local candidate combines current human presentation, connected realms, canonical
+Tower persistence and input/posture repairs. `6423888` passed 2,237 tests and its
+exact compiled 24-check journey. Review then found schema-30 compact-save rejection;
+the compatibility repair passes 32 affected tests and TypeScript. Final aggregate
+passes 2,248 tests in 230 files; production bundle and World smoke pass (two retained
+finite-timber warnings). The exact repaired build/journey is recorded locally in
+the delivery receipt. Full source ancestry remains private on
+`codex/consolidate-main-oct11`; the tree-identical release snapshot uses
+`codex/consolidate-main-oct11-sanitized`. Publication was rejected by automatic
+approval review; explicit public-repository authorization, independent CI and main
+landing remain pending. No delivered-main claim is valid yet. See
+`docs/CURRENT_STATE.md` and `docs/evidence/main-integration/RESULTS.md`. Prior evidence
+below stays scoped to its checkpoint. New Gold source promotions are paused. Source
+branches and rejected private candidate work remain preserved.
+
+# Previous: Grounded human attention, sound and light (2026-10-10)
+
+Continuation on `codex/ontology-human-motion` from pushed `679ce9a`. The user's
+Witcher 3 benchmark now has cross-system acceptance gates and a staged sequence
+in `docs/web/QUALITY_TARGET.md`; overall production parity remains open.
+
+Imported adults use bounded per-foot terrain height/normal correction and
+additive neck/head attention from projected targets. NPC attention resolves the
+actual projected entity to nearby visible bodies (including multiple bodies),
+instead of substituting the player. Contact-timed layered surface Foley follows
+the shared pose support, including mixed gait fallback, and nearby NPC stereo
+stays anchored to the player's hearing position. Projected floor/water lookup
+handles raised wood, stone interiors and bridges. Daylight sun/fill balance
+improves shaded clothing/facades without raising sky exposure.
+
+65 focused tests across nine files and TypeScript pass. Imported-rig browser
+checks passed 18 terrain and 16 gaze cases; canonical keyboard combat/movement,
+flat-ground regression, five audio surface renders and six lighting conditions
+passed. A fresh GPT-6.1 Sol reviewer found one floor/water sound lookup defect;
+it is fixed with integration coverage. The final production build and audio
+recheck pass: six walking and seven running contacts, no idle/stopped chatter,
+five valid surface renders and zero page errors. Evidence and reproduction are
+recorded in `docs/evidence/human-world-quality/README.md`.
+
+Limits: terrain fixtures are controlled, not all-cast moving stairs; no pelvis,
+eye/facial/cloth overhaul; audio is synthesized and needs listening review;
+faces/interiors, encounter polish, first-hour play and long-session performance
+remain production gates. Canonical ontology/movement/combat authority is unchanged.
+
+# Previous: Fluid human motion and fitted adult models (2026-10-10)
+
+Continuation on `codex/ontology-human-motion` after pushed checkpoint `a097d62`.
+GPT-6.1 Sol workers improved adult garment fit and imported-rig foot contact.
+Wren/Brann exports retain 53 named bones and garment topology, with fitted
+trouser coverage and less glossy fabric/leather. Contact-aligned travel clips,
+critically damped normalized fades, owned guard-leg crossfades and diagonal
+hysteresis reduce pose interruptions. Baked travel contacts supplement bind
+ankle calibration; continuous reach projection bounds foot correction.
+
+32 focused tests pass across this slice, including affected foot tests rerun
+after the final bounded release adjustment. Controlled 60 Hz imported-rig
+comparison measures approximately 55% less walking slide and 30% less running
+slide; other directions also improve. Maximum all-frame foot displacement is
+no worse than the uncorrected pose in the six controlled scenarios. This is
+bounded evidence for one imported rig, not a universal smoothness claim.
+Blender reimport checks preserve rigs/topology and reduce garment intersections;
+extreme crouch seams still have contacts. Final TypeScript, production build and
+headed canonical browser acceptance pass; independent GPT-6.1 Sol review reports
+no actionable findings. Evidence is in `docs/evidence/fluid-human-models/README.md`.
+
+Canonical ontology and mechanics retain the preceding checkpoint's boundary.
+Further terrain/sole adaptation, clip seam refinement and broader cast wardrobe
+work remain; this is not completion of the full ontology or production art.
+
+# Previous: Ontology ownership and human motion (2026-10-10)
+
+Branch `codex/ontology-human-motion` integrates main `10a648b` with the existing
+controller/Tower branch. Canonical manifestation attachment validates ownership
+and registry identity; living-body selection and graph diagnostics preserve the
+zero-or-many body model. Shared adult animation follows canonical action phases
+and direction, and resumes ordinary movement after completed actions. Procedural
+child/fallback gaits use distance-paced IK; Blender kits have authored faces/eyes
+and repaired garment coverage. The visual ontology editor shares motion loading
+with bounded asset cleanup. Implementation checkpoint `77dc178` is pushed.
+
+Focused tests, TypeScript, Babylon build, ontology tests/build, real keyboard
+combat/movement and 18 measured procedural gait cases passed. Full regression
+passed: 195 files / 1,925 tests. The user's walking reference now guides a closer,
+lower exploration camera and bounded secondary motion on compatible rigs.
+Authored grid-tree canopies now render through shared vegetation instances, with
+exact trunk collision retained and no new resource identities. Final build,
+TypeScript, tree/streaming checks and third-person browser acceptance passed.
+Independent review's outdoor-timber classification finding is fixed; 12 geometry
+tests and TypeScript passed afterward. No other actionable findings were reported.
+Evidence, reproduction and limits: `docs/evidence/ontology-human-motion/README.md`.
+Sharp-turn foot sliding, clip contact calibration and further character-art polish
+remain open; this is not completion of the entire ontology or production art.
+
+# Previous checkpoint: lossless late-floor persistence (2026-10-09)
+
+Runtime: `7efb13c4eb06ab30aecea99dc41cbe1a3437a39d`; complete source/runtime
+migration fence: `89ed176d95bcb0a38e29a42bdd7a5ed0dda2711c`.
+The isolated `codex/connected-realms` host now durably journals ordered operations
+and uses one replay worker for lossless gzip checkpoints. Original JSON imports
+remain intact; the active save is `<save.json>.store/`. Canonical history, NPC
+knowledge, injuries, rewards, identities and earned proofs remain in the full
+snapshot. Queued input and portal choices have private continuation metadata;
+restart/disconnect releases old input. Idle movement spam is removed, and congested
+trailing movement is explicitly cancelled without crossing action barriers.
+
+Focused verification: 50/50 in five files; TypeScript and web build passed.
+Final normal aggregate: **2,120/2,120 tests in 213 files**, 31m 17.60s, exit 0,
+after the complete-fingerprint repair. The runtime was frozen for this run.
+Two actual summit browser recordings passed nine checks each, including repeated
+saves, background checkpoints, reload, Tower return and portal round trips.
+Real floor-95 and summit replay matched every canonical snapshot field; interrupted
+worker and stopped-process recovery retained durable state without duplicate rewards.
+No new 100-floor calibration was run. No human playtime claim is made.
+
+On the copied summit save, old synchronous saves measured a 2,307 ms median;
+six journal flushes measured 3.97 ms. A 315.6 MB full snapshot compressed to 49.5 MB.
+Full capture runs on the worker. Structural Tower transitions still retain one
+synchronous rollback capture, and observed simulation/GC spikes remain. Compression
+does not bound logical history growth. Two retained compressed generations and the
+original import require more total storage than one compressed file.
+
+Gold rules are unchanged. The report explains the lifetime proof-cap lockout and
+weak-opponent contribution problem and proposes separating permanent causal proof
+from reviewed, stage-relevant current-capacity assessment. Thresholds/rank meaning
+were not redesigned. Megacity/art gates and broader human calibration remain open.
+See docs/TOWER_PERSISTENCE_OCT9.md and docs/evidence/tower-stability-oct9/RESULTS.json.
+No protected Tower-polish worktree was changed. No push, merge or deployment occurred.
+
+# Previous checkpoint: earned source growth and floor residency (2026-10-09)
+
+The isolated `codex/connected-realms` branch extends the same canonical Person/Body
+with an explicit finite-source advancement route through Gold, physically stronger
+warden kits, eight-litre floor water reserves and bounded inactive-floor updates.
+The existing multi-day embodied Iron route and full ontology ladder are preserved.
+Gold is not awarded by a floor count; summit recognition requires already-earned
+Silver. Save schema 31 reads 24-31 and validates the new receipt/material evidence.
+Runtime: 194cc456171b151fefed8def0d9f234d130a0fef; final test-contract update: 39db5ed.
+
+Final normal aggregate: **2,110/2,110 tests in 212 files**, after three old schema
+literals were repaired and the complete suite rerun. Focused checks: 46/46;
+affected schema files: 20/20. TypeScript and production web build passed.
+Three actual recordings passed 23 browser checks: earned Bronze integration/portal
+journey, a Silver floor-47 victory, and completed summit reload/return/portal journey.
+
+One retained input-strategy history cleared 100 floors as Silver; another cleared
+94 and timed out on floor 95. Silver was earned on floors 44 and 45 respectively.
+These accelerated, resumed runs accumulated about 11.0/11.3 physical simulation
+hours, including failures and recovery. They do not establish human pacing or Gold
+frequency; successful Gold integration is verified by an explicit mechanical fixture.
+
+At the summit 37 people receive detailed simulation and 1,737 remain coarse, but
+the save is 314 MB. Global history and synchronous persistence still produce costs
+and input backpressure. The lifetime proof ceiling, weak-opponent contribution,
+pure-martial advancement beyond Iron, completed-trial revisiting, regional/national
+rank meaning and the existing unpassed art gate remain production design/work limits.
+See docs/TOWER_GROWTH_OCT9.md and docs/evidence/tower-growth-oct9/RESULTS.json for
+exact commands, hashes, failures, measurements and next work.
+No other task's worktree was changed; no push, merge or deployment occurred.
+
+The older checkpoints below are historical and are superseded where they describe
+missing higher-stage source mechanics, save schema 30 or incomplete final aggregation.
+
+# Previous checkpoint: shared Tower and combat recovery (2026-10-09)
+
+The isolated connected-realms branch now has a host-owned Tower trial, finite
+source learning/rewards, ordinary warden minds, physical ascent/return and persistent
+injuries on the same world body. Legacy expedition access remains explicitly separate.
+See docs/CANONICAL_TOWER_OCT9.md and its evidence manifests for current results.
+
+Save schema 30 includes folded interiors, trial/award provenance and shared short
+exertion. The parent approved the recovery tuning after the first-floor fatigue
+review: brief action effort recovers over seconds while ordinary lasting fatigue,
+food/water, damage and injuries remain real. No higher-rank progression was invented.
+
+Final actual keyboard journey: 22 browser checks across entry, a three-warden victory,
+earned finite rewards, ascent, reload and portal return; no browser errors. The fight
+took 273.5 elapsed physical seconds and retained damage/injuries. Full default suite:
+2,087 passes / 10 failures out of 2,097 tests; all eight failing files were investigated
+and rechecked after fixture/assertion repairs. Final affected tests: 141/141 in ten
+files, plus four social-trace cases in a separate full-file rerun. TypeScript and web
+build passed. Exact initial failures and later scopes remain in the evidence manifest;
+there was no second full aggregate after those narrow repairs. Runtime mechanics did
+not change after the successful rendered journey. Private media provenance is retained locally.
+
+The previous checkpoint below is historical; its missing shared Tower and unattached
+interior statements are superseded. Art quality, higher-rank mechanics, population
+simulation budgeting and full legacy encounter parity remain open.
+
+# Active expansion checkpoint: canonical arcana, shared motion/contact (2026-10-09)
+
+The user approved the larger shared-simulation route; this supersedes the October 8
+audit's pending scope choice. Branch stays isolated at codex/connected-realms.
+Canonical arcana/protection first stage: c98207a. New mechanics are not full Tower parity.
+
+- Shared installed-asset mapping and pose timing now drive real move-specific attacks,
+  dodges, hit reactions and stride-paced walking/running. Fixed +Z/-Z adapter facing
+  and locomotion blocked by completed retained actions. No Opus v1/v2 asset installed.
+- Short contact displacement is canonical, collision swept and persisted (schema 29,
+  reads 24–28). Fresh-sight melee spacing joins ordinary attack plans. No global attack
+  slot or invulnerability rule. Realm locomotion now respects bodily capability.
+- Matched actual six-person review captures: docs/evidence/motion-oct9/RESULTS.md.
+  RX 6650 XT, 1440×900, p95 frame interval 7.1 ms both baseline/latest short run;
+  not an uncapped benchmark, soak test or reference-quality art acceptance.
+- Source-backed abilities, armor and wards resolve through shared World/Simulation.
+  Legacy Tower checkpoint rewards remain scoped; the prototype is still separate.
+- Larger unfinished work: canonical Tower floor/encounter host, full spell/rider parity,
+  higher-rank metaphysical capability and causality, multi-hour balance and actual
+  sword/shield/character quality. The documentarian is still design-only.
+- Focused arcana, contact, movement, persistence, renderer-state, realm/Tower-adapter,
+  guard/combat/ecology/projection checks pass. Full default run at 0ee4660 passed
+  2,073 tests / 207 files; final contact hardening + room extraction passed 181 tests /
+  17 files, TypeScript and Babylon production build. These are distinct runs.
+- Tower's unchanged room grammar now lives in sim/world/interiors. Stable folded
+  geometry/cache/edit support is tested but not attached to World saves or a new ascent
+  route. Existing realm save indices and all sampled legacy floor descriptors survive.
+- The completed checkpoint and remaining direction are in
+  docs/CONNECTED_REALMS_CHECKPOINT_OCT9.md. Local review server is stopped; no access blocker.
+
+# Current candidate: connected procedural realms with bound Tower journey (2026-10-08)
+
+Isolated branch `codex/connected-realms`, based on `caeec71`; independent foundation `708adbd`.
+Authorized stable Tower checkpoint `e7cd628` and committed ancestors merged as `0d12c7a`.
+World-bound expedition adapter and its recovery tests committed as `48ff6c2`.
+
+- Independent visual follow-up improves the representative Tower facade, glazing/door construction,
+  flush paving and light in both realms without changing canonical structures or gameplay. Twelve
+  original before/after frames and measurements: docs/evidence/connected-realms/ART_OCT8_RESULTS.md.
+  Final affected tests 22/22; browser comparison 5/5; door/resource lifecycle 4/4; TypeScript and web
+  production build passed. The prior 2,050-test aggregate predates this rendering-only follow-up.
+  Art gate remains NOT PASSED. No external upload; characters remain placeholders.
+
+- The original combined aggregate finished: **2,050/2,050 tests in 204 files passed**, zero failed or
+  pending, 34m 52.33s. Per-file evidence: docs/evidence/connected-realms/combined/aggregate.json.
+- Canonical Tower audit found a substantial mechanics/parity conflict and records the smallest safe
+  bridge integration in docs/CONNECTED_REALMS_CANONICAL_TOWER_AUDIT.md. It is a proposal, not implemented.
+  Coordinator requested this decision report before replacement if a conflict existed. Existing saves
+  and gameplay remain unchanged pending the choice of shared-mechanics slice versus full parity.
+
+- Two versioned realm domains, real doors and Tower atria use ordinary World entities, Navigator and
+  movement kernels. The Babylon client projects a bounded 81-chunk residency window and four residents.
+- Portals preserve the same Person, Body, inventory and ontology. Schema 27 retains 24/25/26 compatibility.
+- Tower ascent/return now works. One host-owned identity/travel binding and scoped floor checkpoint
+  live in the world save, with revision/idempotency checks and rollback on failed durable writes.
+- The combined real-input browser journey reached floor two, reloaded equipment, returned to the world,
+  crossed to Cinderveil, resumed that same floor and returned/reloaded again without browser errors.
+- Authority limit: ArenaWorld combat remains browser-owned. Checkpoint claims grant no global items,
+  injury/death or ontology. The realm pauses while the encounter projection runs. Full canonical
+  combat/reward integration remains unfinished and is documented, not hidden behind tier copying.
+- Visual gate NOT PASSED. Repetitive architecture, sparse streets/atrium and provisional characters
+  remain below the user's bar. Adopt the dedicated character owner's later validated asset handoff.
+- Play Torn Veil.cmd launches this candidate; the prior living-world launch/save and Unreal remain intact.
+  No existing live character migration, remote push, main merge or deployment occurred. The Tower worker's
+  checkout and untracked draft assets were not edited/copied; only the separately authorized commit was merged.
+- Reports: docs/CONNECTED_REALMS.md, docs/CONNECTED_REALMS_INTEGRATION.md,
+  docs/CONNECTED_REALMS_ART_GATE.md, docs/evidence/connected-realms/COMBINED_RESULTS.md.
+
+# Integrated handoff: Tower maze, expedition progression and character presentation (2026-10-08)
+
+Branch `codex/tower-visual-polish`, preserving motion commit `b315356` and presentation `67c4dac`.
+The combined-world worker owns the integration candidate; no cross-branch merge or remote publication here.
+
+- Connected tall maze rooms/corridors, shared wall/sconce cutaway, actual-prop navigation and bounded encounters.
+- Pure simulation expedition rules own practice, loot receipts, levels, tiers and emergent classes. The browser is
+  the action/projection adapter. Ordinary-world Person advancement is not silently granted by browser saves.
+- Existing MPFB bodies retain their source anatomy/rigs/UVs; finer materials and bounded contact shadows improve
+  presentation. They do not yet match the source references' facial/clothing fidelity.
+- Checkpoint browser verification passed 23/23 after reproducing and fixing a furniture-navigation stall; 12/12
+  final loaded-geometry maze cases passed. Two-minute real-input/orbit recording reached floor 5 with no browser
+  errors (recording FPS median 49.4, p10 40.2).
+- Final default regression coverage: 2,033 cases across the full run and a six-file/44-test approved retry for
+  sandbox user-profile errors and one asset-read timeout. Production `web:build` passed. Five inspected progress
+  screenshots and private delivery provenance remain local; scope is in `docs/TOWER_OCT8_QA.md`.
+- After the worker's exact commit retry was authorized, its 31-file candidate was committed as `e7cd628`.
+  That stable checkpoint and its ancestors are being integrated into the isolated connected-realms candidate.
+  The unvalidated character draft remains outside this integration.
+- `docs/TOWER_EXPEDITION.md` documents stable APIs, entry routes, persistence and integration limits.
+  `docs/TOWER_OCT8_QA.md` records source provenance, validation and honest model/visual limitations.
+
+# Previous: Tower character motion, customization and spell VFX (2026-10-06)
+
+Branch `codex/tower-opus-character-vfx` on PR #63's head `1457160`. Presentation and Tower UI only; canonical simulation,
+saves, reach and damage unchanged (one Proving Hall fix noted below).
+
+- **Fists:** the packed Mixamo clips keep constant finger channels as STEP keys, which `Animation.evaluate` did not
+  hold, so every bake opened the sword-hand fist after frame 2. The retargeter now holds STEP keys. Live ready-idle
+  closure went from 0.05 to 163/153 deg on both creator bodies (`scripts/web/tower-motion.ts`).
+- **Feet:** foot pops of 0.4-1.0 m per frame remain at locomotion starts, the run loop and the end of the roll
+  (24-31 per motion run). A cross-fade contact rule was tried, measured and reverted. Not fixed.
+- **Customization:** body, height 95-105% and hair on both bodies; jaw width and re-roll on the male only. Saved per
+  browser and applied live (`scripts/web/tower-creator.ts`, 19/19).
+- **Spell VFX:** missile outcome visuals (hit/blocked/wall/expire), a ribbon trail, the nova border at its exact 4.2
+  query radius, and field fade-out (`scripts/web/tower-vfx.ts`, 5/5). Proving Hall dummies now leave their spawn
+  state; bolts used to fly through them.
+- **Checks:** checkpoint E2E 23/23, sword and shield 6/6 per body, a climb bot from floor 1 to 4 on the creator male
+  with 0 page errors, focused tests and `web:build`. The full suite runs in PR CI.
+
+# Previous: Tower creator bodies, physical item fit and upright stances (2026-10-05)
+
+Branch `codex/tower-creator-fit` on `caeec71` (PR #62 head). Presentation only; canonical simulation, saves, reach and
+damage are unchanged.
+
+- **Hero bodies:** the ontology creator bodies `tv-human-male-v2` / `tv-human-female-v1` (hashes `869ebb80…`,
+  `c69e97f5…`), staged byte-for-byte. Each has its own bake of the existing Mixamo/Motifect clips and its own grips.
+  The male gets the editor's seeded appearance; the female has none to apply.
+- **Crouch diagnosis:** the crouch was measured in the packed source clips (`locomotion/*` 50-55 deg knee bend at
+  rest; sword-and-shield idle/walk/run 22-51 deg trunk lean), not added by the retarget. Calm movement now uses the
+  upright unarmed clips; near foes, a ready layer keeps the authored arms (resampled to the body cycle).
+- **Item fit:** contract in `physicalFit.ts`. KayKit `W_sword` 1.78 m-equivalent becomes 1.14 m and `W_greatsword`
+  2.37 becomes 1.82; Widow Cleaver 1.42 becomes 1.15. Other arsenal items stay at their authored size.
+- **Shield:** catalog TV-081 render variant with the handle bar turned upright, mounted in each body's fist slot with
+  a measured calibration. The finger-joint centre is 1.0-1.1 cm from the bar axis (bar half-thickness 1.5 cm) in
+  guard and ready, both bodies. The fist is hidden behind the arm in all inspected views, so visual contact is not
+  claimed.
+- **Checks:** sword-and-shield 6/6 per body, creator isolation/menu 8/8, checkpoint E2E 23/23, focused tests 37/37,
+  and `web:build`.
+
+# Previous: Tower sword-and-shield, checkpoint E2E and compact HUD (2026-10-05)
+
+Branch `codex/tower-expedition` (worktree `<historical-checkout>`): a reviewed
+finishing pass on base `22211a0`. External push, PR and Library upload are blocked by auto-review until trusted
+approval. Final evidence stays local (only an earlier trial image was uploaded). Presentation and Tower UI only;
+canonical simulation unchanged.
+
+- **Gear transfer:** the 0.22 s floating draw blend and its torso arc are removed. None of the licensed clips makes hand
+  contact with the slung gear. The great-sword draws are two-handed and overhead (closest palm-to-grip 0.60/0.69 m
+  with the sword slung, its hilt hidden behind the slung shield). The sword-and-shield sheaths go to the hip, and no
+  clip unslings a shield. So drawing and stowing are an intentional instantaneous transfer, with the existing flash;
+  no hand contact is faked.
+- **Foot contact (bounded):** the defect is missed stance lock. `FootPlant`'s first-pose ankle band missed planted
+  feet in the crouched/rolled sword-and-shield stances. `FootPlant.update` takes an optional per-foot `contact`;
+  without it the behaviour is unchanged (`sharedCast`). The Tower/arena hero passes the dominant clip's baked contact
+  in idle, move and a still guard, never with the strafe leg layer, lunging attacks or dodges. Live Tower, Proving
+  Hall, armed. Before and after are separate live runs, not phase-matched visual A/B, and the earlier before
+  feet pixels were partly hidden by toasts; the numbers are the evidence, not a broader claim that foot motion is
+  solved:
+  - Missed locks went to 0.
+  - Clip-planted slide in move: mean 3.80 → 0.88 m/s, p90 4.54 → 0.
+  - Jumps over 2 m/s: move 71 → 5, armed idle 45 → 3, guard 48 → 2.
+  - Residual: reset spikes over 10 m/s remain (single frames). Attacks are untouched (56 → 57).
+  - Relaxed locomotion was not re-measured. On the simpler lower-foot metric, the armed sprint segment still
+    averages 3.5 m/s.
+  - No vertical-contact claim: the solver keeps the animated foot height. Diagnostic scripts and runs stayed in
+    gitignored `.debug/`.
+- **Retry floor fix:** after Continue on floor N, a death retry began the new climb on floor N, because `resume()`
+  left `startFloor` at the saved floor. It now restores the base start floor; checkpoint restore, non-persistent
+  `floor=` previews and death stat semantics are unchanged.
+- **HUD:**
+  - The routine banner is a compact ribbon at 108 px, and achievements are a 300 px card on the right above the
+    radar, keeping name, text and reward.
+  - Toasts are a left stack above the weapon row. Expiries are unchanged (2.2 s, 4.2 s queue, 3.2 s). Choice, death
+    and recovery modals are unchanged.
+  - Below 1060 px wide the floor title moves right of the stats instead of over the HP bars.
+- **Browser evidence:** in fresh Playwright contexts, never a player profile:
+  - `scripts/web/tower-checkpoint-e2e.ts`: 23/23 checks, 0 page errors. Covers fresh floor-1 write, floor retry
+    rollback with exact-once lifetime receipts, a single floor-2 write, floor-2 Continue, Proving Hall isolation,
+    death, and corrupt/incompatible recovery with download. Continue and recovery are driven through the real menu
+    cards; death and the hall-exit position are harness-forced and labelled.
+  - `scripts/web/tower-sword-shield.ts --tower`: 6/6 armed-strip and transfer checks (stow, draw, rapid reversal,
+    swap with disposal by object identity), 0 page errors.
+  - `scripts/web/tower-hud.ts`: at 760×760 and 1100×700, no missing nodes, overlaps or errors after. Before (HEAD CSS
+    re-applied with `--legacy-css`): the title overlaps the HP frame at 760, and the banner overlaps the achievement
+    at both sizes.
+- **Checks:** typecheck passed; earlier focused tests 14/14. Reviewer reported build:bundle, web:build,
+  ontology:check, assets verify and ontology:build passing. Full `npm test`: 192 files, 1,907 tests passed,
+  0 failures (1,740.82 s). World smoke (run separately by the reviewer) exited 0: 7 scenarios, 5 PASS, 2 DEGRADED,
+  0 FAIL. Both DEGRADED results come only from the WL-TIMBER-HORIZON finite-timber warning, so not every scenario is
+  healthy. No CI, merge or publication is claimed.
+
+# Previous: Same-world Observatory workbench (2026-10-03)
 
 Local branch `codex/observatory-workbench`, based on cleanup `968897f` (PR #57).
 Movable/resizable/collapsible panels retain local layout; embedded Babylon uses the
@@ -225,7 +595,7 @@ Next action: native journeys for haul and protection/butchery → player employm
 
 GitHub `scrsper/torn-veil-online` / `main` is the source baseline. PRs #51, #52, #53
 and #54 merged on 2026-09-27 (integration commit `1205973`). Active local development
-uses **`C:/Users/green/Desktop/projects/torn-veil-online`**, explicitly designated
+uses **`<existing-repository>`**, explicitly designated
 by the user for every Torn Veil edit, including Unreal assets. `AGENTS.md` section 0
 is the permanent path rule. Documents and previous release checkouts are reference
 copies. Historical branch tips and local edits are archived; see
@@ -272,7 +642,7 @@ available; physical controller play, glyphs, rumble and Xbox hardware verificati
 external until performed. Injected-input checks do not certify physical-device acceptance.
 
 Private evidence, live saves, credentials, packages and the current handoff record are outside
-tracked source (`.debug/finish50/CURRENT.md` and `C:/Users/green/TornVeilAlpha`). Recovery14/14
+tracked source (`.debug/finish50/CURRENT.md` and `%USERPROFILE%/TornVeilAlpha`). Recovery14/14
 on alpha.19 and schema24→25 update13/13 are recorded. The alpha.26 soak failed after 28 minutes
 at 259.772 ms against the unchanged 250 ms capture budget. Alpha.27 buffer reuse also failed
 at 274.925 ms, despite fresh recovery14/14 and exact Iron reload. Streamed synchronous capture
@@ -501,7 +871,7 @@ Full report: `docs/evidence/playable-world-slice2/README.md`.
 # Slice 2 — local palette integration WIP, 2026-09-16 evening
 
 Branch `codex/playable-world-slice-2`, actual worktree
-`C:/Users/green/Desktop/projects/torn-veil-online-foundational`. Keep protected `4fd5114`.
+`<existing-repository>-foundational`. Keep protected `4fd5114`.
 Local AssetRegistry audit: 3,714 assets / 39 groups. Selected AdvancedVillage roof,
 grass/trees/well/storage, Free Medieval fixtures with owned PBR wrappers, WaterPlane
 rock. Derived licensed assets stay local; originals/imports and dirty map excluded.
@@ -713,7 +1083,7 @@ Human animation approval and full milestone completion are not claimed.
 # Real-time combat contact and defense v0.1 — earlier checkpoint, acceptance incomplete
 
 Branch: `codex/realtime-interaction-v0-1`, accepted movement base `6e3af83`.
-Canonical checkout: `C:/Users/green/Desktop/projects/torn-veil-online`.
+Canonical checkout: `<existing-repository>`.
 Delivery report: `docs/REALTIME_COMBAT_CONTACT_DEFENSE_V0_1.md`.
 
 User requested checkpoint and stop, with no further investigation or tests (2026-09-11).
@@ -800,7 +1170,7 @@ Original checkpoint: `codex/embodied-wildlife-ecology-v0-1`, based on `d9e758c`,
 
 Recorded previous branch: `astra/emergent-combat-choreography-v0-1`, from `8a5eda3`
 (previous humanoid/PCG phase; 8 commits ahead of origin/main at start).
-Canonical checkout: `C:/Users/green/Desktop/projects/torn-veil-online`.
+Canonical checkout: `<existing-repository>`.
 
 - Ordered, bounded combat execution projection over existing causal events; preserved
   body counters, observation gating, save/reload and burst identity.
@@ -823,7 +1193,7 @@ Canonical checkout: `C:/Users/green/Desktop/projects/torn-veil-online`.
 # Previous playable humanoid and PCG dwelling v0.1
 
 Phase branch: `astra/playable-humanoid-pcg-dwelling-v0-1`, from main `410a0a7`.
-Canonical checkout: `C:/Users/green/Desktop/projects/torn-veil-online`; the Documents
+Canonical checkout: `<existing-repository>`; the Documents
 checkout is stale. No PR or merge. Phase report: `docs/PLAYABLE_HUMANOID_PCG_DWELLING.md`.
 
 - Shared Manny presentation for possessed and NPC bodyIds; typed parsing, correct 2D

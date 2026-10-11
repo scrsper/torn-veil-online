@@ -1,0 +1,70 @@
+[
+  {
+    "seed": 918271,
+    "input": ".debug/tower-growth/ranged-918271-r8-resumed/world.json",
+    "qualification": "Retained saved canonical receipts from ordinary NPC minds in accelerated input runs, not observed rendered casts or total all-time tallies after compaction",
+    "npcCastReceipts": 293,
+    "distinctCastingPeople": 224,
+    "abilityCounts": {
+      "book-ember": 49,
+      "ess-bone": 59,
+      "book-sigil": 65,
+      "ess-storm": 36,
+      "book-thunder": 35,
+      "ess-gravity": 49
+    },
+    "arcaneHitReceiptsOnPlayer": 196,
+    "positiveDamageHitReceiptsOnPlayer": 191,
+    "examples": [
+      {
+        "id": "e_382007",
+        "actor": "p_1679",
+        "ability": "ess-gravity"
+      },
+      {
+        "id": "e_386600",
+        "actor": "p_1714",
+        "ability": "ess-gravity"
+      },
+      {
+        "id": "e_402620",
+        "actor": "p_1755",
+        "ability": "ess-gravity"
+      }
+    ]
+  },
+  {
+    "seed": 317,
+    "input": ".debug/tower-growth/ranged-317-r7-resumed-final/world.json",
+    "qualification": "Retained saved canonical receipts from ordinary NPC minds in accelerated input runs, not observed rendered casts or total all-time tallies after compaction",
+    "npcCastReceipts": 283,
+    "distinctCastingPeople": 201,
+    "abilityCounts": {
+      "book-ember": 55,
+      "ess-bone": 64,
+      "book-sigil": 57,
+      "ess-storm": 36,
+      "book-thunder": 26,
+      "ess-gravity": 45
+    },
+    "arcaneHitReceiptsOnPlayer": 205,
+    "positiveDamageHitReceiptsOnPlayer": 193,
+    "examples": [
+      {
+        "id": "e_347612",
+        "actor": "p_1609",
+        "ability": "ess-gravity"
+      },
+      {
+        "id": "e_349798",
+        "actor": "p_1600",
+        "ability": "ess-gravity"
+      },
+      {
+        "id": "e_350679",
+        "actor": "p_1612",
+        "ability": "ess-gravity"
+      }
+    ]
+  }
+]

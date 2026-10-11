@@ -1,3 +1,11 @@
+import { tryCombatArcana } from './combatArcana';
+import { recordArcaneEncounter } from '../physical/arcana/growth';
+import { trialGoal } from '../social/combatTrial';
+import { detailedPeople, detailedBodies, coarseTowerPeople } from '../world/interiors/residency';
+import { advanceExertion } from '../physical/exertion';
+import { recoverDownedBody } from '../physical/recovery';
+import { applyMeleeSpacing } from './meleeSpacing';
+import { advanceRecoil, receiveRecoil } from '../physical/recoil';
 import { provokeAnimal, menacingAnimals } from '../ecology/defense';
 import { maintainProtectionRequests } from '../social/protection';
 import { attemptHush, knowsVeil, meditateOnVeil, MEDITATION_SECONDS, veilStrain, HUSH_RANGE_M } from '../physical/veil';
@@ -26,7 +34,9 @@ import { stepEnvironmentalEnergy } from '../kernel/environment';
 import { procureMaterial } from './componentSupply';
 import { observeProduction, productionWorkGoals, localProductionChoice } from './productionOpportunity';
 import { applyInjury } from '../physical/injury';
-import { combatReach, type CombatAttackIntent, type CombatAttackResult } from '../physical/combat';
+import { stepArcana } from '../physical/arcana/runtime';
+import { absorbImpact } from '../physical/protection';
+import { combatApproachReach, combatReach, type CombatAttackIntent, type CombatAttackResult } from '../physical/combat';
 import { advanceCombat, captureCombatTransforms, combatBusy, requestCombatAction, requestDefense } from '../physical/combatAction';
 import { requestGuard } from '../physical/guard';
 import { observeCombatPreparation, offerCombatDefense } from './combatReaction';
@@ -181,13 +191,15 @@ export class Simulation {
     this.stepCombat(physical,before);
   }
   private stepCombat(dt:number,before:Map<string,CombatTransform>):void {
+    advanceExertion(this.world);
+    advanceRecoil(this.world, dt);
     observeCombatPreparation(this.world);
     advanceCombat(this.world,dt,before,(p,ab,tb,r,a)=>{
-      if(r.injury)applyInjury(tb,r.injury);
       const ev=this.applyHit(p,ab,tb,r.impact,a.intent,r);
       if(ev)ev.data.contact=a.contact;
       return ev;
     });
+    stepArcana(this.world, (p, b, target, damage, intent, eventId) => this.applyHit(p, b, target, damage, intent, undefined, eventId));
   }
   perceptionAccum = 0; strategicAccum = 0; compactAccum = 0; socialAccum = 0; inferenceAccum = 0; onSpeech: ((p: Person, text: string) => void) | null = null; onHit: ((b: Body, pos: Vec3) => void) | null = null;
   /** Coarse per-subsystem wall-clock accumulator (v0.2.1 Priority 3: "create benchmark
@@ -299,7 +311,7 @@ export class Simulation {
     const doPerceive = this.perceptionAccum >= 0.2;
     if (doPerceive) this.perceptionAccum = 0;
     const stimuli = doPerceive ? w.pendingStimuli.splice(0) : [];
-    for (const p of w.livingPersons()) {
+    for (const p of detailedPeople(w)) {
       if (!p.alive) continue;
       const body = w.primaryBody(p.id); if (!body) continue;
       if (doPerceive) { const t0 = this.mark(); this.perceive(p, stimuli); this.accum('perceive', t0); }
@@ -319,7 +331,7 @@ export class Simulation {
       this.accum('creatures', t0);
     }
     // 4. body physics for all non-player bodies
-    { const t0 = this.mark(); for (const b of w.activeBodies()) { const owner = w.get(b.ownerId) as Person | undefined; if (isExternallyControlled(owner) && !owner?.mind.plan.some(a => a.type === 'goto' && a.status === 'active')) continue; this.bodyPhysics(b, physDt); } this.accum('bodyPhysics', t0); }
+    { const t0 = this.mark(); for (const b of detailedBodies(w)) { recoverDownedBody(w, b); const owner = w.get(b.ownerId) as Person | undefined; if (isExternallyControlled(owner) && !owner?.mind.plan.some(a => a.type === 'goto' && a.status === 'active')) continue; this.bodyPhysics(b, physDt); } this.accum('bodyPhysics', t0); }
     if(combatBefore)this.stepCombat(physDt,combatBefore);
     // 5. strategic upkeep once per world minute
     this.strategicAccum += worldDt;
@@ -591,6 +603,8 @@ export class Simulation {
     if (p.surrender) { holdGoal('surrender:held', 'surrender', `surrendered to ${perceivedName(w, p, p.surrender.toId)}`); return; }
     if (body.subduedUntil > w.physicalTime) { holdGoal('idle:subdued', 'idle', 'subdued'); return; }
     if (downed) { holdGoal('idle:downed', 'idle', 'incapacitated'); return; }
+    const trial = trialGoal(w, p, body);
+    if (trial) G(trial.type!, trial.utility!, trial.reasons!, trial);
     // ---- v0.10 §III "people must remain embodied": how much room this person's body currently
     // leaves for anything that is not their body. Computed once, up here, because two different
     // things read it: `bodyRoom` scales the ordinary social-duty goals below, and `embodiment`
@@ -2005,7 +2019,7 @@ export class Simulation {
         const attackApproach = !!a.targetEntity && m.plan.some(next => next.type === 'attack' && next.targetEntity === a.targetEntity && (next.status === 'pending' || next.status === 'active'));
         // Arrival must satisfy the action this approach serves. Social distance can
         // exceed an unarmed reach, otherwise done-goto/attack retries never progress.
-        const arrivalReach = attackApproach ? Math.min(1.8, combatReach(w, p)) : 1.8;
+        const arrivalReach = attackApproach ? combatApproachReach(w, p) : 1.8;
         if (a.targetEntity) { const tb = w.primaryBody(a.targetEntity); if (!tb) { failGoto('target has no body'); break; } dest = tb.pos; if (dist2(body.pos, dest) < arrivalReach) { body.path = null; a.status = 'done'; body.pose = 'stand'; body.yaw = Math.atan2(-(dest.x - body.pos.x), -(dest.z - body.pos.z)); break; } if (!body.path || !body.pathGoal || dist2(body.pathGoal, dest) > 2.5) this.pathTo(body, dest, a); }
         if (!dest) { failGoto('no destination'); break; }
         const withinArrival = !a.targetEntity && dist2(body.pos, dest) < 1.2
@@ -2503,7 +2517,9 @@ export class Simulation {
           a.status = 'done'; break;
         }
         const d = dist2(body.pos, tb.pos); body.yaw = Math.atan2(-(tb.pos.x - body.pos.x), -(tb.pos.z - body.pos.z));
-        if (d > combatReach(w, p)) {
+        if (!combatBusy(body, w.physicalTime) && tryCombatArcana(w, p, body, tb, a.data?.intent as ConflictIntent | undefined)) break;
+        if (!combatBusy(body, w.physicalTime) && applyMeleeSpacing(w, p, body, tb, physDt)) break;
+        if (d > combatApproachReach(w, p)) {
           // v0.2.3: bound the pursuit (Constitution §11 disengagement — "do not create endless
           // world-spanning pursuit"). Give up after a few failed approaches, or if the target has
           // simply outrun us; the conflict then lapses to disengaging/deterrence via maintenance.
@@ -2811,13 +2827,6 @@ export class Simulation {
     if (b.pose === 'hit' || b.pose === 'downed' || b.pose === 'dead') { const nx = b.pos.x + b.vel.x * dt, nz = b.pos.z + b.vel.z * dt; if (!g.isSolidAt(nx, b.pos.y + 0.5, nz)) { b.pos.x = nx; b.pos.z = nz; } b.vel.x *= Math.max(0, 1 - dt * 4); b.vel.z *= Math.max(0, 1 - dt * 4); }
     if (b.pose === 'hit' && b.poseUntil < this.world.physicalTime) b.pose = 'stand';
     if (b.pose === 'attack' && b.poseUntil < this.world.physicalTime) { b.pose = 'stand'; b.attackTarget = null; }
-    if (b.pose === 'downed' && b.poseUntil < this.world.physicalTime && b.subduedUntil < this.world.physicalTime) {
-      // v0.2.3: a body whose owner has surrendered or is in custody stays down — it does not
-      // spring back up when the plain knock-down timer lapses.
-      const owner = this.world.get(b.ownerId) as Person | undefined;
-      const heldByState = owner?.kind === 'person' && (!!owner.surrender || !!owner.custody?.active);
-      if (!heldByState) { b.pose = 'stand'; b.health = Math.max(b.health, b.maxHealth * 0.3); }
-    }
   }
   private creatureStep(c: Creature, dt: number): void {
     const w = this.world; const b = w.primaryBody(c.id); if (!b || b.dead) return;
@@ -3055,7 +3064,7 @@ export class Simulation {
    * target instead. `intent` is optional so existing direct callers (and tests) keep their
    * previous non-hostile-driven behavior unchanged.
    */
-  applyHit(attacker: Person, ab: Body, tb: Body, dmg: number, intent?: ConflictIntent, combat?: CombatAttackResult): WorldEvent | null {
+  applyHit(attacker: Person, ab: Body, tb: Body, dmg: number, intent?: ConflictIntent, combat?: CombatAttackResult, arcaneEventId?: string): WorldEvent | null {
     const w = this.world; if (tb.dead) return null; const victim = w.get(tb.ownerId) as Person | Creature;
     // v0.2.3: a surrendered, subdued, or in-custody person is out of the fight. An aggressor
     // without explicit lethal intent does not keep hitting them (Constitution §11) — this is the
@@ -3064,12 +3073,17 @@ export class Simulation {
       const vp = victim as Person;
       if (vp.surrender || vp.custody?.active || tb.subduedUntil > w.physicalTime) return null;
     }
+    if (!Number.isFinite(dmg) || dmg < 0) return null;
+    const protection = absorbImpact(w, tb, dmg, combat?.injury?.region ?? 'torso');
+    const incoming = dmg; dmg = protection.damage;
+    if (combat?.injury && dmg > 0) applyInjury(tb, { ...combat.injury, severity: combat.injury.severity * (incoming ? dmg / incoming : 0) });
+    else if (arcaneEventId && dmg > 0) applyInjury(tb, { region: 'torso', severity: Math.min(1, dmg / tb.maxHealth) });
     tb.health -= dmg; tb.lastHitAt = w.physicalTime; tb.hitSeq++;
     if (victim.kind === 'creature') provokeAnimal(w, victim as Creature, tb, ab.id);
-    const dx = tb.pos.x - ab.pos.x, dz = tb.pos.z - ab.pos.z; const d = Math.hypot(dx, dz) || 1; tb.vel.x += dx / d * 4; tb.vel.z += dz / d * 4;
     this.onHit?.(tb, { x: tb.pos.x, y: tb.pos.y + 1.2, z: tb.pos.z });
     const place = w.placeAt(tb.pos);
-    const ev = w.emit('attack', { causes:[...(combat?.actionId&&ab.combatAction?.eventId?[ab.combatAction.eventId]:[]),...(combat?.guardEventId?[combat.guardEventId]:[])], actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, significance: 0.7, visibility: 26, loudness: 14, data: { combatFacts: combatActionFacts(w, attacker, ab, tb, 'hit', combat), combat, attackerBodyId: ab.id, targetBodyId: tb.id, attackSeq: ab.attackSeq, hitSeq: tb.hitSeq, damage: Math.round(dmg), weapon: combat ? (combat.weaponId ? w.nameOf(combat.weaponId) : 'fists') : this.weaponName(attacker), health: Math.round(tb.health), intent }, summary: `${attacker.name} attacked ${victim.name}${place ? ' at ' + place.name : ''} (${Math.round(dmg)} dmg)` });
+    const ev = w.emit('attack', { causes:[...(arcaneEventId?[arcaneEventId]:[]),...(combat?.actionId&&ab.combatAction?.eventId?[ab.combatAction.eventId]:[]),...(combat?.guardEventId?[combat.guardEventId]:[])], actor: attacker.id, target: victim.id, pos: { ...tb.pos }, placeId: place?.id, significance: 0.7, visibility: 26, loudness: 14, data: { arcaneEventId, protection, combatFacts: arcaneEventId ? undefined : combatActionFacts(w, attacker, ab, tb, 'hit', combat), combat, attackerBodyId: ab.id, targetBodyId: tb.id, attackSeq: ab.attackSeq, hitSeq: tb.hitSeq, damage: Math.round(dmg), weapon: combat ? (combat.weaponId ? w.nameOf(combat.weaponId) : 'fists') : this.weaponName(attacker), health: Math.round(tb.health), intent }, summary: `${attacker.name} attacked ${victim.name}${place ? ' at ' + place.name : ''} (${Math.round(dmg)} dmg)` });
+    receiveRecoil(w, tb, ab, dmg, ev);
     // v0.2.3: track this as part of a canonical Conflict (Constitution §11). Idempotent per pair.
     let conflict: Conflict | null = null;
     if (victim.kind === 'person') {
@@ -3119,6 +3133,7 @@ export class Simulation {
     if (victim.kind === 'person' && !isExternallyControlled(victim)) {
       const vp = victim as Person; if (!ev.perceivedBy.some(x => x.who === vp.id)) { ev.perceivedBy.push({ who: vp.id, how: 'saw', tick: w.now }); const perc = w.emit('perceived', { actor: vp.id, target: attacker.id, causes: [ev.id], significance: 0.4, data: { how: 'saw', eventType: 'attack', eventId: ev.id }, summary: `${vp.name} was attacked by ${attacker.name}` }); learn(w, vp, { key: `ev:${ev.id}`, kind: 'event', claim: eventClaim(w, ev, true), confidence: 1, source: { type: 'witnessed', viaEvent: perc.id }, cause: perc.id, summary: ev.summary }); remember(w, vp, { type: 'attack', summary: `${attacker.name} attacked me${place ? ' at ' + place.name : ''}`, eventId: ev.id, entities: [attacker.id], significance: 0.9, valence: -0.9, source: { type: 'witnessed', viaEvent: perc.id }, placeId: place?.id }); this.reactTo(vp, tb, ev, perc.id, true, true, false, null); }
     }
+    recordArcaneEncounter(w, attacker, ab, tb, ev);
     return ev;
   }
   weaponName(p: Person): string { let best: string = 'fists'; let bd = 0; for (const id of p.inventory) { const it = this.world.item(id); if (it && it.damage > bd) { bd = it.damage; best = it.name; } } return best; }
@@ -3414,8 +3429,14 @@ export class Simulation {
   private strategic(minutes: number): void {
     const w = this.world; const h = minutes / 60;
     const t0 = this.mark();
-    for (const p of w.livingPersons()) {
+    const active = detailedPeople(w), coarse = coarseTowerPeople(w), coarseIds = new Set(coarse.map(p => p.id));
+    const currentMinutes = minutes;
+    for (const p of [...active, ...coarse]) {
+      const minutes = p.towerUpkeepAt !== undefined || coarseIds.has(p.id) ? Math.max(0, (w.now - (p.towerUpkeepAt ?? w.now)) / 60) : currentMinutes;
+      const h = minutes / 60;
+      if (p.towerUpkeepAt !== undefined || coarseIds.has(p.id)) p.towerUpkeepAt = w.now;
       const b = w.primaryBody(p.id);
+      if (b && coarseIds.has(p.id)) recoverDownedBody(w, b);
       p.needs.social = clamp(p.needs.social + h / 10 * p.traits.sociability);
       // v0.4 §1: energy(calories)/hydration/fatigue/sleepDebt/bodyHeat now come from one
       // centralized physiology step (core/physiology.ts), classified by the person's current
@@ -3427,10 +3448,10 @@ export class Simulation {
       const firePlace = b ? w.placeAt(b.pos) : undefined;
       const nearFire = firePlace ? fireIntensityAt(w, firePlace.id) : 0;
       if (b) {
-        const activity = martialActivityLevel(w, p) ?? activityLevelFor(p, b, w);
+        const activity = coarseIds.has(p.id) ? 'idle' : martialActivityLevel(w, p) ?? activityLevelFor(p, b, w);
         stepPhysiology(w, p, h, activity, { indoor: w.isIndoors(b.pos), daylight: this.lightAt(), nearFire });
         // The same classified load conditions the body (bounded by what that work demands).
-        developThroughExertion(w, p, activity, h);
+        if (!coarseIds.has(p.id)) developThroughExertion(w, p, activity, h);
       }
       // v0.8 §P0-D fix: a detainee has no agency to seek their own food/water — `custody?.active`
       // already suspends their autonomous goal system entirely (this file's think(), the
@@ -3544,7 +3565,7 @@ export class Simulation {
       this.inferenceAccum += sh;
       const drawNow = this.inferenceAccum >= 1;
       if (drawNow) this.inferenceAccum = 0;
-      for (const p of w.livingPersons()) {
+      for (const p of detailedPeople(w)) {
         const unresolvedHarm = new Set<string>();
         for (const k of knowledgeItems(p)) {
           if (k.kind === 'event' && !k.handled && k.claim.actor && (k.claim.type === 'attack' || k.claim.type === 'kill' || k.claim.type === 'theft')) unresolvedHarm.add(k.claim.actor);
@@ -3557,7 +3578,7 @@ export class Simulation {
       // about them age and discharge at the personal level. Same coarse cadence as relationship
       // evolution above — both work on half-lives of hours to days.
       maintainSituations(w);
-      for (const p of w.livingPersons()) {
+      for (const p of detailedPeople(w)) {
         if (isExternallyControlled(p)) continue;
         maintainConcerns(w, p, sh);
         // v0.10 §I/§II: the personal layers age and settle on the same coarse cadence as

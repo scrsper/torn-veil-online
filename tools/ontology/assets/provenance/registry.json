@@ -5042,10 +5042,10 @@
     "downloadDate": "2026-10-04T00:00:00Z",
     "originalFilename": "brann.glb",
     "localPath": "web/public/arena/people/brann.glb",
-    "modificationStatus": "Previously authored cast, unchanged by consolidation",
+    "modificationStatus": "Inherited October 10 trouser coverage, 3 mm fit allowance and fabric/leather PBR adjustments from 679ce9a; retained unchanged from dc9e07c",
     "redistributionRestrictions": "Retain full clothing attribution in web/public/arena/people/CREDITS.md",
-    "sha256": "4111c83f02cac12e3a7c44223b3edef293884858d44a307b0b22a9202db53719",
-    "notes": "Shared game/editor cast; local acquisition timestamp is consolidation date, original credits retained."
+    "sha256": "3e6ed2917a0504543651a384e991dbc8fca55b71af96c27d3974a74ee9ce5568",
+    "notes": "Current hash verified against committed dc9e07c export. Original attribution and source metadata retained; fit recipe and modifications recorded in people.json and CREDITS.md."
   },
   {
     "id": "shared-wren",
@@ -5058,10 +5058,10 @@
     "downloadDate": "2026-10-04T00:00:00Z",
     "originalFilename": "wren.glb",
     "localPath": "web/public/arena/people/wren.glb",
-    "modificationStatus": "Previously authored cast, unchanged by consolidation",
+    "modificationStatus": "Inherited October 10 trouser coverage, 3 mm fit allowance and fabric/leather PBR adjustments from 679ce9a; retained unchanged from dc9e07c",
     "redistributionRestrictions": "Retain full clothing attribution in web/public/arena/people/CREDITS.md",
-    "sha256": "a38267f538d63b0bc6d0d3e12e8c6c77993c7e4c0c1e82e281175993a89bf2c0",
-    "notes": "Shared game/editor cast; local acquisition timestamp is consolidation date, original credits retained."
+    "sha256": "cb3a148dccac32e005a638f5d66173a2f4a877f195a4ad78e710b9ac62aba03c",
+    "notes": "Current hash verified against committed dc9e07c export. Original attribution and source metadata retained; fit recipe and modifications recorded in people.json and CREDITS.md."
   },
   {
     "id": "shared-raider",

@@ -60,6 +60,25 @@ const SPECS: Record<MatName, Spec> = {
   props: { texture: 'ground', tint: [1, 1, 1], metres: 0.6, roughness: 0.78, bump: 0.5 },
 };
 
+/** The CC0 scan set for a surface (web/public/textures/world/<surface>-albedo|normal|arm.jpg): sRGB albedo, linear normal and ARM. */
+export function loadScannedMaps(scene: Scene, surface: string): { albedo: Texture; normal: Texture; arm: Texture } {
+  const texture = (slot: string, srgb: boolean) => {
+    const tx = new Texture(`/textures/world/${surface}-${slot}.jpg`, scene, false, false, Texture.TRILINEAR_SAMPLINGMODE);
+    tx.gammaSpace = srgb; tx.anisotropicFilteringLevel = 8;
+    tx.wrapU = Texture.WRAP_ADDRESSMODE; tx.wrapV = Texture.WRAP_ADDRESSMODE;
+    return tx;
+  };
+  return { albedo: texture('albedo', true), normal: texture('normal', false), arm: texture('arm', false) };
+}
+/** Bind a scan set to a PBR material: albedo, OpenGL-style normal (Y inverted), AO / roughness / metal from ARM's R / G / B. */
+export function useScannedMaps(m: PBRMaterial, maps: { albedo: Texture; normal: Texture; arm: Texture }): void {
+  m.albedoTexture = maps.albedo;
+  m.bumpTexture = maps.normal; m.invertNormalMapY = true;
+  m.metallicTexture = maps.arm; m.useAmbientOcclusionFromMetallicTextureRed = true;
+  m.useRoughnessFromMetallicTextureGreen = true; m.useRoughnessFromMetallicTextureAlpha = false; m.useMetallnessFromMetallicTextureBlue = true;
+  m.ambientTextureStrength = .8;
+}
+
 export class MaterialLibrary {
   private readonly cache = new Map<MatName, PBRMaterial>();
   private readonly weatherMaterials = new Map<PBRMaterial, WeatherProfile>();
@@ -97,24 +116,11 @@ export class MaterialLibrary {
     const surface = SURFACES[name];
     if (surface) {
       let maps = this.scanned.get(surface);
-      if (!maps) {
-        const texture = (slot: string, srgb: boolean) => {
-          const tx = new Texture(`/textures/world/${surface}-${slot}.jpg`, this.scene, false, false, Texture.TRILINEAR_SAMPLINGMODE);
-          tx.gammaSpace = srgb; tx.anisotropicFilteringLevel = 8;
-          tx.wrapU = Texture.WRAP_ADDRESSMODE; tx.wrapV = Texture.WRAP_ADDRESSMODE;
-          return tx;
-        };
-        maps = { albedo: texture('albedo', true), normal: texture('normal', false), arm: texture('arm', false) };
-        this.scanned.set(surface, maps);
-      }
-      m.albedoTexture = maps.albedo;
+      if (!maps) { maps = loadScannedMaps(this.scene, surface); this.scanned.set(surface, maps); }
+      useScannedMaps(m, maps);
       // The scans already contain the wood colour. The former brown tint multiplied it
       // a second time, losing the grain entirely on the shaded side of buildings.
       m.albedoColor = name === 'darkwood' ? new Color3(1.2, 1.06, .87) : ['planks', 'wood', 'log'].includes(name) ? new Color3(1.6, 1.5, 1.35) : name === 'roofSlate' ? new Color3(.65, .78, .92) : name === 'roofTile' ? new Color3(1.3,.72,.46) : name === 'thatch' ? new Color3(1.12,.91,.62) : name === 'plaster' ? new Color3(1.05,1,.89) : Color3.White();
-      m.bumpTexture = maps.normal; m.invertNormalMapY = true;
-      m.metallicTexture = maps.arm; m.useAmbientOcclusionFromMetallicTextureRed = true;
-      m.useRoughnessFromMetallicTextureGreen = true; m.useRoughnessFromMetallicTextureAlpha = false; m.useMetallnessFromMetallicTextureBlue = true;
-      m.ambientTextureStrength = .8;
     } else {
       m.albedoTexture = t.albedo; m.albedoColor = new Color3(...s.tint);
       m.bumpTexture = t.normal; m.invertNormalMapY = true;

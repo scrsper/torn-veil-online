@@ -45,6 +45,7 @@ export class PlayerController {
   private guardSentAt = 0;
   private guardWanted = false;
   private lastDodgeAt = -9;
+  private inputReleaseSerial = 0;
   lastCombat: CombatIntent | null = null;
   lastMoveWorld = { x: 0, z: 0 };
   constructor(
@@ -66,7 +67,17 @@ export class PlayerController {
   /** Called once per rendered frame after `input.beginFrame`. */
   update(dt: number): void {
     const s = this.settings();
+    if (this.input.releaseSerial !== this.inputReleaseSerial) {
+      this.inputReleaseSerial = this.input.releaseSerial;
+      this.sendGuard(false);
+      this.guardHeld = this.focusHeld = this.sprintHeld = this.crouchHeld = this.crouchToggled = false;
+    }
     const acting = this.hooks.canAct();
+    // Projected target loss must release the camera even while a menu blocks actions.
+    if (this.lockedBodyId) {
+      const c = this.target(), p = this.ownPos();
+      if (!c || c.dead || !p || Math.hypot(c.pos.x - p.x, c.pos.z - p.z) > 26) this.setLock(null);
+    }
     if (!acting) { this.input.stopAutoWalk(); if (this.guardHeld || this.guardWanted) this.release(); this.stepMovement(dt, false); return; }
 
     // Held-state toggles.
@@ -82,7 +93,6 @@ export class PlayerController {
     // Targeting.
     if (this.input.pressed('lockTarget')) this.toggleLock();
     if (this.input.pressed('switchTarget')) this.cycleLock();
-    if (this.lockedBodyId) { const c = this.candidates().find(x => x.bodyId === this.lockedBodyId); if (!c || c.dead) this.setLock(null); else { const p = this.ownPos(); if (p && Math.hypot(c.pos.x - p.x, c.pos.z - p.z) > 26) this.setLock(null); } }
 
     this.stepMovement(dt, true);
     // Combat edges.
@@ -133,12 +143,13 @@ export class PlayerController {
     this.lastCombat = intent; this.hooks.onCombatCommand?.(intent);
   }
   private dodge(at: number): void {
-    if (at - this.lastDodgeAt < 120) return; this.lastDodgeAt = at;
+    if (at - this.lastDodgeAt < 120) return;
     const wx = this.lastMoveWorld.x, wz = this.lastMoveWorld.z, mag = Math.hypot(wx, wz);
     let cmd: InteractionCommand, intent: Omit<CombatIntent, 'commandId' | 'sequence'>;
     if (mag < INTERACTION_SPEC.dodgeDeadZone) { cmd = { type: 'defend', kind: 'backstep', side: 1 }; intent = { kind: 'defend', defend: 'backstep', side: 1, at }; }
     else { const d = { x: wx / mag, z: wz / mag }; cmd = { type: 'defend', kind: 'sidestep', side: 1, direction: d }; intent = { kind: 'defend', defend: 'sidestep', side: 1, direction: d, at }; }
     const sent = this.link.sendCommand(cmd); if (!sent) return;
+    this.lastDodgeAt = at;
     const full: CombatIntent = { ...intent, commandId: sent.commandId, sequence: sent.sequence }; this.lastCombat = full; this.hooks.onCombatCommand?.(full);
   }
   cancelAction(): void { this.link.sendCommand({ type: 'cancel' }); }
@@ -147,7 +158,7 @@ export class PlayerController {
   setLock(id: string | null): void { if (this.lockedBodyId !== id) { this.lockedBodyId = id; this.hooks.onLockChange?.(id); } }
   private scoreTargets(): { c: Candidate; score: number }[] {
     const p = this.ownPos(); if (!p) return [];
-    const fx = -Math.sin(this.cam.yaw), fz = -Math.cos(this.cam.yaw);
+    const fx = -Math.sin(this.cam.moveYaw), fz = -Math.cos(this.cam.moveYaw);
     return this.candidates().filter(c => !c.dead).map(c => {
       const dx = c.pos.x - p.x, dz = c.pos.z - p.z, d = Math.hypot(dx, dz) || 0.001, cosA = (dx * fx + dz * fz) / d;
       return { c, score: d <= 22 && (this.cam.cutaway || cosA > 0.25) ? d * (this.cam.cutaway ? 1 : 1.6 - cosA) - (c.hostile ? 2 : 0) : Infinity };
@@ -158,7 +169,7 @@ export class PlayerController {
     const best = this.scoreTargets()[0]; if (best) this.setLock(best.c.bodyId);
   }
   cycleLock(): void {
-    const list = this.scoreTargets(); if (!list.length) return;
+    const list = this.scoreTargets(); if (!list.length) { this.setLock(null); return; }
     const i = list.findIndex(x => x.c.bodyId === this.lockedBodyId);
     this.setLock(list[(i + 1) % list.length].c.bodyId);
   }

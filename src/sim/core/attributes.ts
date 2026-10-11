@@ -87,7 +87,8 @@ export function getPhysicalCapability(p: Person, world: World, ctx: { body?: Bod
   const skill = clamp(ctx.skill ?? (actionSkillId ? skillOf(p, actionSkillId) : 0), 0, 1);
   // Being tired, starving or overheated saps the attributes you can actually bring to bear —
   // the attribute itself (a trait of the body) is unchanged; what's "effective" right now isn't.
-  const fatiguePenalty = 1 - phys.fatigue * 0.5;
+  const breath = body?.exertion?.load ?? 0;
+  const fatiguePenalty = (1 - phys.fatigue * 0.5) * (1 - breath * .2);
   const hungerPenalty = 1 - Math.max(0, 0.5 - phys.energy) * 0.9;
   const heatPenalty = phys.bodyHeat > 0.4 ? Math.max(0.25, 1 - (phys.bodyHeat - 0.4) * 1.15) : 1;
   const sleepPenalty = 1 - Math.min(1, phys.sleepDebt / 16) * 0.35;
@@ -125,7 +126,7 @@ export function getPhysicalCapability(p: Person, world: World, ctx: { body?: Bod
   const heatExertionPenalty = heat === 'dangerous' ? 0.9 : heat === 'severe' ? 0.55 : heat === 'hot' ? 0.2 : 0;
   const currentExertionCapacity = clamp(
     1 - phys.fatigue * 0.75 - Math.max(0, 0.35 - phys.energy) * 1.3 - Math.max(0, 0.3 - phys.hydration) * 1.1 - heatExertionPenalty
-    - wound * 0.95,
+    - wound * 0.95 - breath * .65,
     0, 1,
   );
 
@@ -157,5 +158,9 @@ export function defaultAttributesFor(age: number, gender: 'm' | 'f'): Attributes
 export function movementMultiplier(body: Body | undefined | null, p?: Person): number {
   const foundation = p ? clamp(1 + (p.attributes.strength - 8) * 0.006 + (p.attributes.dexterity - 8) * 0.008 + (p.attributes.endurance - 8) * 0.006, 0.7, 1.25)
     * (1 - p.physiology.fatigue * 0.12) : 1;
-  return foundation * (1 - clamp(body?.injuries?.leg ?? 0, 0, 1) * 0.65);
+  const effects = body?.arcana?.effects ?? [];
+  const chill = effects.find(e => e.kind === 'chill')?.strength ?? 0;
+  const haste = effects.find(e => e.kind === 'haste')?.strength ?? 0;
+  return foundation * (1 - clamp(body?.injuries?.leg ?? 0, 0, 1) * 0.65)
+    * (1 - clamp(chill, 0, .8)) * (1 + clamp(haste, 0, .5));
 }

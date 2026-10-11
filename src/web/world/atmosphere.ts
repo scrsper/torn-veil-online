@@ -111,14 +111,19 @@ export class Atmosphere {
     const moonColor: RGB = [0.5, 0.6, 0.85];
     const kc = keyFromSun ? sunColor : moonColor;
     this.key.diffuse = new Color3(...kc); this.key.specular = new Color3(kc[0], kc[1], kc[2]);
-    this.key.intensity = (keyFromSun ? lerp(0.3, 2.9, S(-0.06, 0.4, elev)) * (1 - overcast * 0.55) : 0.42 * (1 - overcast * 0.3)) * this.look.key;   // moonlight: dark, but enough to read paths, people and faces
+    this.key.intensity = (keyFromSun ? lerp(0.3, 2.5, S(-0.06, 0.4, elev)) * (1 - overcast * 0.55) : 0.42 * (1 - overcast * 0.3)) * this.look.key;   // moonlight: dark, but enough to read paths, people and faces
     this.sunDirection.copyFrom(sunPos);
 
-    // Ambient: pale slate sky light, warm ground bounce; never dark enough to lose the path.
-    const skyAmbient = mix(mix([0.22, 0.28, 0.46], [0.5, 0.58, 0.72], day), [0.6, 0.66, 0.76], overcast * 0.5);
+    // A broad, near-neutral daylight fill balances the directional sun. The old blue,
+    // weak hemisphere made shaded timber and upright clothes almost black while roads
+    // in direct sun were bright. Raise diffuse sky/earth bounce rather than exposure:
+    // the visible sky, highlights and the deliberately dark clear-night profile stay intact.
+    // Cloud cover transfers illumination from the key to the hemisphere instead of
+    // dimming both; this gives rain a softer light without losing material colour.
+    const skyAmbient = mix(mix([0.22, 0.28, 0.46], [0.64, 0.69, 0.76], day), [0.67, 0.70, 0.75], overcast * day * 0.5);
     this.fill.diffuse = new Color3(...skyAmbient);
-    this.fill.groundColor = new Color3(...mix([0.06, 0.07, 0.11], [0.3, 0.26, 0.2], day));
-    this.fill.intensity = lerp(0.4, 0.78, day) * (1 - overcast * 0.1) * this.look.fill;
+    this.fill.groundColor = new Color3(...mix([0.06, 0.07, 0.11], [0.46, 0.42, 0.36], day));
+    this.fill.intensity = lerp(0.4, 0.94, day) * (1 + overcast * day * 0.12) * this.look.fill;
 
     // Fog: exponential haze coloured like the horizon.
     const horizon = mix(mix(mix([0.06, 0.08, 0.16], [0.63, 0.7, 0.8], day), [1.0, 0.62, 0.4], dusk * 0.85), [0.58, 0.62, 0.68], overcast * 0.6);

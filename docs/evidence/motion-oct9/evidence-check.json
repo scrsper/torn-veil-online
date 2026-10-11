@@ -1,0 +1,21 @@
+{
+  "result": "passed",
+  "rawResult": ".debug/motion-oct9/after-contact-r2/result.json",
+  "sha256": "041e68e2e076da1489a8292304aa858a52f4ea3b3189cfca8d29d04f51004f3a",
+  "video": ".debug/motion-oct9/after-contact-r2/after-contact-r2-gameplay.webm",
+  "videoSha256": "3f752b8e973d6c52eb1cba30add5daf377e8c2ce1ce2d9bd54a2b22e4228c496",
+  "checks": [
+    "Completed capture has no reported browser errors",
+    "Existing mocap and six canonical bodies were rendered",
+    "Ordinary bound commands reached the host",
+    "Walking changed the canonical body position",
+    "Combination selected a canonical cross and accepted four strike inputs",
+    "Contact displaced the struck partner",
+    "Directional dodge entered its active phase and moved the body",
+    "Walking resumed after the retained completed dodge",
+    "Incoming contact damaged and displaced the player",
+    "All five visible review opponents eventually attempted attacks",
+    "Actual captured video exists and is nonempty"
+  ],
+  "limits": "Checks inspect recorded canonical projections, not visual quality, autonomous NPC behavior, GPU performance or sword/shield coverage."
+}

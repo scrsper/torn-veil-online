@@ -47,7 +47,7 @@ export interface RegionProjection {
   settlements: { id: string; bounds: { x0: number; z0: number; x1: number; z1: number } }[];
   dressingExclusions: { bounds: { x0: number; z0: number; x1: number; z1: number } }[];
   decoration: { classification: string; seed: number; collision: boolean; gameplay: boolean };
-  structures?: { runs: number[] };
+  structures?: { runs: number[]; trees?: { x: number; y: number; z: number; height: number; species: 'oak' | 'pine'; variant: number; yaw: number }[] };
 }
 export interface ResourceProjection { id: string; kind: string; pos: Vec3; state: string; remaining: number; growthStage?: 'felled' | 'sapling' | 'young' | 'mature'; capacity?: number; unit?: string; forage?: unknown; physicallyAvailable?: boolean }
 export interface ItemProjection { id: string; type: string; pos: Vec3; quantity: number }
@@ -98,7 +98,7 @@ export interface CombatActionState {
   trajectory: 'high' | 'mid' | 'low'; variant?: string; moveId?: string; startedAt: number; activeAt: number; recoveryAt: number; completeAt: number;
   phase: 'requested' | 'accepted' | 'preparation' | 'active' | 'recovery' | 'complete' | 'interrupted' | string; outcome: string;
   facing: number; direction: Vec3; distance: number; reach: number; radius: number; duck: number;
-  contact: { bodyId: string; region: string; position: Vec3; at: number; eventId: string; decidedAtMs?: number } | null;
+  contact: { bodyId: string; region: string; position: Vec3; at: number; eventId?: string; decidedAtMs?: number } | null;
   pos?: Vec3; vel?: Vec3; yaw?: number;
 }
 export interface BodyState {
@@ -158,6 +158,9 @@ export interface ResultMessage { type: 'result'; sequence: number; result: strin
 export interface MaintenanceMessage { type: 'maintenance'; message: string; atMs: number; inMs: number }
 
 export type InteractionCommand =
+    | { type: 'rest' | 'wake' | 'integrate_arcana' }
+    | { type: 'learn_arcana'; itemId: string }
+    | { type: 'cast'; abilityId: string; target?: { x: number; y: number; z: number }; scrollItemId?: string }
   | { type: 'move'; x: number; z: number; sprint: boolean; facing?: number; crouch?: boolean }
   | { type: 'attack'; targetBodyId?: string; trajectory?: 'high' | 'mid' | 'low'; weight?: 'light' | 'heavy' }
   | { type: 'interact'; interactionId: string }

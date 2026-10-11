@@ -23,7 +23,7 @@ export function createCombatGym(seed = 918271) {
   ] as const;
   for (const [i, [name, x, z]] of fixtures.entries()) {
     const p = makePerson(world, { name, gender: i % 2 ? 'm' : 'f', age: 25, occupation: 'traveler', traits: { aggression: 0, sociability: .8 }, appearance: { shirt: i === 0 ? 0x345477 : i === 5 ? 0x557969 : 0x9c6354 }, bio: 'Disposable Combat Gym fixture. Ordinary canonical actions apply.', home: place.id });
-    p.bodies.push(makeBody(world, p.id, { x, y: 1, z }).id);
+    world.attachBody(p, makeBody(world, p.id, { x, y: 1, z }));
     setExternalControl(p, true);
     world.primaryBody(p.id)!.yaw = i === 0 ? -Math.PI / 2 : Math.PI / 2;
     if (i === 0) world.playerId = p.id;

@@ -1,0 +1,467 @@
+{
+  "result": "passed",
+  "errors": [],
+  "health": {
+    "kind": "torn-veil-realms",
+    "root": "<candidate-checkout>",
+    "ready": true,
+    "seed": 918271,
+    "saveError": "",
+    "updateError": "",
+    "memory": {
+      "rss": 272248832,
+      "heapTotal": 172175360,
+      "heapUsed": 140004744,
+      "external": 50664896,
+      "arrayBuffers": 9864278
+    }
+  },
+  "measurement": "Observed headed Chrome at 1440x900 with video recording. Frame intervals include scheduling/recording overhead, not GPU timings. Buffers overlap between captures; do not sum rows. Buffers reset on page reload. Server timings cover the simulation step only, excluding projection, transport and saving.",
+  "samples": [
+    {
+      "name": "01-aether",
+      "realm": "aether",
+      "position": {
+        "x": 3092.5,
+        "y": 1,
+        "z": 3097.5
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "width": 1440,
+      "height": 900,
+      "loaded": 81,
+      "pending": 0,
+      "meshes": 825,
+      "textures": 146,
+      "materials": 110,
+      "heap": {
+        "used": 172787413,
+        "total": 222693213
+      },
+      "frameMs": {
+        "samples": 261,
+        "p50": 8.3,
+        "p95": 12.6,
+        "p99": 14.9,
+        "max": 15.3
+      },
+      "streamingFrameMs": {
+        "samples": 81,
+        "p50": 10.7,
+        "p95": 195.2,
+        "p99": 297.5,
+        "max": 297.5
+      },
+      "chunkUploadMs": {
+        "samples": 81,
+        "p50": 0.9,
+        "p95": 8.1,
+        "p99": 251.9,
+        "max": 251.9
+      },
+      "simulationStepMs": {
+        "samples": 42,
+        "p50": 0.36,
+        "p95": 1.16,
+        "p99": 2.74,
+        "max": 2.74
+      },
+      "journeys": [
+        {
+          "realm": "aether",
+          "initialStateToAllChunksMs": 2489
+        }
+      ]
+    },
+    {
+      "name": "02-tower-atrium",
+      "realm": "aether",
+      "position": {
+        "x": 3120.308839763994,
+        "y": 1,
+        "z": 3129.1700000000037
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "width": 1440,
+      "height": 900,
+      "loaded": 81,
+      "pending": 0,
+      "meshes": 825,
+      "textures": 146,
+      "materials": 110,
+      "heap": {
+        "used": 162419100,
+        "total": 225227696
+      },
+      "frameMs": {
+        "samples": 2139,
+        "p50": 7.8,
+        "p95": 11,
+        "p99": 12.9,
+        "max": 16.9
+      },
+      "streamingFrameMs": {
+        "samples": 81,
+        "p50": 10.7,
+        "p95": 195.2,
+        "p99": 297.5,
+        "max": 297.5
+      },
+      "chunkUploadMs": {
+        "samples": 81,
+        "p50": 0.9,
+        "p95": 8.1,
+        "p99": 251.9,
+        "max": 251.9
+      },
+      "simulationStepMs": {
+        "samples": 181,
+        "p50": 0.36,
+        "p95": 0.7,
+        "p99": 2.22,
+        "max": 2.74
+      },
+      "journeys": [
+        {
+          "realm": "aether",
+          "initialStateToAllChunksMs": 2489
+        }
+      ]
+    },
+    {
+      "name": "03-cinderveil",
+      "realm": "brass",
+      "position": {
+        "x": 11284.5,
+        "y": 1,
+        "z": 3097.5
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "width": 1440,
+      "height": 900,
+      "loaded": 81,
+      "pending": 0,
+      "meshes": 966,
+      "textures": 209,
+      "materials": 175,
+      "heap": {
+        "used": 201759258,
+        "total": 259686514
+      },
+      "frameMs": {
+        "samples": 3600,
+        "p50": 7.9,
+        "p95": 11,
+        "p99": 13,
+        "max": 17.3
+      },
+      "streamingFrameMs": {
+        "samples": 162,
+        "p50": 9.8,
+        "p95": 71.1,
+        "p99": 250,
+        "max": 297.5
+      },
+      "chunkUploadMs": {
+        "samples": 162,
+        "p50": 0.8,
+        "p95": 6.3,
+        "p99": 10.3,
+        "max": 251.9
+      },
+      "simulationStepMs": {
+        "samples": 334,
+        "p50": 0.35,
+        "p95": 0.64,
+        "p99": 1.08,
+        "max": 2.74
+      },
+      "journeys": [
+        {
+          "realm": "aether",
+          "initialStateToAllChunksMs": 2489
+        },
+        {
+          "realm": "brass",
+          "initialStateToAllChunksMs": 852.4
+        }
+      ]
+    },
+    {
+      "name": "04-streamed-brass-street",
+      "realm": "brass",
+      "position": {
+        "x": 11269.540000000154,
+        "y": 1,
+        "z": 3194.4680000001754
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "width": 1440,
+      "height": 900,
+      "loaded": 81,
+      "pending": 0,
+      "meshes": 971,
+      "textures": 209,
+      "materials": 175,
+      "heap": {
+        "used": 205123959,
+        "total": 269114679
+      },
+      "frameMs": {
+        "samples": 3600,
+        "p50": 8,
+        "p95": 10.2,
+        "p99": 11.5,
+        "max": 14.7
+      },
+      "streamingFrameMs": {
+        "samples": 187,
+        "p50": 9.6,
+        "p95": 69.1,
+        "p99": 250,
+        "max": 297.5
+      },
+      "chunkUploadMs": {
+        "samples": 187,
+        "p50": 0.8,
+        "p95": 5.6,
+        "p99": 10.3,
+        "max": 251.9
+      },
+      "simulationStepMs": {
+        "samples": 566,
+        "p50": 0.34,
+        "p95": 0.57,
+        "p99": 1,
+        "max": 2.74
+      },
+      "journeys": [
+        {
+          "realm": "aether",
+          "initialStateToAllChunksMs": 2489
+        },
+        {
+          "realm": "brass",
+          "initialStateToAllChunksMs": 852.4
+        }
+      ]
+    },
+    {
+      "name": "05-shared-character",
+      "realm": "aether",
+      "position": {
+        "x": 3092.5,
+        "y": 1,
+        "z": 3097.5
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "width": 1440,
+      "height": 900,
+      "loaded": 81,
+      "pending": 0,
+      "meshes": 864,
+      "textures": 209,
+      "materials": 175,
+      "heap": {
+        "used": 261543420,
+        "total": 301395616
+      },
+      "frameMs": {
+        "samples": 3600,
+        "p50": 7.9,
+        "p95": 10.4,
+        "p99": 11.5,
+        "max": 15.5
+      },
+      "streamingFrameMs": {
+        "samples": 293,
+        "p50": 9.1,
+        "p95": 32.4,
+        "p99": 247.1,
+        "max": 297.5
+      },
+      "chunkUploadMs": {
+        "samples": 293,
+        "p50": 0.8,
+        "p95": 5.1,
+        "p99": 9.5,
+        "max": 251.9
+      },
+      "simulationStepMs": {
+        "samples": 600,
+        "p50": 0.3,
+        "p95": 0.48,
+        "p99": 0.64,
+        "max": 2.71
+      },
+      "journeys": [
+        {
+          "realm": "aether",
+          "initialStateToAllChunksMs": 2489
+        },
+        {
+          "realm": "brass",
+          "initialStateToAllChunksMs": 852.4
+        },
+        {
+          "realm": "aether",
+          "initialStateToAllChunksMs": 714.1
+        }
+      ]
+    },
+    {
+      "name": "06-returned-aether",
+      "realm": "aether",
+      "position": {
+        "x": 3092.5,
+        "y": 1,
+        "z": 3097.5
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "width": 1440,
+      "height": 900,
+      "loaded": 81,
+      "pending": 0,
+      "meshes": 864,
+      "textures": 209,
+      "materials": 175,
+      "heap": {
+        "used": 224509466,
+        "total": 289261334
+      },
+      "frameMs": {
+        "samples": 151,
+        "p50": 10.5,
+        "p95": 13.9,
+        "p99": 15.6,
+        "max": 16.3
+      },
+      "streamingFrameMs": {
+        "samples": 243,
+        "p50": 10.5,
+        "p95": 29.2,
+        "p99": 109.9,
+        "max": 280.8
+      },
+      "chunkUploadMs": {
+        "samples": 243,
+        "p50": 0.8,
+        "p95": 4.9,
+        "p99": 8.9,
+        "max": 253.4
+      },
+      "simulationStepMs": {
+        "samples": 47,
+        "p50": 0.26,
+        "p95": 0.45,
+        "p99": 0.65,
+        "max": 0.65
+      },
+      "journeys": [
+        {
+          "realm": "aether",
+          "initialStateToAllChunksMs": 1681.5
+        },
+        {
+          "realm": "brass",
+          "initialStateToAllChunksMs": 954.7
+        },
+        {
+          "realm": "aether",
+          "initialStateToAllChunksMs": 817
+        }
+      ]
+    },
+    {
+      "name": "07-tower-landmark",
+      "realm": "aether",
+      "position": {
+        "x": 3088.127220919223,
+        "y": 1,
+        "z": 3093.7201583219885
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "width": 1440,
+      "height": 900,
+      "loaded": 81,
+      "pending": 0,
+      "meshes": 864,
+      "textures": 209,
+      "materials": 175,
+      "heap": {
+        "used": 235143792,
+        "total": 291951820
+      },
+      "frameMs": {
+        "samples": 458,
+        "p50": 10.2,
+        "p95": 14.7,
+        "p99": 16.6,
+        "max": 18.4
+      },
+      "streamingFrameMs": {
+        "samples": 243,
+        "p50": 10.5,
+        "p95": 29.2,
+        "p99": 109.9,
+        "max": 280.8
+      },
+      "chunkUploadMs": {
+        "samples": 243,
+        "p50": 0.8,
+        "p95": 4.9,
+        "p99": 8.9,
+        "max": 253.4
+      },
+      "simulationStepMs": {
+        "samples": 76,
+        "p50": 0.26,
+        "p95": 0.51,
+        "p99": 0.91,
+        "max": 0.91
+      },
+      "journeys": [
+        {
+          "realm": "aether",
+          "initialStateToAllChunksMs": 1681.5
+        },
+        {
+          "realm": "brass",
+          "initialStateToAllChunksMs": 954.7
+        },
+        {
+          "realm": "aether",
+          "initialStateToAllChunksMs": 817
+        }
+      ]
+    }
+  ]
+}
