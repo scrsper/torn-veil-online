@@ -4,7 +4,7 @@ import { REALMS, REALM_CHUNK, REALM_SIZE, generateRealmChunk, realmAt, type Real
 import {FOCUSED_GENERATOR,focusedTownPlan,type FocusedTownPlan} from '../assets/focusedLayouts';
 import {FOCUSED_CATALOG,sceneGeometry,placementBounds} from '../assets/focusedRuntime';
 import {StaticGeometry} from '../../physical/staticGeometry';
-import {focusedTerrain,terrainTriangles,type FocusedTerrain} from '../assets/focusedTerrain';
+import {focusedTerrain,terrainTriangles,terrainJoinTriangles,type FocusedTerrain} from '../assets/focusedTerrain';
 import type {Vec3} from '../../core/types';
 
 /** Same VoxelGrid contract as the inhabited world, with a bounded descriptor cache.
@@ -18,8 +18,8 @@ export class RealmGrid extends VoxelGrid {
   constructor(readonly spec: RealmSpec) { super(8192 + REALM_SIZE, 176, REALM_SIZE, true);
     if(spec.focusedKit&&(spec.focusedGeometrySha!==FOCUSED_CATALOG.geometrySha256||spec.focusedGenerator!==FOCUSED_GENERATOR))throw Error('Focused save requires its verified geometry and generator version');
     this.focusedTown=spec.focusedKit?focusedTownPlan(spec.seed):null;const sourceGeometry=this.focusedTown?sceneGeometry(this.focusedTown):null;
-    this.focusedTerrain=sourceGeometry?focusedTerrain(this.focusedTown!.id+':terrain',sourceGeometry):null;
-    this.focusedGeometry=sourceGeometry?new StaticGeometry([...sourceGeometry.triangles,...terrainTriangles(this.focusedTerrain!)],this.focusedTerrain!.bounds):null;
+    this.focusedTerrain=sourceGeometry?focusedTerrain(this.focusedTown!.id+':terrain',sourceGeometry,{originX:REALMS.brass.offset,chunk:REALM_CHUNK}):null;
+    this.focusedGeometry=sourceGeometry?new StaticGeometry([...sourceGeometry.triangles,...terrainTriangles(this.focusedTerrain!),...terrainJoinTriangles(this.focusedTerrain!)],this.focusedTerrain!.bounds):null;
   }
   override movementGeometryAt(x:number,z:number){return this.focusedGeometry?.contains(x,z)?this.focusedGeometry:null;}
   override isSolidAt(x:number,y:number,z:number):boolean{const geometry=this.movementGeometryAt(x,z);return geometry?geometry.blocked(x,y,z):super.isSolidAt(x,y,z);}

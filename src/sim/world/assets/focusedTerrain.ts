@@ -2,12 +2,15 @@ import {StaticGeometry,type StaticTriangle} from '../../physical/staticGeometry'
 export interface FocusedTerrain {id:string;positions:number[];indices:number[];bounds:{x0:number;z0:number;x1:number;z1:number};}
 /** One canonical height field joins the authored spaces. Samples follow actual
  * imported support and remain below it; no imported floor is replaced or covered. */
-export function focusedTerrain(id:string,source:StaticGeometry):FocusedTerrain{
- const b=source.bounds,step=2,x0=Math.floor((b.x0-20)/step)*step,z0=Math.floor((b.z0-20)/step)*step,w=Math.ceil((b.x1+20-x0)/step)+1,d=Math.ceil((b.z1+20-z0)/step)+1;
+export function focusedTerrain(id:string,source:StaticGeometry,alignment?:{originX:number;chunk:number}):FocusedTerrain{
+ const b=source.bounds,step=2,align=alignment?.chunk??step,offset=alignment?.originX??0,x0=offset+Math.floor((b.x0-20-offset)/align)*align,z0=Math.floor((b.z0-20)/align)*align,x1=offset+Math.ceil((b.x1+20-offset)/align)*align,z1=Math.ceil((b.z1+20)/align)*align,w=Math.round((x1-x0)/step)+1,d=Math.round((z1-z0)/step)+1;
  const heights=Array<number>(w*d).fill(NaN),queue:number[]=[],positions:number[]=[],indices:number[]=[];
  for(let z=0;z<d;z++)for(let x=0;x<w;x++){const h=source.sampleGroundAt(x0+x*step,z0+z*step);if(h!==null){const i=z*w+x;heights[i]=h-.04;queue.push(i);}}
  for(let cursor=0;cursor<queue.length;cursor++){const i=queue[cursor],x=i%w,z=Math.floor(i/w);for(const [dx,dz]of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,nz=z+dz;if(nx<0||nz<0||nx>=w||nz>=d)continue;const n=nz*w+nx;if(Number.isNaN(heights[n])){heights[n]=heights[i];queue.push(n);}}}
  for(let z=0;z<d;z++)for(let x=0;x<w;x++)positions.push(x0+x*step,Number.isFinite(heights[z*w+x])?heights[z*w+x]:.9,z0+z*step);
+ // Exact realm-chunk edges meet the neighbouring canonical one-metre ground.
+ // The whole suppressed chunk is covered, including its outer border.
+ if(alignment)for(let z=0;z<d;z++)for(let x=0;x<w;x++)if(x===0||z===0||x===w-1||z===d-1)positions[(z*w+x)*3+1]=1;
  for(let z=0;z<d-1;z++)for(let x=0;x<w-1;x++){const a=z*w+x,b=a+1,c=a+w,e=c+1;indices.push(a,c,b,b,c,e);}
  // Keep interpolation beneath source relief, including original forest slopes.
  for(let pass=0;pass<2;pass++)for(let i=0;i<indices.length;i+=3){const ids=indices.slice(i,i+3);let correction=0;
@@ -17,3 +20,6 @@ export function focusedTerrain(id:string,source:StaticGeometry):FocusedTerrain{
  return {id,positions,indices,bounds:{x0,z0,x1:x0+(w-1)*step,z1:z0+(d-1)*step}};
 }
 export function terrainTriangles(t:FocusedTerrain):StaticTriangle[]{const out:StaticTriangle[]=[];for(let i=0;i<t.indices.length;i+=3)out.push({p:t.indices.slice(i,i+3).flatMap(v=>t.positions.slice(v*3,v*3+3)),support:true,node:t.id});return out;}
+/** The adjacent existing realm chunks already render this one-metre surface.
+ * Include a narrow physical apron so a capsule can straddle the ownership edge. */
+export function terrainJoinTriangles(t:FocusedTerrain):StaticTriangle[]{const {x0,z0,x1,z1}=t.bounds,out:StaticTriangle[]=[];for(const [a,b,c,d]of [[x0-1,z0-1,x1+1,z0],[x0-1,z1,x1+1,z1+1],[x0-1,z0,x0,z1],[x1,z0,x1+1,z1]]){out.push({p:[a,1,b,a,1,d,c,1,b],support:true,node:t.id+':existing-ground-join'},{p:[c,1,b,a,1,d,c,1,d],support:true,node:t.id+':existing-ground-join'});}return out;}
