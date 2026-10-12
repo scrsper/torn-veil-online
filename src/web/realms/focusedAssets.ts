@@ -5,6 +5,10 @@ import type {Atmosphere} from '../world/atmosphere';
 import {loadScannedMaps,useScannedMaps} from '../render/materials';
 import {FocusedForest,FoliageEyeFade,type ForestRoute} from './focusedForest';
 const PACK='f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce';
+/** glTF's explicit OPAQUE mode ignores per-mesh visibility in Babylon. Restore
+ * automatic mode for opaque surfaces so an architectural cutaway can blend;
+ * authored glass and alpha-tested foliage keep their explicit modes. */
+export function allowFocusedCutaway(material:PBRMaterial){if(material.transparencyMode===PBRMaterial.PBRMATERIAL_OPAQUE)material.transparencyMode=null;}
 const sha=async(bytes:ArrayBuffer)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),v=>v.toString(16).padStart(2,'0')).join('');
 /** Bounded reusable GLB ownership for the existing realm/Tower renderer. Only
  * the hash-verified handoff activates; missing assets fail visibly, without boxes. */
@@ -42,7 +46,7 @@ export class FocusedAssets {
  private finishMaterials(container:AssetContainer,id:string){
   // Existing CC0 scan set; original GLBs and literal architectural topology stay
   // immutable. Source UVs, glass and emissive accents retain their authored roles.
-  for(const material of container.materials){if(!(material instanceof PBRMaterial))continue;const name=material.name.toLowerCase().replace(/^tv_/,'').replace(/\.\d+$/,'');let surface='',tint:[number,number,number]=[1,1,1];
+  for(const material of container.materials){if(!(material instanceof PBRMaterial))continue;allowFocusedCutaway(material);const name=material.name.toLowerCase().replace(/^tv_/,'').replace(/\.\d+$/,'');let surface='',tint:[number,number,number]=[1,1,1];
    if(name==='plaster'){surface='plastered_wall';tint=[1.05,1,.89];}
    else if(/wood|floor_wood|door/.test(name)){surface=id.includes('forest')?'bark_brown_02':'weathered_planks';tint=name.includes('dark')?[.7,.66,.59]:[1.15,1.08,.93];}
    else if(name==='roof'){surface='roof_slates_02';tint=[.7,.78,.82];}
