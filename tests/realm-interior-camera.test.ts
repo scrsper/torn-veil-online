@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { InteriorCameraFraming, cameraBoxBlocked } from '../src/web/realms/interiorCamera';
+import { InteriorCameraFraming, cameraBoxBlocked,interiorDetailFov } from '../src/web/realms/interiorCamera';
 import { voxelSolid, boxObstruction } from '../src/web/realms/cameraSolids';
 import { planInterior, interiorVoxel } from '../src/sim/world/interiors/layout';
 import { B } from '../src/sim/physical/blocks';
 
 const pitch=38*Math.PI/180;
 describe('readable close-wall interior camera',()=>{
+  it('keeps a raised full human readable while respecting intentional wide zoom',()=>{
+    const pose={position:{x:4,y:7.2,z:0},target:{x:0,y:2.04,z:0},fov:52*Math.PI/180},feet={x:0,y:1,z:0};
+    const lens=interiorDetailFov(pose,feet,1.68,4);expect(lens).toBeLessThan(pose.fov);expect(lens).toBeGreaterThanOrEqual(24*Math.PI/180);
+    expect(interiorDetailFov(pose,feet,1.68,18)).toBe(pose.fov);
+  });
   it('keeps a free orbit untouched away from obstructions, including chosen near zoom',()=>{
     const framing=new InteriorCameraFraming(),pivot={x:0,y:2.3,z:0};
     for(const radius of [3,10.5,18]){

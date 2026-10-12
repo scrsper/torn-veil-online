@@ -1,5 +1,6 @@
 import {chromium} from 'playwright';import {mkdirSync,writeFileSync} from 'node:fs';import {resolve} from 'node:path';import assert from 'node:assert/strict';
 import {clearAscentEntry,travelClick} from './focused-input-driver.mjs';
+import {contactRoute,drivePreciseAscent} from './focused-contact-navigation.mjs';
 const base=process.env.TV_FOCUSED_URL??'http://127.0.0.1:7572',out=resolve(process.env.TV_FOCUSED_EVIDENCE??'.debug/motion-correction/focused-journey');mkdirSync(out,{recursive:true});
 const health=await fetch(base+'/realms/health').then(r=>r.json());assert.ok(/motion-correction[/\\]focused-save/.test(health.savePath),'Refusing live save');
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--enable-precise-memory-info','--disable-renderer-backgrounding','--disable-background-timer-throttling']}),context=await browser.newContext({viewport:{width:1440,height:900},recordVideo:{dir:out,size:{width:1440,height:900}}}),page=await context.newPage(),errors=[],samples=[];let errorCount=0,status='failed';
@@ -23,7 +24,8 @@ try{
  // Ordinary controls advance along the authored processional route; no debug
  // teleports, damage fixtures, rank grants or renderer-owned enemies are used.
  // The isolated contact check proved this wide lane clears the entry columns.
- await clearAscentEntry(page);await shot('06-floor-traversal','ascent');
+ const routeFrame=await page.evaluate(()=>window.tvAscent.frame),routeOwn=routeFrame.snapshot.bodies.find(b=>b.bodyId===routeFrame.own.bodyId),routeTarget=routeFrame.snapshot.bodies.filter(b=>b.bodyId!==routeOwn.bodyId&&!b.dead&&!b.incapacitated).sort((a,b)=>Math.hypot(a.pos.x-routeOwn.pos.x,a.pos.z-routeOwn.pos.z)-Math.hypot(b.pos.x-routeOwn.pos.x,b.pos.z-routeOwn.pos.z))[0];
+ for(const point of await contactRoute(page,routeOwn.pos,routeTarget.pos))await drivePreciseAscent(page,point);await shot('06-floor-traversal','ascent');
  let hit=false;
  for(let n=0;n<35;n++){
   const f=await page.evaluate(()=>window.tvAscent.frame),own=f.snapshot.bodies.find(b=>b.bodyId===f.own.bodyId),rivals=f.snapshot.bodies.filter(b=>b.bodyId!==own.bodyId&&!b.dead&&!b.incapacitated),nearest=rivals.sort((a,b)=>Math.hypot(a.pos.x-own.pos.x,a.pos.z-own.pos.z)-Math.hypot(b.pos.x-own.pos.x,b.pos.z-own.pos.z))[0];
@@ -31,8 +33,8 @@ try{
   for(const b of f.snapshot.bodies)initialHitSequences[b.bodyId]??=b.hitSeq;for(let j=0;j<rivals.length+1&&(await page.evaluate(()=>window.tvAscent.targetId))!==nearest.bodyId;j++)await page.keyboard.press('Tab');
   const d=Math.hypot(nearest.pos.x-own.pos.x,nearest.pos.z-own.pos.z),i=await ascent();
   if(d>1.1){const yaw=i.camera.movementYaw,dx=nearest.pos.x-own.pos.x,dz=nearest.pos.z-own.pos.z,right=dx*Math.cos(yaw)-dz*Math.sin(yaw),forward=-dx*Math.sin(yaw)-dz*Math.cos(yaw),key=Math.abs(right)>Math.abs(forward)?(right>0?'KeyD':'KeyA'):(forward>0?'KeyW':'KeyS');await page.keyboard.down(key);await page.waitForTimeout(220);await page.keyboard.up(key);await page.waitForTimeout(250);continue;}
-  await page.keyboard.down('KeyQ');await page.waitForTimeout(160);await page.keyboard.press('KeyJ');await page.waitForTimeout(500);await page.keyboard.up('KeyQ');
-  const now=await page.evaluate(()=>window.tvAscent.frame);if(now.snapshot.bodies.some(b=>b.hitSeq>(initialHitSequences[b.bodyId]??b.hitSeq))){hit=true;break;}
+  await page.keyboard.down('KeyQ');await page.waitForTimeout(650);await page.keyboard.press('KeyJ');await page.waitForTimeout(500);await page.keyboard.up('KeyQ');
+  const now=await page.evaluate(()=>window.tvAscent.frame);if(now.snapshot.bodies.some(b=>b.bodyId!==now.own.bodyId&&b.hitSeq>(initialHitSequences[b.bodyId]??b.hitSeq))){hit=true;break;}
  }
  await shot('07-canonical-combat','ascent');assert.ok(hit,'No actual canonical hit observed');assert.ok((await page.evaluate(()=>window.tvAscent.frame.snapshot.tick))>beforeTime);
  // Reload preserves the real active floor and its finite entities.

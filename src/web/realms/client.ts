@@ -15,7 +15,7 @@ import './style.css';
 import {Vfx} from '../arena/vfx';
 import {ObservedArcaneEffects} from '../actors/arcaneEffects';
 import {contactGrounding} from './contactGrounding';
-import {InteriorCameraFraming} from './interiorCamera';
+import {InteriorCameraFraming,interiorDetailFov} from './interiorCamera';
 
 /** Existing Babylon shell, shared renderer/atmosphere/body kits. The browser sends
  * intentions and projects server state; it never creates or steps a canonical World. */
@@ -218,6 +218,7 @@ export async function startRealms(): Promise<void> {
         const originKey=renderer.origin.x+':'+renderer.origin.z;if(originKey!==cameraOrigin){cameraOrigin=originKey;framing.reset();}
         const rawPose = view.camera.update(dt, { pivot, velocity }, obstruction, () => 1),solids=renderer.focused.cameraSolids(avatar.root.position);
         const pose=solids.length?framing.update(rawPose,pivot,solids,{yaw:view.camera.renderedYaw,pitch:view.camera.debug.pitchDeg*Math.PI/180,want:view.camera.debug.want,limit:view.camera.debug.limit},dt):rawPose;
+        if(solids.length&&framing.debug.framing!=='orbit')pose.fov=interiorDetailFov(pose,avatar.root.position,avatar.bodyHeight??1.75,view.camera.preferred);
         movementYaw = groundViewYaw(pose.position, pose.target);
         camera.position.set(pose.position.x, pose.position.y, pose.position.z); camera.setTarget(new Vector3(pose.target.x, pose.target.y, pose.target.z)); camera.fov = pose.fov;
         renderer.focused.cutaway(camera.position,avatar.root.position);
@@ -252,7 +253,7 @@ export async function startRealms(): Promise<void> {
       characterScale: (avatar as BodyVisual & {measureScale?:()=>unknown}|null)?.measureScale?.(),
       controlledLook: avatar?.root.metadata, controlledBody: avatar ? { id: state?.body.id, enabled: avatar.root.isEnabled(), position: { x: avatar.root.position.x, y: avatar.root.position.y, z: avatar.root.position.z }, yaw: avatar.root.rotation.y,
         screen: (() => { const p = Vector3.Project(avatar.root.position.add(new Vector3(0, .85, 0)), Matrix.Identity(), ctx.scene.getTransformMatrix(), camera.viewport.toGlobal(ctx.engine.getRenderWidth(), ctx.engine.getRenderHeight())); return { x: p.x, y: p.y, z: p.z }; })() } : null,
-      camera: { mode: 'third-person', yaw: view.camera.yaw, renderedYaw: view.camera.renderedYaw, movementYaw, pitch: view.camera.pitch, preferred: view.camera.preferred, blocked: renderer.cameraBlocked(camera.position.x,camera.position.y,camera.position.z), position: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, ...view.camera.debug,...framing.debug },
+      camera: { mode: 'third-person', yaw: view.camera.yaw, renderedYaw: view.camera.renderedYaw, movementYaw, pitch: view.camera.pitch, preferred: view.camera.preferred, blocked: renderer.cameraBlocked(camera.position.x,camera.position.y,camera.position.z), position: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, ...view.camera.debug,...framing.debug,actualFovDeg:camera.fov*180/Math.PI },
       width: ctx.engine.getRenderWidth(), height: ctx.engine.getRenderHeight(), hardware: ctx.engine instanceof Engine ? ctx.engine.getGlInfo() : null,
       heap: (() => { const m = (performance as Performance & { memory?: { usedJSHeapSize: number; totalJSHeapSize: number } }).memory; return m ? { used: m.usedJSHeapSize, total: m.totalJSHeapSize } : null; })(), state }) } });
 }

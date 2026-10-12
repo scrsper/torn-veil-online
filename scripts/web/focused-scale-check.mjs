@@ -10,7 +10,7 @@ const health=await fetch(base+'/realms/health').then(r=>r.json());assert.ok(/foc
 const browser=await chromium.launch({channel:'chrome',headless:true});
 const context=await browser.newContext({viewport:{width:1440,height:900},recordVideo:{dir:out,size:{width:1440,height:900}}}),page=await context.newPage(),errors=[],samples=[];
 page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
-const read=()=>page.evaluate(()=>{const i=window.tvRealms.inspect();return {person:i.state.person.id,body:i.state.body.id,rank:i.state.person.rank,inventory:i.state.person.inventory,health:i.state.body.health,pos:i.state.body.pos,yaw:i.state.body.yaw,clock:i.state.worldTime,camera:i.camera,scale:i.characterScale,motion:i.controlledLook?.motion,focused:i.focused};});
+const read=()=>page.evaluate(()=>{const i=window.tvRealms.inspect();return {person:i.state.person.id,body:i.state.body.id,rank:i.state.person.rank,inventory:i.state.person.inventory,health:i.state.body.hp,pos:i.state.body.pos,yaw:i.state.body.yaw,clock:i.state.worldTime,camera:i.camera,scale:i.characterScale,motion:i.controlledLook?.motion,focused:i.focused};});
 // Aim the freely rotatable camera along the exact segment, then walk with ordinary
 // keys. Eight-direction quantisation can cut a narrow doorway corner even when
 // the certified segment is clear. Short taps handle the last controller step.
@@ -42,7 +42,7 @@ async function walk(path,target){for(const p of simplify(path))await driveRealmT
 let status='failed';
 try{
  await page.goto(base+'/?realms');await page.waitForFunction(()=>window.tvRealms?.ready&&window.tvRealms.inspect().focused.pending===0,null,{timeout:180000});await page.waitForTimeout(1500);
- await shot('00-default','Default framing · actual imported character');const start=await read();await orbit(start.yaw+Math.PI);await shot('01-character-front','Front profile · metre reference in actor plane');await orbit(start.yaw+Math.PI/2);await shot('02-character-side','Side profile · metre reference in actor plane');await orbit(Math.PI);
+ await shot('00-default','Default framing · actual imported character');const start=await read();assert.equal(typeof start.health,'number');assert.ok(Array.isArray(start.inventory));await orbit(start.yaw+Math.PI);await shot('01-character-front','Front profile · metre reference in actor plane');await orbit(start.yaw+Math.PI/2);await shot('02-character-side','Side profile · metre reference in actor plane');await orbit(Math.PI);
  await page.keyboard.down('KeyX');await page.keyboard.down('KeyW');await page.waitForTimeout(1800);samples.push({name:'walking',...await read()});await page.keyboard.up('KeyW');await page.keyboard.up('KeyX');await shot('03-walk','Ordinary X + W walking');await driveRealmTo(page,route.spawn,{timeout:12000,tolerance:.2});
  await page.keyboard.down('ShiftLeft');await page.keyboard.down('KeyW');await page.waitForTimeout(1500);samples.push({name:'running',...await read()});await page.keyboard.up('KeyW');await page.keyboard.up('ShiftLeft');await shot('04-run','Ordinary Shift + W running');await driveRealmTo(page,route.spawn,{timeout:12000,tolerance:.2});
  await walk(route.paths[0],route.doorway);await orbit(Math.PI/2);await shot('05-house-doorway','Door clearance 2.405 m · room topology retained');

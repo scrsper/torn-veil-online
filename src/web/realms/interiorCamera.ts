@@ -3,6 +3,17 @@ import { boxObstruction, type SolidBox } from './cameraSolids';
 
 const gap = .35;
 const distance = (a: V3, b: V3) => Math.hypot(a.x-b.x, a.y-b.y, a.z-b.z);
+/** A raised roof cutaway needs a narrower lens to keep a full human readable.
+ * This affects only close requested framing; intentional wide zoom stays wide. */
+export function interiorDetailFov(pose:CameraPose,feet:V3,height:number,preferred:number):number{
+ if(preferred>6)return pose.fov;
+ const forward={x:pose.target.x-pose.position.x,y:pose.target.y-pose.position.y,z:pose.target.z-pose.position.z},length=Math.hypot(forward.x,forward.y,forward.z);if(length<.001)return pose.fov;
+ const fx=forward.x/length,fy=forward.y/length,fz=forward.z/length,horizontal=Math.hypot(fx,fz);if(horizontal<.001)return pose.fov;
+ const up={x:-fx*fy/horizontal,y:horizontal,z:-fz*fy/horizontal};
+ const screen=(p:V3)=>{const dx=p.x-pose.position.x,dy=p.y-pose.position.y,dz=p.z-pose.position.z,depth=dx*fx+dy*fy+dz*fz;return depth>.001?(dx*up.x+dy*up.y+dz*up.z)/depth:0;};
+ const span=Math.abs(screen({x:feet.x,y:feet.y+height,z:feet.z})-screen(feet));
+ return Math.min(pose.fov,Math.max(24*Math.PI/180,2*Math.atan(span/(2*.33))));
+}
 export const cameraBoxBlocked = (p: V3, solids: readonly SolidBox[]) => solids.some(s =>
   p.x > s.x-gap && p.x < s.x+s.w+gap && p.y > s.y-gap && p.y < s.y+s.h+gap && p.z > s.z-gap && p.z < s.z+s.d+gap);
 

@@ -1,5 +1,6 @@
 import {chromium} from 'playwright';import {mkdirSync,writeFileSync} from 'node:fs';import {resolve} from 'node:path';import assert from 'node:assert/strict';
 import {clearAscentEntry} from './focused-input-driver.mjs';
+import {contactRoute,drivePreciseAscent} from './focused-contact-navigation.mjs';
 const base=process.env.TV_FOCUSED_URL??'http://127.0.0.1:7572',out=resolve(process.env.TV_FOCUSED_EVIDENCE??'.debug/motion-correction/contact-isolation');mkdirSync(out,{recursive:true});const health=await fetch(base+'/realms/health').then(r=>r.json());assert.ok(/motion-correction[/\\]focused-save/.test(health.savePath),'Refusing live save');
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--enable-precise-memory-info','--disable-renderer-backgrounding','--disable-background-timer-throttling']}),context=await browser.newContext({viewport:{width:1440,height:900},recordVideo:{dir:out,size:{width:1440,height:900}}}),page=await context.newPage(),samples=[],errors=[];let status='failed';page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(m.type()==='error')errors.push(m.text().slice(0,3000));});
 const read=()=>page.evaluate(()=>({frame:window.tvAscent.frame,inspect:window.tvAscent.inspect(),target:window.tvAscent.targetId,events:window.contactInputEvents}));
@@ -7,12 +8,13 @@ const own=s=>s.frame.snapshot.bodies.find(b=>b.bodyId===s.frame.own.bodyId),snap
 const hold=async(key,ms)=>{await page.keyboard.down(key);await page.waitForTimeout(ms);await page.keyboard.up(key);await page.waitForTimeout(300);};
 try{
  await page.goto(base+'/?ascent');await page.waitForFunction(()=>window.tvAscent?.ready,null,{timeout:180000});await page.evaluate(()=>{window.contactInputEvents=[];for(const type of ['keydown','keyup','blur'])window.addEventListener(type,e=>{window.contactInputEvents.push({type,code:e.code,trusted:e.isTrusted,at:performance.now()});if(window.contactInputEvents.length>200)window.contactInputEvents.shift();});});await page.mouse.click(720,650,{button:'middle'});await snap('01-resumed-column');
- await clearAscentEntry(page);await snap('03-column-cleared');
+ const initial=await read(),body=own(initial),nearest=initial.frame.snapshot.bodies.filter(b=>b.bodyId!==body.bodyId&&!b.dead&&!b.incapacitated).sort((a,b)=>Math.hypot(a.pos.x-body.pos.x,a.pos.z-body.pos.z)-Math.hypot(b.pos.x-body.pos.x,b.pos.z-body.pos.z))[0];
+ const path=await contactRoute(page,body.pos,nearest.pos);samples.push({name:'actual-static-route',from:body.pos,to:nearest.pos,path});for(const point of path)await drivePreciseAscent(page,point);await snap('03-column-cleared');
  const firstSeen=new Map();let contact=false;
  for(let n=0;n<55;n++){const s=await read(),body=own(s),rivals=s.frame.snapshot.bodies.filter(b=>b.bodyId!==body.bodyId&&!b.dead&&!b.incapacitated);for(const b of s.frame.snapshot.bodies)if(!firstSeen.has(b.bodyId))firstSeen.set(b.bodyId,b.hitSeq);const target=rivals.sort((a,b)=>Math.hypot(a.pos.x-body.pos.x,a.pos.z-body.pos.z)-Math.hypot(b.pos.x-body.pos.x,b.pos.z-body.pos.z))[0];if(!target){await page.waitForTimeout(200);continue;}
   const distance=Math.hypot(target.pos.x-body.pos.x,target.pos.z-body.pos.z);for(let j=0;j<rivals.length+1&&(await read()).target!==target.bodyId;j++)await page.keyboard.press('Tab');
   if(distance>1.05){const yaw=s.inspect.camera.movementYaw,dx=target.pos.x-body.pos.x,dz=target.pos.z-body.pos.z,right=dx*Math.cos(yaw)-dz*Math.sin(yaw),forward=-dx*Math.sin(yaw)-dz*Math.cos(yaw),key=Math.abs(right)>Math.abs(forward)?right>0?'KeyD':'KeyA':forward>0?'KeyW':'KeyS';await hold(key,180);continue;}
-  await page.keyboard.down('KeyQ');await page.waitForTimeout(160);await page.keyboard.press('KeyJ');
+  await page.keyboard.down('KeyQ');await page.waitForTimeout(650);await page.keyboard.press('KeyJ');
   for(let i=0;i<16;i++){await page.waitForTimeout(50);const frame=await read(),a=own(frame).combatAction,b=frame.frame.snapshot.bodies.find(b=>b.bodyId===target.bodyId),p=own(frame);samples.push({name:'contact-trace',...frame,diagnostic:{distance:b?Math.hypot(p.pos.x-b.pos.x,p.pos.z-b.pos.z):null,vertical:b?p.pos.y-b.pos.y:null,facing:p.yaw,action:a}});if(frame.frame.snapshot.bodies.some(b=>b.hitSeq>(firstSeen.get(b.bodyId)??b.hitSeq))){contact=true;break;}}
   await page.keyboard.up('KeyQ');if(contact)break;await page.waitForTimeout(250);
  }
