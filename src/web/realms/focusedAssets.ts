@@ -1,5 +1,5 @@
 import '@babylonjs/loaders/glTF';
-import {Color3,PBRMaterial,SceneLoader,TransformNode,type AssetContainer,type Scene} from '@babylonjs/core';
+import {Color3,Mesh,PBRMaterial,SceneLoader,TransformNode,Vector3,VertexBuffer,type AssetContainer,type Scene} from '@babylonjs/core';
 import {parseFocusedManifest,type FocusedManifest,type AssetPlacement} from '../../sim/world/assets/focused';
 import type {Atmosphere} from '../world/atmosphere';
 import {loadScannedMaps,useScannedMaps} from '../render/materials';
@@ -39,6 +39,12 @@ export class FocusedAssets {
    else if(name.startsWith('stone')){surface='rock_wall_08';tint=name.includes('dark')?[.7,.78,.72]:[1.1,1.06,.95];}
    else if(/^(earth|soil|grass)$/.test(name)){surface='forest_ground_04';tint=[.85,.95,.78];}
    if(surface){let maps=this.scanned.get(surface);if(!maps){maps=loadScannedMaps(this.scene,surface);this.scanned.set(surface,maps);}useScannedMaps(material,maps);material.albedoColor=new Color3(...tint);material.roughness=.9;material.metallic=0;material.environmentIntensity=.8;}
+  }
+  // Delivered primitive GLBs have no UV channel. Derive metre-scale UVs from
+  // their existing physical transforms before instantiation; no vertices move.
+  for(const mesh of container.meshes){if(!(mesh instanceof Mesh)||mesh.isVerticesDataPresent(VertexBuffer.UVKind))continue;const positions=mesh.getVerticesData(VertexBuffer.PositionKind),normals=mesh.getVerticesData(VertexBuffer.NormalKind);if(!positions||!normals)continue;const matrix=mesh.computeWorldMatrix(true),uv:number[]=[];
+   for(let i=0;i<positions.length;i+=3){const p=Vector3.TransformCoordinates(Vector3.FromArray(positions,i),matrix),n=Vector3.TransformNormal(Vector3.FromArray(normals,i),matrix),ax=Math.abs(n.x),ay=Math.abs(n.y),az=Math.abs(n.z);uv.push((ay>=ax&&ay>=az?p.x:ax>=az?p.z:p.x)*.5,(ay>=ax&&ay>=az?p.z:p.y)*.5);}
+   mesh.makeGeometryUnique();mesh.setVerticesData(VertexBuffer.UVKind,uv);
   }
  }
  async instantiate(p:AssetPlacement,origin:{x:number;z:number}={x:0,z:0}){

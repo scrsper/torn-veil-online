@@ -35,6 +35,6 @@ try{
  const floorBefore=await page.evaluate(()=>({id:window.tvAscent.frame.tower.id,floor:window.tvAscent.frame.tower.floor,body:window.tvAscent.frame.own.bodyId,rank:window.tvAscent.frame.own.rank}));
  await page.reload();await page.waitForFunction(()=>window.tvAscent?.ready,null,{timeout:180000});assert.deepEqual(await page.evaluate(()=>({id:window.tvAscent.frame.tower.id,floor:window.tvAscent.frame.tower.floor,body:window.tvAscent.frame.own.bodyId,rank:window.tvAscent.frame.own.rank})),floorBefore);await shot('08-reloaded-floor','ascent');
  assert.equal(errorCount,0,errors.join('\n'));status='passed';
-}catch(e){errors.push(String(e));console.log(String(e));try{await page.screenshot({path:resolve(out,'failure.png')});}catch{}}
+}catch(e){errors.push(String(e));console.log(String(e));try{const kind=await page.evaluate(()=>window.tvAscent?'ascent':'realm');await shot('failure',kind);}catch{}}
 finally{const video=page.video();await context.close();if(video)await video.saveAs(resolve(out,'recorded-journey.webm'));await browser.close();writeFileSync(resolve(out,'result.json'),JSON.stringify({status,health,errorCount,errors,samples,measurement:'Actual headless Chrome1440x900 with ordinary button/keyboard controls. Frame intervals include recording and scheduling overhead; no human climb or GPU timer claim.'},null,2));console.log(JSON.stringify({status,errorCount,samples:samples.length,errors:errors.map(e=>e.slice(0,300))}));}
 if(status!=='passed')process.exitCode=1;

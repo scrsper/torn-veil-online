@@ -40,10 +40,10 @@ export function capsuleTriangleDistance(x:number,y:number,z:number,r:number,h:nu
 export class StaticGeometry implements MovementGeometry {
  private cells=new Map<string,number[]>();private readonly box:GeometryWindow['bounds'];
  private navSamples=new Map<string,number|null>();
- private supportPlanes=new Map<StaticTriangle,{den:number;minX:number;maxX:number;minZ:number;maxZ:number}>();
+ private supportPlanes=new Map<StaticTriangle,{den:number;minX:number;maxX:number;minZ:number;maxZ:number;maxY:number}>();
  constructor(readonly triangles:StaticTriangle[],bounds:GeometryWindow['bounds']){this.box=bounds;
   for(const [i,t]of triangles.entries()){if(t.p.length!==9||!t.p.every(Number.isFinite))throw Error('Invalid static triangle');const xs=[t.p[0],t.p[3],t.p[6]],zs=[t.p[2],t.p[5],t.p[8]];
-   if(t.support){const p=t.p,n=cross(sub(p.slice(3,6) as V,p.slice(0,3) as V),sub(p.slice(6,9) as V,p.slice(0,3) as V)),den=(p[5]-p[8])*(p[0]-p[6])+(p[6]-p[3])*(p[2]-p[8]);if(Math.abs(den)>1e-10&&n[1]/Math.hypot(...n)>=.65)this.supportPlanes.set(t,{den,minX:Math.min(...xs),maxX:Math.max(...xs),minZ:Math.min(...zs),maxZ:Math.max(...zs)});}
+   if(t.support){const p=t.p,n=cross(sub(p.slice(3,6) as V,p.slice(0,3) as V),sub(p.slice(6,9) as V,p.slice(0,3) as V)),den=(p[5]-p[8])*(p[0]-p[6])+(p[6]-p[3])*(p[2]-p[8]);if(Math.abs(den)>1e-10&&n[1]/Math.hypot(...n)>=.65)this.supportPlanes.set(t,{den,minX:Math.min(...xs),maxX:Math.max(...xs),minZ:Math.min(...zs),maxZ:Math.max(...zs),maxY:Math.max(p[1],p[4],p[7])});}
    for(let x=Math.floor(Math.min(...xs)/2);x<=Math.floor(Math.max(...xs)/2);x++)for(let z=Math.floor(Math.min(...zs)/2);z<=Math.floor(Math.max(...zs)/2);z++){const key=x+','+z;if(!this.cells.has(key))this.cells.set(key,[]);this.cells.get(key)!.push(i);}}
  }
  contains(x:number,z:number){return x>=this.box.x0&&x<=this.box.x1&&z>=this.box.z0&&z<=this.box.z1;}
@@ -61,7 +61,13 @@ export class StaticGeometry implements MovementGeometry {
    // A capsule rests on the supported footprint, not in the mortar between
    // 6.25 cm raised paving stones. All heights still come from actual triangles.
    const ring=[[.24,0],[-.24,0],[0,.24],[0,-.24],[.17,.17],[-.17,.17],[-.17,-.17],[.17,-.17]].map(([dx,dz])=>this.supportSample(x+dx,z+dz,fromY,step)).filter((v):v is number=>v!==null);
-   return Math.max(direct,...ring.filter(y=>Math.abs(y-direct)<=.225));
+   // Include exact nearby support edges. Eight rays alone miss a stone corner
+   // inside the capsule footprint and can drop the feet into its bevel/mortar.
+   const supported=Math.max(direct,...ring.filter(y=>Math.abs(y-direct)<=.225)),edges:number[]=[];for(const t of this.candidates(x,z,.3)){const plane=this.supportPlanes.get(t);if(!plane||plane.maxY<=supported+1e-6)continue;const p=t.p;let nearest=Infinity,y=direct;
+    for(let k=0;k<3;k++){const a=k*3,b=((k+1)%3)*3,dx=p[b]-p[a],dz=p[b+2]-p[a+2],u=clamp(((x-p[a])*dx+(z-p[a+2])*dz)/(dx*dx+dz*dz||1)),qx=p[a]+dx*u,qz=p[a+2]+dz*u,d=(x-qx)**2+(z-qz)**2;if(d<nearest){nearest=d;y=p[a+1]+(p[b+1]-p[a+1])*u;}}
+    if(nearest<=.3*.3&&Math.abs(y-direct)<=.225)edges.push(y);
+   }
+   return Math.max(supported,...edges);
   }
   // Bridge only the source's <=5 cm bevel seams; never invent floor across a gap.
   const ring=[[-.025,0],[.025,0],[0,-.025],[0,.025]].map(([dx,dz])=>this.supportSample(x+dx,z+dz,fromY,step));
