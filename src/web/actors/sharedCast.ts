@@ -75,6 +75,7 @@ export class SharedVisual implements BodyVisual {
    const support=this.plant.update(this.dt,this.root.position.y,this.yaw+Math.PI,this.plantActive,contacts,this.environment?.ground);
    this.gaze.apply(this.rawDt,this.lookAt,this.gazeActive);instance.springs?.update(this.dt);
    this.root.computeWorldMatrix(true);
+   this.root.metadata.equipment=this.equipment.inspect();
    if(this.root.metadata.motion&&instance.bones){
     const point=(name:string)=>{const n=instance.bones!.get(name);n?.computeWorldMatrix(true);return n?.getAbsolutePosition().asArray()??null;};
     const hip=point('pelvis'),chest=point('spine_03');

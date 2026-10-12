@@ -19,6 +19,7 @@ import { RealmGrid } from './grid';
 import { REALMS, REALM_CHUNK, CENTER, portalPoint, realmAt, realmResidency, type Point, type RealmId } from './layout';
 import {FOCUSED_CATALOG} from '../assets/focusedRuntime';
 import {placedPoint} from '../assets/focused';
+import {FOCUSED_GENERATOR} from '../assets/focusedLayouts';
 
 export class RealmSession {
   readonly world: World;
@@ -43,7 +44,7 @@ export class RealmSession {
   get grid() { return this.world.grid as RealmGrid; }
   adoptFocusedWorld():void{
     const w=this.world;if(w.realmSpec?.focusedKit)return;if(w.canonicalTower||w.realmExpedition)throw Error('Existing Tower progress requires coordinated geometry migration; the original save is retained');
-    const spec={...w.realmSpec!,focusedKit:1 as const,focusedGeometrySha:FOCUSED_CATALOG.geometrySha256},next=new RealmGrid(spec),town=next.focusedTown!,geometry=next.focusedGeometry!,start=town.spawn;
+    const spec={...w.realmSpec!,focusedKit:1 as const,focusedGeometrySha:FOCUSED_CATALOG.geometrySha256,focusedGenerator:FOCUSED_GENERATOR},next=new RealmGrid(spec),town=next.focusedTown!,geometry=next.focusedGeometry!,start=town.spawn;
     const floor=geometry.supportAt(start.x,start.z,start.y);if(floor===null||!geometry.fits(start.x,floor,start.z,.3,1.75))throw Error('Approved town arrival failed actual controller clearance');
     const residentMoves=w.persons().filter(p=>p.id!==this.person.id).flatMap(p=>{const body=w.primaryBody(p.id);return body&&realmAt(body.pos.x,body.pos.z)==='brass'?[body]:[];}).map((body,i)=>{
       const placement=town.placements.find(p=>p.assetId===(i%2?'tv_32_01_general_store':'tv_31_01_tavern'))!,candidate=placedPoint(FOCUSED_CATALOG.sources[placement.assetId].spawn,placement),y=geometry.supportAt(candidate[0],candidate[2],1.0625);

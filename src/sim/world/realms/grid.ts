@@ -1,7 +1,7 @@
 import { VoxelGrid } from '../../physical/grid';
 import { B } from '../../physical/blocks';
 import { REALMS, REALM_CHUNK, REALM_SIZE, generateRealmChunk, realmAt, type RealmChunk, type RealmSpec } from './layout';
-import {focusedTownPlan,type FocusedTownPlan} from '../assets/focusedLayouts';
+import {FOCUSED_GENERATOR,focusedTownPlan,type FocusedTownPlan} from '../assets/focusedLayouts';
 import {FOCUSED_CATALOG,sceneGeometry,placementBounds} from '../assets/focusedRuntime';
 import {StaticGeometry} from '../../physical/staticGeometry';
 import {focusedTerrain,terrainTriangles,type FocusedTerrain} from '../assets/focusedTerrain';
@@ -16,7 +16,7 @@ export class RealmGrid extends VoxelGrid {
   private chunks = new Map<string, RealmChunk>();
   private edits = new Map<number, number>();
   constructor(readonly spec: RealmSpec) { super(8192 + REALM_SIZE, 176, REALM_SIZE, true);
-    if(spec.focusedKit&&spec.focusedGeometrySha!==FOCUSED_CATALOG.geometrySha256)throw Error('Focused save requires its verified geometry version');
+    if(spec.focusedKit&&(spec.focusedGeometrySha!==FOCUSED_CATALOG.geometrySha256||spec.focusedGenerator!==FOCUSED_GENERATOR))throw Error('Focused save requires its verified geometry and generator version');
     this.focusedTown=spec.focusedKit?focusedTownPlan(spec.seed):null;const sourceGeometry=this.focusedTown?sceneGeometry(this.focusedTown):null;
     this.focusedTerrain=sourceGeometry?focusedTerrain(this.focusedTown!.id+':terrain',sourceGeometry):null;
     this.focusedGeometry=sourceGeometry?new StaticGeometry([...sourceGeometry.triangles,...terrainTriangles(this.focusedTerrain!)],this.focusedTerrain!.bounds):null;

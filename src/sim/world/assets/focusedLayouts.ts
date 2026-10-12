@@ -1,7 +1,7 @@
 import {RNG} from '../../core/rng';
 import {FOCUSED_CATALOG,placementBounds,type CatalogSource} from './focusedRuntime';
 import {joinPlacement,placedPoint,type AssetPlacement,type AssetConnection,type AssetScenePlan} from './focused';
-export const FOCUSED_GENERATOR='chrysanthus-focused-1';
+export const FOCUSED_GENERATOR='chrysanthus-focused-2';
 const source=(id:string)=>{const s=FOCUSED_CATALOG.sources[id];if(!s)throw Error('Missing approved layout source: '+id);return s;};
 const manifestSource=(s:CatalogSource)=>({...s,metadata:'',glb_sha256:s.sha256,metadata_sha256:s.sha256,runtime_controller_tested:false});
 export interface FocusedFloorPlan extends AssetScenePlan {start:{x:number;y:number;z:number};exit:{x:number;y:number;z:number};rooms:{id:string;x:number;z:number;w:number;d:number;role:string}[];}

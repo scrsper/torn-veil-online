@@ -4,7 +4,7 @@ import { RNG } from '../../core/rng';
 export const REALM_CHUNK = 96;
 export const REALM_SIZE = REALM_CHUNK * 64;
 export type RealmId = 'aether' | 'brass';
-export interface RealmSpec { version: 1; seed: number; focusedKit?:1;focusedGeometrySha?:string }
+export interface RealmSpec { version: 1; seed: number; focusedKit?:1;focusedGeometrySha?:string;focusedGenerator?:string }
 export interface Point { x: number; y: number; z: number }
 export interface Solid { x: number; y: number; z: number; w: number; h: number; d: number; material: 'wall' | 'metal' | 'roof' | 'stone' }
 export interface Building {

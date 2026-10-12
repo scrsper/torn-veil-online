@@ -1,4 +1,6 @@
 import {chromium} from 'playwright';import {mkdirSync,writeFileSync} from 'node:fs';import {resolve} from 'node:path';import assert from 'node:assert/strict';
+import {loadFocusedGeometry} from '../../src/server/focusedGeometryLoader.ts';import {sceneGeometry} from '../../src/sim/world/assets/focusedRuntime.ts';
+loadFocusedGeometry();
 const base=process.env.TV_FOCUSED_URL??'http://127.0.0.1:7572',out=resolve(process.env.TV_FOCUSED_EVIDENCE??'.debug/motion-correction/focused-journey');mkdirSync(out,{recursive:true});
 const health=await fetch(base+'/realms/health').then(r=>r.json());assert.ok(/motion-correction[/\\]focused-save/.test(health.savePath),'Refusing live save');
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--enable-precise-memory-info','--disable-renderer-backgrounding','--disable-background-timer-throttling']}),context=await browser.newContext({viewport:{width:1440,height:900},recordVideo:{dir:out,size:{width:1440,height:900}}}),page=await context.newPage(),errors=[],samples=[];let errorCount=0,status='failed';
@@ -21,11 +23,14 @@ try{
  const initialHitSequences=await page.evaluate(()=>Object.fromEntries(window.tvAscent.frame.snapshot.bodies.map(b=>[b.bodyId,b.hitSeq])));
  // Ordinary controls advance along the authored processional route; no debug
  // teleports, damage fixtures, rank grants or renderer-owned enemies are used.
- await page.keyboard.down('KeyW');await page.waitForTimeout(11000);await page.keyboard.up('KeyW');await shot('06-floor-traversal','ascent');
+ const plan=await page.evaluate(()=>window.tvAscent.plan),route=sceneGeometry(plan.assetScene).findPath(entrance,plan.exit);assert.ok(route);let waypoint=0,held=[];const until=Date.now()+90000;await page.keyboard.down('AltLeft');
+ while(Date.now()<until&&waypoint<route.length){const f=await page.evaluate(()=>window.tvAscent.frame),own=f.snapshot.bodies.find(b=>b.bodyId===f.own.bodyId),peers=f.snapshot.bodies.filter(b=>b.bodyId!==own.bodyId&&!b.dead&&!b.incapacitated);if(peers.some(b=>Math.hypot(b.pos.x-own.pos.x,b.pos.z-own.pos.z)<10))break;while(waypoint<route.length&&Math.hypot(route[waypoint].x-own.pos.x,route[waypoint].z-own.pos.z)<.18)waypoint++;if(waypoint>=route.length)break;const point=route[waypoint],yaw=(await ascent()).camera.movementYaw,dx=point.x-own.pos.x,dz=point.z-own.pos.z,right=dx*Math.cos(yaw)-dz*Math.sin(yaw),forward=-dx*Math.sin(yaw)-dz*Math.cos(yaw),next=[];if(Math.abs(right)>.42*Math.max(Math.abs(right),Math.abs(forward)))next.push(right>0?'KeyD':'KeyA');if(Math.abs(forward)>.42*Math.max(Math.abs(right),Math.abs(forward)))next.push(forward>0?'KeyW':'KeyS');for(const key of held)if(!next.includes(key))await page.keyboard.up(key);for(const key of next)if(!held.includes(key))await page.keyboard.down(key);held=next;await page.waitForTimeout(60);}
+ for(const key of held)await page.keyboard.up(key);await page.keyboard.up('AltLeft');await shot('06-floor-traversal','ascent');
  let hit=false;
  for(let n=0;n<35;n++){
   const f=await page.evaluate(()=>window.tvAscent.frame),own=f.snapshot.bodies.find(b=>b.bodyId===f.own.bodyId),rivals=f.snapshot.bodies.filter(b=>b.bodyId!==own.bodyId&&!b.dead&&!b.incapacitated),nearest=rivals.sort((a,b)=>Math.hypot(a.pos.x-own.pos.x,a.pos.z-own.pos.z)-Math.hypot(b.pos.x-own.pos.x,b.pos.z-own.pos.z))[0];
   if(!nearest){await page.waitForTimeout(300);continue;}
+  for(const b of f.snapshot.bodies)initialHitSequences[b.bodyId]??=b.hitSeq;for(let j=0;j<rivals.length+1&&(await page.evaluate(()=>window.tvAscent.targetId))!==nearest.bodyId;j++)await page.keyboard.press('Tab');
   const d=Math.hypot(nearest.pos.x-own.pos.x,nearest.pos.z-own.pos.z),i=await ascent();
   if(d>1.1){const yaw=i.camera.movementYaw,dx=nearest.pos.x-own.pos.x,dz=nearest.pos.z-own.pos.z,right=dx*Math.cos(yaw)-dz*Math.sin(yaw),forward=-dx*Math.sin(yaw)-dz*Math.cos(yaw),key=Math.abs(right)>Math.abs(forward)?(right>0?'KeyD':'KeyA'):(forward>0?'KeyW':'KeyS');await page.keyboard.down(key);await page.waitForTimeout(220);await page.keyboard.up(key);}
   await page.keyboard.down('KeyQ');await page.keyboard.press(n%4===0?'KeyK':'KeyJ');await page.waitForTimeout(330);await page.keyboard.up('KeyQ');
