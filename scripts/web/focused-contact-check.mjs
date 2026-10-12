@@ -6,8 +6,9 @@ const own=s=>s.frame.snapshot.bodies.find(b=>b.bodyId===s.frame.own.bodyId),snap
 const hold=async(key,ms)=>{await page.keyboard.down(key);await page.waitForTimeout(ms);await page.keyboard.up(key);await page.waitForTimeout(300);};
 try{
  await page.goto(base+'/?ascent');await page.waitForFunction(()=>window.tvAscent?.ready,null,{timeout:180000});await page.evaluate(()=>{window.contactInputEvents=[];for(const type of ['keydown','keyup','blur'])window.addEventListener(type,e=>{window.contactInputEvents.push({type,code:e.code,trusted:e.isTrusted,at:performance.now()});if(window.contactInputEvents.length>200)window.contactInputEvents.shift();});});await page.mouse.click(720,650,{button:'middle'});await snap('01-resumed-column');
+ const entrance=await page.evaluate(()=>window.tvAscent.frame.tower.start);if(own(await read()).pos.z>entrance.z-3.5)await hold('KeyW',1600);
  const before=own(await read()).pos;await hold('KeyA',1000);await snap('02-one-second-strafe');const after=own(await read()).pos;assert.ok(before.x-after.x>2,'Ordinary A strafe did not clear the column');
- await hold('KeyW',2200);await hold('KeyD',750);await snap('03-column-cleared');await hold('KeyW',7000);await snap('04-approach');
+ await hold('KeyW',9000);const centreUntil=Date.now()+4000;while(own(await read()).pos.x<entrance.x-1.8&&Date.now()<centreUntil)await hold('KeyD',150);await snap('03-column-cleared');await hold('KeyW',2200);await snap('04-approach');
  const firstSeen=new Map();let contact=false;
  for(let n=0;n<55;n++){const s=await read(),body=own(s),rivals=s.frame.snapshot.bodies.filter(b=>b.bodyId!==body.bodyId&&!b.dead&&!b.incapacitated);for(const b of s.frame.snapshot.bodies)if(!firstSeen.has(b.bodyId))firstSeen.set(b.bodyId,b.hitSeq);const target=rivals.sort((a,b)=>Math.hypot(a.pos.x-body.pos.x,a.pos.z-body.pos.z)-Math.hypot(b.pos.x-body.pos.x,b.pos.z-body.pos.z))[0];if(!target){await page.waitForTimeout(200);continue;}
   const distance=Math.hypot(target.pos.x-body.pos.x,target.pos.z-body.pos.z);for(let j=0;j<rivals.length+1&&(await read()).target!==target.bodyId;j++)await page.keyboard.press('Tab');

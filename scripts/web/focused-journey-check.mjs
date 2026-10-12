@@ -22,8 +22,9 @@ try{
  // Ordinary controls advance along the authored processional route; no debug
  // teleports, damage fixtures, rank grants or renderer-owned enemies are used.
  // The isolated contact check proved this wide lane clears the entry columns.
- const floorStart=await page.evaluate(()=>window.tvAscent.frame.snapshot.bodies.find(b=>b.bodyId===window.tvAscent.frame.own.bodyId).pos);await page.keyboard.down('KeyA');await page.waitForTimeout(1000);await page.keyboard.up('KeyA');await page.waitForTimeout(300);assert.ok(floorStart.x-(await page.evaluate(()=>window.tvAscent.frame.snapshot.bodies.find(b=>b.bodyId===window.tvAscent.frame.own.bodyId).pos.x))>2);
- await page.keyboard.down('KeyW');await page.waitForTimeout(8500);await page.keyboard.up('KeyW');await page.waitForTimeout(300);await shot('06-floor-traversal','ascent');
+ const floorOwn=()=>page.evaluate(()=>window.tvAscent.frame.snapshot.bodies.find(b=>b.bodyId===window.tvAscent.frame.own.bodyId));const held=async(key,ms)=>{await page.keyboard.down(key);await page.waitForTimeout(ms);await page.keyboard.up(key);await page.waitForTimeout(300);};
+ await held('KeyW',1600);const floorStart=(await floorOwn()).pos;await held('KeyA',1000);assert.ok(floorStart.x-(await floorOwn()).pos.x>2);
+ await held('KeyW',9000);const centreUntil=Date.now()+4000;while((await floorOwn()).pos.x<entrance.x-1.8&&Date.now()<centreUntil)await held('KeyD',150);await held('KeyW',2200);await shot('06-floor-traversal','ascent');
  let hit=false;
  for(let n=0;n<35;n++){
   const f=await page.evaluate(()=>window.tvAscent.frame),own=f.snapshot.bodies.find(b=>b.bodyId===f.own.bodyId),rivals=f.snapshot.bodies.filter(b=>b.bodyId!==own.bodyId&&!b.dead&&!b.incapacitated),nearest=rivals.sort((a,b)=>Math.hypot(a.pos.x-own.pos.x,a.pos.z-own.pos.z)-Math.hypot(b.pos.x-own.pos.x,b.pos.z-own.pos.z))[0];
