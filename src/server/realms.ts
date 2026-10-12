@@ -128,12 +128,13 @@ server.on('upgrade', (req, socket, head) => {
   if (!['/realms/socket', '/realms/expedition/socket', '/realms/ascent/socket'].includes(req.url ?? '') || !validOrigin) { socket.destroy(); return; }
   ws.handleUpgrade(req, socket, head, client => ws.emit('connection', client, req));
 });
-let owner: WebSocket | null = null, ownerToken = '', signature = '', stepMs: number[] = [];
+let owner: WebSocket | null = null, ownerToken = '', signature = '', stepMs: number[] = [],towerReady='';
 ws.on('connection', (client, req) => {
   if (updateError) { client.close(1011, 'World paused after an update error. Restart the host to restore its last good save.'); return; }
   if (owner) { client.close(4001, 'This world already has a controller. Close its tab first.'); return; }
   owner = client; ownerToken = randomUUID(); signature = ''; towerView = req.url === '/realms/ascent/socket'; scheduler = new FixedScheduler(1000 / 60, performance.now());
   rebindTower();
+  towerReady='';towerSignature='';
   client.send(JSON.stringify({ type: 'controller', token: ownerToken })); let budget = 0, budgetAt = Date.now();
   client.on('message', async data => {
     if (updateError) return;
@@ -141,6 +142,8 @@ ws.on('connection', (client, req) => {
     if (++budget > 180) return;
     try {
       const m = JSON.parse(data.toString());
+      if(m.type==='tower_ready'){const geometry=towerController?.geometry();if(towerView&&geometry?.assetScene&&m.interiorId===geometry.id)towerReady=geometry.id;return;}
+      if(towerView&&towerController?.geometry()?.assetScene&&towerReady!==towerController.geometry()!.id)return;
       if (m.type === 'command' && !session.world.realmExpedition?.active) {
         const receipt = apply({ type: 'command', input: m, now: performance.now() }); if (receipt) client.send(JSON.stringify(receipt));
       }
@@ -160,6 +163,7 @@ const timer = setInterval(() => {
   if (updateError || !owner || owner.readyState !== WebSocket.OPEN) return;
   try { scheduler.run(performance.now(), () => {
     const start = performance.now();
+    if(session.world.canonicalTower?.active&&towerView){const geometry=towerController?.geometry();if(geometry?.assetScene&&towerReady!==geometry.id){if(towerSignature!==geometry.id){towerSignature=geometry.id;owner!.send(JSON.stringify({type:'tower_geometry',plan:geometry}));owner!.send(JSON.stringify({...apply({type:'frame'}),saveError,serverMs:0}));}return;}}
     if (session.world.canonicalTower?.active) {
       if (!towerController) rebindTower();
       for (const receipt of apply({ type: 'step', now: performance.now() })) if (towerView) owner!.send(JSON.stringify(receipt));

@@ -3,6 +3,8 @@ import type { World } from '../../core/world';
 import { RealmGrid } from '../realms/grid';
 import type { RealmSpec } from '../realms/layout';
 import { INTERIOR_NAMESPACE, interiorSlot, interiorVoxel, planInterior, validInteriorDescriptor, type InteriorDescriptor, type InteriorPlan } from './layout';
+import {sceneGeometry} from '../assets/focusedRuntime';
+import type {StaticGeometry} from '../../physical/staticGeometry';
 
 /** Persist this registry beside the owning World's realmSpec. Cached plans are derived;
  * cell edits stay in the ordinary grid diff map and are never discarded by eviction. */
@@ -32,6 +34,7 @@ export class FoldedRealmGrid extends RealmGrid {
   private bySlot = new Map<number, InteriorDescriptor>();
   private plans = new Map<string, InteriorPlan>();
   private interiorEdits = new Map<number, number>();
+  private geometry=new Map<string,StaticGeometry>();
   constructor(spec: RealmSpec, readonly interiors: InteriorRegistry) {
     super(spec);
     if (!validInteriorRegistry(interiors)) throw Error('Invalid folded-interior registry');
@@ -43,7 +46,7 @@ export class FoldedRealmGrid extends RealmGrid {
     const old = this.interiors.descriptors.find(d => d.id === descriptor.id);
     if (old) {
       if (old.version !== descriptor.version || old.buildingId !== descriptor.buildingId || old.seed !== descriptor.seed
-        || old.floor !== descriptor.floor || old.slot !== descriptor.slot) throw Error('Interior identity already has different geometry');
+        || old.floor !== descriptor.floor || old.slot !== descriptor.slot || old.assetKit!==descriptor.assetKit) throw Error('Interior identity already has different geometry');
       return;
     }
     if (this.bySlot.has(descriptor.slot)) throw Error('Interior address already occupied');
@@ -59,18 +62,21 @@ export class FoldedRealmGrid extends RealmGrid {
     if (!p) {
       const d = this.interiors.descriptors.find(d => d.id === id); if (!d) throw Error('Unknown interior');
       p = planInterior(d);
-      if (this.plans.size >= 12) this.plans.delete(this.plans.keys().next().value!);
+      if (this.plans.size >= 12) {const first=this.plans.keys().next().value!;this.plans.delete(first);this.geometry.delete(first);}
       this.plans.set(id, p);
     }
     return p;
   }
-  override evict(): void { super.evict(); this.plans.clear(); }
+  override evict(): void { super.evict(); this.plans.clear();this.geometry.clear(); }
+  override movementGeometryAt(x:number,z:number){const slot=interiorSlot(x,z);if(slot===null)return super.movementGeometryAt(x,z);const d=this.bySlot.get(slot);if(!d?.assetKit)return null;let g=this.geometry.get(d.id);if(!g){g=sceneGeometry(this.interior(d.id).assetScene!);this.geometry.set(d.id,g);}return g;}
   override get(x: number, y: number, z: number): number {
     if (![x, y, z].every(Number.isInteger)) return B.Air;
     const slot = interiorSlot(x, z); if (slot === null) return super.get(x, y, z);
     const d = this.bySlot.get(slot); if (!d) return B.Stone;
     if (y < 0) return B.Stone; if (y >= this.H) return B.Air;
     const edit = this.interiorEdits.get(this.idx(x, y, z));
+    if(edit!==undefined)return edit;
+    const g=this.movementGeometryAt(x+.5,z+.5);if(g){if(!g.contains(x+.5,z+.5))return B.Stone;const floor=g.supportAt(x+.5,z+.5,1);return floor!==null&&y+.5<floor?B.Stone:g.blocked(x+.5,y+.5,z+.5)?B.Stone:B.Air;}
     return edit ?? interiorVoxel(this.interior(d.id), x, y, z) ?? B.Stone;
   }
   override set(x: number, y: number, z: number, id: number): void {

@@ -98,7 +98,7 @@ export class Navigator {
   /** A* path from a to b in block coordinates. Returns list of cell centers (y = floor). */
   findPath(a: Vec3, b: Vec3, maxIter = pathBudget(a, b)): Vec3[] | null {
     const geometry=this.grid.movementGeometryAt(a.x,a.z);
-    if(geometry&&geometry===this.grid.movementGeometryAt(b.x,b.z))return geometry.findPath(a,b,Math.max(32000,maxIter));
+    if(geometry&&geometry===this.grid.movementGeometryAt(b.x,b.z))return geometry.findPath(a,b,Math.min(160000,Math.max(32000,maxIter*4)));
     // A fixed village-sized search allowance falsely made longer procedural commutes
     // unreachable. Scale with the area a detour may explore, bounded by the same maximum
     // used when settlement generation connects its roads. Explicit budgets remain exact.

@@ -1,5 +1,6 @@
 import { B } from '../../physical/blocks';
 import { buildMaze } from './maze';
+import {focusedFloorPlan,type FocusedFloorPlan} from '../assets/focusedLayouts';
 
 /** Explicit bounded namespace, versioned separately from either realm. Addresses use
  * the existing grid dimensions, preserving every old door/diff index. Unallocated cells
@@ -7,6 +8,7 @@ import { buildMaze } from './maze';
 export const INTERIOR_NAMESPACE = Object.freeze({ id: 'veil:folded-interiors:v1', x: 6144, z: 0, width: 2048, depth: 6144, cell: 128, capacity: 768 });
 export interface InteriorDescriptor {
   version: 1; id: string; buildingId: string; seed: number; floor: number; slot: number;
+  assetKit?:1;
 }
 export interface InteriorBox { id: string; x: number; y: number; z: number; w: number; h: number; d: number; kind: 'wall' | 'column' | 'bench' }
 export interface InteriorPlan {
@@ -14,13 +16,14 @@ export interface InteriorPlan {
   start: { x: number; y: number; z: number }; exit: { x: number; y: number; z: number };
   solids: InteriorBox[]; rooms: { id: string; x: number; z: number; w: number; d: number; role: string }[];
   sources: { id: string; x: number; y: number; z: number; role: 'archive' | 'stores' }[];
+  assetScene?:FocusedFloorPlan;
 }
 export function validInteriorDescriptor(d: InteriorDescriptor): boolean {
   return !!d && d.version === 1 && typeof d.id === 'string' && d.id.length > 0 && d.id.length <= 200
     && typeof d.buildingId === 'string' && d.buildingId.length > 0 && d.buildingId.length <= 200
     && Number.isSafeInteger(d.seed) && d.seed >= 0 && d.seed <= 0xffffffff
     && Number.isInteger(d.floor) && d.floor >= 1 && d.floor <= 100
-    && Number.isInteger(d.slot) && d.slot >= 0 && d.slot < INTERIOR_NAMESPACE.capacity;
+    && Number.isInteger(d.slot) && d.slot >= 0 && d.slot < INTERIOR_NAMESPACE.capacity && (d.assetKit===undefined||d.assetKit===1);
 }
 export function interiorSlot(x: number, z: number): number | null {
   const n = INTERIOR_NAMESPACE;
@@ -41,6 +44,7 @@ function mulberry(seed: number) { return () => { let t = seed += 0x6D2B79F5; t =
 export function planInterior(d: InteriorDescriptor): InteriorPlan {
   if (!validInteriorDescriptor(d)) throw Error('Invalid interior descriptor');
   const origin = interiorOrigin(d.slot), half = 24 + 6 * Math.floor(d.floor / 25);
+  if(d.assetKit){const assetScene=focusedFloorPlan(d.id,d.seed,d.floor,origin);return {id:d.id,descriptor:{...d},origin,half:61,start:assetScene.start,exit:assetScene.exit,rooms:assetScene.rooms,solids:[],sources:[],assetScene};}
   const maze = buildMaze(mulberry((d.seed * 31337 + d.floor * 7349) >>> 0), half, d.floor % 5 === 0 ? [-half * .52, -half * .2] : null);
   const boxes: InteriorBox[] = [], n = (suffix: string) => `${d.id}:${suffix}`;
   const box = (id: string, x: number, z: number, w: number, height: number, depth: number, kind: InteriorBox['kind'] = 'wall') =>

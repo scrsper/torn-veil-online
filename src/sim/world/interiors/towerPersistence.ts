@@ -16,12 +16,12 @@ export function validCanonicalTower(w: World, value: unknown, version: number): 
       || typeof r.id !== 'string' || !r.id || r.id.length > 128 || r.seed !== realmSeed(w.seed, 'canonical-tower')
       || r.personId !== w.playerId || w.primaryBody(r.personId)?.id !== r.bodyId || r.towerId !== 'veil:tower:chrysanthus'
       || !['aether', 'brass'].includes(r.realm) || ![r.returnPos?.x, r.returnPos?.y, r.returnPos?.z].every(Number.isFinite)
-      || r.returnPos.y !== 1 || realmAt(r.returnPos.x, r.returnPos.z) !== r.realm
+      || (w.realmSpec?.focusedKit&&r.realm==='brass'? !w.grid.movementGeometryAt(r.returnPos.x,r.returnPos.z)?.fits(r.returnPos.x,r.returnPos.y,r.returnPos.z,.3,1.75):r.returnPos.y!==1) || realmAt(r.returnPos.x, r.returnPos.z) !== r.realm
       || typeof r.active !== 'boolean' || r.active && w.realmExpedition?.active
       || !['open', 'fallen', 'completed'].includes(r.status) || !Number.isSafeInteger(r.revision) || r.revision < 0
       || !Number.isInteger(r.floor) || r.floor < 1 || r.floor > 100
       || !Array.isArray(r.floors) || r.floors.length !== r.floor || !Array.isArray(r.commands) || r.commands.length > 512) return false;
-    const tower = w.grid.chunk(r.realm, 32, 32).buildings[0], opened = w.event(r.openedEventId);
+    const tower = r.realm==='brass'&&w.grid.focusedTown?w.grid.focusedTown.tower:w.grid.chunk(r.realm, 32, 32).buildings[0], opened = w.event(r.openedEventId);
     if (!(r.returnPos.x > tower.x && r.returnPos.x < tower.x + tower.w - 1 && r.returnPos.z > tower.z && r.returnPos.z < tower.z + tower.d - 1)
       || opened?.type !== 'tower_entered' || opened.actor !== r.personId || opened.data.bodyId !== r.bodyId) return false;
     if (new Set(r.commands.map(c => c.id)).size !== r.commands.length || r.commands.some((c, i) =>

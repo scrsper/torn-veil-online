@@ -11,11 +11,11 @@ export class FocusedRenderer {
  private assets:FocusedAssets;private manifest:Promise<unknown>|null=null;private wanted=new Map<string,AssetPlacement>();
  private active=new Map<string,Awaited<ReturnType<FocusedAssets['instantiate']>>>();private loading=new Set<string>();
  error='';private revision=0;private terrain:Mesh|null=null;private terrainId='';private terrainLoading=false;private terrainAbort:AbortController|null=null;
- constructor(private ctx:RenderContext,private atmosphere:Atmosphere,private origin:{x:number;z:number},private surfaces:MaterialLibrary){this.assets=new FocusedAssets(ctx.scene,atmosphere);}
+ constructor(private ctx:RenderContext,private atmosphere:Atmosphere,private origin:{x:number;z:number},private surfaces:MaterialLibrary,private terrainUrl:string|null='/realms/focused/terrain'){this.assets=new FocusedAssets(ctx.scene,atmosphere);}
  get pending(){return this.loading.size+Number(this.terrainLoading);}
  get count(){return this.active.size;}
  reconcile(plan:AssetScenePlan|null,position:{x:number;z:number}){
-  this.reconcileTerrain(plan);
+  if(this.terrainUrl)this.reconcileTerrain(plan);
   const desired=new Map((plan?.placements??[]).filter(p=>Math.hypot(p.position[0]-position.x,p.position[2]-position.z)<(p.id.includes(':tower:')?230:150)).map(p=>[p.id,p]));this.wanted=desired;
   for(const [id,v]of this.active)if(!desired.has(id)){v.dispose();this.active.delete(id);}
   for(const p of desired.values()){
@@ -29,9 +29,9 @@ export class FocusedRenderer {
   const id=plan?.id??'';if(id===this.terrainId){if(this.terrain)this.terrain.position.set(-this.origin.x,0,-this.origin.z);return;}
   this.terrainId=id;this.terrainAbort?.abort();this.terrain?.dispose();this.terrain=null;this.terrainLoading=false;if(!id)return;
   const abort=new AbortController();this.terrainAbort=abort;this.terrainLoading=true;
-  void fetch('/realms/focused/terrain',{signal:abort.signal}).then(async r=>{if(!r.ok)throw Error('Canonical terrain unavailable');return await r.json() as FocusedTerrain;}).then(t=>{
+  void fetch(this.terrainUrl!,{signal:abort.signal}).then(async r=>{if(!r.ok)throw Error('Canonical terrain unavailable');return await r.json() as FocusedTerrain;}).then(t=>{
    if(abort.signal.aborted||this.terrainId!==id)return;if(t.id!==id+':terrain')throw Error('Canonical terrain identity differs');
-   const mesh=new Mesh(t.id,this.ctx.scene),data=new VertexData(),normals:number[]=[];data.positions=t.positions;data.indices=t.indices;VertexData.ComputeNormals(t.positions,t.indices,normals);data.normals=normals;data.uvs=t.positions.flatMap((v,i)=>i%3===0?[v*this.surfaces.tilesPerMetre('terrain'),t.positions[i+2]*this.surfaces.tilesPerMetre('terrain')]:[]);data.applyToMesh(mesh);
+   const mesh=new Mesh(t.id,this.ctx.scene),data=new VertexData(),normals:number[]=[];data.positions=t.positions;data.indices=t.indices;VertexData.ComputeNormals(t.positions,t.indices,normals);data.normals=normals;data.colors=t.positions.flatMap((_v,i)=>i%3===0?[1,1,1,.7]:[]);data.uvs=t.positions.flatMap((v,i)=>i%3===0?[v*this.surfaces.tilesPerMetre('terrain'),t.positions[i+2]*this.surfaces.tilesPerMetre('terrain')]:[]);data.applyToMesh(mesh);mesh.hasVertexAlpha=false;
    mesh.position.set(-this.origin.x,0,-this.origin.z);mesh.material=this.surfaces.get('terrain');mesh.receiveShadows=true;mesh.metadata={focusedPart:true,canonicalTerrain:true};this.terrain=mesh;
   }).catch(e=>{if(!abort.signal.aborted)this.error=String(e);}).finally(()=>{if(this.terrainAbort===abort)this.terrainLoading=false;});
  }

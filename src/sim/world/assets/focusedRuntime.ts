@@ -23,3 +23,11 @@ export function sceneGeometry(plan:AssetScenePlan):StaticGeometry{
  }return new StaticGeometry(triangles,bounds);
 }
 export function placementBounds(p:AssetPlacement){const b=FOCUSED_CATALOG.sources[p.assetId].bounds,corners=[];for(const x of [b.min[0],b.max[0]])for(const z of [b.min[2],b.max[2]])corners.push(placedPoint([x,0,z],p));return {x0:Math.min(...corners.map(c=>c[0])),z0:Math.min(...corners.map(c=>c[2])),x1:Math.max(...corners.map(c=>c[0])),z1:Math.max(...corners.map(c=>c[2]))};}
+/** Stations share the certified processional route. A short local path connects
+ * each offset station to that route; furnishing cannot strand a guardian. */
+export function focusedGuardianStations(plan:{start:{x:number;y:number;z:number};exit:{x:number;y:number;z:number}},g:StaticGeometry){
+ const path=g.findPath(plan.start,plan.exit);if(!path)throw Error('Focused trial has no entrance-to-exit path');const stations:typeof path=[];let last={...plan.start};
+ for(const point of path){if(Math.hypot(point.x-last.x,point.z-last.z)<2.5)continue;last=point;if(Math.hypot(point.x-plan.start.x,point.z-plan.start.z)<=20||Math.hypot(point.x-plan.exit.x,point.z-plan.exit.z)<=3)continue;
+  for(const dx of [0,-2.5,2.5]){const x=point.x+dx,z=point.z,y=g.supportAt(x,z,point.y);if(y===null||!g.fits(x,y,z,.3,1.75)||stations.some(p=>Math.hypot(p.x-x,p.z-z)<2.2))continue;const p={x,y,z};if(dx&&!g.findPath(point,p,600))continue;stations.push(p);}
+ }return stations;
+}

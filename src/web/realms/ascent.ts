@@ -6,7 +6,8 @@ import { contextFor } from '../actors/canonicalActionContext';
 import { Vfx } from '../arena/vfx';
 import type { Element } from '../arena/tower/capability';
 import { stoneSurface, tiledBox, LOOKS } from '../arena/environment';
-import { loadScannedMaps, useScannedMaps } from '../render/materials';
+import {MaterialLibrary, loadScannedMaps, useScannedMaps } from '../render/materials';
+import {FocusedRenderer} from './focusedRenderer';
 import type { BodyVisual } from '../actors/actorManager';
 import type { BodyState, InteractionCommand, SnapshotMessage } from '../net/messages';
 import type { InteriorPlan } from '../../sim/world/interiors/layout';
@@ -26,6 +27,7 @@ export async function startCanonicalAscent() {
   const framing = new InteriorCameraFraming();
   let movementYaw = view.camera.yaw;
   const atmosphere = new Atmosphere(ctx); attachPipeline(ctx, camera);
+  const focused=new FocusedRenderer(ctx,atmosphere,{x:0,z:0},new MaterialLibrary(ctx.scene),null);let acknowledgedFloor='';
   atmosphere.look.fill = 1.1; atmosphere.look.key = 1.05; atmosphere.look.exposure = 1;
   const people = new SharedCharacters(ctx.scene), visuals = new Map<string, { visual: BodyVisual; body: BodyState; hitSeq: number; hit: number }>();
   const geometry: Mesh[] = [], objects = new Map<string, Mesh>(), keys = new Set<string>();
@@ -50,16 +52,17 @@ export async function startCanonicalAscent() {
   }
   function drawFloor(p: InteriorPlan) {
     for (const mesh of geometry) mesh.dispose(); geometry.length = 0; plan = p;
-    geometry.push(box('physical floor', p.origin.x - p.half - 1, 0, p.origin.z - p.half - 1, p.half * 2 + 2, 1, p.half * 2 + 2, floorMat));
+    focused.reconcile(p.assetScene??null,p.start);acknowledgedFloor='';ready=false;
+    if(!p.assetScene)geometry.push(box('physical floor', p.origin.x - p.half - 1, 0, p.origin.z - p.half - 1, p.half * 2 + 2, 1, p.half * 2 + 2, floorMat));
     const solids = p.solids.map(voxelSolid); walls = solids.filter(s => s.kind === 'wall');
     for (const s of solids) { const mesh = box(s.id, s.x, s.y, s.z, s.w, s.h, s.d, s.kind === 'bench' ? brass : stone); mesh.metadata = { wall: s.kind === 'wall' }; geometry.push(mesh); }
     // Thin inlays and threshold discs decorate existing walkable surfaces; they do not
     // invent doors, new rooms or invisible collision geometry.
     for (const [i, point] of [p.start, p.exit].entries()) {
       const ring = MeshBuilder.CreateTorus(i ? 'ascent ring' : 'return ring', { diameter: 3.2, thickness: .09, tessellation: 48 }, ctx.scene);
-      ring.position.set(point.x, 1.06, point.z); ring.material = i ? gold : blue; geometry.push(ring);
+      ring.position.set(point.x, point.y+.06, point.z); ring.material = i ? gold : blue; geometry.push(ring);
     }
-    for (const room of p.rooms) for (const side of [0, 1]) geometry.push(box(`${room.id}-inlay-${side}`, room.x + .15, 1.012, room.z + (side ? room.d - .2 : .15), room.w - .3, .015, .045, brass));
+    if(!p.assetScene)for (const room of p.rooms) for (const side of [0, 1]) geometry.push(box(`${room.id}-inlay-${side}`, room.x + .15, 1.012, room.z + (side ? room.d - .2 : .15), room.w - .3, .015, .045, brass));
     for (const mesh of geometry) mesh.computeWorldMatrix(true);
     view.camera.snap(); framing.reset(); resetView = true;
   }
@@ -160,7 +163,7 @@ export async function startCanonicalAscent() {
     for (const [id, mesh] of objects) if (!wanted.has(id)) { mesh.dispose(); objects.delete(id); }
     for (const i of things) if (!objects.has(i.id)) objects.set(i.id, box(i.id, i.pos.x - .25, i.pos.y, i.pos.z - .18, i.water ? .8 : i.chest ? .8 : .5, i.water ? .025 : i.chest ? .7 : .12, i.water ? .8 : i.chest ? .5 : .36, i.water ? (i.remaining > 0 ? blue : stone) : i.chest ? brass : bookMat));
     for (const i of m.waterSources) { const mesh = objects.get(i.id); if (mesh) mesh.material = i.remaining > 0 ? blue : stone; }
-    ready = !!plan && visuals.has(binding.bodyId); el('as-loading').hidden = ready;
+    ready = !!plan && visuals.has(binding.bodyId)&&(!plan.assetScene||focused.pending===0&&focused.count>0&&!focused.error); el('as-loading').hidden = ready;
     if (ready) refreshHud();
     if (m.saveError) notice('Saving failed. Keep this tab open.');
   };
@@ -192,10 +195,13 @@ export async function startCanonicalAscent() {
   };
   window.addEventListener('pointerup',e=>{if(e.button===2){mouseGuard=false;send({type:'guard',held:keys.has('KeyG')});}});
   window.addEventListener('pointercancel',release);
-  const cameraPointBlocked = (x: number, y: number, z: number) => walls.some(s => insideSolid(s, { x, y, z }));
-  const obstruction = boxObstruction(() => walls);
+  const cameraPointBlocked = (x: number, y: number, z: number) => plan?.assetScene?focused.blocked(x,y,z):walls.some(s => insideSolid(s, { x, y, z }));
+  const primitiveObstruction = boxObstruction(() => walls);
+  const obstruction:typeof primitiveObstruction=(from,dir,max)=>plan?.assetScene?(focused.obstruction(from,dir,max)??max):primitiveObstruction(from,dir,max);
   ctx.engine.runRenderLoop(() => {
     const now = performance.now(), ms = now - last, dt = Math.min(.1, ms / 1000); last = now;
+    if(plan?.assetScene&&focused.pending===0&&focused.count>0&&!focused.error&&binding&&visuals.has(binding.bodyId)&&acknowledgedFloor!==plan.id){acknowledgedFloor=plan.id;ws.send(JSON.stringify({type:'tower_ready',interiorId:plan.id}));ready=true;el('as-loading').hidden=true;}
+    if(focused.error){ready=false;el('as-loading').hidden=false;el('as-loading').textContent=focused.error;}
     if (ready && !document.hidden) { frames.push(ms); if (frames.length > 7200) frames.shift(); }
     if (frame && binding && ready) {
       const own = frame.snapshot.bodies.find(b => b.bodyId === binding.bodyId)!, target = frame.snapshot.bodies.find(b => b.bodyId === targetId);
@@ -242,6 +248,7 @@ export async function startCanonicalAscent() {
         // A clear chest ray alone can leave the lower body hidden behind a low wall.
         const rays = [.2, .85, 1.6].map(height => { const point = root.position.add(new Vector3(0, height, 0)), delta = camera.position.subtract(point); return new Ray(point, delta.normalizeToNew(), delta.length()); });
         for (const mesh of geometry) if (mesh.metadata?.wall) mesh.visibility = rays.some(ray => ray.intersectsBoxMinMax(mesh.getBoundingInfo().boundingBox.minimumWorld, mesh.getBoundingInfo().boundingBox.maximumWorld)) ? .08 : 1;
+        if(plan?.assetScene)focused.cutaway(camera.position,root.position);
       }
       el('as-target').textContent = target ? `Target · ${target.name}` : 'No visible opponent';
       targetRing.setEnabled(!!target);
@@ -250,7 +257,7 @@ export async function startCanonicalAscent() {
     vfx.update(dt); atmosphere.follow(camera.position); atmosphere.update(10, { kind: 'clear', intensity: 0, wind: .15 }, dt); ctx.scene.fogColor = Color3.FromHexString('#79808e'); ctx.scene.render();
   });
   Object.defineProperty(window, 'tvAscent', { value: { get ready() { return ready; }, get frame() { return frame; }, get plan() { return plan; }, get targetId() { return targetId; },
-    inspect: () => ({ frames: [...frames], serverMs: [...serverTimes], receipts: [...receipts], meshes: ctx.scene.meshes.length, people: visuals.size, looks: [...visuals.values()].map(v => v.visual.root.metadata),
+    inspect: () => ({focused:{instances:focused.count,pending:focused.pending,error:focused.error}, frames: [...frames], serverMs: [...serverTimes], receipts: [...receipts], meshes: ctx.scene.meshes.length, people: visuals.size, looks: [...visuals.values()].map(v => v.visual.root.metadata),
       camera: { mode: 'third-person', yaw: view.camera.yaw, renderedYaw: view.camera.renderedYaw, movementYaw, pitch: view.camera.pitch, preferred: view.camera.preferred, blocked: cameraPointBlocked(camera.position.x,camera.position.y,camera.position.z), position: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, ...view.camera.debug, ...framing.debug },
       cutawayWalls: geometry.filter(m => m.metadata?.wall && m.visibility < 1).length,
       cameraSolids: walls,

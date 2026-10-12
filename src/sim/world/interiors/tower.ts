@@ -13,6 +13,7 @@ import { realmAt, realmSeed } from '../realms/layout';
 import { RealmGrid } from '../realms/grid';
 import { attachInteriorGrid, FoldedRealmGrid } from './grid';
 import type { CanonicalTowerFloor, CanonicalTowerRun } from './towerTypes';
+import {focusedGuardianStations} from '../assets/focusedRuntime';
 
 const distance = (a: Vec3, b: Vec3) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
 export function currentTowerFloor(w: World): CanonicalTowerFloor | undefined { return w.canonicalTower?.floors.find(f => f.floor === w.canonicalTower!.floor); }
@@ -23,7 +24,7 @@ function able(w: World, p: Person, b: Body) {
 function placeBody(w: World, b: Body, to: Vec3) {
   const landing = [[0,0],[.9,0],[-.9,0],[0,.9],[0,-.9],[.9,.9],[-.9,.9],[.9,-.9],[-.9,-.9]]
     .map(([x,z]) => ({ x: to.x + x, y: to.y, z: to.z + z })).find(pos =>
-      w.nav.isWalkable(Math.floor(pos.x), Math.floor(pos.z)) && [-.3,.3].every(dx => [-.3,.3].every(dz =>
+      (w.grid.movementGeometryAt(pos.x,pos.z)?.fits(pos.x,pos.y,pos.z,.3,1.75)??w.nav.isWalkable(Math.floor(pos.x), Math.floor(pos.z))) && [-.3,.3].every(dx => [-.3,.3].every(dz =>
         !w.grid.isSolidAt(pos.x + dx, pos.y + .2, pos.z + dz) && !w.grid.isSolidAt(pos.x + dx, pos.y + 1.6, pos.z + dz)))
       && !w.nearbyPhysicalBodies(pos, .7, true).some(other => other.id !== b.id && other.present && distance(other.pos, pos) < .7));
   if (!landing) throw Error('Tower landing is obstructed');
@@ -38,7 +39,7 @@ function createFloor(w: World, run: CanonicalTowerRun, floor: number): Canonical
   const grid = attachInteriorGrid(w), used = new Set(grid.interiors.descriptors.map(d => d.slot));
   let slot = 0; while (used.has(slot)) slot++;
   const id = `${run.id}:floor:${floor}`;
-  grid.register({ version: 1, id, buildingId: run.towerId, seed: run.seed, floor, slot }); w.nav.rebuildAll();
+  grid.register({ version: 1, id, buildingId: run.towerId, seed: run.seed, floor, slot,...(w.realmSpec?.focusedKit?{assetKit:1 as const}:{}) }); w.nav.rebuildAll();
   const plan = grid.interior(id), place = makePlace(w, 'chapel', `Chrysanthus trial ${floor}`,
     { x0: plan.origin.x - plan.half, x1: plan.origin.x + plan.half, z0: plan.origin.z - plan.half, z1: plan.origin.z + plan.half, y0: 1, y1: 8 }, { inside: plan.exit, indoor: true });
   const opened = w.emit('tower_floor_opened', { actor: run.personId, placeId: place.id, pos: plan.start, causes: [run.openedEventId],
@@ -56,8 +57,8 @@ function createFloor(w: World, run: CanonicalTowerRun, floor: number): Canonical
   // Finite authored stores are instantiated with the floor. Clearing changes their
   // ownership; it never creates a second copy of a book or imports prototype loot.
   const rewardPos = [[1.4, 0], [-1.4, 0], [0, 1.4], [0, -1.4], [0, 0]].map(([dx, dz]) =>
-    ({ x: plan.exit.x + dx, y: 1, z: plan.exit.z + dz })).find(pos =>
-      w.nav.isWalkable(Math.floor(pos.x), Math.floor(pos.z)) && w.grid.lineOfSight({ ...plan.exit, y: 2.5 }, { ...pos, y: 1.7 }, 3));
+    ({ x: plan.exit.x + dx, y: plan.exit.y, z: plan.exit.z + dz })).find(pos =>
+      (w.grid.movementGeometryAt(pos.x,pos.z)?.fits(pos.x,pos.y,pos.z,.3,1.75)??w.nav.isWalkable(Math.floor(pos.x), Math.floor(pos.z))) && w.grid.lineOfSight({ ...plan.exit, y: 2.5 }, { ...pos, y: 1.7 }, 3));
   if (!rewardPos) throw Error('No accessible trial award position');
   const reward = makeContainer(w, { name: `Floor ${floor} sealed award`, capacity: 200, ownerId: place.id,
     pos: rewardPos, placeId: place.id, tags: ['tower-award'] });
@@ -76,14 +77,16 @@ function createFloor(w: World, run: CanonicalTowerRun, floor: number): Canonical
     sources[0].arcaneSource = { version: 1, abilityId: 'book-ember', kind: 'book' };
     for (const item of sources) { provenance(w, item, opened.id, null, null, 'finite authored Tower stores'); f.sourceItemIds.push(item.id); }
   }
-  const cells = plan.rooms.filter(r => r.role !== 'start').flatMap(r => {
+  const cells = (plan.assetScene?focusedGuardianStations(plan,grid.movementGeometryAt(plan.start.x,plan.start.z)!):plan.rooms.filter(r => r.role !== 'start').flatMap(r => {
     const out: Vec3[] = [];
-    for (let x = r.x + 3.5; x < r.x + r.w; x += 6) for (let z = r.z + 3.5; z < r.z + r.d; z += 6) {
-      const p = { x, y: 1, z }; if (distance(p, plan.start) > 20 && distance(p, plan.exit) > 2 && w.nav.isWalkable(Math.floor(x), Math.floor(z))) out.push(p);
+    const spacing=plan.assetScene?2.5:6;
+    for (let x = r.x + 3.5; x < r.x + r.w; x += spacing) for (let z = r.z + 3.5; z < r.z + r.d; z += spacing) {
+      const g=w.grid.movementGeometryAt(x,z),y=g?.supportAt(x,z,plan.start.y)??1,p = { x, y, z }; if (distance(p, plan.start) > 20 && distance(p, plan.exit) > 2 && (g?g.fits(x,y,z,.3,1.75):w.nav.isWalkable(Math.floor(x), Math.floor(z)))) out.push(p);
     }
     return out;
-  }).sort((a, b) => distance(b, plan.start) - distance(a, plan.start) || a.x - b.x || a.z - b.z);
+  })).sort((a, b) => distance(b, plan.start) - distance(a, plan.start) || a.x - b.x || a.z - b.z);
   const count = Math.min(towerEncounter(floor).enemies, cells.length), rivals: Person[] = [];
+  if(plan.assetScene&&count!==towerEncounter(floor).enemies)throw Error('Focused floor cannot support its canonical encounter budget');
   if (!count) throw Error('Trial has no physical guardian stations');
   for (let n = 0; n < count; n++) {
     const p = makePerson(w, { name: `Trial ${floor} warden ${n + 1}`, slug: `${id}:warden:${n}`, gender: n % 2 ? 'f' : 'm', age: 28 + n,
@@ -98,7 +101,7 @@ function createFloor(w: World, run: CanonicalTowerRun, floor: number): Canonical
 export function enterCanonicalTower(w: World, personId: string): CanonicalTowerRun {
   const p = w.person(personId), b = p && w.primaryBody(p.id), realm = b && realmAt(b.pos.x, b.pos.z);
   if (!p || !b || !realm || !able(w, p, b) || w.realmExpedition?.active || w.canonicalTower?.active || !(w.grid instanceof RealmGrid)) throw Error('This body cannot enter the canonical Tower');
-  const tower = w.grid.chunk(realm, 32, 32).buildings[0];
+  const tower = realm==='brass'&&w.grid.focusedTown?w.grid.focusedTown.tower:w.grid.chunk(realm, 32, 32).buildings[0];
   if (!(b.pos.x > tower.x && b.pos.x < tower.x + tower.w - 1 && b.pos.z > tower.z && b.pos.z < tower.z + tower.d - 1)) throw Error('Enter through the real Tower atrium');
   let run = w.canonicalTower;
   if (run && (run.personId !== p.id || run.bodyId !== b.id || run.status !== 'open')) throw Error('This Tower run cannot be resumed');
