@@ -1,5 +1,7 @@
 # Retained-save migration and forest review — October 12, 2026
 
+The later [character metres and camera review](CHARACTER_METRES_OCT12.md) measures the existing character against the approved kit, corrects the import/framing, and records final roof visibility and contact-route validation. It supersedes the camera defaults below without changing approved room topology or canonical progression.
+
 This checkpoint supersedes the blanket migration warning in the earlier focused-world report. Runtime and rendered evidence were validated at **652fb45555f755e212f2b742d15afc4232a623f9**. The tested prototype was locally consolidated into **main** as **862245031e38fae648932e4b945a3e2969d93088**; later documentation-only updates retain the same runtime.
 
 ## Actual migration dependency
