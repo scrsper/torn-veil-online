@@ -38,7 +38,7 @@ export class FocusedRenderer {
  }
  private meshes():AbstractMesh[]{return [...this.active.values()].flatMap(v=>v.root.getChildMeshes());}
  obstruction(from:{x:number;y:number;z:number},dir:{x:number;y:number;z:number},max:number):number|null{
-  if(!this.active.size)return null;const ray=new Ray(new Vector3(from.x,from.y,from.z),new Vector3(dir.x,dir.y,dir.z),max),hit=this.ctx.scene.pickWithRay(ray,m=>!!m.metadata?.focusedPart&&m.isEnabled());return hit?.hit?Math.max(0,hit.distance-.3):max;
+  if(!this.active.size)return null;const ray=new Ray(new Vector3(from.x,from.y,from.z),new Vector3(dir.x,dir.y,dir.z),max),hit=this.ctx.scene.pickWithRay(ray,m=>!!m.metadata?.focusedPart&&m.isEnabled());return hit?.hit?Math.max(0,hit.distance-.45):max;
  }
  blocked(x:number,y:number,z:number):boolean{if(!this.active.size)return false;const point=new Vector3(x,y,z);for(const d of [Vector3.Right(),Vector3.Left(),Vector3.Up(),Vector3.Down(),Vector3.Forward(),Vector3.Backward()]){const hit=this.ctx.scene.pickWithRay(new Ray(point,d,.35),m=>!!m.metadata?.focusedPart&&m.isEnabled());if(hit?.hit)return true;}return false;}
  cutaway(eye:Vector3,body:Vector3){for(const m of this.meshes()){const architectural=/roof|ceiling|wall|crown/i.test(m.name);if(!architectural)continue;const point=body.add(new Vector3(0,1.3,0)),delta=eye.subtract(point);m.visibility=m.intersects(new Ray(point,delta.normalizeToNew(),delta.length()),false).hit?.valueOf()? .12:1;}}

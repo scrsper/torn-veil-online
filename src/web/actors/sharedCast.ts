@@ -5,7 +5,7 @@ import {contactHints,gaitPhases} from '../arena/gaitPhase';
 import {sharedTravelClip, authoredTravelBlend} from './sharedMotion';
 import {SHARED_MOTION_NAMES} from '../arena/sharedMotionNames';
 import { TransformNode, type Scene, type Vector3 } from '@babylonjs/core';
-import {ArenaAssets,HUMAN_SCALE,type CharacterInstance} from '../arena/assets';
+import {ArenaAssets,type CharacterInstance} from '../arena/assets';
 import {Animator} from '../arena/anim';
 import {MOVESETS, RELAXED, dodgeClip} from '../arena/combat';
 import {kaykitFallback} from '../arena/assets';
@@ -16,7 +16,7 @@ import type {Atmosphere} from '../world/atmosphere';
 import {EquipmentVisual} from '../items/equipmentVisual';
 import { HUMAN_LOOKS, PRESENTATION_REVISION, UNARMED_MOTION, motionSampleSeconds, weaponMotionBinding, humanAssetPath } from '../presentation/library';
 import type { ClipTemplate } from '../arena/retarget';
-import {characterMeshBounds,characterScaleObservation} from './characterScale';
+import {characterScaleObservation,normalizeCharacterMetres} from './characterScale';
 export const SHARED_HUMAN_LOOKS:LookId[]=HUMAN_LOOKS;
 export interface SharedCharacterEnvironment {
  ground?:FootGround;
@@ -45,13 +45,13 @@ export class SharedCharacters {
   const look=role==='player'?sharedHeroLook(body):sharedLook(body),instance=this.assets.human(look,body.bodyId);
   // Canonical world metres, rather than the arena's enlarged layout scale.
   instance.root.metadata={...instance.root.metadata,sharedLook:look,assetPath:humanAssetPath(look),bodyId:body.bodyId,sex:body.presentationSex,presentationRevision:PRESENTATION_REVISION};
-  instance.root.scaling.scaleInPlace((body.appearance?.height??1)/HUMAN_SCALE);
+  instance.root.metadata.metricImport=normalizeCharacterMetres(instance.root,instance.meshes,body.appearance?.height??1);
   return new SharedVisual(instance,body,atmosphere,this.assets.clipsFor(look),environment);
  }
 }
 export class SharedVisual implements BodyVisual {
  readonly contactFootfalls=true;
- readonly root: TransformNode; headHeight = 1.9;
+ readonly root: TransformNode; headHeight = 1.9;readonly bodyHeight:number;
  private animator: Animator; private equipment: EquipmentVisual; private plant: FootPlant; private afterAnimation;
  private dt = 0; private yaw = 0; private plantActive = true; private clock = 0; private combatUntil = 0;
  private fallen = false; private hitSeq: number; private hitUntil = 0;
@@ -64,8 +64,8 @@ export class SharedVisual implements BodyVisual {
   this.root = new TransformNode(`canonical-${body.bodyId}`, instance.root.getScene());
   this.root.metadata = { ...instance.root.metadata };
   instance.root.parent = this.root; instance.root.rotation.y = Math.PI;
-  this.root.metadata.sourceBindBounds=characterMeshBounds(instance.root,instance.meshes,false);
-  this.headHeight=1.9*instance.root.scaling.y;
+  this.bodyHeight=instance.root.metadata.metricImport.targetHeight;
+  this.headHeight=this.bodyHeight+.18;
   // Preserve authored joints: passing phase data without the procedural rig means
   // Animator does not construct HumanGait. Foot IK remains a bounded contact correction.
   this.hitSeq = body.hitSeq; this.animator = new Animator(instance.anims,gaitPhases(clips)); this.plant = new FootPlant(instance);
@@ -92,7 +92,7 @@ export class SharedVisual implements BodyVisual {
   for (const mesh of instance.meshes) { mesh.receiveShadows = true; atmosphere.addCaster(mesh); }
  }
  private clip(name: string) { return this.animator.has(name) ? name : kaykitFallback(name); }
- measureScale(){return {...characterScaleObservation(this.root,this.instance.meshes),importScale:this.instance.root.scaling.asArray(),importPosition:this.instance.root.position.asArray(),sourceBindBounds:this.root.metadata.sourceBindBounds};}
+ measureScale(){return {...characterScaleObservation(this.root,this.instance.meshes),importScale:this.instance.root.scaling.asArray(),importPosition:this.instance.root.position.asArray(),metricImport:this.root.metadata.metricImport};}
  private pace(name: string, fallback: number) { return (this.clips.get(name)?.stance ?? 0) * this.instance.root.scaling.x || fallback; }
  update(dt: number, s: ActorState) {
   const b = s.body; if (!b) return;

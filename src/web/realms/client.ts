@@ -10,7 +10,7 @@ import { RealmRenderer } from './render';
 import type { RealmSnapshot } from '../../sim/world/realms/session';
 import type { InteractionCommand } from '../net/messages';
 import { marchObstruction } from '../game/adaptiveCamera';
-import { primaryCamera, attachOrbit, cameraRelativeMove, travelFacing, smoothYaw, groundViewYaw, walkingMove } from './thirdPerson';
+import { primaryCamera, attachOrbit, cameraRelativeMove, travelFacing, smoothYaw, groundViewYaw, walkingMove, cameraPivotHeight,PRIMARY_CAMERA_PROFILES } from './thirdPerson';
 import './style.css';
 import {Vfx} from '../arena/vfx';
 import {ObservedArcaneEffects} from '../actors/arcaneEffects';
@@ -149,7 +149,8 @@ export async function startRealms(): Promise<void> {
   const closeTravel=()=>{(ui.querySelector('.rv-wayfinder') as HTMLDetailsElement).open=false;};
   el('rv-portal').onclick = () => {send({ type: 'navigate', target: 'portal' });closeTravel();};
   el('rv-tower').onclick = () => {send({ type: 'navigate', target: 'tower' });closeTravel();};
-  el('rv-camera').onchange=()=>{const value=(el('rv-camera') as HTMLSelectElement).value,profile=value==='elevated'?[6.8,27]:value==='wide'?[10,35]:[5.4,23];view.camera.preferred=profile[0];view.camera.pitch=profile[1]*Math.PI/180;view.persist();closeTravel();};
+  (el('rv-camera') as HTMLSelectElement).value='elevated';
+  el('rv-camera').onchange=()=>{const value=(el('rv-camera') as HTMLSelectElement).value as keyof typeof PRIMARY_CAMERA_PROFILES,profile=PRIMARY_CAMERA_PROFILES[value]??PRIMARY_CAMERA_PROFILES.elevated;view.camera.preferred=profile.distance;view.camera.pitch=profile.pitch*Math.PI/180;view.persist();closeTravel();};
   el('rv-cross').onclick = () => { send({ type: 'confirm', id: state?.pending?.id }); keys.clear(); };
   el('rv-cancel').onclick = () => send({ type: 'cancel' });
   el('rv-prompt').onclick = () => send({ type: 'interact' });
@@ -211,7 +212,7 @@ export async function startRealms(): Promise<void> {
         avatar.root.position.copyFrom(Vector3.Lerp(avatar.root.position, new Vector3(s.body.pos.x + velocity.x * age - renderer.origin.x, s.body.pos.y, s.body.pos.z + velocity.z * age - renderer.origin.z), 1 - Math.exp(-20 * dt)));
         avatar.root.rotation.y = smoothYaw(avatar.root.rotation.y, s.body.yaw, dt);
         avatar.update(dt, { bodyId: s.body.id, body: s.avatar, combat: contextFor(s.avatar.combatAction, s.time + age, s.body.yaw), guard: s.avatar.guarding, own: true, kind: 'person', speed: Math.hypot(velocity.x, velocity.z), velocity, yaw: avatar.root.rotation.y, crouch: s.avatar.crouch ?? 0, age });
-        const pivot = avatar.root.position.add(new Vector3(0, 1.3, 0));
+        const pivot = avatar.root.position.add(new Vector3(0, cameraPivotHeight(avatar.bodyHeight,s.avatar.crouch??0), 0));
         const pose = view.camera.update(dt, { pivot, velocity }, obstruction, () => 1);
         movementYaw = groundViewYaw(pose.position, pose.target);
         camera.position.set(pose.position.x, pose.position.y, pose.position.z); camera.setTarget(new Vector3(pose.target.x, pose.target.y, pose.target.z)); camera.fov = pose.fov;

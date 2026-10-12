@@ -2,6 +2,7 @@ import {SceneLoader,Mesh,TransformNode,Matrix,Quaternion,Vector3,type AssetConta
 import type {CharacterInstance} from '../arena/assets';
 import {itemStaticAssetPath,itemFittingPrototypePath} from './itemAssets';
 import type {EquipmentSlot} from '../../sim/physical/equipment';
+import {metricSocketScale} from '../actors/characterScale';
 type Row={id:string;catalogId?:string;type:string;slot:EquipmentSlot};
 const armorBones:Partial<Record<EquipmentSlot,[string,string]>>={head:['head','head'],torso:['chest','spine_03'],'left-shoulder':['upper_arm.L','upperarm_l'],'left-forearm':['forearm.L','lowerarm_l'],'left-shin':['shin.L','calf_l']};
 /** Rigid plate bindings use the shipped mannequin's bone-local rest frame, rather than
@@ -35,6 +36,7 @@ export class EquipmentVisual {
    if(!target)throw Error('Required attachment bone missing');
    const root=new TransformNode('equipment:'+row.catalogId,this.actor.root.getScene());root.parent=target;
    root.rotationQuaternion=Quaternion.Identity();
+   if(!binding)root.scaling.setAll(metricSocketScale(target));
    container.addAllToScene();
    const visible=container.meshes.filter((m):m is Mesh=>m instanceof Mesh&&m.getTotalVertices()>0);
    // One grip origin for the complete object, preserving blade/guard/handle relationships.

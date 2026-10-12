@@ -22,7 +22,7 @@ describe('primary third-person locomotion', () => {
     expect((move.x*view.x+move.z*view.z)/Math.hypot(view.x,view.z)).toBeGreaterThan(.99);
   });
   it('retains elevated perspective and the Tower tactical range without changing other clients', () => {
-    const {camera}=primaryCamera('realm');expect(camera.pitch*180/Math.PI).toBe(23);expect(camera.preferred).toBe(5.4);
+    const {camera}=primaryCamera('realm');expect(camera.pitch*180/Math.PI).toBeCloseTo(22);expect(camera.preferred).toBe(4);
     camera.zoom(100);expect(camera.preferred).toBe(18);camera.zoom(-100);expect(camera.preferred).toBe(3);
     expect(new AdaptiveCamera().limits.maxDistance).toBe(CAMERA_LIMITS.maxDistance);
     expect(camera.limits.maxDistance).toBeGreaterThan(13*Math.hypot(1,.8));
@@ -38,8 +38,15 @@ describe('primary third-person locomotion', () => {
     const a=primaryCamera('realm',storage);a.camera.yaw=.8;a.camera.pitch=.7;a.camera.preferred=15;a.persist();
     const restored=primaryCamera('realm',storage);expect(restored.camera.yaw).toBe(.8);expect(restored.camera.preferred).toBe(15);
     expect(primaryCamera('tower',storage).camera.yaw).toBe(0);
-    store.set('torn-veil.primary-camera.realm.v2','{"yaw":20,"pitch":-100,"distance":100000}');
-    const bad=primaryCamera('realm',storage);expect(bad.camera.yaw).toBe(Math.PI);expect(bad.camera.preferred).toBe(5.4);
+    store.set('torn-veil.primary-camera.realm.v3','{"yaw":20,"pitch":-100,"distance":100000}');
+    const bad=primaryCamera('realm',storage);expect(bad.camera.yaw).toBe(Math.PI);expect(bad.camera.preferred).toBe(4);
+  });
+  it('adapts old named framing while retaining arbitrary legacy zoom preferences',()=>{
+    const store=new Map<string,string>(),storage={getItem:(key:string)=>store.get(key)??null,setItem:(key:string,value:string)=>{store.set(key,value);}};
+    store.set('torn-veil.primary-camera.realm.v2',JSON.stringify({yaw:.8,pitch:23*Math.PI/180,distance:5.4}));
+    const adapted=primaryCamera('realm',storage).camera;expect(adapted.preferred).toBe(4);expect(adapted.pitch*180/Math.PI).toBeCloseTo(22);expect(adapted.yaw).toBe(.8);
+    store.set('torn-veil.primary-camera.realm.v2',JSON.stringify({yaw:.8,pitch:.7,distance:15}));
+    const chosen=primaryCamera('realm',storage).camera;expect(chosen.preferred).toBe(15);expect(chosen.pitch).toBe(.7);
   });
   it('takes the short wrap-around turn and leaves idle facing unchanged', () => {
     expect(travelFacing({x:0,z:0})).toBeUndefined();

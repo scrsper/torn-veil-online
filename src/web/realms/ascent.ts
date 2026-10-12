@@ -12,7 +12,7 @@ import type { BodyVisual } from '../actors/actorManager';
 import type { BodyState, InteractionCommand, SnapshotMessage } from '../net/messages';
 import type { InteriorPlan } from '../../sim/world/interiors/layout';
 import type { TowerController } from '../../server/towerController';
-import { primaryCamera, attachOrbit, cameraRelativeMove, travelFacing, smoothYaw, groundViewYaw, walkingMove } from './thirdPerson';
+import { primaryCamera, attachOrbit, cameraRelativeMove, travelFacing, smoothYaw, groundViewYaw, walkingMove,cameraPivotHeight } from './thirdPerson';
 import { voxelSolid, insideSolid, boxObstruction } from './cameraSolids';
 import { InteriorCameraFraming } from './interiorCamera';
 
@@ -234,9 +234,10 @@ export async function startCanonicalAscent() {
         root.rotation.y = smoothYaw(root.rotation.y, b.yaw, dt); v.hit *= Math.exp(-dt * 8);
         v.visual.update(dt, { bodyId: b.bodyId, own: b.bodyId === binding.bodyId, kind: 'person', body: b, speed: Math.hypot(b.velocity.x, b.velocity.z), velocity: b.velocity, yaw: root.rotation.y, crouch: b.crouch ?? 0, age, combat: contextFor(b.combatAction, time, b.yaw), hit: v.hit, guard: b.guarding });
       }
-      const root = visuals.get(binding.bodyId)?.visual.root;
+      const controlledVisual=visuals.get(binding.bodyId)?.visual;
+      const root = controlledVisual?.root;
       if (root) {
-        const pivot = root.position.add(new Vector3(0, 1.3, 0));
+        const pivot = root.position.add(new Vector3(0, cameraPivotHeight(controlledVisual?.bodyHeight,own.crouch??0), 0));
         const engaged = keys.has('KeyQ') || keys.has('KeyG') || mouseGuard || !!own.combatAction && own.combatAction.completeAt > time;
         const rawPose = view.camera.update(dt, { pivot, velocity: own.velocity, engaged,
           threats: engaged ? frame.snapshot.bodies.filter(b => b.bodyId !== binding.bodyId && !b.dead && !b.incapacitated && Math.hypot(b.pos.x-own.pos.x,b.pos.z-own.pos.z)<12).length : 0,

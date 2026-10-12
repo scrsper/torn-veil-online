@@ -1,5 +1,9 @@
 import { AdaptiveCamera } from '../game/adaptiveCamera';
 import { loadSettings } from '../game/bindings';
+import {INTERACTION_SPEC,postureHeight} from '../../sim/physical/prediction';
+
+export const PRIMARY_CAMERA_PROFILES={close:{distance:3.2,pitch:18},elevated:{distance:4,pitch:22},wide:{distance:10,pitch:35}} as const;
+export function cameraPivotHeight(height=INTERACTION_SPEC.height,crouch=0){return height*.62*postureHeight(Math.max(0,Math.min(1,crouch)))/INTERACTION_SPEC.height;}
 
 /** Right-handed camera basis, shared by street exploration and the canonical Tower.
  * Input uses the rendered yaw so eased orbit never changes the visible movement basis. */
@@ -24,12 +28,18 @@ export const smoothYaw = (current: number, target: number, dt: number) =>
 export function primaryCamera(view: 'realm' | 'tower', storage?: Pick<Storage, 'getItem' | 'setItem'>) {
   const camera = new AdaptiveCamera({ minDistance: 3, maxDistance: 18, maxExceptional: 24,
     minPitch: 8 * Math.PI / 180, maxPitch: 60 * Math.PI / 180 });
-  camera.preset('wide'); camera.preferred = view==='realm'?5.4:6.8; camera.pitch = (view==='realm'?23:27) * Math.PI / 180; camera.baseFov=58*Math.PI/180;
+  camera.preset('wide'); camera.preferred = view==='realm'?4:4.8; camera.pitch = (view==='realm'?22:24) * Math.PI / 180; camera.baseFov=52*Math.PI/180;
   camera.yaw = view === 'realm' ? Math.PI : 0;
-  const key = `torn-veil.primary-camera.${view}.v2`;
+  const key = `torn-veil.primary-camera.${view}.v3`;
   try {
     storage ??= globalThis.localStorage;
-    const saved = JSON.parse(storage?.getItem(key) ?? 'null');
+    let saved = JSON.parse(storage?.getItem(key) ?? 'null');
+    if(!saved){saved=JSON.parse(storage?.getItem(`torn-veil.primary-camera.${view}.v2`)??'null');
+      if(saved){const legacy=view==='realm'?[[5.4,23],[6.8,27],[10,35]]:[[6.8,27]];
+        const match=legacy.findIndex(([d,p])=>Math.abs(saved.distance-d)<1e-6&&Math.abs(saved.pitch-p*Math.PI/180)<1e-6);
+        if(match>=0){const profile=view==='realm'?[PRIMARY_CAMERA_PROFILES.elevated,PRIMARY_CAMERA_PROFILES.elevated,PRIMARY_CAMERA_PROFILES.wide][match]:{distance:4.8,pitch:24};saved={...saved,distance:profile.distance,pitch:profile.pitch*Math.PI/180};}
+      }
+    }
     if (saved && Number.isFinite(saved.yaw) && Math.abs(saved.yaw) <= Math.PI) camera.yaw = saved.yaw;
     if (saved && Number.isFinite(saved.pitch) && saved.pitch >= camera.limits.minPitch && saved.pitch <= camera.limits.maxPitch) camera.pitch = saved.pitch;
     if (saved && Number.isFinite(saved.distance) && saved.distance >= 3 && saved.distance <= 18) camera.preferred = saved.distance;

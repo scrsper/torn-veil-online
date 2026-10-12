@@ -1,4 +1,20 @@
 import {Matrix,Vector3,type AbstractMesh,type TransformNode} from '@babylonjs/core';
+import {INTERACTION_SPEC} from '../../sim/physical/prediction';
+
+/** Import calibration, not a stature/proportion edit. Saved appearance stature
+ * multiplies the canonical standing reference, independently of source kit size.
+ * Source vertices, rig, joints and the mechanical capsule stay unchanged. */
+export function normalizeCharacterMetres(importRoot:TransformNode,meshes:readonly AbstractMesh[],stature:number){
+ const bind=characterMeshBounds(importRoot,meshes,false),sourceHeight=bind.dimensions[1];
+ if(!Number.isFinite(sourceHeight)||sourceHeight<=0||!Number.isFinite(stature)||stature<=0)throw Error('Invalid human metre import');
+ const targetHeight=INTERACTION_SPEC.height*stature,scale=targetHeight/sourceHeight;
+ importRoot.scaling.setAll(scale);importRoot.position.y=-bind.min[1]*scale;
+ return {policy:'canonical-human-metres-v1',sourceHeight,targetHeight,stature,scale,footOffset:importRoot.position.y,sourceBindBounds:bind};
+}
+
+/** Metric catalog weapons retain their physical metre dimensions under a resized
+ * actor. Authored armour fitting remains proportional to that actor's rig. */
+export function metricSocketScale(socket:TransformNode){socket.computeWorldMatrix(true);return 1/Math.max(.00001,Math.abs(socket.absoluteScaling.y));}
 
 /** On-demand observation of actual skin/morph vertices and authored node transforms.
  * Deliberately outside the render loop. No positions, bones or bounds are mutated. */
