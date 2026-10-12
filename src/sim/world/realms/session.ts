@@ -17,6 +17,8 @@ import { serialize, deserialize } from '../../persist/save';
 import { generateRealms } from './generate';
 import { RealmGrid } from './grid';
 import { REALMS, REALM_CHUNK, CENTER, portalPoint, realmAt, realmResidency, type Point, type RealmId } from './layout';
+import {FOCUSED_CATALOG} from '../assets/focusedRuntime';
+import {placedPoint} from '../assets/focused';
 
 export class RealmSession {
   readonly world: World;
@@ -39,6 +41,18 @@ export class RealmSession {
   get body() { return this.world.primaryBody(this.world.playerId!)!; }
   get person() { return this.world.person(this.world.playerId!)!; }
   get grid() { return this.world.grid as RealmGrid; }
+  adoptFocusedWorld():void{
+    const w=this.world;if(w.realmSpec?.focusedKit)return;if(w.canonicalTower?.active||w.realmExpedition?.active)throw Error('Return from the active Tower before adopting new world geometry');
+    const spec={...w.realmSpec!,focusedKit:1 as const,focusedGeometrySha:FOCUSED_CATALOG.geometrySha256},next=new RealmGrid(spec),town=next.focusedTown!,geometry=next.focusedGeometry!,start=town.spawn;
+    const floor=geometry.supportAt(start.x,start.z,start.y);if(floor===null||!geometry.fits(start.x,floor,start.z,.3,1.75))throw Error('Approved town arrival failed actual controller clearance');
+    const residentMoves=w.persons().filter(p=>p.id!==this.person.id).flatMap(p=>{const body=w.primaryBody(p.id);return body&&realmAt(body.pos.x,body.pos.z)==='brass'?[body]:[];}).map((body,i)=>{
+      const placement=town.placements.find(p=>p.assetId===(i%2?'tv_32_01_general_store':'tv_31_01_tavern'))!,candidate=placedPoint(FOCUSED_CATALOG.sources[placement.assetId].spawn,placement),y=geometry.supportAt(candidate[0],candidate[2],1.0625);
+      if(y===null||!geometry.fits(candidate[0],y,candidate[2],.3,1.75))throw Error('Town resident arrival failed actual clearance');return {body,pos:{x:candidate[0],y,z:candidate[2]}};
+    });
+    const old=w.grid;next.applyDiffs([...old.diffs]);next.restoreDoorStates([...old.doorStates]);next.recording=old.recording;
+    w.realmSpec=spec;w.grid=next;w.initNav();this.stop();this.body.pos={...start,y:floor};this.body.vel={x:0,y:0,z:0};
+    for(const move of residentMoves){move.body.pos=move.pos;move.body.vel={x:0,y:0,z:0};move.body.path=null;move.body.pathGoal=null;}
+  }
   move(input: MovementInput): void {
     if ((this.world.realmExpedition?.active || this.world.canonicalTower?.active)) return;
     if (!input || ![input.x, input.z].every(Number.isFinite) || Math.abs(input.x) > 1 || Math.abs(input.z) > 1 || typeof input.sprint !== 'boolean') return;
@@ -51,7 +65,7 @@ export class RealmSession {
   navigate(target: 'portal' | 'tower'): boolean {
     if ((this.world.realmExpedition?.active || this.world.canonicalTower?.active) || this.pending || !movementState(this.world, this.person, this.body).eligible || combatBusy(this.body, this.world.physicalTime)) return false;
     const realm = realmAt(this.body.pos.x, this.body.pos.z)!;
-    const destination = target === 'portal' ? { ...portalPoint(realm), z: portalPoint(realm).z - 2 } : { x: REALMS[realm].offset + CENTER + 48.5, y: 1, z: CENTER + 48.5 };
+    const destination = target === 'portal' ? { ...portalPoint(realm), z: portalPoint(realm).z - 2 } : realm==='brass'&&this.grid.focusedTown?this.grid.focusedTown.tower.entry:{ x: REALMS[realm].offset + CENTER + 48.5, y: 1, z: CENTER + 48.5 };
     const path = this.world.nav.findPath(this.body.pos, destination);
     if (!path) return false;
     this.body.path = path; this.body.pathIndex = 0; this.body.pathGoal = destination; return true;
@@ -127,6 +141,7 @@ export class RealmSession {
   inTower(): boolean {
     const p = this.body.pos, realm = realmAt(p.x, p.z);
     if (!realm) return false;
+    if(realm==='brass'&&this.grid.focusedTown){const b=this.grid.focusedTown.tower;return p.x>b.x+.6&&p.x<b.x+b.w-.6&&p.z>b.z+.6&&p.z<b.z+b.d-.6;}
     const b = this.grid.chunk(realm, 32, 32).buildings[0];
     return p.x > b.x && p.x < b.x + b.w - 1 && p.z > b.z && p.z < b.z + b.d - 1;
   }
@@ -147,7 +162,7 @@ export class RealmSession {
     if(w.physicalTime-this.classAt>5){this.recognised=recogniseClass(w,this.person);this.classAt=w.physicalTime;}
     const door = this.nearbyDoor(), portal = w.distance2d(p, portalPoint(realm)) < 4.5;
     const visible=w.persons().filter(n=>n.id===this.person.id||w.primaryBody(n.id)?.present&&realmAt(w.primaryBody(n.id)!.pos.x,w.primaryBody(n.id)!.pos.z)===realm&&w.distance2d(p,w.primaryBody(n.id)!.pos)<80&&w.grid.lineOfSight({...p,y:p.y+1.6},{...w.primaryBody(n.id)!.pos,y:w.primaryBody(n.id)!.pos.y+1.6},80));
-    return { realm, realmName: REALMS[realm].name, subtitle: REALMS[realm].subtitle, seed: w.seed, time: w.physicalTime, worldTime: w.now,
+    return { focusedAssets:realm==='brass'?this.grid.focusedTown:null,realm, realmName: REALMS[realm].name, subtitle: REALMS[realm].subtitle, seed: w.seed, time: w.physicalTime, worldTime: w.now,
       person: { id: this.person.id, name: this.person.name, rank: this.person.ontology.stage, inventory: this.person.inventory.map(id => { const i = w.item(id)!; return { id, name: i.name, quantity: i.quantity }; }) },
       body: { id: this.body.id, pos: { ...p }, yaw: this.body.yaw, hp: this.body.health, maxHp: this.body.maxHealth },
       avatar:this.visual(this.body),

@@ -1,12 +1,15 @@
 import {spawnSync,execFileSync} from 'node:child_process';
-import {readFileSync,writeFileSync} from 'node:fs';
+import {readFileSync,writeFileSync,existsSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {resolve} from 'node:path';
 const root=resolve(import.meta.dirname,'../..');
 const git=(...args)=>execFileSync('git',args,{cwd:root,encoding:'utf8'}).trim();
 const commit=git('rev-parse','HEAD');
 if(git('status','--porcelain','--untracked-files=no'))throw Error('Commit tracked changes before building the current launcher. Use web:dev for development.');
-for(const args of [['node_modules/typescript/bin/tsc','--noEmit'],['scripts/web/stage-current-assets.mjs'],['scripts/web/arena/stage-creator.mjs'],['node_modules/vite/bin/vite.js','build','--config','vite.web.config.ts']]){
+const stages=[['node_modules/typescript/bin/tsc','--noEmit'],['scripts/web/stage-current-assets.mjs'],['scripts/web/arena/stage-creator.mjs']];
+if(existsSync(resolve(root,'web/public/focused/pack.lock.json'))&&!existsSync(resolve(root,'web/public/focused/collision.json')))stages.push(['scripts/web/cook-focused-assets.mjs']);
+stages.push(['node_modules/vite/bin/vite.js','build','--config','vite.web.config.ts']);
+for(const args of stages){
  const r=spawnSync(process.execPath,args,{cwd:root,stdio:'inherit'});if(r.status!==0)process.exit(r.status??1);
 }
 const index=readFileSync(resolve(root,'dist-web/index.html'));

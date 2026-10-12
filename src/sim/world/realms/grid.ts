@@ -1,18 +1,32 @@
 import { VoxelGrid } from '../../physical/grid';
 import { B } from '../../physical/blocks';
 import { REALMS, REALM_CHUNK, REALM_SIZE, generateRealmChunk, realmAt, type RealmChunk, type RealmSpec } from './layout';
+import {focusedTownPlan,type FocusedTownPlan} from '../assets/focusedLayouts';
+import {FOCUSED_CATALOG,sceneGeometry,placementBounds} from '../assets/focusedRuntime';
+import type {StaticGeometry} from '../../physical/staticGeometry';
+import type {Vec3} from '../../core/types';
 
 /** Same VoxelGrid contract as the inhabited world, with a bounded descriptor cache.
  * Eviction drops derived geography only; edits and doors retain canonical identity. */
 export class RealmGrid extends VoxelGrid {
+  readonly focusedTown:FocusedTownPlan|null;
+  readonly focusedGeometry:StaticGeometry|null;
   private chunks = new Map<string, RealmChunk>();
   private edits = new Map<number, number>();
-  constructor(readonly spec: RealmSpec) { super(8192 + REALM_SIZE, 176, REALM_SIZE, true); }
+  constructor(readonly spec: RealmSpec) { super(8192 + REALM_SIZE, 176, REALM_SIZE, true);
+    if(spec.focusedKit&&spec.focusedGeometrySha!==FOCUSED_CATALOG.geometrySha256)throw Error('Focused save requires its verified geometry version');
+    this.focusedTown=spec.focusedKit?focusedTownPlan(spec.seed):null;this.focusedGeometry=this.focusedTown?sceneGeometry(this.focusedTown):null;
+  }
+  override movementGeometryAt(x:number,z:number){return this.focusedGeometry?.contains(x,z)?this.focusedGeometry:null;}
+  override isSolidAt(x:number,y:number,z:number):boolean{const geometry=this.movementGeometryAt(x,z);return geometry?geometry.blocked(x,y,z):super.isSolidAt(x,y,z);}
+  override lineOfSight(a:Vec3,b:Vec3,maxDist=64):boolean{const geometry=this.movementGeometryAt(a.x,a.z)??this.movementGeometryAt(b.x,b.z);return geometry?Math.hypot(b.x-a.x,b.y-a.y,b.z-a.z)<=maxDist&&geometry.lineClear(a,b):super.lineOfSight(a,b,maxDist);}
+  override lineOfPassage(a:Vec3,b:Vec3,maxDist=64):boolean{const geometry=this.movementGeometryAt(a.x,a.z)??this.movementGeometryAt(b.x,b.z);return geometry?Math.hypot(b.x-a.x,b.y-a.y,b.z-a.z)<=maxDist&&geometry.lineClear(a,b):super.lineOfPassage(a,b,maxDist);}
   chunk(realm: keyof typeof REALMS, cx: number, cz: number): RealmChunk {
     const key = `${realm}:${cx},${cz}`;
     let c = this.chunks.get(key);
     if (!c) {
       c = generateRealmChunk(this.spec, realm, cx, cz);
+      if(this.focusedTown&&realm==='brass'){const bounds=this.focusedTown.bounds;if(c.x<bounds.x1&&c.x+REALM_CHUNK>bounds.x0&&c.z<bounds.z1&&c.z+REALM_CHUNK>bounds.z0){c.focused=true;c.plaza=false;c.buildings=c.buildings.filter(b=>b.x+b.w<bounds.x0||b.x>bounds.x1||b.z+b.d<bounds.z0||b.z>bounds.z1);}}
       if (this.chunks.size >= 128) this.chunks.delete(this.chunks.keys().next().value!);
       this.chunks.set(key, c);
     }
@@ -22,6 +36,7 @@ export class RealmGrid extends VoxelGrid {
   evict(): void { this.chunks.clear(); }
   override get(x: number, y: number, z: number): number {
     if (![x, y, z].every(Number.isInteger)) return B.Air;
+    const geometry=this.movementGeometryAt(x+.5,z+.5);if(geometry){const floor=geometry.supportAt(x+.5,z+.5,1);return floor!==null&&y+.5<floor?B.Stone:geometry.blocked(x+.5,y+.5,z+.5)?B.Stone:B.Air;}
     const realm = realmAt(x, z);
     if (!realm || y < 0) return B.Stone;
     if (y >= this.H) return B.Air;

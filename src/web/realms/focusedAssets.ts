@@ -13,7 +13,11 @@ export class FocusedAssets {
  async loadManifest():Promise<FocusedManifest>{
   const lockResponse=await fetch(this.base+'pack.lock.json');if(!lockResponse.ok)throw Error('Approved focused asset pack is unavailable');const lock=await lockResponse.json();
   if(lock.schema!=='tornveil.verified-pack'||lock.archiveSha256!==PACK)throw Error('Focused asset handoff is unverified');
-  const bytes=await this.bytes('runtime_manifest.json',lock.manifestSha256);this.manifest=parseFocusedManifest(JSON.parse(new TextDecoder().decode(bytes)));return this.manifest;
+  const bytes=await this.bytes('runtime_manifest.json',lock.manifestSha256);this.manifest=parseFocusedManifest(JSON.parse(new TextDecoder().decode(bytes)));
+  const record=lock.files.find((f:{path:string})=>f.path===this.manifest!.components_catalog);if(!record)throw Error('Missing verified module catalog');
+  const components=JSON.parse(new TextDecoder().decode(await this.bytes(this.manifest.components_catalog,record.sha256))) as Record<string,{glb:string;sha256:string}>;
+  for(const [id,c]of Object.entries(components))this.manifest.assets.push({id:'module:'+id,role:'module',glb:c.glb,glb_sha256:c.sha256,metadata:this.manifest.components_catalog,metadata_sha256:record.sha256,connectors:[],runtime_controller_tested:false});
+  return this.manifest;
  }
  private async bytes(path:string,hash:string):Promise<ArrayBuffer>{const r=await fetch(this.base+path);if(!r.ok)throw Error('Focused source unavailable: '+path);const bytes=await r.arrayBuffer();if(await sha(bytes)!==hash)throw Error('Focused source hash differs: '+path);return bytes;}
  private async container(id:string):Promise<AssetContainer>{
@@ -27,7 +31,7 @@ export class FocusedAssets {
   const c=await this.container(p.assetId);if(this.disposed)throw Error('Focused load cancelled');const entries=c.instantiateModelsToScene(n=>p.id+':'+n,false,{doNotInstantiate:false});
   const root=new TransformNode(p.id,this.scene);root.position.set(p.position[0]-origin.x,p.position[1],p.position[2]-origin.z);root.rotation.y=p.yaw;
   root.metadata={assetId:p.assetId,placementId:p.id,packSha256:PACK,floorId:p.floorId};for(const n of entries.rootNodes)n.parent=root;
-  const meshes=root.getChildMeshes();for(const m of meshes){m.receiveShadows=true;this.atmosphere.addCaster(m);}
+  const meshes=root.getChildMeshes();for(const m of meshes){m.metadata={...m.metadata,focusedPart:true,placementId:p.id};m.receiveShadows=true;this.atmosphere.addCaster(m);}
   this.references.set(p.assetId,(this.references.get(p.assetId)??0)+1);let released=false;
   return {root,dispose:()=>{if(released)return;released=true;for(const m of meshes)this.atmosphere.removeCaster(m);entries.dispose();root.dispose();this.references.set(p.assetId,Math.max(0,(this.references.get(p.assetId)??1)-1));this.trim();}};
  }

@@ -5,6 +5,8 @@ import type { Atmosphere } from '../world/atmosphere';
 import { MaterialLibrary, type MatName } from '../render/materials';
 import { MeshBatch } from '../world/meshBatch';
 import type { Building, RealmChunk, RealmId } from '../../sim/world/realms/layout';
+import {FocusedRenderer} from './focusedRenderer';
+import type {AssetScenePlan} from '../../sim/world/assets/focused';
 
 interface Batch { material: Material; shape: 'box' | 'cone' | 'cylinder' | 'gable'; transforms: number[] }
 interface ResidentChunk { root: TransformNode; meshes: Mesh[]; signs: DynamicTexture[]; lights: PointLight[]; doors: { mesh: Mesh; index: number }[]; lod: number; chunk: RealmChunk }
@@ -26,8 +28,10 @@ export class RealmRenderer {
   uploads: number[] = [];
   private surfaces: MaterialLibrary;
   private square: SquareMaterials;
-  constructor(private readonly ctx: RenderContext, private readonly atmosphere: Atmosphere) { this.surfaces = new MaterialLibrary(ctx.scene); this.square = new SquareMaterials(ctx.scene); }
-  get pending(): number { return this.queue.length; }
+  readonly focused:FocusedRenderer;
+  constructor(private readonly ctx: RenderContext, private readonly atmosphere: Atmosphere) { this.surfaces = new MaterialLibrary(ctx.scene); this.square = new SquareMaterials(ctx.scene);this.focused=new FocusedRenderer(ctx,atmosphere,this.origin); }
+  reconcileFocused(plan:AssetScenePlan|null,position:{x:number;z:number}){this.focused.reconcile(plan,position);}
+  get pending(): number { return this.queue.length+this.focused.pending; }
   reconcile(wanted: string[], incoming: ChunkMessage[]): void {
     const keep = new Set(wanted);
     for (const [key, c] of this.loaded) if (!keep.has(key)) { this.disposeChunk(c); this.loaded.delete(key); }
@@ -53,6 +57,7 @@ export class RealmRenderer {
   /** Camera-only point query from the received structural projection. No World,
    * generated territory or pawn collision is created in this presentation layer. */
   cameraBlocked(x: number, y: number, z: number): boolean {
+    if(this.focused.count&&this.focused.blocked(x,y,z))return true;
     if (y < 1) return true;
     const gx = x + this.origin.x, gz = z + this.origin.z;
     const cx = Math.floor((gx - (this.realm === 'aether' ? 0 : 8192)) / 96), cz = Math.floor(gz / 96);
@@ -99,6 +104,7 @@ export class RealmRenderer {
     const root = new TransformNode(chunk.id, scene), meshes: Mesh[] = [], signs: DynamicTexture[] = [], lights: PointLight[] = [], doors: ResidentChunk['doors'] = [];
     const batches = new Map<string, Batch>(), origin = this.origin;
     const surfaceBatches = new Map<MatName, MeshBatch>();
+    if(chunk.focused)return {root,meshes,signs,lights,doors,lod,chunk};
     const surface = (name: MatName, x: number, y: number, z: number, w: number, h: number, d: number, tint: [number, number, number] = [1,1,1]) => {
       let batch = surfaceBatches.get(name); if (!batch) { batch = new MeshBatch(); surfaceBatches.set(name, batch); }
       batch.box([x - w/2 - origin.x, y - h/2, z - d/2 - origin.z], [x + w/2 - origin.x, y + h/2, z + d/2 - origin.z], tint, this.surfaces.tilesPerMetre(name));

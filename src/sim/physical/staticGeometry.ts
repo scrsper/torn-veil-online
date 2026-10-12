@@ -1,5 +1,5 @@
 import type {Vec3} from '../core/types';
-export interface StaticTriangle {p:number[];support:boolean;}
+export interface StaticTriangle {p:number[];support:boolean;node?:string;}
 export interface GeometryWindow {bounds:{x0:number;z0:number;x1:number;z1:number};triangles:StaticTriangle[];}
 export interface MovementGeometry {
  supportAt(x:number,z:number,fromY:number,step?:number):number|null;
@@ -54,14 +54,19 @@ export class StaticGeometry implements MovementGeometry {
   }return best;
  }
  supportAt(x:number,z:number,fromY:number,step=1.05):number|null{
-  const direct=this.supportSample(x,z,fromY,step);if(direct!==null)return direct;
+  const direct=this.supportSample(x,z,fromY,step);if(direct!==null){
+   // A capsule rests on the supported footprint, not in the mortar between
+   // 6.25 cm raised paving stones. All heights still come from actual triangles.
+   const ring=[[.24,0],[-.24,0],[0,.24],[0,-.24],[.17,.17],[-.17,.17],[-.17,-.17],[.17,-.17]].map(([dx,dz])=>this.supportSample(x+dx,z+dz,fromY,step)).filter((v):v is number=>v!==null);
+   return Math.max(direct,...ring.filter(y=>Math.abs(y-direct)<=.225));
+  }
   // Bridge only the source's <=5 cm bevel seams; never invent floor across a gap.
   const ring=[[-.025,0],[.025,0],[0,-.025],[0,.025]].map(([dx,dz])=>this.supportSample(x+dx,z+dz,fromY,step));
   if(ring.every(h=>h!==null)&&Math.max(...ring as number[])-Math.min(...ring as number[])<.1)return Math.max(...ring as number[]);return null;
  }
  fits(x:number,y:number,z:number,r:number,h:number):boolean{
   const feet=[[-r*.7,0],[r*.7,0],[0,-r*.7],[0,r*.7]].map(([dx,dz])=>this.supportAt(x+dx,z+dz,y,.24));if(feet.some(v=>v===null)||Math.max(...feet as number[])-Math.min(...feet as number[])>.225)return false;
-  for(const t of this.candidates(x,z,r)){const p=t.p;if(Math.max(p[1],p[4],p[7])<y-.01||Math.min(p[1],p[4],p[7])>y+h+.01)continue;
+  for(const t of this.candidates(x,z,r)){const p=t.p;if(Math.max(p[1],p[4],p[7])<=y+.012||Math.min(p[1],p[4],p[7])>y+h+.01)continue;
    if(capsuleTriangleDistance(x,y+.012,z,r,h-.012,p)<r-.012)return false;}return true;
  }
  blocked(x:number,y:number,z:number):boolean{return this.candidates(x,z,.025).some(t=>pointTriangle([x,y,z],t.p.slice(0,3) as V,t.p.slice(3,6) as V,t.p.slice(6,9) as V)<.025*.025);}

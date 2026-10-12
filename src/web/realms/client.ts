@@ -34,7 +34,8 @@ export async function startRealms(): Promise<void> {
   // restrained apparent sun/moon size behind the layered building silhouettes.
   for (const name of ['sun-disc', 'moon-disc']) ctx.scene.getMeshByName(name)?.scaling.setAll(.16);
   const renderer = new RealmRenderer(ctx, atmosphere), factory = new CharacterFactory();
-  const obstruction = marchObstruction((x, y, z) => renderer.cameraBlocked(x, y, z));
+  const legacyObstruction=marchObstruction((x,y,z)=>renderer.cameraBlocked(x,y,z));
+  const obstruction:typeof legacyObstruction=(from,dir,max,single)=>renderer.focused.obstruction(from,dir,max)??legacyObstruction(from,dir,max,single);
   const people=new SharedCharacters(ctx.scene);
   const residents = new Map<string, BodyVisual>();
   const vfx=new Vfx(ctx.scene),effects=new ObservedArcaneEffects(vfx);
@@ -72,6 +73,7 @@ export async function startRealms(): Promise<void> {
     if (m.type === 'notice') toast(m.message);
     if (m.type !== 'state') return;
     state = m.state; const s = state!; lastStateAt = performance.now();
+    renderer.reconcileFocused(s.focusedAssets,s.body.pos);
     serverSamples.push(m.serverMs); if (serverSamples.length > 600) serverSamples.shift();
     if (lastRealm !== s.realm) {
       lastRealm = s.realm; view.camera.snap();
@@ -176,7 +178,8 @@ export async function startRealms(): Promise<void> {
     if (!document.hidden && state && renderer.pending > 0) { streamingFrames.push(ms); if (streamingFrames.length > 1200) streamingFrames.shift(); }
     renderer.upload(); if (state) renderer.setDoors(state.doors);
     if (!renderer.pending && journeys.length && !journeys[journeys.length - 1].readyAt) journeys[journeys.length - 1].readyAt = performance.now();
-    el('rv-loading').hidden = connected && !!state && (renderer.loaded.size >= 9 || !!state.expedition?.active);
+    el('rv-loading').hidden = connected && !!state && !renderer.focused.pending&&!renderer.focused.error&&(renderer.loaded.size >= 9 || !!state.expedition?.active);
+    if(renderer.focused.error)el('rv-loading').textContent=renderer.focused.error;
     const s = state;
     if (s) {
       inputAccumulator += dt; hudAccumulator += dt;
@@ -206,6 +209,7 @@ export async function startRealms(): Promise<void> {
         const pose = view.camera.update(dt, { pivot, velocity }, obstruction, () => 1);
         movementYaw = groundViewYaw(pose.position, pose.target);
         camera.position.set(pose.position.x, pose.position.y, pose.position.z); camera.setTarget(new Vector3(pose.target.x, pose.target.y, pose.target.z)); camera.fov = pose.fov;
+        renderer.focused.cutaway(camera.position,avatar.root.position);
       }
       atmosphere.update((s.worldTime / 3600 + (s.realm === 'aether' ? 9.866 : 9.066)) % 24, { kind: 'clear', intensity: 0, wind: .25 }, dt);
       ctx.scene.fogDensity = s.realm === 'aether' ? .0026 : .0017;
@@ -227,9 +231,9 @@ export async function startRealms(): Promise<void> {
     vfx.update(dt);ctx.scene.render();
   });
   // Observations only: the harness drives ordinary keys/buttons, never mutates the world.
-  Object.defineProperty(window, 'tvRealms', { value: { get state() { return state; }, get ready() { return !!state && !!avatar && !renderer.pending; },
+  Object.defineProperty(window, 'tvRealms', { value: { get state() { return state; }, get ready() { return !!state && !!avatar && !renderer.pending&&!renderer.focused.error; },
     inspect: () => ({ receipts:[...receipts],binding,targetId, frames: [...frames], streamingFrames: [...streamingFrames], uploads: [...renderer.uploads], serverSamples: [...serverSamples], journeys: [...journeys], loaded: renderer.loaded.size, pending: renderer.pending,
-      meshes: ctx.scene.meshes.length, textures: ctx.scene.textures.length, materials: ctx.scene.materials.length, lights: ctx.scene.lights.length,
+      focused:{instances:renderer.focused.count,pending:renderer.focused.pending,error:renderer.focused.error},meshes: ctx.scene.meshes.length, textures: ctx.scene.textures.length, materials: ctx.scene.materials.length, lights: ctx.scene.lights.length,
       towerDoors: [...renderer.loaded.values()].flatMap(c=>c.doors.filter(d=>d.mesh.name.includes(':tower:')).map(d=>({name:d.mesh.name,enabled:d.mesh.isEnabled(),panels:d.mesh.getChildMeshes().map(m=>m.isEnabled())}))),
       residentLooks:[...residents.values()].map(v=>v.root.metadata), renderer: ctx.kind, staleMs: performance.now() - lastStateAt,
       controlledLook: avatar?.root.metadata, controlledBody: avatar ? { id: state?.body.id, enabled: avatar.root.isEnabled(), position: { x: avatar.root.position.x, y: avatar.root.position.y, z: avatar.root.position.z }, yaw: avatar.root.rotation.y,
