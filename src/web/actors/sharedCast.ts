@@ -16,6 +16,7 @@ import type {Atmosphere} from '../world/atmosphere';
 import {EquipmentVisual} from '../items/equipmentVisual';
 import { HUMAN_LOOKS, PRESENTATION_REVISION, UNARMED_MOTION, motionSampleSeconds, weaponMotionBinding, humanAssetPath } from '../presentation/library';
 import type { ClipTemplate } from '../arena/retarget';
+import {characterMeshBounds,characterScaleObservation} from './characterScale';
 export const SHARED_HUMAN_LOOKS:LookId[]=HUMAN_LOOKS;
 export interface SharedCharacterEnvironment {
  ground?:FootGround;
@@ -63,6 +64,7 @@ export class SharedVisual implements BodyVisual {
   this.root = new TransformNode(`canonical-${body.bodyId}`, instance.root.getScene());
   this.root.metadata = { ...instance.root.metadata };
   instance.root.parent = this.root; instance.root.rotation.y = Math.PI;
+  this.root.metadata.sourceBindBounds=characterMeshBounds(instance.root,instance.meshes,false);
   this.headHeight=1.9*instance.root.scaling.y;
   // Preserve authored joints: passing phase data without the procedural rig means
   // Animator does not construct HumanGait. Foot IK remains a bounded contact correction.
@@ -90,6 +92,7 @@ export class SharedVisual implements BodyVisual {
   for (const mesh of instance.meshes) { mesh.receiveShadows = true; atmosphere.addCaster(mesh); }
  }
  private clip(name: string) { return this.animator.has(name) ? name : kaykitFallback(name); }
+ measureScale(){return {...characterScaleObservation(this.root,this.instance.meshes),importScale:this.instance.root.scaling.asArray(),importPosition:this.instance.root.position.asArray(),sourceBindBounds:this.root.metadata.sourceBindBounds};}
  private pace(name: string, fallback: number) { return (this.clips.get(name)?.stance ?? 0) * this.instance.root.scaling.x || fallback; }
  update(dt: number, s: ActorState) {
   const b = s.body; if (!b) return;
