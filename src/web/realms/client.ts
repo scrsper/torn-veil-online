@@ -15,7 +15,8 @@ import './style.css';
 import {Vfx} from '../arena/vfx';
 import {ObservedArcaneEffects} from '../actors/arcaneEffects';
 import {contactGrounding} from './contactGrounding';
-import {InteriorCameraFraming,interiorDetailFov} from './interiorCamera';
+import {InteriorCameraFraming,interiorDetailFov,cameraBoxBlocked} from './interiorCamera';
+import {boxObstruction} from './cameraSolids';
 
 /** Existing Babylon shell, shared renderer/atmosphere/body kits. The browser sends
  * intentions and projects server state; it never creates or steps a canonical World. */
@@ -217,7 +218,10 @@ export async function startRealms(): Promise<void> {
         const pivot = avatar.root.position.add(new Vector3(0, cameraPivotHeight(avatar.bodyHeight,s.avatar.crouch??0), 0));
         const originKey=renderer.origin.x+':'+renderer.origin.z;if(originKey!==cameraOrigin){cameraOrigin=originKey;framing.reset();}
         const rawPose = view.camera.update(dt, { pivot, velocity }, obstruction, () => 1),solids=renderer.focused.cameraSolids(avatar.root.position);
-        const pose=solids.length?framing.update(rawPose,pivot,solids,{yaw:view.camera.renderedYaw,pitch:view.camera.debug.pitchDeg*Math.PI/180,want:view.camera.debug.want,limit:view.camera.debug.limit},dt):rawPose;
+        const wish={x:Math.sin(view.camera.renderedYaw)*Math.cos(view.camera.debug.pitchDeg*Math.PI/180),y:Math.sin(view.camera.debug.pitchDeg*Math.PI/180),z:Math.cos(view.camera.renderedYaw)*Math.cos(view.camera.debug.pitchDeg*Math.PI/180)};
+        const architectureNeeded=solids.length&&(cameraBoxBlocked(rawPose.position,solids)||boxObstruction(()=>solids,.35)(pivot,wish,view.camera.debug.want+.4)<view.camera.debug.want);
+        if(!architectureNeeded)framing.reset();
+        const pose=architectureNeeded?framing.update(rawPose,pivot,solids,{yaw:view.camera.renderedYaw,pitch:view.camera.debug.pitchDeg*Math.PI/180,want:view.camera.debug.want,limit:view.camera.debug.limit},dt):rawPose;
         if(solids.length&&framing.debug.framing!=='orbit')pose.fov=interiorDetailFov(pose,avatar.root.position,avatar.bodyHeight??1.75,view.camera.preferred);
         movementYaw = groundViewYaw(pose.position, pose.target);
         camera.position.set(pose.position.x, pose.position.y, pose.position.z); camera.setTarget(new Vector3(pose.target.x, pose.target.y, pose.target.z)); camera.fov = pose.fov;

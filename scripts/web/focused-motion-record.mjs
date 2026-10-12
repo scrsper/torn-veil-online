@@ -4,7 +4,7 @@ import {chromium} from 'playwright';
 import {mkdirSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import assert from 'node:assert/strict';
-const base=process.env.TV_FOCUSED_URL??'http://127.0.0.1:7592',out=resolve('.debug/motion-correction/scale-review/current-motion');mkdirSync(out,{recursive:true});
+const base=process.env.TV_FOCUSED_URL??'http://127.0.0.1:7592',out=resolve(process.env.TV_MOTION_EVIDENCE??'.debug/motion-correction/scale-review/current-motion');mkdirSync(out,{recursive:true});
 const health=await fetch(base+'/realms/health').then(r=>r.json());assert.ok(/focused-save-scale-motion/.test(health.savePath),'Refusing live save');
 const browser=await chromium.launch({channel:'chrome',headless:true}),context=await browser.newContext({viewport:{width:1440,height:900}}),page=await context.newPage(),errors=[],frames=[],observations=[];
 page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});

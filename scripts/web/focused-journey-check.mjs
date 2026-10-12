@@ -24,6 +24,7 @@ try{
  // Ordinary controls advance along the authored processional route; no debug
  // teleports, damage fixtures, rank grants or renderer-owned enemies are used.
  // The isolated contact check proved this wide lane clears the entry columns.
+ await clearAscentEntry(page);await page.waitForFunction(()=>window.tvAscent.frame.snapshot.bodies.some(b=>b.bodyId!==window.tvAscent.frame.own.bodyId&&!b.dead&&!b.incapacitated),null,{timeout:30000});
  const routeFrame=await page.evaluate(()=>window.tvAscent.frame),routeOwn=routeFrame.snapshot.bodies.find(b=>b.bodyId===routeFrame.own.bodyId),routeTarget=routeFrame.snapshot.bodies.filter(b=>b.bodyId!==routeOwn.bodyId&&!b.dead&&!b.incapacitated).sort((a,b)=>Math.hypot(a.pos.x-routeOwn.pos.x,a.pos.z-routeOwn.pos.z)-Math.hypot(b.pos.x-routeOwn.pos.x,b.pos.z-routeOwn.pos.z))[0];
  for(const point of await contactRoute(page,routeOwn.pos,routeTarget.pos))await drivePreciseAscent(page,point);await shot('06-floor-traversal','ascent');
  let hit=false;
