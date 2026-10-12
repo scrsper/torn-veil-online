@@ -15,6 +15,7 @@ import './style.css';
 import {Vfx} from '../arena/vfx';
 import {ObservedArcaneEffects} from '../actors/arcaneEffects';
 import {contactGrounding} from './contactGrounding';
+import {InteriorCameraFraming} from './interiorCamera';
 
 /** Existing Babylon shell, shared renderer/atmosphere/body kits. The browser sends
  * intentions and projects server state; it never creates or steps a canonical World. */
@@ -25,6 +26,7 @@ export async function startRealms(): Promise<void> {
   const camera = new FreeCamera('realm-camera', new Vector3(48.5, 2.65, 20.5), ctx.scene);
   camera.minZ = .1; camera.maxZ = 2000;
   const view = primaryCamera('realm');
+  const framing=new InteriorCameraFraming();let cameraOrigin='';
   let movementYaw = view.camera.yaw;
   const atmosphere = new Atmosphere(ctx); attachPipeline(ctx, camera);
   // City canyons need a readable sky fill. Keep the shared clock/sun direction and
@@ -78,7 +80,7 @@ export async function startRealms(): Promise<void> {
     renderer.reconcileFocused(s.focusedAssets,s.body.pos);
     serverSamples.push(m.serverMs); if (serverSamples.length > 600) serverSamples.shift();
     if (lastRealm !== s.realm) {
-      lastRealm = s.realm; view.camera.snap();
+      lastRealm = s.realm; view.camera.snap();framing.reset();
       avatar?.root.position.set(s.body.pos.x - renderer.origin.x, s.body.pos.y, s.body.pos.z - renderer.origin.z);
       journeys.push({ realm: s.realm, at: performance.now() });
       for (const r of residents.values()) r.root.setEnabled(false);
@@ -213,7 +215,9 @@ export async function startRealms(): Promise<void> {
         avatar.root.rotation.y = smoothYaw(avatar.root.rotation.y, s.body.yaw, dt);
         avatar.update(dt, { bodyId: s.body.id, body: s.avatar, combat: contextFor(s.avatar.combatAction, s.time + age, s.body.yaw), guard: s.avatar.guarding, own: true, kind: 'person', speed: Math.hypot(velocity.x, velocity.z), velocity, yaw: avatar.root.rotation.y, crouch: s.avatar.crouch ?? 0, age });
         const pivot = avatar.root.position.add(new Vector3(0, cameraPivotHeight(avatar.bodyHeight,s.avatar.crouch??0), 0));
-        const pose = view.camera.update(dt, { pivot, velocity }, obstruction, () => 1);
+        const originKey=renderer.origin.x+':'+renderer.origin.z;if(originKey!==cameraOrigin){cameraOrigin=originKey;framing.reset();}
+        const rawPose = view.camera.update(dt, { pivot, velocity }, obstruction, () => 1),solids=renderer.focused.cameraSolids(avatar.root.position);
+        const pose=solids.length?framing.update(rawPose,pivot,solids,{yaw:view.camera.renderedYaw,pitch:view.camera.debug.pitchDeg*Math.PI/180,want:view.camera.debug.want,limit:view.camera.debug.limit},dt):rawPose;
         movementYaw = groundViewYaw(pose.position, pose.target);
         camera.position.set(pose.position.x, pose.position.y, pose.position.z); camera.setTarget(new Vector3(pose.target.x, pose.target.y, pose.target.z)); camera.fov = pose.fov;
         renderer.focused.cutaway(camera.position,avatar.root.position);
@@ -248,7 +252,7 @@ export async function startRealms(): Promise<void> {
       characterScale: (avatar as BodyVisual & {measureScale?:()=>unknown}|null)?.measureScale?.(),
       controlledLook: avatar?.root.metadata, controlledBody: avatar ? { id: state?.body.id, enabled: avatar.root.isEnabled(), position: { x: avatar.root.position.x, y: avatar.root.position.y, z: avatar.root.position.z }, yaw: avatar.root.rotation.y,
         screen: (() => { const p = Vector3.Project(avatar.root.position.add(new Vector3(0, .85, 0)), Matrix.Identity(), ctx.scene.getTransformMatrix(), camera.viewport.toGlobal(ctx.engine.getRenderWidth(), ctx.engine.getRenderHeight())); return { x: p.x, y: p.y, z: p.z }; })() } : null,
-      camera: { mode: 'third-person', yaw: view.camera.yaw, renderedYaw: view.camera.renderedYaw, movementYaw, pitch: view.camera.pitch, preferred: view.camera.preferred, blocked: renderer.cameraBlocked(camera.position.x,camera.position.y,camera.position.z), position: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, ...view.camera.debug },
+      camera: { mode: 'third-person', yaw: view.camera.yaw, renderedYaw: view.camera.renderedYaw, movementYaw, pitch: view.camera.pitch, preferred: view.camera.preferred, blocked: renderer.cameraBlocked(camera.position.x,camera.position.y,camera.position.z), position: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, ...view.camera.debug,...framing.debug },
       width: ctx.engine.getRenderWidth(), height: ctx.engine.getRenderHeight(), hardware: ctx.engine instanceof Engine ? ctx.engine.getGlInfo() : null,
       heap: (() => { const m = (performance as Performance & { memory?: { usedJSHeapSize: number; totalJSHeapSize: number } }).memory; return m ? { used: m.usedJSHeapSize, total: m.totalJSHeapSize } : null; })(), state }) } });
 }

@@ -106,6 +106,7 @@ export async function startCanonicalAscent() {
     if (a) send({ type: 'interact', interactionId: a.id });
   }
   function button(parent: HTMLElement, label: string, action: () => void) { const b = document.createElement('button'); b.textContent = label; b.onclick = action; parent.append(b); }
+  let actionSignature='';
   function refreshHud() {
     if (!frame) return;
     const { own, tower } = frame;
@@ -113,12 +114,16 @@ export async function startCanonicalAscent() {
     el('as-status').textContent = `${own.name} · ${own.rank}\nVitality ${Math.ceil(own.health)}/${own.maxHealth} · Mana ${Math.floor(own.mana)}/${own.capacity.reserve}`;
     el('as-detail').textContent = `${own.name} · ${own.rank} · Vitality ${Math.ceil(own.health)} / ${own.maxHealth} · Mana ${Math.floor(own.mana)} / ${own.capacity.reserve} · Breath ${Math.round(own.breath * 100)}% · Fatigue ${Math.round(own.fatigue * 100)}% · Food ${Math.round(own.food * 100)}% · Water ${Math.round(own.water * 100)}% · ${tower.defeated}/${tower.opponents} wardens`;
     el('as-goal').textContent = tower.floor===100&&tower.clear?'Summit recognition · Journey for requirements':tower.clear?'Open award chest · E take · F ascend':'Defeat the wardens · G guard · Space dodge';
-    const a = el('as-actions'); a.replaceChildren();
     const rest = frame.snapshot.abilities.find(a => a.id === 'rest' || a.id === 'wake');
+    const container = frame.snapshot.container as SnapshotMessage['container'] as { id: string; items: { id: string; name: string }[] } | null;
+    const nextActions=JSON.stringify([rest?.available?{id:rest.id,label:rest.label}:null,frame.snapshot.interactions.map(a=>({id:a.id,label:a.label})),container?.id,container?.items.map(i=>({id:i.id,name:i.name}))]);
+    // Unchanged snapshots must not detach a real equipment click. Commands still
+    // bind to the current canonical controller and inventory interaction IDs.
+    if(nextActions!==actionSignature){actionSignature=nextActions;const a=el('as-actions');a.replaceChildren();
     if (rest?.available) button(a, rest.label, () => { release(); send({ type: rest.id as 'rest' | 'wake' }); });
     for (const action of frame.snapshot.interactions) button(a, action.label, () => send({ type: 'interact', interactionId: action.id }));
-    const container = frame.snapshot.container as SnapshotMessage['container'] as { id: string; items: { id: string; name: string }[] } | null;
     for (const i of container?.items ?? []) button(a, `Take ${i.name}`, () => send({ type: 'container_transfer', containerId: container!.id, itemId: i.id, direction: 'out' }));
+    }
     const sources = el('as-sources'); sources.replaceChildren();
     if (own.growth.next) {
       const status = document.createElement('p'); status.textContent = `${own.growth.next}: ${own.growth.eligible ? 'Ready to integrate earned sources' : own.growth.reasons.join(' · ')}`; sources.append(status);
