@@ -4,7 +4,7 @@ import { TowerController } from './towerController';
 import { FixedScheduler } from '../bridge/scheduler';
 /** Loopback development host for the canonical realm world and the existing Babylon client.
  * One controller, fixed server time, bounded inputs and no path-selected save API. */
-import { randomUUID,createHash } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import { createServer } from 'node:http';
 import { existsSync, createReadStream, statSync,readFileSync } from 'node:fs';
@@ -15,7 +15,6 @@ import {launchHome,liveObservatoryScript} from './launchHome';
 import {inspectPerson,eventRow} from '../observatory/readers';
 import {arcaneProgress} from '../sim/physical/arcana/growth';
 import {recogniseClass} from '../sim/mind/vocation';
-import {registerFocusedGeometry} from '../sim/world/assets/focusedRuntime';
 
 const port = Number(process.env.TV_REALMS_PORT ?? 7510);
 // A verified portable upgrade can be installed without overwriting the original
@@ -27,8 +26,6 @@ const staticRoot=process.env.TV_REALMS_STATIC?resolve(process.env.TV_REALMS_STAT
 const clientBuild=staticRoot?JSON.parse(readFileSync(resolve(staticRoot,'current-build.json'),'utf8')):null;
 const serverCommit=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
 if(clientBuild&&clientBuild.commit!==execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim())throw Error('Compiled client belongs to a different commit. Run npm run play:build.');
-const focusedGeometryFile=resolve('web/public/focused/collision.json');
-if(existsSync(focusedGeometryFile)){const bytes=readFileSync(focusedGeometryFile);registerFocusedGeometry(JSON.parse(bytes.toString('utf8')),createHash('sha256').update(bytes).digest('hex'));}
 const journal = new RealmJournal(savePath, Number(process.env.TV_REALMS_SEED ?? 918271));
 await journal.ready;
 if(process.env.TV_FOCUSED_WORLD==='1'&&!journal.runtime.session.world.realmSpec?.focusedKit){journal.apply({type:'adopt_focused'});await journal.flush();}
