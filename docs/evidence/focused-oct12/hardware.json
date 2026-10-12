@@ -1,0 +1,23 @@
+{
+  "utc": "2026-10-12T06:58:49.9966032Z",
+  "cpu": [
+    {
+      "Name": "AMD Ryzen 5 9600X 6-Core Processor             ",
+      "NumberOfCores": 6,
+      "NumberOfLogicalProcessors": 12
+    }
+  ],
+  "gpu": [
+    {
+      "Name": "AMD Radeon(TM) Graphics",
+      "AdapterRAM": 536870912,
+      "DriverVersion": "32.0.21043.5001"
+    },
+    {
+      "Name": "AMD Radeon RX 6650 XT",
+      "AdapterRAM": 4293918720,
+      "DriverVersion": "32.0.21043.5001"
+    }
+  ],
+  "ram": 33436114944
+}

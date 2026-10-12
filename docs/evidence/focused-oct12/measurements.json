@@ -1,0 +1,690 @@
+{
+  "status": "passed",
+  "commit": "f7bc5c9085c716d75c553d11ea33024788188d90",
+  "errors": [],
+  "canonicalReload": {
+    "person": "p_5",
+    "body": "b_5",
+    "rank": "Normal",
+    "health": 74.79136152796055,
+    "inventory": [
+      {
+        "id": "i_1",
+        "name": "Threshold atlas",
+        "type": "book",
+        "quantity": 1
+      },
+      {
+        "id": "i_2",
+        "name": "Travel provisions",
+        "type": "bread",
+        "quantity": 3
+      },
+      {
+        "id": "i_5",
+        "name": "Ember field manual",
+        "type": "book",
+        "quantity": 1
+      },
+      {
+        "id": "i_6",
+        "name": "Trial steel dagger",
+        "type": "dagger",
+        "quantity": 1
+      }
+    ],
+    "run": "canonical-tower_1",
+    "floor": 1
+  },
+  "hitSequences": [
+    {
+      "body": "b_6",
+      "hitSeq": 0
+    },
+    {
+      "body": "b_7",
+      "hitSeq": 0
+    },
+    {
+      "body": "b_8",
+      "hitSeq": 1
+    },
+    {
+      "body": "b_5",
+      "hitSeq": 1
+    }
+  ],
+  "method": "Actual headless Chrome1440x900 with ordinary button/keyboard controls. Frame intervals include recording and scheduling overhead; no human climb or GPU timer claim.",
+  "caveats": "Recorded headless Chrome intervals include video/readback/automation overhead. GPU residency/VRAM and human climb pacing were not measured. Each snapshot contains cumulative samples since its page load; distributions overlap and must not be summed.",
+  "phases": [
+    {
+      "name": "01-town-ground",
+      "kind": "realm",
+      "frameMs": {
+        "count": 37,
+        "median": 34.400000005960464,
+        "p95": 39,
+        "p99": 43,
+        "max": 47.099999994039536
+      },
+      "streamingFrameMs": {
+        "count": 75,
+        "median": 33.80000001192093,
+        "p95": 100,
+        "p99": 224.80000001192093,
+        "max": 341.90000000596046
+      },
+      "chunkUploadMs": {
+        "count": 81,
+        "median": 0.7000000178813934,
+        "p95": 2.699999988079071,
+        "p99": 3.2999999821186066,
+        "max": 245.30000001192093
+      },
+      "serverMs": {
+        "count": 45,
+        "median": 1.6792999999961467,
+        "p95": 2.219100000002072,
+        "p99": 2.3280000000013388,
+        "max": 2.4739000000045053
+      },
+      "loaded": 81,
+      "pending": 0,
+      "focused": {
+        "instances": 55,
+        "pending": 0,
+        "error": ""
+      },
+      "meshes": 2892,
+      "textures": 121,
+      "heap": {
+        "used": 500155616,
+        "total": 547820112
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "journeys": [
+        {
+          "realm": "brass",
+          "at": 4657.399999976158,
+          "readyAt": 7819.399999976158
+        }
+      ]
+    },
+    {
+      "name": "02-road-walk",
+      "kind": "realm",
+      "frameMs": {
+        "count": 85,
+        "median": 34.80000001192093,
+        "p95": 42.5,
+        "p99": 47.099999994039536,
+        "max": 56.5
+      },
+      "streamingFrameMs": {
+        "count": 76,
+        "median": 33.79999998211861,
+        "p95": 100,
+        "p99": 224.80000001192093,
+        "max": 341.90000000596046
+      },
+      "chunkUploadMs": {
+        "count": 81,
+        "median": 0.7000000178813934,
+        "p95": 2.699999988079071,
+        "p99": 3.2999999821186066,
+        "max": 245.30000001192093
+      },
+      "serverMs": {
+        "count": 63,
+        "median": 1.7119999999995343,
+        "p95": 2.403100000003178,
+        "p99": 2.4927999999999884,
+        "max": 3.2039000000004307
+      },
+      "loaded": 81,
+      "pending": 1,
+      "focused": {
+        "instances": 55,
+        "pending": 1,
+        "error": ""
+      },
+      "meshes": 2892,
+      "textures": 121,
+      "heap": {
+        "used": 486053912,
+        "total": 554649256
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "journeys": [
+        {
+          "realm": "brass",
+          "at": 4657.399999976158,
+          "readyAt": 7819.399999976158
+        }
+      ]
+    },
+    {
+      "name": "02-portal-aether",
+      "kind": "realm",
+      "frameMs": {
+        "count": 412,
+        "median": 36.400000005960464,
+        "p95": 44.79999998211861,
+        "p99": 52.400000005960464,
+        "max": 59.39999997615814
+      },
+      "streamingFrameMs": {
+        "count": 161,
+        "median": 17.900000005960464,
+        "p95": 63.89999997615814,
+        "p99": 216.40000000596046,
+        "max": 341.90000000596046
+      },
+      "chunkUploadMs": {
+        "count": 162,
+        "median": 0.7000000178813934,
+        "p95": 4.399999976158142,
+        "p99": 26.099999994039536,
+        "max": 245.30000001192093
+      },
+      "serverMs": {
+        "count": 203,
+        "median": 1.532599999998638,
+        "p95": 3.5060000000012224,
+        "p99": 3.993399999999383,
+        "max": 25.03280000000086
+      },
+      "loaded": 81,
+      "pending": 0,
+      "focused": {
+        "instances": 0,
+        "pending": 0,
+        "error": ""
+      },
+      "meshes": 1017,
+      "textures": 175,
+      "heap": {
+        "used": 404917987,
+        "total": 487677467
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "journeys": [
+        {
+          "realm": "brass",
+          "at": 4657.399999976158,
+          "readyAt": 7819.399999976158
+        },
+        {
+          "realm": "aether",
+          "at": 23320.79999998212,
+          "readyAt": 24791.29999998212
+        }
+      ]
+    },
+    {
+      "name": "02-portal-brass",
+      "kind": "realm",
+      "frameMs": {
+        "count": 490,
+        "median": 35.19999998807907,
+        "p95": 44.60000002384186,
+        "p99": 52.400000005960464,
+        "max": 59.39999997615814
+      },
+      "streamingFrameMs": {
+        "count": 242,
+        "median": 31.200000017881393,
+        "p95": 46,
+        "p99": 163.19999998807907,
+        "max": 341.90000000596046
+      },
+      "chunkUploadMs": {
+        "count": 243,
+        "median": 0.699999988079071,
+        "p95": 2.699999988079071,
+        "p99": 19.30000001192093,
+        "max": 245.30000001192093
+      },
+      "serverMs": {
+        "count": 241,
+        "median": 1.4268000000010943,
+        "p95": 3.3021000000007916,
+        "p99": 3.993399999999383,
+        "max": 25.03280000000086
+      },
+      "loaded": 81,
+      "pending": 0,
+      "focused": {
+        "instances": 55,
+        "pending": 0,
+        "error": ""
+      },
+      "meshes": 2913,
+      "textures": 142,
+      "heap": {
+        "used": 465980625,
+        "total": 521603629
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "journeys": [
+        {
+          "realm": "brass",
+          "at": 4657.399999976158,
+          "readyAt": 7819.399999976158
+        },
+        {
+          "realm": "aether",
+          "at": 23320.79999998212,
+          "readyAt": 24791.29999998212
+        },
+        {
+          "realm": "brass",
+          "at": 25888.19999998808,
+          "readyAt": 28578.29999998212
+        }
+      ]
+    },
+    {
+      "name": "03-forest-route",
+      "kind": "realm",
+      "frameMs": {
+        "count": 1076,
+        "median": 37.099999994039536,
+        "p95": 46.69999998807907,
+        "p99": 53.599999994039536,
+        "max": 65.40000000596046
+      },
+      "streamingFrameMs": {
+        "count": 259,
+        "median": 32,
+        "p95": 47.5,
+        "p99": 163.19999998807907,
+        "max": 341.90000000596046
+      },
+      "chunkUploadMs": {
+        "count": 260,
+        "median": 0.699999988079071,
+        "p95": 3,
+        "p99": 19.30000001192093,
+        "max": 245.30000001192093
+      },
+      "serverMs": {
+        "count": 482,
+        "median": 1.1040999999968335,
+        "p95": 3.151899999997113,
+        "p99": 4.842599999989034,
+        "max": 25.03280000000086
+      },
+      "loaded": 73,
+      "pending": 8,
+      "focused": {
+        "instances": 56,
+        "pending": 0,
+        "error": ""
+      },
+      "meshes": 3033,
+      "textures": 142,
+      "heap": {
+        "used": 416260151,
+        "total": 515324275
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "journeys": [
+        {
+          "realm": "brass",
+          "at": 4657.399999976158,
+          "readyAt": 7819.399999976158
+        },
+        {
+          "realm": "aether",
+          "at": 23320.79999998212,
+          "readyAt": 24791.29999998212
+        },
+        {
+          "realm": "brass",
+          "at": 25888.19999998808,
+          "readyAt": 28578.29999998212
+        }
+      ]
+    },
+    {
+      "name": "04-tower-landmark",
+      "kind": "realm",
+      "frameMs": {
+        "count": 1940,
+        "median": 35.80000001192093,
+        "p95": 45.400000005960464,
+        "p99": 52.5,
+        "max": 65.40000000596046
+      },
+      "streamingFrameMs": {
+        "count": 282,
+        "median": 31.700000017881393,
+        "p95": 46.900000005960464,
+        "p99": 163.19999998807907,
+        "max": 341.90000000596046
+      },
+      "chunkUploadMs": {
+        "count": 283,
+        "median": 0.699999988079071,
+        "p95": 3,
+        "p99": 19.30000001192093,
+        "max": 245.30000001192093
+      },
+      "serverMs": {
+        "count": 600,
+        "median": 0.9011000000027707,
+        "p95": 3.563300000008894,
+        "p99": 8.744699999995646,
+        "max": 25.03280000000086
+      },
+      "loaded": 71,
+      "pending": 10,
+      "focused": {
+        "instances": 43,
+        "pending": 0,
+        "error": ""
+      },
+      "meshes": 1888,
+      "textures": 154,
+      "heap": {
+        "used": 460301330,
+        "total": 500198114
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "journeys": [
+        {
+          "realm": "brass",
+          "at": 4657.399999976158,
+          "readyAt": 7819.399999976158
+        },
+        {
+          "realm": "aether",
+          "at": 23320.79999998212,
+          "readyAt": 24791.29999998212
+        },
+        {
+          "realm": "brass",
+          "at": 25888.19999998808,
+          "readyAt": 28578.29999998212
+        }
+      ]
+    },
+    {
+      "name": "05-actual-tower-floor",
+      "kind": "ascent",
+      "frameMs": {
+        "count": 44,
+        "median": 16.599999994039536,
+        "p95": 22.100000023841858,
+        "p99": 41.79999998211861,
+        "max": 48.599999994039536
+      },
+      "streamingFrameMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "chunkUploadMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "serverMs": {
+        "count": 6,
+        "median": 0.3401000000012573,
+        "p95": 0.4247999999934109,
+        "p99": 0.4247999999934109,
+        "max": 0.5482000000047265
+      },
+      "focused": {
+        "instances": 6,
+        "pending": 0,
+        "error": ""
+      },
+      "meshes": 1272,
+      "heap": 284612817
+    },
+    {
+      "name": "05-returned-landmark",
+      "kind": "realm",
+      "frameMs": {
+        "count": 2,
+        "median": 26.80000001192093,
+        "p95": 26.80000001192093,
+        "p99": 26.80000001192093,
+        "max": 29
+      },
+      "streamingFrameMs": {
+        "count": 79,
+        "median": 21.19999998807907,
+        "p95": 60.29999998211861,
+        "p99": 144.40000000596046,
+        "max": 276.40000000596046
+      },
+      "chunkUploadMs": {
+        "count": 81,
+        "median": 0.6000000238418579,
+        "p95": 2.0999999940395355,
+        "p99": 4.5999999940395355,
+        "max": 241.30000001192093
+      },
+      "serverMs": {
+        "count": 23,
+        "median": 1.9256999999925029,
+        "p95": 2.260199999989709,
+        "p99": 2.553699999989476,
+        "max": 2.604699999996228
+      },
+      "loaded": 81,
+      "pending": 0,
+      "focused": {
+        "instances": 43,
+        "pending": 0,
+        "error": ""
+      },
+      "meshes": 1948,
+      "textures": 132,
+      "heap": {
+        "used": 483011546,
+        "total": 522553546
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "journeys": [
+        {
+          "realm": "brass",
+          "at": 4288.199999988079,
+          "readyAt": 6502.5999999940395
+        }
+      ]
+    },
+    {
+      "name": "05-finite-dagger-equipped",
+      "kind": "ascent",
+      "frameMs": {
+        "count": 113,
+        "median": 16.69999998807907,
+        "p95": 25.900000005960464,
+        "p99": 36.099999994039536,
+        "max": 89.2999999821186
+      },
+      "streamingFrameMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "chunkUploadMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "serverMs": {
+        "count": 21,
+        "median": 0.39659999997820705,
+        "p95": 1.0304000000178348,
+        "p99": 1.0304000000178348,
+        "max": 1.8761000000231434
+      },
+      "focused": {
+        "instances": 6,
+        "pending": 0,
+        "error": ""
+      },
+      "meshes": 1275,
+      "heap": 278265668
+    },
+    {
+      "name": "06-floor-traversal",
+      "kind": "ascent",
+      "frameMs": {
+        "count": 1237,
+        "median": 20.700000017881393,
+        "p95": 50.29999998211861,
+        "p99": 61.29999998211861,
+        "max": 236.40000000596046
+      },
+      "streamingFrameMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "chunkUploadMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "serverMs": {
+        "count": 302,
+        "median": 1.5,
+        "p95": 3.5195000000239816,
+        "p99": 4.621899999998277,
+        "max": 10.663100000005215
+      },
+      "focused": {
+        "instances": 6,
+        "pending": 0,
+        "error": ""
+      },
+      "meshes": 1303,
+      "heap": 464181987
+    },
+    {
+      "name": "07-canonical-combat",
+      "kind": "ascent",
+      "frameMs": {
+        "count": 1561,
+        "median": 22.400000005960464,
+        "p95": 50.80000001192093,
+        "p99": 61.29999998211861,
+        "max": 236.40000000596046
+      },
+      "streamingFrameMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "chunkUploadMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "serverMs": {
+        "count": 394,
+        "median": 1.4679000000178348,
+        "p95": 3.5834000000031665,
+        "p99": 6.067200000019511,
+        "max": 73.81969999999274
+      },
+      "focused": {
+        "instances": 6,
+        "pending": 0,
+        "error": ""
+      },
+      "meshes": 1303,
+      "heap": 281115499
+    },
+    {
+      "name": "08-reloaded-floor",
+      "kind": "ascent",
+      "frameMs": {
+        "count": 2,
+        "median": 103.59999999403954,
+        "p95": 103.59999999403954,
+        "p99": 103.59999999403954,
+        "max": 123.09999999403954
+      },
+      "streamingFrameMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "chunkUploadMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "serverMs": {
+        "count": 1,
+        "median": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      },
+      "focused": {
+        "instances": 6,
+        "pending": 0,
+        "error": ""
+      },
+      "meshes": 1298,
+      "heap": 250675242
+    }
+  ]
+}
