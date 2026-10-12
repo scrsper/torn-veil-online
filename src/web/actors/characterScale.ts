@@ -24,7 +24,10 @@ export function characterScaleObservation(root:TransformNode,meshes:readonly Abs
   return {world:world.asArray(),screen:point.asArray()};
  };
  const feet=project(new Vector3(centre,bounds.min[1],z)),crown=project(new Vector3(centre,bounds.max[1],z));
- const reference={feet:project(new Vector3(.65,0,0)),oneMetre:project(new Vector3(.65,1,0)),human:project(new Vector3(.65,1.75,0))};
+ // The ruler shares the actor's depth plane, regardless of body/camera yaw.
+ const right=camera?.getDirection(Vector3.Right()).normalize()??Vector3.Right(),base=root.getAbsolutePosition().add(right.scale(.65));
+ const localBase=Vector3.TransformCoordinates(base,Matrix.Invert(root.getWorldMatrix()));
+ const reference={feet:project(localBase),oneMetre:project(localBase.add(new Vector3(0,1,0))),human:project(localBase.add(new Vector3(0,1.75,0)))};
  return {units:'metres',bounds,rootScale:root.scaling.asArray(),feet,crown,reference,
   screenHeightPx:feet.screen&&crown.screen?Math.abs(feet.screen[1]-crown.screen[1]):null};
 }
