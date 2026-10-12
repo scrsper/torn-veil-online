@@ -42,7 +42,7 @@ export class RealmSession {
   get person() { return this.world.person(this.world.playerId!)!; }
   get grid() { return this.world.grid as RealmGrid; }
   adoptFocusedWorld():void{
-    const w=this.world;if(w.realmSpec?.focusedKit)return;if(w.canonicalTower?.active||w.realmExpedition?.active)throw Error('Return from the active Tower before adopting new world geometry');
+    const w=this.world;if(w.realmSpec?.focusedKit)return;if(w.canonicalTower||w.realmExpedition)throw Error('Existing Tower progress requires coordinated geometry migration; the original save is retained');
     const spec={...w.realmSpec!,focusedKit:1 as const,focusedGeometrySha:FOCUSED_CATALOG.geometrySha256},next=new RealmGrid(spec),town=next.focusedTown!,geometry=next.focusedGeometry!,start=town.spawn;
     const floor=geometry.supportAt(start.x,start.z,start.y);if(floor===null||!geometry.fits(start.x,floor,start.z,.3,1.75))throw Error('Approved town arrival failed actual controller clearance');
     const residentMoves=w.persons().filter(p=>p.id!==this.person.id).flatMap(p=>{const body=w.primaryBody(p.id);return body&&realmAt(body.pos.x,body.pos.z)==='brass'?[body]:[];}).map((body,i)=>{
