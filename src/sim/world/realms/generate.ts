@@ -13,7 +13,8 @@ export function generateRealms(world: World, spec: RealmSpec = { version: 1, see
   const places: ReturnType<typeof import('../village').generateVillage>['places'] = {};
   const people: ReturnType<typeof import('../village').generateVillage>['people'] = {};
   for (const realm of Object.values(REALMS)) {
-    const c = (world.grid as RealmGrid).chunk(realm.id, 32, 32), b = c.buildings[0];
+    const grid=world.grid as RealmGrid,c=grid.chunk(realm.id,32,32),focused=realm.id==='brass'?grid.focusedTown?.tower:null;
+    const b=c.buildings[0]??{...focused!,name:'Tower of Chrysanthus',door:focused!.entry};
     places[realm.id] = makePlace(world, 'square', `${realm.name} — Threshold Square`, { x0: c.x + 10, z0: c.z + 10, x1: c.x + 87, z1: c.z + 47, y0: 1, y1: 5 }, { inside: spawnPoint(realm.id), indoor: false });
     places[`${realm.id}:tower`] = makePlace(world, 'chapel', b.name, { x0: b.x, z0: b.z, x1: b.x + b.w, z1: b.z + b.d, y0: 1, y1: 12 }, { inside: { x: b.door.x + .5, y: 1, z: b.z + 10 }, indoor: true });
     for (let i = 0; i < 2; i++) {
