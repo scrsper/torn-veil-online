@@ -3,8 +3,8 @@
 The later [retained-save migration and forest review](FOCUSED_MIGRATION_FOREST_OCT12.md)
 supersedes the blanket retained-Tower warning and first visual assessment below.
 The actual live export has no Tower run; an explicit preserving migration is tested.
-Main adoption is currently blocked by automatic approval review, with direct user
-approval pending. Corrected rendered review artifacts remain prototype quality.
+The approved local adoption is complete, with the existing canonical launcher and
+current-save path retained. Corrected rendered review artifacts remain prototype quality.
 
 This isolated candidate extends the existing Babylon.js connected realms and canonical simulation. The initial organization is two linked realms: Aether Reach (science fiction) and Cinderveil (fantasy/brass). It retains Unreal, existing character assets, ordinary player identity and earned Tower progression. It does not establish finished megacity fidelity, population scale or several-hour climb pacing.
 

@@ -1,6 +1,6 @@
 # Retained-save migration and forest review — October 12, 2026
 
-This checkpoint supersedes the blanket migration warning in the earlier focused-world report. Runtime and rendered evidence were validated at **652fb45555f755e212f2b742d15afc4232a623f9** on `codex/authored-motion-correction`. Main remains **d193c4b285343cb88fd0536c913dfc5775369e7e**.
+This checkpoint supersedes the blanket migration warning in the earlier focused-world report. Runtime and rendered evidence were validated at **652fb45555f755e212f2b742d15afc4232a623f9**. The tested prototype was locally consolidated into **main** as **862245031e38fae648932e4b945a3e2969d93088**; later documentation-only updates retain the same runtime.
 
 ## Actual migration dependency
 
@@ -43,11 +43,19 @@ Private Library artifacts preserve their identities:
 
 The local Windows xattr helper cannot tag files because `os.setxattr` is unavailable. Library writes succeeded; complete identities/version results are preserved privately. No duplicate Library items, user-reference uploads or public sharing were created.
 
-## Consolidation status
+## Consolidation completed locally
+
+After the initial rejection below, the parent supplied the user's exact explicit consolidation instructions. A single retry of the same local action was approved. Main fast-forwarded; the verified staged checkpoint was installed at sequence 137 without deleting the old base, journal batches or imported JSON. The existing launcher restarted hidden on port 7510, using its original current-save path.
+
+Post-adoption checks confirmed a healthy matching root/build, no persistence/update errors, Person p_5 / Body b_5, Normal rank, 80 health, inventory i_1 / i_2, focused generator chrysanthus-focused-3 and no Tower run. The startup disconnect advanced the durable frontier to 138. The original imported JSON SHA remains unchanged. The protected Tower worktree was not edited or accessed through its denied QA action.
+
+There is one canonical launch path: **`connected-realms/Play Torn Veil.cmd`**, which serves the consolidated game on **`http://127.0.0.1:7510/`**. Private QA ports/saves are test artifacts, not alternate canonical games. Rollback data and the old compiled build are retained under the task's private migration backup. Nothing was pushed or publicly deployed. Prototype-quality limitations above remain explicit; functional consolidation is not visual acceptance.
+
+### Initial approval rejection, subsequently resolved
 
 Automatic approval review rejected the attempted main consolidation **before execution**. The rejected action would stop the main host, fast-forward main and upgrade its journal checkpoint. The stated reason was the original explicit no-merge/main-unchanged boundary and risk to main/live state; assistant-side assertions of authorization could not override it. **No component of that command ran**, and no alternate route was used.
 
-Read-only checks afterward confirmed main still clean at d193c4b, PID 26972 healthy, durable sequence 137 unchanged, and no installed-upgrade marker. The separate prepared journal stage remains verified outside main. A main-build backup was subsequently preserved independently by read-only copying; it was not created by the rejected command.
+Read-only checks immediately after that rejection confirmed main was still clean at d193c4b, PID 26972 healthy, durable sequence 137 unchanged, and no installed-upgrade marker. A main-build backup was then preserved independently by read-only copying. The subsequently approved action installed the staged checkpoint; this historical rejection does not describe the final state.
 
-A direct user approval question is pending for local merge, brief idle-host stop and tested save upgrade. Until that arrives, main adoption stays blocked. The isolated candidate remains launchable with the existing `Play Torn Veil.cmd -Port 7572 -NoBrowser -View Play` and an explicit private `TV_REALMS_SAVE`; do not point QA at main. No push, merge, deployment, paid service or protected-worktree mutation occurred.
+The supplied explicit user authorization resolved the approval question. Local consolidation and save adoption are complete; no further approval is pending for that action. No push, external deployment, paid service or protected-worktree mutation occurred.
 
