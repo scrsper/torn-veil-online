@@ -18,6 +18,13 @@ function retained(realm:'brass'|'aether',active:boolean) {
   return s;
 }
 describe('reversible focused geometry adoption with retained canonical progress',()=>{
+  it('retains suppressed old parcel door states across adoption and reload',()=>{
+    const s=new RealmSession(918271);
+    for(const realm of ['aether','brass'] as const)for(const cx of [31,32])for(const cz of [32,33])for(const building of s.grid.chunk(realm,cx,cz).buildings.slice(0,3))s.grid.setDoorOpen(building.door.x,1,building.door.z,true);
+    const doors=[...s.grid.doorStates];expect(doors.length).toBeGreaterThan(3);
+    s.adoptFocusedWorld();expect([...s.grid.doorStates]).toEqual(doors);
+    expect([...new RealmSession(0,s.save()).grid.doorStates]).toEqual(doors);
+  });
   for(const realm of ['brass','aether'] as const)for(const active of [true,false]) {
     it(`preserves ${realm} ${active?'active':'returned'} run, literal floor and finite entities`,()=>{
       const s=retained(realm,active),before=s.save(),run=structuredClone(s.world.canonicalTower!),truth=identity(s),

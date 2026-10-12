@@ -76,6 +76,12 @@ export class RealmGrid extends VoxelGrid {
   override restoreDoorStates(states: [number, boolean][]): void {
     for (const [i, open] of states) {
       const y = i % this.H, col = (i - y) / this.H;
+      // Preserve latent states when a verified authored district supersedes old
+      // parcels. They do not control fixed GLB leaves, but must survive rollback
+      // and reload rather than silently deleting a user's prior world changes.
+      if(this.focusedTown&&Number.isSafeInteger(i)&&typeof open==='boolean'&&y===1&&this.inBounds(Math.floor(col/this.D),y,col%this.D)){
+        this.doorStates.set(i,open);continue;
+      }
       this.setDoorOpen(Math.floor(col / this.D), y, col % this.D, open);
     }
   }
