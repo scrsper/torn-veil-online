@@ -14,12 +14,13 @@ export class FocusedRenderer {
  constructor(private ctx:RenderContext,private atmosphere:Atmosphere,private origin:{x:number;z:number},private surfaces:MaterialLibrary,private terrainUrl:string|null='/realms/focused/terrain'){this.assets=new FocusedAssets(ctx.scene,atmosphere);}
  get pending(){return this.loading.size+Number(this.terrainLoading);}
  get count(){return this.active.size;}
+ get forestDetails(){return [...this.active.values()].filter(v=>v.root.metadata?.assetId?.includes('forest')).map(v=>({id:v.root.name,...v.root.metadata,hiddenProxies:v.root.getChildMeshes().filter(m=>m.metadata?.decorativeCanopyProxy&&!m.isEnabled()).length,foliage:v.root.getChildMeshes().filter(m=>m.metadata?.focusedSoftFoliage).map(m=>m.metadata)}));}
  reconcile(plan:AssetScenePlan|null,position:{x:number;z:number}){
   if(this.terrainUrl)this.reconcileTerrain(plan);
   const desired=new Map((plan?.placements??[]).filter(p=>Math.hypot(p.position[0]-position.x,p.position[2]-position.z)<(p.id.includes(':tower:')?230:150)).map(p=>[p.id,p]));this.wanted=desired;
   for(const [id,v]of this.active)if(!desired.has(id)){v.dispose();this.active.delete(id);}
   for(const p of desired.values()){
-   const existing=this.active.get(p.id);if(existing){existing.root.position.set(p.position[0]-this.origin.x,p.position[1],p.position[2]-this.origin.z);for(const m of existing.root.getChildMeshes())if(m.metadata?.focusedSoftFoliage)m.setEnabled(Math.hypot(p.position[0]-position.x,p.position[2]-position.z)<90);continue;}
+   const existing=this.active.get(p.id);if(existing){existing.root.position.set(p.position[0]-this.origin.x,p.position[1],p.position[2]-this.origin.z);for(const m of existing.root.getChildMeshes())if(m.metadata?.focusedSoftFoliage){const near=Math.hypot(p.position[0]-position.x,p.position[2]-position.z)<85;m.setEnabled(m.metadata.foliageLod==='far'?!near:near);}continue;}
    if(this.loading.has(p.id))continue;this.loading.add(p.id);const revision=this.revision;
    this.manifest??=this.assets.loadManifest();
    void this.manifest.then(()=>this.assets.instantiate(p,this.origin)).then(v=>{if(revision!==this.revision||!this.wanted.has(p.id)){v.dispose();return;}this.active.set(p.id,v);}).catch(e=>{if(this.wanted.has(p.id))this.error=String(e);}).finally(()=>this.loading.delete(p.id));
@@ -32,7 +33,7 @@ export class FocusedRenderer {
   void fetch(this.terrainUrl!,{signal:abort.signal}).then(async r=>{if(!r.ok)throw Error('Canonical terrain unavailable');return await r.json() as FocusedTerrain;}).then(t=>{
    if(abort.signal.aborted||this.terrainId!==id)return;if(t.id!==id+':terrain')throw Error('Canonical terrain identity differs');
    const mesh=new Mesh(t.id,this.ctx.scene),data=new VertexData(),normals:number[]=[];data.positions=t.positions;data.indices=t.indices;VertexData.ComputeNormals(t.positions,t.indices,normals,{useRightHandedSystem:true});data.normals=normals;data.colors=t.positions.flatMap((_v,i)=>i%3===0?[1,1,1,.7]:[]);data.uvs=t.positions.flatMap((v,i)=>i%3===0?[v*this.surfaces.tilesPerMetre('terrain'),t.positions[i+2]*this.surfaces.tilesPerMetre('terrain')]:[]);data.applyToMesh(mesh);mesh.hasVertexAlpha=false;
-   mesh.position.set(-this.origin.x,0,-this.origin.z);mesh.material=this.surfaces.get('terrain');mesh.sideOrientation=Material.CounterClockWiseSideOrientation;mesh.receiveShadows=true;mesh.metadata={focusedPart:true,canonicalTerrain:true};this.terrain=mesh;
+   mesh.position.set(-this.origin.x,0,-this.origin.z);mesh.material=this.assets.forestFloorMaterial();mesh.sideOrientation=Material.CounterClockWiseSideOrientation;mesh.receiveShadows=true;mesh.metadata={focusedPart:true,canonicalTerrain:true};this.terrain=mesh;
   }).catch(e=>{if(!abort.signal.aborted)this.error=String(e);}).finally(()=>{if(this.terrainAbort===abort)this.terrainLoading=false;});
  }
  private meshes():AbstractMesh[]{return [...this.active.values()].flatMap(v=>v.root.getChildMeshes());}

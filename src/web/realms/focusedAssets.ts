@@ -3,7 +3,7 @@ import {Color3,Matrix,Mesh,MeshBuilder,PBRMaterial,Quaternion,SceneLoader,Textur
 import {parseFocusedManifest,type FocusedManifest,type AssetPlacement} from '../../sim/world/assets/focused';
 import type {Atmosphere} from '../world/atmosphere';
 import {loadScannedMaps,useScannedMaps} from '../render/materials';
-import {CanopyCoverage} from './canopyCoverage';
+import {FocusedForest,FoliageEyeFade,type ForestRoute} from './focusedForest';
 const PACK='f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce';
 const sha=async(bytes:ArrayBuffer)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),v=>v.toString(16).padStart(2,'0')).join('');
 /** Bounded reusable GLB ownership for the existing realm/Tower renderer. Only
@@ -14,6 +14,12 @@ export class FocusedAssets {
  private scanned=new Map<string,ReturnType<typeof loadScannedMaps>>();
  private foliage=new Map<string,PBRMaterial>();
  private leafMaps=new Map<string,Texture>();
+ private forest:FocusedForest|null=null;private forestRoutes=new Map<string,Promise<ForestRoute[]>>();
+ private scan(surface:string){let maps=this.scanned.get(surface);if(!maps){maps=loadScannedMaps(this.scene,surface);this.scanned.set(surface,maps);}return maps;}
+ private forestKit(){return this.forest??=new FocusedForest(this.scene,this.atmosphere,s=>this.scan(s),kind=>this.leafMaterial(kind));}
+ forestFloorMaterial(){return this.forestKit().floor;}
+ private leafMaterial(kind:string){let material=this.foliage.get(kind);if(!material){material=new PBRMaterial('focused-soft-'+kind,this.scene);material.albedoTexture=this.leafTexture(kind);material.useAlphaFromAlbedoTexture=true;material.transparencyMode=PBRMaterial.PBRMATERIAL_ALPHATEST;material.alphaCutOff=.55;material.backFaceCulling=false;material.twoSidedLighting=true;material.albedoColor=new Color3(.78,.91,.73);material.metallic=0;material.roughness=.94;material.specularIntensity=.08;material.subSurface.isTranslucencyEnabled=true;material.subSurface.translucencyIntensity=.12;new FoliageEyeFade(material);this.foliage.set(kind,material);}return material;}
+ private routes(id:string){let pending=this.forestRoutes.get(id);if(!pending){const source=this.manifest!.assets.find(a=>a.id===id)!;pending=this.bytes(source.metadata,source.metadata_sha256).then(bytes=>{const meta=JSON.parse(new TextDecoder().decode(bytes)) as {walkable_routes?:{points:number[][]}[]};return (meta.walkable_routes??[]).map(route=>route.points.map(([x,forward,up])=>[x,up,-forward] as const));});this.forestRoutes.set(id,pending);}return pending;}
  private leafTexture(kind:string){let texture=this.leafMaps.get(kind);if(!texture){texture=new Texture('/textures/world/foliage-'+(kind==='pine'?'pine':'branch')+'.png',this.scene,false,false);texture.hasAlpha=true;texture.anisotropicFilteringLevel=8;this.leafMaps.set(kind,texture);}return texture;}
  constructor(private scene:Scene,private atmosphere:Atmosphere,private base='/focused/'){}
  async loadManifest():Promise<FocusedManifest>{
@@ -45,28 +51,14 @@ export class FocusedAssets {
    else if(name==='soil'){surface='brown_mud';tint=[1.06,1.02,.93];}
    else if(/^(earth|ochre)$/.test(name)){surface='forest_ground_04';tint=[1.04,1.02,.94];}
    if(surface){let maps=this.scanned.get(surface);if(!maps){maps=loadScannedMaps(this.scene,surface);this.scanned.set(surface,maps);}useScannedMaps(material,maps);material.albedoColor=new Color3(...tint);material.roughness=.86;material.metallic=0;material.environmentIntensity=.95;material.ambientTextureStrength=.45;material.specularIntensity=.35;}
-   if(name==='pine'||name==='leaf'){material.albedoTexture=this.leafTexture(name);material.useAlphaFromAlbedoTexture=false;material.transparencyMode=PBRMaterial.PBRMATERIAL_OPAQUE;material.albedoColor=new Color3(.7,.82,.62);material.roughness=.88;material.specularIntensity=.15;material.environmentIntensity=.95;new CanopyCoverage(material);}
+   if(material.bumpTexture)material.bumpTexture.level=id.includes('forest')?.28:.5;
    if(name==='glass'){material.albedoColor=new Color3(.57,.70,.72);material.roughness=.16;material.metallic=.08;material.alpha=.48;material.transparencyMode=PBRMaterial.PBRMATERIAL_ALPHABLEND;material.backFaceCulling=false;}
   }
   // Delivered primitive GLBs have no UV channel. Derive metre-scale UVs from
   // their existing physical transforms before instantiation; no vertices move.
   for(const mesh of container.meshes){if(!(mesh instanceof Mesh)||mesh.isVerticesDataPresent(VertexBuffer.UVKind))continue;const positions=mesh.getVerticesData(VertexBuffer.PositionKind),normals=mesh.getVerticesData(VertexBuffer.NormalKind);if(!positions||!normals)continue;const matrix=mesh.computeWorldMatrix(true),uv:number[]=[];
    for(let i=0;i<positions.length;i+=3){const p=Vector3.TransformCoordinates(Vector3.FromArray(positions,i),matrix),n=Vector3.TransformNormal(Vector3.FromArray(normals,i),matrix),ax=Math.abs(n.x),ay=Math.abs(n.y),az=Math.abs(n.z);uv.push((ay>=ax&&ay>=az?p.x:ax>=az?p.z:p.x)*.5,(ay>=ax&&ay>=az?p.z:p.y)*.5);}
-   mesh.makeGeometryUnique();mesh.setVerticesData(VertexBuffer.UVKind,uv);
-  }
- }
- private canopyDetail(root:TransformNode){
-  // Existing credited foliage textures add soft leaf detail to actual source
-  // canopies. Their bounds determine every card; trunks/access/collision stay literal.
-  const inverse=root.computeWorldMatrix(true).clone().invert();
-  for(const kind of ['pine','leaf']){
-   const matrices:number[]=[],canopies=root.getChildMeshes().filter(m=>m.material?.name.toLowerCase().replace(/^tv_/,'').replace(/\.\d+$/,'')===kind);
-   for(const canopy of canopies){const box=canopy.getBoundingInfo().boundingBox,matrix=canopy.computeWorldMatrix(true).multiply(inverse),points=box.vectors.map(p=>Vector3.TransformCoordinates(p,matrix)),lo=new Vector3(Infinity,Infinity,Infinity),hi=new Vector3(-Infinity,-Infinity,-Infinity);for(const p of points){lo.minimizeInPlace(p);hi.maximizeInPlace(p);}const centre=lo.add(hi).scale(.5),height=hi.y-lo.y,width=Math.min(hi.x-lo.x,hi.z-lo.z);if(height<.5||width<.5)continue;
-    let hash=0;for(const c of canopy.name)hash=Math.imul(hash,31)+c.charCodeAt(0)|0;const phase=(hash>>>0)/0xffffffff*Math.PI;
-    for(const tier of [.18,.48,.76])for(const direction of [0,Math.PI/2]){const scale=new Vector3(width*(1-.4*tier),Math.min(height*.5,width*.72),1),position=new Vector3(centre.x,lo.y+height*tier,centre.z);matrices.push(...Matrix.Compose(scale,Quaternion.RotationAxis(Vector3.Up(),phase+direction),position).asArray());}
-   }
-   if(!matrices.length)continue;let material=this.foliage.get(kind);if(!material){material=new PBRMaterial('focused-soft-'+kind,this.scene);material.albedoTexture=this.leafTexture(kind);material.useAlphaFromAlbedoTexture=true;material.transparencyMode=PBRMaterial.PBRMATERIAL_ALPHATEST;material.alphaCutOff=.42;material.backFaceCulling=false;material.twoSidedLighting=true;material.albedoColor=new Color3(.9,1,.84);material.metallic=0;material.roughness=.9;material.specularIntensity=.1;this.foliage.set(kind,material);}
-   const leaves=MeshBuilder.CreatePlane(root.name+':soft-'+kind,{size:1},this.scene);leaves.parent=root;leaves.material=material;leaves.isPickable=false;leaves.thinInstanceSetBuffer('matrix',new Float32Array(matrices),16,true);leaves.metadata={focusedSoftFoliage:true,sourceCanopies:canopies.length,cards:matrices.length/16};
+    mesh.makeGeometryUnique();mesh.setVerticesData(VertexBuffer.UVKind,id.includes('forest')?uv.map(v=>v*.5):uv);
   }
  }
  async instantiate(p:AssetPlacement,origin:{x:number;z:number}={x:0,z:0}){
@@ -74,10 +66,10 @@ export class FocusedAssets {
   const root=new TransformNode(p.id,this.scene);root.position.set(p.position[0]-origin.x,p.position[1],p.position[2]-origin.z);root.rotation.y=p.yaw;
   root.metadata={assetId:p.assetId,placementId:p.id,packSha256:PACK,floorId:p.floorId};for(const n of entries.rootNodes)n.parent=root;
   const meshes=root.getChildMeshes();for(const m of meshes){m.metadata={...m.metadata,focusedPart:true,placementId:p.id};m.receiveShadows=true;this.atmosphere.addCaster(m);}
-  if(p.assetId.includes('forest'))this.canopyDetail(root);
+  if(p.assetId.includes('forest'))this.forestKit().decorate(root,await this.routes(p.assetId));
   this.references.set(p.assetId,(this.references.get(p.assetId)??0)+1);let released=false;
   return {root,dispose:()=>{if(released)return;released=true;for(const m of meshes)this.atmosphere.removeCaster(m);entries.dispose();root.dispose();this.references.set(p.assetId,Math.max(0,(this.references.get(p.assetId)??1)-1));this.trim();}};
  }
  private trim(){for(const [id,c] of this.containers){if(this.containers.size<=16)break;if((this.references.get(id)??0)===0&&!this.loads.has(id)){c.dispose();this.containers.delete(id);}}}
- dispose(){this.disposed=true;for(const c of this.containers.values())c.dispose();this.containers.clear();for(const maps of this.scanned.values())for(const texture of Object.values(maps))texture.dispose();this.scanned.clear();for(const m of this.foliage.values())m.dispose();this.foliage.clear();for(const texture of this.leafMaps.values())texture.dispose();this.leafMaps.clear();}
+ dispose(){this.disposed=true;for(const c of this.containers.values())c.dispose();this.containers.clear();this.forest?.dispose();for(const maps of this.scanned.values())for(const texture of Object.values(maps))texture.dispose();this.scanned.clear();for(const m of this.foliage.values())m.dispose();this.foliage.clear();for(const texture of this.leafMaps.values())texture.dispose();this.leafMaps.clear();}
 }

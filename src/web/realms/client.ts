@@ -14,6 +14,7 @@ import { primaryCamera, attachOrbit, cameraRelativeMove, travelFacing, smoothYaw
 import './style.css';
 import {Vfx} from '../arena/vfx';
 import {ObservedArcaneEffects} from '../actors/arcaneEffects';
+import {contactGrounding} from './contactGrounding';
 
 /** Existing Babylon shell, shared renderer/atmosphere/body kits. The browser sends
  * intentions and projects server state; it never creates or steps a canonical World. */
@@ -30,6 +31,7 @@ export async function startRealms(): Promise<void> {
   // restrained exposure; never brighten the walls by changing canonical daylight.
   atmosphere.look.fill = 1.35; atmosphere.look.key = 1.08; atmosphere.look.exposure = 1.08;
   atmosphere.shadow.setDarkness(.32);
+  const grounding=contactGrounding(ctx.scene);
   // The shared rural sky uses large illustrated discs. City street views use a
   // restrained apparent sun/moon size behind the layered building silhouettes.
   for (const name of ['sun-disc', 'moon-disc']) ctx.scene.getMeshByName(name)?.scaling.setAll(.16);
@@ -42,7 +44,7 @@ export async function startRealms(): Promise<void> {
   void factory.load(ctx.scene, undefined, ['f', 'm']);
   ui.innerHTML = `<div class="rv-shell">
     <header class="rv-heading"><nav><a href="/">Home</a> · <a href="/observatory">Observatory</a></nav><div class="rv-kicker">TORN VEIL <span>CONNECTED REALMS</span></div><h1 id="rv-title">Opening the Veil</h1><p id="rv-district">Restoring your journey…</p></header>
-    <div class="rv-card rv-wayfinder"><small>THRESHOLD SQUARE</small><b id="rv-destination">Aether Reach ↔ Cinderveil</b><p>The Tower anchors both sides of the Veil.</p><button id="rv-portal">Walk to portal</button><button id="rv-tower">Walk to Tower</button><button id="rv-canonical" hidden>Enter shared Tower trial</button><button id="rv-ascend" hidden>Historical score-based Tower lab</button><button id="rv-journal">Character & journey</button></div>
+    <details class="rv-card rv-wayfinder"><summary>Travel & journal</summary><small>THRESHOLD SQUARE</small><b id="rv-destination">Aether Reach ↔ Cinderveil</b><button id="rv-portal">Walk to portal</button><button id="rv-tower">Walk to Tower</button><button id="rv-canonical" hidden>Enter shared Tower trial</button><button id="rv-ascend" hidden>Historical score-based Tower lab</button><button id="rv-journal">Character & journey</button><label class="rv-camera-choice">Camera <select id="rv-camera"><option value="close">Close</option><option value="elevated">Elevated</option><option value="wide">Wide</option></select></label></details>
     <div class="rv-reticle">·</div><div class="rv-toast" id="rv-toast" aria-live="polite"></div>
     <div class="rv-prompt" id="rv-prompt">Loading nearby streets…</div>
     <footer><span>WASD move · X walk · MMB orbit · wheel zoom · J/K/L strike · G guard · Space dodge · E interact · I journal</span><span id="rv-stream"></span></footer>
@@ -84,6 +86,7 @@ export async function startRealms(): Promise<void> {
     el('rv-title').textContent = s.tower ? 'Tower of Chrysanthus' : s.realmName;
     el('rv-district').textContent = s.tower ? 'THE ATRIUM · WALK BACK THROUGH THE GATE TO RETURN' : s.subtitle;
     el('rv-prompt').textContent = s.prompt;
+    el('rv-prompt').hidden=s.prompt.startsWith('WASD');
     el('rv-ascend').hidden = !params.has('historical-lab') || !s.tower || !!s.expedition?.active || !!s.canonicalTower?.active;
     el('rv-canonical').hidden = !s.tower || !!s.expedition?.active;
     if (s.canonicalTower?.active && !transitioning) void openAscent();
@@ -143,8 +146,10 @@ export async function startRealms(): Promise<void> {
   el('rv-return').onclick = () => { void expedition('return'); };
   el('rv-journal').onclick = toggleJournal; el('rv-close').onclick = toggleJournal;
   el('rv-save').onclick = () => send({ type: 'save' });
-  el('rv-portal').onclick = () => send({ type: 'navigate', target: 'portal' });
-  el('rv-tower').onclick = () => send({ type: 'navigate', target: 'tower' });
+  const closeTravel=()=>{(ui.querySelector('.rv-wayfinder') as HTMLDetailsElement).open=false;};
+  el('rv-portal').onclick = () => {send({ type: 'navigate', target: 'portal' });closeTravel();};
+  el('rv-tower').onclick = () => {send({ type: 'navigate', target: 'tower' });closeTravel();};
+  el('rv-camera').onchange=()=>{const value=(el('rv-camera') as HTMLSelectElement).value,profile=value==='elevated'?[6.8,27]:value==='wide'?[10,35]:[5.4,23];view.camera.preferred=profile[0];view.camera.pitch=profile[1]*Math.PI/180;view.persist();closeTravel();};
   el('rv-cross').onclick = () => { send({ type: 'confirm', id: state?.pending?.id }); keys.clear(); };
   el('rv-cancel').onclick = () => send({ type: 'cancel' });
   el('rv-prompt').onclick = () => send({ type: 'interact' });
@@ -201,6 +206,7 @@ export async function startRealms(): Promise<void> {
         if (avatar) avatar.root.rotation.y = s.body.yaw;
       }
       if (avatar) {
+        grounding.update(s.body.pos.x-renderer.origin.x,s.body.pos.y,s.body.pos.z-renderer.origin.z,s.body.yaw);
         const age = Math.min(.075, Math.max(0, (now - lastStateAt) / 1000)), velocity = s.avatar.velocity;
         avatar.root.position.copyFrom(Vector3.Lerp(avatar.root.position, new Vector3(s.body.pos.x + velocity.x * age - renderer.origin.x, s.body.pos.y, s.body.pos.z + velocity.z * age - renderer.origin.z), 1 - Math.exp(-20 * dt)));
         avatar.root.rotation.y = smoothYaw(avatar.root.rotation.y, s.body.yaw, dt);
@@ -212,9 +218,9 @@ export async function startRealms(): Promise<void> {
         renderer.focused.cutaway(camera.position,avatar.root.position);
       }
       const authoredTown=s.realm==='brass'&&!!s.focusedAssets;
-      atmosphere.look.fill=authoredTown?1.18:.98;atmosphere.look.key=authoredTown?1.12:1.24;atmosphere.look.exposure=authoredTown?1.06:1.16;
+      atmosphere.look.fill=authoredTown?1.06:.98;atmosphere.look.key=authoredTown?1.16:1.24;atmosphere.look.exposure=authoredTown?1.04:1.16;atmosphere.shadow.setDarkness(authoredTown?.45:.32);
       atmosphere.update((s.worldTime / 3600 + (s.realm === 'aether' ? 9.866 : authoredTown?1.5:9.066)) % 24, { kind: 'clear', intensity: 0, wind: .25 }, dt);
-      ctx.scene.fogDensity = s.realm === 'aether' ? .0026 : .0017;
+      ctx.scene.fogDensity = s.realm === 'aether' ? .0026 : authoredTown?.0048:.0017;
       if (hudAccumulator > .3) { hudAccumulator = 0; el('rv-stream').textContent = params.has('debug') ? `${renderer.loaded.size} chunks resident · ${renderer.pending} loading` : `${s.person.rank} · ${s.realmName}`; }
       for (const r of residents.values()) r.root.setEnabled(false);
       if (people.ready||factory.ready) for (const n of s.residents) {
@@ -235,7 +241,7 @@ export async function startRealms(): Promise<void> {
   // Observations only: the harness drives ordinary keys/buttons, never mutates the world.
   Object.defineProperty(window, 'tvRealms', { value: { get state() { return state; }, get ready() { return !!state && !!avatar && !renderer.pending&&!renderer.focused.error; },
     inspect: () => ({ receipts:[...receipts],binding,targetId, frames: [...frames], streamingFrames: [...streamingFrames], uploads: [...renderer.uploads], serverSamples: [...serverSamples], journeys: [...journeys], loaded: renderer.loaded.size, pending: renderer.pending,
-      focused:{instances:renderer.focused.count,pending:renderer.focused.pending,error:renderer.focused.error},meshes: ctx.scene.meshes.length, textures: ctx.scene.textures.length, materials: ctx.scene.materials.length, lights: ctx.scene.lights.length,
+      focused:{instances:renderer.focused.count,pending:renderer.focused.pending,error:renderer.focused.error,forests:renderer.focused.forestDetails},meshes: ctx.scene.meshes.length, textures: ctx.scene.textures.length, materials: ctx.scene.materials.length, lights: ctx.scene.lights.length,
       towerDoors: [...renderer.loaded.values()].flatMap(c=>c.doors.filter(d=>d.mesh.name.includes(':tower:')).map(d=>({name:d.mesh.name,enabled:d.mesh.isEnabled(),panels:d.mesh.getChildMeshes().map(m=>m.isEnabled())}))),
       residentLooks:[...residents.values()].map(v=>v.root.metadata), renderer: ctx.kind, staleMs: performance.now() - lastStateAt,
       controlledLook: avatar?.root.metadata, controlledBody: avatar ? { id: state?.body.id, enabled: avatar.root.isEnabled(), position: { x: avatar.root.position.x, y: avatar.root.position.y, z: avatar.root.position.z }, yaw: avatar.root.rotation.y,

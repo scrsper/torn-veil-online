@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+export async function openTravel(page){const summary=page.locator('.rv-wayfinder summary');if(await summary.count()&&!await page.locator('.rv-wayfinder').evaluate(el=>el.open))await summary.click();}
+export async function travelClick(page,selector){await openTravel(page);await page.locator(selector).click();}
 /** Ordinary keyboard pilot. Wide waypoints leave clearance around columns;
  * the current rendered camera determines WASD, never a fixed world heading. */
 export async function driveAscentTo(page,target,{tolerance=.22,timeout=20000}={}){

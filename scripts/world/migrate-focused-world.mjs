@@ -18,6 +18,14 @@ const stable=['playerId','seed','persons','items','containers','events','interio
 // Resident locations may change to actual town access. Their identity and all
 // ordinary player truth remain exact; historical entries are never rewritten.
 for(const key of stable)assert.deepEqual(after[key],before[key],`Migration changed ${key}`);
+const bodies=new Map(after.bodies.map(body=>[body.id,body]));
+for(const body of before.bodies){const next=bodies.get(body.id);assert.ok(next,'Migration removed a body');
+ const a={...body},b={...next};
+ // A new exterior can require relocation and abandoning its obsolete route.
+ // These four fields are the entire permitted body mutation surface.
+ for(const key of ['pos','vel','path','pathGoal']){delete a[key];delete b[key];}
+ assert.deepEqual(b,a,`Migration changed body truth ${body.id}`);
+}
 if(run)assert.deepEqual({...restored.world.canonicalTower,returnPos:run.returnPos},run,'Migration changed Tower progress');
 if(activeBody)assert.deepEqual(restored.body,activeBody,'Migration changed the active floor body');
 assert.deepEqual(restored.person,session.person);

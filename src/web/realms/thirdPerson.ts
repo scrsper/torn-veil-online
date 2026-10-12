@@ -24,7 +24,7 @@ export const smoothYaw = (current: number, target: number, dt: number) =>
 export function primaryCamera(view: 'realm' | 'tower', storage?: Pick<Storage, 'getItem' | 'setItem'>) {
   const camera = new AdaptiveCamera({ minDistance: 3, maxDistance: 18, maxExceptional: 24,
     minPitch: 8 * Math.PI / 180, maxPitch: 60 * Math.PI / 180 });
-  camera.preset('wide'); camera.preferred = 6.8; camera.pitch = 27 * Math.PI / 180; camera.baseFov=58*Math.PI/180;
+  camera.preset('wide'); camera.preferred = view==='realm'?5.4:6.8; camera.pitch = (view==='realm'?23:27) * Math.PI / 180; camera.baseFov=58*Math.PI/180;
   camera.yaw = view === 'realm' ? Math.PI : 0;
   const key = `torn-veil.primary-camera.${view}.v2`;
   try {
