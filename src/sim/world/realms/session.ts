@@ -131,6 +131,7 @@ export class RealmSession {
     // Destination is resolved and checked before changing the existing body. No new
     // Person, inventory, class or progression sheet is created by a crossing.
     const arrival = { ...destination, z: destination.z - 5 };
+    const geometry=this.grid.movementGeometryAt(arrival.x,arrival.z);if(geometry){const y=geometry.supportAt(arrival.x,arrival.z,arrival.y);if(y===null||!geometry.fits(arrival.x,y,arrival.z,.3,1.8))return false;arrival.y=y;}
     if (!this.world.nav.isWalkable(Math.floor(arrival.x), Math.floor(arrival.z))) return false;
     this.body.pos = arrival; this.body.vel = { x: 0, y: 0, z: 0 }; this.body.path = null; this.body.pathGoal = null;
     this.world.emit('realm_crossed', { actor: this.person.id, pos: arrival, visibility: 14, loudness: 8, significance: .4,
