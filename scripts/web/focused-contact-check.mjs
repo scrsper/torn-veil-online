@@ -1,4 +1,5 @@
 import {chromium} from 'playwright';import {mkdirSync,writeFileSync} from 'node:fs';import {resolve} from 'node:path';import assert from 'node:assert/strict';
+import {clearAscentEntry} from './focused-input-driver.mjs';
 const base=process.env.TV_FOCUSED_URL??'http://127.0.0.1:7572',out=resolve(process.env.TV_FOCUSED_EVIDENCE??'.debug/motion-correction/contact-isolation');mkdirSync(out,{recursive:true});const health=await fetch(base+'/realms/health').then(r=>r.json());assert.ok(/motion-correction[/\\]focused-save/.test(health.savePath),'Refusing live save');
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--enable-precise-memory-info','--disable-renderer-backgrounding','--disable-background-timer-throttling']}),context=await browser.newContext({viewport:{width:1440,height:900},recordVideo:{dir:out,size:{width:1440,height:900}}}),page=await context.newPage(),samples=[],errors=[];let status='failed';page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(m.type()==='error')errors.push(m.text().slice(0,3000));});
 const read=()=>page.evaluate(()=>({frame:window.tvAscent.frame,inspect:window.tvAscent.inspect(),target:window.tvAscent.targetId,events:window.contactInputEvents}));
@@ -6,9 +7,7 @@ const own=s=>s.frame.snapshot.bodies.find(b=>b.bodyId===s.frame.own.bodyId),snap
 const hold=async(key,ms)=>{await page.keyboard.down(key);await page.waitForTimeout(ms);await page.keyboard.up(key);await page.waitForTimeout(300);};
 try{
  await page.goto(base+'/?ascent');await page.waitForFunction(()=>window.tvAscent?.ready,null,{timeout:180000});await page.evaluate(()=>{window.contactInputEvents=[];for(const type of ['keydown','keyup','blur'])window.addEventListener(type,e=>{window.contactInputEvents.push({type,code:e.code,trusted:e.isTrusted,at:performance.now()});if(window.contactInputEvents.length>200)window.contactInputEvents.shift();});});await page.mouse.click(720,650,{button:'middle'});await snap('01-resumed-column');
- const entrance=await page.evaluate(()=>window.tvAscent.frame.tower.start);if(own(await read()).pos.z>entrance.z-3.5)await hold('KeyW',1600);
- const before=own(await read()).pos;await hold('KeyA',1000);await snap('02-one-second-strafe');const after=own(await read()).pos;assert.ok(before.x-after.x>2,'Ordinary A strafe did not clear the column');
- await hold('KeyW',9000);const centreUntil=Date.now()+4000;while(own(await read()).pos.x<entrance.x-1.8&&Date.now()<centreUntil)await hold('KeyD',150);await snap('03-column-cleared');await hold('KeyW',2200);await snap('04-approach');
+ await clearAscentEntry(page);await snap('03-column-cleared');
  const firstSeen=new Map();let contact=false;
  for(let n=0;n<55;n++){const s=await read(),body=own(s),rivals=s.frame.snapshot.bodies.filter(b=>b.bodyId!==body.bodyId&&!b.dead&&!b.incapacitated);for(const b of s.frame.snapshot.bodies)if(!firstSeen.has(b.bodyId))firstSeen.set(b.bodyId,b.hitSeq);const target=rivals.sort((a,b)=>Math.hypot(a.pos.x-body.pos.x,a.pos.z-body.pos.z)-Math.hypot(b.pos.x-body.pos.x,b.pos.z-body.pos.z))[0];if(!target){await page.waitForTimeout(200);continue;}
   const distance=Math.hypot(target.pos.x-body.pos.x,target.pos.z-body.pos.z);for(let j=0;j<rivals.length+1&&(await read()).target!==target.bodyId;j++)await page.keyboard.press('Tab');

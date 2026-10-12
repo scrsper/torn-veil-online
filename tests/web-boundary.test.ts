@@ -64,6 +64,11 @@ describe('browser bundle boundary', () => {
       'src/sim/physical/arcana/catalogue.ts',
       // Unchanged seeded room grammar, with no World, grid, entity or persistence imports.
       'src/sim/world/interiors/maze.ts',
+      // Pure capsule/support queries shared by authoritative movement and prediction.
+      // The browser receives a bounded triangle window, never a World or save.
+      'src/sim/physical/staticGeometry.ts',
+      // Verified asset schema and connector transforms; no file I/O or simulation.
+      'src/sim/world/assets/focused.ts',
     ]);
     const unexpected = outside.filter(p => !allowed.has(p));
     expect(unexpected, `unexpected modules in the browser graph:\n${unexpected.join('\n')}`).toEqual([]);

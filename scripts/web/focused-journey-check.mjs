@@ -1,4 +1,5 @@
 import {chromium} from 'playwright';import {mkdirSync,writeFileSync} from 'node:fs';import {resolve} from 'node:path';import assert from 'node:assert/strict';
+import {clearAscentEntry} from './focused-input-driver.mjs';
 const base=process.env.TV_FOCUSED_URL??'http://127.0.0.1:7572',out=resolve(process.env.TV_FOCUSED_EVIDENCE??'.debug/motion-correction/focused-journey');mkdirSync(out,{recursive:true});
 const health=await fetch(base+'/realms/health').then(r=>r.json());assert.ok(/motion-correction[/\\]focused-save/.test(health.savePath),'Refusing live save');
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--enable-precise-memory-info','--disable-renderer-backgrounding','--disable-background-timer-throttling']}),context=await browser.newContext({viewport:{width:1440,height:900},recordVideo:{dir:out,size:{width:1440,height:900}}}),page=await context.newPage(),errors=[],samples=[];let errorCount=0,status='failed';
@@ -22,9 +23,7 @@ try{
  // Ordinary controls advance along the authored processional route; no debug
  // teleports, damage fixtures, rank grants or renderer-owned enemies are used.
  // The isolated contact check proved this wide lane clears the entry columns.
- const floorOwn=()=>page.evaluate(()=>window.tvAscent.frame.snapshot.bodies.find(b=>b.bodyId===window.tvAscent.frame.own.bodyId));const held=async(key,ms)=>{await page.keyboard.down(key);await page.waitForTimeout(ms);await page.keyboard.up(key);await page.waitForTimeout(300);};
- await held('KeyW',1600);const floorStart=(await floorOwn()).pos;await held('KeyA',1000);assert.ok(floorStart.x-(await floorOwn()).pos.x>2);
- await held('KeyW',9000);const centreUntil=Date.now()+4000;while((await floorOwn()).pos.x<entrance.x-1.8&&Date.now()<centreUntil)await held('KeyD',150);await held('KeyW',2200);await shot('06-floor-traversal','ascent');
+ await clearAscentEntry(page);await shot('06-floor-traversal','ascent');
  let hit=false;
  for(let n=0;n<35;n++){
   const f=await page.evaluate(()=>window.tvAscent.frame),own=f.snapshot.bodies.find(b=>b.bodyId===f.own.bodyId),rivals=f.snapshot.bodies.filter(b=>b.bodyId!==own.bodyId&&!b.dead&&!b.incapacitated),nearest=rivals.sort((a,b)=>Math.hypot(a.pos.x-own.pos.x,a.pos.z-own.pos.z)-Math.hypot(b.pos.x-own.pos.x,b.pos.z-own.pos.z))[0];
