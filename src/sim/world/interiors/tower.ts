@@ -73,7 +73,7 @@ function createFloor(w: World, run: CanonicalTowerRun, floor: number): Canonical
   for (const item of [book, coin]) { provenance(w, item, opened.id, null, place.id, 'finite authored Tower reserve'); f.rewardItemIds.push(item.id); }
   if (floor === 1) {
     const sources = [makeItem(w, 'book', 'Ember field manual', { pos: { ...plan.start, x: plan.start.x + 1 }, placeId: place.id }),
-      makeItem(w, 'dagger', 'Trial steel dagger', { pos: { ...plan.start, x: plan.start.x - 1 }, placeId: place.id, condition: 1 })];
+      makeItem(w, 'dagger', 'Trial steel dagger', { pos: { ...plan.start, x: plan.start.x - 1 }, placeId: place.id, condition: 1,...(plan.assetScene?{catalogId:'TV-011'}:{}) })];
     sources[0].arcaneSource = { version: 1, abilityId: 'book-ember', kind: 'book' };
     for (const item of sources) { provenance(w, item, opened.id, null, null, 'finite authored Tower stores'); f.sourceItemIds.push(item.id); }
   }

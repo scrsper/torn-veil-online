@@ -53,7 +53,7 @@ export class StaticGeometry implements MovementGeometry {
  private supportSample(x:number,z:number,fromY:number,step:number):number|null{let best:number|null=null;
   for(const t of this.candidates(x,z)){const plane=this.supportPlanes.get(t);if(!plane||x<plane.minX-1e-6||x>plane.maxX+1e-6||z<plane.minZ-1e-6||z>plane.maxZ+1e-6)continue;const p=t.p,ax=p[0],az=p[2],bx=p[3],bz=p[5],cx=p[6],cz=p[8],den=plane.den;
    const u=((bz-cz)*(x-cx)+(cx-bx)*(z-cz))/den,v=((cz-az)*(x-cx)+(ax-cx)*(z-cz))/den,w=1-u-v;if(Math.min(u,v,w)<-1e-6)continue;
-   const y=u*p[1]+v*p[4]+w*p[7];if(Math.abs(y-fromY)<=step&&(best===null||Math.abs(y-fromY)<Math.abs(best-fromY)))best=y;
+   const y=u*p[1]+v*p[4]+w*p[7];if(Math.abs(y-fromY)<=step&&(best===null||y>best))best=y;
   }return best;
  }
  supportAt(x:number,z:number,fromY:number,step=1.05):number|null{
@@ -80,19 +80,20 @@ export class StaticGeometry implements MovementGeometry {
  }
  blocked(x:number,y:number,z:number):boolean{return this.candidates(x,z,.025).some(t=>pointTriangle([x,y,z],t.p.slice(0,3) as V,t.p.slice(3,6) as V,t.p.slice(6,9) as V)<.025*.025);}
  lineClear(a:Vec3,b:Vec3):boolean{const count=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.z-a.z))),seen=new Set<StaticTriangle>();for(let i=0;i<=count;i++){const f=i/count;for(const t of this.candidates(a.x+(b.x-a.x)*f,a.z+(b.z-a.z)*f,1.1))seen.add(t);}return ![...seen].some(t=>intersects([a.x,a.y,a.z],[b.x,b.y,b.z],t.p.slice(0,3) as V,t.p.slice(3,6) as V,t.p.slice(6,9) as V));}
+ private certifyRoute(a:Vec3,points:Vec3[]):number|null{let previous={...a};for(let i=0;i<points.length;i++){const target=points[i],start={...previous},steps=Math.max(1,Math.ceil(Math.hypot(target.x-start.x,target.z-start.z)/.04));for(let n=1;n<=steps;n++){const x=start.x+(target.x-start.x)*n/steps,z=start.z+(target.z-start.z)*n/steps,y=this.supportAt(x,z,previous.y);if(y===null||!this.fits(x,y,z,.3,1.8))return i;previous={x,y,z};}}return null;}
  findPath(a:Vec3,b:Vec3,maxIter=32000):Vec3[]|null{
   const step=.25,width=Math.ceil((this.box.x1-this.box.x0)/step)+1,depth=Math.ceil((this.box.z1-this.box.z0)/step)+1,base=a.y;
   if(!this.contains(a.x,a.z)||!this.contains(b.x,b.z)||Math.abs(a.y-b.y)>1)return null;
   const xy=(id:number)=>({x:this.box.x0+(id%width)*step,z:this.box.z0+Math.floor(id/width)*step});
-  const sample=(id:number):number|null=>{const key=id+':'+Math.round(base*4);if(this.navSamples.has(key))return this.navSamples.get(key)!;const p=xy(id);let y=this.supportAt(p.x,p.z,base);if(y!==null&&!this.fits(p.x,y,p.z,.3,1.75))y=null;if(this.navSamples.size>120000)this.navSamples.clear();this.navSamples.set(key,y);return y;};
+  const sample=(id:number):number|null=>{const key=id+':'+base;if(this.navSamples.has(key))return this.navSamples.get(key)!;const p=xy(id);let y=this.supportAt(p.x,p.z,base);if(y!==null&&!this.fits(p.x,y,p.z,.3,1.75))y=null;if(this.navSamples.size>120000)this.navSamples.clear();this.navSamples.set(key,y);return y;};
   const nearest=(p:Vec3)=>{const ix=Math.round((p.x-this.box.x0)/step),iz=Math.round((p.z-this.box.z0)/step);for(let r=0;r<5;r++)for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){if(Math.max(Math.abs(dx),Math.abs(dz))!==r)continue;const x=ix+dx,z=iz+dz,id=z*width+x;if(x>=0&&z>=0&&x<width&&z<depth&&sample(id)!==null)return id;}return -1;};
   const start=nearest(a),goal=nearest(b);if(start<0||goal<0)return null;
   const heap:{id:number;f:number}[]=[],push=(id:number,f:number)=>{heap.push({id,f});let i=heap.length-1;while(i){const p=(i-1)>>1;if(heap[p].f<=heap[i].f)break;[heap[i],heap[p]]=[heap[p],heap[i]];i=p;}},pop=()=>{const result=heap[0].id,last=heap.pop()!;if(heap.length){heap[0]=last;let i=0;for(;;){const l=i*2+1,r=l+1;let k=i;if(l<heap.length&&heap[l].f<heap[k].f)k=l;if(r<heap.length&&heap[r].f<heap[k].f)k=r;if(k===i)break;[heap[i],heap[k]]=[heap[k],heap[i]];i=k;}}return result;};
-  const costs=new Map<number,number>([[start,0]]),previous=new Map<number,number>(),closed=new Set<number>(),gxy=xy(goal),heuristic=(id:number)=>{const p=xy(id);return Math.hypot(p.x-gxy.x,p.z-gxy.z);};push(start,heuristic(start));
+  const costs=new Map<number,number>([[start,0]]),previous=new Map<number,number>(),closed=new Set<number>(),banned=new Set<string>(),gxy=xy(goal),heuristic=(id:number)=>{const p=xy(id);return Math.hypot(p.x-gxy.x,p.z-gxy.z);};push(start,heuristic(start));let attempts=0;
   const directions=[[1,0],[0,1],[-1,0],[0,-1],[1,1],[-1,1],[-1,-1],[1,-1]];
-  for(let n=0;heap.length&&n<maxIter;n++){const id=pop();if(closed.has(id))continue;if(id===goal){const path:number[]=[id];while(previous.has(path[0]))path.unshift(previous.get(path[0])!);return path.slice(1).map(k=>({...xy(k),y:sample(k)!}));}closed.add(id);
+  for(let n=0;heap.length&&n<maxIter;n++){const id=pop();if(closed.has(id))continue;if(id===goal){const path:number[]=[id];while(previous.has(path[0]))path.unshift(previous.get(path[0])!);const points=path.slice(1).map(k=>({...xy(k),y:sample(k)!})),bad=this.certifyRoute(a,points);if(bad===null)return points;if(++attempts>8)return null;const from=path[bad],to=path[bad+1];banned.add(from+':'+to);banned.add(to+':'+from);heap.length=0;costs.clear();costs.set(start,0);previous.clear();closed.clear();push(start,heuristic(start));n=-1;continue;}closed.add(id);
    const ix=id%width,iz=Math.floor(id/width),y=sample(id)!;
-   for(const [dx,dz]of directions){const x=ix+dx,z=iz+dz;if(x<0||z<0||x>=width||z>=depth)continue;const next=z*width+x,ny=sample(next);if(ny===null||Math.abs(ny-y)>.225||closed.has(next))continue;
+   for(const [dx,dz]of directions){const x=ix+dx,z=iz+dz;if(x<0||z<0||x>=width||z>=depth)continue;const next=z*width+x;if(banned.has(id+':'+next))continue;const ny=sample(next);if(ny===null||Math.abs(ny-y)>.225||closed.has(next))continue;
     if(dx&&dz&&(sample(iz*width+x)===null||sample(z*width+ix)===null))continue;
     const cost=costs.get(id)!+Math.hypot(dx,dz)*step;if(cost>=(costs.get(next)??Infinity))continue;costs.set(next,cost);previous.set(next,id);push(next,cost+heuristic(next));}
   }return null;

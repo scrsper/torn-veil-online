@@ -2,6 +2,7 @@ import {describe,it,expect} from 'vitest';
 import {StaticGeometry,capsuleTriangleDistance,type StaticTriangle} from '../src/sim/physical/staticGeometry';
 const floor:StaticTriangle[]=[{p:[0,0,0,0,0,8,8,0,0],support:true},{p:[8,0,0,0,0,8,8,0,8],support:true}];
 describe('canonical source-triangle support',()=>{
+ it('keeps feet on the authored surface above joining terrain across repeated idle and moving queries',()=>{const layers=[...floor.map(t=>({...t,p:t.p.map((v,i)=>i%3===1?.96:v)})),...floor.map(t=>({...t,p:t.p.map((v,i)=>i%3===1?1.24:v)}))],g=new StaticGeometry(layers,{x0:0,z0:0,x1:8,z1:8});for(const from of [1,1.0625,1.24]){expect(g.supportAt(4,4,from)).toBe(1.24);expect(g.fits(4,1.24,4,.3,1.75)).toBe(true);}});
  it('finds fractional ground, rejects unsupported feet and blocks a swept capsule at a thin nongrid wall',()=>{
   const triangles=floor.map(t=>({...t,p:t.p.map((v,i)=>i%3===1?.0625:v)}));triangles.push({p:[2.13,.0625,0,2.13,3,0,2.13,.0625,8],support:false},{p:[2.13,3,0,2.13,3,8,2.13,.0625,8],support:false});
   const g=new StaticGeometry(triangles,{x0:0,z0:0,x1:8,z1:8});expect(g.supportAt(1,1,0)).toBe(.0625);expect(g.fits(1,.0625,1,.3,1.75)).toBe(true);
