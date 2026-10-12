@@ -40,16 +40,19 @@ export function capsuleTriangleDistance(x:number,y:number,z:number,r:number,h:nu
 export class StaticGeometry implements MovementGeometry {
  private cells=new Map<string,number[]>();private readonly box:GeometryWindow['bounds'];
  private navSamples=new Map<string,number|null>();
+ private supportPlanes=new Map<StaticTriangle,{den:number;minX:number;maxX:number;minZ:number;maxZ:number}>();
  constructor(readonly triangles:StaticTriangle[],bounds:GeometryWindow['bounds']){this.box=bounds;
   for(const [i,t]of triangles.entries()){if(t.p.length!==9||!t.p.every(Number.isFinite))throw Error('Invalid static triangle');const xs=[t.p[0],t.p[3],t.p[6]],zs=[t.p[2],t.p[5],t.p[8]];
+   if(t.support){const p=t.p,n=cross(sub(p.slice(3,6) as V,p.slice(0,3) as V),sub(p.slice(6,9) as V,p.slice(0,3) as V)),den=(p[5]-p[8])*(p[0]-p[6])+(p[6]-p[3])*(p[2]-p[8]);if(Math.abs(den)>1e-10&&n[1]/Math.hypot(...n)>=.65)this.supportPlanes.set(t,{den,minX:Math.min(...xs),maxX:Math.max(...xs),minZ:Math.min(...zs),maxZ:Math.max(...zs)});}
    for(let x=Math.floor(Math.min(...xs)/2);x<=Math.floor(Math.max(...xs)/2);x++)for(let z=Math.floor(Math.min(...zs)/2);z<=Math.floor(Math.max(...zs)/2);z++){const key=x+','+z;if(!this.cells.has(key))this.cells.set(key,[]);this.cells.get(key)!.push(i);}}
  }
  contains(x:number,z:number){return x>=this.box.x0&&x<=this.box.x1&&z>=this.box.z0&&z<=this.box.z1;}
+ get bounds(){return {...this.box};}
+ sampleGroundAt(x:number,z:number,fromY=1){return this.supportSample(x,z,fromY,1.05);}
  private candidates(x:number,z:number,r=0):StaticTriangle[]{const ids=new Set<number>();for(let ix=Math.floor((x-r)/2);ix<=Math.floor((x+r)/2);ix++)for(let iz=Math.floor((z-r)/2);iz<=Math.floor((z+r)/2);iz++)for(const i of this.cells.get(ix+','+iz)??[])ids.add(i);return [...ids].map(i=>this.triangles[i]);}
  private supportSample(x:number,z:number,fromY:number,step:number):number|null{let best:number|null=null;
-  for(const t of this.candidates(x,z)){if(!t.support)continue;const p=t.p,ax=p[0],az=p[2],bx=p[3],bz=p[5],cx=p[6],cz=p[8],den=(bz-cz)*(ax-cx)+(cx-bx)*(az-cz);if(Math.abs(den)<1e-10)continue;
+  for(const t of this.candidates(x,z)){const plane=this.supportPlanes.get(t);if(!plane||x<plane.minX-1e-6||x>plane.maxX+1e-6||z<plane.minZ-1e-6||z>plane.maxZ+1e-6)continue;const p=t.p,ax=p[0],az=p[2],bx=p[3],bz=p[5],cx=p[6],cz=p[8],den=plane.den;
    const u=((bz-cz)*(x-cx)+(cx-bx)*(z-cz))/den,v=((cz-az)*(x-cx)+(ax-cx)*(z-cz))/den,w=1-u-v;if(Math.min(u,v,w)<-1e-6)continue;
-   const n=cross(sub(p.slice(3,6) as V,p.slice(0,3) as V),sub(p.slice(6,9) as V,p.slice(0,3) as V));if(n[1]/Math.hypot(...n)<.65)continue;
    const y=u*p[1]+v*p[4]+w*p[7];if(Math.abs(y-fromY)<=step&&(best===null||Math.abs(y-fromY)<Math.abs(best-fromY)))best=y;
   }return best;
  }

@@ -1,12 +1,12 @@
 import {chromium} from 'playwright';import {mkdirSync,writeFileSync} from 'node:fs';import {resolve} from 'node:path';import assert from 'node:assert/strict';
-const base=process.env.TV_FOCUSED_URL??'http://127.0.0.1:7572',out=resolve('.debug/motion-correction/first-world');mkdirSync(out,{recursive:true});
+const base=process.env.TV_FOCUSED_URL??'http://127.0.0.1:7572',out=resolve(process.env.TV_FOCUSED_EVIDENCE??'.debug/motion-correction/first-world');mkdirSync(out,{recursive:true});
 const health=await fetch(base+'/realms/health').then(r=>r.json());assert.ok(health.savePath.includes('motion-correction/focused-save')||health.savePath.includes('motion-correction\\focused-save'),'Refusing live save');
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--enable-precise-memory-info','--disable-renderer-backgrounding','--disable-background-timer-throttling']});
 const context=await browser.newContext({viewport:{width:1440,height:900},recordVideo:{dir:out,size:{width:1440,height:900}}}),page=await context.newPage(),errors=[],samples=[],started=Date.now();let warmAt;
 page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
 const read=()=>page.evaluate(()=>window.tvRealms.inspect());let status='failed';
 try{
- await page.goto(base+'/?realms');await page.waitForFunction(()=>window.tvRealms?.ready&&window.tvRealms.inspect().focused.instances>=8,null,{timeout:180000});await page.waitForTimeout(1200);warmAt=(Date.now()-started)/1000;
+ await page.goto(base+'/?realms');await page.waitForFunction(()=>window.tvRealms?.ready&&window.tvRealms.inspect().focused.instances>=8&&window.tvRealms.inspect().focused.pending===0,null,{timeout:180000});await page.waitForTimeout(1200);warmAt=(Date.now()-started)/1000;
  const initial=await read();assert.equal(initial.state.person.id,'p_5');assert.equal(initial.state.body.id,'b_5');assert.ok(initial.state.focusedAssets);samples.push({name:'spawn',...initial});
  await page.screenshot({path:resolve(out,'01-town-spawn.png')});
  await page.keyboard.down('AltLeft');await page.keyboard.down('KeyW');await page.waitForTimeout(1100);samples.push({name:'walk',...(await read())});await page.screenshot({path:resolve(out,'02-authored-walk.png')});await page.keyboard.up('KeyW');await page.keyboard.up('AltLeft');await page.waitForTimeout(700);

@@ -3,7 +3,8 @@ import { B } from '../../physical/blocks';
 import { REALMS, REALM_CHUNK, REALM_SIZE, generateRealmChunk, realmAt, type RealmChunk, type RealmSpec } from './layout';
 import {focusedTownPlan,type FocusedTownPlan} from '../assets/focusedLayouts';
 import {FOCUSED_CATALOG,sceneGeometry,placementBounds} from '../assets/focusedRuntime';
-import type {StaticGeometry} from '../../physical/staticGeometry';
+import {StaticGeometry} from '../../physical/staticGeometry';
+import {focusedTerrain,terrainTriangles,type FocusedTerrain} from '../assets/focusedTerrain';
 import type {Vec3} from '../../core/types';
 
 /** Same VoxelGrid contract as the inhabited world, with a bounded descriptor cache.
@@ -11,11 +12,14 @@ import type {Vec3} from '../../core/types';
 export class RealmGrid extends VoxelGrid {
   readonly focusedTown:FocusedTownPlan|null;
   readonly focusedGeometry:StaticGeometry|null;
+  readonly focusedTerrain:FocusedTerrain|null;
   private chunks = new Map<string, RealmChunk>();
   private edits = new Map<number, number>();
   constructor(readonly spec: RealmSpec) { super(8192 + REALM_SIZE, 176, REALM_SIZE, true);
     if(spec.focusedKit&&spec.focusedGeometrySha!==FOCUSED_CATALOG.geometrySha256)throw Error('Focused save requires its verified geometry version');
-    this.focusedTown=spec.focusedKit?focusedTownPlan(spec.seed):null;this.focusedGeometry=this.focusedTown?sceneGeometry(this.focusedTown):null;
+    this.focusedTown=spec.focusedKit?focusedTownPlan(spec.seed):null;const sourceGeometry=this.focusedTown?sceneGeometry(this.focusedTown):null;
+    this.focusedTerrain=sourceGeometry?focusedTerrain(this.focusedTown!.id+':terrain',sourceGeometry):null;
+    this.focusedGeometry=sourceGeometry?new StaticGeometry([...sourceGeometry.triangles,...terrainTriangles(this.focusedTerrain!)],this.focusedTerrain!.bounds):null;
   }
   override movementGeometryAt(x:number,z:number){return this.focusedGeometry?.contains(x,z)?this.focusedGeometry:null;}
   override isSolidAt(x:number,y:number,z:number):boolean{const geometry=this.movementGeometryAt(x,z);return geometry?geometry.blocked(x,y,z):super.isSolidAt(x,y,z);}
@@ -26,7 +30,7 @@ export class RealmGrid extends VoxelGrid {
     let c = this.chunks.get(key);
     if (!c) {
       c = generateRealmChunk(this.spec, realm, cx, cz);
-      if(this.focusedTown&&realm==='brass'){const bounds=this.focusedTown.bounds;if(c.x<bounds.x1&&c.x+REALM_CHUNK>bounds.x0&&c.z<bounds.z1&&c.z+REALM_CHUNK>bounds.z0){c.focused=true;c.plaza=false;c.buildings=c.buildings.filter(b=>b.x+b.w<bounds.x0||b.x>bounds.x1||b.z+b.d<bounds.z0||b.z>bounds.z1);}}
+      if(this.focusedTerrain&&realm==='brass'){const bounds=this.focusedTerrain.bounds;if(c.x<bounds.x1&&c.x+REALM_CHUNK>bounds.x0&&c.z<bounds.z1&&c.z+REALM_CHUNK>bounds.z0){c.focused=true;c.plaza=false;c.buildings=c.buildings.filter(b=>b.x+b.w<bounds.x0||b.x>bounds.x1||b.z+b.d<bounds.z0||b.z>bounds.z1);}}
       if (this.chunks.size >= 128) this.chunks.delete(this.chunks.keys().next().value!);
       this.chunks.set(key, c);
     }

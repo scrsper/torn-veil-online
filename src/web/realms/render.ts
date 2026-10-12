@@ -29,7 +29,7 @@ export class RealmRenderer {
   private surfaces: MaterialLibrary;
   private square: SquareMaterials;
   readonly focused:FocusedRenderer;
-  constructor(private readonly ctx: RenderContext, private readonly atmosphere: Atmosphere) { this.surfaces = new MaterialLibrary(ctx.scene); this.square = new SquareMaterials(ctx.scene);this.focused=new FocusedRenderer(ctx,atmosphere,this.origin); }
+  constructor(private readonly ctx: RenderContext, private readonly atmosphere: Atmosphere) { this.surfaces = new MaterialLibrary(ctx.scene); this.square = new SquareMaterials(ctx.scene);this.focused=new FocusedRenderer(ctx,atmosphere,this.origin,this.surfaces); }
   reconcileFocused(plan:AssetScenePlan|null,position:{x:number;z:number}){this.focused.reconcile(plan,position);}
   get pending(): number { return this.queue.length+this.focused.pending; }
   reconcile(wanted: string[], incoming: ChunkMessage[]): void {
@@ -371,5 +371,5 @@ export class RealmRenderer {
     for (const s of c.signs) s.dispose(); c.root.dispose();
     for (const light of c.lights) light.dispose();
   }
-  dispose(): void { for (const c of this.loaded.values()) this.disposeChunk(c); this.loaded.clear(); for (const m of this.materials.values()) m.dispose(true, true); this.materials.clear(); this.surfaces.dispose(); this.square.dispose(); }
+  dispose(): void { this.focused.dispose();for (const c of this.loaded.values()) this.disposeChunk(c); this.loaded.clear(); for (const m of this.materials.values()) m.dispose(true, true); this.materials.clear(); this.surfaces.dispose(); this.square.dispose(); }
 }
