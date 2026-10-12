@@ -39,16 +39,25 @@ class ForestGround extends MaterialPluginBase {
 /** Leaves close to the eye fade through a stable spatial dither. They never
  * block camera rays or alter the canonical capsule/triangle collision. */
 export class FoliageEyeFade extends MaterialPluginBase {
- constructor(m:PBRMaterial){super(m,'VeilFoliageEyeFade',220,{},true,true);}override isCompatible(){return true;}
+ private scene:Scene;
+ constructor(m:PBRMaterial){super(m,'VeilFoliageEyeFade',220,{},true,true);this.scene=m.getScene();}override isCompatible(){return true;}
+ override getUniforms(){return {ubo:[{name:'tvFoliageFocus',size:3,type:'vec3'}]};}
+ override bindForSubMesh(buffer:UniformBuffer){const target=(this.scene.activeCamera as unknown as {getTarget?:()=>Vector3})?.getTarget?.()??Vector3.Zero();buffer.updateFloat3('tvFoliageFocus',target.x,target.y,target.z);}
  override getCustomCode(type:string,language=ShaderLanguage.GLSL):Record<string,string>|null{
   if(type!=='fragment')return null;return {CUSTOM_FRAGMENT_BEFORE_LIGHTS:language===ShaderLanguage.WGSL?`
    let tvEyeFade=smoothstep(.65,2.2,distance(fragmentInputs.vPositionW,uniforms.vEyePosition.xyz));
    let tvEyeGrain=fract(sin(dot(floor(fragmentInputs.vPositionW.xz*35.0),vec2f(127.1,311.7)))*43758.5453);
-   if(tvEyeGrain>tvEyeFade){discard;}
+   let tvSight=uniforms.tvFoliageFocus-uniforms.vEyePosition.xyz;
+   let tvAlong=dot(fragmentInputs.vPositionW-uniforms.vEyePosition.xyz,tvSight)/max(dot(tvSight,tvSight),.01);
+   let tvClear=smoothstep(.45,1.05,distance(fragmentInputs.vPositionW,uniforms.vEyePosition.xyz+tvSight*clamp(tvAlong,0.0,1.0)));
+   if(tvEyeGrain>tvEyeFade||(tvAlong>.03&&tvAlong<.98&&tvEyeGrain>tvClear)){discard;}
   `:`
    float tvEyeFade=smoothstep(.65,2.2,distance(vPositionW,vEyePosition.xyz));
    float tvEyeGrain=fract(sin(dot(floor(vPositionW.xz*35.0),vec2(127.1,311.7)))*43758.5453);
-   if(tvEyeGrain>tvEyeFade)discard;
+   vec3 tvSight=tvFoliageFocus-vEyePosition.xyz;
+   float tvAlong=dot(vPositionW-vEyePosition.xyz,tvSight)/max(dot(tvSight,tvSight),.01);
+   float tvClear=smoothstep(.45,1.05,distance(vPositionW,vEyePosition.xyz+tvSight*clamp(tvAlong,0.0,1.0)));
+   if(tvEyeGrain>tvEyeFade||(tvAlong>.03&&tvAlong<.98&&tvEyeGrain>tvClear))discard;
   `};
  }
 }
@@ -65,7 +74,7 @@ export class FocusedForest {
   for(const mesh of ground){const matrix=mesh.computeWorldMatrix(true).multiply(inverse),p=mesh.getVerticesData(VertexBuffer.PositionKind)!,indices=mesh.getIndices()!,points:Vector3[]=[],colors:number[]=[];
    for(let i=0;i<p.length;i+=3){const point=Vector3.TransformCoordinates(Vector3.FromArray(p,i),matrix);points.push(point);const d=distance(point.x,point.z,routes),coverage=.10+.60*Math.max(0,Math.min(1,(d-1.2)/3));colors.push(1,1,1,coverage);}
    for(let i=0;i<indices.length;i+=3){const a=points[indices[i]],b=points[indices[i+1]],c=points[indices[i+2]],normal=Vector3.Cross(b.subtract(a),c.subtract(a));if(Math.abs(normal.y)>.7*normal.length())triangles.push({p:[...a.asArray(),...b.asArray(),...c.asArray()],support:true});}
-   const original=source(mesh);original.metadata={...original.metadata,focusedOriginalMaterial:original.metadata?.focusedOriginalMaterial??original.material?.name};original.makeGeometryUnique();original.setVerticesData(VertexBuffer.ColorKind,colors);original.hasVertexAlpha=false;original.useVertexColors=true;original.material=this.floor;
+   this.atmosphere.removeCaster(mesh);const original=source(mesh);original.metadata={...original.metadata,focusedOriginalMaterial:original.metadata?.focusedOriginalMaterial??original.material?.name};original.makeGeometryUnique();original.setVerticesData(VertexBuffer.ColorKind,colors);original.hasVertexAlpha=false;original.useVertexColors=true;original.material=this.floor;
   }
   for(const canopy of meshes.filter(m=>/^(pine|leaf)$/.test(name(m)))){
    const key=canopy.parent?.name??canopy.name,box=canopy.getBoundingInfo().boundingBox,matrix=canopy.computeWorldMatrix(true).multiply(inverse),old=groups.get(key),group=old??{kind:name(canopy)==='pine'?'pine':'leaf',lo:new Vector3(Infinity,Infinity,Infinity),hi:new Vector3(-Infinity,-Infinity,-Infinity),ground:Infinity};
@@ -82,7 +91,7 @@ export class FocusedForest {
    }
    if(support)for(let n=0;n<5;n++){const a=rng()*Math.PI*2,r=.65+rng()*1.45,x=centre.x+Math.sin(a)*r,z=centre.z+Math.cos(a)*r;if(distance(x,z,routes)<2.2)continue;const y=support.supportAt(x,z,tree.lo.y,8);if(y===null)continue;const h=.24+rng()*.33;for(const yaw of [a,a+Math.PI/2])card('leaf','understory',new Vector3(x,y+h*.4,z),h*1.5,h,yaw,(rng()-.5)*.4);}
   }
-  for(const [key,data]of matrices){const [kind,lod]=key,mesh=MeshBuilder.CreatePlane(root.name+':layered-'+key,{size:1},this.scene);mesh.parent=root;mesh.material=this.leaves(kind);mesh.isPickable=false;mesh.receiveShadows=true;mesh.thinInstanceSetBuffer('matrix',new Float32Array(data),16,true);mesh.metadata={focusedSoftFoliage:true,foliageLod:lod,cards:data.length/16,sourceTrees:groups.size};if(lod!=='far')this.atmosphere.addCaster(mesh);}
+  for(const [key,data]of matrices){const [kind,lod]=key.split(':'),mesh=MeshBuilder.CreatePlane(root.name+':layered-'+key,{size:1},this.scene);mesh.parent=root;mesh.material=this.leaves(kind);mesh.isPickable=false;mesh.receiveShadows=true;mesh.thinInstanceSetBuffer('matrix',new Float32Array(data),16,true);mesh.metadata={focusedSoftFoliage:true,foliageLod:lod,cards:data.length/16,sourceTrees:groups.size};if(lod!=='far')this.atmosphere.addCaster(mesh);}
   root.metadata={...root.metadata,forestPresentation:'layered-branches-v2',sourceTrees:groups.size,proxyCanopiesHidden:true};
  }
  dispose(){this.floor.dispose();}

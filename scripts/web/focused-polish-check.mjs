@@ -2,7 +2,7 @@ import {chromium} from 'playwright';
 import {mkdirSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import assert from 'node:assert/strict';
-import {openTravel,travelClick} from './focused-input-driver.mjs';
+import {openTravel,travelClick,driveRealmTo} from './focused-input-driver.mjs';
 const base=process.env.TV_FOCUSED_URL??'http://127.0.0.1:7572',label=process.env.TV_POLISH_LABEL??'before',out=resolve(`.debug/motion-correction/polish-${label}`);
 mkdirSync(out,{recursive:true});const health=await fetch(base+'/realms/health').then(r=>r.json());
 assert.ok(/motion-correction[/\\]focused-save/.test(health.savePath),'Refusing live save');
@@ -19,7 +19,8 @@ try{
  await hold(['KeyW'],1500);await hold(['KeyS'],1500);await hold(['KeyW','ShiftLeft'],1200);await hold(['KeyS'],1850);
  await hold(['KeyC'],1200,'03-crouch');await hold(['KeyC','KeyW'],1100);await hold(['KeyS'],700);
  await travelClick(page,'#rv-tower');await page.waitForFunction(()=>window.tvRealms.state.body.pos.z>3150,null,{timeout:90000});await page.keyboard.press('KeyQ');await page.keyboard.down('KeyX');await page.keyboard.down('KeyS');await page.waitForTimeout(80);await page.keyboard.up('KeyS');await page.keyboard.up('KeyX');await page.waitForTimeout(600);await shot('04-forest-mouth');
- await orbit(190,-25);await shot('05-forest-canopy');await orbit(-190,25);
+ if(!label.startsWith('before'))await driveRealmTo(page,{x:11302.01147088554,z:3154.175428283834});await orbit(190,-25);await shot('05-forest-canopy');await orbit(-190,25);
+ if(!label.startsWith('before')){const forests=(await read()).focused.forests;if(forests)for(const forest of forests){assert.ok(forest.hiddenProxies>0);assert.ok(forest.foliage.every(f=>['near','far','understory'].includes(f.foliageLod)));}}
  if(!label.startsWith('before')){if(await page.locator('#rv-camera').count()){await openTravel(page);await page.locator('#rv-camera').selectOption('close');}else await page.mouse.wheel(0,-260);await page.waitForTimeout(900);await hold(['KeyW'],1000,'06-current-jog');}
  assert.deepEqual(errors,[]);status='passed';
 }catch(e){errors.push(String(e));console.log(String(e));}
