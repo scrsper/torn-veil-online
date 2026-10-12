@@ -10,7 +10,7 @@ import { RealmRenderer } from './render';
 import type { RealmSnapshot } from '../../sim/world/realms/session';
 import type { InteractionCommand } from '../net/messages';
 import { marchObstruction } from '../game/adaptiveCamera';
-import { primaryCamera, attachOrbit, cameraRelativeMove, travelFacing, smoothYaw, groundViewYaw } from './thirdPerson';
+import { primaryCamera, attachOrbit, cameraRelativeMove, travelFacing, smoothYaw, groundViewYaw, walkingMove } from './thirdPerson';
 import './style.css';
 import {Vfx} from '../arena/vfx';
 import {ObservedArcaneEffects} from '../actors/arcaneEffects';
@@ -185,7 +185,7 @@ export async function startRealms(): Promise<void> {
       if (keys.has('ArrowUp')) view.camera.addLook(0, -dt); if (keys.has('ArrowDown')) view.camera.addLook(0, dt);
       if (inputAccumulator >= .05 && !transitioning && !s.expedition?.active) {
         inputAccumulator = 0;
-        const move = cameraRelativeMove(journal || s.pending ? 0 : right, journal || s.pending ? 0 : forward, movementYaw);
+        const move = walkingMove(cameraRelativeMove(journal || s.pending ? 0 : right, journal || s.pending ? 0 : forward, movementYaw),keys.has('AltLeft')||keys.has('AltRight'),keys.has('ShiftLeft')||keys.has('ShiftRight'));
         const target=s.residents.find(r=>r.visual.bodyId===targetId),face=keys.has('KeyQ')||keys.has('KeyG')||mouseGuard;
         const active=!!(move.x||move.z||face||keys.has('KeyC'));
         if(active||inputWasActive)command({ type: 'move', ...move, facing: face ? target?Math.atan2(s.body.pos.x-target.pos.x,s.body.pos.z-target.pos.z):view.camera.renderedYaw : travelFacing(move), sprint: keys.has('ShiftLeft') || keys.has('ShiftRight'),crouch:keys.has('KeyC') });
@@ -193,7 +193,7 @@ export async function startRealms(): Promise<void> {
         if(!journal&&(keys.has('KeyG')||mouseGuard))command({type:'guard',held:true});
       }
       if (!avatar) {
-        avatar = people.create(s.avatar, atmosphere) ?? (factory.ready ? factory.create(ctx.scene, atmosphere, s.body.id, realize(s.person.id, s.avatar.appearance?.description, undefined)) : null);
+        avatar = people.create(s.avatar, atmosphere, undefined, 'player') ?? (factory.ready ? factory.create(ctx.scene, atmosphere, s.body.id, realize(s.person.id, s.avatar.appearance?.description, undefined)) : null);
         avatar?.root.position.set(s.body.pos.x - renderer.origin.x, s.body.pos.y, s.body.pos.z - renderer.origin.z);
         if (avatar) avatar.root.rotation.y = s.body.yaw;
       }

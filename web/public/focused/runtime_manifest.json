@@ -1,0 +1,4290 @@
+{
+  "schema": "tornveil.focused-runtime-handoff",
+  "schema_version": 1,
+  "scope": "Packaging existing approved/static-audited assets only. No game, world assembly, procedural generation, publishing or PC import performed.",
+  "units": "meters",
+  "import_scale": 1,
+  "source_axes": "right-handed Z-up; +Y forward",
+  "glb_axes": "right-handed Y-up",
+  "source_to_glb_xyz": "[x,y,z] -> [x,z,-y]",
+  "transform_convention": "Column vectors. Source yaw in degrees around +Z. Convert matrices with C M C^-1. Do not convert GLB axes twice.",
+  "collision_contract": {
+    "visual_geometry": "Actual exported meshes, including walls, roofs, door leaves, furniture, trunks, branches and canopies.",
+    "declared_boxes": "Authoring intent only. Boxes do not replace the triangle audit or engine-specific cooking.",
+    "navigation": "No engine navmesh or gameplay controller is bundled. Source graph is intent; natural terrain requires triangle support and walkable_routes.",
+    "soft_geometry": "See each clearance report for explicit soft foliage/decor exclusions.",
+    "doors": "Authored open poses. Door animation and a closed-state traversal system are not included.",
+    "terrain": "If replace_floor_meshes is true, do not instantiate legacy floor cells over terrain_meshes."
+  },
+  "player_assumption": {
+    "nominal_height_m": 2.1,
+    "vertical_envelope_m": 2.15,
+    "nominal_radius_m": 0.4,
+    "radial_margin_m": 0.05,
+    "horizontal_envelope_m": 0.9,
+    "proportion_heads": 9.5,
+    "eye_height_m": 1.98,
+    "provisional_not_user_measured": true
+  },
+  "assets": [
+    {
+      "id": "tv_26_05_timber_house",
+      "role": "home",
+      "glb": "exports/tv_26_05_timber_house.glb",
+      "metadata": "metadata/tv_26_05_timber_house.json",
+      "glb_sha256": "442f9e909d800be12c7957a99b8784f56abdd136ccf97e5e043bb15533ad42dd",
+      "metadata_sha256": "9169da27c70d0a57a584741b00de6c0a1909960c651b266a2febcb991f72a714",
+      "strict_static_access_passed": true,
+      "runtime_controller_tested": false,
+      "printed_levels": [
+        0
+      ],
+      "connectors": [
+        {
+          "id": "backdoor",
+          "source_position_m": [
+            -3.6826621301374898,
+            6.610430060142637,
+            0.0
+          ],
+          "source_outward": [
+            -0.0,
+            1.0,
+            0
+          ],
+          "gltf_position_m": [
+            -3.6826621301374898,
+            0.0,
+            -6.610430060142637
+          ],
+          "gltf_outward": [
+            -0.0,
+            0,
+            -1.0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1.0,
+              -0.0,
+              0,
+              -3.6826621301374898
+            ],
+            [
+              0.0,
+              1.0,
+              0,
+              6.610430060142637
+            ],
+            [
+              0,
+              0,
+              1,
+              0.0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 1.154035862068966,
+          "clear_height_m": null,
+          "profile": null,
+          "support_width_m": null,
+          "connection_semantics": "house entrance threshold; not certified 4m external seam"
+        },
+        {
+          "id": "frontdoor",
+          "source_position_m": [
+            0.14489014572457926,
+            -5.622350077788398,
+            0.0
+          ],
+          "source_outward": [
+            -0.0,
+            -1.0,
+            0
+          ],
+          "gltf_position_m": [
+            0.14489014572457926,
+            0.0,
+            5.622350077788398
+          ],
+          "gltf_outward": [
+            -0.0,
+            0,
+            1.0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1.0,
+              -0.0,
+              0,
+              0.14489014572457926
+            ],
+            [
+              0.0,
+              -1.0,
+              0,
+              -5.622350077788398
+            ],
+            [
+              0,
+              0,
+              1,
+              0.0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 1.3463751724137936,
+          "clear_height_m": null,
+          "profile": null,
+          "support_width_m": null,
+          "connection_semantics": "house entrance threshold; not certified 4m external seam"
+        },
+        {
+          "id": "porchdoor",
+          "source_position_m": [
+            -6.490816061171973,
+            -0.7561655260642599,
+            0.0
+          ],
+          "source_outward": [
+            -1.0,
+            0.0,
+            0
+          ],
+          "gltf_position_m": [
+            -6.490816061171973,
+            0.0,
+            0.7561655260642599
+          ],
+          "gltf_outward": [
+            -1.0,
+            0,
+            -0.0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0.0,
+              -1.0,
+              0,
+              -6.490816061171973
+            ],
+            [
+              1.0,
+              0.0,
+              0,
+              -0.7561655260642599
+            ],
+            [
+              0,
+              0,
+              1,
+              0.0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 1.2694394482758629,
+          "clear_height_m": null,
+          "profile": null,
+          "support_width_m": null,
+          "connection_semantics": "house entrance threshold; not certified 4m external seam"
+        }
+      ],
+      "collision_intent": "Use exact exported meshes for static collision; no certified simplified collision hull bundled. Exclude scale guide from gameplay collision. Preserve authored open-door poses.",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          0.14489014572457926,
+          -6.872350077788398,
+          0.0
+        ],
+        "gltf_feet_position_m": [
+          0.14489014572457926,
+          0.0,
+          6.872350077788398
+        ],
+        "basis": "source static-audit start_position",
+        "runtime_validated": false,
+        "required_checks": "Ground raycast and final controller capsule overlap/sweep; source start is exterior and needs continuous town support."
+      }
+    },
+    {
+      "id": "tv_36_10_city_street",
+      "role": "town_street",
+      "glb": "exports/tv_36_10_city_street.glb",
+      "metadata": "assemblies/tv_36_10_city_street.json",
+      "glb_sha256": "eb93fd33def8a62fe02ed555f27d9e56e89a453c299f9df0cb41011024dc9075",
+      "metadata_sha256": "d6c507d5477ceccb6eb3032acff70f86975ccb2c706a04219e3e506d6d7e5162",
+      "static_audit": "validation/tv_36_10_city_street.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -22,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            22
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -22
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            0,
+            22,
+            0
+          ],
+          "source_outward": [
+            0,
+            1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            -22
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            -1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              22
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P02",
+          "source_position_m": [
+            -14,
+            0,
+            0
+          ],
+          "source_outward": [
+            -1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            -14,
+            0,
+            0
+          ],
+          "gltf_outward": [
+            -1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              -1,
+              0,
+              -14
+            ],
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P03",
+          "source_position_m": [
+            -6,
+            -20,
+            0
+          ],
+          "source_outward": [
+            -1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            -6,
+            0,
+            20
+          ],
+          "gltf_outward": [
+            -1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              -1,
+              0,
+              -6
+            ],
+            [
+              1,
+              0,
+              0,
+              -20
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "profile": "doorway_bay_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P04",
+          "source_position_m": [
+            6,
+            -20,
+            0
+          ],
+          "source_outward": [
+            1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            6,
+            0,
+            20
+          ],
+          "gltf_outward": [
+            1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              1,
+              0,
+              6
+            ],
+            [
+              -1,
+              0,
+              0,
+              -20
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "profile": "doorway_bay_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P05",
+          "source_position_m": [
+            -6,
+            -12,
+            0
+          ],
+          "source_outward": [
+            -1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            -6,
+            0,
+            12
+          ],
+          "gltf_outward": [
+            -1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              -1,
+              0,
+              -6
+            ],
+            [
+              1,
+              0,
+              0,
+              -12
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "profile": "doorway_bay_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P06",
+          "source_position_m": [
+            6,
+            -12,
+            0
+          ],
+          "source_outward": [
+            1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            6,
+            0,
+            12
+          ],
+          "gltf_outward": [
+            1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              1,
+              0,
+              6
+            ],
+            [
+              -1,
+              0,
+              0,
+              -12
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "profile": "doorway_bay_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P07",
+          "source_position_m": [
+            -6,
+            -4,
+            0
+          ],
+          "source_outward": [
+            -1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            -6,
+            0,
+            4
+          ],
+          "gltf_outward": [
+            -1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              -1,
+              0,
+              -6
+            ],
+            [
+              1,
+              0,
+              0,
+              -4
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "profile": "doorway_bay_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P08",
+          "source_position_m": [
+            6,
+            -4,
+            0
+          ],
+          "source_outward": [
+            1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            6,
+            0,
+            4
+          ],
+          "gltf_outward": [
+            1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              1,
+              0,
+              6
+            ],
+            [
+              -1,
+              0,
+              0,
+              -4
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "profile": "doorway_bay_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P09",
+          "source_position_m": [
+            -6,
+            4,
+            0
+          ],
+          "source_outward": [
+            -1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            -6,
+            0,
+            -4
+          ],
+          "gltf_outward": [
+            -1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              -1,
+              0,
+              -6
+            ],
+            [
+              1,
+              0,
+              0,
+              4
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "profile": "doorway_bay_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P10",
+          "source_position_m": [
+            6,
+            4,
+            0
+          ],
+          "source_outward": [
+            1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            6,
+            0,
+            -4
+          ],
+          "gltf_outward": [
+            1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              1,
+              0,
+              6
+            ],
+            [
+              -1,
+              0,
+              0,
+              4
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "profile": "doorway_bay_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P11",
+          "source_position_m": [
+            -6,
+            12,
+            0
+          ],
+          "source_outward": [
+            -1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            -6,
+            0,
+            -12
+          ],
+          "gltf_outward": [
+            -1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              -1,
+              0,
+              -6
+            ],
+            [
+              1,
+              0,
+              0,
+              12
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "profile": "doorway_bay_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P12",
+          "source_position_m": [
+            6,
+            12,
+            0
+          ],
+          "source_outward": [
+            1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            6,
+            0,
+            -12
+          ],
+          "gltf_outward": [
+            1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              1,
+              0,
+              6
+            ],
+            [
+              -1,
+              0,
+              0,
+              12
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "profile": "doorway_bay_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P13",
+          "source_position_m": [
+            -6,
+            20,
+            0
+          ],
+          "source_outward": [
+            -1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            -6,
+            0,
+            -20
+          ],
+          "gltf_outward": [
+            -1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              -1,
+              0,
+              -6
+            ],
+            [
+              1,
+              0,
+              0,
+              20
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "profile": "doorway_bay_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P14",
+          "source_position_m": [
+            6,
+            20,
+            0
+          ],
+          "source_outward": [
+            1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            6,
+            0,
+            -20
+          ],
+          "gltf_outward": [
+            1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              1,
+              0,
+              6
+            ],
+            [
+              -1,
+              0,
+              0,
+              20
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "profile": "doorway_bay_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_36_10_city_street.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          0.0,
+          -21.2,
+          0.0
+        ],
+        "gltf_feet_position_m": [
+          0.0,
+          0.0,
+          21.2
+        ],
+        "basis": "0.8m inward from first passed connector, candidate only",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    },
+    {
+      "id": "tv_31_01_tavern",
+      "role": "tavern",
+      "glb": "exports/tv_31_01_tavern.glb",
+      "metadata": "assemblies/tv_31_01_tavern.json",
+      "glb_sha256": "9f527fab0e3c2e42de5f157a236311fb76184efd425578bd4fb779b91652202e",
+      "metadata_sha256": "ba5632666fbe4c8d5bd24c098b630d83906ba91c8d22d8b06c761b971f1874b1",
+      "static_audit": "validation/tv_31_01_tavern.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -6,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            6
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -6
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            0,
+            14,
+            0
+          ],
+          "source_outward": [
+            0,
+            1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            -14
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            -1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              14
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_31_01_tavern.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          3.4000000000000004,
+          7.6000000000000005,
+          0.0
+        ],
+        "gltf_feet_position_m": [
+          3.4000000000000004,
+          0.0,
+          -7.6000000000000005
+        ],
+        "basis": "passed static audit target sample",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    },
+    {
+      "id": "tv_32_01_general_store",
+      "role": "shop",
+      "glb": "exports/tv_32_01_general_store.glb",
+      "metadata": "assemblies/tv_32_01_general_store.json",
+      "glb_sha256": "07d1c2634112b02331d1e7ace7de33be8c61b96db5236459b83742d7e3bb348e",
+      "metadata_sha256": "f957c29dd75d1f64b9a5bc0381c93566a7376eec88bd39b250480940e79814f9",
+      "static_audit": "validation/tv_32_01_general_store.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -6,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            6
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -6
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            0,
+            14,
+            0
+          ],
+          "source_outward": [
+            0,
+            1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            -14
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            -1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              14
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_32_01_general_store.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          -2.4000000000000004,
+          0.2,
+          0.06499999761581421
+        ],
+        "gltf_feet_position_m": [
+          -2.4000000000000004,
+          0.06499999761581421,
+          -0.2
+        ],
+        "basis": "passed static audit target sample",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    },
+    {
+      "id": "tv_03_01_ruined_cloister",
+      "role": "nearby_ruins",
+      "glb": "exports/tv_03_01_ruined_cloister.glb",
+      "metadata": "assemblies/tv_03_01_ruined_cloister.json",
+      "glb_sha256": "29bda59dcb27393aa45c399ce96e5d91f3282bcc8e7fbc58ae83893c247f9d04",
+      "metadata_sha256": "07faff21eb113d66afefc344995d34cd412704b40e3812f751ab9798641f6bc7",
+      "static_audit": "validation/tv_03_01_ruined_cloister.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -18,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            18
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -18
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            0,
+            18,
+            0
+          ],
+          "source_outward": [
+            0,
+            1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            -18
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            -1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              18
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_03_01_ruined_cloister.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          22.400000000000002,
+          -15.8,
+          0.0625
+        ],
+        "gltf_feet_position_m": [
+          22.400000000000002,
+          0.0625,
+          15.8
+        ],
+        "basis": "passed static audit target sample",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    },
+    {
+      "id": "tv_47_01_pine_forest",
+      "role": "forest_path",
+      "glb": "exports/tv_47_01_pine_forest.glb",
+      "metadata": "assemblies/tv_47_01_pine_forest.json",
+      "glb_sha256": "da565c728757c3f9f2141970554a2b5ac441fabc3674950aed5b4e44901bd4c2",
+      "metadata_sha256": "c0e06c9292994a46827bd94f0e5ff5b3e0d9ada9a7aa6fa3b7d2efa1896ace2c",
+      "static_audit": "validation/tv_47_01_pine_forest.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -26,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            26
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -26
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            0,
+            26,
+            0
+          ],
+          "source_outward": [
+            0,
+            1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            -26
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            -1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              26
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P02",
+          "source_position_m": [
+            -26,
+            0,
+            0
+          ],
+          "source_outward": [
+            -1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            -26,
+            0,
+            0
+          ],
+          "gltf_outward": [
+            -1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              -1,
+              0,
+              -26
+            ],
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P03",
+          "source_position_m": [
+            26,
+            0,
+            0
+          ],
+          "source_outward": [
+            1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            26,
+            0,
+            0
+          ],
+          "gltf_outward": [
+            1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              1,
+              0,
+              26
+            ],
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_47_01_pine_forest.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          -10.4,
+          -12.0,
+          0.33440580368041994
+        ],
+        "gltf_feet_position_m": [
+          -10.4,
+          0.33440580368041994,
+          12.0
+        ],
+        "basis": "passed static audit target sample",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    },
+    {
+      "id": "tv_47_03_pine_forest",
+      "role": "forest_path",
+      "glb": "exports/tv_47_03_pine_forest.glb",
+      "metadata": "assemblies/tv_47_03_pine_forest.json",
+      "glb_sha256": "0c8a41e19383b0ee9fbb37ecea47b049e6b9d4858670d8481e5b757834dd0a3e",
+      "metadata_sha256": "731e39b3e64e1294fdd3b456cdc361235393e2838818fda45a16246fe0009d6e",
+      "static_audit": "validation/tv_47_03_pine_forest.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -30,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            30
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -30
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            -16,
+            26,
+            0
+          ],
+          "source_outward": [
+            0,
+            1,
+            0
+          ],
+          "gltf_position_m": [
+            -16,
+            0,
+            -26
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            -1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1,
+              0,
+              0,
+              -16
+            ],
+            [
+              0,
+              1,
+              0,
+              26
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P02",
+          "source_position_m": [
+            22,
+            16,
+            0
+          ],
+          "source_outward": [
+            1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            22,
+            0,
+            -16
+          ],
+          "gltf_outward": [
+            1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              1,
+              0,
+              22
+            ],
+            [
+              -1,
+              0,
+              0,
+              16
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_47_03_pine_forest.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          -6.4,
+          11.4,
+          0.0003754004836082287
+        ],
+        "gltf_feet_position_m": [
+          -6.4,
+          0.0003754004836082287,
+          -11.4
+        ],
+        "basis": "passed static audit target sample",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    },
+    {
+      "id": "tv_48_01_broadleaf_forest",
+      "role": "forest_path",
+      "glb": "exports/tv_48_01_broadleaf_forest.glb",
+      "metadata": "assemblies/tv_48_01_broadleaf_forest.json",
+      "glb_sha256": "5a2ff56eb3839275ac9ba5fc1fcdcb152e4487c35b5940a028868950ccfcf123",
+      "metadata_sha256": "eef817f209a0711a6df47663e4ab5a94347614f15e4a10bef560d1d8b60bfdd1",
+      "static_audit": "validation/tv_48_01_broadleaf_forest.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -26,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            26
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -26
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            30,
+            0,
+            0
+          ],
+          "source_outward": [
+            1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            30,
+            0,
+            0
+          ],
+          "gltf_outward": [
+            1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              1,
+              0,
+              30
+            ],
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_48_01_broadleaf_forest.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          -15.0,
+          0.0,
+          -0.1362919956445694
+        ],
+        "gltf_feet_position_m": [
+          -15.0,
+          -0.1362919956445694,
+          -0.0
+        ],
+        "basis": "passed static audit target sample",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    },
+    {
+      "id": "tv_43_01_tower_stairwell",
+      "role": "tower_entrance",
+      "glb": "exports/tv_43_01_tower_stairwell.glb",
+      "metadata": "assemblies/tv_43_01_tower_stairwell.json",
+      "glb_sha256": "10817e54c86a9922eb67957fb37536745c7413f7a3b25ddf7c8e4847c96790c4",
+      "metadata_sha256": "2c743633fff5b22ed567b12bbd4b50e72187edf86ac8bb419757635d8cd1006d",
+      "static_audit": "validation/tv_43_01_tower_stairwell.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -10,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            10
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -10
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            0,
+            14,
+            2.4
+          ],
+          "source_outward": [
+            0,
+            1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            2.4,
+            -14
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            -1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              14
+            ],
+            [
+              0,
+              0,
+              1,
+              2.4
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_43_01_tower_stairwell.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          0.0,
+          -9.2,
+          0.0
+        ],
+        "gltf_feet_position_m": [
+          0.0,
+          0.0,
+          9.2
+        ],
+        "basis": "0.8m inward from first passed connector, candidate only",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    },
+    {
+      "id": "tv_19_01_tower_hall",
+      "role": "tower_halls",
+      "glb": "exports/tv_19_01_tower_hall.glb",
+      "metadata": "assemblies/tv_19_01_tower_hall.json",
+      "glb_sha256": "890f1f0cb1b6d2cd106aaa74bc7cfa96ac0d284fb4c5635da62865a0db71f2c4",
+      "metadata_sha256": "63351cdb99e9d8a399d54d3862982ab0a6341e4828316c82dfb0c73425ed65a1",
+      "static_audit": "validation/tv_19_01_tower_hall.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -18,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            18
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -18
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            0,
+            18,
+            0
+          ],
+          "source_outward": [
+            0,
+            1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            -18
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            -1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              18
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_19_01_tower_hall.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          8.0,
+          -15.8,
+          0.0
+        ],
+        "gltf_feet_position_m": [
+          8.0,
+          0.0,
+          15.8
+        ],
+        "basis": "passed static audit target sample",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    },
+    {
+      "id": "tv_19_02_tower_hall",
+      "role": "tower_halls",
+      "glb": "exports/tv_19_02_tower_hall.glb",
+      "metadata": "assemblies/tv_19_02_tower_hall.json",
+      "glb_sha256": "7bec1f128e3fb02d9d7011a9dd3955dcbfada449ad6b2912788385d0640d6635",
+      "metadata_sha256": "3e7bee342656013a23868c4cb89d1e7f2854cb011907f4d1faa265a3a9056560",
+      "static_audit": "validation/tv_19_02_tower_hall.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -22,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            22
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -22
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            0,
+            22,
+            0
+          ],
+          "source_outward": [
+            0,
+            1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            -22
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            -1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              22
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_19_02_tower_hall.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          -7.800000000000001,
+          -19.8,
+          0.0625
+        ],
+        "gltf_feet_position_m": [
+          -7.800000000000001,
+          0.0625,
+          19.8
+        ],
+        "basis": "passed static audit target sample",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    },
+    {
+      "id": "tv_19_03_tower_hall",
+      "role": "tower_halls",
+      "glb": "exports/tv_19_03_tower_hall.glb",
+      "metadata": "assemblies/tv_19_03_tower_hall.json",
+      "glb_sha256": "fcbf0af92f67c94688852841de948bbd6e2ca36ec1c93faf79217333d7b952f8",
+      "metadata_sha256": "84620c656c6b6f4997c42992d5c68e725d4578a7687f5e7a4f606cbe505a82fc",
+      "static_audit": "validation/tv_19_03_tower_hall.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -26,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            26
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -26
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            0,
+            26,
+            0
+          ],
+          "source_outward": [
+            0,
+            1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            -26
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            -1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              26
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_19_03_tower_hall.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          16.0,
+          -19.8,
+          0.0
+        ],
+        "gltf_feet_position_m": [
+          16.0,
+          0.0,
+          19.8
+        ],
+        "basis": "passed static audit target sample",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    },
+    {
+      "id": "tv_44_01_dungeon_junction",
+      "role": "tower_junctions",
+      "glb": "exports/tv_44_01_dungeon_junction.glb",
+      "metadata": "assemblies/tv_44_01_dungeon_junction.json",
+      "glb_sha256": "3df2f5e195aa8c5f9244b6edb594afb6ce5d3f918677638d6a326ff48b0aca2e",
+      "metadata_sha256": "ace615610c255c01cfd25fa0790d4d91f695b154bbe2a8abdd248aa0befadc86",
+      "static_audit": "validation/tv_44_01_dungeon_junction.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -10,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            10
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -10
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            0,
+            10,
+            0
+          ],
+          "source_outward": [
+            0,
+            1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            -10
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            -1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              10
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P02",
+          "source_position_m": [
+            -10,
+            -4,
+            0
+          ],
+          "source_outward": [
+            -1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            -10,
+            0,
+            4
+          ],
+          "gltf_outward": [
+            -1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              -1,
+              0,
+              -10
+            ],
+            [
+              1,
+              0,
+              0,
+              -4
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P03",
+          "source_position_m": [
+            10,
+            -4,
+            0
+          ],
+          "source_outward": [
+            1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            10,
+            0,
+            4
+          ],
+          "gltf_outward": [
+            1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              1,
+              0,
+              10
+            ],
+            [
+              -1,
+              0,
+              0,
+              -4
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_44_01_dungeon_junction.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          0.0,
+          -9.2,
+          0.0
+        ],
+        "gltf_feet_position_m": [
+          0.0,
+          0.0,
+          9.2
+        ],
+        "basis": "0.8m inward from first passed connector, candidate only",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    },
+    {
+      "id": "tv_44_02_dungeon_junction",
+      "role": "tower_junctions",
+      "glb": "exports/tv_44_02_dungeon_junction.glb",
+      "metadata": "assemblies/tv_44_02_dungeon_junction.json",
+      "glb_sha256": "d84c2dd52c885da8b78f75b6be5c1aebb206f189e7495255270460584cfca16d",
+      "metadata_sha256": "0755972e9d136d4e84c9fb2e7d79cfa9ddeb92789984fcca5d88713c62425a5a",
+      "static_audit": "validation/tv_44_02_dungeon_junction.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -10,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            10
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -10
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            0,
+            10,
+            0
+          ],
+          "source_outward": [
+            0,
+            1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            -10
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            -1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              10
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P02",
+          "source_position_m": [
+            -10,
+            0,
+            0
+          ],
+          "source_outward": [
+            -1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            -10,
+            0,
+            0
+          ],
+          "gltf_outward": [
+            -1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              -1,
+              0,
+              -10
+            ],
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P03",
+          "source_position_m": [
+            10,
+            0,
+            0
+          ],
+          "source_outward": [
+            1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            10,
+            0,
+            0
+          ],
+          "gltf_outward": [
+            1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              1,
+              0,
+              10
+            ],
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_44_02_dungeon_junction.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          0.0,
+          -9.2,
+          0.0
+        ],
+        "gltf_feet_position_m": [
+          0.0,
+          0.0,
+          9.2
+        ],
+        "basis": "0.8m inward from first passed connector, candidate only",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    },
+    {
+      "id": "tv_44_03_dungeon_junction",
+      "role": "tower_junctions",
+      "glb": "exports/tv_44_03_dungeon_junction.glb",
+      "metadata": "assemblies/tv_44_03_dungeon_junction.json",
+      "glb_sha256": "3b98e6f8b0fcb1d45d4adb475286f131b3247a884ed2688c8aa124c04167be5f",
+      "metadata_sha256": "ecb542e282e2dad0020a8151f10fcb22da36abc7598a7780ec3b5f1b368b92bb",
+      "static_audit": "validation/tv_44_03_dungeon_junction.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -10,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            10
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -10
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            0,
+            10,
+            0
+          ],
+          "source_outward": [
+            0,
+            1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            -10
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            -1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              10
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P02",
+          "source_position_m": [
+            -14,
+            0,
+            0
+          ],
+          "source_outward": [
+            -1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            -14,
+            0,
+            0
+          ],
+          "gltf_outward": [
+            -1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              -1,
+              0,
+              -14
+            ],
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P03",
+          "source_position_m": [
+            14,
+            0,
+            0
+          ],
+          "source_outward": [
+            1,
+            0,
+            0
+          ],
+          "gltf_position_m": [
+            14,
+            0,
+            0
+          ],
+          "gltf_outward": [
+            1,
+            0,
+            0
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              0,
+              1,
+              0,
+              14
+            ],
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_44_03_dungeon_junction.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          0.0,
+          -9.2,
+          0.0
+        ],
+        "gltf_feet_position_m": [
+          0.0,
+          0.0,
+          9.2
+        ],
+        "basis": "0.8m inward from first passed connector, candidate only",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    },
+    {
+      "id": "tv_43_02_tower_stairwell",
+      "role": "tower_stairs",
+      "glb": "exports/tv_43_02_tower_stairwell.glb",
+      "metadata": "assemblies/tv_43_02_tower_stairwell.json",
+      "glb_sha256": "8e9dd022029ca99cb4fce48b526ab65d9230d1f020fe37cd881eb73500b928d7",
+      "metadata_sha256": "423e14e7ac138045f5a5c7dd09e86a6dece973e3fd578461c745babc2c04bfaa",
+      "static_audit": "validation/tv_43_02_tower_stairwell.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -10,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            10
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -10
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            0,
+            18,
+            3.5999999999999996
+          ],
+          "source_outward": [
+            0,
+            1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            3.5999999999999996,
+            -18
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            -1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              18
+            ],
+            [
+              0,
+              0,
+              1,
+              3.5999999999999996
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_43_02_tower_stairwell.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          0.0,
+          -9.2,
+          0.0
+        ],
+        "gltf_feet_position_m": [
+          0.0,
+          0.0,
+          9.2
+        ],
+        "basis": "0.8m inward from first passed connector, candidate only",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    },
+    {
+      "id": "tv_43_03_tower_stairwell",
+      "role": "tower_stairs",
+      "glb": "exports/tv_43_03_tower_stairwell.glb",
+      "metadata": "assemblies/tv_43_03_tower_stairwell.json",
+      "glb_sha256": "37567d945af73cff643b96847ff41320b03fcb7f109b5f8b60cc7b1939c2823c",
+      "metadata_sha256": "55d6f8e80f8f324196250d9a1c493dfaab1b2adc394951f1e330a02800fbd330",
+      "static_audit": "validation/tv_43_03_tower_stairwell.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -10,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            10
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -10
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            0,
+            22,
+            4.8
+          ],
+          "source_outward": [
+            0,
+            1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            4.8,
+            -22
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            -1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              22
+            ],
+            [
+              0,
+              0,
+              1,
+              4.8
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_43_03_tower_stairwell.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          0.0,
+          -9.2,
+          0.0
+        ],
+        "gltf_feet_position_m": [
+          0.0,
+          0.0,
+          9.2
+        ],
+        "basis": "0.8m inward from first passed connector, candidate only",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    },
+    {
+      "id": "tv_07_01_crypt_rooms",
+      "role": "tower_side_rooms",
+      "glb": "exports/tv_07_01_crypt_rooms.glb",
+      "metadata": "assemblies/tv_07_01_crypt_rooms.json",
+      "glb_sha256": "8f8a9d432792bf95523b627f8930f2ad495a32b06d8cef805b0459e46f478362",
+      "metadata_sha256": "2319231fb8357844247f0def2e25c52b67596c35fa0c698215097a6c057aa0fe",
+      "static_audit": "validation/tv_07_01_crypt_rooms.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -18,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            18
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -18
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            0,
+            18,
+            0
+          ],
+          "source_outward": [
+            0,
+            1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            -18
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            -1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              18
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_07_01_crypt_rooms.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          -1.4000000000000001,
+          -11.4,
+          0.0625
+        ],
+        "gltf_feet_position_m": [
+          -1.4000000000000001,
+          0.0625,
+          11.4
+        ],
+        "basis": "passed static audit target sample",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    },
+    {
+      "id": "tv_20_01_cellar_vaults",
+      "role": "tower_side_rooms",
+      "glb": "exports/tv_20_01_cellar_vaults.glb",
+      "metadata": "assemblies/tv_20_01_cellar_vaults.json",
+      "glb_sha256": "641a929b720ea8cf5d58742955ffc544911d3cddc6552615b83b876d3df81b6a",
+      "metadata_sha256": "f695652bacb0ab98fad6d6add809bb37c471623edbaba6d787c7c36fae7f6e90",
+      "static_audit": "validation/tv_20_01_cellar_vaults.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -18,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            18
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -18
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            0,
+            18,
+            0
+          ],
+          "source_outward": [
+            0,
+            1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            -18
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            -1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              18
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_20_01_cellar_vaults.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          8.0,
+          -15.8,
+          0.0
+        ],
+        "gltf_feet_position_m": [
+          8.0,
+          0.0,
+          15.8
+        ],
+        "basis": "passed static audit target sample",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    },
+    {
+      "id": "tv_02_01_archive_room",
+      "role": "tower_side_rooms",
+      "glb": "exports/tv_02_01_archive_room.glb",
+      "metadata": "assemblies/tv_02_01_archive_room.json",
+      "glb_sha256": "0ba23d18ae5ee73e0979b23232544dfac287a91c2b15f848ba1c4698ba396eb1",
+      "metadata_sha256": "ea7d2d1f55d6e334cebc5464196c267b4d97aeb90519612dc60aac53072b5358",
+      "static_audit": "validation/tv_02_01_archive_room.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -10,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            10
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -10
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            0,
+            6,
+            0
+          ],
+          "source_outward": [
+            0,
+            1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            -6
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            -1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              6
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4.0,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_02_01_archive_room.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          0.0,
+          -9.2,
+          0.0
+        ],
+        "gltf_feet_position_m": [
+          0.0,
+          0.0,
+          9.2
+        ],
+        "basis": "0.8m inward from first passed connector, candidate only",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    },
+    {
+      "id": "tv_45_01_boss_hall",
+      "role": "tower_boss_room",
+      "glb": "exports/tv_45_01_boss_hall.glb",
+      "metadata": "assemblies/tv_45_01_boss_hall.json",
+      "glb_sha256": "f8edb4ccee94ced48384a056de19b0eba5f7bd8d1b7a711ddf68ce860fd6881b",
+      "metadata_sha256": "7e713aae1b20f28135fd61039faa4d52e34c4db72772a09bcea0f52ec054a7f9",
+      "static_audit": "validation/tv_45_01_boss_hall.json",
+      "static_required_routes_passed": true,
+      "runtime_controller_tested": false,
+      "connectors": [
+        {
+          "id": "P00",
+          "source_position_m": [
+            0,
+            -10,
+            0
+          ],
+          "source_outward": [
+            0,
+            -1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            10
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              -1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              -1,
+              0,
+              -10
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        },
+        {
+          "id": "P01",
+          "source_position_m": [
+            0,
+            10,
+            0
+          ],
+          "source_outward": [
+            0,
+            1,
+            0
+          ],
+          "gltf_position_m": [
+            0,
+            0,
+            -10
+          ],
+          "gltf_outward": [
+            0,
+            0,
+            -1
+          ],
+          "source_frame_matrix_row_major": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              10
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ],
+          "frame_local_axes": "X=right, Y=outward, Z=up",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8,
+          "profile": "walkway_4m",
+          "support_width_m": 4,
+          "connection_semantics": "walkable space seam; assembled join still requires validation"
+        }
+      ],
+      "collision_intent_path": "assemblies/tv_45_01_boss_hall.json#/collision_primitives",
+      "safe_spawn_suggestion": {
+        "source_feet_position_m": [
+          0.0,
+          -9.2,
+          0.0
+        ],
+        "gltf_feet_position_m": [
+          0.0,
+          0.0,
+          9.2
+        ],
+        "basis": "0.8m inward from first passed connector, candidate only",
+        "runtime_validated": false,
+        "required_checks": "Raycast upward-facing support, place final capsule feet on support, sweep clearance and verify grounded stability. Reject obstructed candidate; do not spawn at bounding-box center."
+      }
+    }
+  ],
+  "components_catalog": "components/component_catalog.json",
+  "roles": {
+    "town_street": [
+      "tv_36_10_city_street"
+    ],
+    "tavern": [
+      "tv_31_01_tavern"
+    ],
+    "shop": [
+      "tv_32_01_general_store"
+    ],
+    "nearby_ruins": [
+      "tv_03_01_ruined_cloister"
+    ],
+    "forest_path": [
+      "tv_47_01_pine_forest",
+      "tv_47_03_pine_forest",
+      "tv_48_01_broadleaf_forest"
+    ],
+    "tower_entrance": [
+      "tv_43_01_tower_stairwell"
+    ],
+    "tower_halls": [
+      "tv_19_01_tower_hall",
+      "tv_19_02_tower_hall",
+      "tv_19_03_tower_hall"
+    ],
+    "tower_junctions": [
+      "tv_44_01_dungeon_junction",
+      "tv_44_02_dungeon_junction",
+      "tv_44_03_dungeon_junction"
+    ],
+    "tower_stairs": [
+      "tv_43_02_tower_stairwell",
+      "tv_43_03_tower_stairwell"
+    ],
+    "tower_side_rooms": [
+      "tv_07_01_crypt_rooms",
+      "tv_20_01_cellar_vaults",
+      "tv_02_01_archive_room"
+    ],
+    "tower_boss_room": [
+      "tv_45_01_boss_hall"
+    ],
+    "home": [
+      "tv_26_05_timber_house"
+    ]
+  },
+  "tower_identity": "Tower of Chrysanthus is the consuming game name for existing Tower kit. No bespoke exterior or 100-floor vertical shell is supplied.",
+  "controller_certified": false,
+  "joined_world_certified": false,
+  "seeded_floor_guidance": {
+    "desired_floor_count": 100,
+    "status": "Input asset pool only; no seeded floors generated or certified",
+    "seed_contract_suggestion": "Store worldSeed, floorIndex (1..100), generatorVersion and selected asset IDs/transforms. Use a fixed documented PRNG in the consuming game.",
+    "allowed_source_yaw_degrees": [
+      0,
+      90,
+      180,
+      270
+    ],
+    "assembly_rule": "Match port position and elevation, opposite outward normals, compatible support band and aperture; apply transforms to geometry and metadata. Reject any non-seam geometry overlap and disconnected support. Preserve at least one entrance-to-exit route.",
+    "height_rule": "Read stair upper-port Z values (2.4/3.6/4.8m); do not assume constant story height or stack overlapping shells. Separate floor instances/loading is an implementation option, not an authored asset feature.",
+    "branch_rule": "Unused connectors require validated existing-component closure or an inaccessible boundary. Raw rooms expose open ports; no automatically sealed layout is supplied.",
+    "variation_rule": "Use included audited hall/junction/stair/side-room variants. Validate every assembled layout and final controller; do not invent replacement geometry when assembly fails."
+  },
+  "limitations": [
+    "Static sampled clearance is not final controller, camera, animated-door, interaction, navmesh or connected-world certification.",
+    "House connectors are corrected, nongrid doorway thresholds; old V2 house transforms and 4m seam assumptions are invalid. Home-to-street support and collision require separate runtime integration.",
+    "Loose components retain authoring collider intent; colliders may be absent/incomplete and need engine cooking.",
+    "Natural terrain uses actual terrain_meshes and walkable_routes. Never duplicate legacy floor cells when replace_floor_meshes is true.",
+    "Only selected source assets are included. Metadata placements are descriptive of baked GLBs, not a request to instantiate a second copy."
+  ]
+}

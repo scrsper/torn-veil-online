@@ -1,0 +1,1499 @@
+{
+  "id": "tv_43_03_tower_stairwell",
+  "name": "Tower Stairwell 03",
+  "archetype": "tower_stairwell",
+  "mode": "tower_stairwell",
+  "biome": "crypt",
+  "seed": 482166,
+  "variant": 2,
+  "grid_m": 4.0,
+  "floors": [
+    {
+      "x": -1,
+      "y": -2,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": -1,
+      "y": -1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": -1,
+      "y": 4,
+      "z": 4.8,
+      "kind": "stone"
+    },
+    {
+      "x": -1,
+      "y": 5,
+      "z": 4.8,
+      "kind": "stone"
+    },
+    {
+      "x": 0,
+      "y": -2,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 0,
+      "y": -1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "kind": "stairs",
+      "rise": 1.2,
+      "direction": 1
+    },
+    {
+      "x": 0,
+      "y": 1,
+      "z": 1.2,
+      "kind": "stairs",
+      "rise": 1.2,
+      "direction": 1
+    },
+    {
+      "x": 0,
+      "y": 2,
+      "z": 2.4,
+      "kind": "stairs",
+      "rise": 1.2,
+      "direction": 1
+    },
+    {
+      "x": 0,
+      "y": 3,
+      "z": 3.5999999999999996,
+      "kind": "stairs",
+      "rise": 1.2,
+      "direction": 1
+    },
+    {
+      "x": 0,
+      "y": 4,
+      "z": 4.8,
+      "kind": "stone"
+    },
+    {
+      "x": 0,
+      "y": 5,
+      "z": 4.8,
+      "kind": "stone"
+    },
+    {
+      "x": 1,
+      "y": -2,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 1,
+      "y": -1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "z": 4.8,
+      "kind": "stone"
+    },
+    {
+      "x": 1,
+      "y": 5,
+      "z": 4.8,
+      "kind": "stone"
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "z": 4.8,
+      "kind": "stone"
+    },
+    {
+      "x": 2,
+      "y": 5,
+      "z": 4.8,
+      "kind": "stone"
+    },
+    {
+      "x": 3,
+      "y": 4,
+      "z": 4.8,
+      "kind": "stone"
+    },
+    {
+      "x": 3,
+      "y": 5,
+      "z": 4.8,
+      "kind": "stone"
+    }
+  ],
+  "placements": [
+    {
+      "asset": "altar",
+      "position": [
+        8,
+        20,
+        4.8
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "rampart_mass",
+      "position": [
+        -4,
+        16,
+        1.1999999999999997
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "rampart_mass",
+      "position": [
+        -4,
+        20,
+        1.1999999999999997
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "stair_stringer",
+      "position": [
+        -1.8,
+        0,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "stair_stringer",
+      "position": [
+        1.8,
+        0,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "stair_stringer",
+      "position": [
+        -1.8,
+        4,
+        1.2
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "stair_stringer",
+      "position": [
+        1.8,
+        4,
+        1.2
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "stair_stringer",
+      "position": [
+        -1.8,
+        8,
+        2.4
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "stair_stringer",
+      "position": [
+        1.8,
+        8,
+        2.4
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "stair_stringer",
+      "position": [
+        -1.8,
+        12,
+        3.5999999999999996
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "stair_stringer",
+      "position": [
+        1.8,
+        12,
+        3.5999999999999996
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "rampart_mass",
+      "position": [
+        0,
+        16,
+        1.1999999999999997
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "rampart_mass",
+      "position": [
+        0,
+        20,
+        1.1999999999999997
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "rampart_mass",
+      "position": [
+        4,
+        16,
+        1.1999999999999997
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "rampart_mass",
+      "position": [
+        4,
+        20,
+        1.1999999999999997
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "rampart_mass",
+      "position": [
+        8,
+        16,
+        1.1999999999999997
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "rampart_mass",
+      "position": [
+        8,
+        20,
+        1.1999999999999997
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "rampart_mass",
+      "position": [
+        12,
+        16,
+        1.1999999999999997
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "rampart_mass",
+      "position": [
+        12,
+        20,
+        1.1999999999999997
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "tower_shell_wall",
+      "position": [
+        -6,
+        -8,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "tower_shell_wall",
+      "position": [
+        6,
+        -8,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "tower_shell_wall",
+      "position": [
+        -6,
+        -4,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "tower_shell_wall",
+      "position": [
+        6,
+        -4,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "tower_shell_wall",
+      "position": [
+        -6,
+        0,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "tower_shell_wall",
+      "position": [
+        6,
+        0,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "tower_shell_wall",
+      "position": [
+        -6,
+        4,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "tower_shell_wall",
+      "position": [
+        6,
+        4,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "tower_shell_wall",
+      "position": [
+        -6,
+        8,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "tower_shell_wall",
+      "position": [
+        6,
+        8,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "tower_shell_wall",
+      "position": [
+        -6,
+        12,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "tower_shell_wall",
+      "position": [
+        6,
+        12,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "tower_shell_wall",
+      "position": [
+        -6,
+        16,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "tower_shell_wall",
+      "position": [
+        -6,
+        20,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "lantern_post",
+      "position": [
+        -2.45,
+        -6.45,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "lantern_post",
+      "position": [
+        5.55,
+        17.55,
+        4.8
+      ],
+      "rotation": 0,
+      "scale": 1
+    }
+  ],
+  "walls": [],
+  "ports": [
+    {
+      "cell": [
+        0,
+        -2
+      ],
+      "position": [
+        0,
+        -10,
+        0
+      ],
+      "outward": [
+        0,
+        -1,
+        0
+      ],
+      "width_m": 4,
+      "kind": "walkable",
+      "profile": "walkway_4m",
+      "id": "P00",
+      "clear_width_m": 2.4,
+      "clear_height_m": 2.8
+    },
+    {
+      "cell": [
+        0,
+        5
+      ],
+      "position": [
+        0,
+        22,
+        4.8
+      ],
+      "outward": [
+        0,
+        1,
+        0
+      ],
+      "width_m": 4,
+      "kind": "walkable",
+      "profile": "walkway_4m",
+      "id": "P01",
+      "clear_width_m": 2.4,
+      "clear_height_m": 2.8
+    }
+  ],
+  "regions": [
+    {
+      "type": "tower_vertical_transfer",
+      "elevation_gain_m": 4.8
+    }
+  ],
+  "nav": {
+    "nodes": [
+      [
+        -1,
+        -2
+      ],
+      [
+        -1,
+        -1
+      ],
+      [
+        -1,
+        4
+      ],
+      [
+        -1,
+        5
+      ],
+      [
+        0,
+        -2
+      ],
+      [
+        0,
+        -1
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        4
+      ],
+      [
+        0,
+        5
+      ],
+      [
+        1,
+        -2
+      ],
+      [
+        1,
+        -1
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        3,
+        5
+      ]
+    ],
+    "edges": [
+      [
+        [
+          -1,
+          -2
+        ],
+        [
+          0,
+          -2
+        ]
+      ],
+      [
+        [
+          -1,
+          -2
+        ],
+        [
+          -1,
+          -1
+        ]
+      ],
+      [
+        [
+          -1,
+          -1
+        ],
+        [
+          0,
+          -1
+        ]
+      ],
+      [
+        [
+          -1,
+          4
+        ],
+        [
+          0,
+          4
+        ]
+      ],
+      [
+        [
+          -1,
+          4
+        ],
+        [
+          -1,
+          5
+        ]
+      ],
+      [
+        [
+          -1,
+          5
+        ],
+        [
+          0,
+          5
+        ]
+      ],
+      [
+        [
+          0,
+          -2
+        ],
+        [
+          1,
+          -2
+        ]
+      ],
+      [
+        [
+          0,
+          -2
+        ],
+        [
+          0,
+          -1
+        ]
+      ],
+      [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          -1
+        ]
+      ],
+      [
+        [
+          0,
+          -1
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ]
+      ],
+      [
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ]
+      ],
+      [
+        [
+          0,
+          4
+        ],
+        [
+          1,
+          4
+        ]
+      ],
+      [
+        [
+          0,
+          4
+        ],
+        [
+          0,
+          5
+        ]
+      ],
+      [
+        [
+          0,
+          5
+        ],
+        [
+          1,
+          5
+        ]
+      ],
+      [
+        [
+          1,
+          -2
+        ],
+        [
+          1,
+          -1
+        ]
+      ],
+      [
+        [
+          1,
+          4
+        ],
+        [
+          2,
+          4
+        ]
+      ],
+      [
+        [
+          1,
+          4
+        ],
+        [
+          1,
+          5
+        ]
+      ],
+      [
+        [
+          1,
+          5
+        ],
+        [
+          2,
+          5
+        ]
+      ],
+      [
+        [
+          2,
+          4
+        ],
+        [
+          3,
+          4
+        ]
+      ],
+      [
+        [
+          2,
+          4
+        ],
+        [
+          2,
+          5
+        ]
+      ],
+      [
+        [
+          2,
+          5
+        ],
+        [
+          3,
+          5
+        ]
+      ],
+      [
+        [
+          3,
+          4
+        ],
+        [
+          3,
+          5
+        ]
+      ]
+    ],
+    "agent_height_m": 2.1,
+    "agent_radius_m": 0.4,
+    "semantics": "Surface adjacency intent; requires engine collision/navmesh baking.",
+    "safety_margin_m": 0.05
+  },
+  "structural_sha256": "436ec8d23d333fbd591148b43b7e3ae3c4a8549385d50b926f594b96099d32d2",
+  "player_contract": {
+    "height_m": 2.1,
+    "capsule_radius_m": 0.4,
+    "safety_margin_m": 0.05,
+    "head_count_ratio": 9.5,
+    "provisional_metric_assumption": true,
+    "note": "9.5 heads is a body proportion, not a metric height. Revalidate against the actual game controller."
+  },
+  "family_index": 42,
+  "catalog_index": 422,
+  "category": "tower_dungeon",
+  "coordinate_system": {
+    "units": "meters",
+    "source_up": "Z",
+    "source_forward": "+Y",
+    "glb_up": "Y",
+    "source_to_gltf": "[x,z,-y]"
+  },
+  "ports_gltf_yup": [
+    {
+      "cell": [
+        0,
+        -2
+      ],
+      "position": [
+        0,
+        0,
+        10
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "width_m": 4,
+      "kind": "walkable",
+      "profile": "walkway_4m",
+      "id": "P00",
+      "clear_width_m": 2.4,
+      "clear_height_m": 2.8
+    },
+    {
+      "cell": [
+        0,
+        5
+      ],
+      "position": [
+        0,
+        4.8,
+        -22
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ],
+      "width_m": 4,
+      "kind": "walkable",
+      "profile": "walkway_4m",
+      "id": "P01",
+      "clear_width_m": 2.4,
+      "clear_height_m": 2.8
+    }
+  ],
+  "architectural_sockets": [],
+  "bounds_m": {
+    "min": [
+      -6.375,
+      -10.050000190734863,
+      -0.3199999928474426
+    ],
+    "max": [
+      14.010000228881836,
+      22.049999237060547,
+      7.724999904632568
+    ]
+  },
+  "collision_primitives": [
+    {
+      "kind": "oriented_box",
+      "center": [
+        8.0,
+        20.0,
+        5.5
+      ],
+      "size": [
+        2.5,
+        1.4,
+        1.4
+      ],
+      "rotation_z_degrees": 0,
+      "module": "altar"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -4.0,
+        16.0,
+        3.0
+      ],
+      "size": [
+        4,
+        4,
+        3.6
+      ],
+      "rotation_z_degrees": 0,
+      "module": "rampart_mass"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -4.0,
+        20.0,
+        3.0
+      ],
+      "size": [
+        4,
+        4,
+        3.6
+      ],
+      "rotation_z_degrees": 0,
+      "module": "rampart_mass"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -1.8,
+        0.0,
+        1.4
+      ],
+      "size": [
+        0.2,
+        4,
+        2.8
+      ],
+      "rotation_z_degrees": 0,
+      "module": "stair_stringer"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        1.8,
+        0.0,
+        1.4
+      ],
+      "size": [
+        0.2,
+        4,
+        2.8
+      ],
+      "rotation_z_degrees": 0,
+      "module": "stair_stringer"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -1.8,
+        4.0,
+        2.5999999999999996
+      ],
+      "size": [
+        0.2,
+        4,
+        2.8
+      ],
+      "rotation_z_degrees": 0,
+      "module": "stair_stringer"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        1.8,
+        4.0,
+        2.5999999999999996
+      ],
+      "size": [
+        0.2,
+        4,
+        2.8
+      ],
+      "rotation_z_degrees": 0,
+      "module": "stair_stringer"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -1.8,
+        8.0,
+        3.8
+      ],
+      "size": [
+        0.2,
+        4,
+        2.8
+      ],
+      "rotation_z_degrees": 0,
+      "module": "stair_stringer"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        1.8,
+        8.0,
+        3.8
+      ],
+      "size": [
+        0.2,
+        4,
+        2.8
+      ],
+      "rotation_z_degrees": 0,
+      "module": "stair_stringer"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -1.8,
+        12.0,
+        5.0
+      ],
+      "size": [
+        0.2,
+        4,
+        2.8
+      ],
+      "rotation_z_degrees": 0,
+      "module": "stair_stringer"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        1.8,
+        12.0,
+        5.0
+      ],
+      "size": [
+        0.2,
+        4,
+        2.8
+      ],
+      "rotation_z_degrees": 0,
+      "module": "stair_stringer"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        0.0,
+        16.0,
+        3.0
+      ],
+      "size": [
+        4,
+        4,
+        3.6
+      ],
+      "rotation_z_degrees": 0,
+      "module": "rampart_mass"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        0.0,
+        20.0,
+        3.0
+      ],
+      "size": [
+        4,
+        4,
+        3.6
+      ],
+      "rotation_z_degrees": 0,
+      "module": "rampart_mass"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        4.0,
+        16.0,
+        3.0
+      ],
+      "size": [
+        4,
+        4,
+        3.6
+      ],
+      "rotation_z_degrees": 0,
+      "module": "rampart_mass"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        4.0,
+        20.0,
+        3.0
+      ],
+      "size": [
+        4,
+        4,
+        3.6
+      ],
+      "rotation_z_degrees": 0,
+      "module": "rampart_mass"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        8.0,
+        16.0,
+        3.0
+      ],
+      "size": [
+        4,
+        4,
+        3.6
+      ],
+      "rotation_z_degrees": 0,
+      "module": "rampart_mass"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        8.0,
+        20.0,
+        3.0
+      ],
+      "size": [
+        4,
+        4,
+        3.6
+      ],
+      "rotation_z_degrees": 0,
+      "module": "rampart_mass"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        12.0,
+        16.0,
+        3.0
+      ],
+      "size": [
+        4,
+        4,
+        3.6
+      ],
+      "rotation_z_degrees": 0,
+      "module": "rampart_mass"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        12.0,
+        20.0,
+        3.0
+      ],
+      "size": [
+        4,
+        4,
+        3.6
+      ],
+      "rotation_z_degrees": 0,
+      "module": "rampart_mass"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -6.0,
+        -8.0,
+        3.8
+      ],
+      "size": [
+        4,
+        0.6,
+        7.6
+      ],
+      "rotation_z_degrees": 90,
+      "module": "tower_shell_wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        6.0,
+        -8.0,
+        3.8
+      ],
+      "size": [
+        4,
+        0.6,
+        7.6
+      ],
+      "rotation_z_degrees": 90,
+      "module": "tower_shell_wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -6.0,
+        -4.0,
+        3.8
+      ],
+      "size": [
+        4,
+        0.6,
+        7.6
+      ],
+      "rotation_z_degrees": 90,
+      "module": "tower_shell_wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        6.0,
+        -4.0,
+        3.8
+      ],
+      "size": [
+        4,
+        0.6,
+        7.6
+      ],
+      "rotation_z_degrees": 90,
+      "module": "tower_shell_wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -6.0,
+        0.0,
+        3.8
+      ],
+      "size": [
+        4,
+        0.6,
+        7.6
+      ],
+      "rotation_z_degrees": 90,
+      "module": "tower_shell_wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        6.0,
+        0.0,
+        3.8
+      ],
+      "size": [
+        4,
+        0.6,
+        7.6
+      ],
+      "rotation_z_degrees": 90,
+      "module": "tower_shell_wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -6.0,
+        4.0,
+        3.8
+      ],
+      "size": [
+        4,
+        0.6,
+        7.6
+      ],
+      "rotation_z_degrees": 90,
+      "module": "tower_shell_wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        6.0,
+        4.0,
+        3.8
+      ],
+      "size": [
+        4,
+        0.6,
+        7.6
+      ],
+      "rotation_z_degrees": 90,
+      "module": "tower_shell_wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -6.0,
+        8.0,
+        3.8
+      ],
+      "size": [
+        4,
+        0.6,
+        7.6
+      ],
+      "rotation_z_degrees": 90,
+      "module": "tower_shell_wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        6.0,
+        8.0,
+        3.8
+      ],
+      "size": [
+        4,
+        0.6,
+        7.6
+      ],
+      "rotation_z_degrees": 90,
+      "module": "tower_shell_wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -6.0,
+        12.0,
+        3.8
+      ],
+      "size": [
+        4,
+        0.6,
+        7.6
+      ],
+      "rotation_z_degrees": 90,
+      "module": "tower_shell_wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        6.0,
+        12.0,
+        3.8
+      ],
+      "size": [
+        4,
+        0.6,
+        7.6
+      ],
+      "rotation_z_degrees": 90,
+      "module": "tower_shell_wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -6.0,
+        16.0,
+        3.8
+      ],
+      "size": [
+        4,
+        0.6,
+        7.6
+      ],
+      "rotation_z_degrees": 90,
+      "module": "tower_shell_wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -6.0,
+        20.0,
+        3.8
+      ],
+      "size": [
+        4,
+        0.6,
+        7.6
+      ],
+      "rotation_z_degrees": 90,
+      "module": "tower_shell_wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -2.45,
+        -6.45,
+        0.8
+      ],
+      "size": [
+        0.4,
+        0.4,
+        1.7
+      ],
+      "rotation_z_degrees": 0,
+      "module": "lantern_post"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        5.55,
+        17.55,
+        5.6
+      ],
+      "size": [
+        0.4,
+        0.4,
+        1.7
+      ],
+      "rotation_z_degrees": 0,
+      "module": "lantern_post"
+    }
+  ],
+  "shared_module_version": "2.0.0",
+  "geometry_stats": {
+    "triangles_instanced_total": 19824,
+    "objects": 55,
+    "unique_meshes": 7,
+    "materials": 8,
+    "texture_bytes": 0
+  },
+  "deliverable_scope": "Visual GLB, editable procedural source, oriented-box collision intent and surface adjacency graph; engine-specific navmesh/physics not baked."
+}

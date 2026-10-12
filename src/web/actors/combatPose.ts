@@ -19,6 +19,8 @@ export interface CombatContext {
   dirLocal?: { x: number; z: number };         // dodge direction in the body's own frame (x = its left, z = forward)
   side?: number;
   predicted?: boolean;
+  definition?: string;
+  trajectory?: 'high' | 'mid' | 'low';
 }
 type Pose = { set(bone: string, q: Quaternion, w?: number): void; pelvis: Vector3; clear(): void };
 

@@ -1,0 +1,237 @@
+{
+  "id": "tv_47_03_pine_forest",
+  "archetype": "pine_forest",
+  "sha256": "0c8a41e19383b0ee9fbb37ecea47b049e6b9d4858670d8481e5b757834dd0a3e",
+  "assembly_sha256": "731e39b3e64e1294fdd3b456cdc361235393e2838818fda45a16246fe0009d6e",
+  "method_version": "2.3_upward_ground_physical_rooms",
+  "audited_at_utc": "2026-10-11T21:47:03Z",
+  "tag": "",
+  "scope": "Actual GLB triangles; 0.20m free-space grid; 2.10m capsule + .05m margin, radius .40m+.05m; point-to-triangle/segment-to-triangle clearance and supported transitions. Static offline test, not engine physics.",
+  "grid_step_m": 0.2,
+  "capsule_height_m": 2.1,
+  "capsule_radius_m": 0.4,
+  "margin_m": 0.05,
+  "support_nodes": 1,
+  "triangle_count": 19836,
+  "soft_module_exclusions": [
+    "grass_tuft",
+    "landscape_cabbage",
+    "landscape_carrot_row",
+    "landscape_crop_row",
+    "landscape_wheat_clump",
+    "landscape_wheat_row",
+    "processional_rug",
+    "scale_guide",
+    "wall_ivy"
+  ],
+  "foot_support_ring_radius_m": 0.4,
+  "foot_support_ring_samples_per_position": 8,
+  "maximum_foot_ring_height_delta_m": 0.225,
+  "maximum_bridged_bevel_seam_width_m": 0.05,
+  "grid_samples": 62101,
+  "supported_samples": 52500,
+  "free_samples": 47706,
+  "reachable_samples": 47706,
+  "minimum_center_vertical_headroom_on_reachable_samples_m": 3.4966299473047258,
+  "targets": [
+    {
+      "name": "connector_0",
+      "kind": "connector",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "connector_1",
+      "kind": "connector",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "connector_2",
+      "kind": "connector",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "0",
+      "kind": "woodland_clearing",
+      "role": null,
+      "passed": true,
+      "supported_area_m2": 94.08,
+      "free_area_m2": 81.12,
+      "reachable_free_area_m2": 81.12,
+      "sample_position": [
+        -6.4,
+        11.4,
+        0.0003754004836082287
+      ]
+    },
+    {
+      "name": "1",
+      "kind": "woodland_clearing",
+      "role": null,
+      "passed": true,
+      "supported_area_m2": 96.04,
+      "free_area_m2": 87.52,
+      "reachable_free_area_m2": 87.52,
+      "sample_position": [
+        12.200000000000001,
+        -12.0,
+        -0.19255020320415495
+      ]
+    },
+    {
+      "name": "ground_route_000",
+      "kind": "authored_route",
+      "all": true,
+      "must_exact": true,
+      "connector_endpoints_checked_0_6m_inward": 0,
+      "passed": true,
+      "route_sample_count": 96,
+      "unreachable_sample_count": 0,
+      "maximum_actual_sampled_grade": 0.10774102738519341
+    },
+    {
+      "name": "ground_route_001",
+      "kind": "authored_route",
+      "all": true,
+      "must_exact": true,
+      "connector_endpoints_checked_0_6m_inward": 0,
+      "passed": true,
+      "route_sample_count": 58,
+      "unreachable_sample_count": 0,
+      "maximum_actual_sampled_grade": 0.0879293231321232
+    },
+    {
+      "name": "ground_route_002",
+      "kind": "authored_route",
+      "all": true,
+      "must_exact": true,
+      "connector_endpoints_checked_0_6m_inward": 0,
+      "passed": true,
+      "route_sample_count": 26,
+      "unreachable_sample_count": 0,
+      "maximum_actual_sampled_grade": 0.03548196567166115
+    },
+    {
+      "name": "ground_route_003",
+      "kind": "authored_route",
+      "all": true,
+      "must_exact": true,
+      "connector_endpoints_checked_0_6m_inward": 0,
+      "passed": true,
+      "route_sample_count": 8,
+      "unreachable_sample_count": 0,
+      "maximum_actual_sampled_grade": 0.015429999679327008
+    },
+    {
+      "name": "ground_route_004",
+      "kind": "authored_route",
+      "all": true,
+      "must_exact": true,
+      "connector_endpoints_checked_0_6m_inward": 0,
+      "passed": true,
+      "route_sample_count": 14,
+      "unreachable_sample_count": 0,
+      "maximum_actual_sampled_grade": 0.03529364201628507
+    },
+    {
+      "name": "ground_route_005",
+      "kind": "authored_route",
+      "all": true,
+      "must_exact": true,
+      "connector_endpoints_checked_0_6m_inward": 0,
+      "passed": true,
+      "route_sample_count": 8,
+      "unreachable_sample_count": 0,
+      "maximum_actual_sampled_grade": 0.03294600173830986
+    },
+    {
+      "name": "ground_route_006",
+      "kind": "authored_route",
+      "all": true,
+      "must_exact": true,
+      "connector_endpoints_checked_0_6m_inward": 0,
+      "passed": true,
+      "route_sample_count": 8,
+      "unreachable_sample_count": 0,
+      "maximum_actual_sampled_grade": 0.04361699894070625
+    },
+    {
+      "name": "ground_route_007",
+      "kind": "authored_route",
+      "all": true,
+      "must_exact": true,
+      "connector_endpoints_checked_0_6m_inward": 0,
+      "passed": true,
+      "route_sample_count": 8,
+      "unreachable_sample_count": 0,
+      "maximum_actual_sampled_grade": 0.03465599939227104
+    },
+    {
+      "name": "ground_route_008",
+      "kind": "authored_route",
+      "all": true,
+      "must_exact": true,
+      "connector_endpoints_checked_0_6m_inward": 1,
+      "passed": true,
+      "route_sample_count": 11,
+      "unreachable_sample_count": 0,
+      "maximum_actual_sampled_grade": 0.0
+    },
+    {
+      "name": "ground_route_009",
+      "kind": "authored_route",
+      "all": true,
+      "must_exact": true,
+      "connector_endpoints_checked_0_6m_inward": 1,
+      "passed": true,
+      "route_sample_count": 11,
+      "unreachable_sample_count": 0,
+      "maximum_actual_sampled_grade": 0.0
+    },
+    {
+      "name": "ground_route_010",
+      "kind": "authored_route",
+      "all": true,
+      "must_exact": true,
+      "connector_endpoints_checked_0_6m_inward": 1,
+      "passed": true,
+      "route_sample_count": 11,
+      "unreachable_sample_count": 0,
+      "maximum_actual_sampled_grade": 0.0
+    }
+  ],
+  "failed_target_count": 0,
+  "significant_isolated_components": [],
+  "path_midpoint_samples": 10107,
+  "rejected_midpoint_edges_rerouted": 0,
+  "reroute_rounds": 1,
+  "path_unreachable_targets": [],
+  "path_midpoint_failures": [],
+  "path_midpoint_failure_count": 0,
+  "blocking_modules_sample_counts": {
+    "landscape_pine_tall": 1626,
+    "landscape_pine_young": 377,
+    "landscape_stump": 421,
+    "landscape_outcrop": 560,
+    "axe_stump": 115
+  },
+  "elapsed_s": 3.24,
+  "limitations": [
+    "Mesh surfaces are tested statically; no game engine or animated door/controller/camera executed.",
+    "Uniform grid is sampled, not exhaustive continuous configuration-space proof.",
+    "Gentle-slope grounding lifts the capsule by radius*(sec(slope)-1) on actual supporting triangle planes up to35degrees.",
+    "Triangles entirely below .205m above local foot are allowed as a step-over envelope; engine stepping remains untested.",
+    "Only actual upward-facing support triangles establish ground; a metadata height hint cannot substitute a closed terrain underside. Overlapping multilevel floor layers are not modeled by this heightfield-style support search.",
+    "Room functional topology, single-leaf identity, slope comfort and fixture usability require separate semantic/visual review."
+  ],
+  "required_routes_passed": true,
+  "passed": true
+}

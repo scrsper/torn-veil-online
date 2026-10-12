@@ -1,0 +1,199 @@
+{
+  "id": "tv_48_01_broadleaf_forest",
+  "archetype": "broadleaf_forest",
+  "sha256": "5a2ff56eb3839275ac9ba5fc1fcdcb152e4487c35b5940a028868950ccfcf123",
+  "assembly_sha256": "eef817f209a0711a6df47663e4ab5a94347614f15e4a10bef560d1d8b60bfdd1",
+  "method_version": "2.3_upward_ground_physical_rooms",
+  "audited_at_utc": "2026-10-11T21:47:16Z",
+  "tag": "",
+  "scope": "Actual GLB triangles; 0.20m free-space grid; 2.10m capsule + .05m margin, radius .40m+.05m; point-to-triangle/segment-to-triangle clearance and supported transitions. Static offline test, not engine physics.",
+  "grid_step_m": 0.2,
+  "capsule_height_m": 2.1,
+  "capsule_radius_m": 0.4,
+  "margin_m": 0.05,
+  "support_nodes": 1,
+  "triangle_count": 20830,
+  "soft_module_exclusions": [
+    "grass_tuft",
+    "landscape_cabbage",
+    "landscape_carrot_row",
+    "landscape_crop_row",
+    "landscape_wheat_clump",
+    "landscape_wheat_row",
+    "processional_rug",
+    "scale_guide",
+    "wall_ivy"
+  ],
+  "foot_support_ring_radius_m": 0.4,
+  "foot_support_ring_samples_per_position": 8,
+  "maximum_foot_ring_height_delta_m": 0.225,
+  "maximum_bridged_bevel_seam_width_m": 0.05,
+  "grid_samples": 62901,
+  "supported_samples": 48961,
+  "free_samples": 43061,
+  "reachable_samples": 43047,
+  "minimum_center_vertical_headroom_on_reachable_samples_m": 3.9259822396874426,
+  "targets": [
+    {
+      "name": "connector_0",
+      "kind": "connector",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "connector_1",
+      "kind": "connector",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "0",
+      "kind": "woodland_clearing",
+      "role": null,
+      "passed": true,
+      "supported_area_m2": 98.0,
+      "free_area_m2": 93.32,
+      "reachable_free_area_m2": 93.32,
+      "sample_position": [
+        -15.0,
+        0.0,
+        -0.1362919956445694
+      ]
+    },
+    {
+      "name": "1",
+      "kind": "woodland_clearing",
+      "role": null,
+      "passed": true,
+      "supported_area_m2": 98.0,
+      "free_area_m2": 84.76,
+      "reachable_free_area_m2": 84.76,
+      "sample_position": [
+        6.4,
+        15.600000000000001,
+        0.11796879768371582
+      ]
+    },
+    {
+      "name": "ground_route_000",
+      "kind": "authored_route",
+      "all": true,
+      "must_exact": true,
+      "connector_endpoints_checked_0_6m_inward": 0,
+      "passed": true,
+      "route_sample_count": 168,
+      "unreachable_sample_count": 0,
+      "maximum_actual_sampled_grade": 0.07103386425311077
+    },
+    {
+      "name": "ground_route_001",
+      "kind": "authored_route",
+      "all": true,
+      "must_exact": true,
+      "connector_endpoints_checked_0_6m_inward": 0,
+      "passed": true,
+      "route_sample_count": 20,
+      "unreachable_sample_count": 0,
+      "maximum_actual_sampled_grade": 0.07371428893454965
+    },
+    {
+      "name": "ground_route_002",
+      "kind": "authored_route",
+      "all": true,
+      "must_exact": true,
+      "connector_endpoints_checked_0_6m_inward": 0,
+      "passed": true,
+      "route_sample_count": 8,
+      "unreachable_sample_count": 0,
+      "maximum_actual_sampled_grade": 0.015210002660751341
+    },
+    {
+      "name": "ground_route_003",
+      "kind": "authored_route",
+      "all": true,
+      "must_exact": true,
+      "connector_endpoints_checked_0_6m_inward": 0,
+      "passed": true,
+      "route_sample_count": 8,
+      "unreachable_sample_count": 0,
+      "maximum_actual_sampled_grade": 0.015126995742321021
+    },
+    {
+      "name": "ground_route_004",
+      "kind": "authored_route",
+      "all": true,
+      "must_exact": true,
+      "connector_endpoints_checked_0_6m_inward": 0,
+      "passed": true,
+      "route_sample_count": 8,
+      "unreachable_sample_count": 0,
+      "maximum_actual_sampled_grade": 0.024243000894784927
+    },
+    {
+      "name": "ground_route_005",
+      "kind": "authored_route",
+      "all": true,
+      "must_exact": true,
+      "connector_endpoints_checked_0_6m_inward": 0,
+      "passed": true,
+      "route_sample_count": 8,
+      "unreachable_sample_count": 0,
+      "maximum_actual_sampled_grade": 0.028988000005483627
+    },
+    {
+      "name": "ground_route_006",
+      "kind": "authored_route",
+      "all": true,
+      "must_exact": true,
+      "connector_endpoints_checked_0_6m_inward": 1,
+      "passed": true,
+      "route_sample_count": 11,
+      "unreachable_sample_count": 0,
+      "maximum_actual_sampled_grade": 0.0
+    },
+    {
+      "name": "ground_route_007",
+      "kind": "authored_route",
+      "all": true,
+      "must_exact": true,
+      "connector_endpoints_checked_0_6m_inward": 1,
+      "passed": true,
+      "route_sample_count": 11,
+      "unreachable_sample_count": 0,
+      "maximum_actual_sampled_grade": 0.0
+    }
+  ],
+  "failed_target_count": 0,
+  "significant_isolated_components": [],
+  "path_midpoint_samples": 35284,
+  "rejected_midpoint_edges_rerouted": 16,
+  "reroute_rounds": 4,
+  "path_unreachable_targets": [],
+  "path_midpoint_failures": [],
+  "path_midpoint_failure_count": 0,
+  "blocking_modules_sample_counts": {
+    "landscape_oak": 1178,
+    "landscape_birch": 710,
+    "landscape_outcrop": 441,
+    "procedural_natural_ground": 230,
+    "floor_water": 1088,
+    "standing_stone": 85,
+    "landscape_stump": 213,
+    "broken_column": 89
+  },
+  "elapsed_s": 5.22,
+  "limitations": [
+    "Mesh surfaces are tested statically; no game engine or animated door/controller/camera executed.",
+    "Uniform grid is sampled, not exhaustive continuous configuration-space proof.",
+    "Gentle-slope grounding lifts the capsule by radius*(sec(slope)-1) on actual supporting triangle planes up to35degrees.",
+    "Triangles entirely below .205m above local foot are allowed as a step-over envelope; engine stepping remains untested.",
+    "Only actual upward-facing support triangles establish ground; a metadata height hint cannot substitute a closed terrain underside. Overlapping multilevel floor layers are not modeled by this heightfield-style support search.",
+    "Room functional topology, single-leaf identity, slope comfort and fixture usability require separate semantic/visual review."
+  ],
+  "required_routes_passed": true,
+  "passed": true
+}

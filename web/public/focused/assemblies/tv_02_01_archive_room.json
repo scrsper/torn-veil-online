@@ -1,0 +1,1232 @@
+{
+  "id": "tv_02_01_archive_room",
+  "name": "Lantern Archive 01",
+  "archetype": "archive_room",
+  "mode": "archive",
+  "biome": "crypt",
+  "seed": 211000,
+  "variant": 0,
+  "grid_m": 4.0,
+  "floors": [
+    {
+      "x": -1,
+      "y": -2,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": -1,
+      "y": -1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": -1,
+      "y": 0,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": -1,
+      "y": 1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 0,
+      "y": -2,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 0,
+      "y": -1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 0,
+      "y": 1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 1,
+      "y": -2,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 1,
+      "y": -1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 1,
+      "y": 1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 2,
+      "y": -1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 2,
+      "y": 0,
+      "z": 0,
+      "kind": "stone"
+    }
+  ],
+  "placements": [
+    {
+      "asset": "bookshelf",
+      "position": [
+        -5.45,
+        -3,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "bookshelf_sparse",
+      "position": [
+        -5.45,
+        3,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "reading_desk",
+      "position": [
+        -3.6,
+        -5,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "bench",
+      "position": [
+        -3.4,
+        -2.9,
+        0
+      ],
+      "rotation": 90,
+      "scale": 0.65
+    },
+    {
+      "asset": "reading_desk",
+      "position": [
+        3.7,
+        2.8,
+        0
+      ],
+      "rotation": -90,
+      "scale": 1
+    },
+    {
+      "asset": "book_cart",
+      "position": [
+        3.9,
+        -4.5,
+        0
+      ],
+      "rotation": -90,
+      "scale": 1
+    },
+    {
+      "asset": "archive_globe",
+      "position": [
+        8,
+        -2.6,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "processional_rug",
+      "position": [
+        0,
+        -1,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "crate_cluster",
+      "position": [
+        8,
+        -2.5,
+        0
+      ],
+      "rotation": 0,
+      "scale": 0.65
+    },
+    {
+      "asset": "arch",
+      "position": [
+        6,
+        -4,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "lantern_post",
+      "position": [
+        -4.8,
+        -6.5,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "lantern_post",
+      "position": [
+        4.8,
+        -6.5,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "ladder",
+      "position": [
+        -4.6,
+        1,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "banner",
+      "position": [
+        5.6,
+        -1,
+        0
+      ],
+      "rotation": 90,
+      "scale": 1
+    },
+    {
+      "asset": "window_inset",
+      "position": [
+        4,
+        5.67,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "lantern_post",
+      "position": [
+        9.55,
+        -2.45,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    }
+  ],
+  "walls": [
+    {
+      "position": [
+        -6,
+        -8,
+        0
+      ],
+      "rotation": 90,
+      "asset": "wall"
+    },
+    {
+      "position": [
+        -4,
+        -10,
+        0
+      ],
+      "rotation": 0,
+      "asset": "wall"
+    },
+    {
+      "position": [
+        -6,
+        -4,
+        0
+      ],
+      "rotation": 90,
+      "asset": "wall"
+    },
+    {
+      "position": [
+        -6,
+        0,
+        0
+      ],
+      "rotation": 90,
+      "asset": "wall"
+    },
+    {
+      "position": [
+        -4,
+        6,
+        0
+      ],
+      "rotation": 0,
+      "asset": "wall"
+    },
+    {
+      "position": [
+        -6,
+        4,
+        0
+      ],
+      "rotation": 90,
+      "asset": "wall"
+    },
+    {
+      "position": [
+        6,
+        -8,
+        0
+      ],
+      "rotation": 90,
+      "asset": "wall"
+    },
+    {
+      "position": [
+        4,
+        -10,
+        0
+      ],
+      "rotation": 0,
+      "asset": "wall"
+    },
+    {
+      "position": [
+        6,
+        4,
+        0
+      ],
+      "rotation": 90,
+      "asset": "wall"
+    },
+    {
+      "position": [
+        4,
+        6,
+        0
+      ],
+      "rotation": 0,
+      "asset": "wall"
+    },
+    {
+      "position": [
+        10,
+        -4,
+        0
+      ],
+      "rotation": 90,
+      "asset": "wall"
+    },
+    {
+      "position": [
+        8,
+        -6,
+        0
+      ],
+      "rotation": 0,
+      "asset": "wall"
+    },
+    {
+      "position": [
+        10,
+        0,
+        0
+      ],
+      "rotation": 90,
+      "asset": "wall"
+    },
+    {
+      "position": [
+        8,
+        2,
+        0
+      ],
+      "rotation": 0,
+      "asset": "wall"
+    }
+  ],
+  "ports": [
+    {
+      "cell": [
+        0,
+        -2
+      ],
+      "position": [
+        0,
+        -10,
+        0
+      ],
+      "outward": [
+        0,
+        -1,
+        0
+      ],
+      "width_m": 4.0,
+      "id": "P00",
+      "kind": "walkable",
+      "profile": "walkway_4m",
+      "clear_width_m": 2.4,
+      "clear_height_m": 2.8
+    },
+    {
+      "cell": [
+        0,
+        1
+      ],
+      "position": [
+        0,
+        6,
+        0
+      ],
+      "outward": [
+        0,
+        1,
+        0
+      ],
+      "width_m": 4.0,
+      "id": "P01",
+      "kind": "walkable",
+      "profile": "walkway_4m",
+      "clear_width_m": 2.4,
+      "clear_height_m": 2.8
+    }
+  ],
+  "regions": [
+    {
+      "type": "profession_room",
+      "occupation": "archive",
+      "side_alcove_cell": [
+        2,
+        -1
+      ]
+    }
+  ],
+  "nav": {
+    "nodes": [
+      [
+        -1,
+        -2
+      ],
+      [
+        -1,
+        -1
+      ],
+      [
+        -1,
+        0
+      ],
+      [
+        -1,
+        1
+      ],
+      [
+        0,
+        -2
+      ],
+      [
+        0,
+        -1
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        -2
+      ],
+      [
+        1,
+        -1
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        -1
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "edges": [
+      [
+        [
+          -1,
+          -2
+        ],
+        [
+          0,
+          -2
+        ]
+      ],
+      [
+        [
+          -1,
+          -2
+        ],
+        [
+          -1,
+          -1
+        ]
+      ],
+      [
+        [
+          -1,
+          -1
+        ],
+        [
+          0,
+          -1
+        ]
+      ],
+      [
+        [
+          -1,
+          -1
+        ],
+        [
+          -1,
+          0
+        ]
+      ],
+      [
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          -1,
+          0
+        ],
+        [
+          -1,
+          1
+        ]
+      ],
+      [
+        [
+          -1,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      [
+        [
+          0,
+          -2
+        ],
+        [
+          1,
+          -2
+        ]
+      ],
+      [
+        [
+          0,
+          -2
+        ],
+        [
+          0,
+          -1
+        ]
+      ],
+      [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          -1
+        ]
+      ],
+      [
+        [
+          0,
+          -1
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      [
+        [
+          1,
+          -2
+        ],
+        [
+          1,
+          -1
+        ]
+      ],
+      [
+        [
+          1,
+          -1
+        ],
+        [
+          2,
+          -1
+        ]
+      ],
+      [
+        [
+          1,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      [
+        [
+          2,
+          -1
+        ],
+        [
+          2,
+          0
+        ]
+      ]
+    ],
+    "agent_height_m": 2.1,
+    "agent_radius_m": 0.4,
+    "semantics": "Surface adjacency intent only; props require engine collision/navmesh baking.",
+    "safety_margin_m": 0.05
+  },
+  "structural_sha256": "eae9f30f68a43eed3a3582a6f438b4a8f1bfaf7d90de1a0779bb602fb5619d15",
+  "player_contract": {
+    "height_m": 2.1,
+    "capsule_radius_m": 0.4,
+    "safety_margin_m": 0.05,
+    "head_count_ratio": 9.5,
+    "provisional_metric_assumption": true,
+    "note": "9.5 heads is a body proportion, not a metric height. Revalidate against the actual game controller."
+  },
+  "family_index": 1,
+  "catalog_index": 10,
+  "category": "shops_workshops",
+  "coordinate_system": {
+    "units": "meters",
+    "source_up": "Z",
+    "source_forward": "+Y",
+    "glb_up": "Y",
+    "source_to_gltf": "[x,z,-y]"
+  },
+  "ports_gltf_yup": [
+    {
+      "cell": [
+        0,
+        -2
+      ],
+      "position": [
+        0,
+        0,
+        10
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "width_m": 4.0,
+      "id": "P00",
+      "kind": "walkable",
+      "profile": "walkway_4m",
+      "clear_width_m": 2.4,
+      "clear_height_m": 2.8
+    },
+    {
+      "cell": [
+        0,
+        1
+      ],
+      "position": [
+        0,
+        0,
+        -6
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ],
+      "width_m": 4.0,
+      "id": "P01",
+      "kind": "walkable",
+      "profile": "walkway_4m",
+      "clear_width_m": 2.4,
+      "clear_height_m": 2.8
+    }
+  ],
+  "architectural_sockets": [],
+  "bounds_m": {
+    "min": [
+      -6.335000038146973,
+      -10.335000038146973,
+      -0.3199999928474426
+    ],
+    "max": [
+      10.335000038146973,
+      6.335000038146973,
+      3.8399999141693115
+    ]
+  },
+  "collision_primitives": [
+    {
+      "kind": "oriented_box",
+      "center": [
+        -6.0,
+        -8.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -4.0,
+        -10.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 0,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -6.0,
+        -4.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -6.0,
+        0.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -4.0,
+        6.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 0,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -6.0,
+        4.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        6.0,
+        -8.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        4.0,
+        -10.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 0,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        6.0,
+        4.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        4.0,
+        6.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 0,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        10.0,
+        -4.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        8.0,
+        -6.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 0,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        10.0,
+        0.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        8.0,
+        2.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 0,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -5.45,
+        -3.0,
+        1.4
+      ],
+      "size": [
+        2.95,
+        0.72,
+        2.8
+      ],
+      "rotation_z_degrees": 90,
+      "module": "bookshelf"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -5.45,
+        3.0,
+        1.4
+      ],
+      "size": [
+        2.95,
+        0.72,
+        2.8
+      ],
+      "rotation_z_degrees": 90,
+      "module": "bookshelf_sparse"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -3.6,
+        -5.0,
+        0.65
+      ],
+      "size": [
+        2,
+        1.1,
+        1.3
+      ],
+      "rotation_z_degrees": 90,
+      "module": "reading_desk"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -3.4,
+        -2.9,
+        0.22749999999999998
+      ],
+      "size": [
+        1.625,
+        0.45499999999999996,
+        0.45499999999999996
+      ],
+      "rotation_z_degrees": 90,
+      "module": "bench"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        3.7,
+        2.8,
+        0.65
+      ],
+      "size": [
+        2,
+        1.1,
+        1.3
+      ],
+      "rotation_z_degrees": -90,
+      "module": "reading_desk"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        3.9,
+        -4.5,
+        0.7
+      ],
+      "size": [
+        1.5,
+        0.9,
+        1.4
+      ],
+      "rotation_z_degrees": -90,
+      "module": "book_cart"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        8.0,
+        -2.6,
+        1.1
+      ],
+      "size": [
+        1.5,
+        1.5,
+        2.2
+      ],
+      "rotation_z_degrees": 0,
+      "module": "archive_globe"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        8.0,
+        -2.435,
+        0.52
+      ],
+      "size": [
+        1.2349999999999999,
+        0.9750000000000001,
+        1.04
+      ],
+      "rotation_z_degrees": 0,
+      "module": "crate_cluster"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        6.0,
+        -5.65,
+        1.6
+      ],
+      "size": [
+        0.7,
+        0.7,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "arch"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        6.0,
+        -2.35,
+        1.6
+      ],
+      "size": [
+        0.7,
+        0.7,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "arch"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        6.0,
+        -4.0,
+        3.25
+      ],
+      "size": [
+        4,
+        0.7,
+        0.45
+      ],
+      "rotation_z_degrees": 90,
+      "module": "arch"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -4.8,
+        -6.5,
+        0.8
+      ],
+      "size": [
+        0.4,
+        0.4,
+        1.7
+      ],
+      "rotation_z_degrees": 0,
+      "module": "lantern_post"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        4.8,
+        -6.5,
+        0.8
+      ],
+      "size": [
+        0.4,
+        0.4,
+        1.7
+      ],
+      "rotation_z_degrees": 0,
+      "module": "lantern_post"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -4.6,
+        1.0,
+        1.35
+      ],
+      "size": [
+        0.9,
+        0.8,
+        2.7
+      ],
+      "rotation_z_degrees": 90,
+      "module": "ladder"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        9.55,
+        -2.45,
+        0.8
+      ],
+      "size": [
+        0.4,
+        0.4,
+        1.7
+      ],
+      "rotation_z_degrees": 0,
+      "module": "lantern_post"
+    }
+  ],
+  "shared_module_version": "2.0.0",
+  "geometry_stats": {
+    "triangles_instanced_total": 40924,
+    "objects": 58,
+    "unique_meshes": 16,
+    "materials": 15,
+    "texture_bytes": 0
+  },
+  "deliverable_scope": "Visual GLB, editable procedural source, oriented-box collision intent and surface adjacency graph; engine-specific navmesh/physics not baked."
+}

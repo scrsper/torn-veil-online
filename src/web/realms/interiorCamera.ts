@@ -6,6 +6,13 @@ const distance = (a: V3, b: V3) => Math.hypot(a.x-b.x, a.y-b.y, a.z-b.z);
 export const cameraBoxBlocked = (p: V3, solids: readonly SolidBox[]) => solids.some(s =>
   p.x > s.x-gap && p.x < s.x+s.w+gap && p.y > s.y-gap && p.y < s.y+s.h+gap && p.z > s.z-gap && p.z < s.z+s.d+gap);
 
+/** Only geometry along the local camera sweep can raise framing. A distant tall
+ * landmark must not lift the camera over an entire floor. */
+export function cameraLocalTop(from: V3, to: V3, solids: readonly SolidBox[]): number {
+ const x0=Math.min(from.x,to.x)-gap,x1=Math.max(from.x,to.x)+gap,z0=Math.min(from.z,to.z)-gap,z1=Math.max(from.z,to.z)+gap;
+ return Math.max(from.y,...solids.filter(s=>s.x<x1&&s.x+s.w>x0&&s.z<z1&&s.z+s.d>z0).map(s=>s.y+s.h))+.6;
+}
+
 /** The current received Tower floors have open tops. When a nearby wall collapses
  * the sight-line cast, frame above that physical wall and cut away its occluding
  * presentation. The lens stays outside solids; gameplay geometry is untouched.
@@ -30,7 +37,8 @@ export class InteriorCameraFraming {
     }
     const recovering = this.lift>.02 || this.previous !== null && Math.abs(this.radius-rawDistance)>.08;
     let position={...raw.position}, target={...raw.target};
-    const top=Math.max(pivot.y,...solids.map(s=>s.y+s.h))+.6;
+    const candidate={x:pivot.x+Math.sin(orbit.yaw)*Math.cos(orbit.pitch)*orbit.want,y:pivot.y,z:pivot.z+Math.cos(orbit.yaw)*Math.cos(orbit.pitch)*orbit.want};
+    let top=cameraLocalTop(pivot,candidate,solids);
     if(this.elevated || recovering) {
       const want=this.elevated?Math.max(3.4,orbit.want):rawDistance;
       if(!this.radius)this.radius=Math.max(3.4,rawDistance);
@@ -50,6 +58,7 @@ export class InteriorCameraFraming {
       if(length>1e-5) {
         const direction={x:(position.x-this.previous.x)/length,y:(position.y-this.previous.y)/length,z:(position.z-this.previous.z)/length};
         if(boxObstruction(()=>solids,gap)(this.previous,direction,length)<length-.001) {
+          top=Math.max(top,cameraLocalTop(this.previous,position,solids));
           position={x:this.previous.x,y:Math.max(top,this.previous.y),z:this.previous.z};
           this.lift=Math.max(this.lift,top-(pivot.y+.1+Math.sin(orbit.pitch)*this.radius));
           this.elevated=true; this.clearFor=0; target={x:pivot.x,y:pivot.y,z:pivot.z};

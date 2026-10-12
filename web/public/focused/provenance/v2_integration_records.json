@@ -1,0 +1,3519 @@
+{
+  "source_manifest_sha256": "4f08219809dcb597182f9e0a52f57872083b301c804ea3219d3cecab4537a339",
+  "source_manifest": "/workspace/shared/tornveil-world-library-v2/integration_manifest.json",
+  "records": [
+    {
+      "id": "tv_36_10_city_street",
+      "revision": "2.0.0",
+      "family": "city_street",
+      "category": "houses_settlements",
+      "glb": "exports/tv_36_10_city_street.glb",
+      "glb_sha256": "eb93fd33def8a62fe02ed555f27d9e56e89a453c299f9df0cb41011024dc9075",
+      "assembly": "assemblies/tv_36_10_city_street.json",
+      "assembly_sha256": "d6c507d5477ceccb6eb3032acff70f86975ccb2c706a04219e3e506d6d7e5162",
+      "source_structural_sha256": "84ef5d044d9a62f31224fde82d47c89d27b1b75002c5a3177174ff6dc9ddb782",
+      "editable_library": "editable/houses_settlements.blend",
+      "editable_library_sha256": "87d5579a769bceffb2689ef9fcf6b0048d933c55dc25b5c93db6e7ff3f2f83ce",
+      "editable_scene_name": "tv_36_10_city_street",
+      "bounds_source_zup_m": {
+        "min": [
+          -14.0,
+          -22.200000762939453,
+          -0.3199999928474426
+        ],
+        "max": [
+          6.400000095367432,
+          22.200000762939453,
+          4.986924648284912
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -5
+          ],
+          "position": [
+            0,
+            -22,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P00",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            5
+          ],
+          "position": [
+            0,
+            22,
+            0
+          ],
+          "outward": [
+            0,
+            1,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P01",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            -3,
+            0
+          ],
+          "position": [
+            -14,
+            0,
+            0
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P02",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            -1,
+            -5
+          ],
+          "position": [
+            -6,
+            -20,
+            0
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P03"
+        },
+        {
+          "cell": [
+            1,
+            -5
+          ],
+          "position": [
+            6,
+            -20,
+            0
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P04"
+        },
+        {
+          "cell": [
+            -1,
+            -3
+          ],
+          "position": [
+            -6,
+            -12,
+            0
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P05"
+        },
+        {
+          "cell": [
+            1,
+            -3
+          ],
+          "position": [
+            6,
+            -12,
+            0
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P06"
+        },
+        {
+          "cell": [
+            -1,
+            -1
+          ],
+          "position": [
+            -6,
+            -4,
+            0
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P07"
+        },
+        {
+          "cell": [
+            1,
+            -1
+          ],
+          "position": [
+            6,
+            -4,
+            0
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P08"
+        },
+        {
+          "cell": [
+            -1,
+            1
+          ],
+          "position": [
+            -6,
+            4,
+            0
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P09"
+        },
+        {
+          "cell": [
+            1,
+            1
+          ],
+          "position": [
+            6,
+            4,
+            0
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P10"
+        },
+        {
+          "cell": [
+            -1,
+            3
+          ],
+          "position": [
+            -6,
+            12,
+            0
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P11"
+        },
+        {
+          "cell": [
+            1,
+            3
+          ],
+          "position": [
+            6,
+            12,
+            0
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P12"
+        },
+        {
+          "cell": [
+            -1,
+            5
+          ],
+          "position": [
+            -6,
+            20,
+            0
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P13"
+        },
+        {
+          "cell": [
+            1,
+            5
+          ],
+          "position": [
+            6,
+            20,
+            0
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P14"
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -5
+          ],
+          "position": [
+            0,
+            0,
+            22
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P00",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            5
+          ],
+          "position": [
+            0,
+            0,
+            -22
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P01",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            -3,
+            0
+          ],
+          "position": [
+            -14,
+            0,
+            0
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P02",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            -1,
+            -5
+          ],
+          "position": [
+            -6,
+            0,
+            20
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P03"
+        },
+        {
+          "cell": [
+            1,
+            -5
+          ],
+          "position": [
+            6,
+            0,
+            20
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P04"
+        },
+        {
+          "cell": [
+            -1,
+            -3
+          ],
+          "position": [
+            -6,
+            0,
+            12
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P05"
+        },
+        {
+          "cell": [
+            1,
+            -3
+          ],
+          "position": [
+            6,
+            0,
+            12
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P06"
+        },
+        {
+          "cell": [
+            -1,
+            -1
+          ],
+          "position": [
+            -6,
+            0,
+            4
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P07"
+        },
+        {
+          "cell": [
+            1,
+            -1
+          ],
+          "position": [
+            6,
+            0,
+            4
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P08"
+        },
+        {
+          "cell": [
+            -1,
+            1
+          ],
+          "position": [
+            -6,
+            0,
+            -4
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P09"
+        },
+        {
+          "cell": [
+            1,
+            1
+          ],
+          "position": [
+            6,
+            0,
+            -4
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P10"
+        },
+        {
+          "cell": [
+            -1,
+            3
+          ],
+          "position": [
+            -6,
+            0,
+            -12
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P11"
+        },
+        {
+          "cell": [
+            1,
+            3
+          ],
+          "position": [
+            6,
+            0,
+            -12
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P12"
+        },
+        {
+          "cell": [
+            -1,
+            5
+          ],
+          "position": [
+            -6,
+            0,
+            -20
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P13"
+        },
+        {
+          "cell": [
+            1,
+            5
+          ],
+          "position": [
+            6,
+            0,
+            -20
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "doorway_bay_4m",
+          "clear_width_m": 2.8,
+          "clear_height_m": 2.9,
+          "semantic_role": "shop_or_house_attachment",
+          "id": "P14"
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_36_10_city_street.json",
+      "clearance_report_sha256": "b514d89f8e5d9087c96f5abd8bda0b6541783c5709b00686f103a09fa4c3d0d8",
+      "required_target_failures": 0,
+      "natural_terrain": false,
+      "room_metadata": "regions",
+      "fixture_interactions": null,
+      "collision_intent": "collision_primitives",
+      "actual_routes": "nav"
+    },
+    {
+      "id": "tv_31_01_tavern",
+      "revision": "2.0.0",
+      "family": "tavern",
+      "category": "shops_workshops",
+      "glb": "exports/tv_31_01_tavern.glb",
+      "glb_sha256": "9f527fab0e3c2e42de5f157a236311fb76184efd425578bd4fb779b91652202e",
+      "assembly": "assemblies/tv_31_01_tavern.json",
+      "assembly_sha256": "ba5632666fbe4c8d5bd24c098b630d83906ba91c8d22d8b06c761b971f1874b1",
+      "source_structural_sha256": "17c9ed9d51164b59a0d5561c13e3c58448d6012b8df1a26fe0c3e0db2a1b5847",
+      "editable_library": "editable/shops_workshops.blend",
+      "editable_library_sha256": "78ed3ef76fec2920d96272c6e5e4255d7ba16d46b36d7310d49a53dc7130ae9f",
+      "editable_scene_name": "tv_31_01_tavern",
+      "bounds_source_zup_m": {
+        "min": [
+          -6.256572723388672,
+          -6.0,
+          -0.3199999928474426
+        ],
+        "max": [
+          6.5,
+          14.0,
+          6.144999980926514
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -1
+          ],
+          "position": [
+            0,
+            -6,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            3
+          ],
+          "position": [
+            0,
+            14,
+            0
+          ],
+          "outward": [
+            0,
+            1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -1
+          ],
+          "position": [
+            0,
+            0,
+            6
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            3
+          ],
+          "position": [
+            0,
+            0,
+            -14
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_31_01_tavern.json",
+      "clearance_report_sha256": "f9c12ad3f2d34f7f5c49f420a9487539524d0ba9a98b8b87f40286670db5a8b4",
+      "required_target_failures": 0,
+      "natural_terrain": false,
+      "room_metadata": "regions",
+      "fixture_interactions": "fixture_approaches",
+      "collision_intent": "collision_primitives",
+      "actual_routes": "architectural_navigation"
+    },
+    {
+      "id": "tv_32_01_general_store",
+      "revision": "2.0.0",
+      "family": "general_store",
+      "category": "shops_workshops",
+      "glb": "exports/tv_32_01_general_store.glb",
+      "glb_sha256": "07d1c2634112b02331d1e7ace7de33be8c61b96db5236459b83742d7e3bb348e",
+      "assembly": "assemblies/tv_32_01_general_store.json",
+      "assembly_sha256": "f957c29dd75d1f64b9a5bc0381c93566a7376eec88bd39b250480940e79814f9",
+      "source_structural_sha256": "d6a0590cdb4989c686437f5d98e782db514b8af1c707562d04a0fe171a5d57d2",
+      "editable_library": "editable/shops_workshops.blend",
+      "editable_library_sha256": "78ed3ef76fec2920d96272c6e5e4255d7ba16d46b36d7310d49a53dc7130ae9f",
+      "editable_scene_name": "tv_32_01_general_store",
+      "bounds_source_zup_m": {
+        "min": [
+          -6.256572723388672,
+          -6.0,
+          -0.3199999928474426
+        ],
+        "max": [
+          6.5,
+          14.0,
+          5.920000076293945
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -1
+          ],
+          "position": [
+            0,
+            -6,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            3
+          ],
+          "position": [
+            0,
+            14,
+            0
+          ],
+          "outward": [
+            0,
+            1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -1
+          ],
+          "position": [
+            0,
+            0,
+            6
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            3
+          ],
+          "position": [
+            0,
+            0,
+            -14
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_32_01_general_store.json",
+      "clearance_report_sha256": "bf6c22492539a0a87e75b4eb6704f863b9ae14544738276f01f651e2023c2eca",
+      "required_target_failures": 0,
+      "natural_terrain": false,
+      "room_metadata": "regions",
+      "fixture_interactions": "fixture_approaches",
+      "collision_intent": "collision_primitives",
+      "actual_routes": "architectural_navigation"
+    },
+    {
+      "id": "tv_03_01_ruined_cloister",
+      "revision": "2.0.0",
+      "family": "ruined_cloister",
+      "category": "architectural_parts_courtyards",
+      "glb": "exports/tv_03_01_ruined_cloister.glb",
+      "glb_sha256": "29bda59dcb27393aa45c399ce96e5d91f3282bcc8e7fbc58ae83893c247f9d04",
+      "assembly": "assemblies/tv_03_01_ruined_cloister.json",
+      "assembly_sha256": "07faff21eb113d66afefc344995d34cd412704b40e3812f751ab9798641f6bc7",
+      "source_structural_sha256": "91c4a43caf5225644d58fbe35633c7f303778ee08695e7ac8157b457c2de9642",
+      "editable_library": "editable/architectural_parts_courtyards.blend",
+      "editable_library_sha256": "eed51a9d951011b7b42c5e0c6a766494ee52e4e515746b74ae0a37f730896802",
+      "editable_scene_name": "tv_03_01_ruined_cloister",
+      "bounds_source_zup_m": {
+        "min": [
+          -18.33500099182129,
+          -18.334999084472656,
+          -0.3199999928474426
+        ],
+        "max": [
+          30.33500099182129,
+          18.334999084472656,
+          3.4749999046325684
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -4
+          ],
+          "position": [
+            0,
+            -18,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            4
+          ],
+          "position": [
+            0,
+            18,
+            0
+          ],
+          "outward": [
+            0,
+            1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -4
+          ],
+          "position": [
+            0,
+            0,
+            18
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            4
+          ],
+          "position": [
+            0,
+            0,
+            -18
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_03_01_ruined_cloister.json",
+      "clearance_report_sha256": "e697aa14580917bf795fd55e8aebdf327ea10bf598e6534f8b560ac42e469a16",
+      "required_target_failures": 0,
+      "natural_terrain": false,
+      "room_metadata": "regions",
+      "fixture_interactions": null,
+      "collision_intent": "collision_primitives",
+      "actual_routes": "nav"
+    },
+    {
+      "id": "tv_47_01_pine_forest",
+      "revision": "2.0.0",
+      "family": "pine_forest",
+      "category": "landscapes_agriculture",
+      "glb": "exports/tv_47_01_pine_forest.glb",
+      "glb_sha256": "da565c728757c3f9f2141970554a2b5ac441fabc3674950aed5b4e44901bd4c2",
+      "assembly": "assemblies/tv_47_01_pine_forest.json",
+      "assembly_sha256": "c0e06c9292994a46827bd94f0e5ff5b3e0d9ada9a7aa6fa3b7d2efa1896ace2c",
+      "source_structural_sha256": "fda5ab434cf98a057ef14b68f3044f82f8666eb68f419387e8b8f03fb38e0373",
+      "editable_library": "editable/landscapes_agriculture.blend",
+      "editable_library_sha256": "ce6614167a5c32767a733033a1ea5a3c808d84018f965f26eb38f47395f874be",
+      "editable_scene_name": "tv_47_01_pine_forest",
+      "bounds_source_zup_m": {
+        "min": [
+          -27.355257034301758,
+          -27.0,
+          -1.399999976158142
+        ],
+        "max": [
+          27.021648406982422,
+          27.0,
+          9.254033088684082
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -6
+          ],
+          "position": [
+            0,
+            -26,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            6
+          ],
+          "position": [
+            0,
+            26,
+            0
+          ],
+          "outward": [
+            0,
+            1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            -6,
+            0
+          ],
+          "position": [
+            -26,
+            0,
+            0
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P02",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            6,
+            0
+          ],
+          "position": [
+            26,
+            0,
+            0
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P03",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -6
+          ],
+          "position": [
+            0,
+            0,
+            26
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            6
+          ],
+          "position": [
+            0,
+            0,
+            -26
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            -6,
+            0
+          ],
+          "position": [
+            -26,
+            0,
+            0
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P02",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            6,
+            0
+          ],
+          "position": [
+            26,
+            0,
+            0
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P03",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_47_01_pine_forest.json",
+      "clearance_report_sha256": "66c1aaeb534df336a30a72d5503060f3be62c2bb67e2cd2ed477e98f39d6ce88",
+      "required_target_failures": 0,
+      "natural_terrain": true,
+      "room_metadata": "regions",
+      "fixture_interactions": null,
+      "collision_intent": "collision_primitives",
+      "actual_routes": "walkable_routes"
+    },
+    {
+      "id": "tv_47_03_pine_forest",
+      "revision": "2.0.0",
+      "family": "pine_forest",
+      "category": "landscapes_agriculture",
+      "glb": "exports/tv_47_03_pine_forest.glb",
+      "glb_sha256": "0c8a41e19383b0ee9fbb37ecea47b049e6b9d4858670d8481e5b757834dd0a3e",
+      "assembly": "assemblies/tv_47_03_pine_forest.json",
+      "assembly_sha256": "731e39b3e64e1294fdd3b456cdc361235393e2838818fda45a16246fe0009d6e",
+      "source_structural_sha256": "430c5254ade02e869dc11abbb96c01d747a4eccca6de16dc7362f24261ce50fe",
+      "editable_library": "editable/landscapes_agriculture.blend",
+      "editable_library_sha256": "ce6614167a5c32767a733033a1ea5a3c808d84018f965f26eb38f47395f874be",
+      "editable_scene_name": "tv_47_03_pine_forest",
+      "bounds_source_zup_m": {
+        "min": [
+          -23.08553123474121,
+          -31.0,
+          -1.399999976158142
+        ],
+        "max": [
+          23.319387435913086,
+          27.014400482177734,
+          9.25698471069336
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -7
+          ],
+          "position": [
+            0,
+            -30,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            -4,
+            6
+          ],
+          "position": [
+            -16,
+            26,
+            0
+          ],
+          "outward": [
+            0,
+            1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            5,
+            4
+          ],
+          "position": [
+            22,
+            16,
+            0
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P02",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -7
+          ],
+          "position": [
+            0,
+            0,
+            30
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            -4,
+            6
+          ],
+          "position": [
+            -16,
+            0,
+            -26
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            5,
+            4
+          ],
+          "position": [
+            22,
+            0,
+            -16
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P02",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_47_03_pine_forest.json",
+      "clearance_report_sha256": "0a3721cdb4a11442e99058c0b7d3cf336023abd1d165e4ec9ed0b9c1469cd0c8",
+      "required_target_failures": 0,
+      "natural_terrain": true,
+      "room_metadata": "regions",
+      "fixture_interactions": null,
+      "collision_intent": "collision_primitives",
+      "actual_routes": "walkable_routes"
+    },
+    {
+      "id": "tv_48_01_broadleaf_forest",
+      "revision": "2.0.0",
+      "family": "broadleaf_forest",
+      "category": "landscapes_agriculture",
+      "glb": "exports/tv_48_01_broadleaf_forest.glb",
+      "glb_sha256": "5a2ff56eb3839275ac9ba5fc1fcdcb152e4487c35b5940a028868950ccfcf123",
+      "assembly": "assemblies/tv_48_01_broadleaf_forest.json",
+      "assembly_sha256": "eef817f209a0711a6df47663e4ab5a94347614f15e4a10bef560d1d8b60bfdd1",
+      "source_structural_sha256": "0d55480f81f8e04dd6e6c2bf3ecefa8ceacffd1c9be9f1c8828955cb11e0dafe",
+      "editable_library": "editable/landscapes_agriculture.blend",
+      "editable_library_sha256": "ce6614167a5c32767a733033a1ea5a3c808d84018f965f26eb38f47395f874be",
+      "editable_scene_name": "tv_48_01_broadleaf_forest",
+      "bounds_source_zup_m": {
+        "min": [
+          -22.0,
+          -28.395814895629883,
+          -1.6399999856948853
+        ],
+        "max": [
+          31.472091674804688,
+          22.0,
+          9.469891548156738
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -6
+          ],
+          "position": [
+            0,
+            -26,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            7,
+            0
+          ],
+          "position": [
+            30,
+            0,
+            0
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -6
+          ],
+          "position": [
+            0,
+            0,
+            26
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            7,
+            0
+          ],
+          "position": [
+            30,
+            0,
+            0
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 4.0,
+          "clear_height_m": 2.8
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_48_01_broadleaf_forest.json",
+      "clearance_report_sha256": "35d2e32ecd5696a56f550370d163cc5ca7fa72f859204beb49a117ab3a31f13f",
+      "required_target_failures": 0,
+      "natural_terrain": true,
+      "room_metadata": "regions",
+      "fixture_interactions": null,
+      "collision_intent": "collision_primitives",
+      "actual_routes": "walkable_routes"
+    },
+    {
+      "id": "tv_43_01_tower_stairwell",
+      "revision": "2.0.0",
+      "family": "tower_stairwell",
+      "category": "tower_dungeon",
+      "glb": "exports/tv_43_01_tower_stairwell.glb",
+      "glb_sha256": "10817e54c86a9922eb67957fb37536745c7413f7a3b25ddf7c8e4847c96790c4",
+      "assembly": "assemblies/tv_43_01_tower_stairwell.json",
+      "assembly_sha256": "2c743633fff5b22ed567b12bbd4b50e72187edf86ac8bb419757635d8cd1006d",
+      "source_structural_sha256": "310d9940953f0c2b0786a2fb9a7d6cbb274017cad5cd809dfbfbc522b5a2899f",
+      "editable_library": "editable/tower_dungeon.blend",
+      "editable_library_sha256": "c22d8861a5ce4454aadb8e8a9a1c2032bdbfedade3d44856478f438e6d236845",
+      "editable_scene_name": "tv_43_01_tower_stairwell",
+      "bounds_source_zup_m": {
+        "min": [
+          -6.375,
+          -10.050000190734863,
+          -1.2000000476837158
+        ],
+        "max": [
+          14.010000228881836,
+          14.050000190734863,
+          7.724999904632568
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -2
+          ],
+          "position": [
+            0,
+            -10,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P00",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            3
+          ],
+          "position": [
+            0,
+            14,
+            2.4
+          ],
+          "outward": [
+            0,
+            1,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P01",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -2
+          ],
+          "position": [
+            0,
+            0,
+            10
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P00",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            3
+          ],
+          "position": [
+            0,
+            2.4,
+            -14
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P01",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_43_01_tower_stairwell.json",
+      "clearance_report_sha256": "1237abb45232931830d3314c41243daef0c5759a1155ca01e4d4567d4bb803cc",
+      "required_target_failures": 0,
+      "natural_terrain": false,
+      "room_metadata": "regions",
+      "fixture_interactions": null,
+      "collision_intent": "collision_primitives",
+      "actual_routes": "nav"
+    },
+    {
+      "id": "tv_19_01_tower_hall",
+      "revision": "2.0.0",
+      "family": "tower_hall",
+      "category": "tower_dungeon",
+      "glb": "exports/tv_19_01_tower_hall.glb",
+      "glb_sha256": "890f1f0cb1b6d2cd106aaa74bc7cfa96ac0d284fb4c5635da62865a0db71f2c4",
+      "assembly": "assemblies/tv_19_01_tower_hall.json",
+      "assembly_sha256": "63351cdb99e9d8a399d54d3862982ab0a6341e4828316c82dfb0c73425ed65a1",
+      "source_structural_sha256": "269ca2ee4851e9b61ea9242d8a73ff927ef55ef9209660791e642e1ab3588577",
+      "editable_library": "editable/tower_dungeon.blend",
+      "editable_library_sha256": "c22d8861a5ce4454aadb8e8a9a1c2032bdbfedade3d44856478f438e6d236845",
+      "editable_scene_name": "tv_19_01_tower_hall",
+      "bounds_source_zup_m": {
+        "min": [
+          -14.335000038146973,
+          -18.334999084472656,
+          -0.3199999928474426
+        ],
+        "max": [
+          14.335000038146973,
+          18.059999465942383,
+          3.450000047683716
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -4
+          ],
+          "position": [
+            0,
+            -18,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            4
+          ],
+          "position": [
+            0,
+            18,
+            0
+          ],
+          "outward": [
+            0,
+            1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -4
+          ],
+          "position": [
+            0,
+            0,
+            18
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            4
+          ],
+          "position": [
+            0,
+            0,
+            -18
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_19_01_tower_hall.json",
+      "clearance_report_sha256": "a1aee56d4ae1e2557bdeb14ed1b8ba6a55b59639a90536be4b7a696da3586aef",
+      "required_target_failures": 0,
+      "natural_terrain": false,
+      "room_metadata": "regions",
+      "fixture_interactions": null,
+      "collision_intent": "collision_primitives",
+      "actual_routes": "nav"
+    },
+    {
+      "id": "tv_19_02_tower_hall",
+      "revision": "2.0.0",
+      "family": "tower_hall",
+      "category": "tower_dungeon",
+      "glb": "exports/tv_19_02_tower_hall.glb",
+      "glb_sha256": "7bec1f128e3fb02d9d7011a9dd3955dcbfada449ad6b2912788385d0640d6635",
+      "assembly": "assemblies/tv_19_02_tower_hall.json",
+      "assembly_sha256": "3e7bee342656013a23868c4cb89d1e7f2854cb011907f4d1faa265a3a9056560",
+      "source_structural_sha256": "ecda7b221f15c532d2d8e1cd98d888ad1fc56f6fa2d55fac4c2306112cc13864",
+      "editable_library": "editable/tower_dungeon.blend",
+      "editable_library_sha256": "c22d8861a5ce4454aadb8e8a9a1c2032bdbfedade3d44856478f438e6d236845",
+      "editable_scene_name": "tv_19_02_tower_hall",
+      "bounds_source_zup_m": {
+        "min": [
+          -18.33500099182129,
+          -22.334999084472656,
+          -0.3199999928474426
+        ],
+        "max": [
+          18.33500099182129,
+          22.059999465942383,
+          3.450000047683716
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -5
+          ],
+          "position": [
+            0,
+            -22,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            5
+          ],
+          "position": [
+            0,
+            22,
+            0
+          ],
+          "outward": [
+            0,
+            1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -5
+          ],
+          "position": [
+            0,
+            0,
+            22
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            5
+          ],
+          "position": [
+            0,
+            0,
+            -22
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_19_02_tower_hall.json",
+      "clearance_report_sha256": "c709ae93f1cc6614022bfa63265f7a15bd4a991fb3a3ac568a4c909153ced5c1",
+      "required_target_failures": 0,
+      "natural_terrain": false,
+      "room_metadata": "regions",
+      "fixture_interactions": null,
+      "collision_intent": "collision_primitives",
+      "actual_routes": "nav"
+    },
+    {
+      "id": "tv_19_03_tower_hall",
+      "revision": "2.0.0",
+      "family": "tower_hall",
+      "category": "tower_dungeon",
+      "glb": "exports/tv_19_03_tower_hall.glb",
+      "glb_sha256": "fcbf0af92f67c94688852841de948bbd6e2ca36ec1c93faf79217333d7b952f8",
+      "assembly": "assemblies/tv_19_03_tower_hall.json",
+      "assembly_sha256": "84620c656c6b6f4997c42992d5c68e725d4578a7687f5e7a4f606cbe505a82fc",
+      "source_structural_sha256": "5536a051f7ca0bfce0e4bd6e5ec4717bc3257449f4840def553cec19b1ce4a9d",
+      "editable_library": "editable/tower_dungeon.blend",
+      "editable_library_sha256": "c22d8861a5ce4454aadb8e8a9a1c2032bdbfedade3d44856478f438e6d236845",
+      "editable_scene_name": "tv_19_03_tower_hall",
+      "bounds_source_zup_m": {
+        "min": [
+          -22.33500099182129,
+          -26.049999237060547,
+          -0.3199999928474426
+        ],
+        "max": [
+          22.33500099182129,
+          26.059999465942383,
+          3.450000047683716
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -6
+          ],
+          "position": [
+            0,
+            -26,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            6
+          ],
+          "position": [
+            0,
+            26,
+            0
+          ],
+          "outward": [
+            0,
+            1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -6
+          ],
+          "position": [
+            0,
+            0,
+            26
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            6
+          ],
+          "position": [
+            0,
+            0,
+            -26
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_19_03_tower_hall.json",
+      "clearance_report_sha256": "176b26d9a432ea95a5c005531e004b02a43bc381cbaa2579bda8731e565b65e9",
+      "required_target_failures": 0,
+      "natural_terrain": false,
+      "room_metadata": "regions",
+      "fixture_interactions": null,
+      "collision_intent": "collision_primitives",
+      "actual_routes": "nav"
+    },
+    {
+      "id": "tv_44_01_dungeon_junction",
+      "revision": "2.0.0",
+      "family": "dungeon_junction",
+      "category": "tower_dungeon",
+      "glb": "exports/tv_44_01_dungeon_junction.glb",
+      "glb_sha256": "3df2f5e195aa8c5f9244b6edb594afb6ce5d3f918677638d6a326ff48b0aca2e",
+      "assembly": "assemblies/tv_44_01_dungeon_junction.json",
+      "assembly_sha256": "ace615610c255c01cfd25fa0790d4d91f695b154bbe2a8abdd248aa0befadc86",
+      "source_structural_sha256": "498a82890431f7a199dc52fbc77fc26a94d1492c6392f8a80e9ac670815b6a69",
+      "editable_library": "editable/tower_dungeon.blend",
+      "editable_library_sha256": "c22d8861a5ce4454aadb8e8a9a1c2032bdbfedade3d44856478f438e6d236845",
+      "editable_scene_name": "tv_44_01_dungeon_junction",
+      "bounds_source_zup_m": {
+        "min": [
+          -10.050000190734863,
+          -10.335000038146973,
+          -0.3199999928474426
+        ],
+        "max": [
+          10.059999465942383,
+          10.335000038146973,
+          3.805000066757202
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -2
+          ],
+          "position": [
+            0,
+            -10,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P00",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            2
+          ],
+          "position": [
+            0,
+            10,
+            0
+          ],
+          "outward": [
+            0,
+            1,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P01",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            -2,
+            -1
+          ],
+          "position": [
+            -10,
+            -4,
+            0
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P02",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            2,
+            -1
+          ],
+          "position": [
+            10,
+            -4,
+            0
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P03",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -2
+          ],
+          "position": [
+            0,
+            0,
+            10
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P00",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            2
+          ],
+          "position": [
+            0,
+            0,
+            -10
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P01",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            -2,
+            -1
+          ],
+          "position": [
+            -10,
+            0,
+            4
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P02",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            2,
+            -1
+          ],
+          "position": [
+            10,
+            0,
+            4
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P03",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_44_01_dungeon_junction.json",
+      "clearance_report_sha256": "e645bfa71bd9d415ea8270760482631968fbffbf040a6afd8779264e04db4b76",
+      "required_target_failures": 0,
+      "natural_terrain": false,
+      "room_metadata": "regions",
+      "fixture_interactions": null,
+      "collision_intent": "collision_primitives",
+      "actual_routes": "nav"
+    },
+    {
+      "id": "tv_44_02_dungeon_junction",
+      "revision": "2.0.0",
+      "family": "dungeon_junction",
+      "category": "tower_dungeon",
+      "glb": "exports/tv_44_02_dungeon_junction.glb",
+      "glb_sha256": "d84c2dd52c885da8b78f75b6be5c1aebb206f189e7495255270460584cfca16d",
+      "assembly": "assemblies/tv_44_02_dungeon_junction.json",
+      "assembly_sha256": "0755972e9d136d4e84c9fb2e7d79cfa9ddeb92789984fcca5d88713c62425a5a",
+      "source_structural_sha256": "30a5a238a546ea7a07020fbec1f8334ecb5b43c58a0b60d1b72bd7a5fd3f36e9",
+      "editable_library": "editable/tower_dungeon.blend",
+      "editable_library_sha256": "c22d8861a5ce4454aadb8e8a9a1c2032bdbfedade3d44856478f438e6d236845",
+      "editable_scene_name": "tv_44_02_dungeon_junction",
+      "bounds_source_zup_m": {
+        "min": [
+          -10.050000190734863,
+          -10.335000038146973,
+          -0.3199999928474426
+        ],
+        "max": [
+          10.059999465942383,
+          10.335000038146973,
+          3.805000066757202
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -2
+          ],
+          "position": [
+            0,
+            -10,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P00",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            2
+          ],
+          "position": [
+            0,
+            10,
+            0
+          ],
+          "outward": [
+            0,
+            1,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P01",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            -2,
+            0
+          ],
+          "position": [
+            -10,
+            0,
+            0
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P02",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            2,
+            0
+          ],
+          "position": [
+            10,
+            0,
+            0
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P03",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -2
+          ],
+          "position": [
+            0,
+            0,
+            10
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P00",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            2
+          ],
+          "position": [
+            0,
+            0,
+            -10
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P01",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            -2,
+            0
+          ],
+          "position": [
+            -10,
+            0,
+            0
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P02",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            2,
+            0
+          ],
+          "position": [
+            10,
+            0,
+            0
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P03",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_44_02_dungeon_junction.json",
+      "clearance_report_sha256": "c470064becdd1c8aff1ae91b58a8f790aea7fe91c58b603e8763a7165cf7315a",
+      "required_target_failures": 0,
+      "natural_terrain": false,
+      "room_metadata": "regions",
+      "fixture_interactions": null,
+      "collision_intent": "collision_primitives",
+      "actual_routes": "nav"
+    },
+    {
+      "id": "tv_44_03_dungeon_junction",
+      "revision": "2.0.0",
+      "family": "dungeon_junction",
+      "category": "tower_dungeon",
+      "glb": "exports/tv_44_03_dungeon_junction.glb",
+      "glb_sha256": "3b98e6f8b0fcb1d45d4adb475286f131b3247a884ed2688c8aa124c04167be5f",
+      "assembly": "assemblies/tv_44_03_dungeon_junction.json",
+      "assembly_sha256": "ecb542e282e2dad0020a8151f10fcb22da36abc7598a7780ec3b5f1b368b92bb",
+      "source_structural_sha256": "d2fb6a99620da6a84788015138a83f9af6f55c95b19bf6b15c4a919b36f3eee5",
+      "editable_library": "editable/tower_dungeon.blend",
+      "editable_library_sha256": "c22d8861a5ce4454aadb8e8a9a1c2032bdbfedade3d44856478f438e6d236845",
+      "editable_scene_name": "tv_44_03_dungeon_junction",
+      "bounds_source_zup_m": {
+        "min": [
+          -14.050000190734863,
+          -10.335000038146973,
+          -0.3199999928474426
+        ],
+        "max": [
+          14.059999465942383,
+          10.335000038146973,
+          3.805000066757202
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -2
+          ],
+          "position": [
+            0,
+            -10,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P00",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            2
+          ],
+          "position": [
+            0,
+            10,
+            0
+          ],
+          "outward": [
+            0,
+            1,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P01",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            -3,
+            0
+          ],
+          "position": [
+            -14,
+            0,
+            0
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P02",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            3,
+            0
+          ],
+          "position": [
+            14,
+            0,
+            0
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P03",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -2
+          ],
+          "position": [
+            0,
+            0,
+            10
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P00",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            2
+          ],
+          "position": [
+            0,
+            0,
+            -10
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P01",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            -3,
+            0
+          ],
+          "position": [
+            -14,
+            0,
+            0
+          ],
+          "outward": [
+            -1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P02",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            3,
+            0
+          ],
+          "position": [
+            14,
+            0,
+            0
+          ],
+          "outward": [
+            1,
+            0,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P03",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_44_03_dungeon_junction.json",
+      "clearance_report_sha256": "a0197f2b67910cfab347a5a327875e8195dc55770e35bc7b08a9c4ba4ec3bafb",
+      "required_target_failures": 0,
+      "natural_terrain": false,
+      "room_metadata": "regions",
+      "fixture_interactions": null,
+      "collision_intent": "collision_primitives",
+      "actual_routes": "nav"
+    },
+    {
+      "id": "tv_43_02_tower_stairwell",
+      "revision": "2.0.0",
+      "family": "tower_stairwell",
+      "category": "tower_dungeon",
+      "glb": "exports/tv_43_02_tower_stairwell.glb",
+      "glb_sha256": "8e9dd022029ca99cb4fce48b526ab65d9230d1f020fe37cd881eb73500b928d7",
+      "assembly": "assemblies/tv_43_02_tower_stairwell.json",
+      "assembly_sha256": "423e14e7ac138045f5a5c7dd09e86a6dece973e3fd578461c745babc2c04bfaa",
+      "source_structural_sha256": "289e087cdcfc8862a27fe20ed8c356b8958d5576c1f8283ed443ec8059053c99",
+      "editable_library": "editable/tower_dungeon.blend",
+      "editable_library_sha256": "c22d8861a5ce4454aadb8e8a9a1c2032bdbfedade3d44856478f438e6d236845",
+      "editable_scene_name": "tv_43_02_tower_stairwell",
+      "bounds_source_zup_m": {
+        "min": [
+          -14.010000228881836,
+          -10.050000190734863,
+          -0.3199999928474426
+        ],
+        "max": [
+          6.375,
+          18.049999237060547,
+          7.724999904632568
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -2
+          ],
+          "position": [
+            0,
+            -10,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P00",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            4
+          ],
+          "position": [
+            0,
+            18,
+            3.5999999999999996
+          ],
+          "outward": [
+            0,
+            1,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P01",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -2
+          ],
+          "position": [
+            0,
+            0,
+            10
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P00",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            4
+          ],
+          "position": [
+            0,
+            3.5999999999999996,
+            -18
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P01",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_43_02_tower_stairwell.json",
+      "clearance_report_sha256": "bd8f457e2c56601a3eef03cbe545b8cfa2b619bf384e0146893c10ef441505a6",
+      "required_target_failures": 0,
+      "natural_terrain": false,
+      "room_metadata": "regions",
+      "fixture_interactions": null,
+      "collision_intent": "collision_primitives",
+      "actual_routes": "nav"
+    },
+    {
+      "id": "tv_43_03_tower_stairwell",
+      "revision": "2.0.0",
+      "family": "tower_stairwell",
+      "category": "tower_dungeon",
+      "glb": "exports/tv_43_03_tower_stairwell.glb",
+      "glb_sha256": "37567d945af73cff643b96847ff41320b03fcb7f109b5f8b60cc7b1939c2823c",
+      "assembly": "assemblies/tv_43_03_tower_stairwell.json",
+      "assembly_sha256": "55d6f8e80f8f324196250d9a1c493dfaab1b2adc394951f1e330a02800fbd330",
+      "source_structural_sha256": "436ec8d23d333fbd591148b43b7e3ae3c4a8549385d50b926f594b96099d32d2",
+      "editable_library": "editable/tower_dungeon.blend",
+      "editable_library_sha256": "c22d8861a5ce4454aadb8e8a9a1c2032bdbfedade3d44856478f438e6d236845",
+      "editable_scene_name": "tv_43_03_tower_stairwell",
+      "bounds_source_zup_m": {
+        "min": [
+          -6.375,
+          -10.050000190734863,
+          -0.3199999928474426
+        ],
+        "max": [
+          14.010000228881836,
+          22.049999237060547,
+          7.724999904632568
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -2
+          ],
+          "position": [
+            0,
+            -10,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P00",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            5
+          ],
+          "position": [
+            0,
+            22,
+            4.8
+          ],
+          "outward": [
+            0,
+            1,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P01",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -2
+          ],
+          "position": [
+            0,
+            0,
+            10
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P00",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            5
+          ],
+          "position": [
+            0,
+            4.8,
+            -22
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P01",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_43_03_tower_stairwell.json",
+      "clearance_report_sha256": "e0776eca31f037945be213b98432c17cff23472664c8168a1553a4ef6f6cd287",
+      "required_target_failures": 0,
+      "natural_terrain": false,
+      "room_metadata": "regions",
+      "fixture_interactions": null,
+      "collision_intent": "collision_primitives",
+      "actual_routes": "nav"
+    },
+    {
+      "id": "tv_07_01_crypt_rooms",
+      "revision": "2.0.0",
+      "family": "crypt_rooms",
+      "category": "tower_dungeon",
+      "glb": "exports/tv_07_01_crypt_rooms.glb",
+      "glb_sha256": "8f8a9d432792bf95523b627f8930f2ad495a32b06d8cef805b0459e46f478362",
+      "assembly": "assemblies/tv_07_01_crypt_rooms.json",
+      "assembly_sha256": "2319231fb8357844247f0def2e25c52b67596c35fa0c698215097a6c057aa0fe",
+      "source_structural_sha256": "9e319b155071bf7daccce00af964649c946776a18a8f6dbb092ebaadd042f4ca",
+      "editable_library": "editable/tower_dungeon.blend",
+      "editable_library_sha256": "c22d8861a5ce4454aadb8e8a9a1c2032bdbfedade3d44856478f438e6d236845",
+      "editable_scene_name": "tv_07_01_crypt_rooms",
+      "bounds_source_zup_m": {
+        "min": [
+          -6.335000038146973,
+          -18.334999084472656,
+          -0.3199999928474426
+        ],
+        "max": [
+          18.33500099182129,
+          18.334999084472656,
+          3.8399999141693115
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -4
+          ],
+          "position": [
+            0,
+            -18,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            4
+          ],
+          "position": [
+            0,
+            18,
+            0
+          ],
+          "outward": [
+            0,
+            1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -4
+          ],
+          "position": [
+            0,
+            0,
+            18
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            4
+          ],
+          "position": [
+            0,
+            0,
+            -18
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_07_01_crypt_rooms.json",
+      "clearance_report_sha256": "a8c04f2cd23fedcca2d86d4ed3ae02c02592279eb251fd826ed1cddf37c2b185",
+      "required_target_failures": 0,
+      "natural_terrain": false,
+      "room_metadata": "regions",
+      "fixture_interactions": null,
+      "collision_intent": "collision_primitives",
+      "actual_routes": "nav"
+    },
+    {
+      "id": "tv_20_01_cellar_vaults",
+      "revision": "2.0.0",
+      "family": "cellar_vaults",
+      "category": "tower_dungeon",
+      "glb": "exports/tv_20_01_cellar_vaults.glb",
+      "glb_sha256": "641a929b720ea8cf5d58742955ffc544911d3cddc6552615b83b876d3df81b6a",
+      "assembly": "assemblies/tv_20_01_cellar_vaults.json",
+      "assembly_sha256": "f695652bacb0ab98fad6d6add809bb37c471623edbaba6d787c7c36fae7f6e90",
+      "source_structural_sha256": "3580f72025c213adc9a1c51dfd34e93aafdb8e59d431d847fe5c173b4b4728e6",
+      "editable_library": "editable/tower_dungeon.blend",
+      "editable_library_sha256": "c22d8861a5ce4454aadb8e8a9a1c2032bdbfedade3d44856478f438e6d236845",
+      "editable_scene_name": "tv_20_01_cellar_vaults",
+      "bounds_source_zup_m": {
+        "min": [
+          -10.335000038146973,
+          -18.334999084472656,
+          -0.3199999928474426
+        ],
+        "max": [
+          14.335000038146973,
+          18.059999465942383,
+          3.8399999141693115
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -4
+          ],
+          "position": [
+            0,
+            -18,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            4
+          ],
+          "position": [
+            0,
+            18,
+            0
+          ],
+          "outward": [
+            0,
+            1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -4
+          ],
+          "position": [
+            0,
+            0,
+            18
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            4
+          ],
+          "position": [
+            0,
+            0,
+            -18
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_20_01_cellar_vaults.json",
+      "clearance_report_sha256": "fd1d83e0e8146a9263905d978750981c958b092d1b1a520a991221970db08b03",
+      "required_target_failures": 0,
+      "natural_terrain": false,
+      "room_metadata": "regions",
+      "fixture_interactions": null,
+      "collision_intent": "collision_primitives",
+      "actual_routes": "nav"
+    },
+    {
+      "id": "tv_02_01_archive_room",
+      "revision": "2.0.0",
+      "family": "archive_room",
+      "category": "shops_workshops",
+      "glb": "exports/tv_02_01_archive_room.glb",
+      "glb_sha256": "0ba23d18ae5ee73e0979b23232544dfac287a91c2b15f848ba1c4698ba396eb1",
+      "assembly": "assemblies/tv_02_01_archive_room.json",
+      "assembly_sha256": "ea7d2d1f55d6e334cebc5464196c267b4d97aeb90519612dc60aac53072b5358",
+      "source_structural_sha256": "eae9f30f68a43eed3a3582a6f438b4a8f1bfaf7d90de1a0779bb602fb5619d15",
+      "editable_library": "editable/shops_workshops.blend",
+      "editable_library_sha256": "78ed3ef76fec2920d96272c6e5e4255d7ba16d46b36d7310d49a53dc7130ae9f",
+      "editable_scene_name": "tv_02_01_archive_room",
+      "bounds_source_zup_m": {
+        "min": [
+          -6.335000038146973,
+          -10.335000038146973,
+          -0.3199999928474426
+        ],
+        "max": [
+          10.335000038146973,
+          6.335000038146973,
+          3.8399999141693115
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -2
+          ],
+          "position": [
+            0,
+            -10,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            1
+          ],
+          "position": [
+            0,
+            6,
+            0
+          ],
+          "outward": [
+            0,
+            1,
+            0
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -2
+          ],
+          "position": [
+            0,
+            0,
+            10
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4.0,
+          "id": "P00",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            1
+          ],
+          "position": [
+            0,
+            0,
+            -6
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 4.0,
+          "id": "P01",
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_02_01_archive_room.json",
+      "clearance_report_sha256": "e71f6c2248700cba37a316afa841a361bb98083baefc0968b6f231c0f4f3948c",
+      "required_target_failures": 0,
+      "natural_terrain": false,
+      "room_metadata": "regions",
+      "fixture_interactions": null,
+      "collision_intent": "collision_primitives",
+      "actual_routes": "nav"
+    },
+    {
+      "id": "tv_45_01_boss_hall",
+      "revision": "2.0.0",
+      "family": "boss_hall",
+      "category": "tower_dungeon",
+      "glb": "exports/tv_45_01_boss_hall.glb",
+      "glb_sha256": "f8edb4ccee94ced48384a056de19b0eba5f7bd8d1b7a711ddf68ce860fd6881b",
+      "assembly": "assemblies/tv_45_01_boss_hall.json",
+      "assembly_sha256": "7e713aae1b20f28135fd61039faa4d52e34c4db72772a09bcea0f52ec054a7f9",
+      "source_structural_sha256": "a795b9db1758cf2fedcc51641fae51ff5ceed60b9422f9a50dbc088bfd9e596f",
+      "editable_library": "editable/tower_dungeon.blend",
+      "editable_library_sha256": "c22d8861a5ce4454aadb8e8a9a1c2032bdbfedade3d44856478f438e6d236845",
+      "editable_scene_name": "tv_45_01_boss_hall",
+      "bounds_source_zup_m": {
+        "min": [
+          -10.335000038146973,
+          -10.335000038146973,
+          -0.3199999928474426
+        ],
+        "max": [
+          18.33500099182129,
+          10.335000038146973,
+          3.450000047683716
+        ]
+      },
+      "ports_source_zup": [
+        {
+          "cell": [
+            0,
+            -2
+          ],
+          "position": [
+            0,
+            -10,
+            0
+          ],
+          "outward": [
+            0,
+            -1,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P00",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            2
+          ],
+          "position": [
+            0,
+            10,
+            0
+          ],
+          "outward": [
+            0,
+            1,
+            0
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P01",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "ports_gltf_yup": [
+        {
+          "cell": [
+            0,
+            -2
+          ],
+          "position": [
+            0,
+            0,
+            10
+          ],
+          "outward": [
+            0,
+            0,
+            1
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P00",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        },
+        {
+          "cell": [
+            0,
+            2
+          ],
+          "position": [
+            0,
+            0,
+            -10
+          ],
+          "outward": [
+            0,
+            0,
+            -1
+          ],
+          "width_m": 4,
+          "kind": "walkable",
+          "profile": "walkway_4m",
+          "id": "P01",
+          "clear_width_m": 2.4,
+          "clear_height_m": 2.8
+        }
+      ],
+      "clearance_report": "review/v2_clearance/final/tv_45_01_boss_hall.json",
+      "clearance_report_sha256": "5a5bd7e7fcdbc2f5df172c99faa8c657bc175871140ba29365dd62b1f1448bb8",
+      "required_target_failures": 0,
+      "natural_terrain": false,
+      "room_metadata": "regions",
+      "fixture_interactions": null,
+      "collision_intent": "collision_primitives",
+      "actual_routes": "nav"
+    }
+  ],
+  "note": "Original provenance records retained verbatim; editable and original review paths are source references, not bundled dependencies."
+}

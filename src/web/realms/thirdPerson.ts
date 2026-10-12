@@ -10,6 +10,9 @@ export function cameraRelativeMove(right: number, forward: number, yaw: number) 
 }
 export const travelFacing = (move: { x: number; z: number }): number | undefined =>
   Math.hypot(move.x, move.z) > .001 ? Math.atan2(-move.x, -move.z) : undefined;
+/** Slower analog input goes through canonical movement, never only the visual root. */
+export const walkingMove = (move: {x:number;z:number}, walking:boolean, sprinting:boolean) =>
+ walking&&!sprinting?{x:move.x*.5,z:move.z*.5}:move;
 /** Actual ground-plane view after travel lead and combat focus adjust the target. */
 export const groundViewYaw = (eye: { x: number; z: number }, target: { x: number; z: number }) =>
   Math.atan2(eye.x - target.x, eye.z - target.z);
@@ -21,9 +24,9 @@ export const smoothYaw = (current: number, target: number, dt: number) =>
 export function primaryCamera(view: 'realm' | 'tower', storage?: Pick<Storage, 'getItem' | 'setItem'>) {
   const camera = new AdaptiveCamera({ minDistance: 3, maxDistance: 18, maxExceptional: 24,
     minPitch: 8 * Math.PI / 180, maxPitch: 60 * Math.PI / 180 });
-  camera.preset('wide'); camera.preferred = 10.5; camera.pitch = 38 * Math.PI / 180;
+  camera.preset('wide'); camera.preferred = 6.8; camera.pitch = 27 * Math.PI / 180; camera.baseFov=58*Math.PI/180;
   camera.yaw = view === 'realm' ? Math.PI : 0;
-  const key = `torn-veil.primary-camera.${view}.v1`;
+  const key = `torn-veil.primary-camera.${view}.v2`;
   try {
     storage ??= globalThis.localStorage;
     const saved = JSON.parse(storage?.getItem(key) ?? 'null');

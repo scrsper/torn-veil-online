@@ -1,0 +1,590 @@
+{
+  "id": "tv_26_05_timber_house",
+  "glb_sha256": "442f9e909d800be12c7957a99b8784f56abdd136ccf97e5e043bb15533ad42dd",
+  "metadata_sha256": "9169da27c70d0a57a584741b00de6c0a1909960c651b266a2febcb991f72a714",
+  "trace_sha256": "717e9f9021c7e885d144a9e5f14fa9a26f95f99dcd06eac19b336b13e1901648",
+  "rooms": [
+    {
+      "level": 0,
+      "source_room": "kitchen",
+      "kind": "kitchen",
+      "target_present": true,
+      "target_within_source_room": true,
+      "target_floor_z_matches": true
+    },
+    {
+      "level": 0,
+      "source_room": "nook",
+      "kind": "dining",
+      "target_present": true,
+      "target_within_source_room": true,
+      "target_floor_z_matches": true
+    },
+    {
+      "level": 0,
+      "source_room": "rearentry",
+      "kind": "hall",
+      "target_present": true,
+      "target_within_source_room": true,
+      "target_floor_z_matches": true
+    },
+    {
+      "level": 0,
+      "source_room": "bath",
+      "kind": "bath",
+      "target_present": true,
+      "target_within_source_room": true,
+      "target_floor_z_matches": true
+    },
+    {
+      "level": 0,
+      "source_room": "hall",
+      "kind": "hall",
+      "target_present": true,
+      "target_within_source_room": true,
+      "target_floor_z_matches": true
+    },
+    {
+      "level": 0,
+      "source_room": "bed1",
+      "kind": "bedroom",
+      "target_present": true,
+      "target_within_source_room": true,
+      "target_floor_z_matches": true
+    },
+    {
+      "level": 0,
+      "source_room": "living",
+      "kind": "living",
+      "target_present": true,
+      "target_within_source_room": true,
+      "target_floor_z_matches": true
+    },
+    {
+      "level": 0,
+      "source_room": "bed2",
+      "kind": "bedroom",
+      "target_present": true,
+      "target_within_source_room": true,
+      "target_floor_z_matches": true
+    }
+  ],
+  "stairs": [
+    {
+      "level": 0,
+      "source_stair": "cellarstairs",
+      "destination": "basement",
+      "actual_tread_meshes": 17,
+      "distinct_tread_top_elevations_m": [
+        -2.87059,
+        -2.69118,
+        -2.51177,
+        -2.33235,
+        -2.15294,
+        -1.97353,
+        -1.79412,
+        -1.61471,
+        -1.43529,
+        -1.25588,
+        -1.07647,
+        -0.89706,
+        -0.71765,
+        -0.53824,
+        -0.35882,
+        -0.17941,
+        0.0
+      ],
+      "adjacent_tread_rises_m": [
+        0.17941,
+        0.17941,
+        0.17942,
+        0.17941,
+        0.17941,
+        0.17941,
+        0.17941,
+        0.17942,
+        0.17941,
+        0.17941,
+        0.17941,
+        0.17941,
+        0.17941,
+        0.17942,
+        0.17941,
+        0.17941
+      ],
+      "tread_mesh_bbox_dimensions_m": [
+        [
+          1.5027151107788086,
+          0.28069114685058594,
+          0.1944119930267334
+        ],
+        [
+          1.5027151107788086,
+          0.1832890510559082,
+          0.1944119930267334
+        ],
+        [
+          1.5027151107788086,
+          0.1832876205444336,
+          0.194411039352417
+        ],
+        [
+          1.5027151107788086,
+          0.1832880973815918,
+          0.1944119930267334
+        ],
+        [
+          1.5027151107788086,
+          0.1832880973815918,
+          0.1944119930267334
+        ],
+        [
+          1.5027151107788086,
+          0.1832880973815918,
+          0.19441211223602295
+        ],
+        [
+          1.5027151107788086,
+          0.1832880973815918,
+          0.19441092014312744
+        ],
+        [
+          1.5027151107788086,
+          0.1832876205444336,
+          0.1944119930267334
+        ],
+        [
+          1.5027151107788086,
+          0.1832880973815918,
+          0.1944119930267334
+        ],
+        [
+          1.5027151107788086,
+          0.1832880973815918,
+          0.1944119930267334
+        ],
+        [
+          1.5027151107788086,
+          0.1832880973815918,
+          0.194411039352417
+        ],
+        [
+          1.5027151107788086,
+          0.1832878589630127,
+          0.19441193342208862
+        ],
+        [
+          1.5027151107788086,
+          0.1832880973815918,
+          0.1944119930267334
+        ],
+        [
+          1.5027151107788086,
+          0.1832878589630127,
+          0.1944119930267334
+        ],
+        [
+          1.5027151107788086,
+          0.1832880973815918,
+          0.19441097974777222
+        ],
+        [
+          1.5027151107788086,
+          0.1832880973815918,
+          0.1944119930267334
+        ],
+        [
+          1.5027151107788086,
+          0.28069186210632324,
+          0.1944119930267334
+        ]
+      ]
+    }
+  ],
+  "fixtures_and_closets": [
+    {
+      "level": 0,
+      "source_fixture": "tub",
+      "type": "bath",
+      "target_present": true,
+      "actual_mesh_nodes": [
+        "fixture_0_tub",
+        "tub_water_0_tub"
+      ],
+      "physical_mesh_present": true,
+      "uses_authored_edge_point": true,
+      "authored_edge_source_boundary_error_m": 0.0,
+      "position": [
+        1.3,
+        3.45,
+        0.0
+      ],
+      "nearest_source_edge_world": [
+        1.2999999999999998,
+        3.9176797153150504
+      ],
+      "centre_to_source_edge_m": 0.46768,
+      "provisional_close_reach_m": 0.9,
+      "within_provisional_close_reach": true,
+      "provisional_access_line": {
+        "start": [
+          1.3,
+          3.45,
+          1.0
+        ],
+        "end": [
+          1.2999999999999998,
+          3.9176797153150504,
+          0.65
+        ],
+        "blocking_nodes": [],
+        "clear": true
+      }
+    },
+    {
+      "level": 0,
+      "source_fixture": "hearth",
+      "type": "hearth",
+      "target_present": true,
+      "actual_mesh_nodes": [
+        "fixture_0_hearth",
+        "hearth_cap_0_hearth"
+      ],
+      "physical_mesh_present": true,
+      "uses_authored_edge_point": true,
+      "authored_edge_source_boundary_error_m": 0.0,
+      "position": [
+        -5.7,
+        -4.45,
+        0.0
+      ],
+      "nearest_source_edge_world": [
+        -5.7,
+        -3.9682320088228806
+      ],
+      "centre_to_source_edge_m": 0.48177,
+      "provisional_close_reach_m": 0.9,
+      "within_provisional_close_reach": true,
+      "provisional_access_line": {
+        "start": [
+          -5.7,
+          -4.45,
+          1.0
+        ],
+        "end": [
+          -5.7,
+          -3.9682320088228806,
+          1.0
+        ],
+        "blocking_nodes": [],
+        "clear": true
+      }
+    },
+    {
+      "level": 0,
+      "source_fixture": "basin",
+      "type": "basin",
+      "target_present": true,
+      "actual_mesh_nodes": [
+        "fixture_0_basin",
+        "basin_bowl_0_basin"
+      ],
+      "physical_mesh_present": true,
+      "uses_authored_edge_point": true,
+      "authored_edge_source_boundary_error_m": 0.0,
+      "position": [
+        1.35,
+        2.6500000000000004,
+        0.0
+      ],
+      "nearest_source_edge_world": [
+        0.9334813181383725,
+        2.455900956694361
+      ],
+      "centre_to_source_edge_m": 0.45952,
+      "provisional_close_reach_m": 0.9,
+      "within_provisional_close_reach": true,
+      "provisional_access_line": {
+        "start": [
+          1.35,
+          2.6500000000000004,
+          1.0
+        ],
+        "end": [
+          0.9334813181383725,
+          2.455900956694361,
+          0.85
+        ],
+        "blocking_nodes": [],
+        "clear": true
+      }
+    },
+    {
+      "level": 0,
+      "source_fixture": "wc",
+      "type": "toilet",
+      "target_present": true,
+      "actual_mesh_nodes": [
+        "fixture_0_wc_0",
+        "privy_lid_0_wc_0"
+      ],
+      "physical_mesh_present": true,
+      "uses_authored_edge_point": true,
+      "authored_edge_source_boundary_error_m": 0.0,
+      "position": [
+        1.1,
+        3.1,
+        0.0
+      ],
+      "nearest_source_edge_world": [
+        0.6257384215866484,
+        3.1
+      ],
+      "centre_to_source_edge_m": 0.47426,
+      "provisional_close_reach_m": 0.9,
+      "within_provisional_close_reach": true,
+      "provisional_access_line": {
+        "start": [
+          1.1,
+          3.1,
+          1.0
+        ],
+        "end": [
+          0.6257384215866484,
+          3.1,
+          0.65
+        ],
+        "blocking_nodes": [],
+        "clear": true
+      }
+    },
+    {
+      "level": 0,
+      "source_fixture": "sink",
+      "type": "kitchen_counter",
+      "target_present": true,
+      "actual_mesh_nodes": [
+        "fixture_0_sink"
+      ],
+      "physical_mesh_present": true,
+      "uses_authored_edge_point": true,
+      "authored_edge_source_boundary_error_m": 0.0,
+      "position": [
+        -1.6500000000000001,
+        4.25,
+        0.0
+      ],
+      "nearest_source_edge_world": [
+        -1.2207189577236965,
+        4.071551163590913
+      ],
+      "centre_to_source_edge_m": 0.46489,
+      "provisional_close_reach_m": 0.9,
+      "within_provisional_close_reach": true,
+      "provisional_access_line": {
+        "start": [
+          -1.6500000000000001,
+          4.25,
+          1.0
+        ],
+        "end": [
+          -1.2207189577236965,
+          4.071551163590913,
+          0.85
+        ],
+        "blocking_nodes": [],
+        "clear": true
+      }
+    },
+    {
+      "level": 0,
+      "source_fixture": "hallcloset",
+      "type": "closet",
+      "target_present": true,
+      "uses_authored_edge_point": true,
+      "authored_edge_source_boundary_error_m": 0.0,
+      "position": [
+        1.35,
+        -0.55,
+        0.0
+      ],
+      "nearest_source_edge_world": [
+        1.3950956629659588,
+        -0.55
+      ],
+      "centre_to_source_edge_m": 0.0451,
+      "provisional_close_reach_m": 0.9,
+      "within_provisional_close_reach": true,
+      "provisional_access_line": {
+        "start": [
+          1.35,
+          -0.55,
+          1.0
+        ],
+        "end": [
+          1.3950956629659588,
+          -0.55,
+          1.0
+        ],
+        "blocking_nodes": [],
+        "clear": true
+      }
+    },
+    {
+      "level": 0,
+      "source_fixture": "bed2closet",
+      "type": "closet",
+      "target_present": true,
+      "uses_authored_edge_point": true,
+      "authored_edge_source_boundary_error_m": 0.0,
+      "position": [
+        4.0,
+        -1.2000000000000002,
+        0.0
+      ],
+      "nearest_source_edge_world": [
+        4.0,
+        -1.1600780777883979
+      ],
+      "centre_to_source_edge_m": 0.03992,
+      "provisional_close_reach_m": 0.9,
+      "within_provisional_close_reach": true,
+      "provisional_access_line": {
+        "start": [
+          4.0,
+          -1.2000000000000002,
+          1.0
+        ],
+        "end": [
+          4.0,
+          -1.1600780777883979,
+          1.0
+        ],
+        "blocking_nodes": [],
+        "clear": true
+      }
+    },
+    {
+      "level": 0,
+      "source_fixture": "bed1closet",
+      "type": "closet",
+      "target_present": true,
+      "uses_authored_edge_point": true,
+      "authored_edge_source_boundary_error_m": 0.0,
+      "position": [
+        6.0,
+        0.15000000000000002,
+        0.0
+      ],
+      "nearest_source_edge_world": [
+        6.0,
+        0.14782923255642974
+      ],
+      "centre_to_source_edge_m": 0.00217,
+      "provisional_close_reach_m": 0.9,
+      "within_provisional_close_reach": true,
+      "provisional_access_line": {
+        "start": [
+          6.0,
+          0.15000000000000002,
+          1.0
+        ],
+        "end": [
+          6.0,
+          0.14782923255642974,
+          1.0
+        ],
+        "blocking_nodes": [],
+        "clear": true
+      }
+    },
+    {
+      "level": 0,
+      "source_fixture": "added_bed:bed1",
+      "type": "bed",
+      "target_present": true,
+      "actual_mesh_nodes": [
+        "bed_frame_0_bed1",
+        "bed_mattress_0_bed1",
+        "bed_blanket_0_bed1"
+      ],
+      "physical_mesh_present": true,
+      "uses_authored_edge_point": true,
+      "authored_edge_source_boundary_error_m": 0.0,
+      "position": [
+        3.95,
+        3.2,
+        0.0
+      ],
+      "nearest_source_edge_world": [
+        4.255999803543091,
+        3.531715989112854
+      ],
+      "centre_to_source_edge_m": 0.4513,
+      "provisional_close_reach_m": 0.9,
+      "within_provisional_close_reach": true,
+      "provisional_access_line": {
+        "start": [
+          3.95,
+          3.2,
+          1.0
+        ],
+        "end": [
+          4.255999803543091,
+          3.531715989112854,
+          0.65
+        ],
+        "blocking_nodes": [],
+        "clear": true
+      }
+    },
+    {
+      "level": 0,
+      "source_fixture": "added_bed:bed2",
+      "type": "bed",
+      "target_present": true,
+      "actual_mesh_nodes": [
+        "bed_frame_0_bed2",
+        "bed_mattress_0_bed2",
+        "bed_blanket_0_bed2"
+      ],
+      "physical_mesh_present": true,
+      "uses_authored_edge_point": true,
+      "authored_edge_source_boundary_error_m": 0.0,
+      "position": [
+        3.95,
+        -3.75,
+        0.0
+      ],
+      "nearest_source_edge_world": [
+        4.255999803543091,
+        -4.082349896430969
+      ],
+      "centre_to_source_edge_m": 0.45177,
+      "provisional_close_reach_m": 0.9,
+      "within_provisional_close_reach": true,
+      "provisional_access_line": {
+        "start": [
+          3.95,
+          -3.75,
+          1.0
+        ],
+        "end": [
+          4.255999803543091,
+          -4.082349896430969,
+          0.65
+        ],
+        "blocking_nodes": [],
+        "clear": true
+      }
+    }
+  ],
+  "issues": [],
+  "inventory_and_close_approach_pass": true,
+  "limitations": [
+    "Capsule body clearance and global connectivity are checked separately.",
+    "Plan distance uses corrected source footprint/door edge. Actual physical fixture presence is verified from indexed mesh nodes.",
+    "Access line is provisional waist-height centre to the authored edge point (validated on source boundary), or nearest edge if absent; not a configured game interaction ray.",
+    "Unprinted cellar/attic continuation destinations and noninteractive structural/fuel masses are excluded; source closets remain required."
+  ]
+}

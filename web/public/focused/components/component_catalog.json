@@ -1,0 +1,1168 @@
+{
+  "floor_stone": {
+    "vertices": 408,
+    "triangles": 748,
+    "materials": [
+      "TV_stone",
+      "TV_stone_light"
+    ],
+    "colliders": [],
+    "bounds_source_m": {
+      "min": [
+        -2.0,
+        -2.0,
+        -0.3199999928474426
+      ],
+      "max": [
+        2.0,
+        2.0,
+        0.0625
+      ]
+    },
+    "component_id": "floor_stone",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/floor_stone.glb",
+    "sha256": "3a113d30def4f0b5f3687d4debb21949f42bb85cdce21034923818aa158546f9",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "floor_paving": {
+    "vertices": 312,
+    "triangles": 572,
+    "materials": [
+      "TV_soil",
+      "TV_stone",
+      "TV_stone_light"
+    ],
+    "colliders": [],
+    "bounds_source_m": {
+      "min": [
+        -2.0,
+        -2.0,
+        -0.3199999928474426
+      ],
+      "max": [
+        2.0,
+        2.0,
+        0.0625
+      ]
+    },
+    "component_id": "floor_paving",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/floor_paving.glb",
+    "sha256": "69ea5267de7819b72484ca725e188ecf124deaa703429d9c88b698ca90cdf95e",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "wall": {
+    "vertices": 624,
+    "triangles": 1144,
+    "materials": [
+      "TV_stone_dark",
+      "TV_stone_light",
+      "TV_stone"
+    ],
+    "colliders": [
+      {
+        "center": [
+          0,
+          0,
+          1.6
+        ],
+        "size": [
+          4,
+          0.55,
+          3.2
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -2.049999952316284,
+        -0.33500000834465027,
+        0.0
+      ],
+      "max": [
+        2.059999942779541,
+        0.33500000834465027,
+        3.25
+      ]
+    },
+    "component_id": "wall",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/wall.glb",
+    "sha256": "aa051e2cac0cafea2496ecb859384534029d52205cc5640f5c70c7b5c81db019",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "arch": {
+    "vertices": 264,
+    "triangles": 484,
+    "materials": [
+      "TV_stone",
+      "TV_stone_dark",
+      "TV_stone_light"
+    ],
+    "colliders": [
+      {
+        "center": [
+          -1.65,
+          0,
+          1.6
+        ],
+        "size": [
+          0.7,
+          0.7,
+          3.2
+        ],
+        "kind": "box"
+      },
+      {
+        "center": [
+          1.65,
+          0,
+          1.6
+        ],
+        "size": [
+          0.7,
+          0.7,
+          3.2
+        ],
+        "kind": "box"
+      },
+      {
+        "center": [
+          0,
+          0,
+          3.25
+        ],
+        "size": [
+          4,
+          0.7,
+          0.45
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -2.0999999046325684,
+        -0.42500001192092896,
+        0.0
+      ],
+      "max": [
+        2.0999999046325684,
+        0.42500001192092896,
+        3.4749999046325684
+      ]
+    },
+    "component_id": "arch",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/arch.glb",
+    "sha256": "e56ae1c4d9ab2ddb8956cfca048810a10dbe2b2a70a349fed454bcd5522fc346",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "high_arch": {
+    "vertices": 264,
+    "triangles": 484,
+    "materials": [
+      "TV_stone",
+      "TV_stone_dark",
+      "TV_stone_light"
+    ],
+    "colliders": [
+      {
+        "center": [
+          -1.65,
+          0,
+          2.75
+        ],
+        "size": [
+          0.7,
+          0.7,
+          5.5
+        ],
+        "kind": "box"
+      },
+      {
+        "center": [
+          1.65,
+          0,
+          2.75
+        ],
+        "size": [
+          0.7,
+          0.7,
+          5.5
+        ],
+        "kind": "box"
+      },
+      {
+        "center": [
+          0,
+          0,
+          5.55
+        ],
+        "size": [
+          4,
+          0.7,
+          0.45
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -2.0999999046325684,
+        -0.42500001192092896,
+        0.0
+      ],
+      "max": [
+        2.0999999046325684,
+        0.42500001192092896,
+        5.775000095367432
+      ]
+    },
+    "component_id": "high_arch",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/high_arch.glb",
+    "sha256": "d55980b466887cb186f7dcfce0db52078fe7c32a132343a7caf47350a12d946f",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "column": {
+    "vertices": 192,
+    "triangles": 368,
+    "materials": [
+      "TV_stone_dark",
+      "TV_stone",
+      "TV_stone_light"
+    ],
+    "colliders": [
+      {
+        "center": [
+          0,
+          0,
+          1.7
+        ],
+        "size": [
+          1.0,
+          1.0,
+          3.5
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -0.6304329037666321,
+        -0.6304329037666321,
+        0.0
+      ],
+      "max": [
+        0.6304329037666321,
+        0.6304329037666321,
+        3.450000047683716
+      ]
+    },
+    "component_id": "column",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/column.glb",
+    "sha256": "2e6673bf65ac50cee97b9d7b9c0ff26079a2f71f8ade0b51dd9c773af6fde668",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "ceiling": {
+    "vertices": 96,
+    "triangles": 176,
+    "materials": [
+      "TV_wood_dark",
+      "TV_wood",
+      "TV_wood_light"
+    ],
+    "colliders": [],
+    "bounds_source_m": {
+      "min": [
+        -2.0,
+        -2.0,
+        3.325000047683716
+      ],
+      "max": [
+        2.0,
+        2.0,
+        3.8399999141693115
+      ]
+    },
+    "component_id": "ceiling",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/ceiling.glb",
+    "sha256": "51cab036a320372b7db51fd77755441728c5f9766a10e3cfeba6da2c0b18e897",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "stairs": {
+    "vertices": 288,
+    "triangles": 528,
+    "materials": [
+      "TV_stone_light",
+      "TV_stone"
+    ],
+    "colliders": [],
+    "bounds_source_m": {
+      "min": [
+        -2.0199999809265137,
+        -2.0,
+        0.0
+      ],
+      "max": [
+        2.0199999809265137,
+        2.0,
+        1.2000000476837158
+      ]
+    },
+    "component_id": "stairs",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/stairs.glb",
+    "sha256": "a7aa2ba75aaadc480f0df22f0fa58b07c4306dc25e1adce1b483bebc38ff39eb",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "tower_shell_wall": {
+    "vertices": 72,
+    "triangles": 132,
+    "materials": [
+      "TV_stone",
+      "TV_stone_light"
+    ],
+    "colliders": [
+      {
+        "center": [
+          0,
+          0,
+          3.8
+        ],
+        "size": [
+          4,
+          0.6,
+          7.6
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -2.049999952316284,
+        -0.375,
+        0.0
+      ],
+      "max": [
+        2.049999952316284,
+        0.375,
+        7.724999904632568
+      ]
+    },
+    "component_id": "tower_shell_wall",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/tower_shell_wall.glb",
+    "sha256": "a8c813d403f523d7793b4cf491c718d6d57ceb6de51b117bfb928dda784226fe",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "stair_stringer": {
+    "vertices": 120,
+    "triangles": 220,
+    "materials": [
+      "TV_wood"
+    ],
+    "colliders": [
+      {
+        "center": [
+          0,
+          0,
+          1.4
+        ],
+        "size": [
+          0.2,
+          4,
+          2.8
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -0.07000000029802322,
+        -2.0129306316375732,
+        0.3401358723640442
+      ],
+      "max": [
+        0.07000000029802322,
+        2.0129306316375732,
+        2.690000057220459
+      ]
+    },
+    "component_id": "stair_stringer",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/stair_stringer.glb",
+    "sha256": "c4e3b137d948ae2f82a33b132024b4f415522ef8f2fdb930b27d7e31b8087998",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "rampart_mass": {
+    "vertices": 96,
+    "triangles": 176,
+    "materials": [
+      "TV_stone_dark",
+      "TV_stone",
+      "TV_stone_light"
+    ],
+    "colliders": [
+      {
+        "center": [
+          0,
+          0,
+          1.8
+        ],
+        "size": [
+          4,
+          4,
+          3.6
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -2.009999990463257,
+        -2.069999933242798,
+        0.0
+      ],
+      "max": [
+        2.009999990463257,
+        2.009999990463257,
+        3.5999999046325684
+      ]
+    },
+    "component_id": "rampart_mass",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/rampart_mass.glb",
+    "sha256": "df9b3b7b92a2162d41cbc3a03a8ab75d6f68ebcdf0000f70b3f7269da599dcd2",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "parapet": {
+    "vertices": 120,
+    "triangles": 220,
+    "materials": [
+      "TV_stone",
+      "TV_stone_light"
+    ],
+    "colliders": [
+      {
+        "center": [
+          0,
+          0,
+          0.6
+        ],
+        "size": [
+          4,
+          0.55,
+          1.2
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -2.0399999618530273,
+        -0.30000001192092896,
+        0.0
+      ],
+      "max": [
+        2.0399999618530273,
+        0.30000001192092896,
+        1.7300000190734863
+      ]
+    },
+    "component_id": "parapet",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/parapet.glb",
+    "sha256": "6a7c444ec2dd9d15cdb1e6071d12d9ef22bcc5e7fca285d171bf216e144d42ad",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "ornate_gate": {
+    "vertices": 240,
+    "triangles": 426,
+    "materials": [
+      "TV_stone",
+      "TV_stone_dark",
+      "TV_stone_light",
+      "TV_brass"
+    ],
+    "colliders": [
+      {
+        "center": [
+          -1.65,
+          0,
+          2.3
+        ],
+        "size": [
+          0.7,
+          1,
+          4.6
+        ],
+        "kind": "box"
+      },
+      {
+        "center": [
+          1.65,
+          0,
+          2.3
+        ],
+        "size": [
+          0.7,
+          1,
+          4.6
+        ],
+        "kind": "box"
+      },
+      {
+        "center": [
+          0,
+          0,
+          4.7
+        ],
+        "size": [
+          4.2,
+          1,
+          0.5
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -2.1500000953674316,
+        -0.574999988079071,
+        0.0
+      ],
+      "max": [
+        2.1500000953674316,
+        0.574999988079071,
+        4.949999809265137
+      ]
+    },
+    "component_id": "ornate_gate",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/ornate_gate.glb",
+    "sha256": "f566d2c9b4cba83a1c3498da17dab942e4722dcae5fb5aec9670496ebd5ad251",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "altar": {
+    "vertices": 240,
+    "triangles": 112,
+    "materials": [
+      "TV_stone_dark",
+      "TV_stone",
+      "TV_stone_light",
+      "TV_parchment",
+      "TV_glow",
+      "TV_book_red"
+    ],
+    "colliders": [
+      {
+        "center": [
+          0,
+          0,
+          0.7
+        ],
+        "size": [
+          2.5,
+          1.4,
+          1.4
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -1.25,
+        -0.699999988079071,
+        0.004999999888241291
+      ],
+      "max": [
+        1.25,
+        0.699999988079071,
+        1.6699999570846558
+      ]
+    },
+    "component_id": "altar",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/altar.glb",
+    "sha256": "136947873d6cc847853227081443499e4f7fa370714e11361623e6366b962d79",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "brazier": {
+    "vertices": 294,
+    "triangles": 510,
+    "materials": [
+      "TV_iron",
+      "TV_glow"
+    ],
+    "colliders": [
+      {
+        "center": [
+          0,
+          0,
+          0.75
+        ],
+        "size": [
+          1.2,
+          1.2,
+          1.5
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -0.5651060342788696,
+        -0.5651060342788696,
+        0.004999999888241291
+      ],
+      "max": [
+        0.5651060342788696,
+        0.5651060342788696,
+        1.7999999523162842
+      ]
+    },
+    "component_id": "brazier",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/brazier.glb",
+    "sha256": "15afac5e40b166d5e921d0a491d6f9c2037514562817e5a65d05f68f808ee864",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "banner": {
+    "vertices": 96,
+    "triangles": 176,
+    "materials": [
+      "TV_cloth_blue",
+      "TV_brass",
+      "TV_wood_light"
+    ],
+    "colliders": [],
+    "bounds_source_m": {
+      "min": [
+        -0.800000011920929,
+        -0.054999999701976776,
+        2.0999999046325684
+      ],
+      "max": [
+        0.800000011920929,
+        0.054999999701976776,
+        3.805000066757202
+      ]
+    },
+    "component_id": "banner",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/banner.glb",
+    "sha256": "137e1a836d2b54379913fdea491ec656f9aee38d2a672f6b63c9de9a03ecc039",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "lantern_post": {
+    "vertices": 270,
+    "triangles": 132,
+    "materials": [
+      "TV_iron",
+      "TV_wood",
+      "TV_glow"
+    ],
+    "colliders": [
+      {
+        "center": [
+          0,
+          0,
+          0.8
+        ],
+        "size": [
+          0.4,
+          0.4,
+          1.7
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -0.19416408240795135,
+        -0.2282535582780838,
+        0.0
+      ],
+      "max": [
+        0.23999999463558197,
+        0.2282535582780838,
+        1.7200000286102295
+      ]
+    },
+    "component_id": "lantern_post",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/lantern_post.glb",
+    "sha256": "bdc336860283228ec2e9c122625bd1e802608eed256faae22d45b7d2802cc3be",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "sarcophagus": {
+    "vertices": 282,
+    "triangles": 520,
+    "materials": [
+      "TV_stone_dark",
+      "TV_stone",
+      "TV_stone_light",
+      "TV_brass"
+    ],
+    "colliders": [
+      {
+        "center": [
+          0,
+          0,
+          0.7
+        ],
+        "size": [
+          1.65,
+          2.85,
+          1.4
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -0.800000011920929,
+        -1.399999976158142,
+        0.0
+      ],
+      "max": [
+        0.800000011920929,
+        1.399999976158142,
+        1.3300000429153442
+      ]
+    },
+    "component_id": "sarcophagus",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/sarcophagus.glb",
+    "sha256": "6d6cb188cc90153b85f99e433e4fe1cfa75cd5596f5799dbe6a76b6117768e18",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "ossuary": {
+    "vertices": 1032,
+    "triangles": 1724,
+    "materials": [
+      "TV_stone_dark",
+      "TV_wood_dark",
+      "TV_parchment"
+    ],
+    "colliders": [
+      {
+        "center": [
+          0,
+          0,
+          1.3
+        ],
+        "size": [
+          2.8,
+          0.8,
+          2.6
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -1.399999976158142,
+        -0.6100000143051147,
+        0.0
+      ],
+      "max": [
+        1.399999976158142,
+        0.30000001192092896,
+        2.5999999046325684
+      ]
+    },
+    "component_id": "ossuary",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/ossuary.glb",
+    "sha256": "dc6ca07a0b28056c88e9b2b3ae77404bfc09f5c28bdee7c8b24c83301b46bc32",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "broken_column": {
+    "vertices": 120,
+    "triangles": 228,
+    "materials": [
+      "TV_stone_dark",
+      "TV_stone",
+      "TV_stone_light"
+    ],
+    "colliders": [
+      {
+        "center": [
+          0,
+          0,
+          0.8
+        ],
+        "size": [
+          1.3,
+          1.3,
+          1.6
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -0.6504329442977905,
+        -0.6504329442977905,
+        0.0
+      ],
+      "max": [
+        0.6504329442977905,
+        0.6504329442977905,
+        1.5800000429153442
+      ]
+    },
+    "component_id": "broken_column",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/broken_column.glb",
+    "sha256": "ffafcda550f4fd10f6957c501f7ebce5b445ae6fc0c2b6274d1a879430219b1f",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "masonry_rubble": {
+    "vertices": 168,
+    "triangles": 308,
+    "materials": [
+      "TV_stone",
+      "TV_stone_light"
+    ],
+    "colliders": [
+      {
+        "center": [
+          0,
+          0,
+          0.35
+        ],
+        "size": [
+          2.4,
+          2.4,
+          0.7
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -0.8964184522628784,
+        -1.171708106994629,
+        0.004999999888241291
+      ],
+      "max": [
+        1.1084418296813965,
+        0.7440987229347229,
+        0.42500001192092896
+      ]
+    },
+    "component_id": "masonry_rubble",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/masonry_rubble.glb",
+    "sha256": "3cf7762f7c71485b8fc0bf7bd57141c0e79852c15af48c6002ecbe41b85509ad",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "bookshelf": {
+    "vertices": 2712,
+    "triangles": 4152,
+    "materials": [
+      "TV_wood",
+      "TV_wood_dark",
+      "TV_wood_light",
+      "TV_book_red",
+      "TV_brass",
+      "TV_book_blue",
+      "TV_book_green",
+      "TV_parchment"
+    ],
+    "colliders": [
+      {
+        "center": [
+          0,
+          0,
+          1.4
+        ],
+        "size": [
+          2.95,
+          0.72,
+          2.8
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -1.4800000190734863,
+        -0.3499999940395355,
+        0.0
+      ],
+      "max": [
+        1.4800000190734863,
+        0.3499999940395355,
+        2.805000066757202
+      ]
+    },
+    "component_id": "bookshelf",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/bookshelf.glb",
+    "sha256": "bb3badad6404c7c36306529dbc0ca904f380a1a0c7326d2d11bc8956ff90d191",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "reading_desk": {
+    "vertices": 456,
+    "triangles": 776,
+    "materials": [
+      "TV_wood_light",
+      "TV_wood",
+      "TV_wood_dark",
+      "TV_book_red",
+      "TV_parchment",
+      "TV_iron",
+      "TV_brass",
+      "TV_book_blue",
+      "TV_book_green"
+    ],
+    "colliders": [
+      {
+        "center": [
+          0,
+          0,
+          0.65
+        ],
+        "size": [
+          2,
+          1.1,
+          1.3
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -1.0,
+        -0.550000011920929,
+        0.0
+      ],
+      "max": [
+        1.0,
+        0.550000011920929,
+        1.6518477201461792
+      ]
+    },
+    "component_id": "reading_desk",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/reading_desk.glb",
+    "sha256": "535263bd26ddebfa0fe9e3edf7c755636dfb90396d35f1796897df046b1d2425",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "barrel_cluster": {
+    "vertices": 720,
+    "triangles": 1308,
+    "materials": [
+      "TV_wood_light",
+      "TV_iron",
+      "TV_wood"
+    ],
+    "colliders": [
+      {
+        "center": [
+          0,
+          0.35,
+          0.55
+        ],
+        "size": [
+          1.8,
+          1.8,
+          1.1
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -0.8998196721076965,
+        -0.3861289322376251,
+        0.0
+      ],
+      "max": [
+        0.8998196721076965,
+        1.2361289262771606,
+        1.0700000524520874
+      ]
+    },
+    "component_id": "barrel_cluster",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/barrel_cluster.glb",
+    "sha256": "ca87b25221d59363925cc90b51bc0e06d10c44659c311310350eb7f83d87b098",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  },
+  "crate_cluster": {
+    "vertices": 288,
+    "triangles": 440,
+    "materials": [
+      "TV_wood_light",
+      "TV_wood_dark",
+      "TV_wood"
+    ],
+    "colliders": [
+      {
+        "center": [
+          0,
+          0.1,
+          0.8
+        ],
+        "size": [
+          1.9,
+          1.5,
+          1.6
+        ],
+        "kind": "box"
+      }
+    ],
+    "bounds_source_m": {
+      "min": [
+        -0.949999988079071,
+        -0.5260000228881836,
+        0.0
+      ],
+      "max": [
+        1.0,
+        0.800000011920929,
+        1.7000000476837158
+      ]
+    },
+    "component_id": "crate_cluster",
+    "authoring_origin": [
+      0,
+      0,
+      0
+    ],
+    "connection_kind": "architectural_component; not a walkable space port",
+    "glb": "components/crate_cluster.glb",
+    "sha256": "a190938a99c659bbbdddb321669eccf4e8983be1ce073ab216f278002e8ddd16",
+    "usage": "Optional loose source component. Not separately route-certified; use whole audited spaces by default. Do not duplicate components already baked into assembled GLBs."
+  }
+}

@@ -11,7 +11,7 @@ import type { BodyVisual } from '../actors/actorManager';
 import type { BodyState, InteractionCommand, SnapshotMessage } from '../net/messages';
 import type { InteriorPlan } from '../../sim/world/interiors/layout';
 import type { TowerController } from '../../server/towerController';
-import { primaryCamera, attachOrbit, cameraRelativeMove, travelFacing, smoothYaw, groundViewYaw } from './thirdPerson';
+import { primaryCamera, attachOrbit, cameraRelativeMove, travelFacing, smoothYaw, groundViewYaw, walkingMove } from './thirdPerson';
 import { voxelSolid, insideSolid, boxObstruction } from './cameraSolids';
 import { InteriorCameraFraming } from './interiorCamera';
 
@@ -65,9 +65,9 @@ export async function startCanonicalAscent() {
   }
   ui.innerHTML = `<style>
     .ascent{font:14px system-ui;color:#f0eade;pointer-events:none}.ascent header,.ascent aside,.ascent footer{position:absolute;background:#14171eea;border:1px solid #7d705644;border-radius:8px;padding:15px;pointer-events:auto}
-    .ascent header{left:20px;top:18px;max-width:430px}.ascent h1{font:24px Georgia;margin:5px 0}.ascent small{letter-spacing:2px;color:#d7bb80}.ascent p{line-height:1.5;margin:9px 0}
+    .ascent header{left:18px;top:16px;width:270px;padding:12px;background:#14171ed9}.ascent h1{font:20px Georgia;margin:5px 0}.ascent small{letter-spacing:2px;color:#d7bb80}.ascent p{line-height:1.5;margin:7px 0;font-size:12px}.ascent #as-status{white-space:pre-line}.ascent #as-panel[hidden]{display:none}.ascent a{color:#d7bb80}.ascent #as-notice:empty{display:none}.ascent footer{font-size:12px}.ascent #as-target{color:#efce89;margin-left:20px}
     .ascent aside{right:18px;top:18px;width:240px;max-height:75vh;overflow:auto}.ascent button{display:inline-block;color:#f5ebd3;background:#343a43;border:1px solid #bba47766;border-radius:4px;padding:7px 10px;margin:3px;cursor:pointer}.ascent button:hover{background:#505563}.ascent footer{bottom:18px;left:20px;right:20px;display:flex;justify-content:space-between}.ascent #as-notice{color:#f2c786;min-height:20px}.ascent #as-loading{position:absolute;inset:0;display:grid;place-items:center;background:#111620e8;font-size:21px}.ascent #as-loading[hidden]{display:none}
-  </style><div class="ascent"><header><small>TORN VEIL · CHRYSANTHUS</small><a href="/">Home</a> · <a href="/observatory">Observatory</a><h1 id="as-title">Entering the Tower</h1><p id="as-status">Restoring the same body and belongings.</p><details><summary>Controls</summary><p>WASD move · Shift run · J strike · K heavy · L low<br>Space dodge · G guard · C crouch · Tab target · Q face<br>E take / open · 1–6 cast · F use threshold<br>LMB strike / RMB guard / MMB orbit · wheel zoom · Esc cancel action</p></details><div id="as-notice"></div><button id="as-return">Return at blue threshold</button><button id="as-next">Ascend at gold threshold</button><button id="as-save">Save</button></header><aside><small>YOUR HANDS & SOURCES</small><div id="as-sources"></div><div id="as-actions"></div><div id="as-spells"></div></aside><footer><span id="as-goal">Defeat the wardens to open the finite award chest.</span><span id="as-target"></span></footer><div id="as-loading">Loading existing shared characters…</div></div>`;
+  </style><div class="ascent"><header><small>CHRYSANTHUS</small><h1 id="as-title">Entering the Tower</h1><p id="as-status">Restoring your journey.</p><button id="as-journal">Journey · I</button><div id="as-notice"></div></header><aside id="as-panel" hidden><small>YOUR JOURNEY</small><p id="as-detail"></p><details><summary>Controls</summary><p>WASD move · Shift run · J strike · K heavy · L low<br>Space dodge · G guard · Tab target · Q face<br>E take / open · 1-6 cast · F threshold<br>MMB orbit · wheel zoom · Esc close</p></details><div id="as-sources"></div><div id="as-actions"></div><div id="as-spells"></div><button id="as-return">Return at blue threshold</button><button id="as-next">Ascend at gold threshold</button><button id="as-save">Save</button><a href="/">Home</a></aside><footer><span id="as-goal">Defeat the wardens.</span><span id="as-target"></span></footer><div id="as-loading">Loading existing shared characters.</div></div>`;
   const el = (id: string) => document.getElementById(id)!, notice = (text: string) => { el('as-notice').textContent = text; };
   await people.load(text => { el('as-loading').textContent = text; });
   const ws = new WebSocket(`ws://${location.host}/realms/ascent/socket`);
@@ -75,7 +75,10 @@ export async function startCanonicalAscent() {
     if (binding && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ version: 2, type: 'command', ...binding,
       commandId: `ascent-${sequence}`, sequence: sequence++, clientTimeMs: performance.now(), command }));
   }
+  el('as-journal').onclick=()=>toggleJournal();
   let mouseGuard=false;
+  let journalOpen=false;
+  const toggleJournal=()=>{journalOpen=!journalOpen;el('as-panel').hidden=!journalOpen;release();};
   const release = () => { keys.clear(); mouseGuard=false; inputWasActive = false; send({ type: 'move', x: 0, z: 0, sprint: false }); send({ type: 'guard', held: false }); send({ type: 'crouch', held: false }); };
   async function leaveView() {
     if (movingPage) return; movingPage = true; release();
@@ -103,9 +106,10 @@ export async function startCanonicalAscent() {
   function refreshHud() {
     if (!frame) return;
     const { own, tower } = frame;
-    el('as-title').textContent = `Floor ${tower.floor} · ${tower.clear ? 'Trial cleared' : 'The wardens'}`;
-    el('as-status').textContent = `${own.name} · ${own.rank} · Vitality ${Math.ceil(own.health)} / ${own.maxHealth} · Mana ${Math.floor(own.mana)} / ${own.capacity.reserve} · Breath ${Math.round(own.breath * 100)}% · Fatigue ${Math.round(own.fatigue * 100)}% · Food ${Math.round(own.food * 100)}% · Water ${Math.round(own.water * 100)}% · ${tower.defeated}/${tower.opponents} wardens`;
-    el('as-goal').textContent = tower.floor === 100 && tower.clear ? (tower.status === 'completed' ? 'Summit recognized. Your earned capacity and belongings persist.' : 'The trials are cleared. Summit recognition requires earned Silver capacity; no rank is granted for a floor counter.') : tower.clear ? 'Open the award chest by the gold threshold; collect its contents, then ascend.' : 'This shared trial uses nonlethal combat. Injuries and costs persist. Return through the blue threshold after breaking contact.';
+    el('as-title').textContent = `Floor ${tower.floor} · ${tower.clear ? 'Trial cleared' : tower.defeated+'/'+tower.opponents+' wardens'}`;
+    el('as-status').textContent = `${own.name} · ${own.rank}\nVitality ${Math.ceil(own.health)}/${own.maxHealth} · Mana ${Math.floor(own.mana)}/${own.capacity.reserve}`;
+    el('as-detail').textContent = `${own.name} · ${own.rank} · Vitality ${Math.ceil(own.health)} / ${own.maxHealth} · Mana ${Math.floor(own.mana)} / ${own.capacity.reserve} · Breath ${Math.round(own.breath * 100)}% · Fatigue ${Math.round(own.fatigue * 100)}% · Food ${Math.round(own.food * 100)}% · Water ${Math.round(own.water * 100)}% · ${tower.defeated}/${tower.opponents} wardens`;
+    el('as-goal').textContent = tower.floor===100&&tower.clear?'Summit recognition · Journey for requirements':tower.clear?'Open award chest · E take · F ascend':'Defeat the wardens · G guard · Space dodge';
     const a = el('as-actions'); a.replaceChildren();
     const rest = frame.snapshot.abilities.find(a => a.id === 'rest' || a.id === 'wake');
     if (rest?.available) button(a, rest.label, () => { release(); send({ type: rest.id as 'rest' | 'wake' }); });
@@ -149,7 +153,7 @@ export async function startCanonicalAscent() {
     for (const [id, v] of visuals) if (!present.has(id)) { v.visual.dispose(); visuals.delete(id); }
     for (const body of bodies) {
       let v = visuals.get(body.bodyId);
-      if (!v) { const visual = people.create(body, atmosphere); if (!visual) continue; visual.root.position.set(body.pos.x, body.pos.y, body.pos.z); v = { visual, body, hitSeq: body.hitSeq, hit: 0 }; visuals.set(body.bodyId, v); }
+      if (!v) { const visual = people.create(body, atmosphere, undefined, body.bodyId===binding.bodyId?'player':'resident'); if (!visual) continue; visual.root.position.set(body.pos.x, body.pos.y, body.pos.z); v = { visual, body, hitSeq: body.hitSeq, hit: 0 }; visuals.set(body.bodyId, v); }
       if (body.hitSeq > v.hitSeq) v.hit = 1; v.hitSeq = body.hitSeq; v.body = body;
     }
     const things = [...m.waterSources.map((i: any) => ({ ...i, water: true })), ...m.items.map((i: any) => ({ ...i, chest: false })), ...m.containers.map((i: any) => ({ ...i, chest: true }))], wanted = new Set(things.map(i => i.id));
@@ -164,6 +168,9 @@ export async function startCanonicalAscent() {
   el('as-return').onclick = () => void transition('return'); el('as-next').onclick = () => void transition('ascend');
   el('as-save').onclick = () => ws.send(JSON.stringify({ type: 'save' }));
   window.addEventListener('keydown', e => {
+    if(e.code==='KeyI'&&!e.repeat){toggleJournal();return;}
+    if(e.code==='Escape'&&journalOpen){toggleJournal();return;}
+    if(journalOpen)return;
     if (['Space', 'Tab', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) e.preventDefault(); keys.add(e.code); if (e.repeat) return;
     if (e.code === 'KeyC') send({ type: 'crouch', held: true });
     if (['KeyJ', 'KeyK', 'KeyL'].includes(e.code)) send({ type: 'attack', targetBodyId: targetId || undefined, weight: e.code === 'KeyK' ? 'heavy' : 'light', trajectory: e.code === 'KeyL' ? 'low' : 'high' });
@@ -179,6 +186,7 @@ export async function startCanonicalAscent() {
   attachOrbit(canvas, view.camera, view.persist);
   canvas.oncontextmenu=e=>e.preventDefault();
   canvas.onpointerdown = e => {
+    if(journalOpen)return;
     if(e.button===0)send({type:'attack',targetBodyId:targetId||undefined,weight:'light',trajectory:'high'});
     else if(e.button===2){mouseGuard=true;send({type:'guard',held:true});e.preventDefault();}
   };
@@ -194,7 +202,7 @@ export async function startCanonicalAscent() {
       inputAccum += dt; hudAccum += dt;
       if (inputAccum >= 1 / 60) {
         inputAccum = 0; const right = Number(keys.has('KeyD')) - Number(keys.has('KeyA')), forward = Number(keys.has('KeyW')) - Number(keys.has('KeyS'));
-        const move = cameraRelativeMove(right, forward, movementYaw);
+        const move = walkingMove(cameraRelativeMove(right, forward, movementYaw),keys.has('AltLeft')||keys.has('AltRight'),keys.has('ShiftLeft')||keys.has('ShiftRight'));
         const faceTarget = keys.has('KeyG') || mouseGuard || keys.has('KeyQ');
         const active = !!(right || forward || keys.has('KeyC') || faceTarget);
         // Do not fill a stalled connection with idle or obsolete state samples.

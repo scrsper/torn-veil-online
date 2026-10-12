@@ -48,6 +48,8 @@ export class Navigator {
   }
   private rebuildCell(x: number, z: number): void {
     const g = this.grid; const i = x * g.D + z;
+    const geometry=g.movementGeometryAt(x+.5,z+.5);
+    if(geometry){const y=geometry.supportAt(x+.5,z+.5,1),valid=y!==null&&geometry.fits(x+.5,y,z+.5,.3,1.75);if(this.walkY instanceof Map)this.walkY.set(i,valid?y!:-1);else this.walkY[i]=valid?y!:-1;if(this.cost instanceof Map)this.cost.set(i,valid?1:99);else this.cost[i]=valid?1:99;return;}
     // Dense columns are contiguous and already in bounds. Custom/sparse grid readers
     // retain their ordinary accessor; no geographic or door interpretation is cached.
     const dense = !g.sparse && g.get === VoxelGrid.prototype.get ? g.data : null;
@@ -95,6 +97,8 @@ export class Navigator {
 
   /** A* path from a to b in block coordinates. Returns list of cell centers (y = floor). */
   findPath(a: Vec3, b: Vec3, maxIter = pathBudget(a, b)): Vec3[] | null {
+    const geometry=this.grid.movementGeometryAt(a.x,a.z);
+    if(geometry&&geometry===this.grid.movementGeometryAt(b.x,b.z))return geometry.findPath(a,b,Math.max(32000,maxIter));
     // A fixed village-sized search allowance falsely made longer procedural commutes
     // unreachable. Scale with the area a detour may explore, bounded by the same maximum
     // used when settlement generation connects its roads. Explicit budgets remain exact.

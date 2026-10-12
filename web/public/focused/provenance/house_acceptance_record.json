@@ -1,0 +1,110 @@
+{
+  "source_manifest_sha256": "36b1aa716f2bda266eb3fd7c417f63bc8b9d81016ce7e0e28360c94001bc89ac",
+  "source_manifest": "/workspace/shared/tornveil-two-story-houses-v1/review/final/house_acceptance_manifest.json",
+  "gate_scope": "Combined30-house source-faithful gallery replacement gate. Exact GLB and metadata SHA-256 matching is mandatory. Presentation acceptance includes explicitly approved exceptions; it is not game-ready or controller certification.",
+  "body": {
+    "nominal_height_m": 2.1,
+    "vertical_envelope_m": 2.15,
+    "nominal_radius_m": 0.4,
+    "radial_margin_m": 0.05,
+    "horizontal_envelope_m": 0.9,
+    "proportion_heads": 9.5,
+    "eye_height_m": 1.98,
+    "provisional_not_user_measured": true
+  },
+  "record": {
+    "id": "tv_26_05_timber_house",
+    "name": "Bridgeport",
+    "source_page": 19,
+    "source_plan": "13337A",
+    "accepted": true,
+    "acceptance_scope": "Source-faithful gallery presentation with the stated static-access disposition",
+    "package": "catalog_houses",
+    "asset_root": "/workspace/shared/tornveil-catalog-houses-v1",
+    "glb_path": "exports/tv_26_05_timber_house.glb",
+    "metadata_path": "metadata/tv_26_05_timber_house.json",
+    "glb_sha256": "442f9e909d800be12c7957a99b8784f56abdd136ccf97e5e043bb15533ad42dd",
+    "metadata_sha256": "9169da27c70d0a57a584741b00de6c0a1909960c651b266a2febcb991f72a714",
+    "access_status": "passed",
+    "access_exception": "",
+    "strict_static_access_passed": true,
+    "source_fidelity_reviewed": true,
+    "visual_reviewed": true,
+    "controller_tested": false,
+    "uniform_horizontal_scale": 1.44,
+    "horizontal_area_multiplier": 2.0736,
+    "vertical_adjustments": {
+      "finished_ceiling_m": 2.85,
+      "door_lintel_clear_m": 2.405,
+      "ordinary_floor_to_floor_m": 3.05,
+      "franklin_raised_m": null,
+      "basement_m": null
+    },
+    "printed_levels": [
+      0
+    ],
+    "caveats": [
+      "Readable source geometry reviewed with approximately2\u20134 source-pixel uncertainty. This is a sales-diagram reconstruction, not construction-document exactness.",
+      "Uniform horizontal scaling and disclosed vertical construction interpretations are applied. No claim of original catalog construction dimensions or building-code compliance.",
+      "No game-engine controller, animated door, fixture interaction or runtime camera traversal was executed. Small closets use reach-in threshold points.",
+      "Printed but unmodeled cellar/attic continuations and intermediate-grade service regions are disclosed in source metadata; they are not invented occupied rooms."
+    ],
+    "evidence": {
+      "source_and_static_gate": "/workspace/shared/tornveil-catalog-houses-v1/review/final_catalog_gate.json",
+      "frozen_bundle_manifest": "/workspace/shared/tornveil-catalog-houses-v1/review/export_snapshots/tv_26_05_timber_house/442f9e909d800be12c7957a99b8784f56abdd136ccf97e5e043bb15533ad42dd/manifest.json",
+      "production_render_manifest": "/workspace/shared/tornveil-catalog-houses-v1/catalog/render-manifest.json",
+      "production_visual_review": "/workspace/shared/tornveil-two-story-houses-v1/review/final/catalog_visual/visual_review.json"
+    },
+    "specific_static_reports": {
+      "capsule": [
+        {
+          "path": "review/candidate_refined8/capsule/tv_26_05_timber_house.json",
+          "sha256": "7124e1d9955a978795051c4f84472a1514a2b2c92c514a25d90ae586bdb3565d"
+        }
+      ],
+      "inventory": [
+        {
+          "path": "review/candidate_refined8/inventory/tv_26_05_timber_house-inventory.json",
+          "sha256": "094751ab2afb9b51e851f339d102b1e4d67ddf501ba3d45dcc92887f94997b5e"
+        }
+      ]
+    },
+    "source_actual_section_evidence": [
+      {
+        "path": "review/candidate_refined8/source_overlays/tv_26_05_timber_house-actual-source-evidence.json",
+        "sha256": "7173526999e23115da24c943f8edcd30314eb896b0d4fa41ca5f85ffec77136a",
+        "section_count": 5
+      }
+    ],
+    "decision_detail": {
+      "id": "tv_26_05_timber_house",
+      "bundle": "/workspace/shared/tornveil-catalog-houses-v1/review/export_snapshots/tv_26_05_timber_house/442f9e909d800be12c7957a99b8784f56abdd136ccf97e5e043bb15533ad42dd",
+      "manifest_sha256": "da2a0a20c6904f572bc7db2ced53ae9a898f3cd3ecd0233e10a9d80c2cf2a37f",
+      "glb_sha256": "442f9e909d800be12c7957a99b8784f56abdd136ccf97e5e043bb15533ad42dd",
+      "trace_sha256": "717e9f9021c7e885d144a9e5f14fa9a26f95f99dcd06eac19b336b13e1901648",
+      "metadata_sha256": "9169da27c70d0a57a584741b00de6c0a1909960c651b266a2febcb991f72a714",
+      "inventory_pass": true,
+      "capsule_pass": true,
+      "source_overlay_evidence": 5,
+      "visual_source_review_status": "PASS_WITH_DISCLOSED_SCAN_LIMITS",
+      "full_final_acceptance": false,
+      "checked_at_utc": "2026-10-12T00:05:03Z",
+      "visual_reviewed_at_utc": "2026-10-12T00:10:04Z",
+      "visual_reviewed_evidence": [
+        "Whole-floor 1.60 m indexed-triangle wall/door/window section against original source",
+        "Bathroom 0.25 m indexed-triangle fixture section against original source",
+        "Corrected source trace and exact registered transform"
+      ],
+      "independent_source_and_static_access_pass": true,
+      "final_acceptance_limit": "Only this frozen hash bundle is reviewed. Scale plausibility, visual production polish and actual runtime/controller/door interactions are separate; no publication approval.",
+      "horizontal_scale": 1.44,
+      "footprint_area_multiplier": 2.0736
+    },
+    "evidence_sha256": {
+      "source_and_static_gate": "3a953544ea8b1801d081ae1985c603def8818199cf2f6093311f35706e3083ef",
+      "frozen_bundle_manifest": "da2a0a20c6904f572bc7db2ced53ae9a898f3cd3ecd0233e10a9d80c2cf2a37f",
+      "production_render_manifest": "d7a2f7d6d2286fb66a36bc60d3a1d94025ba63eaf3c2573822e42cd1c0bf9102",
+      "production_visual_review": "0b9da16a1a137f0f800fd05b2e8a330bd2250131559260929eb37ab5f982ff51"
+    }
+  }
+}

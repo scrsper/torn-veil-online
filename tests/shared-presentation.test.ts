@@ -46,7 +46,7 @@ describe('shared presentation replacement contract', () => {
   });
   it('restores locomotion after a retained action, selects each strike and releases pins for moving feet', () => {
     const engine = new NullEngine(), scene = new Scene(engine), root = new TransformNode('asset', scene), hand = new TransformNode('hand', scene); hand.parent = root;
-    const names = [RELAXED.idle, RELAXED.walk, RELAXED.run, UNARMED_MOTION.jab.clip, UNARMED_MOTION.cross.clip, ...MOVESETS.fists.hit];
+    const names = [RELAXED.idle, RELAXED.walk, RELAXED.run, 'unarmed/run_jog', UNARMED_MOTION.jab.clip, UNARMED_MOTION.cross.clip, ...MOVESETS.fists.hit];
     const groups = new Map(names.map(name => {
       const animation = new Animation(name, 'position', 30, Animation.ANIMATIONTYPE_VECTOR3);
       animation.setKeys([{ frame: 0, value: Vector3.Zero() }, { frame: 90, value: new Vector3(0, 1, 1) }]);
@@ -58,7 +58,8 @@ describe('shared presentation replacement contract', () => {
       body, { addCaster() {}, removeCaster() {} } as unknown as Atmosphere, new Map());
     visual.root.position.set(4, 1, 8);
     const state: ActorState = { bodyId: body.bodyId, body, own: true, kind: 'person', speed: 2, velocity: { x: 0, y: 0, z: -2 }, yaw: 0, crouch: 0, age: 0, combat: null };
-    visual.update(.02, state); expect(visual.root.metadata.motion.clip).toBe('loco'); expect(visual.root.metadata.motion.planted).toBe(false);
+    visual.update(.02, state); expect(visual.root.metadata.motion.clip).toBe('loco'); expect(visual.root.metadata.motion.planted).toBe(true);
+    expect(visual.root.metadata.motion.policy).toBe('authored-in-place');expect(visual.root.metadata.motion.gait).toBeNull();
     for (const move of ['jab', 'cross']) {
       state.combat = { moveId: move, age: .3, prep: .2, active: .15, recovery: .3, weight: 'light' };
       visual.update(.02, state); expect(visual.root.metadata.motion.clip).toBe(UNARMED_MOTION[move].clip);

@@ -1,0 +1,237 @@
+{
+  "glbs": [
+    {
+      "path": "exports/tv_43_01_tower_stairwell.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_43_03_tower_stairwell.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_20_01_cellar_vaults.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_47_01_pine_forest.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_44_01_dungeon_junction.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_03_01_ruined_cloister.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_47_03_pine_forest.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_02_01_archive_room.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_19_02_tower_hall.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_44_03_dungeon_junction.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_19_01_tower_hall.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_26_05_timber_house.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_19_03_tower_hall.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_44_02_dungeon_junction.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_45_01_boss_hall.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_43_02_tower_stairwell.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_07_01_crypt_rooms.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_31_01_tavern.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_36_10_city_street.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_32_01_general_store.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "exports/tv_48_01_broadleaf_forest.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/wall.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/stairs.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/floor_paving.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/floor_stone.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/barrel_cluster.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/rampart_mass.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/masonry_rubble.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/parapet.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/reading_desk.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/column.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/arch.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/lantern_post.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/tower_shell_wall.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/high_arch.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/bookshelf.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/banner.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/altar.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/ornate_gate.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/sarcophagus.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/broken_column.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/ossuary.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/ceiling.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/stair_stringer.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/brazier.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    },
+    {
+      "path": "components/crate_cluster.glb",
+      "valid_glb2_header": true,
+      "external_resource_dependencies": []
+    }
+  ],
+  "copy_hash_checks_passed": 90,
+  "note": "Container/header, self-contained resource and source hash checks only. No new geometry/controller QA.",
+  "component_release_manifest_hash_checks_passed": 25
+}
