@@ -45,7 +45,7 @@ export async function startRealms(): Promise<void> {
     <div class="rv-card rv-wayfinder"><small>THRESHOLD SQUARE</small><b id="rv-destination">Aether Reach ↔ Cinderveil</b><p>The Tower anchors both sides of the Veil.</p><button id="rv-portal">Walk to portal</button><button id="rv-tower">Walk to Tower</button><button id="rv-canonical" hidden>Enter shared Tower trial</button><button id="rv-ascend" hidden>Historical score-based Tower lab</button><button id="rv-journal">Character & journey</button></div>
     <div class="rv-reticle">·</div><div class="rv-toast" id="rv-toast" aria-live="polite"></div>
     <div class="rv-prompt" id="rv-prompt">Loading nearby streets…</div>
-    <footer><span>WASD move · MMB orbit · wheel zoom · J/K/L strike · G guard · Space dodge · E interact · I journal</span><span id="rv-stream"></span></footer>
+    <footer><span>WASD move · X walk · MMB orbit · wheel zoom · J/K/L strike · G guard · Space dodge · E interact · I journal</span><span id="rv-stream"></span></footer>
     <section class="rv-modal" id="rv-choice" hidden><small>THE VEIL</small><h2 id="rv-choice-title"></h2><p>Your identity, possessions and development travel with you.</p><button id="rv-cross">Cross threshold</button><button id="rv-cancel">Stay here</button></section>
     <section class="rv-modal rv-journal" id="rv-sheet" hidden><small>YOUR JOURNEY</small><h2 id="rv-name"></h2><div id="rv-character"></div><p class="rv-note">The shared Tower trial carries this body, its injuries and belongings. Historical score-based expeditions are comparison evidence and do not define current progression.</p><button id="rv-save">Save journey</button><button id="rv-close">Return to world</button></section>
     <section class="rv-modal" id="rv-expedition" hidden><small>THE TOWER</small><h2>Your expedition awaits</h2><p>Continue from the last saved floor start, or return to your atrium landing.</p><button id="rv-resume">Continue expedition</button><button id="rv-return">Return to atrium</button></section>
@@ -188,7 +188,7 @@ export async function startRealms(): Promise<void> {
       if (keys.has('ArrowUp')) view.camera.addLook(0, -dt); if (keys.has('ArrowDown')) view.camera.addLook(0, dt);
       if (inputAccumulator >= .05 && !transitioning && !s.expedition?.active) {
         inputAccumulator = 0;
-        const move = walkingMove(cameraRelativeMove(journal || s.pending ? 0 : right, journal || s.pending ? 0 : forward, movementYaw),keys.has('AltLeft')||keys.has('AltRight'),keys.has('ShiftLeft')||keys.has('ShiftRight'));
+        const move = walkingMove(cameraRelativeMove(journal || s.pending ? 0 : right, journal || s.pending ? 0 : forward, movementYaw),keys.has('KeyX'),keys.has('ShiftLeft')||keys.has('ShiftRight'));
         const target=s.residents.find(r=>r.visual.bodyId===targetId),face=keys.has('KeyQ')||keys.has('KeyG')||mouseGuard;
         const active=!!(move.x||move.z||face||keys.has('KeyC'));
         if(active||inputWasActive)command({ type: 'move', ...move, facing: face ? target?Math.atan2(s.body.pos.x-target.pos.x,s.body.pos.z-target.pos.z):view.camera.renderedYaw : travelFacing(move), sprint: keys.has('ShiftLeft') || keys.has('ShiftRight'),crouch:keys.has('KeyC') });
