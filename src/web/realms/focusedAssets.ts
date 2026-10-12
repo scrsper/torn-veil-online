@@ -3,6 +3,7 @@ import {Color3,Matrix,Mesh,MeshBuilder,PBRMaterial,Quaternion,SceneLoader,Textur
 import {parseFocusedManifest,type FocusedManifest,type AssetPlacement} from '../../sim/world/assets/focused';
 import type {Atmosphere} from '../world/atmosphere';
 import {loadScannedMaps,useScannedMaps} from '../render/materials';
+import {CanopyCoverage} from './canopyCoverage';
 const PACK='f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce';
 const sha=async(bytes:ArrayBuffer)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),v=>v.toString(16).padStart(2,'0')).join('');
 /** Bounded reusable GLB ownership for the existing realm/Tower renderer. Only
@@ -44,7 +45,7 @@ export class FocusedAssets {
    else if(name==='soil'){surface='brown_mud';tint=[1.06,1.02,.93];}
    else if(/^(earth|ochre)$/.test(name)){surface='forest_ground_04';tint=[1.04,1.02,.94];}
    if(surface){let maps=this.scanned.get(surface);if(!maps){maps=loadScannedMaps(this.scene,surface);this.scanned.set(surface,maps);}useScannedMaps(material,maps);material.albedoColor=new Color3(...tint);material.roughness=.86;material.metallic=0;material.environmentIntensity=.95;material.ambientTextureStrength=.45;material.specularIntensity=.35;}
-   if(name==='pine'||name==='leaf'){material.albedoTexture=this.leafTexture(name);material.useAlphaFromAlbedoTexture=false;material.transparencyMode=PBRMaterial.PBRMATERIAL_OPAQUE;material.albedoColor=new Color3(.7,.82,.62);material.roughness=.88;material.specularIntensity=.15;material.environmentIntensity=.95;}
+   if(name==='pine'||name==='leaf'){material.albedoTexture=this.leafTexture(name);material.useAlphaFromAlbedoTexture=false;material.transparencyMode=PBRMaterial.PBRMATERIAL_OPAQUE;material.albedoColor=new Color3(.7,.82,.62);material.roughness=.88;material.specularIntensity=.15;material.environmentIntensity=.95;new CanopyCoverage(material);}
    if(name==='glass'){material.albedoColor=new Color3(.57,.70,.72);material.roughness=.16;material.metallic=.08;material.alpha=.48;material.transparencyMode=PBRMaterial.PBRMATERIAL_ALPHABLEND;material.backFaceCulling=false;}
   }
   // Delivered primitive GLBs have no UV channel. Derive metre-scale UVs from
