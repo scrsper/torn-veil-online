@@ -129,7 +129,10 @@ export class SharedVisual implements BodyVisual {
    this.fallen = false;
    const engaged = this.clock < this.combatUntil, readyWeapon = armed && engaged,
     idle = readyWeapon ? 'ready/sword and shield idle' : engaged ? set.idle : RELAXED.idle;
-   if (s.guard || b.guarding) {
+   if(s.crouch>.1&&!(s.guard||b.guarding)){
+    const name=this.clip(s.speed>.08?'sword_and_shield/sword and shield crouching (3)':'sword_and_shield/sword and shield crouch idle');
+    this.animator.play(name,{loop:true,speed:s.speed>.08?Math.max(.3,s.speed/this.pace(name,1)):1,fade:.16});
+   } else if (s.guard || b.guarding) {
     this.animator.play(this.clip(set.guard), { loop: true, fade: .08 });
     if (s.speed > .1) {
      const name=this.travel;
@@ -143,7 +146,7 @@ export class SharedVisual implements BodyVisual {
     this.animator.loco(this.clip(plan.walk),this.clip(plan.run),plan.blend,plan.rate,.18);
    } else this.animator.play(this.clip(idle), { loop: true, fade: .12 });
   }
-  this.root.metadata.motion = { policy:'authored-in-place',clip: this.animator.current, dominantClip:this.animator.dominant()?.name??null, stance: this.clock < this.combatUntil ? 'combat' : 'travel', armed, action: action?.moveId ?? null, age: action?.age ?? null, hit: this.clock < this.hitUntil, planted: this.plantActive, locks:this.plant.lockState(),canonicalFacing: s.yaw, gait: this.animator.gaitState };
+  this.root.metadata.motion = { policy:'authored-in-place',clip: this.animator.current, dominantClip:this.animator.dominant()?.name??null, stance: this.clock < this.combatUntil ? 'combat' : 'travel', armed, action: action?.moveId ?? null, age: action?.age ?? null, hit: this.clock < this.hitUntil, planted: this.plantActive, locks:this.plant.lockState(),canonicalFacing: s.yaw, canonicalCrouch:s.crouch, gait: this.animator.gaitState };
   this.animator.update(dt);
  }
  dispose() {

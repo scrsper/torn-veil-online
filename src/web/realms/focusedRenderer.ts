@@ -19,7 +19,7 @@ export class FocusedRenderer {
   const desired=new Map((plan?.placements??[]).filter(p=>Math.hypot(p.position[0]-position.x,p.position[2]-position.z)<(p.id.includes(':tower:')?230:150)).map(p=>[p.id,p]));this.wanted=desired;
   for(const [id,v]of this.active)if(!desired.has(id)){v.dispose();this.active.delete(id);}
   for(const p of desired.values()){
-   const existing=this.active.get(p.id);if(existing){existing.root.position.set(p.position[0]-this.origin.x,p.position[1],p.position[2]-this.origin.z);continue;}
+   const existing=this.active.get(p.id);if(existing){existing.root.position.set(p.position[0]-this.origin.x,p.position[1],p.position[2]-this.origin.z);for(const m of existing.root.getChildMeshes())if(m.metadata?.focusedSoftFoliage)m.setEnabled(Math.hypot(p.position[0]-position.x,p.position[2]-position.z)<90);continue;}
    if(this.loading.has(p.id))continue;this.loading.add(p.id);const revision=this.revision;
    this.manifest??=this.assets.loadManifest();
    void this.manifest.then(()=>this.assets.instantiate(p,this.origin)).then(v=>{if(revision!==this.revision||!this.wanted.has(p.id)){v.dispose();return;}this.active.set(p.id,v);}).catch(e=>{if(this.wanted.has(p.id))this.error=String(e);}).finally(()=>this.loading.delete(p.id));

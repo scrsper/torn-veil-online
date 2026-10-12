@@ -1,5 +1,5 @@
 import '@babylonjs/loaders/glTF';
-import {Color3,Mesh,PBRMaterial,SceneLoader,TransformNode,Vector3,VertexBuffer,type AssetContainer,type Scene} from '@babylonjs/core';
+import {Color3,Matrix,Mesh,MeshBuilder,PBRMaterial,Quaternion,SceneLoader,Texture,TransformNode,Vector3,VertexBuffer,type AssetContainer,type Scene} from '@babylonjs/core';
 import {parseFocusedManifest,type FocusedManifest,type AssetPlacement} from '../../sim/world/assets/focused';
 import type {Atmosphere} from '../world/atmosphere';
 import {loadScannedMaps,useScannedMaps} from '../render/materials';
@@ -11,6 +11,7 @@ export class FocusedAssets {
  private containers=new Map<string,AssetContainer>();private loads=new Map<string,Promise<AssetContainer>>();private references=new Map<string,number>();
  private disposed=false;manifest:FocusedManifest|null=null;
  private scanned=new Map<string,ReturnType<typeof loadScannedMaps>>();
+ private foliage=new Map<string,PBRMaterial>();
  constructor(private scene:Scene,private atmosphere:Atmosphere,private base='/focused/'){}
  async loadManifest():Promise<FocusedManifest>{
   const lockResponse=await fetch(this.base+'pack.lock.json');if(!lockResponse.ok)throw Error('Approved focused asset pack is unavailable');const lock=await lockResponse.json();
@@ -37,8 +38,12 @@ export class FocusedAssets {
    else if(/wood|floor_wood|door/.test(name)){surface=id.includes('forest')?'bark_brown_02':'weathered_planks';tint=name.includes('dark')?[.7,.66,.59]:[1.15,1.08,.93];}
    else if(name==='roof'){surface='roof_slates_02';tint=[.7,.78,.82];}
    else if(name.startsWith('stone')){surface='rock_wall_08';tint=name.includes('dark')?[.7,.78,.72]:[1.1,1.06,.95];}
-   else if(/^(earth|soil|grass)$/.test(name)){surface='forest_ground_04';tint=[.85,.95,.78];}
-   if(surface){let maps=this.scanned.get(surface);if(!maps){maps=loadScannedMaps(this.scene,surface);this.scanned.set(surface,maps);}useScannedMaps(material,maps);material.albedoColor=new Color3(...tint);material.roughness=.9;material.metallic=0;material.environmentIntensity=.8;}
+   else if(name==='grass'){surface='grass_ground';tint=[1.04,1.08,.96];}
+   else if(name==='soil'){surface='brown_mud';tint=[1.06,1.02,.93];}
+   else if(/^(earth|ochre)$/.test(name)){surface='forest_ground_04';tint=[1.04,1.02,.94];}
+   if(surface){let maps=this.scanned.get(surface);if(!maps){maps=loadScannedMaps(this.scene,surface);this.scanned.set(surface,maps);}useScannedMaps(material,maps);material.albedoColor=new Color3(...tint);material.roughness=.86;material.metallic=0;material.environmentIntensity=.95;material.ambientTextureStrength=.45;material.specularIntensity=.35;}
+   if(name==='pine'||name==='leaf'){material.albedoColor=name==='pine'?new Color3(.25,.40,.23):new Color3(.37,.50,.24);material.roughness=.88;material.specularIntensity=.15;material.environmentIntensity=.95;}
+   if(name==='glass'){material.albedoColor=new Color3(.57,.70,.72);material.roughness=.16;material.metallic=.08;material.alpha=.48;material.transparencyMode=PBRMaterial.PBRMATERIAL_ALPHABLEND;material.backFaceCulling=false;}
   }
   // Delivered primitive GLBs have no UV channel. Derive metre-scale UVs from
   // their existing physical transforms before instantiation; no vertices move.
@@ -47,14 +52,29 @@ export class FocusedAssets {
    mesh.makeGeometryUnique();mesh.setVerticesData(VertexBuffer.UVKind,uv);
   }
  }
+ private canopyDetail(root:TransformNode){
+  // Existing credited foliage textures add soft leaf detail to actual source
+  // canopies. Their bounds determine every card; trunks/access/collision stay literal.
+  const inverse=root.computeWorldMatrix(true).clone().invert();
+  for(const kind of ['pine','leaf']){
+   const matrices:number[]=[],canopies=root.getChildMeshes().filter(m=>m.material?.name.toLowerCase().replace(/^tv_/,'').replace(/\.\d+$/,'')===kind);
+   for(const canopy of canopies){const box=canopy.getBoundingInfo().boundingBox,matrix=canopy.computeWorldMatrix(true).multiply(inverse),points=box.vectors.map(p=>Vector3.TransformCoordinates(p,matrix)),lo=new Vector3(Infinity,Infinity,Infinity),hi=new Vector3(-Infinity,-Infinity,-Infinity);for(const p of points){lo.minimizeInPlace(p);hi.maximizeInPlace(p);}const centre=lo.add(hi).scale(.5),height=hi.y-lo.y,width=Math.min(hi.x-lo.x,hi.z-lo.z);if(height<.5||width<.5)continue;
+    let hash=0;for(const c of canopy.name)hash=Math.imul(hash,31)+c.charCodeAt(0)|0;const phase=(hash>>>0)/0xffffffff*Math.PI;
+    for(const tier of [.18,.48,.76])for(const direction of [0,Math.PI/2]){const scale=new Vector3(width*(1-.4*tier),Math.min(height*.5,width*.72),1),position=new Vector3(centre.x,lo.y+height*tier,centre.z);matrices.push(...Matrix.Compose(scale,Quaternion.RotationAxis(Vector3.Up(),phase+direction),position).asArray());}
+   }
+   if(!matrices.length)continue;let material=this.foliage.get(kind);if(!material){material=new PBRMaterial('focused-soft-'+kind,this.scene);const texture=new Texture('/textures/world/foliage-'+(kind==='pine'?'pine':'branch')+'.png',this.scene,false,false);texture.hasAlpha=true;texture.anisotropicFilteringLevel=8;material.albedoTexture=texture;material.useAlphaFromAlbedoTexture=true;material.transparencyMode=PBRMaterial.PBRMATERIAL_ALPHATEST;material.alphaCutOff=.42;material.backFaceCulling=false;material.twoSidedLighting=true;material.albedoColor=new Color3(.9,1,.84);material.metallic=0;material.roughness=.9;material.specularIntensity=.1;this.foliage.set(kind,material);}
+   const leaves=MeshBuilder.CreatePlane(root.name+':soft-'+kind,{size:1},this.scene);leaves.parent=root;leaves.material=material;leaves.isPickable=false;leaves.thinInstanceSetBuffer('matrix',new Float32Array(matrices),16,true);leaves.metadata={focusedSoftFoliage:true,sourceCanopies:canopies.length,cards:matrices.length/16};
+  }
+ }
  async instantiate(p:AssetPlacement,origin:{x:number;z:number}={x:0,z:0}){
   const c=await this.container(p.assetId);if(this.disposed)throw Error('Focused load cancelled');const entries=c.instantiateModelsToScene(n=>p.id+':'+n,false,{doNotInstantiate:false});
   const root=new TransformNode(p.id,this.scene);root.position.set(p.position[0]-origin.x,p.position[1],p.position[2]-origin.z);root.rotation.y=p.yaw;
   root.metadata={assetId:p.assetId,placementId:p.id,packSha256:PACK,floorId:p.floorId};for(const n of entries.rootNodes)n.parent=root;
   const meshes=root.getChildMeshes();for(const m of meshes){m.metadata={...m.metadata,focusedPart:true,placementId:p.id};m.receiveShadows=true;this.atmosphere.addCaster(m);}
+  if(p.assetId.includes('forest'))this.canopyDetail(root);
   this.references.set(p.assetId,(this.references.get(p.assetId)??0)+1);let released=false;
   return {root,dispose:()=>{if(released)return;released=true;for(const m of meshes)this.atmosphere.removeCaster(m);entries.dispose();root.dispose();this.references.set(p.assetId,Math.max(0,(this.references.get(p.assetId)??1)-1));this.trim();}};
  }
  private trim(){for(const [id,c] of this.containers){if(this.containers.size<=16)break;if((this.references.get(id)??0)===0&&!this.loads.has(id)){c.dispose();this.containers.delete(id);}}}
- dispose(){this.disposed=true;for(const c of this.containers.values())c.dispose();this.containers.clear();for(const maps of this.scanned.values())for(const texture of Object.values(maps))texture.dispose();this.scanned.clear();}
+ dispose(){this.disposed=true;for(const c of this.containers.values())c.dispose();this.containers.clear();for(const maps of this.scanned.values())for(const texture of Object.values(maps))texture.dispose();this.scanned.clear();for(const m of this.foliage.values())m.dispose(true,true);this.foliage.clear();}
 }

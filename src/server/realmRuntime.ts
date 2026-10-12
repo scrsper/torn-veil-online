@@ -7,7 +7,7 @@ import type { MovementInput } from '../sim/physical/prediction';
 /** Ordered host operations. Recorded server time, never client time, expires input.
  * The replay replica uses the same canonical simulation; it is not a second ruleset. */
 export type RealmOperation = {type:'bind';id:string;epoch:string}
-  | {type:'step';now:number} | {type:'frame'} | {type:'disconnect'} | {type:'adopt_focused'}
+  | {type:'step';now:number} | {type:'frame'} | {type:'disconnect'} | {type:'adopt_focused';migration?:import('../sim/world/realms/session').FocusedTowerMigration}
   | {type:'command';input:unknown;now:number} | {type:'move';input:MovementInput}
   | {type:'interact'} | {type:'confirm';id:number} | {type:'cancel'}
   | {type:'navigate';target:'portal'|'tower'}
@@ -33,7 +33,10 @@ export class RealmRuntime {
   apply(op:RealmOperation):any {
     const s=this.session;
     switch(op.type){
-      case 'adopt_focused':this.controller.bridge.resetInput();return s.adoptFocusedWorld();
+      case 'adopt_focused':{
+        const result=s.adoptFocusedWorld(op.migration);
+        this.controller.bridge.resetInput();return result;
+      }
       case 'bind': return this.controller.bind(op.id,op.epoch);
       case 'command':{
         const receipt=this.controller.bridge.receiveCommand(op.input,op.now);

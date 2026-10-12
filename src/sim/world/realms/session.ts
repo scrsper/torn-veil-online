@@ -20,6 +20,12 @@ import { REALMS, REALM_CHUNK, CENTER, portalPoint, realmAt, realmResidency, type
 import {FOCUSED_CATALOG} from '../assets/focusedRuntime';
 import {placedPoint} from '../assets/focused';
 import {FOCUSED_GENERATOR} from '../assets/focusedLayouts';
+import {FoldedRealmGrid} from '../interiors/grid';
+import {validCanonicalTower} from '../interiors/towerPersistence';
+
+export interface FocusedTowerMigration {
+  policy:'preserve-canonical-floors-v1'; runId:string; revision:number;
+}
 
 export class RealmSession {
   readonly world: World;
@@ -42,16 +48,26 @@ export class RealmSession {
   get body() { return this.world.primaryBody(this.world.playerId!)!; }
   get person() { return this.world.person(this.world.playerId!)!; }
   get grid() { return this.world.grid as RealmGrid; }
-  adoptFocusedWorld():void{
-    const w=this.world;if(w.realmSpec?.focusedKit)return;if(w.canonicalTower||w.realmExpedition)throw Error('Existing Tower progress requires coordinated geometry migration; the original save is retained');
-    const spec={...w.realmSpec!,focusedKit:1 as const,focusedGeometrySha:FOCUSED_CATALOG.geometrySha256,focusedGenerator:FOCUSED_GENERATOR},next=new RealmGrid(spec),town=next.focusedTown!,geometry=next.focusedGeometry!,start=town.spawn;
+  adoptFocusedWorld(migration?:FocusedTowerMigration):void{
+    const w=this.world;if(w.realmSpec?.focusedKit)return;
+    if(w.realmExpedition)throw Error('Checkpoint-only legacy expedition needs a separate migration; the original save is retained');
+    const run=w.canonicalTower;
+    if(run&&(!migration||migration.policy!=='preserve-canonical-floors-v1'||migration.runId!==run.id||migration.revision!==run.revision))throw Error('Existing Tower progress requires coordinated geometry migration; the original save is retained');
+    if(run&&(!w.interiors||!validCanonicalTower(w,run,31)))throw Error('Retained canonical Tower integrity failed; the original save is retained');
+    const spec={...w.realmSpec!,focusedKit:1 as const,focusedGeometrySha:FOCUSED_CATALOG.geometrySha256,focusedGenerator:FOCUSED_GENERATOR},next=w.interiors?new FoldedRealmGrid(spec,w.interiors):new RealmGrid(spec),town=next.focusedTown!,geometry=next.focusedGeometry!,start=town.spawn;
     const floor=geometry.supportAt(start.x,start.z,start.y);if(floor===null||!geometry.fits(start.x,floor,start.z,.3,1.75))throw Error('Approved town arrival failed actual controller clearance');
     const residentMoves=w.persons().filter(p=>p.id!==this.person.id).flatMap(p=>{const body=w.primaryBody(p.id);return body&&realmAt(body.pos.x,body.pos.z)==='brass'?[body]:[];}).map((body,i)=>{
       const placement=town.placements.find(p=>p.assetId===(i%2?'tv_32_01_general_store':'tv_31_01_tavern'))!,candidate=placedPoint(FOCUSED_CATALOG.sources[placement.assetId].spawn,placement),y=geometry.supportAt(candidate[0],candidate[2],1.0625);
       if(y===null||!geometry.fits(candidate[0],y,candidate[2],.3,1.75))throw Error('Town resident arrival failed actual clearance');return {body,pos:{x:candidate[0],y,z:candidate[2]}};
     });
     const old=w.grid;next.applyDiffs([...old.diffs]);next.restoreDoorStates([...old.doorStates]);next.recording=old.recording;
-    w.realmSpec=spec;w.grid=next;w.initNav();this.stop();this.body.pos={...start,y:floor};this.body.vel={x:0,y:0,z:0};
+    // Existing folded descriptors, enemies, sources, receipts and active body stay
+    // literal. Only the exterior return address changes; future floors use the kit.
+    const returnPos=run?.realm==='brass'?{...town.tower.entry}:run?.returnPos;
+    if(returnPos&&run?.realm==='brass'&&!geometry.fits(returnPos.x,returnPos.y,returnPos.z,.3,1.75))throw Error('Retained Tower return landing failed actual clearance');
+    w.realmSpec=spec;w.grid=next;w.initNav();
+    if(run&&returnPos)run.returnPos={...returnPos};
+    if(!run?.active){this.stop();this.body.pos={...start,y:floor};this.body.vel={x:0,y:0,z:0};}
     for(const move of residentMoves){move.body.pos=move.pos;move.body.vel={x:0,y:0,z:0};move.body.path=null;move.body.pathGoal=null;}
   }
   move(input: MovementInput): void {
