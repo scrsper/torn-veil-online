@@ -1,5 +1,9 @@
 # Actual focused-world verification — October 12, 2026
 
+Later migration, full aggregate and corrected forest evidence is recorded in
+[Retained-save migration and forest review](../../FOCUSED_MIGRATION_FOREST_OCT12.md).
+The following sections preserve the earlier foundation checkpoint's provenance.
+
 The uninterrupted production-build journey passed at runtime commit **f7bc5c9085c716d75c553d11ea33024788188d90** on isolated branch `codex/authored-motion-correction`. Final documentation/evidence commits do not change runtime code. Main remains **d193c4b285343cb88fd0536c913dfc5775369e7e** and was not merged, pushed or deployed.
 
 ## Playable journey

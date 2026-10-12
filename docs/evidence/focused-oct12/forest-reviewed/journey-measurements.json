@@ -1,0 +1,1168 @@
+{
+  "status": "passed",
+  "commit": "652fb45555f755e212f2b742d15afc4232a623f9",
+  "errors": [],
+  "canonicalReload": {
+    "person": "p_5",
+    "body": "b_5",
+    "rank": "Normal",
+    "health": 74.79124107861644,
+    "inventory": [
+      {
+        "id": "i_1",
+        "name": "Threshold atlas",
+        "type": "book",
+        "quantity": 1
+      },
+      {
+        "id": "i_2",
+        "name": "Travel provisions",
+        "type": "bread",
+        "quantity": 3
+      },
+      {
+        "id": "i_5",
+        "name": "Ember field manual",
+        "type": "book",
+        "quantity": 1
+      },
+      {
+        "id": "i_6",
+        "name": "Trial steel dagger",
+        "type": "dagger",
+        "quantity": 1
+      }
+    ],
+    "run": "canonical-tower_1",
+    "floor": 1
+  },
+  "hitSequences": [
+    {
+      "body": "b_6",
+      "hitSeq": 0
+    },
+    {
+      "body": "b_7",
+      "hitSeq": 0
+    },
+    {
+      "body": "b_8",
+      "hitSeq": 1
+    },
+    {
+      "body": "b_5",
+      "hitSeq": 1
+    }
+  ],
+  "method": "Actual headless Chrome1440x900 with ordinary button/keyboard controls. Frame intervals include recording and scheduling overhead; no human climb or GPU timer claim.",
+  "caveats": "Recorded headless Chrome intervals include video/readback/automation overhead. GPU residency/VRAM and human climb pacing were not measured. Each snapshot contains cumulative samples since its page load; distributions overlap and must not be summed.",
+  "phases": [
+    {
+      "name": "01-town-ground",
+      "kind": "realm",
+      "frameMs": {
+        "count": 38,
+        "median": 33.5,
+        "p95": 40.099999994039536,
+        "p99": 48.5,
+        "max": 51.5
+      },
+      "streamingFrameMs": {
+        "count": 75,
+        "median": 34.5,
+        "p95": 144.60000002384186,
+        "p99": 222.2999999821186,
+        "max": 333.39999997615814
+      },
+      "chunkUploadMs": {
+        "count": 81,
+        "median": 0.800000011920929,
+        "p95": 2.899999976158142,
+        "p99": 5,
+        "max": 238
+      },
+      "serverMs": {
+        "count": 50,
+        "median": 1.510600000001432,
+        "p95": 2.2128999999986263,
+        "p99": 2.6220999999968626,
+        "max": 2.6556000000018685
+      },
+      "loaded": 81,
+      "pending": 0,
+      "focused": {
+        "instances": 55,
+        "pending": 0,
+        "error": "",
+        "forests": [
+          {
+            "id": "veil:brass:focused-town:v1:forest-branches",
+            "assetId": "tv_47_03_pine_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-branches",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 53,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 106,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2597,
+                "sourceTrees": 53
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 848,
+                "sourceTrees": 53
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 498,
+                "sourceTrees": 53
+              }
+            ]
+          },
+          {
+            "id": "veil:brass:focused-town:v1:forest-cross",
+            "assetId": "tv_47_01_pine_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-cross",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 45,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 90,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2205,
+                "sourceTrees": 45
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 720,
+                "sourceTrees": 45
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 410,
+                "sourceTrees": 45
+              }
+            ]
+          }
+        ]
+      },
+      "meshes": 2899,
+      "textures": 124,
+      "heap": {
+        "used": 525025019,
+        "total": 571359855
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "journeys": [
+        {
+          "realm": "brass",
+          "at": 4817.799999982119,
+          "readyAt": 8475.899999976158
+        }
+      ]
+    },
+    {
+      "name": "02-road-walk",
+      "kind": "realm",
+      "frameMs": {
+        "count": 84,
+        "median": 34.900000005960464,
+        "p95": 43.099999994039536,
+        "p99": 48.599999994039536,
+        "max": 51.5
+      },
+      "streamingFrameMs": {
+        "count": 76,
+        "median": 34.400000005960464,
+        "p95": 144.60000002384186,
+        "p99": 222.2999999821186,
+        "max": 333.39999997615814
+      },
+      "chunkUploadMs": {
+        "count": 81,
+        "median": 0.800000011920929,
+        "p95": 2.899999976158142,
+        "p99": 5,
+        "max": 238
+      },
+      "serverMs": {
+        "count": 68,
+        "median": 1.530799999996816,
+        "p95": 2.6220999999968626,
+        "p99": 3.3077999999950407,
+        "max": 3.3289999999979045
+      },
+      "loaded": 81,
+      "pending": 1,
+      "focused": {
+        "instances": 55,
+        "pending": 1,
+        "error": "",
+        "forests": [
+          {
+            "id": "veil:brass:focused-town:v1:forest-branches",
+            "assetId": "tv_47_03_pine_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-branches",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 53,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 106,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2597,
+                "sourceTrees": 53
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 848,
+                "sourceTrees": 53
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 498,
+                "sourceTrees": 53
+              }
+            ]
+          },
+          {
+            "id": "veil:brass:focused-town:v1:forest-cross",
+            "assetId": "tv_47_01_pine_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-cross",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 45,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 90,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2205,
+                "sourceTrees": 45
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 720,
+                "sourceTrees": 45
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 410,
+                "sourceTrees": 45
+              }
+            ]
+          }
+        ]
+      },
+      "meshes": 2899,
+      "textures": 124,
+      "heap": {
+        "used": 532056573,
+        "total": 576617713
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "journeys": [
+        {
+          "realm": "brass",
+          "at": 4817.799999982119,
+          "readyAt": 8475.899999976158
+        }
+      ]
+    },
+    {
+      "name": "02-portal-aether",
+      "kind": "realm",
+      "frameMs": {
+        "count": 441,
+        "median": 36.30000001192093,
+        "p95": 45.5,
+        "p99": 52.19999998807907,
+        "max": 182.89999997615814
+      },
+      "streamingFrameMs": {
+        "count": 164,
+        "median": 25.5,
+        "p95": 96.5,
+        "p99": 222.2999999821186,
+        "max": 333.39999997615814
+      },
+      "chunkUploadMs": {
+        "count": 162,
+        "median": 0.7000000178813934,
+        "p95": 5,
+        "p99": 41.099999994039536,
+        "max": 238
+      },
+      "serverMs": {
+        "count": 221,
+        "median": 1.3977999999988242,
+        "p95": 3.334900000001653,
+        "p99": 4.315399999999499,
+        "max": 5.52730000000156
+      },
+      "loaded": 81,
+      "pending": 0,
+      "focused": {
+        "instances": 0,
+        "pending": 0,
+        "error": "",
+        "forests": []
+      },
+      "meshes": 1018,
+      "textures": 180,
+      "heap": {
+        "used": 459592315,
+        "total": 508788503
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "journeys": [
+        {
+          "realm": "brass",
+          "at": 4817.799999982119,
+          "readyAt": 8475.899999976158
+        },
+        {
+          "realm": "aether",
+          "at": 25295.69999998808,
+          "readyAt": 26768.09999999404
+        }
+      ]
+    },
+    {
+      "name": "02-portal-brass",
+      "kind": "realm",
+      "frameMs": {
+        "count": 534,
+        "median": 35.10000002384186,
+        "p95": 44.30000001192093,
+        "p99": 51.900000005960464,
+        "max": 182.89999997615814
+      },
+      "streamingFrameMs": {
+        "count": 245,
+        "median": 31.700000017881393,
+        "p95": 67.7000000178814,
+        "p99": 222.2999999821186,
+        "max": 333.39999997615814
+      },
+      "chunkUploadMs": {
+        "count": 243,
+        "median": 0.699999988079071,
+        "p95": 2.9000000059604645,
+        "p99": 12,
+        "max": 238
+      },
+      "serverMs": {
+        "count": 263,
+        "median": 1.3456000000005588,
+        "p95": 3.2758000000030734,
+        "p99": 4.315399999999499,
+        "max": 5.52730000000156
+      },
+      "loaded": 81,
+      "pending": 0,
+      "focused": {
+        "instances": 55,
+        "pending": 0,
+        "error": "",
+        "forests": [
+          {
+            "id": "veil:brass:focused-town:v1:forest-cross",
+            "assetId": "tv_47_01_pine_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-cross",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 45,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 90,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2205,
+                "sourceTrees": 45
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 720,
+                "sourceTrees": 45
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 410,
+                "sourceTrees": 45
+              }
+            ]
+          },
+          {
+            "id": "veil:brass:focused-town:v1:forest-branches",
+            "assetId": "tv_47_03_pine_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-branches",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 53,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 106,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2597,
+                "sourceTrees": 53
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 848,
+                "sourceTrees": 53
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 498,
+                "sourceTrees": 53
+              }
+            ]
+          }
+        ]
+      },
+      "meshes": 2920,
+      "textures": 147,
+      "heap": {
+        "used": 520610822,
+        "total": 576377322
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "journeys": [
+        {
+          "realm": "brass",
+          "at": 4817.799999982119,
+          "readyAt": 8475.899999976158
+        },
+        {
+          "realm": "aether",
+          "at": 25295.69999998808,
+          "readyAt": 26768.09999999404
+        },
+        {
+          "realm": "brass",
+          "at": 28035.399999976158,
+          "readyAt": 30971.79999998212
+        }
+      ]
+    },
+    {
+      "name": "03-forest-route",
+      "kind": "realm",
+      "frameMs": {
+        "count": 1152,
+        "median": 36.599999994039536,
+        "p95": 46.5,
+        "p99": 52.70000001788139,
+        "max": 182.89999997615814
+      },
+      "streamingFrameMs": {
+        "count": 261,
+        "median": 32.400000005960464,
+        "p95": 67.7000000178814,
+        "p99": 222.2999999821186,
+        "max": 333.39999997615814
+      },
+      "chunkUploadMs": {
+        "count": 259,
+        "median": 0.699999988079071,
+        "p95": 2.9000000059604645,
+        "p99": 12,
+        "max": 238
+      },
+      "serverMs": {
+        "count": 510,
+        "median": 1.0597000000016124,
+        "p95": 3.2758000000030734,
+        "p99": 4.308199999999488,
+        "max": 5.700899999996182
+      },
+      "loaded": 72,
+      "pending": 9,
+      "focused": {
+        "instances": 56,
+        "pending": 0,
+        "error": "",
+        "forests": [
+          {
+            "id": "veil:brass:focused-town:v1:forest-cross",
+            "assetId": "tv_47_01_pine_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-cross",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 45,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 90,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2205,
+                "sourceTrees": 45
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 720,
+                "sourceTrees": 45
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 410,
+                "sourceTrees": 45
+              }
+            ]
+          },
+          {
+            "id": "veil:brass:focused-town:v1:forest-branches",
+            "assetId": "tv_47_03_pine_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-branches",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 53,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 106,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2597,
+                "sourceTrees": 53
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 848,
+                "sourceTrees": 53
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 498,
+                "sourceTrees": 53
+              }
+            ]
+          },
+          {
+            "id": "veil:brass:focused-town:v1:forest-turn",
+            "assetId": "tv_48_01_broadleaf_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-turn",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 46,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 46,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2254,
+                "sourceTrees": 46
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 736,
+                "sourceTrees": 46
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 432,
+                "sourceTrees": 46
+              }
+            ]
+          }
+        ]
+      },
+      "meshes": 3035,
+      "textures": 147,
+      "heap": {
+        "used": 607090998,
+        "total": 656195482
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "journeys": [
+        {
+          "realm": "brass",
+          "at": 4817.799999982119,
+          "readyAt": 8475.899999976158
+        },
+        {
+          "realm": "aether",
+          "at": 25295.69999998808,
+          "readyAt": 26768.09999999404
+        },
+        {
+          "realm": "brass",
+          "at": 28035.399999976158,
+          "readyAt": 30971.79999998212
+        }
+      ]
+    },
+    {
+      "name": "04-tower-landmark",
+      "kind": "realm",
+      "frameMs": {
+        "count": 2034,
+        "median": 35.19999998807907,
+        "p95": 44.400000005960464,
+        "p99": 51.89999997615814,
+        "max": 182.89999997615814
+      },
+      "streamingFrameMs": {
+        "count": 284,
+        "median": 32.400000005960464,
+        "p95": 65.80000001192093,
+        "p99": 222.2999999821186,
+        "max": 333.39999997615814
+      },
+      "chunkUploadMs": {
+        "count": 282,
+        "median": 0.699999988079071,
+        "p95": 3.7000000178813934,
+        "p99": 12,
+        "max": 238
+      },
+      "serverMs": {
+        "count": 600,
+        "median": 0.8427999999985332,
+        "p95": 3.585900000005495,
+        "p99": 8.411599999992177,
+        "max": 11.929300000003423
+      },
+      "loaded": 70,
+      "pending": 11,
+      "focused": {
+        "instances": 43,
+        "pending": 0,
+        "error": "",
+        "forests": [
+          {
+            "id": "veil:brass:focused-town:v1:forest-cross",
+            "assetId": "tv_47_01_pine_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-cross",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 45,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 90,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2205,
+                "sourceTrees": 45
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 720,
+                "sourceTrees": 45
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 410,
+                "sourceTrees": 45
+              }
+            ]
+          },
+          {
+            "id": "veil:brass:focused-town:v1:forest-branches",
+            "assetId": "tv_47_03_pine_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-branches",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 53,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 106,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2597,
+                "sourceTrees": 53
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 848,
+                "sourceTrees": 53
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 498,
+                "sourceTrees": 53
+              }
+            ]
+          },
+          {
+            "id": "veil:brass:focused-town:v1:forest-turn",
+            "assetId": "tv_48_01_broadleaf_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-turn",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 46,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 46,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2254,
+                "sourceTrees": 46
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 736,
+                "sourceTrees": 46
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 432,
+                "sourceTrees": 46
+              }
+            ]
+          }
+        ]
+      },
+      "meshes": 1891,
+      "textures": 159,
+      "heap": {
+        "used": 701131062,
+        "total": 748225150
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "journeys": [
+        {
+          "realm": "brass",
+          "at": 4817.799999982119,
+          "readyAt": 8475.899999976158
+        },
+        {
+          "realm": "aether",
+          "at": 25295.69999998808,
+          "readyAt": 26768.09999999404
+        },
+        {
+          "realm": "brass",
+          "at": 28035.399999976158,
+          "readyAt": 30971.79999998212
+        }
+      ]
+    },
+    {
+      "name": "05-actual-tower-floor",
+      "kind": "ascent",
+      "frameMs": {
+        "count": 41,
+        "median": 17.400000005960464,
+        "p95": 38.599999994039536,
+        "p99": 90,
+        "max": 114.10000002384186
+      },
+      "streamingFrameMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "chunkUploadMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "serverMs": {
+        "count": 7,
+        "median": 0.17650000000139698,
+        "p95": 0.22449999999662396,
+        "p99": 0.22449999999662396,
+        "max": 0.2584999999962747
+      },
+      "focused": {
+        "instances": 6,
+        "pending": 0,
+        "error": ""
+      },
+      "meshes": 1272,
+      "heap": 364044183
+    },
+    {
+      "name": "05-returned-landmark",
+      "kind": "realm",
+      "frameMs": {
+        "count": 2,
+        "median": 29.30000001192093,
+        "p95": 29.30000001192093,
+        "p99": 29.30000001192093,
+        "max": 32.69999998807907
+      },
+      "streamingFrameMs": {
+        "count": 79,
+        "median": 19.900000005960464,
+        "p95": 108.09999999403954,
+        "p99": 207.19999998807907,
+        "max": 230.30000001192093
+      },
+      "chunkUploadMs": {
+        "count": 81,
+        "median": 0.699999988079071,
+        "p95": 2.0999999940395355,
+        "p99": 4.5999999940395355,
+        "max": 196.80000001192093
+      },
+      "serverMs": {
+        "count": 26,
+        "median": 1.7448000000003958,
+        "p95": 2.5626999999949476,
+        "p99": 2.6252999999996973,
+        "max": 2.690199999982724
+      },
+      "loaded": 81,
+      "pending": 0,
+      "focused": {
+        "instances": 43,
+        "pending": 0,
+        "error": "",
+        "forests": [
+          {
+            "id": "veil:brass:focused-town:v1:forest-cross",
+            "assetId": "tv_47_01_pine_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-cross",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 45,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 90,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2205,
+                "sourceTrees": 45
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 720,
+                "sourceTrees": 45
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 410,
+                "sourceTrees": 45
+              }
+            ]
+          },
+          {
+            "id": "veil:brass:focused-town:v1:forest-branches",
+            "assetId": "tv_47_03_pine_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-branches",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 53,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 106,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2597,
+                "sourceTrees": 53
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 848,
+                "sourceTrees": 53
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 498,
+                "sourceTrees": 53
+              }
+            ]
+          },
+          {
+            "id": "veil:brass:focused-town:v1:forest-turn",
+            "assetId": "tv_48_01_broadleaf_forest",
+            "placementId": "veil:brass:focused-town:v1:forest-turn",
+            "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+            "floorId": "veil:brass:focused-town:v1:ground",
+            "forestPresentation": "layered-branches-v2",
+            "sourceTrees": 46,
+            "proxyCanopiesHidden": true,
+            "hiddenProxies": 46,
+            "foliage": [
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "near",
+                "cards": 2254,
+                "sourceTrees": 46
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "far",
+                "cards": 736,
+                "sourceTrees": 46
+              },
+              {
+                "focusedSoftFoliage": true,
+                "foliageLod": "understory",
+                "cards": 432,
+                "sourceTrees": 46
+              }
+            ]
+          }
+        ]
+      },
+      "meshes": 1958,
+      "textures": 135,
+      "heap": {
+        "used": 478164672,
+        "total": 537137228
+      },
+      "hardware": {
+        "vendor": "Google Inc. (AMD)",
+        "renderer": "ANGLE (AMD, AMD Radeon RX 6650 XT (0x000073EF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)"
+      },
+      "journeys": [
+        {
+          "realm": "brass",
+          "at": 4438.199999988079,
+          "readyAt": 6964.5999999940395
+        }
+      ]
+    },
+    {
+      "name": "05-finite-dagger-equipped",
+      "kind": "ascent",
+      "frameMs": {
+        "count": 128,
+        "median": 16.600000023841858,
+        "p95": 26.100000023841858,
+        "p99": 36.400000005960464,
+        "max": 106.69999998807907
+      },
+      "streamingFrameMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "chunkUploadMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "serverMs": {
+        "count": 24,
+        "median": 0.15590000001247972,
+        "p95": 0.2819000000017695,
+        "p99": 0.30910000001313165,
+        "max": 6.447899999999208
+      },
+      "focused": {
+        "instances": 6,
+        "pending": 0,
+        "error": ""
+      },
+      "meshes": 1275,
+      "heap": 280162802
+    },
+    {
+      "name": "06-floor-traversal",
+      "kind": "ascent",
+      "frameMs": {
+        "count": 1260,
+        "median": 21.600000023841858,
+        "p95": 49.099999994039536,
+        "p99": 58.599999994039536,
+        "max": 228.5
+      },
+      "streamingFrameMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "chunkUploadMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "serverMs": {
+        "count": 316,
+        "median": 1.2295999999914784,
+        "p95": 2.962999999988824,
+        "p99": 5.091600000014296,
+        "max": 6.447899999999208
+      },
+      "focused": {
+        "instances": 6,
+        "pending": 0,
+        "error": ""
+      },
+      "meshes": 1303,
+      "heap": 445608538
+    },
+    {
+      "name": "07-canonical-combat",
+      "kind": "ascent",
+      "frameMs": {
+        "count": 1574,
+        "median": 23.099999994039536,
+        "p95": 49,
+        "p99": 59,
+        "max": 228.5
+      },
+      "streamingFrameMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "chunkUploadMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "serverMs": {
+        "count": 403,
+        "median": 1.1779000000096858,
+        "p95": 3.025900000007823,
+        "p99": 5.94550000000163,
+        "max": 12.350699999980861
+      },
+      "focused": {
+        "instances": 6,
+        "pending": 0,
+        "error": ""
+      },
+      "meshes": 1303,
+      "heap": 253322881
+    },
+    {
+      "name": "08-reloaded-floor",
+      "kind": "ascent",
+      "frameMs": {
+        "count": 3,
+        "median": 94.40000000596046,
+        "p95": 94.40000000596046,
+        "p99": 94.40000000596046,
+        "max": 171.5
+      },
+      "streamingFrameMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "chunkUploadMs": {
+        "count": 0,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      },
+      "serverMs": {
+        "count": 2,
+        "median": 0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0.2906000000075437
+      },
+      "focused": {
+        "instances": 6,
+        "pending": 0,
+        "error": ""
+      },
+      "meshes": 1303,
+      "heap": 254749585
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "name": "02-house-side",
+    "positionMetres": 0,
+    "yawRadians": 0,
+    "pitchRadians": 0,
+    "clockSeconds": 4.1833335515111685
+  },
+  {
+    "name": "05-forest-canopy",
+    "positionMetres": 0.32160383758068495,
+    "yawRadians": 0,
+    "pitchRadians": 0,
+    "clockSeconds": 6.08333365060389
+  }
+]
