@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { NullEngine, Scene, Animation, AnimationGroup, TransformNode, Vector3 } from '@babylonjs/core';
+import { NullEngine, Scene, Animation, AnimationGroup, TransformNode, Vector3, MeshBuilder } from '@babylonjs/core';
 import { humanAssetPath, motionSampleSeconds, UNARMED_MOTION, SHARED_MOTION } from '../src/web/presentation/library';
 import { Animator } from '../src/web/arena/anim';
 import { SharedVisual } from '../src/web/actors/sharedCast';
@@ -10,6 +10,7 @@ import type { Atmosphere } from '../src/web/world/atmosphere';
 import { RealmSession } from '../src/sim/world/realms/session';
 import { makeItem } from '../src/sim/world/factory';
 import { changeEquipment } from '../src/sim/physical/equipment';
+import { normalizeCharacterMetres } from '../src/web/actors/characterScale';
 
 describe('shared presentation replacement contract', () => {
   it('uses existing body assets consistently and does not introduce an unapproved character', () => {
@@ -46,6 +47,11 @@ describe('shared presentation replacement contract', () => {
   });
   it('restores locomotion after a retained action, selects each strike and releases pins for moving feet', () => {
     const engine = new NullEngine(), scene = new Scene(engine), root = new TransformNode('asset', scene), hand = new TransformNode('hand', scene); hand.parent = root;
+    // SharedCharacters.create calibrates the import before constructing SharedVisual.
+    // Exercise the same real metre adapter instead of a metadata-free mock import.
+    const mesh = MeshBuilder.CreateBox('body-metric-fixture', { height: 1.6 }, scene);
+    mesh.parent = root; mesh.position.y = .8;
+    root.metadata = { metricImport: normalizeCharacterMetres(root, [mesh], 1) };
     const names = [RELAXED.idle, RELAXED.walk, RELAXED.run, 'unarmed/run_jog', UNARMED_MOTION.jab.clip, UNARMED_MOTION.cross.clip, ...MOVESETS.fists.hit];
     const groups = new Map(names.map(name => {
       const animation = new Animation(name, 'position', 30, Animation.ANIMATIONTYPE_VECTOR3);
@@ -54,8 +60,9 @@ describe('shared presentation replacement contract', () => {
     }));
     const body = { bodyId: 'b_review', hitSeq: 0, attackSeq: 1, equipment: [], dead: false,
       pose: 'stand', combatAction: { phase: 'complete' } } as unknown as BodyState;
-    const visual = new SharedVisual({ root, meshes: [], anims: groups, slotR: hand, slotL: hand, chest: null, gear: new Map(), dispose() { root.dispose(); } },
+    const visual = new SharedVisual({ root, meshes: [mesh], anims: groups, slotR: hand, slotL: hand, chest: null, gear: new Map(), dispose() { root.dispose(); } },
       body, { addCaster() {}, removeCaster() {} } as unknown as Atmosphere, new Map());
+    expect(visual.bodyHeight).toBeCloseTo(1.75);
     visual.root.position.set(4, 1, 8);
     const state: ActorState = { bodyId: body.bodyId, body, own: true, kind: 'person', speed: 2, velocity: { x: 0, y: 0, z: -2 }, yaw: 0, crouch: 0, age: 0, combat: null };
     visual.update(.02, state); expect(visual.root.metadata.motion.clip).toBe('loco'); expect(visual.root.metadata.motion.planted).toBe(true);
