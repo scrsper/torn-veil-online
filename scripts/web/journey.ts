@@ -71,7 +71,7 @@ async function tryTalk() {
 async function menus() {
   counts.menus++;
   for (const k of ['KeyI', 'KeyJ', 'Tab']) { await page.keyboard.press(k); await page.waitForTimeout(700); await page.keyboard.press('Escape'); await page.waitForTimeout(500); }
-  await page.keyboard.press('Escape'); await page.waitForTimeout(600);   // pause menu
+  await page.keyboard.press('Escape'); await page.waitForTimeout(600);
   if ((await state()).modal) { await page.keyboard.press('Escape'); await page.waitForTimeout(500); }
   await page.mouse.move(w / 2, h / 2); await page.mouse.down(); await page.waitForTimeout(60); await page.mouse.up(); await page.waitForTimeout(300);   // re-capture the pointer like a player would
 }

@@ -24,7 +24,6 @@ function haulWorld(seed: number) {
   return { tw, src, dst, farmer, miller, hauler };
 }
 
-// ==================================================================== v0.7 §A — wholesale trade
 describe('wholesale trade (v0.7 §A): the real producer gets paid, not just the requester', () => {
   it('grain delivered to the mill pays the farm owner from the miller\'s wealth', () => {
     const { tw, src, dst, farmer, miller, hauler } = haulWorld(70001);
@@ -37,7 +36,7 @@ describe('wholesale trade (v0.7 §A): the real producer gets paid, not just the 
     depositHaulCargo(tw.world, task, hauler);
     expect(farmer.wealth).toBeGreaterThan(0); // the farmer, not the hauler, was paid for the grain itself
     expect(miller.wealth).toBeLessThan(100);
-    expect(miller.wealth + farmer.wealth).toBe(100); // conserved — no currency invented
+    expect(miller.wealth + farmer.wealth).toBe(100);
   });
 
   it('a self-delivery (same person on both sides) nets nothing — no pointless self-transfer', () => {
@@ -91,7 +90,6 @@ describe('wholesale trade (v0.7 §A): the real producer gets paid, not just the 
   });
 });
 
-// ==================================================================== v0.7 §Exposure — wetness
 describe('environmental exposure (v0.7): rain is not an instruction', () => {
   it('an outdoor person gets wetter in the rain; an indoor person stays dry', () => {
     const tw = createTestWorld(70101, 30);
@@ -148,7 +146,6 @@ describe('environmental exposure (v0.7): rain is not an instruction', () => {
   });
 });
 
-// ==================================================================== v0.7 §Affordances
 describe('affordance foundation (v0.7): identity/composition/affordance are physical; recognized USE is knowledge', () => {
   it('a fresh person with no knowledge recognizes nothing about a real axe next to them — non-omniscience', () => {
     const tw = createTestWorld(70201, 30);

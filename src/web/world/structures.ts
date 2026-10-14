@@ -93,7 +93,6 @@ export function* buildStructuresSteps(scene: Scene, mats: MaterialLibrary, r: Re
 
   const wheelCells = new Set([...millWheels.values()].flatMap(w => [...w.cells]));
 
-  // ── roofs: fit each building's analytic gable to its actual roof cells ─────────────────────────
   const fits = new Map<string, RoofFit>();
   for (const p of buildings) {
     const fit = fitRoof(cells, p);
@@ -108,7 +107,6 @@ export function* buildStructuresSteps(scene: Scene, mats: MaterialLibrary, r: Re
     return b !== B.Chimney && b !== B.Torch;
   };
 
-  // ── walls and other cells ──────────────────────────────────────────────────────────────────────
   let sliceAt = performance.now(), visited = 0;
   for (const [x, y, z, b] of cells.entries()) {
     if ((++visited & 127) === 0 && performance.now() - sliceAt > 3) { yield; sliceAt = performance.now(); }
@@ -455,7 +453,6 @@ function buildGableRoof(batch: (m: MatName) => MeshBatch, mats: MaterialLibrary,
     king.box([c[0] - 0.08, c[1], c[2] - 0.08], [c[0] + 0.08, ty - 0.06, c[2] + 0.08], kTint, kt);
   };
   gablePost(b0 + 1); gablePost(b1 - 1);
-  // Ridge cap.
   fas.box(alongX ? [b0 - rx - 0.06, ty - profile.eave, rr - rz - 0.16] : [rr - rx - 0.16, ty - profile.eave, b0 - rz - 0.06], alongX ? [b1 - rx + 0.06, ty + profile.eave, rr - rz + 0.16] : [rr - rx + 0.16, ty + profile.eave, b1 - rz + 0.06], dk, ft);
   // Wall fill from the wall top to the roof underside: eave friezes and gable ends, outside and in.
   const fill = (aLo: number, aHi: number, bPlane: number, outward: -1 | 1, nrm: V) => {

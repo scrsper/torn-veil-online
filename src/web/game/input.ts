@@ -127,7 +127,6 @@ export class InputManager {
   /** Call once at the start of each rendered frame. */
   beginFrame(dt: number): void {
     const s = this.settings();
-    // Gamepad polling.
     const pad = this.activePad();
     let padMoveX = 0, padMoveY = 0, padLookX = 0, padLookY = 0;
     if (pad) {

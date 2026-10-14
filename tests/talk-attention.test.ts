@@ -70,7 +70,7 @@ describe('talking to someone', () => {
     expect(still, 'someone busy in place, with open ground behind them').toBeDefined();
     const sb = w.primaryBody(still!.id)!;
     pb.pos = behind(sb)!;
-    pb.yaw = Math.atan2(-(sb.pos.x - pb.pos.x), -(sb.pos.z - pb.pos.z)); // the player looks at them
+    pb.yaw = Math.atan2(-(sb.pos.x - pb.pos.x), -(sb.pos.z - pb.pos.z));
     for (let i = 0; i < 40 && !(s.snapshot(false) as any).talkTargets.some((t: { bodyId: string }) => t.bodyId === sb.id); i++) s.step(0.05);
     expect(facingError(sb, pb), 'their back is to the player before being spoken to').toBeGreaterThan(1.2);
     expect(say(s, { type: 'talk', targetBodyId: sb.id }).result).toBe('accepted');

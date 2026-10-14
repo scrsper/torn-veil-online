@@ -136,7 +136,6 @@ export function pursuitIdentity(kind: PursuitKind, subjectId?: EntityId, itemId?
   return `${kind}:${itemId ?? subjectId ?? '?'}`;
 }
 
-// ---------------------------------------------------------------- formation
 /**
  * Derive purposes from the live things that justify them. Idempotent and called on the coarse
  * upkeep cadence: a source that already has a purpose reinforces it rather than creating a
@@ -153,7 +152,6 @@ export function formPursuits(world: World, p: Person): Pursuit[] {
   const formed: Pursuit[] = [];
   const add = (spec: PursuitSpec): void => { const pu = record(world, p, spec); if (pu) formed.push(pu); };
 
-  // ---- welfare concern → tend
   for (const c of concernsOf(p)) {
     if (c.status !== 'active' || c.kind !== 'welfare' || !c.subjectId || c.subjectId === p.id) continue;
     if (c.intensity < TEND_CONCERN_THRESHOLD) continue;
@@ -181,7 +179,6 @@ export function formPursuits(world: World, p: Person): Pursuit[] {
     });
   }
 
-  // ---- an unfulfilled recover_item desire → recover (mine, or someone else's I agreed to find)
   for (const d of p.desires) {
     if (d.fulfilled || d.type !== 'recover_item' || !d.targetId) continue;
     const it = world.item(d.targetId);
@@ -209,7 +206,6 @@ export function formPursuits(world: World, p: Person): Pursuit[] {
     });
   }
 
-  // ---- obligations → discharge (a promise I made) / reciprocate (a kindness I owe for)
   for (const o of liveObligations(p)) {
     if (o.kind === 'accepted_task' && o.requestId) {
       const req = requestById(world, o.requestId);
@@ -313,7 +309,6 @@ function prune(world: World, p: Person): void {
   }
 }
 
-// ---------------------------------------------------------------- priority
 /** How hard this purpose presses on this person right now, 0..1, recomputed from the live source
  * every upkeep so it tracks reality rather than drifting. */
 export function pursuitPriority(world: World, p: Person, pu: Pursuit): number {
@@ -370,7 +365,6 @@ export function believedHarm(world: World, p: Person, subjectId: EntityId): numb
   return worst;
 }
 
-// ---------------------------------------------------------------- steps
 export interface PursuitStep {
   goal: GoalType;
   targetEntity?: EntityId;
@@ -470,7 +464,7 @@ function recoverSteps(world: World, p: Person, pu: Pursuit): PursuitStep[] {
   const ownerId = it.ownerId ?? pu.subjectId;
 
   if (it.holderId === p.id) {
-    if (mine || !ownerId) return []; // already back where it belongs
+    if (mine || !ownerId) return [];
     return [{
       goal: 'help_recover_item', targetEntity: itemId, fit: 1,
       data: { deliverTo: ownerId }, reason: `I have ${it.name} — it should go back to ${world.nameOf(ownerId)}`,
@@ -621,7 +615,6 @@ export function provisionFor(world: World, p: Person): { item: Item; sourcePlace
   return null;
 }
 
-// ---------------------------------------------------------------- outcome + upkeep
 /** Whether this purpose is still live, and if not, why not — read from the live source and from
  * canonical world state, never from a stored plan. */
 export function pursuitOutcome(world: World, p: Person, pu: Pursuit): { status: PursuitStatus; resolution: string } | null {
@@ -812,7 +805,6 @@ export function linkGoalToPursuit(world: World, p: Person, goal: Goal | null): P
 /** A step of this purpose actually got somewhere — resets the no-progress backstop. */
 export function notePursuitProgress(world: World, pu: Pursuit): void { pu.lastProgressAt = world.now; }
 
-// ---------------------------------------------------------------- behavioural bridge
 /**
  * What an ACTIVE purpose adds to a candidate goal someone else already proposed. Complements
  * `pursuitSteps` (which proposes goals of its own): the ordinary "help someone hurt in front of

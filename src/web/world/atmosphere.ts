@@ -93,7 +93,7 @@ export class Atmosphere {
   update(hourOfDay: number, weather: WeatherProjection, dt: number): void {
     const h = ((hourOfDay % 24) + 24) % 24; this.hour = h;
     const theta = Math.PI * (h - 6) / 12;                       // 0 at 06:00, pi/2 at noon, pi at 18:00
-    const elev = Math.sin(theta);                               // >0 daytime
+    const elev = Math.sin(theta);
     const sunPos = new Vector3(Math.cos(theta) * .85, elev, -.65 * Math.cos(theta) - .2).normalize();
     const moonPos = sunPos.scale(-1);
     const wet = weather.kind === 'rain' || weather.kind === 'storm' ? weather.intensity : 0, fog = weather.kind === 'fog' ? Math.max(0.4, weather.intensity) : 0;
@@ -135,7 +135,6 @@ export class Atmosphere {
     // Exposure keeps night readable and noon from clipping.
     if (this.ctx.pipeline) this.ctx.pipeline.imageProcessing.exposure = lerp(1.4, 1.02, day) * (1 + overcast * 0.06) * this.look.exposure;
 
-    // Celestial bodies and gradient.
     const camera = s.activeCamera;
     const place = (m: Mesh, p: Vector3) => { if (camera) m.position.copyFrom(p.scale(780)); };
     place(this.sunDisc, sunPos); place(this.moonDisc, moonPos);

@@ -20,7 +20,6 @@ function advance(world: ReturnType<typeof newWorld>['world'], sim: Simulation, s
   for (let e = 0; e < seconds; e += 0.15) { const dt = Math.min(0.15, seconds - e); const wdt = world.clock.advance(dt); world.physicalTime += dt; sim.step(dt, wdt); sim.flushSpeech(); }
 }
 
-// ==================================================================== Knowledge (v0.6 §III)
 describe('knowledge: non-omniscient economic opportunity (v0.6 §III)', () => {
   it('a person with no knowledge of any food source resolves none — never a magical bakery scan', () => {
     const tw = createTestWorld(6001, 30);
@@ -92,7 +91,6 @@ describe('knowledge: non-omniscient economic opportunity (v0.6 §III)', () => {
   });
 });
 
-// ==================================================================== Memory (v0.6 §IV)
 describe('memory has behavioral consequence (v0.6 §IV)', () => {
   it('a familiar (recently successful) food source is preferred over an equally-known, untested one', () => {
     const tw = createTestWorld(6101, 30);
@@ -132,7 +130,6 @@ describe('memory has behavioral consequence (v0.6 §IV)', () => {
   });
 });
 
-// ==================================================================== Skills (v0.6 §V)
 describe('skills: learned capability distinct from attributes (v0.6 §V)', () => {
   it('an expert outperforms a novice with identical attributes/tool/physiology', () => {
     const tw = createTestWorld(6201, 30);
@@ -185,7 +182,7 @@ describe('skills: learned capability distinct from attributes (v0.6 §V)', () =>
     tw.world.resourceNodes.push(depleted);
     const got = extractFromNode(tw.world, depleted, p);
     expect(got).toBe(0);
-    expect(skillOf(p, 'woodcutting')).toBe(after1); // no-op grants nothing
+    expect(skillOf(p, 'woodcutting')).toBe(after1);
   });
 
   it('progression diminishes as proficiency rises (harder to gain the closer to mastery)', () => {
@@ -227,7 +224,6 @@ describe('skills: learned capability distinct from attributes (v0.6 §V)', () =>
   });
 });
 
-// ==================================================================== Intentions (v0.6 §VI)
 describe('intentional action vertical slice (v0.6 §VI)', () => {
   it('a known, remembered food source produces a grounded obtain-food intention that leads to a real plan', () => {
     const tw = createTestWorld(6301, 40);
@@ -237,7 +233,7 @@ describe('intentional action vertical slice (v0.6 §VI)', () => {
     void bread;
     const hungry = addPerson(tw, 'Hungry', 'traveler', v(1, 1, 1));
     hungry.wealth = 20;
-    hungry.physiology.energy = 0.15; // hunger well past 'urgent'
+    hungry.physiology.energy = 0.15;
     learnPlace(tw.world, hungry, bakery, { type: 'prior' });
     step(tw, 3);
     expect(hungry.mind.goal?.type).toBe('eat');
@@ -260,7 +256,6 @@ describe('intentional action vertical slice (v0.6 §VI)', () => {
   });
 });
 
-// ==================================================================== Second producer (v0.6 §VIII)
 describe('mill converted to demand-aware production (v0.6 §VIII)', () => {
   it('the mill only mills when a real production request exists, and never pays for a batch that produced nothing', () => {
     const tw = createTestWorld(6401, 30);
@@ -282,7 +277,6 @@ describe('mill converted to demand-aware production (v0.6 §VIII)', () => {
   });
 });
 
-// ==================================================================== Determinism (unchanged)
 describe('v0.6 determinism', () => {
   // 180 s, not 60 s. This runs the full headless village TWICE for two world-days, and the wider
   // trade economy made those runs genuinely more expensive: measured on seed 918271, one two-day

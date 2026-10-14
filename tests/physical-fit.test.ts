@@ -20,10 +20,10 @@ describe('held-item physical contract', () => {
   });
   it('keeps authored metric items inside their documented range, and preserves intentionally different sizes', () => {
     // Measured authored extents (m), from the arena's own sources.
-    expect(fitHeldItem('W_night-thorn', [0.08, 0.671, 0.03])).toMatchObject({ status: 'authored', scale: 1 });          // small dagger
-    expect(fitHeldItem('W_veilguard', [0.2, 1.216, 0.05])).toMatchObject({ status: 'authored', scale: 1 });              // sword
-    expect(fitHeldItem('W_oathbreaker', [0.3, 1.767, 0.06])).toMatchObject({ status: 'authored', scale: 1 });            // large two-handed sword
-    expect(fitHeldItem('W_bell-of-ruin', [0.4, 1.335, 0.3])).toMatchObject({ status: 'kept', scale: 1 });               // two-handed maul, explicit
+    expect(fitHeldItem('W_night-thorn', [0.08, 0.671, 0.03])).toMatchObject({ status: 'authored', scale: 1 });
+    expect(fitHeldItem('W_veilguard', [0.2, 1.216, 0.05])).toMatchObject({ status: 'authored', scale: 1 });
+    expect(fitHeldItem('W_oathbreaker', [0.3, 1.767, 0.06])).toMatchObject({ status: 'authored', scale: 1 });
+    expect(fitHeldItem('W_bell-of-ruin', [0.4, 1.335, 0.3])).toMatchObject({ status: 'kept', scale: 1 });
     expect(fitHeldItem('W_serpent-tooth', [0.1, 0.816, 0.04])).toMatchObject({ status: 'kept', scale: 1 });
   });
   it('fits only the oversized metric items down to their documented maximum', () => {
@@ -118,8 +118,8 @@ describe('fitted items in a real Babylon transform chain', () => {
     const { scene, root, slot } = rig(), src = item(scene, 1.419), back = new TransformNode('back', scene); back.parent = root; back.position.set(0, 1.3, -.2);
     const m = src.createInstance('m'); m.parent = slot; const f = fitHeldItem('W_widow-cleaver', [.1, 1.419, .05]); m.scaling.setAll(f.scale); const fitPos = new Vector3(...anchorOffset(f.scale)); m.position.copyFrom(fitPos);
     const before = world(m, new Vector3(0, 1, 0));
-    m.parent = back; m.position.set(.06, .12, -.2); near(scaleOf(m), 1.22 * f.scale, 1e-5);   // stowed: still fitted
-    m.parent = slot; m.position.copyFrom(fitPos);                                            // drawn: exact hand placement again
+    m.parent = back; m.position.set(.06, .12, -.2); near(scaleOf(m), 1.22 * f.scale, 1e-5);
+    m.parent = slot; m.position.copyFrom(fitPos);
     expect(world(m, new Vector3(0, 1, 0)).subtract(before).length()).toBeLessThan(1e-6);
     scene.dispose();
   });

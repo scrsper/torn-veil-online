@@ -124,7 +124,6 @@ export const GARMENT_PALETTES: Record<string, GarmentPalette> = {
   desert_rose: { primary: 0x8a2230, secondary: 0x2a1a1c, accent: 0xd4a02a },
   snow_moon: { primary: 0xdfe6f0, secondary: 0x2a3a66, accent: 0x9ec4e8 },
   ascetic_bone: { primary: 0xe6dfcd, secondary: 0x2a2622, accent: 0x8a2a24 },
-  // --- Everyday registers of the same culture ---
   indigo_work: { primary: 0x2f3a52, secondary: 0x3a3a38, accent: 0x7a6a4a },
   earth_work: { primary: 0x6a5a3a, secondary: 0x4a3a2a, accent: 0x8a7a50 },
   undyed_hemp: { primary: 0xcfc3a8, secondary: 0x6a5a48, accent: 0x8a7a60 },

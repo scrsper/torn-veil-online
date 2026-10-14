@@ -71,9 +71,6 @@ export const CARE_WOUND_THRESHOLD = 0.08;
 export function getPhysicalCapability(p: Person, world: World, ctx: { body?: Body; action?: ToolAction; tool?: Item | null; skill?: number } = {}): PhysicalCapability {
   const attrs: Attributes = p.attributes;
   const phys = p.physiology;
-  // v0.9 §D: a real wound is a real physical limit, folded in here — the one centralized place
-  // this file's own header already promises "future systems (… injury …)" would extend, rather
-  // than a new per-job check in every work handler.
   const body = ctx.body ?? world.primaryBody(p.id);
   const wound = Math.max(woundSeverity(body), body?.injuries?.head ?? 0, body?.injuries?.torso ?? 0);
   // v0.6 §V: learned capability (core/skills.ts) — resolved automatically from `ctx.action` via

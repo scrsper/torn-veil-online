@@ -138,7 +138,6 @@ export class ChrysanthusTrial {
     w.customAI.delete(this.f); w.removeBody(this.f);
   }
 
-  // ------------------------------------------------------------------ frame
   private step(f: Fighter, dt: number): boolean | void {
     const w = this.world, h = w.hero;
     this.t += dt;
@@ -193,7 +192,7 @@ export class ChrysanthusTrial {
         f.target = h; w.foeStrike(f, Math.floor(Math.random() * 2), this.staff ? .4 : .55);
         back(1.4); break;
       }
-      case 'volley': {   // three orbs of one element
+      case 'volley': {
         const e = ORB_CYCLE[this.orbI++ % ORB_CYCLE.length]; this.setOrb(e); cast();
         for (let k = 0; k < 3; k++) this.pending.push({ at: this.t + .35 + k * .22, run: () => {
           const from = chest(), to = h.pos.add(new Vector3((Math.random() - .5) * 2, 1.1, (Math.random() - .5) * 2)), dir = to.subtract(from); dir.y *= .2;
@@ -226,7 +225,7 @@ export class ChrysanthusTrial {
         } });
         back(2); break;
       }
-      case 'slow': {   // the climber's time slows
+      case 'slow': {
         this.setOrb('time'); cast();
         this.pending.push({ at: this.t + .35, run: () => { h.timeT = 2.6; vfx.clockRing(h.pos.add(new Vector3(0, .1, 0)), 2.2, 1.2); w.ev_word(h.pos.add(new Vector3(0, 2.3, 0)), 'TIME SLOWS', ELEMENT_INFO.time.color); } });
         this.pending.push({ at: this.t + .9, run: () => { this.act = 'glide'; this.run('strike'); } });

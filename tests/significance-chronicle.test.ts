@@ -81,7 +81,7 @@ describe('World Chronicle (Constitution §52, v0.2 Part 14)', () => {
     const tw = createTestWorld(504);
     const a = addPerson(tw, 'A', 'farmer', v(5, 1, 5));
     tw.world.emit('kill', { actor: a.id, significance: 1, summary: 'A big kill' });
-    tw.world.emit('meal', { actor: a.id, significance: 0.05, summary: 'A ate lunch' }); // routine, below threshold
+    tw.world.emit('meal', { actor: a.id, significance: 0.05, summary: 'A ate lunch' });
     const entries = buildChronicle(tw.world, { minSignificance: 0.5 });
     expect(entries.length).toBeGreaterThan(0);
     for (const entry of entries) {
@@ -160,8 +160,8 @@ describe('World Chronicle (Constitution §52, v0.2 Part 14)', () => {
 
     const entries = buildChronicle(tw.world);
     const conflictEntries = entries.filter(e => e.text.includes('came into conflict'));
-    expect(conflictEntries.length).toBe(1);                       // 40 blows -> one entry
-    expect(conflictEntries[0].sourceEventIds.length).toBeGreaterThanOrEqual(41); // every blow + markers still traceable
+    expect(conflictEntries.length).toBe(1);
+    expect(conflictEntries[0].sourceEventIds.length).toBeGreaterThanOrEqual(41);
     expect(conflictEntries[0].text).toMatch(/40 exchanges/);
     expect(conflictEntries[0].text).toMatch(/arrest/);
     // the surrender is its own historical moment, not folded away

@@ -27,7 +27,7 @@ describe('identity and embodiment ontology', () => {
     expect(world.primaryBody(person.id)?.id).toBe(second.id);
     expect(world.activeBodies().map(body => body.id)).toContain(second.id);
     second.present = false;
-    expect(world.primaryBody(person.id)?.id).toBe(first.id); // historical carcass fallback
+    expect(world.primaryBody(person.id)?.id).toBe(first.id);
     first.present = false;
     expect(world.primaryBody(person.id)).toBeUndefined();
   });

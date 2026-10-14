@@ -144,7 +144,6 @@ export async function startArena(): Promise<void> {
       debris: world.debris.count, props: world.props.filter(p => !p.broken && !p.loose).map(p => ({ x: p.pos.x, z: p.pos.z, key: p.key })) }),
   };
 
-  // ---- input
   const keys = new Set<string>(); const pressed = new Set<string>();
   let lmb = false, rmb = false, lmbPressed = false;
   window.addEventListener('keydown', e => { if (hud.modalOpen) return; if (!keys.has(e.code)) pressed.add(e.code); keys.add(e.code); if (['Space', 'Tab'].includes(e.code)) e.preventDefault(); });
@@ -224,7 +223,6 @@ export async function startArena(): Promise<void> {
 
   const rebuild = () => { if (realmHost) { hud.toast('Return to the atrium to leave this expedition. Reload continues its saved floor.', '#eedebc'); return; } if (tower) { hud.closeModal(); levels.length = 0; void tower.launch(); return; } hud.closeModal(); heroDown = false; levels.length = 0; world.reset(++seed); hud.announce('COMBAT GYM', 'rebuilt · seed ' + seed); };
 
-  // ---- loop
   boot.remove(); ui.style.pointerEvents = 'none';
   if (!tower) hud.announce('COMBAT GYM', 'Sandbox · N spawns enemies · H for controls');
   else hud.setHelp(TOWER_HELP);

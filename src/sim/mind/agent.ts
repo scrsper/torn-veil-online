@@ -75,7 +75,6 @@ import { banditResourcePressure, laborIncentive } from './economy';
 import { resolveRobberyCompliance, selectRobberyTake, ROBBERY_COOLDOWN_SECONDS, type RobberyTake } from './robbery';
 import { payRecoveryReward, recentlyFailedRequests } from '../core/requests';
 import { haulOffersFrom, activeHaulFor, acceptHaulOffer, progressHaul, abandonHaul, buyMealFrom, eatAtHand, drinkHere, type HaulOffer, type HaulProgress } from '../logistics/participation';
-// v0.9 Social Causality Vertical Slice — the four generic primitives this milestone adds.
 import { noteEventForSituations, maintainSituations } from '../social/situation';
 import { refreshReport, reportFor, shouldSeekAuthority, reportUrgencyFactor, noteReportDelivered, noteReportFailed, pruneReports, canApproachReportListener } from './reporting';
 import { appraiseClaim } from '../social/appraisal';
@@ -300,13 +299,11 @@ export class Simulation {
   private mark(): number { return this.profile ? performance.now() : 0; }
   private accum(bucket: string, t0: number): void { if (this.profile) this.profile[bucket] = (this.profile[bucket] ?? 0) + (performance.now() - t0); }
 
-  // ------------------------------------------------------------------ main step
   step(physDt: number, worldDt: number, scheduled=false): void {
     const combatBefore=scheduled?null:captureCombatTransforms(this.world);
     indexWilderness(this.world);
     const w = this.world;
     stepEnvironmentalEnergy(w, physDt);
-    // 1. perception (stimuli + surroundings) at 5Hz
     this.perceptionAccum += physDt;
     const doPerceive = this.perceptionAccum >= 0.2;
     if (doPerceive) this.perceptionAccum = 0;
@@ -315,11 +312,9 @@ export class Simulation {
       if (!p.alive) continue;
       const body = w.primaryBody(p.id); if (!body) continue;
       if (doPerceive) { const t0 = this.mark(); this.perceive(p, stimuli); this.accum('perceive', t0); }
-      // 2. subjective cognition budget
       p.mind.thinkBudget += physDt * p.timeRate;
       const urgent = p.mind.alarm > 0.5;
       if (!isExternallyControlled(p) && (urgent || p.mind.thinkBudget >= p.mind.thinkInterval)) { p.mind.thinkBudget = 0; const t0 = this.mark(); this.think(p, body); this.accum('think', t0); p.mind.alarm = 0; }
-      // 3. act on the current plan (continuous)
       if (!isExternallyControlled(p) || hasExternalIntention(p)) { const t0 = this.mark(); this.act(p, body, physDt, worldDt); this.accum('act', t0); if(isExternallyControlled(p) && !p.mind.plan.some(a => a.status === 'active' || a.status === 'pending')) finishExternalIntention(p); }
       if (p.speech && p.speech.until < w.physicalTime) p.speech = null;
     }
@@ -330,10 +325,8 @@ export class Simulation {
       for (const c of w.creatures()) if (!c.wildlife && c.species === 'chicken') this.creatureStep(c, physDt);
       this.accum('creatures', t0);
     }
-    // 4. body physics for all non-player bodies
     { const t0 = this.mark(); for (const b of detailedBodies(w)) { recoverDownedBody(w, b); const owner = w.get(b.ownerId) as Person | undefined; if (isExternallyControlled(owner) && !owner?.mind.plan.some(a => a.type === 'goto' && a.status === 'active')) continue; this.bodyPhysics(b, physDt); } this.accum('bodyPhysics', t0); }
     if(combatBefore)this.stepCombat(physDt,combatBefore);
-    // 5. strategic upkeep once per world minute
     this.strategicAccum += worldDt;
     if (this.strategicAccum >= 60) { const minutes = Math.floor(this.strategicAccum / 60); this.strategicAccum -= minutes * 60; const t0 = this.mark(); this.strategic(minutes); this.accum('strategic', t0); }
     while (this.demographicDay < w.clock.day) { this.demographicDay++; stepDemographics(w); if (this.demographicDay % 365 === 0) compactChronicle(w); }
@@ -352,7 +345,6 @@ export class Simulation {
     if (this.compactAccum >= compactionInterval) { this.compactAccum %= compactionInterval; const t0 = this.mark(); w.compactEvents(); this.accum('compact', t0); }
   }
 
-  // ------------------------------------------------------------------ perception
   private perceive(p: Person, stimuli: WorldEvent[]): void {
     p.mind.percepts = [];
     for (const id of p.bodies) {
@@ -406,7 +398,6 @@ export class Simulation {
         if (w.grid.lineOfSight(eye, { x: it.pos.x, y: it.pos.y + 0.3, z: it.pos.z }, 32)) locationKnowledge(w, p, it.id, it.pos, { type: 'witnessed' });
       }
     }
-    // stimuli: events with visibility/loudness
     for (const e of stimuli) {
       if (!e.pos || e.actor === p.id && e.type !== 'told') { if (e.actor === p.id) continue; }
       if (!e.pos) continue;
@@ -435,7 +426,7 @@ export class Simulation {
     const previous = e.perceivedBy.find(x => x.who === p.id);
     if (previous && !(previous.how === 'heard' && how === 'saw')) return;
     if (previous) previous.how = how; else e.perceivedBy.push({ who: p.id, how, tick: w.now });
-    if (e.type === 'told') { if (e.target !== p.id) return; return; } // handled directly in tell()
+    if (e.type === 'told') { if (e.target !== p.id) return; return; }
     const saw = how === 'saw';
     if (saw && e.type === 'resource_delivered' && e.placeId && e.data.quantity > 0) {
       clearShortfall(w, p, e.placeId, e.data.resource as ItemType);
@@ -491,7 +482,6 @@ export class Simulation {
     if (isCrime(claim.type, claim.intent) && actor !== p.id) {
       const sev = crimeSeverity(claim.type); const actorP = w.person(actor);
       const victimDisp = claim.target ? disposition(p, claim.target) : 0;
-      // fear rises with severity, proximity and low courage; grudge with closeness to the victim
       const fear = sev * (1.2 - p.traits.courage) * (isVictim ? 1.5 : 1) * (saw ? 1 : 0.6);
       const grudge = sev * (isVictim ? 1.2 : victimClose ? 1 : 0.35 + Math.max(0, victimDisp) * 0.6);
       // v0.2.3: a defining, durable grievance (grudge that will not simply fade once the fight
@@ -519,16 +509,6 @@ export class Simulation {
         if (line) this.say(p, line);
       }
     } else if (e.type === 'gift' || e.type === 'returned_item' || e.type === 'apology' || e.type === 'debt_paid' || e.type === 'heal') {
-      // Causal Society. Kindness was the half of the ledger v0.9's appraisal never reached: harm
-      // moved a relationship in proportion to what the event MEANT to this person, help moved it
-      // by a flat +0.1 for everybody. So watching a stranger hand a coin to a stranger changed a
-      // bystander's regard exactly as much as watching someone tend their own child — which is
-      // the "every witness reacts identically" failure the milestone names.
-      //
-      // Two terms now, both read off this person's own relationships. The same `personal` factor
-      // the harm branch uses, and — with no counterpart on the harm side — how much I care about
-      // the person who was HELPED. A kindness done to someone dear to me is a kindness done to
-      // me, and that is a real and ordinary asymmetry between witnesses.
       if (actor && actor !== p.id) {
         const beneficiary = claim.target as EntityId | undefined;
         const forSomeoneDear = beneficiary && beneficiary !== p.id
@@ -550,7 +530,6 @@ export class Simulation {
     return p.traits.courage > 0.7 ? `Hey! Stop that!` : p.traits.sociability > 0.5 ? `Guards! Somebody get the guards!` : `...`;
   }
 
-  // ------------------------------------------------------------------ decision
   private think(p: Person, body: Body): void {
     const w = this.world; const m = p.mind; const now = w.now; const hour = w.clock.hourF;
     // Someone who agreed to spar or be taught holds still for the session unless alarmed.
@@ -622,7 +601,6 @@ export class Simulation {
     const criticalNeed = severityAtLeast(purposeBands.hunger, 'critical') || severityAtLeast(purposeBands.thirst, 'critical') || severityAtLeast(purposeBands.sleep, 'critical');
     const urgentNeed = severityAtLeast(purposeBands.hunger, 'urgent') || severityAtLeast(purposeBands.thirst, 'urgent') || severityAtLeast(purposeBands.sleep, 'urgent');
     const bodyRoom = criticalNeed ? 0.35 : urgentNeed ? 0.7 : 1;
-    // ---- threat assessment from perception + relationships
     let threat: { id: EntityId; d: number; fear: number; body: Body } | null = null;
     let avoid: { id: EntityId; d: number } | null = null; // someone we're wary of but not currently fighting
     for (const pc of m.percepts) {
@@ -777,7 +755,6 @@ export class Simulation {
       const ar = getRel(p, avoid.id);
       G('flee', clamp(0.25 + ar.fear * 0.5 + ar.grudge * 0.2 - p.traits.courage * 0.2 - avoid.d * 0.01), [`${perceivedName(w, p, avoid.id)} is about — best keep clear`, `old grudge ${ar.grudge.toFixed(2)}, fear ${ar.fear.toFixed(2)}`], { targetEntity: avoid.id, data: { avoidance: true } });
     }
-    // ---- knowledge-driven goals: report crimes, investigate, recover items
     if (p.ontology.stage === 'Normal' && Object.values(p.capability?.bySkill ?? {}).some(c => c.effectiveSeconds >= 8 * 3600)) {
       const advancement = assessAdvancement(w, p);
       if (advancement.eligible) G('advance', 0.35 + p.traits.curiosity * 0.15,
@@ -852,9 +829,7 @@ export class Simulation {
         }
       }
     }
-    // help injured close ones
     for (const pc of m.percepts) { const o = w.person(pc.entityId); const ob = w.body(pc.bodyId); if (!o || !ob || !o.alive) continue; if ((ob.pose === 'downed' || ob.health < ob.maxHealth * 0.5) && isClose(p, o.id) && !threat) G('help', 0.7, [`${knownName(p, o.id)} is hurt and dear to me`], { targetEntity: o.id }); }
-    // desires
     for (const d of p.desires) if (!d.fulfilled && d.type === 'recover_item') { const loc = p.knowledge[`loc:${d.targetId}`]; const it = w.item(d.targetId); if (loc && it && !it.holderId && it.pos && !threat) G('recover_item', 0.6, [`I know where ${it.name} is (${loc.source.type})`], { targetEntity: it.id, targetPos: it.pos }); }
     // v0.8 §P0-G/H (independent audit §4.6): an authorized third party — someone who has heard
     // `wanted:<itemId>` (via `maybeAskForHelp`/`hearDesire`) AND separately, through real
@@ -884,7 +859,6 @@ export class Simulation {
       const carrying = it && it.holderId === p.id;
       if (it && ((carrying) || (loc && !it.holderId && it.pos)) && !threat) G('help_recover_item', clamp((carrying ? 0.78 : 0.5) + p.traits.honesty * 0.15), [carrying ? `I have ${it.name} — I should bring it to ${knownName(p, requester.id)}` : `I know where ${it.name} is`, `${knownName(p, requester.id)} asked me to find it`], { targetEntity: it.id, targetPos: it.pos ?? undefined, data: { deliverTo: requesterId } });
     }
-    // ---- v0.9 §B/§D: concerns that call for going somewhere or doing something specific.
     // A welfare concern about someone I have no fresh information about is answered by physically
     // going to look — the same thing a real person does. Suppressed while a threat is present and
     // while the person is already in front of me (there is nothing to go and find out).
@@ -922,7 +896,6 @@ export class Simulation {
         ...c.reasons.slice(0, 2),
       ], { targetEntity: c.subjectId, targetPos: { ...dest }, targetPlace: loc?.claim.placeId ?? subject.homeId ?? undefined, data: { concernId: c.id } });
     }
-    // ---- v0.10 §I: PERSISTENT PURPOSES propose their own next step.
     //
     // This is the block that turns "reacting to things" into "trying to do something". Each
     // ACTIVE pursuit is asked, fresh, what would serve it given the world as it actually is and
@@ -975,7 +948,6 @@ export class Simulation {
       G('go_home', clamp(0.45 + wound * 0.5), [`I am badly hurt (wound ${wound.toFixed(2)})`, 'I am fit for nothing but resting'], { targetPlace: p.homeId ?? undefined });
     }
 
-    // ---- needs
     const n = p.needs; const night = hour >= 22 || hour < 5;
     G('sleep', clamp(n.energy * 0.9 + (sched?.activity === 'sleep' ? 0.35 : 0) + (night ? 0.15 : -0.1)), [`energy need ${n.energy.toFixed(2)}`, sched?.activity === 'sleep' ? 'it is my time to sleep' : ''], { targetPlace: p.homeId ?? undefined });
     const { ate: ateRecently, drank: drankRecently } = recentSelfCare(w, p.id);
@@ -1198,7 +1170,6 @@ export class Simulation {
         if (node) G('gather', clamp(0.5 * laborCapacity * incentive), [`${gp.name} still needs stone`], { targetPos: node.pos, data: { nodeId: node.id, resource: node.yield } });
       }
     }
-    // ---- Adaptive Society (v0.5): work that nobody is doing.
     //
     // This is the whole behavioural half of the milestone, and it is four lines because it had to
     // be: taking up a vacant trade is ONE MORE ORDINARY CANDIDATE, scored by
@@ -1221,7 +1192,6 @@ export class Simulation {
         });
       }
     }
-    // ---- Generational continuity: being at a trade you might grow into.
     //
     // The other half of `coming_of_age` having a consumer (mind/livelihood.ts). Somebody who
     // holds no work of their own, whose household works a trade or who has already been shown
@@ -1257,7 +1227,6 @@ export class Simulation {
         `compatibility ${bestCourt.score.toFixed(2)}`,
       ], { targetEntity: bestCourt.person.id });
     }
-    // ---- schedule
     // Field work is the concrete sow/harvest candidates above. Offering generic work as
     // well let a grain concern boost standing in the field above actually harvesting it.
     const scheduledField = fieldFor(w, sched?.placeId);
@@ -1305,7 +1274,6 @@ export class Simulation {
     // Ordinary leisure has the same physiological room as social duties and purposes.
     // Otherwise high sociability (0.91) can permanently outrank maximum off-schedule hunger (0.8).
     G('socialize', bodyRoom * clamp(n.social * 0.7 * (0.5 + p.traits.sociability * 0.8) - (night ? 0.3 : 0)), [`social need ${n.social.toFixed(2)}`, 'my appetite for company', urgentNeed ? 'my body leaves little room for company' : ''], { targetPlace: hour > 16 ? this.tavernId(p) : this.squareId(p) });
-    // mourning
     if (p.emotions.sadness > 0.4 && hour >= 17 && hour < 20 && p.homeId) { const gy = knownPlaceForPerson(w, p, 'graveyard'); if (gy) G('mourn', clamp(0.4 + p.emotions.sadness * 0.4), [`sadness ${p.emotions.sadness.toFixed(2)}`, 'the graveyard, at evening'], { targetPlace: gy.id }); }
     // worship for the pious at service times
     if (p.traits.piety > 0.55 && ((hour >= 7 && hour < 8) || (hour >= 18 && hour < 19)) && p.occupation !== 'priest' && p.occupation !== 'acolyte' && !isGuard) G('worship', clamp(0.35 + p.traits.piety * 0.35), ['my religious devotion', 'service is being held'], { targetPlace: this.chapelId(p) });
@@ -1397,7 +1365,6 @@ export class Simulation {
       if (candidate.type === 'idle') { candidate.data = { ...candidate.data, stationary: true }; continue; }
       cands.splice(i, 1);
     }
-    // ---- choose with hysteresis + goal commitment (v0.5 §III)
     cands.sort((a, b) => b.utility - a.utility);
     const best0 = cands[0]; const cur = m.goal;
     const needBands = { hunger: hungerBand(p), thirst: thirstBand(p), sleep: sleepBand(p) };
@@ -1664,7 +1631,6 @@ export class Simulation {
   chapelId(p: Person): string { return knownPlaceForPerson(this.world, p, 'chapel')?.id ?? p.homeId!; }
   weaponOf(p: Person): number { let best = 0; for (const id of p.inventory) { const it = this.world.item(id); if (it && it.damage > best) best = it.damage; } return best; }
 
-  // ------------------------------------------------------------------ planning
   private plan(p: Person, body: Body, g: Goal): Action[] {
     // A positional destination is a snapshot. Tracking a moving entity is explicitly
     // represented by targetEntity; a shared Body.pos reference cannot survive JSON saves.
@@ -1929,7 +1895,6 @@ export class Simulation {
     p.mind.plan[0].data = { ...p.mind.plan[0].data, intentionEvent: ev.id };
     authorizeExternalIntention(p);
   }
-  // ------------------------------------------------------------------ acting
   private act(p: Person, body: Body, physDt: number, worldDt: number): void {
     const w = this.world; const m = p.mind;
     if (body.dead) return;
@@ -2310,7 +2275,7 @@ export class Simulation {
             body.pos.x = plot.x + 0.5; body.pos.z = plot.z + 0.5;
             if (a.type === 'harvest') harvestPlot(w, field, plot, p);
             else if (!plantPlot(w, field, plot, p)) { a.status = 'failed'; break; } // real work stoppage, not completion
-          } else { a.status = 'done'; break; } // no more actionable plots
+          } else { a.status = 'done'; break; }
         }
         if (this.elapsed(a)) a.status = 'done';
         break;
@@ -2798,7 +2763,6 @@ export class Simulation {
     const step = Math.min(d, speed * dt); const nx = body.pos.x + dx / d * step, nz = body.pos.z + dz / d * step;
     const doorX = Math.floor(nx), doorZ = Math.floor(nz), doorY = this.world.nav.floorY(doorX, doorZ);
     if (doorY >= 0 && this.world.grid.get(doorX, doorY, doorZ) === B.Door && !this.world.grid.isDoorOpen(doorX, doorY, doorZ)) this.world.setDoorOpen({ x: doorX, y: doorY, z: doorZ }, true, body.ownerId);
-    // separation from other bodies
     let sx = 0, sz = 0; for (const o of this.world.nearbyBodies(body.pos, 0.7)) { if (o === body) continue; const ox = body.pos.x - o.pos.x, oz = body.pos.z - o.pos.z; const od = Math.hypot(ox, oz); if (od < 0.7 && od > 1e-3) { sx += ox / od * (0.7 - od); sz += oz / od * (0.7 - od); } }
     const separatedX = nx + sx * dt * 2, separatedZ = nz + sz * dt * 2;
     if (this.world.nav.canStepTo(body.pos, separatedX, separatedZ)) {
@@ -2823,7 +2787,6 @@ export class Simulation {
     const ground = floorY >= 0 ? floorY : g.surfaceY(b.pos.x, b.pos.z);
     if (b.pos.y > ground + 0.05) { b.vel.y -= 20 * dt; b.pos.y += b.vel.y * dt; if (b.pos.y <= ground) { b.pos.y = ground; b.vel.y = 0; } } else { b.pos.y = ground; b.vel.y = 0; }
     if (b.pose !== 'walk' && b.pose !== 'run') { b.vel.x *= Math.max(0, 1 - dt * 8); b.vel.z *= Math.max(0, 1 - dt * 8); }
-    // knockback carries the body
     if (b.pose === 'hit' || b.pose === 'downed' || b.pose === 'dead') { const nx = b.pos.x + b.vel.x * dt, nz = b.pos.z + b.vel.z * dt; if (!g.isSolidAt(nx, b.pos.y + 0.5, nz)) { b.pos.x = nx; b.pos.z = nz; } b.vel.x *= Math.max(0, 1 - dt * 4); b.vel.z *= Math.max(0, 1 - dt * 4); }
     if (b.pose === 'hit' && b.poseUntil < this.world.physicalTime) b.pose = 'stand';
     if (b.pose === 'attack' && b.poseUntil < this.world.physicalTime) { b.pose = 'stand'; b.attackTarget = null; }
@@ -2832,12 +2795,10 @@ export class Simulation {
     const w = this.world; const b = w.primaryBody(c.id); if (!b || b.dead) return;
     c.wanderTimer -= dt;
     if (c.wanderTimer <= 0) { c.wanderTimer = 2 + w.rng.next() * 6; if (w.rng.next() < 0.6) { const home = w.place(c.homeId)?.inside ?? b.pos; const tx = home.x + (w.rng.next() - 0.5) * 14, tz = home.z + (w.rng.next() - 0.5) * 10; const n = w.nav.nearestWalkable(Math.floor(tx), Math.floor(tz), 3); if (n && w.nav.walkCost(n.x, n.z) < 3) { b.path = [{ x: n.x + 0.5, y: w.nav.floorY(n.x, n.z), z: n.z + 0.5 }]; b.pathIndex = 0; b.pose = 'walk'; } } else { b.path = null; b.pose = 'stand'; } }
-    // flee from nearby humans
     for (const o of w.activeBodies()) { if (o.shape !== 'humanoid') continue; const d = dist2(o.pos, b.pos); if (d < 2.2 && Math.hypot(o.vel.x, o.vel.z) > 1.5) { const away = this.awayFrom(b.pos, o.pos, 4); b.path = [away]; b.pathIndex = 0; b.pose = 'walk'; c.wanderTimer = 1.5; break; } }
     if (b.path) { b.speed = 2.2; if (this.followPath(b, dt)) { b.path = null; b.pose = 'stand'; } }
   }
 
-  // ------------------------------------------------------------------ social
   private maybeChat(p: Person, body: Body): void {
     const w = this.world; if (w.physicalTime - p.mind.lastSpokeAt < 6 + (1 - p.traits.sociability) * 14) return;
     const near = p.mind.percepts.filter(pc => pc.distance < 4 && pc.how === 'saw').map(pc => w.person(pc.entityId)).filter((q): q is Person => !!q && q.alive  && (w.primaryBody(q.id)?.pose !== 'sleep'));
@@ -3037,7 +2998,7 @@ export class Simulation {
       touchConflict(w, cf); ev.data.conflictId = cf.id;
     }
     const src = k ? (k.source.type === 'told' ? `${w.nameOf(k.source.from).split(' ')[0]} told me` : 'I know') : '';
-    if (sev >= 0.6) { this.say(p, `${t.name}! ${src} you attacked ${k?.claim.target ? w.nameOf(k.claim.target) : 'someone'}. You're coming with me.`); // escalate to force
+    if (sev >= 0.6) { this.say(p, `${t.name}! ${src} you attacked ${k?.claim.target ? w.nameOf(k.claim.target) : 'someone'}. You're coming with me.`);
       p.mind.plan.push(
         { type: 'attack', targetEntity: t.id, status: 'pending', data: { arrest: true, intent: 'arrest' as ConflictIntent, crime: key } },
         { type: 'take_custody', targetEntity: t.id, status: 'pending', data: { crime: key } });
@@ -3047,7 +3008,6 @@ export class Simulation {
     void ev;
   }
 
-  // ------------------------------------------------------------------ combat
   attack(attacker: Person, ab: Body, tb: Body, intent?: ConflictIntent): CombatAttackResult {
     return this.resolveAttack({ attackerId: attacker.id, attackerBodyId: ab.id, targetBodyId: tb.id, attackMode: 'strike', intent });
   }
@@ -3183,7 +3143,6 @@ export class Simulation {
     return plantPlot(w, field, plot, actor);
   }
 
-  // ------------------------------------------------------------------ items
   /**
    * v0.8 §1A: whether `actor` picking up `it` (which someone else owns) is a grounded, authorized
    * recovery rather than theft. This requires ALL of:
@@ -3370,7 +3329,6 @@ export class Simulation {
     return ev;
   }
 
-  // ------------------------------------------------------------------ participation (any person, incl. the player)
   // Thin canonical entry points over logistics/participation.ts — the same functions an NPC's
   // own `haul`/`eat`/`drink` actions bottom out in, exposed so the client calls Simulation (per
   // AGENTS.md) rather than reaching into the world. None of these read `controlled`.
@@ -3425,7 +3383,6 @@ export class Simulation {
     return ok;
   }
 
-  // ------------------------------------------------------------------ strategic (per world minute)
   private strategic(minutes: number): void {
     const w = this.world; const h = minutes / 60;
     const t0 = this.mark();
@@ -3632,7 +3589,6 @@ export class Simulation {
       stepFire(w, sh);
       this.accum('strategic.metabolism', tmet);
     }
-    // weather
     const t1 = this.mark();
     const wt = w.weather;
     if (w.now >= wt.nextChangeAt) {

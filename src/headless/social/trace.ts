@@ -250,7 +250,6 @@ export function runSocialTrace(spec: TraceSpec): SocialTrace {
     });
   });
 
-  // ---- the trigger, always through a canonical Simulation method
   let triggerText = '';
   let triggerEvent: WorldEvent | null = null;
   const subjectBody = world.primaryBody(subject.id)!;
@@ -304,7 +303,6 @@ export function runSocialTrace(spec: TraceSpec): SocialTrace {
 
   advance(world, sim, (spec.observeHours ?? 30) * SECONDS_PER_HOUR);
 
-  // ---- perspectives: chosen structurally, so the report shows materially different standings
   // The MATTER, not merely the one event that started it. Two reasons this has to be plural:
   //  - a beating is several canonical `attack` events, and a given witness may hold a belief
   //    about any one of them;
@@ -345,12 +343,10 @@ export function socialTraceMatterKeys(world: World, subjectId: EntityId, trigger
 function pickPerspectives(world: World, subject: Person, actor: Person, rootKeys: string[]): Person[] {
   const out: Person[] = [subject];
   const push = (p?: Person) => { if (p && p.alive && !out.some(x => x.id === p.id)) out.push(p); };
-  // the subject's spouse
   push(world.persons().find(q => q.alive && q.id !== subject.id && getRel(q, subject.id).tags.includes('spouse')));
   // a workmate of the subject's
   push(world.persons().find(q => q.alive && q.id !== subject.id && !!subject.workId && q.workId === subject.workId
     && !getRel(q, subject.id).tags.includes('spouse')));
-  // the watch
   push(world.persons().find(q => q.alive && (q.occupation === 'captain' || q.occupation === 'guard')));
   // someone tied to the ACTOR rather than the subject
   push(world.persons().find(q => q.alive && q.id !== actor.id && q.id !== subject.id

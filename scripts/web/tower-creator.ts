@@ -65,7 +65,6 @@ try {
   check('A2 each actor owns its materials and morph managers (none shared with the other or the source)', !iso.shareMat && !iso.shareMorph && iso.owned.materials > 0 && iso.owned.morphs > 0, iso.owned);
   check('A3 disposing one actor frees only its owned objects; the other keeps its appearance', iso.freed && iso.morphsFreed && JSON.stringify(iso.qAfterPDisposed) === JSON.stringify(iso.B) && iso.srcIntact.textures && iso.srcIntact.morphs && iso.srcIntact.freshActor, { before: iso.before, after: iso.after, srcIntact: iso.srcIntact });
   check('B1 the female body reports no authored variants and gets nothing applied', iso.applied.female.length === 1 && /unsupported/.test(iso.applied.female[0]), iso.applied.female);
-  // ---- C: real menu choice, then a real new climb.
   await page.goto(`${process.env.ARENA_HOST ?? 'http://127.0.0.1:5180'}/?arena=1&tower=1&seed=918271`);
   await ready();
   const bodyNow = () => page.evaluate(() => { const w = (window as any).__arena.world; return { look: w.hero.inst.root.metadata?.look, heroBody: w.heroBody, meshes: w.hero.inst.meshes.slice(0, 3).map((m: any) => m.name) }; });
@@ -80,7 +79,7 @@ try {
   await page.locator('#codex-close').click();
   await page.keyboard.press('KeyR');
   await page.waitForSelector('.ar-modal.on .ar-card', { timeout: 30_000 });
-  await page.locator('.ar-modal.on .ar-card').nth(1).click();   // "New climb"
+  await page.locator('.ar-modal.on .ar-card').nth(1).click();
   await ready(); await page.waitForTimeout(500);
   const next = await bodyNow();
   check('C3 the next climb draws the chosen creator female body', next.look === 'creator_female' && next.heroBody?.drawn === 'creator_female', next);

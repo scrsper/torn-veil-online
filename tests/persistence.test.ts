@@ -134,7 +134,7 @@ describe('save round trips', () => {
     const rActive = restored.conflicts.find(c => c.id === active.id)!;
     expect(rActive.status).toBe('active');
     expect(rActive.participants.sort()).toEqual([skarn.id, rowan.id].sort());
-    expect(restored.conflicts.some(c => c.outcome === 'arrest')).toBe(true); // the resolved arrest conflict too
+    expect(restored.conflicts.some(c => c.outcome === 'arrest')).toBe(true);
     expect(restored.primaryBody(vex.id)!.subduedUntil).toBeGreaterThan(restored.physicalTime);
     expect(restored.primaryBody(vex.id)!.pose).toBe('downed');
     const rSkarn = restored.person(skarn.id)!;

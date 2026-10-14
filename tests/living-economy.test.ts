@@ -401,13 +401,13 @@ describe('real brewing and finite local hunting',()=>{
   });
   it('sleep in the shared physiological step restores fatigue and capacity for the next shift',()=>{
     const tw=createTestWorld(), {world}=tw, p=addPerson(tw,'Worker','baker',v(4,1,4));
-    p.attributes.endurance = p.attributes.vitality = 8; // Explicit ordinary recovery reference.
+    p.attributes.endurance = p.attributes.vitality = 8;
     p.physiology.fatigue=0.95; p.physiology.sleepDebt=6; p.physiology.energy=0.6;
     const before=getPhysicalCapability(p,world).currentExertionCapacity;
     stepPhysiology(world,p,2,'sleep',{indoor:true,daylight:0});
     expect(p.physiology.fatigue).toBe(0);
     expect(p.physiology.sleepDebt).toBeCloseTo(3.8);
-    expect(p.physiology.energy).toBeLessThan(0.6); // sleeping still consumes calories
+    expect(p.physiology.energy).toBeLessThan(0.6);
     expect(getPhysicalCapability(p,world).currentExertionCapacity).toBeGreaterThan(before);
   });
   it('charges actual travel and labor rather than a planned heavy job',()=>{

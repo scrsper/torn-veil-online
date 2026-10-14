@@ -139,7 +139,6 @@ export function fireAt(world: World, placeId: EntityId): Fire | undefined {
   return world.fires.find(f => f.placeId === placeId);
 }
 
-// ---------------------------------------------------------------- observability
 export interface FireSummary { lit: number; total: number; extinguishedTotal: number; extinguishedByStorm: number; }
 export function fireSummary(world: World): FireSummary {
   return {

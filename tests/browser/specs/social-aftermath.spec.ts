@@ -22,7 +22,6 @@ export const socialAftermath: BrowserSpec = {
     await startGame(page, 918271, baseURL);
     await advanceWorld(page, 3600 * 8, 2);
 
-    // ---- seed exactly one canonical event, through the canonical path.
     // Participants are chosen structurally in the page (an ordinary villager with a spouse and a
     // workmate; the most aggressive ordinary villager as the assailant) — no names anywhere.
     const parties = await page.evaluate(() => {
@@ -47,7 +46,6 @@ export const socialAftermath: BrowserSpec = {
 
     await advanceWorld(page, 3600 * 20, 2);
 
-    // ---- a matter is genuinely open in the world, and several people are living with it
     const state = await readCanonicalState(page, () => {
       const w = (window as any).game.world;
       const concerned = w.persons().filter((p: any) => p.alive && (p.mind.concerns ?? []).some((c: any) => c.status === 'active'));
@@ -62,7 +60,6 @@ export const socialAftermath: BrowserSpec = {
     if (state.concernedCount < 2) throw new Error(`Expected several people to be carrying concerns, got ${state.concernedCount}`);
     if (state.kinds.length < 2) throw new Error(`Expected materially different kinds of concern, got ${JSON.stringify(state.kinds)}`);
 
-    // ---- walk up to people and ask. Different people must give different grounded accounts.
     const accounts = new Map<string, string>();
     let sawTroublesOption = false;
     for (const id of state.concernedIds.slice(0, 6)) {

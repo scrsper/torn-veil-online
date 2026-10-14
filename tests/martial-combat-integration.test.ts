@@ -84,7 +84,7 @@ describe('realtime martial/combat integration (v0.2, selection drives the actual
     expect(pool.every(d => d.availability === 'innate')).toBe(true);
     const { moves, ids } = chainOn(x);
     expect(ids).not.toContain(cross); expect(ids).not.toContain(jab);
-    expect(moves).toEqual(['jab', 'cross', 'front_kick']); // shared asset, un-learned identity
+    expect(moves).toEqual(['jab', 'cross', 'front_kick']);
   });
   it('knowing both technique endpoints without the transition edge is insufficient for a learned chain', () => {
     // partial() seeds jab, cross AND kick as real knowledge — deliberately NOT the edges.

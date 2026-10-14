@@ -60,7 +60,6 @@ function buildSiteGroup(p: ConstructionPresentation): THREE.Group {
     pileIndex++;
   }
 
-  // FOUNDATION: low perimeter footing.
   if (rank >= STAGE_RANK.foundation) {
     g.add(box(width, 0.4, 0.5, FOUNDATION_COLOR, cx, y0 + 0.2, b.z0 + 0.25));
     g.add(box(width, 0.4, 0.5, FOUNDATION_COLOR, cx, y0 + 0.2, b.z1 + 0.75));
@@ -93,7 +92,7 @@ function buildSiteGroup(p: ConstructionPresentation): THREE.Group {
   // distinct stage rather than overlapping it from a straight-on view.
   if (rank >= STAGE_RANK.roof) {
     const ridgeY = y0 + wallH + 1.3;
-    g.add(box(width + 0.5, 0.22, 0.22, ROOF_COLOR, cx, ridgeY, cz)); // ridge beam, lengthwise
+    g.add(box(width + 0.5, 0.22, 0.22, ROOF_COLOR, cx, ridgeY, cz));
     const rafters = 4;
     for (let i = 0; i < rafters; i++) {
       const t = (i + 0.5) / rafters;

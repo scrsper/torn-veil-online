@@ -83,7 +83,7 @@ export class WriterLock {
   release(): void {
     if (!this.held) return;
     const current = this.read();
-    if (current?.nonce === this.nonce) { try { unlinkSync(this.path); } catch { /* already gone */ } }
+    if (current?.nonce === this.nonce) { try { unlinkSync(this.path); } catch { } }
     this.held = false;
   }
 }

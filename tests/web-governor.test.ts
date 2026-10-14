@@ -9,7 +9,7 @@ describe('quality governor', () => {
   it('needs sustained slowness, not one bad window', () => {
     const g = new QualityGovernor();
     expect(g.evaluate(30, 60, 10_000, 'balanced')).toBeNull();
-    expect(g.evaluate(8, 10, 12_000, 'balanced')).toBeNull();      // recovered: the streak resets
+    expect(g.evaluate(8, 10, 12_000, 'balanced')).toBeNull();
     expect(g.evaluate(30, 60, 14_000, 'balanced')).toBeNull();
     expect(g.evaluate(30, 60, 16_000, 'balanced')).toBeNull();
   });

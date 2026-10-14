@@ -74,12 +74,6 @@ export interface TradeProcess {
 const TRADE_PROCESSES: TradeProcess[] = [
   { placeType: 'mill', input: 'grain', output: 'flour', skill: 'milling', verb: 'milling', baseBatchSeconds: 8 * 60 },
   { placeType: 'bakery', input: 'flour', output: 'bread', skill: 'baking', verb: 'baking', baseBatchSeconds: 8 * 60 },
-  // The sawpit. It qualifies on every clause of the rule above and always did — a request-driven
-  // transform of a material input into a material output at a fixed place — and was outside this
-  // table only because sawing was still an unconditional cadence call gated on
-  // `p.occupation === 'woodcutter'`. Both of those are now gone: `world/production.ts` raises real
-  // plank demand from the open deficit across live construction projects, and the batch runs
-  // through `workAuthorization` like every other trade.
   { placeType: 'sawpit', input: 'log', output: 'plank', skill: 'sawing', verb: 'sawing', baseBatchSeconds: 8 * 60, toolAction: 'saw' },
   // The tavern's stew. The one process with a second physical precondition — the hearth has to be
   // genuinely burning, not merely lit (`world/cooking.ts`) — which is why the note above used to
@@ -97,7 +91,6 @@ export function processFor(placeType: PlaceType | undefined): TradeProcess | und
 }
 export function tradeProcesses(): readonly TradeProcess[] { return TRADE_PROCESSES; }
 
-// ---------------------------------------------------------------- who is fit, and who is staff
 
 /** How far from their workplace somebody has to be before it is fair to say they are not at it.
  * Generous: Ashford is small, and an ordinary errand across the village must not read as leaving. */
@@ -166,7 +159,6 @@ export function staffOf(world: World, place: Place): Person[] {
   return out.sort((a, b) => a.id.localeCompare(b.id));
 }
 
-// ---------------------------------------------------------------- the derived post
 
 export interface TradePost {
   place: Place;
@@ -278,7 +270,6 @@ export function underServedPosts(world: World): TradePost[] {
   return out.sort((a, b) => a.place.id.localeCompare(b.place.id));
 }
 
-// ---------------------------------------------------------------- may this person work here
 
 export type WorkStanding = 'worker' | 'stand_in';
 export interface WorkAuthorization { post: TradePost; standing: WorkStanding; why: string; }
@@ -335,7 +326,6 @@ export function runTradeBatch(world: World, worker: Person, post: TradePost, lab
   }
 }
 
-// ---------------------------------------------------------------- the record of having done it
 
 export function openStintFor(world: World, personId: EntityId, placeId: EntityId): WorkStint | undefined {
   return world.workStints.find(s => s.personId === personId && s.placeId === placeId && !s.endedAt);

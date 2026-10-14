@@ -119,7 +119,6 @@ export class Observer {
 
     rows.push(`<div class="who"><b>${esc(p.name)}</b> · ${p.occupation}${p.title ? ` · ${esc(p.title)}` : ''}${p.alive ? '' : ' †'}</div>`);
 
-    // ---- what they are doing right now
     const goal = m.goal;
     row('doing', goal
       ? `<b>${goal.type}</b>${goal.targetEntity ? ` → ${esc(w.nameOf(goal.targetEntity))}` : ''}${goal.targetPlace ? ` @ ${esc(w.nameOf(goal.targetPlace))}` : ''} <span class="dim">(u ${goal.utility.toFixed(2)}, since ${formatRelativeTime(goal.createdAt, w.now)})</span>`
@@ -127,7 +126,6 @@ export class Observer {
     row('step', action ? `${action.type}${action.targetEntity ? ` → ${esc(w.nameOf(action.targetEntity))}` : ''}${action.placeId ? ` @ ${esc(w.nameOf(action.placeId))}` : ''} <span class="dim">· ${b?.pose ?? '—'}${b?.path ? `, path ${b.pathIndex}/${b.path.length}` : ''}</span>` : `<span class="dim">— · ${b?.pose ?? '—'}</span>`);
     if (goal?.reasons.length) row('because', goal.reasons.filter(Boolean).slice(0, 3).map(esc).join('<br>'));
 
-    // ---- what they are trying to bring about (v0.10)
     const live = livePursuits(p);
     if (live.length) {
       rows.push('<div class="sect">purposes</div>');
@@ -150,12 +148,10 @@ export class Observer {
       .sort((a, x) => (x.resolvedAt ?? 0) - (a.resolvedAt ?? 0));
     if (settled.length) rows.push(`<div class="k dim">finished</div><div class="v dim">${settled.slice(0, 3).map(x => `${esc(describePursuit(w, x))} — ${x.status}${x.resolution ? `:${x.resolution}` : ''}`).join('<br>')}</div>`);
 
-    // ---- commitment (v0.5), the "why am I not dropping this" layer
     if (m.commitment) {
       row('committed to', `${m.commitment.goalType} <span class="dim">(${m.commitment.status}${m.commitment.suspendedBy ? `, set aside for ${esc(m.commitment.suspendedBy)}` : ''}; ${m.commitment.interruptibility})</span>`);
     }
 
-    // ---- what they carry (v0.9 / v0.10)
     const concerns = activeConcerns(p);
     if (concerns.length) rows.push(`<div class="sect">concerns</div><div class="k"></div><div class="v">${concerns.sort((a, x) => x.intensity - a.intensity).slice(0, 5).map(c => `${esc(describeConcern(w, c))} <span class="dim">[${c.intensity.toFixed(2)}]</span>`).join('<br>')}</div>`);
     // v0.10.1 §XII: how the crimes this person knows of are actually going — the state that used
@@ -165,7 +161,6 @@ export class Observer {
     const owed = liveObligations(p);
     if (owed.length) rows.push(`<div class="sect">obligations</div><div class="k"></div><div class="v">${owed.sort((a, x) => x.magnitude - a.magnitude).slice(0, 5).map(o => `${esc(describeObligation(w, o))} <span class="dim">[${o.magnitude.toFixed(2)}]${o.reasons[0] ? ` — ${esc(o.reasons[0])}` : ''}</span>`).join('<br>')}</div>`);
 
-    // ---- body
     rows.push('<div class="sect">body</div>');
     const wound = b ? woundSeverity(b) : 0;
     row('condition', b ? `${Math.round(b.health)}/${b.maxHealth} hp${wound > 0.08 ? ` <span class="bad">· wound ${wound.toFixed(2)}</span>` : ''}${p.custody?.active ? ' <span class="bad">· in custody</span>' : ''}${p.surrender ? ' <span class="bad">· surrendered</span>' : ''}` : '—');
@@ -173,7 +168,6 @@ export class Observer {
     row('where', `${b ? esc(w.placeAt(b.pos)?.name ?? 'outside') : '—'} <span class="dim">· home ${esc(w.nameOf(p.homeId))}${p.workId ? ` · works ${esc(w.nameOf(p.workId))}` : ''}</span>`);
     row('routine', sched ? `${esc(sched.label)} <span class="dim">(${sched.start}:00–${sched.end}:00)</span>` : '<span class="dim">nothing scheduled</span>');
 
-    // ---- ongoing matters they are caught up in
     const sits = situationsInvolving(w, p.id).filter(s => s.status === 'active').slice(-3);
     if (sits.length) rows.push(`<div class="sect">unresolved matters</div><div class="k"></div><div class="v">${sits.map(s => `${esc(describeSituation(w, s))} <span class="dim">(${s.kind}, opened ${formatRelativeTime(s.openedAt, w.now)})</span>`).join('<br>')}</div>`);
 

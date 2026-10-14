@@ -292,7 +292,7 @@ describe('progress defects exposed by every-hour 30-day review', () => {
     expect(p.knowledge[`loc:${guard.id}`]?.claim.searched).toEqual([v(10, 1, 10)]);
     expect(Object.keys(p.knowledge).length).toBeLessThanOrEqual(440);
     p.mind.reports!['first-case'].status = 'moot'; crowdMemory('later');
-    expect(p.knowledge[`loc:${guard.id}`]).toBeUndefined(); // No permanent pin.
+    expect(p.knowledge[`loc:${guard.id}`]).toBeUndefined();
     // A genuinely new observation supplies a location through ordinary perception.
     p.mind.percepts = [{ entityId: guard.id, bodyId: w.primaryBody(guard.id)!.id, how: 'saw', pos: v(20, 1, 20), distance: 14, tick: w.now }];
     expect((tw.sim as any).knownGuardPosition(p, guard)).toEqual(v(20, 1, 20));
@@ -445,13 +445,13 @@ describe('progress defects exposed by every-hour 30-day review', () => {
     p.mind.plan = [{ type: 'goto', pos: water.inside, status: 'active' }, { type: 'drink', pos: water.inside, status: 'pending', duration: 300 }];
     p.mind.percepts = [{ entityId: t.id, bodyId: tb.id, pos: { ...tb.pos }, distance: 5, how: 'saw', tick: w.now }];
     (tw.sim as any).think(p, body);
-    expect(p.mind.decision?.candidates.some(g => g.type === 'drink_water')).toBe(false); // Threat gates new proposals.
+    expect(p.mind.decision?.candidates.some(g => g.type === 'drink_water')).toBe(false);
     expect(p.mind.decision?.candidates[0].type).toBe('shelter');
-    expect(p.mind.goal?.type).toBe('drink_water'); // Existing physical attempt remains coherent.
+    expect(p.mind.goal?.type).toBe('drink_water');
     tb.pos = v(11, 1, 10); tb.pose = 'attack'; tb.attackTarget = p.id;
     p.mind.percepts = [{ entityId: t.id, bodyId: tb.id, pos: { ...tb.pos }, distance: 1, how: 'saw', tick: w.now }];
     (tw.sim as any).think(p, body);
-    expect(['flee', 'attack']).toContain(p.mind.goal?.type); // A winning emergency can interrupt.
+    expect(['flee', 'attack']).toContain(p.mind.goal?.type);
   });
   it('keeps an unfinished escape across equal threats unless its refuge becomes unsafe', () => {
     const tw = createTestWorld(), w = tw.world;

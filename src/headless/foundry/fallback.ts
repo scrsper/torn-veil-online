@@ -92,9 +92,9 @@ for (let index = 0; index < baseline.length; index++) {
   const replacedBody = before.body === broken;
   if (replacedBody) lostBody++;
   for (const slot of changed) {
-    if (before[slot] === broken) continue;          // the slot the removed asset itself filled
+    if (before[slot] === broken) continue;
     if (replacedBody && fitConstrained.has(slot as never)) { dependentChanges++; continue; }
-    unrelatedChanges++;                              // a genuine re-roll
+    unrelatedChanges++;
   }
   if (!replacedBody && changed.length) survivorsChanged++;
   if (damaged[index].complete) stillComplete++;

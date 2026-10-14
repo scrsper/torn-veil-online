@@ -14,7 +14,7 @@ describe('field surface projection', () => {
     const scene = new Scene(new NullEngine()); scene.useRightHandedSystem = true;
     const cells: FieldSurfaceCell[] = [];
     for (let x = 4; x < 8; x++) for (let z = 5; z < 8; z++) cells.push({ x, z, block: B.Farmland });
-    cells.push({ x: 10, z: 5, block: B.Farmland }, { x: 10, z: 7, block: B.Farmland }); // nonfarmland gap is absent
+    cells.push({ x: 10, z: 5, block: B.Farmland }, { x: 10, z: 7, block: B.Farmland });
     cells.push({ x: 12, z: 12, block: B.Grass });
     const mesh = buildFieldSurface(scene, mats(scene), region, cells, (x, z) => x * .01 + z * .02)!;
     expect(mesh).toBeTruthy();

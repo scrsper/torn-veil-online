@@ -57,9 +57,9 @@ describe('place stock (v0.3 Priority 1)', () => {
     const took = takePlaceStock(tw.world, 'grain', 7, [farm.id]);
     expect(took).toBe(7);
     expect(stockAt(tw.world, 'grain', farm.id)).toBe(3);
-    takePlaceStock(tw.world, 'grain', 99, [farm.id]); // over-draw
+    takePlaceStock(tw.world, 'grain', 99, [farm.id]);
     expect(stockAt(tw.world, 'grain', farm.id)).toBe(0);
-    expect(tw.world.item(a.id)).toBeDefined(); // entity survives
+    expect(tw.world.item(a.id)).toBeDefined();
     expect(tw.world.item(a.id)!.placeId).toBeNull();
     expect(before).toBe(10);
   });
@@ -104,7 +104,7 @@ describe('generalized haul (v0.3 Priority 2)', () => {
     expect(task.status).toBe('delivered');
     expect(stockAt(tw.world, 'grain', dst.id)).toBe(20);
     expect(stockAt(tw.world, 'grain', src.id)).toBe(10);
-    expect(worldStock(tw.world, 'grain')).toBe(total0); // conserved
+    expect(worldStock(tw.world, 'grain')).toBe(total0);
     expect(hauler.inventory).not.toContain(cargo.id);
   });
 
@@ -137,8 +137,8 @@ describe('generalized haul (v0.3 Priority 2)', () => {
     const cargo = tw.world.item(task.cargoItemId!)!;
     expect(cargo.quantity).toBe(20);
     expect(cargo.holderId).toBeNull();
-    expect(cargo.pos).not.toBeNull(); // dropped somewhere in the world
-    expect(worldStock(tw.world, 'grain')).toBe(total0); // conserved
+    expect(cargo.pos).not.toBeNull();
+    expect(worldStock(tw.world, 'grain')).toBe(total0);
     expect(hauler.inventory).not.toContain(cargo.id);
   });
 
@@ -209,7 +209,7 @@ describe('resource nodes: trees → logs, stone (v0.3 Priority 5-6-8)', () => {
     while (node.state === 'available' && guard++ < 20) extractFromNode(tw.world, node, bors);
     expect(node.state).toBe('depleted');
     expect(stockAt(tw.world, 'log', clearing.id)).toBe(node.capacity);
-    expect(tw.world.grid.get(trunkCell.x, trunkCell.y, trunkCell.z)).toBe(B.Air); // voxel gone
+    expect(tw.world.grid.get(trunkCell.x, trunkCell.y, trunkCell.z)).toBe(B.Air);
     expect(tw.world.events.some(e => e.type === 'resource_depleted')).toBe(true);
     // not harvestable again now
     expect(extractFromNode(tw.world, node, bors)).toBe(0);
@@ -220,7 +220,7 @@ describe('resource nodes: trees → logs, stone (v0.3 Priority 5-6-8)', () => {
     maintainResourceNodes(tw.world);
     expect(node.state).toBe('available');
     expect(node.remaining).toBe(node.capacity);
-    expect(tw.world.grid.get(trunkCell.x, trunkCell.y, trunkCell.z)).toBe(B.Log); // voxel restored
+    expect(tw.world.grid.get(trunkCell.x, trunkCell.y, trunkCell.z)).toBe(B.Log);
   });
 
   it('a depleted node stops offering itself, so a harvester does not retry it every tick', () => {
@@ -330,7 +330,7 @@ describe('construction project (v0.3 Priority 9-10-12)', () => {
     expect(stockAt(tw.world, 'stone', site.id)).toBe(0);
     expect(site.type).toBe('hut');
     expect(site.indoor).toBe(true);
-    expect(tw.world.grid.get(10, 3, 10)).toBe(B.Planks); // a wall block exists
+    expect(tw.world.grid.get(10, 3, 10)).toBe(B.Planks);
     expect(tw.world.events.some(e => e.type === 'construction_completed')).toBe(true);
   });
 });
@@ -344,7 +344,7 @@ describe('seed cost (v0.3 Priority 13)', () => {
     createFields(tw.world, [{ placeId: farm.id, ownerId: farmer.id, startMoisture: 0.5 }]);
     const field = tw.world.fields[0];
     const plot = field.plots[0];
-    expect(plantPlot(tw.world, field, plot, farmer)).toBe(false); // no seed
+    expect(plantPlot(tw.world, field, plot, farmer)).toBe(false);
     expect(plot.state).toBe('fallow');
     expect(tw.world.events.some(e => e.type === 'resource_shortage' && e.data?.reason === 'seed')).toBe(true);
     addPlaceStock(tw.world, 'grain', 3, farm.id, farmer.id, undefined, 'harvested');
@@ -364,7 +364,7 @@ describe('seed cost (v0.3 Priority 13)', () => {
     const y = harvestPlot(tw.world, field, field.plots[0], farmer);
     expect(y).toBeGreaterThan(1);
     expect(stockAt(tw.world, 'grain', farm.id)).toBe(y);
-    expect(plantPlot(tw.world, field, field.plots[1], farmer)).toBe(true); // seed available now
+    expect(plantPlot(tw.world, field, field.plots[1], farmer)).toBe(true);
   });
 });
 
@@ -376,7 +376,7 @@ describe('spoilage (v0.3 Priority 14)', () => {
     const grain = makeItem(tw.world, 'grain', 'grain', { placeId: home.id, pos: v(5, 1, 5), quantity: 100 });
     for (let d = 0; d < 5; d++) { tw.world.clock.worldSeconds += SECONDS_PER_DAY; stepSpoilage(tw.world, 24); }
     expect(bread.quantity).toBeLessThan(100);
-    expect(grain.quantity).toBeGreaterThan(bread.quantity); // grain keeps far better
+    expect(grain.quantity).toBeGreaterThan(bread.quantity);
     const spoilEvents = tw.world.events.filter(e => e.type === 'resource_spoiled');
     expect(spoilEvents.length).toBeLessThanOrEqual(12); // ~1 per stack per pass, not per unit
     // non-perishable materials never spoil

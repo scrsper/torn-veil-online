@@ -41,7 +41,7 @@ describe('adaptive third-person camera', () => {
     expect(dist(blocked.position)).toBeLessThan(2.6);       // no frame spent inside the wall
     run(c, { pivot }, wall, .5);
     const first = c.update(1 / 60, { pivot }, open);
-    expect(dist(first.position)).toBeLessThan(2.8);          // no pop back out
+    expect(dist(first.position)).toBeLessThan(2.8);
     const later = run(c, { pivot }, open, 3);
     expect(dist(later.position)).toBeGreaterThan(4.3);
   });

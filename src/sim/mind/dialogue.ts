@@ -59,7 +59,6 @@ export class DialogueSystem {
     else if (r.affection > 0.5) lines.push(`${this.first(npc) === 'Cedric' ? 'Friend' : 'Ah'}, it's you. Good to see you.`);
     else if (r.familiarity < 0.15) lines.push(this.strangerGreeting(npc));
     else lines.push(this.familiarGreeting(npc));
-    // mood colour
     if (npc.emotions.fear > 0.4 && r.fear < 0.5) lines.push(`*${this.first(npc)} keeps glancing over ${npc.gender === 'f' ? 'her' : 'his'} shoulder.*`);
     else if (npc.emotions.sadness > 0.5) lines.push(`*${npc.gender === 'f' ? 'She' : 'He'} looks tired and sad.*`);
     else if (npc.emotions.anger > 0.5) lines.push(`*${npc.gender === 'f' ? 'She' : 'He'} is plainly angry.*`);

@@ -47,7 +47,6 @@ await page.keyboard.press('KeyM');   // auto waves on (the arena starts as a san
 await page.waitForTimeout(800);
 await still('start');
 
-// 1) Smash the nearest props with the greatsword combo.
 let maxCombo = 0, maxDebris = 0;
 const t0 = Date.now(); const samples: number[] = [];
 const held = new Set<string>();

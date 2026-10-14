@@ -64,7 +64,7 @@ describe('autonomous social frontier invariants', () => {
     expect(hearsay.claim.tick).toBe(event.tick);
     expect(tw.world.event(hearsay.source.viaEvent!)!.causes).toContain(witnessed.source.viaEvent);
     expect(tw.world.rng.state()).toBe(rng);
-    expect(tw.b.relationships[tw.c.id].fear).toBeGreaterThan(0); // human minds receive consequences too
+    expect(tw.b.relationships[tw.c.id].fear).toBeGreaterThan(0);
   });
 
   it('refuses remote, unconscious, wall-blocked and fabricated communication', () => {

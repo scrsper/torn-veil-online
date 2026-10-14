@@ -91,7 +91,6 @@ interface Candidate { id: ClassId; name: string; score: number; evidence: string
 export function recogniseClass(world: World, p: Person): RecognisedClass | null {
   const candidates: Candidate[] = [];
 
-  // ---------------------------------------------------------------- Armsman
   // Someone who has been in real fighting and kept doing it. Strength is the capability; the
   // conflicts are the history; a kept weapon is the circumstance. One brawl is not a vocation,
   // which is why a second conflict counts for as much as several more blows in the first.
@@ -110,7 +109,6 @@ export function recogniseClass(world: World, p: Person): RecognisedClass | null 
     });
   }
 
-  // ---------------------------------------------------------------- Artisan
   // Someone who makes things. Skills only rise through real successful work, so the proficiency
   // IS the history — and breadth across several makings is what distinguishes a maker from
   // someone who has repeated one motion many times.
@@ -131,7 +129,6 @@ export function recogniseClass(world: World, p: Person): RecognisedClass | null 
     });
   }
 
-  // ---------------------------------------------------------------- Scout
   // Someone whose own perception has ranged widely, and who works away from a bench. Second-hand
   // directions do not count: this is ground actually covered.
   {

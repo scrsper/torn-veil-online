@@ -14,7 +14,7 @@ const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const sstep = (a: number, b: number, x: number) => { const t = clamp((x - a) / (b - a || 1), 0, 1); return t * t * (3 - 2 * t); };
 const chain = Q.chain;
-const fwd = (a: number) => Q.x(-a);      // swing a hanging limb forward
+const fwd = (a: number) => Q.x(-a);
 const pitchDown = (a: number) => Q.x(a); // pitch a forward-pointing segment down
 const turn = (a: number) => Q.y(a);
 const roll = (a: number) => Q.z(a);
@@ -63,7 +63,6 @@ export class QuadrupedAnimator {
     const mw = this.moveW * (1 - this.lieW);
     const set = (bone: string, q: Quaternion) => { if (!rig.has(bone)) return; let c = this.cur.get(bone); if (!c) { c = q.clone(); this.cur.set(bone, c); } Quaternion.SlerpToRef(c, q, 1 - Math.exp(-28 * dt), c); rig.setBone(bone, c); };
 
-    // Legs.
     const front = (leg: 'fl' | 'fr') => {
       const ph = (this.phase + P[leg]) % 1, sw = Math.sin(ph * TAU) * amp * mw, fl = Math.max(0, Math.cos(ph * TAU)) * lift * mw;
       let drink = 0, graze = this.headDown;
@@ -108,7 +107,6 @@ export class QuadrupedAnimator {
     this.chew += dt * (act === 'eat' ? 9 : grazing ? 4.5 : 0);
     set('jaw', pitchDown(Math.max(0, Math.sin(this.chew)) * 0.22 * (grazing ? 1 : 0)));
 
-    // Ears and tail.
     this.nextFlick -= dt; if (this.nextFlick <= 0) { this.earFlick = 1; this.nextFlick = 1.5 + Math.random() * 4; }
     this.earFlick *= Math.exp(-6 * dt);
     const back_ = act === 'flee' || charge ? 0.9 : warn ? 0.4 : 0;

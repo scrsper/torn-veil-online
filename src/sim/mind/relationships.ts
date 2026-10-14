@@ -8,7 +8,6 @@ const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
 export type RelDelta = Partial<Pick<Relationship, 'trust' | 'affection' | 'fear' | 'respect' | 'familiarity' | 'grudge' | 'grievance'>>;
 
-// ---------------------------------------------------------------- relationship evolution (v0.2.3)
 /**
  * Deterministic, semantically-shaped temporal evolution of a relationship (Constitution §7
  * "Memory Is Not a Transcript", §11). The v0.2.2 audit found fear/grudge only ever rose — the

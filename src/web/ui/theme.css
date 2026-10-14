@@ -24,7 +24,6 @@ body { font-family: var(--sans); color: var(--ivory); -webkit-font-smoothing: an
 #ui button { font: inherit; color: inherit; }
 .tv-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-/* ── panels ───────────────────────────────────────────────────────────────────────────────── */
 .tv-panel { position: relative; background: linear-gradient(180deg, rgba(26,33,44,.94), var(--panel)); border: 1px solid var(--gold-soft); border-radius: var(--radius); box-shadow: var(--shadow); pointer-events: auto; }
 .tv-panel::before, .tv-panel::after { content: ""; position: absolute; width: .9rem; height: .9rem; border: 1px solid var(--gold); pointer-events: none; opacity: .85; }
 .tv-panel::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
@@ -40,7 +39,6 @@ body { font-family: var(--sans); color: var(--ivory); -webkit-font-smoothing: an
 .tv-bad { color: var(--crimson); }
 .tv-good { color: var(--moss); }
 
-/* ── buttons and focus ────────────────────────────────────────────────────────────────────── */
 .tv-btn { display: inline-flex; align-items: center; justify-content: center; gap: .55rem; min-height: 2.5rem; padding: .45rem 1.1rem; background: linear-gradient(180deg, var(--slate-2), var(--slate)); border: 1px solid rgba(220,194,126,.35); border-radius: var(--radius); cursor: pointer; text-align: left; transition: background .15s var(--ease), border-color .15s var(--ease), transform .1s var(--ease); pointer-events: auto; }
 .tv-btn:hover { background: linear-gradient(180deg, var(--slate-3), var(--slate-2)); border-color: var(--gold); }
 .tv-btn:active { transform: translateY(1px); }
@@ -58,7 +56,6 @@ body { font-family: var(--sans); color: var(--ivory); -webkit-font-smoothing: an
 .tv-range { width: 100%; accent-color: var(--gold); pointer-events: auto; }
 .tv-check { width: 1.15rem; height: 1.15rem; accent-color: var(--gold); pointer-events: auto; }
 
-/* ── layers ───────────────────────────────────────────────────────────────────────────────── */
 .tv-layer { position: absolute; inset: 0; }
 .tv-hud { position: absolute; inset: 0; pointer-events: none; transition: opacity .3s var(--ease); }
 .tv-hud.hidden { opacity: 0; }
@@ -67,7 +64,6 @@ body { font-family: var(--sans); color: var(--ivory); -webkit-font-smoothing: an
 @keyframes tv-rise { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
 :root[data-motion="reduced"] * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 
-/* ── HUD ──────────────────────────────────────────────────────────────────────────────────── */
 .tv-vitals { position: absolute; left: 1.8rem; bottom: 1.5rem; width: 18rem; display: grid; gap: .6rem; padding:1rem 1.2rem; background:linear-gradient(110deg,rgba(8,13,20,.9),rgba(8,13,20,.55),transparent); border-left:1px solid var(--gold-dim); }
 .tv-bar { position: relative; height: .9rem; background: rgba(6,8,12,.72); border: 1px solid rgba(220,194,126,.3); border-radius: 2px; overflow: hidden; }
 .tv-bar > i { position: absolute; inset: 0 auto 0 0; width: 50%; transition: width .25s var(--ease); background: linear-gradient(180deg, #e3626c, #a53a44); }
@@ -105,7 +101,6 @@ body { font-family: var(--sans); color: var(--ivory); -webkit-font-smoothing: an
 .tv-bubble { position: absolute; transform: translate(-50%,-100%); max-width: 16rem; padding: .35rem .7rem; background: rgba(240,234,219,.94); color: #161a20; border-radius: 6px; font-size: .95rem; pointer-events: none; box-shadow: 0 2px 10px rgba(0,0,0,.4); }
 .tv-bubble::after { content: ""; position: absolute; left: 50%; bottom: -6px; margin-left: -6px; border: 6px solid transparent; border-top-color: rgba(240,234,219,.94); border-bottom: 0; }
 
-/* ── modal dialogs ────────────────────────────────────────────────────────────────────────── */
 .tv-dialog { width: min(58rem, 94vw); max-height: min(44rem, 90vh); display: flex; flex-direction: column; animation: tv-rise .22s var(--ease); }
 .tv-dialog > header { display: flex; align-items: center; gap: 1rem; padding: .9rem 1.3rem .5rem; }
 .tv-dialog > header .tv-h1 { flex: 1; }
@@ -129,7 +124,6 @@ body { font-family: var(--sans); color: var(--ivory); -webkit-font-smoothing: an
 .tv-chip { display: inline-block; padding: .05rem .5rem; border: 1px solid var(--gold-soft); border-radius: 999px; font-size: .86rem; color: var(--ivory-dim); }
 .tv-meter { height: .45rem; background: rgba(0,0,0,.4); border-radius: 2px; overflow: hidden; } .tv-meter > i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold-dim), var(--gold)); }
 
-/* ── dialogue ─────────────────────────────────────────────────────────────────────────────── */
 .tv-talk { position: absolute; left: 50%; bottom: 1.5rem; transform: translateX(-50%); width: min(68rem, 94vw); display: grid; grid-template-columns: 16rem minmax(0, 1fr); gap: 1.8rem; padding: 1.6rem; animation: tv-rise .25s var(--ease); max-height: 76vh; background: linear-gradient(125deg,rgba(21,30,42,.96),rgba(10,15,22,.97)); backdrop-filter: blur(16px); }
 .tv-portrait { position: relative; align-self: stretch; width: 16rem; min-height: 22rem; border: 1px solid var(--gold-soft); background: radial-gradient(circle at 50% 30%, #2a3446, #0d1016); overflow: hidden; }
 .tv-portrait canvas { width: 100%; height: 100%; display: block; object-fit: contain; }
@@ -164,7 +158,6 @@ body { font-family: var(--sans); color: var(--ivory); -webkit-font-smoothing: an
 .tv-confirm { margin-top: .7rem; padding: .7rem .9rem; border: 1px solid var(--gold-dim); background: rgba(220,194,126,.07); border-radius: 4px; display: flex; gap: .8rem; align-items: center; flex-wrap: wrap; }
 .tv-confirm .grow { flex: 1; min-width: 12rem; }
 
-/* ── launcher / title ─────────────────────────────────────────────────────────────────────── */
 .tv-title-screen { position: absolute; inset: 0; display: grid; grid-template-columns: minmax(20rem, 30rem) 1fr; pointer-events: auto; background: linear-gradient(90deg, rgba(8,10,14,.94) 0%, rgba(8,10,14,.75) 38%, rgba(8,10,14,0) 75%); }
 .tv-title-col { padding: 3.2rem 2.6rem; display: flex; flex-direction: column; gap: 1.2rem; justify-content: center; }
 .tv-logo { font-family: var(--serif); font-size: 3rem; line-height: 1; letter-spacing: .14em; text-transform: uppercase; background: linear-gradient(180deg, #f6ecc8, #c9ab5f 55%, #8c743a); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 10px rgba(0,0,0,.6)); }

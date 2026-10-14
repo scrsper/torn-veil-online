@@ -52,10 +52,8 @@ check('left stick ↑ moves camera-forward', dot > 2, { moved: dot.toFixed(2) })
 await axes(page, [0, -1, 0, 0]); await set(page, B.circle, 1); await page.waitForTimeout(400); const a0 = await S(); await page.waitForTimeout(1000); const a1 = await S(); await set(page, B.circle, 0); await axes(page, [0, 0, 0, 0]);
 check('hold ○ sprints', Math.hypot(a1.x - a0.x, a1.z - a0.z) > dot / 1.4 * .9, { sprint: Math.hypot(a1.x - a0.x, a1.z - a0.z).toFixed(2), walk: (dot / 1.4).toFixed(2) });
 await page.waitForTimeout(300);
-// Tap circle: dodge.
 await press(B.circle, 80); await page.waitForTimeout(40); s = await S(); check('tap ○ dodges', s.state === 'dodge', s.state);
 await page.waitForTimeout(900);
-// Right stick orbits the camera.
 const c0 = (await S()).camYaw; await axes(page, [0, 0, 1, 0]); await page.waitForTimeout(600); await axes(page, [0, 0, 0, 0]); const c1 = (await S()).camYaw;
 check('right stick orbits camera', Math.abs(c1 - c0) > .5, { from: c0, to: c1 });
 await press(B.r3); s = await S(); check('R3 recentres behind hero', Math.abs(Math.atan2(Math.sin(s.camYaw - s.yaw - Math.PI), Math.cos(s.camYaw - s.yaw - Math.PI))) < .05, s);
@@ -66,7 +64,6 @@ await page.waitForTimeout(1200);
 await set(page, B.r2, 1); await page.waitForTimeout(500); const r2h = await S(); await set(page, B.r2, 0); await page.waitForTimeout(80); const r2r = await S();
 check('R2 hold charges heavy', r2h.state === 'attack' && r2h.charging, r2h); check('R2 release unleashes', !r2r.charging, r2r);
 await page.waitForTimeout(1500);
-// L1 guard.
 await set(page, B.l1, 1); await page.waitForTimeout(250); s = await S(); await set(page, B.l1, 0); check('L1 guards', s.state === 'guard', s.state);
 await page.waitForTimeout(400);
 // L2 + square casts skill 1 (sandbox: Ember).
@@ -77,14 +74,12 @@ await page.waitForTimeout(900);
 await page.evaluate(() => { const h = (window as any).__arena.world.hero; h.hp = h.maxHp * .5; });
 const f0 = (await S()).flasks; await press(B.square); const f1 = (await S()).flasks; check('□ drinks a flask', f1 === f0 - 1, { f0, f1 });
 await page.evaluate(() => { const h = (window as any).__arena.world.hero; h.hp = h.maxHp; });
-// Triangle cycles weapon.
 const w0 = (await S()).weapon; await press(B.triangle); await page.waitForTimeout(200); const w1 = (await S()).weapon; check('△ cycles weapon', w0 !== w1, { w0, w1 });
 // Back to the greatsword for the combat stance; spawn foes (keyboard N) -> alert stance.
 while ((await S()).weapon !== 'greatsword') { await press(B.right); await page.waitForTimeout(150); }
 await page.keyboard.press('KeyN'); await set(page, B.cross, 0); await page.waitForTimeout(1600); s = await S();
 check('foes near → combat stance, weapon in hand', !s.relaxed && !s.sheathed, s);
 await page.screenshot({ path: join(out, '3-combat-stance.png') });
-// Rumble on being hit.
 await page.evaluate(() => { const a = (window as any).__arena; a.world.hero.iframe = 0; a.world.effectDamage(a.world.hero, 20, new (a.camera.position.constructor)(0, 0, 1), 1); });
 await page.waitForTimeout(100); const rumbles = await page.evaluate(() => (window as any).__rumbles.length); check('rumble when hurt', rumbles > 0, rumbles);
 // Options pauses (and shows controls); again resumes.

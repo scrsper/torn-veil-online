@@ -173,7 +173,6 @@ export function recentlyFailedRequests(world: World): Request[] {
 export function openRequests(world: World): Request[] { return world.requests.filter(r => r.status === 'open'); }
 export function requestFor(world: World, predicate: (r: Request) => boolean): Request | undefined { return world.requests.find(predicate); }
 
-// ---------------------------------------------------------------- observability
 export interface RequestSummary { open: number; accepted: number; completed: number; failed: number; totalWagesPaid: number; }
 export function requestSummary(world: World): RequestSummary {
   return {

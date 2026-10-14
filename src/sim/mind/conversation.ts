@@ -155,7 +155,6 @@ export function scoreTopic(world: World, speaker: Person, listener: Person, k: K
   const situation = situationForEvent(world, k.claim.eventId as string | undefined);
   const view = situation ? personalSituationView(world, speaker, situation) : null;
 
-  // 1. how much it means to me
   let score = appraisal.weight * 0.5;
   if (appraisal.reasons.length) reasons.push(appraisal.reasons[0]);
 
@@ -169,7 +168,6 @@ export function scoreTopic(world: World, speaker: Person, listener: Person, k: K
   }
   if (concern) reasons.push(`it is on my mind (${concern.kind})`);
 
-  // 3. is it still live, as far as I know
   let resolvedForSpeaker = false;
   if (view) {
     if (view.status === 'resolved') {
@@ -206,12 +204,10 @@ export function scoreTopic(world: World, speaker: Person, listener: Person, k: K
   if (learnedAgoHours < 24) score += 0.05;
   if (k.source.type === 'prior') { score *= 0.3; reasons.push('old news to me'); }
 
-  // 5. is it this listener's business
   const lr = listenerRelevance(world, speaker, listener, k);
   score += lr.value * 0.4;
   reasons.push(...lr.reasons);
 
-  // 6. a sociable person volunteers more; a taciturn one keeps it to themselves
   score += (speaker.traits.sociability - 0.5) * 0.12;
   if (k.claim.actor && ['attack', 'attack_missed', 'theft'].includes(k.claim.type) && socialEvidence(speaker, k.claim.actor, world.now).caution > 0.15) {
     score += 0.25; reasons.push('my evidence suggests a nearby safety concern');
@@ -251,7 +247,7 @@ export function selectTopic(world: World, speaker: Person, listener: Person, opt
     // Hearing the same news independently is possible and does not make it eyewitness evidence.
     if (k.hops >= MAX_TESTIMONY_HOPS) continue;
     if (k.claim.actor === listener.id) continue; // do not narrate someone's own deeds at them
-    if (k.source.from === listener.id) continue; // they told me this
+    if (k.source.from === listener.id) continue;
     if (!worthScoring(world, k)) continue;
     const t = scoreTopic(world, speaker, listener, k);
     if (!best || t.score > best.score) best = t;

@@ -56,7 +56,7 @@ describe('v0.9 §A — the same event means different things to different people
     expect(weights.get('Spouse')!).toBeGreaterThan(weights.get('Stranger')!);
     expect(weights.get('Coworker')!).toBeGreaterThan(weights.get('Stranger')!);
     expect(weights.get('Guard')!).toBeGreaterThan(weights.get('Stranger')!);
-    expect(new Set([...weights.values()]).size).toBe(weights.size); // no two identical
+    expect(new Set([...weights.values()]).size).toBe(weights.size);
   });
 
   it('gives the attacker’s own friend a real stake, distinct from a stranger’s', () => {

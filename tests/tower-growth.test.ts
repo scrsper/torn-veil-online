@@ -123,7 +123,7 @@ describe('earned source transformation',()=>{
     expect(x.p.ontology.stage).toBe('Normal');expect(x.b.arcana!.mana).toBe(78);
     expect(deserialize(serialize(x.world))).not.toBeNull();
     expect(changeEquipment(x.world,x.p,focus.id,false,x.b.id)).toBe('accepted');
-    expect(arcaneCapacity(x.p,x.world,x.b).amplitude).toBe(1); // Existing committed cast stays frozen.
+    expect(arcaneCapacity(x.p,x.world,x.b).amplitude).toBe(1);
     expect(x.b.arcana!.cast!.damage).toBe(112);
   });
   it('keeps the whole ontology ladder and makes Gold require substantially more than the Silver path',()=>{

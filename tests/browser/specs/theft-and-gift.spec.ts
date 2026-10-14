@@ -56,7 +56,6 @@ export const theftAndGift: BrowserSpec = {
     });
     if (!scene) throw new Error('no shop in the village had two things on its counter that its keeper would sell');
 
-    // ---- 1. the honest path: the client offers to BUY, and says so before the key is pressed
     // Immersive targeting, for the reason given in the trade spec: what is under test is the
     // difference between paying and taking, not which camera is drawing it.
     await page.keyboard.press('F2');
@@ -102,7 +101,6 @@ export const theftAndGift: BrowserSpec = {
     if (afterBuy.keeper - beforeBuy.keeper !== paid) throw new Error(`the ${scene.keeperName} did not receive what the player paid (${paid} vs ${afterBuy.keeper - beforeBuy.keeper})`);
     if (afterBuy.thefts !== beforeBuy.thefts) throw new Error('paying for something emitted a theft event');
 
-    // ---- 2. the other path: physically possible, canonically different, and named as such
     await lookAt(page, { x: scene.b.pos.x, y: scene.b.pos.y + 0.15, z: scene.b.pos.z });
     await page.evaluate(() => { (window as any).game.inter.update(); });
     const targetedB = await readCanonicalState(page, () => {
@@ -146,7 +144,6 @@ export const theftAndGift: BrowserSpec = {
     if (!/theft/i.test(msgs)) throw new Error(`the player was not told they had committed a theft: ${msgs}`);
     await captureEvidence(page, join(ART, 'theft-2-taken.png'));
 
-    // ---- 3. a gift is a real transfer with real provenance, and the social weight is earned.
     // The two things given are the shop good just BOUGHT (worth real money, honestly acquired)
     // and the cheapest thing the Traveler was already carrying.
     const giftScene = await page.evaluate((args: { keeperId: string; valuableId: string }) => {
@@ -227,7 +224,6 @@ export const theftAndGift: BrowserSpec = {
       if (!o.cause) throw new Error('an obligation formed without naming the canonical event that caused it');
     }
 
-    // ---- 4. nothing was duplicated anywhere along the way
     const audit = await readCanonicalState(page, () => {
       const w = (window as any).game.world;
       const problems: string[] = [];

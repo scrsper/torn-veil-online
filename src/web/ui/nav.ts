@@ -59,7 +59,6 @@ export class UiNav {
     const isRange = cur instanceof HTMLInputElement && cur.type === 'range', isSelect = cur instanceof HTMLSelectElement, isText = cur instanceof HTMLInputElement && (cur.type === 'text' || cur.type === 'search') || cur instanceof HTMLTextAreaElement;
     const padUse = inp.device !== 'keyboard';
     const held = (a: 'uiUp' | 'uiDown' | 'uiLeft' | 'uiRight') => inp.isDown(a);
-    // Directional repeat for held directions.
     const dirs: [typeof this.repeat.code, number, number][] = [['uiUp', 0, -1], ['uiDown', 0, 1], ['uiLeft', -1, 0], ['uiRight', 1, 0]];
     const now = performance.now();
     for (const [code, dx, dy] of dirs) {
@@ -72,7 +71,7 @@ export class UiNav {
       if (isText) continue;
       if (isRange && dx) { const r = cur as HTMLInputElement; if (dx > 0) r.stepUp(); else r.stepDown(); r.dispatchEvent(new Event('input', { bubbles: true })); continue; }
       if (isSelect && dy) { const s = cur as HTMLSelectElement; s.selectedIndex = Math.max(0, Math.min(s.options.length - 1, s.selectedIndex + dy)); s.dispatchEvent(new Event('change', { bubbles: true })); continue; }
-      if (!padUse && (isRange || isSelect)) continue;   // keyboard arrows already act natively
+      if (!padUse && (isRange || isSelect)) continue;
       this.move(scope.root, dx, dy);
     }
     if (padUse && inp.pressed('uiConfirm') && cur && scope.root.contains(cur)) { if (cur instanceof HTMLInputElement && cur.type === 'checkbox') cur.click(); else if (!isText && !isSelect && !isRange) cur.click(); }

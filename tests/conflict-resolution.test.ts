@@ -32,7 +32,7 @@ describe('conflict state (Constitution §11, v0.2.3)', () => {
     const bandit = addPerson(tw, 'Bandit', 'bandit', v(10, 1, 10), { traits: { courage: 0.9, aggression: 0.8 } });
     bandit.hostile = true; bandit.wealth = 0;
     const villager = addPerson(tw, 'Villager', 'farmer', v(11, 1, 10), { traits: { courage: 0.1, aggression: 0.1 } });
-    tw.world.rng = new FixedRNG(0.99) as unknown as RNG; // compliant
+    tw.world.rng = new FixedRNG(0.99) as unknown as RNG;
     makeItem(tw.world, 'coins', 'silver coins', { owner: villager.id, holder: villager.id, quantity: 12 });
     for (let i = 0; i < 200 && !tw.world.events.some(e => e.type === 'theft' && e.actor === bandit.id); i++) step(tw, 0.25);
     const c = lastConflictBetween(tw.world, bandit.id, villager.id);
@@ -52,7 +52,7 @@ describe('conflict state (Constitution §11, v0.2.3)', () => {
     const before = tw.world.events.filter(e => e.type === 'attack').length;
     step(tw, 60); // a full minute of standing next to someone they hate
     const after = tw.world.events.filter(e => e.type === 'attack').length;
-    expect(after).toBe(before); // no new blows
+    expect(after).toBe(before);
     expect(conflictBetween(tw.world, a.id, b.id)?.status).not.toBe('active');
     expect(a.mind.goal?.type).not.toBe('attack');
   });
@@ -73,7 +73,7 @@ describe('conflict state (Constitution §11, v0.2.3)', () => {
   it('maintainConflicts lapses an untouched active conflict to disengaging, then suspends it', () => {
     const tw = createTestWorld(704);
     const a = addPerson(tw, 'A', 'farmer', v(5, 1, 5));
-    const b = addPerson(tw, 'B', 'farmer', v(40, 1, 40)); // far apart, out of contact
+    const b = addPerson(tw, 'B', 'farmer', v(40, 1, 40));
     const c = beginConflict(tw.world, { initiator: a.id, target: b.id, cause: 'dispute', intent: 'threaten' });
     recordConflictBlow(tw.world, c, a.id, 'threaten');
     // advance world time well past STALE_ACTIVE + DISENGAGE_GRACE without any interaction
@@ -134,7 +134,7 @@ describe('bounded unsuccessful combat approaches', () => {
   it('stops an exhausted rejected attack instead of standing over its target indefinitely', () => {
     const tw = createTestWorld(743, 30);
     const a = addPerson(tw, 'Spent', 'farmer', v(10, 1, 10));
-    const b = addPerson(tw, 'Waiting', 'farmer', v(10.8, 1, 10)); // Already within unarmed approach range.
+    const b = addPerson(tw, 'Waiting', 'farmer', v(10.8, 1, 10));
     setExternalControl(a, true); setExternalControl(b, true);
     a.physiology.fatigue = 1;
     const c = beginConflict(tw.world, { initiator: a.id, target: b.id, cause: 'dispute', intent: 'injure' });
@@ -211,7 +211,7 @@ describe('arrest & custody (Constitution §11, v0.2.3)', () => {
     takeIntoCustody(tw.world, crim, g, crimeKey, c);
     expect(crim.custody?.active).toBe(true);
     expect(crim.custody?.byFactionId).toBe(watch.id);
-    expect(crim.surrender).toBeFalsy(); // custody supersedes surrender
+    expect(crim.surrender).toBeFalsy();
     expect(tw.world.events.some(e => e.type === 'entity_arrested' && e.target === crim.id)).toBe(true);
     expect(tw.world.events.some(e => e.type === 'custody_started' && e.target === crim.id)).toBe(true);
     expect(watch.knowledge[`custody:${crim.id}`]?.claim.state).toBe('in custody');

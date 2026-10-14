@@ -52,7 +52,6 @@ function attackBelief(tw: TW, p: Person, actorId: string | undefined, targetId: 
   }, true)!;
 }
 
-// ---------------------------------------------------------------------------------------------
 
 describe('Causal Society — a stoppage becomes something minds can hold', () => {
   it('does not lend eyewitness certainty to a detail learned through hearsay',()=>{
@@ -160,7 +159,7 @@ describe('Causal Society — a stoppage becomes something minds can hold', () =>
     tw.world.clock.advance(9 * 3600);
     const again = noteWorkBlocked(tw.world, baker, pl.bakery, 'flour', 'bread');
 
-    expect(again).toBe(belief); // the same standing belief, refreshed
+    expect(again).toBe(belief);
     expect(tw.world.events.filter(e => e.type === 'work_blocked')).toHaveLength(2);
     expect(belief.confidence).toBe(1);
     // A shortage that has not lifted is not fresh news to the people who already heard about it.
@@ -269,7 +268,6 @@ describe('Causal Society — a stoppage becomes something minds can hold', () =>
   });
 });
 
-// ---------------------------------------------------------------------------------------------
 
 describe('Causal Society — the trades table describes the mechanics it claims to', () => {
   /**
@@ -389,7 +387,6 @@ describe('Causal Society — the trades table describes the mechanics it claims 
   });
 });
 
-// ---------------------------------------------------------------------------------------------
 
 describe('Causal Society — working out why', () => {
   function bakerWhoCannotBake(seed: number) {
@@ -512,7 +509,6 @@ describe('Causal Society — working out why', () => {
   });
 });
 
-// ---------------------------------------------------------------------------------------------
 
 /**
  * The epistemic guarantees stated as a group, over the same standing shortage belief. Several of
@@ -594,9 +590,9 @@ describe('Causal Society — provenance invariants', () => {
     step(tw, 3);
 
     const key = shortfallKey(pl.bakery, 'flour');
-    expect(inTheRoom.knowledge[key]).toBeTruthy();          // line of sight
-    expect(behindAWall.knowledge[key]).toBeUndefined();     // no line of sight
-    expect(acrossTheVillage.knowledge[key]).toBeUndefined(); // out of range
+    expect(inTheRoom.knowledge[key]).toBeTruthy();
+    expect(behindAWall.knowledge[key]).toBeUndefined();
+    expect(acrossTheVillage.knowledge[key]).toBeUndefined();
     // Nobody without the belief carries a worry about it either.
     for (const p of [behindAWall, acrossTheVillage]) {
       expect(activeConcerns(p).some(c => c.kind === 'supply')).toBe(false);
@@ -605,7 +601,6 @@ describe('Causal Society — provenance invariants', () => {
   });
 });
 
-// ---------------------------------------------------------------------------------------------
 
 describe('Causal Society — relationships follow from what people actually do', () => {
   it('moves a witness who cares about the person helped further than one who does not', () => {
@@ -666,7 +661,6 @@ describe('Causal Society — relationships follow from what people actually do',
   });
 });
 
-// ---------------------------------------------------------------------------------------------
 
 /**
  * CROSS-SYSTEM: the playable-life hand-interaction path (`sim/physical/hand.ts`, the entry point
@@ -756,7 +750,6 @@ describe('Causal Society — a player action lands on the village like anybody e
   });
 });
 
-// ---------------------------------------------------------------------------------------------
 
 describe('Causal Society — the trace', () => {
   it('walks a worry back through the belief that justifies it to the canonical stoppage', () => {

@@ -27,7 +27,6 @@ describe('generated lost/stolen-property task, end to end (v0.8 §E)', () => {
 
     const dlg = new DialogueSystem(tw.world, tw.sim);
 
-    // 1. Player identifies who wants the item back.
     const withRequester = dlg.start(requester, player);
     const needOption = withRequester.options.find(o => o.label === 'Is there anything you need?');
     expect(needOption).toBeTruthy();
@@ -35,7 +34,6 @@ describe('generated lost/stolen-property task, end to end (v0.8 §E)', () => {
     expect(heard.lines.join(' ')).toContain('ring');
     expect(player.knowledge[`wanted:${ring.id}`]).toBeTruthy(); // real, retained knowledge — not just ephemeral UI text
 
-    // 2. Player asks a DIFFERENT NPC (the actual knowledge-holder) about the item.
     const withWitness = dlg.start(witness, player);
     const askOption = withWitness.options.find(o => o.label === 'Ask about an item…');
     expect(askOption).toBeTruthy();
@@ -55,7 +53,6 @@ describe('generated lost/stolen-property task, end to end (v0.8 §E)', () => {
     expect(ring.ownerId).toBe(requester.id); // ownership stays with Cedric while the player carries it back
     expect(player.inventory).toContain(ring.id);
 
-    // 4. Player returns it to the actual requester — real canonical payment/state change.
     const requesterWealthBefore = requester.wealth; const playerWealthBefore = player.wealth;
     const returnEv = tw.sim.giveItem(player, requester, ring);
     expect(returnEv.type).toBe('returned_item');

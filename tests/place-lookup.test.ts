@@ -20,7 +20,7 @@ describe('exact place lookup memo', () => {
       expect(world.placeAt(point)).toBe(reference(point));
       expect(world.spatialStats().placeCandidates - before).toBe(2 * count);
     };
-    check(); expect(world.placeAt(point)).toBe(first); // insertion-order tie
+    check(); expect(world.placeAt(point)).toBe(first);
     point.y = 20; check(); expect(world.placeAt(point)).toBeUndefined();
     first.bounds.y1 = 22; check(); expect(world.placeAt(point)).toBe(first);
     first.bounds.y0 = 25; check(); expect(world.placeAt(point)).toBeUndefined();

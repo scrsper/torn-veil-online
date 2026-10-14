@@ -53,7 +53,6 @@ export function paintFace(ctx: CanvasRenderingContext2D, size: number, f: FaceSp
   g = ctx.createLinearGradient(0, nz(0.7), 0, nz(0.3)); g.addColorStop(0, rgb([f.skin[0] + 8, f.skin[1] + 8, f.skin[2] + 8], 0.25)); g.addColorStop(1, rgb(f.skin, 0)); ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
   // Cool shadow toward the sides and under the jaw.
   g = ctx.createLinearGradient(0, nz(-0.6), 0, nz(-1)); g.addColorStop(0, rgb([f.skin[0] - 24, f.skin[1] - 26, f.skin[2] - 22], 0)); g.addColorStop(1, rgb([f.skin[0] - 24, f.skin[1] - 26, f.skin[2] - 22], 0.5)); ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
-  // Mottling.
   for (let i = 0; i < 420; i++) {
     const x = rnd() * S, y = rnd() * S, r = (0.5 + rnd() * 2.2) * S / 256, a = 0.02 + rnd() * 0.035;
     ctx.fillStyle = rnd() > 0.5 ? rgb([f.skin[0] + 18, f.skin[1] + 12, f.skin[2] + 8], a) : rgb([f.skin[0] - 20, f.skin[1] - 20, f.skin[2] - 14], a);
@@ -84,14 +83,13 @@ export function paintFace(ctx: CanvasRenderingContext2D, size: number, f: FaceSp
     ctx.strokeStyle = rgb(mixc(f.skin, lash, 0.45), 0.5); ctx.lineWidth = S * 0.0035;
     ctx.beginPath(); ctx.moveTo(cx - sg * ew * 0.8, cy + eh * 0.55); ctx.quadraticCurveTo(cx, cy + eh * 1.5, cx + sg * ew * 0.85, cy + eh * 0.5); ctx.stroke();
     ctx.strokeStyle = rgb(mixc(f.skin, [60, 40, 40], 0.4), 0.35); ctx.lineWidth = S * 0.0035;
-    ctx.beginPath(); ctx.moveTo(cx - sg * ew * 0.75, cy - eh * 2.7); ctx.quadraticCurveTo(cx, cy - eh * 3.6, cx + sg * ew * 0.85, cy - eh * 2.6); ctx.stroke();   // crease
+    ctx.beginPath(); ctx.moveTo(cx - sg * ew * 0.75, cy - eh * 2.7); ctx.quadraticCurveTo(cx, cy - eh * 3.6, cx + sg * ew * 0.85, cy - eh * 2.6); ctx.stroke();
     if (f.makeup && f.makeup !== 'none') {
       const col = f.makeup === 'kitsune' ? [190, 60, 70] : f.makeup === 'court' ? [200, 90, 110] : [210, 120, 90];
       ctx.strokeStyle = rgb(col as [number, number, number], 0.7); ctx.lineWidth = S * 0.0055;
       ctx.beginPath(); ctx.moveTo(cx - sg * ew * 0.6, cy - eh * 1.5); ctx.quadraticCurveTo(cx + sg * ew * 0.4, cy - eh * 2.3, cx + sg * ew * 1.5, cy - eh * 1.4); ctx.stroke();
     }
   }
-  // Brows.
   const brow = mixc(f.hair, [30, 22, 18], 0.35);
   const thick = f.presentation === 'masculine' ? 1.35 : fem ? 0.75 : 1;
   for (const sg of [-1, 1]) {
@@ -102,7 +100,6 @@ export function paintFace(ctx: CanvasRenderingContext2D, size: number, f: FaceSp
       ctx.beginPath(); ctx.moveTo(nx(0.16 * sg), nz(0.235) + oy + S * 0.006); ctx.quadraticCurveTo(nx(0.36 * sg), nz(0.235) - S * 0.024 + oy, nx(0.58 * sg), nz(0.235) + S * 0.012 + oy); ctx.stroke();
     }
   }
-  // Lips.
   const lipY = nz(-0.365);
   const lip = f.lipTint;
   const lw = S * (fem ? 0.066 : 0.060);
@@ -113,7 +110,6 @@ export function paintFace(ctx: CanvasRenderingContext2D, size: number, f: FaceSp
   ctx.beginPath(); ctx.moveTo(nx(0) - lw * 0.92, lipY + S * 0.001); ctx.quadraticCurveTo(nx(0), lipY + S * (fem ? 0.030 : 0.024), nx(0) + lw * 0.92, lipY + S * 0.001); ctx.quadraticCurveTo(nx(0), lipY + S * 0.007, nx(0) - lw * 0.92, lipY + S * 0.001); ctx.fill();
   ctx.strokeStyle = rgb([70, 28, 32], 0.75); ctx.lineWidth = S * 0.0032; ctx.beginPath(); ctx.moveTo(nx(0) - lw, lipY + S * 0.001); ctx.quadraticCurveTo(nx(0), lipY + S * 0.006, nx(0) + lw, lipY + S * 0.001); ctx.stroke();
   if (f.makeup === 'court' || f.makeup === 'kitsune') { ctx.fillStyle = rgb([176, 40, 56], 0.55); ctx.beginPath(); ctx.ellipse(nx(0), lipY + S * 0.006, lw * 0.9, S * 0.012, 0, 0, Math.PI * 2); ctx.fill(); }
-  // Age.
   if (f.age === 'elder' || f.age === 'middle_aged') {
     const a = f.age === 'elder' ? 0.28 : 0.13;
     ctx.strokeStyle = rgb([f.skin[0] - 50, f.skin[1] - 52, f.skin[2] - 40], a); ctx.lineWidth = S * 0.0028;
@@ -121,7 +117,6 @@ export function paintFace(ctx: CanvasRenderingContext2D, size: number, f: FaceSp
     for (const sg of [-1, 1]) for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(nx(0.62 * sg), nz(0.05 + i * 0.03)); ctx.lineTo(nx(0.74 * sg), nz(0.08 + i * 0.05)); ctx.stroke(); }
     for (const sg of [-1, 1]) { ctx.beginPath(); ctx.moveTo(nx(0.16 * sg), nz(-0.2)); ctx.quadraticCurveTo(nx(0.26 * sg), nz(-0.32), nx(0.24 * sg), nz(-0.44)); ctx.stroke(); }
   }
-  // Stubble or beard.
   if (f.beard > 0.02 && f.presentation !== 'feminine' && f.age !== 'child') {
     const bc = mixc(f.hair, [20, 18, 16], 0.3), dens = Math.min(1, f.beard);
     const n = Math.floor(2600 * dens * (S / 512) ** 2);
@@ -145,7 +140,6 @@ export function paintEye(ctx: CanvasRenderingContext2D, size: number, iris: [num
   let g = ctx.createRadialGradient(c, c, R * 0.15, c, c, R);
   g.addColorStop(0, rgb([iris[0] * 0.55, iris[1] * 0.55, iris[2] * 0.55])); g.addColorStop(0.55, rgb(iris)); g.addColorStop(0.9, rgb([iris[0] * 0.72, iris[1] * 0.72, iris[2] * 0.72])); g.addColorStop(1, 'rgba(15,12,12,1)');
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(c, c, R, 0, Math.PI * 2); ctx.fill();
-  // radial fibres
   ctx.strokeStyle = rgb([Math.min(255, iris[0] * 1.35 + 20), Math.min(255, iris[1] * 1.35 + 20), Math.min(255, iris[2] * 1.35 + 20)], 0.25); ctx.lineWidth = S * 0.004;
   for (let i = 0; i < 44; i++) { const a = (i / 44) * Math.PI * 2; ctx.beginPath(); ctx.moveTo(c + Math.cos(a) * R * 0.32, c + Math.sin(a) * R * 0.32); ctx.lineTo(c + Math.cos(a) * R * 0.92, c + Math.sin(a) * R * 0.92); ctx.stroke(); }
   ctx.fillStyle = 'rgb(8,6,6)'; ctx.beginPath(); ctx.arc(c, c, R * 0.36 * pupilScale, 0, Math.PI * 2); ctx.fill();

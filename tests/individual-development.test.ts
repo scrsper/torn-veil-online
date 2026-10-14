@@ -83,7 +83,7 @@ describe('ordinary human foundations', () => {
     expect(high.attributes.strength).toBeGreaterThan(low.attributes.strength);
     expect(low.attributes.strength).toBeGreaterThan(idle.attributes.strength);
     expect(idle.attributes).toEqual(attributeProfile(8));
-    expect(high.development.progress.strength).toBe(0); // reached Normal ceiling
+    expect(high.development.progress.strength).toBe(0);
     expect(developmentRate(11, 18)).toBeGreaterThan(developmentRate(11, 10));
     expect(developmentRate(15, 10)).toBeGreaterThan(0);
     expect(developmentRate(20, 18)).toBe(0);

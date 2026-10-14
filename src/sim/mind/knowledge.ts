@@ -362,7 +362,6 @@ export function describeClaim(world: World, k: KnowledgeItem, observer?: Person)
   }
 }
 
-// ---------------------------------------------------------------- economic opportunity (v0.6 §III)
 /**
  * Which kind of place TYPE plausibly offers what, for the purpose of seeding/observing "service"
  * knowledge (Constitution v0.6 §III: "bakery sells bread," "well has water"). This is a belief
@@ -535,7 +534,6 @@ export function huntsWildGame(world: World, type: string, targetId: string | nul
 }
 export function crimeSeverity(type: string): number { return type === 'kill' ? 1 : type === 'attack' ? 0.6 : type === 'theft' ? 0.35 : 0; }
 
-// ---------------------------------------------------------------- affordance recognition (v0.7)
 /**
  * Learn that an object of `itemType` is good for what it's good for (Constitution v0.7:
  * "a knowledgeable person may understand more uses" — an ACQUIRED belief, separate from the

@@ -46,7 +46,7 @@ export class NavGrid {
       for (const [di, dj, w] of N8) {
         const a = i + di, b = j + dj; if (a < 0 || b < 0 || a >= n || b >= n) continue;
         const kk = a * n + b; if (this.blocked[kk]) continue;
-        if (di && dj && (this.blocked[(i + di) * n + j] || this.blocked[i * n + j + dj])) continue;   // no corner cutting
+        if (di && dj && (this.blocked[(i + di) * n + j] || this.blocked[i * n + j + dj])) continue;
         if (d + w < dist[kk] - .0001) { dist[kk] = d + w; q.push(kk); }
       }
     }

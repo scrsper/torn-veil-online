@@ -28,7 +28,6 @@ function advance(world: ReturnType<typeof newWorld>['world'], sim: Simulation, s
   for (let e = 0; e < seconds; e += 0.15) { const dt = Math.min(0.15, seconds - e); const wdt = world.clock.advance(dt); world.physicalTime += dt; sim.step(dt, wdt); sim.flushSpeech(); }
 }
 
-// ==================================================================== I. Human baseline
 describe('human physiology profile (v0.5 §I)', () => {
   it('an ordinary NPC resolves to the human physiology profile', () => {
     const tw = createTestWorld(5001, 20);
@@ -75,7 +74,6 @@ describe('human physiology profile (v0.5 §I)', () => {
   });
 });
 
-// ==================================================================== II. Severity bands
 describe('need severity bands (v0.5 §II.4)', () => {
   it('bands are ordered comfortable < noticeable < uncomfortable < urgent < critical', () => {
     expect(severityAtLeast('critical', 'urgent')).toBe(true);
@@ -87,7 +85,6 @@ describe('need severity bands (v0.5 §II.4)', () => {
     const tw = createTestWorld(5002, 20);
     const p = addPerson(tw, 'P', 'farmer', v(5, 1, 5));
     p.physiology.energy = 0.95; p.physiology.hydration = 0.95; p.physiology.fatigue = 0; p.physiology.sleepDebt = 0;
-    // resync derived needs
     eatRestoresEnergy(p, 0); drinkRestoresHydration(p, 0);
     expect(hungerBand(p)).toBe('comfortable');
     expect(thirstBand(p)).toBe('comfortable');
@@ -108,7 +105,6 @@ describe('need severity bands (v0.5 §II.4)', () => {
   });
 });
 
-// ==================================================================== Hunger tolerance
 describe('hunger tolerance (v0.5 §II/§VI)', () => {
   it('mild/moderate hunger does not force immediate eating over an ordinary goal', () => {
     const tw = createTestWorld(5101, 20);
@@ -132,7 +128,7 @@ describe('hunger tolerance (v0.5 §II/§VI)', () => {
     makeItem(tw.world, 'bread', 'loaf of bread', { owner: p.id, placeId: home, pos: tw.world.place(home)!.inside, quantity: 5 });
     addPlaceStock(tw.world, 'stone', 10, src.id, null, undefined, 'test');
     createHaulTask(tw.world, { resource: 'stone', quantity: 4, sourcePlaceId: src.id, destPlaceId: dst.id, reason: 'x', requesterId: null, priority: 0.9 });
-    step(tw, 1); // adopt haul
+    step(tw, 1);
     p.physiology.energy = 0.02; p.needs.hunger = 1 - p.physiology.energy;
     const mealsBefore = tw.world.runTally.food_consumed ?? 0;
     step(tw, 20);
@@ -155,7 +151,6 @@ describe('hunger tolerance (v0.5 §II/§VI)', () => {
   });
 });
 
-// ==================================================================== Thirst tolerance
 describe('thirst tolerance (v0.5 §II/§VI)', () => {
   it('mild thirst does not immediately cancel a committed haul', () => {
     const tw = createTestWorld(5201, 20);
@@ -166,7 +161,7 @@ describe('thirst tolerance (v0.5 §II/§VI)', () => {
     createHaulTask(tw.world, { resource: 'stone', quantity: 4, sourcePlaceId: src.id, destPlaceId: dst.id, reason: 'x', requesterId: null, priority: 0.9 });
     step(tw, 1);
     expect(p.mind.goal?.type).toBe('haul');
-    p.physiology.hydration = 0.55; p.needs.thirst = 1 - p.physiology.hydration; // 'uncomfortable'
+    p.physiology.hydration = 0.55; p.needs.thirst = 1 - p.physiology.hydration;
     step(tw, 2);
     expect(p.mind.commitment?.status ?? 'active').toBe('active');
   });
@@ -200,7 +195,6 @@ describe('thirst tolerance (v0.5 §II/§VI)', () => {
   });
 });
 
-// ==================================================================== Sleep tolerance
 describe('sleep tolerance (v0.5 §II/§VI)', () => {
   it('mild tiredness does not immediately force sleep', () => {
     const tw = createTestWorld(5301, 20);
@@ -241,7 +235,6 @@ describe('sleep tolerance (v0.5 §II/§VI)', () => {
   });
 });
 
-// ==================================================================== Goal commitment
 describe('goal commitment (v0.5 §III)', () => {
   function haulWorld(seed: number) {
     const tw = createTestWorld(seed, 40);
@@ -293,7 +286,7 @@ describe('goal commitment (v0.5 §III)', () => {
     step(tw, 1);
     expect(p.mind.commitment?.status).toBe('active');
     const savedTaskId = p.mind.commitment!.data?.taskId;
-    p.physiology.hydration = 0.02; p.needs.thirst = 1 - p.physiology.hydration; // critical
+    p.physiology.hydration = 0.02; p.needs.thirst = 1 - p.physiology.hydration;
     step(tw, 3);
     expect(p.mind.commitment).not.toBeNull();
     expect(p.mind.commitment!.data?.taskId).toBe(savedTaskId);
@@ -335,7 +328,6 @@ describe('goal commitment (v0.5 §III)', () => {
   });
 });
 
-// ==================================================================== v0.4 hysteresis regression
 describe('v0.4 disclosed hysteresis pathology — regression (v0.5 §III.13)', () => {
   it('a weak worker on a heavy many-trip stone haul makes real progress or explicitly abandons — never indefinite thrashing without progress', () => {
     const tw = createTestWorld(5501, 40);
@@ -397,12 +389,11 @@ describe('v0.4 disclosed hysteresis pathology — regression (v0.5 §III.13)', (
   }, 30000);
 });
 
-// ==================================================================== Autonomous production
 describe('autonomous production (v0.5 §IV)', () => {
   it('low bread inventory creates a production request with pipeline-aware quantity', () => {
     const tw = createTestWorld(5601, 20);
     const bakery = makePlace(tw.world, 'bakery', 'Bakery', { x0: 2, z0: 2, x1: 8, z1: 8, y0: 1, y1: 3 }, { inside: v(5, 1, 5) });
-    addPlaceStock(tw.world, 'bread', 5, bakery.id, null, undefined, 'test'); // well below trigger
+    addPlaceStock(tw.world, 'bread', 5, bakery.id, null, undefined, 'test');
     generateProductionNeeds(tw.world);
     const reqs = openProductionRequests(tw.world).filter(r => r.payload.placeId === bakery.id);
     expect(reqs.length).toBe(1);
@@ -433,7 +424,7 @@ describe('autonomous production (v0.5 §IV)', () => {
   it('production requires actual worker capability — no demand, no baking', () => {
     const tw = createTestWorld(5604, 20);
     const bakery = makePlace(tw.world, 'bakery', 'Bakery', { x0: 2, z0: 2, x1: 8, z1: 8, y0: 1, y1: 3 }, { inside: v(5, 1, 5) });
-    addPlaceStock(tw.world, 'bread', 200, bakery.id, null, undefined, 'test'); // no demand
+    addPlaceStock(tw.world, 'bread', 200, bakery.id, null, undefined, 'test');
     const baker = addPerson(tw, 'Baker', 'baker', v(5, 1, 5));
     const req = claimedProductionRequest(tw.world, bakery.id, 'bread', baker.id);
     expect(req).toBeUndefined();
@@ -447,7 +438,7 @@ describe('autonomous production (v0.5 §IV)', () => {
     const baker = addPerson(tw, 'Baker', 'baker', v(5, 1, 5));
     const req = claimedProductionRequest(tw.world, bakery.id, 'bread', baker.id)!;
     expect(req).toBeDefined();
-    const result = bake(tw.world, baker); // no flour at the bakery
+    const result = bake(tw.world, baker);
     expect(result.ok).toBe(false);
     const paid = fulfillProductionRequest(tw.world, req, baker, result.ok);
     expect(paid).toBe(0);
@@ -473,7 +464,6 @@ describe('autonomous production (v0.5 §IV)', () => {
   });
 });
 
-// ==================================================================== Pricing
 describe('bounded dynamic pricing (v0.5 §V.17)', () => {
   it('scarcity increases price within bounds', () => {
     const base = 2;
@@ -484,7 +474,7 @@ describe('bounded dynamic pricing (v0.5 §V.17)', () => {
 
   it('abundance decreases price within bounds', () => {
     const base = 2;
-    const abundant = effectivePrice('bread', base, 200); // far above reference
+    const abundant = effectivePrice('bread', base, 200);
     expect(abundant).toBeLessThan(base);
     expect(abundant).toBeGreaterThanOrEqual(Math.round(base * 0.65));
   });
@@ -516,7 +506,6 @@ describe('bounded dynamic pricing (v0.5 §V.17)', () => {
   });
 });
 
-// ==================================================================== Economic/physiology interaction
 describe('economic/physiology interaction (v0.5 §V.19)', () => {
   it('a poor, hungry worker values paid work more strongly than a wealthy, well-fed one', () => {
     const tw = createTestWorld(5801, 20);
@@ -533,10 +522,10 @@ describe('economic/physiology interaction (v0.5 §V.19)', () => {
     const src = makePlace(tw.world, 'quarry', 'Quarry', { x0: 2, z0: 2, x1: 10, z1: 10, y0: 1, y1: 3 }, { inside: v(6, 1, 6), indoor: false });
     const dst = makePlace(tw.world, 'construction', 'Site', { x0: 30, z0: 30, x1: 36, z1: 36, y0: 1, y1: 3 }, { inside: v(33, 1, 33), indoor: false });
     const p = addPerson(tw, 'Poor', 'vagrant', v(6, 1, 6));
-    p.wealth = 0; // maximal labor incentive
+    p.wealth = 0;
     addPlaceStock(tw.world, 'stone', 20, src.id, null, undefined, 'test');
     createHaulTask(tw.world, { resource: 'stone', quantity: 8, sourcePlaceId: src.id, destPlaceId: dst.id, reason: 'x', requesterId: null, priority: 0.95 });
-    p.physiology.hydration = 0.02; p.needs.thirst = 0.98; // critical
+    p.physiology.hydration = 0.02; p.needs.thirst = 0.98;
     step(tw, 3);
     expect(p.mind.goal?.type).not.toBe('haul');
   });
@@ -553,7 +542,6 @@ describe('economic/physiology interaction (v0.5 §V.19)', () => {
   });
 });
 
-// ==================================================================== Determinism
 describe('determinism (v0.5)', () => {
   it('identical seed and state produce an identical canonical hash', () => {
     const { world: w1 } = newWorld(5901);
@@ -572,7 +560,6 @@ describe('determinism (v0.5)', () => {
   });
 });
 
-// ==================================================================== Persistence
 describe('v0.5 persistence round-trip (SAVE_VERSION 8)', () => {
   it('round-trips species, physiologyTraits, goal commitment (active/suspended), and a production request', () => {
     const { world, gen } = newWorld(5910);
@@ -601,7 +588,6 @@ describe('v0.5 persistence round-trip (SAVE_VERSION 8)', () => {
   });
 });
 
-// ==================================================================== Stress scenario smoke test
 describe('stress scenario: scarcity-driven price/production response (v0.5 §XI)', () => {
   // Budget, not correctness. Measured at `main`'s own da5a2ed, before this branch touched it:
   // 62.2 s against a 60 s ceiling, run alone on an idle machine. It is over its ceiling on main alone and further over here, because the wider

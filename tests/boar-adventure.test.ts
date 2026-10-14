@@ -248,7 +248,7 @@ describe('boar encounter and protection loop — separate hard checks', () => {
     expect(r.status).toBe('completed');
     expect(r.payload.settledBy).toBe('knew_it_stilled');
     expect(player.wealth + victim.wealth).toBe(total);
-    expect(sw(sow, sb).avoid!.until).toBeGreaterThan(w.physicalTime); // alive, keeping away for now
+    expect(sw(sow, sb).avoid!.until).toBeGreaterThan(w.physicalTime);
   }, 300_000);
 
   it('trust: payment on a word that proves false is exposed when the same animal strikes again', () => {

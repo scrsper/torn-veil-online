@@ -30,7 +30,7 @@ describe('hunting is not a crime', () => {
     for (let i = 0; i < 120; i++) s.stepInteraction();
     expect(bb.dead).toBe(true);
     const kill = w.events.find(e => e.type === 'kill' && e.actor === player.id && e.target === boar.id)!;
-    expect(kill.perceivedBy.some(x => x.who === hunter.id)).toBe(true); // they did see it
+    expect(kill.perceivedBy.some(x => x.who === hunter.id)).toBe(true);
     expect(huntsWildGame(w, 'kill', boar.id)).toBe(true);
     const claim = eventClaim(w, kill, true);
     expect(claim.intent).toBe('hunt');

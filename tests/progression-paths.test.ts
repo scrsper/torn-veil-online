@@ -55,9 +55,9 @@ describe('Living Alpha progression calibration', () => {
     develop(w, p, { weights: { strength: 1 }, seconds: MAX_DAILY_EXPOSURE, intensity: 1 });
     const strength = p.development.exposure.strength;
     develop(w, p, { weights: { strength: 1 }, seconds: 3600, intensity: 1 });
-    expect(p.development.exposure.strength).toBe(strength); // spent for today
+    expect(p.development.exposure.strength).toBe(strength);
     develop(w, p, { weights: { perception: 1 }, seconds: 3600, intensity: 1 });
-    expect(p.development.exposure.perception).toBeGreaterThan(0); // a different system
+    expect(p.development.exposure.perception).toBeGreaterThan(0);
   });
 
   it('Iron is anchored on a practiced path: its core foundations at 15, every other at least 11', () => {

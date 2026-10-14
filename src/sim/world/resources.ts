@@ -27,7 +27,6 @@ function extractionOutput(world: World, node: ResourceNode, actor: Person, type:
  * Trees and the player and NPCs all use the same `extractFromNode` API (Constitution VI).
  */
 
-// ---- tuning
 const LOGS_PER_TREE = 6;
 const LOGS_PER_CHOP = 2;
 const STONE_PER_OUTCROP = 24;
@@ -103,12 +102,10 @@ export function registerTreeNodes(world: World, region: { x0: number; z0: number
       let base = -1;
       for (let y = 2; y < g.H - 2; y++) { if (isTrunk(g.get(x, y, z)) && !isTrunk(g.get(x, y - 1, z))) { base = y; break; } }
       if (base < 0) continue;
-      // trunk column
       const blocks: ResourceNodeBlock[] = [];
       let y = base;
       while (y < g.H && isTrunk(g.get(x, y, z))) { blocks.push({ x, y, z, id: g.get(x, y, z) }); y++; }
       const top = y - 1;
-      // connected leaf canopy near the top
       for (let ly = Math.max(base, top - 3); ly <= Math.min(g.H - 1, top + 2); ly++) {
         for (let dx = -3; dx <= 3; dx++) for (let dz = -3; dz <= 3; dz++) {
           const lx = x + dx, lz = z + dz;
@@ -146,7 +143,7 @@ export function plantGrove(world: World, region: { x0: number; z0: number; x1: n
       const h = g.groundHeight(x, z);
       const surf = g.get(x, h, z);
       if (surf !== B.Grass && surf !== B.Dirt && surf !== B.Path) continue;
-      if (g.get(x, h + 1, z) !== B.Air) continue; // something already there
+      if (g.get(x, h + 1, z) !== B.Air) continue;
       const th = 4 + (made % 3); // 4-6 tall
       const blocks: ResourceNodeBlock[] = [];
       for (let i = 1; i <= th; i++) { g.set(x, h + i, z, B.Log); blocks.push({ x, y: h + i, z, id: B.Log }); }
@@ -158,7 +155,7 @@ export function plantGrove(world: World, region: { x0: number; z0: number; x1: n
       }
       world.nav.rebuildArea(x - 3, z - 3, x + 3, z + 3);
       const pos = groundStand(world, x, z, h);
-      if (!pos) { for (const b of blocks) g.set(b.x, b.y, b.z, B.Air); continue; } // undo — nowhere to stand
+      if (!pos) { for (const b of blocks) g.set(b.x, b.y, b.z, B.Air); continue; }
       placed.push({ x, y: h, z });
       world.resourceNodes.push({
         id: world.nextId('node'), kind: 'tree', yield: 'log', pos, blocks,
@@ -243,7 +240,7 @@ const SWING_SECONDS = 5 * 60;
  * productive (Constitution v0.4 §5).
  */
 export function extractFromNode(world: World, node: ResourceNode, actor: Person, context?: { laborSeconds: number; causes: string[] }): number {
-  if (node.yield === 'biomass' || node.yield === 'water') return 0; // no manufactured item output
+  if (node.yield === 'biomass' || node.yield === 'water') return 0;
   if (node.state !== 'available' || node.remaining <= 0) return 0;
   if (node.kind === 'game') {
     const body = world.primaryBody(actor.id);
@@ -388,7 +385,6 @@ export function forageSubstrateExists(world: World, n: ResourceNode): boolean {
   return [B.Grass, B.Dirt].includes(world.grid.get(x, y - 1, z)) && !world.grid.isSolidAt(x, y + 0.1, z);
 }
 
-// ---------------------------------------------------------------- observability
 export interface ResourceNodeSummary {
   trees: { total: number; available: number; depleted: number; regrowing: number };
   /** v0.4 §14/§23: lifecycle-stage breakdown of currently-regrowing trees — "saplings/young/

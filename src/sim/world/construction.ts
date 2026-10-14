@@ -155,12 +155,10 @@ export function materializeStructure(world: World, p: ConstructionProject): void
   // clear the interior, lay a plank floor
   fill(b.x0, floor + 1, b.z0, b.x1, floor + wallH + 2, b.z1, B.Air);
   fill(b.x0, floor, b.z0, b.x1, floor, b.z1, B.Planks);
-  // plank walls
   for (let y = floor + 1; y <= floor + wallH; y++) {
     fill(b.x0, y, b.z0, b.x1, y, b.z0, B.Planks); fill(b.x0, y, b.z1, b.x1, y, b.z1, B.Planks);
     fill(b.x0, y, b.z0, b.x0, y, b.z1, B.Planks); fill(b.x1, y, b.z0, b.x1, y, b.z1, B.Planks);
   }
-  // stone footing course
   fill(b.x0, floor, b.z0, b.x1, floor, b.z0, B.StoneBrick); fill(b.x0, floor, b.z1, b.x1, floor, b.z1, B.StoneBrick);
   fill(b.x0, floor, b.z0, b.x0, floor, b.z1, B.StoneBrick); fill(b.x1, floor, b.z0, b.x1, floor, b.z1, B.StoneBrick);
   // door on the -z (north) side, middle
@@ -253,7 +251,6 @@ function producerPlace(world: World, type: ItemType, siteId: string): Place | un
   return places.find(p => p.id === type); // no other producers in v0.3
 }
 
-// ---------------------------------------------------------------- observability
 export interface ConstructionSummary {
   projects: number; complete: number; building: number; gathering: number;
   details: { name: string; status: string; delivered: Record<string, number>; required: Record<string, number>; laborPct: number; workers: number }[];

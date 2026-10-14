@@ -195,7 +195,6 @@ export class TowerRun {
     this.hud.announce('EXPEDITION CONTINUED', `Floor ${this.floor} · your last floor-boundary checkpoint`);
   }
 
-  // ---------------------------------------------------------------- frame
   update(dt: number, interact: boolean, scroll = false, drink = false): void {
     if (this.over) return;
     const w = this.world, h = w.hero;
@@ -240,7 +239,6 @@ export class TowerRun {
   }
   onHurt(damage: number): void { practice(this.sheet, { kind: 'hurt', fraction: damage / this.world.hero.maxHp }); }
 
-  // ---------------------------------------------------------------- combat hooks
   onKill(f: Fighter): void {
     if (this.over) return;
     if (f.role !== 'foe') return;
@@ -295,7 +293,6 @@ export class TowerRun {
     const verd = aff('verdance'); if (verd > 0) { w.hero.hp = Math.min(w.hero.maxHp, w.hero.hp + dmg * .04 * verd); }
   }
 
-  // ---------------------------------------------------------------- loot
   drop(at: Vector3, source: Source, foeKind?: string, boxTier = 0): void {
     if (this.plan?.kind === 'hall') return;
     // Magic begins early: the first chest or boss that finds you without a form or an element gives you one.
@@ -372,7 +369,6 @@ export class TowerRun {
     this.applyPassives(); this.evaluateClass(); this.discoverSpells();
   }
 
-  // ---------------------------------------------------------------- essences and skills
   /** He Who Fights With Monsters: an essence grants its ability; the third forms a confluence. */
   private absorb(e: Essence, receipt: string): void {
     const E = ESSENCES[e];
@@ -429,7 +425,6 @@ export class TowerRun {
     if (this.powers().has('bulwark')) { this.world.wardHp = Math.max(this.world.wardHp, 160 * this.dmgScale()); this.world.wardT = 6; }
   }
 
-  // ---------------------------------------------------------------- magic
   /**
    * Spells emerge: every element held at affinity 1 or more, crossed with every form learned, is a spell the climber
    * now knows (an insight). They join the Spellbook (B); they fill an empty slot if there is one.
@@ -527,7 +522,6 @@ export class TowerRun {
     this.trial?.depart();
   }
 
-  // ---------------------------------------------------------------- gear, affinities, passives
   /** Equipped gear: armour, charm and the drawn weapon (Diablo: only what you hold counts). */
   private worn(): Gear[] { return [this.armorItem, this.charm, this.gear[this.world.weapon as Exclude<WeaponId, 'fists'>]].filter(Boolean) as Gear[]; }
   private powers(): Set<string> { return new Set(this.worn().map(g => g.power).filter(Boolean) as string[]); }
@@ -581,7 +575,6 @@ export class TowerRun {
     this.applyPassives();
   }
 
-  // ---------------------------------------------------------------- achievements and boxes (DCC)
   private checkAchievements(): void {
     if (this.plan?.kind === 'hall') return;
     for (const a of ACHIEVEMENTS) {
@@ -621,7 +614,6 @@ export class TowerRun {
     }
   }
 
-  // ---------------------------------------------------------------- shrine and door
   private async offerBoon(): Promise<void> {
     const g = this.plan.god!, e = g.domain;
     const pick = await this.hud.choose(`${g.name}, ${g.title}`, `The god of ${e} offers you a boon.`, [

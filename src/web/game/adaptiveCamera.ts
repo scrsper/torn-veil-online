@@ -95,7 +95,6 @@ export class AdaptiveCamera {
     const t = Math.min(dt, .1), sit = { ...sit0, ...this.forced, pivot: sit0.pivot };
     const threats = sit.threats ?? 0, largest = sit.largest ?? 0, engaged = !!sit.engaged;
 
-    // ---- situation -> wished distance, pitch bias, fov, shoulder
     let want: number = this.preferred, pitchBias = 0, fov = this.baseFov, shoulder = 0, reason = 'explore';
     if (engaged && threats <= 2 && largest < 3) { want *= .92; pitchBias -= 1.5 * DEG; reason = 'duel'; }
     if (threats >= 3) { const g = Math.min(1, (threats - 2) / 5); want *= 1.1 + g * .2; pitchBias += (2 + g * 4) * DEG; fov += 2 * DEG * g; reason = 'group'; }
@@ -108,7 +107,6 @@ export class AdaptiveCamera {
     }
     if (sit.aiming) { want = 3.4; shoulder = .7; pitchBias = -5 * DEG; fov -= 6 * DEG; reason = 'aim'; }
 
-    // ---- smoothing: input-owned yaw/pitch track tightly (no felt latency); distance and fov ease
     const close = clamp((Math.min(want, 4) - Math.min(this.dist, 4)) / 2.6, 0, 1) * (sit.ceiling != null ? .3 : 1);
     pitchBias += this.rise + close * 9 * DEG;
     const wantPitch = clamp(this.pitch + pitchBias, this.limits.minPitch, this.limits.maxPitch);
@@ -119,7 +117,6 @@ export class AdaptiveCamera {
     this.fovS += (fov - this.fovS) * damp(5, t);
     this.shoulderS += (shoulder - this.shoulderS) * damp(10, t);
 
-    // ---- composition: chest target, a little ground ahead of the view, and a subtle travel lead
     const fx = -Math.sin(this.yawS), fz = -Math.cos(this.yawS), rx = Math.cos(this.yawS), rz = -Math.sin(this.yawS);
     const v = sit.velocity ?? { x: 0, z: 0 }, sp = Math.hypot(v.x, v.z);
     const leadK = sit.aiming ? 0 : Math.min(1.4, sp * .22);
@@ -132,7 +129,6 @@ export class AdaptiveCamera {
     const tk = damp(18, t);
     this.target = { x: this.target.x + (tx - this.target.x) * tk, y: this.target.y + (ty - this.target.y) * tk, z: this.target.z + (tz - this.target.z) * tk };
 
-    // ---- obstruction: shorten instantly, recover after the ray has stayed clear (no in/out popping)
     const cp = Math.cos(this.pitchS), back = { x: -fx * cp, y: Math.sin(this.pitchS), z: -fz * cp };
     const eye = { x: sit.pivot.x + rx * this.shoulderS, y: sit.pivot.y + .1, z: sit.pivot.z + rz * this.shoulderS };
     const clear = obstruct(eye, back, Math.max(want, this.dist) + .4);
@@ -171,7 +167,6 @@ export class AdaptiveCamera {
 export function marchObstruction(blocked: (x: number, y: number, z: number) => boolean, radius = .28, step = .22): ObstructionQuery {
   return (from, dir, max, single) => {
     if (single) { for (let d = step * 1.5; d < max; d += step * 1.5) if (blocked(from.x + dir.x * d, from.y + dir.y * d, from.z + dir.z * d)) return Math.max(0, d - step * 1.5); return max; }
-    // Perpendicular basis for the offsets.
     const ux = -dir.z, uz = dir.x, ul = Math.hypot(ux, uz) || 1;
     const offs = [[0, 0, 0], [ux / ul * radius, 0, uz / ul * radius], [-ux / ul * radius, 0, -uz / ul * radius], [0, radius, 0], [0, -radius * .7, 0]];
     const hits = offs.map(([ox, oy, oz]) => {

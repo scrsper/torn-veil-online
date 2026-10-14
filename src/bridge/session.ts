@@ -172,7 +172,6 @@ export class BridgeSession {
   }
   save(compactEvents = false): string { return serialize(this.world, compactEvents); }
 
-  // ── channel lifecycle ─────────────────────────────────────────────────────────────────────
   channel(id = LOCAL_CHANNEL): ControllerChannel | undefined { return this.channels.get(id); }
   channelIds(): string[] { return [...this.channels.keys()]; }
   /** Route a connection to an existing living Person. Fails if another channel controls it. */
@@ -607,7 +606,7 @@ export class BridgeSession {
     if (!speaker) return 'interaction_unavailable';
     ch.dialogueState = this.dialogue.start(speaker, player);
     ch.dialogueSpeakerBodyId = targetBodyId;
-    speaker.mind.addressedBy = { entityId: player.id, until: this.world.physicalTime + ADDRESS_HOLD_SECONDS }; // they stop to listen at once
+    speaker.mind.addressedBy = { entityId: player.id, until: this.world.physicalTime + ADDRESS_HOLD_SECONDS };
     ch.dialogueRevision++;
     return 'accepted';
   }

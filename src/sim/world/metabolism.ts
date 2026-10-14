@@ -35,7 +35,6 @@ export { stockTotal, addPlaceStock, takePlaceStock } from './stock';
  * `harvestPlot` / `plantPlot` / `bake` / `drinkAt` APIs.
  */
 
-// ---- tuning (world-time hours). Legible constants, not scattered magic numbers.
 /**
  * Hours from planted to mature at full soil moisture. Dry fields take proportionally longer.
  * v0.4 §14 recalibration: real-world annual crops take roughly 8-12 weeks; Torn Veil uses
@@ -93,7 +92,6 @@ export const WATER_THIRST_RESTORE = 0.85;
 
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
-// ---------------------------------------------------------------- field creation
 /**
  * Build one `Field` per farm `Place`, reading the farm's already-generated Farmland cells to
  * seed plot state (a `B.Wheat` cell → `mature`, anything else → `fallow`). Call once, during
@@ -149,7 +147,6 @@ export function syncFieldBlocks(world: World): void {
   for (const f of world.fields) for (const p of f.plots) projectCrop(world, p);
 }
 
-// ---------------------------------------------------------------- per-tick model
 /**
  * Advance soil moisture (from current weather) and crop growth (scaled by moisture) by
  * `hours` of world time. Deterministic. Emits only semantic transitions (`crop_matured`),
@@ -162,7 +159,7 @@ export function stepMetabolism(world: World, hours: number): void {
   const drying = wetting > 0 ? 0
     : wk === 'clear' ? DRY_MOISTURE_PER_HOUR
     : wk === 'fog' ? DRY_MOISTURE_PER_HOUR * 0.3
-    : DRY_MOISTURE_PER_HOUR * 0.6; // cloudy
+    : DRY_MOISTURE_PER_HOUR * 0.6;
   for (const f of world.fields) {
     f.soilMoisture = clamp01(f.soilMoisture + (wetting - drying) * hours);
     const mf = moistureGrowthFactor(f.soilMoisture);
@@ -200,7 +197,6 @@ export function moistureGrowthFactor(m: number): number {
   return Math.min(1, 0.1 + m * 2);
 }
 
-// ---------------------------------------------------------------- farmer actions
 export interface FieldWork { field: Field; plot: CropPlot; }
 
 /** The most useful plot in a field for a given intent, or null. */
@@ -247,7 +243,7 @@ export function plantPlot(world: World, field: Field, plot: CropPlot, farmer: Pe
  */
 export function harvestPlot(world: World, field: Field, plot: CropPlot, farmer: Person): number {
   if (plot.state !== 'mature') return 0;
-  const yield_ = GRAIN_PER_PLOT_BASE + ((plot.x + plot.z) % 4); // deterministic small spread
+  const yield_ = GRAIN_PER_PLOT_BASE + ((plot.x + plot.z) % 4);
   plot.state = 'harvested'; plot.growth = 0; plot.harvestedAt = world.now; plot.lastYield = yield_;
   projectCrop(world, plot);
   const ev = world.emit('crop_harvested', {
@@ -260,7 +256,6 @@ export function harvestPlot(world: World, field: Field, plot: CropPlot, farmer: 
   return yield_;
 }
 
-// ---------------------------------------------------------------- resource transforms
 const retireItem = retireStack;
 
 export interface TransformResult { ok: boolean; produced: number; consumed: number; shortage?: ItemType; eventId?: EventId; }
@@ -460,7 +455,6 @@ export function huntGame(world: World, hunter: Person): boolean {
   return !!node && extractFromNode(world, node, hunter) > 0;
 }
 
-// ---------------------------------------------------------------- eating & drinking
 /**
  * Find a food item this person can legitimately eat: their own inventory first, then unheld
  * food at their current position's place, owned by them or nobody —
@@ -592,10 +586,6 @@ export function takePortionInHand(world: World, taker: Person, stack: Item, n: n
 export function eatFood(world: World, p: Person, food: Item): ItemType {
   food.quantity -= 1;
   if (food.quantity <= 0) {
-    // v0.6 §II: `food` may be a fellow household member's carried stack (see
-    // `findAccessibleFood`), not necessarily `p`'s own — clean up whoever actually holds it,
-    // not just `p`, so a shared family meal never leaves a stale item id in someone else's
-    // inventory pointing at a retired item. v0.10.1: `retireStack` now resolves the holder itself.
     retireItem(world, food);
   }
   eatRestoresEnergy(p, FOOD_HUNGER_RESTORE);
@@ -635,7 +625,6 @@ export function drinkAt(world: World, p: Person, sourcePlaceId?: EntityId): bool
   return true;
 }
 
-// ---------------------------------------------------------------- spoilage (v0.3 Priority 14, recalibrated v0.4 §14)
 /**
  * Advance stock spoilage by `hours` of world time. Stack-level batched: each perishable stack
  * accumulates fractional loss between passes and drops whole units when the accumulator crosses
@@ -672,7 +661,6 @@ export function stepSpoilage(world: World, hours: number): void {
   }
 }
 
-// ---------------------------------------------------------------- observability
 export interface MetabolismSummary {
   fields: number;
   avgSoilMoisture: number;

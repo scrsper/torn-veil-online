@@ -28,7 +28,6 @@ export function buildStaticProps(scene: Scene, mats: MaterialLibrary, r: RegionP
   const props = new MeshBatch(), fenceBatch = new MeshBatch();
   const overhead = new Map<string,{batch:MeshBatch;place:PlaceProjection}>();
 
-  // ── furniture ──────────────────────────────────────────────────────────────────────────────────
   const wallDir = (x: number, y: number, z: number): [number, number] | null => {
     if (!cells) return null;
     for (const [dx, dz] of NEIGHBOURS) if (cells.get(x + dx, y, z + dz) !== 0) return [dx, dz];
@@ -61,7 +60,6 @@ export function buildStaticProps(scene: Scene, mats: MaterialLibrary, r: RegionP
     if (res.light) out.lights.push({ x: cx, y: (f.role === 'lantern' ? y + 0.55 : y) + res.light.y, z: cz, color: res.light.color, intensity: res.light.intensity, range: res.light.range, kind: 'torch' });
   });
 
-  // ── fences ─────────────────────────────────────────────────────────────────────────────────────
   const fenceAt = new Set(r.fences.map(([x, y, z]) => `${x},${y},${z}`));
   for (const [x, y, z] of r.fences) {
     const lx = x + 0.5 - x0, lz = z + 0.5 - z0, w = COLORS.oak, seed = x * 7 + z;
@@ -91,7 +89,6 @@ export function buildStaticProps(scene: Scene, mats: MaterialLibrary, r: RegionP
     }
   }
 
-  // ── doors ──────────────────────────────────────────────────────────────────────────────────────
   for (const [x, y, z, open] of r.openings) {
     const alongX = cells ? (cells.get(x - 1, y + 1, z) !== 0 && cells.get(x + 1, y + 1, z) !== 0) : true;
     // Swing away from the side that has more free space: outward from the building.
@@ -108,7 +105,6 @@ export function buildStaticProps(scene: Scene, mats: MaterialLibrary, r: RegionP
 
 function buildDoor(scene: Scene, mats: MaterialLibrary, r: RegionProjection, x: number, y: number, z: number, alongX: boolean, parent: TransformNode, meshes: Mesh[], bounds?: PlaceProjection['bounds']): DoorHandle {
   const lx = x - r.bounds.x0, lz = z - r.bounds.z0;
-  // Frame: fixed, in region space.
   const frame = new MeshBatch(), dk = COLORS.darkOak, t = 0.12;
   const fb = new PropBuilder(frame, lx + 0.5, y, lz + 0.5, alongX ? 0 : Math.PI / 2);
   fb.box(-0.5, 0, -0.56, t, 2.14, 1.12, dk); fb.box(0.5 - t, 0, -0.56, t, 2.14, 1.12, dk); fb.box(-0.5, 2.0, -0.56, 1, 0.14, 1.12, dk);

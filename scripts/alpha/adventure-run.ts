@@ -28,7 +28,6 @@ const home = w.settlements().sort((a, b) => bot.dist(a.location, bot.body.pos) -
 const placeOf = (type: string) => w.places().filter(pl => pl.type === type).sort((a, b) => bot.dist(a.inside, home.location) - bot.dist(b.inside, home.location))[0];
 note('start', { person: p.id, wealth: p.wealth, settlement: home.name });
 
-// 1. Discovery: ask people for work until someone speaks of a dangerous animal.
 let request: Request | undefined, requester: Person | undefined;
 const asked = new Map<string, number>();
 while (!request && (w.now - worldStart) / DAY < days) {
@@ -53,14 +52,13 @@ while (!request && (w.now - worldStart) / DAY < days) {
     // Diagnostic only (never read by the player's choices): whether any opportunity exists yet.
     note('round', { asked: people.length, diagnosticOpenProtection: w.requests.filter(x => x.type === 'protection' && x.status === 'open').length,
       diagnosticBoarAttacks: w.events.filter(e => e.type === 'attack' && w.get(e.actor!)?.kind === 'creature').length });
-    bot.offline(1800); // back to ordinary life for a while; the world keeps happening
+    bot.offline(1800);
   }
 }
 if (!request || !requester) finish('no_opportunity_found', { worldDays: (w.now - worldStart) / DAY });
 const r = request!, asker = requester!;
 const place = r.payload.placeId ? w.place(r.payload.placeId) : undefined;
 
-// 2. Preparation.
 if (approach === 'hunt') {
   const tavern = placeOf('tavern');
   for (let attempt = 0; attempt < 12 && !p.inventory.some(id => w.item(id)?.type === 'dagger'); attempt++) {
@@ -82,7 +80,6 @@ if (approach === 'hunt') {
   if (!knowsVeil(p)) note('unprepared', { reason: 'no lesson' });
 }
 
-// 3. Travel and search: the named place, then look around it with the player's own eyes.
 const seen = () => (s.snapshot(false).wildlife?.bodies ?? []).filter(b => b.speciesId === 'woodland_boar' && !b.dead && b.ageClass === 'adult');
 let target = seen()[0];
 for (let sweep = 0; sweep < 40 && !target; sweep++) {
@@ -96,7 +93,6 @@ for (let sweep = 0; sweep < 40 && !target; sweep++) {
 if (!target) finish('animal_not_found', { requestId: r.id, place: place?.name });
 note('found', { bodyId: target!.bodyId, creatureId: target!.creatureId, sameAsRequested: target!.creatureId === r.payload.creatureId, distance: +bot.dist(target!.pos, bot.body.pos).toFixed(1) });
 
-// 4. Encounter.
 const tb = w.body(target!.bodyId)!;
 const view = () => (s.snapshot(false).wildlife?.bodies ?? []).find(b => b.bodyId === tb.id);
 let outcome = 'unresolved';
@@ -136,7 +132,6 @@ if (approach === 'hunt') {
   outcome = result === 'calmed' ? 'animal_stilled' : 'hush_failed';
 }
 
-// 5. Return to the requester and claim.
 const wealthBefore = p.wealth, askerBefore = asker.wealth, trustBefore = asker.relationships[p.id]?.trust ?? 0;
 let claimLines: string[] = [];
 for (let attempt = 0; attempt < 10 && r.status === 'accepted'; attempt++) {
@@ -149,7 +144,6 @@ for (let attempt = 0; attempt < 10 && r.status === 'accepted'; attempt++) {
 if (approach === 'hunt') outcome = r.status === 'completed' ? `paid_${r.payload.settledBy}` : tb.dead ? 'killed_unpaid' : 'failed';
 else outcome = r.status === 'completed' ? `paid_${r.payload.settledBy}` : outcome === 'animal_stilled' ? 'stilled_unpaid' : outcome;
 
-// 6. Consequences, knowledge and continuity.
 const knowers = w.livingPersons().filter(q => q.id !== p.id && Object.values(q.knowledge).some(k => k.kind === 'event' && ((k.claim.type === 'kill' || k.claim.type === 'veil_hush') && k.claim.target === tb.ownerId)));
 const farAway = w.livingPersons().filter(q => bot.dist(w.positionOf(q.id)!, home.location) > 2000);
 const farKnowers = farAway.filter(q => knowers.includes(q));

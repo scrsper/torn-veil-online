@@ -221,10 +221,9 @@ export class App {
       // Rendering here between frames submits a texture the browser has already retired.
       for (let i = 0; i < 3; i++) await new Promise<void>(r => requestAnimationFrame(() => r()));
     } catch (e) { console.warn('renderer warm-up skipped', e); }
-    finally { for (const v of made) { try { v.dispose(); } catch { /* already gone */ } } }
+    finally { for (const v of made) { try { v.dispose(); } catch { } } }
   }
 
-  // ── settings ─────────────────────────────────────────────────────────────────────────────────
   applyUiSettings(): void {
     this.ui.dataset.view = this.settings.viewMode;
     const s = this.settings, h1 = window.innerHeight, base = 17 * Math.max(1, Math.min(1.6, h1 / 1080)) * s.uiScale * (s.textSize === 'large' ? 1.15 : 1);
@@ -241,7 +240,6 @@ export class App {
     if (patch.resolutionScale !== undefined) this.ctx.engine.setHardwareScalingLevel(1 / patch.resolutionScale);
   }
 
-  // ── screens ──────────────────────────────────────────────────────────────────────────────────
   private clearScreen(): void { this.screen?.remove(); this.screen = null; }
   private remembered(): { name: string } | null { try { const v = localStorage.getItem(REMEMBER_KEY); return v ? JSON.parse(v) : null; } catch { return null; } }
   private remember(name: string): void { try { localStorage.setItem(REMEMBER_KEY, JSON.stringify({ name })); } catch { /* storage unavailable */ } }
@@ -282,7 +280,6 @@ export class App {
       onClose: () => undefined, footer: f => f.append(h('button', { class: 'tv-btn', type: 'button', on: { click: () => this.modal.close() } }, 'Close')) });
   }
 
-  // ── connection ───────────────────────────────────────────────────────────────────────────────
   play(choice: CharacterChoice): void {
     this.clearScreen(); this.phase = 'connecting'; this.closedFinal = false; this.choice = choice; this.snapshot = null; this.wantedRegions = []; this.predictor.reset(); this.actors.clear();
     this.loading = loadingScreen(this.overlay, choice.kind === 'new' ? 'Being born…' : 'Entering the world…'); this.screen = this.loading as { remove(): void };
@@ -317,7 +314,6 @@ export class App {
     this.screen = noticeScreen(this.overlay, titles[info.kind] ?? 'Disconnected', info.reason || 'The connection closed.', actions);
   }
 
-  // ── snapshot handling ────────────────────────────────────────────────────────────────────────
   own(): BodyState | null { const s = this.snapshot; return s ? s.bodies.find(b => b.bodyId === s.controlledBodyId) ?? null : null; }
   private camPrev: { x: number; z: number } | null = null; private camVel = { x: 0, z: 0 };
   /** What the camera should know about the surroundings (presentation only; read from the snapshot). */
@@ -404,7 +400,6 @@ export class App {
     this.focus = { target: best, refusal };
   }
 
-  // ── actions ──────────────────────────────────────────────────────────────────────────────────
   async act(request: Record<string, unknown>, label: string): Promise<void> {
     const r = await this.link.intent(request); const d = describeResult(r.result);
     this.hud.toast(r.result === 'accepted' ? `${label}.` : d.text, r.result === 'accepted' ? 'good' : d.tone === 'info' ? 'bad' : d.tone);
@@ -490,7 +485,6 @@ export class App {
   private async saveNow(): Promise<void> { const r = await this.link.requestSave(); this.hud.toast(r.result === 'saved' || r.result === 'accepted' ? 'The world is saved.' : describeResult(r.result).text, r.result === 'saved' || r.result === 'accepted' ? 'good' : 'bad'); }
   private afterModal(): void { this.ignoreEscUntil = performance.now() + 250; if (this.phase === 'playing' && this.input.device === 'keyboard' && !this.dialogue.isOpen) queueMicrotask(() => this.input.requestLock()); }
 
-  // ── hints ────────────────────────────────────────────────────────────────────────────────────
   private updateHints(): void {
     if (!this.settings.showHints || this.phase !== 'playing') { this.hud.setHints([]); return; }
     const k = (a: Parameters<InputManager['promptCode']>[0]) => codeLabel(this.input.promptCode(a), this.input.device);
@@ -504,7 +498,6 @@ export class App {
     this.hud.setHints(lines.slice(0, 3));
   }
 
-  // ── frame ────────────────────────────────────────────────────────────────────────────────────
   private frame(): void {
     const now = performance.now(), dtRaw = (now - this.lastFrame) / 1000; this.lastFrame = now; this.frameMs.push(dtRaw * 1000); noteSlow('frame gap', dtRaw * 1000, 45); if (this.frameMs.length > 4000) this.frameMs.shift();
     const dt = Math.min(0.1, dtRaw);
@@ -534,7 +527,6 @@ export class App {
   }
   private gameFrame(dt: number, now: number, wasOpen: boolean): void {
     const inp = this.input, s = this.snapshot, own = this.own();
-    // Global actions.
     const menuFree = !this.modal.isOpen && !wasOpen && !this.screen;
     if (menuFree && !this.dialogue.isOpen) {
       if (inp.pressed('pause') && now > this.ignoreEscUntil) this.openPause();
@@ -552,12 +544,10 @@ export class App {
       if (this.dialogue.isOpen === false && (inp.look.x || inp.look.y)) { this.rig.addLook(inp.look.x, inp.look.y); this.hintState.looked = true; }
       if (inp.wheel) this.rig.zoom(inp.wheel);
     }
-    // Talk camera.
     const partner = this.speakerPos();
     if (this.dialogue.isOpen && partner) { this.rig.setMode('talk'); this.rig.setTalk({ x: partner.x - this.regions.origin.x, y: partner.y - this.regions.origin.y + 1.5, z: partner.z - this.regions.origin.z }); }
     else if (now < this.combatUntil || this.controller.guardHeld || this.controller.lockedBodyId) { this.rig.setMode('combat'); this.rig.setTalk(null); }
     else { this.rig.setMode('explore'); this.rig.setTalk(null); }
-    // Movement, prediction and commands.
     if (this.rig.isometric && this.input.pointer.active && this.predictor.predicted) {
       const rect = this.ctx.canvas.getBoundingClientRect(), p = this.predictor.predicted.pos;
       const ray = this.ctx.scene.createPickingRay((inp.pointer.x - rect.left) * this.ctx.engine.getRenderWidth() / rect.width, (inp.pointer.y - rect.top) * this.ctx.engine.getRenderHeight() / rect.height, Matrix.Identity(), this.camera);
@@ -566,12 +556,10 @@ export class App {
     }
     this.controller.update(dt);
     if (this.controller.moving) this.hintState.moved = true;
-    // Own body.
     const vis = this.predictor.visual();
     const lock = this.controller.lockedBodyId ? this.candidates().find(c => c.bodyId === this.controller.lockedBodyId) : undefined;
     this.rig.setLock(lock ? { x: lock.pos.x - this.regions.origin.x, y: lock.pos.y + 1.2 - this.regions.origin.y, z: lock.pos.z - this.regions.origin.z } : null);
     this.actors.update(dt, now, vis && this.ownBodyId ? { bodyId: this.ownBodyId, pos: vis.pos, yaw: vis.yaw, crouch: vis.crouch } : null);
-    // Camera.
     if (vis) {
       const eye = own?.embodiment?.activity.posture === 'sit' ? 1.05 : own?.embodiment?.activity.posture === 'lie' ? 0.5 : 1.55;
       this.rig.pivotDrop = (INTERACTION_SPEC.height - INTERACTION_SPEC.duckHeight) * vis.crouch * 0.9;
@@ -581,7 +569,6 @@ export class App {
       this.rig.update(dt, { x: vis.pos.x - this.regions.origin.x, y: vis.pos.y - this.regions.origin.y + eye, z: vis.pos.z - this.regions.origin.z }, vis.yaw);
     }
     this.regions.updateCutaway(this.rig.cutaway ? vis?.pos ?? null : null, this.camera.position, this.rig.cutaway ? lock?.pos ?? null : null);
-    // World.
     const hour = this.params.get('hour') ? Number(this.params.get('hour')) : ((this.regions.worldTime / 3600) % 24 + 24) % 24;
     this.atmosphere.update(hour, this.regions.weather, dt); this.atmosphere.follow(this.camera.position);
     if (this.params.has('gym') && this.params.get('scenario') !== 'town') { this.atmosphere.setStage(new Color3(.84, .86, .88)); this.atmosphere.key.diffuse = Color3.White(); this.atmosphere.fill.diffuse = Color3.White(); this.atmosphere.fill.groundColor = new Color3(.45, .45, .45); }
@@ -592,7 +579,6 @@ export class App {
     if (this.controller.lockedBodyId === null && now > this.combatUntil && this.rig.mode === 'combat') this.rig.setMode('explore');
     this.weatherFx.update(this.camera.position, this.regions.weather.kind, this.regions.weather.intensity);
     this.audioFrame(dt, now);
-    // HUD (10 Hz).
     if (now - this.lastHudAt > 100 && s) { this.lastHudAt = now; this.updateHud(s, own); }
   }
   private humanFootfall(bodyId: string, point: Vec3, speed: number): void {
@@ -647,7 +633,6 @@ export class App {
     void this.moveTimer;
   }
 
-  // ── evidence helpers ─────────────────────────────────────────────────────────────────────────
   get slowEvents() { return slowEvents(); }
   /** With quality on auto: sustained slow frames step the renderer down a tier (or its scale). Never steps up. */
   private runGovernor(now: number): void {

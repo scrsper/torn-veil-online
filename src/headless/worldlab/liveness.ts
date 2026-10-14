@@ -218,7 +218,7 @@ export const LIVENESS: LivenessCheck[] = [
           for (const [name, d0] of start) {
             if (d0.status !== 'gathering') continue;
             const d1 = end.get(name);
-            if (!d1 || d1.status !== 'gathering') continue; // it progressed past gathering — fine
+            if (!d1 || d1.status !== 'gathering') continue;
             const def0 = deficitOf(d0), def1 = deficitOf(d1);
             if (def1 >= def0 && def1 > 0) {
               const stuckResource = Object.entries(d1.required).map(([res, need]) => ({ res, missing: need - (d1.delivered[res] ?? 0) })).filter(r => r.missing > 0).sort((a, b) => b.missing - a.missing)[0];

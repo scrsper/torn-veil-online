@@ -10,8 +10,6 @@ interface TradingSimulation extends Simulation {
 }
 
 describe('canonical trading', () => {
-  // Player embodiment: money is `Person.wealth` for every person — the player included. These
-  // tests used to assert a player-only carried coin stack (retired: see docs/PLAYER_EMBODIMENT.md).
   it('pays a selling player into their wealth — no coin item is minted', () => {
     const tw = createTestWorld(81, 16);
     const player = addPerson(tw, 'the Traveler', 'traveler', v(4.5, 1, 4.5), { controlled: true });

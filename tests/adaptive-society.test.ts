@@ -102,7 +102,6 @@ function findsTheBinEmpty(tw: TW, worker: Person, place: Place): void {
   noteWorkBlocked(tw.world, worker, place.id, process.input, process.output);
 }
 
-// =============================================================================================
 describe('Adaptive Society — 1. a lost worker is a real production loss', () => {
   it('stops the mill, and the stoppage is derived from staffing, demand and output rather than flagged', () => {
     const tw = createTestWorld(5101, 40);
@@ -141,7 +140,6 @@ describe('Adaptive Society — 1. a lost worker is a real production loss', () =
 
     expect(unfitReason(tw.world, hobb, pl.mill)).toBeNull();
 
-    // incapacitated
     body.pose = 'downed';
     expect(unfitReason(tw.world, hobb, pl.mill)).toBe('incapacitated');
     body.pose = 'stand';
@@ -151,12 +149,10 @@ describe('Adaptive Society — 1. a lost worker is a real production loss', () =
     expect(unfitReason(tw.world, hobb, pl.mill)).toBe('badly hurt');
     body.health = body.maxHealth;
 
-    // left
     body.pos = { x: 135, y: 1, z: 135 };
     expect(unfitReason(tw.world, hobb, pl.mill)).toBe('away');
     body.pos = { ...pl.mill.inside };
 
-    // held
     hobb.custody = { active: true, byId: hobb.id, byFactionId: null, reason: 'test', since: 0, startedAt: 0, releaseAt: 0 } as unknown as Person['custody'];
     expect(unfitReason(tw.world, hobb, pl.mill)).toBe('held');
     hobb.custody = undefined;
@@ -167,7 +163,6 @@ describe('Adaptive Society — 1. a lost worker is a real production loss', () =
   });
 });
 
-// =============================================================================================
 describe('Adaptive Society — 2. the shortage reaches a decision', () => {
   it('turns a stopped trade into a supply worry that lifts work which actually makes the material', () => {
     const tw = createTestWorld(5201, 40);
@@ -187,7 +182,6 @@ describe('Adaptive Society — 2. the shortage reaches a decision', () => {
   });
 });
 
-// =============================================================================================
 describe('Adaptive Society — 3 & 4. who responds, and who does not', () => {
   /** A stopped mill, a baker who has found his own bin empty, and a stranger who has not. */
   function stoppedMill(seed: number) {
@@ -267,7 +261,6 @@ describe('Adaptive Society — 3 & 4. who responds, and who does not', () => {
   });
 });
 
-// =============================================================================================
 describe('Adaptive Society — 5 & 6. a novice is worse at it, and gets better by doing it', () => {
   it('gets less flour out of the same grain, and takes longer over it', () => {
     const tw = createTestWorld(5501, 40);
@@ -326,7 +319,6 @@ describe('Adaptive Society — 5 & 6. a novice is worse at it, and gets better b
   });
 });
 
-// =============================================================================================
 describe('Adaptive Society — 7. being shown how is not being able', () => {
   function pair(seed: number) {
     const tw = createTestWorld(seed, 40);
@@ -379,7 +371,7 @@ describe('Adaptive Society — 7. being shown how is not being able', () => {
     const { tw, tomas } = pair(5704);
     const other = addPerson(tw, 'Other', 'vagrant', v(6, 1, 6));
     expect(teachingOpportunity(tw.world, tomas, other, 'milling')).toBeNull();
-    expect(teach(tw.world, tomas, other, 'milling')).toBeTruthy(); // the raw act still records
+    expect(teach(tw.world, tomas, other, 'milling')).toBeTruthy();
     // ...but the guarded path — the one the simulation actually uses — never reaches it.
     expect(instructionOf(other, 'milling')).toBeTruthy();
     expect(skillOf(other, 'milling')).toBe(0);
@@ -392,7 +384,6 @@ describe('Adaptive Society — 7. being shown how is not being able', () => {
   });
 });
 
-// =============================================================================================
 describe('Adaptive Society — 8. circumstances decide, so the successor can differ', () => {
   /**
    * Two plausible people and one stopped mill. Nothing distinguishes the scenarios except
@@ -446,7 +437,6 @@ describe('Adaptive Society — 8. circumstances decide, so the successor can dif
   });
 });
 
-// =============================================================================================
 describe('Adaptive Society — 9. a society may simply fail to adapt', () => {
   it('leaves the mill stopped when nobody who could is anybody who knows', () => {
     const tw = createTestWorld(5901, 40);
@@ -475,7 +465,6 @@ describe('Adaptive Society — 9. a society may simply fail to adapt', () => {
   });
 });
 
-// =============================================================================================
 describe('Adaptive Society — 10. resumed production eases the shortage downstream', () => {
   it('walks flour from a stand-in at the mill to the bakery and settles the baker\'s worry', () => {
     const tw = createTestWorld(6001, 40);
@@ -563,7 +552,6 @@ describe('Adaptive Society — 10. resumed production eases the shortage downstr
   });
 });
 
-// =============================================================================================
 describe('Adaptive Society — 11. a label grants nothing', () => {
   it('does not let an occupation confer the capability, the yield, or the standing', () => {
     const tw = createTestWorld(6101, 40);
@@ -610,7 +598,6 @@ describe('Adaptive Society — 11. a label grants nothing', () => {
   });
 });
 
-// =============================================================================================
 describe('Adaptive Society — the causal trace', () => {
   it('walks a stand-in\'s decision back to the shortage that caused it', () => {
     const tw = createTestWorld(6201, 40);

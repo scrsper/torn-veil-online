@@ -24,7 +24,7 @@ describe('trade menu rows', () => {
     expect(seller).toBeTruthy();
     const pb = w.primaryBody(player.id)!, sb = w.primaryBody(seller.id)!;
     pb.pos = { ...sb.pos, x: sb.pos.x + 1 };
-    for (let i = 0; i < 30; i++) s.stepInteraction(); // let them see each other
+    for (let i = 0; i < 30; i++) s.stepInteraction();
     expect(say(s, { type: 'talk', targetBodyId: sb.id })).toBe('accepted');
     const trade = s.snapshot(false).dialogue!.options.find(o => o.label === 'Trade')!;
     expect(say(s, { type: 'dialogue_option', optionId: trade.id })).toBe('accepted');

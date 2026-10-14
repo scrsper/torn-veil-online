@@ -25,7 +25,7 @@ export const SURRENDER_HOLD_SECONDS = 6 * 3600;
 export function custodyDurationFor(crimeType?: string): number {
   if (crimeType === 'kill') return 6 * SECONDS_PER_DAY;
   if (crimeType === 'attack') return 3 * SECONDS_PER_DAY;
-  return 1.5 * SECONDS_PER_DAY; // theft / unspecified
+  return 1.5 * SECONDS_PER_DAY;
 }
 
 /** Voluntary yield. The actor stops fighting; a non-lethal aggressor is expected to stop too

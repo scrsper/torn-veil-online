@@ -139,7 +139,6 @@ export function willingnessFor(world: World, seller: Person, it: Item, buyer?: P
 
   if (buyer && refusesToDeal(seller, buyer)) return no('hostile', `${seller.name} will not deal with you`);
 
-  // ---- 1. authority. Their own property, or stock at a place they speak for.
   const place = placeOf(world, it);
   const ownsIt = it.ownerId === seller.id;
   const speaksForPlace = operatesPlace(seller, place);
@@ -147,11 +146,9 @@ export function willingnessFor(world: World, seller: Person, it: Item, buyer?: P
     return no('not_theirs', it.ownerId ? `that belongs to ${world.nameOf(it.ownerId)}` : 'that is not theirs to sell');
   }
 
-  // ---- 2. already spoken for.
   if (it.haulTaskId) return no('committed', 'that is cargo, promised somewhere else');
   if (isWorkingTool(seller, it)) return no('needed_for_work', `${seller.name} needs that to work`);
 
-  // ---- 3. is it stock at all, or is it their own life?
   const commercial = !!place && !it.holderId && (COMMERCIAL_PLACE_TYPES.has(place.type) || onDisplay(place, it));
   const atHome = !!place && place.id === seller.homeId;
   if (!commercial && (atHome || it.holderId === seller.id)) {
@@ -162,7 +159,6 @@ export function willingnessFor(world: World, seller: Person, it: Item, buyer?: P
   }
   if (!commercial && !atHome && it.holderId !== seller.id && !ownsIt) return no('not_theirs', 'that is not theirs to sell');
 
-  // ---- 4. what is left after what is promised and what they need.
   let available = it.quantity - committedUnits(world, it);
   if (available <= 0) return no('committed', 'that is already promised to someone');
 

@@ -76,14 +76,8 @@ export const BLOCKS: Record<number, BlockDef> = {
   [B.Snow]: { name: 'snow', color: c(240, 244, 250), shape: 'cube', solid: true, opaque: true, walkCost: 1.5 },
   [B.Mud]: { name: 'mud', color: c(80, 62, 44), shape: 'cube', solid: true, opaque: true, walkCost: 2, noise: 0.08 },
   [B.Plaster]: { name: 'plaster', color: c(226, 214, 190), shape: 'cube', solid: true, opaque: true, walkCost: 1, noise: 0.04 },
-  // v0.2.4: a young/growing crop — green, short. Mature wheat stays B.Wheat (golden). The
-  // renderer projects a CropPlot's canonical state onto one of {Air, Sprout, Wheat}.
   [B.Sprout]: { name: 'sprouts', color: c(120, 170, 80), shape: 'cross', solid: false, opaque: false, walkCost: 1, height: 0.5 },
-  // v0.8 §C: a just-sown plot — shorter and sparser than a Sprout (real growth, not yet begun),
-  // so "just planted" reads visibly different from "already growing".
   [B.Seedling]: { name: 'seedlings', color: c(90, 140, 70), shape: 'cross', solid: false, opaque: false, walkCost: 1, height: 0.25 },
-  // v0.8 §C: cut stalks left after harvest — pale/dry, low, visibly distinct from both a
-  // never-planted fallow plot (bare Farmland, Air above it) and from standing Wheat.
   [B.Stubble]: { name: 'stubble', color: c(170, 150, 110), shape: 'cross', solid: false, opaque: false, walkCost: 1, height: 0.2 },
 };
 export function blockDef(id: number): BlockDef { return BLOCKS[id] ?? BLOCKS[B.Air]; }

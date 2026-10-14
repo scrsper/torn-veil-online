@@ -246,7 +246,6 @@ export class ArenaWorld {
     this.lineMat = new StandardMaterial('aim-line', scene); this.lineMat.emissiveColor = new Color3(1, .15, .1); this.lineMat.disableLighting = true; this.lineMat.alpha = .55;
   }
 
-  // ------------------------------------------------------------------ setup
   reset(seed: number): void {
     for (const f of this.fighters) this.removeFighter(f);
     for (const p of this.props) { p.mesh.dispose(); p.blob?.dispose(); }
@@ -328,7 +327,6 @@ export class ArenaWorld {
     }
     // Pot forest (the reference's dark vases), north-east.
     for (let i = 0; i < 9; i++) for (let j = 0; j < 6; j++) if (r() < .8) this.place(r() < .7 ? 'pot' : 'jar', 8 + i * 2 + jitter(.6), -22 + j * 2.1 + jitter(.6), r() * TAU);
-    // Barrels and kegs, south-west.
     for (let i = 0; i < 6; i++) for (let j = 0; j < 4; j++) if (r() < .85) this.place(r() < .2 ? 'keg' : r() < .35 ? 'barrel_small' : 'barrel', -24 + i * 2.6 + jitter(.5), 12 + j * 2.6 + jitter(.5), r() * TAU);
     // Crate stacks and a wall of crates, south-east.
     for (let i = 0; i < 8; i++) this.place(i % 3 ? 'crate' : 'crate_small', 10 + i * 2 + jitter(.3), 16 + jitter(.3), jitter(.3));
@@ -541,7 +539,6 @@ export class ArenaWorld {
     return this.ms(f).idle;
   }
 
-  // ------------------------------------------------------------------ frame
   step(dt: number, input: HeroInput): void {
     if (this.hitstop > 0) { this.hitstop -= dt; this.fx.update(dt); this.scene.animationTimeScale = 0; return; }
     this.scene.animationTimeScale = 1;
@@ -583,7 +580,6 @@ export class ArenaWorld {
       for (const m of f.inst.meshes) { m.renderOverlay = on; if (on) { m.overlayColor = f.role === 'hero' ? new Color3(1, .2, .15) : Color3.White(); m.overlayAlpha = .65; } }
       f.hpShown += (f.hp - f.hpShown) * Math.min(1, dt * 6);
     }
-    // Remove spent foes.
     for (const f of this.fighters) if (!f.alive && f.role === 'foe' && (f.deadT += dt) > 6) { this.removeFighter(f); f.radius = -1; }
     this.fighters = this.fighters.filter(f => f.radius >= 0);
   }
@@ -673,7 +669,6 @@ export class ArenaWorld {
     return false;
   }
 
-  // ------------------------------------------------------------------ hero
   private stepHero(dt: number, i: HeroInput): void {
     const h = this.hero, w = WEAPONS[this.weapon];
     if (!h.alive) return;
@@ -795,7 +790,6 @@ export class ArenaWorld {
         return;
       }
     }
-    // idle / move
     if (i.attackPressed || (i.attack && h.st > .05)) { h.combo = 0; h.heavyIdx = -1; this.startAttack(h, w.combo[0], aimYaw); return; }
     if (i.cast >= 0 && this.tryCast(h, i.cast, aimYaw)) return;
     if (i.guard && this.weapon !== 'bow') { h.state = 'guard'; h.st = 0; h.label = 'Guarding'; h.anim.play(this.ms(h).guard === this.ms(h).idle ? this.ms(h).block : this.ms(h).guard, { loop: true, fade: .12 }); return; }
@@ -1339,7 +1333,6 @@ export class ArenaWorld {
 
   private endAttack(f: Fighter): void { f.atk = null; if (f.trail) f.trail.active = false; f.cancelTell?.(); f.cancelTell = null; }
 
-  // ------------------------------------------------------------------ striking
   /** Resolve a melee swing's active window against foes and props. */
   private swing(f: Fighter, a: AttackDef): void {
     const live = f.atkT >= a.active[0] && f.atkT <= a.active[1];
@@ -1560,7 +1553,6 @@ export class ArenaWorld {
     return { x: p.pos.x + cx * c + cz * s, z: p.pos.z - cx * s + cz * c };
   }
 
-  // ------------------------------------------------------------------ ranged
   private fireBolt(f: Fighter, power = 1, orb = false): void {
     const dir = fwd(f.yaw);
     if (f.target && f.role !== 'hero') { const d = f.target.pos.subtract(f.pos); d.y = 0; dir.copyFrom(d.normalize()); }
@@ -1626,7 +1618,6 @@ export class ArenaWorld {
     f.aimLine.position.set(f.pos.x + Math.sin(y) * d / 2, 1.3, f.pos.z + Math.cos(y) * d / 2);
   }
 
-  // ------------------------------------------------------------------ AI
   private nearest(f: Fighter, team: 'hero' | 'foe', bias = (t: Fighter) => 1): Fighter | null {
     let best: Fighter | null = null, bd = Infinity;
     for (const t of this.fighters) {
@@ -1768,7 +1759,6 @@ export class ArenaWorld {
     this.fx.ring(f.pos, 3.5, .6, new Color3(.5, 1, .6)); this.ev.damage(f.pos.add(new Vector3(0, 2, 0)), Math.round(f.maxHp * .5), 'heal');
   }
 
-  // ------------------------------------------------------------------ physics & waves
   private integrate(f: Fighter, dt: number): void {
     if (f.radius < 0) return;
     f.pos.addInPlace(f.vel.scale(dt));

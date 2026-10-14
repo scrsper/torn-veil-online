@@ -113,7 +113,6 @@ export class RegionManager {
     let n = 0; const d = this.lastDynamics; if (!d) return 0; for (const f of d.fires) if (f.lit && Math.hypot(f.pos.x - x, f.pos.z - z) < 14) n++; return n;
   }
 
-  /** Whether built structure occupies the simulation-space point (used by the camera). */
   /** True when a simulation-space point lies inside a tree trunk, bush or rock (camera collision). */
   plantAt(x: number, y: number, z: number): boolean {
     const r = this.regions.get(this.regionOf(x, z)); if (!r) return false;

@@ -30,8 +30,7 @@ for (const seed of seeds) {
   generateVillage(world);
   const sim = new Simulation(world);
 
-  // --- per-person running state
-  const runLength = new Map<string, number>();          // person|goalKey -> consecutive adoptions
+  const runLength = new Map<string, number>();
   const lastGoals = new Map<EntityId, { key: string; at: number }[]>();
   const reselect = new Map<string, number>();
   const oscillation = new Map<string, number>();
@@ -87,7 +86,6 @@ for (const seed of seeds) {
     }
   });
 
-  // --- sampled state: someone in real physiological trouble doing something else entirely
   let neglectSamples = 0; let neglectWorst = ''; let worstNeglect = 0;
   const neglectStreak = new Map<EntityId, number>();
   const SAMPLE = 1800;

@@ -175,7 +175,6 @@ function earnProvisions(): boolean {
   return p.wealth>before;
 }
 
-// 1. Learn the veil from someone who keeps it, paying their fee.
 function learnVeil(): boolean {
   const keepers = w.livingPersons().filter(q => q.id !== p.id && knowsVeil(q)).sort((a, b) => dist(w.positionOf(a.id)!, body.pos) - dist(w.positionOf(b.id)!, body.pos));
   for (const keeper of keepers.slice(0, 3)) for (let attempt = 0; attempt < 6; attempt++) {
@@ -243,7 +242,6 @@ function practiceSession(physicalSeconds: number) {
     // Practice itself refuses a body below 0.3 energy or water, so hand back before that point.
     if (p.physiology.energy < 0.65 || p.physiology.hydration < 0.65) {
       // Drink free water and use carried/affordable food before taking a work shift.
-      // Thirst alone previously sent a well-fed but poor traveler gathering for hours.
       if (!provision()) {
         if (p.physiology.energy < 0.65 && p.wealth < 4 && p.physiology.energy > 0.35 && p.physiology.hydration > 0.4) earnProvisions();
         if (!provision()) return;

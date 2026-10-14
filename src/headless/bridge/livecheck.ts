@@ -67,12 +67,11 @@ async function main(): Promise<void> {
   let banner = '';
   bridge.stdout.on('data', d => { banner += String(d); });
   bridge.stderr.on('data', d => { banner += String(d); });
-  const stop = () => { try { process.kill(-bridge.pid!, 'SIGKILL'); } catch { try { bridge.kill('SIGKILL'); } catch { /* already gone */ } } };
+  const stop = () => { try { process.kill(-bridge.pid!, 'SIGKILL'); } catch { try { bridge.kill('SIGKILL'); } catch { } } };
   process.on('exit', stop);
   for (const sig of ['SIGINT', 'SIGTERM'] as const) process.on(sig, () => { stop(); process.exit(1); });
 
   try {
-    // ---------------------------------------------------------------- connect
     let hello: Row | null = null, scene: Scene | null = null;
     const snapshots: Snapshot[] = [];
     const results: Row[] = [];
@@ -106,7 +105,6 @@ async function main(): Promise<void> {
     check('bridge greets with hello + scene + snapshot', true);
     check('first native connection is granted control', (hello as Row).controls === true && typeof (hello as Row).playerId === 'string');
 
-    // ---------------------------------------------------------------- identity
     const first = snapshots[snapshots.length - 1];
     const playerId = first.playerId;
     const player = first.bodies.find(b => b.entityId === playerId);
@@ -161,7 +159,6 @@ async function main(): Promise<void> {
         && beforeDrop.inventory.some((i: Row) => i.id === dropId));
     }
 
-    // ---------------------------------------------------------------- canonical NPC motion
     const before = new Map(npcs.map(b => [b.bodyId, { ...b.pos }]));
     await sleep(6000);
     const mid = snapshots[snapshots.length - 1];
@@ -173,7 +170,6 @@ async function main(): Promise<void> {
     check('NPC motion is accompanied by canonical activity/pose', mid.bodies.some(b => b.entityId !== playerId && b.pose !== 'stand'),
       Array.from(new Set(mid.bodies.map(b => b.pose))).join(', '));
 
-    // ---------------------------------------------------------------- movement authority
     // Drive the client exactly like TVBridgeSubsystem::Tick does: 20 Hz `move` intents, and a
     // locally predicted position advanced at the canonical speed the snapshot reports.
     const startRow = mid.bodies.find(b => b.entityId === playerId)!;
@@ -209,7 +205,6 @@ async function main(): Promise<void> {
     await sleep(200); // the ack rides the next snapshot, which may already have been in flight
     check('snapshot ack tracks the client sequence', snapshots[snapshots.length - 1].ack === sequence, `ack ${snapshots[snapshots.length - 1].ack} of ${sequence}`);
 
-    // ---------------------------------------------------------------- input expiry
     // The documented contract is a 300 ms grace so one dropped packet does not stutter the walk,
     // and a full stop after it — not an indefinite coast.
     const atRelease = { ...snapshots[snapshots.length - 1].bodies.find(b => b.entityId === playerId)!.pos };
@@ -222,7 +217,6 @@ async function main(): Promise<void> {
     check('abandoned input expires after the documented 300 ms grace', coasted < speed * 0.45 && afterwards < 0.02,
       `coasted ${coasted.toFixed(2)} m through the grace window, then ${afterwards.toFixed(3)} m in the next 1.5 s`);
 
-    // ---------------------------------------------------------------- protocol hardening
     const beforeReject = results.length;
     socket.send(JSON.stringify({ version: 1, sequence: 1, type: 'move', x: 1, z: 0 }));                    // replayed
     socket.send(JSON.stringify({ version: 2, sequence: ++sequence, type: 'move', x: 1, z: 0 }));           // wrong version
@@ -233,7 +227,6 @@ async function main(): Promise<void> {
       rejects.length === 3 && rejects.filter(r => r === 'invalid_sequence_or_version').length === 2 && rejects.includes('invalid_intent'),
       rejects.join(', '));
 
-    // ---------------------------------------------------------------- class recognition
     const withClass = mid.bodies.filter(b => b.recognisedClass);
     check('a recognised class reaches the client with the evidence it was read from',
       withClass.length > 0 && withClass.every(b => typeof b.recognisedClass.name === 'string' && Array.isArray(b.recognisedClass.evidence) && b.recognisedClass.evidence.length > 0),
@@ -252,7 +245,6 @@ async function main(): Promise<void> {
       [...spans.values()].every(set => set.size > 1),
       [...spans].map(([c, set]) => `${c}: ${[...set].join('/')}`).join(', '));
 
-    // ---------------------------------------------------------------- combat round trip
     // Walk to the nearest villager and swing. Damage truth stays in TypeScript throughout: the
     // client only ever says "attack", and reads what happened out of the next snapshot.
     const here = snapshots[snapshots.length - 1].bodies.find(b => b.entityId === playerId)!;
@@ -311,7 +303,6 @@ async function main(): Promise<void> {
     check('a fabricated interaction ID is refused',
       await intentResult(socket, results, ++sequence, { type: 'interact', interactionId: 'grant:bread' }) === 'invalid_interaction');
 
-    // ---------------------------------------------------------------- no runaway spawning
     const ids = snapshots.map(s => s.bodies.map(b => b.bodyId).sort().join('|'));
     const distinct = new Set(ids);
     check('the projected body set is stable across every snapshot (no runaway spawning)', distinct.size === 1,
@@ -332,7 +323,6 @@ async function main(): Promise<void> {
 
     socket.close();
   } finally {
-    // handled by finish()
   }
   finish(stop);
 }

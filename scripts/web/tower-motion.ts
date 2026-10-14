@@ -95,7 +95,6 @@ try {
   await page.waitForFunction(() => (window as any).__arena.world.hero.relaxed, null, { timeout: 10_000 });
   await hold(1200, '12-calm-again');
   const rows: any[] = await page.evaluate(() => (window as any).__rows);
-  // Per-segment summary.
   const segs: Record<string, any> = {};
   const q = (v: number[], p: number) => { if (!v.length) return null; const s = [...v].sort((a, b) => a - b); return +s[Math.min(s.length - 1, Math.floor(s.length * p))].toFixed(2); };
   for (let i = 1; i < rows.length; i++) {
