@@ -116,7 +116,6 @@ export class PlayerController {
     this.vel.x += (move.x * speed - this.vel.x) * Math.min(1, accel * dt); this.vel.z += (move.z * speed - this.vel.z) * Math.min(1, accel * dt);
     if (this.keys.has('Space') && this.onGround && canMove) { this.vel.y = 8.2; this.onGround = false; }
     this.vel.y -= 24 * dt; if (this.vel.y < -30) this.vel.y = -30;
-    // in water: slow & float
     const inWater = g.get(Math.floor(b.pos.x), Math.floor(b.pos.y + 0.5), Math.floor(b.pos.z)) === 9;
     if (inWater) { this.vel.y = Math.max(this.vel.y, -2); if (this.keys.has('Space')) this.vel.y = 3; this.vel.x *= 0.9; this.vel.z *= 0.9; }
     // move with collision, axis by axis
@@ -147,7 +146,6 @@ export class PlayerController {
       const hauling = this.world.haulTasks.some(t => t.claimantId === b.ownerId && t.status === 'in_transit' && t.carried > 0);
       if (!timedPoseHeld) b.pose = Math.hypot(this.vel.x, this.vel.z) > 0.5 ? (hauling ? 'haul' : this.sprint ? 'run' : 'walk') : 'stand';
     }
-    // camera
     const hs = Math.hypot(this.vel.x, this.vel.z);
     if (this.onGround && hs > 0.5) { this.bobPhase += dt * hs * 1.8; if (Math.sin(this.bobPhase) > 0.97 && performance.now() - this.lastStep > 250) { this.lastStep = performance.now(); this.onStep?.(); } } else this.bobPhase = 0;
     const bob = this.onGround && hs > 0.5 ? Math.sin(this.bobPhase) * 0.045 : 0;

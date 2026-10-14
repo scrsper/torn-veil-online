@@ -52,7 +52,6 @@ export const recoverItem: BrowserSpec = {
     if (pickupOutcome.holderId !== pickupOutcome.playerId) throw new Error('Player never actually picked up the ring');
     if (pickupOutcome.lastEventType !== 'recovered') throw new Error(`Expected pickup to be recorded as 'recovered' (authorized), got '${pickupOutcome.lastEventType}'`);
 
-    // 3. Return it via the real "Give something…" dialogue flow — the reward must be really paid.
     await openDialogueWith(page, setup.requesterId);
     dlg = await readDialogue(page);
     if (!dlg.options.some(o => o.includes('Give something'))) throw new Error(`Expected a "Give something…" option, got: ${JSON.stringify(dlg.options)}`);

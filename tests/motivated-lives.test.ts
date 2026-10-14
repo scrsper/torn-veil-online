@@ -288,17 +288,14 @@ describe('v0.10 §I — persistent purposes outlive the plans that serve them', 
     const pu = livePursuits(spouse)[0];
     expect(pu.status).toBe('active');
 
-    // 1. They are far away and I have nothing to bring: go and look.
     let steps = pursuitSteps(tw.world, spouse, pu);
     expect(steps.map(s => s.goal)).toContain('check_on');
 
-    // 2. Give them something worth bringing and the SAME purpose proposes a different act.
     const loaf = makeItem(tw.world, 'bread', 'a loaf', { owner: spouse.id, holder: spouse.id, quantity: 4 });
     spouse.inventory.push(loaf.id);
     steps = pursuitSteps(tw.world, spouse, pu);
     expect(steps.map(s => s.goal), 'with something to bring, the errand changes').toContain('provide');
 
-    // 3. Put them in front of me, hurt, and it becomes tending them.
     const body = tw.world.primaryBody(hurt.id)!;
     body.health = body.maxHealth * 0.2;
     spouse.mind.percepts = [{ entityId: hurt.id, bodyId: body.id, how: 'saw', tick: tw.world.now, pos: { ...body.pos }, distance: 2 }];
@@ -472,7 +469,7 @@ describe('v0.10 §I — persistent purposes outlive the plans that serve them', 
     const informed = addPerson(tw, 'Informed', 'cook', v(5.5, 1, 5.5));
     const ignorant = addPerson(tw, 'Ignorant', 'cook', v(6.5, 1, 5.5));
     const body = tw.world.primaryBody(hurt.id)!;
-    body.health = 1; // canonically at death's door
+    body.health = 1;
 
     learn(tw.world, informed, attackBelief(tw, attacker.id, hurt.id));
     expect(believedHarm(tw.world, informed, hurt.id)).toBeGreaterThan(0.3);

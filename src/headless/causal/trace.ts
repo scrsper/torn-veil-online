@@ -161,7 +161,6 @@ export function runCausalTrace(opts: CausalTraceOptions): CausalTraceReport {
   });
   const { world } = result;
 
-  // ---- what people ended up believing, and how they came by it
   const spreadByKey = new Map<string, BeliefSpread>();
   for (const p of world.persons()) {
     if (isExternallyControlled(p)) continue;

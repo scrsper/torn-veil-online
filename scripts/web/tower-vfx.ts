@@ -37,19 +37,16 @@ try {
   const dummy = await page.evaluate(() => { const w = (window as any).__arena.world, h = w.hero, d = w.fighters.filter((f: any) => f.foeKind === 'dummy').sort((a: any, b: any) => Math.hypot(a.pos.x - h.pos.x, a.pos.z - h.pos.z) - Math.hypot(b.pos.x - h.pos.x, b.pos.z - h.pos.z))[0];
     h.pos.set(d.pos.x, 0, d.pos.z - 6); h.yaw = 0; return { x: d.pos.x, z: d.pos.z }; });
   await page.waitForTimeout(1800); await outcomes();   // let the camera settle before projecting the cursor
-  // 1. Bolt at the dummy: hit.
   await aimAt(page, dummy.x, dummy.z); await cast(1); await page.waitForTimeout(330);
   report.hitCast = await page.evaluate(() => { const w = (window as any).__arena.world, h = w.hero; return { hero: [h.pos.x, h.pos.z], state: h.state, cast: h.castDef?.name ?? null, cd0: w.skillCd[0], slot0: w.skills[0]?.name ?? null, missiles: w.missiles.map((m: any) => ({ pos: [m.pos.x, m.pos.z], vel: [m.vel.x, m.vel.z], e: m.e })), dummies: w.fighters.filter((f: any) => f.foeKind === 'dummy').map((f: any) => ({ pos: [f.pos.x, f.pos.z], standing: f.standing, state: f.state, team: f.team })) }; }); await page.screenshot({ path: join(out, '1-bolt-flight.png') }); await page.waitForTimeout(320); await page.screenshot({ path: join(out, '1-bolt-hit.png') });
   const o1 = await outcomes(); check('bolt at a dummy ends as a confirmed hit', o1.some((x: any) => x.outcome === 'hit'), o1);
   await page.waitForTimeout(2500);
-  // 2. Bolt into open floor (away from the dummy and walls): expires at the end of its range.
   await page.evaluate(() => { const h = (window as any).__arena.world.hero; h.yaw = Math.PI; }); await page.waitForTimeout(600);
   const open = await page.evaluate(() => { const h = (window as any).__arena.world.hero; return { x: h.pos.x, z: h.pos.z - 10 }; });
   await aimAt(page, open.x, open.z); await cast(1); await page.waitForTimeout(1700); await page.screenshot({ path: join(out, '2-bolt-expire.png') });
   const o2 = await outcomes(); check('bolt into open space ends as an expiry (no hit accent)', o2.length > 0 && o2.every((x: any) => x.outcome === 'expire'), o2);
   await page.waitForTimeout(2500);
   await page.waitForTimeout(2500);
-  // 4. Nova (slot 4): sample the footprint ring's outer radius while it lives; the final radius must equal 4.2.
   await page.evaluate(() => { const a = (window as any).__arena, sc = a.scene; (window as any).__ring = 0;
     const obs = sc.onAfterRenderObservable.add(() => { for (const m of sc.meshes) if (m.name === 'vfx-footprint' && !m.isDisposed()) { m.refreshBoundingInfo(); const bb = m.getBoundingInfo().boundingBox, r = (bb.maximumWorld.x - bb.minimumWorld.x) / 2; (window as any).__ring = Math.max((window as any).__ring, r); } });
     (window as any).__ringObs = obs; });
@@ -58,7 +55,6 @@ try {
   check('nova border ends at the 4.2 damage query radius (no overshoot)', ring > 4.1 && ring <= 4.2 + 1e-3, { maxOuterRadius: ring });
   report.novaOuterRadius = ring;
   await page.waitForTimeout(2500);
-  // 5. Gravity field (slot 5) at the dummy: lasts 7 s, then fades and is gone; its final burst stays.
   await aimAt(page, dummy.x, dummy.z); await cast(5); await page.waitForTimeout(600); await page.screenshot({ path: join(out, '5-field.png') });
   const live = await page.evaluate(() => (window as any).__arena.world.fields.length);
   await page.waitForFunction(() => (window as any).__arena.world.fields.length === 0, null, { timeout: 15_000 });

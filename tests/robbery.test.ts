@@ -105,7 +105,6 @@ describe('robbery causal loop (Priority 1 stabilization)', () => {
     expect(robbed).toBe(true);
     // v0.8 §P0-B: a non-player bandit immediately banks a stolen coin stack into spendable
     // wealth rather than carrying it as an inert item nothing but the player's own UI can spend
-    // — see agent.ts's `executeRobbery`.
     expect(bandit.wealth).toBeGreaterThan(0);
   });
 

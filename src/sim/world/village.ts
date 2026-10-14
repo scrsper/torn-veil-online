@@ -19,7 +19,7 @@ import { createFire } from './fire';
 import { SECONDS_PER_DAY } from '../core/time';
 import { establishHouseholds } from './household';
 
-const F = VILLAGE_TOP + 1; // feet level in the village
+const F = VILLAGE_TOP + 1;
 
 export interface GenResult { places: Record<string, Place>; people: Record<string, Person>; }
 
@@ -44,7 +44,6 @@ export function generateVillage(world: World): GenResult {
     const r = buildHouse(ctx, x0, z0, x1, z1, fl - 1, facing, opts); return fromBuild(key, 'house', name, x0, z0, x1, z1, fl, r, desc);
   };
 
-  // ---- Square & roads
   reserve(ctx, 84, 84, 108, 108, 1);
   fill(grid, 84, VILLAGE_TOP, 84, 108, VILLAGE_TOP, 108, B.Cobble); fill(grid, 84, F, 84, 108, F + 6, 108, B.Air);
   const squareAnchors: Anchor[] = [...buildWell(ctx, CX, CZ, VILLAGE_TOP)];
@@ -57,12 +56,10 @@ export function generateVillage(world: World): GenResult {
   // v0.2.4: the well is a canonical water source (Place), not just square decoration — the
   // approach cell just outside its wall, so thirsty NPCs can path to it and drink.
   P('well', makePlace(world, 'well', 'the village well', bounds(CX - 2, CZ - 2, CX + 2, CZ + 2, F, F + 2), { inside: v(CX - 2, F, CZ), anchors: [{ pos: v(CX - 2, F, CZ), kind: 'work', label: 'well' }], description: 'The old stone well at the heart of the square.', indoor: false, parent: places.square.id }));
-  // stalls
   const stall = (key: string, name: string, x: number, z: number, cloth: number, facing: Facing) => P(key, makePlace(world, 'stall', name, bounds(x - 2, z - 2, x + 2, z + 2, F, F + 3), { inside: v(x, F, z + (facing === 'N' ? 1 : -1)), anchors: buildStall(ctx, x, z, VILLAGE_TOP, cloth, facing), description: `A market stall in the square.`, indoor: false, parent: places.square.id }));
   stall('stall_bread', "the bread stall", 89, 90, B.ClothRed, 'E'); stall('stall_produce', 'the vegetable stall', 103, 90, B.ClothBlue, 'W');
   stall('stall_grain', 'the grain stall', 89, 102, B.Cloth, 'E'); stall('stall_game', "the hunter's stall", 103, 102, B.ClothRed, 'W');
 
-  // ---- Buildings
   const tav = buildTavern(ctx, 112, 78, 127, 89, VILLAGE_TOP, 'W', []); fromBuild('tavern', 'tavern', 'The Gilded Boar', 112, 78, 127, 89, F, tav, 'The village tavern: ale, stew, gossip and a warm fire.');
   // v0.8 §C/D: a real, canonical fire at the tavern's own hearth (the existing fireplace block
   // this Place has always had) — unlit until the cook actually lights it (world/cooking.ts).
@@ -89,18 +86,15 @@ export function generateVillage(world: World): GenResult {
   house('farmhouse_alwin', 'the Hollis farmhouse', 56, 84, 64, 91, 'S', { style: 'plank', roof: 'thatch', beds: 3 }, "The Hollis family's farmhouse.");
   house('hut_kestrel', "Kestrel's hut", 150, 36, 156, 42, 'S', { style: 'log', roof: 'dark', beds: 1, tables: 0 }, "The hunter's hut at the edge of the northern forest.");
   house('hut_wyn', "Old Wyn's hut", 40, 160, 46, 166, 'N', { style: 'log', roof: 'thatch', beds: 1, shelves: true, tables: 0 }, "The herbalist's hut, hung with drying herbs.");
-  // farms
   const farm = (key: string, name: string, x0: number, z0: number, x1: number, z1: number, desc: string) => { const fl = VILLAGE_TOP; flatten(grid, x0, z0, x1, z1, fl, 1); P(key, makePlace(world, 'farm', name, bounds(x0, z0, x1, z1, F, F + 2), { inside: v(Math.floor((x0 + x1) / 2), F, z0 + 1), anchors: buildFarm(ctx, x0, z0, x1, z1, fl), description: desc, indoor: false })); };
   farm('farm_alwin', 'the Hollis fields', 36, 100, 66, 124, 'Wheat and vegetables west of the village.');
   farm('farm_jory', 'the Fletcher fields', 120, 118, 146, 142, 'Grain fields south-east of the village.');
   farm('farm_cedric', "Cedric's fields", 40, 132, 70, 156, 'A widower\'s fields, a little overgrown.');
   farm('farm_maud', "Maud's fields", 132, 56, 156, 74, 'Maud Penny\'s fields north-east of the village.');
-  // mill & bridge
   { const fl = VILLAGE_TOP; flatten(grid, 30, 80, 38, 88, fl, 2); const r = buildMill(ctx, 30, 80, 38, 88, fl, 'E', 'W', []); fromBuild('mill', 'mill', 'the old mill', 28, 80, 38, 88, F, r, 'Hobb Grist\'s mill on the river.'); }
   // v0.2.4: a second canonical water source — the river bank by the mill, for the western farms.
   P('riverbank', makePlace(world, 'well', 'the river bank', bounds(38, 90, 42, 94, F, F + 2), { inside: v(40, F, 92), anchors: [{ pos: v(40, F, 92), kind: 'work', label: 'river' }], description: 'A worn place on the river bank where folk draw water.', indoor: false }));
   buildBridge(ctx, 14, 30, 96, VILLAGE_TOP);
-  // wilderness places
   { const fl = terrainHeight(166, 30, world.seed); const r = buildCamp(ctx, 166, 30, fl, []); P('camp', makePlace(world, 'camp', 'the bandit camp', bounds(160, 24, 172, 36, fl + 1, fl + 4), { inside: v(166, fl + 1, 32), anchors: r.anchors, description: 'A hidden camp in the north-eastern forest.', indoor: false, fires: r.fires })); }
   { const fl = terrainHeight(60, 28, world.seed); const a = buildShrine(ctx, 60, 28, fl); P('shrine', makePlace(world, 'shrine', 'the old shrine', bounds(55, 23, 65, 33, fl + 1, fl + 5), { inside: v(60, fl + 1, 31), anchors: a, description: 'A mossy ring of stones on the northern hill, older than the village.', indoor: false })); }
   const wild = (key: string, name: string, x0: number, z0: number, x1: number, z1: number, desc: string) => { const a: Anchor[] = []; for (let i = 0; i < 5; i++) { const x = x0 + 2 + Math.floor(ctx.rng.next() * (x1 - x0 - 4)), z = z0 + 2 + Math.floor(ctx.rng.next() * (z1 - z0 - 4)); a.push({ pos: v(x, terrainHeight(x, z, world.seed) + 1, z), kind: 'work', label: name }); } P(key, makePlace(world, 'wilderness', name, bounds(x0, z0, x1, z1, 0, 40), { inside: a[0].pos, anchors: a, description: desc, indoor: false })); };
@@ -128,28 +122,24 @@ export function generateVillage(world: World): GenResult {
     const x0 = 68, z0 = 22, x1 = 78, z1 = 32; const fl = terrainHeight(73, 27, world.seed); reserve(ctx, x0 - 1, z0 - 1, x1 + 1, z1 + 1, 1); flatten(grid, x0, z0, x1, z1, fl, 1, B.Gravel);
     P('quarry', makePlace(world, 'quarry', 'the north quarry', bounds(x0, z0, x1, z1, fl + 1, fl + 4), { inside: v(x0 + 5, fl + 1, z1 - 2), anchors: [{ pos: v(x0 + 5, fl + 1, z1 - 2), kind: 'work', label: 'quarry' }], description: 'Bare rock the village breaks for building stone.', indoor: false }));
   }
-  // gates (posts on the roads)
   const gate = (key: string, name: string, x: number, z: number) => { reserve(ctx, x - 3, z - 3, x + 3, z + 3, 0); for (const [ox, oz] of [[-2, 0], [2, 0]]) { const gx = x + (z === 96 ? 0 : ox), gz = z + (z === 96 ? ox : 0); fill(grid, gx, F, gz, gx, F + 3, gz, B.Log); grid.set(gx, F + 4, gz, B.Lantern); } P(key, makePlace(world, 'gate', name, bounds(x - 3, z - 3, x + 3, z + 3, F, F + 5), { inside: v(x, F, z), anchors: [{ pos: v(x, F, z + (z === 96 ? -1 : 0) + (z !== 96 ? 0 : 0)), kind: 'post', label: name }], description: 'Lantern posts marking the edge of the village.', indoor: false })); };
   gate('gate_east', 'the east gate', 168, 96); gate('gate_south', 'the south gate', 96, 160); gate('gate_west', 'the west gate', 34, 96);
 
-  // ---- Roads (after buildings; connect doors to main roads)
   const road = (x0: number, z0: number, x1: number, z1: number, block = B.Cobble) => { for (let x = Math.min(x0, x1); x <= Math.max(x0, x1); x++) for (let z = Math.min(z0, z1); z <= Math.max(z0, z1); z++) { if (!grid.inBounds(x, 0, z)) continue; const h = grid.groundHeight(x, z); const top = grid.get(x, h, z); if (top === B.Grass || top === B.Dirt || top === B.Path || top === B.Sand) { grid.set(x, h, z, block); for (let y = h + 1; y <= h + 3; y++) { const b = grid.get(x, y, z); if (b === B.Tallgrass || b === B.Flowers || b === B.Bush) grid.set(x, y, z, B.Air); } reserved[x * WORLD_D + z] = 1; } } };
   road(60, 95, 140, 97, B.Cobble); road(31, 95, 59, 97, B.Path); road(141, 95, 190, 97, B.Path); road(0, 95, 13, 97, B.Path);
   road(95, 74, 97, 130, B.Cobble); road(95, 20, 97, 53, B.Path); road(95, 131, 97, 185, B.Path);
   for (const p of Object.values(places)) { if (!p.door) continue; const d = p.door; const dx = Math.abs(d.x - 96) < Math.abs(d.z - 96) ? 96 : d.x; // connect to nearest main road with an L
     if (Math.abs(d.z - 96) <= Math.abs(d.x - 96)) road(d.x, d.z, d.x, 96, B.Path); else road(d.x, d.z, 96, d.z, B.Path); void dx; }
   road(112, 83, 108, 83, B.Cobble); road(80, 82, 84, 82, B.Cobble); road(80, 106, 84, 106, B.Cobble); road(108, 106, 112, 106, B.Cobble); road(95, 72, 97, 84, B.Cobble); road(95, 108, 97, 113, B.Cobble);
-  road(163, 30, 168, 96, B.Path); // faint trail to the camp
+  road(163, 30, 168, 96, B.Path);
   generateVegetation(grid, world.seed, reserved);
   grid.initCaches(); world.initNav();
 
-  // ---- Factions
   const village = makeFaction(world, 'Ashford Vale', 'The village and its people.', { slug: 'village', factionType: 'civic' });
   const watch = makeFaction(world, 'the Village Watch', 'Captain Rowan\'s guards.', { slug: 'watch', factionType: 'watch' });
   const bandits = makeFaction(world, 'the Blackthorn Bandits', 'Two outlaws camped in the north-east forest.', { slug: 'bandits', factionType: 'outlaw' });
   bandits.hostileTo.push(village.id, watch.id); watch.hostileTo.push(bandits.id);
 
-  // ---- People
   const people: Record<string, Person> = {};
   for (const c of CAST) {
     const home = places[c.home]; const work = c.work ? places[c.work] : null;
@@ -169,7 +159,6 @@ export function generateVillage(world: World): GenResult {
     // v0.3: the woodcutter also works the sawpit (log → plank) in the afternoon.
     if (c.occupation === 'woodcutter') places.sawpit.workers.push(p.id);
     if (c.stall) { places[c.stall].workers.push(p.id); places[c.stall].ownerId ??= p.id; }
-    // patrol routes for guards
     if (c.occupation === 'guard' || c.occupation === 'captain') p.patrol = [v(96, F, 100), v(110, F, 96), v(96, F, 112), v(96, F, 78), v(84, F, 96), v(140, F, 96), v(96, F, 130)];
     if (c.key === 'hale') p.patrol = [v(168, F, 95), v(160, F, 96)];
     if (c.key === 'brigid') p.patrol = [v(96, F, 158), v(96, F, 130), v(100, F, 100), v(96, F, 78)];
@@ -191,7 +180,6 @@ export function generateVillage(world: World): GenResult {
   establishHouseholds(world);
   const graveOwners: Record<string, EntityId> = { 'Anna Wold': people.anna.id, 'Lissa Bramble': people.lissa.id, 'Old Tam Reed': people.tam.id, 'Mira Reed': people.mira.id };
   for (const grave of graves) if (grave.label && graveOwners[grave.label]) grave.entityId = graveOwners[grave.label];
-  // assign beds
   const bedFor = (key: string, placeKey: string, idx = 0) => { const pl = places[placeKey]; const beds = pl.anchors.filter(a => a.kind === 'bed' && !a.ownerId); if (beds[idx]) beds[idx].ownerId = people[key].id; else { const any = pl.anchors.filter(a => a.kind === 'bed'); if (any[0]) any[0].ownerId ??= people[key].id; } };
   // tavern: build beds for the family now that people exist
   { const pl = places.tavern; const g = grid; const bz = pl.bounds.z1 - 1; const ids = [people.hilda.id, people.bram.id, people.ysolde.id]; let i = 0; for (let x = pl.bounds.x0 + 1; x <= pl.bounds.x1 - 1 && i < ids.length; x += 2) { if (g.get(x, F, bz) !== B.Air) continue; g.set(x, F, bz, B.Bed); pl.anchors.push({ pos: v(x, F, bz), kind: 'bed', ownerId: ids[i++] }); } const bench = pl.anchors.find(a => a.kind === 'bed' && a.label === 'bench'); if (bench) bench.ownerId = people.fenn.id; }
@@ -207,7 +195,6 @@ export function generateVillage(world: World): GenResult {
   bedFor('kestrel', 'hut_kestrel'); bedFor('wyn', 'hut_wyn');
   grid.dirtyChunks.clear(); world.nav.rebuildAll();
 
-  // ---- Bodies: spawn everyone where their schedule says they'd be at the current hour
   for (const key of Object.keys(people)) {
     const p = people[key];
     if (!p.alive) continue;
@@ -218,11 +205,9 @@ export function generateVillage(world: World): GenResult {
     b.pos = { x: pos.x + 0.5, y: world.nav.floorY(pos.x, pos.z) >= 0 ? world.nav.floorY(pos.x, pos.z) : pos.y, z: pos.z + 0.5 };
     b.yaw = world.rng.next() * Math.PI * 2;
   }
-  // chickens
   for (let i = 0; i < 6; i++) { const c = makeCreature(world, 'chicken', 'chicken', places.farm_alwin.id, people.greta.id); const b = makeBody(world, c.id, v(58 + i * 1.5 + 0.5, F, 94.5 + (i % 2)), 'chicken', 6); b.speed = 1.6; world.attachBody(c, b); }
   for (let i = 0; i < 3; i++) { const c = makeCreature(world, 'chicken', 'chicken', places.farm_jory.id, people.nell.id); const b = makeBody(world, c.id, v(116.5 + i, F, 140.5 + i), 'chicken', 6); b.speed = 1.6; world.attachBody(c, b); }
 
-  // ---- Items with provenance
   const yearsAgo = (y: number) => world.now - y * 365 * SECONDS_PER_DAY; const daysAgo = (d: number) => world.now - d * SECONDS_PER_DAY;
   const item = (type: Item['type'], name: string, o: Parameters<typeof makeItem>[3]) => makeItem(world, type, name, o);
   const oath = item('sword', 'Oathkeeper', { owner: people.rowan.id, holder: people.rowan.id, named: true, damage: 30, value: 200, description: 'A long sword with a worn leather grip. Forged by Garrick Ironhand for Captain Rowan after Rowan saved his life on the east road.' });
@@ -241,7 +226,6 @@ export function generateVillage(world: World): GenResult {
   item('pickaxe', 'the quarry pickaxe', { placeId: places.quarry.id, pos: { ...places.quarry.inside } });
   item('saw', 'the sawpit saw', { placeId: places.sawpit.id, pos: { ...places.sawpit.inside } });
   item('hammer', "the builders' hammer", { placeId: places.shed_site.id, pos: { ...places.shed_site.inside } });
-  // shop goods on display
   const display = (placeKey: string, type: Item['type'], name: string, ownerKey: string, n: number, price?: number) => { const pl = places[placeKey]; const spots = pl.anchors.filter(a => a.kind === 'display'); for (let i = 0; i < n; i++) { const a = spots[i % spots.length]; if (!a) break; const it = item(type, name, { owner: people[ownerKey].id, pos: v(a.pos.x + 0.5 + (i % 2) * 0.3 - 0.15, a.pos.y, a.pos.z + 0.5 + (i % 3) * 0.25 - 0.25), placeId: pl.id, value: price }); it.provenance.push({ tick: daysAgo(0.3), from: null, to: people[ownerKey].id, how: 'made' }); } };
   display('bakery', 'bread', ITEM_LABEL.bread, 'osric', 4); display('bakery', 'pie', ITEM_LABEL.pie, 'osric', 1); display('stall_bread', 'bread', ITEM_LABEL.bread, 'osric', 3);
   display('store', 'cheese', ITEM_LABEL.cheese, 'wendel', 2); display('store', 'lantern', ITEM_LABEL.lantern, 'wendel', 1); display('store', 'dagger', 'a plain dagger', 'wendel', 1);
@@ -250,7 +234,6 @@ export function generateVillage(world: World): GenResult {
   { const purse = world.items().find(i => i.name === 'a stolen purse')!; purse.quantity = 40; purse.provenance.push({ tick: daysAgo(12), from: people.hobb.id, to: people.skarn.id, how: 'stolen on the east road' }); }
   world.items().filter(i => i.name === 'a stolen purse').forEach(i => { i.ownerId = people.hobb.id; });
 
-  // ---- World metabolism (v0.2.4): cultivated fields, starting food-chain stock, household larders.
   createFields(world, [
     { placeId: places.farm_alwin.id, ownerId: people.alwin.id, startMoisture: 0.45 },
     { placeId: places.farm_jory.id, ownerId: people.jory.id, startMoisture: 0.4 },
@@ -300,7 +283,6 @@ export function generateVillage(world: World): GenResult {
     ch.provenance.push({ tick: daysAgo(1), from: null, to: larderOwner, how: 'household larder' });
   }
 
-  // ---- World logistics, materials & construction (v0.3 Living World I)
   // Trees near the woodcutter's clearing become canonical timber; a stone outcrop is quarried.
   plantGrove(world, { x0: 96, z0: 130, x1: 120, z1: 148 }, places.clearing.id, places.clearing.id, 14,
     [places.sawpit.bounds, places.farm_jory.bounds, places.house_jory.bounds]);
@@ -317,7 +299,6 @@ export function generateVillage(world: World): GenResult {
     ownerId: people.godwin.id, laborRequired: 3 * 3600,
   });
 
-  // ---- Player
   const player = makePerson(world, { name: 'the Traveler', gender: 'm', age: 28, occupation: 'traveler', traits: { courage: 0.7 }, appearance: { skin: 0xd9a988, hair: 0x2a1a10, shirt: 0x3a5a7a, pants: 0x3a3a3a, hatStyle: 'hood', hat: 0x3a4a5a }, bio: 'A stranger who walked in on the west road.', wealth: 50 });
   setExternalControl(player, true); player.factionId = null; world.playerId = player.id;
   const pb = makeBody(world, player.id, v(40.5, F, 96.5)); world.attachBody(player, pb);
@@ -339,7 +320,6 @@ function seedHistory(world: World, pp: Record<string, Person>, pl: Record<string
   // baseline familiarity: villagers know each other
   for (const a of everyone) for (const b of everyone) if (a !== b) { const r = getRel(a, b.id); r.familiarity = 0.6 + world.rng.next() * 0.3; r.trust = 0.1 + world.rng.next() * 0.2; r.affection = world.rng.next() * 0.2; r.respect = 0.05 + world.rng.next() * 0.15; }
   for (const a of everyone) { rel(a, pp.godwin, { respect: 0.5, trust: 0.3 }); rel(a, pp.rowan, { respect: 0.35, trust: 0.25 }); rel(a, pp.aldous, { respect: 0.3, trust: 0.3 }); rel(a, pp.skarn, { fear: 0.3, grudge: 0.2 }); rel(a, pp.vex, { fear: 0.25, grudge: 0.15 }); getRel(a, pp.skarn.id).familiarity = 0.2; getRel(a, pp.vex.id).familiarity = 0.15; }
-  // families
   both(pp.garrick, pp.edda, { affection: 0.7, trust: 0.7 }, 'spouse'); both(pp.hilda, pp.bram, { affection: 0.6, trust: 0.7 }, 'spouse'); both(pp.wendel, pp.petra, { affection: 0.4, trust: 0.6 }, 'spouse');
   both(pp.alwin, pp.greta, { affection: 0.7, trust: 0.8 }, 'spouse'); both(pp.jory, pp.nell, { affection: 0.6, trust: 0.7 }, 'spouse');
   const parent = (c: Person, ...ps: Person[]) => { c.parentIds = ps.map(p => p.id); for (const p of ps) { rel(c, p, { affection: 0.8, trust: 0.9, respect: 0.4 }, 'parent'); rel(p, c, { affection: 0.9, trust: 0.6 }, 'child'); } };
@@ -408,7 +388,6 @@ function seedHistory(world: World, pp: Record<string, Person>, pl: Record<string
   remember(world, pp.wyn, { type: 'observed', summary: 'I saw a silver ring lying among the stones of the old shrine, and left it for the spirits', entities: [ring.id], significance: 0.4, valence: 0.1, source: { type: 'witnessed' }, tick: daysAgo(20) }, true);
   pp.cedric.desires.push({ type: 'recover_item', targetId: ring.id, note: "Anna's ring was lost the day she died. I would give anything to have it back.", reward: 30, fulfilled: false });
   for (const p of all) learn(world, p, { key: `owner:${ring.id}`, kind: 'ownership', claim: { itemId: ring.id, ownerId: pp.cedric.id }, confidence: 0.8, source: { type: 'prior' } }, true);
-  // ownership knowledge of important items
   const hammerIt = world.items().find(i => i.name === "Tam Reed's hammer")!; const oathIt = world.items().find(i => i.name === 'Oathkeeper')!;
   for (const p of all) { learn(world, p, { key: `owner:${oathIt.id}`, kind: 'ownership', claim: { itemId: oathIt.id, ownerId: pp.rowan.id }, confidence: 1, source: { type: 'prior' } }, true); }
   for (const p of [pp.garrick, pp.tomas, pp.edda, pp.rowan, pp.godwin, pp.hobb, pp.bors]) learn(world, p, { key: `owner:${hammerIt.id}`, kind: 'ownership', claim: { itemId: hammerIt.id, ownerId: pp.garrick.id }, confidence: 1, source: { type: 'prior' } }, true);
@@ -429,7 +408,6 @@ function seedHistory(world: World, pp: Record<string, Person>, pl: Record<string
   for (const p of all) for (const place of commonServices) learnPlace(world, p, place, { type: 'prior' });
   const farmOf: Record<string, string> = { alwin: 'farm_alwin', jory: 'farm_jory', cedric: 'farm_cedric', maud: 'farm_maud' };
   for (const [key, farmKey] of Object.entries(farmOf)) { const farmer = pp[key]; const field = pl[farmKey]; if (farmer && field) learnPlace(world, farmer, field, { type: 'prior' }); }
-  // emotional residue
   pp.cedric.emotions.sadness = 0.6; pp.hobb.emotions.anger = 0.4; pp.fenn.emotions.stress = 0.4; pp.tomas.emotions.stress = 0.3; pp.osric.emotions.anger = 0.2;
   world.events.forEach(e => { if (e.category === 'history') e.summary = e.summary; });
 }

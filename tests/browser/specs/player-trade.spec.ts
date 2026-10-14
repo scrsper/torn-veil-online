@@ -54,7 +54,6 @@ export const playerTrade: BrowserSpec = {
     const seller = await findFoodSeller(page);
     const good = seller.offers[0];
 
-    // ---- 1. every offered good is one the seller canonically has and will sell
     const honest = await page.evaluate((s: SellerInfo) => {
       const g = (window as any).game; const w = g.world;
       const npc = w.person(s.id); const player = w.person(w.playerId);
@@ -74,7 +73,6 @@ export const playerTrade: BrowserSpec = {
       if (o.available > o.inStack) throw new Error(`the Trade menu offered ${o.available} ${o.type} from a stack of ${o.inStack}`);
     }
 
-    // ---- 2. approach and open Trade through the real key
     // Aiming is done through the immersive camera's targeting, which this harness can drive
     // deterministically (`lookAt`). What is under test here is the trade, the ownership transfer
     // and the inventory — none of which know which camera is presenting them; the elevated
@@ -130,7 +128,6 @@ export const playerTrade: BrowserSpec = {
     if (!buyOption) throw new Error(`the Trade menu offered nothing to buy: ${JSON.stringify(menu.options)}`);
     await captureEvidence(page, join(ART, 'trade-1-menu.png'));
 
-    // ---- 3. buy, and check every side of the transaction
     const before = await readCanonicalState(page, () => {
       const w = (window as any).game.world;
       const player = w.person(w.playerId);
@@ -173,7 +170,6 @@ export const playerTrade: BrowserSpec = {
       if (after.totals[type] !== total) throw new Error(`buying changed how much ${type} exists in the world (${total} → ${after.totals[type]})`);
     }
 
-    // ---- 4. it is in a real inventory, and eating it is the same canonical act an NPC performs
     await page.keyboard.press('Escape');
     await page.waitForTimeout(80);
     // Pause the world with the player's own P key before working the inventory panel. The panel
@@ -240,7 +236,6 @@ export const playerTrade: BrowserSpec = {
     if (eaten.total !== after.totals[good.type] - 1) throw new Error(`eating one ${good.type} changed the world total by ${after.totals[good.type] - eaten.total}`);
     if (eaten.ghosts) throw new Error(`${eaten.ghosts} people are carrying an item id that no longer refers to anything\n${JSON.stringify(eaten.ghostDetail, null, 2)}`);
 
-    // ---- 5. no coin: the sale is refused and nothing moves
     await page.keyboard.press('KeyI');
     // Let the village run again for the rest of the spec.
     await page.keyboard.press('KeyP');
@@ -270,7 +265,6 @@ export const playerTrade: BrowserSpec = {
       if (!stateAfter.lines.some(l => l && /coin/i.test(l))) throw new Error(`the seller did not say why the sale failed: ${JSON.stringify(stateAfter.lines)}`);
     }
 
-    // ---- 6. a hungry seller will not sell the food they need THEMSELVES
     //
     // The reserve deliberately covers personal supplies, not shop stock: a tavern down to two
     // mugs needs a delivery, not a funeral, and applying it to merchandise deadlocks the shop

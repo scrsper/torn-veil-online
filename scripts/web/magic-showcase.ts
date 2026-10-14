@@ -71,15 +71,10 @@ if (want('reactions')) {
   await place(0, 3); await view(.5, 0, 8); await page.waitForTimeout(600);
   // Soak then shock: water wave across the line, then a lightning bolt.
   await cast('sp:water:wave', 3, { wait: 500 }); await cast('sp:storm:bolt', 3, { shotAt: 160, name: '40-electrocute', wait: 900 });
-  // Soak then freeze.
   await cast('sp:water:bolt', 2, { wait: 450 }); await cast('sp:frost:bolt', 2, { shotAt: 220, name: '41-freeze', wait: 600 });
-  // Freeze then burn: shatter.
   await cast('sp:flame:bolt', 2, { shotAt: 200, name: '42-shatter', wait: 900 });
-  // Gather then burst.
   await cast('sp:gravity:field', 3, { wait: 1600 }); await cast('sp:flame:nova', 3, { shotAt: 250, name: '43-crush', wait: 900 });
-  // Slow then strike: rupture.
   await cast('sp:time:bolt', 4, { wait: 500 }); for (let k = 0; k < 3; k++) await cast('sp:storm:bolt', 4, { wait: 350 }); await shot('44-rupture'); await page.waitForTimeout(600);
-  // Fire then wind: wildfire.
   await cast('sp:flame:wave', 3, { wait: 400 }); await cast('sp:swift:bolt', 3, { shotAt: 200, name: '45-wildfire', wait: 700 });
 }
 if (want('book')) { await page.keyboard.press('KeyB'); await page.waitForTimeout(500); await shot('50-spellbook'); await page.keyboard.press('KeyB'); }

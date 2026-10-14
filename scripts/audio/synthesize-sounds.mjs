@@ -49,7 +49,7 @@ function addCricket(buf, at, r) { // pulse train of a ~4.6 kHz carrier
 function rain(seconds, r) {
   const n = Math.floor(seconds * RATE), b = highpass(lowpass(noise(n, r), 5200), 400);
   normalize(b, 0.25);
-  for (let d = 0; d < seconds * 180; d++) { // droplets: tiny damped clicks
+  for (let d = 0; d < seconds * 180; d++) {
     const s = Math.floor(r() * n), f = 1800 + r() * 3000, amp = 0.05 + r() * 0.12;
     for (let i = 0; i < 400 && s + i < n; i++) b[s + i] += Math.sin(2 * Math.PI * f * i / RATE) * Math.exp(-i / 60) * amp;
   }

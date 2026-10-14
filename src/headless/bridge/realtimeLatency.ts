@@ -212,7 +212,7 @@ export async function runRealtimeLatency(options: LatencyHarnessOptions = {}): P
   } finally {
     if (timer) clearTimeout(timer);
     socket?.close(); child.kill();
-    try { rmSync(temp, { recursive: true, force: true }); } catch { /* disposable cleanup is best effort */ }
+    try { rmSync(temp, { recursive: true, force: true }); } catch { }
   }
 }
 

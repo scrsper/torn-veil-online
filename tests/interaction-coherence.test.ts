@@ -87,10 +87,10 @@ describe('commerce: what a person will actually sell', () => {
     // Their OWN supply, carried — not shop stock. That distinction is the rule.
     const supper = makeItem(tw.world, 'bread', 'bread', { owner: keeper.id, holder: keeper.id, quantity: PERSONAL_FOOD_RESERVE });
 
-    keeper.physiology.energy = 0.1; syncNeeds(keeper);          // hungry
+    keeper.physiology.energy = 0.1; syncNeeds(keeper);
     expect(willingnessFor(tw.world, keeper, supper, buyer).reason).toBe('last_food');
 
-    keeper.physiology.energy = 1; syncNeeds(keeper);            // fed
+    keeper.physiology.energy = 1; syncNeeds(keeper);
     expect(willingnessFor(tw.world, keeper, supper, buyer).reason).toBeNull();
   });
 
@@ -194,7 +194,7 @@ describe('commerce: the transaction itself', () => {
     const supper = makeItem(tw.world, 'bread', 'bread', { owner: keeper.id, holder: keeper.id, quantity: PERSONAL_FOOD_RESERVE });
     keeper.physiology.energy = 1; syncNeeds(keeper);            // well fed: it is on the menu
     expect(tradeOffersFrom(tw.world, keeper, buyer).map(o => o.item.id)).toContain(supper.id);
-    keeper.physiology.energy = 0.1; syncNeeds(keeper);          // and then they get hungry
+    keeper.physiology.energy = 0.1; syncNeeds(keeper);
     const r = purchaseUnits(tw.world, buyer, keeper, supper, 1);
     expect(r.units).toBe(0);
     expect(r.refused).toBe('last_food');

@@ -40,7 +40,6 @@ export const ACTIVITY_HEAT_PER_HOUR: Record<ActivityLevel, number> = {
   sleep: 0, idle: 0.015, walk: 0.04, craft: 0.05, construct: 0.075, chop: 0.1, haul: 0.115, quarry: 0.13,
 };
 
-// ---- baseline (idle) rates: full reserve 1 -> 0 in roughly this many waking hours at idle.
 /** Idle-equivalent hours to drain a full caloric reserve. v0.6 §II: raised from 16 to 21 hours —
  * real evidence (seed 918271, headless) showed village-average hunger sitting at 0.71-0.76
  * under the v0.5 calibration, well into the 'urgent' band for a typical villager most of the
@@ -64,15 +63,14 @@ export const FOOD_ENERGY_RESTORE = 0.6;
 /** One drink restores this fraction of hydration. */
 export const WATER_HYDRATION_RESTORE = 0.85;
 
-// ---- fatigue recovery
-const REST_FATIGUE_RECOVERY_PER_HOUR = 0.12;   // sitting/idling recovers some fatigue
-const SLEEP_FATIGUE_RECOVERY_PER_HOUR = 0.5;   // sleep recovers substantially more
+const REST_FATIGUE_RECOVERY_PER_HOUR = 0.12;
+const SLEEP_FATIGUE_RECOVERY_PER_HOUR = 0.5;
 const SLEEP_DEBT_RECOVERY_PER_HOUR = 1.1;      // an hour asleep pays off ~1.1 hours of debt
 const AWAKE_SLEEP_DEBT_PER_HOUR = 1;           // every awake hour adds one hour of debt
 
 // ---- heat model (bounded 0..1, Constitution v0.4 §1 "a bounded model is sufficient")
 const HEAT_PASSIVE_COOLING_PER_HOUR = 0.11;
-const HEAT_REST_COOLING_PER_HOUR = 0.05;       // extra cooling while idle/sleeping
+const HEAT_REST_COOLING_PER_HOUR = 0.05;
 const HEAT_HYDRATION_COOLING_PER_HOUR = 0.07;  // scaled by current hydration (sweat needs water)
 /** Environmental heat gain/loss per hour, by weather kind, applied outdoors at midday strength;
  * scaled by daylight (see `stepPhysiology`) and halved indoors. */
@@ -99,7 +97,6 @@ export function defaultPhysiology(now = 0): Person['physiology'] {
   return { energy: 0.8, hydration: 0.8, fatigue: 0.1, sleepDebt: 0, lastSleepAt: now, bodyHeat: 0.2, wetness: 0 };
 }
 
-// ---- wetness / environmental exposure (v0.7)
 /** How fast wetness rises per hour, fully exposed (outdoors, no shelter), at rain intensity 1 —
  * a person caught in a storm is soaked through in well under an hour; ordinary rain (intensity
  * ~0.5-0.9) takes proportionally longer. */
@@ -190,7 +187,6 @@ export function stepEmbodiedPhysiology(world: World, phys: Physiology, hours: nu
   else if (activity === 'idle') phys.fatigue = clamp01(phys.fatigue - REST_FATIGUE_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * (o.restoration ?? 1) * hours + wetnessFatigue);
   else phys.fatigue = clamp01(phys.fatigue + ACTIVITY_FATIGUE_PER_HOUR[activity] * heatFatigueFactor * fatigueRateMult * hours + wetnessFatigue);
 
-  // sleep debt
   const sleepNeedMult = profile.sleepNeedMultiplier * traits.sleepNeedFactor;
   if (asleep) phys.sleepDebt = Math.max(0, phys.sleepDebt - SLEEP_DEBT_RECOVERY_PER_HOUR * profile.recoveryRateMultiplier * (o.restoration ?? 1) * hours);
   else phys.sleepDebt = Math.min(16, phys.sleepDebt + AWAKE_SLEEP_DEBT_PER_HOUR * sleepNeedMult * hours);
@@ -248,9 +244,6 @@ export function syncNeeds(p: Person): void {
   p.needs.hunger = clamp01(1 - phys.energy);
   p.needs.thirst = clamp01(1 - phys.hydration);
   p.needs.energy = clamp01(phys.fatigue * 0.55 + Math.min(1, phys.sleepDebt / 9) * 0.55);
-  // v0.7: `needs.comfort` (core/types.ts — previously declared but never read or written) is now
-  // a real, derived expression of environmental exposure, the same staged-migration pattern
-  // hunger/thirst/energy already went through in v0.4 (this doc comment's own preamble).
   p.needs.comfort = phys.wetness;
 }
 

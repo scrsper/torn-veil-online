@@ -52,7 +52,7 @@ describe('player embodiment — same physiology', () => {
     expect(player.physiology.energy).toBeGreaterThan(0.6);
     expect(tw.world.events.some(e => e.type === 'food_consumed' && e.actor === player.id)).toBe(true);
     expect(tw.sim.eatAtHand(player)).toBe('bread');
-    expect(player.inventory.includes(bread.id)).toBe(false); // stack retired, inventory cleaned
+    expect(player.inventory.includes(bread.id)).toBe(false);
     expect(tw.sim.eatAtHand(player)).toBeNull();
   });
 
@@ -155,7 +155,6 @@ describe('player embodiment — the same haul market', () => {
     moveTo(tw, player, v(20, 1, 20));
     r = tw.sim.progressHaul(player);
     expect(r.kind).toBe('go_to'); if (r.kind === 'go_to') expect(r.leg).toBe('destination');
-    // deliver
     moveTo(tw, player, v(40.5, 1, 40.5));
     const wealthBefore = player.wealth;
     r = tw.sim.progressHaul(player);

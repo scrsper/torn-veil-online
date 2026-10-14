@@ -13,7 +13,6 @@ class Humanoid {
     const mat = (c: number) => { const m = new THREE.MeshLambertMaterial({ color: c }); this.bodyMats.push(m); return m; };
     const box = (w: number, h: number, d: number, c: number) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c)); m.castShadow = true; m.receiveShadow = true; return m; };
     const B = app.build; this.scale = app.height;
-    // legs (pivot at hip)
     this.legL = new THREE.Group(); this.legR = new THREE.Group();
     for (const [g, x] of [[this.legL, -0.13 * B], [this.legR, 0.13 * B]] as [THREE.Group, number][]) { const l = box(0.22 * B, 0.7, 0.24, app.pants); l.position.y = -0.35; g.add(l); g.position.set(x, 0.72, 0); this.pivot.add(g); }
     this.torso = box(0.56 * B, 0.7, 0.32 * B, app.shirt); this.torso.position.y = 1.07; this.pivot.add(this.torso);
@@ -21,11 +20,9 @@ class Humanoid {
     this.armL = new THREE.Group(); this.armR = new THREE.Group();
     for (const [g, x] of [[this.armL, -0.37 * B], [this.armR, 0.37 * B]] as [THREE.Group, number][]) { const a = box(0.18 * B, 0.66, 0.2, app.shirt); a.position.y = -0.3; g.add(a); const hand = box(0.16 * B, 0.12, 0.18, app.skin); hand.position.y = -0.66; g.add(hand); g.position.set(x, 1.38, 0); this.pivot.add(g); }
     this.head = box(0.44, 0.44, 0.44, app.skin); this.head.position.y = 1.67; this.pivot.add(this.head);
-    // hair cap
     const hair = box(0.47, 0.14, 0.47, app.hair); hair.position.set(0, 0.2, 0); this.head.add(hair);
     const hairBack = box(0.47, 0.3, 0.1, app.hair); hairBack.position.set(0, 0.02, -0.2); this.head.add(hairBack);
     if (app.beard) { const bd = box(0.36, 0.16, 0.08, app.beard); bd.position.set(0, -0.2, 0.2); this.head.add(bd); }
-    // eyes
     for (const x of [-0.1, 0.1]) { const e = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.04), new THREE.MeshBasicMaterial({ color: 0x1a1410 })); e.position.set(x, 0.04, 0.22); this.head.add(e); }
     switch (app.hatStyle) {
       case 'helm': { const h = box(0.5, 0.3, 0.5, app.hat ?? 0x888890); h.position.y = 0.16; this.head.add(h); const nose = box(0.1, 0.3, 0.06, app.hat ?? 0x888890); nose.position.set(0, -0.02, 0.24); this.head.add(nose); break; }
@@ -170,7 +167,6 @@ export class ActorRenderer {
       }
     }
     for (const [id, h] of this.humans) if (!seen.has(id)) { this.group.remove(h.root); this.humans.delete(id); }
-    // items lying in the world
     const seenItems = new Set<string>();
     for (const it of this.world.items()) {
       if (!it.pos || it.holderId) continue; seenItems.add(it.id);

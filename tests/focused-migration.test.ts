@@ -44,7 +44,7 @@ describe('reversible focused geometry adoption with retained canonical progress'
       restored.body.pos={...restored.world.canonicalTower!.returnPos};
       applyTowerCommand(restored,{id:'migrated-reenter',type:'enter',revision:restored.world.canonicalTower!.revision,runId:run.id});
       expect(restored.world.canonicalTower!.floors).toEqual(run.floors);
-      expect(new RealmSession(0,before).world.canonicalTower).toEqual(run); // untouched rollback source
+      expect(new RealmSession(0,before).world.canonicalTower).toEqual(run);
     },60000);
   }
   it('rejects stale migration intent without resetting host controls or changing save truth',()=>{

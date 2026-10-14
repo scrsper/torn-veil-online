@@ -237,7 +237,6 @@ function recordedPursuits(p: Person, rec: Recorder): Pursuit[] {
   return [...seen.values()];
 }
 
-// ---------------------------------------------------------------- scenarios
 export function runMotiveTrace(spec: MotiveSpec): MotiveTrace {
   const world = new World(spec.seed);
   generateVillage(world);

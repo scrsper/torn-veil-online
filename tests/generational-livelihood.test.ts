@@ -316,10 +316,8 @@ describe('the whole chain, unattended', () => {
     expect(before.some(x => x.place.id === place.id)).toBe(true);
     expect(before.every(x => !x.recognised)).toBe(true);
 
-    // 2. Being at it beside somebody who knows it is how they are shown it.
     teach(tw.world, hobb, child, 'milling');
 
-    // 3. Which is what makes the trade recognisable.
     stepLivelihoods(tw.world);
     expect(child.workId).toBe(place.id);
 
@@ -334,7 +332,6 @@ describe('the whole chain, unattended', () => {
     expect(mill(tw.world, child).ok).toBe(true);
     expect(tw.world.items().filter(i => i.type === 'flour').reduce((n, i) => n + i.quantity, 0)).toBeGreaterThan(flourBefore);
 
-    // 5. The causal chain is walkable from the event the world recorded.
     const taken = tw.world.events.find(e => e.type === 'livelihood_taken_up' && e.actor === child.id)!;
     expect(taken.causes.length).toBeGreaterThan(0);
     expect(taken.causes.every(id => !!tw.world.event(id))).toBe(true);

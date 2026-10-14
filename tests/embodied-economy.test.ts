@@ -21,7 +21,6 @@ function advance(world: ReturnType<typeof newWorld>['world'], sim: Simulation, s
   for (let e = 0; e < seconds; e += 0.15) { const dt = Math.min(0.15, seconds - e); const wdt = world.clock.advance(dt); world.physicalTime += dt; sim.step(dt, wdt); sim.flushSpeech(); }
 }
 
-// ==================================================================== Physiology
 describe('physiology (v0.4 §1)', () => {
   it('walking consumes more energy than idle', () => {
     const tw = createTestWorld(4001, 20);
@@ -113,7 +112,6 @@ describe('physiology (v0.4 §1)', () => {
   });
 });
 
-// ==================================================================== Strength / hauling
 describe('strength and mass-aware hauling (v0.4 §2/§4)', () => {
   it('a stronger worker can safely carry more mass than a weaker one', () => {
     const tw = createTestWorld(4101, 20);
@@ -194,7 +192,6 @@ describe('strength and mass-aware hauling (v0.4 §2/§4)', () => {
   });
 });
 
-// ==================================================================== Dexterity
 describe('dexterity (v0.4 §2)', () => {
   it('materially affects sawing work rate (a skilled task), deterministically, with no duplication', () => {
     const tw = createTestWorld(4201, 20);
@@ -222,12 +219,11 @@ describe('dexterity (v0.4 §2)', () => {
     expect(batches).toBeGreaterThan(0);
     const logsConsumed = logsBefore - stockAt(tw.world, 'log', sawpit.id);
     const planksProduced = stockAt(tw.world, 'plank', sawpit.id) - planksBefore;
-    expect(logsConsumed).toBe(batches * 2);   // SAW_RATIO.in
+    expect(logsConsumed).toBe(batches * 2);
     expect(planksProduced).toBe(batches * 3); // SAW_RATIO.out — fixed ratio, no dexterity bonus units
   });
 });
 
-// ==================================================================== Tools
 describe('tools (v0.4 §5)', () => {
   it('an axe materially improves tree-felling over bare hands', () => {
     const tw = createTestWorld(4301, 40);
@@ -290,7 +286,6 @@ describe('tools (v0.4 §5)', () => {
   });
 });
 
-// ==================================================================== Requests
 describe('shared work requests (v0.4 §9)', () => {
   it('a haul task creates and is linked to a shared Request', () => {
     const tw = createTestWorld(4401, 40);
@@ -346,7 +341,7 @@ describe('shared work requests (v0.4 §9)', () => {
     acceptRequest(tw.world, req2, worker);
     const wealthBeforeFail = worker.wealth;
     failRequest(tw.world, req2, 'source dried up');
-    expect(worker.wealth).toBe(wealthBeforeFail); // no payment
+    expect(worker.wealth).toBe(wealthBeforeFail);
     expect(req2.status).toBe('failed');
   });
 
@@ -363,11 +358,10 @@ describe('shared work requests (v0.4 §9)', () => {
     expect(task.status).toBe('failed');
     const req = tw.world.requests.find(r => r.id === task.requestId)!;
     expect(req.status).toBe('failed');
-    expect(hauler.wealth).toBe(20); // default starting wealth — unpaid
+    expect(hauler.wealth).toBe(20);
   });
 });
 
-// ==================================================================== Currency
 describe('conserved currency (v0.4 §10/§12)', () => {
   it('wage payment conserves total currency', () => {
     const tw = createTestWorld(4501, 20);
@@ -403,7 +397,7 @@ describe('conserved currency (v0.4 §10/§12)', () => {
     const itemsBefore = worldStock(tw.world, 'bread');
     const bought = buyFoodPortion(tw.world, buyer, bread, 3);
     expect(bought).not.toBeNull();
-    expect(seller.wealth + buyer.wealth).toBe(wealthBefore); // conserved
+    expect(seller.wealth + buyer.wealth).toBe(wealthBefore);
     expect(worldStock(tw.world, 'bread')).toBe(itemsBefore); // conserved (moved, not created)
     void findAccessibleFood;
   });
@@ -432,7 +426,6 @@ describe('conserved currency (v0.4 §10/§12)', () => {
   });
 });
 
-// ==================================================================== Resource timescales
 describe('resource timescales (v0.4 §14)', () => {
   it('a felled tree does not regrow after 30 days', () => {
     const tw = createTestWorld(4601, 40);
@@ -494,7 +487,7 @@ describe('resource timescales (v0.4 §14)', () => {
     const node = tw.world.resourceNodes.find(n => n.kind === 'stone')!;
     let guard = 0; while (node.remaining > 0 && guard++ < 40) extractFromNode(tw.world, node, worker);
     expect(node.state).toBe('depleted');
-    tw.world.clock.worldSeconds += 5 * 365 * 24 * 3600; // five years
+    tw.world.clock.worldSeconds += 5 * 365 * 24 * 3600;
     maintainResourceNodes(tw.world);
     expect(node.state).toBe('depleted');
     expect(node.remaining).toBe(0);
@@ -510,7 +503,7 @@ describe('resource timescales (v0.4 §14)', () => {
     stepSpoilage(tw.world, 10 * 24); // 10 world-days
     expect(bread.quantity).toBeLessThan(100);
     expect(grain.quantity).toBeLessThan(100);
-    expect(bread.quantity).toBeLessThan(grain.quantity); // bread spoils faster than grain
+    expect(bread.quantity).toBeLessThan(grain.quantity);
     expect(plank.quantity).toBe(100); // materials never spoil
   });
 
@@ -529,7 +522,6 @@ describe('resource timescales (v0.4 §14)', () => {
   });
 });
 
-// ==================================================================== Canonical integrity
 describe('canonical integrity (v0.4 §22)', () => {
   it('stock never goes negative under repeated over-draw', () => {
     const tw = createTestWorld(4701, 20);
@@ -581,7 +573,7 @@ describe('canonical integrity (v0.4 §22)', () => {
     hauler.custody = { active: true, byFactionId: null, byId: null, reason: 'test', since: tw.world.now, releaseAt: tw.world.now + 1000 };
     maintainHauls(tw.world);
     expect(task.status).toBe('failed');
-    expect(worldStock(tw.world, 'stone')).toBe(before); // nothing lost, nothing gained
+    expect(worldStock(tw.world, 'stone')).toBe(before);
   });
 
   it('depleted resources stop offering work', () => {
@@ -613,7 +605,6 @@ describe('canonical integrity (v0.4 §22)', () => {
   });
 });
 
-// ==================================================================== Save/load round-trip
 describe('v0.4 save/load round-trip (SAVE_VERSION 7)', () => {
   it('rejects a pre-v0.4 (version 6) save', () => {
     const { world } = newWorld(1337);
@@ -636,12 +627,10 @@ describe('v0.4 save/load round-trip (SAVE_VERSION 7)', () => {
   });
 });
 
-// ==================================================================== The embodied economy vertical slice
 describe('the embodied economy causal chain (v0.4 §29)', () => {
   it('a benchmark run shows the full physical→work→wage→purchase chain with conserved quantities', { timeout: 180000 }, () => {
     const result = runHeadless({ seed: 918271, days: 3, stepSeconds: 0.15 });
     const { world, summary } = result;
-    // physical labour happened
     expect(world.runTally.resource_extracted ?? 0).toBeGreaterThan(0);
     expect(world.runTally['hauled:grain'] ?? 0).toBeGreaterThan(0);
     // requests were created, accepted, and at least some completed with real pay
@@ -655,7 +644,6 @@ describe('the embodied economy causal chain (v0.4 §29)', () => {
     const totalWealth = world.persons().reduce((n, p) => n + p.wealth, 0);
     expect(totalWealth).toBeGreaterThan(0);
     expect(Number.isFinite(totalWealth)).toBe(true);
-    // nobody's wealth went negative
     expect(world.persons().every(p => p.wealth >= 0)).toBe(true);
   });
 

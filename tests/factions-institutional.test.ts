@@ -35,7 +35,7 @@ describe('factions as institutions (Constitution §36-37, v0.2 Part 9)', () => {
     watch.members = [leader.id];
     leader.knowledge['ev:crime'] = { key: 'ev:crime', kind: 'event', claim: { type: 'attack', actor: 'x', target: 'y' }, confidence: 0.9, learnedAt: tw.world.now, source: { type: 'witnessed' }, hops: 0, sharedWith: [] };
     expect(syncFactionInstitutionalKnowledge(tw.world)).toBe(1);
-    expect(syncFactionInstitutionalKnowledge(tw.world)).toBe(0); // calling again promotes nothing new
+    expect(syncFactionInstitutionalKnowledge(tw.world)).toBe(0);
     leader.knowledge['ev:crime'].confidence = 0.4; // a later, worse-confidence version must not regress the record
     expect(syncFactionInstitutionalKnowledge(tw.world)).toBe(0);
     expect(watch.knowledge['ev:crime'].confidence).toBe(0.9);

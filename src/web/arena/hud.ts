@@ -425,7 +425,6 @@ export class ArenaHud {
     const low = h.hp / h.maxHp < .3 ? .35 + Math.sin(performance.now() / 180) * .15 : 0;
     this.vignette.style.opacity = String(Math.max(this.hurt * .9, low));
 
-    // World-anchored elements.
     const eng = scene.getEngine(), vw = eng.getRenderWidth(), vh = eng.getRenderHeight();
     const sx = this.layer.clientWidth / vw, sy = this.layer.clientHeight / vh;
     const vp = camera.viewport.toGlobal(vw, vh), tm = scene.getTransformMatrix();

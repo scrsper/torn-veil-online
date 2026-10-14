@@ -29,7 +29,6 @@ describe('ready-stance layered clips', () => {
       // Same normalised phase: first, middle and last keys match the source at 0, 50% and 100% of its cycle.
       for (const [i, p] of [[0, 0], [15, .5], [30, 1]] as const) expect(Math.abs(angle(a.getKeys()[i].value) - angle(src.evaluate(p * 48)))).toBeLessThan(1e-6);
     }
-    // Originals untouched.
     expect(arms.tracks.map(t => t.anim.getKeys().length)).toEqual(before);
     expect(r.swing).toHaveLength(31); expect(r.swing[30]).toBe(48);
   });

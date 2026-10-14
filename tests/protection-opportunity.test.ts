@@ -42,18 +42,15 @@ function talkAndChoose(s: BridgeSession, targetBodyId: string, pick: (labels: st
 describe('a protection opportunity arising from a real animal attack', () => {
   it('attack → danger concern → request → accept → hunt → butcher → proof → paid, and the world remembers', () => {
     const { s, w, player, pb, sow, sb, victim, vb } = setup();
-    // 1. The sow, guarding her litter, goes for someone working near the forest.
     expect(standBeside(w, vb, sb.pos, 2.5)).toBe(true);
     // She may be gored or may get away (the charge can miss a fleeing target); either way she has seen it go for her.
     for (let i = 0; i < 15 && !victim.mind.concerns?.some(c => c.kind === 'safety' && c.aboutId === sow.id); i++) stepFor(s, 1);
     expect(w.events.some(e => (e.type === 'attack' || e.type === 'animal_threat_display' || e.type === 'attack_missed') && e.actor === sow.id)).toBe(true);
     expect(victim.mind.concerns?.some(c => c.kind === 'safety' && c.aboutId === sow.id)).toBe(true);
-    // 2. On the ordinary coarse cadence the victim puts up silver for it to be dealt with.
     stepFor(s, 130);
     const request = w.requests.find(r => r.type === 'protection' && r.requesterId === victim.id);
     expect(request?.status).toBe('open');
     expect(request!.reward).toBeGreaterThan(0);
-    // 3. The player hears of it only by asking the victim.
     standBeside(w, pb, w.primaryBody(victim.id)!.pos, 1.5); stepFor(s, 0.5);
     const accepted = talkAndChoose(s, vb.id, l => l.indexOf('Any work going?'));
     const menu = s.snapshot(false).dialogue!;
@@ -63,7 +60,6 @@ describe('a protection opportunity arising from a real animal attack', () => {
     expect(request!.acceptedBy).toBe(player.id);
     expect(s.snapshot(false).journal.commitments.some(c => c.requestId === request!.id)).toBe(true);
     say(s, { type: 'dialogue_close' });
-    // 4. Prepared (a dagger), the player goes after the sow; hits resolve through ordinary combat.
     const dagger = makeItem(w, 'dagger', 'hunting knife', { owner: player.id, holder: player.id }); player.inventory.push(dagger.id);
     standBeside(w, pb, sb.pos, 1.6);
     const wealthBefore = player.wealth, victimWealthBefore = victim.wealth;
@@ -91,14 +87,13 @@ describe('a protection opportunity arising from a real animal attack', () => {
     }
     expect(hasMeat(), `after ${stints} stints, ${sb.butcheredSeconds ?? 0} s of work on the carcass; retries ${[...new Set(refusals)].join(' ')}`).toBe(true);
     expect(player.capability?.bySkill.hunting?.effectiveSeconds ?? 0).toBeGreaterThan(0);
-    // 6. Back to the requester with the proof.
     standBeside(w, pb, w.primaryBody(victim.id)!.pos, 1.5); stepFor(s, 0.5);
     const lines = talkAndChoose(s, vb.id, l => l.findIndex(x => x.startsWith('About the woodland boar')));
     expect(lines.join(' ')).toMatch(/silver/);
     expect(request!.status).toBe('completed');
     expect(request!.payload.settledBy).toBe('shown_meat');
     expect(player.wealth - wealthBefore).toBe(request!.paid);
-    expect(victimWealthBefore - victim.wealth).toBe(request!.paid); // conserved
+    expect(victimWealthBefore - victim.wealth).toBe(request!.paid);
     expect(victim.mind.concerns?.find(c => c.aboutId === sow.id)?.status).toBe('addressed');
     expect(getRel(victim, player.id).trust).toBeGreaterThan(0.1);
   }, 240_000);
@@ -133,7 +128,6 @@ describe('a protection opportunity arising from a real animal attack', () => {
     }
     // Practice was credited from the real attempts.
     expect(player.capability?.bySkill.veilcraft?.effectiveSeconds ?? 0).toBeGreaterThan(0);
-    // Strain accumulates; eventually it refuses.
     let refused = '';
     for (let i = 0; i < 6 && refused !== 'too_strained'; i++) { refused = say(s, { type: 'hush', targetBodyId: sb.id }).result; stepFor(s, 7); }
     expect(['too_strained', 'out_of_reach', 'exhausted']).toContain(refused);

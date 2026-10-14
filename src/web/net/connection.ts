@@ -153,7 +153,6 @@ export class GameConnection implements GameLink {
   private finish(info: ClosedInfo): void { this.wantOpen = false; this.emit('closed', info); this.setStatus('closed'); }
   private lastPersonId = '';
 
-  // ── inbound ──────────────────────────────────────────────────────────────────────────────────
   private onMessage(data: unknown): void {
     if (typeof data !== 'string') return;
     let m: any;
@@ -228,7 +227,6 @@ export class GameConnection implements GameLink {
     this.emit('presentation', { regionId: m.regionId, payload, applied });
   }
 
-  // ── outbound ─────────────────────────────────────────────────────────────────────────────────
   private raw(message: Record<string, unknown>): boolean {
     const s = this.socket;
     if (!s || s.readyState !== WebSocket.OPEN) return false;

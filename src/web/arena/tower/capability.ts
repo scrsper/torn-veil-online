@@ -4,7 +4,6 @@ export { ELEMENTS, TIERS, rank, newSheet, tierOf, emergentClass } from '../../..
 export type { Style, Element, Tier, CapabilitySheet, EmergedClass } from '../../../sim/progression/tower';
 export const TIER_COLOR: Record<Tier, string> = { Normal: '#c8c8c8', Iron: '#8f98a3', Bronze: '#c8874a', Silver: '#dfe6ee', Gold: '#ffd45c', Diamond: '#8fe8ff', God: '#ff9cf2' };
 
-// ---- Codex: every discovered class, kept across runs (localStorage) and exportable as JSON ----
 export interface CodexEntry extends EmergedClass { firstSeen: string; floor: number; seed: number; times: number; receipts?: string[] }
 const KEY = 'tv.tower.codex.v1';
 export function loadCodex(): CodexEntry[] { try { return JSON.parse(localStorage.getItem(KEY) ?? '[]'); } catch { return []; } }

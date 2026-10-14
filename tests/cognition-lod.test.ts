@@ -58,7 +58,7 @@ describe('Cognitive Level of Detail (Constitution §21-27, v0.2 Part 8)', () => 
     expect(player.cognitiveLOD).toBe(playerLODBefore); // controlled entities are skipped entirely, left exactly as they were
     expect(near.cognitiveLOD).toBe('full');
     expect(far.cognitiveLOD).toBe('lightweight');
-    expect(significantButFar.cognitiveLOD).toBe('full'); // significance overrides distance
+    expect(significantButFar.cognitiveLOD).toBe('full');
     expect(result.fullCount).toBeGreaterThanOrEqual(2);
     expect(result.lightweightCount).toBeGreaterThanOrEqual(1);
   });

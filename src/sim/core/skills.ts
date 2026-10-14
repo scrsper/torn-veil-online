@@ -47,7 +47,6 @@ export function practiceSkill(p: Person, id: PracticedSkillId, amount = 1, world
   (p.skills as Partial<Record<PracticedSkillId, number>>)[id] = clamp01(cur + BASE_GAIN * (SKILL_LEARNING_RATE[id] ?? 1) * amount * instructionFactor(p, id) * (1 - cur));
 }
 
-// ---------------------------------------------------------------- Adaptive Society (v0.5)
 /**
  * INSTRUCTION IS NOT CAPABILITY.
  *
@@ -139,9 +138,6 @@ const STARTING_SKILLS: Partial<Record<Occupation, Partial<Record<SkillId, number
   vagrant: { hauling: 0.2 },
   hunter: { hauling: 0.2, hunting: 0.6 },
   smith: { construction: 0.15 },
-  // v0.8: plausible starting proficiency by profession — Old Wyn already has "found things at
-  // the old shrine that others have lost" and lives off the woods; Edda already cooks at the
-  // tavern.
   herbalist: { herbalism: 0.65 },
   cook: { cooking: 0.55 },
 };

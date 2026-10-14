@@ -67,7 +67,7 @@ export class Showroom {
         const r = realize(`show-${i}`, p.desc, undefined);
         const v = app.characters.create(scene, app.atmosphere, `show-${i}`, r);
         if (!v) return;
-        const x = (i - (list.length - 1) / 2) * spacing; v.root.position.set(x, 0, 0); v.root.rotation.y = Math.PI;   // face the camera
+        const x = (i - (list.length - 1) / 2) * spacing; v.root.position.set(x, 0, 0); v.root.rotation.y = Math.PI;
         this.visuals.push({ v, x, name: p.name });
       });
       this.dist = Math.max(3.4, list.length * 0.85);

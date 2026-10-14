@@ -19,7 +19,7 @@ describe('surface weather response', () => {
     const scene = new Scene(new NullEngine()), mats = new MaterialLibrary(scene);
     const path = mats.clone('path', 'path-weather-test');
     mats.updateWeather('storm', 1, 10);
-    expect(path.roughness).toBeCloseTo(.45, 2); // storm clamps wetness to 1
+    expect(path.roughness).toBeCloseTo(.45, 2);
     const wetClone = mats.clone('path', 'streamed-during-rain');
     expect(wetClone.roughness).toBeCloseTo(path.roughness!, 6);
     expect(wetClone.albedoColor.equals(path.albedoColor)).toBe(true);

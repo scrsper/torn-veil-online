@@ -111,7 +111,6 @@ export function detectAnomalies(world: World, opts: AnomalyOptions = {}, eventSo
   // (the browser Inspector, ad-hoc scripts) — never a breaking change.
   const events = eventSource ?? world.events;
 
-  // 1. Repeated lethal conflict: one actor with 3+ kills inside the window.
   const killsByActor = new Map<EntityId, WorldEvent[]>();
   for (const e of events) {
     if (e.type !== 'kill' || !e.actor || !within(e, window * 8)) continue;
@@ -127,7 +126,6 @@ export function detectAnomalies(world: World, opts: AnomalyOptions = {}, eventSo
     }
   }
 
-  // 2. Village-wide death spike: several deaths clustered close together in world time.
   const deaths = events.filter(e => e.type === 'death').sort((a, b) => a.tick - b.tick);
   for (let i = 0; i < deaths.length; i++) {
     const clustered = deaths.filter(d => Math.abs(d.tick - deaths[i].tick) <= window);
@@ -180,12 +178,10 @@ export function detectAnomalies(world: World, opts: AnomalyOptions = {}, eventSo
   }
   for (const [key, list] of spamCounts) if (list.length >= 30) out.push({ type: 'event_spam', entity: list[0].actor, ...trace(list, cap), data: { key, windowHours: window / 3600 } });
 
-  // 5. Stuck agents: repeated path failures clustering on one entity.
   const pathFailByActor = new Map<EntityId, WorldEvent[]>();
   for (const e of events) { if (e.type !== 'path_failure' || !e.actor || !within(e, window)) continue; const list = pathFailByActor.get(e.actor) ?? []; list.push(e); pathFailByActor.set(e.actor, list); }
   for (const [actor, events] of pathFailByActor) if (events.length >= 5) out.push({ type: 'stuck_agent', entity: actor, ...trace(events, cap), data: { windowHours: window / 3600 } });
 
-  // 6. Goal churn: an actor switching goals unusually often inside the window.
   const goalChangesByActor = new Map<EntityId, WorldEvent[]>();
   for (const e of events) { if (e.type !== 'goal_changed' || !e.actor || !within(e, window)) continue; const list = goalChangesByActor.get(e.actor) ?? []; list.push(e); goalChangesByActor.set(e.actor, list); }
   for (const [actor, events] of goalChangesByActor) if (events.length >= 40) out.push({ type: 'goal_churn', entity: actor, ...trace(events, cap), data: { windowHours: window / 3600 } });
@@ -227,7 +223,6 @@ export function detectAnomalies(world: World, opts: AnomalyOptions = {}, eventSo
   }
   for (const [key, list] of ignoredResolution) out.push({ type: 'surrender_or_custody_ignored', entity: list[0].actor, ...trace(list, cap), data: { key } });
 
-  // 9. Repeated arrest of the same person inside the window — a revolving-door custody problem.
   const arrestsByDetainee = new Map<EntityId, WorldEvent[]>();
   for (const e of events) {
     if (e.type !== 'entity_arrested' || !e.target || !within(e, window * 8)) continue;

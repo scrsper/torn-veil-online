@@ -5,7 +5,6 @@ const MAX_MEMORIES = 60;
 
 export function remember(world: World, p: Person, m: { type: string; summary: string; eventId?: EventId; entities?: EntityId[]; significance: number; valence?: number; source: Source; placeId?: EntityId; tick?: number }, quiet = false): Memory {
   const mem: Memory = { id: world.nextId('m'), tick: m.tick ?? world.now, type: m.type, summary: m.summary, eventId: m.eventId, entities: m.entities ?? [], significance: Math.min(1, m.significance), valence: m.valence ?? 0, source: m.source, placeId: m.placeId, recalled: 0 };
-  // avoid exact duplicates of the same event by the same source type
   if (m.eventId) { const dup = p.memories.find(x => x.eventId === m.eventId && x.source.type === m.source.type); if (dup) { dup.significance = Math.max(dup.significance, mem.significance); return dup; } }
   p.memories.push(mem);
   if (p.memories.length > MAX_MEMORIES) {

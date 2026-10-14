@@ -40,10 +40,10 @@ describe('human animation transitions', () => {
   it('aligns support feet across forward, backward and the walk-run blend', () => {
     const walk = group(), back = group(), run = group();
     const a = animator(new Map([['walk', walk], ['back', back], ['run', run]]), new Map([['walk', .4], ['back', .9], ['run', .45]]));
-    a.play('walk', { loop: true }); a.update(.4); walk.goToFrame(70); // support phase .2
+    a.play('walk', { loop: true }); a.update(.4); walk.goToFrame(70);
     a.play('back', { loop: true });
-    expect(back.animatables[0].masterFrame).toBeCloseTo(20); // .2 + .9 wraps
-    a.update(.4); back.goToFrame(40); // support phase .4
+    expect(back.animatables[0].masterFrame).toBeCloseTo(20);
+    a.update(.4); back.goToFrame(40);
     a.loco('walk', 'run', .5, 1);
     expect(walk.animatables[0].masterFrame).toBeCloseTo(90);
     expect(run.animatables[0].masterFrame).toBeCloseTo(95);

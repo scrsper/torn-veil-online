@@ -88,7 +88,7 @@ describe('martial learning: separate knowledge, skill, mastery and capacity', ()
     expect(master.coordination).toBeGreaterThan(novice.coordination);
     expect(master.timingUncertaintySeconds).toBeLessThan(novice.timingUncertaintySeconds);
     seedMartialBackground(world, b, 'unarmed:slip-counter', 0.8, 0);
-    expect(canExecuteTechnique(world, b, 'unarmed:slip-counter')).toBe(false); // Missing slip prerequisite.
+    expect(canExecuteTechnique(world, b, 'unarmed:slip-counter')).toBe(false);
   });
 
   it('rejects unqualified teachers, inaccessible/distrusted partners and urgent needs', () => {
@@ -226,7 +226,7 @@ describe('manuals, observation, discovery and combat feedback', () => {
     for (let n = 0; n < 8; n++) {
       perform(world, a, action(world, a, 'practice'));
       const ev = [...world.events].reverse().find(e => e.data.martialDemonstration)!;
-      expect(observeTechnique(world, c, ev.id)).toBeNull(); // No supported perception.
+      expect(observeTechnique(world, c, ev.id)).toBeNull();
       ev.perceivedBy.push({ who: b.id, how: 'saw', tick: world.now });
       observeTechnique(world, b, ev.id);
       const understanding = techniqueKnowledge(b, PUNCH)!.claim.understanding;

@@ -29,7 +29,7 @@ export function createLivingPressure(seed = 17, sites?: SettlementSite[], condit
     if (pl.type !== 'mill') continue;
     const p = lab.world.person(pl.ownerId)!;
     p.skills.milling = conditions.manualSkill ?? 0; p.skills.crafting = 0.5; p.traits.curiosity = 0.95;
-    const b = lab.world.primaryBody(p.id)!; b.pos = { ...pl.inside }; // start of the existing shift
+    const b = lab.world.primaryBody(p.id)!; b.pos = { ...pl.inside };
     if (conditions.sawnOnly) for (const k of Object.values(p.knowledge)) {
       const d = k.claim.component;
       if (d && lab.world.kernel.ruleset.materials.find(m => m.id === d.material)?.legacyItem === 'log') delete p.knowledge[k.key];

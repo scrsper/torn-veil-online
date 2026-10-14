@@ -22,7 +22,7 @@ it('solo training runs real practice sessions that develop the body only as far 
   stepFor(s, 330);
   const rounds = w.events.filter(e => e.type === 'work_shift' && e.actor === player.id && e.data.martial === 'practice' && e.data.phase === 'completed');
   expect(rounds.length).toBeGreaterThanOrEqual(3);
-  expect(new Set(rounds.map(e => e.data.techniqueId)).size).toBeGreaterThan(1); // rotating drills
+  expect(new Set(rounds.map(e => e.data.techniqueId)).size).toBeGreaterThan(1);
   expect(player.capability?.bySkill.unarmed?.effectiveSeconds ?? 0).toBeGreaterThan(0);
   expect(player.development.exposure.dexterity).toBeGreaterThan(dex);
 }, 300_000);

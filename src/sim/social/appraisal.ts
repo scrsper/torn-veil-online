@@ -117,7 +117,6 @@ export function appraiseClaim(world: World, p: Person, k: KnowledgeItem, ctx?: A
     if (reason) reasons.push(reason);
   };
 
-  // ---- direct involvement
   if (subjectId === p.id) { add(0.5, 'victim', 'this happened to me'); stake += 0.5; }
   if (actorId === p.id) { add(0.35, 'actor', 'I did this'); }
   if (itemId) {
@@ -125,7 +124,6 @@ export function appraiseClaim(world: World, p: Person, k: KnowledgeItem, ctx?: A
     if (item && item.ownerId === p.id) { add(0.4, 'owner', `${item.name} is mine`); stake += 0.5; }
   }
 
-  // ---- relationship to the person it happened to
   if (subjectId && subjectId !== p.id) {
     const rel = p.relationships[subjectId];
     if (isFamily(p, subjectId)) {
@@ -149,12 +147,10 @@ export function appraiseClaim(world: World, p: Person, k: KnowledgeItem, ctx?: A
     if (rel && (rel.grudge > 0.25 || (rel.grievance ?? 0) > 0)) add(clamp(rel.grudge * 0.25, 0, 0.25), 'aggrieved_by_actor', `I have my own history with ${world.nameOf(actorId)}`);
   }
 
-  // ---- institutional / occupational role
   if (crime && LAW_ROLES.has(p.occupation)) add(0.4, 'institutional', 'keeping the peace is my charge');
   if ((kind === 'harm' || kind === 'grief') && PASTORAL_ROLES.has(p.occupation)) add(0.2, 'pastoral', 'the hurt and the grieving are my charge');
   if (kind === 'harm' && HEALER_ROLES.has(p.occupation)) add(0.2, 'healer', 'I am the one people come to when they are hurt');
 
-  // ---- material stake: does this touch my livelihood?
   if (subjectId && subjectId !== p.id) {
     const subject = world.person(subjectId);
     if (subject && p.workId && subject.workId === p.workId) { add(0.25, 'coworker', `${subject.name} and I work at ${world.nameOf(p.workId)}`); stake += 0.35; }
@@ -186,11 +182,9 @@ export function appraiseClaim(world: World, p: Person, k: KnowledgeItem, ctx?: A
 
   if (!roles.length) { roles.push('bystander'); reasons.push('it did not touch me'); }
 
-  // ---- traits: an honest person weighs wrongdoing more; a cowardly one weighs danger more.
   if (crime) weight += (p.traits.honesty - 0.5) * 0.12;
   if (crime && actorId) weight += (0.5 - p.traits.courage) * 0.08;
 
-  // ---- epistemics: a half-believed third-hand rumour does not land like something you saw.
   const provenance = k.confidence * (k.source.type === 'witnessed' || k.source.type === 'self' ? 1 : k.source.type === 'heard' ? 0.85 : 0.8);
   const hopPenalty = 1 - Math.min(0.35, k.hops * 0.12);
   weight *= provenance * hopPenalty;

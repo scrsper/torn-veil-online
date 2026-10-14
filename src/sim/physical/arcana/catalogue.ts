@@ -33,7 +33,6 @@ const S = (id: string, name: string, icon: string, color: string, kernel: Kernel
   ({ id, name, icon, color, kernel, cost, cooldown, riders, text, source, power: 1, rank: 1, uses: 0 });
 export const cloneSkill = (s: SkillDef): SkillDef => ({ ...s, riders: [...s.riders] });
 
-// ---- the sandbox's four Witcher-style signs (the gym keeps them all unlocked) ----
 export const SIGNS: SkillDef[] = [
   S('ember', 'Ember', '🔥', '#ff7a2e', 'cone', 22, 2.5, ['flame'], 'Cone of fire; burns', 'sign'),
   S('gust', 'Gust', '🌀', '#cfe8ff', 'wave', 25, 4, [], 'Force wave; knocks down, breaks guards', 'sign'),
@@ -41,7 +40,6 @@ export const SIGNS: SkillDef[] = [
   S('sigil', 'Frost Sigil', '❄️', '#8fdcff', 'sigil', 28, 7, ['frost'], 'Circle that chills and slows', 'sign'),
 ];
 
-// ---- essences (He Who Fights With Monsters): absorbed from monsters, one ability each ----
 export type Essence = 'fire' | 'ice' | 'storm' | 'swift' | 'iron' | 'shadow' | 'life' | 'bone' | 'blood' | 'water' | 'gravity' | 'time';
 export const ESSENCES: Record<Essence, { name: string; color: string; element?: Element; skill: SkillDef }> = {
   fire: { name: 'Fire', color: '#ff7a2e', element: 'flame', skill: S('ess-fire', 'Immolate', '🔥', '#ff7a2e', 'nova', 26, 6, ['flame'], 'Burst of flame around you; burns', 'essence') },
@@ -94,7 +92,6 @@ export const FOE_ESSENCE: Record<string, Essence[]> = {
   minion: ['bone'], warrior: ['iron', 'blood'], rogue: ['shadow', 'swift'], mage: ['fire', 'ice', 'storm', 'life', 'water'], chrysanthus: ['time'],
 };
 
-// ---- skill books: learn the element's skill; affinity +1 ----
 export const BOOKS: Record<Element, { title: string; skill: SkillDef }> = {
   flame: { title: 'Tome of Kindled Wrath', skill: S('book-ember', 'Ember', '🔥', '#ff7a2e', 'cone', 22, 2.5, ['flame'], 'Cone of fire; burns', 'book') },
   frost: { title: 'Tome of the Long Winter', skill: S('book-sigil', 'Frost Sigil', '❄️', '#8fdcff', 'sigil', 28, 7, ['frost'], 'Circle that chills and slows', 'book') },
@@ -108,7 +105,6 @@ export const BOOKS: Record<Element, { title: string; skill: SkillDef }> = {
   time: { title: 'Tome of the Unwound Hour', skill: S('book-still', 'Still Moment', '⏳', '#ffd76a', 'nova', 34, 14, ['time'], 'Slow everything near you', 'book') },
 };
 
-// ---- scrolls: one strong cast, read with G ----
 export const SCROLLS: SkillDef[] = [
   S('scroll-meteor', 'Scroll of Falling Star', '☄️', '#ff9a3c', 'meteor', 0, 0, ['flame'], 'A star falls on the cursor', 'scroll'),
   S('scroll-chain', 'Scroll of Forked Sky', '⚡', '#c9a4ff', 'chain', 0, 0, ['storm', 'storm'], 'Lightning forks through the room', 'scroll'),
@@ -118,7 +114,6 @@ export const SCROLLS: SkillDef[] = [
 ];
 SCROLLS.forEach(s => { s.power = 1.6; });
 
-// ---- class signatures: the class you became grants its skill ----
 const SIGNATURE: Record<Style, SkillDef> = {
   fists: S('cls-fists', 'Hundred Fists', '👊', '#ffd45c', 'cone', 20, 5, [], 'A blur of blows ahead of you', 'class'),
   blade: S('cls-blade', 'Whirlwind', '🌪️', '#ffd45c', 'nova', 24, 6, [], 'Spin and cut everything around you', 'class'),

@@ -9,7 +9,6 @@ import { materialOf, materialIdOf } from '../src/sim/core/materials';
 import { knowsAffordance, recognizedUses } from '../src/sim/mind/knowledge';
 import { bestToolFor, toolWorkMultiplier } from '../src/sim/core/tools';
 
-// ==================================================================== v0.8 §A — materials
 describe('material properties (v0.8 §A): only what fire/crafting actually consume', () => {
   it('stone has zero flammability; wood is genuinely flammable', () => {
     expect(materialOf('stone')!.flammability).toBe(0);
@@ -19,7 +18,6 @@ describe('material properties (v0.8 §A): only what fire/crafting actually consu
   });
 });
 
-// ==================================================================== v0.8 §C — fire
 describe('fire as a real world process (v0.8 §C): fuel, ignition, burning, rain', () => {
   it('dry wood ignites indoors and burns, consuming real fuel stock', () => {
     const tw = createTestWorld(80001, 30);
@@ -29,7 +27,7 @@ describe('fire as a real world process (v0.8 §C): fuel, ignition, burning, rain
     const fire = createFire(tw.world, place.id, v(4, 1, 4), false);
     expect(igniteFire(tw.world, fire, p, 'log', 1)).toBe(true);
     expect(fire.lit).toBe(true);
-    expect(stockAt(tw.world, 'log', place.id)).toBe(2); // real fuel physically consumed
+    expect(stockAt(tw.world, 'log', place.id)).toBe(2);
     expect(fire.fuelRemaining).toBeGreaterThan(0);
     stepFire(tw.world, 1);
     expect(fireIntensityAt(tw.world, place.id)).toBeGreaterThan(0);
@@ -43,7 +41,7 @@ describe('fire as a real world process (v0.8 §C): fuel, ignition, burning, rain
     const fire = createFire(tw.world, place.id, v(4, 1, 4), false);
     expect(igniteFire(tw.world, fire, p, 'stone', 5)).toBe(false);
     expect(fire.lit).toBe(false);
-    expect(stockAt(tw.world, 'stone', place.id)).toBe(5); // untouched
+    expect(stockAt(tw.world, 'stone', place.id)).toBe(5);
   });
 
   it('an exposed fire cannot be lit while it is actually raining on it — wet wood is harder to ignite', () => {
@@ -117,17 +115,16 @@ describe('fire as a real world process (v0.8 §C): fuel, ignition, burning, rain
   });
 });
 
-// ==================================================================== v0.8 §D/E — cooking
 describe('cooking (v0.8 §D/E): the first production process gated on real fire/heat', () => {
   it('cooking fails without a genuinely hot fire, even with plenty of meat on hand', () => {
     const tw = createTestWorld(80101, 30);
     const tavernId = tw.places.tavern; // createTestWorld's own single tavern-type Place
     const cookP = addPerson(tw, 'Cook', 'cook', v(5, 1, 5), { workId: tavernId });
-    createFire(tw.world, tavernId, v(5, 1, 5), false); // unlit
+    createFire(tw.world, tavernId, v(5, 1, 5), false);
     addPlaceStock(tw.world, 'meat', 10, tavernId, cookP.id, undefined, 'x');
     const result = cook(tw.world, cookP);
     expect(result.ok).toBe(false);
-    expect(stockAt(tw.world, 'meat', tavernId)).toBe(10); // nothing consumed
+    expect(stockAt(tw.world, 'meat', tavernId)).toBe(10);
   });
 
   it('a real lit, hot fire lets meat become stew — conserved, real transform', () => {
@@ -158,13 +155,11 @@ describe('cooking (v0.8 §D/E): the first production process gated on real fire/
   });
 });
 
-// ==================================================================== v0.8 §F — crafting
 describe('practical crafting (v0.8 §F): functional requirements, not spawn-from-recipe-id', () => {
   it('a stone axe cannot be crafted with missing components — nothing consumed on failure', () => {
     const tw = createTestWorld(80201, 30);
     const p = addPerson(tw, 'Crafter', 'traveler', v(5, 1, 5));
     makeItem(tw.world, 'stick', 'stick', { owner: p.id, holder: p.id, quantity: 1 });
-    // no stone, no herbs
     const result = craftItem(tw.world, p, 'stone_axe');
     expect(result.ok).toBe(false);
     expect(p.inventory.length).toBe(1); // the stick was never touched

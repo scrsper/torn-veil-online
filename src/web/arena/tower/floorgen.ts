@@ -93,7 +93,6 @@ export function planFloor(runSeed: number, floor: number): FloorPlan {
       const free = [0, 1, 2, 3].map(c => (c + k) % 4).find(c => !used.has(c) && maze.cornerClosed(corners[c][0], corners[c][1]));
       if (free !== undefined && rnd() < .45) chests.push({ x: corners[free][0], z: corners[free][1], yaw: rnd() * 6 });
     });
-    // Dead ends reward the detour.
     for (const c of maze.deadEnds) if (chests.length < 6 && rnd() < .5) chests.push({ x: maze.x(c.i), z: maze.z(c.j), yaw: rnd() * 6 });
   }
   // Enemies: count and mix scale with the floor.

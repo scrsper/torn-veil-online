@@ -22,7 +22,7 @@ describe('P0-B: robbing a victim who carries no physical coins transfers spendab
     bandit.hostile = true; bandit.wealth = 0;
     const villager = addPerson(tw, 'Villager', 'farmer', v(11, 1, 10), { traits: { courage: 0.1, aggression: 0.1 } });
     villager.wealth = 40; // no coins ITEM carried — selectRobberyTake must fall to the 'wealth' branch
-    tw.world.rng = new FixedRNG(0.99) as unknown as RNG; // force compliance, skip the fight
+    tw.world.rng = new FixedRNG(0.99) as unknown as RNG;
 
     const coinItemCountBefore = tw.world.items().filter(i => i.type === 'coins').length;
     const totalWealthBefore = bandit.wealth + villager.wealth;

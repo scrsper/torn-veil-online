@@ -28,7 +28,7 @@ async function open(scenario: 'town' | 'gym', extra = ''): Promise<void> {
   await page.goto(`${flag('host', 'http://127.0.0.1:5180')}/?gym=1&scenario=${scenario}&autoplay=1&view=third-person&hour=11${extra}`);
   await page.waitForFunction(() => (window as any).__tv?.ready === true, undefined, { timeout: 300_000 });
   await page.waitForTimeout(1500);
-  await page.mouse.click(W / 2, H / 2);   // focus the canvas
+  await page.mouse.click(W / 2, H / 2);
 }
 /** Camera telemetry: distance, height over the pivot, pitch, fov, and the player's on-screen height share. */
 const telemetry = (p: Page) => p.evaluate(() => {

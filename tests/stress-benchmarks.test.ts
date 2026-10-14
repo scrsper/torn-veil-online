@@ -166,7 +166,7 @@ describe('stress: v0.5 food abundance vs. scarcity (§XI.1-2)', () => {
     // measured where the rounding cannot swallow it. The whole-silver guarantee is not lost: it
     // is asserted above, at the depth of scarcity where a buyer actually feels it.
     const bread = stockAt(world, 'bread', bakery.id);
-    expect(bread).toBeLessThan(PRICE_REFERENCE_BREAD); // still short of comfortable
+    expect(bread).toBeLessThan(PRICE_REFERENCE_BREAD);
     expect(scarcityModifier(bread, PRICE_REFERENCE_BREAD)).toBeGreaterThan(1);
     // The first replenishment lowers scarcity. Customers may buy it before the final
     // snapshot; an empty counter at the endpoint does not imply production never responded.

@@ -17,7 +17,6 @@ import { SECONDS_PER_HOUR, SECONDS_PER_DAY } from '../core/time';
  * never mutates it. Everything here is deterministic — no RNG.
  */
 
-// --- lifecycle tuning (world-time). Deliberately legible constants, not scattered magic numbers.
 /** An `active` conflict with no blow/demand/pursuit for this long, with the parties no longer in
  * contact, lapses toward `disengaging`. ~40 world-minutes: long enough to span a scrappy running
  * fight, short enough that a genuinely abandoned fight ends promptly. */

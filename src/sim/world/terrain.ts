@@ -3,7 +3,7 @@ import { VoxelGrid } from '../physical/grid';
 import { fbm, hash2 } from '../core/rng';
 
 export const WORLD_W = 192, WORLD_H = 64, WORLD_D = 192;
-export const CX = 96, CZ = 96;            // village centre
+export const CX = 96, CZ = 96;
 export const VILLAGE_TOP = 13;            // top solid block on the village plateau (feet at 14)
 export const WATER_LEVEL = 11;
 export const RIVER_X = 22;
@@ -16,15 +16,11 @@ export function terrainHeight(x: number, z: number, seed: number): number {
   const n = fbm(x / 48, z / 48, 4, seed) - 0.5;         // -0.5..0.5
   const n2 = fbm(x / 14, z / 14, 3, seed + 99) - 0.5;
   let base = VILLAGE_TOP + n * 14 + n2 * 3;
-  // northern hills
   const north = Math.max(0, (60 - z) / 60);
   base += north * north * 22;
-  // eastern rise
   const east = Math.max(0, (x - 150) / 42); base += east * east * 8;
-  // plateau blend
   const t = smooth(58, 84, d);
   let h = VILLAGE_TOP * (1 - t) + base * t;
-  // river valley
   const rc = riverCenter(z); const rd = Math.abs(x - rc);
   if (rd < 4) h = Math.min(h, WATER_LEVEL - 2 + (rd > 2.5 ? 1 : 0));
   else if (rd < 9) { const k = (rd - 4) / 5; h = Math.min(h, (WATER_LEVEL - 1) * (1 - k) + Math.max(h, VILLAGE_TOP) * k); }

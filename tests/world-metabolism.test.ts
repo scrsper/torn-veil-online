@@ -40,7 +40,7 @@ describe('needs — hunger & thirst (v0.2.4 Priority 1)', () => {
     const a = run(); const b = run();
     expect(a.hunger).toBeGreaterThan(0.1);
     expect(a.thirst).toBeGreaterThan(0.1);
-    expect(a.thirst).toBeGreaterThan(a.hunger); // thirst rises faster
+    expect(a.thirst).toBeGreaterThan(a.hunger);
     expect(a).toEqual(b);
   });
 
@@ -55,7 +55,7 @@ describe('needs — hunger & thirst (v0.2.4 Priority 1)', () => {
     const type = eatFood(tw.world, p, found!);
     expect(type).toBe('bread');
     expect(p.needs.hunger).toBeLessThan(before - 0.3);
-    expect(bread.quantity).toBe(1); // one loaf consumed, one left
+    expect(bread.quantity).toBe(1);
     expect(tw.world.events.some(e => e.type === 'food_consumed' && e.actor === p.id)).toBe(true);
   });
 
@@ -130,13 +130,13 @@ describe('crop lifecycle + soil moisture (v0.2.4 Priority 3-4)', () => {
     field.soilMoisture = 0.02;
     world.clock.worldSeconds += 24 * 3600; stepMetabolism(world, 24);
     expect(plot.growth).toBeGreaterThan(0);
-    expect(plot.growth).toBeLessThan(wetGrowth * 0.5); // dry soil grows far slower
+    expect(plot.growth).toBeLessThan(wetGrowth * 0.5);
   });
 
   it('a crop reaches `mature` after roughly MATURE_HOURS at full moisture, and emits crop_matured', () => {
     const { world, field } = fieldWorld(922);
     const farmer = world.persons()[0] as Person;
-    world.weather.kind = 'rain'; world.weather.intensity = 1; // keep the soil wet
+    world.weather.kind = 'rain'; world.weather.intensity = 1;
     const plot = field.plots[0];
     plantPlot(world, field, plot, farmer);
     // v0.4 §14: step just past MATURE_HOURS, not the old test's generous *1.6 overshoot — with
@@ -202,7 +202,7 @@ describe('farmer actions + food production chain (v0.2.4 Priority 5-7)', () => {
     const r3 = transform(tw.world, { actor: worker.id, inputType: 'grain', inputQty: 3, inputPlaces: [mill.id], outputType: 'flour', outputQty: 4, outputPlace: mill.id, ownerId: worker.id, how: 'milled' });
     expect(r3.ok).toBe(false);
     expect(r3.shortage).toBe('grain');
-    expect(stockTotal(tw.world, 'flour', [mill.id])).toBe(flourNow); // unchanged — no bread from nothing
+    expect(stockTotal(tw.world, 'flour', [mill.id])).toBe(flourNow);
     expect(tw.world.events.some(e => e.type === 'resource_shortage')).toBe(true);
   });
 
@@ -212,7 +212,7 @@ describe('farmer actions + food production chain (v0.2.4 Priority 5-7)', () => {
     for (const it of world.items()) if (it.type === 'grain' || it.type === 'flour') { it.quantity = 0; it.pos = null; it.placeId = null; }
     const r = bake(world, gen.people.osric);
     expect(r.ok).toBe(false);
-    expect(world.items().filter(i => i.type === 'bread' && i.quantity > 0).length).toBeGreaterThanOrEqual(0); // no NEW bread
+    expect(world.items().filter(i => i.type === 'bread' && i.quantity > 0).length).toBeGreaterThanOrEqual(0);
     const m = mill(world, gen.people.hobb);
     expect(m.ok).toBe(false);
   });
@@ -318,6 +318,6 @@ describe('long-run: the whole chain actually works (v0.2.4 Priority 10)', () => 
     expect(m.stock.bread).toBeLessThan(400);
     expect(m.avgHunger).toBeLessThan(0.85);
     expect(m.avgThirst).toBeLessThan(0.7);
-    expect(world.persons().filter(p => p.alive).length).toBe(33); // nobody died of hunger/thirst
+    expect(world.persons().filter(p => p.alive).length).toBe(33);
   });
 });

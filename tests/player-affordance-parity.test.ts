@@ -25,7 +25,7 @@ describe('crop lifecycle visual legibility (v0.8 §C)', () => {
   it('planted, growing, mature, and harvested each project to a visually distinct block', () => {
     const blocks = { planted: cropBlockFor('planted'), growing: cropBlockFor('growing'), mature: cropBlockFor('mature'), harvested: cropBlockFor('harvested') };
     const values = Object.values(blocks);
-    expect(new Set(values).size).toBe(values.length); // all four pairwise distinct
+    expect(new Set(values).size).toBe(values.length);
     expect(blocks.mature).toBe(B.Wheat);
     // fallow (nothing sown) is the one state that stays Air — bare tilled Farmland remains
     // visible beneath it, which already reads as "worked, empty soil", not "identical to

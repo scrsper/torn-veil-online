@@ -19,7 +19,7 @@ const browser = await chromium.launch({ channel: 'chrome', headless: false, args
 const ctx = await browser.newContext({ viewport: { width: W, height: H } });
 const page = await ctx.newPage();
 const errors: string[] = []; page.on('pageerror', e => errors.push(String(e))); page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
-await page.addInitScript(() => { (window as any).__name = (f: unknown) => f; try { localStorage.removeItem('tv.tower.codex.v1'); } catch { /* */ } });
+await page.addInitScript(() => { (window as any).__name = (f: unknown) => f; try { localStorage.removeItem('tv.tower.codex.v1'); } catch { } });
 await page.goto(`${process.env.ARENA_HOST ?? 'http://127.0.0.1:5180'}/?arena=1&tower=1&seed=${seed}${process.argv.includes('--floor') ? `&floor=${arg('floor', '1')}` : ''}`);
 await page.waitForFunction(() => !!(window as any).__arena?.tower, null, { timeout: 240_000 });
 await page.evaluate(() => (window as any).__arena.hud.toggleHelp());

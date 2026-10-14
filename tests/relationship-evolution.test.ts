@@ -30,13 +30,13 @@ describe('relationship evolution (Constitution §7/§11)', () => {
     for (let h = 0; h < 60; h++) evolveRelationships(a, 1, NONE); // 2.5 days
     expect(r.fear).toBeLessThan(0.05);
     expect(r.grudge).toBeGreaterThan(r.fear);
-    expect(r.grudge).toBeGreaterThan(0.15); // still meaningfully resentful
-    expect(r.grudge).toBeLessThan(0.4);     // but fading
+    expect(r.grudge).toBeGreaterThan(0.15);
+    expect(r.grudge).toBeLessThan(0.4);
   });
 
   it('repeated reinforcement prevents decay from winning', () => {
     const { a, b } = pair(3);
-    const tw = createTestWorld(31); // for adjustRel's world arg
+    const tw = createTestWorld(31);
     getRel(a, b.id).grudge = 0.5;
     for (let h = 0; h < 24 * 3; h++) {
       evolveRelationships(a, 1, NONE);
@@ -51,8 +51,8 @@ describe('relationship evolution (Constitution §7/§11)', () => {
     // a second relationship carrying a real grievance (murder of kin, etc.)
     a.relationships['grievor'] = { trust: 0, affection: 0, fear: 0, respect: 0, familiarity: 0.2, grudge: 0.9, grievance: 0.85, tags: [], lastUpdated: 0 };
     for (let d = 0; d < 20; d++) for (let h = 0; h < 24; h++) evolveRelationships(a, 1, NONE); // 20 days
-    expect(rMinor.grudge).toBeLessThan(0.1);                 // ordinary grudge is gone
-    expect(a.relationships['grievor'].grudge).toBeGreaterThan(0.6); // the grievance floor holds
+    expect(rMinor.grudge).toBeLessThan(0.1);
+    expect(a.relationships['grievor'].grudge).toBeGreaterThan(0.6);
   });
 
   it('an active threat prevents inappropriate cooling of fear and grudge', () => {

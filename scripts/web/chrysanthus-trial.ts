@@ -50,7 +50,6 @@ const mid = await state(); console.log('after 40s', JSON.stringify(mid));
 await page.evaluate(() => { const t = (window as any).__arena.tower.trial; t.t = 59.5; });
 await page.waitForTimeout(1800); await shot('04-staff-drawn');
 for (let k = 0; k < 8; k++) { await page.waitForTimeout(900); if (k % 2 === 0) await shot(`05-staff-${k}`); }
-// End the trial: enough blows.
 await page.evaluate(() => { const t = (window as any).__arena.tower.trial; t.blows = Math.max(t.blows, 30); });
 await page.waitForSelector('.ar-dialog[style*="block"]', { timeout: 20_000 }); lines.push(await page.locator('.ar-dialog p').innerText()); await shot('06-farewell');
 await page.keyboard.press('Digit1');

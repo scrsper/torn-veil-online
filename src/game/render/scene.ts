@@ -23,22 +23,18 @@ export class Atmosphere {
       vertexShader: 'varying vec3 vDir; void main(){ vDir = normalize(position); vec4 mv = modelViewMatrix * vec4(position,1.0); gl_Position = projectionMatrix * mv; gl_Position.z = gl_Position.w; }',
       fragmentShader: 'uniform vec3 top; uniform vec3 horizon; uniform vec3 sunDir; uniform vec3 sunCol; uniform float glow; varying vec3 vDir; void main(){ float h = clamp(vDir.y, -0.1, 1.0); float t = pow(max(0.0, h), 0.55); vec3 c = mix(horizon, top, t); float sd = max(0.0, dot(normalize(vDir), sunDir)); c += sunCol * pow(sd, 12.0) * glow * (1.0 - t * 0.5); c += sunCol * pow(sd, 3.0) * glow * 0.12; gl_FragColor = vec4(c, 1.0); }' });
     this.sky = new THREE.Mesh(new THREE.SphereGeometry(400, 24, 12), this.skyMat); this.sky.renderOrder = -10; scene.add(this.sky);
-    // stars
     const sp: number[] = []; for (let i = 0; i < 900; i++) { const v = new THREE.Vector3().randomDirection(); if (v.y < 0.02) { i--; continue; } sp.push(v.x * 380, v.y * 380, v.z * 380); }
     this.stars = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(sp, 3)), new THREE.PointsMaterial({ color: 0xffffff, size: 1.6, transparent: true, opacity: 0, fog: false, sizeAttenuation: true })); scene.add(this.stars);
     this.sunMesh = new THREE.Mesh(new THREE.SphereGeometry(9, 12, 8), new THREE.MeshBasicMaterial({ color: 0xfff2c0, fog: false })); scene.add(this.sunMesh);
     this.moonMesh = new THREE.Mesh(new THREE.SphereGeometry(6, 12, 8), new THREE.MeshBasicMaterial({ color: 0xe8ecff, fog: false })); scene.add(this.moonMesh);
-    // rain
     this.rainPos = new Float32Array(this.rainCount * 3); for (let i = 0; i < this.rainCount; i++) this.resetRain(i, true);
     this.rainMat = new THREE.PointsMaterial({ color: 0xaac4e0, size: 0.14, transparent: true, opacity: 0, sizeAttenuation: true });
     this.rain = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(this.rainPos, 3)), this.rainMat); this.rain.frustumCulled = false; scene.add(this.rain);
-    // smoke
     this.smokePos = new Float32Array(this.smokeCount * 3); this.smokeLife = new Float32Array(this.smokeCount).fill(-1);
     this.smokeMat = new THREE.PointsMaterial({ color: 0x9a9a9a, size: 0.9, transparent: true, opacity: 0.45, sizeAttenuation: true, depthWrite: false });
     this.smoke = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(this.smokePos, 3)), this.smokeMat); this.smoke.frustumCulled = false; scene.add(this.smoke);
     this.emberPos = new Float32Array(this.emberCount * 3); this.emberLife = new Float32Array(this.emberCount).fill(-1);
     this.embers = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(this.emberPos, 3)), new THREE.PointsMaterial({ color: 0xffa040, size: 0.18, transparent: true, opacity: 0.9, sizeAttenuation: true, depthWrite: false })); this.embers.frustumCulled = false; scene.add(this.embers);
-    // voxel clouds
     this.clouds = new THREE.Group(); const cm = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
     for (let i = 0; i < 14; i++) { const c = new THREE.Group(); const n = 4 + Math.floor(Math.random() * 6); for (let k = 0; k < n; k++) { const b = new THREE.Mesh(new THREE.BoxGeometry(6 + Math.random() * 10, 2 + Math.random() * 2, 5 + Math.random() * 8), cm); b.position.set((Math.random() - 0.5) * 20, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 14); b.castShadow = true; c.add(b); } c.position.set(Math.random() * 400 - 100, 58 + Math.random() * 10, Math.random() * 400 - 100); this.clouds.add(c); }
     scene.add(this.clouds);
@@ -61,7 +57,6 @@ export class Atmosphere {
     const daylight = smooth(-0.12, 0.25, sunEl); const dusk = Math.max(0, 1 - Math.abs(sunEl) / 0.25) * (1 - Math.max(0, sunEl - 0.25));
     const w = this.world.weather; const overcast = w.kind === 'rain' || w.kind === 'storm' ? 0.8 * w.intensity + 0.2 : w.kind === 'cloudy' ? 0.45 : w.kind === 'fog' ? 0.5 : 0;
     this.lightLevel = daylight;
-    // colours
     const dayTop = new THREE.Color(0x3d7ccf).lerp(new THREE.Color(0x6a7a8a), overcast), dayHor = new THREE.Color(0xcfe0f2).lerp(new THREE.Color(0x9aa4ad), overcast);
     const nightTop = new THREE.Color(0x060a1c), nightHor = new THREE.Color(0x111a30);
     const duskTop = new THREE.Color(0x4a3a7a), duskHor = new THREE.Color(0xf0905a);
@@ -70,7 +65,6 @@ export class Atmosphere {
     this.skyMat.uniforms.sunCol.value.set(sunEl > -0.1 ? 0xffd090 : 0x8090c0); this.skyMat.uniforms.glow.value = (sunEl > -0.1 ? 0.5 + dusk * 0.8 : 0.15) * (1 - overcast * 0.7);
     this.sky.position.copy(camPos); this.stars.position.copy(camPos); (this.stars.material as THREE.PointsMaterial).opacity = (1 - daylight) * (1 - overcast) * 0.9;
     this.sunMesh.position.copy(camPos).addScaledVector(sunDir, 370); this.sunMesh.visible = sunEl > -0.05 && overcast < 0.6; this.moonMesh.position.copy(camPos).addScaledVector(moonDir, 370); this.moonMesh.visible = moonDir.y > 0 && overcast < 0.6;
-    // lights
     const useSun = sunEl > 0.02; const dir = useSun ? sunDir : moonDir;
     this.sun.position.copy(playerPos).addScaledVector(dir, 90); this.sunTarget.position.copy(playerPos); this.sun.color.set(useSun ? new THREE.Color(0xfff4e0).lerp(new THREE.Color(0xffa060), dusk) : new THREE.Color(0x7080b0));
     this.sun.intensity = useSun ? (1.2 + 1.2 * Math.min(1, sunEl * 2)) * (1 - overcast * 0.75) : 0.25 * Math.max(0, moonDir.y) * (1 - overcast);
@@ -78,11 +72,9 @@ export class Atmosphere {
     this.ambient.intensity = 0.06 + daylight * 0.12;
     const fogCol = hor.clone(); this.fog.color.copy(fogCol); this.scene.background = null;
     const fogNear = w.kind === 'fog' ? 12 : 40 - overcast * 15, fogFar = w.kind === 'fog' ? 60 : 200 - overcast * 80 - (1 - daylight) * 40; this.fog.near = fogNear; this.fog.far = fogFar;
-    // rain
     const raining = (w.kind === 'rain' || w.kind === 'storm') ? w.intensity : 0;
     this.rainMat.opacity = raining * 0.6; this.rain.position.set(playerPos.x, playerPos.y, playerPos.z);
     if (raining > 0) { const wind = w.wind * 3; for (let i = 0; i < this.rainCount; i++) { this.rainPos[i * 3 + 1] -= dt * (22 + (i % 5)); this.rainPos[i * 3] += wind * dt; if (this.rainPos[i * 3 + 1] < -6) this.resetRain(i, false); } (this.rain.geometry.attributes.position as THREE.BufferAttribute).needsUpdate = true; }
-    // smoke
     const wind = this.world.weather.wind;
     for (let i = 0; i < this.smokeCount; i++) {
       if (this.smokeLife[i] < 0) { if (Math.random() < 0.08 && this.smokeSources.length) { const s = this.smokeSources[Math.floor(Math.random() * this.smokeSources.length)]; if (Math.hypot(s.x - camPos.x, s.z - camPos.z) > 90) continue; this.smokePos[i * 3] = s.x + (Math.random() - 0.5) * 0.4; this.smokePos[i * 3 + 1] = s.y; this.smokePos[i * 3 + 2] = s.z + (Math.random() - 0.5) * 0.4; this.smokeLife[i] = 0; } else { this.smokePos[i * 3 + 1] = -100; } continue; }
@@ -96,7 +88,6 @@ export class Atmosphere {
       this.emberPos[i * 3 + 1] += dt * 1.8; this.emberPos[i * 3] += dt * Math.sin(i + this.emberLife[i] * 9) * 0.4; this.emberPos[i * 3 + 2] += dt * Math.cos(i * 1.3 + this.emberLife[i] * 7) * 0.4;
     }
     (this.embers.geometry.attributes.position as THREE.BufferAttribute).needsUpdate = true;
-    // clouds drift
     for (const c of this.clouds.children) { c.position.x += dt * (1.5 + wind * 2); if (c.position.x > 320) c.position.x = -120; }
     (this.clouds.children[0]?.children[0] as THREE.Mesh)?.material && ((this.clouds.children[0].children[0] as THREE.Mesh).material as THREE.MeshLambertMaterial).opacity !== undefined && (((this.clouds.children[0].children[0] as THREE.Mesh).material as THREE.MeshLambertMaterial).opacity = 0.5 + overcast * 0.45);
     // torch point lights: nearest to the camera

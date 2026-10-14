@@ -79,7 +79,6 @@ class Game {
     this.ctrl = new PlayerController(world, this.camera, this.renderer.domElement);
     this.inter = new Interaction(world, this.sim, this.ctrl, this.renderer.domElement);
     this.hud = new HUD(world, this.camera); this.dialogue = new DialogueUI(new DialogueSystem(world, this.sim)); this.feed = new EventFeed(world); this.inspector = new Inspector(world); this.observer = new Observer(world); this.inventory = new InventoryUI(world);
-    // wiring
     this.inter.onMessage = (s) => this.hud.message(s);
     this.inter.onTalk = (p) => this.openDialogue(p);
     // R on a person goes straight to their wares — the "select a person → Trade" step the
@@ -117,7 +116,6 @@ class Game {
       this.inspector.toggle(false); this.hud.message(`Moved near ${world.nameOf(id)}. This is an inspector test aid.`);
     };
     this.inspector.onShowChain = (id) => { if (!this.feed.open) this.feed.toggle(); this.feed.showChain(id); };
-    // ---- v0.10 Part V/VI/VII: the elevated presentation + observer mode.
     //
     // Everything here is wiring between EXISTING pieces. The camera is the same camera, the
     // scene is the same scene, the simulation is untouched, and the observer's follow is a

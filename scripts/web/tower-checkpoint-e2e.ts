@@ -97,7 +97,6 @@ const fight = async (until: (s: any) => boolean, seconds: number, walkOut = fals
 
 let afterDeath: unknown = null, aborted: unknown = null;
 try {
-// ---- A. A fresh expedition writes its floor-1 checkpoint once.
 await load(''); await ready(); await page.evaluate(() => (window as any).__arena.hud.showHelp(false));
 let s = await state(page);
 check('A1 fresh climb starts on floor 1 with a floor-1 checkpoint', s.floor === 1 && s.checkpoint?.floor === 1 && s.checkpoint.runId === s.runId, { floor: s.floor, saved: s.checkpoint?.floor });
@@ -105,7 +104,6 @@ check('A2 exactly one checkpoint write so far', s.writes.length === 1, s.writes)
 const run1 = s.runId, floor1Saved = savedView(s.checkpoint);
 await snapPng('floor1-start');
 
-// ---- B. Mid-floor gains (real kills, xp, achievements, loot), then a reload: Continue rolls the floor back.
 await fight(x => x.kills >= 3 && x.loot.length === 0, 120);
 const mid = await state(page);
 check('B1 mid-floor progress happened', mid.kills >= 3 && (mid.xp > 0 || mid.level > 1), { kills: mid.kills, xp: mid.xp, level: mid.level, earned: mid.earned });
@@ -143,7 +141,6 @@ const reEarned = mid.earned.filter((e: string) => s.earned.includes(e));
   check('C5 retry re-earns run achievements without double-counting lifetime receipts', reEarned.length > 0 && priorUnchanged && newOnce && new Set(a.receipts).size === a.receipts.length, { reEarned, newFirstTimeAwards: newKeys, before: b, after: a });
 }
 
-// ---- D. Clear the floor and climb: the floor-2 boundary is written exactly once and carries floor-1 gains.
 await fight(x => x.floor === 2, 240, true);
 await page.waitForFunction(() => (window as any).__arena.tower.floor === 2 && (window as any).__arena.tower.plan?.kind, null, { timeout: 30_000 });
 await page.waitForTimeout(1500);
@@ -153,7 +150,6 @@ check('D1 advancing writes the floor-2 checkpoint exactly once', f2Writes.length
 check('D2 floor-2 checkpoint carries floor-1 gains', same(savedView(f2.checkpoint), liveView(f2)), { saved: savedView(f2.checkpoint), live: liveView(f2) });
 await snapPng('floor2-start');
 
-// ---- E. Reload on floor 2: Continue restores it without re-running rewards.
 await fight(x => x.kills >= f2.kills + 1, 60);
 const lifetimeF2 = (await state(page)).lifetime;
 await page.reload(); await page.waitForFunction(() => !!(window as any).__arena?.tower, null, { timeout: 300_000 });
@@ -175,9 +171,8 @@ s = await state(page);
 check('F2 leaving practice continues the real expedition with no practice gains', same(liveView(s), savedView(beforeHall.checkpoint)) && !s.gear.includes('qa-practice-blade') && s.persistent, { live: liveView(s), saved: savedView(beforeHall.checkpoint) });
 check('F3 practice wrote nothing', s.writes.length === beforeHall.writes.length && s.checkpointRaw === beforeHall.checkpointRaw, s.writes.length);
 
-// ---- G. Death (existing semantics): ends only this expedition's checkpoint; lifetime records stay; a new climb begins.
 const beforeDeath = await state(page);
-await page.evaluate(() => { const w = (window as any).__arena.world; w.kill(w.hero, w.hero.pos.scale(0), 0, false); }); // HARNESS-FORCED: instant death
+await page.evaluate(() => { const w = (window as any).__arena.world; w.kill(w.hero, w.hero.pos.scale(0), 0, false); });
 await page.waitForSelector('.ar-modal.on .ar-btn', { timeout: 10_000 }); await snapPng('fallen');
 s = await state(page);
 check('G1 death removes this expedition checkpoint', s.checkpointRaw === null, s.checkpointRaw?.slice(0, 80));
@@ -188,7 +183,6 @@ check('G3 "Begin a new climb" starts a new expedition (new run, new seed) with a
 // Recorded, not asserted: what a new climb after death carries (existing behaviour predates checkpoints).
 afterDeath = { level: s.level, xp: s.xp, mods: s.mods, gear: s.gear, known: s.known, beforeDeath: { level: beforeDeath.level, xp: beforeDeath.xp, mods: beforeDeath.mods } };
 
-// ---- H. Corrupt and incompatible data: kept until an explicit New climb; download offered; other saves untouched.
 await page.evaluate(key => { localStorage.setItem(key, '{broken'); localStorage.setItem('legacy-world-save', 'keep'); }, KEY);
 // The page is still on the &hall=1 URL from F (leaving the hall does not change it), and the hall never reads the
 // expedition checkpoint, so navigate to the canonical persistent climb URL. Storage is retained.

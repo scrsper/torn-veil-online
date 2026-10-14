@@ -77,12 +77,10 @@ describe('the four telemetry layers stay distinct and composably traceable (v0.2
     const stuck = anomalies.find(a => a.type === 'stuck_agent' && a.entity === p.id);
     expect(stuck).toBeDefined();
 
-    // 1. anomaly -> entity
     const entity = tw.world.person(stuck!.entity!)!;
     expect(entity.id).toBe(p.id);
     // 2. entity -> current goal/intent (live canonical mind state, not a telemetry copy)
     expect(entity.mind.goal?.type).toBe('idle');
-    // 3. anomaly -> relevant events (no manual search of the full event log required)
     expect(stuck!.relatedEvents.length).toBeGreaterThan(0);
     expect(stuck!.relatedEvents.every(id => ids.includes(id))).toBe(true);
     const firstEvent = tw.world.event(stuck!.relatedEvents[0])!;

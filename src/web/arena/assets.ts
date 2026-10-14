@@ -89,7 +89,6 @@ export class ArenaAssets {
     }
   }
 
-  // ---- Realistic MPFB people driven by retargeted KayKit combat clips -----------------------
   private people = new Map<LookId, AssetContainer>();
   readonly clips = new Map<string, ClipTemplate>();
   private gripR!: Grip; private gripL!: Grip; private gripShield: Grip | null = null;

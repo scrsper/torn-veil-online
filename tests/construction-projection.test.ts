@@ -40,7 +40,7 @@ describe('ConstructionProjector — deriveConstructionPresentation', () => {
     addPlaceStock(tw.world, 'stone', 4, site.id, null, undefined, 'test delivery');
     p = deriveConstructionPresentation(tw.world, proj);
     expect(p.materialsFraction).toBe(1);
-    expect(p.stage).toBe('foundation'); // materials complete, no labour yet
+    expect(p.stage).toBe('foundation');
   });
 
   it('stage advances with real labor once materials are complete', () => {
@@ -52,18 +52,18 @@ describe('ConstructionProjector — deriveConstructionPresentation', () => {
       sitePlaceId: site.id, required: [{ type: 'plank', quantity: 10 }], ownerId: null, laborRequired: 1000,
     });
     addPlaceStock(tw.world, 'plank', 10, site.id, null, undefined, 'test delivery');
-    stepConstruction(tw.world); // gathering -> ready
+    stepConstruction(tw.world);
 
-    contributeBuildLabor(tw.world, proj, worker, 200); // 20%
+    contributeBuildLabor(tw.world, proj, worker, 200);
     expect(deriveConstructionPresentation(tw.world, proj).stage).toBe('foundation');
 
-    contributeBuildLabor(tw.world, proj, worker, 250); // 45%
+    contributeBuildLabor(tw.world, proj, worker, 250);
     expect(deriveConstructionPresentation(tw.world, proj).stage).toBe('frame');
 
-    contributeBuildLabor(tw.world, proj, worker, 250); // 70%
+    contributeBuildLabor(tw.world, proj, worker, 250);
     expect(deriveConstructionPresentation(tw.world, proj).stage).toBe('walls');
 
-    contributeBuildLabor(tw.world, proj, worker, 250); // 95%
+    contributeBuildLabor(tw.world, proj, worker, 250);
     expect(deriveConstructionPresentation(tw.world, proj).stage).toBe('roof');
   });
 
@@ -77,7 +77,7 @@ describe('ConstructionProjector — deriveConstructionPresentation', () => {
     addPlaceStock(tw.world, 'plank', 10, site.id, null, undefined, 'test delivery');
     // Force labour credit directly (bypassing the real gate) to prove the PROJECTOR itself, not
     // just the simulation's own gating, refuses to imply stone is present.
-    proj.status = 'building'; proj.laborDone = 600; // 60% of laborRequired
+    proj.status = 'building'; proj.laborDone = 600;
     const p = deriveConstructionPresentation(tw.world, proj);
     expect(p.stage).toBe('materials');
     expect(p.materials.find(m => m.type === 'stone')?.delivered).toBe(0);

@@ -80,7 +80,6 @@ export class PlayerController {
     }
     if (!acting) { this.input.stopAutoWalk(); if (this.guardHeld || this.guardWanted) this.release(); this.stepMovement(dt, false); return; }
 
-    // Held-state toggles.
     const sprintNow = s.sprintToggle ? (this.input.pressed('sprint') ? !this.sprintHeld : this.sprintHeld) : this.input.isDown('sprint');
     this.sprintHeld = sprintNow;
     this.focusHeld = s.focusToggle ? (this.input.pressed('focus') ? !this.focusHeld : this.focusHeld) : this.input.isDown('focus');
@@ -90,12 +89,10 @@ export class PlayerController {
     if (this.input.pressed('crouch')) this.crouchToggled = false;
     this.crouchHeld = this.input.isDown('crouch') || this.crouchToggled;
 
-    // Targeting.
     if (this.input.pressed('lockTarget')) this.toggleLock();
     if (this.input.pressed('switchTarget')) this.cycleLock();
 
     this.stepMovement(dt, true);
-    // Combat edges.
     const now = performance.now();
     if (this.input.pressed('lightAttack')) this.attack('light', now);
     if (this.input.pressed('heavyAttack')) this.attack('heavy', now);
@@ -134,7 +131,6 @@ export class PlayerController {
     void STEP;
   }
 
-  // ── combat ───────────────────────────────────────────────────────────────────────────────────
   private attack(weight: 'light' | 'heavy', at: number): void {
     const t = this.target();
     const cmd: InteractionCommand = { type: 'attack', weight, trajectory: 'high', ...(t ? { targetBodyId: t.bodyId } : {}) };
@@ -154,7 +150,6 @@ export class PlayerController {
   }
   cancelAction(): void { this.link.sendCommand({ type: 'cancel' }); }
 
-  // ── targeting ────────────────────────────────────────────────────────────────────────────────
   setLock(id: string | null): void { if (this.lockedBodyId !== id) { this.lockedBodyId = id; this.hooks.onLockChange?.(id); } }
   private scoreTargets(): { c: Candidate; score: number }[] {
     const p = this.ownPos(); if (!p) return [];

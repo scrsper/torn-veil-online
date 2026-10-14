@@ -175,7 +175,7 @@ describe('knowledge retention policy (v0.2.2 Phase 1: semantic soundness of the 
       claim: { eventId: 'important', type: 'attack', actor: 'someone', target: thinker.id, significance: 0.8 },
       confidence: 1, source: { type: 'witnessed' },
     }, true);
-    fillWithRoutineRumors(tw, thinker, 500); // pushes well past the cap
+    fillWithRoutineRumors(tw, thinker, 500);
     expect(thinker.knowledge['ev:important']).toBeDefined();
     // Most of the low-confidence, low-significance filler should have been the eviction target.
     const survivingRumors = Object.keys(thinker.knowledge).filter(k => k.startsWith('ev:rumor')).length;
@@ -240,12 +240,6 @@ describe('knowledge retention policy (v0.2.2 Phase 1: semantic soundness of the 
   it('pruning never adds knowledge (no accidental omniscience) — only ever removes, and stays within the batched-prune bound', () => {
     const tw = createTestWorld(707, 16);
     const thinker = addPerson(tw, 'Thinker', 'farmer', v(3.5, 1, 3.5));
-    // v0.2.2 Phase 3: pruning is batched (trim only once the map overshoots the cap by
-    // PRUNE_MARGIN, then cut back to exactly MAX_KNOWLEDGE) to avoid an O(N log N) sort on
-    // every single learn() call once a mind is at capacity — see knowledge.ts's doc comment.
-    // The invariant this test actually cares about — pruning never ADDS knowledge, and the
-    // map never grows without bound — still holds; it just isn't re-enforced to the exact
-    // cap on every single insert anymore.
     for (let i = 0; i < 500; i++) {
       learn(tw.world, thinker, { key: `ev:r${i}`, kind: 'event', claim: { eventId: `r${i}`, type: 'rumor', text: `r${i}`, significance: 0.05 }, confidence: 0.2, source: { type: 'heard' } }, true);
       expect(Object.keys(thinker.knowledge).length).toBeLessThanOrEqual(MAX_KNOWLEDGE + PRUNE_MARGIN);

@@ -29,7 +29,6 @@ await page.evaluate(async () => {
   w.setWeapon(h, 'axe'); w.freezeFoes = true;
   for (const f of w.fighters) if (f.role === 'foe') f.pos.set(f.pos.x, 0, f.pos.z - 30);
   h.pos.set(0, 0, 10); h.yaw = Math.PI;
-  // Overlay label.
   const lab = document.createElement('div'); lab.id = 'qa-label';
   lab.style.cssText = 'position:fixed;left:50%;top:92px;transform:translateX(-50%);z-index:99;font:700 18px Segoe UI,sans-serif;color:#fff;background:#000a;padding:6px 14px;border-radius:4px;text-align:center;pointer-events:none';
   document.body.append(lab); (window as any).__seg = 'setup'; (window as any).__keys = '';

@@ -29,7 +29,6 @@ import { clearShortfall } from '../world/shortfall';
  * string id — never Map/Set iteration order or wall-clock.
  */
 
-// ---- tuning
 /** An averagely-attributed, unencumbered adult's safe carry mass (kg) — see
  * core/attributes.ts's `getPhysicalCapability` (strength 0.5, no fatigue/heat penalty: 16 +
  * 0.5*44). Used only to SIZE a not-yet-claimed task (`generateLogisticsNeeds`/`stepConstruction`
@@ -214,7 +213,6 @@ function dealsIn(world: World, place: Place, resource: ItemType): boolean {
 }
 
 export function generateLogisticsNeeds(world: World): void {
-  // 1. Food chain: consumer Place below trigger + a supplier Place with surplus → one task.
   for (const d of CONSUMER_DEMANDS) {
     // EVERY consumer of the type, not the first: a tavern going short of ale is a fact about that
     // tavern, and with a second settlement the first one registered is not an answer at all. The
@@ -410,7 +408,7 @@ export function depositHaulCargo(world: World, task: HaulTask, person: Person): 
   // v0.6 §V.9: a real, physically-completed delivery leg is meaningful work — practice once per
   // leg (not per unit, so a heavy single-trip delivery doesn't train faster than a light one).
   practiceSkill(person, 'hauling', 1, world);
-  world.runTally[`hauled:${task.resource}`] = (world.runTally[`hauled:${task.resource}`] ?? 0) + n; // survives task pruning
+  world.runTally[`hauled:${task.resource}`] = (world.runTally[`hauled:${task.resource}`] ?? 0) + n;
   // Pay for the leg actually delivered, even if later legs become impossible or another
   // carrier takes over. Neither a failed pickup nor completion can pay this same leg twice.
   const req = task.requestId ? world.requests.find(r => r.id === task.requestId) : undefined;
@@ -497,7 +495,7 @@ export function pickHaulTask(world: World, person: Person, pos: Vec3): { task: H
     if (t.status !== 'needed') continue;
     const src = world.place(t.sourcePlaceId); const dst = world.place(t.destPlaceId);
     if (!src || !dst) continue;
-    if (stockAt(world, t.resource, t.sourcePlaceId) <= 0) continue; // nothing to fetch yet
+    if (stockAt(world, t.resource, t.sourcePlaceId) <= 0) continue;
     const legDist = dist2(pos, src.inside) + dist2(src.inside, dst.inside);
     if (dist2(pos, src.inside) > 90) continue; // not my problem — too far to have heard of it
     const affinity = haulerAffinity(world, person, t);
@@ -553,7 +551,6 @@ function haulerAffinity(world: World, p: Person, t: HaulTask): number {
   return 0.45;
 }
 
-// ---------------------------------------------------------------- observability
 export interface HaulSummary {
   open: number; needed: number; inTransit: number;
   requested: number; started: number; delivered: number; failed: number;

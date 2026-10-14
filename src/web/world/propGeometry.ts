@@ -8,7 +8,7 @@ import { hash2 } from '../render/noise';
  * footprint on the floor.
  */
 export type Tint = [number, number, number];
-const hex = (h: number): Tint => [Math.pow(((h >> 16) & 255) / 255, 2.2), Math.pow(((h >> 8) & 255) / 255, 2.2), Math.pow((h & 255) / 255, 2.2)];   // sRGB hex -> linear vertex colour
+const hex = (h: number): Tint => [Math.pow(((h >> 16) & 255) / 255, 2.2), Math.pow(((h >> 8) & 255) / 255, 2.2), Math.pow((h & 255) / 255, 2.2)];
 export const COLORS = {
   oak: hex(0xa0764a), darkOak: hex(0x5f4330), pine: hex(0xc8a36a), iron: hex(0x3c3f47), steel: hex(0x9aa0aa), brass: hex(0xc9a24c), gold: hex(0xe0b94d),
   leather: hex(0x6b452d), linen: hex(0xd9d0b8), wool: hex(0xb8aa8c), red: hex(0x8c2f36), blue: hex(0x3d5b8f), green: hex(0x4f7a43), stone: hex(0x8d8b85),

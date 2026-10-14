@@ -106,7 +106,6 @@ export class CameraRig {
     if (this.previousIso) { this.yaw = playerYaw; this.pitch = this.orbit ? ORBIT_EXPLORATION_PITCH : THIRD_PERSON_PITCH; this.previousIso = false; this.aimYaw = null; this.adaptive.snap(); }
     if (this.adaptiveActive) { this.updateAdaptive(t, pivot); return; }
 
-    // Mode targets.
     let targetShoulder = this.orbit ? 0 : 0.35, targetDist = this.desiredDistance, targetFov = (s.fov * Math.PI) / 180 * 1.0;
     let lookYawOverride: number | null = null;
     if (this.mode === 'combat' && this.lockPivot) {
@@ -148,7 +147,6 @@ export class CameraRig {
     // Never dip under the ground.
     let cx = wantX(dist), cyv = wantY(dist), cz = wantZ(dist);
     const g = this.world.ground(cx, cz); if (g !== null && cyv < g + 0.35) cyv = g + 0.35;
-    // Impact shake and kick.
     if (this.shake > 0.001) { this.shakeT += t * 38; const a = this.shake * 0.06; cx += Math.sin(this.shakeT * 1.3) * a; cyv += Math.sin(this.shakeT * 1.7 + 1) * a * 0.8; cz += Math.cos(this.shakeT * 1.1) * a; this.shake *= Math.exp(-9 * t); }
     if (this.kick > 0.001) { cx += fx * this.kick * 0.5; cz += fz * this.kick * 0.5; this.kick *= Math.exp(-11 * t); }
     // Distance smoothing when pulled in is instant (never see through a wall); recovery is eased by currentDistance above.

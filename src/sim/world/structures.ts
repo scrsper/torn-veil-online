@@ -42,29 +42,24 @@ export function buildHouse(ctx: BuildCtx, x0: number, z0: number, x1: number, z1
   const roofB = o.roof === 'thatch' ? B.Thatch : o.roof === 'tile' ? B.RoofTile : B.DarkPlanks;
   reserve(ctx, x0, z0, x1, z1, 2);
   fill(g, x0, floor + 1, z0, x1, floor + wallH + 8, z1, B.Air);
-  fill(g, x0, floor, z0, x1, floor, z1, B.Planks);               // floor
-  fill(g, x0 - 1, floor - 1, z0 - 1, x1 + 1, floor - 1, z1 + 1, B.Cobble); // foundation
-  fill(g, x0 - 1, floor, z0 - 1, x1 + 1, floor, z1 + 1, B.Cobble); // rim
   fill(g, x0, floor, z0, x1, floor, z1, B.Planks);
-  // walls
+  fill(g, x0 - 1, floor - 1, z0 - 1, x1 + 1, floor - 1, z1 + 1, B.Cobble);
+  fill(g, x0 - 1, floor, z0 - 1, x1 + 1, floor, z1 + 1, B.Cobble);
+  fill(g, x0, floor, z0, x1, floor, z1, B.Planks);
   for (let y = floor + 1; y <= floor + wallH; y++) {
     fill(g, x0, y, z0, x1, y, z0, wall); fill(g, x0, y, z1, x1, y, z1, wall); fill(g, x0, y, z0, x0, y, z1, wall); fill(g, x1, y, z0, x1, y, z1, wall);
   }
-  // corner posts & base trim
   for (const [cx, cz] of [[x0, z0], [x0, z1], [x1, z0], [x1, z1]]) fill(g, cx, floor + 1, cz, cx, floor + wallH, cz, trim);
   fill(g, x0, floor + wallH, z0, x1, floor + wallH, z0, trim); fill(g, x0, floor + wallH, z1, x1, floor + wallH, z1, trim);
   fill(g, x0, floor + wallH, z0, x0, floor + wallH, z1, trim); fill(g, x1, floor + wallH, z0, x1, floor + wallH, z1, trim);
-  // windows
   if (o.windows !== false) {
     for (let x = x0 + 2; x < x1 - 1; x += 3) { g.set(x, floor + 2, z0, B.Glass); g.set(x, floor + 2, z1, B.Glass); if (wallH >= 5) { g.set(x, floor + 3, z0, B.Glass); g.set(x, floor + 3, z1, B.Glass); } }
     for (let z = z0 + 2; z < z1 - 1; z += 3) { g.set(x0, floor + 2, z, B.Glass); g.set(x1, floor + 2, z, B.Glass); if (wallH >= 5) { g.set(x0, floor + 3, z, B.Glass); g.set(x1, floor + 3, z, B.Glass); } }
   }
-  // door
   const d = doorCell(x0, z0, x1, z1, facing);
   g.set(d.dx, floor + 1, d.dz, B.Door); g.set(d.dx, floor + 2, d.dz, B.Air);
   if (facing === 'N' || facing === 'S') { g.set(d.dx - 1, floor + 2, d.dz, wall); g.set(d.dx + 1, floor + 2, d.dz, wall); }
   else { g.set(d.dx, floor + 2, d.dz - 1, wall); g.set(d.dx, floor + 2, d.dz + 1, wall); }
-  // door step
   g.set(d.ox, floor, d.oz, B.Cobble); g.set(d.ox, floor + 1, d.oz, B.Air); g.set(d.ox, floor + 2, d.oz, B.Air);
   // roof: gable along the longer axis
   const roofY = floor + wallH + 1;
@@ -81,7 +76,6 @@ export function buildHouse(ctx: BuildCtx, x0: number, z0: number, x1: number, z1
       if (xa + 1 <= xb - 1) { fill(g, xa + 1, y, z0, xb - 1, y, z0, wall); fill(g, xa + 1, y, z1, xb - 1, y, z1, wall); }
       if (xa === xb) fill(g, xa, y, z0 - 1, xa, y, z1 + 1, roofB); }
   }
-  // interior
   const anchors: Anchor[] = []; const fires: Vec3[] = []; const chimneys: Vec3[] = [];
   const inside = v(d.ix, floor + 1, d.iz);
   // back wall is opposite the door
@@ -92,19 +86,16 @@ export function buildHouse(ctx: BuildCtx, x0: number, z0: number, x1: number, z1
   if (backZ !== null) { for (let i = 0; i < beds; i++) { const x = x0 + 1 + i * 2; if (x < x1 - 1) bedCells.push(v(x, floor + 1, backZ)); } }
   else if (backX !== null) { for (let i = 0; i < beds; i++) { const z = z0 + 1 + i * 2; if (z < z1 - 1) bedCells.push(v(backX, floor + 1, z)); } }
   bedCells.forEach((c, i) => { g.set(c.x, c.y, c.z, B.Bed); anchors.push({ pos: c, kind: 'bed', ownerId: o.ownerIds?.[i] }); });
-  // fireplace on a side wall
   if (o.fireplace !== false) {
     let fx: number, fz: number, cxp: number, czp: number;
     if (facing === 'N' || facing === 'S') { fx = x1 - 1; fz = Math.floor((z0 + z1) / 2); cxp = x1; czp = fz; }
     else { fx = Math.floor((x0 + x1) / 2); fz = z1 - 1; cxp = fx; czp = z1; }
     g.set(fx, floor + 1, fz, B.Fire); g.set(cxp, floor + 1, czp, B.Chimney); g.set(cxp, floor + 2, czp, B.Chimney);
-    // chimney column through roof
     let cy = floor + 1; while (cy <= top + 1) { g.set(cxp, cy, czp, B.Chimney); cy++; }
     g.set(cxp, top + 2, czp, B.Chimney);
     fires.push(v(fx, floor + 1, fz)); chimneys.push(v(cxp, top + 3, czp));
     anchors.push({ pos: v(fx + (facing === 'N' || facing === 'S' ? -1 : 0), floor + 1, fz + (facing === 'N' || facing === 'S' ? 0 : -1)), kind: 'fire' });
   }
-  // table + chairs in the middle
   const tables = o.tables ?? 1;
   const mx = Math.floor((x0 + x1) / 2), mz = Math.floor((z0 + z1) / 2);
   for (let t = 0; t < tables; t++) {
@@ -115,9 +106,7 @@ export function buildHouse(ctx: BuildCtx, x0: number, z0: number, x1: number, z1
     for (const [ox, oz] of [[1, 0], [-1, 0]]) { const cx = tx + ox, cz = tz + oz; if (cx > x0 && cx < x1 && cz > z0 && cz < z1 && g.get(cx, floor + 1, cz) === B.Air && !(cx === d.ix && cz === d.iz)) { g.set(cx, floor + 1, cz, B.Chair); anchors.push({ pos: v(cx, floor + 1, cz), kind: 'seat' }); } }
   }
   if (o.shelves) { const sx = facing === 'E' ? x0 + 1 : x1 - 1; for (let z = z0 + 1; z <= z1 - 1; z += 2) if (g.get(sx, floor + 1, z) === B.Air) { g.set(sx, floor + 1, z, B.Bookshelf); } }
-  // lantern
   g.set(mx, floor + wallH - 1, mz, B.Lantern);
-  // barrel in a corner
   const bx = facing === 'E' ? x1 - 1 : x0 + 1, bz = facing === 'S' ? z1 - 1 : z0 + 1;
   if (g.get(bx, floor + 1, bz) === B.Air) g.set(bx, floor + 1, bz, B.Barrel);
   return { anchors, door: v(d.ox, floor + 1, d.oz), inside, fires, chimneys, y1: top + 3 };
@@ -135,7 +124,6 @@ export function buildTavern(ctx: BuildCtx, x0: number, z0: number, x1: number, z
   anchors.push({ pos: v(bx + (facing === 'W' ? 1 : -1), floor + 1, z0 + 5), kind: 'work', label: 'bar' });
   anchors.push({ pos: v(bx, floor + 1, z0 + 4), kind: 'display', label: 'bar' });
   for (let z = z0 + 2; z <= z1 - 5; z++) { g.set(bx + (facing === 'W' ? 2 : -2), floor + 1, z, z % 2 ? B.Barrel : B.Crate); }
-  // tables in the hall
   const hx0 = facing === 'W' ? x0 + 2 : x0 + 5, hx1 = facing === 'W' ? x1 - 5 : x1 - 2;
   for (let x = hx0 + 1; x <= hx1 - 1; x += 4) for (let z = z0 + 2; z <= z1 - 5; z += 4) {
     if (g.get(x, floor + 1, z) !== B.Air) continue;
@@ -145,13 +133,10 @@ export function buildTavern(ctx: BuildCtx, x0: number, z0: number, x1: number, z
   // back rooms with beds along z1 wall
   const bz = z1 - 1;
   for (let x = x0 + 1; x <= x1 - 1; x += 2) { if (ownerIds.length === 0) break; if (g.get(x, floor + 1, bz) !== B.Air) continue; g.set(x, floor + 1, bz, B.Bed); anchors.push({ pos: v(x, floor + 1, bz), kind: 'bed', ownerId: ownerIds.shift() }); }
-  // partition wall
   fill(g, x0 + 1, floor + 1, z1 - 3, x1 - 1, floor + 3, z1 - 3, B.Planks); g.set(Math.floor((x0 + x1) / 2), floor + 1, z1 - 3, B.Door); g.set(Math.floor((x0 + x1) / 2), floor + 2, z1 - 3, B.Air);
   // bench near the fire for the vagrant
   const fire = r.fires[0]; if (fire) { const bp = v(fire.x - 2, floor + 1, fire.z); if (g.get(bp.x, bp.y, bp.z) === B.Air) { g.set(bp.x, bp.y, bp.z, B.Bench); anchors.push({ pos: bp, kind: 'bed', label: 'bench' }); } }
-  // hanging lanterns
   for (let x = x0 + 3; x < x1 - 2; x += 4) for (let z = z0 + 3; z < z1 - 4; z += 4) g.set(x, floor + 5, z, B.Lantern);
-  // sign outside
   if (r.door) { g.set(r.door.x, floor + 3, r.door.z, B.Sign); }
   return r;
 }
@@ -166,13 +151,11 @@ export function buildSmithy(ctx: BuildCtx, x0: number, z0: number, x1: number, z
   const d = doorCell(x0, z0, x1, z1, facing);
   if (facing === 'W' || facing === 'E') { const wx = facing === 'W' ? x0 : x1; for (let z = z0 + 1; z <= z1 - 1; z++) for (let y = floor + 1; y <= floor + wallH - 1; y++) g.set(wx, y, z, B.Air); for (let z = z0 + 1; z <= z1 - 1; z += 3) fill(g, wx, floor + 1, z, wx, floor + wallH, z, B.Log); }
   else { const wz = facing === 'N' ? z0 : z1; for (let x = x0 + 1; x <= x1 - 1; x++) for (let y = floor + 1; y <= floor + wallH - 1; y++) g.set(x, y, wz, B.Air); for (let x = x0 + 1; x <= x1 - 1; x += 3) fill(g, x, floor + 1, wz, x, floor + wallH, wz, B.Log); }
-  // roof (flat-ish sloped)
   const roofY = floor + wallH + 1; let top = roofY;
   const alongX = (x1 - x0) >= (z1 - z0);
   if (alongX) { for (let i = 0; ; i++) { const za = z0 - 1 + i, zb = z1 + 1 - i; if (za > zb) break; const y = roofY + i; top = y; fill(g, x0 - 1, y, za, x1 + 1, y, za, B.DarkPlanks); fill(g, x0 - 1, y, zb, x1 + 1, y, zb, B.DarkPlanks); if (za + 1 <= zb - 1) { fill(g, x0, y, za + 1, x0, y, zb - 1, B.StoneBrick); fill(g, x1, y, za + 1, x1, y, zb - 1, B.StoneBrick); } } }
   else { for (let i = 0; ; i++) { const xa = x0 - 1 + i, xb = x1 + 1 - i; if (xa > xb) break; const y = roofY + i; top = y; fill(g, xa, y, z0 - 1, xa, y, z1 + 1, B.DarkPlanks); fill(g, xb, y, z0 - 1, xb, y, z1 + 1, B.DarkPlanks); if (xa + 1 <= xb - 1) { fill(g, xa + 1, y, z0, xb - 1, y, z0, B.StoneBrick); fill(g, xa + 1, y, z1, xb - 1, y, z1, B.StoneBrick); } } }
   const anchors: Anchor[] = []; const fires: Vec3[] = []; const chimneys: Vec3[] = [];
-  // forge against back wall
   const fx = facing === 'W' ? x1 - 1 : facing === 'E' ? x0 + 1 : Math.floor((x0 + x1) / 2);
   const fz = facing === 'N' ? z1 - 1 : facing === 'S' ? z0 + 1 : Math.floor((z0 + z1) / 2);
   g.set(fx, floor + 1, fz, B.Furnace); g.set(fx, floor + 2, fz, B.Fire);
@@ -211,7 +194,6 @@ export function buildShop(ctx: BuildCtx, x0: number, z0: number, x1: number, z1:
     anchors.push({ pos: v(ins.x, floor + 1, cz + (facing === 'S' ? 1 : -1)), kind: 'counter' });
   }
   if (kind === 'bakery') {
-    // oven in the back, chimney
     const ox = facing === 'E' ? x0 + 1 : facing === 'W' ? x1 - 1 : Math.floor((x0 + x1) / 2); const oz = facing === 'S' ? z0 + 1 : facing === 'N' ? z1 - 1 : Math.floor((z0 + z1) / 2) + 2;
     g.set(ox, floor + 1, oz, B.Furnace); g.set(ox, floor + 2, oz, B.Furnace);
     const cx = facing === 'E' ? x0 : facing === 'W' ? x1 : ox, cz = facing === 'S' ? z0 : facing === 'N' ? z1 : oz;
@@ -221,7 +203,6 @@ export function buildShop(ctx: BuildCtx, x0: number, z0: number, x1: number, z1:
   } else {
     for (let i = 0; i < 3; i++) { const cx = facing === 'E' ? x0 + 1 + i : x1 - 1 - i; const cz = facing === 'S' ? z0 + 1 : z1 - 1; if (g.get(cx, floor + 1, cz) === B.Air) g.set(cx, floor + 1, cz, i === 1 ? B.Crate : B.Barrel); }
   }
-  // beds in back corners
   const bz = facing === 'S' ? z0 + 1 : z1 - 1;
   let placed = 0;
   for (let x = x0 + 1; x <= x1 - 1 && placed < ownerIds.length; x += 2) { if (g.get(x, floor + 1, bz) === B.Air) { g.set(x, floor + 1, bz, B.Bed); anchors.push({ pos: v(x, floor + 1, bz), kind: 'bed', ownerId: ownerIds[placed++] }); } }
@@ -239,7 +220,6 @@ export function buildChapel(ctx: BuildCtx, x0: number, z0: number, x1: number, z
   g.set(d.dx, floor + 1, d.dz, B.Door); g.set(d.dx, floor + 2, d.dz, B.Air); g.set(d.dx, floor + 3, d.dz, B.Air);
   g.set(d.dx - 1, floor + 1, d.dz, B.Door); g.set(d.dx - 1, floor + 2, d.dz, B.Air); g.set(d.dx - 1, floor + 3, d.dz, B.Air);
   g.set(d.ox, floor + 1, d.oz, B.Air); g.set(d.ox - 1, floor + 1, d.oz, B.Air);
-  // roof along z (long axis)
   const roofY = floor + wallH + 1; let top = roofY;
   for (let i = 0; ; i++) { const xa = x0 - 1 + i, xb = x1 + 1 - i; if (xa > xb) break; const y = roofY + i; top = y; fill(g, xa, y, z0 - 1, xa, y, z1 + 1, B.RoofTile); fill(g, xb, y, z0 - 1, xb, y, z1 + 1, B.RoofTile); if (xa + 1 <= xb - 1) { fill(g, xa + 1, y, z0, xb - 1, y, z0, B.StoneBrick); fill(g, xa + 1, y, z1, xb - 1, y, z1, B.StoneBrick); } }
   // bell tower at the front-left corner
@@ -289,7 +269,6 @@ export function buildGraveyard(ctx: BuildCtx, x0: number, z0: number, x1: number
 export function buildGuardhouse(ctx: BuildCtx, x0: number, z0: number, x1: number, z1: number, floor: number, facing: Facing, ownerIds: string[]): BuildResult {
   const g = ctx.grid;
   const r = buildHouse(ctx, x0, z0, x1, z1, floor, facing, { style: 'stone', roof: 'dark', beds: ownerIds.length, wallH: 4, fireplace: true, tables: 1, ownerIds });
-  // watchtower on a corner
   const tx = x1 + 2, tz = z1 + 2; reserve(ctx, tx - 1, tz - 1, tx + 1, tz + 1, 1);
   fill(g, tx - 1, floor + 1, tz - 1, tx + 1, floor + 12, tz + 1, B.Air);
   for (let y = floor; y <= floor + 9; y++) { for (const [ox, oz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) g.set(tx + ox, y, tz + oz, B.Log); }
@@ -297,7 +276,6 @@ export function buildGuardhouse(ctx: BuildCtx, x0: number, z0: number, x1: numbe
   for (let y = floor + 10; y <= floor + 10; y++) { for (const [ox, oz] of [[-1, -1], [1, -1], [-1, 1], [1, 1], [0, -1], [0, 1], [-1, 0], [1, 0]]) g.set(tx + ox, y, tz + oz, B.Fence); }
   fill(g, tx - 2, floor + 12, tz - 2, tx + 2, floor + 12, tz + 2, B.DarkPlanks); fill(g, tx - 1, floor + 13, tz - 1, tx + 1, floor + 13, tz + 1, B.DarkPlanks);
   g.set(tx, floor + 11, tz, B.Torch);
-  // weapon rack
   g.set(x0 + 1, floor + 1, z0 + 1, B.Crate); r.anchors.push({ pos: v(x0 + 1, floor + 1, z0 + 1), kind: 'display', label: 'rack' });
   if (r.door) { g.set(r.door.x - 1, floor + 1, r.door.z, B.Torch); g.set(r.door.x + 1, floor + 1, r.door.z, B.Torch); r.anchors.push({ pos: v(r.door.x, floor + 1, r.door.z - 1), kind: 'post', label: 'guardhouse door' }); }
   return r;
@@ -317,7 +295,6 @@ export function buildFarm(ctx: BuildCtx, x0: number, z0: number, x1: number, z1:
     g.set(x, floor, z, B.Farmland); const ripe = ctx.rng.chance(0.85); g.set(x, floor + 1, z, ripe ? B.Wheat : (ctx.rng.chance(0.3) ? B.Pumpkin : B.Air));
   }
   for (let x = x0 + 3; x <= x1 - 3; x += 3) for (let z = z0 + 3; z <= z1 - 3; z += 5) anchors.push({ pos: v(x, floor + 1, z), kind: 'work', label: 'field' });
-  // hay bales and a scarecrow
   g.set(x0 + 1, floor + 1, z0 + 1, B.Hay); g.set(x0 + 2, floor + 1, z0 + 1, B.Hay); g.set(x0 + 1, floor + 2, z0 + 1, B.Hay);
   g.set(gx, floor + 1, gz, B.Fence); g.set(gx, floor + 2, gz, B.Pumpkin);
   return anchors;

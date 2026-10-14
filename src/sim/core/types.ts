@@ -14,7 +14,6 @@ export type Tick = number; // world seconds
 
 export interface Vec3 { x: number; y: number; z: number; }
 
-// ---------------------------------------------------------------- Entities
 export type EntityKind = 'person' | 'item' | 'place' | 'container' | 'faction' | 'body' | 'creature' | 'household' | 'settlement';
 
 /** Historical geographic identity, independent of continued habitation. IDs are World-scoped.
@@ -58,10 +57,6 @@ export interface Entity {
 // idle worker. Each gets its own pose so `game/actors/actors.ts`'s renderer can give it a
 // distinct animation.
 export type Pose = 'stand' | 'walk' | 'run' | 'sit' | 'sleep' | 'work' | 'attack' | 'hit' | 'dead' | 'talk' | 'pray' | 'downed' | 'eat' | 'drink' | 'haul'
-  // v0.8 §16 "visible causality": resource extraction (felling a tree, quarrying stone) gets its
-  // own overhead-swing silhouette instead of reusing the generic side-to-side `work` pose, so
-  // "someone is chopping/quarrying" is readable at a glance — the same rationale that already
-  // gave `eat`/`drink`/`haul` their own poses.
   | 'chop';
 
 export type BodyRegion = 'head' | 'torso' | 'arm' | 'leg';
@@ -127,7 +122,6 @@ export interface Body extends Entity {
   butcheredSeconds?: number;
 }
 
-// ---------------------------------------------------------------- Persons / Minds
 export type Occupation =
   | 'smith' | 'apprentice' | 'baker' | 'innkeeper' | 'cook' | 'server' | 'merchant' | 'priest' | 'acolyte'
   | 'guard' | 'captain' | 'farmer' | 'miller' | 'hunter' | 'herbalist' | 'woodcutter' | 'elder' | 'vagrant'
@@ -155,7 +149,6 @@ export interface Traits {
 export interface Needs { hunger: number; energy: number; social: number; comfort: number; thirst: number; }
 export interface Emotions { fear: number; anger: number; joy: number; sadness: number; stress: number; } // 0..1
 
-// ---------------------------------------------------------------- Embodiment (v0.4)
 /**
  * Ordinary human foundations. Canonical integers feed continuous capacity through human.ts
  * and attributes.ts. These are neither dispositions nor proficiency nor temporary expression.
@@ -188,7 +181,6 @@ export interface AttributeDevelopment {
   studied: string[];
 }
 
-// ---------------------------------------------------------------- Skills (v0.6 §V)
 /**
  * Learned capability, distinct from `Attributes` (physical characteristics someone is born
  * with/grows into) and from `Physiology`/tools (current state / equipment). A strong novice with
@@ -477,7 +469,6 @@ export interface DecisionRecord {
 
 export interface ScheduleEntry { start: number; end: number; activity: GoalType; placeId?: EntityId; label: string; }
 
-// ---------------------------------------------------------------- Goal commitment (v0.5 §III)
 /**
  * How resistant a goal is to being preempted by an ordinary competing goal (Constitution v0.5
  * §9). 'free' goals (socializing, idle wandering) yield to whatever currently scores highest,
@@ -513,7 +504,6 @@ export interface GoalCommitment {
   data?: Record<string, any>;
 }
 
-// ---------------------------------------------------------------- Situations (v0.9)
 /**
  * A SITUATION is an ongoing social matter in the world — the thing that a significant event
  * starts and that later events can change or end. It is deliberately NOT a quest, a story beat,
@@ -564,7 +554,6 @@ export interface Situation {
   severity: number;
 }
 
-// ---------------------------------------------------------------- Concerns (v0.9)
 /**
  * A CONCERN is knowledge that has acquired behavioural force. v0.9 §B: "knowledge must not exist
  * only so an NPC can repeat it in dialogue." Learning that your husband was beaten is not merely
@@ -616,7 +605,6 @@ export interface Concern {
   reasons: string[];
 }
 
-// ---------------------------------------------------------------- Obligations (v0.10)
 /**
  * An OBLIGATION is a real, personal, provenance-carrying social stake one person holds toward
  * another (v0.10 §II). It is deliberately NOT "+10 favour points": a favour-point counter can
@@ -714,7 +702,6 @@ export interface Obligation {
   reasons: string[];
 }
 
-// ---------------------------------------------------------------- Pursuits (v0.10)
 /**
  * A PURSUIT is a PERSISTENT PURPOSE — what a person is trying to bring about, as distinct from
  * what they happen to be doing this minute (v0.10 §I).
@@ -795,7 +782,7 @@ export interface Mind {
   thinkBudget: number;      // accumulated subjective seconds
   thinkInterval: number;    // subjective seconds between deliberate thoughts
   alarm: number;            // 0..1 urgency that triggers immediate rethink
-  percepts: Percept[];      // current perception snapshot
+  percepts: Percept[];
   attention: EntityId | null;
   lastSpokeAt: number;
   lastToldAt: Record<EntityId, number>; // last time I talked to X (for conversation cooldowns)
@@ -871,7 +858,6 @@ export interface Mind {
   intention?: Intention | null;
 }
 
-// ---------------------------------------------------------------- Intention (v0.6 §VI)
 /**
  * The missing layer between a raw physiological NEED ("I need calories") and a physical ACTION
  * ("walk to the bakery"): an Intention is what the mind has decided to DO about a need, given
@@ -986,7 +972,6 @@ export interface Household extends Entity {
 
 export interface Desire { type: 'recover_item' | 'collect_debt' | 'wants_item'; targetId?: EntityId; itemType?: string; note: string; reward: number; fulfilled: boolean; }
 
-// ---------------------------------------------------------------- World metabolism (v0.2.4)
 /**
  * A crop plot: one canonical square of a `Field` (mapped to a real Farmland voxel cell, but the
  * canonical state lives here, not in the block — the renderer projects this onto the block).
@@ -1012,13 +997,12 @@ export interface CropPlot {
  */
 export interface Field {
   id: EntityId;
-  placeId: EntityId;                    // the farm Place
+  placeId: EntityId;
   ownerId: EntityId | null;             // whose grain the harvest becomes
   soilMoisture: number;                 // 0..1
   plots: CropPlot[];
 }
 
-// ---------------------------------------------------------------- Logistics (v0.3 Living World I)
 /**
  * A haul task: a canonical, world-generated need to move `quantity` units of a material
  * resource from one Place to another, with an actor physically carrying it (Constitution VII —
@@ -1060,7 +1044,6 @@ export interface HaulTask {
   materialSellerId?: EntityId | null;
 }
 
-// ---------------------------------------------------------------- Resource nodes (v0.3)
 /**
  * A renewable or non-renewable resource patch (Constitution: materials come from somewhere).
  * v0.3 covers trees (renewable, → `log`) and stone outcrops (slow/non-renewable, → `stone`).
@@ -1098,7 +1081,6 @@ export interface ResourceNode {
 }
 export type TreeGrowthStage = 'felled' | 'sapling' | 'young' | 'mature';
 
-// ---------------------------------------------------------------- Fire (v0.8 §C)
 /**
  * A real, canonical fire — fuel/heat/ignition/burning/extinguishing, not a visual status effect
  * (Constitution v0.8 §C). One per real hearth/campfire actually in use; see world/fire.ts for
@@ -1125,7 +1107,6 @@ export interface Fire {
   extinguishedAt?: Tick;
 }
 
-// ---------------------------------------------------------------- Construction (v0.3)
 /**
  * A construction project: a place-bound material manifest plus a labour requirement. The
  * structure is NOT created when the project is made — the required materials must physically
@@ -1157,7 +1138,6 @@ export interface ConstructionProject {
   resultPlaceId?: EntityId;            // the Place the finished structure is (== sitePlaceId)
 }
 
-// ---------------------------------------------------------------- Work requests (v0.4)
 /**
  * The generalized shape of paid work (Constitution v0.4 §9). Before v0.4, hauling
  * (`HaulTask`) and construction labour (`ConstructionProject.contributions`) each invented
@@ -1268,7 +1248,6 @@ export interface WorkStint {
  */
 export type ConflictIntent = 'avoid' | 'threaten' | 'rob' | 'defend' | 'subdue' | 'arrest' | 'drive_off' | 'injure' | 'kill';
 
-// ---------------------------------------------------------------- Conflict (v0.2.3)
 /**
  * Explicit, canonical conflict state (Constitution §11). Torn Veil had rich mechanics for
  * *starting* conflicts (hostility, fear/grudge thresholds, robbery, arrest intent) but no
@@ -1286,7 +1265,7 @@ export type ConflictStatus =
   | 'active'       // blows being exchanged or an aggressor actively pursuing
   | 'disengaging'  // one side has broken off; a short grace before it counts as over
   | 'suspended'    // no longer a fight, but not reconciled — persistent nonviolent hostility
-  | 'resolved';    // ended, with an outcome
+  | 'resolved';
 
 export type ConflictOutcome =
   | 'objective_completed' | 'robbery_completed' | 'target_fled' | 'aggressor_fled'
@@ -1368,7 +1347,6 @@ export interface Creature extends Entity {
   ownerId: EntityId | null;
 }
 
-// ---------------------------------------------------------------- Items
 export type ItemType = 'sword' | 'dagger' | 'hammer' | 'axe' | 'bread' | 'ale' | 'coins' | 'ring' | 'book' | 'herbs' | 'flowers' | 'meat' | 'cheese' | 'lantern' | 'key' | 'pie' | 'wheat'
   // v0.2.4 world-metabolism resources. `grain` is threshed harvested wheat; `flour` is milled
   // grain; `bread` (already present) is baked flour. See RESOURCE_CATEGORY / metabolism.ts.
@@ -1406,7 +1384,7 @@ export interface Item extends Entity {
   equipped?: {bodyId: EntityId; slot: import('../physical/equipment').EquipmentSlot};
   type: ItemType;
   ownerId: EntityId | null;         // rightful owner (as the world has it)
-  holderId: EntityId | null;        // person carrying it
+  holderId: EntityId | null;
   pos: Vec3 | null;                 // when lying in the world
   placeId: EntityId | null;
   /** Physical containment. Mutually exclusive with holderId and pos when present. */
@@ -1455,7 +1433,6 @@ export interface Container extends Entity {
   placeId: EntityId | null;
 }
 
-// ---------------------------------------------------------------- Places
 export type PlaceType = 'house' | 'tavern' | 'smithy' | 'bakery' | 'store' | 'chapel' | 'guardhouse' | 'farm' | 'mill' | 'square' | 'well' | 'stall' | 'camp' | 'shrine' | 'graveyard' | 'wilderness' | 'hut' | 'bridge' | 'gate'
   // v0.3: a worksite where felled logs are sawn into planks; an open rock outcrop worked for
   // stone; a construction site where materials accumulate before a structure is raised.
@@ -1502,7 +1479,6 @@ export interface Faction extends Entity {
   knowledge: Record<string, KnowledgeItem>;
 }
 
-// ---------------------------------------------------------------- Events
 export type EventType = 'combat_trial_agreed' | 'combat_trial_ended' | 'tower_entered' | 'tower_floor_opened' | 'tower_floor_cleared' | 'tower_returned' | 'tower_fallen' | 'arcane_learned' | 'arcane_cast' | 'arcane_resolved' | 'realm_crossed' | 'item_equipped' | 'item_unequipped' | 'animal_threat_display' | 'downed' | 'veil_hush' | 'veil_meditation' | 'butchered' | 'woke' | 'animal_born' | 'animal_conceived' | 'animal_pregnancy_lost' | 'animal_died' | 'ecology_changed'
   | 'introduction' | 'social_inferred' | 'mechanism_inspected' | 'mechanism_hypothesized' | 'mechanism_worked' | 'mechanism_intended' | 'mechanism_abandoned'
   | 'record_written' | 'record_copied' | 'record_read' | 'record_destroyed' | 'environment_energy_changed' | 'method_reproduced' | 'method_discovered'

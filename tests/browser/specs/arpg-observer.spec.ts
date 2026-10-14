@@ -23,7 +23,6 @@ export const arpgObserver: BrowserSpec = {
     await startGame(page, 918271, baseURL);
     await advanceWorld(page, 3600 * 9, 2);
 
-    // ---- 1. the elevated mode is where the game STARTS (v0.10.1 Part I) — no keypress needed.
     // F2 is now the way OUT of it and back, which step 9 exercises.
     const entered = await readCanonicalState(page, () => {
       const g = (window as any).game;
@@ -39,7 +38,6 @@ export const arpgObserver: BrowserSpec = {
     if (!entered.badge) throw new Error('the elevated-mode badge is not shown');
     if (entered.camY - entered.playerY < 4) throw new Error(`the camera is not elevated (camera y ${entered.camY.toFixed(1)} vs player y ${entered.playerY.toFixed(1)})`);
 
-    // ---- 2. it shows a meaningful chunk of the village: several actors on screen at once
     const visible = await readCanonicalState(page, () => {
       const g = (window as any).game;
       const cam = g.camera; const w = g.world;
@@ -78,7 +76,6 @@ export const arpgObserver: BrowserSpec = {
     if (zoomed.floor < 5) throw new Error(`zoom is not bounded (floor ${zoomed.floor})`);
     if (Math.abs(zoomed.turned - 0.8) > 1e-6) throw new Error('camera rotation did not apply');
 
-    // ---- 4. open the observer overlay and select somebody with a live purpose, structurally
     await page.keyboard.press('F6');
     await page.waitForTimeout(120);
     if (!(await page.locator('#observer.open').count())) throw new Error('F6 did not open the observer overlay');
@@ -92,7 +89,6 @@ export const arpgObserver: BrowserSpec = {
     await page.evaluate((id) => { const g = (window as any).game; g.observer.select(id); }, watched.id);
     await page.waitForTimeout(100);
 
-    // ---- 5. the overlay explains, in words, what they are doing and what they are trying to do
     const panel = await page.evaluate(() => document.querySelector('#observer .body')?.textContent ?? '');
     for (const needle of [watched.name, 'doing', 'purposes', 'body', 'needs']) {
       if (!panel.includes(needle)) throw new Error(`the observer summary is missing "${needle}"\n${panel.slice(0, 600)}`);
@@ -100,7 +96,6 @@ export const arpgObserver: BrowserSpec = {
     if (!panel.includes(watched.purposeText)) throw new Error(`the observer summary does not name the purpose "${watched.purposeText}"\n${panel.slice(0, 600)}`);
     await captureEvidence(page, join(ART, 'arpg-observer-selected.png'));
 
-    // ---- 6. follow them. The camera goes with them; their behaviour does not change.
     await page.click('#observer [data-a=follow]');
     await page.waitForTimeout(80);
     const followStart = await readCanonicalState(page, () => {
@@ -130,7 +125,6 @@ export const arpgObserver: BrowserSpec = {
     }, watched.id);
     if (untouched.before !== untouched.after) throw new Error(`observing changed the observed person\n${untouched.before}\n${untouched.after}`);
 
-    // ---- 7. time control from the overlay drives the same clock the T key does
     await page.click('#observer [data-s="16"]');
     await page.waitForTimeout(60);
     const fast = await readCanonicalState(page, () => ({ mult: (window as any).game.speedMult, clock: (window as any).game.world.clock.speedMultiplier }));
@@ -143,7 +137,6 @@ export const arpgObserver: BrowserSpec = {
     const resumed = await readCanonicalState(page, () => ({ mult: (window as any).game.speedMult, paused: (window as any).game.paused }));
     if (resumed.mult !== 1 || resumed.paused) throw new Error('returning to ×1 did not resume normal speed');
 
-    // ---- 8. watch persistent purposes actually move on while the camera is following.
     // Transitions are counted across the village rather than demanded of one particular person:
     // whether the individual being watched happens to reach the next step of THEIR purpose in
     // any given ten hours is up to the world, and requiring it would be asserting on luck. What
@@ -177,7 +170,6 @@ export const arpgObserver: BrowserSpec = {
     }
     await captureEvidence(page, join(ART, 'arpg-observer-following.png'));
 
-    // ---- 9. back to normal player control, and ordinary interaction still works
     await page.evaluate(() => { const g = (window as any).game; g.observer.setFollow(false); });
     await page.keyboard.press('F2');
     await page.waitForTimeout(120);

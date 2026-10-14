@@ -63,7 +63,6 @@ export const buildingInterior: BrowserSpec = {
     const cutA = Math.floor(scene.a.inside.y) + 3;
     const cutB = Math.floor(scene.b.inside.y) + 3;
 
-    // ---- 1. outside every building: nothing is revealed, both roofs are on
     await stand(scene.outside);
     const outside = await readCanonicalState(page, () => (window as any).game.voxels.revealed);
     if (outside) throw new Error(`standing in the open revealed a building anyway (${JSON.stringify(outside)})`);
@@ -73,7 +72,6 @@ export const buildingInterior: BrowserSpec = {
     if (roofBIntact === 0) throw new Error(`${scene.b.name} has no geometry above ${cutB} even with nothing revealed`);
     await captureEvidence(page, join(ART, 'interior-1-outside.png'));
 
-    // ---- 2. inside A: A opens, B stays exactly as it was
     await stand({ x: scene.a.inside.x + 0.5, y: scene.a.inside.y, z: scene.a.inside.z + 0.5 });
     const inA = await readCanonicalState(page, () => (window as any).game.voxels.revealed);
     if (!inA) throw new Error(`standing inside ${scene.a.name} revealed nothing`);
@@ -83,7 +81,6 @@ export const buildingInterior: BrowserSpec = {
     if (bWhileInA !== roofBIntact) throw new Error(`entering ${scene.a.name} changed what is drawn at ${scene.b.name} (${roofBIntact} → ${bWhileInA} vertices) — the reveal is not bounded to one building`);
     await captureEvidence(page, join(ART, 'interior-2-inside-a.png'));
 
-    // ---- 3. straight into B: the reveal moves, it does not accumulate
     await stand({ x: scene.b.inside.x + 0.5, y: scene.b.inside.y, z: scene.b.inside.z + 0.5 });
     const inB = await readCanonicalState(page, () => (window as any).game.voxels.revealed);
     if (!inB) throw new Error(`standing inside ${scene.b.name} revealed nothing`);
@@ -93,7 +90,6 @@ export const buildingInterior: BrowserSpec = {
     if (aWhileInB !== roofAIntact) throw new Error(`${scene.a.name}'s roof did not come back when the player left it (${roofAIntact} → ${aWhileInB} vertices)`);
     await captureEvidence(page, join(ART, 'interior-3-inside-b.png'));
 
-    // ---- 4. back outside: everything is whole again
     await stand(scene.outside);
     const cleared = await readCanonicalState(page, () => (window as any).game.voxels.revealed);
     if (cleared) throw new Error(`leaving the building left ${JSON.stringify(cleared)} revealed`);

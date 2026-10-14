@@ -246,7 +246,6 @@ export class LiveServer {
   private broadcast(message: object): void { const payload = JSON.stringify(message); for (const c of this.connections.values()) if (c.socket.readyState === WebSocket.OPEN) c.socket.send(payload); }
   private close(c: Connection, code: number, reason: string): void { this.playerLanguage?.cancel(c.channelId); try { c.socket.close(code, reason); } catch { /* already closing */ } }
 
-  // ── HTTP ────────────────────────────────────────────────────────────────────────────────────
   private isAdmin(req: IncomingMessage): boolean {
     if (!LOOPBACK.has(req.socket.remoteAddress ?? '')) return false;
     const given = Buffer.from(String(req.headers['x-torn-veil-admin'] ?? '')), expected = Buffer.from(this.adminToken);
@@ -329,7 +328,6 @@ export class LiveServer {
   /** In-process stop (tests, offline tools): same orderly shutdown, no process exit. */
   async stopInProcess(reason = "stopped"): Promise<void> { await this.shutdown(reason, -1); }
 
-  // ── WebSocket admission ─────────────────────────────────────────────────────────────────────
   private reject(socket: WebSocket, code: number, reason: string, remote: string): void {
     this.metrics.rejectedConnections++;
     this.log('warn', 'connection_rejected', { code, reason, remote });
@@ -411,7 +409,7 @@ export class LiveServer {
     socket.on('close', (code, reason) => this.onClose(c, code, reason.toString()));
   }
   private onClose(c: Connection, code: number, reason: string): void {
-    if (this.connections.get(c.socket) !== c) return; // superseded: the new connection owns the channel
+    if (this.connections.get(c.socket) !== c) return;
     this.playerLanguage?.release(c.channelId);
     this.connections.delete(c.socket); this.byAccount.delete(c.account.id);
     this.log('info', 'disconnected', { account: c.account.id, personId: c.personId, code, reason });

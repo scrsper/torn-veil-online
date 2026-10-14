@@ -111,7 +111,7 @@ export class Vfx {
     if (e === 'storm') { ps.minSize = .05; ps.maxSize = .25 * size; ps.minEmitPower = 6 * size; ps.maxEmitPower = 12 * size; }
     ps.minAngularSpeed = -3; ps.maxAngularSpeed = 3;
     this.once(ps, Math.round(50 * size + 20), 1.4);
-    if (e === 'flame' || e === 'iron' || e === 'shadow') {   // smoke above the burst
+    if (e === 'flame' || e === 'iron' || e === 'shadow') {
       const sm = this.system(e, 24, at.clone(), 'smoke');
       sm.color1 = e === 'flame' ? c4(.25, .2, .18, .5) : L.b; sm.color2 = c4(.15, .12, .1, .35); sm.colorDead = c4(0, 0, 0, 0); sm.blendMode = ParticleSystem.BLENDMODE_STANDARD;
       sm.minSize = .6 * size; sm.maxSize = 1.4 * size; sm.minLifeTime = .7; sm.maxLifeTime = 1.6; sm.minEmitPower = .5; sm.maxEmitPower = 1.5; sm.gravity = new Vector3(0, 1.4, 0);

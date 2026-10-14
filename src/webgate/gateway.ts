@@ -117,7 +117,6 @@ export class WebGateway {
     return `${this.origin}/launch/${nonce}`;
   }
 
-  // ── HTTP ────────────────────────────────────────────────────────────────────────────────────
   private allowedOrigins(): Set<string> {
     const own = new Set([this.origin, this.origin.replace('127.0.0.1', 'localhost')]);
     for (const o of this.options.extraOrigins ?? []) own.add(o);
@@ -154,7 +153,7 @@ export class WebGateway {
       const nonce = path.slice('/launch/'.length);
       const exp = this.launches.get(nonce);
       if (!exp || exp < Date.now()) return this.send(res, 403, { error: 'This launch link was already used or has expired. Start Play Torn Veil Web again.' });
-      this.launches.delete(nonce); // single use
+      this.launches.delete(nonce);
       const id = token(32), ttl = this.options.sessionTtlMs ?? 12 * 3600_000;
       this.sessions.set(id, { id, createdAt: Date.now(), expiresAt: Date.now() + ttl, sockets: new Set(), launched: true });
       const view = url.searchParams.get('view');
@@ -209,7 +208,6 @@ export class WebGateway {
     res.end(req.method === 'HEAD' ? undefined : body);
   }
 
-  // ── WebSocket ───────────────────────────────────────────────────────────────────────────────
   private reject(socket: Duplex, code: number, why: string): void {
     this.counters.rejectedUpgrades++;
     this.log('warn', 'upgrade_rejected', { code, why });

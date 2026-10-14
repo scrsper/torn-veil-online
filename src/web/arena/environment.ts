@@ -51,7 +51,6 @@ export const LOOKS: Record<string, EnvLook> = {
 };
 export const lookFor = (theme: Theme | null, floor: number): EnvLook => !theme ? LOOKS.hall : floor === 0 ? LOOKS.hall : LOOKS[theme.tier] ?? LOOKS.Normal;
 
-// ---- procedural surfaces ------------------------------------------------------------------------------------------
 const SIZE = 1024;
 /** Lights an environment material takes: hemi, key, fill, rim, three torches, the door. */
 export const ENV_LIGHTS = 8;

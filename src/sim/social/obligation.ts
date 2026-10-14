@@ -69,7 +69,6 @@ const DUTY_ROLES: Partial<Record<ObligationKind, ReadonlySet<string>>> = {
   was_protected: new Set(['guard', 'captain']),
 };
 
-// ---------------------------------------------------------------- accessors
 export function obligationsOf(p: Person): Obligation[] { return (p.mind.obligations ??= []); }
 export function liveObligations(p: Person): Obligation[] { return obligationsOf(p).filter(o => o.status === 'live'); }
 export function obligationsToward(p: Person, towardId: EntityId): Obligation[] {
@@ -89,7 +88,6 @@ export function obligationCredit(p: Person, towardId: EntityId): number {
   return clamp(total);
 }
 
-// ---------------------------------------------------------------- formation
 /** Which canonical event types are BENEFITS — the single table this module is driven by. Adding a
  * new kind of help to the simulation means adding one row here, not a new handler. */
 /**
@@ -305,7 +303,6 @@ function trim(p: Person): void {
   list.length = MAX_OBLIGATIONS;
 }
 
-// ---------------------------------------------------------------- resolution
 export function resolveObligation(world: World, p: Person, o: Obligation, status: ObligationStatus, resolution: string, causeEventId?: EventId): void {
   if (o.status !== 'live') return;
   const notable = o.magnitude >= MIN_OBLIGATION_MAGNITUDE;
@@ -433,7 +430,6 @@ export function settleRequestObligations(world: World, request: Request, outcome
   }
 }
 
-// ---------------------------------------------------------------- upkeep
 /**
  * Periodic upkeep, on the same coarse cadence as concern/relationship evolution. Three generic
  * jobs, all of which exist to guarantee the collection cannot grow without bound:
@@ -501,7 +497,6 @@ export function noticeBrokenPromises(world: World, p: Person, recentlyFailed: Re
   }
 }
 
-// ---------------------------------------------------------------- behavioural bridge
 /**
  * What a live obligation does to a candidate goal's utility (v0.10 §II "reciprocity must affect
  * behaviour"). Same shape and same discipline as `mind/concern.ts`'s `concernGoalBoost`:

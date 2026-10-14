@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 // Developer entry point for the headless world runner (v0.2 Part 1):
-//   npm run sim -- --seed 918271 --days 30
 //
 // Node-only (uses node:fs via FileSink). Run with `tsx` (declared in devDependencies) so it
 // executes the TypeScript sources directly — the same canonical World/Simulation the browser

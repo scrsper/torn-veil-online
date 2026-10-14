@@ -79,7 +79,6 @@ export const REACTIONS: { a: string; b: string; result: string; text: string }[]
   { a: 'Lightning', b: 'Lightning field', result: 'Overcharge', text: 'shocked foes chain again' },
 ];
 
-// ---- potions: the belt (V drinks the first) ----
 export type PotionKind = 'mana' | 'haste' | 'might' | 'stone' | 'elemental' | 'clarity';
 export const POTIONS: Record<PotionKind, { name: string; icon: string; color: string; text: string; seconds: number }> = {
   mana: { name: 'Mana Draught', icon: '🧪', color: '#5aa8ff', text: 'restores 60% of your mana', seconds: 0 },

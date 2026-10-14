@@ -120,7 +120,7 @@ export function runHeadless(opts: HeadlessRunOptions): HeadlessRunResult {
   let sinceMaintenance = 0;
   let sinceProbe = 0;
   const probeInterval = opts.probeIntervalSeconds ?? 3600;
-  if (opts.onProbe) opts.onProbe(world, sim, 0, memSink); // t=0 baseline, before any simulated time passes
+  if (opts.onProbe) opts.onProbe(world, sim, 0, memSink);
   let lastReportedDay = -1;
   while (world.now - worldStart < totalWorldSeconds) {
     // Clamp the final physical substep so we land close to the requested world-time target
@@ -147,7 +147,7 @@ export function runHeadless(opts: HeadlessRunOptions): HeadlessRunResult {
     if (opts.onProgress && day !== lastReportedDay) { lastReportedDay = day; opts.onProgress(day); }
     if (opts.onProbe) { sinceProbe += worldDt; if (sinceProbe >= probeInterval) { sinceProbe = 0; opts.onProbe(world, sim, world.now - worldStart, memSink); } }
   }
-  if (opts.onProbe) opts.onProbe(world, sim, world.now - worldStart, memSink); // final observation
+  if (opts.onProbe) opts.onProbe(world, sim, world.now - worldStart, memSink);
 
   t0 = mark(); const anomalies = detectAnomalies(world); accum('anomalies', t0);
   t0 = mark(); const significance = topSignificantEntities(world, 15); accum('significance', t0);

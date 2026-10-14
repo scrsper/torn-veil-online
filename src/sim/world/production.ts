@@ -144,7 +144,6 @@ export function fulfillProductionRequest(world: World, req: Request, worker: imp
   return completeRequest(world, req);
 }
 
-// ---------------------------------------------------------------- observability
 export interface ProductionSummary { open: number; accepted: number; completed: number; failed: number; wagesPaid: number; }
 export function productionSummary(world: World): ProductionSummary {
   const rs = world.requests.filter(r => r.type === 'production');

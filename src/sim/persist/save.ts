@@ -317,7 +317,6 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     }
     for (const s of data.settlements ?? []) { const existing = world.get(s.id); if (existing?.kind === 'settlement') Object.assign(existing, s); else world.add(s); }
     for (const p of data.physicalPlaces ?? []) { const existing = world.place(p.id); if (existing) Object.assign(existing, p); else world.add(p); }
-    // overlay
     const genEvents = world.events; // history events regenerated; replace with saved log (which contains them)
     world.events = []; world.eventIndex.clear();
     for (const e of data.events) { world.events.push(e); world.eventIndex.set(e.id, e); }

@@ -151,7 +151,6 @@ function main(): void {
         `${String(s.harvestsToDate).padStart(4)} ${String(s.transformsToDate).padStart(5)} ${String(s.mealsToDate).padStart(5)} ${String(s.shortagesToDate).padStart(5)} | ${String(s.peopleUrgentHungry).padStart(4)} ${String(s.peopleUrgentThirsty).padStart(4)}`,
       );
     }
-    // individual tails
     const worstHunger = [...r.hungerStreakMax.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
     const worstThirst = [...r.thirstStreakMax.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4);
     console.log('worst individual hunger streaks (consecutive daily samples at >= urgent):');

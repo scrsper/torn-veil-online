@@ -114,7 +114,6 @@ export class Animator {
       if (!ev || (ev.pose !== 'attack' && ev.pose !== 'hit' && ev.goal !== 'attack' && ev.goal !== 'confront')) { family = 'idle'; detail = ''; }
     }
     const dead = !!s.body?.dead, downed = detail === 'downed' || !!s.body?.incapacitated;
-    // ── smoothing of the state machines ──────────────────────────────────────────────────────
     const k = (rate: number) => 1 - Math.exp(-rate * dt);
     const moving = speed > 0.12 && posture !== 'lie';
     this.moveW += ((moving ? 1 : 0) - this.moveW) * k(9);
@@ -127,7 +126,6 @@ export class Animator {
     this.accel.copyFromFloats((s.velocity.x - this.lastVel.x) / Math.max(dt, 1e-3), 0, (s.velocity.z - this.lastVel.z) / Math.max(dt, 1e-3)); this.lastVel.copyFromFloats(s.velocity.x, 0, s.velocity.z);
     this.yawRate += (clamp(wrapPi(s.yaw - (this.lastYaw ?? s.yaw)) / Math.max(dt, 1e-3), -6, 6) - this.yawRate) * k(8); this.lastYaw = s.yaw;
 
-    // ── gait ─────────────────────────────────────────────────────────────────────────────────
     if (moving) {
       this.phase = (this.phase + speed / gait.cycleDistance * TAU * dt) % TAU;
       const dir = localTravel(s.velocity, s.yaw);
@@ -137,7 +135,6 @@ export class Animator {
     const sp = sstep(0.2, 1.6, speed), sr = sstep(2.2, 5.6, speed);
     const walkAmp = this.moveW * (1 - this.runW * 0.35);
     const ph = this.phase, sinP = Math.sin(ph), cosP = Math.cos(ph);
-    // legs
     const thighA = (0.30 + 0.20 * sp + 0.55 * sr) * walkAmp;
     const bend = (0.15 + 0.85 * Math.max(0, Math.cos(ph - 0.35))) * (0.35 + 0.6 * sp + 0.55 * sr) * walkAmp;
     const bendR = (0.15 + 0.85 * Math.max(0, Math.cos(ph + Math.PI - 0.35))) * (0.35 + 0.6 * sp + 0.55 * sr) * walkAmp;
@@ -157,12 +154,10 @@ export class Animator {
     B.set('spine_01', chain(R.turn(sinP * 0.06 * walkAmp), R.lean(leanRun * 0.4 + crouch * 0.18)));
     B.set('spine_02', chain(R.turn(sinP * 0.10 * walkAmp * (0.7 + sr)), R.lean(leanRun * 0.35 + crouch * 0.16), R.tilt(-this.yawRate * 0.02 * this.moveW)));
     B.set('spine_03', chain(R.turn(sinP * 0.06 * walkAmp), R.lean(leanRun * 0.25 + crouch * 0.1)));
-    // breathing and idle life
     const breath = Math.sin(this.t * 1.7) * 0.012, idleW = 1 - this.moveW;
     const shift = Math.sin(this.t * 0.31) * idleW;
     B.set('spine_03', chain(R.lean(breath * idleW + leanRun * 0.25 + crouch * 0.1), R.turn(sinP * 0.06 * walkAmp)));
     B.pelvis.x += shift * 0.008 * S; B.set('pelvis', chain(R.turn(-sinP * 0.16 * walkAmp * (0.6 + sr)), R.tilt(sinP * 0.05 * walkAmp + shift * 0.02), R.lean(0.05 * this.runW + crouch * 0.28 + sr * 0.05)));
-    // arms
     const armA = (0.14 + 0.22 * sp + 0.42 * sr) * walkAmp * this.travel.z, armOut = 0.10 + 0.05 * (1 - this.moveW);
     const elbowBase = 0.20 + 0.22 * sp + 0.55 * sr;
     B.set('clavicle_l', R.out(0.03 * (1 - this.runW), 1)); B.set('clavicle_r', R.out(0.03 * (1 - this.runW), -1));
@@ -176,9 +171,7 @@ export class Animator {
       B.set(`thumb_01_${sd}`, Q.x(-0.2)); B.set(`thumb_02_${sd}`, Q.x(-.12));
     }
 
-    // ── layers: posture, activity, combat ────────────────────────────────────────────────────
     const L = this.layer;
-    // Sitting.
     if (this.sitW > 0.01) {
       L.clear();
       L.pelvis.set(0, -0.39 * S, 0.0);
@@ -198,7 +191,6 @@ export class Animator {
       L.set('lowerarm_l', Q.x(-1.1)); L.set('lowerarm_r', Q.x(-1.1)); L.set('hand_l', R.out(0.2, 1)); L.set('hand_r', R.out(0.2, -1));
       B.over(L, this.kneelW);
     }
-    // Activity.
     this.activity(B, L, s, family, detail, dt);
     // Injury: a limp and a hunch.
     const inj = s.body?.embodiment?.activity.injury;
@@ -206,7 +198,6 @@ export class Animator {
       L.clear(); L.set('spine_02', chain(R.lean(0.10 * inj.severity + 0.04), R.tilt(0.05 * Math.sin(ph)))); L.pelvis.set(0, -0.02 * S * inj.severity, 0); L.set('pelvis', R.tilt(0.06 * Math.sin(ph) * inj.severity));
       B.over(L, this.moveW * Math.min(1, inj.severity * 1.5));
     }
-    // Head look and speech.
     this.face(B, L, s, dt, k);
     // Combat (from the projected action's own phase timing).
     if (s.combat) {
@@ -215,14 +206,12 @@ export class Animator {
       const legs = s.combat.moveId === 'guard' ? 1 - this.moveW : 1;
       B.over(L, w.weight, legs); B.pelvis.addInPlace(w.pelvis.scale(w.weight * legs));
     }
-    // Being struck.
     if (s.hit) this.hitK = Math.max(this.hitK, s.hit);
     if (this.hitK > 0.01) {
       L.clear(); const h = this.hitK; L.set('spine_02', chain(R.lean(-0.22 * h), R.turn(0.12 * h))); L.set('spine_03', R.lean(-0.18 * h)); L.set('head', chain(R.lean(-0.25 * h), R.tilt(0.15 * h)));
       L.set('upperarm_l', chain(R.fwd(0.5 * h), R.out(0.4 * h, 1))); L.set('upperarm_r', chain(R.fwd(0.5 * h), R.out(0.4 * h, -1))); L.pelvis.set(0, -0.03 * S * h, 0.04 * S * h); L.set('pelvis', R.lean(-0.1 * h));
       B.over(L, Math.min(1, h * 1.3)); this.hitK *= Math.exp(-6 * dt);
     }
-    // Downed / dead: collapse.
     if (this.lieW > 0.01 && (dead || downed)) {
       L.clear(); const seed = (this.r.materials.face.seed % 7) / 7 - 0.5;
       L.set('spine_02', R.lean(-0.1)); L.set('head', chain(R.turn(seed * 0.8), R.tilt(seed * 0.4)));
@@ -231,7 +220,6 @@ export class Animator {
       B.over(L, this.lieW);
     }
 
-    // ── apply with light smoothing ───────────────────────────────────────────────────────────
     const F = this.final;
     const timedStrike=s.combat&&['jab','cross'].includes(s.combat.moveId);
     const sm=timedStrike?1:1-Math.exp(-26*dt);
@@ -262,7 +250,6 @@ export class Animator {
     m.position.z = 0.86 * S * w;
   }
 
-  // ── activity layer ──────────────────────────────────────────────────────────────────────────
   private activity(B: PoseBuffer, L: PoseBuffer, s: ActorPoseState, family: string, detail: string, dt: number): void {
     const S = this.S, t = this.t;
     let kind = '';
@@ -313,7 +300,6 @@ export class Animator {
     B.over(L, this.actW);
   }
 
-  // ── head, eyes, mouth ───────────────────────────────────────────────────────────────────────
   private face(B: PoseBuffer, L: PoseBuffer, s: ActorPoseState, dt: number, k: (r: number) => number): void {
     // Look toward a target, limited to a natural range and spread between neck and head.
     let ty = 0, tp = 0;
@@ -325,16 +311,13 @@ export class Animator {
     this.lookYaw += (ty - this.lookYaw) * k(5); this.lookPitch += (tp - this.lookPitch) * k(6);
     L.clear(); L.set('neck_01', chain(R.turn(this.lookYaw * 0.35), R.lean(this.lookPitch * 0.35))); L.set('head', chain(R.turn(this.lookYaw * 0.65), R.lean(this.lookPitch * 0.65 + 0.03 * Math.sin(this.t * 1.3))));
     B.over(L, 1);
-    // Blink.
     this.blinkAt -= dt; if (this.blinkAt <= 0 && this.blink <= 0) { this.blink = 1; this.blinkAt = 2.2 + Math.random() * 4.5; }
     if (this.blink > 0) { this.blink -= dt * 7.5; } const bl = this.blink > 0 ? Math.sin(Math.min(1, 1 - this.blink + 0.001) * Math.PI) : 0;
-    // Mouth.
     if (s.speaking) { this.mouthT += dt * 9; this.mouth += ((0.25 + 0.55 * Math.abs(Math.sin(this.mouthT) * Math.sin(this.mouthT * 0.37 + 1))) - this.mouth) * k(20); }
     else this.mouth += (0 - this.mouth) * k(12);
     this.rig.setMorph('blink', bl); this.rig.setMorph('mouth_open', this.mouth);
   }
 
-  // ── secondary motion: hair, tail, ears ──────────────────────────────────────────────────────
   private secondary(dt: number, s: ActorPoseState): void {
     const rig = this.rig;
     // Inertia in the character's frame: turn world acceleration into local back/side.

@@ -94,7 +94,6 @@ export function refreshReport(world: World, p: Person, k: KnowledgeItem, authori
   let r = store[k.key];
   if (!r) { r = store[k.key] = { key: k.key, status: 'seeking', attempts: 0, firstAt: now, lastAttemptAt: now }; }
 
-  // ---- delivered: somebody appropriate knows, because this person told them.
   const told = toldAnAuthority(k, authorities);
   if (told) {
     if (r.status !== 'delivered') {
@@ -104,7 +103,6 @@ export function refreshReport(world: World, p: Person, k: KnowledgeItem, authori
     return r;
   }
 
-  // ---- moot: the matter is over as far as this person is aware, or the belief has aged out.
   //
   // `personalSituationView` is deliberately the test rather than the Situation's own status: a
   // matter someone else saw settled is not settled for a person who never heard about it, and

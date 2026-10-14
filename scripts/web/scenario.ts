@@ -86,7 +86,6 @@ note('entered the world with the existing character', !!before, before);
 await shot('01-start');
 
 let bought = false;
-// 1. Find someone.
 let target: Goal | undefined = (await people())[0];
 for (let attempt = 0; !target && attempt < 6; attempt++) {
   const s = (await settlements())[0] ?? (gotoFlag ? { x: Number(gotoFlag.split(',')[0]), z: Number(gotoFlag.split(',')[1]), label: 'the given place' } : undefined);
@@ -98,7 +97,6 @@ for (let attempt = 0; !target && attempt < 6; attempt++) {
 if (target) {
   const d0 = await (async () => { const m = await own(); return Math.hypot(target!.x - m!.pos[0], target!.z - m!.pos[1]); })();
   note('someone is in view', true, { who: target.label, metres: Math.round(d0) });
-  // 2. Walk up to them (re-read their position each time; they move).
   let close = false;
   for (let i = 0; i < 12 && !close; i++) {
     const p = (await people()).find(x => x.label === target!.label) ?? (await people())[0]; if (!p) break; target = p;
@@ -112,7 +110,6 @@ if (target) {
   await shot('02-approached');
   const s1 = await state();
   note('a talk prompt is offered when standing next to them', s1.target?.kind === 'person', s1.target);
-  // 3. Talk.
   await page.keyboard.press('KeyE'); await page.waitForTimeout(1200);
   const s2 = await state();
   note('pressing E opens the conversation panel', s2.dialogue);
@@ -158,7 +155,6 @@ if (bought) {
   await page.mouse.move(w / 2, h / 2); await page.mouse.down(); await page.waitForTimeout(60); await page.mouse.up(); await page.waitForTimeout(300);
 }
 
-// 4. Menus.
 for (const [key, name] of [['KeyI', 'items'], ['Tab', 'abilities'], ['KeyJ', 'journal']] as const) {
   await page.keyboard.press(key); await page.waitForTimeout(900);
   const open = (await state()).modal; await shot(`07-${name}`);
@@ -169,7 +165,6 @@ for (const [key, name] of [['KeyI', 'items'], ['Tab', 'abilities'], ['KeyJ', 'jo
 }
 await page.mouse.move(w / 2, h / 2); await page.mouse.down(); await page.waitForTimeout(60); await page.mouse.up(); await page.waitForTimeout(300);
 
-// 5. Save, reconnect, return.
 const preSave = await own();
 await page.keyboard.press('Escape'); await page.waitForTimeout(900); await shot('08-pause');
 const clickText = async (t: string) => page.evaluate((txt: string) => { const b = [...document.querySelectorAll('button')].find(x => x.textContent?.trim() === txt) as HTMLElement | undefined; if (b) { b.click(); return true; } return false; }, t);
