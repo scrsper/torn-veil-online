@@ -1,0 +1,894 @@
+{
+  "id": "tv_26_05_timber_house",
+  "name": "Bridgeport | Sears 13337A | Torn Veil",
+  "source_trace": "traces/tv_26_05_timber_house.json",
+  "source_trace_sha256": "717e9f9021c7e885d144a9e5f14fa9a26f95f99dcd06eac19b336b13e1901648",
+  "source_url": "https://dahp.wa.gov/sites/default/files/ModernHomessears1936.small_.pdf",
+  "catalog_name": "Bridgeport",
+  "catalog_model": "13337A",
+  "pdf_page": 19,
+  "uniform_horizontal_scale": 1.44,
+  "scale_driver": "opening kitchenhall",
+  "player_contract": {
+    "height_m": 2.1,
+    "heads": 9.5,
+    "capsule_radius_m": 0.4,
+    "margin_m": 0.05,
+    "audit_height_m": 2.15,
+    "provisional": true
+  },
+  "vertical_adjustments": {
+    "finished_ceiling_m": 2.85,
+    "door_lintel_clear_m": 2.405,
+    "ordinary_floor_to_floor_m": 3.05,
+    "franklin_raised_m": null,
+    "basement_m": null
+  },
+  "floors": [
+    {
+      "level": 0,
+      "metres_per_pixel": 0.03846786206896552,
+      "source_metres_per_pixel": 0.026713793103448277,
+      "pixel_origin": [
+        306.73347547974413,
+        247.84292821606255
+      ],
+      "world_origin": [
+        0,
+        0,
+        0.0
+      ],
+      "y_sign": -1
+    }
+  ],
+  "room_targets": [
+    {
+      "name": "0:kitchen",
+      "label": "KITCHEN",
+      "level": 0,
+      "source_floor": 0,
+      "source_room": "kitchen",
+      "kind": "kitchen",
+      "position": [
+        -2.7209655,
+        3.0329187499999994,
+        0.0
+      ],
+      "source_polygon": [
+        [
+          193,
+          116
+        ],
+        [
+          299,
+          116
+        ],
+        [
+          299,
+          244
+        ],
+        [
+          193,
+          244
+        ]
+      ]
+    },
+    {
+      "name": "0:nook",
+      "label": "NOOK",
+      "level": 0,
+      "source_floor": 0,
+      "source_room": "nook",
+      "kind": "dining",
+      "position": [
+        -5.339764073689434,
+        1.361363507449837,
+        0.0
+      ],
+      "source_polygon": [
+        [
+          138,
+          175
+        ],
+        [
+          193,
+          175
+        ],
+        [
+          193,
+          244
+        ],
+        [
+          138,
+          244
+        ]
+      ]
+    },
+    {
+      "name": "0:rearentry",
+      "label": "ENTRY",
+      "level": 0,
+      "source_floor": 0,
+      "source_room": "rearentry",
+      "kind": "hall",
+      "position": [
+        -3.3172175736894345,
+        5.829823,
+        0.0
+      ],
+      "source_polygon": [
+        [
+          193,
+          76
+        ],
+        [
+          252,
+          76
+        ],
+        [
+          252,
+          116
+        ],
+        [
+          193,
+          116
+        ]
+      ]
+    },
+    {
+      "name": "0:bath",
+      "label": "BATH",
+      "level": 0,
+      "source_floor": 0,
+      "source_room": "bath",
+      "kind": "bath",
+      "position": [
+        1.3770700075152722,
+        2.7963279639463354,
+        0.0
+      ],
+      "source_polygon": [
+        [
+          299,
+          116
+        ],
+        [
+          362,
+          116
+        ],
+        [
+          362,
+          205
+        ],
+        [
+          299,
+          205
+        ]
+      ]
+    },
+    {
+      "name": "0:hall",
+      "label": "HALL",
+      "level": 0,
+      "source_floor": 0,
+      "source_room": "hall",
+      "kind": "hall",
+      "position": [
+        0.9142473871038899,
+        0.8412400457668452,
+        0.0
+      ],
+      "source_polygon": [
+        [
+          299,
+          205
+        ],
+        [
+          362,
+          205
+        ],
+        [
+          362,
+          244
+        ],
+        [
+          299,
+          244
+        ]
+      ]
+    },
+    {
+      "name": "0:bed1",
+      "label": "BED ROOM",
+      "level": 0,
+      "source_floor": 0,
+      "source_room": "bed1",
+      "kind": "bedroom",
+      "position": [
+        4.4947425,
+        2.16739175,
+        0.0
+      ],
+      "source_polygon": [
+        [
+          362,
+          116
+        ],
+        [
+          486,
+          116
+        ],
+        [
+          486,
+          244
+        ],
+        [
+          362,
+          244
+        ]
+      ]
+    },
+    {
+      "name": "0:living",
+      "label": "LIVING ROOM",
+      "level": 0,
+      "source_floor": 0,
+      "source_room": "living",
+      "kind": "living",
+      "position": [
+        -2.2058832500000003,
+        -3.329278,
+        0.0
+      ],
+      "source_polygon": [
+        [
+          138,
+          244
+        ],
+        [
+          343,
+          244
+        ],
+        [
+          343,
+          394
+        ],
+        [
+          138,
+          394
+        ]
+      ]
+    },
+    {
+      "name": "0:bed2",
+      "label": "BED ROOM",
+      "level": 0,
+      "source_floor": 0,
+      "source_room": "bed2",
+      "kind": "bedroom",
+      "position": [
+        4.129298,
+        -3.14133725,
+        0.0
+      ],
+      "source_polygon": [
+        [
+          343,
+          278
+        ],
+        [
+          486,
+          278
+        ],
+        [
+          486,
+          394
+        ],
+        [
+          343,
+          394
+        ]
+      ]
+    }
+  ],
+  "stair_targets": [],
+  "fixture_approaches": [
+    {
+      "name": "0:hallcloset",
+      "level": 0,
+      "source_floor": 0,
+      "source_room": "living",
+      "source_fixture": "hallcloset",
+      "position": [
+        1.35,
+        -0.55,
+        0.0
+      ],
+      "door_position": [
+        1.3950956629659588,
+        -0.5445922846849496,
+        0.0
+      ],
+      "interaction_distance_m": 0.0451,
+      "interaction_edge_point": [
+        1.3950956629659588,
+        -0.55,
+        1.0
+      ],
+      "facing": [
+        1.0,
+        0.0,
+        0
+      ],
+      "interaction_reach_m": 0.9,
+      "purpose": "Close-use approach selected from actual reachable capsule support samples; explicit source-edge point has an unobstructed indexed-triangle waist-height line. Provisional runtime reach0.90m."
+    },
+    {
+      "name": "0:bed2closet",
+      "level": 0,
+      "source_floor": 0,
+      "source_room": "bed2",
+      "source_fixture": "bed2closet",
+      "position": [
+        4.0,
+        -1.2000000000000002,
+        0.0
+      ],
+      "door_position": [
+        4.1070799388280275,
+        -1.1600780777883979,
+        0.0
+      ],
+      "interaction_distance_m": 0.03992,
+      "interaction_edge_point": [
+        4.0,
+        -1.1600780777883979,
+        1.0
+      ],
+      "facing": [
+        0.0,
+        1.0,
+        0
+      ],
+      "interaction_reach_m": 0.9,
+      "purpose": "Close-use approach selected from actual reachable capsule support samples; explicit source-edge point has an unobstructed indexed-triangle waist-height line. Provisional runtime reach0.90m."
+    },
+    {
+      "name": "0:bed1closet",
+      "level": 0,
+      "source_floor": 0,
+      "source_room": "bed1",
+      "source_fixture": "bed1closet",
+      "position": [
+        6.0,
+        0.15000000000000002,
+        0.0
+      ],
+      "door_position": [
+        6.011239111241821,
+        0.14782923255642974,
+        0.0
+      ],
+      "interaction_distance_m": 0.00217,
+      "interaction_edge_point": [
+        6.0,
+        0.14782923255642974,
+        1.0
+      ],
+      "facing": [
+        0.0,
+        -1.0,
+        0
+      ],
+      "interaction_reach_m": 0.9,
+      "purpose": "Close-use approach selected from actual reachable capsule support samples; explicit source-edge point has an unobstructed indexed-triangle waist-height line. Provisional runtime reach0.90m."
+    },
+    {
+      "name": "0:fixture:tub",
+      "level": 0,
+      "source_floor": 0,
+      "source_room": "bath",
+      "source_fixture": "tub",
+      "position": [
+        1.3,
+        3.45,
+        0.0
+      ],
+      "interaction_distance_m": 0.46768,
+      "interaction_edge_point": [
+        1.2999999999999998,
+        3.9176797153150504,
+        0.65
+      ],
+      "facing": [
+        -4.747792081926239e-16,
+        1.0,
+        0
+      ],
+      "interaction_reach_m": 0.9,
+      "purpose": "Close-use approach selected from actual reachable capsule support samples; explicit source-edge point has an unobstructed indexed-triangle waist-height line. Provisional runtime reach0.90m."
+    },
+    {
+      "name": "0:fixture:basin",
+      "level": 0,
+      "source_floor": 0,
+      "source_room": "bath",
+      "source_fixture": "basin",
+      "position": [
+        1.35,
+        2.6500000000000004,
+        0.0
+      ],
+      "interaction_distance_m": 0.45952,
+      "interaction_edge_point": [
+        0.9334813181383725,
+        2.455900956694361,
+        0.85
+      ],
+      "facing": [
+        -0.9064134554909665,
+        -0.42239158100621005,
+        0
+      ],
+      "interaction_reach_m": 0.9,
+      "purpose": "Close-use approach selected from actual reachable capsule support samples; explicit source-edge point has an unobstructed indexed-triangle waist-height line. Provisional runtime reach0.90m."
+    },
+    {
+      "name": "0:fixture:wc",
+      "level": 0,
+      "source_floor": 0,
+      "source_room": "bath",
+      "source_fixture": "wc",
+      "position": [
+        1.1,
+        3.1,
+        0.0
+      ],
+      "interaction_distance_m": 0.47426,
+      "interaction_edge_point": [
+        0.6257384215866484,
+        3.1,
+        0.65
+      ],
+      "facing": [
+        -1.0,
+        0.0,
+        0
+      ],
+      "interaction_reach_m": 0.9,
+      "purpose": "Close-use approach selected from actual reachable capsule support samples; explicit source-edge point has an unobstructed indexed-triangle waist-height line. Provisional runtime reach0.90m."
+    },
+    {
+      "name": "0:fixture:sink",
+      "level": 0,
+      "source_floor": 0,
+      "source_room": "kitchen",
+      "source_fixture": "sink",
+      "position": [
+        -1.6500000000000001,
+        4.25,
+        0.0
+      ],
+      "interaction_distance_m": 0.46489,
+      "interaction_edge_point": [
+        -1.2207189577236965,
+        4.071551163590913,
+        0.85
+      ],
+      "facing": [
+        0.9233960245827331,
+        -0.3838486443701534,
+        0
+      ],
+      "interaction_reach_m": 0.9,
+      "purpose": "Close-use approach selected from actual reachable capsule support samples; explicit source-edge point has an unobstructed indexed-triangle waist-height line. Provisional runtime reach0.90m."
+    },
+    {
+      "name": "0:bed:bed1",
+      "level": 0,
+      "source_floor": 0,
+      "source_room": "bed1",
+      "source_fixture": "added_bed:bed1",
+      "position": [
+        3.95,
+        3.2,
+        0.0
+      ],
+      "interaction_distance_m": 0.4513,
+      "interaction_edge_point": [
+        4.255999803543091,
+        3.531715989112854,
+        0.65
+      ],
+      "facing": [
+        0.6780412996238133,
+        0.7350238064202073,
+        0
+      ],
+      "interaction_reach_m": 0.9,
+      "purpose": "Close-use approach selected from actual reachable capsule support samples; explicit source-edge point has an unobstructed indexed-triangle waist-height line. Provisional runtime reach0.90m."
+    },
+    {
+      "name": "0:bed:bed2",
+      "level": 0,
+      "source_floor": 0,
+      "source_room": "bed2",
+      "source_fixture": "added_bed:bed2",
+      "position": [
+        3.95,
+        -3.75,
+        0.0
+      ],
+      "interaction_distance_m": 0.45177,
+      "interaction_edge_point": [
+        4.255999803543091,
+        -4.082349896430969,
+        0.65
+      ],
+      "facing": [
+        0.6773416823699028,
+        -0.7356685702980043,
+        0
+      ],
+      "interaction_reach_m": 0.9,
+      "purpose": "Close-use approach selected from actual reachable capsule support samples; explicit source-edge point has an unobstructed indexed-triangle waist-height line. Provisional runtime reach0.90m."
+    },
+    {
+      "name": "0:fixture:hearth",
+      "level": 0,
+      "source_floor": 0,
+      "source_room": "living",
+      "source_fixture": "hearth",
+      "position": [
+        -5.7,
+        -4.45,
+        0.0
+      ],
+      "interaction_edge_point": [
+        -5.7,
+        -3.9682320088228806,
+        1.0
+      ],
+      "interaction_distance_m": 0.48177,
+      "interaction_reach_m": 0.9,
+      "facing": [
+        0.0,
+        1.0,
+        0
+      ],
+      "purpose": "Close-use approach selected from actual reachable capsule support samples; explicit source-edge point has an unobstructed indexed-triangle waist-height line. Provisional runtime reach0.90m."
+    }
+  ],
+  "start_position": [
+    0.14489014572457926,
+    -6.872350077788398,
+    0.0
+  ],
+  "entry": [
+    0.14489014572457926,
+    -6.872350077788398,
+    0.0
+  ],
+  "ports": [
+    {
+      "id": "backdoor",
+      "floor_level": 0,
+      "position": [
+        -3.6826621301374898,
+        6.610430060142637,
+        0.0
+      ],
+      "outward_normal": [
+        -0.0,
+        1.0,
+        0
+      ],
+      "outward": [
+        -0.0,
+        1.0,
+        0
+      ],
+      "clear_width_m": 1.154035862068966,
+      "source_page": 19
+    },
+    {
+      "id": "frontdoor",
+      "floor_level": 0,
+      "position": [
+        0.14489014572457926,
+        -5.622350077788398,
+        0.0
+      ],
+      "outward_normal": [
+        -0.0,
+        -1.0,
+        0
+      ],
+      "outward": [
+        -0.0,
+        -1.0,
+        0
+      ],
+      "clear_width_m": 1.3463751724137936,
+      "source_page": 19
+    },
+    {
+      "id": "porchdoor",
+      "floor_level": 0,
+      "position": [
+        -6.490816061171973,
+        -0.7561655260642599,
+        0.0
+      ],
+      "outward_normal": [
+        -1.0,
+        0.0,
+        0
+      ],
+      "outward": [
+        -1.0,
+        0.0,
+        0
+      ],
+      "clear_width_m": 1.2694394482758629,
+      "source_page": 19
+    }
+  ],
+  "entrances": [
+    {
+      "name": "backdoor",
+      "position": [
+        -3.6826621301374898,
+        6.610430060142637,
+        0.0
+      ],
+      "outward": [
+        -0.0,
+        1.0,
+        0
+      ]
+    },
+    {
+      "name": "front",
+      "position": [
+        0.14489014572457926,
+        -5.622350077788398,
+        0.0
+      ],
+      "outward": [
+        -0.0,
+        -1.0,
+        0
+      ]
+    },
+    {
+      "name": "porchdoor",
+      "position": [
+        -6.490816061171973,
+        -0.7561655260642599,
+        0.0
+      ],
+      "outward": [
+        -1.0,
+        0.0,
+        0
+      ]
+    }
+  ],
+  "clearances": [
+    {
+      "level": 0,
+      "id": "backdoor",
+      "source_raw_width_m": 0.8014137931034486,
+      "uniform_scale": 1.44,
+      "opening_width_m": 1.154035862068966,
+      "clear_between_jambs_m": 1.154035862068966,
+      "clear_height_m": 2.4050000000000002,
+      "requires_body_access": true,
+      "source_connects": [
+        "rearentry",
+        "outside"
+      ]
+    },
+    {
+      "level": 0,
+      "id": "frontdoor",
+      "source_raw_width_m": 0.93498275862069,
+      "uniform_scale": 1.44,
+      "opening_width_m": 1.3463751724137936,
+      "clear_between_jambs_m": 1.3463751724137936,
+      "clear_height_m": 2.4050000000000002,
+      "requires_body_access": true,
+      "source_connects": [
+        "living",
+        "outside"
+      ]
+    },
+    {
+      "level": 0,
+      "id": "porchdoor",
+      "source_raw_width_m": 0.8815551724137937,
+      "uniform_scale": 1.44,
+      "opening_width_m": 1.2694394482758629,
+      "clear_between_jambs_m": 1.2694394482758629,
+      "clear_height_m": 2.4050000000000002,
+      "requires_body_access": true,
+      "source_connects": [
+        "living",
+        "outside"
+      ]
+    },
+    {
+      "level": 0,
+      "id": "stairentry",
+      "source_raw_width_m": 0.8014137931034486,
+      "uniform_scale": 1.44,
+      "opening_width_m": 1.154035862068966,
+      "clear_between_jambs_m": 1.154035862068966,
+      "clear_height_m": 2.4050000000000002,
+      "requires_body_access": true,
+      "source_connects": [
+        "rearentry",
+        "stairs"
+      ]
+    },
+    {
+      "level": 0,
+      "id": "rearentrykit",
+      "source_raw_width_m": 0.8548413793103447,
+      "uniform_scale": 1.44,
+      "opening_width_m": 1.2309715862068962,
+      "clear_between_jambs_m": 1.2309715862068962,
+      "clear_height_m": 2.4050000000000002,
+      "requires_body_access": true,
+      "source_connects": [
+        "rearentry",
+        "kitchen"
+      ]
+    },
+    {
+      "level": 0,
+      "id": "kitchennoook",
+      "source_raw_width_m": 1.0418379310344827,
+      "uniform_scale": 1.44,
+      "opening_width_m": 1.5002466206896552,
+      "clear_between_jambs_m": 1.5002466206896552,
+      "clear_height_m": 2.4050000000000002,
+      "requires_body_access": true,
+      "source_connects": [
+        "nook",
+        "kitchen"
+      ]
+    },
+    {
+      "level": 0,
+      "id": "kitchenhall",
+      "source_raw_width_m": 0.6678448275862066,
+      "uniform_scale": 1.44,
+      "opening_width_m": 0.9616965517241374,
+      "clear_between_jambs_m": 0.9616965517241374,
+      "clear_height_m": 2.4050000000000002,
+      "requires_body_access": true,
+      "source_connects": [
+        "kitchen",
+        "hall"
+      ]
+    },
+    {
+      "level": 0,
+      "id": "bed1door",
+      "source_raw_width_m": 0.7212724137931035,
+      "uniform_scale": 1.44,
+      "opening_width_m": 1.038632275862069,
+      "clear_between_jambs_m": 1.038632275862069,
+      "clear_height_m": 2.4050000000000002,
+      "requires_body_access": true,
+      "source_connects": [
+        "bed1",
+        "hall"
+      ]
+    },
+    {
+      "level": 0,
+      "id": "bathdoor",
+      "source_raw_width_m": 0.7212724137931036,
+      "uniform_scale": 1.44,
+      "opening_width_m": 1.0386322758620692,
+      "clear_between_jambs_m": 1.0386322758620692,
+      "clear_height_m": 2.4050000000000002,
+      "requires_body_access": true,
+      "source_connects": [
+        "bath",
+        "hall"
+      ]
+    },
+    {
+      "level": 0,
+      "id": "livinghall",
+      "source_raw_width_m": 0.8548413793103449,
+      "uniform_scale": 1.44,
+      "opening_width_m": 1.2309715862068966,
+      "clear_between_jambs_m": 1.2309715862068966,
+      "clear_height_m": 2.4050000000000002,
+      "requires_body_access": true,
+      "source_connects": [
+        "living",
+        "hall"
+      ]
+    },
+    {
+      "level": 0,
+      "id": "bed1closetdoor",
+      "source_raw_width_m": 0.747986206896551,
+      "uniform_scale": 1.44,
+      "opening_width_m": 1.0771001379310334,
+      "clear_between_jambs_m": 1.0771001379310334,
+      "clear_height_m": 2.4050000000000002,
+      "requires_body_access": false,
+      "source_connects": [
+        "bed1",
+        "bed1closet"
+      ]
+    },
+    {
+      "level": 0,
+      "id": "hallclosetdoor",
+      "source_raw_width_m": 0.6411310344827587,
+      "uniform_scale": 1.44,
+      "opening_width_m": 0.9232286896551724,
+      "clear_between_jambs_m": 0.9232286896551724,
+      "clear_height_m": 2.4050000000000002,
+      "requires_body_access": false,
+      "source_connects": [
+        "hallcloset",
+        "living"
+      ]
+    },
+    {
+      "level": 0,
+      "id": "bed2door",
+      "source_raw_width_m": 0.9082689655172417,
+      "uniform_scale": 1.44,
+      "opening_width_m": 1.307907310344828,
+      "clear_between_jambs_m": 1.307907310344828,
+      "clear_height_m": 2.4050000000000002,
+      "requires_body_access": true,
+      "source_connects": [
+        "bed2",
+        "living"
+      ]
+    },
+    {
+      "level": 0,
+      "id": "bed2closetdoor",
+      "source_raw_width_m": 0.7747000000000004,
+      "uniform_scale": 1.44,
+      "opening_width_m": 1.1155680000000006,
+      "clear_between_jambs_m": 1.1155680000000006,
+      "clear_height_m": 2.4050000000000002,
+      "requires_body_access": false,
+      "source_connects": [
+        "bed2",
+        "bed2closet"
+      ]
+    }
+  ],
+  "notes": [
+    "0: optimized10 static door-leaf poses against fixed source walls and occupied-room circulation; no aperture moved.",
+    "0:cellarstairs ends at a bounded continuation landing; downstream basement/attic floor plan is not supplied by this catalog page."
+  ],
+  "source_notes": [
+    "Four-room plan with kitchen breakfast nook; source caption explicitly FLOOR PLAN No.13337A.",
+    "Bathroom upper horizontal stroke is the printed tub, not an invented partition; bathroom retained as one room.",
+    "Doors and windows follow printed gaps; no basement rooms or upper floor invented.",
+    "Fixture basin source symbol independently rechecked at5x: bounds 305,154,330,178 corrected to 309,184,331,198. Current upper/lower basin and WC positions appear reversed: the upper larger vertical symbol is WC, lower smaller horizontal symbol is basin. Proposed positions follow those source symbols.",
+    "Fixture wc source symbol independently rechecked at5x: bounds 305,182,328,205 corrected to 303,154,323,176. Current upper/lower basin and WC positions appear reversed: the upper larger vertical symbol is WC, lower smaller horizontal symbol is basin. Proposed positions follow those source symbols.",
+    "All printed bath/lavatory fixture symbols were independently reviewed against5x source enlargements. Material position/type errors were corrected; unchanged soft rims retain approximately2\u20134 source-pixel boundary uncertainty. Tank/base-inclusive footprints are conservative source-symbol envelopes, not construction measurements or gameplay-target adjustments.",
+    "Independent enlarged-source review on 2026-10-11 confirmed the bath/hall shared wall centerline at y=205, with solid left segment and the doorway on the right at x=330\u2013357. Prior y=213 and left-side doorway reading were incorrect. Bath/hall polygons now share y=205; the east bedroom door remains y=212\u2013239. Evidence: review/independent_source/bridgeporta-bath-door-grid.png."
+  ],
+  "door_pose_policy": "One leaf per door. Fold180 degrees only within an uninterrupted solid-wall interval; otherwise open90 degrees into a source room. Closet leaves open into their cupboard. Source hinge hands are not asserted where unreadable.",
+  "coordinate_system": "Source Blender world XYZ, Z-up, metres. GLB standard Y-up converts [x,y,z]\u2192[x,z,\u2212y].",
+  "connector_change": "Source-plan entrances supersede V2 generic4m-grid poses. All new port positions supplied; existing assembly placements require re-alignment, never silent distortion.",
+  "non_interactable_source_features": [],
+  "scope": "Editable environment assets and source-plan/capsule QA staging. No actual game/PC/Atlas publication."
+}

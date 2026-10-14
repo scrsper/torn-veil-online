@@ -1,15 +1,18 @@
 import specification from './interactionSpec.json';
 import type { Vec3 } from '../core/types';
+import {StaticGeometry,type GeometryWindow,type MovementGeometry} from './staticGeometry';
 
 export const INTERACTION_SPEC = Object.freeze(specification);
 export interface CollisionColumn { floor: number; walkable: boolean; solids: number[] }
-export interface CollisionWindow { revision: string; x: number; z: number; size: number; columns: CollisionColumn[] }
+export interface CollisionWindow { revision: string; x: number; z: number; size: number; columns: CollisionColumn[]; geometry?:GeometryWindow }
 export interface MovementState { pos: Vec3; yaw: number; speed: number; eligible: boolean; crouch?:number }
 export interface MovementInput { x: number; z: number; sprint: boolean; facing?:number }
-export type ColumnQuery = (x: number, z: number) => CollisionColumn | undefined;
+export type ColumnQuery = ((x: number, z: number) => CollisionColumn | undefined)&{geometryAt?:(x:number,z:number)=>MovementGeometry|null};
 export function windowQuery(window: CollisionWindow): ColumnQuery {
-  return (x,z) => x < window.x || z < window.z || x >= window.x+window.size || z >= window.z+window.size
+  const query:ColumnQuery=(x,z) => x < window.x || z < window.z || x >= window.x+window.size || z >= window.z+window.size
     ? undefined : window.columns[(x-window.x)*window.size+z-window.z];
+  if(window.geometry){const geometry=new StaticGeometry(window.geometry.triangles,window.geometry.bounds);query.geometryAt=(x,z)=>geometry.contains(x,z)?geometry:null;}
+  return query;
 }
 /** Metres, Y up, forward=(-sin(yaw),0,-cos(yaw)), radians, seconds. X then Z
  * is the collision tie-break. Unknown columns are solid. No costs/events in this kernel. */
@@ -22,6 +25,8 @@ export function predictMovement(state: MovementState, input: MovementInput, dt: 
   const dx=input.x/length*speed*dt, dz=input.z/length*speed*dt;
   const count=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dz))/s.sweepStep));
   const fits=(px:number,pz:number) => {
+    const geometry=column.geometryAt?.(px,pz);
+    if(geometry){const floor=geometry.supportAt(px,pz,next.pos.y,s.stepHeight);return floor!==null&&geometry.fits(px,floor,pz,s.radius,postureHeight(state.crouch??0));}
     const center=column(Math.floor(px),Math.floor(pz));
     if (!center?.walkable || center.floor<0 || Math.abs(center.floor-next.pos.y)>s.stepHeight) return false;
     let clearance=center.floor;
@@ -36,8 +41,8 @@ export function predictMovement(state: MovementState, input: MovementInput, dt: 
   for(let i=0;i<count;i++) {
     if(fits(next.pos.x+dx/count,next.pos.z)) next.pos.x+=dx/count;
     if(fits(next.pos.x,next.pos.z+dz/count)) next.pos.z+=dz/count;
-    const floor=column(Math.floor(next.pos.x),Math.floor(next.pos.z))?.floor;
-    if(floor!==undefined&&floor>=0) next.pos.y=floor;
+    const geometry=column.geometryAt?.(next.pos.x,next.pos.z),floor=geometry?geometry.supportAt(next.pos.x,next.pos.z,next.pos.y,s.stepHeight):column(Math.floor(next.pos.x),Math.floor(next.pos.z))?.floor;
+    if(floor!==undefined&&floor!==null&&floor>=0) next.pos.y=floor;
   }
   if(input.facing!==undefined&&Number.isFinite(input.facing)&&Math.abs(input.facing)<=Math.PI) {
     const difference=Math.atan2(Math.sin(input.facing-state.yaw),Math.cos(input.facing-state.yaw));
@@ -49,6 +54,7 @@ export function predictMovement(state: MovementState, input: MovementInput, dt: 
 export const postureHeight=(amount:number)=>INTERACTION_SPEC.height+(INTERACTION_SPEC.duckHeight-INTERACTION_SPEC.height)*amount;
 export function postureFits(state:MovementState,amount:number,column:ColumnQuery):boolean {
  const s=INTERACTION_SPEC;
+ const geometry=column.geometryAt?.(state.pos.x,state.pos.z);if(geometry)return geometry.fits(state.pos.x,state.pos.y,state.pos.z,s.radius,postureHeight(amount));
  for(let x=Math.floor(state.pos.x-s.radius);x<=Math.floor(state.pos.x+s.radius);x++)for(let z=Math.floor(state.pos.z-s.radius);z<=Math.floor(state.pos.z+s.radius);z++){
   const c=column(x,z);if(!c||c.solids.some(y=>y+1>state.pos.y+.05&&y<state.pos.y+postureHeight(amount)))return false;
  }

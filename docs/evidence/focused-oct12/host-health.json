@@ -1,0 +1,50 @@
+{
+  "kind": "torn-veil-realms",
+  "root": "C:\\Users\\green\\Documents\\Codex\\2026-10-08\\task\\authored-motion-correction",
+  "clientBuild": {
+    "kind": "torn-veil-current",
+    "commit": "f7bc5c9085c716d75c553d11ea33024788188d90",
+    "indexSha256": "73193864c245cf7f212de975f6415392ec01267c89f4ce82492f1ce67e2fbabe",
+    "motion": [
+      {
+        "relative": "arena/mixamo_clips.glb",
+        "sha256": "91dfc81c73db1be5983119f586550ce6c201389d9b3c24e755ca143367484de7"
+      },
+      {
+        "relative": "arena/unarmed_clips.glb",
+        "sha256": "33e75a1991e07ee72f7bdde26461c6987df49f1ae29414dfb5cc88b0ee3fa2b3"
+      }
+    ],
+    "builtAt": "2026-10-12T06:56:49.924Z",
+    "entry": "/",
+    "playEntry": "/?realms",
+    "progression": "canonical-world",
+    "goldPolicy": "earned-sources"
+  },
+  "buildRoot": "C:\\Users\\green\\Documents\\Codex\\2026-10-08\\task\\authored-motion-correction\\dist-web",
+  "savePath": "C:\\Users\\green\\Documents\\Codex\\2026-10-08\\task\\authored-motion-correction\\.debug\\motion-correction\\focused-save-v11.json",
+  "ready": true,
+  "seed": 918271,
+  "saveError": "",
+  "updateError": "",
+  "persistence": {
+    "durableSequence": 8919,
+    "checkpointSequence": 8656,
+    "journalBytes": 1214310,
+    "flushMs": 2.753499999991618,
+    "checkpoint": {
+      "sequence": 8656,
+      "rawBytes": 187662,
+      "bytes": 30014,
+      "captureMs": 2.0336999999999534,
+      "totalMs": 17.42819999999483
+    }
+  },
+  "memory": {
+    "rss": 799346688,
+    "heapTotal": 387452928,
+    "heapUsed": 376071776,
+    "external": 13699646,
+    "arrayBuffers": 9530430
+  }
+}

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import {readFileSync} from 'node:fs';
 import { createTestWorld, addPerson, v, step } from './helpers/world';
 import { makeItem, makeBody } from '../src/sim/world/factory';
 import { drinkAt } from '../src/sim/world/metabolism';
@@ -46,22 +47,33 @@ function victory(x: ReturnType<typeof fixture>, index: number, cast = true) {
   step(x,16); return {t,tb,e};
 }
 describe('earned source transformation',()=>{
+  it('retains a genuine legacy Iron save and applies versioned requirements to new receipts',()=>{
+    const raw=readFileSync(new URL('./fixtures/legacy-source-iron-v31.json',import.meta.url),'utf8');
+    const loaded=deserialize(raw);expect(loaded).not.toBeNull();
+    const w=loaded!.world,p=w.person('p_1')!,b=w.primaryBody(p.id)!;
+    expect(p.ontology.stage).toBe('Iron');expect(Object.keys(p.arcana!.growth!.victories)).toHaveLength(12);
+    expect(arcaneCapacity(p)).toEqual({amplitude:1.6,aperture:1.2,reserve:120});
+    expect(assessArcaneTransformation(w,p,b).next?.victories).toBe(180);
+    expect(integrateArcaneSources(w,p,b)).toBe('not_ready');
+    w.event(p.ontology.breakthroughEventId!)!.data.growthPolicy=2;
+    expect(deserialize(serialize(w))).toBeNull();
+  });
   it('uses distinct opposed evidence and finite materials, without rank from idle casts or labels',()=>{
     const x=fixture(); x.b.injuries={arm:.12}; x.b.health=75;
     const spare=x.source('ess-bone',false), calendar=x.world.now;
     expect(integrateArcaneSources(x.world,x.p,x.b)).toBe('not_ready');
-    for(let i=0;i<12;i++)victory(x,i);
+    for(let i=0;i<TRANSFORMATIONS[0].victories;i++)victory(x,i);
     expect(x.p.ontology.stage).toBe('Normal');expect(assessArcaneTransformation(x.world,x.p,x.b).eligible).toBe(true);
     const before={hp:x.b.health,injuries:{...x.b.injuries},mana:x.b.arcana!.mana,time:x.world.now};
     expect(integrateArcaneSources(x.world,x.p,x.b)).toBe('accepted');expect(x.p.ontology.stage).toBe('Iron');
     expect(spare.quantity).toBe(0);expect(x.b.health).toBe(before.hp);expect(x.b.injuries).toEqual(before.injuries);
-    expect(x.b.arcana!.mana).toBe(before.mana);expect(x.world.now).toBe(before.time);expect(x.world.now-calendar).toBeLessThan(300);
+    expect(x.b.arcana!.mana).toBe(before.mana);expect(x.world.now).toBe(before.time);expect(x.world.now-calendar).toBeLessThan(1000);
     expect(arcaneCapacity(x.p)).toEqual({amplitude:1.6,aperture:1.2,reserve:120});
     expect(integrateArcaneSources(x.world,x.p,x.b)).toBe('not_ready');
     const loaded=deserialize(serialize(x.world))!.world;expect(loaded.person(x.p.id)!.arcana).toEqual(x.p.arcana);
     const raw=JSON.parse(serialize(x.world));raw.persons.find((p:any)=>p.id===x.p.id).arcana.growth.transformation.amplitude=20;
     expect(deserialize(JSON.stringify(raw))).toBeNull();
-  });
+  },30000);
   it('cannot credit a repeat opponent or a last tap',()=>{
     const x=fixture(),{tb,e}=victory(x,0);const before=structuredClone(x.p.arcana!.growth);
     recordArcaneEncounter(x.world,x.p,x.b,tb,e);expect(x.p.arcana!.growth).toEqual(before);
@@ -89,7 +101,7 @@ describe('earned source transformation',()=>{
     expect(deserialize(JSON.stringify(raw))).toBeNull();
   });
   it('binds source integration, cancels queued requests and makes duplicate/reloaded requests idempotent',()=>{
-    const x=fixture(),spare=x.source('ess-bone',false);for(let n=0;n<12;n++)victory(x,n);
+    const x=fixture(),spare=x.source('ess-bone',false);for(let n=0;n<TRANSFORMATIONS[0].victories;n++)victory(x,n);
     const envelope:CommandEnvelope={version:2,type:'command',epoch:'growth-epoch',controllerId:x.p.id,bodyId:x.b.id,
       sequence:0,commandId:'growth-0',specRevision:INTERACTION_SPEC.revision,clientTimeMs:0,command:{type:'integrate_arcana'}};
     const q=new CommandQueue(envelope.epoch,envelope.controllerId,envelope.bodyId);
@@ -101,7 +113,7 @@ describe('earned source transformation',()=>{
     expect(q.receive(next,2,5).status).toBe('applied');
     const loaded=deserialize(serialize(x.world))!.world,p=loaded.person(x.p.id)!,b=loaded.body(x.b.id)!;
     expect(integrateArcaneSources(loaded,p,b)).toBe('not_ready');expect(loaded.item(spare.id)!.quantity).toBe(0);
-  });
+  },30000);
   it('physical focuses change actual reach/force for any holder without granting classification or healing',()=>{
     const x=fixture(),focus=makeItem(x.world,'armor','finite focus',{owner:x.p.id,holder:x.p.id});
     focus.arcaneFocus={version:1,amplitude:7,aperture:5,reserve:220};
@@ -120,14 +132,14 @@ describe('earned source transformation',()=>{
     expect(TRANSFORMATIONS[3].victories).toBeGreaterThan(TRANSFORMATIONS[2].victories*2);
     expect(TRANSFORMATIONS[3].forms).toBeGreaterThan(TRANSFORMATIONS[2].forms);
   });
-  it('executes three accepted source transformations and holds provisional Gold without consuming sources',()=>{
+  it('executes four earned transformations through Gold with finite costs and saved receipts',()=>{
     // Mechanical threshold fixture: source/cast/hit APIs and elapsed cooldowns,
     // with direct finishing hits. This is explicitly NOT a timed or balanced climb.
     const x=fixture(),forms=['book-ember','ess-bone','book-sigil','book-thunder','ess-storm','ess-gravity'];
     for(const id of [...forms.slice(2),'ess-fire','ess-iron','ess-life'])x.source(id);
     for(let n=0;n<10;n++)x.source('ess-bone',false);
     let milestone=0;
-    for(let n=0;n<1000;n++){
+    for(let n=0;n<TRANSFORMATIONS[3].victories;n++){
       const t=addPerson(x,`Threshold opponent ${n}`,'traveler',v(14,1,10),{controlled:true}),tb=x.world.primaryBody(t.id)!;
       const origin=x.world.emit('tower_entered',{actor:x.p.id}),trial=`threshold:${n}`;
       agreeCombatTrial(x.world,trial,[[x.p],[t]],'injure',origin.id);
@@ -140,21 +152,14 @@ describe('earned source transformation',()=>{
       }
       const e=x.sim.applyHit(x.p,x.b,tb,100,'injure')!;endCombatTrial(x.world,trial,[e.id]);tb.pos=v(35,1,35);
       if(n+1===TRANSFORMATIONS[milestone].victories){
-        if(milestone===3){
-          const a=assessArcaneTransformation(x.world,x.p,x.b),before=x.p.inventory.map(id=>x.world.item(id)!.quantity);
-          expect(a.next?.stage).toBe('Gold');expect(a.eligible).toBe(false);
-          expect(a.reasons).toContain('Gold source transformation is paused pending progression policy acceptance.');
-          expect(integrateArcaneSources(x.world,x.p,x.b)).toBe('not_ready');
-          expect(x.p.inventory.map(id=>x.world.item(id)!.quantity)).toEqual(before);
-          expect(x.p.ontology.stage).toBe('Silver');continue;
-        }
         expect(assessArcaneTransformation(x.world,x.p,x.b).eligible).toBe(true);
         expect(integrateArcaneSources(x.world,x.p,x.b)).toBe('accepted');
+        expect(x.world.event(x.p.ontology.breakthroughEventId!)?.data.growthPolicy).toBe(2);
         expect(x.p.ontology.stage).toBe(TRANSFORMATIONS[milestone].stage);milestone++;
       }
     }
-    expect(milestone).toBe(3);expect(x.b.health).toBe(80);
-    expect(arcaneCapacity(x.p)).toEqual({amplitude:7,aperture:5,reserve:220});
+    expect(milestone).toBe(4);expect(x.b.health).toBe(80);
+    expect(arcaneCapacity(x.p)).toEqual({amplitude:20,aperture:12,reserve:320});
     const raw=serialize(x.world),loaded=deserialize(raw);expect(loaded).not.toBeNull();
     expect(loaded!.world.person(x.p.id)!.arcana).toEqual(x.p.arcana);
     expect(integrateArcaneSources(x.world,x.p,x.b)).toBe('not_ready');

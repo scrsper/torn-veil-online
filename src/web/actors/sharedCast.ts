@@ -2,10 +2,10 @@ import {FootPlant,type FootGround} from '../arena/footPlant';
 import {ContactFootfalls} from '../audio/footfalls';
 import {SharedGaze} from './sharedGaze';
 import {contactHints,gaitPhases} from '../arena/gaitPhase';
-import {sharedTravelClip} from './sharedMotion';
+import {sharedTravelClip, authoredTravelBlend} from './sharedMotion';
 import {SHARED_MOTION_NAMES} from '../arena/sharedMotionNames';
 import { TransformNode, type Scene, type Vector3 } from '@babylonjs/core';
-import {ArenaAssets,HUMAN_SCALE,type CharacterInstance} from '../arena/assets';
+import {ArenaAssets,type CharacterInstance} from '../arena/assets';
 import {Animator} from '../arena/anim';
 import {MOVESETS, RELAXED, dodgeClip} from '../arena/combat';
 import {kaykitFallback} from '../arena/assets';
@@ -14,8 +14,9 @@ import type {BodyState} from '../net/messages';
 import type {ActorState,BodyVisual} from './actorManager';
 import type {Atmosphere} from '../world/atmosphere';
 import {EquipmentVisual} from '../items/equipmentVisual';
-import { HUMAN_LOOKS, PRESENTATION_REVISION, ARMED_MOTION, UNARMED_MOTION, motionSampleSeconds } from '../presentation/library';
+import { HUMAN_LOOKS, PRESENTATION_REVISION, UNARMED_MOTION, motionSampleSeconds, weaponMotionBinding, humanAssetPath } from '../presentation/library';
 import type { ClipTemplate } from '../arena/retarget';
+import {characterScaleObservation,normalizeCharacterMetres} from './characterScale';
 export const SHARED_HUMAN_LOOKS:LookId[]=HUMAN_LOOKS;
 export interface SharedCharacterEnvironment {
  ground?:FootGround;
@@ -29,23 +30,28 @@ export function sharedLook(body:Pick<BodyState,'bodyId'|'appearance'|'presentati
  const list:LookId[]=female?['wren','raider_f']:['ranger','brann','soldier','archer','mystic'];
  return list[hash(body.bodyId)%list.length];
 }
+/** Deliberate existing, credited hero kits. Creator prototypes are audition candidates,
+ * not an unverified automatic replacement; canonical identity/sex stays unchanged. */
+export function sharedHeroLook(body: Pick<BodyState, 'presentationSex' | 'appearance'>): LookId {
+ return body.presentationSex === 'f' || body.appearance?.description?.presentation === 'feminine' ? 'wren' : 'ranger';
+}
 export class SharedCharacters {
  readonly assets:ArenaAssets;
  ready=false;
  constructor(scene:Scene){this.assets=new ArenaAssets(scene,{detailedHumans:true});this.assets.used=SHARED_MOTION_NAMES;}
  async load(progress:(text:string)=>void){await this.assets.load(['skeleton_warrior'],progress);await this.assets.loadHumans(SHARED_HUMAN_LOOKS,progress);this.ready=true;}
- create(body:BodyState,atmosphere:Atmosphere,environment?:SharedCharacterEnvironment):BodyVisual|null {
+ create(body:BodyState,atmosphere:Atmosphere,environment?:SharedCharacterEnvironment,role:'resident'|'player'='resident'):BodyVisual|null {
   if(!this.ready||body.appearance?.description?.agePresentation==='child')return null;
-  const instance=this.assets.human(sharedLook(body),body.bodyId);
+  const look=role==='player'?sharedHeroLook(body):sharedLook(body),instance=this.assets.human(look,body.bodyId);
   // Canonical world metres, rather than the arena's enlarged layout scale.
-  instance.root.metadata={...instance.root.metadata,sharedLook:sharedLook(body),bodyId:body.bodyId,sex:body.presentationSex,presentationRevision:PRESENTATION_REVISION};
-  instance.root.scaling.scaleInPlace((body.appearance?.height??1)/HUMAN_SCALE);
-  return new SharedVisual(instance,body,atmosphere,this.assets.clipsFor(sharedLook(body)),environment);
+  instance.root.metadata={...instance.root.metadata,sharedLook:look,assetPath:humanAssetPath(look),bodyId:body.bodyId,sex:body.presentationSex,presentationRevision:PRESENTATION_REVISION};
+  instance.root.metadata.metricImport=normalizeCharacterMetres(instance.root,instance.meshes,body.appearance?.height??1);
+  return new SharedVisual(instance,body,atmosphere,this.assets.clipsFor(look),environment);
  }
 }
 export class SharedVisual implements BodyVisual {
  readonly contactFootfalls=true;
- readonly root: TransformNode; headHeight = 1.9;
+ readonly root: TransformNode; headHeight = 1.9;readonly bodyHeight:number;
  private animator: Animator; private equipment: EquipmentVisual; private plant: FootPlant; private afterAnimation;
  private dt = 0; private yaw = 0; private plantActive = true; private clock = 0; private combatUntil = 0;
  private fallen = false; private hitSeq: number; private hitUntil = 0;
@@ -58,8 +64,11 @@ export class SharedVisual implements BodyVisual {
   this.root = new TransformNode(`canonical-${body.bodyId}`, instance.root.getScene());
   this.root.metadata = { ...instance.root.metadata };
   instance.root.parent = this.root; instance.root.rotation.y = Math.PI;
-  this.headHeight=1.9*instance.root.scaling.y;
-  this.hitSeq = body.hitSeq; this.animator = new Animator(instance.anims, instance,gaitPhases(clips)); this.plant = new FootPlant(instance);
+  this.bodyHeight=instance.root.metadata.metricImport.targetHeight;
+  this.headHeight=this.bodyHeight+.18;
+  // Preserve authored joints: passing phase data without the procedural rig means
+  // Animator does not construct HumanGait. Foot IK remains a bounded contact correction.
+  this.hitSeq = body.hitSeq; this.animator = new Animator(instance.anims,gaitPhases(clips)); this.plant = new FootPlant(instance);
   this.gaze=new SharedGaze(instance);
   this.equipment = new EquipmentVisual(instance, body.presentationSex === 'f' ? 'female' : 'male');
   this.afterAnimation = this.root.getScene().onAfterAnimationsObservable.add(() => {
@@ -68,6 +77,13 @@ export class SharedVisual implements BodyVisual {
    const support=this.plant.update(this.dt,this.root.position.y,this.yaw+Math.PI,this.plantActive,contacts,this.environment?.ground);
    this.gaze.apply(this.rawDt,this.lookAt,this.gazeActive);instance.springs?.update(this.dt);
    this.root.computeWorldMatrix(true);
+   this.root.metadata.equipment=this.equipment.inspect();
+   if(this.root.metadata.motion&&instance.bones){
+    const point=(name:string)=>{const n=instance.bones!.get(name);n?.computeWorldMatrix(true);return n?.getAbsolutePosition().asArray()??null;};
+    const hip=point('pelvis'),chest=point('spine_03');
+    Object.assign(this.root.metadata.motion,{feet:[point('foot_l'),point('foot_r')],contacts:contacts??support??null,locks:this.plant.lockState(),
+     spineTiltDeg:hip&&chest?Math.atan2(Math.hypot(chest[0]-hip[0],chest[2]-hip[2]),chest[1]-hip[1])*180/Math.PI:null});
+   }
    for(const side of this.footfalls.update({dt:this.rawDt,contacts:contacts??support,speed:this.speed,active:this.footfallActive,position:this.root.getAbsolutePosition()})){
     const foot=instance.bones?.get(side===0?'foot_l':'foot_r');foot?.computeWorldMatrix(true);
     this.environment?.onFootfall?.(foot?.getAbsolutePosition()??this.root.getAbsolutePosition(),this.speed);
@@ -76,6 +92,7 @@ export class SharedVisual implements BodyVisual {
   for (const mesh of instance.meshes) { mesh.receiveShadows = true; atmosphere.addCaster(mesh); }
  }
  private clip(name: string) { return this.animator.has(name) ? name : kaykitFallback(name); }
+ measureScale(){return {...characterScaleObservation(this.root,this.instance.meshes),importScale:this.instance.root.scaling.asArray(),importPosition:this.instance.root.position.asArray(),metricImport:this.root.metadata.metricImport};}
  private pace(name: string, fallback: number) { return (this.clips.get(name)?.stance ?? 0) * this.instance.root.scaling.x || fallback; }
  update(dt: number, s: ActorState) {
   const b = s.body; if (!b) return;
@@ -83,11 +100,11 @@ export class SharedVisual implements BodyVisual {
   this.rawDt=dt;this.dt = Math.max(0,Math.min(.1,dt)); this.clock += dt; this.yaw = s.yaw; this.equipment.update(b.equipment ?? []);
   const forwardMotion = s.speed > .001 ? (-Math.sin(s.yaw) * s.velocity.x - Math.cos(s.yaw) * s.velocity.z) / s.speed : 1;
   this.animator.motion(s.speed, forwardMotion, s.crouch, s.yaw);
-  const armed = b.equipment?.some(i => i.slot === 'right-hand' && ['sword', 'dagger', 'axe', 'hammer'].includes(i.type)) ?? false;
+  const weapon = b.equipment?.find(i => i.slot === 'right-hand' && ['sword', 'dagger', 'axe', 'hammer'].includes(i.type)), armed=!!weapon;
   const set = armed ? MOVESETS.sword : MOVESETS.fists, falling = b.dead || b.incapacitated || ['downed','sleep','dead'].includes(b.pose);
   const action = s.combat && !['guard', 'stance'].includes(s.combat.moveId) ? s.combat : null;
-  if (action || s.guard || s.hit) this.combatUntil = this.clock + 2;
-  this.plantActive = !falling && !action && s.speed < 1.2;
+  if (action || s.guard || b.guarding || s.hit) this.combatUntil = this.clock + 2;
+  this.plantActive = !falling && !action && s.crouch < .05;
   this.speed=s.speed;this.footfallActive=!falling&&!action&&s.speed>.08;
   if(s.speed>.08)this.travel=sharedTravelClip(s,this.travel);
   this.gazeActive=!falling&&!action&&this.clock>=this.hitUntil;
@@ -107,14 +124,18 @@ export class SharedVisual implements BodyVisual {
     const total = Math.max(.001, action.prep + action.active + action.recovery);
     this.animator.sample(name, this.animator.length(name) * Math.min(1, action.age / total), .045);
    } else {
-    const motion = armed ? ARMED_MOTION[Math.max(0, b.attackSeq - 1) % ARMED_MOTION.length]
+    const motion = armed ? weaponMotionBinding(action,weapon!.type)
      : action.weight === 'heavy' && ['jab', 'cross'].includes(action.moveId) ? UNARMED_MOTION.heavy : UNARMED_MOTION[action.moveId] ?? UNARMED_MOTION.jab;
     this.animator.sample(this.clip(motion.clip), motionSampleSeconds(action, motion), .045);
    }
   } else if (this.clock >= this.hitUntil) {
    this.fallen = false;
-   const engaged = armed || this.clock < this.combatUntil, idle = armed ? 'ready/sword and shield idle' : engaged ? set.idle : RELAXED.idle;
-   if (s.guard || b.guarding) {
+   const engaged = this.clock < this.combatUntil, readyWeapon = armed && engaged,
+    idle = readyWeapon ? 'ready/sword and shield idle' : engaged ? set.idle : RELAXED.idle;
+   if(s.crouch>.1&&!(s.guard||b.guarding)){
+    const name=this.clip(s.speed>.08?'sword_and_shield/sword and shield crouching (3)':'sword_and_shield/sword and shield crouch idle');
+    this.animator.play(name,{loop:true,speed:s.speed>.08?Math.max(.3,s.speed/this.pace(name,1)):1,fade:.16});
+   } else if (s.guard || b.guarding) {
     this.animator.play(this.clip(set.guard), { loop: true, fade: .08 });
     if (s.speed > .1) {
      const name=this.travel;
@@ -124,14 +145,11 @@ export class SharedVisual implements BodyVisual {
     const direction = this.clip(this.travel);
     this.animator.play(direction, { loop: true, speed: Math.max(.25, s.speed / this.pace(direction, 1.6)), fade: .14 });
    } else if (s.speed > .08) {
-    const walk = this.clip(armed ? 'ready/sword and shield walk' : RELAXED.walk), run = this.clip(armed ? 'ready/sword and shield run' : RELAXED.run);
-    const wp = this.pace(walk, 1.6), rp = this.pace(run, 5.6);
-    const blend = Math.max(0, Math.min(1, (s.speed - wp * 1.15) / Math.max(.5, rp * .7 - wp * 1.15))), weight = blend * blend * (3 - 2 * blend);
-    const rate = (1 - weight) * s.speed / (wp * this.animator.length(walk)) + weight * s.speed / (rp * this.animator.length(run));
-    this.animator.loco(walk, run, weight, rate, .14);
+    const plan = authoredTravelBlend(s.speed,b.pose==='run'&&forwardMotion>.7,(n,f)=>this.pace(n,f),n=>this.animator.length(n),readyWeapon);
+    this.animator.loco(this.clip(plan.walk),this.clip(plan.run),plan.blend,plan.rate,.18);
    } else this.animator.play(this.clip(idle), { loop: true, fade: .12 });
   }
-  this.root.metadata.motion = { clip: this.animator.current, action: action?.moveId ?? null, age: action?.age ?? null, hit: this.clock < this.hitUntil, planted: this.plantActive, canonicalFacing: s.yaw, gait: this.animator.gaitState };
+  this.root.metadata.motion = { policy:'authored-in-place',clip: this.animator.current, dominantClip:this.animator.dominant()?.name??null, stance: this.clock < this.combatUntil ? 'combat' : 'travel', armed, action: action?.moveId ?? null, age: action?.age ?? null, hit: this.clock < this.hitUntil, planted: this.plantActive, locks:this.plant.lockState(),canonicalFacing: s.yaw, canonicalCrouch:s.crouch, gait: this.animator.gaitState };
   this.animator.update(dt);
  }
  dispose() {

@@ -1,0 +1,6 @@
+import {readFileSync} from 'node:fs';import {beforeAll,describe,it,expect} from 'vitest';
+import {loadFocusedGeometry} from '../src/server/focusedGeometryLoader';import {FOCUSED_CATALOG,sceneGeometry} from '../src/sim/world/assets/focusedRuntime';import {FOCUSED_GENERATOR} from '../src/sim/world/assets/focusedLayouts';
+beforeAll(()=>loadFocusedGeometry());
+describe('literal approved single-floor Bridgeport in the runtime geometry',()=>{
+ it('supports entrance and room access with the actual canonical controller capsule',()=>{const asset=FOCUSED_CATALOG.sources.tv_26_05_timber_house,metadata=JSON.parse(readFileSync('web/public/focused/metadata/tv_26_05_timber_house.json','utf8')),g=sceneGeometry({version:1,id:'house-test',seed:918271,generatorVersion:FOCUSED_GENERATOR,packSha256:FOCUSED_CATALOG.packSha256,connections:[],placements:[{id:'home',assetId:asset.id,position:[0,1,0],yaw:0,floorId:'ground'}]}),start={x:asset.spawn[0],y:1,z:asset.spawn[2]};expect(g.fits(start.x,start.y,start.z,.3,1.75)).toBe(true);for(const target of metadata.room_targets){const [x,forward,up]=target.position,to={x,y:1+up,z:-forward};expect(g.findPath(start,to),target.name).not.toBeNull();}expect(metadata.floors).toHaveLength(1);});
+});

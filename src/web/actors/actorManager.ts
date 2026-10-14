@@ -22,6 +22,8 @@ export interface BodyVisual {
   readonly contactFootfalls?: boolean;
   update(dt: number, state: ActorState): void;
   headHeight: number;
+  /** Measured standing metre reference; optional for other creature renderers. */
+  readonly bodyHeight?:number;
   dispose(): void;
 }
 export interface ActorState {

@@ -1,0 +1,1146 @@
+{
+  "id": "tv_26_05_timber_house",
+  "catalog_name": "Bridgeport",
+  "catalog_model": "13337A",
+  "printed_page": 19,
+  "pdf_page": 19,
+  "family": 26,
+  "variant": 5,
+  "catalog_family": "bridgeport",
+  "catalog_variant": "First printed alternative / 13337A",
+  "source_url": "https://dahp.wa.gov/sites/default/files/ModernHomessears1936.small_.pdf",
+  "source_confidence": "Manually traced literal printed plan at 4x; topology and labels verified visually; subpixel wall and door details limited by source scan.",
+  "trace_notes": [
+    "Four-room plan with kitchen breakfast nook; source caption explicitly FLOOR PLAN No.13337A.",
+    "Bathroom upper horizontal stroke is the printed tub, not an invented partition; bathroom retained as one room.",
+    "Doors and windows follow printed gaps; no basement rooms or upper floor invented.",
+    "Fixture basin source symbol independently rechecked at5x: bounds 305,154,330,178 corrected to 309,184,331,198. Current upper/lower basin and WC positions appear reversed: the upper larger vertical symbol is WC, lower smaller horizontal symbol is basin. Proposed positions follow those source symbols.",
+    "Fixture wc source symbol independently rechecked at5x: bounds 305,182,328,205 corrected to 303,154,323,176. Current upper/lower basin and WC positions appear reversed: the upper larger vertical symbol is WC, lower smaller horizontal symbol is basin. Proposed positions follow those source symbols.",
+    "All printed bath/lavatory fixture symbols were independently reviewed against5x source enlargements. Material position/type errors were corrected; unchanged soft rims retain approximately2\u20134 source-pixel boundary uncertainty. Tank/base-inclusive footprints are conservative source-symbol envelopes, not construction measurements or gameplay-target adjustments.",
+    "Independent enlarged-source review on 2026-10-11 confirmed the bath/hall shared wall centerline at y=205, with solid left segment and the doorway on the right at x=330\u2013357. Prior y=213 and left-side doorway reading were incorrect. Bath/hall polygons now share y=205; the east bedroom door remains y=212\u2013239. Evidence: review/independent_source/bridgeporta-bath-door-grid.png."
+  ],
+  "floors": [
+    {
+      "level": 0,
+      "image": "reference/tv_26_05_timber_house-floor-0.png",
+      "pdf_crop": [
+        378,
+        165,
+        519,
+        291
+      ],
+      "footprint": [
+        [
+          138,
+          76
+        ],
+        [
+          252,
+          76
+        ],
+        [
+          252,
+          116
+        ],
+        [
+          486,
+          116
+        ],
+        [
+          486,
+          394
+        ],
+        [
+          138,
+          394
+        ]
+      ],
+      "calibration": {
+        "axis": "x",
+        "px": 348,
+        "feet": 30.5,
+        "description": "Printed top dimension 30 ft 6 in between x=138 rear stair/kitchen wall and x=486 bedroom exterior wall."
+      },
+      "walls": [
+        {
+          "id": "ext0",
+          "a": [
+            138,
+            76
+          ],
+          "b": [
+            252,
+            76
+          ],
+          "width": 8,
+          "exterior": true
+        },
+        {
+          "id": "ext1",
+          "a": [
+            252,
+            76
+          ],
+          "b": [
+            252,
+            116
+          ],
+          "width": 8,
+          "exterior": true
+        },
+        {
+          "id": "ext2",
+          "a": [
+            252,
+            116
+          ],
+          "b": [
+            486,
+            116
+          ],
+          "width": 8,
+          "exterior": true
+        },
+        {
+          "id": "ext3",
+          "a": [
+            486,
+            116
+          ],
+          "b": [
+            486,
+            394
+          ],
+          "width": 8,
+          "exterior": true
+        },
+        {
+          "id": "ext4",
+          "a": [
+            486,
+            394
+          ],
+          "b": [
+            138,
+            394
+          ],
+          "width": 8,
+          "exterior": true
+        },
+        {
+          "id": "ext5",
+          "a": [
+            138,
+            394
+          ],
+          "b": [
+            138,
+            76
+          ],
+          "width": 8,
+          "exterior": true
+        },
+        {
+          "id": "stairright",
+          "a": [
+            193,
+            76
+          ],
+          "b": [
+            193,
+            175
+          ],
+          "width": 8,
+          "exterior": false
+        },
+        {
+          "id": "landingbottom",
+          "a": [
+            193,
+            116
+          ],
+          "b": [
+            299,
+            116
+          ],
+          "width": 8,
+          "exterior": false
+        },
+        {
+          "id": "nooktop",
+          "a": [
+            138,
+            175
+          ],
+          "b": [
+            193,
+            175
+          ],
+          "width": 8,
+          "exterior": false
+        },
+        {
+          "id": "nookright",
+          "a": [
+            193,
+            175
+          ],
+          "b": [
+            193,
+            244
+          ],
+          "width": 8,
+          "exterior": false
+        },
+        {
+          "id": "bathwest",
+          "a": [
+            299,
+            116
+          ],
+          "b": [
+            299,
+            244
+          ],
+          "width": 8,
+          "exterior": false
+        },
+        {
+          "id": "batheast",
+          "a": [
+            362,
+            116
+          ],
+          "b": [
+            362,
+            244
+          ],
+          "width": 8,
+          "exterior": false
+        },
+        {
+          "id": "bathbottom",
+          "a": [
+            299,
+            205
+          ],
+          "b": [
+            362,
+            205
+          ],
+          "width": 8,
+          "exterior": false
+        },
+        {
+          "id": "kitchenfront",
+          "a": [
+            138,
+            244
+          ],
+          "b": [
+            486,
+            244
+          ],
+          "width": 8,
+          "exterior": false
+        },
+        {
+          "id": "bed2west",
+          "a": [
+            343,
+            244
+          ],
+          "b": [
+            343,
+            394
+          ],
+          "width": 8,
+          "exterior": false
+        },
+        {
+          "id": "closetbottom",
+          "a": [
+            343,
+            278
+          ],
+          "b": [
+            486,
+            278
+          ],
+          "width": 8,
+          "exterior": false
+        },
+        {
+          "id": "closet1right",
+          "a": [
+            390,
+            244
+          ],
+          "b": [
+            390,
+            278
+          ],
+          "width": 8,
+          "exterior": false
+        },
+        {
+          "id": "closet2right",
+          "a": [
+            435,
+            244
+          ],
+          "b": [
+            435,
+            278
+          ],
+          "width": 8,
+          "exterior": false
+        }
+      ],
+      "openings": [
+        {
+          "id": "stairentry",
+          "wall": "stairright",
+          "a": [
+            193,
+            83
+          ],
+          "b": [
+            193,
+            113
+          ],
+          "type": "wide_opening",
+          "connects": [
+            "rearentry",
+            "stairs"
+          ],
+          "note": "Visible printed gap; swing direction indistinct in small scan."
+        },
+        {
+          "id": "backdoor",
+          "wall": "ext0",
+          "a": [
+            196,
+            76
+          ],
+          "b": [
+            226,
+            76
+          ],
+          "type": "door",
+          "connects": [
+            "rearentry",
+            "outside"
+          ],
+          "note": "Visible printed gap; swing direction indistinct in small scan."
+        },
+        {
+          "id": "rearentrykit",
+          "wall": "landingbottom",
+          "a": [
+            199,
+            116
+          ],
+          "b": [
+            231,
+            116
+          ],
+          "type": "door",
+          "connects": [
+            "rearentry",
+            "kitchen"
+          ],
+          "note": "Visible printed gap; swing direction indistinct in small scan."
+        },
+        {
+          "id": "kitchennoook",
+          "wall": "nookright",
+          "a": [
+            193,
+            196
+          ],
+          "b": [
+            193,
+            235
+          ],
+          "type": "wide_opening",
+          "connects": [
+            "nook",
+            "kitchen"
+          ],
+          "note": "Visible printed gap; swing direction indistinct in small scan."
+        },
+        {
+          "id": "kitchenhall",
+          "wall": "bathwest",
+          "a": [
+            299,
+            215
+          ],
+          "b": [
+            299,
+            240
+          ],
+          "type": "door",
+          "connects": [
+            "kitchen",
+            "hall"
+          ],
+          "note": "Visible printed gap; swing direction indistinct in small scan."
+        },
+        {
+          "id": "bathdoor",
+          "wall": "bathbottom",
+          "a": [
+            330,
+            205
+          ],
+          "b": [
+            357,
+            205
+          ],
+          "type": "door",
+          "connects": [
+            "bath",
+            "hall"
+          ],
+          "note": "Independent enlarged-source review on 2026-10-11 confirmed the bath/hall shared wall centerline at y=205, with solid left segment and the doorway on the right at x=330\u2013357. Prior y=213 and left-side doorway reading were incorrect. Bath/hall polygons now share y=205; the east bedroom door remains y=212\u2013239. Evidence: review/independent_source/bridgeporta-bath-door-grid.png."
+        },
+        {
+          "id": "bed1door",
+          "wall": "batheast",
+          "a": [
+            362,
+            212
+          ],
+          "b": [
+            362,
+            239
+          ],
+          "type": "door",
+          "connects": [
+            "bed1",
+            "hall"
+          ],
+          "note": "Jamb endpoints independently rechecked against 5x enlargement of original source ink, 2026-10-11: [[362, 217], [362, 241]] corrected to [[362, 212], [362, 239]]. Actual source jambs, not gameplay-target widening; swing handing remains unasserted."
+        },
+        {
+          "id": "livinghall",
+          "wall": "kitchenfront",
+          "a": [
+            302,
+            244
+          ],
+          "b": [
+            334,
+            244
+          ],
+          "type": "wide_opening",
+          "connects": [
+            "living",
+            "hall"
+          ],
+          "note": "Visible printed gap; swing direction indistinct in small scan."
+        },
+        {
+          "id": "bed2door",
+          "wall": "bed2west",
+          "a": [
+            343,
+            283
+          ],
+          "b": [
+            343,
+            317
+          ],
+          "type": "door",
+          "connects": [
+            "bed2",
+            "living"
+          ],
+          "note": "Visible printed gap; swing direction indistinct in small scan."
+        },
+        {
+          "id": "hallclosetdoor",
+          "wall": "bed2west",
+          "a": [
+            343,
+            250
+          ],
+          "b": [
+            343,
+            274
+          ],
+          "type": "door",
+          "connects": [
+            "hallcloset",
+            "living"
+          ],
+          "note": "Visible printed gap; swing direction indistinct in small scan."
+        },
+        {
+          "id": "bed2closetdoor",
+          "wall": "closetbottom",
+          "a": [
+            399,
+            278
+          ],
+          "b": [
+            428,
+            278
+          ],
+          "type": "door",
+          "connects": [
+            "bed2",
+            "bed2closet"
+          ],
+          "note": "Visible printed gap; swing direction indistinct in small scan."
+        },
+        {
+          "id": "bed1closetdoor",
+          "wall": "kitchenfront",
+          "a": [
+            449,
+            244
+          ],
+          "b": [
+            477,
+            244
+          ],
+          "type": "door",
+          "connects": [
+            "bed1",
+            "bed1closet"
+          ],
+          "note": "Visible printed gap; swing direction indistinct in small scan."
+        },
+        {
+          "id": "frontdoor",
+          "wall": "ext4",
+          "a": [
+            293,
+            394
+          ],
+          "b": [
+            328,
+            394
+          ],
+          "type": "door",
+          "connects": [
+            "living",
+            "outside"
+          ],
+          "note": "Visible printed gap; swing direction indistinct in small scan."
+        },
+        {
+          "id": "porchdoor",
+          "wall": "ext5",
+          "a": [
+            138,
+            251
+          ],
+          "b": [
+            138,
+            284
+          ],
+          "type": "door",
+          "connects": [
+            "living",
+            "outside"
+          ],
+          "note": "Visible printed gap; swing direction indistinct in small scan."
+        },
+        {
+          "id": "kitrear",
+          "wall": "ext2",
+          "a": [
+            265,
+            116
+          ],
+          "b": [
+            294,
+            116
+          ],
+          "type": "window",
+          "connects": [
+            "kitchen",
+            "outside"
+          ],
+          "note": "Visible printed window."
+        },
+        {
+          "id": "bed1rear",
+          "wall": "ext2",
+          "a": [
+            397,
+            116
+          ],
+          "b": [
+            441,
+            116
+          ],
+          "type": "window",
+          "connects": [
+            "bed1",
+            "outside"
+          ],
+          "note": "Visible printed window."
+        },
+        {
+          "id": "bed1side",
+          "wall": "ext3",
+          "a": [
+            486,
+            171
+          ],
+          "b": [
+            486,
+            214
+          ],
+          "type": "window",
+          "connects": [
+            "bed1",
+            "outside"
+          ],
+          "note": "Visible printed window."
+        },
+        {
+          "id": "bed2side",
+          "wall": "ext3",
+          "a": [
+            486,
+            304
+          ],
+          "b": [
+            486,
+            350
+          ],
+          "type": "window",
+          "connects": [
+            "bed2",
+            "outside"
+          ],
+          "note": "Visible printed window."
+        },
+        {
+          "id": "bed2front",
+          "wall": "ext4",
+          "a": [
+            397,
+            394
+          ],
+          "b": [
+            437,
+            394
+          ],
+          "type": "window",
+          "connects": [
+            "bed2",
+            "outside"
+          ],
+          "note": "Visible printed window."
+        },
+        {
+          "id": "livingfront",
+          "wall": "ext4",
+          "a": [
+            184,
+            394
+          ],
+          "b": [
+            250,
+            394
+          ],
+          "type": "window",
+          "connects": [
+            "living",
+            "outside"
+          ],
+          "note": "Visible printed window."
+        },
+        {
+          "id": "nookside",
+          "wall": "ext5",
+          "a": [
+            138,
+            191
+          ],
+          "b": [
+            138,
+            220
+          ],
+          "type": "window",
+          "connects": [
+            "nook",
+            "outside"
+          ],
+          "note": "Visible printed window."
+        }
+      ],
+      "rooms": [
+        {
+          "id": "kitchen",
+          "label": "KITCHEN",
+          "polygon": [
+            [
+              193,
+              116
+            ],
+            [
+              299,
+              116
+            ],
+            [
+              299,
+              244
+            ],
+            [
+              193,
+              244
+            ]
+          ],
+          "kind": "kitchen"
+        },
+        {
+          "id": "nook",
+          "label": "NOOK",
+          "polygon": [
+            [
+              138,
+              175
+            ],
+            [
+              193,
+              175
+            ],
+            [
+              193,
+              244
+            ],
+            [
+              138,
+              244
+            ]
+          ],
+          "kind": "dining"
+        },
+        {
+          "id": "stairs",
+          "label": "CELLAR",
+          "polygon": [
+            [
+              138,
+              76
+            ],
+            [
+              193,
+              76
+            ],
+            [
+              193,
+              175
+            ],
+            [
+              138,
+              175
+            ]
+          ],
+          "kind": "stairs"
+        },
+        {
+          "id": "rearentry",
+          "label": "ENTRY",
+          "polygon": [
+            [
+              193,
+              76
+            ],
+            [
+              252,
+              76
+            ],
+            [
+              252,
+              116
+            ],
+            [
+              193,
+              116
+            ]
+          ],
+          "kind": "hall"
+        },
+        {
+          "id": "bath",
+          "label": "BATH",
+          "polygon": [
+            [
+              299,
+              116
+            ],
+            [
+              362,
+              116
+            ],
+            [
+              362,
+              205
+            ],
+            [
+              299,
+              205
+            ]
+          ],
+          "kind": "bath"
+        },
+        {
+          "id": "hall",
+          "label": "HALL",
+          "polygon": [
+            [
+              299,
+              205
+            ],
+            [
+              362,
+              205
+            ],
+            [
+              362,
+              244
+            ],
+            [
+              299,
+              244
+            ]
+          ],
+          "kind": "hall"
+        },
+        {
+          "id": "bed1",
+          "label": "BED ROOM",
+          "polygon": [
+            [
+              362,
+              116
+            ],
+            [
+              486,
+              116
+            ],
+            [
+              486,
+              244
+            ],
+            [
+              362,
+              244
+            ]
+          ],
+          "kind": "bedroom"
+        },
+        {
+          "id": "living",
+          "label": "LIVING ROOM",
+          "polygon": [
+            [
+              138,
+              244
+            ],
+            [
+              343,
+              244
+            ],
+            [
+              343,
+              394
+            ],
+            [
+              138,
+              394
+            ]
+          ],
+          "kind": "living"
+        },
+        {
+          "id": "bed2",
+          "label": "BED ROOM",
+          "polygon": [
+            [
+              343,
+              278
+            ],
+            [
+              486,
+              278
+            ],
+            [
+              486,
+              394
+            ],
+            [
+              343,
+              394
+            ]
+          ],
+          "kind": "bedroom"
+        },
+        {
+          "id": "hallcloset",
+          "label": "CLO",
+          "polygon": [
+            [
+              343,
+              244
+            ],
+            [
+              390,
+              244
+            ],
+            [
+              390,
+              278
+            ],
+            [
+              343,
+              278
+            ]
+          ],
+          "kind": "closet"
+        },
+        {
+          "id": "bed2closet",
+          "label": "CLO",
+          "polygon": [
+            [
+              390,
+              244
+            ],
+            [
+              435,
+              244
+            ],
+            [
+              435,
+              278
+            ],
+            [
+              390,
+              278
+            ]
+          ],
+          "kind": "closet"
+        },
+        {
+          "id": "bed1closet",
+          "label": "CLO",
+          "polygon": [
+            [
+              435,
+              244
+            ],
+            [
+              486,
+              244
+            ],
+            [
+              486,
+              278
+            ],
+            [
+              435,
+              278
+            ]
+          ],
+          "kind": "closet"
+        }
+      ],
+      "stairs": [
+        {
+          "id": "cellarstairs",
+          "polygon": [
+            [
+              142,
+              84
+            ],
+            [
+              182,
+              84
+            ],
+            [
+              182,
+              171
+            ],
+            [
+              142,
+              171
+            ]
+          ],
+          "lower": [
+            162,
+            87
+          ],
+          "upper": [
+            162,
+            168
+          ],
+          "goes_to": "basement",
+          "note": "Printed flight descends from rear entry/landing toward kitchen side; no basement plan printed."
+        }
+      ],
+      "fixtures": [
+        {
+          "id": "tub",
+          "type": "bath",
+          "polygon": [
+            [
+              303,
+              120
+            ],
+            [
+              357,
+              120
+            ],
+            [
+              357,
+              146
+            ],
+            [
+              303,
+              146
+            ]
+          ],
+          "source_note": "Independently inspected source symbol. Current footprint retained; soft printed rims carry approximately2\u20134 source-pixel boundary uncertainty. This is a conservative symbol envelope, not an invented fixture or target-clearance adjustment."
+        },
+        {
+          "id": "hearth",
+          "type": "hearth",
+          "polygon": [
+            [
+              115,
+              287
+            ],
+            [
+              159,
+              287
+            ],
+            [
+              159,
+              351
+            ],
+            [
+              115,
+              351
+            ]
+          ]
+        },
+        {
+          "id": "basin",
+          "type": "basin",
+          "polygon": [
+            [
+              309,
+              184
+            ],
+            [
+              331,
+              184
+            ],
+            [
+              331,
+              198
+            ],
+            [
+              309,
+              198
+            ]
+          ],
+          "source_note": "Fixture basin source symbol independently rechecked at5x: bounds 305,154,330,178 corrected to 309,184,331,198. Current upper/lower basin and WC positions appear reversed: the upper larger vertical symbol is WC, lower smaller horizontal symbol is basin. Proposed positions follow those source symbols."
+        },
+        {
+          "id": "wc",
+          "type": "toilet",
+          "polygon": [
+            [
+              303,
+              154
+            ],
+            [
+              323,
+              154
+            ],
+            [
+              323,
+              176
+            ],
+            [
+              303,
+              176
+            ]
+          ],
+          "source_note": "Fixture wc source symbol independently rechecked at5x: bounds 305,182,328,205 corrected to 303,154,323,176. Current upper/lower basin and WC positions appear reversed: the upper larger vertical symbol is WC, lower smaller horizontal symbol is basin. Proposed positions follow those source symbols."
+        },
+        {
+          "id": "sink",
+          "type": "kitchen_counter",
+          "polygon": [
+            [
+              275,
+              142
+            ],
+            [
+              294,
+              142
+            ],
+            [
+              294,
+              201
+            ],
+            [
+              275,
+              201
+            ]
+          ]
+        }
+      ],
+      "porches": [
+        [
+          [
+            40,
+            225
+          ],
+          [
+            138,
+            225
+          ],
+          [
+            138,
+            394
+          ],
+          [
+            40,
+            394
+          ]
+        ],
+        [
+          [
+            257,
+            394
+          ],
+          [
+            361,
+            394
+          ],
+          [
+            361,
+            445
+          ],
+          [
+            257,
+            445
+          ]
+        ]
+      ]
+    }
+  ]
+}

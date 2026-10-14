@@ -1,0 +1,269 @@
+{
+  "id": "tv_32_01_general_store",
+  "archetype": "general_store",
+  "sha256": "07d1c2634112b02331d1e7ace7de33be8c61b96db5236459b83742d7e3bb348e",
+  "assembly_sha256": "f957c29dd75d1f64b9a5bc0381c93566a7376eec88bd39b250480940e79814f9",
+  "method_version": "2.3_upward_ground_physical_rooms",
+  "audited_at_utc": "2026-10-11T21:46:37Z",
+  "tag": "",
+  "scope": "Actual GLB triangles; 0.20m free-space grid; 2.10m capsule + .05m margin, radius .40m+.05m; point-to-triangle/segment-to-triangle clearance and supported transitions. Static offline test, not engine physics.",
+  "grid_step_m": 0.2,
+  "capsule_height_m": 2.1,
+  "capsule_radius_m": 0.4,
+  "margin_m": 0.05,
+  "support_nodes": 11,
+  "triangle_count": 21242,
+  "soft_module_exclusions": [
+    "grass_tuft",
+    "landscape_cabbage",
+    "landscape_carrot_row",
+    "landscape_crop_row",
+    "landscape_wheat_clump",
+    "landscape_wheat_row",
+    "processional_rug",
+    "scale_guide",
+    "wall_ivy"
+  ],
+  "foot_support_ring_radius_m": 0.4,
+  "foot_support_ring_samples_per_position": 8,
+  "maximum_foot_ring_height_delta_m": 0.225,
+  "maximum_bridged_bevel_seam_width_m": 0.05,
+  "grid_samples": 6161,
+  "supported_samples": 4557,
+  "free_samples": 2369,
+  "reachable_samples": 2369,
+  "minimum_center_vertical_headroom_on_reachable_samples_m": 2.582999947568506,
+  "targets": [
+    {
+      "name": "connector_0",
+      "kind": "connector",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "connector_1",
+      "kind": "connector",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "front_single_leaf_entrance",
+      "kind": "entrance",
+      "all": true,
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 5,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "rear_single_leaf_service_entrance",
+      "kind": "entrance",
+      "all": true,
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 5,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "interior_door",
+      "kind": "interior_portal",
+      "all": true,
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 3,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "interior_door",
+      "kind": "interior_portal",
+      "all": true,
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 3,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "public_room_opening",
+      "kind": "interior_portal",
+      "all": true,
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 3,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "exterior_door",
+      "kind": "interior_portal",
+      "all": true,
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 3,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "exterior_door",
+      "kind": "interior_portal",
+      "all": true,
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 3,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "customer_room",
+      "kind": "interior_room",
+      "role": "customer_room",
+      "passed": true,
+      "supported_area_m2": 33.32,
+      "free_area_m2": 19.64,
+      "reachable_free_area_m2": 19.64,
+      "sample_position": [
+        -2.4000000000000004,
+        0.2,
+        0.06499999761581421
+      ]
+    },
+    {
+      "name": "stock_room",
+      "kind": "interior_room",
+      "role": "stock_room",
+      "passed": true,
+      "supported_area_m2": 20.48,
+      "free_area_m2": 13.16,
+      "reachable_free_area_m2": 13.16,
+      "sample_position": [
+        -5.2,
+        6.4,
+        0.0
+      ]
+    },
+    {
+      "name": "work_floor",
+      "kind": "interior_room",
+      "role": "work_floor",
+      "passed": true,
+      "supported_area_m2": 42.24,
+      "free_area_m2": 26.52,
+      "reachable_free_area_m2": 26.52,
+      "sample_position": [
+        -0.6000000000000001,
+        5.4,
+        0.06499999761581421
+      ]
+    },
+    {
+      "name": "fixture_approaches_0",
+      "kind": "fixture_approach",
+      "room_id": "customer_room",
+      "asset": "s_shop_counter",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "fixture_approaches_1",
+      "kind": "fixture_approach",
+      "room_id": "customer_room",
+      "asset": "s_chest",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "fixture_approaches_2",
+      "kind": "fixture_approach",
+      "room_id": "stock_room",
+      "asset": "s_grain_sacks",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "fixture_approaches_3",
+      "kind": "fixture_approach",
+      "room_id": "stock_room",
+      "asset": "s_fabric_shelf",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "fixture_approaches_4",
+      "kind": "fixture_approach",
+      "room_id": "work_floor",
+      "asset": "s_shop_counter",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "fixture_approaches_5",
+      "kind": "fixture_approach",
+      "room_id": "work_floor",
+      "asset": "s_pantry",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "fixture_approaches_6",
+      "kind": "fixture_approach",
+      "room_id": "work_floor",
+      "asset": "s_pantry",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "fixture_approaches_7",
+      "kind": "fixture_approach",
+      "room_id": "work_floor",
+      "asset": "s_chest",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    }
+  ],
+  "failed_target_count": 0,
+  "significant_isolated_components": [],
+  "path_midpoint_samples": 389,
+  "rejected_midpoint_edges_rerouted": 0,
+  "reroute_rounds": 1,
+  "path_unreachable_targets": [],
+  "path_midpoint_failures": [],
+  "path_midpoint_failure_count": 0,
+  "blocking_modules_sample_counts": {
+    "s_window_timber": 323,
+    "s_door_timber": 551,
+    "s_wall_timber": 622,
+    "s_shop_counter": 123,
+    "s_chest": 114,
+    "s_opening_timber": 68,
+    "s_grain_sacks": 35,
+    "s_fabric_shelf": 44,
+    "s_pantry": 108
+  },
+  "elapsed_s": 0.19,
+  "limitations": [
+    "Mesh surfaces are tested statically; no game engine or animated door/controller/camera executed.",
+    "Uniform grid is sampled, not exhaustive continuous configuration-space proof.",
+    "Gentle-slope grounding lifts the capsule by radius*(sec(slope)-1) on actual supporting triangle planes up to35degrees.",
+    "Triangles entirely below .205m above local foot are allowed as a step-over envelope; engine stepping remains untested.",
+    "Only actual upward-facing support triangles establish ground; a metadata height hint cannot substitute a closed terrain underside. Overlapping multilevel floor layers are not modeled by this heightfield-style support search.",
+    "Room functional topology, single-leaf identity, slope comfort and fixture usability require separate semantic/visual review."
+  ],
+  "required_routes_passed": true,
+  "passed": true
+}

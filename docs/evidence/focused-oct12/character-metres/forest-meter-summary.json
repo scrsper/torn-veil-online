@@ -1,0 +1,80 @@
+{
+  "tv_47_01_pine_forest": {
+    "trees": 45,
+    "heightM": {
+      "min": 6.575,
+      "median": 8.0934,
+      "max": 8.954400000000001
+    },
+    "examples": [
+      {
+        "name": "landscape_pine_tall_0004",
+        "dimensions": [
+          3.62613,
+          8.0934,
+          3.6547899999999998
+        ]
+      },
+      {
+        "name": "landscape_pine_tall_0005",
+        "dimensions": [
+          3.6405899999999995,
+          8.0934,
+          3.64468
+        ]
+      }
+    ]
+  },
+  "tv_47_03_pine_forest": {
+    "trees": 53,
+    "heightM": {
+      "min": 6.575,
+      "median": 8.0934,
+      "max": 8.954400000000001
+    },
+    "examples": [
+      {
+        "name": "landscape_pine_tall_0004",
+        "dimensions": [
+          3.6484099999999984,
+          8.0934,
+          3.6361300000000005
+        ]
+      },
+      {
+        "name": "landscape_pine_young_0005",
+        "dimensions": [
+          2.63617,
+          6.838,
+          2.5730000000000004
+        ]
+      }
+    ]
+  },
+  "tv_48_01_broadleaf_forest": {
+    "trees": 29,
+    "heightM": {
+      "min": 7.4448,
+      "median": 7.444800000000001,
+      "max": 8.2368
+    },
+    "examples": [
+      {
+        "name": "landscape_oak_0007",
+        "dimensions": [
+          5.490460000000001,
+          7.4448,
+          5.2894999999999985
+        ]
+      },
+      {
+        "name": "landscape_oak_0009",
+        "dimensions": [
+          6.4894,
+          8.236799999999999,
+          6.42544
+        ]
+      }
+    ]
+  }
+}

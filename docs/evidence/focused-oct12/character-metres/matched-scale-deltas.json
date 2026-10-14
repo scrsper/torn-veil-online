@@ -1,0 +1,38 @@
+[
+  {
+    "name": "05-house-doorway",
+    "positionM": 0.015959965082206873,
+    "yawRadians": 6.713867062302369e-8,
+    "requestedPitchBefore": 0.40142572795869574,
+    "requestedPitchAfter": 0.3839724354387525,
+    "observedPixelsBefore": 189.394977582168,
+    "observedPixelsAfter": 347.6920513872993,
+    "heightBefore": 1.4855881716552033,
+    "heightAfter": 1.6965222915739764,
+    "cameraClearAfter": true
+  },
+  {
+    "name": "07-bedroom-furniture",
+    "positionM": 0.17048372086094452,
+    "yawRadians": 2.109746266576451e-8,
+    "requestedPitchBefore": 0.40142572795869574,
+    "requestedPitchAfter": 0.3839724354387525,
+    "observedPixelsBefore": 439.2256417221275,
+    "observedPixelsAfter": 272.17627746473926,
+    "heightBefore": 1.4856529773998333,
+    "heightAfter": 1.6970665815863872,
+    "cameraClearAfter": true
+  },
+  {
+    "name": "08-forest",
+    "positionM": 0.12022327965743089,
+    "yawRadians": 1.4395023839597343e-8,
+    "requestedPitchBefore": 0.40142572795869574,
+    "requestedPitchAfter": 0.3839724354387525,
+    "observedPixelsBefore": 374.6943620333973,
+    "observedPixelsAfter": 441.5467546417847,
+    "heightBefore": 1.4856071080504252,
+    "heightAfter": 1.6969164766271416,
+    "cameraClearAfter": true
+  }
+]

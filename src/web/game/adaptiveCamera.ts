@@ -59,6 +59,9 @@ const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const DEG = Math.PI / 180;
 
 export class AdaptiveCamera {
+  /** Clients may retain their existing tactical range without changing other views. */
+  readonly limits: typeof CAMERA_LIMITS;
+  constructor(limits: Partial<typeof CAMERA_LIMITS> = {}) { this.limits = { ...CAMERA_LIMITS, ...limits }; }
   /** Input-owned orientation (what the mouse/stick set) and the player's preferred distance. */
   yaw = 0; pitch = 12 * DEG; preferred: number = CAMERA_PRESETS.exploration.distance; baseFov = 65 * DEG;
   /** Smoothed state actually rendered. */
@@ -73,10 +76,10 @@ export class AdaptiveCamera {
 
   addLook(dx: number, dy: number): void {
     this.yaw = wrap(this.yaw - dx);
-    this.pitch = clamp(this.pitch + dy, CAMERA_LIMITS.minPitch, CAMERA_LIMITS.maxPitch);
+    this.pitch = clamp(this.pitch + dy, this.limits.minPitch, this.limits.maxPitch);
   }
   /** Wheel/trigger zoom: changes the preferred distance the situation modulates. */
-  zoom(delta: number): void { this.preferred = clamp(this.preferred * (1 + delta * .08), CAMERA_LIMITS.minDistance, CAMERA_LIMITS.maxDistance); }
+  zoom(delta: number): void { this.preferred = clamp(this.preferred * (1 + delta * .08), this.limits.minDistance, this.limits.maxDistance); }
   preset(name: CameraPresetName): void {
     const p = CAMERA_PRESETS[name];
     this.preferred = p.distance; this.pitch = p.pitch * DEG; this.baseFov = p.fov * DEG;
@@ -96,8 +99,8 @@ export class AdaptiveCamera {
     let want: number = this.preferred, pitchBias = 0, fov = this.baseFov, shoulder = 0, reason = 'explore';
     if (engaged && threats <= 2 && largest < 3) { want *= .92; pitchBias -= 1.5 * DEG; reason = 'duel'; }
     if (threats >= 3) { const g = Math.min(1, (threats - 2) / 5); want *= 1.1 + g * .2; pitchBias += (2 + g * 4) * DEG; fov += 2 * DEG * g; reason = 'group'; }
-    if (largest >= 3) { const big = Math.min(CAMERA_LIMITS.maxExceptional, 3.2 + largest * 1.35); if (big > want) { want = big; reason = 'large'; } pitchBias += Math.min(6, largest) * DEG; }
-    want = Math.min(want, largest >= 3 || threats >= 3 ? CAMERA_LIMITS.maxExceptional : CAMERA_LIMITS.maxDistance + 1);
+    if (largest >= 3) { const big = Math.min(this.limits.maxExceptional, 3.2 + largest * 1.35); if (big > want) { want = big; reason = 'large'; } pitchBias += Math.min(6, largest) * DEG; }
+    want = Math.min(want, largest >= 3 || threats >= 3 ? this.limits.maxExceptional : this.limits.maxDistance + 1);
     if (sit.ceiling != null && sit.ceiling < 4.5) {
       // Under a roof: closer and flatter so the camera stays inside the room instead of in the rafters.
       const k = clamp((4.5 - sit.ceiling) / 2.5, 0, 1);
@@ -108,8 +111,9 @@ export class AdaptiveCamera {
     // ---- smoothing: input-owned yaw/pitch track tightly (no felt latency); distance and fov ease
     const close = clamp((Math.min(want, 4) - Math.min(this.dist, 4)) / 2.6, 0, 1) * (sit.ceiling != null ? .3 : 1);
     pitchBias += this.rise + close * 9 * DEG;
-    const wantPitch = clamp(this.pitch + pitchBias, CAMERA_LIMITS.minPitch, CAMERA_LIMITS.maxPitch);
-    if (!this.started) { this.yawS = this.yaw; this.pitchS = wantPitch; this.dist = want; this.fovS = fov; this.target = { ...sit.pivot }; this.started = true; }
+    const wantPitch = clamp(this.pitch + pitchBias, this.limits.minPitch, this.limits.maxPitch);
+    // Babylon vectors expose getter coordinates; copying enumerable fields loses x/y/z.
+    if (!this.started) { this.yawS = this.yaw; this.pitchS = wantPitch; this.dist = want; this.fovS = fov; this.target = { x: sit.pivot.x, y: sit.pivot.y, z: sit.pivot.z }; this.started = true; }
     this.yawS += wrap(this.yaw - this.yawS) * damp(26, t);
     this.pitchS += (wantPitch - this.pitchS) * damp(sit.aiming ? 14 : 7, t);
     this.fovS += (fov - this.fovS) * damp(5, t);
@@ -135,7 +139,7 @@ export class AdaptiveCamera {
     // Blocked well short of the wish: is the view clear from higher up (over a fence, cart, low roof)? Rise toward it.
     let riseWant = 0;
     if (clear < want * .7 && sit.ceiling == null) {
-      const up = Math.min(CAMERA_LIMITS.maxPitch, this.pitchS + 16 * DEG), cu = Math.cos(up);
+      const up = Math.min(this.limits.maxPitch, this.pitchS + 16 * DEG), cu = Math.cos(up);
       const high = obstruct(eye, { x: -fx * cu, y: Math.sin(up), z: -fz * cu }, want + .4, true);
       if (high > clear + 1.2) riseWant = Math.min(16 * DEG, up - this.pitchS + this.rise);
     }
@@ -149,7 +153,8 @@ export class AdaptiveCamera {
     if (clear < this.limit - .02) { this.limit = clear; this.clearFor = 0; }
     else if (clear > this.limit + .3) { this.clearFor += t; if (this.clearFor > .18) this.limit += Math.min(clear - this.limit, (clear - this.limit) * damp(3, t) + t * .8); }
     else this.clearFor = 0;
-    const goal = Math.max(1.1, Math.min(want, this.limit));
+    // Preferred framing must never push the eye through a nearer physical occluder.
+    const goal = Math.max(0, Math.min(want, this.limit));
     this.dist = goal < this.dist ? goal : this.dist + (goal - this.dist) * damp(this.limit < want ? 3 : 4.5, t);
 
     let px = eye.x + back.x * this.dist, py = eye.y + back.y * this.dist, pz = eye.z + back.z * this.dist;

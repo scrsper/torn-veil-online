@@ -1,0 +1,1775 @@
+{
+  "id": "tv_45_01_boss_hall",
+  "name": "Tower Audience Hall 01",
+  "archetype": "boss_hall",
+  "mode": "boss_hall",
+  "biome": "crypt",
+  "seed": 484000,
+  "variant": 0,
+  "grid_m": 4.0,
+  "floors": [
+    {
+      "x": -2,
+      "y": -2,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": -2,
+      "y": -1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": -2,
+      "y": 0,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": -2,
+      "y": 1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": -2,
+      "y": 2,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": -1,
+      "y": -2,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": -1,
+      "y": -1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": -1,
+      "y": 0,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": -1,
+      "y": 1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": -1,
+      "y": 2,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 0,
+      "y": -2,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 0,
+      "y": -1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 0,
+      "y": 1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 0,
+      "y": 2,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 1,
+      "y": -2,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 1,
+      "y": -1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 1,
+      "y": 1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 1,
+      "y": 2,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 2,
+      "y": -2,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 2,
+      "y": -1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 2,
+      "y": 0,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 2,
+      "y": 1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 3,
+      "y": -1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 3,
+      "y": 0,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 4,
+      "y": -1,
+      "z": 0,
+      "kind": "stone"
+    },
+    {
+      "x": 4,
+      "y": 0,
+      "z": 0,
+      "kind": "stone"
+    }
+  ],
+  "placements": [
+    {
+      "asset": "throne_dais",
+      "position": [
+        6,
+        6,
+        0
+      ],
+      "rotation": 180,
+      "scale": 1
+    },
+    {
+      "asset": "column",
+      "position": [
+        -6.8,
+        -4,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "column",
+      "position": [
+        6.8,
+        -4,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "column",
+      "position": [
+        -6.8,
+        4,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "column",
+      "position": [
+        6.8,
+        4,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "processional_rug",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "altar",
+      "position": [
+        12,
+        -4,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "brazier",
+      "position": [
+        -4,
+        -6,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "brazier",
+      "position": [
+        4,
+        -6,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "lantern_post",
+      "position": [
+        -6.45,
+        -6.45,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "lantern_post",
+      "position": [
+        -2.45,
+        1.55,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "lantern_post",
+      "position": [
+        1.55,
+        9.55,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "lantern_post",
+      "position": [
+        9.55,
+        -2.45,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    },
+    {
+      "asset": "lantern_post",
+      "position": [
+        17.55,
+        1.55,
+        0
+      ],
+      "rotation": 0,
+      "scale": 1
+    }
+  ],
+  "walls": [
+    {
+      "asset": "wall",
+      "position": [
+        -10,
+        -8,
+        0
+      ],
+      "rotation": 90
+    },
+    {
+      "asset": "wall",
+      "position": [
+        -8,
+        -10,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "asset": "wall",
+      "position": [
+        -10,
+        -4,
+        0
+      ],
+      "rotation": 90
+    },
+    {
+      "asset": "wall",
+      "position": [
+        -10,
+        0,
+        0
+      ],
+      "rotation": 90
+    },
+    {
+      "asset": "wall",
+      "position": [
+        -10,
+        4,
+        0
+      ],
+      "rotation": 90
+    },
+    {
+      "asset": "wall",
+      "position": [
+        -8,
+        10,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "asset": "wall",
+      "position": [
+        -10,
+        8,
+        0
+      ],
+      "rotation": 90
+    },
+    {
+      "asset": "wall",
+      "position": [
+        -4,
+        -10,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "asset": "wall",
+      "position": [
+        -4,
+        10,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "asset": "wall",
+      "position": [
+        4,
+        -10,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "asset": "wall",
+      "position": [
+        4,
+        10,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "asset": "wall",
+      "position": [
+        10,
+        -8,
+        0
+      ],
+      "rotation": 90
+    },
+    {
+      "asset": "wall",
+      "position": [
+        8,
+        -10,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "asset": "wall",
+      "position": [
+        10,
+        4,
+        0
+      ],
+      "rotation": 90
+    },
+    {
+      "asset": "wall",
+      "position": [
+        10,
+        8,
+        0
+      ],
+      "rotation": 90
+    },
+    {
+      "asset": "wall",
+      "position": [
+        8,
+        10,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "asset": "wall",
+      "position": [
+        12,
+        -6,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "asset": "wall",
+      "position": [
+        12,
+        2,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "asset": "wall",
+      "position": [
+        18,
+        -4,
+        0
+      ],
+      "rotation": 90
+    },
+    {
+      "asset": "wall",
+      "position": [
+        16,
+        -6,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "asset": "wall",
+      "position": [
+        18,
+        0,
+        0
+      ],
+      "rotation": 90
+    },
+    {
+      "asset": "wall",
+      "position": [
+        16,
+        2,
+        0
+      ],
+      "rotation": 0
+    }
+  ],
+  "ports": [
+    {
+      "cell": [
+        0,
+        -2
+      ],
+      "position": [
+        0,
+        -10,
+        0
+      ],
+      "outward": [
+        0,
+        -1,
+        0
+      ],
+      "width_m": 4,
+      "kind": "walkable",
+      "profile": "walkway_4m",
+      "id": "P00",
+      "clear_width_m": 2.4,
+      "clear_height_m": 2.8
+    },
+    {
+      "cell": [
+        0,
+        2
+      ],
+      "position": [
+        0,
+        10,
+        0
+      ],
+      "outward": [
+        0,
+        1,
+        0
+      ],
+      "width_m": 4,
+      "kind": "walkable",
+      "profile": "walkway_4m",
+      "id": "P01",
+      "clear_width_m": 2.4,
+      "clear_height_m": 2.8
+    }
+  ],
+  "regions": [],
+  "nav": {
+    "nodes": [
+      [
+        -2,
+        -2
+      ],
+      [
+        -2,
+        -1
+      ],
+      [
+        -2,
+        0
+      ],
+      [
+        -2,
+        1
+      ],
+      [
+        -2,
+        2
+      ],
+      [
+        -1,
+        -2
+      ],
+      [
+        -1,
+        -1
+      ],
+      [
+        -1,
+        0
+      ],
+      [
+        -1,
+        1
+      ],
+      [
+        -1,
+        2
+      ],
+      [
+        0,
+        -2
+      ],
+      [
+        0,
+        -1
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        -2
+      ],
+      [
+        1,
+        -1
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        -2
+      ],
+      [
+        2,
+        -1
+      ],
+      [
+        2,
+        0
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        3,
+        -1
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        4,
+        -1
+      ],
+      [
+        4,
+        0
+      ]
+    ],
+    "edges": [
+      [
+        [
+          -2,
+          -2
+        ],
+        [
+          -1,
+          -2
+        ]
+      ],
+      [
+        [
+          -2,
+          -2
+        ],
+        [
+          -2,
+          -1
+        ]
+      ],
+      [
+        [
+          -2,
+          -1
+        ],
+        [
+          -1,
+          -1
+        ]
+      ],
+      [
+        [
+          -2,
+          -1
+        ],
+        [
+          -2,
+          0
+        ]
+      ],
+      [
+        [
+          -2,
+          0
+        ],
+        [
+          -1,
+          0
+        ]
+      ],
+      [
+        [
+          -2,
+          0
+        ],
+        [
+          -2,
+          1
+        ]
+      ],
+      [
+        [
+          -2,
+          1
+        ],
+        [
+          -1,
+          1
+        ]
+      ],
+      [
+        [
+          -2,
+          1
+        ],
+        [
+          -2,
+          2
+        ]
+      ],
+      [
+        [
+          -2,
+          2
+        ],
+        [
+          -1,
+          2
+        ]
+      ],
+      [
+        [
+          -1,
+          -2
+        ],
+        [
+          0,
+          -2
+        ]
+      ],
+      [
+        [
+          -1,
+          -2
+        ],
+        [
+          -1,
+          -1
+        ]
+      ],
+      [
+        [
+          -1,
+          -1
+        ],
+        [
+          0,
+          -1
+        ]
+      ],
+      [
+        [
+          -1,
+          -1
+        ],
+        [
+          -1,
+          0
+        ]
+      ],
+      [
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          -1,
+          0
+        ],
+        [
+          -1,
+          1
+        ]
+      ],
+      [
+        [
+          -1,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      [
+        [
+          -1,
+          1
+        ],
+        [
+          -1,
+          2
+        ]
+      ],
+      [
+        [
+          -1,
+          2
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      [
+        [
+          0,
+          -2
+        ],
+        [
+          1,
+          -2
+        ]
+      ],
+      [
+        [
+          0,
+          -2
+        ],
+        [
+          0,
+          -1
+        ]
+      ],
+      [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          -1
+        ]
+      ],
+      [
+        [
+          0,
+          -1
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      [
+        [
+          1,
+          -2
+        ],
+        [
+          2,
+          -2
+        ]
+      ],
+      [
+        [
+          1,
+          -2
+        ],
+        [
+          1,
+          -1
+        ]
+      ],
+      [
+        [
+          1,
+          -1
+        ],
+        [
+          2,
+          -1
+        ]
+      ],
+      [
+        [
+          1,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      [
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      [
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      [
+        [
+          2,
+          -2
+        ],
+        [
+          2,
+          -1
+        ]
+      ],
+      [
+        [
+          2,
+          -1
+        ],
+        [
+          3,
+          -1
+        ]
+      ],
+      [
+        [
+          2,
+          -1
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      [
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ]
+      ],
+      [
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      [
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      [
+        [
+          3,
+          -1
+        ],
+        [
+          4,
+          -1
+        ]
+      ],
+      [
+        [
+          3,
+          -1
+        ],
+        [
+          3,
+          0
+        ]
+      ],
+      [
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ]
+      ],
+      [
+        [
+          4,
+          -1
+        ],
+        [
+          4,
+          0
+        ]
+      ]
+    ],
+    "agent_height_m": 2.1,
+    "agent_radius_m": 0.4,
+    "semantics": "Surface adjacency intent; requires engine collision/navmesh baking.",
+    "safety_margin_m": 0.05
+  },
+  "structural_sha256": "a795b9db1758cf2fedcc51641fae51ff5ceed60b9422f9a50dbc088bfd9e596f",
+  "player_contract": {
+    "height_m": 2.1,
+    "capsule_radius_m": 0.4,
+    "safety_margin_m": 0.05,
+    "head_count_ratio": 9.5,
+    "provisional_metric_assumption": true,
+    "note": "9.5 heads is a body proportion, not a metric height. Revalidate against the actual game controller."
+  },
+  "family_index": 44,
+  "catalog_index": 440,
+  "category": "tower_dungeon",
+  "coordinate_system": {
+    "units": "meters",
+    "source_up": "Z",
+    "source_forward": "+Y",
+    "glb_up": "Y",
+    "source_to_gltf": "[x,z,-y]"
+  },
+  "ports_gltf_yup": [
+    {
+      "cell": [
+        0,
+        -2
+      ],
+      "position": [
+        0,
+        0,
+        10
+      ],
+      "outward": [
+        0,
+        0,
+        1
+      ],
+      "width_m": 4,
+      "kind": "walkable",
+      "profile": "walkway_4m",
+      "id": "P00",
+      "clear_width_m": 2.4,
+      "clear_height_m": 2.8
+    },
+    {
+      "cell": [
+        0,
+        2
+      ],
+      "position": [
+        0,
+        0,
+        -10
+      ],
+      "outward": [
+        0,
+        0,
+        -1
+      ],
+      "width_m": 4,
+      "kind": "walkable",
+      "profile": "walkway_4m",
+      "id": "P01",
+      "clear_width_m": 2.4,
+      "clear_height_m": 2.8
+    }
+  ],
+  "architectural_sockets": [],
+  "bounds_m": {
+    "min": [
+      -10.335000038146973,
+      -10.335000038146973,
+      -0.3199999928474426
+    ],
+    "max": [
+      18.33500099182129,
+      10.335000038146973,
+      3.450000047683716
+    ]
+  },
+  "collision_primitives": [
+    {
+      "kind": "oriented_box",
+      "center": [
+        -10.0,
+        -8.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -8.0,
+        -10.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 0,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -10.0,
+        -4.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -10.0,
+        0.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -10.0,
+        4.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -8.0,
+        10.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 0,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -10.0,
+        8.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -4.0,
+        -10.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 0,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -4.0,
+        10.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 0,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        4.0,
+        -10.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 0,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        4.0,
+        10.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 0,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        10.0,
+        -8.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        8.0,
+        -10.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 0,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        10.0,
+        4.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        10.0,
+        8.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        8.0,
+        10.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 0,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        12.0,
+        -6.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 0,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        12.0,
+        2.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 0,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        18.0,
+        -4.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        16.0,
+        -6.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 0,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        18.0,
+        0.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 90,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        16.0,
+        2.0,
+        1.6
+      ],
+      "size": [
+        4,
+        0.55,
+        3.2
+      ],
+      "rotation_z_degrees": 0,
+      "module": "wall"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        6.0,
+        5.8,
+        1.6
+      ],
+      "size": [
+        3.4,
+        3,
+        3.2
+      ],
+      "rotation_z_degrees": 180,
+      "module": "throne_dais"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -6.8,
+        -4.0,
+        1.7
+      ],
+      "size": [
+        1.0,
+        1.0,
+        3.5
+      ],
+      "rotation_z_degrees": 0,
+      "module": "column"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        6.8,
+        -4.0,
+        1.7
+      ],
+      "size": [
+        1.0,
+        1.0,
+        3.5
+      ],
+      "rotation_z_degrees": 0,
+      "module": "column"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -6.8,
+        4.0,
+        1.7
+      ],
+      "size": [
+        1.0,
+        1.0,
+        3.5
+      ],
+      "rotation_z_degrees": 0,
+      "module": "column"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        6.8,
+        4.0,
+        1.7
+      ],
+      "size": [
+        1.0,
+        1.0,
+        3.5
+      ],
+      "rotation_z_degrees": 0,
+      "module": "column"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        12.0,
+        -4.0,
+        0.7
+      ],
+      "size": [
+        2.5,
+        1.4,
+        1.4
+      ],
+      "rotation_z_degrees": 0,
+      "module": "altar"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -4.0,
+        -6.0,
+        0.75
+      ],
+      "size": [
+        1.2,
+        1.2,
+        1.5
+      ],
+      "rotation_z_degrees": 0,
+      "module": "brazier"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        4.0,
+        -6.0,
+        0.75
+      ],
+      "size": [
+        1.2,
+        1.2,
+        1.5
+      ],
+      "rotation_z_degrees": 0,
+      "module": "brazier"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -6.45,
+        -6.45,
+        0.8
+      ],
+      "size": [
+        0.4,
+        0.4,
+        1.7
+      ],
+      "rotation_z_degrees": 0,
+      "module": "lantern_post"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        -2.45,
+        1.55,
+        0.8
+      ],
+      "size": [
+        0.4,
+        0.4,
+        1.7
+      ],
+      "rotation_z_degrees": 0,
+      "module": "lantern_post"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        1.55,
+        9.55,
+        0.8
+      ],
+      "size": [
+        0.4,
+        0.4,
+        1.7
+      ],
+      "rotation_z_degrees": 0,
+      "module": "lantern_post"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        9.55,
+        -2.45,
+        0.8
+      ],
+      "size": [
+        0.4,
+        0.4,
+        1.7
+      ],
+      "rotation_z_degrees": 0,
+      "module": "lantern_post"
+    },
+    {
+      "kind": "oriented_box",
+      "center": [
+        17.55,
+        1.55,
+        0.8
+      ],
+      "size": [
+        0.4,
+        0.4,
+        1.7
+      ],
+      "rotation_z_degrees": 0,
+      "module": "lantern_post"
+    }
+  ],
+  "shared_module_version": "2.0.0",
+  "geometry_stats": {
+    "triangles_instanced_total": 50528,
+    "objects": 65,
+    "unique_meshes": 8,
+    "materials": 10,
+    "texture_bytes": 0
+  },
+  "deliverable_scope": "Visual GLB, editable procedural source, oriented-box collision intent and surface adjacency graph; engine-specific navmesh/physics not baked."
+}

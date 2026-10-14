@@ -2,12 +2,13 @@ import {SceneLoader,Mesh,TransformNode,Matrix,Quaternion,Vector3,type AssetConta
 import type {CharacterInstance} from '../arena/assets';
 import {itemStaticAssetPath,itemFittingPrototypePath} from './itemAssets';
 import type {EquipmentSlot} from '../../sim/physical/equipment';
+import {metricSocketScale} from '../actors/characterScale';
 type Row={id:string;catalogId?:string;type:string;slot:EquipmentSlot};
 const armorBones:Partial<Record<EquipmentSlot,[string,string]>>={head:['head','head'],torso:['chest','spine_03'],'left-shoulder':['upper_arm.L','upperarm_l'],'left-forearm':['forearm.L','lowerarm_l'],'left-shin':['shin.L','calf_l']};
 /** Rigid plate bindings use the shipped mannequin's bone-local rest frame, rather than
  * putting every armor mesh at the actor origin. Cloth/skinned wardrobe fitting is separate. */
 export class EquipmentVisual {
- private loaded=new Map<string,{container:AssetContainer;root:TransformNode}>();private wanted=new Set<string>();private pending=new Set<string>();private disposed=false;
+ private loaded=new Map<string,{container:AssetContainer;root:TransformNode;tipHeight:number;row:Row}>();private wanted=new Set<string>();private pending=new Set<string>();private disposed=false;
  readonly errors=new Map<string,string>();
  private restRotation=new Map<string,Quaternion>();private fitScale=1;
  constructor(private actor:CharacterInstance,private sex:'male'|'female'){
@@ -35,6 +36,7 @@ export class EquipmentVisual {
    if(!target)throw Error('Required attachment bone missing');
    const root=new TransformNode('equipment:'+row.catalogId,this.actor.root.getScene());root.parent=target;
    root.rotationQuaternion=Quaternion.Identity();
+   if(!binding)root.scaling.setAll(metricSocketScale(target));
    container.addAllToScene();
    const visible=container.meshes.filter((m):m is Mesh=>m instanceof Mesh&&m.getTotalVertices()>0);
    // One grip origin for the complete object, preserving blade/guard/handle relationships.
@@ -63,9 +65,10 @@ export class EquipmentVisual {
    }
    // The source rig is only a fitting frame. All visible plates follow the mapped actor bone.
    for(const n of container.rootNodes)if(n instanceof TransformNode&&!n.getChildMeshes(false).some(m=>m.parent===root))n.setEnabled(false);
-   this.loaded.set(row.id,{root,container});
+   this.loaded.set(row.id,{root,container,tipHeight:maximum.y-gripY,row});
   }catch(e){container?.dispose();this.errors.set(row.id,String(e));console.warn('[equipment]',row.catalogId,e);}
   finally{this.pending.delete(row.id);}
  }
+ inspect(){return {pending:this.pending.size,errors:[...this.errors],held:[...this.loaded.values()].filter(v=>v.row.slot==='right-hand').map(v=>{const matrix=v.root.computeWorldMatrix(true);return {id:v.row.id,type:v.row.type,catalogId:v.row.catalogId,grip:Vector3.TransformCoordinates(Vector3.Zero(),matrix).asArray(),tip:Vector3.TransformCoordinates(new Vector3(0,v.tipHeight,0),matrix).asArray()};})};}
  dispose(){this.disposed=true;for(const v of this.loaded.values()){v.root.dispose(false,false);v.container.dispose();}this.loaded.clear();}
 }

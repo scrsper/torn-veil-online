@@ -1,5 +1,8 @@
-param([int]$Port = 7510, [switch]$CheckOnly)
+param([int]$Port = 7510, [switch]$CheckOnly, [switch]$NoBrowser, [ValidateSet('Home','Play','Observatory','Character','Tower')][string]$View = 'Home')
 $ErrorActionPreference = 'Stop'
+# A PowerShell 7 parent can supply its module path to this Windows PowerShell child.
+# Load this runtime's utility module explicitly; retain the SHA256 build guard below.
+Import-Module (Join-Path $PSHOME 'Modules\Microsoft.PowerShell.Utility\Microsoft.PowerShell.Utility.psd1') -ErrorAction Stop
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $nodePath = (Get-Command node -ErrorAction Stop).Source
 if (-not (Test-Path (Join-Path $repoRoot 'node_modules\tsx'))) { throw 'Run npm ci in this checkout first.' }
@@ -44,4 +47,6 @@ if (-not $running) {
   }
 }
 if (-not $running) { throw 'Connected realms did not start. Inspect .debug/realms/host-error.log.' }
-Start-Process "http://127.0.0.1:$Port/?realms"
+Write-Host "Launch home: http://127.0.0.1:$Port/"
+$viewPath = @{ Home = '/'; Play = '/?realms'; Observatory = '/observatory'; Character = '/?realms&character'; Tower = '/?realms&destination=tower' }[$View]
+if (-not $NoBrowser) { Start-Process "http://127.0.0.1:$Port$viewPath" }

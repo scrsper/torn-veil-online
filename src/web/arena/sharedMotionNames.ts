@@ -8,6 +8,7 @@ export const SHARED_MOTION_NAMES=new Set([
  RELAXED.idle,RELAXED.walk,RELAXED.run,'Lie_StandUp',
  'unarmed/side_kick','unarmed/roundhouse_right','unarmed/slip_left',
  'unarmed/walk_backward','unarmed/walk_strafe_left','unarmed/walk_strafe_right',
+ 'sword_and_shield/sword and shield crouch idle','sword_and_shield/sword and shield crouching (3)',
  'sword_and_shield/sword and shield slash','sword_and_shield/sword and shield slash (2)',
  ...Object.values(DODGES),
 ]);

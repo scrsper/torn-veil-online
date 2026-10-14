@@ -2,6 +2,7 @@ import {Worker} from 'node:worker_threads';
 import {RealmJournalStore,type JournalEntry,realmEngineFingerprint} from './realmJournalStore';
 import type {RealmOperation,RealmRuntime} from './realmRuntime';
 import {WriterLock} from './store';
+import {loadFocusedGeometry} from './focusedGeometryLoader';
 
 /** One bounded replica, one serialized disk writer, immutable operation batches.
  * No live-world structured clone or JSON capture occurs during routine autosaves. */
@@ -22,6 +23,7 @@ export class RealmJournal {
   readonly ready:Promise<void>;
   metrics={durableSequence:0,checkpointSequence:0,journalBytes:0,flushMs:0,checkpoint:null as any};
   constructor(path:string,seed:number,engine=realmEngineFingerprint()){
+    loadFocusedGeometry();
     this.store=new RealmJournalStore(path,engine);this.fence=new WriterLock(this.store.dir,{release:engine,env:'realms'});this.fence.acquire();
     try{const loaded=this.store.load(seed);this.runtime=loaded.runtime;this.sequence=this.durable=loaded.sequence;}
     catch(e){this.fence.release();throw e;}

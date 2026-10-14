@@ -1,0 +1,92 @@
+{
+  "id": "tv_20_01_cellar_vaults",
+  "archetype": "cellar_vaults",
+  "sha256": "641a929b720ea8cf5d58742955ffc544911d3cddc6552615b83b876d3df81b6a",
+  "assembly_sha256": "f695652bacb0ab98fad6d6add809bb37c471623edbaba6d787c7c36fae7f6e90",
+  "method_version": "2.3_upward_ground_physical_rooms",
+  "audited_at_utc": "2026-10-11T21:48:56Z",
+  "tag": "",
+  "scope": "Actual GLB triangles; 0.20m free-space grid; 2.10m capsule + .05m margin, radius .40m+.05m; point-to-triangle/segment-to-triangle clearance and supported transitions. Static offline test, not engine physics.",
+  "grid_step_m": 0.2,
+  "capsule_height_m": 2.1,
+  "capsule_radius_m": 0.4,
+  "margin_m": 0.05,
+  "support_nodes": 35,
+  "triangle_count": 98288,
+  "soft_module_exclusions": [
+    "grass_tuft",
+    "landscape_cabbage",
+    "landscape_carrot_row",
+    "landscape_crop_row",
+    "landscape_wheat_clump",
+    "landscape_wheat_row",
+    "processional_rug",
+    "scale_guide",
+    "wall_ivy"
+  ],
+  "foot_support_ring_radius_m": 0.4,
+  "foot_support_ring_samples_per_position": 8,
+  "maximum_foot_ring_height_delta_m": 0.225,
+  "maximum_bridged_bevel_seam_width_m": 0.05,
+  "grid_samples": 21901,
+  "supported_samples": 14489,
+  "free_samples": 9618,
+  "reachable_samples": 9618,
+  "minimum_center_vertical_headroom_on_reachable_samples_m": 3.2625000476837154,
+  "targets": [
+    {
+      "name": "connector_0",
+      "kind": "connector",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "connector_1",
+      "kind": "connector",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "0",
+      "kind": "side_chamber",
+      "role": null,
+      "passed": true,
+      "supported_area_m2": 10.88,
+      "free_area_m2": 9.6,
+      "reachable_free_area_m2": 9.6,
+      "sample_position": [
+        8.0,
+        -15.8,
+        0.0
+      ]
+    }
+  ],
+  "failed_target_count": 0,
+  "significant_isolated_components": [],
+  "path_midpoint_samples": 219,
+  "rejected_midpoint_edges_rerouted": 0,
+  "reroute_rounds": 1,
+  "path_unreachable_targets": [],
+  "path_midpoint_failures": [],
+  "path_midpoint_failure_count": 0,
+  "blocking_modules_sample_counts": {
+    "wall": 3967,
+    "crate_cluster": 30,
+    "barrel_cluster": 820
+  },
+  "elapsed_s": 0.41,
+  "limitations": [
+    "Mesh surfaces are tested statically; no game engine or animated door/controller/camera executed.",
+    "Uniform grid is sampled, not exhaustive continuous configuration-space proof.",
+    "Gentle-slope grounding lifts the capsule by radius*(sec(slope)-1) on actual supporting triangle planes up to35degrees.",
+    "Triangles entirely below .205m above local foot are allowed as a step-over envelope; engine stepping remains untested.",
+    "Only actual upward-facing support triangles establish ground; a metadata height hint cannot substitute a closed terrain underside. Overlapping multilevel floor layers are not modeled by this heightfield-style support search.",
+    "Room functional topology, single-leaf identity, slope comfort and fixture usability require separate semantic/visual review."
+  ],
+  "required_routes_passed": true,
+  "passed": true
+}

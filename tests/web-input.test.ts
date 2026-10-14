@@ -85,6 +85,24 @@ describe('gameplay input and UI focus boundaries', () => {
   });
 });
 
+describe('retained orbit input regressions', () => {
+  it('releases controller combat on disconnect while retaining keyboard movement', () => {
+    const {win,input,key,frame}=setup(false,true);
+    let pad:any={id:'Xbox',connected:true,buttons:Array.from({length:18},()=>({pressed:false,value:0})),axes:[0,0,0,0]};
+    vi.stubGlobal('navigator',{getGamepads:()=>pad?[pad]:[]});
+    pad.buttons[4]={pressed:true,value:1};key('keydown','KeyW');frame();expect(input.isDown('guard')).toBe(true);
+    pad=null;win.dispatchEvent(new Event('gamepaddisconnected'));frame();expect(input.isDown('guard')).toBe(false);expect(input.move.y).toBe(1);
+  });
+  it('does not replay wheel input after losing focus', () => {
+    const {win,canvas,input,frame}=setup(false,true);canvas.dispatchEvent(Object.assign(new Event('wheel'),{deltaY:100}));win.dispatchEvent(new Event('blur'));frame();expect(input.wheel).toBe(0);
+  });
+  it('continues middle orbit drag after a simultaneous attack button is released', () => {
+    const {win,canvas,input,frame}=setup(false,true);
+    canvas.dispatchEvent(Object.assign(new Event('pointerdown'),{button:1,clientX:10,clientY:10}));
+    win.dispatchEvent(Object.assign(new Event('pointerup'),{button:0}));win.dispatchEvent(Object.assign(new Event('pointermove'),{clientX:110,clientY:10}));frame();expect(input.look.x).toBeGreaterThan(0);
+  });
+});
+
 describe('isometric pointer controls', () => {
   it('accepts mouse combat without pointer lock and releases it on blur', () => {
     const { canvas, win, input, frame } = setup(true);

@@ -1,4 +1,4 @@
-import { FreeCamera, Vector3, Color3, MeshBuilder, StandardMaterial, PBRMaterial, Mesh, Ray, type Material } from '@babylonjs/core';
+import { FreeCamera, Vector3, Matrix, Color3, MeshBuilder, StandardMaterial, PBRMaterial, Mesh, Ray, type Material } from '@babylonjs/core';
 import { createRenderer, attachPipeline } from '../render/engine';
 import { Atmosphere } from '../world/atmosphere';
 import { SharedCharacters } from '../actors/sharedCast';
@@ -6,11 +6,15 @@ import { contextFor } from '../actors/canonicalActionContext';
 import { Vfx } from '../arena/vfx';
 import type { Element } from '../arena/tower/capability';
 import { stoneSurface, tiledBox, LOOKS } from '../arena/environment';
-import { loadScannedMaps, useScannedMaps } from '../render/materials';
+import {MaterialLibrary, loadScannedMaps, useScannedMaps } from '../render/materials';
+import {FocusedRenderer} from './focusedRenderer';
 import type { BodyVisual } from '../actors/actorManager';
 import type { BodyState, InteractionCommand, SnapshotMessage } from '../net/messages';
 import type { InteriorPlan } from '../../sim/world/interiors/layout';
 import type { TowerController } from '../../server/towerController';
+import { primaryCamera, attachOrbit, cameraRelativeMove, travelFacing, smoothYaw, groundViewYaw, walkingMove,cameraPivotHeight } from './thirdPerson';
+import { voxelSolid, insideSolid, boxObstruction } from './cameraSolids';
+import { InteriorCameraFraming } from './interiorCamera';
 
 type Frame = NonNullable<ReturnType<TowerController['frame']>> & { serverMs: number; saveError?: string };
 /** A projection of the shared body and physical floor. Only input and visual smoothing
@@ -19,13 +23,18 @@ export async function startCanonicalAscent() {
   const canvas = document.getElementById('game') as HTMLCanvasElement, ui = document.getElementById('ui')!;
   const ctx = await createRenderer(canvas, { quality: 'balanced' }), camera = new FreeCamera('ascent-camera', new Vector3(0, 7, 8), ctx.scene);
   camera.minZ = .15; camera.maxZ = 180; camera.fov = .83;
+  const view = primaryCamera('tower');
+  const framing = new InteriorCameraFraming();
+  let movementYaw = view.camera.yaw;
   const atmosphere = new Atmosphere(ctx); attachPipeline(ctx, camera);
+  const focused=new FocusedRenderer(ctx,atmosphere,{x:0,z:0},new MaterialLibrary(ctx.scene),null);let acknowledgedFloor='';
   atmosphere.look.fill = 1.1; atmosphere.look.key = 1.05; atmosphere.look.exposure = 1;
   const people = new SharedCharacters(ctx.scene), visuals = new Map<string, { visual: BodyVisual; body: BodyState; hitSeq: number; hit: number }>();
   const geometry: Mesh[] = [], objects = new Map<string, Mesh>(), keys = new Set<string>();
+  let walls: InteriorPlan['solids'] = [];
   const vfx = new Vfx(ctx.scene), seenCasts = new Set<string>();
   let binding: any = null, frame: Frame | null = null, plan: InteriorPlan | null = null, token = '', sequence = 0, targetId = '', receivedAt = 0,
-    last = performance.now(), inputAccum = 0, hudAccum = 0, ready = false, movingPage = false, yaw = 0, zoom = 7, inputWasActive = false;
+    last = performance.now(), inputAccum = 0, hudAccum = 0, ready = false, movingPage = false, resetView = true, inputWasActive = false;
   const frames: number[] = [], serverTimes: number[] = [], receipts: any[] = [];
   const material = (name: string, color: string, emissive = false) => {
     const m = new StandardMaterial(name, ctx.scene); m.diffuseColor = Color3.FromHexString(color); m.specularColor = Color3.FromHexString('#25272a');
@@ -43,22 +52,25 @@ export async function startCanonicalAscent() {
   }
   function drawFloor(p: InteriorPlan) {
     for (const mesh of geometry) mesh.dispose(); geometry.length = 0; plan = p;
-    geometry.push(box('physical floor', p.origin.x - p.half - 1, 0, p.origin.z - p.half - 1, p.half * 2 + 2, 1, p.half * 2 + 2, floorMat));
-    for (const s of p.solids) { const mesh = box(s.id, s.x, s.y, s.z, s.w, s.h, s.d, s.kind === 'bench' ? brass : stone); mesh.metadata = { wall: s.kind === 'wall' }; geometry.push(mesh); }
+    focused.reconcile(p.assetScene??null,p.start);acknowledgedFloor='';ready=false;
+    if(!p.assetScene)geometry.push(box('physical floor', p.origin.x - p.half - 1, 0, p.origin.z - p.half - 1, p.half * 2 + 2, 1, p.half * 2 + 2, floorMat));
+    const solids = p.solids.map(voxelSolid); walls = solids.filter(s => s.kind === 'wall');
+    for (const s of solids) { const mesh = box(s.id, s.x, s.y, s.z, s.w, s.h, s.d, s.kind === 'bench' ? brass : stone); mesh.metadata = { wall: s.kind === 'wall' }; geometry.push(mesh); }
     // Thin inlays and threshold discs decorate existing walkable surfaces; they do not
     // invent doors, new rooms or invisible collision geometry.
     for (const [i, point] of [p.start, p.exit].entries()) {
       const ring = MeshBuilder.CreateTorus(i ? 'ascent ring' : 'return ring', { diameter: 3.2, thickness: .09, tessellation: 48 }, ctx.scene);
-      ring.position.set(point.x, 1.06, point.z); ring.material = i ? gold : blue; geometry.push(ring);
+      ring.position.set(point.x, point.y+.06, point.z); ring.material = i ? gold : blue; geometry.push(ring);
     }
-    for (const room of p.rooms) for (const side of [0, 1]) geometry.push(box(`${room.id}-inlay-${side}`, room.x + .15, 1.012, room.z + (side ? room.d - .2 : .15), room.w - .3, .015, .045, brass));
-    camera.position.set(p.start.x, 7, p.start.z + 7);
+    if(!p.assetScene)for (const room of p.rooms) for (const side of [0, 1]) geometry.push(box(`${room.id}-inlay-${side}`, room.x + .15, 1.012, room.z + (side ? room.d - .2 : .15), room.w - .3, .015, .045, brass));
+    for (const mesh of geometry) mesh.computeWorldMatrix(true);
+    view.camera.snap(); framing.reset(); resetView = true;
   }
   ui.innerHTML = `<style>
     .ascent{font:14px system-ui;color:#f0eade;pointer-events:none}.ascent header,.ascent aside,.ascent footer{position:absolute;background:#14171eea;border:1px solid #7d705644;border-radius:8px;padding:15px;pointer-events:auto}
-    .ascent header{left:20px;top:18px;max-width:430px}.ascent h1{font:24px Georgia;margin:5px 0}.ascent small{letter-spacing:2px;color:#d7bb80}.ascent p{line-height:1.5;margin:9px 0}
+    .ascent header{left:18px;top:16px;width:270px;padding:12px;background:#14171ed9}.ascent h1{font:20px Georgia;margin:5px 0}.ascent small{letter-spacing:2px;color:#d7bb80}.ascent p{line-height:1.5;margin:7px 0;font-size:12px}.ascent #as-status{white-space:pre-line}.ascent #as-panel[hidden]{display:none}.ascent a{color:#d7bb80}.ascent #as-notice:empty{display:none}.ascent footer{font-size:12px}.ascent #as-target{color:#efce89;margin-left:20px}
     .ascent aside{right:18px;top:18px;width:240px;max-height:75vh;overflow:auto}.ascent button{display:inline-block;color:#f5ebd3;background:#343a43;border:1px solid #bba47766;border-radius:4px;padding:7px 10px;margin:3px;cursor:pointer}.ascent button:hover{background:#505563}.ascent footer{bottom:18px;left:20px;right:20px;display:flex;justify-content:space-between}.ascent #as-notice{color:#f2c786;min-height:20px}.ascent #as-loading{position:absolute;inset:0;display:grid;place-items:center;background:#111620e8;font-size:21px}.ascent #as-loading[hidden]{display:none}
-  </style><div class="ascent"><header><small>TORN VEIL · CHRYSANTHUS</small><h1 id="as-title">Entering the Tower</h1><p id="as-status">Restoring the same body and belongings.</p><p>WASD move · Shift run · J strike · K heavy · L low<br>Space dodge · G guard · C crouch · Tab target · Q face<br>E take / open · 1–6 cast · F use threshold<br>LMB strike / RMB guard / MMB orbit · wheel zoom · Esc cancel action</p><div id="as-notice"></div><button id="as-return">Return at blue threshold</button><button id="as-next">Ascend at gold threshold</button><button id="as-save">Save</button></header><aside><small>YOUR HANDS & SOURCES</small><div id="as-sources"></div><div id="as-actions"></div><div id="as-spells"></div></aside><footer><span id="as-goal">Defeat the wardens to open the finite award chest.</span><span id="as-target"></span></footer><div id="as-loading">Loading existing shared characters…</div></div>`;
+  </style><div class="ascent"><header><small>CHRYSANTHUS</small><h1 id="as-title">Entering the Tower</h1><p id="as-status">Restoring your journey.</p><button id="as-journal">Journey · I</button><div id="as-notice"></div></header><aside id="as-panel" hidden><small>YOUR JOURNEY</small><p id="as-detail"></p><details><summary>Controls</summary><p>WASD move · X walk · Shift run · J strike · K heavy · L low<br>Space dodge · G guard · Tab target · Q face<br>E take / open · 1-6 cast · F threshold<br>MMB orbit · wheel zoom · Esc close</p></details><div id="as-sources"></div><div id="as-actions"></div><div id="as-spells"></div><button id="as-return">Return at blue threshold</button><button id="as-next">Ascend at gold threshold</button><button id="as-save">Save</button><a href="/">Home</a></aside><footer><span id="as-goal">Defeat the wardens.</span><span id="as-target"></span></footer><div id="as-loading">Loading existing shared characters.</div></div>`;
   const el = (id: string) => document.getElementById(id)!, notice = (text: string) => { el('as-notice').textContent = text; };
   await people.load(text => { el('as-loading').textContent = text; });
   const ws = new WebSocket(`ws://${location.host}/realms/ascent/socket`);
@@ -66,7 +78,10 @@ export async function startCanonicalAscent() {
     if (binding && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ version: 2, type: 'command', ...binding,
       commandId: `ascent-${sequence}`, sequence: sequence++, clientTimeMs: performance.now(), command }));
   }
+  el('as-journal').onclick=()=>toggleJournal();
   let mouseGuard=false;
+  let journalOpen=false;
+  const toggleJournal=()=>{journalOpen=!journalOpen;el('as-panel').hidden=!journalOpen;release();};
   const release = () => { keys.clear(); mouseGuard=false; inputWasActive = false; send({ type: 'move', x: 0, z: 0, sprint: false }); send({ type: 'guard', held: false }); send({ type: 'crouch', held: false }); };
   async function leaveView() {
     if (movingPage) return; movingPage = true; release();
@@ -91,18 +106,24 @@ export async function startCanonicalAscent() {
     if (a) send({ type: 'interact', interactionId: a.id });
   }
   function button(parent: HTMLElement, label: string, action: () => void) { const b = document.createElement('button'); b.textContent = label; b.onclick = action; parent.append(b); }
+  let actionSignature='';
   function refreshHud() {
     if (!frame) return;
     const { own, tower } = frame;
-    el('as-title').textContent = `Floor ${tower.floor} · ${tower.clear ? 'Trial cleared' : 'The wardens'}`;
-    el('as-status').textContent = `${own.name} · ${own.rank} · Vitality ${Math.ceil(own.health)} / ${own.maxHealth} · Mana ${Math.floor(own.mana)} / ${own.capacity.reserve} · Breath ${Math.round(own.breath * 100)}% · Fatigue ${Math.round(own.fatigue * 100)}% · Food ${Math.round(own.food * 100)}% · Water ${Math.round(own.water * 100)}% · ${tower.defeated}/${tower.opponents} wardens`;
-    el('as-goal').textContent = tower.floor === 100 && tower.clear ? (tower.status === 'completed' ? 'Summit recognized. Your earned capacity and belongings persist.' : 'The trials are cleared. Summit recognition requires earned Silver capacity; no rank is granted for a floor counter.') : tower.clear ? 'Open the award chest by the gold threshold; collect its contents, then ascend.' : 'This shared trial uses nonlethal combat. Injuries and costs persist. Return through the blue threshold after breaking contact.';
-    const a = el('as-actions'); a.replaceChildren();
+    el('as-title').textContent = `Floor ${tower.floor} · ${tower.clear ? 'Trial cleared' : tower.defeated+'/'+tower.opponents+' wardens'}`;
+    el('as-status').textContent = `${own.name} · ${own.rank}\nVitality ${Math.ceil(own.health)}/${own.maxHealth} · Mana ${Math.floor(own.mana)}/${own.capacity.reserve}`;
+    el('as-detail').textContent = `${own.name} · ${own.rank} · Vitality ${Math.ceil(own.health)} / ${own.maxHealth} · Mana ${Math.floor(own.mana)} / ${own.capacity.reserve} · Breath ${Math.round(own.breath * 100)}% · Fatigue ${Math.round(own.fatigue * 100)}% · Food ${Math.round(own.food * 100)}% · Water ${Math.round(own.water * 100)}% · ${tower.defeated}/${tower.opponents} wardens`;
+    el('as-goal').textContent = tower.floor===100&&tower.clear?'Summit recognition · Journey for requirements':tower.clear?'Open award chest · E take · F ascend':'Defeat the wardens · G guard · Space dodge';
     const rest = frame.snapshot.abilities.find(a => a.id === 'rest' || a.id === 'wake');
+    const container = frame.snapshot.container as SnapshotMessage['container'] as { id: string; items: { id: string; name: string }[] } | null;
+    const nextActions=JSON.stringify([rest?.available?{id:rest.id,label:rest.label}:null,frame.snapshot.interactions.map(a=>({id:a.id,label:a.label})),container?.id,container?.items.map(i=>({id:i.id,name:i.name}))]);
+    // Unchanged snapshots must not detach a real equipment click. Commands still
+    // bind to the current canonical controller and inventory interaction IDs.
+    if(nextActions!==actionSignature){actionSignature=nextActions;const a=el('as-actions');a.replaceChildren();
     if (rest?.available) button(a, rest.label, () => { release(); send({ type: rest.id as 'rest' | 'wake' }); });
     for (const action of frame.snapshot.interactions) button(a, action.label, () => send({ type: 'interact', interactionId: action.id }));
-    const container = frame.snapshot.container as SnapshotMessage['container'] as { id: string; items: { id: string; name: string }[] } | null;
     for (const i of container?.items ?? []) button(a, `Take ${i.name}`, () => send({ type: 'container_transfer', containerId: container!.id, itemId: i.id, direction: 'out' }));
+    }
     const sources = el('as-sources'); sources.replaceChildren();
     if (own.growth.next) {
       const status = document.createElement('p'); status.textContent = `${own.growth.next}: ${own.growth.eligible ? 'Ready to integrate earned sources' : own.growth.reasons.join(' · ')}`; sources.append(status);
@@ -119,7 +140,7 @@ export async function startCanonicalAscent() {
     if (m.type === 'tower_geometry') drawFloor(m.plan);
     if (m.type === 'tower_returned') void leaveView();
     if (m.type === 'notice') notice(m.message);
-    if (m.type === 'command_receipt' && m.status !== 'received') { receipts.push(m); if (receipts.length > 600) receipts.shift(); if (m.status === 'rejected' && !['cooldown', 'incapacitated', 'expired'].includes(m.result)) notice(m.result); }
+    if (m.type === 'command_receipt' && m.status !== 'received') { receipts.push(m); if (receipts.length > 600) receipts.shift(); if (m.status === 'rejected' && !['cooldown', 'incapacitated', 'expired','committed'].includes(m.result)) notice(String(m.result).replaceAll('_',' ')); }
     if (m.type !== 'tower_frame' || !binding) return;
     const observed = m as Frame; frame = observed; receivedAt = performance.now(); serverTimes.push(m.serverMs); if (serverTimes.length > 2400) serverTimes.shift();
     // Draw only host-observed cast phases. Effects never choose targets, apply hits,
@@ -140,14 +161,14 @@ export async function startCanonicalAscent() {
     for (const [id, v] of visuals) if (!present.has(id)) { v.visual.dispose(); visuals.delete(id); }
     for (const body of bodies) {
       let v = visuals.get(body.bodyId);
-      if (!v) { const visual = people.create(body, atmosphere); if (!visual) continue; visual.root.position.set(body.pos.x, body.pos.y, body.pos.z); v = { visual, body, hitSeq: body.hitSeq, hit: 0 }; visuals.set(body.bodyId, v); }
+      if (!v) { const visual = people.create(body, atmosphere, undefined, body.bodyId===binding.bodyId?'player':'resident'); if (!visual) continue; visual.root.position.set(body.pos.x, body.pos.y, body.pos.z); v = { visual, body, hitSeq: body.hitSeq, hit: 0 }; visuals.set(body.bodyId, v); }
       if (body.hitSeq > v.hitSeq) v.hit = 1; v.hitSeq = body.hitSeq; v.body = body;
     }
     const things = [...m.waterSources.map((i: any) => ({ ...i, water: true })), ...m.items.map((i: any) => ({ ...i, chest: false })), ...m.containers.map((i: any) => ({ ...i, chest: true }))], wanted = new Set(things.map(i => i.id));
     for (const [id, mesh] of objects) if (!wanted.has(id)) { mesh.dispose(); objects.delete(id); }
     for (const i of things) if (!objects.has(i.id)) objects.set(i.id, box(i.id, i.pos.x - .25, i.pos.y, i.pos.z - .18, i.water ? .8 : i.chest ? .8 : .5, i.water ? .025 : i.chest ? .7 : .12, i.water ? .8 : i.chest ? .5 : .36, i.water ? (i.remaining > 0 ? blue : stone) : i.chest ? brass : bookMat));
     for (const i of m.waterSources) { const mesh = objects.get(i.id); if (mesh) mesh.material = i.remaining > 0 ? blue : stone; }
-    ready = !!plan && visuals.has(binding.bodyId); el('as-loading').hidden = ready;
+    ready = !!plan && visuals.has(binding.bodyId)&&(!plan.assetScene||focused.pending===0&&focused.count>0&&!focused.error); el('as-loading').hidden = ready;
     if (ready) refreshHud();
     if (m.saveError) notice('Saving failed. Keep this tab open.');
   };
@@ -155,10 +176,13 @@ export async function startCanonicalAscent() {
   el('as-return').onclick = () => void transition('return'); el('as-next').onclick = () => void transition('ascend');
   el('as-save').onclick = () => ws.send(JSON.stringify({ type: 'save' }));
   window.addEventListener('keydown', e => {
+    if(e.code==='KeyI'&&!e.repeat){toggleJournal();return;}
+    if(e.code==='Escape'&&journalOpen){toggleJournal();return;}
+    if(journalOpen)return;
     if (['Space', 'Tab', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) e.preventDefault(); keys.add(e.code); if (e.repeat) return;
     if (e.code === 'KeyC') send({ type: 'crouch', held: true });
     if (['KeyJ', 'KeyK', 'KeyL'].includes(e.code)) send({ type: 'attack', targetBodyId: targetId || undefined, weight: e.code === 'KeyK' ? 'heavy' : 'light', trajectory: e.code === 'KeyL' ? 'low' : 'high' });
-    if (e.code === 'Space') { const x = Number(keys.has('KeyD')) - Number(keys.has('KeyA')); send({ type: 'defend', kind: x ? 'sidestep' : 'backstep', direction: { x, z: x ? 0 : 1 } }); }
+    if (e.code === 'Space') { const x = Number(keys.has('KeyD')) - Number(keys.has('KeyA')); send({ type: 'defend', kind: x ? 'sidestep' : 'backstep', direction: cameraRelativeMove(x, x ? 0 : -1, movementYaw) }); }
     if (e.code === 'KeyE') nearestHand();
     if (/^Digit[1-6]$/.test(e.code)) cast(Number(e.code.slice(-1)) - 1);
     if (e.code === 'KeyF' && frame) { const own = frame.snapshot.bodies.find(b => b.bodyId === binding.bodyId)!; void transition(Math.hypot(own.pos.x - frame.tower.start.x, own.pos.z - frame.tower.start.z) < 2.4 ? 'return' : 'ascend'); }
@@ -167,31 +191,35 @@ export async function startCanonicalAscent() {
   });
   window.addEventListener('keyup', e => { keys.delete(e.code); if (e.code === 'KeyG') send({ type: 'guard', held: mouseGuard }); if (e.code === 'KeyC') send({ type: 'crouch', held: false }); });
   window.addEventListener('blur', release); document.addEventListener('visibilitychange', () => { if (document.hidden) release(); });
-  let drag = false;
+  attachOrbit(canvas, view.camera, view.persist);
   canvas.oncontextmenu=e=>e.preventDefault();
   canvas.onpointerdown = e => {
-    if(e.button===1){drag=true;e.preventDefault();}
-    else if(e.button===0)send({type:'attack',targetBodyId:targetId||undefined,weight:'light',trajectory:'high'});
+    if(journalOpen)return;
+    if(e.button===0)send({type:'attack',targetBodyId:targetId||undefined,weight:'light',trajectory:'high'});
     else if(e.button===2){mouseGuard=true;send({type:'guard',held:true});e.preventDefault();}
   };
-  window.addEventListener('pointerup',e=>{if(e.button===1)drag=false;if(e.button===2){mouseGuard=false;send({type:'guard',held:keys.has('KeyG')});}});
-  window.addEventListener('pointercancel',()=>{drag=false;release();});
-  window.addEventListener('blur',()=>drag=false);
-  canvas.onpointermove = e => { if (drag) yaw += e.movementX * .008; }; canvas.onwheel = e => { zoom = Math.min(13, Math.max(3, zoom + e.deltaY * .01)); e.preventDefault(); };
+  window.addEventListener('pointerup',e=>{if(e.button===2){mouseGuard=false;send({type:'guard',held:keys.has('KeyG')});}});
+  window.addEventListener('pointercancel',release);
+  const cameraPointBlocked = (x: number, y: number, z: number) => plan?.assetScene?focused.blocked(x,y,z):walls.some(s => insideSolid(s, { x, y, z }));
+  const primitiveObstruction = boxObstruction(() => walls);
+  const obstruction:typeof primitiveObstruction=(from,dir,max)=>plan?.assetScene?(focused.obstruction(from,dir,max)??max):primitiveObstruction(from,dir,max);
   ctx.engine.runRenderLoop(() => {
     const now = performance.now(), ms = now - last, dt = Math.min(.1, ms / 1000); last = now;
+    if(plan?.assetScene&&focused.pending===0&&focused.count>0&&!focused.error&&binding&&visuals.has(binding.bodyId)&&acknowledgedFloor!==plan.id){acknowledgedFloor=plan.id;ws.send(JSON.stringify({type:'tower_ready',interiorId:plan.id}));ready=true;el('as-loading').hidden=true;}
+    if(focused.error){ready=false;el('as-loading').hidden=false;el('as-loading').textContent=focused.error;}
     if (ready && !document.hidden) { frames.push(ms); if (frames.length > 7200) frames.shift(); }
     if (frame && binding && ready) {
       const own = frame.snapshot.bodies.find(b => b.bodyId === binding.bodyId)!, target = frame.snapshot.bodies.find(b => b.bodyId === targetId);
       inputAccum += dt; hudAccum += dt;
       if (inputAccum >= 1 / 60) {
-        inputAccum = 0; const right = Number(keys.has('KeyD')) - Number(keys.has('KeyA')), back = Number(keys.has('KeyS')) - Number(keys.has('KeyW'));
-        const x = right * Math.cos(yaw) + back * Math.sin(yaw), z = back * Math.cos(yaw) - right * Math.sin(yaw), len = Math.max(1, Math.hypot(x, z));
-        const active = !!(right || back || keys.has('KeyC') || keys.has('KeyG') || mouseGuard || keys.has('KeyQ'));
+        inputAccum = 0; const right = Number(keys.has('KeyD')) - Number(keys.has('KeyA')), forward = Number(keys.has('KeyW')) - Number(keys.has('KeyS'));
+        const move = walkingMove(cameraRelativeMove(right, forward, movementYaw),keys.has('KeyX'),keys.has('ShiftLeft')||keys.has('ShiftRight'));
+        const faceTarget = keys.has('KeyG') || mouseGuard || keys.has('KeyQ');
+        const active = !!(right || forward || keys.has('KeyC') || faceTarget);
         // Do not fill a stalled connection with idle or obsolete state samples.
         // A live held movement still buys at most one canonical step per sample.
         if (now - receivedAt < 500 && ws.bufferedAmount < 32768) {
-          if (active || inputWasActive) send({ type: 'move', x: x / len, z: z / len, sprint: keys.has('ShiftLeft'), crouch: keys.has('KeyC'), facing: keys.has('KeyG') || mouseGuard || keys.has('KeyQ') ? target ? Math.atan2(own.pos.x - target.pos.x, own.pos.z - target.pos.z) : yaw : undefined });
+          if (active || inputWasActive) send({ type: 'move', ...move, sprint: keys.has('ShiftLeft') || keys.has('ShiftRight'), crouch: keys.has('KeyC'), facing: faceTarget ? target ? Math.atan2(own.pos.x - target.pos.x, own.pos.z - target.pos.z) : view.camera.renderedYaw : travelFacing(move) });
           if (keys.has('KeyG')||mouseGuard) send({ type: 'guard', held: true });
           inputWasActive = active;
         }
@@ -200,15 +228,33 @@ export async function startCanonicalAscent() {
       const age = Math.min(.075, Math.max(0, (now - receivedAt) / 1000)), time = frame.snapshot.tick + age;
       for (const v of visuals.values()) {
         const b = v.body, root = v.visual.root;
-        root.position.copyFrom(Vector3.Lerp(root.position, new Vector3(b.pos.x + b.velocity.x * age, b.pos.y, b.pos.z + b.velocity.z * age), 1 - Math.exp(-20 * dt)));
-        root.rotation.y = b.yaw; v.hit *= Math.exp(-dt * 8);
-        v.visual.update(dt, { bodyId: b.bodyId, own: b.bodyId === binding.bodyId, kind: 'person', body: b, speed: Math.hypot(b.velocity.x, b.velocity.z), velocity: b.velocity, yaw: b.yaw, crouch: b.crouch ?? 0, age, combat: contextFor(b.combatAction, time, b.yaw), hit: v.hit, guard: b.guarding });
+        const desired = new Vector3(b.pos.x + b.velocity.x * age, b.pos.y, b.pos.z + b.velocity.z * age);
+        if (cameraPointBlocked(desired.x, desired.y + 1.3, desired.z)) desired.set(b.pos.x, b.pos.y, b.pos.z);
+        if (resetView && b.bodyId === binding.bodyId) root.position.copyFrom(desired);
+        else {
+          const next = Vector3.Lerp(root.position, desired, 1 - Math.exp(-20 * dt));
+          // Interpolation must not cut the visible body through a physical corner.
+          root.position.copyFrom(cameraPointBlocked(next.x, next.y + 1.3, next.z) ? new Vector3(b.pos.x, b.pos.y, b.pos.z) : next);
+        }
+        root.rotation.y = smoothYaw(root.rotation.y, b.yaw, dt); v.hit *= Math.exp(-dt * 8);
+        v.visual.update(dt, { bodyId: b.bodyId, own: b.bodyId === binding.bodyId, kind: 'person', body: b, speed: Math.hypot(b.velocity.x, b.velocity.z), velocity: b.velocity, yaw: root.rotation.y, crouch: b.crouch ?? 0, age, combat: contextFor(b.combatAction, time, b.yaw), hit: v.hit, guard: b.guarding });
       }
-      const root = visuals.get(binding.bodyId)?.visual.root;
+      const controlledVisual=visuals.get(binding.bodyId)?.visual;
+      const root = controlledVisual?.root;
       if (root) {
-        const pivot = root.position.add(new Vector3(0, 1, 0)); camera.position.copyFrom(Vector3.Lerp(camera.position, pivot.add(new Vector3(Math.sin(yaw) * zoom, zoom * .8, Math.cos(yaw) * zoom)), 1 - Math.exp(-8 * dt))); camera.setTarget(pivot);
-        const delta = camera.position.subtract(pivot), ray = new Ray(pivot, delta.normalizeToNew(), delta.length());
-        for (const mesh of geometry) if (mesh.metadata?.wall) mesh.visibility = ray.intersectsBoxMinMax(mesh.getBoundingInfo().boundingBox.minimumWorld, mesh.getBoundingInfo().boundingBox.maximumWorld) ? .18 : 1;
+        const pivot = root.position.add(new Vector3(0, cameraPivotHeight(controlledVisual?.bodyHeight,own.crouch??0), 0));
+        const engaged = keys.has('KeyQ') || keys.has('KeyG') || mouseGuard || !!own.combatAction && own.combatAction.completeAt > time;
+        const rawPose = view.camera.update(dt, { pivot, velocity: own.velocity, engaged,
+          threats: engaged ? frame.snapshot.bodies.filter(b => b.bodyId !== binding.bodyId && !b.dead && !b.incapacitated && Math.hypot(b.pos.x-own.pos.x,b.pos.z-own.pos.z)<12).length : 0,
+          focus: target && (keys.has('KeyQ') || keys.has('KeyG') || mouseGuard) ? { point: { ...target.pos, y: target.pos.y + 1.2 }, weight: .2 } : null }, obstruction, () => 1);
+        const pose = framing.update(rawPose,pivot,walls,{yaw:view.camera.renderedYaw,pitch:view.camera.debug.pitchDeg*Math.PI/180,want:view.camera.debug.want,limit:view.camera.debug.limit},dt);
+        movementYaw = groundViewYaw(pose.position, pose.target);
+        camera.position.set(pose.position.x, pose.position.y, pose.position.z); camera.setTarget(new Vector3(pose.target.x, pose.target.y, pose.target.z)); camera.fov = pose.fov; resetView = false;
+        // Fade a wall obscuring any part of the owned body, including hips and feet.
+        // A clear chest ray alone can leave the lower body hidden behind a low wall.
+        const rays = [.2, .85, 1.6].map(height => { const point = root.position.add(new Vector3(0, height, 0)), delta = camera.position.subtract(point); return new Ray(point, delta.normalizeToNew(), delta.length()); });
+        for (const mesh of geometry) if (mesh.metadata?.wall) mesh.visibility = rays.some(ray => ray.intersectsBoxMinMax(mesh.getBoundingInfo().boundingBox.minimumWorld, mesh.getBoundingInfo().boundingBox.maximumWorld)) ? .08 : 1;
+        if(plan?.assetScene)focused.cutaway(camera.position,root.position);
       }
       el('as-target').textContent = target ? `Target · ${target.name}` : 'No visible opponent';
       targetRing.setEnabled(!!target);
@@ -217,6 +263,11 @@ export async function startCanonicalAscent() {
     vfx.update(dt); atmosphere.follow(camera.position); atmosphere.update(10, { kind: 'clear', intensity: 0, wind: .15 }, dt); ctx.scene.fogColor = Color3.FromHexString('#79808e'); ctx.scene.render();
   });
   Object.defineProperty(window, 'tvAscent', { value: { get ready() { return ready; }, get frame() { return frame; }, get plan() { return plan; }, get targetId() { return targetId; },
-    inspect: () => ({ frames: [...frames], serverMs: [...serverTimes], receipts: [...receipts], meshes: ctx.scene.meshes.length, people: visuals.size, looks: [...visuals.values()].map(v => v.visual.root.metadata), heap: (performance as any).memory?.usedJSHeapSize ?? null }) } });
+    inspect: () => ({focused:{instances:focused.count,pending:focused.pending,error:focused.error}, frames: [...frames], serverMs: [...serverTimes], receipts: [...receipts], meshes: ctx.scene.meshes.length, people: visuals.size, looks: [...visuals.values()].map(v => v.visual.root.metadata),
+      camera: { mode: 'third-person', yaw: view.camera.yaw, renderedYaw: view.camera.renderedYaw, movementYaw, pitch: view.camera.pitch, preferred: view.camera.preferred, blocked: cameraPointBlocked(camera.position.x,camera.position.y,camera.position.z), position: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, ...view.camera.debug, ...framing.debug },
+      cutawayWalls: geometry.filter(m => m.metadata?.wall && m.visibility < 1).length,
+      cameraSolids: walls,
+      controlledBody: (() => { const root = binding && visuals.get(binding.bodyId)?.visual.root; const project = (height:number) => { if(!root)return null; const p=Vector3.Project(root.position.add(new Vector3(0,height,0)),Matrix.Identity(),ctx.scene.getTransformMatrix(),camera.viewport.toGlobal(ctx.engine.getRenderWidth(),ctx.engine.getRenderHeight()));return {x:p.x,y:p.y,z:p.z}; }; return root ? { id: binding.bodyId, enabled: root.isEnabled(), position: { x: root.position.x, y: root.position.y, z: root.position.z }, yaw: root.rotation.y, blocked: cameraPointBlocked(root.position.x, root.position.y + 1.3, root.position.z),screen:{feet:project(.05),head:project(1.7)} } : null; })(),
+      facingMode: keys.has('KeyQ') || keys.has('KeyG') || mouseGuard ? 'target' : 'travel', heap: (performance as any).memory?.usedJSHeapSize ?? null }) } });
   window.addEventListener('resize', () => ctx.engine.resize());
 }

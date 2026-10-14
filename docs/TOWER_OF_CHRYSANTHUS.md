@@ -1,5 +1,25 @@
 # The Tower of Chrysanthus
 
+## Current canonical game
+
+Use `Play Torn Veil.cmd` and enter the Tower from the focused world's physical
+landmark. Town, forest and Tower share the same canonical Person, Body, inventory,
+combat rules and persisted growth. The cloud-authored asset pack supplies the
+town and folded floor geometry. See [focused world](FOCUSED_WORLD_OCT12.md),
+[current repair](TORN_VEIL_REPAIR_OCT11.md) and
+[October 14 reconciliation](INTEGRATION_OCT14.md).
+
+The target is 100 generated floors, several hours to Silver and possible but rare
+Gold. Current source gates require 600 distinct opposed victories for Silver;
+Gold requires 1,280 plus six demonstrated forms, six learned essences, finite
+materials and at least 97% sustained control. These gates do not establish human
+playtime or population rarity. Those still require a representative playtest.
+
+## Historical arena prototype
+
+The remaining controls and design notes below describe the retained arena lab,
+not the canonical world's launcher or authoritative progression.
+
 A 100-floor procedural roguelite combat tower, part of Torn Veil but separate from the canonical world for now. It is the
 proving ground for combat, loot, capability growth, emergent classes, gods and monsters, condensed so they can be played
 and tested while the world simulation develops separately.

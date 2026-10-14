@@ -1,4 +1,14 @@
-# Current: Consolidated Babylon build (2026-10-11)
+# Current candidate: Focused Babylon reconciliation (2026-10-14)
+
+The intended game is the canonical third-person town, forest and Tower using the
+verified focused asset pack. `a0c8692` preserves both local-main `6114afe` and
+ontology `dc9e07c` histories without changing the runtime tree. Retain authored
+upright motion, metric imports, earned progression and persistent shared-world
+identity. Unreal and historical labs remain preserved. See
+`docs/INTEGRATION_OCT14.md` for conflict decisions, asset-storage policy and
+verification. This candidate note is not a claim that GitHub main has changed.
+
+# Previous: Consolidated Babylon build (2026-10-11)
 
 The consolidated build combines current human presentation, connected realms, canonical
 Tower persistence and input/posture repairs. `6423888` passed 2,237 tests and its

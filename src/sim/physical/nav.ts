@@ -1,6 +1,7 @@
 import { B, BLOCKS } from './blocks';
 import { VoxelGrid } from './grid';
 import type { Vec3 } from '../core/types';
+import type {MovementGeometry} from './staticGeometry';
 
 function pathBudget(a: Vec3, b: Vec3): number {
   const dx = Math.floor(a.x) - Math.floor(b.x), dz = Math.floor(a.z) - Math.floor(b.z);
@@ -19,6 +20,7 @@ export class Navigator {
   private walkY: Int16Array | Map<number, number>;
   private cost: Float32Array | Map<number, number>;
   private paths = new Map<string, Vec3[] | null>();
+  private geometryIds=new WeakMap<MovementGeometry,number>();private geometrySerial=0;
   /** Observational counters; never affect search order or results. */
   searches = 0; cacheHits = 0;
   constructor(private grid: VoxelGrid) {
@@ -48,6 +50,8 @@ export class Navigator {
   }
   private rebuildCell(x: number, z: number): void {
     const g = this.grid; const i = x * g.D + z;
+    const geometry=g.movementGeometryAt(x+.5,z+.5);
+    if(geometry){const y=geometry.supportAt(x+.5,z+.5,1),valid=y!==null&&geometry.fits(x+.5,y,z+.5,.3,1.75);if(this.walkY instanceof Map)this.walkY.set(i,valid?y!:-1);else this.walkY[i]=valid?y!:-1;if(this.cost instanceof Map)this.cost.set(i,valid?1:99);else this.cost[i]=valid?1:99;return;}
     // Dense columns are contiguous and already in bounds. Custom/sparse grid readers
     // retain their ordinary accessor; no geographic or door interpretation is cached.
     const dense = !g.sparse && g.get === VoxelGrid.prototype.get ? g.data : null;
@@ -94,16 +98,19 @@ export class Navigator {
   }
 
   /** A* path from a to b in block coordinates. Returns list of cell centers (y = floor). */
-  findPath(a: Vec3, b: Vec3, maxIter = pathBudget(a, b)): Vec3[] | null {
+  findPath(a: Vec3, b: Vec3, maxIter?:number): Vec3[] | null {
+    const budget=maxIter??pathBudget(a,b);
+    const geometry=this.grid.movementGeometryAt(a.x,a.z);
+    if(geometry&&geometry===this.grid.movementGeometryAt(b.x,b.z)){let id=this.geometryIds.get(geometry);if(id===undefined){id=++this.geometrySerial;this.geometryIds.set(geometry,id);}const fineBudget=maxIter===undefined?Math.min(160000,Math.max(32000,budget*4)):budget,key=['fine',id,a.x,a.y,a.z,b.x,b.y,b.z,fineBudget].join(',');if(this.paths.has(key)){this.cacheHits++;return this.paths.get(key)?.map(p=>({...p}))??null;}this.searches++;const path=geometry.findPath(a,b,fineBudget);if(this.paths.size>=4096)this.paths.delete(this.paths.keys().next().value!);this.paths.set(key,path);return path?.map(p=>({...p}))??null;}
     // A fixed village-sized search allowance falsely made longer procedural commutes
     // unreachable. Scale with the area a detour may explore, bounded by the same maximum
     // used when settlement generation connects its roads. Explicit budgets remain exact.
     // The intended floor matters: a counter and its roof share a horizontal column.
     // Cache failed searches too, but never make a returned mutable path shared state.
-    const key = [Math.floor(a.x), Math.floor(a.z), Math.floor(b.x), b.y, Math.floor(b.z), maxIter].join(',');
+    const key = [Math.floor(a.x), Math.floor(a.z), Math.floor(b.x), b.y, Math.floor(b.z), budget].join(',');
     if (this.paths.has(key)) { this.cacheHits++; return this.paths.get(key)?.map(p => ({ ...p })) ?? null; }
     this.searches++;
-    const path = this.search(a, b, maxIter);
+    const path = this.search(a, b, budget);
     if (this.paths.size >= 4096) this.paths.delete(this.paths.keys().next().value!);
     this.paths.set(key, path);
     return path?.map(p => ({ ...p })) ?? null;

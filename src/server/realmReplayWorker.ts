@@ -1,5 +1,7 @@
 import {parentPort,workerData} from 'node:worker_threads';
 import {RealmJournalStore,type JournalEntry} from './realmJournalStore';
+import {loadFocusedGeometry} from './focusedGeometryLoader';
+loadFocusedGeometry();
 const store=new RealmJournalStore(workerData.path,workerData.engine);
 let {runtime,sequence}=store.load(workerData.seed);
 let chain=Promise.resolve();

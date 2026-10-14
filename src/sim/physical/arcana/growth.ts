@@ -15,6 +15,15 @@ export interface ArcaneGrowth {
  * embodied-practice path. These components change physical effects; rank does not.
  * Time, floor counters, kill totals without sources, and empty casts grant nothing. */
 export const TRANSFORMATIONS = [
+  { stage: 'Iron', victories: 48, forms: 1, essences: 1, materials: 1, amplitude: 1.6, aperture: 1.2, reserve: 120 },
+  { stage: 'Bronze', victories: 180, forms: 2, essences: 2, materials: 2, amplitude: 2.8, aperture: 2, reserve: 150 },
+  { stage: 'Silver', victories: 600, forms: 3, essences: 3, materials: 3, amplitude: 7, aperture: 5, reserve: 220 },
+  { stage: 'Gold', victories: 1280, forms: 6, essences: 6, materials: 4, amplitude: 20, aperture: 12, reserve: 320 },
+] as const;
+export const SOURCE_GROWTH_POLICY = 2;
+/** Historical receipts remain valid. This table is only for save validation;
+ * current assessment and integration always use TRANSFORMATIONS above. */
+export const LEGACY_TRANSFORMATIONS = [
   { stage: 'Iron', victories: 12, forms: 1, essences: 1, materials: 1, amplitude: 1.6, aperture: 1.2, reserve: 120 },
   { stage: 'Bronze', victories: 80, forms: 2, essences: 2, materials: 2, amplitude: 2.8, aperture: 2, reserve: 150 },
   { stage: 'Silver', victories: 360, forms: 3, essences: 3, materials: 3, amplitude: 7, aperture: 5, reserve: 220 },
@@ -71,9 +80,6 @@ export function assessArcaneTransformation(w: World, p: Person, b: Body) {
   const reasons: string[] = [];
   if (!next) reasons.push('No further essence transformation is implemented; the full ladder remains distinct.');
   else {
-    // Gold's source policy is awaiting human acceptance. Keep its descriptor and
-    // old saved capacities, but do not issue new promotions from provisional gates.
-    if (next.stage === 'Gold') reasons.push('Gold source transformation is paused pending progression policy acceptance.');
     if (victories.length < next.victories) reasons.push(`${victories.length}/${next.victories} distinct opposed victories`);
     if (forms < next.forms) reasons.push(`${forms}/${next.forms} forms applied against three distinct opponents each`);
     if (essences < next.essences) reasons.push(`${essences}/${next.essences} different essences learned from real sources`);
@@ -89,6 +95,19 @@ export function assessArcaneTransformation(w: World, p: Person, b: Body) {
   if (p.combatTrial && !p.combatTrial.endedEventId && threat) reasons.push('Break contact before integrating sources');
   return { eligible: !reasons.length, next, reasons, victories: victories.length, forms, essences, quality, materials };
 }
+/** Inspectable evidence and requirements, shared by city, Tower and Observatory.
+ * Count thresholds are policy parameters, not measured hours or population rarity. */
+export function arcaneProgress(w: World, p: Person, b: Body) {
+  const a = assessArcaneTransformation(w,p,b);
+  return { eligible:a.eligible, next:a.next?.stage, reasons:a.reasons, victories:a.victories, forms:a.forms,
+    essences:a.essences, quality:a.quality, materials:a.materials.reduce((n,i)=>n+i.quantity,0),
+    requirements:a.next?{victories:a.next.victories,forms:a.next.forms,essences:a.next.essences,materials:a.next.materials,
+      quality:a.next.stage==='Gold'?.97:null}:null,
+    demonstrations:Object.entries(p.arcana?.growth?.demonstrations??{}).map(([id,targets])=>({id,kernel:ARCANE_DEFINITIONS.get(id)?.kernel,opponents:Object.keys(targets).length})),
+    capacity:arcaneCapacity(p,w,b), intrinsicCapacity:arcaneCapacity(p),
+    learned:Object.keys(p.arcana?.learned??{}).map(id=>({id,name:ARCANE_DEFINITIONS.get(id)?.name??id})),
+    sources:p.inventory.flatMap(id=>{const i=w.item(id);return i?.arcaneSource&&i.quantity>0?[{id,name:i.name,abilityId:i.arcaneSource.abilityId}]:[];}) };
+}
 /** Explicit paid body-bound action. No healing, attribute fabrication, calendar
  * acceleration, legacy XP or rank-dependent combat resolution occurs here. */
 export function integrateArcaneSources(w: World, p: Person, b: Body): string {
@@ -97,7 +116,7 @@ export function integrateArcaneSources(w: World, p: Person, b: Body): string {
     ...Object.values(g.demonstrations).flatMap(d => Object.values(d)), ...Object.values(p.arcana!.learned).map(l => l.eventId)];
   const event = w.emit('ontological_advancement', { actor: p.id, pos: { ...b.pos }, category: 'history', significance: 1,
     causes: [...new Set(causes)], data: { from: p.ontology.stage, to: next.stage, adaptation: 'source-integrated arcane capacity',
-      bodyId: b.id, amplitude: next.amplitude, aperture: next.aperture, reserve: next.reserve, materialIds: [] as string[], materialAmounts: [] as number[] },
+      bodyId: b.id, growthPolicy: SOURCE_GROWTH_POLICY, amplitude: next.amplitude, aperture: next.aperture, reserve: next.reserve, materialIds: [] as string[], materialAmounts: [] as number[] },
     summary: `${p.name} integrated earned essence sources into ${next.stage} arcane capacity` });
   let remaining = next.materials;
   for (const i of a.materials) {

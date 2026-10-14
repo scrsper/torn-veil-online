@@ -1,5 +1,12 @@
 # Torn Veil: connected procedural realms
 
+The isolated October 12 focused-asset candidate is documented in
+[Focused authored world checkpoint](FOCUSED_WORLD_OCT12.md). Its feature flag,
+verified source geometry and migration guard supersede the older voxel-only
+description for opted-in QA worlds. Existing Tower saves require coordinated
+migration before adoption. The tested focused prototype is now adopted in the
+canonical main save; see that checkpoint's final consolidation status and rollback data.
+
 This candidate adds a playable world foundation to Torn Veil's existing TypeScript simulation and Babylon client. It is a first city district slice of the intended sci-fi / high-fantasy / steampunk universe. It is not a completed megacity or a match for the reference's fidelity.
 
 The October 9 canonical Tower and earned-growth checkpoints supersede the initial

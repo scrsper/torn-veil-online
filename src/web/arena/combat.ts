@@ -81,6 +81,7 @@ export function dodgeClip(set: keyof typeof MOVESETS, kind: DodgeKind): string {
 export const READY_CLIPS: Record<string, [string, string]> = {
   'ready/sword and shield idle': [U('idle_neutral'), SS('idle')],
   'ready/sword and shield walk': [U('walk_forward'), SS('walk')],
+  'ready/sword and shield jog': [U('run_jog'), SS('run')],
   'ready/sword and shield run': [U('run_sprint'), SS('run')],
   ...Object.fromEntries((Object.keys(DODGE_BODY) as DodgeKind[]).flatMap(k => [
     [`ready/sword and shield dodge ${k}`, [DODGE_BODY[k], SS('idle')]],

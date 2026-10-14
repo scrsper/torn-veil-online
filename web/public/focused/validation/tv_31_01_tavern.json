@@ -1,0 +1,305 @@
+{
+  "id": "tv_31_01_tavern",
+  "archetype": "tavern",
+  "sha256": "9f527fab0e3c2e42de5f157a236311fb76184efd425578bd4fb779b91652202e",
+  "assembly_sha256": "ba5632666fbe4c8d5bd24c098b630d83906ba91c8d22d8b06c761b971f1874b1",
+  "method_version": "2.3_upward_ground_physical_rooms",
+  "audited_at_utc": "2026-10-11T21:46:36Z",
+  "tag": "",
+  "scope": "Actual GLB triangles; 0.20m free-space grid; 2.10m capsule + .05m margin, radius .40m+.05m; point-to-triangle/segment-to-triangle clearance and supported transitions. Static offline test, not engine physics.",
+  "grid_step_m": 0.2,
+  "capsule_height_m": 2.1,
+  "capsule_radius_m": 0.4,
+  "margin_m": 0.05,
+  "support_nodes": 11,
+  "triangle_count": 19134,
+  "soft_module_exclusions": [
+    "grass_tuft",
+    "landscape_cabbage",
+    "landscape_carrot_row",
+    "landscape_crop_row",
+    "landscape_wheat_clump",
+    "landscape_wheat_row",
+    "processional_rug",
+    "scale_guide",
+    "wall_ivy"
+  ],
+  "foot_support_ring_radius_m": 0.4,
+  "foot_support_ring_samples_per_position": 8,
+  "maximum_foot_ring_height_delta_m": 0.225,
+  "maximum_bridged_bevel_seam_width_m": 0.05,
+  "grid_samples": 6161,
+  "supported_samples": 4557,
+  "free_samples": 2131,
+  "reachable_samples": 2129,
+  "minimum_center_vertical_headroom_on_reachable_samples_m": 2.582999947568506,
+  "targets": [
+    {
+      "name": "connector_0",
+      "kind": "connector",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "connector_1",
+      "kind": "connector",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "front_single_leaf_entrance",
+      "kind": "entrance",
+      "all": true,
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 5,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "rear_single_leaf_service_entrance",
+      "kind": "entrance",
+      "all": true,
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 5,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "interior_door",
+      "kind": "interior_portal",
+      "all": true,
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 3,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "interior_door",
+      "kind": "interior_portal",
+      "all": true,
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 3,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "exterior_door",
+      "kind": "interior_portal",
+      "all": true,
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 3,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "public_room_opening",
+      "kind": "interior_portal",
+      "all": true,
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 3,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "interior_door",
+      "kind": "interior_portal",
+      "all": true,
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 3,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "exterior_door",
+      "kind": "interior_portal",
+      "all": true,
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 3,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "guest_room",
+      "kind": "interior_room",
+      "role": "guest_room",
+      "passed": true,
+      "supported_area_m2": 10.24,
+      "free_area_m2": 2.68,
+      "reachable_free_area_m2": 2.68,
+      "sample_position": [
+        3.4000000000000004,
+        7.6000000000000005,
+        0.0
+      ]
+    },
+    {
+      "name": "guest_service_hall",
+      "kind": "circulation_hall",
+      "role": "guest_service_hall",
+      "passed": true,
+      "supported_area_m2": 10.88,
+      "free_area_m2": 6.32,
+      "reachable_free_area_m2": 6.32,
+      "sample_position": [
+        -1.6,
+        8.0,
+        0.0
+      ]
+    },
+    {
+      "name": "kitchen",
+      "kind": "interior_room",
+      "role": "kitchen",
+      "passed": true,
+      "supported_area_m2": 20.48,
+      "free_area_m2": 10.2,
+      "reachable_free_area_m2": 10.16,
+      "sample_position": [
+        -3.6,
+        6.800000000000001,
+        0.0
+      ]
+    },
+    {
+      "name": "taproom",
+      "kind": "interior_room",
+      "role": "taproom",
+      "passed": true,
+      "supported_area_m2": 54.44,
+      "free_area_m2": 33.28,
+      "reachable_free_area_m2": 33.24,
+      "sample_position": [
+        4.6000000000000005,
+        1.2000000000000002,
+        0.0
+      ]
+    },
+    {
+      "name": "fixture_approaches_0",
+      "kind": "fixture_approach",
+      "room_id": "guest_room",
+      "asset": "s_bed",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "fixture_approaches_1",
+      "kind": "fixture_approach",
+      "room_id": "guest_room",
+      "asset": "s_chest_small",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "fixture_approaches_2",
+      "kind": "fixture_approach",
+      "room_id": "kitchen",
+      "asset": "s_cooking_range",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "fixture_approaches_3",
+      "kind": "fixture_approach",
+      "room_id": "kitchen",
+      "asset": "s_prep_small",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "fixture_approaches_4",
+      "kind": "fixture_approach",
+      "room_id": "kitchen",
+      "asset": "s_pantry",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "fixture_approaches_5",
+      "kind": "fixture_approach",
+      "room_id": "taproom",
+      "asset": "s_tavern_counter",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "fixture_approaches_6",
+      "kind": "fixture_approach",
+      "room_id": "taproom",
+      "asset": "s_dining_table",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "fixture_approaches_7",
+      "kind": "fixture_approach",
+      "room_id": "taproom",
+      "asset": "s_dining_table",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    },
+    {
+      "name": "fixture_approaches_8",
+      "kind": "fixture_approach",
+      "room_id": "taproom",
+      "asset": "bench",
+      "must_exact": true,
+      "passed": true,
+      "route_sample_count": 1,
+      "unreachable_sample_count": 0
+    }
+  ],
+  "failed_target_count": 0,
+  "significant_isolated_components": [],
+  "path_midpoint_samples": 360,
+  "rejected_midpoint_edges_rerouted": 0,
+  "reroute_rounds": 1,
+  "path_unreachable_targets": [],
+  "path_midpoint_failures": [],
+  "path_midpoint_failure_count": 0,
+  "blocking_modules_sample_counts": {
+    "s_window_timber": 314,
+    "s_door_timber": 633,
+    "s_wall_timber": 645,
+    "s_tavern_counter": 52,
+    "s_dining_table": 220,
+    "bench": 33,
+    "s_pantry": 51,
+    "s_cooking_range": 69,
+    "s_opening_timber": 62,
+    "s_bed": 95,
+    "s_prep_small": 35,
+    "s_chest_small": 17
+  },
+  "elapsed_s": 0.14,
+  "limitations": [
+    "Mesh surfaces are tested statically; no game engine or animated door/controller/camera executed.",
+    "Uniform grid is sampled, not exhaustive continuous configuration-space proof.",
+    "Gentle-slope grounding lifts the capsule by radius*(sec(slope)-1) on actual supporting triangle planes up to35degrees.",
+    "Triangles entirely below .205m above local foot are allowed as a step-over envelope; engine stepping remains untested.",
+    "Only actual upward-facing support triangles establish ground; a metadata height hint cannot substitute a closed terrain underside. Overlapping multilevel floor layers are not modeled by this heightfield-style support search.",
+    "Room functional topology, single-leaf identity, slope comfort and fixture usability require separate semantic/visual review."
+  ],
+  "required_routes_passed": true,
+  "passed": true
+}

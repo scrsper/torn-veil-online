@@ -43,3 +43,16 @@ export function sharedTravelClip(s: Pick<ActorState, 'velocity' | 'yaw'>, previo
   return Math.abs(direction.x) > Math.abs(direction.z) ? `unarmed/walk_strafe_${direction.x >= 0 ? 'left' : 'right'}`
     : direction.z < 0 ? 'unarmed/walk_backward' : 'unarmed/walk_forward';
 }
+
+/** Authorial walk/jog for ordinary travel; sprint requires the canonical run pose.
+ * Rate is speed / blended stride length, not an average of inverse strides. */
+export function authoredTravelBlend(speed: number, sprint: boolean, pace: (name: string, fallback: number) => number,
+  length: (name: string) => number, ready = false) {
+  const walk = ready ? 'ready/sword and shield walk' : 'unarmed/walk_forward';
+  const run = sprint ? (ready ? 'ready/sword and shield run' : 'unarmed/run_sprint')
+    : (ready ? 'ready/sword and shield jog' : 'unarmed/run_jog');
+  const wp = Math.max(.1, pace(walk, 1.5)), rp = Math.max(wp + .1, pace(run, sprint ? 5.2 : 3.4));
+  const blend = Math.max(0, Math.min(1, (speed - wp) / (rp - wp)));
+  const stride = (1 - blend) * wp * Math.max(.1, length(walk)) + blend * rp * Math.max(.1, length(run));
+  return { walk, run, blend, rate: Math.max(.05, speed / stride) };
+}

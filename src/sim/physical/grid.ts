@@ -1,9 +1,12 @@
 import { B, blockDef, BLOCKS } from './blocks';
 import type { Vec3 } from '../core/types';
+import type {MovementGeometry} from './staticGeometry';
 
 /** The canonical voxel substance of the physical world. Chunked so the renderer can rebuild locally. */
 export const CHUNK = 16;
 export class VoxelGrid {
+  /** Asset areas supply canonical source geometry; ordinary voxel worlds are unchanged. */
+  movementGeometryAt(_x:number,_z:number):MovementGeometry|null{return null;}
   readonly data: Uint8Array;
   readonly dirtyChunks = new Set<number>();
   readonly diffs = new Map<number, number>(); // modifications relative to generation (for persistence)
