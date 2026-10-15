@@ -53,6 +53,9 @@ web/public/arena/mixamo_clips.glb
 web/public/arena/mixamo_clips.json
 web/public/arena/unarmed_clips.glb
 web/public/arena/runtime-dependencies.json
+# Licensed clip packs must never be committed anywhere (model-review renders load them from outside the repo).
+**/mixamo_clips.glb
+**/unarmed_clips.glb
 # Ontology creator bodies, staged byte-for-byte from tools/ontology with hash checks: npm run web:creator
 web/public/arena/creator/
 
