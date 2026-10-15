@@ -1,3 +1,6 @@
+import { realmWeather, streamingFog } from './realmAtmosphere';
+import { SliceHud } from '../ui/sliceHud';
+import { onboarding, spawnReveal } from '../presentation/spawn';
 import { Engine, FreeCamera, Vector3, Matrix } from '@babylonjs/core';
 import { createRenderer, attachPipeline } from '../render/engine';
 import { Atmosphere } from '../world/atmosphere';
@@ -33,7 +36,7 @@ export async function startRealms(): Promise<void> {
   // City canyons need a readable sky fill. Keep the shared clock/sun direction and
   // restrained exposure; never brighten the walls by changing canonical daylight.
   atmosphere.look.fill = 1.35; atmosphere.look.key = 1.08; atmosphere.look.exposure = 1.08;
-  atmosphere.shadow.setDarkness(.32);
+  atmosphere.shadow.setDarkness(.32); atmosphere.look.fog = 1.65;
   const grounding=contactGrounding(ctx.scene);
   // The shared rural sky uses large illustrated discs. City street views use a
   // restrained apparent sun/moon size behind the layered building silhouettes.
@@ -50,12 +53,15 @@ export async function startRealms(): Promise<void> {
     <details class="rv-card rv-wayfinder"><summary>Travel & journal</summary><small>THRESHOLD SQUARE</small><b id="rv-destination">Aether Reach ↔ Cinderveil</b><button id="rv-portal">Walk to portal</button><button id="rv-tower">Walk to Tower</button><button id="rv-canonical" hidden>Enter shared Tower trial</button><button id="rv-ascend" hidden>Historical score-based Tower lab</button><button id="rv-journal">Character & journey</button><label class="rv-camera-choice">Camera <select id="rv-camera"><option value="close">Close</option><option value="elevated">Elevated</option><option value="wide">Wide</option></select></label></details>
     <div class="rv-reticle">·</div><div class="rv-toast" id="rv-toast" aria-live="polite"></div>
     <div class="rv-prompt" id="rv-prompt">Loading nearby streets…</div>
-    <footer><span>WASD move · X walk · MMB orbit · wheel zoom · J/K/L strike · G guard · Space dodge · E interact · I journal</span><span id="rv-stream"></span></footer>
+    <footer><span>WASD move · X walk · MMB orbit · wheel zoom · LMB strike · K heavy · L low · G guard · Space dodge · E interact · I character · J objectives</span><span id="rv-stream"></span></footer>
     <section class="rv-modal" id="rv-choice" hidden><small>THE VEIL</small><h2 id="rv-choice-title"></h2><p>Your identity, possessions and development travel with you.</p><button id="rv-cross">Cross threshold</button><button id="rv-cancel">Stay here</button></section>
     <section class="rv-modal rv-journal" id="rv-sheet" hidden><small>YOUR JOURNEY</small><h2 id="rv-name"></h2><div id="rv-character"></div><p class="rv-note">The shared Tower trial carries this body, its injuries and belongings. Historical score-based expeditions are comparison evidence and do not define current progression.</p><button id="rv-save">Save journey</button><button id="rv-close">Return to world</button></section>
     <section class="rv-modal" id="rv-expedition" hidden><small>THE TOWER</small><h2>Your expedition awaits</h2><p>Continue from the last saved floor start, or return to your atrium landing.</p><button id="rv-resume">Continue expedition</button><button id="rv-return">Return to atrium</button></section>
     <div class="rv-loading" id="rv-loading">Preparing nearby streets…</div>
   </div>`;
+  const sliceHud = new SliceHud(ui), welcome = onboarding(ui);
+  let revealAt = 0;
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   await people.load(text=>{document.getElementById('rv-loading')!.textContent=text;});
   const el = (id: string) => document.getElementById(id)!;
   const keys = new Set<string>(), frames: number[] = [], streamingFrames: number[] = [], serverSamples: number[] = [], journeys: { realm: string; at: number; readyAt?: number }[] = [];
@@ -78,6 +84,8 @@ export async function startRealms(): Promise<void> {
     if (m.type === 'notice') toast(m.message);
     if (m.type !== 'state') return;
     state = m.state; const s = state!; lastStateAt = performance.now();
+    if (!revealAt) revealAt = performance.now();
+    sliceHud.dispatch({type:'progress',rank:s.person.rank});
     renderer.reconcileFocused(s.focusedAssets,s.body.pos);
     serverSamples.push(m.serverMs); if (serverSamples.length > 600) serverSamples.shift();
     if (lastRealm !== s.realm) {
@@ -159,11 +167,15 @@ export async function startRealms(): Promise<void> {
   el('rv-prompt').onclick = () => send({ type: 'interact' });
   window.addEventListener('keydown', e => {
     if (['KeyW','KeyA','KeyS','KeyD','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space','Tab'].includes(e.code)) e.preventDefault();
+    if (e.code === 'Escape' && sliceHud.journalOpen) { sliceHud.dispatch({type:'journal'});release();return; }
+    if (!e.repeat && e.code === 'KeyJ') { sliceHud.dispatch({type:'journal'}); release(); return; }
+    if (welcome.open) { if (['Enter','Escape','KeyW','KeyA','KeyS','KeyD'].includes(e.code)) welcome.close(); else return; }
+    if (sliceHud.journalOpen) return;
     if (!e.repeat && e.code === 'KeyE' && !journal) send({ type: 'interact' });
     if (!e.repeat && e.code === 'KeyI') toggleJournal();
     if(!e.repeat&&!journal&&!transitioning){
       if(e.code==='Tab'&&state){const ids=state.residents.filter(r=>!r.visual.dead&&!r.visual.incapacitated).map(r=>r.visual.bodyId);targetId=ids[(ids.indexOf(targetId)+1)%ids.length]??'';toast(state.residents.find(r=>r.visual.bodyId===targetId)?.name??'No visible target');}
-      if(['KeyJ','KeyK','KeyL'].includes(e.code))command({type:'attack',targetBodyId:targetId||undefined,weight:e.code==='KeyK'?'heavy':'light',trajectory:e.code==='KeyL'?'low':'high'});
+      if(['KeyK','KeyL'].includes(e.code))command({type:'attack',targetBodyId:targetId||undefined,weight:e.code==='KeyK'?'heavy':'light',trajectory:e.code==='KeyL'?'low':'high'});
       if(e.code==='Space')command({type:'defend',kind:keys.has('KeyA')||keys.has('KeyD')?'sidestep':'backstep',direction:cameraRelativeMove(Number(keys.has('KeyD'))-Number(keys.has('KeyA')),-1,movementYaw)});
       if(e.code==='KeyC')command({type:'crouch',held:true});
       if(/^Digit[1-6]$/.test(e.code)&&state){const ability=state.growth.learned[Number(e.code.slice(-1))-1],target=state.residents.find(r=>r.visual.bodyId===targetId);if(ability)command({type:'cast',abilityId:ability.id,target:target?{...target.pos,y:target.pos.y+1}:undefined});}
@@ -176,7 +188,7 @@ export async function startRealms(): Promise<void> {
   document.addEventListener('visibilitychange', () => { if (document.hidden) release(); });
   window.addEventListener('pointercancel', release);
   canvas.addEventListener('contextmenu', e => e.preventDefault());
-  canvas.addEventListener('pointerdown',e=>{if(journal||transitioning)return;if(e.button===0)command({type:'attack',targetBodyId:targetId||undefined,trajectory:'high',weight:'light'});else if(e.button===2){mouseGuard=true;command({type:'guard',held:true});e.preventDefault();}});
+  canvas.addEventListener('pointerdown',e=>{if(journal||transitioning||welcome.open||sliceHud.journalOpen)return;if(e.button===0)command({type:'attack',targetBodyId:targetId||undefined,trajectory:'high',weight:'light'});else if(e.button===2){mouseGuard=true;command({type:'guard',held:true});e.preventDefault();}});
   window.addEventListener('pointerup',e=>{if(e.button===2){mouseGuard=false;command({type:'guard',held:keys.has('KeyG')});}});
   attachOrbit(canvas, view.camera, view.persist);
   ui.querySelector<HTMLElement>('.rv-reticle')!.hidden = true;
@@ -197,7 +209,7 @@ export async function startRealms(): Promise<void> {
       if (keys.has('ArrowUp')) view.camera.addLook(0, -dt); if (keys.has('ArrowDown')) view.camera.addLook(0, dt);
       if (inputAccumulator >= .05 && !transitioning && !s.expedition?.active) {
         inputAccumulator = 0;
-        const move = walkingMove(cameraRelativeMove(journal || s.pending ? 0 : right, journal || s.pending ? 0 : forward, movementYaw),keys.has('KeyX'),keys.has('ShiftLeft')||keys.has('ShiftRight'));
+        const move = walkingMove(cameraRelativeMove(journal || welcome.open || sliceHud.journalOpen || s.pending ? 0 : right, journal || welcome.open || sliceHud.journalOpen || s.pending ? 0 : forward, movementYaw),keys.has('KeyX'),keys.has('ShiftLeft')||keys.has('ShiftRight'));
         const target=s.residents.find(r=>r.visual.bodyId===targetId),face=keys.has('KeyQ')||keys.has('KeyG')||mouseGuard;
         const active=!!(move.x||move.z||face||keys.has('KeyC'));
         if(active||inputWasActive)command({ type: 'move', ...move, facing: face ? target?Math.atan2(s.body.pos.x-target.pos.x,s.body.pos.z-target.pos.z):view.camera.renderedYaw : travelFacing(move), sprint: keys.has('ShiftLeft') || keys.has('ShiftRight'),crouch:keys.has('KeyC') });
@@ -224,19 +236,30 @@ export async function startRealms(): Promise<void> {
         const pose=architectureNeeded?framing.update(rawPose,pivot,solids,{yaw:view.camera.renderedYaw,pitch:view.camera.debug.pitchDeg*Math.PI/180,want:view.camera.debug.want,limit:view.camera.debug.limit},dt):rawPose;
         if(solids.length&&framing.debug.framing!=='orbit')pose.fov=interiorDetailFov(pose,avatar.root.position,avatar.bodyHeight??1.75,view.camera.preferred);
         movementYaw = groundViewYaw(pose.position, pose.target);
-        camera.position.set(pose.position.x, pose.position.y, pose.position.z); camera.setTarget(new Vector3(pose.target.x, pose.target.y, pose.target.z)); camera.fov = pose.fov;
+        // Lift the opening shot gently, still constrained by the normal camera ray.
+        const reveal=spawnReveal((now-revealAt)/1000,reducedMotion||forward!==0||right!==0||!!architectureNeeded);
+        if(reveal>0){
+        const opening=new Vector3(pose.position.x,pose.position.y+reveal*5,pose.position.z);
+        const ray=opening.subtract(pivot),length=ray.length(),direction=ray.normalizeToNew();
+        const safe=obstruction(pivot,direction,length,false);
+        const shot=pivot.add(direction.scale(Math.min(length,safe)));
+        camera.position.copyFrom(shot);
+        }else camera.position.set(pose.position.x,pose.position.y,pose.position.z);
+        camera.setTarget(new Vector3(pose.target.x, pose.target.y, pose.target.z)); if(welcome.open)revealAt=now;
+        camera.fov = pose.fov + spawnReveal((now-revealAt)/1000,reducedMotion || forward!==0 || right!==0 || !!architectureNeeded);
         renderer.focused.cutaway(camera.position,avatar.root.position);
       }
       const authoredTown=s.realm==='brass'&&!!s.focusedAssets;
       atmosphere.look.fill=authoredTown?1.06:.98;atmosphere.look.key=authoredTown?1.16:1.24;atmosphere.look.exposure=authoredTown?1.04:1.16;atmosphere.shadow.setDarkness(authoredTown?.45:.32);
-      atmosphere.update((s.worldTime / 3600 + (s.realm === 'aether' ? 9.866 : authoredTown?1.5:9.066)) % 24, { kind: 'clear', intensity: 0, wind: .25 }, dt);
-      ctx.scene.fogDensity = s.realm === 'aether' ? .0026 : authoredTown?.0048:.0017;
+      sliceHud.bearing(s.body.pos, movementYaw, s.focusedAssets?.tower.entry);
+      atmosphere.update((s.worldTime / 3600 + (s.realm === 'aether' ? 9.866 : authoredTown?1.5:9.066)) % 24, realmWeather(s), dt);
+      ctx.scene.fogDensity = streamingFog(ctx.scene.fogDensity, renderer.pending);
       if (hudAccumulator > .3) { hudAccumulator = 0; el('rv-stream').textContent = params.has('debug') ? `${renderer.loaded.size} chunks resident · ${renderer.pending} loading` : `${s.person.rank} · ${s.realmName}`; }
       for (const r of residents.values()) r.root.setEnabled(false);
       if (people.ready||factory.ready) for (const n of s.residents) {
         let v = residents.get(n.visual.bodyId);
         if (!v) {
-          if (residents.size >= 16) { const oldest = residents.keys().next().value!; residents.get(oldest)!.dispose(); residents.delete(oldest); }
+          if (residents.size >= 32) { const oldest = residents.keys().next().value!; residents.get(oldest)!.dispose(); residents.delete(oldest); }
           const r=people.create(n.visual,atmosphere)??factory.create(ctx.scene,atmosphere,n.visual.bodyId,realize(n.id,n.appearance.description,undefined)); if (r) { v = r; residents.set(n.visual.bodyId, r); }
         }
         if (v) {

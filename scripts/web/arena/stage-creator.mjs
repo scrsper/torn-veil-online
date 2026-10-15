@@ -26,3 +26,6 @@ for (const v of family.variants) {
   console.log(`staged ${a.id} (${v.id}) sha256 ${p.sha256}`);
 }
 writeFileSync(join(out, 'creator.json'), JSON.stringify({ family: family.id, familyVersion: family.version, familyStatus: family.status, stagedAt: new Date().toISOString(), bodies: staged }, null, 1));
+
+// Optional world art is independent of the required audited character assets.
+await (await import('../stage-optional-assets.mjs')).stageOptionalAssets(process.env.TV_ASSETS_DIR);
