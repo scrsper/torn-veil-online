@@ -13,7 +13,7 @@ export class SliceHud {
  private timer = 0;
  private unsubscribe: () => void;
  constructor(parent: HTMLElement, api: ObjectiveAPI = stubObjectives) {
-  this.root.className='tv-slice'; this.progress.className='tv-progress';this.tracker.className='tv-objectives';this.journal.className='tv-objective-journal';this.compass.className='tv-compass';this.banner.className='tv-banner';this.banner.setAttribute('aria-live','polite');
+  this.root.className='tv-slice'; this.progress.className='tv-progress';this.tracker.className='tv-objectives';this.journal.className='tv-objective-journal';this.compass.className='tv-compass';this.banner.className='tv-slice-banner';this.banner.setAttribute('aria-live','polite');
   this.journal.hidden=true;this.map.width=144;this.map.height=144;this.map.className='tv-minimap';this.map.setAttribute('aria-label','Nearby orientation map with Tower marker');
   this.root.append(this.map,this.progress,this.tracker,this.journal,this.compass,this.banner);parent.append(this.root);
   this.dispatch({type:'objectives',objectives:api.getActiveObjectives()});this.unsubscribe=api.subscribe(e=>this.dispatch(e));

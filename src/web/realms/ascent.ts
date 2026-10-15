@@ -1,7 +1,7 @@
 import { realmWeather } from './realmAtmosphere';
 import { OptionalAssets } from '../presentation/optionalAssets';
 import { SliceHud } from '../ui/sliceHud';
-import { ClientObjectives, hudObjectiveApi } from '../quests/objectives';
+import { ClientObjectives, hudObjectiveApi, hudJournal } from '../quests/objectives';
 import { towerTheme } from './towerThemes';
 import { FreeCamera, Vector3, Matrix, Color3, MeshBuilder, StandardMaterial, PBRMaterial, Mesh, Ray, type Material } from '@babylonjs/core';
 import { createRenderer, attachPipeline } from '../render/engine';
@@ -147,7 +147,7 @@ export async function startCanonicalAscent() {
   }
   ws.onmessage = e => {
     const m = JSON.parse(e.data);
-    quests.ingestMessage(m);
+    quests.ingestMessage(m); if (m.type === 'tower_frame' && m.questJournal) sliceHud.dispatch({type:'ledger',entries:hudJournal(quests.journal())});
     if (m.type === 'controller') token = m.token;
     if (m.type === 'binding') { binding = m.interaction; sequence = 0; keys.clear(); }
     if (m.type === 'tower_geometry') drawFloor(m.plan);

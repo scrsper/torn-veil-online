@@ -12,3 +12,9 @@ it('projects ledger entries with origin/source/state and never invents payment',
   expect(s.entries).toHaveLength(2);
   expect(hudReducer(s, { type: 'ledger', entries: rows })).toBe(s);
 });
+import { ClientObjectives } from '../../src/web/quests/objectives';
+it('mirrors questJournal carried on tower frames', () => {
+  const q = new ClientObjectives();
+  q.ingestMessage({ type: 'tower_frame', objectives: [], questJournal: [{ id: 'system:tower:floor:1' } as any] });
+  expect(q.journal().map(e => e.id)).toEqual(['system:tower:floor:1']);
+});

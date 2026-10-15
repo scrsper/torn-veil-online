@@ -40,9 +40,9 @@ export class ClientObjectives {
     this.tracker.ingest(objectives ?? [], fresh);
   }
   /** Accepts any host message; ignores the ones that carry no objective data. */
-  ingestMessage(m: { type?: string; state?: { objectives?: Objective[]; objectiveReceipts?: ObjectiveReceipt[]; questJournal?: QuestLedgerEntry[] }; objectives?: Objective[]; receipt?: ObjectiveReceipt; objective?: Objective | null }): void {
+  ingestMessage(m: { type?: string; state?: { objectives?: Objective[]; objectiveReceipts?: ObjectiveReceipt[]; questJournal?: QuestLedgerEntry[] }; objectives?: Objective[]; receipt?: ObjectiveReceipt; objective?: Objective | null; questJournal?: QuestLedgerEntry[] }): void {
     if (m.type === 'state' && m.state) { if (m.state.questJournal) this.ledger = m.state.questJournal; this.ingest(m.state.objectives, m.state.objectiveReceipts); }
-    else if (m.type === 'tower_frame') this.ingest(m.objectives, undefined);
+    else if (m.type === 'tower_frame') { if (m.questJournal) this.ledger = m.questJournal; this.ingest(m.objectives, undefined); }
     else if (m.type === 'objective' && m.receipt) this.ingest(this.getActiveObjectives().filter(o => o.id !== m.receipt!.objectiveId), [m.receipt]);
   }
 }

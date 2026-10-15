@@ -171,8 +171,8 @@ export async function startRealms(): Promise<void> {
   window.addEventListener('keydown', e => {
     if (['KeyW','KeyA','KeyS','KeyD','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space','Tab'].includes(e.code)) e.preventDefault();
     if (e.code === 'Escape' && sliceHud.journalOpen) { sliceHud.dispatch({type:'journal'});release();return; }
-    if (!e.repeat && e.code === 'KeyJ') { sliceHud.dispatch({type:'journal'}); release(); return; }
     if (welcome.open) { if (['Enter','Escape','KeyW','KeyA','KeyS','KeyD'].includes(e.code)) welcome.close(); else return; }
+    if (!e.repeat && e.code === 'KeyJ') { sliceHud.dispatch({type:'journal'}); release(); return; }
     if (sliceHud.journalOpen) return;
     if (!e.repeat && e.code === 'KeyE' && !journal) send({ type: 'interact' });
     if (!e.repeat && e.code === 'KeyI') toggleJournal();
