@@ -32,6 +32,7 @@ export class TowerController {
         return body && cast && cast.completeAt + .3 >= w.physicalTime ? [{ ...cast, origin: { ...body.pos } }] : [];
       }),
       residency: towerResidency(w),
+      objectives: this.session.objectives(), combatEvents: this.session.combatEvents(),
       tower: { id: run.id, revision: run.revision, floor: f.floor, status: run.status, clear: !!f.clearEventId,
         defeated: f.defeats.length, opponents: f.enemyBodyIds.length, retiredBodyIds: f.defeats.map(d => d.bodyId), start: plan.start, exit: plan.exit },
       own: { id: p.id, bodyId: b.id, name: p.name, health: b.health, maxHealth: b.maxHealth, rank: p.ontology.stage,

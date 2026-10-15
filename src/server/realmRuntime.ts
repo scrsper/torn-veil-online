@@ -3,6 +3,8 @@ import { TowerController } from './towerController';
 import { applyTowerCommand, type TowerCommand } from './canonicalTower';
 import { applyExpeditionCommand, validateExpeditionSave, type ExpeditionCommand } from './realmExpedition';
 import type { MovementInput } from '../sim/physical/prediction';
+import { settleObjectives } from '../sim/quests';
+import { seedForestLife } from '../sim/world/realms/wildlife';
 
 /** Ordered host operations. Recorded server time, never client time, expires input.
  * The replay replica uses the same canonical simulation; it is not a second ruleset. */
@@ -10,7 +12,7 @@ export type RealmOperation = {type:'bind';id:string;epoch:string}
   | {type:'step';now:number} | {type:'frame'} | {type:'disconnect'} | {type:'adopt_focused';migration?:import('../sim/world/realms/session').FocusedTowerMigration}
   | {type:'command';input:unknown;now:number} | {type:'move';input:MovementInput}
   | {type:'interact'} | {type:'confirm';id:number} | {type:'cancel'}
-  | {type:'navigate';target:'portal'|'tower'}
+  | {type:'navigate';target:'portal'|'tower'} | {type:'objectives'} | {type:'adopt_wildlife'} | {type:'traverse'}
   | {type:'tower';command:TowerCommand} | {type:'expedition';command:ExpeditionCommand};
 export interface RealmContinuation {
   citySteps:number;
@@ -54,6 +56,10 @@ export class RealmRuntime {
       case 'confirm':return s.confirm(op.id);
       case 'cancel':return s.cancel();
       case 'navigate':return s.navigate(op.target);
+      // Completion receipts and payment are World mutations, so they are journaled like any input.
+      case 'objectives':return settleObjectives(s.world,s.person.id);
+      case 'adopt_wildlife':return seedForestLife(s.world);
+      case 'traverse':return s.traverse();
       case 'tower':case 'expedition':{
         // Rare structural mutations retain one rollback capture. Routine autosaves
         // never enter this path and never stringify the live history.

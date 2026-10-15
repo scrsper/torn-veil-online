@@ -29,6 +29,8 @@ if(clientBuild&&clientBuild.commit!==execFileSync('git',['rev-parse','HEAD'],{en
 const journal = new RealmJournal(savePath, Number(process.env.TV_REALMS_SEED ?? 918271));
 await journal.ready;
 if(process.env.TV_FOCUSED_WORLD==='1'&&!journal.runtime.session.world.realmSpec?.focusedKit){journal.apply({type:'adopt_focused'});await journal.flush();}
+// The forest between town and Tower gets its founder wildlife and outlaw once, as a journaled endowment.
+if(journal.runtime.session.world.realmSpec?.focusedKit&&!journal.runtime.session.world.ecology){journal.apply({type:'adopt_wildlife'});await journal.flush();}
 let session = journal.runtime.session;
 let saveError = '', updateError = '';
 let towerController: TowerController | null = journal.runtime.tower, towerSignature = '', towerView = false;
@@ -151,6 +153,7 @@ ws.on('connection', (client, req) => {
       else if (m.type === 'interact') { client.send(JSON.stringify({ type: 'notice', message: apply({ type: 'interact' }) })); await persist(); }
       else if (m.type === 'confirm') { if (apply({ type: 'confirm', id: m.id })) { signature = ''; await persist(); } }
       else if (m.type === 'cancel') apply({ type: 'cancel' });
+      else if (m.type === 'traverse') client.send(JSON.stringify({ type: 'traversal', result: apply({ type: 'traverse' }) }));
       else if (m.type === 'navigate' && ['portal', 'tower'].includes(m.target)) apply({ type: 'navigate', target: m.target });
       else if (m.type === 'save') { await persist(); client.send(JSON.stringify({ type: 'notice', message: saveError ? 'Save failed; world paused for durable recovery.' : 'World saved.' })); }
     } catch (e) { client.send(JSON.stringify({ type: 'notice', message: 'Invalid command was rejected.' })); }
@@ -158,6 +161,13 @@ ws.on('connection', (client, req) => {
   client.on('close', () => { if (owner === client) { if (!updateError && !closing) { apply({ type: 'disconnect' }); void persist(); } owner = null; ownerToken = ''; } });
 });
 let tick = 0;
+/** Reading objectives is free; only an actual completion is journaled and announced. */
+function settleObjectives() {
+  if (!owner || !session.objectives().some(o => o.complete)) return;
+  const before = new Map(session.objectives().map(o => [o.id, o]));
+  for (const receipt of apply({ type: 'objectives' }) as import('../sim/quests').ObjectiveReceipt[])
+    owner.send(JSON.stringify({ type: 'objective', event: 'objective:complete', receipt, objective: before.get(receipt.objectiveId) ?? null }));
+}
 let scheduler = new FixedScheduler(1000 / 60, performance.now());
 const timer = setInterval(() => {
   if (updateError || !owner || owner.readyState !== WebSocket.OPEN) return;
@@ -168,6 +178,7 @@ const timer = setInterval(() => {
       if (!towerController) rebindTower();
       for (const receipt of apply({ type: 'step', now: performance.now() })) if (towerView) owner!.send(JSON.stringify(receipt));
     } else { for(const receipt of apply({ type: 'step', now: performance.now() })) owner!.send(JSON.stringify(receipt)); } stepMs.push(performance.now() - start); if (stepMs.length > 600) stepMs.shift();
+    if (tick % 60 === 59) settleObjectives();
     if (++tick % 6) return;
     if (tick % 300 === 0) void persist(); if (tick % 1800 === 0) void checkpoint();
     if (session.world.canonicalTower?.active && towerView && towerController) {

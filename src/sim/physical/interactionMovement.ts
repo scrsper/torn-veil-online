@@ -31,6 +31,8 @@ export function applyInteractionMovement(w: World,p: Person,b: Body,input: Movem
   // sleep/downed poses with stand when their animation timer expires. Wake/recovery
   // are shared explicit transitions, independent of the input transport heartbeat.
   if (!movementState(w,p,b).eligible) { b.vel = { x: 0, y: 0, z: 0 }; return; }
+  // A vault or jump owns the body until it lands (physical/traversal.ts).
+  if (b.traversal) return;
   if (Math.hypot(input.x, input.z) > .01) cancelArcaneCast(w, b);
   if(b.combatAction&&b.combatAction.completeAt>w.physicalTime){
     if(w.physicalTime<combatTransitionAt(b.combatAction,'move')||Math.hypot(input.x,input.z)<.01)return;

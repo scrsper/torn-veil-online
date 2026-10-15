@@ -22,6 +22,8 @@ import {placedPoint} from '../assets/focused';
 import {FOCUSED_GENERATOR} from '../assets/focusedLayouts';
 import {FoldedRealmGrid} from '../interiors/grid';
 import {validCanonicalTower} from '../interiors/towerPersistence';
+import {advanceTraversal,beginTraversal} from '../../physical/traversal';
+import {deriveObjectives,objectiveReceipts,type Objective} from '../../quests';
 
 export interface FocusedTowerMigration {
   policy:'preserve-canonical-floors-v1'; runId:string; revision:number;
@@ -36,6 +38,7 @@ export class RealmSession {
   private transitionId = 0;
   private lastRegion = '';
   private classAt=-Infinity;
+  private objectiveCache:{events:number;at:number;list:Objective[]}|null=null;
   private recognised:ReturnType<typeof recogniseClass>=null;
   constructor(seed = 918271, saved?: string) {
     if (saved) {
@@ -78,6 +81,12 @@ export class RealmSession {
     this.input = { x: input.x, z: input.z, sprint: input.sprint, ...(input.facing === undefined ? {} : { facing: input.facing }) }; this.inputUntil = this.world.physicalTime + .25;
     if (input.x || input.z) this.body.path = null;
   }
+  /** Space: vault the obstacle ahead or jump the gap ahead; otherwise a hop in place (presentation only). */
+  traverse(): 'vault' | 'jump' | 'hop' | 'unable' {
+    const w=this.world,b=this.body;
+    if (w.realmExpedition?.active || this.pending || !movementState(w, this.person, b).eligible || combatBusy(b, w.physicalTime) || b.recoil) return 'unable';
+    return beginTraversal(w, b)?.kind ?? 'hop';
+  }
   stop(): void { this.input = { x: 0, z: 0, sprint: false }; this.pending = null; this.body.path = null; }
   navigate(target: 'portal' | 'tower'): boolean {
     if ((this.world.realmExpedition?.active || this.world.canonicalTower?.active) || this.pending || !movementState(this.world, this.person, this.body).eligible || combatBusy(this.body, this.world.physicalTime)) return false;
@@ -97,6 +106,7 @@ export class RealmSession {
   }
   /** Shared controller cadence: move on this World without advancing a second clock. */
   advanceMovement(dt: number, guidedOnly = false): void {
+    if (this.body.traversal && Number.isFinite(dt) && dt > 0 && dt <= .1) { advanceTraversal(this.world, this.body, dt); return; }
     if (this.world.realmExpedition?.active || this.world.canonicalTower?.active || !Number.isFinite(dt) || dt <= 0 || dt > .1) return;
     const w = this.world, b = this.body, old = { ...b.pos };
     const region = `${realmAt(b.pos.x, b.pos.z)}:${Math.floor(b.pos.x / REALM_CHUNK)},${Math.floor(b.pos.z / REALM_CHUNK)}`;
@@ -182,7 +192,7 @@ export class RealmSession {
     const visible=w.persons().filter(n=>n.id===this.person.id||w.primaryBody(n.id)?.present&&realmAt(w.primaryBody(n.id)!.pos.x,w.primaryBody(n.id)!.pos.z)===realm&&w.distance2d(p,w.primaryBody(n.id)!.pos)<80&&w.grid.lineOfSight({...p,y:p.y+1.6},{...w.primaryBody(n.id)!.pos,y:w.primaryBody(n.id)!.pos.y+1.6},80));
     return { focusedAssets:realm==='brass'?this.grid.focusedTown:null,realm, realmName: REALMS[realm].name, subtitle: REALMS[realm].subtitle, seed: w.seed, time: w.physicalTime, worldTime: w.now,
       person: { id: this.person.id, name: this.person.name, rank: this.person.ontology.stage, inventory: this.person.inventory.map(id => { const i = w.item(id)!; return { id, name: i.name, quantity: i.quantity }; }) },
-      body: { id: this.body.id, pos: { ...p }, yaw: this.body.yaw, hp: this.body.health, maxHp: this.body.maxHealth },
+      body: { id: this.body.id, pos: { ...p }, yaw: this.body.yaw, hp: this.body.health, maxHp: this.body.maxHealth, traversal: this.body.traversal ? { ...this.body.traversal } : null },
       avatar:this.visual(this.body),
       growth:arcaneProgress(w,this.person,this.body),
       development:{recognisedClass:this.recognised,skills:{...this.person.skills},practice:this.person.capability?.bySkill??{}},
@@ -193,8 +203,39 @@ export class RealmSession {
       tower: this.inTower(), pending: this.pending ? { ...this.pending, destination: REALMS[this.pending.to].name } : null,
       prompt: portal ? 'E · Cross the Veil' : door ? `E · ${w.isDoorOpen(door.door) ? 'Close' : 'Open'} ${door.name}` : this.inTower() ? 'Tower of Chrysanthus · Atrium' : 'WASD · Explore   Shift · Run   E · Interact',
       doors: [...w.grid.doorStates].map(([index, open]) => ({ index, open })),
-      residents: w.persons().filter(n => n.id !== this.person.id).flatMap(n => { const b = w.primaryBody(n.id); return b && realmAt(b.pos.x, b.pos.z) === realm && w.distance2d(p, b.pos) < 80 && w.grid.lineOfSight({ ...p, y: p.y + 1.6 }, { ...b.pos, y: b.pos.y + 1.6 }, 80) ? [{ id: n.id, visual:this.visual(b), name: n.name, pos: b.pos, yaw: b.yaw, vel: b.vel, appearance: { ...n.appearance, description: n.appearance.description ? projectAppearanceDescription(n.appearance.description, n.age, n.occupation) : undefined } }] : []; }),
+      residents: w.persons().filter(n => n.id !== this.person.id).flatMap(n => { const b = w.primaryBody(n.id); return b && realmAt(b.pos.x, b.pos.z) === realm && w.distance2d(p, b.pos) < 80 && w.grid.lineOfSight({ ...p, y: p.y + 1.6 }, { ...b.pos, y: b.pos.y + 1.6 }, 80) ? [{ id: n.id, visual:this.visual(b), name: n.name, hostile: n.hostile || n.tags.includes('tower-warden'), pos: b.pos, yaw: b.yaw, vel: b.vel, appearance: { ...n.appearance, description: n.appearance.description ? projectAppearanceDescription(n.appearance.description, n.age, n.occupation) : undefined } }] : []; }),
+      objectives:this.objectives(),objectiveReceipts:objectiveReceipts(w,this.person.id).slice(-12),
+      combatEvents:this.combatEvents(),wildlife:this.wildlife(),
       stats: { canonicalPeople: w.persons().length, cachedChunks: this.grid.cachedChunks, persistedEdits: w.grid.diffs.size, doors: w.grid.doorStates.size, eventCount: w.events.length } };
+  }
+  /** Derived from the World; recomputed when history grows or every half second. */
+  objectives():Objective[] {
+    const w=this.world,c=this.objectiveCache;
+    if(!c||c.events!==w.events.length||Math.abs(w.physicalTime-c.at)>.5)this.objectiveCache={events:w.events.length,at:w.physicalTime,list:deriveObjectives(w,this.person.id)};
+    return this.objectiveCache!.list;
+  }
+  /** Recent combat outcomes near the player, for presentation feedback (hit-stop, shake, stagger). */
+  combatEvents(radius=40) {
+    const w=this.world,p=this.body.pos,out=[];
+    for(let i=w.events.length-1;i>=0&&out.length<24;i--){
+      const e=w.events[i];if(e.tick<w.now-3)break;
+      if(e.type!=='attack'&&e.type!=='attack_missed'&&e.type!=='kill')continue;
+      if(e.pos&&w.distance2d(e.pos,p)>radius)continue;
+      out.push({id:e.id,type:e.type,tick:e.tick,actor:e.actor??null,target:e.target??null,attackerBodyId:e.data.attackerBodyId??null,targetBodyId:e.data.targetBodyId??null,
+        damage:Number(e.data.damage)||0,health:Number.isFinite(e.data.health)?e.data.health:null,weight:e.data.combat?.weight??null,guarded:!!e.data.combat?.guardEventId,pos:e.pos?{...e.pos}:null});
+    }
+    return out.reverse();
+  }
+  /** Wildlife the player can see, with defensive mode (telegraphs) and health. */
+  wildlife(radius=60) {
+    const w=this.world,p=this.body.pos;if(!w.ecology)return [];
+    return w.creatures().filter(c=>c.wildlife).flatMap(c=>c.bodies.flatMap(id=>{
+      const b=w.body(id),state=c.wildlife!.embodiments[id];
+      if(!b||!b.present||w.distance2d(b.pos,p)>radius)return [];
+      return [{bodyId:b.id,entityId:c.id,species:c.species,name:c.name,pos:{...b.pos},yaw:b.yaw,vel:{...b.vel},health:b.health,maxHealth:b.maxHealth,dead:b.dead||b.health<=0,
+        defense:state?.defense?{mode:state.defense.mode,since:state.defense.since,strikeAt:state.defense.strikeAt??null,targetBodyId:state.defense.targetBodyId}:null,
+        hostile:!!w.ecology!.species[c.species]?.defense}];
+    }));
   }
   regionPlan() { return realmResidency(this.world.canonicalTower?.active ? this.world.canonicalTower.returnPos : this.body.pos); }
 }

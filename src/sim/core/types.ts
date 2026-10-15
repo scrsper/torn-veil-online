@@ -67,6 +67,8 @@ export interface Body extends Entity {
   exertion?: import('../physical/exertion').PhysicalExertion;
   arcana?: import('../physical/arcana/types').ArcaneBody;
   recoil?: import('../physical/recoil').Recoil;
+  /** An in-flight vault or jump arc (physical/traversal.ts); absent when grounded. */
+  traversal?: import('../physical/traversal').BodyTraversal;
   /** Explicit hand selection after an equipment action; legacy saves retain carried-weapon selection. */
   equipmentMode?: 'explicit';
   combatAction?: import('../physical/combatActionTypes').CombatAction;
@@ -1479,7 +1481,7 @@ export interface Faction extends Entity {
   knowledge: Record<string, KnowledgeItem>;
 }
 
-export type EventType = 'combat_trial_agreed' | 'combat_trial_ended' | 'tower_entered' | 'tower_floor_opened' | 'tower_floor_cleared' | 'tower_returned' | 'tower_fallen' | 'arcane_learned' | 'arcane_cast' | 'arcane_resolved' | 'realm_crossed' | 'item_equipped' | 'item_unequipped' | 'animal_threat_display' | 'downed' | 'veil_hush' | 'veil_meditation' | 'butchered' | 'woke' | 'animal_born' | 'animal_conceived' | 'animal_pregnancy_lost' | 'animal_died' | 'ecology_changed'
+export type EventType = 'objective_completed' | 'combat_trial_agreed' | 'combat_trial_ended' | 'tower_entered' | 'tower_floor_opened' | 'tower_floor_cleared' | 'tower_returned' | 'tower_fallen' | 'arcane_learned' | 'arcane_cast' | 'arcane_resolved' | 'realm_crossed' | 'item_equipped' | 'item_unequipped' | 'animal_threat_display' | 'downed' | 'veil_hush' | 'veil_meditation' | 'butchered' | 'woke' | 'animal_born' | 'animal_conceived' | 'animal_pregnancy_lost' | 'animal_died' | 'ecology_changed'
   | 'introduction' | 'social_inferred' | 'mechanism_inspected' | 'mechanism_hypothesized' | 'mechanism_worked' | 'mechanism_intended' | 'mechanism_abandoned'
   | 'record_written' | 'record_copied' | 'record_read' | 'record_destroyed' | 'environment_energy_changed' | 'method_reproduced' | 'method_discovered'
   | 'component_acquired' | 'assembly_changed' | 'mechanism_trial' | 'production_observed' | 'component_manufactured' | 'component_supply_failed'

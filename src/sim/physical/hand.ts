@@ -1,7 +1,7 @@
 import {changeEquipment,equipmentSlot} from './equipment';
 import type { Body, Container, Creature, Person, ResourceNode, Vec3 } from '../core/types';
 import type { World } from '../core/world';
-import { makeItem } from '../world/factory';
+import { isFood, makeItem } from '../world/factory';
 import { recordCapabilityPractice } from '../core/capability';
 import type { Simulation } from '../mind/agent';
 import { actionsForCarriedItem, actionsForWorldItem, SELLER_REACH } from '../core/interaction';
@@ -11,7 +11,7 @@ import { containerAccessAllowed, setContainerOpen, takeItemFromContainer, transf
 
 /** Reach for an external hand, in canonical metres (the browser's item ray has this range). */
 export const ITEM_REACH = 2.4;
-export interface HandInteraction { id: string; kind: string; label: string; slot: 'nearby' | 'consume' | 'drop' | 'equipment'; target?: { id: string; kind: string; pos: Vec3 }; }
+export interface HandInteraction { id: string; kind: string; label: string; slot: 'nearby' | 'consume' | 'drop' | 'equipment' | 'give'; target?: { id: string; kind: string; pos: Vec3 }; }
 export interface OpenContainerProjection { id: string; name: string; capacity: number; used: number; items: { id: string; name: string; type: string; quantity: number }[]; }
 function canAct(sim: Simulation, p: Person): boolean {
   const b = sim.world.primaryBody(p.id);
@@ -112,6 +112,13 @@ export function handInteractions(sim: Simulation, p: Person): HandInteraction[] 
     const action = actionsForCarriedItem(w, p, it).find(a => a.kind === 'eat' || a.kind === 'drink');
     if (action) out.push({ id: `consume:${it.id}`, kind: action.kind, label: action.label, slot: 'consume' });
   }
+  // Hand one carried unit to a person within arm's reach (quest deliveries use this ordinary gift).
+  for (const other of peopleAtHand(sim, p)) for (const id of p.inventory) {
+    const it = w.item(id);
+    if (!it || it.holderId !== p.id || it.quantity <= 0 || it.equipped) continue;
+    // No contextual target: the person stays the Talk target; giving is a carried-item choice.
+    out.push({ id: `give:${it.id},${other.person.id}`, kind: 'give', label: `Give ${it.name} to ${other.person.name}`, slot: 'give' });
+  }
   for(const action of out) {
     if(action.slot!=='nearby'||action.target)continue;
     const id=action.id.slice(action.id.indexOf(':')+1),item=w.item(id),container=w.containers().find(c=>c.id===id),node=w.resourceNodes.find(n=>n.id===id);
@@ -120,6 +127,29 @@ export function handInteractions(sim: Simulation, p: Person): HandInteraction[] 
     else if(id==='natural-water')action.target={id,kind:'water',pos:frontInteractionPos(b)};
   }
   return out;
+}
+function peopleAtHand(sim: Simulation, p: Person): { person: Person; body: Body }[] {
+  const w = sim.world, b = w.primaryBody(p.id); if (!b) return [];
+  return w.nearbyPhysicalBodies(b.pos, ITEM_REACH, true).flatMap(body => {
+    const person = body.ownerId !== p.id ? w.person(body.ownerId) : undefined;
+    return person?.alive && body.present && !body.dead && reachable(sim, p, body.pos, ITEM_REACH, 1.2) ? [{ person, body }] : [];
+  }).sort((a, c) => a.person.id.localeCompare(c.person.id));
+}
+/** One unit changes hands through the ordinary gift path; a stack is split, never duplicated. */
+function give(sim: Simulation, p: Person, target: string): string {
+  const w = sim.world, [itemId, personId] = target.split(','), it = w.item(itemId), other = peopleAtHand(sim, p).find(o => o.person.id === personId);
+  if (!it || it.holderId !== p.id || it.quantity <= 0 || it.equipped) return 'not_carried';
+  if (!other) return 'out_of_reach';
+  let unit = it;
+  if (it.quantity > 1) {
+    it.quantity--;
+    unit = makeItem(w, it.type, it.name, { owner: it.ownerId, holder: p.id, quantity: 1, tags: [...it.tags], condition: it.condition, description: it.description });
+    unit.provenance.push(...it.provenance.map(r => ({ ...r })), { tick: w.now, from: p.id, to: p.id, how: `split from ${it.id}` });
+  }
+  const recipientFoodBefore = other.person.inventory.reduce((n, id) => { const i = w.item(id); return n + (i && i.holderId === other.person.id && isFood(i.type) ? i.quantity : 0); }, 0);
+  const ev = sim.giveItem(p, other.person, unit, other.body.pos);
+  ev.data = { ...ev.data, itemType: unit.type, quantity: unit.quantity, recipientFoodBefore };
+  return 'accepted';
 }
 /** Dead wild-animal bodies within arm's reach (the carcass stays until someone dresses it). */
 function carcassesAtHand(w: World, b: Body): Body[] {
@@ -175,9 +205,10 @@ function canActBody(w: World, p: Person, b: Body): boolean {
   return b.present && !b.dead && p.alive && b.pose !== 'downed' && b.subduedUntil <= w.physicalTime && !p.surrender && !p.custody?.active;
 }
 export function performHandInteraction(sim: Simulation, p: Person, id: unknown): string {
-  if (typeof id !== 'string' || !/^(buy|take|steal|recover|consume|drink|gather|drop|open|close|butcher|equip|unequip):.+$/.test(id)) return 'invalid_interaction';
+  if (typeof id !== 'string' || !/^(buy|take|steal|recover|consume|drink|gather|drop|open|close|butcher|equip|unequip|give):.+$/.test(id)) return 'invalid_interaction';
   if (!canAct(sim, p)) return 'incapacitated';
   const split = id.indexOf(':'), kind = id.slice(0, split), target = id.slice(split + 1);
+  if (kind === 'give') return give(sim, p, target);
   if(kind==='equip'||kind==='unequip')return changeEquipment(sim.world,p,target,kind==='equip');
   if (kind === 'butcher') return butcher(sim, p, target);
   if (kind === 'open' || kind === 'close') {
