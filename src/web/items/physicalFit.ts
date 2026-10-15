@@ -222,6 +222,9 @@ export function resolveParts(spec: HeldItemSpec, parts: Record<string, PartBound
 export const SHIELD_FIST_FIT: Record<string, readonly [number, number, number]> = {
   creator_male: [.0581, 0, -.0201],
   creator_female: [.0507, 0, -.0208],
+  // The cast player bodies are byte-identical copies of the creator bodies (library.ts CAST_BODIES).
+  player_m: [.0581, 0, -.0201],
+  player_f: [.0507, 0, -.0208],
 };
 
 /** Render length of a metric item under a parent chain of uniform scale (equipment inherits its holder's scale). */

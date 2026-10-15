@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { NullEngine, Scene, Animation, AnimationGroup, TransformNode, Vector3, MeshBuilder } from '@babylonjs/core';
-import { humanAssetPath, motionSampleSeconds, UNARMED_MOTION, SHARED_MOTION } from '../src/web/presentation/library';
+import { CAST_BODIES, CAST_LOOKS, humanAssetPath, motionSampleSeconds, UNARMED_MOTION, SHARED_MOTION } from '../src/web/presentation/library';
 import { Animator } from '../src/web/arena/anim';
 import { SharedVisual } from '../src/web/actors/sharedCast';
 import { RELAXED, MOVESETS } from '../src/web/arena/combat';
@@ -13,9 +13,13 @@ import { changeEquipment } from '../src/sim/physical/equipment';
 import { normalizeCharacterMetres } from '../src/web/actors/characterScale';
 
 describe('shared presentation replacement contract', () => {
-  it('uses existing body assets consistently and does not introduce an unapproved character', () => {
-    expect(humanAssetPath('ranger')).toBe('people/hero.glb');
-    expect(humanAssetPath('ranger', false)).toBe('people_flat/ranger.glb');
+  it('maps every cast look to its registered provisional body and keeps the creator bodies', () => {
+    expect(humanAssetPath('player_m')).toBe('cast/tv-human-male-v2.glb');
+    expect(humanAssetPath('warden')).toBe('cast/quaternius-ranger.glb');
+    for (const look of CAST_LOOKS) {
+      expect(humanAssetPath(look)).toBe(`cast/${CAST_BODIES[look].file}`);
+      expect(CAST_BODIES[look].license).toBe('CC0-1.0');
+    }
     expect(humanAssetPath('creator_male')).toBe('creator/tv-human-male-v2.glb');
     expect(humanAssetPath('creator_female')).toBe('creator/tv-human-female-v1.glb');
     expect(SHARED_MOTION.has('unarmed/side_kick')).toBe(true);

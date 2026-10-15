@@ -19,9 +19,9 @@ describe('authored motion ownership and composition',()=>{
   const chop=weaponMotionBinding({moveId:'hammer_high',weight:'heavy',trajectory:'high'},'hammer');expect(chop.clip).toBe('1H_Melee_Attack_Chop');
   expect(weaponMotionBinding({moveId:'sword_high',weight:'light',trajectory:'low'},'sword').clip).not.toBe(stab.clip);
  });
- it('selects an explicit credited hero kit without mutating canonical appearance',()=>{
-  const body={presentationSex:'f' as const,appearance:undefined};const original=JSON.stringify(body);expect(sharedHeroLook(body)).toBe('wren');expect(JSON.stringify(body)).toBe(original);
-  expect(sharedHeroLook({presentationSex:'m',appearance:undefined})).toBe('ranger');
+ it('selects the provisional player body without mutating canonical appearance',()=>{
+  const body={presentationSex:'f' as const,appearance:undefined};const original=JSON.stringify(body);expect(sharedHeroLook(body)).toBe('player_f');expect(JSON.stringify(body)).toBe(original);
+  expect(sharedHeroLook({presentationSex:'m',appearance:undefined})).toBe('player_m');
  });
  it('does not let a distant tall landmark lift local interior framing',()=>{
   expect(cameraLocalTop({x:0,y:2,z:0},{x:0,y:2,z:7},[{x:30,y:0,z:30,w:3,h:100,d:3}])).toBe(2.6);

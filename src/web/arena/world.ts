@@ -278,7 +278,7 @@ export class ArenaWorld {
     this.fighters.filter(f => f.role === 'ally').forEach((a, i) => { a.pos.set(spec.start.x + (i ? 2.5 : -2.5), 0, spec.start.z + 1.5); a.inst.springs?.reset(); });
     for (const e of spec.foes) this.spawnFoe(e.kind, e.x, e.z);
     if (spec.boss) {
-      const b = spec.boss, f = this.spawnFoe(b.kind, b.x, b.z, b.kind === 'orc' ? 'orc_chief' : undefined);
+      const b = spec.boss, f = this.spawnFoe(b.kind, b.x, b.z);
       f.maxHp = f.hp = Math.round(f.hp * b.hpMul); f.hpShown = f.hp; f.dmgMul *= b.dmgMul; f.boss = { name: b.name };
       f.inst.root.scaling.scaleInPlace(b.scale); f.radius *= b.scale; f.speed *= .9;
     }
@@ -395,7 +395,7 @@ export class ArenaWorld {
 
   /**
    * The hero's body: the ontology creator's Human family (`creator_male` by default; `?body=female` selects the female
-   * body, `?body=legacy` the earlier MPFB ranger). An unstaged creator body falls back to the ranger explicitly, and
+   * body, `?body=legacy` the cast player body). An unstaged creator body falls back to the cast player body, and
    * `heroBody` records which body is drawn and why.
    */
   heroLook: LookId = 'creator_male';
@@ -407,8 +407,8 @@ export class ArenaWorld {
     if (!isCreatorLook(want)) { this.heroBody = { requested: want, drawn: want, reason: 'legacy body requested' }; return want; }
     const st = this.assets.creatorStatus.get(want);
     if (st?.loaded) { this.heroBody = { requested: want, drawn: want, reason: st.reason }; return want; }
-    const reason = `creator body unavailable (${st?.reason ?? 'not loaded'}); drawing the legacy ranger instead`;
-    console.warn('[arena]', reason); this.heroBody = { requested: want, drawn: 'ranger', reason }; return 'ranger';
+    const reason = `creator body unavailable (${st?.reason ?? 'not loaded'}); drawing the cast player body instead`;
+    console.warn('[arena]', reason); this.heroBody = { requested: want, drawn: 'player_m', reason }; return 'player_m';
   }
   /** The player's saved customization (creatorAppearance.ts); `body` is read at the next reset via heroLook. */
   heroCustom: CreatorCustomization = { ...DEFAULT_CUSTOMIZATION };

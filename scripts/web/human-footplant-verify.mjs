@@ -16,7 +16,7 @@ try{
   const results=[],dt=1/60,Animator=w.hero.anim.constructor;
   const scenarios=[['forward','locomotion/walking',0],['running','locomotion/running',0],['backward','unarmed/walk_backward',Math.PI],['strafe','unarmed/walk_strafe_left',Math.PI/2],['sharp-turn','locomotion/walking',0],['stop','locomotion/walking',0]];
   for(const [scenario,name,direction] of scenarios)for(const on of [false,true]){
-   const inst=assets.human('ranger','fixture'),plant=new Plant(inst),root=inst.root;
+   const inst=assets.human('player_m','fixture'),plant=new Plant(inst),root=inst.root;
    root.position.set(0,0,0);root.rotation.set(0,0,0);
    const bind=[...inst.bones.values()].map(n=>({n,p:n.position.clone(),q:n.rotationQuaternion?.clone(),r:n.rotation.clone(),s:n.scaling.clone()}));
    const restore=()=>{for(const b of bind){b.n.position.copyFrom(b.p);b.n.rotationQuaternion=b.q?.clone()??null;b.n.rotation.copyFrom(b.r);b.n.scaling.copyFrom(b.s);}};

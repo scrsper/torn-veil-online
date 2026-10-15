@@ -30,11 +30,12 @@ function posture(r: Awaited<ReturnType<typeof load>>) {
   return { torso: lean(p('pelvis'), p('neck_01')), upper: lean(p('spine_03'), p('head')), root: r.space.position.asArray() };
 }
 const rigs = new Map<string, Awaited<ReturnType<typeof load>>>(), templates = new Map<string, Map<string, ClipTemplate>>();
-for (const variant of ['before', 'after']) for (const look of ['hero', 'wren', 'brann', 'mystic']) { const rig = await load(`people/${look}.glb`); rig.space.setEnabled(false); rigs.set(`${variant}:${look}`, rig); }
+const CAST: Record<string, string> = { player_m: 'cast/tv-human-male-v2.glb', player_f: 'cast/tv-human-female-v1.glb', npc_m: 'cast/tv-human-male-v1.glb', npc_f: 'cast/quaternius-peasant.glb' };
+for (const variant of ['before', 'after']) for (const look of Object.keys(CAST)) { const rig = await load(CAST[look]); rig.space.setEnabled(false); rigs.set(`${variant}:${look}`, rig); }
 for (const [pack, map] of [['mixamo_clips.glb', MIXAMO], ['unarmed_clips.glb', UE]] as const) {
   const source = await load(pack); source.space.setEnabled(false);
   for (const variant of ['before', 'after']) {
-    const ref = rigs.get(`${variant}:hero`)!, rt = new (variant === 'before' ? before.Retargeter : Retargeter)(source, ref, map);
+    const ref = rigs.get(`${variant}:player_m`)!, rt = new (variant === 'before' ? before.Retargeter : Retargeter)(source, ref, map);
     const clips = templates.get(variant) ?? new Map(); templates.set(variant, clips);
     for (const g of source.groups) {
       const name = g.name.slice(g.name.indexOf('.') + 1);
@@ -45,7 +46,7 @@ for (const [pack, map] of [['mixamo_clips.glb', MIXAMO], ['unarmed_clips.glb', U
 const poses = { neutral: ['locomotion/idle', 0], walk: ['locomotion/walking', .25], run: ['locomotion/running', .25], combat: ['jab_left', .35] } as const;
 const select = (variant: string, look: string, pose: keyof typeof poses) => {
   for (const r of rigs.values()) r.space.setEnabled(false);
-  const r = rigs.get(`${variant}:${look}`)!, ref = rigs.get(`${variant}:hero`)!, [name, phase] = poses[pose], clip = templates.get(variant)!.get(name)!;
+  const r = rigs.get(`${variant}:${look}`)!, ref = rigs.get(`${variant}:player_m`)!, [name, phase] = poses[pose], clip = templates.get(variant)!.get(name)!;
   if (!clip) throw new Error(`Missing actual clip ${name}`);
   for (const t of clip.tracks) {
     const n = r.nodes.get(t.bone); if (!n) continue; const v = t.anim.evaluate(phase * (clip.frames - 1));
@@ -58,5 +59,5 @@ const select = (variant: string, look: string, pose: keyof typeof poses) => {
   return { variant, look, pose, clip: name, phase, measurement };
 };
 Object.assign(window, { tvPosture: { ready: true, select, camera: camera.position.asArray(), clips: [...templates.get('after')!.keys()] } });
-select('after', 'hero', 'neutral');
+select('after', 'player_m', 'neutral');
 window.addEventListener('resize', () => engine.resize());

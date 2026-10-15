@@ -14,10 +14,10 @@ import type {BodyState} from '../net/messages';
 import type {ActorState,BodyVisual} from './actorManager';
 import type {Atmosphere} from '../world/atmosphere';
 import {EquipmentVisual} from '../items/equipmentVisual';
-import { HUMAN_LOOKS, PRESENTATION_REVISION, UNARMED_MOTION, motionSampleSeconds, weaponMotionBinding, humanAssetPath } from '../presentation/library';
+import { CAST_LOOKS, PRESENTATION_REVISION, UNARMED_MOTION, motionSampleSeconds, weaponMotionBinding, humanAssetPath } from '../presentation/library';
 import type { ClipTemplate } from '../arena/retarget';
 import {characterScaleObservation,normalizeCharacterMetres} from './characterScale';
-export const SHARED_HUMAN_LOOKS:LookId[]=HUMAN_LOOKS;
+export const SHARED_HUMAN_LOOKS:LookId[]=CAST_LOOKS.filter(l=>l!=='imp'&&l!=='puglin');
 export interface SharedCharacterEnvironment {
  ground?:FootGround;
  onFootfall?:(point:{x:number;y:number;z:number},speed:number)=>void;
@@ -27,22 +27,20 @@ const hash=(s:string)=>{let n=2166136261;for(const c of s)n=Math.imul(n^c.charCo
 export function sharedLook(body:Pick<BodyState,'bodyId'|'appearance'|'presentationSex'>):LookId {
  const d=body.appearance?.description;
  const female=body.presentationSex==='f'||(!body.presentationSex&&d?.presentation==='feminine');
- const list:LookId[]=female?['wren','raider_f']:['ranger','brann','soldier','archer','mystic'];
- return list[hash(body.bodyId)%list.length];
+ return female?'npc_f':'npc_m';
 }
-/** Deliberate existing, credited hero kits. Creator prototypes are audition candidates,
- * not an unverified automatic replacement; canonical identity/sex stays unchanged. */
+/** Provisional player bodies (library.ts CAST_BODIES); canonical identity/sex stays unchanged. */
 export function sharedHeroLook(body: Pick<BodyState, 'presentationSex' | 'appearance'>): LookId {
- return body.presentationSex === 'f' || body.appearance?.description?.presentation === 'feminine' ? 'wren' : 'ranger';
+ return body.presentationSex === 'f' || body.appearance?.description?.presentation === 'feminine' ? 'player_f' : 'player_m';
 }
 export class SharedCharacters {
  readonly assets:ArenaAssets;
  ready=false;
- constructor(scene:Scene){this.assets=new ArenaAssets(scene,{detailedHumans:true});this.assets.used=SHARED_MOTION_NAMES;}
+ constructor(scene:Scene){this.assets=new ArenaAssets(scene);this.assets.used=SHARED_MOTION_NAMES;}
  async load(progress:(text:string)=>void){await this.assets.load(['skeleton_warrior'],progress);await this.assets.loadHumans(SHARED_HUMAN_LOOKS,progress);this.ready=true;}
- create(body:BodyState,atmosphere:Atmosphere,environment?:SharedCharacterEnvironment,role:'resident'|'player'='resident'):BodyVisual|null {
+ create(body:BodyState,atmosphere:Atmosphere,environment?:SharedCharacterEnvironment,role:'resident'|'player'|'warden'='resident'):BodyVisual|null {
   if(!this.ready||body.appearance?.description?.agePresentation==='child')return null;
-  const look=role==='player'?sharedHeroLook(body):sharedLook(body),instance=this.assets.human(look,body.bodyId);
+  const look=role==='player'?sharedHeroLook(body):role==='warden'?'warden':sharedLook(body),instance=this.assets.human(look,body.bodyId);
   // Canonical world metres, rather than the arena's enlarged layout scale.
   instance.root.metadata={...instance.root.metadata,sharedLook:look,assetPath:humanAssetPath(look),bodyId:body.bodyId,sex:body.presentationSex,presentationRevision:PRESENTATION_REVISION};
   instance.root.metadata.metricImport=normalizeCharacterMetres(instance.root,instance.meshes,body.appearance?.height??1);

@@ -38,7 +38,7 @@ describe('creator bodies and seeded appearance (parity with the ontology editor)
     expect(creatorAppearance({ id: 'climber-a', appearanceSeed: 0 }, CREATOR_BODIES.creator_female).supported).toBe(appearancePlan(entity('climber-a', 0), 'tv-human-female-v1').supported);
   });
   it('recognises only its own looks', () => {
-    expect(isCreatorLook('creator_male')).toBe(true); expect(isCreatorLook('ranger')).toBe(false);
+    expect(isCreatorLook('creator_male')).toBe(true); expect(isCreatorLook('player_m')).toBe(false);
     expect(isCreatorLook('toString')).toBe(false); expect(isCreatorLook('constructor')).toBe(false);
   });
 });

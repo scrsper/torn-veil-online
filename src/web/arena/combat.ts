@@ -175,74 +175,76 @@ export interface FoeDef {
   /** Body scale (goblins are small, orcs huge) and how many attack one target at once. */
   scale?: number; tokens?: number;
 }
+/** Looks are the provisional cast picks (library.ts CAST_BODIES): human foes wear the warden body, greenskins the
+ * puglin, orcs and the dead the imp. Foe kinds, stats and clips are unchanged. */
 export const FOES: Record<FoeKind, FoeDef> = {
   minion: {
-    looks: ['raider', 'raider_f'], set: 'sword', hp: 55, speed: 4.4, xp: 10, reach: 2.4, weapon: 'W_serpent-tooth', tell: .45, cooldown: [1.3, 2.4], armor: 0,
+    looks: ['warden'], set: 'sword', hp: 55, speed: 4.4, xp: 10, reach: 2.4, weapon: 'W_serpent-tooth', tell: .45, cooldown: [1.3, 2.4], armor: 0,
     attacks: [{ clip: SS('slash'), speed: 1.15, active: [0.5, 0.74], cancel: 9, end: 1.15, range: 2.8, arc: 60 * D, damage: 45, knock: 3, lunge: .9, hitstop: .04, shake: .25 },
       { clip: SS('attack (4)'), speed: 1.1, active: [0.38, 0.56], cancel: 9, end: 0.95, range: 2.8, arc: 70 * D, damage: 50, knock: 4, lunge: .9, hitstop: .04, shake: .3 }],
   },
   warrior: {
-    looks: ['soldier', 'knight'], set: 'greatsword', hp: 130, speed: 3.4, xp: 25, reach: 2.6, weapon: 'W_bell-of-ruin', shield: 'parry', tell: .65, cooldown: [1.8, 3], armor: .35,
+    looks: ['warden'], set: 'greatsword', hp: 130, speed: 3.4, xp: 25, reach: 2.6, weapon: 'W_bell-of-ruin', shield: 'parry', tell: .65, cooldown: [1.8, 3], armor: .35,
     attacks: [{ clip: GS('attack'), speed: 1.05, active: [0.38, 0.6], cancel: 9, end: 1.2, range: 3.2, arc: 55 * D, damage: 85, knock: 6, lunge: 1.1, heavy: true, hitstop: .05, shake: .4 },
       { clip: GS('slash'), speed: 1.1, active: [0.44, 0.82], cancel: 9, end: 1.25, range: 3.2, arc: 85 * D, damage: 70, knock: 5, lunge: 1, hitstop: .05, shake: .35 }],
   },
   rogue: {
-    looks: ['archer'], set: 'bow', hp: 60, speed: 4.2, xp: 15, reach: 16, weapon: 'W_briar-whisper', hand: 'l', ranged: 'bolt', tell: .9, cooldown: [2.2, 3.4], armor: 0,
+    looks: ['warden'], set: 'bow', hp: 60, speed: 4.2, xp: 15, reach: 16, weapon: 'W_briar-whisper', hand: 'l', ranged: 'bolt', tell: .9, cooldown: [2.2, 3.4], armor: 0,
     attacks: [{ clip: BOW('draw arrow'), speed: 1.25, active: [0.8, 0.81], cancel: 9, end: 1.05, range: 30, arc: 0, damage: 70, knock: 4, lunge: 0, hitstop: .02, shake: .2 }],
   },
   // Goblins: small, quick, cowardly in ones and dangerous in packs; they dart in and out.
   goblin: {
-    looks: ['goblin'], set: 'sword', hp: 34, speed: 5.4, xp: 6, reach: 2.1, weapon: 'W_night-thorn', tell: .35, cooldown: [.9, 1.8], armor: 0, scale: .82, tokens: 4, hunch: .55,
+    looks: ['puglin'], set: 'sword', hp: 34, speed: 5.4, xp: 6, reach: 2.1, weapon: 'W_night-thorn', tell: .35, cooldown: [.9, 1.8], armor: 0, scale: .82, tokens: 4, hunch: .55,
     attacks: [{ clip: SS('attack (4)'), speed: 1.35, active: [0.38, 0.56], cancel: 9, end: .9, range: 2.3, arc: 70 * D, damage: 28, knock: 2, lunge: 1.1, hitstop: .03, shake: .15 },
       { clip: SS('slash'), speed: 1.4, active: [0.5, 0.74], cancel: 9, end: 1.05, range: 2.3, arc: 60 * D, damage: 24, knock: 2, lunge: 1, hitstop: .03, shake: .15 }],
   },
   goblin_archer: {
-    looks: ['goblin_archer'], set: 'bow', hp: 28, speed: 5, xp: 7, reach: 14, weapon: 'W_briar-whisper', hand: 'l', ranged: 'bolt', tell: .7, cooldown: [1.8, 2.8], armor: 0, scale: .82, hunch: .4,
+    looks: ['puglin'], set: 'bow', hp: 28, speed: 5, xp: 7, reach: 14, weapon: 'W_briar-whisper', hand: 'l', ranged: 'bolt', tell: .7, cooldown: [1.8, 2.8], armor: 0, scale: .82, hunch: .4,
     attacks: [{ clip: BOW('draw arrow'), speed: 1.4, active: [0.8, 0.81], cancel: 9, end: 1.05, range: 26, arc: 0, damage: 40, knock: 3, lunge: 0, hitstop: .02, shake: .15 }],
   },
   // Orcs: huge, slow to start, crushing two-handed blows that break guards; they shrug off light hits.
   orc: {
-    looks: ['orc'], set: 'greatsword', hp: 210, speed: 3.6, xp: 32, reach: 3, weapon: 'W_execution-standard', tell: .75, cooldown: [1.6, 2.8], armor: .45, scale: 1.08, tokens: 2, hunch: .4,
+    looks: ['imp'], set: 'greatsword', hp: 210, speed: 3.6, xp: 32, reach: 3, weapon: 'W_execution-standard', tell: .75, cooldown: [1.6, 2.8], armor: .45, scale: 1.08, tokens: 2, hunch: .4,
     attacks: [{ clip: GS('attack'), speed: 1, active: [0.36, 0.64], cancel: 9, end: 1.2, range: 3.6, arc: 60 * D, damage: 110, knock: 9, lunge: 1.3, heavy: true, hitstop: .06, shake: .5 },
       { clip: GS('slash'), speed: 1.05, active: [0.42, 0.84], cancel: 9, end: 1.25, range: 3.6, arc: 90 * D, damage: 90, knock: 7, lunge: 1.2, heavy: true, hitstop: .05, shake: .45 }],
   },
   // Skeletons: the dead in ranks. Brittle (low hp, no poise against heavies), relentless, and they keep coming.
   // A training dummy (the Proving Hall): stands, takes everything, mends itself.
   dummy: {
-    looks: ['soldier'], set: 'sword', hp: 4000, speed: 0, xp: 0, reach: 0, tell: 9, cooldown: [99, 99], armor: 0,
+    looks: ['npc_m'], set: 'sword', hp: 4000, speed: 0, xp: 0, reach: 0, tell: 9, cooldown: [99, 99], armor: 0,
     attacks: [{ clip: SS('slash'), speed: 1, active: [0.5, 0.74], cancel: 9, end: 1.15, range: 0, arc: 0, damage: 0, knock: 0, lunge: 0, hitstop: 0, shake: 0 }],
   },
   // Chrysanthus's avatar: driven by its own controller (tower/chrysanthus.ts), these are its sword blows.
   chrysanthus: {
-    looks: ['chrysanthus'], set: 'sword', hp: 60000, speed: 7.5, xp: 400, reach: 2.8, weapon: 'W_veilguard', tell: .55, cooldown: [.8, 1.6], armor: .9, scale: 1.08,
+    looks: ['warden'], set: 'sword', hp: 60000, speed: 7.5, xp: 400, reach: 2.8, weapon: 'W_veilguard', tell: .55, cooldown: [.8, 1.6], armor: .9, scale: 1.08,
     attacks: [{ clip: SS('slash'), speed: 1.35, active: [0.5, 0.74], cancel: 9, end: 1.1, range: 3.2, arc: 80 * D, damage: 70, knock: 6, lunge: 1.4, hitstop: .05, shake: .35 },
       { clip: SS('attack (4)'), speed: 1.4, active: [0.38, 0.56], cancel: 9, end: 0.95, range: 3.2, arc: 70 * D, damage: 60, knock: 5, lunge: 1.4, hitstop: .05, shake: .3 }],
   },
   skeleton: {
-    looks: ['skeleton'], set: 'sword', hp: 48, speed: 4, xp: 8, reach: 2.4, weapon: 'W_serpent-tooth', tell: .5, cooldown: [1.2, 2.2], armor: .1, tokens: 3, hunch: .12,
+    looks: ['imp'], set: 'sword', hp: 48, speed: 4, xp: 8, reach: 2.4, weapon: 'W_serpent-tooth', tell: .5, cooldown: [1.2, 2.2], armor: .1, tokens: 3, hunch: .12,
     attacks: [{ clip: SS('slash'), speed: 1.05, active: [0.5, 0.74], cancel: 9, end: 1.15, range: 2.7, arc: 60 * D, damage: 40, knock: 3, lunge: .8, hitstop: .04, shake: .2 },
       { clip: SS('attack (4)'), speed: 1.05, active: [0.38, 0.56], cancel: 9, end: 0.95, range: 2.7, arc: 70 * D, damage: 44, knock: 3, lunge: .8, hitstop: .04, shake: .25 }],
   },
   skeleton_mage: {
-    looks: ['skeleton_mage'], set: 'caster', hp: 55, speed: 3.4, xp: 18, reach: 13, weapon: 'W_elderroot', ranged: 'orb', tell: 1.1, cooldown: [3, 4.4], armor: 0, hunch: .22,
+    looks: ['imp'], set: 'caster', hp: 55, speed: 3.4, xp: 18, reach: 13, weapon: 'W_elderroot', ranged: 'orb', tell: 1.1, cooldown: [3, 4.4], armor: 0, hunch: .22,
     attacks: [{ clip: 'great_sword/spell cast', speed: .95, active: [0.3, 0.31], cancel: 9, end: 1.15, range: 28, arc: 0, damage: 80, knock: 6, lunge: 0, hitstop: .02, shake: .3 }],
   },
   skeleton_brute: {
-    looks: ['skeleton_brute'], set: 'greatsword', hp: 170, speed: 3.3, xp: 28, reach: 3, weapon: 'W_bell-of-ruin', tell: .8, cooldown: [1.8, 3], armor: .3, scale: 1.12, tokens: 2, hunch: .28,
+    looks: ['imp'], set: 'greatsword', hp: 170, speed: 3.3, xp: 28, reach: 3, weapon: 'W_bell-of-ruin', tell: .8, cooldown: [1.8, 3], armor: .3, scale: 1.12, tokens: 2, hunch: .28,
     attacks: [{ clip: GS('attack'), speed: .95, active: [0.38, 0.6], cancel: 9, end: 1.2, range: 3.5, arc: 55 * D, damage: 100, knock: 8, lunge: 1.2, heavy: true, hitstop: .06, shake: .45 },
       { clip: GS('slash'), speed: 1, active: [0.44, 0.82], cancel: 9, end: 1.25, range: 3.5, arc: 85 * D, damage: 85, knock: 6, lunge: 1.1, heavy: true, hitstop: .05, shake: .4 }],
   },
   mage: {
-    looks: ['mystic'], set: 'caster', hp: 70, speed: 3.6, xp: 20, reach: 14, weapon: 'W_elderroot', ranged: 'orb', tell: 1.0, cooldown: [2.8, 4], armor: 0,
+    looks: ['npc_f'], set: 'caster', hp: 70, speed: 3.6, xp: 20, reach: 14, weapon: 'W_elderroot', ranged: 'orb', tell: 1.0, cooldown: [2.8, 4], armor: 0,
     attacks: [{ clip: 'great_sword/spell cast', speed: 1, active: [0.3, 0.31], cancel: 9, end: 1.15, range: 30, arc: 0, damage: 95, knock: 7, lunge: 0, hitstop: .02, shake: .3 }],
   },
 };
 
 /** Ally fighters (companions). They use the same rules as everyone else. */
 export const ALLIES = {
-  barbarian: { look: 'brann' as LookId, name: 'Brann', hp: 900, speed: 5.4, weapon: 'W_execution-standard', hand: 'r' as const, set: 'greatsword' as const,
+  barbarian: { look: 'npc_m' as LookId, name: 'Brann', hp: 900, speed: 5.4, weapon: 'W_execution-standard', hand: 'r' as const, set: 'greatsword' as const,
     attacks: [WEAPONS.greatsword.combo[0], WEAPONS.greatsword.combo[2]].map(a => ({ ...a, damage: a.damage * .8 })) },
-  rogue: { look: 'wren' as LookId, name: 'Wren', hp: 650, speed: 5.8, weapon: 'W_briar-whisper', hand: 'l' as const, set: 'bow' as const,
+  rogue: { look: 'player_f' as LookId, name: 'Wren', hp: 650, speed: 5.8, weapon: 'W_briar-whisper', hand: 'l' as const, set: 'bow' as const,
     attacks: [{ ...WEAPONS.bow.combo[0], speed: 1.4, damage: 28 }] },
 };
 

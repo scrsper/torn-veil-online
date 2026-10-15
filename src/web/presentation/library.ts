@@ -4,14 +4,34 @@ import { WEAPONS, MOVESETS, RELAXED, DODGE_BODY, READY_CLIPS, type AttackDef } f
 
 /** Versioned presentation contract. Editing this registry changes existing bodies on the
  * next client load, in every consumer, without a save migration or a gameplay stat change.
- * Only the existing accepted assets are registered; the separate Opus candidate is absent. */
-export const PRESENTATION_REVISION = 'authored-motion-2026-10-13.1';
+ * The cast bodies are the provisional picks of the 2026-10-15 model review. */
+export const PRESENTATION_REVISION = 'provisional-cast-2026-10-15.1';
 export const CHARACTER_KITS = Object.freeze({ f: 'models/kit_f.glb', m: 'models/kit_m.glb', c: 'models/kit_c.glb' });
-export const HUMAN_LOOKS: LookId[] = ['ranger', 'brann', 'wren', 'raider', 'raider_f', 'soldier', 'knight', 'archer', 'mystic'];
+export type CastLook = Exclude<LookId, 'creator_male' | 'creator_female'>;
+export interface CastBody { file: string; role: string; source: string; license: string; why: string }
+/** Provisional cast picks (model review 2026-10-15, renders in torn-veil-build/model-review). One body per role;
+ * every one is rigged with UE-mannequin bone names and gets its own retarget bake (ArenaAssets.loadHumans). */
+export const CAST_BODIES: Readonly<Record<CastLook, CastBody>> = Object.freeze({
+  player_m: { file: 'tv-human-male-v2.glb', role: 'player (male)', source: 'tools/ontology tv-human-male-v2 (MakeHuman/MPFB)', license: 'CC0-1.0',
+    why: 'Fitted linen/leather costume, 2K PBR, jaw morph; already the creator hero, so customization keeps working.' },
+  player_f: { file: 'tv-human-female-v1.glb', role: 'player (female)', source: 'tools/ontology tv-human-female-v1 (MakeHuman/MPFB)', license: 'CC0-1.0',
+    why: 'Same MPFB rig and material set as the male hero; the only textured female body with a full game_engine rig.' },
+  npc_m: { file: 'tv-human-male-v1.glb', role: 'resident (male)', source: 'tools/ontology tv-human-male-v1 (MakeHuman/MPFB)', license: 'CC0-1.0',
+    why: 'Plain casual suit reads as a townsperson and stays visually distinct from the player.' },
+  npc_f: { file: 'quaternius-peasant.glb', role: 'resident (female)', source: 'Quaternius Modular Character Outfits - Fantasy, Female_Peasant', license: 'CC0-1.0',
+    why: 'Period peasant dress with hand-painted PBR (packed to 2K); 13.6k tris, cheapest textured female.' },
+  warden: { file: 'quaternius-ranger.glb', role: 'warden / human foes', source: 'Quaternius Modular Character Outfits - Fantasy, Male_Ranger', license: 'CC0-1.0',
+    why: 'Hood, pauldron, bracers and belts: the only armoured fantasy outfit among the candidates.' },
+  imp: { file: 'quaternius-imp.glb', role: 'enemy (standard / heavy)', source: 'Quaternius Bestiary - Dungeon Monsters Kit, Imp', license: 'CC0-1.0',
+    why: 'Full-size humanoid monster on a UE-named rig, so every combat clip retargets onto it.' },
+  puglin: { file: 'quaternius-puglin.glb', role: 'enemy (small)', source: 'Quaternius Bestiary - Dungeon Monsters Kit, Puglin', license: 'CC0-1.0',
+    why: 'Small (0.93 m) creature on the same rig family; replaces the goblins.' },
+});
+export const CAST_LOOKS = Object.keys(CAST_BODIES) as CastLook[];
 /** Paths relative to arena base. Body/rig replacement has one mapping for world, Tower and lab. */
-export function humanAssetPath(look: LookId, detailed = true): string {
+export function humanAssetPath(look: LookId): string {
   if (isCreatorLook(look)) return `creator/${CREATOR_BODIES[look].file}`;
-  return detailed && HUMAN_LOOKS.includes(look) ? `people/${look === 'ranger' ? 'hero' : look}.glb` : `people_flat/${look}.glb`;
+  return `cast/${CAST_BODIES[look].file}`;
 }
 
 export interface MotionBinding { clip: string; contact: readonly [number, number]; end: number; }

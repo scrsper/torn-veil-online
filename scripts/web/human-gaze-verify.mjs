@@ -21,7 +21,7 @@ try{
   visual.root.computeWorldMatrix(true);const Q=visual.root.absoluteRotationQuaternion.constructor;
   const angle=(a,b)=>2*Math.acos(Math.min(1,Math.abs(Q.Dot(a,b)))),rows=[];
   for(const size of [.65,1.4])for(const yaw of [0,1.1])for(const scenario of ['target','capped','null-release','action-release']){
-   const inst=app.sharedCharacters.assets.human('ranger','gaze-fixture'),parent=new Node('gaze-canonical-parent',app.ctx.scene);
+   const inst=app.sharedCharacters.assets.human('player_m','gaze-fixture'),parent=new Node('gaze-canonical-parent',app.ctx.scene);
    parent.position.set(3,2,-5);parent.rotation.y=yaw;parent.scaling.setAll(1.3);
    inst.root.parent=parent;inst.root.rotation.y=Math.PI;inst.root.scaling.setAll(size);
    const gaze=new Gaze(inst),head=inst.bones.get('head'),feet=['l','r'].map(s=>inst.bones.get('foot_'+s));

@@ -15,7 +15,7 @@ try{
   a.scene.getEngine().stopRenderLoop();w.footLock=false;
   const rows=[];
   for(const size of [.65,1,1.4])for(const scenario of ['flat','incline','tread','edge','missing','cliff']){
-   const inst=w.assets.human('ranger','terrain-fixture'),root=inst.root;
+   const inst=w.assets.human('player_m','terrain-fixture'),root=inst.root;
    root.scaling.setAll(size);root.position.set(0,0,0);root.rotation.set(0,0,0);
    const plant=new Plant(inst),clip=inst.anims.get('locomotion/idle');
    if(!clip)throw new Error('Missing detailed human idle');

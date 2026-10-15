@@ -11,10 +11,8 @@ import { humanAssetPath } from '../presentation/library';
 
 /** Directional walks used as a legs-only layer while guarding or aiming. */
 export const STRAFE_CLIPS = ['unarmed/walk_forward', 'unarmed/walk_backward', 'unarmed/walk_strafe_left', 'unarmed/walk_strafe_right'];
-/** Cast folder: stylised low-poly people (art/tools/arena/build_arena_stylized.py). */
-const PEOPLE_DIR = 'people_flat/';
 const springsFor = (nodes: Map<string, TransformNode>) => { const s = new SpringBones(nodes, HUMAN_SCALE); return s.active ? s : undefined; };
-/** MPFB people are ~1.75 m; the arena was laid out around 2.2-unit fighters, so people are scaled to match. */
+/** Cast bodies are ~1.75 m; the arena was laid out around 2.2-unit fighters, so people are scaled to match. */
 export const HUMAN_SCALE = 1.22;
 
 /**
@@ -54,7 +52,7 @@ export class ArenaAssets {
   /** Chunk centre relative to its prop's base, in the prop's frame. */
   readonly offsets = new Map<string, Vector3>();
   private serial = 0;
-  constructor(private readonly scene: Scene,private options:{base?:string;detailedHumans?:boolean;itemsBase?:string}={}) {}
+  constructor(private readonly scene: Scene,private options:{base?:string;itemsBase?:string}={}) {}
   private get base(){return this.options.base??'./arena/';}
 
   async load(kinds: CharacterKind[], progress: (t: string) => void): Promise<void> {
@@ -93,7 +91,7 @@ export class ArenaAssets {
   readonly clips = new Map<string, ClipTemplate>();
   private gripR!: Grip; private gripL!: Grip; private gripShield: Grip | null = null;
 
-  /** Load the people (art/tools/arena/build_arena_people.py) and bake every combat clip onto their skeleton. */
+  /** Load the cast bodies (presentation/library.ts CAST_BODIES) and bake every combat clip onto each skeleton. */
   /** Clip names fighters need; null = bake and instantiate everything (measurement mode). */
   used: Set<string> | null = null;
   /** False when the local Mixamo clip file is absent and KayKit stand-ins are playing. */
@@ -114,7 +112,7 @@ export class ArenaAssets {
         try { c = await SceneLoader.LoadAssetContainerAsync(this.base, humanAssetPath(l), this.scene); }
         catch (e) { this.creatorStatus.set(l, { loaded: false, reason: `creator/${CREATOR_BODIES[l].file} not staged (npm run web:creator): ${String(e).slice(0, 120)}` }); console.warn('[arena] creator body missing', l); progress(`Loading people ${++n}/${looks.length}`); return; }
         this.creatorStatus.set(l, { loaded: true, reason: `${CREATOR_BODIES[l].assetId} (${CREATOR_BODIES[l].sex}, ${CREATOR_BODIES[l].nativeHeightM} m)` });
-      } else c = await SceneLoader.LoadAssetContainerAsync(this.base, humanAssetPath(l, this.options.detailedHumans !== false), this.scene);
+      } else c = await SceneLoader.LoadAssetContainerAsync(this.base, humanAssetPath(l), this.scene);
       // Hair, brows and lashes export as BLEND; alpha-test them so they sort with the head.
       for (const m of c.materials) if (m instanceof PBRMaterial && m.transparencyMode === PBRMaterial.PBRMATERIAL_ALPHABLEND) {
         m.transparencyMode = PBRMaterial.PBRMATERIAL_ALPHATEST; m.alphaCutOff = .45; m.backFaceCulling = false;
@@ -123,16 +121,19 @@ export class ArenaAssets {
       this.people.set(l, c); progress(`Loading people ${++n}/${looks.length}`);
     }));
     progress('Teaching the fighters to fight');
-    const ref = this.person('ranger');
+    // Reference rig: the male player body when loaded, else the first loaded look. Its bake is the default clip set.
+    const refLook = this.people.has('player_m') ? 'player_m' : looks.find(l => this.people.has(l));
+    if (!refLook) throw new Error('[arena] no cast body loaded');
+    const ref = this.person(refLook);
     this.refPelvis = ref.nodes.get('pelvis')!.position.length();
-    // Bake targets: the reference rig, plus each loaded creator rig, always with its own bake and grips from the same
-    // existing clips. Equal local rest rotations would not prove equal bone directions, lengths or hip height, so the
-    // reference templates are never reused for them. The rest delta is kept only as a diagnostic.
+    // Bake targets: the reference rig, plus every other loaded body, always with its own bake and grips from the same
+    // existing clips. The cast mixes MPFB and Quaternius rigs with different rests, bone lengths and hip heights, so
+    // the reference templates are never reused for them. The creator rest delta is kept only as a diagnostic.
     type Target = { look: LookId | null; rig: ReturnType<ArenaAssets['person']>; clips: Map<string, ClipTemplate> };
     const targets: Target[] = [{ look: null, rig: ref, clips: this.clips }];
-    for (const l of looks) if (isCreatorLook(l) && this.people.has(l)) {
-      const rig = this.person(l), st = this.creatorStatus.get(l)!;
-      st.maxRestDeltaRad = +restDelta(ref.nodes, rig.nodes).toFixed(4); st.ownBake = true;
+    for (const l of looks) if (l !== refLook && this.people.has(l)) {
+      const rig = this.person(l), st = isCreatorLook(l) ? this.creatorStatus.get(l) : undefined;
+      if (st) { st.maxRestDeltaRad = +restDelta(ref.nodes, rig.nodes).toFixed(4); st.ownBake = true; }
       const clips = new Map<string, ClipTemplate>(); targets.push({ look: l, rig, clips }); this.lookClips.set(l, clips);
     }
     const fallbacks = new Set(this.used ? [...this.used].map(kaykitFallback) : []);
@@ -194,6 +195,8 @@ export class ArenaAssets {
     const holder = new TransformNode(tag, this.scene);
     for (const r of e.rootNodes) r.parent = holder;
     const nodes = new Map(holder.getChildTransformNodes(false).map(x => [x.name.slice(tag.length + 1), x] as const));
+    // Quaternius rigs name the head `Head`; retarget maps, gaze and IK use lower-case UE names.
+    for (const [n, x] of [...nodes]) if (!nodes.has(n.toLowerCase())) nodes.set(n.toLowerCase(), x);
     const meshes = holder.getChildMeshes(false);
     // Owned per actor (creator looks only): the cloned materials and morph managers, disposed with the actor. Textures
     // stay shared with the source container and are never disposed here.
@@ -312,8 +315,8 @@ export class ArenaAssets {
       foot?.computeWorldMatrix(true);
       return foot ? Vector3.TransformCoordinates(foot.getAbsolutePosition(), Matrix.Invert(p.holder.computeWorldMatrix(true))).y : .06;
     }) as [number, number];
-    // Clips are baked on the reference rig; a body with other leg lengths (goblins, orcs, skeletons) gets its pelvis
-    // track rescaled. A creator rig with its own rest pose has its own bake, so it needs no rescale.
+    // Every non-reference body has its own bake and needs no rescale; the pelvis rescale only applies to a body that
+    // shares the reference bake (none today, kept for bodies added without one).
     const own = this.lookClips.get(look), clips = own ?? this.clips;
     const ratio = own ? 1 : (p.nodes.get('pelvis')?.position.length() ?? this.refPelvis) / this.refPelvis;
     const anims = instantiateClips(p.tag, this.fitted(look, ratio, clips, ''), p.nodes, this.scene);
@@ -398,7 +401,8 @@ function handGrip(space: TransformNode, nodes: Map<string, TransformNode>, side:
   space.computeWorldMatrix(true);
   const inv = space.getWorldMatrix().clone().invert();
   const P = (n: string) => { const x = nodes.get(n)!; x.computeWorldMatrix(true); return Vector3.TransformCoordinates(x.getAbsolutePosition(), inv); };
-  const hand = P(`hand_${side}`), mid = P(`middle_01_${side}`), idx = P(`index_01_${side}`), pky = P(`pinky_01_${side}`);
+  // Four-fingered bodies (Quaternius bestiary) have no pinky: the ring finger is the outer knuckle.
+  const hand = P(`hand_${side}`), mid = P(`middle_01_${side}`), idx = P(`index_01_${side}`), pky = P(nodes.has(`pinky_01_${side}`) ? `pinky_01_${side}` : `ring_01_${side}`);
   const y = idx.subtract(pky).normalize();
   const k = mid.subtract(hand); const x = k.subtract(y.scale(Vector3.Dot(k, y))).normalize();
   const z = Vector3.Cross(x, y).normalize();

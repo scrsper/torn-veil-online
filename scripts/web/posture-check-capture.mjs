@@ -14,14 +14,14 @@ try {
   await page.addScriptTag({ type: 'module', url: '/@fs/' + resolve('scripts/web/posture-check.ts').replaceAll('\\', '/') });
   if (errors.length) throw new Error(errors.join('\n'));
   await page.waitForFunction(() => window.tvPosture?.ready, null, { timeout: 240000 });
-  for (const look of ['hero', 'wren', 'brann', 'mystic']) for (const pose of ['neutral', 'walk', 'run', 'combat']) for (const variant of ['before', 'after']) {
+  for (const look of ['player_m', 'player_f', 'npc_m', 'npc_f']) for (const pose of ['neutral', 'walk', 'run', 'combat']) for (const variant of ['before', 'after']) {
     const sample = await page.evaluate(({ variant, look, pose }) => window.tvPosture.select(variant, look, pose), { variant, look, pose });
     await page.waitForTimeout(500);
     const file = `${look}-${pose}-${variant}.png`; await page.screenshot({ path: resolve(out, file) }); samples.push({ ...sample, file });
     assert.deepEqual(sample.measurement.root, [0, 0, 0]);
     console.log('CAPTURE', file, sample.measurement);
   }
-  for (const look of ['hero', 'wren', 'brann', 'mystic']) {
+  for (const look of ['player_m', 'player_f', 'npc_m', 'npc_f']) {
     const select = variant => samples.find(s => s.look === look && s.pose === 'neutral' && s.variant === variant).measurement;
     assert.ok(select('after').upper < select('before').upper, `${look} neutral upper chain should lose the transferred source curvature`);
     const combat = variant => samples.find(s => s.look === look && s.pose === 'combat' && s.variant === variant).measurement;

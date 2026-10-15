@@ -95,7 +95,7 @@ export async function startArena(): Promise<void> {
   const save = () => { try { localStorage.setItem(CUSTOMIZATION_KEY, JSON.stringify(world.heroCustom)); } catch { /* private mode: lasts for the session */ } };
   world.heroCustom = stored;
   const bodyParam = params.get('body');
-  world.heroLook = bodyParam === 'legacy' ? 'ranger' : bodyParam === 'female' || bodyParam === 'male' ? bodyLook(parseCustomization({ body: bodyParam })) : bodyLook(stored);
+  world.heroLook = bodyParam === 'legacy' ? 'player_m' : bodyParam === 'female' || bodyParam === 'male' ? bodyLook(parseCustomization({ body: bodyParam })) : bodyLook(stored);
   hud.heroCustom = {
     get value() { return world.heroCustom; },
     /** The body actually drawn now (its supported controls), which may differ from the saved choice until the next climb. */

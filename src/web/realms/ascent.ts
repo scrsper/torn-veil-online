@@ -174,7 +174,7 @@ export async function startCanonicalAscent() {
     for (const [id, v] of visuals) if (!present.has(id)) { v.visual.dispose(); visuals.delete(id); }
     for (const body of bodies) {
       let v = visuals.get(body.bodyId);
-      if (!v) { const visual = people.create(body, atmosphere, undefined, body.bodyId===binding.bodyId?'player':'resident'); if (!visual) continue; visual.root.position.set(body.pos.x, body.pos.y, body.pos.z); v = { visual, body, hitSeq: body.hitSeq, hit: 0 }; visuals.set(body.bodyId, v); }
+      if (!v) { const visual = people.create(body, atmosphere, undefined, body.bodyId===binding.bodyId?'player':'warden'); if (!visual) continue; visual.root.position.set(body.pos.x, body.pos.y, body.pos.z); v = { visual, body, hitSeq: body.hitSeq, hit: 0 }; visuals.set(body.bodyId, v); }
       if (body.hitSeq > v.hitSeq) { v.hit = 1; } v.hitSeq = body.hitSeq; v.body = body;
     }
     const things = [...m.waterSources.map((i: any) => ({ ...i, water: true })), ...m.items.map((i: any) => ({ ...i, chest: false })), ...m.containers.map((i: any) => ({ ...i, chest: true }))], wanted = new Set(things.map(i => i.id));
