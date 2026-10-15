@@ -3,7 +3,7 @@ import { TowerController } from './towerController';
 import { applyTowerCommand, type TowerCommand } from './canonicalTower';
 import { applyExpeditionCommand, validateExpeditionSave, type ExpeditionCommand } from './realmExpedition';
 import type { MovementInput } from '../sim/physical/prediction';
-import { objectiveReceipts } from '../sim/quests';
+import { reconcileQuests } from '../sim/quests';
 import { seedForestLife } from '../sim/world/realms/wildlife';
 
 /** Ordered host operations. Recorded server time, never client time, expires input.
@@ -56,9 +56,9 @@ export class RealmRuntime {
       case 'confirm':return s.confirm(op.id);
       case 'cancel':return s.cancel();
       case 'navigate':return s.navigate(op.target);
-      // Completions are canonical history (request/concern/floor events), so this only reads them.
-      // Kept as an operation so journals that already recorded it still replay.
-      case 'objectives':return objectiveReceipts(s.world,s.person.id);
+      // John Smith's pass writes the quest ledger and pays system rewards: a World mutation,
+      // so it is journaled like any input and replays to the same ledger.
+      case 'objectives':return reconcileQuests(s.world,s.person.id);
       case 'adopt_wildlife':return seedForestLife(s.world);
       case 'traverse':return s.traverse();
       case 'tower':case 'expedition':{

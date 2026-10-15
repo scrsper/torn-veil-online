@@ -161,17 +161,13 @@ ws.on('connection', (client, req) => {
   client.on('close', () => { if (owner === client) { if (!updateError && !closing) { apply({ type: 'disconnect' }); void persist(); } owner = null; ownerToken = ''; } });
 });
 let tick = 0;
-/** Completions are read from canonical history; each is announced to the owner once. */
-const announcedObjectives = new Set<string>(); let objectivesSeeded = false;
+/** John Smith's pass over the owner's quests (journaled). Each completion it records is announced once. */
 function settleObjectives() {
   if (!owner) return;
-  const receipts = apply({ type: 'objectives' }) as import('../sim/quests').ObjectiveReceipt[];
-  if (!objectivesSeeded) { objectivesSeeded = true; for (const r of receipts) announcedObjectives.add(r.objectiveId); return; }
   const before = new Map(session.objectives().map(o => [o.id, o]));
-  for (const receipt of receipts) if (!announcedObjectives.has(receipt.objectiveId)) {
-    announcedObjectives.add(receipt.objectiveId);
+  const result = apply({ type: 'objectives' }) as import('../sim/quests').ReconcileResult;
+  for (const receipt of result.completed)
     owner.send(JSON.stringify({ type: 'objective', event: 'objective:complete', receipt, objective: before.get(receipt.objectiveId) ?? null }));
-  }
 }
 let scheduler = new FixedScheduler(1000 / 60, performance.now());
 const timer = setInterval(() => {

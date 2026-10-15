@@ -7,14 +7,15 @@ import { makeItem } from '../../src/sim/world/factory';
 import { createRequest } from '../../src/sim/core/requests';
 import { acceptProtection } from '../../src/sim/social/protection';
 import { handInteractions, performHandInteraction } from '../../src/sim/physical/hand';
-import { deriveObjectives, objectiveReceipts, ObjectiveTracker, FIRST_HOUR_TOWER_FLOORS, type Objective } from '../../src/sim/quests';
+import { deriveObjectives, objectiveReceipts, reconcileQuests, questReceipts, ObjectiveTracker, type Objective } from '../../src/sim/quests';
 import type { Request } from '../../src/sim/core/types';
 import { ClientObjectives, hudObjectiveApi } from '../../src/web/quests/objectives';
 
 /**
- * Objectives are read from World state: requests people raised for their own reasons and the
- * player knows of, the player character's own concerns, and their Tower run. Completions are the
- * canonical events that ended those (request_completed, concern_resolved, tower_floor_cleared).
+ * Emergent objectives are read from World state: requests people raised for their own reasons and
+ * the player knows of, and the player character's own concerns. Completions are the canonical
+ * events that ended those (request_completed, concern_resolved). John Smith's system quests,
+ * including the Tower floor goals, are covered in johnSmith.test.ts.
  * Disclosed fixtures: a resident's energy is lowered to stand in for a day without food (the ask,
  * its perception and its settlement are the ordinary sim path); the player is stood beside the
  * resident; Tower floor-clear receipts are emitted directly (their combat path is covered by the
@@ -51,14 +52,14 @@ function giveFoodTo(s: RealmSession, personId: string): string {
 beforeAll(() => loadFocusedGeometry());
 
 describe('sim-derived objectives', () => {
-  it('derives the same objectives from the same seed, each from one of the three canonical sources', () => {
+  it('derives the same objectives from the same seed, each from a canonical emergent source', () => {
     const a = new RealmSession(SEED), b = new RealmSession(SEED);
     for (const s of [a, b]) hungryAsk(s, resident(s).id);
     const first = deriveObjectives(a.world, a.person.id);
     expect(strip(first)).toEqual(strip(deriveObjectives(b.world, b.person.id)));
     expect(strip(first)).toEqual(strip(deriveObjectives(a.world, a.person.id)));
-    expect(first.map(o => o.kind)).toEqual(expect.arrayContaining(['deliver', 'reach_floor']));
-    for (const o of first) expect(['request', 'concern', 'tower_run']).toContain(o.source.type);
+    expect(first.map(o => o.kind)).toContain('deliver');
+    for (const o of first) { expect(o.origin).toBe('emergent'); expect(['request', 'concern']).toContain(o.source.type); }
     expect(first.filter(o => o.tracked)).toHaveLength(1);
     expect(first[0].stage).toBe('town');
   }, 60000);
@@ -103,17 +104,6 @@ describe('sim-derived objectives', () => {
     expect(objectiveReceipts(s.world, s.person.id).some(x => x.objectiveId === `request:${r.id}`)).toBe(false);
     expect(deriveObjectives(s.world, s.person.id).some(x => x.id === `request:${r.id}`)).toBe(false);
   }, 60000);
-
-  it('walks the Tower through floors 1–5 from floor-clear receipts, one receipt per floor', () => {
-    const s = new RealmSession(SEED), w = s.world, p = s.person;
-    const towerOnly = () => deriveObjectives(w, p.id).filter(o => o.stage === 'tower');
-    for (let floor = 1; floor <= FIRST_HOUR_TOWER_FLOORS; floor++) {
-      expect(towerOnly().map(o => o.target.floor)).toEqual([floor]);
-      w.emit('tower_floor_cleared', { actor: p.id, data: { runId: 'fixture', floor, seconds: 60 }, significance: .65, summary: `fixture clear ${floor}` });
-    }
-    expect(towerOnly()).toEqual([]);
-    expect(objectiveReceipts(w, p.id).filter(r => r.objectiveId.startsWith('tower:'))).toHaveLength(FIRST_HOUR_TOWER_FLOORS);
-  });
 });
 
 describe('forest stage', () => {
@@ -130,7 +120,7 @@ describe('forest stage', () => {
     expect(layout(reloaded)).toEqual(layout(a.s));
   }, 60000);
 
-  it('orders a taken-on protection request after town and before the Tower', () => {
+  it('derives a forest-stage hunt only once the player takes the protection request on', () => {
     const { s } = forest(), w = s.world, who = resident(s), boar = w.creatures().find(c => c.species === 'woodland_boar')!;
     const r = createRequest(w, { type: 'protection', requesterId: who.id, reward: 6, cause: `a ${boar.name} is menacing people`,
       payload: { creatureId: boar.id, species: boar.species, seenAt: { ...w.primaryBody(boar.id)!.pos } } });
@@ -140,7 +130,6 @@ describe('forest stage', () => {
     const hunt = list.find(o => o.id === `request:${r.id}`)!;
     expect(hunt).toMatchObject({ kind: 'hunt', stage: 'forest', target: { species: 'woodland_boar' } });
     expect(stages.lastIndexOf('town')).toBeLessThan(stages.indexOf('forest'));
-    expect(stages.indexOf('forest')).toBeLessThan(stages.indexOf('tower'));
   }, 60000);
 });
 
@@ -164,25 +153,31 @@ describe('objective API', () => {
   it('mirrors host messages in the browser store and HUD adapter without re-announcing history', () => {
     const s = new RealmSession(SEED), client = new ClientObjectives(), hud = hudObjectiveApi(client), seen: string[] = [];
     hud.subscribe(e => seen.push(e.type));
-    for (let floor = 1; floor <= 2; floor++) s.world.emit('tower_floor_cleared', { actor: s.person.id, data: { runId: 'fixture', floor, seconds: 60 }, significance: .65, summary: 'fixture' });
+    const clear = (floor: number) => s.world.emit('tower_floor_cleared', { actor: s.person.id, data: { runId: 'fixture', floor, seconds: 60 }, significance: .65, summary: 'fixture' });
+    clear(1); clear(2); reconcileQuests(s.world, s.person.id);
     client.ingestMessage({ type: 'state', state: s.snapshot() });
     expect(seen.includes('objective:complete')).toBe(false);
-    expect(client.history()).toHaveLength(2);
+    expect(client.history().map(r => r.objectiveId)).toEqual(['system:tower:floor:1', 'system:tower:floor:2']);
+    expect(client.journal().length).toBeGreaterThanOrEqual(3);
     expect(hud.getActiveObjectives().map(o => o.id)).toEqual(client.getActiveObjectives().map(o => o.id));
-    s.world.emit('tower_floor_cleared', { actor: s.person.id, data: { runId: 'fixture', floor: 3, seconds: 60 }, significance: .65, summary: 'fixture' });
-    const receipt = objectiveReceipts(s.world, s.person.id).at(-1)!;
+    clear(3);
+    const receipt = reconcileQuests(s.world, s.person.id).completed[0];
+    expect(receipt.objectiveId).toBe('system:tower:floor:3');
     client.ingestMessage({ type: 'objective', receipt });
     client.ingestMessage({ type: 'state', state: s.snapshot() });
     client.ingestMessage({ type: 'state', state: s.snapshot() });
     expect(seen.filter(t => t === 'objective:complete')).toHaveLength(1);
   });
 
-  it('the host objectives operation only reads history, so replay agrees', () => {
+  it('journals John Smith’s pass as a host operation, so replay reaches the same ledger', () => {
     const live = new RealmRuntime(new RealmSession(SEED)), replay = new RealmRuntime(new RealmSession(SEED));
     for (const r of [live, replay]) {
+      r.apply({ type: 'objectives' });
       r.session.world.emit('tower_floor_cleared', { actor: r.session.person.id, data: { runId: 'fixture', floor: 1, seconds: 60 }, significance: .65, summary: 'fixture' });
       r.apply({ type: 'objectives' });
     }
-    expect(replay.apply({ type: 'objectives' })).toEqual(live.apply({ type: 'objectives' }));
+    expect(replay.session.world.questLedgers).toEqual(live.session.world.questLedgers);
+    expect(questReceipts(replay.session.world, replay.session.person.id)).toEqual(questReceipts(live.session.world, live.session.person.id));
+    expect(live.apply({ type: 'objectives' }).completed).toEqual([]);
   });
 });

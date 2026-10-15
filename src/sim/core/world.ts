@@ -25,6 +25,8 @@ export class World {
   realmExpedition?: import('../world/realms/expedition').RealmExpedition;
   interiors?: import('../world/interiors/grid').InteriorRegistry;
   canonicalTower?: import('../world/interiors/towerTypes').CanonicalTowerRun;
+  /** John Smith's quest ledger per person (quests/ledger.ts): every system and emergent quest and its one reward claim. */
+  questLedgers?: Record<EntityId, import('../quests/ledger').QuestLedger>;
   ecology: import('../ecology/types').EcologyState | null = null;
   kernel = emptyKernel();
   /** Save handoff for the attached canonical scheduler. The callback reads its live state;
@@ -460,6 +462,7 @@ export class World {
     // Discovered definitions also outlive their discoverer and any surviving manual.
     for (const p of this.persons()) { visit(p.martial); visit(p.arcana); visit(p.combatTrial); }
     visit(this.canonicalTower);
+    visit(this.questLedgers);
     for (const b of this.bodies()) { visit(b.arcana); visit(b.recoil); }
     for (const b of this.bodies()) if (b.guard && b.guard.until > this.physicalTime) visit(b.guard.eventId);
     visit(this.martialDefinitions);

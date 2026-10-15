@@ -1,23 +1,26 @@
 import { ObjectiveTracker, type ObjectiveCompletion, type ObjectiveEvent, type ObjectiveUpdate } from '../../sim/quests/layer';
 import type { Objective, ObjectiveReceipt } from '../../sim/quests/types';
+import type { QuestLedgerEntry } from '../../sim/quests/ledger';
 
-export type { Objective, ObjectiveReceipt, ObjectiveUpdate, ObjectiveCompletion, ObjectiveEvent };
+export type { Objective, ObjectiveReceipt, ObjectiveUpdate, ObjectiveCompletion, ObjectiveEvent, QuestLedgerEntry };
 
 /**
  * Browser objective API for HUD, tracker and journal code (Workstream B consumes this).
  *
  *   const quests = new ClientObjectives();
  *   socket message:      quests.ingestMessage(m)     // handles 'state', 'tower_frame' and 'objective'
- *   quests.getActiveObjectives(), quests.getTrackedObjective(), quests.history()
+ *   quests.getActiveObjectives(), quests.getTrackedObjective(), quests.history(), quests.journal()
  *   quests.on('objective:update', ({ objective, previous }) => …)
  *   quests.on('objective:complete', ({ objective, receipt }) => …)   // once per receipt
  *
- * The host derives objectives from the World and issues receipts; this only mirrors them.
+ * The host derives objectives from the World and John Smith's ledger and issues receipts; this
+ * only mirrors them. Each objective carries `origin: 'emergent' | 'system'`.
  * Receipts present on the first message are treated as history and not announced again.
  */
 export class ClientObjectives {
   private readonly tracker = new ObjectiveTracker();
   private receipts: ObjectiveReceipt[] = [];
+  private ledger: QuestLedgerEntry[] = [];
   private seeded = false;
 
   on<E extends ObjectiveEvent>(event: E, listener: (p: E extends 'objective:update' ? ObjectiveUpdate : ObjectiveCompletion) => void): () => void {
@@ -27,6 +30,8 @@ export class ClientObjectives {
   getTrackedObjective(): Objective | null { return this.tracker.getTrackedObjective(); }
   /** Receipts seen this session and on connect, oldest first. */
   history(): ObjectiveReceipt[] { return [...this.receipts]; }
+  /** The quest journal: the host ledger's most recent entries (system and emergent, every state), oldest first. */
+  journal(): QuestLedgerEntry[] { return [...this.ledger]; }
 
   ingest(objectives: readonly Objective[] | undefined, receipts: readonly ObjectiveReceipt[] | undefined): void {
     const known = new Set(this.receipts.map(r => r.objectiveId)), fresh = (receipts ?? []).filter(r => !known.has(r.objectiveId));
@@ -35,8 +40,8 @@ export class ClientObjectives {
     this.tracker.ingest(objectives ?? [], fresh);
   }
   /** Accepts any host message; ignores the ones that carry no objective data. */
-  ingestMessage(m: { type?: string; state?: { objectives?: Objective[]; objectiveReceipts?: ObjectiveReceipt[] }; objectives?: Objective[]; receipt?: ObjectiveReceipt; objective?: Objective | null }): void {
-    if (m.type === 'state' && m.state) this.ingest(m.state.objectives, m.state.objectiveReceipts);
+  ingestMessage(m: { type?: string; state?: { objectives?: Objective[]; objectiveReceipts?: ObjectiveReceipt[]; questJournal?: QuestLedgerEntry[] }; objectives?: Objective[]; receipt?: ObjectiveReceipt; objective?: Objective | null }): void {
+    if (m.type === 'state' && m.state) { if (m.state.questJournal) this.ledger = m.state.questJournal; this.ingest(m.state.objectives, m.state.objectiveReceipts); }
     else if (m.type === 'tower_frame') this.ingest(m.objectives, undefined);
     else if (m.type === 'objective' && m.receipt) this.ingest(this.getActiveObjectives().filter(o => o.id !== m.receipt!.objectiveId), [m.receipt]);
   }

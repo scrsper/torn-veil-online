@@ -1,4 +1,6 @@
 import { validCombatTrials } from '../social/combatTrial';
+import { isAttainableStage } from '../core/stages';
+import { validQuestLedgers } from '../quests/ledger';
 import { validSavedExertion } from '../physical/exertion';
 import { attachInteriorGrid, validInteriorRegistry } from '../world/interiors/grid';
 import { validCanonicalTower } from '../world/interiors/towerPersistence';
@@ -255,7 +257,7 @@ function checkpointData(world: World, compactEvents: boolean): { snapshot: Recor
   // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
   // falls back to today's behavior (rewind to post-generation position) when absent.
   const rng = world.rng.state(); const weatherRng = world.weatherRng.state(); const demographicRng = world.demographicRng.state();
-  return { snapshot: { version: SAVE_VERSION, ecology: world.ecology, martialLearning: martialPersistenceState(world), creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, realmSpec: world.realmSpec, realmExpedition: world.realmExpedition, interiors: world.interiors, canonicalTower: world.canonicalTower, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, containers, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, lastCompactionEventCount, diffs, doors, events: events, eventEncoding: eventTable ? { format: eventTable.format, appearances: eventTable.appearances } : undefined, rng, weatherRng, demographicRng, savedAt: Date.now() }, encodedFields: eventTable ? { events: eventTable.rows } : {} };
+  return { snapshot: { version: SAVE_VERSION, ecology: world.ecology, martialLearning: martialPersistenceState(world), creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, realmSpec: world.realmSpec, realmExpedition: world.realmExpedition, interiors: world.interiors, canonicalTower: world.canonicalTower, questLedgers: world.questLedgers, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, containers, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, lastCompactionEventCount, diffs, doors, events: events, eventEncoding: eventTable ? { format: eventTable.format, appearances: eventTable.appearances } : undefined, rng, weatherRng, demographicRng, savedAt: Date.now() }, encodedFields: eventTable ? { events: eventTable.rows } : {} };
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -332,6 +334,8 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     if (typeof data.weatherRng === 'number') world.weatherRng.setState(data.weatherRng);
     if (typeof data.demographicRng === 'number') world.demographicRng.setState(data.demographicRng);
     for (const s of data.persons) {
+      // Constitution §16: no saved entity may hold a stage beyond the ontology boundary.
+      if (s.ontology?.stage !== undefined && !isAttainableStage(s.ontology.stage)) return null;
       const legacyMind = s.mind ?? { goal: s.goal ?? null, plan: [], decision: s.decision ?? null, commitment: s.commitment ?? null, concerns: s.concerns ?? [], obligations: s.obligations ?? [], pursuits: s.pursuits ?? [], reports: s.reports ?? {}, investigated: s.investigated ?? [] };
       const persistentPlan = !!data.execution || legacyMind.goal?.type === 'compose' || legacyMind.plan?.some((a: import('../core/types').Action) => a.data?.productionOpportunity || a.type === 'procure_material');
       const restored = { ...s, parentIds: [...(s.parentIds ?? [])], birthTick: s.birthTick ?? s.createdAt, lifeStage: s.lifeStage ?? 'adult', reproductiveRole: s.reproductiveRole ?? (s.gender === 'f' ? 'gestational' : 'fertilizing'), mind: { ...legacyMind, investigated: new Set(legacyMind.investigated ?? []), plan: persistentPlan ? legacyMind.plan : [], intention: data.execution ? legacyMind.intention : null } } as Person;
@@ -475,6 +479,8 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     }
     if (!validCombatTrials(world, data.version) || !validCanonicalTower(world, data.canonicalTower, data.version)) return null;
     world.canonicalTower = data.canonicalTower;
+    // Additive: John Smith's quest ledger (quests/ledger.ts). Absent on older saves; malformed is refused.
+    if (data.questLedgers !== undefined) { if (!validQuestLedgers(world, data.questLedgers)) return null; world.questLedgers = data.questLedgers; }
     if (!validArcaneWorld(world, data.version)) return null;
     restoreMartialPersistence(world, data);
     return { world, gen };

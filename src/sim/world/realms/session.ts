@@ -23,7 +23,7 @@ import {FOCUSED_GENERATOR} from '../assets/focusedLayouts';
 import {FoldedRealmGrid} from '../interiors/grid';
 import {validCanonicalTower} from '../interiors/towerPersistence';
 import {advanceTraversal,beginTraversal} from '../../physical/traversal';
-import {deriveObjectives,objectiveReceipts,type Objective} from '../../quests';
+import {questObjectives,questReceipts,questJournal,type Objective} from '../../quests';
 
 export interface FocusedTowerMigration {
   policy:'preserve-canonical-floors-v1'; runId:string; revision:number;
@@ -38,7 +38,7 @@ export class RealmSession {
   private transitionId = 0;
   private lastRegion = '';
   private classAt=-Infinity;
-  private objectiveCache:{events:number;at:number;list:Objective[]}|null=null;
+  private objectiveCache:{events:number;ledger:string;at:number;list:Objective[]}|null=null;
   private recognised:ReturnType<typeof recogniseClass>=null;
   constructor(seed = 918271, saved?: string) {
     if (saved) {
@@ -204,14 +204,15 @@ export class RealmSession {
       prompt: portal ? 'E · Cross the Veil' : door ? `E · ${w.isDoorOpen(door.door) ? 'Close' : 'Open'} ${door.name}` : this.inTower() ? 'Tower of Chrysanthus · Atrium' : 'WASD · Explore   Shift · Run   E · Interact',
       doors: [...w.grid.doorStates].map(([index, open]) => ({ index, open })),
       residents: w.persons().filter(n => n.id !== this.person.id).flatMap(n => { const b = w.primaryBody(n.id); return b && realmAt(b.pos.x, b.pos.z) === realm && w.distance2d(p, b.pos) < 80 && w.grid.lineOfSight({ ...p, y: p.y + 1.6 }, { ...b.pos, y: b.pos.y + 1.6 }, 80) ? [{ id: n.id, visual:this.visual(b), name: n.name, hostile: n.hostile || n.tags.includes('tower-warden'), pos: b.pos, yaw: b.yaw, vel: b.vel, appearance: { ...n.appearance, description: n.appearance.description ? projectAppearanceDescription(n.appearance.description, n.age, n.occupation) : undefined } }] : []; }),
-      objectives:this.objectives(),objectiveReceipts:objectiveReceipts(w,this.person.id).slice(-12),
+      objectives:this.objectives(),objectiveReceipts:questReceipts(w,this.person.id).slice(-12),questJournal:questJournal(w,this.person.id).slice(-40),
       combatEvents:this.combatEvents(),wildlife:this.wildlife(),
       stats: { canonicalPeople: w.persons().length, cachedChunks: this.grid.cachedChunks, persistedEdits: w.grid.diffs.size, doors: w.grid.doorStates.size, eventCount: w.events.length } };
   }
-  /** Derived from the World; recomputed when history grows or every half second. */
+  /** Emergent objectives derived from the World plus John Smith's active system quests; recomputed
+   * when history or the ledger changes, or every half second. */
   objectives():Objective[] {
-    const w=this.world,c=this.objectiveCache;
-    if(!c||c.events!==w.events.length||Math.abs(w.physicalTime-c.at)>.5)this.objectiveCache={events:w.events.length,at:w.physicalTime,list:deriveObjectives(w,this.person.id)};
+    const w=this.world,c=this.objectiveCache,l=w.questLedgers?.[this.person.id],ledger=l?`${l.entries.length}:${l.entries.filter(e=>e.state==='active').length}`:'';
+    if(!c||c.events!==w.events.length||c.ledger!==ledger||Math.abs(w.physicalTime-c.at)>.5)this.objectiveCache={events:w.events.length,ledger,at:w.physicalTime,list:questObjectives(w,this.person.id)};
     return this.objectiveCache!.list;
   }
   /** Recent combat outcomes near the player, for presentation feedback (hit-stop, shake, stagger). */

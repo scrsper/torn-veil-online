@@ -1,4 +1,4 @@
-import type { OntologicalStage } from './stages';
+import type { AttainableStage } from './stages';
 import type { AppearanceDescription } from './appearance';
 /**
  * The ontology of Torn Veil Online.
@@ -906,7 +906,7 @@ export interface Person extends Entity {
   lineage: { imprints: LineageImprint[]; expressed: Attributes; birthEventId?: EventId;
     expressions: { imprintId: string; didExpress: boolean; strength: number; attenuation: number; contribution: number }[] };
   /** Readiness is derived; a canonical advancement action records the transition event. */
-  ontology: { stage: OntologicalStage; breakthroughEventId?: EventId };
+  ontology: { stage: AttainableStage; breakthroughEventId?: EventId };
   /** Last actual needs update for a generated folded-room resident. No practice credit. */
   towerUpkeepAt?: number;
   /** v0.4: the physiology reserves `needs.hunger/.thirst/.energy` are now derived from. */
@@ -1483,7 +1483,7 @@ export interface Faction extends Entity {
   knowledge: Record<string, KnowledgeItem>;
 }
 
-export type EventType = 'combat_trial_agreed' | 'combat_trial_ended' | 'tower_entered' | 'tower_floor_opened' | 'tower_floor_cleared' | 'tower_returned' | 'tower_fallen' | 'arcane_learned' | 'arcane_cast' | 'arcane_resolved' | 'realm_crossed' | 'item_equipped' | 'item_unequipped' | 'animal_threat_display' | 'downed' | 'veil_hush' | 'veil_meditation' | 'butchered' | 'woke' | 'animal_born' | 'animal_conceived' | 'animal_pregnancy_lost' | 'animal_died' | 'ecology_changed'
+export type EventType = 'system_quest_reward' | 'combat_trial_agreed' | 'combat_trial_ended' | 'tower_entered' | 'tower_floor_opened' | 'tower_floor_cleared' | 'tower_returned' | 'tower_fallen' | 'arcane_learned' | 'arcane_cast' | 'arcane_resolved' | 'realm_crossed' | 'item_equipped' | 'item_unequipped' | 'animal_threat_display' | 'downed' | 'veil_hush' | 'veil_meditation' | 'butchered' | 'woke' | 'animal_born' | 'animal_conceived' | 'animal_pregnancy_lost' | 'animal_died' | 'ecology_changed'
   | 'introduction' | 'social_inferred' | 'mechanism_inspected' | 'mechanism_hypothesized' | 'mechanism_worked' | 'mechanism_intended' | 'mechanism_abandoned'
   | 'record_written' | 'record_copied' | 'record_read' | 'record_destroyed' | 'environment_energy_changed' | 'method_reproduced' | 'method_discovered'
   | 'component_acquired' | 'assembly_changed' | 'mechanism_trial' | 'production_observed' | 'component_manufactured' | 'component_supply_failed'
