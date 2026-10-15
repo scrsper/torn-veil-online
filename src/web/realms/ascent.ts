@@ -1,3 +1,7 @@
+import { realmWeather } from './realmAtmosphere';
+import { OptionalAssets } from '../presentation/optionalAssets';
+import { SliceHud } from '../ui/sliceHud';
+import { towerTheme } from './towerThemes';
 import { FreeCamera, Vector3, Matrix, Color3, MeshBuilder, StandardMaterial, PBRMaterial, Mesh, Ray, type Material } from '@babylonjs/core';
 import { createRenderer, attachPipeline } from '../render/engine';
 import { Atmosphere } from '../world/atmosphere';
@@ -70,8 +74,11 @@ export async function startCanonicalAscent() {
     .ascent{font:14px system-ui;color:#f0eade;pointer-events:none}.ascent header,.ascent aside,.ascent footer{position:absolute;background:#14171eea;border:1px solid #7d705644;border-radius:8px;padding:15px;pointer-events:auto}
     .ascent header{left:18px;top:16px;width:270px;padding:12px;background:#14171ed9}.ascent h1{font:20px Georgia;margin:5px 0}.ascent small{letter-spacing:2px;color:#d7bb80}.ascent p{line-height:1.5;margin:7px 0;font-size:12px}.ascent #as-status{white-space:pre-line}.ascent #as-panel[hidden]{display:none}.ascent a{color:#d7bb80}.ascent #as-notice:empty{display:none}.ascent footer{font-size:12px}.ascent #as-target{color:#efce89;margin-left:20px}
     .ascent aside{right:18px;top:18px;width:240px;max-height:75vh;overflow:auto}.ascent button{display:inline-block;color:#f5ebd3;background:#343a43;border:1px solid #bba47766;border-radius:4px;padding:7px 10px;margin:3px;cursor:pointer}.ascent button:hover{background:#505563}.ascent footer{bottom:18px;left:20px;right:20px;display:flex;justify-content:space-between}.ascent #as-notice{color:#f2c786;min-height:20px}.ascent #as-loading{position:absolute;inset:0;display:grid;place-items:center;background:#111620e8;font-size:21px}.ascent #as-loading[hidden]{display:none}
-  </style><div class="ascent"><header><small>CHRYSANTHUS</small><h1 id="as-title">Entering the Tower</h1><p id="as-status">Restoring your journey.</p><button id="as-journal">Journey · I</button><div id="as-notice"></div></header><aside id="as-panel" hidden><small>YOUR JOURNEY</small><p id="as-detail"></p><details><summary>Controls</summary><p>WASD move · X walk · Shift run · J strike · K heavy · L low<br>Space dodge · G guard · Tab target · Q face<br>E take / open · 1-6 cast · F threshold<br>MMB orbit · wheel zoom · Esc close</p></details><div id="as-sources"></div><div id="as-actions"></div><div id="as-spells"></div><button id="as-return">Return at blue threshold</button><button id="as-next">Ascend at gold threshold</button><button id="as-save">Save</button><a href="/">Home</a></aside><footer><span id="as-goal">Defeat the wardens.</span><span id="as-target"></span></footer><div id="as-loading">Loading existing shared characters.</div></div>`;
+  </style><div class="ascent"><header><small>CHRYSANTHUS</small><h1 id="as-title">Entering the Tower</h1><p id="as-status">Restoring your journey.</p><button id="as-journal">Journey · I / Objectives · J</button><div id="as-notice"></div></header><aside id="as-panel" hidden><small>YOUR JOURNEY</small><p id="as-detail"></p><details><summary>Controls</summary><p>WASD move · X walk · Shift run · LMB strike · K heavy · L low<br>Space dodge · G guard · Tab target · Q face<br>E take / open · 1-6 cast · F threshold<br>MMB orbit · wheel zoom · Esc close</p></details><div id="as-sources"></div><div id="as-actions"></div><div id="as-spells"></div><button id="as-return">Return at blue threshold</button><button id="as-next">Ascend at gold threshold</button><button id="as-save">Save</button><a href="/">Home</a></aside><footer><span id="as-goal">Objectives · J</span><span id="as-target"></span></footer><div id="as-loading">Loading existing shared characters.</div></div>`;
   const el = (id: string) => document.getElementById(id)!, notice = (text: string) => { el('as-notice').textContent = text; };
+  const sliceHud = new SliceHud(ui);
+  const optionalChest = new OptionalAssets(ctx.scene).load('tower-chest');
+  let announcedFloor = 0;
   await people.load(text => { el('as-loading').textContent = text; });
   const ws = new WebSocket(`ws://${location.host}/realms/ascent/socket`);
   function send(command: InteractionCommand) {
@@ -110,10 +117,13 @@ export async function startCanonicalAscent() {
   function refreshHud() {
     if (!frame) return;
     const { own, tower } = frame;
+    const theme = towerTheme(tower.floor, plan?.descriptor.seed ?? 0);
+    if (announcedFloor !== tower.floor) { announcedFloor = tower.floor; sliceHud.announce(`Floor ${tower.floor} · ${theme.name}`); stone.albedoColor=Color3.FromHexString(theme.wall); floorMat.albedoColor=Color3.FromHexString(theme.floor); brass.diffuseColor=Color3.FromHexString(theme.metal); }
+    sliceHud.dispatch({type:'progress',rank:own.rank});
     el('as-title').textContent = `Floor ${tower.floor} · ${tower.clear ? 'Trial cleared' : tower.defeated+'/'+tower.opponents+' wardens'}`;
     el('as-status').textContent = `${own.name} · ${own.rank}\nVitality ${Math.ceil(own.health)}/${own.maxHealth} · Mana ${Math.floor(own.mana)}/${own.capacity.reserve}`;
     el('as-detail').textContent = `${own.name} · ${own.rank} · Vitality ${Math.ceil(own.health)} / ${own.maxHealth} · Mana ${Math.floor(own.mana)} / ${own.capacity.reserve} · Breath ${Math.round(own.breath * 100)}% · Fatigue ${Math.round(own.fatigue * 100)}% · Food ${Math.round(own.food * 100)}% · Water ${Math.round(own.water * 100)}% · ${tower.defeated}/${tower.opponents} wardens`;
-    el('as-goal').textContent = tower.floor===100&&tower.clear?'Summit recognition · Journey for requirements':tower.clear?'Open award chest · E take · F ascend':'Defeat the wardens · G guard · Space dodge';
+    el('as-goal').textContent = 'Objectives · J · E interact · F threshold';
     const rest = frame.snapshot.abilities.find(a => a.id === 'rest' || a.id === 'wake');
     const container = frame.snapshot.container as SnapshotMessage['container'] as { id: string; items: { id: string; name: string }[] } | null;
     const nextActions=JSON.stringify([rest?.available?{id:rest.id,label:rest.label}:null,frame.snapshot.interactions.map(a=>({id:a.id,label:a.label})),container?.id,container?.items.map(i=>({id:i.id,name:i.name}))]);
@@ -162,11 +172,16 @@ export async function startCanonicalAscent() {
     for (const body of bodies) {
       let v = visuals.get(body.bodyId);
       if (!v) { const visual = people.create(body, atmosphere, undefined, body.bodyId===binding.bodyId?'player':'resident'); if (!visual) continue; visual.root.position.set(body.pos.x, body.pos.y, body.pos.z); v = { visual, body, hitSeq: body.hitSeq, hit: 0 }; visuals.set(body.bodyId, v); }
-      if (body.hitSeq > v.hitSeq) v.hit = 1; v.hitSeq = body.hitSeq; v.body = body;
+      if (body.hitSeq > v.hitSeq) { v.hit = 1; } v.hitSeq = body.hitSeq; v.body = body;
     }
     const things = [...m.waterSources.map((i: any) => ({ ...i, water: true })), ...m.items.map((i: any) => ({ ...i, chest: false })), ...m.containers.map((i: any) => ({ ...i, chest: true }))], wanted = new Set(things.map(i => i.id));
     for (const [id, mesh] of objects) if (!wanted.has(id)) { mesh.dispose(); objects.delete(id); }
     for (const i of things) if (!objects.has(i.id)) objects.set(i.id, box(i.id, i.pos.x - .25, i.pos.y, i.pos.z - .18, i.water ? .8 : i.chest ? .8 : .5, i.water ? .025 : i.chest ? .7 : .12, i.water ? .8 : i.chest ? .5 : .36, i.water ? (i.remaining > 0 ? blue : stone) : i.chest ? brass : bookMat));
+    for (const i of things.filter((i:any)=>i.chest)) { const chest=objects.get(i.id)!; if(!chest.metadata?.dressed){chest.metadata={dressed:true};
+      for(const x of [-.25,.25]){const strap=MeshBuilder.CreateBox('chest brass binding',{width:.045,height:.72,depth:.52},ctx.scene);strap.parent=chest;strap.position.x=x;strap.material=gold;}
+      const latch=MeshBuilder.CreateBox('chest latch',{width:.13,height:.18,depth:.04},ctx.scene);latch.parent=chest;latch.position.set(0,.1,-.27);latch.material=gold;
+      void optionalChest.then(asset=>{if(!asset||chest.isDisposed())return;const instance=asset.instantiateModelsToScene();for(const node of instance.rootNodes)node.parent=chest;chest.visibility=0;}).catch(()=>{});
+    }}
     for (const i of m.waterSources) { const mesh = objects.get(i.id); if (mesh) mesh.material = i.remaining > 0 ? blue : stone; }
     ready = !!plan && visuals.has(binding.bodyId)&&(!plan.assetScene||focused.pending===0&&focused.count>0&&!focused.error); el('as-loading').hidden = ready;
     if (ready) refreshHud();
@@ -176,12 +191,14 @@ export async function startCanonicalAscent() {
   el('as-return').onclick = () => void transition('return'); el('as-next').onclick = () => void transition('ascend');
   el('as-save').onclick = () => ws.send(JSON.stringify({ type: 'save' }));
   window.addEventListener('keydown', e => {
+    if(e.code==='KeyJ'&&!e.repeat){sliceHud.dispatch({type:'journal'});release();return;}
+    if(e.code==='Escape'&&sliceHud.journalOpen){sliceHud.dispatch({type:'journal'});release();return;}
     if(e.code==='KeyI'&&!e.repeat){toggleJournal();return;}
     if(e.code==='Escape'&&journalOpen){toggleJournal();return;}
-    if(journalOpen)return;
+    if(journalOpen||sliceHud.journalOpen)return;
     if (['Space', 'Tab', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) e.preventDefault(); keys.add(e.code); if (e.repeat) return;
     if (e.code === 'KeyC') send({ type: 'crouch', held: true });
-    if (['KeyJ', 'KeyK', 'KeyL'].includes(e.code)) send({ type: 'attack', targetBodyId: targetId || undefined, weight: e.code === 'KeyK' ? 'heavy' : 'light', trajectory: e.code === 'KeyL' ? 'low' : 'high' });
+    if (['KeyK', 'KeyL'].includes(e.code)) send({ type: 'attack', targetBodyId: targetId || undefined, weight: e.code === 'KeyK' ? 'heavy' : 'light', trajectory: e.code === 'KeyL' ? 'low' : 'high' });
     if (e.code === 'Space') { const x = Number(keys.has('KeyD')) - Number(keys.has('KeyA')); send({ type: 'defend', kind: x ? 'sidestep' : 'backstep', direction: cameraRelativeMove(x, x ? 0 : -1, movementYaw) }); }
     if (e.code === 'KeyE') nearestHand();
     if (/^Digit[1-6]$/.test(e.code)) cast(Number(e.code.slice(-1)) - 1);
@@ -194,7 +211,7 @@ export async function startCanonicalAscent() {
   attachOrbit(canvas, view.camera, view.persist);
   canvas.oncontextmenu=e=>e.preventDefault();
   canvas.onpointerdown = e => {
-    if(journalOpen)return;
+    if(journalOpen||sliceHud.journalOpen)return;
     if(e.button===0)send({type:'attack',targetBodyId:targetId||undefined,weight:'light',trajectory:'high'});
     else if(e.button===2){mouseGuard=true;send({type:'guard',held:true});e.preventDefault();}
   };
@@ -260,7 +277,8 @@ export async function startCanonicalAscent() {
       targetRing.setEnabled(!!target);
       if (target) targetRing.position.set(target.pos.x, target.pos.y + .04, target.pos.z);
     }
-    vfx.update(dt); atmosphere.follow(camera.position); atmosphere.update(10, { kind: 'clear', intensity: 0, wind: .15 }, dt); ctx.scene.fogColor = Color3.FromHexString('#79808e'); ctx.scene.render();
+    const ownPosition=frame?.snapshot.bodies.find(b=>b.bodyId===binding?.bodyId)?.pos;if(ownPosition)sliceHud.bearing(ownPosition,movementYaw);
+    vfx.update(dt); atmosphere.follow(camera.position); atmosphere.update(10, realmWeather(frame ?? {}), dt); ctx.scene.fogColor = Color3.FromHexString('#79808e'); ctx.scene.render();
   });
   Object.defineProperty(window, 'tvAscent', { value: { get ready() { return ready; }, get frame() { return frame; }, get plan() { return plan; }, get targetId() { return targetId; },
     inspect: () => ({focused:{instances:focused.count,pending:focused.pending,error:focused.error}, frames: [...frames], serverMs: [...serverTimes], receipts: [...receipts], meshes: ctx.scene.meshes.length, people: visuals.size, looks: [...visuals.values()].map(v => v.visual.root.metadata),
