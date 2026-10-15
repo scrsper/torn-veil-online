@@ -67,3 +67,9 @@ export function hudObjectiveApi(source: ClientObjectives): { getActiveObjectives
     },
   };
 }
+
+/** Journal rows for B's HUD (`JournalEntry` in sliceHudState); system quests are labelled as John Smith's, never an NPC giver. */
+export function hudJournal(entries: readonly QuestLedgerEntry[]): { id: string; title: string; detail: string; origin: 'system' | 'emergent'; source: string; state: QuestLedgerEntry['state']; paid: number | null }[] {
+  return entries.map(e => ({ id: e.id, title: e.title, detail: e.detail, origin: e.origin, state: e.state, paid: e.claim ? e.claim.paid : null,
+    source: e.origin === 'system' ? 'John Smith' : e.source.type === 'concern' ? 'your concern' : 'request' }));
+}

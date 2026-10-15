@@ -25,6 +25,9 @@ export class SliceHud {
   this.tracker.replaceChildren();this.journal.replaceChildren();const heading=document.createElement('h2');heading.textContent='Objectives · J';this.journal.append(heading);
   if(!this.state.objectives.length){const p=document.createElement('p');p.textContent='No known objectives. Explore and speak with nearby residents.';this.journal.append(p);}
   for(const o of this.state.objectives){const p=document.createElement('p');p.textContent=`${o.complete?'✓ ':''}${o.title} · ${Math.max(0,o.current)} / ${Math.max(1,o.target)}`;if(!o.complete&&this.tracker.childElementCount<3)this.tracker.append(p.cloneNode(true));const d=document.createElement('p');d.textContent=o.description;this.journal.append(p,d);}
+  if(this.state.entries.length){const h=document.createElement('h3');h.textContent='Quest journal';this.journal.append(h);
+   for(const e of [...this.state.entries].reverse()){const p=document.createElement('p');p.className=`tv-quest tv-quest-${e.origin} tv-quest-${e.state}`;p.dataset.origin=e.origin;p.dataset.state=e.state;
+    p.textContent=`${e.origin==='system'?'◈ System':'✦'} ${e.title} · ${e.source} · ${e.state}${e.state==='completed'&&e.paid!==null?` · paid ${e.paid} silver`:''}`;const d=document.createElement('p');d.className='tv-quest-detail';d.textContent=e.detail;this.journal.append(p,d);}}
   this.journal.hidden=!this.state.journal;
  }
  announce(text:string){this.banner.textContent=text;clearTimeout(this.timer);this.timer=window.setTimeout(()=>this.banner.textContent='',4200);}

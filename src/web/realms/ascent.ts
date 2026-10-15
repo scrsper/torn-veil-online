@@ -1,6 +1,7 @@
 import { realmWeather } from './realmAtmosphere';
 import { OptionalAssets } from '../presentation/optionalAssets';
 import { SliceHud } from '../ui/sliceHud';
+import { ClientObjectives, hudObjectiveApi } from '../quests/objectives';
 import { towerTheme } from './towerThemes';
 import { FreeCamera, Vector3, Matrix, Color3, MeshBuilder, StandardMaterial, PBRMaterial, Mesh, Ray, type Material } from '@babylonjs/core';
 import { createRenderer, attachPipeline } from '../render/engine';
@@ -76,7 +77,8 @@ export async function startCanonicalAscent() {
     .ascent aside{right:18px;top:18px;width:240px;max-height:75vh;overflow:auto}.ascent button{display:inline-block;color:#f5ebd3;background:#343a43;border:1px solid #bba47766;border-radius:4px;padding:7px 10px;margin:3px;cursor:pointer}.ascent button:hover{background:#505563}.ascent footer{bottom:18px;left:20px;right:20px;display:flex;justify-content:space-between}.ascent #as-notice{color:#f2c786;min-height:20px}.ascent #as-loading{position:absolute;inset:0;display:grid;place-items:center;background:#111620e8;font-size:21px}.ascent #as-loading[hidden]{display:none}
   </style><div class="ascent"><header><small>CHRYSANTHUS</small><h1 id="as-title">Entering the Tower</h1><p id="as-status">Restoring your journey.</p><button id="as-journal">Journey · I / Objectives · J</button><div id="as-notice"></div></header><aside id="as-panel" hidden><small>YOUR JOURNEY</small><p id="as-detail"></p><details><summary>Controls</summary><p>WASD move · X walk · Shift run · LMB strike · K heavy · L low<br>Space dodge · G guard · Tab target · Q face<br>E take / open · 1-6 cast · F threshold<br>MMB orbit · wheel zoom · Esc close</p></details><div id="as-sources"></div><div id="as-actions"></div><div id="as-spells"></div><button id="as-return">Return at blue threshold</button><button id="as-next">Ascend at gold threshold</button><button id="as-save">Save</button><a href="/">Home</a></aside><footer><span id="as-goal">Objectives · J</span><span id="as-target"></span></footer><div id="as-loading">Loading existing shared characters.</div></div>`;
   const el = (id: string) => document.getElementById(id)!, notice = (text: string) => { el('as-notice').textContent = text; };
-  const sliceHud = new SliceHud(ui);
+  const quests = new ClientObjectives();
+  const sliceHud = new SliceHud(ui, hudObjectiveApi(quests));
   const optionalChest = new OptionalAssets(ctx.scene).load('tower-chest');
   let announcedFloor = 0;
   await people.load(text => { el('as-loading').textContent = text; });
@@ -145,6 +147,7 @@ export async function startCanonicalAscent() {
   }
   ws.onmessage = e => {
     const m = JSON.parse(e.data);
+    quests.ingestMessage(m);
     if (m.type === 'controller') token = m.token;
     if (m.type === 'binding') { binding = m.interaction; sequence = 0; keys.clear(); }
     if (m.type === 'tower_geometry') drawFloor(m.plan);

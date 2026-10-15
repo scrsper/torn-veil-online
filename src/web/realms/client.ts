@@ -1,5 +1,6 @@
 import { realmWeather, streamingFog } from './realmAtmosphere';
 import { SliceHud } from '../ui/sliceHud';
+import { ClientObjectives, hudObjectiveApi, hudJournal } from '../quests/objectives';
 import { onboarding, spawnReveal } from '../presentation/spawn';
 import { Engine, FreeCamera, Vector3, Matrix } from '@babylonjs/core';
 import { createRenderer, attachPipeline } from '../render/engine';
@@ -59,7 +60,8 @@ export async function startRealms(): Promise<void> {
     <section class="rv-modal" id="rv-expedition" hidden><small>THE TOWER</small><h2>Your expedition awaits</h2><p>Continue from the last saved floor start, or return to your atrium landing.</p><button id="rv-resume">Continue expedition</button><button id="rv-return">Return to atrium</button></section>
     <div class="rv-loading" id="rv-loading">Preparing nearby streets…</div>
   </div>`;
-  const sliceHud = new SliceHud(ui), welcome = onboarding(ui);
+  const quests = new ClientObjectives();
+  const sliceHud = new SliceHud(ui, hudObjectiveApi(quests)), welcome = onboarding(ui);
   let revealAt = 0;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   await people.load(text=>{document.getElementById('rv-loading')!.textContent=text;});
@@ -77,6 +79,7 @@ export async function startRealms(): Promise<void> {
   socket.addEventListener('close', e => { connected = false; el('rv-loading').hidden = false; el('rv-loading').textContent = e.reason || 'Connection closed. Reload to return to your saved journey.'; });
   socket.addEventListener('message', e => {
     const m = JSON.parse(e.data);
+    quests.ingestMessage(m); if (m.type === 'state' && m.state?.questJournal) sliceHud.dispatch({type:'ledger',entries:hudJournal(quests.journal())});
     if (m.type === 'controller') controllerToken = m.token;
     if (m.type === 'binding') { binding=m.interaction; sequence=0; keys.clear(); }
     if (m.type === 'command_receipt' && m.status !== 'received') { receipts.push(m); if(receipts.length>300)receipts.shift(); if(m.status==='rejected'&&!['cooldown','incapacitated','expired','committed'].includes(m.result))toast(String(m.result).replaceAll('_',' ')); }
