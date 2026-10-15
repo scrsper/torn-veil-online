@@ -1,7 +1,7 @@
 import { realmWeather, streamingFog } from './realmAtmosphere';
 import { SliceHud } from '../ui/sliceHud';
 import { ClientObjectives, hudObjectiveApi, hudJournal } from '../quests/objectives';
-import { onboarding, spawnReveal } from '../presentation/spawn';
+import { onboarding, spawnReveal, welcomeKey } from '../presentation/spawn';
 import { Engine, FreeCamera, Vector3, Matrix } from '@babylonjs/core';
 import { createRenderer, attachPipeline } from '../render/engine';
 import { Atmosphere } from '../world/atmosphere';
@@ -170,8 +170,8 @@ export async function startRealms(): Promise<void> {
   el('rv-prompt').onclick = () => send({ type: 'interact' });
   window.addEventListener('keydown', e => {
     if (['KeyW','KeyA','KeyS','KeyD','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space','Tab'].includes(e.code)) e.preventDefault();
+    if (welcomeKey(welcome, e.code)) return;
     if (e.code === 'Escape' && sliceHud.journalOpen) { sliceHud.dispatch({type:'journal'});release();return; }
-    if (welcome.open) { if (['Enter','Escape','KeyW','KeyA','KeyS','KeyD'].includes(e.code)) welcome.close(); else return; }
     if (!e.repeat && e.code === 'KeyJ') { sliceHud.dispatch({type:'journal'}); release(); return; }
     if (sliceHud.journalOpen) return;
     if (!e.repeat && e.code === 'KeyE' && !journal) send({ type: 'interact' });

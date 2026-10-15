@@ -31,3 +31,14 @@ it('HUD actions derive only from supplied snapshots/events without rewards or in
  expect(hudReducer(start,{type:'objectives',objectives:[objective]})).toEqual(a);
  expect(start).toEqual(initialHudState());
 });
+
+import { welcomeKey } from '../../src/web/presentation/spawn';
+it('consumes J throughout onboarding and releases it only after dismissal', () => {
+ let open = true;
+ const welcome = { get open() { return open; }, close() { open = false; } };
+ for (let i = 0; i < 3; i++) expect(welcomeKey(welcome, 'KeyJ')).toBe(true);
+ expect(open).toBe(true);
+ expect(welcomeKey(welcome, 'Enter')).toBe(true);
+ expect(open).toBe(false);
+ expect(welcomeKey(welcome, 'KeyJ')).toBe(false);
+});

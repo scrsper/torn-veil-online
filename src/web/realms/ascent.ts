@@ -147,7 +147,10 @@ export async function startCanonicalAscent() {
   }
   ws.onmessage = e => {
     const m = JSON.parse(e.data);
-    quests.ingestMessage(m); if (m.type === 'tower_frame' && m.questJournal) sliceHud.dispatch({type:'ledger',entries:hudJournal(quests.journal())});
+    quests.ingestMessage(m);
+    if (m.type === 'tower_frame' && m.questJournal) {
+      sliceHud.dispatch({ type: 'ledger', entries: hudJournal(quests.journal()) });
+    }
     if (m.type === 'controller') token = m.token;
     if (m.type === 'binding') { binding = m.interaction; sequence = 0; keys.clear(); }
     if (m.type === 'tower_geometry') drawFloor(m.plan);

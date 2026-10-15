@@ -8,3 +8,10 @@ export function onboarding(parent:HTMLElement){
  let open=true;const close=()=>{open=false;overlay.remove();};overlay.querySelector('button')!.onclick=close;
  return {get open(){return open;},close};
 }
+
+/** Consume every key while onboarding owns input; only dismissal keys close it. */
+export function welcomeKey(welcome: { readonly open: boolean; close(): void }, code: string): boolean {
+ if (!welcome.open) return false;
+ if (['Enter','Escape','KeyW','KeyA','KeyS','KeyD'].includes(code)) welcome.close();
+ return true;
+}
