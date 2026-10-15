@@ -6,7 +6,7 @@
  * `Pad<index>` (Standard Gamepad button index). Sticks are analog and are not rebindable per-axis.
  */
 export type Action =
-  | 'moveForward' | 'moveBack' | 'moveLeft' | 'moveRight' | 'sprint' | 'crouch' | 'autoWalk'
+  | 'moveForward' | 'moveBack' | 'moveLeft' | 'moveRight' | 'sprint' | 'crouch' | 'autoWalk' | 'jump'
   | 'interact' | 'lightAttack' | 'heavyAttack' | 'guard' | 'dodge' | 'focus'
   | 'lockTarget' | 'switchTarget' | 'hush' | 'quickItem'
   | 'abilities' | 'items' | 'journal' | 'pause'
@@ -21,6 +21,7 @@ export const ACTIONS: ActionInfo[] = [
   { id: 'moveRight', label: 'Move right', group: 'Movement', rebindable: true },
   { id: 'sprint', label: 'Sprint', group: 'Movement', rebindable: true },
   { id: 'crouch', label: 'Crouch', group: 'Movement', rebindable: true },
+  { id: 'jump', label: 'Jump / vault', group: 'Movement', rebindable: true, description: 'Vault a low obstacle or jump a gap ahead. While fighting (locked on, guarding or under attack) it rolls instead.' },
   { id: 'interact', label: 'Interact / talk', group: 'Interaction', rebindable: true },
   { id: 'hush', label: 'Hush (calm a beast)', group: 'Interaction', rebindable: true },
   { id: 'quickItem', label: 'Quick item', group: 'Interaction', rebindable: true },
@@ -43,7 +44,7 @@ export const DEFAULT_KEYBOARD: Map3 = {
   moveForward: ['KeyW', 'ArrowUp'], moveBack: ['KeyS', 'ArrowDown'], moveLeft: ['KeyA', 'ArrowLeft'], moveRight: ['KeyD', 'ArrowRight'],
   sprint: ['ShiftLeft', 'ShiftRight'], crouch: ['KeyC', 'ControlLeft'],
   autoWalk: ['NumLock', 'KeyV'],
-  interact: ['KeyE'], lightAttack: ['Mouse0', 'KeyH'], heavyAttack: ['Mouse3', 'KeyG'], guard: ['Mouse2', 'KeyB'], dodge: ['AltLeft', 'Space'], focus: ['Mouse4', 'KeyZ'],
+  interact: ['KeyE'], lightAttack: ['Mouse0', 'KeyH'], heavyAttack: ['Mouse3', 'KeyG'], guard: ['Mouse2', 'KeyB'], dodge: ['AltLeft'], jump: ['Space'], focus: ['Mouse4', 'KeyZ'],
   lockTarget: ['KeyF', 'Mouse1'], switchTarget: ['KeyT'], hush: ['KeyQ'], quickItem: ['KeyR'],
   abilities: ['Tab'], items: ['KeyI'], journal: ['KeyJ'], pause: ['Escape'],
   uiConfirm: ['Enter', 'Space'], uiBack: ['Escape', 'Backspace'], uiUp: ['ArrowUp', 'KeyW'], uiDown: ['ArrowDown', 'KeyS'], uiLeft: ['ArrowLeft', 'KeyA'], uiRight: ['ArrowRight', 'KeyD'],
@@ -51,7 +52,7 @@ export const DEFAULT_KEYBOARD: Map3 = {
 };
 /** Standard Gamepad indices: 0 A/Cross, 1 B/Circle, 2 X/Square, 3 Y/Triangle, 4 LB/L1, 5 RB/R1, 6 LT/L2, 7 RT/R2, 8 View/Create, 9 Menu/Options, 10 L3, 11 R3, 12-15 D-pad up/down/left/right, 17 touchpad. */
 export const DEFAULT_PAD: Map3 = {
-  sprint: ['Pad10'], crouch: [], interact: ['Pad0'], lightAttack: ['Pad2'], heavyAttack: ['Pad3'], guard: ['Pad4'], dodge: ['Pad1'], focus: ['Pad6'],
+  sprint: ['Pad10'], crouch: [], jump: ['Pad1'], interact: ['Pad0'], lightAttack: ['Pad2'], heavyAttack: ['Pad3'], guard: ['Pad4'], dodge: ['Pad1'], focus: ['Pad6'],
   lockTarget: ['Pad11'], switchTarget: ['Pad15'], hush: ['Pad7'], quickItem: ['Pad5'], abilities: ['Pad13'], items: ['Pad14', 'Pad12'], journal: ['Pad8', 'Pad17'], pause: ['Pad9'],
   uiConfirm: ['Pad0'], uiBack: ['Pad1'], uiUp: ['Pad12'], uiDown: ['Pad13'], uiLeft: ['Pad14'], uiRight: ['Pad15'], uiTabPrev: ['Pad4'], uiTabNext: ['Pad5'], uiPageUp: ['Pad6'], uiPageDown: ['Pad7'],
 };
