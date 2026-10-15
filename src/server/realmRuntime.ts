@@ -3,7 +3,7 @@ import { TowerController } from './towerController';
 import { applyTowerCommand, type TowerCommand } from './canonicalTower';
 import { applyExpeditionCommand, validateExpeditionSave, type ExpeditionCommand } from './realmExpedition';
 import type { MovementInput } from '../sim/physical/prediction';
-import { settleObjectives } from '../sim/quests';
+import { objectiveReceipts } from '../sim/quests';
 import { seedForestLife } from '../sim/world/realms/wildlife';
 
 /** Ordered host operations. Recorded server time, never client time, expires input.
@@ -56,8 +56,9 @@ export class RealmRuntime {
       case 'confirm':return s.confirm(op.id);
       case 'cancel':return s.cancel();
       case 'navigate':return s.navigate(op.target);
-      // Completion receipts and payment are World mutations, so they are journaled like any input.
-      case 'objectives':return settleObjectives(s.world,s.person.id);
+      // Completions are canonical history (request/concern/floor events), so this only reads them.
+      // Kept as an operation so journals that already recorded it still replay.
+      case 'objectives':return objectiveReceipts(s.world,s.person.id);
       case 'adopt_wildlife':return seedForestLife(s.world);
       case 'traverse':return s.traverse();
       case 'tower':case 'expedition':{

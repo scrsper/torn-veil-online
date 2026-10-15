@@ -8,6 +8,7 @@ import { applyMeleeSpacing } from './meleeSpacing';
 import { advanceRecoil, receiveRecoil } from '../physical/recoil';
 import { provokeAnimal, menacingAnimals } from '../ecology/defense';
 import { maintainProtectionRequests } from '../social/protection';
+import { maintainProvisionRequests } from '../social/provision';
 import { attemptHush, knowsVeil, meditateOnVeil, MEDITATION_SECONDS, veilStrain, HUSH_RANGE_M } from '../physical/veil';
 import { butcherWork } from '../physical/hand';
 import { naturalDeath } from '../ecology/animals';
@@ -3262,7 +3263,7 @@ export class Simulation {
     // later state points back at for its provenance must be significant enough to survive
     // `World.compactEvents`' 0.5 threshold, or the "because of what canonical event" question the
     // milestone requires an answer to dead-ends at exactly the point it starts mattering.
-    const ev = w.emit(returned ? 'returned_item' : 'gift', { actor: from.id, target: to.id, item: it.id, pos, significance: returned ? 0.6 : 0.5, visibility: 14, loudness: 6, summary: `${from.name} ${returned ? 'returned' : 'gave'} ${it.name} to ${to.name}` });
+    const ev = w.emit(returned ? 'returned_item' : 'gift', { actor: from.id, target: to.id, item: it.id, pos, data: { itemType: it.type, quantity: it.quantity }, significance: returned ? 0.6 : 0.5, visibility: 14, loudness: 6, summary: `${from.name} ${returned ? 'returned' : 'gave'} ${it.name} to ${to.name}` });
     it.provenance[it.provenance.length - 1].eventId = ev.id;
     for (const d of to.desires) if (!d.fulfilled && d.type === 'recover_item' && d.targetId === it.id) {
       d.fulfilled = true; adjustRel(w, to, from.id, { affection: 0.6, trust: 0.5, respect: 0.3 }, `returned ${it.name}`, ev.id); to.emotions.joy = 1; to.emotions.sadness *= 0.5;
@@ -3582,6 +3583,8 @@ export class Simulation {
       maintainHauls(w);
       // Living Alpha: danger concerns about wild animals become paid requests for help (social/protection.ts).
       maintainProtectionRequests(w);
+      // Hunger with nothing to eat becomes an audible, paid ask for food (social/provision.ts).
+      maintainProvisionRequests(w);
       maintainResourceNodes(w);
       stepSpoilage(w, sh);
       // v0.8 §C: fire as a real world process — fuel consumption, rain suppression for an

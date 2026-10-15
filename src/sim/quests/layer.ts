@@ -32,7 +32,7 @@ export class ObjectiveTracker {
       this.active.delete(receipt.objectiveId); completed++;
       for (const l of this.listeners['objective:complete']) l({ objective: last, receipt });
     }
-    const next = new Map(objectives.filter(o => !o.complete && !this.receipted.has(o.id)).map(o => [o.id, o]));
+    const next = new Map(objectives.filter(o => !this.receipted.has(o.id)).map(o => [o.id, o]));
     for (const [id, objective] of next) {
       const previous = this.active.get(id) ?? null;
       if (previous && same(previous, objective)) continue;
@@ -47,5 +47,5 @@ export class ObjectiveTracker {
 }
 function same(a: Objective, b: Objective): boolean {
   return a.progress.current === b.progress.current && a.progress.required === b.progress.required && a.tracked === b.tracked
-    && a.title === b.title && a.detail === b.detail && a.complete === b.complete;
+    && a.title === b.title && a.detail === b.detail;
 }

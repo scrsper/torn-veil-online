@@ -161,12 +161,17 @@ ws.on('connection', (client, req) => {
   client.on('close', () => { if (owner === client) { if (!updateError && !closing) { apply({ type: 'disconnect' }); void persist(); } owner = null; ownerToken = ''; } });
 });
 let tick = 0;
-/** Reading objectives is free; only an actual completion is journaled and announced. */
+/** Completions are read from canonical history; each is announced to the owner once. */
+const announcedObjectives = new Set<string>(); let objectivesSeeded = false;
 function settleObjectives() {
-  if (!owner || !session.objectives().some(o => o.complete)) return;
+  if (!owner) return;
+  const receipts = apply({ type: 'objectives' }) as import('../sim/quests').ObjectiveReceipt[];
+  if (!objectivesSeeded) { objectivesSeeded = true; for (const r of receipts) announcedObjectives.add(r.objectiveId); return; }
   const before = new Map(session.objectives().map(o => [o.id, o]));
-  for (const receipt of apply({ type: 'objectives' }) as import('../sim/quests').ObjectiveReceipt[])
+  for (const receipt of receipts) if (!announcedObjectives.has(receipt.objectiveId)) {
+    announcedObjectives.add(receipt.objectiveId);
     owner.send(JSON.stringify({ type: 'objective', event: 'objective:complete', receipt, objective: before.get(receipt.objectiveId) ?? null }));
+  }
 }
 let scheduler = new FixedScheduler(1000 / 60, performance.now());
 const timer = setInterval(() => {

@@ -1,7 +1,7 @@
 import {changeEquipment,equipmentSlot} from './equipment';
 import type { Body, Container, Creature, Person, ResourceNode, Vec3 } from '../core/types';
 import type { World } from '../core/world';
-import { isFood, makeItem } from '../world/factory';
+import { makeItem } from '../world/factory';
 import { recordCapabilityPractice } from '../core/capability';
 import type { Simulation } from '../mind/agent';
 import { actionsForCarriedItem, actionsForWorldItem, SELLER_REACH } from '../core/interaction';
@@ -135,7 +135,8 @@ function peopleAtHand(sim: Simulation, p: Person): { person: Person; body: Body 
     return person?.alive && body.present && !body.dead && reachable(sim, p, body.pos, ITEM_REACH, 1.2) ? [{ person, body }] : [];
   }).sort((a, c) => a.person.id.localeCompare(c.person.id));
 }
-/** One unit changes hands through the ordinary gift path; a stack is split, never duplicated. */
+/** One unit changes hands through the ordinary gift path (the same `giveItem` NPC plans use);
+ * a stack is split, never duplicated. */
 function give(sim: Simulation, p: Person, target: string): string {
   const w = sim.world, [itemId, personId] = target.split(','), it = w.item(itemId), other = peopleAtHand(sim, p).find(o => o.person.id === personId);
   if (!it || it.holderId !== p.id || it.quantity <= 0 || it.equipped) return 'not_carried';
@@ -146,9 +147,7 @@ function give(sim: Simulation, p: Person, target: string): string {
     unit = makeItem(w, it.type, it.name, { owner: it.ownerId, holder: p.id, quantity: 1, tags: [...it.tags], condition: it.condition, description: it.description });
     unit.provenance.push(...it.provenance.map(r => ({ ...r })), { tick: w.now, from: p.id, to: p.id, how: `split from ${it.id}` });
   }
-  const recipientFoodBefore = other.person.inventory.reduce((n, id) => { const i = w.item(id); return n + (i && i.holderId === other.person.id && isFood(i.type) ? i.quantity : 0); }, 0);
-  const ev = sim.giveItem(p, other.person, unit, other.body.pos);
-  ev.data = { ...ev.data, itemType: unit.type, quantity: unit.quantity, recipientFoodBefore };
+  sim.giveItem(p, other.person, unit, other.body.pos);
   return 'accepted';
 }
 /** Dead wild-animal bodies within arm's reach (the carcass stays until someone dresses it). */

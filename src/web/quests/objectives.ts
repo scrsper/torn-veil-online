@@ -57,7 +57,7 @@ export function hudObjectiveApi(source: ClientObjectives): { getActiveObjectives
     subscribe(listener) {
       const off = [source.on('objective:update', ({ objective }) => listener({ type: 'objective:update', objective: view(objective) })),
         source.on('objective:complete', ({ objective, receipt }) => listener({ type: 'objective:complete',
-          objective: objective ? view(objective, true) : { id: receipt.objectiveId, title: receipt.key, description: '', current: 1, target: 1, complete: true } }))];
+          objective: objective ? view(objective, true) : { id: receipt.objectiveId, title: receipt.objectiveId, description: '', current: 1, target: 1, complete: true } }))];
       return () => off.forEach(f => f());
     },
   };

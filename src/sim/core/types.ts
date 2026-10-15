@@ -1159,7 +1159,7 @@ export interface ConstructionProject {
 // right capability/workplace accepts and fulfills by actually performing the production
 // transform (see world/production.ts). Mirrors haul/construction_labor's "world demand → shared
 // Request → real work → wage" shape rather than inventing a fourth ad hoc mechanism.
-export type RequestType = 'haul' | 'construction_labor' | 'production' | 'protection';
+export type RequestType = 'haul' | 'construction_labor' | 'production' | 'protection' | 'provision';
 export type RequestStatus = 'open' | 'accepted' | 'completed' | 'failed' | 'cancelled';
 export interface RequestPayload {
   haulTaskId?: EntityId;
@@ -1173,6 +1173,8 @@ export interface RequestPayload {
   /** protection: the animal the requester fears (as they know it) and its species. */
   creatureId?: EntityId;
   species?: string;
+  /** provision: the gift that met the need, once one did. */
+  fulfilledByEventId?: EventId;
   /** protection: where the requester last knew the animal to be (their own witnessed or told claim). */
   seenAt?: Vec3;
   /** protection: how the requester came to believe it was settled. */
@@ -1481,7 +1483,7 @@ export interface Faction extends Entity {
   knowledge: Record<string, KnowledgeItem>;
 }
 
-export type EventType = 'objective_completed' | 'combat_trial_agreed' | 'combat_trial_ended' | 'tower_entered' | 'tower_floor_opened' | 'tower_floor_cleared' | 'tower_returned' | 'tower_fallen' | 'arcane_learned' | 'arcane_cast' | 'arcane_resolved' | 'realm_crossed' | 'item_equipped' | 'item_unequipped' | 'animal_threat_display' | 'downed' | 'veil_hush' | 'veil_meditation' | 'butchered' | 'woke' | 'animal_born' | 'animal_conceived' | 'animal_pregnancy_lost' | 'animal_died' | 'ecology_changed'
+export type EventType = 'combat_trial_agreed' | 'combat_trial_ended' | 'tower_entered' | 'tower_floor_opened' | 'tower_floor_cleared' | 'tower_returned' | 'tower_fallen' | 'arcane_learned' | 'arcane_cast' | 'arcane_resolved' | 'realm_crossed' | 'item_equipped' | 'item_unequipped' | 'animal_threat_display' | 'downed' | 'veil_hush' | 'veil_meditation' | 'butchered' | 'woke' | 'animal_born' | 'animal_conceived' | 'animal_pregnancy_lost' | 'animal_died' | 'ecology_changed'
   | 'introduction' | 'social_inferred' | 'mechanism_inspected' | 'mechanism_hypothesized' | 'mechanism_worked' | 'mechanism_intended' | 'mechanism_abandoned'
   | 'record_written' | 'record_copied' | 'record_read' | 'record_destroyed' | 'environment_energy_changed' | 'method_reproduced' | 'method_discovered'
   | 'component_acquired' | 'assembly_changed' | 'mechanism_trial' | 'production_observed' | 'component_manufactured' | 'component_supply_failed'
