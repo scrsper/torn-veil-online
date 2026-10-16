@@ -45,9 +45,10 @@ Not references for this direction: `art/source/reference-characters/*/reference-
 - Female base: tall, slender, long legs; read off the sheet at roughly 7.5–8 heads.
   Male base: same family, broader shoulders, ~7.75 heads (the ontology family's
   `headsTallTarget` 7.5 / 7.75 are reusable *numbers*, not reusable meshes).
-- **TBD (Jacob):** metre heights. Existing data disagrees: MPFB hero-v006 measured
-  `height_m` 1.488; the ontology family targets 1.73 m (F) / 1.80 m (M). The game's metre contract is
-  `docs/CHARACTER_METRES_OCT12.md` — the new bases must follow it.
+- Heights (decided): male **6'0"–6'4"** (1.83–1.93 m), base at about **6'2" / 1.88 m**;
+  female **5'2"–5'7"** (1.57–1.70 m), base at about **5'5" / 1.65 m**. The game's metre contract is
+  `docs/CHARACTER_METRES_OCT12.md` — the new bases must follow it. (Supersedes MPFB hero-v006
+  `height_m` 1.488 and the ontology family targets 1.73 m F / 1.80 m M.)
 - Hands and feet slightly elongated and elegant; neck long; no exaggerated chibi head.
 - The kimono silhouette must survive gameplay distance: wide hanging sleeves, a bell of skirt
   layers, a fur mantle that widens the shoulder line, and tail volume behind the hips.
@@ -67,8 +68,8 @@ Not references for this direction: `art/source/reference-characters/*/reference-
 ## 4. Ears and tail
 
 - Fox-style ears: tall, pointed, white fur with darker inner fur; they replace (or hide) human
-  ears. The sheet shows **multiple** large fluffy tails; **TBD (Jacob):** one tail or several
-  (cost: each tail is a bone chain plus fur shells).
+  ears. **Any character with ears has exactly one tail** (one bone chain plus fur shells). The
+  sheet's multiple fluffy tails are reference mood only, not shipping geometry.
 - Fur is ivory, matching the mantle.
 - **Canon conflict, TBD (Jacob):** `src/sim/world/characterArchetypes.ts` (shiro) deliberately
   does **not** take ears and tails because "Torn Veil has no canonical non-human humanoid", and
@@ -117,7 +118,7 @@ All numbers **TBD (Jacob)** — proposals, not measurements of any shipped chara
 |---|---|---|
 | Base body + head | ≤ 15k tris | hero-refine-v001 exported 70,985 body vertices after subdivision — far over budget. The MPFB NPC foundations have 13,380 visible vertices. |
 | Hair | ≤ 8k tris | cards/shells |
-| Ears + tail(s) | ≤ 6k tris | fur shells |
+| Ears + one tail | ≤ 6k tris | fur shells; one chain only |
 | Full hero outfit | ≤ 20k tris | |
 | **Hero total** | **≤ 50k tris** | NPC crowd target ≤ 25k; LOD1 50%, LOD2 25%. |
 | Textures | 2048² body/face, 2048² outfit, 1024² hair, 1024² fur, shared 1024² tileable prints | WebGPU/WebGL memory; KTX2/Basis **UNVERIFIED** for current loader. |
@@ -161,7 +162,7 @@ Extra bones (procedural springs already exist in `src/web/actors/animator.ts`; n
 | Sleeves | **TBD** e.g. `sleeve_l_01–03`, `sleeve_r_01–03` (child of `lowerarm`) | not yet driven |
 | Robe/obi | **TBD** front/back/side skirt chains, `obi_bow_01–02` | not yet driven |
 
-Multiple tails would need `tail_b_*` etc. and an animator change (code; out of scope here).
+Multiple tails are rejected (exactly one tail when ears are present); no `tail_b_*` chains.
 Sleeve/skirt/obi chains need a new spring or cloth pass in code — **TBD**.
 
 Unreal note: the Foundry targets UE5 Manny (`docs/CHARACTER_FOUNDRY.md` §3). The names above are
@@ -176,8 +177,9 @@ No role gets its own body mesh.
 Each base ships: body (underwear-level, garment-ready), head with blink/mouth shapes, default
 hair, ear and tail attachments, skeleton per §8, and body morphs for frame/height/age
 (`morphIntents` in `src/foundry/manifest.ts` already emits `heavy`/`muscular`/`tall`).
-The hero is `base-female` dressed in the snowflake kimono; a male hero equivalent is `base-male`
-in the same family. **TBD (Jacob):** child/elder bodies — morphs of these two, or later bases.
+The **female base wears underwear only** for rig and anatomy verification; garments (including the
+snowflake kimono hero outfit) are fitted on top. A male hero equivalent is `base-male` in the same
+family. **TBD (Jacob):** child/elder bodies — morphs of these two, or later bases.
 
 ## 10. Versioning rule
 
