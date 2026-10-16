@@ -128,7 +128,10 @@ All numbers **TBD (Jacob)** — proposals, not measurements of any shipped chara
 Skeleton: **UE-mannequin bone names**, which every current runtime consumer expects:
 `Root, pelvis, spine_01–03, neck_01, head, clavicle_/upperarm_/lowerarm_/hand_{l,r},
 thigh_/calf_/foot_/ball_{l,r}`, finger chains `thumb/index/middle/ring/pinky_01–03_{l,r}`, plus
-grouped `fingers_01_{l,r}` (required; `hero-v006/rig-contract.json` failed only on these two).
+grouped `fingers_01_{l,r}` and `fingers_02_{l,r}` (required by the current animator validator).
+The base/target skeleton is **57 bones**. `base-female-v002` adds `fingers_02_l/r` as
+children of the corresponding `fingers_01` at the grouped second knuckles; the historical
+hero-refine-v001 checkpoint remains 55 bones. No other bones are added in this base revision.
 
 Licensed clips (local only, at `/workspace/tv-licensed/arena/`, **never commit**):
 - `mixamo_clips.glb` — `mixamorig:*` names, built by `art/tools/arena/build_mixamo_clips.py`;
