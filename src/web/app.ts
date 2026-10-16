@@ -1,4 +1,4 @@
-import {SharedCharacters} from './actors/sharedCast';
+import {SharedCharacters, worldCastRole} from './actors/sharedCast';
 import { combatGymStage } from './world/combatGymStage';
 import { Color3, FreeCamera, Matrix, Plane, Vector3 } from '@babylonjs/core';
 import { INTERACTION_SPEC } from '../sim/physical/prediction';
@@ -120,14 +120,18 @@ export class App {
     };
     this.actors.factory = (ctx, atmos, a) => {
       if (a.kind === 'person') {
+        // The controlled body wears the provisional player body (as in Realms and the Tower); everyone else a resident.
         const shared = a.body && this.sharedCharacters?.create(a.body, atmos, {
           ground: (x, z) => {
             const ground = this.regions.groundAt(x + this.regions.origin.x, z + this.regions.origin.z);
             return ground === null ? null : ground - this.regions.origin.y;
           },
           onFootfall: (point, speed) => this.humanFootfall(a.body!.bodyId, point, speed),
-        });
-        return shared ?? this.characters.create(ctx.scene, atmos, a.body?.bodyId ?? 'x', makeRealization(a.body, a.body?.bodyId ?? 'x')) ?? placeholderVisual(ctx, atmos, a);
+        }, worldCastRole(a.body.bodyId, this.ownBodyId));
+        // Legacy kits only cover what the cast does not: children (kit_c) and the kit showroom. An adult the cast
+        // cannot draw shows the placeholder rather than an old kit body.
+        const legacy = !this.sharedCharacters || a.body?.appearance?.description?.agePresentation === 'child';
+        return shared ?? (legacy ? this.characters.create(ctx.scene, atmos, a.body?.bodyId ?? 'x', makeRealization(a.body, a.body?.bodyId ?? 'x')) : null) ?? placeholderVisual(ctx, atmos, a);
       }
       return (a.wildlife && this.creatures.create(ctx.scene, atmos, a.wildlife)) ?? placeholderVisual(ctx, atmos, a);
     };
@@ -159,7 +163,7 @@ export class App {
     this.ctx.engine.runRenderLoop(() => this.frame());
     const boot = loadingScreen(this.overlay, 'Preparing the people…'); this.screen = boot as { remove(): void };
     await this.characters.load(this.ctx.scene, (d, t) => boot.set(`Preparing the people… ${d}/${t}`));
-    if(!this.params.has('legacy-characters')&&!this.params.has('showroom')){this.sharedCharacters=new SharedCharacters(this.ctx.scene);try{await this.sharedCharacters.load(text=>boot.set(text));}catch(e){console.warn('[shared cast] Legacy fallback',e);}}
+    if(!this.params.has('showroom')){this.sharedCharacters=new SharedCharacters(this.ctx.scene);try{await this.sharedCharacters.load(text=>boot.set(text));}catch(e){console.error('[shared cast] provisional cast failed to load; adults draw placeholders',e);}}
     boot.set('Preparing the wildlife…'); await this.creatures.load(this.ctx.scene);
     if (!this.params.has('showroom') && !this.params.has('replay') && !this.params.has('observatory')) { boot.set('Warming the renderer…'); await this.warmUp(); }
     this.clearScreen();

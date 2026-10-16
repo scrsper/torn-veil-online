@@ -33,14 +33,19 @@ export function sharedLook(body:Pick<BodyState,'bodyId'|'appearance'|'presentati
 export function sharedHeroLook(body: Pick<BodyState, 'presentationSex' | 'appearance'>): LookId {
  return body.presentationSex === 'f' || body.appearance?.description?.presentation === 'feminine' ? 'player_f' : 'player_m';
 }
+export type CastRole='resident'|'player'|'warden';
+/** The world client's role for a body: the controlled body is the player, everyone else a resident. */
+export function worldCastRole(bodyId:string,controlledBodyId:string):CastRole{return bodyId&&bodyId===controlledBodyId?'player':'resident';}
+/** The cast body a role draws (library.ts CAST_BODIES). */
+export function castLookFor(body:Pick<BodyState,'bodyId'|'appearance'|'presentationSex'>,role:CastRole):LookId{return role==='player'?sharedHeroLook(body):role==='warden'?'warden':sharedLook(body);}
 export class SharedCharacters {
  readonly assets:ArenaAssets;
  ready=false;
  constructor(scene:Scene){this.assets=new ArenaAssets(scene);this.assets.used=SHARED_MOTION_NAMES;}
  async load(progress:(text:string)=>void){await this.assets.load(['skeleton_warrior'],progress);await this.assets.loadHumans(SHARED_HUMAN_LOOKS,progress);this.ready=true;}
- create(body:BodyState,atmosphere:Atmosphere,environment?:SharedCharacterEnvironment,role:'resident'|'player'|'warden'='resident'):BodyVisual|null {
+ create(body:BodyState,atmosphere:Atmosphere,environment?:SharedCharacterEnvironment,role:CastRole='resident'):BodyVisual|null {
   if(!this.ready||body.appearance?.description?.agePresentation==='child')return null;
-  const look=role==='player'?sharedHeroLook(body):role==='warden'?'warden':sharedLook(body),instance=this.assets.human(look,body.bodyId);
+  const look=castLookFor(body,role),instance=this.assets.human(look,body.bodyId);
   // Canonical world metres, rather than the arena's enlarged layout scale.
   instance.root.metadata={...instance.root.metadata,sharedLook:look,assetPath:humanAssetPath(look),bodyId:body.bodyId,sex:body.presentationSex,presentationRevision:PRESENTATION_REVISION};
   instance.root.metadata.metricImport=normalizeCharacterMetres(instance.root,instance.meshes,body.appearance?.height??1);
