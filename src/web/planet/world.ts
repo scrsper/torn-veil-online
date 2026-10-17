@@ -140,7 +140,9 @@ export async function startPlanetWorld() {
       const west = v(scale(f.east, -1)), up = v(f.up), north = v(f.north);
       const q = Quaternion.FromRotationMatrix(Matrix.FromValues(west.x, west.y, west.z, 0, up.x, up.y, up.z, 0, north.x, north.y, north.z, 0, 0, 0, 0, 1));
       root.rotationQuaternion = q.multiply(Quaternion.RotationAxis(Vector3.Up(), p.yaw)); root.position = v(scale(d, r));
-      const meshes = await loader.instantiate(p.assetId, p.id, root);
+      let meshes = await loader.instantiate(p.assetId, p.id, root);
+      // The planet carves no gorge under the ravine bridge, so its gorge water would lie at grade.
+      if (loader.status[p.assetId] === 'glb' && libraryAsset(p.assetId)?.family === 'ravine_bridge') meshes = meshes.filter(m => { const water = /RUNTIME_water/.test(m.name) || /RUNTIME_water/.test(m.parent?.name ?? ''); if (water) m.dispose(); return !water; });
       for (const m of meshes) { if (!(m instanceof InstancedMesh)) m.receiveShadows = true; sky.addCaster(m); }
       root.computeWorldMatrix(true); root.freezeWorldMatrix(); for (const m of meshes) freeze(m);
       libraryRoots.push(root);
