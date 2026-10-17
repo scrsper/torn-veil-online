@@ -1,5 +1,6 @@
 import '@babylonjs/loaders/glTF';
-import { Color3, Mesh, MeshBuilder, SceneLoader, StandardMaterial, TransformNode, VertexData, type AssetContainer, type Scene } from '@babylonjs/core';
+import { Color3, Mesh, MeshBuilder, SceneLoader, StandardMaterial, TransformNode, VertexBuffer, VertexData, type AssetContainer, type Material, type Scene } from '@babylonjs/core';
+import { loadScannedMaps } from '../render/materials';
 import { libraryAsset, provenanceOk, type LibraryAsset } from '../../sim/world/assets/library';
 
 /** Loads torn-veil-assets GLBs staged by scripts/world/sync-library.mjs --stage into
@@ -40,22 +41,48 @@ export class LibraryLoader {
     return standIn(this.scene, a, name, parent);
   }
 }
-const mats = new Map<string, StandardMaterial>();
-function m(scene: Scene, hex: string) {
-  let x = mats.get(hex + scene.uid); if (!x) { x = new StandardMaterial('standin-' + hex, scene); x.diffuseColor = Color3.FromHexString(hex); x.ambientColor = x.diffuseColor.scale(.9); x.specularColor = new Color3(.05, .05, .05); mats.set(hex + scene.uid, x); }
+/** Stand-in families wear the box's scanned CC0 surfaces (stone, plaster, planks, slate, cobble), tinted by family colour. */
+const SURFACE: Record<string, string> = {
+  '#8a8274': 'rock_wall_08', '#7a7366': 'rock_wall_08', '#857d70': 'rock_wall_08', '#77706a': 'rock_wall_08', '#5d5751': 'rock_wall_08', '#7d7568': 'rock_wall_08',
+  '#cdbb98': 'plastered_wall', '#d8cfbd': 'plastered_wall', '#5b3a2c': 'roof_slates_02', '#4a3020': 'weathered_planks', '#6a4a30': 'weathered_planks', '#5a3e28': 'weathered_planks',
+  '#7a5a3a': 'weathered_planks', '#3a2418': 'weathered_planks', '#9c9483': 'cobblestone_floor_08', '#8e8270': 'cobblestone_floor_08', '#a39a88': 'cobblestone_floor_08',
+};
+const mats = new Map<string, Material>(), surfaceMaps = new Map<string, ReturnType<typeof loadScannedMaps>>();
+function m(scene: Scene, hex: string): Material {
+  let x = mats.get(hex + scene.uid);
+  if (!x) {
+    const surface = SURFACE[hex];
+    if (surface) {
+      let maps = surfaceMaps.get(surface + scene.uid); if (!maps) { maps = loadScannedMaps(scene, surface); surfaceMaps.set(surface + scene.uid, maps); }
+      // Standard shading takes the sky's flat ambient on shadowed faces, as the rest of the planet does.
+      const t = new StandardMaterial('standin-' + hex, scene); t.diffuseTexture = maps.albedo; t.bumpTexture = maps.normal; t.invertNormalMapY = true;
+      t.diffuseColor = Color3.FromHexString(hex).scale(2.3); t.ambientColor = t.diffuseColor.scale(1.4); t.specularColor = new Color3(.04, .04, .04); t.backFaceCulling = false; x = t;
+    } else { const s = new StandardMaterial('standin-' + hex, scene); s.diffuseColor = Color3.FromHexString(hex); s.ambientColor = s.diffuseColor.scale(.9); s.specularColor = new Color3(.05, .05, .05); s.backFaceCulling = false; x = s; }
+    mats.set(hex + scene.uid, x);
+  }
   return x;
+}
+/** Metre-scale planar UVs by dominant normal axis, so scanned surfaces keep their scale on any box. */
+function planarUVs(mesh: Mesh, metres = 2.5) {
+  const p = mesh.getVerticesData(VertexBuffer.PositionKind), n = mesh.getVerticesData(VertexBuffer.NormalKind); if (!p || !n) return;
+  const uv: number[] = [];
+  for (let i = 0; i < p.length; i += 3) {
+    const ax = Math.abs(n[i]), ay = Math.abs(n[i + 1]), az = Math.abs(n[i + 2]);
+    if (ay >= ax && ay >= az) uv.push(p[i] / metres, p[i + 2] / metres); else if (ax >= az) uv.push(p[i + 2] / metres, p[i + 1] / metres); else uv.push(p[i] / metres, p[i + 1] / metres);
+  }
+  mesh.setVerticesData(VertexBuffer.UVKind, uv);
 }
 /** Bounds-faithful procedural stand-ins, recognisable by family. Never collision authority. */
 export function standIn(scene: Scene, a: LibraryAsset, name: string, parent: TransformNode): Mesh[] {
   const out: Mesh[] = [], [x0, , z0] = a.bounds.min, [x1, y1, z1] = a.bounds.max, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, w = x1 - x0, d = z1 - z0;
   const box = (k: string, x: number, y: number, z: number, bw: number, bh: number, bd: number, hex: string) => {
-    const b = MeshBuilder.CreateBox(`${name}:${k}`, { width: bw, height: bh, depth: bd }, scene); b.position.set(x, y + bh / 2, z); b.material = m(scene, hex); b.parent = parent; out.push(b); return b;
+    const b = MeshBuilder.CreateBox(`${name}:${k}`, { width: bw, height: bh, depth: bd }, scene); planarUVs(b); b.position.set(x, y + bh / 2, z); b.material = m(scene, hex); b.parent = parent; out.push(b); return b;
   };
   const gable = (k: string, x: number, y: number, z: number, bw: number, bd: number, rise: number, hex: string) => {
     const r = new Mesh(`${name}:${k}`, scene), hw = bw / 2 + .4, hd = bd / 2 + .4;
     const p = [-hw, 0, -hd, hw, 0, -hd, hw, 0, hd, -hw, 0, hd, 0, rise, -hd, 0, rise, hd], idx = [0, 4, 1, 3, 2, 5, 0, 3, 5, 0, 5, 4, 1, 4, 5, 1, 5, 2];
-    const vd = new VertexData(), n: number[] = []; VertexData.ComputeNormals(p, idx, n); Object.assign(vd, { positions: p, indices: idx, normals: n }); vd.applyToMesh(r);
-    r.position.set(x, y, z); r.material = m(scene, hex); r.material.backFaceCulling = false; r.parent = parent; out.push(r); return r;
+    const vd = new VertexData(), n: number[] = []; VertexData.ComputeNormals(p, idx, n); Object.assign(vd, { positions: p, indices: idx, normals: n }); vd.applyToMesh(r); planarUVs(r);
+    r.position.set(x, y, z); r.material = m(scene, hex); r.parent = parent; out.push(r); return r;
   };
   const house = (k: string, x: number, z: number, bw: number, bd: number, h: number) => { box(k, x, 0, z, bw, h, bd, '#cdbb98'); gable(k + ':roof', x, h, z, bw, bd, Math.min(3.5, bw * .45), '#5b3a2c'); box(k + ':door', x, 0, z - bd / 2 - .05, 1.4, 2.2, .1, '#3a2418'); };
   switch (a.family) {
