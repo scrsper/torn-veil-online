@@ -20,7 +20,7 @@ export function skyAt(seconds: number): SkyState {
   const h = (t - .5) * Math.PI * 2, decl = AXIAL_TILT * Math.sin(t / YEAR_DAYS * Math.PI * 2);
   const sun = fromLatLon(decl, -h * 180 / Math.PI);
   // The moon lags the sun by a synodic cycle; full moon opposes it. Small orbital inclination.
-  const lag = (t / LUNAR_DAYS) * Math.PI * 2, mdecl = decl * Math.cos(lag) + 5 * Math.sin(t / LUNAR_DAYS * Math.PI * 2 + 1);
+  const lag = (t / LUNAR_DAYS) * Math.PI * 2, mdecl = -decl * Math.cos(lag) + 5 * Math.sin(t / LUNAR_DAYS * Math.PI * 2 + 1);
   const moon = fromLatLon(mdecl, (-h + lag + Math.PI) * 180 / Math.PI);
   const moonIllumination = (1 - dot(sun, moon)) / 2;
   return { seconds, day, hour, sun, moon, moonIllumination };
