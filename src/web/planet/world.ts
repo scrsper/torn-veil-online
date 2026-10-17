@@ -272,14 +272,14 @@ export async function startPlanetWorld() {
   // Test/media hooks: read-only state and observer placement, no gameplay authority.
   (window as unknown as { __tvWorld: unknown }).__tvWorld = {
     spec, status, scene, get body() { return body; },
-    setHour(h: number) { seconds = ((h - START_HOUR + 24) % 24) / 24 * DAY_SECONDS + Math.floor(seconds / DAY_SECONDS) * DAY_SECONDS; },
+    setHour(h: number) { hudT = 1; seconds = ((h - START_HOUR + 24) % 24) / 24 * DAY_SECONDS + Math.floor(seconds / DAY_SECONDS) * DAY_SECONDS; },
     setDay(d: number) { seconds = (seconds % DAY_SECONDS) + d * DAY_SECONDS; },
     setView(next: 'orbit' | 'ground') { view = next; }, setOrbit(angle: number, radius?: number) { orbitAngle = angle; if (radius) orbitRadius = radius; },
     setCamera(yaw: number, pitch: number, dist: number) { camYaw = yaw; camPitch = pitch; camDist = dist; },
-    teleportHome(east: number, north: number, facingEast = 0, facingNorth = 1) { inTower = false; body = spawnBody(spec, homeToDir(spec, east, north), homeToDir(spec, east + facingEast * 50, north + facingNorth * 50)); },
+    teleportHome(east: number, north: number, facingEast = 0, facingNorth = 1) { inTower = false; hudT = 1; body = spawnBody(spec, homeToDir(spec, east, north), homeToDir(spec, east + facingEast * 50, north + facingNorth * 50)); },
     /** Stand 30 m south of landmark settlement i (seeded region centre on land), facing it. */
-    teleportSite(i: number) { inTower = false; const sites = landmarkSites(spec), site = sites[((i % sites.length) + sites.length) % sites.length], f = tangentFrame(site.dir); body = spawnBody(spec, normalize(add(site.dir, scale(f.north, -30 / spec.radius))), site.dir); return sites.length; },
-    teleportLatLon(lat: number, lon: number) { inTower = false; const d = normalize(v2p(new Vector3(Math.cos(lat / 57.2958) * Math.sin(lon / 57.2958), Math.sin(lat / 57.2958), Math.cos(lat / 57.2958) * Math.cos(lon / 57.2958)))); body = spawnBody(spec, d); },
+    teleportSite(i: number) { inTower = false; hudT = 1; const sites = landmarkSites(spec), site = sites[((i % sites.length) + sites.length) % sites.length], f = tangentFrame(site.dir); body = spawnBody(spec, normalize(add(site.dir, scale(f.north, -30 / spec.radius))), site.dir); return sites.length; },
+    teleportLatLon(lat: number, lon: number) { inTower = false; hudT = 1; const d = normalize(v2p(new Vector3(Math.cos(lat / 57.2958) * Math.sin(lon / 57.2958), Math.sin(lat / 57.2958), Math.cos(lat / 57.2958) * Math.cos(lon / 57.2958)))); body = spawnBody(spec, d); },
     walk(seconds: number, input: Partial<SurfaceInput>) { for (let t = 0; t < seconds; t += fixed) stepBody({ forward: 0, right: 0, turn: 0, jump: false, run: false, ...input }); },
     tower(floor: number, kit?: boolean) { inTower = true; if (kit !== undefined) survey.kit = kit; return survey.enter(floor); }, leaveTower() { inTower = false; },
     survey, radius: () => length(body.pos), get inTower() { return inTower; }, local: () => { const l = pagodaLocal(body.pos); return [l.x, l.y, l.z]; }, pagoda: chartToHome(spec, pagodaDir), interact: () => interact(),
