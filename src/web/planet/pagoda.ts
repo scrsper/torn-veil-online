@@ -8,7 +8,7 @@ import { Color3, Mesh, MeshBuilder, StandardMaterial, TransformNode, Vector3, ty
 export interface PagodaOptions { tiers: number; base: number; storey: number; taper: number }
 export const PAGODA: PagodaOptions = { tiers: 9, base: 22, storey: 6.4, taper: .072 };
 const mat = (scene: Scene, name: string, hex: string, emissive = 0) => {
-  const m = new StandardMaterial(name, scene); m.diffuseColor = Color3.FromHexString(hex); m.specularColor = new Color3(.08, .08, .08);
+  const m = new StandardMaterial(name, scene); m.diffuseColor = Color3.FromHexString(hex); m.ambientColor = m.diffuseColor.scale(.9); m.specularColor = new Color3(.08, .08, .08);
   if (emissive) m.emissiveColor = m.diffuseColor.scale(emissive); return m;
 };
 /** One storey's roof: four ribbons sharing their corner lines; the eave lifts toward each corner. */

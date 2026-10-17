@@ -5,7 +5,7 @@ import type { LibraryLoader } from './library';
 /** Thin-instanced vegetation and boulders from the seeded scatter. Library flora/geology GLBs
  * are used when hash-verified; otherwise procedural trees and rocks of the same footprint. */
 type Part = { mesh: Mesh };
-function colour(scene: Scene, name: string, hex: string) { const m = new StandardMaterial(name, scene); m.diffuseColor = Color3.FromHexString(hex); m.specularColor = new Color3(.03, .03, .03); return m; }
+function colour(scene: Scene, name: string, hex: string) { const m = new StandardMaterial(name, scene); m.diffuseColor = Color3.FromHexString(hex); m.ambientColor = m.diffuseColor.scale(.9); m.specularColor = new Color3(.03, .03, .03); return m; }
 function fallback(scene: Scene, kind: PropKind): Mesh[] {
   const trunk = colour(scene, `prop-${kind}-bark`, kind === 'willow' ? '#6b5a44' : '#5a4130'), leaf = colour(scene, `prop-${kind}-leaf`, { oak: '#3f6a2a', willow: '#7d9a52', pine: '#2a4a2c', boulder: '#7c776e', shrub: '#4a6e30' }[kind]);
   const out: Mesh[] = [];

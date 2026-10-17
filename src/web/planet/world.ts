@@ -1,4 +1,4 @@
-import { Color3, Color4, FreeCamera, Matrix, Mesh, MeshBuilder, Quaternion, Scene, StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
+import { Color3, Color4, FreeCamera, InstancedMesh, Material, Matrix, Mesh, VertexData, MeshBuilder, Quaternion, Scene, StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
 import { createRenderer, attachPipeline } from '../render/engine';
 import {
   HOME_ANCHOR, add, arc, biomeAt, chartToHome, homeToDir, length, localHour, normalize, planetSpec, propsNear, regionAt, resolveObstacles, scale, skyAt,
@@ -8,6 +8,8 @@ import { homeChart, planetToRealm, realmToPlanet } from '../../sim/world/planet/
 import { LIBRARY_PLACEMENTS, placementDir } from '../../sim/world/assets/library';
 import { focusedTownPlan } from '../../sim/world/assets/focusedLayouts';
 import { registerFocusedGeometry, sceneGeometry, focusedGeometryReady } from '../../sim/world/assets/focusedRuntime';
+import { focusedTerrain, terrainTriangles } from '../../sim/world/assets/focusedTerrain';
+import { StaticGeometry as Geometry } from '../../sim/physical/staticGeometry';
 import type { StaticGeometry } from '../../sim/physical/staticGeometry';
 import { realmSeed } from '../../sim/world/realms/layout';
 import { FocusedAssets } from '../realms/focusedAssets';
@@ -30,7 +32,8 @@ export async function startPlanetWorld() {
   scene.clearColor = new Color4(0, 0, 0, 1); scene.fogMode = Scene.FOGMODE_EXP2; scene.ambientColor = new Color3(.25, .25, .28);
   const camera = new FreeCamera('world-camera', new Vector3(0, spec.radius * 3, 0), scene); camera.minZ = .3; camera.maxZ = spec.radius * 12; camera.fov = .9; camera.inputs.clear();
   try { attachPipeline(ctx, camera); } catch { /* the plain forward path remains */ }
-  const sky = new PlanetSky(scene, ctx.quality.shadowMapSize >= 2048 ? 2048 : 1024), terrain = new PlanetTerrain(scene, spec), loader = new LibraryLoader(scene);
+  const sky = new PlanetSky(scene, ctx.quality.shadowMapSize >= 2048 ? 2048 : 1024); sky.atmosphere(spec.radius);
+  const terrain = new PlanetTerrain(scene, spec), loader = new LibraryLoader(scene);
   const label = document.createElement('div');
   Object.assign(label.style, { position: 'fixed', left: '12px', top: '12px', padding: '8px 12px', background: 'rgba(12,14,20,.72)', color: '#e8e4d8', font: '12.5px system-ui', borderRadius: '8px', pointerEvents: 'none', whiteSpace: 'pre', zIndex: '20' });
   ui.append(label);
@@ -41,7 +44,7 @@ export async function startPlanetWorld() {
   const towerCentre = { x: town.tower.x + town.tower.w / 2, z: town.tower.z + town.tower.d / 2 };
   const toPlanet = (x: number, y: number, z: number) => realmToPlanet(spec, chart, x, y, z);
   const v = (p: V3) => new Vector3(p.x, p.y, p.z);
-  let townGeometry: StaticGeometry | null = null;
+  let townGeometry: StaticGeometry | null = null, walkBounds = town.bounds;
   const shim = { addCaster: (m: Mesh) => sky.addCaster(m), removeCaster: (m: Mesh) => sky.removeCaster(m) } as unknown as Atmosphere;
   const focused = new FocusedAssets(scene, shim);
   const loadTown = async () => {
@@ -60,6 +63,17 @@ export async function startPlanetWorld() {
     const r = await fetch('/focused/collision.json'); if (!r.ok) throw Error('collision unavailable');
     const bytes = await r.arrayBuffer(), digest = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), b => b.toString(16).padStart(2, '0')).join('');
     registerFocusedGeometry(JSON.parse(new TextDecoder().decode(bytes)), digest); townGeometry = sceneGeometry(town); status.collision = 'town geometry';
+    // The canonical height field that joins the authored spaces, bent like everything else.
+    const t = focusedTerrain(town.id + ':terrain', townGeometry), root = new TransformNode('focused-terrain-root', scene), mesh = new Mesh(t.id, scene), data = new VertexData(), normals: number[] = [];
+    VertexData.ComputeNormals(t.positions, t.indices, normals, { useRightHandedSystem: true });
+    Object.assign(data, { positions: t.positions, indices: t.indices, normals, uvs: t.positions.flatMap((p, i) => i % 3 === 0 ? [p * .25, t.positions[i + 2] * .25] : []) }); data.applyToMesh(mesh, true);
+    mesh.parent = root; mesh.material = focused.forestFloorMaterial(); mesh.sideOrientation = Material.CounterClockWiseSideOrientation;
+    for (const m of bendTree(spec, chart, root)) { m.receiveShadows = true; }
+    const tb = t.bounds, gb = townGeometry.bounds;
+    walkBounds = { x0: Math.min(gb.x0, tb.x0), z0: Math.min(gb.z0, tb.z0), x1: Math.max(gb.x1, tb.x1), z1: Math.max(gb.z1, tb.z1) };
+    townGeometry = new Geometry([...townGeometry.triangles, ...terrainTriangles(t)], walkBounds);
+    terrain.sink = d => { const r = planetToRealm(spec, chart, scale(d, spec.radius + 6)); return r.x > tb.x0 + 2 && r.x < tb.x1 - 2 && r.z > tb.z0 + 2 && r.z < tb.z1 - 2 ? .45 : 0; };
+    terrain.follow(upOf(body), true);
   };
   // Library placements on the home and far charts.
   const libraryRoots: TransformNode[] = [];
@@ -71,7 +85,7 @@ export async function startPlanetWorld() {
       const q = Quaternion.FromRotationMatrix(Matrix.FromValues(west.x, west.y, west.z, 0, up.x, up.y, up.z, 0, north.x, north.y, north.z, 0, 0, 0, 0, 1));
       root.rotationQuaternion = q.multiply(Quaternion.RotationAxis(Vector3.Up(), p.yaw)); root.position = v(scale(d, r));
       const meshes = await loader.instantiate(p.assetId, p.id, root);
-      for (const m of meshes) { m.receiveShadows = true; sky.addCaster(m); }
+      for (const m of meshes) { if (!(m instanceof InstancedMesh)) m.receiveShadows = true; sky.addCaster(m); }
       libraryRoots.push(root);
     }
     status.library = Object.entries(loader.status).map(([k, s]) => `${k}:${s}`).join(' ');
@@ -125,7 +139,7 @@ export async function startPlanetWorld() {
     body = resolveObstacles(spec, stepSurface(spec, body, input, fixed), obstacles());
     // Inside the charted town, the realm's own static geometry carries the body.
     if (townGeometry) {
-      const rp = planetToRealm(spec, chart, body.pos), b = town.bounds;
+      const rp = planetToRealm(spec, chart, body.pos), b = walkBounds;
       if (rp.x > b.x0 && rp.x < b.x1 && rp.z > b.z0 && rp.z < b.z1) {
         const before = planetToRealm(spec, chart, prev.pos), support = townGeometry.supportAt(rp.x, rp.z, Math.max(before.y, rp.y) + .45, 1.05);
         if (support !== null && rp.y <= support + .06 + (body.grounded ? .5 : 0)) {

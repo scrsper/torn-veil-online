@@ -78,7 +78,7 @@ describe('browser bundle boundary', () => {
       // Library registry generated from the torn-veil-assets manifest (ids, hashes, bounds; no binaries).
       'src/sim/world/assets/library.ts', 'src/sim/world/assets/libraryCatalog.json',
       // Focused town plan and verified static geometry catalog (pure transforms, no file I/O).
-      'src/sim/world/assets/focusedLayouts.ts', 'src/sim/world/assets/focusedRuntime.ts', 'src/sim/world/assets/focusedCatalog.json',
+      'src/sim/world/assets/focusedLayouts.ts', 'src/sim/world/assets/focusedRuntime.ts', 'src/sim/world/assets/focusedCatalog.json', 'src/sim/world/assets/focusedTerrain.ts',
       // Tower floor specs: the canonical seeded plan grammar and pure warden-kit rules.
       'src/sim/world/interiors/floorSpec.ts', 'src/sim/world/interiors/layout.ts', 'src/sim/world/interiors/trialKitRules.ts',
     ]);

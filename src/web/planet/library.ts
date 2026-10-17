@@ -42,7 +42,7 @@ export class LibraryLoader {
 }
 const mats = new Map<string, StandardMaterial>();
 function m(scene: Scene, hex: string) {
-  let x = mats.get(hex + scene.uid); if (!x) { x = new StandardMaterial('standin-' + hex, scene); x.diffuseColor = Color3.FromHexString(hex); x.specularColor = new Color3(.05, .05, .05); mats.set(hex + scene.uid, x); }
+  let x = mats.get(hex + scene.uid); if (!x) { x = new StandardMaterial('standin-' + hex, scene); x.diffuseColor = Color3.FromHexString(hex); x.ambientColor = x.diffuseColor.scale(.9); x.specularColor = new Color3(.05, .05, .05); mats.set(hex + scene.uid, x); }
   return x;
 }
 /** Bounds-faithful procedural stand-ins, recognisable by family. Never collision authority. */

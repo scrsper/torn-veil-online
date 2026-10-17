@@ -1,4 +1,4 @@
-import { Color3, DirectionalLight, Effect, HemisphericLight, Mesh, MeshBuilder, ShaderMaterial, ShadowGenerator, Vector3, type AbstractMesh, type Scene } from '@babylonjs/core';
+import { Color3, DirectionalLight, FresnelParameters, StandardMaterial, Effect, HemisphericLight, Mesh, MeshBuilder, ShaderMaterial, ShadowGenerator, Vector3, type AbstractMesh, type Scene } from '@babylonjs/core';
 import { lightAt, type LocalLight, type SkyState, type V3 } from '../../sim/world/planet';
 
 /** The sun and moon are the real light sources: two directional lights placed from the
@@ -13,7 +13,7 @@ float h(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453
 void main(){
   vec3 d = normalize(vDir); float e = dot(d, up);
   vec3 sky = mix(horizon, zenith, pow(clamp(e, 0., 1.), .55));
-  sky = mix(sky, ground, smoothstep(0., -.08, e));
+  sky = mix(sky, ground, 1. - smoothstep(-.08, 0., e));
   float sd = dot(d, sun);
   sky += vec3(1., .75, .45) * pow(max(sd, 0.), 18.) * .35 * sunI;
   sky = mix(sky, vec3(0.), space);
@@ -49,6 +49,16 @@ export class PlanetSky {
     this.material.backFaceCulling = false; this.material.disableDepthWrite = true;
     this.dome.material = this.material; this.dome.isPickable = false; this.dome.infiniteDistance = true; this.dome.applyFog = false; this.dome.renderingGroupId = 0;
   }
+  /** Thin atmospheric shell, visible as a limb glow from orbit. */
+  atmosphere(radius: number) {
+    const shell = MeshBuilder.CreateSphere('atmosphere', { diameter: radius * 2.06, segments: 64 }, this.scene), m = new StandardMaterial('atmosphere', this.scene);
+    m.diffuseColor = Color3.Black(); m.specularColor = Color3.Black(); m.emissiveColor = new Color3(.35, .6, 1); m.alpha = .4;
+    m.emissiveFresnelParameters = new FresnelParameters(); m.emissiveFresnelParameters.bias = .05; m.emissiveFresnelParameters.power = 4.5;
+    m.emissiveFresnelParameters.leftColor = new Color3(.4, .65, 1); m.emissiveFresnelParameters.rightColor = Color3.Black();
+    m.opacityFresnelParameters = new FresnelParameters(); m.opacityFresnelParameters.power = 3; m.opacityFresnelParameters.leftColor = Color3.White(); m.opacityFresnelParameters.rightColor = Color3.Black();
+    m.disableLighting = true; shell.material = m; shell.isPickable = false; shell.applyFog = false; this.shell = shell; return shell;
+  }
+  shell: Mesh | null = null;
   addCaster(m: AbstractMesh) { this.sunShadows.addShadowCaster(m, true); this.moonShadows.addShadowCaster(m, true); }
   removeCaster(m: AbstractMesh) { this.sunShadows.removeShadowCaster(m, true); this.moonShadows.removeShadowCaster(m, true); }
   /** `up` is the observer's local vertical; `focus` the shadow centre; `space` 0 on the ground, 1 in orbit. */
@@ -65,12 +75,15 @@ export class PlanetSky {
     this.fill.direction = v(up); this.fill.intensity = space > .5 ? .25 : l.ambient * .85;
     this.fill.diffuse = new Color3(...l.zenith).scale(.6).add(new Color3(.25, .25, .25).scale(l.daylight));
     this.fill.groundColor = new Color3(...l.ground);
-    this.scene.environmentIntensity = space > .5 ? .35 : .05 + .6 * l.daylight + .15 * l.moonIntensity;
+    this.scene.environmentIntensity = space > .5 ? .35 : .04 + .42 * l.daylight + .15 * l.moonIntensity;
+    // Flat ambient for Standard materials (scene.ambientColor × material.ambientColor), from the same sky.
+    const amb = space > .5 ? .2 : l.ambient; this.scene.ambientColor = new Color3(...l.zenith).scale(.5).add(new Color3(.5, .48, .44).scale(l.daylight * .5)).scale(Math.min(1.2, amb * 1.6));
     const m = this.material, c = (a: [number, number, number]) => new Vector3(...a);
     m.setVector3('up', v(up)); m.setVector3('sun', sun); m.setVector3('moon', moon);
     m.setVector3('zenith', c(l.zenith)); m.setVector3('horizon', c(l.horizon)); m.setVector3('ground', c(l.ground));
     m.setFloat('stars', Math.max(l.stars, space)); m.setFloat('moonLit', .4 + .6 * Math.max(.2, 1 - l.daylight)); m.setFloat('space', space); m.setFloat('sunI', l.sunIntensity);
     this.dome.scaling.setAll(Math.max(50, cameraRadius));
+    if (this.shell) this.shell.setEnabled(space > .5);
     const fog = new Color3(...l.horizon);
     this.scene.fogColor = fog; this.scene.fogDensity = space > .2 ? 0 : .0016 * (1 - space * 4);
     return l;
