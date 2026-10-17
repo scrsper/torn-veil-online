@@ -48,3 +48,13 @@ describe('region landmarks', () => {
     expect(regionCentres(spec)).toHaveLength(28);
   });
 });
+describe('stand-in collision proxies', () => {
+  it('maps asset-local proxies through the placement yaw onto the chart', async () => {
+    const { placementLocal, standInProxies } = await import('../../src/sim/world/assets/library');
+    const p = LIBRARY_PLACEMENTS.find(q => q.assetId === 'tv_04_01_gatehouse')!;
+    expect(standInProxies(libraryAsset(p.assetId)!)).toHaveLength(2);
+    expect(placementLocal({ ...p, yaw: 0 }, 3, 4)).toEqual({ east: p.east - 3, north: p.north + 4 });
+    const q = placementLocal({ ...p, yaw: Math.PI / 2 }, 3, 0); expect(q.east).toBeCloseTo(p.east, 9); expect(q.north).toBeCloseTo(p.north - 3, 9);
+    for (const a of usableLibrary()) for (const r of standInProxies(a)) expect(r.r).toBeGreaterThan(0);
+  });
+});

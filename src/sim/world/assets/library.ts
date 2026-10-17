@@ -75,3 +75,24 @@ export function regionLandmarks(spec: PlanetSpec): LibraryPlacement[] {
   }
   landmarkCache.set(spec, out); return out;
 }
+
+/** Conservative upright-cylinder proxies (asset-local x, z, radius) for the solid masses of the
+ * procedural stand-ins. Real GLBs are whole-space walkable meshes with no approved collision,
+ * so these apply only while a stand-in is shown. */
+export function standInProxies(a: LibraryAsset): { x: number; z: number; r: number }[] {
+  const [x0, , z0] = a.bounds.min, [x1, , z1] = a.bounds.max, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, w = x1 - x0, d = z1 - z0;
+  switch (a.family) {
+    case 'tavern': return [{ x: cx, z: cz, r: Math.min(w * .8, d * .7) / 2 }];
+    case 'village_lane': return [0, 1, 2, 3].map(i => ({ x: cx + (i % 2 ? 1 : -1) * w * .26, z: z0 + d * (.18 + Math.floor(i / 2) * .5), r: Math.min(w, d) * .15 }));
+    case 'gatehouse': return [-1, 1].map(s => ({ x: cx + s * 9, z: cz, r: 4.6 }));
+    case 'gate_segment': return [-1, 1].flatMap(s => [-.3, 0, .3].map(k => ({ x: cx + s * w * .3 + k * w * .38, z: cz, r: 1.4 })));
+    case 'dungeon_junction': return [{ x: cx, z: cz, r: Math.min(w, d) * .3 }];
+    case 'ravine_bridge': return [-1, 1].map(s => ({ x: cx, z: cz + s * d * .3, r: 1.6 }));
+    default: return [];
+  }
+}
+/** Asset-local (x, z) → chart (east, north) under the placement yaw; the frame maps local +x to west. */
+export function placementLocal(p: LibraryPlacement, x: number, z: number) {
+  const c = Math.cos(p.yaw), s = Math.sin(p.yaw), rx = x * c + z * s, rz = -x * s + z * c;
+  return { east: p.east - rx, north: p.north + rz };
+}

@@ -6,7 +6,7 @@ import {
 } from '../../sim/world/planet';
 import { homeChart, planetToRealm, realmToPlanet } from '../../sim/world/planet/chart';
 import { pagodaBlocks, pagodaSupport } from '../../sim/world/planet/pagoda';
-import { LIBRARY_PLACEMENTS, placementDir, regionLandmarks } from '../../sim/world/assets/library';
+import { LIBRARY_PLACEMENTS, libraryAsset, placementDir, placementLocal, regionLandmarks, standInProxies } from '../../sim/world/assets/library';
 import { focusedTownPlan } from '../../sim/world/assets/focusedLayouts';
 import { registerFocusedGeometry, sceneGeometry, focusedGeometryReady } from '../../sim/world/assets/focusedRuntime';
 import { focusedTerrain, terrainTriangles } from '../../sim/world/assets/focusedTerrain';
@@ -79,7 +79,7 @@ export async function startPlanetWorld() {
     terrain.follow(upOf(body), true);
   };
   // Library placements on the home and far charts.
-  const libraryRoots: TransformNode[] = [];
+  const libraryRoots: TransformNode[] = [], standInObstacles: Obstacle[] = [];
   const loadLibrary = async () => {
     for (const p of [...LIBRARY_PLACEMENTS, ...regionLandmarks(spec)]) {
       const d = placementDir(spec, p), f = tangentFrame(d), r = surfaceRadius(spec, d), root = new TransformNode('library:' + p.id, scene);
@@ -90,6 +90,7 @@ export async function startPlanetWorld() {
       const meshes = await loader.instantiate(p.assetId, p.id, root);
       for (const m of meshes) { if (!(m instanceof InstancedMesh)) m.receiveShadows = true; sky.addCaster(m); }
       libraryRoots.push(root);
+      if (loader.status[p.assetId] === 'fallback') for (const q of standInProxies(libraryAsset(p.assetId)!)) { const c = placementLocal(p, q.x, q.z); standInObstacles.push({ dir: placementDir(spec, { ...p, ...c }), radius: q.r }); }
     }
     status.library = Object.entries(loader.status).map(([k, s]) => `${k}:${s}`).join(' ');
   };
@@ -136,6 +137,7 @@ export async function startPlanetWorld() {
   const fixed = 1 / 60; let acc = 0, last = performance.now(), hudT = 0;
   const obstacles = (): Obstacle[] => {
     const here = upOf(body), list: Obstacle[] = propsNear(spec, here, 12).filter(p => p.radius > 0).map(p => ({ dir: p.dir, radius: p.radius }));
+    for (const o of standInObstacles) if (arc(spec, here, o.dir) < o.radius + 8) list.push(o);
     return list;
   };
   const stepBody = (input: SurfaceInput) => {
