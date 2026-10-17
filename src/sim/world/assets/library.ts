@@ -44,11 +44,13 @@ export const LIBRARY_PLACEMENTS: readonly LibraryPlacement[] = Object.freeze([
   P('home:bridge', 'tv_05_01_ravine_bridge', 'home', 0, -150, 0),
   P('home:watchpost', 'tv_10_01_watchpost', 'home', 70, -150, 0),
   P('home:junction', 'tv_44_01_dungeon_junction', 'home', 76, 100, -Math.PI / 2),
-  P('far:lane', 'tv_08_01_village_lane', 'far', 0, 0, 0),
-  P('far:market', 'tv_37_01_market_square', 'far', 0, 34, 0),
-  P('far:tavern', 'tv_31_06_tavern', 'far', 30, 0, -Math.PI / 2),
-  P('far:watchpost', 'tv_10_01_watchpost', 'far', 0, -60, Math.PI),
-  P('far:passage', 'tv_42_01_courtyard_passage', 'far', -30, 0, Math.PI / 2),
+  // Aether Reach's own city (generated realm chunks) fills the far plateau's centre; the
+  // library hamlet sits on its southern outskirts along the approach.
+  P('far:lane', 'tv_08_01_village_lane', 'far', 0, -210, 0),
+  P('far:market', 'tv_37_01_market_square', 'far', 0, -176, 0),
+  P('far:tavern', 'tv_31_06_tavern', 'far', 32, -210, -Math.PI / 2),
+  P('far:watchpost', 'tv_10_01_watchpost', 'far', 0, -270, Math.PI),
+  P('far:passage', 'tv_42_01_courtyard_passage', 'far', -32, -210, Math.PI / 2),
 ]);
 export function placementDir(spec: PlanetSpec, p: { anchor: 'home' | 'far' | 'site'; site?: number; east: number; north: number }): V3 {
   const anchor = p.anchor === 'home' ? HOME_ANCHOR : p.anchor === 'far' ? FAR_ANCHOR : regionCentres(spec)[p.site ?? 0];

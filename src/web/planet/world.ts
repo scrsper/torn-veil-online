@@ -22,6 +22,10 @@ import { LibraryLoader } from './library';
 import { buildPagoda } from './pagoda';
 import { bendTree } from './bend';
 import { TowerSurvey } from './towerFloors';
+import { RealmRenderer, type ChunkMessage } from '../realms/render';
+import { generateRealmChunk } from '../../sim/world/realms/layout';
+import { FAR_ANCHOR, dirToChart } from '../../sim/world/planet';
+import { bendPoint } from './bend';
 import { buildRoads } from './roads';
 
 /** /?world — the whole world as a walkable sphere. Geography, gravity, the sky clock and
@@ -37,7 +41,9 @@ export async function startPlanetWorld() {
   // &lite: smaller shadow maps and a lighter ground patch / prop ring (headless captures, weak GPUs).
   const lite = params.has('lite');
   const sky = new PlanetSky(scene, lite ? 1024 : ctx.quality.shadowMapSize >= 2048 ? 2048 : 1024); sky.atmosphere(spec.radius);
+  const sinks: ((d: V3) => number)[] = [];
   const terrain = lite ? new PlanetTerrain(scene, spec, 72, 320, 96) : new PlanetTerrain(scene, spec); buildRoads(scene, spec);
+  terrain.sink = d => { let m = 0; for (const f of sinks) m = Math.max(m, f(d)); return m; };
   const loader = new LibraryLoader(scene);
   const label = document.createElement('div');
   Object.assign(label.style, { position: 'fixed', left: '12px', top: '12px', padding: '8px 12px', background: 'rgba(12,14,20,.72)', color: '#e8e4d8', font: '12.5px system-ui', borderRadius: '8px', pointerEvents: 'none', whiteSpace: 'pre', zIndex: '20' });
@@ -81,8 +87,32 @@ export async function startPlanetWorld() {
     const tb = t.bounds, gb = townGeometry.bounds;
     walkBounds = { x0: Math.min(gb.x0, tb.x0), z0: Math.min(gb.z0, tb.z0), x1: Math.max(gb.x1, tb.x1), z1: Math.max(gb.z1, tb.z1) };
     townGeometry = new Geometry([...townGeometry.triangles, ...terrainTriangles(t)], walkBounds);
-    terrain.sink = d => { const r = planetToRealm(spec, chart, scale(d, spec.radius + 6)); return r.x > tb.x0 + 2 && r.x < tb.x1 - 2 && r.z > tb.z0 + 2 && r.z < tb.z1 - 2 ? .45 : 0; };
+    sinks.push(d => { if (arc(spec, d, HOME_ANCHOR) > 400) return 0; const r = planetToRealm(spec, chart, scale(d, spec.radius + 6)); return r.x > tb.x0 + 2 && r.x < tb.x1 - 2 && r.z > tb.z0 + 2 && r.z < tb.z1 - 2 ? .45 : 0; });
     terrain.follow(upOf(body), true);
+  };
+  // Aether Reach: the canonical seeded realm city around its threshold plaza (3×3 chunks),
+  // built by the existing realm renderer and bent onto the far plateau. The realm's own
+  // Tower building is omitted: the Tower stands once, as the pagoda in Cinderveil.
+  const loadAether = async () => {
+    const renderer = new RealmRenderer(ctx, shim), messages: ChunkMessage[] = [], farChart = { anchor: FAR_ANCHOR, origin: { x: 48, z: 48 }, floorY: 1 };
+    for (let cx = 31; cx <= 33; cx++) for (let cz = 31; cz <= 33; cz++) {
+      const chunk = generateRealmChunk({ version: 1, seed }, 'aether', cx, cz);
+      messages.push({ key: chunk.id, lod: 0, chunk: { ...chunk, buildings: chunk.buildings.filter(b => b.use !== 'tower') } });
+    }
+    renderer.reconcile(messages.map(m => m.key), messages);
+    while (renderer.pending) { renderer.upload(); await new Promise(r => setTimeout(r, 0)); }
+    let n = 0;
+    for (const c of renderer.loaded.values()) {
+      const lamps = c.lights.map(l => ({ l, p: bendPoint(spec, farChart, l.getAbsolutePosition()) }));
+      const bent = bendTree(spec, farChart, c.root);
+      for (const m of bent) { m.receiveShadows = true; freeze(m); n++; }
+      // Entry lamps light only their own chunk, so the city never takes the sun's light slots elsewhere.
+      for (const { l, p } of lamps) { l.parent = null; l.position.copyFrom(p); l.includedOnlyMeshes = bent; }
+    }
+    // The realm's own paving and streets lie at plateau level; the planet ground sinks beneath them.
+    sinks.push(d => { if (arc(spec, d, FAR_ANCHOR) > 260) return 0; const r = dirToChart(FAR_ANCHOR, d, spec.radius); return Math.abs(r.east) < 142 && Math.abs(r.north) < 142 ? .45 : 0; });
+    terrain.follow(upOf(body), true);
+    status.aether = `${renderer.loaded.size} realm chunks, ${n} meshes`;
   };
   // Library placements on the home and far charts.
   const libraryRoots: TransformNode[] = [], standInObstacles: Obstacle[] = [];
@@ -215,14 +245,14 @@ export async function startPlanetWorld() {
   // Content loads after first frame; each part fails independently to its fallback.
   void (async () => {
     props = new PlanetProps(scene, spec, loader, m => sky.addCaster(m), lite ? 280 : 420); await props.init(); props.follow(upOf(body), true);
-    await Promise.allSettled([loadLibrary(), loadTown().catch(e => { status.town = 'unavailable: ' + e; }), loadTownCollision().catch(e => { status.collision = 'none: ' + e; })]);
+    await Promise.allSettled([loadAether().catch(e => { status.aether = 'unavailable: ' + e; }), loadLibrary(), loadTown().catch(e => { status.town = 'unavailable: ' + e; }), loadTownCollision().catch(e => { status.collision = 'none: ' + e; })]);
     (window as unknown as { __tvWorldReady: boolean }).__tvWorldReady = true;
   })();
   const floorParam = Number(params.get('floor'));
   if (floorParam >= 1 && floorParam <= 100) { inTower = true; void survey.enter(floorParam); }
   // Test/media hooks: read-only state and observer placement, no gameplay authority.
   (window as unknown as { __tvWorld: unknown }).__tvWorld = {
-    spec, status, get body() { return body; },
+    spec, status, scene, get body() { return body; },
     setHour(h: number) { seconds = ((h - START_HOUR + 24) % 24) / 24 * DAY_SECONDS + Math.floor(seconds / DAY_SECONDS) * DAY_SECONDS; },
     setDay(d: number) { seconds = (seconds % DAY_SECONDS) + d * DAY_SECONDS; },
     setView(next: 'orbit' | 'ground') { view = next; }, setOrbit(angle: number, radius?: number) { orbitAngle = angle; if (radius) orbitRadius = radius; },

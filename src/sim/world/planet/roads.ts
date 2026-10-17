@@ -17,7 +17,9 @@ export function planetRoads(spec: PlanetSpec): Road[] {
   const hit = cache.get(spec); if (hit) return hit;
   // Home roads leave from the south gate (beyond the gatehouse), not through the town.
   const gate = chartToDir(HOME_ANCHOR, 0, HOME_ROUTE.town[0] - 140, spec.radius);
-  const nodes: V3[] = [gate, FAR_ANCHOR, ...landmarkSites(spec).map(s => s.dir)];
+  // Aether Reach is entered from its southern outskirts (the library hamlet), not across its plaza.
+  const farGate = chartToDir(FAR_ANCHOR, 0, -300, spec.radius);
+  const nodes: V3[] = [gate, farGate, ...landmarkSites(spec).map(s => s.dir)];
   // Prim's algorithm on great-circle distance; deterministic tie-break by index.
   const inTree = new Set([0]), edges: [number, number][] = [];
   while (inTree.size < nodes.length) {

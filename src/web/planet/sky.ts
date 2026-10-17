@@ -79,7 +79,9 @@ export class PlanetSky {
     this.sun.direction = sun.scale(-1); this.sun.intensity = sunI * 1.15; this.sun.diffuse = new Color3(...l.sunColor); this.sun.specular = this.sun.diffuse.scale(.4);
     this.moon.direction = moon.scale(-1); this.moon.intensity = moonI * 1.6; this.moon.diffuse = new Color3(...l.moonColor); this.moon.specular = this.moon.diffuse.scale(.15);
     this.sun.position = focus.add(sun.scale(400)); this.moon.position = focus.add(moon.scale(400));
-    this.sun.setEnabled(sunI > .001); this.moon.setEnabled(moonI > .001);
+    // Both lights stay enabled (intensity 0 below the horizon): Babylon leaves disabled lights out of
+    // meshes created meanwhile, which then never see the sun rise (stale shaders, failed draws).
+    if (sunI <= .001) this.sun.intensity = 0; if (moonI <= .001) this.moon.intensity = 0;
     this.sunShadows.getShadowMap()!.refreshRate = sunI > .001 && space < .5 ? 1 : 0;
     this.moonShadows.getShadowMap()!.refreshRate = moonI > .02 && sunI < .05 && space < .5 ? 1 : 0;
     this.fill.direction = v(up); this.fill.intensity = space > .5 ? .05 : l.ambient * .85;
