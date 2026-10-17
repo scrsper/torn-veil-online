@@ -23,7 +23,7 @@ import { buildPagoda } from './pagoda';
 import { bendTree } from './bend';
 import { TowerSurvey } from './towerFloors';
 import { RealmRenderer, type ChunkMessage } from '../realms/render';
-import { generateRealmChunk } from '../../sim/world/realms/layout';
+import { generateRealmChunk, type RealmChunk } from '../../sim/world/realms/layout';
 import { FAR_ANCHOR, dirToChart } from '../../sim/world/planet';
 import { bendPoint } from './bend';
 import { buildRoads } from './roads';
@@ -94,11 +94,8 @@ export async function startPlanetWorld() {
   // built by the existing realm renderer and bent onto the far plateau. The realm's own
   // Tower building is omitted: the Tower stands once, as the pagoda in Cinderveil.
   const loadAether = async () => {
-    const renderer = new RealmRenderer(ctx, shim), messages: ChunkMessage[] = [], farChart = { anchor: FAR_ANCHOR, origin: { x: 48, z: 48 }, floorY: 1 };
-    for (let cx = 31; cx <= 33; cx++) for (let cz = 31; cz <= 33; cz++) {
-      const chunk = generateRealmChunk({ version: 1, seed }, 'aether', cx, cz);
-      messages.push({ key: chunk.id, lod: 0, chunk: { ...chunk, buildings: chunk.buildings.filter(b => b.use !== 'tower') } });
-    }
+    const renderer = new RealmRenderer(ctx, shim), messages: ChunkMessage[] = [];
+    for (const chunk of aetherChunks) messages.push({ key: chunk.id, lod: 0, chunk });
     renderer.reconcile(messages.map(m => m.key), messages);
     while (renderer.pending) { renderer.upload(); await new Promise(r => setTimeout(r, 0)); }
     let n = 0;
@@ -113,6 +110,28 @@ export async function startPlanetWorld() {
     sinks.push(d => { if (arc(spec, d, FAR_ANCHOR) > 260) return 0; const r = dirToChart(FAR_ANCHOR, d, spec.radius); return Math.abs(r.east) < 142 && Math.abs(r.north) < 142 ? .45 : 0; });
     terrain.follow(upOf(body), true);
     status.aether = `${renderer.loaded.size} realm chunks, ${n} meshes`;
+  };
+  // Aether Reach's canonical buildings stop the walker as the realm grid does (closed doors are solid).
+  const farChart = { anchor: FAR_ANCHOR, origin: { x: 48, z: 48 }, floorY: 1 }, aetherChunks: RealmChunk[] = [];
+  for (let cx = 31; cx <= 33; cx++) for (let cz = 31; cz <= 33; cz++) {
+    const chunk = generateRealmChunk({ version: 1, seed }, 'aether', cx, cz);
+    aetherChunks.push({ ...chunk, buildings: chunk.buildings.filter(b => b.use !== 'tower') });
+  }
+  const aetherBlocks = (p: V3) => {
+    if (arc(spec, normalize(p), FAR_ANCHOR) > 260) return false;
+    const r = planetToRealm(spec, farChart, p), gx = r.x + 3072, gz = r.z + 3072;
+    for (const c of aetherChunks) {
+      if (gx < c.x || gx >= c.x + 96 || gz < c.z || gz >= c.z + 96) continue;
+      for (const b of c.buildings) {
+        if (gx < b.x - .3 || gx >= b.x + b.w + .3 || gz < b.z - .3 || gz >= b.z + b.d + .3) continue;
+        for (const [ox, oz] of [[0, 0], [.3, 0], [-.3, 0], [0, .3], [0, -.3]]) for (const y of [r.y + .5, r.y + 1.5]) {
+          const x = gx + ox, z = gz + oz, door = b.use === 'tower' ? 5 : 3;
+          if (Math.floor(z) === b.door.z && x >= b.door.x - Math.floor(door / 2) && x < b.door.x + Math.ceil(door / 2) && x >= b.x && x < b.x + b.w && y < 4) return true;
+          if (b.solids.some(s => x >= s.x && x < s.x + s.w && y >= s.y && y < s.y + s.h && z >= s.z && z < s.z + s.d)) return true;
+        }
+      }
+    }
+    return false;
   };
   // Library placements on the home and far charts.
   const libraryRoots: TransformNode[] = [], standInObstacles: Obstacle[] = [];
@@ -187,6 +206,7 @@ export async function startPlanetWorld() {
       if (pagodaBlocks(l.x, l.z)) body = { ...prev, vel: { x: 0, y: 0, z: 0 } };
       else { const h = pagodaSupport(l.x, l.z); if (h !== null) { const up = upOf(body), floor = spec.radius + 6 - .2 + h, r = length(body.pos); if (r <= floor + .05 || body.grounded && r - floor < .7) body = { ...body, pos: scale(up, floor), grounded: true }; } }
     }
+    if (aetherBlocks(body.pos) && !aetherBlocks(prev.pos)) body = { ...prev, vel: { x: 0, y: 0, z: 0 } };
     // Inside the charted town, the realm's own static geometry carries the body.
     if (townGeometry) {
       const rp = planetToRealm(spec, chart, body.pos), b = walkBounds;
