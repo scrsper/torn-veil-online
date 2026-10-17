@@ -69,7 +69,7 @@ export async function startPlanetWorld() {
     // The canonical height field that joins the authored spaces, bent like everything else.
     const t = focusedTerrain(town.id + ':terrain', townGeometry), root = new TransformNode('focused-terrain-root', scene), mesh = new Mesh(t.id, scene), data = new VertexData(), normals: number[] = [];
     VertexData.ComputeNormals(t.positions, t.indices, normals, { useRightHandedSystem: true });
-    Object.assign(data, { positions: t.positions, indices: t.indices, normals, uvs: t.positions.flatMap((p, i) => i % 3 === 0 ? [p * .25, t.positions[i + 2] * .25] : []) }); data.applyToMesh(mesh, true);
+    Object.assign(data, { positions: t.positions, indices: t.indices, normals, colors: t.positions.flatMap((_v, i) => i % 3 === 0 ? [1, 1, 1, .7] : []), uvs: t.positions.flatMap((p, i) => i % 3 === 0 ? [p * .25, t.positions[i + 2] * .25] : []) }); data.applyToMesh(mesh, true);
     mesh.parent = root; mesh.material = focused.forestFloorMaterial(); mesh.sideOrientation = Material.CounterClockWiseSideOrientation;
     for (const m of bendTree(spec, chart, root)) { m.receiveShadows = true; }
     const tb = t.bounds, gb = townGeometry.bounds;
@@ -190,6 +190,8 @@ export async function startPlanetWorld() {
       camera.position = cr < floor ? cam.scale(floor / cr) : cam; camera.upVector = u; camera.setTarget(pos.add(u.scale(1.5)));
       sky.update(state, up, pos, camera.maxZ * .45, 0);
     }
+    // Lanterns behind the pagoda's lattice glow after dusk.
+    const dark = 1 - (sky.last?.daylight ?? 1); pagoda.lamp.emissiveColor = new Color3(1, .7, .35).scale(.15 + .85 * dark);
     scene.render(); hud(dt);
   };
   let props: PlanetProps | null = null;

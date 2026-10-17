@@ -8,7 +8,7 @@ Effect.ShadersStore.tvSkyVertexShader = `precision highp float;
 attribute vec3 position; uniform mat4 worldViewProjection; varying vec3 vDir;
 void main(){ vDir = position; gl_Position = worldViewProjection * vec4(position, 1.0); gl_Position.z = gl_Position.w * .9999; }`;
 Effect.ShadersStore.tvSkyFragmentShader = `precision highp float;
-varying vec3 vDir; uniform vec3 up, sun, moon, zenith, horizon, ground; uniform float stars, moonLit, space, sunI;
+varying vec3 vDir; uniform vec3 up, sun, moon, zenith, horizon, ground; uniform float stars, moonLit, space, sunI, cloudT;
 float h(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
 void main(){
   vec3 d = normalize(vDir); float e = dot(d, up);
@@ -16,6 +16,16 @@ void main(){
   sky = mix(sky, ground, 1. - smoothstep(-.08, 0., e));
   float sd = dot(d, sun);
   sky += vec3(1., .75, .45) * pow(max(sd, 0.), 18.) * .35 * sunI;
+  // Thin drifting cloud deck: seeded value noise over the dome, lit by the sun and moon.
+  vec2 cp = d.xz / max(.12, e + .25) * 2.2 + vec2(cloudT * .004, cloudT * .0013);
+  vec2 ci = floor(cp), cf = fract(cp); cf = cf * cf * (3. - 2. * cf);
+  float n00 = h(vec3(ci, 1.)), n10 = h(vec3(ci + vec2(1., 0.), 1.)), n01 = h(vec3(ci + vec2(0., 1.), 1.)), n11 = h(vec3(ci + 1., 1.));
+  float cn = mix(mix(n00, n10, cf.x), mix(n01, n11, cf.x), cf.y);
+  vec2 cp2 = cp * 2.7 + 13.1; vec2 cj = floor(cp2), cg = fract(cp2); cg = cg * cg * (3. - 2. * cg);
+  float cn2 = mix(mix(h(vec3(cj, 2.)), h(vec3(cj + vec2(1., 0.), 2.)), cg.x), mix(h(vec3(cj + vec2(0., 1.), 2.)), h(vec3(cj + 1., 2.)), cg.x), cg.y);
+  float cover = smoothstep(.55, .85, cn * .65 + cn2 * .35) * smoothstep(.02, .2, e) * (1. - space);
+  vec3 cloudCol = mix(vec3(.08, .09, .12) + moonLit * .06, vec3(1., .97, .93), clamp(sunI, 0., 1.)) * (.75 + .25 * horizon.r);
+  sky = mix(sky, cloudCol, cover * .85);
   sky = mix(sky, vec3(0.), space);
   vec3 q = floor(d * 420.); float s = step(.9975, h(q)) * stars * (1. - smoothstep(-.02, .06, -e) * (1. - space));
   sky += vec3(s) * (.6 + .4 * h(q + 3.));
@@ -45,7 +55,7 @@ export class PlanetSky {
     for (const g of [this.sunShadows, this.moonShadows]) { g.usePercentageCloserFiltering = true; g.bias = .0012; g.normalBias = .02; }
     this.moonShadows.darkness = .25;
     this.dome = MeshBuilder.CreateSphere('sky-dome', { diameter: 2, segments: 24, sideOrientation: Mesh.BACKSIDE }, scene);
-    this.material = new ShaderMaterial('sky', scene, { vertex: 'tvSky', fragment: 'tvSky' }, { attributes: ['position'], uniforms: ['worldViewProjection', 'up', 'sun', 'moon', 'zenith', 'horizon', 'ground', 'stars', 'moonLit', 'space', 'sunI'] });
+    this.material = new ShaderMaterial('sky', scene, { vertex: 'tvSky', fragment: 'tvSky' }, { attributes: ['position'], uniforms: ['worldViewProjection', 'up', 'sun', 'moon', 'zenith', 'horizon', 'ground', 'stars', 'moonLit', 'space', 'sunI', 'cloudT'] });
     this.material.backFaceCulling = false; this.material.disableDepthWrite = true;
     this.dome.material = this.material; this.dome.isPickable = false; this.dome.infiniteDistance = true; this.dome.applyFog = false; this.dome.renderingGroupId = 0;
   }
@@ -81,7 +91,7 @@ export class PlanetSky {
     const m = this.material, c = (a: [number, number, number]) => new Vector3(...a);
     m.setVector3('up', v(up)); m.setVector3('sun', sun); m.setVector3('moon', moon);
     m.setVector3('zenith', c(l.zenith)); m.setVector3('horizon', c(l.horizon)); m.setVector3('ground', c(l.ground));
-    m.setFloat('stars', Math.max(l.stars, space)); m.setFloat('moonLit', .4 + .6 * Math.max(.2, 1 - l.daylight)); m.setFloat('space', space); m.setFloat('sunI', l.sunIntensity);
+    m.setFloat('stars', Math.max(l.stars, space)); m.setFloat('moonLit', .4 + .6 * Math.max(.2, 1 - l.daylight)); m.setFloat('space', space); m.setFloat('sunI', l.sunIntensity); m.setFloat('cloudT', sky.seconds % 100000);
     this.dome.scaling.setAll(Math.max(50, cameraRadius));
     if (this.shell) this.shell.setEnabled(space > .5);
     const fog = new Color3(...l.horizon);

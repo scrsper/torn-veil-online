@@ -86,5 +86,5 @@ export function buildPagoda(scene: Scene, parent: TransformNode, o: PagodaOption
   const mast = add(MeshBuilder.CreateCylinder('pagoda-mast', { diameter: .45, height: 13, tessellation: 12 }, scene), gold); mast.position.y = y + 6.5;
   for (let k = 0; k < 9; k++) { const ring = add(MeshBuilder.CreateTorus(`pagoda-ring-${k}`, { diameter: 2.2 - k * .1, thickness: .22, tessellation: 20 }, scene), gold); ring.position.y = y + 2 + k * 1.05; }
   const jewel = add(MeshBuilder.CreateSphere('pagoda-jewel', { diameter: 1.1, segments: 10 }, scene), gold); jewel.position.y = y + 13.3;
-  return { meshes, height: y + 14, door: new Vector3(0, 2.4, -(o.base * .78) / 2), footprint: outer * 2 };
+  return { meshes, lamp, height: y + 14, door: new Vector3(0, 2.4, -(o.base * .78) / 2), footprint: outer * 2 };
 }
