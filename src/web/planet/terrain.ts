@@ -77,7 +77,8 @@ export class PlanetTerrain {
     }
     const m = build(name, this.scene, positions, colours, indices); this.fixWinding(m); return m;
   }
-  /** Rebuild the dense patch when the observer has moved a third of its span; sink the coarse globe beneath it. */
+  /** Rebuild the dense patch when the observer has moved a third of its span; sink the coarse globe beneath it
+   * (deep under its interior, where chords over levelled sites cut into slopes would otherwise poke through). */
   follow(dir: V3, force = false) {
     const d = normalize(dir);
     if (!force && this.patchCentre && arc(this.spec, d, this.patchCentre) < this.patchSize / 3) return;
@@ -95,7 +96,7 @@ export class PlanetTerrain {
     // Lower the coarse globe under the patch so its chords never poke through.
     const pos = this.globe.getVerticesData('position')!;
     for (let k = 0; k < this.dirs.length; k++) {
-      const a = arc(this.spec, this.dirs[k], d), drop = a < half * .9 ? 2.5 : a < half * 1.6 ? 2.5 * (1 - (a - half * .9) / (half * .7)) : 0, r = this.spec.radius + this.heights[k] - drop;
+      const a = arc(this.spec, this.dirs[k], d), drop = a < half * .8 ? 40 : a < half * .9 ? 2.5 : a < half * 1.6 ? 2.5 * (1 - (a - half * .9) / (half * .7)) : 0, r = this.spec.radius + this.heights[k] - drop;
       pos[k * 3] = this.dirs[k].x * r; pos[k * 3 + 1] = this.dirs[k].y * r; pos[k * 3 + 2] = this.dirs[k].z * r;
     }
     this.globe.updateVerticesData('position', pos);
