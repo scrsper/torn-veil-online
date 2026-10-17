@@ -19,6 +19,7 @@ import { PlanetTerrain } from './terrain';
 import { PlanetSky } from './sky';
 import { PlanetProps } from './props';
 import { LibraryLoader } from './library';
+import { libraryContact } from '../../sim/world/assets/libraryCollision';
 import { buildPagoda } from './pagoda';
 import { bendTree } from './bend';
 import { TowerSurvey } from './towerFloors';
@@ -131,7 +132,7 @@ export async function startPlanetWorld() {
   // Aether Reach's canonical buildings stop the walker as the realm grid does (closed doors are solid).
   const farChart = AETHER_CHART, aetherChunkList = aetherChunks(seed), aetherBlocked = (p: V3) => aetherBlocks(spec, p);
   // Library placements on the home and far charts.
-  const libraryRoots: TransformNode[] = [], standInObstacles: Obstacle[] = [];
+  const libraryRoots: TransformNode[] = [], standInObstacles: Obstacle[] = [], glbShown = (id: string) => loader.status[id] === 'glb';
   const loadLibrary = async () => {
     for (const p of [...LIBRARY_PLACEMENTS, ...regionLandmarks(spec)]) {
       const d = placementDir(spec, p), f = tangentFrame(d), r = surfaceRadius(spec, d), root = new TransformNode('library:' + p.id, scene);
@@ -216,6 +217,15 @@ export async function startPlanetWorld() {
       else { const h = pagodaSupport(l.x, l.z); if (h !== null) { const up = upOf(body), floor = spec.radius + 6 - .2 + h, r = length(body.pos); if (r <= floor + .05 || body.grounded && r - floor < .7) body = { ...body, pos: scale(up, floor), grounded: true }; } }
     }
     if (aetherBlocked(body.pos) && !aetherBlocked(prev.pos)) body = slide(prev, body, aetherBlocked);
+    // Real library GLBs: their cooked footprints stop the body at walls and rails and carry it
+    // over floors and decks (the bridge), rising at most a step at a time.
+    {
+      const before = libraryContact(spec, prev.pos, glbShown), now = libraryContact(spec, body.pos, glbShown), r0 = length(prev.pos);
+      const tooHigh = (c: { floorRadius: number | null }) => c.floorRadius !== null && c.floorRadius - r0 > .45;
+      if ((now.blocked && !before.blocked) || tooHigh(now)) body = slide(prev, body, p => { const c = libraryContact(spec, p, glbShown); return c.blocked || tooHigh(c); });
+      const c = libraryContact(spec, body.pos, glbShown);
+      if (c.floorRadius !== null) { const up = upOf(body), r = length(body.pos); if (r <= c.floorRadius + .06 || body.grounded && r - c.floorRadius < .5) body = { ...body, pos: scale(up, c.floorRadius), grounded: true, vel: body.vel }; }
+    }
     // Inside the charted town, the realm's own static geometry carries the body.
     if (townGeometry) {
       const rp = planetToRealm(spec, chart, body.pos), b = walkBounds;
