@@ -25,6 +25,8 @@ export class PlanetTerrain {
   private heights: Float32Array; private dirs: V3[] = []; private patchCentre: V3 | null = null;
   /** Presentation-only depression (metres) under authored ground, e.g. the focused town's canonical terrain. */
   sink: (d: V3) => number = () => 0;
+  /** Presentation-only ground colour override, so the patch blends into authored ground at its edges. */
+  tint: (d: V3, colour: number[]) => number[] = (_d, colour) => colour;
   constructor(readonly scene: Scene, readonly spec: PlanetSpec, readonly n = 96, readonly patchSize = 360, readonly patchCells = 144) {
     const m = this.material = new StandardMaterial('planet-ground', scene);
     m.diffuseColor = Color3.White(); m.ambientColor = new Color3(.8, .8, .8); m.specularColor = new Color3(.04, .04, .04);
@@ -84,7 +86,7 @@ export class PlanetTerrain {
     for (let j = 0; j <= n; j++) for (let i = 0; i <= n; i++) {
       const x = -half + i / n * this.patchSize, z = -half + j / n * this.patchSize;
       const p = normalize(add(up, add(scale(east, x / this.spec.radius), scale(north, z / this.spec.radius)))), c = climateAt(this.spec, p), r = this.spec.radius + c.height - this.sink(p);
-      positions.push(p.x * r, p.y * r, p.z * r); colours.push(...groundColour(this.spec, p, c.height, biomeAt(this.spec, p)).map(v => v * .95), 1); uvs.push(x / 3, z / 3);
+      positions.push(p.x * r, p.y * r, p.z * r); colours.push(...this.tint(p, groundColour(this.spec, p, c.height, biomeAt(this.spec, p)).map(v => v * .95)), 1); uvs.push(x / 3, z / 3);
     }
     for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const a = j * (n + 1) + i; indices.push(a, a + n + 1, a + 1, a + 1, a + n + 1, a + n + 2); }
     this.patch?.dispose();

@@ -87,6 +87,14 @@ export async function startPlanetWorld() {
     walkBounds = { x0: Math.min(gb.x0, tb.x0), z0: Math.min(gb.z0, tb.z0), x1: Math.max(gb.x1, tb.x1), z1: Math.max(gb.z1, tb.z1) };
     townGeometry = new Geometry([...townGeometry.triangles, ...terrainTriangles(t)], walkBounds);
     sinks.push(d => { if (arc(spec, d, HOME_ANCHOR) > 400) return 0; const r = planetToRealm(spec, chart, scale(d, spec.radius + 6)); return r.x > tb.x0 + 2 && r.x < tb.x1 - 2 && r.z > tb.z0 + 2 && r.z < tb.z1 - 2 ? .45 : 0; });
+    // The open ground around the canonical forest floor fades into it over 36 m, so there is no hard seam.
+    const floor = [.3, .25, .17];
+    terrain.tint = (d, c) => {
+      if (arc(spec, d, HOME_ANCHOR) > 500) return c;
+      const r = planetToRealm(spec, chart, scale(d, spec.radius + 6)), dx = Math.max(tb.x0 - r.x, 0, r.x - tb.x1), dz = Math.max(tb.z0 - r.z, 0, r.z - tb.z1);
+      const k = Math.max(0, 1 - Math.hypot(dx, dz) / 36) ** 1.5 * .85;
+      return c.map((v, i) => v + (floor[i] - v) * k);
+    };
     terrain.follow(upOf(body), true);
   };
   // Aether Reach: the canonical seeded realm city around its threshold plaza (3×3 chunks),
