@@ -79,7 +79,20 @@ export class PlanetTerrain {
   }
   /** Rebuild the dense patch when the observer has moved a third of its span; sink the coarse globe beneath it
    * (deep under its interior, where chords over levelled sites cut into slopes would otherwise poke through). */
+  private orbiting = false;
+  /** From orbit the coarse globe alone shows the planet: the dense patch (darker detail
+   * material) is hidden and the globe is restored beneath it; returning re-seats the patch. */
+  orbit(on: boolean) {
+    if (on === this.orbiting) return;
+    this.orbiting = on; this.patch?.setEnabled(!on);
+    if (on) {
+      const pos = this.globe.getVerticesData('position')!;
+      for (let k = 0; k < this.dirs.length; k++) { const r = this.spec.radius + this.heights[k]; pos[k * 3] = this.dirs[k].x * r; pos[k * 3 + 1] = this.dirs[k].y * r; pos[k * 3 + 2] = this.dirs[k].z * r; }
+      this.globe.updateVerticesData('position', pos);
+    } else if (this.patchCentre) this.follow(this.patchCentre, true);
+  }
   follow(dir: V3, force = false) {
+    if (this.orbiting) return;
     const d = normalize(dir);
     if (!force && this.patchCentre && arc(this.spec, d, this.patchCentre) < this.patchSize / 3) return;
     this.patchCentre = d;

@@ -235,7 +235,7 @@ export async function startPlanetWorld() {
     const up = upOf(body), u = v(up), pos = v(body.pos), fwd = v(body.forward);
     bodyMesh.position = pos.add(u.scale(.9));
     bodyMesh.rotationQuaternion = Quaternion.FromLookDirectionRH(fwd, u);
-    terrain.follow(up); props?.follow(up);
+    terrain.orbit(view === 'orbit'); terrain.follow(up); props?.follow(up);
     const state = skyAt(seconds);
     if (view === 'orbit') {
       const t = orbitAngle, around = normalize(add(scale(HOME_ANCHOR, Math.cos(t)), scale(tangentFrame(HOME_ANCHOR).east, Math.sin(t))));

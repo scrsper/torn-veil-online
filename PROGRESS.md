@@ -70,6 +70,15 @@ Build the entire Torn Veil game world on top of the existing build (extend, don'
 - [ ] Media checkpoint 3 (~08:30 CT)
 - [ ] Final media + final report section (~09:30 CT)
 
+## Final report (draft, session 2 — update in the final session)
+**How to see it.** `npx vite --config vite.web.config.ts`, open `/?world` (add `&lite` on weak GPUs). WASD/QE move, Shift run, Space jump, O orbit, T time ×60, F at the pagoda door enters the floor survey ([ and ] step floors). URL params: `hour`, `speed`, `view=orbit|ground`, `floor=N`, `seed`. Canonical Tower play with library-dressed floors: `/?ascent`.
+
+**1. Sphere.** Seeded 1600 m planet (`src/sim/world/planet/`): relief, biomes, 28 named regions, landmark settlements, a road network; radial gravity walker that circles the whole world (sea is wadeable). Cinderveil (focused town → forest → Tower) and Aether Reach (canonical realm city) are bent onto it with the same chart the walker uses; their own collision applies.
+**2. Tower.** Square nine-storey pagoda exterior (tiered roofs, upturned eaves, sōrin). All 100 floors described by `interiors/floorSpec.ts` from existing rules only (plan, encounters, wardens, awards, boons, rests, arenas, tiers, Silver summit gate); tests climb canonical floors 1–6 through RealmSession/TowerController and match the spec. `/?world` shows a survey preview; `/?ascent` dresses canonical floors with library modules.
+**3. Sky.** Deterministic sim clock (24-min day, 32-day year, 8-day moon): sun and moon DirectionalLights with shadows, sky dome with sun/moon discs, phases and stars, hemisphere/ambient from the same state; the realms client's Atmosphere also takes the canonical sun and moon.
+**4. Assets.** All 12 torn-veil-assets entries registered by id + sha256 with provenance verdicts (all pass); placed in Cinderveil, Aether Reach's outskirts and every land region; GLBs drop in when staged (hash re-verified in the browser), else port-aligned scanned-surface stand-ins.
+**Not done / limits.** GLB binaries never arrived (no LFS credentials); `/?world` floors earn nothing; focused-kit floors have 31 distinct layouts (pinned generator); Aether buildings can't be entered.
+
 ## Decisions (this run)
 - **Sphere model.** `src/sim/world/planet/` is pure and seeded (PlanetSpec{version,seed,radius}); radius 1600 m (≈10 km circumference). +Y is the spin axis. Height = seeded 3D fbm relief (±140 m) over a sea sphere; biomes from latitude/altitude temperature + seeded moisture; 28 named regions by seeded spherical Voronoi. Region 0 is **Cinderveil** (home anchor lat 18°, lon 0), region 1 **Aether Reach** (far anchor lat -12°, lon 180): the existing realm names.
 - **Existing route preserved by a bent chart.** The focused town → forest → Tower plan (`focusedTownPlan`) keeps its canonical realm coordinates. `planet/chart.ts` maps realm (x,y,z) → sphere (east = -x, north = z, radius = sea + 6 m + (y-1)); the client bends every vertex/instance with the same map (`web/planet/bend.ts`) and the walker uses the realm's own verified StaticGeometry (+ canonical focusedTerrain) inside the chart bounds. The plateau around both anchors is levelled at +6 m.
