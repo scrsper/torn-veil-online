@@ -32,3 +32,12 @@ describe('sun, moon and day/night clock', () => {
     expect(localHour(at(12), 90)).toBeCloseTo(18, 6);
   });
 });
+describe('realm celestial bridge', () => {
+  it('keeps the realm clock hour: noon sun high, midnight sun down, moon phase advancing by day', async () => {
+    const { realmCelestial } = await import('../../src/web/planet/celestial');
+    expect(realmCelestial(12).sun.y).toBeGreaterThan(.6);
+    expect(realmCelestial(24).sun.y).toBeLessThan(-.5);
+    expect(realmCelestial(36).sun.y).toBeGreaterThan(.6);
+    expect(Math.abs(realmCelestial(24 * 3).illumination - realmCelestial(0).illumination)).toBeGreaterThan(.2);
+  });
+});

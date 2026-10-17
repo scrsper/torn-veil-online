@@ -1,3 +1,4 @@
+import { realmCelestial } from '../planet/celestial';
 import { realmWeather, streamingFog } from './realmAtmosphere';
 import { SliceHud } from '../ui/sliceHud';
 import { ClientObjectives, hudObjectiveApi, hudJournal } from '../quests/objectives';
@@ -255,7 +256,8 @@ export async function startRealms(): Promise<void> {
       const authoredTown=s.realm==='brass'&&!!s.focusedAssets;
       atmosphere.look.fill=authoredTown?1.06:.98;atmosphere.look.key=authoredTown?1.16:1.24;atmosphere.look.exposure=authoredTown?1.04:1.16;atmosphere.shadow.setDarkness(authoredTown?.45:.32);
       sliceHud.bearing(s.body.pos, movementYaw, s.focusedAssets?.tower.entry);
-      atmosphere.update((s.worldTime / 3600 + (s.realm === 'aether' ? 9.866 : authoredTown?1.5:9.066)) % 24, realmWeather(s), dt);
+      const realmHours = s.worldTime / 3600 + (s.realm === 'aether' ? 9.866 : authoredTown?1.5:9.066);
+      atmosphere.update(realmHours % 24, realmWeather(s), dt, realmCelestial(realmHours));
       ctx.scene.fogDensity = streamingFog(ctx.scene.fogDensity, renderer.pending);
       if (hudAccumulator > .3) { hudAccumulator = 0; el('rv-stream').textContent = params.has('debug') ? `${renderer.loaded.size} chunks resident · ${renderer.pending} loading` : `${s.person.rank} · ${s.realmName}`; }
       for (const r of residents.values()) r.root.setEnabled(false);
