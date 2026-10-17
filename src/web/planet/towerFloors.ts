@@ -1,4 +1,5 @@
-import { Color3, Color4, FreeCamera, HemisphericLight, Mesh, MeshBuilder, PointLight, Scene, StandardMaterial, Vector3, type AbstractEngine } from '@babylonjs/core';
+import { Color3, Color4, FreeCamera, HemisphericLight, Mesh, MeshBuilder, PBRMaterial, PointLight, Scene, StandardMaterial, Texture, Vector3, type AbstractEngine } from '@babylonjs/core';
+import { loadScannedMaps, useScannedMaps } from '../render/materials';
 import { towerFloorSpec, floorPlan, TOWER_FLOORS, type TowerFloorSpec } from '../../sim/world/interiors/floorSpec';
 import { interiorVoxel, type InteriorPlan } from '../../sim/world/interiors/layout';
 import { towerTheme } from '../realms/towerThemes';
@@ -36,7 +37,10 @@ export class TowerSurvey {
     if (this.kit) return this.enterKit();
     const spec = this.spec = towerFloorSpec(this.seed, this.floor), plan = this.plan = floorPlan(this.seed, this.floor), o = plan.origin, theme = towerTheme(this.floor, this.seed);
     const s = this.scene, mat = (name: string, hex: string, e = 0) => { const m = new StandardMaterial(name, s); m.diffuseColor = Color3.FromHexString(hex); m.specularColor = new Color3(.06, .06, .06); if (e) m.emissiveColor = m.diffuseColor.scale(e); return m; };
-    const wall = mat('survey-wall', theme.wall), ground = mat('survey-floor', theme.floor), metal = mat('survey-metal', theme.metal, .25), gold = mat('survey-stair', '#e0be74', .7), blue = mat('survey-return', '#82d5e5', .6), water = mat('survey-water', '#3a6a8a', .2);
+    // Scanned CC0 stone (walls) and cobbles (floor), tinted by the band palette.
+    const scanned = (name: string, surface: string, hex: string, tile: number) => { const m = new PBRMaterial(name, s); useScannedMaps(m, this.maps(surface)); m.albedoColor = Color3.FromHexString(hex).scale(1.6); m.metallic = 0; m.roughness = .9; for (const t of [m.albedoTexture, m.bumpTexture, m.metallicTexture]) if (t instanceof Texture) { t.uScale = tile; t.vScale = tile; } this.materials.push(m); return m; };
+    for (const m of this.materials) m.dispose(); this.materials = [];
+    const wall = scanned('survey-wall', 'rock_wall_08', theme.wall, 1), ground = scanned('survey-floor', 'cobblestone_floor_08', theme.floor, plan.half / 2), metal = mat('survey-metal', theme.metal, .25), gold = mat('survey-stair', '#e0be74', .7), blue = mat('survey-return', '#82d5e5', .6), water = mat('survey-water', '#3a6a8a', .2);
     const floorMesh = MeshBuilder.CreateGround('survey-ground', { width: plan.half * 2 + 2, height: plan.half * 2 + 2 }, s); floorMesh.position.set(o.x, 1, o.z); floorMesh.material = ground; this.meshes.push(floorMesh);
     for (const b of plan.solids) {
       const m = MeshBuilder.CreateBox(b.id, { width: b.w, height: b.h, depth: b.d }, s); m.position.set(b.x + b.w / 2, b.y + b.h / 2, b.z + b.d / 2);
@@ -95,7 +99,8 @@ export class TowerSurvey {
   private open(x: number, z: number) {
     if (this.kitPlan) { const g = this.geometry; if (!g) return true; const y = g.supportAt(x, z, this.pos.y + .5); if (y === null || !g.fits(x, y, z, .3, 1.75)) return false; this.pos.y = y; return true; }
     const p = this.plan!; return [-.3, .3].every(dx => [-.3, .3].every(dz => interiorVoxel(p, Math.floor(x + dx), 1, Math.floor(z + dz)) === 0 && interiorVoxel(p, Math.floor(x + dx), 2, Math.floor(z + dz)) === 0)); }
-  private overviewing = false; private player: Mesh;
+  private overviewing = false; private player: Mesh; private materials: PBRMaterial[] = []; private scans = new Map<string, ReturnType<typeof loadScannedMaps>>();
+  private maps(surface: string) { let m = this.scans.get(surface); if (!m) { m = loadScannedMaps(this.scene, surface); this.scans.set(surface, m); } return m; }
   update(dt: number, keys: Set<string>) {
     if (!this.plan && !this.kitPlan || this.overviewing && !keys.size) return;
     this.overviewing = false;

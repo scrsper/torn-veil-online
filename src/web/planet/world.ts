@@ -119,7 +119,7 @@ export async function startPlanetWorld() {
   let speed = Number(params.get('speed') ?? 1) || 1, view: 'ground' | 'orbit' = params.get('view') === 'orbit' ? 'orbit' : 'ground';
   let camYaw = 0, camPitch = .28, camDist = 7.5, orbitAngle = 0, orbitRadius = spec.radius * 3.1;
   const keys = new Set<string>();
-  addEventListener('keydown', e => { keys.add(e.code); if (e.code === 'KeyO') view = view === 'orbit' ? 'ground' : 'orbit'; if (e.code === 'KeyT') speed = speed === 1 ? 60 : 1; if (e.code === 'KeyF') interact(); });
+  addEventListener('keydown', e => { keys.add(e.code); if (e.code === 'KeyO') view = view === 'orbit' ? 'ground' : 'orbit'; if (e.code === 'KeyT') speed = speed === 1 ? 60 : 1; if (inTower && (e.code === 'BracketRight' || e.code === 'BracketLeft')) void survey.enter(survey.floor + (e.code === 'BracketRight' ? 1 : -1)); if (e.code === 'KeyF') interact(); });
   addEventListener('keyup', e => keys.delete(e.code));
   let dragging = false;
   canvas.addEventListener('pointerdown', () => { dragging = true; }); addEventListener('pointerup', () => { dragging = false; });
