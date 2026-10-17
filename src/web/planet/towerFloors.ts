@@ -20,6 +20,7 @@ export class TowerSurvey {
     s.fogMode = Scene.FOGMODE_EXP2; s.autoClear = true;
     this.camera = new FreeCamera('survey-camera', new Vector3(0, 10, 0), s); this.camera.minZ = .1; this.camera.maxZ = 400; this.camera.fov = .9; this.camera.inputs.clear();
     const fill = new HemisphericLight('survey-fill', new Vector3(0, 1, 0), s); fill.intensity = .55;
+    this.player = MeshBuilder.CreateCapsule('survey-player-placeholder', { height: 1.8, radius: .35 }, s); const pm = new StandardMaterial('survey-player', s); pm.diffuseColor = new Color3(.85, .75, .55); this.player.material = pm;
     const shim = { addCaster: () => {}, removeCaster: () => {} } as unknown as Atmosphere;
     this.assets = new FocusedAssets(s, shim); this.manifest = this.assets.loadManifest().catch(() => null);
   }
@@ -62,19 +63,23 @@ export class TowerSurvey {
         try { const inst = await this.assets.instantiate({ id: `${plan.id}:dress:${i}`, assetId: d.moduleId, position: [o.x + d.x, d.y, o.z + d.z], yaw: d.yaw, floorId: plan.id }); if (this.plan !== plan) { inst.dispose(); return; } this.disposeDressing.push(inst.dispose); } catch { /* keep the plain plan */ }
       }
     });
-    this.pos.set(plan.start.x, 1, plan.start.z); this.yaw = Math.PI; this.message = '';
+    this.pos.set(plan.start.x, 1, plan.start.z); this.yaw = 0; this.message = ''; this.overviewing = false;
+    this.player.position.set(plan.start.x, 1.9, plan.start.z);
   }
   private open(x: number, z: number) { const p = this.plan!; return [-.3, .3].every(dx => [-.3, .3].every(dz => interiorVoxel(p, Math.floor(x + dx), 1, Math.floor(z + dz)) === 0 && interiorVoxel(p, Math.floor(x + dx), 2, Math.floor(z + dz)) === 0)); }
+  private overviewing = false; private player: Mesh;
   update(dt: number, keys: Set<string>) {
-    if (!this.plan) return;
+    if (!this.plan || this.overviewing && !keys.size) return;
+    this.overviewing = false;
     const turn = (keys.has('KeyD') || keys.has('ArrowRight') ? 1 : 0) - (keys.has('KeyA') || keys.has('ArrowLeft') ? 1 : 0), fwd = (keys.has('KeyW') || keys.has('ArrowUp') ? 1 : 0) - (keys.has('KeyS') || keys.has('ArrowDown') ? 1 : 0);
     this.yaw -= turn * 2.4 * dt; const speed = (keys.has('ShiftLeft') ? 7 : 4) * fwd * dt, dx = -Math.sin(this.yaw) * speed, dz = -Math.cos(this.yaw) * speed;
     if (this.open(this.pos.x + dx, this.pos.z)) this.pos.x += dx; if (this.open(this.pos.x, this.pos.z + dz)) this.pos.z += dz;
     const back = new Vector3(Math.sin(this.yaw), 0, Math.cos(this.yaw));
+    this.player.position.set(this.pos.x, 1.9, this.pos.z); this.player.rotation.y = this.yaw;
     this.camera.position = this.pos.add(back.scale(5.5)).add(new Vector3(0, 4.2, 0)); this.camera.setTarget(this.pos.add(new Vector3(0, 1.5, 0)));
   }
   /** Survey for media/tests: an elevated view of the whole floor. */
-  overview() { const p = this.plan!; this.camera.position = new Vector3(p.origin.x, p.half * 2.1, p.origin.z + p.half * 1.25); this.camera.setTarget(new Vector3(p.origin.x, 1, p.origin.z)); }
+  overview() { this.overviewing = true; const p = this.plan!; this.camera.position = new Vector3(p.origin.x, p.half * 2.1, p.origin.z + p.half * 1.25); this.camera.setTarget(new Vector3(p.origin.x, 1, p.origin.z)); }
   interact(): 'ascend' | 'leave' | 'blocked' | null {
     const p = this.plan!; if (!p) return null;
     if (Math.hypot(this.pos.x - p.exit.x, this.pos.z - p.exit.z) < 2.4) {
