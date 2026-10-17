@@ -32,7 +32,7 @@ Build the entire Torn Veil game world on top of the existing build (extend, don'
 - 12 models: tv_04_01_gatehouse, tv_05_01_ravine_bridge, tv_08_01_village_lane, tv_10_01_watchpost, tv_31_06_tavern, tv_37_01_market_square, tv_41_01_gate_segment, tv_42_01_courtyard_passage, tv_44_01_dungeon_junction, tvn_biome_021, tvn_flora_001, tvn_flora_005.
 
 ## Media
-- Last media checkpoint: none yet
+- Last media checkpoint: 2026-10-17 06:33–07:10 CT → /workspace/torn-veil-online/media/world-run/20261017-0633/ (14 stills: orbit day/terminator, town day, pagoda, gate road, far region, Aether Reach, forest night/moon, town night, dawn pagoda, floors 1/10/37/64/100; flythrough.mp4 4.3 MB). Captured from the 06:30 snapshot (before the limb-glow, stand-in material and survey-fog fixes). Capture tool: /workspace/world-run/tools/flythrough.mjs (uses &lite; full quality is ~20 s/frame under swiftshader).
 
 ## Checklist
 ### 0. Orientation
@@ -65,8 +65,8 @@ Build the entire Torn Veil game world on top of the existing build (extend, don'
 - [x] Procedural fallbacks when GLB missing; hash verify when present
 - [x] Collision proxies per START_HERE.txt guidance
 ### 5. Media + wrap-up
-- [ ] Media checkpoint 1 (~03:30 CT)
-- [ ] Media checkpoint 2 (~06:00 CT)
+- [x] Media checkpoint 1 (~03:30 CT) — skipped: session 1 hit the usage limit at 02:52; folded into checkpoint 2
+- [x] Media checkpoint 2 (~06:00 CT) — 06:33–07:10, 20261017-0633/
 - [ ] Media checkpoint 3 (~08:30 CT)
 - [ ] Final media + final report section (~09:30 CT)
 
