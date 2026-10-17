@@ -1,7 +1,7 @@
 import { Color3, Color4, FreeCamera, InstancedMesh, Material, Matrix, Mesh, VertexData, MeshBuilder, Quaternion, Scene, StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
 import { createRenderer, attachPipeline } from '../render/engine';
 import {
-  HOME_ANCHOR, add, arc, biomeAt, chartToHome, homeToDir, length, localHour, normalize, planetSpec, propsNear, regionAt, resolveObstacles, scale, skyAt,
+  HOME_ANCHOR, add, arc, dot, sub, biomeAt, chartToHome, homeToDir, length, localHour, normalize, planetSpec, propsNear, regionAt, resolveObstacles, scale, skyAt,
   spawnBody, stepSurface, surfaceRadius, tangentFrame, toLatLon, upOf, DAY_SECONDS, START_HOUR, type Obstacle, type SurfaceBody, type SurfaceInput, type V3,
 } from '../../sim/world/planet';
 import { homeChart, planetToRealm, realmToPlanet } from '../../sim/world/planet/chart';
@@ -197,16 +197,28 @@ export async function startPlanetWorld() {
     for (const o of standInObstacles) if (arc(spec, here, o.dir) < o.radius + 8) list.push(o);
     return list;
   };
+  // A blocked step keeps whichever tangent component (east or north of the previous spot) is
+  // still free, so the walker slides along walls instead of sticking to them.
+  const slide = (prev: SurfaceBody, next: SurfaceBody, blocked: (p: V3) => boolean): SurfaceBody => {
+    const f = tangentFrame(upOf(prev)), d = sub(next.pos, prev.pos), r = length(next.pos);
+    const tries = [f.east, f.north].map(axis => ({ axis, k: dot(d, axis) })).sort((a, b) => Math.abs(b.k) - Math.abs(a.k));
+    for (const { axis, k } of tries) {
+      if (Math.abs(k) < 1e-5) continue;
+      const pos = scale(normalize(add(prev.pos, scale(axis, k))), r);
+      if (!blocked(pos)) return { ...next, pos, vel: scale(axis, dot(next.vel, axis)) };
+    }
+    return { ...prev, vel: { x: 0, y: 0, z: 0 } };
+  };
   const stepBody = (input: SurfaceInput) => {
     const prev = body;
     body = resolveObstacles(spec, stepSurface(spec, body, input, fixed), obstacles());
     // The pagoda: podium and stair carry the body; the ground storey's walls stop it, except at the door.
     if (arc(spec, upOf(body), pagodaDir) < 30) {
       const l = pagodaLocal(body.pos);
-      if (pagodaBlocks(l.x, l.z)) body = { ...prev, vel: { x: 0, y: 0, z: 0 } };
+      if (pagodaBlocks(l.x, l.z)) body = slide(prev, body, p => { const q = pagodaLocal(p); return pagodaBlocks(q.x, q.z); });
       else { const h = pagodaSupport(l.x, l.z); if (h !== null) { const up = upOf(body), floor = spec.radius + 6 - .2 + h, r = length(body.pos); if (r <= floor + .05 || body.grounded && r - floor < .7) body = { ...body, pos: scale(up, floor), grounded: true }; } }
     }
-    if (aetherBlocks(body.pos) && !aetherBlocks(prev.pos)) body = { ...prev, vel: { x: 0, y: 0, z: 0 } };
+    if (aetherBlocks(body.pos) && !aetherBlocks(prev.pos)) body = slide(prev, body, aetherBlocks);
     // Inside the charted town, the realm's own static geometry carries the body.
     if (townGeometry) {
       const rp = planetToRealm(spec, chart, body.pos), b = walkBounds;
