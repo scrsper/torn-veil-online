@@ -87,6 +87,7 @@ Build the entire Torn Veil game world on top of the existing build (extend, don'
 - **Aether Reach city** (session 2). The far anchor shows the canonical seeded Aether realm (3×3 chunks around its plaza, `generateRealmChunk` + the existing `RealmRenderer`), bent onto the far plateau; its own Tower building is left out (the Tower stands once, as the pagoda). The library hamlet moved to its southern outskirts and roads enter from the south. The walker is stopped by the chunks' own building solids with closed doors solid (same rule as `RealmGrid.get`), sliding along walls.
 - **Lights never disabled.** Sun and moon DirectionalLights stay enabled at intensity 0 below the horizon: Babylon leaves disabled lights out of meshes created meanwhile, which then failed to draw once the sun rose (Aether built at night was invisible).
 - **Bend tessellation.** `bendTree` midpoint-subdivides triangles with world edges > 12 m before bending, so large flat quads (96 m street surfaces) follow the curve instead of sagging under the ground.
+- **Stand-ins follow manifest ports** (session 2): `routeX` (sim) puts the gatehouse passage and gate-segment opening on the +z walkable port line; the ravine bridge deck is level with the ground on its port line and the placement is shifted 8 m so it carries the south road. Stand-ins wear the repo's scanned CC0 surfaces; trees use bark scans and the focused pack's alpha branch cards.
 - **Browser boundary.** Pure warden-kit rules moved to `interiors/trialKitRules.ts` (trialKit.ts re-exports; no behaviour change) and the new pure sim modules were added to the allow-list in tests/web-boundary.test.ts.
 
 ## Assets used
@@ -96,6 +97,7 @@ Build the entire Torn Veil game world on top of the existing build (extend, don'
 
 ## Assets skipped (with reason)
 - None of the 12 library assets failed provenance. Characters/rigged assets: none integrated (characters paused).
+- Other GLBs on the box (checked 07:35 CT session 2): /workspace/torn-veil-build base-female-* and sketchfab downloads are character bases — not used (characters paused; several are third-party downloads with unchecked licences). No other environment packs found outside the repo's focused pack and scanned CC0 textures.
 
 ## Spec gaps
 - Floor naming/bands: spec gives three palettes over ten-floor bands; band names (Threshold, Cloister, Lantern, Ossuary, Archive, Forge, Gallery, Reliquary, Spire, Crown) are presentation labels only.
@@ -109,6 +111,9 @@ Build the entire Torn Veil game world on top of the existing build (extend, don'
 - tests/web-boundary.test.ts already failed before this run on `src/sim/quests/layer.ts` (imported by src/web/quests/objectives.ts from the slice integration). Not fixed here (HUD/quest file outside this run's scope).
 - Babylon warns "receiveShadows on an instanced mesh" from FocusedAssets.instantiate (pre-existing, harmless).
 - /?world floors are survey previews (no live wardens/combat); canonical combat is in /?ascent.
+- Aether Reach buildings can't be entered from /?world (doors are closed solids, as in RealmGrid without a door-open action); its realm Tower building is omitted.
+- Library GLBs still absent (12 Git LFS objects, re-checked 07:35 CT): everything from torn-veil-assets shows as stand-ins (now scanned-surface, port-aligned).
+- Headless capture of /?world at full quality is ~20 s/frame under SwiftShader; use &lite.
 
 ## File map
 - Sim: src/sim/world/planet/{planet,regions,motion,sky,scatter,chart,pagoda,roads,aether,index}.ts; src/sim/world/interiors/{floorSpec,trialKitRules}.ts; src/sim/world/assets/{library.ts,libraryCatalog.json}.
