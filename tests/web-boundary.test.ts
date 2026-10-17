@@ -69,6 +69,18 @@ describe('browser bundle boundary', () => {
       'src/sim/physical/staticGeometry.ts',
       // Verified asset schema and connector transforms; no file I/O or simulation.
       'src/sim/world/assets/focused.ts',
+      // World sphere (/?world): pure seeded planet geography, regions, surface motion, sky
+      // clock, scatter and the realm chart. No World, entity, persistence or live RNG.
+      'src/sim/world/planet/index.ts', 'src/sim/world/planet/planet.ts', 'src/sim/world/planet/regions.ts', 'src/sim/world/planet/motion.ts',
+      'src/sim/world/planet/sky.ts', 'src/sim/world/planet/scatter.ts', 'src/sim/world/planet/chart.ts',
+      // Seeded deterministic RNG and realm addresses/names; no World access.
+      'src/sim/core/rng.ts', 'src/sim/world/realms/layout.ts',
+      // Library registry generated from the torn-veil-assets manifest (ids, hashes, bounds; no binaries).
+      'src/sim/world/assets/library.ts', 'src/sim/world/assets/libraryCatalog.json',
+      // Focused town plan and verified static geometry catalog (pure transforms, no file I/O).
+      'src/sim/world/assets/focusedLayouts.ts', 'src/sim/world/assets/focusedRuntime.ts', 'src/sim/world/assets/focusedCatalog.json',
+      // Tower floor specs: the canonical seeded plan grammar and pure warden-kit rules.
+      'src/sim/world/interiors/floorSpec.ts', 'src/sim/world/interiors/layout.ts', 'src/sim/world/interiors/trialKitRules.ts',
     ]);
     const unexpected = outside.filter(p => !allowed.has(p));
     expect(unexpected, `unexpected modules in the browser graph:\n${unexpected.join('\n')}`).toEqual([]);

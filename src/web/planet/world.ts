@@ -1,0 +1,200 @@
+import { Color3, Color4, FreeCamera, Matrix, Mesh, MeshBuilder, Quaternion, Scene, StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
+import { createRenderer, attachPipeline } from '../render/engine';
+import {
+  HOME_ANCHOR, add, arc, biomeAt, chartToHome, homeToDir, length, localHour, normalize, planetSpec, propsNear, regionAt, resolveObstacles, scale, skyAt,
+  spawnBody, stepSurface, surfaceRadius, tangentFrame, toLatLon, upOf, DAY_SECONDS, START_HOUR, type Obstacle, type SurfaceBody, type SurfaceInput, type V3,
+} from '../../sim/world/planet';
+import { homeChart, planetToRealm, realmToPlanet } from '../../sim/world/planet/chart';
+import { LIBRARY_PLACEMENTS, placementDir } from '../../sim/world/assets/library';
+import { focusedTownPlan } from '../../sim/world/assets/focusedLayouts';
+import { registerFocusedGeometry, sceneGeometry, focusedGeometryReady } from '../../sim/world/assets/focusedRuntime';
+import type { StaticGeometry } from '../../sim/physical/staticGeometry';
+import { realmSeed } from '../../sim/world/realms/layout';
+import { FocusedAssets } from '../realms/focusedAssets';
+import type { Atmosphere } from '../world/atmosphere';
+import { PlanetTerrain } from './terrain';
+import { PlanetSky } from './sky';
+import { PlanetProps } from './props';
+import { LibraryLoader } from './library';
+import { buildPagoda } from './pagoda';
+import { bendTree } from './bend';
+import { TowerSurvey } from './towerFloors';
+
+/** /?world — the whole world as a walkable sphere. Geography, gravity, the sky clock and
+ * Tower floors are the sim's pure seeded functions; this view advances a fixed-step
+ * clock and a surface body, and projects them. URL: &seed=, &hour=, &speed=, &view=orbit|ground, &floor=N. */
+export async function startPlanetWorld() {
+  const params = new URLSearchParams(location.search), seed = Number(params.get('seed') ?? 20261017) | 0, spec = planetSpec(seed);
+  const canvas = document.getElementById('game') as HTMLCanvasElement, ui = document.getElementById('ui') ?? document.body;
+  const ctx = await createRenderer(canvas, { quality: 'balanced' }), scene = ctx.scene, engine = ctx.engine;
+  scene.clearColor = new Color4(0, 0, 0, 1); scene.fogMode = Scene.FOGMODE_EXP2; scene.ambientColor = new Color3(.25, .25, .28);
+  const camera = new FreeCamera('world-camera', new Vector3(0, spec.radius * 3, 0), scene); camera.minZ = .3; camera.maxZ = spec.radius * 12; camera.fov = .9; camera.inputs.clear();
+  try { attachPipeline(ctx, camera); } catch { /* the plain forward path remains */ }
+  const sky = new PlanetSky(scene, ctx.quality.shadowMapSize >= 2048 ? 2048 : 1024), terrain = new PlanetTerrain(scene, spec), loader = new LibraryLoader(scene);
+  const label = document.createElement('div');
+  Object.assign(label.style, { position: 'fixed', left: '12px', top: '12px', padding: '8px 12px', background: 'rgba(12,14,20,.72)', color: '#e8e4d8', font: '12.5px system-ui', borderRadius: '8px', pointerEvents: 'none', whiteSpace: 'pre', zIndex: '20' });
+  ui.append(label);
+  const status: Record<string, string> = {};
+
+  // Home content: the preserved focused town → forest → Tower route, bent onto the curve.
+  const town = focusedTownPlan(seed), townOrigin = { x: 8192 + 3072 + 48.5, z: 3072 + 20.5 }, chart = homeChart(townOrigin, 1);
+  const towerCentre = { x: town.tower.x + town.tower.w / 2, z: town.tower.z + town.tower.d / 2 };
+  const toPlanet = (x: number, y: number, z: number) => realmToPlanet(spec, chart, x, y, z);
+  const v = (p: V3) => new Vector3(p.x, p.y, p.z);
+  let townGeometry: StaticGeometry | null = null;
+  const shim = { addCaster: (m: Mesh) => sky.addCaster(m), removeCaster: (m: Mesh) => sky.removeCaster(m) } as unknown as Atmosphere;
+  const focused = new FocusedAssets(scene, shim);
+  const loadTown = async () => {
+    await focused.loadManifest();
+    let n = 0;
+    for (const p of town.placements) {
+      if (p.id.includes(':tower:')) continue; // the Tower's exterior is the pagoda below
+      const inst = await focused.instantiate(p, { x: 0, z: 0 });
+      for (const m of bendTree(spec, chart, inst.root)) { m.receiveShadows = true; sky.addCaster(m); }
+      n++;
+    }
+    status.town = `${n} focused placements`;
+  };
+  const loadTownCollision = async () => {
+    if (focusedGeometryReady()) { townGeometry = sceneGeometry(town); return; }
+    const r = await fetch('/focused/collision.json'); if (!r.ok) throw Error('collision unavailable');
+    const bytes = await r.arrayBuffer(), digest = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), b => b.toString(16).padStart(2, '0')).join('');
+    registerFocusedGeometry(JSON.parse(new TextDecoder().decode(bytes)), digest); townGeometry = sceneGeometry(town); status.collision = 'town geometry';
+  };
+  // Library placements on the home and far charts.
+  const libraryRoots: TransformNode[] = [];
+  const loadLibrary = async () => {
+    for (const p of LIBRARY_PLACEMENTS) {
+      const d = placementDir(spec, p), f = tangentFrame(d), r = surfaceRadius(spec, d), root = new TransformNode('library:' + p.id, scene);
+      // Asset +Z faces chart north after yaw; frame axes (west, up, north) keep right-handedness.
+      const west = v(scale(f.east, -1)), up = v(f.up), north = v(f.north);
+      const q = Quaternion.FromRotationMatrix(Matrix.FromValues(west.x, west.y, west.z, 0, up.x, up.y, up.z, 0, north.x, north.y, north.z, 0, 0, 0, 0, 1));
+      root.rotationQuaternion = q.multiply(Quaternion.RotationAxis(Vector3.Up(), p.yaw)); root.position = v(scale(d, r));
+      const meshes = await loader.instantiate(p.assetId, p.id, root);
+      for (const m of meshes) { m.receiveShadows = true; sky.addCaster(m); }
+      libraryRoots.push(root);
+    }
+    status.library = Object.entries(loader.status).map(([k, s]) => `${k}:${s}`).join(' ');
+  };
+  // The pagoda stands on the focused Tower footprint, its door toward the forest route.
+  const pagodaRoot = new TransformNode('tower-of-chrysanthus', scene);
+  const pagodaDir = normalize(toPlanet(towerCentre.x, 1, towerCentre.z - 6)), pf = tangentFrame(pagodaDir);
+  {
+    const west = v(scale(pf.east, -1)), up = v(pf.up), north = v(pf.north);
+    pagodaRoot.rotationQuaternion = Quaternion.FromRotationMatrix(Matrix.FromValues(west.x, west.y, west.z, 0, up.x, up.y, up.z, 0, north.x, north.y, north.z, 0, 0, 0, 0, 1));
+    pagodaRoot.position = v(scale(pagodaDir, spec.radius + 6 - .2));
+  }
+  const pagoda = buildPagoda(scene, pagodaRoot);
+  for (const m of pagoda.meshes) { m.receiveShadows = true; sky.addCaster(m); }
+  const doorPoint = Vector3.TransformCoordinates(pagoda.door, pagodaRoot.computeWorldMatrix(true));
+  const pagodaObstacle: Obstacle = { dir: pagodaDir, radius: 15.5 };
+
+  // The observer's body: the existing placeholder treatment (a plain capsule), unchanged in kind.
+  const bodyMesh = MeshBuilder.CreateCapsule('player-placeholder', { height: 1.8, radius: .35 }, scene), bodyMat = new StandardMaterial('player-placeholder', scene);
+  bodyMat.diffuseColor = new Color3(.85, .75, .55); bodyMesh.material = bodyMat; sky.addCaster(bodyMesh);
+  const spawnDir = normalize(toPlanet(town.spawn.x, 1, town.spawn.z));
+  let body: SurfaceBody = spawnBody(spec, spawnDir, homeToDir(spec, 0, 400));
+  let seconds = Number.isFinite(Number(params.get('hour'))) && params.get('hour') !== null ? ((Number(params.get('hour')) - START_HOUR + 24) % 24) / 24 * DAY_SECONDS : 0;
+  let speed = Number(params.get('speed') ?? 1) || 1, view: 'ground' | 'orbit' = params.get('view') === 'orbit' ? 'orbit' : 'ground';
+  let camYaw = 0, camPitch = .28, camDist = 7.5, orbitAngle = 0, orbitRadius = spec.radius * 3.1;
+  const keys = new Set<string>();
+  addEventListener('keydown', e => { keys.add(e.code); if (e.code === 'KeyO') view = view === 'orbit' ? 'ground' : 'orbit'; if (e.code === 'KeyT') speed = speed === 1 ? 60 : 1; if (e.code === 'KeyF') interact(); });
+  addEventListener('keyup', e => keys.delete(e.code));
+  let dragging = false;
+  canvas.addEventListener('pointerdown', () => { dragging = true; }); addEventListener('pointerup', () => { dragging = false; });
+  addEventListener('pointermove', e => { if (!dragging) return; camYaw -= e.movementX * .005; camPitch = Math.max(-.2, Math.min(1.2, camPitch + e.movementY * .004)); });
+  canvas.addEventListener('wheel', e => { if (view === 'orbit') orbitRadius = Math.max(spec.radius * 1.15, Math.min(spec.radius * 8, orbitRadius * (1 + e.deltaY * .001))); else camDist = Math.max(3, Math.min(40, camDist * (1 + e.deltaY * .001))); });
+
+  // Tower survey: the hundred floors in their own scene.
+  const survey = new TowerSurvey(engine, realmSeed(seed, 'canonical-tower'));
+  let inTower = false;
+  function interact() {
+    if (inTower) { const r = survey.interact(); if (r === 'leave') { inTower = false; body = spawnBody(spec, normalize(v2p(doorPoint)), scale(pagodaDir, -1)); } return; }
+    if (Vector3.Distance(bodyMesh.position, doorPoint) < 7) { inTower = true; void survey.enter(survey.floor); }
+  }
+  const v2p = (p: Vector3): V3 => ({ x: p.x, y: p.y, z: p.z });
+
+  const fixed = 1 / 60; let acc = 0, last = performance.now(), hudT = 0;
+  const obstacles = (): Obstacle[] => {
+    const here = upOf(body), list: Obstacle[] = propsNear(spec, here, 12).filter(p => p.radius > 0).map(p => ({ dir: p.dir, radius: p.radius }));
+    if (arc(spec, here, pagodaDir) < 40) list.push(pagodaObstacle);
+    return list;
+  };
+  const stepBody = (input: SurfaceInput) => {
+    const prev = body;
+    body = resolveObstacles(spec, stepSurface(spec, body, input, fixed), obstacles());
+    // Inside the charted town, the realm's own static geometry carries the body.
+    if (townGeometry) {
+      const rp = planetToRealm(spec, chart, body.pos), b = town.bounds;
+      if (rp.x > b.x0 && rp.x < b.x1 && rp.z > b.z0 && rp.z < b.z1) {
+        const before = planetToRealm(spec, chart, prev.pos), support = townGeometry.supportAt(rp.x, rp.z, Math.max(before.y, rp.y) + .45, 1.05);
+        if (support !== null && rp.y <= support + .06 + (body.grounded ? .5 : 0)) {
+          if (!townGeometry.fits(rp.x, support, rp.z, .3, 1.75) && townGeometry.fits(before.x, before.y, before.z, .3, 1.75)) body = { ...prev, vel: { x: 0, y: 0, z: 0 } };
+          else body = { ...body, pos: toPlanet(rp.x, support, rp.z), grounded: true, vel: scale(body.vel, 1) };
+        }
+      }
+    }
+  };
+  const tick = () => {
+    const now = performance.now(), dt = Math.min(.1, (now - last) / 1000); last = now;
+    if (inTower) { survey.update(dt, keys); survey.scene.render(); hud(dt); return; }
+    acc += dt;
+    while (acc >= fixed) {
+      acc -= fixed; seconds += fixed * speed;
+      const input: SurfaceInput = {
+        forward: (keys.has('KeyW') || keys.has('ArrowUp') ? 1 : 0) - (keys.has('KeyS') || keys.has('ArrowDown') ? 1 : 0),
+        right: (keys.has('KeyE') ? 1 : 0) - (keys.has('KeyQ') ? 1 : 0),
+        turn: (keys.has('KeyD') || keys.has('ArrowRight') ? 1 : 0) - (keys.has('KeyA') || keys.has('ArrowLeft') ? 1 : 0),
+        jump: keys.has('Space'), run: keys.has('ShiftLeft') || keys.has('ShiftRight'),
+      };
+      if (view === 'ground') stepBody(input); else orbitAngle += fixed * .05 * speed ** .25;
+    }
+    const up = upOf(body), u = v(up), pos = v(body.pos), fwd = v(body.forward);
+    bodyMesh.position = pos.add(u.scale(.9));
+    bodyMesh.rotationQuaternion = Quaternion.FromLookDirectionRH(fwd, u);
+    terrain.follow(up); props?.follow(up);
+    const state = skyAt(seconds);
+    if (view === 'orbit') {
+      const t = orbitAngle, around = normalize(add(scale(HOME_ANCHOR, Math.cos(t)), scale(tangentFrame(HOME_ANCHOR).east, Math.sin(t))));
+      camera.position = v(scale(normalize(add(around, { x: 0, y: .35, z: 0 })), orbitRadius)); camera.upVector = new Vector3(0, 1, 0); camera.setTarget(Vector3.Zero());
+      sky.update(state, normalize(v2p(camera.position)), Vector3.Zero(), camera.maxZ * .45, 1);
+      scene.fogDensity = 0;
+    } else {
+      const yawQ = Quaternion.RotationAxis(u, camYaw), back = fwd.applyRotationQuaternion(yawQ).scale(-1), cam = pos.add(u.scale(1.6)).add(back.scale(Math.cos(camPitch) * camDist)).add(u.scale(Math.sin(camPitch) * camDist));
+      // Keep the camera above ground.
+      const camDir = normalize(v2p(cam)), floor = surfaceRadius(spec, camDir) + .6, cr = cam.length();
+      camera.position = cr < floor ? cam.scale(floor / cr) : cam; camera.upVector = u; camera.setTarget(pos.add(u.scale(1.5)));
+      sky.update(state, up, pos, camera.maxZ * .45, 0);
+    }
+    scene.render(); hud(dt);
+  };
+  let props: PlanetProps | null = null;
+  const hud = (dt: number) => {
+    hudT += dt; if (hudT < .25) return; hudT = 0;
+    const up = upOf(body), ll = toLatLon(up), state = skyAt(seconds), l = sky.last, hour = localHour(state, ll.lon), r = regionAt(spec, up);
+    const hh = Math.floor(hour), mm = Math.floor((hour - hh) * 60), c = chartToHome(spec, up);
+    label.textContent = inTower ? survey.describe() : `${r.name} — ${biomeAt(spec, up)}\n${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')} local · day ${state.day + 1} · moon ${(state.moonIllumination * 100).toFixed(0)}%${speed > 1 ? ` · ×${speed}` : ''}\nlat ${ll.lat.toFixed(2)} lon ${ll.lon.toFixed(2)} · ${l ? (l.sunElevation > 0 ? 'sun ' + (Math.asin(l.sunElevation) * 57.3).toFixed(0) + '°' : l.moonElevation > 0 ? 'moonlight' : 'night') : ''}${arc(spec, up, HOME_ANCHOR) < 900 ? `\nhome chart ${c.east.toFixed(0)} E ${c.north.toFixed(0)} N` : ''}${Vector3.Distance(bodyMesh.position, doorPoint) < 7 ? '\nF — enter the Tower of Chrysanthus' : ''}\nWASD move · Shift run · Space jump · O orbit · T time ×60`;
+  };
+  engine.runRenderLoop(tick); addEventListener('resize', () => engine.resize());
+  // Content loads after first frame; each part fails independently to its fallback.
+  void (async () => {
+    props = new PlanetProps(scene, spec, loader, m => sky.addCaster(m)); await props.init(); props.follow(upOf(body), true);
+    await Promise.allSettled([loadLibrary(), loadTown().catch(e => { status.town = 'unavailable: ' + e; }), loadTownCollision().catch(e => { status.collision = 'none: ' + e; })]);
+    (window as unknown as { __tvWorldReady: boolean }).__tvWorldReady = true;
+  })();
+  const floorParam = Number(params.get('floor'));
+  if (floorParam >= 1 && floorParam <= 100) { inTower = true; void survey.enter(floorParam); }
+  // Test/media hooks: read-only state and observer placement, no gameplay authority.
+  (window as unknown as { __tvWorld: unknown }).__tvWorld = {
+    spec, status, get body() { return body; },
+    setHour(h: number) { seconds = ((h - START_HOUR + 24) % 24) / 24 * DAY_SECONDS + Math.floor(seconds / DAY_SECONDS) * DAY_SECONDS; },
+    setDay(d: number) { seconds = (seconds % DAY_SECONDS) + d * DAY_SECONDS; },
+    setView(next: 'orbit' | 'ground') { view = next; }, setOrbit(angle: number, radius?: number) { orbitAngle = angle; if (radius) orbitRadius = radius; },
+    setCamera(yaw: number, pitch: number, dist: number) { camYaw = yaw; camPitch = pitch; camDist = dist; },
+    teleportHome(east: number, north: number, facingEast = 0, facingNorth = 1) { inTower = false; body = spawnBody(spec, homeToDir(spec, east, north), homeToDir(spec, east + facingEast * 50, north + facingNorth * 50)); },
+    teleportLatLon(lat: number, lon: number) { inTower = false; const d = normalize(v2p(new Vector3(Math.cos(lat / 57.2958) * Math.sin(lon / 57.2958), Math.sin(lat / 57.2958), Math.cos(lat / 57.2958) * Math.cos(lon / 57.2958)))); body = spawnBody(spec, d); },
+    walk(seconds: number, input: Partial<SurfaceInput>) { for (let t = 0; t < seconds; t += fixed) stepBody({ forward: 0, right: 0, turn: 0, jump: false, run: false, ...input }); },
+    tower(floor: number) { inTower = true; return survey.enter(floor); }, leaveTower() { inTower = false; },
+    survey, radius: () => length(body.pos),
+  };
+}

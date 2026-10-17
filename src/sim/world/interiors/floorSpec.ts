@@ -1,7 +1,7 @@
 import { RNG } from '../../core/rng';
 import { towerEncounter } from '../../progression/towerEncounters';
 import { planInterior, type InteriorPlan } from './layout';
-import { trialKit, type WardenArchetype } from './trialKit';
+import { trialKit, type WardenArchetype } from './trialKitRules';
 
 /** One description of every Tower floor, derived only from the mechanics that already
  * govern the canonical Tower (tower.ts, maze.ts, trialKit.ts, progression/tower.ts) and

@@ -13,7 +13,8 @@ export function spawnBody(spec: PlanetSpec, dir: V3, facing?: V3): SurfaceBody {
 /** Walkable radius: terrain, or the water surface less a wading depth. */
 export function groundRadius(spec: PlanetSpec, up: V3) { return Math.max(surfaceRadius(spec, up), spec.radius - WADE_DEPTH); }
 export const upOf = (b: SurfaceBody) => normalize(b.pos);
-export const rightOf = (b: SurfaceBody) => normalize(cross(upOf(b), b.forward));
+/** Right-handed: right = forward × up (facing -Z with +Y up, right is +X). */
+export const rightOf = (b: SurfaceBody) => normalize(cross(b.forward, upOf(b)));
 function rotateAbout(v: V3, axis: V3, a: number): V3 {
   // Rodrigues' rotation, axis unit length.
   const c = Math.cos(a), s = Math.sin(a);
@@ -22,9 +23,10 @@ function rotateAbout(v: V3, axis: V3, a: number): V3 {
 export function stepSurface(spec: PlanetSpec, b: SurfaceBody, input: SurfaceInput, dt: number): SurfaceBody {
   if (!(dt > 0 && dt <= .1)) throw Error('Surface step must be in (0, 0.1] seconds');
   let up = normalize(b.pos);
-  let forward = rotateAbout(b.forward, up, clamp(input.turn) * TURN * dt);
+  // Positive turn swings the heading toward the body's right.
+  let forward = rotateAbout(b.forward, up, -clamp(input.turn) * TURN * dt);
   forward = normalize(sub(forward, scale(up, dot(forward, up))));
-  const right = normalize(cross(up, forward));
+  const right = normalize(cross(forward, up));
   const swimming = surfaceRadius(spec, up) < spec.radius - WADE_DEPTH;
   const speed = swimming ? SWIM : input.run ? RUN : WALK;
   let wish = add(scale(forward, clamp(input.forward)), scale(right, clamp(input.right)));
@@ -59,7 +61,7 @@ export function resolveObstacles(spec: PlanetSpec, b: SurfaceBody, obstacles: re
   for (const o of obstacles) {
     const up = normalize(pos), c = scale(normalize(o.dir), length(pos)), off = sub(pos, c), t = sub(off, scale(up, dot(off, up))), d = length(t), min = o.radius + bodyRadius;
     if (d >= min || o.radius <= 0) continue;
-    const n = d > 1e-6 ? scale(t, 1 / d) : normalize(cross(up, b.forward));
+    const n = d > 1e-6 ? scale(t, 1 / d) : normalize(cross(b.forward, up));
     pos = add(pos, scale(n, min - d));
     const into = dot(vel, n); if (into < 0) vel = sub(vel, scale(n, into));
   }
