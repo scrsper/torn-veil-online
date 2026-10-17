@@ -52,7 +52,7 @@ export class PlanetSky {
   /** Thin atmospheric shell, visible as a limb glow from orbit. */
   atmosphere(radius: number) {
     const shell = MeshBuilder.CreateSphere('atmosphere', { diameter: radius * 2.06, segments: 64 }, this.scene), m = new StandardMaterial('atmosphere', this.scene);
-    m.diffuseColor = Color3.Black(); m.specularColor = Color3.Black(); m.emissiveColor = new Color3(.35, .6, 1); m.alpha = .4;
+    m.diffuseColor = Color3.Black(); m.specularColor = Color3.Black(); m.emissiveColor = new Color3(.35, .6, 1); m.alpha = .28;
     m.emissiveFresnelParameters = new FresnelParameters(); m.emissiveFresnelParameters.bias = .05; m.emissiveFresnelParameters.power = 4.5;
     m.emissiveFresnelParameters.leftColor = new Color3(.4, .65, 1); m.emissiveFresnelParameters.rightColor = Color3.Black();
     m.opacityFresnelParameters = new FresnelParameters(); m.opacityFresnelParameters.power = 3; m.opacityFresnelParameters.leftColor = Color3.White(); m.opacityFresnelParameters.rightColor = Color3.Black();
@@ -72,12 +72,12 @@ export class PlanetSky {
     this.sun.setEnabled(sunI > .001); this.moon.setEnabled(moonI > .001);
     this.sunShadows.getShadowMap()!.refreshRate = sunI > .001 && space < .5 ? 1 : 0;
     this.moonShadows.getShadowMap()!.refreshRate = moonI > .02 && sunI < .05 && space < .5 ? 1 : 0;
-    this.fill.direction = v(up); this.fill.intensity = space > .5 ? .25 : l.ambient * .85;
+    this.fill.direction = v(up); this.fill.intensity = space > .5 ? .05 : l.ambient * .85;
     this.fill.diffuse = new Color3(...l.zenith).scale(.6).add(new Color3(.25, .25, .25).scale(l.daylight));
     this.fill.groundColor = new Color3(...l.ground);
-    this.scene.environmentIntensity = space > .5 ? .35 : .04 + .42 * l.daylight + .15 * l.moonIntensity;
+    this.scene.environmentIntensity = space > .5 ? .12 : .04 + .42 * l.daylight + .15 * l.moonIntensity;
     // Flat ambient for Standard materials (scene.ambientColor × material.ambientColor), from the same sky.
-    const amb = space > .5 ? .2 : l.ambient; this.scene.ambientColor = new Color3(...l.zenith).scale(.5).add(new Color3(.5, .48, .44).scale(l.daylight * .5)).scale(Math.min(1.2, amb * 1.6));
+    const amb = space > .5 ? .05 : l.ambient; this.scene.ambientColor = new Color3(...l.zenith).scale(.5).add(new Color3(.5, .48, .44).scale(l.daylight * .5)).scale(Math.min(1.2, amb * 1.6));
     const m = this.material, c = (a: [number, number, number]) => new Vector3(...a);
     m.setVector3('up', v(up)); m.setVector3('sun', sun); m.setVector3('moon', moon);
     m.setVector3('zenith', c(l.zenith)); m.setVector3('horizon', c(l.horizon)); m.setVector3('ground', c(l.ground));
