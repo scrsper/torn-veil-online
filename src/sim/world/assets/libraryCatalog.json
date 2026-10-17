@@ -1,0 +1,773 @@
+{
+ "version": 1,
+ "source": "scrsper/torn-veil-assets INTEGRATION_MANIFEST.json",
+ "manifestCreated": "2026-10-14T19:52:09.700021+00:00",
+ "coordinate": {
+  "units": "metres",
+  "up": "Y"
+ },
+ "assets": [
+  {
+   "id": "tv_08_01_village_lane",
+   "name": "Crooked Hamlet 01",
+   "family": "village_lane",
+   "path": "models/tv_08_01_village_lane.glb",
+   "sha256": "a8d9abe66babb1029c0642bc220cb739b7ca041ab457b1cbeaf0211c18a72774",
+   "bytes": 3941700,
+   "bounds": {
+    "min": [
+     -18,
+     -0.3199999928474426,
+     -18.02093443064632
+    ],
+    "max": [
+     18,
+     9.514880790831967,
+     18
+    ]
+   },
+   "triangles": 28962,
+   "ports": [
+    {
+     "id": "P00",
+     "kind": "walkable",
+     "position": [
+      0,
+      0,
+      18
+     ],
+     "outward": [
+      0,
+      0,
+      1
+     ],
+     "width": 4
+    },
+    {
+     "id": "P01",
+     "kind": "walkable",
+     "position": [
+      0,
+      0,
+      -18
+     ],
+     "outward": [
+      0,
+      0,
+      -1
+     ],
+     "width": 4
+    },
+    {
+     "id": "P02",
+     "kind": "walkable",
+     "position": [
+      -18,
+      0,
+      8
+     ],
+     "outward": [
+      -1,
+      0,
+      0
+     ],
+     "width": 4
+    },
+    {
+     "id": "P03",
+     "kind": "walkable",
+     "position": [
+      18,
+      0,
+      0
+     ],
+     "outward": [
+      1,
+      0,
+      0
+     ],
+     "width": 4
+    }
+   ],
+   "provenance": {
+    "libraryFileId": "libfile_0465d71ef360819185941095193c00be",
+    "archive": "TornVeil_Batch44_Five_Village_Construction_Drafts_01_05_20261014.zip",
+    "notice": "Immutable combined static-draft bundle; actual full-payload restore and native reopen verified. Visual and performance status remains separate."
+   },
+   "verdict": "use",
+   "reasons": []
+  },
+  {
+   "id": "tv_37_01_market_square",
+   "name": "Covered Market Square 01",
+   "family": "market_square",
+   "path": "models/tv_37_01_market_square.glb",
+   "sha256": "8b70181157c80917065aac8f6521c72acb62f1ec5a06e00ac930cc9549108fc5",
+   "bytes": 4504440,
+   "bounds": {
+    "min": [
+     -10,
+     -0.3199999928474426,
+     -10
+    ],
+    "max": [
+     18,
+     3.799999952316284,
+     10
+    ]
+   },
+   "triangles": 35652,
+   "ports": [
+    {
+     "id": "P00",
+     "kind": "walkable",
+     "position": [
+      0,
+      0,
+      10
+     ],
+     "outward": [
+      0,
+      0,
+      1
+     ],
+     "width": 4
+    },
+    {
+     "id": "P01",
+     "kind": "walkable",
+     "position": [
+      0,
+      0,
+      -10
+     ],
+     "outward": [
+      0,
+      0,
+      -1
+     ],
+     "width": 4
+    },
+    {
+     "id": "P02",
+     "kind": "walkable",
+     "position": [
+      18,
+      0,
+      4
+     ],
+     "outward": [
+      1,
+      0,
+      0
+     ],
+     "width": 4
+    }
+   ],
+   "provenance": {
+    "libraryFileId": "libfile_a5c7931388208191a15788d25a6c759c",
+    "archive": "TornVeil_Batch44_Five_Market_Construction_Drafts_01_05_20261014.zip",
+    "notice": "Immutable combined static-draft bundle; actual full-payload restore and native reopen verified. Visual and performance status remains separate."
+   },
+   "verdict": "use",
+   "reasons": []
+  },
+  {
+   "id": "tv_31_06_tavern",
+   "name": "Brass Lantern Tavern 06",
+   "family": "tavern",
+   "path": "models/tv_31_06_tavern.glb",
+   "sha256": "74440fa66a3c9d48f6af9007bd5d6d2421323e991f8e63ed8f10cc892344e096",
+   "bytes": 8375556,
+   "bounds": {
+    "min": [
+     -10.257638931274414,
+     -0.3199999928474426,
+     -14
+    ],
+    "max": [
+     10.252912521362305,
+     6.144999980926514,
+     6
+    ]
+   },
+   "triangles": 72840,
+   "ports": [
+    {
+     "id": "P00",
+     "kind": "walkable",
+     "position": [
+      0,
+      0,
+      6
+     ],
+     "outward": [
+      0,
+      0,
+      1
+     ],
+     "width": 4
+    },
+    {
+     "id": "P01",
+     "kind": "walkable",
+     "position": [
+      0,
+      0,
+      -14
+     ],
+     "outward": [
+      0,
+      0,
+      -1
+     ],
+     "width": 4
+    }
+   ],
+   "provenance": {
+    "libraryFileId": "libfile_b0bb1368db888191ad139b0310187ac1",
+    "archive": "TornVeil_Batch26_Taverns_Selected_And_Held_20261014.zip",
+    "notice": "Immutable combined static-draft bundle; actual full-payload restore and native reopen verified. Visual and performance status remains separate."
+   },
+   "verdict": "use",
+   "reasons": []
+  },
+  {
+   "id": "tv_04_01_gatehouse",
+   "name": "March Gatehouse 01",
+   "family": "gatehouse",
+   "path": "models/tv_04_01_gatehouse.glb",
+   "sha256": "bc8fce7ea0852a250fb589ebdf8f8af1b4b6725d322a3304187dcc850be4dac0",
+   "bytes": 8193396,
+   "bounds": {
+    "min": [
+     -18.05000114440918,
+     -0.3199999928474426,
+     -18.04955727698416
+    ],
+    "max": [
+     30,
+     9.39995969745246,
+     18
+    ]
+   },
+   "triangles": 76540,
+   "ports": [
+    {
+     "id": "P00",
+     "kind": "walkable",
+     "position": [
+      0,
+      0,
+      18
+     ],
+     "outward": [
+      0,
+      0,
+      1
+     ],
+     "width": 4
+    },
+    {
+     "id": "P01",
+     "kind": "walkable",
+     "position": [
+      0,
+      0,
+      -18
+     ],
+     "outward": [
+      0,
+      0,
+      -1
+     ],
+     "width": 4
+    },
+    {
+     "id": "P02",
+     "kind": "walkable",
+     "position": [
+      -18,
+      0,
+      8
+     ],
+     "outward": [
+      -1,
+      0,
+      0
+     ],
+     "width": 4
+    },
+    {
+     "id": "P03",
+     "kind": "walkable",
+     "position": [
+      18,
+      0,
+      8
+     ],
+     "outward": [
+      1,
+      0,
+      0
+     ],
+     "width": 4
+    }
+   ],
+   "provenance": {
+    "libraryFileId": "libfile_8c454f53097c81918be45823517b6cab",
+    "archive": "TornVeil_Batch53_Gatehouse01_r004_Reviewed_20261014T1631.zip",
+    "notice": "Immutable combined static-draft bundle; actual full-payload restore and native reopen verified. Visual and performance status remains separate."
+   },
+   "verdict": "use",
+   "reasons": []
+  },
+  {
+   "id": "tv_05_01_ravine_bridge",
+   "name": "Ravine Crossing 01",
+   "family": "ravine_bridge",
+   "path": "models/tv_05_01_ravine_bridge.glb",
+   "sha256": "0892d09706c9fe1b364bc83a236e34d66a24a5d5e533a60f847377ce817e02b3",
+   "bytes": 7411244,
+   "bounds": {
+    "min": [
+     -18,
+     -4.534404754638672,
+     -18
+    ],
+    "max": [
+     30,
+     7.949999809265137,
+     18.062079191207886
+    ]
+   },
+   "triangles": 65520,
+   "ports": [
+    {
+     "id": "P00",
+     "kind": "walkable",
+     "position": [
+      -8,
+      0,
+      18
+     ],
+     "outward": [
+      0,
+      0,
+      1
+     ],
+     "width": 4
+    },
+    {
+     "id": "P01",
+     "kind": "walkable",
+     "position": [
+      -8,
+      0,
+      -18
+     ],
+     "outward": [
+      0,
+      0,
+      -1
+     ],
+     "width": 4
+    }
+   ],
+   "provenance": {
+    "libraryFileId": "libfile_62fce8c5b44081919575ff95a5aa076c",
+    "archive": "TornVeil_Batch41_Five_Targeted_Bridge_Support_Drafts_20261014.zip",
+    "notice": "Immutable combined static-draft bundle; actual full-payload restore and native reopen verified. Visual and performance status remains separate."
+   },
+   "verdict": "use",
+   "reasons": []
+  },
+  {
+   "id": "tv_10_01_watchpost",
+   "name": "Warden Watchpost 01",
+   "family": "watchpost",
+   "path": "models/tv_10_01_watchpost.glb",
+   "sha256": "742bd4d0fad2473baf3350979f9e3110da4a65c42095dea0f81a501bd7f00bc6",
+   "bytes": 4718068,
+   "bounds": {
+    "min": [
+     -18,
+     -0.3199999928474426,
+     -18
+    ],
+    "max": [
+     30,
+     9.379023474578162,
+     18
+    ]
+   },
+   "triangles": 34905,
+   "ports": [
+    {
+     "id": "P00",
+     "kind": "walkable",
+     "position": [
+      0,
+      0,
+      18
+     ],
+     "outward": [
+      0,
+      0,
+      1
+     ],
+     "width": 4
+    },
+    {
+     "id": "P01",
+     "kind": "walkable",
+     "position": [
+      0,
+      0,
+      -18
+     ],
+     "outward": [
+      0,
+      0,
+      -1
+     ],
+     "width": 4
+    },
+    {
+     "id": "P02",
+     "kind": "walkable",
+     "position": [
+      -18,
+      0,
+      -4
+     ],
+     "outward": [
+      -1,
+      0,
+      0
+     ],
+     "width": 4
+    },
+    {
+     "id": "P03",
+     "kind": "walkable",
+     "position": [
+      18,
+      0,
+      0
+     ],
+     "outward": [
+      1,
+      0,
+      0
+     ],
+     "width": 4
+    }
+   ],
+   "provenance": {
+    "libraryFileId": "libfile_45d9c79437cc81918286eb0bfed35cbf",
+    "archive": "TornVeil_Batch41_Five_Targeted_Watchpost_Drafts_20261014.zip",
+    "notice": "Immutable combined static-draft bundle; actual full-payload restore and native reopen verified. Visual and performance status remains separate."
+   },
+   "verdict": "use",
+   "reasons": []
+  },
+  {
+   "id": "tv_44_01_dungeon_junction",
+   "name": "Dungeon Junction 01",
+   "family": "dungeon_junction",
+   "path": "models/tv_44_01_dungeon_junction.glb",
+   "sha256": "c9bef0d9df23ded2f0ab0a09827a1045cf5dcc6a429f0c6beeb9ea31aef10941",
+   "bytes": 4348600,
+   "bounds": {
+    "min": [
+     -10,
+     -0.3199999928474426,
+     -10.329000473022461
+    ],
+    "max": [
+     10,
+     3.805000066757202,
+     10.329000473022461
+    ]
+   },
+   "triangles": 37160,
+   "ports": [
+    {
+     "id": "P00",
+     "kind": "walkable",
+     "position": [
+      0,
+      0,
+      10
+     ],
+     "outward": [
+      0,
+      0,
+      1
+     ],
+     "width": 4
+    },
+    {
+     "id": "P01",
+     "kind": "walkable",
+     "position": [
+      0,
+      0,
+      -10
+     ],
+     "outward": [
+      0,
+      0,
+      -1
+     ],
+     "width": 4
+    },
+    {
+     "id": "P02",
+     "kind": "walkable",
+     "position": [
+      -10,
+      0,
+      4
+     ],
+     "outward": [
+      -1,
+      0,
+      0
+     ],
+     "width": 4
+    },
+    {
+     "id": "P03",
+     "kind": "walkable",
+     "position": [
+      10,
+      0,
+      4
+     ],
+     "outward": [
+      1,
+      0,
+      0
+     ],
+     "width": 4
+    }
+   ],
+   "provenance": {
+    "libraryFileId": "libfile_fc46a3a9c4448191813e1b7d8cc72f6d",
+    "archive": "TornVeil_Batch48_Dungeon_Junctions_01_05_20261014.zip",
+    "notice": "Immutable combined static-draft bundle; actual full-payload restore and native reopen verified. Visual and performance status remains separate."
+   },
+   "verdict": "use",
+   "reasons": []
+  },
+  {
+   "id": "tv_41_01_gate_segment",
+   "name": "Gate Passage 01",
+   "family": "gate_segment",
+   "path": "models/tv_41_01_gate_segment.glb",
+   "sha256": "74aee9e80c8502272241a4f86251614ce48fd66d729e9521fd3ee53e90c8e7e0",
+   "bytes": 3087072,
+   "bounds": {
+    "min": [
+     -6.335000514984131,
+     -0.3199999928474426,
+     -10.335000038146973
+    ],
+    "max": [
+     14.335000038146973,
+     4.949999809265137,
+     10.335000038146973
+    ]
+   },
+   "triangles": 36126,
+   "ports": [
+    {
+     "id": "P00",
+     "kind": "walkable",
+     "position": [
+      0,
+      0,
+      10
+     ],
+     "outward": [
+      0,
+      0,
+      1
+     ],
+     "width": 4
+    },
+    {
+     "id": "P01",
+     "kind": "walkable",
+     "position": [
+      0,
+      0,
+      -10
+     ],
+     "outward": [
+      0,
+      0,
+      -1
+     ],
+     "width": 4
+    }
+   ],
+   "provenance": {
+    "libraryFileId": "libfile_387bdcd4e3ac8191b1c72825ac611b48",
+    "archive": "TornVeil_Batch24_Gates_20261014.zip",
+    "notice": "Immutable combined static-draft bundle; actual full-payload restore and native reopen verified. Visual and performance status remains separate."
+   },
+   "verdict": "use",
+   "reasons": []
+  },
+  {
+   "id": "tv_42_01_courtyard_passage",
+   "name": "Arcaded Passage 01",
+   "family": "courtyard_passage",
+   "path": "models/tv_42_01_courtyard_passage.glb",
+   "sha256": "dfcba68eeaea38738bb147db4feb5dbeaa89dbe6f72588bf40b9bd6b4662b4f6",
+   "bytes": 3159348,
+   "bounds": {
+    "min": [
+     -6.300000190734863,
+     -0.3199999928474426,
+     -10.299999237060547
+    ],
+    "max": [
+     10.300000190734863,
+     3.4749999046325684,
+     10.299999952316284
+    ]
+   },
+   "triangles": 23160,
+   "ports": [
+    {
+     "id": "P00",
+     "kind": "walkable",
+     "position": [
+      0,
+      0,
+      10
+     ],
+     "outward": [
+      0,
+      0,
+      1
+     ],
+     "width": 4
+    },
+    {
+     "id": "P01",
+     "kind": "walkable",
+     "position": [
+      4,
+      0,
+      -10
+     ],
+     "outward": [
+      0,
+      0,
+      -1
+     ],
+     "width": 4
+    }
+   ],
+   "provenance": {
+    "libraryFileId": "libfile_3cd1ec6a4e5c8191a1ef9fedd6a512bc",
+    "archive": "TornVeil_Batch24_Arcades_20261014.zip",
+    "notice": "Immutable combined static-draft bundle; actual full-payload restore and native reopen verified. Visual and performance status remains separate."
+   },
+   "verdict": "use",
+   "reasons": []
+  },
+  {
+   "id": "tvn_biome_021",
+   "name": "Elderwood Boulder Group",
+   "family": "geology",
+   "path": "models/tvn_biome_021.glb",
+   "sha256": "464c0581504891f3382c29b5a0d771ec3eb3cacb3d69fe24803eefb23f949214",
+   "bytes": 1146396,
+   "bounds": {
+    "min": [
+     -2.1382501125335693,
+     0,
+     -1.963800072669983
+    ],
+    "max": [
+     2.1382501125335693,
+     1.3538000583648682,
+     1.963800072669983
+    ]
+   },
+   "triangles": 3480,
+   "ports": [],
+   "provenance": {
+    "libraryFileId": "libfile_efb796d0830881918f92a6fe0d3fa7d4",
+    "archive": "TornVeil_Batch22_Boulders_Recovery_20261014.zip",
+    "notice": "Immutable combined static-draft bundle; actual full-payload restore and native reopen verified. Visual and performance status remains separate."
+   },
+   "verdict": "use",
+   "reasons": []
+  },
+  {
+   "id": "tvn_flora_001",
+   "name": "Veil oak · single-stem juvenile",
+   "family": "flora",
+   "path": "models/tvn_flora_001.glb",
+   "sha256": "ef22ac438b5b6cb31a12b43b317e30f2d3400e992790339fcf2ef4693cc86ec3",
+   "bytes": 3951144,
+   "bounds": {
+    "min": [
+     -1.9797998666763306,
+     0,
+     -1.9343500137329102
+    ],
+    "max": [
+     1.9797998666763306,
+     4.043900012969971,
+     1.9343500137329102
+    ]
+   },
+   "triangles": 37660,
+   "ports": [],
+   "provenance": {
+    "libraryFileId": "libfile_9509145aba948191892280148cc5c80e",
+    "archive": "TornVeil_Three_Oak_Growth_Forms_UV_Repaired_Drafts.zip",
+    "notice": "Static bounded-construction draft with source, runtime, exact catalog-identity and appearance/proof checks; no final art or engine/device approval."
+   },
+   "verdict": "use",
+   "reasons": []
+  },
+  {
+   "id": "tvn_flora_005",
+   "name": "Silver willow · single-stem juvenile",
+   "family": "flora",
+   "path": "models/tvn_flora_005.glb",
+   "sha256": "2f37e2e80df6de195a46c59e0ade320fb1b6e54c58313d9f4d92138f0b77b1ab",
+   "bytes": 1670412,
+   "bounds": {
+    "min": [
+     -1.8938499689102173,
+     0,
+     -1.9164999723434448
+    ],
+    "max": [
+     1.8938499689102173,
+     3.838200092315674,
+     1.9164999723434448
+    ]
+   },
+   "triangles": 22724,
+   "ports": [],
+   "provenance": {
+    "libraryFileId": "libfile_8d4c86cabdbc8191a58292723d7dd90a",
+    "archive": "TornVeil_Trees_005_019_040_UV_Repair_Drafts_v2.zip",
+    "notice": "Static bounded-construction draft with source, runtime, exact catalog-identity and appearance/proof checks; no final art or engine/device approval."
+   },
+   "verdict": "use",
+   "reasons": []
+  }
+ ]
+}

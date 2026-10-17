@@ -50,3 +50,20 @@ export function stepSurface(spec: PlanetSpec, b: SurfaceBody, input: SurfaceInpu
   return { pos, vel, forward, grounded, swimming: surfaceRadius(spec, up) < spec.radius - WADE_DEPTH };
 }
 const clamp = (n: number) => Math.max(-1, Math.min(1, Number.isFinite(n) ? n : 0));
+
+/** Upright cylinders (trunks, boulders, structure piers) the walker cannot pass through. */
+export interface Obstacle { dir: V3; radius: number }
+/** Push the body out of overlapping obstacles along the local tangent plane. Deterministic, order-stable. */
+export function resolveObstacles(spec: PlanetSpec, b: SurfaceBody, obstacles: readonly Obstacle[], bodyRadius = .45): SurfaceBody {
+  let pos = b.pos, vel = b.vel;
+  for (const o of obstacles) {
+    const up = normalize(pos), c = scale(normalize(o.dir), length(pos)), off = sub(pos, c), t = sub(off, scale(up, dot(off, up))), d = length(t), min = o.radius + bodyRadius;
+    if (d >= min || o.radius <= 0) continue;
+    const n = d > 1e-6 ? scale(t, 1 / d) : normalize(cross(up, b.forward));
+    pos = add(pos, scale(n, min - d));
+    const into = dot(vel, n); if (into < 0) vel = sub(vel, scale(n, into));
+  }
+  if (pos === b.pos) return b;
+  const up = normalize(pos), r = groundRadius(spec, up);
+  return { ...b, pos: b.grounded ? scale(up, r) : pos, vel };
+}
