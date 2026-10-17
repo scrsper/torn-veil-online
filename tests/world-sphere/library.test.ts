@@ -58,3 +58,16 @@ describe('stand-in collision proxies', () => {
     for (const a of usableLibrary()) for (const r of standInProxies(a)) expect(r.r).toBeGreaterThan(0);
   });
 });
+describe('placements follow manifest ports', () => {
+  it('through-routes sit on the road line and stay clear of stand-in proxies', async () => {
+    const { routeX, standInProxies, placementLocal } = await import('../../src/sim/world/assets/library');
+    const gate = libraryAsset('tv_04_01_gatehouse')!, bridge = libraryAsset('tv_05_01_ravine_bridge')!;
+    expect(routeX(gate)).toBe(0);
+    expect(routeX(bridge)).toBe(-8);
+    // The deck's port line lands on the south road (east 0); the gate passage stays open for a walker.
+    const bp = LIBRARY_PLACEMENTS.find(p => p.id === 'home:bridge')!;
+    expect(placementLocal(bp, routeX(bridge), 0).east).toBeCloseTo(0, 9);
+    expect(standInProxies(bridge)).toHaveLength(0);
+    for (const r of standInProxies(gate)) expect(Math.abs(r.x - routeX(gate)) - r.r).toBeGreaterThan(2.5);
+  });
+});
