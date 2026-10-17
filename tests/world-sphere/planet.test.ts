@@ -95,3 +95,19 @@ describe('realm chart', () => {
     expect(n.north).toBeCloseTo(100, 6); expect(w.east).toBeCloseTo(-100, 6);
   });
 });
+describe('roads', () => {
+  it('connect every settled site in one seeded network and keep trees off dry road', async () => {
+    const { planetRoads, nearRoad, landmarkSites, propsNear } = await import('../../src/sim/world/planet');
+    const roads = planetRoads(spec), n = landmarkSites(spec).length + 2;
+    expect(roads).toHaveLength(n);
+    const seen = new Set([0]); let grew = true;
+    while (grew) { grew = false; for (const r of roads) if (seen.has(r.from) !== seen.has(r.to)) { seen.add(r.from); seen.add(r.to); grew = true; } }
+    expect(seen.size).toBe(n);
+    expect(planetRoads(planetSpec(20261017)).map(r => r.points.length)).toEqual(roads.map(r => r.points.length));
+    const dry = roads.flatMap(r => r.points.filter((_, i) => !r.wet[i]));
+    expect(dry.length).toBeGreaterThan(50);
+    const sample = dry[Math.floor(dry.length / 2)];
+    expect(nearRoad(spec, sample)).toBe(true);
+    expect(propsNear(spec, sample, 3).filter(p => p.radius > 0)).toHaveLength(0);
+  });
+});

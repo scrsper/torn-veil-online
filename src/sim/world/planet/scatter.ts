@@ -1,4 +1,5 @@
 import { FAR_ANCHOR, HOME_ANCHOR, arc, chartToHome, climateAt, normalize, type Biome, type PlanetSpec, type V3 } from './planet';
+import { nearRoad } from './roads';
 
 /** Seeded props over the whole sphere (trees, boulders), addressed by cube-sphere cells so any
  * consumer — renderer, walker collision, tests — derives the same set for a neighbourhood
@@ -38,7 +39,7 @@ export function dirToCube(d: V3): { f: number; u: number; v: number } {
 export function reserved(spec: PlanetSpec, d: V3): boolean {
   const a = arc(spec, d, HOME_ANCHOR);
   if (a < 520) { const c = chartToHome(spec, d); if (c.east > -150 && c.east < 150 && c.north > -210 && c.north < 240) return true; }
-  return arc(spec, d, FAR_ANCHOR) < 140;
+  return arc(spec, d, FAR_ANCHOR) < 140 || nearRoad(spec, d);
 }
 export function scatterCell(spec: PlanetSpec, f: number, i: number, j: number): Prop[] {
   const n = SCATTER_N, centre = cubeToDir(f, (i + .5) / n * 2 - 1, (j + .5) / n * 2 - 1), biome = climateAt(spec, centre).biome, out: Prop[] = [];

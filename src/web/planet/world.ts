@@ -22,6 +22,7 @@ import { LibraryLoader } from './library';
 import { buildPagoda } from './pagoda';
 import { bendTree } from './bend';
 import { TowerSurvey } from './towerFloors';
+import { buildRoads } from './roads';
 
 /** /?world — the whole world as a walkable sphere. Geography, gravity, the sky clock and
  * Tower floors are the sim's pure seeded functions; this view advances a fixed-step
@@ -34,7 +35,8 @@ export async function startPlanetWorld() {
   const camera = new FreeCamera('world-camera', new Vector3(0, spec.radius * 3, 0), scene); camera.minZ = .3; camera.maxZ = spec.radius * 12; camera.fov = .9; camera.inputs.clear();
   try { attachPipeline(ctx, camera); } catch { /* the plain forward path remains */ }
   const sky = new PlanetSky(scene, ctx.quality.shadowMapSize >= 2048 ? 2048 : 1024); sky.atmosphere(spec.radius);
-  const terrain = new PlanetTerrain(scene, spec), loader = new LibraryLoader(scene);
+  const terrain = new PlanetTerrain(scene, spec); buildRoads(scene, spec);
+  const loader = new LibraryLoader(scene);
   const label = document.createElement('div');
   Object.assign(label.style, { position: 'fixed', left: '12px', top: '12px', padding: '8px 12px', background: 'rgba(12,14,20,.72)', color: '#e8e4d8', font: '12.5px system-ui', borderRadius: '8px', pointerEvents: 'none', whiteSpace: 'pre', zIndex: '20' });
   ui.append(label);

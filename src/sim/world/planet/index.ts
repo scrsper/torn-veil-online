@@ -5,3 +5,4 @@ export * from './sky';
 export * from './scatter';
 export * from './chart';
 export * from './pagoda';
+export * from './roads';
