@@ -10,6 +10,10 @@ describe('Combat Gym fixtures', () => {
     expect(serialize(createCombatGym(918271).world)).toBe(serialize(createCombatGym(918271).world));
     expect(serialize(createCombatGym(918272).world)).not.toBe(serialize(createCombatGym(918271).world));
   });
+  it('makes the controlled traveler male (draws player_m)', () => {
+    const { world } = createCombatGym();
+    expect(world.person(world.playerId!)!.gender).toBe('m');
+  });
   it('uses real combat contact and leaves another world untouched', () => {
     const state = createCombatGym(), other = createCombatGym(42), before = serialize(other.world);
     const bridge = new BridgeSession(state.world.seed, { state });
