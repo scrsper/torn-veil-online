@@ -2,6 +2,9 @@ import { Color3, Color4, FreeCamera, HemisphericLight, Mesh, MeshBuilder, PointL
 import { towerFloorSpec, floorPlan, TOWER_FLOORS, type TowerFloorSpec } from '../../sim/world/interiors/floorSpec';
 import { interiorVoxel, type InteriorPlan } from '../../sim/world/interiors/layout';
 import { towerTheme } from '../realms/towerThemes';
+import { focusedFloorPlan, type FocusedFloorPlan } from '../../sim/world/assets/focusedLayouts';
+import { focusedGeometryReady, focusedGuardianStations, sceneGeometry } from '../../sim/world/assets/focusedRuntime';
+import type { StaticGeometry } from '../../sim/physical/staticGeometry';
 import { FocusedAssets } from '../realms/focusedAssets';
 import type { Atmosphere } from '../world/atmosphere';
 
@@ -15,6 +18,8 @@ export class TowerSurvey {
   readonly scene: Scene; readonly camera: FreeCamera; floor = 1; highest = 1; spec: TowerFloorSpec | null = null; plan: InteriorPlan | null = null;
   private meshes: Mesh[] = []; private lights: PointLight[] = []; private disposeDressing: (() => void)[] = [];
   private pos = new Vector3(); private yaw = 0; private assets: FocusedAssets; private manifest: Promise<unknown>; private message = '';
+  /** Library-kit grammar (focused worlds): halls, junctions, archive/boss rooms from the verified pack. */
+  kit = false; kitPlan: FocusedFloorPlan | null = null; private geometry: StaticGeometry | null = null; private kitInstances: { dispose(): void }[] = [];
   constructor(engine: AbstractEngine, readonly seed: number) {
     const s = this.scene = new Scene(engine); s.useRightHandedSystem = true; s.clearColor = new Color4(.02, .02, .03, 1);
     s.fogMode = Scene.FOGMODE_EXP2; s.autoClear = true;
@@ -27,7 +32,8 @@ export class TowerSurvey {
   async enter(floor: number) {
     this.floor = Math.max(1, Math.min(TOWER_FLOORS, Math.floor(floor))); this.highest = Math.max(this.highest, this.floor);
     for (const m of this.meshes) m.dispose(); for (const l of this.lights) l.dispose(); for (const d of this.disposeDressing) d();
-    this.meshes = []; this.lights = []; this.disposeDressing = [];
+    this.meshes = []; this.lights = []; this.disposeDressing = []; for (const k of this.kitInstances) k.dispose(); this.kitInstances = []; this.kitPlan = null; this.geometry = null;
+    if (this.kit) return this.enterKit();
     const spec = this.spec = towerFloorSpec(this.seed, this.floor), plan = this.plan = floorPlan(this.seed, this.floor), o = plan.origin, theme = towerTheme(this.floor, this.seed);
     const s = this.scene, mat = (name: string, hex: string, e = 0) => { const m = new StandardMaterial(name, s); m.diffuseColor = Color3.FromHexString(hex); m.specularColor = new Color3(.06, .06, .06); if (e) m.emissiveColor = m.diffuseColor.scale(e); return m; };
     const wall = mat('survey-wall', theme.wall), ground = mat('survey-floor', theme.floor), metal = mat('survey-metal', theme.metal, .25), gold = mat('survey-stair', '#e0be74', .7), blue = mat('survey-return', '#82d5e5', .6), water = mat('survey-water', '#3a6a8a', .2);
@@ -66,22 +72,47 @@ export class TowerSurvey {
     this.pos.set(plan.start.x, 1, plan.start.z); this.yaw = 0; this.message = ''; this.overviewing = false;
     this.player.position.set(plan.start.x, 1.9, plan.start.z);
   }
-  private open(x: number, z: number) { const p = this.plan!; return [-.3, .3].every(dx => [-.3, .3].every(dz => interiorVoxel(p, Math.floor(x + dx), 1, Math.floor(z + dz)) === 0 && interiorVoxel(p, Math.floor(x + dx), 2, Math.floor(z + dz)) === 0)); }
+  private async enterKit() {
+    const spec = this.spec = towerFloorSpec(this.seed, this.floor), id = `veil:tower:survey-kit:floor:${this.floor}`, plan = this.kitPlan = focusedFloorPlan(id, this.seed, this.floor, { x: 0, z: 0 }), s = this.scene;
+    this.plan = null; this.pos.set(plan.start.x, plan.start.y, plan.start.z); this.yaw = 0; this.message = ''; this.overviewing = false; this.player.position.set(plan.start.x, plan.start.y + .9, plan.start.z);
+    s.fogColor = new Color3(...spec.lighting.ambient).scale(.5); s.fogDensity = spec.lighting.fog * .6;
+    for (const [i, p] of [plan.start, plan.exit].entries()) {
+      const ring = MeshBuilder.CreateTorus(i ? 'survey-kit-stair' : 'survey-kit-return', { diameter: 3.2, thickness: .09, tessellation: 48 }, s), m = new StandardMaterial(ring.name, s);
+      m.emissiveColor = i ? new Color3(.88, .75, .45) : new Color3(.5, .84, .9); ring.material = m; ring.position.set(p.x, p.y + .06, p.z); this.meshes.push(ring);
+      const l = new PointLight(`survey-kit-light-${i}`, new Vector3(p.x, p.y + 4, p.z), s); l.diffuse = new Color3(...spec.lighting.torch); l.intensity = 1.2; l.range = 40; this.lights.push(l); }
+    if (await this.manifest) for (const p of plan.placements) {
+      try { const inst = await this.assets.instantiate(p, { x: 0, z: 0 }); if (this.kitPlan !== plan) { inst.dispose(); return; } this.kitInstances.push(inst); } catch { /* missing module */ }
+    }
+    if (focusedGeometryReady() && this.kitPlan === plan) {
+      this.geometry = sceneGeometry(plan);
+      const stations = focusedGuardianStations(plan, this.geometry), count = Math.min(spec.encounter.enemies, stations.length);
+      for (let n = 0; n < count; n++) {
+        const c = stations[n], w = MeshBuilder.CreateCapsule(`survey-warden-${n}`, { height: 1.8, radius: .35 }, s), m = new StandardMaterial(`warden-${n}`, s);
+        m.diffuseColor = Color3.FromHexString(ARCHETYPE[spec.wardens[n]] ?? '#888'); w.material = m; w.position.set(c.x, c.y + .9, c.z); this.meshes.push(w);
+      }
+    }
+  }
+  private open(x: number, z: number) {
+    if (this.kitPlan) { const g = this.geometry; if (!g) return true; const y = g.supportAt(x, z, this.pos.y + .5); if (y === null || !g.fits(x, y, z, .3, 1.75)) return false; this.pos.y = y; return true; }
+    const p = this.plan!; return [-.3, .3].every(dx => [-.3, .3].every(dz => interiorVoxel(p, Math.floor(x + dx), 1, Math.floor(z + dz)) === 0 && interiorVoxel(p, Math.floor(x + dx), 2, Math.floor(z + dz)) === 0)); }
   private overviewing = false; private player: Mesh;
   update(dt: number, keys: Set<string>) {
-    if (!this.plan || this.overviewing && !keys.size) return;
+    if (!this.plan && !this.kitPlan || this.overviewing && !keys.size) return;
     this.overviewing = false;
     const turn = (keys.has('KeyD') || keys.has('ArrowRight') ? 1 : 0) - (keys.has('KeyA') || keys.has('ArrowLeft') ? 1 : 0), fwd = (keys.has('KeyW') || keys.has('ArrowUp') ? 1 : 0) - (keys.has('KeyS') || keys.has('ArrowDown') ? 1 : 0);
     this.yaw -= turn * 2.4 * dt; const speed = (keys.has('ShiftLeft') ? 7 : 4) * fwd * dt, dx = -Math.sin(this.yaw) * speed, dz = -Math.cos(this.yaw) * speed;
     if (this.open(this.pos.x + dx, this.pos.z)) this.pos.x += dx; if (this.open(this.pos.x, this.pos.z + dz)) this.pos.z += dz;
     const back = new Vector3(Math.sin(this.yaw), 0, Math.cos(this.yaw));
-    this.player.position.set(this.pos.x, 1.9, this.pos.z); this.player.rotation.y = this.yaw;
+    this.player.position.set(this.pos.x, this.pos.y + .9, this.pos.z); this.player.rotation.y = this.yaw;
     this.camera.position = this.pos.add(back.scale(5.5)).add(new Vector3(0, 4.2, 0)); this.camera.setTarget(this.pos.add(new Vector3(0, 1.5, 0)));
   }
   /** Survey for media/tests: an elevated view of the whole floor. */
-  overview() { this.overviewing = true; const p = this.plan!; this.camera.position = new Vector3(p.origin.x, p.half * 2.1, p.origin.z + p.half * 1.25); this.camera.setTarget(new Vector3(p.origin.x, 1, p.origin.z)); }
+  overview() {
+    this.overviewing = true;
+    if (this.kitPlan) { const k = this.kitPlan, cx = (k.start.x + k.exit.x) / 2, cz = (k.start.z + k.exit.z) / 2, span = Math.hypot(k.exit.x - k.start.x, k.exit.z - k.start.z); this.camera.position = new Vector3(cx + span * .5, span * .9, cz + span * .35); this.camera.setTarget(new Vector3(cx, 1, cz)); return; }
+    const p = this.plan!; this.camera.position = new Vector3(p.origin.x, p.half * 2.1, p.origin.z + p.half * 1.25); this.camera.setTarget(new Vector3(p.origin.x, 1, p.origin.z)); }
   interact(): 'ascend' | 'leave' | 'blocked' | null {
-    const p = this.plan!; if (!p) return null;
+    const p = this.plan ?? this.kitPlan; if (!p) return null;
     if (Math.hypot(this.pos.x - p.exit.x, this.pos.z - p.exit.z) < 2.4) {
       if (this.floor === TOWER_FLOORS) { this.message = 'The summit requires earned Silver capacity (canonical rule).'; return 'blocked'; }
       void this.enter(this.floor + 1); return 'ascend';
@@ -91,6 +122,6 @@ export class TowerSurvey {
   }
   describe() {
     const s = this.spec; if (!s) return '';
-    return `${s.name}\n${s.bandName} · ${s.kind} · ${s.encounter.enemies} wardens (${[...new Set(s.wardens)].join(', ')})\naward: ${s.award.abilityId} ×${s.award.quantity} + provisions${s.rewardKinds.includes('boon') ? ' · boon floor' : ''}${s.rewardKinds.includes('trial') ? ' · trial' : ''}${s.rest ? ' · rest' : ''}\ncanonical gate: ${s.gate.previousFloor ? `clear floor ${s.gate.previousFloor}` : 'enter the Tower'}${s.gate.stage ? ` + ${s.gate.stage}` : ''} · clearing reaches ${s.tierOnClear}\nSurvey preview (earns nothing) · gold disc: stair (F) · blue disc: return (F)${this.message ? '\n' + this.message : ''}`;
+    return `${s.name}${this.kitPlan ? ' · library kit (' + [...new Set(this.kitPlan.placements.filter(p => !p.assetId.startsWith('module:')).map(p => p.assetId.replace(/^tv_\d+_\d+_/, '')))].join(', ') + ')' : ''}\n${s.bandName} · ${s.kind} · ${s.encounter.enemies} wardens (${[...new Set(s.wardens)].join(', ')})\naward: ${s.award.abilityId} ×${s.award.quantity} + provisions${s.rewardKinds.includes('boon') ? ' · boon floor' : ''}${s.rewardKinds.includes('trial') ? ' · trial' : ''}${s.rest ? ' · rest' : ''}\ncanonical gate: ${s.gate.previousFloor ? `clear floor ${s.gate.previousFloor}` : 'enter the Tower'}${s.gate.stage ? ` + ${s.gate.stage}` : ''} · clearing reaches ${s.tierOnClear}\nSurvey preview (earns nothing) · gold disc: stair (F) · blue disc: return (F)${this.message ? '\n' + this.message : ''}`;
   }
 }

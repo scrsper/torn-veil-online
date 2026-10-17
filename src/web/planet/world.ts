@@ -120,7 +120,7 @@ export async function startPlanetWorld() {
   canvas.addEventListener('wheel', e => { if (view === 'orbit') orbitRadius = Math.max(spec.radius * 1.15, Math.min(spec.radius * 8, orbitRadius * (1 + e.deltaY * .001))); else camDist = Math.max(3, Math.min(40, camDist * (1 + e.deltaY * .001))); });
 
   // Tower survey: the hundred floors in their own scene.
-  const survey = new TowerSurvey(engine, realmSeed(seed, 'canonical-tower'));
+  const survey = new TowerSurvey(engine, realmSeed(seed, 'canonical-tower')); survey.kit = params.has('kit');
   let inTower = false;
   function interact() {
     if (inTower) { const r = survey.interact(); if (r === 'leave') { inTower = false; body = spawnBody(spec, normalize(v2p(doorPoint)), scale(pagodaDir, -1)); } return; }
@@ -208,7 +208,7 @@ export async function startPlanetWorld() {
     teleportHome(east: number, north: number, facingEast = 0, facingNorth = 1) { inTower = false; body = spawnBody(spec, homeToDir(spec, east, north), homeToDir(spec, east + facingEast * 50, north + facingNorth * 50)); },
     teleportLatLon(lat: number, lon: number) { inTower = false; const d = normalize(v2p(new Vector3(Math.cos(lat / 57.2958) * Math.sin(lon / 57.2958), Math.sin(lat / 57.2958), Math.cos(lat / 57.2958) * Math.cos(lon / 57.2958)))); body = spawnBody(spec, d); },
     walk(seconds: number, input: Partial<SurfaceInput>) { for (let t = 0; t < seconds; t += fixed) stepBody({ forward: 0, right: 0, turn: 0, jump: false, run: false, ...input }); },
-    tower(floor: number) { inTower = true; return survey.enter(floor); }, leaveTower() { inTower = false; },
+    tower(floor: number, kit?: boolean) { inTower = true; if (kit !== undefined) survey.kit = kit; return survey.enter(floor); }, leaveTower() { inTower = false; },
     survey, radius: () => length(body.pos),
   };
 }
