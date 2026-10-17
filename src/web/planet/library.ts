@@ -1,7 +1,7 @@
 import '@babylonjs/loaders/glTF';
 import { Color3, Mesh, MeshBuilder, SceneLoader, StandardMaterial, TransformNode, VertexBuffer, VertexData, type AssetContainer, type Material, type Scene } from '@babylonjs/core';
 import { loadScannedMaps } from '../render/materials';
-import { libraryAsset, provenanceOk, type LibraryAsset } from '../../sim/world/assets/library';
+import { libraryAsset, provenanceOk, routeX, type LibraryAsset } from '../../sim/world/assets/library';
 
 /** Loads torn-veil-assets GLBs staged by scripts/world/sync-library.mjs --stage into
  * /world-assets/. Bytes must hash to the registry sha256 and pass the provenance check,
@@ -89,8 +89,8 @@ export function standIn(scene: Scene, a: LibraryAsset, name: string, parent: Tra
     case 'tavern': house('hall', cx, cz, w * .8, d * .7, Math.min(y1, 6) * .7); box('sign', cx + w * .3, 2.4, cz - d * .36, .1, .8, 1.2, '#b88a3a'); break;
     case 'village_lane': box('lane', cx, -.05, cz, 4, .1, d, '#8e8270'); for (let i = 0; i < 4; i++) { const s = i % 2 ? 1 : -1, z = z0 + d * (.18 + Math.floor(i / 2) * .5); house(`house${i}`, cx + s * w * .26, z, w * .3, d * .3, 4.2); } break;
     case 'market_square': box('paving', cx, -.05, cz, w, .1, d, '#9c9483'); for (let i = 0; i < 6; i++) { const x = x0 + w * (.17 + (i % 3) * .33), z = z0 + d * (i < 3 ? .3 : .7); box(`stall${i}`, x, 0, z, 3, 1, 2, '#7a5a3a'); gable(`awning${i}`, x, 2.4, z, 3, 2, .9, i % 2 ? '#a5372b' : '#c9a043'); for (const sx of [-1, 1]) box(`pole${i}${sx}`, x + sx * 1.4, 0, z, .12, 2.4, .12, '#4a3020'); } break;
-    case 'gatehouse': for (const s of [-1, 1]) { box(`tower${s}`, cx + s * 9, 0, cz, 8, y1, 8, '#8a8274'); box(`crenel${s}`, cx + s * 9, y1, cz, 8.6, .8, 8.6, '#7a7366'); } box('arch', cx, 5, cz, 10, y1 - 5, 7, '#857d70'); box('gate', cx, 0, cz, 4, 4.6, .3, '#4a3020'); break;
-    case 'gate_segment': for (const s of [-1, 1]) box(`wall${s}`, cx + s * w * .3, 0, cz, w * .38, y1, 2.2, '#8a8274'); box('lintel', cx, y1 * .75, cz, w * .25, y1 * .25, 2.2, '#7d7568'); break;
+    case 'gatehouse': { const rx = routeX(a); for (const s of [-1, 1]) { box(`tower${s}`, rx + s * 9, 0, cz, 8, y1, 8, '#8a8274'); box(`crenel${s}`, rx + s * 9, y1, cz, 8.6, .8, 8.6, '#7a7366'); box(`leaf${s}`, rx + s * 4.6, 0, cz - 2.2, .3, 4.6, 2, '#4a3020'); } box('arch', rx, 5, cz, 10, y1 - 5, 7, '#857d70'); break; }
+    case 'gate_segment': { const rx = routeX(a); for (const s of [-1, 1]) box(`wall${s}`, rx + s * w * .3, 0, cz, w * .38, y1, 2.2, '#8a8274'); box('lintel', rx, y1 * .75, cz, w * .25, y1 * .25, 2.2, '#7d7568'); break; }
     case 'courtyard_passage': for (let i = 0; i < 5; i++) for (const s of [-1, 1]) box(`col${i}${s}`, cx + s * w * .32, 0, z0 + d * (.1 + i * .2), .6, y1 * .8, .6, '#d8cfbd'); box('roofL', cx - w * .32, y1 * .8, cz, 2.4, .4, d, '#5b3a2c'); box('roofR', cx + w * .32, y1 * .8, cz, 2.4, .4, d, '#5b3a2c'); box('floor', cx, -.05, cz, w * .9, .1, d, '#a39a88'); break;
     case 'watchpost': for (const [sx, sz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) box(`leg${sx}${sz}`, cx + sx * 2.2, 0, cz + sz * 2.2, .5, y1 * .75, .5, '#5a3e28'); box('deck', cx, y1 * .72, cz, 6, .4, 6, '#6a4a30'); gable('roof', cx, y1 * .95, cz, 5, 5, 2, '#4a3020'); box('palisade', cx, 0, cz + d * .4, w * .8, 2.6, .5, '#6a4a30'); break;
     case 'ravine_bridge': {
