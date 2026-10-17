@@ -1,7 +1,7 @@
 import { Color3, Color4, FreeCamera, InstancedMesh, Material, Matrix, Mesh, VertexData, MeshBuilder, Quaternion, Scene, StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
 import { createRenderer, attachPipeline } from '../render/engine';
 import {
-  HOME_ANCHOR, add, arc, dot, sub, biomeAt, chartToHome, homeToDir, length, localHour, normalize, planetSpec, propsNear, regionAt, resolveObstacles, scale, skyAt,
+  HOME_ANCHOR, add, arc, landmarkSites, dot, sub, biomeAt, chartToHome, homeToDir, length, localHour, normalize, planetSpec, propsNear, regionAt, resolveObstacles, scale, skyAt,
   spawnBody, stepSurface, surfaceRadius, tangentFrame, toLatLon, upOf, DAY_SECONDS, START_HOUR, type Obstacle, type SurfaceBody, type SurfaceInput, type V3,
 } from '../../sim/world/planet';
 import { homeChart, planetToRealm, realmToPlanet } from '../../sim/world/planet/chart';
@@ -277,6 +277,8 @@ export async function startPlanetWorld() {
     setView(next: 'orbit' | 'ground') { view = next; }, setOrbit(angle: number, radius?: number) { orbitAngle = angle; if (radius) orbitRadius = radius; },
     setCamera(yaw: number, pitch: number, dist: number) { camYaw = yaw; camPitch = pitch; camDist = dist; },
     teleportHome(east: number, north: number, facingEast = 0, facingNorth = 1) { inTower = false; body = spawnBody(spec, homeToDir(spec, east, north), homeToDir(spec, east + facingEast * 50, north + facingNorth * 50)); },
+    /** Stand 30 m south of landmark settlement i (seeded region centre on land), facing it. */
+    teleportSite(i: number) { inTower = false; const sites = landmarkSites(spec), site = sites[((i % sites.length) + sites.length) % sites.length], f = tangentFrame(site.dir); body = spawnBody(spec, normalize(add(site.dir, scale(f.north, -30 / spec.radius))), site.dir); return sites.length; },
     teleportLatLon(lat: number, lon: number) { inTower = false; const d = normalize(v2p(new Vector3(Math.cos(lat / 57.2958) * Math.sin(lon / 57.2958), Math.sin(lat / 57.2958), Math.cos(lat / 57.2958) * Math.cos(lon / 57.2958)))); body = spawnBody(spec, d); },
     walk(seconds: number, input: Partial<SurfaceInput>) { for (let t = 0; t < seconds; t += fixed) stepBody({ forward: 0, right: 0, turn: 0, jump: false, run: false, ...input }); },
     tower(floor: number, kit?: boolean) { inTower = true; if (kit !== undefined) survey.kit = kit; return survey.enter(floor); }, leaveTower() { inTower = false; },
