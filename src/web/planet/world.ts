@@ -42,7 +42,7 @@ export async function startPlanetWorld() {
   const sky = new PlanetSky(scene, lite ? 1024 : ctx.quality.shadowMapSize >= 2048 ? 2048 : 1024); sky.atmosphere(spec.radius);
   const sinks: ((d: V3) => number)[] = [];
   const terrain = lite ? new PlanetTerrain(scene, spec, 72, 320, 96) : new PlanetTerrain(scene, spec); buildRoads(scene, spec);
-  terrain.sink = d => { let m = 0; for (const f of sinks) m = Math.max(m, f(d)); return m; };
+  terrain.sink = d => { let m = 0; for (const f of sinks) { const v = f(d); if (Math.abs(v) > Math.abs(m)) m = v; } return m; };
   const loader = new LibraryLoader(scene);
   const label = document.createElement('div');
   Object.assign(label.style, { position: 'fixed', left: '12px', top: '12px', padding: '8px 12px', background: 'rgba(12,14,20,.72)', color: '#e8e4d8', font: '12.5px system-ui', borderRadius: '8px', pointerEvents: 'none', whiteSpace: 'pre', zIndex: '20' });
@@ -86,13 +86,23 @@ export async function startPlanetWorld() {
     const tb = t.bounds, gb = townGeometry.bounds;
     walkBounds = { x0: Math.min(gb.x0, tb.x0), z0: Math.min(gb.z0, tb.z0), x1: Math.max(gb.x1, tb.x1), z1: Math.max(gb.z1, tb.z1) };
     townGeometry = new Geometry([...townGeometry.triangles, ...terrainTriangles(t)], walkBounds);
-    sinks.push(d => { if (arc(spec, d, HOME_ANCHOR) > 400) return 0; const r = planetToRealm(spec, chart, scale(d, spec.radius + 6)); return r.x > tb.x0 + 2 && r.x < tb.x1 - 2 && r.z > tb.z0 + 2 && r.z < tb.z1 - 2 ? .45 : 0; });
+    // Under the canonical terrain the planet ground sinks out of sight; for 24 m beyond its edge it
+    // eases to the edge's own height (grid step 2 m), so the two grounds meet without a ledge.
+    const tw = Math.round((tb.x1 - tb.x0) / 2) + 1, td = Math.round((tb.z1 - tb.z0) / 2) + 1;
+    const edgeY = (x: number, z: number) => { const ix = Math.max(0, Math.min(tw - 1, Math.round((x - tb.x0) / 2))), iz = Math.max(0, Math.min(td - 1, Math.round((z - tb.z0) / 2))); return t.positions[(iz * tw + ix) * 3 + 1]; };
+    sinks.push(d => {
+      if (arc(spec, d, HOME_ANCHOR) > 400) return 0;
+      const r = planetToRealm(spec, chart, scale(d, spec.radius + 6));
+      if (r.x > tb.x0 + 2 && r.x < tb.x1 - 2 && r.z > tb.z0 + 2 && r.z < tb.z1 - 2) return .45;
+      const out = Math.hypot(Math.max(tb.x0 - r.x, 0, r.x - tb.x1), Math.max(tb.z0 - r.z, 0, r.z - tb.z1)), k = Math.max(0, 1 - out / 24);
+      return k > 0 ? -(edgeY(r.x, r.z) - 1 - .06) * k * k * (3 - 2 * k) : 0;
+    });
     // The open ground around the canonical forest floor fades into it over 36 m, so there is no hard seam.
-    const floor = [.3, .25, .17];
+    const floor = [.19, .17, .11];
     terrain.tint = (d, c) => {
       if (arc(spec, d, HOME_ANCHOR) > 500) return c;
       const r = planetToRealm(spec, chart, scale(d, spec.radius + 6)), dx = Math.max(tb.x0 - r.x, 0, r.x - tb.x1), dz = Math.max(tb.z0 - r.z, 0, r.z - tb.z1);
-      const k = Math.max(0, 1 - Math.hypot(dx, dz) / 36) ** 1.5 * .85;
+      const k = Math.max(0, 1 - Math.hypot(dx, dz) / 36) ** 1.5;
       return c.map((v, i) => v + (floor[i] - v) * k);
     };
     terrain.follow(upOf(body), true);
