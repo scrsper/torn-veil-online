@@ -1,9 +1,16 @@
-import { Color3, DirectionalLight, FresnelParameters, StandardMaterial, Effect, HemisphericLight, Mesh, MeshBuilder, ShaderMaterial, ShadowGenerator, Vector3, type AbstractMesh, type Scene } from '@babylonjs/core';
-import { lightAt, type LocalLight, type SkyState, type V3 } from '../../sim/world/planet';
+import { Color3, Constants, DirectionalLight, StandardMaterial, Effect, HemisphericLight, Mesh, MeshBuilder, ShaderMaterial, ShadowGenerator, Vector3, type AbstractMesh, type Scene } from '@babylonjs/core';
+import { RELIEF, lightAt, type LocalLight, type SkyState, type V3 } from '../../sim/world/planet';
 
 /** The sun and moon are the real light sources: two directional lights placed from the
  * canonical sky state, each with a shadow map; the hemisphere fill and the visible sky
  * dome follow the same LocalLight. Nothing here advances time. */
+Effect.ShadersStore.tvLimbVertexShader = `precision highp float;
+attribute vec3 position; attribute vec3 normal; uniform mat4 world, worldViewProjection; varying vec3 vN, vW;
+void main() { vW = (world * vec4(position, 1.)).xyz; vN = normalize((world * vec4(normal, 0.)).xyz); gl_Position = worldViewProjection * vec4(position, 1.); }`;
+Effect.ShadersStore.tvLimbFragmentShader = `precision highp float;
+varying vec3 vN, vW; uniform vec3 eye, sun;
+void main() { vec3 v = normalize(eye - vW); float rim = pow(1. - abs(dot(vN, v)), 5.); float lit = .25 + .75 * smoothstep(-.3, .4, dot(vN, normalize(sun)));
+  gl_FragColor = vec4(vec3(.32, .56, 1.) * rim * lit * 1.4, 1.); }`;
 Effect.ShadersStore.tvSkyVertexShader = `precision highp float;
 attribute vec3 position; uniform mat4 worldViewProjection; varying vec3 vDir;
 void main(){ vDir = position; gl_Position = worldViewProjection * vec4(position, 1.0); gl_Position.z = gl_Position.w * .9999; }`;
@@ -59,14 +66,14 @@ export class PlanetSky {
     this.material.backFaceCulling = false; this.material.disableDepthWrite = true;
     this.dome.material = this.material; this.dome.isPickable = false; this.dome.infiniteDistance = true; this.dome.applyFog = false; this.dome.renderingGroupId = 0;
   }
-  /** Thin atmospheric shell, visible as a limb glow from orbit. */
+  /** Thin atmospheric limb, visible from orbit: an additive rim on a shell above the highest
+   * relief, clear face-on so sea and land keep their own colours. Brighter on the sunlit side. */
   atmosphere(radius: number) {
-    const shell = MeshBuilder.CreateSphere('atmosphere', { diameter: radius * 2.06, segments: 64 }, this.scene), m = new StandardMaterial('atmosphere', this.scene);
-    m.diffuseColor = Color3.Black(); m.specularColor = Color3.Black(); m.emissiveColor = new Color3(.35, .6, 1); m.alpha = .28;
-    m.emissiveFresnelParameters = new FresnelParameters(); m.emissiveFresnelParameters.bias = .05; m.emissiveFresnelParameters.power = 4.5;
-    m.emissiveFresnelParameters.leftColor = new Color3(.4, .65, 1); m.emissiveFresnelParameters.rightColor = Color3.Black();
-    m.opacityFresnelParameters = new FresnelParameters(); m.opacityFresnelParameters.power = 3; m.opacityFresnelParameters.leftColor = Color3.White(); m.opacityFresnelParameters.rightColor = Color3.Black();
-    m.disableLighting = true; shell.material = m; shell.isPickable = false; shell.applyFog = false; this.shell = shell; return shell;
+    const shell = MeshBuilder.CreateSphere('atmosphere', { diameter: (radius + RELIEF + 60) * 2, segments: 64 }, this.scene);
+    const m = new ShaderMaterial('atmosphere', this.scene, { vertex: 'tvLimb', fragment: 'tvLimb' }, { attributes: ['position', 'normal'], uniforms: ['world', 'worldViewProjection', 'eye', 'sun'], needAlphaBlending: true });
+    m.alphaMode = Constants.ALPHA_ADD; m.backFaceCulling = true; m.disableDepthWrite = true;
+    m.onBind = () => { const c = this.scene.activeCamera; if (c) m.setVector3('eye', c.globalPosition); m.setVector3('sun', this.sun.direction.scale(-1)); };
+    shell.material = m; shell.isPickable = false; shell.applyFog = false; this.shell = shell; return shell;
   }
   shell: Mesh | null = null;
   addCaster(m: AbstractMesh) { this.sunShadows.addShadowCaster(m, true); this.moonShadows.addShadowCaster(m, true); }
