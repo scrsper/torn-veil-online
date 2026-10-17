@@ -33,7 +33,8 @@ Build the entire Torn Veil game world on top of the existing build (extend, don'
 - 12 models: tv_04_01_gatehouse, tv_05_01_ravine_bridge, tv_08_01_village_lane, tv_10_01_watchpost, tv_31_06_tavern, tv_37_01_market_square, tv_41_01_gate_segment, tv_42_01_courtyard_passage, tv_44_01_dungeon_junction, tvn_biome_021, tvn_flora_001, tvn_flora_005.
 
 ## Media
-- Last media checkpoint: 2026-10-17 08:04–08:38 CT (final) → /workspace/torn-veil-online/media/world-run/20261017-0804-final/ (19 stills: orbit day/terminator, town day, pagoda, gate road, far region, Aether day/night, landmark market site, forest night/moon, town night, dawn pagoda, twilight sky, south gate, floors 1/10/37/64/100; flythrough.mp4 4.4 MB, 178 frames). Earlier: 20261017-0633/, 20261017-0732/. Tool: /workspace/world-run/tools/flythrough.mjs (&lite).
+- Last media checkpoint: 2026-10-17 09:10–~09:50 CT (session 3, real GLBs) → /workspace/torn-veil-online/media/world-run/20261017-0856-glb/ (stills 01–21: orbit, each library asset in place by day, on the bridge deck, through the gatehouse, landmark sites, forest trees, Aether hamlet, market/gatehouse at night, tavern at dawn, floors 12 and 73; flythrough.mp4; status.json shows all 12 `glb`). Tool: /workspace/world-run/tools/glb-tour.mjs. A first attempt at 08:57 stalled on orbit frames (all GLBs drawn from orbit) → distance culling added.
+- Previous: 2026-10-17 08:04–08:38 CT (final) → /workspace/torn-veil-online/media/world-run/20261017-0804-final/ (19 stills: orbit day/terminator, town day, pagoda, gate road, far region, Aether day/night, landmark market site, forest night/moon, town night, dawn pagoda, twilight sky, south gate, floors 1/10/37/64/100; flythrough.mp4 4.4 MB, 178 frames). Earlier: 20261017-0633/, 20261017-0732/. Tool: /workspace/world-run/tools/flythrough.mjs (&lite).
 
 ## Checklist
 ### 0. Orientation
@@ -127,6 +128,7 @@ Build the entire Torn Veil game world on top of the existing build (extend, don'
 - Babylon warns "receiveShadows on an instanced mesh" from FocusedAssets.instantiate (pre-existing, harmless).
 - /?world floors are survey previews (no live wardens/combat); canonical combat is in /?ascent.
 - Aether Reach buildings can't be entered from /?world (doors are closed solids, as in RealmGrid without a door-open action); its realm Tower building is omitted.
+- GLB ground pieces (e.g. 'earth banks', courtyard paving around the bridge, gatehouse and market) render pale grey-teal over the planet grass under the planet lighting (PBR materials with no environment map). Follow-up: give the library PBR materials an environment texture or ambient matching the StandardMaterial planet, or trim the assets' ground slabs where the planet ground already covers.
 - (Fixed 08:44 CT) Library GLBs now present and shown. Known limits: the gatehouse carries its older low-detail landscape; the bridge spans flat ground (no gorge); GLB collision is a 2D footprint + floor (no ceilings/jump-onto-roofs); all landmark copies load at once (no distance culling yet).
 - Headless capture of /?world at full quality is ~20 s/frame under SwiftShader; use &lite.
 
