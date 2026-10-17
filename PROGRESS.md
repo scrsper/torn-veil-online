@@ -50,9 +50,9 @@ Build the entire Torn Veil game world on top of the existing build (extend, don'
 - [x] Pagoda exterior: tiered roofs, upturned eaves
 - [x] Floor spec derived from existing mechanics (record decisions + spec gaps)
 - [x] Seeded floor generator; floors 1–100 distinct and traversable
-- [ ] Progression/gating/unlocks wired to existing Tower runs, wardens, John Smith floor goals, quest ledger
-- [ ] Encounters/combat per floor using existing combat
-- [ ] Rewards via quest ledger (reward-once preserved)
+- [x] Progression/gating/unlocks wired to existing Tower runs, wardens, John Smith floor goals, quest ledger
+- [x] Encounters/combat per floor using existing combat
+- [x] Rewards via quest ledger (reward-once preserved)
 - [x] Tests: 100 floors deterministic, all traversable, gating order
 ### 3. Sun, moon, day/night
 - [x] Sim-time-driven day/night clock (deterministic)
@@ -63,7 +63,7 @@ Build the entire Torn Veil game world on top of the existing build (extend, don'
 - [x] Asset registry from INTEGRATION_MANIFEST (id, sha256, bounds, Y-up, metres) with provenance check
 - [x] Placements in world/tower (village lane, market, tavern, gatehouse, bridge, watchpost, dungeon junction, gate segment, courtyard, boulder, trees)
 - [x] Procedural fallbacks when GLB missing; hash verify when present
-- [ ] Collision proxies per START_HERE.txt guidance
+- [x] Collision proxies per START_HERE.txt guidance
 ### 5. Media + wrap-up
 - [ ] Media checkpoint 1 (~03:30 CT)
 - [ ] Media checkpoint 2 (~06:00 CT)
@@ -79,6 +79,11 @@ Build the entire Torn Veil game world on top of the existing build (extend, don'
 - **Pagoda exterior** (`web/planet/pagoda.ts`): square nine-storey pagoda, stepped podium and stair, plaster/vermilion storeys with posts and lintels, balconies, deep tile roofs with upturned corners, corner bells, sōrin with nine rings. ~80 m. Placed on the focused Tower footprint (-20,172 realm-local); door faces the town.
 - **Floors in /?world are a survey preview**, mirroring `preview` journeys in progression/tower.ts (any floor may open, nothing is earned). Canonical climbs/combat/awards remain the realms host + TowerController (`/?ascent`); nothing in /?world writes Tower state.
 - **Asset registry.** `scripts/world/sync-library.mjs` turns /workspace/torn-veil-assets (INTEGRATION_MANIFEST + metadata + SHA256SUMS) into `src/sim/world/assets/libraryCatalog.json` (ids, sha256, bounds, ports, provenance verdicts; no binaries) and, with `--stage`, copies hash-verified GLBs to `web/public/world-assets/` (git-ignored). The browser loader re-hashes before instantiating; else bounds-faithful procedural stand-ins. Provenance deny list: NCSoft/Aion/source-game/native buffer recovery/Bip001 + an optional `TV_DENY_SHA256` hash list.
+- **Canonical agreement.** tests/world-sphere/canonical-floors.test.ts climbs floors 1–6 through the real RealmSession/TowerController path (applyHit → observeCanonicalTower → ascend) and checks each floor against the spec: identical plan, warden archetypes, award ability, floor-1 sources, the stair refusing an uncleared floor, and John Smith's floor quests paying once. `/?ascent` now dresses canonical maze floors with the spec's library modules (presentation only).
+- **Kit floors.** Focused worlds (opt-in TV_FOCUSED_WORLD=1) build floors from the library kit (`focusedFloorPlan`): the survey shows them with `&kit`. That grammar yields 31 distinct layouts per 100 floors; changing it would break saved focused worlds (generator version is pinned), so it is left as is (see Spec gaps).
+- **Regions/landmarks/roads.** Region centres (`regionCentres`) are height-independent; land centres get a levelled 38 m site with a library settlement chosen by biome (`regionLandmarks`). A seeded spanning-tree road network joins the south gate, Aether Reach and all landmarks (`planet/roads.ts`); dry stretches are drawn, scatter keeps trees off them, a spur runs over the bridge to the gatehouse.
+- **Pagoda footprint** is sim data (`planet/pagoda.ts`): walkable two-step podium, stair and landing, solid ground storey with a door; walked up to and entered in the browser.
+- **Collision proxies.** Real library GLBs get none (no approved collision); stand-ins get conservative cylinders (`standInProxies`) only while shown; trunks/boulders from the scatter; the focused town uses its verified StaticGeometry + canonical terrain.
 - **Browser boundary.** Pure warden-kit rules moved to `interiors/trialKitRules.ts` (trialKit.ts re-exports; no behaviour change) and the new pure sim modules were added to the allow-list in tests/web-boundary.test.ts.
 
 ## Assets used
@@ -93,6 +98,8 @@ Build the entire Torn Veil game world on top of the existing build (extend, don'
 - Floor naming/bands: spec gives three palettes over ten-floor bands; band names (Threshold, Cloister, Lantern, Ossuary, Archive, Forge, Gallery, Reliquary, Spire, Crown) are presentation labels only.
 - John Smith system quests cover floors 1–5 only (FIRST_HOUR_TOWER_FLOORS). Left unchanged (most conservative); floors 6–100 progress through the canonical journey/advancement rules without system-quest text.
 - Planet: the spec has no planetary geography; radius, biomes, regions and day length are this run's conservative choices, all seeded and presentation-independent.
+- Focused-kit floor grammar repeats layouts (31 distinct of 100 for the default seed); maze floors (default worlds) are all distinct. Not changed to protect focused saves (pinned FOCUSED_GENERATOR).
+- The main realms client keeps its existing Atmosphere sun path; only /?world uses the planet sun/moon clock. Follow-up: feed `skyAt` into Atmosphere.update for real moon phases there too.
 - Exterior storey count (9) is architectural; the 100 trial floors remain folded interiors as in the existing Tower.
 
 ## Known bugs
