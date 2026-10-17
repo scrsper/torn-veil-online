@@ -5,6 +5,7 @@ import {
   spawnBody, stepSurface, surfaceRadius, tangentFrame, toLatLon, upOf, DAY_SECONDS, START_HOUR, type Obstacle, type SurfaceBody, type SurfaceInput, type V3,
 } from '../../sim/world/planet';
 import { homeChart, planetToRealm, realmToPlanet } from '../../sim/world/planet/chart';
+import { pagodaBlocks, pagodaSupport } from '../../sim/world/planet/pagoda';
 import { LIBRARY_PLACEMENTS, placementDir, regionLandmarks } from '../../sim/world/assets/library';
 import { focusedTownPlan } from '../../sim/world/assets/focusedLayouts';
 import { registerFocusedGeometry, sceneGeometry, focusedGeometryReady } from '../../sim/world/assets/focusedRuntime';
@@ -100,8 +101,9 @@ export async function startPlanetWorld() {
   }
   const pagoda = buildPagoda(scene, pagodaRoot);
   for (const m of pagoda.meshes) { m.receiveShadows = true; sky.addCaster(m); }
-  const doorPoint = Vector3.TransformCoordinates(pagoda.door, pagodaRoot.computeWorldMatrix(true));
-  const pagodaObstacle: Obstacle = { dir: pagodaDir, radius: 15.5 };
+  const doorPoint = Vector3.TransformCoordinates(pagoda.door, pagodaRoot.computeWorldMatrix(true)), stepOut = Vector3.TransformCoordinates(pagoda.door.add(new Vector3(0, 0, -4)), pagodaRoot.computeWorldMatrix(true)), farOut = Vector3.TransformCoordinates(pagoda.door.add(new Vector3(0, 0, -60)), pagodaRoot.computeWorldMatrix(true));
+  const pagodaInverse = pagodaRoot.computeWorldMatrix(true).clone().invert();
+  const pagodaLocal = (p: V3) => Vector3.TransformCoordinates(new Vector3(p.x, p.y, p.z), pagodaInverse);
 
   // The observer's body: the existing placeholder treatment (a plain capsule), unchanged in kind.
   const bodyMesh = MeshBuilder.CreateCapsule('player-placeholder', { height: 1.8, radius: .35 }, scene), bodyMat = new StandardMaterial('player-placeholder', scene);
@@ -123,20 +125,25 @@ export async function startPlanetWorld() {
   const survey = new TowerSurvey(engine, realmSeed(seed, 'canonical-tower')); survey.kit = params.has('kit');
   let inTower = false;
   function interact() {
-    if (inTower) { const r = survey.interact(); if (r === 'leave') { inTower = false; body = spawnBody(spec, normalize(v2p(doorPoint)), scale(pagodaDir, -1)); } return; }
-    if (Vector3.Distance(bodyMesh.position, doorPoint) < 7) { inTower = true; void survey.enter(survey.floor); }
+    if (inTower) { const r = survey.interact(); if (r === 'leave') { inTower = false; body = spawnBody(spec, normalize(v2p(stepOut)), v2p(farOut)); stepBody({ forward: 0, right: 0, turn: 0, jump: false, run: false }); } return; }
+    if (Vector3.Distance(bodyMesh.position, doorPoint) < 4) { inTower = true; void survey.enter(survey.floor); }
   }
   const v2p = (p: Vector3): V3 => ({ x: p.x, y: p.y, z: p.z });
 
   const fixed = 1 / 60; let acc = 0, last = performance.now(), hudT = 0;
   const obstacles = (): Obstacle[] => {
     const here = upOf(body), list: Obstacle[] = propsNear(spec, here, 12).filter(p => p.radius > 0).map(p => ({ dir: p.dir, radius: p.radius }));
-    if (arc(spec, here, pagodaDir) < 40) list.push(pagodaObstacle);
     return list;
   };
   const stepBody = (input: SurfaceInput) => {
     const prev = body;
     body = resolveObstacles(spec, stepSurface(spec, body, input, fixed), obstacles());
+    // The pagoda: podium and stair carry the body; the ground storey's walls stop it, except at the door.
+    if (arc(spec, upOf(body), pagodaDir) < 30) {
+      const l = pagodaLocal(body.pos);
+      if (pagodaBlocks(l.x, l.z)) body = { ...prev, vel: { x: 0, y: 0, z: 0 } };
+      else { const h = pagodaSupport(l.x, l.z); if (h !== null) { const up = upOf(body), floor = spec.radius + 6 - .2 + h, r = length(body.pos); if (r <= floor + .05 || body.grounded && r - floor < .7) body = { ...body, pos: scale(up, floor), grounded: true }; } }
+    }
     // Inside the charted town, the realm's own static geometry carries the body.
     if (townGeometry) {
       const rp = planetToRealm(spec, chart, body.pos), b = walkBounds;
@@ -187,7 +194,7 @@ export async function startPlanetWorld() {
     hudT += dt; if (hudT < .25) return; hudT = 0;
     const up = upOf(body), ll = toLatLon(up), state = skyAt(seconds), l = sky.last, hour = localHour(state, ll.lon), r = regionAt(spec, up);
     const hh = Math.floor(hour), mm = Math.floor((hour - hh) * 60), c = chartToHome(spec, up);
-    label.textContent = inTower ? survey.describe() : `${r.name} — ${biomeAt(spec, up)}\n${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')} local · day ${state.day + 1} · moon ${(state.moonIllumination * 100).toFixed(0)}%${speed > 1 ? ` · ×${speed}` : ''}\nlat ${ll.lat.toFixed(2)} lon ${ll.lon.toFixed(2)} · ${l ? (l.sunElevation > 0 ? 'sun ' + (Math.asin(l.sunElevation) * 57.3).toFixed(0) + '°' : l.moonElevation > 0 ? 'moonlight' : 'night') : ''}${arc(spec, up, HOME_ANCHOR) < 900 ? `\nhome chart ${c.east.toFixed(0)} E ${c.north.toFixed(0)} N` : ''}${Vector3.Distance(bodyMesh.position, doorPoint) < 7 ? '\nF — enter the Tower of Chrysanthus' : ''}\nWASD move · Shift run · Space jump · O orbit · T time ×60`;
+    label.textContent = inTower ? survey.describe() : `${r.name} — ${biomeAt(spec, up)}\n${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')} local · day ${state.day + 1} · moon ${(state.moonIllumination * 100).toFixed(0)}%${speed > 1 ? ` · ×${speed}` : ''}\nlat ${ll.lat.toFixed(2)} lon ${ll.lon.toFixed(2)} · ${l ? (l.sunElevation > 0 ? 'sun ' + (Math.asin(l.sunElevation) * 57.3).toFixed(0) + '°' : l.moonElevation > 0 ? 'moonlight' : 'night') : ''}${arc(spec, up, HOME_ANCHOR) < 900 ? `\nhome chart ${c.east.toFixed(0)} E ${c.north.toFixed(0)} N` : ''}${Vector3.Distance(bodyMesh.position, doorPoint) < 4 ? '\nF — enter the Tower of Chrysanthus' : ''}\nWASD move · Shift run · Space jump · O orbit · T time ×60`;
   };
   engine.runRenderLoop(tick); addEventListener('resize', () => engine.resize());
   // Content loads after first frame; each part fails independently to its fallback.

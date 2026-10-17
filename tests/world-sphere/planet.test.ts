@@ -70,3 +70,13 @@ describe('spherical gravity and surface walking', () => {
     expect(peak).toBeGreaterThan(1); expect(b.grounded).toBe(true);
   });
 });
+describe('pagoda footprint', () => {
+  it('lets a body climb the stair and reach the door, and stops it at the walls', async () => {
+    const { pagodaSupport, pagodaBlocks, PAGODA_SHAPE } = await import('../../src/sim/world/planet/pagoda');
+    let last = -1;
+    for (let z = -22; z <= -8.2; z += .1) { expect(pagodaBlocks(0, z), `z ${z}`).toBe(false); const h = pagodaSupport(0, z) ?? 0; expect(h).toBeGreaterThanOrEqual(last - 1e-9); last = h; }
+    expect(last).toBeCloseTo(PAGODA_SHAPE.podiumStep * 2, 6);
+    expect(pagodaBlocks(4, -8)).toBe(true); expect(pagodaBlocks(0, 0)).toBe(true); expect(pagodaBlocks(8, 3)).toBe(true);
+    expect(pagodaSupport(30, 30)).toBeNull();
+  });
+});

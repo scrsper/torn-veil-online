@@ -4,3 +4,4 @@ export * from './motion';
 export * from './sky';
 export * from './scatter';
 export * from './chart';
+export * from './pagoda';

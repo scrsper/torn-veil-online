@@ -1,4 +1,5 @@
 import { Color3, Mesh, MeshBuilder, StandardMaterial, TransformNode, Vector3, type Scene } from '@babylonjs/core';
+import { PAGODA_SHAPE } from '../../sim/world/planet/pagoda';
 
 /** The Tower of Chrysanthus from outside: an ordinary East Asian pagoda. Square plan,
  * stacked storeys that step in as they rise, a deep tiled roof on every storey with
@@ -6,7 +7,7 @@ import { Color3, Mesh, MeshBuilder, StandardMaterial, TransformNode, Vector3, ty
  * Local frame: +Y up, door on the -Z face. Metres. The hundred trial floors are folded
  * interiors (see interiors/floorSpec.ts); the exterior storey count is architectural. */
 export interface PagodaOptions { tiers: number; base: number; storey: number; taper: number }
-export const PAGODA: PagodaOptions = { tiers: 9, base: 22, storey: 6.4, taper: .072 };
+export const PAGODA: PagodaOptions = { tiers: PAGODA_SHAPE.tiers, base: PAGODA_SHAPE.base, storey: PAGODA_SHAPE.storey, taper: PAGODA_SHAPE.taper };
 const mat = (scene: Scene, name: string, hex: string, emissive = 0) => {
   const m = new StandardMaterial(name, scene); m.diffuseColor = Color3.FromHexString(hex); m.ambientColor = m.diffuseColor.scale(.9); m.specularColor = new Color3(.08, .08, .08);
   if (emissive) m.emissiveColor = m.diffuseColor.scale(emissive); return m;
@@ -38,9 +39,11 @@ export function buildPagoda(scene: Scene, parent: TransformNode, o: PagodaOption
   gold.specularColor = new Color3(.6, .5, .25); gold.specularPower = 48;
   const meshes: Mesh[] = [], add = (m: Mesh, material: StandardMaterial) => { m.material = material; m.parent = parent; meshes.push(m); return m; };
   // Two-step stone podium and a stair to the door.
-  add(MeshBuilder.CreateBox('pagoda-podium-1', { width: o.base + 10, depth: o.base + 10, height: 1.2 }, scene), stone).position.y = .6;
-  add(MeshBuilder.CreateBox('pagoda-podium-2', { width: o.base + 5, depth: o.base + 5, height: 1.2 }, scene), stone).position.y = 1.8;
-  for (let s = 0; s < 4; s++) { const st = add(MeshBuilder.CreateBox(`pagoda-stair-${s}`, { width: 6, depth: 1.2, height: .6 }, scene), stone); st.position.set(0, .3 + s * .6, -(o.base + 10) / 2 - 2.4 + s * 1.2); }
+  const [outer, inner] = PAGODA_SHAPE.podium;
+  add(MeshBuilder.CreateBox('pagoda-podium-1', { width: outer * 2, depth: outer * 2, height: 1.2 }, scene), stone).position.y = .6;
+  add(MeshBuilder.CreateBox('pagoda-podium-2', { width: inner * 2, depth: inner * 2, height: 1.2 }, scene), stone).position.y = 1.8;
+  { const landing = add(MeshBuilder.CreateBox('pagoda-landing', { width: PAGODA_SHAPE.stairWidth, depth: outer - inner, height: 2.4 }, scene), stone); landing.position.set(0, 1.2, -(outer + inner) / 2); }
+  for (let s = 0; s < 4; s++) { const st = add(MeshBuilder.CreateBox(`pagoda-stair-${s}`, { width: PAGODA_SHAPE.stairWidth, depth: 1.2, height: .6 * (s + 1) }, scene), stone); st.position.set(0, .3 * (s + 1), -outer - 4.8 + .6 + s * 1.2); }
   let y = 2.4;
   for (let i = 0; i < o.tiers; i++) {
     const w = o.base * (1 - o.taper * i), h = i === 0 ? o.storey * 1.25 : o.storey, wall = w * .78;
@@ -60,7 +63,7 @@ export function buildPagoda(scene: Scene, parent: TransformNode, o: PagodaOption
       }
     }
     // Door on the ground storey; latticed windows above, lit from within.
-    if (i === 0) { const d = add(MeshBuilder.CreatePlane('pagoda-door', { width: 3.6, height: 5 }, scene), door); d.position.set(0, y + 2.5, -wall / 2 - .02); d.rotation.y = Math.PI; }
+    if (i === 0) { const d = add(MeshBuilder.CreatePlane('pagoda-door', { width: PAGODA_SHAPE.doorWidth, height: 5 }, scene), door); d.position.set(0, y + 2.5, -wall / 2 - .02); d.rotation.y = Math.PI; }
     else for (const f of [0, 1, 2, 3]) {
       const win = add(MeshBuilder.CreatePlane(`pagoda-window-${i}-${f}`, { width: wall * .32, height: h * .42 }, scene), lamp);
       const a = f * Math.PI / 2; win.position.set(Math.sin(a) * (wall / 2 + .02), y + h * .52, Math.cos(a) * (wall / 2 + .02)); win.rotation.y = a;
@@ -83,5 +86,5 @@ export function buildPagoda(scene: Scene, parent: TransformNode, o: PagodaOption
   const mast = add(MeshBuilder.CreateCylinder('pagoda-mast', { diameter: .45, height: 13, tessellation: 12 }, scene), gold); mast.position.y = y + 6.5;
   for (let k = 0; k < 9; k++) { const ring = add(MeshBuilder.CreateTorus(`pagoda-ring-${k}`, { diameter: 2.2 - k * .1, thickness: .22, tessellation: 20 }, scene), gold); ring.position.y = y + 2 + k * 1.05; }
   const jewel = add(MeshBuilder.CreateSphere('pagoda-jewel', { diameter: 1.1, segments: 10 }, scene), gold); jewel.position.y = y + 13.3;
-  return { meshes, height: y + 14, door: new Vector3(0, 2.4, -(o.base * .78) / 2), footprint: o.base + 10 };
+  return { meshes, height: y + 14, door: new Vector3(0, 2.4, -(o.base * .78) / 2), footprint: outer * 2 };
 }
