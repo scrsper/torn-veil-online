@@ -80,3 +80,18 @@ describe('pagoda footprint', () => {
     expect(pagodaSupport(30, 30)).toBeNull();
   });
 });
+describe('realm chart', () => {
+  it('round-trips realm coordinates through the sphere and keeps the plateau at realm y=1', async () => {
+    const { homeChart, realmToPlanet, planetToRealm } = await import('../../src/sim/world/planet/chart');
+    const c = homeChart({ x: 11312.5, z: 3092.5 }, 1);
+    for (const [x, y, z] of [[11312.5, 1, 3092.5], [11290, 3.5, 3260], [11400, 1.06, 3000]]) {
+      const p = planetToRealm(spec, c, realmToPlanet(spec, c, x, y, z));
+      expect(p.x).toBeCloseTo(x, 6); expect(p.y).toBeCloseTo(y, 6); expect(p.z).toBeCloseTo(z, 6);
+    }
+    const ground = realmToPlanet(spec, c, 11330, 1, 3200);
+    expect(length(ground)).toBeCloseTo(surfaceRadius(spec, normalize(ground)), 6);
+    // Realm +z runs toward the Tower (chart north); realm +x maps to chart west.
+    const n = chartToHome(spec, normalize(realmToPlanet(spec, c, 11312.5, 1, 3192.5))), w = chartToHome(spec, normalize(realmToPlanet(spec, c, 11412.5, 1, 3092.5)));
+    expect(n.north).toBeCloseTo(100, 6); expect(w.east).toBeCloseTo(-100, 6);
+  });
+});
