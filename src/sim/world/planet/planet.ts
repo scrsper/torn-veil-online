@@ -84,10 +84,43 @@ function relief(spec: PlanetSpec, d: V3): number {
   const ridges = 1 - Math.abs(fbm3(scale(d, 4.1), 4, salt(spec, 2)) * 2 - 1);
   return base * 1.35 + Math.max(0, base) * ridges * .9 + .08;
 }
+function rawHeight(spec: PlanetSpec, d: V3) { const e = relief(spec, d); return e > 0 ? Math.pow(e, 1.4) * RELIEF : e * RELIEF * .5; }
+/** Region centres: home, far, then a seeded jittered Fibonacci lattice. Positions only (no
+ * height dependence), so terrain may level landmark sites at them without a cycle. */
+export const REGION_SITES = 28;
+const siteCache = new WeakMap<PlanetSpec, V3[]>();
+export function regionCentres(spec: PlanetSpec): V3[] {
+  const hit = siteCache.get(spec); if (hit) return hit;
+  let s = (spec.seed ^ 0x7e610e5) >>> 0;
+  const next = () => { let t = s = (s + 0x6D2B79F5) >>> 0; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const range = (a: number, b: number) => a + (b - a) * next(), golden = Math.PI * (3 - Math.sqrt(5)), out: V3[] = [HOME_ANCHOR, FAR_ANCHOR];
+  for (let k = 0; k < REGION_SITES - 2; k++) {
+    const n = REGION_SITES - 2, y = 1 - (k + .5) / n * 2, r = Math.sqrt(1 - y * y), t = golden * k + range(-.35, .35);
+    let c = normalize({ x: Math.cos(t) * r + range(-.12, .12), y: y + range(-.08, .08), z: Math.sin(t) * r + range(-.12, .12) });
+    if (dot(c, HOME_ANCHOR) > .96 || dot(c, FAR_ANCHOR) > .96) c = normalize({ x: -c.x, y: c.y, z: -c.z });
+    out.push(c);
+  }
+  siteCache.set(spec, out); return out;
+}
+/** Levelled landmark sites at land region centres (index ≥ 2): flat ground for a settlement. */
+export const LANDMARK_PLATEAU = { flat: 38, blend: 90 };
+const landmarkCache = new WeakMap<PlanetSpec, { dir: V3; height: number; region: number }[]>();
+export function landmarkSites(spec: PlanetSpec): { dir: V3; height: number; region: number }[] {
+  const hit = landmarkCache.get(spec); if (hit) return hit;
+  const clear = (d: V3) => [HOME_ANCHOR, FAR_ANCHOR].every(a => arc(spec, d, a) > HOME_PLATEAU.blend + LANDMARK_PLATEAU.blend);
+  const out = regionCentres(spec).slice(2).map((dir, i) => ({ dir, height: rawHeight(spec, dir), region: i + 2 }))
+    .filter(s => s.height > 3 && s.height < RELIEF * .7 && clear(s.dir));
+  landmarkCache.set(spec, out); return out;
+}
 /** Height above the sea sphere in metres (negative under water). */
 export function surfaceHeight(spec: PlanetSpec, dir: V3): number {
-  const d = normalize(dir), e = relief(spec, d), raw = e > 0 ? Math.pow(e, 1.4) * RELIEF : e * RELIEF * .5;
+  const d = normalize(dir), raw = rawHeight(spec, d);
   let h = raw;
+  for (const site of landmarkSites(spec)) {
+    const c = dot(d, site.dir); if (c < .99) continue;
+    const t = 1 - smooth(LANDMARK_PLATEAU.flat, LANDMARK_PLATEAU.blend, Math.acos(Math.min(1, c)) * spec.radius);
+    h = h + (site.height - h) * t;
+  }
   for (const anchor of [HOME_ANCHOR, FAR_ANCHOR]) {
     const t = 1 - smooth(HOME_PLATEAU.flat, HOME_PLATEAU.blend, arc(spec, d, anchor));
     // Levelled ground around each charted realm, never below the shore.

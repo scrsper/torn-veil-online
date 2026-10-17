@@ -1,5 +1,7 @@
 import catalogData from './libraryCatalog.json';
-import { FAR_ANCHOR, HOME_ANCHOR, chartToDir, type PlanetSpec, type V3 } from '../planet/planet';
+import { FAR_ANCHOR, HOME_ANCHOR, chartToDir, landmarkSites, regionCentres, type PlanetSpec, type V3 } from '../planet/planet';
+import { RNG } from '../../core/rng';
+import { planetRegions } from '../planet/regions';
 
 /** The torn-veil-assets runtime library, keyed by manifest id and sha256. The catalog is
  * generated from INTEGRATION_MANIFEST.json + metadata by scripts/world/sync-library.mjs; it
@@ -25,7 +27,7 @@ export const usableLibrary = () => LIBRARY.assets.filter(a => provenanceOk(a));
 /** A whole-space static asset set on a chart around an anchor. east/north metres, yaw radians
  * (0 = asset +Z faces chart north). Proxies are conservative upright cylinders only where the
  * asset is solid mass (piers, towers); walkable whole-space interiors get none (START_HERE). */
-export interface LibraryPlacement { id: string; assetId: string; anchor: 'home' | 'far'; east: number; north: number; yaw: number; proxies: { east: number; north: number; radius: number }[] }
+export interface LibraryPlacement { id: string; assetId: string; anchor: 'home' | 'far' | 'site'; site?: number; east: number; north: number; yaw: number; proxies: { east: number; north: number; radius: number }[] }
 const P = (id: string, assetId: string, anchor: 'home' | 'far', east: number, north: number, yaw = 0, proxies: LibraryPlacement['proxies'] = []): LibraryPlacement => ({ id, assetId, anchor, east, north, yaw, proxies });
 /** Placed sensibly around the preserved town → forest → Tower route (focused town at chart 0,0;
  * forest north 40–190; Tower at -20,172): a south gate and road, a market and second tavern
@@ -48,6 +50,28 @@ export const LIBRARY_PLACEMENTS: readonly LibraryPlacement[] = Object.freeze([
   P('far:watchpost', 'tv_10_01_watchpost', 'far', 0, -60, Math.PI),
   P('far:passage', 'tv_42_01_courtyard_passage', 'far', -30, 0, Math.PI / 2),
 ]);
-export function placementDir(spec: PlanetSpec, p: { anchor: 'home' | 'far'; east: number; north: number }): V3 {
-  return chartToDir(p.anchor === 'home' ? HOME_ANCHOR : FAR_ANCHOR, p.east, p.north, spec.radius);
+export function placementDir(spec: PlanetSpec, p: { anchor: 'home' | 'far' | 'site'; site?: number; east: number; north: number }): V3 {
+  const anchor = p.anchor === 'home' ? HOME_ANCHOR : p.anchor === 'far' ? FAR_ANCHOR : regionCentres(spec)[p.site ?? 0];
+  return chartToDir(anchor, p.east, p.north, spec.radius);
+}
+/** A landmark settlement on each land region's levelled centre, chosen from the library by
+ * biome (seeded): watch towers in woods and heights, lanes and markets on open downs and
+ * plains, ruins in wastes and barrens, passages by fens and coasts. */
+const LANDMARKS: Record<string, string[][]> = {
+  forest: [['tv_10_01_watchpost'], ['tv_08_01_village_lane', 'tv_31_06_tavern']], taiga: [['tv_10_01_watchpost']], mountain: [['tv_10_01_watchpost'], ['tv_04_01_gatehouse']],
+  grassland: [['tv_08_01_village_lane', 'tv_37_01_market_square'], ['tv_31_06_tavern', 'tv_42_01_courtyard_passage']], savanna: [['tv_37_01_market_square', 'tv_31_06_tavern']],
+  desert: [['tv_41_01_gate_segment', 'tv_44_01_dungeon_junction']], tundra: [['tv_44_01_dungeon_junction'], ['tv_41_01_gate_segment']], snow: [['tv_44_01_dungeon_junction']],
+  swamp: [['tv_42_01_courtyard_passage'], ['tv_05_01_ravine_bridge']], beach: [['tv_31_06_tavern', 'tv_42_01_courtyard_passage']], ocean: [],
+};
+const landmarkCache = new WeakMap<PlanetSpec, LibraryPlacement[]>();
+export function regionLandmarks(spec: PlanetSpec): LibraryPlacement[] {
+  const hit = landmarkCache.get(spec); if (hit) return hit;
+  const regions = planetRegions(spec), out: LibraryPlacement[] = [];
+  for (const site of landmarkSites(spec)) {
+    const r = regions[site.region], rng = new RNG((spec.seed ^ Math.imul(site.region, 0x9e3779b1)) >>> 0), options = LANDMARKS[r.biome] ?? [];
+    if (!options.length) continue;
+    const set = rng.pick(options), yaw = rng.int(0, 3) * Math.PI / 2;
+    set.forEach((assetId, k) => out.push({ id: `site:${site.region}:${k}`, assetId, anchor: 'site', site: site.region, east: k ? 30 * Math.cos(yaw) : 0, north: k ? 30 * Math.sin(yaw) : 0, yaw, proxies: [] }));
+  }
+  landmarkCache.set(spec, out); return out;
 }

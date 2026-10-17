@@ -5,7 +5,7 @@ import {
   spawnBody, stepSurface, surfaceRadius, tangentFrame, toLatLon, upOf, DAY_SECONDS, START_HOUR, type Obstacle, type SurfaceBody, type SurfaceInput, type V3,
 } from '../../sim/world/planet';
 import { homeChart, planetToRealm, realmToPlanet } from '../../sim/world/planet/chart';
-import { LIBRARY_PLACEMENTS, placementDir } from '../../sim/world/assets/library';
+import { LIBRARY_PLACEMENTS, placementDir, regionLandmarks } from '../../sim/world/assets/library';
 import { focusedTownPlan } from '../../sim/world/assets/focusedLayouts';
 import { registerFocusedGeometry, sceneGeometry, focusedGeometryReady } from '../../sim/world/assets/focusedRuntime';
 import { focusedTerrain, terrainTriangles } from '../../sim/world/assets/focusedTerrain';
@@ -78,7 +78,7 @@ export async function startPlanetWorld() {
   // Library placements on the home and far charts.
   const libraryRoots: TransformNode[] = [];
   const loadLibrary = async () => {
-    for (const p of LIBRARY_PLACEMENTS) {
+    for (const p of [...LIBRARY_PLACEMENTS, ...regionLandmarks(spec)]) {
       const d = placementDir(spec, p), f = tangentFrame(d), r = surfaceRadius(spec, d), root = new TransformNode('library:' + p.id, scene);
       // Asset +Z faces chart north after yaw; frame axes (west, up, north) keep right-handedness.
       const west = v(scale(f.east, -1)), up = v(f.up), north = v(f.north);

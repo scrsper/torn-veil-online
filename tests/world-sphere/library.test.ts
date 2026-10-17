@@ -36,3 +36,15 @@ describe('seeded props and collision', () => {
     expect(arc(spec, upOf(r), HOME_ANCHOR)).toBeLessThan(2);
   });
 });
+describe('region landmarks', () => {
+  it('sets a library settlement on levelled ground at land region centres', async () => {
+    const { regionLandmarks } = await import('../../src/sim/world/assets/library');
+    const { landmarkSites, surfaceHeight: h, regionCentres } = await import('../../src/sim/world/planet');
+    const marks = regionLandmarks(spec), sites = landmarkSites(spec);
+    expect(marks.length).toBeGreaterThan(5);
+    expect(regionLandmarks(planetSpec(20261017)).map(m => m.id)).toEqual(marks.map(m => m.id));
+    for (const s of sites) expect(h(spec, s.dir)).toBeCloseTo(s.height, 6);
+    for (const m of marks) { expect(libraryAsset(m.assetId)).toBeDefined(); const site = sites.find(s => s.region === m.site)!; expect(h(spec, placementDir(spec, m))).toBeCloseTo(site.height, 3); }
+    expect(regionCentres(spec)).toHaveLength(28);
+  });
+});
