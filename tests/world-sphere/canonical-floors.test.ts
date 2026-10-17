@@ -40,6 +40,6 @@ describe('floor spec matches the canonical Tower', () => {
     reconcileQuests(s.world, s.person.id);
     expect(questReceipts(s.world, s.person.id).filter(r => r.objectiveId.startsWith('system:tower:'))).toEqual(paid);
     expect(new Set(paid.map(r => r.objectiveId)).size).toBe(paid.length);
-    expect(questLedger(s.world, s.person.id).entries.filter(e => e.origin === 'system' && e.id.startsWith('system:tower:floor:') && e.state === 'completed').length).toBeGreaterThanOrEqual(5);
+    expect(questLedger(s.world, s.person.id)!.entries.filter(e => e.origin === 'system' && e.id.startsWith('system:tower:floor:') && e.state === 'completed').length).toBeGreaterThanOrEqual(5);
   }, 120000);
 });

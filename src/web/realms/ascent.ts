@@ -13,6 +13,8 @@ import type { Element } from '../arena/tower/capability';
 import { stoneSurface, tiledBox, LOOKS } from '../arena/environment';
 import {MaterialLibrary, loadScannedMaps, useScannedMaps } from '../render/materials';
 import {FocusedRenderer} from './focusedRenderer';
+import { FocusedAssets } from './focusedAssets';
+import { towerFloorSpec } from '../../sim/world/interiors/floorSpec';
 import type { BodyVisual } from '../actors/actorManager';
 import type { BodyState, InteractionCommand, SnapshotMessage } from '../net/messages';
 import type { InteriorPlan } from '../../sim/world/interiors/layout';
@@ -55,8 +57,21 @@ export async function startCanonicalAscent() {
     const mesh = tiledBox(id, w, h, d, 2.8, ctx.scene); mesh.position.set(x + w / 2, y + h / 2, z + d / 2);
     mesh.material = m; mesh.receiveShadows = true; return mesh;
   }
+  // Library dressing from the shared floor spec (braziers on wall crowns, stores/archive/crypt
+  // pieces on the plan's own benches). Presentation only; no collision or mechanics.
+  const dressingAssets = new FocusedAssets(ctx.scene, atmosphere); let dressingManifest: Promise<unknown> | null = null, dressing: { dispose(): void }[] = [];
+  function dressFloor(p: InteriorPlan) {
+    for (const d of dressing) d.dispose(); dressing = [];
+    if (p.assetScene) return;
+    dressingManifest ??= dressingAssets.loadManifest().catch(() => null);
+    const spec = towerFloorSpec(p.descriptor.seed, p.descriptor.floor), o = p.origin;
+    void dressingManifest.then(async m => { if (!m) return; for (const [i, d] of spec.dressing.entries()) {
+      if (plan !== p) return;
+      try { const inst = await dressingAssets.instantiate({ id: `${p.id}:dress:${i}`, assetId: d.moduleId, position: [o.x + d.x, d.y, o.z + d.z], yaw: d.yaw, floorId: p.id }); if (plan !== p) inst.dispose(); else dressing.push(inst); } catch { /* plain plan remains */ }
+    } });
+  }
   function drawFloor(p: InteriorPlan) {
-    for (const mesh of geometry) mesh.dispose(); geometry.length = 0; plan = p;
+    for (const mesh of geometry) mesh.dispose(); geometry.length = 0; plan = p; dressFloor(p);
     focused.reconcile(p.assetScene??null,p.start);acknowledgedFloor='';ready=false;
     if(!p.assetScene)geometry.push(box('physical floor', p.origin.x - p.half - 1, 0, p.origin.z - p.half - 1, p.half * 2 + 2, 1, p.half * 2 + 2, floorMat));
     const solids = p.solids.map(voxelSolid); walls = solids.filter(s => s.kind === 'wall');
