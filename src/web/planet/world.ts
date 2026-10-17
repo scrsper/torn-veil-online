@@ -42,6 +42,8 @@ export async function startPlanetWorld() {
 
   // Home content: the preserved focused town → forest → Tower route, bent onto the curve.
   const town = focusedTownPlan(seed), townOrigin = { x: 8192 + 3072 + 48.5, z: 3072 + 20.5 }, chart = homeChart(townOrigin, 1);
+  // The focused Tower shell is replaced by the pagoda; its modules are neither drawn nor solid here.
+  const townWithoutShell = { ...town, placements: town.placements.filter(p => !p.id.includes(':tower:')) };
   const towerCentre = { x: town.tower.x + town.tower.w / 2, z: town.tower.z + town.tower.d / 2 };
   const toPlanet = (x: number, y: number, z: number) => realmToPlanet(spec, chart, x, y, z);
   const v = (p: V3) => new Vector3(p.x, p.y, p.z);
@@ -60,10 +62,10 @@ export async function startPlanetWorld() {
     status.town = `${n} focused placements`;
   };
   const loadTownCollision = async () => {
-    if (focusedGeometryReady()) { townGeometry = sceneGeometry(town); return; }
+    if (focusedGeometryReady()) { townGeometry = sceneGeometry(townWithoutShell); return; }
     const r = await fetch('/focused/collision.json'); if (!r.ok) throw Error('collision unavailable');
     const bytes = await r.arrayBuffer(), digest = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), b => b.toString(16).padStart(2, '0')).join('');
-    registerFocusedGeometry(JSON.parse(new TextDecoder().decode(bytes)), digest); townGeometry = sceneGeometry(town); status.collision = 'town geometry';
+    registerFocusedGeometry(JSON.parse(new TextDecoder().decode(bytes)), digest); townGeometry = sceneGeometry(townWithoutShell); status.collision = 'town geometry';
     // The canonical height field that joins the authored spaces, bent like everything else.
     const t = focusedTerrain(town.id + ':terrain', townGeometry), root = new TransformNode('focused-terrain-root', scene), mesh = new Mesh(t.id, scene), data = new VertexData(), normals: number[] = [];
     VertexData.ComputeNormals(t.positions, t.indices, normals, { useRightHandedSystem: true });
@@ -126,9 +128,10 @@ export async function startPlanetWorld() {
   let inTower = false;
   function interact() {
     if (inTower) { const r = survey.interact(); if (r === 'leave') { inTower = false; body = spawnBody(spec, normalize(v2p(stepOut)), v2p(farOut)); stepBody({ forward: 0, right: 0, turn: 0, jump: false, run: false }); } return; }
-    if (Vector3.Distance(bodyMesh.position, doorPoint) < 4) { inTower = true; void survey.enter(survey.floor); }
+    if (nearDoor()) { inTower = true; void survey.enter(survey.floor); }
   }
   const v2p = (p: Vector3): V3 => ({ x: p.x, y: p.y, z: p.z });
+  function nearDoor() { return Vector3.Distance(v(add(body.pos, scale(upOf(body), .9))), doorPoint) < 4; }
 
   const fixed = 1 / 60; let acc = 0, last = performance.now(), hudT = 0;
   const obstacles = (): Obstacle[] => {
@@ -194,7 +197,7 @@ export async function startPlanetWorld() {
     hudT += dt; if (hudT < .25) return; hudT = 0;
     const up = upOf(body), ll = toLatLon(up), state = skyAt(seconds), l = sky.last, hour = localHour(state, ll.lon), r = regionAt(spec, up);
     const hh = Math.floor(hour), mm = Math.floor((hour - hh) * 60), c = chartToHome(spec, up);
-    label.textContent = inTower ? survey.describe() : `${r.name} — ${biomeAt(spec, up)}\n${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')} local · day ${state.day + 1} · moon ${(state.moonIllumination * 100).toFixed(0)}%${speed > 1 ? ` · ×${speed}` : ''}\nlat ${ll.lat.toFixed(2)} lon ${ll.lon.toFixed(2)} · ${l ? (l.sunElevation > 0 ? 'sun ' + (Math.asin(l.sunElevation) * 57.3).toFixed(0) + '°' : l.moonElevation > 0 ? 'moonlight' : 'night') : ''}${arc(spec, up, HOME_ANCHOR) < 900 ? `\nhome chart ${c.east.toFixed(0)} E ${c.north.toFixed(0)} N` : ''}${Vector3.Distance(bodyMesh.position, doorPoint) < 4 ? '\nF — enter the Tower of Chrysanthus' : ''}\nWASD move · Shift run · Space jump · O orbit · T time ×60`;
+    label.textContent = inTower ? survey.describe() : `${r.name} — ${biomeAt(spec, up)}\n${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')} local · day ${state.day + 1} · moon ${(state.moonIllumination * 100).toFixed(0)}%${speed > 1 ? ` · ×${speed}` : ''}\nlat ${ll.lat.toFixed(2)} lon ${ll.lon.toFixed(2)} · ${l ? (l.sunElevation > 0 ? 'sun ' + (Math.asin(l.sunElevation) * 57.3).toFixed(0) + '°' : l.moonElevation > 0 ? 'moonlight' : 'night') : ''}${arc(spec, up, HOME_ANCHOR) < 900 ? `\nhome chart ${c.east.toFixed(0)} E ${c.north.toFixed(0)} N` : ''}${nearDoor() ? '\nF — enter the Tower of Chrysanthus' : ''}\nWASD move · Shift run · Space jump · O orbit · T time ×60`;
   };
   engine.runRenderLoop(tick); addEventListener('resize', () => engine.resize());
   // Content loads after first frame; each part fails independently to its fallback.
@@ -216,6 +219,6 @@ export async function startPlanetWorld() {
     teleportLatLon(lat: number, lon: number) { inTower = false; const d = normalize(v2p(new Vector3(Math.cos(lat / 57.2958) * Math.sin(lon / 57.2958), Math.sin(lat / 57.2958), Math.cos(lat / 57.2958) * Math.cos(lon / 57.2958)))); body = spawnBody(spec, d); },
     walk(seconds: number, input: Partial<SurfaceInput>) { for (let t = 0; t < seconds; t += fixed) stepBody({ forward: 0, right: 0, turn: 0, jump: false, run: false, ...input }); },
     tower(floor: number, kit?: boolean) { inTower = true; if (kit !== undefined) survey.kit = kit; return survey.enter(floor); }, leaveTower() { inTower = false; },
-    survey, radius: () => length(body.pos),
+    survey, radius: () => length(body.pos), get inTower() { return inTower; }, local: () => { const l = pagodaLocal(body.pos); return [l.x, l.y, l.z]; }, pagoda: chartToHome(spec, pagodaDir), interact: () => interact(),
   };
 }
