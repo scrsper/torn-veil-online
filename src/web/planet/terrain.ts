@@ -30,8 +30,8 @@ export class PlanetTerrain {
     m.diffuseColor = Color3.White(); m.ambientColor = new Color3(.8, .8, .8); m.specularColor = new Color3(.04, .04, .04);
     // Near ground: the shared CC0 scanned grass normal/roughness as metre-scale detail under biome colour.
     const maps = loadScannedMaps(scene, 'grass_ground'), dm = this.detail = new PBRMaterial('planet-ground-detail', scene);
-    dm.albedoColor = Color3.White(); dm.bumpTexture = maps.normal; dm.bumpTexture.level = .6; dm.invertNormalMapY = true; dm.metallicTexture = maps.arm;
-    dm.useAmbientOcclusionFromMetallicTextureRed = true; dm.useRoughnessFromMetallicTextureGreen = true; dm.useMetallnessFromMetallicTextureBlue = true; dm.metallic = 0; dm.roughness = 1;
+    dm.albedoColor = Color3.White(); dm.bumpTexture = maps.normal; dm.bumpTexture.level = 1; dm.invertNormalMapY = true; dm.metallicTexture = maps.arm;
+    dm.environmentIntensity = .3; dm.useAmbientOcclusionFromMetallicTextureRed = true; dm.useRoughnessFromMetallicTextureGreen = true; dm.useMetallnessFromMetallicTextureBlue = true; dm.metallic = 0; dm.roughness = 1;
     maps.albedo.dispose();
     const positions: number[] = [], colours: number[] = [], indices: number[] = [];
     for (let f = 0; f < 6; f++) {
@@ -84,7 +84,7 @@ export class PlanetTerrain {
     for (let j = 0; j <= n; j++) for (let i = 0; i <= n; i++) {
       const x = -half + i / n * this.patchSize, z = -half + j / n * this.patchSize;
       const p = normalize(add(up, add(scale(east, x / this.spec.radius), scale(north, z / this.spec.radius)))), c = climateAt(this.spec, p), r = this.spec.radius + c.height - this.sink(p);
-      positions.push(p.x * r, p.y * r, p.z * r); colours.push(...groundColour(this.spec, p, c.height, biomeAt(this.spec, p)).map(v => v * 1.25), 1); uvs.push(x / 3, z / 3);
+      positions.push(p.x * r, p.y * r, p.z * r); colours.push(...groundColour(this.spec, p, c.height, biomeAt(this.spec, p)).map(v => v * .95), 1); uvs.push(x / 3, z / 3);
     }
     for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const a = j * (n + 1) + i; indices.push(a, a + n + 1, a + 1, a + 1, a + n + 1, a + n + 2); }
     this.patch?.dispose();

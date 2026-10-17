@@ -41,6 +41,8 @@ export async function startPlanetWorld() {
   Object.assign(label.style, { position: 'fixed', left: '12px', top: '12px', padding: '8px 12px', background: 'rgba(12,14,20,.72)', color: '#e8e4d8', font: '12.5px system-ui', borderRadius: '8px', pointerEvents: 'none', whiteSpace: 'pre', zIndex: '20' });
   ui.append(label);
   const status: Record<string, string> = {};
+  /** Static world geometry: no per-frame matrix or bounds work. */
+  const freeze = (m: Mesh) => { m.isPickable = false; m.computeWorldMatrix(true); m.freezeWorldMatrix(); m.doNotSyncBoundingInfo = true; };
 
   // Home content: the preserved focused town → forest → Tower route, bent onto the curve.
   const town = focusedTownPlan(seed), townOrigin = { x: 8192 + 3072 + 48.5, z: 3072 + 20.5 }, chart = homeChart(townOrigin, 1);
@@ -58,7 +60,7 @@ export async function startPlanetWorld() {
     for (const p of town.placements) {
       if (p.id.includes(':tower:')) continue; // the Tower's exterior is the pagoda below
       const inst = await focused.instantiate(p, { x: 0, z: 0 });
-      for (const m of bendTree(spec, chart, inst.root)) { m.receiveShadows = true; sky.addCaster(m); }
+      for (const m of bendTree(spec, chart, inst.root)) { m.receiveShadows = true; sky.addCaster(m); freeze(m); }
       n++;
     }
     status.town = `${n} focused placements`;
@@ -73,7 +75,7 @@ export async function startPlanetWorld() {
     VertexData.ComputeNormals(t.positions, t.indices, normals, { useRightHandedSystem: true });
     Object.assign(data, { positions: t.positions, indices: t.indices, normals, colors: t.positions.flatMap((_v, i) => i % 3 === 0 ? [1, 1, 1, .7] : []), uvs: t.positions.flatMap((p, i) => i % 3 === 0 ? [p * .25, t.positions[i + 2] * .25] : []) }); data.applyToMesh(mesh, true);
     mesh.parent = root; mesh.material = focused.forestFloorMaterial(); mesh.sideOrientation = Material.CounterClockWiseSideOrientation;
-    for (const m of bendTree(spec, chart, root)) { m.receiveShadows = true; }
+    for (const m of bendTree(spec, chart, root)) { m.receiveShadows = true; freeze(m); }
     const tb = t.bounds, gb = townGeometry.bounds;
     walkBounds = { x0: Math.min(gb.x0, tb.x0), z0: Math.min(gb.z0, tb.z0), x1: Math.max(gb.x1, tb.x1), z1: Math.max(gb.z1, tb.z1) };
     townGeometry = new Geometry([...townGeometry.triangles, ...terrainTriangles(t)], walkBounds);
@@ -91,6 +93,7 @@ export async function startPlanetWorld() {
       root.rotationQuaternion = q.multiply(Quaternion.RotationAxis(Vector3.Up(), p.yaw)); root.position = v(scale(d, r));
       const meshes = await loader.instantiate(p.assetId, p.id, root);
       for (const m of meshes) { if (!(m instanceof InstancedMesh)) m.receiveShadows = true; sky.addCaster(m); }
+      root.computeWorldMatrix(true); root.freezeWorldMatrix(); for (const m of meshes) freeze(m);
       libraryRoots.push(root);
       if (loader.status[p.assetId] === 'fallback') for (const q of standInProxies(libraryAsset(p.assetId)!)) { const c = placementLocal(p, q.x, q.z); standInObstacles.push({ dir: placementDir(spec, { ...p, ...c }), radius: q.r }); }
     }
@@ -105,7 +108,8 @@ export async function startPlanetWorld() {
     pagodaRoot.position = v(scale(pagodaDir, spec.radius + 6 - .2));
   }
   const pagoda = buildPagoda(scene, pagodaRoot);
-  for (const m of pagoda.meshes) { m.receiveShadows = true; sky.addCaster(m); }
+  pagodaRoot.computeWorldMatrix(true); pagodaRoot.freezeWorldMatrix();
+  for (const m of pagoda.meshes) { m.receiveShadows = true; sky.addCaster(m); freeze(m); }
   const doorPoint = Vector3.TransformCoordinates(pagoda.door, pagodaRoot.computeWorldMatrix(true)), stepOut = Vector3.TransformCoordinates(pagoda.door.add(new Vector3(0, 0, -4)), pagodaRoot.computeWorldMatrix(true)), farOut = Vector3.TransformCoordinates(pagoda.door.add(new Vector3(0, 0, -60)), pagodaRoot.computeWorldMatrix(true));
   const pagodaInverse = pagodaRoot.computeWorldMatrix(true).clone().invert();
   const pagodaLocal = (p: V3) => Vector3.TransformCoordinates(new Vector3(p.x, p.y, p.z), pagodaInverse);
