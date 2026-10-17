@@ -159,7 +159,7 @@ export async function startPlanetWorld() {
   let body: SurfaceBody = spawnBody(spec, spawnDir, homeToDir(spec, 0, 400));
   let seconds = Number.isFinite(Number(params.get('hour'))) && params.get('hour') !== null ? ((Number(params.get('hour')) - START_HOUR + 24) % 24) / 24 * DAY_SECONDS : 0;
   let speed = Number(params.get('speed') ?? 1) || 1, view: 'ground' | 'orbit' = params.get('view') === 'orbit' ? 'orbit' : 'ground';
-  let camYaw = 0, camPitch = .28, camDist = 7.5, orbitAngle = 0, orbitRadius = spec.radius * 3.1;
+  let camYaw = 0, camPitch = .28, camDist = 7.5, camLift = 0, orbitAngle = 0, orbitRadius = spec.radius * 3.1;
   const keys = new Set<string>();
   addEventListener('keydown', e => { keys.add(e.code); if (e.code === 'KeyO') view = view === 'orbit' ? 'ground' : 'orbit'; if (e.code === 'KeyT') speed = speed === 1 ? 60 : 1; if (inTower && (e.code === 'BracketRight' || e.code === 'BracketLeft')) void survey.enter(survey.floor + (e.code === 'BracketRight' ? 1 : -1)); if (e.code === 'KeyF') interact(); });
   addEventListener('keyup', e => keys.delete(e.code));
@@ -246,7 +246,7 @@ export async function startPlanetWorld() {
       const yawQ = Quaternion.RotationAxis(u, camYaw), back = fwd.applyRotationQuaternion(yawQ).scale(-1), cam = pos.add(u.scale(1.6)).add(back.scale(Math.cos(camPitch) * camDist)).add(u.scale(Math.sin(camPitch) * camDist));
       // Keep the camera above ground.
       const camDir = normalize(v2p(cam)), floor = surfaceRadius(spec, camDir) + .6, cr = cam.length();
-      camera.position = cr < floor ? cam.scale(floor / cr) : cam; camera.upVector = u; camera.setTarget(pos.add(u.scale(1.5)));
+      camera.position = cr < floor ? cam.scale(floor / cr) : cam; camera.upVector = u; camera.setTarget(pos.add(u.scale(1.5 + camLift)));
       sky.update(state, up, pos, camera.maxZ * .45, 0);
     }
     // Lanterns behind the pagoda's lattice glow after dusk.
@@ -275,7 +275,7 @@ export async function startPlanetWorld() {
     setHour(h: number) { hudT = 1; seconds = ((h - START_HOUR + 24) % 24) / 24 * DAY_SECONDS + Math.floor(seconds / DAY_SECONDS) * DAY_SECONDS; },
     setDay(d: number) { seconds = (seconds % DAY_SECONDS) + d * DAY_SECONDS; },
     setView(next: 'orbit' | 'ground') { view = next; }, setOrbit(angle: number, radius?: number) { orbitAngle = angle; if (radius) orbitRadius = radius; },
-    setCamera(yaw: number, pitch: number, dist: number) { camYaw = yaw; camPitch = pitch; camDist = dist; },
+    setCamera(yaw: number, pitch: number, dist: number, lift = 0) { camYaw = yaw; camPitch = pitch; camDist = dist; camLift = lift; },
     teleportHome(east: number, north: number, facingEast = 0, facingNorth = 1) { inTower = false; hudT = 1; body = spawnBody(spec, homeToDir(spec, east, north), homeToDir(spec, east + facingEast * 50, north + facingNorth * 50)); },
     /** Stand 30 m south of landmark settlement i (seeded region centre on land), facing it. */
     teleportSite(i: number) { inTower = false; hudT = 1; const sites = landmarkSites(spec), site = sites[((i % sites.length) + sites.length) % sites.length], f = tangentFrame(site.dir); body = spawnBody(spec, normalize(add(site.dir, scale(f.north, -30 / spec.radius))), site.dir); return sites.length; },
