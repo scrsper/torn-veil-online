@@ -132,7 +132,7 @@ export async function startPlanetWorld() {
   // Aether Reach's canonical buildings stop the walker as the realm grid does (closed doors are solid).
   const farChart = AETHER_CHART, aetherChunkList = aetherChunks(seed), aetherBlocked = (p: V3) => aetherBlocks(spec, p);
   // Library placements on the home and far charts.
-  const libraryRoots: TransformNode[] = [], standInObstacles: Obstacle[] = [], glbShown = (id: string) => loader.status[id] === 'glb';
+  const libraryDirs: V3[] = [], libraryRoots: TransformNode[] = [], standInObstacles: Obstacle[] = [], glbShown = (id: string) => loader.status[id] === 'glb';
   const loadLibrary = async () => {
     for (const p of [...LIBRARY_PLACEMENTS, ...regionLandmarks(spec)]) {
       const d = placementDir(spec, p), f = tangentFrame(d), r = surfaceRadius(spec, d), root = new TransformNode('library:' + p.id, scene);
@@ -145,7 +145,7 @@ export async function startPlanetWorld() {
       if (loader.status[p.assetId] === 'glb' && libraryAsset(p.assetId)?.family === 'ravine_bridge') meshes = meshes.filter(m => { const water = /RUNTIME_water/.test(m.name) || /RUNTIME_water/.test(m.parent?.name ?? ''); if (water) m.dispose(); return !water; });
       for (const m of meshes) { if (!(m instanceof InstancedMesh)) m.receiveShadows = true; sky.addCaster(m); }
       root.computeWorldMatrix(true); root.freezeWorldMatrix(); for (const m of meshes) freeze(m);
-      libraryRoots.push(root);
+      libraryRoots.push(root); libraryDirs.push(d);
       if (loader.status[p.assetId] === 'fallback') for (const q of standInProxies(libraryAsset(p.assetId)!)) { const c = placementLocal(p, q.x, q.z); standInObstacles.push({ dir: placementDir(spec, { ...p, ...c }), radius: q.r }); }
     }
     status.library = Object.entries(loader.status).map(([k, s]) => `${k}:${s}`).join(' ');
@@ -273,6 +273,8 @@ export async function startPlanetWorld() {
     }
     // Lanterns behind the pagoda's lattice glow after dusk.
     const dark = 1 - (sky.last?.daylight ?? 1); pagoda.lamp.emissiveColor = new Color3(1, .7, .35).scale(.15 + .85 * dark);
+    // Only nearby library spaces are drawn (START_HERE: load only nearby spaces); none from orbit.
+    { const here = upOf(body); libraryRoots.forEach((r, i) => { const on = view === 'ground' && !inTower && arc(spec, here, libraryDirs[i]) < 700; if (r.isEnabled(false) !== on) r.setEnabled(on); }); }
     scene.render(); hud(dt);
   };
   let props: PlanetProps | null = null;
