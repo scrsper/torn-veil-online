@@ -32,7 +32,7 @@ Build the entire Torn Veil game world on top of the existing build (extend, don'
 - 12 models: tv_04_01_gatehouse, tv_05_01_ravine_bridge, tv_08_01_village_lane, tv_10_01_watchpost, tv_31_06_tavern, tv_37_01_market_square, tv_41_01_gate_segment, tv_42_01_courtyard_passage, tv_44_01_dungeon_junction, tvn_biome_021, tvn_flora_001, tvn_flora_005.
 
 ## Media
-- Last media checkpoint: 2026-10-17 07:32–08:00 CT → /workspace/torn-veil-online/media/world-run/20261017-0732/ (19 stills incl. landmark site, Aether day/night, twilight sky, south gate, floors 1/10/37/64/100; flythrough.mp4 4.4 MB, 178 frames). Previous: 20261017-0633/. Tool: /workspace/world-run/tools/flythrough.mjs (&lite).
+- Last media checkpoint: 2026-10-17 08:04–08:38 CT (final) → /workspace/torn-veil-online/media/world-run/20261017-0804-final/ (19 stills: orbit day/terminator, town day, pagoda, gate road, far region, Aether day/night, landmark market site, forest night/moon, town night, dawn pagoda, twilight sky, south gate, floors 1/10/37/64/100; flythrough.mp4 4.4 MB, 178 frames). Earlier: 20261017-0633/, 20261017-0732/. Tool: /workspace/world-run/tools/flythrough.mjs (&lite).
 
 ## Checklist
 ### 0. Orientation
@@ -68,7 +68,7 @@ Build the entire Torn Veil game world on top of the existing build (extend, don'
 - [x] Media checkpoint 1 (~03:30 CT) — skipped: session 1 hit the usage limit at 02:52; folded into checkpoint 2
 - [x] Media checkpoint 2 (~06:00 CT) — 06:33–07:10, 20261017-0633/
 - [x] Media checkpoint 3 (~08:30 CT) — taken early, 07:32–08:00, 20261017-0732/
-- [ ] Final media + final report section (~09:30 CT)
+- [x] Final media + final report section (~09:30 CT) — 08:04–08:38, 20261017-0804-final/; report under "Final report"
 
 ## Final report (session 2, 08:10 CT)
 **How to see it.** `npx vite --config vite.web.config.ts`, open `/?world` (add `&lite` on weak GPUs). WASD/QE move, Shift run, Space jump, O orbit, T time ×60, F at the pagoda door enters the floor survey ([ and ] step floors). URL params: `hour`, `speed`, `view=orbit|ground`, `floor=N`, `seed`. Canonical Tower play with library-dressed floors: `/?ascent`.
