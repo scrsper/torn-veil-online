@@ -54,7 +54,7 @@ export class PlanetTerrain {
     this.fixWinding(this.globe);
     this.globe.material = m; this.globe.receiveShadows = true; this.globe.isPickable = false;
     const wm = new StandardMaterial('planet-sea', scene);
-    wm.diffuseColor = new Color3(.025, .075, .11); wm.ambientColor = new Color3(.03, .07, .1); wm.specularColor = new Color3(.4, .42, .45); wm.specularPower = 96; wm.alpha = .9;
+    wm.diffuseColor = new Color3(.05, .13, .18); wm.ambientColor = new Color3(.06, .14, .2); wm.specularColor = new Color3(.4, .42, .45); wm.specularPower = 96; wm.alpha = .9;
     this.water = this.sphere('planet-sea-surface', spec.radius, 160); this.water.material = wm; this.water.isPickable = false; this.water.receiveShadows = true;
   }
   /** Ensure outward-facing triangles (cube faces have mixed parity). */
