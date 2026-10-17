@@ -111,14 +111,14 @@ Build the entire Torn Veil game world on top of the existing build (extend, don'
 - /?world floors are survey previews (no live wardens/combat); canonical combat is in /?ascent.
 
 ## File map
-- Sim: src/sim/world/planet/{planet,regions,motion,sky,scatter,chart,index}.ts; src/sim/world/interiors/{floorSpec,trialKitRules}.ts; src/sim/world/assets/{library.ts,libraryCatalog.json}.
+- Sim: src/sim/world/planet/{planet,regions,motion,sky,scatter,chart,pagoda,roads,aether,index}.ts; src/sim/world/interiors/{floorSpec,trialKitRules}.ts; src/sim/world/assets/{library.ts,libraryCatalog.json}.
 - Client: src/web/planet/{world,terrain,sky,pagoda,props,library,bend,towerFloors}.ts; route `/?world` in src/web/main.ts.
 - Existing Tower/quests (unchanged): src/sim/world/interiors/{tower,layout,maze,trialKit}.ts, src/sim/progression/tower.ts, src/server/{towerController,canonicalTower}.ts, src/sim/quests/{johnSmith,ledger,derive}.ts, src/web/realms/{ascent,towerThemes,focusedAssets}.ts.
-- Tests: tests/world-sphere/{planet,sky,tower-floors,library}.test.ts.
+- Tests: tests/world-sphere/{planet,sky,tower-floors,library,canonical-floors,aether}.test.ts.
 - Tools: scripts/world/sync-library.mjs; media helpers outside the repo in /workspace/world-run/tools/.
 - Run: `npx vite --config vite.web.config.ts` then open `/?world` (params: hour, speed, view=orbit|ground, floor=N, seed). Requires `node scripts/web/cook-focused-assets.mjs` once for web/public/focused/collision.json (ignored).
 
 ## Log
-- 2026-10-17 06:05– CT — Session 2 (Claude): session 1 ended on a usage limit with the Aether city uncommitted; found it invisible (sun light disabled at creation) and its streets buried (chord sag); fixed both and committed (d07eaf8). Aether building collision (025c58d) and wall sliding (9ee3313). tsc green; tests/world-sphere 30/30.
+- 2026-10-17 06:05– CT — Session 2 (Claude): session 1 ended on a usage limit (02:52) with the Aether city uncommitted; found it invisible (sun light disabled at creation) and its streets buried (chord sag); fixed both (d07eaf8). Aether collision, now a pure sim module with tests (025c58d, 0ee1fca); wall sliding (9ee3313); orbit limb-glow atmosphere replacing the shell that tinted the sea (ab3741a); forest-floor colour blend at the focused terrain edge; teleportSite hook; stand-ins wear scanned CC0 surfaces (198814d); survey overview fog fix for deep floors (c3a420c); lighter day sea (a7168c9); bridge stand-in follows its walkable ports and sits on the road (77fdccd). Media checkpoint 2 (20261017-0633/). tsc green; tests/world-sphere 32/32; web-boundary only the pre-existing quests/layer failure.
 - 2026-10-17 01:20–01:55 CT — Session 1 (Claude): orientation; planet sim module + tests (73a1cf4, 80eee46); 100-floor spec + tests (75298e2); library registry, scatter, collision (6f05031); /?world client (4d09e6c, 4d8a9da, +survey fixes). Tests: tests/world-sphere 30/30 green; tsc green; web-boundary only the pre-existing quests/layer failure. Verified in headless Chrome: orbit globe, ground-level town/forest with bent focused pack, pagoda, floor 37 survey.
 - 2026-10-17 ~01:20 CT — Run set up by Grok Bot: worktree, metadata mirror, PROGRESS.md, loop. (A box restart at ~01:05 CT wiped the first launch; re-set up.)
