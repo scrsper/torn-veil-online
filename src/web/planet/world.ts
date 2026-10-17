@@ -34,8 +34,10 @@ export async function startPlanetWorld() {
   scene.clearColor = new Color4(0, 0, 0, 1); scene.fogMode = Scene.FOGMODE_EXP2; scene.ambientColor = new Color3(.25, .25, .28);
   const camera = new FreeCamera('world-camera', new Vector3(0, spec.radius * 3, 0), scene); camera.minZ = .3; camera.maxZ = spec.radius * 12; camera.fov = .9; camera.inputs.clear();
   try { attachPipeline(ctx, camera); } catch { /* the plain forward path remains */ }
-  const sky = new PlanetSky(scene, ctx.quality.shadowMapSize >= 2048 ? 2048 : 1024); sky.atmosphere(spec.radius);
-  const terrain = new PlanetTerrain(scene, spec); buildRoads(scene, spec);
+  // &lite: smaller shadow maps and a lighter ground patch / prop ring (headless captures, weak GPUs).
+  const lite = params.has('lite');
+  const sky = new PlanetSky(scene, lite ? 1024 : ctx.quality.shadowMapSize >= 2048 ? 2048 : 1024); sky.atmosphere(spec.radius);
+  const terrain = lite ? new PlanetTerrain(scene, spec, 72, 320, 96) : new PlanetTerrain(scene, spec); buildRoads(scene, spec);
   const loader = new LibraryLoader(scene);
   const label = document.createElement('div');
   Object.assign(label.style, { position: 'fixed', left: '12px', top: '12px', padding: '8px 12px', background: 'rgba(12,14,20,.72)', color: '#e8e4d8', font: '12.5px system-ui', borderRadius: '8px', pointerEvents: 'none', whiteSpace: 'pre', zIndex: '20' });
@@ -212,7 +214,7 @@ export async function startPlanetWorld() {
   engine.runRenderLoop(tick); addEventListener('resize', () => engine.resize());
   // Content loads after first frame; each part fails independently to its fallback.
   void (async () => {
-    props = new PlanetProps(scene, spec, loader, m => sky.addCaster(m)); await props.init(); props.follow(upOf(body), true);
+    props = new PlanetProps(scene, spec, loader, m => sky.addCaster(m), lite ? 280 : 420); await props.init(); props.follow(upOf(body), true);
     await Promise.allSettled([loadLibrary(), loadTown().catch(e => { status.town = 'unavailable: ' + e; }), loadTownCollision().catch(e => { status.collision = 'none: ' + e; })]);
     (window as unknown as { __tvWorldReady: boolean }).__tvWorldReady = true;
   })();
