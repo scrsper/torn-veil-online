@@ -41,7 +41,8 @@ export const LIBRARY_PLACEMENTS: readonly LibraryPlacement[] = Object.freeze([
   P('home:tavern', 'tv_31_06_tavern', 'home', 64, 22, -Math.PI / 2),
   P('home:lane', 'tv_08_01_village_lane', 'home', -66, 4, Math.PI / 2),
   P('home:passage', 'tv_42_01_courtyard_passage', 'home', -60, -42, 0),
-  P('home:bridge', 'tv_05_01_ravine_bridge', 'home', 0, -150, 0),
+  // Walkable ports run along asset x = -8 (east +8 under the local-x→west frame): centre the deck on the road.
+  P('home:bridge', 'tv_05_01_ravine_bridge', 'home', -8, -150, 0),
   P('home:watchpost', 'tv_10_01_watchpost', 'home', 70, -150, 0),
   P('home:junction', 'tv_44_01_dungeon_junction', 'home', 76, 100, -Math.PI / 2),
   // Aether Reach's own city (generated realm chunks) fills the far plateau's centre; the
@@ -89,7 +90,6 @@ export function standInProxies(a: LibraryAsset): { x: number; z: number; r: numb
     case 'gatehouse': return [-1, 1].map(s => ({ x: cx + s * 9, z: cz, r: 4.6 }));
     case 'gate_segment': return [-1, 1].flatMap(s => [-.3, 0, .3].map(k => ({ x: cx + s * w * .3 + k * w * .38, z: cz, r: 1.4 })));
     case 'dungeon_junction': return [{ x: cx, z: cz, r: Math.min(w, d) * .3 }];
-    case 'ravine_bridge': return [-1, 1].map(s => ({ x: cx, z: cz + s * d * .3, r: 1.6 }));
     default: return [];
   }
 }

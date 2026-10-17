@@ -93,7 +93,14 @@ export function standIn(scene: Scene, a: LibraryAsset, name: string, parent: Tra
     case 'gate_segment': for (const s of [-1, 1]) box(`wall${s}`, cx + s * w * .3, 0, cz, w * .38, y1, 2.2, '#8a8274'); box('lintel', cx, y1 * .75, cz, w * .25, y1 * .25, 2.2, '#7d7568'); break;
     case 'courtyard_passage': for (let i = 0; i < 5; i++) for (const s of [-1, 1]) box(`col${i}${s}`, cx + s * w * .32, 0, z0 + d * (.1 + i * .2), .6, y1 * .8, .6, '#d8cfbd'); box('roofL', cx - w * .32, y1 * .8, cz, 2.4, .4, d, '#5b3a2c'); box('roofR', cx + w * .32, y1 * .8, cz, 2.4, .4, d, '#5b3a2c'); box('floor', cx, -.05, cz, w * .9, .1, d, '#a39a88'); break;
     case 'watchpost': for (const [sx, sz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) box(`leg${sx}${sz}`, cx + sx * 2.2, 0, cz + sz * 2.2, .5, y1 * .75, .5, '#5a3e28'); box('deck', cx, y1 * .72, cz, 6, .4, 6, '#6a4a30'); gable('roof', cx, y1 * .95, cz, 5, 5, 2, '#4a3020'); box('palisade', cx, 0, cz + d * .4, w * .8, 2.6, .5, '#6a4a30'); break;
-    case 'ravine_bridge': box('deck', cx, 4, cz, 4.2, .5, d, '#6a4a30'); for (const s of [-1, 1]) { box(`rail${s}`, cx + s * 2, 4.5, cz, .2, 1, d, '#4a3020'); box(`pier${s}`, cx, 0, cz + s * d * .3, 3, 4, 3, '#8a8274'); } break;
+    case 'ravine_bridge': {
+      // The manifest's walkable ports fix the deck: level with the ground, along the port line.
+      const px = a.ports.find(p => p.kind === 'walkable')?.position[0] ?? cx;
+      box('deck', px, -.3, cz, 4.2, .34, d, '#6a4a30');
+      for (const s of [-1, 1]) { box(`rail${s}`, px + s * 2, 0, cz, .2, 1, d * .9, '#4a3020'); box(`abutment${s}`, px, -1, cz + s * d * .47, 6, 1.4, 2.2, '#8a8274'); }
+      for (let i = -2; i <= 2; i++) for (const s of [-1, 1]) box(`post${i}${s}`, px + s * 2, 0, cz + i * d * .2, .3, 1.3, .3, '#4a3020');
+      break;
+    }
     case 'dungeon_junction': box('ruin', cx, 0, cz, w * .6, 2.2, d * .6, '#77706a'); box('stair', cx, 0, cz - d * .32, 3, .6, 2, '#5d5751'); box('dark', cx, 0, cz - d * .3, 2.4, 2, .05, '#0d0b0a'); break;
     default: box('mass', cx, 0, cz, w, y1, d, '#888');
   }
