@@ -6,7 +6,7 @@ import {
 } from '../../sim/world/planet';
 import { homeChart, planetToRealm, realmToPlanet } from '../../sim/world/planet/chart';
 import { pagodaBlocks, pagodaSupport } from '../../sim/world/planet/pagoda';
-import { LIBRARY_PLACEMENTS, libraryAsset, placementDir, placementLocal, regionLandmarks, standInProxies } from '../../sim/world/assets/library';
+import { LIBRARY_PLACEMENTS, libraryAsset, placementDir, placementLocal, regionLandmarks, standInProxies, type LibraryPlacement } from '../../sim/world/assets/library';
 import { focusedTownPlan } from '../../sim/world/assets/focusedLayouts';
 import { registerFocusedGeometry, sceneGeometry, focusedGeometryReady } from '../../sim/world/assets/focusedRuntime';
 import { focusedTerrain, terrainTriangles } from '../../sim/world/assets/focusedTerrain';
@@ -132,7 +132,11 @@ export async function startPlanetWorld() {
   // Aether Reach's canonical buildings stop the walker as the realm grid does (closed doors are solid).
   const farChart = AETHER_CHART, aetherChunkList = aetherChunks(seed), aetherBlocked = (p: V3) => aetherBlocks(spec, p);
   // Library placements on the home and far charts.
-  const libraryDirs: V3[] = [], libraryRoots: TransformNode[] = [], standInObstacles: Obstacle[] = [], glbShown = (id: string) => loader.status[id] === 'glb';
+  // Library placements are instantiated lazily, once the observer comes within draw range
+  // (START_HERE: load only nearby spaces); their containers, hash checks and collision status load up front.
+  const LIBRARY_RANGE = 700;
+  interface Placed { p: LibraryPlacement; d: V3; root: TransformNode | null; loading: boolean }
+  const placed: Placed[] = [], standInObstacles: Obstacle[] = [], glbShown = (id: string) => loader.status[id] === 'glb';
   const banks = new Map<string, PBRMaterial>();
   const bankMaterial = (d: V3) => {
     const c = terrain.tint(d, groundColour(spec, d, climateAt(spec, d).height, biomeAt(spec, d)).map(x => x * .95)), key = c.map(x => x.toFixed(2)).join();
@@ -140,22 +144,32 @@ export async function startPlanetWorld() {
     if (!m) { m = terrain.detail.clone('library-earth-banks:' + key); m.albedoColor = new Color3(c[0], c[1], c[2]); banks.set(key, m); }
     return m;
   };
+  const instantiatePlacement = async (q: Placed) => {
+    q.loading = true;
+    const { p, d } = q, f = tangentFrame(d), r = siteRadius(spec, d), root = new TransformNode('library:' + p.id, scene);
+    // Asset +Z faces chart north after yaw; frame axes (west, up, north) keep right-handedness.
+    const west = v(scale(f.east, -1)), up = v(f.up), north = v(f.north);
+    const rot = Quaternion.FromRotationMatrix(Matrix.FromValues(west.x, west.y, west.z, 0, up.x, up.y, up.z, 0, north.x, north.y, north.z, 0, 0, 0, 0, 1));
+    root.rotationQuaternion = rot.multiply(Quaternion.RotationAxis(Vector3.Up(), p.yaw)); root.position = v(scale(d, r));
+    const meshes = await loader.instantiate(p.assetId, p.id, root);
+    // The assets' own 'earth banks' ground wears the planet ground at the placement (biome
+    // colour over the shared scanned grass detail), so it reads as one ground with the patch.
+    if (loader.status[p.assetId] === 'glb') for (const m of meshes) if (/earth banks$/.test(m.material?.name ?? '')) m.material = bankMaterial(d);
+    for (const m of meshes) { if (!(m instanceof InstancedMesh)) m.receiveShadows = true; sky.addCaster(m); }
+    root.computeWorldMatrix(true); root.freezeWorldMatrix(); for (const m of meshes) freeze(m);
+    q.root = root; q.loading = false;
+    status.libraryShown = String(placed.filter(x => x.root).length) + '/' + placed.length + ' placements built';
+  };
+  const inRange = (q: Placed) => view === 'ground' && !inTower && arc(spec, upOf(body), q.d) < LIBRARY_RANGE;
   const loadLibrary = async () => {
-    for (const p of [...LIBRARY_PLACEMENTS, ...regionLandmarks(spec)]) {
-      const d = placementDir(spec, p), f = tangentFrame(d), r = siteRadius(spec, d), root = new TransformNode('library:' + p.id, scene);
-      // Asset +Z faces chart north after yaw; frame axes (west, up, north) keep right-handedness.
-      const west = v(scale(f.east, -1)), up = v(f.up), north = v(f.north);
-      const q = Quaternion.FromRotationMatrix(Matrix.FromValues(west.x, west.y, west.z, 0, up.x, up.y, up.z, 0, north.x, north.y, north.z, 0, 0, 0, 0, 1));
-      root.rotationQuaternion = q.multiply(Quaternion.RotationAxis(Vector3.Up(), p.yaw)); root.position = v(scale(d, r));
-      const meshes = await loader.instantiate(p.assetId, p.id, root);
-      // The assets' own 'earth banks' ground wears the planet ground at the placement (biome
-      // colour over the shared scanned grass detail), so it reads as one ground with the patch.
-      if (loader.status[p.assetId] === 'glb') for (const m of meshes) if (/earth banks$/.test(m.material?.name ?? '')) m.material = bankMaterial(d);
-      for (const m of meshes) { if (!(m instanceof InstancedMesh)) m.receiveShadows = true; sky.addCaster(m); }
-      root.computeWorldMatrix(true); root.freezeWorldMatrix(); for (const m of meshes) freeze(m);
-      libraryRoots.push(root); libraryDirs.push(d);
+    const list = [...LIBRARY_PLACEMENTS, ...regionLandmarks(spec)];
+    await Promise.all([...new Set(list.map(p => p.assetId))].map(id => loader.container(id)));
+    for (const p of list) {
+      placed.push({ p, d: placementDir(spec, p), root: null, loading: false });
       if (loader.status[p.assetId] === 'fallback') for (const q of standInProxies(libraryAsset(p.assetId)!)) { const c = placementLocal(p, q.x, q.z); standInObstacles.push({ dir: placementDir(spec, { ...p, ...c }), radius: q.r }); }
     }
+    // The spawn neighbourhood is built before the world reports ready.
+    for (const q of placed) if (inRange(q)) await instantiatePlacement(q);
     status.library = Object.entries(loader.status).map(([k, s]) => `${k}:${s}`).join(' ');
   };
   // The pagoda stands on the focused Tower footprint, its door toward the forest route.
@@ -281,8 +295,8 @@ export async function startPlanetWorld() {
     }
     // Lanterns behind the pagoda's lattice glow after dusk.
     const dark = 1 - (sky.last?.daylight ?? 1); pagoda.lamp.emissiveColor = new Color3(1, .7, .35).scale(.15 + .85 * dark);
-    // Only nearby library spaces are drawn (START_HERE: load only nearby spaces); none from orbit.
-    { const here = upOf(body); libraryRoots.forEach((r, i) => { const on = view === 'ground' && !inTower && arc(spec, here, libraryDirs[i]) < 700; if (r.isEnabled(false) !== on) r.setEnabled(on); }); }
+    // Only nearby library spaces are built and drawn (START_HERE: load only nearby spaces); none from orbit.
+    for (const q of placed) { const on = inRange(q); if (q.root) { if (q.root.isEnabled(false) !== on) q.root.setEnabled(on); } else if (on && !q.loading) void instantiatePlacement(q); }
     scene.render(); hud(dt);
   };
   let props: PlanetProps | null = null;

@@ -13,7 +13,7 @@ describe('ravines under the bridges', () => {
     expect(planetRavines(planetSpec(20261017))).toEqual(planetRavines(spec));
   });
   it('drops the ground under the home bridge between its banks and keeps the banks at grade', () => {
-    for (const x of [-14, -8, 0, 12, 26]) {
+    for (const x of [-12, -8, 0, 12, 24]) {
       expect(surfaceHeight(spec, at(x, 0))).toBeCloseTo(HOME_PLATEAU.height - RAVINE.depth, 3);
       expect(surfaceHeight(spec, at(x, 5.5))).toBeCloseTo(HOME_PLATEAU.height - RAVINE.depth, 3);
       expect(surfaceHeight(spec, at(x, 9.5))).toBeCloseTo(HOME_PLATEAU.height, 3);

@@ -10,7 +10,7 @@ import { dot, normalize, sub, tangentFrame, type PlanetSpec, type V3 } from './p
  * the water line to `rim` (so the asset's water ends on a shore, not in mid-air), and the
  * ravine shallows out over `run` metres past the asset's ends.
  * Placements themselves sit on the uncarved (levelled) ground. */
-export const RAVINE = { halfWidth: 6.5, bank: 2.5, depth: 4.6, rim: 3.6, shore: 4, run: 40 } as const;
+export const RAVINE = { halfWidth: 6.5, bank: 2.5, depth: 4.6, rim: 3, shore: 5, run: 40 } as const;
 export interface Ravine { dir: V3; yaw: number; x0: number; x1: number }
 const cache = new WeakMap<PlanetSpec, Ravine[]>();
 export function planetRavines(spec: PlanetSpec): Ravine[] {
