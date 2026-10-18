@@ -1,7 +1,7 @@
 /** Physical footprint of the Tower of Chrysanthus exterior (an East Asian pagoda) in its
  * local frame: +Y up, door on the -Z face, metres. Presentation builds its mesh from the
  * same numbers; the walker uses `pagodaSupport` and `pagodaBlocks` for contact. */
-export const PAGODA_SHAPE = Object.freeze({ tiers: 9, base: 22, storey: 6.4, taper: .072, podium: [16, 13.5] as const, podiumStep: 1.2, stairWidth: 6, doorWidth: 3.6 });
+export const PAGODA_SHAPE = Object.freeze({ tiers: 9, base: 22, storey: 4.8, taper: .056, podium: [16, 13.5] as const, podiumStep: 1.2, stairWidth: 6, doorWidth: 3.6 });
 /** Height of walkable stone above the surrounding ground, or null off the footprint. */
 export function pagodaSupport(x: number, z: number): number | null {
   const [outer, inner] = PAGODA_SHAPE.podium, ax = Math.abs(x), az = Math.abs(z), h = PAGODA_SHAPE.podiumStep;

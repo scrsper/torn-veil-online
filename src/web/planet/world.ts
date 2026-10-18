@@ -294,7 +294,8 @@ export async function startPlanetWorld() {
       sky.update(state, up, pos, camera.maxZ * .45, 0);
     }
     // Lanterns behind the pagoda's lattice glow after dusk.
-    const dark = 1 - (sky.last?.daylight ?? 1); pagoda.lamp.emissiveColor = new Color3(1, .7, .35).scale(.15 + .85 * dark);
+    // Keyed to the sun, not daylight (moonlight keeps daylight above zero): full glow once the sun is 6° down.
+    const dark = Math.max(0, Math.min(1, (.1 - (sky.last?.sunElevation ?? 1)) / .2)); pagoda.lamp.emissiveColor = new Color3(1, .68, .32).scale(.08 + 1.1 * dark);
     // Only nearby library spaces are built and drawn (START_HERE: load only nearby spaces); none from orbit.
     for (const q of placed) { const on = inRange(q); if (q.root) { if (q.root.isEnabled(false) !== on) q.root.setEnabled(on); } else if (on && !q.loading) void instantiatePlacement(q); }
     scene.render(); hud(dt);
