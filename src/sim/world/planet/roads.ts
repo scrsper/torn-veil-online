@@ -1,4 +1,4 @@
-import { FAR_ANCHOR, HOME_ANCHOR, HOME_ROUTE, add, arc, chartToDir, dot, landmarkSites, normalize, scale, surfaceHeight, type PlanetSpec, type V3 } from './planet';
+import { FAR_ANCHOR, HOME_ANCHOR, HOME_ROUTE, add, arc, chartToDir, cross, dot, sub, landmarkSites, normalize, scale, surfaceHeight, type PlanetSpec, type V3 } from './planet';
 import { ravineDepth } from './ravines';
 
 /** Roads: a minimum spanning tree over the settled sites (Cinderveil's south gate, Aether
@@ -61,4 +61,25 @@ export function nearRoad(spec: PlanetSpec, dir: V3, margin = 1.5): boolean {
   const d = normalize(dir), cx = Math.round(d.x * 80), cy = Math.round(d.y * 80), cz = Math.round(d.z * 80), lim = ROAD_HALF_WIDTH + margin + ROAD_STEP / 2;
   for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) for (let k = -1; k <= 1; k++) for (const p of grid.get(`${cx + i},${cy + j},${cz + k}`) ?? []) if (arc(spec, d, p) < lim) return true;
   return false;
+}
+/** Road furniture: lantern posts (focused pack module:lantern_post) on dry stretches near the
+ * settled ends of each road, every other road point, alternating sides just off the verge.
+ * None inside a settlement's levelled ground, on a ravine, or in Aether Reach's city. Pure and seeded via the roads. */
+export interface RoadLamp { id: string; dir: V3; facing: V3 }
+export const LAMP_REACH = 200, LAMP_RADIUS = .25;
+const lampCache = new WeakMap<PlanetSpec, RoadLamp[]>();
+export function roadLamps(spec: PlanetSpec): RoadLamp[] {
+  const hit = lampCache.get(spec); if (hit) return hit;
+  const out: RoadLamp[] = [], sites = landmarkSites(spec).map(s => s.dir);
+  for (const road of planetRoads(spec)) {
+    const ends = [road.points[0], road.points[road.points.length - 1]];
+    road.points.forEach((p, i) => {
+      if (i % 2 || road.wet[i] || i === 0 || i === road.points.length - 1) return;
+      if (!ends.some(e => arc(spec, p, e) < LAMP_REACH) || sites.some(s => arc(spec, p, s) < 48) || arc(spec, p, FAR_ANCHOR) < 200) return;
+      const next = road.points[i + 1], side = normalize(cross(sub(next, p), p)), s = (i / 2) % 2 ? 1 : -1;
+      const dir = normalize(add(scale(p, spec.radius), scale(side, s * (ROAD_HALF_WIDTH + .9))));
+      out.push({ id: `${road.id}:lamp:${i}`, dir, facing: normalize(scale(side, -s)) });
+    });
+  }
+  lampCache.set(spec, out); return out;
 }
