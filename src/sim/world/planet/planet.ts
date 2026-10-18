@@ -6,6 +6,7 @@
  * Reach) keep their own canonical coordinates. They are charted onto the sphere through
  * a tangent-plane map around an anchor, and the terrain is levelled there so their
  * flat geometry sits on the surface without seams. */
+import { ravineDepth } from './ravines';
 export interface PlanetSpec { version: 1; seed: number; radius: number }
 export interface V3 { x: number; y: number; z: number }
 export type Biome = 'ocean' | 'beach' | 'grassland' | 'forest' | 'taiga' | 'tundra' | 'desert' | 'savanna' | 'swamp' | 'mountain' | 'snow';
@@ -112,8 +113,15 @@ export function landmarkSites(spec: PlanetSpec): { dir: V3; height: number; regi
     .filter(s => s.height > 3 && s.height < RELIEF * .7 && clear(s.dir));
   landmarkCache.set(spec, out); return out;
 }
-/** Height above the sea sphere in metres (negative under water). */
+/** Height above the sea sphere in metres (negative under water): the levelled ground with
+ * the ravines under the bridges carved out. */
 export function surfaceHeight(spec: PlanetSpec, dir: V3): number {
+  const d = normalize(dir);
+  return siteHeight(spec, d) - ravineDepth(spec, d);
+}
+/** The levelled ground before ravines are carved: where whole-space placements are seated,
+ * and what climate and biome read (a gorge keeps its surroundings' biome). */
+export function siteHeight(spec: PlanetSpec, dir: V3): number {
   const d = normalize(dir), raw = rawHeight(spec, d);
   let h = raw;
   for (const site of landmarkSites(spec)) {
@@ -129,6 +137,7 @@ export function surfaceHeight(spec: PlanetSpec, dir: V3): number {
   return h;
 }
 export function surfaceRadius(spec: PlanetSpec, dir: V3): number { return spec.radius + surfaceHeight(spec, dir); }
+export function siteRadius(spec: PlanetSpec, dir: V3): number { return spec.radius + siteHeight(spec, dir); }
 export function surfacePoint(spec: PlanetSpec, dir: V3): V3 { const d = normalize(dir); return scale(d, surfaceRadius(spec, d)); }
 /** Outward surface normal by central differences on the height field. */
 export function surfaceNormal(spec: PlanetSpec, dir: V3, step = 2): V3 {
@@ -141,7 +150,11 @@ export function surfaceNormal(spec: PlanetSpec, dir: V3, step = 2): V3 {
 export interface Climate { height: number; temperature: number; moisture: number; biome: Biome }
 /** Temperature falls with latitude and altitude; moisture is a seeded field. */
 export function climateAt(spec: PlanetSpec, dir: V3): Climate {
-  const d = normalize(dir), height = surfaceHeight(spec, d), lat = Math.abs(Math.asin(Math.max(-1, Math.min(1, d.y))));
+  const d = normalize(dir);
+  return { ...climateOf(spec, d, siteHeight(spec, d)), height: surfaceHeight(spec, d) };
+}
+function climateOf(spec: PlanetSpec, d: V3, height: number): Climate {
+  const lat = Math.abs(Math.asin(Math.max(-1, Math.min(1, d.y))));
   const temperature = Math.max(0, Math.min(1, Math.cos(lat) * 1.1 - .12 - Math.max(0, height) / RELIEF * .55 + (fbm3(scale(d, 3), 3, salt(spec, 3)) - .5) * .25));
   const moisture = Math.max(0, Math.min(1, fbm3(scale(d, 2.6), 4, salt(spec, 4)) * 1.5 - .25));
   return { height, temperature, moisture, biome: classify(height, temperature, moisture) };
@@ -160,7 +173,7 @@ export function biomeAt(spec: PlanetSpec, dir: V3): Biome {
   const d = normalize(dir);
   // The charted home route keeps its authored meadow/forest identity.
   if (arc(spec, d, HOME_ANCHOR) < HOME_PLATEAU.flat) { const n = chartToHome(spec, d).north; return n > HOME_ROUTE.forest[0] && n < HOME_ROUTE.forest[1] ? 'forest' : 'grassland'; }
-  return climateAt(spec, d).biome;
+  return climateOf(spec, d, siteHeight(spec, d)).biome;
 }
 
 /** Tangent-plane chart (azimuthal equidistant) around an anchor: east/north metres ↔ direction.

@@ -73,7 +73,7 @@ describe('browser bundle boundary', () => {
       // clock, scatter and the realm chart. No World, entity, persistence or live RNG.
       'src/sim/world/planet/index.ts', 'src/sim/world/planet/planet.ts', 'src/sim/world/planet/regions.ts', 'src/sim/world/planet/motion.ts',
       'src/sim/world/planet/sky.ts', 'src/sim/world/planet/scatter.ts', 'src/sim/world/planet/chart.ts',
-      'src/sim/world/planet/pagoda.ts', 'src/sim/world/planet/roads.ts', 'src/sim/world/planet/aether.ts',
+      'src/sim/world/planet/pagoda.ts', 'src/sim/world/planet/roads.ts', 'src/sim/world/planet/aether.ts', 'src/sim/world/planet/ravines.ts',
       // Seeded deterministic RNG and realm addresses/names; no World access.
       'src/sim/core/rng.ts', 'src/sim/world/realms/layout.ts',
       // Library registry generated from the torn-veil-assets manifest (ids, hashes, bounds; no binaries).

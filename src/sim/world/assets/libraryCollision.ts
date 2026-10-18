@@ -1,6 +1,6 @@
 import collisionData from './libraryCollision.json';
 import { LIBRARY_PLACEMENTS, libraryAsset, placementDir, regionLandmarks, type LibraryPlacement } from './library';
-import { arc, dot, normalize, scale, sub, surfaceRadius, tangentFrame, type PlanetSpec, type V3 } from '../planet/planet';
+import { arc, dot, normalize, scale, siteRadius, sub, tangentFrame, type PlanetSpec, type V3 } from '../planet/planet';
 
 /** Walker collision for the real library GLBs, cooked from their geometry by
  * scripts/world/cook-library-collision.mjs (the library ships no colliders). Per asset: a
@@ -47,7 +47,7 @@ function placed(spec: PlanetSpec): Placed[] {
 /** Planet point → placement-local (x, z), inverting the client's root frame (local +x west, +z
  * north, then yaw), and the root's radius. */
 export function placementLocalOf(spec: PlanetSpec, dir: V3, yaw: number, p: V3) {
-  const f = tangentFrame(dir), rootR = surfaceRadius(spec, dir), rel = sub(p, scale(dir, rootR)), w = -dot(rel, f.east), n = dot(rel, f.north), c = Math.cos(yaw), s = Math.sin(yaw);
+  const f = tangentFrame(dir), rootR = siteRadius(spec, dir), rel = sub(p, scale(dir, rootR)), w = -dot(rel, f.east), n = dot(rel, f.north), c = Math.cos(yaw), s = Math.sin(yaw);
   return { x: w * c - n * s, z: w * s + n * c, rootR };
 }
 const BODY = [[0, 0], [.3, 0], [-.3, 0], [0, .3], [0, -.3]] as const;

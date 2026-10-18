@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LIBRARY, LIBRARY_PLACEMENTS, libraryAsset, placementDir, provenanceOk, usableLibrary } from '../../src/sim/world/assets/library';
-import { HOME_ANCHOR, PROP_ASSET, arc, planetSpec, propsNear, reserved, resolveObstacles, spawnBody, surfaceHeight, HOME_PLATEAU, normalize, sub, dot, length, scale, upOf } from '../../src/sim/world/planet';
+import { HOME_ANCHOR, PROP_ASSET, arc, planetSpec, propsNear, reserved, resolveObstacles, spawnBody, siteHeight, surfaceHeight, HOME_PLATEAU, normalize, sub, dot, length, scale, upOf } from '../../src/sim/world/planet';
 
 const spec = planetSpec(20261017);
 describe('asset library registry', () => {
@@ -19,7 +19,7 @@ describe('asset library registry', () => {
   it('places every usable asset, on level ground, using known ids', () => {
     const placed = new Set([...LIBRARY_PLACEMENTS.map(p => p.assetId), ...Object.values(PROP_ASSET).filter(Boolean)]);
     for (const a of usableLibrary()) expect(placed.has(a.id), a.id).toBe(true);
-    for (const p of LIBRARY_PLACEMENTS) { expect(libraryAsset(p.assetId)).toBeDefined(); expect(surfaceHeight(spec, placementDir(spec, p))).toBeCloseTo(HOME_PLATEAU.height, 2); }
+    for (const p of LIBRARY_PLACEMENTS) { expect(libraryAsset(p.assetId)).toBeDefined(); expect(siteHeight(spec, placementDir(spec, p))).toBeCloseTo(HOME_PLATEAU.height, 2); }
   });
 });
 describe('seeded props and collision', () => {

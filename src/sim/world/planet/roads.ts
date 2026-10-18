@@ -1,4 +1,5 @@
 import { FAR_ANCHOR, HOME_ANCHOR, HOME_ROUTE, add, arc, chartToDir, dot, landmarkSites, normalize, scale, surfaceHeight, type PlanetSpec, type V3 } from './planet';
+import { ravineDepth } from './ravines';
 
 /** Roads: a minimum spanning tree over the settled sites (Cinderveil's south gate, Aether
  * Reach and every landmark), each edge a sampled great-circle route. Stretches below the
@@ -11,6 +12,11 @@ function slerp(a: V3, b: V3, t: number): V3 {
   if (w < 1e-9) return a;
   const s = Math.sin(w);
   return normalize(add(scale(a, Math.sin((1 - t) * w) / s), scale(b, Math.sin(t * w) / s)));
+}
+/** Points below the shore, or on or beside a ravine (its bridge carries the way across), are not drawn as road. */
+function wetPoints(spec: PlanetSpec, points: V3[]): boolean[] {
+  const gorge = (p: V3) => ravineDepth(spec, p) > 0, mid = (a: V3, b: V3) => normalize(add(a, b));
+  return points.map((p, i) => surfaceHeight(spec, p) < 1 || gorge(p) || (i > 0 && gorge(mid(points[i - 1], p))) || (i < points.length - 1 && gorge(mid(p, points[i + 1]))));
 }
 const cache = new WeakMap<PlanetSpec, Road[]>();
 export function planetRoads(spec: PlanetSpec): Road[] {
@@ -32,14 +38,14 @@ export function planetRoads(spec: PlanetSpec): Road[] {
     edges.push(best!); inTree.add(best![1]);
   }
   const out = edges.map(([a, b], k) => {
-    const n = Math.max(2, Math.ceil(arc(spec, nodes[a], nodes[b]) / ROAD_STEP)), points: V3[] = [], wet: boolean[] = [];
-    for (let i = 0; i <= n; i++) { const p = slerp(nodes[a], nodes[b], i / n); points.push(p); wet.push(surfaceHeight(spec, p) < 1); }
-    return { id: `road:${k}`, from: a, to: b, points, wet };
+    const n = Math.max(2, Math.ceil(arc(spec, nodes[a], nodes[b]) / ROAD_STEP)), points: V3[] = [];
+    for (let i = 0; i <= n; i++) points.push(slerp(nodes[a], nodes[b], i / n));
+    return { id: `road:${k}`, from: a, to: b, points, wet: wetPoints(spec, points) };
   });
   // Spur from the network's gate node north to the town gatehouse, over the ravine bridge.
   const spurEnd = chartToDir(HOME_ANCHOR, 0, -98, spec.radius), m = Math.ceil(arc(spec, gate, spurEnd) / ROAD_STEP), spur: V3[] = [];
   for (let i = 0; i <= m; i++) spur.push(slerp(gate, spurEnd, i / m));
-  out.unshift({ id: 'road:home-gate', from: 0, to: 0, points: spur, wet: spur.map(p => surfaceHeight(spec, p) < 1) });
+  out.unshift({ id: 'road:home-gate', from: 0, to: 0, points: spur, wet: wetPoints(spec, spur) });
   cache.set(spec, out); return out;
 }
 /** Is a direction on a dry stretch of road (within the half width plus a margin)? */

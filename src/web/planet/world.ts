@@ -1,8 +1,8 @@
-import { Color3, Color4, FreeCamera, InstancedMesh, Material, Matrix, Mesh, VertexData, MeshBuilder, Quaternion, Scene, StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
+import { Color3, Color4, FreeCamera, InstancedMesh, Material, Matrix, Mesh, PBRMaterial, VertexData, MeshBuilder, Quaternion, Scene, StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
 import { createRenderer, attachPipeline } from '../render/engine';
 import {
-  HOME_ANCHOR, add, arc, landmarkSites, dot, sub, biomeAt, chartToHome, homeToDir, length, localHour, normalize, planetSpec, propsNear, regionAt, resolveObstacles, scale, skyAt,
-  spawnBody, stepSurface, surfaceRadius, tangentFrame, toLatLon, upOf, DAY_SECONDS, START_HOUR, type Obstacle, type SurfaceBody, type SurfaceInput, type V3,
+  HOME_ANCHOR, add, arc, landmarkSites, dot, sub, biomeAt, climateAt, chartToHome, homeToDir, length, localHour, normalize, planetSpec, propsNear, regionAt, resolveObstacles, scale, skyAt,
+  spawnBody, stepSurface, siteRadius, surfaceRadius, tangentFrame, toLatLon, upOf, DAY_SECONDS, START_HOUR, type Obstacle, type SurfaceBody, type SurfaceInput, type V3,
 } from '../../sim/world/planet';
 import { homeChart, planetToRealm, realmToPlanet } from '../../sim/world/planet/chart';
 import { pagodaBlocks, pagodaSupport } from '../../sim/world/planet/pagoda';
@@ -15,7 +15,7 @@ import type { StaticGeometry } from '../../sim/physical/staticGeometry';
 import { realmSeed } from '../../sim/world/realms/layout';
 import { FocusedAssets } from '../realms/focusedAssets';
 import type { Atmosphere } from '../world/atmosphere';
-import { PlanetTerrain } from './terrain';
+import { PlanetTerrain, groundColour } from './terrain';
 import { PlanetSky } from './sky';
 import { PlanetProps } from './props';
 import { LibraryLoader } from './library';
@@ -133,16 +133,24 @@ export async function startPlanetWorld() {
   const farChart = AETHER_CHART, aetherChunkList = aetherChunks(seed), aetherBlocked = (p: V3) => aetherBlocks(spec, p);
   // Library placements on the home and far charts.
   const libraryDirs: V3[] = [], libraryRoots: TransformNode[] = [], standInObstacles: Obstacle[] = [], glbShown = (id: string) => loader.status[id] === 'glb';
+  const banks = new Map<string, PBRMaterial>();
+  const bankMaterial = (d: V3) => {
+    const c = terrain.tint(d, groundColour(spec, d, climateAt(spec, d).height, biomeAt(spec, d)).map(x => x * .95)), key = c.map(x => x.toFixed(2)).join();
+    let m = banks.get(key);
+    if (!m) { m = terrain.detail.clone('library-earth-banks:' + key); m.albedoColor = new Color3(c[0], c[1], c[2]); banks.set(key, m); }
+    return m;
+  };
   const loadLibrary = async () => {
     for (const p of [...LIBRARY_PLACEMENTS, ...regionLandmarks(spec)]) {
-      const d = placementDir(spec, p), f = tangentFrame(d), r = surfaceRadius(spec, d), root = new TransformNode('library:' + p.id, scene);
+      const d = placementDir(spec, p), f = tangentFrame(d), r = siteRadius(spec, d), root = new TransformNode('library:' + p.id, scene);
       // Asset +Z faces chart north after yaw; frame axes (west, up, north) keep right-handedness.
       const west = v(scale(f.east, -1)), up = v(f.up), north = v(f.north);
       const q = Quaternion.FromRotationMatrix(Matrix.FromValues(west.x, west.y, west.z, 0, up.x, up.y, up.z, 0, north.x, north.y, north.z, 0, 0, 0, 0, 1));
       root.rotationQuaternion = q.multiply(Quaternion.RotationAxis(Vector3.Up(), p.yaw)); root.position = v(scale(d, r));
-      let meshes = await loader.instantiate(p.assetId, p.id, root);
-      // The planet carves no gorge under the ravine bridge, so its gorge water would lie at grade.
-      if (loader.status[p.assetId] === 'glb' && libraryAsset(p.assetId)?.family === 'ravine_bridge') meshes = meshes.filter(m => { const water = /RUNTIME_water/.test(m.name) || /RUNTIME_water/.test(m.parent?.name ?? ''); if (water) m.dispose(); return !water; });
+      const meshes = await loader.instantiate(p.assetId, p.id, root);
+      // The assets' own 'earth banks' ground wears the planet ground at the placement (biome
+      // colour over the shared scanned grass detail), so it reads as one ground with the patch.
+      if (loader.status[p.assetId] === 'glb') for (const m of meshes) if (/earth banks$/.test(m.material?.name ?? '')) m.material = bankMaterial(d);
       for (const m of meshes) { if (!(m instanceof InstancedMesh)) m.receiveShadows = true; sky.addCaster(m); }
       root.computeWorldMatrix(true); root.freezeWorldMatrix(); for (const m of meshes) freeze(m);
       libraryRoots.push(root); libraryDirs.push(d);
