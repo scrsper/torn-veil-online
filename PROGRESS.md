@@ -144,7 +144,7 @@ Bounded repair/verification, not a redesign. No commits (parent reconciles into 
 - **Next safe implementation (not done here).** One host-owned slice with save/reload tests: sphere observer → pagoda door → canonical Tower floor 1 via the realms host/TowerController → clear → John Smith receipt issued once → return to the sphere. It also needs a save/reload round-trip proving the receipt is not reissued and the position and clock come from host state. Library collision must come from the committed sim footprints (`libraryCollision.json` keyed by asset id and sha256) whatever the browser's GLB load state, so the host and client agree before assets finish loading. Test it headless first (a RealmRuntime-level test), then add a browser smoke.
 
 ## Known bugs
-- (Fixed locally 2026-10-18, uncommitted; see the Windows verification pass) tests/web-boundary.test.ts failed on `src/sim/quests/layer.ts` imported by src/web/quests/objectives.ts; the tracker now lives in src/web/quests/tracker.ts.
+- (Fixed by the PC verification pass, committed in ca81243; boundary 7/7 on the box) tests/web-boundary.test.ts failed on `src/sim/quests/layer.ts` imported by src/web/quests/objectives.ts; the tracker now lives in src/web/quests/tracker.ts.
 - Babylon warns "receiveShadows on an instanced mesh" from FocusedAssets.instantiate (pre-existing, harmless).
 - /?world floors are survey previews (no live wardens/combat); canonical combat is in /?ascent.
 - Aether Reach buildings can't be entered from /?world (doors are closed solids, as in RealmGrid without a door-open action); its realm Tower building is omitted.
