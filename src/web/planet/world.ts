@@ -7,7 +7,7 @@ import {
 import { homeChart, planetToRealm, realmToPlanet } from '../../sim/world/planet/chart';
 import { settlementDressing, type Dressing } from '../../sim/world/assets/dressing';
 import { pagodaBlocks, pagodaSupport } from '../../sim/world/planet/pagoda';
-import { LIBRARY_PLACEMENTS, libraryAsset, placementDir, placementLocal, regionLandmarks, standInProxies, type LibraryPlacement } from '../../sim/world/assets/library';
+import { LIBRARY_PLACEMENTS, libraryAsset, placementDir, regionLandmarks, type LibraryPlacement } from '../../sim/world/assets/library';
 import { focusedTownPlan } from '../../sim/world/assets/focusedLayouts';
 import { registerFocusedGeometry, sceneGeometry, focusedGeometryReady } from '../../sim/world/assets/focusedRuntime';
 import { focusedTerrain, terrainTriangles } from '../../sim/world/assets/focusedTerrain';
@@ -137,7 +137,9 @@ export async function startPlanetWorld() {
   // (START_HERE: load only nearby spaces); their containers, hash checks and collision status load up front.
   const LIBRARY_RANGE = 700;
   interface Placed { p: LibraryPlacement; d: V3; root: TransformNode | null; loading: boolean }
-  const placed: Placed[] = [], standInObstacles: Obstacle[] = [], glbShown = (id: string) => loader.status[id] === 'glb';
+  const placed: Placed[] = [], collides = (id: string) => libraryAsset(id)?.verdict === 'use';
+  // ^ Collision is simulation data (cooked footprints keyed by id + sha256), applied for every
+  //   approved library asset whatever the browser's load state, so it never changes as GLBs arrive.
   const banks = new Map<string, PBRMaterial>();
   const bankMaterial = (d: V3) => {
     const c = terrain.tint(d, groundColour(spec, d, climateAt(spec, d).height, biomeAt(spec, d)).map(x => x * .95)), key = c.map(x => x.toFixed(2)).join();
@@ -167,7 +169,6 @@ export async function startPlanetWorld() {
     await Promise.all([...new Set(list.map(p => p.assetId))].map(id => loader.container(id)));
     for (const p of list) {
       placed.push({ p, d: placementDir(spec, p), root: null, loading: false });
-      if (loader.status[p.assetId] === 'fallback') for (const q of standInProxies(libraryAsset(p.assetId)!)) { const c = placementLocal(p, q.x, q.z); standInObstacles.push({ dir: placementDir(spec, { ...p, ...c }), radius: q.r }); }
     }
     // The spawn neighbourhood is built before the world reports ready.
     for (const q of placed) if (inRange(q)) await instantiatePlacement(q);
@@ -270,7 +271,6 @@ export async function startPlanetWorld() {
   const fixed = 1 / 60; let acc = 0, last = performance.now(), hudT = 0;
   const obstacles = (): Obstacle[] => {
     const here = upOf(body), list: Obstacle[] = propsNear(spec, here, 12).filter(p => p.radius > 0).map(p => ({ dir: p.dir, radius: p.radius }));
-    for (const o of standInObstacles) if (arc(spec, here, o.dir) < o.radius + 8) list.push(o);
     for (const l of furniture) if (arc(spec, here, l.dir) < 8) list.push({ dir: l.dir, radius: l.radius });
     return list;
   };
@@ -300,10 +300,10 @@ export async function startPlanetWorld() {
     // Real library GLBs: their cooked footprints stop the body at walls and rails and carry it
     // over floors and decks (the bridge), rising at most a step at a time.
     {
-      const before = libraryContact(spec, prev.pos, glbShown), now = libraryContact(spec, body.pos, glbShown), r0 = length(prev.pos);
+      const before = libraryContact(spec, prev.pos, collides), now = libraryContact(spec, body.pos, collides), r0 = length(prev.pos);
       const tooHigh = (c: { floorRadius: number | null }) => c.floorRadius !== null && c.floorRadius - r0 > .45;
-      if ((now.blocked && !before.blocked) || tooHigh(now)) body = slide(prev, body, p => { const c = libraryContact(spec, p, glbShown); return c.blocked || tooHigh(c); });
-      const c = libraryContact(spec, body.pos, glbShown);
+      if ((now.blocked && !before.blocked) || tooHigh(now)) body = slide(prev, body, p => { const c = libraryContact(spec, p, collides); return c.blocked || tooHigh(c); });
+      const c = libraryContact(spec, body.pos, collides);
       if (c.floorRadius !== null) { const up = upOf(body), r = length(body.pos); if (r <= c.floorRadius + .06 || body.grounded && r - c.floorRadius < .5) body = { ...body, pos: scale(up, c.floorRadius), grounded: true, vel: body.vel }; }
     }
     // Inside the charted town, the realm's own static geometry carries the body.
