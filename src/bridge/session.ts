@@ -270,6 +270,8 @@ export class BridgeSession {
     if(c.type==='cancel') return cancelArcaneCast(w,b)?'accepted':cancelCombatAction(w,b.id);
     if(c.type==='cast') return requestArcaneCast(w,p,{bodyId:b.id,abilityId:c.abilityId,target:c.target,scrollItemId:c.scrollItemId});
     if(c.type==='integrate_arcana') return integrateArcaneSources(w,p,b);
+    // The shared timed breakthrough action (Iron, then the level-gated rank trials).
+    if(c.type==='advance') return this.game.intend(ch.id,{kind:'advance'})?'accepted':'cannot_advance';
     if(c.type==='learn_arcana') return learnArcaneSource(w,p,b.id,c.itemId);
     if(c.type==='interact') return performHandInteraction(this.sim,p,c.interactionId);
     if(c.type==='container_transfer') return performContainerTransfer(this.sim,p,c.containerId,c.itemId,c.direction);

@@ -1,12 +1,15 @@
 import type { World } from '../../core/world';
 import { ARCANE_DEFINITIONS, KERNEL_GEOMETRY } from './definitions';
-import { TRANSFORMATIONS, LEGACY_TRANSFORMATIONS, SOURCE_GROWTH_POLICY } from './growth';
+import { TRANSFORMATIONS, LEGACY_TRANSFORMATIONS, SOURCE_GROWTH_POLICY, CONTROL_STAGES } from './growth';
 import { ONTOLOGICAL_STAGES } from '../../core/stages';
+import { SOURCE_DIAMOND } from '../../progression/levels';
 const bounded = (n: unknown, low: number, high: number) => typeof n === 'number' && Number.isFinite(n) && n >= low && n <= high;
 const record = (o: unknown): o is Record<string, any> => !!o && typeof o === 'object' && !Array.isArray(o);
 
 /** Fail closed on malformed new mechanics. Legacy worlds simply have no components. */
 export function validArcaneWorld(w: World, saveVersion: number): boolean {
+  // Schema 32 adds source Diamond (amplitude 45, aperture 20, reserve 480); earlier schemas keep their bounds.
+  const limit = (v31: number, v32: number, older: number) => saveVersion >= 32 ? v32 : saveVersion >= 31 ? v31 : older;
   for (const i of w.items()) {
     if (i.arcaneFocus && (saveVersion < 31 || i.arcaneFocus.version !== 1 || !bounded(i.arcaneFocus.amplitude, 1, 20)
       || !bounded(i.arcaneFocus.aperture, 1, 12) || !bounded(i.arcaneFocus.reserve, 100, 320))) return false;
@@ -69,18 +72,23 @@ export function validArcaneWorld(w: World, saveVersion: number): boolean {
           .map(([id]) => ARCANE_DEFINITIONS.get(id)?.kernel));
         const essences = Object.entries(p.arcana.learned).filter(([id,l]) => ARCANE_DEFINITIONS.get(id)?.source === 'essence' && e.causes.includes(l.eventId));
         if (victories.length < rule.victories || forms.size < rule.forms || essences.length < rule.essences
-          || rule.stage === 'Gold' && victories.reduce((n,v) => n + v.quality,0) / victories.length < .97) return false;
+          || CONTROL_STAGES.includes(rule.stage) && victories.reduce((n,v) => n + v.quality,0) / victories.length < .97) return false;
+        if (rule.stage === 'Diamond') {
+          const feats = e.data.experience?.feats;
+          if (saveVersion < 32 || e.data.experience?.peak !== true || !Array.isArray(feats) || feats.length < SOURCE_DIAMOND.feats
+            || new Set(feats).size !== feats.length || feats.some((id: string) => !e.causes.includes(id) || w.event(id)?.type !== 'attack')) return false;
+        }
       }
     }
   }
   for (const b of w.bodies()) if (b.arcana) {
     const a = b.arcana;
-    if (saveVersion < 28 || a.version !== 1 || !bounded(a.mana, 0, saveVersion >= 31 ? 320 : 100) || !bounded(a.sampledAt, 0, w.physicalTime + 1e-6)
+    if (saveVersion < 28 || a.version !== 1 || !bounded(a.mana, 0, limit(320, 480, 100)) || !bounded(a.sampledAt, 0, w.physicalTime + 1e-6)
       || !record(a.cooldowns) || Object.keys(a.cooldowns).length > ARCANE_DEFINITIONS.size || !Array.isArray(a.effects) || a.effects.length > 6) return false;
     for (const [id, until] of Object.entries(a.cooldowns)) if (!ARCANE_DEFINITIONS.has(id) || !bounded(until, 0, w.physicalTime + 120)) return false;
     if (new Set(a.effects.map(e => e.kind)).size !== a.effects.length) return false;
     for (const e of a.effects) if (!['ward', 'chill', 'haste', 'frenzy', 'wet', 'imbue'].includes(e.kind)
-      || !bounded(e.until, 0, w.physicalTime + 30) || !bounded(e.strength, 0, saveVersion >= 31 ? 1000 : 100) || !w.body(e.sourceBodyId)
+      || !bounded(e.until, 0, w.physicalTime + 30) || !bounded(e.strength, 0, limit(1000, 6000, 100)) || !w.body(e.sourceBodyId)
       || w.event(e.sourceEventId)?.type !== 'arcane_cast') return false;
     if (a.cast) {
       const c = a.cast, d = ARCANE_DEFINITIONS.get(c.abilityId), e = w.event(c.eventId);
@@ -89,8 +97,8 @@ export function validArcaneWorld(w: World, saveVersion: number): boolean {
         || typeof c.resolved !== 'boolean' || typeof c.cancelled !== 'boolean' || !record(c.target)
         || ![c.target.x, c.target.y, c.target.z, c.facing].every(Number.isFinite)
         || !bounded(c.startedAt, 0, w.physicalTime + 1e-6) || !bounded(c.activeAt, c.startedAt, c.startedAt + 5)
-        || !bounded(c.completeAt, c.startedAt, c.startedAt + 10) || !bounded(c.damage, 0, saveVersion >= 31 ? 1000 : 100) || !bounded(c.power, 0, saveVersion >= 31 ? 30 : 3)
-        || !bounded(c.range, 0, saveVersion >= 31 ? 144 : 20) || !bounded(c.radius, 0, saveVersion >= 31 ? 30 : 12) || !Array.isArray(c.riders)
+        || !bounded(c.completeAt, c.startedAt, c.startedAt + 10) || !bounded(c.damage, 0, limit(1000, 6000, 100)) || !bounded(c.power, 0, limit(30, 120, 3))
+        || !bounded(c.range, 0, limit(144, 300, 20)) || !bounded(c.radius, 0, limit(30, 40, 12)) || !Array.isArray(c.riders)
         || JSON.stringify(c.riders) !== JSON.stringify(d.riders)) return false;
     }
   }

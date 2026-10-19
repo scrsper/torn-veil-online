@@ -111,7 +111,8 @@ export async function startCanonicalAscent() {
     if (!frame) return;
     const { own, tower } = frame;
     el('as-title').textContent = `Floor ${tower.floor} · ${tower.clear ? 'Trial cleared' : tower.defeated+'/'+tower.opponents+' wardens'}`;
-    el('as-status').textContent = `${own.name} · ${own.rank}\nVitality ${Math.ceil(own.health)}/${own.maxHealth} · Mana ${Math.floor(own.mana)}/${own.capacity.reserve}`;
+    const xp = own.experience, level = xp.leveled ? ` · ${xp.label} (level ${xp.level}) · ${xp.peak ? 'peak' : `${xp.xpIntoLevel}/${xp.xpForLevel} XP`}` : '';
+    el('as-status').textContent = `${own.name} · ${own.rank}${level}\nVitality ${Math.ceil(own.health)}/${own.maxHealth} · Mana ${Math.floor(own.mana)}/${own.capacity.reserve}`;
     el('as-detail').textContent = `${own.name} · ${own.rank} · Vitality ${Math.ceil(own.health)} / ${own.maxHealth} · Mana ${Math.floor(own.mana)} / ${own.capacity.reserve} · Breath ${Math.round(own.breath * 100)}% · Fatigue ${Math.round(own.fatigue * 100)}% · Food ${Math.round(own.food * 100)}% · Water ${Math.round(own.water * 100)}% · ${tower.defeated}/${tower.opponents} wardens`;
     el('as-goal').textContent = tower.floor===100&&tower.clear?'Summit recognition · Journey for requirements':tower.clear?'Open award chest · E take · F ascend':'Defeat the wardens · G guard · Space dodge';
     const rest = frame.snapshot.abilities.find(a => a.id === 'rest' || a.id === 'wake');

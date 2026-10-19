@@ -4,6 +4,8 @@ import {combatState} from '../../../bridge/combatState';
 import {guardHeld} from '../../physical/guard';
 import {equipmentProjection} from '../../physical/equipment';
 import {arcaneProgress} from '../../physical/arcana/growth';
+import {experienceSummary} from '../../progression/experience';
+import {assessBreakthrough} from '../../core/advancement';
 import {handInteractions} from '../../physical/hand';
 import {recogniseClass} from '../../mind/vocation';
 import type {Body} from '../../core/types';
@@ -185,7 +187,8 @@ export class RealmSession {
       body: { id: this.body.id, pos: { ...p }, yaw: this.body.yaw, hp: this.body.health, maxHp: this.body.maxHealth },
       avatar:this.visual(this.body),
       growth:arcaneProgress(w,this.person,this.body),
-      development:{recognisedClass:this.recognised,skills:{...this.person.skills},practice:this.person.capability?.bySkill??{}},
+      development:{recognisedClass:this.recognised,skills:{...this.person.skills},practice:this.person.capability?.bySkill??{},
+        experience:experienceSummary(w,this.person),breakthrough:(({eligible,next,reasons})=>({eligible,next,reasons:reasons.slice(0,4)}))(assessBreakthrough(w,this.person))},
       interactions:handInteractions(this.sim,this.person),
       casts:visible.flatMap(n=>{const b=w.primaryBody(n.id),c=b?.arcana?.cast;return b&&c&&c.completeAt+.3>=w.physicalTime?[{...c,origin:{...b.pos}}]:[];}),
       expedition: w.realmExpedition ? { active: w.realmExpedition.active, status: w.realmExpedition.status, runId: w.realmExpedition.runId, revision: w.realmExpedition.revision } : null,

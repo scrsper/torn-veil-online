@@ -1,5 +1,29 @@
 # Durable design decisions
 
+## Levels, experience and the rank ladder to Diamond (2026-10-19)
+
+Levels measure growth within a rank: ten per rank from Normal to Diamond, exponential cost
+(100 × 1.2^(L−1)), shown as "<rank> <0-9>" and as global level 1–60. Experience comes only
+from explicit adapters over canonical events (defeats in the shared hit resolver, credited
+practice, new foundation points, cleared Tower floors, learned forms, once-only achievements);
+each event pays a person once. Defeat pays a share of the victim's level cost with a bounded
+DotF level-gap factor, so stronger foes pay more and far weaker ones nothing. A full track is
+a bottleneck: overflow is not banked; a breakthrough opens the next rank at 0.
+
+Every breakthrough remakes the body: a stored, event-pinned vessel multiplies original maximum
+health and the body's own strikes and raises the foundation ceiling. Health fraction and
+injuries are preserved. Labels still never resolve combat; the vessel is the capability.
+Existing Normal→Iron and Iron–Gold source gates are unchanged. New gates use levels: embodied
+Bronze–Diamond trials and the source Diamond row require peak level and victories over threats
+at the current band. Diamond ends the leveled ladder; godhood remains an ontological transition.
+
+Threat levels for people, animals and items are capability estimates against an ordinary
+reference adult, used for experience valuation and display only. Other people's levels are not
+observer knowledge. Rejected: XP awarded by callers or floor counters, retroactive conversion
+of pre-ledger history, rank-label combat multipliers, banking overflow across ranks. Measured
+consequence: current content tops out near Iron-band threat, so higher-band levels need
+higher-threat content. Schema 32. See docs/LEVELING_AND_RANKS.md.
+
 ## Earned source capacity and bounded Tower residency (2026-10-09)
 
 An authored essence route changes physical amplitude, aperture and reserve only

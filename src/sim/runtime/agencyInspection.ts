@@ -2,6 +2,8 @@ import type { World } from '../core/world';
 import { personKnowledgeView } from './knowledgeView';
 import { assessAdvancement } from '../core/advancement';
 import { socialEvidence } from '../mind/socialEvidence';
+import { experienceSummary } from '../progression/experience';
+import { personThreat } from '../progression/threat';
 
 /** Explicit developer inspection. Detached and read-only; never a cognition input. */
 export function inspectAgency(world: World, personId: string, subjectId?: string) {
@@ -19,6 +21,7 @@ export function inspectAgency(world: World, personId: string, subjectId?: string
         .map(e => ({ event: e.id, causes: e.causes, at: e.tick, reason: e.data.reason, delta: e.data.delta })),
     })),
     agency: { selected: p.mind.goal, considered: p.mind.decision, attention: p.mind.attention },
-    capability: { experience: p.capability ?? null, advancement: assessAdvancement(world, p) },
+    capability: { experience: p.capability ?? null, advancement: assessAdvancement(world, p),
+      levels: experienceSummary(world, p), threat: { equipped: personThreat(world, p), intrinsic: personThreat(world, p, undefined, { equipped: false }) } },
   });
 }

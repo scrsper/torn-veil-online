@@ -3,6 +3,7 @@ import type { PracticedSkillId } from './martialTypes';
 import type { World } from './world';
 import { instructionFactor, practiceSkill } from './skills';
 import { developThroughPractice } from './development';
+import { recordPracticeExperience } from '../progression/experience';
 
 const DAY = 86400;
 const MAX_DAILY_SECONDS = 8 * 3600;
@@ -115,6 +116,8 @@ export function recordCapabilityPractice(world: World, p: Person, input: Capabil
     const foundationChallenge = source.data.martial === 'practice' ? 13 : 15.5;
     developThroughPractice(world, p, input.skill, effective / 60, instructionFactor(p, input.skill), foundationChallenge);
   } else practiceSkill(p, input.skill, effective / 60, world, 8 + 10 * challenge);
+  // The same credited seconds are experience; the source event pays each person once.
+  recordPracticeExperience(world, p, input.sourceEventId, effective);
   return { credited: true, effectiveSeconds: effective };
 }
 

@@ -1,7 +1,9 @@
 import type { AttributeId, Attributes, Person, SkillId } from './types';
 import type { World } from './world';
-import { ATTRIBUTE_IDS, clamp, NORMAL_CEILING, individualRng } from './human';
+import { ATTRIBUTE_IDS, attributeCeiling, clamp, NORMAL_CEILING, individualRng } from './human';
 import type { PracticedSkillId } from './martialTypes';
+import { isLeveledRank } from '../progression/levels';
+import { recordFoundationExperience } from '../progression/experience';
 
 export interface DevelopmentStimulus {
   weights: Partial<Attributes>;
@@ -27,9 +29,11 @@ export const DEVELOPMENT_HOURS = 0.6;
  * a day of hauling does not use up the attention that tracking game develops. */
 export const MAX_DAILY_EXPOSURE = 8 * HOUR;
 
-/** One curve for all seven foundations. Potential is resistance, never a cap. */
-export function developmentRate(current: number, potential: number): number {
-  if (current >= NORMAL_CEILING) return 0;
+/** One curve for all seven foundations. Potential is resistance, never a cap. A rank vessel
+ * raises the ceiling and shifts potential by the same amount, so a remade body meets the same
+ * resistance relative to its new limit; Normal bodies are unchanged. */
+export function developmentRate(current: number, potential: number, ceiling = NORMAL_CEILING): number {
+  if (current >= ceiling) return 0;
   return Math.exp(clamp((potential - current - 2) * 0.35, -12, 1))
     / (DEVELOPMENT_HOURS * HOUR * Math.pow(Math.max(1, current) / 8, 2));
 }
@@ -51,7 +55,7 @@ export function deliberateResponse(challenge?: number): number {
  * The per-day physiological exposure budget prevents concurrent bodies/work hooks multiplying time.
  * Neither job labels, injuries, birthdays nor stored stress call this function. */
 export function develop(world: World, p: Person, s: DevelopmentStimulus): void {
-  if (!p.alive || !['Normal', 'Iron'].includes(p.ontology.stage) || !Number.isFinite(s.seconds) || s.seconds <= 0 || !Number.isFinite(s.intensity) || s.intensity <= 0) return;
+  if (!p.alive || !isLeveledRank(p.ontology.stage) || !Number.isFinite(s.seconds) || s.seconds <= 0 || !Number.isFinite(s.intensity) || s.intensity <= 0) return;
   if (!ATTRIBUTE_IDS.some(id => Number.isFinite(s.weights[id]) && s.weights[id]! > 0)) return;
   const bodies = p.bodies.map(id => world.body(id)).filter(b => b && !b.dead && b.present);
   if (!bodies.length) return;
@@ -63,6 +67,7 @@ export function develop(world: World, p: Person, s: DevelopmentStimulus): void {
   if (day !== d.day) { d.day = day; d.dailyExposure = 0; d.dailyByFoundation = {}; }
   const daily = d.dailyByFoundation ??= {};
   const intensity = clamp(s.intensity, 0, 1), instruction = clamp(s.instruction ?? 1, 0.5, 1.6);
+  const ceiling = attributeCeiling(p), lift = ceiling - NORMAL_CEILING;
   for (const id of ATTRIBUTE_IDS) {
     const weight = clamp(s.weights[id] ?? 0, 0, 1);
     if (!weight || !Number.isFinite(weight)) continue;
@@ -76,15 +81,16 @@ export function develop(world: World, p: Person, s: DevelopmentStimulus): void {
     d.exposure[id] += exposure;
     let remaining = exposure * physiology * instruction;
     // Integrate exactly at integer boundaries; a large dose cannot leap over diminishing returns.
-    while (remaining > 0 && p.attributes[id] < NORMAL_CEILING) {
-      const rate = developmentRate(p.attributes[id], p.attributePotential[id]) * challengeFactor(p.attributes[id], s.challenge) * deliberateResponse(s.challenge);
+    while (remaining > 0 && p.attributes[id] < ceiling) {
+      const rate = developmentRate(p.attributes[id], p.attributePotential[id] + lift, ceiling) * challengeFactor(p.attributes[id], s.challenge) * deliberateResponse(s.challenge);
       const needed = (1 - d.progress[id]) / rate;
       if (remaining < needed) { d.progress[id] += remaining * rate; break; }
       remaining -= needed; d.progress[id] = 0; p.attributes[id]++;
+      recordFoundationExperience(world, p, id, p.attributes[id], s.causeEventId);
       if (p.attributes[id] === 15) world.emit('attribute_developed', { actor: p.id, category: 'history', significance: 0.65,
         causes: s.causeEventId ? [s.causeEventId] : [], data: { attribute: id, value: 15, exposureSeconds: d.exposure[id] }, summary: `${p.name} developed an exceptional ${id} foundation` });
     }
-    if (p.attributes[id] >= NORMAL_CEILING) { p.attributes[id] = NORMAL_CEILING; d.progress[id] = 0; }
+    if (p.attributes[id] >= ceiling) { p.attributes[id] = ceiling; d.progress[id] = 0; }
     considerImprint(world, p, id, exposure * physiology, s.causeEventId);
   }
 }

@@ -905,6 +905,10 @@ export interface Person extends Entity {
     expressions: { imprintId: string; didExpress: boolean; strength: number; attenuation: number; contribution: number }[] };
   /** Readiness is derived; a canonical advancement action records the transition event. */
   ontology: { stage: OntologicalStage; breakthroughEventId?: EventId };
+  /** Earned growth within the current rank (progression/experience.ts). Never a combat input. */
+  experience?: import('../progression/experience').ExperienceLedger;
+  /** The body the latest breakthrough remade: resilience and foundation ceiling, pinned to it. */
+  vessel?: import('../progression/experience').RankVessel;
   /** Last actual needs update for a generated folded-room resident. No practice credit. */
   towerUpkeepAt?: number;
   /** v0.4: the physiology reserves `needs.hunger/.thirst/.energy` are now derived from. */
@@ -1582,7 +1586,10 @@ export type EventType = 'combat_trial_agreed' | 'combat_trial_ended' | 'tower_en
   | 'courtship' | 'pregnancy_started' | 'pregnancy_lost' | 'coming_of_age' | 'inheritance'
   | 'attribute_developed' | 'lineage_imprint' | 'lineage_transmitted' | 'genealogy_inferred' | 'mechanism_observed'
   // Explicit advancement is a rare state transition, never an XP heartbeat or automatic reward.
-  | 'ontological_advancement';
+  | 'ontological_advancement'
+  // Earned levels (progression/experience.ts): a completed level or a recognised achievement.
+  // Semantic transitions only; experience credit itself is ledger state, never an event.
+  | 'level_attained' | 'achievement_earned';
 
 export type EventCategory = 'world' | 'social' | 'cognition' | 'history';
 

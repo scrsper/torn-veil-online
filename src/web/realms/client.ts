@@ -98,7 +98,12 @@ export async function startRealms(): Promise<void> {
     if (s.pending) el('rv-choice-title').textContent = `Enter ${s.pending.destination}?`;
     el('rv-name').textContent = s.person.name;
     const contents = el('rv-character'); contents.replaceChildren();
-    for (const line of [`${s.person.rank} · ${s.body.hp.toFixed(0)} / ${s.body.maxHp} vitality`, ...s.person.inventory.map(i => `${i.name} × ${i.quantity}`),
+    const xp = s.development.experience, rankUp = s.development.breakthrough;
+    for (const line of [`${s.person.rank} · ${s.body.hp.toFixed(0)} / ${s.body.maxHp} vitality`,
+      ...(xp.leveled ? [`${xp.label} · level ${xp.level} · ${xp.peak ? `peak ${xp.stage}, breakthrough required` : `${xp.xpIntoLevel} / ${xp.xpForLevel} experience`}`] : []),
+      ...(xp.achievements.length ? [`Achievements: ${xp.achievements.map(a => a.title).join(' · ')}`] : []),
+      ...(rankUp.next ? [`${rankUp.next} breakthrough: ${rankUp.eligible ? 'ready' : rankUp.reasons.join(' · ')}`] : []),
+      ...s.person.inventory.map(i => `${i.name} × ${i.quantity}`),
       `${s.growth.victories} distinct opposed victories · ${s.growth.forms} demonstrated forms · ${s.growth.essences} learned essences`,
       s.development.recognisedClass?`Recognised vocation: ${s.development.recognisedClass.name} · ${s.development.recognisedClass.evidence.join('; ')}`:'Your actions and practice shape a recognised vocation.',
       ...Object.entries(s.development.skills).filter(([,value])=>value>0).map(([id,value])=>`${id}: ${(value*100).toFixed(1)}% proficiency`),
@@ -106,6 +111,7 @@ export async function startRealms(): Promise<void> {
       `Intrinsic force ${s.growth.intrinsicCapacity.amplitude} / reach ${s.growth.intrinsicCapacity.aperture}; with equipment ${s.growth.capacity.amplitude} / ${s.growth.capacity.aperture}`]) { const p = document.createElement('p'); p.textContent = line; contents.append(p); }
     const actionButton=(label:string,action:InteractionCommand)=>{const b=document.createElement('button');b.textContent=label;b.onclick=()=>command(action);contents.append(b);};
     if(s.growth.eligible)actionButton(`Integrate sources — ${s.growth.next}`,{type:'integrate_arcana'});
+    if(rankUp.eligible&&rankUp.next)actionButton(`Attempt the ${rankUp.next} breakthrough`,{type:'advance'});
     for(const source of s.growth.sources.filter(i=>!s.growth.learned.some(l=>l.id===i.abilityId)))actionButton(`Study ${source.name}`,{type:'learn_arcana',itemId:source.id});
     for(const action of s.interactions.filter(a=>a.slot!=='nearby'))actionButton(action.label,{type:'interact',interactionId:action.id});
     if(params.has('character')&&!journal) { journal=true; el('rv-sheet').hidden=false; }

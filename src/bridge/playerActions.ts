@@ -5,7 +5,7 @@ import { actionsForCarriedItem, describeCarried } from '../sim/core/interaction'
 import { canReadRecord } from '../sim/mind/records';
 import { knowsVeil, veilStrain } from '../sim/physical/veil';
 import { availableForMartial } from '../sim/mind/martialPractice';
-import { assessAdvancement } from '../sim/core/advancement';
+import { assessBreakthrough } from '../sim/core/advancement';
 
 /**
  * What the player may do with what they carry, and which of their own capacities they can use
@@ -107,8 +107,8 @@ export function abilityRows(sim: Simulation, p: Person): PlayerActionRow[] {
   const trainable = !!body && !p.custody?.active && availableForMartial(w, p, body.id);
   rows.push({ id: 'train', kind: 'train', label: 'Train bodily technique alone (a few rounds)', detail: 'drills strike and footwork; ask someone to spar for harder practice',
     available: trainable, reason: trainable ? undefined : bodyReason(), request: { type: 'person_action', intent: { kind: 'train' } } });
-  const assessment = assessAdvancement(w, p);
-  if (p.ontology.stage === 'Normal') rows.push({ id: 'advance', kind: 'advance', label: 'Attempt the Iron breakthrough',
+  const assessment = assessBreakthrough(w, p);
+  if (assessment.next) rows.push({ id: 'advance', kind: 'advance', label: `Attempt the ${assessment.next} breakthrough`,
     detail: assessment.path ? `path: ${assessment.path.skill}` : undefined,
     available: assessment.eligible, reason: assessment.eligible ? undefined : assessment.reasons.slice(0, 3).join('; '),
     request: { type: 'person_action', intent: { kind: 'advance' } } });

@@ -1,4 +1,5 @@
 import { arcaneCapacity } from './growth';
+import { recordLearningExperience } from '../../progression/experience';
 import { physicalResidents } from '../../world/interiors/residency';
 import type { Body, ConflictIntent, Item, Person, Vec3, WorldEvent } from '../../core/types';
 import type { World } from '../../core/world';
@@ -50,6 +51,7 @@ export function learnArcaneSource(w: World, p: Person, bodyId: string, itemId: s
     i.provenance.push({ tick: w.now, eventId: ev.id, from: p.id, to: null, how: 'essence absorbed' });
   }
   arcaneBody(w, b);
+  recordLearningExperience(w, p, ev);
   return 'accepted';
 }
 

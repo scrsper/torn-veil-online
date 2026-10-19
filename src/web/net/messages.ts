@@ -140,8 +140,16 @@ export interface JournalProjection {
   commitments: unknown[]; obligations: unknown[]; injuries: unknown[]; skills: unknown[];
   condition: { fatigue: number; energy: number; hydration: number; sleepDebt: number }; stage: string;
   foundations: { id: string; value: number; progress: number }[]; techniques: unknown[]; techniqueHistory: unknown[]; practice: unknown[];
-  practiceHoursRequired: number; veil: unknown; advancement: { eligible: boolean; path: string | null; remaining: string[] } & Record<string, unknown>;
+  practiceHoursRequired: number; veil: unknown; advancement: { eligible: boolean; path: string | null; remaining: string[]; next?: string | null } & Record<string, unknown>;
+  experience?: ExperienceProjection;
   [k: string]: unknown;
+}
+/** Mirrors progression/experience.ts experienceSummary; the browser bundle stays sim-free. */
+export interface ExperienceProjection {
+  stage: string; leveled: boolean; label: string; level: number | null; sub: number | null;
+  xpIntoLevel: number; xpForLevel: number; rankXp: number; peakXp: number; peak: boolean; lifetimeXp: number; overflowXp: number;
+  defeats: number; feats: { level: number; rank: string }[]; recent: { kind: string; xp: number }[];
+  achievements: { id: string; title: string; xp: number }[]; vessel: { stage: string; resilience: number; force: number; ceiling: number } | null;
 }
 export interface MovementState { pos: Vec3; yaw: number; speed: number; eligible: boolean; crouch?: number }
 export interface LocalStateMessage {
@@ -158,7 +166,7 @@ export interface ResultMessage { type: 'result'; sequence: number; result: strin
 export interface MaintenanceMessage { type: 'maintenance'; message: string; atMs: number; inMs: number }
 
 export type InteractionCommand =
-    | { type: 'rest' | 'wake' | 'integrate_arcana' }
+    | { type: 'rest' | 'wake' | 'integrate_arcana' | 'advance' }
     | { type: 'learn_arcana'; itemId: string }
     | { type: 'cast'; abilityId: string; target?: { x: number; y: number; z: number }; scrollItemId?: string }
   | { type: 'move'; x: number; z: number; sprint: boolean; facing?: number; crouch?: boolean }

@@ -1,5 +1,6 @@
 import { tryCombatArcana } from './combatArcana';
 import { recordArcaneEncounter } from '../physical/arcana/growth';
+import { recordDefeatExperience } from '../progression/experience';
 import { trialGoal } from '../social/combatTrial';
 import { detailedPeople, detailedBodies, coarseTowerPeople } from '../world/interiors/residency';
 import { advanceExertion } from '../physical/exertion';
@@ -21,7 +22,8 @@ import { routineWeight, observeFields } from './routine';
 import { interpretSocial, introduce, learnIdentity, knownName, perceivedName } from './people';
 import { conversationBodies, conversationReachable, socialChoice, socialEvidence } from './socialEvidence';
 import { anchorIdentityToObservation, observableSignature, recognizeEncounter, shareIdentityObservation } from './encounter';
-import { advanceToIron, assessAdvancement } from '../core/advancement';
+import { assessAdvancement, assessBreakthrough, assessRankBreakthrough, attemptBreakthrough } from '../core/advancement';
+import { earnedStanding } from '../progression/experience';
 import { developThroughExertion } from '../core/development';
 import { recordCapabilityPractice } from '../core/capability';
 import { isExternallyControlled, hasExternalIntention, authorizeExternalIntention } from '../runtime/controllers';
@@ -759,6 +761,11 @@ export class Simulation {
       const advancement = assessAdvancement(w, p);
       if (advancement.eligible) G('advance', 0.35 + p.traits.curiosity * 0.15,
         ['sustained practice, understood technique and recovered foundations permit adaptation'], { causeEvent: advancement.evidenceEventIds.at(-1) });
+    } else if (p.ontology.stage !== 'Normal' && earnedStanding(p)?.peak) {
+      // The cheap level test first: only someone at the peak of their rank can be ready.
+      const rank = assessRankBreakthrough(w, p);
+      if (rank.eligible) G('advance', 0.35 + p.traits.curiosity * 0.15,
+        [`peak ${p.ontology.stage}, proven against strong opponents, with the foundations ${rank.next} demands`], { causeEvent: rank.featEventIds[0] });
     }
     // An animal visibly bristling or charging at me: keep clear, or — if I know the veil art and
     // have the strength left — still it. The same choice is open to anyone; a player makes it by hand.
@@ -1929,9 +1936,9 @@ export class Simulation {
       }
       case 'mechanism_task': actOnMechanicalTask(w, p, a, physDt); break;
       case 'attempt_breakthrough': {
-        if (!assessAdvancement(w, p).eligible) { a.status = 'failed'; break; }
+        if (!assessBreakthrough(w, p).eligible) { a.status = 'failed'; break; }
         body.pose = 'sit';
-        if (this.elapsed(a)) a.status = advanceToIron(w, p) ? 'done' : 'failed';
+        if (this.elapsed(a)) a.status = attemptBreakthrough(w, p) ? 'done' : 'failed';
         break;
       }
       case 'introduce': {
@@ -3094,6 +3101,7 @@ export class Simulation {
       const vp = victim as Person; if (!ev.perceivedBy.some(x => x.who === vp.id)) { ev.perceivedBy.push({ who: vp.id, how: 'saw', tick: w.now }); const perc = w.emit('perceived', { actor: vp.id, target: attacker.id, causes: [ev.id], significance: 0.4, data: { how: 'saw', eventType: 'attack', eventId: ev.id }, summary: `${vp.name} was attacked by ${attacker.name}` }); learn(w, vp, { key: `ev:${ev.id}`, kind: 'event', claim: eventClaim(w, ev, true), confidence: 1, source: { type: 'witnessed', viaEvent: perc.id }, cause: perc.id, summary: ev.summary }); remember(w, vp, { type: 'attack', summary: `${attacker.name} attacked me${place ? ' at ' + place.name : ''}`, eventId: ev.id, entities: [attacker.id], significance: 0.9, valence: -0.9, source: { type: 'witnessed', viaEvent: perc.id }, placeId: place?.id }); this.reactTo(vp, tb, ev, perc.id, true, true, false, null); }
     }
     recordArcaneEncounter(w, attacker, ab, tb, ev);
+    recordDefeatExperience(w, attacker, ab, tb, ev);
     return ev;
   }
   weaponName(p: Person): string { let best: string = 'fists'; let bd = 0; for (const id of p.inventory) { const it = this.world.item(id); if (it && it.damage > bd) { bd = it.damage; best = it.name; } } return best; }
