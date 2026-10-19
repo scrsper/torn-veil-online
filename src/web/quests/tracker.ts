@@ -1,4 +1,4 @@
-import type { Objective, ObjectiveReceipt } from './types';
+import type { Objective, ObjectiveReceipt } from '../../sim/quests/types';
 
 export type ObjectiveEvent = 'objective:update' | 'objective:complete';
 export interface ObjectiveUpdate { objective: Objective; previous: Objective | null }
@@ -10,6 +10,7 @@ type Listener<E extends ObjectiveEvent> = (payload: E extends 'objective:update'
  * `objective:complete` notifications. It holds no truth of its own; `ingest` is handed the
  * latest derived list and receipts (from the World on the host, or from a snapshot in the
  * browser) and reports what changed. Re-ingesting the same input reports nothing.
+ * Lives in the client: it is a presentation projection of host state and issues no receipts.
  */
 export class ObjectiveTracker {
   private active = new Map<string, Objective>();

@@ -1,11 +1,10 @@
 import { Color3, Color4, FreeCamera, InstancedMesh, Material, Matrix, Mesh, PBRMaterial, VertexData, MeshBuilder, Quaternion, Scene, StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
 import { createRenderer, attachPipeline } from '../render/engine';
 import {
-  HOME_ANCHOR, add, arc, landmarkSites, dot, sub, biomeAt, climateAt, roadLamps, LAMP_RADIUS, precinctPieces, precinctBlocks, chartToHome, homeToDir, length, localHour, normalize, planetSpec, propsNear, regionAt, resolveObstacles, scale, skyAt,
+  HOME_ANCHOR, add, arc, landmarkSites, dot, sub, biomeAt, climateAt, roadLamps, LAMP_RADIUS, type RoadLamp, precinctPieces, precinctBlocks, chartToHome, homeToDir, length, localHour, normalize, planetSpec, propsNear, regionAt, resolveObstacles, scale, skyAt,
   spawnBody, stepSurface, siteRadius, surfaceRadius, tangentFrame, toLatLon, upOf, DAY_SECONDS, START_HOUR, type Obstacle, type SurfaceBody, type SurfaceInput, type V3,
 } from '../../sim/world/planet';
 import { homeChart, planetToRealm, realmToPlanet } from '../../sim/world/planet/chart';
-import { settlementDressing, type Dressing } from '../../sim/world/assets/dressing';
 import { pagodaBlocks, pagodaSupport } from '../../sim/world/planet/pagoda';
 import { LIBRARY_PLACEMENTS, libraryAsset, placementDir, placementLocal, regionLandmarks, standInProxies, type LibraryPlacement } from '../../sim/world/assets/library';
 import { focusedTownPlan } from '../../sim/world/assets/focusedLayouts';
@@ -189,25 +188,24 @@ export async function startPlanetWorld() {
     inst.dispose();
     return out;
   };
-  // Roadside lanterns and settlement furniture (focused pack modules, hash-verified by FocusedAssets), built once within 400 m.
-  const furniture: Dressing[] = [...roadLamps(spec).map(l => ({ ...l, assetId: 'module:lantern_post', radius: LAMP_RADIUS })), ...settlementDressing(spec)];
+  // Roadside lanterns (focused pack module, hash-verified by FocusedAssets), built once within 400 m.
   const lampRoots = new Map<string, TransformNode | null>(), glowMats: PBRMaterial[] = [];
   const collectGlow = (m: Material | null) => { if (m instanceof PBRMaterial && /glow/i.test(m.name) && !glowMats.includes(m)) glowMats.push(m); };
   let lampCheck = 0;
-  const buildLamp = async (l: Dressing) => {
+  const buildLamp = async (l: RoadLamp) => {
     lampRoots.set(l.id, null);
     await focusedManifest;
     const f = tangentFrame(l.dir), holder = new TransformNode('lamp:' + l.id, scene), up = v(f.up), face = v(l.facing), side = Vector3.Cross(up, face);
     holder.rotationQuaternion = Quaternion.FromRotationMatrix(Matrix.FromValues(side.x, side.y, side.z, 0, up.x, up.y, up.z, 0, face.x, face.y, face.z, 0, 0, 0, 0, 1));
     holder.position = v(scale(l.dir, surfaceRadius(spec, l.dir) - .05));
-    const inst = await focused.instantiate({ id: l.id, assetId: l.assetId, position: [0, 0, 0], yaw: 0, floorId: 'planet' });
+    const inst = await focused.instantiate({ id: l.id, assetId: 'module:lantern_post', position: [0, 0, 0], yaw: 0, floorId: 'planet' });
     inst.root.parent = holder; holder.computeWorldMatrix(true);
     for (const m of inst.root.getChildMeshes()) { m.computeWorldMatrix(true); collectGlow(m.material); }
     lampRoots.set(l.id, holder);
   };
   const updateLamps = () => {
     const here = upOf(body), show = view === 'ground' && !inTower;
-    for (const l of furniture) {
+    for (const l of roadLamps(spec)) {
       const a = arc(spec, here, l.dir), root = lampRoots.get(l.id);
       if (root) { const on = show && a < 500; if (root.isEnabled(false) !== on) root.setEnabled(on); }
       else if (root === undefined && show && a < 400) void buildLamp(l).catch(() => lampRoots.set(l.id, null));
@@ -271,7 +269,7 @@ export async function startPlanetWorld() {
   const obstacles = (): Obstacle[] => {
     const here = upOf(body), list: Obstacle[] = propsNear(spec, here, 12).filter(p => p.radius > 0).map(p => ({ dir: p.dir, radius: p.radius }));
     for (const o of standInObstacles) if (arc(spec, here, o.dir) < o.radius + 8) list.push(o);
-    for (const l of furniture) if (arc(spec, here, l.dir) < 8) list.push({ dir: l.dir, radius: l.radius });
+    for (const l of roadLamps(spec)) if (arc(spec, here, l.dir) < 8) list.push({ dir: l.dir, radius: LAMP_RADIUS });
     return list;
   };
   // A blocked step keeps whichever tangent component (east or north of the previous spot) is
@@ -363,7 +361,7 @@ export async function startPlanetWorld() {
     hudT += dt; if (hudT < .25) return; hudT = 0;
     const up = upOf(body), ll = toLatLon(up), state = skyAt(seconds), l = sky.last, hour = localHour(state, ll.lon), r = regionAt(spec, up);
     const hh = Math.floor(hour), mm = Math.floor((hour - hh) * 60), c = chartToHome(spec, up);
-    label.textContent = inTower ? survey.describe() : `${r.name} — ${biomeAt(spec, up)}\n${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')} local · day ${state.day + 1} · moon ${(state.moonIllumination * 100).toFixed(0)}%${speed > 1 ? ` · ×${speed}` : ''}\nlat ${ll.lat.toFixed(2)} lon ${ll.lon.toFixed(2)} · ${l ? (l.sunElevation > 0 ? 'sun ' + (Math.asin(l.sunElevation) * 57.3).toFixed(0) + '°' : l.moonElevation > 0 ? 'moonlight' : 'night') : ''}${arc(spec, up, HOME_ANCHOR) < 900 ? `\nhome chart ${c.east.toFixed(0)} E ${c.north.toFixed(0)} N` : ''}${nearDoor() ? '\nF — enter the Tower of Chrysanthus' : ''}\nWASD move · Shift run · Space jump · O orbit · T time ×60`;
+    label.textContent = inTower ? survey.describe() : `${r.name} — ${biomeAt(spec, up)}\n${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')} local · day ${state.day + 1} · moon ${(state.moonIllumination * 100).toFixed(0)}%${speed > 1 ? ` · ×${speed}` : ''}\nlat ${ll.lat.toFixed(2)} lon ${ll.lon.toFixed(2)} · ${l ? (l.sunElevation > 0 ? 'sun ' + (Math.asin(l.sunElevation) * 57.3).toFixed(0) + '°' : l.moonElevation > 0 ? 'moonlight' : 'night') : ''}${arc(spec, up, HOME_ANCHOR) < 900 ? `\nhome chart ${c.east.toFixed(0)} E ${c.north.toFixed(0)} N` : ''}${nearDoor() ? '\nF — enter the Tower of Chrysanthus' : ''}\nWorld preview (observer only; nothing is saved or earned)\nWASD move · Shift run · Space jump · O orbit · T time ×60`;
   };
   engine.runRenderLoop(tick); addEventListener('resize', () => engine.resize());
   // Content loads after first frame; each part fails independently to its fallback.

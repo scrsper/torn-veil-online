@@ -1,4 +1,4 @@
-import { ObjectiveTracker, type ObjectiveCompletion, type ObjectiveEvent, type ObjectiveUpdate } from '../../sim/quests/layer';
+import { ObjectiveTracker, type ObjectiveCompletion, type ObjectiveEvent, type ObjectiveUpdate } from './tracker';
 import type { Objective, ObjectiveReceipt } from '../../sim/quests/types';
 import type { QuestLedgerEntry } from '../../sim/quests/ledger';
 

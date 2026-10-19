@@ -7,9 +7,10 @@ import { makeItem } from '../../src/sim/world/factory';
 import { createRequest } from '../../src/sim/core/requests';
 import { acceptProtection } from '../../src/sim/social/protection';
 import { handInteractions, performHandInteraction } from '../../src/sim/physical/hand';
-import { deriveObjectives, objectiveReceipts, reconcileQuests, questReceipts, ObjectiveTracker, type Objective } from '../../src/sim/quests';
+import { deriveObjectives, objectiveReceipts, reconcileQuests, questReceipts, type Objective } from '../../src/sim/quests';
 import type { Request } from '../../src/sim/core/types';
 import { ClientObjectives, hudObjectiveApi } from '../../src/web/quests/objectives';
+import { ObjectiveTracker } from '../../src/web/quests/tracker';
 
 /**
  * Emergent objectives are read from World state: requests people raised for their own reasons and
