@@ -1,10 +1,11 @@
 import { Color3, Color4, FreeCamera, InstancedMesh, Material, Matrix, Mesh, PBRMaterial, VertexData, MeshBuilder, Quaternion, Scene, StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
 import { createRenderer, attachPipeline } from '../render/engine';
 import {
-  HOME_ANCHOR, add, arc, landmarkSites, dot, sub, biomeAt, climateAt, roadLamps, LAMP_RADIUS, type RoadLamp, precinctPieces, precinctBlocks, chartToHome, homeToDir, length, localHour, normalize, planetSpec, propsNear, regionAt, resolveObstacles, scale, skyAt,
+  HOME_ANCHOR, add, arc, landmarkSites, dot, sub, biomeAt, climateAt, roadLamps, LAMP_RADIUS, precinctPieces, precinctBlocks, chartToHome, homeToDir, length, localHour, normalize, planetSpec, propsNear, regionAt, resolveObstacles, scale, skyAt,
   spawnBody, stepSurface, siteRadius, surfaceRadius, tangentFrame, toLatLon, upOf, DAY_SECONDS, START_HOUR, type Obstacle, type SurfaceBody, type SurfaceInput, type V3,
 } from '../../sim/world/planet';
 import { homeChart, planetToRealm, realmToPlanet } from '../../sim/world/planet/chart';
+import { settlementDressing, type Dressing } from '../../sim/world/assets/dressing';
 import { pagodaBlocks, pagodaSupport } from '../../sim/world/planet/pagoda';
 import { LIBRARY_PLACEMENTS, libraryAsset, placementDir, placementLocal, regionLandmarks, standInProxies, type LibraryPlacement } from '../../sim/world/assets/library';
 import { focusedTownPlan } from '../../sim/world/assets/focusedLayouts';
@@ -188,24 +189,25 @@ export async function startPlanetWorld() {
     inst.dispose();
     return out;
   };
-  // Roadside lanterns (focused pack module, hash-verified by FocusedAssets), built once within 400 m.
+  // Roadside lanterns and settlement furniture (focused pack modules, hash-verified by FocusedAssets), built once within 400 m.
+  const furniture: Dressing[] = [...roadLamps(spec).map(l => ({ ...l, assetId: 'module:lantern_post', radius: LAMP_RADIUS })), ...settlementDressing(spec)];
   const lampRoots = new Map<string, TransformNode | null>(), glowMats: PBRMaterial[] = [];
   const collectGlow = (m: Material | null) => { if (m instanceof PBRMaterial && /glow/i.test(m.name) && !glowMats.includes(m)) glowMats.push(m); };
   let lampCheck = 0;
-  const buildLamp = async (l: RoadLamp) => {
+  const buildLamp = async (l: Dressing) => {
     lampRoots.set(l.id, null);
     await focusedManifest;
     const f = tangentFrame(l.dir), holder = new TransformNode('lamp:' + l.id, scene), up = v(f.up), face = v(l.facing), side = Vector3.Cross(up, face);
     holder.rotationQuaternion = Quaternion.FromRotationMatrix(Matrix.FromValues(side.x, side.y, side.z, 0, up.x, up.y, up.z, 0, face.x, face.y, face.z, 0, 0, 0, 0, 1));
     holder.position = v(scale(l.dir, surfaceRadius(spec, l.dir) - .05));
-    const inst = await focused.instantiate({ id: l.id, assetId: 'module:lantern_post', position: [0, 0, 0], yaw: 0, floorId: 'planet' });
+    const inst = await focused.instantiate({ id: l.id, assetId: l.assetId, position: [0, 0, 0], yaw: 0, floorId: 'planet' });
     inst.root.parent = holder; holder.computeWorldMatrix(true);
     for (const m of inst.root.getChildMeshes()) { m.computeWorldMatrix(true); collectGlow(m.material); }
     lampRoots.set(l.id, holder);
   };
   const updateLamps = () => {
     const here = upOf(body), show = view === 'ground' && !inTower;
-    for (const l of roadLamps(spec)) {
+    for (const l of furniture) {
       const a = arc(spec, here, l.dir), root = lampRoots.get(l.id);
       if (root) { const on = show && a < 500; if (root.isEnabled(false) !== on) root.setEnabled(on); }
       else if (root === undefined && show && a < 400) void buildLamp(l).catch(() => lampRoots.set(l.id, null));
@@ -269,7 +271,7 @@ export async function startPlanetWorld() {
   const obstacles = (): Obstacle[] => {
     const here = upOf(body), list: Obstacle[] = propsNear(spec, here, 12).filter(p => p.radius > 0).map(p => ({ dir: p.dir, radius: p.radius }));
     for (const o of standInObstacles) if (arc(spec, here, o.dir) < o.radius + 8) list.push(o);
-    for (const l of roadLamps(spec)) if (arc(spec, here, l.dir) < 8) list.push({ dir: l.dir, radius: LAMP_RADIUS });
+    for (const l of furniture) if (arc(spec, here, l.dir) < 8) list.push({ dir: l.dir, radius: l.radius });
     return list;
   };
   // A blocked step keeps whichever tangent component (east or north of the previous spot) is
