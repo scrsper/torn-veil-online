@@ -14,6 +14,12 @@ import type { Atmosphere } from '../world/atmosphere';
  * preview projection in the sense of progression/tower.ts — like a preview journey it can
  * open any floor and earns nothing. Canonical climbs, combat and awards run through the
  * realms host (TowerController); nothing here writes Tower state. */
+/** Scanned CC0 wall/floor surfaces per ten-floor band (Threshold … Crown), tinted by the band
+ * palette as before; presentation only, so each stretch of the climb reads differently. */
+const BAND_SURFACES: [string, string][] = [
+  ['rock_wall_08', 'cobblestone_floor_08'], ['plastered_wall', 'cobblestone_floor_08'], ['plastered_wall', 'weathered_planks'], ['mossy_rock', 'cobblestone_floor_08'], ['plastered_wall', 'weathered_planks'],
+  ['rock_wall_08', 'roof_slates_02'], ['plastered_wall', 'cobblestone_floor_08'], ['rock_wall_08', 'weathered_planks'], ['mossy_rock', 'roof_slates_02'], ['plastered_wall', 'roof_slates_02'],
+];
 const ARCHETYPE: Record<string, string> = { brawler: '#b06a4a', skirmisher: '#5a8a5a', guardian: '#6a7a9a', caster: '#8a5ab0', heavy: '#8a4040' };
 export class TowerSurvey {
   readonly scene: Scene; readonly camera: FreeCamera; floor = 1; highest = 1; spec: TowerFloorSpec | null = null; plan: InteriorPlan | null = null;
@@ -40,7 +46,7 @@ export class TowerSurvey {
     // Scanned CC0 stone (walls) and cobbles (floor), tinted by the band palette.
     const scanned = (name: string, surface: string, hex: string, tile: number) => { const m = new PBRMaterial(name, s); useScannedMaps(m, this.maps(surface)); m.albedoColor = Color3.FromHexString(hex).scale(1.6); m.metallic = 0; m.roughness = .9; for (const t of [m.albedoTexture, m.bumpTexture, m.metallicTexture]) if (t instanceof Texture) { t.uScale = tile; t.vScale = tile; } this.materials.push(m); return m; };
     for (const m of this.materials) m.dispose(); this.materials = [];
-    const wall = scanned('survey-wall', 'rock_wall_08', theme.wall, 1), ground = scanned('survey-floor', 'cobblestone_floor_08', theme.floor, plan.half / 2), metal = mat('survey-metal', theme.metal, .25), gold = mat('survey-stair', '#e0be74', .7), blue = mat('survey-return', '#82d5e5', .6), water = mat('survey-water', '#3a6a8a', .2);
+    const [wallSurface, floorSurface] = BAND_SURFACES[spec.band] ?? BAND_SURFACES[0], wall = scanned('survey-wall', wallSurface, theme.wall, 1), ground = scanned('survey-floor', floorSurface, theme.floor, plan.half / 2), metal = mat('survey-metal', theme.metal, .25), gold = mat('survey-stair', '#e0be74', .7), blue = mat('survey-return', '#82d5e5', .6), water = mat('survey-water', '#3a6a8a', .2);
     const floorMesh = MeshBuilder.CreateGround('survey-ground', { width: plan.half * 2 + 2, height: plan.half * 2 + 2 }, s); floorMesh.position.set(o.x, 1, o.z); floorMesh.material = ground; this.meshes.push(floorMesh);
     for (const b of plan.solids) {
       const m = MeshBuilder.CreateBox(b.id, { width: b.w, height: b.h, depth: b.d }, s); m.position.set(b.x + b.w / 2, b.y + b.h / 2, b.z + b.d / 2);
