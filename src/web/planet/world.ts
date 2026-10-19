@@ -172,6 +172,22 @@ export async function startPlanetWorld() {
     for (const q of placed) if (inRange(q)) await instantiatePlacement(q);
     status.library = Object.entries(loader.status).map(([k, s]) => `${k}:${s}`).join(' ');
   };
+  // A focused-pack module as plain meshes with its node transforms baked in (for thin instancing).
+  const moduleMeshes = async (assetId: string): Promise<Mesh[]> => {
+    await focusedManifest;
+    const inst = await focused.instantiate({ id: 'bake:' + assetId, assetId, position: [0, 0, 0], yaw: 0, floorId: 'planet' }), out: Mesh[] = [];
+    inst.root.computeWorldMatrix(true);
+    for (const m of inst.root.getChildMeshes()) {
+      const src = m instanceof InstancedMesh ? m.sourceMesh : m instanceof Mesh ? m : null;
+      if (!src || !src.getTotalVertices()) continue;
+      const copy = src.clone(`prop-${assetId}-${m.name}`, null, true, false)!; copy.makeGeometryUnique();
+      copy.bakeTransformIntoVertices(m.computeWorldMatrix(true)); copy.parent = null; copy.position.setAll(0); copy.rotationQuaternion = null; copy.rotation.setAll(0); copy.scaling.setAll(1);
+      if (!scene.meshes.includes(copy)) scene.addMesh(copy);
+      copy.setEnabled(false); out.push(copy);
+    }
+    inst.dispose();
+    return out;
+  };
   // Roadside lanterns (focused pack module, hash-verified by FocusedAssets), built once within 400 m.
   const lampRoots = new Map<string, TransformNode | null>(), glowMats: PBRMaterial[] = [];
   const collectGlow = (m: Material | null) => { if (m instanceof PBRMaterial && /glow/i.test(m.name) && !glowMats.includes(m)) glowMats.push(m); };
@@ -350,7 +366,7 @@ export async function startPlanetWorld() {
   engine.runRenderLoop(tick); addEventListener('resize', () => engine.resize());
   // Content loads after first frame; each part fails independently to its fallback.
   void (async () => {
-    props = new PlanetProps(scene, spec, loader, m => sky.addCaster(m), lite ? 280 : 420); await props.init(); props.follow(upOf(body), true);
+    props = new PlanetProps(scene, spec, loader, m => sky.addCaster(m), lite ? 280 : 420, moduleMeshes); await props.init(); props.follow(upOf(body), true);
     await Promise.allSettled([loadAether().catch(e => { status.aether = 'unavailable: ' + e; }), loadLibrary(), loadTown().catch(e => { status.town = 'unavailable: ' + e; }), loadTownCollision().catch(e => { status.collision = 'none: ' + e; })]);
     (window as unknown as { __tvWorldReady: boolean }).__tvWorldReady = true;
   })();

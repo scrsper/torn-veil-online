@@ -1,6 +1,6 @@
 import { Color3, Matrix, Mesh, MeshBuilder, StandardMaterial, Texture, Vector3, VertexData, type Scene } from '@babylonjs/core';
 import { loadScannedMaps } from '../render/materials';
-import { PROP_ASSET, arc, normalize, propsNear, surfaceRadius, tangentFrame, type PlanetSpec, type Prop, type PropKind, type V3 } from '../../sim/world/planet';
+import { PROP_ASSET, PROP_MODULE, arc, normalize, propsNear, surfaceRadius, tangentFrame, type PlanetSpec, type Prop, type PropKind, type V3 } from '../../sim/world/planet';
 import type { LibraryLoader } from './library';
 
 /** Thin-instanced vegetation and boulders from the seeded scatter. Library flora/geology GLBs
@@ -25,7 +25,7 @@ function cards(name: string, scene: Scene, list: { c: [number, number, number]; 
 }
 const seq = (i: number) => { const x = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); };
 function fallback(scene: Scene, kind: PropKind): Mesh[] {
-  const leaf = colour(scene, `prop-${kind}-leaf`, { oak: '#3f6a2a', willow: '#7d9a52', pine: '#2a4a2c', boulder: '#7c776e', shrub: '#4a6e30' }[kind]);
+  const leaf = colour(scene, `prop-${kind}-leaf`, { oak: '#3f6a2a', willow: '#7d9a52', pine: '#2a4a2c', boulder: '#7c776e', shrub: '#4a6e30', ruin: '#8d877c', rubble: '#8d877c' }[kind]);
   const out: Mesh[] = [];
   const add = (m: Mesh, mat: StandardMaterial) => { m.material = mat; m.isPickable = false; m.setEnabled(false); out.push(m); return m; };
   if (kind === 'boulder') {
@@ -68,10 +68,16 @@ function fallback(scene: Scene, kind: PropKind): Mesh[] {
 }
 export class PlanetProps {
   private parts = new Map<PropKind, Mesh[]>(); private centre: V3 | null = null; current: Prop[] = [];
-  constructor(readonly scene: Scene, readonly spec: PlanetSpec, readonly loader: LibraryLoader, readonly onCaster: (m: Mesh) => void, readonly radius = 420) {}
+  /** `modules` yields baked, disabled source meshes for a focused-pack module id (hash-verified). */
+  constructor(readonly scene: Scene, readonly spec: PlanetSpec, readonly loader: LibraryLoader, readonly onCaster: (m: Mesh) => void, readonly radius = 420, readonly modules?: (id: string) => Promise<Mesh[]>) {}
   async init() {
     for (const kind of Object.keys(PROP_ASSET) as PropKind[]) {
-      const id = PROP_ASSET[kind]; let meshes: Mesh[] | null = null;
+      const id = PROP_ASSET[kind], moduleId = PROP_MODULE[kind]; let meshes: Mesh[] | null = null;
+      if (moduleId) {
+        // Focused-pack stonework; without the pack these kinds are simply not drawn.
+        meshes = this.modules ? await this.modules(moduleId).catch(() => []) : [];
+        this.parts.set(kind, meshes); continue;
+      }
       if (id) {
         const c = await this.loader.container(id);
         if (c) {

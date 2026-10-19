@@ -1,11 +1,13 @@
-import { FAR_ANCHOR, HOME_ANCHOR, arc, chartToHome, climateAt, dirToChart, landmarkSites, normalize, type Biome, type PlanetSpec, type V3 } from './planet';
+import { FAR_ANCHOR, HOME_ANCHOR, add, arc, chartToHome, climateAt, dirToChart, landmarkSites, normalize, scale, tangentFrame, type Biome, type PlanetSpec, type V3 } from './planet';
 import { nearRoad } from './roads';
 
 /** Seeded props over the whole sphere (trees, boulders), addressed by cube-sphere cells so any
  * consumer — renderer, walker collision, tests — derives the same set for a neighbourhood
  * without generating the planet. Library ids name the asset each prop instantiates. */
-export type PropKind = 'oak' | 'willow' | 'pine' | 'boulder' | 'shrub';
-export const PROP_ASSET: Record<PropKind, string | null> = { oak: 'tvn_flora_001', willow: 'tvn_flora_005', pine: null, boulder: 'tvn_biome_021', shrub: null };
+export type PropKind = 'oak' | 'willow' | 'pine' | 'boulder' | 'shrub' | 'ruin' | 'rubble';
+export const PROP_ASSET: Record<PropKind, string | null> = { oak: 'tvn_flora_001', willow: 'tvn_flora_005', pine: null, boulder: 'tvn_biome_021', shrub: null, ruin: null, rubble: null };
+/** Kinds drawn from the focused runtime pack's module catalog instead of the library. */
+export const PROP_MODULE: Partial<Record<PropKind, string>> = { ruin: 'module:broken_column', rubble: 'module:masonry_rubble' };
 export interface Prop { id: string; kind: PropKind; dir: V3; yaw: number; scale: number; radius: number }
 export const SCATTER_N = 192;
 const DENSITY: Record<Biome, [PropKind, number][]> = {
@@ -19,7 +21,10 @@ const DENSITY: Record<Biome, [PropKind, number][]> = {
   swamp: [['willow', .7], ['shrub', .4]],
   mountain: [['boulder', .45], ['pine', .12]],
 };
-const TRUNK: Record<PropKind, number> = { oak: .35, willow: .3, pine: .3, boulder: 1.5, shrub: 0 };
+const TRUNK: Record<PropKind, number> = { oak: .35, willow: .3, pine: .3, boulder: 1.5, shrub: 0, ruin: .6, rubble: .9 };
+/** Chance per scatter cell (~6.8k m²) of a small ruin: broken columns and masonry rubble
+ * around one point — old stonework weathering in open country. */
+const RUIN: Record<Biome, number> = { ocean: 0, snow: 0, beach: 0, grassland: .05, forest: .015, taiga: .01, tundra: .03, desert: .05, savanna: .05, swamp: .01, mountain: .03 };
 function hash(a: number, b: number, c: number, d: number, seed: number) {
   let h = Math.imul(a, 374761393) + Math.imul(b, 668265263) + Math.imul(c, 1440662683) + Math.imul(d, 3266489917) + Math.imul(seed, 2246822519);
   h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
@@ -58,6 +63,18 @@ export function scatterCell(spec: PlanetSpec, f: number, i: number, j: number): 
       if (reserved(spec, dir) || climateAt(spec, dir).height < 1.5) continue;
       const s = .75 + hash(f, i, j, k * 5 + 4, spec.seed) * .6;
       out.push({ id: `${f}:${i}:${j}:${k}`, kind, dir, yaw: hash(f, i, j, k * 5 + 5, spec.seed) * Math.PI * 2, scale: s, radius: TRUNK[kind] * s });
+    }
+  }
+  // A ruin: 2-4 columns on a rough ring and 1-3 rubble piles, all on dry unreserved ground.
+  if (hash(f, i, j, 911, spec.seed) < RUIN[biome]) {
+    const u = (i + .2 + .6 * hash(f, i, j, 912, spec.seed)) / n * 2 - 1, v = (j + .2 + .6 * hash(f, i, j, 913, spec.seed)) / n * 2 - 1, centre = cubeToDir(f, u, v), fr = tangentFrame(centre);
+    const ring = 3.5 + 3 * hash(f, i, j, 914, spec.seed), cols = 2 + Math.floor(hash(f, i, j, 915, spec.seed) * 3), piles = 1 + Math.floor(hash(f, i, j, 916, spec.seed) * 3), turn = hash(f, i, j, 917, spec.seed) * Math.PI * 2;
+    for (let q = 0; q < cols + piles; q++, k++) {
+      const col = q < cols, a = turn + (col ? q / cols * Math.PI * 2 : hash(f, i, j, 920 + q, spec.seed) * Math.PI * 2), r = col ? ring : ring * hash(f, i, j, 930 + q, spec.seed) * .8;
+      const dir = normalize(add(centre, add(scale(fr.east, Math.sin(a) * r / spec.radius), scale(fr.north, Math.cos(a) * r / spec.radius))));
+      if (reserved(spec, dir) || climateAt(spec, dir).height < 1.5) continue;
+      const kind: PropKind = col ? 'ruin' : 'rubble', sc = .85 + hash(f, i, j, 940 + q, spec.seed) * .3;
+      out.push({ id: `${f}:${i}:${j}:${k}`, kind, dir, yaw: hash(f, i, j, 950 + q, spec.seed) * Math.PI * 2, scale: sc, radius: TRUNK[kind] * sc });
     }
   }
   return out;
