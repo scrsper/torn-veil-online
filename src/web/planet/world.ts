@@ -1,7 +1,7 @@
 import { Color3, Color4, FreeCamera, InstancedMesh, Material, Matrix, Mesh, PBRMaterial, VertexData, MeshBuilder, Quaternion, Scene, StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
 import { createRenderer, attachPipeline } from '../render/engine';
 import {
-  HOME_ANCHOR, add, arc, landmarkSites, dot, sub, biomeAt, climateAt, roadLamps, LAMP_RADIUS, type RoadLamp, chartToHome, homeToDir, length, localHour, normalize, planetSpec, propsNear, regionAt, resolveObstacles, scale, skyAt,
+  HOME_ANCHOR, add, arc, landmarkSites, dot, sub, biomeAt, climateAt, roadLamps, LAMP_RADIUS, type RoadLamp, precinctPieces, precinctBlocks, chartToHome, homeToDir, length, localHour, normalize, planetSpec, propsNear, regionAt, resolveObstacles, scale, skyAt,
   spawnBody, stepSurface, siteRadius, surfaceRadius, tangentFrame, toLatLon, upOf, DAY_SECONDS, START_HOUR, type Obstacle, type SurfaceBody, type SurfaceInput, type V3,
 } from '../../sim/world/planet';
 import { homeChart, planetToRealm, realmToPlanet } from '../../sim/world/planet/chart';
@@ -174,6 +174,7 @@ export async function startPlanetWorld() {
   };
   // Roadside lanterns (focused pack module, hash-verified by FocusedAssets), built once within 400 m.
   const lampRoots = new Map<string, TransformNode | null>(), glowMats: PBRMaterial[] = [];
+  const collectGlow = (m: Material | null) => { if (m instanceof PBRMaterial && /glow/i.test(m.name) && !glowMats.includes(m)) glowMats.push(m); };
   let lampCheck = 0;
   const buildLamp = async (l: RoadLamp) => {
     lampRoots.set(l.id, null);
@@ -183,7 +184,7 @@ export async function startPlanetWorld() {
     holder.position = v(scale(l.dir, surfaceRadius(spec, l.dir) - .05));
     const inst = await focused.instantiate({ id: l.id, assetId: 'module:lantern_post', position: [0, 0, 0], yaw: 0, floorId: 'planet' });
     inst.root.parent = holder; holder.computeWorldMatrix(true);
-    for (const m of inst.root.getChildMeshes()) { m.computeWorldMatrix(true); if (m.material instanceof PBRMaterial && /glow/i.test(m.material.name) && !glowMats.includes(m.material)) glowMats.push(m.material); }
+    for (const m of inst.root.getChildMeshes()) { m.computeWorldMatrix(true); collectGlow(m.material); }
     lampRoots.set(l.id, holder);
   };
   const updateLamps = () => {
@@ -208,6 +209,19 @@ export async function startPlanetWorld() {
   const doorPoint = Vector3.TransformCoordinates(pagoda.door, pagodaRoot.computeWorldMatrix(true)), stepOut = Vector3.TransformCoordinates(pagoda.door.add(new Vector3(0, 0, -4)), pagodaRoot.computeWorldMatrix(true)), farOut = Vector3.TransformCoordinates(pagoda.door.add(new Vector3(0, 0, -60)), pagodaRoot.computeWorldMatrix(true));
   const pagodaInverse = pagodaRoot.computeWorldMatrix(true).clone().invert();
   const pagodaLocal = (p: V3) => Vector3.TransformCoordinates(new Vector3(p.x, p.y, p.z), pagodaInverse);
+  // The temple precinct (paved approach, lantern pairs, braziers, low wall): focused-pack modules
+  // in the pagoda's frame, built once when the observer first comes within 400 m.
+  let precinctState: 'none' | 'loading' | 'built' = 'none';
+  const buildPrecinct = async () => {
+    precinctState = 'loading';
+    await focusedManifest;
+    for (const p of precinctPieces()) {
+      const inst = await focused.instantiate({ id: p.id, assetId: p.assetId, position: [p.x, 0, p.z], yaw: p.yaw, floorId: 'planet' });
+      inst.root.parent = pagodaRoot;
+      for (const m of inst.root.getChildMeshes()) { m.computeWorldMatrix(true); collectGlow(m.material); }
+    }
+    precinctState = 'built'; status.precinct = `${precinctPieces().length} pieces`;
+  };
 
   // The observer's body: the existing placeholder treatment (a plain capsule), unchanged in kind.
   const bodyMesh = MeshBuilder.CreateCapsule('player-placeholder', { height: 1.8, radius: .35 }, scene), bodyMat = new StandardMaterial('player-placeholder', scene);
@@ -258,9 +272,10 @@ export async function startPlanetWorld() {
     const prev = body;
     body = resolveObstacles(spec, stepSurface(spec, body, input, fixed), obstacles());
     // The pagoda: podium and stair carry the body; the ground storey's walls stop it, except at the door.
-    if (arc(spec, upOf(body), pagodaDir) < 30) {
+    if (arc(spec, upOf(body), pagodaDir) < 52) {
       const l = pagodaLocal(body.pos);
-      if (pagodaBlocks(l.x, l.z)) body = slide(prev, body, p => { const q = pagodaLocal(p); return pagodaBlocks(q.x, q.z); });
+      const solid = (x: number, z: number) => pagodaBlocks(x, z) || precinctState === 'built' && precinctBlocks(x, z);
+      if (solid(l.x, l.z)) body = slide(prev, body, p => { const q = pagodaLocal(p); return solid(q.x, q.z); });
       else { const h = pagodaSupport(l.x, l.z); if (h !== null) { const up = upOf(body), floor = spec.radius + 6 - .2 + h, r = length(body.pos); if (r <= floor + .05 || body.grounded && r - floor < .7) body = { ...body, pos: scale(up, floor), grounded: true }; } }
     }
     if (aetherBlocked(body.pos) && !aetherBlocked(prev.pos)) body = slide(prev, body, aetherBlocked);
@@ -320,7 +335,7 @@ export async function startPlanetWorld() {
     // Keyed to the sun, not daylight (moonlight keeps daylight above zero): full glow once the sun is 6° down.
     const dark = Math.max(0, Math.min(1, (.1 - (sky.last?.sunElevation ?? 1)) / .2)); pagoda.lamp.emissiveColor = new Color3(1, .68, .32).scale(.08 + 1.1 * dark);
     for (const m of glowMats) m.emissiveColor = new Color3(1, .62, .22).scale(.05 + 1.6 * dark);
-    if ((lampCheck += dt) > .5) { lampCheck = 0; updateLamps(); }
+    if ((lampCheck += dt) > .5) { lampCheck = 0; updateLamps(); if (precinctState === 'none' && view === 'ground' && arc(spec, upOf(body), pagodaDir) < 400) void buildPrecinct().catch(e => { status.precinct = 'failed: ' + e; }); }
     // Only nearby library spaces are built and drawn (START_HERE: load only nearby spaces); none from orbit.
     for (const q of placed) { const on = inRange(q); if (q.root) { if (q.root.isEnabled(false) !== on) q.root.setEnabled(on); } else if (on && !q.loading) void instantiatePlacement(q); }
     scene.render(); hud(dt);

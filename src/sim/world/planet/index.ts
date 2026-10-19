@@ -8,3 +8,4 @@ export * from './pagoda';
 export * from './roads';
 export * from './aether';
 export * from './ravines';
+export * from './precinct';
