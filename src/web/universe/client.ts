@@ -15,6 +15,7 @@ import { UniverseLighting } from './lighting';
 import { UniverseSettlements, type SettlementProjection } from './settlements';
 import { QUALITY, type RenderContext } from '../render/engine';
 import { vesselLocation } from './vessel';
+import { UniverseCommandQueue, UniverseHeldInput, UNIVERSE_CONTROL_KEYS } from './input';
 import './universe.css';
 
 // Type-only wire imports are erased. Host advancement never enters the browser bundle.
@@ -64,12 +65,13 @@ export async function startUniverse() {
     el('.astral-chart').hidden = true; el('[data-chart-toggle]').setAttribute('aria-expanded', 'false');
   }
   let snapshot: Snapshot | null = null, seq = 0, connected = false, disposed = false, lastReply = 0, busy = false, polling = false, requestId = 0, acceptedRequest = 0;
-  const queue: Command[] = [];
+  const queue = new UniverseCommandQueue(() => !busy && !!snapshot && connected && !disposed && !leaving
+    && (!campaignMode || !!controllerToken && !!campaign?.active), transmit);
   const accept = (next: Snapshot, request: number) => {
     if (request < acceptedRequest) return;
     if (snapshot && next.sessionId === snapshot.sessionId && next.revision < snapshot.revision) return;
     acceptedRequest = request;
-    if (!snapshot || next.sessionId !== snapshot.sessionId) { seq = next.lastSeq ?? 0; queue.length = 0; }
+    if (!snapshot || next.sessionId !== snapshot.sessionId) { seq = next.lastSeq ?? 0; queue.clear(); }
     seq = Math.max(seq, next.lastSeq ?? 0); snapshot = next; connected = true; lastReply = performance.now();
   };
   const acceptView = (result: { snapshot: Snapshot | null; campaign: Campaign }, request: number) => {
@@ -97,25 +99,28 @@ export async function startUniverse() {
   async function poll() {
     if (disposed || busy || polling || campaignMode && !controllerToken) return;
     polling = true;
-    const request = ++requestId;
-    try { const response = await fetch(endpoint, { cache: 'no-store', headers: headers(), signal: AbortSignal.timeout(2500) }); if (!response.ok) throw Error(`Host ${response.status}`); const result = await response.json(); if (campaignMode) acceptView(result, request); else accept(result, request); }
-    catch { if (request >= acceptedRequest) connected = false; }
+    const request = ++requestId, token = controllerToken;
+    try { const response = await fetch(endpoint, { cache: 'no-store', headers: headers(), signal: AbortSignal.timeout(2500) }); if (!response.ok) throw Error(`Host ${response.status}`); const result = await response.json(); if (disposed || leaving || token !== controllerToken) return; if (campaignMode) acceptView(result, request); else accept(result, request); }
+    catch { if (!disposed && token === controllerToken && request >= acceptedRequest) connected = false; }
     finally { polling = false; }
   }
-  async function flush() {
-    if (busy || !snapshot || !queue.length || disposed) return;
-    busy = true; const command = queue.shift()!, request = ++requestId;
+  async function transmit(command: Command): Promise<boolean> {
+    if (!snapshot) return false;
+    busy = true; const request = ++requestId, token = controllerToken, sessionId = snapshot.sessionId;
     try {
-      const response = await fetch(`${endpoint}/command`, { method: 'POST', headers: headers(), body: JSON.stringify({ sessionId: snapshot.sessionId, seq: ++seq, command }), signal: AbortSignal.timeout(2500) });
-      const result = await response.json(); if (campaignMode && result.campaign) acceptView(result, request); else if (result.snapshot) accept(result.snapshot, request);
-      if (response.status >= 500) { connected = false; queue.length = 0; }
+      const response = await fetch(`${endpoint}/command`, { method: 'POST', headers: headers(), body: JSON.stringify({ sessionId, seq: ++seq, command }), signal: AbortSignal.timeout(2500) });
+      const result = await response.json();
+      if (disposed || leaving || token !== controllerToken || sessionId !== snapshot?.sessionId) return false;
+      if (campaignMode && result.campaign) acceptView(result, request); else if (result.snapshot) accept(result.snapshot, request);
+      if (response.status >= 500) connected = false;
       if (!result.ok) say(result.error ?? 'The host refused that action.', true);
-    } catch { connected = false; say('Connection interrupted. Controls pause until the host returns.', true); queue.length = 0; }
+      return response.ok && result.ok === true;
+    } catch { if (!disposed && !leaving && token === controllerToken) { connected = false; say('Connection interrupted. Controls pause until the host returns.', true); } return false; }
     finally { busy = false; }
   }
-  const send = (command: Command) => { if (campaignMode && !campaign?.active) return; if (!connected) return say(campaignMode ? 'Saved world host is offline. Reconnect before continuing.' : 'Expedition host is offline. Start Play Torn Veil Universe.cmd.', true); if (command.type === 'input') { const old = queue.findIndex(c => c.type === 'input'); if (old >= 0) queue.splice(old, 1); } queue.push(command); void flush(); };
+  const send = (command: Command) => { if (disposed || leaving || campaignMode && (!controllerToken || !campaign?.active)) return; if (!connected) return say(campaignMode ? 'Saved world host is offline. Reconnect before continuing.' : 'Expedition host is offline. Start Play Torn Veil Universe.cmd.', true); queue.enqueue(command); };
   const goTown = async () => {
-    if (leaving) return; leaving = true; queue.length = 0;
+    if (leaving) return; leaving = true; queue.clear();
     if (campaignSocket && campaignSocket.readyState !== WebSocket.CLOSED) await new Promise<void>(resolve => {
       const timeout = setTimeout(resolve, 1500); campaignSocket!.addEventListener('close', () => { clearTimeout(timeout); resolve(); }, { once: true }); campaignSocket!.close();
     });
@@ -123,14 +128,14 @@ export async function startUniverse() {
   };
   const transition = async (type: 'enter' | 'return' | 'explore' | 'ascend') => {
     if (!campaign || busy || !controllerToken) return;
-    busy = true; queue.length = 0; const request = ++requestId;
+    busy = true; queue.clear(); const request = ++requestId;
     try {
       const response = await fetch(`${endpoint}/transition`, { method: 'POST', headers: headers(), body: JSON.stringify({ id: crypto.randomUUID(), type, revision: campaign.revision }), signal: AbortSignal.timeout(15000) });
       const result = await response.json(); if (result.campaign) acceptView(result, request);
       if (!response.ok || result.error) throw Error(result.error ?? 'The crossing was refused.');
       if (type === 'return') await goTown();
     } catch (error) { say(String(error), true); }
-    finally { busy = false; }
+    finally { busy = false; void queue.flush(); }
   };
   el('[data-board]').onclick = () => void transition(campaign?.canExplore ? 'explore' : 'enter');
   el('[data-ascend]').onclick = () => { if (campaign?.canExplore && campaign.flight.canHover) void transition('ascend'); };
@@ -140,10 +145,10 @@ export async function startUniverse() {
     campaignSocket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/realms/universe/socket`);
     campaignSocket.addEventListener('message', event => {
       const message = JSON.parse(event.data);
-      if (message.type === 'controller') { controllerToken = message.token; seq = 0; queue.length = 0; void poll(); }
+      if (message.type === 'controller') { controllerToken = message.token; seq = 0; queue.clear(); void poll(); }
     });
     campaignSocket.addEventListener('close', event => {
-      controllerToken = ''; connected = false; queue.length = 0;
+      controllerToken = ''; connected = false; queue.clear();
       if (leaving || disposed) return;
       say(event.reason || 'World connection interrupted. Reconnecting…', true);
       if (event.code !== 4001) reconnect = setTimeout(connectCampaign, 2000);
@@ -185,9 +190,9 @@ export async function startUniverse() {
   const starfield = buildStars(scene); starfield.isPickable = false;
   let terrain: UniverseTerrain | null = null, systemId = '', terrainKey = '', rendered: Vector3 | null = null, facing = new Vector3(0, 0, 1), up = Vector3.Up(), drawTick = 0;
   let planetButtons = new Map<string, HTMLButtonElement>();
-  const keys = new Set<string>(); let drag: { id: number; x: number; y: number } | null = null;
-  const zeroInput = (): Command => ({ type: 'input', input: { throttle: 0, yaw: 0, pitch: 0, strafe: 0, lift: 0, brake: true } });
-  const brake = () => { keys.clear(); if (snapshot?.state.cruise) send({ type: 'cruise', enabled: false }); send(zeroInput()); };
+  const held = new UniverseHeldInput(input => send({ type: 'input', input })), keys = held.keys;
+  let drag: { id: number; x: number; y: number } | null = null;
+  const brake = () => { if (snapshot?.state.cruise) send({ type: 'cruise', enabled: false }); held.brake(); };
   const toggleChart = () => { const chart = el('.astral-chart'); chart.hidden = !chart.hidden; el('[data-chart-toggle]').setAttribute('aria-expanded', String(!chart.hidden)); };
   const toggleHelp = () => { const help = el('.astral-help'); help.hidden = !help.hidden; el('[data-help]').setAttribute('aria-expanded', String(!help.hidden)); if (!help.hidden) brake(); };
   const doLaunch = () => { if (snapshot && !launch.disabled) send({ type: snapshot.state.mode === 'surface' ? 'launch' : 'land' }); };
@@ -215,14 +220,14 @@ export async function startUniverse() {
       if (event.code === 'Escape' || event.key === '?') { event.preventDefault(); if (!event.repeat) toggleHelp(); }
       return;
     }
-    if (['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyW','KeyS','KeyA','KeyD','KeyQ','KeyE'].includes(event.code)) { event.preventDefault(); if (el('.astral-help').hidden) keys.add(event.code); }
+    if (UNIVERSE_CONTROL_KEYS.has(event.code)) { event.preventDefault(); held.press(event.code, snapshot?.state.mode === 'flight'); }
     if (event.repeat) return;
     if (event.code === 'KeyR') { event.preventDefault(); orbit.recenter(); cameraPreferenceDirty = true; }
     if (event.code === 'BracketLeft' || event.code === 'BracketRight') { event.preventDefault(); orbit.zoom(event.code === 'BracketRight' ? 1 : -1); cameraPreferenceDirty = true; }
     if (event.code === 'KeyF') doLaunch(); if (event.code === 'KeyG') doSoar(); if (event.code === 'KeyC') doCruise(); if (event.code === 'KeyM') toggleChart();
     if (event.key === '?') toggleHelp(); if (event.code === 'Escape') { brake(); el('.astral-help').hidden = true; }
   };
-  const keyup = (event: KeyboardEvent) => keys.delete(event.code);
+  const keyup = (event: KeyboardEvent) => held.release(event.code, snapshot?.state.mode === 'flight');
   const pointerUp = () => {
     const ended = drag; drag = null;
     if (ended && canvas.hasPointerCapture(ended.id)) canvas.releasePointerCapture(ended.id);
@@ -249,14 +254,10 @@ export async function startUniverse() {
   canvas.addEventListener('pointerdown', pointerDown); canvas.addEventListener('pointermove', pointerMove); canvas.addEventListener('pointerup', pointerUp); canvas.addEventListener('pointercancel', pointerUp);
   canvas.addEventListener('lostpointercapture', pointerUp); canvas.addEventListener('wheel', wheel, { passive: false }); canvas.addEventListener('auxclick', auxClick);
   const visibility = () => { if (document.hidden) release(); }; document.addEventListener('visibilitychange', visibility);
-  let previousInput = false;
   const network = setInterval(() => {
     if (disposed) return;
-    const axis = (a: string, b: string) => Number(keys.has(a)) - Number(keys.has(b));
-    const input = { throttle: axis('KeyW','KeyS'), yaw: axis('ArrowLeft','ArrowRight'), pitch: snapshot?.state.mode === 'flight' ? axis('ArrowUp','ArrowDown') : 0, strafe: axis('KeyD','KeyA'), lift: axis('KeyE','KeyQ'), brake: keys.has('Space') };
-    const active = !!(input.throttle || input.yaw || input.pitch || input.strafe || input.lift || input.brake);
-    if (active || previousInput) send({ type: 'input', input }); previousInput = active;
-    if (queue.length) void flush(); else void poll();
+    held.heartbeat(snapshot?.state.mode === 'flight');
+    if (queue.length) void queue.flush(); else void poll();
   }, 100);
   const resize = () => engine.resize(); window.addEventListener('resize', resize);
   engine.runRenderLoop(() => {
@@ -402,7 +403,7 @@ export async function startUniverse() {
   Object.defineProperty(window, '__tvUniverse', { configurable: true, value: { get snapshot() { return snapshot; }, get campaign() { return campaign; }, get stats() { return terrain?.stats(); }, get atlas() { return atlas.stats(); }, get avatar() { return avatar.stats(); }, get footSupport() { return footSupport.stats(); }, get settlements() { return settlements.stats(); }, get camera() { return structuredClone(cameraDiagnostics); }, get lighting() { return lighting.stats(); }, get preview() { return campaign?.preview ?? null; }, get render() { return { drawCalls: engine._drawCalls.current, activeMeshes: scene.getActiveMeshes().length, totalMeshes: scene.meshes.length }; }, get vessel() { return { visible: ship.isEnabled(), position: { x: ship.position.x, y: ship.position.y, z: ship.position.z } }; }, get ready() { return !!(snapshot || campaign?.preview) && !!terrain; } } });
   const cleanup = () => {
     if (disposed) return; disposed = true;
-    clearInterval(network); clearTimeout(reconnect); campaignSocket?.close(); keys.clear(); pointerUp(); persistCamera();
+    clearInterval(network); clearTimeout(reconnect); queue.clear(); campaignSocket?.close(); keys.clear(); pointerUp(); persistCamera();
     window.removeEventListener('keydown', down); window.removeEventListener('keyup', keyup); window.removeEventListener('blur', release); window.removeEventListener('resize', resize);
     document.removeEventListener('visibilitychange', visibility);
     canvas.removeEventListener('pointerdown', pointerDown); canvas.removeEventListener('pointermove', pointerMove); canvas.removeEventListener('pointerup', pointerUp);
