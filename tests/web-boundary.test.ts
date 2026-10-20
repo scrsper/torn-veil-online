@@ -76,6 +76,10 @@ describe('browser bundle boundary', () => {
       'src/sim/world/planet/pagoda.ts', 'src/sim/world/planet/roads.ts', 'src/sim/world/planet/aether.ts', 'src/sim/world/planet/ravines.ts', 'src/sim/world/planet/precinct.ts',
       // Versioned immutable geography queries only. Travel stepping stays on the host.
       'src/sim/world/universe/generation.ts',
+      // Cooked immutable Atlas metadata and pure spatial/collision queries. No model
+      // file I/O, World, journal, resources or movement stepping enters the browser.
+      'src/sim/world/atlas/index.ts', 'src/sim/world/atlas/catalog.json',
+      'src/sim/world/atlas/placement.ts', 'src/sim/world/atlas/collision.ts',
       // Seeded deterministic RNG and realm addresses/names; no World access.
       'src/sim/core/rng.ts', 'src/sim/world/realms/layout.ts',
       // Library registry generated from the torn-veil-assets manifest (ids, hashes, bounds; no binaries).

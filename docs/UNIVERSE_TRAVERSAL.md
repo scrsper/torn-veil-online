@@ -15,13 +15,16 @@ npm run universe:campaign
 ```
 
 This starts the existing realm host with a development client on port 7530 and
-opens `/?universe&campaign`. **Board the astral vessel** makes a journaled crossing.
+opens `/?universe&campaign`. New mapped expeditions preview the actual character
+and existing town. **Explore on foot** continues from those coordinates.
+**Fly under own power** requires learned gravity forms and enough actual body,
+equipment and mana capacity; it does not grant an ability or move the parked ship.
 The same route is available from the town's **Travel & journal** panel.
-After returning to Cinderveil and approaching the vessel, **Return to town**
-restores the saved facing at the home anchor, or a reachable clear spot within
-three metres if a resident occupies it. Fully blocked arrivals are refused.
-Boarding requires a stationary, eligible body outside the Tower and any other
-pending crossing.
+After landing within either mapped home town, **Return to town** resumes ordinary
+town interactions at the actual location/facing, or reachable clear ground within
+three metres if occupied. Entry requires a stationary, eligible body outside the
+Tower and any other pending crossing. Earlier expeditions retain their saved
+gateway geography and vessel-based return rules.
 
 The campaign launcher follows the ordinary realm host's save selection:
 `.debug/realms/world-current.json` when present, otherwise
@@ -64,6 +67,15 @@ help. Esc and focus loss release controls. Choose a system address 0–65535 and
 **Cross the veil** after leaving the atmosphere. Reloading resumes the host's
 expedition; restarting clears held thrust and unattended navigation/descent.
 
+In the canonical campaign, **G** starts personal flight from standing ground.
+**F / Descend** returns toward supporting ground. The chart admits assisted
+interplanetary flight only when the actual protection, speed, mana and effort
+forecast allow it. Personal flight cannot use vessel warp. Low reserves begin
+descent; exhausted lift leaves gravity and momentum in effect. Grounded rest
+recovers existing breath/mana through the world clock. Closing the client pauses
+the world and does not grant offline resource recovery. See
+[MAGICAL_FLIGHT.md](MAGICAL_FLIGHT.md) for capability and survival boundaries.
+
 ## Implementation
 
 - `src/sim/world/universe/generation.ts`: version 1, independent keyed seed
@@ -105,7 +117,8 @@ expedition; restarting clears held thrust and unattended navigation/descent.
 
 Public-source research and the distinction between documented No Man's Sky ideas
 and our implementation are in [UNIVERSE_RESEARCH.md](UNIVERSE_RESEARCH.md).
-No proprietary code, assets, or licensed character packages are required.
+No proprietary No Man's Sky code or assets are used. Local presentation reuses
+Torn Veil's installed asset packs and existing character materials.
 
 ## Integration boundary
 
@@ -116,15 +129,28 @@ entry are fenced while the body resides in the astral domain. There is no copied
 character or cross-save reward synchronization. The standalone route remains
 separate and is clearly labeled.
 
-This is an explicit **Veil gateway** between town and the vessel. The existing
-town/pagoda structures and populations are not yet placed on the spherical
-surface; it is not a seamless walk from those town meshes into a cockpit.
+New expeditions map the existing towns through versioned spherical charts,
+including source floors, roofs, walls and live door states. Entry and lift use
+the character's current feet rather than moving it to a remote vessel. The
+existing hero is projected into this view. Ordinary NPC interaction, combat,
+door commands and Tower entry still require **Return to town**; this iteration
+does not complete their spherical presentation/control bridge.
+
 Resident simulation advances while the owner is connected, including during
-space travel. The host still pauses when no controller is connected. The
-traveler's ordinary body physiology, equipment actions and combat are not yet
-simulated in the astral domain. Resources and progression are not granted by
-boarding or visiting a planet. The vessel remains a traversal fixture; physical
-acquisition, ownership and cargo are next systems.
+space travel. The host still pauses when no controller is connected. Traveler
+metabolism, breath, mana and existing downed recovery advance exactly once on
+the same clock. Wounds, impact/vacuum/water damage and ordinary equipment actions
+remain incomplete in astral residency. Visiting a world grants no inventory or
+progression reward. The vessel remains a traversal fixture; acquisition,
+ownership and cargo are next systems. See
+[SETTLEMENT_TRAVERSAL.md](SETTLEMENT_TRAVERSAL.md) and the
+[defect register](UNIVERSE_ISSUES.md).
+
+The installed Atlas supplies deterministic native-scale population across
+worlds and Tower dressing, subject to route, collision and rendering budgets.
+Content-hashed local transport verifies each model. Compatible catalog entries,
+actual placements and browser-visible models are separately measured in
+[ATLAS_INTEGRATION.md](ATLAS_INTEGRATION.md).
 
 There is no procedural civilization/ecology, resource extraction, fuel, combat,
 terrain deformation, caves, or voxel volume generation in this slice. Worlds use

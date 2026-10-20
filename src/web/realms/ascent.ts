@@ -22,6 +22,7 @@ import type { TowerController } from '../../server/towerController';
 import { primaryCamera, attachOrbit, cameraRelativeMove, travelFacing, smoothYaw, groundViewYaw, walkingMove,cameraPivotHeight } from './thirdPerson';
 import { voxelSolid, insideSolid, boxObstruction } from './cameraSolids';
 import { InteriorCameraFraming } from './interiorCamera';
+import { AtlasTowerDressing } from '../atlas/tower';
 
 type Frame = NonNullable<ReturnType<TowerController['frame']>> & { serverMs: number; saveError?: string };
 /** A projection of the shared body and physical floor. Only input and visual smoothing
@@ -37,6 +38,7 @@ export async function startCanonicalAscent() {
   const focused=new FocusedRenderer(ctx,atmosphere,{x:0,z:0},new MaterialLibrary(ctx.scene),null);let acknowledgedFloor='';
   atmosphere.look.fill = 1.1; atmosphere.look.key = 1.05; atmosphere.look.exposure = 1;
   const people = new SharedCharacters(ctx.scene), visuals = new Map<string, { visual: BodyVisual; body: BodyState; hitSeq: number; hit: number }>();
+  const atlasDressing = new AtlasTowerDressing(ctx.scene);
   const geometry: Mesh[] = [], objects = new Map<string, Mesh>(), keys = new Set<string>();
   let walls: InteriorPlan['solids'] = [];
   const vfx = new Vfx(ctx.scene), seenCasts = new Set<string>();
@@ -62,11 +64,13 @@ export async function startCanonicalAscent() {
   const dressingAssets = new FocusedAssets(ctx.scene, atmosphere); let dressingManifest: Promise<unknown> | null = null, dressing: { dispose(): void }[] = [];
   function dressFloor(p: InteriorPlan) {
     for (const d of dressing) d.dispose(); dressing = [];
+    atlasDressing.setPlan(p);
     if (p.assetScene) return;
     dressingManifest ??= dressingAssets.loadManifest().catch(() => null);
     const spec = towerFloorSpec(p.descriptor.seed, p.descriptor.floor), o = p.origin;
     void dressingManifest.then(async m => { if (!m) return; for (const [i, d] of spec.dressing.entries()) {
       if (plan !== p) return;
+      if (atlasDressing.replaces(o.x + d.x, o.z + d.z)) continue;
       try { const inst = await dressingAssets.instantiate({ id: `${p.id}:dress:${i}`, assetId: d.moduleId, position: [o.x + d.x, d.y, o.z + d.z], yaw: d.yaw, floorId: p.id }); if (plan !== p) inst.dispose(); else dressing.push(inst); } catch { /* plain plan remains */ }
     } });
   }
@@ -300,10 +304,11 @@ export async function startCanonicalAscent() {
       if (target) targetRing.position.set(target.pos.x, target.pos.y + .04, target.pos.z);
     }
     const ownPosition=frame?.snapshot.bodies.find(b=>b.bodyId===binding?.bodyId)?.pos;if(ownPosition)sliceHud.bearing(ownPosition,movementYaw);
+    atlasDressing.update(camera.position, dt);
     vfx.update(dt); atmosphere.follow(camera.position); atmosphere.update(10, realmWeather(frame ?? {}), dt); ctx.scene.fogColor = Color3.FromHexString('#79808e'); ctx.scene.render();
   });
   Object.defineProperty(window, 'tvAscent', { value: { get ready() { return ready; }, get frame() { return frame; }, get plan() { return plan; }, get targetId() { return targetId; },
-    inspect: () => ({focused:{instances:focused.count,pending:focused.pending,error:focused.error}, frames: [...frames], serverMs: [...serverTimes], receipts: [...receipts], meshes: ctx.scene.meshes.length, people: visuals.size, looks: [...visuals.values()].map(v => v.visual.root.metadata),
+    inspect: () => ({atlas:atlasDressing.stats(),focused:{instances:focused.count,pending:focused.pending,error:focused.error}, frames: [...frames], serverMs: [...serverTimes], receipts: [...receipts], meshes: ctx.scene.meshes.length, people: visuals.size, looks: [...visuals.values()].map(v => v.visual.root.metadata),
       camera: { mode: 'third-person', yaw: view.camera.yaw, renderedYaw: view.camera.renderedYaw, movementYaw, pitch: view.camera.pitch, preferred: view.camera.preferred, blocked: cameraPointBlocked(camera.position.x,camera.position.y,camera.position.z), position: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, ...view.camera.debug, ...framing.debug },
       cutawayWalls: geometry.filter(m => m.metadata?.wall && m.visibility < 1).length,
       cameraSolids: walls,

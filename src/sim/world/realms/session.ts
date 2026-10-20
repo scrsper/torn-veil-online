@@ -57,6 +57,7 @@ export class RealmSession {
   adoptFocusedWorld(migration?:FocusedTowerMigration):void{
     if(this.world.universeExpedition?.active)throw Error('Return from the universe before changing realm geometry');
     const w=this.world;if(w.realmSpec?.focusedKit)return;
+    if(w.universeExpedition?.state.settlementRevision===1)throw Error('Mapped universe history and parked vessel require coordinated geometry migration; the original save is retained');
     if(w.realmExpedition)throw Error('Checkpoint-only legacy expedition needs a separate migration; the original save is retained');
     const run=w.canonicalTower;
     if(run&&(!migration||migration.policy!=='preserve-canonical-floors-v1'||migration.runId!==run.id||migration.revision!==run.revision))throw Error('Existing Tower progress requires coordinated geometry migration; the original save is retained');

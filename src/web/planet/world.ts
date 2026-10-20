@@ -28,6 +28,9 @@ import { RealmRenderer, type ChunkMessage } from '../realms/render';
 import { AETHER_CHART, FAR_ANCHOR, aetherBlocks, aetherChunks, dirToChart } from '../../sim/world/planet';
 import { bendPoint } from './bend';
 import { buildRoads } from './roads';
+import { AtlasSurfaceRenderer } from '../atlas/surface';
+import { atlasSpherePlacements } from '../../sim/world/atlas/placement';
+import { atlasStepWalker, atlasSweepWalker } from '../../sim/world/atlas/collision';
 
 /** /?world — the whole world as a walkable sphere. Geography, gravity, the sky clock and
  * Tower floors are the sim's pure seeded functions; this view advances a fixed-step
@@ -41,6 +44,9 @@ export async function startPlanetWorld() {
   try { attachPipeline(ctx, camera); } catch { /* the plain forward path remains */ }
   // &lite: smaller shadow maps and a lighter ground patch / prop ring (headless captures, weak GPUs).
   const lite = params.has('lite');
+  const atlasEnabled = params.get('atlas') !== '0';
+  const atlas = new AtlasSurfaceRenderer(scene, lite);
+  addEventListener('pagehide', () => atlas.dispose(), { once: true });
   const sky = new PlanetSky(scene, lite ? 1024 : ctx.quality.shadowMapSize >= 2048 ? 2048 : 1024); sky.atmosphere(spec.radius);
   const sinks: ((d: V3) => number)[] = [];
   const terrain = lite ? new PlanetTerrain(scene, spec, 72, 320, 96) : new PlanetTerrain(scene, spec); buildRoads(scene, spec);
@@ -317,10 +323,25 @@ export async function startPlanetWorld() {
         }
       }
     }
+    // This view is an unsaved observer simulation. Atlas solids and their real
+    // meshes share the same native transforms; &atlas=0 keeps a comparison view.
+    if (atlasEnabled && length(sub(body.pos, prev.pos)) > 1e-6) {
+      const candidates = atlasSpherePlacements(spec, scale(add(prev.pos, body.pos), .5),
+        Math.min(256, length(sub(body.pos, prev.pos)) / 2 + 3), 1);
+      const up = upOf(prev);
+      if (prev.grounded || body.grounded) {
+        const step = atlasStepWalker(candidates, prev.pos, body.pos, up);
+        if (step.blocked) body = slide(prev, body, position => atlasStepWalker(candidates, prev.pos, position, up).blocked);
+        else body = { ...body, pos: step.foot, grounded: body.grounded || step.support > 0 };
+      } else {
+        const blocked = (position: V3) => !!atlasSweepWalker(candidates, prev.pos, position, up);
+        if (blocked(body.pos)) body = slide(prev, body, blocked);
+      }
+    }
   };
   const tick = () => {
     const now = performance.now(), dt = Math.min(.1, (now - last) / 1000); last = now;
-    if (inTower) { survey.update(dt, keys); survey.scene.render(); hud(dt); return; }
+    if (inTower) { atlas.sphere(spec, body.pos, { x: 0, y: 0, z: 0 }, dt, false); survey.update(dt, keys); survey.scene.render(); hud(dt); return; }
     acc += dt;
     while (acc >= fixed) {
       acc -= fixed; seconds += fixed * speed;
@@ -336,6 +357,7 @@ export async function startPlanetWorld() {
     bodyMesh.position = pos.add(u.scale(.9));
     bodyMesh.rotationQuaternion = Quaternion.FromLookDirectionRH(fwd, u);
     terrain.orbit(view === 'orbit'); terrain.follow(up); props?.follow(up);
+    atlas.sphere(spec, body.pos, { x: 0, y: 0, z: 0 }, dt, atlasEnabled && view === 'ground');
     const state = skyAt(seconds);
     if (view === 'orbit') {
       const t = orbitAngle, around = normalize(add(scale(HOME_ANCHOR, Math.cos(t)), scale(tangentFrame(HOME_ANCHOR).east, Math.sin(t))));
@@ -376,7 +398,7 @@ export async function startPlanetWorld() {
   if (floorParam >= 1 && floorParam <= 100) { inTower = true; void survey.enter(floorParam); }
   // Test/media hooks: read-only state and observer placement, no gameplay authority.
   (window as unknown as { __tvWorld: unknown }).__tvWorld = {
-    spec, status, scene, get body() { return body; },
+    spec, status, scene, get body() { return body; }, get atlas() { return atlas.stats(); },
     setHour(h: number) { hudT = 1; seconds = ((h - START_HOUR + 24) % 24) / 24 * DAY_SECONDS + Math.floor(seconds / DAY_SECONDS) * DAY_SECONDS; },
     setDay(d: number) { seconds = (seconds % DAY_SECONDS) + d * DAY_SECONDS; },
     setView(next: 'orbit' | 'ground') { view = next; }, setOrbit(angle: number, radius?: number) { orbitAngle = angle; if (radius) orbitRadius = radius; },

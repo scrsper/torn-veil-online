@@ -43,6 +43,24 @@ async function fixture() {
 }
 
 describe('canonical universe HTTP controller and persistence boundaries', () => {
+  it('serves settlement geometry read-only under the current controller', async () => {
+    const f = await fixture();
+    const response = await fetch(`${f.origin}/realms/universe/settlements`, { headers: f.headers() });
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.version).toBe(1);
+    expect(body.patches).toHaveLength(2);
+    expect(body.chunks.length).toBeGreaterThan(0);
+    expect((await f.post('settlements', { type: 'enter', id: 'readonly-route-001', revision: 0 })).status).toBe(403);
+    expect(f.control.applications).toHaveLength(0);
+    f.api.busy = true;
+    expect((await fetch(`${f.origin}/realms/universe/settlements`, { headers: f.headers() })).status).toBe(503);
+    f.api.busy = false;
+    f.control.token = 'replacement-controller';
+    expect((await fetch(`${f.origin}/realms/universe/settlements`, {
+      headers: { 'x-realms-controller': 'controller-one' },
+    })).status).toBe(409);
+  });
   it('denies requests without a current controller', async () => {
     const f = await fixture();
     f.control.token = '';

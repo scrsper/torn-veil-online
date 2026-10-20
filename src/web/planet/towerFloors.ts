@@ -8,6 +8,7 @@ import { focusedGeometryReady, focusedGuardianStations, sceneGeometry } from '..
 import type { StaticGeometry } from '../../sim/physical/staticGeometry';
 import { FocusedAssets } from '../realms/focusedAssets';
 import type { Atmosphere } from '../world/atmosphere';
+import { AtlasTowerDressing } from '../atlas/tower';
 
 /** A survey of the hundred floors: each is the canonical seeded plan (walls, rooms, stair,
  * water intake, award chest, warden stations) dressed with library modules. This is a
@@ -25,10 +26,13 @@ export class TowerSurvey {
   readonly scene: Scene; readonly camera: FreeCamera; floor = 1; highest = 1; spec: TowerFloorSpec | null = null; plan: InteriorPlan | null = null;
   private meshes: Mesh[] = []; private lights: PointLight[] = []; private disposeDressing: (() => void)[] = [];
   private pos = new Vector3(); private yaw = 0; private assets: FocusedAssets; private manifest: Promise<unknown>; private message = '';
+  private atlas: AtlasTowerDressing;
   /** Library-kit grammar (focused worlds): halls, junctions, archive/boss rooms from the verified pack. */
   kit = false; kitPlan: FocusedFloorPlan | null = null; private geometry: StaticGeometry | null = null; private kitInstances: { dispose(): void }[] = [];
   constructor(engine: AbstractEngine, readonly seed: number) {
     const s = this.scene = new Scene(engine); s.useRightHandedSystem = true; s.clearColor = new Color4(.02, .02, .03, 1);
+    this.atlas = new AtlasTowerDressing(s);
+    s.onBeforeRenderObservable.add(() => this.atlas.update(this.camera.position, Math.min(.1, engine.getDeltaTime() / 1000)));
     s.fogMode = Scene.FOGMODE_EXP2; s.autoClear = true;
     this.camera = new FreeCamera('survey-camera', new Vector3(0, 10, 0), s); this.camera.minZ = .1; this.camera.maxZ = 400; this.camera.fov = .9; this.camera.inputs.clear();
     const fill = this.fill = new HemisphericLight('survey-fill', new Vector3(0, 1, 0), s); fill.intensity = .55;
@@ -40,8 +44,10 @@ export class TowerSurvey {
     this.floor = Math.max(1, Math.min(TOWER_FLOORS, Math.floor(floor))); this.highest = Math.max(this.highest, this.floor);
     for (const m of this.meshes) m.dispose(); for (const l of this.lights) l.dispose(); for (const d of this.disposeDressing) d();
     this.meshes = []; this.lights = []; this.disposeDressing = []; for (const k of this.kitInstances) k.dispose(); this.kitInstances = []; this.kitPlan = null; this.geometry = null;
+    this.atlas.setPlan(null);
     if (this.kit) return this.enterKit();
     const spec = this.spec = towerFloorSpec(this.seed, this.floor), plan = this.plan = floorPlan(this.seed, this.floor), o = plan.origin, theme = towerTheme(this.floor, this.seed);
+    this.atlas.setPlan(plan);
     const s = this.scene, mat = (name: string, hex: string, e = 0) => { const m = new StandardMaterial(name, s); m.diffuseColor = Color3.FromHexString(hex); m.specularColor = new Color3(.06, .06, .06); if (e) m.emissiveColor = m.diffuseColor.scale(e); return m; };
     // Scanned CC0 stone (walls) and cobbles (floor), tinted by the band palette.
     const scanned = (name: string, surface: string, hex: string, tile: number) => { const m = new PBRMaterial(name, s); useScannedMaps(m, this.maps(surface)); m.albedoColor = Color3.FromHexString(hex).scale(1.6); m.metallic = 0; m.roughness = .9; for (const t of [m.albedoTexture, m.bumpTexture, m.metallicTexture]) if (t instanceof Texture) { t.uScale = tile; t.vScale = tile; } this.materials.push(m); return m; };
@@ -76,6 +82,7 @@ export class TowerSurvey {
     void this.manifest.then(async m => {
       if (!m) return;
       for (const [i, d] of spec.dressing.entries()) {
+        if (this.atlas.replaces(o.x + d.x, o.z + d.z)) continue;
         try { const inst = await this.assets.instantiate({ id: `${plan.id}:dress:${i}`, assetId: d.moduleId, position: [o.x + d.x, d.y, o.z + d.z], yaw: d.yaw, floorId: plan.id }); if (this.plan !== plan) { inst.dispose(); return; } this.disposeDressing.push(inst.dispose); } catch { /* keep the plain plan */ }
       }
     });
@@ -138,4 +145,5 @@ export class TowerSurvey {
     const s = this.spec; if (!s) return '';
     return `${s.name}${this.kitPlan ? ' · library kit (' + [...new Set(this.kitPlan.placements.filter(p => !p.assetId.startsWith('module:')).map(p => p.assetId.replace(/^tv_\d+_\d+_/, '')))].join(', ') + ')' : ''}\n${s.bandName} · ${s.kind} · ${s.encounter.enemies} wardens (${[...new Set(s.wardens)].join(', ')})\naward: ${s.award.abilityId} ×${s.award.quantity} + provisions${s.rewardKinds.includes('boon') ? ' · boon floor' : ''}${s.rewardKinds.includes('trial') ? ' · trial' : ''}${s.rest ? ' · rest' : ''}\ncanonical gate: ${s.gate.previousFloor ? `clear floor ${s.gate.previousFloor}` : 'enter the Tower'}${s.gate.stage ? ` + ${s.gate.stage}` : ''} · clearing reaches ${s.tierOnClear}\nSurvey preview (earns nothing) · gold disc: stair (F) · blue disc: return (F)${this.message ? '\n' + this.message : ''}`;
   }
+  atlasStats() { return this.atlas.stats(); }
 }

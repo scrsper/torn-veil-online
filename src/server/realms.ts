@@ -16,6 +16,7 @@ import {inspectPerson,eventRow} from '../observatory/readers';
 import {arcaneProgress} from '../sim/physical/arcana/growth';
 import {recogniseClass} from '../sim/mind/vocation';
 import {RealmUniverseApi} from './realmUniverseApi';
+import { createAtlasAssetHandler } from './atlasAssets';
 
 const port = Number(process.env.TV_REALMS_PORT ?? 7510);
 // A verified portable upgrade can be installed without overwriting the original
@@ -63,9 +64,11 @@ const universeApi = new RealmUniverseApi({
   session: () => session, token: () => owner ? ownerToken : '', ready: () => !updateError,
   apply: op => apply(op), persist: () => persist(true),
 }, port);
+const atlasAssets = createAtlasAssetHandler();
 const server = createServer(async (req, res) => {
   if (req.headers.host !== `127.0.0.1:${port}` && req.headers.host !== `localhost:${port}`) { res.writeHead(403).end(); return; }
   const url = new URL(req.url ?? '/', `http://127.0.0.1:${port}`);
+  if (await atlasAssets(req, res)) return;
   if (await universeApi.handle(req, res, url.pathname)) return;
   if (universeApi.busy && req.method === 'POST') {
     res.writeHead(409, { 'content-type': 'application/json' }).end(JSON.stringify({ error: 'The character crossing is being saved. Try again shortly.' })); return;

@@ -1,0 +1,266 @@
+{
+  "checks": [
+    "Ordinary return from recovered reentry renders the town with same person/body/full inventory"
+  ],
+  "errors": [],
+  "http": [],
+  "entered": {
+    "state": {
+      "atlasRevision": 1,
+      "atlasCatalog": "6ee7426147577c9f38a95b2b0dba14514a7e080f110162f64fad4730a8691b0c",
+      "tick": 2201,
+      "explorerId": "p_5",
+      "vesselId": "universe_1:vessel",
+      "systemIndex": 0,
+      "mode": "surface",
+      "position": {
+        "x": -0.9936209881557314,
+        "y": 497.81550245018997,
+        "z": 1530.1179258945524
+      },
+      "forward": {
+        "x": -0.019476002969922305,
+        "y": -0.9507610667283096,
+        "z": 0.30931226826940134
+      },
+      "up": {
+        "x": -0.0006175154713727597,
+        "y": 0.3093823281881157,
+        "z": 0.9509375340575971
+      },
+      "velocity": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "landedPlanetId": "u1:20261017:s0:p0",
+      "landedVesselPosition": {
+        "x": -3.0784811375173877,
+        "y": 524.4641801324371,
+        "z": 1521.0980550469717
+      },
+      "targetPlanetId": "u1:20261017:s0:p0",
+      "cruise": false,
+      "landing": false,
+      "discoveries": [
+        {
+          "planetId": "u1:20261017:s0:p0",
+          "systemIndex": 0,
+          "tick": 0,
+          "explorerId": "p_5",
+          "method": "landed"
+        },
+        {
+          "planetId": "u1:20261017:s0:p2",
+          "systemIndex": 0,
+          "tick": 1101,
+          "explorerId": "p_5",
+          "method": "landed"
+        }
+      ],
+      "events": [
+        {
+          "tick": 89,
+          "type": "soar",
+          "actorId": "p_5",
+          "systemIndex": 0,
+          "planetId": "u1:20261017:s0:p0"
+        },
+        {
+          "tick": 1101,
+          "type": "land",
+          "actorId": "p_5",
+          "systemIndex": 0,
+          "planetId": "u1:20261017:s0:p2"
+        },
+        {
+          "tick": 1181,
+          "type": "soar",
+          "actorId": "p_5",
+          "systemIndex": 0,
+          "planetId": "u1:20261017:s0:p2"
+        },
+        {
+          "tick": 2111,
+          "type": "land",
+          "actorId": "p_5",
+          "systemIndex": 0,
+          "planetId": "u1:20261017:s0:p0"
+        }
+      ],
+      "settlementRevision": 1,
+      "parkedVessel": {
+        "systemIndex": 0,
+        "planetId": "u1:20261017:s0:p0",
+        "position": {
+          "x": -3.0784811375173877,
+          "y": 524.4641801324371,
+          "z": 1521.0980550469717
+        }
+      }
+    },
+    "personId": "p_5",
+    "bodyId": "b_5",
+    "inventory": [
+      {
+        "id": "i_1",
+        "name": "Threshold atlas",
+        "quantity": 1
+      },
+      {
+        "id": "i_2",
+        "name": "Travel provisions",
+        "quantity": 3
+      },
+      {
+        "id": "i_3",
+        "name": "book-well",
+        "quantity": 1
+      },
+      {
+        "id": "i_4",
+        "name": "book-ward",
+        "quantity": 1
+      },
+      {
+        "id": "i_5",
+        "name": "Isolated flight acceptance focus",
+        "quantity": 1
+      }
+    ],
+    "canReturn": true
+  },
+  "previewPosition": {
+    "x": 0.012042985171209875,
+    "y": 497.8155972771549,
+    "z": 1530.118217612223
+  },
+  "delta": {
+    "x": -1.0056639733269412,
+    "y": -0.00009482696492568721,
+    "z": -0.0002917176705068414
+  },
+  "distance": 1.0056640201076517,
+  "returned": {
+    "ready": true,
+    "personId": "p_5",
+    "bodyId": "b_5",
+    "inventory": [
+      {
+        "id": "i_1",
+        "name": "Threshold atlas",
+        "quantity": 1
+      },
+      {
+        "id": "i_2",
+        "name": "Travel provisions",
+        "quantity": 3
+      },
+      {
+        "id": "i_3",
+        "name": "book-well",
+        "quantity": 1
+      },
+      {
+        "id": "i_4",
+        "name": "book-ward",
+        "quantity": 1
+      },
+      {
+        "id": "i_5",
+        "name": "Isolated flight acceptance focus",
+        "quantity": 1
+      }
+    ],
+    "position": {
+      "x": 11313.4880248413,
+      "y": 1.0625,
+      "z": 3093.1147530735084
+    },
+    "loaded": 81,
+    "focused": {
+      "instances": 55,
+      "pending": 0,
+      "error": "",
+      "forests": [
+        {
+          "id": "veil:brass:focused-town:v1:forest-cross",
+          "assetId": "tv_47_01_pine_forest",
+          "placementId": "veil:brass:focused-town:v1:forest-cross",
+          "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+          "floorId": "veil:brass:focused-town:v1:ground",
+          "forestPresentation": "layered-branches-v2",
+          "sourceTrees": 45,
+          "proxyCanopiesHidden": true,
+          "hiddenProxies": 90,
+          "foliage": [
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "near",
+              "cards": 2205,
+              "sourceTrees": 45
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "far",
+              "cards": 720,
+              "sourceTrees": 45
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "understory",
+              "cards": 410,
+              "sourceTrees": 45
+            }
+          ]
+        },
+        {
+          "id": "veil:brass:focused-town:v1:forest-branches",
+          "assetId": "tv_47_03_pine_forest",
+          "placementId": "veil:brass:focused-town:v1:forest-branches",
+          "packSha256": "f7b0869a795bb28551a31c7831fb6edbfb0716724fca733286e169c0d25926ce",
+          "floorId": "veil:brass:focused-town:v1:ground",
+          "forestPresentation": "layered-branches-v2",
+          "sourceTrees": 53,
+          "proxyCanopiesHidden": true,
+          "hiddenProxies": 106,
+          "foliage": [
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "near",
+              "cards": 2597,
+              "sourceTrees": 53
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "far",
+              "cards": 848,
+              "sourceTrees": 53
+            },
+            {
+              "focusedSoftFoliage": true,
+              "foliageLod": "understory",
+              "cards": 498,
+              "sourceTrees": 53
+            }
+          ]
+        }
+      ]
+    },
+    "controlledBody": {
+      "id": "b_5",
+      "enabled": true,
+      "position": {
+        "x": 49.48802484129919,
+        "y": 1.0625,
+        "z": 21.114753073508382
+      },
+      "yaw": -0.019477155279267556,
+      "screen": {
+        "x": 720.0005636614577,
+        "y": 550.7859857671507,
+        "z": 0.9785696076499335
+      }
+    }
+  }
+}

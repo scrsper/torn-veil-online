@@ -1,0 +1,374 @@
+{
+  "note": "Unsaved observer presentation review using explicit survey hooks, not canonical gameplay or a human playtest.",
+  "samples": [
+    {
+      "name": "04-tower-4-prop",
+      "frameP50Ms": 7,
+      "frameP95Ms": 7.099999999999454,
+      "drawCalls": 12,
+      "activeMeshes": 13,
+      "totalMeshes": 72,
+      "atlas": {
+        "requested": 1,
+        "loaded": 1,
+        "instanced": 1,
+        "pending": 0,
+        "peakPending": 1,
+        "cachedModels": 1,
+        "cacheBytes": 163292,
+        "cacheTriangles": 2248,
+        "renderedTriangles": 2248,
+        "instances": 1,
+        "budgetRejected": 0,
+        "requestedIds": [
+          "atlas:local:item-TV-080"
+        ],
+        "loadedIds": [
+          "atlas:local:item-TV-080"
+        ],
+        "instancedIds": [
+          "atlas:local:item-TV-080"
+        ],
+        "residentIds": [
+          "atlas:local:item-TV-080"
+        ],
+        "visibilityBasis": "camera frustum; occlusion is not measured",
+        "visibleIds": [
+          "atlas:local:item-TV-080"
+        ],
+        "failures": [],
+        "placements": [
+          {
+            "id": "atlas:1:tower:veil:tower:spec:floor:4:4:veil:tower:spec:floor:4:bench:3",
+            "assetId": "atlas:local:item-TV-080",
+            "position": {
+              "x": 6186,
+              "y": 2,
+              "z": 65.5
+            },
+            "up": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            },
+            "yaw": 4.71238898038469,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          }
+        ],
+        "budgets": {
+          "models": 16,
+          "bytes": 25165824,
+          "triangles": 240000,
+          "instances": 32,
+          "instanceTriangles": 320000,
+          "meshInstances": 240,
+          "range": 150
+        }
+      },
+      "body": {
+        "x": 0,
+        "y": 516.4751443824462,
+        "z": 1520.6871556093092
+      },
+      "inTower": true
+    },
+    {
+      "name": "04-tower-20-prop",
+      "frameP50Ms": 6.900000000001455,
+      "frameP95Ms": 7.099999999998545,
+      "drawCalls": 53,
+      "activeMeshes": 68,
+      "totalMeshes": 116,
+      "atlas": {
+        "requested": 4,
+        "loaded": 4,
+        "instanced": 4,
+        "pending": 0,
+        "peakPending": 2,
+        "cachedModels": 4,
+        "cacheBytes": 770036,
+        "cacheTriangles": 11592,
+        "renderedTriangles": 9344,
+        "instances": 3,
+        "budgetRejected": 0,
+        "requestedIds": [
+          "atlas:local:item-TV-080",
+          "atlas:local:item-TV-287",
+          "atlas:local:item-TV-311",
+          "atlas:local:item-TV-346"
+        ],
+        "loadedIds": [
+          "atlas:local:item-TV-080",
+          "atlas:local:item-TV-287",
+          "atlas:local:item-TV-311",
+          "atlas:local:item-TV-346"
+        ],
+        "instancedIds": [
+          "atlas:local:item-TV-080",
+          "atlas:local:item-TV-287",
+          "atlas:local:item-TV-311",
+          "atlas:local:item-TV-346"
+        ],
+        "residentIds": [
+          "atlas:local:item-TV-287",
+          "atlas:local:item-TV-311",
+          "atlas:local:item-TV-346"
+        ],
+        "visibilityBasis": "camera frustum; occlusion is not measured",
+        "visibleIds": [
+          "atlas:local:item-TV-346"
+        ],
+        "failures": [],
+        "placements": [
+          {
+            "id": "atlas:1:tower:veil:tower:spec:floor:20:20:veil:tower:spec:floor:20:bench:4",
+            "assetId": "atlas:local:item-TV-346",
+            "position": {
+              "x": 6216,
+              "y": 2,
+              "z": 71.5
+            },
+            "up": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            },
+            "yaw": 0,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:tower:veil:tower:spec:floor:20:20:veil:tower:spec:floor:20:bench:2",
+            "assetId": "atlas:local:item-TV-311",
+            "position": {
+              "x": 6222,
+              "y": 2,
+              "z": 59.5
+            },
+            "up": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            },
+            "yaw": 3.141592653589793,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:tower:veil:tower:spec:floor:20:20:veil:tower:spec:floor:20:bench:3",
+            "assetId": "atlas:local:item-TV-287",
+            "position": {
+              "x": 6222,
+              "y": 2,
+              "z": 41.5
+            },
+            "up": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            },
+            "yaw": 4.71238898038469,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          }
+        ],
+        "budgets": {
+          "models": 16,
+          "bytes": 25165824,
+          "triangles": 240000,
+          "instances": 32,
+          "instanceTriangles": 320000,
+          "meshInstances": 240,
+          "range": 150
+        }
+      },
+      "body": {
+        "x": 0,
+        "y": 516.4751443824462,
+        "z": 1520.6871556093092
+      },
+      "inTower": true
+    },
+    {
+      "name": "04-tower-60-prop",
+      "frameP50Ms": 7,
+      "frameP95Ms": 7.100000000000364,
+      "drawCalls": 94,
+      "activeMeshes": 107,
+      "totalMeshes": 195,
+      "atlas": {
+        "requested": 9,
+        "loaded": 9,
+        "instanced": 9,
+        "pending": 0,
+        "peakPending": 2,
+        "cachedModels": 9,
+        "cacheBytes": 1375952,
+        "cacheTriangles": 21168,
+        "renderedTriangles": 9576,
+        "instances": 5,
+        "budgetRejected": 0,
+        "requestedIds": [
+          "atlas:local:file-79ca35b6281ab506-179",
+          "atlas:local:item-TV-080",
+          "atlas:local:item-TV-173",
+          "atlas:local:item-TV-210",
+          "atlas:local:item-TV-234",
+          "atlas:local:item-TV-241",
+          "atlas:local:item-TV-287",
+          "atlas:local:item-TV-311",
+          "atlas:local:item-TV-346"
+        ],
+        "loadedIds": [
+          "atlas:local:file-79ca35b6281ab506-179",
+          "atlas:local:item-TV-080",
+          "atlas:local:item-TV-173",
+          "atlas:local:item-TV-210",
+          "atlas:local:item-TV-234",
+          "atlas:local:item-TV-241",
+          "atlas:local:item-TV-287",
+          "atlas:local:item-TV-311",
+          "atlas:local:item-TV-346"
+        ],
+        "instancedIds": [
+          "atlas:local:file-79ca35b6281ab506-179",
+          "atlas:local:item-TV-080",
+          "atlas:local:item-TV-173",
+          "atlas:local:item-TV-210",
+          "atlas:local:item-TV-234",
+          "atlas:local:item-TV-241",
+          "atlas:local:item-TV-287",
+          "atlas:local:item-TV-311",
+          "atlas:local:item-TV-346"
+        ],
+        "residentIds": [
+          "atlas:local:file-79ca35b6281ab506-179",
+          "atlas:local:item-TV-173",
+          "atlas:local:item-TV-210",
+          "atlas:local:item-TV-234",
+          "atlas:local:item-TV-241"
+        ],
+        "visibilityBasis": "camera frustum; occlusion is not measured",
+        "visibleIds": [
+          "atlas:local:file-79ca35b6281ab506-179",
+          "atlas:local:item-TV-210",
+          "atlas:local:item-TV-234"
+        ],
+        "failures": [],
+        "placements": [
+          {
+            "id": "atlas:1:tower:veil:tower:spec:floor:60:60:veil:tower:spec:floor:60:bench:1",
+            "assetId": "atlas:local:file-79ca35b6281ab506-179",
+            "position": {
+              "x": 6222,
+              "y": 2.44615,
+              "z": 71.5
+            },
+            "up": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            },
+            "yaw": 4.71238898038469,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:tower:veil:tower:spec:floor:60:60:veil:tower:spec:floor:60:bench:2",
+            "assetId": "atlas:local:item-TV-234",
+            "position": {
+              "x": 6222,
+              "y": 2,
+              "z": 59.5
+            },
+            "up": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            },
+            "yaw": 1.5707963267948966,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:tower:veil:tower:spec:floor:60:60:veil:tower:spec:floor:60:bench:4",
+            "assetId": "atlas:local:item-TV-241",
+            "position": {
+              "x": 6174,
+              "y": 2,
+              "z": 71.5
+            },
+            "up": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            },
+            "yaw": 1.5707963267948966,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:tower:veil:tower:spec:floor:60:60:veil:tower:spec:floor:60:bench:10",
+            "assetId": "atlas:local:item-TV-173",
+            "position": {
+              "x": 6228,
+              "y": 2,
+              "z": 41.5
+            },
+            "up": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            },
+            "yaw": 1.5707963267948966,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:tower:veil:tower:spec:floor:60:60:veil:tower:spec:floor:60:bench:0",
+            "assetId": "atlas:local:item-TV-210",
+            "position": {
+              "x": 6216,
+              "y": 2,
+              "z": 29.5
+            },
+            "up": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            },
+            "yaw": 1.5707963267948966,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          }
+        ],
+        "budgets": {
+          "models": 16,
+          "bytes": 25165824,
+          "triangles": 240000,
+          "instances": 32,
+          "instanceTriangles": 320000,
+          "meshInstances": 240,
+          "range": 150
+        }
+      },
+      "body": {
+        "x": 0,
+        "y": 516.4751443824462,
+        "z": 1520.6871556093092
+      },
+      "inTower": true
+    }
+  ],
+  "errors": []
+}

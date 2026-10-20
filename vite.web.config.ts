@@ -1,6 +1,7 @@
 import { defineConfig, type Plugin } from 'vite';
 import { createReadStream, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { createAtlasAssetHandler } from './src/server/atlasAssets';
 
 const gatewayPort = process.env.TV_WEB_GATEWAY_PORT ?? '7491';
 const universePort = process.env.TORN_VEIL_UNIVERSE_PORT ?? '7526';
@@ -24,12 +25,22 @@ const replays = (): Plugin => ({
     });
   },
 });
+const atlas = (): Plugin => ({
+  name: 'tv-local-atlas',
+  apply: 'serve',
+  configureServer(server) {
+    const handle = createAtlasAssetHandler();
+    server.middlewares.use((req, res, next) => {
+      void handle(req, res).then(handled => { if (!handled) next(); }, next);
+    });
+  },
+});
 
 export default defineConfig({
   root: resolve(__dirname, 'web'),
   base: './',
   publicDir: resolve(__dirname, 'web/public'),
-  plugins: [replays()],
+  plugins: [replays(), atlas()],
   build: {
     outDir: resolve(__dirname, 'dist-web'),
     emptyOutDir: true,

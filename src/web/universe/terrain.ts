@@ -72,13 +72,14 @@ export function selectTerrainTiles(planet: PlanetDescriptor, observer: V3, lite 
 
 /** Mesh vertices are planet-local metres. The shared parent supplies center-origin;
  * changing the floating origin never regenerates or rounds canonical geography. */
-export function buildTerrainTile(planet: PlanetDescriptor, tile: TerrainTile, cells = 16): TerrainGeometry {
+export function buildTerrainTile(planet: PlanetDescriptor, tile: TerrainTile, cells = 16,
+  underlayHeight?: (planet: PlanetDescriptor, direction: V3) => number | null): TerrainGeometry {
   if (!Number.isInteger(cells) || cells < 2 || cells > 64) throw Error('Terrain cells must be an integer from 2 to 64');
   const positions: number[] = [], normals: number[] = [], colors: number[] = [], indices: number[] = [], uvs: number[] = [];
   const stride = cells + 1;
   for (let y = 0; y <= cells; y++) for (let x = 0; x <= cells; x++) {
     const dir = terrainTileDirection(tile, x / cells, y / cells);
-    const height = terrainHeight(planet, dir), radius = planet.radius + height;
+    const height = terrainHeight(planet, dir), radius = planet.radius + (underlayHeight?.(planet, dir) ?? height);
     const color = Color3.FromHexString(surfaceColor(planet, dir, height));
     positions.push(dir.x * radius, dir.y * radius, dir.z * radius);
     if (x === 0 || y === 0 || x === cells || y === cells) {
@@ -270,7 +271,8 @@ export class UniverseTerrain {
   private readonly detailMaterial: StandardMaterial;
   private dressing: { state: PlanetMeshes; mesh: Mesh; observer: V3; count: number } | null = null;
 
-  constructor(readonly scene: Scene, readonly system: StarSystem, readonly lite = false) {
+  constructor(readonly scene: Scene, readonly system: StarSystem, readonly lite = false,
+    private readonly underlayHeight?: (planet: PlanetDescriptor, direction: V3) => number | null) {
     this.cells = lite ? 10 : 16; this.budget = lite ? 1 : 2;
     this.texture = createGroundTexture(scene);
     this.detailMaterial = new StandardMaterial('universe:surface-decoration', scene);
@@ -330,7 +332,7 @@ export class UniverseTerrain {
   }
 
   private createTile(state: PlanetMeshes, tile: TerrainTile): void {
-    const geometry = buildTerrainTile(state.planet, tile, this.cells);
+    const geometry = buildTerrainTile(state.planet, tile, this.cells, this.underlayHeight);
     const mesh = new Mesh(`terrain:${state.planet.id}:${keyOf(tile)}`, this.scene);
     const data = new VertexData();
     data.positions = geometry.positions; data.normals = geometry.normals;
@@ -397,7 +399,8 @@ export class UniverseTerrain {
       return;
     }
     this.dressing?.mesh.dispose();
-    const details = surfaceDecorations(state.planet, observer, this.lite);
+    const details = surfaceDecorations(state.planet, observer, this.lite)
+      .filter(detail => this.underlayHeight?.(state.planet, detail.dir) == null);
     const positions: number[] = [], colors: number[] = [], indices: number[] = [], normals: number[] = [];
     for (const detail of details) {
       const frame = tangentFrame(detail.dir), ground = scale(detail.dir, state.planet.radius + detail.height - .015);

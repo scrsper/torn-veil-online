@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { RealmSession } from '../sim/world/realms/session';
 import type { RealmOperation } from './realmRuntime';
 import { canonicalUniverseView } from './canonicalUniverse';
+import { canonicalSettlementProjection } from './universeSettlements';
 
 interface Host {
   session(): RealmSession;
@@ -37,7 +38,7 @@ export class RealmUniverseApi {
   }
 
   async handle(req: IncomingMessage, res: ServerResponse, path: string): Promise<boolean> {
-    if (!['/realms/universe', '/realms/universe/command', '/realms/universe/transition'].includes(path)) return false;
+    if (!['/realms/universe', '/realms/universe/command', '/realms/universe/transition', '/realms/universe/settlements'].includes(path)) return false;
     const respond = (code: number, value: unknown) => {
       res.writeHead(code, { 'content-type': 'application/json', 'cache-control': 'no-store' });
       res.end(JSON.stringify(value));
@@ -45,12 +46,17 @@ export class RealmUniverseApi {
     if (!this.host.ready()) { respond(503, { error: 'Saving or simulation failed. Restart the world to recover its durable journal.' }); return true; }
     const token = this.host.token();
     if (!token || req.headers['x-realms-controller'] !== token) { respond(409, { error: 'This tab does not hold the world controller. Close the other play tab, then reconnect.' }); return true; }
+    if (req.method === 'GET' && path === '/realms/universe/settlements') {
+      if (this.busy) respond(503, { error: 'Saving the crossing. Try again shortly.' });
+      else respond(200, canonicalSettlementProjection(this.host.session()));
+      return true;
+    }
     if (req.method === 'GET' && path === '/realms/universe') {
       if (this.busy) respond(503, { error: 'Saving the crossing. Try again shortly.' });
       else respond(200, this.view());
       return true;
     }
-    if (req.method !== 'POST' || path === '/realms/universe'
+    if (req.method !== 'POST' || !['/realms/universe/command', '/realms/universe/transition'].includes(path)
       || ![`http://127.0.0.1:${this.port}`, `http://localhost:${this.port}`].includes(req.headers.origin ?? '')
       || req.headers['content-type'] !== 'application/json') {
       respond(403, { error: 'Same-origin JSON command required.' }); return true;

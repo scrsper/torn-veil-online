@@ -1,0 +1,53 @@
+{
+  "note": "Unsaved observer presentation review using explicit survey hooks, not canonical gameplay or a human playtest.",
+  "samples": [
+    {
+      "name": "00-baseline-atlas-disabled",
+      "frameP50Ms": 20.800000000000182,
+      "frameP95Ms": 131.90000000000055,
+      "drawCalls": 7534,
+      "activeMeshes": 2921,
+      "totalMeshes": 3167,
+      "atlas": {
+        "context": "sphere:20261017:1600",
+        "queriedPlacements": 0,
+        "queries": 0,
+        "requested": 0,
+        "loaded": 0,
+        "instanced": 0,
+        "pending": 0,
+        "peakPending": 0,
+        "cachedModels": 0,
+        "cacheBytes": 0,
+        "cacheTriangles": 0,
+        "renderedTriangles": 0,
+        "instances": 0,
+        "budgetRejected": 0,
+        "requestedIds": [],
+        "loadedIds": [],
+        "instancedIds": [],
+        "residentIds": [],
+        "visibilityBasis": "camera frustum; occlusion is not measured",
+        "visibleIds": [],
+        "failures": [],
+        "placements": [],
+        "budgets": {
+          "models": 16,
+          "bytes": 33554432,
+          "triangles": 600000,
+          "instances": 40,
+          "instanceTriangles": 850000,
+          "meshInstances": 320,
+          "range": 192
+        }
+      },
+      "body": {
+        "x": 358.3088175835831,
+        "y": 483.772079831974,
+        "z": 1488.8973658438988
+      },
+      "inTower": false
+    }
+  ],
+  "errors": []
+}

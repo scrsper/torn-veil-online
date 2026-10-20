@@ -70,7 +70,7 @@ anchor, authoritative travel state, and transition receipts. Inventory, health,
 rank, quest ledgers and retained Tower progress remain on their existing records.
 The standalone universe preview save is never imported into this campaign binding.
 
-Boarding is an explicit Veil gateway transition. The planar Body becomes
+The first integration used an explicit Veil gateway transition. The planar Body becomes
 `present=false`, removing it from physical targeting and living-body indices.
 Its retained planar coordinates identify the eventual arrival anchor. The
 binding's travel coordinates identify its universe-domain residency; those
@@ -100,11 +100,18 @@ unchanged: a committed old snapshot can migrate, but an uncheckpointed journal t
 from different mechanics must be completed with its matching engine before upgrade.
 Never discard that tail or modify the user's save to force a new engine to start.
 
+The October 20 extension adds mapped settlement charts and actual source
+collision, plus personal flight admitted by learned forms, equipped capacity
+and finite body resources. These are Torn Veil designs, not recovered NMS
+internals. Existing gateway saves keep their versioned coordinates. The new
+mapped return uses actual supported town coordinates and facing; it does not
+require proximity to the parked vessel.
+
 Remaining residency limitations: the distant terrain has no ordinary NPC ecology,
 combat, resource economy, survival exposure or item interactions yet. The absent
-traveller does not receive planar physiology, wounds or recovery processing; no
-health, food, inventory or progression rewards are granted by travel. A general
-domain-aware body/physiology scheduler is required before those systems can claim
-the same simulation coverage as the town. The vessel currently has no fuel,
+traveller now receives metabolism, breath/mana accounting and existing downed
+recovery once per travel tick. Wounds and environmental/impact damage still
+require domain-aware handling before claiming the same simulation coverage as
+town. No food, inventory or progression rewards are granted by travel. The vessel currently has no fuel,
 construction, ownership transfer or damage model. Interstellar warp remains an
 explicit authored transition between generated system addresses.

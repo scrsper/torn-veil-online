@@ -21,7 +21,10 @@ export const SHARED_HUMAN_LOOKS:LookId[]=HUMAN_LOOKS;
 export interface SharedCharacterEnvironment {
  ground?:FootGround;
  onFootfall?:(point:{x:number;y:number;z:number},speed:number)=>void;
+ /** Planar foot IK must be disabled below a spherical or airborne parent. */
+ planarContacts?:boolean;
 }
+type CharacterLighting = Pick<Atmosphere, 'addCaster' | 'removeCaster'>;
 const hash=(s:string)=>{let n=2166136261;for(const c of s)n=Math.imul(n^c.charCodeAt(0),16777619);n^=n>>>16;n=Math.imul(n,0x85ebca6b);n^=n>>>13;return(n^(n>>>16))>>>0;};
 /** Stable presentation choice, never a replacement for person/body identity. */
 export function sharedLook(body:Pick<BodyState,'bodyId'|'appearance'|'presentationSex'>):LookId {
@@ -39,8 +42,8 @@ export class SharedCharacters {
  readonly assets:ArenaAssets;
  ready=false;
  constructor(scene:Scene){this.assets=new ArenaAssets(scene,{detailedHumans:true});this.assets.used=SHARED_MOTION_NAMES;}
- async load(progress:(text:string)=>void){await this.assets.load(['skeleton_warrior'],progress);await this.assets.loadHumans(SHARED_HUMAN_LOOKS,progress);this.ready=true;}
- create(body:BodyState,atmosphere:Atmosphere,environment?:SharedCharacterEnvironment,role:'resident'|'player'='resident'):BodyVisual|null {
+ async load(progress:(text:string)=>void,looks:readonly LookId[]=SHARED_HUMAN_LOOKS){await this.assets.load(['skeleton_warrior'],progress);await this.assets.loadHumans([...new Set<LookId>(['ranger',...looks])],progress);this.ready=true;}
+ create(body:BodyState,atmosphere:CharacterLighting,environment?:SharedCharacterEnvironment,role:'resident'|'player'='resident'):BodyVisual|null {
   if(!this.ready||body.appearance?.description?.agePresentation==='child')return null;
   const look=role==='player'?sharedHeroLook(body):sharedLook(body),instance=this.assets.human(look,body.bodyId);
   // Canonical world metres, rather than the arena's enlarged layout scale.
@@ -58,7 +61,7 @@ export class SharedVisual implements BodyVisual {
  private gaze:SharedGaze;private lookAt:Vector3|null=null;private gazeActive=true;private rawDt=0;
  private footfalls=new ContactFootfalls();private speed=0;private footfallActive=false;
  private travel='unarmed/walk_forward';
- constructor(private instance: CharacterInstance, body: BodyState, private atmosphere: Atmosphere, private clips: Map<string, ClipTemplate>,private environment?:SharedCharacterEnvironment) {
+ constructor(private instance: CharacterInstance, body: BodyState, private atmosphere: CharacterLighting, private clips: Map<string, ClipTemplate>,private environment?:SharedCharacterEnvironment) {
   // Arena assets face +Z, while canonical bodies face -Z. Keep that coordinate adapter
   // below the actor root; never rotate the canonical body or its physical contact geometry.
   this.root = new TransformNode(`canonical-${body.bodyId}`, instance.root.getScene());
@@ -104,8 +107,8 @@ export class SharedVisual implements BodyVisual {
   const set = armed ? MOVESETS.sword : MOVESETS.fists, falling = b.dead || b.incapacitated || ['downed','sleep','dead'].includes(b.pose);
   const action = s.combat && !['guard', 'stance'].includes(s.combat.moveId) ? s.combat : null;
   if (action || s.guard || b.guarding || s.hit) this.combatUntil = this.clock + 2;
-  this.plantActive = !falling && !action && s.crouch < .05;
-  this.speed=s.speed;this.footfallActive=!falling&&!action&&s.speed>.08;
+  this.plantActive = this.environment?.planarContacts !== false && !falling && !action && s.crouch < .05;
+  this.speed=s.speed;this.footfallActive=this.environment?.planarContacts !== false&&!falling&&!action&&s.speed>.08;
   if(s.speed>.08)this.travel=sharedTravelClip(s,this.travel);
   this.gazeActive=!falling&&!action&&this.clock>=this.hitUntil;
   this.animator.legLayer(null);
@@ -149,7 +152,8 @@ export class SharedVisual implements BodyVisual {
     this.animator.loco(this.clip(plan.walk),this.clip(plan.run),plan.blend,plan.rate,.18);
    } else this.animator.play(this.clip(idle), { loop: true, fade: .12 });
   }
-  this.root.metadata.motion = { policy:'authored-in-place',clip: this.animator.current, dominantClip:this.animator.dominant()?.name??null, stance: this.clock < this.combatUntil ? 'combat' : 'travel', armed, action: action?.moveId ?? null, age: action?.age ?? null, hit: this.clock < this.hitUntil, planted: this.plantActive, locks:this.plant.lockState(),canonicalFacing: s.yaw, canonicalCrouch:s.crouch, gait: this.animator.gaitState };
+  const dominant=this.animator.dominant();
+  this.root.metadata.motion = { policy:'authored-in-place',clip: this.animator.current, dominantClip:dominant?.name??null, frame:dominant?.frame??null, stance: this.clock < this.combatUntil ? 'combat' : 'travel', armed, action: action?.moveId ?? null, age: action?.age ?? null, hit: this.clock < this.hitUntil, planted: this.plantActive, locks:this.plant.lockState(),canonicalFacing: s.yaw, canonicalCrouch:s.crouch, gait: this.animator.gaitState };
   this.animator.update(dt);
  }
  dispose() {

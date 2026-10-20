@@ -6,7 +6,8 @@ import { realmAt } from '../realms/layout';
 import { validateUniversePayload } from './persistence';
 import { parseUniverseCommand, TRAVEL_LIMITS, type TravelInput, type TravelState } from './travel';
 import { generateSystem, type UniverseSpec } from './generation';
-import { length, sub } from '../planet/planet';
+import { length, sub, planetSpec } from '../planet/planet';
+import { settlementSaveValidator, settlementAt, settlementPatches, type SettlementGrid } from './settlements';
 
 export interface CanonicalUniverseBinding {
   version: 1;
@@ -52,19 +53,32 @@ export function validCanonicalUniverse(w: World, value: unknown, saveVersion: nu
         || b.pos.x !== r.returnPos.x || b.pos.y !== r.returnPos.y || b.pos.z !== r.returnPos.z || b.yaw !== r.returnYaw)
       || !r.active && w.primaryBody(p.id)?.id !== b.id
       || r.active && (w.realmExpedition?.active || w.canonicalTower?.active)) return false;
-    const geometry = w.grid.movementGeometryAt(r.returnPos.x, r.returnPos.z);
-    if (geometry ? !geometry.fits(r.returnPos.x, r.returnPos.y, r.returnPos.z, .3, 1.8)
-      : r.returnPos.y !== 1 || !w.nav.isWalkable(Math.floor(r.returnPos.x), Math.floor(r.returnPos.z))) return false;
-    const payload = validateUniversePayload({ spec: r.spec, state: r.state, revision: r.snapshotRevision });
+    // returnPos records entry history. Current occupancy is checked against the
+    // actual active travel pose; arrival is checked again when returning.
+    const payload = validateUniversePayload({ spec: r.spec, state: r.state, revision: r.snapshotRevision }, {
+      allowPersonal: true, allowSettlements: true,
+      settlementValidation: settlementSaveValidator(planetSpec(w.seed), w.grid, { historicalBody: !r.active }),
+    });
     if (payload.spec.seed !== (w.seed >>> 0) || r.state.explorerId !== p.id
       || r.state.vesselId !== `${r.id}:vessel` || r.control.inputUntilTick > r.state.tick + 6) return false;
+    if (r.state.personalFlight) {
+      const flight = r.state.personalFlight, event = flight.startedEventId && w.event(flight.startedEventId);
+      if (!r.active || flight.bodyId !== b.id || !event || event.type !== 'universe_travel'
+        || event.actor !== p.id || event.data.type !== 'soar' || event.data.bodyId !== b.id || event.data.bindingId !== r.id) return false;
+      const initialMana = (event.data.flightAssessment as { manaAvailable?: number } | undefined)?.manaAvailable;
+      if (typeof initialMana !== 'number' || !Number.isFinite(initialMana) || flight.manaSpent > initialMana + 1e-6
+        || !b.arcana || Math.abs(initialMana - flight.manaSpent - b.arcana.mana) > 1e-6) return false;
+    }
     if (!r.active && (r.state.mode !== 'surface' || r.state.systemIndex !== 0
-      || r.state.landedPlanetId !== generateSystem(r.spec, 0).planets[0].id || !r.state.landedVesselPosition
-      || length(sub(r.state.position, r.state.landedVesselPosition)) > TRAVEL_LIMITS.launchDistance)) return false;
+      || r.state.landedPlanetId !== generateSystem(r.spec, 0).planets[0].id
+      || (r.state.settlementRevision === 1
+        ? !settlementAt(planetSpec(w.seed), r.state.position, settlementPatches(w.grid as SettlementGrid))
+        : !r.state.landedVesselPosition || length(sub(r.state.position, r.state.landedVesselPosition)) > TRAVEL_LIMITS.launchDistance))) return false;
     const input = parseUniverseCommand({ type: 'input', input: r.control.input });
     if (input.type !== 'input' || JSON.stringify(input.input) !== JSON.stringify(r.control.input)) return false;
     const enter = w.event(r.enteredEventId), returned = r.returnedEventId ? w.event(r.returnedEventId) : undefined;
     if (enter?.type !== 'universe_entered' || enter.actor !== p.id || enter.data.bodyId !== b.id || enter.data.bindingId !== r.id
+      || enter.pos?.x !== r.returnPos.x || enter.pos?.y !== r.returnPos.y || enter.pos?.z !== r.returnPos.z
       || r.active && r.returnedEventId !== undefined
       || !r.active && (returned?.type !== 'universe_returned' || returned.actor !== p.id || returned.data.bindingId !== r.id
         || !returned.causes.includes(enter.id))) return false;

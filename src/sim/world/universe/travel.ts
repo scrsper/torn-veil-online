@@ -2,6 +2,8 @@
  * This explorer/vessel slice is separate from the existing Person/body save schema. */
 import { add, sub, scale, dot, cross, length, normalize, tangentFrame, type V3 } from '../planet/planet';
 import { generateSystem, landingSite, terrainHeight, terrainNormal, type PlanetDescriptor, type StarSystem, type UniverseSpec } from './generation';
+import { ATLAS_REVISION } from '../atlas';
+import { atlasPlanetLandingClear, atlasPlanetSweep, atlasPlanetWalkStep } from '../atlas/collision';
 
 export const TRAVEL_DT = .05;
 export const TRAVEL_LIMITS = Object.freeze({
@@ -15,14 +17,28 @@ export const neutralInput = (): TravelInput => ({ throttle: 0, yaw: 0, pitch: 0,
 export type UniverseCommand =
   | { type: 'input'; input: TravelInput }
   | { type: 'launch' }
+  | { type: 'soar' }
   | { type: 'land' }
   | { type: 'target'; planetId: string }
   | { type: 'navigate'; planetId: string }
   | { type: 'cruise'; enabled: boolean }
   | { type: 'warp'; systemIndex: number };
 export interface Discovery { planetId: string; systemIndex: number; tick: number; explorerId: string; method: 'landed' }
-export interface TravelEvent { tick: number; type: 'launch' | 'land' | 'warp' | 'collision'; actorId: string; systemIndex: number; planetId: string | null }
+export interface TravelEvent { tick: number; type: 'launch' | 'soar' | 'land' | 'warp' | 'collision'; actorId: string; systemIndex: number; planetId: string | null }
+export interface ParkedVessel { systemIndex: number; planetId: string; position: V3 }
+export interface PersonalFlight {
+  version: 1; bodyId: string; phase: 'powered' | 'descending' | 'unpowered'; startedEventId?: string;
+  manaSpent: number; effortSpent: number;
+}
 export interface TravelState {
+  /** Absent on existing saves: legacy terrain-only physics remains unchanged. */
+  atlasRevision?: 1; atlasCatalog?: string;
+  /** Explicit canonical source-geometry adapter; absent on legacy expeditions. */
+  settlementRevision?: 1;
+  /** Only the canonical body host may advance personal flight. The vessel stays
+   * where it was left, including when its owner lands on a different world. */
+  personalFlight?: PersonalFlight;
+  parkedVessel?: ParkedVessel;
   tick: number; explorerId: string; vesselId: string; systemIndex: number;
   mode: 'surface' | 'flight'; position: V3; forward: V3; up: V3; velocity: V3;
   landedPlanetId: string | null; landedVesselPosition: V3 | null;
@@ -32,23 +48,30 @@ export interface TravelStatus {
   speed: number; altitude: number; nearestPlanetId: string; canLand: boolean; canLaunch: boolean; message: string;
 }
 export interface CommandResult { ok: boolean; error?: string }
+export interface TravelGeometry {
+  /** Optional canonical source floor. Undefined retains generated terrain. */
+  surfaceRadius?: (planet: PlanetDescriptor, direction: V3, reference: V3) => number | undefined;
+}
 
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 const ZERO: V3 = { x: 0, y: 0, z: 0 };
 const rotate = (v: V3, axis: V3, angle: number): V3 =>
   add(add(scale(v, Math.cos(angle)), scale(cross(axis, v), Math.sin(angle))), scale(axis, dot(axis, v) * (1 - Math.cos(angle))));
-const surfaceRadius = (p: PlanetDescriptor, d: V3) => p.radius + Math.max(0, terrainHeight(p, d));
-const altitude = (p: PlanetDescriptor, pos: V3) => {
+export const travelSurfaceRadius = (p: PlanetDescriptor, d: V3, geometry?: TravelGeometry, reference: V3 = scale(d, p.radius + 3)) =>
+  geometry?.surfaceRadius?.(p, d, reference) ?? p.radius + Math.max(0, terrainHeight(p, d));
+const surfaceRadius = travelSurfaceRadius;
+const altitude = (p: PlanetDescriptor, pos: V3, geometry?: TravelGeometry, reference = pos) => {
   const local = sub(pos, p.center);
-  return length(local) - surfaceRadius(p, normalize(local));
+  return length(local) - surfaceRadius(p, normalize(local), geometry, reference);
 };
 function nearest(system: StarSystem, pos: V3): PlanetDescriptor {
   return system.planets.reduce((best, p) => altitude(p, pos) < altitude(best, pos) ? p : best);
 }
-function record(state: TravelState, type: TravelEvent['type'], planetId: string | null): void {
+export function recordTravel(state: TravelState, type: TravelEvent['type'], planetId: string | null): void {
   state.events.push({ tick: state.tick, type, actorId: state.explorerId, systemIndex: state.systemIndex, planetId });
   if (state.events.length > 256) state.events.shift();
 }
+const record = recordTravel;
 function discover(state: TravelState, planet: PlanetDescriptor): void {
   if (!state.discoveries.some(d => d.planetId === planet.id))
     state.discoveries.push({ planetId: planet.id, systemIndex: state.systemIndex, tick: state.tick, explorerId: state.explorerId, method: 'landed' });
@@ -57,6 +80,7 @@ export function createTravelState(spec: UniverseSpec): TravelState {
   const p = generateSystem(spec, 0).planets[0], local = landingSite(p), up = normalize(local);
   const position = add(p.center, add(local, scale(up, TRAVEL_LIMITS.clearance)));
   const state: TravelState = {
+    atlasRevision: 1, atlasCatalog: ATLAS_REVISION,
     tick: 0, explorerId: `u1:${spec.seed}:explorer:1`, vesselId: `u1:${spec.seed}:vessel:1`, systemIndex: 0,
     mode: 'surface', position, forward: tangentFrame(up).north, up, velocity: { ...ZERO },
     landedPlanetId: p.id, landedVesselPosition: { ...position }, targetPlanetId: p.id,
@@ -65,12 +89,14 @@ export function createTravelState(spec: UniverseSpec): TravelState {
   discover(state, p);
   return state;
 }
-export function travelStatus(spec: UniverseSpec, state: TravelState): TravelStatus {
+export function travelStatus(spec: UniverseSpec, state: TravelState, geometry?: TravelGeometry): TravelStatus {
   const p = nearest(generateSystem(spec, state.systemIndex), state.position);
-  const alt = altitude(p, state.position), speed = length(state.velocity), dir = normalize(sub(state.position, p.center));
+  const alt = altitude(p, state.position, geometry), speed = length(state.velocity), dir = normalize(sub(state.position, p.center));
   const dry = terrainHeight(p, dir) >= 0, slope = dot(terrainNormal(p, dir), dir);
-  const canLand = state.mode === 'flight' && !state.landing && alt <= TRAVEL_LIMITS.landingAltitude && alt >= 0
+  const candidateLanding = state.mode === 'flight' && !state.landing && alt <= TRAVEL_LIMITS.landingAltitude && alt >= 0
     && speed <= TRAVEL_LIMITS.landingSpeed && dry && slope >= .72;
+  const clear = !candidateLanding || atlasPlanetLandingClear(p, sub(state.position, p.center), state.atlasRevision ?? 0);
+  const canLand = !!state.personalFlight || candidateLanding && clear;
   const canLaunch = state.mode === 'surface' && !!state.landedVesselPosition
     && length(sub(state.position, state.landedVesselPosition)) <= TRAVEL_LIMITS.launchDistance;
   let message = state.mode === 'surface' ? (canLaunch ? 'Surface exploration · vessel ready' : 'Return within 60 m of your vessel to launch')
@@ -79,7 +105,10 @@ export function travelStatus(spec: UniverseSpec, state: TravelState): TravelStat
     : canLand ? 'Landing available' : 'Manual flight';
   if (state.mode === 'flight' && !state.landing && alt <= TRAVEL_LIMITS.landingAltitude && !canLand)
     message = !dry ? 'Water below · select assisted arrival for a dry landing site'
-      : slope < .72 ? 'Terrain too steep to land' : 'Brake below 65 m/s to land';
+      : slope < .72 ? 'Terrain too steep to land' : !clear ? 'Landing area obstructed · find open ground' : 'Brake below 65 m/s to land';
+  if (state.personalFlight) message = state.personalFlight.phase === 'descending' ? 'Personal flight · descending'
+    : state.personalFlight.phase === 'unpowered' ? 'Lift exhausted · falling or coasting'
+    : state.cruise ? 'Personal flight · following the selected world' : 'Personal flight · mana and breath in use';
   return { speed, altitude: alt, nearestPlanetId: p.id, canLand, canLaunch, message };
 }
 /** Parse unknown network input before it reaches the deterministic simulation. */
@@ -87,7 +116,7 @@ export function parseUniverseCommand(value: unknown): UniverseCommand {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw Error('Command must be an object');
   const v = value as Record<string, unknown>;
   switch (v.type) {
-    case 'launch': case 'land': return { type: v.type };
+    case 'launch': case 'land': case 'soar': return { type: v.type };
     case 'target': case 'navigate':
       if (typeof v.planetId !== 'string' || v.planetId.length > 100) throw Error('Invalid planet id');
       return { type: v.type, planetId: v.planetId };
@@ -111,8 +140,10 @@ export function parseUniverseCommand(value: unknown): UniverseCommand {
     default: throw Error('Unknown universe command');
   }
 }
-export function applyTravelCommand(spec: UniverseSpec, state: TravelState, command: UniverseCommand): CommandResult {
+export function applyTravelCommand(spec: UniverseSpec, state: TravelState, command: UniverseCommand, geometry?: TravelGeometry): CommandResult {
   const system = generateSystem(spec, state.systemIndex);
+  if (command.type === 'soar' || state.personalFlight)
+    return { ok: false, error: 'Personal flight requires the canonical body and its current abilities.' };
   switch (command.type) {
     case 'input':
       if (Object.entries(command.input).some(([k, v]) => k === 'brake' ? v === true : Math.abs(Number(v)) > .01)) {
@@ -132,17 +163,18 @@ export function applyTravelCommand(spec: UniverseSpec, state: TravelState, comma
       if (command.enabled) state.landing = false;
       return { ok: true };
     case 'launch': {
-      if (!travelStatus(spec, state).canLaunch) return { ok: false, error: 'Launch requires being within 60 m of your landed vessel' };
+      if (!travelStatus(spec, state, geometry).canLaunch) return { ok: false, error: 'Launch requires being within 60 m of your landed vessel' };
       const p = system.planets.find(p => p.id === state.landedPlanetId)!;
       const radial = normalize(sub(state.landedVesselPosition!, p.center)), frame = tangentFrame(radial);
       state.position = { ...state.landedVesselPosition! };
       state.forward = radial; state.up = frame.north; state.velocity = scale(radial, 28);
       state.mode = 'flight'; state.landedPlanetId = null; state.landedVesselPosition = null; state.cruise = false;
+      delete state.parkedVessel;
       record(state, 'launch', p.id);
       return { ok: true };
     }
     case 'land': {
-      if (!travelStatus(spec, state).canLand) return { ok: false, error: 'Landing requires dry gentle terrain, altitude ≤180 m, and speed ≤65 m/s' };
+      if (!travelStatus(spec, state, geometry).canLand) return { ok: false, error: 'Landing requires dry gentle terrain, altitude ≤180 m, and speed ≤65 m/s' };
       state.landing = true; state.cruise = false; state.velocity = { ...ZERO };
       return { ok: true };
     }
@@ -167,7 +199,7 @@ function approachVelocity(velocity: V3, desired: V3, maxDelta: number): V3 {
   return len <= maxDelta ? desired : add(velocity, scale(delta, maxDelta / len));
 }
 /** Orbital waypoints route around any intervening world. Final descent follows a known dry site. */
-function navigationGoal(system: StarSystem, state: TravelState): { point: V3; final: boolean } {
+export function navigationGoal(system: StarSystem, state: TravelState): { point: V3; final: boolean } {
   const target = system.planets.find(p => p.id === state.targetPlanetId)!;
   const localSite = landingSite(target), siteDir = normalize(localSite);
   const targetLocal = sub(state.position, target.center), aligned = dot(normalize(targetLocal), siteDir) > .993;
@@ -201,11 +233,17 @@ function navigationGoal(system: StarSystem, state: TravelState): { point: V3; fi
 /** Swept segment subdivision + terrain samples prevents tunnelling at cruise speed.
  * Step length is ≤2 m within each world's bounding terrain envelope. Outside it,
  * analytic sphere intersections restrict the expensive sample interval. */
-function sweep(system: StarSystem, from: V3, to: V3): { position: V3; collided: string | null } {
+export function sweepTravel(system: StarSystem, from: V3, to: V3, atlasRevision = 0, geometry?: TravelGeometry): { position: V3; collided: string | null } {
   const delta = sub(to, from), distance = length(delta);
   if (distance < 1e-9) return { position: to, collided: null };
   let earliest = 1, planetId: string | null = null;
   for (const p of system.planets) {
+    if (atlasRevision) {
+      const obstacle = atlasPlanetSweep(p, sub(from, p.center), sub(to, p.center), 3, atlasRevision);
+      if (obstacle && obstacle.t <= earliest) {
+        earliest = Math.max(0, obstacle.t - .01 / distance); planetId = p.id;
+      }
+    }
     const rel = sub(from, p.center), bound = p.radius + 500, a = dot(delta, delta), b = 2 * dot(rel, delta), c = dot(rel, rel) - bound * bound;
     const disc = b * b - 4 * a * c;
     if (disc < 0) continue;
@@ -215,11 +253,11 @@ function sweep(system: StarSystem, from: V3, to: V3): { position: V3; collided: 
     let lastSafe = start;
     for (let i = 0; i <= steps; i++) {
       const t = start + (end - start) * i / steps, pos = add(from, scale(delta, t));
-      if (altitude(p, pos) < TRAVEL_LIMITS.clearance - 1e-6) {
+      if (altitude(p, pos, geometry, from) < TRAVEL_LIMITS.clearance - 1e-6) {
         let lo = lastSafe, hi = t;
         for (let j = 0; j < 12; j++) {
           const mid = (lo + hi) / 2;
-          if (altitude(p, add(from, scale(delta, mid))) < TRAVEL_LIMITS.clearance - 1e-6) hi = mid; else lo = mid;
+          if (altitude(p, add(from, scale(delta, mid)), geometry, from) < TRAVEL_LIMITS.clearance - 1e-6) hi = mid; else lo = mid;
         }
         if (lo < earliest) { earliest = lo; planetId = p.id; }
         break;
@@ -229,7 +267,8 @@ function sweep(system: StarSystem, from: V3, to: V3): { position: V3; collided: 
   }
   return { position: add(from, scale(delta, earliest)), collided: planetId };
 }
-export function stepTravel(spec: UniverseSpec, state: TravelState, input: TravelInput = neutralInput()): void {
+export function stepTravel(spec: UniverseSpec, state: TravelState, input: TravelInput = neutralInput(), geometry?: TravelGeometry): void {
+  if (state.personalFlight) throw Error('Personal flight must use canonical body capabilities');
   const system = generateSystem(spec, state.systemIndex), dt = TRAVEL_DT;
   state.tick++;
   if (state.mode === 'surface') {
@@ -241,7 +280,12 @@ export function stepTravel(spec: UniverseSpec, state: TravelState, input: Travel
     const candidate = add(state.position, scale(move, TRAVEL_LIMITS.walkSpeed * dt / Math.max(1, length(move))));
     const nextDir = normalize(sub(candidate, p.center));
     if (terrainHeight(p, nextDir) >= 0 && dot(terrainNormal(p, nextDir), nextDir) >= .6) {
-      const next = add(p.center, scale(nextDir, surfaceRadius(p, nextDir) + TRAVEL_LIMITS.clearance));
+      const ground = scale(nextDir, surfaceRadius(p, nextDir, geometry, state.position));
+      const step = atlasPlanetWalkStep(p, sub(state.position, p.center), ground, state.atlasRevision ?? 0);
+      if (step.blocked) {
+        state.velocity = { ...ZERO }; return;
+      }
+      const next = add(p.center, step.position);
       state.velocity = scale(sub(next, state.position), 1 / dt); state.position = next; state.up = nextDir;
       state.forward = normalize(sub(state.forward, scale(nextDir, dot(state.forward, nextDir))));
     } else state.velocity = { ...ZERO };
@@ -249,13 +293,16 @@ export function stepTravel(spec: UniverseSpec, state: TravelState, input: Travel
   }
   if (state.landing) {
     const p = nearest(system, state.position), radial = normalize(sub(state.position, p.center));
-    const remaining = Math.max(0, altitude(p, state.position) - TRAVEL_LIMITS.clearance);
+    if (!atlasPlanetLandingClear(p, sub(state.position, p.center), state.atlasRevision ?? 0)) {
+      state.landing = false; state.velocity = { ...ZERO }; record(state, 'collision', p.id); return;
+    }
+    const remaining = Math.max(0, altitude(p, state.position, geometry) - TRAVEL_LIMITS.clearance);
     const downwardSpeed = Math.min(40, Math.max(4, remaining * 5));
     const distance = Math.min(remaining, downwardSpeed * dt);
     state.position = sub(state.position, scale(radial, distance));
     state.velocity = scale(radial, -distance / dt);
     if (remaining <= .05) {
-      state.position = add(p.center, scale(radial, surfaceRadius(p, radial) + TRAVEL_LIMITS.clearance));
+      state.position = add(p.center, scale(radial, surfaceRadius(p, radial, geometry, state.position) + TRAVEL_LIMITS.clearance));
       state.forward = tangentFrame(radial).north; state.up = radial; state.velocity = { ...ZERO };
       state.mode = 'surface'; state.landedPlanetId = p.id; state.landedVesselPosition = { ...state.position };
       state.landing = false;
@@ -266,7 +313,7 @@ export function stepTravel(spec: UniverseSpec, state: TravelState, input: Travel
   let desired: V3;
   if (state.cruise && state.targetPlanetId) {
     const goal = navigationGoal(system, state), offset = sub(goal.point, state.position), distance = length(offset);
-    const direction = normalize(offset), near = nearest(system, state.position), alt = altitude(near, state.position);
+    const direction = normalize(offset), near = nearest(system, state.position), alt = altitude(near, state.position, geometry);
     // Terrain proximity and stopping distance independently cap cruise speed.
     const cap = Math.min(TRAVEL_LIMITS.cruiseSpeed, Math.max(40, Math.sqrt(Math.max(0, alt - 12) * TRAVEL_LIMITS.acceleration)), Math.sqrt(distance * 2 * TRAVEL_LIMITS.acceleration));
     const speed = goal.final ? Math.min(cap, distance * 1.3) : Math.min(cap, Math.max(45, distance * 2));
@@ -287,7 +334,7 @@ export function stepTravel(spec: UniverseSpec, state: TravelState, input: Travel
     desired = input.brake ? { ...ZERO } : scale(direction, TRAVEL_LIMITS.flightSpeed / Math.max(1, length(direction)));
   }
   state.velocity = approachVelocity(state.velocity, desired, TRAVEL_LIMITS.acceleration * dt);
-  const motion = sweep(system, state.position, add(state.position, scale(state.velocity, dt)));
+  const motion = sweepTravel(system, state.position, add(state.position, scale(state.velocity, dt)), state.atlasRevision ?? 0, geometry);
   state.position = motion.position;
   if (motion.collided) {
     state.velocity = { ...ZERO }; state.cruise = false;

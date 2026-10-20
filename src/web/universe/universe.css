@@ -5,3 +5,17 @@
 .astral-boarding{pointer-events:auto;position:absolute;z-index:4;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,90vw);padding:30px;background:#091824fa;border:1px solid var(--line);border-radius:9px;box-shadow:0 20px 120px #000b}
 .astral-boarding small{font-size:10px;letter-spacing:.2em;color:var(--gold)}.astral-boarding h2{font:28px Georgia,serif}.astral-boarding p{font-size:13px;color:var(--muted);line-height:1.7}.astral-boarding button{margin:12px 8px 0 0}.astral-toast{z-index:6}.astral-actions{flex-wrap:wrap;justify-content:flex-end}
 .astral-ui[data-boarding=true] .astral-flight,.astral-ui[data-boarding=true] .astral-location,.astral-ui[data-boarding=true] .astral-chart,.astral-ui[data-boarding=true] .astral-chart-toggle,.astral-ui[data-boarding=true] .astral-reticle,.astral-ui[data-boarding=true] .astral-target{display:none}
+.astral-location .astral-capability{margin-top:10px;color:var(--gold);font-size:10px;max-width:310px}
+.astral-flight-details{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:20px;padding:12px 0}
+.astral-flight-details h4{margin:0;font:19px Georgia,serif;color:var(--gold)}
+.astral-flight-details [data-flight-reasons]{color:#dbc6a2}
+.astral-ui [data-soar]{border-color:#7ac8ca70;color:#c4eeea}
+.astral-readouts [data-reserve-row] strong{font-size:18px}
+@media(min-width:1001px){.astral-actions{max-width:56%}.astral-readouts{gap:22px}}
+@media(max-width:650px){.astral-location .astral-capability{max-width:175px;font-size:9px}.astral-readouts{flex-wrap:wrap;gap:9px 14px}.astral-readouts strong{min-width:65px}.astral-readouts [data-reserve-row] strong{font-size:16px}}
+@media(prefers-reduced-motion:reduce){.astral-ui button{transition:none}}
+.astral-ui[data-boarding=true] .astral-boarding{left:30px;top:auto;bottom:28px;transform:none;width:min(400px,calc(100vw - 40px));padding:22px;background:#091824e8}
+.astral-ui[data-boarding=true] .astral-boarding h2{font-size:23px;margin:9px 0}
+.astral-ui[data-boarding=true] .astral-boarding p{font-size:11px;margin:8px 0}
+.astral-boarding [data-boarding-flight]{color:var(--gold)}
+@media(max-width:650px){.astral-ui[data-boarding=true] .astral-boarding{left:20px;bottom:20px;padding:18px}}

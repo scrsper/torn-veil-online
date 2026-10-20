@@ -1,0 +1,1417 @@
+{
+  "note": "Unsaved observer presentation review using explicit survey hooks, not canonical gameplay or a human playtest.",
+  "samples": [
+    {
+      "name": "01-home-east",
+      "frameP50Ms": 20.900000000001455,
+      "frameP95Ms": 118.10000000000036,
+      "drawCalls": 7707,
+      "activeMeshes": 3159,
+      "totalMeshes": 3405,
+      "atlas": {
+        "context": "sphere:20261017:1600",
+        "queriedPlacements": 27,
+        "queries": 11,
+        "requested": 16,
+        "loaded": 16,
+        "instanced": 16,
+        "pending": 0,
+        "peakPending": 2,
+        "cachedModels": 16,
+        "cacheBytes": 3029784,
+        "cacheTriangles": 50276,
+        "renderedTriangles": 59996,
+        "instances": 17,
+        "budgetRejected": 0,
+        "requestedIds": [
+          "atlas:nature:tvn_biome_031",
+          "atlas:nature:tvn_biome_055",
+          "atlas:nature:tvn_biome_061",
+          "atlas:nature:tvn_biome_146",
+          "atlas:nature:tvn_biome_200",
+          "atlas:nature:tvn_flora_005",
+          "atlas:nature:tvn_flora_041",
+          "atlas:nature:tvn_flora_046",
+          "atlas:nature:tvn_flora_055",
+          "atlas:nature:tvn_flora_064",
+          "atlas:nature:tvn_flora_068",
+          "atlas:nature:tvn_flora_091",
+          "atlas:nature:tvn_flora_094",
+          "atlas:nature:tvn_flora_113",
+          "atlas:nature:tvn_flora_169",
+          "atlas:nature:tvn_flora_177"
+        ],
+        "loadedIds": [
+          "atlas:nature:tvn_biome_031",
+          "atlas:nature:tvn_biome_055",
+          "atlas:nature:tvn_biome_061",
+          "atlas:nature:tvn_biome_146",
+          "atlas:nature:tvn_biome_200",
+          "atlas:nature:tvn_flora_005",
+          "atlas:nature:tvn_flora_041",
+          "atlas:nature:tvn_flora_046",
+          "atlas:nature:tvn_flora_055",
+          "atlas:nature:tvn_flora_064",
+          "atlas:nature:tvn_flora_068",
+          "atlas:nature:tvn_flora_091",
+          "atlas:nature:tvn_flora_094",
+          "atlas:nature:tvn_flora_113",
+          "atlas:nature:tvn_flora_169",
+          "atlas:nature:tvn_flora_177"
+        ],
+        "instancedIds": [
+          "atlas:nature:tvn_biome_031",
+          "atlas:nature:tvn_biome_055",
+          "atlas:nature:tvn_biome_061",
+          "atlas:nature:tvn_biome_146",
+          "atlas:nature:tvn_biome_200",
+          "atlas:nature:tvn_flora_005",
+          "atlas:nature:tvn_flora_041",
+          "atlas:nature:tvn_flora_046",
+          "atlas:nature:tvn_flora_055",
+          "atlas:nature:tvn_flora_064",
+          "atlas:nature:tvn_flora_068",
+          "atlas:nature:tvn_flora_091",
+          "atlas:nature:tvn_flora_094",
+          "atlas:nature:tvn_flora_113",
+          "atlas:nature:tvn_flora_169",
+          "atlas:nature:tvn_flora_177"
+        ],
+        "residentIds": [
+          "atlas:nature:tvn_biome_031",
+          "atlas:nature:tvn_biome_055",
+          "atlas:nature:tvn_biome_061",
+          "atlas:nature:tvn_biome_146",
+          "atlas:nature:tvn_biome_200",
+          "atlas:nature:tvn_flora_005",
+          "atlas:nature:tvn_flora_041",
+          "atlas:nature:tvn_flora_046",
+          "atlas:nature:tvn_flora_055",
+          "atlas:nature:tvn_flora_064",
+          "atlas:nature:tvn_flora_068",
+          "atlas:nature:tvn_flora_091",
+          "atlas:nature:tvn_flora_094",
+          "atlas:nature:tvn_flora_113",
+          "atlas:nature:tvn_flora_169",
+          "atlas:nature:tvn_flora_177"
+        ],
+        "visibilityBasis": "camera frustum; occlusion is not measured",
+        "visibleIds": [
+          "atlas:nature:tvn_biome_031",
+          "atlas:nature:tvn_biome_061",
+          "atlas:nature:tvn_flora_005",
+          "atlas:nature:tvn_flora_055"
+        ],
+        "failures": [],
+        "placements": [
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:27:29",
+            "assetId": "atlas:nature:tvn_flora_041",
+            "position": {
+              "x": 332.19405150721116,
+              "y": 461.7592712123832,
+              "z": 1501.9067751930993
+            },
+            "up": {
+              "x": 0.20684310610759488,
+              "y": 0.28751785740352226,
+              "z": 0.9351734657965066
+            },
+            "yaw": 4.776377769111728,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:28:29",
+            "assetId": "atlas:nature:tvn_biome_146",
+            "position": {
+              "x": 395.1323288574621,
+              "y": 457.754777975969,
+              "z": 1487.806104951801
+            },
+            "up": {
+              "x": 0.24603507400838237,
+              "y": 0.28502788167868554,
+              "z": 0.9264047976038612
+            },
+            "yaw": 2.1012804633599265,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:27:30",
+            "assetId": "atlas:nature:tvn_biome_061",
+            "position": {
+              "x": 333.8302658094668,
+              "y": 527.5826764553842,
+              "z": 1479.6789763775635
+            },
+            "up": {
+              "x": 0.20786442453889592,
+              "y": 0.3285072705201645,
+              "z": 0.9213443190395788
+            },
+            "yaw": 4.202362366311872,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:28:30",
+            "assetId": "atlas:nature:tvn_flora_005",
+            "position": {
+              "x": 393.68068013684484,
+              "y": 518.9993511867216,
+              "z": 1467.9699404916746
+            },
+            "up": {
+              "x": 0.24512906612496743,
+              "y": 0.3231599433115242,
+              "z": 0.9140456181064455
+            },
+            "yaw": 1.5052146046072143,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:26:29",
+            "assetId": "atlas:nature:tvn_flora_046",
+            "position": {
+              "x": 262.246153412192,
+              "y": 472.69238509856353,
+              "z": 1512.2985268184075
+            },
+            "up": {
+              "x": 0.16329080728709225,
+              "y": 0.29432775336035527,
+              "z": 0.9416513610978191
+            },
+            "yaw": 0.44335168685161497,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:28:28",
+            "assetId": "atlas:nature:tvn_biome_055",
+            "position": {
+              "x": 406.94576728597997,
+              "y": 396.458119897108,
+              "z": 1502.1491609210036
+            },
+            "up": {
+              "x": 0.2533908887210336,
+              "y": 0.24686059769433874,
+              "z": 0.9353357166382339
+            },
+            "yaw": 1.9822795004578773,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:29:30",
+            "assetId": "atlas:nature:tvn_flora_091",
+            "position": {
+              "x": 449.069495027699,
+              "y": 511.4309443551149,
+              "z": 1454.6576134273985
+            },
+            "up": {
+              "x": 0.27961889535430806,
+              "y": 0.318449053640945,
+              "z": 0.9057612674408323
+            },
+            "yaw": 5.289016761349154,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:26:30",
+            "assetId": "atlas:nature:tvn_flora_177",
+            "position": {
+              "x": 265.65715401444,
+              "y": 524.8682572657253,
+              "z": 1494.3813398981492
+            },
+            "up": {
+              "x": 0.1654154134585554,
+              "y": 0.3268170966785338,
+              "z": 0.9304989663126708
+            },
+            "yaw": 3.733635295982252,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:28:31",
+            "assetId": "atlas:nature:tvn_flora_055",
+            "position": {
+              "x": 389.6426557669002,
+              "y": 576.7572330234037,
+              "z": 1447.3447109673552
+            },
+            "up": {
+              "x": 0.24261491754321493,
+              "y": 0.3591236905441317,
+              "z": 0.9012037376062428
+            },
+            "yaw": 3.5515408077930517,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:27:31",
+            "assetId": "atlas:nature:tvn_biome_031",
+            "position": {
+              "x": 328.31554000281625,
+              "y": 582.0956743280758,
+              "z": 1460.3456892534734
+            },
+            "up": {
+              "x": 0.20443059776015957,
+              "y": 0.3624506066799974,
+              "z": 0.9093061576920756
+            },
+            "yaw": 6.090360680608481,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:29:27",
+            "assetId": "atlas:nature:tvn_flora_055",
+            "position": {
+              "x": 465.68834588163656,
+              "y": 335.988064755029,
+              "z": 1499.526401353641
+            },
+            "up": {
+              "x": 0.29001860707601135,
+              "y": 0.20924464053301672,
+              "z": 0.9338660974453986
+            },
+            "yaw": 5.991784782435219,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:29:28",
+            "assetId": "atlas:nature:tvn_flora_113",
+            "position": {
+              "x": 466.6494111220344,
+              "y": 397.0527212820339,
+              "z": 1484.4591346780037
+            },
+            "up": {
+              "x": 0.290577780551917,
+              "y": 0.24724063882309377,
+              "z": 0.9243574092113237
+            },
+            "yaw": 3.3696063496754607,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:29:31",
+            "assetId": "atlas:nature:tvn_flora_068",
+            "position": {
+              "x": 447.47041623288914,
+              "y": 574.997236893603,
+              "z": 1431.2319827774722
+            },
+            "up": {
+              "x": 0.27862197745548617,
+              "y": 0.3580278413117606,
+              "z": 0.8911710601923939
+            },
+            "yaw": 1.1724170618880279,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:26:31",
+            "assetId": "atlas:nature:tvn_flora_169",
+            "position": {
+              "x": 258.65932810625964,
+              "y": 588.0886560716547,
+              "z": 1471.8977833339698
+            },
+            "up": {
+              "x": 0.1610581121458653,
+              "y": 0.36618222669467915,
+              "z": 0.9164992424246386
+            },
+            "yaw": 2.872644381100425,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:28:27",
+            "assetId": "atlas:nature:tvn_flora_064",
+            "position": {
+              "x": 400.5253683682963,
+              "y": 343.13757045197826,
+              "z": 1516.9284877797481
+            },
+            "up": {
+              "x": 0.24939313098897653,
+              "y": 0.21365975744207863,
+              "z": 0.9445382862887598
+            },
+            "yaw": 2.3465895025860575,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:27:27",
+            "assetId": "atlas:nature:tvn_flora_094",
+            "position": {
+              "x": 338.69121378851946,
+              "y": 337.02329841403855,
+              "z": 1533.2881272395102
+            },
+            "up": {
+              "x": 0.21088982077699656,
+              "y": 0.2098512748682884,
+              "z": 0.9547187679776702
+            },
+            "yaw": 1.98713627729927,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:25:29",
+            "assetId": "atlas:nature:tvn_biome_200",
+            "position": {
+              "x": 207.26126539368252,
+              "y": 468.78291859787413,
+              "z": 1522.012267722658
+            },
+            "up": {
+              "x": 0.1290543371069007,
+              "y": 0.2918947189276925,
+              "z": 0.9477037781585665
+            },
+            "yaw": 3.192784937999634,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          }
+        ],
+        "budgets": {
+          "models": 16,
+          "bytes": 33554432,
+          "triangles": 600000,
+          "instances": 40,
+          "instanceTriangles": 850000,
+          "meshInstances": 320,
+          "range": 192
+        }
+      },
+      "body": {
+        "x": 358.3088175835831,
+        "y": 483.772079831974,
+        "z": 1488.8973658438988
+      },
+      "inTower": false
+    },
+    {
+      "name": "02-real-flora-closeup",
+      "frameP50Ms": 20.899999999999636,
+      "frameP95Ms": 27.899999999999636,
+      "drawCalls": 7729,
+      "activeMeshes": 3170,
+      "totalMeshes": 3416,
+      "atlas": {
+        "context": "sphere:20261017:1600",
+        "queriedPlacements": 27,
+        "queries": 21,
+        "requested": 18,
+        "loaded": 18,
+        "instanced": 18,
+        "pending": 0,
+        "peakPending": 2,
+        "cachedModels": 16,
+        "cacheBytes": 3124564,
+        "cacheTriangles": 50760,
+        "renderedTriangles": 61042,
+        "instances": 18,
+        "budgetRejected": 0,
+        "requestedIds": [
+          "atlas:nature:tvn_biome_031",
+          "atlas:nature:tvn_biome_055",
+          "atlas:nature:tvn_biome_061",
+          "atlas:nature:tvn_biome_146",
+          "atlas:nature:tvn_biome_165",
+          "atlas:nature:tvn_biome_200",
+          "atlas:nature:tvn_flora_005",
+          "atlas:nature:tvn_flora_041",
+          "atlas:nature:tvn_flora_046",
+          "atlas:nature:tvn_flora_055",
+          "atlas:nature:tvn_flora_064",
+          "atlas:nature:tvn_flora_068",
+          "atlas:nature:tvn_flora_073",
+          "atlas:nature:tvn_flora_091",
+          "atlas:nature:tvn_flora_094",
+          "atlas:nature:tvn_flora_113",
+          "atlas:nature:tvn_flora_169",
+          "atlas:nature:tvn_flora_177"
+        ],
+        "loadedIds": [
+          "atlas:nature:tvn_biome_031",
+          "atlas:nature:tvn_biome_055",
+          "atlas:nature:tvn_biome_061",
+          "atlas:nature:tvn_biome_146",
+          "atlas:nature:tvn_biome_165",
+          "atlas:nature:tvn_biome_200",
+          "atlas:nature:tvn_flora_005",
+          "atlas:nature:tvn_flora_041",
+          "atlas:nature:tvn_flora_046",
+          "atlas:nature:tvn_flora_055",
+          "atlas:nature:tvn_flora_064",
+          "atlas:nature:tvn_flora_068",
+          "atlas:nature:tvn_flora_073",
+          "atlas:nature:tvn_flora_091",
+          "atlas:nature:tvn_flora_094",
+          "atlas:nature:tvn_flora_113",
+          "atlas:nature:tvn_flora_169",
+          "atlas:nature:tvn_flora_177"
+        ],
+        "instancedIds": [
+          "atlas:nature:tvn_biome_031",
+          "atlas:nature:tvn_biome_055",
+          "atlas:nature:tvn_biome_061",
+          "atlas:nature:tvn_biome_146",
+          "atlas:nature:tvn_biome_165",
+          "atlas:nature:tvn_biome_200",
+          "atlas:nature:tvn_flora_005",
+          "atlas:nature:tvn_flora_041",
+          "atlas:nature:tvn_flora_046",
+          "atlas:nature:tvn_flora_055",
+          "atlas:nature:tvn_flora_064",
+          "atlas:nature:tvn_flora_068",
+          "atlas:nature:tvn_flora_073",
+          "atlas:nature:tvn_flora_091",
+          "atlas:nature:tvn_flora_094",
+          "atlas:nature:tvn_flora_113",
+          "atlas:nature:tvn_flora_169",
+          "atlas:nature:tvn_flora_177"
+        ],
+        "residentIds": [
+          "atlas:nature:tvn_biome_031",
+          "atlas:nature:tvn_biome_055",
+          "atlas:nature:tvn_biome_061",
+          "atlas:nature:tvn_biome_146",
+          "atlas:nature:tvn_biome_165",
+          "atlas:nature:tvn_flora_005",
+          "atlas:nature:tvn_flora_041",
+          "atlas:nature:tvn_flora_046",
+          "atlas:nature:tvn_flora_055",
+          "atlas:nature:tvn_flora_064",
+          "atlas:nature:tvn_flora_068",
+          "atlas:nature:tvn_flora_073",
+          "atlas:nature:tvn_flora_091",
+          "atlas:nature:tvn_flora_113",
+          "atlas:nature:tvn_flora_169",
+          "atlas:nature:tvn_flora_177"
+        ],
+        "visibilityBasis": "camera frustum; occlusion is not measured",
+        "visibleIds": [
+          "atlas:nature:tvn_biome_031",
+          "atlas:nature:tvn_biome_146",
+          "atlas:nature:tvn_flora_005",
+          "atlas:nature:tvn_flora_055"
+        ],
+        "failures": [],
+        "placements": [
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:27:29",
+            "assetId": "atlas:nature:tvn_flora_041",
+            "position": {
+              "x": 332.19405150721116,
+              "y": 461.7592712123832,
+              "z": 1501.9067751930993
+            },
+            "up": {
+              "x": 0.20684310610759488,
+              "y": 0.28751785740352226,
+              "z": 0.9351734657965066
+            },
+            "yaw": 4.776377769111728,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:28:29",
+            "assetId": "atlas:nature:tvn_biome_146",
+            "position": {
+              "x": 395.1323288574621,
+              "y": 457.754777975969,
+              "z": 1487.806104951801
+            },
+            "up": {
+              "x": 0.24603507400838237,
+              "y": 0.28502788167868554,
+              "z": 0.9264047976038612
+            },
+            "yaw": 2.1012804633599265,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:27:30",
+            "assetId": "atlas:nature:tvn_biome_061",
+            "position": {
+              "x": 333.8302658094668,
+              "y": 527.5826764553842,
+              "z": 1479.6789763775635
+            },
+            "up": {
+              "x": 0.20786442453889592,
+              "y": 0.3285072705201645,
+              "z": 0.9213443190395788
+            },
+            "yaw": 4.202362366311872,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:28:30",
+            "assetId": "atlas:nature:tvn_flora_005",
+            "position": {
+              "x": 393.68068013684484,
+              "y": 518.9993511867216,
+              "z": 1467.9699404916746
+            },
+            "up": {
+              "x": 0.24512906612496743,
+              "y": 0.3231599433115242,
+              "z": 0.9140456181064455
+            },
+            "yaw": 1.5052146046072143,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:26:29",
+            "assetId": "atlas:nature:tvn_flora_046",
+            "position": {
+              "x": 262.246153412192,
+              "y": 472.69238509856353,
+              "z": 1512.2985268184075
+            },
+            "up": {
+              "x": 0.16329080728709225,
+              "y": 0.29432775336035527,
+              "z": 0.9416513610978191
+            },
+            "yaw": 0.44335168685161497,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:28:28",
+            "assetId": "atlas:nature:tvn_biome_055",
+            "position": {
+              "x": 406.94576728597997,
+              "y": 396.458119897108,
+              "z": 1502.1491609210036
+            },
+            "up": {
+              "x": 0.2533908887210336,
+              "y": 0.24686059769433874,
+              "z": 0.9353357166382339
+            },
+            "yaw": 1.9822795004578773,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:29:30",
+            "assetId": "atlas:nature:tvn_flora_091",
+            "position": {
+              "x": 449.069495027699,
+              "y": 511.4309443551149,
+              "z": 1454.6576134273985
+            },
+            "up": {
+              "x": 0.27961889535430806,
+              "y": 0.318449053640945,
+              "z": 0.9057612674408323
+            },
+            "yaw": 5.289016761349154,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:26:30",
+            "assetId": "atlas:nature:tvn_flora_177",
+            "position": {
+              "x": 265.65715401444,
+              "y": 524.8682572657253,
+              "z": 1494.3813398981492
+            },
+            "up": {
+              "x": 0.1654154134585554,
+              "y": 0.3268170966785338,
+              "z": 0.9304989663126708
+            },
+            "yaw": 3.733635295982252,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:28:31",
+            "assetId": "atlas:nature:tvn_flora_055",
+            "position": {
+              "x": 389.6426557669002,
+              "y": 576.7572330234037,
+              "z": 1447.3447109673552
+            },
+            "up": {
+              "x": 0.24261491754321493,
+              "y": 0.3591236905441317,
+              "z": 0.9012037376062428
+            },
+            "yaw": 3.5515408077930517,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:27:31",
+            "assetId": "atlas:nature:tvn_biome_031",
+            "position": {
+              "x": 328.31554000281625,
+              "y": 582.0956743280758,
+              "z": 1460.3456892534734
+            },
+            "up": {
+              "x": 0.20443059776015957,
+              "y": 0.3624506066799974,
+              "z": 0.9093061576920756
+            },
+            "yaw": 6.090360680608481,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:29:27",
+            "assetId": "atlas:nature:tvn_flora_055",
+            "position": {
+              "x": 465.68834588163656,
+              "y": 335.988064755029,
+              "z": 1499.526401353641
+            },
+            "up": {
+              "x": 0.29001860707601135,
+              "y": 0.20924464053301672,
+              "z": 0.9338660974453986
+            },
+            "yaw": 5.991784782435219,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:29:28",
+            "assetId": "atlas:nature:tvn_flora_113",
+            "position": {
+              "x": 466.6494111220344,
+              "y": 397.0527212820339,
+              "z": 1484.4591346780037
+            },
+            "up": {
+              "x": 0.290577780551917,
+              "y": 0.24724063882309377,
+              "z": 0.9243574092113237
+            },
+            "yaw": 3.3696063496754607,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:29:31",
+            "assetId": "atlas:nature:tvn_flora_068",
+            "position": {
+              "x": 447.47041623288914,
+              "y": 574.997236893603,
+              "z": 1431.2319827774722
+            },
+            "up": {
+              "x": 0.27862197745548617,
+              "y": 0.3580278413117606,
+              "z": 0.8911710601923939
+            },
+            "yaw": 1.1724170618880279,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:26:31",
+            "assetId": "atlas:nature:tvn_flora_169",
+            "position": {
+              "x": 258.65932810625964,
+              "y": 588.0886560716547,
+              "z": 1471.8977833339698
+            },
+            "up": {
+              "x": 0.1610581121458653,
+              "y": 0.36618222669467915,
+              "z": 0.9164992424246386
+            },
+            "yaw": 2.872644381100425,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:28:27",
+            "assetId": "atlas:nature:tvn_flora_064",
+            "position": {
+              "x": 400.5253683682963,
+              "y": 343.13757045197826,
+              "z": 1516.9284877797481
+            },
+            "up": {
+              "x": 0.24939313098897653,
+              "y": 0.21365975744207863,
+              "z": 0.9445382862887598
+            },
+            "yaw": 2.3465895025860575,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:29:32",
+            "assetId": "atlas:nature:tvn_biome_146",
+            "position": {
+              "x": 440.16097255774474,
+              "y": 632.0704764241603,
+              "z": 1409.208372750523
+            },
+            "up": {
+              "x": 0.27407883831695873,
+              "y": 0.39357678829658965,
+              "z": 0.8774839611645148
+            },
+            "yaw": 2.8705097012795853,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:30:30",
+            "assetId": "atlas:nature:tvn_flora_073",
+            "position": {
+              "x": 513.2256915171815,
+              "y": 508.7501045338035,
+              "z": 1432.8719372196294
+            },
+            "up": {
+              "x": 0.31980873419585154,
+              "y": 0.3170198406708484,
+              "z": 0.8928722160270623
+            },
+            "yaw": 5.372746706454594,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:4:30:31",
+            "assetId": "atlas:nature:tvn_biome_165",
+            "position": {
+              "x": 498.70387532148294,
+              "y": 562.7976109752487,
+              "z": 1417.8541271276717
+            },
+            "up": {
+              "x": 0.31073508778246806,
+              "y": 0.35067095666225273,
+              "z": 0.8834441608694928
+            },
+            "yaw": 0.5912863239859044,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          }
+        ],
+        "budgets": {
+          "models": 16,
+          "bytes": 33554432,
+          "triangles": 600000,
+          "instances": 40,
+          "instanceTriangles": 850000,
+          "meshInstances": 320,
+          "range": 192
+        }
+      },
+      "body": {
+        "x": 394.49101711943206,
+        "y": 509.70096023162336,
+        "z": 1470.9921034971728
+      },
+      "inTower": false
+    },
+    {
+      "name": "03-landmark-region",
+      "frameP50Ms": 20.899999999997817,
+      "frameP95Ms": 27.799999999999272,
+      "drawCalls": 7368,
+      "activeMeshes": 2925,
+      "totalMeshes": 3356,
+      "atlas": {
+        "context": "sphere:20261017:1600",
+        "queriedPlacements": 22,
+        "queries": 29,
+        "requested": 34,
+        "loaded": 34,
+        "instanced": 34,
+        "pending": 0,
+        "peakPending": 2,
+        "cachedModels": 16,
+        "cacheBytes": 1765016,
+        "cacheTriangles": 27996,
+        "renderedTriangles": 27996,
+        "instances": 16,
+        "budgetRejected": 0,
+        "requestedIds": [
+          "atlas:local:file-69ea5267de7819b7-199",
+          "atlas:local:file-a56544a963f7e881-182",
+          "atlas:local:item-TV-004",
+          "atlas:local:item-TV-013",
+          "atlas:local:item-TV-027",
+          "atlas:local:item-TV-065",
+          "atlas:local:item-TV-066",
+          "atlas:local:item-TV-094",
+          "atlas:local:item-TV-137",
+          "atlas:local:item-TV-153",
+          "atlas:local:item-TV-175",
+          "atlas:local:item-TV-179",
+          "atlas:local:item-TV-241",
+          "atlas:local:item-TV-262",
+          "atlas:local:item-TV-280",
+          "atlas:local:item-TV-284",
+          "atlas:nature:tvn_biome_031",
+          "atlas:nature:tvn_biome_055",
+          "atlas:nature:tvn_biome_061",
+          "atlas:nature:tvn_biome_146",
+          "atlas:nature:tvn_biome_165",
+          "atlas:nature:tvn_biome_200",
+          "atlas:nature:tvn_flora_005",
+          "atlas:nature:tvn_flora_041",
+          "atlas:nature:tvn_flora_046",
+          "atlas:nature:tvn_flora_055",
+          "atlas:nature:tvn_flora_064",
+          "atlas:nature:tvn_flora_068",
+          "atlas:nature:tvn_flora_073",
+          "atlas:nature:tvn_flora_091",
+          "atlas:nature:tvn_flora_094",
+          "atlas:nature:tvn_flora_113",
+          "atlas:nature:tvn_flora_169",
+          "atlas:nature:tvn_flora_177"
+        ],
+        "loadedIds": [
+          "atlas:local:file-69ea5267de7819b7-199",
+          "atlas:local:file-a56544a963f7e881-182",
+          "atlas:local:item-TV-004",
+          "atlas:local:item-TV-013",
+          "atlas:local:item-TV-027",
+          "atlas:local:item-TV-065",
+          "atlas:local:item-TV-066",
+          "atlas:local:item-TV-094",
+          "atlas:local:item-TV-137",
+          "atlas:local:item-TV-153",
+          "atlas:local:item-TV-175",
+          "atlas:local:item-TV-179",
+          "atlas:local:item-TV-241",
+          "atlas:local:item-TV-262",
+          "atlas:local:item-TV-280",
+          "atlas:local:item-TV-284",
+          "atlas:nature:tvn_biome_031",
+          "atlas:nature:tvn_biome_055",
+          "atlas:nature:tvn_biome_061",
+          "atlas:nature:tvn_biome_146",
+          "atlas:nature:tvn_biome_165",
+          "atlas:nature:tvn_biome_200",
+          "atlas:nature:tvn_flora_005",
+          "atlas:nature:tvn_flora_041",
+          "atlas:nature:tvn_flora_046",
+          "atlas:nature:tvn_flora_055",
+          "atlas:nature:tvn_flora_064",
+          "atlas:nature:tvn_flora_068",
+          "atlas:nature:tvn_flora_073",
+          "atlas:nature:tvn_flora_091",
+          "atlas:nature:tvn_flora_094",
+          "atlas:nature:tvn_flora_113",
+          "atlas:nature:tvn_flora_169",
+          "atlas:nature:tvn_flora_177"
+        ],
+        "instancedIds": [
+          "atlas:local:file-69ea5267de7819b7-199",
+          "atlas:local:file-a56544a963f7e881-182",
+          "atlas:local:item-TV-004",
+          "atlas:local:item-TV-013",
+          "atlas:local:item-TV-027",
+          "atlas:local:item-TV-065",
+          "atlas:local:item-TV-066",
+          "atlas:local:item-TV-094",
+          "atlas:local:item-TV-137",
+          "atlas:local:item-TV-153",
+          "atlas:local:item-TV-175",
+          "atlas:local:item-TV-179",
+          "atlas:local:item-TV-241",
+          "atlas:local:item-TV-262",
+          "atlas:local:item-TV-280",
+          "atlas:local:item-TV-284",
+          "atlas:nature:tvn_biome_031",
+          "atlas:nature:tvn_biome_055",
+          "atlas:nature:tvn_biome_061",
+          "atlas:nature:tvn_biome_146",
+          "atlas:nature:tvn_biome_165",
+          "atlas:nature:tvn_biome_200",
+          "atlas:nature:tvn_flora_005",
+          "atlas:nature:tvn_flora_041",
+          "atlas:nature:tvn_flora_046",
+          "atlas:nature:tvn_flora_055",
+          "atlas:nature:tvn_flora_064",
+          "atlas:nature:tvn_flora_068",
+          "atlas:nature:tvn_flora_073",
+          "atlas:nature:tvn_flora_091",
+          "atlas:nature:tvn_flora_094",
+          "atlas:nature:tvn_flora_113",
+          "atlas:nature:tvn_flora_169",
+          "atlas:nature:tvn_flora_177"
+        ],
+        "residentIds": [
+          "atlas:local:file-69ea5267de7819b7-199",
+          "atlas:local:file-a56544a963f7e881-182",
+          "atlas:local:item-TV-004",
+          "atlas:local:item-TV-013",
+          "atlas:local:item-TV-027",
+          "atlas:local:item-TV-065",
+          "atlas:local:item-TV-066",
+          "atlas:local:item-TV-094",
+          "atlas:local:item-TV-137",
+          "atlas:local:item-TV-153",
+          "atlas:local:item-TV-175",
+          "atlas:local:item-TV-179",
+          "atlas:local:item-TV-241",
+          "atlas:local:item-TV-262",
+          "atlas:local:item-TV-280",
+          "atlas:local:item-TV-284"
+        ],
+        "visibilityBasis": "camera frustum; occlusion is not measured",
+        "visibleIds": [
+          "atlas:local:item-TV-262",
+          "atlas:local:item-TV-280",
+          "atlas:local:item-TV-284"
+        ],
+        "failures": [],
+        "placements": [
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:5:31:32",
+            "assetId": "atlas:local:item-TV-175",
+            "position": {
+              "x": -558.5053651651515,
+              "y": 624.5382059078571,
+              "z": -1401.1099947370924
+            },
+            "up": {
+              "x": -0.3421147366162603,
+              "y": 0.382563422211311,
+              "z": -0.8582556349806023
+            },
+            "yaw": 2.6419011958691505,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:5:30:32",
+            "assetId": "atlas:local:item-TV-004",
+            "position": {
+              "x": -493.79191266446895,
+              "y": 626.0255857436888,
+              "z": -1399.7863983879415
+            },
+            "up": {
+              "x": -0.30652333313072744,
+              "y": 0.3886079221748241,
+              "z": -0.8689230858191046
+            },
+            "yaw": 0.9091815898282999,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:5:32:32",
+            "assetId": "atlas:local:file-a56544a963f7e881-182",
+            "position": {
+              "x": -609.7370477133392,
+              "y": 614.0681979471865,
+              "z": -1377.3293183845367
+            },
+            "up": {
+              "x": -0.37484892960939337,
+              "y": 0.37751159712356813,
+              "z": -0.8467427436995872
+            },
+            "yaw": 4.725660146027722,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:5:32:35",
+            "assetId": "atlas:local:item-TV-262",
+            "position": {
+              "x": -577.0468355368579,
+              "y": 749.9881668983285,
+              "z": -1293.2748628546908
+            },
+            "up": {
+              "x": -0.3600903024199846,
+              "y": 0.4680096123888702,
+              "z": -0.8070328226377808
+            },
+            "yaw": 1.7853855492744966,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:5:29:33",
+            "assetId": "atlas:local:item-TV-027",
+            "position": {
+              "x": -432.6642171199337,
+              "y": 680.8444101826275,
+              "z": -1382.9889237359264
+            },
+            "up": {
+              "x": -0.27023543616410506,
+              "y": 0.4252449795139726,
+              "z": -0.863793677008206
+            },
+            "yaw": 5.9827336439103975,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:5:33:33",
+            "assetId": "atlas:local:item-TV-066",
+            "position": {
+              "x": -641.2620997441622,
+              "y": 649.9357113157691,
+              "z": -1317.6028044373716
+            },
+            "up": {
+              "x": -0.40003082670922735,
+              "y": 0.4054415815455555,
+              "z": -0.8219443178440806
+            },
+            "yaw": 5.798578460056381,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:5:33:34",
+            "assetId": "atlas:local:item-TV-065",
+            "position": {
+              "x": -633.9557005342994,
+              "y": 688.159268178113,
+              "z": -1299.7496974232395
+            },
+            "up": {
+              "x": -0.3958504279669033,
+              "y": 0.42969586137976323,
+              "z": -0.8115811144867301
+            },
+            "yaw": 2.9795901149052226,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:5:29:32",
+            "assetId": "atlas:local:file-69ea5267de7819b7-199",
+            "position": {
+              "x": -438.7038990298268,
+              "y": 624.9817079772648,
+              "z": -1415.7754796332001
+            },
+            "up": {
+              "x": -0.27272986876930766,
+              "y": 0.3885335406792646,
+              "z": -0.8801477753470212
+            },
+            "yaw": 0.3339384110866476,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:5:31:31",
+            "assetId": "atlas:local:item-TV-179",
+            "position": {
+              "x": -568.8072832262241,
+              "y": 567.1119395906933,
+              "z": -1422.9580781529596
+            },
+            "up": {
+              "x": -0.3481065312940003,
+              "y": 0.3470689914985029,
+              "z": -0.8708415229022278
+            },
+            "yaw": 2.320880452363779,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:5:30:31",
+            "assetId": "atlas:local:item-TV-241",
+            "position": {
+              "x": -514.409473868383,
+              "y": 570.9371443197862,
+              "z": -1431.7973701208941
+            },
+            "up": {
+              "x": -0.3165593742086874,
+              "y": 0.35134559975971524,
+              "z": -0.8811052332894692
+            },
+            "yaw": 3.5944381696803602,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:5:29:34",
+            "assetId": "atlas:local:item-TV-137",
+            "position": {
+              "x": -420.6205276443754,
+              "y": 724.8411835403414,
+              "z": -1365.4092195272679
+            },
+            "up": {
+              "x": -0.26254660215836967,
+              "y": 0.45243771365306684,
+              "z": -0.8522730765191872
+            },
+            "yaw": 5.1285837728426475,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:5:33:35",
+            "assetId": "atlas:local:item-TV-094",
+            "position": {
+              "x": -624.7000025272896,
+              "y": 739.3597087751394,
+              "z": -1275.878181684139
+            },
+            "up": {
+              "x": -0.39007441326279574,
+              "y": 0.4616700871199616,
+              "z": -0.7966822972655616
+            },
+            "yaw": 2.658008773877286,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:5:32:31",
+            "assetId": "atlas:local:item-TV-153",
+            "position": {
+              "x": -621.3594927619204,
+              "y": 566.6577632623615,
+              "z": -1406.109720961492
+            },
+            "up": {
+              "x": -0.37924924706692514,
+              "y": 0.3458618280806103,
+              "z": -0.85822468181468
+            },
+            "yaw": 0.4386956472403048,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:5:32:36",
+            "assetId": "atlas:local:item-TV-284",
+            "position": {
+              "x": -567.4747590843009,
+              "y": 790.6627280815783,
+              "z": -1272.321924768095
+            },
+            "up": {
+              "x": -0.35425832530920354,
+              "y": 0.4935882159526608,
+              "z": -0.7942743304562903
+            },
+            "yaw": 6.1134498142492895,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:5:31:36",
+            "assetId": "atlas:local:item-TV-280",
+            "position": {
+              "x": -519.6919511082382,
+              "y": 801.138990449339,
+              "z": -1286.390387769635
+            },
+            "up": {
+              "x": -0.32438303116247974,
+              "y": 0.5000575697780629,
+              "z": -0.8029433828119512
+            },
+            "yaw": 3.6191204269611625,
+            "scale": 1,
+            "visible": true,
+            "fade": 1
+          },
+          {
+            "id": "atlas:1:sphere:20261017:1600:scatter:5:29:31",
+            "assetId": "atlas:local:item-TV-013",
+            "position": {
+              "x": -449.51393841846243,
+              "y": 579.7283187815804,
+              "z": -1436.8967545705389
+            },
+            "up": {
+              "x": -0.2786256510023275,
+              "y": 0.3593374229802713,
+              "z": -0.8906426685542451
+            },
+            "yaw": 5.157922018532628,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          }
+        ],
+        "budgets": {
+          "models": 16,
+          "bytes": 33554432,
+          "triangles": 600000,
+          "instances": 40,
+          "instanceTriangles": 850000,
+          "meshInstances": 320,
+          "range": 192
+        }
+      },
+      "body": {
+        "x": -541.0743690780549,
+        "y": 673.944800995593,
+        "z": -1360.3897585716406
+      },
+      "inTower": false
+    },
+    {
+      "name": "04-tower-floor",
+      "frameP50Ms": 7,
+      "frameP95Ms": 7,
+      "drawCalls": 40,
+      "activeMeshes": 44,
+      "totalMeshes": 72,
+      "atlas": {
+        "requested": 1,
+        "loaded": 1,
+        "instanced": 1,
+        "pending": 0,
+        "peakPending": 1,
+        "cachedModels": 1,
+        "cacheBytes": 163292,
+        "cacheTriangles": 2248,
+        "renderedTriangles": 2248,
+        "instances": 1,
+        "budgetRejected": 0,
+        "requestedIds": [
+          "atlas:local:item-TV-080"
+        ],
+        "loadedIds": [
+          "atlas:local:item-TV-080"
+        ],
+        "instancedIds": [
+          "atlas:local:item-TV-080"
+        ],
+        "residentIds": [
+          "atlas:local:item-TV-080"
+        ],
+        "visibilityBasis": "camera frustum; occlusion is not measured",
+        "visibleIds": [],
+        "failures": [],
+        "placements": [
+          {
+            "id": "atlas:1:tower:veil:tower:spec:floor:4:4:veil:tower:spec:floor:4:bench:3",
+            "assetId": "atlas:local:item-TV-080",
+            "position": {
+              "x": 6186,
+              "y": 2,
+              "z": 65.5
+            },
+            "up": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            },
+            "yaw": 4.71238898038469,
+            "scale": 1,
+            "visible": false,
+            "fade": 1
+          }
+        ],
+        "budgets": {
+          "models": 16,
+          "bytes": 25165824,
+          "triangles": 240000,
+          "instances": 32,
+          "instanceTriangles": 320000,
+          "meshInstances": 240,
+          "range": 150
+        }
+      },
+      "body": {
+        "x": -541.0743690780549,
+        "y": 673.944800995593,
+        "z": -1360.3897585716406
+      },
+      "inTower": true
+    }
+  ],
+  "errors": []
+}
