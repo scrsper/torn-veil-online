@@ -10,11 +10,11 @@ Exact audited source:
 
 - 7,618,436 bytes.
 - SHA-256 `69591853d817488edaa8fd9bf8fc1d821eaeaf789f8627b3cd23b41c4ed67997`.
-- Existing local location: sibling project `torn-veil-build/vrm-characters/public/assets/anim/Universal Animation Library[Standard]/Unreal-Godot/UAL1_Standard.glb`.
-- Staged byte-for-byte to ignored `web/public/arena/motion/ual-standard.glb`; binaries are not committed.
+- Tracked source: `tools/ontology/public/assets/library/quaternius-ual/model.glb`, already included in the repository before this traversal release. The hash and length above match this file exactly.
+- Staged byte-for-byte to ignored `web/public/arena/motion/ual-standard.glb`; this release adds no binary model or animation files.
 - No source asset edits, new downloads, runtime decoder services or creator-runtime dependency.
 
-Run `node scripts/web/stage-human-motion.mjs`. `TV_HUMAN_MOTION` can point to the same audited source elsewhere; `TV_REALMS_ASSETS` can provide an already staged copy. The campaign launcher and current-assets staging call this shared step. A different existing target is refused and retained. The manifest is `src/web/presentation/motionSources.json`; runtime rechecks its byte length and hash before Babylon parses it.
+Run `node scripts/web/stage-human-motion.mjs`. A clean checkout uses the tracked source above without an external motion install. `TV_HUMAN_MOTION` can point to the same audited source elsewhere; `TV_REALMS_ASSETS` can provide an already staged copy. Existing sibling-project copies remain fallback candidates. The campaign launcher and current-assets staging call this shared step. A different existing target is refused and retained. The manifest is `src/web/presentation/motionSources.json`; runtime rechecks its byte length and hash before Babylon parses it.
 
 The UAL source contains 43 clips. This revision uses only four corresponding aliases:
 

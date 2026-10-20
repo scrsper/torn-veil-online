@@ -3,6 +3,7 @@ import type { PracticedSkillId } from './martialTypes';
 import type { World } from './world';
 import { instructionFactor, practiceSkill } from './skills';
 import { developThroughPractice } from './development';
+import { recordPracticeExperience } from '../progression/experience';
 
 const DAY = 86400;
 const MAX_DAILY_SECONDS = 8 * 3600;
@@ -113,8 +114,10 @@ export function recordCapabilityPractice(world: World, p: Person, input: Capabil
     // proficiency a second time. Deliberate solo form practice demands more than incidental
     // labor but plateaus below Iron's core foundations; live sparring demands 15.5.
     const foundationChallenge = source.data.martial === 'practice' ? 13 : 15.5;
-    developThroughPractice(world, p, input.skill, effective / 60, instructionFactor(p, input.skill), foundationChallenge);
-  } else practiceSkill(p, input.skill, effective / 60, world, 8 + 10 * challenge);
+    developThroughPractice(world, p, input.skill, effective / 60, instructionFactor(p, input.skill), foundationChallenge, input.sourceEventId);
+  } else practiceSkill(p, input.skill, effective / 60, world, 8 + 10 * challenge, input.sourceEventId);
+  // The same credited seconds are experience; the source event pays each person once.
+  recordPracticeExperience(world, p, input.sourceEventId, effective);
   return { credited: true, effectiveSeconds: effective };
 }
 

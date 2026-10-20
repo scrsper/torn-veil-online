@@ -22,6 +22,7 @@ import {ObservedArcaneEffects} from '../actors/arcaneEffects';
 import {contactGrounding} from './contactGrounding';
 import {InteriorCameraFraming,interiorDetailFov,cameraBoxBlocked} from './interiorCamera';
 import {boxObstruction} from './cameraSolids';
+import {JohnSmithInterface} from './johnSmith';
 
 /** Existing Babylon shell, shared renderer/atmosphere/body kits. The browser sends
  * intentions and projects server state; it never creates or steps a canonical World. */
@@ -55,7 +56,7 @@ export async function startRealms(): Promise<void> {
     <details class="rv-card rv-wayfinder"><summary>Travel & journal</summary><small>THRESHOLD SQUARE</small><b id="rv-destination">Aether Reach ↔ Cinderveil</b><button id="rv-portal">Walk to portal</button><button id="rv-tower">Walk to Tower</button><button id="rv-universe">Board the Astral Sea</button><button id="rv-canonical" hidden>Enter shared Tower trial</button><button id="rv-ascend" hidden>Historical score-based Tower lab</button><button id="rv-journal">Character & journey</button><label class="rv-camera-choice">Camera <select id="rv-camera"><option value="close">Close</option><option value="elevated">Elevated</option><option value="wide">Wide</option></select></label></details>
     <div class="rv-reticle">·</div><div class="rv-toast" id="rv-toast" aria-live="polite"></div>
     <div class="rv-prompt" id="rv-prompt">Loading nearby streets…</div>
-    <footer><span>WASD move · X walk · MMB orbit · wheel zoom · LMB strike · K heavy · L low · G guard · Space dodge · E interact · I character · J objectives</span><span id="rv-stream"></span></footer>
+    <footer><span>WASD move · X walk · MMB orbit · wheel zoom · LMB strike · K heavy · L low · G guard · Space dodge · E interact · I character · J objectives · O John Smith</span><span id="rv-stream"></span></footer>
     <section class="rv-modal" id="rv-choice" hidden><small>THE VEIL</small><h2 id="rv-choice-title"></h2><p>Your identity, possessions and development travel with you.</p><button id="rv-cross">Cross threshold</button><button id="rv-cancel">Stay here</button></section>
     <section class="rv-modal rv-journal" id="rv-sheet" hidden><small>YOUR JOURNEY</small><h2 id="rv-name"></h2><div id="rv-character"></div><p class="rv-note">The shared Tower trial carries this body, its injuries and belongings. Historical score-based expeditions are comparison evidence and do not define current progression.</p><button id="rv-save">Save journey</button><button id="rv-close">Return to world</button></section>
     <section class="rv-modal" id="rv-expedition" hidden><small>THE TOWER</small><h2>Your expedition awaits</h2><p>Continue from the last saved floor start, or return to your atrium landing.</p><button id="rv-resume">Continue expedition</button><button id="rv-return">Return to atrium</button></section>
@@ -69,6 +70,7 @@ export async function startRealms(): Promise<void> {
   const el = (id: string) => document.getElementById(id)!;
   const keys = new Set<string>(), frames: number[] = [], streamingFrames: number[] = [], serverSamples: number[] = [], journeys: { realm: string; at: number; readyAt?: number }[] = [];
   let state: RealmSnapshot | null = null, avatar: BodyVisual | null = null, timer = 0, last = performance.now(), lastRealm = '', lastStateAt = 0, journal = false, connected = false;
+  const announced = new Set<string>(); let announcedReady = false;
   let controllerToken = '', transitioning = false, binding: any = null, sequence = 0, mouseGuard = false, targetId = '', guideStarted = false;
   const receipts: any[] = [];
   const socket = new WebSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/realms/socket`);
@@ -76,6 +78,20 @@ export async function startRealms(): Promise<void> {
   const command = (value: InteractionCommand) => { if(binding)send({version:2,type:'command',...binding,sequence:sequence++,commandId:`realm-${sequence}`,clientTimeMs:performance.now(),command:value}); };
   const release = () => { keys.clear(); mouseGuard=false; command({type:'move',x:0,z:0,sprint:false}); command({type:'guard',held:false}); command({type:'crouch',held:false}); };
   const toast = (text: string) => { el('rv-toast').textContent = text; clearTimeout(timer); timer = window.setTimeout(() => { el('rv-toast').textContent = ''; }, 4500); };
+  // John Smith's interface. Requests go to the host; coffer items move by the ordinary container command.
+  // Mounted on #ui itself: the shell's button styles are for its own controls.
+  const john = new JohnSmithInterface(ui, {
+    request: c => send({ type: 'john_smith', command: c }),
+    take: (containerId, itemId) => command({ type: 'container_transfer', containerId, itemId, direction: 'out' }),
+    onOpenChange: open => {
+      if (open) {
+        welcome.close(); journal = false; el('rv-sheet').hidden = true;
+        if (sliceHud.journalOpen) sliceHud.dispatch({ type: 'journal' });
+      }
+      release();
+    },
+    pose: () => state ? { ...state.body.pos, yaw: movementYaw } : null,
+  }, { side: 'left', top: 128 });
   socket.addEventListener('open', () => { connected = true; });
   socket.addEventListener('close', e => { connected = false; el('rv-loading').hidden = false; el('rv-loading').textContent = e.reason || 'Connection closed. Reload to return to your saved journey.'; });
   socket.addEventListener('message', e => {
@@ -87,10 +103,15 @@ export async function startRealms(): Promise<void> {
     if (m.type === 'command_receipt' && m.status !== 'received') { receipts.push(m); if(receipts.length>300)receipts.shift(); if(m.status==='rejected'&&!['cooldown','incapacitated','expired','committed'].includes(m.result))toast(String(m.result).replaceAll('_',' ')); }
     if (m.type === 'regions') renderer.reconcile(m.wanted, m.chunks);
     if (m.type === 'notice') toast(m.message);
+    if (m.type === 'john_smith') john.update(m.view);
+    if (m.type === 'john_smith_result') john.result(m);
     if (m.type !== 'state') return;
     state = m.state; const s = state!; lastStateAt = performance.now();
     if (!revealAt) revealAt = performance.now();
     sliceHud.dispatch({type:'progress',rank:s.person.rank});
+    // System announcements for this person's own new level-ups, achievements and breakthroughs.
+    for (const a of s.development.announcements) { if (announced.has(a.id)) continue; if (announcedReady) toast(a.text); announced.add(a.id); }
+    announcedReady = true;
     renderer.reconcileFocused(s.focusedAssets,s.body.pos);
     serverSamples.push(m.serverMs); if (serverSamples.length > 600) serverSamples.shift();
     if (lastRealm !== s.realm) {
@@ -111,14 +132,20 @@ export async function startRealms(): Promise<void> {
     if (s.pending) el('rv-choice-title').textContent = `Enter ${s.pending.destination}?`;
     el('rv-name').textContent = s.person.name;
     const contents = el('rv-character'); contents.replaceChildren();
-    for (const line of [`${s.person.rank} · ${s.body.hp.toFixed(0)} / ${s.body.maxHp} vitality`, ...s.person.inventory.map(i => `${i.name} × ${i.quantity}`),
+    const xp = s.development.experience, rankUp = s.development.breakthrough;
+    for (const line of [`${s.person.rank} · ${s.body.hp.toFixed(0)} / ${s.body.maxHp} vitality`,
+      ...(xp.leveled ? [`${xp.label} · level ${xp.level} · ${xp.peak ? xp.peakText : `${xp.xpIntoLevel.toLocaleString()} / ${xp.xpForLevel.toLocaleString()} experience`}`] : []),
+      ...(xp.achievements.length ? [`Achievements: ${xp.achievements.map(a => a.title).join(' · ')}`] : []),
+      ...(rankUp.next ? [`${rankUp.next} by bodily practice: ${rankUp.underway !== null ? `breakthrough under way, ${Math.ceil(rankUp.underway)} s left; stay still` : rankUp.eligible ? 'ready' : rankUp.reasons.join(' · ')}`] : []),
+      ...s.person.inventory.map(i => `${i.name} × ${i.quantity}${i.grade ? ` · ${i.grade}` : ''}`),
       `${s.growth.victories} distinct opposed victories · ${s.growth.forms} demonstrated forms · ${s.growth.essences} learned essences`,
       s.development.recognisedClass?`Recognised vocation: ${s.development.recognisedClass.name} · ${s.development.recognisedClass.evidence.join('; ')}`:'Your actions and practice shape a recognised vocation.',
       ...Object.entries(s.development.skills).filter(([,value])=>value>0).map(([id,value])=>`${id}: ${(value*100).toFixed(1)}% proficiency`),
-      `${s.growth.next??'Further transformation'}: ${s.growth.eligible?'Ready to integrate':s.growth.reasons.join(' · ')}`,
+      `${s.growth.next?`${s.growth.next} by essence integration`:'Further transformation'}: ${s.growth.eligible?'Ready to integrate':s.growth.reasons.join(' · ')}`,
       `Intrinsic force ${s.growth.intrinsicCapacity.amplitude} / reach ${s.growth.intrinsicCapacity.aperture}; with equipment ${s.growth.capacity.amplitude} / ${s.growth.capacity.aperture}`]) { const p = document.createElement('p'); p.textContent = line; contents.append(p); }
     const actionButton=(label:string,action:InteractionCommand)=>{const b=document.createElement('button');b.textContent=label;b.onclick=()=>command(action);contents.append(b);};
     if(s.growth.eligible)actionButton(`Integrate sources — ${s.growth.next}`,{type:'integrate_arcana'});
+    if(rankUp.eligible&&rankUp.next&&rankUp.underway===null)actionButton(`Attempt the ${rankUp.next} breakthrough`,{type:'advance'});
     for(const source of s.growth.sources.filter(i=>!s.growth.learned.some(l=>l.id===i.abilityId)))actionButton(`Study ${source.name}`,{type:'learn_arcana',itemId:source.id});
     for(const action of s.interactions.filter(a=>a.slot!=='nearby'))actionButton(action.label,{type:'interact',interactionId:action.id});
     if(params.has('character')&&!journal) { journal=true; el('rv-sheet').hidden=false; }
@@ -182,6 +209,7 @@ export async function startRealms(): Promise<void> {
   el('rv-prompt').onclick = () => send({ type: 'interact' });
   window.addEventListener('keydown', e => {
     if (['KeyW','KeyA','KeyS','KeyD','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space','Tab'].includes(e.code)) e.preventDefault();
+    if (e.code === 'KeyO' || john.open) return;
     if (welcomeKey(welcome, e.code)) return;
     if (e.code === 'Escape' && sliceHud.journalOpen) { sliceHud.dispatch({type:'journal'});release();return; }
     if (!e.repeat && e.code === 'KeyJ') { sliceHud.dispatch({type:'journal'}); release(); return; }
@@ -203,7 +231,7 @@ export async function startRealms(): Promise<void> {
   document.addEventListener('visibilitychange', () => { if (document.hidden) release(); });
   window.addEventListener('pointercancel', release);
   canvas.addEventListener('contextmenu', e => e.preventDefault());
-  canvas.addEventListener('pointerdown',e=>{if(journal||transitioning||welcome.open||sliceHud.journalOpen)return;if(e.button===0)command({type:'attack',targetBodyId:targetId||undefined,trajectory:'high',weight:'light'});else if(e.button===2){mouseGuard=true;command({type:'guard',held:true});e.preventDefault();}});
+  canvas.addEventListener('pointerdown',e=>{if(journal||transitioning||welcome.open||sliceHud.journalOpen||john.open)return;if(e.button===0)command({type:'attack',targetBodyId:targetId||undefined,trajectory:'high',weight:'light'});else if(e.button===2){mouseGuard=true;command({type:'guard',held:true});e.preventDefault();}});
   window.addEventListener('pointerup',e=>{if(e.button===2){mouseGuard=false;command({type:'guard',held:keys.has('KeyG')});}});
   attachOrbit(canvas, view.camera, view.persist);
   ui.querySelector<HTMLElement>('.rv-reticle')!.hidden = true;
@@ -224,12 +252,13 @@ export async function startRealms(): Promise<void> {
       if (keys.has('ArrowUp')) view.camera.addLook(0, -dt); if (keys.has('ArrowDown')) view.camera.addLook(0, dt);
       if (inputAccumulator >= .05 && !transitioning && !s.expedition?.active) {
         inputAccumulator = 0;
-        const move = walkingMove(cameraRelativeMove(journal || welcome.open || sliceHud.journalOpen || s.pending ? 0 : right, journal || welcome.open || sliceHud.journalOpen || s.pending ? 0 : forward, movementYaw),keys.has('KeyX'),keys.has('ShiftLeft')||keys.has('ShiftRight'));
-        const target=s.residents.find(r=>r.visual.bodyId===targetId),face=keys.has('KeyQ')||keys.has('KeyG')||mouseGuard;
-        const active=!!(move.x||move.z||face||keys.has('KeyC'));
-        if(active||inputWasActive)command({ type: 'move', ...move, facing: face ? target?Math.atan2(s.body.pos.x-target.pos.x,s.body.pos.z-target.pos.z):view.camera.renderedYaw : travelFacing(move), sprint: keys.has('ShiftLeft') || keys.has('ShiftRight'),crouch:keys.has('KeyC') });
+        const still = journal || welcome.open || sliceHud.journalOpen || john.open || !!s.pending;
+        const move = walkingMove(cameraRelativeMove(still ? 0 : right, still ? 0 : forward, movementYaw),keys.has('KeyX'),keys.has('ShiftLeft')||keys.has('ShiftRight'));
+        const target=s.residents.find(r=>r.visual.bodyId===targetId),face=!still&&(keys.has('KeyQ')||keys.has('KeyG')||mouseGuard);
+        const active=!!(move.x||move.z||face||!still&&keys.has('KeyC'));
+        if(active||inputWasActive)command({ type: 'move', ...move, facing: face ? target?Math.atan2(s.body.pos.x-target.pos.x,s.body.pos.z-target.pos.z):view.camera.renderedYaw : travelFacing(move), sprint: !still&&(keys.has('ShiftLeft') || keys.has('ShiftRight')),crouch:!still&&keys.has('KeyC') });
         inputWasActive=active;
-        if(!journal&&(keys.has('KeyG')||mouseGuard))command({type:'guard',held:true});
+        if(!still&&(keys.has('KeyG')||mouseGuard))command({type:'guard',held:true});
       }
       if (!avatar) {
         avatar = people.create(s.avatar, atmosphere, undefined, 'player') ?? (factory.ready ? factory.create(ctx.scene, atmosphere, s.body.id, realize(s.person.id, s.avatar.appearance?.description, undefined)) : null);
@@ -285,6 +314,8 @@ export async function startRealms(): Promise<void> {
         }
       }
     }
+    john.covered = journal || welcome.open || sliceHud.journalOpen;
+    john.frame();
     vfx.update(dt);ctx.scene.render();
   });
   // Observations only: the harness drives ordinary keys/buttons, never mutates the world.

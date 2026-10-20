@@ -115,6 +115,7 @@ const wait = (fn, arg, timeout = 45000) => page.waitForFunction(fn, arg, { timeo
 const read = () => page.evaluate(() => {
   const d = window.__tvUniverse, c = d?.campaign, s = c?.active ? d?.snapshot : d?.preview ?? d?.snapshot;
   return { state: s?.state, status: s?.status, system: s?.system, preview: d?.preview,
+    revision: s?.revision, lastSeq: s?.lastSeq,
     campaign: c ? { active: c.active, personId: c.personId, bodyId: c.bodyId, name: c.name, health: c.health, inventory: c.inventory,
       canExplore: c.canExplore, canReturn: c.canReturn, flight: c.flight, message: c.message,
       footSupport:c.footSupport?{id:c.footSupport.id,available:c.footSupport.available,reason:c.footSupport.reason,origin:c.footSupport.origin,radius:c.footSupport.radius,triangles:c.footSupport.triangles.length}:null } : null,
@@ -566,6 +567,8 @@ try {
   const firstTown = await townCapture('00-town-rendered');
   if (mode === 'restart') {
     sameIdentity(firstTown, restartBaseline.baseline, 'Exact restarted save renders the same body and full inventory');
+    check(distance(firstTown.position, restartBaseline.endTown.position) < .000001,
+      'Exact restarted host retains the final canonical town position');
   }
   await openUniverse();
   initial = await read();
@@ -577,6 +580,8 @@ try {
   if (mode === 'restart') {
     assert.deepEqual(initial.state.parkedVessel, restartBaseline.endUniverse.state.parkedVessel);
     assert.deepEqual(initial.state.discoveries, restartBaseline.endUniverse.state.discoveries);
+    check(!initial.campaign.active && !initial.state.personalFlight,
+      'Exact restarted checkpoint remains inactive on the surface');
     check(true, 'Restart preserves discoveries and the original parked vessel');
   } else check(initial.campaign.flight.canCrossSpace, 'Isolated fixture is admitted for interplanetary personal flight');
   const currentPreview = await read();
@@ -726,6 +731,8 @@ try {
   check(reloaded.campaign.personId === initial.campaign.personId && reloaded.campaign.bodyId === initial.campaign.bodyId && reloaded.state.landedPlanetId === other, 'Reload preserves body, person and foreign landing');
   assert.deepEqual(reloaded.campaign.inventory, initial.campaign.inventory);
   assert.deepEqual(reloaded.state.parkedVessel, parked);
+  assert.deepEqual(reloaded.state.discoveries, landed.state.discoveries);
+  check(true, 'Foreign reload retains the complete discovery records and parked vessel');
   await capture('14-reloaded-foreign-ground');
   await page.keyboard.press('g'); await wait(() => !!window.__tvUniverse.snapshot.state.personalFlight);
   await navigate(home); await arrive(home);
@@ -735,6 +742,7 @@ try {
   if(contactQA){await page.waitForTimeout(1200);await contactQA.stop({required:true});}
   const returned = await read();
   check(returned.state.parkedVessel && returned.state.landedVesselPosition, 'Home landing restores access to the original parked vessel');
+  assert.deepEqual(returned.state.parkedVessel, parked);
   assert.deepEqual(returned.campaign.inventory, initial.campaign.inventory);
   check(returned.campaign.personId === initial.campaign.personId && returned.campaign.bodyId === initial.campaign.bodyId, 'Home return retains full canonical identity and inventory');
   if(!contactQA)await nearWallProbe();

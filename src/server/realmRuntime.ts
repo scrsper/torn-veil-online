@@ -7,6 +7,7 @@ import { reconcileQuests } from '../sim/quests';
 import { seedForestLife } from '../sim/world/realms/wildlife';
 import { applyCanonicalUniverseCommand, applyCanonicalTravelCommand, stepCanonicalUniverse, stopCanonicalUniverse, type CanonicalUniverseCommand } from './canonicalUniverse';
 import type { UniverseCommand } from '../sim/world/universe/travel';
+import { applyJohnSmithCommand, ensureJohnSmith } from '../sim/orchestrator';
 
 /** Ordered host operations. Recorded server time, never client time, expires input.
  * The replay replica uses the same canonical simulation; it is not a second ruleset. */
@@ -16,7 +17,8 @@ export type RealmOperation = {type:'bind';id:string;epoch:string}
   | {type:'interact'} | {type:'confirm';id:number} | {type:'cancel'}
   | {type:'navigate';target:'portal'|'tower'} | {type:'objectives'} | {type:'adopt_wildlife'} | {type:'traverse'}
   | {type:'tower';command:TowerCommand} | {type:'expedition';command:ExpeditionCommand}
-  | {type:'universe';command:CanonicalUniverseCommand} | {type:'universe_travel';command:UniverseCommand};
+  | {type:'universe';command:CanonicalUniverseCommand} | {type:'universe_travel';command:UniverseCommand}
+  | {type:'johnsmith';command:unknown};
 export interface RealmContinuation {
   citySteps:number;
   realm:ReturnType<RealmSession['checkpointControl']>;
@@ -66,11 +68,14 @@ export class RealmRuntime {
       case 'confirm':return s.confirm(op.id);
       case 'cancel':return s.cancel();
       case 'navigate':return s.navigate(op.target);
-      // John Smith's pass writes the quest ledger and pays system rewards: a World mutation,
-      // so it is journaled like any input and replays to the same ledger.
-      case 'objectives':return reconcileQuests(s.world,s.person.id);
+      // Initialize the current reward authority inside a journaled operation even
+      // if objectives arrive before the first simulation step. Legacy silver
+      // receipts remain history; this pass only archives emergent settlements.
+      case 'objectives':ensureJohnSmith(s.world);return reconcileQuests(s.world,s.person.id);
       case 'adopt_wildlife':return seedForestLife(s.world);
       case 'traverse':return s.traverse();
+      // A holder's request to John Smith: validated, never throws, replayed exactly.
+      case 'johnsmith':return applyJohnSmithCommand(s.world,s.person.id,op.command);
       case 'tower':case 'expedition':case 'universe':{
         // Rare structural mutations retain one rollback capture. Routine autosaves
         // never enter this path and never stringify the live history.

@@ -38,9 +38,9 @@ const BASE_GAIN = 0.015;
  * real attempts (~60 to become reliable), however intensely each one is practised. */
 const SKILL_LEARNING_RATE: Partial<Record<PracticedSkillId, number>> = { veilcraft: 0.3 };
 /** `challenge`: the foundation level this particular practice demanded, when the caller knows it. */
-export function practiceSkill(p: Person, id: PracticedSkillId, amount = 1, world?: World, challenge?: number): void {
+export function practiceSkill(p: Person, id: PracticedSkillId, amount = 1, world?: World, challenge?: number, causeEventId?: string): void {
   if (!Number.isFinite(amount) || amount <= 0) return;
-  if (world) developThroughPractice(world, p, id, amount, instructionFactor(p, id), challenge);
+  if (world) developThroughPractice(world, p, id, amount, instructionFactor(p, id), challenge, causeEventId);
   const cur = skillOf(p, id);
   if (cur >= 1) return;
   p.skills = p.skills ?? {};

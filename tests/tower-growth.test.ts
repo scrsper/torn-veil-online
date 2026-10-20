@@ -66,7 +66,8 @@ describe('earned source transformation',()=>{
     expect(x.p.ontology.stage).toBe('Normal');expect(assessArcaneTransformation(x.world,x.p,x.b).eligible).toBe(true);
     const before={hp:x.b.health,injuries:{...x.b.injuries},mana:x.b.arcana!.mana,time:x.world.now};
     expect(integrateArcaneSources(x.world,x.p,x.b)).toBe('accepted');expect(x.p.ontology.stage).toBe('Iron');
-    expect(spare.quantity).toBe(0);expect(x.b.health).toBe(before.hp);expect(x.b.injuries).toEqual(before.injuries);
+    // The Iron vessel remakes the body (80 -> 128 maximum) at the same health fraction: no healing.
+    expect(spare.quantity).toBe(0);expect(x.b.maxHealth).toBe(128);expect(x.b.health/x.b.maxHealth).toBeCloseTo(before.hp/80,10);expect(x.b.injuries).toEqual(before.injuries);
     expect(x.b.arcana!.mana).toBe(before.mana);expect(x.world.now).toBe(before.time);expect(x.world.now-calendar).toBeLessThan(1000);
     expect(arcaneCapacity(x.p)).toEqual({amplitude:1.6,aperture:1.2,reserve:120});
     expect(integrateArcaneSources(x.world,x.p,x.b)).toBe('not_ready');
@@ -128,9 +129,11 @@ describe('earned source transformation',()=>{
   });
   it('keeps the whole ontology ladder and makes Gold require substantially more than the Silver path',()=>{
     expect(ONTOLOGICAL_STAGES).toEqual(['Normal','Iron','Bronze','Silver','Gold','Diamond','God','Astral King','Astral Being','John Smith']);
-    expect(TRANSFORMATIONS.map(t=>t.stage)).toEqual(['Iron','Bronze','Silver','Gold']);
+    expect(TRANSFORMATIONS.map(t=>t.stage)).toEqual(['Iron','Bronze','Silver','Gold','Diamond']);
     expect(TRANSFORMATIONS[3].victories).toBeGreaterThan(TRANSFORMATIONS[2].victories*2);
     expect(TRANSFORMATIONS[3].forms).toBeGreaterThan(TRANSFORMATIONS[2].forms);
+    expect(TRANSFORMATIONS[4].victories).toBeGreaterThan(TRANSFORMATIONS[3].victories);
+    expect(TRANSFORMATIONS[4].forms).toBeGreaterThan(TRANSFORMATIONS[3].forms);
   });
   it('executes four earned transformations through Gold with finite costs and saved receipts',()=>{
     // Mechanical threshold fixture: source/cast/hit APIs and elapsed cooldowns,
@@ -158,7 +161,8 @@ describe('earned source transformation',()=>{
         expect(x.p.ontology.stage).toBe(TRANSFORMATIONS[milestone].stage);milestone++;
       }
     }
-    expect(milestone).toBe(4);expect(x.b.health).toBe(80);
+    // Gold's vessel multiplies the original 80 by 6.3; an undamaged body stays at full health.
+    expect(milestone).toBe(4);expect(x.b.maxHealth).toBe(504);expect(x.b.health).toBe(504);
     expect(arcaneCapacity(x.p)).toEqual({amplitude:20,aperture:12,reserve:320});
     const raw=serialize(x.world),loaded=deserialize(raw);expect(loaded).not.toBeNull();
     expect(loaded!.world.person(x.p.id)!.arcana).toEqual(x.p.arcana);

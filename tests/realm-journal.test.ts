@@ -36,7 +36,7 @@ describe('lossless realm journal',()=>{
     try{
       await j.ready;const expected=new RealmRuntime(new RealmSession(731,original));
       expect(canonical(j.runtime)).toEqual(canonical(expected));
-      const m=j.store.manifest()!;expect(JSON.parse(gunzipSync(readFileSync(join(j.store.dir,m.worldFile))).toString()).version).toBe(32);
+      const m=j.store.manifest()!;expect(JSON.parse(gunzipSync(readFileSync(join(j.store.dir,m.worldFile))).toString()).version).toBe(33);
       j.apply({type:'disconnect'});for(let i=0;i<6;i++)j.apply({type:'step',now:i*17});await j.flush();
       const committed=canonical(j.runtime);await j.abort();
       expect(canonical(j.store.load(731).runtime)).toEqual(committed);
@@ -48,7 +48,7 @@ describe('lossless realm journal',()=>{
     try{
       await j.ready;expect(canonical(j.runtime)).toEqual(canonical(r));
       const manifest=j.store.manifest()!;expect(manifest.engine).toBe('schema31-upgrade');
-      expect(JSON.parse(gunzipSync(readFileSync(join(j.store.dir,manifest.worldFile))).toString()).version).toBe(32);
+      expect(JSON.parse(gunzipSync(readFileSync(join(j.store.dir,manifest.worldFile))).toString()).version).toBe(33);
       expect(readFileSync(join(j.store.dir,worldFile))).toEqual(bytes);
       j.apply({type:'disconnect'});for(let i=0;i<6;i++)j.apply({type:'step',now:i*17});await j.flush();
       const committed=canonical(j.runtime);await j.abort();expect(canonical(j.store.load(731).runtime)).toEqual(committed);

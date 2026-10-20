@@ -154,7 +154,7 @@ describe('canonical universe residency', () => {
     expect(deserialize(JSON.stringify(impossible))).toBeNull();
     const old = JSON.parse(new RealmSession(732).save()); old.version = 31;
     expect(deserialize(JSON.stringify(old))?.world.playerId).toBe(old.playerId);
-    expect(SAVE_VERSION).toBe(32);
+    expect(SAVE_VERSION).toBe(33);
   });
   it('retains inactive canonical Tower progress when boarding and reloading', () => {
     const s = new RealmSession(731), tower = s.grid.chunk('aether', 32, 32).buildings[0];

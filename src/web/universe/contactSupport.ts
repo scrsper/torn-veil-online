@@ -2,10 +2,37 @@ import type { UniverseContactPatch } from '../../server/universeContacts';
 import type { FootPoint, FootSupport } from '../arena/footPlant';
 import { add, sub, scale, dot, cross, normalize, length, type V3 } from '../../sim/world/planet/planet';
 import { terrainHeight, terrainNormal, type PlanetDescriptor } from '../../sim/world/universe/generation';
-import { atlasPlanetSupport } from '../../sim/world/atlas/collision';
+import { ATLAS_MAX_STEP } from '../../sim/world/atlas/collision';
+import { getAtlasAsset } from '../../sim/world/atlas';
+import { atlasPlacementBasis, atlasPlanetPlacements, type AtlasPlacement } from '../../sim/world/atlas/placement';
 
 type Triangle = { a: V3; u: V3; v: V3; normal: V3; uu: number; uv: number; vv: number; denominator: number };
 const finite = (p: FootPoint) => [p.x, p.y, p.z].every(Number.isFinite);
+
+/** A sole sample needs an actual point on a cooked top face. The canonical
+ * walker's expanded capsule footprint is intentionally not foot-plant evidence.
+ * Coordinates are planet-local; the caller samples the sole's full footprint. */
+export function atlasSoleSupport(placements: readonly AtlasPlacement[], ground: V3, up: V3): FootSupport | null {
+  let result: FootSupport | null = null, highest = 0;
+  for (const p of placements) {
+    if (!p.solid) continue;
+    const asset = getAtlasAsset(p.assetId);
+    if (!asset || asset.proxy.kind === 'none') continue;
+    const basis = atlasPlacementBasis(p), relative = sub(ground, p.position);
+    const foot = { x: dot(relative, basis.x), y: dot(relative, basis.y), z: dot(relative, basis.z) };
+    const axis = { x: dot(up, basis.x), y: dot(up, basis.y), z: dot(up, basis.z) };
+    if (axis.y < .95) continue;
+    for (const box of asset.proxy.boxes) {
+      const rise = (box.max.y - foot.y) / axis.y;
+      if (rise <= highest || rise > ATLAS_MAX_STEP + 1e-6) continue;
+      const x = foot.x + axis.x * rise, z = foot.z + axis.z * rise;
+      // Numeric tolerance only: never expand a mesh top by body/sole radius.
+      if (x < box.min.x - 1e-7 || x > box.max.x + 1e-7 || z < box.min.z - 1e-7 || z > box.max.z + 1e-7) continue;
+      highest = rise; result = { point: add(ground, scale(up, rise)), normal: basis.y, source: 'atlas' };
+    }
+  }
+  return result;
+}
 
 /** Read-only floor queries in absolute universe coordinates. The host's small
  * patch is the only support inside mapped towns; unloaded/out-of-range evidence
@@ -51,13 +78,17 @@ export class UniverseFootSupport {
       return nearest;
     }
     const direction = normalize(sub(point, planet.center)), terrain = terrainHeight(planet, direction);
-    const raised = atlasPlanetSupport(planet, direction, revision), normal = raised > 0 || terrain < 0 ? direction : terrainNormal(planet, direction);
-    const slope = dot(normal, axis);
+    const normal = terrain < 0 ? direction : terrainNormal(planet, direction), slope = dot(normal, axis);
     if (slope < .65) return null;
-    const floor = add(planet.center, scale(direction, planet.radius + Math.max(0, terrain) + raised));
+    const floor = add(planet.center, scale(direction, planet.radius + Math.max(0, terrain)));
     const distance = dot(sub(floor, point), normal) / slope;
-    return Math.abs(distance) <= maxDistance ? { point: add(point, scale(axis, distance)), normal,
-      source: raised > 0 ? 'atlas' : terrain < 0 ? 'water' : 'terrain' } : null;
+    const ground = add(point, scale(axis, distance)), localGround = sub(ground, planet.center);
+    const support = revision === 0 ? null : atlasSoleSupport(atlasPlanetPlacements(planet, localGround, 3, revision), localGround, axis);
+    if (support) {
+      const supported = add(planet.center, support.point);
+      return Math.abs(dot(sub(supported, point), axis)) <= maxDistance ? { ...support, point: supported } : null;
+    }
+    return Math.abs(distance) <= maxDistance ? { point: ground, normal, source: terrain < 0 ? 'water' : 'terrain' } : null;
   }
   stats() { return { id: this.patch?.id ?? null, available: this.patch?.available ?? false,
     reason: this.patch?.reason ?? 'absent', triangles: this.triangles.length }; }

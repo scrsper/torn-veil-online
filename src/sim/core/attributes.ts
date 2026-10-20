@@ -4,7 +4,7 @@ import { heatBand } from './physiology';
 import { bestToolFor, toolWorkMultiplier, type ToolAction } from './tools';
 import { ageCapabilityModifier, physiologyProfileFor } from './species';
 import { skillOf, SKILL_FOR_TOOL_ACTION } from './skills';
-import { physicalAttribute, attributeProfile } from './human';
+import { physicalAttribute, attributeProfile, attributeCeiling } from './human';
 
 /**
  * The centralized physical-capability layer (v0.4 §3). Every action that cares "how strong/
@@ -94,8 +94,10 @@ export function getPhysicalCapability(p: Person, world: World, ctx: { body?: Bod
   // Current biological expression, independent of when this person was instantiated. Dividing
   // by a newborn's age basis would multiply their practiced adult foundation a second time.
   const ageModifier = ageCapabilityModifier(p.species, p.age);
-  const effectiveStrength = clamp(physicalAttribute(attrs.strength) * ageModifier * fatiguePenalty * hungerPenalty * woundPenalty, 0.005, 2);
-  const effectiveDexterity = clamp(physicalAttribute(attrs.dexterity) * ageModifier * fatiguePenalty * sleepPenalty * woundPenalty, 0.005, 2);
+  // A rank vessel's higher ceiling must remain physically expressible; Normal bodies keep 2.
+  const top = Math.max(2, attributeCeiling(p) / 16);
+  const effectiveStrength = clamp(physicalAttribute(attrs.strength) * ageModifier * fatiguePenalty * hungerPenalty * woundPenalty, 0.005, top);
+  const effectiveDexterity = clamp(physicalAttribute(attrs.dexterity) * ageModifier * fatiguePenalty * sleepPenalty * woundPenalty, 0.005, top);
 
   // v0.6 §V.7 (hauling): skill represents packing/load-handling technique, not raw strength —
   // strength remains the primary carrying constraint (CARRY_PER_STRENGTH_KG dominates this), a

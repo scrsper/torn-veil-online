@@ -21,6 +21,7 @@ async function load(){try{
  detail('Possessions and reversible equipment',s.person.truth.economy);
  detail('Mind, beliefs and remembered evidence',{mind:s.person.truth.mind,beliefs:s.person.beliefs,limits:s.person.beliefLimits,memories:s.person.memories});
  detail('Tower timing receipts',s.towerTiming);
+ detail('John Smith: watch, quests and finite reserve (developer truth)',s.johnSmith);
  detail('Recent world events with stored causes',s.events);
  detail('Build, save and simulation identity',{build:s.build,save:s.save,world:s.world});
  }catch(e){el('error').textContent=String(e);}}

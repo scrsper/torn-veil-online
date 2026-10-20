@@ -86,7 +86,9 @@ describe('action-grounded capability and advancement foundation', () => {
     expect(p.ontology.stage).toBe('Iron');
     expect(p.physiology.energy).toBeLessThan(energy); expect(p.physiologyTraits.conditioning).toBeGreaterThan(conditioning);
     expect(tw.world.events.at(-1)?.type).toBe('ontological_advancement');
-    expect(advancementBlocked('Gold')).toBe(true);
+    // Later ranks are level-gated rank trials (progression/levels.ts), not open by the Iron path;
+    // only the ontological transitions above Diamond remain without any path.
+    expect(advancementBlocked('Gold')).toBe(false); expect(advancementBlocked('Diamond')).toBe(true); expect(advancementBlocked('God')).toBe(true);
     expect(assessAdvancement(tw.world, p, ['Iron', 'Bronze']).eligible).toBe(false);
     expect(deserialize(serialize(tw.world))!.world.person(p.id)!.ontology).toEqual(p.ontology);
   });

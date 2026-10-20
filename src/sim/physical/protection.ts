@@ -21,5 +21,6 @@ export function absorbImpact(w: World, b: Body, incoming: number, region: BodyRe
 
 export function embodiedStrikeMultiplier(w: World, p: Person, b: Body): number {
   const frenzy = b.arcana?.effects.find(e => e.kind === 'frenzy' && e.until > w.physicalTime);
-  return 1 + Math.min(.5, frenzy?.strength ?? 0);
+  // A breakthrough's remade body strikes harder (progression/levels.ts VESSELS); absent = 1.
+  return (1 + Math.min(.5, frenzy?.strength ?? 0)) * (p.vessel?.force ?? 1);
 }

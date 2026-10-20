@@ -38,7 +38,9 @@ describe('canonical Tower expedition progression', () => {
   });
   it('retains ordinary-world advancement gates and meaningful practice duration', () => {
     expect(IRON_PRACTICE_SECONDS).toBe(7200);
-    for (const stage of ['Bronze', 'Silver', 'Gold'] as const) expect(advancementBlocked(stage)).toBe(true);
+    // Bronze..Gold lead on through level-gated trials; Diamond is the summit of the leveled ladder.
+    for (const stage of ['Bronze', 'Silver', 'Gold'] as const) expect(advancementBlocked(stage)).toBe(false);
+    for (const stage of ['Diamond', 'God', 'Astral King', 'Astral Being', 'John Smith']) expect(advancementBlocked(stage)).toBe(true);
   });
   it('requires ordered, defeated encounter rosters rather than a floor counter or XP grant', () => {
     const s = fresh();

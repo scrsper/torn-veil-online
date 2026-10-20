@@ -2,10 +2,21 @@ import { createHash } from 'node:crypto';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
-import { stageHumanMotion } from '../scripts/web/stage-human-motion.mjs';
+import { describe, expect, it, vi } from 'vitest';
+import { humanMotionSource, stageHumanMotion } from '../scripts/web/stage-human-motion.mjs';
 
 describe('shared CC0 human motion staging', () => {
+  it('stages the tracked audited source into a fresh output without external asset paths', () => {
+    const root = mkdtempSync(join(tmpdir(), 'tv-human-motion-checkout-'));
+    vi.stubEnv('TV_HUMAN_MOTION', ''); vi.stubEnv('TV_REALMS_ASSETS', '');
+    try {
+      const receipt = stageHumanMotion({ output: root });
+      const staged = readFileSync(join(root, humanMotionSource.file));
+      expect(staged.length).toBe(7_618_436);
+      expect(createHash('sha256').update(staged).digest('hex')).toBe('69591853d817488edaa8fd9bf8fc1d821eaeaf789f8627b3cd23b41c4ed67997');
+      expect(receipt.sha256).toBe(humanMotionSource.sha256);
+    } finally { vi.unstubAllEnvs(); rmSync(root, { recursive: true, force: true }); }
+  });
   it('copies exactly verified bytes, is idempotent, and refuses to overwrite a different local asset', () => {
     const root = mkdtempSync(join(tmpdir(), 'tv-human-motion-'));
     try {

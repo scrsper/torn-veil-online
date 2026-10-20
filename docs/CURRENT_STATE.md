@@ -1,4 +1,13 @@
-# Torn Veil current build - October 11, 2026
+# Torn Veil current release candidate - October 20, 2026
+
+Universe traversal is being integrated with public main `8a9fa58`, including
+earned progression and John Smith. Publication is authorized, but merge still
+requires CI and integrated ordinary travel/landing/return/restart acceptance.
+See [release status](UNIVERSE_RELEASE.md), [asset setup](UNIVERSE_ASSETS.md) and
+[actual destinations](UNIVERSE_DESTINATIONS.md). Older build records below retain
+their original scope; they do not establish this candidate's acceptance.
+
+## Previous build record - October 11, 2026
 
 The current local repair is described in [the October 11 repair checkpoint](TORN_VEIL_REPAIR_OCT11.md). It adds one persistent launch/inspection home, shared city/Tower control, relaxed equipped travel and attainable source-backed Gold. Remote main remains the previously published baseline until separately authorized publication.
 
@@ -61,6 +70,7 @@ receipt for final-head/main verification; predecessor recordings stay scoped to 
 - This is a playable procedural foundation, not a finished megacity or visual equivalence to the referenced video. Far structures are streamed/rendered with bounded simulation; four nearby residents do not prove a population of millions.
 - Garment intersections, open-hand combat silhouettes and cast-specific posture differences remain. Controlled neutral posture improves; full character art acceptance remains open. The private replacement character was visually rejected and is excluded.
 - City and Tower use elevated freely rotating third-person views and one canonical command controller. Full inhabitability, authored-world V2 integration and larger active-resident budgets remain roadmap work.
+- Levels and the Normal→Diamond ladder (October 19): exponential levels fed by canonical receipts for players and NPCs, rank vessels, embodied Bronze–Diamond trials and source Diamond. Current Tower content tops out near Iron-band threat, so higher-band levels and Diamond are mechanically reachable but not yet in play. See [levels and ranks](LEVELING_AND_RANKS.md).
 - Source transformations through Silver are implemented as receipt-bearing rules. Their kill/form/material thresholds are authored provisional balancing, not a measured several-hour progression guarantee. The embodied Normal→Iron practice path remains separate.
 - **Gold source promotions are attainable through the earned source path.** The repair retains strict mastery, recovery, finite-material and 97% sustained-control gates. Fresh human timing and rarity are not yet measured. The full ontology ladder and previously saved capacities remain retained. No floor counter, legacy XP or accelerated fixture establishes real human pacing.
 - Late-floor journal saves avoid synchronous full serialization on ordinary flushes, but structural rollback captures, simulation/GC spikes and logical history growth remain scaling limits. Prior floor-95/summit results are copied-save tests, not a fresh timed human climb on this consolidation.

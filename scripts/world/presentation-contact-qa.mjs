@@ -49,9 +49,9 @@ function floorGap(point,up,patch){
  return best?.gap??null;
 }
 
-function summarize(trace){
+export function summarizeContactTrace(trace){
  const feet={l:{eligible:[],windows:[],penetrationMs:0,gapMs:0,measuredVertices:[]},r:{eligible:[],windows:[],penetrationMs:0,gapMs:0,measuredVertices:[]}};
- const windows=new Map(),bad=new Map(),independent=[];
+ const windows=new Map(),stageWindows=new Map(),stages={},bad=new Map(),independent=[];
  let active=0,airborneActive=0,airborneActiveMs=0,airborneSince=null,missing=0;
  for(let i=0;i<trace.frames.length;i++){
   const f=trace.frames[i],r=f.radial;
@@ -62,6 +62,13 @@ function summarize(trace){
    info.measuredVertices.push(foot.measuredVertices);
    const gaps=foot.signedGaps.filter(Number.isFinite),min=gaps.length?Math.min(...gaps):null;
    const eligible=r.active&&foot.contact&&foot.lock&&foot.weight>=.98&&!foot.releasing&&min!==null;
+   const stage=stages[f.stage]??=( {l:{frames:0,eligibleFrames:0,maximumWindowMs:0,reasons:{}},r:{frames:0,eligibleFrames:0,maximumWindowMs:0,reasons:{}}} );
+   const byStage=stage[foot.side];byStage.frames++;if(eligible)byStage.eligibleFrames++;
+   const stageKey=f.stage+':'+foot.side,priorStage=stageWindows.get(foot.side);
+   if(eligible){
+    const next=priorStage&&priorStage.key===stageKey&&priorStage.lockId===foot.lockId&&priorStage.reference===r.reference?priorStage:{key:stageKey,lockId:foot.lockId,reference:r.reference,start:f.t};
+    byStage.maximumWindowMs=Math.max(byStage.maximumWindowMs,f.t-next.start);stageWindows.set(foot.side,next);
+   }else{stageWindows.delete(foot.side);const reason=foot.reason??(!foot.lock?'unlocked':foot.releasing?'releasing':foot.weight<.98?'weight-below-.98':'no-contact');byStage.reasons[reason]=(byStage.reasons[reason]??0)+1;}
    if(eligible)info.eligible.push({t:f.t,stage:f.stage,min,lockId:foot.lockId,source:foot.support?.source});
    for(const [label,condition] of [['penetration',r.active&&min!==null&&min<-.03],['gap',eligible&&min>.08]]){
     const key=foot.side+label,prior=bad.get(key);
@@ -101,13 +108,13 @@ function summarize(trace){
  const patchReasons=Object.values(trace.patches).reduce((counts,p)=>{counts[p.reason]=(counts[p.reason]??0)+1;return counts;},{});
  return{frames:trace.frames.length,duration:trace.frames.at(-1)?.t??0,activeFrames:active,airborneActiveFrames:airborneActive,
   patchReasons,patchCount:Object.keys(trace.patches).length,maximumPatchTriangles:Math.max(0,...Object.values(trace.patches).map(p=>p.triangles.length)),
-  airborneActiveMs,missingFrames:missing,bounded:trace.bounded,feet:summaries,
+  airborneActiveMs,missingFrames:missing,bounded:trace.bounded,feet:summaries,stages,
   independent:{samples:independent.length,maximumError:independent.length?Math.max(...independent.map(s=>s.error)):null,
    mismatches:independent.filter(s=>s.error>.002).slice(0,20)}};
 }
 
 export function createContactQA({page,report,output,read,capture,save,check,orbit,zoom,recenter}){
- report.contactQA={traces:[],route:[],findings:[],limits:[],targets:{penetration:.03,sustainedMs:100,stationaryP95Gap:.04,unsupportedGap:.08,lockDrift:.03}};
+ report.contactQA={traces:[],route:[],stops:[],findings:[],limits:[],targets:{penetration:.03,sustainedMs:100,stationaryP95Gap:.04,unsupportedGap:.08,lockDrift:.03}};
  let tracing=false;
  const finding=message=>{report.contactQA.findings.push(message);report.presentationFailures??=[];report.presentationFailures.push(message);console.log('CONTACT FINDING '+message);};
  const start=async name=>{
@@ -138,7 +145,7 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
   if(!trace)return null;
   delete trace.running;delete trace.started;
   const filename=`contact-${trace.name}.json`;await writeFile(resolve(output,filename),JSON.stringify(trace));
-  const summary=summarize(trace);report.contactQA.traces.push({name:trace.name,file:filename,summary});
+  const summary=summarizeContactTrace(trace);report.contactQA.traces.push({name:trace.name,file:filename,summary});
   if(summary.bounded)finding(trace.name+': contact trace reached its explicit bound.');
   if(summary.airborneActiveMs>100)finding(trace.name+': radial contacts remained active during flight for more than 100 ms.');
   if(summary.independent.mismatches.length)finding(trace.name+': actual sole gaps disagree with matched source triangles by more than 2 mm.');
@@ -150,31 +157,75 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
    if(required&&!f.eligibleWindows.length)report.contactQA.limits.push(`${trace.name}/${side}: no >=100 ms stable fully weighted contact window.`);
   }
   if(required&&!summary.independent.samples)report.contactQA.limits.push(trace.name+': no matched independent source-triangle sole samples.');
+  for(const [label,feet] of Object.entries(summary.stages))if(label.endsWith('-idle'))for(const [side,f]of Object.entries(feet)){
+   if(f.maximumWindowMs<100){
+    const message=`${trace.name}/${label}/${side}: no >=100 ms stable fully weighted contact window (${f.eligibleFrames}/${f.frames} eligible frames).`;
+    report.contactQA.limits.push(message);
+   }
+  }
   await save();return summary;
  };
- const release=async()=>{for(const key of ['w','s','a','d','ArrowLeft','ArrowRight'])await page.keyboard.up(key);};
+ const release=async()=>{for(const key of ['w','s','a','d','q','e','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'])await page.keyboard.up(key);};
+ // A keyup is local input, not a host acknowledgment. The host may still apply
+ // its last movement sample for six ticks. Observe the ordinary Brake request,
+ // then distinct authoritative snapshots, before judging a waypoint or posing.
+ const stopGround=async label=>{
+  await release();const before=await read(),began=Date.now();
+  const record={label,before:{position:before.state.position,tick:before.state.tick,lastSeq:before.lastSeq},observations:[]};report.contactQA.stops.push(record);
+  if(before.state.mode!=='surface')throw Error('Ground stop requested outside the surface');
+  const responsePromise=page.waitForResponse(response=>{
+   if(new URL(response.url()).pathname!=='/realms/universe/command'||response.request().method()!=='POST')return false;
+   try{const p=response.request().postDataJSON(),i=p.command?.input;return p.seq>(before.lastSeq??0)&&p.command?.type==='input'&&i?.brake===true&&['throttle','yaw','pitch','strafe','lift'].every(k=>i[k]===0);}catch{return false;}
+  },{timeout:4500});
+  // Attach rejection handling immediately; a failed click must not leave an
+  // unhandled pending observer. This never submits a direct command itself.
+  const pending=responsePromise.then(response=>({response}),error=>({error}));
+  await page.locator('[data-brake]').click();const observed=await pending;
+  if(observed.error)throw Error('Ordinary ground stop received no neutral-command response: '+observed.error);
+  const response=observed.response,body=await response.json(),seq=response.request().postDataJSON().seq;
+  record.ack={seq,status:response.status(),ok:body.ok,revision:body.snapshot?.revision,lastSeq:body.snapshot?.lastSeq};
+  if(!response.ok()||body.ok!==true||!Number.isSafeInteger(body.snapshot?.lastSeq)||body.snapshot.lastSeq<seq)throw Error('Host did not accept the ordinary neutral ground command');
+  let anchor=null,since=0,lastTick=null,ticks=0;
+  while(Date.now()-began<6500){
+   const view=await read();if(view.state.mode!=='surface')throw Error('Ground stop changed travel mode');
+   record.observations.push({elapsed:Date.now()-began,position:view.state.position,tick:view.state.tick,lastSeq:view.lastSeq,revision:view.revision});
+   if(view.lastSeq>=seq){
+    if(!anchor||len(sub(view.state.position,anchor))>.015){anchor={...view.state.position};since=Date.now();ticks=0;lastTick=null;}
+    if(view.state.tick!==lastTick){ticks++;lastTick=view.state.tick;}
+    if(ticks>=3&&Date.now()-since>=300){record.settled={position:view.state.position,chart:contactChartPosition(view),elapsed:Date.now()-began,ticks,lastSeq:view.lastSeq};return view;}
+   }
+   await page.waitForTimeout(100);
+  }
+  throw Error('Ground position did not settle after the acknowledged neutral command');
+ };
  const drive=async(target,label)=>{
   await stage(label);const began=Date.now(),initial=await read(),start=contactChartPosition(initial),attempt={label,target,start,observations:[]};report.contactQA.route.push(attempt);
-  let best=Infinity,lastProgress=Date.now();
+  let best=Infinity,lastProgress=Date.now(),settled=false;
   try{
    while(Date.now()-began<18000){
     const view=await read(),p=contactChartPosition(view),remaining=Math.hypot(p.x-target.x,p.z-target.z);
     attempt.observations.push({elapsed:Date.now()-began,position:p,remaining,heading:view.state.forward,mode:view.state.mode});
     if(view.state.mode!=='surface')throw Error('Ground route left the surface');
-    if(remaining<.65){attempt.reached=p;return;}
+    if(remaining<.65){
+     const stopped=settled?view:await stopGround(label+'-candidate'),final=contactChartPosition(stopped);
+     settled=true;attempt.candidate={position:final,remaining:Math.hypot(final.x-target.x,final.z-target.z)};
+     if(attempt.candidate.remaining<.65){attempt.reached=final;return;}
+     continue;
+    }
     if(remaining<best-.15){best=remaining;lastProgress=Date.now();}
     if(Date.now()-lastProgress>4500)throw Error('Ground waypoint made no progress for 4.5 seconds');
     const {up,desired}=targetDirection(view,target),forward=norm(sub(view.state.forward,mul(up,dot(view.state.forward,up))));
     const turn=Math.atan2(dot(up,cross(forward,desired)),dot(forward,desired));
     if(Math.abs(turn)>.14){
      await page.keyboard.up('w');const key=turn>0?'ArrowLeft':'ArrowRight';
-     await page.keyboard.down(key);await page.waitForTimeout(clamp(Math.abs(turn)/1.8*1000,45,260));await page.keyboard.up(key);await page.waitForTimeout(130);
+     await page.keyboard.down(key);await page.waitForTimeout(clamp(Math.abs(turn)/1.8*1000,100,260));await page.keyboard.up(key);
     }else{
-     await page.keyboard.down('w');await page.waitForTimeout(remaining<2?55:140);await page.keyboard.up('w');await page.waitForTimeout(100);
+     await page.keyboard.down('w');await page.waitForTimeout(clamp((remaining-.5)/7*1000,100,550));await page.keyboard.up('w');
     }
+    await stopGround(label+'-pulse');settled=true;
    }
    throw Error('Ground waypoint exceeded the 18-second bound');
-  }finally{await release();attempt.elapsed=Date.now()-began;await page.waitForTimeout(250);await save();}
+  }finally{await release();attempt.elapsed=Date.now()-began;await save();}
  };
  const soleClip=async name=>{
   const v=await read(),r=v.avatar.motion?.radialContacts,c=v.camera;
@@ -205,12 +256,12 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
    await drive({x:11312.5,z:3138},'slope-forward');await drive({x:11316.5,z:3138},'slope-side');await idleViews('slope');
    await drive({x:11312.5,z:3138},'slope-return');await drive({x:11312.5,z:3128},'step-up');
    await drive({x:11312.5,z:3113.7},'flat-return');await idleViews('returned-flat');
-   await zoom(600);await drive({x:11312.5,z:3095},'clear-departure');await recenter();
+   await zoom(600);await drive({x:11312.5,z:3095},'clear-departure');await recenter();await stopGround('departure-final');
    const end=await read();report.contactQA.departure={chart:contactChartPosition(end),position:end.state.position,mana:end.campaign.flight.manaAvailable};
    check(Math.hypot(report.contactQA.departure.chart.x-11312.5,report.contactQA.departure.chart.z-3095)<1,'Ground contact route returns to the previously verified clear departure street');
   }catch(error){
-   report.contactQA.routeFailure=String(error);await release();await save();throw error;
+   report.contactQA.routeFailure=String(error);await release();try{await stopGround('route-failure');}catch(stopError){report.contactQA.stopFailure=String(stopError);}await save();throw error;
   }finally{await stop({required:true});}
  };
- return{start,stage,stop,groundRoute,soleClip,release};
+ return{start,stage,stop,groundRoute,soleClip,release,stopGround};
 }

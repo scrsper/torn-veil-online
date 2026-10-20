@@ -17,7 +17,7 @@ describe('historical compact save compatibility',()=>{
   expect(JSON.parse(compact).version).toBe(30);
   expect(JSON.parse(compact).eventEncoding.format).toBe(1);
  });
- it.each([25,26,27,28,29,SAVE_VERSION])('continues compact schema%i village saves',version=>{
+ it.each([25,26,27,28,29,31,SAVE_VERSION])('continues compact schema%i village saves',version=>{
   const {world}=newWorld(731),raw=JSON.parse(serialize(world,true));raw.version=version;
   const loaded=deserialize(JSON.stringify(raw));expect(loaded).not.toBeNull();
   expect(state(serialize(loaded!.world))).toEqual(state(serialize(world)));

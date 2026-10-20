@@ -58,12 +58,12 @@ export function meditateOnVeil(world: World, p: Person, worldSeconds = MEDITATIO
   if (!body || body.dead || !body.present || body.pose === 'downed') return false;
   const strain = veilStrain(world, p);
   p.veil = { strain: Math.max(0, strain - 0.2), strainAt: world.physicalTime, lastAt: p.veil?.lastAt ?? -Infinity };
-  world.emit('veil_meditation', { actor: p.id, pos: { ...body.pos }, placeId: world.placeAt(body.pos)?.id, category: 'world', significance: 0.05,
+  const sat = world.emit('veil_meditation', { actor: p.id, pos: { ...body.pos }, placeId: world.placeAt(body.pos)?.id, category: 'world', significance: 0.05,
     visibility: 6, loudness: 0, data: { seconds: worldSeconds }, summary: `${p.name} sat very still, eyes half closed` });
   // The sitting develops will and attention for its whole length (up to what solitary discipline
   // demands); the art itself is learned from use, so the skill gains only a minute's credit.
-  develop(world, p, { weights: practiceProfile(VEIL_SKILL) ?? { will: 1 }, seconds: worldSeconds, intensity: 0.6, instruction: instructionFactor(p, VEIL_SKILL), challenge: 13 });
-  practiceSkill(p, VEIL_SKILL, 1, world, 13);
+  develop(world, p, { weights: practiceProfile(VEIL_SKILL) ?? { will: 1 }, seconds: worldSeconds, intensity: 0.6, instruction: instructionFactor(p, VEIL_SKILL), challenge: 13, causeEventId: sat.id });
+  practiceSkill(p, VEIL_SKILL, 1, world, 13, sat.id);
   return true;
 }
 

@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { UniverseFootSupport } from '../../src/web/universe/contactSupport';
+import { atlasSoleSupport, UniverseFootSupport } from '../../src/web/universe/contactSupport';
 import { add, sub, scale, normalize, tangentFrame, dot, cross, length, type V3 } from '../../src/sim/world/planet/planet';
 import { generateSystem, universeSpec, landingSite, terrainHeight } from '../../src/sim/world/universe/generation';
 import type { UniverseContactPatch } from '../../src/server/universeContacts';
+import { ATLAS_ASSETS, ATLAS_REVISION } from '../../src/sim/world/atlas';
+import { atlasWalkSupport } from '../../src/sim/world/atlas/collision';
+import { atlasLocalToWorld, atlasPlacementBasis, type AtlasPlacement } from '../../src/sim/world/atlas/placement';
 
 const planet = generateSystem(universeSpec(42), 0).planets[0];
 function fixture(up: V3, origin: V3, slope = 0) {
@@ -65,5 +68,45 @@ describe('radial visual support uses real floor evidence', () => {
     const hit = sampler.sample(planet, false, 0, point, direction, .09, .3)!;
     expect(hit).not.toBeNull(); expect(length(sub(hit.point, floor))).toBeLessThan(1e-6);
     expect(sampler.sample(planet, true, 0, point, direction, .09, .3)).toBeNull();
+  });
+});
+
+describe('Atlas sole support uses the actual cooked top face', () => {
+  const asset = ATLAS_ASSETS.find(a => a.eligible && a.role === 'module' && a.height < .4
+    && a.footprintRadius > 2 && a.proxy.boxes.length === 1)!;
+  const box = asset.proxy.boxes[0];
+  const floor = (up: V3, yaw: number): AtlasPlacement => ({
+    id: 'test:sole-floor', assetId: asset.id, revision: 1, catalog: ATLAS_REVISION,
+    position: add({ x: 1000, y: -2000, z: 3000 }, scale(up, asset.groundOffset)), up, yaw,
+    scale: 1, footprintRadius: asset.footprintRadius, height: asset.height, solid: true, context: 'landmark', cell: 'test',
+  });
+  it('rejects an overhanging sole while preserving the canonical walker capsule support', () => {
+    const up = { x: 0, y: 1, z: 0 }, p = floor(up, 0);
+    const edge = atlasLocalToWorld(p, { x: box.max.x, y: box.min.y, z: (box.min.z + box.max.z) / 2 });
+    const outside = add(edge, scale(atlasPlacementBasis(p).x, .1));
+    expect(atlasWalkSupport([p], outside, up)).toBeCloseTo(asset.height, 8);
+    expect(atlasSoleSupport([p], outside, up)).toBeNull();
+    expect(atlasSoleSupport([p], edge, up)!.point.y - edge.y).toBeCloseTo(asset.height, 8);
+  });
+  it('preserves exact top geometry under yaw, distant origins and rotated radial frames', () => {
+    for (const up of [{ x: 0, y: 1, z: 0 }, normalize({ x: 2, y: -3, z: 5 })]) {
+      const p = floor(up, 1.17), before = structuredClone(p);
+      const ground = atlasLocalToWorld(p, { x: .2, y: box.min.y, z: -.1 });
+      const top = atlasLocalToWorld(p, { x: .2, y: box.max.y, z: -.1 });
+      const hit = atlasSoleSupport([p], ground, up)!;
+      expect(hit).not.toBeNull(); expect(length(sub(hit.point, top))).toBeLessThan(1e-8);
+      expect(dot(hit.normal, up)).toBeCloseTo(1, 10); expect(p).toEqual(before);
+      expect(atlasSoleSupport([{ ...p, solid: false }], ground, up)).toBeNull();
+      expect(atlasSoleSupport([{ ...p, position: add(p.position, scale(up, 1)) }], ground, up)).toBeNull();
+    }
+  });
+  it('checks the ray intersection on the top rather than its ground projection', () => {
+    const p = floor({ x: 0, y: 1, z: 0 }, .7), basis = atlasPlacementBasis(p);
+    const axis = normalize(add(basis.y, scale(basis.x, .2)));
+    const ground = atlasLocalToWorld(p, { x: box.max.x - .01, y: box.min.y, z: 0 });
+    expect(atlasSoleSupport([p], ground, axis)).toBeNull();
+    const inside = sub(ground, scale(basis.x, .1)), hit = atlasSoleSupport([p], inside, axis)!;
+    expect(hit).not.toBeNull();
+    expect(dot(sub(hit.point, p.position), basis.y)).toBeCloseTo(box.max.y, 8);
   });
 });

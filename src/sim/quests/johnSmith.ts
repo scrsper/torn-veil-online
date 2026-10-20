@@ -8,6 +8,10 @@ import type { QuestLedger, QuestLedgerEntry, QuestState } from './ledger';
 import { FIRST_HOUR_TOWER_FLOORS, type ChainStage, type Objective, type ObjectiveKind, type ObjectiveReceipt, type ObjectiveTarget } from './types';
 
 /**
+ * Legacy silver-ledger implementation retained for saved receipts and standalone
+ * compatibility. Once world.johnSmith exists, the current finite-cache observer
+ * owns live system rewards; this module archives emergent settlements only.
+ *
  * John Smith (Constitution §16–18): the orchestrator above the universe — scheduler, kernel,
  * archivist — standing past the simulation/ontology boundary. He is not a Person, Body or
  * Faction, holds no stage, and nothing in the world can advance to him. He is never added to
@@ -226,6 +230,12 @@ export function reconcileQuests(w: World, personId: EntityId): ReconcileResult {
     close(e, req && (req.status === 'completed' || req.status === 'accepted') ? 'resolved' : 'lapsed', w.now, null);
   }
 
+  // The current finite-cache orchestrator is the sole live system reward authority.
+  // Preserve the older silver ledger verbatim as history, including unpaid active
+  // entries and the remaining reserve. Emergent requests above still archive the
+  // world's own settlements; there is no retroactive conversion or second payout.
+  if (w.johnSmith) return out;
+
   // 2–3. Close met system quests, then issue those whose condition holds; repeat while issuing
   // unlocks more (listen → answer → floor 1 within one pass when the world already shows all three).
   for (let pass = 0; pass < 8; pass++) {
@@ -252,6 +262,7 @@ export function reconcileQuests(w: World, personId: EntityId): ReconcileResult {
 
 /** Active system quests as Objectives (read-only). */
 export function systemObjectives(w: World, personId: EntityId): Objective[] {
+  if (w.johnSmith) return [];
   const player = w.person(personId), ledger = w.questLedgers?.[personId]; if (!player?.alive || !ledger) return [];
   const ctx = context(w, player, ledger);
   return ledger.entries.filter(e => e.origin === 'system' && e.state === 'active').map(e => {

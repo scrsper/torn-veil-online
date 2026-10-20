@@ -8,6 +8,9 @@ export const IRON_FOUNDATION = 15;
 /** Every foundation outside an Iron path's core must at least be sound. */
 export const IRON_SUPPORT = 11;
 export const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
+/** The highest value any foundation can develop to: Normal 20, or the ceiling of the vessel
+ * the person's latest breakthrough created (progression/levels.ts VESSELS). */
+export function attributeCeiling(p: Pick<Person, 'vessel'>): number { return p.vessel?.ceiling ?? NORMAL_CEILING; }
 export function attributeProfile(value: number): Attributes {
   return Object.fromEntries(ATTRIBUTE_IDS.map(id => [id, value])) as Attributes;
 }

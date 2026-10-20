@@ -17,6 +17,7 @@ import {arcaneProgress} from '../sim/physical/arcana/growth';
 import {recogniseClass} from '../sim/mind/vocation';
 import {RealmUniverseApi} from './realmUniverseApi';
 import { createAtlasAssetHandler } from './atlasAssets';
+import {johnSmithView,johnSmithDeveloperView,parseJohnSmithCommand} from '../sim/orchestrator';
 
 const port = Number(process.env.TV_REALMS_PORT ?? 7510);
 // A verified portable upgrade can be installed without overwriting the original
@@ -82,7 +83,7 @@ const server = createServer(async (req, res) => {
     res.writeHead(200,{'content-type':'application/json','cache-control':'no-store'});
     res.end(JSON.stringify({ready:!updateError,build:{commit:serverCommit,clientMode:staticRoot?'compiled':'development',client:clientBuild,engine:journal.store.engine},save:{path:savePath,store:journal.store.dir,persistent:true},
       world:{seed:w.seed,personId:session.person.id,bodyId:session.body.id,physicalTime:w.physicalTime,worldTime:w.now,people:w.persons().length,events:w.events.length},
-      people:w.persons().filter(n=>n.id===id||w.primaryBody(n.id)?.present).slice(0,64).map(n=>({id:n.id,name:n.name})),person:inspectPerson(w,id),recognisedClass:recogniseClass(w,p),growth:arcaneProgress(w,p,b),
+      people:w.persons().filter(n=>n.id===id||w.primaryBody(n.id)?.present).slice(0,64).map(n=>({id:n.id,name:n.name})),person:inspectPerson(w,id),recognisedClass:recogniseClass(w,p),growth:arcaneProgress(w,p,b),johnSmith:johnSmithDeveloperView(w),
       towerTiming:{runId:w.canonicalTower?.id,floor:w.canonicalTower?.floor,status:w.canonicalTower?.status,receipts:w.events.filter(e=>e.type==='tower_floor_cleared'&&e.actor===session.person.id).map(e=>({id:e.id,floor:e.data.floor,seconds:e.data.seconds,causes:e.causes})),measurement:'Canonical elapsed seconds at floor-clear receipts, including time away. Human climb duration and Gold frequency are unmeasured.'},events:w.events.slice(-80).reverse().map(e=>({...eventRow(e),causes:e.causes}))}));return;
   }
   if (url.pathname === '/realms/focused/terrain') {const terrain=session.grid.focusedTerrain;if(!terrain){res.writeHead(404).end();return;}res.setHeader('content-type','application/json');res.end(JSON.stringify(terrain));return;}
@@ -143,10 +144,23 @@ server.on('upgrade', (req, socket, head) => {
   ws.handleUpgrade(req, socket, head, client => ws.emit('connection', client, req));
 });
 let owner: WebSocket | null = null, ownerToken = '', signature = '', stepMs: number[] = [],towerReady='',universeView=false;
+// John Smith's interface is pushed when his record changes, at most four times a second. Some
+// of the projection is derived (a coffer within reach, a weapon's appraisal), so it is also
+// rebuilt every two seconds and sent only if it differs.
+let johnSmithRevision = -1, johnSmithSentAt = 0, johnSmithCheckedAt = 0, johnSmithSent = '';
+function pushJohnSmith() {
+  const s = session.world.johnSmith, now = performance.now();
+  if (!owner || owner.readyState !== WebSocket.OPEN || !s || now - johnSmithSentAt < 250) return;
+  if (s.revision === johnSmithRevision && now - johnSmithCheckedAt < 2000) return;
+  johnSmithRevision = s.revision; johnSmithCheckedAt = now;
+  const message = JSON.stringify({ type: 'john_smith', view: johnSmithView(session.world, session.person.id) });
+  if (message === johnSmithSent) return;
+  johnSmithSent = message; johnSmithSentAt = now; owner.send(message);
+}
 ws.on('connection', (client, req) => {
   if (updateError) { client.close(1011, 'World paused after an update error. Restart the host to restore its last good save.'); return; }
   if (owner) { client.close(4001, 'This world already has a controller. Close its tab first.'); return; }
-  owner = client; ownerToken = randomUUID(); signature = ''; towerView = req.url === '/realms/ascent/socket'; universeView = req.url === '/realms/universe/socket'; scheduler = new FixedScheduler(1000 / 60, performance.now());
+  owner = client; ownerToken = randomUUID(); signature = ''; johnSmithRevision = -1; johnSmithSent = ''; towerView = req.url === '/realms/ascent/socket'; universeView = req.url === '/realms/universe/socket'; scheduler = new FixedScheduler(1000 / 60, performance.now());
   rebindTower();
   towerReady='';towerSignature='';
   client.send(JSON.stringify({ type: 'controller', token: ownerToken })); let budget = 0, budgetAt = Date.now();
@@ -169,6 +183,13 @@ ws.on('connection', (client, req) => {
       else if (m.type === 'traverse') client.send(JSON.stringify({ type: 'traversal', result: apply({ type: 'traverse' }) }));
       else if (m.type === 'navigate' && ['portal', 'tower'].includes(m.target)) apply({ type: 'navigate', target: m.target });
       else if (m.type === 'save') { await persist(); client.send(JSON.stringify({ type: 'notice', message: saveError ? 'Save failed; world paused for durable recovery.' : 'World saved.' })); }
+      else if (m.type === 'john_smith') {
+        // Only well-formed requests enter the journal; the runtime validates again on replay.
+        const command = parseJohnSmithCommand(m.command);
+        const result = command ? apply({ type: 'johnsmith', command }) : { result: 'invalid_command' };
+        client.send(JSON.stringify({ type: 'john_smith_result', command: command?.type ?? null, ...result }));
+        johnSmithRevision = -1; pushJohnSmith(); if (command) await persist();
+      }
     } catch (e) { client.send(JSON.stringify({ type: 'notice', message: 'Invalid command was rejected.' })); }
   });
   client.on('close', () => { if (owner === client) { if (!updateError && !closing) { apply({ type: 'disconnect' }); void persist(); } owner = null; ownerToken = ''; } });
@@ -197,6 +218,7 @@ const timer = setInterval(() => {
     if (wasFlying && session.world.universeExpedition?.state.mode === 'surface') { void universeApi.persistOutcome(); return; }
     if (tick % 60 === 59) settleObjectives();
     if (++tick % 6) return;
+    pushJohnSmith();
     if (tick % 300 === 0) void persist(); if (tick % 1800 === 0) void checkpoint();
     if (session.world.universeExpedition?.active) {
       if (!universeView) owner!.send(JSON.stringify({ type: 'universe_active' }));

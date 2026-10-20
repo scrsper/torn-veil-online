@@ -13,6 +13,7 @@ export function stageHumanMotion({ output = join(root, 'web/public/arena'), sour
   const candidates = sources ?? [
     process.env.TV_HUMAN_MOTION,
     process.env.TV_REALMS_ASSETS && join(process.env.TV_REALMS_ASSETS, 'arena', manifest.file),
+    join(root, 'tools/ontology/public/assets/library/quaternius-ual/model.glb'),
     join(root, '../torn-veil/web/public/arena', manifest.file),
     join(root, '../torn-veil-build/vrm-characters/public/assets/anim/Universal Animation Library[Standard]/Unreal-Godot/UAL1_Standard.glb'),
   ].filter(Boolean);
@@ -21,7 +22,7 @@ export function stageHumanMotion({ output = join(root, 'web/public/arena'), sour
     if (!valid(readFileSync(target))) throw Error(`Existing ${target} differs from the audited CC0 motion. Original retained; review before replacing it.`);
   } else {
     const source = candidates.find(path => existsSync(path) && valid(readFileSync(path)));
-    if (!source) throw Error('Audited CC0 human motion is missing. Set TV_HUMAN_MOTION to the existing UAL1_Standard.glb; see docs/CHARACTER_MOTION.md.');
+    if (!source) throw Error('Audited CC0 human motion is missing. Restore tools/ontology/public/assets/library/quaternius-ual/model.glb or set TV_HUMAN_MOTION to the existing UAL1_Standard.glb; see docs/CHARACTER_MOTION.md.');
     const data = readFileSync(source);
     if (!valid(data)) throw Error('Human motion source changed during staging.');
     mkdirSync(dirname(target), { recursive: true });

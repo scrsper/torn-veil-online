@@ -5,7 +5,10 @@ import { currentTowerFloor, observeCanonicalTower } from '../sim/world/interiors
 import { FoldedRealmGrid } from '../sim/world/interiors/grid';
 import { ARCANE_DEFINITIONS } from '../sim/physical/arcana/definitions';
 import { arcaneProgress, arcaneCapacity } from '../sim/physical/arcana/growth';
+import { recentAnnouncements } from '../sim/progression/experience';
+import { observedThreat } from '../sim/progression/threat';
 import { towerResidency } from '../sim/world/interiors/residency';
+import { observeJohnSmith } from '../sim/orchestrator';
 
 /** One controller on the existing simulation. No arena fixture, free regeneration,
  * scripted enemies, second character or browser-owned progression is installed. */
@@ -18,7 +21,7 @@ export class TowerController {
   bind(id: string, epoch?: string) { return this.bridge.bindInteraction(id, LOCAL_CHANNEL, epoch); }
   step(now = performance.now()) {
     const receipts = this.bridge.stepInteraction(now, dt => this.session.advanceMovement(dt,this.bridge.hasInteractionControl()));
-    observeCanonicalTower(this.session.world); return receipts;
+    observeCanonicalTower(this.session.world); observeJohnSmith(this.session.world); return receipts;
   }
   frame() {
     const { world: w, person: p, body: b } = this.session, f = currentTowerFloor(w), run = w.canonicalTower;
@@ -34,10 +37,13 @@ export class TowerController {
       }),
       residency: towerResidency(w),
       objectives: this.session.objectives(), questJournal: questJournal(w, p.id).slice(-40), combatEvents: this.session.combatEvents(),
+      // Only what the climber can see: species and visibly worn or wielded equipment.
+      observedThreat: Object.fromEntries(snapshot.bodies.filter(v => v.bodyId !== b.id).flatMap(v => {
+        const body = w.body(v.bodyId), t = body && observedThreat(w, body); return t ? [[v.bodyId, { level: t.level, grade: t.grade }]] : []; })),
       tower: { id: run.id, revision: run.revision, floor: f.floor, status: run.status, clear: !!f.clearEventId,
         defeated: f.defeats.length, opponents: f.enemyBodyIds.length, retiredBodyIds: f.defeats.map(d => d.bodyId), start: plan.start, exit: plan.exit },
       own: { id: p.id, bodyId: b.id, name: p.name, health: b.health, maxHealth: b.maxHealth, rank: p.ontology.stage,
-        growth,
+        growth, announcements: recentAnnouncements(w, p),
         capacity: arcaneCapacity(p, w, b),
         mana: b.arcana?.mana ?? 100, fatigue: p.physiology.fatigue, food: p.physiology.energy, water: p.physiology.hydration,
         breath: 1 - (b.exertion?.load ?? 0), cast: b.arcana?.cast ?? null,

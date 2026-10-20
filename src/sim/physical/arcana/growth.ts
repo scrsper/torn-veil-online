@@ -4,6 +4,8 @@ import { ONTOLOGICAL_STAGES } from '../../core/stages';
 import { syncNeeds } from '../../core/physiology';
 import { ARCANE_DEFINITIONS } from './definitions';
 import { equippedItems } from '../equipment';
+import { earnedStanding, featsAtLeast, onBreakthrough } from '../../progression/experience';
+import { SOURCE_DIAMOND } from '../../progression/levels';
 
 export interface ArcaneGrowth {
   version: 1;
@@ -19,8 +21,18 @@ export const TRANSFORMATIONS = [
   { stage: 'Bronze', victories: 180, forms: 2, essences: 2, materials: 2, amplitude: 2.8, aperture: 2, reserve: 150 },
   { stage: 'Silver', victories: 600, forms: 3, essences: 3, materials: 3, amplitude: 7, aperture: 5, reserve: 220 },
   { stage: 'Gold', victories: 1280, forms: 6, essences: 6, materials: 4, amplitude: 20, aperture: 12, reserve: 320 },
+  // Diamond also demands the leveled ladder (diamondExperience): a full Gold track and victories
+  // over opponents at Gold-band level. All eight damaging forms must be demonstrated.
+  { stage: 'Diamond', victories: 2000, forms: 8, essences: 8, materials: 5, amplitude: 45, aperture: 20, reserve: 480 },
 ] as const;
 export const SOURCE_GROWTH_POLICY = 2;
+/** Sustained bodily control required from Gold upward (mean victory quality). */
+export const CONTROL_STAGES: readonly string[] = ['Gold', 'Diamond'];
+/** The experience half of source Diamond: peak Gold, and credited feats at Gold-band level. */
+export function diamondExperience(w: World, p: Person) {
+  const s = earnedStanding(p), feats = featsAtLeast(w, p, SOURCE_DIAMOND.featLevel);
+  return { peak: p.ontology.stage === 'Gold' && !!s?.peak, label: s?.label ?? p.ontology.stage, rankXp: Math.floor(s?.rankXp ?? 0), peakXp: s?.peakXp ?? 0, feats };
+}
 /** Historical receipts remain valid. This table is only for save validation;
  * current assessment and integration always use TRANSFORMATIONS above. */
 export const LEGACY_TRANSFORMATIONS = [
@@ -65,7 +77,9 @@ export function recordArcaneEncounter(w: World, p: Person, b: Body, target: Body
     // Healing between blows does not erase the cost of an encounter. Pin its actual
     // attack receipts, including after compaction/reload, instead of sampling final HP.
     const cost = received.reduce((sum, ev) => sum + ev.data.damage, 0);
-    g.victories[target.ownerId] = { eventId: e.id, quality: Math.max(0, 1 - cost / b.maxHealth), receivedEventIds: received.map(e => e.id) };
+    // Control is measured against the original body, so a vessel's larger health does not soften
+    // the unchanged Gold control gate.
+    g.victories[target.ownerId] = { eventId: e.id, quality: Math.max(0, 1 - cost / (p.vessel?.base[b.id] ?? b.maxHealth)), receivedEventIds: received.map(e => e.id) };
   }
 }
 export function assessArcaneTransformation(w: World, p: Person, b: Body) {
@@ -84,7 +98,12 @@ export function assessArcaneTransformation(w: World, p: Person, b: Body) {
     if (forms < next.forms) reasons.push(`${forms}/${next.forms} forms applied against three distinct opponents each`);
     if (essences < next.essences) reasons.push(`${essences}/${next.essences} different essences learned from real sources`);
     if (materials.reduce((n, i) => n + i.quantity, 0) < next.materials) reasons.push(`${next.materials} spare essence sources must be consumed`);
-    if (next.stage === 'Gold' && quality < .97) reasons.push(`Sustained bodily control ${Math.round(quality * 100)}% / 97%`);
+    if (CONTROL_STAGES.includes(next.stage) && quality < .97) reasons.push(`Sustained bodily control ${Math.round(quality * 100)}% / 97%`);
+    if (next.stage === 'Diamond') {
+      const x = diamondExperience(w, p);
+      if (!x.peak) reasons.push(`Peak Gold is required (now ${x.label}, ${x.rankXp}/${x.peakXp} experience)`);
+      if (x.feats.length < SOURCE_DIAMOND.feats) reasons.push(`${x.feats.length}/${SOURCE_DIAMOND.feats} opposed victories over Gold-band threats (level ${SOURCE_DIAMOND.featLevel}+)`);
+    }
   }
   if (!p.alive || b.dead || !b.present || b.ownerId !== p.id || !p.bodies.includes(b.id) || b.health < b.maxHealth * .7
     || ['sleep', 'downed'].includes(b.pose) || b.subduedUntil > w.physicalTime || p.surrender || p.custody?.active) reasons.push('A conscious recovered manifestation is required');
@@ -102,7 +121,8 @@ export function arcaneProgress(w: World, p: Person, b: Body) {
   return { eligible:a.eligible, next:a.next?.stage, reasons:a.reasons, victories:a.victories, forms:a.forms,
     essences:a.essences, quality:a.quality, materials:a.materials.reduce((n,i)=>n+i.quantity,0),
     requirements:a.next?{victories:a.next.victories,forms:a.next.forms,essences:a.next.essences,materials:a.next.materials,
-      quality:a.next.stage==='Gold'?.97:null}:null,
+      quality:CONTROL_STAGES.includes(a.next.stage)?.97:null,
+      experience:a.next.stage==='Diamond'?{peak:'Gold',feats:SOURCE_DIAMOND.feats,featLevel:SOURCE_DIAMOND.featLevel}:null}:null,
     demonstrations:Object.entries(p.arcana?.growth?.demonstrations??{}).map(([id,targets])=>({id,kernel:ARCANE_DEFINITIONS.get(id)?.kernel,opponents:Object.keys(targets).length})),
     capacity:arcaneCapacity(p,w,b), intrinsicCapacity:arcaneCapacity(p),
     learned:Object.keys(p.arcana?.learned??{}).map(id=>({id,name:ARCANE_DEFINITIONS.get(id)?.name??id})),
@@ -112,11 +132,13 @@ export function arcaneProgress(w: World, p: Person, b: Body) {
  * acceleration, legacy XP or rank-dependent combat resolution occurs here. */
 export function integrateArcaneSources(w: World, p: Person, b: Body): string {
   const a = assessArcaneTransformation(w, p, b); if (!a.eligible || !a.next) return 'not_ready';
-  const next = a.next, g = growth(p), causes = [...Object.values(g.victories).map(v => v.eventId),
-    ...Object.values(g.demonstrations).flatMap(d => Object.values(d)), ...Object.values(p.arcana!.learned).map(l => l.eventId)];
+  const next = a.next, g = growth(p), feats = next.stage === 'Diamond' ? diamondExperience(w, p).feats.map(f => f.eventId) : [];
+  const causes = [...Object.values(g.victories).map(v => v.eventId),
+    ...Object.values(g.demonstrations).flatMap(d => Object.values(d)), ...Object.values(p.arcana!.learned).map(l => l.eventId), ...feats];
   const event = w.emit('ontological_advancement', { actor: p.id, pos: { ...b.pos }, category: 'history', significance: 1,
     causes: [...new Set(causes)], data: { from: p.ontology.stage, to: next.stage, adaptation: 'source-integrated arcane capacity',
-      bodyId: b.id, growthPolicy: SOURCE_GROWTH_POLICY, amplitude: next.amplitude, aperture: next.aperture, reserve: next.reserve, materialIds: [] as string[], materialAmounts: [] as number[] },
+      bodyId: b.id, growthPolicy: SOURCE_GROWTH_POLICY, amplitude: next.amplitude, aperture: next.aperture, reserve: next.reserve, materialIds: [] as string[], materialAmounts: [] as number[],
+      ...(feats.length ? { experience: { peak: true, feats } } : {}) },
     summary: `${p.name} integrated earned essence sources into ${next.stage} arcane capacity` });
   let remaining = next.materials;
   for (const i of a.materials) {
@@ -126,6 +148,7 @@ export function integrateArcaneSources(w: World, p: Person, b: Body): string {
   }
   g.transformation = { eventId: event.id, amplitude: next.amplitude, aperture: next.aperture, reserve: next.reserve };
   p.ontology = { stage: next.stage, breakthroughEventId: event.id };
+  onBreakthrough(w, p, event);
   p.physiology.energy -= .1; p.physiology.hydration -= .1; p.physiology.fatigue = Math.min(1, p.physiology.fatigue + .08); syncNeeds(p);
   return 'accepted';
 }

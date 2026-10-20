@@ -5,7 +5,8 @@ import { actionsForCarriedItem, describeCarried } from '../sim/core/interaction'
 import { canReadRecord } from '../sim/mind/records';
 import { knowsVeil, veilStrain } from '../sim/physical/veil';
 import { availableForMartial } from '../sim/mind/martialPractice';
-import { assessAdvancement } from '../sim/core/advancement';
+import { assessBreakthrough, breakthroughUnderway } from '../sim/core/advancement';
+import { itemGradeText } from '../sim/progression/threat';
 
 /**
  * What the player may do with what they carry, and which of their own capacities they can use
@@ -53,6 +54,8 @@ export function carriedItemRows(sim: Simulation, p: Person, interactions: HandIn
     }
     for(const kind of ['equip','unequip'] as const){const interactionId=`${kind}:${it.id}`;if(offered.has(interactionId))actions.push({id:interactionId,kind,label:`${kind==='equip'?'Equip':'Unequip'} ${it.name}`,available:!unable,reason:unable,request:{type:'interact',interactionId}});}
     if(it.equipped)description.push('Equipped: '+it.equipped.slot);
+    // A holder can judge what the thing in their hands does; grades are classification only.
+    const grade=itemGradeText(it);if(grade)description.push(grade);
     if(it.type==='armor')description.push(it.physicalArmor ? `Physical protection: ${it.physicalArmor.coverage.join(', ')}; absorption up to ${it.physicalArmor.absorption} at full condition.` : 'No authored physical protection; catalog abilities are descriptive.');
     if (it.record) actions.push(readRow(sim, p, it, unable));
     rows.push({ id: it.id, name: it.name || it.type, type: it.type, quantity: it.quantity, description, actions });
@@ -107,10 +110,10 @@ export function abilityRows(sim: Simulation, p: Person): PlayerActionRow[] {
   const trainable = !!body && !p.custody?.active && availableForMartial(w, p, body.id);
   rows.push({ id: 'train', kind: 'train', label: 'Train bodily technique alone (a few rounds)', detail: 'drills strike and footwork; ask someone to spar for harder practice',
     available: trainable, reason: trainable ? undefined : bodyReason(), request: { type: 'person_action', intent: { kind: 'train' } } });
-  const assessment = assessAdvancement(w, p);
-  if (p.ontology.stage === 'Normal') rows.push({ id: 'advance', kind: 'advance', label: 'Attempt the Iron breakthrough',
-    detail: assessment.path ? `path: ${assessment.path.skill}` : undefined,
-    available: assessment.eligible, reason: assessment.eligible ? undefined : assessment.reasons.slice(0, 3).join('; '),
+  const assessment = assessBreakthrough(w, p), underway = breakthroughUnderway(w, p);
+  if (assessment.next) rows.push({ id: 'advance', kind: 'advance', label: `Attempt the ${assessment.next} breakthrough`,
+    detail: underway !== null ? `under way: ${Math.ceil(underway)} s left, stay still` : assessment.path ? `path: ${assessment.path.skill}` : undefined,
+    available: assessment.eligible && underway === null, reason: underway !== null ? 'A breakthrough is already under way.' : assessment.eligible ? undefined : assessment.reasons.slice(0, 3).join('; '),
     request: { type: 'person_action', intent: { kind: 'advance' } } });
   const asleep = body?.pose === 'sleep';
   rows.push({ id: asleep ? 'wake' : 'rest', kind: asleep ? 'wake' : 'rest', label: asleep ? 'Wake up' : 'Lie down and sleep here',

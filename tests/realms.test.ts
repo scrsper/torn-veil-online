@@ -90,7 +90,7 @@ describe('connected realm canonical baseline', () => {
   });
   it('retains invalid saves instead of silently starting over', () => {
     expect(() => new RealmSession(1, '{')).toThrow();
-    const s = new RealmSession(); const saved = JSON.parse(s.save()); expect(saved.version).toBe(32); saved.realmSpec.version = 9;
+    const s = new RealmSession(); const saved = JSON.parse(s.save()); expect(saved.version).toBe(33); saved.realmSpec.version = 9;
     expect(() => new RealmSession(1, JSON.stringify(saved))).toThrow();
   });
   it('uses the same bodily incapacity and injury limits while exploring either realm', () => {

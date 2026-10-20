@@ -19,6 +19,15 @@ Ordinary World save schema 26 retains older 24/25 reads. Tower atrium is integra
 the expedition state handoff remains separate. See `docs/CONNECTED_REALMS.md` and
 `docs/CONNECTED_REALMS_INTEGRATION.md` for scope, evidence and branch boundaries.
 
+John Smith orchestrator: `src/sim/orchestrator/` reads canonical events after each realm
+host step (`observeJohnSmith`, called from `server/towerController.ts`), recognizes emergent
+quests from the holder's own knowledge (`recognizers.ts`), keeps ledgers, feats, attention and
+item deeds (`watch.ts`, `feats.ts`) and runs the finite seed-fixed loot reserve (`reserve.ts`).
+Holder commands are journaled `johnsmith` realm operations; `overview.ts` is the allowlisted
+interface projection drawn by `src/web/realms/johnSmith.ts`. It reads leveling and advancement
+only through their canonical events. Contract, pacing and evidence:
+`docs/JOHN_SMITH_ORCHESTRATOR.md`; tests `tests/john-smith*.test.ts`.
+
 Same-world workbench: `src/observatory/viewport.ts` attaches the shared bridge to the existing isolated World/Simulation; `src/web/net/observatory.ts` adapts the Babylon client. Panel layout is in `src/observatory/public/workbench.*`. Workflow and bounds: `docs/OBSERVATORY_WORKBENCH.md`.
 
 Developer Observatory: `src/observatory/` hosts a loopback-only disposable world, read-only
@@ -607,7 +616,8 @@ Let the task determine the search surface.
 - `src/game/ui/knowledge.ts` — normal avatar-belief inspection, distinct from F3 developer inspection.
 - `docs/AUTONOMOUS_AGENCY_SOCIAL_INFERENCE_CAPABILITY.md` — architecture, test surface and remaining legacy selection paths.
 - `src/sim/mind/encounter.ts`, `socialEvidence.ts` — bounded visible encounter evidence, recognition, local communication reach and shared social decision inputs.
-- `src/sim/core/capability.ts`, `advancement.ts` — causal paid-fitting experience and gated Normal→Iron reference path; later stages blocked.
+- `src/sim/core/capability.ts`, `advancement.ts` — causal paid-fitting experience, the gated Normal→Iron reference path, and the level-gated embodied Bronze→Diamond trials with the shared breakthrough dispatcher.
+- `src/sim/progression/levels.ts`, `experience.ts`, `threat.ts`, `persistence.ts` — exponential levels (ten per rank, Normal–Diamond), the shared experience ledger fed by canonical adapters (defeats in `applyHit`, practice, foundations, Tower floors, learning, achievements), rank vessels applied by every breakthrough, capability-derived threat for people/animals and item grades, schema-32 validation. `npm run leveling:report`; design, tables and limits in `docs/LEVELING_AND_RANKS.md`.
 - `src/sim/runtime/agencyInspection.ts` — detached developer identity/belief/memory/agency/progression inspection.
 - `src/headless/worldlab/agency.ts`, `capability.ts`, `agencyCli.ts` — deterministic social and capability evidence (`npm run agency:worldlab`).
 - `docs/AUTONOMOUS_AGENCY_SOCIAL_INFERENCE_CAPABILITY_EVOLUTION.md` — stacked v0.1 additions, bounds, schema notes and remaining gaps; captured evidence under `docs/evidence/autonomous-agency/`.

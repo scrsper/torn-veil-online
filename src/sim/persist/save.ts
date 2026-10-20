@@ -7,6 +7,8 @@ import { validCanonicalTower } from '../world/interiors/towerPersistence';
 import { validCanonicalUniverse, canonicalPlayerBodyId } from '../world/universe/binding';
 import { validSavedRecoil } from '../physical/recoil';
 import { validArcaneWorld } from '../physical/arcana/persistence';
+import { restoreJohnSmith } from '../orchestrator/state';
+import { validProgressionWorld } from '../progression/persistence';
 import { snapshotParts, stringifySnapshot } from './json';
 import { stringifyEventTable, decodeEventTable } from './eventTable';
 import { initializeWildlife } from '../ecology/generation';
@@ -175,9 +177,15 @@ const KEY = 'infinite-rpg-save-v1';
 // v29 persists consumed contact displacement; older saves have no residual response.
 // v30 retains canonical folded interiors, trial consent and causal Tower receipts.
 // v31 adds source-integrated capability growth and bounded completed-room upkeep.
-// Version 32 adds canonical universe residency; older saves cannot interpret an absent planar player.
-export const SAVE_VERSION = 32;
-export const readableSaveVersion = (version: number): boolean => version === 24 || version === 25 || version === 26 || version === 27 || version === 28 || version === 29 || version === 30 || version === 31 || version === SAVE_VERSION;
+// v32 adds earned experience, rank vessels and Diamond. An older reader would clamp developed
+// foundations back to 20 and refuse a Diamond receipt, so it must reject these saves; v31 and
+// older people load with no ledger or vessel (no retroactive experience is inferred).
+// The traversal branch independently used v32 for canonical universe residency.
+// v33 writes their integrated contract. Both legitimate v32 shapes remain readable:
+// optional components are restored only when present and each keeps its strict
+// validator; loading never invents progression, a vessel, quests or an expedition.
+export const SAVE_VERSION = 33;
+export const readableSaveVersion = (version: number): boolean => version === 24 || version === 25 || version === 26 || version === 27 || version === 28 || version === 29 || version === 30 || version === 31 || version === 32 || version === SAVE_VERSION;
 
 /**
  * Persistence strategy: the base world is regenerated deterministically from the seed (so voxels and
@@ -259,7 +267,7 @@ function checkpointData(world: World, compactEvents: boolean): { snapshot: Recor
   // old save simply lacks these fields), so no SAVE_VERSION bump is needed — `deserialize` below
   // falls back to today's behavior (rewind to post-generation position) when absent.
   const rng = world.rng.state(); const weatherRng = world.weatherRng.state(); const demographicRng = world.demographicRng.state();
-  return { snapshot: { version: SAVE_VERSION, ecology: world.ecology, martialLearning: martialPersistenceState(world), creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, realmSpec: world.realmSpec, realmExpedition: world.realmExpedition, interiors: world.interiors, canonicalTower: world.canonicalTower, universeExpedition: world.universeExpedition, questLedgers: world.questLedgers, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, containers, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, lastCompactionEventCount, diffs, doors, events: events, eventEncoding: eventTable ? { format: eventTable.format, appearances: eventTable.appearances } : undefined, rng, weatherRng, demographicRng, savedAt: Date.now() }, encodedFields: eventTable ? { events: eventTable.rows } : {} };
+  return { snapshot: { version: SAVE_VERSION, ecology: world.ecology, martialLearning: martialPersistenceState(world), creatures: world.creatures(), controllers: world.persons().filter(isExternallyControlled).map(p => ({ id: p.id, acting: hasExternalIntention(p) })), execution, pendingStimuli: world.pendingStimuli.map(e => e.id), runTally: world.runTally, kernel: world.kernel, seed: world.seed, realmSpec: world.realmSpec, realmExpedition: world.realmExpedition, interiors: world.interiors, canonicalTower: world.canonicalTower, universeExpedition: world.universeExpedition, questLedgers: world.questLedgers, johnSmith: world.johnSmith, physicalPlaces: world.places(), settlements: world.settlements(), settlementSites: world.settlementSites, geography: world.geography?.spec, wildernessRegions: [...world.wildernessRegions], clock: world.clock.state(), physicalTime: world.physicalTime, weather: world.weather, counters: world.getCounters(), playerId: world.playerId, persons, bodies, items, containers, places, factions, conflicts, fields, haulTasks, resourceNodes, constructionProjects, requests, fires, situations, workStints, households, chronicleEras, chronicleCompactedEventIds, chronicleEventAliases, historicalSignificance, lastCompactionEventCount, diffs, doors, events: events, eventEncoding: eventTable ? { format: eventTable.format, appearances: eventTable.appearances } : undefined, rng, weatherRng, demographicRng, savedAt: Date.now() }, encodedFields: eventTable ? { events: eventTable.rows } : {} };
 }
 
 /** Keep the save bounded without breaking any retained event's causal references. */
@@ -486,7 +494,10 @@ export function deserialize(raw: string): { world: World; gen: ReturnType<typeof
     if (!validCanonicalUniverse(world, world.universeExpedition, data.version)) return null;
     // Additive: John Smith's quest ledger (quests/ledger.ts). Absent on older saves; malformed is refused.
     if (data.questLedgers !== undefined) { if (!validQuestLedgers(world, data.questLedgers)) return null; world.questLedgers = data.questLedgers; }
+    // Additive orchestrator record (no schema bump): absent on older saves, refused when malformed.
+    if (data.johnSmith !== undefined) { const johnSmith = restoreJohnSmith(data.johnSmith); if (!johnSmith) return null; world.johnSmith = johnSmith; }
     if (!validArcaneWorld(world, data.version)) return null;
+    if (!validProgressionWorld(world, data.version)) return null;
     restoreMartialPersistence(world, data);
     return { world, gen };
   } catch (e) { console.warn('load failed', e); return null; }
