@@ -6,7 +6,7 @@ import {equipmentProjection} from '../../physical/equipment';
 import {arcaneProgress} from '../../physical/arcana/growth';
 import {experienceSummary,recentAnnouncements} from '../../progression/experience';
 import {itemGrade,observedThreat} from '../../progression/threat';
-import {assessBreakthrough} from '../../core/advancement';
+import {assessBreakthrough,breakthroughUnderway} from '../../core/advancement';
 import {handInteractions} from '../../physical/hand';
 import {recogniseClass} from '../../mind/vocation';
 import type {Body} from '../../core/types';
@@ -189,7 +189,7 @@ export class RealmSession {
       avatar:this.visual(this.body),
       growth:arcaneProgress(w,this.person,this.body),
       development:{recognisedClass:this.recognised,skills:{...this.person.skills},practice:this.person.capability?.bySkill??{},
-        experience:experienceSummary(w,this.person),announcements:recentAnnouncements(w,this.person),breakthrough:(({eligible,next,reasons})=>({eligible,next,reasons:reasons.slice(0,4)}))(assessBreakthrough(w,this.person))},
+        experience:experienceSummary(w,this.person),announcements:recentAnnouncements(w,this.person),breakthrough:(({eligible,next,reasons})=>({eligible,next,reasons:reasons.slice(0,4),underway:breakthroughUnderway(w,this.person)}))(assessBreakthrough(w,this.person))},
       interactions:handInteractions(this.sim,this.person),
       casts:visible.flatMap(n=>{const b=w.primaryBody(n.id),c=b?.arcana?.cast;return b&&c&&c.completeAt+.3>=w.physicalTime?[{...c,origin:{...b.pos}}]:[];}),
       expedition: w.realmExpedition ? { active: w.realmExpedition.active, status: w.realmExpedition.status, runId: w.realmExpedition.runId, revision: w.realmExpedition.revision } : null,

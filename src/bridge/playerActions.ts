@@ -5,7 +5,7 @@ import { actionsForCarriedItem, describeCarried } from '../sim/core/interaction'
 import { canReadRecord } from '../sim/mind/records';
 import { knowsVeil, veilStrain } from '../sim/physical/veil';
 import { availableForMartial } from '../sim/mind/martialPractice';
-import { assessBreakthrough } from '../sim/core/advancement';
+import { assessBreakthrough, breakthroughUnderway } from '../sim/core/advancement';
 import { itemGrade } from '../sim/progression/threat';
 
 /**
@@ -110,10 +110,10 @@ export function abilityRows(sim: Simulation, p: Person): PlayerActionRow[] {
   const trainable = !!body && !p.custody?.active && availableForMartial(w, p, body.id);
   rows.push({ id: 'train', kind: 'train', label: 'Train bodily technique alone (a few rounds)', detail: 'drills strike and footwork; ask someone to spar for harder practice',
     available: trainable, reason: trainable ? undefined : bodyReason(), request: { type: 'person_action', intent: { kind: 'train' } } });
-  const assessment = assessBreakthrough(w, p);
+  const assessment = assessBreakthrough(w, p), underway = breakthroughUnderway(w, p);
   if (assessment.next) rows.push({ id: 'advance', kind: 'advance', label: `Attempt the ${assessment.next} breakthrough`,
-    detail: assessment.path ? `path: ${assessment.path.skill}` : undefined,
-    available: assessment.eligible, reason: assessment.eligible ? undefined : assessment.reasons.slice(0, 3).join('; '),
+    detail: underway !== null ? `under way: ${Math.ceil(underway)} s left, stay still` : assessment.path ? `path: ${assessment.path.skill}` : undefined,
+    available: assessment.eligible && underway === null, reason: underway !== null ? 'A breakthrough is already under way.' : assessment.eligible ? undefined : assessment.reasons.slice(0, 3).join('; '),
     request: { type: 'person_action', intent: { kind: 'advance' } } });
   const asleep = body?.pose === 'sleep';
   rows.push({ id: asleep ? 'wake' : 'rest', kind: asleep ? 'wake' : 'rest', label: asleep ? 'Wake up' : 'Lie down and sleep here',

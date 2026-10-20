@@ -104,18 +104,18 @@ export async function startRealms(): Promise<void> {
     const contents = el('rv-character'); contents.replaceChildren();
     const xp = s.development.experience, rankUp = s.development.breakthrough;
     for (const line of [`${s.person.rank} · ${s.body.hp.toFixed(0)} / ${s.body.maxHp} vitality`,
-      ...(xp.leveled ? [`${xp.label} · level ${xp.level} · ${xp.peak ? `peak ${xp.stage}, breakthrough required` : `${xp.xpIntoLevel} / ${xp.xpForLevel} experience`}`] : []),
+      ...(xp.leveled ? [`${xp.label} · level ${xp.level} · ${xp.peak ? xp.peakText : `${xp.xpIntoLevel.toLocaleString()} / ${xp.xpForLevel.toLocaleString()} experience`}`] : []),
       ...(xp.achievements.length ? [`Achievements: ${xp.achievements.map(a => a.title).join(' · ')}`] : []),
-      ...(rankUp.next ? [`${rankUp.next} breakthrough: ${rankUp.eligible ? 'ready' : rankUp.reasons.join(' · ')}`] : []),
+      ...(rankUp.next ? [`${rankUp.next} by bodily practice: ${rankUp.underway !== null ? `breakthrough under way, ${Math.ceil(rankUp.underway)} s left; stay still` : rankUp.eligible ? 'ready' : rankUp.reasons.join(' · ')}`] : []),
       ...s.person.inventory.map(i => `${i.name} × ${i.quantity}${i.grade ? ` · ${i.grade}` : ''}`),
       `${s.growth.victories} distinct opposed victories · ${s.growth.forms} demonstrated forms · ${s.growth.essences} learned essences`,
       s.development.recognisedClass?`Recognised vocation: ${s.development.recognisedClass.name} · ${s.development.recognisedClass.evidence.join('; ')}`:'Your actions and practice shape a recognised vocation.',
       ...Object.entries(s.development.skills).filter(([,value])=>value>0).map(([id,value])=>`${id}: ${(value*100).toFixed(1)}% proficiency`),
-      `${s.growth.next??'Further transformation'}: ${s.growth.eligible?'Ready to integrate':s.growth.reasons.join(' · ')}`,
+      `${s.growth.next?`${s.growth.next} by essence integration`:'Further transformation'}: ${s.growth.eligible?'Ready to integrate':s.growth.reasons.join(' · ')}`,
       `Intrinsic force ${s.growth.intrinsicCapacity.amplitude} / reach ${s.growth.intrinsicCapacity.aperture}; with equipment ${s.growth.capacity.amplitude} / ${s.growth.capacity.aperture}`]) { const p = document.createElement('p'); p.textContent = line; contents.append(p); }
     const actionButton=(label:string,action:InteractionCommand)=>{const b=document.createElement('button');b.textContent=label;b.onclick=()=>command(action);contents.append(b);};
     if(s.growth.eligible)actionButton(`Integrate sources — ${s.growth.next}`,{type:'integrate_arcana'});
-    if(rankUp.eligible&&rankUp.next)actionButton(`Attempt the ${rankUp.next} breakthrough`,{type:'advance'});
+    if(rankUp.eligible&&rankUp.next&&rankUp.underway===null)actionButton(`Attempt the ${rankUp.next} breakthrough`,{type:'advance'});
     for(const source of s.growth.sources.filter(i=>!s.growth.learned.some(l=>l.id===i.abilityId)))actionButton(`Study ${source.name}`,{type:'learn_arcana',itemId:source.id});
     for(const action of s.interactions.filter(a=>a.slot!=='nearby'))actionButton(action.label,{type:'interact',interactionId:action.id});
     if(params.has('character')&&!journal) { journal=true; el('rv-sheet').hidden=false; }

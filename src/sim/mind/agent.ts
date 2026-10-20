@@ -22,7 +22,7 @@ import { routineWeight, observeFields } from './routine';
 import { interpretSocial, introduce, learnIdentity, knownName, perceivedName } from './people';
 import { conversationBodies, conversationReachable, socialChoice, socialEvidence } from './socialEvidence';
 import { anchorIdentityToObservation, observableSignature, recognizeEncounter, shareIdentityObservation } from './encounter';
-import { assessAdvancement, assessBreakthrough, assessRankBreakthrough, attemptBreakthrough } from '../core/advancement';
+import { assessAdvancement, assessBreakthrough, assessRankBreakthrough, attemptBreakthrough, rankTrialPlausible } from '../core/advancement';
 import { earnedStanding } from '../progression/experience';
 import { developThroughExertion } from '../core/development';
 import { recordCapabilityPractice } from '../core/capability';
@@ -761,8 +761,8 @@ export class Simulation {
       const advancement = assessAdvancement(w, p);
       if (advancement.eligible) G('advance', 0.35 + p.traits.curiosity * 0.15,
         ['sustained practice, understood technique and recovered foundations permit adaptation'], { causeEvent: advancement.evidenceEventIds.at(-1) });
-    } else if (p.ontology.stage !== 'Normal' && earnedStanding(p)?.peak) {
-      // The cheap level test first: only someone at the peak of their rank can be ready.
+    } else if (p.ontology.stage !== 'Normal' && earnedStanding(p)?.peak && rankTrialPlausible(w, p)) {
+      // Cheap tests first: only someone at peak, with the band's victories and a recovered body.
       const rank = assessRankBreakthrough(w, p);
       if (rank.eligible) G('advance', 0.35 + p.traits.curiosity * 0.15,
         [`peak ${p.ontology.stage}, proven against strong opponents, with the foundations ${rank.next} demands`], { causeEvent: rank.featEventIds[0] });

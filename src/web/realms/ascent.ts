@@ -113,8 +113,9 @@ export async function startCanonicalAscent() {
     const { own, tower } = frame;
     const seen = frame.observedThreat[targetId];
     el('as-title').textContent = `Floor ${tower.floor} · ${tower.clear ? 'Trial cleared' : tower.defeated+'/'+tower.opponents+' wardens'}${seen && !tower.clear ? ` · target looks ${seen.grade} (≈level ${seen.level})` : ''}`;
-    const xp = own.experience, level = xp.leveled ? ` · ${xp.label} (level ${xp.level}) · ${xp.peak ? 'peak' : `${xp.xpIntoLevel}/${xp.xpForLevel} XP`}` : '';
-    el('as-status').textContent = `${own.name} · ${own.rank}${level}\nVitality ${Math.ceil(own.health)}/${own.maxHealth} · Mana ${Math.floor(own.mana)}/${own.capacity.reserve}`;
+    const xp = frame.snapshot.journal.experience;
+    const standing = xp?.leveled ? `${xp.label} (level ${xp.level}) · ${xp.peak ? xp.peakText : `${xp.xpIntoLevel.toLocaleString()} / ${xp.xpForLevel.toLocaleString()} experience`}` : own.rank;
+    el('as-status').textContent = `${own.name} · ${standing}\nVitality ${Math.ceil(own.health)}/${own.maxHealth} · Mana ${Math.floor(own.mana)}/${own.capacity.reserve}`;
     el('as-detail').textContent = `${own.name} · ${own.rank} · Vitality ${Math.ceil(own.health)} / ${own.maxHealth} · Mana ${Math.floor(own.mana)} / ${own.capacity.reserve} · Breath ${Math.round(own.breath * 100)}% · Fatigue ${Math.round(own.fatigue * 100)}% · Food ${Math.round(own.food * 100)}% · Water ${Math.round(own.water * 100)}% · ${tower.defeated}/${tower.opponents} wardens`;
     el('as-goal').textContent = tower.floor===100&&tower.clear?'Summit recognition · Journey for requirements':tower.clear?'Open award chest · E take · F ascend':'Defeat the wardens · G guard · Space dodge';
     const rest = frame.snapshot.abilities.find(a => a.id === 'rest' || a.id === 'wake');
@@ -129,7 +130,7 @@ export async function startCanonicalAscent() {
     }
     const sources = el('as-sources'); sources.replaceChildren();
     if (own.growth.next) {
-      const status = document.createElement('p'); status.textContent = `${own.growth.next}: ${own.growth.eligible ? 'Ready to integrate earned sources' : own.growth.reasons.join(' · ')}`; sources.append(status);
+      const status = document.createElement('p'); status.textContent = `${own.growth.next} by essence integration: ${own.growth.eligible ? 'Ready to integrate earned sources' : own.growth.reasons.join(' · ')}`; sources.append(status);
       if (own.growth.eligible) button(sources, `Integrate sources — ${own.growth.next}`, () => { release(); send({ type: 'integrate_arcana' }); });
     }
     for (const i of own.sources.filter(i => !own.learned.some(s => s.id === i.abilityId))) button(sources, `Study ${i.name}`, () => send({ type: 'learn_arcana', itemId: i.id }));

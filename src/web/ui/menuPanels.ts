@@ -102,8 +102,8 @@ export function journalTab(svc: PanelServices): TabDef {
       const left = h('div', null, h('h2', { class: 'tv-h2', text: own?.name ?? 'You' }), h('div', { class: 'tv-sub', text: `Stage: ${j.stage}` }),
         ...(xp?.leveled ? [h('h2', { class: 'tv-h2', style: 'margin-top:1rem', text: `${xp.label} · level ${xp.level}` }),
           h('div', { class: 'tv-meter' }, h('i', { style: { width: `${xp.peak ? 100 : Math.min(100, xp.xpIntoLevel / Math.max(1, xp.xpForLevel) * 100)}%` } })),
-          h('div', { class: 'tv-sub', text: xp.peak ? `Peak ${xp.stage}: only a breakthrough leads on · ${xp.lifetimeXp} lifetime experience`
-            : `${xp.xpIntoLevel} / ${xp.xpForLevel} experience · ${xp.rankXp} of ${xp.peakXp} to peak ${xp.stage}` }),
+          h('div', { class: 'tv-sub', text: xp.peak ? `${xp.peakText} ${xp.lifetimeXp.toLocaleString()} lifetime experience`
+            : `${xp.xpIntoLevel.toLocaleString()} / ${xp.xpForLevel.toLocaleString()} experience · ${xp.rankXp.toLocaleString()} of ${xp.peakXp.toLocaleString()} to peak ${xp.stage}` }),
           xp.vessel ? h('div', { class: 'tv-sub', text: `${xp.vessel.stage} vessel: ×${xp.vessel.resilience} resilience, ×${xp.vessel.force} force, foundations to ${xp.vessel.ceiling}` }) : null] : []),
         h('h2', { class: 'tv-h2', style: 'margin-top:1rem', text: 'Condition' }),
         h('div', { class: 'tv-grid', style: 'gap:.35rem' }, meter('Energy', j.condition.energy), meter('Hydration', j.condition.hydration), meter('Fatigue', j.condition.fatigue, false), meter('Sleep debt', Math.min(1, j.condition.sleepDebt / 24), false)),

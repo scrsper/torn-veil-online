@@ -164,6 +164,18 @@ export function advanceRank(world: World, p: Person): boolean {
   p.physiology.energy = Math.max(0, p.physiology.energy - 0.25); p.physiology.hydration = Math.max(0, p.physiology.hydration - 0.25); p.physiology.fatigue = Math.min(1, p.physiology.fatigue + 0.4);
   p.ontology = { stage: a.next, breakthroughEventId: event.id }; onBreakthrough(world, p, event); return true;
 }
+/** A breakthrough already under way through the shared timed action: seconds left, else null. */
+export function breakthroughUnderway(world: World, p: Person): number | null {
+  const a = p.mind.plan.find(x => x.type === 'attempt_breakthrough' && x.status !== 'failed' && x.status !== 'done');
+  return a ? Math.max(0, (a.duration ?? 60) - Math.max(0, world.now - (a.startedAt ?? world.now))) : null;
+}
+/** Cheap persistent blockers checked before the full trial assessment (NPC think() at peak):
+ * the current band's victories and a recovered body. */
+export function rankTrialPlausible(world: World, p: Person): boolean {
+  const next = isLeveledRank(p.ontology.stage) ? nextRank(p.ontology.stage) : null;
+  const trial = next && next !== 'Normal' && next !== 'Iron' ? EMBODIED_TRIALS[next] : undefined;
+  return !!trial && featsAtLeast(world, p, trial.featLevel).length >= trial.feats && bodilyReadiness(world, p).length === 0;
+}
 /** The shared breakthrough intent for players and NPCs: Iron from Normal, then the rank trials. */
 export function assessBreakthrough(world: World, p: Person): { eligible: boolean; next: string | null; reasons: string[]; path: { skill: SkillId; core: AttributeId[] } | null } {
   if (p.ontology.stage === 'Normal') { const a = assessAdvancement(world, p); return { eligible: a.eligible, next: 'Iron', reasons: a.reasons, path: a.path ?? null }; }

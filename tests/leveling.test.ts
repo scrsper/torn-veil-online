@@ -14,11 +14,12 @@ import { deserialize, serialize } from '../src/sim/persist/save';
 import { learnArcaneSource, requestArcaneCast, stepArcana } from '../src/sim/physical/arcana/runtime';
 import { advanceExertion } from '../src/sim/physical/exertion';
 import { arcaneCapacity, assessArcaneTransformation, integrateArcaneSources, TRANSFORMATIONS } from '../src/sim/physical/arcana/growth';
-import { creditExperience, earnedStanding, experienceSummary, recentAnnouncements } from '../src/sim/progression/experience';
+import { creditExperience, earnedStanding, experienceSummary, peakText, recentAnnouncements } from '../src/sim/progression/experience';
 import { creatureThreat, itemGrade, observedThreat, personThreat } from '../src/sim/progression/threat';
 import { attributeProfile } from '../src/sim/core/human';
 import { changeEquipment } from '../src/sim/physical/equipment';
-import { carriedItemRows } from '../src/bridge/playerActions';
+import { abilityRows, carriedItemRows } from '../src/bridge/playerActions';
+import { breakthroughUnderway } from '../src/sim/core/advancement';
 import {
   defeatXp, EMBODIED_TRIALS, floorLevel, gapFactor, LEVELED_RANKS, levelForPower, peakXp, rankOfLevel, standing, VESSELS, xpToNext,
 } from '../src/sim/progression/levels';
@@ -458,5 +459,20 @@ describe('review regressions: encounters, pricing and saves', () => {
       q.vessel = { version: 1, stage: 'Diamond', eventId: e.id, ...VESSELS.Diamond, base: { [q.bodies[0]]: 80 } };
     });
     expect(forged).toBeNull();
+  });
+});
+
+describe('breakthrough flow and summit wording', () => {
+  it('shows a breakthrough under way instead of offering to restart it, and names the summit', () => {
+    const tw = createTestWorld(4120, 24), p = addPerson(tw, 'Steady', 'villager', v(12, 1, 12), { controlled: true });
+    tw.world.clock.timeScale = 1; initializeNearIronFixture(tw.world, p); p.capability!.bySkill.crafting.effectiveSeconds += 0.1;
+    expect(abilityRows(tw.sim, p).find(r => r.id === 'advance')!.available).toBe(true);
+    const game = new GameSim(tw.sim); game.attach('human', p.id);
+    expect(game.intend('human', { kind: 'advance' })).toBe(true); advanceKernelLab(tw.world, tw.sim, 10);
+    const left = breakthroughUnderway(tw.world, p)!; expect(left).toBeGreaterThan(40); expect(left).toBeLessThan(60);
+    const row = abilityRows(tw.sim, p).find(r => r.id === 'advance')!;
+    expect(row.available).toBe(false); expect(row.reason).toMatch(/already under way/);
+    advanceKernelLab(tw.world, tw.sim, 55); expect(p.ontology.stage).toBe('Iron'); expect(breakthroughUnderway(tw.world, p)).toBeNull();
+    expect(peakText('Diamond')).toMatch(/summit/); expect(peakText('Iron')).toMatch(/breakthrough/);
   });
 });

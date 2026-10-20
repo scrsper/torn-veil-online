@@ -148,7 +148,7 @@ export interface JournalProjection {
 export interface ExperienceProjection {
   stage: string; leveled: boolean; label: string; level: number | null; sub: number | null;
   xpIntoLevel: number; xpForLevel: number; rankXp: number; peakXp: number; peak: boolean; lifetimeXp: number; overflowXp: number;
-  defeats: number; bandVictories: Record<string, number>; recent: { kind: string; xp: number }[];
+  defeats: number; bandVictories: Record<string, number>; peakText: string;
   achievements: { id: string; title: string; xp: number }[]; vessel: { stage: string; resilience: number; force: number; ceiling: number } | null;
 }
 export interface MovementState { pos: Vec3; yaw: number; speed: number; eligible: boolean; crouch?: number }

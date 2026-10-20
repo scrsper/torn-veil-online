@@ -48,7 +48,11 @@ export interface RankVessel {
   base: Record<string, number>;
 }
 
-export const MAX_DEFEATED = 4096, MAX_FEATS = 64, MAX_RECEIPTS = 48, MAX_ACHIEVEMENTS = 96;
+export const MAX_DEFEATED = 4096, MAX_FEATS = 64, MAX_RECEIPTS = 12, MAX_ACHIEVEMENTS = 96;
+/** How a full track reads: Diamond is the summit, every other peak waits on a breakthrough. */
+export function peakText(stage: string): string {
+  return stage === 'Diamond' ? 'Peak Diamond: the summit of the leveled ladder.' : `Peak ${stage}: only a breakthrough leads on.`;
+}
 /** The events a feat may name: the defeating blow, or the opponent's own surrender. */
 export const FEAT_EVENTS: readonly string[] = ['attack', 'entity_surrendered'];
 /** Credited feats at or above a level, still backed by their canonical event. */
@@ -69,7 +73,8 @@ const ACHIEVEMENTS: Record<string, { title: string; text: string; levels: number
   // A breakthrough is credited on its own advancement event and stays below one level, so it
   // opens the new rank without emitting anything after the transition itself.
   ...Object.fromEntries(['Iron', 'Bronze', 'Silver', 'Gold', 'Diamond'].map(r => [`breakthrough:${r}`, { title: `${r} Rank`, text: `Broke through to ${r}.`, levels: 0.5 }])),
-  ...Object.fromEntries(['Normal', 'Iron', 'Bronze', 'Silver', 'Gold', 'Diamond'].map(r => [`peak:${r}`, { title: `Peak ${r}`, text: `Filled the ${r} track; only a breakthrough leads on.`, levels: 0 }])),
+  ...Object.fromEntries(['Normal', 'Iron', 'Bronze', 'Silver', 'Gold', 'Diamond'].map(r => [`peak:${r}`, { title: `Peak ${r}`,
+    text: r === 'Diamond' ? 'Filled the Diamond track: the summit of the leveled ladder.' : `Filled the ${r} track; only a breakthrough leads on.`, levels: 0 }])),
 };
 export function achievementInfo(id: string): { title: string; text: string; levels: number } | null {
   if (ACHIEVEMENTS[id]) return ACHIEVEMENTS[id];
@@ -309,8 +314,7 @@ export function recentAnnouncements(w: World, p: Person, limit = 6): { id: strin
   const out: { id: string; kind: 'level' | 'achievement' | 'breakthrough'; text: string }[] = [];
   for (let i = w.events.length - 1, n = 0; i >= 0 && n < 600 && out.length < limit; i--, n++) {
     const e = w.events[i]; if (e.actor !== p.id) continue;
-    if (e.type === 'level_attained') out.push({ id: e.id, kind: 'level', text: e.data.peak
-      ? `Peak ${e.data.stage}. Your track is full: only a breakthrough leads on.`
+    if (e.type === 'level_attained') out.push({ id: e.id, kind: 'level', text: e.data.peak ? peakText(e.data.stage)
       : `Level up: ${e.data.stage} ${e.data.to} (level ${e.data.level}).` });
     else if (e.type === 'achievement_earned') { const info = achievementInfo(e.data.achievement);
       out.push({ id: e.id, kind: 'achievement', text: `Achievement: ${e.data.title}. ${info?.text ?? ''}${e.data.xp > 0 ? ` +${e.data.xp} experience.` : ''}`.trim() }); }
@@ -324,12 +328,11 @@ export function recentAnnouncements(w: World, p: Person, limit = 6): { id: strin
 export function experienceSummary(w: World, p: Person) {
   const s = earnedStanding(p), l = p.experience && p.experience.stage === p.ontology.stage ? p.experience : undefined;
   return {
-    stage: p.ontology.stage, leveled: !!s, label: s?.label ?? p.ontology.stage, level: s?.level ?? null, sub: s?.sub ?? null,
+    stage: p.ontology.stage, leveled: !!s, label: s?.label ?? p.ontology.stage, level: s?.level ?? null, sub: s?.sub ?? null, peakText: peakText(p.ontology.stage),
     xpIntoLevel: Math.floor(s?.xpIntoLevel ?? 0), xpForLevel: s?.xpForLevel ?? 0, rankXp: Math.floor(s?.rankXp ?? 0), peakXp: s?.peakXp ?? 0, peak: !!s?.peak,
     lifetimeXp: Math.floor(p.experience?.lifetimeXp ?? 0), overflowXp: Math.floor(p.experience?.overflowXp ?? 0),
     // Aggregate counts only: the levels of individual defeated people are not projected.
     defeats: p.experience?.tally.defeats ?? 0, bandVictories: Object.fromEntries(LEVELED_RANKS.slice(1).map(r => [r, featsAtLeast(w, p, floorLevel(r)).length])),
-    recent: (l?.receipts ?? []).slice(-8).reverse().map(r => ({ kind: r.kind, xp: Math.round(r.xp) })),
     achievements: Object.entries(p.experience?.achievements ?? {}).sort((a, b) => a[1].tick - b[1].tick || a[0].localeCompare(b[0]))
       .map(([id, a]) => ({ id, title: achievementInfo(id)?.title ?? id, xp: a.xp })),
     vessel: p.vessel ? { stage: p.vessel.stage, resilience: p.vessel.resilience, force: p.vessel.force, ceiling: p.vessel.ceiling } : null,
