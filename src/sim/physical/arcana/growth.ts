@@ -77,7 +77,9 @@ export function recordArcaneEncounter(w: World, p: Person, b: Body, target: Body
     // Healing between blows does not erase the cost of an encounter. Pin its actual
     // attack receipts, including after compaction/reload, instead of sampling final HP.
     const cost = received.reduce((sum, ev) => sum + ev.data.damage, 0);
-    g.victories[target.ownerId] = { eventId: e.id, quality: Math.max(0, 1 - cost / b.maxHealth), receivedEventIds: received.map(e => e.id) };
+    // Control is measured against the original body, so a vessel's larger health does not soften
+    // the unchanged Gold control gate.
+    g.victories[target.ownerId] = { eventId: e.id, quality: Math.max(0, 1 - cost / (p.vessel?.base[b.id] ?? b.maxHealth)), receivedEventIds: received.map(e => e.id) };
   }
 }
 export function assessArcaneTransformation(w: World, p: Person, b: Body) {

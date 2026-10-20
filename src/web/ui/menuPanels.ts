@@ -83,7 +83,7 @@ export function abilitiesTab(svc: PanelServices): TabDef {
       const practice = j.practice as { skill: string; hours: number; level: string; days: number }[];
       if (practice.length) {
         body.append(h('h2', { class: 'tv-h2', style: 'margin-top:1.2rem', text: 'Practice' }));
-        for (const p of practice) body.append(h('div', { class: 'tv-row', style: 'cursor:default' }, h('div', { class: 'grow', text: titleCase(p.skill) }), h('span', { class: 'tv-muted', text: `${p.hours.toFixed(1)} h of ${j.practiceHoursRequired} h · ${p.days} day${p.days === 1 ? '' : 's'} · ${p.level}` })));
+        for (const p of practice) body.append(h('div', { class: 'tv-row', style: 'cursor:default' }, h('div', { class: 'grow', text: titleCase(p.skill) }), h('span', { class: 'tv-muted', text: `${p.hours.toFixed(1)} h${j.practiceHoursRequired ? ` of ${j.practiceHoursRequired} h` : ''} · ${p.days} day${p.days === 1 ? '' : 's'} · ${p.level}` })));
       }
       body.append(h('h2', { class: 'tv-h2', style: 'margin-top:1.2rem', text: 'Practice mode' }),
         h('div', { style: 'display:flex;gap:.4rem;flex-wrap:wrap' },

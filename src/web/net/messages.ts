@@ -140,7 +140,7 @@ export interface JournalProjection {
   commitments: unknown[]; obligations: unknown[]; injuries: unknown[]; skills: unknown[];
   condition: { fatigue: number; energy: number; hydration: number; sleepDebt: number }; stage: string;
   foundations: { id: string; value: number; progress: number }[]; techniques: unknown[]; techniqueHistory: unknown[]; practice: unknown[];
-  practiceHoursRequired: number; veil: unknown; advancement: { eligible: boolean; path: string | null; remaining: string[]; next?: string | null } & Record<string, unknown>;
+  practiceHoursRequired: number | null; veil: unknown; advancement: { eligible: boolean; path: string | null; remaining: string[]; next?: string | null } & Record<string, unknown>;
   experience?: ExperienceProjection;
   [k: string]: unknown;
 }

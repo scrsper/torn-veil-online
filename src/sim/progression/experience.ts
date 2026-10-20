@@ -239,9 +239,10 @@ function creditDefeat(w: World, owner: Person | Creature, tb: Body, ev: WorldEve
     if (rankIndex(rankOfLevel(victimLevel)) > rankIndex(q.ontology.stage)) achieve(w, q, 'rank-breaker', causes, deed);
     if (fights && victimLevel >= own && share >= 0.5 && struck[q.id] === undefined) achieve(w, q, 'untouched', causes, deed);
     if (finisher?.attacker.id === q.id && finisher.ab.health > 0 && finisher.ab.health <= finisher.ab.maxHealth / 6) achieve(w, q, 'last-stand', causes, deed);
-    // A real fight against a stronger opponent is the only stimulus that demands foundations
-    // beyond ordinary work (levels.foundationDemand); the shared develop() limits still apply.
-    if (person) develop(w, q, { weights: d.arcane * 2 > d.damage ? ARCANE_WEIGHTS : MELEE_WEIGHTS, seconds: 600 * share, intensity: 0.8,
+    // A real fight against an opponent beyond ordinary mortal threat is the only stimulus that
+    // demands foundations beyond ordinary work (levels.foundationDemand); ordinary brawls keep
+    // their existing effect on village life. The shared develop() limits still apply.
+    if (person && victimLevel >= floorLevel('Iron')) develop(w, q, { weights: d.arcane * 2 > d.damage ? ARCANE_WEIGHTS : MELEE_WEIGHTS, seconds: 600 * share, intensity: 0.8,
       challenge: foundationDemand(victimLevel), causeEventId: ev.id });
   }
 }

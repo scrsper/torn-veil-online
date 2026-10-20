@@ -200,6 +200,7 @@ describe('rank vessels and the ladder to Diamond', () => {
     expect(advanceToIron(tw.world, p)).toBe(true);
     const rest = () => { p.physiology.fatigue = 0; p.physiology.energy = p.physiology.hydration = 0.95; p.physiology.sleepDebt = 0; };
     rest();
+    expect(playerJournal(tw.world, p).practiceHoursRequired).toBe(EMBODIED_TRIALS.Bronze.practiceHours);
     const blocked = assessRankBreakthrough(tw.world, p);
     expect(blocked.next).toBe('Bronze'); expect(blocked.eligible).toBe(false);
     expect(blocked.reasons.join(' | ')).toMatch(/peak Iron is required.*0\/8 opposed victories.*8 hours/);
@@ -434,10 +435,11 @@ describe('review regressions: encounters, pricing and saves', () => {
     expect(arcaneCapacity(p)).toEqual({ amplitude: 1.6, aperture: 1.2, reserve: 120 });
     expect(deserialize(serialize(tw.world))).not.toBeNull();
   }, 60000);
-  it('values an opponent by capability, never by its rank label', () => {
+  it('values an opponent by capability, never by its rank label, and leaves ordinary brawls\' development alone', () => {
     const tw = createTestWorld(4119), a = addPerson(tw, 'Victor', 'villager', v(10, 1, 10)), labelled = addPerson(tw, 'Labelled', 'villager', v(11, 1, 10));
-    labelled.ontology = { stage: 'Gold' };
+    labelled.ontology = { stage: 'Gold' }; const attributes = { ...a.attributes };
     const e = opposedDefeat(tw, a, labelled, 'label:1');
+    expect(a.attributes).toEqual(attributes);
     expect(e.data.experienceCredits[a.id]).toBeCloseTo(defeatXp(1, 1));
     expect(a.experience!.feats).toEqual([]); expect(a.experience!.achievements['rank-breaker']).toBeUndefined();
     expect(experienceSummary(tw.world, a).bandVictories).toEqual({ Iron: 0, Bronze: 0, Silver: 0, Gold: 0, Diamond: 0 });

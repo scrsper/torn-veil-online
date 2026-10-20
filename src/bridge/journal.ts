@@ -1,6 +1,7 @@
 import type { Person } from '../sim/core/types';
 import type { World } from '../sim/core/world';
 import { assessBreakthrough, IRON_PRACTICE_SECONDS } from '../sim/core/advancement';
+import { EMBODIED_TRIALS } from '../sim/progression/levels';
 import { experienceSummary } from '../sim/progression/experience';
 import { knownName } from '../sim/mind/people';
 import { requestTypeLabel } from '../sim/core/requests';
@@ -44,7 +45,7 @@ export function playerJournal(world: World, p: Person) {
   return {
     commitments, obligations: owed, injuries, skills,
     condition: { fatigue: p.physiology.fatigue, energy: p.physiology.energy, hydration: p.physiology.hydration, sleepDebt: p.physiology.sleepDebt },
-    stage: p.ontology.stage, foundations, techniques, techniqueHistory, practice, practiceHoursRequired: IRON_PRACTICE_SECONDS / 3600,
+    stage: p.ontology.stage, foundations, techniques, techniqueHistory, practice, practiceHoursRequired: advancement.next === 'Iron' ? IRON_PRACTICE_SECONDS / 3600 : EMBODIED_TRIALS[advancement.next as keyof typeof EMBODIED_TRIALS]?.practiceHours ?? null,
     veil: knowsVeil(p) ? { strain: Math.round(veilStrain(world, p) * 100) / 100 } : null,
     advancement: { eligible: advancement.eligible, path: advancement.path ?? null, remaining: advancement.reasons, next: advancement.next },
     // One's own level, experience and achievements are self-knowledge, like foundations.
