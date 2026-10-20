@@ -1,6 +1,7 @@
 # Traversal release integration — October 20, 2026
 
-Release candidate; publication and merge acceptance are still pending. This file
+Published draft [PR 72](https://github.com/scrsper/torn-veil-online/pull/72),
+candidate `e278ec4`; merge acceptance is still pending. This file
 supersedes the stopped local checkpoint as the current release handoff, while
 preserving its evidence in `UNIVERSE_CONTACT_HANDOFF.md`.
 
@@ -73,8 +74,15 @@ release browser tests use a separately identified capability fixture.
   foot-contact regressions. Test groups overlap and must not be added together.
 - 45 tests in six presentation/harness/boundary files passed; three clean-source
   motion-staging tests passed.
+- Four cutover tests passed after adding an explicit real-worker journal replay,
+  repeated cache claim/objectives, checkpoint/JSON reload and retried travel return
+  regression. Exactly one historical silver payout and one current cache remain.
 - Original contact checkpoint 10649 loads read-only with Person `p_5`, Body
   `b_5`, inventory `i_1`–`i_5`, one discovery and inactive town residency.
   Its original checkpoint manifest remains unchanged.
-- Final source checks, browser evidence and CI will be recorded below. No merge
-  approval is inferred from these preliminary results.
+- Integrated attempt 1 (`e278ec4`) passed 23 checks with zero browser/HTTP/asset
+  errors, then stopped before flight: a distance-only watchdog treated ordinary
+  turning as failed walking progress. Safe ordinary return and exact read-only
+  restore of checkpoint 4713 passed, retaining all five items and earned 110 XP.
+  [Preserved evidence](evidence/universe-release/first-run/RESULTS.md). The checker
+  correction, complete journey/restart and final-head CI remain required.

@@ -1,6 +1,6 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 // @ts-expect-error The maintained browser harness is a native Node ES module.
-import {createContactQA, summarizeContactTrace} from '../../scripts/world/presentation-contact-qa.mjs';
+import {createContactQA, summarizeContactTrace, groundRouteProgress, groundTurnPulse} from '../../scripts/world/presentation-contact-qa.mjs';
 
 afterEach(()=>vi.restoreAllMocks());
 
@@ -11,7 +11,7 @@ describe('ordinary ground stop evidence',()=>{
     const response={url:()=> 'http://127.0.0.1:7533/realms/universe/command',ok:()=>accepted,status:()=>accepted?200:409,
       request:()=>({method:()=> 'POST',postDataJSON:()=>({seq:7,command:{type:'input',input:{throttle:0,yaw:0,pitch:0,strafe:0,lift:0,brake:true}}})}),
       json:async()=>({ok:accepted,snapshot:{lastSeq:7,revision:8}})};
-    const page={keyboard:{up:async()=>{}},locator:()=>({click:async()=>{clicked=true;}}),
+    const page={keyboard:{up:async()=>{expect(clicked,'UI Brake must clear game input before keyboard-up round trips').toBe(true);}},locator:()=>({click:async()=>{clicked=true;}}),
       waitForResponse:async(predicate:(r:typeof response)=>boolean)=>{expect(predicate(response)).toBe(true);return response;},
       waitForTimeout:async(ms:number)=>{now+=ms;}};
     const read=async()=>({lastSeq:clicked&&now>=400?7:6,revision:Math.floor(now/100),
@@ -33,6 +33,20 @@ describe('ordinary ground stop evidence',()=>{
     await expect(f.qa.stopGround('refused')).rejects.toThrow('Host did not accept');
     expect(f.report.contactQA.stops[0].settled).toBeUndefined();
   });
+});
+
+it('recognizes the recorded180-to30degree turn progress without relaxing linear stall or route bounds',()=>{
+  let progress={bestDistance:Infinity,bestHeading:Infinity,lastProgress:0,phase:null};
+  for(const [now,angle]of [[0,180],[1289,134],[2534,82],[3763,30],[5048,-21]]){
+    progress=groundRouteProgress(progress,14.3,angle*Math.PI/180,now);
+    expect(now-progress.lastProgress).toBeLessThan(4500);
+  }
+  const lastProgress=progress.lastProgress;
+  for(const [now,angle]of [[6500,21],[8000,-21],[10000,21]])progress=groundRouteProgress(progress,14.3,angle*Math.PI/180,now);
+  expect(progress.lastProgress).toBe(lastProgress);
+  expect(10000-progress.lastProgress).toBeGreaterThan(4500);
+  expect(groundTurnPulse(30*Math.PI/180,180)).toBeLessThan(100);
+  expect(groundTurnPulse(Math.PI,180)).toBe(260);
 });
 
 it('splits contact eligibility by actual stage even when a lock began during the prior stage',()=>{

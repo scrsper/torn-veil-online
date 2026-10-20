@@ -15,6 +15,19 @@ const percentile=(values,p)=>values.length?[...values].sort((a,b)=>a-b)[Math.min
 const anchor={x:0,y:Math.sin(Math.PI/10),z:Math.cos(Math.PI/10)};
 const east={x:1,y:0,z:0},north={x:0,y:anchor.z,z:-anchor.y};
 
+/** Turning toward a waypoint is real progress, but an oscillating or stalled
+ * heading cannot indefinitely refresh the same bounded no-progress timer. */
+export function groundRouteProgress(previous,remaining,headingError,now){
+ const next={...previous},turning=Math.abs(headingError)>.14;
+ if(remaining<next.bestDistance-.15){next.bestDistance=remaining;next.lastProgress=now;}
+ if(turning){
+  if(next.phase!=='turn')next.bestHeading=Infinity;
+  if(Math.abs(headingError)<next.bestHeading-.06){next.bestHeading=Math.abs(headingError);next.lastProgress=now;}
+ }
+ next.phase=turning?'turn':'move';return next;
+}
+export function groundTurnPulse(error,tailMs){return clamp((Math.abs(error)-.03)/1.8*1000-tailMs,20,260);}
+
 // Read-only independent chart math matches the documented home chart. It is
 // used to aim ordinary keys, never to write a body position or request a move.
 export function contactChartPosition(view){
@@ -165,12 +178,12 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
   }
   await save();return summary;
  };
- const release=async()=>{for(const key of ['w','s','a','d','q','e','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'])await page.keyboard.up(key);};
+ const release=async()=>{await Promise.all(['w','s','a','d','q','e','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'].map(key=>page.keyboard.up(key)));};
  // A keyup is local input, not a host acknowledgment. The host may still apply
  // its last movement sample for six ticks. Observe the ordinary Brake request,
  // then distinct authoritative snapshots, before judging a waypoint or posing.
- const stopGround=async label=>{
-  await release();const before=await read(),began=Date.now();
+ const stopGround=async(label,priorView)=>{
+  const before=priorView??await read(),began=Date.now();
   const record={label,before:{position:before.state.position,tick:before.state.tick,lastSeq:before.lastSeq},observations:[]};report.contactQA.stops.push(record);
   if(before.state.mode!=='surface')throw Error('Ground stop requested outside the surface');
   const responsePromise=page.waitForResponse(response=>{
@@ -180,7 +193,9 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
   // Attach rejection handling immediately; a failed click must not leave an
   // unhandled pending observer. This never submits a direct command itself.
   const pending=responsePromise.then(response=>({response}),error=>({error}));
-  await page.locator('[data-brake]').click();const observed=await pending;
+  // The ordinary Brake handler synchronously clears all game keys. Do this
+  // before waiting for keyboard-up round trips or another snapshot read.
+  await page.locator('[data-brake]').click();await release();const observed=await pending;
   if(observed.error)throw Error('Ordinary ground stop received no neutral-command response: '+observed.error);
   const response=observed.response,body=await response.json(),seq=response.request().postDataJSON().seq;
   record.ack={seq,status:response.status(),ok:body.ok,revision:body.snapshot?.revision,lastSeq:body.snapshot?.lastSeq};
@@ -200,11 +215,13 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
  };
  const drive=async(target,label)=>{
   await stage(label);const began=Date.now(),initial=await read(),start=contactChartPosition(initial),attempt={label,target,start,observations:[]};report.contactQA.route.push(attempt);
-  let best=Infinity,lastProgress=Date.now(),settled=false;
+  let progress={bestDistance:Infinity,bestHeading:Infinity,lastProgress:Date.now(),phase:null},settled=false,turnTailMs=0;
   try{
    while(Date.now()-began<18000){
     const view=await read(),p=contactChartPosition(view),remaining=Math.hypot(p.x-target.x,p.z-target.z);
-    attempt.observations.push({elapsed:Date.now()-began,position:p,remaining,heading:view.state.forward,mode:view.state.mode});
+    const {up,desired}=targetDirection(view,target),forward=norm(sub(view.state.forward,mul(up,dot(view.state.forward,up))));
+    const turn=Math.atan2(dot(up,cross(forward,desired)),dot(forward,desired));
+    attempt.observations.push({elapsed:Date.now()-began,position:p,remaining,heading:view.state.forward,headingError:turn,mode:view.state.mode});
     if(view.state.mode!=='surface')throw Error('Ground route left the surface');
     if(remaining<.65){
      const stopped=settled?view:await stopGround(label+'-candidate'),final=contactChartPosition(stopped);
@@ -212,17 +229,29 @@ export function createContactQA({page,report,output,read,capture,save,check,orbi
      if(attempt.candidate.remaining<.65){attempt.reached=final;return;}
      continue;
     }
-    if(remaining<best-.15){best=remaining;lastProgress=Date.now();}
-    if(Date.now()-lastProgress>4500)throw Error('Ground waypoint made no progress for 4.5 seconds');
-    const {up,desired}=targetDirection(view,target),forward=norm(sub(view.state.forward,mul(up,dot(view.state.forward,up))));
-    const turn=Math.atan2(dot(up,cross(forward,desired)),dot(forward,desired));
+    progress=groundRouteProgress(progress,remaining,turn,Date.now());
+    if(Date.now()-progress.lastProgress>4500)throw Error('Ground waypoint made no linear or angular progress for 4.5 seconds');
+    let requestedTurnMs=null;
     if(Math.abs(turn)>.14){
      await page.keyboard.up('w');const key=turn>0?'ArrowLeft':'ArrowRight';
-     await page.keyboard.down(key);await page.waitForTimeout(clamp(Math.abs(turn)/1.8*1000,100,260));await page.keyboard.up(key);
+     requestedTurnMs=groundTurnPulse(turn,turnTailMs);
+     const requested=page.waitForRequest(request=>{
+      if(new URL(request.url()).pathname!=='/realms/universe/command'||request.method()!=='POST')return false;
+      try{const p=request.postDataJSON();return p.seq>(view.lastSeq??0)&&p.command?.type==='input'&&p.command.input.yaw===Math.sign(turn);}catch{return false;}
+     },{timeout:3000}).then(request=>({request}),error=>({error}));
+     await page.keyboard.down(key);const observed=await requested;
+     if(observed.error)throw Error('Ordinary turn input was not sent to the host');
+     await page.waitForTimeout(requestedTurnMs);
     }else{
-     await page.keyboard.down('w');await page.waitForTimeout(clamp((remaining-.5)/7*1000,100,550));await page.keyboard.up('w');
+     await page.keyboard.down('w');await page.waitForTimeout(clamp((remaining-.5)/7*1000,100,550));
     }
-    await stopGround(label+'-pulse');settled=true;
+    const stopped=await stopGround(label+'-pulse',view);settled=true;
+    if(requestedTurnMs!==null){
+     const actual=Math.abs(Math.atan2(dot(up,cross(forward,stopped.state.forward)),dot(forward,stopped.state.forward)));
+     const measuredTail=clamp(actual/1.8*1000-requestedTurnMs,0,300);
+     turnTailMs=turnTailMs*.4+measuredTail*.6;
+     attempt.turns??=[];attempt.turns.push({requestedMs:requestedTurnMs,actualRadians:actual,estimatedTailMs:turnTailMs});
+    }
    }
    throw Error('Ground waypoint exceeded the 18-second bound');
   }finally{await release();attempt.elapsed=Date.now()-began;await save();}
